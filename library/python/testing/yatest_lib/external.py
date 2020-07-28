@@ -8,6 +8,7 @@ import logging
 from . import tools
 from datetime import date, datetime
 
+import enum
 import six
 
 logger = logging.getLogger(__name__)
@@ -66,6 +67,8 @@ def serialize(value):
             return val
         if isinstance(val, six.string_types) or isinstance(val, bytes):
             return tools.to_utf8(val)
+        if isinstance(val, enum.Enum):
+            return str(val)
         if isinstance(val, six.integer_types) or type(val) in [float, bool]:
             return val
         if is_external(val):

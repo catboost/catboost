@@ -1,4 +1,4 @@
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 #include <catboost/libs/metrics/optimal_const_for_loss.h>
 #include <catboost/private/libs/options/restrictions.h>

@@ -1,0 +1,65 @@
+cdef extern from "util/generic/list.h":
+    cdef cppclass TList[T]:
+        TList() except +
+        TList(TList&) except +
+        TList(size_t, T&) except +
+
+        cppclass iterator:
+            iterator()
+            iterator(iterator &)
+            T& operator*()
+            iterator operator++()
+            iterator operator--()
+            bint operator==(iterator)
+            bint operator!=(iterator)
+        cppclass reverse_iterator:
+            reverse_iterator()
+            reverse_iterator(iterator &)
+            T& operator*()
+            reverse_iterator operator++()
+            reverse_iterator operator--()
+            bint operator==(reverse_iterator)
+            bint operator!=(reverse_iterator)
+        cppclass const_iterator(iterator):
+            pass
+        cppclass const_reverse_iterator(reverse_iterator):
+            pass
+        bint operator==(TList&, TList&)
+        bint operator!=(TList&, TList&)
+        bint operator<(TList&, TList&)
+        bint operator>(TList&, TList&)
+        bint operator<=(TList&, TList&)
+        bint operator>=(TList&, TList&)
+        void assign(size_t, T&)
+        T& back()
+        iterator begin()
+        const_iterator const_begin "begin"()
+        void clear()
+        bint empty()
+        iterator end()
+        const_iterator const_end "end"()
+        iterator erase(iterator)
+        iterator erase(iterator, iterator)
+        T& front()
+        iterator insert(iterator, T&)
+        void insert(iterator, size_t, T&)
+        size_t max_size()
+        void merge(TList&)
+        void pop_back()
+        void pop_front()
+        void push_back(T&)
+        void push_front(T&)
+        reverse_iterator rbegin()
+        const_reverse_iterator const_rbegin "rbegin"()
+        void remove(T&)
+        reverse_iterator rend()
+        const_reverse_iterator const_rend "rend"()
+        void resize(size_t, T&)
+        void reverse()
+        size_t size()
+        void sort()
+        void swap(TList&)
+        void splice(iterator, TList&)
+        void splice(iterator, TList&, iterator)
+        void splice(iterator, TList&, iterator, iterator)
+        void unique()

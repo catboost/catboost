@@ -17,9 +17,6 @@
 struct TGUID {
     ui32 dw[4] = {};
 
-    constexpr TGUID() {
-    }
-
     constexpr bool IsEmpty() const noexcept {
         return (dw[0] | dw[1] | dw[2] | dw[3]) == 0;
     }
@@ -53,12 +50,12 @@ struct THash<TGUID> {
 void CreateGuid(TGUID* res);
 TString GetGuidAsString(const TGUID& g);
 TString CreateGuidAsString();
-TGUID GetGuid(const TString& s);
-bool GetGuid(const TString& s, TGUID& result);
+TGUID GetGuid(TStringBuf s);
+bool GetGuid(TStringBuf s, TGUID& result);
 
 /**
 * Functions for correct parsing RFC4122 GUID, which described in
 * https://en.wikipedia.org/wiki/Universally_unique_identifier
 **/
-TGUID GetUuid(const TString& s);
-bool GetUuid(const TString& s, TGUID& result);
+TGUID GetUuid(TStringBuf s);
+bool GetUuid(TStringBuf s, TGUID& result);

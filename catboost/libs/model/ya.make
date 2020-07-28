@@ -33,9 +33,9 @@ PEERDIR(
     library/cpp/binsaver
     library/cpp/containers/dense_hash
     library/cpp/dbg_output
-    library/fast_exp
+    library/cpp/fast_exp
     library/cpp/json
-    library/object_factory
+    library/cpp/object_factory
     library/cpp/svnversion
 )
 

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <library/cpp/json/json_value.h>
-#include <library/langs/langs.h>
+#include <library/cpp/langs/langs.h>
 
 #include <util/ysaveload.h>
 #include <util/generic/hash_set.h>

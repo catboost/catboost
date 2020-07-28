@@ -4,7 +4,7 @@ LIBRARY()
 
 
 
-VERSION(5.5)
+VERSION(5.7)
 
 LICENSE(GPL-2.0 WITH Linux-syscall-note)
 

@@ -24,6 +24,7 @@ SRCS(
    kernel/dot_product.cu
    kernel/fill.cu
    kernel/filter.cu
+   kernel/mvs.cu
    kernel/operators.cu
    kernel/partitions.cu
    kernel/random.cu

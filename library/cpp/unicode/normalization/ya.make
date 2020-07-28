@@ -16,7 +16,7 @@ IF(NOT CATBOOST_OPENSOURCE)
         custom_encoder.cpp
     )
     PEERDIR(
-        library/charset
+        library/cpp/charset
     )
     GENERATE_ENUM_SERIALIZATION(normalization.h)
 ENDIF()

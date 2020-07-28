@@ -1,4 +1,4 @@
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 #include <catboost/cuda/cuda_lib/serialization/task_factory.h>
 #include <catboost/cuda/cuda_lib/tasks_impl/kernel_task.h>
 

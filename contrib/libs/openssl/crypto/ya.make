@@ -1182,7 +1182,6 @@ IF (OS_ANDROID AND ARCH_X86_64)
         -DMD5_ASM
         -DGHASH_ASM
         -DX25519_ASM
-        -D__ANDROID_API__=21
     )
     SRCS(
         ../asm/android/x86_64/crypto/ec/x25519-x86_64.s
@@ -1231,7 +1230,6 @@ IF (OS_ANDROID AND ARCH_I686)
         -DRMD160_ASM
         -DWHIRLPOOL_ASM
         -DGHASH_ASM
-        -D__ANDROID_API__=15
     )
     SRCS(
         ../asm/android/i686/crypto/ec/ecp_nistz256-x86.s
@@ -1276,7 +1274,6 @@ IF (OS_ANDROID AND ARCH_ARM7)
         -DAES_ASM
         -DBSAES_ASM
         -DGHASH_ASM
-        -D__ANDROID_API__=15
     )
     SRCS(
         ../asm/android/arm/crypto/ec/ecp_nistz256-armv4.S
@@ -1309,7 +1306,6 @@ ENDIF()
 IF (OS_ANDROID AND ARCH_ARM64)
     CFLAGS(
        -DOPENSSL_PIC
-       -D__ANDROID_API__=21 
     )
     SRCS(
         ../asm/android/arm64/crypto/ec/ecp_nistz256-armv8.S

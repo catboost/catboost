@@ -129,7 +129,7 @@ namespace NCatboostCuda {
 
         TQuerywiseSampler& GetQueriesSampler() const {
             if (QueriesSampler == nullptr) {
-                QueriesSampler = new TQuerywiseSampler();
+                QueriesSampler = MakeHolder<TQuerywiseSampler>();
             }
             return *QueriesSampler;
         }

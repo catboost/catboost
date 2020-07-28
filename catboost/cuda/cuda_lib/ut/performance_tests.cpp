@@ -1,4 +1,4 @@
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 #include <iostream>
 #include <thread>
 #include <catboost/libs/helpers/cpu_random.h>

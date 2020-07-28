@@ -3,7 +3,7 @@
 #include <catboost/private/libs/algo/apply.h>
 #include <catboost/libs/train_lib/train_model.h>
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 using namespace std;
 using namespace NCB;
@@ -35,10 +35,10 @@ static void AssertModelSumEqualSliced(TDataProviderPtr dataProvider, bool change
         {&evalResult});
 
     if (changeScale) {
-        bigModel.SetScaleAndBias({0.5, bigModel.GetScaleAndBias().Bias});
+        bigModel.SetScaleAndBias({0.5, bigModel.GetScaleAndBias().GetBiasRef()});
     }
     if (changeBias) {
-        bigModel.SetScaleAndBias({bigModel.GetScaleAndBias().Scale, 0.125});
+        bigModel.SetScaleAndBias({bigModel.GetScaleAndBias().Scale, {0.125}});
     }
     auto bigResult = ApplyModelMulti(bigModel, *(dataProvider->ObjectsData));
     bigModel.ModelTrees.GetMutable()->DropUnusedFeatures();

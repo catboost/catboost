@@ -63,7 +63,7 @@
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
-      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)$(Configuration)/library/cpp/unittest;$(SolutionDir)../contrib/libs/libf2c;$(SolutionDir)../contrib/libs/protobuf;$(SolutionDir)../contrib/libs/protobuf/google/protobuf;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)$(Configuration)/library/cpp/testing/common;$(SolutionDir)../contrib/libs/libf2c;$(SolutionDir)../contrib/libs/protobuf;$(SolutionDir)../contrib/libs/protobuf/src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;$(SolutionDir)$(Configuration)\MSVS\262F6CF9-EB50-BD91-AC9B-1967CC6B84F7\cb_dsv_loader.obj;$(SolutionDir)$(Configuration)\MSVS\262F6CF9-EB50-BD91-AC9B-1967CC6B84F7\libsvm_loader.obj;$(SolutionDir)$(Configuration)\MSVS\A51525C5-634E-FC35-5327-3CD4A8F2B67F\formula_evaluator.obj;$(SolutionDir)$(Configuration)\MSVS\A51525C5-634E-FC35-5327-3CD4A8F2B67F\model_import_interface.obj;$(SolutionDir)$(Configuration)\MSVS\62440384-FCD2-5217-9DB5-BBEF00D51E9B\exists_checker.obj;$(SolutionDir)$(Configuration)\MSVS\62440384-FCD2-5217-9DB5-BBEF00D51E9B\line_data_reader.obj;$(SolutionDir)$(Configuration)\MSVS\99DC1DEE-5972-B246-E371-76454FEDA000\loader.obj;$(SolutionDir)$(Configuration)\MSVS\FB7B0D88-A00A-6D89-CEDA-F16BC181EC85\bm25.obj;$(SolutionDir)$(Configuration)\MSVS\FB7B0D88-A00A-6D89-CEDA-F16BC181EC85\bow.obj;$(SolutionDir)$(Configuration)\MSVS\FB7B0D88-A00A-6D89-CEDA-F16BC181EC85\naive_bayesian.obj;$(SolutionDir)$(Configuration)\MSVS\A945C0FD-E868-BBA0-1189-19BBB2296292\cpu_id_check.obj;$(SolutionDir)$(Configuration)\MSVS\800E8F90-0E45-1435-7ACC-B0DA06C3FAC7\lemmer_impl.obj;%(AdditionalDependencies)</AdditionalDependencies>
@@ -230,6 +230,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\fmath\contrib-libs-fmath.vcxproj">
       <Project>{90F91270-0728-ADD6-69B3-0B2735FE25FB}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libc_compat\contrib-libs-libc_compat.vcxproj">
+      <Project>{116AA49B-0C0D-7CF7-45DB-A708FB126C84}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libf2c\contrib-libs-libf2c.vcxproj">
       <Project>{ACC03840-E215-DC54-B209-59FA03988A57}</Project>
     </ProjectReference>
@@ -296,6 +299,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\enumbitset\library-cpp-enumbitset.vcxproj">
       <Project>{6440B812-5ED4-4365-7564-0F5EC4AEDBBC}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\fast_exp\library-cpp-fast_exp.vcxproj">
+      <Project>{619D2CC0-4F2C-17C8-8D5C-C873EAB19EA9}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\getopt\small\cpp-getopt-small.vcxproj">
       <Project>{58379026-CFDC-70D1-4FC0-7A73F77E31B5}</Project>
     </ProjectReference>
@@ -314,6 +320,15 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\json\writer\cpp-json-writer.vcxproj">
       <Project>{94F66460-BD28-7C46-313B-A5F2876E26F8}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\langmask\library-cpp-langmask.vcxproj">
+      <Project>{1E76F603-7AB0-A560-A16D-D6FDEE84CA84}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\langs\library-cpp-langs.vcxproj">
+      <Project>{7A259257-161F-BD3F-016E-D02C15A4826D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\lcs\library-cpp-lcs.vcxproj">
+      <Project>{227C35F3-9B89-E80F-1555-7BB4ED1F6FFC}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\logger\global\cpp-logger-global.vcxproj">
       <Project>{4A8A1664-2BAB-5432-B287-171C2954FDA1}</Project>
     </ProjectReference>
@@ -325,6 +340,12 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\malloc\system\cpp-malloc-system.vcxproj">
       <Project>{54C3F326-D733-B490-93B9-EEA3BE28C3A9}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\object_factory\library-cpp-object_factory.vcxproj">
+      <Project>{6D119854-6D47-C914-7B2B-E6ECF111A695}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\overloaded\library-cpp-overloaded.vcxproj">
+      <Project>{8FA80072-6B06-87FC-6917-262EEFBEA5FB}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\pop_count\library-cpp-pop_count.vcxproj">
       <Project>{6B557DF5-6D6B-ECE1-B5B5-9CD1B8625387}</Project>
@@ -346,6 +367,15 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\terminate_handler\library-cpp-terminate_handler.vcxproj">
       <Project>{8776CDC6-8FD3-11B1-5A42-EAE93F81174A}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\testing\common\cpp-testing-common.vcxproj">
+      <Project>{68BC6E30-C1B2-55F8-2F66-99AE7F9777EC}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\testing\unittest\cpp-testing-unittest.vcxproj">
+      <Project>{A4CAA34B-E96C-B010-71AC-2425B5C8B123}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\testing\unittest_main\cpp-testing-unittest_main.vcxproj">
+      <Project>{A5C8D0A0-7CC3-5E2B-6D01-0262E6253DEA}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\text_processing\dictionary\cpp-text_processing-dictionary.vcxproj">
       <Project>{73E0C414-7306-5CAF-23A6-CCF99172A94D}</Project>
@@ -370,30 +400,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\unicode\normalization\cpp-unicode-normalization.vcxproj">
       <Project>{6E0E64B9-3A05-DBD1-DC49-86C427EBD124}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\unittest\library-cpp-unittest.vcxproj">
-      <Project>{C72133F9-206D-B2D7-6A76-B25C00AB3D53}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\unittest\main\cpp-unittest-main.vcxproj">
-      <Project>{FCE80D39-1C22-515D-5496-00EC1DCE2551}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\fast_exp\library-fast_exp.vcxproj">
-      <Project>{E0EC7772-5C0F-6407-290B-3900C3FF324B}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\langmask\library-langmask.vcxproj">
-      <Project>{54EC8CF1-9FAA-FA14-D0CE-A8E86B1F0A3B}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\langs\library-langs.vcxproj">
-      <Project>{1660E94D-B0FA-8C52-3B1B-10230401A2CA}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\lcs\library-lcs.vcxproj">
-      <Project>{E815EB4E-987D-1ECC-5BB6-03920E993386}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\object_factory\library-object_factory.vcxproj">
-      <Project>{F7622D70-2702-4C7E-04DA-52DC56DF911E}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\overloaded\library-overloaded.vcxproj">
-      <Project>{2CE71367-048B-26B0-2DAC-CA9BB7D00E76}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_serialization_runtime\tools-enum_parser-enum_serialization_runtime.vcxproj">
       <Project>{F745D73A-277F-A595-1468-618C82B9B77E}</Project>

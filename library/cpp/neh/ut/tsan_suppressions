@@ -1,0 +1,5 @@
+# ThreadSanitizer suppressions file for library/cpp/neh/ut
+race:ssleay_rand_add
+race:ssleay_rand_bytes
+race:NNetliba::TUdpHost::CancelWait
+race:NNetliba::NetAckRnd

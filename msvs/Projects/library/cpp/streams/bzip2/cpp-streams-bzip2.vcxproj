@@ -96,6 +96,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libbz2\contrib-libs-libbz2.vcxproj">
       <Project>{22D13723-C5D2-BCB5-73F8-368EA5B1CBE5}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libc_compat\contrib-libs-libc_compat.vcxproj">
+      <Project>{116AA49B-0C0D-7CF7-45DB-A708FB126C84}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
       <Project>{E8A35EC0-40EE-2D96-1FB2-D065B804958D}</Project>
     </ProjectReference>

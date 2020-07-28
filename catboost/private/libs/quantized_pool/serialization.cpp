@@ -206,9 +206,12 @@ static TPoolMetainfo MakePoolMetainfo(
                 pbColumnType = NCB::NIdl::CT_SPARSE;
                 break;
             case EColumn::Timestamp:
+                pbColumnType = NCB::NIdl::CT_TIMESTAMP;
+                break;
             case EColumn::Prediction:
             case EColumn::Auxiliary:
             case EColumn::Text:
+            case EColumn::NumVector:
                 ythrow TCatBoostException() << "unexpected column type in quantized pool";
         }
 
@@ -689,14 +692,15 @@ NCB::TQuantizedPoolDigest NCB::GetQuantizedPoolDigest(
             case NCB::NIdl::CT_GROUP_ID:
                 ++digest.NonFeatureColumnCount;
                 break;
+            case NCB::NIdl::CT_TIMESTAMP:
+                ++digest.NonFeatureColumnCount;
+                break;
             case NCB::NIdl::CT_CATEGORICAL:
                 // TODO(yazevnul): account them too when categorical features will be quantized
                 break;
             case NCB::NIdl::CT_SPARSE:
                 // not implemented in CatBoost yet
                 break;
-            case NCB::NIdl::CT_TIMESTAMP:
-                // not implemented for quantization yet;
             case NCB::NIdl::CT_PREDICTION:
             case NCB::NIdl::CT_AUXILIARY:
                 // these are always ignored

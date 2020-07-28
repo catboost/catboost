@@ -18,7 +18,6 @@ struct TErrorMessageHolder {
 using namespace NCB;
 
 static TDataProviderPtr MakeDataProvider(
-    bool isGpu,
     TConstArrayRef<float> features,
     ui32 fCount,
     TConstArrayRef<float> labels,
@@ -26,8 +25,7 @@ static TDataProviderPtr MakeDataProvider(
     TConstArrayRef<float> baseline
     ) {
 
-    TDataProviderBuilderOptions builderOptions{!isGpu,
-                                               false};
+    TDataProviderBuilderOptions builderOptions;
 
     THolder<IDataProviderBuilder> dataProviderBuilder;
     IRawFeaturesOrderDataVisitor* builderVisitor;
@@ -86,13 +84,13 @@ TDataProviders MakeDataProviders(TDataProviderPtr learn, TDataProviderPtr test) 
     return providers;
 }
 
-static inline TDataProviderPtr MakeProvider(bool gpu, const TDataSet& ds) {
+static inline TDataProviderPtr MakeProvider(const TDataSet& ds) {
 
     TConstArrayRef<float> features(ds.Features, ds.FeaturesCount * ds.SamplesCount);
     TConstArrayRef<float> labels(ds.Labels,  ds.SamplesCount);
     TConstArrayRef<float> weights(ds.Weights,  ds.SamplesCount);
     TConstArrayRef<float> baseline(ds.Baseline,  ds.SamplesCount * ds.BaselineDim);
-    return MakeDataProvider(gpu, features, (ui32)ds.FeaturesCount, labels, weights, baseline);
+    return MakeDataProvider(features, (ui32)ds.FeaturesCount, labels, weights, baseline);
 }
 
 
@@ -125,7 +123,7 @@ CATBOOST_API int OutputDim(ResultHandle handle) {
 
 CATBOOST_API int TreeDepth(ResultHandle handle, int treeIndex) {
     if (handle) {
-        return (int) RESULT_PTR(handle)->ModelTrees->GetTreeSizes()[treeIndex];
+        return (int) RESULT_PTR(handle)->ModelTrees->GetModelTreeData()->GetTreeSizes()[treeIndex];
     }
     return 0;
 }
@@ -141,30 +139,30 @@ CATBOOST_API bool CopyTree(
         try {
             const auto modelTrees = RESULT_PTR(handle)->ModelTrees.GetMutable();
 
-            size_t treeLeafCount = (1uLL << modelTrees->GetTreeSizes()[treeIndex]) * modelTrees->GetDimensionsCount();
+            size_t treeLeafCount = (1uLL << modelTrees->GetModelTreeData()->GetTreeSizes()[treeIndex]) * modelTrees->GetDimensionsCount();
             auto srcLeafValues = modelTrees->GetFirstLeafPtrForTree(treeIndex);
-            const auto& srcWeights = modelTrees->GetLeafWeights();
+            const auto& srcWeights = modelTrees->GetModelTreeData()->GetLeafWeights();
 
             for (size_t idx = 0; idx < treeLeafCount; ++idx) {
                 leaves[idx] = (float) srcLeafValues[idx];
             }
 
             const size_t weightOffset = modelTrees->GetFirstLeafOffsets()[treeIndex] / modelTrees->GetDimensionsCount();
-            for (size_t idx = 0; idx < (1uLL << modelTrees->GetTreeSizes()[treeIndex]); ++idx) {
+            for (size_t idx = 0; idx < (1uLL << modelTrees->GetModelTreeData()->GetTreeSizes()[treeIndex]); ++idx) {
                 weights[idx] = (float) srcWeights[idx + weightOffset];
             }
 
             int treeSplitEnd;
-            if (treeIndex + 1 < modelTrees->GetTreeStartOffsets().ysize()) {
-                treeSplitEnd = modelTrees->GetTreeStartOffsets()[treeIndex + 1];
+            if (treeIndex + 1 < modelTrees->GetModelTreeData()->GetTreeStartOffsets().ysize()) {
+                treeSplitEnd = modelTrees->GetModelTreeData()->GetTreeStartOffsets()[treeIndex + 1];
             } else {
-                treeSplitEnd = modelTrees->GetTreeSplits().ysize();
+                treeSplitEnd = modelTrees->GetModelTreeData()->GetTreeSplits().ysize();
             }
             const auto& binFeatures = modelTrees->GetBinFeatures();
 
-            const auto offset = modelTrees->GetTreeStartOffsets()[treeIndex];
+            const auto offset = modelTrees->GetModelTreeData()->GetTreeStartOffsets()[treeIndex];
             for (int idx = offset; idx < treeSplitEnd; ++idx) {
-                auto split = binFeatures[modelTrees->GetTreeSplits()[idx]];
+                auto split = binFeatures[modelTrees->GetModelTreeData()->GetTreeSplits()[idx]];
                 CB_ENSURE(split.Type == ESplitType::FloatFeature);
                 features[idx - offset] = split.FloatFeature.FloatFeature;
                 conditions[idx - offset] = split.FloatFeature.Split;
@@ -183,7 +181,7 @@ CATBOOST_API bool TrainCatBoost(const TDataSet* trainPtr,
                                 ResultHandle* handlePtr) {
     const auto& train = *trainPtr;
     const auto& test = *testPtr;
-    THolder<TFullModel> model = new TFullModel;
+    THolder<TFullModel> model = MakeHolder<TFullModel>();
 
     try {
 
@@ -195,10 +193,9 @@ CATBOOST_API bool TrainCatBoost(const TDataSet* trainPtr,
         NCatboostOptions::TJsonFieldHelper<decltype(taskType)>::Read(plainJsonParams, &taskType);
 
 
-        const bool useGpu = taskType == ETaskType::GPU;
         TDataProviders dataProviders = MakeDataProviders(
-            MakeProvider(useGpu, train),
-            MakeProvider(useGpu, test));
+            MakeProvider(train),
+            MakeProvider(test));
         NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo;
 
         TMetricsAndTimeLeftHistory history;

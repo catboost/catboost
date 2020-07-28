@@ -40,6 +40,7 @@ namespace NCB {
         PerfectHashedCategorical,   //after perfect hashing
         StringText,                 //unoptimized text feature
         TokenizedText,              //32 bits for each token in string
+        Embedding,                  //array of float values
         BinaryPack,                 //aggregate of binary features
         ExclusiveFeatureBundle,     //aggregate of exclusive quantized features
         FeaturesGroup               //aggregate of several quantized float features
@@ -96,6 +97,8 @@ namespace NCB {
                 case EFeatureValuesType::StringText:
                 case EFeatureValuesType::TokenizedText:
                     return EFeatureType::Text;
+                case EFeatureValuesType::Embedding:
+                    return EFeatureType::Embedding;
                 case EFeatureValuesType::BinaryPack:
                 case EFeatureValuesType::ExclusiveFeatureBundle:
                 case EFeatureValuesType::FeaturesGroup:
@@ -469,6 +472,13 @@ namespace NCB {
 
     using TTokenizedTextValuesHolder = ITypedFeatureValuesHolder<TText, EFeatureValuesType::TokenizedText>;
     using TTokenizedTextArrayValuesHolder = TPolymorphicArrayValuesHolder<TTokenizedTextValuesHolder>;
+
+
+    using TConstEmbedding = TMaybeOwningConstArrayHolder<float>;
+
+    using TEmbeddingValuesHolder = ITypedFeatureValuesHolder<TConstEmbedding, EFeatureValuesType::Embedding>;
+    using TEmbeddingArrayValuesHolder = TPolymorphicArrayValuesHolder<TEmbeddingValuesHolder>;
+
 
     using IQuantizedFloatValuesHolder = IQuantizedFeatureValuesHolder<ui8, EFeatureValuesType::QuantizedFloat>;
     using IQuantizedCatValuesHolder = IQuantizedFeatureValuesHolder<ui32, EFeatureValuesType::PerfectHashedCategorical>;

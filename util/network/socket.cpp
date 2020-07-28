@@ -1041,7 +1041,7 @@ public:
     inline TImpl(const char* path, int flags)
         : Info_(nullptr, TAddrInfoDeleter{/* useFreeAddrInfo = */ false})
     {
-        THolder<struct sockaddr_un> sockAddr = new struct sockaddr_un;
+        THolder<struct sockaddr_un> sockAddr = MakeHolder<struct sockaddr_un>();
 
         Y_ENSURE(strlen(path) < sizeof(sockAddr->sun_path), "Unix socket path more than " << sizeof(sockAddr->sun_path));
         sockAddr->sun_family = AF_UNIX;
@@ -1102,7 +1102,15 @@ TNetworkResolutionError::TNetworkResolutionError(int error) {
 #else
     errMsg = gai_strerror(error);
 #endif
-    (*this) << errMsg;
+    (*this) << errMsg << "(" << error;
+
+#if defined(_unix_)
+    if (error == EAI_SYSTEM) {
+        (*this) << "; errno=" << LastSystemError();
+    }
+#endif
+
+    (*this) << "): ";
 }
 
 #if defined(_unix_)

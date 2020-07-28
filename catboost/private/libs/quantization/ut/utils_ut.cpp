@@ -1,4 +1,4 @@
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 #include <catboost/private/libs/options/enums.h>
 #include <catboost/private/libs/quantization/utils.h>

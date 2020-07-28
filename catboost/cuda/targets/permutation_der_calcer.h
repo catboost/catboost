@@ -203,7 +203,7 @@ namespace NCatboostCuda {
     template <class TTarget>
     inline THolder<IPermutationDerCalcer> CreatePermutationDerCalcer(TTarget&& target,
                                                                      TCudaBuffer<const ui32, typename TTarget::TMapping>&& indices) {
-        return new TPermutationDerCalcer<TTarget, TTarget::TargetType()>(std::forward<TTarget>(target),
+        return MakeHolder<TPermutationDerCalcer<TTarget, TTarget::TargetType()>>(std::forward<TTarget>(target),
                                                                          std::move(indices));
     }
 

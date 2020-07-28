@@ -1,6 +1,6 @@
 #include "sequence.h"
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 #include <util/generic/map.h>
 #include <util/generic/vector.h>
 

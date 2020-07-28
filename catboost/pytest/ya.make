@@ -31,6 +31,7 @@ PEERDIR(
     catboost/pytest/lib
     catboost/python-package/lib
     contrib/python/numpy
+    contrib/python/pandas
 )
 
 DEPENDS(

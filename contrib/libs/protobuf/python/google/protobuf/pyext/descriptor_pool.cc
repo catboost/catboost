@@ -32,14 +32,14 @@
 
 #include <Python.h>
 
-#include "descriptor.pb.h"
+#include <google/protobuf/descriptor.pb.h>
 #include "pyext/descriptor.h"
 #include "pyext/descriptor_database.h"
 #include "pyext/descriptor_pool.h"
 #include "pyext/message.h"
 #include "pyext/message_factory.h"
 #include "pyext/scoped_pyobject_ptr.h"
-#include "stubs/hash.h"
+#include <google/protobuf/stubs/hash.h>
 
 #if PY_MAJOR_VERSION >= 3
   #define PyString_FromStringAndSize PyUnicode_FromStringAndSize

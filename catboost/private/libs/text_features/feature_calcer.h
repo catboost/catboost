@@ -9,7 +9,7 @@
 #include <catboost/libs/helpers/flatbuffers/guid.fbs.h>
 #include <catboost/private/libs/text_features/flatbuffers/feature_calcers.fbs.h>
 
-#include <library/object_factory/object_factory.h>
+#include <library/cpp/object_factory/object_factory.h>
 #include <util/generic/ptr.h>
 #include <util/generic/guid.h>
 #include <util/stream/input.h>

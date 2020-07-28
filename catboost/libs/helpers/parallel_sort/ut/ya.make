@@ -6,7 +6,7 @@ SIZE(MEDIUM)
 
 PEERDIR(
     catboost/libs/helpers/parallel_sort
-    library/cpp/unittest
+    library/cpp/testing/unittest
 )
 
 SRCS(

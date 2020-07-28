@@ -1,6 +1,6 @@
 #include "relaxed_escaper.h"
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 #define RESC_FIXED_STR(s) TStringBuf(s, sizeof(s) - 1)
 static const TStringBuf CommonTestData[] = {

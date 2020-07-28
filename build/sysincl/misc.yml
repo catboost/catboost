@@ -119,6 +119,14 @@
   includes:
     - error.h:       contrib/libs/cppkafka/include/cppkafka/error.h
 
+- source_filter: "^contrib/libs/clang10-rt"
+  includes:
+    - xray/xray_interface.h: contrib/libs/clang10-rt/include/xray/xray_interface.h
+
+- source_filter: "^contrib/libs/llvm"
+  includes:
+    - plugin-api.h # GNU linker plugin API.
+
 - source_filter: "^contrib/libs/libevent"
   includes:
     - sys/queue.h:   contrib/libs/libevent/compat/sys/queue.h
@@ -493,8 +501,7 @@
 
 - source_filter: "^contrib/tools/fluent-bit"
   includes:
-    - backtrace.h: contrib/tools/fluent-bit/lib/libbacktrace-5a99ff7f/backtrace.h
-    - glob.h: contrib/tools/fluent-bit/lib/glob/glob.h
+    - backtrace.h: contrib/libs/backtrace/backtrace.h
 
 - source_filter: "^contrib/restricted/glib"
   includes:
@@ -542,6 +549,6 @@
   includes:
     - threads.h: devtools/experimental/umbrella/include/c11/threads.h
 
-- source_filter: "^speechkit/libs/spotter"
+- source_filter: "^voicetech/spotter/embedded"
   includes:
-    - threads.h: speechkit/libs/spotter/c11-threads/threads.h
+    - threads.h: voicetech/spotter/embedded/contrib/c11-threads/threads.h

@@ -6,6 +6,8 @@ FLAT_DIRS_REPO_TEMPLATE='flatDir {{ dirs {dirs} }}\n'
 MAVEN_REPO_TEMPLATE='maven {{ url "{repo}" }}\n'
 KEYSTORE_TEMLATE='signingConfigs {{ debug {{ storeFile file("{keystore}") }} }}\n'
 
+ENABLE_JAVADOC = 'tasks["bundle${suffix}Aar"].dependsOn packageJavadocTask'
+
 AAR_TEMPLATE = """\
 ext.jniLibsDirs = [
     {jni_libs_dirs}
@@ -41,8 +43,12 @@ def targetVersion = 28
 def buildVersion = '28.0.3'
 
 import com.android.build.gradle.LibraryPlugin
+import java.nio.file.Files
+import java.nio.file.Paths
 import java.util.regex.Matcher
 import java.util.regex.Pattern
+import java.util.zip.ZipFile
+
 
 apply plugin: 'com.github.dcendents.android-maven'
 
@@ -159,7 +165,87 @@ android {{
         tasks["bundle${{suffix}}Aar"].dependsOn sourcesJarTask
         tasks["bundle${{suffix}}Aar"].dependsOn writePomTask
     }}
+
+    android.libraryVariants.all {{ variant ->
+        def capitalizedVariantName = variant.name.capitalize()
+        def suffix = variant.buildType.name.capitalize()
+
+        def javadocTask = project.tasks.create(name: "generate${{capitalizedVariantName}}Javadoc", type: Javadoc) {{
+            group = "Javadoc"
+            description "Generates Javadoc for $capitalizedVariantName"
+
+            title = "Maps Mobile documentation"
+
+            source = android.sourceSets.main.java.srcDirs
+            include "**/com/yandex/*/**"
+
+            ext.androidJar = "${{android.sdkDirectory.path}}/platforms/${{android.compileSdkVersion}}/android.jar"
+            classpath =
+                files(android.getBootClasspath().join(File.pathSeparator)) +
+                configurations.compile +
+                files(ext.androidJar) +
+                files(variant.javaCompile.outputs.files)
+
+            destinationDir = file("$buildDir/${{rootProject.name}}-javadoc/$capitalizedVariantName/")
+
+            options.doclet("ExcludeDoclet")
+            options.docletpath(
+                files(repositories.maven.url).getAsFileTree()
+                    .matching{{include "**/exclude-doclet-1.0.0.jar"}}
+                        .getSingleFile())
+
+            options.charSet = "UTF-8"
+            options.encoding = "UTF-8"
+
+            failOnError false
+
+            afterEvaluate {{
+                def dependencyTree = project.configurations.compile.getAsFileTree()
+                def aar_set = dependencyTree.matching{{include "**/*.aar"}}.getFiles()
+                def jar_tree = dependencyTree.matching{{include "**/*.jar"}}
+
+                aar_set.each{{ aar ->
+                    def outputPath = "$buildDir/tmp/aarJar/${{aar.name.replace('.aar', '.jar')}}"
+                    classpath += files(outputPath)
+
+                    dependsOn task(name: "extract_${{aar.getAbsolutePath().replace(File.separatorChar, '_' as char)}}-${{capitalizedVariantName}}").doLast {{
+                        extractClassesJar(aar, outputPath)
+                    }}
+                }}
+            }}
+        }}
+
+        def packageJavadocTask = project.tasks.create(name: "package${{capitalizedVariantName}}Javadoc", type: Tar) {{
+            description "Makes an archive from Javadoc output"
+            from "${{buildDir}}/${{rootProject.name}}-javadoc/$capitalizedVariantName/"
+            archiveFileName = "${{rootProject.name}}-javadoc.tar.gz"
+            destinationDirectory = new File("${{buildDir}}")
+            dependsOn javadocTask
+        }}
+
+        {enable_javadoc}
+    }}
+
 }}
+
+private def extractClassesJar(aarPath, outputPath) {{
+    if (!aarPath.exists()) {{
+        throw new GradleException("AAR $aarPath not found")
+    }}
+
+    def zip = new ZipFile(aarPath)
+    zip.entries().each {{
+        if (it.name == "classes.jar") {{
+            def path = Paths.get(outputPath)
+            if (!Files.exists(path)) {{
+                Files.createDirectories(path.getParent())
+                Files.copy(zip.getInputStream(it), path)
+            }}
+        }}
+    }}
+    zip.close()
+}}
+
 """
 
 def gen_build_script(args):
@@ -189,6 +275,11 @@ def gen_build_script(args):
     else:
         keystore = ''
 
+    if args.generate_doc:
+        enable_javadoc = ENABLE_JAVADOC
+    else:
+        enable_javadoc = ''
+
     return AAR_TEMPLATE.format(
         jni_libs_dirs=wrap(args.jni_libs_dirs),
         res_dirs=wrap(args.res_dirs),
@@ -202,6 +293,7 @@ def gen_build_script(args):
         bundles=wrap(bundles),
         flat_dirs_repo=flat_dirs_repo,
         keystore=keystore,
+        enable_javadoc=enable_javadoc,
     )
 
 
@@ -222,6 +314,7 @@ if __name__ == '__main__':
     parser.add_argument('--res-dirs', nargs='*', default=[])
     parser.add_argument('--peers', nargs='*', default=[])
     parser.add_argument('--keystore', default=None)
+    parser.add_argument('--generate-doc', action='store_true')
     args = parser.parse_args()
 
     if args.proguard_rules is None:

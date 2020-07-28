@@ -3,7 +3,7 @@
 
 #include <catboost/libs/data/libsvm_loader.h>
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 
 using namespace NCB;
@@ -48,6 +48,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromLibSvm) {
                 ui32(8),
                 /*catFeatureIndices*/ TVector<ui32>(),
                 /*textFeatureIndices*/ TVector<ui32>(),
+                /*embeddingFeatureIndices*/ TVector<ui32>(),
                 /*featureId*/ TVector<TString>(),
                 /*allFeaturesAreSparse*/ true
             );
@@ -109,6 +110,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromLibSvm) {
                 ui32(12),
                 /*catFeatureIndices*/ TVector<ui32>{2, 8, 10},
                 /*textFeatureIndices*/ TVector<ui32>(),
+                /*embeddingFeatureIndices*/ TVector<ui32>(),
                 /*featureId*/ TVector<TString>{
                     "", // 0
                     "", // 1
@@ -184,6 +186,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromLibSvm) {
                 ui32(8),
                 /*catFeatureIndices*/ TVector<ui32>(),
                 /*textFeatureIndices*/ TVector<ui32>(),
+                /*embeddingFeatureIndices*/ TVector<ui32>(),
                 /*featureId*/ TVector<TString>(),
                 /*allFeaturesAreSparse*/ true
             );

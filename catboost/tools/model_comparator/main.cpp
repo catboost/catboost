@@ -157,11 +157,11 @@ public:
         result &= AlmostEqual(name + ".OneHotFeatures", a.GetOneHotFeatures(), b.GetOneHotFeatures());
         result &= AlmostEqual(name + ".CtrFeatures", a.GetCtrFeatures(), b.GetCtrFeatures());
         result &= AlmostEqual(name + ".ApproxDimension", a.GetDimensionsCount(), b.GetDimensionsCount());
-        result &= AlmostEqual(name + ".TreeSplits", a.GetTreeSplits(), b.GetTreeSplits());
-        result &= AlmostEqual(name + ".TreeSizes", a.GetTreeSizes(), b.GetTreeSizes());
-        result &= AlmostEqual(name + ".TreeStartOffsets", a.GetTreeStartOffsets(), b.GetTreeStartOffsets());
+        result &= AlmostEqual(name + ".TreeSplits", a.GetModelTreeData()->GetTreeSplits(), b.GetModelTreeData()->GetTreeSplits());
+        result &= AlmostEqual(name + ".TreeSizes", a.GetModelTreeData()->GetTreeSizes(), b.GetModelTreeData()->GetTreeSizes());
+        result &= AlmostEqual(name + ".TreeStartOffsets", a.GetModelTreeData()->GetTreeStartOffsets(), b.GetModelTreeData()->GetTreeStartOffsets());
         result &= AlmostEqualLeafValues(name + ".LeafValues", a, b);
-        result &= AlmostEqual(name + ".LeafWeights", a.GetLeafWeights(), b.GetLeafWeights());
+        result &= AlmostEqual(name + ".LeafWeights", a.GetModelTreeData()->GetLeafWeights(), b.GetModelTreeData()->GetLeafWeights());
         return result;
     }
 
@@ -189,7 +189,7 @@ public:
 
     bool AlmostEqualLeafValues(const TString& name, const TModelTrees& a, const TModelTrees& b) {
         if (a.GetScaleAndBias() == b.GetScaleAndBias()) {
-            return AlmostEqual(name, a.GetLeafValues(), b.GetLeafValues());
+            return AlmostEqual(name, a.GetModelTreeData()->GetLeafValues(), b.GetModelTreeData()->GetLeafValues());
         }
 
         Clog << name << ".ScaleAndBias: "
@@ -200,13 +200,16 @@ public:
             << Endl;
 
         auto normedLeafValues = [](const TModelTrees& trees) -> TVector<double> {
-            TVector<double> result(trees.GetLeafValues().begin(), trees.GetLeafValues().end());
+            TVector<double> result(trees.GetModelTreeData()->GetLeafValues().begin(), trees.GetModelTreeData()->GetLeafValues().end());
             int firstTreeLeafCount = trees.GetTreeCount() > 0 ? trees.GetTreeLeafCounts()[0] : 0;
             const auto norm = trees.GetScaleAndBias();
+
+            double bias = norm.GetOneDimensionalBias(
+                "Non single-dimension approxes are not supported");
             for (int i = 0; i < result.ysize(); ++i) {
                 result[i] *= norm.Scale;
                 if (i < firstTreeLeafCount) {
-                    result[i] += norm.Bias;
+                    result[i] += bias;
                 }
             }
             return result;
@@ -311,7 +314,14 @@ public:
 
 template <>
 void Out<TScaleAndBias>(IOutputStream& out, TTypeTraits<TScaleAndBias>::TFuncParam norm) {
-    out << "{" << norm.Scale << "," << norm.Bias << "}";
+    out << "{" << norm.Scale << "," << "[";
+    bool firstItem = true;
+    auto bias = norm.GetBiasRef();
+    for (auto b : bias) {
+        out << (firstItem ? "" : ",") << b;
+        firstItem = false;
+    }
+    out << "]}";
 }
 
 template <>

@@ -102,8 +102,7 @@ namespace NCatboostCuda {
             pairWeights.Copy(samplesGrouping.GetPairsWeights());
 
             TBootstrap<NCudaLib::TStripeMapping> bootstrap(config);
-            bootstrap.Bootstrap(TParent::GetRandom(),
-                                pairWeights);
+            bootstrap.Bootstrap(TParent::GetRandom(), pairWeights);
 
             auto nzPairIndices = TCudaBuffer<ui32, TMapping>::CopyMapping(pairWeights);
             FilterZeroEntries(&pairWeights,

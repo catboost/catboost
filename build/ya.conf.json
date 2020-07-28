@@ -207,6 +207,9 @@
         "horadric": {
             "description": "Run horadric generator"
         },
+        "logbroker": {
+            "description": "Logbroker configuration utility"
+        },
         "zcli": {
             "description": "Run zcli (console client for zephyr)"
         },
@@ -242,17 +245,17 @@
         "apphost": {
             "description": "Run local apphost instance"
         },
-        "go_1.14.2": {
-            "description": "Run go tool (1.14.2)"
+        "go_1.14.4": {
+            "description": "Run go tool (1.14.4)"
         },
-        "gofmt_1.14.2": {
-            "description": "Run gofmt tool (1.14.2)"
+        "gofmt_1.14.4": {
+            "description": "Run gofmt tool (1.14.4)"
         },
         "go": {
-            "description": "Run go tool (1.14.3)"
+            "description": "Run go tool (1.14.6)"
         },
         "gofmt": {
-            "description": "Run gofmt tool (1.14.3)"
+            "description": "Run gofmt tool (1.14.6)"
         },
         "godoc": {
             "description": "Arcadia version of godoc"
@@ -295,9 +298,6 @@
         },
         "yd-migrate": {
             "description": "Run deploy migration"
-        },
-        "yfm": {
-            "description": "YFM-extended markdown processor for Cloud deploy"
         },
         "yfm-docs": {
             "description": "YFM-extended markdown processor for Cloud deploy (v3)"
@@ -362,6 +362,12 @@
         },
         "ya_sed": {
             "description": "This tool simplifies replacing of some text in Arcadia"
+        },
+        "black": {
+            "description": "Python styler"
+        },
+        "yadi": {
+            "description": "Arcadia version of Yadi"
         }
     },
     "toolchain": {
@@ -788,6 +794,13 @@
                     "host": {
                         "os": "LINUX",
                         "arch": "aarch64"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "LINUX",
+                        "arch": "ppc64le"
                     },
                     "default": true
                 }
@@ -1644,6 +1657,16 @@
                         "os": "LINUX"
                     },
                     "target": {
+                        "os": "LINUX",
+                        "arch": "power9le"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
                         "os": "DARWIN",
                         "arch": "x86_64"
                     },
@@ -1734,6 +1757,16 @@
                         "os": "DARWIN"
                     },
                     "target": {
+                        "os": "LINUX",
+                        "arch": "power9le"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
                         "os": "DARWIN",
                         "arch": "x86_64"
                     },
@@ -1816,6 +1849,28 @@
                     "target": {
                         "os": "LINUX",
                         "arch": "armv8a_cortex_a53"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "LINUX",
+                        "arch": "ppc64le"
+                    },
+                    "target": {
+                        "os": "LINUX",
+                        "arch": "ppc64le"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "LINUX",
+                        "arch": "ppc64le"
+                    },
+                    "target": {
+                        "os": "LINUX",
+                        "arch": "power9le"
                     },
                     "default": true
                 }
@@ -2300,6 +2355,299 @@
                 "gcc_version": "8.0"
             }
         },
+        "clang10": {
+            "tools": {
+                "c++": {
+                    "bottle": "clang10",
+                    "executable": "c++"
+                },
+                "c++filt": {
+                    "bottle": "clang10",
+                    "executable": "c++filt"
+                },
+                "cc": {
+                    "bottle": "clang10",
+                    "executable": "cc"
+                },
+                "clang-format": {
+                    "bottle": "clang10",
+                    "executable": "clang-format"
+                },
+                "clang-tidy": {
+                    "bottle": "clang10",
+                    "executable": "clang-tidy"
+                },
+                "gcov": {
+                    "bottle": "clang10",
+                    "executable": "gcov"
+                },
+                "llvm-cov": {
+                    "bottle": "clang10",
+                    "executable": "llvm-cov"
+                },
+                "llvm-profdata": {
+                    "bottle": "clang10",
+                    "executable": "llvm-profdata"
+                },
+                "llvm-symbolizer": {
+                    "bottle": "clang10",
+                    "executable": "llvm-symbolizer"
+                },
+                "nm": {
+                    "bottle": "clang10",
+                    "executable": "llvm-nm"
+                },
+                "strip": {
+                    "bottle": "clang10",
+                    "executable": "llvm-strip"
+                },
+                "objcopy": {
+                    "bottle": "clang10",
+                    "executable": "llvm-objcopy"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "LINUX",
+                        "arch": "x86_64"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "LINUX",
+                        "arch": "aarch64"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "LINUX",
+                        "arch": "ppc64le"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "LINUX",
+                        "arch": "power9le"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "DARWIN",
+                        "arch": "x86_64"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "IOS",
+                        "arch": "i386"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "IOS",
+                        "arch": "x86_64"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "IOS",
+                        "arch": "armv7"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "IOS",
+                        "arch": "arm64"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "YOCTO",
+                        "arch": "armv7a"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
+                        "os": "LINUX",
+                        "arch": "x86_64"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
+                        "os": "LINUX",
+                        "arch": "aarch64"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
+                        "os": "LINUX",
+                        "arch": "ppc64le"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
+                        "os": "LINUX",
+                        "arch": "power9le"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
+                        "os": "DARWIN",
+                        "arch": "x86_64"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
+                        "os": "IOS",
+                        "arch": "i386"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
+                        "os": "IOS",
+                        "arch": "x86_64"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
+                        "os": "IOS",
+                        "arch": "armv7"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
+                        "os": "IOS",
+                        "arch": "arm64"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "LINUX",
+                        "arch": "armv7ahf_cortex_a35"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "LINUX",
+                        "arch": "armv7ahf_cortex_a53"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "LINUX",
+                        "arch": "armv8a_cortex_a35"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "LINUX",
+                        "arch": "armv8a_cortex_a53"
+                    },
+                    "default": false
+                }
+            ],
+            "params": {
+                "type": "clang",
+                "match_root": "CLANG",
+                "werror_mode": "all",
+                "c_compiler": "$(CLANG)/bin/clang",
+                "cxx_compiler": "$(CLANG)/bin/clang++",
+                "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
+                "gcc_version": "10.0"
+            }
+        },
         "xcode_11_1": {
             "tools": {
                 "c++": {
@@ -2556,243 +2904,6 @@
                 ]
             }
         },
-        "gcc63-armv7a-linkplay-a98": {
-            "name": "gcc63",
-            "tools": {
-                "cc": {
-                    "bottle": "gcc63-armv7a-linkplay-a98",
-                    "executable": "cc"
-                },
-                "c++": {
-                    "bottle": "gcc63-armv7a-linkplay-a98",
-                    "executable": "c++"
-                },
-                "gcov": {
-                    "bottle": "gcc63-armv7a-linkplay-a98",
-                    "executable": "gcov"
-                },
-                "c++filt": {
-                    "bottle": "gcc63-armv7a-linkplay-a98",
-                    "executable": "c++filt"
-                },
-                "strip": {
-                    "bottle": "gcc63-armv7a-linkplay-a98",
-                    "executable": "strip"
-                },
-                "nm": {
-                    "bottle": "gcc63-armv7a-linkplay-a98",
-                    "executable": "nm"
-                },
-                "objcopy": {
-                    "bottle": "gcc63-armv7a-linkplay-a98",
-                    "executable": "objcopy"
-                }
-            },
-            "platforms": [
-                {
-                    "host": {
-                        "os": "LINUX"
-                    },
-                    "target": {
-                        "os": "LINUX",
-                        "arch": "armv7a"
-                    }
-                },
-                {
-                    "host": {
-                        "os": "LINUX"
-                    },
-                    "target": {
-                        "os": "LINUX",
-                        "arch": "armv7a_neon"
-                    }
-                }
-            ],
-            "params": {
-                "type": "gnu",
-                "match_root": "GCC",
-                "werror_mode": "compiler_specific",
-                "c_compiler": "$(GCC)/gcc-linaro-6.3.1-2017.05-x86_64_arm-linux-gnueabihf/bin/arm-linux-gnueabihf-gcc",
-                "cxx_compiler": "$(GCC)/gcc-linaro-6.3.1-2017.05-x86_64_arm-linux-gnueabihf/bin/arm-linux-gnueabihf-g++",
-                "ar": "$(GCC)/gcc-linaro-6.3.1-2017.05-x86_64_arm-linux-gnueabihf/bin/arm-linux-gnueabihf-ar",
-                "gcc_version": "6.3",
-                "strip": "$(GCC)/gcc-linaro-6.3.1-2017.05-x86_64_arm-linux-gnueabihf/arm-linux-gnueabihf/bin/strip",
-                "objcopy": "$(GCC)/gcc-linaro-6.3.1-2017.05-x86_64_arm-linux-gnueabihf/arm-linux-gnueabihf/bin/objcopy"
-            }
-        },
-        "gcc63-armv7a-lg-wk7y": {
-            "name": "gcc63",
-            "tools": {
-                "cc": {
-                    "bottle": "gcc63-armv7a-lg-wk7y",
-                    "executable": "cc"
-                },
-                "c++": {
-                    "bottle": "gcc63-armv7a-lg-wk7y",
-                    "executable": "c++"
-                },
-                "gcov": {
-                    "bottle": "gcc63-armv7a-lg-wk7y",
-                    "executable": "gcov"
-                },
-                "c++filt": {
-                    "bottle": "gcc63-armv7a-lg-wk7y",
-                    "executable": "c++filt"
-                },
-                "strip": {
-                    "bottle": "gcc63-armv7a-lg-wk7y",
-                    "executable": "strip"
-                },
-                "nm": {
-                    "bottle": "gcc63-armv7a-lg-wk7y",
-                    "executable": "nm"
-                },
-                "objcopy": {
-                    "bottle": "gcc63-armv7a-lg-wk7y",
-                    "executable": "objcopy"
-                }
-            },
-            "platforms": [
-                {
-                    "host": {
-                        "os": "LINUX"
-                    },
-                    "target": {
-                        "os": "YOCTO_LG_WK7Y",
-                        "arch": "armv7a"
-                    }
-                }
-            ],
-            "params": {
-                "type": "gnu",
-                "match_root": "GCC",
-                "werror_mode": "compiler_specific",
-                "gcc_version": "6.3",
-                "c_compiler": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-gcc",
-                "cxx_compiler": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-g++",
-                "ar": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-ar",
-                "strip": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-strip",
-                "objcopy": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-objcopy",
-                "isystem": [
-                    "$(GCC)/usr/lib/arm-poky-linux-gnueabi/gcc/arm-poky-linux-gnueabi/6.3.0/include",
-                    "$(GCC)/usr/lib/arm-poky-linux-gnueabi/gcc/arm-poky-linux-gnueabi/6.3.0/include-fixed"
-                ]
-            }
-        },
-        "gcc73-armv7a-jbl-portable-music": {
-            "name": "gcc73",
-            "tools": {
-                "cc": {
-                    "bottle": "gcc73-armv7a-jbl-portable-music",
-                    "executable": "cc"
-                },
-                "c++": {
-                    "bottle": "gcc73-armv7a-jbl-portable-music",
-                    "executable": "c++"
-                },
-                "gcov": {
-                    "bottle": "gcc73-armv7a-jbl-portable-music",
-                    "executable": "gcov"
-                },
-                "c++filt": {
-                    "bottle": "gcc73-armv7a-jbl-portable-music",
-                    "executable": "c++filt"
-                },
-                "strip": {
-                    "bottle": "gcc73-armv7a-jbl-portable-music",
-                    "executable": "strip"
-                },
-                "nm": {
-                    "bottle": "gcc73-armv7a-jbl-portable-music",
-                    "executable": "nm"
-                },
-                "objcopy": {
-                    "bottle": "gcc73-armv7a-jbl-portable-music",
-                    "executable": "objcopy"
-                }
-            },
-            "platforms": [
-                {
-                    "host": {
-                        "os": "LINUX"
-                    },
-                    "target": {
-                        "os": "YOCTO_JBL_PORTABLE_MUSIC",
-                        "arch": "armv7a"
-                    }
-                }
-            ],
-            "params": {
-                "type": "gnu",
-                "match_root": "GCC",
-                "werror_mode": "compiler_specific",
-                "c_compiler": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-gcc",
-                "cxx_compiler": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-g++",
-                "ar": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-ar",
-                "gcc_version": "7.3",
-                "strip": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-strip",
-                "objcopy": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-objcopy"
-            }
-        },
-        "gcc53-aarch64-lightcomm-mt8516": {
-            "name": "gcc53",
-            "tools": {
-                "cc": {
-                    "bottle": "gcc53-aarch64-lightcomm-mt8516",
-                    "executable": "cc"
-                },
-                "c++": {
-                    "bottle": "gcc53-aarch64-lightcomm-mt8516",
-                    "executable": "c++"
-                },
-                "gcov": {
-                    "bottle": "gcc53-aarch64-lightcomm-mt8516",
-                    "executable": "gcov"
-                },
-                "c++filt": {
-                    "bottle": "gcc53-aarch64-lightcomm-mt8516",
-                    "executable": "c++filt"
-                },
-                "strip": {
-                    "bottle": "gcc53-aarch64-lightcomm-mt8516",
-                    "executable": "strip"
-                },
-                "nm": {
-                    "bottle": "gcc53-aarch64-lightcomm-mt8516",
-                    "executable": "nm"
-                },
-                "objcopy": {
-                    "bottle": "gcc53-aarch64-lightcomm-mt8516",
-                    "executable": "objcopy"
-                }
-            },
-            "platforms": [
-                {
-                    "host": {
-                        "os": "LINUX"
-                    },
-                    "target": {
-                        "os": "YOCTO_LIGHTCOMM",
-                        "arch": "aarch64"
-                    }
-                }
-            ],
-            "params": {
-                "type": "gnu",
-                "match_root": "GCC",
-                "werror_mode": "compiler_specific",
-                "c_compiler": "$(GCC)/usr/bin/aarch64-poky-linux/aarch64-poky-linux-gcc",
-                "cxx_compiler": "$(GCC)/usr/bin/aarch64-poky-linux/aarch64-poky-linux-g++",
-                "ar": "$(GCC)/usr/bin/aarch64-poky-linux/aarch64-poky-linux-ar",
-                "gcc_version": "7.3",
-                "strip": "$(GCC)/usr/bin/aarch64-poky-linux/aarch64-poky-linux-strip",
-                "objcopy": "$(GCC)/usr/bin/aarch64-poky-linux/aarch64-poky-linux-objcopy",
-                "isystem": [
-                    "$(GCC)/usr/lib/aarch64-poky-linux/gcc/aarch64-poky-linux/5.3.0/include",
-                    "$(GCC)/usr/lib/aarch64-poky-linux/gcc/aarch64-poky-linux/5.3.0/include-fixed"
-                ]
-            }
-        },
         "bloat": {
             "tools": {
                 "bloat": {
@@ -2846,6 +2957,13 @@
                         "os": "DARWIN"
                     },
                     "default": true
+                },
+                {
+                    "host": {
+                        "os": "LINUX",
+                        "arch": "ppc64le"
+                    },
+                    "default": true
                 }
             ],
             "env": {
@@ -2883,6 +3001,13 @@
                 {
                     "host": {
                         "os": "DARWIN"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "LINUX",
+                        "arch": "ppc64le"
                     },
                     "default": true
                 }
@@ -2924,6 +3049,13 @@
                     "host": {
                         "os": "LINUX",
                         "arch": "aarch64"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "LINUX",
+                        "arch": "ppc64le"
                     },
                     "default": true
                 }
@@ -4512,6 +4644,28 @@
                 }
             ]
         },
+        "logbroker": {
+            "tools": {
+                "logbroker": {
+                    "bottle": "logbroker",
+                    "executable": "logbroker"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "zcli": {
             "tools": {
                 "zcli": {
@@ -4774,19 +4928,19 @@
                 }
             ]
         },
-        "golang_1_14_2": {
+        "golang_1_14_4": {
             "tools": {
-                "golang_1.14.2": {
-                    "bottle": "golang_1.14.2",
-                    "executable": "golangi_1.14.2"
+                "golang_1.14.4": {
+                    "bottle": "golang_1.14.4",
+                    "executable": "golangi_1.14.4"
                 },
-                "go_1.14.2": {
-                    "bottle": "golang_1.14.2",
-                    "executable": "go_1.14.2"
+                "go_1.14.4": {
+                    "bottle": "golang_1.14.4",
+                    "executable": "go_1.14.4"
                 },
-                "gofmt_1.14.2": {
-                    "bottle": "golang_1.14.2",
-                    "executable": "gofmt_1.14.2"
+                "gofmt_1.14.4": {
+                    "bottle": "golang_1.14.4",
+                    "executable": "gofmt_1.14.4"
                 }
             },
             "platforms": [
@@ -4811,21 +4965,21 @@
             ],
             "params": {
                 "type": "golang",
-                "version": "1.14.2"
+                "version": "1.14.4"
             }
         },
-        "golang_1_14_3": {
+        "golang_1_14_6": {
             "tools": {
                 "golang": {
-                    "bottle": "golang_1.14.3",
+                    "bottle": "golang_1.14.6",
                     "executable": "golang"
                 },
                 "go": {
-                    "bottle": "golang_1.14.3",
+                    "bottle": "golang_1.14.6",
                     "executable": "go"
                 },
                 "gofmt": {
-                    "bottle": "golang_1.14.3",
+                    "bottle": "golang_1.14.6",
                     "executable": "gofmt"
                 }
             },
@@ -4851,7 +5005,7 @@
             ],
             "params": {
                 "type": "golang",
-                "version": "1.14.3"
+                "version": "1.14.6"
             }
         },
         "godoc": {
@@ -5130,34 +5284,6 @@
                 }
             ]
         },
-        "yfm": {
-            "tools": {
-                "yfm": {
-                    "bottle": "yfm",
-                    "executable": "yfm"
-                }
-            },
-            "platforms": [
-                {
-                    "host": {
-                        "os": "LINUX"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
-                        "os": "DARWIN"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
-                        "os": "WIN"
-                    },
-                    "default": true
-                }
-            ]
-        },
         "yfm-docs": {
             "tools": {
                 "yfm-docs": {
@@ -5291,6 +5417,62 @@
                     "default": true
                 }
             ]
+        },
+        "black": {
+            "tools": {
+                "black": {
+                    "bottle": "black",
+                    "executable": "black"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "WIN"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
+        "yadi": {
+            "tools": {
+                "yadi": {
+                    "bottle": "yadi",
+                    "executable": "yadi-arc"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "WIN"
+                    },
+                    "default": true
+                }
+            ]
         }
     },
     "bottles": {
@@ -5325,7 +5507,7 @@
         "ymake": {
             "formula": {
                 "sandbox_id": [
-                    682238347
+                    733091006
                 ],
                 "match": "ymake"
             },
@@ -5349,7 +5531,7 @@
         "arc": {
             "formula": {
                 "sandbox_id": [
-                    678290682
+                    719061199
                 ],
                 "match": "arc"
             },
@@ -5373,8 +5555,8 @@
         "yo": {
             "formula": {
                 "sandbox_id": [
-                    685060491,
-                    685060488
+                    690780196,
+                    690780173
                 ],
                 "match": "yo"
             },
@@ -5387,7 +5569,7 @@
         "delve": {
             "formula": {
                 "sandbox_id": [
-                    648343092
+                    702942405
                 ],
                 "match": "delve"
             },
@@ -5429,7 +5611,7 @@
         "releaser": {
             "formula": {
                 "sandbox_id": [
-                    675299732
+                    702777610
                 ],
                 "match": "releaser"
             },
@@ -5496,7 +5678,7 @@
         },
         "python": {
             "formula": {
-                "sandbox_id": 465552932,
+                "sandbox_id": 724201936,
                 "match": "Python"
             },
             "executable": {
@@ -5645,7 +5827,8 @@
             "formula": {
                 "sandbox_id": [
                     433792615,
-                    425919040
+                    425919040,
+                    703744721
                 ],
                 "match": "CLANG"
             },
@@ -5755,6 +5938,64 @@
                 ]
             }
         },
+        "clang10": {
+            "formula": {
+                "sandbox_id": [
+                    729633486
+                ],
+                "match": "CLANG"
+            },
+            "executable": {
+                "c++": [
+                    "bin",
+                    "clang++"
+                ],
+                "c++filt": [
+                    "bin",
+                    "c++filt"
+                ],
+                "cc": [
+                    "bin",
+                    "clang"
+                ],
+                "clang-format": [
+                    "bin",
+                    "clang-format"
+                ],
+                "clang-tidy": [
+                    "bin",
+                    "clang-tidy"
+                ],
+                "gcov": [
+                    "bin",
+                    "llvm-gcov"
+                ],
+                "llvm-cov": [
+                    "bin",
+                    "llvm-cov"
+                ],
+                "llvm-profdata": [
+                    "bin",
+                    "llvm-profdata"
+                ],
+                "llvm-symbolizer": [
+                    "bin",
+                    "llvm-symbolizer"
+                ],
+                "llvm-nm": [
+                    "bin",
+                    "llvm-nm"
+                ],
+                "llvm-strip": [
+                    "bin",
+                    "llvm-strip"
+                ],
+                "llvm-objcopy": [
+                    "bin",
+                    "llvm-objcopy"
+                ]
+            }
+        },
         "xcode_11_1": {
             "formula": {
                 "sandbox_id": [
@@ -5858,207 +6099,6 @@
                     "llvm-toolchain",
                     "bin",
                     "llvm-objcopy"
-                ]
-            }
-        },
-        "gcc63-armv7a-linkplay-a98": {
-            "formula": {
-                "sandbox_id": [
-                    "306585614"
-                ],
-                "match": "GCC"
-            },
-            "executable": {
-                "c++": [
-                    "gcc-linaro-6.3.1-2017.05-x86_64_arm-linux-gnueabihf",
-                    "bin",
-                    "arm-linux-gnueabihf-g++"
-                ],
-                "cc": [
-                    "gcc-linaro-6.3.1-2017.05-x86_64_arm-linux-gnueabihf",
-                    "bin",
-                    "arm-linux-gnueabihf-gcc"
-                ],
-                "gcov": [
-                    "gcc-linaro-6.3.1-2017.05-x86_64_arm-linux-gnueabihf",
-                    "bin",
-                    "arm-linux-gnueabihf-gcov"
-                ],
-                "c++filt": [
-                    "gcc-linaro-6.3.1-2017.05-x86_64_arm-linux-gnueabihf",
-                    "bin",
-                    "arm-linux-gnueabihf-c++filt"
-                ],
-                "strip": [
-                    "gcc-linaro-6.3.1-2017.05-x86_64_arm-linux-gnueabihf",
-                    "bin",
-                    "arm-linux-gnueabihf-strip"
-                ],
-                "nm": [
-                    "gcc-linaro-6.3.1-2017.05-x86_64_arm-linux-gnueabihf",
-                    "bin",
-                    "arm-linux-gnueabihf-nm"
-                ],
-                "objcopy": [
-                    "gcc-linaro-6.3.1-2017.05-x86_64_arm-linux-gnueabihf",
-                    "bin",
-                    "arm-linux-gnueabihf-objcopy"
-                ]
-            }
-        },
-        "gcc63-armv7a-lg-wk7y": {
-            "formula": {
-                "sandbox_id": [
-                    "566545753"
-                ],
-                "match": "GCC"
-            },
-            "executable": {
-                "c++": [
-                    "usr",
-                    "bin",
-                    "arm-poky-linux-gnueabi",
-                    "arm-poky-linux-gnueabi-g++"
-                ],
-                "cc": [
-                    "usr",
-                    "bin",
-                    "arm-poky-linux-gnueabi",
-                    "arm-poky-linux-gnueabi-gcc"
-                ],
-                "gcov": [
-                    "usr",
-                    "bin",
-                    "arm-poky-linux-gnueabi",
-                    "arm-poky-linux-gnueabi-gcov"
-                ],
-                "c++filt": [
-                    "usr",
-                    "bin",
-                    "arm-poky-linux-gnueabi",
-                    "arm-poky-linux-gnueabi-c++filt"
-                ],
-                "strip": [
-                    "usr",
-                    "bin",
-                    "arm-poky-linux-gnueabi",
-                    "arm-poky-linux-gnueabi-strip"
-                ],
-                "nm": [
-                    "usr",
-                    "bin",
-                    "arm-poky-linux-gnueabi",
-                    "arm-poky-linux-gnueabi-nm"
-                ],
-                "objcopy": [
-                    "usr",
-                    "bin",
-                    "arm-poky-linux-gnueabi",
-                    "arm-poky-linux-gnueabi-objcopy"
-                ]
-            }
-        },
-        "gcc73-armv7a-jbl-portable-music": {
-            "formula": {
-                "sandbox_id": [
-                    "577498874"
-                ],
-                "match": "GCC"
-            },
-            "executable": {
-                "c++": [
-                    "usr",
-                    "bin",
-                    "arm-poky-linux-gnueabi",
-                    "arm-poky-linux-gnueabi-g++"
-                ],
-                "cc": [
-                    "usr",
-                    "bin",
-                    "arm-poky-linux-gnueabi",
-                    "arm-poky-linux-gnueabi-gcc"
-                ],
-                "gcov": [
-                    "usr",
-                    "bin",
-                    "arm-poky-linux-gnueabi",
-                    "arm-poky-linux-gnueabi-gcov"
-                ],
-                "c++filt": [
-                    "usr",
-                    "bin",
-                    "arm-poky-linux-gnueabi",
-                    "arm-poky-linux-gnueabi-c++filt"
-                ],
-                "strip": [
-                    "usr",
-                    "bin",
-                    "arm-poky-linux-gnueabi",
-                    "arm-poky-linux-gnueabi-strip"
-                ],
-                "nm": [
-                    "usr",
-                    "bin",
-                    "arm-poky-linux-gnueabi",
-                    "arm-poky-linux-gnueabi-nm"
-                ],
-                "objcopy": [
-                    "usr",
-                    "bin",
-                    "arm-poky-linux-gnueabi",
-                    "arm-poky-linux-gnueabi-objcopy"
-                ]
-            }
-        },
-        "gcc53-aarch64-lightcomm-mt8516": {
-            "formula": {
-                "sandbox_id": [
-                    "555140553"
-                ],
-                "match": "GCC"
-            },
-            "executable": {
-                "c++": [
-                    "usr",
-                    "bin",
-                    "aarch64-poky-linux",
-                    "aarch64-poky-linux-g++"
-                ],
-                "cc": [
-                    "usr",
-                    "bin",
-                    "aarch64-poky-linux",
-                    "aarch64-poky-linux-gcc"
-                ],
-                "gcov": [
-                    "usr",
-                    "bin",
-                    "aarch64-poky-linux",
-                    "aarch64-poky-linux-gcov"
-                ],
-                "c++filt": [
-                    "usr",
-                    "bin",
-                    "aarch64-poky-linux",
-                    "aarch64-poky-linux-c++filt"
-                ],
-                "strip": [
-                    "usr",
-                    "bin",
-                    "aarch64-poky-linux",
-                    "aarch64-poky-linux-strip"
-                ],
-                "nm": [
-                    "usr",
-                    "bin",
-                    "aarch64-poky-linux",
-                    "aarch64-poky-linux-nm"
-                ],
-                "objcopy": [
-                    "usr",
-                    "bin",
-                    "aarch64-poky-linux",
-                    "aarch64-poky-linux-objcopy"
                 ]
             }
         },
@@ -6171,7 +6211,7 @@
         "scriptgen": {
             "formula": {
                 "sandbox_id": [
-                    551377586
+                    691600140
                 ],
                 "match": "SCRIPTGEN"
             }
@@ -6202,7 +6242,7 @@
         },
         "yt": {
             "formula": {
-                "sandbox_id": 616792863,
+                "sandbox_id": 692361938,
                 "match": "YT"
             },
             "executable": {
@@ -6224,7 +6264,7 @@
         },
         "ytyndexer": {
             "formula": {
-                "sandbox_id": 651914180,
+                "sandbox_id": 712000152,
                 "match": "YTYNDEXER"
             },
             "executable": {
@@ -6379,7 +6419,8 @@
             "formula": {
                 "sandbox_id": [
                     510387094,
-                    491831556
+                    491831556,
+                    717207102
                 ],
                 "match": "GDB"
             },
@@ -6436,7 +6477,7 @@
         "yp-util": {
             "formula": {
                 "sandbox_id": [
-                    684215068
+                    719427098
                 ],
                 "match": "yp_util"
             },
@@ -6462,7 +6503,7 @@
         "yd-migrate": {
             "formula": {
                 "sandbox_id": [
-                    686552043
+                    730864285
                 ],
                 "match": "yd_migrate"
             },
@@ -6475,7 +6516,7 @@
         "dctl": {
             "formula": {
                 "sandbox_id": [
-                    681836136
+                    706519642
                 ],
                 "match": "dctl"
             },
@@ -6845,7 +6886,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 686826833,
+                "sandbox_id": 734191911,
                 "match": "horadric"
             },
             "executable": {
@@ -6854,9 +6895,20 @@
                 ]
             }
         },
+        "logbroker": {
+            "formula": {
+                "sandbox_id": 734192178,
+                "match": "logbroker"
+            },
+            "executable": {
+                "logbroker": [
+                    "logbroker"
+                ]
+            }
+        },
         "zcli": {
             "formula": {
-                "sandbox_id": 575360578,
+                "sandbox_id": 734331869,
                 "match": "zcli"
             },
             "executable": {
@@ -6955,7 +7007,7 @@
         },
         "ya-tc": {
             "formula": {
-                "sandbox_id": 686194294,
+                "sandbox_id": 728126496,
                 "match": "ya-tc"
             },
             "executable": {
@@ -6977,7 +7029,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 670312252,
+                "sandbox_id": 706572474,
                 "match": "app_host_launcher"
             },
             "executable": {
@@ -6986,32 +7038,32 @@
                 ]
             }
         },
-        "golang_1.14.2": {
+        "golang_1.14.4": {
             "formula": {
                 "sandbox_id": [
-                    649065905,
-                    649066533,
-                    649067244
+                    691135671,
+                    691136200,
+                    691136779
                 ],
                 "match": "GOLANG"
             },
             "executable": {
-                "go_1.14.2": [
+                "go_1.14.4": [
                     "bin",
                     "go"
                 ],
-                "gofmt_1.14.2": [
+                "gofmt_1.14.4": [
                     "bin",
                     "gofmt"
                 ]
             }
         },
-        "golang_1.14.3": {
+        "golang_1.14.6": {
             "formula": {
                 "sandbox_id": [
-                    676231434,
-                    676232261,
-                    676232843
+                    727341832,
+                    727342274,
+                    727342815
                 ],
                 "match": "GOLANG"
             },
@@ -7059,7 +7111,7 @@
         "qyp": {
             "formula": {
                 "sandbox_id": [
-                    680905289
+                    714273705
                 ],
                 "match": "infra/qyp/vmctl/bin/vmctl"
             },
@@ -7114,7 +7166,7 @@
         "bpftool": {
             "formula": {
                 "sandbox_id": [
-                    586697202
+                    708007910
                 ],
                 "match": "infra/kernel/tools/bpftool/build/bpftool-static.tar.gz"
             },
@@ -7249,20 +7301,9 @@
                 ]
             }
         },
-        "yfm": {
-            "formula": {
-                "sandbox_id": 657826477,
-                "match": "yfm"
-            },
-            "executable": {
-                "yfm": [
-                    "yfm-transform"
-                ]
-            }
-        },
         "yfm-docs": {
             "formula": {
-                "sandbox_id": 684962069,
+                "sandbox_id": 722901245,
                 "match": "yfm-docs"
             },
             "executable": {
@@ -7284,7 +7325,7 @@
         },
         "sedem": {
             "formula": {
-                "sandbox_id": 681896962,
+                "sandbox_id": 725338861,
                 "match": "SEDEM archive"
             },
             "executable": {
@@ -7320,6 +7361,30 @@
             "executable": {
                 "ya_sed": [
                     "ya_sed"
+                ]
+            }
+        },
+        "black": {
+            "formula": {
+                "sandbox_id": [
+                    718136999
+                ],
+                "match": "black"
+            },
+            "executable": {
+                "black": [
+                    "black"
+                ]
+            }
+        },
+        "yadi": {
+            "formula": {
+                "sandbox_id": 723880138,
+                "match": "yadi-arc"
+            },
+            "executable": {
+                "yadi-arc": [
+                    "yadi-arc"
                 ]
             }
         }

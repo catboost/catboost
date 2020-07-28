@@ -229,13 +229,13 @@ namespace {
 
 
             Coefficients[TAutoLearningRateKey(ETargetType::RMSE, ETaskType::GPU, EUseBestModel::True, EBoostFromAverage::True)] =
-                {0.158, -3.762 , -0.377, 0.392};
+                {0.108, -3.525, -0.285, 0.058};
             Coefficients[TAutoLearningRateKey(ETargetType::RMSE, ETaskType::GPU, EUseBestModel::False, EBoostFromAverage::True)] =
-                {0.171, -4.015, -0.599, 1.561};
+                {0.131, -4.114, -0.597, 1.693};
             Coefficients[TAutoLearningRateKey(ETargetType::RMSE, ETaskType::GPU, EUseBestModel::True, EBoostFromAverage::False)] =
-                {0.186, -4.065, -0.512, 1.062};
+                {0.051, -3.001, -0.449, 0.859};
             Coefficients[TAutoLearningRateKey(ETargetType::RMSE, ETaskType::GPU, EUseBestModel::False, EBoostFromAverage::False)] =
-                {0.194, -4.251, -0.61, 1.536};
+                {0.047, -3.034, -0.591, 1.554};
         }
 
         static bool NeedToUpdate(ETaskType taskType, ELossFunction lossFunction, bool useBestModel, bool boostFromAverage) {

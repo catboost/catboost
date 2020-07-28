@@ -2,7 +2,7 @@
 
 #include <library/cpp/json/json_reader.h>
 #include <library/cpp/json/json_value.h>
-#include <library/yson/writer.h>
+#include <library/cpp/yson/writer.h>
 
 namespace NJson2Yson {
     class TJsonBuilderImpl: public NYT::TYsonConsumerBase {

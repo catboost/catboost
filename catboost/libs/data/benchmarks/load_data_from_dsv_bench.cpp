@@ -4,8 +4,8 @@
 #include <catboost/libs/data/data_provider.h>
 #include <catboost/libs/data/objects_grouping.h>
 
-#include <library/testing/benchmark/bench.h>
-#include <library/cpp/unittest/tests_data.h>
+#include <library/cpp/testing/benchmark/bench.h>
+#include <library/cpp/testing/unittest/tests_data.h>
 
 using namespace NCB;
 using namespace NDataNewUT;

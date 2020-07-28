@@ -387,6 +387,7 @@ namespace NCatboostCuda {
                                             samplesGrouping.GetBiasedOffsets(),
                                             samplesGrouping.GetOffsetsBias(),
                                             NCatboostOptions::GetQuerySoftMaxLambdaReg(GetMetricDescription()),
+                                            NCatboostOptions::GetQuerySoftMaxBeta(GetMetricDescription()),
                                             target,
                                             weights,
                                             cursor,
@@ -495,7 +496,7 @@ namespace NCatboostCuda {
         TSet<TString> unusedValidParams;
 
         TMetricConfig config(metricType, params, approxDim, &unusedValidParams);
-        
+
         switch (metricType) {
             case ELossFunction::Logloss:
             case ELossFunction::CrossEntropy:
@@ -512,7 +513,7 @@ namespace NCatboostCuda {
             case ELossFunction::NumErrors:
             case ELossFunction::Poisson:
             case ELossFunction::Expectile: {
-                result.push_back(new TGpuPointwiseMetric(metricDescription, approxDim));
+                result.emplace_back(new TGpuPointwiseMetric(metricDescription, approxDim));
                 break;
             }
             case ELossFunction::TotalF1: {
@@ -543,9 +544,10 @@ namespace NCatboostCuda {
                     }
                 } else {
                     CATBOOST_WARNING_LOG << "AUC is not implemented on GPU. Will use CPU for metric computation, this could significantly affect learning time" << Endl;
-                    
-                    for (ui32 i = 0; i < approxDim; ++i) {
-                        result.emplace_back(new TCpuFallbackMetric(MakeMultiClassAucMetric(params, i), metricDescription));
+
+                    auto cpuMetrics = CreateMetricFromDescription(metricDescription, approxDim);
+                    for (auto& cpuMetric : cpuMetrics) {
+                        result.emplace_back(new TCpuFallbackMetric(std::move(cpuMetric), metricDescription));
                     }
                 }
                 break;
@@ -604,7 +606,7 @@ namespace NCatboostCuda {
             case ELossFunction::QuerySoftMax:
             case ELossFunction::PairLogit:
             case ELossFunction::PairLogitPairwise: {
-                result.push_back(new TGpuQuerywiseMetric(metricDescription, approxDim));
+                result.emplace_back(new TGpuQuerywiseMetric(metricDescription, approxDim));
                 break;
             }
             case ELossFunction::Combination:
@@ -612,12 +614,12 @@ namespace NCatboostCuda {
                 CB_ENSURE(
                     targetObjective == ELossFunction::QueryCrossEntropy || targetObjective == ELossFunction::Combination,
                     "Error: metric " << metricType << " on GPU requires loss function QueryCrossEntropy or Combination");
-                result.push_back(new TTargetFallbackMetric(metricDescription, approxDim));
+                result.emplace_back(new TTargetFallbackMetric(metricDescription, approxDim));
                 break;
             }
             default: {
                 CB_ENSURE(approxDim == 1, "Error: can't use CPU for unknown multiclass metric");
-                THolder<IGpuMetric> metric = new TCpuFallbackMetric(metricDescription, approxDim);
+                THolder<IGpuMetric> metric = MakeHolder<TCpuFallbackMetric>(metricDescription, approxDim);
                 CATBOOST_WARNING_LOG << "Metric " << metric->GetCpuMetric().GetDescription() << " is not implemented on GPU. Will use CPU for metric computation, this could significantly affect learning time" << Endl;
                 result.push_back(std::move(metric));
                 break;

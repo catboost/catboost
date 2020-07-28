@@ -16,9 +16,9 @@ using namespace CoreML::Specification;
 
 void NCB::NCoreML::ConfigureTrees(const TFullModel& model, const TPerTypeFeatureIdxToInputIndex& perTypeFeatureIdxToInputIndex, TreeEnsembleParameters* ensemble) {
     const auto classesCount = static_cast<size_t>(model.ModelTrees->GetDimensionsCount());
-    auto& binFeatures = model.ModelTrees->GetBinFeatures();
+    const auto binFeatures = model.ModelTrees->GetBinFeatures();
     size_t currentSplitIndex = 0;
-    auto currentTreeFirstLeafPtr = model.ModelTrees->GetLeafValues().data();
+    auto currentTreeFirstLeafPtr = model.ModelTrees->GetModelTreeData()->GetLeafValues().data();
 
     size_t catFeaturesCount = model.ModelTrees->GetCatFeatures().size();
     TVector<THashMap<int, double>> splitCategoricalValues(catFeaturesCount);
@@ -31,8 +31,8 @@ void NCB::NCoreML::ConfigureTrees(const TFullModel& model, const TPerTypeFeature
         splitCategoricalValues[oneHotFeature.CatFeatureIndex] = std::move(valuesMapping);
     }
 
-    for (size_t treeIdx = 0; treeIdx < model.ModelTrees->GetTreeSizes().size(); ++treeIdx) {
-        const size_t leafCount = (1uLL << model.ModelTrees->GetTreeSizes()[treeIdx]);
+    for (size_t treeIdx = 0; treeIdx < model.ModelTrees->GetModelTreeData()->GetTreeSizes().size(); ++treeIdx) {
+        const size_t leafCount = (1uLL << model.ModelTrees->GetModelTreeData()->GetTreeSizes()[treeIdx]);
         size_t lastNodeId = 0;
 
         TVector<TreeEnsembleParameters::TreeNode*> outputLeaves(leafCount);
@@ -59,9 +59,9 @@ void NCB::NCoreML::ConfigureTrees(const TFullModel& model, const TPerTypeFeature
         currentTreeFirstLeafPtr += leafCount * model.ModelTrees->GetDimensionsCount();
 
         auto& previousLayer = outputLeaves;
-        auto treeDepth = model.ModelTrees->GetTreeSizes()[treeIdx];
+        auto treeDepth = model.ModelTrees->GetModelTreeData()->GetTreeSizes()[treeIdx];
         for (int layer = treeDepth - 1; layer >= 0; --layer) {
-            const auto& binFeature = binFeatures[model.ModelTrees->GetTreeSplits().at(currentSplitIndex)];
+            const auto& binFeature = binFeatures[model.ModelTrees->GetModelTreeData()->GetTreeSplits().at(currentSplitIndex)];
             ++currentSplitIndex;
             auto featureType = binFeature.Type;
             CB_ENSURE(featureType == ESplitType::FloatFeature || featureType == ESplitType::OneHotFeature,
@@ -256,7 +256,10 @@ void NCB::NCoreML::ConfigureTreeModelIO(
     const auto classesCount = static_cast<size_t>(model.ModelTrees->GetDimensionsCount());
     regressor->mutable_treeensemble()->set_numpredictiondimensions(classesCount);
     if (classesCount == 1) {
-        regressor->mutable_treeensemble()->add_basepredictionvalue(model.ModelTrees->GetScaleAndBias().Bias);
+        regressor->mutable_treeensemble()->add_basepredictionvalue(
+            model.ModelTrees->GetScaleAndBias().GetOneDimensionalBias(
+                "Non single-dimension approxes are not supported")
+        );
     } else {
         for (size_t outputIdx = 0; outputIdx < classesCount; ++outputIdx) {
             regressor->mutable_treeensemble()->add_basepredictionvalue(0.0);
@@ -498,9 +501,7 @@ void NCB::NCoreML::ConvertCoreMLToCatboostModel(const Model& coreMLModel, TFullM
         }
     }
     if (approxDimension == 1) {
-        TScaleAndBias scaleAndBias;
-        scaleAndBias.Bias = ensemble.basepredictionvalue()[0];
-        fullModel->SetScaleAndBias(scaleAndBias);
+        fullModel->SetScaleAndBias({1., {ensemble.basepredictionvalue()[0]}});
     }
     fullModel->UpdateDynamicData();
 }

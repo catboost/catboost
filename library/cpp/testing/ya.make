@@ -1,6 +1,11 @@
 RECURSE(
+    common
     benchmark
     benchmark/examples
     benchmark/examples/metrics
     benchmark/main
+    unittest
+    unittest_main
+    unittest/fat
+    unittest/ut
 )

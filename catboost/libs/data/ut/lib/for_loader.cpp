@@ -2,6 +2,7 @@
 
 #include <catboost/libs/data/load_data.h>
 
+#include <library/cpp/testing/unittest/registar.h>
 #include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/stream/file.h>
@@ -38,6 +39,8 @@ namespace NCB {
         SaveDataToTempFile(srcData.DatasetFileData, &(readDatasetMainParams->PoolPath), srcDataFiles);
         readDatasetMainParams->PoolPath.Scheme = srcData.Scheme;
         readDatasetMainParams->ColumnarPoolFormatParams.DsvFormat.HasHeader = srcData.DsvFileHasHeader;
+        readDatasetMainParams->ColumnarPoolFormatParams.DsvFormat.NumVectorDelimiter
+            = srcData.NumVectorDelimiter;
         SaveDataToTempFile(srcData.PairsFileData, &(readDatasetMainParams->PairsFilePath), srcDataFiles);
         SaveDataToTempFile(
             srcData.GroupWeightsFileData,
@@ -67,23 +70,30 @@ namespace NCB {
         NPar::TLocalExecutor localExecutor;
         localExecutor.RunAdditionalThreads(3);
 
-        TDataProviderPtr dataProvider = ReadDataset(
-            /*taskType*/Nothing(),
-            readDatasetMainParams.PoolPath,
-            readDatasetMainParams.PairsFilePath, // can be uninited
-            readDatasetMainParams.GroupWeightsFilePath, // can be uninited
-            /*timestampsFilePath*/TPathWithScheme(),
-            readDatasetMainParams.BaselineFilePath, // can be uninited
-            readDatasetMainParams.FeatureNamesFilePath, // can be uninited
-            readDatasetMainParams.ColumnarPoolFormatParams,
-            testCase.SrcData.IgnoredFeatures,
-            testCase.SrcData.ObjectsOrder,
-            TDatasetSubset::MakeColumns(),
-            /*classLabels*/Nothing(),
-            &localExecutor
-        );
+        auto readDataset = [&] () {
+            return ReadDataset(
+                /*taskType*/Nothing(),
+                readDatasetMainParams.PoolPath,
+                readDatasetMainParams.PairsFilePath, // can be uninited
+                readDatasetMainParams.GroupWeightsFilePath, // can be uninited
+                /*timestampsFilePath*/TPathWithScheme(),
+                readDatasetMainParams.BaselineFilePath, // can be uninited
+                readDatasetMainParams.FeatureNamesFilePath, // can be uninited
+                readDatasetMainParams.ColumnarPoolFormatParams,
+                testCase.SrcData.IgnoredFeatures,
+                testCase.SrcData.ObjectsOrder,
+                TDatasetSubset::MakeColumns(),
+                /*classLabels*/Nothing(),
+                &localExecutor
+            );
+        };
 
-        Compare<TRawObjectsDataProvider>(std::move(dataProvider), testCase.ExpectedData);
+        if (testCase.ExpectedReadError) {
+            UNIT_ASSERT_EXCEPTION(readDataset(), TCatBoostException);
+        } else {
+            TDataProviderPtr dataProvider = readDataset();
+            Compare<TRawObjectsDataProvider>(std::move(dataProvider), testCase.ExpectedData);
+        }
     }
 
     }

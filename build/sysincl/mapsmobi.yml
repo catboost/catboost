@@ -57,6 +57,8 @@
   - message_lite.h
   - YXAccountManager/YALAuthenticatorTypes.h
   - YXAccountManager/YALAccountManager.h
+  - YXAccountManager/YALAuthenticatorProtocol.h
+  - YXAccountManager/YALAuthenticatorFactory.h
 
 - source_filter: "^contrib/restricted/boost"
   includes:

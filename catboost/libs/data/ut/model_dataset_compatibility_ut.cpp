@@ -3,7 +3,7 @@
 #include <catboost/libs/data/features_layout.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 
 using namespace NCB;
@@ -15,7 +15,7 @@ Y_UNIT_TEST_SUITE(GetFloatFeaturesBordersRemap) {
         TFullModel model;
         model.ModelTrees.GetMutable()->SetFloatFeatures({ TFloatFeature(hasNans, 0, 0, modelBorders) });
 
-        TFeaturesLayout featuresLayout(ui32(3), TVector<ui32>(), TVector<ui32>(), TVector<TString>());
+        TFeaturesLayout featuresLayout(ui32(3), {}, {}, {}, {});
         TQuantizedFeaturesInfo quantizedFeaturesInfo(featuresLayout, TConstArrayRef<ui32>(), NCatboostOptions::TBinarizationOptions());
 
         quantizedFeaturesInfo.SetBorders(TFloatFeatureIdx(0), std::move(poolBorders));
@@ -65,7 +65,7 @@ Y_UNIT_TEST_SUITE(GetFloatFeaturesBordersRemap) {
             }
         );
 
-        TFeaturesLayout featuresLayout(ui32(3), TVector<ui32>(), TVector<ui32>(), TVector<TString>());
+        TFeaturesLayout featuresLayout(ui32(3), {}, {}, {}, {});
         TQuantizedFeaturesInfo quantizedFeaturesInfo(featuresLayout, TConstArrayRef<ui32>(), NCatboostOptions::TBinarizationOptions());
 
         quantizedFeaturesInfo.SetBorders(TFloatFeatureIdx(0), {-0.1f, 1e-9f, 1.f, 1.5f, 2.f, 3.f});
@@ -80,7 +80,7 @@ Y_UNIT_TEST_SUITE(GetFloatFeaturesBordersRemap) {
         bool hasNans = false;
         TFullModel model;
 
-        TFeaturesLayout featuresLayout(ui32(3), TVector<ui32>(), TVector<ui32>(), TVector<TString>());
+        TFeaturesLayout featuresLayout(ui32(3), {}, {}, {}, {});
         TQuantizedFeaturesInfo quantizedFeaturesInfo(featuresLayout, TConstArrayRef<ui32>(), NCatboostOptions::TBinarizationOptions());
 
         quantizedFeaturesInfo.SetBorders(TFloatFeatureIdx(0), {0.f});
@@ -137,7 +137,7 @@ Y_UNIT_TEST_SUITE(GetFloatFeaturesBordersRemap) {
         bool hasNans = false;
         TFullModel model;
 
-        TFeaturesLayout featuresLayout(ui32(3), TVector<ui32>(), TVector<ui32>(), TVector<TString>());
+        TFeaturesLayout featuresLayout(ui32(3), {}, {}, {}, {});
         TQuantizedFeaturesInfo quantizedFeaturesInfo(featuresLayout, TConstArrayRef<ui32>(), NCatboostOptions::TBinarizationOptions());
 
         const float a = 0.0000006269f;

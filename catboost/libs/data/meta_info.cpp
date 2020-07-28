@@ -71,6 +71,7 @@ TDataMetaInfo::TDataMetaInfo(
 
     TVector<ui32> catFeatureIndices;
     TVector<ui32> textFeatureIndices;
+    TVector<ui32> embeddingFeatureIndices;
 
     ui32 featureIdx = 0;
     for (const auto& column : ColumnsInfo->Columns) {
@@ -82,6 +83,8 @@ TDataMetaInfo::TDataMetaInfo(
                 catFeatureIndices.push_back(featureIdx);
             } else if (column.Type == EColumn::Text) {
                 textFeatureIndices.push_back(featureIdx);
+            } else if (column.Type == EColumn::NumVector) {
+                embeddingFeatureIndices.push_back(featureIdx);
             }
             ++featureIdx;
         }
@@ -91,6 +94,7 @@ TDataMetaInfo::TDataMetaInfo(
         featureIdx,
         std::move(catFeatureIndices),
         std::move(textFeatureIndices),
+        std::move(embeddingFeatureIndices),
         finalFeatureNames);
 
     ColumnsInfo->Validate();

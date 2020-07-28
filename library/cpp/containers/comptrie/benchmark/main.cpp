@@ -1,4 +1,4 @@
-#include <library/testing/benchmark/bench.h>
+#include <library/cpp/testing/benchmark/bench.h>
 
 #include <library/cpp/containers/comptrie/comptrie_trie.h>
 #include <library/cpp/containers/comptrie/comptrie_builder.h>

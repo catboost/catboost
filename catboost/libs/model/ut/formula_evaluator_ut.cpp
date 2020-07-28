@@ -6,7 +6,7 @@
 #include <catboost/libs/train_lib/train_model.h>
 #include <catboost/private/libs/text_features/ut/lib/text_features_data.h>
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 using namespace NCB;
 using namespace NCB::NModelEvaluation;
@@ -80,11 +80,12 @@ Y_UNIT_TEST_SUITE(TObliviousTreeModel) {
 
     Y_UNIT_TEST(TestFlatCalcFloatWithScaleAndBias) {
         auto model = SimpleFloatModel();
-        model.SetScaleAndBias({0.5, 0.125});
+        model.SetScaleAndBias({0.5, {0.125}});
         auto norm = model.GetScaleAndBias();
         TVector<double> expectedPredicts;
+        double bias = norm.GetOneDimensionalBias();
         for (int sampleId : xrange(8)) {
-            expectedPredicts.push_back(sampleId * norm.Scale + norm.Bias);
+            expectedPredicts.push_back(sampleId * norm.Scale + bias);
         }
         CheckFlatCalcResult(model, expectedPredicts, xrange<ui32>(8));
         model.ModelTrees.GetMutable()->ConvertObliviousToAsymmetric();

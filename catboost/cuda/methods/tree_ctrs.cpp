@@ -121,7 +121,7 @@ NCatboostCuda::TTreeCtrDataSetsHelper::TTreeCtrDataSetsHelper(const NCatboostCud
     NCudaLib::GetCudaManager().WaitComplete();
     for (ui32 dev = 0; dev < devCount; ++dev) {
         auto freeMemory = manager.FreeMemoryMb(dev, false);
-        PackSizeEstimators[dev] = (new TTreeCtrDataSetMemoryUsageEstimator(featuresManager,
+        PackSizeEstimators[dev] = (MakeHolder<TTreeCtrDataSetMemoryUsageEstimator>(featuresManager,
                                                                            freeMemory,
                                                                            dataSet.GetCatFeatures().GetFeatureCount(dev),
                                                                            FoldCount,

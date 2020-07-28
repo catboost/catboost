@@ -24,13 +24,15 @@ ADD_TEST(
 
 RECURSE(
     conf_fatal_error
+    config
     docs/empty
     external_resources
-    plugins
-    scripts
+    platform/java
     platform/perl
     platform/perl/5.14.4
     platform/python
     platform/python/ldflags
-    platform/java
+    plugins
+    prebuilt
+    scripts
 )

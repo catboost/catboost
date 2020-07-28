@@ -1,11 +1,11 @@
 # coding: utf-8
 
-import sys
 import codecs
 import errno
 import logging
 import os
 import shutil
+import six
 import stat
 import random
 
@@ -127,9 +127,7 @@ def remove_dir(path):
 
 
 def fix_path_encoding(path):
-    if isinstance(path, unicode):
-        return path.encode(sys.getfilesystemencoding())
-    return path
+    return library.python.strings.to_str(path, library.python.strings.fs_encoding())
 
 
 # File/directory remove
@@ -203,8 +201,8 @@ def hardlink_or_copy(src, lnk):
     def should_fallback_to_copy(exc):
         if WindowsError is not None and isinstance(exc, WindowsError) and exc.winerror == 1142:  # too many hardlinks
             return True
-        # cross-device hardlink or too many hardlinks
-        if isinstance(exc, OSError) and (exc.errno == errno.EXDEV or exc.errno == errno.EMLINK or exc.errno == errno.EINVAL or exc.errno == errno.EACCES):
+        # cross-device hardlink or too many hardlinks, or some known WSL error
+        if isinstance(exc, OSError) and exc.errno in (errno.EXDEV, errno.EMLINK, errno.EINVAL, errno.EACCES, errno.EPERM, ):
             return True
         return False
 
@@ -213,7 +211,7 @@ def hardlink_or_copy(src, lnk):
     except Exception as e:
         logger.debug('Failed to hardlink %s to %s with error %s, will copy it', src, lnk, repr(e))
         if should_fallback_to_copy(e):
-            shutil.copy2(src, lnk)
+            copy2(src, lnk, follow_symlinks=False)
         else:
             raise
 
@@ -228,6 +226,19 @@ def symlink(src, lnk):
         library.python.windows.run_disabled(src, lnk)
     else:
         os.symlink(src, lnk)
+
+
+# shutil.copy2 with follow_symlinks=False parameter (Unix only)
+def copy2(src, lnk, follow_symlinks=True):
+    if six.PY3:
+        shutil.copy2(src, lnk, follow_symlinks=follow_symlinks)
+        return
+
+    if follow_symlinks or not os.path.islink(src):
+        shutil.copy2(src, lnk)
+        return
+
+    symlink(os.readlink(src), lnk)
 
 
 # Recursively hardlink directory
@@ -282,8 +293,12 @@ def read_file(path, binary=True):
 @errorfix_win
 def read_file_unicode(path, binary=True, enc='utf-8'):
     if not binary:
-        with open(path, 'r') as f:
-            return library.python.strings.to_unicode(f.read(), enc)
+        if six.PY2:
+            with open(path, 'r') as f:
+                return library.python.strings.to_unicode(f.read(), enc)
+        else:
+            with open(path, 'r', encoding=enc) as f:
+                return f.read()
     # codecs.open is always binary
     with codecs.open(path, 'r', encoding=enc, errors=library.python.strings.ENCODING_ERRORS_POLICY) as f:
         return f.read()

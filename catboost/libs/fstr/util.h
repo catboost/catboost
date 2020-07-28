@@ -13,6 +13,15 @@ TVector<double> CollectLeavesStatistics(
     const TFullModel& model,
     NPar::TLocalExecutor* localExecutor);
 
-bool TryGetLossDescription(const TFullModel& model, NCatboostOptions::TLossDescription& lossDescription);
+bool TryGetLossDescription(const TFullModel& model, NCatboostOptions::TLossDescription* lossDescription);
+
+bool TryGetObjectiveMetric(const TFullModel& model, NCatboostOptions::TLossDescription* lossDescription);
 
 void CheckNonZeroApproxForZeroWeightLeaf(const TFullModel& model);
+
+TVector<int> GetBinFeatureCombinationClassByDepth(
+    const TModelTrees& forest,
+    const TVector<int>& binFeatureCombinationClass,
+    size_t treeIdx
+);
+

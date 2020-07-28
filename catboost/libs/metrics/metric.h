@@ -3,7 +3,6 @@
 #include "metric_holder.h"
 #include "caching_metric.h"
 #include "pfound.h"
-#include "enums.h"
 
 #include <catboost/private/libs/data_types/pair.h>
 #include <catboost/private/libs/data_types/query.h>
@@ -29,23 +28,23 @@ using NCatboostOptions::GetDefaultPredictionBorder;
 struct TMetricConfig {
     explicit TMetricConfig(ELossFunction metric, TLossParams params,
                            int approxDimension, TSet<TString>* validParams)
-        : metric(metric)
-        , params(std::move(params))
-        , approxDimension(approxDimension)
-        , validParams(validParams) {}
+        : Metric(metric)
+        , Params(std::move(params))
+        , ApproxDimension(approxDimension)
+        , ValidParams(validParams) {}
 
     double GetPredictionBorderOrDefault() const {
-        return NCatboostOptions::GetPredictionBorderOrDefault(params.GetParamsMap(), GetDefaultPredictionBorder());
+        return NCatboostOptions::GetPredictionBorderOrDefault(Params.GetParamsMap(), GetDefaultPredictionBorder());
     }
 
     const TMap<TString, TString>& GetParamsMap() const {
-        return params.GetParamsMap();
+        return Params.GetParamsMap();
     }
 
-    ELossFunction metric;
-    TLossParams params;
-    const int approxDimension;
-    TSet<TString>* validParams;
+    ELossFunction Metric;
+    TLossParams Params;
+    const int ApproxDimension;
+    TSet<TString>* ValidParams;
 };
 
 using MetricsFactory = std::function<TVector<THolder<IMetric>>(const TMetricConfig&)>;

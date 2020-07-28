@@ -12,7 +12,7 @@
 #include <util/generic/maybe.h>
 #include <util/generic/strbuf.h>
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 #include <functional>
 #include <limits>
@@ -976,6 +976,330 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
             textFloatAndCatFeaturesTestCase.ExpectedData = std::move(expectedData);
 
             testCases.push_back(std::move(textFloatAndCatFeaturesTestCase));
+        }
+
+        for (const auto& testCase : testCases) {
+            TestReadDataset(testCase);
+        }
+    }
+
+    Y_UNIT_TEST(ReadDatasetWithEmbeddingColumns) {
+        TVector<TReadDatasetTestCase> testCases;
+
+        auto differentDelimiterTestCases = TVector<std::pair<char, TStringBuf>>{
+            {
+                ';',
+                AsStringBuf(
+                    "0.12\t0;1;1;0.1\n"
+                    "0.22\t0.1;0;0;0.2\n"
+                    "0.34\t0;2;0;1.1\n"
+                    "0.23\t2.1;1.3;1;0\n"
+                    "0.99\t1;0;2.1;0\n"
+                    "0.01\t0.3;0;1;0.1\n"
+                    "0.02\t0.6;0.8;0.9;1.4\n"
+                )
+            },
+            {
+                ',',
+                AsStringBuf(
+                    "0.12\t0,1,1,0.1\n"
+                    "0.22\t0.1,0,0,0.2\n"
+                    "0.34\t0,2,0,1.1\n"
+                    "0.23\t2.1,1.3,1,0\n"
+                    "0.99\t1,0,2.1,0\n"
+                    "0.01\t0.3,0,1,0.1\n"
+                    "0.02\t0.6,0.8,0.9,1.4\n"
+                )
+            }
+        };
+
+        for (const auto& [numVectorDelimiter, datasetFileData]: differentDelimiterTestCases) {
+            TReadDatasetTestCase oneEmbeddingFeatureTestCase;
+            TSrcData srcData;
+            srcData.CdFileData = AsStringBuf(
+                "0\tTarget\n"
+                "1\tNumVector\tembedding0\n"
+            );
+            srcData.DatasetFileData = datasetFileData;
+            srcData.DsvFileHasHeader = false;
+            srcData.NumVectorDelimiter = numVectorDelimiter;
+            srcData.ObjectsOrder = EObjectsOrder::Undefined;
+            oneEmbeddingFeatureTestCase.SrcData = std::move(srcData);
+
+            TExpectedRawData expectedData;
+
+            TDataColumnsMetaInfo dataColumnsMetaInfo;
+            dataColumnsMetaInfo.Columns = {
+                {EColumn::Label, ""},
+                {EColumn::NumVector, "embedding0"},
+            };
+
+            TVector<TString> featureId = {"embedding0"};
+
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, /* baselineColumn */ Nothing(), &featureId);
+            expectedData.Objects.Order = EObjectsOrder::Undefined;
+
+            expectedData.Objects.EmbeddingFeatures = {
+                TVector<TVector<float>>{
+                    {0.f,  1.f,  1.f,  0.1f},
+                    {0.1f, 0.f,  0.f,  0.2f},
+                    {0.f,  2.f,  0.f,  1.1f},
+                    {2.1f, 1.3f, 1.f,  0.f},
+                    {1.f,  0.f,  2.1f, 0.f},
+                    {0.3f, 0.f, 1.f,  0.1f},
+                    {0.6f, 0.8f, 0.9f, 1.4f}
+                },
+            };
+
+            expectedData.ObjectsGrouping = TObjectsGrouping(7);
+            expectedData.Target.TargetType = ERawTargetType::String;
+            TVector<TVector<TString>> rawTarget{{"0.12", "0.22", "0.34", "0.23", "0.99", "0.01", "0.02"}};
+            expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
+            expectedData.Target.Weights = TWeights<float>(7);
+            expectedData.Target.GroupWeights = TWeights<float>(7);
+
+            oneEmbeddingFeatureTestCase.ExpectedData = std::move(expectedData);
+
+            testCases.push_back(std::move(oneEmbeddingFeatureTestCase));
+        }
+        {
+            TReadDatasetTestCase textFloatAndEmbeddingFeaturesTestCase;
+            TSrcData srcData;
+            srcData.CdFileData = AsStringBuf(
+                "0\tTarget\n"
+                "1\tNum\tFeat0\n"
+                "2\tNumVector\tEmbedding0\n"
+                "3\tNum\tFeat1\n"
+                "4\tNumVector\tEmbedding1\n"
+                "5\tNum\tFeat2\n"
+            );
+            srcData.DatasetFileData = AsStringBuf(
+                "0.12\t0\t0.1;0;1\t1\t0.18;0\t10\n"
+                "0.22\t1\t0.2;1;0\t1.1\t0.3;0.1\t20\n"
+                "0.34\t0\t0.3;0;1\t2.1\t0.2;0\t10\n"
+                "0.23\t0\t0.4;0.2;0\t0.9\t0.1;0\t30\n"
+                "0.99\t1\t0.5;0.1;1\t2.2\t0.5;1\t42\n"
+                "0.01\t1\t0.1;0;0\t1.2\t0.7;0\t22\n"
+                "0.02\t0\t0.2;0.3;1\t3.2\t0.8;0.3\t30\n"
+            );
+            srcData.DsvFileHasHeader = false;
+            srcData.ObjectsOrder = EObjectsOrder::Undefined;
+            textFloatAndEmbeddingFeaturesTestCase.SrcData = std::move(srcData);
+
+            TExpectedRawData expectedData;
+
+            TDataColumnsMetaInfo dataColumnsMetaInfo;
+            dataColumnsMetaInfo.Columns = {
+                {EColumn::Label, ""},
+                {EColumn::Num, "Feat0"},
+                {EColumn::NumVector, "Embedding0"},
+                {EColumn::Num, "Feat1"},
+                {EColumn::NumVector, "Embedding1"},
+                {EColumn::Num, "Feat2"}
+            };
+
+            TVector<TString> featureId = {
+                "Feat0",
+                "Embedding0",
+                "Feat1",
+                "Embedding1",
+                "Feat2"
+            };
+
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, /* baselineColumn */ Nothing(), &featureId);
+            expectedData.Objects.Order = EObjectsOrder::Undefined;
+
+            expectedData.Objects.FloatFeatures = {
+                TVector<float>{0.f, 1.f, 0.f, 0.f, 1.f, 1.f, 0.f},
+                TVector<float>{1.f, 1.1f, 2.1f, 0.9f, 2.2f, 1.2f, 3.2f},
+                TVector<float>{10.f, 20.f, 10.f, 30.f, 42.f, 22.f, 30.f}
+            };
+            expectedData.Objects.EmbeddingFeatures = {
+                TVector<TVector<float>>{
+                    {0.1f, 0.f, 1.f},
+                    {0.2f, 1.f, 0.f},
+                    {0.3f, 0.f, 1.f},
+                    {0.4f, 0.2f, 0.f},
+                    {0.5f, 0.1f, 1.f},
+                    {0.1f, 0.f, 0.f},
+                    {0.2f, 0.3f, 1.f}
+                },
+                TVector<TVector<float>>{
+                    {0.18f, 0.f},
+                    {0.3f, 0.1f},
+                    {0.2f, 0.f},
+                    {0.1f, 0.f},
+                    {0.5f, 1.f},
+                    {0.7f, 0.f},
+                    {0.8f, 0.3f}
+                },
+            };
+
+            expectedData.ObjectsGrouping = TObjectsGrouping(7);
+            expectedData.Target.TargetType = ERawTargetType::String;
+            TVector<TVector<TString>> rawTarget{{"0.12", "0.22", "0.34", "0.23", "0.99", "0.01", "0.02"}};
+            expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
+            expectedData.Target.Weights = TWeights<float>(7);
+            expectedData.Target.GroupWeights = TWeights<float>(7);
+
+            textFloatAndEmbeddingFeaturesTestCase.ExpectedData = std::move(expectedData);
+
+            testCases.push_back(std::move(textFloatAndEmbeddingFeaturesTestCase));
+        }
+
+        for (const auto& testCase : testCases) {
+            TestReadDataset(testCase);
+        }
+    }
+
+    Y_UNIT_TEST(ReadDatasetWithEmbeddingColumnsWithMissingValues) {
+        TVector<TReadDatasetTestCase> testCases;
+
+        {
+            TReadDatasetTestCase textFloatAndEmbeddingFeaturesTestCase;
+            TSrcData srcData;
+            srcData.CdFileData = AsStringBuf(
+                "0\tTarget\n"
+                "1\tNum\tFeat0\n"
+                "2\tNumVector\tEmbedding0\n"
+                "3\tNum\tFeat1\n"
+                "4\tNumVector\tEmbedding1\n"
+                "5\tNum\tFeat2\n"
+            );
+            srcData.DatasetFileData = AsStringBuf(
+                "0.12\t0\t0.1;0;1\t1\t0.18;0\t10\n"
+                "0.22\t1\t-;-;-\t1.1\t0.3;\t20\n"
+                "0.34\t0\t0.3;0;nan\t2.1\t0.2;0\t10\n"
+            );
+            srcData.DsvFileHasHeader = false;
+            srcData.ObjectsOrder = EObjectsOrder::Undefined;
+            textFloatAndEmbeddingFeaturesTestCase.SrcData = std::move(srcData);
+
+            TExpectedRawData expectedData;
+
+            TDataColumnsMetaInfo dataColumnsMetaInfo;
+            dataColumnsMetaInfo.Columns = {
+                {EColumn::Label, ""},
+                {EColumn::Num, "Feat0"},
+                {EColumn::NumVector, "Embedding0"},
+                {EColumn::Num, "Feat1"},
+                {EColumn::NumVector, "Embedding1"},
+                {EColumn::Num, "Feat2"}
+            };
+
+            TVector<TString> featureId = {
+                "Feat0",
+                "Embedding0",
+                "Feat1",
+                "Embedding1",
+                "Feat2"
+            };
+
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, /* baselineColumn */ Nothing(), &featureId);
+            expectedData.Objects.Order = EObjectsOrder::Undefined;
+
+            expectedData.Objects.FloatFeatures = {
+                TVector<float>{0.f, 1.f, 0.f},
+                TVector<float>{1.f, 1.1f, 2.1f},
+                TVector<float>{10.f, 20.f, 10.f}
+            };
+
+            auto nanValue = std::numeric_limits<float>::quiet_NaN();
+
+            expectedData.Objects.EmbeddingFeatures = {
+                TVector<TVector<float>>{
+                    {0.1f, 0.f, 1.f},
+                    {nanValue, nanValue, nanValue},
+                    {0.3f, 0.f, nanValue}
+                },
+                TVector<TVector<float>>{
+                    {0.18f, 0.f},
+                    {0.3f, nanValue},
+                    {0.2f, 0.f}
+                },
+            };
+
+            expectedData.ObjectsGrouping = TObjectsGrouping(3);
+            expectedData.Target.TargetType = ERawTargetType::String;
+            TVector<TVector<TString>> rawTarget{{"0.12", "0.22", "0.34"}};
+            expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
+            expectedData.Target.Weights = TWeights<float>(3);
+            expectedData.Target.GroupWeights = TWeights<float>(3);
+
+            textFloatAndEmbeddingFeaturesTestCase.ExpectedData = std::move(expectedData);
+
+            testCases.push_back(std::move(textFloatAndEmbeddingFeaturesTestCase));
+        }
+
+        for (const auto& testCase : testCases) {
+            TestReadDataset(testCase);
+        }
+    }
+
+    Y_UNIT_TEST(ReadBrokenDatasetWithEmbeddingColumns) {
+        TVector<TReadDatasetTestCase> testCases;
+
+        {
+            TReadDatasetTestCase inconsistentNumVectorLengthTestCase;
+            inconsistentNumVectorLengthTestCase.ExpectedReadError = true;
+
+            TSrcData srcData;
+            srcData.CdFileData = AsStringBuf(
+                "0\tTarget\n"
+                "1\tNumVector\tembedding0\n"
+            );
+            srcData.DatasetFileData = AsStringBuf(
+                "0.12\t0;1;1;0.1\n"
+                "0.22\t0.1;0;0;0.6;0.2\n"
+                "0.34\t0;2;0;1.1\n"
+            );
+            srcData.DsvFileHasHeader = false;
+            srcData.ObjectsOrder = EObjectsOrder::Undefined;
+            inconsistentNumVectorLengthTestCase.SrcData = std::move(srcData);
+
+            testCases.push_back(std::move(inconsistentNumVectorLengthTestCase));
+        }
+
+        {
+            TReadDatasetTestCase nonFloadSubFieldTestCase1;
+            nonFloadSubFieldTestCase1.ExpectedReadError = true;
+
+            TSrcData srcData;
+            srcData.CdFileData = AsStringBuf(
+                "0\tTarget\n"
+                "1\tNumVector\tembedding0\n"
+            );
+            srcData.DatasetFileData = AsStringBuf(
+                "0.12\t0;1;xx;0.1\n"
+                "0.22\t0.1;0;0.3;0.6\n"
+                "0.34\t0;2;0;1.1\n"
+            );
+            srcData.DsvFileHasHeader = false;
+            srcData.ObjectsOrder = EObjectsOrder::Undefined;
+            nonFloadSubFieldTestCase1.SrcData = std::move(srcData);
+
+            testCases.push_back(std::move(nonFloadSubFieldTestCase1));
+        }
+
+        {
+            TReadDatasetTestCase nonFloadSubFieldTestCase2;
+            nonFloadSubFieldTestCase2.ExpectedReadError = true;
+
+            TSrcData srcData;
+            srcData.CdFileData = AsStringBuf(
+                "0\tTarget\n"
+                "1\tNumVector\tembedding0\n"
+            );
+            srcData.DatasetFileData = AsStringBuf(
+                "0.12\t0;1;1;--\n"
+                "0.22\t0.1;0;0.3;0.6\n"
+                "0.34\t0;2;0;1.1\n"
+            );
+            srcData.DsvFileHasHeader = false;
+            srcData.ObjectsOrder = EObjectsOrder::Undefined;
+            nonFloadSubFieldTestCase2.SrcData = std::move(srcData);
+
+            testCases.push_back(std::move(nonFloadSubFieldTestCase2));
         }
 
         for (const auto& testCase : testCases) {

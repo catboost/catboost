@@ -15,7 +15,7 @@
 #include <util/random/shuffle.h>
 #include <util/system/info.h>
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 #include <util/stream/output.h>
 
@@ -275,7 +275,7 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
             }
         }
 
-        TFeaturesLayout featuresLayout(featureId, catFeatureIndices, {}, {});
+        TFeaturesLayout featuresLayout(featureId, catFeatureIndices, {}, {}, {});
         commonDataCopy.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(featuresLayout);
 
         return TRawObjectsDataProvider(
@@ -474,7 +474,7 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
                 }
             }
 
-            TFeaturesLayout featuresLayout(featureCount, catFeatureIndices, {}, {});
+            TFeaturesLayout featuresLayout(featureCount, catFeatureIndices, {}, {}, {});
 
 #define COMPARE_DATA_PROVIDER_FIELD(FIELD) \
             UNIT_ASSERT(Equal(objectsDataProvider.Get##FIELD(), expectedCommonData.FIELD));
@@ -800,6 +800,7 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                         + (useFeatureTypes.second ? srcCatFeatures.size() : 0)
                     ),
                     catFeatureIndices,
+                    {},
                     {},
                     {}
                 );

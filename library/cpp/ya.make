@@ -6,12 +6,18 @@ RECURSE(
     accurate_accumulate/benchmark/metrics
     archive/ut
     binsaver
-    binsaver/ut_util
     binsaver/ut
+    binsaver/ut_util
+    blockcodecs
+    blockcodecs/fuzz
+    blockcodecs/ut
     build_info
     cgiparam
     cgiparam/fuzz
     cgiparam/ut
+    charset
+    charset/ut
+    chromium_trace
     colorizer
     colorizer/ut
     containers
@@ -31,6 +37,9 @@ RECURSE(
     dot_product/ut
     enumbitset
     enumbitset/ut
+    fast_exp
+    fast_exp/benchmark
+    fast_exp/ut
     fast_log
     float16
     float16/ut
@@ -51,23 +60,47 @@ RECURSE(
     json/writer/ut
     json/yson
     json/yson/ut
+    langmask
+    langmask/proto
+    langmask/serialization
+    langmask/ut
+    langs
+    langs/ut
+    lcs
+    lcs/ut
+    lfalloc
+    lfalloc/dbg
+    lfalloc/dbg_info
+    lfalloc/yt
+    linear_regression
+    linear_regression/benchmark
+    linear_regression/ut
     logger
     logger/global
     logger/global/ut
     logger/ut
     malloc
-    lfalloc
-    lfalloc/dbg
-    lfalloc/dbg_info
-    lfalloc/yt
+    neh
+    neh/asio/ut
+    neh/ut
+    netliba
+    object_factory
+    object_factory/ut
     on_disk
     openssl
+    overloaded
+    overloaded/ut
+    packers
+    packers/ut
+    par
     pop_count
     pop_count/benchmark
     pop_count/ut
     resource
     resource/ut
     sse
+    statistics
+    statistics/ut
     streams
     string_utils
     svnversion
@@ -77,16 +110,12 @@ RECURSE(
     text_processing
     threading
     token
+    tokenizer
+    tokenizer/ut
     token/serialization
     token/serialization/ut
     token/ut
-    tokenizer
-    tokenizer/ut
     unicode
-    unittest
-    unittest/fat
-    unittest/main
-    unittest/ut
     yson
     yson/node
     yson/node/pybind
@@ -105,5 +134,11 @@ IF (OS_WINDOWS)
 ELSE()
     RECURSE(
     sse/ut
+)
+ENDIF()
+
+IF (HAVE_CUDA)
+    RECURSE(
+    cuda
 )
 ENDIF()

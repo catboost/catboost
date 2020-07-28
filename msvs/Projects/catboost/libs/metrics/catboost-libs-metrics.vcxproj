@@ -63,7 +63,7 @@
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
-      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)../contrib/libs/libf2c;$(SolutionDir)../contrib/libs/protobuf;$(SolutionDir)../contrib/libs/protobuf/google/protobuf;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)../contrib/libs/libf2c;$(SolutionDir)../contrib/libs/protobuf;$(SolutionDir)../contrib/libs/protobuf/src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -86,7 +86,6 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\classification_utils.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\dcg.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\description_utils.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\metrics\enums.h_serialized.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\hinge_loss.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\kappa.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\llp.cpp"/>
@@ -95,33 +94,6 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\pfound.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\precision_recall_at_k.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\sample.cpp"/>
-    <CustomBuild Include="$(SolutionDir)..\catboost\libs\metrics\enums.h">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\libs\metrics
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../catboost/libs/metrics/enums.h" "--include-path" "catboost/libs/metrics/enums.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/metrics/enums.h_serialized.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\libs\metrics
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../catboost/libs/metrics/enums.h" "--include-path" "catboost/libs/metrics/enums.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/metrics/enums.h_serialized.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/libs/metrics/enums.h_serialized.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\catboost\libs\metrics\enums.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\metrics\enums.h_serialized.cpp;</Outputs>
-    </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\auc.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\auc_mu.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\balanced_accuracy.h"/>
@@ -264,6 +236,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\fmath\contrib-libs-fmath.vcxproj">
       <Project>{90F91270-0728-ADD6-69B3-0B2735FE25FB}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libc_compat\contrib-libs-libc_compat.vcxproj">
+      <Project>{116AA49B-0C0D-7CF7-45DB-A708FB126C84}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libf2c\contrib-libs-libf2c.vcxproj">
       <Project>{ACC03840-E215-DC54-B209-59FA03988A57}</Project>
     </ProjectReference>
@@ -318,6 +293,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\enumbitset\library-cpp-enumbitset.vcxproj">
       <Project>{6440B812-5ED4-4365-7564-0F5EC4AEDBBC}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\fast_exp\library-cpp-fast_exp.vcxproj">
+      <Project>{619D2CC0-4F2C-17C8-8D5C-C873EAB19EA9}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\getopt\small\cpp-getopt-small.vcxproj">
       <Project>{58379026-CFDC-70D1-4FC0-7A73F77E31B5}</Project>
     </ProjectReference>
@@ -336,6 +314,12 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\json\writer\cpp-json-writer.vcxproj">
       <Project>{94F66460-BD28-7C46-313B-A5F2876E26F8}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\langmask\library-cpp-langmask.vcxproj">
+      <Project>{1E76F603-7AB0-A560-A16D-D6FDEE84CA84}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\langs\library-cpp-langs.vcxproj">
+      <Project>{7A259257-161F-BD3F-016E-D02C15A4826D}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\logger\global\cpp-logger-global.vcxproj">
       <Project>{4A8A1664-2BAB-5432-B287-171C2954FDA1}</Project>
     </ProjectReference>
@@ -344,6 +328,12 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\malloc\api\cpp-malloc-api.vcxproj">
       <Project>{98AF9344-15D9-0539-93F4-0E901C36E301}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\object_factory\library-cpp-object_factory.vcxproj">
+      <Project>{6D119854-6D47-C914-7B2B-E6ECF111A695}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\overloaded\library-cpp-overloaded.vcxproj">
+      <Project>{8FA80072-6B06-87FC-6917-262EEFBEA5FB}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\pop_count\library-cpp-pop_count.vcxproj">
       <Project>{6B557DF5-6D6B-ECE1-B5B5-9CD1B8625387}</Project>
@@ -386,24 +376,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\unicode\normalization\cpp-unicode-normalization.vcxproj">
       <Project>{6E0E64B9-3A05-DBD1-DC49-86C427EBD124}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\fast_exp\library-fast_exp.vcxproj">
-      <Project>{E0EC7772-5C0F-6407-290B-3900C3FF324B}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\langmask\library-langmask.vcxproj">
-      <Project>{54EC8CF1-9FAA-FA14-D0CE-A8E86B1F0A3B}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\langs\library-langs.vcxproj">
-      <Project>{1660E94D-B0FA-8C52-3B1B-10230401A2CA}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\object_factory\library-object_factory.vcxproj">
-      <Project>{F7622D70-2702-4C7E-04DA-52DC56DF911E}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\overloaded\library-overloaded.vcxproj">
-      <Project>{2CE71367-048B-26B0-2DAC-CA9BB7D00E76}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_parser\enum_parser.vcxproj">
-      <Project>{F6CDBBB3-9B26-9DC1-90B1-CF3F94F04C9B}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_serialization_runtime\tools-enum_parser-enum_serialization_runtime.vcxproj">
       <Project>{F745D73A-277F-A595-1468-618C82B9B77E}</Project>

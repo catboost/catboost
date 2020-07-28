@@ -5,10 +5,10 @@ RECURSE(
     attrs
     dateutil
     enum34
+    faulthandler
     funcsigs
     graphviz
     Jinja2
-    Jinja2/examples
     MarkupSafe
     more-itertools
     numpy

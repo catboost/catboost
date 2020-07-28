@@ -13,7 +13,17 @@
 #include <sys/types.h>
 #include <sys/mman.h>
 
-#ifndef MAP_NOCORE
+#if !defined(_linux_)
+#ifdef MAP_POPULATE
+#error unlisted platform supporting MAP_POPULATE
+#endif
+#define MAP_POPULATE 0
+#endif
+
+#if !defined(_freebsd_)
+#ifdef MAP_NOCORE
+#error unlisted platform supporting MAP_NOCORE
+#endif
 #define MAP_NOCORE 0
 #endif
 #else
@@ -67,6 +77,29 @@ static inline i64 DownToGranularity(i64 offset) noexcept {
     return offset & ~((i64)(GRANULARITY - 1));
 }
 
+#if defined(_unix_)
+static int ModeToMmapFlags(TMemoryMapCommon::EOpenMode mode) {
+    int flags = MAP_NOCORE;
+    if ((mode & TMemoryMapCommon::oAccessMask) == TMemoryMapCommon::oCopyOnWr) {
+        flags |= MAP_PRIVATE;
+    } else {
+        flags |= MAP_SHARED;
+    }
+    if (mode & TMemoryMapCommon::oPopulate) {
+        flags |= MAP_POPULATE;
+    }
+    return flags;
+}
+
+static int ModeToMmapProt(TMemoryMapCommon::EOpenMode mode) {
+    int prot = PROT_READ;
+    if ((mode & TMemoryMapCommon::oAccessMask) != TMemoryMapCommon::oRdOnly) {
+        prot |= PROT_WRITE;
+    }
+    return prot;
+}
+#endif
+
 // maybe we should move this function to another .cpp file to avoid unwanted optimization?
 void NPrivate::Precharge(const void* data, size_t dataSize, size_t off, size_t size) {
     if (off > dataSize) {
@@ -104,9 +137,8 @@ public:
         }
 #elif defined(_unix_)
         if (!(Mode_ & oNotGreedy)) {
-            PtrStart_ = mmap((caddr_t) nullptr, Length_,
-                             (Mode_ & oAccessMask) == oRdOnly ? PROT_READ : PROT_READ | PROT_WRITE,
-                             ((Mode_ & oAccessMask) == oCopyOnWr ? MAP_PRIVATE : MAP_SHARED) | MAP_NOCORE, File_.GetHandle(), 0);
+            PtrStart_ = mmap((caddr_t) nullptr, Length_, ModeToMmapProt(Mode_), ModeToMmapFlags(Mode_), File_.GetHandle(), 0);
+
             if ((MAP_FAILED == PtrStart_) && Length_)
                 ythrow yexception() << "Can't map " << (unsigned long)Length_ << " bytes of file '" << DbgName_ << "' at offset 0: " << LastSystemErrorText();
         } else
@@ -207,10 +239,7 @@ public:
 #if defined(_unix_)
         if (Mode_ & oNotGreedy) {
 #endif
-            result.Ptr = mmap((caddr_t) nullptr, size,
-                              (Mode_ & oAccessMask) == oRdOnly ? PROT_READ : PROT_READ | PROT_WRITE,
-                              ((Mode_ & oAccessMask) == oCopyOnWr ? MAP_PRIVATE : MAP_SHARED) | MAP_NOCORE,
-                              File_.GetHandle(), base);
+            result.Ptr = mmap((caddr_t) nullptr, size, ModeToMmapProt(Mode_), ModeToMmapFlags(Mode_), File_.GetHandle(), base);
 
             if (result.Ptr == (char*)(-1)) {
                 result.Ptr = nullptr;

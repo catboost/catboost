@@ -79,8 +79,8 @@ ELSEIF (ARCH_ARM7 AND OS_IOS)
     )
 
     SRCS(
-        src/aarch64/ffi.c
-        src/aarch64/sysv.S
+        src/arm/ffi.c
+        src/arm/sysv.S
     )
 ELSEIF (ARCH_ARM7 AND OS_LINUX)
     ADDINCL(

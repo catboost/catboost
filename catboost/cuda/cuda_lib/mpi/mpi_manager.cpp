@@ -6,7 +6,7 @@
 #include <util/system/env.h>
 #include <util/string/cast.h>
 #include <catboost/cuda/cuda_lib/tasks_queue/mpi_task_queue.h>
-#include <library/blockcodecs/codecs.h>
+#include <library/cpp/blockcodecs/codecs.h>
 
 namespace NCudaLib {
     void TMpiManager::Start(int* argc, char*** argv) {

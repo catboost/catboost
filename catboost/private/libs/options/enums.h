@@ -25,7 +25,8 @@ enum class ESamplingUnit {
 enum class EFeatureType {
     Float,
     Categorical,
-    Text
+    Text,
+    Embedding
 };
 
 enum EErrorType {
@@ -254,7 +255,14 @@ enum class EPreCalcShapValues {
 enum class ECalcTypeShapValues {
     Approximate,
     Regular,
-    Exact
+    Exact,
+    Independent
+};
+
+enum class EExplainableModelOutput {
+    Raw,
+    Probability,
+    LossFunction
 };
 
 enum class EObservationsToBootstrap {
@@ -345,6 +353,19 @@ enum class EAutoClassWeightsType {
     Balanced,
     SqrtBalanced,
     None
+};
+
+enum class EAucType {
+    Classic,
+    Ranking,
+    Mu,
+    OneVsAll
+};
+
+enum class EF1AverageType {
+    Micro,
+    Macro,
+    Weighted
 };
 
 namespace NCB {

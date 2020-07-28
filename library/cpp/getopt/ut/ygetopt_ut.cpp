@@ -1,6 +1,6 @@
 #include <library/cpp/getopt/ygetopt.h>
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 class TGetOptTest: public TTestBase {
     UNIT_TEST_SUITE(TGetOptTest);

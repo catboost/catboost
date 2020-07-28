@@ -1,6 +1,6 @@
 #include <library/cpp/text_processing/tokenizer/tokenizer.h>
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 #include <util/generic/xrange.h>
 

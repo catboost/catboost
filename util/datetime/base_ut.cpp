@@ -1,6 +1,6 @@
 #include "base.h"
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 #include <util/generic/utility.h>
 #include <util/generic/ylimits.h>
@@ -184,7 +184,7 @@ Y_UNIT_TEST_SUITE(TDateTimeTest) {
                                 << a.tm_mon << ", "
                                 << a.tm_year << ", "
                                 << a.tm_wday << ", "
-#if !defined(_musl_)
+#if !defined(_musl_) && !defined(_win_)
                                 << a.tm_yday
 #endif
                                 << ")";

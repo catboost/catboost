@@ -120,8 +120,8 @@ def validate_test(unit, kw):
             errors.append("BOOSTTEST is not allowed here")
     elif valid_kw.get('SCRIPT-REL-PATH') == 'gtest':
         project_path = valid_kw.get('BUILD-FOLDER-PATH', "")
-        if not project_path.startswith(("adfox", "contrib", "devtools", "mail", "mds", "yp", "yt")):
-            errors.append("GTEST is not allowed here")
+        if not project_path.startswith(("contrib", "devtools", "mail", "mds")):
+            errors.append("GTEST_UGLY is not allowed here, use GTEST instead")
 
     size_timeout = collections.OrderedDict(sorted(consts.TestSize.DefaultTimeouts.items(), key=lambda t: t[1]))
 
@@ -150,7 +150,7 @@ def validate_test(unit, kw):
                     if req_value in ["0"]:
                         warnings.append("Requirement [[imp]]{}[[rst]] is dropped [[imp]]{}[[rst]] -> [[imp]]{}[[rst]]".format(req_name, requirements[req_name], req_value))
                         del requirements[req_name]
-                    else:
+                    elif requirements[req_name] != req_value:
                         warnings.append("Requirement [[imp]]{}[[rst]] is redefined [[imp]]{}[[rst]] -> [[imp]]{}[[rst]]".format(req_name, requirements[req_name], req_value))
                         requirements[req_name] = req_value
                 else:
@@ -356,8 +356,13 @@ def onadd_ytest(unit, *args):
                 "FORK_SUBTESTS": 0, "FORK_TESTS": 0}
     flat_args, spec_args = _common.sort_by_keywords(keywords, args)
 
+    test_data = sorted(_common.filter_out_by_keyword(spec_args.get('DATA', []) + get_norm_paths(unit, 'TEST_DATA_VALUE'), 'AUTOUPDATED'))
+
     if flat_args[1] == "fuzz.test":
         unit.ondata("arcadia/fuzzing/{}/corpus.json".format(get_norm_unit_path(unit)))
+    elif flat_args[1] == "go.test":
+        data, _ = get_canonical_test_resources(unit)
+        test_data += data
     elif flat_args[1] == "coverage.extractor" and not match_coverage_extractor_requirements(unit):
         # XXX
         # Current ymake implementation doesn't allow to call macro inside the 'when' body
@@ -389,7 +394,7 @@ def onadd_ytest(unit, *args):
         'TEST-RECIPES': prepare_recipes(unit.get("TEST_RECIPES_VALUE")),
         'TEST-ENV': prepare_env(unit.get("TEST_ENV_VALUE")),
         #  'TEST-PRESERVE-ENV': 'da',
-        'TEST-DATA': serialize_list(sorted(_common.filter_out_by_keyword(spec_args.get('DATA', []) + get_norm_paths(unit, 'TEST_DATA_VALUE'), 'AUTOUPDATED'))),
+        'TEST-DATA': serialize_list(test_data),
         'TEST-TIMEOUT': ''.join(spec_args.get('TIMEOUT', [])) or unit.get('TEST_TIMEOUT') or '',
         'FORK-MODE': fork_mode,
         'SPLIT-FACTOR': ''.join(spec_args.get('SPLIT_FACTOR', [])) or unit.get('TEST_SPLIT_FACTOR') or '',
@@ -506,6 +511,7 @@ def onadd_check(unit, *args):
         script_rel_path = check_type
 
     use_arcadia_python = unit.get('USE_ARCADIA_PYTHON')
+    test_files = serialize_list(flat_args[1:])
     test_record = {
         'TEST-NAME': check_type.lower(),
         'TEST-TIMEOUT': test_timeout,
@@ -524,7 +530,9 @@ def onadd_check(unit, *args):
         'USE_ARCADIA_PYTHON': use_arcadia_python or '',
         'OLD_PYTEST': 'no',
         'PYTHON-PATHS': '',
-        'FILES': serialize_list(flat_args[1:])
+        # TODO remove FILES, see DEVTOOLS-7052
+        'FILES': test_files,
+        'TEST-FILES': test_files,
     }
 
     data = dump_test(unit, test_record)
@@ -547,6 +555,7 @@ def onadd_check_py_imports(unit, *args):
     test_dir = get_norm_unit_path(unit)
 
     use_arcadia_python = unit.get('USE_ARCADIA_PYTHON')
+    test_files = serialize_list([get_norm_unit_path(unit, unit.filename())])
     test_record = {
         'TEST-NAME': "pyimports",
         'TEST-TIMEOUT': '',
@@ -565,7 +574,9 @@ def onadd_check_py_imports(unit, *args):
         'USE_ARCADIA_PYTHON': use_arcadia_python or '',
         'OLD_PYTEST': 'no',
         'PYTHON-PATHS': '',
-        'FILES': serialize_list([get_norm_unit_path(unit, unit.filename())])
+        # TODO remove FILES, see DEVTOOLS-7052
+        'FILES': test_files,
+        'TEST-FILES': test_files,
     }
     if unit.get('NO_CHECK_IMPORTS_FOR_VALUE') != "None":
         test_record["NO-CHECK"] = serialize_list(get_values_list(unit, 'NO_CHECK_IMPORTS_FOR_VALUE') or ["*"])

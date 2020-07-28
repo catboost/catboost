@@ -1,6 +1,6 @@
 #include "builder.h"
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 static void TestEquals(const TString& expected, const TString& actual) {
     UNIT_ASSERT_VALUES_EQUAL(expected, actual);

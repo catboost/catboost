@@ -195,7 +195,9 @@ void TrainOneIteration(const NCB::TTrainingDataProviders& data, TLearnContext* c
                 ctx->LocalExecutor
             );
             if (ctx->LearnProgress->StartingApprox.Defined()) {
-                *ctx->LearnProgress->StartingApprox = *ctx->LearnProgress->StartingApprox.Get() * modelShrinkage;
+                for (auto& approx : *ctx->LearnProgress->StartingApprox) {
+                    approx = approx * modelShrinkage;
+                }
             }
             ctx->LearnProgress->ModelShrinkHistory.push_back(modelShrinkage);
         } else {
@@ -358,7 +360,8 @@ void TrainOneIteration(const NCB::TTrainingDataProviders& data, TLearnContext* c
                 leafCount,
                 indices,
                 learnPermutationRef,
-                GetWeights(*data.Learn->TargetData)
+                GetWeights(*data.Learn->TargetData),
+                ctx->LocalExecutor
             );
             NormalizeLeafValues(
                 UsesPairsForCalculation(ctx->Params.LossFunctionDescription->GetLossFunction()),

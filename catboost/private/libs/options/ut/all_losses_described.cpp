@@ -1,4 +1,4 @@
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 #include <library/cpp/json/json_reader.h>
 #include <catboost/private/libs/options/option.h>
 #include <catboost/private/libs/options/json_helper.h>

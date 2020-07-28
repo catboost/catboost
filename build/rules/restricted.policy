@@ -39,13 +39,14 @@ ALLOW yandex_io -> contrib/restricted/gstreamer
 ALLOW yandex_io -> contrib/restricted/gst-plugins-base
 ALLOW yandex_io -> contrib/restricted/gst-plugins-good
 ALLOW yandex_io -> contrib/restricted/gst-plugins-bad
-ALLOW yandex_io -> contrib/restricted/gst-libav
+ALLOW yandex_io -> contrib/restricted/patched/gst-libav
 
 # mpg123 is LGPL
 ALLOW extsearch/audio/kernel/recoglib -> contrib/restricted/mpg123
 
 # OpenAL Soft is LGPL
-ALLOW yandex_io -> contrib/restricted/openal
+ALLOW yandex_io -> contrib/restricted/openal-soft
+ALLOW speechkit -> contrib/restricted/openal-soft
 
 # Allowed subset of abseil is exported via library/
 ALLOW library/cpp/containers/absl_flat_hash -> contrib/restricted/abseil-cpp/absl/container
@@ -53,10 +54,24 @@ ALLOW library/cpp/containers/absl_flat_hash -> contrib/restricted/abseil-cpp/abs
 # spdlog is just yet another best logging engine
 # The best logging engine, however, is to be designed in CPPCOM-20
 ALLOW quasar/backend/src/base -> contrib/restricted/spdlog
+ALLOW crypta/lib/native/log -> contrib/restricted/spdlog
+ALLOW yandex_io -> contrib/restricted/spdlog
 
 ALLOW contrib/libs/webrtc -> contrib/restricted/abseil-cpp
 ALLOW contrib/libs/ortools -> contrib/restricted/abseil-cpp
 ALLOW contrib/libs/tf_1_14 -> contrib/restricted/abseil-cpp
+
+# http-parser is a low-level parser for http bytestream.
+# Consider using high-level alternatives.
+ALLOW contrib/libs/libgit2 -> contrib/restricted/http-parser
+ALLOW contrib/libs/nodejs_8 -> contrib/restricted/http-parser
+ALLOW contrib/python/aiohttp -> contrib/restricted/http-parser
+ALLOW contrib/python/http_parser -> contrib/restricted/http-parser
+ALLOW contrib/python/httptools -> contrib/restricted/http-parser
+ALLOW mds -> contrib/restricted/http-parser
+ALLOW passport/python/contrib/bjoern -> contrib/restricted/http-parser
+ALLOW yt/yt/core/http -> contrib/restricted/http-parser
+ALLOW yweb/robot/fetcher/fetcher/user/http -> contrib/restricted/http-parser
 
 # Prefer using skynet for data distribution
 ALLOW maps/infra/ecstatic/ymtorrent -> contrib/restricted/libtorrent
@@ -73,7 +88,8 @@ ALLOW extsearch/geo/poi_service/tools/storage_reader -> contrib/restricted/boost
 ALLOW infra/contrib/pdns -> contrib/restricted/boost
 ALLOW juggler/pongerd -> contrib/restricted/boost
 ALLOW lbs/locator -> contrib/restricted/boost
-ALLOW library/testing/ya_boost_test -> contrib/restricted/boost
+ALLOW library/cpp/testing/boost_test$ -> contrib/restricted/boost/libs/test
+ALLOW library/cpp/testing/boost_test_main$ -> contrib/restricted/boost/libs/test
 ALLOW logbroker/pipe-parser -> contrib/restricted/boost
 ALLOW mail -> contrib/restricted/boost
 ALLOW maps -> contrib/restricted/boost
@@ -89,6 +105,8 @@ ALLOW quasar/backend -> contrib/restricted/boost
 ALLOW regulargeo/research -> contrib/restricted/boost
 ALLOW rem/python/geobase30 -> contrib/restricted/boost
 ALLOW rtline/services/drive/contrib/libs/telemetry -> contrib/restricted/boost
+ALLOW smart_devices -> contrib/restricted/boost
+ALLOW speechkit -> contrib/restricted/boost
 ALLOW statbox/libstatbox -> contrib/restricted/boost
 ALLOW tools/idl -> contrib/restricted/boost
 ALLOW voicetech/tools -> contrib/restricted/boost
@@ -96,8 +114,6 @@ ALLOW weather/grid_api/lib -> contrib/restricted/boost
 ALLOW yabs/telephony -> contrib/restricted/boost
 ALLOW yandex_io -> contrib/restricted/boost
 ALLOW yweb/robot/js -> contrib/restricted/boost
-ALLOW speechkit -> contrib/restricted/boost
-ALLOW speechkit -> contrib/restricted/openal-soft
 
 # Allow boost in all contrib projects
 ALLOW contrib/deprecated -> contrib/restricted/boost
@@ -110,6 +126,19 @@ ALLOW contrib/deprecated -> contrib/restricted/libffi
 ALLOW contrib/libs -> contrib/restricted/libffi
 ALLOW contrib/python -> contrib/restricted/libffi
 ALLOW contrib/tools -> contrib/restricted/libffi
+
+# use GTEST target in ya.make instead of PEERDIRing contrib/restricted/googletest
+# and include <library/cpp/testing/gtest.h> instead of <gtest/gtest.h> (<gmock/gmock.h>)
+ALLOW contrib -> contrib/restricted/googletest
+ALLOW library/cpp/testing/gmock_in_unittest -> contrib/restricted/googletest
+ALLOW library/cpp/testing/gtest -> contrib/restricted/googletest
+ALLOW library/cpp/testing/gtest_extensions -> contrib/restricted/googletest
+ALLOW library/cpp/testing/gtest_main -> contrib/restricted/googletest
+ALLOW library/python/testing/gtest/test/gtest -> contrib/restricted/googletest
+# TODO remove this lines after they will switch to library/cpp/testing/gtest
+ALLOW mail -> contrib/restricted/googletest
+ALLOW maps/mobile/libs -> contrib/restricted/googletest
+ALLOW mds -> contrib/restricted/googletest
 
 # Default policies:
 

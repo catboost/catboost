@@ -9,7 +9,7 @@
 #include <catboost/private/libs/data_types/groupid.h>
 #include <catboost/libs/helpers/sparse_array.h>
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 #include <util/generic/maybe.h>
 #include <util/generic/ptr.h>
@@ -25,7 +25,14 @@ namespace NCB {
     template <class TValue>
     using TExpectedFeatureColumn = TVariant<TVector<TValue>, TConstPolymorphicValuesSparseArray<TValue, ui32>>;
 
-    template <class TGroupIdData, class TSubgroupIdData, class TFloatFeature, class TCatFeature, class TTextFeature>
+    template <
+        class TGroupIdData,
+        class TSubgroupIdData,
+        class TFloatFeature,
+        class TCatFeature,
+        class TTextFeature,
+        class TEmbeddingFeature
+    >
     struct TExpectedCommonObjectsData {
         EObjectsOrder Order = EObjectsOrder::Undefined;
 
@@ -37,6 +44,7 @@ namespace NCB {
         TVector<TMaybe<TExpectedFeatureColumn<TFloatFeature>>> FloatFeatures;
         TVector<TMaybe<TExpectedFeatureColumn<TCatFeature>>> CatFeatures;
         TVector<TMaybe<TExpectedFeatureColumn<TTextFeature>>> TextFeatures;
+        TVector<TMaybe<TExpectedFeatureColumn<TEmbeddingFeature>>> EmbeddingFeatures;
     };
 
     /*
@@ -45,14 +53,21 @@ namespace NCB {
      *  CatFeatures will be processed with CalcCatFeatureHash
      */
     struct TExpectedRawObjectsData
-        : public TExpectedCommonObjectsData<TStringBuf, TStringBuf, float, TStringBuf, TStringBuf>
+        : public TExpectedCommonObjectsData<
+              TStringBuf,
+              TStringBuf,
+              float,
+              TStringBuf,
+              TStringBuf,
+              TVector<float>
+          >
     {
         bool TreatGroupIdsAsIntegers = false;
     };
 
     // TODO(akhropov): quantized pools might have more complicated features data types in the future
     struct TExpectedQuantizedObjectsData
-        : public TExpectedCommonObjectsData<TGroupId, TSubgroupId, ui8, ui32, TNothing>
+        : public TExpectedCommonObjectsData<TGroupId, TSubgroupId, ui8, ui32, TNothing, TNothing>
     {
         TQuantizedFeaturesInfoPtr QuantizedFeaturesInfo;
         ui32 MaxCategoricalFeaturesUniqValuesOnLearn = 0;

@@ -14,7 +14,7 @@
 #include <catboost/private/libs/algo_helpers/error_functions.h>
 #include <catboost/private/libs/options/json_helper.h>
 
-#include <library/par/par_settings.h>
+#include <library/cpp/par/par_settings.h>
 
 #include <util/system/yassert.h>
 

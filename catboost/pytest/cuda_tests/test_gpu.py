@@ -218,9 +218,9 @@ def combine_dicts(first, *vargs):
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 def test_bootstrap(boosting_type):
     bootstrap_option = {
-        'no': {'--bootstrap-type': 'No'},
         'bayes': {'--bootstrap-type': 'Bayesian', '--bagging-temperature': '0.0'},
-        'bernoulli': {'--bootstrap-type': 'Bernoulli', '--subsample': '1.0'}
+        'bernoulli': {'--bootstrap-type': 'Bernoulli', '--subsample': '1.0'},
+        'mvs': {'--bootstrap-type': 'MVS', '--subsample': '1.0'},
     }
 
     test_file = data_file('adult', 'test_small')
@@ -250,11 +250,53 @@ def test_bootstrap(boosting_type):
         fit_catboost_gpu(run_params)
         apply_catboost(model_path, test_file, cd_file, eval_path)
 
-    ref_eval_path = yatest.common.test_output_path('test_no.eval')
-    assert (filecmp.cmp(ref_eval_path, yatest.common.test_output_path('test_bayes.eval')))
-    assert (filecmp.cmp(ref_eval_path, yatest.common.test_output_path('test_bernoulli.eval')))
-
+    ref_eval_path = yatest.common.test_output_path('test_' + bootstrap_option.keys()[0] + '.eval')
+    for bootstrap in bootstrap_option.keys()[1:]:
+        eval_path = yatest.common.test_output_path('test_' + bootstrap + '.eval')
+        assert (filecmp.cmp(ref_eval_path, eval_path))
     return [local_canonical_file(ref_eval_path)]
+
+
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+def test_bootstrap_no(boosting_type):
+    bootstrap_option = {
+        'no': {'--bootstrap-type': 'No'},
+        'bayes': {'--bootstrap-type': 'Bayesian', '--bagging-temperature': '0.0'},
+    }
+
+    test_file = data_file('adult', 'test_small')
+    cd_file = data_file('adult', 'train.cd')
+
+    params = {
+        '--use-best-model': 'false',
+        '--loss-function': 'Logloss',
+        '-f': data_file('adult', 'train_small'),
+        '-t': test_file,
+        '--column-description': cd_file,
+        '--boosting-type': boosting_type,
+        '-i': '10',
+        '-w': '0.03',
+        '-T': '4',
+    }
+
+    for bootstrap in bootstrap_option:
+        model_path = yatest.common.test_output_path('model_' + bootstrap + '.bin')
+        eval_path = yatest.common.test_output_path('test_' + bootstrap + '.eval')
+        model_option = {'-m': model_path}
+
+        run_params = combine_dicts(params,
+                                   bootstrap_option[bootstrap],
+                                   model_option)
+
+        fit_catboost_gpu(run_params)
+        apply_catboost(model_path, test_file, cd_file, eval_path)
+
+    should_xfail = boosting_type == 'Plain'
+    try:
+        assert (filecmp.cmp(yatest.common.test_output_path('test_no.eval'), yatest.common.test_output_path('test_bayes.eval')))
+    except:
+        assert should_xfail
+        return pytest.xfail(reason="MLTOOLS-5003")
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
@@ -3024,6 +3066,31 @@ def test_metric_description(dataset_has_weights):
     return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
 
 
+def test_ranking_auc():
+    learn_error = yatest.common.test_output_path('learn_error.tsv')
+    test_error = yatest.common.test_output_path('test_error.tsv')
+    train = data_file('black_friday', 'train')  # labels are outside [0, 1]
+    test = data_file('black_friday', 'test')
+    cd = data_file('black_friday', 'cd')
+    ranking_auc = 'AUC:hints=skip_train~false;type=Ranking'
+    classic_auc = 'AUC:hints=skip_train~false;type=Classic'
+
+    params = (
+        '--loss-function', 'PairLogit',
+        '--has-header',
+        '-f', train,
+        '-t', test,
+        '--cd', cd,
+        '-i', '10',
+        '--learn-err-log', learn_error,
+        '--test-err-log', test_error,
+    )
+    fit_catboost_gpu(params + ('--eval-metric', ranking_auc,))
+
+    with pytest.raises(yatest.common.ExecutionError):
+        fit_catboost_gpu(params + ('--eval-metric', classic_auc,))
+
+
 @pytest.mark.parametrize('boosting_type', ['Plain', 'Ordered'])
 @pytest.mark.parametrize('loss_function', ['Logloss', 'QuerySoftMax', 'RMSE', 'QueryRMSE'])
 def test_combination(boosting_type, loss_function):
@@ -3035,6 +3102,7 @@ def test_combination(boosting_type, loss_function):
         '-t': test_file,
         '--cd': cd_file,
         '--boosting-type': boosting_type,
+        '--bootstrap-type': 'Bernoulli',
         '-i': '10',
         '-w': '0.01',
         '-T': '4',
@@ -3073,3 +3141,46 @@ def test_combination(boosting_type, loss_function):
     fit_catboost_gpu(params)
 
     assert filecmp.cmp(output_eval_path_combination, output_eval_path)
+
+
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+@pytest.mark.parametrize('loss_function', ['Logloss', 'RMSE'])
+def test_mvs_bootstrap(boosting_type, loss_function):
+    pool = 'airlines_5K'
+    learn_file = data_file(pool, 'train')
+    test_file = data_file(pool, 'test')
+    cd_file = data_file(pool, 'cd')
+
+    def run_catboost(eval_path, mvs_sample_rate):
+        cmd = [
+            CATBOOST_PATH,
+            'fit',
+            '--use-best-model', 'false',
+            '--allow-writing-files', 'false',
+            '--loss-function', loss_function,
+            '--max-ctr-complexity', '5',
+            '-f', learn_file,
+            '-t', test_file,
+            '--column-description', cd_file,
+            '--has-header',
+            '--boosting-type', boosting_type,
+            '--bootstrap-type', 'MVS',
+            '--subsample', mvs_sample_rate,
+            '-i', '50',
+            '-w', '0.03',
+            '-T', '6',
+            '-r', '0',
+            '--leaf-estimation-iterations', '10',
+            '--eval-file', eval_path,
+        ]
+        yatest.common.execute(cmd)
+
+    ref_eval_path = yatest.common.test_output_path('test.eval')
+    run_catboost(ref_eval_path, '0.5')
+
+    for sample_rate in ('0.1', '0.9'):
+        eval_path = yatest.common.test_output_path('test_{}.eval'.format(sample_rate))
+        run_catboost(eval_path, sample_rate)
+        assert (filecmp.cmp(ref_eval_path, eval_path) is False)
+
+    return [local_canonical_file(ref_eval_path)]

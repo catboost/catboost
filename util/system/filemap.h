@@ -56,6 +56,7 @@ struct TMemoryMapCommon {
         oAccessMask = 7,
         oNotGreedy = 8,
         oPrecharge = 16,
+        oPopulate = 32, // Populate page table entries (see mmap's MAP_POPULATE)
     };
     Y_DECLARE_FLAGS(EOpenMode, EOpenModeFlag)
 

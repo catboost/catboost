@@ -1,4 +1,4 @@
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 #include <catboost/cuda/ut_helpers/test_utils.h>
 #include <catboost/libs/helpers/cpu_random.h>
 #include <catboost/cuda/gpu_data/doc_parallel_dataset_builder.h>
@@ -142,5 +142,9 @@ Y_UNIT_TEST_SUITE(TCombinationTargetTests) {
 
     Y_UNIT_TEST(TestCombinationRMSEQueryRMSE) {
         TestCombinationGradientImpl(/*seed*/42, "RMSE", "QueryRMSE");
+    }
+
+    Y_UNIT_TEST(TestCombinationLoglossQuerySoftMaxBeta) {
+        TestCombinationGradientImpl(/*seed*/96, "Logloss", "QuerySoftMax:beta=0.5");
     }
 }

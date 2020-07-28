@@ -3,7 +3,7 @@
 
 #include <catboost/private/libs/text_features/helpers.h>
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 #include <util/generic/ylimits.h>
 
 using namespace NCB;
@@ -14,7 +14,7 @@ Y_UNIT_TEST_SUITE(TestFeatureCalcer) {
             const ui32 arraySize = 9;
             const ui32 step = 2;
 
-            TArrayHolder<float> array = new float[arraySize];
+            TArrayHolder<float> array(new float[arraySize]);
             Iota(array.Get(), array.Get() + arraySize, 0);
 
             TOutputFloatIterator iterator(array.Get() + 1, step, arraySize - 1);
@@ -40,7 +40,7 @@ Y_UNIT_TEST_SUITE(TestFeatureCalcer) {
 
         {
             const ui32 arraySize = 100;
-            TArrayHolder<float> array = new float[arraySize];
+            TArrayHolder<float> array(new float[arraySize]);
             Iota(array.Get(), array.Get() + arraySize, 0);
             TOutputFloatIterator iterator(array.Get(), arraySize);
 

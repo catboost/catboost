@@ -1,7 +1,7 @@
 #pragma once
 
 #include <catboost/cuda/cuda_lib/task.h>
-#include <library/object_factory/object_factory.h>
+#include <library/cpp/object_factory/object_factory.h>
 #include <util/generic/buffer.h>
 #include <util/generic/hash.h>
 #include <util/stream/buffer.h>
@@ -86,7 +86,7 @@ namespace NCudaLib {
         static inline THolder<ICommand> LoadCommand(IInputStream* input) {
             ui32 id = 0;
             ::Load(input, id);
-            THolder<ICommand> command = TTaskFactory::Construct(id);
+            THolder<ICommand> command = THolder<ICommand>(TTaskFactory::Construct(id));
             CB_ENSURE(command, "Error: Can't find object with id " << id);
             command->Load(input);
             return command;

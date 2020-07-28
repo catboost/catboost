@@ -3,8 +3,8 @@
 
 #include <library/cpp/http/server/http_ex.h>
 
-#include <library/cpp/unittest/registar.h>
-#include <library/cpp/unittest/tests_data.h>
+#include <library/cpp/testing/unittest/registar.h>
+#include <library/cpp/testing/unittest/tests_data.h>
 
 #include <util/string/printf.h>
 #include <util/network/socket.h>

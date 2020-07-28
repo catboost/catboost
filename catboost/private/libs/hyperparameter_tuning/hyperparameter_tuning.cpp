@@ -1009,7 +1009,7 @@ namespace {
                     &trainTestData
                 );
                 lastQuantizationParamsSet = quantizationParamsSet;
-                THolder<IModelTrainer> modelTrainerHolder = TTrainerFactory::Construct(catBoostOptions.GetTaskType());
+                THolder<IModelTrainer> modelTrainerHolder = THolder<IModelTrainer>(TTrainerFactory::Construct(catBoostOptions.GetTaskType()));
 
                 TEvalResult evalRes;
 

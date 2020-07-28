@@ -74,10 +74,10 @@ namespace NCB {
         Out << "static const struct CatboostModel {" << '\n';
         Out << "    unsigned int FloatFeatureCount = " << model.GetNumFloatFeatures() << ";" << '\n';
         Out << "    unsigned int BinaryFeatureCount = " << binaryFeatureCount << ";" << '\n';
-        Out << "    unsigned int TreeCount = " << model.ModelTrees->GetTreeSizes().size() << ";" << '\n';
+        Out << "    unsigned int TreeCount = " << model.ModelTrees->GetModelTreeData()->GetTreeSizes().size() << ";" << '\n';
 
-        Out << "    unsigned int TreeDepth[" << model.ModelTrees->GetTreeSizes().size() << "] = {" << OutputArrayInitializer(model.ModelTrees->GetTreeSizes()) << "};" << '\n';
-        Out << "    unsigned int TreeSplits[" << model.ModelTrees->GetTreeSplits().size() << "] = {" << OutputArrayInitializer(model.ModelTrees->GetTreeSplits()) << "};" << '\n';
+        Out << "    unsigned int TreeDepth[" << model.ModelTrees->GetModelTreeData()->GetTreeSizes().size() << "] = {" << OutputArrayInitializer(model.ModelTrees->GetModelTreeData()->GetTreeSizes()) << "};" << '\n';
+        Out << "    unsigned int TreeSplits[" << model.ModelTrees->GetModelTreeData()->GetTreeSplits().size() << "] = {" << OutputArrayInitializer(model.ModelTrees->GetModelTreeData()->GetTreeSplits()) << "};" << '\n';
 
         Out << "    unsigned int BorderCounts[" << model.ModelTrees->GetNumFloatFeatures() << "] = {" << OutputBorderCounts(model) << "};" << '\n';
 
@@ -85,10 +85,10 @@ namespace NCB {
 
         Out << '\n';
         Out << "    /* Aggregated array of leaf values for trees. Each tree is represented by a separate line: */" << '\n';
-        Out << "    double LeafValues[" << model.ModelTrees->GetLeafValues().size() << "] = {" << OutputLeafValues(model, TIndent(1));
+        Out << "    double LeafValues[" << model.ModelTrees->GetModelTreeData()->GetLeafValues().size() << "] = {" << OutputLeafValues(model, TIndent(1));
         Out << "    };" << '\n';
         Out << "    double Scale = " << model.GetScaleAndBias().Scale << ";" << '\n';
-        Out << "    double Bias = " << model.GetScaleAndBias().Bias << ";" << '\n';
+        Out << "    double Bias = " << model.GetScaleAndBias().GetOneDimensionalBias() << ";" << '\n';
         Out << "} CatboostModelStatic;" << '\n';
         Out << '\n';
     }
@@ -123,7 +123,7 @@ namespace NCB {
         TSequenceCommaSeparator comma;
         out << indent++ << "struct TCatboostCPPExportModelCtrs modelCtrs = {" << '\n';
 
-        const TVector<TModelCtr>& neededCtrs = model.ModelTrees->GetUsedModelCtrs();
+        const auto neededCtrs = model.ModelTrees->GetUsedModelCtrs();
         if (neededCtrs.size() == 0) {
             out << --indent << "};" << '\n';
             return;
@@ -267,8 +267,8 @@ namespace NCB {
         }
         Out << --indent << "};" << '\n';
 
-        Out << indent << "std::vector<unsigned int> TreeDepth = {" << OutputArrayInitializer(model.ModelTrees->GetTreeSizes()) << "};" << '\n';
-        Out << indent << "std::vector<unsigned int> TreeSplits = {" << OutputArrayInitializer(model.ModelTrees->GetTreeSplits()) << "};" << '\n';
+        Out << indent << "std::vector<unsigned int> TreeDepth = {" << OutputArrayInitializer(model.ModelTrees->GetModelTreeData()->GetTreeSizes()) << "};" << '\n';
+        Out << indent << "std::vector<unsigned int> TreeSplits = {" << OutputArrayInitializer(model.ModelTrees->GetModelTreeData()->GetTreeSplits()) << "};" << '\n';
 
         const auto& bins = model.ModelTrees->GetRepackedBins();
         Out << indent << "std::vector<unsigned char> TreeSplitIdxs = {" << OutputArrayInitializer([&bins](size_t i) { return (int)bins[i].SplitIdx; }, bins.size()) << "};" << '\n';
@@ -302,10 +302,10 @@ namespace NCB {
 
         Out << '\n';
         Out << indent << "/* Aggregated array of leaf values for trees. Each tree is represented by a separate line: */" << '\n';
-        Out << indent << "double LeafValues[" << model.ModelTrees->GetLeafValues().size() << "] = {" << OutputLeafValues(model, indent);
+        Out << indent << "double LeafValues[" << model.ModelTrees->GetModelTreeData()->GetLeafValues().size() << "] = {" << OutputLeafValues(model, indent);
         Out << indent << "};" << '\n';
         Out << indent << "double Scale = " << model.GetScaleAndBias().Scale << ";" << '\n';
-        Out << indent << "double Bias = " << model.GetScaleAndBias().Bias << ";" << '\n';
+        Out << indent << "double Bias = " << model.GetScaleAndBias().GetOneDimensionalBias() << ";" << '\n';
 
         WriteModelCTRs(Out, model, indent);
 

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <util/random/mersenne.h>
-#include <math.h>
+#include <cmath>
 
 class TRandom {
 public:

@@ -4,7 +4,7 @@
 
 #include "features.h"
 
-#include <library/object_factory/object_factory.h>
+#include <library/cpp/object_factory/object_factory.h>
 
 #include <util/generic/array_ref.h>
 #include <util/generic/maybe.h>
@@ -177,6 +177,16 @@ namespace NCB {  // split due to CUDA-compiler inability to parse nested namespa
                 TArrayRef<double> results,
                 const TFeatureLayout* featureInfo = nullptr
             ) const = 0;
+
+            void Calc(
+                    TConstArrayRef<TConstArrayRef<float>> floatFeatures,
+                    TConstArrayRef<TConstArrayRef<TStringBuf>> catFeatures,
+                    TConstArrayRef<TConstArrayRef<TStringBuf>> textFeatures,
+                    TArrayRef<double> results,
+                    const TFeatureLayout* featureInfo = nullptr
+            ) const {
+                Calc(floatFeatures, catFeatures, textFeatures, 0, GetTreeCount(), results, featureInfo);
+            }
 
             template <typename TCatFeatureType>
             void Calc(

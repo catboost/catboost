@@ -22,7 +22,8 @@ namespace NCB {
 
         constexpr bool IsUi64Column(const EColumn type) {
             return type == EColumn::SampleId ||
-                type == EColumn::GroupId;
+                type == EColumn::GroupId ||
+                type == EColumn::Timestamp;
         }
 
         constexpr bool IsStringColumn(const EColumn type) {

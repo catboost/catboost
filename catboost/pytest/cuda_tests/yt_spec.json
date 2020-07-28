@@ -1,6 +1,7 @@
 {
     "operation_spec": {
         "scheduling_tag_filter": "porto",
+        "pool": "research_gpu",
         "pool_trees": [
             "gpu_geforce_1080ti"
         ]
@@ -8,7 +9,7 @@
     "task_spec": {
         "gpu_limit": 1,
         "layer_paths": [
-            "//home/devtools/porto_layers/test/gpu/cuda-drivers_418.67-1.tar.gz",
+            "//porto_layers/delta/gpu/driver/418.67",
             "//porto_layers/ubuntu-xenial-base.tar.xz"
         ]
     }

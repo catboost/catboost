@@ -10,7 +10,7 @@
 
 #include <library/cpp/json/json_writer.h>
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 using namespace std;
 using namespace NCB;
@@ -33,10 +33,20 @@ Y_UNIT_TEST_SUITE(TModelSerialization) {
 
     Y_UNIT_TEST(TestSerializeDeserializeFullModelWithScaleAndBias) {
         TFullModel trainedModel = TrainFloatCatboostModel();
-        trainedModel.SetScaleAndBias({0.5, 0.125});
+        trainedModel.SetScaleAndBias({0.5, {0.125}});
         DoSerializeDeserialize(trainedModel);
         trainedModel.ModelTrees.GetMutable()->ConvertObliviousToAsymmetric();
         DoSerializeDeserialize(trainedModel);
+    }
+
+    Y_UNIT_TEST(TestSerializeDeserializeFullModelNonOwning) {
+        TFullModel model = TrainFloatCatboostModel();
+
+        TStringStream strStream;
+        model.Save(&strStream);
+        TFullModel deserializedModel;
+        deserializedModel.InitNonOwning(strStream.Data(), strStream.Size());
+        UNIT_ASSERT_EQUAL(model, deserializedModel);
     }
 
     Y_UNIT_TEST(TestSerializeDeserializeCoreML) {
@@ -45,8 +55,8 @@ Y_UNIT_TEST_SUITE(TModelSerialization) {
         trainedModel.Save(&strStream);
         ExportModel(trainedModel, "model.coreml", EModelType::AppleCoreML);
         TFullModel deserializedModel = ReadModel("model.coreml", EModelType::AppleCoreML);
-        UNIT_ASSERT_EQUAL(trainedModel.ModelTrees->GetLeafValues(), deserializedModel.ModelTrees->GetLeafValues());
-        UNIT_ASSERT_EQUAL(trainedModel.ModelTrees->GetTreeSplits(), deserializedModel.ModelTrees->GetTreeSplits());
+        UNIT_ASSERT_EQUAL(trainedModel.ModelTrees->GetModelTreeData()->GetLeafValues(), deserializedModel.ModelTrees->GetModelTreeData()->GetLeafValues());
+        UNIT_ASSERT_EQUAL(trainedModel.ModelTrees->GetModelTreeData()->GetTreeSplits(), deserializedModel.ModelTrees->GetModelTreeData()->GetTreeSplits());
     }
 
     Y_UNIT_TEST(TestNonSymmetricJsonApply) {

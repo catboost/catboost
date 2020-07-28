@@ -1,6 +1,6 @@
 #include "compiler.h"
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 Y_UNIT_TEST_SUITE(TCompilerTest) {
     Y_UNIT_TEST(TestPragmaNoWshadow) {

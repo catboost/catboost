@@ -95,6 +95,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\double-conversion\contrib-libs-double-conversion.vcxproj">
       <Project>{1BA2A109-73A9-0A33-0C89-68ACB8229C74}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libc_compat\contrib-libs-libc_compat.vcxproj">
+      <Project>{116AA49B-0C0D-7CF7-45DB-A708FB126C84}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\rapidjson\contrib-libs-rapidjson.vcxproj">
       <Project>{9CDB08FB-219D-3356-E006-1AC8AECC636E}</Project>
     </ProjectReference>
@@ -128,11 +131,11 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\malloc\system\cpp-malloc-system.vcxproj">
       <Project>{54C3F326-D733-B490-93B9-EEA3BE28C3A9}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\overloaded\library-cpp-overloaded.vcxproj">
+      <Project>{8FA80072-6B06-87FC-6917-262EEFBEA5FB}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\string_utils\relaxed_escaper\cpp-string_utils-relaxed_escaper.vcxproj">
       <Project>{81697B25-44BA-8BC7-5E66-2708E5669C60}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\overloaded\library-overloaded.vcxproj">
-      <Project>{2CE71367-048B-26B0-2DAC-CA9BB7D00E76}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_serialization_runtime\tools-enum_parser-enum_serialization_runtime.vcxproj">
       <Project>{F745D73A-277F-A595-1468-618C82B9B77E}</Project>

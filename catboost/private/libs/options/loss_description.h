@@ -10,6 +10,7 @@
 #include <util/string/cast.h>
 #include <util/system/types.h>
 
+#include <utility>
 
 namespace NJson {
     class TJsonValue;
@@ -121,6 +122,11 @@ namespace NCatboostOptions {
     double GetHuberParam(const TLossDescription& lossFunctionConfig);
 
     double GetQuerySoftMaxLambdaReg(const TLossDescription& lossFunctionConfig);
+
+    double GetQuerySoftMaxBeta(const TMap<TString, TString>& lossParams);
+    double GetQuerySoftMaxBeta(const TLossDescription& lossFunctionConfig);
+
+    EAucType GetAucType(const TMap<TString, TString>& lossParams);
 
     ui32 GetMaxPairCount(const TLossDescription& lossFunctionConfig);
 

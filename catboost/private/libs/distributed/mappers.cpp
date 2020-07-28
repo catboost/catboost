@@ -100,7 +100,7 @@ namespace NCatboostDistributed {
     ) const {
         auto& localData = TLocalTensorSearchData::GetRef();
         if (localData.Rand == nullptr) {
-            localData.Rand = new TRestorableFastRng64(params->RandomSeed + hostId);
+            localData.Rand = MakeHolder<TRestorableFastRng64>(params->RandomSeed + hostId);
         }
 
         const int workerCount = ctx->GetHostIdCount();
@@ -160,7 +160,7 @@ namespace NCatboostDistributed {
         NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
         auto& localData = TLocalTensorSearchData::GetRef();
         if (localData.Rand == nullptr) { // may be set by TDatasetLoader
-            localData.Rand = new TRestorableFastRng64(params->RandomSeed + hostId);
+            localData.Rand = MakeHolder<TRestorableFastRng64>(params->RandomSeed + hostId);
         }
 
         auto trainParamsJson = GetJson(params->TrainParams);
@@ -587,7 +587,7 @@ namespace NCatboostDistributed {
         TOutput* isLeafEmpty
     ) const {
         auto& localData = TLocalTensorSearchData::GetRef();
-        *isLeafEmpty = GetIsLeafEmpty(localData.Depth + 1, localData.Indices);
+        *isLeafEmpty = GetIsLeafEmpty(localData.Depth + 1, localData.Indices, &NPar::LocalExecutor());
         ++localData.Depth; // tree level completed
     }
 
@@ -829,7 +829,8 @@ namespace NCatboostDistributed {
             leafCount,
             localData.Indices,
             localData.Progress->AveragingFold.GetLearnPermutationArray(),
-            GetWeights(*GetTrainData(trainData).Learn->TargetData));
+            GetWeights(*GetTrainData(trainData).Learn->TargetData),
+            &NPar::LocalExecutor());
     }
 
     void TLeafWeightsGetter::DoReduce(TVector<TOutput>* inLeafWeightsFromWorkers, TOutput* outTotalLeafWeights) const {

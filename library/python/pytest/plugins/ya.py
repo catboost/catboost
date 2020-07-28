@@ -16,6 +16,8 @@ import signal
 import inspect
 import six
 
+import faulthandler
+
 from yatest_lib import test_splitter
 
 try:
@@ -247,6 +249,12 @@ def pytest_configure(config):
     if config.option.pdb_on_sigusr1:
         configure_pdb_on_demand()
 
+    # Dump python backtrace in case of any errors
+    faulthandler.enable()
+    if hasattr(signal, "SIGQUIT"):
+        # SIGQUIT is used by test_tool to teardown tests which overruns timeout
+        faulthandler.register(signal.SIGQUIT, chain=True)
+
     if hasattr(signal, "SIGUSR2"):
         signal.signal(signal.SIGUSR2, _smooth_shutdown)
 
@@ -346,7 +354,6 @@ def pytest_deselected(items):
         for item in items:
             deselected_item = DeselectedTestItem(item.nodeid, config.option.test_suffix)
             config.ya_trace_reporter.on_start_test_class(deselected_item)
-            config.ya_trace_reporter.on_start_test_case(deselected_item)
             config.ya_trace_reporter.on_finish_test_case(deselected_item)
             config.ya_trace_reporter.on_finish_test_class(deselected_item)
 
@@ -425,7 +432,6 @@ def pytest_collection_modifyitems(items, config):
         for item in items:
             test_item = NotLaunchedTestItem(item.nodeid, config.option.test_suffix)
             config.ya_trace_reporter.on_start_test_class(test_item)
-            config.ya_trace_reporter.on_start_test_case(test_item)
             config.ya_trace_reporter.on_finish_test_case(test_item)
             config.ya_trace_reporter.on_finish_test_class(test_item)
     elif config.option.mode == RunMode.List:

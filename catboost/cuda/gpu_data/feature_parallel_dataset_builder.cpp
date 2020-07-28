@@ -21,13 +21,13 @@ namespace NCatboostCuda {
         auto& ctrsTarget = *dataSetsHolder.CtrTargets;
 
         {
-            dataSetsHolder.LearnCatFeaturesDataSet = new TCompressedCatFeatureDataSet(CatFeaturesStorage);
+            dataSetsHolder.LearnCatFeaturesDataSet = MakeHolder<TCompressedCatFeatureDataSet>(CatFeaturesStorage);
             BuildCompressedCatFeatures(DataProvider,
                                        *dataSetsHolder.LearnCatFeaturesDataSet,
                                        localExecutor);
 
             if (LinkedTest) {
-                dataSetsHolder.TestCatFeaturesDataSet = new TCompressedCatFeatureDataSet(CatFeaturesStorage);
+                dataSetsHolder.TestCatFeaturesDataSet = MakeHolder<TCompressedCatFeatureDataSet>(CatFeaturesStorage);
                 BuildCompressedCatFeatures(*LinkedTest,
                                            *dataSetsHolder.TestCatFeaturesDataSet,
                                            localExecutor);
@@ -91,17 +91,17 @@ namespace NCatboostCuda {
                 Gather(weights, dataSetsHolder.DirectWeights, indices);
             }
 
-            dataSetsHolder.PermutationDataSets[permutationId] = new TFeatureParallelDataSet(DataProvider,
-                                                                                            dataSetsHolder.CompressedIndex,
-                                                                                            permutationIndependentScope,
-                                                                                            new TPermutationScope(),
-                                                                                            *dataSetsHolder.LearnCatFeaturesDataSet,
-                                                                                            dataSetsHolder.GetCtrTargets(),
-                                                                                            TTarget<NCudaLib::TMirrorMapping>(std::move(targets),
-                                                                                                                              std::move(weights),
-                                                                                                                              std::move(indices)),
-                                                                                            std::move(inverseIndices),
-                                                                                            std::move(permutation));
+            dataSetsHolder.PermutationDataSets[permutationId] = THolder<TFeatureParallelDataSet>(new TFeatureParallelDataSet(DataProvider,
+                                                                                                                             dataSetsHolder.CompressedIndex,
+                                                                                                                             permutationIndependentScope,
+                                                                                                                             new TPermutationScope(),
+                                                                                                                             *dataSetsHolder.LearnCatFeaturesDataSet,
+                                                                                                                             dataSetsHolder.GetCtrTargets(),
+                                                                                                                             TTarget<NCudaLib::TMirrorMapping>(std::move(targets),
+                                                                                                                                                               std::move(weights),
+                                                                                                                                                               std::move(indices)),
+                                                                                                                             std::move(inverseIndices),
+                                                                                                                             std::move(permutation)));
         }
 
         if (LinkedTest != nullptr) {

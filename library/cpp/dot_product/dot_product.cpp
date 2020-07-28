@@ -444,54 +444,6 @@ TTriWayDotProduct<float> TriWayDotProduct(const float* lhs, const float* rhs, ui
 
 #endif // ARCADIA_SSE
 
-i32 DotProductSlow(const i8* lhs, const i8* rhs, ui32 length) noexcept {
-    i32 s0 = 0;
-    i32 s1 = 0;
-    i32 s2 = 0;
-    i32 s3 = 0;
-    i32 s4 = 0;
-    i32 s5 = 0;
-    i32 s6 = 0;
-    i32 s7 = 0;
-    i32 s8 = 0;
-    i32 s9 = 0;
-    i32 s10 = 0;
-    i32 s11 = 0;
-    i32 s12 = 0;
-    i32 s13 = 0;
-    i32 s14 = 0;
-    i32 s15 = 0;
-
-    while (length >= 16) {
-        s0 += static_cast<i32>(lhs[0]) * static_cast<i32>(rhs[0]);
-        s1 += static_cast<i32>(lhs[1]) * static_cast<i32>(rhs[1]);
-        s2 += static_cast<i32>(lhs[2]) * static_cast<i32>(rhs[2]);
-        s3 += static_cast<i32>(lhs[3]) * static_cast<i32>(rhs[3]);
-        s4 += static_cast<i32>(lhs[4]) * static_cast<i32>(rhs[4]);
-        s5 += static_cast<i32>(lhs[5]) * static_cast<i32>(rhs[5]);
-        s6 += static_cast<i32>(lhs[6]) * static_cast<i32>(rhs[6]);
-        s7 += static_cast<i32>(lhs[7]) * static_cast<i32>(rhs[7]);
-        s8 += static_cast<i32>(lhs[8]) * static_cast<i32>(rhs[8]);
-        s9 += static_cast<i32>(lhs[9]) * static_cast<i32>(rhs[9]);
-        s10 += static_cast<i32>(lhs[10]) * static_cast<i32>(rhs[10]);
-        s11 += static_cast<i32>(lhs[11]) * static_cast<i32>(rhs[11]);
-        s12 += static_cast<i32>(lhs[12]) * static_cast<i32>(rhs[12]);
-        s13 += static_cast<i32>(lhs[13]) * static_cast<i32>(rhs[13]);
-        s14 += static_cast<i32>(lhs[14]) * static_cast<i32>(rhs[14]);
-        s15 += static_cast<i32>(lhs[15]) * static_cast<i32>(rhs[15]);
-        lhs += 16;
-        rhs += 16;
-        length -= 16;
-    }
-
-    while (length) {
-        s0 += static_cast<i32>(*lhs++) * static_cast<i32>(*rhs++);
-        --length;
-    }
-
-    return s0 + s1 + s2 + s3 + s4 + s5 + s6 + s7 + s8 + s9 + s10 + s11 + s12 + s13 + s14 + s15;
-}
-
 template <typename Res, typename Number>
 static Res DotProductSlowImpl(const Number* lhs, const Number* rhs, ui32 length) noexcept {
     Res s0 = 0;
@@ -514,14 +466,6 @@ static Res DotProductSlowImpl(const Number* lhs, const Number* rhs, ui32 length)
     }
 
     return s0 + s1 + s2 + s3;
-}
-
-ui32 DotProductSlow(const ui8* lhs, const ui8* rhs, ui32 length) noexcept {
-    return DotProductSlowImpl<ui32, ui8>(lhs, rhs, length);
-}
-
-i64 DotProductSlow(const i32* lhs, const i32* rhs, ui32 length) noexcept {
-    return DotProductSlowImpl<i64, i32>(lhs, rhs, length);
 }
 
 float DotProductSlow(const float* lhs, const float* rhs, ui32 length) noexcept {

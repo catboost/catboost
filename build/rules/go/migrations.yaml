@@ -20,12 +20,7 @@ migrations:
       - a.yandex-team.ru/cloud/compute/go-common/database/kikimr_test
       - a.yandex-team.ru/cloud/compute/go-common/logging
       - a.yandex-team.ru/cloud/compute/go-common/logging_test
-      - a.yandex-team.ru/cloud/compute/go-common/mon
-      - a.yandex-team.ru/cloud/compute/go-common/mon_test
       - a.yandex-team.ru/cloud/compute/go-common/pkg/logging
-      - a.yandex-team.ru/cloud/compute/go-common/pkg/xrequestid
-      - a.yandex-team.ru/cloud/compute/snapshot/internal/serializedlock
-      - a.yandex-team.ru/cloud/compute/snapshot/internal/serializedlock_test
       - a.yandex-team.ru/cloud/compute/snapshot/snapshot/client
       - a.yandex-team.ru/cloud/compute/snapshot/snapshot/client_test
       - a.yandex-team.ru/cloud/compute/snapshot/snapshot/lib
@@ -48,15 +43,10 @@ migrations:
       - a.yandex-team.ru/kikimr/public/sdk/go/persqueue_test
       - a.yandex-team.ru/kikimr/public/sdk/go/ydb/table
       - a.yandex-team.ru/kikimr/public/sdk/go/ydb/table_test
-      - a.yandex-team.ru/load/tests/mail/duffman/mobile/pandora
-      - a.yandex-team.ru/load/tests/mail/duffman/quinn/pandora
       - a.yandex-team.ru/locdoc/doc/daas-farm/pkg/directory
       - a.yandex-team.ru/locdoc/doc/daas-farm/pkg/linkresolver
       - a.yandex-team.ru/locdoc/doc/daas-farm/pkg/linkresolver/tests
       - a.yandex-team.ru/locdoc/doc/daas-farm/pkg/menugen
-      - a.yandex-team.ru/mail/akita/load/pandora
-      - a.yandex-team.ru/mail/collie/load/pandora
-      - a.yandex-team.ru/mail/hound/load/pandora
       - a.yandex-team.ru/mail/iex/matchers
       - a.yandex-team.ru/mail/iex/matchers_test
       - a.yandex-team.ru/mail/iex/taksa/client
@@ -126,31 +116,9 @@ migrations:
       - a.yandex-team.ru/mail/imap-fuzzer/fuzz/operations
       - a.yandex-team.ru/mail/imap-fuzzer/fuzz/types
       - a.yandex-team.ru/mail/imap-fuzzer/imap
-      - a.yandex-team.ru/mail/message_body/load/pandora
-      - a.yandex-team.ru/mail/mops/load/pandora
-      - a.yandex-team.ru/mail/retriever/load/pandora
       - a.yandex-team.ru/mail/so/spamstop/tools/smtp2http
       - a.yandex-team.ru/mail/payments-sdk-backend/backend/cmd/server
       - a.yandex-team.ru/mail/payments-sdk-backend/backend/cmd/server_test
-      - a.yandex-team.ru/mds/kapl/pkg/mdb
-      - a.yandex-team.ru/mds/karl/pkg/migrate
-      - a.yandex-team.ru/mds/karl/pkg/job
-      - a.yandex-team.ru/mds/s3/goose/internal/adapters/auth/tvm2
-      - a.yandex-team.ru/mds/s3/goose/internal/adapters/auth/tvm2_test
-      - a.yandex-team.ru/mds/s3/goose/internal/adapters/cache
-      - a.yandex-team.ru/mds/s3/goose/internal/adapters/cache_test
-      - a.yandex-team.ru/mds/s3/goose/internal/adapters/postgres
-      - a.yandex-team.ru/mds/s3/goose/internal/adapters/postgres_test
-      - a.yandex-team.ru/mds/s3/goose/internal/core/actions
-      - a.yandex-team.ru/mds/s3/goose/internal/core/actions_test
-      - a.yandex-team.ru/mds/s3/goose/internal/core/entities
-      - a.yandex-team.ru/mds/s3/goose/internal/core/entities_test
-      - a.yandex-team.ru/mds/s3/goose/internal/db/postgres
-      - a.yandex-team.ru/mds/s3/goose/internal/db/postgres_test
-      - a.yandex-team.ru/mds/s3/goose/internal/db/postgres/clusters
-      - a.yandex-team.ru/mds/s3/goose/internal/db/postgres/pgcommon
-      - a.yandex-team.ru/mds/s3/goose/internal/interconnect/mds/libmds
-      - a.yandex-team.ru/mds/s3/goose/internal/interconnect/mds/libmds_test
       - a.yandex-team.ru/mds/valve/pkg/storage
       - a.yandex-team.ru/mds/valve/pkg/valve
       - a.yandex-team.ru/mds/valve/pkg/worker
@@ -158,17 +126,11 @@ migrations:
       - a.yandex-team.ru/mds/vasgen/pkg/tcptrace
       - a.yandex-team.ru/mds/vasgen/pkg/tcptrace/xnet
       - a.yandex-team.ru/mds/vasgen/pkg/tcptrace/xnet_test
-      - a.yandex-team.ru/mds/yarl/cmd/cli
-      - a.yandex-team.ru/mds/yarl/pkg/counters/updater
-      - a.yandex-team.ru/mds/yarl/pkg/rest
-      - a.yandex-team.ru/mds/yarl/pkg/xgrpc
-      - a.yandex-team.ru/mds/yarl/pkg/xgrpc_test
       - a.yandex-team.ru/quasar/gackend
       - a.yandex-team.ru/quasar/gackend/db
       - a.yandex-team.ru/quasar/gackend_test
       - a.yandex-team.ru/quasar/gackend/model
       - a.yandex-team.ru/quasar/go/middleware
-      - a.yandex-team.ru/quasar/go/render
       - a.yandex-team.ru/quasar/go/retryablehttp
       - a.yandex-team.ru/quasar/go/zaplogger
       - a.yandex-team.ru/quasar/tsup/db
@@ -195,11 +157,6 @@ migrations:
       - a.yandex-team.ru/infra/rtc/instance_resolver/pkg/fresh_cache
   protonaming:
     packages:
-      - a.yandex-team.ru/alice/library/response_similarity/proto
-      - a.yandex-team.ru/arc/api/proto
-      - a.yandex-team.ru/arc/api/public
-      - a.yandex-team.ru/crypta/graph/soup/config/proto
-      - a.yandex-team.ru/devtools/distbuild/matchmaker/idl/proto
       - a.yandex-team.ru/extsearch/video/content_id/proto
       - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/ad/proto
       - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/ng/proto
@@ -210,15 +167,10 @@ migrations:
       - a.yandex-team.ru/infra/maxwell/go/proto
       - a.yandex-team.ru/infra/nanny2/proto
       - a.yandex-team.ru/infra/orly/proto
-      - a.yandex-team.ru/infra/porto/proto
       - a.yandex-team.ru/infra/rtc/rebootctl/proto
       - a.yandex-team.ru/infra/ya_salt/proto
-      - a.yandex-team.ru/kikimr/yf/job_service/public/proto
-      - a.yandex-team.ru/kikimr/yf/yf_service/public/proto
-      - a.yandex-team.ru/library/cpp/eventlog/proto
       - a.yandex-team.ru/market/idx/golibrary/pbsn/proto
       - a.yandex-team.ru/mds/valve/proto
-      - a.yandex-team.ru/mds/yarl/proto
       - a.yandex-team.ru/rtline/library/executor/proto
       - a.yandex-team.ru/rtline/library/time_restriction/proto
       - a.yandex-team.ru/rtline/services/drive/frontend/data/proto
@@ -231,11 +183,39 @@ migrations:
       - a.yandex-team.ru/rtmapreduce/tools/sli/proto
       - a.yandex-team.ru/transfer_manager/go/cmd/yql_server/proto
       - a.yandex-team.ru/transfer_manager/go/proto
-      - a.yandex-team.ru/travel/buses/backend/internal/common/proto
       - a.yandex-team.ru/travel/proto
-      - a.yandex-team.ru/travel/rasp/train_bandit_api/proto
-      - a.yandex-team.ru/travel/rasp/train_offer_storage/proto
       - a.yandex-team.ru/yabs/proto
       - a.yandex-team.ru/yql/api/go/worker/proto
       - a.yandex-team.ru/yweb/video/faas/proto
       - a.yandex-team.ru/zen/integration/proto
+  protov2:
+    checks:
+      - copyproto
+      - deepequalproto
+    packages:
+      - a.yandex-team.ru/cloud/blockstore/public/sdk/go/client
+      - a.yandex-team.ru/cloud/blockstore/public/sdk/go/client_test
+      - a.yandex-team.ru/cloud/compute/snapshot/snapshot/lib/kikimr
+      - a.yandex-team.ru/cloud/compute/snapshot/snapshot/lib/kikimr_test
+      - a.yandex-team.ru/cloud/disk_manager/cmd/yc-disk-manager
+      - a.yandex-team.ru/cloud/disk_manager/cmd/yc-disk-manager-admin
+      - a.yandex-team.ru/cloud/disk_manager/internal/pkg/clients/snapshot
+      - a.yandex-team.ru/cloud/disk_manager/internal/pkg/clients/snapshot/mocks
+      - a.yandex-team.ru/cloud/disk_manager/internal/pkg/clients/snapshot/tests
+      - a.yandex-team.ru/cloud/disk_manager/internal/pkg/grpc
+      - a.yandex-team.ru/cloud/disk_manager/internal/pkg/grpc_test
+      - a.yandex-team.ru/cloud/disk_manager/internal/pkg/services/pools
+      - a.yandex-team.ru/cloud/disk_manager/internal/pkg/services/pools/storage
+      - a.yandex-team.ru/cloud/disk_manager/internal/pkg/services/pools/storage/mocks
+      - a.yandex-team.ru/cloud/disk_manager/internal/pkg/services/pools/storage/tests
+      - a.yandex-team.ru/cloud/disk_manager/internal/pkg/services/pools/tests
+      - a.yandex-team.ru/cloud/disk_manager/internal/pkg/services/snapshots
+      - a.yandex-team.ru/cloud/disk_manager/internal/pkg/services/transfer
+      - a.yandex-team.ru/cloud/disk_manager/internal/pkg/tasks
+      - a.yandex-team.ru/cloud/disk_manager/pkg/client
+      - a.yandex-team.ru/cloud/disk_manager/test/remote/cmd
+      - a.yandex-team.ru/edadeal/analytics/geoloh-go/cmd/customer-traffic-ext
+      - a.yandex-team.ru/edadeal/backend/go/charm/internal/app
+      - a.yandex-team.ru/edadeal/backend/go/charm/internal/pkg/store/pg
+      - a.yandex-team.ru/edadeal/backend/go/gluon/internal/pkg/models
+      - a.yandex-team.ru/edadeal/backend/go/gluon/internal/pkg/models_test

@@ -1,6 +1,6 @@
-#include "compiler/plugin.h"
-#include "compiler/code_generator.h"
-#include "stubs/common.h"
+#include <google/protobuf/compiler/code_generator.h>
+#include <google/protobuf/compiler/plugin.h>
+#include <google/protobuf/stubs/common.h>
 
 namespace NProtobuf {
 namespace NCompiler {

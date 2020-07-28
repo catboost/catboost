@@ -201,6 +201,7 @@ DEF_CONV_NUM(float, 512)
 DEF_CONV_NUM(double, 512)
 DEF_CONV_NUM(long double, 512)
 
+#ifndef TSTRING_IS_STD_STRING
 template <>
 void Out<TBasicCharRef<TString>>(IOutputStream& o, const TBasicCharRef<TString>& c) {
     o << static_cast<char>(c);
@@ -215,6 +216,7 @@ template <>
 void Out<TBasicCharRef<TUtf32String>>(IOutputStream& o, const TBasicCharRef<TUtf32String>& c) {
     o << static_cast<wchar32>(c);
 }
+#endif
 
 template <>
 void Out<const void*>(IOutputStream& o, const void* t) {

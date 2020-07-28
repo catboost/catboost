@@ -1070,7 +1070,7 @@ namespace NCB {
      *    for concrete iterator types to avoid double dynamic dispatch.
      */
     template <class TDstValue, class TArrayLike, class TSubsetIndexingIterator, class TTransformer>
-    class TArraySubsetBlockIterator final : public IDynamicBlockIterator<TDstValue> {
+    class TArraySubsetBlockIterator final : public IDynamicBlockWithExactIterator<TDstValue> {
     public:
         TArraySubsetBlockIterator(
             TArrayLike src,
@@ -1085,14 +1085,17 @@ namespace NCB {
         {}
 
         TConstArrayRef<TDstValue> Next(size_t maxBlockSize = Max<size_t>()) override {
-            const size_t dstBlockSize = Min(maxBlockSize, RemainingSize);
-            Buffer.yresize(dstBlockSize);
+            return NextExact(Min(maxBlockSize, RemainingSize));
+        }
+
+        TConstArrayRef<TDstValue> NextExact(size_t exactBlockSize) override {
+            Buffer.yresize(exactBlockSize);
             typename TSubsetIndexingIterator::value_type index;
             for (auto& dstElement : Buffer) {
                 SubsetIndexingIterator.Next(&index);
                 dstElement = Transformer(Src[index]);
             }
-            RemainingSize -= dstBlockSize;
+            RemainingSize -= exactBlockSize;
             return Buffer;
         }
 

@@ -5,6 +5,7 @@
 #include <locale.h>
 
 void Py_InitArgcArgv(int argc, wchar_t **argv);
+char* GetPyMain();
 
 static const char* env_entry_point = "Y_PYTHON_ENTRY_POINT";
 
@@ -109,9 +110,26 @@ static int pymain(int argc, char** argv) {
     oldloc = NULL;
 
     const char* entry_point = getenv(env_entry_point);
-    if (entry_point && !strcmp(entry_point, ":main")) {
+    if (entry_point) {
+        entry_point_copy = strdup(entry_point);
+        if (!entry_point_copy) {
+            fprintf(stderr, "out of memory\n");
+            goto error;
+        }
+    } else {
+        entry_point_copy = GetPyMain();
+    }
+
+    if (entry_point_copy == NULL) {
+        fprintf(stderr, "No entry point, did you forget PY_MAIN?\n");
+        goto error;
+    }
+
+    if (entry_point_copy && !strcmp(entry_point_copy, ":main")) {
         unsetenv(env_entry_point);
-        return Py_Main(argc, argv_copy);
+        sts = Py_Main(argc, argv_copy);
+        free(entry_point_copy);
+        return sts;
     }
 
     Py_InitArgcArgv(argc, argv_copy);
@@ -120,8 +138,6 @@ static int pymain(int argc, char** argv) {
     Py_Initialize();
 
     PySys_SetArgv(argc, argv_copy);
-
-    PyObject* py_main = NULL;
 
     {
         PyObject* module = PyImport_ImportModule("library.python.runtime_py3.entry_points");
@@ -136,37 +152,6 @@ static int pymain(int argc, char** argv) {
             }
             Py_DECREF(module);
         }
-    }
-
-    if (entry_point == NULL) {
-        PyObject* res = PyImport_ImportModule("__res");
-        if (res == NULL) {
-            PyErr_Clear();
-        } else {
-            py_main = PyObject_CallMethod(res, "find", "y", "PY_MAIN");
-
-            if (py_main == NULL) {
-                PyErr_Clear();
-            } else {
-                if (PyBytes_Check(py_main)) {
-                    entry_point = PyBytes_AsString(py_main);
-                }
-            }
-
-            Py_DECREF(res);
-        }
-    }
-
-    if (entry_point == NULL) {
-        fprintf(stderr, "No entry point, did you forget PY_MAIN?\n");
-        goto error;
-    }
-
-    entry_point_copy = strdup(entry_point);
-    Py_XDECREF(py_main);
-    if (!entry_point_copy) {
-        fprintf(stderr, "out of memory\n");
-        goto error;
     }
 
     const char* module_name = entry_point_copy;

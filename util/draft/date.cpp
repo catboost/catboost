@@ -69,6 +69,16 @@ TDate::TDate(unsigned year, unsigned month, unsigned monthDay) {
         ythrow yexception() << "Invalid TDate args:(" << year << ',' << month << ',' << monthDay << ')';
 }
 
+time_t TDate::GetStartUTC() const {
+    tm dateTm;
+    localtime_r(&Timestamp, &dateTm);
+    dateTm.tm_isdst = -1;
+    dateTm.tm_sec = 0;
+    dateTm.tm_min = 0;
+    dateTm.tm_hour = 0;
+    return TimeGM(&dateTm);
+}
+
 TString TDate::ToStroka(const char* format) const {
     tm dateTm;
     localtime_r(&Timestamp, &dateTm);

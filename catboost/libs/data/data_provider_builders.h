@@ -51,7 +51,6 @@ namespace NCB {
     };
 
     struct TDataProviderBuilderOptions {
-        bool CpuCompatibleFormat = true;
         bool GpuDistributedFormat = false;
         TPathWithScheme PoolPath = TPathWithScheme();
         ui64 MaxCpuRamUsage = Max<ui64>();
@@ -122,7 +121,7 @@ namespace NCB {
             localExecutor
         );
         *builderVisitor = dataProviderClosure->template GetVisitor<IVisitor>();
-        *dataProviderBuilder = dataProviderClosure.Release();
+        *dataProviderBuilder = std::move(dataProviderClosure);
     }
 
     /*

@@ -12,7 +12,7 @@ PEERDIR(
     library/cpp/colorizer
     library/cpp/getopt/small
     library/cpp/json
-    library/linear_regression
+    library/cpp/linear_regression
     library/cpp/threading/poor_man_openmp
 )
 

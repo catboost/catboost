@@ -66,6 +66,7 @@ def on_go_process_srcs(unit):
     asm_files = []
     c_files = []
     cxx_files = []
+    ev_files = []
     go_files = []
     in_files = []
     proto_files = []
@@ -77,6 +78,7 @@ def on_go_process_srcs(unit):
         '.cc': cxx_files,
         '.cpp': cxx_files,
         '.cxx': cxx_files,
+        '.ev': ev_files,
         '.go': go_files,
         '.in': in_files,
         '.proto': proto_files,
@@ -169,6 +171,11 @@ def on_go_process_srcs(unit):
     if unit.enabled('_GO_VET_ADD_CHECK') and need_lint(unit_path):
         vet_report_file_name = os.path.join(unit_path, '{}{}'.format(unit.filename(), unit.get('GO_VET_REPORT_EXT')))
         unit.onadd_check(["govet", '$(BUILD_ROOT)/' + tobuilddir(vet_report_file_name)[3:]])
+
+    for f in ev_files:
+        ev_proto_file = '{}.proto'.format(f)
+        unit.oncopy_file_with_context([f, ev_proto_file])
+        proto_files.append(ev_proto_file)
 
     # Process .proto files
     for f in proto_files:

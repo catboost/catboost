@@ -3,7 +3,7 @@ UNITTEST_FOR(library/cpp/lfalloc/alloc_profiler)
 
 
 PEERDIR(
-    library/cpp/unittest
+    library/cpp/testing/unittest
 )
 
 IF (ARCH_AARCH64)

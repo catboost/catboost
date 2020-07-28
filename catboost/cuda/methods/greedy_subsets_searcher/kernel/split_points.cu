@@ -7,7 +7,7 @@
 #include <catboost/cuda/cuda_util/kernel/update_part_props.cuh>
 #include <catboost/cuda/cuda_util/kernel/reorder_one_bit.cuh>
 #include <catboost/cuda/cuda_util/kernel/reorder_one_bit_impl.cuh>
-#include <library/cuda/wrappers/arch.cuh>
+#include <library/cpp/cuda/wrappers/arch.cuh>
 
 namespace NKernel {
 

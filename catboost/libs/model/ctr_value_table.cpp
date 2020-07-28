@@ -48,7 +48,7 @@ void TCtrValueTable::Save(IOutputStream* s) const {
 
 void TCtrValueTable::Load(IInputStream* s) {
     const ui32 size = LoadSize(s);
-    TArrayHolder<ui8> arrayHolder = new ui8[size];
+    TArrayHolder<ui8> arrayHolder = TArrayHolder<ui8>(new ui8[size]);
     s->LoadOrFail(arrayHolder.Get(), size);
     LoadSolid(arrayHolder.Get(), size);
 }

@@ -117,7 +117,7 @@ static void OutputTargetsFields(
     TXmlElementOutputContext targets(xmlOut, "Targets");
     {
         TXmlElementOutputContext target(xmlOut, "Target");
-        xmlOut->AddAttr("rescaleConstant", model.GetScaleAndBias().Bias)
+        xmlOut->AddAttr("rescaleConstant", model.GetScaleAndBias().GetOneDimensionalBias())
             .AddAttr("rescaleFactor", model.GetScaleAndBias().Scale)
             .AddAttr("field", "prediction");
     }
@@ -282,12 +282,12 @@ static void OutputNodeSymmetric(
     TXmlElementOutputContext node(xmlOut, "Node");
     xmlOut->AddAttr("id", leafIdx);
 
-    const bool isLeafNode = layer == SafeIntegerCast<size_t>(modelTrees.GetTreeSizes()[treeIdx]);
+    const bool isLeafNode = layer == SafeIntegerCast<size_t>(modelTrees.GetModelTreeData()->GetTreeSizes()[treeIdx]);
 
     if (isLeafNode) {
         xmlOut->AddAttr(
             "score",
-            modelTrees.GetLeafValues()[treeFirstGlobalLeafIdx + leafIdx + 1 - (size_t(1) << layer)]);
+            modelTrees.GetModelTreeData()->GetLeafValues()[treeFirstGlobalLeafIdx + leafIdx + 1 - (size_t(1) << layer)]);
     }
     xmlOut->AddAttr(
         "recordCount",
@@ -296,8 +296,8 @@ static void OutputNodeSymmetric(
     // predicate
     if ((layer != 0) && (leafIdx % 2 == 0)) {
         const int splitIdx
-            = modelTrees.GetTreeStartOffsets()[treeIdx] + modelTrees.GetTreeSizes()[treeIdx] - layer;
-        const auto& binFeature = modelTrees.GetBinFeatures()[modelTrees.GetTreeSplits().at(splitIdx)];
+            = modelTrees.GetModelTreeData()->GetTreeStartOffsets()[treeIdx] + modelTrees.GetModelTreeData()->GetTreeSizes()[treeIdx] - layer;
+        const auto& binFeature = modelTrees.GetBinFeatures()[modelTrees.GetModelTreeData()->GetTreeSplits().at(splitIdx)];
 
         OutputPredicate(
             modelTrees,
@@ -332,12 +332,12 @@ static TVector<double> CalculateNodeWeights(
     size_t treeIdx,
     size_t treeFirstGlobalLeafIdx) {
 
-    auto lastLayer = SafeIntegerCast<size_t>(modelTrees.GetTreeSizes()[treeIdx]);
+    auto lastLayer = SafeIntegerCast<size_t>(modelTrees.GetModelTreeData()->GetTreeSizes()[treeIdx]);
     auto knownIdxBegin = (size_t(1) << lastLayer) - 1;
 
     TVector<double> weights(2 * knownIdxBegin + 1);
     std::copy_n(
-        modelTrees.GetLeafWeights().begin() + treeFirstGlobalLeafIdx,
+        modelTrees.GetModelTreeData()->GetLeafWeights().begin() + treeFirstGlobalLeafIdx,
         size_t(1) << lastLayer,
         weights.begin() + knownIdxBegin);
     while (knownIdxBegin > 0) {
@@ -368,8 +368,8 @@ static void OutputNodeNonSymmetric(
     size_t leftStep = 0;
     size_t rightStep = 0;
     if (!isDummyLeaf) {
-        leftStep = modelTrees.GetNonSymmetricStepNodes()[nodeIdx].LeftSubtreeDiff;
-        rightStep = modelTrees.GetNonSymmetricStepNodes()[nodeIdx].RightSubtreeDiff;
+        leftStep = modelTrees.GetModelTreeData()->GetNonSymmetricStepNodes()[nodeIdx].LeftSubtreeDiff;
+        rightStep = modelTrees.GetModelTreeData()->GetNonSymmetricStepNodes()[nodeIdx].RightSubtreeDiff;
     }
 
     const bool isLeafNode = leftStep == 0 && rightStep == 0;
@@ -380,7 +380,7 @@ static void OutputNodeNonSymmetric(
     if (isLeafNode) {
         xmlOut->AddAttr(
             "score",
-            modelTrees.GetLeafValues()[modelTrees.GetNonSymmetricNodeIdToLeafId()[nodeIdx]]);
+            modelTrees.GetModelTreeData()->GetLeafValues()[modelTrees.GetModelTreeData()->GetNonSymmetricNodeIdToLeafId()[nodeIdx]]);
     }
     xmlOut->AddAttr(
         "recordCount",
@@ -388,7 +388,7 @@ static void OutputNodeNonSymmetric(
 
     // predicate
     if (isRightChild) {
-        const auto& binFeature = modelTrees.GetBinFeatures()[modelTrees.GetTreeSplits().at(parentNodeIdx)];
+        const auto& binFeature = modelTrees.GetBinFeatures()[modelTrees.GetModelTreeData()->GetTreeSplits().at(parentNodeIdx)];
 
         OutputPredicate(
             modelTrees,
@@ -440,13 +440,13 @@ static void CalculateNodeWeightsAndLeftChildrenNonSymmetric(
     TVector<double>* weights,
     TVector<size_t>* leftChildren) {
 
-    const auto& stepNode = modelTrees.GetNonSymmetricStepNodes()[nodeIdx];
+    const auto& stepNode = modelTrees.GetModelTreeData()->GetNonSymmetricStepNodes()[nodeIdx];
     const auto outputIdx = weights->size();
     weights->push_back(0.0);
     leftChildren->push_back(0);
 
     if (stepNode.LeftSubtreeDiff == 0 && stepNode.RightSubtreeDiff == 0) {
-        (*weights)[outputIdx] = modelTrees.GetLeafWeights()[modelTrees.GetNonSymmetricNodeIdToLeafId()[nodeIdx]];
+        (*weights)[outputIdx] = modelTrees.GetModelTreeData()->GetLeafWeights()[modelTrees.GetModelTreeData()->GetNonSymmetricNodeIdToLeafId()[nodeIdx]];
         return;
     }
 
@@ -514,9 +514,9 @@ static void OutputTree(
             oneHotValuesToIdx,
             weights,
             xmlOut);
-        *obliviousTreeFirstGlobalLeafIdx += (size_t(1) << model.ModelTrees->GetTreeSizes()[treeIdx]);
+        *obliviousTreeFirstGlobalLeafIdx += (size_t(1) << model.ModelTrees->GetModelTreeData()->GetTreeSizes()[treeIdx]);
     } else {
-        const auto treeStartOffset = model.ModelTrees->GetTreeStartOffsets()[treeIdx];
+        const auto treeStartOffset = model.ModelTrees->GetModelTreeData()->GetTreeStartOffsets()[treeIdx];
         TVector<double> weights;
         TVector<size_t> leftChildren;
         CalculateNodeWeightsAndLeftChildrenNonSymmetric(
@@ -578,7 +578,7 @@ static void OutputTreeEnsemble(
         xmlOut->AddAttr("multipleModelMethod", "sum");
 
         size_t obliviousTreeFirstGlobalLeafIdx = 0;
-        for (auto treeIdx : xrange(modelTrees.GetTreeSizes().size())) {
+        for (auto treeIdx : xrange(modelTrees.GetModelTreeData()->GetTreeSizes().size())) {
             TXmlElementOutputContext segment(xmlOut, "Segment");
             xmlOut->AddAttr("id", treeIdx);
 

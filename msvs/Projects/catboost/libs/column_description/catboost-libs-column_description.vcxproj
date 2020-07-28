@@ -161,6 +161,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\flatbuffers\contrib-libs-flatbuffers.vcxproj">
       <Project>{B88207AE-800B-A7B1-AE0B-F609E8684A5A}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libc_compat\contrib-libs-libc_compat.vcxproj">
+      <Project>{116AA49B-0C0D-7CF7-45DB-A708FB126C84}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\nayuki_md5\contrib-libs-nayuki_md5.vcxproj">
       <Project>{C0251DC8-E401-B1AF-785F-72D686693CB9}</Project>
     </ProjectReference>
@@ -212,6 +215,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\malloc\api\cpp-malloc-api.vcxproj">
       <Project>{98AF9344-15D9-0539-93F4-0E901C36E301}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\object_factory\library-cpp-object_factory.vcxproj">
+      <Project>{6D119854-6D47-C914-7B2B-E6ECF111A695}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\pop_count\library-cpp-pop_count.vcxproj">
       <Project>{6B557DF5-6D6B-ECE1-B5B5-9CD1B8625387}</Project>
     </ProjectReference>
@@ -223,9 +229,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\threading\local_executor\cpp-threading-local_executor.vcxproj">
       <Project>{9EA4781F-303F-F2FD-86F1-B98A1D3A93C0}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\object_factory\library-object_factory.vcxproj">
-      <Project>{F7622D70-2702-4C7E-04DA-52DC56DF911E}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_parser\enum_parser.vcxproj">
       <Project>{F6CDBBB3-9B26-9DC1-90B1-CF3F94F04C9B}</Project>

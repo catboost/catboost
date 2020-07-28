@@ -1,6 +1,6 @@
 #include <library/cpp/containers/flat_hash/lib/size_fitters.h>
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 using namespace NFlatHash;
 

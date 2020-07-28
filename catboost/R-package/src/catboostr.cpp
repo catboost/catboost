@@ -118,6 +118,7 @@ SEXP CatBoostCreateFromFile_R(SEXP poolFileParam,
                               SEXP pairsFileParam,
                               SEXP featureNamesFileParam,
                               SEXP delimiterParam,
+                              SEXP numVectorDelimiterParam,
                               SEXP hasHeaderParam,
                               SEXP threadCountParam,
                               SEXP verboseParam) {
@@ -126,8 +127,11 @@ SEXP CatBoostCreateFromFile_R(SEXP poolFileParam,
 
     NCatboostOptions::TColumnarPoolFormatParams columnarPoolFormatParams;
     columnarPoolFormatParams.DsvFormat =
-        TDsvFormatOptions{static_cast<bool>(asLogical(hasHeaderParam)),
-                               CHAR(asChar(delimiterParam))[0]};
+        TDsvFormatOptions{
+            static_cast<bool>(asLogical(hasHeaderParam)),
+            CHAR(asChar(delimiterParam))[0],
+            CHAR(asChar(numVectorDelimiterParam))[0]
+        };
 
     TStringBuf cdPathWithScheme(CHAR(asChar(cdFileParam)));
     if (!cdPathWithScheme.empty()) {
@@ -205,6 +209,7 @@ SEXP CatBoostCreateFromMatrix_R(SEXP matrixParam,
             dataColumns,
             ToUnsigned(GetVectorFromSEXP<int>(catFeaturesParam)),
             TVector<ui32>{}, // TODO(d-kruchinin) support text features in R
+            TVector<ui32>{}, // TODO(akhropov) support embedding features in R
             featureId);
 
         metaInfo.TargetType = targetColumns ? ERawTargetType::Float : ERawTargetType::None;
@@ -815,6 +820,7 @@ SEXP CatBoostCalcRegularFeatureEffect_R(SEXP modelParam, SEXP poolParam, SEXP fs
         TVector<TVector<TVector<double>>> fstr = GetFeatureImportancesMulti(fstrType,
                                                                             *model,
                                                                             pool,
+                                                                            /*referenceDataset*/ nullptr,
                                                                             threadCount,
                                                                             EPreCalcShapValues::Auto,
                                                                             verbose);
@@ -840,6 +846,7 @@ SEXP CatBoostCalcRegularFeatureEffect_R(SEXP modelParam, SEXP poolParam, SEXP fs
         TVector<TVector<double>> fstr = GetFeatureImportances(fstrType,
                                                               *model,
                                                               pool,
+                                                              /*referenceDataset*/ nullptr,
                                                               threadCount,
                                                               EPreCalcShapValues::Auto,
                                                               verbose);

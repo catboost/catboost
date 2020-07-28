@@ -1,3 +1,7 @@
+# IMPORTANT
+# This file cannot be moved or split into multiple files without explicit OK from go-com@yandex-team.ru
+# Doing otherwise will break vendoring tooling.
+
 ALLOW vendor/ -> .*
 
 # CONTRIB-1872 pure ipp proto implementation
@@ -61,6 +65,9 @@ ALLOW .* -> vendor/github.com/go-chi/chi
 # a pure Go MySQL driver
 ALLOW .* -> vendor/github.com/go-sql-driver/mysql
 
+# a Go MSSQL driver
+ALLOW .* -> vendor/github.com/denisenkom/go-mssqldb
+
 # thread-safe file locking library
 ALLOW .* -> vendor/github.com/gofrs/flock
 
@@ -99,6 +106,7 @@ ALLOW .* -> vendor/github.com/jackc/pgx/v4
 ALLOW .* -> vendor/github.com/jackc/pgconn
 ALLOW .* -> vendor/github.com/jackc/pgtype
 ALLOW .* -> vendor/github.com/jackc/pgerrcode
+ALLOW .* -> vendor/github.com/jackc/pgproto3/v2
 
 # database/sql wrapper with a lot of helper functions
 ALLOW .* -> vendor/github.com/jmoiron/sqlx
@@ -148,6 +156,9 @@ ALLOW .* -> vendor/github.com/montanaflynn/stats
 
 # runtime dependencies of go-swagger
 ALLOW .* -> vendor/github.com/go-openapi
+
+# CONTRIB-469: swagger code generator for both client and server
+ALLOW .* -> vendor/github.com/go-swagger/go-swagger/cmd/swagger
 
 # redis client
 ALLOW .* -> vendor/github.com/go-redis/redis/v7
@@ -241,6 +252,8 @@ ALLOW .* -> vendor/golang.org/x/xerrors
 
 # golang.org/x/sys required for SO_REUSEPORT, for example
 ALLOW .* -> vendor/golang.org/x/sys
+
+ALLOW .* -> vendor/golang.org/x/mod
 
 # basic LDAP v3 functionality for the GO programming language
 ALLOW .* -> vendor/gopkg.in/ldap.v3
@@ -390,6 +403,9 @@ ALLOW .* -> vendor/github.com/vishvananda/netns
 # CONTRIB-1545 Go bindings for creating BPF programs.
 ALLOW .* -> vendor/github.com/iovisor/gobpf
 
+# CONTRIB-1878 pure Go library for loading, compiling, and debugging eBPF programs
+ALLOW .* -> vendor/github.com/cilium/ebpf
+
 # CONTRIB-1561 Go pretty format for numbers
 ALLOW .* -> vendor/github.com/dustin/go-humanize
 
@@ -449,6 +465,18 @@ ALLOW .* -> vendor/github.com/dave/dst
 # CONTRIB-1874 Parse and demux MPEG Transport Streams
 ALLOW .* -> vendor/github.com/asticode/go-astits
 
+# CONTRIB-1896 Fast, portable, non-Turing complete expression evaluation with gradual typing
+ALLOW .* -> vendor/github.com/google/cel-go
+
+# CONTRIB-1654 Hard to misuse extensible crypto library
+ALLOW .* -> vendor/github.com/google/tink/go
+
+# CONTRIB-1907 Parser of the Graphviz DOT language
+ALLOW .* -> vendor/github.com/awalterschulze/gographviz
+
+# CONTRIB-1923 memcache client
+ALLOW .* -> vendor/github.com/bradfitz/gomemcache
+
 #
 # Temporary exceptions.
 #
@@ -482,7 +510,6 @@ ALLOW locdoc/doc/daas-farm/pkg/daasclient -> vendor/github.com/pkg/errors
 ALLOW locdoc/doc/daas-farm/pkg/menugen -> vendor/github.com/pkg/errors
 ALLOW locdoc/doc/daas-farm/pkg/wikiclient -> vendor/github.com/pkg/errors
 ALLOW locdoc/doc/daas-farm/pkg/wikigen -> vendor/github.com/pkg/errors
-ALLOW market/sre/library/golang/dispenser -> vendor/github.com/pkg/errors
 ALLOW market/sre/services/rtcstats2graphite/src/internal/blogic -> vendor/github.com/pkg/errors
 ALLOW market/sre/services/rtcstats2graphite/src/internal/nanny -> vendor/github.com/pkg/errors
 ALLOW market/sre/services/rtcstats2graphite/src/internal/oops -> vendor/github.com/pkg/errors
@@ -493,8 +520,6 @@ ALLOW market/sre/tools/ya-gde/src/pkg/hostinfo -> vendor/github.com/pkg/errors
 ALLOW market/sre/tools/ya-gde/src/pkg/util -> vendor/github.com/pkg/errors
 ALLOW transfer_manager/go/pkg/abstract -> vendor/github.com/pkg/errors
 ALLOW yabs/telephony/platform/inventory/api/http -> vendor/github.com/pkg/errors
-ALLOW yabs/telephony/platform/inventory/core -> vendor/github.com/pkg/errors
-ALLOW yabs/telephony/platform/push-service/api/http -> vendor/github.com/pkg/errors
 ALLOW yt/jaeger/plugin/cmd/agent -> vendor/github.com/pkg/errors
 ALLOW yt/jaeger/plugin/cmd/collector -> vendor/github.com/pkg/errors
 
@@ -506,24 +531,18 @@ ALLOW edadeal/backend/go/charm/cmd/charm -> vendor/github.com/jackc/pgx
 ALLOW edadeal/backend/go/gluon/internal/app/bootstrap -> vendor/github.com/jackc/pgx
 ALLOW edadeal/backend/go/nachalnik/internal/app/bootstrap -> vendor/github.com/jackc/pgx
 ALLOW edadeal/backend/go/nachalnik/internal/pkg/store -> vendor/github.com/jackc/pgx
-ALLOW edadeal/backend/go/susanin/internal/app/bootstrap -> vendor/github.com/jackc/pgx
 ALLOW extsearch/video/robot/rt_transcoder/video-manager/db -> vendor/github.com/jackc/pgx
 ALLOW games/backend/internal/db_utils -> vendor/github.com/jackc/pgx
 ALLOW games/backend/internal -> vendor/github.com/jackc/pgx
 ALLOW games/backend/pkg/database -> vendor/github.com/jackc/pgx
 ALLOW games/backend -> vendor/github.com/jackc/pgx
-ALLOW infra/maxwell/go/pkg/storages/jobstorages -> vendor/github.com/jackc/pgx
 ALLOW mail/calendar/load/bbmock -> vendor/github.com/jackc/pgx
 ALLOW mail/collectors/tests-load/pandora -> vendor/github.com/jackc/pgx
 ALLOW market/sre/services/dist_meta_store/app -> vendor/github.com/jackc/pgx
 ALLOW market/sre/services/dist_meta_store/database -> vendor/github.com/jackc/pgx
-ALLOW mds/karl/pkg/mdb -> vendor/github.com/jackc/pgx
-ALLOW mds/valve/pkg/storage -> vendor/github.com/jackc/pgx
 ALLOW quasar/gackend/db -> vendor/github.com/jackc/pgx
 ALLOW quasar/tsup/db -> vendor/github.com/jackc/pgx
 ALLOW transfer_manager/go/cmd/load_generator -> vendor/github.com/jackc/pgx
-ALLOW transfer_manager/go/pkg/configurator -> vendor/github.com/jackc/pgx
-ALLOW transfer_manager/go/pkg/dbaas -> vendor/github.com/jackc/pgx
 ALLOW transfer_manager/go/pkg/mapreduce/pg_to_yt -> vendor/github.com/jackc/pgx
 ALLOW transfer_manager/go/pkg/sink/pg -> vendor/github.com/jackc/pgx
 ALLOW transfer_manager/go/pkg/source/pg -> vendor/github.com/jackc/pgx

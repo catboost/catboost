@@ -2,7 +2,7 @@
 
 #include <catboost/libs/model/model_export/export_helpers.h>
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 Y_UNIT_TEST_SUITE(TestExportHelpers) {
     Y_UNIT_TEST(TestOutputBorders) {

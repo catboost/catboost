@@ -36,7 +36,7 @@ void GetObjectsDataAndIndexing(
     ui32 objectSubsetIdx, // 0 - learn, 1+ - test (subtract 1 for testIndex)
     TIndexedSubsetCache* indexedSubsetCache,
     NPar::TLocalExecutor* localExecutor,
-    NCB::TQuantizedForCPUObjectsDataProviderPtr* objectsData,
+    NCB::TQuantizedObjectsDataProviderPtr* objectsData,
     const ui32** columnIndexing // can return nullptr
 );
 
@@ -48,7 +48,7 @@ void SetPermutedIndices(
     TVector<TIndexType>* indices,
     NPar::TLocalExecutor* localExecutor);
 
-TVector<bool> GetIsLeafEmpty(int curDepth, const TVector<TIndexType>& indices);
+TVector<bool> GetIsLeafEmpty(int curDepth, TConstArrayRef<TIndexType> indices, NPar::TLocalExecutor* localExecutor);
 
 int GetRedundantSplitIdx(const TVector<bool>& isLeafEmpty);
 

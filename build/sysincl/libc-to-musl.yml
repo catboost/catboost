@@ -161,6 +161,7 @@
   - regex.h:                contrib/libs/musl/include/regex.h
   - resolv.h:               contrib/libs/musl/include/resolv.h
   - sched.h:                contrib/libs/musl/include/sched.h
+  - scsi/scsi.h:            contrib/libs/musl/include/scsi/scsi.h
   - search.h:               contrib/libs/musl/include/search.h
   - semaphore.h:            contrib/libs/musl/include/semaphore.h
   - shadow.h:               contrib/libs/musl/include/shadow.h
@@ -188,6 +189,7 @@
   - sys/ioctl.h:            contrib/libs/musl/include/sys/ioctl.h
   - sys/io.h:               contrib/libs/musl/include/sys/io.h
   - sys/ipc.h:              contrib/libs/musl/include/sys/ipc.h
+  - sys/kd.h:               contrib/libs/musl/include/sys/kd.h
   - syslog.h:               contrib/libs/musl/include/syslog.h
   - sys/mman.h:             contrib/libs/musl/include/sys/mman.h
   - sys/mount.h:            contrib/libs/musl/include/sys/mount.h
@@ -233,6 +235,7 @@
   - sys/user.h:             contrib/libs/musl/include/sys/user.h
   - sys/utsname.h:          contrib/libs/musl/include/sys/utsname.h
   - sys/vfs.h:              contrib/libs/musl/include/sys/vfs.h
+  - sys/vt.h:               contrib/libs/musl/include/sys/vt.h
   - sys/wait.h:             contrib/libs/musl/include/sys/wait.h
   - sys/xattr.h:            contrib/libs/musl/include/sys/xattr.h
   - tar.h:                  contrib/libs/musl/include/tar.h

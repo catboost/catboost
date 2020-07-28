@@ -60,6 +60,11 @@ namespace NCB {
             return 0;
         }
 
+        ui32 CalcChecksum(NPar::TLocalExecutor* localExecutor) const override {
+            Y_UNUSED(localExecutor);
+            return 0;
+        }
+
         THolder<IFeatureValuesHolder> CloneWithNewSubsetIndexing(
             const TCloningParams& cloningParams,
             NPar::TLocalExecutor* localExecutor
@@ -83,6 +88,10 @@ namespace NCB {
 
     private:
         std::shared_ptr<TLoadedColumnData> GetColumnData() const {
+            auto cachedResult = LoadedColumnDataWeakPtr.lock();
+            if (cachedResult) {
+                return cachedResult;
+            }
             with_lock(LoadDataLock) {
                 auto cachedResult = LoadedColumnDataWeakPtr.lock();
                 if (cachedResult) {

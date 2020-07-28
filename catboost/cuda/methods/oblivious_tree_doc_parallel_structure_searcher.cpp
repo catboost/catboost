@@ -34,13 +34,13 @@ namespace NCatboostCuda {
         TScoreCalcerPtr simpleCtrScoreCalcer;
 
         if (dataSet.HasFeatures()) {
-            featuresScoreCalcer = new TScoreCalcer(dataSet.GetFeatures(),
+            featuresScoreCalcer = MakeHolder<TScoreCalcer>(dataSet.GetFeatures(),
                                                    TreeConfig,
                                                    1,
                                                    true);
         }
         if (dataSet.HasPermutationDependentFeatures()) {
-            simpleCtrScoreCalcer = new TScoreCalcer(dataSet.GetPermutationFeatures(),
+            simpleCtrScoreCalcer = MakeHolder<TScoreCalcer>(dataSet.GetPermutationFeatures(),
                                                     TreeConfig,
                                                     1,
                                                     true);

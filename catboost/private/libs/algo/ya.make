@@ -76,12 +76,12 @@ PEERDIR(
     library/cpp/digest/crc32c
     library/cpp/digest/md5
     library/cpp/dot_product
-    library/fast_exp
+    library/cpp/fast_exp
     library/cpp/fast_log
     library/cpp/grid_creator
     library/cpp/json
     library/cpp/malloc/api
-    library/object_factory
+    library/cpp/object_factory
     library/cpp/sse
     library/cpp/svnversion
     library/cpp/threading/local_executor

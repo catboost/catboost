@@ -1,4 +1,4 @@
-PY_PROGRAM(jinja2-hello)
+PY3_PROGRAM(jinja2-hello)
 
 
 

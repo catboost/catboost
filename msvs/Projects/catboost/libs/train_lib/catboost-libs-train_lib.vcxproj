@@ -63,7 +63,7 @@
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
-      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)../contrib/libs/libf2c;$(SolutionDir)../contrib/libs/protobuf;$(SolutionDir)../contrib/libs/protobuf/google/protobuf;$(SolutionDir)../contrib/libs/brotli/include;$(SolutionDir)../contrib/libs/openssl/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)../contrib/libs/libf2c;$(SolutionDir)../contrib/libs/protobuf;$(SolutionDir)../contrib/libs/protobuf/src;$(SolutionDir)../contrib/libs/brotli/include;$(SolutionDir)../contrib/libs/openssl/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -270,6 +270,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libbz2\contrib-libs-libbz2.vcxproj">
       <Project>{22D13723-C5D2-BCB5-73F8-368EA5B1CBE5}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libc_compat\contrib-libs-libc_compat.vcxproj">
+      <Project>{116AA49B-0C0D-7CF7-45DB-A708FB126C84}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libf2c\contrib-libs-libf2c.vcxproj">
       <Project>{ACC03840-E215-DC54-B209-59FA03988A57}</Project>
     </ProjectReference>
@@ -321,47 +324,47 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd06\contrib-libs-zstd06.vcxproj">
       <Project>{149CAE2F-67B1-E007-9F05-67247453CE03}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\codecs\brotli\blockcodecs-codecs-brotli.vcxproj">
-      <Project>{2674849B-0330-C348-578B-DB562AA37E65}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\codecs\bzip\blockcodecs-codecs-bzip.vcxproj">
-      <Project>{AC376A6B-93D4-59AC-5493-C2308B528517}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\codecs\fastlz\blockcodecs-codecs-fastlz.vcxproj">
-      <Project>{A880DD8B-7948-E7DF-FDDB-6F6C1A23012A}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\codecs\legacy_zstd06\blockcodecs-codecs-legacy_zstd06.vcxproj">
-      <Project>{39206ED1-8CD9-0701-178E-0631ABD19D17}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\codecs\lz4\blockcodecs-codecs-lz4.vcxproj">
-      <Project>{F13B7D24-08DF-93EE-EF06-0A42A67F1F2A}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\codecs\lzma\blockcodecs-codecs-lzma.vcxproj">
-      <Project>{005F2BD3-F54E-2F5E-204D-10BBF3ABD244}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\codecs\snappy\blockcodecs-codecs-snappy.vcxproj">
-      <Project>{96581D45-46BF-09E3-6477-BFA2BF8C22E1}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\codecs\zlib\blockcodecs-codecs-zlib.vcxproj">
-      <Project>{DD085378-CB32-3420-0F56-EB3498FD2743}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\codecs\zstd\blockcodecs-codecs-zstd.vcxproj">
-      <Project>{AC7594FF-6F1D-C755-11B7-918627CFBD0B}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\core\library-blockcodecs-core.vcxproj">
-      <Project>{BC4F6560-AAA9-63AA-0B89-2627FA172162}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\library-blockcodecs.vcxproj">
-      <Project>{E62EED19-EC2A-B4C3-0650-0923E4030E8B}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\chromium_trace\library-chromium_trace.vcxproj">
-      <Project>{9541389A-C448-428A-BEEE-604F1A02F5EA}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\binsaver\library-cpp-binsaver.vcxproj">
       <Project>{8DDA0983-F11F-A0FE-622D-D04B3B6E3C27}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\blockcodecs\codecs\brotli\blockcodecs-codecs-brotli.vcxproj">
+      <Project>{7F05579D-8DC8-3A03-111E-51A122F7DF49}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\blockcodecs\codecs\bzip\blockcodecs-codecs-bzip.vcxproj">
+      <Project>{0EAB33D5-061B-7954-9CB4-AEBC1B9E2FD6}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\blockcodecs\codecs\fastlz\blockcodecs-codecs-fastlz.vcxproj">
+      <Project>{703DDBE5-9178-5CDF-A4D9-EE2FFC35CF17}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\blockcodecs\codecs\legacy_zstd06\blockcodecs-codecs-legacy_zstd06.vcxproj">
+      <Project>{6D8B717D-159B-60B6-8FBD-FE804113F8DE}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\blockcodecs\codecs\lz4\blockcodecs-codecs-lz4.vcxproj">
+      <Project>{DE6462E1-F12D-9D2B-131A-B78829620FB0}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\blockcodecs\codecs\lzma\blockcodecs-codecs-lzma.vcxproj">
+      <Project>{AD22147F-DD78-0908-90F4-CC49295C7943}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\blockcodecs\codecs\snappy\blockcodecs-codecs-snappy.vcxproj">
+      <Project>{741EC9BF-73D7-4DAB-DF15-CC76DACB7403}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\blockcodecs\codecs\zlib\blockcodecs-codecs-zlib.vcxproj">
+      <Project>{8A475196-8BD5-46EF-43BF-6714C75D0766}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\blockcodecs\codecs\zstd\blockcodecs-codecs-zstd.vcxproj">
+      <Project>{99480F9B-8814-368A-8A11-C9595B291CEC}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\blockcodecs\core\cpp-blockcodecs-core.vcxproj">
+      <Project>{61E795C2-BF87-52A4-C82D-38B38AA63595}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\blockcodecs\library-cpp-blockcodecs.vcxproj">
+      <Project>{2AE6EF73-33D5-42AE-6974-931EA50ACEE8}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\cgiparam\library-cpp-cgiparam.vcxproj">
       <Project>{7D7BC687-C41D-BE31-16E6-D1EFDED414F9}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\chromium_trace\library-cpp-chromium_trace.vcxproj">
+      <Project>{BA92C460-BDB1-034A-BBCD-CD96DE45A151}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\colorizer\library-cpp-colorizer.vcxproj">
       <Project>{78881F22-8136-23DF-843E-58AA6DB6D337}</Project>
@@ -414,6 +417,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\enumbitset\library-cpp-enumbitset.vcxproj">
       <Project>{6440B812-5ED4-4365-7564-0F5EC4AEDBBC}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\fast_exp\library-cpp-fast_exp.vcxproj">
+      <Project>{619D2CC0-4F2C-17C8-8D5C-C873EAB19EA9}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\fast_log\library-cpp-fast_log.vcxproj">
       <Project>{84BB2BD6-98FF-448B-165A-0B95E63F4208}</Project>
     </ProjectReference>
@@ -444,6 +450,12 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\json\writer\cpp-json-writer.vcxproj">
       <Project>{94F66460-BD28-7C46-313B-A5F2876E26F8}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\langmask\library-cpp-langmask.vcxproj">
+      <Project>{1E76F603-7AB0-A560-A16D-D6FDEE84CA84}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\langs\library-cpp-langs.vcxproj">
+      <Project>{7A259257-161F-BD3F-016E-D02C15A4826D}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\logger\global\cpp-logger-global.vcxproj">
       <Project>{4A8A1664-2BAB-5432-B287-171C2954FDA1}</Project>
     </ProjectReference>
@@ -452,6 +464,24 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\malloc\api\cpp-malloc-api.vcxproj">
       <Project>{98AF9344-15D9-0539-93F4-0E901C36E301}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\neh\asio\cpp-neh-asio.vcxproj">
+      <Project>{FAB53BC8-A8A8-6883-CF07-CD0268AAD99E}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\neh\library-cpp-neh.vcxproj">
+      <Project>{9D16DE2F-0DA3-2F25-E4B4-1AF0FF06A2E2}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\netliba\socket\cpp-netliba-socket.vcxproj">
+      <Project>{E12F8BEB-69BE-C96E-532C-837B8BD764F3}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\netliba\v12\cpp-netliba-v12.vcxproj">
+      <Project>{58A2BCF3-22F9-EA08-9675-05EC92FE264D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\netliba\v6\cpp-netliba-v6.vcxproj">
+      <Project>{E50ABEA1-E47D-2A1D-8BB0-C2BE9B608AD2}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\object_factory\library-cpp-object_factory.vcxproj">
+      <Project>{6D119854-6D47-C914-7B2B-E6ECF111A695}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\openssl\holders\cpp-openssl-holders.vcxproj">
       <Project>{3318B551-DF57-9A14-A9FD-139582C56800}</Project>
@@ -462,6 +492,12 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\openssl\method\cpp-openssl-method.vcxproj">
       <Project>{6D02E5A5-8E5A-2F70-0A15-A0EAFD5875F2}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\overloaded\library-cpp-overloaded.vcxproj">
+      <Project>{8FA80072-6B06-87FC-6917-262EEFBEA5FB}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\par\library-cpp-par.vcxproj">
+      <Project>{67D7246F-3DB6-3A4E-DA0A-2432DE8B35CE}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\pop_count\library-cpp-pop_count.vcxproj">
       <Project>{6B557DF5-6D6B-ECE1-B5B5-9CD1B8625387}</Project>
     </ProjectReference>
@@ -470,6 +506,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\sse\library-cpp-sse.vcxproj">
       <Project>{418E96CF-B75E-3C4F-2B82-0636CFE2782C}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\statistics\library-cpp-statistics.vcxproj">
+      <Project>{49748D82-AE8B-7968-0A2A-082D68226EBD}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\streams\brotli\cpp-streams-brotli.vcxproj">
       <Project>{88BDDF2B-3A41-DF09-EA33-A8354BC1FD2B}</Project>
@@ -545,45 +584,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\yson\library-cpp-yson.vcxproj">
       <Project>{D05A14C5-BA93-7AA3-1AB8-E62B001110D1}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\fast_exp\library-fast_exp.vcxproj">
-      <Project>{E0EC7772-5C0F-6407-290B-3900C3FF324B}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\langmask\library-langmask.vcxproj">
-      <Project>{54EC8CF1-9FAA-FA14-D0CE-A8E86B1F0A3B}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\langs\library-langs.vcxproj">
-      <Project>{1660E94D-B0FA-8C52-3B1B-10230401A2CA}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\neh\asio\library-neh-asio.vcxproj">
-      <Project>{ACDED067-8B74-5223-7E1A-7937B35A78E1}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\neh\library-neh.vcxproj">
-      <Project>{7FF4A650-AA1E-8970-CED7-751939DB312C}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\netliba\socket\library-netliba-socket.vcxproj">
-      <Project>{F9056049-5115-AB7C-F09D-A4BCA92367DD}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\netliba\v12\library-netliba-v12.vcxproj">
-      <Project>{89AB8FF8-D670-7C29-CED9-549FB45E0AAD}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\netliba\v6\library-netliba-v6.vcxproj">
-      <Project>{CF99E3A7-16F9-8EA9-027D-B9629FC7C3CD}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\object_factory\library-object_factory.vcxproj">
-      <Project>{F7622D70-2702-4C7E-04DA-52DC56DF911E}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\overloaded\library-overloaded.vcxproj">
-      <Project>{2CE71367-048B-26B0-2DAC-CA9BB7D00E76}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\par\library-par.vcxproj">
-      <Project>{33DA38DE-6DFE-3983-55A4-A689CCC58EFD}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\statistics\library-statistics.vcxproj">
-      <Project>{898C3811-AD77-869C-24DC-EF6A89FA8399}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\yson\library-yson.vcxproj">
-      <Project>{2779E1A2-0D5A-216D-65BF-CE9DF81108EF}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_serialization_runtime\tools-enum_parser-enum_serialization_runtime.vcxproj">
       <Project>{F745D73A-277F-A595-1468-618C82B9B77E}</Project>

@@ -53,7 +53,7 @@ static int CountLearningFolds(int permutationCount, bool isPermutationNeededForL
 TFoldsCreationParams::TFoldsCreationParams(
     const NCatboostOptions::TCatBoostOptions& params,
     const TQuantizedObjectsDataProvider& learnObjectsData,
-    TMaybe<double> startingApprox,
+    const TMaybe<TVector<double>>& startingApprox,
     bool isForWorkerLocalData)
     : IsOrderedBoosting(!IsPlainMode(params.BoostingOptions->BoostingType))
     , LearningFoldCount(0) // properly inited below
@@ -209,12 +209,12 @@ static ui32 CalcCoreModelCheckSum(const TFullModel& model) {
     return UpdateCheckSum(
         ui32(0),
         trees.GetDimensionsCount(),
-        trees.GetTreeSplits(),
-        trees.GetTreeSizes(),
-        trees.GetTreeStartOffsets(),
-        trees.GetNonSymmetricStepNodes(),
-        trees.GetNonSymmetricNodeIdToLeafId(),
-        trees.GetLeafValues(),
+        trees.GetModelTreeData()->GetTreeSplits(),
+        trees.GetModelTreeData()->GetTreeSizes(),
+        trees.GetModelTreeData()->GetTreeStartOffsets(),
+        trees.GetModelTreeData()->GetNonSymmetricStepNodes(),
+        trees.GetModelTreeData()->GetNonSymmetricNodeIdToLeafId(),
+        trees.GetModelTreeData()->GetLeafValues(),
         trees.GetCatFeatures(),
         trees.GetFloatFeatures(),
         trees.GetOneHotFeatures(),
@@ -230,7 +230,7 @@ TLearnContext::TLearnContext(
     const NCatboostOptions::TOutputFilesOptions& outputOptions,
     const TTrainingDataProviders& data,
     const TLabelConverter& labelConverter,
-    TMaybe<double> startingApprox,
+    const TMaybe<TVector<double>>& startingApprox,
     TMaybe<const TRestorableFastRng64*> initRand,
     TMaybe<TFullModel*> initModel,
     THolder<TLearnProgress> initLearnProgress, // will be modified if not non-nullptr
@@ -562,13 +562,8 @@ TLearnProgress::TLearnProgress(
         AveragingFold.GetOnlineEstimatedFeatures().Test = Folds[0].GetOnlineEstimatedFeatures().Test;
     }
 
-    AvrgApprox.resize(
-        ApproxDimension,
-        TVector<double>(
-            learnSampleCount,
-            StartingApprox ? *StartingApprox : 0
-        )
-    );
+    InitApproxes(learnSampleCount, StartingApprox, ApproxDimension, false, &AvrgApprox);
+
     TMaybeData<TConstArrayRef<TConstArrayRef<float>>> learnBaseline = data.Learn->TargetData->GetBaseline();
     if (learnBaseline) {
         CB_ENSURE(
@@ -587,10 +582,10 @@ TLearnProgress::TLearnProgress(
         }
         TMaybeData<TConstArrayRef<TConstArrayRef<float>>> testBaseline = testData->TargetData->GetBaseline();
         if (!testBaseline) {
-            for (auto& approxDim : TestApprox[testIdx]) {
-                approxDim.resize(
+            for (auto approxDim : xrange(TestApprox[testIdx].size())) {
+                TestApprox[testIdx][approxDim].resize(
                     testData->GetObjectCount(),
-                    StartingApprox ? *StartingApprox : 0
+                    StartingApprox ? (*StartingApprox)[approxDim] : 0
                 );
             }
         } else {

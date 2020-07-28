@@ -48,7 +48,7 @@ namespace NCatboostCuda {
     void AddNode(const TLeafPath& leafPath, size_t position, TVector<double>& values, THolder<TNode>* rootPtr) {
         auto& root = *rootPtr;
         if (!root) {
-            root = new TNode(values.size());
+            root = MakeHolder<TNode>(values.size());
         } else {
             Y_ASSERT(root->NodeValues.size() == values.size());
         }
@@ -249,7 +249,7 @@ namespace NCatboostCuda {
 
     template <>
     THolder<TAdditiveModel<TObliviousTreeModel>> MakeObliviousModel(THolder<TAdditiveModel<TNonSymmetricTree>>&& model, NPar::TLocalExecutor* executor) {
-        THolder<TAdditiveModel<TObliviousTreeModel>> result = new TAdditiveModel<TObliviousTreeModel>;
+        THolder<TAdditiveModel<TObliviousTreeModel>> result = MakeHolder<TAdditiveModel<TObliviousTreeModel>>();
         (*result) = MakeOTEnsemble(*model, executor);
         return result;
     }

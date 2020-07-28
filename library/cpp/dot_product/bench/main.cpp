@@ -1,6 +1,6 @@
 #include <library/cpp/dot_product/dot_product.h>
 
-#include <library/testing/benchmark/bench.h>
+#include <library/cpp/testing/benchmark/bench.h>
 
 #include <util/generic/singleton.h>
 #include <util/generic/vector.h>
@@ -64,15 +64,8 @@ namespace {
     };
 
     template <typename Res, typename Num>
-    Res SimpleDotProduct(const Num* lhs, const Num* rhs, ui32 length) {
-        Res sum = 0;
-
-        while (length) {
-            sum += static_cast<Res>(*lhs++) * static_cast<Res>(*rhs++);
-            --length;
-        }
-
-        return sum;
+    Res SlowDotProduct(const Num* lhs, const Num* rhs, ui32 length) {
+        return DotProductSlow(lhs, rhs, length);
     }
 
     template <typename Res, typename Num>
@@ -176,7 +169,7 @@ namespace {
     static TBenchmark<TResultType<TSourceType>::TType, TSourceType, length, 19, 179> Bench##length##_##TSourceType; \
                                                                                                                     \
     Y_CPU_BENCHMARK(Slow##length##_##TSourceType, iface) {                                                          \
-        Bench##length##_##TSourceType.Do(SimpleDotProduct, iface);                                                  \
+        Bench##length##_##TSourceType.Do(SlowDotProduct, iface);                                                  \
     }                                                                                                               \
     Y_CPU_BENCHMARK(Eigen##length##_##TSourceType, iface) {                                                         \
         Bench##length##_##TSourceType.Do(EigenDotProduct, iface);                                                   \

@@ -137,7 +137,7 @@ IRemoteAddrPtr NAddr::GetSockAddr(SOCKET s) {
         ythrow TSystemError() << "getsockname() failed";
     }
 
-    return addr.Release();
+    return addr;
 }
 
 static const in_addr& InAddr(const IRemoteAddr& addr) {

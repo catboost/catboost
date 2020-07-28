@@ -4,6 +4,10 @@ LIBRARY()
 
 NO_UTIL()
 
+IF (TSTRING_IS_STD_STRING)
+    CFLAGS(GLOBAL -DTSTRING_IS_STD_STRING)
+ENDIF()
+
 SRCS(
     date.cpp
     datetime.cpp
@@ -15,3 +19,7 @@ SRCS(
 )
 
 END()
+
+RECURSE_FOR_TESTS(
+    ut
+)

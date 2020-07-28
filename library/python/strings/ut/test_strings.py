@@ -1,6 +1,7 @@
 # coding=utf-8
 
 import pytest
+import six
 
 import library.python.strings
 
@@ -33,10 +34,11 @@ class NonConvertible(ConvertibleToUnicodeOnly, ConvertibleToStrOnly):
 def test_to_basestring():
     assert library.python.strings.to_basestring('str') == 'str'
     assert library.python.strings.to_basestring(u'юникод') == u'юникод'
-    assert library.python.strings.to_basestring(Convertible()) == Convertible.text
-    assert library.python.strings.to_basestring(ConvertibleToUnicodeOnly()) == Convertible.text
-    assert library.python.strings.to_basestring(ConvertibleToStrOnly()) == Convertible.text_utf8
-    assert library.python.strings.to_basestring(NonConvertible())
+    if six.PY2:  # __str__ should return str not bytes in Python3
+        assert library.python.strings.to_basestring(Convertible()) == Convertible.text
+        assert library.python.strings.to_basestring(ConvertibleToUnicodeOnly()) == Convertible.text
+        assert library.python.strings.to_basestring(ConvertibleToStrOnly()) == Convertible.text_utf8
+        assert library.python.strings.to_basestring(NonConvertible())
 
 
 def test_to_unicode():
@@ -44,12 +46,13 @@ def test_to_unicode():
     assert library.python.strings.to_unicode('str') == u'str'
     assert library.python.strings.to_unicode(u'строка'.encode('utf-8')) == u'строка'
     assert library.python.strings.to_unicode(u'строка'.encode('cp1251'), 'cp1251') == u'строка'
-    assert library.python.strings.to_unicode(Convertible()) == Convertible.text
-    assert library.python.strings.to_unicode(ConvertibleToUnicodeOnly()) == Convertible.text
-    with pytest.raises(UnicodeDecodeError):
-        library.python.strings.to_unicode(ConvertibleToStrOnly())
-    with pytest.raises(UnicodeDecodeError):
-        library.python.strings.to_unicode(NonConvertible())
+    if six.PY2:  # __str__ should return str not bytes in Python3
+        assert library.python.strings.to_unicode(Convertible()) == Convertible.text
+        assert library.python.strings.to_unicode(ConvertibleToUnicodeOnly()) == Convertible.text
+        with pytest.raises(UnicodeDecodeError):
+            library.python.strings.to_unicode(ConvertibleToStrOnly())
+        with pytest.raises(UnicodeDecodeError):
+            library.python.strings.to_unicode(NonConvertible())
 
 
 def test_to_unicode_errors_replace():
@@ -58,16 +61,17 @@ def test_to_unicode_errors_replace():
 
 
 def test_to_str():
-    assert library.python.strings.to_str('str') == 'str'
-    assert library.python.strings.to_str(u'unicode') == 'unicode'
+    assert library.python.strings.to_str('str') == 'str' if six.PY2 else b'str'
+    assert library.python.strings.to_str(u'unicode') == 'unicode' if six.PY2 else b'unicode'
     assert library.python.strings.to_str(u'юникод') == u'юникод'.encode('utf-8')
     assert library.python.strings.to_str(u'юникод', 'cp1251') == u'юникод'.encode('cp1251')
-    assert library.python.strings.to_str(Convertible()) == Convertible.text_utf8
-    with pytest.raises(UnicodeEncodeError):
-        library.python.strings.to_str(ConvertibleToUnicodeOnly())
-    assert library.python.strings.to_str(ConvertibleToStrOnly()) == Convertible.text_utf8
-    with pytest.raises(UnicodeEncodeError):
-        library.python.strings.to_str(NonConvertible())
+    if six.PY2:
+        assert library.python.strings.to_str(Convertible()) == Convertible.text_utf8
+        with pytest.raises(UnicodeEncodeError):
+            library.python.strings.to_str(ConvertibleToUnicodeOnly())
+        assert library.python.strings.to_str(ConvertibleToStrOnly()) == Convertible.text_utf8
+        with pytest.raises(UnicodeEncodeError):
+            library.python.strings.to_str(NonConvertible())
 
 
 def test_to_str_errors_replace():
@@ -76,8 +80,8 @@ def test_to_str_errors_replace():
 
 
 def test_to_str_transcode():
-    assert library.python.strings.to_str('str', from_enc='ascii') == 'str'
-    assert library.python.strings.to_str('str', from_enc='utf-8') == 'str'
+    assert library.python.strings.to_str('str', from_enc='ascii') == 'str' if six.PY2 else b'str'
+    assert library.python.strings.to_str('str', from_enc='utf-8') == 'str' if six.PY2 else b'str'
 
     assert library.python.strings.to_str(u'юникод'.encode('utf-8'), from_enc='utf-8') == u'юникод'.encode('utf-8')
     assert library.python.strings.to_str(u'юникод'.encode('utf-8'), to_enc='utf-8', from_enc='utf-8') == u'юникод'.encode('utf-8')
@@ -113,9 +117,9 @@ def test_stringize_deep():
         u'ключ 2': u'значение 2',
         'list': [u'ключ 2', 'key 1', (u'к', 2)]
     }) == {
-        'key 1': 'value 1',
+        'key 1' if six.PY2 else b'key 1': 'value 1' if six.PY2 else b'value 1',
         u'ключ 2'.encode('utf-8'): u'значение 2'.encode('utf-8'),
-        'list': [u'ключ 2'.encode('utf-8'), 'key 1', (u'к'.encode('utf-8'), 2)]
+        'list' if six.PY2 else b'list': [u'ключ 2'.encode('utf-8'), 'key 1' if six.PY2 else b'key 1', (u'к'.encode('utf-8'), 2)]
     }
 
 
@@ -137,16 +141,16 @@ def test_stringize_deep_nested():
             u'подключ 2': u'value 2',
         },
     }) == {
-        'key 1': 'value 1',
+        'key 1' if six.PY2 else b'key 1': 'value 1' if six.PY2 else b'value 1',
         u'ключ 2'.encode('utf-8'): {
-            'subkey 1': 'value 1',
+            'subkey 1' if six.PY2 else b'subkey 1': 'value 1' if six.PY2 else b'value 1',
             u'подключ 2'.encode('utf-8'): u'value 2'.encode('utf-8'),
         },
     }
 
 
 def test_stringize_deep_plain():
-    assert library.python.strings.stringize_deep('str') == 'str'
+    assert library.python.strings.stringize_deep('str') == 'str' if six.PY2 else b'str'
     assert library.python.strings.stringize_deep(u'юникод') == u'юникод'.encode('utf-8')
     assert library.python.strings.stringize_deep(u'юникод'.encode('utf-8')) == u'юникод'.encode('utf-8')
 

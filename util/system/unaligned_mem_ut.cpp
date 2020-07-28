@@ -1,7 +1,7 @@
 #include "unaligned_mem.h"
 
-#include <library/testing/benchmark/bench.h>
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/benchmark/bench.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 #include <util/system/compiler.h>
 

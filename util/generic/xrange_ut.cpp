@@ -1,8 +1,10 @@
 #include "xrange.h"
 
 #include "algorithm.h"
+#include "maybe.h"
 #include "vector.h"
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
+#include <util/string/builder.h>
 
 Y_UNIT_TEST_SUITE(XRange) {
     void TestXRangeImpl(size_t begin, size_t end) {
@@ -153,5 +155,63 @@ Y_UNIT_TEST_SUITE(XRange) {
         };
 
         TestEmptyRanges(emptySteppedRanges);
+    }
+
+    template <class TRange>
+    static void TestIteratorDifferenceImpl(TRange range, int a, int b, TMaybe<int> step) {
+        auto fmtCase = [&]() -> TString { return TStringBuilder() << "xrange(" << a << ", " << b << (step ? ", " + ToString(*step) : TString{}) << ")"; };
+        auto begin = std::begin(range);
+        auto end = std::end(range);
+        auto distance = end - begin;
+        UNIT_ASSERT_VALUES_EQUAL_C(range.size(), distance, fmtCase());
+        UNIT_ASSERT_EQUAL_C(end, begin + distance, fmtCase());
+    }
+
+    Y_UNIT_TEST(IteratorDifference) {
+        for (int a = -20; a <= 20; ++a) {
+            for (int b = -20; b <= 20; ++b) {
+                for (int step = -25; step <= 25; ++step) {
+                    if (step != 0) {
+                        TestIteratorDifferenceImpl(xrange(a, b, step), a, b, step);
+                    }
+                }
+                TestIteratorDifferenceImpl(xrange(a, b), a, b, Nothing());
+            }
+        }
+    }
+
+    Y_UNIT_TEST(Advance) {
+        {
+            auto range = xrange(30, 160, 7);
+            auto it = std::begin(range);
+            it += 5;
+            UNIT_ASSERT_VALUES_EQUAL(*(std::begin(range) + 5), *it);
+            UNIT_ASSERT_VALUES_EQUAL(65, *it);
+            it -= 2;
+            UNIT_ASSERT_VALUES_EQUAL(*(std::begin(range) + 3), *it);
+            UNIT_ASSERT_VALUES_EQUAL(51, *it);
+            std::advance(it, 10);
+            UNIT_ASSERT_VALUES_EQUAL(*(std::begin(range) + 13), *it);
+            UNIT_ASSERT_VALUES_EQUAL(121, *it);
+            std::advance(it, -5);
+            UNIT_ASSERT_VALUES_EQUAL(*(std::begin(range) + 8), *it);
+            UNIT_ASSERT_VALUES_EQUAL(86, *it);
+        }
+        {
+            auto range = xrange(-20, 100);
+            auto it = std::begin(range);
+            it += 5;
+            UNIT_ASSERT_VALUES_EQUAL(*(std::begin(range) + 5), *it);
+            UNIT_ASSERT_VALUES_EQUAL(-15, *it);
+            it -= 2;
+            UNIT_ASSERT_VALUES_EQUAL(*(std::begin(range) + 3), *it);
+            UNIT_ASSERT_VALUES_EQUAL(-17, *it);
+            std::advance(it, 30);
+            UNIT_ASSERT_VALUES_EQUAL(*(std::begin(range) + 33), *it);
+            UNIT_ASSERT_VALUES_EQUAL(13, *it);
+            std::advance(it, -8);
+            UNIT_ASSERT_VALUES_EQUAL(*(std::begin(range) + 25), *it);
+            UNIT_ASSERT_VALUES_EQUAL(5, *it);
+        }
     }
 }

@@ -3,8 +3,8 @@ LIBRARY()
 
 
 PEERDIR(
-    library/blockcodecs/core
-    library/blockcodecs/codecs/zstd
+    library/cpp/blockcodecs/core
+    library/cpp/blockcodecs/codecs/zstd
 )
 
 SRCS(

@@ -33,7 +33,7 @@ namespace {
         inline TSymbols()
             : Func(nullptr)
         {
-            // not DEFAULT, cause library/gettimeofday
+            // not DEFAULT, cause library/cpp/gettimeofday
             Func = reinterpret_cast<TFunc>(dlsym(RTLD_NEXT, "gettimeofday"));
 
 #if defined(_musl_)

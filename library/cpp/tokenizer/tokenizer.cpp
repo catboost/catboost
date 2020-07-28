@@ -1,5 +1,5 @@
 #ifndef CATBOOST_OPENSOURCE
-#include <library/charset/wide.h>
+#include <library/cpp/charset/wide.h>
 #endif
 
 #include <util/charset/wide.h>
@@ -20,15 +20,15 @@ void TNlpTokenizer::Tokenize(const wchar16* str,
     THolder<TNlpParser> parser;
     switch (opts.Version) {
         case 2:
-            parser = new TVersionedNlpParser<2>(TokenHandler, sentBreakFilter, Buffer, opts.SpacePreserve,
+            parser = MakeHolder<TVersionedNlpParser<2>>(TokenHandler, sentBreakFilter, Buffer, opts.SpacePreserve,
                     BackwardCompatible, semicolonBreaksSentence, opts.UrlDecode);
             break;
         case 3:
-            parser = new TVersionedNlpParser<3>(TokenHandler, sentBreakFilter, Buffer, opts.SpacePreserve,
+            parser = MakeHolder<TVersionedNlpParser<3>>(TokenHandler, sentBreakFilter, Buffer, opts.SpacePreserve,
                     BackwardCompatible, semicolonBreaksSentence, opts.UrlDecode, opts.KeepAffixes);
             break;
         default:
-            parser = new TDefaultNlpParser(TokenHandler, sentBreakFilter, Buffer, opts.SpacePreserve,
+            parser = MakeHolder<TDefaultNlpParser>(TokenHandler, sentBreakFilter, Buffer, opts.SpacePreserve,
                     BackwardCompatible, semicolonBreaksSentence, opts.UrlDecode);
             break;
     }

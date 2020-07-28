@@ -6,7 +6,7 @@
 #include <catboost/libs/gpu_config/interface/get_gpu_device_count.h>
 #include <catboost/private/libs/quantization/utils.h>
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 
 using namespace NCB;
@@ -24,7 +24,7 @@ Y_UNIT_TEST_SUITE(ExternalColumns) {
             /*discretization*/3
         );
 
-        TFeaturesLayout featuresLayout(ui32(1), TVector<ui32>{}, TVector<ui32>{}, TVector<TString>{});
+        TFeaturesLayout featuresLayout(ui32(1), {}, {}, {}, {});
         auto quantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
             featuresLayout,
             TConstArrayRef<ui32>(),
@@ -86,7 +86,7 @@ Y_UNIT_TEST_SUITE(ExternalColumns) {
 
         const NCatboostOptions::TBinarizationOptions binarizationOptions;
 
-        TFeaturesLayout featuresLayout(ui32(1), TVector<ui32>{0}, TVector<ui32>{}, TVector<TString>{});
+        TFeaturesLayout featuresLayout(ui32(1), TVector<ui32>{0}, {}, {}, {});
 
         for (auto mapMostFrequentValueTo0 : {false, true}) {
 

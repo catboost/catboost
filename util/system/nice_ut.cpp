@@ -2,7 +2,7 @@
 
 #include "platform.h"
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 #ifdef _unix_
 #include <sys/resource.h>

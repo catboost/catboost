@@ -60,10 +60,12 @@ class Platform(object):
 
         self.is_armv7hf = self.arch in ('armv7ahf_cortex_a35', 'armv7ahf_cortex_a53')
 
-        self.is_ppc64le = self.arch == 'ppc64le'
+        self.is_power8le = self.arch == 'ppc64le'
+        self.is_power9le = self.arch == 'power9le'
+        self.is_powerpc = self.is_power8le or self.is_power9le
 
         self.is_32_bit = self.is_x86 or self.is_armv7
-        self.is_64_bit = self.is_x86_64 or self.is_armv8 or self.is_ppc64le
+        self.is_64_bit = self.is_x86_64 or self.is_armv8 or self.is_powerpc
 
         assert self.is_32_bit or self.is_64_bit
         assert not (self.is_32_bit and self.is_64_bit)
@@ -72,6 +74,9 @@ class Platform(object):
         self.is_linux_x86_64 = self.is_linux and self.is_x86_64
         self.is_linux_armv8 = self.is_linux and self.is_armv8
         self.is_linux_armv7 = self.is_linux and self.is_armv7
+        self.is_linux_power8le = self.is_linux and self.is_power8le
+        self.is_linux_power9le = self.is_linux and self.is_power9le
+        self.is_linux_powerpc = self.is_linux_power8le or self.is_linux_power9le
 
         self.is_macos = self.os == 'macos'
         self.is_macos_x86_64 = self.is_macos and self.is_x86_64
@@ -82,14 +87,18 @@ class Platform(object):
         self.is_windows_x86_64 = self.is_windows and self.is_x86_64
 
         self.is_android = self.os == 'android'
+        if self.is_android:
+            # This is default Android API level unless `ANDROID_API` is specified
+            # 16 is the smallest level supported by current NDK
+            # 21 is the smallest level for 64-bit platforms
+            default_android_api = 21 if self.is_64_bit else 16
+            self.android_api = int(preset('ANDROID_API', default_android_api))
+
         self.is_cygwin = self.os == 'cygwin'
         self.is_freebsd = self.os == 'freebsd'
         self.is_yocto = self.os == 'yocto'
-        self.is_yocto_lg_wk7y = self.os == 'yocto_lg_wk7y' and self.is_armv7
-        self.is_yocto_jbl_portable_music = self.os == 'yocto_jbl_portable_music' and self.is_armv7
-        self.is_yocto_aacrh64_lightcomm_mt8516 = self.os == 'yocto_lightcomm' and self.is_armv8
 
-        self.is_posix = self.is_linux or self.is_apple or self.is_android or self.is_cygwin or self.is_freebsd or self.is_yocto or self.is_yocto_lg_wk7y or self.is_yocto_jbl_portable_music or self.is_yocto_aacrh64_lightcomm_mt8516
+        self.is_posix = self.is_linux or self.is_apple or self.is_android or self.is_cygwin or self.is_freebsd or self.is_yocto
 
     @staticmethod
     def from_json(data):
@@ -124,7 +133,9 @@ class Platform(object):
             (self.is_armv8, 'ARCH_ARM64'),
             (self.is_arm, 'ARCH_ARM'),
             (self.is_linux_armv8, 'ARCH_AARCH64'),
-            (self.is_ppc64le, 'ARCH_PPC64LE'),
+            (self.is_powerpc, 'ARCH_PPC64LE'),
+            (self.is_power8le, 'ARCH_POWER8LE'),
+            (self.is_power9le, 'ARCH_POWER9LE'),
             (self.is_32_bit, 'ARCH_TYPE_32'),
             (self.is_64_bit, 'ARCH_TYPE_64'),
         ))
@@ -385,7 +396,7 @@ class Options(object):
         self.toolchain_params = self.options.toolchain_params
 
         self.presets = parse_presets(self.options.presets)
-        userify_presets(self.presets, ('CFLAGS', 'CXXFLAGS', 'CONLYFLAGS', 'LDFLAGS'))
+        userify_presets(self.presets, ('CFLAGS', 'CXXFLAGS', 'CONLYFLAGS', 'LDFLAGS', 'GO_COMPILE_FLAGS', 'GO_LINK_FLAGS'))
 
     Instance = None
 
@@ -489,7 +500,11 @@ class Build(object):
 
     @property
     def is_debug(self):
-        return self.build_type in ('debug', 'debugnoasserts') or self.build_type.endswith('-debug')
+        return self.build_type in ('debug', 'debugnoasserts', 'fastdebug') or self.build_type.endswith('-debug')
+
+    @property
+    def is_fast_debug(self):
+        return self.build_type == 'fastdebug'
 
     @property
     def is_size_optimized(self):
@@ -698,6 +713,16 @@ when (($USEMPROF == "yes") || ($USE_MPROF == "yes")) {
 }
 '''
 
+    def print_android_const(self):
+        # Set `ANDROID_API=XXX` for substitution purposes
+        emit('ANDROID_API', str(self.platform.android_api))
+
+        # Since ymake does not support `>=` expressions, set
+        # `ANDROID_API_AT_LEAST_XXX` for each supported API level
+        min_android_api = 16  # api levels below are not supported by modern NDK and can be assumed implicitly
+        for api_level in xrange(min_android_api, self.platform.android_api + 1):
+            emit('ANDROID_API_AT_LEAST_{}'.format(api_level), 'yes')
+
     def print_target_settings(self):
         emit('TARGET_PLATFORM', self.platform.os_compat)
         emit('HARDWARE_ARCH', '32' if self.platform.is_32_bit else '64')
@@ -708,6 +733,9 @@ when (($USEMPROF == "yes") || ($USE_MPROF == "yes")) {
 
         for variable in self.platform.os_variables:
             emit(variable, 'yes')
+
+        if self.platform.is_android:
+            self.print_android_const()
 
         if self.platform.is_posix:
             self.print_nix_target_const()
@@ -962,7 +990,7 @@ class GnuToolchainOptions(ToolchainOptions):
             if self.target.is_armv7:
                 return 'ubuntu-16'
 
-            if self.target.is_ppc64le:
+            if self.target.is_powerpc:
                 return 'ubuntu-14'
 
             # Default OS SDK for Linux builds
@@ -1005,7 +1033,7 @@ class GnuToolchain(Toolchain):
         def get_os_sdk(target):
             if target.is_macos:
                 return '$MACOS_SDK_RESOURCE_GLOBAL/MacOSX10.11.sdk'
-            elif target.is_yocto or target.is_yocto_lg_wk7y or target.is_yocto_jbl_portable_music or target.is_yocto_aacrh64_lightcomm_mt8516:
+            elif target.is_yocto:
                 return '$YOCTO_SDK_RESOURCE_GLOBAL'
             return '$OS_SDK_ROOT_RESOURCE_GLOBAL'
 
@@ -1051,17 +1079,22 @@ class GnuToolchain(Toolchain):
                     (target.is_linux and target.is_armv8, 'aarch64-linux-gnu'),
                     (target.is_linux and target.is_armv7hf, 'arm-linux-gnueabihf'),
                     (target.is_linux and target.is_armv7, 'arm-linux-gnueabi'),
-                    (target.is_linux and target.is_ppc64le, 'powerpc64le-linux-gnu'),
+                    (target.is_linux and target.is_powerpc, 'powerpc64le-linux-gnu'),
                     (target.is_apple and target.is_x86, 'i386-apple-darwin14'),
                     (target.is_apple and target.is_x86_64, 'x86_64-apple-darwin14'),
                     (target.is_apple and target.is_armv7, 'armv7-apple-darwin14'),
                     (target.is_apple and target.is_armv8, 'arm64-apple-darwin14'),
                     (target.is_yocto and target.is_armv7, 'arm-poky-linux-gnueabi'),
-                    (target.is_android and target.is_x86, 'i686-linux-android16'),
-                    (target.is_android and target.is_x86_64, 'x86_64-linux-android21'),
-                    (target.is_android and target.is_armv7, 'armv7a-linux-androideabi16'),
-                    (target.is_android and target.is_armv8, 'aarch64-linux-android21'),
+                    (target.is_android and target.is_x86, 'i686-linux-android'),
+                    (target.is_android and target.is_x86_64, 'x86_64-linux-android'),
+                    (target.is_android and target.is_armv7, 'armv7a-linux-androideabi'),
+                    (target.is_android and target.is_armv8, 'aarch64-linux-android'),
                 ])
+
+            if target.is_android:
+                # Android NDK allows specification of API level in target triple, e.g.:
+                # armv7a-linux-androideabi16, aarch64-linux-android21
+                target_triple += str(target.android_api)
 
             if target_triple:
                 self.c_flags_platform.append('--target={}'.format(target_triple))
@@ -1087,14 +1120,15 @@ class GnuToolchain(Toolchain):
             # to reduce code size
             self.c_flags_platform.append('-mthumb')
 
-        if target.is_arm or target.is_ppc64le:
+        if target.is_arm or target.is_powerpc:
             # On linux, ARM and PPC default to unsigned char
             # However, Arcadia requires char to be signed
             self.c_flags_platform.append('-fsigned-char')
 
         if self.tc.is_clang or self.tc.is_gcc and self.tc.version_at_least(8, 2):
             target_flags = select(default=[], selectors=[
-                (target.is_linux and target.is_ppc64le, ['-mcpu=power9', '-mtune=power9', '-maltivec']),
+                (target.is_linux and target.is_power8le, ['-mcpu=power8', '-mtune=power8', '-maltivec']),
+                (target.is_linux and target.is_power9le, ['-mcpu=power9', '-mtune=power9', '-maltivec']),
                 (target.is_linux and target.is_armv8, ['-march=armv8a']),
                 (target.is_macos, ['-mmacosx-version-min=10.11']),
                 (target.is_ios and not target.is_intel, ['-mios-version-min=9.0']),
@@ -1129,23 +1163,13 @@ class GnuToolchain(Toolchain):
                             self.setup_tools(project='build/platform/linux_sdk', var='$OS_SDK_ROOT_RESOURCE_GLOBAL', bin='usr/bin', ldlibs='usr/lib/x86_64-linux-gnu')
                         elif host.is_macos:
                             self.setup_tools(project='build/platform/binutils', var='$BINUTILS_ROOT_RESOURCE_GLOBAL', bin='x86_64-linux-gnu/bin', ldlibs=None)
-                    elif target.is_ppc64le:
+                    elif target.is_powerpc:
                         self.setup_tools(project='build/platform/linux_sdk', var='$OS_SDK_ROOT_RESOURCE_GLOBAL', bin='usr/bin', ldlibs='usr/x86_64-linux-gnu/powerpc64le-linux-gnu/lib')
                     elif target.is_armv8:
                         self.setup_tools(project='build/platform/linux_sdk', var='$OS_SDK_ROOT_RESOURCE_GLOBAL', bin='usr/bin', ldlibs='usr/lib/x86_64-linux-gnu')
 
                 if target.is_yocto:
                     self.setup_sdk(project='build/platform/yocto_sdk/yocto_sdk', var='${YOCTO_SDK_ROOT_RESOURCE_GLOBAL}')
-        elif self.tc.is_gcc and self.tc.version_at_least(6, 3):
-            if self.tc.is_from_arcadia:
-                if target.is_yocto_lg_wk7y:
-                    self.c_flags_platform.extend(['-march=armv7ve', '-mfpu=neon-vfpv4', '-mfloat-abi=hard', '-mcpu=cortex-a7'])
-                    self.setup_sdk(project='build/platform/yocto_sdk/yocto_armv7a_lg_wk7y_sdk', var='${YOCTO_SDK_ROOT_RESOURCE_GLOBAL}')
-                elif target.is_yocto_jbl_portable_music:
-                    self.c_flags_platform.extend(['-march=armv7ve', '-mfpu=neon-vfpv4', '-mfloat-abi=hard', '-mcpu=cortex-a7'])
-                    self.setup_sdk(project='build/platform/yocto_sdk/yocto_armv7a_jbl_portable_music_sdk', var='${YOCTO_SDK_ROOT_RESOURCE_GLOBAL}')
-                elif target.is_yocto_aacrh64_lightcomm_mt8516:
-                    self.setup_sdk(project='build/platform/yocto_sdk/yocto_aarch64_lightcomm_mt8516', var='${YOCTO_SDK_ROOT_RESOURCE_GLOBAL}')
 
     def setup_sdk(self, project, var):
         self.platform_projects.append(project)
@@ -1213,7 +1237,7 @@ class GnuCompiler(Compiler):
             # Arcadia have API 16 for 32-bit Androids.
             self.c_defines.append('-D_FILE_OFFSET_BITS=64')
 
-        if self.target.is_linux or self.target.is_cygwin or self.target.is_yocto_lg_wk7y or self.target.is_yocto_jbl_portable_music or self.target.is_yocto_aacrh64_lightcomm_mt8516:
+        if self.target.is_linux or self.target.is_android or self.target.is_cygwin:
             self.c_defines.append('-D_GNU_SOURCE')
 
         if self.target.is_ios:
@@ -1262,6 +1286,8 @@ class GnuCompiler(Compiler):
 
             if self.tc.version_at_least(7):
                 self.cxx_warnings.append('-Wno-return-std-move')
+                if not self.target.is_ios:
+                    self.c_foptions.append('$CLANG_ALIGNED_ALLOCATION_FLAG')
 
             if self.tc.version_at_least(8):
                 self.cxx_warnings.extend((
@@ -1270,8 +1296,6 @@ class GnuCompiler(Compiler):
                     '-Wno-enum-compare-switch',
                     '-Wno-pass-failed',
                 ))
-                if not self.target.is_ios:
-                    self.c_foptions.append('$CLANG_ALIGNED_ALLOCATION_FLAG')
 
         if self.tc.is_gcc and self.tc.version_at_least(4, 9):
             self.c_foptions.append('-fno-delete-null-pointer-checks')
@@ -1283,6 +1307,9 @@ class GnuCompiler(Compiler):
 
         if self.build.is_debug:
             self.c_foptions.append('$FSTACK')
+
+        if self.build.is_fast_debug:
+            self.c_flags.append('-Og')
 
         if self.build.is_release:
             self.c_flags.append('$OPTIMIZE')
@@ -1414,8 +1441,7 @@ class GnuCompiler(Compiler):
                 }}
                 YASM_DEBUG_INFO_DISABLE_CACHE__NO_UID__={yasm_debug}
             }}
-
-            when ($CONSISTENT_DEBUG_LIGHT == "yes") {{
+            elsewhen ($CONSISTENT_DEBUG_LIGHT == "yes") {{
                 when ($CLANG == "yes") {{
                     CL_DEBUG_INFO_DISABLE_CACHE__NO_UID__={c_debug_light_cl}
                 }}
@@ -1479,6 +1505,7 @@ class GnuCompiler(Compiler):
         # fuzzing configuration
         if self.tc.is_clang and self.tc.version_at_least(5, 0):
             emit('LIBFUZZER_PATH',
+                 'contrib/libs/libfuzzer10' if self.tc.version_at_least(10) else
                  'contrib/libs/libfuzzer8' if self.tc.version_at_least(8) else
                  'contrib/libs/libfuzzer7' if self.tc.version_at_least(7) else
                  'contrib/libs/libfuzzer6' if self.tc.version_at_least(6) else
@@ -1511,13 +1538,13 @@ class Linker(object):
         self.tc = tc
         self.build = build
 
-        if self.tc.is_from_arcadia and self.build.host.is_linux and not (self.build.target.is_apple or self.build.target.is_android or self.build.target.is_windows):
+        if self.tc.is_from_arcadia and self.build.host.is_linux and not (self.build.target.is_apple or self.build.target.is_windows):
 
-            if self.tc.is_clang:
+            if self.build.target.is_android:
+                self.type = Linker.LLD
+            elif self.tc.is_clang:
                 # DEVTOOLSSUPPORT-47 LLD cannot deal with extsearch/images/saas/base/imagesrtyserver
                 self.type = Linker.GOLD if is_positive('USE_LTO') and not is_positive('MUSL') else Linker.LLD
-            elif self.tc.is_gcc and (self.build.target.is_linux_armv7 or self.build.target.is_yocto_lg_wk7y or self.build.target.is_yocto_jbl_portable_music or self.build.target.is_yocto_aacrh64_lightcomm_mt8516):
-                self.type = Linker.BFD
             else:
                 self.type = Linker.GOLD
         else:
@@ -1604,6 +1631,18 @@ class LD(Linker):
             else:
                 self.ar = 'ar'
 
+        self.ar_type = 'GNU_AR'
+        self.llvm_ar_format = 'None'
+
+        if 'libtool' in self.ar:
+            self.ar_type = 'LIBTOOL'
+        elif 'llvm-ar' in self.ar:
+            self.ar_type = 'LLVM_AR'
+            if target.is_apple:
+                self.llvm_ar_format="darwin"
+            else:
+                self.llvm_ar_format="gnu"
+
         self.ld_flags = []
 
         if self.build.is_size_optimized:
@@ -1621,7 +1660,7 @@ class LD(Linker):
                 self.ld_flags.append('-Wl,-no_compact_unwind')
 
         self.thread_library = select([
-            (target.is_linux or target.is_macos or target.is_yocto_lg_wk7y or self.target.is_yocto_jbl_portable_music or target.is_yocto_aacrh64_lightcomm_mt8516, '-lpthread'),
+            (target.is_linux or target.is_macos, '-lpthread'),
             (target.is_freebsd, '-lthr')
         ])
 
@@ -1640,7 +1679,7 @@ class LD(Linker):
             self.rdynamic = '-rdynamic'
             self.use_stdlib = '-nodefaultlibs'
 
-        if target.is_linux or target.is_android or target.is_freebsd or target.is_cygwin or target.is_yocto_lg_wk7y or target.is_yocto_jbl_portable_music or target.is_yocto_aacrh64_lightcomm_mt8516:
+        if target.is_linux or target.is_android or target.is_freebsd or target.is_cygwin:
             self.start_group = '-Wl,--start-group'
             self.end_group = '-Wl,--end-group'
             self.whole_archive = '-Wl,--whole-archive'
@@ -1688,7 +1727,7 @@ class LD(Linker):
         super(LD, self).print_linker()
 
         emit('AR_TOOL', self.ar)
-        emit('AR_TYPE', 'AR' if 'libtool' not in self.ar else 'LIBTOOL')
+        emit('AR_TYPE', self.ar_type)
 
         emit('STRIP_TOOL_VENDOR', self.strip)
         emit('OBJCOPY_TOOL_VENDOR', self.objcopy)
@@ -1793,7 +1832,7 @@ class LD(Linker):
         emit('LINK_EXEC_DYN_LIB', '$GENERATE_MF && $GENERATE_VCS_C_INFO_NODEP && $REAL_LINK_EXEC_DYN_LIB && $DWARF_COMMAND')
         emit('SWIG_DLL_JAR_CMD', '$GENERATE_MF && $GENERATE_VCS_C_INFO_NODEP && $REAL_SWIG_DLL_JAR_CMD && $DWARF_COMMAND')
 
-        archiver = '$YMAKE_PYTHON ${input:"build/scripts/link_lib.py"} ${quo:AR_TOOL} $AR_TYPE $ARCADIA_BUILD_ROOT %s' % (self.ar_plugin or 'None')
+        archiver = '$YMAKE_PYTHON ${input:"build/scripts/link_lib.py"} ${quo:AR_TOOL} $AR_TYPE %s $ARCADIA_BUILD_ROOT %s' % (self.llvm_ar_format, self.ar_plugin or 'None')
 
         # Static Library
 
@@ -2589,7 +2628,7 @@ class Cuda(object):
     def have_cuda_in_arcadia(self):
         host, target = self.build.host_target
 
-        if not host.is_linux_x86_64 and not host.is_macos_x86_64 and not host.is_windows_x86_64:
+        if not any((host.is_linux_x86_64, host.is_macos_x86_64, host.is_windows_x86_64, host.is_linux_powerpc)):
             return False
 
         # We have no CUDA cross-build yet
@@ -2643,6 +2682,7 @@ class Cuda(object):
 
         return select((
             (host.is_linux_x86_64 and target.is_linux_x86_64, '$CUDA_HOST_TOOLCHAIN_RESOURCE_GLOBAL/bin/clang'),
+            (host.is_linux_powerpc and target.is_linux_powerpc, '$CUDA_HOST_TOOLCHAIN_RESOURCE_GLOBAL/bin/clang'),
             (host.is_macos_x86_64 and target.is_macos_x86_64, '$CUDA_HOST_TOOLCHAIN_RESOURCE_GLOBAL/usr/bin/clang'),
         ))
 

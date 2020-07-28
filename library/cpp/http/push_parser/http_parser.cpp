@@ -1,7 +1,7 @@
 #include "http_parser.h"
 
-#include <library/blockcodecs/stream.h>
-#include <library/blockcodecs/codecs.h>
+#include <library/cpp/blockcodecs/stream.h>
+#include <library/cpp/blockcodecs/codecs.h>
 
 #include <util/generic/string.h>
 #include <util/generic/yexception.h>

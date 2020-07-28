@@ -1,6 +1,7 @@
 #include "shap_interaction_values.h"
 
 #include "shap_values.h"
+#include "shap_prepared_trees.h"
 #include "util.h"
 
 #include <catboost/private/libs/algo/features_data_helpers.h>
@@ -22,7 +23,8 @@ void ValidateFeaturePair(int flatFeatureCount, std::pair<int, int> featurePair) 
 void ValidateFeatureInteractionParams(
     const EFstrType fstrType,
     const TFullModel& model,
-    const NCB::TDataProviderPtr dataset
+    const NCB::TDataProviderPtr dataset,
+    ECalcTypeShapValues calcType
 ) {
     CB_ENSURE(model.GetTreeCount(), "Model is not trained");
 
@@ -31,7 +33,12 @@ void ValidateFeatureInteractionParams(
         ToString<EFstrType>(fstrType) + " is not suitable for calc shap interaction values"
     );
 
-    CB_ENSURE(dataset, "Dataset is not provided");   
+    CB_ENSURE(dataset, "Dataset is not provided");
+
+    CB_ENSURE(
+        calcType != ECalcTypeShapValues::Independent,
+        "SHAP Interaction Values can't calculate in mode " + ToString<ECalcTypeShapValues>(calcType)
+    );
 }
 
 using TInteractionValuesSubset = THashMap<std::pair<size_t, size_t>, TVector<TVector<double>>>;
@@ -106,7 +113,7 @@ static inline void Allocate4DimensionalVector(
 ) {
     newVector->resize(dim1);
     for (size_t i = 0; i < dim1; ++i) {
-        (*newVector)[i].resize(dim2);    
+        (*newVector)[i].resize(dim2);
         for (size_t j = 0; j < dim2; ++j) {
             (*newVector)[i][j].resize(dim3);
             ParallelFill(
@@ -144,7 +151,7 @@ static inline void AddValuesAllDocuments(
             double effect = valuesBetweenClassesRef[documentIdx] * coefficient;
             valueBetweenFeaturesRef[documentIdx] += effect;
         }
-    }   
+    }
 }
 
 template <typename TStorageType>
@@ -268,7 +275,7 @@ static inline void AddInteractionEffectAllDocumentsForPairClasses(
             if (isCalcMainEffect) {
                 valuesBetweenSameClassesRef[documentIdx] -= interactionEffect;
             }
-        }                  
+        }
     }
 }
 
@@ -362,7 +369,7 @@ static void CalcInternalShapInteractionValuesMulti(
                     isSecondFeatureIdx[classIdx2] ? &GetDocumentsByClasses(shapInteractionValuesInternal, classIdx1, classIdx2) : &emptyVector,
                     &GetDocumentsByClasses(shapInteractionValuesInternal, classIdx1, classIdx1)
                 );
-            } 
+            }
         } else {
             for (size_t classIdx2 : classIndicesSecond) {
                 AddInteractionEffectAllDocumentsForPairClasses(
@@ -412,10 +419,11 @@ static inline TVector<double> ContructRescaleCoefficients(
 
 static inline void SetBiasValues(const TFullModel& model, TVector<TVector<double>>* values) {
     const size_t documentsCount = (*values)[0].size();
+    auto bias = model.GetScaleAndBias().GetBiasRef();
     for (size_t dimension = 0; dimension < values->size(); ++dimension) {
         TArrayRef<double> valuesRef = MakeArrayRef(values->at(dimension));
         for (size_t documentIdx = 0; documentIdx < documentsCount; ++documentIdx) {
-            valuesRef[documentIdx] += model.GetScaleAndBias().Bias;
+            valuesRef[documentIdx] += bias[dimension];
         }
     }
 }
@@ -487,7 +495,7 @@ static void CalcShapInteraction(
         documentCount,
         localExecutor,
         &shapInteractionValuesInternal
-    );   
+    );
     CalcInternalShapInteractionValuesMulti(
         model,
         documentCount,
@@ -559,6 +567,7 @@ TInteractionValuesFull CalcShapInteractionValuesMulti(
     TShapPreparedTrees preparedTrees = PrepareTrees(
         model,
         &dataset,
+        /*referenceDataset*/ nullptr,
         mode,
         localExecutor,
         /*calcInternalValues*/ true,

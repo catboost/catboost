@@ -25,7 +25,7 @@ namespace NCB {
     };
 
     static void WriteModelCTRs(IOutputStream& out, const TFullModel& model, TIndent& indent) {
-        const TVector<TModelCtr>& neededCtrs = model.ModelTrees->GetUsedModelCtrs();
+        const auto neededCtrs = model.ModelTrees->GetUsedModelCtrs();
         if (neededCtrs.empty()) {
             return;
         }
@@ -170,7 +170,7 @@ namespace NCB {
         Out << indent << "float_feature_count = " << model.ModelTrees->GetNumFloatFeatures() << '\n';
         Out << indent << "cat_feature_count = " << model.ModelTrees->GetNumCatFeatures() << '\n';
         Out << indent << "binary_feature_count = " << model.ModelTrees->GetEffectiveBinaryFeaturesBucketsCount() << '\n';
-        Out << indent << "tree_count = " << model.ModelTrees->GetTreeSizes().size() << '\n';
+        Out << indent << "tree_count = " << model.ModelTrees->GetModelTreeData()->GetTreeSizes().size() << '\n';
 
         Out << indent++ << "float_feature_borders = [" << '\n';
         comma.ResetCount(model.ModelTrees->GetFloatFeatures().size());
@@ -184,9 +184,9 @@ namespace NCB {
         }
         Out << --indent << "]" << '\n';
 
-        Out << indent << "tree_depth = [" << OutputArrayInitializer(model.ModelTrees->GetTreeSizes()) << "]" << '\n';
+        Out << indent << "tree_depth = [" << OutputArrayInitializer(model.ModelTrees->GetModelTreeData()->GetTreeSizes()) << "]" << '\n';
 
-        const TVector<TRepackedBin>& bins = model.ModelTrees->GetRepackedBins();
+        const auto bins = model.ModelTrees->GetRepackedBins();
         Out << indent << "tree_split_border = [" << OutputArrayInitializer([&bins](size_t i) { return (int)bins[i].SplitIdx; }, bins.size()) << "]" << '\n';
         Out << indent << "tree_split_feature_index = [" << OutputArrayInitializer([&bins](size_t i) { return (int)bins[i].FeatureIndex; }, bins.size()) << "]" << '\n';
         Out << indent << "tree_split_xor_mask = [" << OutputArrayInitializer([&bins](size_t i) { return (int)bins[i].XorMask; }, bins.size()) << "]" << '\n';
@@ -217,14 +217,14 @@ namespace NCB {
         Out << --indent << "]" << '\n';
 
         int leafValueCount = 0;
-        for (const auto& treeSize : model.ModelTrees->GetTreeSizes()) {
+        for (const auto& treeSize : model.ModelTrees->GetModelTreeData()->GetTreeSizes()) {
             leafValueCount += treeSize * model.ModelTrees->GetDimensionsCount();
         }
         Out << '\n';
         Out << indent << "## Aggregated array of leaf values for trees. Each tree is represented by a separate line:" << '\n';
         Out << indent << "leaf_values = [" << OutputLeafValues(model, indent) << indent << "]" << '\n';
         Out << indent << "scale = " << model.GetScaleAndBias().Scale << '\n';
-        Out << indent << "bias = " << model.GetScaleAndBias().Bias << '\n';
+        Out << indent << "bias = " << model.GetScaleAndBias().GetOneDimensionalBiasOrZero() << '\n';
 
         if (!model.ModelTrees->GetUsedModelCtrs().empty()) {
             WriteModelCTRs(Out, model, indent);

@@ -8,19 +8,23 @@ class Opts(object):
     def __init__(self, args):
         self.archiver = args[0]
         self.arch_type = args[1]
-        self.build_root = args[2]
-        self.plugin = args[3]
-        self.output = args[4]
-        auto_input = args[5:]
+        self.llvm_ar_format = args[2]
+        self.build_root = args[3]
+        self.plugin = args[4]
+        self.output = args[5]
+        auto_input = args[6:]
 
-        if self.arch_type == 'AR':
+        if self.arch_type == 'GNU_AR':
             self.create_flags = ['rcs']
+            self.modify_flags = ['-M']
+        elif self.arch_type == 'LLVM_AR':
+            self.create_flags = ['rcs', '-format=%s' % self.llvm_ar_format]
             self.modify_flags = ['-M']
         elif self.arch_type == 'LIBTOOL':
             self.create_flags = ['-static', '-o']
             self.modify_flags = []
 
-        need_modify = self.arch_type == 'AR' and any(item.endswith('.a') for item in auto_input)
+        need_modify = self.arch_type != 'LIBTOOL' and any(item.endswith('.a') for item in auto_input)
         if need_modify:
             self.objs = filter(lambda x: x.endswith('.o'), auto_input)
             self.libs = filter(lambda x: x.endswith('.a'), auto_input)

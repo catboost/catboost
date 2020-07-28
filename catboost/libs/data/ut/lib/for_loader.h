@@ -36,6 +36,7 @@ namespace NCB {
         TStringBuf FeatureNamesFileData;
         TVector<ui32> IgnoredFeatures;
         EObjectsOrder ObjectsOrder = EObjectsOrder::Undefined;
+        char NumVectorDelimiter = ';';
     };
 
     struct TReadDatasetMainParams {
@@ -57,6 +58,7 @@ namespace NCB {
     struct TReadDatasetTestCase {
         TSrcData SrcData;
         TExpectedRawData ExpectedData;
+        bool ExpectedReadError = false; // if it is true do not fill ExpectedData
     };
 
     void TestReadDataset(const TReadDatasetTestCase& testCase);

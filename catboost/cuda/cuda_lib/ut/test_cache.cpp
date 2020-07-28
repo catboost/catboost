@@ -1,5 +1,5 @@
 #include <catboost/cuda/cuda_lib/cache.h>
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 #include <iostream>
 
 using namespace std;

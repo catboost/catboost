@@ -112,15 +112,9 @@ def add_python_lint_checks(unit, py_ver, files):
                 resolved_files.append(resolved)
         return resolved_files
 
-    resolved_files = []
     if files and unit.get('LINT_LEVEL_VALUE') != "none":
         resolved_files = get_resolved_files()
-        unit.onadd_check(["PEP8_{}".format(py_ver)] + resolved_files)
-        unit.onadd_check(["PYFLAKES_{}".format(py_ver)] + resolved_files)
-
-    flake8_cfg = unit.get('FLAKE8_CONFIG') or 'build/config/tests/flake8_default.conf'
-    if files and flake8_cfg != 'none':
-        resolved_files = resolved_files or get_resolved_files()
+        flake8_cfg = 'build/config/tests/flake8.conf'
         unit.onadd_check(["flake8.py{}".format(py_ver), flake8_cfg] + resolved_files)
 
 
@@ -497,7 +491,7 @@ def py_register(unit, func, py3):
 
 def onpy_register(unit, *args):
     """
-    @usage: PY_REGISTER([package.]module_name[=module_name])
+    @usage: PY_REGISTER([package.]module_name)
 
     Python knows about which built-ins can be imported, due to their registration in the Assembly or at the start of the interpreter.
     All modules from the sources listed in PY_SRCS() are registered automatically.

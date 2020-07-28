@@ -23,7 +23,16 @@ namespace NCB::NModelEvaluation {
             const size_t blockSize = Min(FORMULA_EVALUATION_BLOCK_SIZE, docCount);
             auto calcTrees = GetCalcTreesFunction(trees, blockSize);
             if (trees.GetTreeCount() == 0) {
-                Fill(results.begin(), results.end(), trees.GetScaleAndBias().Bias);
+                auto biasRef = trees.GetScaleAndBias().GetBiasRef();
+                if (biasRef.size() == 1) {
+                    Fill(results.begin(), results.end(), biasRef[0]);
+                } else {
+                    for (size_t idx = 0; idx < results.size();) {
+                        for (size_t dim = 0; dim < biasRef.size(); ++dim, ++idx) {
+                            results[idx] = biasRef[dim];
+                        }
+                    }
+                }
                 return;
             }
             Fill(results.begin(), results.end(), 0.0);

@@ -141,6 +141,19 @@ double NCatboostOptions::GetQuerySoftMaxLambdaReg(const TLossDescription& lossFu
     return GetParamOrDefault(lossFunctionConfig, "lambda", 0.01);
 }
 
+double NCatboostOptions::GetQuerySoftMaxBeta(const TMap<TString, TString>& lossParams) {
+    return GetParamOrDefault(lossParams, "beta", 1.0);
+}
+
+double NCatboostOptions::GetQuerySoftMaxBeta(const TLossDescription& lossFunctionConfig) {
+    Y_ASSERT(lossFunctionConfig.GetLossFunction() == ELossFunction::QuerySoftMax);
+    return GetParamOrDefault(lossFunctionConfig, "beta", 1.0);
+}
+
+EAucType NCatboostOptions::GetAucType(const TMap<TString, TString>& lossParams) {
+    return GetParamOrDefault(lossParams, "type", EAucType::Classic);
+}
+
 ui32 NCatboostOptions::GetMaxPairCount(const TLossDescription& lossFunctionConfig) {
     Y_ASSERT(IsPairwiseMetric(lossFunctionConfig.GetLossFunction()));
     if (IsPairLogit(lossFunctionConfig.GetLossFunction())) {
@@ -309,10 +322,11 @@ NJson::TJsonValue LossDescriptionToJson(const TStringBuf lossDescriptionRaw) {
 TString BuildMetricOptionDescription(const NJson::TJsonValue& lossOptions) {
     TString paramType = StripString(ToString(lossOptions["type"]), EqualsStripAdapter('"'));
     paramType += ":";
-
-    for (const auto& elem : lossOptions["params"].GetMap()) {
-        const TString& paramName = elem.first;
-        const TString& paramValue = StripString(ToString(elem.second), EqualsStripAdapter('"'));
+    TLossParams lossParams;
+    NCatboostOptions::TJsonFieldHelper<TLossParams, false>::Read(lossOptions["params"], &lossParams);
+    const auto& paramsMap = lossParams.GetParamsMap();
+    for (const auto& paramName : lossParams.GetUserSpecifiedKeyOrder()) {
+        const TString& paramValue = StripString(paramsMap.at(paramName), EqualsStripAdapter('"'));
         paramType += paramName + "=" + paramValue + ";";
     }
 

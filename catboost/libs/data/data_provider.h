@@ -370,19 +370,6 @@ namespace NCB {
             return subset;
         }
 
-        template <class TNewObjectsDataProvider>
-        TProcessedDataProviderTemplate<TNewObjectsDataProvider> Cast() const {
-            TProcessedDataProviderTemplate<TNewObjectsDataProvider> newDataProvider;
-            auto* newObjectsDataProvider = dynamic_cast<TNewObjectsDataProvider*>(ObjectsData.Get());
-            CB_ENSURE_INTERNAL(newObjectsDataProvider, "Cannot cast to requested objects type");
-            newDataProvider.OriginalFeaturesLayout = OriginalFeaturesLayout;
-            newDataProvider.MetaInfo = MetaInfo;
-            newDataProvider.ObjectsGrouping = ObjectsGrouping;
-            newDataProvider.ObjectsData = newObjectsDataProvider;
-            newDataProvider.TargetData = TargetData;
-            return newDataProvider;
-        }
-
         void UpdateMetaInfo() {
             MetaInfo.ObjectCount = GetObjectCount();
             if (ObjectsData->GetQuantizedFeaturesInfo()) {
@@ -544,9 +531,9 @@ namespace NCB {
         }
     }
 
-    template <class TTObjectsDataProvider>
-    class TEstimatedObjectsDataProvidersTemplate {
+    class TEstimatedForCPUObjectsDataProviders {
     public:
+        using TTObjectsDataProvider = TQuantizedForCPUObjectsDataProvider;
         using TTObjectsDataProviderPtr = TIntrusivePtr<TTObjectsDataProvider>;
 
         TTObjectsDataProviderPtr Learn; // can be nullptr
@@ -593,33 +580,11 @@ namespace NCB {
             }
             return checkSum;
         }
-
-        template <class TNewObjectsDataProvider>
-        TEstimatedObjectsDataProvidersTemplate<TNewObjectsDataProvider> Cast() const {
-            TEstimatedObjectsDataProvidersTemplate<TNewObjectsDataProvider> newData;
-            if (Learn) {
-                newData.Learn = dynamic_cast<TNewObjectsDataProvider*>(Learn.Get());
-                CB_ENSURE_INTERNAL(newData.Learn, "Cannot cast to requested objects type");
-            }
-            for (auto& testData : Test) {
-                newData.Test.emplace_back(
-                    dynamic_cast<TNewObjectsDataProvider*>(testData.Get())
-                );
-                CB_ENSURE_INTERNAL(newData.Test.back(), "Cannot cast to requested objects type");
-            }
-            newData.FeatureEstimators = FeatureEstimators;
-            newData.QuantizedEstimatedFeaturesInfo = QuantizedEstimatedFeaturesInfo;
-            return newData;
-        }
     };
 
-    using TEstimatedForCPUObjectsDataProviders
-        = TEstimatedObjectsDataProvidersTemplate<TQuantizedForCPUObjectsDataProvider>;
-
-
-    template <class TTObjectsDataProvider>
-    class TTrainingDataProvidersTemplate {
+    class TTrainingDataProviders {
     public:
+        using TTObjectsDataProvider = TQuantizedForCPUObjectsDataProvider;
         using TTrainingDataProviderTemplatePtr =
             TIntrusivePtr<TProcessedDataProviderTemplate<TTObjectsDataProvider>>;
         using TDataPtr = TTrainingDataProviderTemplatePtr;
@@ -630,7 +595,7 @@ namespace NCB {
         TFeatureEstimatorsPtr FeatureEstimators = MakeIntrusive<TFeatureEstimators>();
 
         // not filled for GPU to save memory
-        TEstimatedObjectsDataProvidersTemplate<TTObjectsDataProvider> EstimatedObjectsData;
+        TEstimatedForCPUObjectsDataProviders EstimatedObjectsData;
 
     public:
         // FeatureEstimators is non-serializable
@@ -651,24 +616,6 @@ namespace NCB {
         TFeaturesLayoutPtr GetFeaturesLayout() const {
             return Learn->MetaInfo.FeaturesLayout;
         }
-        
-        // TODO(kirillovs): remove casts later
-        template <class TNewObjectsDataProvider>
-        TTrainingDataProvidersTemplate<TNewObjectsDataProvider> Cast() const {
-            using TNewData = TProcessedDataProviderTemplate<TNewObjectsDataProvider>;
-
-            TTrainingDataProvidersTemplate<TNewObjectsDataProvider> newData;
-            newData.Learn = MakeIntrusive<TNewData>(Learn->template Cast<TNewObjectsDataProvider>());
-            for (auto& testData : Test) {
-                newData.Test.emplace_back(
-                    MakeIntrusive<TNewData>(testData->template Cast<TNewObjectsDataProvider>())
-                );
-            }
-            newData.FeatureEstimators = FeatureEstimators;
-            newData.EstimatedObjectsData = EstimatedObjectsData.template Cast<TNewObjectsDataProvider>();
-
-            return newData;
-        }
 
         ui32 CalcFeaturesCheckSum(NPar::TLocalExecutor* localExecutor) const {
             ui32 checkSum = Learn->ObjectsData->CalcFeaturesCheckSum(localExecutor);
@@ -679,7 +626,5 @@ namespace NCB {
             return checkSum;
         }
     };
-
-    using TTrainingDataProviders = TTrainingDataProvidersTemplate<TQuantizedForCPUObjectsDataProvider>;
 
 }

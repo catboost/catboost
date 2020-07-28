@@ -14,7 +14,7 @@ PEERDIR(
 
 IF(NOT CATBOOST_OPENSOURCE)
     PEERDIR(
-        library/charset
+        library/cpp/charset
     )
 ENDIF()
 

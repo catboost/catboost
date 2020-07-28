@@ -16,16 +16,6 @@
 #include <process.h>
 #endif
 
-#if !defined(__unix__)
-#define __CONCAT1(x, y) x##y
-#define __CONCAT(x, y) __CONCAT1(x, y)
-#endif
-
-#if !defined(__FreeBSD__)
-#define __STRING(x) #x           /* stringify without expanding x */
-#define __XSTRING(x) __STRING(x) /* expand x, then stringify */
-#endif
-
 extern "C" {
 #if defined(_win_)
 using pid_t = int;
@@ -40,7 +30,7 @@ inline unsigned int alarm(unsigned int /*seconds*/) {
 #define SIGALRM 14       //will not receive under win?
 #endif
 
-#include "compat_c.h"
+#include <contrib/libs/libc_compat/string.h>
 
 #if defined(__FreeBSD__) || defined(_darwin_)
 #define HAVE_NATIVE_GETPROGNAME
@@ -82,11 +72,6 @@ char* stpcpy(char* dst, const char* src);
 #if defined(_MSC_VER) || defined(_sun_)
 char* strsep(char** stringp, const char* delim);
 #endif
-}
-
-inline char* strncopy(char* dst, const char* src, size_t len) {
-    strlcpy(dst, src, len);
-    return dst;
 }
 
 #ifdef _MSC_VER

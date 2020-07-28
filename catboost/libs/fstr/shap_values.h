@@ -1,5 +1,7 @@
 #pragma once
 
+#include "shap_prepared_trees.h"
+
 #include <catboost/libs/data/data_provider.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/private/libs/options/enums.h>
@@ -9,24 +11,7 @@
 #include <util/stream/input.h>
 #include <util/stream/output.h>
 #include <util/system/types.h>
-#include <util/ysaveload.h>
 
-
-struct TShapValue {
-    int Feature = -1;
-    TVector<double> Value;
-
-public:
-    TShapValue() = default;
-
-    TShapValue(int feature, int approxDimension)
-        : Feature(feature)
-        , Value(approxDimension)
-    {
-    }
-
-    Y_SAVELOAD_DEFINE(Feature, Value);
-};
 
 struct TFixedFeatureParams {
     enum class EMode {
@@ -60,44 +45,6 @@ public:
     );
 };
 
-struct TShapPreparedTrees {
-    TVector<TVector<TVector<TShapValue>>> ShapValuesByLeafForAllTrees; // [treeIdx][leafIdx][shapFeature] trees * 2^d * d
-    TVector<TVector<double>> MeanValuesForAllTrees;
-    TVector<double> AverageApproxByTree;
-    TVector<int> BinFeatureCombinationClass;
-    TVector<TVector<int>> CombinationClassFeatures;
-    bool CalcShapValuesByLeafForAllTrees;
-    bool CalcInternalValues;
-    TVector<double> LeafWeightsForAllTrees;
-    TVector<TVector<TVector<double>>> SubtreeWeightsForAllTrees;
-    TVector<TVector<TVector<TVector<double>>>> SubtreeValuesForAllTrees;
-
-public:
-    TShapPreparedTrees() = default;
-
-    TShapPreparedTrees(
-        const TVector<TVector<TVector<TShapValue>>>& shapValuesByLeafForAllTrees,
-        const TVector<TVector<double>>& meanValuesForAllTrees
-    )
-        : ShapValuesByLeafForAllTrees(shapValuesByLeafForAllTrees)
-        , MeanValuesForAllTrees(meanValuesForAllTrees)
-    {
-    }
-
-    Y_SAVELOAD_DEFINE(
-        ShapValuesByLeafForAllTrees,
-        MeanValuesForAllTrees,
-        AverageApproxByTree,
-        BinFeatureCombinationClass,
-        CombinationClassFeatures,
-        CalcShapValuesByLeafForAllTrees,
-        CalcInternalValues,
-        LeafWeightsForAllTrees,
-        SubtreeWeightsForAllTrees,
-        SubtreeValuesForAllTrees
-    );
-};
-
 void CalcShapValuesForDocumentMulti(
     const TFullModel& model,
     const TShapPreparedTrees& preparedTrees,
@@ -105,9 +52,10 @@ void CalcShapValuesForDocumentMulti(
     const TMaybe<TFixedFeatureParams>& fixedFeatureParams,
     int flatFeatureCount,
     TConstArrayRef<NCB::NModelEvaluation::TCalcerIndexType> docIndices,
-    size_t documentIdx,
+    size_t documentIdxInBlock,
     TVector<TVector<double>>* shapValues,
-    ECalcTypeShapValues calcType = ECalcTypeShapValues::Regular
+    ECalcTypeShapValues calcType = ECalcTypeShapValues::Regular,
+    size_t documentIdx = (size_t)(-1)
 );
 
 void CalcShapValuesForDocumentMulti(
@@ -118,21 +66,6 @@ void CalcShapValuesForDocumentMulti(
     TConstArrayRef<NCB::NModelEvaluation::TCalcerIndexType> docIndices,
     size_t documentIdx,
     TVector<TVector<double>>* shapValues,
-    ECalcTypeShapValues calcType = ECalcTypeShapValues::Regular
-);
-
-TShapPreparedTrees PrepareTrees(
-    const TFullModel& model,
-    NPar::TLocalExecutor* localExecutor,
-    ECalcTypeShapValues calcType = ECalcTypeShapValues::Regular
-);
-
-TShapPreparedTrees PrepareTrees(
-    const TFullModel& model,
-    const NCB::TDataProvider* dataset, // can be nullptr if model has LeafWeights
-    EPreCalcShapValues mode,
-    NPar::TLocalExecutor* localExecutor,
-    bool calcInternalValues = false,
     ECalcTypeShapValues calcType = ECalcTypeShapValues::Regular
 );
 
@@ -150,22 +83,26 @@ void CalcShapValuesByLeaf(
 TVector<TVector<TVector<double>>> CalcShapValuesMulti(
     const TFullModel& model,
     const NCB::TDataProvider& dataset,
+    const NCB::TDataProviderPtr referenceDataset, // can be nullptr if using Independent Tree SHAP algorithm
     const TMaybe<TFixedFeatureParams>& fixedFeatureParams,
     int logPeriod,
     EPreCalcShapValues mode,
     NPar::TLocalExecutor* localExecutor,
-    ECalcTypeShapValues calcType = ECalcTypeShapValues::Regular
+    ECalcTypeShapValues calcType = ECalcTypeShapValues::Regular,
+    EExplainableModelOutput modelOutputType = EExplainableModelOutput::Raw
 );
 
 // returned: ShapValues[documentIdx][feature]
 TVector<TVector<double>> CalcShapValues(
     const TFullModel& model,
     const NCB::TDataProvider& dataset,
+    const NCB::TDataProviderPtr referenceDataset, // can be nullptr if using Independent Tree SHAP algorithm
     const TMaybe<TFixedFeatureParams>& fixedFeatureParams,
     int logPeriod,
     EPreCalcShapValues mode,
     NPar::TLocalExecutor* localExecutor,
-    ECalcTypeShapValues calcType = ECalcTypeShapValues::Regular
+    ECalcTypeShapValues calcType = ECalcTypeShapValues::Regular,
+    EExplainableModelOutput modelOutputType = EExplainableModelOutput::Raw
 );
 
 // returned: ShapValues[featureIdx][dim][documentIdx]
@@ -204,3 +141,4 @@ void CalcShapValuesInternalForFeature(
     NPar::TLocalExecutor* localExecutor,
     ECalcTypeShapValues calcType = ECalcTypeShapValues::Regular
 );
+

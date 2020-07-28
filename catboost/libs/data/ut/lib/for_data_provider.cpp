@@ -305,6 +305,41 @@ namespace NCB {
                 }
             }
         );
+
+        CompareFeatures<EFeatureType::Embedding, TVector<float>, TEmbeddingValuesHolder>(
+            *objectsData.GetFeaturesLayout(),
+            /*getFeatureFunc*/ [&](ui32 embeddingFeatureIdx) {
+                return objectsData.GetEmbeddingFeature(embeddingFeatureIdx);
+            },
+            /*getExpectedFeatureFunc*/ [&](ui32 embeddingFeatureIdx)
+                {return *expectedData.Objects.EmbeddingFeatures[embeddingFeatureIdx];},
+            /*areEqualFunc*/ [&](
+                const TExpectedFeatureColumn<TVector<float>>& lhs,
+                const TEmbeddingValuesHolder& rhs
+            ) {
+                if (const auto* lhsDenseData = GetIf<TVector<TVector<float>>>(&lhs)) {
+                    TMaybeOwningArrayHolder<TMaybeOwningConstArrayHolder<float>> rhsValues
+                        = rhs.ExtractValues(&NPar::LocalExecutor());
+                    return std::equal(
+                        lhsDenseData->begin(),
+                        lhsDenseData->end(),
+                        rhsValues.begin(),
+                        rhsValues.end(),
+                        [&] (const TVector<float>& lhs1, const TMaybeOwningConstArrayHolder<float>& rhs1) {
+                            return std::equal(
+                                lhs1.begin(),
+                                lhs1.end(),
+                                rhs1.begin(),
+                                rhs1.end(),
+                                EqualWithNans<float>
+                            );
+                        }
+                    );
+                } else {
+                    return false;
+                }
+            }
+        );
     }
 
     void CompareObjectsData(

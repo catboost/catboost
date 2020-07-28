@@ -2,6 +2,7 @@ import argparse
 import copy
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -442,15 +443,21 @@ def do_link_exe(args):
             extldflags.append('-static')
             filter_musl = lambda x: not x in ('-lc', '-ldl', '-lm', '-lpthread', '-lrt')
         extldflags += list(filter(filter_musl, args.extldflags))
+    cgo_peers = []
     if args.cgo_peers is not None and len(args.cgo_peers) > 0:
         is_group = args.targ_os == 'linux'
         if is_group:
-            extldflags.append('-Wl,--start-group')
-        extldflags.extend(os.path.join(args.build_root, x) for x in args.cgo_peers)
+            cgo_peers.append('-Wl,--start-group')
+        cgo_peers.extend(os.path.join(args.build_root, x) for x in args.cgo_peers)
         if is_group:
-            extldflags.append('-Wl,--end-group')
+            cgo_peers.append('-Wl,--end-group')
+    try:
+        index = extldflags.index('--cgo-peers')
+        extldflags = extldflags[:index] + cgo_peers + extldflags[index+1:]
+    except ValueError:
+        extldflags.extend(cgo_peers)
     if len(extldflags) > 0:
-        cmd.append('-extldflags=' + ' '.join(extldflags))
+        cmd.append('-extldflags={}'.format(' '.join(extldflags)))
     cmd.append(compile_args.output)
     call(cmd, args.build_root)
 
@@ -498,8 +505,17 @@ func coverRegisterFile(fileName string, counter []uint32, pos []uint32, numStmts
 
 
 def filter_out_skip_tests(tests, skip_tests):
-    skip_set = set(skip_tests)
-    return filter(lambda x: x not in skip_set, tests)
+    skip_set = set()
+    star_skip_set = set()
+    for t in skip_tests:
+        work_set = star_skip_set if '*' in t else skip_set
+        work_set.add(t)
+
+    re_star_tests = None
+    if len(star_skip_set) > 0:
+        re_star_tests = re.compile(re.sub(r'(\*)+', r'.\1', '^({})$'.format('|'.join(star_skip_set))))
+
+    return [x for x in tests if not (x in skip_tests or re_star_tests and re_star_tests.match(x))]
 
 
 def gen_test_main(args, test_lib_args, xtest_lib_args):
@@ -692,6 +708,12 @@ def do_link_test(args):
 
 
 if __name__ == '__main__':
+    # Support @response-file notation for windows to reduce cmd length
+    if sys.argv[1].startswith('@'):
+        with open(sys.argv[1][1:]) as afile:
+            args = afile.read().splitlines()
+        sys.argv[:] = [sys.argv[0]] + args + sys.argv[2:]
+
     parser = argparse.ArgumentParser(prefix_chars='+')
     parser.add_argument('++mode', choices=['dll', 'exe', 'lib', 'test'], required=True)
     parser.add_argument('++srcs', nargs='*', required=True)

@@ -3,7 +3,7 @@
 #include <catboost/libs/helpers/exception.h>
 
 #include <library/cpp/binsaver/bin_saver.h>
-#include <library/object_factory/object_factory.h>
+#include <library/cpp/object_factory/object_factory.h>
 
 #include <util/generic/ptr.h>
 #include <util/generic/strbuf.h>
@@ -50,7 +50,7 @@ namespace NCB {
             );
         CB_ENSURE(res != nullptr,
                   "Processor for scheme [" << pathWithScheme.Scheme << "] not found");
-        return res;
+        return THolder<ISchemeDependentProcessor>(res);
     }
 
 }

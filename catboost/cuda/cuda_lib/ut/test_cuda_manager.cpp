@@ -1,4 +1,4 @@
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 #include <catboost/cuda/cuda_lib/cuda_base.h>
 #include <iostream>
 #include <thread>

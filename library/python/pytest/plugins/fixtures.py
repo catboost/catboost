@@ -1,5 +1,6 @@
 import os
 import pytest
+import six
 
 
 MAX_ALLOWED_LINKS_COUNT = 10
@@ -20,12 +21,35 @@ def metrics(request):
 
         @classmethod
         def set_benchmark(cls, benchmark_values):
+            # report of google has key 'benchmarks' which is a list of benchmark results
+            # yandex benchmark has key 'benchmark', which is a list of benchmark results
+            # use this to differentiate which kind of result it is
+            if 'benchmarks' in benchmark_values:
+                cls.set_gbenchmark(benchmark_values)
+            else:
+                cls.set_ybenchmark(benchmark_values)
+
+        @classmethod
+        def set_ybenchmark(cls, benchmark_values):
             for benchmark in benchmark_values["benchmark"]:
                 name = benchmark["name"]
                 for key, value in benchmark.iteritems():
                     if key != "name":
                         cls.set("{}_{}".format(name, key), value)
 
+        @classmethod
+        def set_gbenchmark(cls, benchmark_values):
+            time_unit_multipliers = {"ns": 1, "us": 1000, "ms": 1000000}
+            time_keys = {"real_time", "cpu_time"}
+            ignore_keys = {"name", "run_name", "time_unit", "run_type", "repetition_index"}
+            for benchmark in benchmark_values["benchmarks"]:
+                name = benchmark["name"].replace('/', '_')  # ci does not work properly with '/' in metric name
+                time_unit_mult = time_unit_multipliers[benchmark.get("time_unit", "ns")]
+                for k, v in six.iteritems(benchmark):
+                    if k in time_keys:
+                        cls.set("{}_{}".format(name, k), v * time_unit_mult)
+                    elif k not in ignore_keys and isinstance(v, (float, int)):
+                        cls.set("{}_{}".format(name, k), v)
     return Metrics
 
 

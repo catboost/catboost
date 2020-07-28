@@ -33,7 +33,6 @@ namespace NCB {
     using TInitialBorders = TMaybe<TVector<TConstArrayRef<float>>>;
 
     struct TQuantizationOptions {
-        bool CpuCompatibleFormat = true;
         ui64 CpuRamLimit = Max<ui64>();
         ui32 MaxSubsetSizeForBuildBordersAlgorithms = 200000;
         bool BundleExclusiveFeatures = true;
@@ -133,16 +132,6 @@ namespace NCB {
         TRestorableFastRng64* rand,
         NPar::TLocalExecutor* localExecutor,
         const TInitialBorders& initialBorders = Nothing()
-    );
-
-    TQuantizedDataProviders Quantize(
-        const TQuantizationOptions& options,
-        const NCatboostOptions::TDataProcessingOptions& dataProcessingOptions,
-        bool floatFeaturesAllowNansInTestOnly,
-        TConstArrayRef<ui32> ignoredFeatures,
-        TRawDataProviders rawDataProviders,
-        TRestorableFastRng64* rand,
-        NPar::TLocalExecutor* localExecutor
     );
 
     TQuantizedObjectsDataProviderPtr GetQuantizedObjectsData(

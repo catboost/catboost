@@ -1,9 +1,9 @@
 #include "library/cpp/json/yson/json2yson.h"
 
-#include <library/blockcodecs/codecs.h>
+#include <library/cpp/blockcodecs/codecs.h>
 #include <library/cpp/histogram/simple/histogram.h>
-#include <library/cpp/unittest/registar.h>
-#include <library/cpp/unittest/tests_data.h>
+#include <library/cpp/testing/unittest/registar.h>
+#include <library/cpp/testing/unittest/tests_data.h>
 
 #include <util/datetime/cputimer.h>
 #include <util/stream/file.h>

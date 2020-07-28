@@ -96,6 +96,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\flatbuffers\contrib-libs-flatbuffers.vcxproj">
       <Project>{B88207AE-800B-A7B1-AE0B-F609E8684A5A}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libc_compat\contrib-libs-libc_compat.vcxproj">
+      <Project>{116AA49B-0C0D-7CF7-45DB-A708FB126C84}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\rapidjson\contrib-libs-rapidjson.vcxproj">
       <Project>{9CDB08FB-219D-3356-E006-1AC8AECC636E}</Project>
     </ProjectReference>
@@ -126,6 +129,15 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\json\writer\cpp-json-writer.vcxproj">
       <Project>{94F66460-BD28-7C46-313B-A5F2876E26F8}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\langmask\library-cpp-langmask.vcxproj">
+      <Project>{1E76F603-7AB0-A560-A16D-D6FDEE84CA84}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\langs\library-cpp-langs.vcxproj">
+      <Project>{7A259257-161F-BD3F-016E-D02C15A4826D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\object_factory\library-cpp-object_factory.vcxproj">
+      <Project>{6D119854-6D47-C914-7B2B-E6ECF111A695}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\string_utils\relaxed_escaper\cpp-string_utils-relaxed_escaper.vcxproj">
       <Project>{81697B25-44BA-8BC7-5E66-2708E5669C60}</Project>
     </ProjectReference>
@@ -149,15 +161,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\unicode\normalization\cpp-unicode-normalization.vcxproj">
       <Project>{6E0E64B9-3A05-DBD1-DC49-86C427EBD124}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\langmask\library-langmask.vcxproj">
-      <Project>{54EC8CF1-9FAA-FA14-D0CE-A8E86B1F0A3B}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\langs\library-langs.vcxproj">
-      <Project>{1660E94D-B0FA-8C52-3B1B-10230401A2CA}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\object_factory\library-object_factory.vcxproj">
-      <Project>{F7622D70-2702-4C7E-04DA-52DC56DF911E}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_serialization_runtime\tools-enum_parser-enum_serialization_runtime.vcxproj">
       <Project>{F745D73A-277F-A595-1468-618C82B9B77E}</Project>

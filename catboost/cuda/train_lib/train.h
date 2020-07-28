@@ -13,7 +13,7 @@
 #include <catboost/private/libs/options/output_file_options.h>
 #include <catboost/libs/train_lib/train_model.h>
 
-#include <library/object_factory/object_factory.h>
+#include <library/cpp/object_factory/object_factory.h>
 #include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/ptr.h>

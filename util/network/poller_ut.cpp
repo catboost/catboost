@@ -1,4 +1,5 @@
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
+#include <util/system/error.h>
 
 #include "pair.h"
 #include "poller.h"
@@ -134,7 +135,15 @@ Y_UNIT_TEST_SUITE(TSocketPollerTest) {
             // restart without reading
             poller.RestartReadWriteEdgeTriggered(sockets[1], (void*)17, false);
 
-            UNIT_ASSERT_VALUES_EQUAL((void*)17, poller.WaitT(TDuration::Zero()));
+            // after restart read and write might generate separate events
+            {
+                void *events[3];
+                size_t count = poller.WaitT(events, 3, TDuration::Zero());
+                UNIT_ASSERT_GE(count, 1);
+                UNIT_ASSERT_LE(count, 2);
+                UNIT_ASSERT_VALUES_EQUAL(events[0], (void*)17);
+            }
+
             UNIT_ASSERT_VALUES_EQUAL(nullptr, poller.WaitT(TDuration::Zero()));
 
             // second two more bytes
@@ -161,8 +170,9 @@ Y_UNIT_TEST_SUITE(TSocketPollerTest) {
             UNIT_ASSERT_VALUES_EQUAL(nullptr, poller.WaitT(TDuration::Zero()));
 
             // hit end
+            ClearLastSystemError();
             UNIT_ASSERT_VALUES_EQUAL(-1, recv(sockets[1], buf, 1, 0));
-            UNIT_ASSERT_VALUES_EQUAL(EAGAIN, errno);
+            UNIT_ASSERT_VALUES_EQUAL(EAGAIN, LastSystemError());
 
             // restart after end (noop for epoll)
             poller.RestartReadWriteEdgeTriggered(sockets[1], (void*)17, true);

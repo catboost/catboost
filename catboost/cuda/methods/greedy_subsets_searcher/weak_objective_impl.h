@@ -27,6 +27,7 @@ namespace NCatboostCuda {
             TStripeBuffer<float> sampledWeights;
             TStripeBuffer<ui32> sampledIndices;
 
+            Y_ASSERT(bootstrapConfig.GetBootstrapType() != EBootstrapType::MVS);
             const bool isContinuousIndices = TBootstrap<NCudaLib::TStripeMapping>::BootstrapAndFilter(
                 bootstrapConfig,
                 random,

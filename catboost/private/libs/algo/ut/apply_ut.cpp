@@ -8,7 +8,7 @@
 #include <util/generic/xrange.h>
 #include <util/system/types.h>
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 
 using namespace NCB;
@@ -34,6 +34,7 @@ Y_UNIT_TEST_SUITE(TLeafIndexCalcerOnPool) {
                 TDataMetaInfo metaInfo;
                 metaInfo.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(
                     (ui32)featuresData[0].size(),
+                    TVector<ui32>{},
                     TVector<ui32>{},
                     TVector<ui32>{},
                     TVector<TString>{});

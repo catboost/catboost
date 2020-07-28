@@ -47,7 +47,7 @@ namespace NCatboostCuda {
                 }
             }
 
-            THolder<TFeaturesBlock> resultHolder = new TFeaturesBlock(TCpuGrid(info, featureIds));
+            THolder<TFeaturesBlock> resultHolder = MakeHolder<TFeaturesBlock>(TCpuGrid(info, featureIds));
             TFeaturesBlock& result = *resultHolder;
             TCudaFeaturesHelper helper(result.Grid);
 
