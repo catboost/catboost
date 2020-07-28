@@ -587,7 +587,7 @@ namespace NCatboostDistributed {
         TOutput* isLeafEmpty
     ) const {
         auto& localData = TLocalTensorSearchData::GetRef();
-        *isLeafEmpty = GetIsLeafEmpty(localData.Depth + 1, localData.Indices);
+        *isLeafEmpty = GetIsLeafEmpty(localData.Depth + 1, localData.Indices, &NPar::LocalExecutor());
         ++localData.Depth; // tree level completed
     }
 
@@ -829,7 +829,8 @@ namespace NCatboostDistributed {
             leafCount,
             localData.Indices,
             localData.Progress->AveragingFold.GetLearnPermutationArray(),
-            GetWeights(*GetTrainData(trainData).Learn->TargetData));
+            GetWeights(*GetTrainData(trainData).Learn->TargetData),
+            &NPar::LocalExecutor());
     }
 
     void TLeafWeightsGetter::DoReduce(TVector<TOutput>* inLeafWeightsFromWorkers, TOutput* outTotalLeafWeights) const {

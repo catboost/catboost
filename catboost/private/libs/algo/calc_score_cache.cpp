@@ -291,6 +291,81 @@ void TCalcScoreFold::Create(
     LeavesBounds.assign(1, {0, static_cast<ui32>(DocCount)});
 }
 
+
+template <typename TSrcRef, typename TGetElementFunc, typename TDstRef>
+static inline void SetElementsDenseUnrolled(
+    TArrayRef<const bool> srcControlRef,
+    TSrcRef srcRef,
+    TGetElementFunc GetElementFunc,
+    TDstRef dstRef,
+    size_t* endElementIdx,
+    size_t* sourceIdx
+) {
+    const auto* sourceData = srcRef.data();
+    const size_t sourceCount = srcRef.size();
+    auto* __restrict destinationData = dstRef.data();
+    const size_t destinationCount = dstRef.size();
+    const bool* controlData = srcControlRef.data();
+    size_t dstIdx = *endElementIdx;
+    size_t srcIdx = *sourceIdx;
+    for (; srcIdx + 4 <= sourceCount && dstIdx + 4 <= destinationCount; srcIdx += 4) {
+        const auto sourceElement0 = GetElementFunc(sourceData, srcIdx + 0);
+        const auto sourceElement1 = GetElementFunc(sourceData, srcIdx + 1);
+        const auto sourceElement2 = GetElementFunc(sourceData, srcIdx + 2);
+        const auto sourceElement3 = GetElementFunc(sourceData, srcIdx + 3);
+        const auto destinationIdx0 = dstIdx;
+        const auto destinationIdx1 = destinationIdx0 + controlData[srcIdx + 0];
+        const auto destinationIdx2 = destinationIdx1 + controlData[srcIdx + 1];
+        const auto destinationIdx3 = destinationIdx2 + controlData[srcIdx + 2];
+        dstIdx = destinationIdx3 + controlData[srcIdx + 3];
+        destinationData[destinationIdx0] = sourceElement0;
+        destinationData[destinationIdx1] = sourceElement1;
+        destinationData[destinationIdx2] = sourceElement2;
+        destinationData[destinationIdx3] = sourceElement3;
+    }
+    *endElementIdx = dstIdx;
+    *sourceIdx = srcIdx;
+}
+
+
+template <typename TSrcRef, typename TGetElementFunc, typename TDstRef>
+static inline void SetElementsSparse(
+    TArrayRef<const bool> srcControlRef,
+    TSrcRef srcRef,
+    TGetElementFunc GetElementFunc,
+    TDstRef dstRef,
+    size_t* endElementIdx,
+    size_t* sourceIdx
+) {
+    const auto* sourceData = srcRef.data();
+    const size_t sourceCount = srcRef.size();
+    auto* __restrict destinationData = dstRef.data();
+    const size_t destinationCount = dstRef.size();
+    const bool* controlData = srcControlRef.data();
+    size_t dstIdx = *endElementIdx;
+    size_t srcIdx = *sourceIdx;
+    constexpr auto boolsPerUi64 = sizeof(ui64) / sizeof(bool);
+    while (dstIdx < destinationCount) {
+        for (; srcIdx + boolsPerUi64 <= sourceCount; srcIdx += boolsPerUi64) {
+            if (*reinterpret_cast<const ui64*>(controlData + srcIdx) != 0) {
+                break;
+            }
+        }
+        while (srcIdx < sourceCount && !controlData[srcIdx]) {
+            ++srcIdx;
+        }
+        if (srcIdx >= sourceCount) {
+            break;
+        }
+        destinationData[dstIdx] = GetElementFunc(sourceData, srcIdx);
+        ++dstIdx;
+        ++srcIdx;
+    }
+    *endElementIdx = dstIdx;
+    *sourceIdx = srcIdx;
+}
+
+
 template <typename TSrcRef, typename TGetElementFunc, typename TDstRef>
 static inline void SetElements(
     TArrayRef<const bool> srcControlRef,
@@ -301,20 +376,20 @@ static inline void SetElements(
 ) {
     const auto* sourceData = srcRef.data();
     const size_t sourceCount = srcRef.size();
-    auto* __restrict destinationData = dstRef.data();
     const size_t destinationCount = dstRef.size();
     if (sourceData != nullptr && srcControlRef.size() == destinationCount) {
+        auto* __restrict destinationData = dstRef.data();
         Copy(sourceData, sourceData + sourceCount, destinationData);
         *dstCount = sourceCount;
         return;
     }
-    const bool* controlData = srcControlRef.data();
     size_t endElementIdx = 0;
-#pragma unroll(4)
-    for (size_t sourceIdx = 0; sourceIdx < sourceCount && endElementIdx < destinationCount; ++sourceIdx) {
-        destinationData[endElementIdx] = GetElementFunc(sourceData, sourceIdx);
-        endElementIdx += controlData[sourceIdx];
+    size_t sourceIdx = 0;
+    const bool isDenseControl = sourceCount <= destinationCount * 64;
+    if (isDenseControl) {
+        SetElementsDenseUnrolled(srcControlRef, srcRef, GetElementFunc, dstRef, &endElementIdx, &sourceIdx);
     }
+    SetElementsSparse(srcControlRef, srcRef, GetElementFunc, dstRef, &endElementIdx, &sourceIdx);
     *dstCount = endElementIdx;
 }
 

@@ -420,8 +420,8 @@ static void Train(
 
         profile.FinishIteration();
 
-        TProfileResults profileResults = profile.GetProfileResults();
-        ctx->LearnProgress->MetricsAndTimeHistory.TimeHistory.push_back(TTimeInfo(profileResults));
+        const TProfileResults profileResults = profile.GetProfileResults();
+        ctx->LearnProgress->MetricsAndTimeHistory.TimeHistory.emplace_back(profileResults);
 
         Log(
             iter,

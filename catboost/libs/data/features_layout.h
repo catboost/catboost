@@ -131,7 +131,18 @@ namespace NCB {
         // needed for python-package
         void SetExternalFeatureIds(TConstArrayRef<TString> featureIds);
 
-        ui32 GetExternalFeatureIdx(ui32 internalFeatureIdx, EFeatureType type) const;
+        ui32 GetExternalFeatureIdx(ui32 internalFeatureIdx, EFeatureType type) const {
+            switch (type) {
+                case EFeatureType::Float:
+                    return FloatFeatureInternalIdxToExternalIdx[internalFeatureIdx];
+                case EFeatureType::Categorical:
+                    return CatFeatureInternalIdxToExternalIdx[internalFeatureIdx];
+                case EFeatureType::Text:
+                    return TextFeatureInternalIdxToExternalIdx[internalFeatureIdx];
+                case EFeatureType::Embedding:
+                    return EmbeddingFeatureInternalIdxToExternalIdx[internalFeatureIdx];
+            }
+        }
 
         ui32 GetInternalFeatureIdx(ui32 externalFeatureIdx) const;
 

@@ -155,7 +155,7 @@ static void AddFloatFeatures(
             TSplitEnsemble splitEnsemble(std::move(splitCandidate), isEstimated, isOnlineEstimated);
             TCandidateInfo candidate;
             candidate.SplitEnsemble = std::move(splitEnsemble);
-            candList->emplace_back(TCandidatesInfoList(candidate));
+            candList->emplace_back(std::move(candidate));
         }
     );
 }
@@ -184,7 +184,7 @@ static void AddOneHotFeatures(
 
             TCandidateInfo candidate;
             candidate.SplitEnsemble = std::move(splitEnsemble);
-            candList->emplace_back(TCandidatesInfoList(candidate));
+            candList->emplace_back(std::move(candidate));
         }
     );
 }
@@ -266,7 +266,7 @@ static void CompressCandidates(
 
         TCandidateInfo candidate;
         candidate.SplitEnsemble = TSplitEnsemble{TExclusiveFeaturesBundleRef{bundleIdx}};
-        updatedCandList.emplace_back(TCandidatesInfoList(candidate));
+        updatedCandList.emplace_back(std::move(candidate));
     }
 
 
@@ -277,7 +277,7 @@ static void CompressCandidates(
             isEstimated,
             isOnlineEstimated
         );
-        updatedCandList.emplace_back(TCandidatesInfoList(candidate));
+        updatedCandList.emplace_back(std::move(candidate));
     }
 
     for (auto groupIdx : xrange(SafeIntegerCast<ui32>(selectedFeaturesInGroups.size()))) {
@@ -290,7 +290,7 @@ static void CompressCandidates(
 
         TCandidateInfo candidate;
         candidate.SplitEnsemble = TSplitEnsemble{TFeaturesGroupRef{groupIdx}};
-        updatedCandList.emplace_back(TCandidatesInfoList(candidate));
+        updatedCandList.emplace_back(std::move(candidate));
     }
 
     candList = std::move(updatedCandList);
@@ -310,6 +310,9 @@ static void SelectCandidatesAndCleanupStatsFromPrevTree(
     TCandidateList updatedCandList;
     updatedCandList.reserve(candList.size());
 
+    const double rsm = ctx->Params.ObliviousTreeOptions->Rsm;
+    auto& rand = ctx->LearnProgress->Rand;
+
     for (auto& candSubList : candList) {
         const auto& splitEnsemble = candSubList.Candidates[0].SplitEnsemble;
 
@@ -317,8 +320,7 @@ static void SelectCandidatesAndCleanupStatsFromPrevTree(
 
         switch (splitEnsemble.Type) {
             case ESplitEnsembleType::OneFeature:
-                addCandSubListToResult
-                    = ctx->LearnProgress->Rand.GenRandReal1() <= ctx->Params.ObliviousTreeOptions->Rsm;
+                addCandSubListToResult = rand.GenRandReal1() <= rsm;
                 break;
             case ESplitEnsembleType::BinarySplits:
                 {
@@ -326,9 +328,7 @@ static void SelectCandidatesAndCleanupStatsFromPrevTree(
                     TBinaryFeaturesPack& perPackMask = perBinaryPackMasks[packIdx];
                     for (size_t idxInPack : xrange(sizeof(TBinaryFeaturesPack) * CHAR_BIT)) {
                         if ((perPackMask >> idxInPack) & 1) {
-                            const bool addToCandidates
-                                = ctx->LearnProgress->Rand.GenRandReal1()
-                                    <= ctx->Params.ObliviousTreeOptions->Rsm;
+                            const bool addToCandidates = rand.GenRandReal1() <= rsm;
                             if (!addToCandidates) {
                                 MarkFeatureAsExcluded(
                                     TPackedBinaryIndex(packIdx, idxInPack),
@@ -347,8 +347,7 @@ static void SelectCandidatesAndCleanupStatsFromPrevTree(
                     TVector<ui32> filteredFeaturesInBundle;
                     filteredFeaturesInBundle.reserve(selectedFeaturesInBundle.size());
                     for (auto inBundleIdx : selectedFeaturesInBundle) {
-                        const bool addToCandidates
-                            = ctx->LearnProgress->Rand.GenRandReal1() <= ctx->Params.ObliviousTreeOptions->Rsm;
+                        const bool addToCandidates = rand.GenRandReal1() <= rsm;
                         if (addToCandidates) {
                             filteredFeaturesInBundle.push_back(inBundleIdx);
                         }
@@ -365,8 +364,7 @@ static void SelectCandidatesAndCleanupStatsFromPrevTree(
                     TVector<ui32> filteredFeaturesInGroup;
                     filteredFeaturesInGroup.reserve(selectedFeaturesInGroup.size());
                     for (auto inGroupIdx : selectedFeaturesInGroup) {
-                        const bool addToCandidates
-                            = ctx->LearnProgress->Rand.GenRandReal1() <= ctx->Params.ObliviousTreeOptions->Rsm;
+                        const bool addToCandidates = rand.GenRandReal1() <= rsm;
                         if (addToCandidates) {
                             filteredFeaturesInGroup.push_back(inGroupIdx);
                         }
@@ -1204,7 +1202,7 @@ static TSplitTree GreedyTensorSearchOblivious(
 
         int redundantIdx = -1;
         if (ctx->Params.SystemOptions->IsSingleHost()) {
-            redundantIdx = GetRedundantSplitIdx(GetIsLeafEmpty(curDepth + 1, *indices));
+            redundantIdx = GetRedundantSplitIdx(GetIsLeafEmpty(curDepth + 1, *indices, ctx->LocalExecutor));
         } else {
             redundantIdx = MapGetRedundantSplitIdx(ctx);
         }

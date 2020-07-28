@@ -148,17 +148,13 @@ void NormalizeLeafValues(
     TVector<TVector<double>>* treeValues
 );
 
-inline TVector<double> SumLeafWeights(size_t leafCount,
-    const TVector<TIndexType>& leafIndices,
+TVector<double> SumLeafWeights(
+    size_t leafCount,
+    TConstArrayRef<TIndexType> leafIndices,
     TConstArrayRef<ui32> learnPermutation,
-    TConstArrayRef<float> learnWeights // can be empty
-) {
-    TVector<double> weightSum(leafCount);
-    for (size_t docIdx = 0; docIdx < learnPermutation.size(); ++docIdx) {
-        weightSum[leafIndices[learnPermutation[docIdx]]] += learnWeights.empty() ? 1.0 : learnWeights[docIdx];
-    }
-    return weightSum;
-}
+    TConstArrayRef<float> learnWeights, // can be empty
+    NPar::TLocalExecutor* localExecutor
+);
 
 template <typename TElementType>
 inline void AddElementwise(const TVector<TElementType>& value, TVector<TElementType>* accumulator) {

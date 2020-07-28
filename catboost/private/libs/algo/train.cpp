@@ -360,7 +360,8 @@ void TrainOneIteration(const NCB::TTrainingDataProviders& data, TLearnContext* c
                 leafCount,
                 indices,
                 learnPermutationRef,
-                GetWeights(*data.Learn->TargetData)
+                GetWeights(*data.Learn->TargetData),
+                ctx->LocalExecutor
             );
             NormalizeLeafValues(
                 UsesPairsForCalculation(ctx->Params.LossFunctionDescription->GetLossFunction()),
