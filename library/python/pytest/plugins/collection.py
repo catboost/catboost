@@ -94,9 +94,10 @@ class CollectionPlugin(object):
                 if not pytest_ignore_collect(module, session, filenames_filter, accept_filename_predicate):
                     yield module
 
-                module = DoctestModule(test_module, session=session)
-                if not pytest_ignore_collect(module, session, filenames_filter, accept_filename_predicate):
-                    yield module
+                if os.environ.get('YA_PYTEST_DISABLE_DOCTEST', 'no') == 'no':
+                    module = DoctestModule(test_module, session=session)
+                    if not pytest_ignore_collect(module, session, filenames_filter, accept_filename_predicate):
+                        yield module
 
             for doctest_module in self._doctest_modules:
                 yield DoctestModule(doctest_module, session=session, namespace=False)
