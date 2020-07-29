@@ -493,10 +493,10 @@ static PyGetSetDef SHA3_getseters[] = {
         0,                  /* tp_itemsize */ \
         /*  methods  */ \
         (destructor)SHA3_dealloc, /* tp_dealloc */ \
-        0,                  /* tp_print */ \
+        0,                  /* tp_vectorcall_offset */ \
         0,                  /* tp_getattr */ \
         0,                  /* tp_setattr */ \
-        0,                  /* tp_reserved */ \
+        0,                  /* tp_as_async */ \
         0,                  /* tp_repr */ \
         0,                  /* tp_as_number */ \
         0,                  /* tp_as_sequence */ \
@@ -582,18 +582,13 @@ SHA3_TYPE(Keccak_512type, "_sha3.keccak_512", keccak_512__doc__, SHA3_methods);
 
 
 static PyObject *
-_SHAKE_digest(SHA3object *self, PyObject *digestlen_obj, int hex)
+_SHAKE_digest(SHA3object *self, unsigned long digestlen, int hex)
 {
-    unsigned long digestlen;
     unsigned char *digest = NULL;
     SHA3_state temp;
     int res;
     PyObject *result = NULL;
 
-    digestlen = PyLong_AsUnsignedLong(digestlen_obj);
-    if (digestlen == (unsigned long) -1 && PyErr_Occurred()) {
-        return NULL;
-    }
     if (digestlen >= (1 << 29)) {
         PyErr_SetString(PyExc_ValueError, "length is too large");
         return NULL;
@@ -637,15 +632,15 @@ _SHAKE_digest(SHA3object *self, PyObject *digestlen_obj, int hex)
 /*[clinic input]
 _sha3.shake_128.digest
 
-    length: object
+    length: unsigned_long
     /
 
 Return the digest value as a bytes object.
 [clinic start generated code]*/
 
 static PyObject *
-_sha3_shake_128_digest(SHA3object *self, PyObject *length)
-/*[clinic end generated code: output=eaa80b6299142396 input=c579eb109f6227d2]*/
+_sha3_shake_128_digest_impl(SHA3object *self, unsigned long length)
+/*[clinic end generated code: output=2313605e2f87bb8f input=418ef6a36d2e6082]*/
 {
     return _SHAKE_digest(self, length, 0);
 }
@@ -654,15 +649,15 @@ _sha3_shake_128_digest(SHA3object *self, PyObject *length)
 /*[clinic input]
 _sha3.shake_128.hexdigest
 
-    length: object
+    length: unsigned_long
     /
 
 Return the digest value as a string of hexadecimal digits.
 [clinic start generated code]*/
 
 static PyObject *
-_sha3_shake_128_hexdigest(SHA3object *self, PyObject *length)
-/*[clinic end generated code: output=4752f90e53c8bf2a input=a82694ea83865f5a]*/
+_sha3_shake_128_hexdigest_impl(SHA3object *self, unsigned long length)
+/*[clinic end generated code: output=bf8e2f1e490944a8 input=69fb29b0926ae321]*/
 {
     return _SHAKE_digest(self, length, 1);
 }

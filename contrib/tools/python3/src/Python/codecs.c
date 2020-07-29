@@ -9,7 +9,7 @@ Copyright (c) Corporation for National Research Initiatives.
    ------------------------------------------------------------------------ */
 
 #include "Python.h"
-#include "internal/pystate.h"
+#include "pycore_pystate.h"
 #include "ucnhash.h"
 #include <ctype.h>
 
@@ -32,7 +32,7 @@ static int _PyCodecRegistry_Init(void); /* Forward */
 
 int PyCodec_Register(PyObject *search_function)
 {
-    PyInterpreterState *interp = PyThreadState_GET()->interp;
+    PyInterpreterState *interp = _PyInterpreterState_Get();
     if (interp->codec_search_path == NULL && _PyCodecRegistry_Init())
         goto onError;
     if (search_function == NULL) {
@@ -99,7 +99,6 @@ PyObject *normalizestring(const char *string)
 
 PyObject *_PyCodec_Lookup(const char *encoding)
 {
-    PyInterpreterState *interp;
     PyObject *result, *args = NULL, *v;
     Py_ssize_t i, len;
 
@@ -108,7 +107,7 @@ PyObject *_PyCodec_Lookup(const char *encoding)
         goto onError;
     }
 
-    interp = PyThreadState_GET()->interp;
+    PyInterpreterState *interp = _PyInterpreterState_GET_UNSAFE();
     if (interp->codec_search_path == NULL && _PyCodecRegistry_Init())
         goto onError;
 
@@ -121,11 +120,15 @@ PyObject *_PyCodec_Lookup(const char *encoding)
     PyUnicode_InternInPlace(&v);
 
     /* First, try to lookup the name in the registry dictionary */
-    result = PyDict_GetItem(interp->codec_search_cache, v);
+    result = PyDict_GetItemWithError(interp->codec_search_cache, v);
     if (result != NULL) {
         Py_INCREF(result);
         Py_DECREF(v);
         return result;
+    }
+    else if (PyErr_Occurred()) {
+        Py_DECREF(v);
+        return NULL;
     }
 
     /* Next, scan the search functions in order of registration */
@@ -189,11 +192,10 @@ PyObject *_PyCodec_Lookup(const char *encoding)
 
 int _PyCodec_Forget(const char *encoding)
 {
-    PyInterpreterState *interp;
     PyObject *v;
     int result;
 
-    interp = PyThreadState_GET()->interp;
+    PyInterpreterState *interp = _PyInterpreterState_Get();
     if (interp->codec_search_path == NULL) {
         return -1;
     }
@@ -626,7 +628,7 @@ PyObject *_PyCodec_DecodeText(PyObject *object,
    Return 0 on success, -1 on error */
 int PyCodec_RegisterError(const char *name, PyObject *error)
 {
-    PyInterpreterState *interp = PyThreadState_GET()->interp;
+    PyInterpreterState *interp = _PyInterpreterState_Get();
     if (interp->codec_search_path == NULL && _PyCodecRegistry_Init())
         return -1;
     if (!PyCallable_Check(error)) {
@@ -644,17 +646,19 @@ PyObject *PyCodec_LookupError(const char *name)
 {
     PyObject *handler = NULL;
 
-    PyInterpreterState *interp = PyThreadState_GET()->interp;
+    PyInterpreterState *interp = _PyInterpreterState_GET_UNSAFE();
     if (interp->codec_search_path == NULL && _PyCodecRegistry_Init())
         return NULL;
 
     if (name==NULL)
         name = "strict";
-    handler = PyDict_GetItemString(interp->codec_error_registry, name);
-    if (!handler)
-        PyErr_Format(PyExc_LookupError, "unknown error handler name '%.400s'", name);
-    else
+    handler = _PyDict_GetItemStringWithError(interp->codec_error_registry, name);
+    if (handler) {
         Py_INCREF(handler);
+    }
+    else if (!PyErr_Occurred()) {
+        PyErr_Format(PyExc_LookupError, "unknown error handler name '%.400s'", name);
+    }
     return handler;
 }
 
@@ -1411,7 +1415,7 @@ static PyObject *surrogateescape_errors(PyObject *self, PyObject *exc)
 static int _PyCodecRegistry_Init(void)
 {
     static struct {
-        char *name;
+        const char *name;
         PyMethodDef def;
     } methods[] =
     {
@@ -1496,7 +1500,7 @@ static int _PyCodecRegistry_Init(void)
         }
     };
 
-    PyInterpreterState *interp = PyThreadState_GET()->interp;
+    PyInterpreterState *interp = _PyInterpreterState_Get();
     PyObject *mod;
     unsigned i;
 

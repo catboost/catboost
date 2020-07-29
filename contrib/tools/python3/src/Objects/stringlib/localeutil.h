@@ -77,6 +77,6 @@ InsertThousandsGrouping_fill(_PyUnicodeWriter *writer, Py_ssize_t *buffer_pos,
         *buffer_pos -= n_zeros;
         enum PyUnicode_Kind kind = PyUnicode_KIND(writer->buffer);
         void *data = PyUnicode_DATA(writer->buffer);
-        FILL(kind, data, '0', *buffer_pos, n_zeros);
+        unicode_fill(kind, data, '0', *buffer_pos, n_zeros);
     }
 }

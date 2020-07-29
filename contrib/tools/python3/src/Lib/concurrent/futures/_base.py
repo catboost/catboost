@@ -53,6 +53,10 @@ class TimeoutError(Error):
     """The operation exceeded the given deadline."""
     pass
 
+class InvalidStateError(Error):
+    """The operation is not allowed in this state."""
+    pass
+
 class _Waiter(object):
     """Provides the event that wait() and as_completed() block on."""
     def __init__(self):
@@ -516,6 +520,8 @@ class Future(object):
         Should only be used by Executor implementations and unit tests.
         """
         with self._condition:
+            if self._state in {CANCELLED, CANCELLED_AND_NOTIFIED, FINISHED}:
+                raise InvalidStateError('{}: {!r}'.format(self._state, self))
             self._result = result
             self._state = FINISHED
             for waiter in self._waiters:
@@ -529,6 +535,8 @@ class Future(object):
         Should only be used by Executor implementations and unit tests.
         """
         with self._condition:
+            if self._state in {CANCELLED, CANCELLED_AND_NOTIFIED, FINISHED}:
+                raise InvalidStateError('{}: {!r}'.format(self._state, self))
             self._exception = exception
             self._state = FINISHED
             for waiter in self._waiters:
@@ -553,11 +561,16 @@ class Executor(object):
         elif not args:
             raise TypeError("descriptor 'submit' of 'Executor' object "
                             "needs an argument")
-        elif 'fn' not in kwargs:
+        elif 'fn' in kwargs:
+            import warnings
+            warnings.warn("Passing 'fn' as keyword argument is deprecated",
+                          DeprecationWarning, stacklevel=2)
+        else:
             raise TypeError('submit expected at least 1 positional argument, '
                             'got %d' % (len(args)-1))
 
         raise NotImplementedError()
+    submit.__text_signature__ = '($self, fn, /, *args, **kwargs)'
 
     def map(self, fn, *iterables, timeout=None, chunksize=1):
         """Returns an iterator equivalent to map(fn, iter).

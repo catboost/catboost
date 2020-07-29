@@ -1,4 +1,5 @@
 #include "Python.h"
+#include "pycore_object.h"
 #include "structmember.h"       /* for offsetof() */
 #include "_iomodule.h"
 
@@ -758,7 +759,7 @@ _io_BytesIO_close_impl(bytesio *self)
  */
 
 static PyObject *
-bytesio_getstate(bytesio *self)
+bytesio_getstate(bytesio *self, PyObject *Py_UNUSED(ignored))
 {
     PyObject *initvalue = _io_BytesIO_getvalue_impl(self);
     PyObject *dict;
@@ -817,7 +818,7 @@ bytesio_setstate(bytesio *self, PyObject *state)
 
     /* Set carefully the position value. Alternatively, we could use the seek
        method instead of modifying self->pos directly to better protect the
-       object internal state against errneous (or malicious) inputs. */
+       object internal state against erroneous (or malicious) inputs. */
     position_obj = PyTuple_GET_ITEM(state, 1);
     if (!PyLong_Check(position_obj)) {
         PyErr_Format(PyExc_TypeError,
@@ -1006,10 +1007,10 @@ PyTypeObject PyBytesIO_Type = {
     sizeof(bytesio),                     /*tp_basicsize*/
     0,                                         /*tp_itemsize*/
     (destructor)bytesio_dealloc,               /*tp_dealloc*/
-    0,                                         /*tp_print*/
+    0,                                         /*tp_vectorcall_offset*/
     0,                                         /*tp_getattr*/
     0,                                         /*tp_setattr*/
-    0,                                         /*tp_reserved*/
+    0,                                         /*tp_as_async*/
     0,                                         /*tp_repr*/
     0,                                         /*tp_as_number*/
     0,                                         /*tp_as_sequence*/
@@ -1106,10 +1107,10 @@ PyTypeObject _PyBytesIOBuffer_Type = {
     sizeof(bytesiobuf),                        /*tp_basicsize*/
     0,                                         /*tp_itemsize*/
     (destructor)bytesiobuf_dealloc,            /*tp_dealloc*/
-    0,                                         /*tp_print*/
+    0,                                         /*tp_vectorcall_offset*/
     0,                                         /*tp_getattr*/
     0,                                         /*tp_setattr*/
-    0,                                         /*tp_reserved*/
+    0,                                         /*tp_as_async*/
     0,                                         /*tp_repr*/
     0,                                         /*tp_as_number*/
     0,                                         /*tp_as_sequence*/

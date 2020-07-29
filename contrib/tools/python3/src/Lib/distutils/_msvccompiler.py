@@ -89,6 +89,13 @@ def _find_vc2017():
 
     return None, None
 
+PLAT_SPEC_TO_RUNTIME = {
+    'x86' : 'x86',
+    'x86_amd64' : 'x64',
+    'x86_arm' : 'arm',
+    'x86_arm64' : 'arm64'
+}
+
 def _find_vcvarsall(plat_spec):
     # bpo-38597: Removed vcruntime return value
     _, best_dir = _find_vc2017()
@@ -160,6 +167,8 @@ def _find_exe(exe, paths=None):
 PLAT_TO_VCVARS = {
     'win32' : 'x86',
     'win-amd64' : 'x86_amd64',
+    'win-arm32' : 'x86_arm',
+    'win-arm64' : 'x86_arm64'
 }
 
 class MSVCCompiler(CCompiler) :

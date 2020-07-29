@@ -15,6 +15,7 @@ import re
 import sys
 
 from .errors import DistutilsPlatformError
+from .util import get_platform, get_host_platform
 
 # These are needed in a couple of spots, so just compute them once.
 PREFIX = os.path.normpath(sys.prefix)
@@ -39,10 +40,8 @@ else:
 # python_build: (Boolean) if true, we're either building Python or
 # building an extension with an un-installed Python, so we use
 # different (hard-wired) directories.
-# Setup.local is available for Makefile builds including VPATH builds,
-# Setup.dist is available on Windows
 def _is_python_source_dir(d):
-    for fn in ("Setup.dist", "Setup.local"):
+    for fn in ("Setup", "Setup.local"):
         if os.path.isfile(os.path.join(d, "Modules", fn)):
             return True
     return False

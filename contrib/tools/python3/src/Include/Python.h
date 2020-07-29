@@ -32,7 +32,7 @@
 #include <errno.h>
 #endif
 #include <stdlib.h>
-#ifdef HAVE_UNISTD_H
+#ifndef MS_WINDOWS
 #include <unistd.h>
 #endif
 #ifdef HAVE_CRYPT_H
@@ -71,8 +71,6 @@
 #    endif
 #  endif
 #endif
-
-#include "pyatomic.h"
 
 /* Debug-mode build with pymalloc implies PYMALLOC_DEBUG.
  *  PYMALLOC_DEBUG is in error if pymalloc is not in use.
@@ -126,10 +124,12 @@
 #include "weakrefobject.h"
 #include "structseq.h"
 #include "namespaceobject.h"
+#include "picklebufobject.h"
 
 #include "codecs.h"
 #include "pyerrors.h"
 
+#include <contrib/tools/python3/src/Include/cpython/initconfig.h>
 #include "pystate.h"
 #include "context.h"
 
@@ -155,5 +155,6 @@
 #include "dtoa.h"
 #include "fileutils.h"
 #include "pyfpe.h"
+#include "tracemalloc.h"
 
 #endif /* !Py_PYTHON_H */

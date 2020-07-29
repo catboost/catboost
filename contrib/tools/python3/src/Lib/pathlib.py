@@ -253,9 +253,7 @@ class _WindowsFlavour(_Flavour):
             return 'file:' + urlquote_from_bytes(path.as_posix().encode('utf-8'))
 
     def gethomedir(self, username):
-        if 'HOME' in os.environ:
-            userhome = os.environ['HOME']
-        elif 'USERPROFILE' in os.environ:
+        if 'USERPROFILE' in os.environ:
             userhome = os.environ['USERPROFILE']
         elif 'HOMEPATH' in os.environ:
             try:
@@ -418,6 +416,13 @@ class _NormalAccessor(_Accessor):
 
     unlink = os.unlink
 
+    if hasattr(os, "link"):
+        link_to = os.link
+    else:
+        @staticmethod
+        def link_to(self, target):
+            raise NotImplementedError("os.link() not available on this system")
+
     rmdir = os.rmdir
 
     rename = os.rename
@@ -522,23 +527,27 @@ class _WildcardSelector(_Selector):
 
     def _select_from(self, parent_path, is_dir, exists, scandir):
         try:
-            entries = list(scandir(parent_path))
+            with scandir(parent_path) as scandir_it:
+                entries = list(scandir_it)
             for entry in entries:
-                entry_is_dir = False
-                try:
-                    entry_is_dir = entry.is_dir()
-                except OSError as e:
-                    if not _ignore_error(e):
-                        raise
-                if not self.dironly or entry_is_dir:
-                    name = entry.name
-                    if self.match(name):
-                        path = parent_path._make_child_relpath(name)
-                        for p in self.successor._select_from(path, is_dir, exists, scandir):
-                            yield p
+                if self.dironly:
+                    try:
+                        # "entry.is_dir()" can raise PermissionError
+                        # in some cases (see bpo-38894), which is not
+                        # among the errors ignored by _ignore_error()
+                        if not entry.is_dir():
+                            continue
+                    except OSError as e:
+                        if not _ignore_error(e):
+                            raise
+                        continue
+                name = entry.name
+                if self.match(name):
+                    path = parent_path._make_child_relpath(name)
+                    for p in self.successor._select_from(path, is_dir, exists, scandir):
+                        yield p
         except PermissionError:
             return
-
 
 
 class _RecursiveWildcardSelector(_Selector):
@@ -549,7 +558,8 @@ class _RecursiveWildcardSelector(_Selector):
     def _iterate_directories(self, parent_path, is_dir, scandir):
         yield parent_path
         try:
-            entries = list(scandir(parent_path))
+            with scandir(parent_path) as scandir_it:
+                entries = list(scandir_it)
             for entry in entries:
                 entry_is_dir = False
                 try:
@@ -917,10 +927,16 @@ class PurePath(object):
         return self._make_child(args)
 
     def __truediv__(self, key):
-        return self._make_child((key,))
+        try:
+            return self._make_child((key,))
+        except TypeError:
+            return NotImplemented
 
     def __rtruediv__(self, key):
-        return self._from_parts([key] + self._parts)
+        try:
+            return self._from_parts([key] + self._parts)
+        except TypeError:
+            return NotImplemented
 
     @property
     def parent(self):
@@ -1294,14 +1310,18 @@ class Path(PurePath):
             self._raise_closed()
         self._accessor.lchmod(self, mode)
 
-    def unlink(self):
+    def unlink(self, missing_ok=False):
         """
         Remove this file or link.
         If the path is a directory, use rmdir() instead.
         """
         if self._closed:
             self._raise_closed()
-        self._accessor.unlink(self)
+        try:
+            self._accessor.unlink(self)
+        except FileNotFoundError:
+            if not missing_ok:
+                raise
 
     def rmdir(self):
         """
@@ -1320,22 +1340,34 @@ class Path(PurePath):
             self._raise_closed()
         return self._accessor.lstat(self)
 
+    def link_to(self, target):
+        """
+        Create a hard link pointing to a path named target.
+        """
+        if self._closed:
+            self._raise_closed()
+        self._accessor.link_to(self, target)
+
     def rename(self, target):
         """
-        Rename this path to the given path.
+        Rename this path to the given path,
+        and return a new Path instance pointing to the given path.
         """
         if self._closed:
             self._raise_closed()
         self._accessor.rename(self, target)
+        return self.__class__(target)
 
     def replace(self, target):
         """
         Rename this path to the given path, clobbering the existing
-        destination if it exists.
+        destination if it exists, and return a new Path instance
+        pointing to the given path.
         """
         if self._closed:
             self._raise_closed()
         self._accessor.replace(self, target)
+        return self.__class__(target)
 
     def symlink_to(self, target, target_is_directory=False):
         """
@@ -1358,6 +1390,9 @@ class Path(PurePath):
             if not _ignore_error(e):
                 raise
             return False
+        except ValueError:
+            # Non-encodable path
+            return False
         return True
 
     def is_dir(self):
@@ -1372,6 +1407,9 @@ class Path(PurePath):
             # Path doesn't exist or is a broken symlink
             # (see https://bitbucket.org/pitrou/pathlib/issue/12/)
             return False
+        except ValueError:
+            # Non-encodable path
+            return False
 
     def is_file(self):
         """
@@ -1385,6 +1423,9 @@ class Path(PurePath):
                 raise
             # Path doesn't exist or is a broken symlink
             # (see https://bitbucket.org/pitrou/pathlib/issue/12/)
+            return False
+        except ValueError:
+            # Non-encodable path
             return False
 
     def is_mount(self):
@@ -1419,6 +1460,9 @@ class Path(PurePath):
                 raise
             # Path doesn't exist
             return False
+        except ValueError:
+            # Non-encodable path
+            return False
 
     def is_block_device(self):
         """
@@ -1431,6 +1475,9 @@ class Path(PurePath):
                 raise
             # Path doesn't exist or is a broken symlink
             # (see https://bitbucket.org/pitrou/pathlib/issue/12/)
+            return False
+        except ValueError:
+            # Non-encodable path
             return False
 
     def is_char_device(self):
@@ -1445,6 +1492,9 @@ class Path(PurePath):
             # Path doesn't exist or is a broken symlink
             # (see https://bitbucket.org/pitrou/pathlib/issue/12/)
             return False
+        except ValueError:
+            # Non-encodable path
+            return False
 
     def is_fifo(self):
         """
@@ -1458,6 +1508,9 @@ class Path(PurePath):
             # Path doesn't exist or is a broken symlink
             # (see https://bitbucket.org/pitrou/pathlib/issue/12/)
             return False
+        except ValueError:
+            # Non-encodable path
+            return False
 
     def is_socket(self):
         """
@@ -1470,6 +1523,9 @@ class Path(PurePath):
                 raise
             # Path doesn't exist or is a broken symlink
             # (see https://bitbucket.org/pitrou/pathlib/issue/12/)
+            return False
+        except ValueError:
+            # Non-encodable path
             return False
 
     def expanduser(self):

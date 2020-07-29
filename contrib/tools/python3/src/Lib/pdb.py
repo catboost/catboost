@@ -68,6 +68,7 @@ Debugger commands
 # commands and is appended to __doc__ after the class has been defined.
 
 import os
+import io
 import re
 import sys
 import cmd
@@ -78,6 +79,7 @@ import glob
 import pprint
 import signal
 import inspect
+import tokenize
 import traceback
 import linecache
 
@@ -92,7 +94,7 @@ __all__ = ["run", "pm", "Pdb", "runeval", "runctx", "runcall", "set_trace",
 def find_function(funcname, filename):
     cre = re.compile(r'def\s+%s\s*[(]' % re.escape(funcname))
     try:
-        fp = open(filename)
+        fp = tokenize.open(filename)
     except OSError:
         return None
     # consumer of this info expects the first line to be 1
@@ -141,6 +143,7 @@ class Pdb(bdb.Bdb, cmd.Cmd):
                  nosigint=False, readrc=True):
         bdb.Bdb.__init__(self, skip=skip)
         cmd.Cmd.__init__(self, completekey, stdin, stdout)
+        sys.audit("pdb.Pdb")
         if stdout:
             self.use_rawinput = 0
         self.prompt = '(Pdb) '
@@ -339,8 +342,12 @@ class Pdb(bdb.Bdb, cmd.Cmd):
     def interaction(self, frame, traceback):
         # Restore the previous signal handler at the Pdb prompt.
         if Pdb._previous_sigint_handler:
-            signal.signal(signal.SIGINT, Pdb._previous_sigint_handler)
-            Pdb._previous_sigint_handler = None
+            try:
+                signal.signal(signal.SIGINT, Pdb._previous_sigint_handler)
+            except ValueError:  # ValueError: signal only works in main thread
+                pass
+            else:
+                Pdb._previous_sigint_handler = None
         if self.setup(frame, traceback):
             # no interaction desired at this time (happens if .pdbrc contains
             # a command like "continue")
@@ -467,7 +474,7 @@ class Pdb(bdb.Bdb, cmd.Cmd):
         except Exception:
             ret = []
         # Then, try to complete file names as well.
-        globs = glob.glob(text + '*')
+        globs = glob.glob(glob.escape(text) + '*')
         for fn in globs:
             if os.path.isdir(fn):
                 ret.append(fn + '/')
@@ -489,8 +496,7 @@ class Pdb(bdb.Bdb, cmd.Cmd):
         # Collect globals and locals.  It is usually not really sensible to also
         # complete builtins, and they clutter the namespace quite heavily, so we
         # leave them out.
-        ns = self.curframe.f_globals.copy()
-        ns.update(self.curframe_locals)
+        ns = {**self.curframe.f_globals, **self.curframe_locals}
         if '.' in text:
             # Walk an attribute chain up to the last part, similar to what
             # rlcompleter does.  This will bail if any of the parts are not
@@ -1375,8 +1381,7 @@ class Pdb(bdb.Bdb, cmd.Cmd):
         Start an interactive interpreter whose global namespace
         contains all the (global and local) names found in the current scope.
         """
-        ns = self.curframe.f_globals.copy()
-        ns.update(self.curframe_locals)
+        ns = {**self.curframe.f_globals, **self.curframe_locals}
         code.interact("*interactive*", local=ns)
 
     def do_alias(self, arg):
@@ -1562,7 +1567,7 @@ class Pdb(bdb.Bdb, cmd.Cmd):
         self._wait_for_mainpyfile = True
         self.mainpyfile = self.canonic(filename)
         self._user_requested_quit = False
-        with open(filename, "rb") as fp:
+        with io.open_code(filename) as fp:
             statement = "exec(compile(%r, %r, 'exec'))" % \
                         (fp.read(), self.mainpyfile)
         self.run(statement)

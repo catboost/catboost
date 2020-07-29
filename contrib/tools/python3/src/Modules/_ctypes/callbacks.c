@@ -49,10 +49,10 @@ PyTypeObject PyCThunk_Type = {
     sizeof(CThunkObject),                       /* tp_basicsize */
     sizeof(ffi_type),                           /* tp_itemsize */
     CThunkObject_dealloc,                       /* tp_dealloc */
-    0,                                          /* tp_print */
+    0,                                          /* tp_vectorcall_offset */
     0,                                          /* tp_getattr */
     0,                                          /* tp_setattr */
-    0,                                          /* tp_reserved */
+    0,                                          /* tp_as_async */
     0,                                          /* tp_repr */
     0,                                          /* tp_as_number */
     0,                                          /* tp_as_sequence */
@@ -108,9 +108,14 @@ static void
 TryAddRef(StgDictObject *dict, CDataObject *obj)
 {
     IUnknown *punk;
+    _Py_IDENTIFIER(_needs_com_addref_);
 
-    if (NULL == PyDict_GetItemString((PyObject *)dict, "_needs_com_addref_"))
+    if (!_PyDict_GetItemIdWithError((PyObject *)dict, &PyId__needs_com_addref_)) {
+        if (PyErr_Occurred()) {
+            PrintError("getting _needs_com_addref_");
+        }
         return;
+    }
 
     punk = *(IUnknown **)obj->b_ptr;
     if (punk)
@@ -209,9 +214,6 @@ static void _CallPythonObject(void *mem,
         pArgs++;
     }
 
-#define CHECK(what, x) \
-if (x == NULL) _PyTraceback_Add(what, "_ctypes/callbacks.c", __LINE__ - 1), PyErr_Print()
-
     if (flags & (FUNCFLAG_USE_ERRNO | FUNCFLAG_USE_LASTERROR)) {
         error_object = _ctypes_get_errobj(&space);
         if (error_object == NULL)
@@ -231,7 +233,10 @@ if (x == NULL) _PyTraceback_Add(what, "_ctypes/callbacks.c", __LINE__ - 1), PyEr
     }
 
     result = PyObject_CallObject(callable, arglist);
-    CHECK("'calling callback function'", result);
+    if (result == NULL) {
+        _PyErr_WriteUnraisableMsg("on calling ctypes callback function",
+                                  callable);
+    }
 
 #ifdef MS_WIN32
     if (flags & FUNCFLAG_USE_LASTERROR) {
@@ -247,16 +252,17 @@ if (x == NULL) _PyTraceback_Add(what, "_ctypes/callbacks.c", __LINE__ - 1), PyEr
     }
     Py_XDECREF(error_object);
 
-    if ((restype != &ffi_type_void) && result) {
-        PyObject *keep;
+    if (restype != &ffi_type_void && result) {
         assert(setfunc);
+
 #ifdef WORDS_BIGENDIAN
-        /* See the corresponding code in callproc.c, around line 961 */
-        if (restype->type != FFI_TYPE_FLOAT && restype->size < sizeof(ffi_arg))
+        /* See the corresponding code in _ctypes_callproc():
+           in callproc.c, around line 1219. */
+        if (restype->type != FFI_TYPE_FLOAT && restype->size < sizeof(ffi_arg)) {
             mem = (char *)mem + sizeof(ffi_arg) - restype->size;
+        }
 #endif
-        keep = setfunc(mem, result, 0);
-        CHECK("'converting callback result'", keep);
+
         /* keep is an object we have to keep alive so that the result
            stays valid.  If there is no such object, the setfunc will
            have returned Py_None.
@@ -266,18 +272,32 @@ if (x == NULL) _PyTraceback_Add(what, "_ctypes/callbacks.c", __LINE__ - 1), PyEr
            be the result.  EXCEPT when restype is py_object - Python
            itself knows how to manage the refcount of these objects.
         */
-        if (keep == NULL) /* Could not convert callback result. */
-            PyErr_WriteUnraisable(callable);
-        else if (keep == Py_None) /* Nothing to keep */
+        PyObject *keep = setfunc(mem, result, 0);
+
+        if (keep == NULL) {
+            /* Could not convert callback result. */
+            _PyErr_WriteUnraisableMsg("on converting result "
+                                      "of ctypes callback function",
+                                      callable);
+        }
+        else if (keep == Py_None) {
+            /* Nothing to keep */
             Py_DECREF(keep);
+        }
         else if (setfunc != _ctypes_get_fielddesc("O")->setfunc) {
             if (-1 == PyErr_WarnEx(PyExc_RuntimeWarning,
                                    "memory leak in callback function.",
                                    1))
-                PyErr_WriteUnraisable(callable);
+            {
+                _PyErr_WriteUnraisableMsg("on converting result "
+                                          "of ctypes callback function",
+                                          callable);
+            }
         }
     }
+
     Py_XDECREF(result);
+
   Done:
     Py_XDECREF(arglist);
     PyGILState_Release(state);
@@ -376,7 +396,7 @@ CThunkObject *_ctypes_alloc_callback(PyObject *callable,
     }
 
     cc = FFI_DEFAULT_ABI;
-#if defined(MS_WIN32) && !defined(_WIN32_WCE) && !defined(MS_WIN64)
+#if defined(MS_WIN32) && !defined(_WIN32_WCE) && !defined(MS_WIN64) && !defined(_M_ARM)
     if ((flags & FUNCFLAG_CDECL) == 0)
         cc = FFI_STDCALL;
 #endif
