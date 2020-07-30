@@ -80,7 +80,6 @@
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\text_features\bm25.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\text_features\bow.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\text_features\embedding_online_features.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\text_features\feature_calcer.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\text_features\naive_bayesian.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\text_features\text_feature_calcers.cpp"/>
@@ -141,7 +140,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\text_features\bm25.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\text_features\bow.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\text_features\embedding_online_features.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\text_features\feature_calcer.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\text_features\helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\text_features\naive_bayesian.h"/>

@@ -79,7 +79,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\feature_estimator\ut\feature_estimator_ut.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\feature_estimator\ut\test_load_embedding.cpp"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
