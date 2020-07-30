@@ -192,8 +192,8 @@ namespace NCB {
                         ui64 groupSize = 0;
                         CB_ENSURE(
                             groupId == groupIds[groupIdCursor],
-                            "GroupId from the file with group weights does not match GroupId from the dataset; "
-                            LabeledOutput(groupId, groupIds[groupIdCursor], groupIdCursor));
+                            "Group starting at line " << groupIdCursor
+                            << " in dataset is missing in group weight file, or groups are ordered differently");
                         while (groupIdCursor < docCount && groupId == groupIds[groupIdCursor]) {
                             ++groupSize;
                             ++groupIdCursor;
