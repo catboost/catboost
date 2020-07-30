@@ -343,10 +343,7 @@ enum class EFeatureCalcerType : ui32 {
     BoW,
     NaiveBayes,
     BM25,
-    CosDistanceWithClassCenter,
-    GaussianHomoscedasticModel,
-    GaussianHeteroscedasticModel,
-    EmbeddingDistanceToClass
+    LDA
 };
 
 enum class EAutoClassWeightsType {

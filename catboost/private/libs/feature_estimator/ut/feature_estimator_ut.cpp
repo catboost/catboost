@@ -203,11 +203,9 @@ Y_UNIT_TEST_SUITE(TestFeatureEstimators) {
             {EFeatureCalcerType::NaiveBayes, MakeIntrusive<TNaiveBayesVisitor>()}
         };
 
-        TEmbeddingPtr embeddingPtr;
         for (auto calcerType : calcerTypes) {
-            TVector<TOnlineFeatureEstimatorPtr> estimators = CreateEstimators(
+            TVector<TOnlineFeatureEstimatorPtr> estimators = CreateTextEstimators(
                 {NCatboostOptions::TFeatureCalcerDescription(calcerType)},
-                embeddingPtr,
                 target,
                 learnTexts,
                 testText
@@ -248,9 +246,8 @@ Y_UNIT_TEST_SUITE(TestFeatureEstimators) {
         { // Test BagOfWords
             TFeatureCalcerDescription bowParams(EFeatureCalcerType::BoW);
 
-            TVector<TFeatureEstimatorPtr> estimators = CreateEstimators(
+            TVector<TFeatureEstimatorPtr> estimators = CreateTextEstimators(
                 {bowParams},
-                embeddingPtr,
                 learnTexts,
                 testText
             );

@@ -1,7 +1,6 @@
 #include "text_features_data.h"
 
 #include <catboost/private/libs/options/runtime_text_options.h>
-#include <catboost/private/libs/text_processing/embedding.h>
 #include <catboost/private/libs/text_processing/text_column_builder.h>
 
 #include <util/generic/array_ref.h>
