@@ -1203,8 +1203,7 @@ class _CatBoostBase(object):
         if '_init_params' not in dict(self.__dict__.items()):
             self._init_params = {}
         if '__model' in state:
-            self._deserialize_model(state['__model'])
-            self._set_trained_model_attributes()
+            self._load_from_string(state['__model'])
             del state['__model']
         if '_test_eval' in state:
             self._set_test_evals([state['_test_eval']])
@@ -1342,6 +1341,9 @@ class _CatBoostBase(object):
             self._object._save_model(output_file, format, params_string, pool)
 
     def _load_model(self, model_file, format):
+        if not isinstance(model_file, STRING_TYPES):
+            raise CatBoostError("Invalid fname type={}: must be str().".format(type(model_file)))
+        
         self._object._load_model(model_file, format)
         self._set_trained_model_attributes()
         for key, value in iteritems(self._get_params()):
@@ -1351,7 +1353,16 @@ class _CatBoostBase(object):
         return self._object._serialize_model()
 
     def _deserialize_model(self, dump_model_str):
+        assert isinstance(dump_model_str, bytes), "Not bytes passed as argument"
         self._object._deserialize_model(dump_model_str)
+
+    def _load_from_string(self, dump_model_str):
+        self._deserialize_model(dump_model_str)
+        self._set_trained_model_attributes()
+
+    def _load_from_stream(self, stream):
+        self._object._load_from_stream(stream)
+        self._set_trained_model_attributes()
 
     def _sum_models(self, models_base, weights=None, ctr_merge_policy='IntersectingCountersAverage'):
         if weights is None:
@@ -2627,18 +2638,24 @@ class CatBoost(_CatBoostBase):
             )
         self._save_model(fname, format, export_parameters, pool)
 
-    def load_model(self, fname, format='cbm'):
+    def load_model(self, fname=None, format='cbm', stream=None, blob=None):
         """
-        Load model from a file.
+        Load model from a file, stream or blob.
 
         Parameters
         ----------
         fname : string
             Input file name.
         """
-        if not isinstance(fname, STRING_TYPES):
-            raise CatBoostError("Invalid fname type={}: must be str().".format(type(fname)))
-        self._load_model(fname, format)
+        if (fname is None) + (stream is None) + (blob is None) != 2:
+            raise CatBoostError("Exactly one of fname/stream/blob arguments mustn't be None")
+
+        if fname is not None:
+            self._load_model(fname, format)
+        elif stream is not None:
+            self._load_from_stream(stream)
+        elif blob is not None:
+            self._load_from_string(blob)
         return self
 
     def get_param(self, key):
