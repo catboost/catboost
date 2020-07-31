@@ -25,7 +25,7 @@ void FillRepeatedFields(TTestMessage& msg) {
     }
 }
 
-// do not want to use contrib/libs/protobuf/util/message_differencer because of warnings
+// do not want to use google/protobuf/util/message_differencer because of warnings
 bool operator==(const TTestMessage& lhs, const TTestMessage& rhs) {
     if (lhs.GetRequiredString() != rhs.GetRequiredString() ||
         lhs.GetRequiredInt32() != rhs.GetRequiredInt32() ||

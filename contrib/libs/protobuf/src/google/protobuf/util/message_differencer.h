@@ -51,7 +51,7 @@
 #include "descriptor.h"  // FieldDescriptor
 #include "message.h"  // Message
 #include "unknown_field_set.h"
-#include "util/field_comparator.h"
+#include <google/protobuf/util/field_comparator.h>
 
 namespace google {
 namespace protobuf {

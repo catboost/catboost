@@ -17,7 +17,7 @@ NO_LINT()
 OPTIMIZE_PY_PROTOS()
 
 PEERDIR(
-    ADDINCL contrib/libs/protobuf
+    contrib/libs/protobuf
     contrib/python/six
 )
 
