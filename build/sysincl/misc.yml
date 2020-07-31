@@ -127,10 +127,6 @@
   includes:
     - plugin-api.h # GNU linker plugin API.
 
-- source_filter: "^contrib/libs/libevent"
-  includes:
-    - sys/queue.h:   contrib/libs/libevent/compat/sys/queue.h
-
 - source_filter: "^contrib/libs/musl"
   includes:
     - atomic.h:      contrib/libs/musl/src/internal/atomic.h
