@@ -141,8 +141,8 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\idl\pool\proto\pyidl-pool-proto.vcxproj">
       <Project>8F579ED4-B988-95A5-75F0-AA316528E62D</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\jvm-packages\catboost4j-prediction\src\native\catboost4j-prediction.vcxproj">
-      <Project>E4F2A889-133D-9E4F-6DAD-8897A1E9F474</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\jvm-packages\catboost4j-prediction\src\native_impl\catboost4j-prediction.vcxproj">
+      <Project>1ED2DCD1-3769-9401-E4FF-0C54F35EC1A6</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\cat_feature\catboost-libs-cat_feature.vcxproj">
       <Project>39CEAA9A-D75F-AA0D-96C0-E8C323B015CB</Project>
