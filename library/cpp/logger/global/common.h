@@ -17,33 +17,46 @@ T* CreateDefaultLogger() {
     return nullptr;
 }
 
-template <class T>
-class TLoggerOperator {
-public:
-    struct TPtr {
-        TPtr()
-            : Log(CreateDefaultLogger<T>())
-        {
+namespace NLoggingImpl {
+    template<class T, class TTraits>
+    class TOperatorBase {
+        struct TPtr {
+            TPtr()
+                : Instance(TTraits::CreateDefault())
+            {
+            }
+
+            THolder<T> Instance;
+        };
+
+    public:
+        inline static bool Usage() {
+            return Singleton<TPtr>()->Instance.Get();
         }
 
-        THolder<T> Log;
+        inline static T* Get() {
+            return Singleton<TPtr>()->Instance.Get();
+        }
+
+        inline static void Set(T* v) {
+            Singleton<TPtr>()->Instance.Reset(v);
+        }
     };
 
-    inline static bool Usage() {
-        return Singleton<TPtr>()->Log.Get();
-    }
+    template<class T>
+    struct TLoggerTraits {
+        static T* CreateDefault() {
+            return CreateDefaultLogger<T>();
+        }
+    };
+}
 
+template <class T>
+class TLoggerOperator : public NLoggingImpl::TOperatorBase<T, NLoggingImpl::TLoggerTraits<T>>  {
+public:
     inline static TLog& Log() {
-        Y_ASSERT(Usage());
-        return *Singleton<TPtr>()->Log.Get();
-    }
-
-    inline static T* Get() {
-        return Singleton<TPtr>()->Log.Get();
-    }
-
-    inline static void Set(T* log) {
-        Singleton<TPtr>()->Log.Reset(log);
+        Y_ASSERT(TLoggerOperator::Usage());
+        return *TLoggerOperator::Get();
     }
 };
 
@@ -53,9 +66,9 @@ namespace NLoggingImpl {
     TString GetLocalTimeSSimple();
 
     template <class TLoggerType>
-    void InitLogImpl(TString logType, const int logLevel, const bool rotation, const bool startAsDaemon) {
+    TLoggerType* CreateLogger(TString logType, const int logLevel, const bool rotation, const bool startAsDaemon) {
         if (logLevel < 0 || logLevel > (int)LOG_MAX_PRIORITY)
-            ythrow yexception() << "Incorrect priority";
+        ythrow yexception() << "Incorrect priority";
         if (rotation && TFsPath(logType).Exists()) {
             TString newPath = Sprintf("%s_%s_%" PRIu64, logType.data(), NLoggingImpl::GetLocalTimeSSimple().data(), static_cast<ui64>(Now().MicroSeconds()));
             TFsPath(logType).RenameTo(newPath);
@@ -63,7 +76,12 @@ namespace NLoggingImpl {
         if (startAsDaemon && (logType == "console" || logType == "cout" || logType == "cerr")) {
             logType = "null";
         }
-        TLoggerOperator<TLoggerType>::Set(new TLoggerType(logType, (ELogPriority)logLevel));
+        return new TLoggerType(logType, (ELogPriority)logLevel);
+    }
+
+    template <class TLoggerType>
+    void InitLogImpl(TString logType, const int logLevel, const bool rotation, const bool startAsDaemon) {
+        TLoggerOperator<TLoggerType>::Set(CreateLogger<TLoggerType>(logType, logLevel, rotation, startAsDaemon));
     }
 }
 

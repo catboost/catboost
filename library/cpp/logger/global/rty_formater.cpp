@@ -62,16 +62,33 @@ namespace NLoggingImpl {
     }
 }
 
+namespace {
+    class TRtyLoggerFormatter : public ILoggerFormatter {
+    public:
+        void Format(const TLogRecordContext& context, TLogElement& elem) const override {
+            elem << context.CustomMessage << ": " << NLoggingImpl::GetLocalTimeS() << " "
+                 << NLoggingImpl::StripFileName(context.SourceLocation.File) << ":" << context.SourceLocation.Line;
+            if (context.Priority > TLOG_RESOURCES && !ExitStarted()) {
+                elem << NLoggingImpl::GetSystemResources();
+            }
+            elem << " ";
+        }
+    };
+}
+
+ILoggerFormatter* CreateRtyLoggerFormatter() {
+    return new TRtyLoggerFormatter();
+}
+
 bool TRTYMessageFormater::CheckLoggingContext(TLog& /*logger*/, const TLogRecordContext& /*context*/) {
     return true;
 }
 
 TSimpleSharedPtr<TLogElement> TRTYMessageFormater::StartRecord(TLog& logger, const TLogRecordContext& context, TSimpleSharedPtr<TLogElement> earlier) {
-    if (!earlier)
+    if (!earlier) {
         earlier.Reset(new TLogElement(&logger));
-    (*earlier) << context.CustomMessage << ": " << NLoggingImpl::GetLocalTimeS() << " " << NLoggingImpl::StripFileName(context.SourceLocation.File) << ":" << context.SourceLocation.Line;
-    if (context.Priority > TLOG_RESOURCES && !ExitStarted())
-        (*earlier) << NLoggingImpl::GetSystemResources();
-    (*earlier) << " ";
+    }
+
+    TLoggerFormatterOperator::Get()->Format(context, *earlier);
     return earlier;
 }
