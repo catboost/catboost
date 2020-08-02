@@ -89,11 +89,11 @@ namespace {
     }
 }
 
-NNeh::TMessage NNeh::TMessage::FromString(const TString& req) {
+NNeh::TMessage NNeh::TMessage::FromString(const TStringBuf req) {
     TStringBuf addr;
     TStringBuf data;
 
-    TStringBuf(req).Split('?', addr, data);
+    req.Split('?', addr, data);
     return TMessage(ToString(addr), ToString(data));
 }
 

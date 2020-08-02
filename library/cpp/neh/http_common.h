@@ -116,8 +116,8 @@ namespace NNeh {
 
         class TRequestData: public TNonCopyable {
         public:
-            typedef TAutoPtr<TRequestData> TPtr;
-            typedef TVector<IOutputStream::TPart> TParts;
+            using TPtr = TAutoPtr<TRequestData>;
+            using TParts = TVector<IOutputStream::TPart>;
 
             inline TRequestData(size_t memSize)
                 : Mem(memSize)

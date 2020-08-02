@@ -20,8 +20,6 @@ public:
     /// @param[in] value - значение параметра.
     THttpInputHeader(TString name, TString value);
 
-    ~THttpInputHeader();
-
     /// Возвращает имя параметра.
     inline const TString& Name() const noexcept {
         return Name_;
@@ -47,15 +45,15 @@ private:
 
 /// Контейнер для хранения HTTP-заголовков
 class THttpHeaders {
-    typedef TDeque<THttpInputHeader> THeaders;
+    using THeaders = TDeque<THttpInputHeader>;
 
 public:
-    typedef THeaders::const_iterator TConstIterator;
+    using TConstIterator = THeaders::const_iterator;
 
-    THttpHeaders();
+    THttpHeaders() = default;
+
     /// Добавляет каждую строку из потока в контейнер, считая ее правильным заголовком.
     THttpHeaders(IInputStream* stream);
-    ~THttpHeaders();
 
     /// Стандартный итератор.
     inline TConstIterator Begin() const noexcept {
