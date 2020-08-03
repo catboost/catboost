@@ -269,14 +269,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\any.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\arena.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\arenastring.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\descriptor.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\descriptor_database.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\dynamic_message.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\extension_set.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\generated_message_reflection.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\generated_message_table_driven.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\generated_message_util.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\io\coded_stream.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\io\coded_stream_inl.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\io\gzip_stream.h"/>
@@ -287,12 +281,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\io\zero_copy_stream_impl.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\io\zero_copy_stream_impl_lite.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\map.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\map_entry_lite.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\map_field.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\message.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\message_lite.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\messagext.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\metadata.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\pyext\descriptor.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\pyext\descriptor_containers.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\pyext\descriptor_database.h"/>
@@ -307,7 +299,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\pyext\scoped_pyobject_ptr.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\python_protobuf.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\reflection.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\reflection_ops.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\repeated_field.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\any.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\any.pb.h"/>
@@ -441,7 +432,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\unknown_field_set.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\wire_format.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\wire_format_lite.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\wire_format_lite_inl.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
