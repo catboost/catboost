@@ -1298,7 +1298,7 @@ static void ModelBasedEval(
     CB_ENSURE(TTrainerFactory::Has(ETaskType::GPU),
         "Can't load GPU learning library. Module was not compiled or driver is incompatible with package. Please install latest NVDIA driver and check again.");
 
-    THolder<IModelTrainer> modelTrainerHolder = TTrainerFactory::Construct(ETaskType::GPU);
+    THolder<IModelTrainer> modelTrainerHolder(TTrainerFactory::Construct(ETaskType::GPU));
     if (outputOptions.SaveSnapshot()) {
         UpdateUndefinedRandomSeed(ETaskType::GPU, outputOptions, &updatedTrainOptionsJson, [&](IInputStream* in, TString& params) {
             ::Load(in, params);

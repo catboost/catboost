@@ -247,7 +247,7 @@ namespace NCatboostCuda {
         const auto optimizationImplementation = GetTrainerFactoryKey(trainCatBoostOptions);
 
         if (TGpuTrainerFactory::Has(optimizationImplementation)) {
-            THolder<IGpuTrainer> trainer = TGpuTrainerFactory::Construct(optimizationImplementation);
+            THolder<IGpuTrainer> trainer(TGpuTrainerFactory::Construct(optimizationImplementation));
             model = trainer->TrainModel(featuresManager,
                                         internalOptions,
                                         trainCatBoostOptions,
@@ -281,7 +281,7 @@ namespace NCatboostCuda {
         const auto optimizationImplementation = GetTrainerFactoryKey(trainCatBoostOptions);
         CB_ENSURE(TGpuTrainerFactory::Has(optimizationImplementation),
             "Error: optimization scheme is not supported for GPU learning " << optimizationImplementation);
-        THolder<IGpuTrainer> trainer = TGpuTrainerFactory::Construct(optimizationImplementation);
+        THolder<IGpuTrainer> trainer(TGpuTrainerFactory::Construct(optimizationImplementation));
         TGpuAwareRandom random(trainCatBoostOptions.RandomSeed);
         trainer->ModelBasedEval(featuresManager,
             trainCatBoostOptions,

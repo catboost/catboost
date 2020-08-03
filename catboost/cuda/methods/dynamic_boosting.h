@@ -166,7 +166,7 @@ namespace NCatboostCuda {
         THolder<TObjective> CreateTarget(const TFeatureParallelDataSet& dataSet) const {
             auto slice = dataSet.GetSamplesMapping().GetObjectsSlice();
             CB_ENSURE(slice.Size());
-            return new TObjective(dataSet,
+            return MakeHolder<TObjective>(dataSet,
                                   Random,
                                   slice,
                                   TargetOptions);
