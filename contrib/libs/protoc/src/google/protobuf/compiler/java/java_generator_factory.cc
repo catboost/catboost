@@ -30,17 +30,17 @@
 
 // Author: liujisi@google.com (Pherl Liu)
 
-#include "compiler/java/java_generator_factory.h"
+#include <google/protobuf/compiler/java/java_generator_factory.h>
 
-#include "compiler/java/java_context.h"
-#include "compiler/java/java_enum_field.h"
-#include "compiler/java/java_extension.h"
-#include "compiler/java/java_extension_lite.h"
-#include "compiler/java/java_field.h"
-#include "compiler/java/java_helpers.h"
-#include "compiler/java/java_message.h"
-#include "compiler/java/java_message_lite.h"
-#include "compiler/java/java_service.h"
+#include <google/protobuf/compiler/java/java_context.h>
+#include <google/protobuf/compiler/java/java_enum_field.h>
+#include <google/protobuf/compiler/java/java_extension.h>
+#include <google/protobuf/compiler/java/java_extension_lite.h>
+#include <google/protobuf/compiler/java/java_field.h>
+#include <google/protobuf/compiler/java/java_helpers.h>
+#include <google/protobuf/compiler/java/java_message.h>
+#include <google/protobuf/compiler/java/java_message_lite.h>
+#include <google/protobuf/compiler/java/java_service.h>
 
 namespace google {
 namespace protobuf {

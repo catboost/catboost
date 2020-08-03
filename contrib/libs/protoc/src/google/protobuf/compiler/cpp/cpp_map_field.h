@@ -33,7 +33,7 @@
 
 #include <map>
 
-#include "compiler/cpp/cpp_message_field.h"
+#include <google/protobuf/compiler/cpp/cpp_message_field.h>
 
 namespace google {
 namespace protobuf {

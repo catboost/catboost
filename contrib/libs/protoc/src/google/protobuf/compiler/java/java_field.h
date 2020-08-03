@@ -42,7 +42,7 @@
 #endif
 
 #include <google/protobuf/stubs/common.h>
-#include "descriptor.h"
+#include <google/protobuf/descriptor.h>
 #include <google/protobuf/stubs/logging.h>
 
 namespace google {

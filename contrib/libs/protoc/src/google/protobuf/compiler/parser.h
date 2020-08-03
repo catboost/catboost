@@ -39,10 +39,10 @@
 
 #include <map>
 #include <utility>
-#include "descriptor.h"
+#include <google/protobuf/descriptor.h>
 #include <google/protobuf/descriptor.pb.h>
-#include "repeated_field.h"
-#include "io/tokenizer.h"
+#include <google/protobuf/repeated_field.h>
+#include <google/protobuf/io/tokenizer.h>
 
 namespace google {
 namespace protobuf { class Message; }

@@ -34,12 +34,12 @@
 
 #include <map>
 
-#include "compiler/java/java_context.h"
-#include "compiler/java/java_enum_lite.h"
-#include "compiler/java/java_doc_comment.h"
-#include "compiler/java/java_helpers.h"
-#include "compiler/java/java_name_resolver.h"
-#include "io/printer.h"
+#include <google/protobuf/compiler/java/java_context.h>
+#include <google/protobuf/compiler/java/java_enum_lite.h>
+#include <google/protobuf/compiler/java/java_doc_comment.h>
+#include <google/protobuf/compiler/java/java_helpers.h>
+#include <google/protobuf/compiler/java/java_name_resolver.h>
+#include <google/protobuf/io/printer.h>
 #include <google/protobuf/descriptor.pb.h>
 #include <google/protobuf/stubs/strutil.h>
 

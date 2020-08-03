@@ -32,7 +32,7 @@
 //  Based on original Protocol Buffers design by
 //  Sanjay Ghemawat, Jeff Dean, and others.
 
-#include "compiler/java/java_file.h"
+#include <google/protobuf/compiler/java/java_file.h>
 
 #include <memory>
 #ifndef _SHARED_PTR_H
@@ -40,21 +40,21 @@
 #endif
 #include <set>
 
-#include "compiler/java/java_context.h"
-#include "compiler/java/java_enum.h"
-#include "compiler/java/java_enum_lite.h"
-#include "compiler/java/java_extension.h"
-#include "compiler/java/java_generator_factory.h"
-#include "compiler/java/java_helpers.h"
-#include "compiler/java/java_message.h"
-#include "compiler/java/java_name_resolver.h"
-#include "compiler/java/java_service.h"
-#include "compiler/java/java_shared_code_generator.h"
-#include "compiler/code_generator.h"
-#include "io/printer.h"
-#include "io/zero_copy_stream.h"
+#include <google/protobuf/compiler/java/java_context.h>
+#include <google/protobuf/compiler/java/java_enum.h>
+#include <google/protobuf/compiler/java/java_enum_lite.h>
+#include <google/protobuf/compiler/java/java_extension.h>
+#include <google/protobuf/compiler/java/java_generator_factory.h>
+#include <google/protobuf/compiler/java/java_helpers.h>
+#include <google/protobuf/compiler/java/java_message.h>
+#include <google/protobuf/compiler/java/java_name_resolver.h>
+#include <google/protobuf/compiler/java/java_service.h>
+#include <google/protobuf/compiler/java/java_shared_code_generator.h>
+#include <google/protobuf/compiler/code_generator.h>
+#include <google/protobuf/io/printer.h>
+#include <google/protobuf/io/zero_copy_stream.h>
 #include <google/protobuf/descriptor.pb.h>
-#include "dynamic_message.h"
+#include <google/protobuf/dynamic_message.h>
 #include <google/protobuf/stubs/strutil.h>
 
 namespace google {

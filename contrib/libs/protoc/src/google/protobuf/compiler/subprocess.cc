@@ -30,7 +30,7 @@
 
 // Author: kenton@google.com (Kenton Varda)
 
-#include "compiler/subprocess.h"
+#include <google/protobuf/compiler/subprocess.h>
 
 #include <algorithm>
 #include <cstring>
@@ -45,7 +45,7 @@
 
 #include <google/protobuf/stubs/logging.h>
 #include <google/protobuf/stubs/common.h>
-#include "message.h"
+#include <google/protobuf/message.h>
 #include <google/protobuf/stubs/substitute.h>
 
 namespace google {

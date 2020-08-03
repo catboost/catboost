@@ -36,7 +36,7 @@
 #define GOOGLE_PROTOBUF_COMPILER_PYTHON_GENERATOR_H__
 
 
-#include "compiler/code_generator.h"
+#include <google/protobuf/compiler/code_generator.h>
 #include <google/protobuf/stubs/mutex.h>
 #include <google/protobuf/stubs/common.h>
 
