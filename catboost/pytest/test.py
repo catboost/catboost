@@ -39,7 +39,7 @@ PREDICTION_TYPES = ['Probability', 'RawFormulaVal', 'Class']
 BINCLASS_LOSSES = ['Logloss', 'CrossEntropy']
 MULTICLASS_LOSSES = ['MultiClass', 'MultiClassOneVsAll']
 CLASSIFICATION_LOSSES = BINCLASS_LOSSES + MULTICLASS_LOSSES
-REGRESSION_LOSSES = ['MAE', 'MAPE', 'Poisson', 'Quantile', 'RMSE', 'LogLinQuantile', 'Lq']
+REGRESSION_LOSSES = ['MAE', 'MAPE', 'Poisson', 'Quantile', 'RMSE', 'RMSEWithUncertainty', 'LogLinQuantile', 'Lq']
 PAIRWISE_LOSSES = ['PairLogit', 'PairLogitPairwise']
 GROUPWISE_LOSSES = ['YetiRank', 'YetiRankPairwise', 'QueryRMSE', 'QuerySoftMax']
 RANKING_LOSSES = PAIRWISE_LOSSES + GROUPWISE_LOSSES
@@ -49,7 +49,7 @@ SAMPLING_UNIT_TYPES = ['Object', 'Group']
 
 OVERFITTING_DETECTOR_TYPE = ['IncToDec', 'Iter']
 
-LOSS_FUNCTIONS = ['RMSE', 'Logloss', 'MAE', 'CrossEntropy', 'Quantile', 'LogLinQuantile',
+LOSS_FUNCTIONS = ['RMSE', 'RMSEWithUncertainty', 'Logloss', 'MAE', 'CrossEntropy', 'Quantile', 'LogLinQuantile',
                   'Poisson', 'MAPE', 'MultiClass', 'MultiClassOneVsAll']
 
 LEAF_ESTIMATION_METHOD = ['Gradient', 'Newton']
@@ -2964,7 +2964,7 @@ def test_regularization(boosting_type, grow_policy, dev_score_calc_obj_block_siz
     return [local_canonical_file(output_eval_path)]
 
 
-REG_LOSS_FUNCTIONS = ['RMSE', 'MAE', 'Lq:q=1', 'Lq:q=1.5', 'Lq:q=3', 'Quantile', 'LogLinQuantile', 'Poisson', 'MAPE',
+REG_LOSS_FUNCTIONS = ['RMSE', 'RMSEWithUncertainty', 'MAE', 'Lq:q=1', 'Lq:q=1.5', 'Lq:q=3', 'Quantile', 'LogLinQuantile', 'Poisson', 'MAPE',
                       'Huber:delta=1.0']
 
 
@@ -7312,7 +7312,7 @@ def test_convert_model_to_json(pool):
     assert (compare_evals_with_precision(output_eval_path, formula_predict_path_json))
 
 
-LOSS_FUNCTIONS_NO_MAPE = ['RMSE', 'Logloss', 'MAE', 'CrossEntropy', 'Quantile', 'LogLinQuantile', 'Poisson']
+LOSS_FUNCTIONS_NO_MAPE = ['RMSE', 'RMSEWithUncertainty', 'Logloss', 'MAE', 'CrossEntropy', 'Quantile', 'LogLinQuantile', 'Poisson']
 
 
 @pytest.mark.parametrize('loss_function', LOSS_FUNCTIONS_NO_MAPE)

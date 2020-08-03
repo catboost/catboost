@@ -339,6 +339,7 @@ public:
 
     void SetApproxDimension(int approxDimension) {
         ApproxDimension = approxDimension;
+        SetScaleAndBias({ScaleAndBias.Scale, TVector<double>(ApproxDimension, 0)});
     }
 
     void ClearLeafWeights();

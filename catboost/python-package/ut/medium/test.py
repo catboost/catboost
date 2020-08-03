@@ -5451,6 +5451,7 @@ class Metrics(object):
             'Poisson',
             'Quantile',
             'RMSE',
+            'RMSEWithUncertainty'
             'LogLinQuantile',
             'SMAPE',
             'R2',
@@ -5570,6 +5571,7 @@ class Metrics(object):
             'R2',
             'Recall',
             'RMSE',
+            'RMSEWithUncertainty',
             'SMAPE',
             'TotalF1',
             'UserDefinedPerObject',

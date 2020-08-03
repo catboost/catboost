@@ -33,3 +33,19 @@ void AddLangevinNoiseToLeafDerivativesSum(
     ui64 randomSeed,
     TVector<TSumMulti>* leafDersSum
 );
+
+void AddLangevinNoiseToLeafNewtonSum(
+    float diffusionTemperature,
+    float learningRate,
+    double scaledL2Regularizer,
+    ui64 randomSeed,
+    TVector<TSum>* leafDersSum
+);
+
+void AddLangevinNoiseToLeafNewtonSum(
+    float diffusionTemperature,
+    float learningRate,
+    double scaledL2Regularizer,
+    ui64 randomSeed,
+    TVector<TSumMulti>* leafDersSum
+);
