@@ -4754,6 +4754,47 @@ def test_eval_set_with_nans(task_type):
     model.fit(train_pool, eval_set=test_pool)
 
 
+def test_model_sum_and_init_with_differing_nan_processing_strategy(task_type):
+    prng = np.random.RandomState(seed=20200803)
+    features = prng.random_sample((10, 200))
+    labels = prng.random_sample((10,))
+    features_with_nans = features.copy()
+    np.putmask(features_with_nans, features_with_nans < 0.5, np.nan)
+    no_nan_pool = Pool(features, label=labels)
+    nan_pool = Pool(features_with_nans, label=labels)
+    def make_model(nan_mode=None, init_model=None):
+        model = CatBoostRegressor(
+            iterations=10,
+            task_type=task_type,
+            devices='0',
+            nan_mode=nan_mode
+        )
+        if nan_mode == 'Forbidden':
+            model.fit(no_nan_pool, init_model=init_model)
+        else:
+            model.fit(nan_pool, init_model=init_model)
+        return model
+
+    model_as_is = make_model()
+    model_as_false = make_model('Min')
+    model_as_true = make_model('Max')
+    _ = sum_models([model_as_is, model_as_false])
+    _ = sum_models([model_as_false, model_as_false])
+
+    make_model('Min', init_model=model_as_is)
+    make_model('Forbidden', init_model=model_as_false)
+
+    # TODO(kirillovs): this could be relaxed after properly fixing binary features storage in model
+    with pytest.raises(CatBoostError):
+        sum_models([model_as_is, model_as_true])
+    with pytest.raises(CatBoostError):
+        sum_models([model_as_false, model_as_true])
+    with pytest.raises(CatBoostError):
+        make_model('AsIs', init_model=model_as_true)
+    with pytest.raises(CatBoostError):
+        make_model('AsTrue', init_model=model_as_false)
+
+
 def test_learning_rate_auto_set(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)

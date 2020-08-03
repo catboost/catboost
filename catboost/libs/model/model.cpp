@@ -1319,11 +1319,22 @@ namespace {
             );
             feature.FeatureId = other.FeatureId;
             if constexpr (std::is_same_v<TFeatureType, TFloatFeature>) {
-                CB_ENSURE(
-                    feature.NanValueTreatment == other.NanValueTreatment,
-                    "Nan value treatment differs: " << (int) feature.NanValueTreatment << " != " <<
-                    (int) other.NanValueTreatment
-                );
+                constexpr auto asFalse = TFloatFeature::ENanValueTreatment::AsFalse;
+                constexpr auto asIs = TFloatFeature::ENanValueTreatment::AsIs;
+                if (
+                    (feature.NanValueTreatment == asIs && other.NanValueTreatment == asFalse) ||
+                    (feature.NanValueTreatment == asFalse && other.NanValueTreatment == asIs)
+                    ) {
+                    // We can relax Nan treatmen comparison as nans within AsIs strategy are always treated like AsFalse
+                    // TODO(kirillovs): later implement splitted storage for float feautres with different Nan treatment
+                    feature.NanValueTreatment = asFalse;
+                } else {
+                    CB_ENSURE(
+                            feature.NanValueTreatment == other.NanValueTreatment,
+                            "Nan value treatment differs: " << (int) feature.NanValueTreatment << " != " <<
+                                                            (int) other.NanValueTreatment
+                    );
+                }
                 feature.HasNans |= other.HasNans;
             }
         }
