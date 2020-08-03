@@ -4,6 +4,10 @@
 # of Maven package
 #
 # NOTE: this script must be python2/3 compatible
+#
+# How to use: build_native_for_maven.py <Maven package basedir> <library_name> [<ya make argments...>]
+#
+
 
 from __future__ import absolute_import, print_function
 
@@ -60,18 +64,12 @@ def _get_ya_path():
     return ya_path
 
 
-def _get_package_resources_dir():
-    return os.path.join(
-        _get_arcadia_root(),
-        os.path.join(*'catboost/jvm-packages/catboost4j-prediction/src/main/resources'.split('/')))
+def _get_package_resources_dir(base_dir):
+    return os.path.join(base_dir, 'src', 'main', 'resources')
 
 
-def _get_native_lib_dir(relative=None):
-    if relative is None:
-        relative = _get_arcadia_root()
-    return os.path.join(
-        relative,
-        os.path.join(*'catboost/jvm-packages/catboost4j-prediction/src/native'.split('/')))
+def _get_native_lib_dir(root_dir, package_arcadia_path):
+    return os.path.join(root_dir, package_arcadia_path, 'src', 'native_impl')
 
 
 def _ensure_dir_exists(path):
@@ -88,12 +86,19 @@ def _get_current_machine_resources_dir():
 
 
 def _main():
+    if len(sys.argv) < 3:
+        raise Exception('Required basedir and library_name arguments is not specified')
+
+    base_dir = sys.argv[1]
+    lib_name = sys.argv[2]
+    package_name = os.path.basename(os.path.abspath(base_dir))
+    package_arcadia_path = os.path.relpath(base_dir, _get_arcadia_root())
     ya_path = _get_ya_path()
     shared_lib_dir = os.path.join(
-        _get_package_resources_dir(),
+        _get_package_resources_dir(base_dir),
         _get_current_machine_resources_dir(),
         'lib')
-    native_lib_dir = _get_native_lib_dir()
+    native_lib_dir = _get_native_lib_dir(_get_arcadia_root(), package_arcadia_path)
     env = os.environ.copy()
 
     print('building dynamic library with `ya`', file=sys.stderr)
@@ -104,23 +109,32 @@ def _main():
             + ['--output', build_output_dir]
             + ['-D', 'CATBOOST_OPENSOURCE=yes']
             + ['-D', 'CFLAGS=-DCATBOOST_OPENSOURCE=yes']
-            + sys.argv[1:])
+            + sys.argv[3:])
+        print (' '.join(ya_make))
         subprocess.check_call(
             ya_make,
             env=env,
             stdout=sys.stdout,
             stderr=sys.stderr)
 
+        jar_name = lib_name + '.jar'
+        jar_src_path = os.path.join(_get_native_lib_dir(build_output_dir, package_arcadia_path), jar_name)
+        if os.path.exists(jar_src_path):
+            print('copying jar to resources/lib', file=sys.stderr)
+            shutil.copy(
+                jar_src_path,
+                _get_package_resources_dir(base_dir))
+
         _ensure_dir_exists(shared_lib_dir)
         native_lib_name = {
-            'darwin': 'libcatboost4j-prediction.dylib',
-            'win32': 'catboost4j-prediction.dll',
-            'linux': 'libcatboost4j-prediction.so',
-        }[_get_platform()]
+            'darwin': 'lib{}.dylib',
+            'win32': '{}.dll',
+            'linux': 'lib{}.so',
+        }[_get_platform()].format(lib_name)
 
         print('copying dynamic library to resources/lib', file=sys.stderr)
         shutil.copy(
-            os.path.join(_get_native_lib_dir(build_output_dir), native_lib_name),
+            os.path.join(_get_native_lib_dir(build_output_dir, package_arcadia_path), native_lib_name),
             shared_lib_dir)
 
 
