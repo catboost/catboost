@@ -509,6 +509,7 @@ cdef extern from "catboost/private/libs/options/enums.h":
     cdef EPredictionType EPredictionType_LogProbability "EPredictionType::LogProbability"
     cdef EPredictionType EPredictionType_RawFormulaVal "EPredictionType::RawFormulaVal"
     cdef EPredictionType EPredictionType_Exponent "EPredictionType::Exponent"
+    cdef EPredictionType EPredictionType_RMSEWithUncertainty "EPredictionType::RMSEWithUncertainty"
 
     cdef cppclass EFstrType:
         pass

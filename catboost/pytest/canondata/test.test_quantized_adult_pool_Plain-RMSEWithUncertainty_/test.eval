@@ -1,4 +1,4 @@
-SampleId	RawFormulaVal:Class=0	RawFormulaVal:Class=1
+SampleId	RawFormulaValMean	RawFormulaValLog(Std)
 0	0.7871481416	-0.9329007891
 1	0.7825138427	-0.9171774192
 2	0.802009546	-0.9781975147

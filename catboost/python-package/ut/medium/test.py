@@ -8111,14 +8111,24 @@ def test_log_proba():
     assert np.allclose(log_pred_1, log_pred_2)
 
 
-def test_exponent():
+def test_exponent_prediction_type():
     # poisson regression
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    classifier = CatBoostRegressor(iterations=2, objective='Poisson')
-    classifier.fit(pool)
-    pred = classifier.predict(pool, prediction_type='RawFormulaVal')
-    exp_pred = classifier.predict(pool)
+    regressor = CatBoostRegressor(iterations=2, objective='Poisson')
+    regressor.fit(pool)
+    pred = regressor.predict(pool, prediction_type='RawFormulaVal')
+    exp_pred = regressor.predict(pool)
     assert np.allclose(exp_pred, np.exp(pred))
+
+
+def test_rmse_with_uncertainty_prediction_type():
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    regressor = CatBoostRegressor(iterations=2, objective='RMSEWithUncertainty')
+    regressor.fit(pool)
+    pred = np.transpose(regressor.predict(pool, prediction_type='RawFormulaVal'))
+    exp_pred = np.transpose(regressor.predict(pool))
+    assert np.allclose(exp_pred[0], pred[0])
+    assert np.allclose(exp_pred[1], np.exp(pred[1]))
 
 
 def test_staged_log_proba():

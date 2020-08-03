@@ -267,6 +267,7 @@ namespace NCB {
         bool isMultiTarget,
         EPredictionType predictionType,
         const TExternalLabelsHelper& visibleLabelsHelper,
+        const TString& lossFunctionName,
         ui32 startTreeIndex = 0,
         std::pair<size_t, size_t>* evalParameters = nullptr);
 } // namespace NCB
