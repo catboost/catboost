@@ -548,3 +548,12 @@
 - source_filter: "^voicetech/spotter/embedded"
   includes:
     - threads.h: voicetech/spotter/embedded/contrib/c11-threads/threads.h
+
+- source_filter: "^contrib/python/pymqi"
+  includes:
+    # IBM MQ
+    - cmqc.h
+    - cmqxc.h
+    - cmqcfc.h
+    - cmqbc.h
+
