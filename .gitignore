@@ -25,3 +25,19 @@ test-results
 
 /msvs/Debug/*
 /msvs/Release/*
+
+catboost/rust-package/target/
+
+catboost/rust-package/catboost-sys/target/
+
+catboost/app/catboost
+
+catboost/libs/model_interface/libcatboostmodel.dylib
+
+catboost/libs/model_interface/libcatboostmodel.dylib.1
+
+catboost/pytest/catboost-pytest
+
+catboost/tools/limited_precision_dsv_diff/
+
+catboost/tutorials/apply_model/rust/target/
