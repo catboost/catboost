@@ -39,6 +39,7 @@ from libcpp cimport nullptr
 from libcpp.map cimport map as cmap
 from libcpp.vector cimport vector
 from libcpp.pair cimport pair
+from cpython.ref cimport PyObject
 
 from util.generic.array_ref cimport TArrayRef, TConstArrayRef
 from util.generic.hash cimport THashMap
@@ -1647,8 +1648,8 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
     ) nogil except +ProcessException
 
     cdef cppclass TPythonStreamWrapper(IInputStream):
-        TPythonStreamWrapper() except +ProcessException
-        TPythonStreamWrapper(size_t (*readFunc)(char* target, size_t len)) except +ProcessException
+        ctypedef size_t (*TReadCallback)(char* target, size_t len, PyObject* stream, TString*)
+        TPythonStreamWrapper(TReadCallback readCallback, PyObject* stream) except +ProcessException
 
 cdef extern from "catboost/private/libs/quantized_pool_analysis/quantized_pool_analysis.h" namespace "NCB":
     cdef cppclass TBinarizedFeatureStatistics:
@@ -5076,11 +5077,10 @@ cdef class _CatBoost:
     cpdef _base_drop_unused_features(self):
         self.__model.ModelTrees.GetMutable().DropUnusedFeatures()
 
-    cpdef _load_from_stream(self, stream):
-        _set_file_stream(stream)
-        cdef TPythonStreamWrapper wrapper = TPythonStreamWrapper(python_stream_read_func)
+    cpdef _load_from_stream(self, stream) except +ProcessException:
+        cdef THolder[TPythonStreamWrapper] wrapper = MakeHolder[TPythonStreamWrapper](python_stream_read_func, <PyObject*>stream)
         cdef TFullModel tmp_model
-        tmp_model.Load(&wrapper)
+        tmp_model.Load(wrapper.Get())
         self.__model.Swap(tmp_model)
 
     cpdef _load_model(self, model_file, format):
@@ -5972,18 +5972,16 @@ cpdef _library_init():
     LibraryInit()
 
 
-cpdef _set_file_stream(stream):
-    global current_file_stream
-    current_file_stream = stream
-
-
-cdef size_t python_stream_read_func(char* whereToWrite, size_t bufLen):
-    global current_file_stream
-    BUF_SIZE = 16 * 1024
-    cdef size_t total_read  = 0
+cdef size_t python_stream_read_func(char* whereToWrite, size_t bufLen, PyObject* stream, TString* errorMsg):
+    BUF_SIZE = 64 * 1024
+    cdef size_t total_read = 0
     while bufLen > 0:
         curr_read_size = min(BUF_SIZE, bufLen)
-        tmp_str = current_file_stream.read(curr_read_size)
+        try:
+            tmp_str = (<object>stream).read(curr_read_size)
+        except BaseException as e:
+            errorMsg[0] = to_arcadia_string(str(e))
+            return -1
         total_read += len(tmp_str)
         if len(tmp_str) == 0:
             return total_read
