@@ -42,7 +42,7 @@
 #include "message_lite.h"
 #include "repeated_field.h"
 #include "wire_format_lite.h"
-#include "io/coded_stream.h"
+#include <google/protobuf/io/coded_stream.h>
 #include "arenastring.h"
 
 

@@ -37,7 +37,7 @@
 #include <google/protobuf/stubs/once.h>
 #include "extension_set.h"
 #include "message_lite.h"
-#include "io/coded_stream.h"
+#include <google/protobuf/io/coded_stream.h>
 #include "wire_format_lite_inl.h"
 #include "repeated_field.h"
 #include <google/protobuf/stubs/map_util.h>

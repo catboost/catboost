@@ -35,7 +35,7 @@
 
 
 #if HAVE_ZLIB
-#include "io/gzip_stream.h"
+#include <google/protobuf/io/gzip_stream.h>
 
 #include <google/protobuf/stubs/common.h>
 #include <google/protobuf/stubs/logging.h>

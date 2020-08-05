@@ -31,8 +31,8 @@
 #include <google/protobuf/util/json_util.h>
 
 #include <google/protobuf/stubs/common.h>
-#include "io/coded_stream.h"
-#include "io/zero_copy_stream.h"
+#include <google/protobuf/io/coded_stream.h>
+#include <google/protobuf/io/zero_copy_stream.h>
 #include <google/protobuf/util/internal/default_value_objectwriter.h>
 #include <google/protobuf/util/internal/error_listener.h>
 #include <google/protobuf/util/internal/json_objectwriter.h>
