@@ -34,6 +34,12 @@
 
 static const char MODEL_FILE_DESCRIPTOR_CHARS[4] = {'C', 'B', 'M', '1'};
 
+static void ReferenceMainFactoryRegistrators() {
+    // We HAVE TO manually reference some pointers to make factory registrators work. Blessed static linking!
+    CB_ENSURE(NCB::NModelEvaluation::CPUEvaluationBackendRegistratorPointer);
+    CB_ENSURE(NCB::BinaryModelLoaderRegistratorPointer);
+}
+
 static ui32 GetModelFormatDescriptor() {
     return *reinterpret_cast<const ui32*>(MODEL_FILE_DESCRIPTOR_CHARS);
 }
@@ -54,6 +60,7 @@ bool IsDeserializableModelFormat(EModelType format) {
 }
 
 static void CheckFormat(EModelType format) {
+    ReferenceMainFactoryRegistrators();
     CB_ENSURE(
         NCB::TModelLoaderFactory::Has(format),
         "Model format " << format << " deserialization not supported or missing. Link with catboost/libs/model/model_export if you need CoreML or JSON"
@@ -1040,6 +1047,7 @@ void TFullModel::DefaultFullModelInit(const NCatBoostFbs::TModelCore* fbModelCor
 }
 
 void TFullModel::Load(IInputStream* s) {
+    ReferenceMainFactoryRegistrators();
     using namespace flatbuffers;
     using namespace NCatBoostFbs;
     ui32 fileDescriptor;

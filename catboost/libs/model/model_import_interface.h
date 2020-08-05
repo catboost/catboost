@@ -31,4 +31,6 @@ namespace NCB {
     };
 
     using TModelLoaderFactory = NObjectFactory::TParametrizedObjectFactory<IModelLoader, EModelType>;
+
+    extern void* BinaryModelLoaderRegistratorPointer;
 }

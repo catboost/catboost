@@ -17,6 +17,8 @@ namespace NCB {
 
     NCB::TModelLoaderFactory::TRegistrator<TBinaryModelLoader> BinaryModelLoaderRegistrator(EModelType::CatboostBinary);
 
+    void* BinaryModelLoaderRegistratorPointer = &BinaryModelLoaderRegistrator;
+
 #ifndef CATBOOST_NO_PARAMS_CHECK_ON_LOAD
     static NJson::TJsonValue RemoveInvalidParams(const NJson::TJsonValue& params) {
         try {
