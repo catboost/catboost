@@ -1058,7 +1058,7 @@ void TFullModel::Load(IInputStream* s) {
     s->LoadOrFail(arrayHolder.Get(), coreSize);
 
     {
-        flatbuffers::Verifier verifier(arrayHolder.Get(), coreSize);
+        flatbuffers::Verifier verifier(arrayHolder.Get(), coreSize, 64 /* max depth */, 256000000 /* max tables */);
         CB_ENSURE(VerifyTModelCoreBuffer(verifier), "Flatbuffers model verification failed");
     }
     auto fbModelCore = GetTModelCore(arrayHolder.Get());
@@ -1114,7 +1114,7 @@ void TFullModel::InitNonOwning(const void* binaryBuffer, size_t binarySize) {
     }
 
     {
-        flatbuffers::Verifier verifier(fbPtr, coreSize);
+        flatbuffers::Verifier verifier(fbPtr, coreSize, 64 /* max depth */, 256000000 /* max tables */);
         CB_ENSURE(VerifyTModelCoreBuffer(verifier), "Flatbuffers model verification failed");
     }
 
