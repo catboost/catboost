@@ -72,8 +72,8 @@
                                 <argument>--no-src-links</argument>
                                 <argument>-DOS_SDK=local</argument>
                                 <argument>-DHAVE_CUDA=no</argument>
-                                <argument>-DUSE_SYSTEM_JDK=${java.home}</argument>
-                                <argument>-DJAVA_HOME=${java.home}</argument>>
+                                <argument>-DUSE_SYSTEM_JDK=${JAVA_HOME}</argument>
+                                <argument>-DJAVA_HOME=${JAVA_HOME}</argument>>
                             </arguments>
                             <workingDirectory>${user.dir}</workingDirectory>
                         </configuration>
