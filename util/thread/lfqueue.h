@@ -306,7 +306,7 @@ public:
                 newRoot = new TRootNode;
             AtomicSet(newRoot->PushQueue, nullptr);
             listInvertor.DoCopy(AtomicGet(curRoot->PushQueue));
-            newRoot->PopQueue = listInvertor.Copy;
+            AtomicSet(newRoot->PopQueue, listInvertor.Copy);
             newRoot->CopyCounter(curRoot);
             Y_ASSERT(AtomicGet(curRoot->PopQueue) == nullptr);
             if (AtomicCas(&JobQueue, newRoot, curRoot)) {
