@@ -31,6 +31,9 @@ def onlarge_files(unit, *args):
         else:
             out_file = strip_roots(os.path.join(unit.path(), arg))
             external = "{}.{}".format(arg, PLACEHOLDER_EXT)
-            unit.on_from_external([external, out_file, 'OUT_NOAUTO', arg])
+            from_external_cmd = [external, out_file, 'OUT_NOAUTO', arg]
+            if os.path.dirname(arg):
+                from_external_cmd.extend(("RENAME", os.path.basename(arg)))
+            unit.on_from_external(from_external_cmd)
             unit.onadd_check(['check.external', external])
 
