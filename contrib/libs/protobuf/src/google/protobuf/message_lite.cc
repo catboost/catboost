@@ -35,10 +35,10 @@
 
 #include <climits>
 
-#include "arena.h"
-#include "generated_message_util.h"
-#include "message_lite.h"
-#include "repeated_field.h"
+#include <google/protobuf/arena.h>
+#include <google/protobuf/generated_message_util.h>
+#include <google/protobuf/message_lite.h>
+#include <google/protobuf/repeated_field.h>
 #include <google/protobuf/stubs/logging.h>
 #include <google/protobuf/stubs/common.h>
 #include <google/protobuf/io/coded_stream.h>

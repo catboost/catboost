@@ -45,8 +45,8 @@
 #endif
 #include <vector>
 
-#include "message.h"
-#include "repeated_field.h"
+#include <google/protobuf/message.h>
+#include <google/protobuf/repeated_field.h>
 #include <google/protobuf/stubs/common.h>
 #include <google/protobuf/stubs/mutex.h>
 

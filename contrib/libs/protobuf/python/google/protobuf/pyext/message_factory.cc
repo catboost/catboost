@@ -30,7 +30,7 @@
 
 #include <Python.h>
 
-#include "dynamic_message.h"
+#include <google/protobuf/dynamic_message.h>
 #include "pyext/descriptor.h"
 #include "pyext/message.h"
 #include "pyext/message_factory.h"

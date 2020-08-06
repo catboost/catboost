@@ -114,13 +114,13 @@
 #include <google/protobuf/stubs/type_traits.h>
 #include <vector>
 
-#include "arena.h"
-#include "message_lite.h"
+#include <google/protobuf/arena.h>
+#include <google/protobuf/message_lite.h>
 
 #include <google/protobuf/stubs/common.h>
-#include "descriptor.h"
+#include <google/protobuf/descriptor.h>
 
-#include "json_util.h"
+#include <google/protobuf/json_util.h>
 #include "messagext_lite.h"
 
 #define GOOGLE_PROTOBUF_HAS_ONEOF

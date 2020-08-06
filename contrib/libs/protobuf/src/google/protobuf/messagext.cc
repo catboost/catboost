@@ -1,7 +1,7 @@
 #include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 #include "messagext.h"
-#include "messageint.h"
+#include <google/protobuf/messageint.h>
 
 #include <util/ysaveload.h>
 #include <util/generic/yexception.h>

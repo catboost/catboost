@@ -39,7 +39,7 @@
 #define GOOGLE_PROTOBUF_METADATA_H__
 
 #include "metadata_lite.h"
-#include "unknown_field_set.h"
+#include <google/protobuf/unknown_field_set.h>
 
 namespace google {
 namespace protobuf {

@@ -32,7 +32,7 @@
 //  Based on original Protocol Buffers design by
 //  Sanjay Ghemawat, Jeff Dean, and others.
 
-#include "wire_format_lite_inl.h"
+#include <google/protobuf/wire_format_lite_inl.h>
 
 #ifdef __SSE_4_1__
 #include <immintrin.h>

@@ -35,8 +35,8 @@
   #pragma GCC system_header
 #endif
 
-#include "arena.h"
-#include "wire_format_lite_inl.h"
+#include <google/protobuf/arena.h>
+#include <google/protobuf/wire_format_lite_inl.h>
 
 namespace google {
 namespace protobuf {

@@ -36,22 +36,22 @@
 #include <stack>
 #include <google/protobuf/stubs/hash.h>
 
-#include "message.h"
+#include <google/protobuf/message.h>
 #include "messagext.h"
 
 #include <google/protobuf/stubs/logging.h>
 #include <google/protobuf/stubs/common.h>
 #include <google/protobuf/stubs/mutex.h>
 #include <google/protobuf/stubs/once.h>
-#include "reflection_internal.h"
+#include <google/protobuf/reflection_internal.h>
 #include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 #include <google/protobuf/descriptor.pb.h>
-#include "descriptor.h"
-#include "generated_message_util.h"
-#include "map_field.h"
-#include "reflection_ops.h"
-#include "wire_format.h"
+#include <google/protobuf/descriptor.h>
+#include <google/protobuf/generated_message_util.h>
+#include <google/protobuf/map_field.h>
+#include <google/protobuf/reflection_ops.h>
+#include <google/protobuf/wire_format.h>
 #include <google/protobuf/stubs/strutil.h>
 #include <google/protobuf/stubs/map_util.h>
 #include <google/protobuf/stubs/singleton.h>

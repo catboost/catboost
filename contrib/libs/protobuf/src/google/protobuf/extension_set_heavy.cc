@@ -37,12 +37,12 @@
 
 #include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
-#include "descriptor.h"
-#include "extension_set.h"
-#include "message.h"
-#include "repeated_field.h"
-#include "wire_format.h"
-#include "wire_format_lite_inl.h"
+#include <google/protobuf/descriptor.h>
+#include <google/protobuf/extension_set.h>
+#include <google/protobuf/message.h>
+#include <google/protobuf/repeated_field.h>
+#include <google/protobuf/wire_format.h>
+#include <google/protobuf/wire_format_lite_inl.h>
 
 namespace google {
 

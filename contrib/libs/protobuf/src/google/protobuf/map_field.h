@@ -34,15 +34,15 @@
 #include <google/protobuf/stubs/atomicops.h>
 #include <google/protobuf/stubs/mutex.h>
 #include <google/protobuf/stubs/common.h>
-#include "generated_message_reflection.h"
-#include "arena.h"
-#include "descriptor.h"
-#include "map_entry.h"
-#include "map_field_lite.h"
+#include <google/protobuf/generated_message_reflection.h>
+#include <google/protobuf/arena.h>
+#include <google/protobuf/descriptor.h>
+#include <google/protobuf/map_entry.h>
+#include <google/protobuf/map_field_lite.h>
 #include "map_type_handler.h"
-#include "message.h"
-#include "repeated_field.h"
-#include "unknown_field_set.h"
+#include <google/protobuf/message.h>
+#include <google/protobuf/repeated_field.h>
+#include <google/protobuf/unknown_field_set.h>
 
 
 namespace google {

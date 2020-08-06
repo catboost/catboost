@@ -71,19 +71,19 @@
 
 #include <google/protobuf/stubs/common.h>
 
-#include "dynamic_message.h"
-#include "descriptor.h"
+#include <google/protobuf/dynamic_message.h>
+#include <google/protobuf/descriptor.h>
 #include <google/protobuf/descriptor.pb.h>
-#include "generated_message_util.h"
-#include "generated_message_reflection.h"
+#include <google/protobuf/generated_message_util.h>
+#include <google/protobuf/generated_message_reflection.h>
 #include "arenastring.h"
-#include "extension_set.h"
-#include "map_field.h"
-#include "map_field_inl.h"
+#include <google/protobuf/extension_set.h>
+#include <google/protobuf/map_field.h>
+#include <google/protobuf/map_field_inl.h>
 #include "map_type_handler.h"
-#include "reflection_ops.h"
-#include "repeated_field.h"
-#include "wire_format.h"
+#include <google/protobuf/reflection_ops.h>
+#include <google/protobuf/repeated_field.h>
+#include <google/protobuf/wire_format.h>
 
 
 namespace google {

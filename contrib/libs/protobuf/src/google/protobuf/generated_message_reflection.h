@@ -43,11 +43,11 @@
 #include <google/protobuf/stubs/common.h>
 // TODO(jasonh): Remove this once the compiler change to directly include this
 // is released to components.
-#include "generated_enum_reflection.h"
-#include "generated_message_util.h"
-#include "message.h"
-#include "metadata.h"
-#include "unknown_field_set.h"
+#include <google/protobuf/generated_enum_reflection.h>
+#include <google/protobuf/generated_message_util.h>
+#include <google/protobuf/message.h>
+#include <google/protobuf/metadata.h>
+#include <google/protobuf/unknown_field_set.h>
 
 
 namespace google {

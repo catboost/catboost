@@ -39,9 +39,9 @@
 #include <google/protobuf/stubs/time.h>
 #include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
-#include "descriptor.h"
-#include "wire_format.h"
-#include "wire_format_lite.h"
+#include <google/protobuf/descriptor.h>
+#include <google/protobuf/wire_format.h>
+#include <google/protobuf/wire_format_lite.h>
 #include <google/protobuf/util/internal/field_mask_utility.h>
 #include <google/protobuf/util/internal/constants.h>
 #include <google/protobuf/util/internal/utility.h>

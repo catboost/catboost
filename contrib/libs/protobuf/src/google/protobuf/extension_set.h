@@ -47,7 +47,7 @@
 #include <google/protobuf/stubs/logging.h>
 #include <google/protobuf/stubs/once.h>
 
-#include "repeated_field.h"
+#include <google/protobuf/repeated_field.h>
 
 namespace google {
 
