@@ -70,18 +70,10 @@ class TLockFreeQueue: public TNonCopyable {
         }
     }
 
-//ya make uses version of clang for Mac OS X that does not support alignas with big widths 
-#ifndef __darwin__ 
     alignas(64) TRootNode* volatile JobQueue;
     alignas(64) volatile TAtomic FreememCounter;
     alignas(64) volatile TAtomic FreeingTaskCounter;
     alignas(64) TRootNode* volatile FreePtr;
-#else
-    TRootNode* volatile JobQueue;
-    volatile TAtomic FreememCounter;
-    volatile TAtomic FreeingTaskCounter;
-    TRootNode* volatile FreePtr;
-#endif
 
     void TryToFreeAsyncMemory() {
         TAtomic keepCounter = AtomicAdd(FreeingTaskCounter, 0);
