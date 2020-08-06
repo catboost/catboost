@@ -35,10 +35,10 @@
 #ifndef GOOGLE_PROTOBUF_COMPILER_JAVA_HELPERS_H__
 #define GOOGLE_PROTOBUF_COMPILER_JAVA_HELPERS_H__
 
-#include "compiler/java/java_context.h"
-#include "io/printer.h"
+#include <google/protobuf/compiler/java/java_context.h>
+#include <google/protobuf/io/printer.h>
 #include <google/protobuf/descriptor.pb.h>
-#include "descriptor.h"
+#include <google/protobuf/descriptor.h>
 
 namespace google {
 namespace protobuf {

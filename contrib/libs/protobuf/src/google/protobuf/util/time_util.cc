@@ -28,7 +28,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "util/time_util.h"
+#include <google/protobuf/util/time_util.h>
 
 #include <google/protobuf/stubs/time.h>
 #include <google/protobuf/stubs/int128.h>

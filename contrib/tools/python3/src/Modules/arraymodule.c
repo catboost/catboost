@@ -340,7 +340,7 @@ get_int_unless_float(PyObject *v)
                         "array item must be integer");
         return NULL;
     }
-    return (PyObject *)_PyLong_FromNbInt(v);
+    return _PyLong_FromNbIndexOrNbInt(v);
 }
 
 static int
@@ -1136,7 +1136,7 @@ array_array_index(arrayobject *self, PyObject *v)
         cmp = PyObject_RichCompareBool(selfi, v, Py_EQ);
         Py_DECREF(selfi);
         if (cmp > 0) {
-            return PyLong_FromLong((long)i);
+            return PyLong_FromSsize_t(i);
         }
         else if (cmp < 0)
             return NULL;
@@ -1174,7 +1174,7 @@ static PyObject *
 array_array_remove(arrayobject *self, PyObject *v)
 /*[clinic end generated code: output=bef06be9fdf9dceb input=0b1e5aed25590027]*/
 {
-    int i;
+    Py_ssize_t i;
 
     for (i = 0; i < Py_SIZE(self); i++) {
         PyObject *selfi;
@@ -2029,7 +2029,7 @@ array__array_reconstructor_impl(PyObject *module, PyTypeObject *arraytype,
     switch (mformat_code) {
     case IEEE_754_FLOAT_LE:
     case IEEE_754_FLOAT_BE: {
-        int i;
+        Py_ssize_t i;
         int le = (mformat_code == IEEE_754_FLOAT_LE) ? 1 : 0;
         Py_ssize_t itemcount = Py_SIZE(items) / 4;
         const unsigned char *memstr =
@@ -2051,7 +2051,7 @@ array__array_reconstructor_impl(PyObject *module, PyTypeObject *arraytype,
     }
     case IEEE_754_DOUBLE_LE:
     case IEEE_754_DOUBLE_BE: {
-        int i;
+        Py_ssize_t i;
         int le = (mformat_code == IEEE_754_DOUBLE_LE) ? 1 : 0;
         Py_ssize_t itemcount = Py_SIZE(items) / 8;
         const unsigned char *memstr =
@@ -2106,7 +2106,7 @@ array__array_reconstructor_impl(PyObject *module, PyTypeObject *arraytype,
     case UNSIGNED_INT64_BE:
     case SIGNED_INT64_LE:
     case SIGNED_INT64_BE: {
-        int i;
+        Py_ssize_t i;
         const struct mformatdescr mf_descr =
             mformat_descriptors[mformat_code];
         Py_ssize_t itemcount = Py_SIZE(items) / mf_descr.size;
@@ -2635,6 +2635,11 @@ array_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     if (!PyArg_ParseTuple(args, "C|O:array", &c, &initial))
         return NULL;
 
+    if (PySys_Audit("array.__new__", "CO",
+                    c, initial ? initial : Py_None) < 0) {
+        return NULL;
+    }
+
     if (initial && c != 'u') {
         if (PyUnicode_Check(initial)) {
             PyErr_Format(PyExc_TypeError, "cannot use a str to initialize "
@@ -2779,26 +2784,26 @@ the type of objects stored in them is constrained. The type is specified\n\
 at object creation time by using a type code, which is a single character.\n\
 The following type codes are defined:\n\
 \n\
-    Type code   C Type             Minimum size in bytes \n\
-    'b'         signed integer     1 \n\
-    'B'         unsigned integer   1 \n\
-    'u'         Unicode character  2 (see note) \n\
-    'h'         signed integer     2 \n\
-    'H'         unsigned integer   2 \n\
-    'i'         signed integer     2 \n\
-    'I'         unsigned integer   2 \n\
-    'l'         signed integer     4 \n\
-    'L'         unsigned integer   4 \n\
-    'q'         signed integer     8 (see note) \n\
-    'Q'         unsigned integer   8 (see note) \n\
-    'f'         floating point     4 \n\
-    'd'         floating point     8 \n\
+    Type code   C Type             Minimum size in bytes\n\
+    'b'         signed integer     1\n\
+    'B'         unsigned integer   1\n\
+    'u'         Unicode character  2 (see note)\n\
+    'h'         signed integer     2\n\
+    'H'         unsigned integer   2\n\
+    'i'         signed integer     2\n\
+    'I'         unsigned integer   2\n\
+    'l'         signed integer     4\n\
+    'L'         unsigned integer   4\n\
+    'q'         signed integer     8 (see note)\n\
+    'Q'         unsigned integer   8 (see note)\n\
+    'f'         floating point     4\n\
+    'd'         floating point     8\n\
 \n\
-NOTE: The 'u' typecode corresponds to Python's unicode character. On \n\
+NOTE: The 'u' typecode corresponds to Python's unicode character. On\n\
 narrow builds this is 2-bytes on wide builds this is 4-bytes.\n\
 \n\
-NOTE: The 'q' and 'Q' type codes are only available if the platform \n\
-C compiler used to build Python supports 'long long', or, on Windows, \n\
+NOTE: The 'q' and 'Q' type codes are only available if the platform\n\
+C compiler used to build Python supports 'long long', or, on Windows,\n\
 '__int64'.\n\
 \n\
 Methods:\n\
@@ -2834,10 +2839,10 @@ static PyTypeObject Arraytype = {
     sizeof(arrayobject),
     0,
     (destructor)array_dealloc,                  /* tp_dealloc */
-    0,                                          /* tp_print */
+    0,                                          /* tp_vectorcall_offset */
     0,                                          /* tp_getattr */
     0,                                          /* tp_setattr */
-    0,                                          /* tp_reserved */
+    0,                                          /* tp_as_async */
     (reprfunc)array_repr,                       /* tp_repr */
     0,                                          /* tp_as_number*/
     &array_as_sequence,                         /* tp_as_sequence*/
@@ -2945,7 +2950,8 @@ static PyObject *
 array_arrayiterator___reduce___impl(arrayiterobject *self)
 /*[clinic end generated code: output=7898a52e8e66e016 input=a062ea1e9951417a]*/
 {
-    PyObject *func = _PyObject_GetBuiltin("iter");
+    _Py_IDENTIFIER(iter);
+    PyObject *func = _PyEval_GetBuiltinId(&PyId_iter);
     if (self->ao == NULL) {
         return Py_BuildValue("N(())", func);
     }
@@ -2989,10 +2995,10 @@ static PyTypeObject PyArrayIter_Type = {
     0,                                      /* tp_itemsize */
     /* methods */
     (destructor)arrayiter_dealloc,              /* tp_dealloc */
-    0,                                      /* tp_print */
+    0,                                      /* tp_vectorcall_offset */
     0,                                      /* tp_getattr */
     0,                                      /* tp_setattr */
-    0,                                      /* tp_reserved */
+    0,                                      /* tp_as_async */
     0,                                      /* tp_repr */
     0,                                      /* tp_as_number */
     0,                                      /* tp_as_sequence */
@@ -3036,9 +3042,15 @@ array_modexec(PyObject *m)
     Py_TYPE(&PyArrayIter_Type) = &PyType_Type;
 
     Py_INCREF((PyObject *)&Arraytype);
-    PyModule_AddObject(m, "ArrayType", (PyObject *)&Arraytype);
+    if (PyModule_AddObject(m, "ArrayType", (PyObject *)&Arraytype) < 0) {
+        Py_DECREF((PyObject *)&Arraytype);
+        return -1;
+    }
     Py_INCREF((PyObject *)&Arraytype);
-    PyModule_AddObject(m, "array", (PyObject *)&Arraytype);
+    if (PyModule_AddObject(m, "array", (PyObject *)&Arraytype) < 0) {
+        Py_DECREF((PyObject *)&Arraytype);
+        return -1;
+    }
 
     for (descr=descriptors; descr->typecode != '\0'; descr++) {
         size++;
@@ -3049,13 +3061,11 @@ array_modexec(PyObject *m)
         *p++ = (char)descr->typecode;
     }
     typecodes = PyUnicode_DecodeASCII(buffer, p - buffer, NULL);
-
-    PyModule_AddObject(m, "typecodes", typecodes);
-
-    if (PyErr_Occurred()) {
-        Py_DECREF(m);
-        m = NULL;
+    if (PyModule_AddObject(m, "typecodes", typecodes) < 0) {
+        Py_XDECREF(typecodes);
+        return -1;
     }
+
     return 0;
 }
 

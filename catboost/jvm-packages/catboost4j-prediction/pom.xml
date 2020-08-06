@@ -6,7 +6,7 @@
 
     <groupId>ai.catboost</groupId>
     <artifactId>catboost-prediction</artifactId>
-    <version>0.23.2</version>
+    <version>0.24</version>
     <packaging>jar</packaging>
     <name>CatBoost model applier</name>
     <description>Java module to apply CatBoost models</description>
@@ -64,14 +64,16 @@
                         <configuration>
                             <executable>python</executable>
                             <arguments>
-                                <argument>src/native/build_for_maven.py</argument>
+                                <argument>${basedir}/../tools/build_native_for_maven.py</argument>
+                                <argument>${basedir}</argument>
+                                <argument>catboost4j-prediction</argument>
                                 <argument>--build</argument>
                                 <argument>release</argument>
                                 <argument>--no-src-links</argument>
                                 <argument>-DOS_SDK=local</argument>
                                 <argument>-DHAVE_CUDA=no</argument>
-                                <argument>-DUSE_SYSTEM_JDK=yes</argument>
-                                <argument>-DJAVA_HOME=${java.home}</argument>>
+                                <argument>-DUSE_SYSTEM_JDK=${JAVA_HOME}</argument>
+                                <argument>-DJAVA_HOME=${JAVA_HOME}</argument>>
                             </arguments>
                             <workingDirectory>${user.dir}</workingDirectory>
                         </configuration>
@@ -184,6 +186,12 @@
             <artifactId>slf4j-jdk14</artifactId>
             <version>1.7.25</version>
             <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>ai.catboost</groupId>
+            <artifactId>catboost-common</artifactId>
+            <version>0.24</version>
         </dependency>
     </dependencies>
 </project>

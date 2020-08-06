@@ -2,7 +2,6 @@
 #include "base_text_feature_estimator.h"
 
 #include <catboost/private/libs/text_features/text_feature_calcers.h>
-#include <catboost/private/libs/text_processing/embedding.h>
 
 #include <catboost/private/libs/options/enum_helpers.h>
 #include <catboost/private/libs/options/json_helper.h>
@@ -63,67 +62,6 @@ namespace {
         TBM25Visitor CreateCalcerVisitor() const override {
             return TBM25Visitor();
         };
-    };
-
-    class TEmbeddingOnlineFeaturesEstimator final:
-        public TTextBaseEstimator<TEmbeddingOnlineFeatures, TEmbeddingFeaturesVisitor> {
-    public:
-        TEmbeddingOnlineFeaturesEstimator(
-            TEmbeddingPtr embedding,
-            TTextClassificationTargetPtr target,
-            TTextDataSetPtr learnTexts,
-            TArrayRef<TTextDataSetPtr> testText,
-            const TSet<EFeatureCalcerType>& enabledTypes)
-            : TTextBaseEstimator(std::move(target), std::move(learnTexts), std::move(testText))
-            , Embedding(std::move(embedding))
-            , ComputeCosDistance(enabledTypes.contains(EFeatureCalcerType::CosDistanceWithClassCenter))
-            , ComputeGaussianHomoscedatic(enabledTypes.contains(EFeatureCalcerType::GaussianHomoscedasticModel))
-            , ComputeGaussianHeteroscedatic(enabledTypes.contains(EFeatureCalcerType::GaussianHeteroscedasticModel))
-        {}
-
-        TEstimatedFeaturesMeta FeaturesMeta() const override {
-            TEstimatedFeaturesMeta meta;
-            meta.FeaturesCount = TEmbeddingOnlineFeatures::BaseFeatureCount(
-                GetTarget().NumClasses,
-                ComputeCosDistance,
-                ComputeGaussianHomoscedatic,
-                ComputeGaussianHeteroscedatic
-            );
-
-            for (ui32 classIdx = 0; classIdx < GetTarget().NumClasses; ++classIdx) {
-                if (ComputeCosDistance) {
-                    meta.Type.push_back(EFeatureCalcerType::CosDistanceWithClassCenter);
-                }
-                if (ComputeGaussianHomoscedatic) {
-                    meta.Type.push_back(EFeatureCalcerType::GaussianHomoscedasticModel);
-                }
-                if (ComputeGaussianHeteroscedatic) {
-                    meta.Type.push_back(EFeatureCalcerType::GaussianHeteroscedasticModel);
-                }
-            }
-            return meta;
-        }
-
-        TEmbeddingOnlineFeatures CreateFeatureCalcer() const override {
-            return TEmbeddingOnlineFeatures(
-                Id(),
-                GetTarget().NumClasses,
-                Embedding,
-                ComputeCosDistance,
-                ComputeGaussianHomoscedatic,
-                ComputeGaussianHeteroscedatic
-            );
-        }
-
-        TEmbeddingFeaturesVisitor CreateCalcerVisitor() const override {
-            return TEmbeddingFeaturesVisitor(GetTarget().NumClasses, Embedding->Dim());
-        }
-
-    private:
-        TEmbeddingPtr Embedding;
-        bool ComputeCosDistance = false;
-        bool ComputeGaussianHomoscedatic = false;
-        bool ComputeGaussianHeteroscedatic = false;
     };
 
     class TBagOfWordsEstimator final : public IFeatureEstimator {
@@ -264,9 +202,8 @@ namespace {
     };
 }
 
-TVector<TOnlineFeatureEstimatorPtr> NCB::CreateEstimators(
+TVector<TOnlineFeatureEstimatorPtr> NCB::CreateTextEstimators(
     TConstArrayRef<NCatboostOptions::TFeatureCalcerDescription> featureCalcerDescription,
-    TEmbeddingPtr embedding,
     TTextClassificationTargetPtr target,
     TTextDataSetPtr learnTexts,
     TArrayRef<TTextDataSetPtr> testText) {
@@ -284,31 +221,13 @@ TVector<TOnlineFeatureEstimatorPtr> NCB::CreateEstimators(
     if (typesSet.contains(EFeatureCalcerType::BM25)) {
         estimators.push_back(new TBM25Estimator(target, learnTexts, testText));
     }
-    TSet<EFeatureCalcerType> embeddingEstimators = {
-        EFeatureCalcerType::GaussianHomoscedasticModel,
-        EFeatureCalcerType::GaussianHeteroscedasticModel,
-        EFeatureCalcerType::CosDistanceWithClassCenter
-    };
-
-    TSet<EFeatureCalcerType> enabledEmbeddingCalculators;
-    SetIntersection(
-        typesSet.begin(), typesSet.end(),
-        embeddingEstimators.begin(), embeddingEstimators.end(),
-        std::inserter(enabledEmbeddingCalculators, enabledEmbeddingCalculators.end()));
-
-    if (!enabledEmbeddingCalculators.empty()) {
-        estimators.push_back(new TEmbeddingOnlineFeaturesEstimator(embedding, target, learnTexts, testText, enabledEmbeddingCalculators));
-    }
     return estimators;
 }
 
-TVector<TFeatureEstimatorPtr> NCB::CreateEstimators(
+TVector<TFeatureEstimatorPtr> NCB::CreateTextEstimators(
     TConstArrayRef<NCatboostOptions::TFeatureCalcerDescription> featureCalcerDescription,
-    TEmbeddingPtr embedding,
     TTextDataSetPtr learnTexts,
     TArrayRef<TTextDataSetPtr> testText) {
-
-    Y_UNUSED(embedding);
 
     TVector<TFeatureEstimatorPtr> estimators;
     for (auto& calcerDescription: featureCalcerDescription) {

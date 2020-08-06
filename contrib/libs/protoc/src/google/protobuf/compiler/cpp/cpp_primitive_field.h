@@ -36,7 +36,7 @@
 #define GOOGLE_PROTOBUF_COMPILER_CPP_PRIMITIVE_FIELD_H__
 
 #include <map>
-#include "compiler/cpp/cpp_field.h"
+#include <google/protobuf/compiler/cpp/cpp_field.h>
 
 namespace google {
 namespace protobuf {

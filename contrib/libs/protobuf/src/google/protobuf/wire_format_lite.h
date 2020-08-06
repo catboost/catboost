@@ -43,7 +43,7 @@
 #include <google/protobuf/stubs/common.h>
 #include "repeated_field.h"
 #include "message_lite.h"
-#include "io/coded_stream.h"  // for CodedOutputStream::Varint32Size
+#include <google/protobuf/io/coded_stream.h>  // for CodedOutputStream::Varint32Size
 
 // mowgli@yandex-team.ru: temporarily disabled - so non-utf8 string values are still allowed.
 /*

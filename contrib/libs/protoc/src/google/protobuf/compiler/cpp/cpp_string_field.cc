@@ -32,9 +32,9 @@
 //  Based on original Protocol Buffers design by
 //  Sanjay Ghemawat, Jeff Dean, and others.
 
-#include "compiler/cpp/cpp_string_field.h"
-#include "compiler/cpp/cpp_helpers.h"
-#include "io/printer.h"
+#include <google/protobuf/compiler/cpp/cpp_string_field.h>
+#include <google/protobuf/compiler/cpp/cpp_helpers.h>
+#include <google/protobuf/io/printer.h>
 #include <google/protobuf/descriptor.pb.h>
 
 #include <google/protobuf/stubs/strutil.h>

@@ -63,8 +63,8 @@
 //
 // Based on http://www.pkware.com/documents/casestudies/APPNOTE.TXT
 
-#include "compiler/zip_writer.h"
-#include "io/coded_stream.h"
+#include <google/protobuf/compiler/zip_writer.h>
+#include <google/protobuf/io/coded_stream.h>
 
 namespace google {
 namespace protobuf {

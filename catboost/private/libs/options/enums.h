@@ -129,6 +129,8 @@ enum class ELossFunction {
     Huber,
     Tweedie,
 
+    RMSEWithUncertainty,
+
     /* multiclassification errors */
 
     MultiClass,
@@ -225,6 +227,7 @@ enum class EPredictionType {
     Class,
     RawFormulaVal,
     Exponent,
+    RMSEWithUncertainty,
     InternalRawFormulaVal
 };
 
@@ -343,10 +346,7 @@ enum class EFeatureCalcerType : ui32 {
     BoW,
     NaiveBayes,
     BM25,
-    CosDistanceWithClassCenter,
-    GaussianHomoscedasticModel,
-    GaussianHeteroscedasticModel,
-    EmbeddingDistanceToClass
+    LDA
 };
 
 enum class EAutoClassWeightsType {

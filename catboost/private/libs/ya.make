@@ -11,6 +11,7 @@ RECURSE(
     data_util/ut
     distributed
     documents_importance
+    embedding_features
     feature_estimator
     feature_estimator/ut
     functools

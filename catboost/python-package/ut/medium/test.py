@@ -1186,6 +1186,61 @@ def test_model_pickling(task_type):
     assert all(pred_new == pred)
 
 
+def test_save_load_equality(task_type):
+    output_model_path = test_output_path(OUTPUT_MODEL_PATH)
+    def check_load_from_stream(model):
+        cb_stream = CatBoost()
+        with open(output_model_path, 'rb') as stream:
+            cb_stream.load_model(stream=stream)
+        assert model == cb_stream
+
+    def check_load_from_string(model):
+        cb_blob = CatBoost()
+        cb_blob.load_model(blob=open(output_model_path, 'rb').read())
+        assert model == cb_blob
+
+    def fill_check_model(params, train_file, test_file, cd_file):
+        model, _ = fit_from_file(params, train_file, test_file, cd_file)
+        model.save_model(fname=output_model_path)
+        check_load_from_string(model)
+        check_load_from_stream(model)
+
+    fill_check_model({'iterations': 10, 'task_type': task_type, 'devices': '0'}, TRAIN_FILE, TEST_FILE, CD_FILE)
+    fill_check_model({'loss_function': 'RMSE', 'iterations': 10}, HIGGS_TRAIN_FILE, HIGGS_TEST_FILE, HIGGS_CD_FILE)
+
+    params = {
+        'dictionaries': [
+            {'dictionary_id': 'UniGram', 'token_level_type': 'Letter', 'occurrence_lower_bound': '1'},
+            {'dictionary_id': 'BiGram', 'token_level_type': 'Letter', 'occurrence_lower_bound': '1', 'gram_order': '2'},
+            {'dictionary_id': 'Word', 'occurrence_lower_bound': '1'},
+        ],
+        'feature_calcers': ['NaiveBayes', 'BoW'],
+        'iterations': 10,
+        'loss_function': 'MultiClass',
+        'task_type': task_type,
+        'devices': '0'
+    }
+    fill_check_model(params, ROTTEN_TOMATOES_TRAIN_FILE, ROTTEN_TOMATOES_TEST_FILE, ROTTEN_TOMATOES_CD_FILE)
+
+
+def test_load_model_incorrect_argument(task_type):
+    with pytest.raises(CatBoostError):
+        cb = CatBoost()
+        cb.load_model()
+
+    with pytest.raises(AssertionError):
+        cb = CatBoost()
+        cb.load_model(blob=42)
+
+    with pytest.raises(AssertionError):
+        cb = CatBoost()
+        cb.load_model(blob=u"✓ means check")
+
+    with pytest.raises(CatBoostError):
+        cb = CatBoost()
+        cb.load_model(stream=24)
+
+
 def test_fit_from_file(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoost({'iterations': 2, 'loss_function': 'RMSE', 'task_type': task_type, 'devices': '0'})
@@ -1237,7 +1292,7 @@ def fit_from_file(params, learn_file, test_file, cd_file):
     model = CatBoost(params)
     model.fit(learn_pool)
 
-    return model.predict(test_pool)
+    return model, model.predict(test_pool)
 
 
 def test_fit_with_texts(task_type):
@@ -1259,7 +1314,7 @@ def test_fit_with_texts(task_type):
     cd = ROTTEN_TOMATOES_CD_FILE
 
     preds1 = fit_from_df(params, learn, test, cd)
-    preds2 = fit_from_file(params, learn, test, cd)
+    _, preds2 = fit_from_file(params, learn, test, cd)
 
     assert np.all(preds1 == preds2)
 
@@ -4699,6 +4754,47 @@ def test_eval_set_with_nans(task_type):
     model.fit(train_pool, eval_set=test_pool)
 
 
+def test_model_sum_and_init_with_differing_nan_processing_strategy(task_type):
+    prng = np.random.RandomState(seed=20200803)
+    features = prng.random_sample((10, 200))
+    labels = prng.random_sample((10,))
+    features_with_nans = features.copy()
+    np.putmask(features_with_nans, features_with_nans < 0.5, np.nan)
+    no_nan_pool = Pool(features, label=labels)
+    nan_pool = Pool(features_with_nans, label=labels)
+    def make_model(nan_mode=None, init_model=None):
+        model = CatBoostRegressor(
+            iterations=10,
+            task_type=task_type,
+            devices='0',
+            nan_mode=nan_mode
+        )
+        if nan_mode == 'Forbidden':
+            model.fit(no_nan_pool, init_model=init_model)
+        else:
+            model.fit(nan_pool, init_model=init_model)
+        return model
+
+    model_as_is = make_model()
+    model_as_false = make_model('Min')
+    model_as_true = make_model('Max')
+    _ = sum_models([model_as_is, model_as_false])
+    _ = sum_models([model_as_false, model_as_false])
+
+    make_model('Min', init_model=model_as_is)
+    make_model('Forbidden', init_model=model_as_false)
+
+    # TODO(kirillovs): this could be relaxed after properly fixing binary features storage in model
+    with pytest.raises(CatBoostError):
+        sum_models([model_as_is, model_as_true])
+    with pytest.raises(CatBoostError):
+        sum_models([model_as_false, model_as_true])
+    with pytest.raises(CatBoostError):
+        make_model('AsIs', init_model=model_as_true)
+    with pytest.raises(CatBoostError):
+        make_model('AsTrue', init_model=model_as_false)
+
+
 def test_learning_rate_auto_set(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
@@ -5396,6 +5492,7 @@ class Metrics(object):
             'Poisson',
             'Quantile',
             'RMSE',
+            'RMSEWithUncertainty'
             'LogLinQuantile',
             'SMAPE',
             'R2',
@@ -5515,6 +5612,7 @@ class Metrics(object):
             'R2',
             'Recall',
             'RMSE',
+            'RMSEWithUncertainty',
             'SMAPE',
             'TotalF1',
             'UserDefinedPerObject',
@@ -8013,14 +8111,24 @@ def test_log_proba():
     assert np.allclose(log_pred_1, log_pred_2)
 
 
-def test_exponent():
+def test_exponent_prediction_type():
     # poisson regression
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    classifier = CatBoostRegressor(iterations=2, objective='Poisson')
-    classifier.fit(pool)
-    pred = classifier.predict(pool, prediction_type='RawFormulaVal')
-    exp_pred = classifier.predict(pool)
+    regressor = CatBoostRegressor(iterations=2, objective='Poisson')
+    regressor.fit(pool)
+    pred = regressor.predict(pool, prediction_type='RawFormulaVal')
+    exp_pred = regressor.predict(pool)
     assert np.allclose(exp_pred, np.exp(pred))
+
+
+def test_rmse_with_uncertainty_prediction_type():
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    regressor = CatBoostRegressor(iterations=2, objective='RMSEWithUncertainty')
+    regressor.fit(pool)
+    pred = np.transpose(regressor.predict(pool, prediction_type='RawFormulaVal'))
+    exp_pred = np.transpose(regressor.predict(pool))
+    assert np.allclose(exp_pred[0], pred[0])
+    assert np.allclose(exp_pred[1], np.exp(pred[1]))
 
 
 def test_staged_log_proba():

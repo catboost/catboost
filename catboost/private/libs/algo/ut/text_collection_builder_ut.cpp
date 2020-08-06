@@ -11,7 +11,7 @@ using namespace NCB;
 using namespace NCatboostOptions;
 
 
-static void CreateEstimators(
+static void CreateTextEstimators(
     const TTextDigitizers& textDigitizers,
     TVector<NCBTest::TTokenizedTextFeature>&& tokenizedFeatures,
     TVector<ui32>&& target,
@@ -40,11 +40,9 @@ static void CreateEstimators(
             tokenizedFeatureId
         };
 
-        TEmbeddingPtr embeddingPtr;
         {
-            TVector<TFeatureEstimatorPtr> offlineEstimators = CreateEstimators(
+            TVector<TFeatureEstimatorPtr> offlineEstimators = CreateTextEstimators(
                 MakeConstArrayRef(tokenizedFeatureDescription.FeatureEstimators.Get()),
-                embeddingPtr,
                 learnTexts,
                 MakeArrayRef(testTexts)
             );
@@ -54,9 +52,8 @@ static void CreateEstimators(
             }
         }
         {
-            TVector<TOnlineFeatureEstimatorPtr> onlineEstimators = CreateEstimators(
+            TVector<TOnlineFeatureEstimatorPtr> onlineEstimators = CreateTextEstimators(
                 MakeConstArrayRef(tokenizedFeatureDescription.FeatureEstimators.Get()),
-                embeddingPtr,
                 textTarget,
                 learnTexts,
                 MakeArrayRef(testTexts)
@@ -94,7 +91,7 @@ static void CreateDataForTest(
     TRuntimeTextOptions runtimeTextOptions{xrange(textFeatures->size()), textProcessingOptions};
     const auto& tokenizedFeatureDescriptions = runtimeTextOptions.GetTokenizedFeatureDescriptions();
 
-    CreateEstimators(
+    CreateTextEstimators(
         *textDigitizers,
         std::move(tokenizedFeatures),
         std::move(target),

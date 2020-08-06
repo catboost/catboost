@@ -34,6 +34,12 @@
 
 static const char MODEL_FILE_DESCRIPTOR_CHARS[4] = {'C', 'B', 'M', '1'};
 
+static void ReferenceMainFactoryRegistrators() {
+    // We HAVE TO manually reference some pointers to make factory registrators work. Blessed static linking!
+    CB_ENSURE(NCB::NModelEvaluation::CPUEvaluationBackendRegistratorPointer);
+    CB_ENSURE(NCB::BinaryModelLoaderRegistratorPointer);
+}
+
 static ui32 GetModelFormatDescriptor() {
     return *reinterpret_cast<const ui32*>(MODEL_FILE_DESCRIPTOR_CHARS);
 }
@@ -54,6 +60,7 @@ bool IsDeserializableModelFormat(EModelType format) {
 }
 
 static void CheckFormat(EModelType format) {
+    ReferenceMainFactoryRegistrators();
     CB_ENSURE(
         NCB::TModelLoaderFactory::Has(format),
         "Model format " << format << " deserialization not supported or missing. Link with catboost/libs/model/model_export if you need CoreML or JSON"
@@ -1040,6 +1047,7 @@ void TFullModel::DefaultFullModelInit(const NCatBoostFbs::TModelCore* fbModelCor
 }
 
 void TFullModel::Load(IInputStream* s) {
+    ReferenceMainFactoryRegistrators();
     using namespace flatbuffers;
     using namespace NCatBoostFbs;
     ui32 fileDescriptor;
@@ -1050,7 +1058,7 @@ void TFullModel::Load(IInputStream* s) {
     s->LoadOrFail(arrayHolder.Get(), coreSize);
 
     {
-        flatbuffers::Verifier verifier(arrayHolder.Get(), coreSize);
+        flatbuffers::Verifier verifier(arrayHolder.Get(), coreSize, 64 /* max depth */, 256000000 /* max tables */);
         CB_ENSURE(VerifyTModelCoreBuffer(verifier), "Flatbuffers model verification failed");
     }
     auto fbModelCore = GetTModelCore(arrayHolder.Get());
@@ -1106,7 +1114,7 @@ void TFullModel::InitNonOwning(const void* binaryBuffer, size_t binarySize) {
     }
 
     {
-        flatbuffers::Verifier verifier(fbPtr, coreSize);
+        flatbuffers::Verifier verifier(fbPtr, coreSize, 64 /* max depth */, 256000000 /* max tables */);
         CB_ENSURE(VerifyTModelCoreBuffer(verifier), "Flatbuffers model verification failed");
     }
 
@@ -1146,6 +1154,12 @@ TVector<TString> GetModelUsedFeaturesNames(const TFullModel& model) {
         );
     }
     for (const TCatFeature& feature : forest.GetCatFeatures()) {
+        featuresIdxs.push_back(feature.Position.FlatIndex);
+        featuresNames.push_back(
+            feature.FeatureId == "" ? ToString(feature.Position.FlatIndex) : feature.FeatureId
+        );
+    }
+    for (const TTextFeature& feature : forest.GetTextFeatures()) {
         featuresIdxs.push_back(feature.Position.FlatIndex);
         featuresNames.push_back(
             feature.FeatureId == "" ? ToString(feature.Position.FlatIndex) : feature.FeatureId
@@ -1313,11 +1327,22 @@ namespace {
             );
             feature.FeatureId = other.FeatureId;
             if constexpr (std::is_same_v<TFeatureType, TFloatFeature>) {
-                CB_ENSURE(
-                    feature.NanValueTreatment == other.NanValueTreatment,
-                    "Nan value treatment differs: " << (int) feature.NanValueTreatment << " != " <<
-                    (int) other.NanValueTreatment
-                );
+                constexpr auto asFalse = TFloatFeature::ENanValueTreatment::AsFalse;
+                constexpr auto asIs = TFloatFeature::ENanValueTreatment::AsIs;
+                if (
+                    (feature.NanValueTreatment == asIs && other.NanValueTreatment == asFalse) ||
+                    (feature.NanValueTreatment == asFalse && other.NanValueTreatment == asIs)
+                    ) {
+                    // We can relax Nan treatmen comparison as nans within AsIs strategy are always treated like AsFalse
+                    // TODO(kirillovs): later implement splitted storage for float feautres with different Nan treatment
+                    feature.NanValueTreatment = asFalse;
+                } else {
+                    CB_ENSURE(
+                            feature.NanValueTreatment == other.NanValueTreatment,
+                            "Nan value treatment differs: " << (int) feature.NanValueTreatment << " != " <<
+                                                            (int) other.NanValueTreatment
+                    );
+                }
                 feature.HasNans |= other.HasNans;
             }
         }

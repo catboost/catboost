@@ -38,16 +38,14 @@ import os
 import urllib.parse
 from email.parser import FeedParser
 from email.message import Message
-from warnings import warn
 import html
 import locale
 import tempfile
 
-__all__ = ["MiniFieldStorage", "FieldStorage",
-           "parse", "parse_qs", "parse_qsl", "parse_multipart",
+__all__ = ["MiniFieldStorage", "FieldStorage", "parse", "parse_multipart",
            "parse_header", "test", "print_exception", "print_environ",
            "print_form", "print_directory", "print_arguments",
-           "print_environ_usage", "escape"]
+           "print_environ_usage"]
 
 # Logging support
 # ===============
@@ -183,21 +181,6 @@ def parse(fp=None, environ=os.environ, keep_blank_values=0, strict_parsing=0):
                                  encoding=encoding)
 
 
-# parse query string function called from urlparse,
-# this is done in order to maintain backward compatibility.
-
-def parse_qs(qs, keep_blank_values=0, strict_parsing=0):
-    """Parse a query given as a string argument."""
-    warn("cgi.parse_qs is deprecated, use urllib.parse.parse_qs instead",
-         DeprecationWarning, 2)
-    return urllib.parse.parse_qs(qs, keep_blank_values, strict_parsing)
-
-def parse_qsl(qs, keep_blank_values=0, strict_parsing=0):
-    """Parse a query given as a string argument."""
-    warn("cgi.parse_qsl is deprecated, use urllib.parse.parse_qsl instead",
-         DeprecationWarning, 2)
-    return urllib.parse.parse_qsl(qs, keep_blank_values, strict_parsing)
-
 def parse_multipart(fp, pdict, encoding="utf-8", errors="replace"):
     """Parse multipart input.
 
@@ -217,7 +200,10 @@ def parse_multipart(fp, pdict, encoding="utf-8", errors="replace"):
     ctype = "multipart/form-data; boundary={}".format(boundary)
     headers = Message()
     headers.set_type(ctype)
-    headers['Content-Length'] = pdict['CONTENT-LENGTH']
+    try:
+        headers['Content-Length'] = pdict['CONTENT-LENGTH']
+    except KeyError:
+        pass
     fs = FieldStorage(fp, headers=headers, encoding=encoding, errors=errors,
         environ={'REQUEST_METHOD': 'POST'})
     return {k: fs.getlist(k) for k in fs}
@@ -753,7 +739,8 @@ class FieldStorage:
         last_line_lfend = True
         _read = 0
         while 1:
-            if self.limit is not None and _read >= self.limit:
+
+            if self.limit is not None and 0 <= self.limit <= _read:
                 break
             line = self.fp.readline(1<<16) # bytes
             self.bytes_read += len(line)
@@ -992,18 +979,6 @@ environment as well.  Here are some common variable names:
 
 # Utilities
 # =========
-
-def escape(s, quote=None):
-    """Deprecated API."""
-    warn("cgi.escape is deprecated, use html.escape instead",
-         DeprecationWarning, stacklevel=2)
-    s = s.replace("&", "&amp;") # Must be done first!
-    s = s.replace("<", "&lt;")
-    s = s.replace(">", "&gt;")
-    if quote:
-        s = s.replace('"', "&quot;")
-    return s
-
 
 def valid_boundary(s):
     import re

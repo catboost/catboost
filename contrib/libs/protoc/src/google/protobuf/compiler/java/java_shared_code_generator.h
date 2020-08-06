@@ -42,7 +42,7 @@
 #include <vector>
 
 #include <google/protobuf/stubs/common.h>
-#include "compiler/java/java_options.h"
+#include <google/protobuf/compiler/java/java_options.h>
 
 namespace google {
 namespace protobuf {

@@ -36,6 +36,7 @@ namespace NCB {
                 isMultiTarget,
                 predictionType,
                 VisibleLabelsHelper,
+                lossFunctionName,
                 begin,
                 evalParameters.Get()
             );
@@ -80,6 +81,7 @@ namespace NCB {
         bool isMultiTarget,
         EPredictionType predictionType,
         const TExternalLabelsHelper& visibleLabelsHelper,
+        const TString& lossFunctionName,
         ui32 startTreeIndex,
         std::pair<size_t, size_t>* evalParameters) {
 
@@ -90,7 +92,16 @@ namespace NCB {
             TStringBuilder str;
             str << predictionType;
             if (classCount > 1) {
-                str << (isMultiTarget ?  ":Dim=" : ":Class=")  << visibleLabelsHelper.GetVisibleClassNameFromClass(classId);
+                if (FromString<ELossFunction>(lossFunctionName) == ELossFunction::RMSEWithUncertainty) {
+                    if (classId == 0) {
+                        str << "Mean";
+                    } else {
+                        str << (predictionType == EPredictionType::RMSEWithUncertainty ? "Std" : "Log(Std)");
+                    }
+                } else {
+                    str << (isMultiTarget ? ":Dim=" : ":Class=")
+                        << visibleLabelsHelper.GetVisibleClassNameFromClass(classId);
+                }
             }
             if (evalParameters && (evalParameters->first != evalParameters->second)) {
                 str << ":TreesCount=[" << startTreeIndex << "," <<

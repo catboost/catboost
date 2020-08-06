@@ -201,10 +201,21 @@ _MODULE_IDENTIFIER_RE = re.compile(r'^(?:\s*(\w+)\s*\.)?\s*(\w+)')
 
 class _InitVarMeta(type):
     def __getitem__(self, params):
-        return self
+        return InitVar(params)
 
 class InitVar(metaclass=_InitVarMeta):
-    pass
+    __slots__ = ('type', )
+
+    def __init__(self, type):
+        self.type = type
+
+    def __repr__(self):
+        if isinstance(self.type, type):
+            type_name = self.type.__name__
+        else:
+            # typing objects, e.g. List[int]
+            type_name = repr(self.type)
+        return f'dataclasses.InitVar[{type_name}]'
 
 
 # Instances of Field are only ever created from within this module,
@@ -592,7 +603,8 @@ def _is_classvar(a_type, typing):
 def _is_initvar(a_type, dataclasses):
     # The module we're checking against is the module we're
     # currently in (dataclasses.py).
-    return a_type is dataclasses.InitVar
+    return (a_type is dataclasses.InitVar
+            or type(a_type) is dataclasses.InitVar)
 
 
 def _is_type(annotation, cls, a_module, a_type, is_type_predicate):
@@ -981,10 +993,7 @@ def _process_class(cls, init, repr, eq, order, unsafe_hash, frozen):
     return cls
 
 
-# _cls should never be specified by keyword, so start it with an
-# underscore.  The presence of _cls is used to detect if this
-# decorator is being called with parameters or not.
-def dataclass(_cls=None, *, init=True, repr=True, eq=True, order=False,
+def dataclass(cls=None, /, *, init=True, repr=True, eq=True, order=False,
               unsafe_hash=False, frozen=False):
     """Returns the same class as was passed in, with dunder methods
     added based on the fields defined in the class.
@@ -1002,12 +1011,12 @@ def dataclass(_cls=None, *, init=True, repr=True, eq=True, order=False,
         return _process_class(cls, init, repr, eq, order, unsafe_hash, frozen)
 
     # See if we're being called as @dataclass or @dataclass().
-    if _cls is None:
+    if cls is None:
         # We're called with parens.
         return wrap
 
     # We're called as @dataclass without parens.
-    return wrap(_cls)
+    return wrap(cls)
 
 
 def fields(class_or_instance):
@@ -1083,7 +1092,7 @@ def _asdict_inner(obj, dict_factory):
         # method, because:
         # - it does not recurse in to the namedtuple fields and
         #   convert them to dicts (using dict_factory).
-        # - I don't actually want to return a dict here.  The the main
+        # - I don't actually want to return a dict here.  The main
         #   use case here is json.dumps, and it handles converting
         #   namedtuples to lists.  Admittedly we're losing some
         #   information here when we produce a json list instead of a
@@ -1242,6 +1251,9 @@ def replace(*args, **changes):
         obj, = args
     elif 'obj' in changes:
         obj = changes.pop('obj')
+        import warnings
+        warnings.warn("Passing 'obj' as keyword argument is deprecated",
+                      DeprecationWarning, stacklevel=2)
     else:
         raise TypeError("replace() missing 1 required positional argument: 'obj'")
 
@@ -1279,3 +1291,4 @@ def replace(*args, **changes):
     # changes that aren't fields, this will correctly raise a
     # TypeError.
     return obj.__class__(**changes)
+replace.__text_signature__ = '(obj, /, **kwargs)'

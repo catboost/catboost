@@ -37,10 +37,10 @@
 #include <limits>
 #include <vector>
 
-#include "compiler/java/java_helpers.h"
-#include "compiler/java/java_name_resolver.h"
+#include <google/protobuf/compiler/java/java_helpers.h>
+#include <google/protobuf/compiler/java/java_name_resolver.h>
 #include <google/protobuf/descriptor.pb.h>
-#include "wire_format.h"
+#include <google/protobuf/wire_format.h>
 #include <google/protobuf/stubs/strutil.h>
 #include <google/protobuf/stubs/substitute.h>
 

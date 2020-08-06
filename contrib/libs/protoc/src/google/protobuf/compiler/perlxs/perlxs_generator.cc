@@ -1,13 +1,13 @@
 #include <iostream>
 #include <sstream>
-#include "compiler/perlxs/perlxs_generator.h"
-#include "compiler/perlxs/perlxs_helpers.h"
-#include "descriptor.h"
+#include <google/protobuf/compiler/perlxs/perlxs_generator.h>
+#include <google/protobuf/compiler/perlxs/perlxs_helpers.h>
+#include <google/protobuf/descriptor.h>
 #include "google/protobuf/descriptor.pb.h"
 #include <google/protobuf/stubs/common.h>
-#include "io/printer.h"
-#include "descriptor.h"
-#include "io/zero_copy_stream.h"
+#include <google/protobuf/io/printer.h>
+#include <google/protobuf/descriptor.h>
+#include <google/protobuf/io/zero_copy_stream.h>
 
 namespace google {
 namespace protobuf {

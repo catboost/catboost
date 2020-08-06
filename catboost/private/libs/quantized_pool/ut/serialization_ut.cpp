@@ -5,7 +5,7 @@
 #include <library/cpp/testing/unittest/registar.h>
 
 #include <contrib/libs/flatbuffers/include/flatbuffers/flatbuffers.h>
-#include <contrib/libs/protobuf/util/message_differencer.h>
+#include <google/protobuf/util/message_differencer.h>
 
 #include <catboost/idl/pool/flat/quantized_chunk_t.fbs.h>
 #include <catboost/idl/pool/proto/quantization_schema.pb.h>

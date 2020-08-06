@@ -33,11 +33,13 @@ from cython.operator cimport dereference, preincrement
 
 from libc.math cimport isnan, modf
 from libc.stdint cimport uint32_t, uint64_t
+from libc.string cimport memcpy
 from libcpp cimport bool as bool_t
 from libcpp cimport nullptr
 from libcpp.map cimport map as cmap
 from libcpp.vector cimport vector
 from libcpp.pair cimport pair
+from cpython.ref cimport PyObject
 
 from util.generic.array_ref cimport TArrayRef, TConstArrayRef
 from util.generic.hash cimport THashMap
@@ -507,6 +509,7 @@ cdef extern from "catboost/private/libs/options/enums.h":
     cdef EPredictionType EPredictionType_LogProbability "EPredictionType::LogProbability"
     cdef EPredictionType EPredictionType_RawFormulaVal "EPredictionType::RawFormulaVal"
     cdef EPredictionType EPredictionType_Exponent "EPredictionType::Exponent"
+    cdef EPredictionType EPredictionType_RMSEWithUncertainty "EPredictionType::RMSEWithUncertainty"
 
     cdef cppclass EFstrType:
         pass
@@ -1110,6 +1113,7 @@ cdef extern from "catboost/libs/model/model.h":
         bool_t operator==(const TFullModel& other) except +ProcessException
         bool_t operator!=(const TFullModel& other) except +ProcessException
 
+        void Load(IInputStream* stream) except +ProcessException
         void Swap(TFullModel& other) except +ProcessException
         size_t GetTreeCount() nogil except +ProcessException
         size_t GetDimensionsCount() nogil except +ProcessException
@@ -1176,6 +1180,10 @@ cdef extern from "library/cpp/json/writer/json_value.h" namespace "NJson":
 cdef extern from "library/cpp/containers/2d_array/2d_array.h":
     cdef cppclass TArray2D[T]:
         T* operator[] (size_t index) const
+
+cdef extern from "util/stream/input.h":
+    cdef cppclass IInputStream:
+        size_t Read(void* buf, size_t len) except +ProcessException
 
 cdef extern from "util/system/info.h" namespace "NSystemInfo":
     cdef size_t CachedNumberOfCpus() except +ProcessException
@@ -1639,6 +1647,10 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
         bool_t hasCatFeatures,
         bool_t hasTextFeatures
     ) nogil except +ProcessException
+
+    cdef cppclass TPythonStreamWrapper(IInputStream):
+        ctypedef size_t (*TReadCallback)(char* target, size_t len, PyObject* stream, TString*)
+        TPythonStreamWrapper(TReadCallback readCallback, PyObject* stream) except +ProcessException
 
 cdef extern from "catboost/private/libs/quantized_pool_analysis/quantized_pool_analysis.h" namespace "NCB":
     cdef cppclass TBinarizedFeatureStatistics:
@@ -5066,6 +5078,12 @@ cdef class _CatBoost:
     cpdef _base_drop_unused_features(self):
         self.__model.ModelTrees.GetMutable().DropUnusedFeatures()
 
+    cpdef _load_from_stream(self, stream) except +ProcessException:
+        cdef THolder[TPythonStreamWrapper] wrapper = MakeHolder[TPythonStreamWrapper](python_stream_read_func, <PyObject*>stream)
+        cdef TFullModel tmp_model
+        tmp_model.Load(wrapper.Get())
+        self.__model.Swap(tmp_model)
+
     cpdef _load_model(self, model_file, format):
         cdef TFullModel tmp_model
         cdef EModelType modelType = string_to_model_type(format)
@@ -5953,6 +5971,25 @@ cpdef _configure_malloc():
 
 cpdef _library_init():
     LibraryInit()
+
+
+cdef size_t python_stream_read_func(char* whereToWrite, size_t bufLen, PyObject* stream, TString* errorMsg):
+    BUF_SIZE = 64 * 1024
+    cdef size_t total_read = 0
+    while bufLen > 0:
+        curr_read_size = min(BUF_SIZE, bufLen)
+        try:
+            tmp_str = (<object>stream).read(curr_read_size)
+        except BaseException as e:
+            errorMsg[0] = to_arcadia_string(str(e))
+            return -1
+        total_read += len(tmp_str)
+        if len(tmp_str) == 0:
+            return total_read
+        memcpy(whereToWrite, <char*>tmp_str, len(tmp_str))
+        whereToWrite += len(tmp_str)
+        bufLen -= len(tmp_str)
+    return total_read
 
 
 cpdef compute_wx_test(baseline, test):

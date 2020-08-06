@@ -28,6 +28,7 @@ SET(PYTHON3_LIB_SRCS
     asyncio/constants.py
     asyncio/coroutines.py
     asyncio/events.py
+    asyncio/exceptions.py
     asyncio/format_helpers.py
     asyncio/futures.py
     asyncio/locks.py
@@ -38,10 +39,12 @@ SET(PYTHON3_LIB_SRCS
     asyncio/runners.py
     asyncio/selector_events.py
     asyncio/sslproto.py
+    asyncio/staggered.py
     asyncio/streams.py
     asyncio/subprocess.py
     asyncio/tasks.py
     asyncio/transports.py
+    asyncio/trsock.py
     asyncio/unix_events.py
     asyncio/windows_events.py
     asyncio/windows_utils.py
@@ -207,7 +210,6 @@ SET(PYTHON3_LIB_SRCS
     encodings/cp424.py
     encodings/cp437.py
     encodings/cp500.py
-    encodings/cp65001.py
     encodings/cp720.py
     encodings/cp737.py
     encodings/cp775.py
@@ -294,7 +296,6 @@ SET(PYTHON3_LIB_SRCS
     encodings/tis_620.py
     encodings/undefined.py
     encodings/unicode_escape.py
-    encodings/unicode_internal.py
     encodings/utf_16.py
     encodings/utf_16_be.py
     encodings/utf_16_le.py
@@ -341,6 +342,7 @@ SET(PYTHON3_LIB_SRCS
     importlib/_bootstrap_external.py
     importlib/abc.py
     importlib/machinery.py
+    importlib/metadata.py
     importlib/resources.py
     importlib/util.py
     inspect.py
@@ -358,7 +360,6 @@ SET(PYTHON3_LIB_SRCS
     logging/config.py
     logging/handlers.py
     lzma.py
-    macpath.py
     mailbox.py
     mailcap.py
     mimetypes.py
@@ -384,7 +385,8 @@ SET(PYTHON3_LIB_SRCS
     multiprocessing/queues.py
     multiprocessing/reduction.py
     multiprocessing/resource_sharer.py
-    multiprocessing/semaphore_tracker.py
+    multiprocessing/resource_tracker.py
+    multiprocessing/shared_memory.py
     multiprocessing/sharedctypes.py
     multiprocessing/spawn.py
     multiprocessing/synchronize.py
@@ -472,6 +474,7 @@ SET(PYTHON3_LIB_SRCS
     types.py
     typing.py
     unittest/__init__.py
+    unittest/async_case.py
     unittest/case.py
     unittest/loader.py
     unittest/main.py
@@ -528,4 +531,5 @@ SET(PYTHON3_LIB_SRCS
     xmlrpc/server.py
     zipapp.py
     zipfile.py
+    zipimport.py
 )

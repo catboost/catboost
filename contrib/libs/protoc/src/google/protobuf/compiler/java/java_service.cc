@@ -32,13 +32,13 @@
 //  Based on original Protocol Buffers design by
 //  Sanjay Ghemawat, Jeff Dean, and others.
 
-#include "compiler/java/java_service.h"
+#include <google/protobuf/compiler/java/java_service.h>
 
-#include "compiler/java/java_context.h"
-#include "compiler/java/java_doc_comment.h"
-#include "compiler/java/java_helpers.h"
-#include "compiler/java/java_name_resolver.h"
-#include "io/printer.h"
+#include <google/protobuf/compiler/java/java_context.h>
+#include <google/protobuf/compiler/java/java_doc_comment.h>
+#include <google/protobuf/compiler/java/java_helpers.h>
+#include <google/protobuf/compiler/java/java_name_resolver.h>
+#include <google/protobuf/io/printer.h>
 #include <google/protobuf/stubs/strutil.h>
 
 namespace google {

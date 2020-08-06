@@ -35,8 +35,8 @@
 // Contains methods defined in extension_set.h which cannot be part of the
 // lite library because they use descriptors or reflection.
 
-#include "io/coded_stream.h"
-#include "io/zero_copy_stream_impl_lite.h"
+#include <google/protobuf/io/coded_stream.h>
+#include <google/protobuf/io/zero_copy_stream_impl_lite.h>
 #include "descriptor.h"
 #include "extension_set.h"
 #include "message.h"

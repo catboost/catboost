@@ -147,6 +147,9 @@ THolder<IDerCalcer> BuildError(
     switch (params.LossFunctionDescription->GetLossFunction()) {
         case ELossFunction::MultiRMSE:
             return MakeHolder<TMultiRMSEError>();
+        case ELossFunction::RMSEWithUncertainty: {
+            return MakeHolder<TRMSEWithUncertaintyError>();
+        }
         case ELossFunction::Logloss:
         case ELossFunction::CrossEntropy:
             return MakeHolder<TCrossEntropyError>(isStoreExpApprox);

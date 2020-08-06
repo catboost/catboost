@@ -42,9 +42,9 @@
 #include <google/protobuf/stubs/logging.h>
 #include <google/protobuf/stubs/common.h>
 #include <google/protobuf/stubs/stringprintf.h>
-#include "io/coded_stream_inl.h"
-#include "io/zero_copy_stream.h"
-#include "io/zero_copy_stream_impl_lite.h"
+#include <google/protobuf/io/coded_stream_inl.h>
+#include <google/protobuf/io/zero_copy_stream.h>
+#include <google/protobuf/io/zero_copy_stream_impl_lite.h>
 
 
 namespace google {

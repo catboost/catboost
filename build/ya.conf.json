@@ -5507,7 +5507,7 @@
         "ymake": {
             "formula": {
                 "sandbox_id": [
-                    733091006
+                    738661237
                 ],
                 "match": "ymake"
             },
@@ -5531,7 +5531,7 @@
         "arc": {
             "formula": {
                 "sandbox_id": [
-                    719061199
+                    740160289
                 ],
                 "match": "arc"
             },
@@ -5678,7 +5678,7 @@
         },
         "python": {
             "formula": {
-                "sandbox_id": 724201936,
+                "sandbox_id": 739011318,
                 "match": "Python"
             },
             "executable": {
@@ -6886,7 +6886,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 734191911,
+                "sandbox_id": 741456735,
                 "match": "horadric"
             },
             "executable": {
@@ -6897,7 +6897,7 @@
         },
         "logbroker": {
             "formula": {
-                "sandbox_id": 734192178,
+                "sandbox_id": 741456762,
                 "match": "logbroker"
             },
             "executable": {
@@ -6908,7 +6908,7 @@
         },
         "zcli": {
             "formula": {
-                "sandbox_id": 734331869,
+                "sandbox_id": 741518505,
                 "match": "zcli"
             },
             "executable": {
@@ -7180,7 +7180,7 @@
         "bpftrace": {
             "formula": {
                 "sandbox_id": [
-                    618519570
+                    734898487
                 ],
                 "match": "infra/kernel/tools/bpftrace/build/bpftrace-static.tar.gz"
             },
@@ -7325,7 +7325,7 @@
         },
         "sedem": {
             "formula": {
-                "sandbox_id": 725338861,
+                "sandbox_id": 741091797,
                 "match": "SEDEM archive"
             },
             "executable": {
@@ -7379,7 +7379,7 @@
         },
         "yadi": {
             "formula": {
-                "sandbox_id": 723880138,
+                "sandbox_id": 737277857,
                 "match": "yadi-arc"
             },
             "executable": {

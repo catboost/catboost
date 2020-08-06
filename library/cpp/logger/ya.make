@@ -1,6 +1,6 @@
+
+
 LIBRARY()
-
-
 
 GENERATE_ENUM_SERIALIZATION(priority.h)
 
@@ -22,3 +22,5 @@ SRCS(
 )
 
 END()
+
+RECURSE_FOR_TESTS(ut)

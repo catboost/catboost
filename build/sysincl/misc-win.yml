@@ -62,6 +62,10 @@
   - sys/wait.h:    contrib/libs/libpq/src/include/port/win32/sys/wait.h
   - win32.h:       contrib/libs/libpq/src/include/port/win32.h
 
-- source_fiter: "^contrib/libs/curl"
+- source_filter: "^contrib/libs/curl"
   includes:
   - nghttp2/nghttp2.h
+
+- includes:
+    - sys/queue.h:   contrib/libs/libc_compat/include/windows/sys/queue.h
+

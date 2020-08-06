@@ -72,6 +72,9 @@ def wrapper(*args, **kwds):
         func, *args = args
     elif 'func' in kwds:
         func = kwds.pop('func')
+        import warnings
+        warnings.warn("Passing 'func' as keyword argument is deprecated",
+                      DeprecationWarning, stacklevel=2)
     else:
         raise TypeError('wrapper expected at least 1 positional argument, '
                         'got %d' % len(args))
@@ -107,3 +110,4 @@ def wrapper(*args, **kwds):
             echo()
             nocbreak()
             endwin()
+wrapper.__text_signature__ = '(func, /, *args, **kwds)'

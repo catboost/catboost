@@ -1646,7 +1646,10 @@ class LD(Linker):
         self.ld_flags = []
 
         if self.build.is_size_optimized:
-            self.ld_flags.append('-Wl,--gc-sections')
+            if target.is_macos:
+                self.ld_flags.append('-Wl,-dead_strip')
+            elif target.is_linux or target.is_android:
+                self.ld_flags.append('-Wl,--gc-sections')
 
         if self.musl.value:
             self.ld_flags.extend(['-Wl,--no-as-needed'])
@@ -2635,10 +2638,10 @@ class Cuda(object):
         if host != target:
             return False
 
-        if self.cuda_version.value in ('9.0', '9.1', '9.2', '10.0', '10.1'):
-            return True
+        if self.cuda_version.value in ('8.0', '9.0', '9.1', '9.2'):
+            raise ConfigureError('CUDA versions 8.x and 9.x are no longer supported.\nSee DEVTOOLS-7108.')
 
-        if self.cuda_version.value == '8.0' and host.is_linux_x86_64:
+        if self.cuda_version.value in ('10.0', '10.1', '11.0'):
             return True
 
         return False

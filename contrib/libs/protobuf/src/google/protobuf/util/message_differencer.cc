@@ -36,7 +36,7 @@
 // Messages (see //google/protobuf/util/message_differencer.h for more
 // information).
 
-#include "util/message_differencer.h"
+#include <google/protobuf/util/message_differencer.h>
 
 #include <algorithm>
 #include <memory>
@@ -50,13 +50,13 @@
 #include <google/protobuf/stubs/logging.h>
 #include <google/protobuf/stubs/stringprintf.h>
 #include "any.h"
-#include "io/printer.h"
-#include "io/zero_copy_stream.h"
-#include "io/zero_copy_stream_impl.h"
+#include <google/protobuf/io/printer.h>
+#include <google/protobuf/io/zero_copy_stream.h>
+#include <google/protobuf/io/zero_copy_stream_impl.h>
 #include <google/protobuf/descriptor.pb.h>
 #include "dynamic_message.h"
 #include "text_format.h"
-#include "util/field_comparator.h"
+#include <google/protobuf/util/field_comparator.h>
 #include <google/protobuf/stubs/strutil.h>
 
 namespace google {

@@ -9,24 +9,25 @@
 #include <util/generic/string.h>
 #include <util/datetime/base.h>
 
+#include <utility>
+
 namespace NNeh {
     struct TMessage {
-        inline TMessage() {
-        }
+        TMessage() = default;
 
-        inline TMessage(const TString& addr, const TString& data)
-            : Addr(addr)
-            , Data(data)
+        inline TMessage(TString addr, TString data)
+            : Addr(std::move(addr))
+            , Data(std::move(data))
         {
         }
 
-        static TMessage FromString(const TString& request);
+        static TMessage FromString(TStringBuf request);
 
         TString Addr;
         TString Data;
     };
 
-    typedef TAutoPtr<TMessage> TMessageRef;
+    using TMessageRef = TAutoPtr<TMessage>;
 
     struct TError {
     public:
@@ -36,8 +37,8 @@ namespace NNeh {
             ProtocolSpecific
         };
 
-        TError(const TString& text, TType type = UnknownType, i32 code = 0, i32 systemCode = 0)
-            : Type(type)
+        TError(TString text, TType type = UnknownType, i32 code = 0, i32 systemCode = 0)
+            : Type(std::move(type))
             , Code(code)
             , Text(text)
             , SystemCode(systemCode)
@@ -49,66 +50,67 @@ namespace NNeh {
         TString Text;
         i32 SystemCode = 0; // system error code
     };
-    typedef TAutoPtr<TError> TErrorRef;
+
+    using TErrorRef = TAutoPtr<TError>;
 
     struct TResponse;
-    typedef TAutoPtr<TResponse> TResponseRef;
+    using TResponseRef = TAutoPtr<TResponse>;
 
     struct TResponse {
-        inline TResponse(const TMessage& req,
-                         const TString& data,
-                         const TDuration& duration)
-            : TResponse(req, data, duration, {} /* firstLine */, {} /* headers */, {} /* error */)
+        inline TResponse(TMessage req,
+                         TString data,
+                         const TDuration duration)
+            : TResponse(std::move(req), std::move(data), duration, {} /* firstLine */, {} /* headers */, {} /* error */)
         {
         }
 
-        inline TResponse(const TMessage& req,
-                         const TString& data,
-                         const TDuration& duration,
-                         const TString& firstLine,
-                         const THttpHeaders& headers)
-            : TResponse(req, data, duration, firstLine, headers, {} /* error */)
+        inline TResponse(TMessage req,
+                         TString data,
+                         const TDuration duration,
+                         TString firstLine,
+                         THttpHeaders headers)
+            : TResponse(std::move(req), std::move(data), duration, std::move(firstLine), std::move(headers), {} /* error */)
         {
         }
 
-        inline TResponse(const TMessage& req,
-                         const TString& data,
-                         const TDuration& duration,
-                         const TString& firstLine,
-                         const THttpHeaders& headers,
+        inline TResponse(TMessage req,
+                         TString data,
+                         const TDuration duration,
+                         TString firstLine,
+                         THttpHeaders headers,
                          TErrorRef error)
-            : Request(req)
-            , Data(data)
+            : Request(std::move(req))
+            , Data(std::move(data))
             , Duration(duration)
-            , FirstLine(firstLine)
-            , Headers(headers)
-            , Error_(error)
+            , FirstLine(std::move(firstLine))
+            , Headers(std::move(headers))
+            , Error_(std::move(error))
         {
         }
 
-        inline static TResponseRef FromErrorText(const TMessage& msg, const TString& error, const TDuration& duration) {
-            return new TResponse(msg, {} /* data */, duration, {} /* firstLine */, {} /* headers */, new TError(error));
+        inline static TResponseRef FromErrorText(TMessage msg, TString error, const TDuration duration) {
+            return new TResponse(std::move(msg), {} /* data */, duration, {} /* firstLine */, {} /* headers */, new TError(std::move(error)));
         }
 
-        inline static TResponseRef FromError(const TMessage& msg, TErrorRef error, const TDuration& duration) {
-            return new TResponse(msg, {} /* data */, duration, {} /* firstLine */, {} /* headers */, error);
+        inline static TResponseRef FromError(TMessage msg, TErrorRef error, const TDuration duration) {
+            return new TResponse(std::move(msg), {} /* data */, duration, {} /* firstLine */, {} /* headers */, error);
         }
 
-        inline static TResponseRef FromError(const TMessage& msg, TErrorRef error, const TDuration& duration,
-                                             const TString& data, const TString& firstLine, const THttpHeaders& headers)
+        inline static TResponseRef FromError(TMessage msg, TErrorRef error, const TDuration duration,
+                                             TString data, TString firstLine, THttpHeaders headers)
         {
-            return new TResponse(msg, data, duration, firstLine, headers, error);
+            return new TResponse(std::move(msg), std::move(data), duration, std::move(firstLine), std::move(headers), error);
         }
 
         inline static TResponseRef FromError(
-            const TMessage& msg,
+            TMessage msg,
             TErrorRef error,
-            const TString& data,
-            const TDuration& duration,
-            const TString& firstLine,
-            const THttpHeaders& headers)
+            TString data,
+            const TDuration duration,
+            TString firstLine,
+            THttpHeaders headers)
         {
-            return new TResponse(msg, data, duration, firstLine, headers, error);
+            return new TResponse(std::move(msg), std::move(data), duration, std::move(firstLine), std::move(headers), error);
         }
 
         inline bool IsError() const {
@@ -145,8 +147,8 @@ namespace NNeh {
 
     class IOnRecv {
     public:
-        virtual ~IOnRecv() {
-        }
+        virtual ~IOnRecv() = default;
+
         virtual void OnNotify(THandle&) {
         } //callback on receive response
         virtual void OnEnd() {
@@ -192,7 +194,7 @@ namespace NNeh {
             return R_;
         }
 
-        inline bool Wait(TResponseRef& msg, const TInstant& deadLine) {
+        inline bool Wait(TResponseRef& msg, const TInstant deadLine) {
             if (WaitForOne(*this, deadLine)) {
                 if (F_) {
                     F_->OnEnd();
@@ -206,7 +208,7 @@ namespace NNeh {
             return false;
         }
 
-        inline bool Wait(TResponseRef& msg, const TDuration& timeOut) {
+        inline bool Wait(TResponseRef& msg, const TDuration timeOut) {
             return Wait(msg, timeOut.ToDeadLine());
         }
 
@@ -214,7 +216,7 @@ namespace NNeh {
             return Wait(msg, TInstant::Max());
         }
 
-        inline TResponseRef Wait(const TInstant& deadLine) {
+        inline TResponseRef Wait(const TInstant  deadLine) {
             TResponseRef ret;
 
             Wait(ret, deadLine);
@@ -222,7 +224,7 @@ namespace NNeh {
             return ret;
         }
 
-        inline TResponseRef Wait(const TDuration& timeOut) {
+        inline TResponseRef Wait(const TDuration  timeOut) {
             return Wait(timeOut.ToDeadLine());
         }
 
@@ -256,7 +258,7 @@ namespace NNeh {
         THolder<TStatCollector> Stat_;
     };
 
-    typedef TIntrusivePtr<THandle> THandleRef;
+    using THandleRef = TIntrusivePtr<THandle>;
 
     THandleRef Request(const TMessage& msg, IOnRecv* fallback);
 
@@ -272,8 +274,7 @@ namespace NNeh {
 
     class IMultiRequester {
     public:
-        virtual ~IMultiRequester() {
-        }
+        virtual ~IMultiRequester() = default;
 
         virtual void Add(const THandleRef& req) = 0;
         virtual void Del(const THandleRef& req) = 0;
@@ -310,7 +311,7 @@ namespace NNeh {
         }
     };
 
-    typedef TAutoPtr<IMultiRequester> IMultiRequesterRef;
+    using IMultiRequesterRef = TAutoPtr<IMultiRequester>;
 
     IMultiRequesterRef CreateRequester();
 

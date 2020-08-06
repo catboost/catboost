@@ -1,5 +1,6 @@
 import os
 import sys
+from six import reraise
 
 import py
 
@@ -49,9 +50,16 @@ class DoctestModule(LoadedModule):
         optionflags = _pytest.doctest.get_optionflags(self)
         runner = doctest.DebugRunner(verbose=0, optionflags=optionflags)
 
-        for test in finder.find(module, self.name[:-(len(".py"))]):
-            if test.examples:  # skip empty doctests
-                yield _pytest.doctest.DoctestItem(test.name, self, runner, test)
+        try:
+            for test in finder.find(module, self.name[:-(len(".py"))]):
+                if test.examples:  # skip empty doctests
+                    yield _pytest.doctest.DoctestItem(test.name, self, runner, test)
+        except Exception as e:
+            import logging
+            logging.exception('DoctestModule failed, probably you can add NO_DOCTESTS() macro to ya.make')
+            etype, exc, tb = sys.exc_info()
+            msg = 'DoctestModule failed, probably you can add NO_DOCTESTS() macro to ya.make'
+            reraise(etype, type(exc)("{}\n{}".format(exc, msg)), tb)
 
 
 # NOTE: Since we are overriding collect method of pytest session, pytest hooks are not invoked during collection.
@@ -94,11 +102,13 @@ class CollectionPlugin(object):
                 if not pytest_ignore_collect(module, session, filenames_filter, accept_filename_predicate):
                     yield module
 
-                module = DoctestModule(test_module, session=session)
-                if not pytest_ignore_collect(module, session, filenames_filter, accept_filename_predicate):
-                    yield module
+                if os.environ.get('YA_PYTEST_DISABLE_DOCTEST', 'no') == 'no':
+                    module = DoctestModule(test_module, session=session)
+                    if not pytest_ignore_collect(module, session, filenames_filter, accept_filename_predicate):
+                        yield module
 
-            for doctest_module in self._doctest_modules:
-                yield DoctestModule(doctest_module, session=session, namespace=False)
+            if os.environ.get('YA_PYTEST_DISABLE_DOCTEST', 'no') == 'no':
+                for doctest_module in self._doctest_modules:
+                    yield DoctestModule(doctest_module, session=session, namespace=False)
 
         session.collect = collect

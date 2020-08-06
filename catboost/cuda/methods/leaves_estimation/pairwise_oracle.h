@@ -88,7 +88,7 @@ namespace NCatboostCuda {
                                       &pointLeafOffsets,
                                       &leafWeights);
 
-            return new TOracle(target,
+            return THolder<ILeavesEstimationOracle>(new TOracle(target,
                                std::move(baseline),
                                std::move(bins),
                                leafWeights,
@@ -98,7 +98,7 @@ namespace NCatboostCuda {
                                std::move(pairWeights),
                                std::move(pairLeafOffsets),
                                std::move(pointLeafOffsets),
-                               std::move(pointLeafIndices));
+                               std::move(pointLeafIndices)));
         }
 
     private:

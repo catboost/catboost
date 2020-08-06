@@ -28,13 +28,13 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "compiler/java/java_map_field_lite.h"
+#include <google/protobuf/compiler/java/java_map_field_lite.h>
 
-#include "compiler/java/java_context.h"
-#include "compiler/java/java_doc_comment.h"
-#include "compiler/java/java_helpers.h"
-#include "compiler/java/java_name_resolver.h"
-#include "io/printer.h"
+#include <google/protobuf/compiler/java/java_context.h>
+#include <google/protobuf/compiler/java/java_doc_comment.h>
+#include <google/protobuf/compiler/java/java_helpers.h>
+#include <google/protobuf/compiler/java/java_name_resolver.h>
+#include <google/protobuf/io/printer.h>
 
 namespace google {
 namespace protobuf {

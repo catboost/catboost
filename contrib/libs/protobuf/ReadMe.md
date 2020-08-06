@@ -11,9 +11,9 @@
 @orivej:
 > чтобы закомитить в contrib/libs/protobuf нужное кому-либо изменение, не требуется знакомиться с прошлыми изменениями или обновлять список отличий, поэтому списка нет и никто все не знает. Кроме того, многие изменения не касаются использования. Однако рядом с некоторыми изменениями упоминается Yandex: https://cs.yandex-team.ru/#!Yandex,%5Econtrib%2Flibs%2Fprotobuf,,arcadia
 > Из diff'а между аркадией и upstream'ом кроме уже названного видны:
-> \- дополнительные api messagext.h и messagext_lite.h
->   https://a.yandex-team.ru/arc/trunk/arcadia/contrib/libs/protobuf/messagext.h?rev=3839146
->   https://a.yandex-team.ru/arc/trunk/arcadia/contrib/libs/protobuf/messagext_lite.h?rev=3839146
+> \- дополнительные api <google/protobuf/messagext.h> и <google/protobuf/messagext_lite.h>
+>   https://a.yandex-team.ru/arc/trunk/arcadia/contrib/libs/protobuf/src/google/protobuf/messagext.h
+>   https://a.yandex-team.ru/arc/trunk/arcadia/contrib/libs/protobuf/src/google/protobuf/messagext_lite.h
 > \- дополнительное api json_util.h
 >   https://a.yandex-team.ru/arc/commit/2442163
 > \- новые аргументы --encode-decode-input и --encode-decode-output

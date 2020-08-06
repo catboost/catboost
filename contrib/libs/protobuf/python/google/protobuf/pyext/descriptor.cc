@@ -34,7 +34,7 @@
 #include <frameobject.h>
 #include <google/protobuf/stubs/hash.h>
 
-#include "io/coded_stream.h"
+#include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/descriptor.pb.h>
 #include "dynamic_message.h"
 #include "pyext/descriptor.h"

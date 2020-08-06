@@ -36,7 +36,7 @@
 #define GOOGLE_PROTOBUF_COMPILER_CPP_EXTENSION_H__
 
 #include <google/protobuf/stubs/common.h>
-#include "compiler/cpp/cpp_options.h"
+#include <google/protobuf/compiler/cpp/cpp_options.h>
 
 namespace google {
 namespace protobuf {

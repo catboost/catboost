@@ -35,8 +35,8 @@
 #ifndef GOOGLE_PROTOBUF_COMPILER_JAVA_LAZY_MESSAGE_FIELD_H__
 #define GOOGLE_PROTOBUF_COMPILER_JAVA_LAZY_MESSAGE_FIELD_H__
 
-#include "compiler/java/java_field.h"
-#include "compiler/java/java_message_field.h"
+#include <google/protobuf/compiler/java/java_field.h>
+#include <google/protobuf/compiler/java/java_message_field.h>
 
 namespace google {
 namespace protobuf {
