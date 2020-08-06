@@ -57,4 +57,8 @@ PEERDIR(
     contrib/python/scipy/scipy/optimize/Zeros
 )
 
+PEERDIR(
+    contrib/libs/cxxsupp/openmp
+)
+
 END()

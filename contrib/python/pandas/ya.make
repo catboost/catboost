@@ -13,6 +13,10 @@ PEERDIR(
     contrib/python/pytz
 )
 
+PEERDIR(
+    contrib/libs/cxxsupp/openmp
+)
+
 ADDINCL(
     contrib/python/pandas
     contrib/python/pandas/pandas/_libs
