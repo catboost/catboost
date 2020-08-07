@@ -57,6 +57,10 @@ public:
         ::Load(inp, CtrData);
     }
 
+    void LoadNonOwning(TMemoryInput* in) {
+        CtrData.LoadNonOwning(in);
+    }
+
     static TString ModelPartId() {
         return "static_provider_v1";
     }
