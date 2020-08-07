@@ -5496,7 +5496,7 @@
                 }
             ]
         },
-    "grpc_cli": {
+        "grpc_cli": {
             "tools": {
                 "grpc_cli": {
                     "bottle": "grpc_cli",
@@ -5556,7 +5556,9 @@
         },
         "ymake": {
             "formula": {
-                "sandbox_id": [741467155],
+                "sandbox_id": [
+                    741467155
+                ],
                 "match": "ymake"
             },
             "executable": {
@@ -6965,7 +6967,7 @@
         },
         "zcli": {
             "formula": {
-                "sandbox_id": 742025002,
+                "sandbox_id": 742516902,
                 "match": "zcli"
             },
             "executable": {
