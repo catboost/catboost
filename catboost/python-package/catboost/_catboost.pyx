@@ -198,15 +198,25 @@ cdef public object PyCatboostExceptionType = <object>CatBoostError
 
 cdef extern from "catboost/python-package/catboost/helpers.h":
     cdef void ProcessException()
-    cdef void SetPythonInterruptHandler() nogil
-    cdef void ResetPythonInterruptHandler() nogil
-    cdef void ThrowCppExceptionWithMessage(const TString&) nogil
 
 
 cdef extern from "library/cpp/threading/local_executor/local_executor.h" namespace "NPar":
     cdef cppclass TLocalExecutor:
         TLocalExecutor() nogil
         void RunAdditionalThreads(int threadCount) nogil except +ProcessException
+
+
+cdef extern from "catboost/python-package/catboost/helpers.h":
+    cdef void SetPythonInterruptHandler() nogil
+    cdef void ResetPythonInterruptHandler() nogil
+    cdef void ThrowCppExceptionWithMessage(const TString&) nogil
+    cdef void SetDataFromScipyCsrSparse[TFloatOrUi64](
+        TConstArrayRef[ui32] rowMarkup,
+        TConstArrayRef[TFloatOrUi64] values,
+        TConstArrayRef[ui32] indices,
+        TConstArrayRef[bool_t] catFeaturesMask,
+        IRawObjectsOrderDataVisitor* builderVisitor,
+        TLocalExecutor* localExecutor) nogil except +ProcessException
 
 
 cdef extern from "catboost/libs/logging/logging.h":
@@ -277,7 +287,7 @@ cdef extern from "catboost/libs/helpers/polymorphic_type_containers.h" namespace
     cdef ITypedSequencePtr[TInterfaceValue] MakeTypeCastArrayHolderFromVector[TInterfaceValue, TStoredValue](
         TVector[TStoredValue]& values
     ) except +ProcessException
-    
+
     cdef ITypedSequencePtr[TMaybeOwningConstArrayHolder[TInterfaceValue]] MakeTypeCastArraysHolderFromVector[
         TInterfaceValue,
         TStoredValue
@@ -370,7 +380,7 @@ def make_non_owning_type_cast_array_holder(np.ndarray[numpy_num_dtype, ndim=1] a
 def make_embedding_type_cast_array_holder(
     size_t flat_feature_idx,
     np.ndarray[numpy_num_dtype, ndim=1] first_element,
-    np.ndarray[object, ndim=1] elements): # 
+    np.ndarray[object, ndim=1] elements): #
 
     cdef np.ndarray[numpy_num_dtype, ndim=1] element
     cdef TVector[TMaybeOwningConstArrayHolder[numpy_num_dtype]] data
@@ -412,7 +422,7 @@ def make_embedding_type_cast_array_holder(
         data_holders.append(elements)
 
     cdef ITypedSequencePtr[TMaybeOwningConstArrayHolder[np.float32_t]] result
-    
+
     if numpy_num_dtype is np.int8_t:
         result = MakeTypeCastArraysHolderFromVector[np.float32_t, np.int8_t](data)
     if numpy_num_dtype is np.int16_t:
@@ -855,7 +865,7 @@ cdef extern from "catboost/libs/data/visitor.h" namespace "NCB":
         void AddTextFeature(ui32 localObjectIdx, ui32 flatFeatureIdx, TStringBuf feature) except +ProcessException
         void AddAllTextFeatures(ui32 localObjectIdx, TConstArrayRef[ui32] features) except +ProcessException
         void AddTextFeatureDefaultValue(ui32 flatFeatureIdx, TStringBuf feature) except +ProcessException
-        
+
         void AddEmbeddingFeature(
             ui32 localObjectIdx,
             ui32 flatFeatureIdx,
@@ -898,7 +908,7 @@ cdef extern from "catboost/libs/data/visitor.h" namespace "NCB":
 
         void AddTextFeature(ui32 flatFeatureIdx, TConstArrayRef[TString] feature) except +ProcessException
         void AddTextFeature(ui32 flatFeatureIdx, TConstArrayRef[TStringBuf] feature) except +ProcessException
-        
+
         void AddEmbeddingFeature(
             ui32 flatFeatureIdx,
             ITypedSequencePtr[TMaybeOwningConstArrayHolder[float]] features
@@ -3209,7 +3219,7 @@ cdef _get_categorical_feature_value_from_scipy_sparse(
 ):
     if is_float_value:
         raise CatBoostError(
-            'Invalid value for cat_feature[{doc_idx},{feature_idx)]={value}'
+            'Invalid value for cat_feature[{doc_idx},{feature_idx}]={value}'
             +' cat_features must be integer or string, real number values and NaN values'
             +' should be converted to string'.format(doc_idx=doc_idx, feature_idx=feature_idx, value=value))
     else:
@@ -3329,34 +3339,125 @@ def _set_data_from_scipy_csr_sparse(
     if doc_count == 0:
         return
 
-    cdef TString factor_string_buf
-    cdef int nonzero_elements_idx
-    cdef int doc_idx
-    cdef int feature_idx
     cdef TVector[bool_t] is_cat_feature_mask = _get_is_feature_type_mask(py_builder_visitor.features_layout, EFeatureType_Categorical)
+    cdef TConstArrayRef[bool_t] is_cat_feature_ref = <TConstArrayRef[bool_t]>is_cat_feature_mask
 
-    cdef bool_t is_float_value = False
+    def cast_to_nparray(array, dtype):
+        if isinstance(array, np.ndarray) and array.dtype == dtype and array.flags.c_contiguous:
+            return array
+        return np.ascontiguousarray(array, dtype=dtype)
 
-    if (numpy_num_dtype is np.float32_t) or (numpy_num_dtype is np.float64_t):
-        is_float_value = True
+    assert numpy_indices_dtype == np.int32_t, "Type of indices in CSR sparse arrays must be int32"
+    cdef np.ndarray[np.int32_t, ndim=1] indptr_i32 = cast_to_nparray(indptr, np.int32)
+    cdef np.ndarray[np.int32_t, ndim=1] indices_i32 = cast_to_nparray(indices, np.int32)
 
-    cdef int nonzero_begin = 0
-    cdef int nonzero_end = 0
-    for doc_idx in xrange(doc_count):
-        nonzero_begin = indptr[doc_idx]
-        nonzero_end = indptr[doc_idx + 1]
-        for nonzero_elements_idx in xrange(nonzero_begin, nonzero_end, 1):
-            feature_idx = indices[nonzero_elements_idx]
-            value = data[nonzero_elements_idx]
-            _add_single_feature_value_from_scipy_sparse(
-                doc_idx,
-                feature_idx,
-                value,
-                is_float_value,
-                <TConstArrayRef[bool_t]>is_cat_feature_mask,
-                & factor_string_buf,
-                builder_visitor
-            )
+    cdef TConstArrayRef[ui32] indptr_i32_ref = TConstArrayRef[ui32](<ui32*>&indptr_i32[0], len(indptr_i32))
+    cdef TConstArrayRef[ui32] indices_i32_ref = TConstArrayRef[ui32](<ui32*>&indices_i32[0], len(indices_i32))
+
+    cdef np.ndarray[numpy_num_dtype, ndim=1] data_np
+
+    if numpy_num_dtype == np.float32_t:
+        data_np = cast_to_nparray(data, np.float32)
+        return SetDataFromScipyCsrSparse[np.float32_t](
+            indptr_i32_ref,
+            TConstArrayRef[np.float32_t](<np.float32_t*>&data_np[0], len(data_np)),
+            indices_i32_ref,
+            is_cat_feature_ref,
+            builder_visitor,
+            &py_builder_visitor.local_executor)
+
+    if numpy_num_dtype == np.float64_t:
+        data_np = cast_to_nparray(data, np.float64)
+        return SetDataFromScipyCsrSparse[np.float64_t](
+            indptr_i32_ref,
+            TConstArrayRef[np.float64_t](<np.float64_t*>&data_np[0], len(data_np)),
+            indices_i32_ref,
+            is_cat_feature_ref,
+            builder_visitor,
+            &py_builder_visitor.local_executor)
+
+    if numpy_num_dtype == np.int8_t:
+        data_np = cast_to_nparray(data, np.int8)
+        return SetDataFromScipyCsrSparse[np.int8_t](
+            indptr_i32_ref,
+            TConstArrayRef[np.int8_t](<np.int8_t*>&data_np[0], len(data_np)),
+            indices_i32_ref,
+            is_cat_feature_ref,
+            builder_visitor,
+            &py_builder_visitor.local_executor)
+
+    if numpy_num_dtype == np.uint8_t:
+        data_np = cast_to_nparray(data, np.uint8)
+        return SetDataFromScipyCsrSparse[np.uint8_t](
+            indptr_i32_ref,
+            TConstArrayRef[np.uint8_t](<np.uint8_t*>&data_np[0], len(data_np)),
+            indices_i32_ref,
+            is_cat_feature_ref,
+            builder_visitor,
+            &py_builder_visitor.local_executor)
+
+    if numpy_num_dtype == np.int16_t:
+        data_np = cast_to_nparray(data, np.int16)
+        return SetDataFromScipyCsrSparse[np.int16_t](
+            indptr_i32_ref,
+            TConstArrayRef[np.int16_t](<np.int16_t*>&data_np[0], len(data_np)),
+            indices_i32_ref,
+            is_cat_feature_ref,
+            builder_visitor,
+            &py_builder_visitor.local_executor)
+
+    if numpy_num_dtype == np.uint16_t:
+        data_np = cast_to_nparray(data, np.uint16)
+        return SetDataFromScipyCsrSparse[np.uint16_t](
+            indptr_i32_ref,
+            TConstArrayRef[np.uint16_t](<np.uint16_t*>&data_np[0], len(data_np)),
+            indices_i32_ref,
+            is_cat_feature_ref,
+            builder_visitor,
+            &py_builder_visitor.local_executor)
+
+    if numpy_num_dtype == np.int32_t:
+        data_np = cast_to_nparray(data, np.int32)
+        return SetDataFromScipyCsrSparse[np.int32_t](
+            indptr_i32_ref,
+            TConstArrayRef[np.int32_t](<np.int32_t*>&data_np[0], len(data_np)),
+            indices_i32_ref,
+            is_cat_feature_ref,
+            builder_visitor,
+            &py_builder_visitor.local_executor)
+
+    if numpy_num_dtype == np.uint32_t:
+        data_np = cast_to_nparray(data, np.uint32)
+        return SetDataFromScipyCsrSparse[np.uint32_t](
+            indptr_i32_ref,
+            TConstArrayRef[np.uint32_t](<np.uint32_t*>&data_np[0], len(data_np)),
+            indices_i32_ref,
+            is_cat_feature_ref,
+            builder_visitor,
+            &py_builder_visitor.local_executor)
+
+    if numpy_num_dtype == np.int64_t:
+        data_np = cast_to_nparray(data, np.int64)
+        return SetDataFromScipyCsrSparse[np.int64_t](
+            indptr_i32_ref,
+            TConstArrayRef[np.int64_t](<np.int64_t*>&data_np[0], len(data_np)),
+            indices_i32_ref,
+            is_cat_feature_ref,
+            builder_visitor,
+            &py_builder_visitor.local_executor)
+
+    if numpy_num_dtype == np.uint64_t:
+        data_np = cast_to_nparray(data, np.uint64)
+        return SetDataFromScipyCsrSparse[np.uint64_t](
+            indptr_i32_ref,
+            TConstArrayRef[np.uint64_t](<np.uint64_t*>&data_np[0], len(data_np)),
+            indices_i32_ref,
+            is_cat_feature_ref,
+            builder_visitor,
+            &py_builder_visitor.local_executor)
+
+    assert False, "CSR sparse arrays support only numeric data types"
+
 
 cdef _set_data_from_scipy_lil_sparse(
     data,
@@ -3588,7 +3689,7 @@ cdef _set_data_from_generic_matrix(
     cdef TVector[bool_t] is_text_feature_mask = _get_is_feature_type_mask(features_layout, EFeatureType_Text)
     cdef TVector[bool_t] is_embedding_feature_mask = _get_is_feature_type_mask(features_layout, EFeatureType_Embedding)
     cdef TVector[ui32] embedding_dimensions
-    
+
     # TODO(akhropov): make yresize accessible in Cython
     embedding_dimensions.resize(feature_count)
 
@@ -4024,7 +4125,7 @@ cdef class _PoolBase:
                 py_builder_visitor
             )
         elif isinstance(data, np.ndarray):
-            if (data_meta_info.FeaturesLayout.Get()[0].GetFloatFeatureCount() or 
+            if (data_meta_info.FeaturesLayout.Get()[0].GetFloatFeatureCount() or
                 data_meta_info.FeaturesLayout.Get()[0].GetEmbeddingFeatureCount()):
                 new_data_holders = data
 

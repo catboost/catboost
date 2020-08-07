@@ -701,13 +701,15 @@ namespace NCB {
                 TVector<TSparseDataForBuider> sparseDataForBuilders(PerFeatureData.size()); // [perTypeFeatureIdx]
 
                 TVector<size_t> sizesForBuilders(PerFeatureData.size());
+                auto builderCount = sparseDataForBuilders.size();
                 for (auto& sparseDataPart : SparseDataParts) {
                     for (auto i : xrange(sparseDataPart.Indices.size())) {
                         auto index2d = sparseDataPart.Indices[i];
-                        if (index2d.PerTypeFeatureIdx >= sparseDataForBuilders.size()) {
+                        if (index2d.PerTypeFeatureIdx >= builderCount) {
                             // add previously unknown features
-                            sparseDataForBuilders.resize(index2d.PerTypeFeatureIdx + 1);
-                            sizesForBuilders.resize(index2d.PerTypeFeatureIdx + 1);
+                            builderCount = index2d.PerTypeFeatureIdx + 1;
+                            sparseDataForBuilders.resize(builderCount);
+                            sizesForBuilders.resize(builderCount);
                         }
                         sizesForBuilders[index2d.PerTypeFeatureIdx] += 1;
                     }

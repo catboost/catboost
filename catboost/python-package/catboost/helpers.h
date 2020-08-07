@@ -4,6 +4,7 @@
 
 #include <catboost/private/libs/algo/plot.h>
 #include <catboost/private/libs/data_types/groupid.h>
+#include <catboost/libs/data/visitor.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/mem_usage.h>
 #include <catboost/libs/metrics/metric.h>
@@ -15,6 +16,8 @@
 #include <library/cpp/json/json_value.h>
 
 #include <util/generic/noncopyable.h>
+
+#include <type_traits>
 
 
 class TGilGuard : public TNonCopyable {
@@ -178,3 +181,41 @@ private:
     TReadFunction ReadFunc;
     PyObject* Stream;
 };
+
+template <typename TFloatOrInteger>
+void SetDataFromScipyCsrSparse(
+    TConstArrayRef<ui32> indptr,
+    TConstArrayRef<TFloatOrInteger> data,
+    TConstArrayRef<ui32> indices,
+    TConstArrayRef<bool> isCatFeature,
+    NCB::IRawObjectsOrderDataVisitor* builderVisitor,
+    NPar::TLocalExecutor* localExecutor
+) {
+    CB_ENSURE_INTERNAL(indptr.size() > 1, "Empty sparse arrays should be processed in Python for speed");
+    const auto objCount = indptr.size() - 1;
+
+    NPar::ParallelFor(
+        *localExecutor,
+        0,
+        objCount,
+        [=] (ui32 objIdx) {
+            const auto nonzeroBegin = indptr[objIdx];
+            const auto nonzeroEnd = indptr[objIdx + 1];
+            for (auto nonzeroIdx : xrange(nonzeroBegin, nonzeroEnd, 1)) {
+                const auto featureIdx = indices[nonzeroIdx];
+                const auto value = data[nonzeroIdx];
+                if (isCatFeature[featureIdx]) {
+                    const auto isFloat = std::is_same<TFloatOrInteger, float>::value || std::is_same<TFloatOrInteger, double>::value;
+                    CB_ENSURE(
+                        !isFloat,
+                        "Invalid value for cat_feature[" << objIdx << "," << featureIdx << "]=" << value <<
+                        " cat_features must be integer or string. Real numbers and NaNs should be converted to strings.");
+                    const auto catValue = ToString(value);
+                    builderVisitor->AddCatFeature(objIdx, featureIdx, catValue);
+                } else {
+                    builderVisitor->AddFloatFeature(objIdx, featureIdx, value);
+                }
+            }
+        }
+    );
+}
