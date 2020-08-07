@@ -1,5 +1,7 @@
 #include "error_functions.h"
 
+#include <catboost/libs/helpers/dispatch_generic_lambda.h>
+
 #include <util/generic/xrange.h>
 #include <util/random/normal.h>
 
@@ -54,15 +56,6 @@ void IDerCalcer::CalcDersRangeImpl(
     }
 }
 
-static constexpr int EncodeImplParameters(
-    int maxDerivativeOrder,
-    bool useTDers,
-    bool isExpApprox,
-    bool hasDelta
-) {
-    return maxDerivativeOrder * 8 + useTDers * 4 + isExpApprox * 2 + hasDelta;
-}
-
 void IDerCalcer::CalcDersRange(
     int start,
     int count,
@@ -76,170 +69,44 @@ void IDerCalcer::CalcDersRange(
 ) const {
     const bool hasDelta = approxDeltas != nullptr;
     const bool useTDers = ders != nullptr;
-    switch (EncodeImplParameters(maxDerivativeOrder, useTDers, IsExpApprox, hasDelta)) {
-        case EncodeImplParameters(1, false, false, false):
-            return CalcDersRangeImpl<1, false, false, false>(
-                start,
-                count,
-                approxes,
-                approxDeltas,
-                targets,
-                weights,
-                ders,
-                firstDers);
-        case EncodeImplParameters(1, false, false, true):
-            return CalcDersRangeImpl<1, false, false, true>(
-                start,
-                count,
-                approxes,
-                approxDeltas,
-                targets,
-                weights,
-                ders,
-                firstDers);
-        case EncodeImplParameters(1, false, true, false):
-            return CalcDersRangeImpl<1, false, true, false>(
-                start,
-                count,
-                approxes,
-                approxDeltas,
-                targets,
-                weights,
-                ders,
-                firstDers);
-        case EncodeImplParameters(1, false, true, true):
-            return CalcDersRangeImpl<1, false, true, true>(
-                start,
-                count,
-                approxes,
-                approxDeltas,
-                targets,
-                weights,
-                ders,
-                firstDers);
-        case EncodeImplParameters(1, true, false, false):
-            return CalcDersRangeImpl<1, true, false, false>(
-                start,
-                count,
-                approxes,
-                approxDeltas,
-                targets,
-                weights,
-                ders,
-                firstDers);
-        case EncodeImplParameters(1, true, false, true):
-            return CalcDersRangeImpl<1, true, false, true>(
-                start,
-                count,
-                approxes,
-                approxDeltas,
-                targets,
-                weights,
-                ders,
-                firstDers);
-        case EncodeImplParameters(1, true, true, false):
-            return CalcDersRangeImpl<1, true, true, false>(
-                start,
-                count,
-                approxes,
-                approxDeltas,
-                targets,
-                weights,
-                ders,
-                firstDers);
-        case EncodeImplParameters(1, true, true, true):
-            return CalcDersRangeImpl<1, true, true, true>(
-                start,
-                count,
-                approxes,
-                approxDeltas,
-                targets,
-                weights,
-                ders,
-                firstDers);
-        case EncodeImplParameters(2, true, false, false):
-            return CalcDersRangeImpl<2, true, false, false>(
-                start,
-                count,
-                approxes,
-                approxDeltas,
-                targets,
-                weights,
-                ders,
-                firstDers);
-        case EncodeImplParameters(2, true, false, true):
-            return CalcDersRangeImpl<2, true, false, true>(
-                start,
-                count,
-                approxes,
-                approxDeltas,
-                targets,
-                weights,
-                ders,
-                firstDers);
-        case EncodeImplParameters(2, true, true, false):
-            return CalcDersRangeImpl<2, true, true, false>(
-                start,
-                count,
-                approxes,
-                approxDeltas,
-                targets,
-                weights,
-                ders,
-                firstDers);
-        case EncodeImplParameters(2, true, true, true):
-            return CalcDersRangeImpl<2, true, true, true>(
-                start,
-                count,
-                approxes,
-                approxDeltas,
-                targets,
-                weights,
-                ders,
-                firstDers);
-        case EncodeImplParameters(3, true, false, false):
-            return CalcDersRangeImpl<3, true, false, false>(
-                start,
-                count,
-                approxes,
-                approxDeltas,
-                targets,
-                weights,
-                ders,
-                firstDers);
-        case EncodeImplParameters(3, true, false, true):
-            return CalcDersRangeImpl<3, true, false, true>(
-                start,
-                count,
-                approxes,
-                approxDeltas,
-                targets,
-                weights,
-                ders,
-                firstDers);
-        case EncodeImplParameters(3, true, true, false):
-            return CalcDersRangeImpl<3, true, true, false>(
-                start,
-                count,
-                approxes,
-                approxDeltas,
-                targets,
-                weights,
-                ders,
-                firstDers);
-        case EncodeImplParameters(3, true, true, true):
-            return CalcDersRangeImpl<3, true, true, true>(
-                start,
-                count,
-                approxes,
-                approxDeltas,
-                targets,
-                weights,
-                ders,
-                firstDers);
-        default:
-            Y_ASSERT(false);
-    }
+    DispatchGenericLambda(
+        [=] (auto useTDers, auto isExpApprox, auto hasDelta) {
+            switch (maxDerivativeOrder) {
+                case 1:
+                    return CalcDersRangeImpl<1, useTDers, isExpApprox, hasDelta>(
+                        start,
+                        count,
+                        approxes,
+                        approxDeltas,
+                        targets,
+                        weights,
+                        ders,
+                        firstDers);
+                case 2:
+                    return CalcDersRangeImpl<2, useTDers, isExpApprox, hasDelta>(
+                        start,
+                        count,
+                        approxes,
+                        approxDeltas,
+                        targets,
+                        weights,
+                        ders,
+                        firstDers);
+                case 3:
+                    return CalcDersRangeImpl<3, useTDers, isExpApprox, hasDelta>(
+                        start,
+                        count,
+                        approxes,
+                        approxDeltas,
+                        targets,
+                        weights,
+                        ders,
+                        firstDers);
+                default:
+                    CB_ENSURE(false, "Only 1st, 2nd, and 3rd derivatives are supported");
+            }
+    },
+    useTDers, IsExpApprox, hasDelta);
 }
 
 namespace {
@@ -344,15 +211,6 @@ static void CalcCrossEntropyDerRangeImpl(
     }
 }
 
-static constexpr int EncodeCrossEntropyImplParameters(
-    bool calcThirdDer,
-    bool useTDers,
-    bool useExpApprox,
-    bool hasDelta
-) {
-    return calcThirdDer * 8 + useTDers * 4 + useExpApprox * 2 + hasDelta;
-}
-
 void TCrossEntropyError::CalcFirstDerRange(
     int start,
     int count,
@@ -362,14 +220,9 @@ void TCrossEntropyError::CalcFirstDerRange(
     const float* weights,
     double* ders
 ) const {
-    const int encodedParameters = EncodeCrossEntropyImplParameters(
-        /*calcThirdDer*/ false,
-        /*useTDers*/ false,
-        GetIsExpApprox(),
-        /*hasDelta*/ approxDeltas != nullptr);
-    switch (encodedParameters) {
-        case EncodeCrossEntropyImplParameters(false, false, true, true):
-            return CalcCrossEntropyDerRangeImpl<false, false, true, true>(
+    DispatchGenericLambda(
+        [=] (auto useExpApprox, auto hasDelta) {
+            CalcCrossEntropyDerRangeImpl<false, false, useExpApprox, hasDelta>(
                 start,
                 count,
                 approxes,
@@ -378,39 +231,8 @@ void TCrossEntropyError::CalcFirstDerRange(
                 weights,
                 nullptr,
                 ders);
-        case EncodeCrossEntropyImplParameters(false, false, true, false):
-            return CalcCrossEntropyDerRangeImpl<false, false, true, false>(
-                start,
-                count,
-                approxes,
-                approxDeltas,
-                targets,
-                weights,
-                nullptr,
-                ders);
-        case EncodeCrossEntropyImplParameters(false, false, false, true):
-            return CalcCrossEntropyDerRangeImpl<false, false, false, true>(
-                start,
-                count,
-                approxes,
-                approxDeltas,
-                targets,
-                weights,
-                nullptr,
-                ders);
-        case EncodeCrossEntropyImplParameters(false, false, false, false):
-            return CalcCrossEntropyDerRangeImpl<false, false, false, false>(
-                start,
-                count,
-                approxes,
-                approxDeltas,
-                targets,
-                weights,
-                nullptr,
-                ders);
-        default:
-            Y_ASSERT(false);
-    }
+        },
+        GetIsExpApprox(), approxDeltas != nullptr);
 }
 
 void TCrossEntropyError::CalcDersRange(
@@ -423,14 +245,9 @@ void TCrossEntropyError::CalcDersRange(
     const float* weights,
     TDers* ders
 ) const {
-    const int encodedParameters = EncodeCrossEntropyImplParameters(
-        calcThirdDer,
-        /*useTDers*/ true,
-        GetIsExpApprox(),
-        /*hasDelta*/ approxDeltas != nullptr);
-    switch (encodedParameters) {
-        case EncodeCrossEntropyImplParameters(true, true, true, true):
-            return CalcCrossEntropyDerRangeImpl<true, true, true, true>(
+    DispatchGenericLambda(
+        [=] (auto calcThirdDer, auto useExpApprox, auto hasDelta) {
+            CalcCrossEntropyDerRangeImpl<calcThirdDer, true, useExpApprox, hasDelta>(
                 start,
                 count,
                 approxes,
@@ -439,80 +256,10 @@ void TCrossEntropyError::CalcDersRange(
                 weights,
                 ders,
                 nullptr);
-        case EncodeCrossEntropyImplParameters(true, true, true, false):
-            return CalcCrossEntropyDerRangeImpl<true, true, true, false>(
-                start,
-                count,
-                approxes,
-                approxDeltas,
-                targets,
-                weights,
-                ders,
-                nullptr);
-        case EncodeCrossEntropyImplParameters(true, true, false, true):
-            return CalcCrossEntropyDerRangeImpl<true, true, false, true>(
-                start,
-                count,
-                approxes,
-                approxDeltas,
-                targets,
-                weights,
-                ders,
-                nullptr);
-        case EncodeCrossEntropyImplParameters(true, true, false, false):
-            return CalcCrossEntropyDerRangeImpl<true, true, false, false>(
-                start,
-                count,
-                approxes,
-                approxDeltas,
-                targets,
-                weights,
-                ders,
-                nullptr);
-        case EncodeCrossEntropyImplParameters(false, true, true, true):
-            return CalcCrossEntropyDerRangeImpl<false, true, true, true>(
-                start,
-                count,
-                approxes,
-                approxDeltas,
-                targets,
-                weights,
-                ders,
-                nullptr);
-        case EncodeCrossEntropyImplParameters(false, true, true, false):
-            return CalcCrossEntropyDerRangeImpl<false, true, true, false>(
-                start,
-                count,
-                approxes,
-                approxDeltas,
-                targets,
-                weights,
-                ders,
-                nullptr);
-        case EncodeCrossEntropyImplParameters(false, true, false, true):
-            return CalcCrossEntropyDerRangeImpl<false, true, false, true>(
-                start,
-                count,
-                approxes,
-                approxDeltas,
-                targets,
-                weights,
-                ders,
-                nullptr);
-        case EncodeCrossEntropyImplParameters(false, true, false, false):
-            return CalcCrossEntropyDerRangeImpl<false, true, false, false>(
-                start,
-                count,
-                approxes,
-                approxDeltas,
-                targets,
-                weights,
-                ders,
-                nullptr);
-        default:
-            Y_ASSERT(false);
-    }
+        },
+        calcThirdDer, GetIsExpApprox(), approxDeltas != nullptr);
 }
+
 
 void TQuerySoftMaxError::CalcDersForSingleQuery(
     int start,
