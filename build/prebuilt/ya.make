@@ -34,7 +34,7 @@ RECURSE(
     contrib/tools/python/bootstrap
     contrib/tools/ragel6
     contrib/tools/yasm
-    tools/enum_parser
+    tools/enum_parser/enum_parser
     tools/event2cpp
     tools/fix_elf
     tools/rescompiler
