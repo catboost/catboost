@@ -177,6 +177,9 @@
         "rsync": {
             "description": "Run RSync"
         },
+        "yf": {
+            "description": "Run YF client"
+        },
         "yt": {
             "description": "Run YT client"
         },
@@ -3757,6 +3760,22 @@
                 }
             ]
         },
+        "yf": {
+            "tools": {
+                "yf": {
+                    "bottle": "yf",
+                    "executable": "yf"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "yp-util": {
             "tools": {
                 "yp-util": {
@@ -6502,6 +6521,15 @@
                     "jq"
                 ]
             }
+        },
+        "yf": {
+            "formula": {
+                "sandbox_id": [
+                    741962888
+                ],
+                "match": "yf-client"
+            },
+            "executable": "yf-client"
         },
         "yp-util": {
             "formula": {
