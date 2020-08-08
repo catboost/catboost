@@ -2277,9 +2277,6 @@ class _LIBCPP_TEMPLATE_VIS function<_Rp(_ArgTypes...)>
         {
             static const bool value = false;
         };
-
-  template <class _Fp>
-  using _EnableIfCallable = typename enable_if<__callable<_Fp>::value>::type;
 public:
     typedef _Rp result_type;
 
@@ -2290,7 +2287,7 @@ public:
     function(nullptr_t) _NOEXCEPT {}
     function(const function&);
     function(function&&) _NOEXCEPT;
-    template<class _Fp, class = _EnableIfCallable<_Fp>>
+    template<class _Fp, class = typename enable_if<__callable<_Fp>::value>::type>
     function(_Fp);
 
 #if _LIBCPP_STD_VER <= 14
@@ -2304,14 +2301,14 @@ public:
       function(allocator_arg_t, const _Alloc&, const function&);
     template<class _Alloc>
       function(allocator_arg_t, const _Alloc&, function&&);
-    template<class _Fp, class _Alloc, class = _EnableIfCallable<_Fp>>
+    template<class _Fp, class _Alloc, class = typename enable_if<__callable<_Fp>::value>::type>
       function(allocator_arg_t, const _Alloc& __a, _Fp __f);
 #endif
 
     function& operator=(const function&);
     function& operator=(function&&) _NOEXCEPT;
     function& operator=(nullptr_t) _NOEXCEPT;
-    template<class _Fp, class = _EnableIfCallable<_Fp>>
+    template<class _Fp, class = typename enable_if<__callable<_Fp>::value>::type>
     function& operator=(_Fp&&);
 
     ~function();
