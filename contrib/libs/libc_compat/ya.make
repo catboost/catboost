@@ -26,4 +26,8 @@ IF (OS_WINDOWS)
     ADDINCL(GLOBAL contrib/libs/libc_compat/include/windows)
 ENDIF()
 
+IF (NOT MUSL AND OS_LINUX AND OS_SDK STREQUAL "ubuntu-12")
+    ADDINCL(GLOBAL contrib/libs/libc_compat/include/uchar)
+ENDIF()
+
 END()
