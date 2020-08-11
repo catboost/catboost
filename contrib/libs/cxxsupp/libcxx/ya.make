@@ -90,21 +90,34 @@ ENDIF()
 
 DEFAULT(CXX_RT "default")
 
+DISABLE(NEED_GLIBCXX_CXX17_SHIMS)
+
 IF (CXX_RT STREQUAL "libcxxrt")
     PEERDIR(ADDINCL contrib/libs/cxxsupp/libcxxrt)
     CXXFLAGS(-DLIBCXXRT=1)
 ELSEIF (CXX_RT STREQUAL "glibcxx" OR CXX_RT STREQUAL "glibcxx_static")
     LDFLAGS(-Wl,-Bstatic -lsupc++ -lgcc -lgcc_eh -Wl,-Bdynamic)
     CXXFLAGS(-D__GLIBCXX__=1)
+    ENABLE(NEED_GLIBCXX_CXX17_SHIMS)
 ELSEIF (CXX_RT STREQUAL "glibcxx_dynamic")
     LDFLAGS(-lgcc_s -lstdc++)
     CXXFLAGS(-D__GLIBCXX__=1)
+    ENABLE(NEED_GLIBCXX_CXX17_SHIMS)
 ELSEIF (CXX_RT STREQUAL "glibcxx_driver")
     CXXFLAGS(-D__GLIBCXX__=1)
 ELSEIF (CXX_RT STREQUAL "default")
     # Do nothing
 ELSE()
     MESSAGE(FATAL_ERROR "Unexpected CXX_RT value: ${CXX_RT}")
+ENDIF()
+
+IF (NEED_GLIBCXX_CXX17_SHIMS)
+    IF (GCC)
+        # Assume GCC is bundled with a modern enough version of C++ runtime
+    ELSEIF (OS_SDK STREQUAL "ubuntu-12" OR OS_SDK STREQUAL "ubuntu-14" OR OS_SDK STREQUAL "ubuntu-16")
+        # Prior to ubuntu-18, system C++ runtime for C++17 is incomplete
+        SRCS(glibcxx_eh_cxx17.cpp)
+    ENDIF()
 ENDIF()
 
 NO_UTIL()
