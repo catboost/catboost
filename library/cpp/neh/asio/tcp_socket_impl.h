@@ -278,7 +278,7 @@ namespace NAsio {
 
         size_t WriteSome(TContIOVector& iov, TErrorCode& ec) noexcept {
             for (;;) {
-                ssize_t n = writev(S_, (iovec*)iov.Parts(), Min(IOV_MAX, (int)iov.Count()));
+                ssize_t n = writev(S_, (const iovec*)iov.Parts(), Min(IOV_MAX, (int)iov.Count()));
                 DBGOUT("WriteSome(): n=" << n);
                 if (SysCallHasResult(n, ec)) {
                     return n;

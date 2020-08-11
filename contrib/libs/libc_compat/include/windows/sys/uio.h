@@ -17,8 +17,8 @@ struct iovec {
     size_t iov_len;
 };
 
-ssize_t readv(SOCKET sock, struct iovec* iov, int nvecs);
-ssize_t writev(SOCKET sock, struct iovec* iov, int nvecs);
+ssize_t readv(SOCKET sock, struct iovec const* iov, int nvecs);
+ssize_t writev(SOCKET sock, struct iovec const* iov, int nvecs);
 
 #ifdef __cplusplus
 }

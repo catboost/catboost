@@ -4,7 +4,7 @@
 #include <winsock2.h>
 #include <malloc.h>
 
-ssize_t readv(SOCKET sock, struct iovec* iov, int iovcnt) {
+ssize_t readv(SOCKET sock, struct iovec const* iov, int iovcnt) {
     WSABUF* wsabuf = (WSABUF*)alloca(iovcnt * sizeof(WSABUF));
     for (int i = 0; i < iovcnt; ++i) {
         wsabuf[i].buf = iov[i].iov_base;
@@ -20,7 +20,7 @@ ssize_t readv(SOCKET sock, struct iovec* iov, int iovcnt) {
     return numberOfBytesRecv;
 }
 
-ssize_t writev(SOCKET sock, struct iovec* iov, int iovcnt) {
+ssize_t writev(SOCKET sock, struct iovec const* iov, int iovcnt) {
     WSABUF* wsabuf = (WSABUF*)alloca(iovcnt * sizeof(WSABUF));
     for (int i = 0; i < iovcnt; ++i) {
         wsabuf[i].buf = iov[i].iov_base;
