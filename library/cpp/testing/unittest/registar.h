@@ -539,7 +539,7 @@ public:                       \
         }                                                                                        \
     } while (false)
 
-#define UNIT_CHECK_GENERATED_NO_EXCEPTION(A, E) UNIT_CHECK_GENERATED_NO_EXCEPTION_C(A, E, "")
+#define UNIT_CHECK_GENERATED_NO_EXCEPTION(A, E) UNIT_CHECK_GENERATED_NO_EXCEPTION_C(A, E, "and exception message is:\n" << CurrentExceptionMessage())
 
 // Same as UNIT_ASSERT_EXCEPTION_SATISFIES but prints additional string C when nothing was thrown
 #define UNIT_ASSERT_EXCEPTION_SATISFIES_C(A, E, pred, C)   \
