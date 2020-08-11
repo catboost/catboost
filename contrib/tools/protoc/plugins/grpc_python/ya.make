@@ -4,7 +4,7 @@
 
 
 IF (USE_PREBUILT_TOOLS)
-    INCLUDE(${ARCADIA_ROOT}/build/prebuilt/grpc_python/ya.make.prebuilt)
+    INCLUDE(${ARCADIA_ROOT}/build/prebuilt/contrib/tools/protoc/plugins/grpc_python/ya.make.prebuilt)
 ENDIF()
 
 IF (NOT PREBUILT)

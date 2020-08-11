@@ -1,7 +1,7 @@
 
 
 IF (USE_PREBUILT_TOOLS)
-    INCLUDE(${ARCADIA_ROOT}/build/prebuilt/python3_pycc/ya.make.prebuilt)
+    INCLUDE(${ARCADIA_ROOT}/build/prebuilt/contrib/tools/python3/pycc/ya.make.prebuilt)
 ENDIF()
 
 IF (NOT PREBUILT)

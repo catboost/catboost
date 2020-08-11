@@ -3,7 +3,7 @@
 
 
 IF (USE_PREBUILT_TOOLS)
-    INCLUDE(${ARCADIA_ROOT}/build/prebuilt/ragel6/ya.make.prebuilt)
+    INCLUDE(${ARCADIA_ROOT}/build/prebuilt/contrib/tools/ragel6/ya.make.prebuilt)
 ENDIF()
 
 IF (NOT PREBUILT)
