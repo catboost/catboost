@@ -78,8 +78,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\embedding_features\embedding_calcers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\embedding_features\embedding_feature_calcer.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\embedding_features\lda.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\embedding_features\embedding_calcers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\embedding_features\embedding_feature_calcer.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\embedding_features\lda.h"/>
   </ItemGroup>
