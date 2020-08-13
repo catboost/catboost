@@ -546,11 +546,12 @@ def test_fit_on_ndarray(features_dtype):
         lower_bound = max(np.iinfo(features_dtype).min, -32767)
         upper_bound = min(np.iinfo(features_dtype).max, 32767)
 
+    n_features = 20
     order_to_pool = {}
     for order in ('C', 'F'):
         features, labels = generate_random_labeled_dataset(
             n_samples=100,
-            n_features=20,
+            n_features=n_features,
             labels=[0, 1],
             features_dtype=features_dtype,
             features_range=(lower_bound, upper_bound),
@@ -562,6 +563,9 @@ def test_fit_on_ndarray(features_dtype):
 
     model = CatBoostClassifier(iterations=5)
     model.fit(order_to_pool['F'])  # order is irrelevant here - they are equal
+
+    assert model.n_features_in_ == n_features
+
     preds = model.predict(order_to_pool['F'])
 
     preds_path = test_output_path(PREDS_TXT_PATH)
