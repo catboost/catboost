@@ -923,7 +923,7 @@ class ToolchainOptions(object):
         self.werror_mode = preset('WERROR_MODE') or os.environ.get('WERROR_MODE') or self.params.get('werror_mode') or 'compiler_specific'
 
         # default C++ standard is set here, some older toolchains might need to redefine it
-        self.cxx_std = self.params.get('cxx_std', 'c++1z')
+        self.cxx_std = self.params.get('cxx_std', 'c++17')
 
         self._env = tc_json.get('env', {})
 
