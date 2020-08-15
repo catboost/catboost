@@ -1,8 +1,9 @@
 # XXX: resources duplicated in devtools/ya/test/test_types/py_test.py
+# See DEVTOOLS-7424 for more information
 
-SET(PYTHON27_LINUX sbr:1658213712)
+SET(PYTHON27_LINUX sbr:1658213712)  # Different from others(compatible with running tests) DEVTOOLS-7424
 SET(PYTHON34_LINUX sbr:419260733)
-SET(PYTHON35_LINUX sbr:1658217692)
+SET(PYTHON35_LINUX sbr:1658217692)  # Different from others(compatible with running tests) DEVTOOLS-7424
 SET(PYTHON36_LINUX sbr:412720651)
 SET(PYTHON37_LINUX sbr:616675620)
 SET(PYTHON38_LINUX sbr:1211259884)
