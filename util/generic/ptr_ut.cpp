@@ -73,7 +73,6 @@ private:
     void TestMakeHolder();
     void TestTrulePtr();
     void TestAutoToHolder();
-    void TestLinkedPtr();
     void TestCopyPtr();
     void TestIntrPtr();
     void TestIntrusiveConvertion();
