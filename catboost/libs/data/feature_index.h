@@ -32,7 +32,7 @@ namespace NCB {
     using TFloatFeatureIdx = TFeatureIdx<EFeatureType::Float>;
     using TCatFeatureIdx = TFeatureIdx<EFeatureType::Categorical>;
     using TTextFeatureIdx = TFeatureIdx<EFeatureType::Text>;
-
+    using TEmbeddingFeatureIdx = TFeatureIdx<EFeatureType::Embedding>;
 
     struct TFeatureIdxWithType {
         EFeatureType FeatureType;

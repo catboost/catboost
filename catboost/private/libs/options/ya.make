@@ -31,6 +31,7 @@ SRCS(
     parse_per_feature_options.cpp
     plain_options_helper.cpp
     runtime_text_options.cpp
+    runtime_embedding_options.cpp
     split_params.cpp
     system_options.cpp
     text_processing_options.cpp

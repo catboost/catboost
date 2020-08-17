@@ -6,7 +6,7 @@
 #include <util/generic/ptr.h>
 
 namespace NCB {
-    using TEmbeddingsArray = TConstArrayRef<float>;
+    using TEmbeddingsArray = TMaybeOwningConstArrayHolder<float>;
     using TEmbeddingArrayReferencesColumn = TMaybeOwningConstArrayHolder<TEmbeddingsArray>;
 
     class TEmbeddingDataSet : public TThrRefBase {
@@ -15,12 +15,12 @@ namespace NCB {
         : Embedding(std::move(embed)) {}
 
         ui64 SamplesCount() const {
-            return (*Embedding).size();
+            return Embedding.GetSize();
         }
 
         ui64 GetDimension() const {
             CB_ENSURE(SamplesCount() > 0, "Error: empty embedding");
-            return Embedding[0].size();
+            return Embedding[0].GetSize();
         }
 
         const TEmbeddingsArray& GetVector(ui64 idx) const {

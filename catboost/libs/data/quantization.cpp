@@ -2092,6 +2092,15 @@ namespace NCB {
         );
     }
 
+    static void MoveEmbeddingFeatures(
+        TArrayRef<THolder<TEmbeddingValuesHolder>> embeddingFeatures,
+        TArrayRef<THolder<TEmbeddingValuesHolder>> dstFeatures
+    ) {
+        const ui32 embeddingFeatureCount = embeddingFeatures.size();
+        for (ui32 embeddingFeatureIdx: xrange(embeddingFeatureCount)) {
+            dstFeatures[embeddingFeatureIdx].Swap(embeddingFeatures[embeddingFeatureIdx]);
+        }
+    }
 
     static bool IsFloatFeatureToBeBinarized(
         const TQuantizationOptions& options,
@@ -2245,6 +2254,7 @@ namespace NCB {
                 data->ObjectsData.Data.FloatFeatures.resize(featuresLayout->GetFloatFeatureCount());
                 data->ObjectsData.Data.CatFeatures.resize(featuresLayout->GetCatFeatureCount());
                 data->ObjectsData.Data.TextFeatures.resize(quantizedFeaturesInfo->GetTokenizedFeatureCount());
+                data->ObjectsData.Data.EmbeddingFeatures.resize(featuresLayout->GetEmbeddingFeatureCount());
 
                 if (storeFeaturesDataAsExternalValuesHolders) {
                     // external columns keep the same subset
@@ -2386,6 +2396,11 @@ namespace NCB {
                         quantizedFeaturesInfo->GetTextDigitizers(),
                         data->ObjectsData.Data.TextFeatures,
                         localExecutor
+                    );
+
+                    MoveEmbeddingFeatures(
+                        rawDataProvider->ObjectsData->Data.EmbeddingFeatures,
+                        data->ObjectsData.Data.EmbeddingFeatures
                     );
 
                     AddTokenizedFeaturesToFeatureLayout(
