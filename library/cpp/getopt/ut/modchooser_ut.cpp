@@ -4,23 +4,33 @@
 
 #include <util/stream/str.h>
 
-int One(int, const char**) {
+void ValidateArgcArgv(int argc, const char** argv) {
+    UNIT_ASSERT_EQUAL(argc, 1);
+    UNIT_ASSERT_EQUAL(argv[argc], nullptr);
+}
+
+int One(int argc, const char** argv) {
+    ValidateArgcArgv(argc, argv);
     return 1;
 }
 
-int Two(int, const char**) {
+int Two(int argc, const char** argv) {
+    ValidateArgcArgv(argc, argv);
     return 2;
 }
 
-int Three(int, const char**) {
+int Three(int argc, const char** argv) {
+    ValidateArgcArgv(argc, argv);
     return 3;
 }
 
-int Four(int, const char**) {
+int Four(int argc, const char** argv) {
+    ValidateArgcArgv(argc, argv);
     return 4;
 }
 
-int Five(int, const char**) {
+int Five(int argc, const char** argv) {
+    ValidateArgcArgv(argc, argv);
     return 5;
 }
 
@@ -36,10 +46,17 @@ Y_UNIT_TEST_SUITE(TModChooserTest) {
             chooser.AddMode(NAMES[idx], FUNCTIONS[idx], NAMES[idx]);
         }
 
+        // test argc, argv
         for (size_t idx = 0; idx < Y_ARRAY_SIZE(NAMES); ++idx) {
             int argc = 2;
-            const char* argv[] = {"UNITTEST", NAMES[idx]};
+            const char* argv[] = {"UNITTEST", NAMES[idx], nullptr};
             UNIT_ASSERT_EQUAL(static_cast<int>(idx) + 1, chooser.Run(argc, argv));
+        }
+
+        // test TVector<TString> argv
+        for (size_t idx = 0; idx < Y_ARRAY_SIZE(NAMES); ++idx) {
+            const TVector<TString> argv = {"UNITTEST", NAMES[idx]};
+            UNIT_ASSERT_EQUAL(static_cast<int>(idx) + 1, chooser.Run(argv));
         }
     }
 
@@ -47,7 +64,7 @@ Y_UNIT_TEST_SUITE(TModChooserTest) {
         TModChooser chooser;
 
         int argc = 2;
-        const char* argv[] = {"UNITTEST", "-?"};
+        const char* argv[] = {"UNITTEST", "-?", nullptr};
 
         chooser.Run(argc, argv);
     }

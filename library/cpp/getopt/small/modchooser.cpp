@@ -206,7 +206,7 @@ int TModChooser::Run(const int argc, const char** argv) const {
 
     if (shiftArgs) {
         TString firstArg;
-        TVector<const char*> nargv(Reserve(argc - 1));
+        TVector<const char*> nargv(Reserve(argc));
 
         if (PrintShortCommandInUsage) {
             firstArg = modeIter->second->Name;
@@ -219,19 +219,26 @@ int TModChooser::Run(const int argc, const char** argv) const {
         for (int i = 2; i < argc; ++i) {
             nargv.push_back(argv[i]);
         }
+        // According to the standard, "argv[argc] shall be a null pointer" (5.1.2.2.1).
+        // http://www.open-std.org/JTC1/SC22/WG14/www/docs/n1336
+        nargv.push_back(nullptr);
 
-        return (*modeIter->second->Main)(nargv.size(), nargv.data());
+        return (*modeIter->second->Main)(nargv.size() - 1, nargv.data());
     } else {
         return (*modeIter->second->Main)(argc, argv);
     }
 }
 
 int TModChooser::Run(const TVector<TString>& argv) const {
-    TVector<const char*> nargv(Reserve(argv.size()));
+    TVector<const char*> nargv(Reserve(argv.size() + 1));
     for (auto& arg : argv) {
         nargv.push_back(arg.c_str());
     }
-    return Run(nargv.size(), nargv.data());
+    // According to the standard, "argv[argc] shall be a null pointer" (5.1.2.2.1).
+    // http://www.open-std.org/JTC1/SC22/WG14/www/docs/n1336
+    nargv.push_back(nullptr);
+
+    return Run(nargv.size() - 1, nargv.data());
 }
 
 size_t TModChooser::TMode::CalculateFullNameLen() const {
