@@ -39,9 +39,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\build\platform\cuda\build-platform-cuda.vcxproj">
       <Project>18ED0C1C-3127-4315-3368-E63B97EFA8F1</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\build\platform\java\jdk\platform-java-jdk.vcxproj">
-      <Project>A3ABA9A8-A347-111A-B2C9-B3B22ACEABD0</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\build\scripts\c_templates\dummy-vcs.vcxproj">
       <Project>C7161B5C-139D-1AE8-3502-FC9B47248265</Project>
     </ProjectReference>
@@ -399,9 +396,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\python-package\ut\medium\gpu\catboost-python-package-ut-medium-gpu.vcxproj">
       <Project>770FB2B4-21EC-72C1-F55D-867AF0ECD62B</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\spark\catboost4j-spark\src\native_impl\catboost4j-spark-impl.vcxproj">
-      <Project>F32B6399-D49C-3C0A-9DB7-E5809175AF85</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\tools\limited_precision_dsv_diff\limited_precision_dsv_diff.vcxproj">
       <Project>5FF2816F-34FA-81D6-B543-4B882E775E06</Project>
     </ProjectReference>
@@ -501,9 +495,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\gamma_function_apache_math_port\contrib-libs-gamma_function_apache_math_port.vcxproj">
       <Project>80882C98-2659-8885-5B61-34A8E4283441</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\jdk\contrib-libs-jdk.vcxproj">
-      <Project>28AAE790-69B5-747C-775A-4B5FB4784572</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\jquery\contrib-libs-jquery.vcxproj">
       <Project>912CB8E0-911C-D43E-4D7A-730FD6B8DB60</Project>
     </ProjectReference>
@@ -539,9 +530,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\crypto\libs-openssl-crypto.vcxproj">
       <Project>0EED471E-D91D-9917-D1A8-550D2EBE46DB</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\pcre\contrib-libs-pcre.vcxproj">
-      <Project>D084D797-F01F-4D9F-AA52-61E6D09B37B2</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\contrib-libs-protobuf.vcxproj">
       <Project>18399176-5408-8102-7C5F-8DA029B8F78E</Project>
@@ -980,9 +968,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\ragel6\ragel6.vcxproj">
       <Project>C53C760B-C776-E621-0BA2-EEDD8942A0E6</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\swig\swig.vcxproj">
-      <Project>6C4FD65C-8EA0-C974-39F6-345762EE3171</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\yasm\yasm.vcxproj">
       <Project>1959E211-4FF5-553B-2DD1-9BDC1CFDC107</Project>
