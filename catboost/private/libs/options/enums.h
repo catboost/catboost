@@ -228,7 +228,9 @@ enum class EPredictionType {
     RawFormulaVal,
     Exponent,
     RMSEWithUncertainty,
-    InternalRawFormulaVal
+    InternalRawFormulaVal,
+    VirtEnsembles,
+    TotalUncertainty
 };
 
 enum class EFstrType {

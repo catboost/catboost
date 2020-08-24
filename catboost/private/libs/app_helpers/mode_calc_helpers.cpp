@@ -21,11 +21,13 @@ void NCB::PrepareCalcModeParamsParser(
     NCB::TAnalyticalModeCommonParams* paramsPtr,
     size_t* iterationsLimitPtr,
     size_t* evalPeriodPtr,
+    size_t* virtualEnsemblesCountPtr,
     NLastGetopt::TOpts* parserPtr ) {
 
     auto& params = *paramsPtr;
     auto& iterationsLimit = *iterationsLimitPtr;
     auto& evalPeriod = *evalPeriodPtr;
+    auto& virtualEnsemblesCount = *virtualEnsemblesCountPtr;
     auto& parser = *parserPtr;
 
     parser.AddHelpOption();
@@ -42,7 +44,8 @@ void NCB::PrepareCalcModeParamsParser(
         });
     parser.AddLongOption("prediction-type")
         .RequiredArgument(
-            "Comma separated list of prediction types. Every prediction type should be one of: Probability, Class, RawFormulaVal")
+            "Comma separated list of prediction types. Every prediction type should be one of: Probability, Class, RawFormulaVal, "
+            "RMSEWithUncertainty, TotalUncertainty, VirtEnsembles")
         .Handler1T<TString>([&](const TString& predictionTypes) {
             params.PredictionTypes.clear();
             params.OutputColumnsIds = {"SampleId"};
@@ -51,6 +54,9 @@ void NCB::PrepareCalcModeParamsParser(
                 params.OutputColumnsIds.push_back(FromString<TString>(typeName.Token()));
             }
         });
+    parser.AddLongOption("virtual-ensembles-count", "count of virtual ensembles for VirtEnsembles and TotalUncertainty predictions")
+        .DefaultValue(10)
+        .StoreResult(&virtualEnsemblesCount);
     parser.AddLongOption("eval-period", "predictions are evaluated every <eval-period> trees")
         .StoreResult(&evalPeriod);
     parser.SetFreeArgsNum(0);
@@ -82,6 +88,20 @@ void NCB::ReadModelAndUpdateParams(
                   " core model without or with incomplete estimatedFeatures data");
     }
 
+    for (auto predictionType : params.PredictionTypes) {
+        if (IsUncertaintyPredictionType(predictionType)) {
+            params.IsUncertaintyPrediction = true;
+        }
+    }
+    if (params.IsUncertaintyPrediction) {
+        CB_ENSURE(model.IsPosteriorSamplingModel(), "Uncertainty Prediction allowed only in models with Posterior Sampling");
+        for (auto predictionType : params.PredictionTypes) {
+            CB_ENSURE(IsUncertaintyPredictionType(predictionType), "Predciton type " << predictionType << " is incompatible " <<
+                "with Uncertainty Prediction Type");
+        }
+    }
+    CB_ENSURE(!params.IsUncertaintyPrediction || evalPeriod == 0, "Uncertainty prediction requires Eval period 0.");
+
     params.DatasetReadingParams.ClassLabels = model.GetModelClassLabels();
 
     if (iterationsLimit == 0) {
@@ -99,8 +119,11 @@ void NCB::ReadModelAndUpdateParams(
 static NCB::TEvalResult Apply(
     const TFullModel& model,
     const NCB::TDataProvider& dataset,
-    size_t begin, size_t end,
+    size_t begin,
+    size_t end,
     size_t evalPeriod,
+    size_t virtualEnsemblesCount,
+    bool isUncertaintyPrediction,
     NPar::TLocalExecutor* executor) {
 
     NCB::TEvalResult resultApprox;
@@ -111,26 +134,49 @@ static NCB::TEvalResult Apply(
     if (maybeBaseline) {
         AssignRank2(*maybeBaseline, &rawValues[0]);
     } else {
-        rawValues[0].resize(model.GetDimensionsCount(),
-                            TVector<double>(dataset.ObjectsGrouping->GetObjectCount(), 0.0));
+        if (!isUncertaintyPrediction) {
+            rawValues[0].resize(model.GetDimensionsCount(),
+                                TVector<double>(dataset.ObjectsGrouping->GetObjectCount(), 0.0));
+        }
     }
     TModelCalcerOnPool modelCalcerOnPool(model, dataset.ObjectsData, executor);
     TVector<double> flatApprox;
     TVector<TVector<double>> approx;
-    for (; begin < end; begin += evalPeriod) {
-        modelCalcerOnPool.ApplyModelMulti(EPredictionType::InternalRawFormulaVal,
+    if (isUncertaintyPrediction) {
+        CB_ENSURE_INTERNAL(begin == 0, "For Uncertainty Prediction application only from first tree is supported");
+        TVector<TVector<double>> baseApprox;
+        evalPeriod = end / (2 * virtualEnsemblesCount);
+        CB_ENSURE_INTERNAL(evalPeriod > 0 && evalPeriod * virtualEnsemblesCount < end,
+            "Not enough trees in model for " << virtualEnsemblesCount << " virtual Ensembles");
+        begin = end - evalPeriod * virtualEnsemblesCount;
+        modelCalcerOnPool.ApplyModelMulti(isUncertaintyPrediction ? EPredictionType::VirtEnsembles : EPredictionType::InternalRawFormulaVal,
+                                          0,
+                                          begin,
+                                          &flatApprox,
+                                          &baseApprox);
+        for (size_t idx = 0; idx < virtualEnsemblesCount; ++idx) {
+            rawValues[0].insert(rawValues[0].end(), baseApprox.begin(), baseApprox.end());
+        }
+    }
+
+    for (size_t vEnsembleIdx = 0; begin < end; begin += evalPeriod) {
+        modelCalcerOnPool.ApplyModelMulti(isUncertaintyPrediction ? EPredictionType::VirtEnsembles : EPredictionType::InternalRawFormulaVal,
                                           begin,
                                           Min(begin + evalPeriod, end),
                                           &flatApprox,
                                           &approx);
 
+        size_t shift = vEnsembleIdx * approx.size();
         for (size_t i = 0; i < approx.size(); ++i) {
             for (size_t j = 0; j < approx[0].size(); ++j) {
-                rawValues.back()[i][j] += approx[i][j];
+                rawValues.back()[shift + i][j] += approx[i][j];
             }
         }
-        if (begin + evalPeriod < end) {
+        if (begin + evalPeriod < end && !isUncertaintyPrediction) {
             rawValues.push_back(rawValues.back());
+        }
+        if (isUncertaintyPrediction) {
+            vEnsembleIdx++;
         }
     }
     return resultApprox;
@@ -140,6 +186,7 @@ void NCB::CalcModelSingleHost(
     const NCB::TAnalyticalModeCommonParams& params,
     size_t iterationsLimit,
     size_t evalPeriod,
+    size_t virtualEnsemblesCount,
     TFullModel&& model) {
 
     CB_ENSURE(params.OutputPath.Scheme == "dsv" || params.OutputPath.Scheme == "stream", "Local model evaluation supports only \"dsv\"  and \"stream\" output file schemas.");
@@ -178,7 +225,7 @@ void NCB::CalcModelSingleHost(
             if (IsFirstBlock) {
                 ValidateColumnOutput(params.OutputColumnsIds, *datasetPart);
             }
-            auto approx = Apply(model, *datasetPart, 0, iterationsLimit, evalPeriod, &executor);
+            auto approx = Apply(model, *datasetPart, 0, iterationsLimit, evalPeriod, virtualEnsemblesCount, params.IsUncertaintyPrediction, &executor);
             const TExternalLabelsHelper visibleLabelsHelper(model);
 
             poolColumnsPrinter->UpdateColumnTypeInfo(datasetPart->MetaInfo.ColumnsInfo);
@@ -203,4 +250,3 @@ void NCB::CalcModelSingleHost(
         },
         &executor);
 }
-

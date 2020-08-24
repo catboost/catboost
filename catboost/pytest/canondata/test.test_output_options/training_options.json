@@ -5,6 +5,7 @@
         "approx_on_full_history" : false,
         "fold_len_multiplier" : 2,
         "fold_permutation_block" : 0,
+        "posterior_sampling" : false,
         "boosting_type" : "Plain",
         "iterations" : 10,
         "model_shrink_rate" : 0,

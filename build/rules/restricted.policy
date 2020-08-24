@@ -141,6 +141,10 @@ ALLOW mail -> contrib/restricted/googletest
 ALLOW maps/mobile/libs -> contrib/restricted/googletest
 ALLOW mds -> contrib/restricted/googletest
 
+# protozero is yet another protobuf implementation. use contrib/libs/protobuf instead
+
+ALLOW contrib/libs/libosmium -> contrib/restricted/protozero
+
 # Default policies:
 
 # 1. All peerdirs within contrib/restricted are permitted

@@ -1128,6 +1128,8 @@ public:
      */
     void UpdateEstimatedFeaturesIndices(TVector<TEstimatedFeature>&& newEstimatedFeatures);
 
+    bool IsPosteriorSamplingModel() const;
+
 private:
     void DefaultFullModelInit(const NCatBoostFbs::TModelCore* fbModelCore);
 };

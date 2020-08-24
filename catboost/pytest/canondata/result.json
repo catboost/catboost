@@ -6824,7 +6824,7 @@
         "uri": "file://test.test_output_columns_format/test.eval"
     },
     "test.test_output_options": {
-        "checksum": "b7700f161a49cc28bd73edc8bf61e904",
+        "checksum": "14f16fd945e4616c51c6f757724eda8f",
         "uri": "file://test.test_output_options/training_options.json"
     },
     "test.test_overfit_detector_inc_to_dec[Ordered-SymmetricTree]": [
@@ -9381,6 +9381,38 @@
             "uri": "file://test.test_tweedie/learn_error.tsv"
         }
     ],
+    "test.test_uncertainty_prediction[RMSE-TotalUncertainty-10]": {
+        "checksum": "f8988f0e3c0bead8ebf404bf1f5e9016",
+        "uri": "file://test.test_uncertainty_prediction_RMSE-TotalUncertainty-10_/predict_test.eval"
+    },
+    "test.test_uncertainty_prediction[RMSE-TotalUncertainty-1]": {
+        "checksum": "5cbe3450ca4168387f2a5e26b1ca34b1",
+        "uri": "file://test.test_uncertainty_prediction_RMSE-TotalUncertainty-1_/predict_test.eval"
+    },
+    "test.test_uncertainty_prediction[RMSE-VirtEnsembles-10]": {
+        "checksum": "fea204f69c62ed04a1f157f3dc7e15f5",
+        "uri": "file://test.test_uncertainty_prediction_RMSE-VirtEnsembles-10_/predict_test.eval"
+    },
+    "test.test_uncertainty_prediction[RMSE-VirtEnsembles-1]": {
+        "checksum": "1aecbbb3a2841db87b4f79028e7530ba",
+        "uri": "file://test.test_uncertainty_prediction_RMSE-VirtEnsembles-1_/predict_test.eval"
+    },
+    "test.test_uncertainty_prediction[RMSEWithUncertainty-TotalUncertainty-10]": {
+        "checksum": "656e472eeff32d48ca68e4a9cf319d5b",
+        "uri": "file://test.test_uncertainty_prediction_RMSEWithUncertainty-TotalUncertainty-10_/predict_test.eval"
+    },
+    "test.test_uncertainty_prediction[RMSEWithUncertainty-TotalUncertainty-1]": {
+        "checksum": "95c576fa0b155034a931bee86e33d35c",
+        "uri": "file://test.test_uncertainty_prediction_RMSEWithUncertainty-TotalUncertainty-1_/predict_test.eval"
+    },
+    "test.test_uncertainty_prediction[RMSEWithUncertainty-VirtEnsembles-10]": {
+        "checksum": "90fad9e264451b321759e85bb75de6c4",
+        "uri": "file://test.test_uncertainty_prediction_RMSEWithUncertainty-VirtEnsembles-10_/predict_test.eval"
+    },
+    "test.test_uncertainty_prediction[RMSEWithUncertainty-VirtEnsembles-1]": {
+        "checksum": "a87beba8ecaf685cd9ddfd332f65ce04",
+        "uri": "file://test.test_uncertainty_prediction_RMSEWithUncertainty-VirtEnsembles-1_/predict_test.eval"
+    },
     "test.test_weight_sampling_per_tree[calc_block=5000000-Ordered]": {
         "checksum": "b219cc60fe02a76c99c1617dccf3a9ab",
         "uri": "file://test.test_weight_sampling_per_tree_calc_block=5000000-Ordered_/test.eval"

@@ -368,6 +368,24 @@ static void AdjustBoostFromAverageDefaultValue(
     }
 }
 
+static void AdjustPosteriorSamplingDeafultValues(
+    const NCB::TDataMetaInfo& trainDataMetaInfo,
+    bool continueFromModel,
+    NCatboostOptions::TCatBoostOptions* catBoostOptions
+) {
+    if (!catBoostOptions->BoostingOptions->PosteriorSampling.GetUnchecked()) {
+        return;
+    }
+    CB_ENSURE(!continueFromModel, "Model shrinkage and Posterior Sampling in combination with learning continuation " <<
+        "is not implemented yet.");
+    CB_ENSURE(trainDataMetaInfo.BaselineCount == 0, "Model shrinkage and Posterior Sampling in combination with baseline column " <<
+        "is not implemented yet.");
+    CB_ENSURE(catBoostOptions->BoostingOptions->ModelShrinkMode != EModelShrinkMode::Decreasing, "Posterior Sampling requires " <<
+        "Constant Model Shrink Mode");
+    catBoostOptions->BoostingOptions->ModelShrinkRate.Set(1 / (2. * trainDataMetaInfo.ObjectCount));
+    catBoostOptions->BoostingOptions->DiffusionTemperature.Set(trainDataMetaInfo.ObjectCount);
+}
+
 static void UpdateDictionaryDefaults(
     ui64 learnPoolSize,
     NCatboostOptions::TCatBoostOptions* catBoostOptions
@@ -408,4 +426,5 @@ void SetDataDependentDefaults(
     AdjustBoostFromAverageDefaultValue(trainDataMetaInfo, testDataMetaInfo, continueFromModel, catBoostOptions);
     UpdateDictionaryDefaults(learnPoolSize, catBoostOptions);
     UpdateSampleRateOption(learnPoolSize, catBoostOptions);
+    AdjustPosteriorSamplingDeafultValues(trainDataMetaInfo, continueFromModel || continueFromProgress, catBoostOptions);
 }

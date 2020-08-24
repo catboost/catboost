@@ -10,15 +10,16 @@ namespace {
             NCB::TAnalyticalModeCommonParams params;
             size_t iterationsLimit = 0;
             size_t evalPeriod = 0;
+            size_t virtualEnsemblesCount = 10;
             auto parser = NLastGetopt::TOpts();
 
-            NCB::PrepareCalcModeParamsParser(&params, &iterationsLimit, &evalPeriod, &parser);
+            NCB::PrepareCalcModeParamsParser(&params, &iterationsLimit, &evalPeriod, &virtualEnsemblesCount, &parser);
             NLastGetopt::TOptsParseResult parserResult{&parser, argc, argv};
 
             TFullModel model;
             ReadModelAndUpdateParams(&params, &iterationsLimit, &evalPeriod, &model);
 
-            NCB::CalcModelSingleHost(params, iterationsLimit, evalPeriod, std::move(model));
+            NCB::CalcModelSingleHost(params, iterationsLimit, evalPeriod, virtualEnsemblesCount, std::move(model));
 
             return 0;
         }

@@ -1310,6 +1310,17 @@ void TFullModel::UpdateEstimatedFeaturesIndices(TVector<TEstimatedFeature>&& new
     ModelTrees->UpdateRuntimeData();
 }
 
+bool TFullModel::IsPosteriorSamplingModel() const {
+    if (ModelInfo.contains("params")) {
+        const TString& modelInfoParams = ModelInfo.at("params");
+        NJson::TJsonValue paramsJson = ReadTJsonValue(modelInfoParams);
+        if (paramsJson.Has("boosting_options") && paramsJson["boosting_options"].Has("posterior_sampling")) {
+            return paramsJson["boosting_options"]["posterior_sampling"].GetBoolean();
+        }
+    }
+    return false;
+}
+
 namespace {
     struct TUnknownFeature {};
 

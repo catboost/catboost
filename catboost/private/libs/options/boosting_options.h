@@ -37,6 +37,7 @@ namespace NCatboostOptions {
         TCpuOnlyOption<bool> Langevin;
         TCpuOnlyOption<float> DiffusionTemperature;
 
+        TCpuOnlyOption<bool> PosteriorSampling;
 
         TGpuOnlyOption<ui32> MinFoldSize;
         TGpuOnlyOption<EDataPartitionType> DataPartitionType;

@@ -2665,6 +2665,7 @@ namespace NCB {
                 params.DataProcessingOptions->FloatFeaturesBinarization.Get(),
                 params.DataProcessingOptions->PerFloatFeatureQuantization.Get(),
                 params.DataProcessingOptions->TextProcessingOptions.Get(),
+                params.DataProcessingOptions->EmbeddingProcessingOptions.Get(),
                 /*allowNansInTestOnly*/true
             );
 

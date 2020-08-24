@@ -5663,7 +5663,7 @@
         "arc": {
             "formula": {
                 "sandbox_id": [
-                    746644474
+                    751869207
                 ],
                 "match": "arc"
             },
@@ -6646,7 +6646,7 @@
         "yp": {
             "formula": {
                 "sandbox_id": [
-                    742764757
+                    752743095
                 ],
                 "match": "yp"
             },
@@ -6672,7 +6672,7 @@
         "dctl": {
             "formula": {
                 "sandbox_id": [
-                    742852536
+                    752029088
                 ],
                 "match": "dctl"
             },
@@ -7042,7 +7042,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 750797238,
+                "sandbox_id": 755084295,
                 "match": "horadric"
             },
             "executable": {
@@ -7053,7 +7053,7 @@
         },
         "logbroker": {
             "formula": {
-                "sandbox_id": 750797685,
+                "sandbox_id": 755084462,
                 "match": "logbroker"
             },
             "executable": {
@@ -7064,7 +7064,7 @@
         },
         "zcli": {
             "formula": {
-                "sandbox_id": 750715364,
+                "sandbox_id": 755203003,
                 "match": "zcli"
             },
             "executable": {
@@ -7395,7 +7395,7 @@
         "stress-ng": {
             "formula": {
                 "sandbox_id": [
-                    535192029
+                    755257561
                 ],
                 "match": "infra/kernel/tools/stress-ng/build/stress-ng-static.tar.gz"
             },
