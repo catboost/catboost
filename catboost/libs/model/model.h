@@ -1130,6 +1130,8 @@ public:
 
     bool IsPosteriorSamplingModel() const;
 
+    float GetActualShrinkCoef() const;
+
 private:
     void DefaultFullModelInit(const NCatBoostFbs::TModelCore* fbModelCore);
 };

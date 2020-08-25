@@ -127,3 +127,12 @@ TVector<ui32> CalcLeafIndexesMulti(
     int treeStart = 0,
     int treeEnd = 0,
     int threadCount = 1);
+
+void ApplyVirtualEnsembles(
+    const TFullModel& model,
+    const NCB::TDataProvider& dataset,
+    size_t end,
+    size_t virtualEnsemblesCount,
+    TVector<TVector<TVector<double>>>* rawValuesPtr,
+    NPar::TLocalExecutor* executor
+);

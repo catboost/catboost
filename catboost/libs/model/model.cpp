@@ -1321,6 +1321,18 @@ bool TFullModel::IsPosteriorSamplingModel() const {
     return false;
 }
 
+float TFullModel::GetActualShrinkCoef() const {
+    CB_ENSURE(ModelInfo.contains("params"), "No params in model");
+    const TString& modelInfoParams = ModelInfo.at("params");
+    NJson::TJsonValue paramsJson = ReadTJsonValue(modelInfoParams);
+    CB_ENSURE(paramsJson.Has("boosting_options"), "No boosting_options parameters in model");
+    CB_ENSURE(paramsJson["boosting_options"].Has("learning_rate"),
+        "No parameter learning_rate in model boosting_options");
+    CB_ENSURE(paramsJson["boosting_options"].Has("model_shrink_rate"),
+              "No parameter model_shrink_rate in model boosting_options");
+    return paramsJson["boosting_options"]["learning_rate"].GetDouble() * paramsJson["boosting_options"]["model_shrink_rate"].GetDouble();
+}
+
 namespace {
     struct TUnknownFeature {};
 

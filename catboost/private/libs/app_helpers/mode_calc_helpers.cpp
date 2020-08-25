@@ -128,55 +128,45 @@ static NCB::TEvalResult Apply(
 
     NCB::TEvalResult resultApprox;
     TVector<TVector<TVector<double>>>& rawValues = resultApprox.GetRawValuesRef();
-    rawValues.resize(1);
 
     auto maybeBaseline = dataset.RawTargetData.GetBaseline();
-    if (maybeBaseline) {
-        AssignRank2(*maybeBaseline, &rawValues[0]);
+    if (isUncertaintyPrediction) {
+        CB_ENSURE(!maybeBaseline, "Baseline unsupported with uncertainty prediction");
+        CB_ENSURE_INTERNAL(begin == 0, "For Uncertainty Prediction application only from first tree is supported");
+        ApplyVirtualEnsembles(
+            model,
+            dataset,
+            end,
+            virtualEnsemblesCount,
+            &rawValues,
+            executor
+        );
     } else {
-        if (!isUncertaintyPrediction) {
+        rawValues.resize(1);
+        if (maybeBaseline) {
+            AssignRank2(*maybeBaseline, &rawValues[0]);
+        } else {
             rawValues[0].resize(model.GetDimensionsCount(),
                                 TVector<double>(dataset.ObjectsGrouping->GetObjectCount(), 0.0));
         }
-    }
-    TModelCalcerOnPool modelCalcerOnPool(model, dataset.ObjectsData, executor);
-    TVector<double> flatApprox;
-    TVector<TVector<double>> approx;
-    if (isUncertaintyPrediction) {
-        CB_ENSURE_INTERNAL(begin == 0, "For Uncertainty Prediction application only from first tree is supported");
-        TVector<TVector<double>> baseApprox;
-        evalPeriod = end / (2 * virtualEnsemblesCount);
-        CB_ENSURE_INTERNAL(evalPeriod > 0 && evalPeriod * virtualEnsemblesCount < end,
-            "Not enough trees in model for " << virtualEnsemblesCount << " virtual Ensembles");
-        begin = end - evalPeriod * virtualEnsemblesCount;
-        modelCalcerOnPool.ApplyModelMulti(isUncertaintyPrediction ? EPredictionType::VirtEnsembles : EPredictionType::InternalRawFormulaVal,
-                                          0,
-                                          begin,
-                                          &flatApprox,
-                                          &baseApprox);
-        for (size_t idx = 0; idx < virtualEnsemblesCount; ++idx) {
-            rawValues[0].insert(rawValues[0].end(), baseApprox.begin(), baseApprox.end());
-        }
-    }
-
-    for (size_t vEnsembleIdx = 0; begin < end; begin += evalPeriod) {
-        modelCalcerOnPool.ApplyModelMulti(isUncertaintyPrediction ? EPredictionType::VirtEnsembles : EPredictionType::InternalRawFormulaVal,
-                                          begin,
-                                          Min(begin + evalPeriod, end),
-                                          &flatApprox,
-                                          &approx);
-
-        size_t shift = vEnsembleIdx * approx.size();
-        for (size_t i = 0; i < approx.size(); ++i) {
-            for (size_t j = 0; j < approx[0].size(); ++j) {
-                rawValues.back()[shift + i][j] += approx[i][j];
+        TModelCalcerOnPool modelCalcerOnPool(model, dataset.ObjectsData, executor);
+        TVector<double> flatApprox;
+        TVector<TVector<double>> approx;
+        for (; begin < end; begin += evalPeriod) {
+            modelCalcerOnPool.ApplyModelMulti(
+                EPredictionType::InternalRawFormulaVal,
+                begin,
+                Min(begin + evalPeriod, end),
+                &flatApprox,
+                &approx);
+            for (size_t i = 0; i < approx.size(); ++i) {
+                for (size_t j = 0; j < approx[0].size(); ++j) {
+                    rawValues.back()[i][j] += approx[i][j];
+                }
             }
-        }
-        if (begin + evalPeriod < end && !isUncertaintyPrediction) {
-            rawValues.push_back(rawValues.back());
-        }
-        if (isUncertaintyPrediction) {
-            vEnsembleIdx++;
+            if (begin + evalPeriod < end) {
+                rawValues.push_back(rawValues.back());
+            }
         }
     }
     return resultApprox;
