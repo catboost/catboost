@@ -1,4 +1,3 @@
-#include <dlfcn.h>
 #include <elf.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -8,8 +7,7 @@
 #include <unistd.h>
 
 #include "glibc.h"
-
-#include <stdio.h>
+#include "features.h"
 
 namespace {
     void ReadAuxVector(Elf64_auxv_t** begin, Elf64_auxv_t** end) noexcept {
@@ -65,19 +63,17 @@ namespace {
     }
 }
 
+extern "C" {
+    weak unsigned long __getauxval(unsigned long item);
+}
+
 namespace NUbuntuCompat {
 
     TGlibc::TGlibc() noexcept
-        : GetAuxValPtr(nullptr)
-        , AuxVectorBegin(nullptr)
+        : AuxVectorBegin(nullptr)
         , AuxVectorEnd(nullptr)
     {
-        GlibcHandle = dlopen("libc.so.6", RTLD_LAZY);
-        if (GlibcHandle) {
-            GetAuxValPtr = (TGetAuxVal)dlsym(GlibcHandle, "getauxval");
-        }
-
-        if (!GetAuxValPtr) {
+        if (!__getauxval) {
             ReadAuxVector((Elf64_auxv_t**)&AuxVectorBegin, (Elf64_auxv_t**)&AuxVectorEnd);
         }
 
@@ -89,8 +85,8 @@ namespace NUbuntuCompat {
     }
 
     unsigned long TGlibc::GetAuxVal(unsigned long item) noexcept {
-        if (GetAuxValPtr) {
-            return GetAuxValPtr(item);
+        if (__getauxval) {
+            return __getauxval(item);
         }
 
         for (Elf64_auxv_t* p = (Elf64_auxv_t*)AuxVectorBegin; p < (Elf64_auxv_t*)AuxVectorEnd; ++p) {

@@ -16,12 +16,13 @@ IF (OS_SDK STREQUAL "ubuntu-14")
         c16rtomb.c
         c32rtomb.c
         getauxval.cpp
-        glibc.cpp
         mbrtoc16.c
         mbrtoc32.c
         secure_getenv.cpp
         timespec_get.c
     )
+
+    SRC_CPP_PIC(glibc.cpp -fno-lto)
 ENDIF()
 
 END()
