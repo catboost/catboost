@@ -495,11 +495,10 @@ void ApplyVirtualEnsembles(
     const NCB::TDataProvider& dataset,
     size_t end,
     size_t virtualEnsemblesCount,
-    TVector<TVector<TVector<double>>>* rawValuesPtr,
+    TVector<TVector<double>>* rawValuesPtr,
     NPar::TLocalExecutor* executor
 ) {
     auto& rawValues = *rawValuesPtr;
-    rawValues.resize(1);
     size_t begin = 0;
     TModelCalcerOnPool modelCalcerOnPool(model, dataset.ObjectsData, executor);
     TVector<double> flatApprox;
@@ -516,7 +515,7 @@ void ApplyVirtualEnsembles(
         &flatApprox,
         &baseApprox);
     for (size_t idx = 0; idx < virtualEnsemblesCount; ++idx) {
-        rawValues[0].insert(rawValues[0].end(), baseApprox.begin(), baseApprox.end());
+        rawValues.insert(rawValues.end(), baseApprox.begin(), baseApprox.end());
     }
 
     const float actualShrinkCoef = model.GetActualShrinkCoef();
@@ -534,10 +533,37 @@ void ApplyVirtualEnsembles(
         size_t shift = vEnsembleIdx * approx.size();
         for (size_t i = 0; i < approx.size(); ++i) {
             for (size_t j = 0; j < approx[0].size(); ++j) {
-                rawValues.back()[shift + i][j] += approx[i][j] * multiplicator;
+                rawValues[shift + i][j] += approx[i][j] * multiplicator;
             }
         }
         vEnsembleIdx++;
         multiplicator *= coef;
     }
+}
+
+TVector<TVector<double>> ApplyUncertaintyPredictions(
+    const TFullModel& model,
+    const NCB::TDataProvider& data,
+    bool verbose,
+    const EPredictionType predictionType,
+    int end,
+    int virtualEnsemblesCount,
+    int threadCount)
+{
+    TSetLoggingVerboseOrSilent inThisScope(verbose);
+
+    int lastTreeIdx = end;
+    FixupTreeEnd(model.GetTreeCount(), 0, &lastTreeIdx);
+    TVector<TVector<double>> approxes;
+
+    NPar::TLocalExecutor executor;
+    executor.RunAdditionalThreads(threadCount - 1);
+    ApplyVirtualEnsembles(
+        model,
+        data,
+        lastTreeIdx,
+        virtualEnsemblesCount,
+        &approxes,
+        &executor);
+    return PrepareEval(predictionType, model.GetLossFunctionName(), approxes,  &executor);
 }

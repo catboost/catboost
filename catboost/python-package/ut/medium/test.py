@@ -8132,13 +8132,39 @@ def test_exponent_prediction_type():
 
 
 def test_rmse_with_uncertainty_prediction_type():
-    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    pool = Pool(QUERYWISE_TRAIN_FILE, column_description=CD_FILE)
     regressor = CatBoostRegressor(iterations=2, objective='RMSEWithUncertainty')
     regressor.fit(pool)
     pred = np.transpose(regressor.predict(pool, prediction_type='RawFormulaVal'))
     exp_pred = np.transpose(regressor.predict(pool))
     assert np.allclose(exp_pred[0], pred[0])
     assert np.allclose(exp_pred[1], np.exp(pred[1]))
+
+
+def test_bad_uncertainty_prediction_types_usage():
+    pool = Pool(QUERYWISE_TRAIN_FILE, column_description=CD_FILE)
+    regressor = CatBoostRegressor(iterations=100, posterior_sampling=True)
+    regressor.fit(pool)
+    for prediction_type in ['TotalUncertainty', 'VirtEnsembles']:
+        try:
+            regressor.predict(pool, prediction_type=prediction_type)
+        except:
+            continue
+        assert False
+
+
+@pytest.mark.parametrize('virtual_ensembles_count', [1, 5])
+@pytest.mark.parametrize('prediction_type', ['TotalUncertainty', 'VirtEnsembles'])
+@pytest.mark.parametrize('loss_function', ['RMSE', 'RMSEWithUncertainty'])
+def test_uncertainty_prediction_types(virtual_ensembles_count, prediction_type, loss_function):
+    pool = Pool(QUERYWISE_TRAIN_FILE, column_description=CD_FILE)
+    regressor = CatBoostRegressor(iterations=100, objective=loss_function, posterior_sampling=True)
+    regressor.fit(pool)
+
+    preds = regressor.virtual_ensembles_predict(pool, prediction_type=prediction_type, virtual_ensembles_count=virtual_ensembles_count)
+    preds_path = test_output_path(PREDS_TXT_PATH)
+    np.savetxt(preds_path, np.array(preds), fmt='%.15f', delimiter='\t')
+    return local_canonical_file(preds_path)
 
 
 def test_staged_log_proba():

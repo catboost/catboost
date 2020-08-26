@@ -133,6 +133,16 @@ void ApplyVirtualEnsembles(
     const NCB::TDataProvider& dataset,
     size_t end,
     size_t virtualEnsemblesCount,
-    TVector<TVector<TVector<double>>>* rawValuesPtr,
+    TVector<TVector<double>>* rawValuesPtr,
     NPar::TLocalExecutor* executor
 );
+
+TVector<TVector<double>> ApplyUncertaintyPredictions(
+    const TFullModel& model,
+    const NCB::TDataProvider& data,
+    bool verbose = false,
+    const EPredictionType predictionType = EPredictionType::VirtEnsembles,
+    int end = 0,
+    int virtualEnsemblesCount = 10,
+    int threadCount = 1);
+
