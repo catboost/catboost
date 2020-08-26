@@ -145,6 +145,9 @@ ALLOW mds -> contrib/restricted/googletest
 
 ALLOW contrib/libs/libosmium -> contrib/restricted/protozero
 
+# ashmem is a limited-use low level library
+ALLOW contrib/libs/android_crazy_linker -> contrib/restricted/ashmem
+
 # Default policies:
 
 # 1. All peerdirs within contrib/restricted are permitted
