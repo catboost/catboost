@@ -40,6 +40,7 @@ namespace NCB {
 
         void Save(IOutputStream* stream) const;
         void Load(IInputStream* stream);
+        void LoadNonOwning(TMemoryInput* in);
 
     private:
         TDictionaryPtr DictionaryImpl;
