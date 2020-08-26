@@ -7061,7 +7061,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 755894524,
+                "sandbox_id": 756695152,
                 "match": "horadric"
             },
             "executable": {
@@ -7462,7 +7462,12 @@
                 "match": "infra/kernel/tools/lz4"
             },
             "executable": {
-                "lz4": ["lz4", "usr", "bin", "lz4"]
+                "lz4": [
+                    "lz4",
+                    "usr",
+                    "bin",
+                    "lz4"
+                ]
             }
         },
         "blktrace": {
