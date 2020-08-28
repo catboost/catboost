@@ -1011,6 +1011,7 @@ void CalcApproxForLeafStruct(
     const bool isMultiRegression = dynamic_cast<const TMultiDerCalcer*>(&error) != nullptr;
     ctx->LocalExecutor->ExecRangeWithThrow(
         [&](int bodyTailId) {
+    //for(int bodyTailId = 0; bodyTailId < fold.BodyTailArr.ysize(); ++bodyTailId) {
             const TFold::TBodyTail& bt = fold.BodyTailArr[bodyTailId];
             TVector<TVector<double>>& approxDeltas = (*approxesDelta)[bodyTailId];
             const double initValue = GetNeutralApprox(error.GetIsExpApprox());

@@ -120,7 +120,7 @@ namespace NPar {
         // to add threads to underlying thread pool.
         //
         TLocalExecutor();
-        ~TLocalExecutor();
+        virtual ~TLocalExecutor();
 
         int GetQueueSize() const noexcept;
         int GetMPQueueSize() const noexcept;
@@ -153,13 +153,13 @@ namespace NPar {
 
         // `Exec` and `ExecRange` versions that accept functions.
         //
-        void Exec(TLocallyExecutableFunction exec, int id, int flags);
-        void ExecRange(TLocallyExecutableFunction exec, int firstId, int lastId, int flags);
+        virtual void Exec(TLocallyExecutableFunction exec, int id, int flags);
+        virtual void ExecRange(TLocallyExecutableFunction exec, int firstId, int lastId, int flags);
 
         // Version of `ExecRange` that throws exception from task with minimal id if at least one of
         // task threw an exception.
         //
-        void ExecRangeWithThrow(TLocallyExecutableFunction exec, int firstId, int lastId, int flags);
+        virtual void ExecRangeWithThrow(TLocallyExecutableFunction exec, int firstId, int lastId, int flags);
 
         // Version of `ExecRange` that returns vector of futures, thus allowing to retry any task if
         // it fails.

@@ -9,6 +9,10 @@ PEERDIR(
     library/cpp/resource
 )
 
+PEERDIR(
+    contrib/libs/cxxsupp/openmp
+)
+
 CFLAGS(-DCYTHON_REGISTER_ABCS=0)
 
 NO_PYTHON_INCLUDES()

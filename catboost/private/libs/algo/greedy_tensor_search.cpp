@@ -661,6 +661,7 @@ static void CalcBestScore(
             TVector<TVector<double>> allScores(candidate.Candidates.size());
             ctx->LocalExecutor->ExecRange(
                 [&](int oneCandidate) {
+//for(int oneCandidate = 0; oneCandidate < candidate.Candidates.ysize(); ++oneCandidate) {
                     THolder<IScoreCalcer> scoreCalcer;
                     if (IsPairwiseScoring(ctx->Params.LossFunctionDescription->GetLossFunction())) {
                         scoreCalcer.Reset(new TPairwiseScoreCalcer);

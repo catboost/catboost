@@ -10,6 +10,10 @@ PEERDIR(
     contrib/python/scipy/scipy/sparse/sparsetools
 )
 
+PEERDIR(
+    contrib/libs/cxxsupp/openmp
+)
+
 PY_SRCS(
     NAMESPACE scipy.sparse.csgraph
 

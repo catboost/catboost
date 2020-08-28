@@ -10,6 +10,10 @@ PEERDIR(
     catboost/libs/gpu_config/maybe_have_cuda
 )
 
+PEERDIR(
+    contrib/libs/cxxsupp/openmp
+)
+
 IF(HAVE_CUDA)
     PEERDIR(
         catboost/cuda/train_lib
