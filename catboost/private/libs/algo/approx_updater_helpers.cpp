@@ -22,6 +22,7 @@ static void UpdateAvrgApprox(
 
     localExecutor->ExecRange(
         [&](int setIdx){
+//for(int setIdx = 0; setIdx < 1 + SafeIntegerCast<int>(testData.size()); ++setIdx) {
             if (setIdx == 0) { // learn data set
                 if (learnSampleCount == 0) {
                     return;

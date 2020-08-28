@@ -6,6 +6,10 @@ ADDINCL(
     contrib/python/scipy
 )
 
+PEERDIR(
+    contrib/libs/cxxsupp/openmp
+)
+
 NO_LINT()
 
 PY_SRCS(

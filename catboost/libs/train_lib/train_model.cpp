@@ -41,6 +41,7 @@
 
 #include <library/cpp/grid_creator/binarization.h>
 #include <library/cpp/json/json_prettifier.h>
+#include <library/cpp/threading/local_executor/omp_local_executor.h>
 
 #include <util/generic/cast.h>
 #include <util/generic/mapfindptr.h>
@@ -374,6 +375,10 @@ static void Train(
     const auto onSaveSnapshotCallback = [&] (IOutputStream* out) {
         trainingCallbacks->OnSaveSnapshot(NJson::TJsonValue{}, out);
     };
+    NPar::TLocalExecutor* default_executor = ctx->LocalExecutor;
+    NPar::OMPTLocalExecutor omp_executor;
+    omp_executor.RunAdditionalThreads( ctx->LocalExecutor->GetThreadCount());
+    ctx->LocalExecutor = &omp_executor;
 
     for (ui32 iter = ctx->LearnProgress->GetCurrentTrainingIterationCount();
          continueTraining && (iter < ctx->Params.BoostingOptions->IterationCount);
@@ -449,6 +454,7 @@ static void Train(
 
         continueTraining = trainingCallbacks->IsContinueTraining(ctx->LearnProgress->MetricsAndTimeHistory);
     }
+    ctx->LocalExecutor = default_executor;
 
     ctx->SaveProgress(onSaveSnapshotCallback);
 

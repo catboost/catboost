@@ -300,8 +300,10 @@ void TrainOneIteration(const NCB::TTrainingDataProviders& data, TLearnContext* c
         TVector<double> sumLeafWeights; // [leafId]
         if (ctx->Params.SystemOptions->IsSingleHost()) {
             const TVector<ui64> randomSeeds = GenRandUI64Vector(foldCount, ctx->LearnProgress->Rand.GenRand());
+
             ctx->LocalExecutor->ExecRangeWithThrow(
                 [&](int foldId) {
+//        for(int foldId = 0; foldId < foldCount; ++foldId) {
                     UpdateLearningFold(
                         data,
                         *error,
