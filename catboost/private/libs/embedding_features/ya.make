@@ -4,6 +4,7 @@ LIBRARY()
 
 SRCS(
     lda.cpp
+    embedding_calcers.cpp
     embedding_feature_calcer.cpp
 )
 

@@ -54,13 +54,13 @@
 #include <google/protobuf/io/tokenizer.h>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 #include <google/protobuf/descriptor.pb.h>
-#include "descriptor.h"
-#include "descriptor_database.h"
-#include "dynamic_message.h"
-#include "generated_message_util.h"
-#include "text_format.h"
-#include "unknown_field_set.h"
-#include "wire_format.h"
+#include <google/protobuf/descriptor.h>
+#include <google/protobuf/descriptor_database.h>
+#include <google/protobuf/dynamic_message.h>
+#include <google/protobuf/generated_message_util.h>
+#include <google/protobuf/text_format.h>
+#include <google/protobuf/unknown_field_set.h>
+#include <google/protobuf/wire_format.h>
 #include <google/protobuf/stubs/substitute.h>
 
 #include <google/protobuf/stubs/map_util.h>

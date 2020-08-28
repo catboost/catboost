@@ -40,15 +40,15 @@
 
 #include <google/protobuf/stubs/logging.h>
 #include <google/protobuf/stubs/common.h>
-#include "descriptor.h"
-#include "dynamic_message.h"
-#include "message.h"
+#include <google/protobuf/descriptor.h>
+#include <google/protobuf/dynamic_message.h>
+#include <google/protobuf/message.h>
 #include "pyext/descriptor.h"
 #include "pyext/descriptor_pool.h"
 #include "pyext/message.h"
 #include "pyext/message_factory.h"
 #include "pyext/scoped_pyobject_ptr.h"
-#include "reflection.h"
+#include <google/protobuf/reflection.h>
 
 #if PY_MAJOR_VERSION >= 3
   #define PyInt_Check PyLong_Check

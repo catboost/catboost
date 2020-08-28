@@ -19,7 +19,7 @@
 #include <util/string/escape.h>
 #include <util/string/split.h>
 
-#include <contrib/libs/protobuf/messagext.h>
+#include <google/protobuf/messagext.h>
 
 #include <utility>
 

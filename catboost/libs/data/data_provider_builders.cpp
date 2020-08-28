@@ -187,7 +187,22 @@ namespace NCB {
         }
 
         void AddAllFloatFeatures(ui32 localObjectIdx, TConstPolymorphicValuesSparseArray<float, ui32> features) override {
+            ui32 sparseFeatureCount = 0;
+            features.ForEachNonDefault(
+                [&] (ui32 perTypeFeatureIdx, float /*value*/) {
+                    sparseFeatureCount += FloatFeaturesStorage.IsSparse(TFloatFeatureIdx(perTypeFeatureIdx));
+                }
+            );
             auto objectIdx = Cursor + localObjectIdx;
+            if (features.GetNonDefaultSize() == sparseFeatureCount) {
+                features.ForBlockNonDefault(
+                    [&] (auto indexBlock, auto valueBlock) {
+                        FloatFeaturesStorage.SetSparseFeatureBlock(objectIdx, indexBlock, valueBlock, &FloatFeaturesStorage);
+                    },
+                    /*blockSize*/ 1024
+                );
+                return;
+            }
             features.ForEachNonDefault(
                 [&] (ui32 perTypeFeatureIdx, float value) {
                     FloatFeaturesStorage.Set(TFloatFeatureIdx(perTypeFeatureIdx), objectIdx, value);
@@ -645,13 +660,8 @@ namespace NCB {
                 T value,
                 TFeaturesStorage* storage
             ) {
-                Y_POD_STATIC_THREAD(int) threadId(-1);
-                if (Y_UNLIKELY(threadId == -1)) {
-                    threadId = storage->LocalExecutor->GetWorkerThreadId();
-                }
-                auto& sparseDataPart = storage->SparseDataParts[threadId];
-                sparseDataPart.Indices.emplace_back(TSparseIndex2d{*perTypeFeatureIdx, objectIdx});
-                sparseDataPart.Values.push_back(std::move(value));
+                const auto featureIdx = *perTypeFeatureIdx;
+                SetSparseFeatureBlock(objectIdx, MakeArrayRef(&featureIdx, 1), MakeArrayRef(&value, 1), storage);
             }
 
             static void IgnoreFeature(
@@ -698,61 +708,78 @@ namespace NCB {
                 ESparseArrayIndexingType sparseArrayIndexingType,
                 NPar::TLocalExecutor* localExecutor
             ) {
-                TVector<TSparseDataForBuider> sparseDataForBuilders(PerFeatureData.size()); // [perTypeFeatureIdx]
-
                 TVector<size_t> sizesForBuilders(PerFeatureData.size());
+                auto builderCount = PerFeatureData.size();
                 for (auto& sparseDataPart : SparseDataParts) {
-                    for (auto i : xrange(sparseDataPart.Indices.size())) {
-                        auto index2d = sparseDataPart.Indices[i];
-                        if (index2d.PerTypeFeatureIdx >= sparseDataForBuilders.size()) {
+                    for (auto index2d : sparseDataPart.Indices) {
+                        if (index2d.PerTypeFeatureIdx >= builderCount) {
                             // add previously unknown features
-                            sparseDataForBuilders.resize(index2d.PerTypeFeatureIdx + 1);
-                            sizesForBuilders.resize(index2d.PerTypeFeatureIdx + 1);
+                            builderCount = index2d.PerTypeFeatureIdx + 1;
+                            sizesForBuilders.resize(builderCount);
                         }
                         sizesForBuilders[index2d.PerTypeFeatureIdx] += 1;
                     }
                 }
-                if (sparseDataForBuilders.empty()) {
+                if (builderCount == 0) {
                     return TVector<TMaybe<TConstPolymorphicValuesSparseArray<T, ui32>>>{0};
                 }
+                TVector<TSparseDataForBuider> sparseDataForBuilders(builderCount); // [perTypeFeatureIdx]
 
                 for (auto idx : xrange(sparseDataForBuilders.size())) {
                     sparseDataForBuilders[idx].ObjectIndices.yresize(sizesForBuilders[idx]);
                     sparseDataForBuilders[idx].Values.yresize(sizesForBuilders[idx]);
                 }
 
-                NPar::TLocalExecutor::TExecRangeParams buildersRanges(0, sparseDataForBuilders.size());
-                buildersRanges.SetBlockCount(localExecutor->GetThreadCount() + 1);
-                const ui32 rangeCount = buildersRanges.GetBlockCount();
-                TVector<size_t> idxForBuilders(sparseDataForBuilders.size());
-                for (auto& sparseDataPart : SparseDataParts) {
-                    if (sparseDataPart.Indices.empty()) {
-                        continue;
+                const auto valueCount = Accumulate(sizesForBuilders, ui64(0));
+                const auto valueCountPerRange = CeilDiv<ui64>(valueCount, localExecutor->GetThreadCount() + 1);
+                TVector<NCB::TIndexRange<ui32>> builderRanges;
+                ui32 rangeSize = 0;
+                ui32 rangeOffset = 0;
+                for (ui32 featureIdx : xrange(sizesForBuilders.size())) {
+                    if (rangeSize >= valueCountPerRange) {
+                        builderRanges.push_back({rangeOffset, featureIdx});
+                        rangeOffset = featureIdx;
+                        rangeSize = 0;
                     }
-                    NPar::ParallelFor(
-                        *localExecutor,
-                        0,
-                        rangeCount,
-                        [&] (ui32 rangeIdx) {
+                    rangeSize += sizesForBuilders[featureIdx];
+                }
+                if (rangeSize > 0) {
+                    builderRanges.push_back({rangeOffset, ui32(sizesForBuilders.size())});
+                }
+
+                TVector<size_t> idxForBuilders(sparseDataForBuilders.size());
+                const auto rangeCount = builderRanges.size();
+                NPar::ParallelFor(
+                    *localExecutor,
+                    0,
+                    rangeCount,
+                    [&] (ui32 rangeIdx) {
+                        for (auto& sparseDataPart : SparseDataParts) {
+                            if (sparseDataPart.Indices.empty()) {
+                                continue;
+                            }
                             const auto indicesRef = MakeArrayRef(sparseDataPart.Indices);
                             const auto valuesRef = MakeArrayRef(sparseDataPart.Values);
                             const auto idxRef = MakeArrayRef(idxForBuilders);
-                            const auto rangeBegin = rangeIdx * buildersRanges.GetBlockSize();
-                            const auto rangeEnd = Min<ui32>(rangeBegin + buildersRanges.GetBlockSize(), sparseDataForBuilders.size());
+                            const auto buildersRef = MakeArrayRef(sparseDataForBuilders);
+                            const auto rangeBegin = builderRanges[rangeIdx].Begin;
+                            const auto rangeEnd = builderRanges[rangeIdx].End;
                             for (auto i : xrange(indicesRef.size())) {
                                 const auto index2d = indicesRef[i];
                                 const auto featureIdx = index2d.PerTypeFeatureIdx;
                                 if (featureIdx >= rangeBegin && featureIdx < rangeEnd) {
-                                    auto& dataForBuilder = sparseDataForBuilders[featureIdx];
+                                    auto& dataForBuilder = buildersRef[featureIdx];
                                     dataForBuilder.ObjectIndices[idxRef[featureIdx]] = index2d.ObjectIdx;
                                     dataForBuilder.Values[idxRef[featureIdx]] = valuesRef[i];
                                     ++idxRef[featureIdx];
                                 }
                             }
                         }
-                    );
-                    if (!DataCanBeReusedForNextBlock) {
-                        sparseDataPart = TSparsePart();
+                    }
+                );
+                if (!DataCanBeReusedForNextBlock) {
+                    for (auto& sparseDataPart : SparseDataParts) {
+                            sparseDataPart = TSparsePart();
                     }
                 }
 
@@ -865,7 +892,7 @@ namespace NCB {
                 }
             }
 
-            void Set(TFeatureIdx<FeatureType> perTypeFeatureIdx, ui32 objectIdx, T value) {
+            inline void Set(TFeatureIdx<FeatureType> perTypeFeatureIdx, ui32 objectIdx, T value) {
                 PerFeatureCallbacks[Min(size_t(*perTypeFeatureIdx), PerFeatureCallbacks.size() - 1)](
                     perTypeFeatureIdx,
                     objectIdx,
@@ -873,6 +900,33 @@ namespace NCB {
                     this
                 );
             }
+
+            inline bool IsSparse(TFeatureIdx<FeatureType> perTypeFeatureIdx) const {
+                const auto idx = *perTypeFeatureIdx;
+                return idx + 1 < PerFeatureCallbacks.size() && PerFeatureCallbacks[idx] == SetSparseFeature;
+            }
+
+            Y_FORCE_INLINE static void SetSparseFeatureBlock(
+                ui32 objectIdx,
+                TConstArrayRef<ui32> indices,
+                TConstArrayRef<T> values,
+                TFeaturesStorage* storage
+            ) {
+                Y_POD_STATIC_THREAD(int) threadId(-1);
+                if (Y_UNLIKELY(threadId == -1)) {
+                    threadId = storage->LocalExecutor->GetWorkerThreadId();
+                }
+                auto& sparseDataPart = storage->SparseDataParts[threadId];
+                for (auto idx : indices) {
+                    sparseDataPart.Indices.emplace_back(TSparseIndex2d{idx, objectIdx});
+                }
+                if (values.size() == 1) {
+                    sparseDataPart.Values.push_back(values[0]);
+                } else {
+                    sparseDataPart.Values.insert(sparseDataPart.Values.end(), values.begin(), values.end());
+                }
+            }
+
 
             void SetDefaultValue(TFeatureIdx<FeatureType> perTypeFeatureIdx, T value) {
                 if (*perTypeFeatureIdx >= PerFeatureData.size()) {

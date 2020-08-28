@@ -546,11 +546,12 @@ def test_fit_on_ndarray(features_dtype):
         lower_bound = max(np.iinfo(features_dtype).min, -32767)
         upper_bound = min(np.iinfo(features_dtype).max, 32767)
 
+    n_features = 20
     order_to_pool = {}
     for order in ('C', 'F'):
         features, labels = generate_random_labeled_dataset(
             n_samples=100,
-            n_features=20,
+            n_features=n_features,
             labels=[0, 1],
             features_dtype=features_dtype,
             features_range=(lower_bound, upper_bound),
@@ -562,6 +563,9 @@ def test_fit_on_ndarray(features_dtype):
 
     model = CatBoostClassifier(iterations=5)
     model.fit(order_to_pool['F'])  # order is irrelevant here - they are equal
+
+    assert model.n_features_in_ == n_features
+
     preds = model.predict(order_to_pool['F'])
 
     preds_path = test_output_path(PREDS_TXT_PATH)
@@ -7340,6 +7344,10 @@ def test_save_quantized_pool():
         'iterations': 5,
         'depth': 4,
     }
+    columns_metadata = read_cd(QUERYWISE_CD_FILE, data_file=QUERYWISE_TRAIN_FILE, canonize_column_types=True)
+    feature_names = get_only_features_names(columns_metadata)
+
+    train_quantized_pool.set_feature_names(feature_names)
     train_quantized_pool.quantize()
 
     assert(train_quantized_pool.is_quantized())
@@ -7357,6 +7365,8 @@ def test_save_quantized_pool():
     model_fitted_with_load_quantized_pool.fit(train_quantized_load_pool)
     predictions2 = model_fitted_with_load_quantized_pool.predict(test_pool)
 
+    loaded_feature_names = train_quantized_load_pool.get_feature_names()
+    assert feature_names == loaded_feature_names
     assert all(predictions1 == predictions2)
 
 
@@ -8122,13 +8132,39 @@ def test_exponent_prediction_type():
 
 
 def test_rmse_with_uncertainty_prediction_type():
-    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    pool = Pool(QUERYWISE_TRAIN_FILE, column_description=CD_FILE)
     regressor = CatBoostRegressor(iterations=2, objective='RMSEWithUncertainty')
     regressor.fit(pool)
     pred = np.transpose(regressor.predict(pool, prediction_type='RawFormulaVal'))
     exp_pred = np.transpose(regressor.predict(pool))
     assert np.allclose(exp_pred[0], pred[0])
     assert np.allclose(exp_pred[1], np.exp(pred[1]))
+
+
+def test_bad_uncertainty_prediction_types_usage():
+    pool = Pool(QUERYWISE_TRAIN_FILE, column_description=CD_FILE)
+    regressor = CatBoostRegressor(iterations=100, posterior_sampling=True)
+    regressor.fit(pool)
+    for prediction_type in ['TotalUncertainty', 'VirtEnsembles']:
+        try:
+            regressor.predict(pool, prediction_type=prediction_type)
+        except:
+            continue
+        assert False
+
+
+@pytest.mark.parametrize('virtual_ensembles_count', [1, 5])
+@pytest.mark.parametrize('prediction_type', ['TotalUncertainty', 'VirtEnsembles'])
+@pytest.mark.parametrize('loss_function', ['RMSE', 'RMSEWithUncertainty'])
+def test_uncertainty_prediction_types(virtual_ensembles_count, prediction_type, loss_function):
+    pool = Pool(QUERYWISE_TRAIN_FILE, column_description=CD_FILE)
+    regressor = CatBoostRegressor(iterations=100, objective=loss_function, posterior_sampling=True)
+    regressor.fit(pool)
+
+    preds = regressor.virtual_ensembles_predict(pool, prediction_type=prediction_type, virtual_ensembles_count=virtual_ensembles_count)
+    preds_path = test_output_path(PREDS_TXT_PATH)
+    np.savetxt(preds_path, np.array(preds), fmt='%.15f', delimiter='\t')
+    return local_canonical_file(preds_path)
 
 
 def test_staged_log_proba():

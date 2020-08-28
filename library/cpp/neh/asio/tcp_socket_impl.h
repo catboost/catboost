@@ -3,9 +3,7 @@
 #include "asio.h"
 #include "io_service_impl.h"
 
-#if defined(_win_)
-#   define IOV_MAX 16
-#endif
+#include <sys/uio.h>
 
 #if defined(_bionic_)
 #   define IOV_MAX 1024

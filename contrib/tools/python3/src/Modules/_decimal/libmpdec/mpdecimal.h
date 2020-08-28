@@ -123,7 +123,7 @@ const char *mpd_version(void);
   #if defined(CONFIG_64) || defined(CONFIG_32)
     #error "cannot use CONFIG_64 or CONFIG_32 with UNIVERSAL."
   #endif
-  #if defined(__powerpc64__) || defined(_M_AMD64)
+  #if defined(__powerpc64__) || defined(_M_AMD64) || defined(__aarch64__)
     #define CONFIG_64
     #define ANSI
   #elif defined(__powerpc__)

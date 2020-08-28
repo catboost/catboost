@@ -56,6 +56,7 @@ ALLOW library/cpp/containers/absl_flat_hash -> contrib/restricted/abseil-cpp/abs
 ALLOW quasar/backend/src/base -> contrib/restricted/spdlog
 ALLOW crypta/lib/native/log -> contrib/restricted/spdlog
 ALLOW yandex_io -> contrib/restricted/spdlog
+ALLOW smart_devices/tools/launcher2 -> contrib/restricted/spdlog
 
 ALLOW contrib/libs/webrtc -> contrib/restricted/abseil-cpp
 ALLOW contrib/libs/ortools -> contrib/restricted/abseil-cpp
@@ -139,6 +140,13 @@ ALLOW library/python/testing/gtest/test/gtest -> contrib/restricted/googletest
 ALLOW mail -> contrib/restricted/googletest
 ALLOW maps/mobile/libs -> contrib/restricted/googletest
 ALLOW mds -> contrib/restricted/googletest
+
+# protozero is yet another protobuf implementation. use contrib/libs/protobuf instead
+
+ALLOW contrib/libs/libosmium -> contrib/restricted/protozero
+
+# ashmem is a limited-use low level library
+ALLOW contrib/libs/android_crazy_linker -> contrib/restricted/ashmem
 
 # Default policies:
 

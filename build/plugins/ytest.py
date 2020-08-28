@@ -99,7 +99,7 @@ def validate_requirement(req_name, value, test_size, is_force_sandbox, in_autoch
         return "Unknown requirement: [[imp]]{}[[rst]], choose from [[imp]]{}[[rst]]".format(req_name, ", ".join(sorted(req_checks)))
 
     if req_name in ('container', 'disk') and not is_force_sandbox:
-        return "Only [[imp]]LARGE[[rst]] tests with [[imp]]ya:force_sandbox[[rst]] tag can have [[imp]]{}[[rst]] requirement".format(req_name)
+        return "Only [[imp]]LARGE[[rst]] tests without [[imp]]ya:force_distbuild[[rst]] tag can have [[imp]]{}[[rst]] requirement".format(req_name)
 
     check_func = req_checks[req_name]
     if check_func:
@@ -131,7 +131,7 @@ def validate_test(unit, kw):
     requirements_orig = get_list("REQUIREMENTS")
     in_autocheck = "ya:not_autocheck" not in tags and 'ya:manual' not in tags
     is_fat = 'ya:fat' in tags
-    is_force_sandbox = 'ya:force_sandbox' in tags
+    is_force_sandbox = 'ya:force_distbuild' not in tags and is_fat
     is_fuzzing = valid_kw.get("FUZZING", False)
     is_kvm = 'kvm' in requirements_orig
     requirements = {}
@@ -170,11 +170,11 @@ def validate_test(unit, kw):
     if is_fat:
         if in_autocheck and not is_force_sandbox:
             if invalid_requirements_for_distbuild:
-                errors.append("'{}' REQUIREMENTS options can be used only for FAT tests with ya:force_sandbox tag. Add TAG(ya:force_sandbox) or remove option.".format(invalid_requirements_for_distbuild))
+                errors.append("'{}' REQUIREMENTS options can be used only for FAT tests without ya:force_distbuild tag. Remove TAG(ya:force_distbuild) or an option.".format(invalid_requirements_for_distbuild))
             if sb_tags:
-                errors.append("You can set sandbox tags '{}' only for FAT tests with ya:force_sandbox. Add TAG(ya:force_sandbox) or remove sandbox tags.".format(sb_tags))
+                errors.append("You can set sandbox tags '{}' only for FAT tests without ya:force_distbuild. Remove TAG(ya:force_sandbox) or sandbox tags.".format(sb_tags))
             if 'ya:sandbox_coverage' in tags:
-                errors.append("You can set 'ya:sandbox_coverage' tag only for FAT tests with ya:force_sandbox.")
+                errors.append("You can set 'ya:sandbox_coverage' tag only for FAT tests without ya:force_distbuild.")
     else:
         if is_force_sandbox:
             errors.append('ya:force_sandbox can be used with LARGE tests only')
@@ -904,7 +904,7 @@ def onsetup_run_python(unit):
 
 def get_canonical_test_resources(unit):
     unit_path = unit.path()
-    canon_data_dir = os.path.join(unit.resolve(unit_path), CANON_DATA_DIR_NAME)
+    canon_data_dir = os.path.join(unit.resolve(unit_path), CANON_DATA_DIR_NAME, unit.get('CANONIZE_SUB_PATH') or '')
 
     try:
         _, dirs, files = next(os.walk(canon_data_dir))

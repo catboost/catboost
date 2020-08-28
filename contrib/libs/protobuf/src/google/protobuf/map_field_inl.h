@@ -36,8 +36,8 @@
 #include <google/protobuf/stubs/shared_ptr.h>
 #endif
 
-#include "map.h"
-#include "map_field.h"
+#include <google/protobuf/map.h>
+#include <google/protobuf/map_field.h>
 #include "map_type_handler.h"
 
 namespace google {

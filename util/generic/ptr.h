@@ -898,64 +898,6 @@ inline TSimpleSharedPtr<T> MakeSimpleShared(Args&&... args) {
     return MakeShared<T, TSimpleCounter>(std::forward<Args>(args)...);
 }
 
-template <class T, class D>
-class TLinkedPtr: public TPointerBase<TLinkedPtr<T, D>, T>, public TIntrusiveListItem<TLinkedPtr<T, D>> {
-    using TListBase = TIntrusiveListItem<TLinkedPtr>;
-
-public:
-    inline TLinkedPtr(T* t) noexcept
-        : TListBase()
-        , T_(t)
-    {
-        Y_ASSERT(Last());
-    }
-
-    inline TLinkedPtr(const TLinkedPtr& r) noexcept
-        : TListBase()
-        , T_(r.T_)
-    {
-        this->LinkBefore((TLinkedPtr&)r);
-        Y_ASSERT(!Last());
-    }
-
-    inline ~TLinkedPtr() {
-        DoDestroy();
-    }
-
-    inline TLinkedPtr& operator=(const TLinkedPtr& t) noexcept {
-        if (this != &t) {
-            DoDestroy();
-            T_ = t.T_;
-            this->LinkBefore((TLinkedPtr&)t);
-            Y_ASSERT(!Last());
-        }
-
-        return *this;
-    }
-
-    inline T* Get() const noexcept {
-        return T_;
-    }
-
-    inline void Swap(TLinkedPtr& r) noexcept {
-        DoSwap(*this, r);
-    }
-
-private:
-    inline bool Last() const noexcept {
-        return this == this->Next();
-    }
-
-    inline void DoDestroy() noexcept {
-        if (T_ && Last()) {
-            D::Destroy(T_);
-        }
-    }
-
-private:
-    T* T_;
-};
-
 class TCopyClone {
 public:
     template <class T>

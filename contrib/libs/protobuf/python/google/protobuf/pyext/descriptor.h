@@ -35,7 +35,7 @@
 
 #include <Python.h>
 
-#include <contrib/libs/protobuf/descriptor.h>
+#include <google/protobuf/descriptor.h>
 
 
 namespace google {

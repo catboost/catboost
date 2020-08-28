@@ -172,10 +172,6 @@ def pytest_addoption(parser):
 def pytest_configure(config):
     config.option.continue_on_collection_errors = True
 
-    # XXX Strip java contrib from dep_roots - it's python-irrelevant code,
-    # The number of such deps may lead to problems - see https://st.yandex-team.ru/DEVTOOLS-4627
-    config.option.dep_roots = [e for e in config.option.dep_roots if not e.startswith('contrib/java')]
-
     config.from_ya_test = "YA_TEST_RUNNER" in os.environ
     config.test_logs = collections.defaultdict(dict)
     config.test_metrics = {}

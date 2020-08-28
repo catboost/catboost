@@ -4,9 +4,7 @@
 #include <util/generic/scope.h>
 #include <util/generic/xrange.h>
 
-#if defined(_win_)
-#   define IOV_MAX 16
-#endif
+#include <sys/uio.h>
 
 #if defined(_bionic_)
 #   define IOV_MAX 1024

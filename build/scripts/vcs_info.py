@@ -47,8 +47,8 @@ class _Formatting(object):
 
 def get_default_json():
     return json.loads('''{
-    "ARCADIA_SOURCE_HG_HASH": "0577215664901532860606512090082402431042",
-    "ARCADIA_SOURCE_LAST_AUTHOR": "ordinal",
+    "ARCADIA_SOURCE_HG_HASH": "0000000000000000000000000000000000000000",
+    "ARCADIA_SOURCE_LAST_AUTHOR": "<UNKNOWN>",
     "ARCADIA_SOURCE_LAST_CHANGE": -1,
     "ARCADIA_SOURCE_PATH": "/",
     "ARCADIA_SOURCE_REVISION": -1,
@@ -58,8 +58,8 @@ def get_default_json():
     "BUILD_TIMESTAMP": 0,
     "BUILD_HOST": "localhost",
     "BUILD_USER": "nobody",
-    "PROGRAM_VERSION": "Arc info:\\n    Branch: math\\n    Commit: 0577215664901532860606512090082402431042\\n    Author: ordinal\\n    Summary: No VCS\\n\\n",
-    "SCM_DATA": "Arc info:\\n    Branch: math\\n    Commit: 0577215664901532860606512090082402431042\\n    Author: ordinal\\n    Summary: No VCS\\n",
+    "PROGRAM_VERSION": "Arc info:\\n    Branch: unknown-vcs-branch\\n    Commit: 0000000000000000000000000000000000000000\\n    Author: <UNKNOWN>\\n    Summary: No VCS\\n\\n",
+    "SCM_DATA": "Arc info:\\n    Branch: unknown-vcs-branch\\n    Commit: 0000000000000000000000000000000000000000\\n    Author: <UNKNOWN>\\n    Summary: No VCS\\n",
     "VCS": "arc",
     "ARCADIA_PATCH_NUMBER": 0,
     "ARCADIA_TAG": ""

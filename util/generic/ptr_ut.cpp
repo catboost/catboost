@@ -21,7 +21,6 @@ class TPointerTest: public TTestBase {
     UNIT_TEST(TestMakeHolder);
     UNIT_TEST(TestTrulePtr);
     UNIT_TEST(TestAutoToHolder);
-    UNIT_TEST(TestLinkedPtr);
     UNIT_TEST(TestCopyPtr);
     UNIT_TEST(TestIntrPtr);
     UNIT_TEST(TestIntrusiveConvertion);
@@ -74,7 +73,6 @@ private:
     void TestMakeHolder();
     void TestTrulePtr();
     void TestAutoToHolder();
-    void TestLinkedPtr();
     void TestCopyPtr();
     void TestIntrPtr();
     void TestIntrusiveConvertion();
@@ -133,19 +131,6 @@ void TPointerTest::TestSimpleIntrPtr() {
         TSimpleIntrusivePtr<A> a1(newA());
         TSimpleIntrusivePtr<A> a2(newA());
         TSimpleIntrusivePtr<A> a3 = a2;
-
-        a1 = a2;
-        a2 = a3;
-    }
-
-    UNIT_ASSERT_VALUES_EQUAL(cnt, 0);
-}
-
-void TPointerTest::TestLinkedPtr() {
-    {
-        TLinkedPtr<A> a1(newA());
-        TLinkedPtr<A> a2(newA());
-        TLinkedPtr<A> a3 = a2;
 
         a1 = a2;
         a2 = a3;

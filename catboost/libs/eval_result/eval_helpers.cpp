@@ -102,6 +102,60 @@ static TVector<int> SelectBestClass(
     return classApprox;
 }
 
+static void CalcMoments(
+    const TVector<TVector<double>>& approx,
+    TVector<double>* meanApproxPtr,
+    TVector<double>* varApproxPtr,
+    TVector<double>* knowledgeUncertaintyPtr,
+    size_t virtEnsemblesCount,
+    NPar::TLocalExecutor* executor)
+{
+    TVector<double>& meanApprox = *meanApproxPtr;
+    TVector<double>& varApprox = *varApproxPtr;
+    size_t dimShift = 1;
+    if (knowledgeUncertaintyPtr) {
+        knowledgeUncertaintyPtr->resize(approx.front().size());
+        dimShift = 2;
+    }
+    meanApprox.resize(approx.front().size());
+    varApprox.resize(approx.front().size());
+    const int executorThreadCount = executor ? executor->GetThreadCount() : 0;
+    const int threadCount = executorThreadCount + 1;
+    const int blockSize = (approx[0].ysize() + threadCount - 1) / threadCount;
+    const auto calcMoments = [&](const int blockId) {
+        int lastLineId = Min((blockId + 1) * blockSize, approx[0].ysize());
+        for (int lineInd = blockId * blockSize; lineInd < lastLineId; ++lineInd) {
+            double mean = 0;
+            for (size_t dimIdx = 0; dimIdx < virtEnsemblesCount; ++dimIdx) {
+                mean += approx[dimIdx * dimShift][lineInd];
+            }
+            mean /= virtEnsemblesCount;
+            meanApprox[lineInd] = mean;
+            double var = 0;
+            for (size_t dimIdx = 0; dimIdx < virtEnsemblesCount; ++dimIdx) {
+                var += Sqr(approx[dimIdx * dimShift][lineInd] - mean);
+            }
+            var /= virtEnsemblesCount;
+            varApprox[lineInd] = var;
+        }
+        if (knowledgeUncertaintyPtr) {
+            for (size_t dimIdx = 0; dimIdx < virtEnsemblesCount; ++dimIdx) {
+                for (int lineInd = blockId * blockSize; lineInd < lastLineId; ++lineInd) {
+                    (*knowledgeUncertaintyPtr)[lineInd] += approx[dimIdx * 2 + 1][lineInd];
+                }
+            }
+            for (int lineInd = blockId * blockSize; lineInd < lastLineId; ++lineInd) {
+                (*knowledgeUncertaintyPtr)[lineInd] /= virtEnsemblesCount;
+            }
+        }
+    };
+    if (executor) {
+        executor->ExecRange(calcMoments, 0, threadCount, NPar::TLocalExecutor::WAIT_COMPLETE);
+    } else {
+        calcMoments(0);
+    }
+}
+
 bool IsMulticlass(const TVector<TVector<double>>& approx) {
     return approx.size() > 1;
 }
@@ -225,6 +279,23 @@ void PrepareEval(const EPredictionType predictionType,
             result->resize(2);
             (*result)[0] = approx[0];
             (*result)[1] = CalcExponent(approx[1]);
+            break;
+        case EPredictionType::VirtEnsembles:
+            *result = approx;
+            if (FromString<ELossFunction>(lossFunctionName) == ELossFunction::RMSEWithUncertainty) {
+                for (size_t idx = 1; idx < result->size(); idx += 2) {
+                    FastExpInplace((*result)[idx].data(), (*result)[idx].ysize());
+                }
+            }
+            break;
+        case EPredictionType::TotalUncertainty:
+            if (FromString<ELossFunction>(lossFunctionName) == ELossFunction::RMSEWithUncertainty) {
+                result->resize(3);
+                CalcMoments(approx, &(result->at(0)), &(result->at(1)), &(result->at(2)), approx.size() / 2, executor);
+            } else {
+                result->resize(2);
+                CalcMoments(approx, &(result->at(0)), &(result->at(1)), nullptr, approx.size(), executor);
+            }
             break;
         case EPredictionType::RawFormulaVal:
             *result = approx;

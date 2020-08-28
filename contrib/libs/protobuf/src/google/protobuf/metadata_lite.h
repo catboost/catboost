@@ -32,8 +32,8 @@
 #define GOOGLE_PROTOBUF_METADATA_LITE_H__
 
 #include <google/protobuf/stubs/common.h>
-#include "arena.h"
-#include "generated_message_util.h"
+#include <google/protobuf/arena.h>
+#include <google/protobuf/generated_message_util.h>
 
 namespace google {
 namespace protobuf {

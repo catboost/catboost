@@ -34,11 +34,11 @@
 
 #include <vector>
 
-#include "reflection_ops.h"
-#include "descriptor.h"
+#include <google/protobuf/reflection_ops.h>
+#include <google/protobuf/descriptor.h>
 #include <google/protobuf/descriptor.pb.h>
-#include "map_field.h"
-#include "unknown_field_set.h"
+#include <google/protobuf/map_field.h>
+#include <google/protobuf/unknown_field_set.h>
 #include <google/protobuf/stubs/strutil.h>
 
 namespace google {

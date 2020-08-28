@@ -177,6 +177,9 @@
         "rsync": {
             "description": "Run RSync"
         },
+        "yf": {
+            "description": "Run YF client"
+        },
         "yt": {
             "description": "Run YT client"
         },
@@ -245,11 +248,8 @@
         "apphost": {
             "description": "Run local apphost instance"
         },
-        "go_1.14.4": {
-            "description": "Run go tool (1.14.4)"
-        },
-        "gofmt_1.14.4": {
-            "description": "Run gofmt tool (1.14.4)"
+        "news": {
+            "description": "Run news team tools"
         },
         "go": {
             "description": "Run go tool (1.14.6)"
@@ -257,11 +257,20 @@
         "gofmt": {
             "description": "Run gofmt tool (1.14.6)"
         },
+        "go_1.15": {
+            "description": "Run go tool (1.15)"
+        },
+        "gofmt_1.15": {
+            "description": "Run gofmt tool (1.15)"
+        },
         "godoc": {
             "description": "Arcadia version of godoc"
         },
         "yo": {
             "description": "Tool for managing vendor/ directory"
+        },
+        "mockgen": {
+            "description": "Run GoMock (go mocking framework)"
         },
         "dlv": {
             "description": "Debugger for the Go programming language"
@@ -311,6 +320,12 @@
         "fio": {
             "description": "flexible I/O tester"
         },
+        "amduprof-cli": {
+            "description": "AMDuProfCLI is a command-line tool for AMD uProf Profiler"
+        },
+        "amduprof-pcm": {
+            "description": "AMDuProfPcm is a command-line tool to monitor CPU performance metrics of AMD processors"
+        },
         "foremost": {
             "description": "Foremost is a Linux program to recover files based on their headers"
         },
@@ -350,6 +365,9 @@
         "btt": {
             "description": "analyse block i/o traces produces by blktrace"
         },
+        "lz4": {
+            "description": "Compress or decompress .lz4 files"
+        },
         "optrace": {
             "description": "optrace records output files written by each process",
             "visible": false
@@ -368,6 +386,9 @@
         },
         "yadi": {
             "description": "Arcadia version of Yadi"
+        },
+        "grpc_cli": {
+            "description": "GRPC command-line tool"
         }
     },
     "toolchain": {
@@ -892,6 +913,34 @@
                 {
                     "host": {
                         "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
+        "mockgen": {
+            "tools": {
+                "mockgen": {
+                    "bottle": "mockgen",
+                    "executable": "mockgen"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "WIN"
                     },
                     "default": true
                 }
@@ -3754,6 +3803,22 @@
                 }
             ]
         },
+        "yf": {
+            "tools": {
+                "yf": {
+                    "bottle": "yf",
+                    "executable": "yf"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "yp-util": {
             "tools": {
                 "yp-util": {
@@ -4928,19 +4993,11 @@
                 }
             ]
         },
-        "golang_1_14_4": {
+        "news": {
             "tools": {
-                "golang_1.14.4": {
-                    "bottle": "golang_1.14.4",
-                    "executable": "golangi_1.14.4"
-                },
-                "go_1.14.4": {
-                    "bottle": "golang_1.14.4",
-                    "executable": "go_1.14.4"
-                },
-                "gofmt_1.14.4": {
-                    "bottle": "golang_1.14.4",
-                    "executable": "gofmt_1.14.4"
+                "news": {
+                    "bottle": "news",
+                    "executable": "news_launcher"
                 }
             },
             "platforms": [
@@ -4955,18 +5012,8 @@
                         "os": "DARWIN"
                     },
                     "default": true
-                },
-                {
-                    "host": {
-                        "os": "WIN"
-                    },
-                    "default": true
                 }
-            ],
-            "params": {
-                "type": "golang",
-                "version": "1.14.4"
-            }
+            ]
         },
         "golang_1_14_6": {
             "tools": {
@@ -5006,6 +5053,46 @@
             "params": {
                 "type": "golang",
                 "version": "1.14.6"
+            }
+        },
+        "golang_1_15": {
+            "tools": {
+                "golang_1.15": {
+                    "bottle": "golang_1.15",
+                    "executable": "golang_1.15"
+                },
+                "go_1.15": {
+                    "bottle": "golang_1.15",
+                    "executable": "go_1.15"
+                },
+                "gofmt_1.15": {
+                    "bottle": "golang_1.15",
+                    "executable": "gofmt_1.15"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "WIN"
+                    },
+                    "default": true
+                }
+            ],
+            "params": {
+                "type": "golang",
+                "version": "1.15"
             }
         },
         "godoc": {
@@ -5097,6 +5184,26 @@
                 "fio": {
                     "bottle": "fio",
                     "executable": "fio"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                }
+            ]
+        },
+        "amduprof": {
+            "tools": {
+                "amduprof-cli": {
+                    "bottle": "amduprof",
+                    "executable": "amduprof-cli"
+                },
+                "amduprof-pcm": {
+                    "bottle": "amduprof",
+                    "executable": "amduprof-pcm"
                 }
             },
             "platforms": [
@@ -5225,6 +5332,22 @@
                 "lkvm": {
                     "bottle": "kvmtool",
                     "executable": "lkvm"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                }
+            ]
+        },
+        "lz4": {
+            "tools": {
+                "lz4": {
+                    "bottle": "lz4",
+                    "executable": "lz4"
                 }
             },
             "platforms": [
@@ -5473,6 +5596,34 @@
                     "default": true
                 }
             ]
+        },
+        "grpc_cli": {
+            "tools": {
+                "grpc_cli": {
+                    "bottle": "grpc_cli",
+                    "executable": "grpc_cli"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "WIN"
+                    },
+                    "default": true
+                }
+            ]
         }
     },
     "bottles": {
@@ -5507,7 +5658,7 @@
         "ymake": {
             "formula": {
                 "sandbox_id": [
-                    738661237
+                    741467155
                 ],
                 "match": "ymake"
             },
@@ -5531,7 +5682,7 @@
         "arc": {
             "formula": {
                 "sandbox_id": [
-                    740160289
+                    756088005
                 ],
                 "match": "arc"
             },
@@ -5555,14 +5706,29 @@
         "yo": {
             "formula": {
                 "sandbox_id": [
-                    690780196,
-                    690780173
+                    747461269,
+                    747461262
                 ],
                 "match": "yo"
             },
             "executable": {
                 "yo": [
                     "yo"
+                ]
+            }
+        },
+        "mockgen": {
+            "formula": {
+                "sandbox_id": [
+                    742810450,
+                    742810460,
+                    742810456
+                ],
+                "match": "mockgen"
+            },
+            "executable": {
+                "mockgen": [
+                    "mockgen"
                 ]
             }
         },
@@ -6474,10 +6640,19 @@
                 ]
             }
         },
+        "yf": {
+            "formula": {
+                "sandbox_id": [
+                    755713272
+                ],
+                "match": "yf-client"
+            },
+            "executable": "yf-client"
+        },
         "yp-util": {
             "formula": {
                 "sandbox_id": [
-                    719427098
+                    742726144
                 ],
                 "match": "yp_util"
             },
@@ -6490,7 +6665,7 @@
         "yp": {
             "formula": {
                 "sandbox_id": [
-                    653024184
+                    752743095
                 ],
                 "match": "yp"
             },
@@ -6516,7 +6691,7 @@
         "dctl": {
             "formula": {
                 "sandbox_id": [
-                    706519642
+                    752028471
                 ],
                 "match": "dctl"
             },
@@ -6886,7 +7061,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 741456735,
+                "sandbox_id": 758395977,
                 "match": "horadric"
             },
             "executable": {
@@ -6897,7 +7072,7 @@
         },
         "logbroker": {
             "formula": {
-                "sandbox_id": 741456762,
+                "sandbox_id": 758395505,
                 "match": "logbroker"
             },
             "executable": {
@@ -6908,7 +7083,7 @@
         },
         "zcli": {
             "formula": {
-                "sandbox_id": 741518505,
+                "sandbox_id": 758338163,
                 "match": "zcli"
             },
             "executable": {
@@ -6985,7 +7160,7 @@
         },
         "ycmerge": {
             "formula": {
-                "sandbox_id": 677658685,
+                "sandbox_id": 756004626,
                 "match": "ycmerge"
             },
             "executable": {
@@ -7029,7 +7204,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 706572474,
+                "sandbox_id": 748278401,
                 "match": "app_host_launcher"
             },
             "executable": {
@@ -7038,23 +7213,14 @@
                 ]
             }
         },
-        "golang_1.14.4": {
+        "news": {
             "formula": {
-                "sandbox_id": [
-                    691135671,
-                    691136200,
-                    691136779
-                ],
-                "match": "GOLANG"
+                "sandbox_id": 755527058,
+                "match": "news_launcher"
             },
             "executable": {
-                "go_1.14.4": [
-                    "bin",
-                    "go"
-                ],
-                "gofmt_1.14.4": [
-                    "bin",
-                    "gofmt"
+                "news_launcher": [
+                    "news_launcher"
                 ]
             }
         },
@@ -7073,6 +7239,26 @@
                     "go"
                 ],
                 "gofmt": [
+                    "bin",
+                    "gofmt"
+                ]
+            }
+        },
+        "golang_1.15": {
+            "formula": {
+                "sandbox_id": [
+                    746358746,
+                    746359485,
+                    746360126
+                ],
+                "match": "GOLANG"
+            },
+            "executable": {
+                "go_1.15": [
+                    "bin",
+                    "go"
+                ],
+                "gofmt_1.15": [
                     "bin",
                     "gofmt"
                 ]
@@ -7133,6 +7319,26 @@
                     "fio",
                     "bin",
                     "fio"
+                ]
+            }
+        },
+        "amduprof": {
+            "formula": {
+                "sandbox_id": [
+                    747426974
+                ],
+                "match": "AMDuProf_Linux_x64_3.2.228.tar.gz"
+            },
+            "executable": {
+                "amduprof-cli": [
+                    "AMDuProf_Linux_x64_3.2.228",
+                    "bin",
+                    "AMDuProfCLI"
+                ],
+                "amduprof-pcm": [
+                    "AMDuProf_Linux_x64_3.2.228",
+                    "bin",
+                    "AMDuProfPcm"
                 ]
             }
         },
@@ -7208,7 +7414,7 @@
         "stress-ng": {
             "formula": {
                 "sandbox_id": [
-                    535192029
+                    755257561
                 ],
                 "match": "infra/kernel/tools/stress-ng/build/stress-ng-static.tar.gz"
             },
@@ -7245,6 +7451,22 @@
                 "lkvm": [
                     "kvmtool",
                     "lkvm"
+                ]
+            }
+        },
+        "lz4": {
+            "formula": {
+                "sandbox_id": [
+                    756420904
+                ],
+                "match": "infra/kernel/tools/lz4"
+            },
+            "executable": {
+                "lz4": [
+                    "lz4",
+                    "usr",
+                    "bin",
+                    "lz4"
                 ]
             }
         },
@@ -7303,7 +7525,7 @@
         },
         "yfm-docs": {
             "formula": {
-                "sandbox_id": 722901245,
+                "sandbox_id": 750434041,
                 "match": "yfm-docs"
             },
             "executable": {
@@ -7385,6 +7607,17 @@
             "executable": {
                 "yadi-arc": [
                     "yadi-arc"
+                ]
+            }
+        },
+        "grpc_cli": {
+            "formula": {
+                "sandbox_id": 739261887,
+                "match": "grpc_cli"
+            },
+            "executable": {
+                "grpc_cli": [
+                    "grpc_cli"
                 ]
             }
         }

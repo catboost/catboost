@@ -174,10 +174,13 @@ android {{
             group = "Javadoc"
             description "Generates Javadoc for $capitalizedVariantName"
 
-            title = "Maps Mobile documentation"
+            title = "Yandex documentation"
 
             source = android.sourceSets.main.java.srcDirs
-            include "**/com/yandex/*/**"
+            include "**/*/yandex/*/**"
+            // TODO: remove this when we support internal doc exclusion in IDL
+            // https://st.yandex-team.ru/MAPSMOBCORE-11364
+            exclude "**/internal/**"
 
             ext.androidJar = "${{android.sdkDirectory.path}}/platforms/${{android.compileSdkVersion}}/android.jar"
             classpath =

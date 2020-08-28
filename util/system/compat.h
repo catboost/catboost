@@ -55,7 +55,6 @@ void verrx(int status, const char* format, va_list ap);
 #if !defined(_MSC_VER)
 char* strlwr(char*);
 char* strupr(char*);
-char* strrev(char*);
 
 inline int stricmp(const char* s1, const char* s2) {
     return strcasecmp(s1, s2);
@@ -95,13 +94,6 @@ char* strsep(char** stringp, const char* delim);
 void sleep(i64 len);
 void usleep(i64 len);
 
-#endif
-
-#ifdef _win_
-struct iovec { // not defined in win32 :-/
-    char* iov_base;
-    size_t iov_len;
-};
 #endif
 
 #if defined(_win_) || defined(_cygwin_)

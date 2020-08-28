@@ -41,7 +41,7 @@
 #include <google/protobuf/stubs/shared_ptr.h>
 #endif
 
-#include "descriptor.h"
+#include <google/protobuf/descriptor.h>
 
 namespace google {
 namespace protobuf {

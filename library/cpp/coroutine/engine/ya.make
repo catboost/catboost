@@ -6,6 +6,7 @@ GENERATE_ENUM_SERIALIZATION(poller.h)
 GENERATE_ENUM_SERIALIZATION(trampoline.h)
 
 PEERDIR(
+    contrib/libs/libc_compat
     library/cpp/containers/intrusive_rb_tree
 )
 

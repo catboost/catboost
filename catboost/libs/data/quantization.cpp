@@ -451,13 +451,11 @@ namespace NCB {
             , DstNonDefaultCount(nonDefaultCount)
         {}
 
-        inline void UpdateInIncrementalOrder(
+        Y_FORCE_INLINE void UpdateInIncrementalOrder(
             ui32 idx,
             ui32* currentBlockIdx,
             ui64* currentBlockMask
         ) const {
-            ++(*DstNonDefaultCount);
-
             const ui32 blockIdx = idx / BLOCK_SIZE;
             const ui64 bitMask = ui64(1) << (idx % BLOCK_SIZE);
             if (blockIdx == *currentBlockIdx) {
@@ -518,6 +516,7 @@ namespace NCB {
             for (auto idx : nonDefaultIndices) {
                 UpdateInIncrementalOrder(idx, &currentBlockIdx, &currentBlockMask);
             }
+            *DstNonDefaultCount += nonDefaultIndices.size();
 
             if (currentBlockIdx != Max<ui32>()) {
                 DstMasks->push_back(std::pair<ui32, ui64>(currentBlockIdx, currentBlockMask));
@@ -550,12 +549,24 @@ namespace NCB {
                 ui32 currentBlockIdx = Max<ui32>();
                 ui64 currentBlockMask = 0;
 
-                sparseArray.ForEachNonDefault(
-                    [&] (ui32 nonDefaultIdx, T srcNonDefaultValue) {
-                        if (IsNonDefaultFunctor.IsNonDefault(srcNonDefaultValue)) {
-                            UpdateInIncrementalOrder(nonDefaultIdx, &currentBlockIdx, &currentBlockMask);
+                const auto nonDefaultPerMask = CeilDiv<ui64>(sizeof(currentBlockMask) * sparseArray.GetNonDefaultSize(), sparseArray.GetSize());
+                if (nonDefaultPerMask > 0) {
+                    DstMasks->reserve(sparseArray.GetNonDefaultSize() / nonDefaultPerMask);
+                }
+                sparseArray.ForBlockNonDefault(
+                    [&] (auto indexBlock, auto valueBlock) {
+                        ui32 dstNonDefaultCount = 0;
+                        for (auto idx : xrange(indexBlock.size())) {
+                            const auto srcNonDefaultValue = valueBlock[idx];
+                            if (IsNonDefaultFunctor.IsNonDefault(srcNonDefaultValue)) {
+                                const auto nonDefaultIdx = indexBlock[idx];
+                                UpdateInIncrementalOrder(nonDefaultIdx, &currentBlockIdx, &currentBlockMask);
+                                ++dstNonDefaultCount;
+                            }
                         }
-                    }
+                        *DstNonDefaultCount += dstNonDefaultCount;
+                    },
+                    /*maxBlockSize*/ 4096
                 );
 
                 if (currentBlockIdx != Max<ui32>()) {
@@ -602,15 +613,18 @@ namespace NCB {
 
                 sparseArray.ForEachNonDefault(
                     [&] (ui32 nonDefaultIdx, T srcNonDefaultValue) {
+                        *DstNonDefaultCount += idx < nonDefaultIdx ? nonDefaultIdx - idx : 0;
                         for (; idx < nonDefaultIdx; ++idx) {
                             UpdateInIncrementalOrder(idx, &currentBlockIdx, &currentBlockMask);
                         }
                         if (IsNonDefaultFunctor.IsNonDefault(srcNonDefaultValue)) {
                             UpdateInIncrementalOrder(nonDefaultIdx, &currentBlockIdx, &currentBlockMask);
+                            ++*DstNonDefaultCount;
                         }
                         ++idx;
                     }
                 );
+                *DstNonDefaultCount += idx < sparseArray.GetSize() ? sparseArray.GetSize() - idx : 0;
                 for (; idx < sparseArray.GetSize(); ++idx) {
                     UpdateInIncrementalOrder(idx, &currentBlockIdx, &currentBlockMask);
                 }
@@ -658,10 +672,10 @@ namespace NCB {
         }
 
     private:
-        TIsNonDefault<TColumn> IsNonDefaultFunctor;
+        const TIsNonDefault<TColumn> IsNonDefaultFunctor;
 
-        TVector<std::pair<ui32, ui64>>* DstMasks;
-        ui32* DstNonDefaultCount;
+        TVector<std::pair<ui32, ui64>>* const DstMasks;
+        ui32* const DstNonDefaultCount;
     };
 
 
@@ -2078,6 +2092,15 @@ namespace NCB {
         );
     }
 
+    static void MoveEmbeddingFeatures(
+        TArrayRef<THolder<TEmbeddingValuesHolder>> embeddingFeatures,
+        TArrayRef<THolder<TEmbeddingValuesHolder>> dstFeatures
+    ) {
+        const ui32 embeddingFeatureCount = embeddingFeatures.size();
+        for (ui32 embeddingFeatureIdx: xrange(embeddingFeatureCount)) {
+            dstFeatures[embeddingFeatureIdx].Swap(embeddingFeatures[embeddingFeatureIdx]);
+        }
+    }
 
     static bool IsFloatFeatureToBeBinarized(
         const TQuantizationOptions& options,
@@ -2231,6 +2254,7 @@ namespace NCB {
                 data->ObjectsData.Data.FloatFeatures.resize(featuresLayout->GetFloatFeatureCount());
                 data->ObjectsData.Data.CatFeatures.resize(featuresLayout->GetCatFeatureCount());
                 data->ObjectsData.Data.TextFeatures.resize(quantizedFeaturesInfo->GetTokenizedFeatureCount());
+                data->ObjectsData.Data.EmbeddingFeatures.resize(featuresLayout->GetEmbeddingFeatureCount());
 
                 if (storeFeaturesDataAsExternalValuesHolders) {
                     // external columns keep the same subset
@@ -2372,6 +2396,11 @@ namespace NCB {
                         quantizedFeaturesInfo->GetTextDigitizers(),
                         data->ObjectsData.Data.TextFeatures,
                         localExecutor
+                    );
+
+                    MoveEmbeddingFeatures(
+                        rawDataProvider->ObjectsData->Data.EmbeddingFeatures,
+                        data->ObjectsData.Data.EmbeddingFeatures
                     );
 
                     AddTokenizedFeaturesToFeatureLayout(
@@ -2636,6 +2665,7 @@ namespace NCB {
                 params.DataProcessingOptions->FloatFeaturesBinarization.Get(),
                 params.DataProcessingOptions->PerFloatFeatureQuantization.Get(),
                 params.DataProcessingOptions->TextProcessingOptions.Get(),
+                params.DataProcessingOptions->EmbeddingProcessingOptions.Get(),
                 /*allowNansInTestOnly*/true
             );
 

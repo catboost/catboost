@@ -109,7 +109,9 @@ namespace NCB {
         TVector<TEvaluatedFeature> GetProducedFeatures() const;
 
         void Save(IOutputStream* s) const;
-        void Load(IInputStream* s);
+        void Load(IInputStream* stream);
+        void LoadNonOwning(TMemoryInput* in);
+        void DefaultInit(TCountingInput s);
 
         bool operator==(const TTextProcessingCollection& rhs);
         bool operator!=(const TTextProcessingCollection& rhs);
@@ -123,6 +125,8 @@ namespace NCB {
 
         void SaveHeader(IOutputStream* stream) const;
         void LoadHeader(IInputStream* stream);
+        THashMap<TGuid, ui32> CreateComponentGuidsMapping() const;
+        void CheckForMissingParts() const;
 
         void CalcRuntimeData();
         void CheckPerFeatureIdx() const;

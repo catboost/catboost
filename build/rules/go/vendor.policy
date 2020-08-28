@@ -4,6 +4,9 @@
 
 ALLOW vendor/ -> .*
 
+#CONTRIB-1946 htmp tag selecting / parsing
+ALLOW .* -> vendor/github.com/andybalholm/cascadia
+
 # CONTRIB-1872 pure ipp proto implementation
 ALLOW .* -> vendor/github.com/phin1x/go-ipp
 
@@ -85,9 +88,6 @@ ALLOW .* -> vendor/github.com/gorilla/schema
 
 # S2 geometry
 ALLOW .* -> vendor/github.com/golang/geo
-
-# Protocol buffers
-ALLOW .* -> vendor/github.com/golang/protobuf
 
 # snappy compression
 ALLOW .* -> vendor/github.com/golang/snappy
@@ -269,11 +269,15 @@ ALLOW .* -> vendor/github.com/xeipuuv/gojsonschema
 # JSONPath
 ALLOW .* -> vendor/github.com/PaesslerAG/jsonpath
 
-# Go generated proto packages
-ALLOW .* -> vendor/google.golang.org/genproto
+# Protocol buffers
+ALLOW .* -> vendor/github.com/golang/protobuf
+ALLOW .* -> vendor/google.golang.org/protobuf
 
 # Google RPC
 ALLOW .* -> vendor/google.golang.org/grpc
+
+# Go generated proto packages
+ALLOW .* -> vendor/google.golang.org/genproto
 
 # Usefull GRPC interceptors
 ALLOW .* -> vendor/github.com/grpc-ecosystem/go-grpc-middleware
@@ -283,6 +287,9 @@ ALLOW .* -> vendor/github.com/grpc-ecosystem/go-grpc-prometheus
 
 # Protobuf and gRPC reflection
 ALLOW .* -> vendor/github.com/jhump/protoreflect
+
+# gRPC opentracing
+ALLOW .* -> vendor/github.com/opentracing-contrib/go-grpc
 
 # Job Scheduling Package
 ALLOW .* -> vendor/github.com/jasonlvhit/gocron
@@ -578,5 +585,8 @@ ALLOW alice/iot/adapters/tuya_adapter/server -> vendor/github.com/sirupsen/logru
 
 # SUBBOTNIK-90
 ALLOW infra/rtc/instance_resolver/pkg/clients/iss3 -> vendor/git.apache.org/thrift.git/lib/go
+
+# CONTRIB-1959 Добавить casbin 
+ALLOW .* -> vendor/github.com/casbin/casbin/v2
 
 DENY .* -> vendor/

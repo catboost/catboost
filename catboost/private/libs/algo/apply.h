@@ -127,3 +127,22 @@ TVector<ui32> CalcLeafIndexesMulti(
     int treeStart = 0,
     int treeEnd = 0,
     int threadCount = 1);
+
+void ApplyVirtualEnsembles(
+    const TFullModel& model,
+    const NCB::TDataProvider& dataset,
+    size_t end,
+    size_t virtualEnsemblesCount,
+    TVector<TVector<double>>* rawValuesPtr,
+    NPar::TLocalExecutor* executor
+);
+
+TVector<TVector<double>> ApplyUncertaintyPredictions(
+    const TFullModel& model,
+    const NCB::TDataProvider& data,
+    bool verbose = false,
+    const EPredictionType predictionType = EPredictionType::VirtEnsembles,
+    int end = 0,
+    int virtualEnsemblesCount = 10,
+    int threadCount = 1);
+

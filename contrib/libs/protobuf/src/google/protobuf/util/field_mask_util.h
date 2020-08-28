@@ -34,7 +34,7 @@
 #define GOOGLE_PROTOBUF_UTIL_FIELD_MASK_UTIL_H__
 
 
-#include "descriptor.h"
+#include <google/protobuf/descriptor.h>
 #include <google/protobuf/field_mask.pb.h>
 #include <google/protobuf/stubs/stringpiece.h>
 

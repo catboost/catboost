@@ -1,7 +1,7 @@
 
 
 IF (USE_PREBUILT_TOOLS)
-    INCLUDE(${ARCADIA_ROOT}/build/prebuilt/enum_parser/ya.make.prebuilt)
+    INCLUDE(${ARCADIA_ROOT}/build/prebuilt/tools/enum_parser/enum_parser/ya.make.prebuilt)
 ENDIF()
 
 IF (NOT PREBUILT)
@@ -11,7 +11,7 @@ IF (NOT PREBUILT)
         main.cpp
     )
 
-    INCLUDE(${ARCADIA_ROOT}/build/prebuilt/enum_parser/ya.make.induced_deps)
+    INCLUDE(${ARCADIA_ROOT}/build/prebuilt/tools/enum_parser/enum_parser/ya.make.induced_deps)
 
     PEERDIR(
         library/cpp/getopt/small

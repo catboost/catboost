@@ -699,3 +699,10 @@ bool IsInternalFeatureImportanceType(EFstrType type) {
         type == EFstrType::InternalInteraction
     );
 }
+
+bool IsUncertaintyPredictionType(EPredictionType type) {
+    return (
+        type == EPredictionType::TotalUncertainty ||
+        type == EPredictionType::VirtEnsembles
+    );
+}

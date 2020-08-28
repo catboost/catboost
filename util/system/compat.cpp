@@ -24,18 +24,6 @@ const char* getprogname() {
 
 extern "C" {
 #if !defined(_MSC_VER)
-char* strrev(char* s) {
-    char* d = s;
-    char* r = strchr(s, 0);
-    for (--r; d < r; ++d, --r) {
-        char tmp;
-        tmp = *d;
-        *d = *r;
-        *r = tmp;
-    }
-    return s;
-}
-
 char* strupr(char* s) {
     char* d;
     for (d = s; *d; ++d)

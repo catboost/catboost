@@ -23,6 +23,7 @@ namespace NCB {
         int Verbose;
 
         TVector<EPredictionType> PredictionTypes = {EPredictionType::RawFormulaVal};
+        bool IsUncertaintyPrediction = false;
         TVector<TString> OutputColumnsIds = {"SampleId", "RawFormulaVal"};
         EFstrType FstrType = EFstrType::FeatureImportance;
         int ThreadCount = NSystemInfo::CachedNumberOfCpus();

@@ -14,6 +14,8 @@
 #include <catboost/private/libs/text_processing/text_digitizers.h>
 #include <catboost/private/libs/quantization/utils.h>
 
+#include <catboost/private/libs/options/runtime_embedding_options.h>
+
 #include <library/cpp/binsaver/bin_saver.h>
 #include <library/cpp/grid_creator/binarization.h>
 #include <library/cpp/dbg_output/dump.h>
@@ -71,6 +73,7 @@ namespace NCB {
             NCatboostOptions::TBinarizationOptions commonFloatFeaturesBinarization,
             TMap<ui32, NCatboostOptions::TBinarizationOptions> perFloatFeatureQuantization,
             const NCatboostOptions::TTextProcessingOptions& textFeaturesProcessing,
+            const NCatboostOptions::TEmbeddingProcessingOptions& embeddingFeatureProcessing,
             bool floatFeaturesAllowNansInTestOnly = true);
 
         bool EqualTo(const TQuantizedFeaturesInfo& rhs, bool ignoreSparsity = false) const;
@@ -214,6 +217,10 @@ namespace NCB {
             return RuntimeTextProcessingOptions;
         }
 
+        const NCatboostOptions::TRuntimeEmbeddingOptions& GetEmbeddingProcessingOptions() const {
+            return EmbeddingEstimatorsOptions;
+        }
+
         ui32 GetTokenizedFeatureCount() const {
             return RuntimeTextProcessingOptions.TokenizedFeatureCount();
         }
@@ -258,6 +265,8 @@ namespace NCB {
 
         NCatboostOptions::TRuntimeTextOptions RuntimeTextProcessingOptions;
         TTextDigitizers TextDigitizers;
+
+        NCatboostOptions::TRuntimeEmbeddingOptions EmbeddingEstimatorsOptions;
     };
 
     using TQuantizedFeaturesInfoPtr = TIntrusivePtr<TQuantizedFeaturesInfo>;

@@ -4,7 +4,7 @@
 
 
 IF (USE_PREBUILT_TOOLS)
-    INCLUDE(${ARCADIA_ROOT}/build/prebuilt/grpc_cpp/ya.make.prebuilt)
+    INCLUDE(${ARCADIA_ROOT}/build/prebuilt/contrib/tools/protoc/plugins/grpc_cpp/ya.make.prebuilt)
 ENDIF()
 
 IF (NOT PREBUILT)
@@ -40,7 +40,7 @@ IF (NOT PREBUILT)
     )
 
 
-    INCLUDE(${ARCADIA_ROOT}/build/prebuilt/grpc_cpp/ya.make.induced_deps)
+    INCLUDE(${ARCADIA_ROOT}/build/prebuilt/contrib/tools/protoc/plugins/grpc_cpp/ya.make.induced_deps)
 
     END()
 ENDIF()

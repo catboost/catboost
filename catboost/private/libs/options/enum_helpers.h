@@ -70,3 +70,5 @@ EFstrType AdjustFeatureImportanceType(EFstrType type, ELossFunction lossFunction
 EFstrType AdjustFeatureImportanceType(EFstrType type, TStringBuf lossDescription);
 
 bool IsInternalFeatureImportanceType(EFstrType type);
+
+bool IsUncertaintyPredictionType(EPredictionType type);

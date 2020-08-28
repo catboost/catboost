@@ -3,6 +3,7 @@
 LIBRARY()
 
 PEERDIR(
+    contrib/libs/libc_compat
     library/cpp/coroutine/engine
     library/cpp/dns
 )

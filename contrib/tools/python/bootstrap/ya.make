@@ -1,7 +1,7 @@
 
 
 IF (USE_PREBUILT_TOOLS)
-    INCLUDE(${ARCADIA_ROOT}/build/prebuilt/python_bootstrap/ya.make.prebuilt)
+    INCLUDE(${ARCADIA_ROOT}/build/prebuilt/contrib/tools/python/bootstrap/ya.make.prebuilt)
 ENDIF()
 
 IF (NOT PREBUILT)

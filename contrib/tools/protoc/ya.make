@@ -1,7 +1,7 @@
 
 
 IF (USE_PREBUILT_TOOLS)
-    INCLUDE(${ARCADIA_ROOT}/build/prebuilt/protoc/ya.make.prebuilt)
+    INCLUDE(${ARCADIA_ROOT}/build/prebuilt/contrib/tools/protoc/ya.make.prebuilt)
 ENDIF()
 
 IF (NOT PREBUILT)
@@ -24,6 +24,6 @@ IF (NOT PREBUILT)
         src/google/protobuf/compiler/main.cc
     )
 
-    INCLUDE(${ARCADIA_ROOT}/build/prebuilt/protoc/ya.make.induced_deps)
+    INCLUDE(${ARCADIA_ROOT}/build/prebuilt/contrib/tools/protoc/ya.make.induced_deps)
     END()
 ENDIF()

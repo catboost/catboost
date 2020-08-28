@@ -35,7 +35,7 @@
 
 #include <google/protobuf/stubs/once.h>
 #include <google/protobuf/stubs/time.h>
-#include "wire_format_lite.h"
+#include <google/protobuf/wire_format_lite.h>
 #include <google/protobuf/util/internal/field_mask_utility.h>
 #include <google/protobuf/util/internal/object_location_tracker.h>
 #include <google/protobuf/util/internal/constants.h>

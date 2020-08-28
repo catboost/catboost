@@ -33,7 +33,7 @@
 #include <google/protobuf/type.pb.h>
 #include <google/protobuf/wrappers.pb.h>
 #include <google/protobuf/descriptor.pb.h>
-#include "descriptor.h"
+#include <google/protobuf/descriptor.h>
 #include <google/protobuf/util/internal/utility.h>
 #include <google/protobuf/util/type_resolver.h>
 #include <google/protobuf/stubs/strutil.h>
