@@ -4,6 +4,7 @@
 #include "mem_copy.h"
 #include "ptr.h"
 
+#include <util/charset/unidata.h>
 #include <util/charset/wide_specific.h>
 #include <util/system/compat.h>
 #include <util/system/yassert.h>
@@ -338,9 +339,6 @@ struct THashCharTraits {
 };
 
 // *** Case
-
-// defined in unidata.h
-wchar32 ToLower(wchar32 ch);
 
 template <typename TCharType>
 struct TCaseCharTraits {
