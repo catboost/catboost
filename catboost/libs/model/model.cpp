@@ -709,14 +709,6 @@ void TModelTrees::FBDeserializeNonOwning(const NCatBoostFbs::TModelTrees* fbObj)
 
     ApproxDimension = fbObj->ApproxDimension();
     SetScaleAndBias(fbObj);
-
-#define ENSURE_NO_FEATURE(var) \
-    CB_ENSURE(!fbObj->var() || !fbObj->var()->size(), "Model contains not float/oneHot/cat features")
-
-    ENSURE_NO_FEATURE(TextFeatures);
-    ENSURE_NO_FEATURE(EstimatedFeatures);
-#undef ENSURE_NO_FEATURE
-
     DeserializeFeatures(fbObj);
 
     auto& data = *CastToOpaqueTree(*this);
@@ -1034,9 +1026,7 @@ void TFullModel::DefaultFullModelInit(const NCatBoostFbs::TModelCore* fbModelCor
         fbModelCore->FormatVersion() && fbModelCore->FormatVersion()->str() == CURRENT_CORE_FORMAT_STRING,
         "Unsupported model format: " << fbModelCore->FormatVersion()->str()
     );
-    if (fbModelCore->ModelTrees()) {
-        ModelTrees.GetMutable()->FBDeserializeOwning(fbModelCore->ModelTrees());
-    }
+
     ModelInfo.clear();
     if (fbModelCore->InfoMap()) {
         for (auto keyVal : *fbModelCore->InfoMap()) {
@@ -1132,7 +1122,8 @@ void TFullModel::InitNonOwning(const void* binaryBuffer, size_t binarySize) {
                 CtrProvider = ptr;
                 ptr->LoadNonOwning(&in);
             } else if (modelPartId == NCB::TTextProcessingCollection::GetStringIdentifier()) {
-                CB_ENSURE(false, "Model contains not float/oneHot/cat features");
+                TextProcessingCollection = new NCB::TTextProcessingCollection();
+                TextProcessingCollection->LoadNonOwning(&in);
             } else {
                 CB_ENSURE(
                         false,

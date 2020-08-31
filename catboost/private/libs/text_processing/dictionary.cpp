@@ -69,6 +69,8 @@ namespace NCB {
         auto dictionaryImpl = MakeIntrusive<TMMapDictionary>();
         auto size = TMMapDictionary::CalculateExpectedSize(in->Buf(), in->Avail());
         dictionaryImpl->InitFromMemory(in->Buf(), size);
+        in->Skip(size);
+        
         DictionaryImpl = std::move(dictionaryImpl);
     }
 

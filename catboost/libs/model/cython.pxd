@@ -124,7 +124,7 @@ cdef extern from "catboost/libs/model/model.h":
         pass
 
     cdef TFullModel ReadModel(const TString& modelFile, EModelType format) nogil except +ProcessException
-    cdef TFullModel ReadZeroCopyModel(const void* binaryBuffer, size_t binaryBufferSize, EModelType format) nogil except +ProcessException
+    cdef TFullModel ReadZeroCopyModel(const void* binaryBuffer, size_t binaryBufferSize) nogil except +ProcessException
     cdef TString SerializeModel(const TFullModel& model) except +ProcessException
     cdef TFullModel DeserializeModel(const TString& serializeModelString) nogil except +ProcessException
     cdef TVector[TString] GetModelUsedFeaturesNames(const TFullModel& model) except +ProcessException

@@ -4125,6 +4125,7 @@ cdef class _CatBoost:
     cdef TMetricsAndTimeLeftHistory __metrics_history
     cdef THolder[TLearnProgress] __cached_learn_progress
     cdef size_t __n_features_in
+    cdef object model_blob
 
     def __cinit__(self):
         self.__model = new TFullModel()
@@ -4154,6 +4155,7 @@ cdef class _CatBoost:
             dereference(self.__test_evals[i]).ClearRawValues()
 
     cpdef _train(self, _PoolBase train_pool, test_pools, dict params, allow_clear_pool, maybe_init_model):
+        self.model_blob = None
         _input_borders = params.pop("input_borders", None)
         prep_params = _PreprocessParams(params)
         cdef int thread_count = params.get("thread_count", 1)
@@ -4526,12 +4528,14 @@ cdef class _CatBoost:
         cdef THolder[TPythonStreamWrapper] wrapper = MakeHolder[TPythonStreamWrapper](python_stream_read_func, <PyObject*>stream)
         cdef TFullModel tmp_model
         tmp_model.Load(wrapper.Get())
+        self.model_blob = None
         self.__model.Swap(tmp_model)
 
     cpdef _load_model(self, model_file, format):
         cdef TFullModel tmp_model
         cdef EModelType modelType = string_to_model_type(format)
         tmp_model = ReadModel(to_arcadia_string(model_file), modelType)
+        self.model_blob = None
         self.__model.Swap(tmp_model)
 
     cpdef _save_model(self, output_file, format, export_parameters, _PoolBase pool):
@@ -4562,9 +4566,9 @@ cdef class _CatBoost:
         cpdef bytes py_serialized_model_str = c_serialized_model_string[:tstr.size()]
         return py_serialized_model_str
 
-    cpdef _deserialize_model(self, TString serialized_model_str):
-        cdef TFullModel tmp_model
-        tmp_model = DeserializeModel(serialized_model_str);
+    cpdef _deserialize_model(self, serialized_model_str):
+        self.model_blob = serialized_model_str
+        cdef TFullModel tmp_model = ReadZeroCopyModel(<char*>serialized_model_str, len(serialized_model_str))
         self.__model.Swap(tmp_model)
 
     cpdef _get_params(self):
@@ -4635,6 +4639,7 @@ cdef class _CatBoost:
             models_vector.push_back((<_CatBoost>models[model_id]).__model)
             weights_vector.push_back(weights[model_id])
         cdef TFullModel tmp_model = SumModels(models_vector, weights_vector, merge_policy)
+        self.model_blob = None
         self.__model.Swap(tmp_model)
 
     cpdef _save_borders(self, output_file):
