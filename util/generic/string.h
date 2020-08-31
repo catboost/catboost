@@ -542,7 +542,7 @@ public:
      */
     TBasicString(TUninitialized uninitialized) {
 #ifdef TSTRING_IS_STD_STRING
-        Storage_.__resize_default_init(uninitialized.Size);
+        Storage_.resize_uninitialized(uninitialized.Size);
 #else
         Data_ = Allocate(uninitialized.Size);
 #endif
@@ -915,7 +915,7 @@ public:
 
     inline void ReserveAndResize(size_t len) {
 #ifdef TSTRING_IS_STD_STRING
-        Storage_.__resize_default_init(len);
+        Storage_.resize_uninitialized(len);
 #else
         if (IsDetached()) {
             ResizeNonShared(len);
