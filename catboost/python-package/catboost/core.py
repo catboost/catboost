@@ -56,6 +56,7 @@ is_cv_stratified_objective = _catboost.is_cv_stratified_objective
 is_regression_objective = _catboost.is_regression_objective
 is_multiregression_objective = _catboost.is_multiregression_objective
 is_groupwise_metric = _catboost.is_groupwise_metric
+is_maximizable_metric = _catboost.is_maximizable_metric
 _PreprocessParams = _catboost._PreprocessParams
 _check_train_params = _catboost._check_train_params
 _MetadataHashProxy = _catboost._MetadataHashProxy
@@ -3371,10 +3372,13 @@ class CatBoost(_CatBoostBase):
             raise CatBoostError("X must not be None")
 
         if y is None and not isinstance(X, STRING_TYPES + (Pool,)):
-            raise CatBoostError("y may be None only when X is an instance of catboost. Pool or string")
+            raise CatBoostError("y may be None only when X is an instance of catboost.Pool or string")
 
         if not isinstance(param_grid, (Mapping, Iterable)):
             raise TypeError('Parameter grid is not a dict or a list ({!r})'.format(param_grid))
+
+        if refit and self.is_fitted():
+            raise CatBoostError("Model was fitted before hyperparameters tuning. You can't change hyperparameters of fitted model.")
 
         train_params = self._prepare_train_params(
             X, y, None, None, None, None, None, None, None, None, None, None, None, None, None,
@@ -3412,8 +3416,6 @@ class CatBoost(_CatBoostBase):
             )
 
         if refit:
-            if self.is_fitted():
-                raise CatBoostError("Model was fitted before hyperparameters tuning. You can't change hyperparameters of fitted model.")
             self.set_params(**cv_result['params'])
             self.fit(X, y, silent=True)
         return cv_result
@@ -3610,6 +3612,288 @@ class CatBoost(_CatBoostBase):
 
     def _convert_to_asymmetric_representation(self):
         self._object._convert_oblivious_to_asymmetric()
+
+    def _skopt_parameter_search(self, param_distributions, X, y=None, cv=3, n_iter=10, skopt_params={}, partition_random_seed=0,
+                                calc_cv_statistics=True, search_by_train_test_split=True, refit=True,
+                                shuffle=True, stratified=None, train_size=0.8, verbose=True, plot=False):
+
+        currently_not_supported_params = {
+            'ignored_features',
+            'input_borders',
+            'loss_function',
+            'eval_metric'
+        }
+        _process_synonyms_groups(param_distributions)
+        for param in currently_not_supported_params:
+            if param in param_distributions:
+                raise CatBoostError("Parameter '{}' currently is not supported in skopt search".format(param))
+
+        if X is None:
+            raise CatBoostError("X must not be None")
+
+        if y is None and not isinstance(X, STRING_TYPES + (Pool,)):
+            raise CatBoostError("y may be None only when X is an instance of catboost.Pool or string")
+
+        if not isinstance(param_distributions, Mapping):
+            raise TypeError('Parameter grid is not a dict ({!r})'.format(param_distributions))
+
+        if refit and self.is_fitted():
+            raise CatBoostError("Model was fitted before hyperparameters tuning. You can't change hyperparameters of fitted model.")
+
+        train_params = self._prepare_train_params(
+            X, y, None, None, None, None, None, None, None, None, None, None, None, None,
+            None, None, None, None, None, True, None, None, None, None, None
+        )
+        params = train_params["params"]
+
+        # the same behavior as in the other hyperparameter search methods, depending on values of loss_function and eval_metric
+        loss_function = params["loss_function"]
+        eval_metric = params.get("eval_metric")
+        is_custom_loss_function = not isinstance(loss_function, STRING_TYPES)
+        if eval_metric is None:
+            if is_custom_loss_function:
+                raise CatBoostError("If loss function is a user defined object, then the eval metric must be specified.")
+            eval_metric_name = loss_function
+            maximize_metric = False
+        else:
+            is_custom_eval_metric = not isinstance(eval_metric, STRING_TYPES)
+            if is_custom_eval_metric:
+                eval_metric_name = eval_metric.__class__.__name__
+                maximize_metric = eval_metric.is_max_optimal()
+            else:
+                eval_metric_name = eval_metric
+                maximize_metric = is_maximizable_metric(eval_metric)
+
+        custom_folds = None
+        fold_count = None
+        if isinstance(cv, INTEGER_TYPES):
+            fold_count = cv
+        else:
+            if not hasattr(cv, '__iter__') and not hasattr(cv, 'split'):
+                raise AttributeError("cv should be one of possible things:"
+                    "\n- None, to use the default 3-fold cross validation,"
+                    "\n- integer, to specify the number of folds in a (Stratified)KFold"
+                    "\n- one of the scikit-learn splitter classes"
+                    " (https://scikit-learn.org/stable/modules/classes.html#splitter-classes)"
+                    "\n- An iterable yielding (train, test) splits as arrays of indices")
+            custom_folds = cv
+
+        if search_by_train_test_split:
+            try:
+                from sklearn.model_selection import train_test_split, PredefinedSplit
+            except ImportError as e:
+                warnings.warn("search_by_train_test_split uses sklearn train_test_split, you should install sklearn")
+                raise ImportError(str(e))
+
+            pool_size = train_params["train_pool"].num_row()
+            split = train_test_split(range(pool_size), train_size=train_size, random_state=partition_random_seed, shuffle=shuffle)
+            test_fold = np.zeros(pool_size, dtype=int)
+            test_fold[split[0]] = -1
+            # split = (train_indices, test_indices)
+            # test_fold has -1 at train indices and 0 at test indices
+            # so, PredefinedSplit(test_fold) generates exactly one train set and one test set corresponding to that split
+            custom_folds_for_optimize = PredefinedSplit(test_fold)
+            fold_count_for_optimize = None
+        else:
+            custom_folds_for_optimize, fold_count_for_optimize = custom_folds, fold_count
+
+        optimized_param_names, distributions = map(list, zip(*param_distributions.items()))
+
+        objective = _SkoptObjective(train_params["train_pool"],
+                                    optimized_param_names,
+                                    eval_metric_name,
+                                    params,
+                                    maximize_metric,
+                                    fold_count_for_optimize,
+                                    custom_folds_for_optimize,
+                                    partition_random_seed,
+                                    shuffle,
+                                    stratified,
+                                    plot=plot)
+
+        from skopt import gp_minimize
+
+        result = gp_minimize(objective,
+                             distributions,
+                             n_calls=n_iter,
+                             verbose=verbose,
+                             **skopt_params)
+
+        results_dict = {}
+        best_param_values = result.x
+        best_params = dict(zip(optimized_param_names, best_param_values))
+        results_dict["params"] = best_params
+
+        if calc_cv_statistics:
+            objective = _SkoptObjective(train_params["train_pool"],
+                                        optimized_param_names,
+                                        eval_metric_name,
+                                        params,
+                                        maximize_metric,
+                                        fold_count,
+                                        custom_folds,
+                                        partition_random_seed,
+                                        shuffle,
+                                        stratified,
+                                        return_cv_results=True)
+            _, cv_results = objective(best_param_values)
+            results_dict["cv_results"] = cv_results
+
+        if refit:
+            self.set_params(**best_params)
+            self.fit(X, y, silent=True)
+
+        return results_dict
+
+    def skopt_parameter_search(self, param_distributions, X, y=None, cv=3, n_iter=10, skopt_params={}, partition_random_seed=0,
+                               calc_cv_statistics=True, search_by_train_test_split=True, refit=True,
+                               shuffle=True, stratified=None, train_size=0.8, verbose=True, plot=False):
+        """
+        Hyper parameter search based on Bayesian optimization using Gaussian processes from scikit-optimize.
+        After calling this method model is fitted and can be used, if not specified otherwise (refit=False).
+
+        The number of parameter settings that are tried is given by n_iter.
+
+        Parameters
+        ----------
+        param_distributions: dict
+            Dictionary with parameters names (string) as keys and their distributions (skopt.space.Dimension) as values.
+
+        X: numpy.ndarray or pandas.DataFrame or catboost.Pool
+            Data to compute statistics on
+
+        y: numpy.ndarray or pandas.Series or None
+            Target corresponding to data
+            Use only if data is not catboost.Pool.
+
+        cv: int, cross-validation generator or an iterable, optional (default=None)
+            Determines the cross-validation splitting strategy. Possible inputs for cv are:
+            - None, to use the default 3-fold cross validation,
+            - integer, to specify the number of folds in a (Stratified)KFold
+            - one of the scikit-learn splitter classes
+                (https://scikit-learn.org/stable/modules/classes.html#splitter-classes)
+            - An iterable yielding (train, test) splits as arrays of indices.
+
+        n_iter: int
+            Number of parameter settings that are sampled.
+            n_iter trades off runtime vs quality of the solution.
+            Passed to skopt.gp_minimize as n_calls parameter.
+
+        skopt_params: dict
+            Parameters for skopt.gp_minimize optimizer (e.g. n_random_starts, random_state, etc.)
+
+        partition_random_seed: int, optional (default=0)
+            Use this as the seed value for random permutation of the data.
+            Permutation is performed before splitting the data for cross validation.
+            Each seed generates unique data splits.
+            Used only when cv is None or int.
+
+        search_by_train_test_split: bool, optional (default=True)
+            If True, source dataset is splitted into train and test parts, models are trained
+            on the train part and parameters are compared by loss function score on the test part.
+            After that, if calc_cv_statistics=true, statistics on metrics are calculated
+            using cross-validation using best parameters and the model is fitted with these parameters.
+
+            If False, every iteration of grid search evaluates results on cross-validation.
+            It is recommended to set parameter to True for large datasets, and to False for small datasets.
+
+        calc_cv_statistics: bool, optional (default=True)
+            The parameter determines whether quality should be estimated using cross-validation with the found best parameters.
+
+        refit: bool (default=True)
+            Refit an estimator using the best found parameters on the whole dataset.
+
+        shuffle: bool, optional (default=True)
+            Shuffle the dataset objects before parameters searching.
+
+        stratified: bool, optional (default=None)
+            Perform stratified sampling. True for classification and False otherwise.
+            Currently supported only for cross-validation.
+
+        train_size: float, optional (default=0.8)
+            Should be between 0.0 and 1.0 and represent the proportion of the dataset to include in the train split.
+
+        verbose: bool or int, optional (default=True)
+            If verbose is int, it determines the frequency of writing metrics to output
+            verbose==True is equal to verbose==1
+            When verbose==False, there is no messages
+
+        plot : bool, optional (default=False)
+            If True, draw train and eval error for every set of parameters in Jupyter notebook
+        Returns
+        -------
+        dict with two fields:
+            'params': dict of best found parameters
+            'cv_results': dict with cross-validation results
+                keys are: test-error-mean  test-error-std  train-error-mean  train-error-std
+        """
+        try:
+            from skopt.space import Dimension
+        except ImportError as e:
+            warnings.warn("To use skopt-based parameter search you should install skopt")
+            raise ImportError(str(e))
+
+        if n_iter <= 0:
+            assert CatBoostError("n_iter should be a positive number")
+        if not isinstance(param_distributions, Mapping):
+            assert CatBoostError("param_distributions should be a dictionary")
+        for key in param_distributions:
+            if not isinstance(param_distributions[key], Dimension):
+                raise TypeError('Parameter grid value is not skopt.space.Dimension')
+            param_distributions[key].name = key
+        if not isinstance(skopt_params, Mapping):
+            assert CatBoostError("skopt_params should be a dictionary")
+
+        return self._skopt_parameter_search(
+            param_distributions=param_distributions, X=X, y=y, cv=cv, n_iter=n_iter, skopt_params=skopt_params,
+            partition_random_seed=partition_random_seed, calc_cv_statistics=calc_cv_statistics,
+            search_by_train_test_split=search_by_train_test_split, refit=refit, shuffle=shuffle,
+            stratified=stratified, train_size=train_size, verbose=verbose, plot=plot
+        )
+
+
+class _SkoptObjective(object):
+    def __init__(self, pool, optimized_param_names, eval_metric_name, init_params={}, maximize_metric=False, fold_count=None, folds=None,
+                 partition_random_seed=0, shuffle=True, stratified=None, verbose=False, plot=False, return_cv_results=False):
+        self.pool = pool
+        self.optimized_param_names = optimized_param_names
+        self.eval_metric_name = eval_metric_name
+        self.init_params = init_params
+        self.maximize_metric = maximize_metric
+        self.fold_count = fold_count
+        self.folds = folds
+        self.partition_random_seed = partition_random_seed
+        self.shuffle = shuffle
+        self.stratified = stratified
+        self.verbose = verbose
+        self.plot = plot
+        self.return_cv_results = return_cv_results
+
+    def __call__(self, param_list):
+        params_opt = dict(zip(self.optimized_param_names, param_list))
+        params_full = self.init_params
+        params_full.update(params_opt)
+
+        cv_results = cv(pool=self.pool,
+                        params=params_full,
+                        fold_count=self.fold_count,
+                        folds=self.folds,
+                        partition_random_seed=self.partition_random_seed,
+                        shuffle=self.shuffle,
+                        stratified=self.stratified,
+                        verbose=self.verbose,
+                        plot=self.plot,
+                        as_pandas=False)
+
+        score = cv_results["test-" + self.eval_metric_name + "-mean"][-1]
+        if self.maximize_metric:
+            score *= -1
+
+        if self.return_cv_results:
+            return score, cv_results
+        else:
+            return score
+
 
 class CatBoostClassifier(CatBoost):
 
