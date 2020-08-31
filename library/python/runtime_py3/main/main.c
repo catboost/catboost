@@ -9,6 +9,7 @@ void Py_InitArgcArgv(int argc, wchar_t **argv);
 char* GetPyMain();
 
 static const char* env_entry_point = "Y_PYTHON_ENTRY_POINT";
+static const char* env_bytes_warning = "Y_PYTHON_BYTES_WARNING";
 
 #ifdef _MSC_VER
 extern char** environ;
@@ -97,6 +98,11 @@ static int pymain(int argc, char** argv) {
     PyConfig config;
     PyConfig_InitPythonConfig(&config);
     config.pathconfig_warnings = 0;   /* Suppress errors from getpath.c */
+
+    const char* bytes_warning = getenv(env_bytes_warning);
+    if (bytes_warning) {
+        config.bytes_warning = atoi(bytes_warning);
+    }
 
     oldloc = _PyMem_RawStrdup(setlocale(LC_ALL, NULL));
     if (!oldloc) {
