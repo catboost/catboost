@@ -139,6 +139,7 @@ ALLOW library/python/testing/gtest/test/gtest -> contrib/restricted/googletest
 # TODO remove this lines after they will switch to library/cpp/testing/gtest
 ALLOW mail -> contrib/restricted/googletest
 ALLOW maps/mobile/libs -> contrib/restricted/googletest
+ALLOW maps/mobile/bundle -> contrib/restricted/googletest
 ALLOW mds -> contrib/restricted/googletest
 
 # protozero is yet another protobuf implementation. use contrib/libs/protobuf instead
