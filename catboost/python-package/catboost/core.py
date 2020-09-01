@@ -3348,6 +3348,9 @@ class CatBoost(_CatBoostBase):
                           calc_cv_statistics=True, search_by_train_test_split=True,
                           refit=True, shuffle=True, stratified=None, train_size=0.8, verbose=1, plot=False):
 
+        if refit and self.is_fitted():
+            raise CatBoostError("Model was fitted before hyperparameters tuning. You can't change hyperparameters of fitted model.")
+
         currently_not_supported_params = {
             'ignored_features',
             'input_borders',
@@ -3412,8 +3415,7 @@ class CatBoost(_CatBoostBase):
             )
 
         if refit:
-            if self.is_fitted():
-                raise CatBoostError("Model was fitted before hyperparameters tuning. You can't change hyperparameters of fitted model.")
+            assert not self.is_fitted()
             self.set_params(**cv_result['params'])
             self.fit(X, y, silent=True)
         return cv_result
