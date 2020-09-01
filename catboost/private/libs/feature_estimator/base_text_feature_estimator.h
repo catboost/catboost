@@ -76,6 +76,10 @@ namespace NCB {
             }
         }
 
+        virtual EFeatureType GetSourceType() const override {
+            return EFeatureType::Text;
+        }
+
         TGuid Id() const override {
             return Guid;
         }

@@ -147,7 +147,7 @@ public:
                         estimatorId
                     ).TextFeatureId
                 ),
-                EFeatureType::Text
+                estimatedFeaturesContext.FeatureEstimators->GetFeatureEstimator(estimatorId)->GetSourceType()
             );
         } else if (Type == ESplitType::OnlineCtr) {
             for (const int catFeatureIdx : Ctr.Projection.CatFeatures) {

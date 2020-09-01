@@ -2094,11 +2094,18 @@ namespace NCB {
 
     static void MoveEmbeddingFeatures(
         TArrayRef<THolder<TEmbeddingValuesHolder>> embeddingFeatures,
-        TArrayRef<THolder<TEmbeddingValuesHolder>> dstFeatures
+        TArrayRef<THolder<TEmbeddingValuesHolder>> dstFeatures,
+        const TFeaturesArraySubsetIndexing* dstSubsetIndexing,
+        NPar::TLocalExecutor* localExecutor
     ) {
         const ui32 embeddingFeatureCount = embeddingFeatures.size();
         for (ui32 embeddingFeatureIdx: xrange(embeddingFeatureCount)) {
-            dstFeatures[embeddingFeatureIdx].Swap(embeddingFeatures[embeddingFeatureIdx]);
+            dstFeatures[embeddingFeatureIdx] =
+                MakeHolder<TEmbeddingArrayValuesHolder>(
+                    embeddingFeatureIdx,
+                    CreateConstOwningWithMaybeTypeCast<TConstEmbedding>(embeddingFeatures[embeddingFeatureIdx]->ExtractValues(localExecutor)),
+                    dstSubsetIndexing
+            );
         }
     }
 
@@ -2400,7 +2407,9 @@ namespace NCB {
 
                     MoveEmbeddingFeatures(
                         rawDataProvider->ObjectsData->Data.EmbeddingFeatures,
-                        data->ObjectsData.Data.EmbeddingFeatures
+                        data->ObjectsData.Data.EmbeddingFeatures,
+                        subsetIndexing.Get(),
+                        localExecutor
                     );
 
                     AddTokenizedFeaturesToFeatureLayout(

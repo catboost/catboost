@@ -27,21 +27,21 @@ namespace NCB {
     class TLinearDACalcer final : public TEmbeddingFeatureCalcer {
     public:
         explicit TLinearDACalcer(
-            int numClasses,
             int totalDimension,
+            int numClasses,
             int projectionDimension,
             float regularization = 0.01,
             const TGuid& calcerId = CreateGuid()
         )
             : TEmbeddingFeatureCalcer(projectionDimension, calcerId)
-            , NumClasses(numClasses)
             , TotalDimension(totalDimension)
+            , NumClasses(numClasses)
             , ProjectionDimension(projectionDimension)
             , RegParam(regularization)
-            , ClassesDist(totalDimension, numClasses)
+            , ClassesDist(numClasses, totalDimension)
             , TotalDist(totalDimension)
             , ProjectionMatrix(totalDimension * projectionDimension)
-            , EigenValues(projectionDimension)
+            , EigenValues(TotalDimension)
             , ProjectionCalculationCache(totalDimension * (totalDimension + 2))
         {}
 
@@ -56,8 +56,8 @@ namespace NCB {
         }
 
     private:
-        int NumClasses;
         int TotalDimension;
+        int NumClasses;
         int ProjectionDimension;
         float RegParam;
         TVector<IncrementalCloud> ClassesDist;
@@ -74,5 +74,7 @@ namespace NCB {
     public:
         void Update(ui32 classId, const TEmbeddingsArray& embed, TEmbeddingFeatureCalcer* featureCalcer) override;
         void Flush(TEmbeddingFeatureCalcer* featureCalcer);
+    private:
+        int LastFlush = 0;
     };
 };
