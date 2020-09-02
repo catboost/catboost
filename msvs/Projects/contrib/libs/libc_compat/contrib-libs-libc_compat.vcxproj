@@ -81,10 +81,22 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\libc_compat\src\windows\sys\uio.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\libc_compat\memrchr.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\libc_compat\stpcpy.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\libc_compat\strcasestr.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\libc_compat\strlcat.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\libc_compat\strlcpy.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\libc_compat\strsep.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\libc_compat\include\windows\sys\uio.h"/>
