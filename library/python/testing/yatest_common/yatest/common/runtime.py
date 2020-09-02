@@ -79,7 +79,7 @@ def java_path():
     [DEPRECATED] Get path to java
     :return: absolute path to java
     """
-    import runtime_java
+    from . import runtime_java
     return runtime_java.get_java_path(binary_path(os.path.join('contrib', 'tools', 'jdk')))
 
 
@@ -87,7 +87,7 @@ def java_home():
     """
     Get jdk directory path
     """
-    import runtime_java
+    from . import runtime_java
     jdk_dir = runtime_java.get_build_java_dir(binary_path('jdk'))
     if not jdk_dir:
         raise Exception("Cannot find jdk - make sure 'jdk' is added to the DEPENDS section and exists for the current platform")
