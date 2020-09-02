@@ -32,7 +32,6 @@
 //  Based on original Protocol Buffers design by
 //  Sanjay Ghemawat, Jeff Dean, and others.
 
-
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -61,6 +60,8 @@
 // them like we do below.
 using google::protobuf::internal::win32::access;
 using google::protobuf::internal::win32::open;
+#else
+#include <unistd.h>
 #endif
 
 namespace google {
