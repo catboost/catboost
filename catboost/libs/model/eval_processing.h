@@ -94,6 +94,15 @@ inline TVector<double> CalcSigmoid(const TConstArrayRef<double> approx) {
     return probabilities;
 }
 
+inline TVector<double> CalcEntropyFromProbabilities(const TConstArrayRef<double> probabilities) {
+    TVector<double> entropy;
+    entropy.yresize(probabilities.size());
+    for (size_t i = 0; i < probabilities.size(); ++i) {
+        entropy[i] = - probabilities[i] * std::log(probabilities[i]) - (1 - probabilities[i]) * std::log(1 - probabilities[i]);
+    }
+    return entropy;
+}
+
 //approx and target could overlap
 inline void CalcLogSigmoid(const TConstArrayRef<double> approx, TArrayRef<double> target) {
     Y_ASSERT(approx.size() == target.size());

@@ -10,6 +10,7 @@
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/model/cpu/evaluator.h>
 #include <catboost/libs/model/scale_and_bias.h>
+#include <catboost/private/libs/options/enum_helpers.h>
 
 #include <util/generic/array_ref.h>
 #include <util/generic/cast.h>
@@ -509,7 +510,7 @@ void ApplyVirtualEnsembles(
               "Not enough trees in model for " << virtualEnsemblesCount << " virtual Ensembles");
     begin = end - evalPeriod * virtualEnsemblesCount;
     modelCalcerOnPool.ApplyModelMulti(
-        EPredictionType::VirtEnsembles,
+        EPredictionType::InternalRawFormulaVal,
         0,
         begin,
         &flatApprox,
@@ -525,7 +526,7 @@ void ApplyVirtualEnsembles(
     const float coef = pow(1. - actualShrinkCoef, evalPeriod);
     for (size_t vEnsembleIdx = 0; begin < end; begin += evalPeriod) {
         modelCalcerOnPool.ApplyModelMulti(
-            EPredictionType::VirtEnsembles,
+            EPredictionType::InternalRawFormulaVal,
             begin,
             Min(begin + evalPeriod, end),
             &flatApprox,
@@ -551,6 +552,8 @@ TVector<TVector<double>> ApplyUncertaintyPredictions(
     int threadCount)
 {
     TSetLoggingVerboseOrSilent inThisScope(verbose);
+
+    CB_ENSURE_INTERNAL(IsUncertaintyPredictionType(predictionType), "Unsupported prediction type " << predictionType);
 
     int lastTreeIdx = end;
     FixupTreeEnd(model.GetTreeCount(), 0, &lastTreeIdx);

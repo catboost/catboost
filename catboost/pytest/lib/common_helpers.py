@@ -176,9 +176,12 @@ def compare_metrics_with_diff(custom_metric, fit_eval, calc_eval, eps=1e-7):
             break
 
 
-def compare_evals(fit_eval, calc_eval):
+def compare_evals(fit_eval, calc_eval, skip_header=False):
     csv_fit = csv.reader(open(fit_eval, "r"), dialect='excel-tab')
     csv_calc = csv.reader(open(calc_eval, "r"), dialect='excel-tab')
+    if skip_header:
+        next(csv_fit)
+        next(csv_calc)
     while True:
         try:
             line_fit = next(csv_fit)

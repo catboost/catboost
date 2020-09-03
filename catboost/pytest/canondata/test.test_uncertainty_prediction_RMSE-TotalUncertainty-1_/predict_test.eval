@@ -1,4 +1,4 @@
-SampleId	TotalUncertainty:Mean	TotalUncertainty:VarMean
+SampleId	TotalUncertainty:MeanPredictions	TotalUncertainty:KnowledgeUnc
 0	0.05914198494	0
 1	0.0778484854	0
 2	0.02013249633	0
