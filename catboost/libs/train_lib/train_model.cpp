@@ -372,7 +372,7 @@ static void Train(
     const auto& metrics = metricsData.Metrics;
     auto& errorTracker = metricsData.ErrorTracker;
     const auto onSaveSnapshotCallback = [&] (IOutputStream* out) {
-        trainingCallbacks->OnSaveSnapshot(out);
+        trainingCallbacks->OnSaveSnapshot(NJson::TJsonValue{}, out);
     };
 
     for (ui32 iter = ctx->LearnProgress->GetCurrentTrainingIterationCount();

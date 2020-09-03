@@ -7,6 +7,7 @@ NCatboostOptions::TFeatureEvalOptions::TFeatureEvalOptions()
     : FeaturesToEvaluate("features_to_evaluate", TVector<TVector<ui32>>())
     , FeatureEvalMode("feature_eval_mode", NCB::EFeatureEvalMode::OneVsNone)
     , EvalFeatureFileName("eval_feature_file", "")
+    , ProcessorsUsageFileName("processors_usage_file", "")
     , Offset("offset", 0)
     , FoldCount("fold_count", 0)
     , FoldSizeUnit("fold_size_unit", ESamplingUnit::Object)
@@ -18,13 +19,13 @@ NCatboostOptions::TFeatureEvalOptions::TFeatureEvalOptions()
 
 void NCatboostOptions::TFeatureEvalOptions::Load(const NJson::TJsonValue& options) {
     CheckedLoad(
-        options, &FeaturesToEvaluate, &FeatureEvalMode, &EvalFeatureFileName,
+        options, &FeaturesToEvaluate, &FeatureEvalMode, &EvalFeatureFileName, &ProcessorsUsageFileName,
         &Offset, &FoldCount, &FoldSizeUnit, &FoldSize, &RelativeFoldSize, &TimeSplitQuantile);
 }
 
 void NCatboostOptions::TFeatureEvalOptions::Save(NJson::TJsonValue* options) const {
     SaveFields(
-        options, FeaturesToEvaluate, FeatureEvalMode, EvalFeatureFileName,
+        options, FeaturesToEvaluate, FeatureEvalMode, EvalFeatureFileName, ProcessorsUsageFileName,
         Offset, FoldCount, FoldSizeUnit, FoldSize, RelativeFoldSize, TimeSplitQuantile);
 }
 

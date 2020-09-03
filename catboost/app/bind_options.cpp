@@ -620,6 +620,13 @@ static void BindFeatureEvalParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonVal
             (*plainJsonPtr)["eval_feature_file"] = ToString(filename);
         });
     parser
+        .AddLongOption("processors-usage-output-file")
+        .RequiredArgument("STRING")
+        .Help("file containing processors usage summary (time in seconds and number of iterations for each processors; collected on GPU only)")
+        .Handler1T<TString>([plainJsonPtr](const auto filename) {
+            (*plainJsonPtr)["processors_usage_file"] = ToString(filename);
+        });
+    parser
         .AddLongOption("offset")
         .RequiredArgument("INT")
         .Help("First fold for feature evaluation")
