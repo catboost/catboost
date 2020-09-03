@@ -1,0 +1,4 @@
+ALLOW kernel/geo -> library/cpp/deprecated/small_array
+ALLOW ysite/yandex/clicks -> library/cpp/deprecated/small_array
+ALLOW ysite/yandex/indexuser -> library/cpp/deprecated/small_array
+DENY .* -> library/cpp/deprecated/small_array
