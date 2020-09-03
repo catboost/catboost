@@ -55,7 +55,7 @@ inline void ReadAndProceedPoolInBlocks(const NCatboostOptions::TDatasetReadingPa
     NCB::IRawObjectsOrderDatasetLoader* rawObjectsOrderDatasetLoader
         = dynamic_cast<NCB::IRawObjectsOrderDatasetLoader*>(datasetLoader.Get());
 
-    if (rawObjectsOrderDatasetLoader) {
+    if (rawObjectsOrderDatasetLoader && !params.PairsFilePath.Inited()) {
         // process in blocks
         NCB::IRawObjectsOrderDataVisitor* visitor = dynamic_cast<NCB::IRawObjectsOrderDataVisitor*>(
             dataProviderBuilder.Get()

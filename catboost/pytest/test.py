@@ -5123,7 +5123,7 @@ def test_zero_learning_rate():
         execute_catboost_fit('CPU', cmd)
 
 
-def do_test_eval_metrics(metric, metric_period, train, test, cd, loss_function, additional_train_params=()):
+def do_test_eval_metrics(metric, metric_period, train, test, cd, loss_function, additional_train_params=(), additional_eval_params=()):
     output_model_path = yatest.common.test_output_path('model.bin')
     test_error_path = yatest.common.test_output_path('test_error.tsv')
     eval_path = yatest.common.test_output_path('output.tsv')
@@ -5154,7 +5154,7 @@ def do_test_eval_metrics(metric, metric_period, train, test, cd, loss_function, 
         '--block-size', '100',
         '--eval-period', metric_period,
         '--save-stats'
-    )
+    ) + additional_eval_params
     yatest.common.execute(cmd)
 
     first_metrics = np.round(np.loadtxt(test_error_path, skiprows=1)[:, 1], 8)
@@ -8492,6 +8492,24 @@ def test_total_f1_params(average):
         test=data_file('cloudness_small', 'test_small'),
         cd=data_file('cloudness_small', 'train.cd'),
         loss_function='MultiClass'
+    )
+
+
+def test_eval_metrics_with_pairs():
+    do_test_eval_metrics(
+        metric='PairAccuracy',
+        metric_period='1',
+        train=data_file('querywise', 'train'),
+        test=data_file('querywise', 'test'),
+        cd=data_file('querywise', 'train.cd'),
+        loss_function='PairLogit',
+        additional_train_params=(
+            '--learn-pairs', data_file('querywise', 'train.pairs'),
+            '--test-pairs', data_file('querywise', 'test.pairs')
+        ),
+        additional_eval_params=(
+            '--input-pairs', data_file('querywise', 'test.pairs')
+        )
     )
 
 
