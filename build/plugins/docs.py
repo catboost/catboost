@@ -56,7 +56,7 @@ def generate_dart(unit, as_lib=False):
 
     docs_config = os.path.normpath(docs_config)
     if os.path.sep not in docs_config:
-        docs_config = os.path.join(module_dir if build_tool == 'mkdocs' else docs_dir, docs_config)
+        docs_config = os.path.join(module_dir, docs_config)
 
     if not docs_config.startswith(docs_dir + os.path.sep) and not docs_config.startswith(module_dir + os.path.sep) :
         unit.message(['error', 'DOCS_CONFIG value "{}" is outside the project directory and DOCS_DIR'.format(docs_config)])
