@@ -4,7 +4,10 @@
 
 ALLOW vendor/ -> .*
 
-#CONTRIB-1946 htmp tag selecting / parsing
+# CONTRIB-1972 stomp protocol
+ALLOW .* -> vendor/github.com/go-stomp/stomp 
+
+# CONTRIB-1946 htmp tag selecting / parsing
 ALLOW .* -> vendor/github.com/andybalholm/cascadia
 
 # CONTRIB-1872 pure ipp proto implementation
