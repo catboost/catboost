@@ -644,7 +644,8 @@ bool AreZeroWeightsAfterBootstrap(EBootstrapType type) {
 
 bool IsEmbeddingFeatureEstimator(EFeatureCalcerType estimatorType) {
     return (
-        estimatorType == EFeatureCalcerType::LDA
+        estimatorType == EFeatureCalcerType::LDA ||
+        estimatorType == EFeatureCalcerType::KNN
     );
 }
 
