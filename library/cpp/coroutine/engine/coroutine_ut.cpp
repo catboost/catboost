@@ -8,6 +8,7 @@
 #include <util/system/pipe.h>
 #include <util/system/env.h>
 #include <util/system/info.h>
+#include <util/system/thread.h>
 #include <util/generic/xrange.h>
 
 // TODO (velavokr): BALANCER-1345 add more tests on pollers
@@ -15,6 +16,7 @@
 class TCoroTest: public TTestBase {
     UNIT_TEST_SUITE(TCoroTest);
     UNIT_TEST(TestSimpleX1);
+    UNIT_TEST(TestSimpleX1MultiThread);
     UNIT_TEST(TestSimpleX2);
     UNIT_TEST(TestSimpleX3);
     UNIT_TEST(TestMemFun);
@@ -45,6 +47,7 @@ class TCoroTest: public TTestBase {
 public:
     void TestException();
     void TestSimpleX1();
+    void TestSimpleX1MultiThread();
     void TestSimpleX2();
     void TestSimpleX3();
     void TestMemFun();
@@ -120,21 +123,52 @@ static int i0;
 static void CoRun(TCont* c, void* /*run*/) {
     while (i0 < 100000) {
         ++i0;
+        UNIT_ASSERT(RunningCont() == c);
         c->Yield();
+        UNIT_ASSERT(RunningCont() == c);
     }
 }
 
 static void CoMain(TCont* c, void* /*arg*/) {
     for (volatile size_t i2 = 0; i2 < 10; ++i2) {
+        UNIT_ASSERT(RunningCont() == c);
         c->Executor()->Create(CoRun, nullptr, "run");
+        UNIT_ASSERT(RunningCont() == c);
     }
 }
 
 void TCoroTest::TestSimpleX1() {
     i0 = 0;
     TContExecutor e(32000);
+
+    UNIT_ASSERT(RunningCont() == nullptr);
+
     e.Execute(CoMain);
     UNIT_ASSERT_VALUES_EQUAL(i0, 100000);
+
+    UNIT_ASSERT(RunningCont() == nullptr);
+}
+
+void TCoroTest::TestSimpleX1MultiThread() {
+    TVector<THolder<TThread>> threads;
+    const size_t nThreads = 0;
+    TAtomic c = 0;
+    for (size_t i = 0; i < nThreads; ++i) {
+        threads.push_back(MakeHolder<TThread>([&]() {
+            TestSimpleX1();
+            AtomicIncrement(c);
+        }));
+    }
+
+    for (auto& t : threads) {
+        t->Start();
+    }
+
+    for (auto& t: threads) {
+        t->Join();
+    }
+
+    UNIT_ASSERT_EQUAL(c, nThreads);
 }
 
 struct TTestObject {

@@ -114,6 +114,8 @@ private:
     bool Scheduled_ = false;
 };
 
+TCont* RunningCont();
+
 
 template <class Functor>
 static void ContHelperFunc(TCont* cont, void* arg) {
