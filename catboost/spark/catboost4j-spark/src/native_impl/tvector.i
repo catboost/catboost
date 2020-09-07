@@ -5,11 +5,15 @@
 
 %{
 #include <util/generic/vector.h>
+#include <util/generic/ylimits.h>
 #include <stdexcept>
 %}
 
 %include <typemaps.i>
 %include <std_except.i>
+
+%include "primitive_arrays.i"
+
 
 template <class T>
 class TVector {
@@ -19,7 +23,7 @@ class TVector {
 
 public:
     void reserve(size_t new_cap);
-
+    
     %extend {
         bool equalsImpl(const TVector<T>& rhs) const  throw (std::exception) {
             return *self == rhs;
@@ -132,3 +136,52 @@ public:
         }
     %}
 };
+
+
+%define EXTEND_FOR_PRIMITIVE_TYPE(CPPTYPE, JNITYPE, JAVATYPE)
+    %template(TVector_##CPPTYPE) TVector<CPPTYPE>;
+
+    %native (toPrimitiveArrayImpl_##CPPTYPE) JNITYPE##Array toPrimitiveArrayImpl_##CPPTYPE(const TVector<CPPTYPE>& v);
+    %{
+    extern "C" {
+        JNIEXPORT JNITYPE##Array JNICALL 
+        Java_ru_yandex_catboost_spark_catboost4j_1spark_core_src_native_1impl_native_1implJNI_toPrimitiveArrayImpl_1##CPPTYPE(
+            JNIEnv* jenv,
+            jclass /*cls*/,
+            jlong jarg1,
+            jobject /*jarg1_*/
+        ) {
+            TVector<CPPTYPE>* self = *(TVector<CPPTYPE>**)&jarg1;  
+            JNITYPE##Array result;
+            try {
+                result = SWIG_PrimitiveArrayCppToJava(jenv, self->data(), self->size());
+            } catch (std::exception& e) {
+                SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, e.what());
+            } catch (...) {
+                SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, "Unknown C++ exception thrown");
+            }
+            return result;
+        } 
+    }  
+        
+    %}
+
+    %extend TVector<CPPTYPE> {
+        %proxycode %{
+            public JAVATYPE[] toPrimitiveArray() {
+                return $imclassname.toPrimitiveArrayImpl_##CPPTYPE(swigCPtr, this);
+            }
+        %}
+    }
+    
+%enddef
+
+
+EXTEND_FOR_PRIMITIVE_TYPE(i8, jbyte, byte);
+EXTEND_FOR_PRIMITIVE_TYPEL(ui16, jchar, char);
+EXTEND_FOR_PRIMITIVE_TYPE(i16, jshort, short);
+EXTEND_FOR_PRIMITIVE_TYPE(i32, jint, int);
+//EXTEND_FOR_PRIMITIVE_TYPE(i64, jlong, long);
+EXTEND_FOR_PRIMITIVE_TYPE(float, jfloat, float);
+EXTEND_FOR_PRIMITIVE_TYPE(double, jdouble, double);
+
