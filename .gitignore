@@ -32,9 +32,7 @@ catboost/rust-package/catboost-sys/target/
 
 catboost/app/catboost
 
-catboost/libs/model_interface/libcatboostmodel.dylib
-
-catboost/libs/model_interface/libcatboostmodel.dylib.1
+catboost/libs/model_interface/*.dylib*
 
 catboost/pytest/catboost-pytest
 
