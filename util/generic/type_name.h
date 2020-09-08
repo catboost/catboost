@@ -2,29 +2,31 @@
 
 #include "string.h"
 
-#include <util/system/demangle.h>
-
 #include <typeinfo>
 
-//return human readable type name
+// TypeName function family return human readable type name.
 
-//static type
+TString TypeName(const std::type_info& typeInfo);
+
+// Works for types known at compile-time
+// (thus, does not take any inheritance into account)
 template <class T>
-static inline TString TypeName() {
-    return CppDemangle(typeid(T).name());
+inline TString TypeName() {
+    return TypeName(typeid(T));
 }
 
-//dynamic type
+// Works for dynamic type, including complex class hierarchies
+// (note that values must be passed by pointer).
 template <class T>
-static inline TString TypeName(T* t) {
-    (void)t;
-    return CppDemangle(typeid(*t).name());
+inline TString TypeName(T* t) {
+    return TypeName(typeid(*t));
 }
 
-static inline TString TypeName(void*) {
+// ISO C++ does not allow indirection on operand of type 'void *'
+inline TString TypeName(void*) {
     return "void";
 }
 
-static inline TString TypeName(const void*) {
+inline TString TypeName(const void*) {
     return "const void";
 }

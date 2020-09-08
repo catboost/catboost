@@ -44,6 +44,7 @@ SRCS(
     generic/string_ut.cpp
     generic/typelist_ut.cpp
     generic/typetraits_ut.cpp
+    generic/type_name_ut.cpp
     generic/utility_ut.cpp
     generic/va_args_ut.cpp
     generic/variant_ut.cpp
