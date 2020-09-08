@@ -76,11 +76,19 @@ namespace NCB {
             const NCatboostOptions::TEmbeddingProcessingOptions& embeddingFeatureProcessing,
             bool floatFeaturesAllowNansInTestOnly = true);
 
+        /* for Java deserialization
+         *  ignored features are already set in featuresLayout
+         */
+        void Init(TFeaturesLayout* featuresLayout); // featuresLayout is moved into
+
         bool EqualTo(const TQuantizedFeaturesInfo& rhs, bool ignoreSparsity = false) const;
 
         bool operator==(const TQuantizedFeaturesInfo& rhs) const {
             return EqualTo(rhs);
         }
+
+        // for Spark
+        bool EqualWithoutOptionsTo(const TQuantizedFeaturesInfo& rhs, bool ignoreSparsity = false) const;
 
         int operator&(IBinSaver& binSaver);
 

@@ -63,6 +63,45 @@ namespace NCB {
         return true;
     }
 
+    static bool EqualNanModesWithDefault(
+        const TMap<ui32, ENanMode>& lhs,
+        const TMap<ui32, ENanMode>& rhs
+    ) {
+        auto lhsIter = lhs.begin();
+        auto rhsIter = rhs.begin();
+
+        while ((lhsIter != lhs.end()) && (rhsIter != rhs.end())) {
+            if (lhsIter->first < rhsIter->first) {
+                if (lhsIter->second != ENanMode::Forbidden) {
+                    return false;
+                }
+                ++lhsIter;
+            } else if (lhsIter->first > rhsIter->first) {
+                if (rhsIter->second != ENanMode::Forbidden) {
+                    return false;
+                }
+                ++rhsIter;
+            } else { // lhsIter->first == rhsIter->first
+                if (lhsIter->second != rhsIter->second) {
+                    return false;
+                }
+                ++lhsIter;
+                ++rhsIter;
+            }
+        }
+        for (; lhsIter != lhs.end(); ++lhsIter) {
+            if (lhsIter->second != ENanMode::Forbidden) {
+                return false;
+            }
+        }
+        for (; rhsIter != rhs.end(); ++rhsIter) {
+            if (rhsIter->second != ENanMode::Forbidden) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     TQuantizedFeaturesInfo::TQuantizedFeaturesInfo(
         const NCB::TFeaturesLayout &featuresLayout,
         TConstArrayRef<ui32> ignoredFeatures,
@@ -120,12 +159,24 @@ namespace NCB {
         FeaturesLayout->IgnoreExternalFeatures(ignoredFeatures);
     }
 
+    void TQuantizedFeaturesInfo::Init(TFeaturesLayout* featuresLayout) {
+        FeaturesLayout = MakeIntrusive<TFeaturesLayout>(std::move(*featuresLayout));
+    }
+
 
     bool TQuantizedFeaturesInfo::EqualTo(const TQuantizedFeaturesInfo& rhs, bool ignoreSparsity) const {
-        return FeaturesLayout->EqualTo(*rhs.FeaturesLayout, ignoreSparsity) &&
+        return EqualWithoutOptionsTo(rhs, ignoreSparsity) &&
             (CommonFloatFeaturesBinarization == rhs.CommonFloatFeaturesBinarization) &&
-            (PerFloatFeatureQuantization == rhs.PerFloatFeatureQuantization) &&
-            ApproximatelyEqualQuantization(Quantization, rhs.Quantization) && (NanModes == rhs.NanModes) &&
+            (PerFloatFeatureQuantization == rhs.PerFloatFeatureQuantization);
+    }
+
+    bool TQuantizedFeaturesInfo::EqualWithoutOptionsTo(
+        const TQuantizedFeaturesInfo& rhs,
+        bool ignoreSparsity
+    ) const {
+        return FeaturesLayout->EqualTo(*rhs.FeaturesLayout, ignoreSparsity) &&
+            ApproximatelyEqualQuantization(Quantization, rhs.Quantization) &&
+            EqualNanModesWithDefault(NanModes, rhs.NanModes) &&
             (CatFeaturesPerfectHash == rhs.CatFeaturesPerfectHash);
     }
 
