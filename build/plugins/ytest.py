@@ -738,7 +738,7 @@ def onjava_test(unit, *args):
         'FORK-MODE': unit.get('TEST_FORK_MODE') or '',
         'SPLIT-FACTOR': unit.get('TEST_SPLIT_FACTOR') or '',
         'CUSTOM-DEPENDENCIES': ' '.join(get_values_list(unit, 'TEST_DEPENDS_VALUE')),
-        'TAG': serialize_list(get_values_list(unit, 'TEST_TAGS_VALUE')),
+        'TAG': serialize_list(_get_test_tags(unit)),
         'SIZE': unit.get('TEST_SIZE_NAME') or '',
         'REQUIREMENTS': serialize_list(get_values_list(unit, 'TEST_REQUIREMENTS_VALUE')),
         'TEST-RECIPES': prepare_recipes(unit.get("TEST_RECIPES_VALUE")),
