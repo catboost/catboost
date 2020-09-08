@@ -126,6 +126,8 @@ def onjava_module(unit, *args):
         data['WITH_KOTLIN'] = extract_macro_calls(unit, 'WITH_KOTLIN_VALUE', args_delim)
         if unit.get('KOTLIN_JVM_TARGET'):
             data['KOTLIN_JVM_TARGET'] = extract_macro_calls(unit, 'KOTLIN_JVM_TARGET', args_delim)
+        if unit.get('KOTLINC_FLAGS_VALUE'):
+            data['KOTLINC_FLAGS'] = extract_macro_calls(unit, 'KOTLINC_FLAGS_VALUE', args_delim)
 
     if unit.get('DIRECT_DEPS_ONLY_VALUE') == 'yes':
         data['DIRECT_DEPS_ONLY'] = extract_macro_calls(unit, 'DIRECT_DEPS_ONLY_VALUE', args_delim)
