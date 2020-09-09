@@ -26,7 +26,7 @@ struct TDefaultLFCounter {
 //                   it is TCounter class responsibility to check validity of passed object
 template <class T, class TCounter>
 class TLockFreeQueue: public TNonCopyable {
-
+protected:
     struct TListNode {
         template <typename U>
         TListNode(U&& u, TListNode* next)
@@ -63,7 +63,7 @@ class TLockFreeQueue: public TNonCopyable {
             *(TCounter*)this = *(TCounter*)x;
         }
     };
-
+private:
     static void EraseList(TListNode* n) {
         while (n) {
             TListNode* keepNext = AtomicGet(n->Next);
@@ -71,7 +71,7 @@ class TLockFreeQueue: public TNonCopyable {
             n = keepNext;
         }
     }
-
+protected:
     static void EraseBranch(TRootNode* p) {
         while (p) {
             TRootNode* keepNext = AtomicGet(p->NextFree);
@@ -80,12 +80,14 @@ class TLockFreeQueue: public TNonCopyable {
             p = keepNext;
         }
     }
-
+private:
     alignas(64) TRootNode* volatile JobQueue;
     alignas(64) volatile TAtomic FreememCounter;
     alignas(64) volatile TAtomic FreeingTaskCounter;
+protected:
     alignas(64) TRootNode* volatile FreePtr;
 
+private:
     void TryToFreeAsyncMemory() {
         TAtomic keepCounter = AtomicAdd(FreeingTaskCounter, 0);
         TRootNode* current = AtomicGet(FreePtr);
@@ -103,13 +105,14 @@ class TLockFreeQueue: public TNonCopyable {
             }
         }
     }
-    void virtual AsyncRef() {
+    virtual void AsyncRef() {
         AtomicAdd(FreememCounter, 1);
     }
-    void virtual AsyncUnref() {
+    virtual void AsyncUnref() {
         TryToFreeAsyncMemory();
         AtomicAdd(FreememCounter, -1);
     }
+protected:
     void AsyncDel(TRootNode* toDelete, TListNode* lst) {
         AtomicSet(toDelete->ToDelete, lst);
         for (;;) {
@@ -118,7 +121,8 @@ class TLockFreeQueue: public TNonCopyable {
                 break;
         }
     }
-    void AsyncUnref(TRootNode* toDelete, TListNode* lst) {
+private:
+    virtual void AsyncUnref(TRootNode* toDelete, TListNode* lst) {
         TryToFreeAsyncMemory();
         if (AtomicAdd(FreememCounter, -1) == 0) {
             // no other operations in progress, can safely reclaim memory
@@ -410,12 +414,13 @@ private:
     TLockFreeQueue<T*, TCounter> Queue;
 };
 
+#include <iostream>
+
 template <class T, class TCounter>
 class TExplicitGCLockFreeQueue : public TLockFreeQueue<T, TCounter> {
 
     using TRootNode = typename TLockFreeQueue<T, TCounter>::TRootNode;
     using TListNode = typename TLockFreeQueue<T, TCounter>::TListNode;
-    using TLockFreeQueue<T, TCounter>::FreePtr;
 
     alignas(64) volatile TAtomic QueueLock;
 
@@ -461,7 +466,7 @@ class TExplicitGCLockFreeQueue : public TLockFreeQueue<T, TCounter> {
     }
     void AsyncUnref(TRootNode* toDelete, TListNode* lst) {
         InflightRequests.Unref();
-        AsyncDel(toDelete, lst);
+        this->AsyncDel(toDelete, lst);
     }
     public:
     TExplicitGCLockFreeQueue()
@@ -475,12 +480,15 @@ class TExplicitGCLockFreeQueue : public TLockFreeQueue<T, TCounter> {
     void GarbageCollect() {
         if (!AtomicCas(&QueueLock, 1, 0))
             return;
-        while (BlockedRequests.Sum() < InflightRequests.Sum()) {
+//        size_t bsum, isum;
+//        while ((bsum = BlockedRequests.Sum()) < (isum = InflightRequests.Sum())) {
+//            std::cout << "Blocked sum: " << bsum << ";\t Inflight sum: " << isum << std::endl;
+         while (BlockedRequests.Sum() < InflightRequests.Sum()) {
             std::this_thread::yield();
         }
-        TRootNode* fptr = AtomicSwap(&FreePtr, (TRootNode*)nullptr);
+        TRootNode* fptr = AtomicSwap(&this->FreePtr, (TRootNode*)nullptr);
         AtomicSet(QueueLock, 0);
-        EraseBranch(fptr);
+        this->EraseBranch(fptr);
     }
 };
 

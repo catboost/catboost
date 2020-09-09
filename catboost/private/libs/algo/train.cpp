@@ -398,5 +398,8 @@ void TrainOneIteration(const NCB::TTrainingDataProviders& data, TLearnContext* c
 
         profile.AddOperation("Update final approxes");
         CheckInterrupted(); // check after long-lasting operation
+
+        // explicit per-iteration memory cleanup
+        ctx->LocalExecutor->Control(NPar::TLocalExecutor::GARBAGE_COLLECT, NPar::TLocalExecutor::LOW_PRIORITY);
     }
 }

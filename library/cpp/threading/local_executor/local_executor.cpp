@@ -127,9 +127,10 @@ namespace {
 //////////////////////////////////////////////////////////////////////////
 class NPar::TLocalExecutor::TImpl {
 public:
-    TLockFreeQueue<TSingleJob> JobQueue;
-    TLockFreeQueue<TSingleJob> MedJobQueue;
-    TLockFreeQueue<TSingleJob> LowJobQueue;
+    using TJobQueue = TExplicitGCLockFreeQueue<TSingleJob>;
+    TJobQueue JobQueue;
+    TJobQueue MedJobQueue;
+    TJobQueue LowJobQueue;
     alignas(64) TSystemEvent HasJob;
 
     TAtomic ThreadCount{0};
@@ -147,7 +148,7 @@ public:
     bool GetJob(TSingleJob* job);
     void RunNewThread();
     void LaunchRange(TIntrusivePtr<TLocalRangeExecutor> execRange, int queueSizeLimit,
-                     TAtomic* queueSize, TLockFreeQueue<TSingleJob>* jobQueue);
+                     TAtomic* queueSize, TJobQueue* jobQueue);
 
     TImpl() = default;
     ~TImpl();
@@ -188,10 +189,18 @@ void* NPar::TLocalExecutor::TImpl::HostWorkerThread(void* p) {
             job.Exec->LocalExec(job.Id);
             RegularYield();
         } else {
-            AtomicAdd(ctx->QueueSize, 1);
-            ctx->JobQueue.Enqueue(job);
-            ctx->HasJob.Signal();
-            cont = false;
+            switch (job.Id) {
+            case GARBAGE_COLLECT:
+                ctx->JobQueue.GarbageCollect();
+                ctx->MedJobQueue.GarbageCollect();
+                ctx->LowJobQueue.GarbageCollect();
+                break;
+            default:
+                AtomicAdd(ctx->QueueSize, 1);
+                ctx->JobQueue.Enqueue(job);
+                ctx->HasJob.Signal();
+                cont = false;
+            }
         }
     }
     AtomicAdd(ctx->ThreadCount, -1);
@@ -225,7 +234,7 @@ void NPar::TLocalExecutor::TImpl::RunNewThread() {
 void NPar::TLocalExecutor::TImpl::LaunchRange(TIntrusivePtr<TLocalRangeExecutor> rangeExec,
                                               int queueSizeLimit,
                                               TAtomic* queueSize,
-                                              TLockFreeQueue<TSingleJob>* jobQueue) {
+                                              TJobQueue* jobQueue) {
     int count = Min<int>(ThreadCount + 1, rangeExec->GetRangeSize());
     if (queueSizeLimit >= 0 && AtomicGet(*queueSize) >= queueSizeLimit) {
         return;
@@ -344,6 +353,10 @@ void NPar::TLocalExecutor::ClearLPQueue() {
             cont = true;
         }
     }
+}
+
+void NPar::TLocalExecutor::Control(int control, int flags) {
+    Exec(static_cast<TIntrusivePtr<NPar::ILocallyExecutable>>(nullptr), control, flags);
 }
 
 int NPar::TLocalExecutor::GetQueueSize() const noexcept {

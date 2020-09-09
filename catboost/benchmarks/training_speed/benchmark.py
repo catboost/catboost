@@ -14,20 +14,21 @@ def main():
     args = parser.parse_args()
 
     experiments_names = [
-        'abalone',
-        'airline',
-        'epsilon',
-        'higgs',
-        'letters',
-        'msrank',
-        'msrank-classification',
-        'synthetic',
-        'synthetic-5k-features'
+#        'abalone',
+#        'airline',
+#        'epsilon',
+#        'higgs',
+#        'letters',
+#        'msrank',
+#        'msrank-classification',
+#        'synthetic',
+#        'synthetic-5k-features',
+         'year-msd'
     ]
 
     learners = [
-        XGBoostLearner,
-        LightGBMLearner,
+#        XGBoostLearner,
+#        LightGBMLearner,
         CatBoostLearner
     ]
 

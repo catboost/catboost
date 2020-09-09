@@ -58,6 +58,9 @@ namespace NPar {
             PRIORITY_MASK = 3,
             WAIT_COMPLETE = 4
         };
+        enum EControl : int {
+            GARBAGE_COLLECT = 1
+        };
 
         // Describes a range of tasks with parameters from integer range [FirstId, LastId).
         //
@@ -165,6 +168,12 @@ namespace NPar {
         // it fails.
         //
         TVector<NThreading::TFuture<void>> ExecRangeWithFutures(TLocallyExecutableFunction exec, int firstId, int lastId, int flags);
+
+        // Submit asynchronous control task
+        //
+        // @param control                  required control task type listed in enum EControl
+        // @param flags                    Same as for `Exec`: async priority and WAIT_COMPLETE mask
+        void Control(int control, int flags);
 
         template <typename TBody>
         static inline auto BlockedLoopBody(const TLocalExecutor::TExecRangeParams& params, const TBody& body) {
