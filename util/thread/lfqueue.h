@@ -414,8 +414,6 @@ private:
     TLockFreeQueue<T*, TCounter> Queue;
 };
 
-#include <iostream>
-
 template <class T, class TCounter>
 class TExplicitGCLockFreeQueue : public TLockFreeQueue<T, TCounter> {
 
@@ -480,9 +478,6 @@ class TExplicitGCLockFreeQueue : public TLockFreeQueue<T, TCounter> {
     void GarbageCollect() {
         if (!AtomicCas(&QueueLock, 1, 0))
             return;
-//        size_t bsum, isum;
-//        while ((bsum = BlockedRequests.Sum()) < (isum = InflightRequests.Sum())) {
-//            std::cout << "Blocked sum: " << bsum << ";\t Inflight sum: " << isum << std::endl;
          while (BlockedRequests.Sum() < InflightRequests.Sum()) {
             std::this_thread::yield();
         }
