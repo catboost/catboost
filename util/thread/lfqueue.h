@@ -366,6 +366,10 @@ public:
         AsyncUnref();
         return res;
     }
+    void GarbageCollect() {
+        AsyncRef();
+        AsyncUnref();
+    }
 };
 
 template <class T, class TCounter>
