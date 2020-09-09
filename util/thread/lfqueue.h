@@ -5,6 +5,7 @@
 #include <util/generic/ptr.h>
 #include <util/system/atomic.h>
 #include <util/system/yassert.h>
+#include <thread>
 #include "lfstack.h"
 
 struct TDefaultLFCounter {
@@ -25,6 +26,7 @@ struct TDefaultLFCounter {
 //                   it is TCounter class responsibility to check validity of passed object
 template <class T, class TCounter>
 class TLockFreeQueue: public TNonCopyable {
+
     struct TListNode {
         template <typename U>
         TListNode(U&& u, TListNode* next)
@@ -70,6 +72,15 @@ class TLockFreeQueue: public TNonCopyable {
         }
     }
 
+    static void EraseBranch(TRootNode* p) {
+        while (p) {
+            TRootNode* keepNext = AtomicGet(p->NextFree);
+            EraseList(AtomicGet(p->ToDelete));
+            delete p;
+            p = keepNext;
+        }
+    }
+
     alignas(64) TRootNode* volatile JobQueue;
     alignas(64) volatile TAtomic FreememCounter;
     alignas(64) volatile TAtomic FreeingTaskCounter;
@@ -87,21 +98,15 @@ class TLockFreeQueue: public TNonCopyable {
                 return;
             }
             if (AtomicCas(&FreePtr, (TRootNode*)nullptr, current)) {
-                // free list
-                while (current) {
-                    TRootNode* p = AtomicGet(current->NextFree);
-                    EraseList(AtomicGet(current->ToDelete));
-                    delete current;
-                    current = p;
-                }
+                EraseBranch(current);
                 AtomicAdd(FreeingTaskCounter, 1);
             }
         }
     }
-    void AsyncRef() {
+    void virtual AsyncRef() {
         AtomicAdd(FreememCounter, 1);
     }
-    void AsyncUnref() {
+    void virtual AsyncUnref() {
         TryToFreeAsyncMemory();
         AtomicAdd(FreememCounter, -1);
     }
@@ -233,8 +238,8 @@ public:
     {
     }
     ~TLockFreeQueue() {
-        AsyncRef();
-        AsyncUnref(); // should free FreeList
+        Y_ASSERT(!FreememCounter);
+        EraseBranch(FreePtr);
         EraseList(JobQueue->PushQueue);
         EraseList(JobQueue->PopQueue);
         delete JobQueue;
@@ -404,3 +409,78 @@ public:
 private:
     TLockFreeQueue<T*, TCounter> Queue;
 };
+
+template <class T, class TCounter>
+class TExplicitGCLockFreeQueue : public TLockFreeQueue<T, TCounter> {
+
+    using TRootNode = typename TLockFreeQueue<T, TCounter>::TRootNode;
+    using TListNode = typename TLockFreeQueue<T, TCounter>::TListNode;
+    using TLockFreeQueue<T, TCounter>::FreePtr;
+
+    alignas(64) volatile TAtomic QueueLock;
+
+    class RequestsCounter {
+        static const int SPREAD_SIZE = 100;
+        struct AlignedCounter {
+            alignas(64) volatile TAtomic counter;
+        };
+        alignas(64) AlignedCounter counters[SPREAD_SIZE];
+
+        TAtomic* GetTCounter() {
+            return &counters[std::hash<std::thread::id>{}(std::this_thread::get_id()) % SPREAD_SIZE].counter;
+        }
+    public:
+        RequestsCounter() : counters{{0}} {};
+        void Ref() {
+            AtomicAdd(*GetTCounter(), 1);
+        }
+        void Unref() {
+            AtomicAdd(*GetTCounter(), -1);
+        }
+        size_t Sum() {
+            size_t sum = 0;
+            for (auto i = 0; i < SPREAD_SIZE; i++)
+                sum += AtomicGet(counters[i].counter);
+            return sum;
+        }
+    };
+    RequestsCounter InflightRequests, BlockedRequests;
+
+    void AsyncRef() {
+        InflightRequests.Ref();
+        while (AtomicGet(QueueLock)) {
+            BlockedRequests.Ref();
+            do {
+                std::this_thread::yield();
+            } while (AtomicGet(QueueLock));
+            BlockedRequests.Unref();
+        }
+    }
+    void AsyncUnref() {
+        InflightRequests.Unref();
+    }
+    void AsyncUnref(TRootNode* toDelete, TListNode* lst) {
+        InflightRequests.Unref();
+        AsyncDel(toDelete, lst);
+    }
+    public:
+    TExplicitGCLockFreeQueue()
+        : QueueLock(0)
+    {
+    }
+    ~TExplicitGCLockFreeQueue()
+    {
+        Y_ASSERT(!QueueLock);
+    }
+    void GarbageCollect() {
+        if (!AtomicCas(&QueueLock, 1, 0))
+            return;
+        while (BlockedRequests.Sum() < InflightRequests.Sum()) {
+            std::this_thread::yield();
+        }
+        TRootNode* fptr = AtomicSwap(&FreePtr, (TRootNode*)nullptr);
+        AtomicSet(QueueLock, 0);
+        EraseBranch(fptr);
+    }
+};
+
