@@ -114,7 +114,7 @@ def _import_lzma():
             "Your installed Python is incomplete. "
             "Attempting to use lzma compression will result in a RuntimeError."
         )
-        warnings.warn(msg)
+        # warnings.warn(msg)
 
 
 def _get_lzma_file(lzma):
