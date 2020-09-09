@@ -14,6 +14,10 @@ namespace NCB {
         {}
         void AddVector(const TEmbeddingsArray& embed);
         void Update();
+
+        float TotalSize() {
+            return BaseSize + AdditionalSize;
+        }
     public:
         int Dimension;
         int BaseSize = 0;
@@ -39,7 +43,6 @@ namespace NCB {
             , ProjectionDimension(projectionDimension)
             , RegParam(regularization)
             , ClassesDist(numClasses, totalDimension)
-            , TotalDist(totalDimension)
             , ProjectionMatrix(totalDimension * projectionDimension)
             , EigenValues(TotalDimension)
             , ProjectionCalculationCache(totalDimension * (totalDimension + 2))
@@ -56,12 +59,15 @@ namespace NCB {
         }
 
     private:
+        void BetweenScatterCalculation(TVector<float>* result);
+
+    private:
         int TotalDimension;
         int NumClasses;
         int ProjectionDimension;
         float RegParam;
+        int Size = 0;
         TVector<IncrementalCloud> ClassesDist;
-        IncrementalCloud TotalDist;
         TVector<float> ProjectionMatrix;
         TVector<float> EigenValues;
         TVector<float> ProjectionCalculationCache;

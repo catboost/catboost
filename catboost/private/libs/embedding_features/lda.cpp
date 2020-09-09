@@ -28,8 +28,7 @@ namespace NCB {
 
         Y_ASSERT(info == 0);
 
-        ui32 shift = scatterInner->size() - projectionMatrix->size();
-        std::copy(scatterTotal->begin() + shift, scatterTotal->end(), projectionMatrix->begin());
+        std::copy(scatterTotal->end() - projectionMatrix->size(), scatterTotal->end(), projectionMatrix->begin());
     }
 
     void IncrementalCloud::AddVector(const TEmbeddingsArray& embed) {
@@ -38,7 +37,7 @@ namespace NCB {
             Buffer.push_back(embed[idx] - BaseCenter[idx]);
             NewShift[idx] += Buffer.back();
         }
-        if (AdditionalSize > 0) {
+        if (BaseSize < 128 || AdditionalSize >= 32) {
             Update();
         }
     }
@@ -47,19 +46,16 @@ namespace NCB {
         if (AdditionalSize == 0) {
             return;
         }
-        BaseSize += AdditionalSize;
-        float alpha = 1.0 / BaseSize;
-        float beta = 1.0 - alpha;
         for (int idx = 0; idx < Dimension; ++idx) {
-            NewShift[idx] /= BaseSize;
+            NewShift[idx] /= TotalSize();
             BaseCenter[idx] += NewShift[idx];
         }
-        cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasTrans,
+        cblas_sgemm(CblasRowMajor, CblasTrans, CblasNoTrans,
                     Dimension, Dimension, AdditionalSize,
-                    alpha,
-                    &Buffer[0], AdditionalSize,
-                    &Buffer[0], AdditionalSize,
-                    beta,
+                    1.0 / TotalSize(),
+                    &Buffer[0], Dimension,
+                    &Buffer[0], Dimension,
+                    BaseSize / TotalSize(),
                     &ScatterMatrix[0], Dimension);
         Buffer.clear();
         cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasTrans,
@@ -68,6 +64,7 @@ namespace NCB {
                &NewShift[0], 1,
                &NewShift[0], 1,
                1.0, &ScatterMatrix[0], Dimension);
+        BaseSize += AdditionalSize;
         AdditionalSize = 0;
         NewShift.assign(Dimension, 0);
     }
@@ -90,15 +87,38 @@ namespace NCB {
         );
     }
 
+    void TLinearDACalcer::BetweenScatterCalculation(TVector<float>* result) {
+        TVector<float> totalMean(TotalDimension, 0);
+        for (auto& dist : ClassesDist) {
+            float weight = dist.TotalSize()/Size;
+            cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasTrans,
+                        TotalDimension, TotalDimension, 1,
+                        weight,
+                        &dist.BaseCenter[0], 1,
+                        &dist.BaseCenter[0], 1,
+                        1.0, result->data(), TotalDimension);
+            std::transform(totalMean.begin(), totalMean.end(), dist.BaseCenter.begin(),
+                           totalMean.begin(), [weight](float x, float y) {
+                               return x + weight * y;
+                           });
+        }
+        cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasTrans,
+                    TotalDimension, TotalDimension, 1,
+                    -1.0,
+                    &totalMean[0], 1,
+                    &totalMean[0], 1,
+                    1.0, result->data(), TotalDimension);
+    }
+
     void TLinearDACalcerVisitor::Update(ui32 classId, const TEmbeddingsArray& embed,
                                         TEmbeddingFeatureCalcer* featureCalcer) {
         auto lda = dynamic_cast<TLinearDACalcer*>(featureCalcer);
         Y_ASSERT(lda);
         lda->ClassesDist[classId].AddVector(embed);
-        lda->TotalDist.AddVector(embed);
-        if (2 * LastFlush <= lda->TotalDist.BaseSize) {
+        ++lda->Size;
+        if (2 * LastFlush <= lda->Size) {
             Flush(featureCalcer);
-            LastFlush = lda->TotalDist.BaseSize;
+            LastFlush = lda->Size;
         }
     }
 
@@ -107,13 +127,15 @@ namespace NCB {
         Y_ASSERT(lda);
         ui32 dim = lda->TotalDimension;
         TVector<float> meanScatter(dim * dim, 0);
-        TVector<float> totalScatter(lda->TotalDist.ScatterMatrix);
-        for (ui32 idx = 0; idx < meanScatter.size(); ++idx) {
-            for (int classIdx = 0; classIdx < lda->NumClasses; ++classIdx) {
-                meanScatter[idx] += lda->ClassesDist[classIdx].BaseSize *
-                                    lda->ClassesDist[classIdx].ScatterMatrix[idx];
-            }
-            meanScatter[idx] *= (1 - lda->RegParam);
+        TVector<float> totalScatter(dim * dim, 0);
+        lda->BetweenScatterCalculation(&totalScatter);
+        for (int classIdx = 0; classIdx < lda->NumClasses; ++classIdx) {
+            float weight = lda->ClassesDist[classIdx].TotalSize() / lda->Size;
+            std::transform(meanScatter.begin(), meanScatter.end(),
+                           lda->ClassesDist[classIdx].ScatterMatrix.begin(),
+                           meanScatter.begin(), [weight](float x, float y) {
+                               return x + weight * y;
+                           });
         }
         for (ui32 idx = 0; idx < meanScatter.size(); idx+= dim + 1) {
             meanScatter[idx] += lda->RegParam;
