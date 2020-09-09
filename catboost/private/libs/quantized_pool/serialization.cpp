@@ -300,7 +300,7 @@ void NCB::SaveQuantizedPool(const TQuantizedPool& pool, IOutputStream* const out
     WriteAsOneFile(pool, output);
 }
 
-static void ValidatePoolPart(const TConstArrayRef<char> blob) {
+static void ValidatePoolPart(const TConstArrayRef<ui8> blob) {
     // TODO(yazevnul)
     (void)blob;
 }
@@ -443,7 +443,7 @@ namespace {
     };
 }
 
-static TEpilogOffsets ReadEpilogOffsets(const TConstArrayRef<char> blob) {
+static TEpilogOffsets ReadEpilogOffsets(const TConstArrayRef<ui8> blob) {
     TEpilogOffsets offsets;
 
     CB_ENSURE(!std::memcmp(MagicEnd, blob.data() + blob.size() - MagicEndSize, MagicEndSize));
@@ -467,6 +467,77 @@ static TEpilogOffsets ReadEpilogOffsets(const TConstArrayRef<char> blob) {
     CB_ENSURE(offsets.FeatureCountOffset > offsets.QuantizationSchemaSizeOffset);
 
     return offsets;
+}
+
+static void ParseQuantizedPool(
+    const TMaybe<std::function<void(TConstArrayRef<ui8>)>>& onMetainfo,
+    const TMaybe<std::function<void(TConstArrayRef<ui8>)>>& onBorders,
+    const TMaybe<std::function<void(ui32)>>& onColumn,
+    const TMaybe<std::function<void(TConstArrayRef<ui8>, ui32, ui32)>>& onChunk,
+    TConstArrayRef<ui8> blob
+) {
+    const auto chunksOffsetByReading = [blob] {
+        TMemoryInput slave(blob.data(), blob.size());
+        TCountingInput input(&slave);
+        ReadHeader(&input);
+        return input.Counter();
+    }();
+    const auto epilogOffsets = ReadEpilogOffsets(blob);
+    CB_ENSURE(chunksOffsetByReading == epilogOffsets.ChunksOffset);
+
+    const auto poolMetainfoSize = LittleToHost(ReadUnaligned<ui32>(
+        blob.data() + epilogOffsets.PoolMetainfoSizeOffset));
+    if (onMetainfo) {
+        (*onMetainfo)(MakeArrayRef(blob.data() + epilogOffsets.PoolMetainfoSizeOffset + sizeof(ui32), poolMetainfoSize));
+    }
+
+    const auto quantizationSchemaSize = LittleToHost(ReadUnaligned<ui32>(
+        blob.data() + epilogOffsets.QuantizationSchemaSizeOffset));
+    if (onBorders) {
+        (*onBorders)(MakeArrayRef(blob.data() + epilogOffsets.QuantizationSchemaSizeOffset + sizeof(ui32), quantizationSchemaSize));
+    }
+
+    TMemoryInput epilog(
+        blob.data() + epilogOffsets.FeatureCountOffset,
+        blob.size() - epilogOffsets.FeatureCountOffset - MagicEndSize - sizeof(ui64) + 4);
+
+    ui32 featureCount;
+    ReadLittleEndian(&featureCount, &epilog);
+    for (ui32 i = 0; i < featureCount; ++i) {
+        ui32 featureIndex;
+        ReadLittleEndian(&featureIndex, &epilog);
+
+        if (onColumn) {
+            (*onColumn)(featureIndex);
+        }
+
+        ui32 chunkCount;
+        ReadLittleEndian(&chunkCount, &epilog);
+        ui32 chunkSize;
+        ui64 chunkOffset;
+        ui32 docOffset;
+        ui32 docsInChunkCount;
+        const size_t featureEpilogBytes = chunkCount * (sizeof(chunkSize) + sizeof(chunkOffset) + sizeof(docOffset) + sizeof(docsInChunkCount));
+        TVector<ui8> featureEpilog(featureEpilogBytes);
+        CB_ENSURE(featureEpilogBytes == epilog.Load(featureEpilog.data(), featureEpilogBytes));
+        const auto* featureEpilogPtr = featureEpilog.data();
+        if (!onChunk) {
+            continue;
+        }
+        for (ui32 chunkIndex = 0; chunkIndex < chunkCount; ++chunkIndex) {
+            ReadLittleEndian(&chunkSize, &featureEpilogPtr);
+
+            ReadLittleEndian(&chunkOffset, &featureEpilogPtr);
+            CB_ENSURE(chunkOffset >= epilogOffsets.ChunksOffset);
+            CB_ENSURE(chunkOffset < blob.size());
+
+            ReadLittleEndian(&docOffset, &featureEpilogPtr);
+
+            ReadLittleEndian(&docsInChunkCount, &featureEpilogPtr);
+
+            (*onChunk)(MakeArrayRef(blob.data() + chunkOffset, chunkSize), docOffset, docsInChunkCount);
+        }
+    }
 }
 
 namespace {
@@ -497,103 +568,63 @@ NCB::TQuantizedPool TFileQuantizedPoolLoader::LoadQuantizedPool(NCB::TLoadQuanti
 
     // TODO(yazevnul): optionally precharge pool
 
-    const TConstArrayRef<char> blob{
-        pool.Blobs.back().AsCharPtr(),
+    const TConstArrayRef<ui8> blob{
+        pool.Blobs.back().AsUnsignedCharPtr(),
         pool.Blobs.back().Size()};
 
     ValidatePoolPart(blob);
 
-    const auto chunksOffsetByReading = [blob] {
-        TMemoryInput slave(blob.data(), blob.size());
-        TCountingInput input(&slave);
-        ReadHeader(&input);
-        return input.Counter();
-    }();
-    const auto epilogOffsets = ReadEpilogOffsets(blob);
-    CB_ENSURE(chunksOffsetByReading == epilogOffsets.ChunksOffset);
-
     TPoolMetainfo poolMetainfo;
-    const auto poolMetainfoSize = LittleToHost(ReadUnaligned<ui32>(
-        blob.data() + epilogOffsets.PoolMetainfoSizeOffset));
-    const auto poolMetainfoParsed = poolMetainfo.ParseFromArray(
-        blob.data() + epilogOffsets.PoolMetainfoSizeOffset + sizeof(ui32),
-        poolMetainfoSize);
-    CB_ENSURE(poolMetainfoParsed);
-
-    const auto quantizationSchemaSize = LittleToHost(ReadUnaligned<ui32>(
-        blob.data() + epilogOffsets.QuantizationSchemaSizeOffset));
-    const auto quantizationSchemaParsed = pool.QuantizationSchema.ParseFromArray(
-        blob.data() + epilogOffsets.QuantizationSchemaSizeOffset + sizeof(ui32),
-        quantizationSchemaSize);
-    CB_ENSURE(quantizationSchemaParsed);
-
-    TMemoryInput epilog(
-        blob.data() + epilogOffsets.FeatureCountOffset,
-        blob.size() - epilogOffsets.FeatureCountOffset - MagicEndSize - sizeof(ui64) + 4);
+    auto parseMetainfo = [&] (TConstArrayRef<ui8> bytes) {
+        const auto poolMetainfoParsed = poolMetainfo.ParseFromArray(bytes.data(), bytes.size());
+        CB_ENSURE(poolMetainfoParsed);
+    };
+    auto parseSchema = [&] (TConstArrayRef<ui8> bytes) {
+        const auto quantizationSchemaParsed = pool.QuantizationSchema.ParseFromArray(bytes.data(), bytes.size());
+        CB_ENSURE(quantizationSchemaParsed);
+    };
 
     TVector<TVector<NCB::TQuantizedPool::TChunkDescription>> stringColumnChunks;
     THashMap<ui32, EColumn> stringColumnIndexToColumnType;
 
-    ui32 featureCount;
-    ReadLittleEndian(&featureCount, &epilog);
-    for (ui32 i = 0; i < featureCount; ++i) {
-        ui32 featureIndex;
-        ReadLittleEndian(&featureIndex, &epilog);
+    TVector<NCB::TQuantizedPool::TChunkDescription>* currentChunksPointer = nullptr;
+    auto parseColumn = [&] (ui32 columnIndex) {
+        CB_ENSURE(!pool.ColumnIndexToLocalIndex.contains(columnIndex),
+            "Quantized pool should have unique column indices, but " <<
+            LabeledOutput(columnIndex) << " is repeated.");
 
-        CB_ENSURE(!pool.ColumnIndexToLocalIndex.contains(featureIndex),
-            "Quantized pool should have unique feature indices, but " <<
-            LabeledOutput(featureIndex) << " is repeated.");
-
-        ui32 localFeatureIndex;
-        const bool isFakeColumn = NCB::NQuantizationSchemaDetail::IsFakeIndex(featureIndex, poolMetainfo);
+        const bool isFakeColumn = NCB::NQuantizationSchemaDetail::IsFakeIndex(columnIndex, poolMetainfo);
         if (!isFakeColumn) {
-            localFeatureIndex = pool.Chunks.size();
-            pool.ColumnIndexToLocalIndex.emplace(featureIndex, localFeatureIndex);
+            const auto localFeatureIndex = pool.Chunks.size();
+            pool.ColumnIndexToLocalIndex.emplace(columnIndex, localFeatureIndex);
             pool.Chunks.push_back({});
+            currentChunksPointer = &pool.Chunks.back();
         } else {
             EColumn columnType;
-            if (featureIndex == poolMetainfo.GetStringDocIdFakeColumnIndex()) {
+            if (columnIndex == poolMetainfo.GetStringDocIdFakeColumnIndex()) {
                 columnType = EColumn::SampleId;
-            } else if (featureIndex == poolMetainfo.GetStringGroupIdFakeColumnIndex()) {
+            } else if (columnIndex == poolMetainfo.GetStringGroupIdFakeColumnIndex()) {
                 columnType = EColumn::GroupId;
-            } else if (featureIndex == poolMetainfo.GetStringSubgroupIdFakeColumnIndex()){
+            } else if (columnIndex == poolMetainfo.GetStringSubgroupIdFakeColumnIndex()){
                 columnType = EColumn::SubgroupId;
             } else {
                 CB_ENSURE(false, "Bad column type. Should be one of: DocId, GroupId, SubgroupId.");
             }
             stringColumnIndexToColumnType[stringColumnChunks.size()] = columnType;
             stringColumnChunks.push_back({});
+            currentChunksPointer = &stringColumnChunks.back();
         }
-        auto& chunks = isFakeColumn ? stringColumnChunks.back() : pool.Chunks[localFeatureIndex];
-
-        ui32 chunkCount;
-        ReadLittleEndian(&chunkCount, &epilog);
-        ui32 chunkSize;
-        ui64 chunkOffset;
-        ui32 docOffset;
-        ui32 docsInChunkCount;
-        const size_t featureEpilogBytes = chunkCount * (sizeof(chunkSize) + sizeof(chunkOffset) + sizeof(docOffset) + sizeof(docsInChunkCount));
-        TVector<ui8> featureEpilog(featureEpilogBytes);
-        CB_ENSURE(featureEpilogBytes == epilog.Load(featureEpilog.data(), featureEpilogBytes));
-        const auto* featureEpilogPtr = featureEpilog.data();
-        for (ui32 chunkIndex = 0; chunkIndex < chunkCount; ++chunkIndex) {
-            ReadLittleEndian(&chunkSize, &featureEpilogPtr);
-
-            ReadLittleEndian(&chunkOffset, &featureEpilogPtr);
-            CB_ENSURE(chunkOffset >= epilogOffsets.ChunksOffset);
-            CB_ENSURE(chunkOffset < blob.size());
-
-            ReadLittleEndian(&docOffset, &featureEpilogPtr);
-
-            ReadLittleEndian(&docsInChunkCount, &featureEpilogPtr);
-
-            const TConstArrayRef<char> chunkBlob{blob.data() + chunkOffset, chunkSize};
-            // TODO(yazevnul): validate flatbuffer, including document count
-            const auto* const chunk = flatbuffers::GetRoot<NCB::NIdl::TQuantizedFeatureChunk>(chunkBlob.data());
-
-            chunks.emplace_back(docOffset, docsInChunkCount, chunk);
-        }
-    }
+    };
+    auto parseChunk = [&] (TConstArrayRef<ui8> bytes, ui32 docOffset, ui32 docsInChunkCount) {
+        const auto* const chunk = flatbuffers::GetRoot<NCB::NIdl::TQuantizedFeatureChunk>(bytes.data());
+        currentChunksPointer->emplace_back(docOffset, docsInChunkCount, chunk);
+    };
+    ParseQuantizedPool(
+        parseMetainfo,
+        parseSchema,
+        parseColumn,
+        parseChunk,
+        blob);
 
     AddPoolMetainfo(poolMetainfo, &pool);
 
@@ -721,77 +752,59 @@ NCB::TQuantizedPoolDigest NCB::GetQuantizedPoolDigest(
 
 NCB::TQuantizedPoolDigest NCB::CalculateQuantizedPoolDigest(const TStringBuf path) {
     const auto file = TBlob::FromFile(TString(path));
-    const TConstArrayRef<char> blob(file.AsCharPtr(), file.Size());
-    const auto chunksOffsetByReading = [blob] {
-        TMemoryInput slave(blob.data(), blob.size());
-        TCountingInput input(&slave);
-        ReadHeader(&input);
-        return input.Counter();
-    }();
-    const auto epilogOffsets = ReadEpilogOffsets(blob);
-    CB_ENSURE(chunksOffsetByReading == epilogOffsets.ChunksOffset);
-
-    const auto columnsInfoSize = LittleToHost(ReadUnaligned<ui32>(
-        blob.data() + epilogOffsets.PoolMetainfoSizeOffset));
+    const TConstArrayRef<ui8> blob(file.AsUnsignedCharPtr(), file.Size());
     TPoolMetainfo poolMetainfo;
-    const auto poolMetainfoParsed = poolMetainfo.ParseFromArray(
-        blob.data() + epilogOffsets.PoolMetainfoSizeOffset + sizeof(ui32),
-        columnsInfoSize);
-    CB_ENSURE(poolMetainfoParsed);
-
-    const auto quantizationSchemaSize = LittleToHost(ReadUnaligned<ui32>(
-        blob.data() + epilogOffsets.QuantizationSchemaSizeOffset));
+    auto parseMetainfo = [&] (TConstArrayRef<ui8> bytes) {
+        const auto poolMetainfoParsed = poolMetainfo.ParseFromArray(bytes.data(), bytes.size());
+        CB_ENSURE(poolMetainfoParsed);
+    };
     NCB::NIdl::TPoolQuantizationSchema quantizationSchema;
-    quantizationSchema.ParseFromArray(
-        blob.data() + epilogOffsets.QuantizationSchemaSizeOffset + sizeof(ui32),
-        quantizationSchemaSize);
+    auto parseSchema = [&] (TConstArrayRef<ui8> bytes) {
+        const auto quantizationSchemaParsed = quantizationSchema.ParseFromArray(bytes.data(), bytes.size());
+        CB_ENSURE(quantizationSchemaParsed);
+    };
+    ParseQuantizedPool(
+        parseMetainfo,
+        parseSchema,
+        /*parseColumn*/ Nothing(),
+        /*parseChunk*/ Nothing(),
+        blob);
 
     return GetQuantizedPoolDigest(poolMetainfo, quantizationSchema);
 }
 
 NCB::NIdl::TPoolQuantizationSchema NCB::LoadQuantizationSchemaFromPool(const TStringBuf path) {
     const auto file = TBlob::FromFile(TString(path));
-    const TConstArrayRef<char> blob(file.AsCharPtr(), file.Size());
-    const auto chunksOffsetByReading = [blob] {
-        TMemoryInput slave(blob.data(), blob.size());
-        TCountingInput input(&slave);
-        ReadHeader(&input);
-        return input.Counter();
-    }();
-    const auto epilogOffsets = ReadEpilogOffsets(blob);
-    CB_ENSURE(chunksOffsetByReading == epilogOffsets.ChunksOffset);
-
+    const TConstArrayRef<ui8> blob(file.AsUnsignedCharPtr(), file.Size());
     NCB::NIdl::TPoolQuantizationSchema quantizationSchema;
-    const auto quantizationSchemaSize = LittleToHost(ReadUnaligned<ui32>(
-        blob.data() + epilogOffsets.QuantizationSchemaSizeOffset));
-    const auto quantizationSchemaParsed = quantizationSchema.ParseFromArray(
-        blob.data() + epilogOffsets.QuantizationSchemaSizeOffset + sizeof(ui32),
-        quantizationSchemaSize);
-    CB_ENSURE(quantizationSchemaParsed);
+    auto parseSchema = [&] (TConstArrayRef<ui8> bytes) {
+        const auto quantizationSchemaParsed = quantizationSchema.ParseFromArray(bytes.data(), bytes.size());
+        CB_ENSURE(quantizationSchemaParsed);
+    };
+    ParseQuantizedPool(
+        /*parseMetainfo*/ Nothing(),
+        parseSchema,
+        /*parseColumn*/ Nothing(),
+        /*parseChunk*/ Nothing(),
+        blob);
 
     return quantizationSchema;
 }
 
 NCB::NIdl::TPoolMetainfo NCB::LoadPoolMetainfo(const TStringBuf path) {
     const auto file = TBlob::FromFile(TString(path));
-    const TConstArrayRef<char> blob(file.AsCharPtr(), file.Size());
-    const auto chunksOffsetByReading = [blob] {
-        TMemoryInput slave(blob.data(), blob.size());
-        TCountingInput input(&slave);
-        ReadHeader(&input);
-        return input.Counter();
-    }();
-    const auto epilogOffsets = ReadEpilogOffsets(blob);
-    CB_ENSURE(chunksOffsetByReading == epilogOffsets.ChunksOffset);
-
-    NCB::NIdl::TPoolMetainfo poolMetainfo;
-    const auto poolMetainfoSize = LittleToHost(ReadUnaligned<ui32>(
-        blob.data() + epilogOffsets.PoolMetainfoSizeOffset));
-    const auto poolMetainfoParsed = poolMetainfo.ParseFromArray(
-        blob.data() + epilogOffsets.PoolMetainfoSizeOffset + sizeof(ui32),
-        poolMetainfoSize);
-    CB_ENSURE(poolMetainfoParsed);
-
+    const TConstArrayRef<ui8> blob(file.AsUnsignedCharPtr(), file.Size());
+    TPoolMetainfo poolMetainfo;
+    auto parseMetainfo = [&] (TConstArrayRef<ui8> bytes) {
+        const auto poolMetainfoParsed = poolMetainfo.ParseFromArray(bytes.data(), bytes.size());
+        CB_ENSURE(poolMetainfoParsed);
+    };
+    ParseQuantizedPool(
+        parseMetainfo,
+        /*parseSchema*/ Nothing(),
+        /*parseColumn*/ Nothing(),
+        /*parseChunk*/ Nothing(),
+        blob);
     return poolMetainfo;
 }
 
