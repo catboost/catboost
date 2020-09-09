@@ -11,7 +11,7 @@ template <class T, class TCounter = TDefaultLFCounter>
 class TAutoLockFreeQueue;
 
 template <class T, class TCounter = TDefaultLFCounter>
-class TExplicitGCLockFreeQueue;
+class TGCLockFreeQueue;
 
 template <class T>
 class TLockFreeStack;

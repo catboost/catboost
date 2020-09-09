@@ -127,7 +127,7 @@ namespace {
 //////////////////////////////////////////////////////////////////////////
 class NPar::TLocalExecutor::TImpl {
 public:
-    using TJobQueue = TExplicitGCLockFreeQueue<TSingleJob>;
+    using TJobQueue = TGCLockFreeQueue<TSingleJob>;
     TJobQueue JobQueue;
     TJobQueue MedJobQueue;
     TJobQueue LowJobQueue;

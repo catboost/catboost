@@ -415,7 +415,20 @@ private:
 };
 
 template <class T, class TCounter>
-class TExplicitGCLockFreeQueue : public TLockFreeQueue<T, TCounter> {
+class TGreedyLockFreeQueue : public TLockFreeQueue<T, TCounter> {
+
+    using TRootNode = typename TLockFreeQueue<T, TCounter>::TRootNode;
+    using TListNode = typename TLockFreeQueue<T, TCounter>::TListNode;
+
+    void AsyncRef() {}
+    void AsyncUnref() {}
+    void AsyncUnref(TRootNode* toDelete, TListNode* lst) {
+        this->AsyncDel(toDelete, lst);
+    }
+};
+
+template <class T, class TCounter>
+class TGCLockFreeQueue : public TLockFreeQueue<T, TCounter> {
 
     using TRootNode = typename TLockFreeQueue<T, TCounter>::TRootNode;
     using TListNode = typename TLockFreeQueue<T, TCounter>::TListNode;
@@ -467,11 +480,11 @@ class TExplicitGCLockFreeQueue : public TLockFreeQueue<T, TCounter> {
         this->AsyncDel(toDelete, lst);
     }
     public:
-    TExplicitGCLockFreeQueue()
+    TGCLockFreeQueue()
         : QueueLock(0)
     {
     }
-    ~TExplicitGCLockFreeQueue()
+    ~TGCLockFreeQueue()
     {
         Y_ASSERT(!QueueLock);
     }
