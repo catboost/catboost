@@ -77,6 +77,7 @@ TEST_SRCS(
     with_crash_on_timeout.py
     with_pathsep_resolve.py
     wrapper.py
+    wrap_groovyc.py
     collect_java_srcs.py
     writer.py
     xargs.py
