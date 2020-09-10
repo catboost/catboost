@@ -86,5 +86,6 @@ namespace NCB {
         const NIdl::TPoolMetainfo& poolMetainfo,
         const NIdl::TPoolQuantizationSchema& quantizationSchema
     );
+    size_t EstimateIdsLength(const TStringBuf path);
     void AddPoolMetainfo(const NIdl::TPoolMetainfo& metainfo, TQuantizedPool* const pool);
 }
