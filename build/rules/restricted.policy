@@ -22,6 +22,7 @@ ALLOW passport/cpp -> contrib/restricted/thrift
 # ALSA library is LGPL
 ALLOW contrib/libs/webrtc -> contrib/restricted/alsa-lib
 ALLOW yandex_io -> contrib/restricted/alsa-lib
+ALLOW smart_devices -> contrib/restricted/alsa-lib
 
 # Avahi is LGPL
 ALLOW yandex_io -> contrib/restricted/avahi
