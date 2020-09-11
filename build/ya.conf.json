@@ -275,6 +275,9 @@
         "mockgen": {
             "description": "Run GoMock (go mocking framework)"
         },
+        "swagger": {
+            "description": "Run go-swagger"
+        },
         "dlv": {
             "description": "Debugger for the Go programming language"
         },
@@ -926,6 +929,34 @@
                 "mockgen": {
                     "bottle": "mockgen",
                     "executable": "mockgen"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "WIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
+        "swagger": {
+            "tools": {
+                "swagger": {
+                    "bottle": "swagger",
+                    "executable": "swagger"
                 }
             },
             "platforms": [
@@ -5576,6 +5607,21 @@
             "executable": {
                 "mockgen": [
                     "mockgen"
+                ]
+            }
+        },
+        "swagger": {
+            "formula": {
+                "sandbox_id": [
+                    768322495,
+                    768322503,
+                    768322516
+                ],
+                "match": "swagger"
+            },
+            "executable": {
+                "swagger": [
+                    "swagger"
                 ]
             }
         },
