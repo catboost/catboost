@@ -1,5 +1,6 @@
 #pragma once
 
+#include "baseline.h"
 #include "loader.h"
 
 #include <catboost/libs/column_description/column.h>
