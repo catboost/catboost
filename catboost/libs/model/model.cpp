@@ -278,7 +278,7 @@ void TModelTrees::TruncateTrees(size_t begin, size_t end) {
     CB_ENSURE(end <= GetModelTreeData()->GetTreeSplits().size(), "end tree index should be not greater than tree count.");
     auto savedScaleAndBias = GetScaleAndBias();
     TObliviousTreeBuilder builder(FloatFeatures, CatFeatures, TextFeatures, ApproxDimension);
-    const auto& leafOffsets = RuntimeData->TreeFirstLeafOffsets;
+    const auto& leafOffsets = GetFirstLeafOffsets();
 
     const auto treeSizes = GetModelTreeData()->GetTreeSizes();
     const auto treeSplits = GetModelTreeData()->GetTreeSplits();
@@ -291,7 +291,7 @@ void TModelTrees::TruncateTrees(size_t begin, size_t end) {
              splitIdx < treeStartOffsets[treeIdx] + treeSizes[treeIdx];
              ++splitIdx)
         {
-            modelSplits.push_back(RuntimeData->BinFeatures[treeSplits[splitIdx]]);
+            modelSplits.push_back(GetBinFeatures()[treeSplits[splitIdx]]);
         }
         TConstArrayRef<double> leafValuesRef(
             leafValues.begin() + leafOffsets[treeIdx],
@@ -391,69 +391,101 @@ TModelTrees::FBSerialize(TModelPartsCachingSerializer& serializer) const {
     );
 }
 
+void TModelTrees::ClearRuntimeData() const {
+    TWriteGuard applyDataGuard(ApplyDataLock);
+    TWriteGuard runtimeDataGuard(RuntimeDataLock);
+
+    RuntimeData.Clear();
+    ApplyData.Clear();
+}
+
 void TModelTrees::UpdateRuntimeData() const {
+    ClearRuntimeData();
+}
+
+void TModelTrees::PrepareApplyData() const {
+    {
+        TReadGuard rguard(ApplyDataLock);
+
+        if (ApplyData.Defined()) {
+            return;
+        }
+    }
+    TWriteGuard wguard(ApplyDataLock);
+
+    if (ApplyData.Defined()) {
+        return;
+    }
+
+    ApplyData = TForApplyData{};
+    ProcessFloatFeatures();
+    ProcessCatFeatures();
+    ProcessTextFeatures();
+    ProcessEstimatedFeatures();
+    CalcUsedModelCtrs();
+    CalcFirstLeafOffsets();
+}
+
+void TModelTrees::ProcessFloatFeatures() const {
+    auto& ref = ApplyData;
+    for (const auto& feature : FloatFeatures) {
+        if (feature.UsedInModel()) {
+            ++ref->UsedFloatFeaturesCount;
+            ref->MinimalSufficientFloatFeaturesVectorSize = static_cast<size_t>(feature.Position.Index) + 1;
+        }
+    }
+}
+
+void TModelTrees::ProcessCatFeatures() const {
+    auto& ref = ApplyData;
+    for (const auto& feature : CatFeatures) {
+        if (feature.UsedInModel()) {
+            ++ref->UsedCatFeaturesCount;
+            ref->MinimalSufficientCatFeaturesVectorSize = static_cast<size_t>(feature.Position.Index) + 1;
+        }
+    }
+}
+
+void TModelTrees::ProcessTextFeatures() const {
+    auto& ref = ApplyData;
+    for (const auto& feature : TextFeatures) {
+        if (feature.UsedInModel()) {
+            ++ref->UsedTextFeaturesCount;
+            ref->MinimalSufficientTextFeaturesVectorSize = static_cast<size_t>(feature.Position.Index) + 1;
+        }
+    }
+}
+
+void TModelTrees::ProcessEstimatedFeatures() const {
+    ApplyData->UsedEstimatedFeaturesCount = EstimatedFeatures.size();
+}
+
+void TModelTrees::CalcBinFeatures() const {
+    {
+        TReadGuard rguard(RuntimeDataLock);
+        if (RuntimeData.Defined()) {
+            return;
+        }
+    }
+    TWriteGuard wguard(RuntimeDataLock);
+
+    if (RuntimeData.Defined()) {
+        return;
+    }
+
+    RuntimeData = TRuntimeData{};
+
     struct TFeatureSplitId {
         ui32 FeatureIdx = 0;
         ui32 SplitIdx = 0;
     };
-    RuntimeData = TRuntimeData{}; // reset RuntimeData
     TVector<TFeatureSplitId> splitIds;
+
     auto& ref = RuntimeData.GetRef();
-
-
-    auto treeSizes = GetModelTreeData()->GetTreeSizes();
-    auto treeStartOffsets = GetModelTreeData()->GetTreeStartOffsets();
-
-    ref.TreeFirstLeafOffsets.resize(treeSizes.size());
-    if (IsOblivious()) {
-        size_t currentOffset = 0;
-        for (size_t i = 0; i < treeSizes.size(); ++i) {
-            ref.TreeFirstLeafOffsets[i] = currentOffset;
-            currentOffset += (1 << treeSizes[i]) * ApproxDimension;
-        }
-    } else {
-        for (size_t treeId = 0; treeId < treeSizes.size(); ++treeId) {
-            const int treeNodesStart = treeStartOffsets[treeId];
-            const int treeNodesEnd = treeNodesStart + treeSizes[treeId];
-            ui32 minLeafValueIndex = Max();
-            ui32 maxLeafValueIndex = 0;
-            ui32 valueNodeCount = 0; // count of nodes with values
-            for (auto nodeIndex = treeNodesStart; nodeIndex < treeNodesEnd; ++nodeIndex) {
-                const auto& node = GetModelTreeData()->GetNonSymmetricStepNodes()[nodeIndex];
-                if (node.LeftSubtreeDiff == 0|| node.RightSubtreeDiff == 0) {
-                    const ui32 leafValueIndex = GetModelTreeData()->GetNonSymmetricNodeIdToLeafId()[nodeIndex];
-                    Y_ASSERT(leafValueIndex != Max<ui32>());
-                    Y_VERIFY_DEBUG(
-                        leafValueIndex % ApproxDimension == 0,
-                        "Expect that leaf values are aligned."
-                    );
-                    minLeafValueIndex = Min(minLeafValueIndex, leafValueIndex);
-                    maxLeafValueIndex = Max(maxLeafValueIndex, leafValueIndex);
-                    ++valueNodeCount;
-                }
-            }
-            Y_ASSERT(valueNodeCount > 0);
-            Y_ASSERT(maxLeafValueIndex == minLeafValueIndex + (valueNodeCount - 1) * ApproxDimension);
-            ref.TreeFirstLeafOffsets[treeId] = minLeafValueIndex;
-        }
-    }
-
-    for (const auto& ctrFeature : CtrFeatures) {
-        ref.UsedModelCtrs.push_back(ctrFeature.Ctr);
-    }
-    ref.EffectiveBinFeaturesBucketCount = 0;
-    ref.UsedFloatFeaturesCount = 0;
-    ref.UsedCatFeaturesCount = 0;
-    ref.UsedTextFeaturesCount = 0;
-    ref.UsedEstimatedFeaturesCount = 0;
-    ref.MinimalSufficientFloatFeaturesVectorSize = 0;
-    ref.MinimalSufficientCatFeaturesVectorSize = 0;
     for (const auto& feature : FloatFeatures) {
         if (!feature.UsedInModel()) {
             continue;
         }
-        ++ref.UsedFloatFeaturesCount;
-        ref.MinimalSufficientFloatFeaturesVectorSize = static_cast<size_t>(feature.Position.Index) + 1;
         for (int borderId = 0; borderId < feature.Borders.ysize(); ++borderId) {
             TFloatSplit fs{feature.Position.Index, feature.Borders[borderId]};
             ref.BinFeatures.emplace_back(fs);
@@ -464,20 +496,7 @@ void TModelTrees::UpdateRuntimeData() const {
         ref.EffectiveBinFeaturesBucketCount
             += (feature.Borders.size() + MAX_VALUES_PER_BIN - 1) / MAX_VALUES_PER_BIN;
     }
-    for (const auto& feature : CatFeatures) {
-        if (!feature.UsedInModel()) {
-            continue;
-        }
-        ++ref.UsedCatFeaturesCount;
-        ref.MinimalSufficientCatFeaturesVectorSize = static_cast<size_t>(feature.Position.Index) + 1;
-    }
-    for (const auto& feature : TextFeatures) {
-        if (!feature.UsedInModel()) {
-            continue;
-        }
-        ++ref.UsedTextFeaturesCount;
-        ref.MinimalSufficientTextFeaturesVectorSize = static_cast<size_t>(feature.Position.Index) + 1;
-    }
+
     for (const auto& feature : EstimatedFeatures) {
         for (int borderId = 0; borderId < feature.Borders.ysize(); ++borderId) {
             TEstimatedFeatureSplit split{
@@ -491,12 +510,11 @@ void TModelTrees::UpdateRuntimeData() const {
             bf.FeatureIdx = ref.EffectiveBinFeaturesBucketCount + borderId / MAX_VALUES_PER_BIN;
             bf.SplitIdx = (borderId % MAX_VALUES_PER_BIN) + 1;
         }
-        ref.EffectiveBinFeaturesBucketCount +=
-            (feature.Borders.size() + MAX_VALUES_PER_BIN - 1) / MAX_VALUES_PER_BIN;
-        ++ref.UsedEstimatedFeaturesCount;
+        ref.EffectiveBinFeaturesBucketCount
+            += (feature.Borders.size() + MAX_VALUES_PER_BIN - 1) / MAX_VALUES_PER_BIN;
     }
-    for (size_t i = 0; i < OneHotFeatures.size(); ++i) {
-        const auto& feature = OneHotFeatures[i];
+
+    for (const auto& feature : OneHotFeatures) {
         for (int valueId = 0; valueId < feature.Values.ysize(); ++valueId) {
             TOneHotSplit oh{feature.CatFeatureIndex, feature.Values[valueId]};
             ref.BinFeatures.emplace_back(oh);
@@ -507,6 +525,7 @@ void TModelTrees::UpdateRuntimeData() const {
         ref.EffectiveBinFeaturesBucketCount
             += (feature.Values.size() + MAX_VALUES_PER_BIN - 1) / MAX_VALUES_PER_BIN;
     }
+
     for (size_t i = 0; i < CtrFeatures.size(); ++i) {
         const auto& feature = CtrFeatures[i];
         if (i > 0) {
@@ -525,6 +544,7 @@ void TModelTrees::UpdateRuntimeData() const {
             += (feature.Borders.size() + MAX_VALUES_PER_BIN - 1) / MAX_VALUES_PER_BIN;
     }
 
+    // TODO(bruh): move repackedBins to flatbuffer
     auto treeSplits = GetModelTreeData()->GetTreeSplits();
     for (const auto& binSplit : treeSplits) {
         const auto& feature = ref.BinFeatures[binSplit];
@@ -542,6 +562,53 @@ void TModelTrees::UpdateRuntimeData() const {
             rb.SplitIdx = 0xff;
         }
         ref.RepackedBins.push_back(rb);
+    }
+}
+
+void TModelTrees::CalcUsedModelCtrs() const {
+    auto& ref = ApplyData->UsedModelCtrs;
+    for (const auto& ctrFeature : CtrFeatures) {
+        ref.push_back(ctrFeature.Ctr);
+    }
+}
+
+void TModelTrees::CalcFirstLeafOffsets() const {
+    auto treeSizes = GetModelTreeData()->GetTreeSizes();
+    auto treeStartOffsets = GetModelTreeData()->GetTreeStartOffsets();
+
+    auto& ref = ApplyData->TreeFirstLeafOffsets;
+    ref.resize(treeSizes.size());
+    if (IsOblivious()) {
+        size_t currentOffset = 0;
+        for (size_t i = 0; i < treeSizes.size(); ++i) {
+            ref[i] = currentOffset;
+            currentOffset += (1 << treeSizes[i]) * ApproxDimension;
+        }
+    } else {
+        for (size_t treeId = 0; treeId < treeSizes.size(); ++treeId) {
+            const int treeNodesStart = treeStartOffsets[treeId];
+            const int treeNodesEnd = treeNodesStart + treeSizes[treeId];
+            ui32 minLeafValueIndex = Max();
+            ui32 maxLeafValueIndex = 0;
+            ui32 valueNodeCount = 0; // count of nodes with values
+            for (auto nodeIndex = treeNodesStart; nodeIndex < treeNodesEnd; ++nodeIndex) {
+                const auto &node = GetModelTreeData()->GetNonSymmetricStepNodes()[nodeIndex];
+                if (node.LeftSubtreeDiff == 0 || node.RightSubtreeDiff == 0) {
+                    const ui32 leafValueIndex = GetModelTreeData()->GetNonSymmetricNodeIdToLeafId()[nodeIndex];
+                    Y_ASSERT(leafValueIndex != Max<ui32>());
+                    Y_VERIFY_DEBUG(
+                            leafValueIndex % ApproxDimension == 0,
+                            "Expect that leaf values are aligned."
+                    );
+                    minLeafValueIndex = Min(minLeafValueIndex, leafValueIndex);
+                    maxLeafValueIndex = Max(maxLeafValueIndex, leafValueIndex);
+                    ++valueNodeCount;
+                }
+            }
+            Y_ASSERT(valueNodeCount > 0);
+            Y_ASSERT(maxLeafValueIndex == minLeafValueIndex + (valueNodeCount - 1) * ApproxDimension);
+            ref[treeId] = minLeafValueIndex;
+        }
     }
 }
 
@@ -1663,14 +1730,18 @@ DEFINE_DUMPER(TNonSymmetricTreeStepNode, LeftSubtreeDiff, RightSubtreeDiff)
 
 DEFINE_DUMPER(
     TModelTrees::TRuntimeData,
+    BinFeatures,
+    RepackedBins,
+    EffectiveBinFeaturesBucketCount
+)
+
+DEFINE_DUMPER(
+    TModelTrees::TForApplyData,
     UsedFloatFeaturesCount,
     UsedCatFeaturesCount,
     MinimalSufficientFloatFeaturesVectorSize,
     MinimalSufficientCatFeaturesVectorSize,
     UsedModelCtrs,
-    BinFeatures,
-    RepackedBins,
-    EffectiveBinFeaturesBucketCount,
     TreeFirstLeafOffsets
 )
 
