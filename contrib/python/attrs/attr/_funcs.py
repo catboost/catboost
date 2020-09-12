@@ -287,4 +287,52 @@ def evolve(inst, **changes):
         init_name = attr_name if attr_name[0] != "_" else attr_name[1:]
         if init_name not in changes:
             changes[init_name] = getattr(inst, attr_name)
+
     return cls(**changes)
+
+
+def resolve_types(cls, globalns=None, localns=None):
+    """
+    Resolve any strings and forward annotations in type annotations.
+
+    This is only required if you need concrete types in `Attribute`'s *type*
+    field. In other words, you don't need to resolve your types if you only
+    use them for static type checking.
+
+    With no arguments, names will be looked up in the module in which the class
+    was created. If this is not what you want, e.g. if the name only exists
+    inside a method, you may pass *globalns* or *localns* to specify other
+    dictionaries in which to look up these names. See the docs of
+    `typing.get_type_hints` for more details.
+
+    :param type cls: Class to resolve.
+    :param Optional[dict] globalns: Dictionary containing global variables.
+    :param Optional[dict] localns: Dictionary containing local variables.
+
+    :raise TypeError: If *cls* is not a class.
+    :raise attr.exceptions.NotAnAttrsClassError: If *cls* is not an ``attrs``
+        class.
+    :raise NameError: If types cannot be resolved because of missing variables.
+
+    :returns: *cls* so you can use this function also as a class decorator.
+        Please note that you have to apply it **after** `attr.s`. That means
+        the decorator has to come in the line **before** `attr.s`.
+
+    ..  versionadded:: 20.1.0
+    """
+    try:
+        # Since calling get_type_hints is expensive we cache whether we've
+        # done it already.
+        cls.__attrs_types_resolved__
+    except AttributeError:
+        import typing
+
+        hints = typing.get_type_hints(cls, globalns=globalns, localns=localns)
+        for field in fields(cls):
+            if field.name in hints:
+                # Since fields have been frozen we must work around it.
+                _obj_setattr(field, "type", hints[field.name])
+        cls.__attrs_types_resolved__ = True
+
+    # Return the class so you can use it as a decorator too.
+    return cls
