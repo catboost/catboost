@@ -761,6 +761,7 @@ static void ConfigureSymmetricTrees(const onnx::GraphProto& onnxGraph, TFullMode
     }
 
     fullModel->UpdateDynamicData();
+    fullModel->ModelTrees->ClearRepackedBins();
 }
 
 

@@ -175,6 +175,7 @@ void TObliviousTreeBuilder::Build(TModelTrees* result) {
         result->AddTreeSize(treeStruct.ysize());
     }
     result->UpdateRuntimeData();
+    result->ClearRepackedBins();
 }
 
 void TNonSymmetricTreeModelBuilder::AddTree(THolder<TNonSymmetricTreeNode> head) {
@@ -204,6 +205,7 @@ void TNonSymmetricTreeModelBuilder::Build(TModelTrees* result) {
     result->SetTreeStartOffsets(std::move(TreeStartOffsets));
     result->SetLeafWeights(std::move(LeafWeights));
     result->UpdateRuntimeData();
+    result->ClearRepackedBins();
 }
 
 TNonSymmetricTreeModelBuilder::TNonSymmetricTreeModelBuilder(

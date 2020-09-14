@@ -504,4 +504,5 @@ void NCB::NCoreML::ConvertCoreMLToCatboostModel(const Model& coreMLModel, TFullM
         fullModel->SetScaleAndBias({1., {ensemble.basepredictionvalue()[0]}});
     }
     fullModel->UpdateDynamicData();
+    fullModel->ModelTrees->ClearRepackedBins();
 }

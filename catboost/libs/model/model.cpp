@@ -360,6 +360,17 @@ TModelTrees::FBSerialize(TModelPartsCachingSerializer& serializer) const {
     }
     auto fbsNonSymmetricTreeStepNode = builder.CreateVectorOfStructs(nonSymmetricTreeStepNode);
 
+    TVector<NCatBoostFbs::TRepackedBin> repackedBins;
+    repackedBins.reserve(GetRepackedBins().size());
+    for (const auto& repackedBin: GetRepackedBins()) {
+        repackedBins.emplace_back(NCatBoostFbs::TRepackedBin{
+            repackedBin.FeatureIndex,
+            repackedBin.XorMask,
+            repackedBin.SplitIdx
+        });
+    }
+    auto fbsRepackedBins = builder.CreateVectorOfStructs(repackedBins);
+
     auto& data = GetModelTreeData();
     auto fbsTreeSplits = builder.CreateVector(data->GetTreeSplits().data(), data->GetTreeSplits().size());
     auto fbsTreeSizes = builder.CreateVector(data->GetTreeSizes().data(), data->GetTreeSizes().size());
@@ -387,8 +398,15 @@ TModelTrees::FBSerialize(TModelPartsCachingSerializer& serializer) const {
         fbsEstimatedFeaturesOffsets,
         GetScaleAndBias().Scale,
         0,
-        fbsBias
+        fbsBias,
+        fbsRepackedBins
     );
+}
+
+static_assert(sizeof(TRepackedBin) == sizeof(NCatBoostFbs::TRepackedBin));
+
+void TModelTrees::ClearRepackedBins() const {
+    RepackedBins = NCB::TMaybeOwningConstArrayHolder<TRepackedBin>{};
 }
 
 void TModelTrees::ClearRuntimeData() const {
@@ -544,7 +562,11 @@ void TModelTrees::CalcBinFeatures() const {
             += (feature.Borders.size() + MAX_VALUES_PER_BIN - 1) / MAX_VALUES_PER_BIN;
     }
 
-    // TODO(bruh): move repackedBins to flatbuffer
+    if (RepackedBins.GetSize()) {
+        return;
+    }
+    TVector<TRepackedBin> repackedBins;
+
     auto treeSplits = GetModelTreeData()->GetTreeSplits();
     for (const auto& binSplit : treeSplits) {
         const auto& feature = ref.BinFeatures[binSplit];
@@ -561,8 +583,9 @@ void TModelTrees::CalcBinFeatures() const {
             rb.XorMask = ((~featureIndex.SplitIdx) & 0xff);
             rb.SplitIdx = 0xff;
         }
-        ref.RepackedBins.push_back(rb);
+        repackedBins.push_back(rb);
     }
+    RepackedBins = NCB::TMaybeOwningConstArrayHolder<TRepackedBin>::CreateOwning(std::move(repackedBins));
 }
 
 void TModelTrees::CalcUsedModelCtrs() const {
@@ -659,6 +682,7 @@ void TModelTrees::ConvertObliviousToAsymmetric() {
     data.NonSymmetricStepNodes = std::move(nonSymmetricStepNodes);
     data.NonSymmetricNodeIdToLeafId = std::move(nonSymmetricNodeIdToLeafId);
     UpdateRuntimeData();
+    ClearRepackedBins();
 }
 
 TVector<ui32> TModelTrees::GetTreeLeafCounts() const {
@@ -768,6 +792,16 @@ void TModelTrees::FBDeserializeOwning(const NCatBoostFbs::TModelTrees* fbObj) {
         );
     }
 
+    if (fbObj->RepackedBins()) {
+        TVector<TRepackedBin> repackedBins(fbObj->RepackedBins()->size());
+        std::copy(
+            fbObj->RepackedBins()->begin(),
+            fbObj->RepackedBins()->end(),
+            repackedBins.begin()
+        );
+        RepackedBins = NCB::TMaybeOwningConstArrayHolder<TRepackedBin>::CreateOwning(std::move(repackedBins));
+    }
+
     DeserializeFeatures(fbObj);
 }
 
@@ -803,6 +837,11 @@ void TModelTrees::FBDeserializeNonOwning(const NCatBoostFbs::TModelTrees* fbObj)
     }
     if (fbObj->LeafWeights() && fbObj->LeafWeights()->size() > 0) {
         data.LeafWeights = TConstArrayRef<double>(fbObj->LeafWeights()->data(), fbObj->LeafWeights()->size());
+    }
+
+    if (fbObj->RepackedBins()) {
+        auto ptr = reinterpret_cast<const TRepackedBin*>(fbObj->RepackedBins()->data());
+        RepackedBins = NCB::TMaybeOwningConstArrayHolder<TRepackedBin>::CreateNonOwning(TArrayRef(ptr, fbObj->RepackedBins()->size()));
     }
 }
 
@@ -1148,6 +1187,7 @@ void TFullModel::Load(IInputStream* s) {
         }
     }
     UpdateDynamicData();
+    ModelTrees->ClearRepackedBins();
 }
 
 void TFullModel::InitNonOwning(const void* binaryBuffer, size_t binarySize) {
@@ -1193,14 +1233,15 @@ void TFullModel::InitNonOwning(const void* binaryBuffer, size_t binarySize) {
                 TextProcessingCollection->LoadNonOwning(&in);
             } else {
                 CB_ENSURE(
-                        false,
-                        "Got unknown partId = " << modelPartId << " via deserialization"
-                                                << "only static ctr and text processing collection model parts are supported"
+                    false,
+                    "Got unknown partId = " << modelPartId << " via deserialization"
+                                            << "only static ctr and text processing collection model parts are supported"
                 );
             }
         }
     }
     UpdateDynamicData();
+    ModelTrees->ClearRepackedBins();
 }
 
 void TFullModel::UpdateDynamicData() {
@@ -1702,6 +1743,7 @@ TFullModel SumModels(
     }
     result.CtrProvider = MergeCtrProvidersData(ctrProviders, ctrMergePolicy);
     result.UpdateDynamicData();
+    result.ModelTrees->ClearRepackedBins();
     result.ModelInfo["model_guid"] = CreateGuidAsString();
     result.SetScaleAndBias({1, totalBias});
     SumModelsParams(modelVector, &result.ModelInfo);
@@ -1731,7 +1773,6 @@ DEFINE_DUMPER(TNonSymmetricTreeStepNode, LeftSubtreeDiff, RightSubtreeDiff)
 DEFINE_DUMPER(
     TModelTrees::TRuntimeData,
     BinFeatures,
-    RepackedBins,
     EffectiveBinFeaturesBucketCount
 )
 
@@ -1753,5 +1794,18 @@ DEFINE_DUMPER(
 TNonSymmetricTreeStepNode& TNonSymmetricTreeStepNode::operator=(const NCatBoostFbs::TNonSymmetricTreeStepNode* stepNode) {
     LeftSubtreeDiff = stepNode->LeftSubtreeDiff();
     RightSubtreeDiff = stepNode->RightSubtreeDiff();
+    return *this;
+}
+
+TRepackedBin& TRepackedBin::operator=(const NCatBoostFbs::TRepackedBin* repackedBin) {
+    std::tie(
+        FeatureIndex,
+        XorMask,
+        SplitIdx
+    ) = std::forward_as_tuple(
+        repackedBin->FeatureIndex(),
+        repackedBin->XorMask(),
+        repackedBin->SplitIdx()
+    );
     return *this;
 }
