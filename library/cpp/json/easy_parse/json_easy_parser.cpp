@@ -13,7 +13,7 @@ namespace NJson {
         TVector<const char*> parts;
         Split(path.begin(), '/', &parts);
         for (size_t n = 0; n < parts.size(); ++n) {
-            TString part = strip(parts[n]);
+            TString part = Strip(parts[n]);
             if (!part.empty()) {
                 if (part[0] != '[') {
                     res->push_back(TPathElem(NImpl::MAP));
