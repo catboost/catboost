@@ -5,6 +5,9 @@
 
 %include "enums.swg"
 
+%include "defaults.i"
+
+
 %javaconst(1);
 enum class EBorderSelectionType {
     Median = 1,
@@ -30,3 +33,15 @@ enum class EFeatureType {
     Text,
     Embedding
 };
+
+
+namespace NCB {
+
+    %javaconst(1);
+    enum class ERawTargetType : ui32 {
+        Integer,
+        Float,
+        String,
+        None
+    };
+}

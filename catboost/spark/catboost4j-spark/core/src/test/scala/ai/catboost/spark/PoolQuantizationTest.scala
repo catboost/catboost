@@ -16,25 +16,7 @@ import org.junit.{Assert,Test};
 import ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl._;
 import ai.catboost.spark.params._
 
-class PoolTest {
-    def createSchema(
-      schemaDesc: Seq[(String,DataType)],
-      featureNames: Seq[String],
-      addFeatureNamesMetadata: Boolean
-    ) : Seq[StructField] = {
-      schemaDesc.map {
-        case (name, dataType) if (addFeatureNamesMetadata && (name == "features")) => {
-          val defaultAttr = NumericAttribute.defaultAttr
-          val attrs = featureNames.map(defaultAttr.withName).toArray
-          val attrGroup = new AttributeGroup("userFeatures", attrs.asInstanceOf[Array[Attribute]])
-
-          StructField(name, dataType, false, attrGroup.toMetadata)
-        }
-        case (name, dataType) => StructField(name, dataType, false)
-      }
-    }
-  
-    
+class PoolQuantizationTest {
     def testQuantizeCase(
         srcDataSchema : Seq[StructField],
         srcData: Seq[Row],
@@ -80,7 +62,7 @@ class PoolTest {
       val featureNames = Array[String]("f1", "f2", "f3")
       
       testQuantizeCase(
-        createSchema(
+        PoolTestHelpers.createSchema(
           Seq(
             ("features", SQLDataTypes.VectorType),
             ("label", DoubleType)
@@ -97,7 +79,7 @@ class PoolTest {
         new QuantizationParams(),
         
         // expected
-        createSchema(
+        PoolTestHelpers.createSchema(
           Seq(
             ("features", BinaryType),
             ("label", DoubleType)
@@ -135,7 +117,7 @@ class PoolTest {
       val featureNames = Array[String]("F1", "F2", "F3")
       
       testQuantizeCase(
-        createSchema(
+        PoolTestHelpers.createSchema(
           Seq(
             ("features", SQLDataTypes.VectorType),
             ("label", DoubleType)
@@ -153,7 +135,7 @@ class PoolTest {
         new QuantizationParams(),
         
         // expected
-        createSchema(
+        PoolTestHelpers.createSchema(
           Seq(
             ("features", BinaryType),
             ("label", DoubleType)
@@ -194,7 +176,7 @@ class PoolTest {
       val featureNames = Array[String]("F1", "F2", "F3", "F4")
       
       testQuantizeCase(
-        createSchema(
+        PoolTestHelpers.createSchema(
           Seq(
             ("features", SQLDataTypes.VectorType),
             ("label", DoubleType)
@@ -214,7 +196,7 @@ class PoolTest {
         new QuantizationParams().setBorderCount(2).setNanMode(ENanMode.Max),
         
         // expected
-        createSchema(
+        PoolTestHelpers.createSchema(
           Seq(
             ("features", BinaryType),
             ("label", DoubleType)
@@ -259,7 +241,7 @@ class PoolTest {
       val featureNames = Array[String]("F1", "F2", "F3", "F4")
       
       testQuantizeCase(
-        createSchema(
+        PoolTestHelpers.createSchema(
           Seq(
             ("features", SQLDataTypes.VectorType),
             ("label", DoubleType)
@@ -279,7 +261,7 @@ class PoolTest {
         new QuantizationParams().setBorderCount(2).setNanMode(ENanMode.Max),
         
         // expected
-        createSchema(
+        PoolTestHelpers.createSchema(
           Seq(
             ("features", BinaryType),
             ("label", DoubleType)
@@ -322,7 +304,7 @@ class PoolTest {
       val featureNames = Array[String]("F1", "F2", "F3", "F4")
       
       testQuantizeCase(
-        createSchema(
+        PoolTestHelpers.createSchema(
           Seq(
             ("features", SQLDataTypes.VectorType),
             ("label", DoubleType)
@@ -342,7 +324,7 @@ class PoolTest {
         new QuantizationParams().setBorderCount(2).setIgnoredFeaturesIndices(Array[Int](0, 2)),
         
         // expected
-        createSchema(
+        PoolTestHelpers.createSchema(
           Seq(
             ("features", BinaryType),
             ("label", DoubleType)

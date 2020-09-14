@@ -1,4 +1,4 @@
-%module native_impl
+%module(directors="1") native_impl
 
 %{
 #include <util/generic/yexception.h>
@@ -21,7 +21,15 @@
 
 %template(TVector_TString) TVector<TString>;
 
+%include "maybe.i"
+%include "string.i"
+
+%include "column.i"
+%include "cd_parser.i"
 %include "features_layout.i"
+%include "meta_info.i"
+%include "dataset_rows_reader.i"
+
 %include "quantized_features_info.i"
 %include "data_provider.i"
 %include "data_provider_builders.i"

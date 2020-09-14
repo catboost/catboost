@@ -14,6 +14,35 @@ class native_implTest {
   
   @Test
   @throws(classOf[Exception])
+  def testTColumnSerialization() {
+    {
+      val v = new TColumn()
+      v.setType(EColumn.Num)
+      Assert.assertEquals(v, SerializationUtils.roundtrip(v))
+    }
+    {
+      val v = new TColumn()
+      v.setType(EColumn.Categ)
+      v.setId("C1")
+      Assert.assertEquals(v, SerializationUtils.roundtrip(v))
+    }
+  }
+  
+  @Test
+  @throws(classOf[Exception])
+  def testTMaybeSerialization() {
+    {
+      val v = new TMaybe_TString()
+      Assert.assertEquals(v, SerializationUtils.roundtrip(v))
+    }
+    {
+      val v = new TMaybe_TString("F1")
+      Assert.assertEquals(v, SerializationUtils.roundtrip(v))
+    }
+  }
+
+  @Test
+  @throws(classOf[Exception])
   def testTFeatureMetaInfoSerialization() {
     {
       val v = new TFeatureMetaInfo()
@@ -65,6 +94,142 @@ class native_implTest {
     val featuresLayout = new TFeaturesLayout();
     featuresLayout.Init(data);
     Assert.assertEquals(featuresLayout, SerializationUtils.roundtrip(featuresLayout));
+  }
+  
+  @Test
+  @throws(classOf[Exception])
+  def testTIntermediateDataMetaInfoSerialization() {
+    {
+      val metaInfo = new TIntermediateDataMetaInfo();
+      Assert.assertEquals(metaInfo, SerializationUtils.roundtrip(metaInfo));
+    }
+    {
+      val metaInfo = new TIntermediateDataMetaInfo();
+      val featuresLayout = native_impl.MakeFeaturesLayout(0, new TVector_TString(), new TVector_i32());
+      metaInfo.setFeaturesLayout(new TFeaturesLayoutPtr(featuresLayout));
+      metaInfo.setTargetCount(1);
+      metaInfo.setTargetType(ERawTargetType.Float);
+      metaInfo.setHasUnknownNumberOfSparseFeatures(true);
+      
+      Assert.assertEquals(metaInfo, SerializationUtils.roundtrip(metaInfo));
+    }
+    
+    {
+      val metaInfo = new TIntermediateDataMetaInfo();
+      metaInfo.setObjectCount(java.math.BigInteger.valueOf(10));
+      val featuresLayout = native_impl.MakeFeaturesLayout(
+        5,
+        new TVector_TString(Array[String]("f1", "f2", "f3", "f4", "f5")),
+        new TVector_i32()
+      );
+      metaInfo.setFeaturesLayout(new TFeaturesLayoutPtr(featuresLayout));
+      metaInfo.setTargetType(ERawTargetType.Integer);
+      Assert.assertEquals(metaInfo, SerializationUtils.roundtrip(metaInfo));
+    }
+    {
+      val metaInfo = new TIntermediateDataMetaInfo();
+      metaInfo.setObjectCount(java.math.BigInteger.valueOf(10));
+      val featuresLayout = native_impl.MakeFeaturesLayout(
+        5,
+        new TVector_TString(Array[String]("f1", "f2", "f3", "f4", "f5")),
+        new TVector_i32(Array[Int](0, 1))
+      );
+      metaInfo.setFeaturesLayout(new TFeaturesLayoutPtr(featuresLayout));
+      metaInfo.setTargetType(ERawTargetType.Float);
+      
+      val columns = new TVector_TColumn();
+      {
+        val c = new TColumn();
+        c.setType(EColumn.Num);
+        c.setId("f1");
+        columns.add(c);
+      }
+      {
+        val c = new TColumn();
+        c.setType(EColumn.Num);
+        c.setId("f2");
+        columns.add(c);
+      }
+      {
+        val c = new TColumn();
+        c.setType(EColumn.Num);
+        c.setId("f3");
+        columns.add(c);
+      }
+      {
+        val c = new TColumn();
+        c.setType(EColumn.Num);
+        c.setId("f4");
+        columns.add(c);
+      }
+      {
+        val c = new TColumn();
+        c.setType(EColumn.Num);
+        c.setId("f5");
+        columns.add(c);
+      }
+      
+      val dataColumnsMetaInfo = new TDataColumnsMetaInfo();
+      dataColumnsMetaInfo.setColumns(columns);
+      metaInfo.setColumnsInfo(new TMaybe_TDataColumnsMetaInfo(dataColumnsMetaInfo));
+      Assert.assertEquals(metaInfo, SerializationUtils.roundtrip(metaInfo));
+    }
+    {
+      val metaInfo = new TIntermediateDataMetaInfo();
+      metaInfo.setObjectCount(java.math.BigInteger.valueOf(300));
+      val featuresLayout = native_impl.MakeFeaturesLayout(
+        5,
+        new TVector_TString(Array[String]("F1", "F2", "F3", "F4", "F5")),
+        new TVector_i32(Array[Int](1, 4))
+      );
+      metaInfo.setFeaturesLayout(new TFeaturesLayoutPtr(featuresLayout));
+      metaInfo.setTargetType(ERawTargetType.Float);
+      
+      metaInfo.setBaselineCount(2);
+      metaInfo.setHasGroupId(true);
+      metaInfo.setHasGroupWeight(true);
+      metaInfo.setHasSubgroupIds(true);
+      metaInfo.setHasWeights(true);
+      metaInfo.setHasTimestamp(true);
+      metaInfo.setHasPairs(true);
+      
+      val columns = new TVector_TColumn();
+      {
+        val c = new TColumn();
+        c.setType(EColumn.Num);
+        c.setId("f1");
+        columns.add(c);
+      }
+      {
+        val c = new TColumn();
+        c.setType(EColumn.Num);
+        c.setId("f2");
+        columns.add(c);
+      }
+      {
+        val c = new TColumn();
+        c.setType(EColumn.Num);
+        c.setId("f3");
+        columns.add(c);
+      }
+      {
+        val c = new TColumn();
+        c.setType(EColumn.Num);
+        c.setId("f4");
+        columns.add(c);
+      }
+      {
+        val c = new TColumn();
+        c.setType(EColumn.Num);
+        c.setId("f5");
+        columns.add(c);
+      }
+      
+      val dataColumnsMetaInfo = new TDataColumnsMetaInfo();
+      dataColumnsMetaInfo.setColumns(columns);
+      metaInfo.setColumnsInfo(new TMaybe_TDataColumnsMetaInfo(dataColumnsMetaInfo));
+      Assert.assertEquals(metaInfo, SerializationUtils.roundtrip(metaInfo));
+    }
   }
   
   @Test
