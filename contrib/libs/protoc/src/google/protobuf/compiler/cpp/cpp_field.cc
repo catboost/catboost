@@ -35,7 +35,7 @@
 #include <google/protobuf/compiler/cpp/cpp_field.h>
 #include <memory>
 #ifndef _SHARED_PTR_H
-#include <google/protobuf/stubs/shared_ptr.h>
+#error #include <google/protobuf/stubs/shared_ptr.h>
 #endif
 
 #include <google/protobuf/compiler/cpp/cpp_helpers.h>
