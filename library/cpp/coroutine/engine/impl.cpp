@@ -223,7 +223,7 @@ void TContExecutor::ScheduleExecutionNow(TCont* cont) noexcept {
 namespace {
     inline TContExecutor*& ThisThreadExecutor() {
         struct TThisThreadExecutorHolder {
-            TContExecutor* Executor;
+            TContExecutor* Executor = nullptr;
         };
         return FastTlsSingletonWithPriority<TThisThreadExecutorHolder, 0>()->Executor;
     }

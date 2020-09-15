@@ -243,4 +243,10 @@ Y_UNIT_TEST_SUITE(TDocProductTestSuite) {
 
         UNIT_ASSERT_VALUES_EQUAL(res, 16420179);
     }
+
+    Y_UNIT_TEST(TestDotProductUI4Manual) {
+        static ui8 a[4] = {1 + (3 << 4), 15 + (8 << 4), 0 + (5 << 4), 3 + (1 << 4)};
+        static ui8 b[4] = {2 + (4 << 4), 1 + (8 << 4), 7 + (0 << 4), 1 + (4 << 4)};
+        UNIT_ASSERT_VALUES_EQUAL(DotProductUI4Slow(a, b, 4), 2 + 12 + 15 + 64 + 0 + 0 + 3 + 4);
+    }
 }
