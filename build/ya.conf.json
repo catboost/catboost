@@ -5654,11 +5654,7 @@
         },
         "yoimports": {
             "formula": {
-                "sandbox_id": [
-                    596719063,
-                    596719221,
-                    596719231
-                ],
+                "sandbox_id": 771099822,
                 "match": "yoimports"
             },
             "executable": {
