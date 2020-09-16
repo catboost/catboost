@@ -16,9 +16,6 @@ PEERDIR(
 ADDINCL(
     GLOBAL contrib/libs/protoc/src
 )
-CFLAGS(
-    GLOBAL -D_SHARED_PTR_H
-)
 
 SRCS(
     src/google/protobuf/compiler/code_generator.cc
