@@ -107,4 +107,9 @@ Y_UNIT_TEST_SUITE(TypeName) {
         UNIT_ASSERT_VALUES_EQUAL(TypeName(&castedTail), "NUtil::NTypeNameTest::TRombicTail");
 #endif
     }
+
+    Y_UNIT_TEST(FromTypeInfo) {
+        UNIT_ASSERT_VALUES_EQUAL(TypeName(typeid(int)), "int");
+        UNIT_ASSERT_VALUES_EQUAL(TypeName(std::type_index(typeid(int))), "int");
+    }
 }
