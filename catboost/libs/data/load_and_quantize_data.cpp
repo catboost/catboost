@@ -502,52 +502,20 @@ namespace {
             const auto& quantizedFeaturesInfo = *FirstPassResult.QuantizedFeaturesInfo;
             const auto featuresLayout = quantizedFeaturesInfo.GetFeaturesLayout();
 
-            TVector<TVector<float>> borders;
-            TVector<ENanMode> nanModes;
-            TVector<size_t> floatFeatureIndices;
-            TVector<size_t> catFeatureIndices;
-
             for (auto flatFeatureIdx : xrange(featuresLayout->GetExternalFeatureCount())) {
                 const auto featureMetaInfo = featuresLayout->GetExternalFeatureMetaInfo(flatFeatureIdx);
 
                 if (featureMetaInfo.IsIgnored) {
                     IgnoredFeatures.emplace_back(flatFeatureIdx);
                 }
-
-                if (featureMetaInfo.Type == EFeatureType::Float) {
-                    const auto floatFeatureIdx =
-                        featuresLayout->GetInternalFeatureIdx<EFeatureType::Float>(flatFeatureIdx);
-
-                    const auto featureBorders = quantizedFeaturesInfo.HasBorders(floatFeatureIdx)
-                                                ? quantizedFeaturesInfo.GetBorders(floatFeatureIdx)
-                                                : TVector<float>();
-                    const auto featureNanMode = quantizedFeaturesInfo.HasNanMode(floatFeatureIdx)
-                                                ? quantizedFeaturesInfo.GetNanMode(floatFeatureIdx)
-                                                : ENanMode::Forbidden;
-                    borders.push_back(featureBorders);
-                    nanModes.push_back(featureNanMode);
-                    floatFeatureIndices.push_back(flatFeatureIdx);
-                } else if (featureMetaInfo.Type == EFeatureType::Categorical) {
-                    catFeatureIndices.push_back(flatFeatureIdx);
-                } else {
-                    CB_ENSURE_INTERNAL(
-                        false,
-                        "building quantization results is supported only for numerical and categorical features");
-                }
             }
+
             QuantizedDataVisitor->Start(
                 FirstPassResult.MetaInfo,
                 FirstPassResult.ObjectCount,
                 ObjectsOrder,
                 /*resourceHolders*/ {},
-                TPoolQuantizationSchema{
-                    std::move(floatFeatureIndices),
-                    std::move(borders),
-                    std::move(nanModes),
-                    /*ClassLabels*/ {},
-                    std::move(catFeatureIndices),
-                    TVector<TMap<ui32, TValueWithCount>>() // TODO(vetaleha): build CatFeaturesPerfectHash
-                });
+                GetPoolQuantizationSchema(quantizedFeaturesInfo, /*classLabels*/ {}));
         }
 
         TVector<ui32> GetIgnoredFeatures() {

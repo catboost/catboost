@@ -13,6 +13,7 @@
 #include <catboost/private/libs/options/runtime_text_options.h>
 #include <catboost/private/libs/text_processing/text_digitizers.h>
 #include <catboost/private/libs/quantization/utils.h>
+#include <catboost/private/libs/quantization_schema/schema.h>
 
 #include <catboost/private/libs/options/runtime_embedding_options.h>
 
@@ -278,6 +279,13 @@ namespace NCB {
     };
 
     using TQuantizedFeaturesInfoPtr = TIntrusivePtr<TQuantizedFeaturesInfo>;
+
+
+    // compatibility, probably better switch to TQuantizedFeaturesInfo everywhere
+    TPoolQuantizationSchema GetPoolQuantizationSchema(
+        const TQuantizedFeaturesInfo& quantizedFeaturesInfo,
+        const TVector<NJson::TJsonValue>& classNames // can be empty
+    );
 }
 
 
