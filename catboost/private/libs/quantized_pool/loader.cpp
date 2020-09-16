@@ -346,7 +346,8 @@ void NCB::TCBQuantizedDataLoader::Do(IQuantizedFeaturesDataVisitor* visitor) {
         ObjectCount,
         ObjectsOrder,
         {},
-        QuantizationSchemaFromProto(QuantizedPool.QuantizationSchema));
+        QuantizationSchemaFromProto(QuantizedPool.QuantizationSchema),
+        /*wholeColumns*/ false);
 
     const auto columnIdxToTargetIdx = GetColumnIndexToTargetIndexMap(QuantizedPool);
     const auto columnIdxToFlatIdx = GetColumnIndexToFlatIndexMap(QuantizedPool);

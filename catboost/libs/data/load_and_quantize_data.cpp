@@ -515,7 +515,8 @@ namespace {
                 FirstPassResult.ObjectCount,
                 ObjectsOrder,
                 /*resourceHolders*/ {},
-                GetPoolQuantizationSchema(quantizedFeaturesInfo, /*classLabels*/ {}));
+                GetPoolQuantizationSchema(quantizedFeaturesInfo, /*classLabels*/ {}),
+                /*wholeColumns*/ false);
         }
 
         TVector<ui32> GetIgnoredFeatures() {

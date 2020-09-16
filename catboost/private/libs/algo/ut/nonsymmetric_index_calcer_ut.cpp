@@ -69,7 +69,7 @@ Y_UNIT_TEST_SUITE(NonSymmetricIndexCalcerTest) {
                     schema.NanModes.push_back(ENanMode::Forbidden);
                 }
 
-                visitor->Start(metaInfo, objectCount, EObjectsOrder::Undefined, {}, schema);
+                visitor->Start(metaInfo, objectCount, EObjectsOrder::Undefined, {}, schema, /*wholeColumns*/ true);
 
                 for (auto featureIdx : xrange(floatFeatureCount)) {
                     auto holder = TMaybeOwningArrayHolder<const ui8>::CreateNonOwning(quantizedFloatFeatures[featureIdx]);
