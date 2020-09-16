@@ -61,7 +61,6 @@ namespace NPar {
         enum EControl : int {
             GARBAGE_COLLECT = 1
         };
-
         // Describes a range of tasks with parameters from integer range [FirstId, LastId).
         //
         class TExecRangeParams {
@@ -169,11 +168,10 @@ namespace NPar {
         //
         TVector<NThreading::TFuture<void>> ExecRangeWithFutures(TLocallyExecutableFunction exec, int firstId, int lastId, int flags);
 
-        // Submit asynchronous control task
+        // Frees up unused memory of internal job queueus;
+        // thread unsafe! It is user responcibility to ensure absebce of concurrent Exec() operations
         //
-        // @param control                  required control task type listed in enum EControl
-        // @param flags                    Same as for `Exec`: async priority and WAIT_COMPLETE mask
-        void Control(int control, int flags);
+        void GarbageCollect();
 
         template <typename TBody>
         static inline auto BlockedLoopBody(const TLocalExecutor::TExecRangeParams& params, const TBody& body) {
@@ -240,7 +238,7 @@ namespace NPar {
             }
             return false;
         }
-    };
+     };
 
     static inline TLocalExecutor& LocalExecutor() {
         return *Singleton<TLocalExecutor>();

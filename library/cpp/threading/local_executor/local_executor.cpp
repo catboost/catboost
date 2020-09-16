@@ -127,13 +127,15 @@ namespace {
 //////////////////////////////////////////////////////////////////////////
 class NPar::TLocalExecutor::TImpl {
 public:
-    using TJobQueue = TGreedyLockFreeQueue<TSingleJob>;
+    using TJobQueue = TFastLockFreeQueue<TSingleJob>;
     TJobQueue JobQueue;
     TJobQueue MedJobQueue;
     TJobQueue LowJobQueue;
     alignas(64) TSystemEvent HasJob;
+    alignas(64) TSystemEvent GarbageCollected;
 
-    TAtomic ThreadCount{0};
+    alignas(64) TAtomic ThreadCount{0};
+    alignas(64) TAtomic ParkedCount{0};
     alignas(64) TAtomic QueueSize{0};
     TAtomic MPQueueSize{0};
     TAtomic LPQueueSize{0};
@@ -191,9 +193,24 @@ void* NPar::TLocalExecutor::TImpl::HostWorkerThread(void* p) {
         } else {
             switch (job.Id) {
             case GARBAGE_COLLECT:
-                ctx->JobQueue.GarbageCollect();
-                ctx->MedJobQueue.GarbageCollect();
-                ctx->LowJobQueue.GarbageCollect();
+
+                Y_ASSERT(AtomicGet(ctx->ThreadCount));
+                Y_ASSERT(AtomicGet(ctx->ParkedCount) < AtomicGet(ctx->ThreadCount));
+
+                if (AtomicGet(ctx->ParkedCount) < AtomicGet(ctx->ThreadCount)-1) {
+                    AtomicAdd(ctx->ParkedCount, 1);
+                    AtomicAdd(ctx->QueueSize, 1);
+                    ctx->JobQueue.Enqueue(job);
+                    ctx->HasJob.Signal();
+                    ctx->GarbageCollected.Wait();
+                    AtomicAdd(ctx->ParkedCount, -1);
+                } else {
+                    Y_ASSERT(!AtomicGet(ctx->QueueSize));
+                    ctx->JobQueue.GarbageCollect();
+                    ctx->MedJobQueue.GarbageCollect();
+                    ctx->LowJobQueue.GarbageCollect();
+                    ctx->GarbageCollected.Signal();
+                }
                 break;
             default:
                 AtomicAdd(ctx->QueueSize, 1);
@@ -355,8 +372,13 @@ void NPar::TLocalExecutor::ClearLPQueue() {
     }
 }
 
-void NPar::TLocalExecutor::Control(int control, int flags) {
-    Exec(static_cast<TIntrusivePtr<NPar::ILocallyExecutable>>(nullptr), control, flags);
+void NPar::TLocalExecutor::GarbageCollect() {
+    while (AtomicGet(Impl_->ParkedCount)) {
+        RegularYield();
+    }
+    Impl_->GarbageCollected.Reset();
+    Exec(static_cast<TIntrusivePtr<NPar::ILocallyExecutable>>(nullptr), GARBAGE_COLLECT, LOW_PRIORITY);
+    Impl_->GarbageCollected.Wait();
 }
 
 int NPar::TLocalExecutor::GetQueueSize() const noexcept {

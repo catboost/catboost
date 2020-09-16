@@ -419,7 +419,7 @@ private:
 };
 
 template <class T, class TCounter>
-class TGreedyLockFreeQueue : public TLockFreeQueue<T, TCounter> {
+class TFastLockFreeQueue : public TLockFreeQueue<T, TCounter> {
 
     using TRootNode = typename TLockFreeQueue<T, TCounter>::TRootNode;
     using TListNode = typename TLockFreeQueue<T, TCounter>::TListNode;
@@ -429,78 +429,8 @@ class TGreedyLockFreeQueue : public TLockFreeQueue<T, TCounter> {
     void AsyncUnref(TRootNode* toDelete, TListNode* lst) {
         this->AsyncDel(toDelete, lst);
     }
-};
-
-template <class T, class TCounter>
-class TGCLockFreeQueue : public TLockFreeQueue<T, TCounter> {
-
-    using TRootNode = typename TLockFreeQueue<T, TCounter>::TRootNode;
-    using TListNode = typename TLockFreeQueue<T, TCounter>::TListNode;
-
-    alignas(64) volatile TAtomic QueueLock;
-
-    class RequestsCounter {
-        static const int SPREAD_SIZE = 100;
-        struct AlignedCounter {
-            alignas(64) volatile TAtomic counter;
-        };
-        alignas(64) AlignedCounter counters[SPREAD_SIZE];
-
-        TAtomic* GetTCounter() {
-            return &counters[std::hash<std::thread::id>{}(std::this_thread::get_id()) % SPREAD_SIZE].counter;
-        }
-    public:
-        RequestsCounter() : counters{{0}} {};
-        void Ref() {
-            AtomicAdd(*GetTCounter(), 1);
-        }
-        void Unref() {
-            AtomicAdd(*GetTCounter(), -1);
-        }
-        size_t Sum() {
-            size_t sum = 0;
-            for (auto i = 0; i < SPREAD_SIZE; i++)
-                sum += AtomicGet(counters[i].counter);
-            return sum;
-        }
-    };
-    RequestsCounter InflightRequests, BlockedRequests;
-
-    void AsyncRef() {
-        InflightRequests.Ref();
-        while (AtomicGet(QueueLock)) {
-            BlockedRequests.Ref();
-            do {
-                std::this_thread::yield();
-            } while (AtomicGet(QueueLock));
-            BlockedRequests.Unref();
-        }
-    }
-    void AsyncUnref() {
-        InflightRequests.Unref();
-    }
-    void AsyncUnref(TRootNode* toDelete, TListNode* lst) {
-        InflightRequests.Unref();
-        this->AsyncDel(toDelete, lst);
-    }
-    public:
-    TGCLockFreeQueue()
-        : QueueLock(0)
-    {
-    }
-    ~TGCLockFreeQueue()
-    {
-        Y_ASSERT(!QueueLock);
-    }
+public:
     void GarbageCollect() {
-        if (!AtomicCas(&QueueLock, 1, 0))
-            return;
-         while (BlockedRequests.Sum() < InflightRequests.Sum()) {
-            std::this_thread::yield();
-        }
-        TRootNode* fptr = AtomicSwap(&this->FreePtr, (TRootNode*)nullptr);
-        AtomicSet(QueueLock, 0);
-        this->EraseBranch(fptr);
+         this->EraseBranch(AtomicSwap(&this->FreePtr, (TRootNode*)nullptr));
     }
 };
-

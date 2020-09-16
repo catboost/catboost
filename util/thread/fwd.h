@@ -11,10 +11,7 @@ template <class T, class TCounter = TDefaultLFCounter>
 class TAutoLockFreeQueue;
 
 template <class T, class TCounter = TDefaultLFCounter>
-class TGCLockFreeQueue;
-
-template <class T, class TCounter = TDefaultLFCounter>
-class TGreedyLockFreeQueue;
+class TFastLockFreeQueue;
 
 template <class T>
 class TLockFreeStack;

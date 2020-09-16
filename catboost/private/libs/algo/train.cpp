@@ -22,7 +22,6 @@
 #include <catboost/private/libs/distributed/master.h>
 #include <catboost/private/libs/distributed/worker.h>
 
-
 TErrorTracker BuildErrorTracker(
     EMetricBestValue bestValueType,
     double bestPossibleValue,
@@ -170,6 +169,9 @@ void CalcApproxesLeafwise(
 }
 
 void TrainOneIteration(const NCB::TTrainingDataProviders& data, TLearnContext* ctx) {
+
+    ctx->LocalExecutor->GarbageCollect(); // explicit per-iteration memory cleanup
+
     const auto error = BuildError(ctx->Params, ctx->ObjectiveDescriptor);
     ctx->LearnProgress->HessianType = error->GetHessianType();
     TProfileInfo& profile = ctx->Profile;
@@ -398,8 +400,5 @@ void TrainOneIteration(const NCB::TTrainingDataProviders& data, TLearnContext* c
 
         profile.AddOperation("Update final approxes");
         CheckInterrupted(); // check after long-lasting operation
-
-        // explicit per-iteration memory cleanup
-        ctx->LocalExecutor->Control(NPar::TLocalExecutor::GARBAGE_COLLECT, NPar::TLocalExecutor::LOW_PRIORITY);
     }
 }
