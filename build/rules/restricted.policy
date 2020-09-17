@@ -136,6 +136,7 @@ ALLOW library/cpp/testing/gmock_in_unittest -> contrib/restricted/googletest
 ALLOW library/cpp/testing/gtest -> contrib/restricted/googletest
 ALLOW library/cpp/testing/gtest_extensions -> contrib/restricted/googletest
 ALLOW library/cpp/testing/gtest_main -> contrib/restricted/googletest
+ALLOW library/cpp/testing/gtest_protobuf -> contrib/restricted/googletest
 ALLOW library/python/testing/gtest/test/gtest -> contrib/restricted/googletest
 # TODO remove this lines after they will switch to library/cpp/testing/gtest
 ALLOW mail -> contrib/restricted/googletest
