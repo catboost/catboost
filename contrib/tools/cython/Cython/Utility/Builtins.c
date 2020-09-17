@@ -128,6 +128,9 @@ static PyObject* __Pyx_PyExec3(PyObject* o, PyObject* globals, PyObject* locals)
     } else {
         PyCompilerFlags cf;
         cf.cf_flags = 0;
+#if PY_VERSION_HEX >= 0x030800A3
+        cf.cf_feature_version = PY_MINOR_VERSION;
+#endif
         if (PyUnicode_Check(o)) {
             cf.cf_flags = PyCF_SOURCE_IS_UTF8;
             s = PyUnicode_AsUTF8String(o);
@@ -279,7 +282,8 @@ static PyObject *__Pyx_PyLong_AbsNeg(PyObject *n) {
     {
         PyObject *copy = _PyLong_Copy((PyLongObject*)n);
         if (likely(copy)) {
-            Py_SIZE(copy) = -(Py_SIZE(copy));
+            // negate the size to swap the sign
+            __Pyx_SET_SIZE(copy, -Py_SIZE(copy));
         }
         return copy;
     }

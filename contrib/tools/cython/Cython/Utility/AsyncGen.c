@@ -424,8 +424,8 @@ static PyTypeObject __pyx_AsyncGenType_type = {
 #if PY_VERSION_HEX >= 0x030800b1
     0,                                          /*tp_vectorcall*/
 #endif
-#if PY_VERSION_HEX >= 0x030800b4
-    0,                                          /* tp_print */
+#if PY_VERSION_HEX >= 0x030800b4 && PY_VERSION_HEX < 0x03090000
+    0,                                          /*tp_print*/
 #endif
 };
 
@@ -659,8 +659,8 @@ static PyTypeObject __pyx__PyAsyncGenASendType_type = {
 #if PY_VERSION_HEX >= 0x030800b1
     0,                                          /*tp_vectorcall*/
 #endif
-#if PY_VERSION_HEX >= 0x030800b4
-    0,                                          /* tp_print */
+#if PY_VERSION_HEX >= 0x030800b4 && PY_VERSION_HEX < 0x03090000
+    0,                                          /*tp_print*/
 #endif
 };
 
@@ -774,8 +774,8 @@ static PyTypeObject __pyx__PyAsyncGenWrappedValueType_type = {
 #if PY_VERSION_HEX >= 0x030800b1
     0,                                          /*tp_vectorcall*/
 #endif
-#if PY_VERSION_HEX >= 0x030800b4
-    0,                                          /* tp_print */
+#if PY_VERSION_HEX >= 0x030800b4 && PY_VERSION_HEX < 0x03090000
+    0,                                          /*tp_print*/
 #endif
 };
 
@@ -1059,8 +1059,8 @@ static PyTypeObject __pyx__PyAsyncGenAThrowType_type = {
 #if PY_VERSION_HEX >= 0x030800b1
     0,                                          /*tp_vectorcall*/
 #endif
-#if PY_VERSION_HEX >= 0x030800b4
-    0,                                          /* tp_print */
+#if PY_VERSION_HEX >= 0x030800b4 && PY_VERSION_HEX < 0x03090000
+    0,                                          /*tp_print*/
 #endif
 };
 

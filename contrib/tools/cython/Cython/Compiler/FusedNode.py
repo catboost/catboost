@@ -507,20 +507,22 @@ class FusedCFuncDefNode(StatListNode):
                 ndarray = __Pyx_ImportNumPyArrayTypeIfAvailable()
             """)
 
+        seen_typedefs = set()
         seen_int_dtypes = set()
         for buffer_type in all_buffer_types:
             dtype = buffer_type.dtype
+            dtype_name = self._dtype_name(dtype)
             if dtype.is_typedef:
-                 #decl_code.putln("ctypedef %s %s" % (dtype.resolve(),
-                 #                                    self._dtype_name(dtype)))
-                decl_code.putln('ctypedef %s %s "%s"' % (dtype.resolve(),
-                                                         self._dtype_name(dtype),
-                                                         dtype.empty_declaration_code()))
+                if dtype_name not in seen_typedefs:
+                    seen_typedefs.add(dtype_name)
+                    decl_code.putln(
+                        'ctypedef %s %s "%s"' % (dtype.resolve(), dtype_name,
+                                                 dtype.empty_declaration_code()))
 
             if buffer_type.dtype.is_int:
                 if str(dtype) not in seen_int_dtypes:
                     seen_int_dtypes.add(str(dtype))
-                    pyx_code.context.update(dtype_name=self._dtype_name(dtype),
+                    pyx_code.context.update(dtype_name=dtype_name,
                                             dtype_type=self._dtype_type(dtype))
                     pyx_code.local_variable_declarations.put_chunk(
                         u"""
@@ -876,17 +878,23 @@ class FusedCFuncDefNode(StatListNode):
                                     (self.resulting_fused_function.result(),
                                      self.__signatures__.result()))
             code.put_giveref(self.__signatures__.result())
+            self.__signatures__.generate_post_assignment_code(code)
+            self.__signatures__.free_temps(code)
 
             self.fused_func_assignment.generate_execution_code(code)
 
             # Dispose of results
             self.resulting_fused_function.generate_disposal_code(code)
+            self.resulting_fused_function.free_temps(code)
             self.defaults_tuple.generate_disposal_code(code)
+            self.defaults_tuple.free_temps(code)
             self.code_object.generate_disposal_code(code)
+            self.code_object.free_temps(code)
 
         for default in self.defaults:
             if default is not None:
                 default.generate_disposal_code(code)
+                default.free_temps(code)
 
     def annotate(self, code):
         for stat in self.stats:
