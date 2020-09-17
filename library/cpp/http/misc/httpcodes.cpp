@@ -95,12 +95,16 @@ TStringBuf HttpCodeStrEx(int code) noexcept {
             return AsStringBuf("423 Locked");
         case HTTP_FAILED_DEPENDENCY:
             return AsStringBuf("424 Failed Dependency");
+        case HTTP_UNORDERED_COLLECTION:
+            return AsStringBuf("425 Unordered Collection");
         case HTTP_UPGRADE_REQUIRED:
             return AsStringBuf("426 Upgrade Required");
         case HTTP_PRECONDITION_REQUIRED:
             return AsStringBuf("428 Precondition Required");
         case HTTP_TOO_MANY_REQUESTS:
             return AsStringBuf("429 Too Many Requests");
+        case HTTP_REQUEST_HEADER_FIELDS_TOO_LARGE:
+            return AsStringBuf("431 Request Header Fields Too Large");
         case HTTP_UNAVAILABLE_FOR_LEGAL_REASONS:
             return AsStringBuf("451 Unavailable For Legal Reason");
 
