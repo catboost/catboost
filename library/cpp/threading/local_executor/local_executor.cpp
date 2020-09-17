@@ -197,7 +197,7 @@ void* NPar::TLocalExecutor::TImpl::HostWorkerThread(void* p) {
                 Y_ASSERT(AtomicGet(ctx->ThreadCount));
                 Y_ASSERT(AtomicGet(ctx->ParkedCount) < AtomicGet(ctx->ThreadCount));
 
-                if (AtomicGet(ctx->ParkedCount) < AtomicGet(ctx->ThreadCount)-1) {
+                if (AtomicGet(ctx->ParkedCount)+1 < AtomicGet(ctx->ThreadCount)) {
                     AtomicAdd(ctx->ParkedCount, 1);
                     AtomicAdd(ctx->QueueSize, 1);
                     ctx->JobQueue.Enqueue(job);
@@ -373,11 +373,14 @@ void NPar::TLocalExecutor::ClearLPQueue() {
 }
 
 void NPar::TLocalExecutor::GarbageCollect() {
+    if (!GetThreadCount())
+        return;
     while (AtomicGet(Impl_->ParkedCount)) {
         RegularYield();
     }
     Impl_->GarbageCollected.Reset();
-    Exec(static_cast<TIntrusivePtr<NPar::ILocallyExecutable>>(nullptr), GARBAGE_COLLECT, LOW_PRIORITY);
+    Exec(static_cast<TIntrusivePtr<NPar::ILocallyExecutable>>(nullptr), GARBAGE_COLLECT, HIGH_PRIORITY);
+
     Impl_->GarbageCollected.Wait();
 }
 

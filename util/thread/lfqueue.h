@@ -431,9 +431,10 @@ class TFastLockFreeQueue : public TLockFreeQueue<T, TCounter> {
     }
 public:
     void GarbageCollect() {
-        if (TRootNode* fptr = AtomicGet(this->FreePtr)) {
-            EraseBranch(fptr);
-            this->AtomicSet(this->FreePtr, (TRootNode*)nullptr);
+        TRootNode* fptr;
+        if (fptr = AtomicGet(this->FreePtr)) {
+            this->EraseBranch(fptr);
+            AtomicSet(this->FreePtr, (TRootNode*)nullptr);
         }
     }
 };
