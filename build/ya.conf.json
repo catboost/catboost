@@ -254,16 +254,16 @@
         "news": {
             "description": "Run news team tools"
         },
-        "go": {
+        "go_1.14.6": {
             "description": "Run go tool (1.14.6)"
         },
-        "gofmt": {
+        "gofmt_1.14.6": {
             "description": "Run gofmt tool (1.14.6)"
         },
-        "go_1.15.2": {
+        "go": {
             "description": "Run go tool (1.15.2)"
         },
-        "gofmt_1.15.2": {
+        "gofmt": {
             "description": "Run gofmt tool (1.15.2)"
         },
         "godoc": {
@@ -4895,17 +4895,17 @@
         },
         "golang_1_14_6": {
             "tools": {
-                "golang": {
+                "golang_1.14.6": {
                     "bottle": "golang_1.14.6",
-                    "executable": "golang"
+                    "executable": "golang_1.14.6"
                 },
-                "go": {
+                "go_1.14.6": {
                     "bottle": "golang_1.14.6",
-                    "executable": "go"
+                    "executable": "go_1.14.6"
                 },
-                "gofmt": {
+                "gofmt_1.14.6": {
                     "bottle": "golang_1.14.6",
-                    "executable": "gofmt"
+                    "executable": "gofmt_1.14.6"
                 }
             },
             "platforms": [
@@ -4935,17 +4935,17 @@
         },
         "golang_1_15_2": {
             "tools": {
-                "golang_1.15.2": {
+                "golang": {
                     "bottle": "golang_1.15.2",
-                    "executable": "golang_1.15.2"
+                    "executable": "golang"
                 },
-                "go_1.15.2": {
+                "go": {
                     "bottle": "golang_1.15.2",
-                    "executable": "go_1.15.2"
+                    "executable": "go"
                 },
-                "gofmt_1.15.2": {
+                "gofmt": {
                     "bottle": "golang_1.15.2",
-                    "executable": "gofmt_1.15.2"
+                    "executable": "gofmt"
                 }
             },
             "platforms": [
@@ -7135,11 +7135,11 @@
                 "match": "GOLANG"
             },
             "executable": {
-                "go": [
+                "go_1.14.6": [
                     "bin",
                     "go"
                 ],
-                "gofmt": [
+                "gofmt_1.14.6": [
                     "bin",
                     "gofmt"
                 ]
@@ -7155,11 +7155,11 @@
                 "match": "GOLANG"
             },
             "executable": {
-                "go_1.15.2": [
+                "go": [
                     "bin",
                     "go"
                 ],
-                "gofmt_1.15.2": [
+                "gofmt": [
                     "bin",
                     "gofmt"
                 ]
