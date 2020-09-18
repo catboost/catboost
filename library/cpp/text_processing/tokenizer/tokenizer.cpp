@@ -104,7 +104,7 @@ namespace {
                     }
                 } else if (tokenType == NTokenizer::ETokenType::Punctuation) {
                     TString token(WideToUTF8(rawToken.Token, rawToken.Leng));
-                    Strip(token);
+                    StripInPlace(token);
                     if (!token.empty()) {
                         AddTokenInfo(std::move(token), tokenType);
                     }
