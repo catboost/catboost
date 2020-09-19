@@ -383,8 +383,6 @@ class Pool (
         val availableFeaturesDataForBuilder = new TVector_TMaybeOwningConstArrayHolder_float
         for (featureData <- availableFeaturesData) {
           val result = featureData.result
-          //System.err.println("result=" + result)
-          //System.err.flush();
           availableFeaturesDataForBuilder.add(result)
         }
         

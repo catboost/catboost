@@ -45,7 +45,6 @@ TRawObjectsDataProviderPtr CreateRawObjectsDataProvider(
     );
     {
         TVector<TMaybeOwningConstArrayHolder<float>>().swap(*columnwiseFloatFeaturesData);
-        Cerr << "Cleared" << Endl;
     }
     return result;
 }

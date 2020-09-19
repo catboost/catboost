@@ -5,7 +5,7 @@ import java.lang.System
 
 package object spark {
   var nativeLibLoaded = false
-  
+
   def ensureNativeLibLoaded = {
     this.synchronized {
       if (!nativeLibLoaded) {

@@ -32,14 +32,12 @@ class PoolQuantizationTest {
             .getOrCreate();
 
         val df = spark.createDataFrame(spark.sparkContext.parallelize(srcData), StructType(srcDataSchema));
-        
+
         val pool = new Pool(df)
         val quantizedPool = pool.quantize(quantizationParams)
 
-        quantizedPool.data.show()
-        
         Assert.assertEquals(quantizedPool.data.schema, StructType(expectedQuantizedDataSchema))
-        
+
         Assert.assertTrue(
           quantizedPool.data.collect().sameElements(
             spark.createDataFrame(
@@ -48,19 +46,19 @@ class PoolQuantizationTest {
             ).collect()
           )
         )
-        
+
         Assert.assertTrue(quantizedPool.quantizedFeaturesInfo.EqualWithoutOptionsTo(expectedQuantizedFeaturesInfo.__deref__))
-        
+
         Assert.assertTrue(quantizedPool.getFeatureNames.sameElements(expectedFeatureNames))
-        
+
         spark.stop();
     }
-    
+
     @Test
     @throws(classOf[Exception])
     def testQuantize() {
       val featureNames = Array[String]("f1", "f2", "f3")
-      
+
       testQuantizeCase(
         PoolTestHelpers.createSchema(
           Seq(
@@ -77,7 +75,7 @@ class PoolQuantizationTest {
           Row(Vectors.dense(0.0, 1.1, 3.2), 0.0)
         ),
         new QuantizationParams(),
-        
+
         // expected
         PoolTestHelpers.createSchema(
           Seq(
@@ -98,24 +96,24 @@ class PoolQuantizationTest {
           metadata.add(native_impl.MakeFeatureMetaInfo(EFeatureType.Float, "f1"))
           metadata.add(native_impl.MakeFeatureMetaInfo(EFeatureType.Float, "f2"))
           metadata.add(native_impl.MakeFeatureMetaInfo(EFeatureType.Float, "f3"))
-          
+
           val featuresLayout = native_impl.MakeFeaturesLayout(metadata)
           val quantizedFeaturesInfoPtr = native_impl.MakeQuantizedFeaturesInfo(featuresLayout)
           quantizedFeaturesInfoPtr.SetQuantization(0, new TVector_float(Array[Float](0.05f, 0.15f)))
           quantizedFeaturesInfoPtr.SetQuantization(1, new TVector_float(Array[Float](1.05f, 1.15f)))
           quantizedFeaturesInfoPtr.SetQuantization(2, new TVector_float(Array[Float](1.15f, 2.15f, 2.7f)))
-          
+
           quantizedFeaturesInfoPtr
         },
         featureNames
       )
     }
-    
+
     @Test
     @throws(classOf[Exception])
     def testQuantizeWithNaNs() {
       val featureNames = Array[String]("F1", "F2", "F3")
-      
+
       testQuantizeCase(
         PoolTestHelpers.createSchema(
           Seq(
@@ -133,7 +131,7 @@ class PoolQuantizationTest {
           Row(Vectors.dense(Double.NaN, 1.1, 0.4       ), 6.1)
         ),
         new QuantizationParams(),
-        
+
         // expected
         PoolTestHelpers.createSchema(
           Seq(
@@ -155,7 +153,7 @@ class PoolQuantizationTest {
           metadata.add(native_impl.MakeFeatureMetaInfo(EFeatureType.Float, "F1"))
           metadata.add(native_impl.MakeFeatureMetaInfo(EFeatureType.Float, "F2"))
           metadata.add(native_impl.MakeFeatureMetaInfo(EFeatureType.Float, "F3"))
-          
+
           val featuresLayout = native_impl.MakeFeaturesLayout(metadata)
           val quantizedFeaturesInfoPtr = native_impl.MakeQuantizedFeaturesInfo(featuresLayout)
           quantizedFeaturesInfoPtr.SetNanMode(0, ENanMode.Min)
@@ -163,18 +161,18 @@ class PoolQuantizationTest {
           quantizedFeaturesInfoPtr.SetQuantization(1, new TVector_float(Array[Float](0.5f, 1.05f, 1.15f)))
           quantizedFeaturesInfoPtr.SetNanMode(2, ENanMode.Min)
           quantizedFeaturesInfoPtr.SetQuantization(2, new TVector_float(Array[Float](Float.MinValue, 0.3f, 1.3f)))
-          
+
           quantizedFeaturesInfoPtr
         },
         featureNames
       )
     }
-    
+
     @Test
     @throws(classOf[Exception])
     def testQuantizeWithNaNsAndBorderCount() {
       val featureNames = Array[String]("F1", "F2", "F3", "F4")
-      
+
       testQuantizeCase(
         PoolTestHelpers.createSchema(
           Seq(
@@ -194,7 +192,7 @@ class PoolQuantizationTest {
           Row(Vectors.dense(0.28,       0.0, 8.3       , 333.2), 0.0)
         ),
         new QuantizationParams().setBorderCount(2).setNanMode(ENanMode.Max),
-        
+
         // expected
         PoolTestHelpers.createSchema(
           Seq(
@@ -219,7 +217,7 @@ class PoolQuantizationTest {
           metadata.add(native_impl.MakeFeatureMetaInfo(EFeatureType.Float, "F2"))
           metadata.add(native_impl.MakeFeatureMetaInfo(EFeatureType.Float, "F3"))
           metadata.add(native_impl.MakeFeatureMetaInfo(EFeatureType.Float, "F4"))
-          
+
           val featuresLayout = native_impl.MakeFeaturesLayout(metadata)
           val quantizedFeaturesInfoPtr = native_impl.MakeQuantizedFeaturesInfo(featuresLayout)
           quantizedFeaturesInfoPtr.SetNanMode(0, ENanMode.Max)
@@ -228,18 +226,18 @@ class PoolQuantizationTest {
           quantizedFeaturesInfoPtr.SetNanMode(2, ENanMode.Max)
           quantizedFeaturesInfoPtr.SetQuantization(2, new TVector_float(Array[Float](0.3f, 2.0f, Float.MaxValue)))
           quantizedFeaturesInfoPtr.SetQuantization(3, new TVector_float(Array[Float](81.6499938f, 105.555f)))
-          
+
           quantizedFeaturesInfoPtr
         },
         featureNames
       )
     }
-    
+
     @Test
     @throws(classOf[Exception])
     def testQuantizeWithNaNsAndConstantFeatures() {
       val featureNames = Array[String]("F1", "F2", "F3", "F4")
-      
+
       testQuantizeCase(
         PoolTestHelpers.createSchema(
           Seq(
@@ -259,7 +257,7 @@ class PoolQuantizationTest {
           Row(Vectors.dense(0.28,       1.0, Double.NaN, 333.2), 0.0)
         ),
         new QuantizationParams().setBorderCount(2).setNanMode(ENanMode.Max),
-        
+
         // expected
         PoolTestHelpers.createSchema(
           Seq(
@@ -291,18 +289,18 @@ class PoolQuantizationTest {
           quantizedFeaturesInfoPtr.SetNanMode(2, ENanMode.Max)
           quantizedFeaturesInfoPtr.SetQuantization(2, new TVector_float())
           quantizedFeaturesInfoPtr.SetQuantization(3, new TVector_float(Array[Float](81.6499938f, 105.555f)))
-          
+
           quantizedFeaturesInfoPtr
         },
         featureNames
       )
     }
-    
+
     @Test
     @throws(classOf[Exception])
     def testQuantizeWithNaNsAndIgnoredFeatures() {
       val featureNames = Array[String]("F1", "F2", "F3", "F4")
-      
+
       testQuantizeCase(
         PoolTestHelpers.createSchema(
           Seq(
@@ -322,7 +320,7 @@ class PoolQuantizationTest {
           Row(Vectors.dense(0.28,       0.0, 8.3       , 333.2), 0.0)
         ),
         new QuantizationParams().setBorderCount(2).setIgnoredFeaturesIndices(Array[Int](0, 2)),
-        
+
         // expected
         PoolTestHelpers.createSchema(
           Seq(
@@ -352,7 +350,7 @@ class PoolQuantizationTest {
           quantizedFeaturesInfoPtr.SetQuantization(1, new TVector_float(Array[Float](0.5f, 1.05f)))
           //quantizedFeaturesInfoPtr.SetQuantization(2, new TVector_float())
           quantizedFeaturesInfoPtr.SetQuantization(3, new TVector_float(Array[Float](81.6499938f, 105.555f)))
-          
+
           quantizedFeaturesInfoPtr
         },
         featureNames

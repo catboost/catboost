@@ -1,4 +1,3 @@
-
 %{
 #include <catboost/libs/helpers/maybe_owning_array_holder.h>
 #include <stdexcept>
@@ -13,7 +12,7 @@ namespace NCB {
 
     template <class T>
     class TMaybeOwningConstArrayHolder;
-    
+
 }
 
 
@@ -35,7 +34,7 @@ public:
             throw std::runtime_error("JVM: NewGlobalRef failed. Out of memory");
         }
     }
-    
+
     ~TJava##JAVABOXEDTYPE##ArrayHolder() {
         JNIEnv* jEnv = GetPerThreadJniEnv();
         jEnv->Release##JAVABOXEDTYPE##ArrayElements(JniArrayGlobalRef, ToJniPtr<JNITYPE>(CppPtr), JNI_ABORT);
@@ -55,37 +54,37 @@ public:
 }
 
 %typemap(in) NCB::TMaybeOwningConstArrayHolder<CPPTYPE>
-%{  
+%{
     TConstArrayRef<CPPTYPE> data;
     if (!SWIG_PrimitiveArrayJavaToCpp(jenv, $input, &data)) {
-        return $null; 
+        return $null;
     }
-    
+
     $1 = NCB::TMaybeOwningConstArrayHolder<CPPTYPE>::CreateOwning(
-        data, 
-        MakeIntrusive<TJava##JAVABOXEDTYPE##ArrayHolder>(jenv, const_cast<CPPTYPE*>(data.data()), $input)    
+        data,
+        MakeIntrusive<TJava##JAVABOXEDTYPE##ArrayHolder>(jenv, const_cast<CPPTYPE*>(data.data()), $input)
     );
 %}
 
 %typemap(out) NCB::TMaybeOwningConstArrayHolder<CPPTYPE>
-%{  
+%{
     $result = SWIG_PrimitiveArrayCppToJava(jenv, $1.data(), $1.GetSize());
 %}
 
 %typemap(out) const NCB::TMaybeOwningConstArrayHolder<CPPTYPE>&
-%{  
+%{
     $result = SWIG_PrimitiveArrayCppToJava(jenv, $1->data(), $1->GetSize());
 %}
 
 %typemap(in) const NCB::TMaybeOwningConstArrayHolder<CPPTYPE>& (NCB::TMaybeOwningConstArrayHolder<CPPTYPE> temp)
-%{  
+%{
     TConstArrayRef<CPPTYPE> data;
     if (!SWIG_PrimitiveArrayJavaToCpp(jenv, $input, &data)) {
-        return $null; 
+        return $null;
     }
-    
+
     temp = NCB::TMaybeOwningConstArrayHolder<CPPTYPE>::CreateOwning(
-        data, 
+        data,
         MakeIntrusive<TJava##JAVABOXEDTYPE##ArrayHolder>(jenv, const_cast<CPPTYPE*>(data.data()), $input)
     );
     $1 = &temp;

@@ -28,13 +28,13 @@ namespace NCB {
          * ignored features are always unavailable
          */
         bool IsAvailable = true;
-        
+
     public:
         TFeatureMetaInfo() = default;
-        
+
         %typemap(javaimports) TFeatureMetaInfo "import java.io.*;"
         %typemap(javainterfaces) TFeatureMetaInfo "Serializable"
-        
+
         %proxycode %{
             private void writeObject(ObjectOutputStream out) throws IOException {
                 out.writeUnshared(this.getType());
@@ -43,11 +43,11 @@ namespace NCB {
                 out.writeBoolean(this.getIsIgnored());
                 out.writeBoolean(this.getIsAvailable());
             }
-        
+
             private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
                 this.swigCPtr = native_implJNI.new_TFeatureMetaInfo();
                 this.swigCMemOwn = true;
-            
+
                 this.setType((EFeatureType)in.readUnshared());
                 this.setName(in.readUTF());
                 this.setIsSparse(in.readBoolean());
@@ -55,7 +55,7 @@ namespace NCB {
                 this.setIsAvailable(in.readBoolean());
             }
         %}
-        
+
         ADD_EQUALS_WITH_IMPL_AND_HASH_CODE_METHODS(TFeatureMetaInfo)
     };
 }
@@ -70,14 +70,14 @@ namespace NCB {
         // needed for SWIG wrapper deserialization
         // data is moved into - poor substitute to && because SWIG does not support it
         void Init(TVector<TFeatureMetaInfo>* data);
-    
+
         TVector<TString> GetExternalFeatureIds() const;
-        
+
         ui32 GetExternalFeatureCount() const;
-    
+
         %extend {
             TVector<NCB::TFeatureMetaInfo> GetExternalFeaturesMetaInfoAsVector() const {
-                TConstArrayRef<NCB::TFeatureMetaInfo> externalFeaturesMetaInfo 
+                TConstArrayRef<NCB::TFeatureMetaInfo> externalFeaturesMetaInfo
                     = self->GetExternalFeaturesMetaInfo();
                 return TVector<NCB::TFeatureMetaInfo>(
                     externalFeaturesMetaInfo.begin(),
@@ -85,32 +85,32 @@ namespace NCB {
                 );
             }
         }
-         
+
         %typemap(javaimports) TFeaturesLayout "import java.io.*;"
         %typemap(javainterfaces) TFeaturesLayout "Serializable"
-         
+
         %proxycode %{
             private void writeObject(ObjectOutputStream out) throws IOException {
                 TVector_TFeatureMetaInfo data = this.GetExternalFeaturesMetaInfoAsVector();
                 out.writeUnshared(data);
             }
-        
+
             private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
                 this.swigCPtr = native_implJNI.new_TFeaturesLayout();
                 this.swigCMemOwn = true;
-            
+
                 TVector_TFeatureMetaInfo data = (TVector_TFeatureMetaInfo)in.readUnshared();
                 Init(data);
             }
         %}
-        
+
         ADD_EQUALS_WITH_IMPL_AND_HASH_CODE_METHODS(TFeaturesLayout)
         ADD_RELEASE_MEM()
-        
+
     private:
         TVector<TFeatureMetaInfo> ExternalIdxToMetaInfo;
     };
-    
+
     using TFeaturesLayoutPtr = TIntrusivePtr<TFeaturesLayout>;
 }
 

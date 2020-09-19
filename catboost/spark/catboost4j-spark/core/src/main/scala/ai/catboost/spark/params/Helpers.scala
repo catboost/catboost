@@ -55,7 +55,7 @@ object Helpers {
       "ignored_features_indices" -> "ignored_features",
       "ignored_features_names" -> "ignored_features"
   )
-  
+
   def sparkMlParamsToCatBoostJsonParams(params: Params) : JValue = {
     JObject(
       params.extractParamMap.toSeq.map {
@@ -66,7 +66,7 @@ object Helpers {
       }.toList
     )
   }
-  
+
   def sparkMlParamsToCatBoostJsonParamsString(params: Params) : String = {
     compact(sparkMlParamsToCatBoostJsonParams(params))
   }
