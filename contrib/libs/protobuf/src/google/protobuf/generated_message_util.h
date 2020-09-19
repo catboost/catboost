@@ -50,8 +50,6 @@
 #include <google/protobuf/message_lite.h>
 #include <google/protobuf/wire_format_lite.h>
 
-#include <util/generic/singleton.h>
-
 namespace google {
 
 namespace protobuf {
