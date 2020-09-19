@@ -13,6 +13,7 @@
 
 #include <cctype>
 #include <cstring>
+#include <string>
 
 Y_PURE_FUNCTION
 const char* FastFindFirstOf(const char* s, size_t len, const char* set, size_t setlen);
@@ -21,7 +22,7 @@ Y_PURE_FUNCTION
 const char* FastFindFirstNotOf(const char* s, size_t len, const char* set, size_t setlen);
 
 template <class TCharType>
-class TCharTraits {
+class TCharTraits: public std::char_traits<TCharType> {
 public:
     static size_t GetLength(const TCharType* s) {
         Y_ASSERT(s);
@@ -222,7 +223,7 @@ public:
 };
 
 template <>
-class TCharTraits<char> {
+class TCharTraits<char>: public std::char_traits<char> {
     using TCharType = char;
 
 public:
@@ -399,7 +400,7 @@ public:
 };
 
 template <>
-class TCharTraits<wchar16> {
+class TCharTraits<wchar16>: public std::char_traits<wchar16> {
     using TCharType = wchar16;
 
 public:
@@ -613,7 +614,7 @@ public:
 };
 
 template <>
-class TCharTraits<wchar32> {
+class TCharTraits<wchar32>: public std::char_traits<wchar32> {
     using TCharType = wchar32;
 
 public:
