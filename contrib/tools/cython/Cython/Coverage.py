@@ -472,6 +472,6 @@ if standalone():
         return None
 
 
-    def _find_dep_file_path(main_file, file_path):
+    def _find_dep_file_path(main_file, file_path, relative_path_search=False):
         # file_path is already arcadia root relative
         return canonical_filename(file_path)
