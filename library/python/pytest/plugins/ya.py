@@ -507,13 +507,13 @@ def pytest_runtest_makereport(item, call):
             yatest_logger.error(longrepr)
         return _pytest.runner.TestReport(item.nodeid, item.location, keywords, outcome, longrepr, when, sections, duration)
 
-    def logreport(report, result):
+    def logreport(report, result, call):
         test_item = TestItem(report, result, pytest.config.option.test_suffix)
         pytest.config.ya_trace_reporter.on_log_report(test_item)
         if report.when == "call":
             _collect_test_rusage(item)
             if not pytest.config.suite_metrics:
-                pytest.config.suite_metrics["pytest_startup_duration"] = time.time() - context.Ctx["YA_PYTEST_START_TIMESTAMP"]
+                pytest.config.suite_metrics["pytest_startup_duration"] = call.start - context.Ctx["YA_PYTEST_START_TIMESTAMP"]
                 pytest.config.ya_trace_reporter.dump_suite_metrics()
             pytest.config.ya_trace_reporter.on_finish_test_case(test_item)
         elif report.when == "setup":
@@ -576,7 +576,7 @@ def pytest_runtest_makereport(item, call):
                     rep.wasxfail = evalxfail.getexplanation()
                     return rep
     finally:
-        logreport(rep, result)
+        logreport(rep, result, call)
     return rep
 
 
