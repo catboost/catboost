@@ -116,7 +116,7 @@ Y_UNIT_TEST_SUITE(TStripStringTest) {
 
         s = TString(" a b c ");
         TString s2 = s;
-        Collapse(s2);
+        CollapseInPlace(s2);
 
         UNIT_ASSERT(s == s2);
 #ifndef TSTRING_IS_STD_STRING

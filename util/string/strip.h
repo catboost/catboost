@@ -188,11 +188,6 @@ inline TString& StripInPlace(TString& s) {
     return s;
 }
 
-/// Deprecated and dangerous overload of StripInPlace
-inline TString& Strip(TString& s) {
-    return StripInPlace(s);
-}
-
 /// Returns a copy of the given string with removed leading and trailing spaces.
 inline TString Strip(const TString& s) Y_WARN_UNUSED_RESULT;
 inline TString Strip(const TString& s) {
@@ -243,13 +238,9 @@ inline TString& CollapseInPlace(TString& s, size_t maxLen = 0) {
     return s;
 }
 
-/// Deprecated and dangerous overload of CollapseInPlace
-inline TString& Collapse(TString& s, size_t maxLen = 0) {
-    return CollapseInPlace(s, maxLen);
-}
-
 /// Replaces several consequtive space symbols with one (processing is limited to maxLen bytes)
-inline TString Collapse(const TString& s, size_t maxLen = 0) {
+inline TString Collapse(const TString& s, size_t maxLen = 0) Y_WARN_UNUSED_RESULT;
+inline TString Collapse(const TString& s, size_t maxLen) {
     TString ret;
     Collapse(s, ret, maxLen);
     return ret;
