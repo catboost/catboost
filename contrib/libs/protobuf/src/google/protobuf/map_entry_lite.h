@@ -356,7 +356,7 @@ class MapEntryImpl : public Base {
         }
         // Peek at the next byte to see if it is kValueTag.  If not, bail out.
         const void* data;
-        intptr_t size;
+        int size;
         input->GetDirectBufferPointerInline(&data, &size);
         // We could use memcmp here, but we don't bother. The tag is one byte.
         GOOGLE_COMPILE_ASSERT(kTagSize == 1, tag_size_error);

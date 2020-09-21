@@ -192,12 +192,12 @@ class LIBPROTOBUF_EXPORT CodedInputStream {
   // this data, it should then call Skip() to skip over the consumed bytes.
   // This may be useful for implementing external fast parsing routines for
   // types of data not covered by the CodedInputStream interface.
-  bool GetDirectBufferPointer(const void** data, intptr_t* size);
+  bool GetDirectBufferPointer(const void** data, int* size);
 
   // Like GetDirectBufferPointer, but this method is inlined, and does not
   // attempt to Refresh() if the buffer is currently empty.
   GOOGLE_ATTRIBUTE_ALWAYS_INLINE void GetDirectBufferPointerInline(const void** data,
-                                                            intptr_t* size);
+                                                            int* size);
 
   // Read raw bytes, copying them into the given buffer.
   bool ReadRaw(void* buffer, int size);
@@ -723,7 +723,7 @@ class LIBPROTOBUF_EXPORT CodedOutputStream {
   // the consumed bytes.  This may be useful for implementing external fast
   // serialization routines for types of data not covered by the
   // CodedOutputStream interface.
-  bool GetDirectBufferPointer(void** data, intptr_t* size);
+  bool GetDirectBufferPointer(void** data, int* size);
 
   // If there are at least "size" bytes available in the current buffer,
   // returns a pointer directly into the buffer and advances over these bytes.
@@ -1124,9 +1124,9 @@ inline const uint8* CodedInputStream::ExpectTagFromArray(
 }
 
 inline void CodedInputStream::GetDirectBufferPointerInline(const void** data,
-                                                           intptr_t* size) {
+                                                           int* size) {
   *data = buffer_;
-  *size = static_cast<intptr_t>(buffer_end_ - buffer_);
+  *size = static_cast<int>(buffer_end_ - buffer_);
 }
 
 inline bool CodedInputStream::ExpectAtEnd() {

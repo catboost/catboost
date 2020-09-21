@@ -224,7 +224,7 @@ bool CodedInputStream::SkipFallback(int count, int original_buffer_size) {
   return input_->Skip(count);
 }
 
-bool CodedInputStream::GetDirectBufferPointer(const void** data, intptr_t* size) {
+bool CodedInputStream::GetDirectBufferPointer(const void** data, int* size) {
   if (BufferSize() == 0 && !Refresh()) return false;
 
   *data = buffer_;
@@ -679,7 +679,7 @@ bool CodedOutputStream::Skip(int count) {
   return true;
 }
 
-bool CodedOutputStream::GetDirectBufferPointer(void** data, intptr_t* size) {
+bool CodedOutputStream::GetDirectBufferPointer(void** data, int* size) {
   if (buffer_size_ == 0 && !Refresh()) return false;
 
   *data = buffer_;
