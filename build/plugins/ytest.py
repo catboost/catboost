@@ -750,8 +750,12 @@ def onjava_test(unit, *args):
         'SYSTEM_PROPERTIES': props,
         'TEST-CWD': test_cwd,
         'SKIP_TEST': unit.get('SKIP_TEST_VALUE') or '',
-        'JAVA_CLASSPATH_CMD_TYPE': java_cp_arg_type,
+        'JAVA_CLASSPATH_CMD_TYPE': java_cp_arg_type
     }
+    test_classpath_origins = unit.get('TEST_CLASSPATH')
+    if test_classpath_origins:
+        test_record['TEST_CLASSPATH_ORIGINS'] = test_classpath_origins
+        test_record['TEST_CLASSPATH'] = '${TEST_CLASSPATH_MANAGED}'
 
     data = dump_test(unit, test_record)
     if data:
