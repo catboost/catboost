@@ -191,6 +191,16 @@ inline static void BindPoolLoadParams(NLastGetopt::TOpts* parser, NCatboostOptio
         .Handler1T<TStringBuf>([loadParamsPtr](const TStringBuf& str) {
             loadParamsPtr->FeatureNamesPath = TPathWithScheme(str, "dsv");
         });
+
+    parser->AddLongOption(
+       "hosts-already-contain-loaded-data",
+       "[Distributed mode specific] Datasets' data has already been loaded to worker hosts,"
+       "do not initiate its loading from master"
+       )
+       .NoArgument()
+       .Handler0([loadParamsPtr]() {
+            loadParamsPtr->HostsAlreadyContainLoadedData = true;
+        });
 }
 
 static void BindMetricParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* plainJsonPtr) {
