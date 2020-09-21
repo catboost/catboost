@@ -1,4 +1,3 @@
-#cython: language_level=3
 """
 Template for functions of IndexEngine subclasses.
 
@@ -11,29 +10,28 @@ WARNING: DO NOT edit .pxi FILE directly, .pxi is generated from .pxi.in
 
 
 cdef class Float64Engine(IndexEngine):
+    # constructor-caller is responsible for ensuring that vgetter()
+    #  returns an ndarray with dtype float64_t
 
     cdef _make_hash_table(self, Py_ssize_t n):
         return _hash.Float64HashTable(n)
 
 
-    cpdef _call_map_locations(self, values):
+    cdef void _call_map_locations(self, values):
         # self.mapping is of type Float64HashTable,
         # so convert dtype of values
         self.mapping.map_locations(algos.ensure_float64(values))
-
-    cdef _get_index_values(self):
-        return algos.ensure_float64(self.vgetter())
 
     cdef _maybe_get_bool_indexer(self, object val):
         cdef:
             ndarray[uint8_t, ndim=1, cast=True] indexer
             ndarray[intp_t, ndim=1] found
-            ndarray[float64_t] values
+            ndarray[float64_t, ndim=1] values
             int count = 0
 
+        self._check_type(val)
 
-        # A view is needed for some subclasses, such as PeriodEngine:
-        values = self._get_index_values().view('float64')
+        values = self._get_index_values()
         try:
             with warnings.catch_warnings():
                 # e.g. if values is float64 and `val` is a str, suppress warning
@@ -44,41 +42,32 @@ cdef class Float64Engine(IndexEngine):
             #  when trying to cast it to ndarray
             raise KeyError(val)
 
-        found = np.where(indexer)[0]
-        count = len(found)
-
-        if count > 1:
-            return indexer
-        if count == 1:
-            return int(found[0])
-
-        raise KeyError(val)
+        return self._unpack_bool_indexer(indexer, val)
 
 
 cdef class Float32Engine(IndexEngine):
+    # constructor-caller is responsible for ensuring that vgetter()
+    #  returns an ndarray with dtype float32_t
 
     cdef _make_hash_table(self, Py_ssize_t n):
         return _hash.Float64HashTable(n)
 
 
-    cpdef _call_map_locations(self, values):
+    cdef void _call_map_locations(self, values):
         # self.mapping is of type Float64HashTable,
         # so convert dtype of values
         self.mapping.map_locations(algos.ensure_float64(values))
 
-    cdef _get_index_values(self):
-        return algos.ensure_float32(self.vgetter())
-
     cdef _maybe_get_bool_indexer(self, object val):
         cdef:
             ndarray[uint8_t, ndim=1, cast=True] indexer
             ndarray[intp_t, ndim=1] found
-            ndarray[float32_t] values
+            ndarray[float32_t, ndim=1] values
             int count = 0
 
+        self._check_type(val)
 
-        # A view is needed for some subclasses, such as PeriodEngine:
-        values = self._get_index_values().view('float32')
+        values = self._get_index_values()
         try:
             with warnings.catch_warnings():
                 # e.g. if values is float64 and `val` is a str, suppress warning
@@ -89,18 +78,12 @@ cdef class Float32Engine(IndexEngine):
             #  when trying to cast it to ndarray
             raise KeyError(val)
 
-        found = np.where(indexer)[0]
-        count = len(found)
-
-        if count > 1:
-            return indexer
-        if count == 1:
-            return int(found[0])
-
-        raise KeyError(val)
+        return self._unpack_bool_indexer(indexer, val)
 
 
 cdef class Int64Engine(IndexEngine):
+    # constructor-caller is responsible for ensuring that vgetter()
+    #  returns an ndarray with dtype int64_t
 
     cdef _make_hash_table(self, Py_ssize_t n):
         return _hash.Int64HashTable(n)
@@ -109,26 +92,21 @@ cdef class Int64Engine(IndexEngine):
         if not util.is_integer_object(val):
             raise KeyError(val)
 
-    cpdef _call_map_locations(self, values):
+    cdef void _call_map_locations(self, values):
         # self.mapping is of type Int64HashTable,
         # so convert dtype of values
         self.mapping.map_locations(algos.ensure_int64(values))
-
-    cdef _get_index_values(self):
-        return algos.ensure_int64(self.vgetter())
 
     cdef _maybe_get_bool_indexer(self, object val):
         cdef:
             ndarray[uint8_t, ndim=1, cast=True] indexer
             ndarray[intp_t, ndim=1] found
-            ndarray[int64_t] values
+            ndarray[int64_t, ndim=1] values
             int count = 0
 
-        if not util.is_integer_object(val):
-            raise KeyError(val)
+        self._check_type(val)
 
-        # A view is needed for some subclasses, such as PeriodEngine:
-        values = self._get_index_values().view('int64')
+        values = self._get_index_values()
         try:
             with warnings.catch_warnings():
                 # e.g. if values is float64 and `val` is a str, suppress warning
@@ -139,18 +117,12 @@ cdef class Int64Engine(IndexEngine):
             #  when trying to cast it to ndarray
             raise KeyError(val)
 
-        found = np.where(indexer)[0]
-        count = len(found)
-
-        if count > 1:
-            return indexer
-        if count == 1:
-            return int(found[0])
-
-        raise KeyError(val)
+        return self._unpack_bool_indexer(indexer, val)
 
 
 cdef class Int32Engine(IndexEngine):
+    # constructor-caller is responsible for ensuring that vgetter()
+    #  returns an ndarray with dtype int32_t
 
     cdef _make_hash_table(self, Py_ssize_t n):
         return _hash.Int64HashTable(n)
@@ -159,26 +131,21 @@ cdef class Int32Engine(IndexEngine):
         if not util.is_integer_object(val):
             raise KeyError(val)
 
-    cpdef _call_map_locations(self, values):
+    cdef void _call_map_locations(self, values):
         # self.mapping is of type Int64HashTable,
         # so convert dtype of values
         self.mapping.map_locations(algos.ensure_int64(values))
-
-    cdef _get_index_values(self):
-        return algos.ensure_int32(self.vgetter())
 
     cdef _maybe_get_bool_indexer(self, object val):
         cdef:
             ndarray[uint8_t, ndim=1, cast=True] indexer
             ndarray[intp_t, ndim=1] found
-            ndarray[int32_t] values
+            ndarray[int32_t, ndim=1] values
             int count = 0
 
-        if not util.is_integer_object(val):
-            raise KeyError(val)
+        self._check_type(val)
 
-        # A view is needed for some subclasses, such as PeriodEngine:
-        values = self._get_index_values().view('int32')
+        values = self._get_index_values()
         try:
             with warnings.catch_warnings():
                 # e.g. if values is float64 and `val` is a str, suppress warning
@@ -189,18 +156,12 @@ cdef class Int32Engine(IndexEngine):
             #  when trying to cast it to ndarray
             raise KeyError(val)
 
-        found = np.where(indexer)[0]
-        count = len(found)
-
-        if count > 1:
-            return indexer
-        if count == 1:
-            return int(found[0])
-
-        raise KeyError(val)
+        return self._unpack_bool_indexer(indexer, val)
 
 
 cdef class Int16Engine(IndexEngine):
+    # constructor-caller is responsible for ensuring that vgetter()
+    #  returns an ndarray with dtype int16_t
 
     cdef _make_hash_table(self, Py_ssize_t n):
         return _hash.Int64HashTable(n)
@@ -209,26 +170,21 @@ cdef class Int16Engine(IndexEngine):
         if not util.is_integer_object(val):
             raise KeyError(val)
 
-    cpdef _call_map_locations(self, values):
+    cdef void _call_map_locations(self, values):
         # self.mapping is of type Int64HashTable,
         # so convert dtype of values
         self.mapping.map_locations(algos.ensure_int64(values))
-
-    cdef _get_index_values(self):
-        return algos.ensure_int16(self.vgetter())
 
     cdef _maybe_get_bool_indexer(self, object val):
         cdef:
             ndarray[uint8_t, ndim=1, cast=True] indexer
             ndarray[intp_t, ndim=1] found
-            ndarray[int16_t] values
+            ndarray[int16_t, ndim=1] values
             int count = 0
 
-        if not util.is_integer_object(val):
-            raise KeyError(val)
+        self._check_type(val)
 
-        # A view is needed for some subclasses, such as PeriodEngine:
-        values = self._get_index_values().view('int16')
+        values = self._get_index_values()
         try:
             with warnings.catch_warnings():
                 # e.g. if values is float64 and `val` is a str, suppress warning
@@ -239,18 +195,12 @@ cdef class Int16Engine(IndexEngine):
             #  when trying to cast it to ndarray
             raise KeyError(val)
 
-        found = np.where(indexer)[0]
-        count = len(found)
-
-        if count > 1:
-            return indexer
-        if count == 1:
-            return int(found[0])
-
-        raise KeyError(val)
+        return self._unpack_bool_indexer(indexer, val)
 
 
 cdef class Int8Engine(IndexEngine):
+    # constructor-caller is responsible for ensuring that vgetter()
+    #  returns an ndarray with dtype int8_t
 
     cdef _make_hash_table(self, Py_ssize_t n):
         return _hash.Int64HashTable(n)
@@ -259,26 +209,21 @@ cdef class Int8Engine(IndexEngine):
         if not util.is_integer_object(val):
             raise KeyError(val)
 
-    cpdef _call_map_locations(self, values):
+    cdef void _call_map_locations(self, values):
         # self.mapping is of type Int64HashTable,
         # so convert dtype of values
         self.mapping.map_locations(algos.ensure_int64(values))
 
-    cdef _get_index_values(self):
-        return algos.ensure_int8(self.vgetter())
-
     cdef _maybe_get_bool_indexer(self, object val):
         cdef:
             ndarray[uint8_t, ndim=1, cast=True] indexer
             ndarray[intp_t, ndim=1] found
-            ndarray[int8_t] values
+            ndarray[int8_t, ndim=1] values
             int count = 0
 
-        if not util.is_integer_object(val):
-            raise KeyError(val)
+        self._check_type(val)
 
-        # A view is needed for some subclasses, such as PeriodEngine:
-        values = self._get_index_values().view('int8')
+        values = self._get_index_values()
         try:
             with warnings.catch_warnings():
                 # e.g. if values is float64 and `val` is a str, suppress warning
@@ -289,18 +234,12 @@ cdef class Int8Engine(IndexEngine):
             #  when trying to cast it to ndarray
             raise KeyError(val)
 
-        found = np.where(indexer)[0]
-        count = len(found)
-
-        if count > 1:
-            return indexer
-        if count == 1:
-            return int(found[0])
-
-        raise KeyError(val)
+        return self._unpack_bool_indexer(indexer, val)
 
 
 cdef class UInt64Engine(IndexEngine):
+    # constructor-caller is responsible for ensuring that vgetter()
+    #  returns an ndarray with dtype uint64_t
 
     cdef _make_hash_table(self, Py_ssize_t n):
         return _hash.UInt64HashTable(n)
@@ -309,26 +248,21 @@ cdef class UInt64Engine(IndexEngine):
         if not util.is_integer_object(val):
             raise KeyError(val)
 
-    cpdef _call_map_locations(self, values):
+    cdef void _call_map_locations(self, values):
         # self.mapping is of type UInt64HashTable,
         # so convert dtype of values
         self.mapping.map_locations(algos.ensure_uint64(values))
-
-    cdef _get_index_values(self):
-        return algos.ensure_uint64(self.vgetter())
 
     cdef _maybe_get_bool_indexer(self, object val):
         cdef:
             ndarray[uint8_t, ndim=1, cast=True] indexer
             ndarray[intp_t, ndim=1] found
-            ndarray[uint64_t] values
+            ndarray[uint64_t, ndim=1] values
             int count = 0
 
-        if not util.is_integer_object(val):
-            raise KeyError(val)
+        self._check_type(val)
 
-        # A view is needed for some subclasses, such as PeriodEngine:
-        values = self._get_index_values().view('uint64')
+        values = self._get_index_values()
         try:
             with warnings.catch_warnings():
                 # e.g. if values is float64 and `val` is a str, suppress warning
@@ -339,18 +273,12 @@ cdef class UInt64Engine(IndexEngine):
             #  when trying to cast it to ndarray
             raise KeyError(val)
 
-        found = np.where(indexer)[0]
-        count = len(found)
-
-        if count > 1:
-            return indexer
-        if count == 1:
-            return int(found[0])
-
-        raise KeyError(val)
+        return self._unpack_bool_indexer(indexer, val)
 
 
 cdef class UInt32Engine(IndexEngine):
+    # constructor-caller is responsible for ensuring that vgetter()
+    #  returns an ndarray with dtype uint32_t
 
     cdef _make_hash_table(self, Py_ssize_t n):
         return _hash.UInt64HashTable(n)
@@ -359,26 +287,21 @@ cdef class UInt32Engine(IndexEngine):
         if not util.is_integer_object(val):
             raise KeyError(val)
 
-    cpdef _call_map_locations(self, values):
+    cdef void _call_map_locations(self, values):
         # self.mapping is of type UInt64HashTable,
         # so convert dtype of values
         self.mapping.map_locations(algos.ensure_uint64(values))
-
-    cdef _get_index_values(self):
-        return algos.ensure_uint32(self.vgetter())
 
     cdef _maybe_get_bool_indexer(self, object val):
         cdef:
             ndarray[uint8_t, ndim=1, cast=True] indexer
             ndarray[intp_t, ndim=1] found
-            ndarray[uint32_t] values
+            ndarray[uint32_t, ndim=1] values
             int count = 0
 
-        if not util.is_integer_object(val):
-            raise KeyError(val)
+        self._check_type(val)
 
-        # A view is needed for some subclasses, such as PeriodEngine:
-        values = self._get_index_values().view('uint32')
+        values = self._get_index_values()
         try:
             with warnings.catch_warnings():
                 # e.g. if values is float64 and `val` is a str, suppress warning
@@ -389,18 +312,12 @@ cdef class UInt32Engine(IndexEngine):
             #  when trying to cast it to ndarray
             raise KeyError(val)
 
-        found = np.where(indexer)[0]
-        count = len(found)
-
-        if count > 1:
-            return indexer
-        if count == 1:
-            return int(found[0])
-
-        raise KeyError(val)
+        return self._unpack_bool_indexer(indexer, val)
 
 
 cdef class UInt16Engine(IndexEngine):
+    # constructor-caller is responsible for ensuring that vgetter()
+    #  returns an ndarray with dtype uint16_t
 
     cdef _make_hash_table(self, Py_ssize_t n):
         return _hash.UInt64HashTable(n)
@@ -409,26 +326,21 @@ cdef class UInt16Engine(IndexEngine):
         if not util.is_integer_object(val):
             raise KeyError(val)
 
-    cpdef _call_map_locations(self, values):
+    cdef void _call_map_locations(self, values):
         # self.mapping is of type UInt64HashTable,
         # so convert dtype of values
         self.mapping.map_locations(algos.ensure_uint64(values))
-
-    cdef _get_index_values(self):
-        return algos.ensure_uint16(self.vgetter())
 
     cdef _maybe_get_bool_indexer(self, object val):
         cdef:
             ndarray[uint8_t, ndim=1, cast=True] indexer
             ndarray[intp_t, ndim=1] found
-            ndarray[uint16_t] values
+            ndarray[uint16_t, ndim=1] values
             int count = 0
 
-        if not util.is_integer_object(val):
-            raise KeyError(val)
+        self._check_type(val)
 
-        # A view is needed for some subclasses, such as PeriodEngine:
-        values = self._get_index_values().view('uint16')
+        values = self._get_index_values()
         try:
             with warnings.catch_warnings():
                 # e.g. if values is float64 and `val` is a str, suppress warning
@@ -439,18 +351,12 @@ cdef class UInt16Engine(IndexEngine):
             #  when trying to cast it to ndarray
             raise KeyError(val)
 
-        found = np.where(indexer)[0]
-        count = len(found)
-
-        if count > 1:
-            return indexer
-        if count == 1:
-            return int(found[0])
-
-        raise KeyError(val)
+        return self._unpack_bool_indexer(indexer, val)
 
 
 cdef class UInt8Engine(IndexEngine):
+    # constructor-caller is responsible for ensuring that vgetter()
+    #  returns an ndarray with dtype uint8_t
 
     cdef _make_hash_table(self, Py_ssize_t n):
         return _hash.UInt64HashTable(n)
@@ -459,26 +365,21 @@ cdef class UInt8Engine(IndexEngine):
         if not util.is_integer_object(val):
             raise KeyError(val)
 
-    cpdef _call_map_locations(self, values):
+    cdef void _call_map_locations(self, values):
         # self.mapping is of type UInt64HashTable,
         # so convert dtype of values
         self.mapping.map_locations(algos.ensure_uint64(values))
-
-    cdef _get_index_values(self):
-        return algos.ensure_uint8(self.vgetter())
 
     cdef _maybe_get_bool_indexer(self, object val):
         cdef:
             ndarray[uint8_t, ndim=1, cast=True] indexer
             ndarray[intp_t, ndim=1] found
-            ndarray[uint8_t] values
+            ndarray[uint8_t, ndim=1] values
             int count = 0
 
-        if not util.is_integer_object(val):
-            raise KeyError(val)
+        self._check_type(val)
 
-        # A view is needed for some subclasses, such as PeriodEngine:
-        values = self._get_index_values().view('uint8')
+        values = self._get_index_values()
         try:
             with warnings.catch_warnings():
                 # e.g. if values is float64 and `val` is a str, suppress warning
@@ -489,12 +390,4 @@ cdef class UInt8Engine(IndexEngine):
             #  when trying to cast it to ndarray
             raise KeyError(val)
 
-        found = np.where(indexer)[0]
-        count = len(found)
-
-        if count > 1:
-            return indexer
-        if count == 1:
-            return int(found[0])
-
-        raise KeyError(val)
+        return self._unpack_bool_indexer(indexer, val)

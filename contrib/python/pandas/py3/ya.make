@@ -1,6 +1,6 @@
 PY3_LIBRARY()
 
-VERSION(1.0.5)
+VERSION(1.1.2)
 
 LICENSE(BSD-3-Clause)
 
@@ -49,6 +49,7 @@ SRCS(
     pandas/_libs/src/ujson/lib/ultrajsondec.c
     pandas/_libs/src/ujson/lib/ultrajsonenc.c
     pandas/_libs/src/ujson/python/JSONtoObj.c
+    pandas/_libs/src/ujson/python/date_conversions.c
     pandas/_libs/src/ujson/python/objToJSON.c
     pandas/_libs/src/ujson/python/ujson.c
     pandas/_libs/tslibs/src/datetime/np_datetime.c
@@ -57,6 +58,9 @@ SRCS(
 
 PY_SRCS(
     TOP_LEVEL
+
+    CYTHON_DIRECTIVE
+    language_level=3
 
     CYTHON_C
     pandas/_libs/algos.pyx
@@ -79,22 +83,22 @@ PY_SRCS(
     pandas/_libs/sparse.pyx
     pandas/_libs/testing.pyx
     pandas/_libs/tslib.pyx
-    pandas/_libs/tslibs/c_timestamp.pyx
+    pandas/_libs/tslibs/base.pyx
     pandas/_libs/tslibs/ccalendar.pyx
     pandas/_libs/tslibs/conversion.pyx
+    pandas/_libs/tslibs/dtypes.pyx
     pandas/_libs/tslibs/fields.pyx
-    pandas/_libs/tslibs/frequencies.pyx
     pandas/_libs/tslibs/nattype.pyx
     pandas/_libs/tslibs/np_datetime.pyx
     pandas/_libs/tslibs/offsets.pyx
     pandas/_libs/tslibs/parsing.pyx
     pandas/_libs/tslibs/period.pyx
-    pandas/_libs/tslibs/resolution.pyx
     pandas/_libs/tslibs/strptime.pyx
     pandas/_libs/tslibs/timedeltas.pyx
     pandas/_libs/tslibs/timestamps.pyx
     pandas/_libs/tslibs/timezones.pyx
     pandas/_libs/tslibs/tzconversion.pyx
+    pandas/_libs/tslibs/vectorized.pyx
     pandas/_libs/window/indexers.pyx
     pandas/_libs/writers.pyx
     pandas/io/sas/sas.pyx
@@ -127,11 +131,16 @@ PY_SRCS(
     pandas/compat/pickle_compat.py
     pandas/core/__init__.py
     pandas/core/accessor.py
+    pandas/core/aggregation.py
     pandas/core/algorithms.py
     pandas/core/api.py
     pandas/core/apply.py
+    pandas/core/array_algos/__init__.py
+    pandas/core/array_algos/masked_reductions.py
+    pandas/core/array_algos/transforms.py
     pandas/core/arrays/__init__.py
     pandas/core/arrays/_arrow_utils.py
+    pandas/core/arrays/_mixins.py
     pandas/core/arrays/_ranges.py
     pandas/core/arrays/base.py
     pandas/core/arrays/boolean.py
@@ -209,6 +218,7 @@ PY_SRCS(
     pandas/core/internals/concat.py
     pandas/core/internals/construction.py
     pandas/core/internals/managers.py
+    pandas/core/internals/ops.py
     pandas/core/missing.py
     pandas/core/nanops.py
     pandas/core/ops/__init__.py
@@ -232,6 +242,7 @@ PY_SRCS(
     pandas/core/reshape/tile.py
     pandas/core/reshape/util.py
     pandas/core/series.py
+    pandas/core/shared_docs.py
     pandas/core/sorting.py
     pandas/core/sparse/__init__.py
     pandas/core/sparse/api.py
@@ -240,8 +251,10 @@ PY_SRCS(
     pandas/core/tools/datetimes.py
     pandas/core/tools/numeric.py
     pandas/core/tools/timedeltas.py
+    pandas/core/tools/times.py
     pandas/core/util/__init__.py
     pandas/core/util/hashing.py
+    pandas/core/util/numba_.py
     pandas/core/window/__init__.py
     pandas/core/window/common.py
     pandas/core/window/ewm.py
@@ -259,6 +272,7 @@ PY_SRCS(
     pandas/io/excel/__init__.py
     pandas/io/excel/_base.py
     pandas/io/excel/_odfreader.py
+    pandas/io/excel/_odswriter.py
     pandas/io/excel/_openpyxl.py
     pandas/io/excel/_pyxlsb.py
     pandas/io/excel/_util.py
@@ -273,11 +287,11 @@ PY_SRCS(
     pandas/io/formats/excel.py
     pandas/io/formats/format.py
     pandas/io/formats/html.py
+    pandas/io/formats/info.py
     pandas/io/formats/latex.py
     pandas/io/formats/printing.py
     pandas/io/formats/style.py
     pandas/io/gbq.py
-    pandas/io/gcs.py
     pandas/io/html.py
     pandas/io/json/__init__.py
     pandas/io/json/_json.py
@@ -288,7 +302,6 @@ PY_SRCS(
     pandas/io/parsers.py
     pandas/io/pickle.py
     pandas/io/pytables.py
-    pandas/io/s3.py
     pandas/io/sas/__init__.py
     pandas/io/sas/sas7bdat.py
     pandas/io/sas/sas_constants.py

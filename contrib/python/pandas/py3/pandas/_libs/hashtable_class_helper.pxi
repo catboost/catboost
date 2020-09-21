@@ -1,4 +1,3 @@
-#cython: language_level=3
 """
 Template for each `dtype` helper function for hashtable
 
@@ -283,7 +282,7 @@ cdef class StringVector:
             Py_ssize_t n
             object val
 
-        ao = np.empty(self.data.n, dtype=np.object)
+        ao = np.empty(self.data.n, dtype=object)
         for i in range(self.data.n):
             val = self.data.data[i]
             ao[i] = val
@@ -298,7 +297,7 @@ cdef class StringVector:
 
         append_data_string(self.data, x)
 
-    cdef extend(self, ndarray[:] x):
+    cdef extend(self, ndarray[object] x):
         for i in range(len(x)):
             self.append(x[i])
 
@@ -343,7 +342,7 @@ cdef class ObjectVector:
         self.external_view_exists = True
         return self.ao
 
-    cdef extend(self, ndarray[:] x):
+    cdef extend(self, ndarray[object] x):
         for i in range(len(x)):
             self.append(x[i])
 
@@ -458,7 +457,7 @@ cdef class Float64HashTable(HashTable):
     def _unique(self, const float64_t[:] values, Float64Vector uniques,
                 Py_ssize_t count_prior=0, Py_ssize_t na_sentinel=-1,
                 object na_value=None, bint ignore_na=False,
-                bint return_inverse=False):
+                object mask=None, bint return_inverse=False):
         """
         Calculate unique values and labels (no sorting!)
 
@@ -481,6 +480,10 @@ cdef class Float64HashTable(HashTable):
             Whether NA-values should be ignored for calculating the uniques. If
             True, the labels corresponding to missing values will be set to
             na_sentinel.
+        mask : ndarray[bool], optional
+            If not None, the mask is used as indicator for missing values
+            (True = missing, False = valid) instead of `na_value` or
+            condition "val != val".
         return_inverse : boolean, default False
             Whether the mapping of the original array values to their location
             in the vector of uniques should be returned.
@@ -499,12 +502,17 @@ cdef class Float64HashTable(HashTable):
             float64_t val, na_value2
             khiter_t k
             Float64VectorData *ud
-            bint use_na_value
+            bint use_na_value, use_mask
+            uint8_t[:] mask_values
 
         if return_inverse:
             labels = np.empty(n, dtype=np.int64)
         ud = uniques.data
         use_na_value = na_value is not None
+        use_mask = mask is not None
+
+        if use_mask:
+            mask_values = mask.view("uint8")
 
         if use_na_value:
             # We need this na_value2 because we want to allow users
@@ -520,7 +528,11 @@ cdef class Float64HashTable(HashTable):
             for i in range(n):
                 val = values[i]
 
-                if ignore_na and (
+                if ignore_na and use_mask:
+                    if mask_values[i]:
+                        labels[i] = na_sentinel
+                        continue
+                elif ignore_na and (
                 val != val or
                 (use_na_value and val == na_value2)
                 ):
@@ -582,7 +594,7 @@ cdef class Float64HashTable(HashTable):
                             return_inverse=return_inverse)
 
     def factorize(self, const float64_t[:] values, Py_ssize_t na_sentinel=-1,
-                  object na_value=None):
+                  object na_value=None, object mask=None):
         """
         Calculate unique values and labels (no sorting!)
 
@@ -600,6 +612,10 @@ cdef class Float64HashTable(HashTable):
             any value "val" satisfying val != val is considered missing.
             If na_value is not None, then _additionally_, any value "val"
             satisfying val == na_value is considered missing.
+        mask : ndarray[bool], optional
+            If not None, the mask is used as indicator for missing values
+            (True = missing, False = valid) instead of `na_value` or
+            condition "val != val".
 
         Returns
         -------
@@ -610,7 +626,7 @@ cdef class Float64HashTable(HashTable):
         """
         uniques_vector = Float64Vector()
         return self._unique(values, uniques_vector, na_sentinel=na_sentinel,
-                            na_value=na_value, ignore_na=True,
+                            na_value=na_value, ignore_na=True, mask=mask,
                             return_inverse=True)
 
     def get_labels(self, const float64_t[:] values, Float64Vector uniques,
@@ -766,7 +782,7 @@ cdef class UInt64HashTable(HashTable):
     def _unique(self, const uint64_t[:] values, UInt64Vector uniques,
                 Py_ssize_t count_prior=0, Py_ssize_t na_sentinel=-1,
                 object na_value=None, bint ignore_na=False,
-                bint return_inverse=False):
+                object mask=None, bint return_inverse=False):
         """
         Calculate unique values and labels (no sorting!)
 
@@ -789,6 +805,10 @@ cdef class UInt64HashTable(HashTable):
             Whether NA-values should be ignored for calculating the uniques. If
             True, the labels corresponding to missing values will be set to
             na_sentinel.
+        mask : ndarray[bool], optional
+            If not None, the mask is used as indicator for missing values
+            (True = missing, False = valid) instead of `na_value` or
+            condition "val != val".
         return_inverse : boolean, default False
             Whether the mapping of the original array values to their location
             in the vector of uniques should be returned.
@@ -807,12 +827,17 @@ cdef class UInt64HashTable(HashTable):
             uint64_t val, na_value2
             khiter_t k
             UInt64VectorData *ud
-            bint use_na_value
+            bint use_na_value, use_mask
+            uint8_t[:] mask_values
 
         if return_inverse:
             labels = np.empty(n, dtype=np.int64)
         ud = uniques.data
         use_na_value = na_value is not None
+        use_mask = mask is not None
+
+        if use_mask:
+            mask_values = mask.view("uint8")
 
         if use_na_value:
             # We need this na_value2 because we want to allow users
@@ -828,7 +853,11 @@ cdef class UInt64HashTable(HashTable):
             for i in range(n):
                 val = values[i]
 
-                if ignore_na and (
+                if ignore_na and use_mask:
+                    if mask_values[i]:
+                        labels[i] = na_sentinel
+                        continue
+                elif ignore_na and (
                 (use_na_value and val == na_value2)
                 ):
                     # if missing values do not count as unique values (i.e. if
@@ -889,7 +918,7 @@ cdef class UInt64HashTable(HashTable):
                             return_inverse=return_inverse)
 
     def factorize(self, const uint64_t[:] values, Py_ssize_t na_sentinel=-1,
-                  object na_value=None):
+                  object na_value=None, object mask=None):
         """
         Calculate unique values and labels (no sorting!)
 
@@ -907,6 +936,10 @@ cdef class UInt64HashTable(HashTable):
             any value "val" satisfying val != val is considered missing.
             If na_value is not None, then _additionally_, any value "val"
             satisfying val == na_value is considered missing.
+        mask : ndarray[bool], optional
+            If not None, the mask is used as indicator for missing values
+            (True = missing, False = valid) instead of `na_value` or
+            condition "val != val".
 
         Returns
         -------
@@ -917,7 +950,7 @@ cdef class UInt64HashTable(HashTable):
         """
         uniques_vector = UInt64Vector()
         return self._unique(values, uniques_vector, na_sentinel=na_sentinel,
-                            na_value=na_value, ignore_na=True,
+                            na_value=na_value, ignore_na=True, mask=mask,
                             return_inverse=True)
 
     def get_labels(self, const uint64_t[:] values, UInt64Vector uniques,
@@ -1070,7 +1103,7 @@ cdef class Int64HashTable(HashTable):
     def _unique(self, const int64_t[:] values, Int64Vector uniques,
                 Py_ssize_t count_prior=0, Py_ssize_t na_sentinel=-1,
                 object na_value=None, bint ignore_na=False,
-                bint return_inverse=False):
+                object mask=None, bint return_inverse=False):
         """
         Calculate unique values and labels (no sorting!)
 
@@ -1093,6 +1126,10 @@ cdef class Int64HashTable(HashTable):
             Whether NA-values should be ignored for calculating the uniques. If
             True, the labels corresponding to missing values will be set to
             na_sentinel.
+        mask : ndarray[bool], optional
+            If not None, the mask is used as indicator for missing values
+            (True = missing, False = valid) instead of `na_value` or
+            condition "val != val".
         return_inverse : boolean, default False
             Whether the mapping of the original array values to their location
             in the vector of uniques should be returned.
@@ -1111,12 +1148,17 @@ cdef class Int64HashTable(HashTable):
             int64_t val, na_value2
             khiter_t k
             Int64VectorData *ud
-            bint use_na_value
+            bint use_na_value, use_mask
+            uint8_t[:] mask_values
 
         if return_inverse:
             labels = np.empty(n, dtype=np.int64)
         ud = uniques.data
         use_na_value = na_value is not None
+        use_mask = mask is not None
+
+        if use_mask:
+            mask_values = mask.view("uint8")
 
         if use_na_value:
             # We need this na_value2 because we want to allow users
@@ -1132,7 +1174,11 @@ cdef class Int64HashTable(HashTable):
             for i in range(n):
                 val = values[i]
 
-                if ignore_na and (
+                if ignore_na and use_mask:
+                    if mask_values[i]:
+                        labels[i] = na_sentinel
+                        continue
+                elif ignore_na and (
                 (use_na_value and val == na_value2)
                 ):
                     # if missing values do not count as unique values (i.e. if
@@ -1193,7 +1239,7 @@ cdef class Int64HashTable(HashTable):
                             return_inverse=return_inverse)
 
     def factorize(self, const int64_t[:] values, Py_ssize_t na_sentinel=-1,
-                  object na_value=None):
+                  object na_value=None, object mask=None):
         """
         Calculate unique values and labels (no sorting!)
 
@@ -1211,6 +1257,10 @@ cdef class Int64HashTable(HashTable):
             any value "val" satisfying val != val is considered missing.
             If na_value is not None, then _additionally_, any value "val"
             satisfying val == na_value is considered missing.
+        mask : ndarray[bool], optional
+            If not None, the mask is used as indicator for missing values
+            (True = missing, False = valid) instead of `na_value` or
+            condition "val != val".
 
         Returns
         -------
@@ -1221,7 +1271,7 @@ cdef class Int64HashTable(HashTable):
         """
         uniques_vector = Int64Vector()
         return self._unique(values, uniques_vector, na_sentinel=na_sentinel,
-                            na_value=na_value, ignore_na=True,
+                            na_value=na_value, ignore_na=True, mask=mask,
                             return_inverse=True)
 
     def get_labels(self, const int64_t[:] values, Int64Vector uniques,
@@ -1369,7 +1419,7 @@ cdef class StringHashTable(HashTable):
             val = values[i]
 
             if isinstance(val, str):
-                # GH#31499 if we have a np.str_ get_c_string wont recognize
+                # GH#31499 if we have a np.str_ get_c_string won't recognize
                 #  it as a str, even though isinstance does.
                 v = get_c_string(<str>val)
             else:
@@ -1404,7 +1454,7 @@ cdef class StringHashTable(HashTable):
             val = values[i]
 
             if isinstance(val, str):
-                # GH#31499 if we have a np.str_ get_c_string wont recognize
+                # GH#31499 if we have a np.str_ get_c_string won't recognize
                 #  it as a str, even though isinstance does.
                 v = get_c_string(<str>val)
             else:
@@ -1487,7 +1537,10 @@ cdef class StringHashTable(HashTable):
                 labels[i] = na_sentinel
             else:
                 # if ignore_na is False, we also stringify NaN/None/etc.
-                v = get_c_string(<str>val)
+                try:
+                    v = get_c_string(<str>val)
+                except UnicodeEncodeError:
+                    v = get_c_string(<str>repr(val))
                 vecs[i] = v
 
         # compute
@@ -1547,7 +1600,7 @@ cdef class StringHashTable(HashTable):
                             return_inverse=return_inverse)
 
     def factorize(self, ndarray[object] values, Py_ssize_t na_sentinel=-1,
-                  object na_value=None):
+                  object na_value=None, object mask=None):
         """
         Calculate unique values and labels (no sorting!)
 
@@ -1565,6 +1618,8 @@ cdef class StringHashTable(HashTable):
             that is not a string is considered missing. If na_value is
             not None, then _additionally_ any value "val" satisfying
             val == na_value is considered missing.
+        mask : ndarray[bool], optional
+            Not yet implementd for StringHashTable.
 
         Returns
         -------
@@ -1786,7 +1841,7 @@ cdef class PyObjectHashTable(HashTable):
                             return_inverse=return_inverse)
 
     def factorize(self, ndarray[object] values, Py_ssize_t na_sentinel=-1,
-                  object na_value=None):
+                  object na_value=None, object mask=None):
         """
         Calculate unique values and labels (no sorting!)
 
@@ -1804,6 +1859,8 @@ cdef class PyObjectHashTable(HashTable):
             any value "val" satisfying val != val is considered missing.
             If na_value is not None, then _additionally_, any value "val"
             satisfying val == na_value is considered missing.
+        mask : ndarray[bool], optional
+            Not yet implemented for PyObjectHashTable.
 
         Returns
         -------

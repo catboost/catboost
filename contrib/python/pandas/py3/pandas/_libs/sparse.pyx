@@ -1,10 +1,18 @@
-#cython: language_level=3
 import cython
-
 import numpy as np
+
 cimport numpy as cnp
-from numpy cimport (ndarray, uint8_t, int64_t, int32_t, int16_t, int8_t,
-                    float64_t, float32_t)
+from numpy cimport (
+    float32_t,
+    float64_t,
+    int8_t,
+    int16_t,
+    int32_t,
+    int64_t,
+    ndarray,
+    uint8_t,
+)
+
 cnp.import_array()
 
 
@@ -35,18 +43,21 @@ cdef class IntIndex(SparseIndex):
     length : integer
     indices : array-like
         Contains integers corresponding to the indices.
+    check_integrity : bool, default=True
+        Check integrity of the input.
     """
 
     cdef readonly:
         Py_ssize_t length, npoints
         ndarray indices
 
-    def __init__(self, Py_ssize_t length, indices):
+    def __init__(self, Py_ssize_t length, indices, bint check_integrity=True):
         self.length = length
         self.indices = np.ascontiguousarray(indices, dtype=np.int32)
         self.npoints = len(self.indices)
 
-        self.check_integrity()
+        if check_integrity:
+            self.check_integrity()
 
     def __reduce__(self):
         args = (self.length, self.indices)
@@ -73,9 +84,9 @@ cdef class IntIndex(SparseIndex):
         """
 
         if self.npoints > self.length:
-            msg = (f"Too many indices. Expected "
-                   f"{self.length} but found {self.npoints}")
-            raise ValueError(msg)
+            raise ValueError(
+                f"Too many indices. Expected {self.length} but found {self.npoints}"
+            )
 
         # Indices are vacuously ordered and non-negative
         # if the sequence of indices is empty.
@@ -189,8 +200,7 @@ cdef class IntIndex(SparseIndex):
             return -1
 
     @cython.wraparound(False)
-    cpdef ndarray[int32_t] lookup_array(self, ndarray[
-            int32_t, ndim=1] indexer):
+    cpdef ndarray[int32_t] lookup_array(self, ndarray[int32_t, ndim=1] indexer):
         """
         Vectorized lookup, returns ndarray[int32_t]
         """
@@ -425,12 +435,9 @@ cdef class BlockIndex(SparseIndex):
         """
         Intersect two BlockIndex objects
 
-        Parameters
-        ----------
-
         Returns
         -------
-        intersection : BlockIndex
+        BlockIndex
         """
         cdef:
             BlockIndex y
@@ -449,7 +456,7 @@ cdef class BlockIndex(SparseIndex):
         ylen = y.blengths
 
         # block may be split, but can't exceed original len / 2 + 1
-        max_len = int(min(self.length, y.length) / 2) + 1
+        max_len = min(self.length, y.length) // 2 + 1
         out_bloc = np.empty(max_len, dtype=np.int32)
         out_blen = np.empty(max_len, dtype=np.int32)
 
@@ -519,7 +526,7 @@ cdef class BlockIndex(SparseIndex):
 
         Returns
         -------
-        union : BlockIndex
+        BlockIndex
         """
         return BlockUnion(self, y.to_block_index()).result
 
@@ -549,8 +556,7 @@ cdef class BlockIndex(SparseIndex):
         return -1
 
     @cython.wraparound(False)
-    cpdef ndarray[int32_t] lookup_array(self, ndarray[
-            int32_t, ndim=1] indexer):
+    cpdef ndarray[int32_t] lookup_array(self, ndarray[int32_t, ndim=1] indexer):
         """
         Vectorized lookup, returns ndarray[int32_t]
         """
@@ -673,7 +679,7 @@ cdef class BlockUnion(BlockMerge):
         ystart = self.ystart
         yend = self.yend
 
-        max_len = int(min(self.x.length, self.y.length) / 2) + 1
+        max_len = min(self.x.length, self.y.length) // 2 + 1
         out_bloc = np.empty(max_len, dtype=np.int32)
         out_blen = np.empty(max_len, dtype=np.int32)
 
@@ -794,4 +800,4 @@ def make_mask_object_ndarray(ndarray[object, ndim=1] arr, object fill_value):
         if value == fill_value and type(value) == type(fill_value):
             mask[i] = 0
 
-    return mask.view(dtype=np.bool)
+    return mask.view(dtype=bool)

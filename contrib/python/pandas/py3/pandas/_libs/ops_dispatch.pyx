@@ -1,4 +1,3 @@
-#cython: language_level=3
 DISPATCHED_UFUNCS = {
     "add",
     "sub",

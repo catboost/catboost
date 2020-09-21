@@ -1,4 +1,3 @@
-#cython: language_level=3
 """
 Template for each `dtype` helper function for take
 
