@@ -10,7 +10,6 @@
 #include <util/string/cast.h>
 #include <util/system/info.h>
 #include <util/string/builder.h>
-#include <util/string/vector.h>
 #include <util/generic/hash_set.h>
 
 template <>
