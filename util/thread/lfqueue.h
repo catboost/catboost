@@ -419,7 +419,7 @@ private:
 };
 
 template <class T, class TCounter>
-class TFastLockFreeQueue : public TLockFreeQueue<T, TCounter> {
+class TFastLockFreeQueue final : public TLockFreeQueue<T, TCounter> {
 
     using TRootNode = typename TLockFreeQueue<T, TCounter>::TRootNode;
     using TListNode = typename TLockFreeQueue<T, TCounter>::TListNode;
@@ -431,10 +431,8 @@ class TFastLockFreeQueue : public TLockFreeQueue<T, TCounter> {
     }
 public:
     void GarbageCollect() {
-        TRootNode* fptr;
-        if (fptr = AtomicGet(this->FreePtr)) {
-            this->EraseBranch(fptr);
-            AtomicSet(this->FreePtr, (TRootNode*)nullptr);
+        if (AtomicGet(this->FreePtr)) {
+            this->EraseBranch(AtomicSwap(&this->FreePtr, (TRootNode*)nullptr));
         }
     }
 };
