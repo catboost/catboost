@@ -201,9 +201,9 @@ void* NPar::TLocalExecutor::TImpl::HostWorkerThread(void* p) {
                     gcdone->Wait();
                 } else {
                     Y_ASSERT(!AtomicGet(ctx->QueueSize));
-                    ctx->JobQueue.GarbageCollect();
-                    ctx->MedJobQueue.GarbageCollect();
-                    ctx->LowJobQueue.GarbageCollect();
+                    ctx->JobQueue.GarbageCollector();
+                    ctx->MedJobQueue.GarbageCollector();
+                    ctx->LowJobQueue.GarbageCollector();
                     gcdone->Signal();
                 }
                 break;
@@ -368,7 +368,7 @@ void NPar::TLocalExecutor::ClearLPQueue() {
     }
 }
 
-void NPar::TLocalExecutor::GarbageCollect() {
+void NPar::TLocalExecutor::GarbageCollector() {
     if (!GetThreadCount())
         return;
     Impl_->GarbageCollected = MakeAtomicShared<TManualEvent>();

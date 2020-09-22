@@ -20,14 +20,14 @@ struct TDefaultLFCounter {
 
 // @brief lockfree queue mode:
 //
-// LFQ_NOCOUNT fastest mode; has no internal track of concurrent operations; keeps growing memory
-//             use; releases memory in destructor; allows explicit GarbageCollect() calls to free
-//             up memory with user responcibility for absense of concurrent operations during
-//             GarbageCollect()
+// LFQ_NOCOUNT fastest mode; has no internal track of concurrent operations; keeps growing
+//             memory use; releases memory in destructor; allows explicit GarbageCollector()
+//             calls to free up memory with user responcibility for absense of concurrent
+//             operations during GarbageCollector() run
 //
 // LFQ_IMMEDIATE_GC maintains legacy counter of concurrent operations and cleans memory upon
-//                  every non-concurrent call; GarbageCollect() is yet allowed with the same user
-//                  responcibility
+//                  every non-concurrent call; GarbageCollector() is yet allowed with the same
+//                  user responcibility
 enum LFQMode : int {
     LFQ_NOCOUNT      = 0,
     LFQ_IMMEDIATE_GC = 1
@@ -378,7 +378,7 @@ public:
         AsyncUnref();
         return res;
     }
-    void GarbageCollect() {
+    void GarbageCollector() {
 		if (!AtomicGet(FreePtr))
 			EraseBranch(AtomicSwap(&FreePtr, (TRootNode*)nullptr));
     }

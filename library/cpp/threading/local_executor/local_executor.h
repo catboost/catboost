@@ -169,9 +169,9 @@ namespace NPar {
         TVector<NThreading::TFuture<void>> ExecRangeWithFutures(TLocallyExecutableFunction exec, int firstId, int lastId, int flags);
 
         // Frees up unused memory of internal job queueus;
-        // thread unsafe! It is user responcibility to ensure absebce of concurrent Exec() operations
+        // thread unsafe! It is user responcibility to ensure absebce of concurrent TLocalExecutor::Exec() operations
         //
-        void GarbageCollect();
+        void GarbageCollector();
 
         template <typename TBody>
         static inline auto BlockedLoopBody(const TLocalExecutor::TExecRangeParams& params, const TBody& body) {
