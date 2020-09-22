@@ -5,7 +5,6 @@
 #include <util/generic/ptr.h>
 #include <util/system/atomic.h>
 #include <util/system/yassert.h>
-#include <thread>
 #include "lfstack.h"
 
 struct TDefaultLFCounter {
@@ -380,7 +379,8 @@ public:
         return res;
     }
     void GarbageCollect() {
-        EraseBranch(AtomicSwap(&FreePtr, (TRootNode*)nullptr));
+		if (!AtomicGet(FreePtr))
+			EraseBranch(AtomicSwap(&FreePtr, (TRootNode*)nullptr));
     }
 };
 
