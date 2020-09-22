@@ -22,6 +22,7 @@
 #include <catboost/private/libs/distributed/master.h>
 #include <catboost/private/libs/distributed/worker.h>
 
+
 TErrorTracker BuildErrorTracker(
     EMetricBestValue bestValueType,
     double bestPossibleValue,

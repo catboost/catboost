@@ -121,20 +121,19 @@ namespace {
             return Max<int>(LastId - Counter, 0);
         }
     };
+
 }
 
 //////////////////////////////////////////////////////////////////////////
 class NPar::TLocalExecutor::TImpl {
 public:
-    using TJobQueue = TFastLockFreeQueue<TSingleJob>;
-    TJobQueue JobQueue;
-    TJobQueue MedJobQueue;
-    TJobQueue LowJobQueue;
+	TLockFreeQueue<TSingleJob> JobQueue;
+	TLockFreeQueue<TSingleJob> MedJobQueue;
+	TLockFreeQueue<TSingleJob> LowJobQueue;
     alignas(64) TSystemEvent HasJob;
     alignas(64) TAtomicSharedPtr<TManualEvent> GarbageCollected;
 
     alignas(64) TAtomic ThreadCount{0};
-    alignas(64) TAtomic ParkedCount{0};
     alignas(64) TAtomic QueueSize{0};
     TAtomic MPQueueSize{0};
     TAtomic LPQueueSize{0};
@@ -149,7 +148,7 @@ public:
     bool GetJob(TSingleJob* job);
     void RunNewThread();
     void LaunchRange(TIntrusivePtr<TLocalRangeExecutor> execRange, int queueSizeLimit,
-                     TAtomic* queueSize, TJobQueue* jobQueue);
+                     TAtomic* queueSize, TLockFreeQueue<TSingleJob>* jobQueue);
 
     TImpl() = default;
     ~TImpl();
@@ -250,7 +249,7 @@ void NPar::TLocalExecutor::TImpl::RunNewThread() {
 void NPar::TLocalExecutor::TImpl::LaunchRange(TIntrusivePtr<TLocalRangeExecutor> rangeExec,
                                               int queueSizeLimit,
                                               TAtomic* queueSize,
-                                              TJobQueue* jobQueue) {
+                                              TLockFreeQueue<TSingleJob>* jobQueue) {
     int count = Min<int>(ThreadCount + 1, rangeExec->GetRangeSize());
     if (queueSizeLimit >= 0 && AtomicGet(*queueSize) >= queueSizeLimit) {
         return;
