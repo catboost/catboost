@@ -121,6 +121,7 @@ namespace {
             return Max<int>(LastId - Counter, 0);
         }
     };
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -134,7 +135,6 @@ public:
     alignas(64) TAtomicSharedPtr<TManualEvent> GarbageCollected;
 
     alignas(64) TAtomic ThreadCount{0};
-    alignas(64) TAtomic ParkedCount{0};
     alignas(64) TAtomic QueueSize{0};
     TAtomic MPQueueSize{0};
     TAtomic LPQueueSize{0};
@@ -192,12 +192,9 @@ void* NPar::TLocalExecutor::TImpl::HostWorkerThread(void* p) {
         } else {
             switch (job.Id) {
             case GARBAGE_COLLECT: {
-
-                Y_ASSERT(AtomicGet(ctx->ThreadCount));
-                Y_ASSERT(AtomicGet(ctx->ParkedCount) < AtomicGet(ctx->ThreadCount));
-
                 TAtomicSharedPtr<TManualEvent> gcdone = ctx->GarbageCollected;
-                if (gcdone.RefCount() <= AtomicGet(ctx->ThreadCount)) {
+                if (gcdone.RefCount() <= AtomicGet(ctx->ThreadCount)) // +1 master thread reference
+                {
                     AtomicAdd(ctx->QueueSize, 1);
                     ctx->JobQueue.Enqueue(job);
                     ctx->HasJob.Signal();
