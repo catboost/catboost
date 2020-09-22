@@ -126,7 +126,7 @@ namespace {
 //////////////////////////////////////////////////////////////////////////
 class NPar::TLocalExecutor::TImpl {
 public:
-    using TJobQueue = TFastLockFreeQueue<TSingleJob>;
+    using TJobQueue = TLockFreeQueue<TSingleJob, TDefaultLFCounter, LFQ_NOCOUNT>;
     TJobQueue JobQueue;
     TJobQueue MedJobQueue;
     TJobQueue LowJobQueue;

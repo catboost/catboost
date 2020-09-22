@@ -19,12 +19,27 @@ struct TDefaultLFCounter {
     }
 };
 
+// @brief lockfree queue mode:
+//
+// LFQ_NOCOUNT fastest mode; has no internal track of concurrent operations; keeps growing memory
+//             use; releases memory in destructor; allows explicit GarbageCollect() calls to free
+//             up memory with user responcibility for absense of concurrent operations during
+//             GarbageCollect()
+//
+// LFQ_IMMEDIATE_GC maintains legacy counter of concurrent operations and cleans memory upon
+//                  every non-concurrent call; GarbageCollect() is yet allowed with the same user
+//                  responcibility
+enum LFQMode : int {
+    LFQ_NOCOUNT      = 0,
+    LFQ_IMMEDIATE_GC = 1
+};
+
 // @brief lockfree queue
 // @tparam T - the queue element, should be movable
 // @tparam TCounter, a observer class to count number of items in queue
 //                   be carifull, IncCount and DecCount can be called on a moved object and
 //                   it is TCounter class responsibility to check validity of passed object
-template <class T, class TCounter>
+template <class T, class TCounter, int memMode>
 class TLockFreeQueue: public TNonCopyable {
 protected:
     struct TListNode {
@@ -71,7 +86,6 @@ private:
             n = keepNext;
         }
     }
-protected:
     static void EraseBranch(TRootNode* p) {
         while (p) {
             TRootNode* keepNext = AtomicGet(p->NextFree);
@@ -80,14 +94,11 @@ protected:
             p = keepNext;
         }
     }
-private:
     alignas(64) TRootNode* volatile JobQueue;
     alignas(64) volatile TAtomic FreememCounter;
     alignas(64) volatile TAtomic FreeingTaskCounter;
-protected:
     alignas(64) TRootNode* volatile FreePtr;
 
-private:
     void TryToFreeAsyncMemory() {
         TAtomic keepCounter = AtomicAdd(FreeingTaskCounter, 0);
         TRootNode* current = AtomicGet(FreePtr);
@@ -105,14 +116,16 @@ private:
             }
         }
     }
-    virtual void AsyncRef() {
-        AtomicAdd(FreememCounter, 1);
+    void AsyncRef() {
+        if (memMode & LFQ_IMMEDIATE_GC)
+            AtomicAdd(FreememCounter, 1);
     }
-    virtual void AsyncUnref() {
-        TryToFreeAsyncMemory();
-        AtomicAdd(FreememCounter, -1);
+    void AsyncUnref() {
+        if (memMode & LFQ_IMMEDIATE_GC) {
+            TryToFreeAsyncMemory();
+            AtomicAdd(FreememCounter, -1);
+        }
     }
-protected:
     void AsyncDel(TRootNode* toDelete, TListNode* lst) {
         AtomicSet(toDelete->ToDelete, lst);
         for (;;) {
@@ -121,17 +134,17 @@ protected:
                 break;
         }
     }
-private:
-    virtual void AsyncUnref(TRootNode* toDelete, TListNode* lst) {
-        TryToFreeAsyncMemory();
-        if (AtomicAdd(FreememCounter, -1) == 0) {
-            // no other operations in progress, can safely reclaim memory
-            EraseList(lst);
-            delete toDelete;
-        } else {
-            // Dequeue()s in progress, put node to free list
-            AsyncDel(toDelete, lst);
+    void AsyncUnref(TRootNode* toDelete, TListNode* lst) {
+        if (memMode & LFQ_IMMEDIATE_GC) {
+            TryToFreeAsyncMemory();
+            if (AtomicAdd(FreememCounter, -1) == 0) {
+                // no other operations in progress, can safely reclaim memory
+                EraseList(lst);
+                delete toDelete;
+                return;
+            }
         }
+        AsyncDel(toDelete, lst);
     }
 
     struct TListInvertor {
@@ -367,8 +380,7 @@ public:
         return res;
     }
     void GarbageCollect() {
-        AsyncRef();
-        AsyncUnref();
+        EraseBranch(AtomicSwap(&FreePtr, (TRootNode*)nullptr));
     }
 };
 
@@ -416,25 +428,4 @@ public:
 
 private:
     TLockFreeQueue<T*, TCounter> Queue;
-};
-
-template <class T, class TCounter>
-class TFastLockFreeQueue : public TLockFreeQueue<T, TCounter> {
-
-    using TRootNode = typename TLockFreeQueue<T, TCounter>::TRootNode;
-    using TListNode = typename TLockFreeQueue<T, TCounter>::TListNode;
-
-    void AsyncRef() {}
-    void AsyncUnref() {}
-    void AsyncUnref(TRootNode* toDelete, TListNode* lst) {
-        this->AsyncDel(toDelete, lst);
-    }
-public:
-    void GarbageCollect() {
-        TRootNode* fptr;
-        if (fptr = AtomicGet(this->FreePtr)) {
-            this->EraseBranch(fptr);
-            AtomicSet(this->FreePtr, (TRootNode*)nullptr);
-        }
-    }
 };

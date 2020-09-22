@@ -4,7 +4,7 @@
 
 struct TDefaultLFCounter;
 
-template <class T, class TCounter = TDefaultLFCounter>
+template <class T, class TCounter = TDefaultLFCounter, int memMode = 1>
 class TLockFreeQueue;
 
 template <class T, class TCounter = TDefaultLFCounter>
