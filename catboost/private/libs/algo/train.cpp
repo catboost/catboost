@@ -171,7 +171,7 @@ void CalcApproxesLeafwise(
 
 void TrainOneIteration(const NCB::TTrainingDataProviders& data, TLearnContext* ctx) {
 
-    ctx->LocalExecutor->GarbageCollect(); // explicit per-iteration memory cleanup
+    ctx->LocalExecutor->GarbageCollector(); // explicit per-iteration memory cleanup
 
     const auto error = BuildError(ctx->Params, ctx->ObjectiveDescriptor);
     ctx->LearnProgress->HessianType = error->GetHessianType();

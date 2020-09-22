@@ -366,7 +366,7 @@ public:
         AsyncUnref();
         return res;
     }
-    void GarbageCollect() {
+    void GarbageCollector() {
         AsyncRef();
         AsyncUnref();
     }
@@ -430,7 +430,7 @@ class TFastLockFreeQueue final : public TLockFreeQueue<T, TCounter> {
         this->AsyncDel(toDelete, lst);
     }
 public:
-    void GarbageCollect() {
+    void GarbageCollector() {
         if (AtomicGet(this->FreePtr)) {
             this->EraseBranch(AtomicSwap(&this->FreePtr, (TRootNode*)nullptr));
         }
