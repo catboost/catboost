@@ -22,10 +22,10 @@ correctness_test:
     - cd catboost/pytest
 #    - python test.py
     - nice -19 ../../ya make -DHAVE_CUDA=no -t -A --test-disable-timeout
-    - tar -czvf testing_out_stuff.tgz test-results/pytest/testing_out_stuff/*
+    - tar -cvf testing_out_stuff.logs.tar test-results/pytest/testing_out_stuff/*.log
   artifacts:
     paths:
-      - catboost/pytest/testing_out_stuff.tgz
+      - catboost/pytest/testing_out_stuff.logs.tar
 
   dependencies:
     - build
