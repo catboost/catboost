@@ -5,7 +5,6 @@
 #include <util/generic/ptr.h>
 #include <util/system/atomic.h>
 #include <util/system/yassert.h>
-#include <thread>
 #include "lfstack.h"
 
 struct TDefaultLFCounter {
@@ -123,6 +122,7 @@ protected:
     }
 private:
     virtual void AsyncUnref(TRootNode* toDelete, TListNode* lst) {
+
         TryToFreeAsyncMemory();
         if (AtomicAdd(FreememCounter, -1) == 0) {
             // no other operations in progress, can safely reclaim memory
