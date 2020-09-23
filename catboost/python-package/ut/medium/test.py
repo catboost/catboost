@@ -8172,7 +8172,11 @@ def test_uncertainty_prediction_types(virtual_ensembles_count, prediction_type, 
 
     preds = model.virtual_ensembles_predict(pool, prediction_type=prediction_type, virtual_ensembles_count=virtual_ensembles_count)
     preds_path = test_output_path(PREDS_TXT_PATH)
-    np.savetxt(preds_path, np.array(preds), fmt='%.15f', delimiter='\t')
+    if prediction_type == 'VirtEnsembles':
+        shape = preds.shape
+        assert len(shape) == 3 and shape[1] == virtual_ensembles_count
+        preds = preds.reshape(shape[0], shape[1] * shape[2])
+    np.savetxt(preds_path, preds, fmt='%.15f', delimiter='\t')
     return local_canonical_file(preds_path)
 
 
