@@ -240,9 +240,6 @@
 - source_filter: "^contrib/restricted/boost/boost/asio/detail"
   includes:
   - __config
-- source_filter: "yandex_io/external_libs/(boost/include/boost|websocketpp/include)/asio/detail"
-  includes:
-  - __config
 
 # windows sdk includes that we do not want to apply for whole arcadia
 - source_filter: "^contrib"
@@ -374,11 +371,11 @@
   includes:
     - lzma.h
 
-- source_filter: "^(contrib/libs/(kyotocabinet|minilzo)|logbroker/contrib/tokyocabinet)"
+- source_filter: "^contrib/libs/(kyotocabinet|minilzo)"
   includes:
     - lzo/lzo1x.h
 
-- source_filter: "^(contrib/libs/(gtest|libpng|opencv)|maps/contrib/freeimage)"
+- source_filter: "^contrib/libs/(gtest|libpng|opencv)"
   includes:
     - mem.h
 
@@ -394,7 +391,7 @@
   includes:
     - png.h
 
-- source_filter: "^(contrib/restricted/boost/boost/mpi|catboost/cuda/cuda_lib/mpi|cv/imgclassifiers/danet/distributed/network)"
+- source_filter: "^(contrib/restricted/boost/boost/mpi|catboost/cuda/cuda_lib/mpi)"
   includes:
     - mpi.h
 
@@ -529,21 +526,9 @@
   - err.h: contrib/libs/libsrtp/crypto/include/err.h
   - stat.h: contrib/libs/libsrtp/crypto/include/stat.h
 
-- source_filter: "^infra/contrib/unbound/unbound"
-  includes:
-    - validator/validator.h: infra/contrib/unbound/unbound/validator/validator.h
-
 - source_filter: "^contrib/restricted/openal-soft"
   includes:
     - threads.h: contrib/restricted/openal-soft/common/threads.h
-
-- source_filter: "^devtools/experimental/umbrella/embedded"
-  includes:
-    - threads.h: devtools/experimental/umbrella/include/c11/threads.h
-
-- source_filter: "^voicetech/spotter/embedded"
-  includes:
-    - threads.h: voicetech/spotter/embedded/contrib/c11-threads/threads.h
 
 - source_filter: "^contrib/python/pymqi"
   includes:
