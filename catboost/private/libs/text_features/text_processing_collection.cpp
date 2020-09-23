@@ -523,11 +523,12 @@ namespace NCB {
     }
 
     ui32 TTextProcessingCollection::GetAbsoluteCalcerOffset(const TGuid& calcerGuid) const {
+        auto it = CalcerGuidToFlatIdx.find(calcerGuid);
         CB_ENSURE(
-            CalcerGuidToFlatIdx.contains(calcerGuid),
+            it != CalcerGuidToFlatIdx.end(),
             "There is no calcer with " << LabeledOutput(calcerGuid)
         );
-        return GetAbsoluteCalcerOffset(CalcerGuidToFlatIdx.at(calcerGuid));
+        return GetAbsoluteCalcerOffset(it->second);
     }
 
     ui32 TTextProcessingCollection::GetRelativeCalcerOffset(ui32 textFeatureIdx, const TGuid& calcerGuid) const {
