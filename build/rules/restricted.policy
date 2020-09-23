@@ -106,7 +106,7 @@ ALLOW orgvisits/library/soc -> contrib/restricted/boost
 ALLOW quasar/backend -> contrib/restricted/boost
 ALLOW regulargeo/research -> contrib/restricted/boost
 ALLOW rem/python/geobase30 -> contrib/restricted/boost
-ALLOW rtline/services/drive/contrib/libs/telemetry -> contrib/restricted/boost
+ALLOW drive/contrib/cpp/telemetry -> contrib/restricted/boost
 ALLOW smart_devices -> contrib/restricted/boost
 ALLOW speechkit -> contrib/restricted/boost
 ALLOW statbox/libstatbox -> contrib/restricted/boost
