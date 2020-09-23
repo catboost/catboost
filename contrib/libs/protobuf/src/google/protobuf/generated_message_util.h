@@ -67,16 +67,6 @@ namespace internal {
 //
 // For internal use in the pb.cc files, deprecation warnings are suppressed
 // there.
-//
-// Cannot set PROTOBUF_DEPRECATED macros for deprecation because Arcadia style-guide methods
-// are defined in header file and calls deprecated methods. To use deprecation for default
-// methods - we need to move implementation of our methods to pb.cc or suppress somehow warnings
-// in implementation.
-#ifdef INTERNAL_SUPPRESS_PROTOBUF_FIELD_DEPRECATION
-#define YPROTOBUF_DEPRECATED
-#else
-#define YPROTOBUF_DEPRECATED //warnings are disabled: IGNIETFERRO-886 Y_DEPRECATED("Deprecated")
-#endif
 
 #define PROTOBUF_DEPRECATED
 #define GOOGLE_PROTOBUF_DEPRECATED_ATTR
