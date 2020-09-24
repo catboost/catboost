@@ -78,7 +78,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\catboost\app\bind_options.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\app\main.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\app\mode_calc.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\app\mode_eval_feature.cpp"/>
@@ -121,7 +120,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)..\catboost\app\model_metainfo_helpers.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\app\model_metainfo_helpers.h_serialized.cpp;</Outputs>
     </CustomBuild>
-    <ClInclude Include="$(SolutionDir)..\catboost\app\bind_options.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\app\modes.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
