@@ -11,8 +11,6 @@ import org.apache.spark.sql.types._;
 import org.junit.{Assert};
 
 object PoolTestHelpers {
-    ensureNativeLibLoaded
-
     def createSchema(
       schemaDesc: Seq[(String,DataType)],
       featureNames: Seq[String],

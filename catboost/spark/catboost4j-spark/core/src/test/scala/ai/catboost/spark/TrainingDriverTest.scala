@@ -19,11 +19,11 @@ class TrainingDriverTest {
     val workerCount = 5
 
     val expectedWorkersInfo = Array[WorkerInfo](
-        new WorkerInfo(0, "host0", 8082),
-        new WorkerInfo(1, "host1", 8083),
-        new WorkerInfo(2, "host2", 8084),
-        new WorkerInfo(3, "host3", 8085),
-        new WorkerInfo(4, "host4", 8086)
+        new WorkerInfo(0, 10, "host0", 8082),
+        new WorkerInfo(1, 20, "host1", 8083),
+        new WorkerInfo(2, 30, "host2", 8084),
+        new WorkerInfo(3, 40, "host3", 8085),
+        new WorkerInfo(4, 50, "host4", 8086)
     )
 
     val callback = {
@@ -38,9 +38,8 @@ class TrainingDriverTest {
     val trainingDriver : TrainingDriver = new TrainingDriver(
       listeningPort = 0,
       workerCount = workerCount,
-      fullTimeout = Duration(5, MINUTES),
       startMasterCallback = callback,
-      workerInitializationTimeout = Duration(10, SECONDS)
+      workerInitializationTimeout = java.time.Duration.ofSeconds(10)
     )
     val listeningPort = trainingDriver.getListeningPort
 
@@ -49,7 +48,7 @@ class TrainingDriverTest {
     val futures = new mutable.ArrayBuffer[Future[Unit]]()
     for (i <- 0 until workerCount) {
       val port = 8082 + i
-      val info = new WorkerInfo(i, s"host$i", port)
+      val info = new WorkerInfo(i, i*10 + 10, s"host$i", port)
 
       futures += Future {
         Thread.sleep(Duration(2, SECONDS).toMillis)
@@ -81,18 +80,18 @@ class TrainingDriverTest {
     val expectedWorkersInfoByTry = new mutable.ArrayBuffer[Array[WorkerInfo]]()
 
     expectedWorkersInfoByTry += Array[WorkerInfo](
-        new WorkerInfo(0, "host0", 8082),
-        new WorkerInfo(1, "host1", 8083),
-        new WorkerInfo(2, "host2", 8084),
-        new WorkerInfo(3, "host3", 8085),
-        new WorkerInfo(4, "host4", 8086)
+        new WorkerInfo(0, 10, "host0", 8082),
+        new WorkerInfo(1, 20, "host1", 8083),
+        new WorkerInfo(2, 30, "host2", 8084),
+        new WorkerInfo(3, 40, "host3", 8085),
+        new WorkerInfo(4, 50, "host4", 8086)
     )
     expectedWorkersInfoByTry += Array[WorkerInfo](
-        new WorkerInfo(0, "host90", 9091),
-        new WorkerInfo(1, "host1", 8083),
-        new WorkerInfo(2, "host2", 8084),
-        new WorkerInfo(3, "host3", 8085),
-        new WorkerInfo(4, "host4", 8086)
+        new WorkerInfo(0, 10, "host90", 9091),
+        new WorkerInfo(1, 20, "host1", 8083),
+        new WorkerInfo(2, 30, "host2", 8084),
+        new WorkerInfo(3, 40, "host3", 8085),
+        new WorkerInfo(4, 50, "host4", 8086)
     )
 
 
@@ -113,9 +112,8 @@ class TrainingDriverTest {
     val trainingDriver : TrainingDriver = new TrainingDriver(
       listeningPort = 0,
       workerCount = workerCount,
-      fullTimeout = Duration(5, MINUTES),
       startMasterCallback = callback,
-      workerInitializationTimeout = Duration(10, SECONDS)
+      workerInitializationTimeout = java.time.Duration.ofSeconds(10)
     )
     val listeningPort = trainingDriver.getListeningPort
 
@@ -124,7 +122,7 @@ class TrainingDriverTest {
     val futures = new mutable.ArrayBuffer[Future[Unit]]()
     for (i <- 0 until workerCount) {
       val port = 8082 + i
-      val info = new WorkerInfo(i, s"host$i", port)
+      val info = new WorkerInfo(i, i*10 + 10, s"host$i", port)
 
       futures += Future {
         Thread.sleep(Duration(2, SECONDS).toMillis)
@@ -151,7 +149,7 @@ class TrainingDriverTest {
     futures.clear()
     for (i <- 0 until 1) {
       val port = 9091 + i
-      val info = new WorkerInfo(i, s"host9$i", port)
+      val info = new WorkerInfo(i, i*10 + 10, s"host9$i", port)
 
       futures += Future {
           Thread.sleep(Duration(2, SECONDS).toMillis)

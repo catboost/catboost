@@ -24,6 +24,8 @@ class TVector {
     %typemap(javainterfaces) TVector<T> "java.util.RandomAccess,Serializable"
 
 public:
+    void yresize(size_t new_size);
+
     void reserve(size_t new_cap);
 
     %extend {

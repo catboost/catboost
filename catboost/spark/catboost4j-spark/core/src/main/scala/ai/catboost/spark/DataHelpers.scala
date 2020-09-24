@@ -1,11 +1,114 @@
 package ai.catboost.spark;
 
 import collection.mutable
+import collection.mutable.HashMap
+import collection.JavaConverters._
+
+import java.nio.file.{Files,Path}
 
 import org.apache.spark.ml.attribute._
-import org.apache.spark.sql.types.Metadata
+import org.apache.spark.ml.linalg._
+import org.apache.spark.ml.param._
+import org.apache.spark.sql._
+import org.apache.spark.sql.types._
 
 import ai.catboost.CatBoostError
+
+import ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl._
+
+
+object FeaturesColumnStorage {
+  def apply(quantizedFeaturesInfo: QuantizedFeaturesInfoPtr) : FeaturesColumnStorage = {
+    val ui8FeatureIndicesVec = new TVector_i32
+    val ui16FeatureIndicesVec = new TVector_i32
+
+    native_impl.GetActiveFloatFeaturesIndices(
+      quantizedFeaturesInfo,
+      ui8FeatureIndicesVec,
+      ui16FeatureIndicesVec
+    )
+
+    val ui8FeatureIndices = ui8FeatureIndicesVec.toPrimitiveArray
+    val ui16FeatureIndices = ui16FeatureIndicesVec.toPrimitiveArray
+
+    val buffersUi8 = new Array[TVector_i64](ui8FeatureIndices.length)
+    for (i <- 0 until ui8FeatureIndices.length) {
+      buffersUi8(i) = new TVector_i64
+    }
+    val buffersUi16 = new Array[TVector_i64](ui16FeatureIndices.length)
+    for (i <- 0 until ui16FeatureIndices.length) {
+      buffersUi16(i) = new TVector_i64
+    }
+
+    new FeaturesColumnStorage(
+      ui8FeatureIndices,
+      ui16FeatureIndices,
+      buffersUi8,
+      buffersUi16,
+      new Array[java.nio.ByteBuffer](ui8FeatureIndices.length),
+      new Array[java.nio.ByteBuffer](ui16FeatureIndices.length)
+    )
+  }
+}
+
+/**
+ * store quantized feature columns in C++'s TVectors<ui64> to be zero-copy passed to TQuantizedDataProvider
+ * expose their memory via JVM's java.nio.ByteBuffer.
+ * size grows dynamically by adding rows' features data
+ */
+class FeaturesColumnStorage (
+  val indicesUi8: Array[Int],
+  val indicesUi16: Array[Int],
+  val buffersUi8: Array[TVector_i64],
+  val buffersUi16: Array[TVector_i64],
+  var javaBuffersUi8: Array[java.nio.ByteBuffer],
+  var javaBuffersUi16: Array[java.nio.ByteBuffer],
+  var pos: Int = 0,
+  var bufferSize: Int = 0
+) {
+  def addRowFeatures(quantizedValues: Array[Byte]) = {
+    if (pos == bufferSize) {
+      realloc(if (bufferSize == 0) { 16000 } else { bufferSize * 2 })
+    }
+    val byteBuffer = java.nio.ByteBuffer.wrap(quantizedValues)
+    byteBuffer.order(java.nio.ByteOrder.nativeOrder)
+    for (i <- 0 until indicesUi8.length) {
+      javaBuffersUi8(i).put(pos, byteBuffer.get)
+    }
+    for (i <- 0 until indicesUi16.length) {
+      javaBuffersUi16(i).putShort(2 * pos, byteBuffer.getShort)
+    }
+
+    pos = pos + 1
+  }
+
+  private def ceilDiv(x: Int, y: Int) : Int = (x + y - 1) /  y
+
+  private def realloc(newSize: Int) = {
+    val sizeForUi8 = ceilDiv(newSize, 8)
+    val sizeForUi16 = ceilDiv(newSize, 4)
+    for (i <- 0 until indicesUi8.length) {
+      buffersUi8(i).yresize(sizeForUi8)
+      javaBuffersUi8(i) = buffersUi8(i).asDirectByteBuffer
+      javaBuffersUi8(i).order(java.nio.ByteOrder.nativeOrder)
+    }
+    for (i <- 0 until indicesUi16.length) {
+      buffersUi16(i).yresize(sizeForUi16)
+      javaBuffersUi16(i) = buffersUi16(i).asDirectByteBuffer
+      javaBuffersUi16(i).order(java.nio.ByteOrder.nativeOrder)
+    }
+  }
+
+  def addToVisitor(visitor: IQuantizedFeaturesDataVisitor) = {
+    for (i <- 0 until indicesUi8.length) {
+      visitor.AddFloatFeature(indicesUi8(i), pos, 8, buffersUi8(i))
+    }
+    for (i <- 0 until indicesUi16.length) {
+      visitor.AddFloatFeature(indicesUi16(i), pos, 16, buffersUi16(i))
+    }
+  }
+
+}
 
 
 object DataHelpers {
@@ -37,5 +140,299 @@ object DataHelpers {
     }.toArray
     val attrGroup = new AttributeGroup("userFeatures", attrs)
     attrGroup.toMetadata
+  }
+
+  def getClassNames(labelField: StructField) : TVector_TString = {
+    new TVector_TString
+  }
+
+  def getLabelCallback(
+    stringLabelData: TVector_TString,
+    floatLabelData: mutable.ArrayBuilder.ofFloat,
+    fieldIdx: Int,
+    schema: StructType
+  ) : (Row => Unit) = {
+    schema(fieldIdx).dataType match {
+      case DataTypes.IntegerType => {
+        row => {
+           floatLabelData += row.getAs[Int](fieldIdx).toFloat
+        }
+      }
+      case DataTypes.LongType => {
+        row => {
+           floatLabelData += row.getAs[Long](fieldIdx).toFloat
+        }
+      }
+      case DataTypes.FloatType => {
+        row => {
+           floatLabelData += row.getAs[Float](fieldIdx)
+        }
+      }
+      case DataTypes.DoubleType => {
+        row => {
+           floatLabelData += row.getAs[Double](fieldIdx).toFloat
+        }
+      }
+      case DataTypes.StringType => {
+        row => {
+           stringLabelData.add(row.getAs[String](fieldIdx))
+        }
+      }
+      case _ => throw new CatBoostError("Unsupported data type for Label")
+    }
+  }
+
+  def getFloatCallback(
+    floatData: mutable.ArrayBuilder.ofFloat,
+    fieldIdx: Int,
+    schema: StructType
+  ) : (Row => Unit) = {
+    schema(fieldIdx).dataType match {
+      case DataTypes.FloatType => {
+        row => {
+           floatData += row.getAs[Float](fieldIdx)
+        }
+      }
+      case DataTypes.DoubleType => {
+        row => {
+           floatData += row.getAs[Double](fieldIdx).toFloat
+        }
+      }
+      case _ => throw new CatBoostError("Unsupported data type for float column")
+    }
+  }
+
+
+  /**
+   * Create quantized data provider from iterating over DataFrame's Rows.
+   * @returns quantized data provider. type is TDataProviderPtr because that's generic interface that
+   *  clients (like training, prediction, feature quality estimators) accept
+   */
+  def loadQuantizedDataset(
+    quantizedFeaturesInfo: QuantizedFeaturesInfoPtr,
+    columnIndexMap: HashMap[String, Int], // column type -> idx in schema
+    dataMetaInfo: TIntermediateDataMetaInfo,
+    schema: StructType,
+    threadCount: Int,
+    rows: Iterator[Row]
+  ) : TDataProviderPtr = {
+
+    val callbacks = new mutable.ArrayBuffer[Row => Unit]
+    val postprocessingCallbacks = new mutable.ArrayBuffer[() => Unit]
+
+    val dataProviderBuilderOptions = new TDataProviderBuilderOptions
+
+    val dataProviderClosure = new TDataProviderClosureForJVM(
+      EDatasetVisitorType.QuantizedFeatures,
+      dataProviderBuilderOptions,
+      columnIndexMap.contains("features"),
+      threadCount
+    )
+    val visitor = dataProviderClosure.GetQuantizedVisitor
+    if (visitor == null) {
+      throw new CatBoostError("Failure to create IQuantizedFeaturesDataVisitor")
+    }
+
+    // Add column handlers
+
+    if (columnIndexMap.contains("features")) {
+      val fieldIdx = columnIndexMap("features")
+
+      val featuresColumnStorage = FeaturesColumnStorage(quantizedFeaturesInfo)
+
+      callbacks += {
+        row => {
+           featuresColumnStorage.addRowFeatures(row.getAs[Array[Byte]](fieldIdx))
+        }
+      }
+      postprocessingCallbacks += {
+        () => featuresColumnStorage.addToVisitor(visitor)
+      }
+    }
+
+
+    if (columnIndexMap.contains("label")) {
+      val fieldIdx = columnIndexMap("label")
+
+      val stringLabelData = new TVector_TString
+      val floatLabelData = new mutable.ArrayBuilder.ofFloat
+
+      callbacks += getLabelCallback(
+        stringLabelData,
+        floatLabelData,
+        fieldIdx,
+        schema
+      )
+      postprocessingCallbacks += {
+        () => dataMetaInfo.getTargetType match {
+          case ERawTargetType.Float | ERawTargetType.Integer =>
+            visitor.AddTarget(floatLabelData.result)
+          case ERawTargetType.String => visitor.AddTarget(stringLabelData)
+          case _ =>
+        }
+      }
+    }
+
+    if (columnIndexMap.contains("weight")) {
+      val fieldIdx = columnIndexMap("weight")
+      val weightData = new mutable.ArrayBuilder.ofFloat
+      callbacks += getFloatCallback(weightData, fieldIdx, schema)
+      postprocessingCallbacks += {
+        () => visitor.AddWeight(weightData.result)
+      }
+    }
+
+    if (columnIndexMap.contains("groupWeight")) {
+      val fieldIdx = columnIndexMap("groupWeight")
+      val groupWeightData = new mutable.ArrayBuilder.ofFloat
+      callbacks += getFloatCallback(groupWeightData, fieldIdx, schema)
+      postprocessingCallbacks += {
+        () => visitor.AddGroupWeight(groupWeightData.result)
+      }
+    }
+
+
+    if (columnIndexMap.contains("baseline")) {
+      val fieldIdx = columnIndexMap("baseline")
+      val baselineCount = dataMetaInfo.getBaselineCount.toInt
+      val baselineData = new Array[mutable.ArrayBuilder.ofFloat](baselineCount)
+      callbacks += {
+        row => {
+           val baselineRow = row.getAs[Vector](fieldIdx).toDense
+           for (i <- 0 until baselineCount) {
+             baselineData(i) += baselineRow(i).toFloat
+           }
+        }
+      }
+      postprocessingCallbacks += {
+        () => {
+          for (i <- 0 until baselineCount) {
+            visitor.AddBaseline(i, baselineData(i).result)
+          }
+        }
+      }
+    }
+
+    if (columnIndexMap.contains("groupId")) {
+      val fieldIdx = columnIndexMap("groupId")
+      val groupIdData = new mutable.ArrayBuilder.ofLong
+      callbacks += {
+        row => {
+          groupIdData += row.getAs[Long](fieldIdx)
+        }
+      }
+      postprocessingCallbacks += {
+        () => visitor.AddGroupId(groupIdData.result)
+      }
+    }
+
+    if (columnIndexMap.contains("subgroupId")) {
+      val fieldIdx = columnIndexMap("subgroupId")
+      val subgroupIdData = new mutable.ArrayBuilder.ofInt
+      callbacks += {
+        row => {
+          subgroupIdData += row.getAs[Int](fieldIdx)
+        }
+      }
+      postprocessingCallbacks += {
+        () => visitor.AddSubgroupId(subgroupIdData.result)
+      }
+    }
+
+    if (columnIndexMap.contains("timestamp")) {
+      val fieldIdx = columnIndexMap("timestamp")
+      val timestampData = new mutable.ArrayBuilder.ofLong
+      callbacks += {
+        row => {
+          timestampData += row.getAs[Long](fieldIdx)
+        }
+      }
+      postprocessingCallbacks += {
+        () => visitor.AddTimestamp(timestampData.result)
+      }
+    }
+
+    var objectCount = 0
+
+    rows.foreach {
+      row => {
+        callbacks.foreach(_(row))
+        objectCount = objectCount + 1
+      }
+    }
+
+    dataMetaInfo.setObjectCount(java.math.BigInteger.valueOf(objectCount))
+
+    visitor.Start(dataMetaInfo, objectCount, quantizedFeaturesInfo.__deref__)
+
+    postprocessingCallbacks.foreach(_())
+
+    visitor.Finish
+
+    dataProviderClosure.GetResult()
+  }
+
+
+  /**
+   * @returns (pool with columns for training, map of column type -> index in schema)
+   */
+  def selectColumnsForTrainingAndReturnIndex(
+    pool: Pool,
+    includeFeatures: Boolean
+  ) : (DataFrame, HashMap[String, Int]) = {
+    val columnTypesMap = new mutable.HashMap[String, Int]()
+
+    // Pool param name is columnTypeName + "Col"
+    val columnTypeNames = mutable.ArrayBuffer[String](
+      "label",
+      "weight",
+      "groupWeight",
+      "baseline",
+      "groupId",
+      "subgroupId",
+      "timestamp"
+    )
+    if (includeFeatures) {
+      columnTypeNames += "features"
+    }
+    var columnsList = new mutable.ArrayBuffer[String]()
+    var i = 0
+    for (columnTypeName <- columnTypeNames) {
+      val param = pool.getParam(columnTypeName + "Col").asInstanceOf[Param[String]]
+      if (pool.isDefined(param)) {
+        val paramValue = pool.getOrDefault(param)
+        columnsList += paramValue
+        columnTypesMap.update(paramValue, i)
+        i = i + 1
+      }
+    }
+
+    val dfWithColumnsForTraining = pool.data.select(columnsList.head, columnsList.tail: _*)
+    (dfWithColumnsForTraining, columnTypesMap)
+  }
+
+  def downloadQuantizedPoolToTempFile(
+    pool: Pool,
+    includeFeatures: Boolean,
+    threadCount: Int = 1,
+    tmpFilePrefix: String = null,
+    tmpFileSuffix: String = null
+  ) : Path = {
+    val (selectedDF, columnIndexMap) = selectColumnsForTrainingAndReturnIndex(pool, includeFeatures)
+
+    val dataProvider = loadQuantizedDataset(
+      pool.quantizedFeaturesInfo,
+      columnIndexMap,
+      pool.createDataMetaInfo,
+      selectedDF.schema,
+      threadCount,
+      selectedDF.toLocalIterator.asScala
+    )
+
+    val tmpFilePath = Files.createTempFile(tmpFilePrefix, tmpFileSuffix)
+    tmpFilePath.toFile.deleteOnExit
+
+    native_impl.SaveQuantizedPool(dataProvider, tmpFilePath.toString)
+    tmpFilePath
   }
 }

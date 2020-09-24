@@ -195,3 +195,24 @@ TQuantizedObjectsDataProviderPtr Quantize(
         &localExecutor
     );
 }
+
+void GetActiveFloatFeaturesIndices(
+    NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
+    TVector<i32>* ui8Indices,
+    TVector<i32>* ui16Indices
+) throw (yexception) {
+    const auto& featuresLayout = *(quantizedFeaturesInfo->GetFeaturesLayout());
+
+    ui8Indices->clear();
+    ui16Indices->clear();
+
+    featuresLayout.IterateOverAvailableFeatures<EFeatureType::Float>(
+        [&] (TFloatFeatureIdx idx) {
+            if (quantizedFeaturesInfo->GetBorders(idx).size() > 255) {
+                ui16Indices->push_back(SafeIntegerCast<i32>(*idx));
+            } else {
+                ui8Indices->push_back(SafeIntegerCast<i32>(*idx));
+            }
+        }
+    );
+}

@@ -6,8 +6,6 @@ import java.util.Arrays
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.{CancellationException,Executors,FutureTask}
 
-import scala.concurrent.duration._
-
 import ai.catboost.CatBoostError
 
 
@@ -30,6 +28,7 @@ class CatBoostWorkersConnectionLostException(message: String) extends IOExceptio
 
 class WorkerInfo (
   val partitionId : Int,
+  val partitionSize: Int,
   val host: String,
   val port: Int
 ) extends Serializable {
@@ -39,6 +38,7 @@ class WorkerInfo (
       false
     } else {
       partitionId.equals(rhsWorkerInfo.partitionId) &&
+      partitionSize.equals(rhsWorkerInfo.partitionSize) &&
       host.equals(rhsWorkerInfo.host) &&
       port.equals(rhsWorkerInfo.port)
     }
@@ -49,18 +49,15 @@ class WorkerInfo (
 class UpdatableWorkersInfo (
   private val workersInfo: Array[WorkerInfo],
   var workerRegistrationUpdatedSinceLastMasterStart : AtomicBoolean,
-  val serverSocket: ServerSocket,
-  private val fullTimeout: Duration
+  val serverSocket: ServerSocket
 ) extends Runnable with Closeable {
   def this(
     listeningPort: Int,
-    workerCount: Int,
-    fullTimeout: Duration
+    workerCount: Int
   ) = this(
     workersInfo = new Array[WorkerInfo](workerCount),
     workerRegistrationUpdatedSinceLastMasterStart = new AtomicBoolean(false),
-    serverSocket = new ServerSocket(listeningPort),
-    fullTimeout = fullTimeout
+    serverSocket = new ServerSocket(listeningPort)
   )
 
   private def acceptAndProcessWorkerInfo(callback : WorkerInfo => Unit) = {
@@ -82,7 +79,7 @@ class UpdatableWorkersInfo (
     }
   }
 
-  def initWorkers(workerInitializationTimeout: Duration) = {
+  def initWorkers(workerInitializationTimeout: java.time.Duration) = {
     serverSocket.setSoTimeout(workerInitializationTimeout.toMillis.toInt)
     try {
       var registeredWorkerCount: Int = 0
@@ -98,14 +95,14 @@ class UpdatableWorkersInfo (
       }
     } catch {
       case _: SocketTimeoutException => throw new CatBoostError(
-        s"Initial worker wait timeout of $workerInitializationTimeout expired"
+        s"Initial worker wait timeout of ${impl.TimeHelpers.format(workerInitializationTimeout)} expired"
       )
     }
   }
 
   def run() = {
     try {
-      serverSocket.setSoTimeout(fullTimeout.toMillis.toInt)
+      serverSocket.setSoTimeout(0)
 
       while (true) {
         acceptAndProcessWorkerInfo(
@@ -150,13 +147,12 @@ class UpdatableWorkersInfo (
  */
 class TrainingDriver (
   val updatableWorkersInfo: UpdatableWorkersInfo,
-  val workerInitializationTimeout: Duration,
+  val workerInitializationTimeout: java.time.Duration,
   val startMasterCallback: Array[WorkerInfo] => Unit
 ) extends Runnable {
 
   /**
    * @param listeningPort Port to listen for connections from workers. Pass 0 to autoassign (see ServerSocket constructor documentation)
-   *  @param fullTimeout Timeout for maximum wait for the whole training process
    *  @param workerCount How many workers == partitions participate in training
    *  @param startMasterCallback pass a routine to start CatBoost master process given WorkerInfos.
    * 		Throw CatBoostWorkersConnectionLostException if master failed due to loss of workers
@@ -165,11 +161,10 @@ class TrainingDriver (
   def this(
     listeningPort: Int,
     workerCount: Int,
-    fullTimeout: Duration,
     startMasterCallback: Array[WorkerInfo] => Unit,
-    workerInitializationTimeout: Duration = Duration(10, MINUTES)
+    workerInitializationTimeout: java.time.Duration = java.time.Duration.ofMinutes(10)
   ) = this(
-    updatableWorkersInfo = new UpdatableWorkersInfo(listeningPort, workerCount, fullTimeout),
+    updatableWorkersInfo = new UpdatableWorkersInfo(listeningPort, workerCount),
     workerInitializationTimeout = workerInitializationTimeout,
     startMasterCallback = startMasterCallback
   )
@@ -197,7 +192,7 @@ class TrainingDriver (
               if (!updatableWorkersInfo.workerRegistrationUpdatedSinceLastMasterStart.get()) {
                 throw new CatBoostError(
                   "Master won't be restarted - no relaunched workers after timeout " +
-                  s"$workerInitializationTimeout expired"
+                  s"${impl.TimeHelpers.format(workerInitializationTimeout)} expired"
                 )
               }
             }
@@ -214,5 +209,51 @@ class TrainingDriver (
     } finally {
       updatableWorkersInfo.close
     }
+  }
+}
+
+// use on workers
+object TrainingDriver {
+
+  /**
+   * @returns CatBoost worker port. There's a possibility that this port will be reuse before binding
+   *  in CatBoost code, in this case worker will fail and will be restarted
+   */
+  def getWorkerPortAndSendWorkerInfo(
+    trainingDriverListeningAddress: InetSocketAddress,
+    partitionId: Int,
+    partitionSize: Int
+  ) : Int = {
+    val socket = new Socket(
+      trainingDriverListeningAddress.getAddress,
+      trainingDriverListeningAddress.getPort
+    )
+
+    // used in socket now, will reuse to listen in CatBoost worker code
+    val localPort = socket.getLocalPort
+
+    val workerInfo = new WorkerInfo(
+      partitionId,
+      partitionSize,
+      socket.getLocalAddress.getHostAddress,
+      localPort
+    )
+    try {
+      val outputStream = socket.getOutputStream
+      try {
+        val objectOutputStream = new ObjectOutputStream(outputStream)
+        try {
+          objectOutputStream.writeUnshared(workerInfo)
+        } finally {
+          objectOutputStream.close
+        }
+      } finally {
+        outputStream.close
+      }
+    } finally {
+      socket.close
+    }
+
+    localPort
   }
 }

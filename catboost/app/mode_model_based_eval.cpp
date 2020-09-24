@@ -1,4 +1,4 @@
-#include "bind_options.h"
+#include <catboost/private/libs/app_helpers/bind_options.h>
 #include "modes.h"
 
 #include <catboost/private/libs/algo/helpers.h>

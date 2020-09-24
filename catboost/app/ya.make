@@ -5,7 +5,6 @@ DISABLE(USE_ASMLIB)
 
 
 SRCS(
-    bind_options.cpp
     main.cpp
     mode_calc.cpp
     mode_eval_metrics.cpp
@@ -25,7 +24,6 @@ SRCS(
 PEERDIR(
     catboost/private/libs/algo
     catboost/private/libs/app_helpers
-    catboost/libs/column_description
     catboost/libs/data
     catboost/private/libs/data_util
     catboost/private/libs/distributed
@@ -39,22 +37,11 @@ PEERDIR(
     catboost/libs/model/model_export
     catboost/private/libs/options
     catboost/private/libs/target
-    catboost/libs/train_lib
     library/cpp/getopt/small
-    library/cpp/grid_creator
     library/cpp/json
-    library/cpp/logger
     library/cpp/svnversion
-    library/cpp/text_processing/dictionary
     library/cpp/threading/local_executor
 )
-
-IF(HAVE_CUDA)
-    PEERDIR(
-        catboost/cuda/train_lib
-        catboost/libs/model/cuda
-    )
-ENDIF()
 
 GENERATE_ENUM_SERIALIZATION(model_metainfo_helpers.h)
 

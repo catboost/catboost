@@ -38,3 +38,5 @@ namespace NCB {
         virtual ~ILineDataReader() = default;
     };
 }
+
+

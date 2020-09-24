@@ -46,3 +46,4 @@ public:
 
     ADD_EQUALS_WITH_IMPL_AND_HASH_CODE_METHODS(TMaybe<T>)
 };
+

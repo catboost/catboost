@@ -47,6 +47,7 @@ object ParamGetterSetterMacro {
             case tq"IntParam" => tq"Int"
             case tq"LongParam" => tq"Long"
             case tq"StringArrayParam" => tq"Array[String]"
+            case tq"DurationParam" => tq"java.time.Duration"
             case _ => c.abort(
               c.enclosingPosition,
               s"Bad paramType: $paramType"

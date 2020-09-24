@@ -40,3 +40,9 @@ NCB::TQuantizedObjectsDataProviderPtr Quantize(
     int threadCount
 ) throw (yexception);
 
+
+void GetActiveFloatFeaturesIndices(
+    NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
+    TVector<i32>* ui8Indices,
+    TVector<i32>* ui16Indices
+) throw (yexception);

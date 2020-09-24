@@ -123,3 +123,4 @@ private:
     TRawDatasetRowsReaderVisitor* Visitor = nullptr;
     TIntermediateDataMetaInfo MetaInfo;
 };
+

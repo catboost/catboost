@@ -1,11 +1,5 @@
 package ai.catboost.spark;
 
-import collection.JavaConversions._
-import collection.JavaConverters._
-
-import java.util.{ArrayList,AbstractList,Arrays};
-
-import org.apache.spark.ml.attribute._
 import org.apache.spark.ml.linalg._;
 import org.apache.spark.sql._;
 import org.apache.spark.sql.catalyst.encoders.RowEncoder;
