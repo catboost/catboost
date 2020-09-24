@@ -40,7 +40,6 @@ enum LFQMode : int {
 //                   it is TCounter class responsibility to check validity of passed object
 template <class T, class TCounter, int memMode>
 class TLockFreeQueue: public TNonCopyable {
-protected:
     struct TListNode {
         template <typename U>
         TListNode(U&& u, TListNode* next)
@@ -77,7 +76,7 @@ protected:
             *(TCounter*)this = *(TCounter*)x;
         }
     };
-private:
+
     static void EraseList(TListNode* n) {
         while (n) {
             TListNode* keepNext = AtomicGet(n->Next);
