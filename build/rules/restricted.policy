@@ -61,7 +61,7 @@ ALLOW smart_devices/tools/launcher2 -> contrib/restricted/spdlog
 
 ALLOW contrib/libs/webrtc -> contrib/restricted/abseil-cpp
 ALLOW contrib/libs/ortools -> contrib/restricted/abseil-cpp
-ALLOW contrib/libs/tf_1_14 -> contrib/restricted/abseil-cpp
+ALLOW contrib/libs/tf-1.14 -> contrib/restricted/abseil-cpp-tstring
 
 # http-parser is a low-level parser for http bytestream.
 # Consider using high-level alternatives.
