@@ -1,9 +1,11 @@
+from __future__ import absolute_import
 import os
 import re
 import shutil
 import subprocess
 import sys
 import tempfile
+from six.moves import range
 
 
 OUT_DIR_FALG_PATTERN = re.compile('^(--go\w+=)')
@@ -39,8 +41,7 @@ def main(arcadia_prefix, contrib_prefix, proto_namespace, args):
     try:
         subprocess.check_output(args, stdin=None, stderr=subprocess.STDOUT)
     except subprocess.CalledProcessError as e:
-        print >>sys.stderr, '{} returned non-zero exit code {}. stop.'.format(' '.join(e.cmd), e.returncode)
-        print >>sys.stderr, e.output
+        sys.stderr.write('{} returned non-zero exit code {}.\n{}\n'.format(' '.join(e.cmd), e.returncode, e.output))
         return e.returncode
 
     # All Arcadia GO projects should have 'a.yandex-team.ru/' namespace prefix.
