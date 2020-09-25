@@ -174,6 +174,7 @@ ALLOW maps -> maps
 ALLOW sandbox/projects/maps -> maps
 ALLOW sandbox/projects/mapsearch -> maps
 ALLOW sandbox/projects/masstransit -> maps
+ALLOW sprav/altay/panorama -> maps/streetview/libs
 ALLOW yql/udfs/maps -> maps
 
 # Do not allow PEERDIRs into maps unless such PEERDIRs have be explicitly allowed above
