@@ -49,7 +49,7 @@ class ArcadiaMetadataFinder(DistributionFinder):
             cls._init_prefixes()
 
         if name:
-            yield cls.prefixes[name]
+            yield cls.prefixes[name.replace('-', '_')]
         else:
             for prefix in sorted(set(cls.prefixes.values())):
                 yield prefix
