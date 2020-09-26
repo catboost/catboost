@@ -104,9 +104,9 @@ class _EnumDict(dict):
                 # enum overwriting a descriptor?
                 raise TypeError('%r already defined as: %r' % (key, self[key]))
             if isinstance(value, auto):
-                self._auto_called = True
                 if value.value == _auto_null:
                     value.value = self._generate_next_value(key, 1, len(self._member_names), self._last_values[:])
+                    self._auto_called = True
                 value = value.value
             self._member_names.append(key)
             self._last_values.append(value)
@@ -123,10 +123,12 @@ class EnumMeta(type):
     """Metaclass for Enum"""
     @classmethod
     def __prepare__(metacls, cls, bases):
+        # check that previous enum members do not exist
+        metacls._check_for_existing_members(cls, bases)
         # create the namespace dict
         enum_dict = _EnumDict()
         # inherit previous flags and _generate_next_value_ function
-        member_type, first_enum = metacls._get_mixins_(bases)
+        member_type, first_enum = metacls._get_mixins_(cls, bases)
         if first_enum is not None:
             enum_dict['_generate_next_value_'] = getattr(first_enum, '_generate_next_value_', None)
         return enum_dict
@@ -142,7 +144,7 @@ class EnumMeta(type):
         ignore = classdict['_ignore_']
         for key in ignore:
             classdict.pop(key, None)
-        member_type, first_enum = metacls._get_mixins_(bases)
+        member_type, first_enum = metacls._get_mixins_(cls, bases)
         __new__, save_new, use_args = metacls._find_new_(classdict, member_type,
                                                         first_enum)
 
@@ -249,7 +251,11 @@ class EnumMeta(type):
 
         # double check that repr and friends are not the mixin's or various
         # things break (such as pickle)
+        # however, if the method is defined in the Enum itself, don't replace
+        # it
         for name in ('__repr__', '__str__', '__format__', '__reduce_ex__'):
+            if name in classdict:
+                continue
             class_method = getattr(enum_class, name)
             obj_method = getattr(member_type, name, None)
             enum_method = getattr(first_enum, name, None)
@@ -397,7 +403,7 @@ class EnumMeta(type):
         """
         metacls = cls.__class__
         bases = (cls, ) if type is None else (type, cls)
-        _, first_enum = cls._get_mixins_(bases)
+        _, first_enum = cls._get_mixins_(cls, bases)
         classdict = metacls.__prepare__(class_name, bases)
 
         # special processing needed for names?
@@ -476,7 +482,14 @@ class EnumMeta(type):
         return cls._convert_(*args, **kwargs)
 
     @staticmethod
-    def _get_mixins_(bases):
+    def _check_for_existing_members(class_name, bases):
+        for chain in bases:
+            for base in chain.__mro__:
+                if issubclass(base, Enum) and base._member_names_:
+                    raise TypeError("%s: cannot extend enumeration %r" % (class_name, base.__name__))
+
+    @staticmethod
+    def _get_mixins_(class_name, bases):
         """Returns the type for creating enum members, and the first inherited
         enum class.
 
@@ -487,14 +500,25 @@ class EnumMeta(type):
             return object, Enum
 
         def _find_data_type(bases):
+            data_types = []
             for chain in bases:
+                candidate = None
                 for base in chain.__mro__:
                     if base is object:
                         continue
                     elif '__new__' in base.__dict__:
                         if issubclass(base, Enum):
                             continue
-                        return base
+                        data_types.append(candidate or base)
+                        break
+                    elif not issubclass(base, Enum):
+                        candidate = base
+            if len(data_types) > 1:
+                raise TypeError('%r: too many data types: %r' % (class_name, data_types))
+            elif data_types:
+                return data_types[0]
+            else:
+                return None
 
         # ensure final parent class is an Enum derivative, find any concrete
         # data type, and check that Enum has no members
@@ -610,7 +634,7 @@ class Enum(metaclass=EnumMeta):
 
     @classmethod
     def _missing_(cls, value):
-        raise ValueError("%r is not a valid %s" % (value, cls.__name__))
+        return None
 
     def __repr__(self):
         return "<%s.%s: %r>" % (
@@ -633,8 +657,9 @@ class Enum(metaclass=EnumMeta):
         # we can get strange results with the Enum name showing up instead of
         # the value
 
-        # pure Enum branch
-        if self._member_type_ is object:
+        # pure Enum branch, or branch with __str__ explicitly overridden
+        str_overridden = type(self).__str__ != Enum.__str__
+        if self._member_type_ is object or str_overridden:
             cls = str
             val = str(self)
         # mix-in branch
