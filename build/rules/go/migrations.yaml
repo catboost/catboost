@@ -94,7 +94,7 @@ migrations:
       - a.yandex-team.ru/rtline/services/drive/frontend/database/drive/proto
       - a.yandex-team.ru/rtline/services/drive/frontend/proto
       - a.yandex-team.ru/rtline/services/drive/frontend/support_center/feedback/proto
-      - a.yandex-team.ru/rtline/services/drive/library/weather/proto
+      - a.yandex-team.ru/drive/library/cpp/weather/proto
       - a.yandex-team.ru/drive/telematics/protocol/proto
       - a.yandex-team.ru/drive/telematics/server/location/proto
       - a.yandex-team.ru/rtmapreduce/tools/sli/proto
