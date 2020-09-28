@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import argparse
 import copy
 import json
@@ -8,6 +9,8 @@ import subprocess
 import sys
 import tempfile
 import threading
+import six
+from functools import reduce
 
 arc_project_prefix = 'a.yandex-team.ru/'
 std_lib_prefix = 'contrib/go/_std/src/'
@@ -36,7 +39,7 @@ def preprocess_args(args):
     # Temporary work around for noauto
     if args.cgo_srcs and len(args.cgo_srcs) > 0:
         cgo_srcs_set = set(args.cgo_srcs)
-        args.srcs = list(filter(lambda x: x not in cgo_srcs_set, args.srcs))
+        args.srcs = [x for x in args.srcs if x not in cgo_srcs_set]
 
     args.pkg_root = os.path.join(args.toolchain_root, 'pkg')
     toolchain_tool_root = os.path.join(args.pkg_root, 'tool', '{}_{}'.format(args.host_os, args.host_arch))
@@ -143,22 +146,22 @@ def get_import_path(module_path):
 
 
 def call(cmd, cwd, env=None):
-    # print >>sys.stderr, ' '.join(cmd)
+    # sys.stderr.write('{}\n'.format(' '.join(cmd)))
     return subprocess.check_output(cmd, stdin=None, stderr=subprocess.STDOUT, cwd=cwd, env=env)
 
 
 def classify_srcs(srcs, args):
-    args.go_srcs = list(filter(lambda x: x.endswith('.go'), srcs))
-    args.asm_srcs = list(filter(lambda x: x.endswith('.s'), srcs))
-    args.objects = list(filter(lambda x: x.endswith('.o') or x.endswith('.obj'), srcs))
-    args.symabis = list(filter(lambda x: x.endswith('.symabis'), srcs))
-    args.sysos = list(filter(lambda x: x.endswith('.syso'), srcs))
+    args.go_srcs = [x for x in srcs if x.endswith('.go')]
+    args.asm_srcs = [x for x in srcs if x.endswith('.s')]
+    args.objects = [x for x in srcs if x.endswith('.o') or x.endswith('.obj')]
+    args.symabis = [x for x in srcs if x.endswith('.symabis')]
+    args.sysos = [x for x in srcs if x.endswith('.syso')]
 
 
 def get_import_config_info(peers, gen_importmap, import_map={}, module_map={}):
     info = {'importmap': [], 'packagefile': [], 'standard': {}}
     if gen_importmap:
-        for key, value in import_map.items():
+        for key, value in six.iteritems(import_map):
             info['importmap'].append((key, value))
     for peer in peers:
         peer_import_path, is_std = get_import_path(os.path.dirname(peer))
@@ -170,7 +173,7 @@ def get_import_config_info(peers, gen_importmap, import_map={}, module_map={}):
         info['packagefile'].append((peer_import_path, os.path.join(args.build_root, peer)))
         if is_std:
             info['standard'][peer_import_path] = True
-    for key, value in module_map.items():
+    for key, value in six.iteritems(module_map):
         info['packagefile'].append((key, value))
     return info
 
@@ -184,7 +187,7 @@ def create_import_config(peers, gen_importmap, import_map={}, module_map={}):
     if len(lines) > 0:
         lines.append('')
         content = '\n'.join(lines)
-        # print >>sys.stderr, content
+        # sys.stderr.writelines('{}\n'.format(l) for l in lines)
         with tempfile.NamedTemporaryFile(delete=False) as f:
             f.write(content)
             return f.name
@@ -221,8 +224,8 @@ def gen_vet_info(args):
         'Compiler': 'gc',
         'Dir': os.path.join(args.source_root, get_source_path(args)),
         'ImportPath': import_path,
-        'GoFiles': list(filter(lambda x: x.endswith('.go'), args.go_srcs)),
-        'NonGoFiles': list(filter(lambda x: not x.endswith('.go'), args.go_srcs)),
+        'GoFiles': [x for x in args.go_srcs if x.endswith('.go')],
+        'NonGoFiles': [x for x in args.go_srcs if not x.endswith('.go')],
         'ImportMap': import_map,
         'PackageFile': dict(info['packagefile']),
         'Standard': dict(info['standard']),
@@ -231,7 +234,7 @@ def gen_vet_info(args):
         'VetxOutput': vet_info_output_name(args.output),
         'SucceedOnTypecheckFailure': False
     }
-    # print >>sys.stderr, json.dumps(data, indent=4)
+    # sys.stderr.write('{}\n'.format(json.dumps(data, indent=4)))
     return data
 
 
@@ -250,8 +253,8 @@ def decode_vet_report(json_report):
             report = json_report
         else:
             messages = []
-            for _, module_diags in full_diags.iteritems():
-                for _, type_diags in module_diags.iteritems():
+            for _, module_diags in six.iteritems(full_diags):
+                for _, type_diags in six.iteritems(module_diags):
                      for diag in type_diags:
                          messages.append(u'{}: {}'.format(diag['posn'], diag['message']))
             report = '\n'.join(sorted(messages)).encode('UTF-8')
@@ -277,7 +280,7 @@ def read_vet_report(args):
 
 
 def dump_vet_report_for_tests(args, *test_args_list):
-    dump_vet_report(args, reduce(lambda x, y: x + read_vet_report(y), filter(None, test_args_list), ''))
+    dump_vet_report(args, reduce(lambda x, y: x + read_vet_report(y), [_f for _f in test_args_list if _f], ''))
 
 
 def do_vet(args):
@@ -288,7 +291,7 @@ def do_vet(args):
     if args.vet_flags:
         cmd.extend(args.vet_flags)
     cmd.append(vet_config)
-    # print >>sys.stderr, '>>>> [{}]'.format(' '.join(cmd))
+    # sys.stderr.write('>>>> [{}]\n'.format(' '.join(cmd)))
     p_vet = subprocess.Popen(cmd, stdin=None, stderr=subprocess.PIPE, stdout=subprocess.PIPE, cwd=args.source_root)
     vet_out, vet_err = p_vet.communicate()
     report = decode_vet_report(vet_out) if vet_out else ''
@@ -338,7 +341,7 @@ def _do_compile_go(args):
             cmd.extend(x for x in args.compile_flags if x not in COMPILE_OPTIMIZATION_FLAGS)
         else:
             cmd.extend(args.compile_flags)
-        if any(map(lambda x: x in ('-race', '-shared'), args.compile_flags)):
+        if any([x in ('-race', '-shared') for x in args.compile_flags]):
             compile_workers = '1'
     cmd += ['-pack', '-c={}'.format(compile_workers)]
     cmd += args.go_srcs
@@ -360,7 +363,7 @@ class VetThread(threading.Thread):
     def join_with_exception(self, reraise_exception):
         self.join()
         if reraise_exception and self.exc_info:
-            raise self.exc_info[0], self.exc_info[1], self.exc_info[2]
+            six.reraise(self.exc_info[0], self.exc_info[1], self.exc_info[2])
 
 
 def do_compile_go(args):
@@ -416,7 +419,7 @@ def do_link_exe(args):
 
     if args.vcs and os.path.isfile(compile_args.vcs):
         build_info = os.path.join('library', 'go', 'core', 'buildinfo')
-        if any(map(lambda x: x.startswith(build_info), compile_args.peers)):
+        if any([x.startswith(build_info) for x in compile_args.peers]):
             compile_args.go_srcs.append(compile_args.vcs)
 
     do_link_lib(compile_args)
@@ -437,12 +440,12 @@ def do_link_exe(args):
 
     extldflags = []
     if args.extldflags is not None:
-        filter_musl = None
+        filter_musl = bool
         if args.musl:
             cmd.append('-linkmode=external')
             extldflags.append('-static')
             filter_musl = lambda x: not x in ('-lc', '-ldl', '-lm', '-lpthread', '-lrt')
-        extldflags += list(filter(filter_musl, args.extldflags))
+        extldflags += [x for x in args.extldflags if filter_musl(x)]
     cgo_peers = []
     if args.cgo_peers is not None and len(args.cgo_peers) > 0:
         is_group = args.targ_os == 'linux'
@@ -551,7 +554,7 @@ def gen_test_main(args, test_lib_args, xtest_lib_args):
         os.makedirs(os.path.join(test_src_dir, test_module_path))
         os_symlink(test_lib_args.output, os.path.join(test_pkg_dir, os.path.basename(test_module_path) + '.a'))
         cmd = [test_miner, '-benchmarks', '-tests', test_module_path]
-        tests = filter(lambda x: len(x) > 0, (call(cmd, test_lib_args.output_root, my_env) or '').strip().split('\n'))
+        tests = [x for x in (call(cmd, test_lib_args.output_root, my_env) or '').strip().split('\n') if len(x) > 0]
         if args.skip_tests:
             tests = filter_out_skip_tests(tests, args.skip_tests)
     test_main_found = '#TestMain' in tests
@@ -562,7 +565,7 @@ def gen_test_main(args, test_lib_args, xtest_lib_args):
         os.makedirs(os.path.join(test_src_dir, xtest_module_path))
         os_symlink(xtest_lib_args.output, os.path.join(test_pkg_dir, os.path.basename(xtest_module_path) + '.a'))
         cmd = [test_miner, '-benchmarks', '-tests', xtest_module_path]
-        xtests = filter(lambda x: len(x) > 0, (call(cmd, xtest_lib_args.output_root, my_env) or '').strip().split('\n'))
+        xtests = [x for x in (call(cmd, xtest_lib_args.output_root, my_env) or '').strip().split('\n') if len(x) > 0]
         if args.skip_tests:
             xtests = filter_out_skip_tests(xtests, args.skip_tests)
     xtest_main_found = '#TestMain' in xtests
@@ -598,9 +601,9 @@ def gen_test_main(args, test_lib_args, xtest_lib_args):
 
     for kind in ['Test', 'Benchmark', 'Example']:
         lines.append('var {}s = []testing.Internal{}{{'.format(kind.lower(), kind))
-        for test in list(filter(lambda x: x.startswith(kind), tests)):
+        for test in [x for x in tests if x.startswith(kind)]:
             lines.append('    {{"{test}", _test.{test}}},'.format(test=test))
-        for test in list(filter(lambda x: x.startswith(kind), xtests)):
+        for test in [x for x in xtests if x.startswith(kind)]:
             lines.append('    {{"{test}", _xtest.{test}}},'.format(test=test))
         lines.extend(['}', ''])
 
@@ -629,7 +632,7 @@ def gen_test_main(args, test_lib_args, xtest_lib_args):
     lines.extend(['}', ''])
 
     content = '\n'.join(lines)
-    # print >>sys.stderr, content
+    # sys.stderr.write('{}\n'.format(content))
     return content
 
 
@@ -783,11 +786,10 @@ if __name__ == '__main__':
         dispatch[args.mode](args)
         exit_code = 0
     except KeyError:
-        print >>sys.stderr, 'Unknown build mode [{}]...'.format(args.mode)
+        sys.stderr.write('Unknown build mode [{}]...\n'.format(args.mode))
     except subprocess.CalledProcessError as e:
-        print >>sys.stderr, '{} returned non-zero exit code {}. stop.'.format(' '.join(e.cmd), e.returncode)
-        print >>sys.stderr, e.output
+        sys.stderr.write('{} returned non-zero exit code {}.\n{}\n'.format(' '.join(e.cmd), e.returncode, e.output))
         exit_code = e.returncode
     except Exception as e:
-       print >>sys.stderr, "Unhandled exception [{}]...".format(str(e))
+        sys.stderr.write('Unhandled exception [{}]...\n'.format(str(e)))
     sys.exit(exit_code)
