@@ -7,7 +7,6 @@
 #include <util/system/compiler.h>
 #include <util/system/file.h>
 #include <util/system/fs.h>
-#include <util/system/platform.h>
 
 struct TFsPath::TSplit: public TAtomicRefCount<TSplit>, public TPathSplit {
     inline TSplit(const TStringBuf path)
