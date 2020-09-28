@@ -400,6 +400,9 @@ Y_UNIT_TEST_SUITE(TCastTest) {
         UNIT_ASSERT_VALUES_EQUAL(TryFromStringWithDefault("100q500", res), false);
         UNIT_ASSERT_VALUES_EQUAL(res, size_t());
 
+        UNIT_ASSERT_VALUES_EQUAL(TryFromStringWithDefault("100 500", res), false);
+        UNIT_ASSERT_VALUES_EQUAL(res, size_t());
+
         UNIT_CHECK_GENERATED_NO_EXCEPTION(FromStringWithDefault(s2, def1), yexception);
         UNIT_CHECK_GENERATED_NO_EXCEPTION(FromStringWithDefault("100q500", def1), yexception);
         UNIT_ASSERT_VALUES_EQUAL(FromStringWithDefault(s2, def1), def1);
