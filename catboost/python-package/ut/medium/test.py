@@ -4465,7 +4465,7 @@ class TestInvalidCustomLossAndMetric(object):
         pass
 
     def test_loss_good_metric_none(self):
-        with pytest.raises(CatBoostError, match='metric is not defined|No metrics specified'):
+        with pytest.raises(CatBoostError, match='If loss function is a user defined object, then the eval metric must be specified'):
             model = CatBoost({"loss_function": self.GoodCustomLoss(), "iterations": 2})
             prng = np.random.RandomState(seed=20181219)
             pool = Pool(*random_xy(10, 5, prng=prng))
@@ -6581,14 +6581,52 @@ def test_compute_options():
     return local_canonical_file(options_file_name)
 
 
-def test_feature_statistics():
+COMBINATION_TYPES = [
+    'no',
+    'init_model_same_loss',
+    'init_model_different_losses',
+    'sum_models_same_loss',
+    'sum_models_different_losses'
+]
+
+
+@pytest.mark.parametrize(
+    'combination',
+    COMBINATION_TYPES,
+    ids=['combination=%s' % combination for combination in COMBINATION_TYPES]
+)
+def test_feature_statistics(combination):
     n_features = 3
     n_samples = 500
     np.random.seed(42)
     X = np.random.rand(n_samples, n_features)
     y = np.random.rand(n_samples)
-    model = CatBoostRegressor(iterations=200)
-    model.fit(X, y, silent=True)
+
+    if combination == 'no':
+        model = CatBoostRegressor(iterations=200)
+        model.fit(X, y, silent=True)
+    elif combination == 'init_model_same_loss':
+        init_model = CatBoostRegressor(iterations=100)
+        init_model.fit(X, y, silent=True)
+        model = CatBoostRegressor(iterations=100)
+        model.fit(X, y, silent=True, init_model=init_model)
+    elif combination == 'init_model_different_losses':
+        init_model = CatBoostRegressor(iterations=50, loss_function='Lq:q=3')
+        init_model.fit(X, y, silent=True)
+        model = CatBoostRegressor(iterations=120)
+        model.fit(X, y, silent=True, init_model=init_model)
+    elif combination == 'sum_models_same_loss':
+        model0 = CatBoostRegressor(iterations=100)
+        model0.fit(X, y, silent=True)
+        model1 = CatBoostRegressor(iterations=100)
+        model1.fit(X, y, silent=True)
+        model = sum_models([model0, model1])
+    else:  # combination == 'sum_models_different_losses'
+        model0 = CatBoostRegressor(iterations=50, loss_function='Lq:q=3')
+        model0.fit(X, y, silent=True)
+        model1 = CatBoostRegressor(iterations=120)
+        model1.fit(X, y, silent=True)
+        model = sum_models([model0, model1])
 
     feature_num = 0
     res = model.calc_feature_statistics(X, y, feature_num, plot=False)
