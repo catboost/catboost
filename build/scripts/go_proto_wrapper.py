@@ -53,6 +53,20 @@ def main(arcadia_prefix, contrib_prefix, proto_namespace, args):
         out_dir_src = out_dir_temp
         out_dir_dst = os.path.join(out_dir_orig, contrib_prefix)
 
+    if not os.path.exists(out_dir_dst):
+        proto_list = []
+        option_re = re.compile('^\s*option\s+go_package\s*=\s*')
+        for arg in [x for x in args if x.endswith('.proto')]:
+            with open(arg, 'r') as f:
+                if not any([re.match(option_re, line) for line in f]):
+                    proto_list.append(arg)
+        if proto_list:
+            sys.stderr.write(
+                '\nError: Option go_package is not specified in the following proto files: {}\n'
+                '\nNOTE! You can find detailed description of how to properly set go_package '
+                'option here https://wiki.yandex-team.ru/devrules/Go/#protobufigrpc'.format(', '.join(proto_list)))
+            return 1
+
     move_tree(out_dir_src, out_dir_dst)
 
     shutil.rmtree(out_dir_temp)
