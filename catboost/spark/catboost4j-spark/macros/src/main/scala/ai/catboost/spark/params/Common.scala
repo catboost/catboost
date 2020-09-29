@@ -39,6 +39,15 @@ object ParamGetterSetterMacro {
               }
               typeList(0)
             }
+            case tq"OrderedStringMapParam[..$typeList]" => {
+              if (typeList.size != 1) {
+                c.abort(
+                  c.enclosingPosition,
+                  s"OrderedStringMapParam must have one type parameter"
+                )
+              }
+              tq"java.util.LinkedHashMap[String, ${typeList(0)}]"
+            }
             case tq"BooleanParam" => tq"Boolean"
             case tq"DoubleArrayParam" => tq"Array[Double]"
             case tq"DoubleParam" => tq"Double"

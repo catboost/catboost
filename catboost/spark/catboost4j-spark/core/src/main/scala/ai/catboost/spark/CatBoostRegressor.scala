@@ -44,7 +44,8 @@ class CatBoostRegressionModel (
 
 class CatBoostRegressor (override val uid: String)
   extends CatBoostRegressorBase[Vector, CatBoostRegressor, CatBoostRegressionModel]
-    with CatBoostPredictorTrait[CatBoostRegressor, CatBoostRegressionModel, RegressorTrainingParamsTrait]
+    with CatBoostPredictorTrait[CatBoostRegressor, CatBoostRegressionModel]
+    with RegressorTrainingParamsTrait
 {
   def this() = this(Identifiable.randomUID("CatBoostRegressor"))
 

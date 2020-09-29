@@ -213,3 +213,43 @@ void ConvertFeaturesToEvaluateFromStringToIndices(const NCatboostOptions::TPoolL
             &(*catBoostJsonOptions)["features_to_evaluate"]);
     }
 }
+
+static const TStringBuf FEATURE_NAMES_DEPENDENT_KEYS[] = {
+    AsStringBuf("features_to_evaluate"),
+    AsStringBuf("ignored_features"),
+    AsStringBuf("monotone_constraints"),
+    AsStringBuf("penalties")
+};
+
+
+NJson::TJsonValue ExtractFeatureNamesDependentParams(NJson::TJsonValue* catBoostJsonOptions) {
+    NJson::TJsonValue result(NJson::EJsonValueType::JSON_MAP);
+    auto& treeOptionsMap = (*catBoostJsonOptions)["tree_learner_options"].GetMapSafe();
+
+    auto& resultTreeOptions = result["tree_learner_options"];
+    resultTreeOptions.SetType(NJson::EJsonValueType::JSON_MAP);
+
+    for (const auto& key : FEATURE_NAMES_DEPENDENT_KEYS) {
+        auto it = treeOptionsMap.find(key);
+        if (it != treeOptionsMap.end()) {
+            resultTreeOptions.InsertValue(key, it->second);
+            treeOptionsMap.erase(it);
+        }
+    }
+
+    return result;
+}
+
+// feature names - dependent params are added to catBoostJsonOptions
+void AddFeatureNamesDependentParams(const NJson::TJsonValue& featureNamesDependentOptions, NJson::TJsonValue* catBoostJsonOptions) {
+    const auto& treeOptionsMap = featureNamesDependentOptions["tree_learner_options"].GetMapSafe();
+    auto& resultTreeOptionsMap = (*catBoostJsonOptions)["tree_learner_options"].GetMapSafe();
+
+    for (const auto& key : FEATURE_NAMES_DEPENDENT_KEYS) {
+        auto it = treeOptionsMap.find(key);
+        if (it != treeOptionsMap.end()) {
+            resultTreeOptionsMap.insert(*it);
+        }
+    }
+}
+

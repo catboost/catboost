@@ -27,6 +27,4 @@ trait ThreadCountParams extends Params {
     "threadCount",
     "Number of CPU threads in parallel operations on client"
   )
-
-  setDefault(threadCount, 10)
 }

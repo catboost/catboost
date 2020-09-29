@@ -1076,7 +1076,13 @@ void TrainModel(
     const NJson::TJsonValue& trainJson
 ) {
     THPTimer runTimer;
-    auto catBoostOptions = NCatboostOptions::LoadOptions(trainJson);
+
+    NJson::TJsonValue updatedTrainJson = trainJson;
+
+    // Load data first to obtain feature names to indices mapping
+    NJson::TJsonValue featureNamesDependentParams = ExtractFeatureNamesDependentParams(&updatedTrainJson);
+
+    auto catBoostOptions = NCatboostOptions::LoadOptions(updatedTrainJson);
 
     TSetLogging inThisScope(catBoostOptions.LoggingLevel);
 
@@ -1173,8 +1179,9 @@ void TrainModel(
     }
     TVector<TEvalResult> evalResults(pools.Test.ysize());
 
-    NJson::TJsonValue updatedTrainJson = trainJson;
     UpdateUndefinedClassLabels(classLabels, &updatedTrainJson);
+    ConvertParamsToCanonicalFormat(pools.Learn->MetaInfo, &featureNamesDependentParams);
+    AddFeatureNamesDependentParams(featureNamesDependentParams, &updatedTrainJson);
 
     // create here to possibly load borders
     auto quantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(

@@ -60,11 +60,28 @@ class CatBoostClassificationModel (
 
 class CatBoostClassifier (override val uid: String)
   extends ProbabilisticClassifier[Vector, CatBoostClassifier, CatBoostClassificationModel]
-    with CatBoostPredictorTrait[CatBoostClassifier, CatBoostClassificationModel, ClassifierTrainingParamsTrait]
+    with CatBoostPredictorTrait[CatBoostClassifier, CatBoostClassificationModel]
+    with ClassifierTrainingParamsTrait
 {
   def this() = this(Identifiable.randomUID("CatBoostClassifier"))
 
   override def copy(extra: ParamMap): CatBoostClassifier = defaultCopy(extra)
+  
+  protected override def preprocessBeforeTraining(
+    quantizedTrainPool: Pool,
+    quantizedTestPools: Array[Pool]
+  ) : (Pool, Array[Pool]) = {
+    if (!isDefined(lossFunction)) {
+      if (isDefined(targetBorder)) {
+        set(lossFunction, "Logloss")
+      } else {
+        val distinctLabelValuesCount = quantizedTrainPool.data.select(getLabelCol).distinct.count
+        set(lossFunction, if (distinctLabelValuesCount > 2) "MultiClass" else "Logloss")
+      }
+    }
+    
+    (quantizedTrainPool, quantizedTestPools)
+  }
 
   protected override def createModel(nativeModel: native_impl.TFullModel): CatBoostClassificationModel = {
     new CatBoostClassificationModel(nativeModel)
