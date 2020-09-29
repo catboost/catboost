@@ -1028,6 +1028,7 @@ void TCalcScoreFold::UpdateIndicesInLeafwiseSortedFold(
     LeavesCount += leafs.size();
     LeavesBounds.resize(LeavesCount);
 /*    localExecutor->ExecRange([&] (int idx) {*/
+    // TODO: nested parallelizm
         for(unsigned long idx = 0; idx < leafs.size(); ++idx) {
             auto leaf = leafs[idx];
             auto leftChild = childs[idx * 2];
