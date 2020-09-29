@@ -770,7 +770,6 @@ static void CalcBestScoreLeafwise(
         }
     }
 
-//std::cout << "tasks.ysize(): " << tasks.ysize() << "\n";
     ctx->LocalExecutor->ExecRange(
         [&] (int taskIdx) {
             TCandidatesContext& candidatesContext = (*candidatesContexts)[tasks[taskIdx].first];
@@ -782,7 +781,6 @@ static void CalcBestScoreLeafwise(
 
             // Calc online ctr if needed
             if (splitEnsemble.IsSplitOfType(ESplitType::OnlineCtr)) {
-//std::cout << "\n!!!!!!!!!!!!!!!!!!!!!!!\n";
                 const auto& proj = splitEnsemble.SplitCandidate.Ctr.Projection;
                 if (fold->GetCtrRef(proj).Feature.empty()) {
                     ComputeOnlineCTRs(
@@ -801,12 +799,7 @@ static void CalcBestScoreLeafwise(
                 *fold,
                 leafs,
                 ctx, pstats != nullptr ? pstats + taskIdx*maxBucketCount : nullptr, parent_pstats != nullptr ? parent_pstats + taskIdx*maxBucketCount : nullptr, sibling_pstats != nullptr ? sibling_pstats + taskIdx*maxBucketCount : nullptr);
-/*std::cout << "\ncandidateScores[0].size(): " << candidateScores[0].size() << ": ";
-for(unsigned long i = 0; i < candidateScores[0].size(); ++i) {
-    std::cout << candidateScores[0][i] << "  ";
-}
-std::cout << "\n";
-*/
+
             SetBestScore(
                 randSeed + taskIdx,
                 candidateScores,
@@ -891,18 +884,7 @@ static void SelectBestCandidate(
     const TFold& fold,
     double* bestScore,
     const TCandidateInfo** bestSplitCandidate) {
-/*
-        std::cout << "\n candidatesContexts.size(): " << candidatesContexts.size() << "\n";
-        std::cout << "\n candidatesContexts[0].CandidateList.size(): " << candidatesContexts[0].CandidateList.size() << "\n";
-        std::cout << "\n candidatesContexts[1].CandidateList.size(): " << candidatesContexts[1].CandidateList.size() << "\n";
-        std::cout << "\n candidatesContexts[2].CandidateList.size(): " << candidatesContexts[2].CandidateList.size() << "\n";
-std::cout << "\n  candidatesContexts[0].CandidateList:";
-        for(unsigned long i = 0; i < candidatesContexts[0].CandidateList.size(); ++i)
-            std::cout <<  candidatesContexts[0].CandidateList[i].Candidates[0].SplitEnsemble.SplitCandidate.FeatureIdx << "  ";
-        std::cout << "\n";
 
-*/
-//    std::cout << "ctx.LearnProgress->Rand: " << ctx.LearnProgress->Rand << "\n";
     for (const auto& candidatesContext : candidatesContexts) {
         for (const auto& subList : candidatesContext.CandidateList) {
             for (const auto& candidate : subList.Candidates) {
