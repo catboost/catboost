@@ -10,7 +10,7 @@
 #include <catboost/libs/helpers/array_subset.h>
 
 #include <util/generic/vector.h>
-#include <iostream>
+
 using namespace NCB;
 
 
@@ -213,7 +213,6 @@ void UpdateIndices(
     );
 }
 
-uint64_t get_time();
 void UpdateIndicesWithSplit(
     const TSplitNode& node,
     const TTrainingDataProviders& trainingData,
@@ -221,8 +220,7 @@ void UpdateIndicesWithSplit(
     const TFold& fold,
     NPar::TLocalExecutor* localExecutor,
     TArrayRef<TIndexType> indicesRef, std::shared_ptr<ui32>& l, std::shared_ptr<ui32>& r,
-    std::vector<ui32>& sibsetSizes, const ui32 doc_size,
-    uint64_t& t1, uint64_t& t2
+    std::vector<ui32>& sibsetSizes, const ui32 doc_size
 ) {
     TQuantizedObjectsDataProviderPtr objectsDataProvider;
     const ui32* columnsIndexing;
@@ -261,7 +259,6 @@ void UpdateIndicesWithSplit(
     std::vector<size_t> n_rights(blockCount + 1, 0);
     std::vector<std::shared_ptr<ui32> > local_lefts(blockCount);
     std::vector<std::shared_ptr<ui32> > local_rights(blockCount);
-    uint64_t t1_p = get_time();
     localExecutor->ExecRange(
         [&node, indicesRef, splitFunction, &docsSubset, &rangesGenerator, &n_lefts,&n_rights, &local_lefts, &local_rights](int blockId) {
             size_t n_left = 0;
@@ -291,7 +288,6 @@ void UpdateIndicesWithSplit(
         blockCount,
         NPar::TLocalExecutor::WAIT_COMPLETE
     );
-    t1 += get_time() - t1_p;
     size_t n_left = 0;
     size_t n_right = 0;
 
@@ -311,7 +307,6 @@ void UpdateIndicesWithSplit(
     l.reset(l_ptr);
     r.reset(r_ptr);
 
-    uint64_t t2_p = get_time();
     localExecutor->ExecRange(
         [&l_ptr, &r_ptr, &n_lefts, &n_rights, &local_lefts, &local_rights](int blockId) {
           size_t l_start = n_lefts[blockId];
@@ -331,7 +326,6 @@ void UpdateIndicesWithSplit(
         blockCount,
         NPar::TLocalExecutor::WAIT_COMPLETE
     );
-    t2 += get_time() - t2_p;
 }
 
 

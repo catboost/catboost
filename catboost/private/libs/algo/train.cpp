@@ -21,14 +21,6 @@
 #include <catboost/private/libs/algo_helpers/error_functions.h>
 #include <catboost/private/libs/distributed/master.h>
 #include <catboost/private/libs/distributed/worker.h>
-#include <iostream>
-#include <sys/time.h>
-#include <time.h>
-uint64_t get_time() {
-  struct timespec t;
-  clock_gettime(CLOCK_MONOTONIC, &t);
-  return t.tv_sec * 1000000000 + t.tv_nsec;
-}
 
 
 TErrorTracker BuildErrorTracker(
@@ -176,18 +168,8 @@ void CalcApproxesLeafwise(
     }
 
 }
-uint64_t get_time();
 
 void TrainOneIteration(const NCB::TTrainingDataProviders& data, TLearnContext* ctx) {
-static uint64_t time = 0;
-static uint64_t time_CalcWeightedDerivatives = 0;
-static uint64_t time_GreedyTensorSearch = 0;
-static uint64_t time_Trim = 0;
-static uint64_t time_UpdateLearningFold = 0;
-static uint64_t time_CalcLeaf = 0;
-static uint64_t time_NormalizeLeafValues = 0;
-static uint64_t time_UpdateAvrgApprox = 0;
-uint64_t t1 = get_time();
     const auto error = BuildError(ctx->Params, ctx->ObjectiveDescriptor);
     ctx->LearnProgress->HessianType = error->GetHessianType();
     TProfileInfo& profile = ctx->Profile;
@@ -201,7 +183,6 @@ uint64_t t1 = get_time();
 
     const double modelShrinkRate = ctx->Params.BoostingOptions->ModelShrinkRate.Get();
     if (modelShrinkRate > 0) {
-        std::cout << "\nmodelShrinkRate > 0\n";
         if (iterationIndex > 0) {
             const double modelShrinkage =
                 ctx->Params.BoostingOptions->ModelShrinkMode == EModelShrinkMode::Constant
@@ -226,7 +207,6 @@ uint64_t t1 = get_time();
 
     TVariant<TSplitTree, TNonSymmetricTreeStructure> bestTree;
     {
-        uint64_t t1_CalcWeightedDerivatives = get_time();
         TFold* takenFold = &ctx->LearnProgress->Folds[ctx->LearnProgress->Rand.GenRand() % foldCount];
         const TVector<ui64> randomSeeds = GenRandUI64Vector(
             takenFold->BodyTailArr.ysize(),
@@ -253,8 +233,6 @@ uint64_t t1 = get_time();
             MapSetDerivatives(ctx);
         }
         profile.AddOperation("Calc derivatives");
-        time_CalcWeightedDerivatives += get_time() - t1_CalcWeightedDerivatives;
-        uint64_t t1_GreedyTensorSearch = get_time();
         GreedyTensorSearch(
             data,
             modelLength,
@@ -263,11 +241,9 @@ uint64_t t1 = get_time();
             ctx,
             &bestTree
         );
-        time_GreedyTensorSearch += get_time() - t1_GreedyTensorSearch;
     }
     CheckInterrupted(); // check after long-lasting operation
     {
-        uint64_t t1_Trim = get_time();
         TVector<TFold*> trainFolds;
         for (int foldId = 0; foldId < foldCount; ++foldId) {
             trainFolds.push_back(&ctx->LearnProgress->Folds[foldId]);
@@ -317,14 +293,12 @@ uint64_t t1 = get_time();
                 NPar::TLocalExecutor::WAIT_COMPLETE
             );
         }
-        time_Trim += get_time() - t1_Trim;
         profile.AddOperation("ComputeOnlineCTRs for tree struct (train folds and test fold)");
         CheckInterrupted(); // check after long-lasting operation
 
         TVector<TVector<double>> treeValues; // [dim][leafId]
         TVector<double> sumLeafWeights; // [leafId]
         if (ctx->Params.SystemOptions->IsSingleHost()) {
-            uint64_t t1_UpdateLearningFold = get_time();
             const TVector<ui64> randomSeeds = GenRandUI64Vector(foldCount, ctx->LearnProgress->Rand.GenRand());
             ctx->LocalExecutor->ExecRangeWithThrow(
                 [&](int foldId) {
@@ -341,13 +315,11 @@ uint64_t t1 = get_time();
                 foldCount,
                 NPar::TLocalExecutor::WAIT_COMPLETE
             );
-            time_UpdateLearningFold += get_time() - t1_UpdateLearningFold;
 
             profile.AddOperation("CalcApprox tree struct and update tree structure approx");
             CheckInterrupted(); // check after long-lasting operation
 
             TVector<TIndexType> indices;
-            uint64_t t1_CalcLeaf = get_time();
             const bool treeHasMonotonicConstraints = !ctx->Params.ObliviousTreeOptions->MonotoneConstraints.GetUnchecked().empty();
             if (
                 ctx->Params.ObliviousTreeOptions->DevLeafwiseApproxes.Get() &&
@@ -374,7 +346,6 @@ uint64_t t1 = get_time();
                     &indices
                 );
             }
-            time_CalcLeaf += get_time() - t1_CalcLeaf;
 
             ctx->Profile.AddOperation("CalcApprox result leaves");
             CheckInterrupted(); // check after long-lasting operation
@@ -389,15 +360,12 @@ uint64_t t1 = get_time();
                 GetWeights(*data.Learn->TargetData),
                 ctx->LocalExecutor
             );
-            uint64_t t1_NormalizeLeafValues = get_time();
             NormalizeLeafValues(
                 UsesPairsForCalculation(ctx->Params.LossFunctionDescription->GetLossFunction()),
                 ctx->Params.BoostingOptions->LearningRate,
                 sumLeafWeights,
                 &treeValues
             );
-            time_NormalizeLeafValues += get_time() - t1_NormalizeLeafValues;
-            uint64_t t1_UpdateAvrgApprox = get_time();
             UpdateAvrgApprox(
                 error->GetIsExpApprox(),
                 data.Learn->GetObjectCount(),
@@ -407,7 +375,6 @@ uint64_t t1 = get_time();
                 ctx->LearnProgress.Get(),
                 ctx->LocalExecutor
             );
-            time_UpdateAvrgApprox += get_time() - t1_UpdateAvrgApprox;
         } else {
             const bool isMultiRegression = dynamic_cast<const TMultiDerCalcer*>(error.Get()) != nullptr;
 
@@ -428,19 +395,5 @@ uint64_t t1 = get_time();
         profile.AddOperation("Update final approxes");
         CheckInterrupted(); // check after long-lasting operation
     }
-time += get_time() - t1;
-static uint64_t n_call = 0;
-n_call++;
-if(n_call == 1000) {
-    std::cout << "\n time_CalcWeightedDerivatives time: " << (double)time_CalcWeightedDerivatives/1000000000 << "\n";
-    std::cout << "\n time_GreedyTensorSearch time: " << (double)time_GreedyTensorSearch/1000000000 << "\n";
-    std::cout << "\n time_Trim time: " << (double)time_Trim/1000000000 << "\n";
-    std::cout << "\n time_UpdateLearningFold time: " << (double)time_UpdateLearningFold/1000000000 << "\n";
-    std::cout << "\n time_CalcLeaf time: " << (double)time_CalcLeaf/1000000000 << "\n";
-    std::cout << "\n time_NormalizeLeafValues time: " << (double)time_NormalizeLeafValues/1000000000 << "\n";
-    std::cout << "\n time_UpdateAvrgApprox time: " << (double)time_UpdateAvrgApprox/1000000000 << "\n";
-
-    std::cout << "\n-------TrainOneIteration time: " << (double)time/1000000000 << "\n";
-}
 
 }

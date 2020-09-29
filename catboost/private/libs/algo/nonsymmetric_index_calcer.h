@@ -24,8 +24,7 @@ void UpdateIndicesWithSplit(
     const TFold& fold,
     NPar::TLocalExecutor* localExecutor,
     TArrayRef<TIndexType> indices, std::shared_ptr<ui32>& l, std::shared_ptr<ui32>& r,
-    std::vector<ui32>& sibsetSizes, const ui32 doc_size,
-    uint64_t& t1, uint64_t& t2
+    std::vector<ui32>& sibsetSizes, const ui32 doc_size
 );
 
 void UpdateIndices(

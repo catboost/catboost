@@ -53,7 +53,7 @@
 #include <util/system/hp_timer.h>
 
 #include <functional>
-#include <iostream>
+
 using namespace NCB;
 
 
@@ -337,7 +337,6 @@ static void CalcErrors(
     CalcErrors(data, metricsData.Metrics, ShouldCalcAllMetrics(iter, metricsData, *ctx), ShouldCalcErrorTrackerMetric(iter, metricsData, *ctx), ctx);
 }
 
-uint64_t get_time();
 static void Train(
     const TTrainModelInternalOptions& internalOptions,
     const TTrainingDataProviders& data,
@@ -376,7 +375,6 @@ static void Train(
         trainingCallbacks->OnSaveSnapshot(NJson::TJsonValue{}, out);
     };
 
-    uint64_t t2_CalcErrors = 0;
     for (ui32 iter = ctx->LearnProgress->GetCurrentTrainingIterationCount();
          continueTraining && (iter < ctx->Params.BoostingOptions->IterationCount);
          ++iter)
@@ -396,10 +394,7 @@ static void Train(
         }
         TrainOneIteration(data, ctx);
 
-        uint64_t t1_CalcErrors = get_time();
-
         CalcErrors(data, metricsData, iter, ctx);
-        t2_CalcErrors += get_time() - t1_CalcErrors;
 
         profile.AddOperation("Calc errors");
 

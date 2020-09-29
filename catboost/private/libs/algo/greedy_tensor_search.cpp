@@ -33,7 +33,6 @@
 #include <util/generic/xrange.h>
 #include <util/string/builder.h>
 #include <util/system/mem_info.h>
-#include <iostream>
 
 using namespace NCB;
 
@@ -1421,7 +1420,6 @@ static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
     return currentStructure;
 }
 
-uint64_t get_time();
 static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
     const TTrainingDataProviders& data,
     double modelLength,
@@ -1429,22 +1427,6 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
     TVector<TIndexType>* indices,
     TFold* fold,
     TLearnContext* ctx) {
-    static uint64_t n_call = 0;
-    n_call++;
-    static uint64_t time_score = 0;
-    static uint64_t time_depth_loop = 0;
-    static uint64_t time_UpdateIndices = 0;
-    static uint64_t time_UpdateIndices_inside1 = 0;
-    static uint64_t time_UpdateIndices_inside2 = 0;
-    static uint64_t time_inner_loop = 0;
-    static uint64_t time_UpdateIndicesInLeafwiseSortedFold = 0;
-    static uint64_t time_SplitDocsSubset = 0;
-    static uint64_t time_MarkFeaturesAsUsed_and_AddSplt = 0;
-    static uint64_t time_SelectBestCandidate = 0;
-    static uint64_t time_CalcScoreStDev = 0;
-    static uint64_t time_CalcScoreWithoutSplit = 0;
-
-    uint64_t t1_time_CalcScoreStDev = get_time();
     TNonSymmetricTreeStructure currentStructure;
 
     const ui32 learnSampleCount = data.Learn->ObjectsData->GetObjectCount();
@@ -1463,10 +1445,8 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
     const bool isSamplingPerTree = IsSamplingPerTree(ctx->Params.ObliviousTreeOptions);
 
     TVector<TIndexType> curLevelLeafs = {0};
-    time_CalcScoreStDev += get_time() - t1_time_CalcScoreStDev;
 
     std::queue<std::vector<TBucketStats>> parents_queue;
-    uint64_t t1_time_depth_loop = get_time();
     for (ui32 curDepth = 0; curDepth < ctx->Params.ObliviousTreeOptions->MaxDepth; ++curDepth) {
         TVector<TCandidatesContext> candidatesContexts = SelectFeaturesForScoring(data, {}, fold, ctx);
 
@@ -1501,7 +1481,6 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
 
         bool skip_next = false;
 
-        uint64_t t1_time_inner_loop = get_time();
         bool zero_sibling_left = false;
         for (unsigned long id = 0; id < curLevelLeafs.size(); ++id) {
             const auto& leafBounds = ctx->SampledDocs.LeavesBounds[curLevelLeafs[id]];
@@ -1525,20 +1504,14 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
 
             if(curDepth == 0) {
                 std::vector<TBucketStats> stats(maxBucketCount*nFeatures);
-                uint64_t t1 = get_time();
                 CalcBestScoreLeafwise(data, {curLevelLeafs[id]}, ctx->LearnProgress->Rand.GenRand(), scoreStDev, &candidatesContexts, fold, ctx, /*nullptr*/ stats.data(), nullptr, nullptr, maxBucketCount);
-                time_score += get_time() - t1;
                 parents_queue.push(std::move(stats));
-                uint64_t t1_time_SelectBestCandidate = get_time();
                 SelectBestCandidate(*ctx, candidatesContexts, maxFeatureValueCount, *fold, &bestScore, &bestSplitCandidate);
-                time_SelectBestCandidate += get_time() - t1_time_SelectBestCandidate;
 
                 if (bestSplitCandidate == nullptr) {
                     continue;
                 }
-                uint64_t t1_time_CalcScoreWithoutSplit = get_time();
                 scoreBeforeSplit = CalcScoreWithoutSplit(curLevelLeafs[id], *fold, *ctx);
-                time_CalcScoreWithoutSplit += get_time() - t1_time_CalcScoreWithoutSplit;
                 gain = bestScore - scoreBeforeSplit;
 
                 if (gain < 1e-9) {
@@ -1558,20 +1531,14 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
                         bestScore = MINIMAL_SCORE;
 
                         std::vector<TBucketStats> small_stats(maxBucketCount*nFeatures);
-                        uint64_t t1 = get_time();
                         CalcBestScoreLeafwise(data, {small_id}, ctx->LearnProgress->Rand.GenRand(), scoreStDev, &candidatesContexts, fold, ctx,  small_stats.data(), nullptr, nullptr, maxBucketCount/*small_subling.data(), root_stats.data(), nullptr*/);
-                        time_score += get_time() - t1;
 
-                        uint64_t t1_time_SelectBestCandidate = get_time();
                         SelectBestCandidate(*ctx, candidatesContexts, maxFeatureValueCount, *fold, &bestScore, &bestSplitCandidate);
-                        time_SelectBestCandidate += get_time() - t1_time_SelectBestCandidate;
                         if (bestSplitCandidate == nullptr) {
                             /*TODO!!!*/
                             continue;
                         }
-                        uint64_t t1_time_CalcScoreWithoutSplit = get_time();
                         scoreBeforeSplit = CalcScoreWithoutSplit(small_id, *fold, *ctx);
-                        time_CalcScoreWithoutSplit += get_time() - t1_time_CalcScoreWithoutSplit;
                         bestSplit = bestSplitCandidate->GetBestSplit(data, *fold,
                                                                      ctx->Params.CatFeatureParams->OneHotMaxSize);
                         gain = bestScore - scoreBeforeSplit;
@@ -1579,21 +1546,15 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
                         bestScoreNext = MINIMAL_SCORE;
 
                         std::vector<TBucketStats> large_stats(maxBucketCount*nFeatures);
-                        t1 = get_time();
                         CalcBestScoreLeafwise(data, {large_id}, ctx->LearnProgress->Rand.GenRand(), scoreStDev, &candidatesContexts, fold, ctx,  large_stats.data(), parents_queue.front().data(), small_stats.data(), maxBucketCount /*nullptr, root_stats.data(), small_subling.data()*/);
-                        time_score += get_time() - t1;
 
                         parents_queue.pop();
                         if(!(gain < 1e-9))
                             parents_queue.push(std::move(small_stats));
 
-                        t1_time_SelectBestCandidate = get_time();
                         SelectBestCandidate(*ctx, candidatesContexts, maxFeatureValueCount, *fold, &bestScoreNext, &bestSplitCandidateNext);
-                        time_SelectBestCandidate += get_time() - t1_time_SelectBestCandidate;
 
-                        t1_time_CalcScoreWithoutSplit = get_time();
                         scoreBeforeSplitNext = CalcScoreWithoutSplit(large_id, *fold, *ctx);
-                        time_CalcScoreWithoutSplit += get_time() - t1_time_CalcScoreWithoutSplit;
 
                         bestSplitNext = bestSplitCandidateNext->GetBestSplit(
                         data,
@@ -1606,20 +1567,14 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
                         if (ctx->SampledDocs.LeavesBounds[curLevelLeafs[id+1]].GetSize() == 0) {
                             bestScore = MINIMAL_SCORE;
                             std::vector<TBucketStats> stats(maxBucketCount*nFeatures);
-                            uint64_t t1 = get_time();
                             CalcBestScoreLeafwise(data, {curLevelLeafs[id]}, ctx->LearnProgress->Rand.GenRand(), scoreStDev, &candidatesContexts, fold, ctx, /*nullptr*/ stats.data(), nullptr, nullptr, maxBucketCount);
-                            time_score += get_time() - t1;
-                            uint64_t t1_time_SelectBestCandidate = get_time();
                             SelectBestCandidate(*ctx, candidatesContexts, maxFeatureValueCount, *fold, &bestScore, &bestSplitCandidate);
-                            time_SelectBestCandidate += get_time() - t1_time_SelectBestCandidate;
 
                             if (bestSplitCandidate == nullptr) {
                                 ////std::cout << "!!!!!!bestSplitCandidate == nullptr\n";
                                 continue;
                             }
-                            uint64_t t1_time_CalcScoreWithoutSplit = get_time();
                             scoreBeforeSplit = CalcScoreWithoutSplit(curLevelLeafs[id], *fold, *ctx);
-                            time_CalcScoreWithoutSplit += get_time() - t1_time_CalcScoreWithoutSplit;
                             gain = bestScore - scoreBeforeSplit;
 
                             if (!(gain < 1e-9)) {
@@ -1636,17 +1591,11 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
                             bestScoreNext = MINIMAL_SCORE;
                             std::vector<TBucketStats> small_stats(maxBucketCount*nFeatures);
 
-                            uint64_t t1 = get_time();
                             CalcBestScoreLeafwise(data, {small_id}, ctx->LearnProgress->Rand.GenRand(), scoreStDev, &candidatesContexts, fold, ctx, small_stats.data(), nullptr, nullptr, maxBucketCount/*small_subling.data(), root_stats.data(), nullptr*/);
-                            time_score += get_time() - t1;
 
-                            uint64_t t1_time_SelectBestCandidate = get_time();
                             SelectBestCandidate(*ctx, candidatesContexts, maxFeatureValueCount, *fold, &bestScoreNext, &bestSplitCandidateNext);
-                            time_SelectBestCandidate += get_time() - t1_time_SelectBestCandidate;
 
-                            uint64_t t1_time_CalcScoreWithoutSplit = get_time();
                             scoreBeforeSplitNext = CalcScoreWithoutSplit(small_id, *fold, *ctx);
-                            time_CalcScoreWithoutSplit += get_time() - t1_time_CalcScoreWithoutSplit;
                             bestSplitNext = bestSplitCandidateNext->GetBestSplit(
                             data,
                             *fold,
@@ -1654,20 +1603,14 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
                             bestScore = MINIMAL_SCORE;
 
                             std::vector<TBucketStats> large_stats(maxBucketCount*nFeatures);
-                            t1 = get_time();
                             CalcBestScoreLeafwise(data, {large_id}, ctx->LearnProgress->Rand.GenRand(), scoreStDev, &candidatesContexts, fold, ctx, large_stats.data(), parents_queue.front().data(), small_stats.data(), maxBucketCount /*nullptr, root_stats.data(), small_subling.data()*/);
-                            time_score += get_time() - t1;
                             parents_queue.pop();
 
-                            t1_time_SelectBestCandidate = get_time();
                             SelectBestCandidate(*ctx, candidatesContexts, maxFeatureValueCount, *fold, &bestScore, &bestSplitCandidate);
-                            time_SelectBestCandidate += get_time() - t1_time_SelectBestCandidate;
                             if (bestSplitCandidate == nullptr) {
                                 continue;
                             }
-                            t1_time_CalcScoreWithoutSplit = get_time();
                             scoreBeforeSplit = CalcScoreWithoutSplit(large_id, *fold, *ctx);
-                            time_CalcScoreWithoutSplit += get_time() - t1_time_CalcScoreWithoutSplit;
 
                             gain = bestScore - scoreBeforeSplit;
                             bestSplit = bestSplitCandidate->GetBestSplit(
@@ -1686,19 +1629,13 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
                     if(zero_sibling_left) {
                         bestScore = MINIMAL_SCORE;
                         std::vector<TBucketStats> stats(maxBucketCount*nFeatures);
-                        uint64_t t1 = get_time();
                         CalcBestScoreLeafwise(data, {curLevelLeafs[id]}, ctx->LearnProgress->Rand.GenRand(), scoreStDev, &candidatesContexts, fold, ctx, /*nullptr*/ stats.data(), nullptr, nullptr, maxBucketCount);
-                        time_score += get_time() - t1;
-                        uint64_t t1_time_SelectBestCandidate = get_time();
                         SelectBestCandidate(*ctx, candidatesContexts, maxFeatureValueCount, *fold, &bestScore, &bestSplitCandidate);
-                        time_SelectBestCandidate += get_time() - t1_time_SelectBestCandidate;
 
                         if (bestSplitCandidate == nullptr) {
                             continue;
                         }
-                        uint64_t t1_time_CalcScoreWithoutSplit = get_time();
                         scoreBeforeSplit = CalcScoreWithoutSplit(curLevelLeafs[id], *fold, *ctx);
-                        time_CalcScoreWithoutSplit += get_time() - t1_time_CalcScoreWithoutSplit;
                         gain = bestScore - scoreBeforeSplit;
 
                         if (!(gain < 1e-9)) {
@@ -1726,7 +1663,6 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
                 ProcessCtrSplit(data, bestSplit, fold, ctx);
             }
 
-            uint64_t t1_time_MarkFeaturesAsUsed_and_AddSplt = get_time();
             MarkFeaturesAsUsed(
                 bestSplit,
                 subsetsForLeafs[curLevelLeafs[id]],
@@ -1737,7 +1673,6 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
                 &ctx->LearnProgress->UsedFeaturesPerObject
             );
             const auto& node = currentStructure.AddSplit(bestSplit, curLevelLeafs[id]);
-            time_MarkFeaturesAsUsed_and_AddSplt += get_time() - t1_time_MarkFeaturesAsUsed_and_AddSplt;
 
             const TIndexType leftChildIdx = ~node.Left;
             const TIndexType rightChildIdx = ~node.Right;
@@ -1745,7 +1680,6 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
             nextLevelLeafs.push_back(leftChildIdx);
             nextLevelLeafs.push_back(rightChildIdx);
 
-            uint64_t t1_time_UpdateIndices = get_time();
             UpdateIndicesWithSplit(
                 node,
                 data,
@@ -1754,14 +1688,10 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
                 ctx->LocalExecutor,
                 indicesRef, subsetsForLeafs[leftChildIdx], subsetsForLeafs[rightChildIdx],
                 subsetSizes,
-                subsetSizes[curLevelLeafs[id]],
-                time_UpdateIndices_inside1, time_UpdateIndices_inside2
+                subsetSizes[curLevelLeafs[id]]
             );
-            time_UpdateIndices += get_time() - t1_time_UpdateIndices;
         }
-        time_inner_loop += get_time() - t1_time_inner_loop;
 
-        uint64_t t1_time_UpdateIndicesInLeafwiseSortedFold = get_time();
         if (isSamplingPerTree) {
             ctx->SampledDocs.UpdateIndicesInLeafwiseSortedFold(
                 splittedLeafs,
@@ -1770,33 +1700,12 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
                 ctx->LocalExecutor);
         }
         curLevelLeafs = std::move(nextLevelLeafs);
-        time_UpdateIndicesInLeafwiseSortedFold += get_time() - t1_time_UpdateIndicesInLeafwiseSortedFold;
 
         fold->DropEmptyCTRs();
         CheckInterrupted(); // check after long-lasting operation
         profile.AddOperation(TStringBuilder() << "Build level " << curDepth);
     }
-    time_depth_loop += get_time() - t1_time_depth_loop;
 
-if(n_call==1000)  {
-    std::cout << "GTS_time_depth_loop: " << (double)time_depth_loop/1000000000 << "\n";
-    std::cout << "  GTS_time_inner_loop: " << (double)time_inner_loop/1000000000 << "\n";
-    std::cout << "      GTS_time_score: " << (double)time_score/1000000000 << "\n";
-    std::cout << "      GTS_time_SelectBestCandidate: " << (double)time_SelectBestCandidate/1000000000 << "\n";
-    std::cout << "      GTS_time_CalcScoreWithoutSplit: " << (double)time_CalcScoreWithoutSplit/1000000000 << "\n";
-
-    std::cout << "      GTS_time_MarkFeaturesAsUsed_and_AddSplt: " << (double)time_MarkFeaturesAsUsed_and_AddSplt/1000000000 << "\n";
-    std::cout << "      GTS_time_UpdateIndices: " << (double)time_UpdateIndices/1000000000 << "\n";
-    std::cout << "          GTS_time_UpdateIndices_inside1: " << (double)time_UpdateIndices_inside1/1000000000 << "\n";
-    std::cout << "          GTS_time_UpdateIndices_inside2: " << (double)time_UpdateIndices_inside2/1000000000 << "\n";
-
-
-    std::cout << "      GTS_time_SplitDocsSubset: " << (double)time_SplitDocsSubset/1000000000 << "\n";
-
-    std::cout << "  GTS_time_UpdateIndicesInLeafwiseSortedFold: " << (double)time_UpdateIndicesInLeafwiseSortedFold/1000000000 << "\n";
-    std::cout << "GTS_time_CalcScoreStDev: " << (double)time_CalcScoreStDev/1000000000 << "\n";
-
-}
     return currentStructure;
 }
 
