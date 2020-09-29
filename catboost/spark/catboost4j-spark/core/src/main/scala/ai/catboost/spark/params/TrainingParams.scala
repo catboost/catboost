@@ -254,13 +254,6 @@ trait TrainingParamsTrait
   )
 
   @ParamGetterSetter
-  final val boostingType: EnumParam[EBoostingType] = new EnumParam[EBoostingType](
-    this,
-    "boostingType",
-    "Boosting scheme. See documentation for details. Default value is 'Plain'"
-  )
-
-  @ParamGetterSetter
   final val diffusionTemperature: FloatParam = new FloatParam(
     this,
     "diffusionTemperature",
