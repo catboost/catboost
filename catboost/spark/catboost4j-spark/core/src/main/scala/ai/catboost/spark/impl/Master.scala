@@ -23,11 +23,11 @@ import ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl
 import ai.catboost.CatBoostError
 import ai.catboost.spark._
 
-object Master {
+private[spark] object Master {
   // use this method to create Master instances
   def apply(
     preprocessedTrainPool: Pool,
-    preprocessedTestPools: Array[Pool],
+    preprocessedEvalPools: Array[Pool],
     catBoostJsonParamsForMasterString: String
   ) : Master = {
     val savedPoolsFuture = Future {
@@ -38,7 +38,7 @@ object Master {
         includeFeatures=false,
         threadCount
       )
-      val testPoolsAsFiles = preprocessedTestPools.map {
+      val testPoolsAsFiles = preprocessedEvalPools.map {
         testPool => DataHelpers.downloadQuantizedPoolToTempFile(
           testPool,
           includeFeatures=true,
@@ -53,7 +53,7 @@ object Master {
 }
 
 
-class Master(
+private[spark] class Master(
   val spark: SparkSession,
   val savedPoolsFuture : Future[(Path, Array[Path])],
   val catBoostJsonParamsForMasterString: String,
@@ -105,13 +105,13 @@ class Master(
       args += ("--used-ram-limit", driverNativeMemoryLimit.get.toString)
     }
 
-    val (savedTrainPool, savedTestPools) = Await.result(savedPoolsFuture, Duration.Inf)
+    val (savedTrainPool, savedEvalPools) = Await.result(savedPoolsFuture, Duration.Inf)
 
     args += ("--learn-set", "spark-quantized://master-part:" + savedTrainPool.toString)
-    if (!savedTestPools.isEmpty) {
+    if (!savedEvalPools.isEmpty) {
       args += (
         "--test-set",
-        savedTestPools.map(path => "spark-quantized://master-part:" + path).mkString(",")
+        savedEvalPools.map(path => "spark-quantized://master-part:" + path).mkString(",")
       )
     }
 

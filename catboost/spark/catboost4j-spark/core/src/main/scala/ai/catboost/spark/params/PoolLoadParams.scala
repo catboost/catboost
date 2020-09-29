@@ -6,6 +6,9 @@ import org.apache.spark.ml.util.Identifiable
 import ai.catboost.spark.params.macros.ParamGetterSetter
 
 
+/** Params for loading datasets in
+ *  [[https://catboost.ai/docs/concepts/input-data_values-file.html CatBoost dsv format]]
+ */
 class PoolLoadParams (override val uid: String) extends Params
 {
   def this() = this(

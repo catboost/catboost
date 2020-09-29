@@ -5,7 +5,7 @@ import java.nio.charset.StandardCharsets
 import java.util.concurrent.Future
 
 
-object Helpers {
+private[spark] object Helpers {
   def writeToTempFile(
     content: String,
     tmpFilePrefix: String,

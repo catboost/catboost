@@ -10,10 +10,11 @@ import ai.catboost.spark.params._
 import ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl
 
 
+/** Classification model trained by CatBoost. Use [[CatBoostClassifier]] to train it */
 class CatBoostClassificationModel (
   override val uid: String,
-  var nativeModel: native_impl.TFullModel = null,
-  var nativeDimension: Int
+  protected var nativeModel: native_impl.TFullModel = null,
+  protected var nativeDimension: Int
 )
   extends ProbabilisticClassificationModel[Vector, CatBoostClassificationModel]
     with CatBoostModelTrait[CatBoostClassificationModel]
@@ -58,6 +59,88 @@ class CatBoostClassificationModel (
 }
 
 
+/** Class to train [[CatBoostClassificationModel]]
+ *
+ *  The default optimized loss function depends on various conditions:
+ *
+ *   - `Logloss` — The label column has only two different values or the targetBorder parameter is specified.
+ *   - `MultiClass` — The label column has more than two different values and the targetBorder parameter is
+ *     not specified.
+ *
+ * @example Binary classification.
+ * {{{
+ *  val spark = SparkSession.builder()
+ *    .master("local[*]")
+ *    .appName("ClassifierTest")
+ *    .getOrCreate();
+ *
+ *  val srcDataSchema = Seq(
+ *    StructField("features", SQLDataTypes.VectorType),
+ *    StructField("label", StringType)
+ *  )
+ *
+ *  val trainData = Seq(
+ *    Row(Vectors.dense(0.1, 0.2, 0.11), "0"),
+ *    Row(Vectors.dense(0.97, 0.82, 0.33), "1"),
+ *    Row(Vectors.dense(0.13, 0.22, 0.23), "1"),
+ *    Row(Vectors.dense(0.8, 0.62, 0.0), "0")
+ *  )
+ *
+ *  val trainDf = spark.createDataFrame(spark.sparkContext.parallelize(trainData), StructType(srcDataSchema))
+ *  val trainPool = new Pool(trainDf)
+ *
+ *  val evalData = Seq(
+ *    Row(Vectors.dense(0.22, 0.33, 0.9), "1"),
+ *    Row(Vectors.dense(0.11, 0.1, 0.21), "0"),
+ *    Row(Vectors.dense(0.77, 0.0, 0.0), "1")
+ *  )
+ *
+ *  val evalDf = spark.createDataFrame(spark.sparkContext.parallelize(evalData), StructType(srcDataSchema))
+ *  val evalPool = new Pool(evalDf)
+ *
+ *  val classifier = new CatBoostClassifier
+ *  val model = classifier.fit(trainPool, Array[Pool](evalPool))
+ *  val predictions = model.transform(evalPool.data)
+ *  predictions.show()
+ * }}}
+ *
+ * @example Multiclassification.
+ * {{{
+ *  val spark = SparkSession.builder()
+ *    .master("local[*]")
+ *    .appName("ClassifierTest")
+ *    .getOrCreate();
+ *
+ *  val srcDataSchema = Seq(
+ *    StructField("features", SQLDataTypes.VectorType),
+ *    StructField("label", StringType)
+ *  )
+ *
+ *  val trainData = Seq(
+ *    Row(Vectors.dense(0.1, 0.2, 0.11), "1"),
+ *    Row(Vectors.dense(0.97, 0.82, 0.33), "2"),
+ *    Row(Vectors.dense(0.13, 0.22, 0.23), "1"),
+ *    Row(Vectors.dense(0.8, 0.62, 0.0), "0")
+ *  )
+ *
+ *  val trainDf = spark.createDataFrame(spark.sparkContext.parallelize(trainData), StructType(srcDataSchema))
+ *  val trainPool = new Pool(trainDf)
+ *
+ *  val evalData = Seq(
+ *    Row(Vectors.dense(0.22, 0.33, 0.9), "2"),
+ *    Row(Vectors.dense(0.11, 0.1, 0.21), "0"),
+ *    Row(Vectors.dense(0.77, 0.0, 0.0), "1")
+ *  )
+ *
+ *  val evalDf = spark.createDataFrame(spark.sparkContext.parallelize(evalData), StructType(srcDataSchema))
+ *  val evalPool = new Pool(evalDf)
+ *
+ *  val classifier = new CatBoostClassifier
+ *  val model = classifier.fit(trainPool, Array[Pool](evalPool))
+ *  val predictions = model.transform(evalPool.data)
+ *  predictions.show()
+ * }}}
+ */
 class CatBoostClassifier (override val uid: String)
   extends ProbabilisticClassifier[Vector, CatBoostClassifier, CatBoostClassificationModel]
     with CatBoostPredictorTrait[CatBoostClassifier, CatBoostClassificationModel]
@@ -66,10 +149,10 @@ class CatBoostClassifier (override val uid: String)
   def this() = this(Identifiable.randomUID("CatBoostClassifier"))
 
   override def copy(extra: ParamMap): CatBoostClassifier = defaultCopy(extra)
-  
+
   protected override def preprocessBeforeTraining(
     quantizedTrainPool: Pool,
-    quantizedTestPools: Array[Pool]
+    quantizedEvalPools: Array[Pool]
   ) : (Pool, Array[Pool]) = {
     if (!isDefined(lossFunction)) {
       if (isDefined(targetBorder)) {
@@ -79,8 +162,8 @@ class CatBoostClassifier (override val uid: String)
         set(lossFunction, if (distinctLabelValuesCount > 2) "MultiClass" else "Logloss")
       }
     }
-    
-    (quantizedTrainPool, quantizedTestPools)
+
+    (quantizedTrainPool, quantizedEvalPools)
   }
 
   protected override def createModel(nativeModel: native_impl.TFullModel): CatBoostClassificationModel = {

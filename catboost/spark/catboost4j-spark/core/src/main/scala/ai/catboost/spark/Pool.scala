@@ -25,7 +25,7 @@ import ai.catboost.spark.params.{Helpers,PoolLoadParams,QuantizationParams,Quant
 import ai.catboost.spark.params.macros.ParamGetterSetter
 
 
-class QuantizedRowsOutputIterator(
+private[spark] class QuantizedRowsOutputIterator(
     var objectIdx : Int,
     val dstRows : ArrayBuffer[Array[Any]],
     val featuresColumnIdx : Int,
@@ -47,7 +47,7 @@ class QuantizedRowsOutputIterator(
   }
 }
 
-object QuantizedRowsOutputIterator {
+private[spark] object QuantizedRowsOutputIterator {
   def apply(
     dstRows : ArrayBuffer[Array[Any]],
     featuresColumnIdx : Int,
@@ -64,6 +64,8 @@ object QuantizedRowsOutputIterator {
   }
 }
 
+/** Companion object for [[Pool]] class that is CatBoost's abstraction of a dataset
+ */
 object Pool {
   private def updateSparseFeaturesSize(data: DataFrame) : DataFrame = {
     val spark = data.sparkSession
@@ -109,7 +111,34 @@ object Pool {
     data.withColumn("features", updateFeaturesSize($"features").as("_", updatedMetadata))
   }
 
-
+  /**
+   * Load dataset in one of CatBoost's natively supported formats:
+   * -[[https://catboost.ai/docs/concepts/input-data_values-file.html dsv]]
+   * -[[https://catboost.ai/docs/concepts/input-data_libsvm.html libsvm]]
+   *
+   * @param spark SparkSession
+   * @param dataPathWithScheme Path with scheme to dataset in CatBoost format.
+   *  For example, `dsv:///home/user/datasets/my_dataset/train.dsv` or
+   *  `libsvm:///home/user/datasets/my_dataset/train.libsvm`
+   * @param columnDescription Path to
+   *  [[https://catboost.ai/docs/concepts/input-data_column-descfile.html column description file]]
+   * @param params Additional params specifying data format.
+   * @return [[Pool]] containing loaded data.
+   *
+   * @example
+   * {{{
+   * val spark = SparkSession.builder()
+   *   .master("local[*]")
+   *   .appName("testLoadDSVSimple")
+   *   .getOrCreate()
+   *
+   * val pool = Pool.load(
+   *   spark,
+   *   "dsv:///home/user/datasets/my_dataset/train.dsv",
+   *   columnDescription = "/home/user/datasets/my_dataset/cd"
+   * )
+   * }}}
+   */
   def load(
     spark: SparkSession,
     dataPathWithScheme: String,
@@ -151,14 +180,14 @@ object Pool {
     pool
   }
 
-  def setColumnParamsFromLoadedData(pool: Pool) {
+  private[spark] def setColumnParamsFromLoadedData(pool: Pool) {
     // CatBoost loaders always use standard names, column parameter name is taken by adding "Col" suffix
     for (name <- pool.data.columns) {
       pool.set(name + "Col", name)
     }
   }
 
-  def getFeatureCount(data : DataFrame, featuresCol : String) : Int = {
+  private[spark] def getFeatureCount(data : DataFrame, featuresCol : String) : Int = {
     val attributeGroup = AttributeGroup.fromStructField(data.schema(featuresCol))
     val optNumAttributes = attributeGroup.numAttributes
     if (optNumAttributes.isDefined) {
@@ -176,7 +205,7 @@ object Pool {
     }
   }
 
-  def getFeatureNames(data: DataFrame, featuresCol: String): Array[String] = {
+  private[spark] def getFeatureNames(data: DataFrame, featuresCol: String): Array[String] = {
     val featureCount = getFeatureCount(data, featuresCol)
     val attributes = AttributeGroup.fromStructField(data.schema(featuresCol)).attributes
     if (attributes.isEmpty) {
@@ -195,6 +224,17 @@ object Pool {
 }
 
 
+/** CatBoost's abstraction of a dataset.
+ *  
+ *  Features data can be stored in raw (features column has [[org.apache.spark.ml.linalg.Vector]] type)
+ *  or quantized (float feature values are quantized into integer bin values, features column has
+ *  `Array[Byte]` type) form.
+ *
+ *  Raw [[Pool]] can be transformed to quantized form using `quantize` method.
+ *  This is useful if this dataset is used for training multiple times and quantization parameters do not
+ *  change. Pre-quantized [[Pool]] allows to cache quantized features data and so do not re-run
+ *  feature quantization step at the start of an each training.
+ */
 class Pool (
     override val uid: String,
     val data: DataFrame = null,
@@ -202,7 +242,7 @@ class Pool (
     val quantizedFeaturesInfo: QuantizedFeaturesInfoPtr = null)
   extends Params with HasLabelCol with HasFeaturesCol with HasWeightCol {
 
-  def this(
+  private[spark] def this(
     data: DataFrame,
     quantizedFeaturesInfo: QuantizedFeaturesInfoPtr
   ) =
@@ -212,6 +252,39 @@ class Pool (
       if (quantizedFeaturesInfo != null) quantizedFeaturesInfo.GetFeaturesLayout().__deref__() else null,
       quantizedFeaturesInfo)
 
+  /** Construct [[Pool]] from [[DataFrame]]
+   *  Call set*Col methods to specify non-default columns.
+   *  Only features and label columns with "features" and "label" names are assumed by default.
+   *
+   * @example
+   * {{{
+   *   val spark = SparkSession.builder()
+   *     .master("local[4]")
+   *     .appName("PoolTest")
+   *     .getOrCreate();
+   *
+   *   val srcData = Seq(
+   *     Row(Vectors.dense(0.1, 0.2, 0.11), "0.12", 0x0L, 0.12f),
+   *     Row(Vectors.dense(0.97, 0.82, 0.33), "0.22", 0x0L, 0.18f),
+   *     Row(Vectors.dense(0.13, 0.22, 0.23), "0.34", 0x1L, 1.0f)
+   *   )
+   *
+   *   val srcDataSchema = Seq(
+   *     StructField("features", SQLDataTypes.VectorType),
+   *     StructField("label", StringType),
+   *     StructField("groupId", LongType),
+   *     StructField("weight", FloatType)
+   *   )
+   *
+   *   val df = spark.createDataFrame(spark.sparkContext.parallelize(srcData), StructType(srcDataSchema))
+   *
+   *   val pool = new Pool(df)
+   *     .setGroupIdCol("groupId")
+   *     .setWeightCol("weight")
+   *
+   *   pool.data.show()
+   * }}}
+   */
   def this(data: DataFrame) = this(data, null)
 
   def getFeaturesLayout : TFeaturesLayout = {
@@ -304,8 +377,14 @@ class Pool (
     getFeaturesLayout.GetExternalFeatureIds.toArray(new Array[String](0))
   }
 
+  /** @return Number of objects in the dataset, similar to the same method of
+   *  [[org.apache.spark.sql.Dataset]]
+   */
   def count : Long = data.count
 
+  /**
+   * @return dimension of formula baseline, 0 if no baseline specified
+   */
   def getBaselineCount: Int = {
     if (isDefined(baselineCol)) {
       data.select(getOrDefault(baselineCol)).head.getAs[Vector](0).size
@@ -328,7 +407,7 @@ class Pool (
     }
   }
 
-  def createDataMetaInfo : TIntermediateDataMetaInfo = {
+  private[spark] def createDataMetaInfo : TIntermediateDataMetaInfo = {
     val result = new TIntermediateDataMetaInfo
     result.setObjectCount(java.math.BigInteger.valueOf(count))
     if (isQuantized) {
@@ -469,6 +548,37 @@ class Pool (
     copyValues(quantizedPool)
   }
 
+  /**
+   * Create [[Pool]] with quantized features from [[Pool]] with raw features
+   *
+   * @example
+   * {{{
+   *  val spark = SparkSession.builder()
+   *    .master("local[*]")
+   *    .appName("QuantizationTest")
+   *    .getOrCreate();
+   *
+   *  val srcData = Seq(
+   *    Row(Vectors.dense(0.1, 0.2, 0.11), "0.12"),
+   *    Row(Vectors.dense(0.97, 0.82, 0.33), "0.22"),
+   *    Row(Vectors.dense(0.13, 0.22, 0.23), "0.34")
+   *  )
+   *
+   *  val srcDataSchema = Seq(
+   *    StructField("features", SQLDataTypes.VectorType),
+   *    StructField("label", StringType)
+   *  )
+   *
+   *  val df = spark.createDataFrame(spark.sparkContext.parallelize(srcData), StructType(srcDataSchema))
+   *
+   *  val pool = new Pool(df)
+   *
+   *  val quantizedPool = pool.quantize(new QuantizationParams)
+   *  val quantizedPoolWithTwoBinsPerFeature = pool.quantize(new QuantizationParams().setBorderCount(1))
+   *  quantizedPool.data.show()
+   *  quantizedPoolWithTwoBinsPerFeature.data.show()
+   * }}}
+   */
   def quantize(quantizationParams: QuantizationParamsTrait) : Pool = {
     if (isQuantized) {
       throw new CatBoostError("Pool is already quantized")
@@ -476,6 +586,12 @@ class Pool (
     createQuantized(createQuantizationSchema(quantizationParams))
   }
 
+  /**
+   * Create [[Pool]] with quantized features from [[Pool]] with raw features.
+   * This variant of the method is useful if QuantizedFeaturesInfo with data for quantization
+   * (borders and nan modes) has already been computed.
+   * Used, for example, to quantize evaluation datasets after the training dataset has been quantized.
+   */
   def quantize(quantizedFeaturesInfo: QuantizedFeaturesInfoPtr) : Pool = {
     if (isQuantized) {
       throw new CatBoostError("Pool is already quantized")
@@ -483,6 +599,11 @@ class Pool (
     createQuantized(quantizedFeaturesInfo)
   }
 
+  /**
+   * Repartion data to the specified number of partitions.
+   * Useful to repartition data to create one partition per executor for training
+   * (where each executor gets its' own CatBoost worker with a part of the training data).
+   */
   def repartition(partitionCount: Int, byGroupColumnsIfPresent: Boolean = true) : Pool = {
     val maybeGroupIdCol = get(groupIdCol)
     val newData = if (byGroupColumnsIfPresent && maybeGroupIdCol.isDefined) {

@@ -20,11 +20,12 @@ import ai.catboost.CatBoostError
 
 
 // copied from org.apache.spark.ml.param because it's private there
-object ParamValidators {
+private[spark] object ParamValidators {
   def alwaysTrue[T]: T => Boolean = (_: T) => true
 }
 
-// A separate class is needed because default Param[E] won't jsonEncode/Decode properly
+
+/** A separate class is needed because default Param[E] won't jsonEncode/Decode properly */
 class EnumParam[E <: java.lang.Enum[E] : ClassTag](
   parent: String,
   name: String,
@@ -56,7 +57,7 @@ class EnumParam[E <: java.lang.Enum[E] : ClassTag](
   }
 }
 
-// A separate class is needed because default Param[E] won't jsonEncode/Decode properly
+
 class DurationParam(
   parent: String,
   name: String,
@@ -86,7 +87,7 @@ class DurationParam(
   }
 }
 
-// supported V types are String, Long, Float or Boolean
+/** supported V types are String, Long, Float or Boolean */
 class OrderedStringMapParam[V](
   parent: String,
   name: String,
@@ -143,7 +144,7 @@ class OrderedStringMapParam[V](
 }
 
 
-object Helpers {
+private[spark] object Helpers {
   def checkIncompatibleParams(params: mutable.HashMap[String, Any]) = {
     if (params.contains("ignoredFeaturesIndices") && params.contains("ignoredFeaturesNames")) {
       throw new CatBoostError("params cannot contain both ignoredFeaturesIndices and ignoredFeaturesNames")
@@ -255,7 +256,7 @@ object Helpers {
     "per_object_feature_penalties_list" -> "per_object_feature_penalties",
 
     "worker_initialization_timeout" -> null,
-    
+
     // processed in separate functions
     "class_weights_map" -> null,
     "class_weights_list" -> null,
@@ -277,7 +278,7 @@ object Helpers {
     val name = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, mllibParamName)
     namesMap.getOrElse(name, name)
   }
-  
+
   def processWithSimpleNameMapping(paramsSeq: Seq[ParamPair[_]]) : JObject = {
     JObject(
       paramsSeq.collect {

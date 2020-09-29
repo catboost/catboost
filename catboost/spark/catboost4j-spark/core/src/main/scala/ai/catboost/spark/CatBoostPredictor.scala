@@ -21,7 +21,9 @@ import org.apache.spark.TaskContext
 import ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl
 import ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl.QuantizedFeaturesInfoPtr
 
-
+/**
+ * Base trait with common functionality for both [[CatBoostClassifier]] and [[CatBoostRegressor]]
+ */
 trait CatBoostPredictorTrait[
   Learner <: org.apache.spark.ml.Predictor[Vector, Learner, Model],
   Model <: org.apache.spark.ml.PredictionModel[Vector, Model]]
@@ -29,10 +31,10 @@ trait CatBoostPredictorTrait[
       with params.DatasetParamsTrait
 {
   this: params.TrainingParamsTrait =>
-  
+
   private def saveDatasetsForMaster(
     quantizedTrainPool: Pool,
-    quantizedTestPools: Array[Pool],
+    quantizedEvalPools: Array[Pool],
     threadCount: Int
   ) : (Path, Array[Path]) = {
     val trainPoolAsFile = DataHelpers.downloadQuantizedPoolToTempFile(
@@ -40,36 +42,47 @@ trait CatBoostPredictorTrait[
       includeFeatures=false,
       threadCount
     )
-    val testPoolsAsFiles = quantizedTestPools.map {
-      testPool => DataHelpers.downloadQuantizedPoolToTempFile(
-        testPool,
+    val evalPoolsAsFiles = quantizedEvalPools.map {
+      evalPool => DataHelpers.downloadQuantizedPoolToTempFile(
+        evalPool,
         includeFeatures=true,
         threadCount
       )
     }.toArray
-    (trainPoolAsFile, testPoolsAsFiles)
+    (trainPoolAsFile, evalPoolsAsFiles)
   }
 
   // override in descendants if necessary
   protected def preprocessBeforeTraining(
     quantizedTrainPool: Pool,
-    quantizedTestPools: Array[Pool]
+    quantizedEvalPools: Array[Pool]
   ) : (Pool, Array[Pool]) = {
-    (quantizedTrainPool, quantizedTestPools)
+    (quantizedTrainPool, quantizedEvalPools)
   }
 
   protected def createModel(fullModel: native_impl.TFullModel) : Model;
 
-  def train(dataset: Dataset[_]): Model = {
+  protected override def train(dataset: Dataset[_]): Model = {
     val pool = new Pool(dataset.asInstanceOf[DataFrame])
       .setLabelCol(getLabelCol)
       .setFeaturesCol(getFeaturesCol)
       .setWeightCol(getWeightCol)
 
-    train(pool)
+    fit(pool)
   }
 
-  def train(trainPool: Pool, testPools: Array[Pool] = Array[Pool]()): Model = {
+  /**
+   * Additional variant of `fit` method that accepts CatBoost's [[Pool]] s and allows to specify additional
+   * datasets for computing evaluation metrics and overfitting detection similarily to CatBoost's other APIs.
+   *
+   * @param trainPool The input training dataset.
+   * @param evalPools The validation datasets used for the following processes:
+   *  - overfitting detector
+   *  - best iteration selection
+   *  - monitoring metrics' changes
+   * @return trained model
+   */
+  def fit(trainPool: Pool, evalPools: Array[Pool] = Array[Pool]()): Model = {
     val spark = trainPool.data.sparkSession
 
     val partitionCount = get(sparkPartitionCount).getOrElse(SparkHelpers.getWorkerCount(spark))
@@ -80,24 +93,24 @@ trait CatBoostPredictorTrait[
       trainPool.quantize(this) // this as QuantizationParamsTrait
     }.repartition(partitionCount)
 
-    // TODO(akhropov): test pools are not distributed for now, so they are not repartitioned
-    val quantizedTestPools = testPools.map {
-      testPool => {
-        if (testPool.isQuantized) {
-          testPool
+    // TODO(akhropov): eval pools are not distributed for now, so they are not repartitioned
+    val quantizedEvalPools = evalPools.map {
+      evalPool => {
+        if (evalPool.isQuantized) {
+          evalPool
         } else {
-          testPool.quantize(quantizedTrainPool.quantizedFeaturesInfo)
+          evalPool.quantize(quantizedTrainPool.quantizedFeaturesInfo)
         }
       }
     }
-    val (preprocessedTrainPool, preprocessedTestPools) = preprocessBeforeTraining(
+    val (preprocessedTrainPool, preprocessedEvalPools) = preprocessBeforeTraining(
       quantizedTrainPool,
-      quantizedTestPools
+      quantizedEvalPools
     )
 
     val catBoostJsonParams = ai.catboost.spark.params.Helpers.sparkMlParamsToCatBoostJsonParams(this)
 
-    val master = impl.Master(preprocessedTrainPool, preprocessedTestPools, compact(catBoostJsonParams))
+    val master = impl.Master(preprocessedTrainPool, preprocessedEvalPools, compact(catBoostJsonParams))
 
     val trainingDriver : TrainingDriver = new TrainingDriver(
       listeningPort = 0,

@@ -7,7 +7,7 @@ import ai.catboost.spark.params.macros.ParamGetterSetter
 
 import ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl.{EBorderSelectionType,ENanMode};
 
-
+/** Parameters for quantization. See documentation on [[https://catboost.ai/docs/]] for details. */
 trait QuantizationParamsTrait
   extends Params with IgnoredFeaturesParams with ThreadCountParams
 {
@@ -56,6 +56,9 @@ object QuantizationParams {
   val MaxSubsetSizeForBuildBordersAlgorithms = 200000
 }
 
+/** Parameters for quantization as a class. Used in [[Pool!.quantize(QuantizationParamsTrait)]].
+ *  See documentation on [[https://catboost.ai/docs/]] for details.
+ */
 class QuantizationParams (override val uid: String)
   extends QuantizationParamsTrait
 {

@@ -6,7 +6,7 @@ import collection.mutable
 import java.nio.file.Paths
 
 
-object RunClassInNewProcess {
+private[spark] object RunClassInNewProcess {
   // Strips trailing $ from Scala's object class name to get companion class with static "main" method.
   private def getAppMainClassName(className: String) : String = {
     if (className.endsWith("$")) { className.substring(0, className.length - 1) } else { className }
