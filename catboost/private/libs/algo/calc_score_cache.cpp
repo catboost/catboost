@@ -1027,7 +1027,8 @@ void TCalcScoreFold::UpdateIndicesInLeafwiseSortedFold(
 
     LeavesCount += leafs.size();
     LeavesBounds.resize(LeavesCount);
-    localExecutor->ExecRange([&] (int idx) {
+/*    localExecutor->ExecRange([&] (int idx) {*/
+        for(unsigned long idx = 0; idx < leafs.size(); ++idx) {
             auto leaf = leafs[idx];
             auto leftChild = childs[idx * 2];
             auto rightChild = childs[idx * 2 + 1];
@@ -1039,11 +1040,11 @@ void TCalcScoreFold::UpdateIndicesInLeafwiseSortedFold(
                 indices,
                 localExecutor,
                 &slice);
-        },
+        }/*,
         0,
         leafs.size(),
         NPar::TLocalExecutor::WAIT_COMPLETE
-    );
+    );*/
 
     SampleWeights = std::move(out.SampleWeights);
     IndexInFold = std::move(out.IndexInFold);

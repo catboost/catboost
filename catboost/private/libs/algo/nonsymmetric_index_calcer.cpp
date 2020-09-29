@@ -10,7 +10,7 @@
 #include <catboost/libs/helpers/array_subset.h>
 
 #include <util/generic/vector.h>
-
+#include <iostream>
 using namespace NCB;
 
 
@@ -158,6 +158,7 @@ std::function<bool(ui32)> BuildNodeSplitFunction(
     }
 }
 
+
 void UpdateIndices(
     const TSplitNode& node,
     const TTrainingDataProviders& trainingData,
@@ -180,13 +181,11 @@ void UpdateIndices(
         &objectsDataProvider,
         &columnsIndexing // can return nullptr
     );
-
     auto func = BuildNodeSplitFunction(
         node,
         *objectsDataProvider,
         node.Split.Type == ESplitType::OnlineCtr ? &fold.GetCtr(node.Split.Ctr.Projection) : nullptr,
         /* docOffset */ 0);
-
     // TODO(ilyzhin) std::function is very slow for calling many times (maybe replace it with lambda)
     std::function<bool(ui32)> splitFunction;
     if (!columnsIndexing) {
@@ -213,6 +212,130 @@ void UpdateIndices(
         NPar::TLocalExecutor::WAIT_COMPLETE
     );
 }
+
+uint64_t get_time();
+void UpdateIndicesWithSplit(
+    const TSplitNode& node,
+    const TTrainingDataProviders& trainingData,
+    const std::shared_ptr<ui32>& docsSubset,
+    const TFold& fold,
+    NPar::TLocalExecutor* localExecutor,
+    TArrayRef<TIndexType> indicesRef, std::shared_ptr<ui32>& l, std::shared_ptr<ui32>& r,
+    std::vector<ui32>& sibsetSizes, const ui32 doc_size,
+    uint64_t& t1, uint64_t& t2
+) {
+    TQuantizedObjectsDataProviderPtr objectsDataProvider;
+    const ui32* columnsIndexing;
+    TIndexedSubsetCache indexedSubsetCache; // not really updated because it is used for test only
+    GetObjectsDataAndIndexing(
+        trainingData,
+        fold,
+        node.Split.Type == ESplitType::EstimatedFeature,
+        node.Split.IsOnline(),
+        /*objectSubsetIdx*/ 0, // 0 - learn
+        &indexedSubsetCache,
+        localExecutor,
+        &objectsDataProvider,
+        &columnsIndexing // can return nullptr
+    );
+
+    auto func = BuildNodeSplitFunction(
+        node,
+        *objectsDataProvider,
+        node.Split.Type == ESplitType::OnlineCtr ? &fold.GetCtr(node.Split.Ctr.Projection) : nullptr,
+        /* docOffset */ 0);
+
+    // TODO(ilyzhin) std::function is very slow for calling many times (maybe replace it with lambda)
+    std::function<bool(ui32)> splitFunction;
+    if (!columnsIndexing) {
+    } else {
+        splitFunction = [realObjIdx = columnsIndexing, func=std::move(func)](ui32 idx) {
+            return func(realObjIdx[idx]);
+        };
+    }
+
+    const size_t blockSize = Max<size_t>(CeilDiv<size_t>(doc_size, localExecutor->GetThreadCount() + 1), 1000);
+    const TSimpleIndexRangesGenerator<size_t> rangesGenerator(TIndexRange<size_t>(doc_size), blockSize);
+    const int blockCount = rangesGenerator.RangesCount();
+    std::vector<size_t> n_lefts(blockCount + 1, 0);
+    std::vector<size_t> n_rights(blockCount + 1, 0);
+    std::vector<std::shared_ptr<ui32> > local_lefts(blockCount);
+    std::vector<std::shared_ptr<ui32> > local_rights(blockCount);
+    uint64_t t1_p = get_time();
+    localExecutor->ExecRange(
+        [&node, indicesRef, splitFunction, &docsSubset, &rangesGenerator, &n_lefts,&n_rights, &local_lefts, &local_rights](int blockId) {
+            size_t n_left = 0;
+            size_t n_right = 0;
+            const size_t range_size = rangesGenerator.GetRange(blockId).GetSize();
+            ui32* l_ptr = new ui32[range_size];
+            ui32* r_ptr = new ui32[range_size];
+
+            local_lefts[blockId].reset(l_ptr);
+            local_rights[blockId].reset(r_ptr);
+            for (auto idx : rangesGenerator.GetRange(blockId).Iter()) {
+                const int objIdx = docsSubset.get()[idx];
+                const bool split = splitFunction(objIdx);
+                indicesRef[objIdx] = (~node.Left) + split * ((~node.Right) - (~node.Left));
+                if(split) {
+                    r_ptr[n_right] = objIdx;
+                    ++n_right;
+                } else {
+                    l_ptr[n_left] = objIdx;
+                    ++n_left;
+                }
+            }
+            n_lefts[blockId + 1] = n_left;
+            n_rights[blockId + 1] = n_right;
+        },
+        0,
+        blockCount,
+        NPar::TLocalExecutor::WAIT_COMPLETE
+    );
+    t1 += get_time() - t1_p;
+    size_t n_left = 0;
+    size_t n_right = 0;
+
+    for(int i = 1; i < blockCount + 1; ++i) {
+        n_lefts[i] += n_lefts[i - 1];
+        n_rights[i] += n_rights[i - 1];
+    }
+
+    n_left = n_lefts[blockCount];
+    n_right = n_rights[blockCount];
+    ui32* l_ptr = new ui32[n_left];
+    ui32* r_ptr = new ui32[n_right];
+
+    sibsetSizes[~node.Left] = n_left;
+    sibsetSizes[~node.Right] = n_right;
+
+    l.reset(l_ptr);
+    r.reset(r_ptr);
+
+    uint64_t t2_p = get_time();
+    localExecutor->ExecRange(
+        [&l_ptr, &r_ptr, &n_lefts, &n_rights, &local_lefts, &local_rights](int blockId) {
+          size_t l_start = n_lefts[blockId];
+          size_t r_start = n_rights[blockId];
+          const size_t l_size = n_lefts[blockId + 1] - l_start;
+          const size_t r_size = n_rights[blockId + 1] - r_start;
+          ui32* local_lefts_ptr = local_lefts[blockId].get();
+          ui32* local_rights_ptr = local_rights[blockId].get();
+          for(size_t j = 0; j < l_size; ++j) {
+              l_ptr[l_start++] = {local_lefts_ptr[j]};
+          }
+          for(size_t j = 0; j < r_size; ++j) {
+              r_ptr[r_start++] = {local_rights_ptr[j]};
+          }
+        },
+        0,
+        blockCount,
+        NPar::TLocalExecutor::WAIT_COMPLETE
+    );
+    t2 += get_time() - t2_p;
+}
+
+
+
 
 void BuildIndicesForDataset(
     const TNonSymmetricTreeStructure& tree,

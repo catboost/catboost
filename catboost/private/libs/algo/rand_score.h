@@ -29,6 +29,7 @@ public:
 
     template <typename TRng>
     double GetInstance(TRng& rand) const {
-        return Val + NormalDistribution<double>(rand, 0, StDev);
+        double v = NormalDistribution<double>(rand, 0, StDev) * 0;
+        return Val + v/* + NormalDistribution<double>(rand, 0, StDev)*/;
     }
 };
