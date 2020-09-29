@@ -10,8 +10,6 @@ import org.apache.commons.lang3.SerializationUtils
 import ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl._;
 
 class native_implTest {
-  ensureNativeLibLoaded
-
   @Test
   @throws(classOf[Exception])
   def testTColumnSerialization() {
