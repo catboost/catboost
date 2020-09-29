@@ -376,7 +376,6 @@ static void Train(
         trainingCallbacks->OnSaveSnapshot(NJson::TJsonValue{}, out);
     };
 
-    uint64_t t1_loop = get_time();
     uint64_t t2_CalcErrors = 0;
     for (ui32 iter = ctx->LearnProgress->GetCurrentTrainingIterationCount();
          continueTraining && (iter < ctx->Params.BoostingOptions->IterationCount);
