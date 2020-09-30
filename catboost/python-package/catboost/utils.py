@@ -236,7 +236,7 @@ def read_cd(cd_file, column_count=None, data_file=None, canonize_column_types=Fa
     }
 
 
-def eval_metric(label, approx, metric, weight=None, group_id=None, subgroup_id=None, pairs=None, thread_count=-1):
+def eval_metric(label, approx, metric, weight=None, group_id=None, group_weight=None, subgroup_id=None, pairs=None, thread_count=-1):
     """
     Evaluate metrics with raw approxes and labels.
 
@@ -256,6 +256,9 @@ def eval_metric(label, approx, metric, weight=None, group_id=None, subgroup_id=N
 
     group_id : list or numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
         Object group ids.
+
+    group_weight : list or numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
+        Group weights.
 
     subgroup_id : list or numpy.ndarray, optional (default=None)
         subgroup id for each instance.
@@ -283,7 +286,7 @@ def eval_metric(label, approx, metric, weight=None, group_id=None, subgroup_id=N
         approx = [[]]
     if not isinstance(approx[0], ARRAY_TYPES):
         approx = [approx]
-    return _eval_metric_util(label, approx, metric, weight, group_id, subgroup_id, pairs, thread_count)
+    return _eval_metric_util(label, approx, metric, weight, group_id, group_weight, subgroup_id, pairs, thread_count)
 
 
 def get_gpu_device_count():
