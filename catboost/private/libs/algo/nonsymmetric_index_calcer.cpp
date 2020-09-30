@@ -246,6 +246,7 @@ void UpdateIndicesWithSplit(
     // TODO(ilyzhin) std::function is very slow for calling many times (maybe replace it with lambda)
     std::function<bool(ui32)> splitFunction;
     if (!columnsIndexing) {
+        splitFunction = std::move(func);
     } else {
         splitFunction = [realObjIdx = columnsIndexing, func=std::move(func)](ui32 idx) {
             return func(realObjIdx[idx]);
