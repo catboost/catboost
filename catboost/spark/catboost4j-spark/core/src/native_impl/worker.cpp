@@ -45,6 +45,7 @@ void RunWorker(
     NCatboostOptions::TCatBoostOptions catBoostOptions(ETaskType::CPU);
     catBoostOptions.Load(catBoostJsonOptions);
     catBoostOptions.SystemOptions->FileWithHosts->clear();
+    catBoostOptions.DataProcessingOptions->AllowConstLabel = true;
     TLabelConverter labelConverter;
 
     NPar::TLocalExecutor* localExecutor = &NPar::LocalExecutor();
