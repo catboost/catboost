@@ -65,7 +65,9 @@ private[spark] class Master(
     val pw = new PrintWriter(hostsFilePath.toFile)
     try {
       for (workerInfo <- workersInfo) {
-        pw.println(s"${workerInfo.host}:${workerInfo.port}")
+        if (workerInfo.partitionSize > 0) {
+          pw.println(s"${workerInfo.host}:${workerInfo.port}")
+        }
       }
     } finally {
       pw.close
