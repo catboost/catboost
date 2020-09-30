@@ -113,8 +113,9 @@ object Pool {
 
   /**
    * Load dataset in one of CatBoost's natively supported formats:
-   * -[[https://catboost.ai/docs/concepts/input-data_values-file.html dsv]]
-   * -[[https://catboost.ai/docs/concepts/input-data_libsvm.html libsvm]]
+   *
+   *  - [[https://catboost.ai/docs/concepts/input-data_values-file.html dsv]]
+   *  - [[https://catboost.ai/docs/concepts/input-data_libsvm.html libsvm]]
    *
    * @param spark SparkSession
    * @param dataPathWithScheme Path with scheme to dataset in CatBoost format.
