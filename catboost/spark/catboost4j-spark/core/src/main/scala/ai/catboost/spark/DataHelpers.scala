@@ -432,7 +432,7 @@ private[spark] object DataHelpers {
     val tmpFilePath = Files.createTempFile(tmpFilePrefix, tmpFileSuffix)
     tmpFilePath.toFile.deleteOnExit
 
-    native_impl.SaveQuantizedPool(dataProvider, tmpFilePath.toString)
+    native_impl.SaveQuantizedPoolWrapper(dataProvider, tmpFilePath.toString)
     tmpFilePath
   }
 }

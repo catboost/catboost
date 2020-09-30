@@ -1,13 +1,10 @@
 %{
-#include <catboost/private/libs/quantized_pool/serialization.h>
+#include <catboost/spark/catboost4j-spark/core/src/native_impl/quantized_pool_serialization.h>
 %}
 
 %include <bindings/swiglib/stroka.swg>
 
 %include "data_provider.i"
 
-namespace NCB {
+%include "quantized_pool_serialization.h"
 
-    void SaveQuantizedPool(const TDataProviderPtr& dataProvider, TString fileName);
-
-}
