@@ -225,7 +225,7 @@ object Pool {
 
 
 /** CatBoost's abstraction of a dataset.
- *  
+ *
  *  Features data can be stored in raw (features column has [[org.apache.spark.ml.linalg.Vector]] type)
  *  or quantized (float feature values are quantized into integer bin values, features column has
  *  `Array[Byte]` type) form.
