@@ -73,7 +73,9 @@ trait CatBoostPredictorTrait[
     val quantizedTrainPool = if (trainPool.isQuantized) {
       trainPool
     } else {
-      trainPool.quantize(this) // this as QuantizationParamsTrait
+      val quantizationParams = new ai.catboost.spark.params.QuantizationParams
+      this.copyValues(quantizationParams)
+      trainPool.quantize(quantizationParams)
     }.repartition(partitionCount)
 
     // TODO(akhropov): eval pools are not distributed for now, so they are not repartitioned
