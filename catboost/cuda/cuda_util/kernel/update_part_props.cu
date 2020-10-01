@@ -63,7 +63,7 @@ namespace NKernel {
         if (size > 0) {
             int i = 0;
             for (; i <= iterCount - N * M; i += N * M) {
-                #pragma unroll M
+                #pragma unroll 4
                 for (int j = 0; j < N * M; ++j) {
                     const float4* stat4 = (const float4*) stat;
                     float4 val = Ldg(stat4);
