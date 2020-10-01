@@ -51,7 +51,9 @@ TRawObjectsDataProviderPtr CreateRawObjectsDataProvider(
     return result;
 }
 
-TQuantizedRowAssembler::TQuantizedRowAssembler(TQuantizedObjectsDataProviderPtr objectsData) {
+TQuantizedRowAssembler::TQuantizedRowAssembler(
+    TQuantizedObjectsDataProviderPtr objectsData
+) throw (yexception) {
     const auto& quantizedFeaturesInfo = *(objectsData->GetQuantizedFeaturesInfo());
     const auto& featuresLayout = *(quantizedFeaturesInfo.GetFeaturesLayout());
 
@@ -93,7 +95,7 @@ i32 TQuantizedRowAssembler::GetObjectBlobSize() const {
     );
 }
 
-void TQuantizedRowAssembler::AssembleObjectBlob(i32 objectIdx, TArrayRef<i8> buffer) {
+void TQuantizedRowAssembler::AssembleObjectBlob(i32 objectIdx, TArrayRef<i8> buffer) throw (yexception) {
     ui32 unsignedObjectIdx = SafeIntegerCast<ui32>(objectIdx);
 
     CB_ENSURE(
@@ -144,7 +146,7 @@ TDataProviderClosureForJVM::TDataProviderClosureForJVM(
     const TDataProviderBuilderOptions& options,
     bool hasFeatures,
     i32 threadCount
-) {
+) throw (yexception) {
     NPar::TLocalExecutor* localExecutor = &NPar::LocalExecutor();
     if ((localExecutor->GetThreadCount() + 1) < threadCount) {
         localExecutor->RunAdditionalThreads(threadCount - 1);

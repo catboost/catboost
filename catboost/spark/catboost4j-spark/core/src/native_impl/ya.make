@@ -11,6 +11,7 @@ SRCS(
     jni_helpers.cpp
     master.cpp
     meta_info.cpp
+    model.cpp
     quantized_features_info.cpp
     quantization.cpp
     GLOBAL spark_quantized.cpp

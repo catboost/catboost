@@ -161,7 +161,7 @@ private[spark] class Master(
       throw new CatBoostError(s"Master process failed: exited with code $returnValue")
     }
 
-    nativeModelResult = native_impl.native_impl.ReadModel(resultModelFilePath.toString)
+    nativeModelResult = native_impl.native_impl.ReadModelWrapper(resultModelFilePath.toString)
 
     FileUtils.deleteDirectory(tmpDirPath.toFile)
   }
