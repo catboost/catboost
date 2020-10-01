@@ -14,6 +14,8 @@ import java.nio.file._
 import java.util.concurrent.Callable
 import java.util.regex.Pattern
 
+import sun.net.util.IPAddressUtil
+
 import org.apache.commons.io.FileUtils
 
 import org.apache.spark.sql.SparkSession
@@ -66,7 +68,11 @@ private[spark] class Master(
     try {
       for (workerInfo <- workersInfo) {
         if (workerInfo.partitionSize > 0) {
-          pw.println(s"${workerInfo.host}:${workerInfo.port}")
+          if (IPAddressUtil.isIPv6LiteralAddress(workerInfo.host)) {
+            pw.println(s"[${workerInfo.host}]:${workerInfo.port}")
+          } else {
+            pw.println(s"${workerInfo.host}:${workerInfo.port}")
+          }
         }
       }
     } finally {
