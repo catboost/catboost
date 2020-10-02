@@ -65,8 +65,6 @@ ALLOW taxi/graph/external/graph2/tests/mapmatcher -> maps/libs/mms
 ALLOW taxi/graph/libs/easyview_helpers -> maps/analyzer/libs/common
 ALLOW taxi/graph/libs/easyview_helpers -> maps/tools/easyview/lib
 ALLOW taxi/graph/libs/graph -> maps/analyzer/libs/data
-ALLOW taxi/graph/libs/graph -> maps/analyzer/libs/deprecated/mapmatcher
-ALLOW taxi/graph/libs/graph -> maps/analyzer/libs/deprecated/shortest_path
 ALLOW taxi/graph/libs/graph -> maps/analyzer/libs/graphmatching
 ALLOW taxi/graph/libs/graph -> maps/libs/common
 ALLOW taxi/graph/libs/graph -> maps/libs/edge_persistent_index
@@ -86,8 +84,6 @@ ALLOW taxi/graph/libs/graph -> maps/tools/easyview/lib
 ALLOW taxi/graph/libs/graph-test -> maps/libs/geolib
 ALLOW taxi/graph/libs/mapmatcher -> maps/analyzer/libs/common
 ALLOW taxi/graph/libs/mapmatcher -> maps/analyzer/libs/data
-ALLOW taxi/graph/libs/mapmatcher -> maps/analyzer/libs/deprecated/graphmatching
-ALLOW taxi/graph/libs/mapmatcher -> maps/analyzer/libs/deprecated/shortest_path
 ALLOW taxi/graph/libs/mapmatcher -> maps/analyzer/libs/graphmatching
 ALLOW taxi/graph/libs/mapmatcher -> maps/libs/common
 ALLOW taxi/graph/libs/mapmatcher -> maps/libs/edge_persistent_index
@@ -121,7 +117,6 @@ ALLOW taxi/graph/libs/routing -> maps/libs/road_graph
 ALLOW taxi/graph/libs/routing -> maps/routing/common
 ALLOW taxi/graph/libs/search -> maps/analyzer/libs/common
 ALLOW taxi/graph/libs/shortest_path -> maps/analyzer/libs/data
-ALLOW taxi/graph/libs/shortest_path -> maps/analyzer/libs/deprecated/shortest_path
 ALLOW taxi/graph/libs/shortest_path -> maps/analyzer/libs/shortest_path
 ALLOW taxi/graph/libs/shortest_path -> maps/libs/common
 ALLOW taxi/graph/libs/shortest_path -> maps/libs/mms
@@ -130,8 +125,7 @@ ALLOW taxi/graph/libs/shortest_path -> maps/routing/leptidea-sg
 ALLOW taxi/graph/libs/shortest_path -> maps/routing/turn_penalties
 ALLOW taxi/graph/libs/shortest_path -> maps/routing/turn_penalties
 ALLOW taxi/graph/libs/tests/graph -> maps/libs/jams/static-graph
-ALLOW taxi/graph/libs/tests/mapmatcher -> maps/analyzer/libs/deprecated/mapmatcher
-ALLOW taxi/graph/libs/tests/mapmatcher -> maps/analyzer/libs/deprecated/track_generator
+ALLOW taxi/graph/libs/tests/mapmatcher -> maps/analyzer/libs/track_generator
 ALLOW taxi/graph/libs/tests/mapmatcher -> maps/libs/mms
 ALLOW taxi/graph/libs/tests/nearest_edges -> maps/libs/jams/static-graph
 ALLOW taxi/graph/libs/tests/routing -> maps/libs/road_graph
