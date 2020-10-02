@@ -139,14 +139,14 @@ static std::tuple<ui32, ui32, ELeavesEstimation, double> GetEstimationMethodDefa
         }
         case ELossFunction::YetiRank: {
             defaultL2Reg = 0;
-            defaultEstimationMethod = (taskType == ETaskType::GPU) ? ELeavesEstimation::Newton : ELeavesEstimation::Gradient;
+            defaultEstimationMethod = ELeavesEstimation::Newton;
             defaultGradientIterations = 1;
             defaultNewtonIterations = 1;
             break;
         }
         case ELossFunction::YetiRankPairwise: {
             defaultL2Reg = 0;
-            defaultEstimationMethod = (taskType == ETaskType::GPU) ? ELeavesEstimation::Simple : ELeavesEstimation::Gradient;
+            defaultEstimationMethod = (taskType == ETaskType::GPU) ? ELeavesEstimation::Newton : ELeavesEstimation::Gradient;
             defaultGradientIterations = 1;
             defaultNewtonIterations = 1;
             break;
@@ -257,7 +257,7 @@ void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
     if (treeConfig.LeavesEstimationMethod.NotSet()) {
         treeConfig.LeavesEstimationMethod.SetDefault(defaultEstimationMethod);
     } else if (treeConfig.LeavesEstimationMethod != defaultEstimationMethod) {
-        CB_ENSURE((lossFunctionConfig.GetLossFunction() != ELossFunction::YetiRank ||
+        CB_ENSURE((lossFunctionConfig.GetLossFunction() != ELossFunction::YetiRank &&
                    lossFunctionConfig.GetLossFunction() != ELossFunction::YetiRankPairwise),
                   "At the moment, in the YetiRank and YetiRankPairwise mode, changing the leaf_estimation_method parameter is prohibited.");
         if (GetTaskType() == ETaskType::CPU) {
