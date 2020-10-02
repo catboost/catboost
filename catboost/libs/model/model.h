@@ -1232,3 +1232,5 @@ TFullModel SumModels(
 void SaveModelBorders(
     const TString& file,
     const TFullModel& model);
+
+THashMap<int, TFloatFeature::ENanValueTreatment> GetNanTreatments(const TFullModel& model);

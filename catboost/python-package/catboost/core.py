@@ -1390,6 +1390,10 @@ class _CatBoostBase(object):
             raise CatBoostError("There is no trained model to use get_feature_borders(). Use fit() to train model. Then use get_borders().")
         return self._object._get_borders()
 
+    def _get_nan_treatments(self):
+        assert self.is_fitted()
+        return self._object._get_nan_treatments()
+
     def _get_params(self):
         params = self._object._get_params()
         init_params = self._init_params.copy()
@@ -2843,11 +2847,15 @@ class CatBoost(_CatBoostBase):
             List of list of predictions for all buckets for all documents in data
         """
 
-        def predict(doc, feature_idx, borders):
-            extended_borders = [borders[0] - 1e-6] + borders + [borders[-1] + 1e-6]
+        def predict(doc, feature_idx, borders, nan_treatment):
+            left_extend_border = min(2 * borders[0], -1)
+            right_extend_border = max(2 * borders[-1], 1)
+            extended_borders = [left_extend_border] + borders + [right_extend_border]
             points = []
             predictions = []
             border_idx = None
+            if np.isnan(doc[feature_idx]):
+                border_idx = len(borders) if nan_treatment == 'AsTrue' else 0
             for i in range(len(extended_borders) - 1):
                 points += [(extended_borders[i] + extended_borders[i + 1]) / 2.]
                 if border_idx is None and doc[feature_idx] < extended_borders[i + 1]:
@@ -2881,6 +2889,7 @@ class CatBoost(_CatBoostBase):
         data, _ = self._process_predict_input_data(data, "vary_feature_value_and_apply", thread_count=-1)
         figs = []
         all_predictions = [{}] * data.num_row()
+        nan_treatments = self._get_nan_treatments()
         for feature in features_to_change:
             if not isinstance(feature, int):
                 if self.feature_names_ is None or feature not in self.feature_names_:
@@ -2910,7 +2919,7 @@ class CatBoost(_CatBoostBase):
 
             trace = []
             for idx, features in enumerate(data.get_features()):
-                predictions, border_idx = predict(features, feature_idx, borders)
+                predictions, border_idx = predict(features, feature_idx, borders, nan_treatments[feature_idx])
                 all_predictions[idx][feature_idx] = predictions
                 trace.append(go.Scatter(
                     y = predictions,

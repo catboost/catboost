@@ -1766,6 +1766,14 @@ void SaveModelBorders(
     }
 }
 
+THashMap<int, TFloatFeature::ENanValueTreatment> GetNanTreatments(const TFullModel& model) {
+    THashMap<int, TFloatFeature::ENanValueTreatment> nanTreatments;
+    for (const auto& feature : model.ModelTrees->GetFloatFeatures()) {
+        nanTreatments[feature.Position.FlatIndex] = feature.NanValueTreatment;
+    }
+    return nanTreatments;
+}
+
 DEFINE_DUMPER(TRepackedBin, FeatureIndex, XorMask, SplitIdx)
 
 DEFINE_DUMPER(TNonSymmetricTreeStepNode, LeftSubtreeDiff, RightSubtreeDiff)
