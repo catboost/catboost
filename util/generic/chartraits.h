@@ -24,12 +24,9 @@ const char* FastFindFirstNotOf(const char* s, size_t len, const char* set, size_
 template <class TCharType>
 class TCharTraits: public std::char_traits<TCharType> {
 public:
+    _LIBCPP_CONSTEXPR_AFTER_CXX14
     static size_t GetLength(const TCharType* s) {
-        Y_ASSERT(s);
-        const TCharType* sc = s;
-        for (; *sc != 0; ++sc) {
-        }
-        return sc - s;
+        return std::char_traits<TCharType>::length(s);
     }
     static size_t GetLength(const TCharType* s, size_t maxlen) {
         Y_ASSERT(s);
@@ -323,10 +320,11 @@ public:
 
     // Overriden methods
 
+    _LIBCPP_CONSTEXPR_AFTER_CXX14
     static size_t GetLength(const char* s) {
-        Y_ASSERT(s);
-        return strlen(s);
+        return std::char_traits<char>::length(s);
     }
+
     static size_t GetLength(const char* s, size_t maxlen) {
         Y_ASSERT(s);
         return strnlen(s, maxlen);
@@ -404,12 +402,9 @@ class TCharTraits<wchar16>: public std::char_traits<wchar16> {
     using TCharType = wchar16;
 
 public:
+    _LIBCPP_CONSTEXPR_AFTER_CXX14
     static size_t GetLength(const TCharType* s) {
-        Y_ASSERT(s);
-        const TCharType* sc = s;
-        for (; *sc != 0; ++sc) {
-        }
-        return sc - s;
+        return std::char_traits<TCharType>::length(s);
     }
     static size_t GetLength(const TCharType* s, size_t maxlen) {
         Y_ASSERT(s);

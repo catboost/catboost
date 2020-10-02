@@ -80,8 +80,12 @@ public:
     };
     using const_reverse_iterator = TReverseIteratorBase<const_iterator>;
 
+    _LIBCPP_CONSTEXPR_AFTER_CXX14
     static inline size_t StrLen(const TCharType* s) noexcept {
-        return s ? TTraits::GetLength(s) : 0;
+        if (Y_LIKELY(s)) {
+            return TTraits::GetLength(s);
+        }
+        return 0;
     }
 
     template <class TCharTraits>
