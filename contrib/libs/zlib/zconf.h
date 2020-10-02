@@ -373,6 +373,13 @@
 #  endif
 #endif
 
+#if !defined(WINDOWS) && !defined(WIN32) && !defined(__BEOS__)
+#  ifdef ZLIB_DLL
+#    define ZEXPORT __attribute__((visibility("default")))
+#    define ZEXPORTVA __attribute__((visibility("default")))
+#  endif
+#endif
+
 #ifndef ZEXTERN
 #  define ZEXTERN extern
 #endif
