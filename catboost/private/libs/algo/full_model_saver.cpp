@@ -10,6 +10,7 @@
 #include <catboost/private/libs/options/enum_helpers.h>
 #include <catboost/private/libs/options/json_helper.h>
 #include <catboost/private/libs/options/system_options.h>
+#include <catboost/private/libs/algo/learn_context.h>
 #include <catboost/private/libs/target/classification_target_helper.h>
 
 #include <library/cpp/svnversion/svnversion.h>
@@ -232,25 +233,26 @@ namespace NCB {
 
     static void CreateTargetClasses(
         NPar::TLocalExecutor& localExecutor,
-        TConstArrayRef<float> targets,
+        TConstArrayRef<TConstArrayRef<float>> targets,
         const TVector<TTargetClassifier>& targetClassifiers,
         TVector<TVector<int>>* learnTargetClasses,
         TVector<int>* targetClassesCount
     ) {
         ui64 ctrCount = targetClassifiers.size();
-        const int sampleCount = static_cast<const int>(targets.size());
+        const int sampleCount = static_cast<const int>(targets[0].size());
 
         learnTargetClasses->assign(ctrCount, TVector<int>(sampleCount));
         targetClassesCount->resize(ctrCount);
 
         for (ui32 ctrIdx = 0; ctrIdx < ctrCount; ++ctrIdx) {
+            auto targetId = targetClassifiers[ctrIdx].GetTargetId();
             NPar::ParallelFor(
                 localExecutor,
                 0,
                 (ui32)sampleCount,
                 [&](int sample) {
                     (*learnTargetClasses)[ctrIdx][sample]
-                        = targetClassifiers[ctrIdx].GetTargetClass(targets[sample]);
+                        = targetClassifiers[ctrIdx].GetTargetClass(targets[targetId][sample]);
                 }
             );
 
@@ -292,10 +294,10 @@ namespace NCB {
                 outDatasetDataForFinalCtrs->Data = TrainingDataRef;
                 outDatasetDataForFinalCtrs->LearnPermutation = Nothing();
 
-                // since counters are not implemented for mult-dimensional target
-                if (outDatasetDataForFinalCtrs->Data.Learn->TargetData->GetTargetDimension() == 1) {
-                    outDatasetDataForFinalCtrs->Targets = *outDatasetDataForFinalCtrs->Data.Learn->TargetData->GetOneDimensionalTarget();
-                }
+                auto targets =  *outDatasetDataForFinalCtrs->Data.Learn->TargetData->GetTarget();
+                outDatasetDataForFinalCtrs->Targets = TVector<TConstArrayRef<float>>();
+                for (const auto& ref: targets)
+                    outDatasetDataForFinalCtrs->Targets->emplace_back(ref);
 
                 *outFeatureCombinationToProjection = &FeatureCombinationToProjection;
 
@@ -420,16 +422,18 @@ namespace NCB {
     void TCoreModelToFullModelConverter::Do(
         bool requiresStaticCtrProvider,
         TFullModel* dstModel,
-        NPar::TLocalExecutor* localExecutor) {
+        NPar::TLocalExecutor* localExecutor,
+        const TVector<TTargetClassifier>* targetClassifiers) {
 
-        DoImpl(requiresStaticCtrProvider, dstModel, localExecutor);
+        DoImpl(requiresStaticCtrProvider, dstModel, localExecutor, targetClassifiers);
     }
 
     void TCoreModelToFullModelConverter::Do(
         const TString& fullModelPath,
         const TVector<EModelType>& formats,
         bool addFileFormatExtension,
-        NPar::TLocalExecutor* localExecutor
+        NPar::TLocalExecutor* localExecutor,
+        const TVector<TTargetClassifier>* targetClassifiers
     ) {
         TFullModel fullModel;
 
@@ -443,7 +447,8 @@ namespace NCB {
                 }
             ),
             &fullModel,
-            localExecutor
+            localExecutor,
+            targetClassifiers
         );
 
         ExportFullModel(fullModel, fullModelPath, LearnObjectsData.Get(), formats, addFileFormatExtension);
@@ -452,7 +457,8 @@ namespace NCB {
     void TCoreModelToFullModelConverter::DoImpl(
         bool requiresStaticCtrProvider,
         TFullModel* dstModel,
-        NPar::TLocalExecutor* localExecutor
+        NPar::TLocalExecutor* localExecutor,
+        const TVector<TTargetClassifier>* targetClassifiers
     ) {
         CB_ENSURE_INTERNAL(CoreModel, "CoreModel has not been specified");
 
@@ -523,6 +529,7 @@ namespace NCB {
         CB_ENSURE_INTERNAL(GetBinarizedDataFunc, "Need BinarizedDataFunc data specified");
 
         TDatasetDataForFinalCtrs datasetDataForFinalCtrs;
+        datasetDataForFinalCtrs.TargetClassifiers = targetClassifiers;
         const THashMap<TFeatureCombination, TProjection>* featureCombinationToProjectionMap;
 
         GetBinarizedDataFunc(*dstModel, &datasetDataForFinalCtrs, &featureCombinationToProjectionMap);

@@ -81,21 +81,24 @@ namespace NCB {
         void Do(
             bool requiresStaticCtrProvider,
             TFullModel* dstModel,
-            NPar::TLocalExecutor* localExecutor
+            NPar::TLocalExecutor* localExecutor,
+            const TVector<TTargetClassifier>* targetClassifiers
         );
 
         void Do(
             const TString& fullModelPath,
             const TVector<EModelType>& formats,
             bool addFileFormatExtension = false,
-            NPar::TLocalExecutor* localExecutor = nullptr
+            NPar::TLocalExecutor* localExecutor = nullptr,
+            const TVector<TTargetClassifier>* targetClassifiers = nullptr
         );
 
     private:
         void DoImpl(
             bool requiresStaticCtrProvider,
             TFullModel* fullModel,
-            NPar::TLocalExecutor* localExecutor
+            NPar::TLocalExecutor* localExecutor,
+            const TVector<TTargetClassifier>* targetClassifiers
         );
 
         void CalcFinalCtrs(

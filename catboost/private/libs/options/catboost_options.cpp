@@ -432,7 +432,8 @@ static void ValidateCtrTargetBinarization(
     if (ctrTargetBinarization->BorderCount > 1) {
         CB_ENSURE(lossFunction == ELossFunction::RMSE || lossFunction == ELossFunction::Quantile ||
                       lossFunction == ELossFunction::LogLinQuantile || lossFunction == ELossFunction::Poisson ||
-                      lossFunction == ELossFunction::MAPE || lossFunction == ELossFunction::MAE || lossFunction == ELossFunction::MultiClass,
+                      lossFunction == ELossFunction::MAPE || lossFunction == ELossFunction::MAE || lossFunction == ELossFunction::MultiClass ||
+                      lossFunction == ELossFunction::MultiRMSE,
                   "Setting TargetBorderCount is not supported for loss function " << lossFunction);
     }
 }

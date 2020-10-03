@@ -479,13 +479,14 @@ namespace NCatboostCuda {
                 .WithFeatureEstimators(trainingData.FeatureEstimators);
 
             if (dstModel) {
-                coreModelToFullModelConverter.Do(true, dstModel, localExecutor);
+                coreModelToFullModelConverter.Do(true, dstModel, localExecutor, &targetClassifiers);
             } else {
                 coreModelToFullModelConverter.Do(
                     outputOptions.CreateResultModelFullPath(),
                     outputOptions.GetModelFormats(),
                     outputOptions.AddFileFormatExtension(),
-                    localExecutor);
+                    localExecutor,
+                    &targetClassifiers);
             }
         }
 

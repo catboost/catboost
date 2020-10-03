@@ -847,7 +847,7 @@ static void CalcFinalCtrs(
         ctrLeafCountLimit,
         NeedTargetClassifier(ctrType) ?
             (**datasetDataForFinalCtrs.LearnTargetClass)[targetBorderClassifierIdx] : TVector<int>(),
-        *datasetDataForFinalCtrs.Targets,
+        (*datasetDataForFinalCtrs.Targets)[(**datasetDataForFinalCtrs.TargetClassifiers)[targetBorderClassifierIdx].GetTargetId()],
         totalSampleCount,
         NeedTargetClassifier(ctrType) ?
             (**datasetDataForFinalCtrs.TargetClassesCount)[targetBorderClassifierIdx] : 0,
