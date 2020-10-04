@@ -218,14 +218,31 @@ private[spark] object Helpers {
       }
     }
   }
+  
+  def classNamesAreKnown(params: Params) : Boolean = {
+    params.isSet(params.getParam("targetBorder")) || params.isSet(params.getParam("classesCount")) || params.isSet(params.getParam("classNames")) || params.isSet(params.getParam("classWeightsMap"))|| params.isSet(params.getParam("classWeightsList"))
+  }
 
-  def processClassWeightsParams(params: mutable.HashMap[String, Any]) : JObject = {
+
+  def processClassWeightsParams(
+    params: mutable.HashMap[String, Any],
+    classNamesFromLabelData: Option[Array[String]]
+  ) : JObject = {
     if (params.contains("classWeightsMap")) {
       val classWeightsMap = params("classWeightsMap").asInstanceOf[java.util.LinkedHashMap[String, Float]]
       val classWeightsList = new Array[Double](classWeightsMap.size)
       var result = JObject()
-      if (params.contains("classNames")) {
-        val classNames = params("classNames").asInstanceOf[Array[String]]
+
+      val maybeClassNames = if (classNamesFromLabelData.isDefined) {
+        classNamesFromLabelData
+      } else if (params.contains("classNames")) {
+        Some(params("classNames").asInstanceOf[Array[String]])
+      } else {
+        None
+      }
+
+      if (maybeClassNames.isDefined) {
+        val classNames = maybeClassNames.get
         for (i <- 0 until classWeightsList.size) {
           val className = classNames(i)
           if (!classWeightsMap.contains(className)) {
@@ -251,6 +268,13 @@ private[spark] object Helpers {
       JObject() ~ ("class_weights" -> params("classWeightsList").asInstanceOf[Array[Double]].toSeq)
     } else {
       JObject()
+    }
+  }
+
+  def processClassNamesFromLabelData(classNamesFromLabelData: Option[Array[String]]) : JObject = {
+    classNamesFromLabelData match {
+      case Some(classNames) => ("class_names" -> classNames.toSeq)
+      case None => JObject()
     }
   }
 
@@ -309,7 +333,10 @@ private[spark] object Helpers {
     )
   }
 
-  def sparkMlParamsToCatBoostJsonParams(params: Params) : JObject = {
+  def sparkMlParamsToCatBoostJsonParams(
+    params: Params,
+    classNamesFromLabelData: Option[Array[String]] = None
+  ) : JObject = {
     val paramsSeq = params.extractParamMap.toSeq
     val paramsHashMap = new mutable.HashMap[String, Any]
     for (paramPair <- paramsSeq) {
@@ -317,8 +344,10 @@ private[spark] object Helpers {
     }
     checkIncompatibleParams(paramsHashMap)
 
+    
     JObject()
-      .merge(processClassWeightsParams(paramsHashMap))
+      .merge(processClassWeightsParams(paramsHashMap, classNamesFromLabelData))
+      .merge(processClassNamesFromLabelData(classNamesFromLabelData))
       .merge(processSnapshotIntervalParam(paramsHashMap))
       .merge(processWithSimpleNameMapping(paramsSeq))
   }

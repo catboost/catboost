@@ -35,12 +35,20 @@ trait CatBoostPredictorTrait[
   this: params.TrainingParamsTrait =>
 
 
-  // override in descendants if necessary
+  /**
+   *  override in descendants if necessary
+   *  
+   *  @return (preprocessedTrainPool, preprocessedEvalPools, catBoostJsonParams)
+   */
   protected def preprocessBeforeTraining(
     quantizedTrainPool: Pool,
     quantizedEvalPools: Array[Pool]
-  ) : (Pool, Array[Pool]) = {
-    (quantizedTrainPool, quantizedEvalPools)
+  ) : (Pool, Array[Pool], JObject) = { 
+    (
+      quantizedTrainPool,
+      quantizedEvalPools,
+      ai.catboost.spark.params.Helpers.sparkMlParamsToCatBoostJsonParams(this)
+    )
   }
 
   protected def createModel(fullModel: native_impl.TFullModel) : Model;
@@ -100,12 +108,10 @@ trait CatBoostPredictorTrait[
         }
       }
     }
-    val (preprocessedTrainPool, preprocessedEvalPools) = preprocessBeforeTraining(
+    val (preprocessedTrainPool, preprocessedEvalPools, catBoostJsonParams) = preprocessBeforeTraining(
       quantizedTrainPool,
       quantizedEvalPools
     )
-
-    val catBoostJsonParams = ai.catboost.spark.params.Helpers.sparkMlParamsToCatBoostJsonParams(this)
 
     val master = impl.Master(preprocessedTrainPool, preprocessedEvalPools, compact(catBoostJsonParams))
 

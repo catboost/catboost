@@ -142,8 +142,16 @@ private[spark] object DataHelpers {
     attrGroup.toMetadata
   }
 
-  def getClassNames(labelField: StructField) : TVector_TString = {
-    new TVector_TString
+  def getClassNamesFromLabelData(data: DataFrame, labelColumn: String) : Array[String] = {
+    val iterator = data.select(labelColumn).distinct.toLocalIterator.asScala
+    data.schema(labelColumn).dataType match {
+      case DataTypes.IntegerType => iterator.map{ _.getAs[Int](0) }.toSeq.sorted.map{ _.toString }.toArray
+      case DataTypes.LongType => iterator.map{ _.getAs[Long](0) }.toSeq.sorted.map{ _.toString }.toArray
+      case DataTypes.FloatType => iterator.map{ _.getAs[Float](0) }.toSeq.sorted.map{ _.toString }.toArray
+      case DataTypes.DoubleType => iterator.map{ _.getAs[Double](0) }.toSeq.sorted.map{ _.toString }.toArray
+      case DataTypes.StringType => iterator.map{ _.getString(0) }.toArray
+      case _ => throw new CatBoostError("Unsupported data type for Label")
+    }
   }
 
   def getLabelCallback(
