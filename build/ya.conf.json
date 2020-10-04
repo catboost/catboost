@@ -6973,7 +6973,7 @@
         },
         "logbroker": {
             "formula": {
-                "sandbox_id": 787577175,
+                "sandbox_id": 788206160,
                 "match": "logbroker"
             },
             "executable": {
