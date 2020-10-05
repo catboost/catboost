@@ -16,6 +16,7 @@ RECURSE(
     flatbuffers/samples
     fmath
     gamma_function_apache_math_port
+    jdk
     jemalloc
     libbz2
     libc_compat

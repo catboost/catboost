@@ -9,8 +9,6 @@
 #include <util/generic/yexception.h>
 #include <util/system/types.h>
 
-#include <jni.h>
-
 
 class TNanModeAndBordersBuilder {
 public:
