@@ -492,11 +492,12 @@ static TVector<TVector<double>> CalcScoresForOneCandidateImpl(
     const TFold& initialFold,
     const TVector<TIndexType>& leafs,
     TLearnContext* ctx,
-    TBucketStats* statsPtr = nullptr, TBucketStats* parentStatsPtr = nullptr, TBucketStats* siblingStatsPtr = nullptr
+    TBucketStats* statsPtr = nullptr, TBucketStats* parentStatsPtr = nullptr, TBucketStats* siblingStatsPtr = nullptr, int maxBucketCount = 0
 ) {
     TVector<TVector<double>> scores(candidate.Candidates.size());
     ctx->LocalExecutor->ExecRange(
         [&](int subCandId) {
+//    for(int subCandId = 0; subCandId < candidate.Candidates.ysize(); subCandId++) {
             const auto& candidateInfo = candidate.Candidates[subCandId];
             const auto& splitEnsemble = candidateInfo.SplitEnsemble;
 
@@ -538,7 +539,11 @@ static TVector<TVector<double>> CalcScoresForOneCandidateImpl(
                     initialFold,
                     leafs,
                     ctx,
-                    &scoreCalcer, statsPtr, parentStatsPtr, siblingStatsPtr);
+                    &scoreCalcer, /*statsPtr, parentStatsPtr, siblingStatsPtr);*/
+                    statsPtr != nullptr ? statsPtr + subCandId*maxBucketCount : nullptr,
+                    parentStatsPtr != nullptr ? parentStatsPtr + subCandId*maxBucketCount : nullptr,
+                    siblingStatsPtr != nullptr ? siblingStatsPtr + subCandId*maxBucketCount : nullptr);
+                
             } else if (bucketIndexBitCount <= 16) {
                 CalcScoresForSubCandidate<ui16>(
                     objectsDataProvider,
@@ -568,7 +573,7 @@ TVector<TVector<double>> CalcScoresForOneCandidate(
     const TFold& initialFold,
     const TVector<TIndexType>& leafs,
     TLearnContext* ctx,
-    TBucketStats* statsPtr, TBucketStats* parentStatsPtr, TBucketStats* siblingStatsPtr
+    TBucketStats* statsPtr, TBucketStats* parentStatsPtr, TBucketStats* siblingStatsPtr, int maxBucketCount
 ) {
     const auto scoreFunction = ctx->Params.ObliviousTreeOptions->ScoreFunction;
     if (scoreFunction == EScoreFunction::Cosine) {
@@ -578,7 +583,7 @@ TVector<TVector<double>> CalcScoresForOneCandidate(
             fold,
             initialFold,
             leafs,
-            ctx, statsPtr, parentStatsPtr, siblingStatsPtr);
+            ctx, statsPtr, parentStatsPtr, siblingStatsPtr, maxBucketCount);
     } else if (scoreFunction == EScoreFunction::L2) {
         return CalcScoresForOneCandidateImpl<TL2ScoreCalcer>(
             data,
@@ -586,7 +591,7 @@ TVector<TVector<double>> CalcScoresForOneCandidate(
             fold,
             initialFold,
             leafs,
-            ctx, statsPtr, parentStatsPtr, siblingStatsPtr);
+            ctx, statsPtr, parentStatsPtr, siblingStatsPtr, maxBucketCount);
     } else {
         CB_ENSURE(false, "Error: score function for CPU should be Cosine or L2");
     }

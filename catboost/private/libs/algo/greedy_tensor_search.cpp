@@ -33,7 +33,6 @@
 #include <util/generic/xrange.h>
 #include <util/string/builder.h>
 #include <util/system/mem_info.h>
-
 using namespace NCB;
 
 
@@ -761,7 +760,7 @@ static void CalcBestScoreLeafwise(
     double scoreStDev,
     TVector<TCandidatesContext>* candidatesContexts, // [dataset]
     TFold* fold,
-    TLearnContext* ctx, TBucketStats* pstats = nullptr, TBucketStats* parent_pstats = nullptr, TBucketStats* sibling_pstats = nullptr, int maxBucketCount = 0) {
+    TLearnContext* ctx, TBucketStats* pstats = nullptr, TBucketStats* parent_pstats = nullptr, TBucketStats* sibling_pstats = nullptr, int maxBucketCount = 0, int maxSplitEnsamples = 0) {
     TVector<std::pair<size_t, size_t>> tasks; // vector of (contextIdx, candId)
 
     for (auto contextIdx : xrange(candidatesContexts->size())) {
@@ -770,9 +769,9 @@ static void CalcBestScoreLeafwise(
             tasks.emplace_back(contextIdx, candId);
         }
     }
-
     ctx->LocalExecutor->ExecRange(
         [&] (int taskIdx) {
+        //for(int taskIdx = 0;  taskIdx < tasks.ysize(); ++taskIdx) {
             TCandidatesContext& candidatesContext = (*candidatesContexts)[tasks[taskIdx].first];
             TCandidateList& candList = candidatesContext.CandidateList;
 
@@ -799,7 +798,7 @@ static void CalcBestScoreLeafwise(
                 ctx->SampledDocs,
                 *fold,
                 leafs,
-                ctx, pstats != nullptr ? pstats + taskIdx*maxBucketCount : nullptr, parent_pstats != nullptr ? parent_pstats + taskIdx*maxBucketCount : nullptr, sibling_pstats != nullptr ? sibling_pstats + taskIdx*maxBucketCount : nullptr);
+                ctx, pstats != nullptr ? pstats + taskIdx*maxBucketCount*maxSplitEnsamples : nullptr, parent_pstats != nullptr ? parent_pstats + taskIdx*maxBucketCount*maxSplitEnsamples : nullptr, sibling_pstats != nullptr ? sibling_pstats + taskIdx*maxBucketCount*maxSplitEnsamples : nullptr, maxBucketCount);
 
             SetBestScore(
                 randSeed + taskIdx,
@@ -1410,6 +1409,7 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
     TVector<TIndexType>* indices,
     TFold* fold,
     TLearnContext* ctx) {
+
     TNonSymmetricTreeStructure currentStructure;
 
     const ui32 learnSampleCount = data.Learn->ObjectsData->GetObjectCount();
@@ -1434,18 +1434,27 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
     for (ui32 curDepth = 0; curDepth < ctx->Params.ObliviousTreeOptions->MaxDepth; ++curDepth) {
         TVector<TCandidatesContext> candidatesContexts = SelectFeaturesForScoring(data, {}, fold, ctx);
 
+        size_t n_tasks = 0;
         int maxBucketCount = 0;
-        for(unsigned long i = 0; i < candidatesContexts[0].CandidateList.size(); ++i) {
-            const int currentBucketCount = GetBucketCount(
-                candidatesContexts[0].CandidateList[i].Candidates[0].SplitEnsemble,
-                *(candidatesContexts[0].LearnData->GetQuantizedFeaturesInfo()),
-                candidatesContexts[0].LearnData->GetPackedBinaryFeaturesSize(),
-                candidatesContexts[0].LearnData->GetExclusiveFeatureBundlesMetaData(),
-                candidatesContexts[0].LearnData->GetFeaturesGroupsMetaData()
-            );
-            maxBucketCount = std::max(maxBucketCount, currentBucketCount);
+        unsigned long maxSplitEnsamples = 0;
+        for (auto contextIdx : xrange(candidatesContexts.size())) {
+            TCandidatesContext& candidatesContext = candidatesContexts[contextIdx];
+            n_tasks += candidatesContext.CandidateList.size();
+            for (auto candId : xrange(candidatesContext.CandidateList.size())) {
+                maxSplitEnsamples = std::max(maxSplitEnsamples, candidatesContext.CandidateList[candId].Candidates.size());
+                for(auto id : xrange(candidatesContext.CandidateList[candId].Candidates.size())) {
+                    const int currentBucketCount = GetBucketCount(
+                        candidatesContext.CandidateList[candId].Candidates[id].SplitEnsemble,
+                        *(candidatesContext.LearnData->GetQuantizedFeaturesInfo()),
+                        candidatesContext.LearnData->GetPackedBinaryFeaturesSize(),
+                        candidatesContext.LearnData->GetExclusiveFeatureBundlesMetaData(),
+                        candidatesContext.LearnData->GetFeaturesGroupsMetaData()
+                    );
+                    maxBucketCount = std::max(maxBucketCount, currentBucketCount);
+                }
+            }
         }
-        const unsigned long nFeatures = candidatesContexts[0].CandidateList.size();
+        const unsigned long nFeatures = n_tasks; //candidatesContexts[0].CandidateList.size();
 
         CheckInterrupted(); // check after long-lasting operation
 
@@ -1457,17 +1466,18 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
         TVector<TIndexType> splittedLeafs;
         TVector<TIndexType> nextLevelLeafs;
         const size_t maxFeatureValueCount = CalcMaxFeatureValueCount(*fold, candidatesContexts);
+
         const auto CalcBestScoreAndCandidate = [&data,&ctx,&scoreStDev,
                                                 &candidatesContexts, &fold,
                                                 &maxBucketCount,
-                                                &maxFeatureValueCount]
+                                                &maxFeatureValueCount, &maxSplitEnsamples]
                                                                       (TBucketStats* stats, TBucketStats* pstats,
                                                                        TBucketStats* sstats, TIndexType id,
                                                                        double& gainLocal,
                                                                        const TCandidateInfo** bestSplitCandidateLocal,
                                                                        TSplit& bestSplitLocal){
             double bestScoreLocal = MINIMAL_SCORE; double scoreBeforeSplitLocal = 0;
-            CalcBestScoreLeafwise(data, {id}, ctx->LearnProgress->Rand.GenRand(), scoreStDev, &candidatesContexts, fold, ctx, stats, pstats, sstats, maxBucketCount);
+            CalcBestScoreLeafwise(data, {id}, ctx->LearnProgress->Rand.GenRand(), scoreStDev, &candidatesContexts, fold, ctx, stats, pstats, sstats, maxBucketCount, maxSplitEnsamples);
             SelectBestCandidate(*ctx, candidatesContexts, maxFeatureValueCount, *fold, &bestScoreLocal, bestSplitCandidateLocal);
             scoreBeforeSplitLocal = CalcScoreWithoutSplit(id, *fold, *ctx);
             if(bestSplitCandidateLocal != nullptr) {
@@ -1506,7 +1516,7 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
             TSplit bestSplit;
 
             if(curDepth == 0) {
-                std::vector<TBucketStats> stats(maxBucketCount*nFeatures);
+                std::vector<TBucketStats> stats(maxBucketCount*nFeatures*maxSplitEnsamples);
                 CalcBestScoreAndCandidate(stats.data(),nullptr,nullptr,curLevelLeafs[id], gain, &bestSplitCandidate, bestSplit);
                 if (bestSplitCandidate == nullptr) {
                     continue;
@@ -1523,10 +1533,10 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
                         small_id = curLevelLeafs[id];
                         large_id = curLevelLeafs[id+1];
 
-                        std::vector<TBucketStats> small_stats(maxBucketCount*nFeatures);
+                        std::vector<TBucketStats> small_stats(maxBucketCount*nFeatures*maxSplitEnsamples);
                         CalcBestScoreAndCandidate(small_stats.data(), nullptr, nullptr, small_id, gain, &bestSplitCandidate, bestSplit);
 
-                        std::vector<TBucketStats> large_stats(maxBucketCount*nFeatures);
+                        std::vector<TBucketStats> large_stats(maxBucketCount*nFeatures*maxSplitEnsamples);
                         CalcBestScoreAndCandidate(large_stats.data(), parents_queue.front().data(), small_stats.data(), large_id, nextGain, &bestSplitCandidateNext, bestSplitNext);
 
                         parents_queue.pop();
@@ -1538,7 +1548,7 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
                         }
                     } else {
                         if (ctx->SampledDocs.LeavesBounds[curLevelLeafs[id+1]].GetSize() == 0) {
-                            std::vector<TBucketStats> stats(maxBucketCount*nFeatures);
+                            std::vector<TBucketStats> stats(maxBucketCount*nFeatures*maxSplitEnsamples);
                             CalcBestScoreAndCandidate(stats.data(), nullptr, nullptr, curLevelLeafs[id], gain, &bestSplitCandidate, bestSplit);
 
                             parents_queue.pop();
@@ -1549,10 +1559,10 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
                         } else {
                             small_id = curLevelLeafs[id+1];
                             large_id = curLevelLeafs[id];
-                            std::vector<TBucketStats> small_stats(maxBucketCount*nFeatures);
+                            std::vector<TBucketStats> small_stats(maxBucketCount*nFeatures*maxSplitEnsamples);
                             CalcBestScoreAndCandidate(small_stats.data(), nullptr, nullptr, small_id, nextGain, &bestSplitCandidateNext, bestSplitNext);
 
-                            std::vector<TBucketStats> large_stats(maxBucketCount*nFeatures);
+                            std::vector<TBucketStats> large_stats(maxBucketCount*nFeatures*maxSplitEnsamples);
                             CalcBestScoreAndCandidate(large_stats.data(), parents_queue.front().data(), small_stats.data(), large_id, gain, &bestSplitCandidate, bestSplit);
 
                             parents_queue.pop();
@@ -1568,7 +1578,7 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
                     skip_next = true;
                 } else {
                     if(zero_sibling_left) {
-                        std::vector<TBucketStats> stats(maxBucketCount*nFeatures);
+                        std::vector<TBucketStats> stats(maxBucketCount*nFeatures*maxSplitEnsamples);
                         CalcBestScoreAndCandidate(stats.data(), nullptr, nullptr, curLevelLeafs[id], gain, &bestSplitCandidate, bestSplit);
                         parents_queue.pop();
                         if (!(gain < 1e-9) && bestSplitCandidate != nullptr) {

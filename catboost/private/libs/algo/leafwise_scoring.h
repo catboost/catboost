@@ -29,7 +29,7 @@ TVector<TVector<double>> CalcScoresForOneCandidate(
     const TFold& initialFold,
     const TVector<TIndexType>& leafs,
     TLearnContext* ctx,
-    TBucketStats* pstats = nullptr, TBucketStats* parent_pstats = nullptr, TBucketStats* sibling_pstats = nullptr
+    TBucketStats* pstats = nullptr, TBucketStats* parent_pstats = nullptr, TBucketStats* sibling_pstats = nullptr, int maxBucketCount = 0
 );
 
 double CalcScoreWithoutSplit(int leaf, const TFold& fold, const TLearnContext& ctx);
