@@ -14,12 +14,12 @@ SRCS(
 )
 
 IF (ARCH_X86_64 OR ARCH_I386)
-    IF (OS_LINUX OR OS_DARWIN OR CLANG_CL)
-        CONLYFLAGS(-mssse3 -std=c11)
+    IF (MSVC AND NOT CLANG_CL)
+        CONLYFLAGS(/D__SSSE3__=1)
+    ELSEIF(CLANG_CL)
+        CONLYFLAGS(-mssse3)
     ELSE()
-        IF (MSVC)
-            CONLYFLAGS(/D__SSSE3__=1)
-        ENDIF()
+        CONLYFLAGS(-mssse3 -std=c11)
     ENDIF()
 ENDIF()
 
