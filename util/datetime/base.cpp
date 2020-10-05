@@ -1,7 +1,6 @@
 #include "base.h"
 
 #include <util/string/cast.h>
-#include <util/string/util.h>
 #include <util/stream/output.h>
 #include <util/stream/mem.h>
 #include <util/system/compat.h>
