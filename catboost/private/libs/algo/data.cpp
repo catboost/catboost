@@ -204,6 +204,7 @@ namespace NCB {
 
         trainingData->MetaInfo.HasPairs = outputPairsInfo.HasPairs;
         trainingData->MetaInfo.HasWeights |= !inputClassificationInfo.ClassWeights.empty();
+        trainingData->MetaInfo.HasWeights |= inputClassificationInfo.AutoClassWeightsType != EAutoClassWeightsType::None;
         dataProcessingOptions.ClassLabels.Get() = outputClassificationInfo.ClassLabels;
         *targetBorder = outputClassificationInfo.TargetBorder;
 
