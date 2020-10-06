@@ -126,6 +126,7 @@ private[spark] class Master(
     val masterAppProcess = RunClassInNewProcess(
       MasterApp.getClass,
       args = Some(args.toArray),
+      inheritIO=false,
       redirectOutput = Some(ProcessBuilder.Redirect.INHERIT),
       redirectError = Some(ProcessBuilder.Redirect.PIPE)
     )
