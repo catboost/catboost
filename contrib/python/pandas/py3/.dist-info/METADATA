@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: pandas
-Version: 1.1.2
+Version: 1.1.3
 Summary: Powerful data structures for data analysis, time series, and statistics
 Home-page: https://pandas.pydata.org
 Maintainer: The PyData Development Team
@@ -19,6 +19,7 @@ Classifier: Programming Language :: Python :: 3
 Classifier: Programming Language :: Python :: 3.6
 Classifier: Programming Language :: Python :: 3.7
 Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Cython
 Classifier: Topic :: Scientific/Engineering
 Requires-Python: >=3.6.1
