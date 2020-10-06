@@ -5,6 +5,7 @@ NO_WERROR()
 
 
 SRCS(
+    apply_result_iterator.cpp
     dataset_rows_reader.cpp
     data_provider_builders.cpp
     features_layout.cpp

@@ -111,6 +111,24 @@ private[spark] class FeaturesColumnStorage (
 }
 
 
+private[spark] class ProcessRowsOutputIterator(
+    val dstRows : mutable.ArrayBuffer[Array[Any]],
+    val processRowCallback: (Array[Any], Int) => Array[Any], // add necessary data to row
+    var objectIdx : Int = 0
+) extends Iterator[Row] {
+  def next : Row = {
+    val dstRow = processRowCallback(dstRows(objectIdx), objectIdx)
+    dstRows(objectIdx) = null // to speed up cleanup
+    objectIdx = objectIdx + 1
+    return Row.fromSeq(dstRow)
+  }
+
+  def hasNext : Boolean = {
+    return objectIdx < dstRows.size
+  }
+}
+
+
 private[spark] object DataHelpers {
   def makeFeaturesMetadata(initialFeatureNames: Array[String]) : Metadata = {
     val featureNames = new Array[String](initialFeatureNames.length)
@@ -152,6 +170,64 @@ private[spark] object DataHelpers {
       case DataTypes.StringType => iterator.map{ _.getString(0) }.toArray
       case _ => throw new CatBoostError("Unsupported data type for Label")
     }
+  }
+
+  /**
+   * @return (dstRows, rawObjectDataProvider)
+   */
+  def processDatasetWithRawFeatures(
+    rows: Iterator[Row],
+    featuresColumnIdx: Int,
+    featuresLayout: TFeaturesLayoutPtr,
+    availableFeaturesIndices: Array[Int],
+    keepRawFeaturesInDstRows: Boolean,
+    dstRowLength: Int
+  ) : (mutable.ArrayBuffer[Array[Any]], SWIGTYPE_p_NCB__TRawObjectsDataProviderPtr) = {
+    val dstRows = new mutable.ArrayBuffer[Array[Any]]
+
+    // as columns
+    var availableFeaturesData = new Array[mutable.ArrayBuilder[Float]](availableFeaturesIndices.size)
+    for (i <- 0 until availableFeaturesData.size) {
+      availableFeaturesData(i) = mutable.ArrayBuilder.make[Float]
+    }
+
+    rows.foreach {
+      row => {
+         val rowFields = new Array[Any](dstRowLength)
+         for (i <- 0 until row.length) {
+           if (i == featuresColumnIdx) {
+             val featuresValues = row.getAs[Vector](i)
+             for (j <- 0 until availableFeaturesIndices.size) {
+               availableFeaturesData(j) += featuresValues(availableFeaturesIndices(j)).toFloat
+             }
+             if (keepRawFeaturesInDstRows) {
+               rowFields(i) = row(i)
+             }
+           } else {
+             rowFields(i) = row(i)
+           }
+         }
+         dstRows += rowFields
+      }
+    }
+
+    val availableFeaturesDataForBuilder = new TVector_TMaybeOwningConstArrayHolder_float
+    for (featureData <- availableFeaturesData) {
+      val result = featureData.result
+      availableFeaturesDataForBuilder.add(result)
+    }
+
+    val rawObjectsDataProviderPtr = native_impl.CreateRawObjectsDataProvider(
+      featuresLayout,
+      dstRows.size.toLong,
+      availableFeaturesDataForBuilder
+    )
+
+    // try to force cleanup of no longer used data
+    availableFeaturesData = null
+    System.gc()
+
+    (dstRows, rawObjectsDataProviderPtr)
   }
 
   def getLabelCallback(

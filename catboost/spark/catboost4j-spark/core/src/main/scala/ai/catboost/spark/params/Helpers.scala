@@ -218,7 +218,7 @@ private[spark] object Helpers {
       }
     }
   }
-  
+
   def classNamesAreKnown(params: Params) : Boolean = {
     params.isSet(params.getParam("targetBorder")) || params.isSet(params.getParam("classesCount")) || params.isSet(params.getParam("classNames")) || params.isSet(params.getParam("classWeightsMap"))|| params.isSet(params.getParam("classWeightsList"))
   }
@@ -344,7 +344,7 @@ private[spark] object Helpers {
     }
     checkIncompatibleParams(paramsHashMap)
 
-    
+
     JObject()
       .merge(processClassWeightsParams(paramsHashMap, classNamesFromLabelData))
       .merge(processClassNamesFromLabelData(classNamesFromLabelData))

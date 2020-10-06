@@ -56,9 +56,9 @@ private[spark] object Worker {
         quantizedFeaturesInfo
       )
     }
-    
+
     val workerPort = TrainingDriver.getWorkerPort()
-    
+
     val ecs = new ExecutorCompletionService[Unit](Executors.newFixedThreadPool(2))
 
     val sendWorkerInfoFuture = ecs.submit(
