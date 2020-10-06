@@ -116,6 +116,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\data_util\private-libs-data_util.vcxproj">
       <Project>{62440384-FCD2-5217-9DB5-BBEF00D51E9B}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\embedding_features\private-libs-embedding_features.vcxproj">
+      <Project>{4EA54851-CD2B-B921-B7AC-E028819A1089}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\index_range\private-libs-index_range.vcxproj">
       <Project>{FD092503-CF90-DD15-46DE-A054A4863C5B}</Project>
     </ProjectReference>
@@ -227,6 +230,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\digest\md5\cpp-digest-md5.vcxproj">
       <Project>{4FF825A6-758B-94D9-9960-004CE22E96DF}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\dot_product\library-cpp-dot_product.vcxproj">
+      <Project>{BAB48646-C601-88C8-A272-6E1619FA017C}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\enumbitset\library-cpp-enumbitset.vcxproj">
       <Project>{6440B812-5ED4-4365-7564-0F5EC4AEDBBC}</Project>
     </ProjectReference>
@@ -239,6 +245,18 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\grid_creator\library-cpp-grid_creator.vcxproj">
       <Project>{E6C33C80-F1BD-2340-891E-B453369FDC5C}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\hnsw\helpers\cpp-hnsw-helpers.vcxproj">
+      <Project>{9A76C5CE-5E1E-87A4-697E-EBAB1DB493AF}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\hnsw\index\cpp-hnsw-index.vcxproj">
+      <Project>{2A212ADB-D1C7-F58A-7A75-911324C95198}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\hnsw\index_builder\cpp-hnsw-index_builder.vcxproj">
+      <Project>{CF6CEAA1-DF44-2BBE-53C3-0607BE4C7DC2}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\hnsw\logging\cpp-hnsw-logging.vcxproj">
+      <Project>{4A7B24DC-5DF1-B52D-E19B-6BC42313F977}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\json\common\cpp-json-common.vcxproj">
       <Project>{6330870F-DABE-D84D-BCA5-C0A181746B9E}</Project>
     </ProjectReference>
@@ -250,6 +268,12 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\json\writer\cpp-json-writer.vcxproj">
       <Project>{94F66460-BD28-7C46-313B-A5F2876E26F8}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\l1_distance\library-cpp-l1_distance.vcxproj">
+      <Project>{CA4AC22C-87C1-EB69-9FB4-B23B3D3C784C}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\l2_distance\library-cpp-l2_distance.vcxproj">
+      <Project>{D98D6A68-C125-8164-C374-95CA8A5C3F41}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\langmask\library-cpp-langmask.vcxproj">
       <Project>{1E76F603-7AB0-A560-A16D-D6FDEE84CA84}</Project>
@@ -269,11 +293,20 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\object_factory\library-cpp-object_factory.vcxproj">
       <Project>{6D119854-6D47-C914-7B2B-E6ECF111A695}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\online_hnsw\base\cpp-online_hnsw-base.vcxproj">
+      <Project>{336A61B9-3424-3A98-7EDA-483541056E50}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\online_hnsw\dense_vectors\cpp-online_hnsw-dense_vectors.vcxproj">
+      <Project>{C85F028A-26F7-C794-7436-FBCA023FA026}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\overloaded\library-cpp-overloaded.vcxproj">
       <Project>{8FA80072-6B06-87FC-6917-262EEFBEA5FB}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\pop_count\library-cpp-pop_count.vcxproj">
       <Project>{6B557DF5-6D6B-ECE1-B5B5-9CD1B8625387}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\sse\library-cpp-sse.vcxproj">
+      <Project>{418E96CF-B75E-3C4F-2B82-0636CFE2782C}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\string_utils\base64\cpp-string_utils-base64.vcxproj">
       <Project>{A4764222-1478-DE04-CC5B-2369096E96BC}</Project>
