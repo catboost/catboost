@@ -2024,3 +2024,15 @@ template <class Key, class T, class HF, class EqKey, class Alloc>
 inline bool operator!=(const THashMultiMap<Key, T, HF, EqKey, Alloc>& hm1, const THashMultiMap<Key, T, HF, EqKey, Alloc>& hm2) {
     return !(hm1 == hm2);
 }
+
+// Cannot name it just 'Hash' because it clashes with too many class members in the code.
+template <class T>
+size_t ComputeHash(const T& value) {
+    return THash<T>{}(value);
+}
+
+// Special overload for string-like hashes.
+template <class T>
+size_t ComputeHash(const T* ptr, size_t size) {
+    return THash<const T*>{}({ptr, size});
+}
