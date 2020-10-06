@@ -252,7 +252,7 @@ def validate_test(unit, kw):
                     errors.append("Malformed data in {}: {} ({})".format(unit.path(), e, filename))
                     continue
 
-                known = {'operation_spec', 'task_spec'}
+                known = {'operation_spec', 'task_spec', "pool", "cypress_root", "cluster", "run_as_root"}
                 unknown = set(data.keys()) - known
                 if unknown:
                     errors.append("Don't know what to do with {} field(s) in {}. You can use only: {}".format(unknown, unit.path(), known))
