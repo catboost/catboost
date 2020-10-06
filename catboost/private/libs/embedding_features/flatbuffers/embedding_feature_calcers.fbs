@@ -1,0 +1,31 @@
+include "catboost/libs/helpers/flatbuffers/guid.fbs";
+
+namespace NCatBoostFbs;
+
+table TLDA {
+    TotalDimension: int;
+    NumClasses: int;
+    ProjectionDimension: int;
+    ComputeProbabilities: bool;
+    ProjectionMatrix: [float];
+}
+
+table TKNN {
+    TotalDimension: int;
+    NumClasses: uint;
+    KNum: uint;
+    Size: uint;
+}
+
+union TAnyEmbeddingCalcer {
+    TLDA,
+    TKNN,
+}
+
+table TEmbeddingCalcer {
+    Id: TGuid;
+    ActiveFeatureIndices: [uint];
+    FeatureCalcerImpl: TAnyEmbeddingCalcer;
+}
+
+root_type TEmbeddingCalcer;

@@ -46,7 +46,8 @@ namespace NCB {
 
     namespace NDetail {
 
-        template <class TObjectsDataProviderType, class TFloatValue, class TCatValue, class TTextValue, class TAccessor>
+        template <class TObjectsDataProviderType, class TFloatValue, class TCatValue,
+                  class TTextValue, class TEmbeddingValue, class TAccessor>
         class TFeaturesBlockIteratorBase : public IFeaturesBlockIterator {
         public:
             TFeaturesBlockIteratorBase(
@@ -61,9 +62,11 @@ namespace NCB {
                 FloatBlockIterators.resize(flatFeatureCount);
                 CatBlockIterators.resize(flatFeatureCount);
                 TextBlockIterators.resize(flatFeatureCount);
+                EmbeddingBlockIterators.resize(flatFeatureCount);
                 FloatValues.resize(flatFeatureCount);
                 CatValues.resize(flatFeatureCount);
                 TextValues.resize(flatFeatureCount);
+                EmbeddingValues.resize(flatFeatureCount);
 
                 for (const auto&[modelFlatFeatureIdx, dataFlatFeatureIdx] : columnReorderMap) {
                     AddFeature(modelFlatFeatureIdx, dataFlatFeatureIdx, objectOffset);
@@ -79,6 +82,12 @@ namespace NCB {
                         CatValues[flatFeatureIdx] = CatBlockIterators[flatFeatureIdx]->Next(size);
                     } else if (TextBlockIterators[flatFeatureIdx]) {
                         TextValues[flatFeatureIdx] = TextBlockIterators[flatFeatureIdx]->Next(size);
+                    }  else if (EmbeddingBlockIterators[flatFeatureIdx]) {
+                        auto block = EmbeddingBlockIterators[flatFeatureIdx]->Next(size);
+                        EmbeddingValues[flatFeatureIdx].resize(block.size());
+                        for (auto i : xrange(block.size())) {
+                            EmbeddingValues[flatFeatureIdx][i] = *block[i];
+                        }
                     }
                 }
             }
@@ -113,6 +122,10 @@ namespace NCB {
                     TextBlockIterators[modelFlatFeatureIdx]
                         = (*ObjectsData.GetTextFeature(internalFeatureIdx))
                             ->GetBlockIterator(objectOffset);
+                } else if (featureMetaInfo.Type == EFeatureType::Embedding) {
+                    EmbeddingBlockIterators[modelFlatFeatureIdx]
+                        = (*ObjectsData.GetEmbeddingFeature(internalFeatureIdx))
+                            ->GetBlockIterator(objectOffset);
                 } else {
                     CB_ENSURE(
                         false,
@@ -134,16 +147,22 @@ namespace NCB {
                 return TextValues;
             }
 
+            TConstArrayRef<TVector<TEmbeddingValue>> GetEmbeddingValues() const {
+                return EmbeddingValues;
+            }
+
         private:
             const TObjectsDataProviderType& ObjectsData;
 
             TVector<IDynamicBlockIteratorPtr<TFloatValue>> FloatBlockIterators; // [repackedFlatIndex]
             TVector<IDynamicBlockIteratorPtr<TCatValue>> CatBlockIterators; // [repackedFlatIndex]
             TVector<IDynamicBlockIteratorPtr<TTextValue>> TextBlockIterators; // [repackedFlatIndex]
+            TVector<IDynamicBlockIteratorPtr<TMaybeOwningConstArrayHolder<float>>> EmbeddingBlockIterators; // [repackedFlatIndex]
 
             TVector<TConstArrayRef<TFloatValue>> FloatValues; // [repackedFlatIndex][inBlockObjectIdx]
             TVector<TConstArrayRef<TCatValue>> CatValues; // [repackedFlatIndex][inBlockObjectIdx]
             TVector<TConstArrayRef<TTextValue>> TextValues; // [repackedFlatIndex][inBlockObjectIdx]
+            TVector<TVector<TEmbeddingValue>> EmbeddingValues; // [repackedFlatIndex][inBlockObjectIdx]
         };
 
     }
@@ -175,19 +194,30 @@ namespace NCB {
                 return TextValues[position.FlatIndex][index];
             };
         }
+
+        Y_FORCE_INLINE auto GetEmbeddingAccessor() const {
+            return [this] (TFeaturePosition position, size_t index) -> TConstArrayRef<float> {
+                Y_ASSERT(SafeIntegerCast<size_t>(position.FlatIndex) < EmbeddingValues.size());
+                Y_ASSERT(SafeIntegerCast<size_t>(index) < EmbeddingValues[position.FlatIndex].size());
+                return EmbeddingValues[position.FlatIndex][index];
+            };
+        }
     private:
         TConstArrayRef<TConstArrayRef<float>> FloatValues; // [repackedFlatIndex][inBlockObjectIdx]
         TConstArrayRef<TConstArrayRef<ui32>> CatValues;  // [repackedFlatIndex][inBlockObjectIdx]
         TConstArrayRef<TConstArrayRef<TString>> TextValues; // [repackedFlatIndex][inBlockObjectIdx]
+        TConstArrayRef<TVector<TConstArrayRef<float>>> EmbeddingValues; // [repackedFlatIndex][inBlockObjectIdx]
     };
 
 
     class TRawFeaturesBlockIterator
-        : public NDetail::TFeaturesBlockIteratorBase<TRawObjectsDataProvider, float, ui32, TString, TRawFeatureAccessor>
+        : public NDetail::TFeaturesBlockIteratorBase<TRawObjectsDataProvider, float, ui32, TString,
+                                                     TConstArrayRef<float>, TRawFeatureAccessor>
     {
     public:
         using TBase
-            = NDetail::TFeaturesBlockIteratorBase<TRawObjectsDataProvider, float, ui32, TString, TRawFeatureAccessor>;
+            = NDetail::TFeaturesBlockIteratorBase<TRawObjectsDataProvider, float, ui32, TString,
+                                                  TConstArrayRef<float>, TRawFeatureAccessor>;
 
     public:
         TRawFeaturesBlockIterator(
@@ -212,6 +242,7 @@ namespace NCB {
         : FloatValues(rawFeaturesBlockIterator.GetFloatValues())
         , CatValues(rawFeaturesBlockIterator.GetCatValues())
         , TextValues(rawFeaturesBlockIterator.GetTextValues())
+        , EmbeddingValues(rawFeaturesBlockIterator.GetEmbeddingValues())
     {}
 
 
@@ -245,6 +276,7 @@ namespace NCB {
             ui8,
             ui32,
             NCB::TText,
+            TConstArrayRef<float>,
             TQuantizedFeatureAccessor>
     {
     public:
@@ -253,6 +285,7 @@ namespace NCB {
             ui8,
             ui32,
             NCB::TText,
+            TConstArrayRef<float>,
             TQuantizedFeatureAccessor>;
 
     public:

@@ -261,14 +261,17 @@ namespace NCB::NModelEvaluation {
 /**
 * This function binarizes
 */
-    template <typename TFloatFeatureAccessor, typename TCatFeatureAccessor, typename TTextFeatureAccessor>
+    template <typename TFloatFeatureAccessor, typename TCatFeatureAccessor,
+              typename TTextFeatureAccessor, typename TEmbeddingFeatureAccessor>
     inline void BinarizeFeatures(
         const TModelTrees& trees,
         const TIntrusivePtr<ICtrProvider>& ctrProvider,
         const TIntrusivePtr<TTextProcessingCollection>& textProcessingCollection,
+        const TIntrusivePtr<TEmbeddingProcessingCollection>& embeddingProcessingCollection,
         TFloatFeatureAccessor floatAccessor,
         TCatFeatureAccessor catFeatureAccessor,
         TTextFeatureAccessor textFeatureAccessor,
+        TEmbeddingFeatureAccessor embeddingFeatureAccessor,
         size_t start,
         size_t end,
         TCPUEvaluatorQuantizedData* cpuEvaluatorQuantizedData,
@@ -396,6 +399,68 @@ namespace NCB::NModelEvaluation {
                         resultPtr
                     );
                 }
+            }
+            if (trees.GetUsedEmbeddingFeaturesCount() > 0 &&
+                trees.GetUsedEstimatedFeaturesCount() > 0) {
+                CB_ENSURE(
+                    embeddingProcessingCollection,
+                    "Fail to apply with embedding features: EmbeddingProcessingCollection must present in FullModel"
+                );
+
+                TVector<TEmbeddingsArray> embeddings;
+                embeddings.yresize(docCount);
+
+                {
+                    TVector<ui32> embeddingFeatureIds;
+                    THashMap<ui32, ui32> embeddingFeatureIdToFlatIndex;
+                    for (const auto& embeddingFeature : trees.GetEmbeddingFeatures()) {
+                        if (!embeddingFeature.UsedInModel()) {
+                            continue;
+                        }
+                        TFeaturePosition position = embeddingFeature.Position;
+                        if (featureInfo) {
+                            position = featureInfo->GetRemappedPosition(embeddingFeature);
+                        }
+                        embeddingFeatureIds.push_back(position.Index);
+                        embeddingFeatureIdToFlatIndex[position.Index] = position.FlatIndex;
+                    }
+
+                    embeddingProcessingCollection->CalcFeatures(
+                        [start, &embeddingFeatureAccessor, &embeddingFeatureIdToFlatIndex](ui32 embeddingFeatureId,
+                                                                                           ui32 docId) {
+                            return embeddingFeatureAccessor(
+                                TFeaturePosition{
+                                    SafeIntegerCast<int>(embeddingFeatureId),
+                                    SafeIntegerCast<int>(embeddingFeatureIdToFlatIndex[embeddingFeatureId])
+                                },
+                                start + docId
+                            );
+                        },
+                        MakeConstArrayRef(embeddingFeatureIds),
+                        docCount,
+                        estimatedFeatures
+                    );
+                }
+
+                for (const auto& estimatedFeature : trees.GetEstimatedFeatures()) {
+                    const ui32 featureOffset =
+                        embeddingProcessingCollection->GetAbsoluteCalcerOffset(estimatedFeature.CalcerId)
+                        + estimatedFeature.LocalIndex;
+
+                    auto estimatedFeaturePtr = &estimatedFeatures[featureOffset * docCount];
+
+                    BinarizeFloats<false>(
+                        TFeaturePosition(),
+                        docCount,
+                        [estimatedFeaturePtr](TFeaturePosition, size_t index) {
+                            return estimatedFeaturePtr[index];
+                        },
+                        MakeConstArrayRef(estimatedFeature.Borders),
+                        0,
+                        resultPtr
+                    );
+                }
+
             }
             if (trees.GetUsedCatFeaturesCount() != 0) {
                 THashMap<int, int> catFeaturePackedIndexes;

@@ -1,8 +1,13 @@
 #include "lda.h"
 #include <contrib/libs/clapack/clapack.h>
 
+#include <catboost/private/libs/embedding_features/flatbuffers/embedding_feature_calcers.fbs.h>
+
+#include <util/generic/ymath.h>
+
+
 namespace NCB {
-    static inline void CalculateProjection(TVector<float>* scatterInner,
+    void CalculateProjection(TVector<float>* scatterInner,
                                            TVector<float>* scatterTotal,
                                            TVector<float>* projectionMatrix,
                                            TVector<float>* eigenValues,
@@ -29,6 +34,38 @@ namespace NCB {
         Y_ASSERT(info == 0);
 
         std::copy(scatterTotal->end() - projectionMatrix->size(), scatterTotal->end(), projectionMatrix->begin());
+    }
+
+    float CalculateGaussianLikehood(const TEmbeddingsArray& embed,
+                                                  const TVector<float>& mean,
+                                                  const TVector<float>& scatter) {
+        TVector<float> diff(mean);
+        TVector<float> askew(mean.size());
+        for (ui32 id = 0; id < diff.size(); ++id) {
+            diff[id] -= embed[id];
+        }
+        cblas_sgemv(CblasRowMajor, CblasNoTrans,
+                    mean.size(), mean.size(),
+                    1.0,
+                    scatter.data(), mean.size(),
+                    diff.data(), 1,
+                    0.0,
+                    &askew[0], 1);
+        float deg = 0;
+        for (ui32 id = 0; id < diff.size(); ++id) {
+            deg += askew[id] * diff[id];
+        }
+        return Exp2f(- M_LN2_INV * 0.5 * deg);
+    }
+
+    void InverseMatrix(TVector<float>* matrix, int dim) {
+        int info;
+        TVector<int> pivot(dim);
+        TVector<float> cache(dim);
+        sgetrf_(&dim, &dim, matrix->data(), &dim, pivot.data(), &info);
+        Y_ASSERT(info == 0);
+        sgetri_(&dim, matrix->data(), &dim, pivot.data(), cache.data(), &dim, &info);
+        Y_ASSERT(info == 0);
     }
 
     void IncrementalCloud::AddVector(const TEmbeddingsArray& embed) {
@@ -79,6 +116,19 @@ namespace NCB {
                     &embed[0], 1,
                     0.0,
                     &proj[0], 1);
+        if (ComputeProbabilities) {
+            std::vector<float> likehoods(NumClasses);
+            float likehood = 0;
+            for (int classId = 0; classId < NumClasses; ++classId) {
+                likehoods[classId] = CalculateGaussianLikehood(embed,
+                                                               ClassesDist[classId].BaseCenter,
+                                                               BetweenMatrix);
+                likehood += likehoods[classId];
+            }
+            for (auto like : likehoods) {
+                proj.push_back((likehood > 1e-6 ? like/likehood : 1.0/NumClasses));
+            }
+        }
         ForEachActiveFeature(
             [&proj, &iterator](ui32 featureId){
                 *iterator = proj[featureId];
@@ -87,7 +137,7 @@ namespace NCB {
         );
     }
 
-    void TLinearDACalcer::BetweenScatterCalculation(TVector<float>* result) {
+    void TLinearDACalcer::TotalScatterCalculation(TVector<float>* result) {
         TVector<float> totalMean(TotalDimension, 0);
         for (auto& dist : ClassesDist) {
             float weight = dist.TotalSize()/Size;
@@ -126,24 +176,68 @@ namespace NCB {
         auto lda = dynamic_cast<TLinearDACalcer*>(featureCalcer);
         Y_ASSERT(lda);
         ui32 dim = lda->TotalDimension;
-        TVector<float> meanScatter(dim * dim, 0);
+        lda->BetweenMatrix.assign(dim * dim, 0);
         TVector<float> totalScatter(dim * dim, 0);
-        lda->BetweenScatterCalculation(&totalScatter);
+        lda->TotalScatterCalculation(&totalScatter);
         for (int classIdx = 0; classIdx < lda->NumClasses; ++classIdx) {
             float weight = lda->ClassesDist[classIdx].TotalSize() / lda->Size;
-            std::transform(meanScatter.begin(), meanScatter.end(),
+            std::transform(lda->BetweenMatrix.begin(), lda->BetweenMatrix.end(),
                            lda->ClassesDist[classIdx].ScatterMatrix.begin(),
-                           meanScatter.begin(), [weight](float x, float y) {
+                           lda->BetweenMatrix.begin(), [weight](float x, float y) {
                                return x + weight * y;
                            });
         }
-        for (ui32 idx = 0; idx < meanScatter.size(); idx+= dim + 1) {
-            meanScatter[idx] += lda->RegParam;
+        for (ui32 idx = 0; idx < lda->BetweenMatrix.size(); idx+= dim + 1) {
+            lda->BetweenMatrix[idx] += lda->RegParam;
         }
-        CalculateProjection(&meanScatter,
+        CalculateProjection(&lda->BetweenMatrix,
                             &totalScatter,
                             &lda->ProjectionMatrix,
                             &lda->EigenValues,
                             &lda->ProjectionCalculationCache);
+        if (lda->ComputeProbabilities) {
+            InverseMatrix(&lda->BetweenMatrix, lda->TotalDimension);
+        }
     }
+
+    TEmbeddingFeatureCalcer::TEmbeddingCalcerFbs TLinearDACalcer::SaveParametersToFB(flatbuffers::FlatBufferBuilder& builder) const {
+        using namespace NCatBoostFbs;
+
+        auto fbProjectionMatrix = builder.CreateVector(
+            ProjectionMatrix.data(),
+            ProjectionMatrix.size()
+        );
+        const auto& fbLDA = CreateTLDA(
+            builder,
+            TotalDimension,
+            NumClasses,
+            ProjectionDimension,
+            ComputeProbabilities,
+            fbProjectionMatrix
+        );
+        return TEmbeddingCalcerFbs(TAnyEmbeddingCalcer_TLDA, fbLDA.Union());
+    }
+
+    void TLinearDACalcer::LoadParametersFromFB(const NCatBoostFbs::TEmbeddingCalcer* calcer) {
+        auto fbLDA = calcer->FeatureCalcerImpl_as_TLDA();
+        TotalDimension = fbLDA->TotalDimension();
+        NumClasses = fbLDA->NumClasses();
+        ProjectionDimension = fbLDA->ProjectionDimension();
+        ComputeProbabilities = fbLDA->ComputeProbabilities();
+        auto projection = fbLDA->ProjectionMatrix();
+
+        Y_ASSERT(static_cast<int>(projection->size()) == ProjectionDimension * TotalDimension);
+
+        ProjectionMatrix.yresize(projection->size());
+        Copy(projection->begin(), projection->end(), ProjectionMatrix.begin());
+    }
+
+    void TLinearDACalcer::SaveLargeParameters(IOutputStream*) const {
+    }
+
+    void TLinearDACalcer::LoadLargeParameters(IInputStream*) {
+    }
+
+    TEmbeddingFeatureCalcerFactory::TRegistrator<TLinearDACalcer> LDARegistrator(EFeatureCalcerType::LDA);
+
 };

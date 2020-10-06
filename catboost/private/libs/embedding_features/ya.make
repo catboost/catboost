@@ -5,6 +5,9 @@ LIBRARY()
 SRCS(
     embedding_calcers.cpp
     embedding_feature_calcer.cpp
+    embedding_processing_collection.cpp
+    flatbuffers/embedding_feature_calcers.fbs
+    flatbuffers/embedding_processing_collection.fbs
     knn.cpp
     lda.cpp
 )

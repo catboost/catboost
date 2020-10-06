@@ -463,6 +463,7 @@ TLearnProgress::TLearnProgress(
           // use OriginalFeaturesLayout because ObjectsData contains tokenized features
           CreateTextFeatures(*data.Learn->OriginalFeaturesLayout)
       )
+    , EmbeddingFeatures(CreateEmbeddingFeatures(*data.Learn->ObjectsData->GetFeaturesLayout()))
     , ApproxDimension(approxDimension)
     , LearnAndTestQuantizedFeaturesCheckSum(featuresCheckSum)
     , Rand(randomSeed) {

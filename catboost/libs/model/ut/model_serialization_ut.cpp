@@ -114,7 +114,7 @@ Y_UNIT_TEST_SUITE(TModelSerialization) {
         TFloatFeature f0(false, 0, 0, {0.5, 1.5, 2.5});
         TFloatFeature f1(false, 1, 1, {5, 10, 20});
         TFloatFeature f2(false, 2, 2, {5, 15, 25, 35});
-        TNonSymmetricTreeModelBuilder builder({f0, f1, f2}, {}, {}, 1);
+        TNonSymmetricTreeModelBuilder builder({f0, f1, f2}, {}, {}, {}, 1);
         {
             auto head = MakeHolder<TNonSymmetricTreeNode>();
             head->SplitCondition = TModelSplit(TFloatSplit(0, 0.5));
@@ -226,7 +226,7 @@ Y_UNIT_TEST_SUITE(TModelSerialization) {
         TFullModel model;
         model.UpdateDynamicData();
         TFloatFeature f0(false, 0, 0, {0.5, 1.5, 2.5});
-        TNonSymmetricTreeModelBuilder builder({f0}, {}, {}, 2);
+        TNonSymmetricTreeModelBuilder builder({f0}, {}, {}, {}, 2);
         {
             auto head = MakeHolder<TNonSymmetricTreeNode>();
             head->SplitCondition = TModelSplit(TFloatSplit(0, 0.5));

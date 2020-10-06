@@ -17,6 +17,7 @@ namespace NCB {  // split due to CUDA-compiler inability to parse nested namespa
             TMaybe<TVector<ui32>> FloatFeatureIndexes;
             TMaybe<TVector<ui32>> CatFeatureIndexes;
             TMaybe<TVector<ui32>> TextFeatureIndexes;
+            TMaybe<TVector<ui32>> EmbeddingFeatureIndexes;
             TMaybe<TVector<ui32>> FlatIndexes;
         public:
             inline TFeaturePosition GetRemappedPosition(const TFloatFeature& feature) const {
@@ -43,8 +44,19 @@ namespace NCB {  // split due to CUDA-compiler inability to parse nested namespa
 
             inline TFeaturePosition GetRemappedPosition(const TTextFeature& feature) const {
                 TFeaturePosition position = feature.Position;
-                if (TextFeatureIndexes.Defined()) {
+                if (EmbeddingFeatureIndexes.Defined()) {
                     position.Index = TextFeatureIndexes->at(position.Index);
+                }
+                if (FlatIndexes.Defined()) {
+                    position.FlatIndex = FlatIndexes->at(position.FlatIndex);
+                }
+                return position;
+            }
+
+            inline TFeaturePosition GetRemappedPosition(const TEmbeddingFeature& feature) const {
+                TFeaturePosition position = feature.Position;
+                if (EmbeddingFeatureIndexes.Defined()) {
+                    position.Index = EmbeddingFeatureIndexes->at(position.Index);
                 }
                 if (FlatIndexes.Defined()) {
                     position.FlatIndex = FlatIndexes->at(position.FlatIndex);

@@ -42,6 +42,7 @@ table TModelTrees {
     Bias:double = 0;
     MultiBias:[double];
     RepackedBins:[TRepackedBin];
+    EmbeddingFeatures:[TEmbeddingFeature];
 }
 
 table TModelCore {

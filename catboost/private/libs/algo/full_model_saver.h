@@ -11,6 +11,7 @@
 #include <catboost/private/libs/options/cat_feature_options.h>
 #include <catboost/private/libs/options/enums.h>
 #include <catboost/private/libs/text_features/text_processing_collection.h>
+#include <catboost/private/libs/embedding_features/embedding_processing_collection.h>
 
 #include <util/generic/array_ref.h>
 #include <util/generic/maybe.h>
@@ -132,11 +133,12 @@ namespace NCB {
         TObjectsDataProviderPtr LearnObjectsData;
     };
 
-    void CreateTextProcessingCollection(
+    void CreateProcessingCollections(
         const TFeatureEstimators& featureEstimators,
         const TTextDigitizers& textDigitizers,
         const TVector<TEstimatedFeature>& estimatedFeatures,
         TTextProcessingCollection* textProcessingCollection,
+        TEmbeddingProcessingCollection* embeddingProcessingCollection,
         TVector<TEstimatedFeature>* reorderedEstimatedFeatures,
         NPar::TLocalExecutor* localExecutor
     );

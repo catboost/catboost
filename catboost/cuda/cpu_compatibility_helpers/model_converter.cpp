@@ -91,11 +91,13 @@ TFullModel TModelConverter::Convert(
         *QuantizedFeaturesInfo);
     TVector<TCatFeature> catFeatures = CreateCatFeatures(*QuantizedFeaturesInfo->GetFeaturesLayout());
     TVector<TTextFeature> textFeatures = CreateTextFeatures(*QuantizedFeaturesInfo->GetFeaturesLayout());
+    TVector<TEmbeddingFeature> embeddingFeatures = CreateEmbeddingFeatures(*QuantizedFeaturesInfo->GetFeaturesLayout());
 
     TObliviousTreeBuilder obliviousTreeBuilder(
         floatFeatures,
         catFeatures,
         textFeatures,
+        embeddingFeatures,
         cpuApproxDim);
 
     for (ui32 i = 0; i < src.Size(); ++i) {
@@ -155,11 +157,14 @@ TFullModel TModelConverter::Convert(
             *QuantizedFeaturesInfo);
         TVector<TCatFeature> catFeatures = CreateCatFeatures(*QuantizedFeaturesInfo->GetFeaturesLayout());
         TVector<TTextFeature> textFeatures = CreateTextFeatures(*QuantizedFeaturesInfo->GetFeaturesLayout());
+        TVector<TEmbeddingFeature> embeddingFeatures = CreateEmbeddingFeatures(*QuantizedFeaturesInfo->GetFeaturesLayout());
+
 
         TNonSymmetricTreeModelBuilder treeBuilder(
             floatFeatures,
             catFeatures,
             textFeatures,
+            embeddingFeatures,
             cpuApproxDim);
 
         for (ui32 treeId = 0; treeId < src.Size(); ++treeId) {

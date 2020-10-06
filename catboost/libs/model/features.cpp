@@ -120,12 +120,35 @@ flatbuffers::Offset<NCatBoostFbs::TTextFeature> TTextFeature::FBSerialize(
     );
 }
 
+flatbuffers::Offset<NCatBoostFbs::TEmbeddingFeature> TEmbeddingFeature::FBSerialize(
+        flatbuffers::FlatBufferBuilder& builder
+) const {
+    return NCatBoostFbs::CreateTEmbeddingFeatureDirect(
+        builder,
+        Position.Index,
+        Position.FlatIndex,
+        FeatureId.empty() ? nullptr : FeatureId.data(),
+        Dimension,
+        IsUsedInModel
+    );
+}
+
 void TTextFeature::FBDeserialize(const NCatBoostFbs::TTextFeature* fbObj) {
     Position.Index = fbObj->Index();
     Position.FlatIndex = fbObj->FlatIndex();
     if (fbObj->FeatureId()) {
         FeatureId.assign(fbObj->FeatureId()->data(), fbObj->FeatureId()->size());
     }
+    IsUsedInModel = fbObj->UsedInModel();
+}
+
+void TEmbeddingFeature::FBDeserialize(const NCatBoostFbs::TEmbeddingFeature* fbObj) {
+    Position.Index = fbObj->Index();
+    Position.FlatIndex = fbObj->FlatIndex();
+    if (fbObj->FeatureId()) {
+        FeatureId.assign(fbObj->FeatureId()->data(), fbObj->FeatureId()->size());
+    }
+    Dimension = fbObj->Dimension();
     IsUsedInModel = fbObj->UsedInModel();
 }
 

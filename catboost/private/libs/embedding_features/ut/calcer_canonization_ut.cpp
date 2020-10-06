@@ -26,6 +26,23 @@ Y_UNIT_TEST_SUITE(TestCalcerCanonization) {
         return result;
     }
 
+    Y_UNIT_TEST(TestEmbeddingsUtilities) {
+        TVector<float> matrix{5, 2, 2, 1};
+        TVector<float> res{1, -2, -2, 5};
+        InverseMatrix(&matrix, 2);
+        float norm = 0;
+        for (int i = 0; i < 4; ++i) {
+            norm += (res[i] - matrix[i]) * (res[i] - matrix[i]);
+        }
+        UNIT_ASSERT_DOUBLES_EQUAL(norm, 0.0, 1e-7);
+
+        TVector<float> mean{1, 1};
+        auto emb1 = TMaybeOwningArrayHolder<const float>::CreateOwning(TVector<float>{0,0});
+        auto emb2 = TMaybeOwningArrayHolder<const float>::CreateOwning(TVector<float>{0,1});
+        float ratio = CalculateGaussianLikehood(emb1, mean, matrix)/CalculateGaussianLikehood(emb2, mean, matrix);
+        UNIT_ASSERT_DOUBLES_EQUAL(ratio, 0.6065, 1e-2);
+    }
+
     Y_UNIT_TEST(TestLDACanonization) {
         const ui32 numSamples = 50000;
 

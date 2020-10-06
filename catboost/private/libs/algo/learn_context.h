@@ -79,6 +79,7 @@ struct TLearnProgress {
     TVector<TCatFeature> CatFeatures;
     TVector<TFloatFeature> FloatFeatures;
     TVector<TTextFeature> TextFeatures;
+    TVector<TEmbeddingFeature> EmbeddingFeatures;
 
     int ApproxDimension = 1;
     TLabelConverter LabelConverter;

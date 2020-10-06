@@ -195,7 +195,55 @@ private:
     bool IsUsedInModel = true;
 };
 
+struct TEmbeddingFeature {
+public:
+    TFeaturePosition Position;
+    TString FeatureId;
+    int Dimension;
+public:
+    TEmbeddingFeature() = default;
+
+    TEmbeddingFeature(
+        bool usedInModel,
+        int featureIndex,
+        int flatFeatureIndex,
+        TString featureId,
+        int dimension
+    )
+        : Position(featureIndex, flatFeatureIndex)
+        , FeatureId(std::move(featureId))
+        , Dimension(dimension)
+        , IsUsedInModel(usedInModel)
+    {}
+
+    bool operator==(const TEmbeddingFeature& other) const {
+        return std::tie(Position, FeatureId, Dimension) ==
+            std::tie(other.Position, other.FeatureId, other.Dimension);
+    }
+    bool operator!=(const TEmbeddingFeature& other) const {
+        return !(*this == other);
+    }
+
+    bool UsedInModel() const {
+        return IsUsedInModel;
+    };
+
+    void SetUsedInModel(bool isUsedInModel) {
+        IsUsedInModel = isUsedInModel;
+    }
+
+    flatbuffers::Offset<NCatBoostFbs::TEmbeddingFeature> FBSerialize(
+        flatbuffers::FlatBufferBuilder& builder
+    ) const;
+    void FBDeserialize(const NCatBoostFbs::TEmbeddingFeature* fbObj);
+    Y_SAVELOAD_DEFINE(IsUsedInModel, Position, FeatureId, Dimension);
+
+private:
+    bool IsUsedInModel = true;
+};
+
 struct TEstimatedFeature {
+public:
     int SourceFeatureIndex = -1;
     NCB::TGuid CalcerId;
     int LocalIndex = -1;

@@ -180,18 +180,26 @@ void TModelTrees::ProcessSplitsSet(
     const TSet<TModelSplit>& modelSplitSet,
     const TVector<size_t>& floatFeaturesInternalIndexesMap,
     const TVector<size_t>& catFeaturesInternalIndexesMap,
-    const TVector<size_t>& textFeaturesInternalIndexesMap
+    const TVector<size_t>& textFeaturesInternalIndexesMap,
+    const TVector<size_t>& embeddingFeaturesInternalIndexesMap
 ) {
     THashSet<int> usedCatFeatureIndexes;
     THashSet<int> usedTextFeatureIndexes;
+    THashSet<int> usedEmbeddingFeatureIndexes;
     for (const auto& split : modelSplitSet) {
         if (split.Type == ESplitType::FloatFeature) {
             const size_t internalFloatIndex = floatFeaturesInternalIndexesMap.at((size_t)split.FloatFeature.FloatFeature);
             FloatFeatures.at(internalFloatIndex).Borders.push_back(split.FloatFeature.Split);
         } else if (split.Type == ESplitType::EstimatedFeature) {
             const TEstimatedFeatureSplit estimatedFeatureSplit = split.EstimatedFeature;
-            usedTextFeatureIndexes.insert(estimatedFeatureSplit.SourceFeatureId);
-
+            if (std::find(textFeaturesInternalIndexesMap.begin(),
+                          textFeaturesInternalIndexesMap.end(),
+                          estimatedFeatureSplit.SourceFeatureId) !=
+                          textFeaturesInternalIndexesMap.end()) {
+                usedTextFeatureIndexes.insert(estimatedFeatureSplit.SourceFeatureId);
+            } else {
+                usedEmbeddingFeatureIndexes.insert(estimatedFeatureSplit.SourceFeatureId);
+            }
             if (EstimatedFeatures.empty() ||
                 !EstimatedFeatureIdsAreEqual(EstimatedFeatures.back(), estimatedFeatureSplit)
             ) {
@@ -226,6 +234,9 @@ void TModelTrees::ProcessSplitsSet(
     }
     for (const int usedTextFeatureIdx : usedTextFeatureIndexes) {
         TextFeatures[textFeaturesInternalIndexesMap.at(usedTextFeatureIdx)].SetUsedInModel(true);
+    }
+    for (const int usedEmbeddingFeatureIdx : usedEmbeddingFeatureIndexes) {
+        EmbeddingFeatures[embeddingFeaturesInternalIndexesMap.at(usedEmbeddingFeatureIdx)].SetUsedInModel(true);
     }
 }
 
@@ -277,7 +288,11 @@ void TModelTrees::TruncateTrees(size_t begin, size_t end) {
     CB_ENSURE(begin <= end, "begin tree index should be not greater than end tree index.");
     CB_ENSURE(end <= GetModelTreeData()->GetTreeSplits().size(), "end tree index should be not greater than tree count.");
     auto savedScaleAndBias = GetScaleAndBias();
-    TObliviousTreeBuilder builder(FloatFeatures, CatFeatures, TextFeatures, ApproxDimension);
+    TObliviousTreeBuilder builder(FloatFeatures,
+                                  CatFeatures,
+                                  TextFeatures,
+                                  EmbeddingFeatures,
+                                  ApproxDimension);
     const auto& leafOffsets = GetFirstLeafOffsets();
 
     const auto treeSizes = GetModelTreeData()->GetTreeSizes();
@@ -331,6 +346,12 @@ TModelTrees::FBSerialize(TModelPartsCachingSerializer& serializer) const {
         textFeaturesOffsets.push_back(textFeature.FBSerialize(builder));
     }
     auto fbsTextFeaturesOffsets = builder.CreateVector(textFeaturesOffsets);
+
+    std::vector<flatbuffers::Offset<NCatBoostFbs::TEmbeddingFeature>> embeddingFeaturesOffsets;
+    for (const auto& embeddingFeature : EmbeddingFeatures) {
+        embeddingFeaturesOffsets.push_back(embeddingFeature.FBSerialize(builder));
+    }
+    auto fbsEmbeddingFeaturesOffsets = builder.CreateVector(embeddingFeaturesOffsets);
 
     std::vector<flatbuffers::Offset<NCatBoostFbs::TEstimatedFeature>> estimatedFeaturesOffsets;
     for (const auto& estimatedFeature : EstimatedFeatures) {
@@ -399,7 +420,8 @@ TModelTrees::FBSerialize(TModelPartsCachingSerializer& serializer) const {
         GetScaleAndBias().Scale,
         0,
         fbsBias,
-        fbsRepackedBins
+        fbsRepackedBins,
+        fbsEmbeddingFeaturesOffsets
     );
 }
 
@@ -470,6 +492,16 @@ void TModelTrees::ProcessTextFeatures() const {
         if (feature.UsedInModel()) {
             ++ref->UsedTextFeaturesCount;
             ref->MinimalSufficientTextFeaturesVectorSize = static_cast<size_t>(feature.Position.Index) + 1;
+        }
+    }
+}
+
+void TModelTrees::ProcessEmbeddingFeatures() const {
+    auto& ref = ApplyData;
+    for (const auto& feature : TextFeatures) {
+        if (feature.UsedInModel()) {
+            ++ref->UsedEmbeddingFeaturesCount;
+            ref->MinimalSufficientEmbeddingFeaturesVectorSize = static_cast<size_t>(feature.Position.Index) + 1;
         }
     }
 }
@@ -639,6 +671,7 @@ void TModelTrees::DropUnusedFeatures() {
     EraseIf(FloatFeatures, [](const TFloatFeature& feature) { return !feature.UsedInModel();});
     EraseIf(CatFeatures, [](const TCatFeature& feature) { return !feature.UsedInModel(); });
     EraseIf(TextFeatures, [](const TTextFeature& feature) { return !feature.UsedInModel(); });
+    EraseIf(EmbeddingFeatures, [](const TEmbeddingFeature& feature) { return !feature.UsedInModel(); });
     UpdateRuntimeData();
 }
 
@@ -744,6 +777,7 @@ void TModelTrees::DeserializeFeatures(const NCatBoostFbs::TModelTrees* fbObj) {
     FBS_ARRAY_DESERIALIZER(CatFeatures)
     FBS_ARRAY_DESERIALIZER(FloatFeatures)
     FBS_ARRAY_DESERIALIZER(TextFeatures)
+    FBS_ARRAY_DESERIALIZER(EmbeddingFeatures)
     FBS_ARRAY_DESERIALIZER(EstimatedFeatures)
     FBS_ARRAY_DESERIALIZER(OneHotFeatures)
     FBS_ARRAY_DESERIALIZER(CtrFeatures)
@@ -1109,6 +1143,9 @@ void TFullModel::Save(IOutputStream* s) const {
     if (!!TextProcessingCollection) {
         modelPartIds.push_back(serializer.FlatbufBuilder.CreateString(TextProcessingCollection->GetStringIdentifier()));
     }
+    if (!!EmbeddingProcessingCollection) {
+        modelPartIds.push_back(serializer.FlatbufBuilder.CreateString(EmbeddingProcessingCollection->GetStringIdentifier()));
+    }
     auto coreOffset = CreateTModelCoreDirect(
         serializer.FlatbufBuilder,
         CURRENT_CORE_FORMAT_STRING,
@@ -1124,6 +1161,9 @@ void TFullModel::Save(IOutputStream* s) const {
     }
     if (!!TextProcessingCollection) {
         TextProcessingCollection->Save(s);
+    }
+    if (!!EmbeddingProcessingCollection) {
+        EmbeddingProcessingCollection->Save(s);
     }
 }
 
@@ -1177,6 +1217,9 @@ void TFullModel::Load(IInputStream* s) {
             } else if (modelPartId == NCB::TTextProcessingCollection::GetStringIdentifier()) {
                 TextProcessingCollection = new NCB::TTextProcessingCollection();
                 TextProcessingCollection->Load(s);
+            } else if (modelPartId == NCB::TEmbeddingProcessingCollection::GetStringIdentifier()) {
+                EmbeddingProcessingCollection = new NCB::TEmbeddingProcessingCollection();
+                EmbeddingProcessingCollection->Load(s);
             } else {
                 CB_ENSURE(
                     false,
@@ -1231,6 +1274,9 @@ void TFullModel::InitNonOwning(const void* binaryBuffer, size_t binarySize) {
             } else if (modelPartId == NCB::TTextProcessingCollection::GetStringIdentifier()) {
                 TextProcessingCollection = new NCB::TTextProcessingCollection();
                 TextProcessingCollection->LoadNonOwning(&in);
+            } else if (modelPartId == NCB::TEmbeddingProcessingCollection::GetStringIdentifier()) {
+                EmbeddingProcessingCollection = new NCB::TEmbeddingProcessingCollection();
+                EmbeddingProcessingCollection->LoadNonOwning(&in);
             } else {
                 CB_ENSURE(
                     false,
@@ -1275,6 +1321,12 @@ TVector<TString> GetModelUsedFeaturesNames(const TFullModel& model) {
         );
     }
     for (const TTextFeature& feature : forest.GetTextFeatures()) {
+        featuresIdxs.push_back(feature.Position.FlatIndex);
+        featuresNames.push_back(
+            feature.FeatureId == "" ? ToString(feature.Position.FlatIndex) : feature.FeatureId
+        );
+    }
+    for (const TEmbeddingFeature& feature : forest.GetEmbeddingFeatures()) {
         featuresIdxs.push_back(feature.Position.FlatIndex);
         featuresNames.push_back(
             feature.FeatureId == "" ? ToString(feature.Position.FlatIndex) : feature.FeatureId
@@ -1401,8 +1453,8 @@ TVector<NJson::TJsonValue> TFullModel::GetModelClassLabels() const {
 
 void TFullModel::UpdateEstimatedFeaturesIndices(TVector<TEstimatedFeature>&& newEstimatedFeatures) {
     CB_ENSURE(
-        TextProcessingCollection,
-        "UpdateEstimatedFeatureIndices called when TextProcessingCollection is not defined"
+        TextProcessingCollection || EmbeddingProcessingCollection,
+        "UpdateEstimatedFeatureIndices called when ProcessingCollections aren't defined"
     );
 
     ModelTrees.GetMutable()->SetEstimatedFeatures(std::move(newEstimatedFeatures));
@@ -1714,7 +1766,7 @@ TFullModel SumModels(
     for (auto& flatFeature: flatFeatureInfoVector) {
         Visit(merger, flatFeature.FeatureVariant);
     }
-    TObliviousTreeBuilder builder(merger.MergedFloatFeatures, merger.MergedCatFeatures, {}, approxDimension);
+    TObliviousTreeBuilder builder(merger.MergedFloatFeatures, merger.MergedCatFeatures, {}, {}, approxDimension);
     TVector<double> totalBias(approxDimension);
     for (const auto modelId : xrange(modelVector.size())) {
         TScaleAndBias normer = modelVector[modelId]->GetScaleAndBias();

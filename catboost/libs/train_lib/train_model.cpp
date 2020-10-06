@@ -561,6 +561,7 @@ static void SaveModel(
             ctx.LearnProgress->FloatFeatures,
             ctx.LearnProgress->CatFeatures,
             ctx.LearnProgress->TextFeatures,
+            ctx.LearnProgress->EmbeddingFeatures,
             ctx.LearnProgress->ApproxDimension);
         for (size_t treeId = 0; treeId < ctx.LearnProgress->TreeStruct.size(); ++treeId) {
             TVector<TModelSplit> modelSplits;
@@ -577,6 +578,7 @@ static void SaveModel(
             ctx.LearnProgress->FloatFeatures,
             ctx.LearnProgress->CatFeatures,
             ctx.LearnProgress->TextFeatures,
+            ctx.LearnProgress->EmbeddingFeatures,
             ctx.LearnProgress->ApproxDimension);
         for (size_t treeId = 0; treeId < ctx.LearnProgress->TreeStruct.size(); ++treeId) {
             Y_ASSERT(HoldsAlternative<TNonSymmetricTreeStructure>(ctx.LearnProgress->TreeStruct[treeId]));
@@ -631,9 +633,10 @@ static void SaveModel(
 
         EFinalFeatureCalcersComputationMode featureCalcerComputationMode
             = ctx.OutputOptions.GetFinalFeatureCalcerComputationMode();
-        if (modelPtr->ModelTrees->GetTextFeatures().empty() ||
-            modelPtr->ModelTrees->GetEstimatedFeatures().empty()
-        ) {
+        if ((modelPtr->ModelTrees->GetTextFeatures().empty() &&
+            modelPtr->ModelTrees->GetEmbeddingFeatures().empty()) ||
+            modelPtr->ModelTrees->GetEstimatedFeatures().empty())
+        {
             featureCalcerComputationMode = EFinalFeatureCalcersComputationMode::Skip;
         }
 

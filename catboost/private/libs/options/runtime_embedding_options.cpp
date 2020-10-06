@@ -52,7 +52,6 @@ namespace NCatboostOptions {
                 {DefaultProcessingName(), {
                     {
                      TFeatureCalcerDescription{EFeatureCalcerType::LDA}
-                     ,TFeatureCalcerDescription{EFeatureCalcerType::KNN}
                     },
                 }
             }
