@@ -2808,7 +2808,7 @@
                 "cxx_compiler": "$(NDK)/llvm-toolchain/bin/clang++",
                 "objcopy": "$(NDK)/llvm-toolchain/bin/llvm-objcopy",
                 "strip": "$(NDK)/:lvm-toolchain/bin/llvm-strip",
-                "werror_mode": "compiler_specific",
+                "werror_mode": "all",
                 "gcc_version": "9.0",
                 "target_opt": [
                     "-DANDROID_FAKEID=android_r21b"
