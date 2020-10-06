@@ -5,10 +5,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>ai.catboost</groupId>
-    <artifactId>catboost-spark-aggregator</artifactId>
-    <version>0.24</version>
+    <artifactId>catboost-spark-aggregate_2.11</artifactId>
+    <version>0.25-rc1</version>
     <packaging>pom</packaging>
     <name>CatBoost for Spark Aggregate project</name>
+    <description>CatBoost for Spark Aggregate project</description>
     <url>https://catboost.ai</url>
 
     <licenses>
@@ -18,6 +19,13 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
+
+    <properties>
+        <scala.version>2.11.11</scala.version>
+        <scala.compat.version>2.11</scala.compat.version>
+        <spark.version>2.4.7</spark.version>
+        <hadoop.version>2.7.3</hadoop.version>
+    </properties>
 
     <organization>
         <name>CatBoost dev team</name>
@@ -68,7 +76,7 @@
                 <compilerPlugins>
                     <compilerPlugin>
                     <groupId>org.scalamacros</groupId>
-                    <artifactId>paradise_2.11.11</artifactId>
+                    <artifactId>paradise_${scala.version}</artifactId>
                     <version>2.1.0</version>
                 </compilerPlugin>
                 </compilerPlugins>
@@ -106,12 +114,12 @@
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
-            <version>2.11.11</version>
+            <version>${scala.version}</version>
         </dependency>
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-reflect</artifactId>
-            <version>2.11.11</version>
+            <version>${scala.version}</version>
         </dependency>
     </dependencies>
 </project>

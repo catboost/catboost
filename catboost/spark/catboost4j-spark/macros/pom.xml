@@ -4,12 +4,15 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>catboost-spark-macros</artifactId>
+  <artifactId>catboost-spark-macros_2.11</artifactId>
   <packaging>jar</packaging>
+  <name>CatBoost for Spark Scala macros</name>
+  <description>CatBoost for Spark Scala macros library</description>
 
   <parent>
     <groupId>ai.catboost</groupId>
-    <artifactId>catboost-spark-aggregator</artifactId>
-    <version>0.24</version>
+    <artifactId>catboost-spark-aggregate_2.11</artifactId>
+    <version>0.25-rc1</version>
+    <relativePath>..</relativePath>
   </parent>
 </project>
