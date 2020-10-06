@@ -30,6 +30,9 @@
 #undef StartDoc
 #undef UpdateResource
 #undef GetNameInfo
+#undef GetProp
+#undef SetProp
+#undef RemoveProp
 
 #undef IGNORE
 #undef ERROR
