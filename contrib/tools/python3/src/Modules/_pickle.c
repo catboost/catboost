@@ -39,11 +39,11 @@ enum opcode {
     POP             = '0',
     POP_MARK        = '1',
     DUP             = '2',
-    FLOAT           = 'F',
-    INT             = 'I',
+    FLOAT_          = 'F',
+    INT_            = 'I',
     BININT          = 'J',
     BININT1         = 'K',
-    LONG            = 'L',
+    LONG_           = 'L',
     BININT2         = 'M',
     NONE            = 'N',
     PERSID          = 'P',
@@ -2118,7 +2118,7 @@ save_long(PicklerObject *self, PyObject *obj)
             }
         }
         else {
-            sprintf(pdata, "%c%ld\n", INT,  val);
+            sprintf(pdata, "%c%ld\n", INT_,  val);
             len = strlen(pdata);
         }
         if (_Pickler_Write(self, pdata, len) < 0)
@@ -2206,7 +2206,7 @@ save_long(PicklerObject *self, PyObject *obj)
             goto error;
     }
     else {
-        const char long_op = LONG;
+        const char long_op = LONG_;
         const char *string;
 
         /* proto < 2: write the repr and newline.  This is quadratic-time (in
@@ -2252,7 +2252,7 @@ save_float(PicklerObject *self, PyObject *obj)
     else {
         int result = -1;
         char *buf = NULL;
-        char op = FLOAT;
+        char op = FLOAT_;
 
         if (_Pickler_Write(self, &op, 1) < 0)
             goto done;
@@ -6919,11 +6919,11 @@ load(UnpicklerObject *self)
         OP(BININT, load_binint)
         OP(BININT1, load_binint1)
         OP(BININT2, load_binint2)
-        OP(INT, load_int)
-        OP(LONG, load_long)
+        OP(INT_, load_int)
+        OP(LONG_, load_long)
         OP_ARG(LONG1, load_counted_long, 1)
         OP_ARG(LONG4, load_counted_long, 4)
-        OP(FLOAT, load_float)
+        OP(FLOAT_, load_float)
         OP(BINFLOAT, load_binfloat)
         OP_ARG(SHORT_BINBYTES, load_counted_binbytes, 1)
         OP_ARG(BINBYTES, load_counted_binbytes, 4)

@@ -20,6 +20,10 @@ CFLAGS(
     -DPy_BUILD_CORE
 )
 
+IF (CLANG_CL)
+    CFLAGS(-Wno-invalid-token-paste)
+ENDIF()
+
 IF (OS_DARWIN)
     LDFLAGS(
         -framework CoreFoundation
