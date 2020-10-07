@@ -38,8 +38,6 @@ RECURSE(
     cls_align_double
     cls_align_float
     cls_align_longdouble
-    cls_align_longdouble_split
-    cls_align_longdouble_split2
     cls_align_pointer
     cls_align_sint16
     cls_align_sint32
@@ -54,7 +52,6 @@ RECURSE(
     cls_longdouble
     cls_longdouble_va
     cls_many_mixed_args
-    cls_many_mixed_float_double
     cls_multi_schar
     cls_multi_sshort
     cls_multi_sshortchar
@@ -96,3 +93,11 @@ RECURSE(
     stret_medium2
     testclosure
 )
+
+IF (NOT OS_WINDOWS)
+    RECURSE(
+    cls_align_longdouble_split
+    cls_align_longdouble_split2
+    cls_many_mixed_float_double
+)
+ENDIF()
