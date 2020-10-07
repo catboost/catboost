@@ -41,5 +41,5 @@ class CodeGeneratorTemplateParser(object):
 
 
 def init():
-    iw.addparser('template', CodeGeneratorTemplateParser)
+    iw.addparser('markettemplate', CodeGeneratorTemplateParser)
     iw.addparser('macro', CodeGeneratorTemplateParser)
