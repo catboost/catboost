@@ -126,6 +126,12 @@ namespace NCB {
             model.ModelTrees->GetEmbeddingFeatures(),
             &modelFeatureIdSet
         );
+        // we can't remap unnamed features
+        for (const auto& featureId : modelFeatureIdSet) {
+            if (featureId.empty()) {
+                return false;
+            }
+        }
         size_t featureNameIntersection = 0;
         THashMap<TString, ui32> datasetFeatureNamesMap;
 
