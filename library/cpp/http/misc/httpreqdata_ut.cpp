@@ -122,7 +122,7 @@ Y_UNIT_TEST_SUITE(TRequestServerDataTest) {
         UNIT_ASSERT_STRINGS_EQUAL(rd.QueryStringBuf(), qs);
         UNIT_ASSERT_STRINGS_EQUAL(rd.QueryStringBuf(), rd.OrigQueryStringBuf());
 
-        const TStringBuf appendix = AsStringBuf("gta=true&gta=new");
+        constexpr TStringBuf appendix = "gta=true&gta=new";
         rd.AppendQueryString(appendix.data(), appendix.size());
 
         UNIT_ASSERT_STRINGS_EQUAL(rd.QueryStringBuf(), qs + '&' + appendix);
