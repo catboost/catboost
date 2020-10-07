@@ -69,7 +69,7 @@
                             <arguments>
                                 <argument>${basedir}/prepare_sources_for_docs.py</argument>
                                 <argument>--dst-dir=${project.build.directory}/src_for_doc</argument>
-                                <argument>--src-jar=${basedir}/src/native_impl/catboost4j-spark-impl-sources.jar</argument>
+                                <argument>--src-jar=${project.build.directory}/catboost4j-spark-impl-sources.jar</argument>
                             </arguments>
                             <workingDirectory>${user.dir}</workingDirectory>
                         </configuration>
