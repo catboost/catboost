@@ -190,7 +190,7 @@ static void CalcRegressionUncertaitny(
         if (dataUncertaintyPtr) {
             for (size_t dimIdx = 0; dimIdx < virtEnsemblesCount; ++dimIdx) {
                 TVector<double> tmp = TVector<double>(approx[dimIdx * 2 + 1].begin() + firstLineId, approx[dimIdx * 2 + 1].begin() + lastLineId);
-                FastExpInplace(tmp.data(), tmp.ysize());
+                CalcSquaredExponentInplace(tmp);
                 for (int lineInd = blockId * blockSize; lineInd < lastLineId; ++lineInd) {
                     (*dataUncertaintyPtr)[lineInd] += tmp[lineInd - firstLineId];
                 }
@@ -329,7 +329,7 @@ void PrepareEval(const EPredictionType predictionType,
             Y_ASSERT(approx.size() == 2);
             result->resize(2);
             (*result)[0] = approx[0];
-            (*result)[1] = CalcExponent(approx[1]);
+            (*result)[1] = CalcSquaredExponent(approx[1]);
             break;
         case EPredictionType::VirtEnsembles: {
             auto lossFunction = FromString<ELossFunction>(lossFunctionName);
@@ -337,7 +337,7 @@ void PrepareEval(const EPredictionType predictionType,
                 *result = approx;
                 if (lossFunction == ELossFunction::RMSEWithUncertainty) {
                     for (size_t idx = 1; idx < result->size(); idx += 2) {
-                        FastExpInplace((*result)[idx].data(), (*result)[idx].ysize());
+                        CalcSquaredExponentInplace((*result)[idx]);
                     }
                 }
             }
