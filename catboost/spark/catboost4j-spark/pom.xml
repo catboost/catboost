@@ -71,6 +71,13 @@
                             <goal>testCompile</goal>
                         </goals>
                     </execution>
+                    <execution>
+                        <id>attach-javadocs</id>
+<!--                         <phase>process-resources</phase> -->
+                        <goals>
+                            <goal>doc-jar</goal>
+                        </goals>
+                    </execution>
                 </executions>
                 <configuration>
                 <compilerPlugins>
