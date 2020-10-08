@@ -248,9 +248,10 @@ TCont* RunningCont() {
 
 void TContExecutor::RunScheduler() noexcept {
     try {
+        TContExecutor* const prev = ThisThreadExecutor();
         ThisThreadExecutor() = this;
         Y_DEFER {
-            ThisThreadExecutor() = nullptr;
+            ThisThreadExecutor() = prev;
         };
 
         while (true) {
