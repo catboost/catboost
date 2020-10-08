@@ -1672,7 +1672,7 @@ class LD(Linker):
             self.ld_flags.extend(['-ldl', '-lrt', '-Wl,--no-as-needed'])
         elif target.is_android:
             self.ld_flags.extend(['-ldl', '-Wl,--no-as-needed'])
-            if target.android_api < 29:
+            if self.type == Linker.LLD and target.android_api < 29:
                 # https://github.com/android/ndk/issues/1196
                 self.ld_flags.append('-Wl,--no-rosegment')
         elif target.is_macos:
