@@ -512,13 +512,13 @@ Y_UNIT_TEST_SUITE(TCastTest) {
 
     Y_UNIT_TEST(TryStringBuf) {
         {
-            constexpr TStringBuf hello = AsStringBuf("hello");
+            constexpr TStringBuf hello = "hello";
             TStringBuf out;
             UNIT_ASSERT(TryFromString(hello, out));
             UNIT_ASSERT_VALUES_EQUAL(hello, out);
         }
         {
-            constexpr TStringBuf empty = AsStringBuf("");
+            constexpr TStringBuf empty = "";
             TStringBuf out;
             UNIT_ASSERT(TryFromString(empty, out));
             UNIT_ASSERT_VALUES_EQUAL(empty, out);

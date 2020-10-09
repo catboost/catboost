@@ -1411,9 +1411,9 @@ void TCompactTrieTest::TestFirstSymbolIterator() {
     typedef TCompactTrie<TSymbol> TTrie;
     CreateTrie<TSymbol>(bufout, false, false);
     TTrie trie(bufout.Buffer().Data(), bufout.Buffer().Size());
-    TStringBuf rootAnswers = AsStringBuf("abcdf");
+    TStringBuf rootAnswers = "abcdf";
     TestFirstSymbolIteratorForTrie(trie, rootAnswers);
-    TStringBuf aAnswers = AsStringBuf("abcd");
+    TStringBuf aAnswers = "abcd";
     TestFirstSymbolIteratorForTrie(trie.FindTails(MakeWideKey<TSymbol>("a", 1)), aAnswers);
 }
 

@@ -295,7 +295,7 @@ Y_UNIT_TEST_SUITE(THttpParser) {
     }
 
     Y_UNIT_TEST(THttpIoStreamInteroperability) {
-        TStringBuf content = AsStringBuf("very very very long content");
+        TStringBuf content = "very very very long content";
 
         TMemoryInput request("GET / HTTP/1.1\r\nAccept-Encoding: z-snappy\r\n\r\n");
         THttpInput i(&request);

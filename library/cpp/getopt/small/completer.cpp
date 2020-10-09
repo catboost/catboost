@@ -219,7 +219,7 @@ namespace NLastGetopt::NComp {
 
     namespace {
         TCustomCompleter* Head = nullptr;
-        TStringBuf SpecialFlag = AsStringBuf("---CUSTOM-COMPLETION---");
+        TStringBuf SpecialFlag = "---CUSTOM-COMPLETION---";
     }
 
     void TCustomCompleter::FireCustomCompleter(int argc, const char** argv) {
