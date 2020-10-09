@@ -1,5 +1,5 @@
 #include "dynlib.h"
-#include "demangle.h"
+#include "demangle_impl.h"
 #include "platform.h"
 #include "backtrace.h"
 
@@ -170,7 +170,7 @@ TResolvedSymbol ResolveSymbol(void* sym, char* buf, size_t len) {
     Zero(dli);
 
     if (dladdr(sym, &dli) && dli.dli_sname) {
-        ret.Name = CopyTo(TCppDemangler().Demangle(dli.dli_sname), buf, len);
+        ret.Name = CopyTo(NPrivate::TCppDemangler().Demangle(dli.dli_sname), buf, len);
         ret.NearestSymbol = dli.dli_saddr;
     }
 

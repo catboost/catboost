@@ -277,7 +277,7 @@ private:                                             \
                                                            \
 public:                                                    \
     static TString StaticName() noexcept {                 \
-        return TCppDemangler().Demangle(typeid(N).name()); \
+        return TypeName<N>(); \
     }                                                      \
                                                            \
 private:                                                   \
