@@ -254,7 +254,7 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
     CB_ENSURE(TryGetObjectiveMetric(model, &metricDescription), "Cannot calculate LossFunctionChange feature importances without metric, need model with params");
     CATBOOST_INFO_LOG << "Used " << metricDescription << " metric for fstr calculation" << Endl;
     int approxDimension = model.ModelTrees->GetDimensionsCount();
-    
+
     auto combinationClassFeatures = GetCombinationClassFeatures(*model.ModelTrees);
     int featuresCount = combinationClassFeatures.size();
     if (featuresCount == 0) {

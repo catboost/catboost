@@ -17,7 +17,7 @@ struct TCustomObjectiveDescriptor {
         const float* weights,
         TDers* ders,
         void* customData);
-    
+
     using TCalcDersMultiClassPtr = void (*)(
         const TVector<double>& approx,
         float target,
