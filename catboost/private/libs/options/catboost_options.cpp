@@ -146,7 +146,7 @@ static std::tuple<ui32, ui32, ELeavesEstimation, double> GetEstimationMethodDefa
         }
         case ELossFunction::YetiRankPairwise: {
             defaultL2Reg = 0;
-            defaultEstimationMethod = (taskType == ETaskType::GPU) ? ELeavesEstimation::Newton : ELeavesEstimation::Gradient;
+            defaultEstimationMethod = (taskType == ETaskType::GPU) ? ELeavesEstimation::Simple : ELeavesEstimation::Gradient;
             defaultGradientIterations = 1;
             defaultNewtonIterations = 1;
             break;
