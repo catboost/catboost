@@ -84,7 +84,7 @@
                     <compilerPlugin>
                     <groupId>org.scalamacros</groupId>
                     <artifactId>paradise_${scala.version}</artifactId>
-                    <version>2.1.0</version>
+                    <version>2.1.1</version>
                 </compilerPlugin>
                 </compilerPlugins>
                 </configuration>

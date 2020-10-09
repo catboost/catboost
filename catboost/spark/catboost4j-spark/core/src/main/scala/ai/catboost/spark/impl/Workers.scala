@@ -136,7 +136,7 @@ private[spark] class Workers(
     val schemaForWorkers = trainDataForWorkers.schema
 
     trainDataForWorkers.foreachPartition {
-      rows => {
+      rows : Iterator[Row] => {
         Worker.processPartition(
           trainingDriverListeningAddress,
           catBoostJsonParamsForWorkersString,
