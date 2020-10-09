@@ -491,7 +491,7 @@ unsigned NUnitTest::TTestFactory::Execute() {
 #ifdef _unix_ // on Windows RTTI causes memory leaks
         TString type = test->TypeId();
         if (types.insert(type).second == false) {
-            warnx("Duplicate test found: %s", type.c_str());
+            warnx("Duplicate suite found: %s (%s). Probably you have copy-pasted suite without changing it name", factory->Name().c_str(), type.c_str());
             return 1;
         }
 #endif // _unix_
