@@ -425,10 +425,10 @@ namespace NYT {
 
             template <bool AllowFinish>
             double ReadNanOrInf() {
-                static const auto nanString = AsStringBuf("nan");
-                static const auto infString = AsStringBuf("inf");
-                static const auto plusInfString = AsStringBuf("+inf");
-                static const auto minusInfString = AsStringBuf("-inf");
+                static const TStringBuf nanString = "nan";
+                static const TStringBuf infString = "inf";
+                static const TStringBuf plusInfString = "+inf";
+                static const TStringBuf minusInfString = "-inf";
 
                 TStringBuf expectedString;
                 double expectedValue;
@@ -560,8 +560,8 @@ namespace NYT {
             bool ReadBoolean() {
                 Buffer_.clear();
 
-                static auto trueString = AsStringBuf("true");
-                static auto falseString = AsStringBuf("false");
+                static TStringBuf trueString = "true";
+                static TStringBuf falseString = "false";
 
                 auto throwIncorrectBoolean = [&]() {
                     ythrow TYsonException() << "Incorrect boolean string " << TString(Buffer_.data(), Buffer_.size());
