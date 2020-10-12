@@ -213,6 +213,27 @@ namespace {
             UNIT_ASSERT_EXCEPTION(promise.TryRethrow(), TCustomException);
         }
 
+        Y_UNIT_TEST(ShouldRethrowCallbackException) {
+            TPromise<int> promise = NewPromise<int>();
+            TFuture<int> future = promise.GetFuture();
+            future.Subscribe([](const TFuture<int>&) {
+                throw TCustomException();
+            });
+
+            UNIT_ASSERT_EXCEPTION(promise.SetValue(123), TCustomException);
+        }
+
+        Y_UNIT_TEST(ShouldRethrowCallbackExceptionIgnoreResult) {
+            TPromise<int> promise = NewPromise<int>();
+            TFuture<void> future = promise.GetFuture().IgnoreResult();
+            future.Subscribe([](const TFuture<void>&) {
+                throw TCustomException();
+            });
+
+            UNIT_ASSERT_EXCEPTION(promise.SetValue(123), TCustomException);
+        }
+
+
         Y_UNIT_TEST(ShouldWaitExceptionOrAll) {
             TPromise<void> promise1 = NewPromise();
             TPromise<void> promise2 = NewPromise();
