@@ -344,6 +344,7 @@ public:
         return AfterPrefix(prefix, *this);
     }
 
+    // returns true if string ends with suffix, false otherwise
     inline bool ChopSuffix(const TdSelf& suffix) noexcept {
         return BeforeSuffix(suffix, *this);
     }
