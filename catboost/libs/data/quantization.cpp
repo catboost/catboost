@@ -21,7 +21,6 @@
 #include <catboost/private/libs/options/system_options.h>
 #include <catboost/private/libs/text_processing/text_column_builder.h>
 #include <catboost/private/libs/quantization/utils.h>
-#include <catboost/private/libs/quantization_schema/quantize.h>
 
 #include <library/cpp/grid_creator/binarization.h>
 
