@@ -2030,9 +2030,3 @@ template <class T>
 size_t ComputeHash(const T& value) {
     return THash<T>{}(value);
 }
-
-// Special overload for string-like hashes.
-template <class T>
-size_t ComputeHash(const T* ptr, size_t size) {
-    return THash<const T*>{}({ptr, size});
-}

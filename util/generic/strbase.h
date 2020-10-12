@@ -19,10 +19,6 @@ public:
     using difference_type = ptrdiff_t;
     static constexpr size_t npos = size_t(-1);
 
-    static size_t hashVal(const TCharType* s, size_t n) noexcept {
-        return TTraits::GetHash(s, n);
-    }
-
     using const_iterator = const TCharType*;
 
     template <typename TBase>
@@ -158,10 +154,6 @@ public:
 
     constexpr inline size_t size() const noexcept {
         return Len();
-    }
-
-    inline size_t hash() const noexcept {
-        return hashVal(Ptr(), size());
     }
 
     constexpr inline bool is_null() const noexcept {

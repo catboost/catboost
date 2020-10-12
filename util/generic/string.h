@@ -19,6 +19,7 @@
 #include "reserve.h"
 #include "strbase.h"
 #include "strbuf.h"
+#include "string_hash.h"
 
 #if defined(address_sanitizer_enabled) || defined(thread_sanitizer_enabled)
 #include "hide_ptr.h"
@@ -1570,7 +1571,7 @@ namespace std {
         using argument_type = TString;
         using result_type = size_t;
         inline result_type operator()(argument_type const& s) const noexcept {
-            return s.hash();
+            return NHashPrivate::ComputeStringHash(s.data(), s.size());
         }
     };
 }

@@ -903,7 +903,7 @@ public:
         // hash()
         TStringType sS = s2; // type 'TStringType' is used as is
 
-        sS.hash(); /*size_t hash_val = sS.hash();
+        ComputeHash(sS); /*size_t hash_val = sS.hash();
 
         try {
             //UNIT_ASSERT(hash_val == Data.HashOf_0123456());
