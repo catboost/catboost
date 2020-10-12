@@ -325,6 +325,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\util\generic\strbuf.h"/>
     <ClInclude Include="$(SolutionDir)..\util\generic\strfcpy.h"/>
     <ClInclude Include="$(SolutionDir)..\util\generic\string.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\string_hash.h"/>
     <ClInclude Include="$(SolutionDir)..\util\generic\type_name.h"/>
     <ClInclude Include="$(SolutionDir)..\util\generic\typelist.h"/>
     <ClInclude Include="$(SolutionDir)..\util\generic\typetraits.h"/>
