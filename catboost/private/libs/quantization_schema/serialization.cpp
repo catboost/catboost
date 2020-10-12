@@ -1,30 +1,31 @@
-#include "detail.h"
-#include "schema.h"
 #include "serialization.h"
 
-#include <catboost/idl/pool/proto/quantization_schema.pb.h>
+#include "detail.h"
+
+#include <catboost/libs/data/cat_feature_perfect_hash.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/private/libs/options/enums.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/array_ref.h>
 #include <util/generic/hash.h>
+#include <util/generic/map.h>
 #include <util/generic/maybe.h>
-#include <util/generic/strbuf.h>
 #include <util/generic/string.h>
 #include <util/generic/vector.h>
 #include <util/stream/file.h>
 #include <util/stream/input.h>
 #include <util/stream/labeled.h>
 #include <util/string/escape.h>
+#include <util/string/cast.h>
 #include <util/string/split.h>
 
 #include <google/protobuf/messagext.h>
 
-#include <utility>
 
 using NCB::NQuantizationSchemaDetail::NanModeFromProto;
 using NCB::NQuantizationSchemaDetail::NanModeToProto;
+
 
 static NCB::TPoolQuantizationSchema LoadInMatrixnetFormat(IInputStream* const input) {
     THashMap<size_t, size_t> remapping;
