@@ -61,10 +61,8 @@ namespace NCB {
 }
 
 namespace NCB {
-    //only for used C++
     void SaveQuantizedPool(const TQuantizedPool& pool, IOutputStream* output);
     void SaveQuantizedPool(const TSrcData& srcData, TString fileName);
-    //only for python
     void SaveQuantizedPool(const TDataProviderPtr& dataProvider, TString fileName);
 
     template<class T>
