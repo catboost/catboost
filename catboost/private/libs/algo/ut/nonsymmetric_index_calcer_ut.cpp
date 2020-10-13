@@ -66,7 +66,6 @@ Y_UNIT_TEST_SUITE(NonSymmetricIndexCalcerTest) {
                     for (auto bucketIdx : xrange(bucketCount)) {
                         schema.FeaturesPerfectHash[featureIdx][bucketIdx] = {bucketIdx, 1};
                     }
-                    schema.NanModes.push_back(ENanMode::Forbidden);
                 }
 
                 visitor->Start(metaInfo, objectCount, EObjectsOrder::Undefined, {}, schema, /*wholeColumns*/ true);
