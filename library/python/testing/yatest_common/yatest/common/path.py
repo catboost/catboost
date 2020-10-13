@@ -33,7 +33,7 @@ def change_dir(path):
         os.chdir(old)
 
 
-def copytree(src, dst, symlinks=False, ignore=None):
+def copytree(src, dst, symlinks=False, ignore=None, postprocessing=None):
     '''
     Copy an entire directory of files into an existing directory
     instead of raising Exception what shtuil.copytree does
@@ -47,6 +47,13 @@ def copytree(src, dst, symlinks=False, ignore=None):
             shutil.copytree(s, d, symlinks, ignore)
         else:
             shutil.copy2(s, d)
+    if postprocessing:
+        postprocessing(dst, False)
+        for root, dirs, files in os.walk(dst):
+            for path in dirs:
+                postprocessing(os.path.join(root, path), False)
+            for path in files:
+                postprocessing(os.path.join(root, path), True)
 
 
 def get_unique_file_path(dir_path, file_pattern, create_file=True, max_suffix=10000):
