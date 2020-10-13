@@ -100,9 +100,11 @@ static NCB::TPoolQuantizationSchema LoadInMatrixnetFormat(IInputStream* const in
     schema.Borders.resize(remapping.size());
     schema.NanModes.resize(remapping.size());
     for (size_t i = 0; i < remapping.size(); ++i) {
+        size_t localIndex = remapping[schema.FeatureIndices[i]];
+
         // copy instead of moving and doing `shrink_to_fit` later
-        schema.Borders[i] = borders[remapping[schema.FeatureIndices[i]]];
-        schema.NanModes[i] = nanModes[i].Defined() ? *nanModes[i] : ENanMode::Forbidden;
+        schema.Borders[i] = borders[localIndex];
+        schema.NanModes[i] = nanModes[localIndex].Defined() ? *nanModes[localIndex] : ENanMode::Forbidden;
     }
 
     return schema;
