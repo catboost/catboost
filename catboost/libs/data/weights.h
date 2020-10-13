@@ -68,7 +68,7 @@ namespace NCB {
             ui32 size,
             TMaybeOwningArrayHolder<T> weights = TMaybeOwningArrayHolder<T>::CreateNonOwning(TArrayRef<T>()),
             bool skipCheck = false,
-            const TStringBuf weightTypeName = AsStringBuf("Weight"), // for error messages in check
+            const TStringBuf weightTypeName = "Weight", // for error messages in check
             bool allWeightsCanBeZero = false
         )
             : Size(size)
@@ -84,7 +84,7 @@ namespace NCB {
          */
         explicit TWeights(
             TVector<T>&& weights,
-            const TStringBuf weightTypeName = AsStringBuf("Weight"),
+            const TStringBuf weightTypeName = "Weight",
             bool allWeightsCanBeZero = false
         )
             : Size(weights.size())
