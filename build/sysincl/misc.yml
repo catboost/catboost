@@ -236,11 +236,6 @@
     - fstream.h
     - ../include/fenv.h
 
-# libc++ internal implementation details
-- source_filter: "^contrib/restricted/boost/boost/asio/detail"
-  includes:
-  - __config
-
 # windows sdk includes that we do not want to apply for whole arcadia
 - source_filter: "^contrib"
   includes:
