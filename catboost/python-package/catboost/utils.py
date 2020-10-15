@@ -175,11 +175,13 @@ def read_cd(cd_file, column_count=None, data_file=None, canonize_column_types=Fa
     last_column_idx = -1
     with open(cd_file) as f:
         for line_idx, line in enumerate(f):
+            line = line.strip()
+
             # some cd files in the wild contain empty lines
-            if len(line.strip()) == 0:
+            if len(line) == 0:
                 continue
 
-            line_columns = line[:-1].split('\t')
+            line_columns = line.split('\t')
             if len(line_columns) not in [2, 3]:
                 raise Exception('Wrong number of columns in cd file')
 
