@@ -46,7 +46,9 @@ def onfat_resource(unit, *args):
 
 def onresource_files(unit, *args):
     """
-    RESOURCE_FILES([PREFIX {prefix}] {path}) expands into
+    @usage: RESOURCE_FILES([PREFIX {prefix}] {path})
+
+    This macro expands into
     RESOURCE({path} resfs/file/{prefix}{path}
         - resfs/src/resfs/file/{prefix}{path}={rootrel_arc_src(path)}
     )
