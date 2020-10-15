@@ -703,7 +703,6 @@ migrations:
     - ydo/database/lib
     - ydo/payments/balance_notifications_processor/lib
     - ydo/server/apphost_source/lib/endpoints
-    - ydo/server/extract_backend_request_source/lib
     - ydo/tools/direct/make_ya_clients_export
     - yp/scheduler_simulator/analysis/library
     - yp/tests
