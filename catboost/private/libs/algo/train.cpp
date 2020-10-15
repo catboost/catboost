@@ -290,7 +290,7 @@ void TrainOneIteration(const NCB::TTrainingDataProviders& data, TLearnContext* c
                     parallelJobsData[taskId].DoTask(ctx);
                 },
                 0,
-                parallelJobsData.size(),
+                SafeIntegerCast<int>(parallelJobsData.size()),
                 NPar::TLocalExecutor::WAIT_COMPLETE
             );
         }

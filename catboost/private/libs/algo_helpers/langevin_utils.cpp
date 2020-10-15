@@ -43,7 +43,7 @@ void AddLangevinNoiseToDerivatives(
                 }
             },
             0,
-            rangesGenerator.RangesCount(),
+            SafeIntegerCast<int>(rangesGenerator.RangesCount()),
             NPar::TLocalExecutor::WAIT_COMPLETE
         );
     }

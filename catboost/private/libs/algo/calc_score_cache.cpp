@@ -1041,7 +1041,7 @@ void TCalcScoreFold::UpdateIndicesInLeafwiseSortedFold(
                 &slice);
         },
         0,
-        leafs.size(),
+        SafeIntegerCast<int>(leafs.size()),
         NPar::TLocalExecutor::WAIT_COMPLETE
     );
 

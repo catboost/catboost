@@ -272,6 +272,6 @@ void BuildIndicesForDataset(
             indicesRef[idx] = ~nodeIdx;
         },
         0,
-        sampleCount,
+        SafeIntegerCast<int>(sampleCount),
         NPar::TLocalExecutor::WAIT_COMPLETE);
 }
