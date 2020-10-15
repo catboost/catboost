@@ -370,6 +370,27 @@ def test_multiregression_single(boosting_type, n_trees):
     ]
 
 
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+@pytest.mark.parametrize('n_trees', [100, 500])
+def test_multiregression_with_cat_features(boosting_type, n_trees):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+
+    cmd_fit = (
+        '--loss-function', 'MultiRMSE',
+        '--boosting-type', boosting_type,
+        '-f', data_file('multiregression', 'train'),
+        '-t', data_file('multiregression', 'test'),
+        '--column-description', data_file('multiregression', 'train_with_cat_features.cd'),
+        '-i', '{}'.format(n_trees),
+        '-T', '4',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+        '--use-best-model', 'false',
+    )
+    execute_catboost_fit('CPU', cmd_fit)
+
+
 @pytest.mark.parametrize('boosting_type, grow_policy', BOOSTING_TYPE_WITH_GROW_POLICIES)
 @pytest.mark.parametrize(
     'dev_score_calc_obj_block_size',
