@@ -813,7 +813,13 @@ namespace {
             const auto& systemOptions = ctx.Params.SystemOptions;
             if (!systemOptions->IsSingleHost()) { // send target, weights, baseline (if present), binarized features to workers and ask them to create plain folds
                 CB_ENSURE(IsPlainMode(ctx.Params.BoostingOptions->BoostingType), "Distributed training requires plain boosting");
-                CB_ENSURE(!ctx.Layout->GetCatFeatureCount(), "Distributed training doesn't support categorical features");
+
+                bool calcCtrs
+                    = (trainingData.Learn->ObjectsData->GetQuantizedFeaturesInfo()
+                        ->CalcMaxCategoricalFeaturesUniqueValuesCountOnLearn()
+                       > ctx.Params.CatFeatureParams->OneHotMaxSize.Get());
+                CB_ENSURE(!calcCtrs, "CTRs are not yet supported in distributed training on CPU");
+
                 MapBuildPlainFold(&ctx);
             }
             TVector<TVector<double>> oneRawValues(ctx.LearnProgress->ApproxDimension);

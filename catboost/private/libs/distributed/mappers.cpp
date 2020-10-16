@@ -247,8 +247,6 @@ namespace NCatboostDistributed {
     ) const {
         NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
 
-        Y_ASSERT(!GetTrainData(trainData).Learn->MetaInfo.FeaturesLayout->GetCatFeatureCount());
-
         auto& localData = TLocalTensorSearchData::GetRef();
         Y_ASSERT(IsPlainMode(localData.Params.BoostingOptions->BoostingType));
 

@@ -5066,6 +5066,34 @@ def test_dist_train_yetirank():
     ), output_file_switch='--test-err-log'))]
 
 
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+@pytest.mark.parametrize(
+    'one_hot_max_size',
+    [2, 255],
+    ids=['one_hot_max_size=2', 'one_hot_max_size=255']
+)
+def test_dist_train_with_cat_features(dev_score_calc_obj_block_size, one_hot_max_size):
+    cmd = make_deterministic_train_cmd(
+        loss_function='Logloss',
+        pool='adult',
+        train='train_small',
+        test='test_small',
+        cd='train.cd',
+        dev_score_calc_obj_block_size=dev_score_calc_obj_block_size,
+        other_options=('--one-hot-max-size', str(one_hot_max_size))
+    )
+
+    if one_hot_max_size == 2:
+        with pytest.raises(yatest.common.ExecutionError):
+            run_dist_train(cmd)
+    else:
+        return [local_canonical_file(run_dist_train(cmd))]
+
+
 def test_no_target():
     train_path = yatest.common.test_output_path('train')
     cd_path = yatest.common.test_output_path('train.cd')
