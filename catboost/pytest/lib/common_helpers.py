@@ -1,3 +1,4 @@
+import collections
 import csv
 import json
 import itertools
@@ -5,7 +6,7 @@ import os
 import random
 import shutil
 import sys
-from pandas import read_csv
+from pandas import read_csv, DataFrame
 from copy import deepcopy
 import numpy as np
 from catboost.utils import read_cd
@@ -18,6 +19,7 @@ __all__ = [
     'compare_metrics_with_diff',
     'generate_random_labeled_dataset',
     'generate_concatenated_random_labeled_dataset',
+    'generate_dataset_with_num_and_cat_features',
     'load_dataset_as_dataframe',
     'load_pool_features_as_df',
     'permute_dataset_columns',
@@ -130,6 +132,56 @@ def generate_random_labeled_dataset(
     labels = [random.choice(labels) for i in range(n_samples)]
 
     return (features, labels)
+
+
+# returns (features : pandas.DataFrame, labels : list) tuple
+def generate_dataset_with_num_and_cat_features(
+    n_samples,
+    n_num_features,
+    n_cat_features,
+    labels,
+    num_features_density=1.0,
+    num_features_dtype=np.float32,
+    num_features_range=(-1., 1.),
+    cat_features_uniq_value_count=5,
+    cat_features_dtype=np.int32,
+    seed=20201015
+):
+    assert num_features_density > 0.0
+    assert cat_features_uniq_value_count > 0
+
+    random.seed(seed)
+
+    # put num and categ features to the result DataFrame in random order but keep sequential names within each type
+    feature_columns = collections.OrderedDict()
+
+    num_feature_idx = 0
+    cat_feature_idx = 0
+    while (num_feature_idx < n_num_features) or (cat_feature_idx < n_cat_features):
+        if (cat_feature_idx < n_cat_features) and random.randrange(2):
+            values = []
+            for sample_idx in range(n_samples):
+                values.append(cat_features_dtype(random.randrange(cat_features_uniq_value_count)))
+            feature_columns['c' + str(cat_feature_idx)] = values
+            cat_feature_idx += 1
+        elif num_feature_idx < n_num_features:
+            values = []
+            for sample_idx in range(n_samples):
+                v1 = random.random()
+                if v1 > num_features_density:
+                    value = 0
+                else:
+                    value = (
+                        num_features_range[0]
+                            + (num_features_range[1] - num_features_range[0]) * (v1 / num_features_density)
+                    )
+                values.append(num_features_dtype(value))
+            feature_columns['n' + str(num_feature_idx)] = values
+            num_feature_idx += 1
+
+    labels = [random.choice(labels) for i in range(n_samples)]
+
+    return (DataFrame(feature_columns), labels)
 
 
 BY_CLASS_METRICS = ['AUC', 'Precision', 'Recall', 'F1']

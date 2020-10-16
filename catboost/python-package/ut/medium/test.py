@@ -50,6 +50,7 @@ from catboost_pytest_lib import (
     test_output_path,
     generate_concatenated_random_labeled_dataset,
     generate_random_labeled_dataset,
+    generate_dataset_with_num_and_cat_features,
     load_dataset_as_dataframe,
     load_pool_features_as_df
 )
@@ -7391,20 +7392,52 @@ def test_quantized_pool_select_threshold(models_trained_on_raw_and_quantized_dat
     assert threshold == threshold_with_quantized_pool
 
 
-def test_save_quantized_pool():
-    train_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
-    test_pool = Pool(QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE)
-    train_quantized_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
+FEATURES_TYPES = ['num', 'cat', 'num_and_cat']
+
+
+@pytest.mark.parametrize(
+    'features_types',
+    FEATURES_TYPES,
+    ids=['features_types=%s' % ft for ft in FEATURES_TYPES]
+)
+def test_save_quantized_pool(features_types):
+    n_train_samples = 200
+    n_test_samples = 50
+
+    if features_types == 'num':
+        n_num_features = 5
+        n_cat_features = 0
+    elif features_types == 'cat':
+        n_num_features = 0
+        n_cat_features = 5
+    elif features_types == 'num_and_cat':
+        n_num_features = 4
+        n_cat_features = 5
+
+    train_data = generate_dataset_with_num_and_cat_features(
+        n_samples=n_train_samples,
+        n_num_features=n_num_features,
+        n_cat_features=n_cat_features,
+        labels=[0.0, 0.12, 1.0],
+    )
+    test_data = generate_dataset_with_num_and_cat_features(
+        n_samples=n_test_samples,
+        n_num_features=n_num_features,
+        n_cat_features=n_cat_features,
+        labels=[0.0, 0.12, 1.0],
+    )
+
+    train_pool = Pool(train_data[0], train_data[1])
+    test_pool = Pool(test_data[0], test_data[1])
+    train_quantized_pool = Pool(train_data[0], train_data[1])
     params = {
         'task_type': 'CPU',
         'loss_function': 'RMSE',
         'iterations': 5,
         'depth': 4,
     }
-    columns_metadata = read_cd(QUERYWISE_CD_FILE, data_file=QUERYWISE_TRAIN_FILE, canonize_column_types=True)
-    feature_names = get_only_features_names(columns_metadata)
+    feature_names = train_data[0].columns
 
-    train_quantized_pool.set_feature_names(feature_names)
     train_quantized_pool.quantize()
 
     assert(train_quantized_pool.is_quantized())
@@ -7423,16 +7456,8 @@ def test_save_quantized_pool():
     predictions2 = model_fitted_with_load_quantized_pool.predict(test_pool)
 
     loaded_feature_names = train_quantized_load_pool.get_feature_names()
-    assert feature_names == loaded_feature_names
+    assert all(feature_names == loaded_feature_names)
     assert all(predictions1 == predictions2)
-
-
-def test_save_quantized_pool_categorical():
-    train_quantized_pool = Pool(SMALL_CATEGORIAL_FILE, column_description=SMALL_CATEGORIAL_CD_FILE)
-    train_quantized_pool.quantize()
-    assert(train_quantized_pool.is_quantized())
-    with pytest.raises(CatBoostError):
-        train_quantized_pool.save(OUTPUT_QUANTIZED_POOL_PATH)
 
 
 # returns dict with 'train_file', 'test_file', 'data_files_have_header', 'cd_file', 'loss_function' keys

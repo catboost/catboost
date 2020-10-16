@@ -1473,7 +1473,9 @@ namespace NCB {
                 // TODO(akhropov): get from quantized pool meta info when it will be available: MLTOOLS-2392.
                 NCatboostOptions::TBinarizationOptions(
                     EBorderSelectionType::GreedyLogSum, // default value
-                    SafeIntegerCast<ui32>(poolQuantizationSchema.Borders[0].size()),
+                    (poolQuantizationSchema.Borders.size() > 0) ?
+                        SafeIntegerCast<ui32>(poolQuantizationSchema.Borders[0].size())
+                        : 32,
                     ENanMode::Forbidden // default value
                 ),
                 TMap<ui32, NCatboostOptions::TBinarizationOptions>()
