@@ -374,6 +374,12 @@
         "lz4": {
             "description": "Compress or decompress .lz4 files"
         },
+        "pqos": {
+            "description": "Intel(R) Resource Director Technology monitoring and control tool"
+        },
+        "rdtset": {
+            "description": "Task CPU affinity and Intel(R) Resource Director Technology control tool"
+        },
         "optrace": {
             "description": "optrace records output files written by each process",
             "visible": false
@@ -5248,6 +5254,26 @@
                 }
             ]
         },
+        "intel-cmt-cat": {
+            "tools": {
+                "pqos": {
+                    "bottle": "intel-cmt-cat",
+                    "executable": "pqos"
+                },
+                "rdtset": {
+                    "bottle": "intel-cmt-cat",
+                    "executable": "rdtset"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "blktrace": {
             "tools": {
                 "blkparse": {
@@ -7425,19 +7451,23 @@
                 ]
             }
         },
-        "lz4": {
+        "intel-cmt-cat": {
             "formula": {
                 "sandbox_id": [
-                    756420904
+                    798382448
                 ],
-                "match": "infra/kernel/tools/lz4"
+                "match": "infra/kernel/tools/resctrl"
             },
             "executable": {
-                "lz4": [
-                    "lz4",
-                    "usr",
+                "pqos": [
+                    "intel-cmt-cat",
                     "bin",
-                    "lz4"
+                    "pqos"
+                ],
+                "rdtset": [
+                    "intel-cmt-cat",
+                    "bin",
+                    "rdtset"
                 ]
             }
         },
