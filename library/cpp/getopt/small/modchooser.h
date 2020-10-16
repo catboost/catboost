@@ -28,7 +28,6 @@ class TMainClass {
 public:
     virtual int operator()(int argc, const char** argv) = 0;
     virtual ~TMainClass() = default;
-    virtual TString GetTitle() const;
 };
 
 //! Function to handle '--version' parameter
@@ -53,7 +52,6 @@ public:
     void AddMode(const TString& mode, TMainFunctionPtr func, const TString& description, bool hidden = false, bool noCompletion = false);
     void AddMode(const TString& mode, TMainFunctionPtrV func, const TString& description, bool hidden = false, bool noCompletion = false);
     void AddMode(const TString& mode, TMainClass* func, const TString& description, bool hidden = false, bool noCompletion = false);
-    void AddMode(const TString& mode, TMainClass* func, bool hidden = false, bool noCompletion = false);
     void AddMode(const TString& mode, TMainClassV* func, const TString& description, bool hidden = false, bool noCompletion = false);
 
     //! Hidden groups won't be displayed in 'help' block
