@@ -6,6 +6,8 @@ NO_PLATFORM()
 
 IF (OS_ANDROID)
     IF (MAPS_MOBILE_EXPORT_CPP_API)
+        # Sandbox Resource ID duplicates
+        # arcadia/sandbox/projects/maps/mobile/MapsMobileMakeArtifacts/__init__.py
         DECLARE_EXTERNAL_RESOURCE(MAPKIT_ANDROID_LIBCXX_HEADERS sbr:1421157295)
         CFLAGS(GLOBAL -nostdinc++ GLOBAL -cxx-isystem GLOBAL $MAPKIT_ANDROID_LIBCXX_HEADERS_RESOURCE_GLOBAL)
     ENDIF()
