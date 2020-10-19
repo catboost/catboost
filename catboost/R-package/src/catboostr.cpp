@@ -1,21 +1,22 @@
+#include <catboost/libs/cat_feature/cat_feature.h>
 #include <catboost/libs/data/data_provider.h>
 #include <catboost/libs/data/data_provider_builders.h>
 #include <catboost/libs/data/load_data.h>
-#include <catboost/private/libs/algo/apply.h>
-#include <catboost/private/libs/algo/helpers.h>
-#include <catboost/libs/train_lib/train_model.h>
-#include <catboost/libs/train_lib/cross_validation.h>
 #include <catboost/libs/eval_result/eval_helpers.h>
 #include <catboost/libs/fstr/calc_fstr.h>
-#include <catboost/private/libs/documents_importance/docs_importance.h>
-#include <catboost/private/libs/documents_importance/enums.h>
-#include <catboost/libs/model/model.h>
-#include <catboost/libs/logging/logging.h>
-#include <catboost/private/libs/options/cross_validation_params.h>
 #include <catboost/libs/helpers/int_cast.h>
 #include <catboost/libs/helpers/mem_usage.h>
-#include <catboost/libs/cat_feature/cat_feature.h>
+#include <catboost/libs/logging/logging.h>
+#include <catboost/libs/model/model.h>
 #include <catboost/libs/model/model_export/model_exporter.h>
+#include <catboost/libs/model/utils.h>
+#include <catboost/libs/train_lib/train_model.h>
+#include <catboost/libs/train_lib/cross_validation.h>
+#include <catboost/private/libs/algo/apply.h>
+#include <catboost/private/libs/algo/helpers.h>
+#include <catboost/private/libs/documents_importance/docs_importance.h>
+#include <catboost/private/libs/documents_importance/enums.h>
+#include <catboost/private/libs/options/cross_validation_params.h>
 
 #include <util/generic/cast.h>
 #include <util/generic/mem_copy.h>
@@ -796,6 +797,17 @@ SEXP CatBoostGetModelParams_R(SEXP modelParam) {
     R_API_BEGIN();
     TFullModelHandle model = reinterpret_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
     result = PROTECT(mkString(model->ModelInfo.at("params").c_str()));
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
+
+SEXP CatBoostGetPlainParams_R(SEXP modelParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TFullModelHandle model = reinterpret_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
+    result = PROTECT(mkString(ToString(GetPlainJsonWithAllOptions(*model)).c_str()));
     R_API_END();
     UNPROTECT(1);
     return result;

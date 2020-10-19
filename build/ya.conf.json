@@ -7058,7 +7058,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 799327758,
+                "sandbox_id": 799996599,
                 "match": "horadric"
             },
             "executable": {
@@ -7069,7 +7069,7 @@
         },
         "logbroker": {
             "formula": {
-                "sandbox_id": 799327611,
+                "sandbox_id": 799947358,
                 "match": "logbroker"
             },
             "executable": {
@@ -7564,7 +7564,7 @@
         },
         "sedem": {
             "formula": {
-                "sandbox_id": 796416043,
+                "sandbox_id": 800431303,
                 "match": "SEDEM archive"
             },
             "executable": {

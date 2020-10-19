@@ -232,6 +232,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\rapidjson\contrib-libs-rapidjson.vcxproj">
       <Project>{9CDB08FB-219D-3356-E006-1AC8AECC636E}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\tbb\contrib-libs-tbb.vcxproj">
+      <Project>{41EBD2AA-3257-780F-5463-5A2401A4CE00}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\tensorboard\contrib-libs-tensorboard.vcxproj">
       <Project>{85643E70-B3E5-4747-7C6D-59B9CF26EE48}</Project>
     </ProjectReference>

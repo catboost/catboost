@@ -190,7 +190,7 @@ ALLOW .* -> vendor/github.com/prometheus/client_model
 ALLOW .* -> vendor/github.com/prometheus/common
 
 # ZooKeeper client
-ALLOW .* -> vendor/github.com/samuel/go-zookeeper
+ALLOW .* -> vendor/github.com/go-zookeeper/zk
 
 # Consistent hashring implementation (using the same algorithm as libketama)
 ALLOW .* -> vendor/github.com/serialx/hashring

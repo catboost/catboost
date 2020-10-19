@@ -1445,6 +1445,7 @@ catboost.train <- function(learn_pool, test_pool = NULL, params = list()) {
     }
 
     model$tree_count <- catboost.ntrees(model)
+    model$learning_rate <- catboost.get_plain_params(model)[['learning_rate']]
     return(model)
 }
 
@@ -1578,6 +1579,7 @@ catboost.load_model <- function(model_path, file_format = "cbm") {
     model <- list(handle = handle, raw = raw)
     class(model) <- "catboost.Model"
     model$tree_count <- catboost.ntrees(model)
+    model$learning_rate <- catboost.get_plain_params(model)[['learning_rate']]
     return(model)
 }
 
@@ -2025,6 +2027,24 @@ catboost.get_model_params <- function(model) {
     return(params)
 }
 
+#' Plain Model parameters
+#'
+#' Return the plain model parameters.
+#'
+#' @param model
+#' The model obtained as the result of training.
+#'
+#' Default value: Required argument
+#' @export
+catboost.get_plain_params <- function(model) {
+    if (class(model) != "catboost.Model")
+        stop("Expected catboost.Model, got: ", class(model))
+    if (is.null.handle(model$handle))
+        model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
+    params <- .Call("CatBoostGetPlainParams_R", model$handle)
+    params <- jsonlite::fromJSON(params)
+    return(params)
+}
 
 is.null.handle <- function(handle) {
   stopifnot(typeof(handle) == "externalptr")
