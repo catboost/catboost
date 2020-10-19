@@ -10,19 +10,18 @@ SRCS(
 )
 
 PEERDIR(
-    catboost/private/libs/algo
     catboost/libs/cat_feature
-    catboost/private/libs/data_util
     catboost/libs/data
-    catboost/private/libs/documents_importance
+    catboost/libs/eval_result
     catboost/libs/fstr
     catboost/libs/gpu_config/maybe_have_cuda
-    catboost/libs/eval_result
-    catboost/private/libs/init
     catboost/libs/logging
     catboost/libs/model
-    catboost/private/libs/options
     catboost/libs/train_lib
+    catboost/private/libs/algo
+    catboost/private/libs/data_util
+    catboost/private/libs/documents_importance
+    catboost/private/libs/init
     catboost/private/libs/options
 )
 

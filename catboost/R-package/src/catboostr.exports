@@ -8,6 +8,7 @@ C CatBoostEvaluateObjectImportances_R
 C CatBoostFit_R
 C CatBoostGetModelParams_R
 C CatBoostGetNumTrees_R
+C CatBoostGetPlainParams_R
 C CatBoostHashStrings_R
 C CatBoostIsNullHandle_R
 C CatBoostIsOblivious_R
