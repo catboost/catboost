@@ -577,6 +577,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\sqlite3\contrib-libs-sqlite3.vcxproj">
       <Project>{95B1672E-65CB-6C0E-8AEB-4971392AB876}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\tbb\contrib-libs-tbb.vcxproj">
+      <Project>{41EBD2AA-3257-780F-5463-5A2401A4CE00}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\tensorboard\contrib-libs-tensorboard.vcxproj">
       <Project>{85643E70-B3E5-4747-7C6D-59B9CF26EE48}</Project>
     </ProjectReference>
