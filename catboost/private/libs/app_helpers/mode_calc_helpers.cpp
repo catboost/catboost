@@ -94,7 +94,7 @@ void NCB::ReadModelAndUpdateParams(
         }
     }
     if (params.IsUncertaintyPrediction) {
-        if (model.IsPosteriorSamplingModel()) {
+        if (!model.IsPosteriorSamplingModel()) {
             CATBOOST_WARNING_LOG <<  "Uncertainty Prediction asked for model fitted without Posterior Sampling option" << Endl;
         }
         for (auto predictionType : params.PredictionTypes) {
