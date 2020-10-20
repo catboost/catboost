@@ -213,6 +213,10 @@
   includes:
     - util.h:        contrib/libs/nodejs_8/src/util.h
 
+- source_filter: "^contrib/libs/nodejs_12"
+  includes:
+    - util.h:        contrib/libs/nodejs_12/src/util.h
+
 - source_filter: "^contrib/libs/numa"
   includes:
     - util.h:        contrib/libs/numa/internal/util.h
