@@ -70,29 +70,7 @@ namespace {
     public:
         TEmptyClass Base;
     };
-
-    class TWithBitwiseCopyableFlag {
-    public:
-        TWithBitwiseCopyableFlag() = default;
-        TWithBitwiseCopyableFlag(const TWithBitwiseCopyableFlag&) = default;
-    };
-
-    class TWithBitwiseSerializableFlag {
-    public:
-        TWithBitwiseSerializableFlag() = default;
-        TWithBitwiseSerializableFlag(const TWithBitwiseSerializableFlag&) = default;
-    };
-
-    class TWithAllTypeTraitFlags {
-    public:
-        TWithAllTypeTraitFlags() = default;
-        TWithAllTypeTraitFlags(const TWithAllTypeTraitFlags&) = default;
-    };
 }
-
-Y_DECLARE_TYPE_FLAGS(TWithBitwiseCopyableFlag, NTypeTrait::BITWISE_COPYABLE);
-Y_DECLARE_TYPE_FLAGS(TWithBitwiseSerializableFlag, NTypeTrait::BITWISE_SERIALIZABLE);
-Y_DECLARE_TYPE_FLAGS(TWithAllTypeTraitFlags, NTypeTrait::BITWISE_SERIALIZABLE | NTypeTrait::BITWISE_COPYABLE);
 
 #define ASSERT_SAME_TYPE(x, y)                     \
     {                                              \
@@ -259,7 +237,7 @@ Y_UNIT_TEST_SUITE(TTypeTraitsTest) {
         UNIT_ASSERT(std::is_pod<long>::value);
     }
 
-    template <typename T>
+	template <typename T>
     void TestAllTypeTraitFlagsSet() {
         UNIT_ASSERT(TTypeTraits<T>::IsBitwiseCopyable);
         UNIT_ASSERT(TTypeTraits<T>::IsBitwiseSerializable);
@@ -273,13 +251,8 @@ Y_UNIT_TEST_SUITE(TTypeTraitsTest) {
         TestAllTypeTraitFlagsSet<long>();
         TestAllTypeTraitFlagsSet<TPodClass>();
 
-        UNIT_ASSERT(TTypeTraits<TWithBitwiseSerializableFlag>::IsBitwiseSerializable);
-        UNIT_ASSERT(TTypeTraits<TWithBitwiseCopyableFlag>::IsBitwiseCopyable);
-
         UNIT_ASSERT(!TTypeTraits<TNonPodClass>::IsBitwiseSerializable);
         UNIT_ASSERT(!TTypeTraits<TNonPodClass>::IsBitwiseCopyable);
-
-        TestAllTypeTraitFlagsSet<TWithAllTypeTraitFlags>();
     }
 
     template <class T>
