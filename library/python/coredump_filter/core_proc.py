@@ -110,7 +110,7 @@ class Frame:
 
         # '<span class="addr">{1}</span>'  # unused
         return (
-            '<span class="frame">{frame}</span>'
+            '<span class="frame">{frame}</span>'  # noqa: F522
             '<span class="func">{func}</span> '
             '<span class="source">{source}</span>{source_fmt}'.format(
                 frame=self.frame_no,
