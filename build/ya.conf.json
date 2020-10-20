@@ -163,7 +163,7 @@
             "visible": false
         },
         "bloat": {
-            "description": "Run bloat2 tool",
+            "description": "Run bloat tool",
             "visible": false
         },
         "ipython": {
@@ -2836,7 +2836,7 @@
             "tools": {
                 "bloat": {
                     "bottle": "bloat",
-                    "executable": "bloat2"
+                    "executable": "bloat"
                 }
             },
             "platforms": [
@@ -5780,13 +5780,13 @@
         "bloat": {
             "formula": {
                 "sandbox_id": [
-                    372488594
+                    801218211
                 ],
                 "match": "Bloat"
             },
             "executable": {
-                "bloat2": [
-                    "bloat2"
+                "bloat": [
+                    "bloat"
                 ]
             }
         },
