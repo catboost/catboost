@@ -97,7 +97,15 @@ TNode::TNode(const char* s)
     : Value_(TVariantTypeTag<TString>(), TString(s))
 { }
 
-TNode::TNode(const TStringBuf& s)
+TNode::TNode(TStringBuf s)
+    : Value_(TVariantTypeTag<TString>(), TString(s))
+{ }
+
+TNode::TNode(std::string_view s)
+    : Value_(TVariantTypeTag<TString>(), TString(s))
+{ }
+
+TNode::TNode(const std::string& s)
     : Value_(TVariantTypeTag<TString>(), TString(s))
 { }
 
