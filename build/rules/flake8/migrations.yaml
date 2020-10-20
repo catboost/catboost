@@ -388,7 +388,6 @@ migrations:
     - quality/functionality/chats/feedback/src/feedback/api
     - quality/functionality/chats/floyd/src/floyd/core
     - quality/functionality/entity_search/factqueries/tools/beta/start
-    - quality/functionality/facts/common/fetch_sf2_lib
     - quality/functionality/rtx/trends/apropos_viewer
     - quality/functionality/scripts/psuh/HomeWorkMetricsLib/External/autolog_names/autolog_names
     - quality/functionality/scripts/psuh/HomeWorkMetricsLib/HomeWorkMetricsLib
@@ -547,7 +546,6 @@ migrations:
     - statbox/statkey/jam/libs
     - strm/pinger/lib
     - strm/pult/backend/bin/prod_channels_generator
-    - strm/pult/backend/lib
     - strm/pult/backend/tests/unit
     - testenv/core/tools
     - testenv/jobs/begemot
