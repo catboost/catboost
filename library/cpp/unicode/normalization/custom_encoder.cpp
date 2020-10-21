@@ -64,7 +64,7 @@ void TCustomEncoder::Create(const CodePage* target, bool extended) {
                 Y_ASSERT(decomp_p != nullptr);
 
                 dw = decomp_p[0];
-                if (TCharTraits<wchar32>::GetLength(decomp_p) > 1 && (dw == (wchar32)' ' || dw == (wchar32)'('))
+                if (TCharTraits<wchar32>::length(decomp_p) > 1 && (dw == (wchar32)' ' || dw == (wchar32)'('))
                     dw = decomp_p[1];
             }
             if (Code(dw) != 0 && isGoodDecomp(w, dw))

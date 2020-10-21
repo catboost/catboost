@@ -205,7 +205,7 @@ public:
 
     template <typename TChar>
     inline TChar* Append(const TChar* str) {
-        return Append(str, TCharTraits<TChar>::GetLength(str) + 1); // include terminating zero byte
+        return Append(str, TCharTraits<TChar>::length(str) + 1); // include terminating zero byte
     }
 
     template <typename TChar>
