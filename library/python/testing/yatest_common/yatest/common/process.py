@@ -80,7 +80,9 @@ class InvalidExecutionStateError(Exception):
 
 
 class SignalInterruptionError(Exception):
-    pass
+    def __init__(self, message=None):
+        super(SignalInterruptionError, self).__init__(message)
+        self.res = None
 
 
 class _Execution(object):
