@@ -16,124 +16,124 @@ namespace {
     constexpr TStringBuf ToStringBufC(NColorizer::EAnsiCode x) {
         switch(x) {
             case RESET:
-                return AsStringBuf("\033[0m");
+                return "\033[0m";
 
             case ST_LIGHT:
-                return AsStringBuf("\033[1m");
+                return "\033[1m";
             case ST_DARK:
-                return AsStringBuf("\033[2m");
+                return "\033[2m";
             case ST_NORMAL:
-                return AsStringBuf("\033[22m");
+                return "\033[22m";
 
             case ITALIC_ON:
-                return AsStringBuf("\033[3m");
+                return "\033[3m";
             case ITALIC_OFF:
-                return AsStringBuf("\033[23m");
+                return "\033[23m";
             case UNDERLINE_ON:
-                return AsStringBuf("\033[4m");
+                return "\033[4m";
             case UNDERLINE_OFF:
-                return AsStringBuf("\033[24m");
+                return "\033[24m";
 
             case FG_DEFAULT:
-                return AsStringBuf("\033[39m");
+                return "\033[39m";
             case FG_BLACK:
-                return AsStringBuf("\033[30m");
+                return "\033[30m";
             case FG_RED:
-                return AsStringBuf("\033[31m");
+                return "\033[31m";
             case FG_GREEN:
-                return AsStringBuf("\033[32m");
+                return "\033[32m";
             case FG_YELLOW:
-                return AsStringBuf("\033[33m");
+                return "\033[33m";
             case FG_BLUE:
-                return AsStringBuf("\033[34m");
+                return "\033[34m";
             case FG_MAGENTA:
-                return AsStringBuf("\033[35m");
+                return "\033[35m";
             case FG_CYAN:
-                return AsStringBuf("\033[36m");
+                return "\033[36m";
             case FG_WHITE:
-                return AsStringBuf("\033[37m");
+                return "\033[37m";
 
             case BG_DEFAULT:
-                return AsStringBuf("\033[49m");
+                return "\033[49m";
             case BG_BLACK:
-                return AsStringBuf("\033[40m");
+                return "\033[40m";
             case BG_RED:
-                return AsStringBuf("\033[41m");
+                return "\033[41m";
             case BG_GREEN:
-                return AsStringBuf("\033[42m");
+                return "\033[42m";
             case BG_YELLOW:
-                return AsStringBuf("\033[43m");
+                return "\033[43m";
             case BG_BLUE:
-                return AsStringBuf("\033[44m");
+                return "\033[44m";
             case BG_MAGENTA:
-                return AsStringBuf("\033[45m");
+                return "\033[45m";
             case BG_CYAN:
-                return AsStringBuf("\033[46m");
+                return "\033[46m";
             case BG_WHITE:
-                return AsStringBuf("\033[47m");
+                return "\033[47m";
 
             // Note: the following codes are split into two escabe sequences because of how ya.make handles them.
 
             case DEFAULT:
-                return AsStringBuf("\033[0m\033[0;39m");
+                return "\033[0m\033[0;39m";
             case BLACK:
-                return AsStringBuf("\033[0m\033[0;30m");
+                return "\033[0m\033[0;30m";
             case RED:
-                return AsStringBuf("\033[0m\033[0;31m");
+                return "\033[0m\033[0;31m";
             case GREEN:
-                return AsStringBuf("\033[0m\033[0;32m");
+                return "\033[0m\033[0;32m";
             case YELLOW:
-                return AsStringBuf("\033[0m\033[0;33m");
+                return "\033[0m\033[0;33m";
             case BLUE:
-                return AsStringBuf("\033[0m\033[0;34m");
+                return "\033[0m\033[0;34m";
             case MAGENTA:
-                return AsStringBuf("\033[0m\033[0;35m");
+                return "\033[0m\033[0;35m";
             case CYAN:
-                return AsStringBuf("\033[0m\033[0;36m");
+                return "\033[0m\033[0;36m";
             case WHITE:
-                return AsStringBuf("\033[0m\033[0;37m");
+                return "\033[0m\033[0;37m";
 
             case LIGHT_DEFAULT:
-                return AsStringBuf("\033[0m\033[1;39m");
+                return "\033[0m\033[1;39m";
             case LIGHT_BLACK:
-                return AsStringBuf("\033[0m\033[1;30m");
+                return "\033[0m\033[1;30m";
             case LIGHT_RED:
-                return AsStringBuf("\033[0m\033[1;31m");
+                return "\033[0m\033[1;31m";
             case LIGHT_GREEN:
-                return AsStringBuf("\033[0m\033[1;32m");
+                return "\033[0m\033[1;32m";
             case LIGHT_YELLOW:
-                return AsStringBuf("\033[0m\033[1;33m");
+                return "\033[0m\033[1;33m";
             case LIGHT_BLUE:
-                return AsStringBuf("\033[0m\033[1;34m");
+                return "\033[0m\033[1;34m";
             case LIGHT_MAGENTA:
-                return AsStringBuf("\033[0m\033[1;35m");
+                return "\033[0m\033[1;35m";
             case LIGHT_CYAN:
-                return AsStringBuf("\033[0m\033[1;36m");
+                return "\033[0m\033[1;36m";
             case LIGHT_WHITE:
-                return AsStringBuf("\033[0m\033[1;37m");
+                return "\033[0m\033[1;37m";
 
             case DARK_DEFAULT:
-                return AsStringBuf("\033[0m\033[2;39m");
+                return "\033[0m\033[2;39m";
             case DARK_BLACK:
-                return AsStringBuf("\033[0m\033[2;30m");
+                return "\033[0m\033[2;30m";
             case DARK_RED:
-                return AsStringBuf("\033[0m\033[2;31m");
+                return "\033[0m\033[2;31m";
             case DARK_GREEN:
-                return AsStringBuf("\033[0m\033[2;32m");
+                return "\033[0m\033[2;32m";
             case DARK_YELLOW:
-                return AsStringBuf("\033[0m\033[2;33m");
+                return "\033[0m\033[2;33m";
             case DARK_BLUE:
-                return AsStringBuf("\033[0m\033[2;34m");
+                return "\033[0m\033[2;34m";
             case DARK_MAGENTA:
-                return AsStringBuf("\033[0m\033[2;35m");
+                return "\033[0m\033[2;35m";
             case DARK_CYAN:
-                return AsStringBuf("\033[0m\033[2;36m");
+                return "\033[0m\033[2;36m";
             case DARK_WHITE:
-                return AsStringBuf("\033[0m\033[2;37m");
+                return "\033[0m\033[2;37m";
 
             case INVALID:
             default:
-                return AsStringBuf("");
+                return "";
         }
     }
 }
@@ -346,75 +346,75 @@ TStringBuf TColors::DarkWhite() const noexcept {
 }
 
 TStringBuf TColors::OldColor() const noexcept {
-    return IsTTY() ? AsStringBuf("\033[22;39m") : AsStringBuf("");
+    return IsTTY() ? "\033[22;39m" : "";
 }
 
 TStringBuf TColors::BoldColor() const noexcept {
-    return IsTTY() ? AsStringBuf("\033[1m") : AsStringBuf("");
+    return IsTTY() ? "\033[1m" : "";
 }
 
 TStringBuf TColors::BlackColor() const noexcept {
-    return IsTTY() ? AsStringBuf("\033[22;30m") : AsStringBuf("");
+    return IsTTY() ? "\033[22;30m" : "";
 }
 
 TStringBuf TColors::BlueColor() const noexcept {
-    return IsTTY() ? AsStringBuf("\033[22;34m") : AsStringBuf("");
+    return IsTTY() ? "\033[22;34m" : "";
 }
 
 TStringBuf TColors::GreenColor() const noexcept {
-    return IsTTY() ? AsStringBuf("\033[22;32m") : AsStringBuf("");
+    return IsTTY() ? "\033[22;32m" : "";
 }
 
 TStringBuf TColors::CyanColor() const noexcept {
-    return IsTTY() ? AsStringBuf("\033[22;36m") : AsStringBuf("");
+    return IsTTY() ? "\033[22;36m" : "";
 }
 
 TStringBuf TColors::RedColor() const noexcept {
-    return IsTTY() ? AsStringBuf("\033[22;31m") : AsStringBuf("");
+    return IsTTY() ? "\033[22;31m" : "";
 }
 
 TStringBuf TColors::PurpleColor() const noexcept {
-    return IsTTY() ? AsStringBuf("\033[22;35m") : AsStringBuf("");
+    return IsTTY() ? "\033[22;35m" : "";
 }
 
 TStringBuf TColors::BrownColor() const noexcept {
-    return IsTTY() ? AsStringBuf("\033[22;33m") : AsStringBuf("");
+    return IsTTY() ? "\033[22;33m" : "";
 }
 
 TStringBuf TColors::LightGrayColor() const noexcept {
-    return IsTTY() ? AsStringBuf("\033[22;37m") : AsStringBuf("");
+    return IsTTY() ? "\033[22;37m" : "";
 }
 
 TStringBuf TColors::DarkGrayColor() const noexcept {
-    return IsTTY() ? AsStringBuf("\033[1;30m") : AsStringBuf("");
+    return IsTTY() ? "\033[1;30m" : "";
 }
 
 TStringBuf TColors::LightBlueColor() const noexcept {
-    return IsTTY() ? AsStringBuf("\033[1;34m") : AsStringBuf("");
+    return IsTTY() ? "\033[1;34m" : "";
 }
 
 TStringBuf TColors::LightGreenColor() const noexcept {
-    return IsTTY() ? AsStringBuf("\033[1;32m") : AsStringBuf("");
+    return IsTTY() ? "\033[1;32m" : "";
 }
 
 TStringBuf TColors::LightCyanColor() const noexcept {
-    return IsTTY() ? AsStringBuf("\033[1;36m") : AsStringBuf("");
+    return IsTTY() ? "\033[1;36m" : "";
 }
 
 TStringBuf TColors::LightRedColor() const noexcept {
-    return IsTTY() ? AsStringBuf("\033[1;31m") : AsStringBuf("");
+    return IsTTY() ? "\033[1;31m" : "";
 }
 
 TStringBuf TColors::LightPurpleColor() const noexcept {
-    return IsTTY() ? AsStringBuf("\033[1;35m") : AsStringBuf("");
+    return IsTTY() ? "\033[1;35m" : "";
 }
 
 TStringBuf TColors::YellowColor() const noexcept {
-    return IsTTY() ? AsStringBuf("\033[1;33m") : AsStringBuf("");
+    return IsTTY() ? "\033[1;33m" : "";
 }
 
 TStringBuf TColors::WhiteColor() const noexcept {
-    return IsTTY() ? AsStringBuf("\033[1;37m") : AsStringBuf("");
+    return IsTTY() ? "\033[1;37m" : "";
 }
 
 
