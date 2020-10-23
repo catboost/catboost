@@ -28,7 +28,13 @@ ALLOW smart_devices -> contrib/restricted/alsa-lib
 ALLOW yandex_io -> contrib/restricted/avahi
 
 # GLib is LGPL
+ALLOW contrib/libs/gdk-pixbuf -> contrib/restricted/glib
 ALLOW contrib/libs/harfbuzz/glib -> contrib/restricted/glib
+ALLOW contrib/libs/libcroco -> contrib/restricted/glib
+ALLOW contrib/libs/librsvg -> contrib/restricted/glib
+ALLOW contrib/libs/pango -> contrib/restricted/glib
+ALLOW maps/libs/img -> contrib/restricted/glib
+ALLOW maps/renderer/libs/svgrenderer -> contrib/restricted/glib
 ALLOW market/cataloger -> contrib/restricted/glib
 ALLOW market/idx/feeds/feedparser -> contrib/restricted/glib
 ALLOW metrika/core/libs/statdaemons -> contrib/restricted/glib
