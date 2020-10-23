@@ -7,6 +7,20 @@ LICENSE(
 
 
 
+# Check MUSL before NO_PLATFORM() disables it.
+IF (MUSL)
+    # We use C headers despite NO_PLATFORM, but we do not propagate
+    # them with ADDINCL GLOBAL because we do not have an API, and we
+    # can not propagate them because libcxx has to put its own
+    # includes before musl includes for its include_next to work.
+    ADDINCL(
+        contrib/libs/musl/arch/x86_64
+        contrib/libs/musl/arch/generic
+        contrib/libs/musl/include
+        contrib/libs/musl/extra
+    )
+ENDIF()
+
 NO_UTIL()
 NO_RUNTIME()
 NO_PLATFORM()
