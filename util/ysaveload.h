@@ -59,7 +59,7 @@ static inline void LoadPodType(IInputStream* rh, T& t) {
     const size_t res = rh->Load(&t, sizeof(T));
 
     if (Y_UNLIKELY(res != sizeof(T))) {
-        ::NPrivate::ThrowLoadEOFException(sizeof(T), res, AsStringBuf("pod type"));
+        ::NPrivate::ThrowLoadEOFException(sizeof(T), res, TStringBuf("pod type"));
     }
 }
 
@@ -74,7 +74,7 @@ static inline void LoadPodArray(IInputStream* rh, T* arr, size_t count) {
     const size_t res = rh->Load(arr, len);
 
     if (Y_UNLIKELY(res != len)) {
-        ::NPrivate::ThrowLoadEOFException(len, res, AsStringBuf("pod array"));
+        ::NPrivate::ThrowLoadEOFException(len, res, TStringBuf("pod array"));
     }
 }
 

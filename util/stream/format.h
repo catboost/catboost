@@ -118,9 +118,9 @@ namespace NFormatPrivate {
 
         if (value.Flags & HF_ADDX) {
             if (Base == 16) {
-                stream << AsStringBuf("0x");
+                stream << TStringBuf("0x");
             } else if (Base == 2) {
-                stream << AsStringBuf("0b");
+                stream << TStringBuf("0b");
             }
         }
 
@@ -329,7 +329,7 @@ static constexpr ::NFormatPrivate::TBaseNumber<T, 2> SBin(const T& value, const 
  *
  * Example usage:
  * @code
- * stream << HexText(AsStringBuf("abcи"));  // Will output "61 62 63 D0 B8"
+ * stream << HexText(TStringBuf("abcи"));  // Will output "61 62 63 D0 B8"
  * stream << HexText(TWtringBuf(u"abcи")); // Will output "0061 0062 0063 0438"
  * @endcode
  *
@@ -348,7 +348,7 @@ static inline ::NFormatPrivate::TBaseText<TChar, 16> HexText(const TBasicStringB
  *
  * Example usage:
  * @code
- * stream << BinText(AsStringBuf("aaa"));  // Will output "01100001 01100001 01100001"
+ * stream << BinText(TStringBuf("aaa"));  // Will output "01100001 01100001 01100001"
  * @endcode
  *
  * @param value                         String to output.

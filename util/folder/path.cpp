@@ -17,7 +17,7 @@ struct TFsPath::TSplit: public TAtomicRefCount<TSplit>, public TPathSplit {
 
 void TFsPath::CheckDefined() const {
     if (!IsDefined()) {
-        ythrow TIoException() << AsStringBuf("must be defined");
+        ythrow TIoException() << TStringBuf("must be defined");
     }
 }
 

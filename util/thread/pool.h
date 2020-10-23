@@ -148,7 +148,7 @@ public:
 
     template<class T>
     void SafeAddFunc(T&& func) {
-        Y_ENSURE_EX(AddFunc(std::forward<T>(func)), TThreadPoolException() << AsStringBuf("can not add function to queue"));
+        Y_ENSURE_EX(AddFunc(std::forward<T>(func)), TThreadPoolException() << TStringBuf("can not add function to queue"));
     }
 
     void SafeAddAndOwn(THolder<IObjectInQueue> obj);

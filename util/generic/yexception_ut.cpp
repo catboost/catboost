@@ -29,15 +29,9 @@ static void CallbackFun(int i) {
 
 static IOutputStream* OUTS = nullptr;
 
-namespace NOuter {
-    namespace NInner {
-        constexpr TStringBuf AsStringBuf(...) {
-            return ::AsStringBuf("Shouldn't be called from Y_ENSURE");
-        }
-
-        void Compare10And20() {
-            Y_ENSURE(10 > 20);
-        }
+namespace NOuter::NInner {
+    void Compare10And20() {
+        Y_ENSURE(10 > 20);
     }
 }
 

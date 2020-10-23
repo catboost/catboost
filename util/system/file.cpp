@@ -758,9 +758,9 @@ TString DecodeOpenMode(ui32 mode0) {
     if ((mode & flag) == flag) {   \
         mode &= ~flag;             \
         if (r) {                   \
-            r << AsStringBuf("|"); \
+            r << TStringBuf("|"); \
         }                          \
-        r << AsStringBuf(#flag);   \
+        r << TStringBuf(#flag);   \
     }
 
     F(RdWr)
@@ -802,7 +802,7 @@ TString DecodeOpenMode(ui32 mode0) {
 
     if (mode != 0) {
         if (r) {
-            r << AsStringBuf("|");
+            r << TStringBuf("|");
         }
 
         r << Hex(mode);

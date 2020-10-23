@@ -40,7 +40,7 @@ Y_UNIT_TEST_SUITE(TStreamTokenizerTests) {
     Y_UNIT_TEST(LastTokenendDoesntSatisfyPredicateTest) {
         const char data[] = "abc\ndef\nxxxxxx";
         const auto dataSize = Y_ARRAY_SIZE(data) - 1;
-        const TStringBuf tokens[] = {AsStringBuf("abc"), AsStringBuf("def"), AsStringBuf("xxxxxx")};
+        const TStringBuf tokens[] = {TStringBuf("abc"), TStringBuf("def"), TStringBuf("xxxxxx")};
         const auto tokensSize = Y_ARRAY_SIZE(tokens);
         auto&& input = TMemoryInput{data, dataSize};
         auto&& tokenizer = TStreamTokenizer<TEol>{&input};
@@ -58,7 +58,7 @@ Y_UNIT_TEST_SUITE(TStreamTokenizerTests) {
     Y_UNIT_TEST(FirstTokenIsEmptyTest) {
         const char data[] = "\ndef\nxxxxxx";
         const auto dataSize = Y_ARRAY_SIZE(data) - 1;
-        const TStringBuf tokens[] = {TStringBuf(), AsStringBuf("def"), AsStringBuf("xxxxxx")};
+        const TStringBuf tokens[] = {TStringBuf(), TStringBuf("def"), TStringBuf("xxxxxx")};
         const auto tokensSize = Y_ARRAY_SIZE(tokens);
         auto&& input = TMemoryInput{data, dataSize};
         auto&& tokenizer = TStreamTokenizer<TEol>{&input};
@@ -91,7 +91,7 @@ Y_UNIT_TEST_SUITE(TStreamTokenizerTests) {
     Y_UNIT_TEST(SimpleTest) {
         const char data[] = "qwerty\n1234567890\n";
         const auto dataSize = Y_ARRAY_SIZE(data) - 1;
-        const TStringBuf tokens[] = {AsStringBuf("qwerty"), AsStringBuf("1234567890")};
+        const TStringBuf tokens[] = {TStringBuf("qwerty"), TStringBuf("1234567890")};
         const auto tokensSize = Y_ARRAY_SIZE(tokens);
         auto&& input = TMemoryInput{data, dataSize};
         auto&& tokenizer = TStreamTokenizer<TEol>{&input};
@@ -115,7 +115,7 @@ Y_UNIT_TEST_SUITE(TStreamTokenizerTests) {
 
         const char data[] = "abc|def|xxxxxx";
         const auto dataSize = Y_ARRAY_SIZE(data) - 1;
-        const TStringBuf tokens[] = {AsStringBuf("abc"), AsStringBuf("def"), AsStringBuf("xxxxxx")};
+        const TStringBuf tokens[] = {TStringBuf("abc"), TStringBuf("def"), TStringBuf("xxxxxx")};
         const auto tokensSize = Y_ARRAY_SIZE(tokens);
         auto&& input = TMemoryInput{data, dataSize};
         auto&& tokenizer = TStreamTokenizer<TIsVerticalBar>{&input};
@@ -139,8 +139,8 @@ Y_UNIT_TEST_SUITE(TStreamTokenizerTests) {
 
         const char data[] = "abc|def|xxxxxx,abc|def|xxxxxx";
         const auto dataSize = Y_ARRAY_SIZE(data) - 1;
-        const TStringBuf tokens[] = {AsStringBuf("abc"), AsStringBuf("def"), AsStringBuf("xxxxxx"),
-                                     AsStringBuf("abc"), AsStringBuf("def"), AsStringBuf("xxxxxx")};
+        const TStringBuf tokens[] = {TStringBuf("abc"), TStringBuf("def"), TStringBuf("xxxxxx"),
+                                     TStringBuf("abc"), TStringBuf("def"), TStringBuf("xxxxxx")};
         const auto tokensSize = Y_ARRAY_SIZE(tokens);
         auto&& input = TMemoryInput{data, dataSize};
         auto&& tokenizer = TStreamTokenizer<TIsVerticalBar>{&input};
@@ -199,7 +199,7 @@ Y_UNIT_TEST_SUITE(TStreamTokenizerTests) {
     Y_UNIT_TEST(FirstTokenHasSizeOfTheBufferTest) {
         const char data[] = "xxxxx\nxx";
         const auto dataSize = Y_ARRAY_SIZE(data) - 1;
-        const TStringBuf tokens[] = {AsStringBuf("xxxxx"), AsStringBuf("xx")};
+        const TStringBuf tokens[] = {TStringBuf("xxxxx"), TStringBuf("xx")};
         const auto tokensSize = Y_ARRAY_SIZE(tokens);
         auto&& input = TMemoryInput{data, dataSize};
         auto&& tokenizer = TStreamTokenizer<TEol>{&input, TEol{}, tokens[0].size()};
@@ -231,7 +231,7 @@ Y_UNIT_TEST_SUITE(TStreamTokenizerTests) {
     Y_UNIT_TEST(BufferSizeInitialSizeSmallerThanTokenTest) {
         const char data[] = "xxxxx\nxx";
         const auto dataSize = Y_ARRAY_SIZE(data) - 1;
-        const TStringBuf tokens[] = {AsStringBuf("xxxxx"), AsStringBuf("xx")};
+        const TStringBuf tokens[] = {TStringBuf("xxxxx"), TStringBuf("xx")};
         const auto tokensSize = Y_ARRAY_SIZE(tokens);
         auto&& input = TMemoryInput{data, dataSize};
         auto&& tokenizer = TStreamTokenizer<TEol>{&input, TEol{}, 1};
@@ -248,7 +248,7 @@ Y_UNIT_TEST_SUITE(TStreamTokenizerTests) {
     Y_UNIT_TEST(RangeBasedForTest) {
         const char data[] = "abc\ndef\nxxxxxx";
         const auto dataSize = Y_ARRAY_SIZE(data) - 1;
-        const TStringBuf tokens[] = {AsStringBuf("abc"), AsStringBuf("def"), AsStringBuf("xxxxxx")};
+        const TStringBuf tokens[] = {TStringBuf("abc"), TStringBuf("def"), TStringBuf("xxxxxx")};
         const auto tokensSize = Y_ARRAY_SIZE(tokens);
         auto&& input = TMemoryInput{data, dataSize};
         auto&& tokenizer = TStreamTokenizer<TEol>{&input};

@@ -25,7 +25,7 @@ struct TPathSplitTraitsUnix: public TPathSplitStore {
     static constexpr char MainPathSep = '/';
 
     inline TString Reconstruct() const {
-        return DoReconstruct(AsStringBuf("/"));
+        return DoReconstruct(TStringBuf("/"));
     }
 
     static constexpr bool IsPathSep(const char c) noexcept {
@@ -44,7 +44,7 @@ struct TPathSplitTraitsWindows: public TPathSplitStore {
     static constexpr char MainPathSep = '\\';
 
     inline TString Reconstruct() const {
-        return DoReconstruct(AsStringBuf("\\"));
+        return DoReconstruct(TStringBuf("\\"));
     }
 
     static constexpr bool IsPathSep(char c) noexcept {

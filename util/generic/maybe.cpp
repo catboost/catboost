@@ -1,7 +1,7 @@
 #include "maybe.h"
 
 [[noreturn]] void NMaybe::TPolicyUndefinedExcept::OnEmpty() {
-    ythrow yexception() << AsStringBuf("TMaybe is empty");
+    ythrow yexception() << TStringBuf("TMaybe is empty");
 }
 
 [[noreturn]] void NMaybe::TPolicyUndefinedFail::OnEmpty() {

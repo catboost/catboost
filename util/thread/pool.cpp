@@ -350,7 +350,7 @@ size_t TThreadPool::GetMaxQueueSize() const noexcept {
 }
 
 bool TThreadPool::Add(IObjectInQueue* obj) {
-    Y_ENSURE_EX(Impl_.Get(), TThreadPoolException() << AsStringBuf("mtp queue not started"));
+    Y_ENSURE_EX(Impl_.Get(), TThreadPoolException() << TStringBuf("mtp queue not started"));
 
     if (Impl_->NeedRestart()) {
         Start(Impl_->GetThreadCountExpected(), Impl_->GetMaxQueueSize());
@@ -455,7 +455,7 @@ public:
 
             Obj_ = obj;
 
-            Y_ENSURE_EX(!AllDone_, TThreadPoolException() << AsStringBuf("adding to a stopped queue"));
+            Y_ENSURE_EX(!AllDone_, TThreadPoolException() << TStringBuf("adding to a stopped queue"));
         }
 
         CondReady_.Signal();
@@ -566,7 +566,7 @@ DEFINE_THREAD_POOL_CTORS(TSimpleThreadPool)
 TAdaptiveThreadPool::~TAdaptiveThreadPool() = default;
 
 bool TAdaptiveThreadPool::Add(IObjectInQueue* obj) {
-    Y_ENSURE_EX(Impl_.Get(), TThreadPoolException() << AsStringBuf("mtp queue not started"));
+    Y_ENSURE_EX(Impl_.Get(), TThreadPoolException() << TStringBuf("mtp queue not started"));
 
     Impl_->Add(obj);
 
@@ -590,7 +590,7 @@ size_t TAdaptiveThreadPool::Size() const noexcept {
 }
 
 void TAdaptiveThreadPool::SetMaxIdleTime(TDuration interval) {
-    Y_ENSURE_EX(Impl_.Get(), TThreadPoolException() << AsStringBuf("mtp queue not started"));
+    Y_ENSURE_EX(Impl_.Get(), TThreadPoolException() << TStringBuf("mtp queue not started"));
 
     Impl_->SetMaxIdleTime(interval);
 }
@@ -604,7 +604,7 @@ TSimpleThreadPool::~TSimpleThreadPool() {
 }
 
 bool TSimpleThreadPool::Add(IObjectInQueue* obj) {
-    Y_ENSURE_EX(Slave_.Get(), TThreadPoolException() << AsStringBuf("mtp queue not started"));
+    Y_ENSURE_EX(Slave_.Get(), TThreadPoolException() << TStringBuf("mtp queue not started"));
 
     return Slave_->Add(obj);
 }
@@ -660,11 +660,11 @@ namespace {
 }
 
 void IThreadPool::SafeAdd(IObjectInQueue* obj) {
-    Y_ENSURE_EX(Add(obj), TThreadPoolException() << AsStringBuf("can not add object to queue"));
+    Y_ENSURE_EX(Add(obj), TThreadPoolException() << TStringBuf("can not add object to queue"));
 }
 
 void IThreadPool::SafeAddAndOwn(THolder<IObjectInQueue> obj) {
-    Y_ENSURE_EX(AddAndOwn(std::move(obj)), TThreadPoolException() << AsStringBuf("can not add to queue and own"));
+    Y_ENSURE_EX(AddAndOwn(std::move(obj)), TThreadPoolException() << TStringBuf("can not add to queue and own"));
 }
 
 bool IThreadPool::AddAndOwn(THolder<IObjectInQueue> obj) {

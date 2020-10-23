@@ -50,9 +50,9 @@ Y_UNIT_TEST_SUITE(TInputRangeAdaptor) {
     };
 
     Y_UNIT_TEST(TUrlPart) {
-        const TVector<TStringBuf> expected = {AsStringBuf("yandex.ru"), AsStringBuf("search?")};
+        const TVector<TStringBuf> expected = {TStringBuf("yandex.ru"), TStringBuf("search?")};
         auto expected_part = expected.begin();
-        for (const TStringBuf& part : TUrlPart(AsStringBuf("yandex.ru/search?"))) {
+        for (const TStringBuf& part : TUrlPart(TStringBuf("yandex.ru/search?"))) {
            UNIT_ASSERT_VALUES_EQUAL(part, *expected_part);
            ++expected_part;
         }

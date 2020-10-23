@@ -145,7 +145,7 @@ void Out<TInstant>(IOutputStream& os, TTypeTraits<TInstant>::TFuncParam instant)
     auto len = FormatDate8601(buf, sizeof(buf), instant.TimeT());
 
     // shouldn't happen due to current implementation of FormatDate8601() and GmTimeR()
-    Y_ENSURE(len, AsStringBuf("Out<TInstant>: year does not fit into an integer"));
+    Y_ENSURE(len, TStringBuf("Out<TInstant>: year does not fit into an integer"));
 
     os.Write(buf, len - 1 /* 'Z' */);
     WriteMicroSecondsToStream(os, instant.MicroSecondsOfSecond());

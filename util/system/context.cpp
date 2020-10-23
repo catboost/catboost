@@ -199,14 +199,14 @@ TContMachineContext::TContMachineContext()
     : Fiber_(ConvertThreadToFiber(this))
     , MainFiber_(true)
 {
-    Y_ENSURE(Fiber_, AsStringBuf("fiber error"));
+    Y_ENSURE(Fiber_, TStringBuf("fiber error"));
 }
 
 TContMachineContext::TContMachineContext(const TContClosure& c)
     : Fiber_(CreateFiber(c.Stack.size(), (LPFIBER_START_ROUTINE)ContextTrampoLine, (LPVOID)c.TrampoLine))
     , MainFiber_(false)
 {
-    Y_ENSURE(Fiber_, AsStringBuf("fiber error"));
+    Y_ENSURE(Fiber_, TStringBuf("fiber error"));
 }
 
 TContMachineContext::~TContMachineContext() {
