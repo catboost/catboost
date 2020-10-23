@@ -42,6 +42,12 @@ def get_opts(args):
 if __name__ == "__main__":
     opts = get_opts(sys.argv[1:])
 
+    # There is a bug in llvm-ar. Some files with size slightly greater 2^32
+    # still have GNU format instead of GNU64 and cause link problems.
+    # Workaround just lowers llvm-ar's GNU64 threshold to 2^31.
+    if opts.arch_type == 'LLVM_AR':
+        os.environ['SYM64_THRESHOLD'] = '31'
+
     def call():
         try:
             p = subprocess.Popen(cmd, stdin=stdin, cwd=opts.build_root)
