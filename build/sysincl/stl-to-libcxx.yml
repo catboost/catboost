@@ -111,6 +111,7 @@
   - regex:                     contrib/libs/cxxsupp/libcxx/include/regex
   - scoped_allocator:          contrib/libs/cxxsupp/libcxx/include/scoped_allocator
   - set:                       contrib/libs/cxxsupp/libcxx/include/set
+  - shared_mutex:              contrib/libs/cxxsupp/libcxx/include/shared_mutex
   - sstream:                   contrib/libs/cxxsupp/libcxx/include/sstream
   - stack:                     contrib/libs/cxxsupp/libcxx/include/stack
   - stdexcept:                 contrib/libs/cxxsupp/libcxx/include/stdexcept
