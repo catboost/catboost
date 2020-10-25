@@ -141,7 +141,7 @@ def pytest_addoption(parser):
     parser.addoption("--python-path", action="store", dest="python_path", default="", help="path the canonical python binary")
     parser.addoption("--valgrind-path", action="store", dest="valgrind_path", default="", help="path the canonical valgring binary")
     parser.addoption("--test-filter", action="append", dest="test_filter", default=None, help="test filter")
-    parser.addoption("--test-file-filter", action="append", dest="test_file_filter", default=None, help="test file filter")
+    parser.addoption("--test-file-filter", action="store", dest="test_file_filter", default=None, help="test file filter")
     parser.addoption("--test-param", action="append", dest="test_params", default=None, help="test parameters")
     parser.addoption("--test-log-level", action="store", dest="test_log_level", choices=["critical", "error", "warning", "info", "debug"], default="debug", help="test log level")
     parser.addoption("--mode", action="store", choices=[RunMode.List, RunMode.Run], dest="mode", default=RunMode.Run, help="testing mode")
