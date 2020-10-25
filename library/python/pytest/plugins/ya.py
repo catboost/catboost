@@ -7,6 +7,7 @@ import logging
 import fnmatch
 import json
 import time
+import traceback
 import collections
 import py
 import pytest
@@ -256,16 +257,17 @@ def pytest_configure(config):
         faulthandler.register(signal.SIGQUIT, chain=True)
 
     if hasattr(signal, "SIGUSR2"):
-        signal.signal(signal.SIGUSR2, _smooth_shutdown)
+        signal.signal(signal.SIGUSR2, _graceful_shutdown)
 
 
-def _smooth_shutdown(*args):
+def _graceful_shutdown(*args):
     try:
         import library.python.coverage
         library.python.coverage.stop_coverage_tracing()
     except ImportError:
         pass
-    pytest.exit("Smooth shutdown requested")
+    traceback.print_stack(file=sys.stderr)
+    pytest.exit("Graceful shutdown requested")
 
 
 def _get_rusage():
