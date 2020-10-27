@@ -138,13 +138,12 @@ namespace NCoro {
     {}
 
     void TTrampoline::DoRun() {
-        try {
+        if (Cont_->Executor()->FailOnError()) {
             Func_(Cont_, Arg_);
-        } catch (...) {
-            Y_VERIFY(
-                !Cont_->Executor()->FailOnError(),
-                "uncaught exception %s", CurrentExceptionMessage().c_str()
-            );
+        } else {
+            try {
+                Func_(Cont_, Arg_);
+            } catch (...) {}
         }
 
         Cont_->Terminate();
@@ -156,6 +155,12 @@ namespace NCoro {
 
     const char* TTrampoline::ContName() const noexcept {
         return Cont_->Name();
+    }
+
+    void TTrampoline::DoRunNaked() {
+        DoRun();
+
+        abort();
     }
 
     ui32 RealCoroStackSize(ui32 coroStackSize) {

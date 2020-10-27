@@ -77,6 +77,8 @@ namespace NCoro {
 
         void DoRun();
 
+        void DoRunNaked() override;
+
     private:
         const char* ContName() const noexcept;
     private:
