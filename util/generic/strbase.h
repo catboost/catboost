@@ -610,7 +610,7 @@ private:
     inline size_t CopyImpl(TCharType* pc, size_t n, size_t pos) const noexcept {
         const size_t toCopy = Min(Len() - pos, n);
 
-        TTraits::Copy(pc, Ptr() + pos, toCopy);
+        TTraits::copy(pc, Ptr() + pos, toCopy);
 
         return toCopy;
     }

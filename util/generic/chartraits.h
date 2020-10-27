@@ -198,9 +198,6 @@ public:
     static TCharType* Move(TCharType* s1, const TCharType* s2, size_t n) {
         return ::MemMove(s1, s2, n);
     }
-    static TCharType* Copy(TCharType* s1, const TCharType* s2, size_t n) {
-        return ::MemCopy(s1, s2, n);
-    }
     static TCharType* Assign(TCharType* s, size_t n, TCharType c) {
         for (TCharType* ptr = s; ptr < s + n; ++ptr) // see REVIEW:52714 for details
             *ptr = c;
@@ -302,9 +299,6 @@ public:
 
     static TCharType* Move(TCharType* s1, const TCharType* s2, size_t n) {
         return ::MemMove(s1, s2, n);
-    }
-    static TCharType* Copy(TCharType* s1, const TCharType* s2, size_t n) {
-        return ::MemCopy(s1, s2, n);
     }
     static void Reverse(TCharType* s, size_t n) {
         TCharType* f = s;
@@ -560,9 +554,6 @@ public:
     static TCharType* Move(TCharType* s1, const TCharType* s2, size_t n) {
         return ::MemMove(s1, s2, n);
     }
-    static TCharType* Copy(TCharType* s1, const TCharType* s2, size_t n) {
-        return ::MemCopy(s1, s2, n);
-    }
     static TCharType* Assign(TCharType* s, size_t n, TCharType c) {
         for (TCharType* ptr = s; ptr < s + n; ++ptr) // see REVIEW:52714 for details
             *ptr = c;
@@ -766,9 +757,6 @@ public:
 
     static TCharType* Move(TCharType* s1, const TCharType* s2, size_t n) {
         return ::MemMove(s1, s2, n);
-    }
-    static TCharType* Copy(TCharType* s1, const TCharType* s2, size_t n) {
-        return ::MemCopy(s1, s2, n);
     }
     static TCharType* Assign(TCharType* s, size_t n, TCharType c) {
         for (TCharType* ptr = s; ptr < s + n; ++ptr) // see REVIEW:52714 for details

@@ -226,18 +226,13 @@ Y_UNIT_TEST_SUITE(TCharTraits) {
         UNIT_ASSERT_EQUAL(T::Move(b, b + 2, 3), b);
         UNIT_ASSERT_EQUAL(str, "34545");
 
-        UNIT_ASSERT_EQUAL(T::Copy(b + 3, b, 2), b + 3);
-        UNIT_ASSERT_EQUAL(str, "34534");
-        UNIT_ASSERT_EQUAL(T::Copy(b, "123", 3), b);
-        UNIT_ASSERT_EQUAL(str, "12334");
-
         UNIT_ASSERT_EQUAL(T::Assign(b, 2, '7'), b);
-        UNIT_ASSERT_EQUAL(str, "77334");
+        UNIT_ASSERT_EQUAL(str, "77545");
 
         T::Reverse(b, 5);
-        UNIT_ASSERT_EQUAL(str, "43377");
+        UNIT_ASSERT_EQUAL(str, "54577");
         T::Reverse(b + 2, 2);
-        UNIT_ASSERT_EQUAL(str, "43737");
+        UNIT_ASSERT_EQUAL(str, "54757");
     }
 }
 
