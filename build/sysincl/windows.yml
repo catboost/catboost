@@ -140,6 +140,7 @@
   - new.h
   - npapi.h
   - ntdddisk.h
+  - ntddk.h
   - ntddndis.h
   - ntdef.h
   - ntsecapi.h
