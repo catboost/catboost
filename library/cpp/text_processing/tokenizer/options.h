@@ -34,6 +34,8 @@ namespace NTextProcessing::NTokenizer {
         Replace // Replace all tokens with single token
     };
 
+    inline constexpr size_t DEFAULT_LEMMER_CACHE_SIZE = 0u;
+
     struct TTokenizerOptions {
         bool Lowercasing = false;
         bool Lemmatizing = false;
@@ -53,6 +55,8 @@ namespace NTextProcessing::NTokenizer {
 
         // Used in conjunction with true Lemmatizing option.
         TVector<ELanguage> Languages; // Empty for all languages.
+        // this options cannot be included to saveload list, because it breaks compatibility for current dumps
+        size_t LemmerCacheSize = DEFAULT_LEMMER_CACHE_SIZE;  // lemmer cache size (0 - disabled)
 
         Y_SAVELOAD_DEFINE(
             Lowercasing,
