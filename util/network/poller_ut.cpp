@@ -222,7 +222,7 @@ Y_UNIT_TEST_SUITE(TSocketPollerTest) {
         UNIT_ASSERT_VALUES_EQUAL(1, send(s1, buf, 1, 0));
         shutdown(s1, SHUT_WR);
 
-        typedef TGenericPoller<TEpollPoller<TWithoutLocking> > TPoller;
+        using TPoller=TGenericPoller<TEpollPoller<TWithoutLocking> >;
         TPoller poller;
         poller.Set((void*)17, s2, CONT_POLL_RDHUP);
 

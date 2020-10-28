@@ -40,7 +40,6 @@ enum EContPoll {
     CONT_POLL_BACKLOG_EMPTY  = 64, // Backlog is empty (seen end of request, EAGAIN or truncated read)
 };
 
-
 static inline bool IsSocket(SOCKET fd) noexcept {
     int val = 0;
     socklen_t len = sizeof(val);
