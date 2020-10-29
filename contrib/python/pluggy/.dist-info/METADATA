@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: pluggy
-Version: 0.9.0
+Version: 0.13.1
 Summary: plugin and hook calling mechanisms for python
 Home-page: https://github.com/pytest-dev/pluggy
 Author: Holger Krekel
@@ -27,7 +27,10 @@ Classifier: Programming Language :: Python :: 3
 Classifier: Programming Language :: Python :: 3.4
 Classifier: Programming Language :: Python :: 3.5
 Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
 Requires-Python: >=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*
+Requires-Dist: importlib-metadata (>=0.12) ; python_version < "3.8"
 Provides-Extra: dev
 Requires-Dist: pre-commit ; extra == 'dev'
 Requires-Dist: tox ; extra == 'dev'
@@ -36,7 +39,7 @@ Requires-Dist: tox ; extra == 'dev'
 pluggy - A minimalist production ready plugin system
 ====================================================
 
-|pypi| |conda-forge| |versions| |travis| |appveyor| |gitter| |black|
+|pypi| |conda-forge| |versions| |travis| |appveyor| |gitter| |black| |codecov|
 
 This is the core framework used by the `pytest`_, `tox`_, and `devpi`_ projects.
 
@@ -95,6 +98,14 @@ A definitive example
     print(results)
 
 
+Running this directly gets us::
+
+    $ python docs/examples/toy-example.py
+    inside Plugin_2.myhook()
+    inside Plugin_1.myhook()
+    [-1, 3]
+
+
 .. badges
 
 .. |pypi| image:: https://img.shields.io/pypi/v/pluggy.svg
@@ -119,6 +130,10 @@ A definitive example
 .. |black| image:: https://img.shields.io/badge/code%20style-black-000000.svg
     :target: https://github.com/ambv/black
 
+.. |codecov| image:: https://codecov.io/gh/pytest-dev/pluggy/branch/master/graph/badge.svg
+    :target: https://codecov.io/gh/pytest-dev/pluggy
+    :alt: Code coverage Status
+
 .. links
 .. _pytest:
     http://pytest.org
@@ -128,6 +143,58 @@ A definitive example
     http://doc.devpi.net
 .. _read the docs:
    https://pluggy.readthedocs.io/en/latest/
+
+
+=========
+Changelog
+=========
+
+.. towncrier release notes start
+
+pluggy 0.13.1 (2019-11-21)
+==========================
+
+Trivial/Internal Changes
+------------------------
+
+- `#236 <https://github.com/pytest-dev/pluggy/pull/236>`_: Improved documentation, especially with regard to references.
+
+
+pluggy 0.13.0 (2019-09-10)
+==========================
+
+Trivial/Internal Changes
+------------------------
+
+- `#222 <https://github.com/pytest-dev/pluggy/issues/222>`_: Replace ``importlib_metadata`` backport with ``importlib.metadata`` from the
+  standard library on Python 3.8+.
+
+
+pluggy 0.12.0 (2019-05-27)
+==========================
+
+Features
+--------
+
+- `#215 <https://github.com/pytest-dev/pluggy/issues/215>`_: Switch from ``pkg_resources`` to ``importlib-metadata`` for entrypoint detection for improved performance and import time.  This time with ``.egg`` support.
+
+
+pluggy 0.11.0 (2019-05-07)
+==========================
+
+Bug Fixes
+---------
+
+- `#205 <https://github.com/pytest-dev/pluggy/issues/205>`_: Revert changes made in 0.10.0 release breaking ``.egg`` installs.
+
+
+pluggy 0.10.0 (2019-05-07)
+==========================
+
+Features
+--------
+
+- `#199 <https://github.com/pytest-dev/pluggy/issues/199>`_: Switch from ``pkg_resources`` to ``importlib-metadata`` for entrypoint detection for improved performance and import time.
 
 
 pluggy 0.9.0 (2019-02-21)
@@ -179,13 +246,6 @@ Trivial/Internal Changes
 
 
 - `#57 <https://github.com/pytest-dev/pluggy/issues/57>`_: Encapsulate hook specifications in a type for easier introspection.
-
-
-=========
-Changelog
-=========
-
-.. towncrier release notes start
 
 
 pluggy 0.7.1 (2018-07-28)
@@ -411,7 +471,7 @@ initial release
 
 .. contributors
 .. _@hpk42: https://github.com/hpk42
-.. _@tgoodlet: https://github.com/tgoodlet
+.. _@tgoodlet: https://github.com/goodboy
 .. _@MichalTHEDUDE: https://github.com/MichalTHEDUDE
 .. _@vodik: https://github.com/vodik
 .. _@RonnyPfannschmidt: https://github.com/RonnyPfannschmidt

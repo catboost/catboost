@@ -1,6 +1,9 @@
 from pluggy.hooks import varnames
 from pluggy.manager import _formatdef
 
+import sys
+import pytest
+
 
 def test_varnames():
     def f(x):
@@ -45,6 +48,24 @@ def test_varnames_class():
     assert varnames(D) == ((), ())
     assert varnames(E) == (("x",), ())
     assert varnames(F) == ((), ())
+
+
+@pytest.mark.skipif(
+    sys.version_info < (3,), reason="Keyword only arguments are Python 3 only"
+)
+def test_varnames_keyword_only():
+    # SyntaxError on Python 2, so we exec
+    ns = {}
+    exec(
+        "def f1(x, *, y): pass\n"
+        "def f2(x, *, y=3): pass\n"
+        "def f3(x=1, *, y=3): pass\n",
+        ns,
+    )
+
+    assert varnames(ns["f1"]) == (("x",), ())
+    assert varnames(ns["f2"]) == (("x",), ())
+    assert varnames(ns["f3"]) == ((), ("x",))
 
 
 def test_formatdef():

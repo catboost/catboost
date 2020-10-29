@@ -3,11 +3,14 @@
 RECURSE(
     atomicwrites
     attrs
+    configparser
+    contextlib2
     dateutil
     enum34
     faulthandler
     funcsigs
     graphviz
+    importlib-metadata
     Jinja2
     MarkupSafe
     more-itertools
