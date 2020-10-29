@@ -65,7 +65,7 @@ SRCS(
     src/google/protobuf/compiler/java/java_string_field.cc
     src/google/protobuf/compiler/java/java_string_field_lite.cc
     src/google/protobuf/compiler/js/js_generator.cc
-    src/google/protobuf/compiler/js/well_known_types_embed.cpp
+    src/google/protobuf/compiler/js/well_known_types_embed.cc
     src/google/protobuf/compiler/parser.cc
     src/google/protobuf/compiler/perlxs/perlxs_generator.cc
     src/google/protobuf/compiler/perlxs/perlxs_helpers.cc
