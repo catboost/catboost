@@ -34,7 +34,7 @@ namespace {
             const int ret = fastlz_decompress(in.data(), in.size(), out, len);
 
             if (ret < 0 || (size_t)ret != len) {
-                ythrow TDataError() << AsStringBuf("can not decompress");
+                ythrow TDataError() << TStringBuf("can not decompress");
             }
         }
 

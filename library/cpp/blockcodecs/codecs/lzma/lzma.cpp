@@ -39,7 +39,7 @@ namespace {
 
         inline void DoDecompress(const TData& in, void* out, size_t len) const {
             if (in.size() <= LZMA_PROPS_SIZE) {
-                ythrow TDataError() << AsStringBuf("broken lzma stream");
+                ythrow TDataError() << TStringBuf("broken lzma stream");
             }
 
             const unsigned char* props = (const unsigned char*)in.data();

@@ -17,7 +17,7 @@ int main(int /*argc*/, const char* /*argv*/[]) {
     }
     {
         NChromiumTrace::TEventArgs eventArgs;
-        eventArgs.Add("arg11", AsStringBuf("val1"));
+        eventArgs.Add("arg11", TStringBuf("val1"));
         CHROMIUM_TRACE_DURATION_W_ARGS("name2", "cat1", &eventArgs);
         Sleep(TDuration::Seconds(2));
     }

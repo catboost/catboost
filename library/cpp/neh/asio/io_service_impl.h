@@ -317,10 +317,10 @@ namespace NAsio {
         inline TAutoPtr<IPollerFace> CreatePoller() {
             try {
 #if defined(_linux_)
-                return IPollerFace::Construct(AsStringBuf("epoll"));
+                return IPollerFace::Construct(TStringBuf("epoll"));
 #endif
 #if defined(_freebsd_) || defined(_darwin_)
-                return IPollerFace::Construct(AsStringBuf("kqueue"));
+                return IPollerFace::Construct(TStringBuf("kqueue"));
 #endif
             } catch (...) {
                 Cdbg << CurrentExceptionMessage() << Endl;

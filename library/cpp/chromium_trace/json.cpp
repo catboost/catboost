@@ -17,17 +17,17 @@ TJsonTraceConsumer::~TJsonTraceConsumer() {
 
 void TJsonTraceConsumer::AddEvent(const TDurationCompleteEvent& event, const TEventArgs* args) {
     BeginEvent('X', event.Origin)
-        .WriteKey(AsStringBuf("ts"))
+        .WriteKey(TStringBuf("ts"))
         .WriteULongLong(event.BeginTime.WallTime.MicroSeconds())
-        .WriteKey(AsStringBuf("tts"))
+        .WriteKey(TStringBuf("tts"))
         .WriteULongLong(event.BeginTime.ThreadCPUTime.MicroSeconds())
-        .WriteKey(AsStringBuf("dur"))
+        .WriteKey(TStringBuf("dur"))
         .WriteULongLong((event.EndTime.WallTime - event.BeginTime.WallTime).MicroSeconds())
-        .WriteKey(AsStringBuf("tdur"))
+        .WriteKey(TStringBuf("tdur"))
         .WriteULongLong((event.EndTime.ThreadCPUTime - event.BeginTime.ThreadCPUTime).MicroSeconds())
-        .WriteKey(AsStringBuf("name"))
+        .WriteKey(TStringBuf("name"))
         .WriteString(event.Name)
-        .WriteKey(AsStringBuf("cat"))
+        .WriteKey(TStringBuf("cat"))
         .WriteString(event.Categories);
     WriteFlow(event.Flow);
     EndEvent(args);
@@ -35,13 +35,13 @@ void TJsonTraceConsumer::AddEvent(const TDurationCompleteEvent& event, const TEv
 
 void TJsonTraceConsumer::AddEvent(const TDurationBeginEvent& event, const TEventArgs* args) {
     BeginEvent('B', event.Origin)
-        .WriteKey(AsStringBuf("ts"))
+        .WriteKey(TStringBuf("ts"))
         .WriteULongLong(event.Time.WallTime.MicroSeconds())
-        .WriteKey(AsStringBuf("tts"))
+        .WriteKey(TStringBuf("tts"))
         .WriteULongLong(event.Time.ThreadCPUTime.MicroSeconds())
-        .WriteKey(AsStringBuf("name"))
+        .WriteKey(TStringBuf("name"))
         .WriteString(event.Name)
-        .WriteKey(AsStringBuf("cat"))
+        .WriteKey(TStringBuf("cat"))
         .WriteString(event.Categories);
     WriteFlow(event.Flow);
     EndEvent(args);
@@ -49,9 +49,9 @@ void TJsonTraceConsumer::AddEvent(const TDurationBeginEvent& event, const TEvent
 
 void TJsonTraceConsumer::AddEvent(const TDurationEndEvent& event, const TEventArgs* args) {
     BeginEvent('E', event.Origin)
-        .WriteKey(AsStringBuf("ts"))
+        .WriteKey(TStringBuf("ts"))
         .WriteULongLong(event.Time.WallTime.MicroSeconds())
-        .WriteKey(AsStringBuf("tts"))
+        .WriteKey(TStringBuf("tts"))
         .WriteULongLong(event.Time.ThreadCPUTime.MicroSeconds());
     WriteFlow(event.Flow);
     EndEvent(args);
@@ -59,18 +59,18 @@ void TJsonTraceConsumer::AddEvent(const TDurationEndEvent& event, const TEventAr
 
 void TJsonTraceConsumer::AddEvent(const TCounterEvent& event, const TEventArgs* args) {
     BeginEvent('C', event.Origin)
-        .WriteKey(AsStringBuf("ts"))
+        .WriteKey(TStringBuf("ts"))
         .WriteULongLong(event.Time.WallTime.MicroSeconds())
-        .WriteKey(AsStringBuf("name"))
+        .WriteKey(TStringBuf("name"))
         .WriteString(event.Name)
-        .WriteKey(AsStringBuf("cat"))
+        .WriteKey(TStringBuf("cat"))
         .WriteString(event.Categories);
     EndEvent(args);
 }
 
 void TJsonTraceConsumer::AddEvent(const TMetadataEvent& event, const TEventArgs* args) {
     BeginEvent('M', event.Origin)
-        .WriteKey(AsStringBuf("name"))
+        .WriteKey(TStringBuf("name"))
         .WriteString(event.Name);
     EndEvent(args);
 }
@@ -78,11 +78,11 @@ void TJsonTraceConsumer::AddEvent(const TMetadataEvent& event, const TEventArgs*
 NJsonWriter::TPairContext TJsonTraceConsumer::BeginEvent(char type, const TEventOrigin& origin) {
     const char ph[2] = {type, 0};
     return Json.BeginObject()
-        .WriteKey(AsStringBuf("ph"))
+        .WriteKey(TStringBuf("ph"))
         .WriteString(AsStringBuf(ph))
-        .WriteKey(AsStringBuf("pid"))
+        .WriteKey(TStringBuf("pid"))
         .WriteULongLong(origin.ProcessId)
-        .WriteKey(AsStringBuf("tid"))
+        .WriteKey(TStringBuf("tid"))
         .WriteULongLong(origin.ThreadId);
 }
 
@@ -90,7 +90,7 @@ void TJsonTraceConsumer::EndEvent(const TEventArgs* args) {
     if (args) {
         WriteArgs(*args);
     }
-    Json.EndObject().UnsafeWriteRawBytes(AsStringBuf("\n"));
+    Json.EndObject().UnsafeWriteRawBytes(TStringBuf("\n"));
 }
 
 void TJsonTraceConsumer::WriteArgs(const TEventArgs& args) {
@@ -110,7 +110,7 @@ void TJsonTraceConsumer::WriteArgs(const TEventArgs& args) {
         }
     };
 
-    Json.WriteKey(AsStringBuf("args")).BeginObject();
+    Json.WriteKey(TStringBuf("args")).BeginObject();
     for (const auto& item : args.Items) {
         Json.WriteKey(item.Name);
         Visit(TWriteArg{&Json}, item.Value);
@@ -124,12 +124,12 @@ void TJsonTraceConsumer::WriteFlow(const TEventFlow& flow) {
     }
 
     if (flow.Type == EFlowType::Producer || flow.Type == EFlowType::Step) {
-        Json.WriteKey(AsStringBuf("flow_out")).WriteBool(true);
+        Json.WriteKey(TStringBuf("flow_out")).WriteBool(true);
     }
 
     if (flow.Type == EFlowType::Consumer || flow.Type == EFlowType::Step) {
-        Json.WriteKey(AsStringBuf("flow_in")).WriteBool(true);
+        Json.WriteKey(TStringBuf("flow_in")).WriteBool(true);
     }
 
-    Json.WriteKey(AsStringBuf("bind_id")).WriteULongLong(flow.BindId);
+    Json.WriteKey(TStringBuf("bind_id")).WriteULongLong(flow.BindId);
 }

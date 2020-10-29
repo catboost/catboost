@@ -240,7 +240,7 @@ public:
                 L_.PushBack(new TOneSocketListener(this, MakeHolder<TIPv6Addr>(*sa.In6)));
                 break;
             default:
-                ythrow yexception() << AsStringBuf("unknown protocol");
+                ythrow yexception() << TStringBuf("unknown protocol");
         }
     }
 

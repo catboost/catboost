@@ -82,9 +82,9 @@ namespace NChromiumTrace {
         SuppressExceptions([&] {
             Output->AddEvent(TMetadataEvent{
                                  TEventOrigin::Here(),
-                                 AsStringBuf("process_name"),
+                                 TStringBuf("process_name"),
                              },
-                             &TEventArgs().Add(AsStringBuf("name"), name));
+                             &TEventArgs().Add(TStringBuf("name"), name));
         });
     }
 
@@ -95,9 +95,9 @@ namespace NChromiumTrace {
         SuppressExceptions([&] {
             Output->AddEvent(TMetadataEvent{
                                  TEventOrigin::Here(),
-                                 AsStringBuf("thread_name"),
+                                 TStringBuf("thread_name"),
                              },
-                             &TEventArgs().Add(AsStringBuf("name"), name));
+                             &TEventArgs().Add(TStringBuf("name"), name));
         });
     }
 
@@ -108,9 +108,9 @@ namespace NChromiumTrace {
         SuppressExceptions([&] {
             Output->AddEvent(TMetadataEvent{
                                  TEventOrigin::Here(),
-                                 AsStringBuf("thread_sort_index"),
+                                 TStringBuf("thread_sort_index"),
                              },
-                             &TEventArgs().Add(AsStringBuf("sort_index"), index));
+                             &TEventArgs().Add(TStringBuf("sort_index"), index));
         });
     }
 

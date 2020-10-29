@@ -273,7 +273,7 @@ public:
     }
 
     inline TSizeTRegion Next() {
-        Y_ENSURE(!Eof(), AsStringBuf("eof reached"));
+        Y_ENSURE(!Eof(), TStringBuf("eof reached"));
         return Split.Next(Pos);
     }
 

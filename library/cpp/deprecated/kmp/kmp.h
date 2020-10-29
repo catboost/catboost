@@ -7,7 +7,7 @@
 
 template <typename T>
 void ComputePrefixFunction(const T* begin, const T* end, ssize_t** result) {
-    Y_ENSURE(begin != end, AsStringBuf("empty pattern"));
+    Y_ENSURE(begin != end, TStringBuf("empty pattern"));
     ssize_t len = end - begin;
     TArrayHolder<ssize_t> resultHolder(new ssize_t[len + 1]);
     ssize_t i = 0;

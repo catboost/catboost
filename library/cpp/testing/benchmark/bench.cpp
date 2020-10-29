@@ -453,11 +453,11 @@ template <>
 EOutFormat FromStringImpl<EOutFormat>(const char* data, size_t len) {
     const auto s = TStringBuf{data, len};
 
-    if (AsStringBuf("console") == s) {
+    if (TStringBuf("console") == s) {
         return F_CONSOLE;
-    } else if (AsStringBuf("csv") == s) {
+    } else if (TStringBuf("csv") == s) {
         return F_CSV;
-    } else if (AsStringBuf("json") == s) {
+    } else if (TStringBuf("json") == s) {
         return F_JSON;
     }
 

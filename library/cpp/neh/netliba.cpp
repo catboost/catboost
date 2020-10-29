@@ -304,7 +304,7 @@ namespace {
                 }
 
                 TStringBuf Scheme() const override {
-                    return AsStringBuf("netliba");
+                    return TStringBuf("netliba");
                 }
 
                 TString RemoteHost() const override {
@@ -500,7 +500,7 @@ namespace {
             }
 
             TStringBuf Scheme() const noexcept override {
-                return AsStringBuf("netliba");
+                return TStringBuf("netliba");
             }
         };
     }

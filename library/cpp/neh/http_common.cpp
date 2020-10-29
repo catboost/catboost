@@ -101,8 +101,8 @@ namespace {
         NNeh::NHttp::THeaderSplitter splitter(hdrs);
         TStringBuf msgHdr;
         while (splitter.Next(msgHdr)) {
-            if (!AsciiHasPrefixIgnoreCase(msgHdr, AsStringBuf("Content-Length"))) {
-                out << msgHdr << AsStringBuf("\r\n");
+            if (!AsciiHasPrefixIgnoreCase(msgHdr, TStringBuf("Content-Length"))) {
+                out << msgHdr << TStringBuf("\r\n");
             }
         }
     }
@@ -120,7 +120,7 @@ namespace {
         out << requestType;
         out << ' ';
         if (isAbsoluteUri) {
-            out << loc.Scheme << AsStringBuf("://") << loc.Host;
+            out << loc.Scheme << TStringBuf("://") << loc.Host;
             if (loc.Port) {
                 out << ':' << loc.Port;
             }
@@ -128,19 +128,19 @@ namespace {
         out << '/' << loc.Service;
 
         WriteUrl(urlParams, out);
-        out << AsStringBuf(" HTTP/1.1\r\n");
+        out << TStringBuf(" HTTP/1.1\r\n");
 
         NNeh::NHttp::WriteHostHeaderIfNot(out, loc.Host, loc.Port, headers);
         SafeWriteHeaders(out, headers);
         if (!IsEmpty(content)) {
-            if (!!contentType && headers.find(AsStringBuf("Content-Type:")) == TString::npos) {
-                out << AsStringBuf("Content-Type: ") << contentType << AsStringBuf("\r\n");
+            if (!!contentType && headers.find(TStringBuf("Content-Type:")) == TString::npos) {
+                out << TStringBuf("Content-Type: ") << contentType << TStringBuf("\r\n");
             }
-            out << AsStringBuf("Content-Length: ") << contentLength << AsStringBuf("\r\n");
-            out << AsStringBuf("\r\n");
+            out << TStringBuf("Content-Length: ") << contentLength << TStringBuf("\r\n");
+            out << TStringBuf("\r\n");
             WriteImpl(content, out);
         } else {
-            out << AsStringBuf("\r\n");
+            out << TStringBuf("\r\n");
         }
         return out.Str();
     }

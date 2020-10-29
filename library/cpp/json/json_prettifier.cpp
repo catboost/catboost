@@ -161,11 +161,11 @@ namespace NJson {
         }
 
         bool OnNull() override {
-            return WriteVal(AsStringBuf("null"));
+            return WriteVal(TStringBuf("null"));
         }
 
         bool OnBoolean(bool v) override {
-            return WriteVal(v ? AsStringBuf("true") : AsStringBuf("false"));
+            return WriteVal(v ? TStringBuf("true") : TStringBuf("false"));
         }
 
         bool OnInteger(long long i) override {

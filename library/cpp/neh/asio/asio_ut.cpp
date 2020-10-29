@@ -271,7 +271,7 @@ Y_UNIT_TEST_SUITE(TAsio) {
                     test.Srv.Run();
                 } catch (...) {
                     catchExcept = true;
-                    UNIT_ASSERT_STRING_CONTAINS(CurrentExceptionMessage(), AsStringBuf("test exception"));
+                    UNIT_ASSERT_STRING_CONTAINS(CurrentExceptionMessage(), TStringBuf("test exception"));
                     test.Srv.Run();
                 }
 

@@ -22,7 +22,7 @@ Y_UNIT_TEST_SUITE(TCGIEscapeTest) {
     Y_UNIT_TEST(StringBuf) {
         char tmp[100];
 
-        UNIT_ASSERT_VALUES_EQUAL(CgiEscape(tmp, "!@#$%^&*(){}[]\" "), AsStringBuf("!@%23$%25^%26*%28%29%7B%7D%5B%5D%22+"));
+        UNIT_ASSERT_VALUES_EQUAL(CgiEscape(tmp, "!@#$%^&*(){}[]\" "), TStringBuf("!@%23$%25^%26*%28%29%7B%7D%5B%5D%22+"));
     }
 
     Y_UNIT_TEST(StrokaRet) {
@@ -51,7 +51,7 @@ Y_UNIT_TEST_SUITE(TCGIUnescapeTest) {
     Y_UNIT_TEST(StringBuf) {
         char tmp[100];
 
-        UNIT_ASSERT_VALUES_EQUAL(CgiUnescape(tmp, "!@%23$%25^%26*%28%29"), AsStringBuf("!@#$%^&*()"));
+        UNIT_ASSERT_VALUES_EQUAL(CgiUnescape(tmp, "!@%23$%25^%26*%28%29"), TStringBuf("!@#$%^&*()"));
     }
 
     Y_UNIT_TEST(TestValidZeroTerm) {

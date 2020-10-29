@@ -13,8 +13,8 @@ Y_UNIT_TEST_SUITE(TRequestServerDataTest) {
 
         sd.AddHeader("x-XxX", "y-yyy");
         UNIT_ASSERT_VALUES_EQUAL(sd.HeadersCount(), 2);
-        UNIT_ASSERT_VALUES_EQUAL(TStringBuf(sd.HeaderIn("X-XX")), AsStringBuf("y-yy"));
-        UNIT_ASSERT_VALUES_EQUAL(TStringBuf(sd.HeaderIn("X-XXX")), AsStringBuf("y-yyy"));
+        UNIT_ASSERT_VALUES_EQUAL(TStringBuf(sd.HeaderIn("X-XX")), TStringBuf("y-yy"));
+        UNIT_ASSERT_VALUES_EQUAL(TStringBuf(sd.HeaderIn("X-XXX")), TStringBuf("y-yyy"));
     }
 
     Y_UNIT_TEST(ComplexHeaders) {
@@ -23,21 +23,21 @@ Y_UNIT_TEST_SUITE(TRequestServerDataTest) {
 
         sd.AddHeader("x-Xx", "y-yy");
         UNIT_ASSERT_VALUES_EQUAL(sd.HeadersCount(), 1);
-        UNIT_ASSERT_VALUES_EQUAL(TStringBuf(sd.HeaderIn("X-XX")), AsStringBuf("y-yy"));
+        UNIT_ASSERT_VALUES_EQUAL(TStringBuf(sd.HeaderIn("X-XX")), TStringBuf("y-yy"));
 
         sd.AddHeader("x-Xz", "y-yy");
         UNIT_ASSERT_VALUES_EQUAL(sd.HeadersCount(), 2);
-        UNIT_ASSERT_VALUES_EQUAL(TStringBuf(sd.HeaderIn("X-Xz")), AsStringBuf("y-yy"));
+        UNIT_ASSERT_VALUES_EQUAL(TStringBuf(sd.HeaderIn("X-Xz")), TStringBuf("y-yy"));
 
         UNIT_ASSERT_VALUES_EQUAL(sd.ServerName(), "zzz");
         UNIT_ASSERT_VALUES_EQUAL(sd.ServerPort(), "1");
         sd.AddHeader("Host", "1234");
         UNIT_ASSERT_VALUES_EQUAL(sd.HeadersCount(), 3);
-        UNIT_ASSERT_VALUES_EQUAL(TStringBuf(sd.HeaderIn("Host")), AsStringBuf("1234"));
+        UNIT_ASSERT_VALUES_EQUAL(TStringBuf(sd.HeaderIn("Host")), TStringBuf("1234"));
         UNIT_ASSERT_VALUES_EQUAL(sd.ServerName(), "1234");
         sd.AddHeader("Host", "12345:678");
         UNIT_ASSERT_VALUES_EQUAL(sd.HeadersCount(), 3);
-        UNIT_ASSERT_VALUES_EQUAL(TStringBuf(sd.HeaderIn("Host")), AsStringBuf("12345:678"));
+        UNIT_ASSERT_VALUES_EQUAL(TStringBuf(sd.HeaderIn("Host")), TStringBuf("12345:678"));
         UNIT_ASSERT_VALUES_EQUAL(sd.ServerName(), "12345");
         UNIT_ASSERT_VALUES_EQUAL(sd.ServerPort(), "678");
     }

@@ -53,7 +53,7 @@ namespace {
         }
 
         static inline TStringBuf DPrefix() {
-            return AsStringBuf("fast");
+            return TStringBuf("fast");
         }
     };
 
@@ -66,7 +66,7 @@ namespace {
         }
 
         static inline TStringBuf DPrefix() {
-            return AsStringBuf("safe");
+            return TStringBuf("safe");
         }
     };
 

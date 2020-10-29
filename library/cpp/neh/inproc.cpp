@@ -98,7 +98,7 @@ namespace {
         }
 
         TStringBuf Scheme() const override {
-            return AsStringBuf("inproc");
+            return TStringBuf("inproc");
         }
 
         TString RemoteHost() const override {
@@ -177,7 +177,7 @@ namespace {
                 if (IOnRequest* cb = Find(req->Location)) {
                     cb->OnRequest(req.Release());
                 } else {
-                    throw yexception() << AsStringBuf("not found inproc location");
+                    throw yexception() << TStringBuf("not found inproc location");
                 }
             } catch (...) {
                 hndl->Disable();
@@ -188,7 +188,7 @@ namespace {
         }
 
         TStringBuf Scheme() const noexcept override {
-            return AsStringBuf("inproc");
+            return TStringBuf("inproc");
         }
 
     private:

@@ -20,14 +20,14 @@ TStringBuf NCsvFormat::CsvSplitter::Consume() {
             Escape = true;
             ++TokenStart;
             ++TokenEnd;
-            Y_ENSURE(TokenStart != End, AsStringBuf("RFC4180 violation: quotation mark must be followed by something"));
+            Y_ENSURE(TokenStart != End, TStringBuf("RFC4180 violation: quotation mark must be followed by something"));
         }
         while (1) {
             if (TokenEnd == End || (!Escape && *TokenEnd == Delimeter)) {
                 Begin = TokenEnd;
                 return TStringBuf(TokenStart, TokenEnd);
             } else if (*TokenEnd == Quote) {
-                Y_ENSURE(Escape, AsStringBuf("RFC4180 violation: quotation mark must be in the escaped string only"));
+                Y_ENSURE(Escape, TStringBuf("RFC4180 violation: quotation mark must be in the escaped string only"));
                 if (TokenEnd + 1 == End) {
                     Begin = TokenEnd + 1;
                 } else if (*(TokenEnd + 1) == Delimeter) {
@@ -38,7 +38,7 @@ TStringBuf NCsvFormat::CsvSplitter::Consume() {
                     TokenStart = TokenEnd;
                     continue;
                 } else {
-                    Y_ENSURE(false, AsStringBuf("RFC4180 violation: in escaped string quotation mark must be followed by a delimiter, EOL or another quotation mark"));
+                    Y_ENSURE(false, TStringBuf("RFC4180 violation: in escaped string quotation mark must be followed by a delimiter, EOL or another quotation mark"));
                 }
                 if (CustomStringBufs.size()) {
                     CustomString.clear();

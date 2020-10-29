@@ -197,7 +197,7 @@ namespace NAsio {
             TSocketHolder s(socket(ep.SockAddr()->sa_family, SOCK_STREAM, 0));
 
             if (Y_UNLIKELY(s == INVALID_SOCKET || Srv_.HasAbort())) {
-                throw TSystemError() << AsStringBuf("can't create socket");
+                throw TSystemError() << TStringBuf("can't create socket");
             }
 
             SetNonBlock(s);

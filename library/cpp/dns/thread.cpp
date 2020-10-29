@@ -25,7 +25,7 @@ namespace {
 
                 if (!Error) {
                     if (!Result) {
-                        ythrow TNetworkResolutionError(EAI_AGAIN) << AsStringBuf(": resolver down");
+                        ythrow TNetworkResolutionError(EAI_AGAIN) << TStringBuf(": resolver down");
                     }
 
                     return Result;
@@ -33,7 +33,7 @@ namespace {
 
                 Error->Raise();
 
-                ythrow TNetworkResolutionError(EAI_FAIL) << AsStringBuf(": shit happen");
+                ythrow TNetworkResolutionError(EAI_FAIL) << TStringBuf(": shit happen");
             }
 
             inline void Resolve() noexcept {

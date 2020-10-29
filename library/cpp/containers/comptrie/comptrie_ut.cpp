@@ -1327,10 +1327,10 @@ void TCompactTrieTest::TestSearchIterImpl() {
     {
         TCompactTrieBuilder<TChar, ui32> builder;
         TStringBuf data[] = {
-            AsStringBuf("abaab"),
-            AsStringBuf("abcdef"),
-            AsStringBuf("abbbc"),
-            AsStringBuf("bdfaa"),
+            TStringBuf("abaab"),
+            TStringBuf("abcdef"),
+            TStringBuf("abbbc"),
+            TStringBuf("bdfaa"),
         };
         for (size_t i = 0; i < Y_ARRAY_SIZE(data); ++i) {
             builder.Add(TConvertKey<TChar>::Convert(data[i]), i + 1);
@@ -1341,26 +1341,26 @@ void TCompactTrieTest::TestSearchIterImpl() {
     TCompactTrie<TChar, ui32> trie(buffer.Buffer().Data(), buffer.Buffer().Size());
     ui32 value = 0;
     auto iter(MakeSearchIterator(trie));
-    MoveIter(iter, TConvertKey<TChar>::Convert(AsStringBuf("abc")));
+    MoveIter(iter, TConvertKey<TChar>::Convert(TStringBuf("abc")));
     UNIT_ASSERT(!iter.GetValue(&value));
 
     iter = MakeSearchIterator(trie);
-    MoveIter(iter, TConvertKey<TChar>::Convert(AsStringBuf("abbbc")));
+    MoveIter(iter, TConvertKey<TChar>::Convert(TStringBuf("abbbc")));
     UNIT_ASSERT(iter.GetValue(&value));
     UNIT_ASSERT_EQUAL(value, 3);
 
     iter = MakeSearchIterator(trie);
-    UNIT_ASSERT(iter.Advance(TConvertKey<TChar>::Convert(AsStringBuf("bdfa"))));
+    UNIT_ASSERT(iter.Advance(TConvertKey<TChar>::Convert(TStringBuf("bdfa"))));
     UNIT_ASSERT(!iter.GetValue(&value));
 
     iter = MakeSearchIterator(trie);
-    UNIT_ASSERT(iter.Advance(TConvertKey<TChar>::Convert(AsStringBuf("bdfaa"))));
+    UNIT_ASSERT(iter.Advance(TConvertKey<TChar>::Convert(TStringBuf("bdfaa"))));
     UNIT_ASSERT(iter.GetValue(&value));
     UNIT_ASSERT_EQUAL(value, 4);
 
     UNIT_ASSERT(!MakeSearchIterator(trie).Advance(TChar('z')));
-    UNIT_ASSERT(!MakeSearchIterator(trie).Advance(TConvertKey<TChar>::Convert(AsStringBuf("cdf"))));
-    UNIT_ASSERT(!MakeSearchIterator(trie).Advance(TConvertKey<TChar>::Convert(AsStringBuf("abca"))));
+    UNIT_ASSERT(!MakeSearchIterator(trie).Advance(TConvertKey<TChar>::Convert(TStringBuf("cdf"))));
+    UNIT_ASSERT(!MakeSearchIterator(trie).Advance(TConvertKey<TChar>::Convert(TStringBuf("abca"))));
 }
 
 void TCompactTrieTest::TestSearchIterChar() {

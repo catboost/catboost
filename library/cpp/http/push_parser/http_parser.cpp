@@ -257,7 +257,7 @@ void THttpParser::OnEof() {
     if (Parser_ == &THttpParser::ContentParser && !HasContentLength_ && !ChunkInputState_) {
         return; //end of content determined by end of input
     }
-    throw THttpException() << AsStringBuf("incompleted http response");
+    throw THttpException() << TStringBuf("incompleted http response");
 }
 
 bool THttpParser::DecodeContent() {
@@ -312,17 +312,17 @@ bool THttpParser::DecodeContent() {
 }
 
 void THttpParser::ApplyHeaderLine(const TStringBuf& name, const TStringBuf& val) {
-    if (AsciiEqualsIgnoreCase(name, AsStringBuf("connection"))) {
-        KeepAlive_ = AsciiEqualsIgnoreCase(val, AsStringBuf("keep-alive"));
-    } else if (AsciiEqualsIgnoreCase(name, AsStringBuf("content-length"))) {
+    if (AsciiEqualsIgnoreCase(name, TStringBuf("connection"))) {
+        KeepAlive_ = AsciiEqualsIgnoreCase(val, TStringBuf("keep-alive"));
+    } else if (AsciiEqualsIgnoreCase(name, TStringBuf("content-length"))) {
         Y_ENSURE(val.size(), "NEH: Content-Length cannot be empty string. ");
         ContentLength_ = FromString<ui64>(val);
         HasContentLength_ = true;
-    } else if (AsciiEqualsIgnoreCase(name, AsStringBuf("transfer-encoding"))) {
-        if (AsciiEqualsIgnoreCase(val, AsStringBuf("chunked"))) {
+    } else if (AsciiEqualsIgnoreCase(name, TStringBuf("transfer-encoding"))) {
+        if (AsciiEqualsIgnoreCase(val, TStringBuf("chunked"))) {
             ChunkInputState_ = new TChunkInputState();
         }
-    } else if (AsciiEqualsIgnoreCase(name, AsStringBuf("accept-encoding"))) {
+    } else if (AsciiEqualsIgnoreCase(name, TStringBuf("accept-encoding"))) {
         TStringBuf encodings(val);
         while (encodings.size()) {
             TStringBuf enc = encodings.NextTok(',').After(' ').Before(' ');
@@ -333,7 +333,7 @@ void THttpParser::ApplyHeaderLine(const TStringBuf& name, const TStringBuf& val)
             s.to_lower();
             AcceptEncodings_.insert(s);
         }
-    } else if (AsciiEqualsIgnoreCase(name, AsStringBuf("content-encoding"))) {
+    } else if (AsciiEqualsIgnoreCase(name, TStringBuf("content-encoding"))) {
         TString s(val);
         s.to_lower();
         ContentEncoding_ = s;

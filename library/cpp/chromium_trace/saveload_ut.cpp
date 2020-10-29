@@ -37,19 +37,19 @@ Y_UNIT_TEST_SUITE(SaveLoad) {
     Y_UNIT_TEST(EventArgs_Arg) {
         using TArg = TEventArgs::TArg;
 
-        TestSaveLoad(TArg(AsStringBuf("TestI64Arg"), i64(0xdeadbeef)));
-        TestSaveLoad(TArg(AsStringBuf("TestDoubleArg"), double(3.1415)));
-        TestSaveLoad(TArg(AsStringBuf("TestStringArg"), AsStringBuf("Hello World!")));
+        TestSaveLoad(TArg(TStringBuf("TestI64Arg"), i64(0xdeadbeef)));
+        TestSaveLoad(TArg(TStringBuf("TestDoubleArg"), double(3.1415)));
+        TestSaveLoad(TArg(TStringBuf("TestStringArg"), TStringBuf("Hello World!")));
     }
 
     Y_UNIT_TEST(EventArgs) {
         TestSaveLoad(TEventArgs());
         TestSaveLoad(TEventArgs()
-                         .Add(AsStringBuf("TestI64Arg"), i64(0xdeadbeef)));
+                         .Add(TStringBuf("TestI64Arg"), i64(0xdeadbeef)));
         TestSaveLoad(TEventArgs()
-                         .Add(AsStringBuf("TestI64Arg"), i64(0xdeadbeef))
-                         .Add(AsStringBuf("TestDoubleArg"), double(3.1415))
-                         .Add(AsStringBuf("TestI64Arg"), AsStringBuf("Hello World!")));
+                         .Add(TStringBuf("TestI64Arg"), i64(0xdeadbeef))
+                         .Add(TStringBuf("TestDoubleArg"), double(3.1415))
+                         .Add(TStringBuf("TestI64Arg"), TStringBuf("Hello World!")));
     }
 
     Y_UNIT_TEST(DurationBeginEvent) {

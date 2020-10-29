@@ -185,7 +185,7 @@ namespace {
                 }
 
                 TStringBuf Scheme() const override {
-                    return AsStringBuf("tcp");
+                    return TStringBuf("tcp");
                 }
 
                 TString RemoteHost() const override {
@@ -665,7 +665,7 @@ namespace {
             }
 
             TStringBuf Scheme() const noexcept override {
-                return AsStringBuf("tcp");
+                return TStringBuf("tcp");
             }
         };
     }

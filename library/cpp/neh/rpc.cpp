@@ -162,7 +162,7 @@ namespace {
                 try {
                     SyncStop();
                 } catch (...) {
-                    Cdbg << AsStringBuf("neh rpc ~loop_func: ") << CurrentExceptionMessage() << Endl;
+                    Cdbg << TStringBuf("neh rpc ~loop_func: ") << CurrentExceptionMessage() << Endl;
                 }
             }
 
@@ -200,7 +200,7 @@ namespace {
             }
 
             if (Y_UNLIKELY(it == mp.Srvs.end())) {
-                it = mp.Srvs.find(AsStringBuf("*"));
+                it = mp.Srvs.find(TStringBuf("*"));
             }
 
             if (Y_UNLIKELY(it == mp.Srvs.end())) {
