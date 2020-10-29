@@ -606,6 +606,12 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\attrs\pycontrib-python-attrs.vcxproj">
       <Project>B19D597D-A363-F744-6165-C68C1835DD61</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\configparser\pycontrib-python-configparser.vcxproj">
+      <Project>6DF26701-68E9-E05A-808F-1840FF373955</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\contextlib2\pycontrib-python-contextlib2.vcxproj">
+      <Project>76AD5AB3-EDE1-7BAC-90B7-9BA08DC851AD</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\dateutil\py3dateutil.vcxproj">
       <Project>4F62D972-C51F-BBC3-4B6A-266C6674E907</Project>
     </ProjectReference>
@@ -626,6 +632,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\graphviz\pycontrib-python-graphviz.vcxproj">
       <Project>F7A1107D-8D70-ACE8-DC3B-C262EC7A87FA</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\importlib-metadata\pycontrib-python-importlib-metadata.vcxproj">
+      <Project>7F463C70-BAD7-7EF0-2E4C-848242C99C7E</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\more-itertools\pycontrib-python-more-itertools.vcxproj">
       <Project>BC62290A-1F8B-7962-8C00-63BFE8DAE2A0</Project>
