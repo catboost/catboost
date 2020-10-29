@@ -530,6 +530,9 @@ ALLOW .* -> vendor/github.com/minio/sha256-simd
 # CONTRIB-1979 command line editor with history
 ALLOW .* -> vendor/github.com/peterh/liner
 
+# CONTRIB-2002 A Go implementation of RTP
+ALLOW .* -> vendor/github.com/pion/rtp
+
 #
 # Tools
 #
