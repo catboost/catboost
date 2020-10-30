@@ -1024,7 +1024,6 @@ public:
                 static_cast<const TBase&>(*this));
     }
 
-
     /*
      * Following overloads of "operator+" aim to choose the cheapest implementation depending on
      * summand types: lvalues, detached rvalues, shared rvalues.
@@ -1080,6 +1079,10 @@ public:
     friend TBasicString operator+(TBasicString&& s1, TCharType s2) Y_WARN_UNUSED_RESULT {
         s1 += s2;
         return std::move(s1);
+    }
+
+    friend TBasicString operator+ (TExplicitType<TCharType> ch, const TBasicString& s) Y_WARN_UNUSED_RESULT {
+        return Join(TCharType(ch), s);
     }
 
     friend TBasicString operator+(const TBasicString& s1, const TBasicString& s2) Y_WARN_UNUSED_RESULT {

@@ -286,7 +286,7 @@ static string CanonicalizePath(string path) {
   string result = Join(canonical_parts, "/");
   if (!path.empty() && path[0] == '/') {
     // Restore leading slash.
-    result = "/" + result;
+    result = '/' + result;
   }
   if (!path.empty() && LastChar(path) == '/' &&
       !result.empty() && LastChar(result) != '/') {
