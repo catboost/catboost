@@ -4,6 +4,7 @@
 #ifndef PROTOBUF_google_2fprotobuf_2fstruct_2eproto__INCLUDED
 #define PROTOBUF_google_2fprotobuf_2fstruct_2eproto__INCLUDED
 
+#include <string>
 
 #include <google/protobuf/stubs/common.h>
 
@@ -187,7 +188,7 @@ class LIBPROTOBUF_EXPORT Struct : public ::google::protobuf::Message /* @@protoc
 
   // accessors -------------------------------------------------------
 
-  // std::map<string, .google.protobuf.Value> fields = 1;
+  // map<string, .google.protobuf.Value> fields = 1;
   int fields_size() const;
   void clear_fields();
   static const int kFieldsFieldNumber = 1;
@@ -585,7 +586,7 @@ class LIBPROTOBUF_EXPORT ListValue : public ::google::protobuf::Message /* @@pro
 
 // Struct
 
-// std::map<string, .google.protobuf.Value> fields = 1;
+// map<string, .google.protobuf.Value> fields = 1;
 inline int Struct::fields_size() const {
   return fields_.size();
 }

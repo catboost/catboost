@@ -35,6 +35,7 @@
 #ifndef _SHARED_PTR_H
 #error #include <google/protobuf/stubs/shared_ptr.h>
 #endif
+#include <string>
 #include <utility>
 
 #include <google/protobuf/stubs/common.h>

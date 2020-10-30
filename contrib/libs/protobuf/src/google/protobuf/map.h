@@ -37,10 +37,6 @@
 #ifndef GOOGLE_PROTOBUF_MAP_H__
 #define GOOGLE_PROTOBUF_MAP_H__
 
-#if defined(__GNUC__)
-  #pragma GCC system_header
-#endif
-
 #include <iterator>
 #include <limits>  // To support Visual Studio 2008
 #include <set>
@@ -49,7 +45,7 @@
 #include <google/protobuf/stubs/common.h>
 #include <google/protobuf/arena.h>
 #include <google/protobuf/generated_enum_util.h>
-#include "map_type_handler.h"
+#include <google/protobuf/map_type_handler.h>
 #include <google/protobuf/stubs/hash.h>
 
 namespace google {
@@ -201,7 +197,7 @@ class Map {
 #if defined(__GXX_DELETE_WITH_SIZE__) || defined(__cpp_sized_deallocation)
         ::operator delete(p, n * sizeof(value_type));
 #else
-        (void)n;
+		(void) n;
         ::operator delete(p);
 #endif
       }
@@ -292,7 +288,7 @@ class Map {
   // and it doesn't have it.  More bells and whistles can be added as needed.
   // Some implementation details:
   // 1. The hash function has type hasher and the equality function
-  //    std::equal_to<Key>.  We inherit from hasher to save space
+  //    equal_to<Key>.  We inherit from hasher to save space
   //    (empty-base-class optimization).
   // 2. The number of buckets is a power of two.
   // 3. Buckets are converted to trees in pairs: if we convert bucket b then

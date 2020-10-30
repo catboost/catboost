@@ -63,7 +63,7 @@
 // outlives the StringPiece.
 //
 // A StringPiece may represent just part of a string; thus the name "Piece".
-// For example, when splitting a string, std::vector<StringPiece> is a natural data
+// For example, when splitting a string, vector<StringPiece> is a natural data
 // type for the output.  For another example, a Cord is a non-contiguous,
 // potentially very long string-like object.  The Cord class has an interface
 // that iteratively provides StringPiece objects that point to the
@@ -146,6 +146,7 @@
 #include <string.h>
 #include <iosfwd>
 #include <limits>
+#include <string>
 
 #include <google/protobuf/stubs/common.h>
 #include <google/protobuf/stubs/hash.h>
@@ -162,7 +163,7 @@ namespace protobuf {
 //   is 32 bits in LP32, 64 bits in LP64, 64 bits in LLP64
 //   future changes intended: http://go/64BitStringPiece
 //
-using stringpiece_ssize_type = int64_t;
+typedef string::difference_type stringpiece_ssize_type;
 
 // STRINGPIECE_CHECK_SIZE protects us from 32-bit overflows.
 // TODO(mec): delete this after stringpiece_ssize_type goes 64 bit.
@@ -215,8 +216,9 @@ class LIBPROTOBUF_EXPORT StringPiece {
     }
   }
 
-  StringPiece(const TProtoStringType& str)  // NOLINT(runtime/explicit)
-      : ptr_(str.data()), length_(str.size()) {
+  StringPiece(const TProtoStringType& str)
+  	  : ptr_(str.data()), length_(str.size())
+  {
   }
 
   StringPiece(const char* offset, stringpiece_ssize_type len)

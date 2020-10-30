@@ -40,18 +40,11 @@
 #ifndef GOOGLE_PROTOBUF_WIRE_FORMAT_LITE_H__
 #define GOOGLE_PROTOBUF_WIRE_FORMAT_LITE_H__
 
+#include <string>
 #include <google/protobuf/stubs/common.h>
 #include <google/protobuf/repeated_field.h>
 #include <google/protobuf/message_lite.h>
 #include <google/protobuf/io/coded_stream.h>  // for CodedOutputStream::Varint32Size
-
-// mowgli@yandex-team.ru: temporarily disabled - so non-utf8 string values are still allowed.
-/*
-// Do UTF-8 validation on string type in Debug build only
-#ifndef NDEBUG
-#define GOOGLE_PROTOBUF_UTF8_VALIDATION_ENABLED
-#endif
-*/
 
 // Avoid conflict with iOS where <ConditionalMacros.h> #defines TYPE_BOOL.
 //

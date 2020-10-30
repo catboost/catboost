@@ -51,7 +51,7 @@ using type_info = ::type_info;
 #include <typeinfo>
 #endif
 
-#include "arena_impl.h"
+#include <google/protobuf/arena_impl.h>
 
 namespace google {
 namespace protobuf {

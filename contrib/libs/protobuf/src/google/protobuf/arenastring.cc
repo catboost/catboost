@@ -31,7 +31,7 @@
 // The ArenaString implementation is not included in the open-source release. Do
 // not include this file in the distribution.
 
-#include "arenastring.h"
+#include <google/protobuf/arenastring.h>
 
 namespace google {
 namespace protobuf {

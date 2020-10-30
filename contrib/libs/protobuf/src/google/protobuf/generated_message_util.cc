@@ -39,10 +39,10 @@
 
 #include <google/protobuf/io/coded_stream_inl.h>
 #include <google/protobuf/io/coded_stream.h>
-#include "arenastring.h"
+#include <google/protobuf/arenastring.h>
 #include <google/protobuf/extension_set.h>
 #include <google/protobuf/message_lite.h>
-#include "metadata_lite.h"
+#include <google/protobuf/metadata_lite.h>
 #include <google/protobuf/repeated_field.h>
 #include <google/protobuf/wire_format_lite.h>
 #include <google/protobuf/wire_format_lite_inl.h>
@@ -593,7 +593,7 @@ bool IsNull<WireFormatLite::TYPE_MESSAGE>(const void* ptr) {
 
 void SerializeInternal(const uint8* base,
                        const FieldMetadata* field_metadata_table,
-                       int32 num_fields,
+                       int num_fields,
                        ::google::protobuf::io::CodedOutputStream* output) {
   for (int i = 0; i < num_fields; i++) {
     const FieldMetadata& field_metadata = field_metadata_table[i];
@@ -634,7 +634,7 @@ void SerializeInternal(const uint8* base,
 
 uint8* SerializeInternalToArray(const uint8* base,
                                 const FieldMetadata* field_metadata_table,
-                                int32 num_fields, bool is_deterministic,
+                                int num_fields, bool is_deterministic,
                                 uint8* buffer) {
   ArrayOutput array_output = {buffer, is_deterministic};
   ArrayOutput* output = &array_output;

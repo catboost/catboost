@@ -40,13 +40,14 @@
 
 #include <assert.h>
 #include <climits>
+#include <string>
 #include <vector>
 
 #include <google/protobuf/stubs/logging.h>
 #include <google/protobuf/stubs/common.h>
 #include <google/protobuf/stubs/once.h>
-#include "has_bits.h"
-#include "map_entry_lite.h"
+#include <google/protobuf/has_bits.h>
+#include <google/protobuf/map_entry_lite.h>
 #include <google/protobuf/message_lite.h>
 #include <google/protobuf/wire_format_lite.h>
 
@@ -67,8 +68,9 @@ namespace internal {
 //
 // For internal use in the pb.cc files, deprecation warnings are suppressed
 // there.
-
+#undef DEPRECATED_PROTOBUF_FIELD
 #define PROTOBUF_DEPRECATED
+
 #define GOOGLE_PROTOBUF_DEPRECATED_ATTR
 
 
@@ -181,7 +183,7 @@ struct SerializationTable {
 };
 
 LIBPROTOBUF_EXPORT void SerializeInternal(const uint8* base, const FieldMetadata* table,
-                       int32 num_fields, ::google::protobuf::io::CodedOutputStream* output);
+                       int num_fields, ::google::protobuf::io::CodedOutputStream* output);
 
 inline void TableSerialize(const ::google::protobuf::MessageLite& msg,
                            const SerializationTable* table,
@@ -199,7 +201,7 @@ inline void TableSerialize(const ::google::protobuf::MessageLite& msg,
 }
 
 uint8* SerializeInternalToArray(const uint8* base, const FieldMetadata* table,
-                                int32 num_fields, bool is_deterministic,
+                                int num_fields, bool is_deterministic,
                                 uint8* buffer);
 
 inline uint8* TableSerializeToArray(const ::google::protobuf::MessageLite& msg,

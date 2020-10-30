@@ -74,8 +74,22 @@
 // https://gcc.gnu.org/onlinedocs/libstdc++/manual/backwards.html
 # if __GNUC__ >= 4
 #  define GOOGLE_PROTOBUF_HAS_TR1
+# elif __GNUC__ >= 3
+#  error #include <backward/hash_map>
+#  define GOOGLE_PROTOBUF_HASH_MAP_CLASS hash_map
+#  error #include <backward/hash_set>
+#  define GOOGLE_PROTOBUF_HASH_SET_CLASS hash_set
+#  if __GNUC__ == 3 && __GNUC_MINOR__ == 0
+#   define GOOGLE_PROTOBUF_HASH_NAMESPACE std       // GCC 3.0
+#  else
+#   define GOOGLE_PROTOBUF_HASH_NAMESPACE __gnu_cxx // GCC 3.1 and later
+#  endif
 # else
-#  error Are you serious?
+#  define GOOGLE_PROTOBUF_HASH_NAMESPACE
+#  include <hash_map>
+#  define GOOGLE_PROTOBUF_HASH_MAP_CLASS hash_map
+#  include <hash_set>
+#  define GOOGLE_PROTOBUF_HASH_SET_CLASS hash_set
 # endif
 
 // GCC <= 4.1 does not define std::tr1::hash for `long long int` or `long long unsigned int`
@@ -394,8 +408,8 @@ struct hash<string> {
 };
 
 template <typename First, typename Second>
-struct hash<std::pair<First, Second> > {
-  inline size_t operator()(const std::pair<First, Second>& key) const {
+struct hash<pair<First, Second> > {
+  inline size_t operator()(const pair<First, Second>& key) const {
     size_t first_hash = hash<First>()(key.first);
     size_t second_hash = hash<Second>()(key.second);
 
@@ -406,8 +420,8 @@ struct hash<std::pair<First, Second> > {
 
   static const size_t bucket_size = 4;
   static const size_t min_buckets = 8;
-  inline bool operator()(const std::pair<First, Second>& a,
-                           const std::pair<First, Second>& b) const {
+  inline bool operator()(const pair<First, Second>& a,
+                           const pair<First, Second>& b) const {
     return a < b;
   }
 };

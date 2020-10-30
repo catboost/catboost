@@ -33,6 +33,7 @@
 //  Sanjay Ghemawat, Jeff Dean, and others.
 
 #include <stack>
+#include <string>
 #include <vector>
 
 #include <google/protobuf/wire_format.h>

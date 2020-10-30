@@ -35,6 +35,7 @@
 #ifndef _SHARED_PTR_H
 #error #include <google/protobuf/stubs/shared_ptr.h>
 #endif
+#include <string>
 
 #include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/util/internal/structured_objectwriter.h>

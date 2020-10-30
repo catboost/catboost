@@ -34,10 +34,10 @@
 //
 // Useful integer and floating point limits and type traits.
 //
-// This partially replaces/duplictes std::numeric_limits<> from <limits>.
+// This partially replaces/duplictes numeric_limits<> from <limits>.
 // We get a Google-style class that we have a greater control over
 // and thus can add new features to it or fix whatever happens to be broken in
-// std::numeric_limits for the compilers we use.
+// numeric_limits for the compilers we use.
 //
 
 #ifndef UTIL_MATH_MATHLIMITS_H__

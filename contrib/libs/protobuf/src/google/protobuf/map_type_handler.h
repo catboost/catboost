@@ -31,10 +31,6 @@
 #ifndef GOOGLE_PROTOBUF_TYPE_HANDLER_H__
 #define GOOGLE_PROTOBUF_TYPE_HANDLER_H__
 
-#if defined(__GNUC__)
-  #pragma GCC system_header
-#endif
-
 #include <google/protobuf/arena.h>
 #include <google/protobuf/wire_format_lite_inl.h>
 

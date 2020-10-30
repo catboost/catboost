@@ -35,7 +35,7 @@
 
 #include <google/protobuf/arena.h>
 #include <google/protobuf/map.h>
-#include "map_type_handler.h"
+#include <google/protobuf/map_type_handler.h>
 #include <google/protobuf/wire_format_lite_inl.h>
 
 namespace google {
@@ -361,9 +361,9 @@ class MapEntryImpl : public Base {
         // We could use memcmp here, but we don't bother. The tag is one byte.
         GOOGLE_COMPILE_ASSERT(kTagSize == 1, tag_size_error);
         if (size > 0 && *reinterpret_cast<const char*>(data) == kValueTag) {
-          typename Map::size_type mapSize = map_->size();
+          typename Map::size_type size = map_->size();
           value_ptr_ = &(*map_)[key_];
-          if (GOOGLE_PREDICT_TRUE(mapSize != map_->size())) {
+          if (GOOGLE_PREDICT_TRUE(size != map_->size())) {
             // We created a new key-value pair.  Fill in the value.
             typedef
                 typename MapIf<ValueTypeHandler::kIsEnum, int*, Value*>::type T;

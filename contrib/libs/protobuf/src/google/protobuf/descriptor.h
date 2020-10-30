@@ -59,6 +59,7 @@
 #error #include <google/protobuf/stubs/shared_ptr.h>
 #endif
 #include <set>
+#include <string>
 #include <vector>
 #include <google/protobuf/stubs/common.h>
 #include <google/protobuf/stubs/mutex.h>

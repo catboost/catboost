@@ -32,6 +32,7 @@
 #define GOOGLE_PROTOBUF_UTIL_CONVERTER_PROTO_WRITER_H__
 
 #include <deque>
+#include <string>
 #include <vector>
 
 #include <google/protobuf/stubs/common.h>

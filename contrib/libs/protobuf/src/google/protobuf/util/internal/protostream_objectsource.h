@@ -33,6 +33,7 @@
 
 #include <functional>
 #include <google/protobuf/stubs/hash.h>
+#include <string>
 
 #include <google/protobuf/stubs/common.h>
 #include <google/protobuf/type.pb.h>

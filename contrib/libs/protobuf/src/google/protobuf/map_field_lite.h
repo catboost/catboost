@@ -32,7 +32,7 @@
 #define GOOGLE_PROTOBUF_MAP_FIELD_LITE_H__
 
 #include <google/protobuf/map.h>
-#include "map_entry_lite.h"
+#include <google/protobuf/map_entry_lite.h>
 #include <google/protobuf/wire_format_lite.h>
 
 namespace google {

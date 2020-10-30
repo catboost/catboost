@@ -48,6 +48,7 @@
 #ifndef _SHARED_PTR_H
 #error #include <google/protobuf/stubs/shared_ptr.h>
 #endif
+#include <string>
 #include <iosfwd>
 #include <google/protobuf/io/zero_copy_stream.h>
 #include <google/protobuf/stubs/callback.h>

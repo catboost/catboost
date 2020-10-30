@@ -111,6 +111,7 @@
 #define GOOGLE_PROTOBUF_MESSAGE_H__
 
 #include <iosfwd>
+#include <string>
 #include <google/protobuf/stubs/type_traits.h>
 #include <vector>
 
@@ -121,13 +122,10 @@
 #include <google/protobuf/descriptor.h>
 
 #include <google/protobuf/json_util.h>
-#include "messagext_lite.h"
+#include <google/protobuf/messagext_lite.h>
 
 #define GOOGLE_PROTOBUF_HAS_ONEOF
 #define GOOGLE_PROTOBUF_HAS_ARENAS
-
-class IInputStream;
-class IOutputStream;
 
 namespace google {
 namespace protobuf {
@@ -295,15 +293,13 @@ class LIBPROTOBUF_EXPORT Message : public MessageLite {
   bool SerializeToFileDescriptor(int file_descriptor) const;
   // Like SerializeToFileDescriptor(), but allows missing required fields.
   bool SerializePartialToFileDescriptor(int file_descriptor) const;
-  // Serialize the message and write it to the given C++ std::ostream.  All
+  // Serialize the message and write it to the given C++ ostream.  All
   // required fields must be set.
   bool SerializeToOstream(std::ostream* output) const;
   // Like SerializeToOstream(), but allows missing required fields.
   bool SerializePartialToOstream(std::ostream* output) const;
 
-
   // Yandex-specific
-
   // new functions overloaded for yandex-streams
   bool ParseFromIstream(IInputStream* input);
   bool ParsePartialFromIstream(IInputStream* input);
@@ -324,7 +320,6 @@ class LIBPROTOBUF_EXPORT Message : public MessageLite {
     return io::TAsJSON<Message>(*this);
   }
 
- public:
   NProtoBufInternal::TAsBinary AsBinary() const {
     return NProtoBufInternal::TAsBinary{*this};
   }
@@ -332,9 +327,7 @@ class LIBPROTOBUF_EXPORT Message : public MessageLite {
   NProtoBufInternal::TAsStreamSeq AsStreamSeq() const {
     return NProtoBufInternal::TAsStreamSeq{*this};
   }
-
   // End of Yandex-specific
-
 
   // Reflection-based methods ----------------------------------------
   // These methods are pure-virtual in MessageLite, but Message provides

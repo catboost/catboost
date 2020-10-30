@@ -40,6 +40,7 @@
 #ifndef GOOGLE_PROTOBUF_IO_ZERO_COPY_STREAM_IMPL_H__
 #define GOOGLE_PROTOBUF_IO_ZERO_COPY_STREAM_IMPL_H__
 
+#include <string>
 #include <iosfwd>
 #include <google/protobuf/io/zero_copy_stream.h>
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
@@ -206,13 +207,13 @@ class LIBPROTOBUF_EXPORT FileOutputStream : public ZeroCopyOutputStream {
 
 // ===================================================================
 
-// A ZeroCopyInputStream which reads from a C++ std::istream.
+// A ZeroCopyInputStream which reads from a C++ istream.
 //
 // Note that for reading files (or anything represented by a file descriptor),
 // FileInputStream is more efficient.
 class LIBPROTOBUF_EXPORT IstreamInputStream : public ZeroCopyInputStream {
  public:
-  // Creates a stream that reads from the given C++ std::istream.
+  // Creates a stream that reads from the given C++ istream.
   // If a block_size is given, it specifies the number of bytes that
   // should be read and returned with each call to Next().  Otherwise,
   // a reasonable default is used.
@@ -249,13 +250,13 @@ class LIBPROTOBUF_EXPORT IstreamInputStream : public ZeroCopyInputStream {
 
 // ===================================================================
 
-// A ZeroCopyOutputStream which writes to a C++ std::ostream.
+// A ZeroCopyOutputStream which writes to a C++ ostream.
 //
 // Note that for writing files (or anything represented by a file descriptor),
 // FileOutputStream is more efficient.
 class LIBPROTOBUF_EXPORT OstreamOutputStream : public ZeroCopyOutputStream {
  public:
-  // Creates a stream that writes to the given C++ std::ostream.
+  // Creates a stream that writes to the given C++ ostream.
   // If a block_size is given, it specifies the size of the buffers
   // that should be returned by Next().  Otherwise, a reasonable default
   // is used.

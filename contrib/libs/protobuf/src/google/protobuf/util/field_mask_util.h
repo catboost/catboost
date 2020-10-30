@@ -33,6 +33,7 @@
 #ifndef GOOGLE_PROTOBUF_UTIL_FIELD_MASK_UTIL_H__
 #define GOOGLE_PROTOBUF_UTIL_FIELD_MASK_UTIL_H__
 
+#include <string>
 
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/field_mask.pb.h>

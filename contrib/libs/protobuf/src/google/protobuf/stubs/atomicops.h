@@ -198,11 +198,11 @@ Atomic64 Release_Load(volatile const Atomic64* ptr);
 
 // Solaris
 #elif defined(GOOGLE_PROTOBUF_OS_SOLARIS)
-// #include "stubs/atomicops_internals_solaris.h"
+#error #include <google/protobuf/stubs/atomicops_internals_solaris.h>
 
 // AIX
 #elif defined(GOOGLE_PROTOBUF_OS_AIX)
-// #include <google/protobuf/stubs/atomicops_internals_power.h>
+#include <google/protobuf/stubs/atomicops_internals_power.h>
 
 // GCC.
 #elif defined(__GNUC__)
@@ -217,9 +217,9 @@ Atomic64 Release_Load(volatile const Atomic64* ptr);
 #elif defined(GOOGLE_PROTOBUF_ARCH_AARCH64)
 #include <google/protobuf/stubs/atomicops_internals_arm64_gcc.h>
 #elif defined(GOOGLE_PROTOBUF_ARCH_ARM_QNX)
-// #include "stubs/atomicops_internals_arm_qnx.h"
+#include <google/protobuf/stubs/atomicops_internals_arm_qnx.h>
 #elif defined(GOOGLE_PROTOBUF_ARCH_MIPS) || defined(GOOGLE_PROTOBUF_ARCH_MIPS64)
-// #include "stubs/atomicops_internals_mips_gcc.h"
+#include <google/protobuf/stubs/atomicops_internals_mips_gcc.h>
 #elif defined(GOOGLE_PROTOBUF_ARCH_POWER)
 #include <google/protobuf/stubs/atomicops_internals_power.h>
 #elif defined(__native_client__)
@@ -228,7 +228,7 @@ Atomic64 Release_Load(volatile const Atomic64* ptr);
 // the TODO in that file is addressed.
 #include <google/protobuf/stubs/atomicops_internals_generic_c11_atomic.h>
 #elif defined(GOOGLE_PROTOBUF_ARCH_PPC)
-// #include "stubs/atomicops_internals_ppc_gcc.h"
+#include <google/protobuf/stubs/atomicops_internals_ppc_gcc.h>
 #elif (((__GNUC__ == 4) && (__GNUC_MINOR__ >= 7)) || (__GNUC__ > 4))
 #include <google/protobuf/stubs/atomicops_internals_generic_gcc.h>
 #elif defined(__clang__)

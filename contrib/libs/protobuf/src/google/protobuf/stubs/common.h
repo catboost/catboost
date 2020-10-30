@@ -35,6 +35,13 @@
 #ifndef GOOGLE_PROTOBUF_COMMON_H__
 #define GOOGLE_PROTOBUF_COMMON_H__
 
+#include <algorithm>
+#include <iostream>
+#include <map>
+#include <set>
+#include <string>
+#include <vector>
+
 // Yandex-specific
 #include <util/generic/string.h>
 #include <util/stream/input.h>
@@ -52,6 +59,19 @@ using TProtoStringType = TString;
 #include <google/protobuf/stubs/mutex.h>
 #include <google/protobuf/stubs/callback.h>
 
+#ifndef PROTOBUF_USE_EXCEPTIONS
+#if defined(_MSC_VER) && defined(_CPPUNWIND)
+  #define PROTOBUF_USE_EXCEPTIONS 1
+#elif defined(__EXCEPTIONS)
+  #define PROTOBUF_USE_EXCEPTIONS 1
+#else
+  #define PROTOBUF_USE_EXCEPTIONS 0
+#endif
+#endif
+
+#if PROTOBUF_USE_EXCEPTIONS
+#include <exception>
+#endif
 #if defined(__APPLE__)
 #include <TargetConditionals.h>  // for TARGET_OS_IPHONE
 #endif
@@ -81,9 +101,6 @@ namespace std {}
 
 namespace google {
 namespace protobuf {
-
-using string = TProtoStringType;
-
 namespace internal {
 
 // Some of these constants are macros rather than const ints so that they can
@@ -196,6 +213,36 @@ LIBPROTOBUF_EXPORT void OnShutdownDestroyString(const TProtoStringType* ptr);
 LIBPROTOBUF_EXPORT void OnShutdownDestroyMessage(const void* ptr);
 
 }  // namespace internal
+
+#if PROTOBUF_USE_EXCEPTIONS
+class FatalException : public std::exception {
+ public:
+  FatalException(const char* filename, int line, const TProtoStringType& message)
+      : filename_(filename), line_(line), message_(message) {}
+  virtual ~FatalException() throw();
+
+  virtual const char* what() const throw();
+
+  const char* filename() const { return filename_; }
+  int line() const { return line_; }
+  const TProtoStringType& message() const { return message_; }
+
+ private:
+  const char* filename_;
+  const int line_;
+  const TProtoStringType message_;
+};
+#endif
+
+// This is at the end of the file instead of the beginning to work around a bug
+// in some versions of MSVC.
+// TODO(acozzette): remove these using statements
+using std::istream;
+using std::ostream;
+using std::pair;
+using string = TProtoStringType;
+using std::vector;
+
 }  // namespace protobuf
 }  // namespace google
 

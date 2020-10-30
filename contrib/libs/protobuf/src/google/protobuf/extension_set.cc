@@ -199,7 +199,7 @@ ExtensionSet::~ExtensionSet() {
 // Defined in extension_set_heavy.cc.
 // void ExtensionSet::AppendToList(const Descriptor* containing_type,
 //                                 const DescriptorPool* pool,
-//                                 std::vector<const FieldDescriptor*>* output) const
+//                                 vector<const FieldDescriptor*>* output) const
 
 bool ExtensionSet::Has(int number) const {
   ExtensionMap::const_iterator iter = extensions_.find(number);

@@ -31,6 +31,7 @@
 #define GOOGLE_PROTOBUF_STUBS_STATUS_H_
 
 #include <iosfwd>
+#include <string>
 
 #include <google/protobuf/stubs/common.h>
 #include <google/protobuf/stubs/stringpiece.h>
@@ -105,7 +106,7 @@ class LIBPROTOBUF_EXPORT Status {
 };
 
 // Prints a human-readable representation of 'x' to 'os'.
-LIBPROTOBUF_EXPORT std::ostream& operator<<(std::ostream& os, const Status& x);
+LIBPROTOBUF_EXPORT ostream& operator<<(ostream& os, const Status& x);
 
 #define EXPECT_OK(value) EXPECT_TRUE((value).ok())
 

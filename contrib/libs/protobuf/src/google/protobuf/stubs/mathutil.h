@@ -31,7 +31,7 @@
 #define GOOGLE_PROTOBUF_STUBS_MATHUTIL_H_
 
 #include <float.h>
-#include <cmath>
+#include <math.h>
 
 #include <google/protobuf/stubs/common.h>
 #include <google/protobuf/stubs/logging.h>

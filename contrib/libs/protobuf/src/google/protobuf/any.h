@@ -31,11 +31,12 @@
 #ifndef GOOGLE_PROTOBUF_ANY_H__
 #define GOOGLE_PROTOBUF_ANY_H__
 
+#include <string>
 
 #include <google/protobuf/stubs/common.h>
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/message.h>
-#include "arenastring.h"
+#include <google/protobuf/arenastring.h>
 
 namespace google {
 namespace protobuf {

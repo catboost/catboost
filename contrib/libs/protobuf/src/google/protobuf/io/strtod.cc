@@ -33,6 +33,7 @@
 #include <cstdio>
 #include <cstring>
 #include <limits>
+#include <string>
 
 #include <google/protobuf/stubs/logging.h>
 #include <google/protobuf/stubs/common.h>

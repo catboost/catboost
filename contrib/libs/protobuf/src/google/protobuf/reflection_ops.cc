@@ -32,6 +32,7 @@
 //  Based on original Protocol Buffers design by
 //  Sanjay Ghemawat, Jeff Dean, and others.
 
+#include <string>
 #include <vector>
 
 #include <google/protobuf/reflection_ops.h>

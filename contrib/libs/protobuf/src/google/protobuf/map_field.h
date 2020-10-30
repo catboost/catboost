@@ -39,7 +39,7 @@
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/map_entry.h>
 #include <google/protobuf/map_field_lite.h>
-#include "map_type_handler.h"
+#include <google/protobuf/map_type_handler.h>
 #include <google/protobuf/message.h>
 #include <google/protobuf/repeated_field.h>
 #include <google/protobuf/unknown_field_set.h>

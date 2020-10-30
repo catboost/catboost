@@ -43,6 +43,7 @@
 #ifndef _SHARED_PTR_H
 #error #include <google/protobuf/stubs/shared_ptr.h>
 #endif
+#include <string>
 #include <vector>
 
 #include <google/protobuf/stubs/common.h>
@@ -510,7 +511,6 @@ class LIBPROTOBUF_EXPORT TextFormat {
       allow_field_number_ = allow;
     }
 
-    // Yandex-specific extension.
     void AllowUnknownField(bool allow) {
       allow_unknown_field_ = allow;
     }

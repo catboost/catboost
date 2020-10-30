@@ -38,6 +38,7 @@
 #include <immintrin.h>
 #endif
 #include <stack>
+#include <string>
 #include <vector>
 #include <google/protobuf/stubs/logging.h>
 #include <google/protobuf/stubs/common.h>

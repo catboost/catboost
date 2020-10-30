@@ -32,6 +32,7 @@
 #include <string.h>
 #include <algorithm>
 #include <climits>
+#include <string>
 #include <ostream>
 
 namespace google {
@@ -89,8 +90,7 @@ bool StringPiece::ConsumeFromEnd(StringPiece x) {
 stringpiece_ssize_type StringPiece::copy(char* buf,
                                          size_type n,
                                          size_type pos) const {
-  stringpiece_ssize_type ret = std::min(static_cast<stringpiece_ssize_type>(length_ - pos),
-                                        static_cast<stringpiece_ssize_type>(n));
+  stringpiece_ssize_type ret = std::min(length_ - pos, n);
   memcpy(buf, ptr_ + pos, ret);
   return ret;
 }
@@ -123,7 +123,7 @@ stringpiece_ssize_type StringPiece::rfind(StringPiece s, size_type pos) const {
   const size_t ulen = length_;
   if (s.length_ == 0) return std::min(ulen, pos);
 
-  const char* last = ptr_ + std::min<ssize_t>(ulen - s.length_, pos) + s.length_;
+  const char* last = ptr_ + std::min(ulen - s.length_, pos) + s.length_;
   const char* result = std::find_end(ptr_, last, s.ptr_, s.ptr_ + s.length_);
   return result != last ? result - ptr_ : npos;
 }

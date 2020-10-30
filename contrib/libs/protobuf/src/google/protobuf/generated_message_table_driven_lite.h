@@ -37,7 +37,7 @@
 
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
 #include <google/protobuf/extension_set.h>
-#include "metadata_lite.h"
+#include <google/protobuf/metadata_lite.h>
 #include <google/protobuf/repeated_field.h>
 #include <google/protobuf/wire_format_lite.h>
 #include <google/protobuf/wire_format_lite_inl.h>

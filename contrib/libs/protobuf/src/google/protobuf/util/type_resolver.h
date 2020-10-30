@@ -33,6 +33,7 @@
 #ifndef GOOGLE_PROTOBUF_UTIL_TYPE_RESOLVER_H__
 #define GOOGLE_PROTOBUF_UTIL_TYPE_RESOLVER_H__
 
+#include <string>
 
 #include <google/protobuf/stubs/common.h>
 #include <google/protobuf/stubs/status.h>

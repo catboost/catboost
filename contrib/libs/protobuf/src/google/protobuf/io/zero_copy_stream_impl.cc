@@ -32,9 +32,12 @@
 //  Based on original Protocol Buffers design by
 //  Sanjay Ghemawat, Jeff Dean, and others.
 
-#include <util/system/compat.h>
-#include <util/system/file.h>
-
+#ifndef _MSC_VER
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#endif
 #include <errno.h>
 #include <iostream>
 #include <algorithm>
