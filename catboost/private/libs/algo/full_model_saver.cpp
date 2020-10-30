@@ -665,7 +665,6 @@ namespace NCB {
             );
 
             dstModel->UpdateDynamicData();
-            dstModel->ModelTrees->ClearRepackedBins();
         } else {
             dstModel->CtrProvider = new TStaticCtrOnFlightSerializationProvider(
                 dstModel->ModelTrees->GetUsedModelCtrBases(),

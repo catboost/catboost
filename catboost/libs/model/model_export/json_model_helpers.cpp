@@ -660,7 +660,6 @@ void ConvertJsonToCatboostModel(const TJsonValue& jsonModel, TFullModel* fullMod
     }
 
     fullModel->UpdateDynamicData();
-    fullModel->ModelTrees->ClearRepackedBins();
 }
 
 void OutputModelJson(const TFullModel& model, const TString& outputPath, const TVector<TString>* featureId, const THashMap<ui32, TString>* catFeaturesHashToString) {
