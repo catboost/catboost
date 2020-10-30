@@ -179,30 +179,6 @@ Y_UNIT_TEST_SUITE(TCharTraits) {
         // TODO: tests for RFind(const TCharType*, size_t, const TCharType*, size_t, size_t)
     }
 
-    bool CheckHash(const char* s1, size_t l1, const char* s2, size_t l2) {
-        bool sameStr = TCharTraits<char>::Equal(s1, l1, s2, l2);
-        bool sameHash = TCharTraits<char>::GetHash(s1, l1) ==
-                        TCharTraits<char>::GetHash(s2, l2);
-        return sameHash == sameStr;
-    }
-
-    Y_UNIT_TEST(TestHash) {
-        const char* abc1 = "abc1";
-        const char* abc2 = "abc2";
-
-        for (size_t i = 0; i <= 4; ++i)
-            UNIT_ASSERT(CheckHash(abc1, i, abc2, i));
-
-        const TString str("abc\0abcabc", 10);
-        //UNIT_ASSERT_EQUAL(str.size(), 10);
-        for (size_t b1 = 0; b1 <= str.size(); ++b1)
-            for (size_t e1 = b1; e1 <= str.size(); ++e1)
-                for (size_t b2 = 0; b2 <= str.size(); ++b2)
-                    for (size_t e2 = b2; e2 <= str.size(); ++e2)
-                        UNIT_ASSERT(CheckHash(str.c_str() + b1, e1 - b1,
-                                              str.c_str() + b2, e2 - b2));
-    }
-
     template <typename TCharType>
     void TestToLower() {
         using T = TCharTraits<TCharType>;
