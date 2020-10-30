@@ -57,8 +57,8 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -D_SHARED_PTR_H /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOGDI /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++17  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -D_SHARED_PTR_H /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOGDI /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++17  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -DHAVE_PTHREAD -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -D_SHARED_PTR_H /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOGDI /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++17  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -DHAVE_PTHREAD -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -D_SHARED_PTR_H /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOGDI /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++17  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
@@ -150,6 +150,7 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\internal\protostream_objectsource.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\internal\protostream_objectwriter.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\internal\type_info.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\internal\type_info_test_helper.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\internal\utility.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\json_util.cc">
       <ObjectFileName>$(IntDir)json_util_extra1.obj</ObjectFileName>
@@ -320,7 +321,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\map_type_handler.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\message.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\message_lite.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\messageint.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\messagext.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\messagext_lite.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\metadata.h"/>
@@ -336,10 +336,13 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\stubs\atomicops.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\stubs\atomicops_internals_arm64_gcc.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\stubs\atomicops_internals_arm_gcc.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\stubs\atomicops_internals_arm_qnx.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\stubs\atomicops_internals_atomicword_compat.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\stubs\atomicops_internals_generic_c11_atomic.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\stubs\atomicops_internals_generic_gcc.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\stubs\atomicops_internals_mips_gcc.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\stubs\atomicops_internals_power.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\stubs\atomicops_internals_ppc_gcc.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\stubs\atomicops_internals_tsan.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\stubs\atomicops_internals_x86_gcc.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\stubs\atomicops_internals_x86_msvc.h"/>
@@ -397,6 +400,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\internal\protostream_objectwriter.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\internal\structured_objectwriter.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\internal\type_info.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\internal\type_info_test_helper.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\internal\utility.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\json_util.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\message_differencer.h"/>
