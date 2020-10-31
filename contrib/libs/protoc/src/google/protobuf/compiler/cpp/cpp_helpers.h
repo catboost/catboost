@@ -77,12 +77,6 @@ string DependentBaseClassTemplateName(const Descriptor* descriptor);
 // proto_h) or google::protobuf::Message.
 string SuperClassName(const Descriptor* descriptor, const Options& options);
 
-// Yandex extension for backward compatibility
-inline string SuperClassName(const Descriptor* descriptor) {
-  return SuperClassName(descriptor, {});  // not sure it works correct, check it!
-}
-// End of Yandex extension
-
 // Returns a string that down-casts from the dependent base class to the
 // derived class.
 string DependentBaseDownCast();
