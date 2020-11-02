@@ -184,14 +184,6 @@ public:
         return ::ToLower((wchar32)c);
     }
 
-    static TCharType* Move(TCharType* s1, const TCharType* s2, size_t n) {
-        return ::MemMove(s1, s2, n);
-    }
-    static TCharType* Assign(TCharType* s, size_t n, TCharType c) {
-        for (TCharType* ptr = s; ptr < s + n; ++ptr) // see REVIEW:52714 for details
-            *ptr = c;
-        return s;
-    }
     static void Reverse(TCharType* s, size_t n) {
         TCharType* f = s;
         TCharType* l = s + n - 1;
@@ -275,9 +267,6 @@ private:
     }
 
 public:
-    static TCharType* Move(TCharType* s1, const TCharType* s2, size_t n) {
-        return ::MemMove(s1, s2, n);
-    }
     static void Reverse(TCharType* s, size_t n) {
         TCharType* f = s;
         TCharType* l = s + n - 1;
@@ -353,10 +342,6 @@ private:
 public:
     static char ToLower(char c) {
         return (char)tolower((ui8)c);
-    }
-    static char* Assign(char* s, size_t n, char c) {
-        memset(s, c, n);
-        return s;
     }
 };
 
@@ -516,15 +501,6 @@ private:
 public:
     static TCharType ToLower(TCharType c) {
         return (TCharType)::ToLower((wchar32)c);
-    }
-
-    static TCharType* Move(TCharType* s1, const TCharType* s2, size_t n) {
-        return ::MemMove(s1, s2, n);
-    }
-    static TCharType* Assign(TCharType* s, size_t n, TCharType c) {
-        for (TCharType* ptr = s; ptr < s + n; ++ptr) // see REVIEW:52714 for details
-            *ptr = c;
-        return s;
     }
 
     // Overriden methods
@@ -711,14 +687,6 @@ public:
         return ::ToLower((wchar32)c);
     }
 
-    static TCharType* Move(TCharType* s1, const TCharType* s2, size_t n) {
-        return ::MemMove(s1, s2, n);
-    }
-    static TCharType* Assign(TCharType* s, size_t n, TCharType c) {
-        for (TCharType* ptr = s; ptr < s + n; ++ptr) // see REVIEW:52714 for details
-            *ptr = c;
-        return s;
-    }
     static void Reverse(TCharType* s, size_t n) {
         TCharType* f = s;
         TCharType* l = s + n - 1;

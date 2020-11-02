@@ -393,7 +393,7 @@ public:
 
         if (n > len) {
             ReserveAndResize(n);
-            TTraits::Assign(Data_ + len, n - len, c);
+            TTraits::assign(Data_ + len, n - len, c);
 
             return *this;
         }
@@ -531,7 +531,7 @@ public:
     {
 #ifndef TSTRING_IS_STD_STRING
         Data_ = Allocate(n);
-        TTraits::Assign(Data_, n, c);
+        TTraits::assign(Data_, n, c);
 #endif
     }
 
@@ -1443,14 +1443,14 @@ private:
             // realloc (increasing)
             // 3. not enough room
             Data_ = Allocate(total, GetData());
-            TTraits::Move(Data_ + pos + ins, Data_ + pos + del, rem);
+            TTraits::move(Data_ + pos + ins, Data_ + pos + del, rem);
             TTraits::copy(Data_ + pos, pc + pos1, ins);
         } else {
             // 1. not alias
             // 2. not overlapped
             // 3. enough room
             // 4. not too much room
-            TTraits::Move(Data_ + pos + ins, Data_ + pos + del, rem);
+            TTraits::move(Data_ + pos + ins, Data_ + pos + del, rem);
             TTraits::copy(Data_ + pos, pc + pos1, ins);
             //GetData()->SetLength(total);
             TruncNonShared(total);
