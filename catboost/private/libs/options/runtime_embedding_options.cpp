@@ -51,7 +51,8 @@ namespace NCatboostOptions {
             TMap<TString, TVector<TFeatureCalcerDescription>>{
                 {DefaultProcessingName(), {
                     {
-                     TFeatureCalcerDescription{EFeatureCalcerType::LDA}
+                     TFeatureCalcerDescription{EFeatureCalcerType::LDA},
+                     TFeatureCalcerDescription{EFeatureCalcerType::KNN}
                     },
                 }
             }

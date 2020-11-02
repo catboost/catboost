@@ -16,6 +16,13 @@ namespace NOnlineHnsw {
             Data.reserve(maxSize * Dimension);
         }
 
+        TDenseVectorExtendableItemStorage(TVector<TVectorComponent>&& data, size_t dimension, size_t size)
+            : Dimension(dimension)
+            , Data(data)
+            , Size(size)
+        {
+        }
+
         TItem GetItem(ui32 id) const {
             return Data.data() + id * Dimension;
         }

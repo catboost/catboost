@@ -11,6 +11,7 @@
 #include <library/cpp/online_hnsw/base/index_writer.h>
 #include <library/cpp/online_hnsw/dense_vectors/index.h>
 
+#include <util/stream/buffer.h>
 #include <util/memory/blob.h>
 
 using TOnlineHnswCloud = NOnlineHnsw::TOnlineHnswDenseVectorIndex<float, NHnsw::TL2SqrDistance<float>>;
@@ -37,24 +38,46 @@ namespace NCB {
         const TVector<float>& GetVector() const {
             return Cloud.GetVector();
         }
+        const TOnlineHnswCloud& GetCloud() const {
+            return Cloud;
+        }
     private:
         TOnlineHnswCloud Cloud;
     };
 
+    template<typename D>
+    struct TL2Distance {
+    public:
+        TL2Distance(size_t dim)
+            : Dim(dim)
+        {}
+        using TResult = float;
+        using TLess = ::TLess<TResult>;
+        TResult operator()(const float* a, const float* b) const {
+            return Dist(a, b, Dim);
+        }
+    private:
+        D Dist;
+        size_t Dim;
+    };
+
     class TKNNCloud : public IKNNCloud {
     public:
-        TKNNCloud(TArrayHolder<ui8>&& indexData, TArrayHolder<ui8>&& vectorData,
-                  size_t idxSize, size_t stSize, size_t dim)
+        TKNNCloud(TArrayHolder<ui8>&& indexData, size_t idxSize,
+                  TVector<float>&& vectorData, size_t size, size_t dim)
             : IndexData(std::move(indexData))
-            , VectorData(std::move(vectorData))
-            , Cloud(TBlob::NoCopy(IndexData.Get(), idxSize),
-                    TBlob::NoCopy(VectorData.Get(), stSize), dim)
+            , Dist(dim)
+            , Cloud(TBlob::NoCopy(IndexData.Get(), idxSize), NOnlineHnsw::TOnlineHnswIndexReader())
+            , Points(std::move(vectorData), dim, size)
         { }
         TVector<ui32> GetNearestNeighbors(const float* embed, ui32 knum) const override;
+
+
     private:
         TArrayHolder<ui8> IndexData;
-        TArrayHolder<ui8> VectorData;
-        THnswCloud Cloud;
+        TL2Distance<NHnsw::TL2SqrDistance<float>> Dist;
+        NHnsw::THnswIndexBase Cloud;
+        NOnlineHnsw::TDenseVectorExtendableItemStorage<float> Points;
     };
 
     class TKNNCalcer final : public TEmbeddingFeatureCalcer {
