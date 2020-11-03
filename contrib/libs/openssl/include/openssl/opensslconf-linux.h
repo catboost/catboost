@@ -85,6 +85,9 @@ extern "C" {
 # endif
 #endif
 
+#ifndef OPENSSL_NO_TESTS
+# define OPENSSL_NO_TESTS
+#endif
 #ifndef OPENSSL_NO_UBSAN
 # define OPENSSL_NO_UBSAN
 #endif

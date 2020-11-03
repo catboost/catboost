@@ -1,32 +1,18 @@
 LIBRARY()
 
-VERSION(1.1.1d)
-
-LICENSE(
-    OpenSSL
-    SSLeay
-)
 
 
+VERSION(1.1.1g)
 
-NO_COMPILER_WARNINGS()
-
-NO_UTIL()
+LICENSE(OpenSSL AND SSLeay)
 
 PEERDIR(
     contrib/libs/openssl/crypto
-    contrib/libs/zlib
 )
 
 ADDINCL(
-    contrib/libs/openssl
-    contrib/libs/openssl/crypto
-    contrib/libs/openssl/crypto/ec/curve448
-    contrib/libs/openssl/crypto/ec/curve448/arch_32
-    contrib/libs/openssl/crypto/include
-    contrib/libs/openssl/crypto/modes
-    contrib/libs/openssl/include
     GLOBAL contrib/libs/openssl/include
+    contrib/libs/openssl
 )
 
 IF (OS_LINUX)
@@ -63,7 +49,12 @@ IF (OS_ANDROID)
     ENDIF()
 ENDIF()
 
+NO_COMPILER_WARNINGS()
+
+NO_RUNTIME()
+
 CFLAGS(
+    -DAESNI_ASM
     -DECP_NISTZ256_ASM
     -DOPENSSL_BN_ASM_MONT
     -DOPENSSL_CPUID_OBJ

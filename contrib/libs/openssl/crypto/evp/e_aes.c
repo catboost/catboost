@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2019 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 2001-2020 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the OpenSSL license (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -14,10 +14,10 @@
 #include <string.h>
 #include <assert.h>
 #include <openssl/aes.h>
-#include "internal/evp_int.h"
-#include "modes_lcl.h"
+#include "crypto/evp.h"
+#include "modes_local.h"
 #include <openssl/rand.h>
-#include "evp_locl.h"
+#include "evp_local.h"
 #include "sanitizers.h"
 
 typedef struct {
@@ -131,6 +131,11 @@ void bsaes_xts_decrypt(const unsigned char *inp, unsigned char *out,
                        size_t len, const AES_KEY *key1,
                        const AES_KEY *key2, const unsigned char iv[16]);
 #endif
+#if !defined(AES_ASM) && !defined(AES_CTR_ASM)			\
+	&& defined(OPENSSL_AES_CONST_TIME)			\
+	&& !defined(OPENSSL_SMALL_FOOTPRINT)
+# define AES_CTR_ASM
+#endif
 #ifdef AES_CTR_ASM
 void AES_ctr32_encrypt(const unsigned char *in, unsigned char *out,
                        size_t blocks, const AES_KEY *key,
@@ -177,7 +182,7 @@ static void ctr64_inc(unsigned char *counter)
 # define HWAES_xts_decrypt aes_p8_xts_decrypt
 #endif
 
-#if     !defined(OPENSSL_NO_ASM) &&                     (  \
+#if     defined(OPENSSL_CPUID_OBJ) &&                   (  \
         ((defined(__i386)       || defined(__i386__)    || \
           defined(_M_IX86)) && defined(OPENSSL_IA32_SSE2))|| \
         defined(__x86_64)       || defined(__x86_64__)  || \
@@ -1130,7 +1135,7 @@ typedef struct {
                 } icv;
                 unsigned char k[32];
             } kmac_param;
-            /* KMAC-AES paramater block - end */
+            /* KMAC-AES parameter block - end */
 
             union {
                 unsigned long long g[2];
@@ -1417,7 +1422,7 @@ static int s390x_aes_ctr_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
                                     (OPENSSL_s390xcap_P.kma[0] &	\
                                      S390X_CAPBIT(S390X_AES_256)))
 
-/* iv + padding length for iv lenghts != 12 */
+/* iv + padding length for iv lengths != 12 */
 # define S390X_gcm_ivpadlen(i)	((((i) + 15) >> 4 << 4) + 16)
 
 /*-
