@@ -12,6 +12,7 @@ from operator import itemgetter
 from . import _config, setters
 from ._compat import (
     PY2,
+    PYPY,
     isclass,
     iteritems,
     metadata_proxy,
@@ -223,6 +224,7 @@ def attrib(
     .. deprecated:: 19.2.0 *cmp* Removal on or after 2021-06-01.
     .. versionadded:: 19.2.0 *eq* and *order*
     .. versionadded:: 20.1.0 *on_setattr*
+    .. versionchanged:: 20.3.0 *kw_only* backported to Python 2
     """
     eq, order = _determine_eq_order(cmp, eq, order, True)
 
@@ -373,7 +375,7 @@ def _collect_base_attrs(cls, taken_attr_names):
             if a.inherited or a.name in taken_attr_names:
                 continue
 
-            a = a._assoc(inherited=True)
+            a = a.evolve(inherited=True)
             base_attrs.append(a)
             base_attr_map[a.name] = base_cls
 
@@ -411,7 +413,7 @@ def _collect_base_attrs_broken(cls, taken_attr_names):
             if a.name in taken_attr_names:
                 continue
 
-            a = a._assoc(inherited=True)
+            a = a.evolve(inherited=True)
             taken_attr_names.add(a.name)
             base_attrs.append(a)
             base_attr_map[a.name] = base_cls
@@ -419,7 +421,9 @@ def _collect_base_attrs_broken(cls, taken_attr_names):
     return base_attrs, base_attr_map
 
 
-def _transform_attrs(cls, these, auto_attribs, kw_only, collect_by_mro):
+def _transform_attrs(
+    cls, these, auto_attribs, kw_only, collect_by_mro, field_transformer
+):
     """
     Transform all `_CountingAttr`s on a class into `Attribute`s.
 
@@ -451,6 +455,7 @@ def _transform_attrs(cls, these, auto_attribs, kw_only, collect_by_mro):
                 continue
             annot_names.add(attr_name)
             a = cd.get(attr_name, NOTHING)
+
             if not isinstance(a, _CountingAttr):
                 if a is NOTHING:
                     a = attrib()
@@ -498,8 +503,8 @@ def _transform_attrs(cls, these, auto_attribs, kw_only, collect_by_mro):
     AttrsClass = _make_attr_tuple_class(cls.__name__, attr_names)
 
     if kw_only:
-        own_attrs = [a._assoc(kw_only=True) for a in own_attrs]
-        base_attrs = [a._assoc(kw_only=True) for a in base_attrs]
+        own_attrs = [a.evolve(kw_only=True) for a in own_attrs]
+        base_attrs = [a.evolve(kw_only=True) for a in base_attrs]
 
     attrs = AttrsClass(base_attrs + own_attrs)
 
@@ -518,14 +523,34 @@ def _transform_attrs(cls, these, auto_attribs, kw_only, collect_by_mro):
         if had_default is False and a.default is not NOTHING:
             had_default = True
 
+    if field_transformer is not None:
+        attrs = field_transformer(cls, attrs)
     return _Attributes((attrs, base_attrs, base_attr_map))
 
 
-def _frozen_setattrs(self, name, value):
-    """
-    Attached to frozen classes as __setattr__.
-    """
-    raise FrozenInstanceError()
+if PYPY:
+
+    def _frozen_setattrs(self, name, value):
+        """
+        Attached to frozen classes as __setattr__.
+        """
+        if isinstance(self, BaseException) and name in (
+            "__cause__",
+            "__context__",
+        ):
+            BaseException.__setattr__(self, name, value)
+            return
+
+        raise FrozenInstanceError()
+
+
+else:
+
+    def _frozen_setattrs(self, name, value):
+        """
+        Attached to frozen classes as __setattr__.
+        """
+        raise FrozenInstanceError()
 
 
 def _frozen_delattrs(self, name):
@@ -574,9 +599,15 @@ class _ClassBuilder(object):
         collect_by_mro,
         on_setattr,
         has_custom_setattr,
+        field_transformer,
     ):
         attrs, base_attrs, base_map = _transform_attrs(
-            cls, these, auto_attribs, kw_only, collect_by_mro
+            cls,
+            these,
+            auto_attribs,
+            kw_only,
+            collect_by_mro,
+            field_transformer,
         )
 
         self._cls = cls
@@ -1001,6 +1032,7 @@ def attrs(
     collect_by_mro=False,
     getstate_setstate=None,
     on_setattr=None,
+    field_transformer=None,
 ):
     r"""
     A class decorator that adds `dunder
@@ -1093,12 +1125,14 @@ def attrs(
         argument name.  If a ``__attrs_post_init__`` method exists on the
         class, it will be called after the class is fully initialized.
     :param bool slots: Create a `slotted class <slotted classes>` that's more
-        memory-efficient.
+        memory-efficient. Slotted classes are generally superior to the default
+        dict classes, but have some gotchas you should know about, so we
+        encourage you to read the `glossary entry <slotted classes>`.
     :param bool frozen: Make instances immutable after initialization.  If
         someone attempts to modify a frozen instance,
         `attr.exceptions.FrozenInstanceError` is raised.
 
-        Please note:
+        .. note::
 
             1. This is achieved by installing a custom ``__setattr__`` method
                on your class, so you can't implement your own.
@@ -1184,7 +1218,7 @@ def attrs(
 
     :param on_setattr: A callable that is run whenever the user attempts to set
         an attribute (either by assignment like ``i.x = 42`` or by using
-        `setattr` like ``setattr(i, "x", 42)``). It receives the same argument
+        `setattr` like ``setattr(i, "x", 42)``). It receives the same arguments
         as validators: the instance, the attribute that is being modified, and
         the new value.
 
@@ -1194,6 +1228,11 @@ def attrs(
         If a list of callables is passed, they're automatically wrapped in an
         `attr.setters.pipe`.
 
+    :param Optional[callable] field_transformer:
+        A function that is called with the original class object and all
+        fields right before ``attrs`` finalizes the class.  You can use
+        this, e.g., to automatically add converters or validators to
+        fields based on their types.  See `transform-fields` for more details.
 
     .. versionadded:: 16.0.0 *slots*
     .. versionadded:: 16.1.0 *frozen*
@@ -1223,6 +1262,7 @@ def attrs(
     .. versionadded:: 20.1.0 *collect_by_mro*
     .. versionadded:: 20.1.0 *getstate_setstate*
     .. versionadded:: 20.1.0 *on_setattr*
+    .. versionadded:: 20.3.0 *field_transformer*
     """
     if auto_detect and PY2:
         raise PythonTooOldError(
@@ -1269,6 +1309,7 @@ def attrs(
             collect_by_mro,
             on_setattr,
             has_own_setattr,
+            field_transformer,
         )
         if _determine_whether_to_implement(
             cls, repr, auto_detect, ("__repr__",)
@@ -1922,10 +1963,12 @@ if PY2:
     def _unpack_kw_only_lines_py2(kw_only_args):
         """
         Unpack all *kw_only_args* from _kw_only dict and handle errors.
+
         Given a list of strings "{attr_name}" and "{attr_name}={default}"
         generates list of lines of code that pop attrs from _kw_only dict and
         raise TypeError similar to builtin if required attr is missing or
         extra key is passed.
+
         >>> print("\n".join(_unpack_kw_only_lines_py2(["a", "b=42"])))
         try:
             a = _kw_only.pop('a')
@@ -2210,7 +2253,6 @@ def _attrs_to_init_script(
         lines.append("BaseException.__init__(self, %s)" % (vals,))
 
     args = ", ".join(args)
-
     if kw_only_args:
         if PY2:
             lines = _unpack_kw_only_lines_py2(kw_only_args) + lines
@@ -2236,6 +2278,13 @@ def __init__(self, {args}):
 class Attribute(object):
     """
     *Read-only* representation of an attribute.
+
+    Instances of this class are frequently used for introspection purposes
+    like:
+
+    - `fields` returns a tuple of them.
+    - Validators get them passed as the first argument.
+    - The *field transformer* hook receives a list of them.
 
     :attribute name: The name of the attribute.
     :attribute inherited: Whether or not that attribute has been inherited from
@@ -2359,10 +2408,17 @@ class Attribute(object):
 
         return self.eq and self.order
 
-    # Don't use attr.assoc since fields(Attribute) doesn't work
-    def _assoc(self, **changes):
+    # Don't use attr.evolve since fields(Attribute) doesn't work
+    def evolve(self, **changes):
         """
         Copy *self* and apply *changes*.
+
+        This works similarly to `attr.evolve` but that function does not work
+        with ``Attribute``.
+
+        It is mainly meant to be used for `transform-fields`.
+
+        .. versionadded:: 20.3.0
         """
         new = copy.copy(self)
 

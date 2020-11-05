@@ -21,7 +21,7 @@ from ._make import (
 from ._version_info import VersionInfo
 
 
-__version__ = "20.2.0"
+__version__ = "20.3.0"
 __version_info__ = VersionInfo._from_version_string(__version__)
 
 __title__ = "attrs"

@@ -91,7 +91,7 @@ if PY2:
         res.data.update(d)  # We blocked update, so we have to do it like this.
         return res
 
-    def just_warn(*args, **kw):  # pragma: nocover
+    def just_warn(*args, **kw):  # pragma: no cover
         """
         We only warn on Python 3 because we are not aware of any concrete
         consequences of not setting the cell on Python 2.
@@ -132,7 +132,7 @@ def make_set_closure_cell():
     """
     # pypy makes this easy. (It also supports the logic below, but
     # why not do the easy/fast thing?)
-    if PYPY:  # pragma: no cover
+    if PYPY:
 
         def set_closure_cell(cell, value):
             cell.__setstate__((value,))
