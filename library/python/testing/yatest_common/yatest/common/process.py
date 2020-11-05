@@ -226,8 +226,19 @@ class _Execution(object):
         if self._metrics:
             for key, value in six.iteritems(self._metrics):
                 yatest_logger.debug("Command (pid %s) %s: %s", self._process.pid, key, value)
-        yatest_logger.debug("Command (pid %s) output:\n%s", self._process.pid, truncate(self._std_out, MAX_OUT_LEN))
-        yatest_logger.debug("Command (pid %s) errors:\n%s", self._process.pid, truncate(self._std_err, MAX_OUT_LEN))
+
+        # Since this code is Python2/3 compatible, we don't know is _std_out/_std_err is real bytes or bytes-str.
+        printable_std_out, err = _try_convert_bytes_to_string(self._std_out)
+        if err:
+            yatest_logger.debug("Got error during parse process stdout: %s", err)
+            yatest_logger.debug("stdout will be displayed as raw bytes.")
+        printable_std_err, err = _try_convert_bytes_to_string(self._std_err)
+        if err:
+            yatest_logger.debug("Got error during parse process stderr: %s", err)
+            yatest_logger.debug("stderr will be displayed as raw bytes.")
+
+        yatest_logger.debug("Command (pid %s) output:\n%s", self._process.pid, truncate(printable_std_out, MAX_OUT_LEN))
+        yatest_logger.debug("Command (pid %s) errors:\n%s", self._process.pid, truncate(printable_std_err, MAX_OUT_LEN))
 
     def _clean_files(self):
         if self._err_file and not self._user_stderr and self._err_file != subprocess.PIPE:
@@ -668,3 +679,20 @@ def backtrace_to_html(bt_filename, output):
             with open(output, "ab") as afile:
                 afile.write("\n")
                 afile.write(res.std_err)
+
+
+def _try_convert_bytes_to_string(source):
+    """ Function is necessary while this code Python2/3 compatible, because bytes in Python3 is a real bytes and in Python2 is not """
+    # Bit ugly typecheck, because in Python2 isinstance(str(), bytes) and "type(str()) is bytes" working as True as well
+    if 'bytes' not in str(type(source)):
+        # We already got not bytes. Nothing to do here.
+        return source, False
+
+    result = source
+    error = False
+    try:
+        result = source.decode(encoding='utf-8')
+    except ValueError as e:
+        error = e
+
+    return result, error
