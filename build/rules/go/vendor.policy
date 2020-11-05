@@ -60,6 +60,9 @@ ALLOW .* -> vendor/github.com/coreos/etcd/pkg/types
 # logging to systemd
 ALLOW .* -> vendor/github.com/coreos/go-systemd/journal
 
+# systemd dbus
+ALLOW .* -> vendor/github.com/coreos/go-systemd/v22/dbus
+
 # mocking for database/sql
 ALLOW .* -> vendor/github.com/DATA-DOG/go-sqlmock
 
