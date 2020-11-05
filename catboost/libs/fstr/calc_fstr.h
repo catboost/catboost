@@ -78,8 +78,7 @@ TVector<std::pair<double, TFeature>> CalcFeatureEffect(
 
 TVector<TFeatureEffect> CalcRegularFeatureEffect(
     const TVector<std::pair<double, TFeature>>& effect,
-    int catFeaturesCount,
-    int floatFeaturesCount);
+    const TFullModel& model);
 
 TVector<double> CalcRegularFeatureEffect(
     const TFullModel& model,

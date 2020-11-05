@@ -10,6 +10,7 @@
 #include <catboost/private/libs/algo/helpers.h>
 #include <catboost/private/libs/algo/preprocess.h>
 #include <catboost/private/libs/algo/train.h>
+#include <catboost/libs/data/features_layout_helpers.h>
 #include <catboost/libs/data/feature_names_converter.h>
 #include <catboost/libs/fstr/output_fstr.h>
 #include <catboost/libs/helpers/exception.h>
@@ -1038,20 +1039,14 @@ static void EvaluateFeaturesImpl(
 
             if (isCalcFstr || isCalcRegularFstr) {
                 const auto& model = foldContext.FullModel.GetRef();
-                const auto& floatFeatures = model.ModelTrees->GetFloatFeatures();
-                const auto& catFeatures = model.ModelTrees->GetCatFeatures();
-                const NCB::TFeaturesLayout layout(
-                    TVector<TFloatFeature>(floatFeatures.begin(), floatFeatures.end()),
-                    TVector<TCatFeature>(catFeatures.begin(), catFeatures.end())
-                );
+                const NCB::TFeaturesLayout layout = MakeFeaturesLayout(model);
                 const auto fstrType = outputFileOptions.GetFstrType();
                 const auto effect = CalcFeatureEffect(model, /*dataset*/nullptr, fstrType, &NPar::LocalExecutor());
                 results->FeatureStrengths[isTest][featureSetIdx].emplace_back(ExpandFeatureDescriptions(layout, effect));
                 if (isCalcRegularFstr) {
                     const auto regularEffect = CalcRegularFeatureEffect(
                         effect,
-                        model.GetNumCatFeatures(),
-                        model.GetNumFloatFeatures());
+                        model);
                     results->RegularFeatureStrengths[isTest][featureSetIdx].emplace_back(
                         ExpandFeatureDescriptions(layout, regularEffect));
                 }

@@ -1,5 +1,6 @@
 #include "full_model_saver.h"
 
+#include <catboost/libs/data/features_layout_helpers.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/model/ctr_value_table.h>
@@ -772,12 +773,7 @@ namespace NCB {
         TConstArrayRef<EModelType> formats,
         bool addFileFormatExtension
     ) {
-        const TConstArrayRef<TFloatFeature> floatFeatures = fullModel.ModelTrees->GetFloatFeatures();
-        const TConstArrayRef<TCatFeature> catFeatures = fullModel.ModelTrees->GetCatFeatures();
-        TFeaturesLayout featuresLayout(
-            TVector<TFloatFeature>(floatFeatures.begin(), floatFeatures.end()),
-            TVector<TCatFeature>(catFeatures.begin(), catFeatures.end())
-        );
+        TFeaturesLayout featuresLayout = MakeFeaturesLayout(fullModel);
         TVector<TString> featureIds = featuresLayout.GetExternalFeatureIds();
 
         THashMap<ui32, TString> catFeaturesHashToString;
