@@ -42,6 +42,8 @@ are known to provide such headers, other systems might have them as well.
 */
 #if defined(__linux__) || __TBB_has_include(<linux/futex.h>)
 #include <linux/futex.h>
+#elif defined(__OpenBSD__) || __TBB_has_include(<sys/futex.h>)
+#error #include <sys/futex.h>
 #endif
 
 #include <limits.h>

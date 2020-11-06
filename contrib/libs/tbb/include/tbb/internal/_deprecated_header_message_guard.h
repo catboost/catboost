@@ -14,7 +14,7 @@
     limitations under the License.
 */
 
-#include <contrib/libs/tbb/include/tbb/tbb_config.h>
+#include "tbb/tbb_config.h"
 
 #if (!defined(TBB_SUPPRESS_DEPRECATED_MESSAGES) || (TBB_SUPPRESS_DEPRECATED_MESSAGES == 0)) && !defined(__TBB_INTERNAL_INCLUDES_DEPRECATION_MESSAGE) && \
 !defined(__TBB_condition_variable_H_include_area) && \

@@ -57,6 +57,7 @@
   - mach-o/loader.h
   - mach/clock.h
   - mach/clock_types.h
+  - mach/error.h
   - mach/host_info.h
   - mach/kern_return.h
   - mach/mach.h

@@ -9,8 +9,8 @@ VERSION(2019_U9)
 LICENSE(Apache-2.0)
 
 ADDINCL(
+    GLOBAL contrib/libs/tbb/include
     contrib/libs/tbb
-    contrib/libs/tbb/include
     contrib/libs/tbb/src
     contrib/libs/tbb/src/rml/include
 )
@@ -23,32 +23,6 @@ CFLAGS(
     -DTBB_SUPPRESS_DEPRECATED_MESSAGES=1
     -D__TBB_BUILD=1
 )
-
-IF (OS_WINDOWS)
-    CFLAGS(
-        -DUSE_WINTHREAD
-    )
-ELSE()
-    CFLAGS(
-        -DUSE_PTHREAD
-    )
-ENDIF()
-
-IF (GCC)
-    CFLAGS(
-        -flifetime-dse=1
-        -mrtm
-    )
-ENDIF()
-
-IF (NOT ARCH_ARM64)
-    CFLAGS(
-        -DDO_ITT_NOTIFY
-    )
-    SRCS(
-        src/tbb/itt_notify.cpp
-    )
-ENDIF()
 
 SRCS(
     src/old/concurrent_queue_v2.cpp
@@ -88,5 +62,32 @@ SRCS(
     src/tbb/tbb_thread.cpp
     src/tbb/x86_rtm_rw_mutex.cpp
 )
+
+IF (OS_WINDOWS)
+    CFLAGS(
+        -DUSE_WINTHREAD
+    )
+ELSE()
+    CFLAGS(
+        -DUSE_PTHREAD
+    )
+ENDIF()
+
+IF (GCC)
+    CFLAGS(
+        -flifetime-dse=1
+        -mrtm
+    )
+ENDIF()
+
+IF (NOT ARCH_ARM64)
+    CFLAGS(
+        -DDO_ITT_NOTIFY
+    )
+
+    SRCS(
+        src/tbb/itt_notify.cpp
+    )
+ENDIF()
 
 END()

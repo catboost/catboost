@@ -24,7 +24,11 @@
 
 #include "scheduler_common.h"
 #include "intrusive_list.h"
+#if __TBB_PREVIEW_CRITICAL_TASKS && __TBB_CPF_BUILD
+#error #include "task_stream_extended.h"
+#else
 #include "task_stream.h"
+#endif
 #include "../rml/include/rml_tbb.h"
 #include "mailbox.h"
 #include "observer_proxy.h"
