@@ -32,6 +32,7 @@
 #define GOOGLE_PROTOBUF_COMPILER_CPP_MAP_FIELD_H__
 
 #include <map>
+#include <string>
 
 #include <google/protobuf/compiler/cpp/cpp_message_field.h>
 

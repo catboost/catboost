@@ -51,7 +51,6 @@
 
 
 
-
 namespace google {
 namespace protobuf {
 namespace compiler {

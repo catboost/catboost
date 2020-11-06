@@ -42,6 +42,7 @@
 #endif  // !_WIN32
 #include <google/protobuf/stubs/common.h>
 
+#include <string>
 
 namespace google {
 namespace protobuf {

@@ -302,7 +302,6 @@ void Subprocess::Start(const string& program, SearchMode search_mode) {
   // Note that we assume that there are no other threads, thus we don't have to
   // do crazy stuff like using socket pairs or avoiding libc locks.
 
-  string progname = program;
   // [0] is read end, [1] is write end.
   int stdin_pipe[2];
   int stdout_pipe[2];
@@ -310,7 +309,7 @@ void Subprocess::Start(const string& program, SearchMode search_mode) {
   GOOGLE_CHECK(pipe(stdin_pipe) != -1);
   GOOGLE_CHECK(pipe(stdout_pipe) != -1);
 
-  char* argv[2] = { progname.begin(), NULL };
+  char* argv[2] = { portable_strdup(program.c_str()), NULL };
 
   child_pid_ = fork();
   if (child_pid_ == -1) {
@@ -346,6 +345,8 @@ void Subprocess::Start(const string& program, SearchMode search_mode) {
     // that will also be flushed by the parent.
     _exit(1);
   } else {
+    free(argv[0]);
+
     close(stdin_pipe[0]);
     close(stdout_pipe[1]);
 

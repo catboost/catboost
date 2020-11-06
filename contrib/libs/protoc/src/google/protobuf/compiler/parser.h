@@ -38,6 +38,7 @@
 #define GOOGLE_PROTOBUF_COMPILER_PARSER_H__
 
 #include <map>
+#include <string>
 #include <utility>
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/descriptor.pb.h>

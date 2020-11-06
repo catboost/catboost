@@ -36,6 +36,7 @@
 #define GOOGLE_PROTOBUF_COMPILER_JAVA_PRIMITIVE_FIELD_LITE_H__
 
 #include <map>
+#include <string>
 #include <google/protobuf/compiler/java/java_field.h>
 
 namespace google {

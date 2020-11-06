@@ -38,6 +38,7 @@
 #ifndef GOOGLE_PROTOBUF_COMPILER_JAVA_NAMES_H__
 #define GOOGLE_PROTOBUF_COMPILER_JAVA_NAMES_H__
 
+#include <string>
 
 namespace google {
 namespace protobuf {

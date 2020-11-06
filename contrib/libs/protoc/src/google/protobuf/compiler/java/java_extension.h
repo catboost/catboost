@@ -36,6 +36,7 @@
 #define GOOGLE_PROTOBUF_COMPILER_JAVA_EXTENSION_H__
 
 #include <map>
+#include <string>
 
 #include <google/protobuf/stubs/common.h>
 

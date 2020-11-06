@@ -2577,7 +2577,7 @@ GenerateArenaDestructorCode(io::Printer* printer) {
         "classname", classname_);
   } else {
     printer->Print(
-        "void $classname$::RegisterArenaDtor(::google::protobuf::Arena*) {\n"
+        "void $classname$::RegisterArenaDtor(::google::protobuf::Arena* /* arena */) {\n"
         "}\n",
         "classname", classname_);
   }
@@ -4005,8 +4005,7 @@ GenerateSerializeWithCachedSizes(io::Printer* printer) {
 
   printer->Print(
     "void $classname$::SerializeWithCachedSizes(\n"
-    "    ::google::protobuf::io::CodedOutputStream* output) const {\n"
-    "  Y_UNUSED(output);\n",
+    "    ::google::protobuf::io::CodedOutputStream* output) const {\n",
     "classname", classname_);
   printer->Indent();
 
@@ -4051,8 +4050,7 @@ GenerateSerializeWithCachedSizesToArray(io::Printer* printer) {
 
   printer->Print(
     "::google::protobuf::uint8* $classname$::InternalSerializeWithCachedSizesToArray(\n"
-    "    bool deterministic, ::google::protobuf::uint8* target) const {\n"
-    "  Y_UNUSED(deterministic);\n",
+    "    bool deterministic, ::google::protobuf::uint8* target) const {\n",
     "classname", classname_);
   printer->Indent();
 
