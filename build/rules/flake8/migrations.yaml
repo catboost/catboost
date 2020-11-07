@@ -296,7 +296,6 @@ migrations:
     - metrika/admin/python/bishop/frontend/tests
     - metrika/admin/python/cms/agent/lib
     - metrika/admin/python/cms/frontend/cms
-    - metrika/admin/python/cms/frontend/tests
     - metrika/admin/python/scripts/juggler_checks/metrica_infra
     - metrika/admin/python/strogg/frontend/strogg
     - metrika/core/monitoring/clickhouse-table-structure-check
@@ -876,7 +875,6 @@ migrations:
     - library/python/toloka_client
     - library/python/toloka_client/client
     - library/python/toloka_client/client/primitives
-    - library/python/toloka_client/client/util
     - library/python/toloka_client/tutorial
     - locdoc/doc_tools/yoda/friends/smartcat
     - locdoc/doc_tools/yoda/friends/smartcat/api
