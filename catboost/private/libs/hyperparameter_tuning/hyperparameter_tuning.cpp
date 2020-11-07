@@ -235,7 +235,7 @@ namespace {
         NCB::TTrainingDataProviderPtr srcData,
         const TTrainTestSplitParams& trainTestSplitParams,
         ui64 cpuUsedRamLimit,
-        NPar::TLocalExecutor* localExecutor) {
+        NPar::ILocalExecutor* localExecutor) {
 
         CB_ENSURE(
             srcData->ObjectsData->GetOrder() != NCB::EObjectsOrder::Ordered,
@@ -398,7 +398,7 @@ namespace {
         const TQuantizationParamsInfo& oldQuantizedParamsInfo,
         const TQuantizationParamsInfo& newQuantizedParamsInfo,
         TLabelConverter* labelConverter,
-        NPar::TLocalExecutor* localExecutor,
+        NPar::ILocalExecutor* localExecutor,
         TRestorableFastRng64* rand,
         NCatboostOptions::TCatBoostOptions* catBoostOptions,
         NCB::TTrainingDataProviderPtr* result) {
@@ -455,7 +455,7 @@ namespace {
         const TQuantizationParamsInfo& oldQuantizedParamsInfo,
         const TQuantizationParamsInfo& newQuantizedParamsInfo,
         TLabelConverter* labelConverter,
-        NPar::TLocalExecutor* localExecutor,
+        NPar::ILocalExecutor* localExecutor,
         TRestorableFastRng64* rand,
         NCatboostOptions::TCatBoostOptions* catBoostOptions,
         NCB::TTrainingDataProviders* result) {
@@ -721,7 +721,7 @@ namespace {
         NJson::TJsonValue* modelParamsToBeTried,
         TGridParamsInfo* bestGridParams,
         TVector<TCVResult>* bestCvResult,
-        NPar::TLocalExecutor* localExecutor,
+        NPar::ILocalExecutor* localExecutor,
         int verbose,
         const THashMap<TString, NCB::TCustomRandomDistributionGenerator>& randDistGenerators = {}) {
         TRestorableFastRng64 rand(cvParams.PartitionRandSeed);
@@ -917,7 +917,7 @@ namespace {
         NJson::TJsonValue* modelParamsToBeTried,
         TGridParamsInfo * bestGridParams,
         TMetricsAndTimeLeftHistory* trainTestResult,
-        NPar::TLocalExecutor* localExecutor,
+        NPar::ILocalExecutor* localExecutor,
         int verbose,
         const THashMap<TString, NCB::TCustomRandomDistributionGenerator>& randDistGenerators = {}) {
         TRestorableFastRng64 rand(trainTestSplitParams.PartitionRandSeed);

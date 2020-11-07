@@ -120,7 +120,7 @@ public:
         const TVector<TQueryInfo>& /*queriesInfo*/,
         TArrayRef<TDers> /*ders*/,
         ui64 /*randomSeed*/,
-        NPar::TLocalExecutor* /*localExecutor*/
+        NPar::ILocalExecutor* /*localExecutor*/
     ) const {
         CB_ENSURE(false, "Not implemented");
     }
@@ -616,7 +616,7 @@ public:
         const TVector<TQueryInfo>& queriesInfo,
         TArrayRef<TDers> ders,
         ui64 /*randomSeed*/,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
     ) const override {
         CB_ENSURE(queryStartIndex < queryEndIndex);
         const int start = queriesInfo[queryStartIndex].Begin;
@@ -664,7 +664,7 @@ public:
         const TVector<TQueryInfo>& queriesInfo,
         TArrayRef<TDers> ders,
         ui64 /*randomSeed*/,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
     ) const override {
         const int start = queriesInfo[queryStartIndex].Begin;
         NPar::ParallelFor(
@@ -734,7 +734,7 @@ public:
         const TVector<TQueryInfo>& queriesInfo,
         TArrayRef<TDers> ders,
         ui64 /*randomSeed*/,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
     ) const override {
         int start = queriesInfo[queryStartIndex].Begin;
         NPar::ParallelFor(
@@ -933,9 +933,9 @@ public:
         const TVector<TQueryInfo>& queriesInfo,
         TArrayRef<TDers> ders,
         ui64 randomSeed,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
     ) const override {
-        NPar::TLocalExecutor::TExecRangeParams blockParams(queryStartIndex, queryEndIndex);
+        NPar::ILocalExecutor::TExecRangeParams blockParams(queryStartIndex, queryEndIndex);
         blockParams.SetBlockCount(CB_THREAD_LIMIT);
         const int blockSize = blockParams.GetBlockSize();
         const int blockCount = blockParams.GetBlockCount();
@@ -1041,7 +1041,7 @@ public:
         const TVector<TQueryInfo>& queriesInfo,
         TArrayRef<TDers> ders,
         ui64 randomSeed,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
     ) const override;
 
 private:

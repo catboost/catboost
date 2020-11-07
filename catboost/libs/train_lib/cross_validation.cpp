@@ -299,7 +299,7 @@ void TrainBatch(
     ELoggingLevel loggingLevel,
     TFoldContext* foldContext,
     IModelTrainer* modelTrainer,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TMaybe<ui32>* upToIteration) { // exclusive bound, if not inited - init from profile data
 
     // don't output data from folds training
@@ -387,7 +387,7 @@ void Train(
     ITrainingCallbacks* trainingCallbacks,
     TFoldContext* foldContext,
     IModelTrainer* modelTrainer,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) {
     // don't output data from folds training
     TSetLoggingSilent silentMode;
@@ -499,7 +499,7 @@ void CrossValidate(
     const TLabelConverter& labelConverter,
     NCB::TTrainingDataProviderPtr trainingData,
     const TCrossValidationParams& cvParams,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TVector<TCVResult>* results,
     bool isAlreadyShuffled) {
 

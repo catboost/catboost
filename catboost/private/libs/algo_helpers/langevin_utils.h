@@ -7,7 +7,7 @@ struct TSum;
 struct TSumMulti;
 
 namespace NPar {
-    class TLocalExecutor;
+    class ILocalExecutor;
 }
 
 void AddLangevinNoiseToDerivatives(
@@ -15,7 +15,7 @@ void AddLangevinNoiseToDerivatives(
     float learningRate,
     ui64 randomSeed,
     TVector<TVector<double>>* derivatives,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 );
 
 void AddLangevinNoiseToLeafDerivativesSum(

@@ -133,7 +133,7 @@ namespace NCB {
 
         TWeights GetSubset(
             const TArraySubsetIndexing<ui32>& subset,
-            NPar::TLocalExecutor* localExecutor
+            NPar::ILocalExecutor* localExecutor
         ) const {
             if (IsTrivial()) {
                 return TWeights(subset.Size());

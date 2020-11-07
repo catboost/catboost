@@ -33,7 +33,7 @@ void CalcLeafValuesMulti(
     int objectsInLeafCount,
     NCatboostOptions::TLossDescription metricDescriptions,
     TRestorableFastRng64* rng,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TVector<TStep>* sumLeafDeltas,
     TVector<TVector<double>>* approx
 ) {

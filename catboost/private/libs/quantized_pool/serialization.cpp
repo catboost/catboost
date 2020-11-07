@@ -937,7 +937,7 @@ namespace NCB {
 
     static TSrcData BuildSrcDataFromDataProvider(
         TDataProviderPtr dataProvider,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
     ) {
         TSrcData srcData;
 

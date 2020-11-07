@@ -21,7 +21,7 @@ namespace NCatboostCuda {
         using TTargetMapping = typename TTarget::TMapping;
         using TConstVec = typename TTarget::TConstVec;
 
-        TMetricCalcer(const TTarget& target, NPar::TLocalExecutor* localExecutor)
+        TMetricCalcer(const TTarget& target, NPar::ILocalExecutor* localExecutor)
             : Target(target)
             , LocalExecutor(localExecutor)
         {
@@ -137,7 +137,7 @@ namespace NCatboostCuda {
         TVector<float> CpuWeights;
         TVector<TQueryInfo> QueryInfo;
 
-        NPar::TLocalExecutor* LocalExecutor;
+        NPar::ILocalExecutor* LocalExecutor;
     };
 
 }

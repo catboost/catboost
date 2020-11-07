@@ -67,7 +67,7 @@ void CalcLeafDersMulti(
     int sampleCount,
     bool isUpdateWeight,
     ELeavesEstimation estimationMethod,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TVector<TSumMulti>* leafDers
 ) {
     const int approxDimension = approx.ysize();
@@ -173,9 +173,9 @@ void UpdateApproxDeltasMulti(
     int docCount,
     TConstArrayRef<TVector<double>> leafDeltas, //leafDeltas[dimension][leafId]
     TVector<TVector<double>>* approxDeltas,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) {
-    NPar::TLocalExecutor::TExecRangeParams blockParams(0, docCount);
+    NPar::ILocalExecutor::TExecRangeParams blockParams(0, docCount);
     blockParams.SetBlockSize(AdjustBlockSize(docCount, /*regularBlockSize*/1000));
 
     const auto indicesRef = MakeArrayRef(indices);
@@ -196,9 +196,9 @@ void UpdateApproxDeltasMulti(
     int docCount,
     TConstArrayRef<double> leafDeltas, //leafDeltas[dimension]
     TVector<TVector<double>>* approxDeltas,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) {
-    NPar::TLocalExecutor::TExecRangeParams blockParams(0, docCount);
+    NPar::ILocalExecutor::TExecRangeParams blockParams(0, docCount);
     blockParams.SetBlockSize(AdjustBlockSize(docCount, /*regularBlockSize*/1000));
 
     for (int dim = 0; dim < leafDeltas.ysize(); ++dim) {

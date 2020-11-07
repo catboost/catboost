@@ -22,6 +22,6 @@ TVector<TVector<TVector<TVector<double>>>> CalcShapInteractionValuesMulti(
     const TMaybe<std::pair<int, int>>& pairOfFeatures,
     int logPeriod,
     EPreCalcShapValues mode,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     ECalcTypeShapValues calcType = ECalcTypeShapValues::Regular
 );

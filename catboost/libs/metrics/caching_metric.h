@@ -24,7 +24,7 @@ TVector<TMetricHolder> EvalErrorsWithCaching(
     TConstArrayRef<float> weight,
     TConstArrayRef<TQueryInfo> queriesInfo,
     TConstArrayRef<const IMetric *> metrics,
-    NPar::TLocalExecutor *localExecutor
+    NPar::ILocalExecutor *localExecutor
 );
 
 inline static TVector<TMetricHolder> EvalErrorsWithCaching(
@@ -35,7 +35,7 @@ inline static TVector<TMetricHolder> EvalErrorsWithCaching(
     TConstArrayRef<float> weight,
     TConstArrayRef<TQueryInfo> queriesInfo,
     TConstArrayRef<const IMetric*> metrics,
-    NPar::TLocalExecutor *localExecutor
+    NPar::ILocalExecutor *localExecutor
 ) {
     return EvalErrorsWithCaching(
         approx,

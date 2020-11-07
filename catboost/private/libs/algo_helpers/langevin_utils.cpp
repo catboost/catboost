@@ -24,7 +24,7 @@ void AddLangevinNoiseToDerivatives(
     float learningRate,
     ui64 randomSeed,
     TVector<TVector<double>>* derivatives,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) {
     if (diffusionTemperature == 0.0f) {
         return;

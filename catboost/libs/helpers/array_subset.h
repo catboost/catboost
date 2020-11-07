@@ -491,7 +491,7 @@ namespace NCB {
         template <class F>
         void ParallelForEach(
             F&& f,
-            NPar::TLocalExecutor* localExecutor,
+            NPar::ILocalExecutor* localExecutor,
             TMaybe<TSize> approximateBlockSize = Nothing()
         ) const {
             if (!Size()) {
@@ -534,7 +534,7 @@ namespace NCB {
         template <class F>
         void ParallelForEachBlockwise(
             F&& f,
-            NPar::TLocalExecutor* localExecutor,
+            NPar::ILocalExecutor* localExecutor,
             TMaybe<TSize> approximateBlockSize = Nothing()
         ) const {
             if (!Size()) {
@@ -867,7 +867,7 @@ namespace NCB {
     template <class TSize = size_t>
     TArraySubsetIndexing<TSize> MakeIncrementalIndexing(
         const TArraySubsetIndexing<TSize>& indexing,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
     ) {
         if (HoldsAlternative<TFullSubset<TSize>>(indexing)) {
             return indexing;
@@ -950,7 +950,7 @@ namespace NCB {
         template <class F>
         void ParallelForEach(
             F&& f,
-            NPar::TLocalExecutor* localExecutor,
+            NPar::ILocalExecutor* localExecutor,
             TMaybe<TSize> approximateBlockSize = Nothing()
         ) {
             SubsetIndexing->ParallelForEach(
@@ -965,7 +965,7 @@ namespace NCB {
         template <class F>
         void ParallelForEach(
             F&& f,
-            NPar::TLocalExecutor* localExecutor,
+            NPar::ILocalExecutor* localExecutor,
             TMaybe<TSize> approximateBlockSize = Nothing()
         ) const {
             SubsetIndexing->ParallelForEach(
@@ -1018,7 +1018,7 @@ namespace NCB {
     inline TVector<TDst> GetSubset(
         const TSrcArrayLike& srcArrayLike,
         const TArraySubsetIndexing<TSize>& subsetIndexing,
-        TMaybe<NPar::TLocalExecutor*> localExecutor = Nothing(), // use parallel implementation if defined
+        TMaybe<NPar::ILocalExecutor*> localExecutor = Nothing(), // use parallel implementation if defined
         TMaybe<TSize> approximateBlockSize = Nothing() // for parallel version
     ) {
         TVector<TDst> dst;
@@ -1044,7 +1044,7 @@ namespace NCB {
     inline TMaybe<TVector<T>, TMaybePolicy> GetSubsetOfMaybeEmpty(
         TMaybe<TConstArrayRef<T>, TMaybePolicy> src,
         const TArraySubsetIndexing<TSize>& subsetIndexing,
-        TMaybe<NPar::TLocalExecutor*> localExecutor = Nothing(), // use parallel implementation if defined
+        TMaybe<NPar::ILocalExecutor*> localExecutor = Nothing(), // use parallel implementation if defined
         TMaybe<TSize> approximateBlockSize = Nothing() // for parallel version
     ) {
         if (!src) {
@@ -1244,7 +1244,7 @@ namespace NCB {
     TArraySubsetInvertedIndexing<TSize> GetInvertedIndexing(
         const TArraySubsetIndexing<TSize>& indexing,
         TSize srcSize,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
     ) {
         if (indexing.index()
             == TVariantIndexV<TFullSubset<TSize>, typename TArraySubsetIndexing<TSize>::TBase>)
@@ -1281,7 +1281,7 @@ namespace NCB {
     TArraySubsetInvertedIndexing<TSize> Compose(
         const TArraySubsetInvertedIndexing<TSize>& src,
         TArraySubsetInvertedIndexing<TSize>&& srcSubset,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
     ) {
         CB_ENSURE_INTERNAL(
             src.GetSize() >= srcSubset.GetSrcSize(),

@@ -82,7 +82,7 @@ namespace NCB {
         void Do(
             bool requiresStaticCtrProvider,
             TFullModel* dstModel,
-            NPar::TLocalExecutor* localExecutor,
+            NPar::ILocalExecutor* localExecutor,
             const TVector<TTargetClassifier>* targetClassifiers
         );
 
@@ -90,7 +90,7 @@ namespace NCB {
             const TString& fullModelPath,
             const TVector<EModelType>& formats,
             bool addFileFormatExtension = false,
-            NPar::TLocalExecutor* localExecutor = nullptr,
+            NPar::ILocalExecutor* localExecutor = nullptr,
             const TVector<TTargetClassifier>* targetClassifiers = nullptr
         );
 
@@ -98,7 +98,7 @@ namespace NCB {
         void DoImpl(
             bool requiresStaticCtrProvider,
             TFullModel* fullModel,
-            NPar::TLocalExecutor* localExecutor,
+            NPar::ILocalExecutor* localExecutor,
             const TVector<TTargetClassifier>* targetClassifiers
         );
 
@@ -140,7 +140,7 @@ namespace NCB {
         TTextProcessingCollection* textProcessingCollection,
         TEmbeddingProcessingCollection* embeddingProcessingCollection,
         TVector<TEstimatedFeature>* reorderedEstimatedFeatures,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
     );
 
     void ExportFullModel(

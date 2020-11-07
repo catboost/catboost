@@ -364,13 +364,13 @@ inline TVector<TStorageType> CompressVector(const T* data, ui32 size, ui32 bitsP
     dst.resize(indexHelper.CompressedSize(size));
     const auto mask = indexHelper.Mask();
 
-    NPar::TLocalExecutor::TExecRangeParams params(0, size);
+    NPar::ILocalExecutor::TExecRangeParams params(0, size);
     //alignment by entries per int allows parallel compression
     params.SetBlockSize(indexHelper.GetEntriesPerType() * 8192);
 
     NPar::LocalExecutor().ExecRange(
         [&](int blockIdx) {
-            NPar::TLocalExecutor::BlockedLoopBody(
+            NPar::ILocalExecutor::BlockedLoopBody(
                 params,
                 [&](int i) {
                     const ui32 offset = indexHelper.Offset((ui32)i);
@@ -386,7 +386,7 @@ inline TVector<TStorageType> CompressVector(const T* data, ui32 size, ui32 bitsP
         },
         0,
         params.GetBlockCount(),
-        NPar::TLocalExecutor::WAIT_COMPLETE
+        NPar::ILocalExecutor::WAIT_COMPLETE
     );
 
     return dst;

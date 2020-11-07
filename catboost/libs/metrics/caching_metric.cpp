@@ -71,7 +71,7 @@ namespace {
             TConstArrayRef<TQueryInfo> queriesInfo,
             int begin,
             int end,
-            NPar::TLocalExecutor& executor
+            NPar::ILocalExecutor& executor
         ) const override {
             return Eval(To2DConstArrayRef<double>(approx), /*approxDelta*/{}, /*isExpApprox*/false, target, weight, queriesInfo, begin, end, executor);
         }
@@ -84,7 +84,7 @@ namespace {
             TConstArrayRef<TQueryInfo> queriesInfo,
             int begin,
             int end,
-            NPar::TLocalExecutor& executor
+            NPar::ILocalExecutor& executor
         ) const override {
             const auto evalMetric = [&](int from, int to) {
                 return Eval(approx, approxDelta, isExpApprox, target, weight, queriesInfo, from, to, Nothing());
@@ -1030,7 +1030,7 @@ TVector<TMetricHolder> EvalErrorsWithCaching(
     TConstArrayRef<float> weight,
     TConstArrayRef<TQueryInfo> queriesInfo,
     TConstArrayRef<const IMetric*> metrics,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) {
     const auto threadCount = localExecutor->GetThreadCount() + 1;
     const auto objectCount = approx.front().size();
@@ -1058,13 +1058,13 @@ TVector<TMetricHolder> EvalErrorsWithCaching(
     TVector<TMetricHolder> errors;
     errors.reserve(metrics.size());
 
-    NPar::TLocalExecutor::TExecRangeParams objectwiseBlockParams(0, objectCount);
+    NPar::ILocalExecutor::TExecRangeParams objectwiseBlockParams(0, objectCount);
     if (!target.empty()) {
         const auto objectwiseEffectiveBlockCount = Min(threadCount, int(ceil(double(objectCount) / GetMinBlockSize(objectCount))));
         objectwiseBlockParams.SetBlockCount(objectwiseEffectiveBlockCount);
     }
 
-    NPar::TLocalExecutor::TExecRangeParams querywiseBlockParams(0, queryCount);
+    NPar::ILocalExecutor::TExecRangeParams querywiseBlockParams(0, queryCount);
     if (!queriesInfo.empty()) {
         const auto querywiseEffectiveBlockCount = Min(threadCount, int(ceil(double(queryCount) / GetMinBlockSize(objectCount))));
         querywiseBlockParams.SetBlockCount(querywiseEffectiveBlockCount);

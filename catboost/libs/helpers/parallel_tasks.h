@@ -16,16 +16,16 @@
 namespace NCB {
 
     // tasks is not const because elements of tasks are cleared after execution
-    void ExecuteTasksInParallel(TVector<std::function<void()>>* tasks, NPar::TLocalExecutor* localExecutor);
+    void ExecuteTasksInParallel(TVector<std::function<void()>>* tasks, NPar::ILocalExecutor* localExecutor);
 
     template <class T>
     void ParallelFill(
         const T& fillValue,
         TMaybe<int> blockSize,
-        NPar::TLocalExecutor* localExecutor,
+        NPar::ILocalExecutor* localExecutor,
         TArrayRef<T> array) {
 
-        NPar::TLocalExecutor::TExecRangeParams rangeParams(0, SafeIntegerCast<int>(array.size()));
+        NPar::ILocalExecutor::TExecRangeParams rangeParams(0, SafeIntegerCast<int>(array.size()));
         if (blockSize) {
             rangeParams.SetBlockSize(*blockSize);
         } else {
@@ -41,7 +41,7 @@ namespace NCB {
     template <typename TNumber>
     inline TNumber L2NormSquared(
         TConstArrayRef<TNumber> array,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
     ) {
         TNumber result = 0;
         NCB::MapMerge(
@@ -71,7 +71,7 @@ namespace NCB {
         int rowCount,
         int columnCount,
         TVector<TVector<TNumber>>* dst,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
     ) {
         constexpr int minimumElementCount = 1000;
         dst->resize(rowCount);

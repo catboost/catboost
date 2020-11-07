@@ -11,7 +11,7 @@ namespace NCatboostOptions {
 }
 
 namespace NPar {
-    class TLocalExecutor;
+    class ILocalExecutor;
 }
 
 void UpdatePairsForYetiRank(
@@ -22,7 +22,7 @@ void UpdatePairsForYetiRank(
     int queryBegin,
     int queryEnd,
     TVector<TQueryInfo>* queriesInfo,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 );
 
 void YetiRankRecalculation(
@@ -30,7 +30,7 @@ void YetiRankRecalculation(
     const TFold::TBodyTail& bt,
     const NCatboostOptions::TCatBoostOptions& params,
     ui64 randomSeed,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TVector<TQueryInfo>* recalculatedQueriesInfo,
     TVector<float>* recalculatedPairwiseWeights
 );

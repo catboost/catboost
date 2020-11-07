@@ -67,7 +67,7 @@ namespace {
             TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
             THolder<IDataProviderBuilder> builder,
             TRestorableFastRng64* rand,
-            NPar::TLocalExecutor* localExecutor)
+            NPar::ILocalExecutor* localExecutor)
             : LocalExecutor(localExecutor)
             , PlainJsonParams(std::move(plainJsonParams))
             , InputBordersPath(std::move(inputBordersPath))
@@ -429,7 +429,7 @@ namespace {
         bool IsStarted = false;
         bool ResultsTaken = false;
 
-        NPar::TLocalExecutor* LocalExecutor;
+        NPar::ILocalExecutor* LocalExecutor;
 
         NJson::TJsonValue PlainJsonParams;
         TMaybe<TString> InputBordersPath;
@@ -462,7 +462,7 @@ namespace {
     template <class T, class ValuesHolder>
     TMaybeOwningConstArrayHolder<ui8> ExtractValuesForQuantizedVisitor(
         const ValuesHolder& srcValues,
-        NPar::TLocalExecutor* localExecutor) {
+        NPar::ILocalExecutor* localExecutor) {
 
         TMaybeOwningConstArrayHolder<T> values =
             TMaybeOwningConstArrayHolder<T>::CreateOwning(srcValues.template ExtractValues<T>(localExecutor));
@@ -476,7 +476,7 @@ namespace {
             TDatasetSubset loadSubset,
             EObjectsOrder objectsOrder,
             TRestorableFastRng64* rand,
-            NPar::TLocalExecutor* localExecutor)
+            NPar::ILocalExecutor* localExecutor)
             : LocalExecutor(localExecutor)
             , FirstPassResult(std::move(firstPassResult))
             , QuantizedDataBuilder(
@@ -723,7 +723,7 @@ namespace {
     private:
         bool ResultsTaken = false;
 
-        NPar::TLocalExecutor* LocalExecutor;
+        NPar::ILocalExecutor* LocalExecutor;
 
         TQuantizationFirstPassResult FirstPassResult;
         THolder<IDataProviderBuilder> QuantizedDataBuilder;
@@ -755,7 +755,7 @@ TDataProviderPtr NCB::ReadAndQuantizeDataset(
     TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
     TDatasetSubset loadSubset,
     TMaybe<TVector<NJson::TJsonValue>*> classLabels,
-    NPar::TLocalExecutor* localExecutor) {
+    NPar::ILocalExecutor* localExecutor) {
 
     if (!blockSize) {
         blockSize = 10000;

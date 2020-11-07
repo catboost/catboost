@@ -1,6 +1,6 @@
 #include "doc_parallel_leaves_estimator.h"
 
-void NCatboostCuda::TDocParallelLeavesEstimator::Estimate(ui32 taskId, NPar::TLocalExecutor* localExecutor) {
+void NCatboostCuda::TDocParallelLeavesEstimator::Estimate(ui32 taskId, NPar::ILocalExecutor* localExecutor) {
     auto& task = Tasks.at(taskId);
     auto derCalcer = CreateDerCalcer(task);
 

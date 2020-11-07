@@ -74,7 +74,7 @@ static void ScaleAllApproxes(
     const double approxMultiplier,
     const bool storeExpApprox,
     TLearnProgress* learnProgress,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) {
     TVector<TVector<TVector<double>>*> allApproxes;
     for (auto& fold : learnProgress->Folds) {

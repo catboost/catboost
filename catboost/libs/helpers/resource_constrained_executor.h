@@ -43,7 +43,7 @@ namespace NCB {
             const TString& resourceName,
             TResourceUnit resourceQuota,
             bool lenientMode,
-            NPar::TLocalExecutor* localExecutor
+            NPar::ILocalExecutor* localExecutor
         );
 
         // waits until all tasks are finished
@@ -56,12 +56,12 @@ namespace NCB {
          */
         void ExecTasks();
 
-        NPar::TLocalExecutor* GetExecutorPtr() {
+        NPar::ILocalExecutor* GetExecutorPtr() {
             return &LocalExecutor;
         }
 
     private:
-        NPar::TLocalExecutor& LocalExecutor;
+        NPar::ILocalExecutor& LocalExecutor;
         TString ResourceName;
         const TResourceUnit ResourceQuota;
         TQueue Queue;

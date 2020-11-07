@@ -21,7 +21,7 @@ namespace NCB {
         void ComputeFeatures(
             TCalculatedFeatureVisitor learnVisitor,
             TConstArrayRef<TCalculatedFeatureVisitor> testVisitors,
-            NPar::TLocalExecutor*) const override {
+            NPar::ILocalExecutor*) const override {
 
             THolder<TFeatureCalcer> featureCalcer = EstimateFeatureCalcer();
 
@@ -40,7 +40,7 @@ namespace NCB {
             TConstArrayRef<ui32> learnPermutation,
             TCalculatedFeatureVisitor learnVisitor,
             TConstArrayRef<TCalculatedFeatureVisitor> testVisitors,
-            NPar::TLocalExecutor*) const override {
+            NPar::ILocalExecutor*) const override {
 
             TFeatureCalcer featureCalcer = CreateFeatureCalcer();
             TCalcerVisitor calcerVisitor = CreateCalcerVisitor();
@@ -88,7 +88,7 @@ namespace NCB {
 
         THolder<IFeatureCalcer> MakeFinalFeatureCalcer(
             TConstArrayRef<ui32> featureIndices,
-            NPar::TLocalExecutor* executor) const override {
+            NPar::ILocalExecutor* executor) const override {
 
             Y_UNUSED(executor);
 

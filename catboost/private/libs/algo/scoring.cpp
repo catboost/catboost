@@ -341,7 +341,7 @@ static void CalcStatsPairwise(
     int bucketCount,
     ui32 oneHotMaxSize,
     int depth,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TPairwiseStats* stats
 ) {
     const int approxDimension = fold.GetApproxDimension();
@@ -486,7 +486,7 @@ static void CalcStatsPointwise(
     bool isPlainMode,
     int depth,
     int splitStatsCount,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TBucketStatsRefOptionalHolder* stats
 ) {
     Y_ASSERT(!isCaching || depth > 0);
@@ -784,7 +784,7 @@ void CalcStatsAndScores(
     bool useTreeLevelCaching,
     const TVector<int>& currTreeMonotonicConstraints,
     const TMap<ui32, int>& monotonicConstraints,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TBucketStatsCache* statsFromPrevTree,
     TStats3D* stats3d,
     TPairwiseStats* pairwiseStats,

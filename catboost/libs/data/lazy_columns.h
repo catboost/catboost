@@ -60,14 +60,14 @@ namespace NCB {
             return 0;
         }
 
-        ui32 CalcChecksum(NPar::TLocalExecutor* localExecutor) const override {
+        ui32 CalcChecksum(NPar::ILocalExecutor* localExecutor) const override {
             Y_UNUSED(localExecutor);
             return 0;
         }
 
         THolder<IFeatureValuesHolder> CloneWithNewSubsetIndexing(
             const TCloningParams& cloningParams,
-            NPar::TLocalExecutor* localExecutor
+            NPar::ILocalExecutor* localExecutor
         ) const override {
             Y_UNUSED(localExecutor);
             CB_ENSURE_INTERNAL(!cloningParams.MakeConsecutive, "Making consecutive not supported on Lazy columns for now");

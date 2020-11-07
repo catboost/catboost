@@ -35,7 +35,7 @@ namespace NCatboostCuda {
             return *this;
         }
 
-        void Estimate(NPar::TLocalExecutor* localExecutor) {
+        void Estimate(NPar::ILocalExecutor* localExecutor) {
             for (ui32 taskId = 0; taskId < Tasks.size(); ++taskId) {
                 Estimate(taskId, localExecutor);
             }
@@ -52,7 +52,7 @@ namespace NCatboostCuda {
     private:
         THolder<ILeavesEstimationOracle> CreateDerCalcer(const TTask& task);
 
-        void Estimate(ui32 taskId, NPar::TLocalExecutor* localExecutor);
+        void Estimate(ui32 taskId, NPar::ILocalExecutor* localExecutor);
 
     private:
         TLeavesEstimationConfig LeavesEstimationConfig;

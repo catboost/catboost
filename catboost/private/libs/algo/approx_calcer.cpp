@@ -59,7 +59,7 @@ inline void UpdateApproxKernel(const double* leafDeltas, const TIndexType* indic
 
 template <bool StoreExpApprox>
 inline void UpdateApproxBlock(
-    const NPar::TLocalExecutor::TExecRangeParams& params,
+    const NPar::ILocalExecutor::TExecRangeParams& params,
     const double* leafDeltas,
     const TIndexType* indices,
     int blockIdx,
@@ -80,7 +80,7 @@ void UpdateApproxDeltas(
     bool storeExpApprox,
     const TVector<TIndexType>& indices,
     int docCount,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TVector<double>* leafDeltas,
     TVector<double>* deltasDimension) {
     ExpApproxIf(storeExpApprox, *leafDeltas);
@@ -89,7 +89,7 @@ void UpdateApproxDeltas(
     const TIndexType* indicesData = indices.data();
     const double* leafDeltasData = leafDeltas->data();
 
-    NPar::TLocalExecutor::TExecRangeParams blockParams(0, docCount);
+    NPar::ILocalExecutor::TExecRangeParams blockParams(0, docCount);
     blockParams.SetBlockSize(AdjustBlockSize(docCount, /*regularBlockSize*/1000));
 
     const auto getUpdateApproxBlockLambda = [&](auto boolConst) -> std::function<void(int)> {
@@ -120,7 +120,7 @@ static void CalcApproxDers(
     int sampleFinish,
     TArrayRef<TDers> approxDers,
     TLearnContext* ctx) {
-    NPar::TLocalExecutor::TExecRangeParams blockParams(sampleStart, sampleFinish);
+    NPar::ILocalExecutor::TExecRangeParams blockParams(sampleStart, sampleFinish);
     blockParams.SetBlockSize(AdjustBlockSize(sampleFinish - sampleStart, APPROX_BLOCK_SIZE));
     ctx->LocalExecutor->ExecRangeWithThrow(
         [&](int blockId) {
@@ -168,10 +168,10 @@ static void CalcLeafDers(
     int sampleCount,
     bool recalcLeafWeights,
     ELeavesEstimation estimationMethod,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TArrayRef<TSum> leafDers,
     TArrayRef<TDers> weightedDers) {
-    NPar::TLocalExecutor::TExecRangeParams blockParams(0, sampleCount);
+    NPar::ILocalExecutor::TExecRangeParams blockParams(0, sampleCount);
     blockParams.SetBlockCount(AdjustBlockCountLimit(sampleCount, CB_THREAD_LIMIT));
 
     const int leafCount = leafDers.size();
@@ -277,7 +277,7 @@ void CalcLeafDersSimple(
     ELeavesEstimation estimationMethod,
     const NCatboostOptions::TCatBoostOptions& params,
     ui64 randomSeed,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TVector<TSum>* leafDers,
     TArray2D<double>* pairwiseBuckets,
     TVector<TDers>* scratchDers) {
@@ -483,7 +483,7 @@ static void UpdateApproxDeltasHistorically(
     float l2Regularizer,
     const NCatboostOptions::TCatBoostOptions& params,
     ui64 randomSeed,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TLearnContext* ctx,
     TArrayRef<TSum> leafDers,
     TVector<double>* approxDeltas,

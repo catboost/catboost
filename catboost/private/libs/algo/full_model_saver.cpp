@@ -33,7 +33,7 @@ namespace {
         TTextCollectionBuilder(
             const TFeatureEstimators& estimators,
             const TTextDigitizers& textDigitizers,
-            NPar::TLocalExecutor* localExecutor
+            NPar::ILocalExecutor* localExecutor
         )
             : WasBuilt(false)
             , FeatureEstimators(estimators)
@@ -224,14 +224,14 @@ namespace {
         THashMap<TGuid, TDigitizerId> CalcerToDigitizer;
         TVector<TEstimatedFeature> EstimatedFeatures;
 
-        NPar::TLocalExecutor* LocalExecutor;
+        NPar::ILocalExecutor* LocalExecutor;
     };
 
     class TEmbeddingCollectionBuilder {
     public:
         TEmbeddingCollectionBuilder(
             const TFeatureEstimators& estimators,
-            NPar::TLocalExecutor* localExecutor
+            NPar::ILocalExecutor* localExecutor
         )
             : WasBuilt(false)
             , FeatureEstimators(estimators)
@@ -326,14 +326,14 @@ namespace {
         TVector<TVector<ui32>> PerEmbeddingFeatureCalcers;
         TVector<TEmbeddingFeatureCalcerPtr> Calcers;
         TVector<TEstimatedFeature> EstimatedFeatures;
-        NPar::TLocalExecutor* LocalExecutor;
+        NPar::ILocalExecutor* LocalExecutor;
     };
 }
 
 namespace NCB {
 
     static void CreateTargetClasses(
-        NPar::TLocalExecutor& localExecutor,
+        NPar::ILocalExecutor& localExecutor,
         TConstArrayRef<TConstArrayRef<float>> targets,
         const TVector<TTargetClassifier>& targetClassifiers,
         TVector<TVector<int>>* learnTargetClasses,
@@ -523,7 +523,7 @@ namespace NCB {
     void TCoreModelToFullModelConverter::Do(
         bool requiresStaticCtrProvider,
         TFullModel* dstModel,
-        NPar::TLocalExecutor* localExecutor,
+        NPar::ILocalExecutor* localExecutor,
         const TVector<TTargetClassifier>* targetClassifiers) {
 
         DoImpl(requiresStaticCtrProvider, dstModel, localExecutor, targetClassifiers);
@@ -533,7 +533,7 @@ namespace NCB {
         const TString& fullModelPath,
         const TVector<EModelType>& formats,
         bool addFileFormatExtension,
-        NPar::TLocalExecutor* localExecutor,
+        NPar::ILocalExecutor* localExecutor,
         const TVector<TTargetClassifier>* targetClassifiers
     ) {
         TFullModel fullModel;
@@ -558,7 +558,7 @@ namespace NCB {
     void TCoreModelToFullModelConverter::DoImpl(
         bool requiresStaticCtrProvider,
         TFullModel* dstModel,
-        NPar::TLocalExecutor* localExecutor,
+        NPar::ILocalExecutor* localExecutor,
         const TVector<TTargetClassifier>* targetClassifiers
     ) {
         CB_ENSURE_INTERNAL(CoreModel, "CoreModel has not been specified");
@@ -719,7 +719,7 @@ namespace NCB {
         TTextProcessingCollection* textProcessingCollection,
         TEmbeddingProcessingCollection* embeddingProcessingCollection,
         TVector<TEstimatedFeature>* reorderedEstimatedFeatures,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
     ) {
         CB_ENSURE(
             !estimatedFeatures.empty(),

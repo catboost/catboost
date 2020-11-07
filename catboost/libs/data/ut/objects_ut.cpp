@@ -31,7 +31,7 @@ static TTObjectsDataProvider GetMaybeSubsetDataProvider(
     TTObjectsDataProvider&& objectsDataProvider,
     TMaybe<TArraySubsetIndexing<ui32>> subsetForGetSubset,
     TMaybe<EObjectsOrder> objectsOrderForGetSubset,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) {
     if (subsetForGetSubset.Defined()) {
         TObjectsGroupingSubset objectsGroupingSubset = GetSubset(
@@ -251,7 +251,7 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
         const TVector<THashMap<ui32, TString>>& catFeaturesHashToString,
         const TCommonObjectsData& commonData,
         std::pair<bool, bool> useFeatureTypes,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
     ) {
         TRawObjectsData data;
         ui32 featureId = 0;

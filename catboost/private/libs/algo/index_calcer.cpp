@@ -254,7 +254,7 @@ void GetObjectsDataAndIndexing(
     bool isOnline,
     ui32 objectSubsetIdx, // 0 - learn, 1+ - test (subtract 1 for testIndex)
     TIndexedSubsetCache* indexedSubsetCache,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TQuantizedObjectsDataProviderPtr* objectsData,
     const ui32** columnIndexing // can return nullptr
 ) {
@@ -316,7 +316,7 @@ static void UpdateIndices(
     const TTrainingDataProviders& trainingData,
     const TFold& fold,
     ui32 objectSubsetIdx, // 0 - learn, 1+ - test (subtract 1 for testIndex)
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TArrayRef<TIndexType> indices) {
 
     TIndexType defaultIndexValue = 0;
@@ -455,7 +455,7 @@ void SetPermutedIndices(
     int curDepth,
     const TFold& fold,
     TVector<TIndexType>* indices,
-    NPar::TLocalExecutor* localExecutor) {
+    NPar::ILocalExecutor* localExecutor) {
 
     CB_ENSURE(curDepth > 0);
 
@@ -477,7 +477,7 @@ void SetPermutedIndices(
         *indices);
 }
 
-static TVector<bool> GetIsLeafEmptyOpt(ui64 leafCount, TConstArrayRef<TIndexType> indices, NPar::TLocalExecutor* localExecutor) {
+static TVector<bool> GetIsLeafEmptyOpt(ui64 leafCount, TConstArrayRef<TIndexType> indices, NPar::ILocalExecutor* localExecutor) {
     Y_ASSERT(leafCount <= 64);
     ui64 isLeafEmptyBits;
     MapMerge(
@@ -509,7 +509,7 @@ static TVector<bool> GetIsLeafEmptyOpt(ui64 leafCount, TConstArrayRef<TIndexType
     return isLeafEmpty;
 }
 
-TVector<bool> GetIsLeafEmpty(int curDepth, TConstArrayRef<TIndexType> indices, NPar::TLocalExecutor* localExecutor) {
+TVector<bool> GetIsLeafEmpty(int curDepth, TConstArrayRef<TIndexType> indices, NPar::ILocalExecutor* localExecutor) {
     const ui64 leafCount = ui64(1) << ui64(curDepth);
     if (leafCount <= 64) {
         return GetIsLeafEmptyOpt(leafCount, indices, localExecutor);
@@ -602,7 +602,7 @@ static void BuildIndicesForDataset(
     const TVector<const TOnlineCTR*>& onlineCtrs,
     ui32 docOffset,
     ui32 objectSubsetIdx, // 0 - learn, 1+ - test (subtract 1 for testIndex)
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TIndexType* indices) {
 
     TVector<TUpdateIndicesForSplitParams> params;
@@ -631,7 +631,7 @@ static void BuildIndicesForDataset(
     const TVector<const TOnlineCTR*>& onlineCtrs,
     ui32 docOffset,
     ui32 objectSubsetIdx, // 0 - learn, 1+ - test (subtract 1 for testIndex)
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TIndexType* indices) {
 
     const auto buildIndices = [&](auto tree) {
@@ -660,7 +660,7 @@ TVector<TIndexType> BuildIndices(
     const TVariant<TSplitTree, TNonSymmetricTreeStructure>& tree,
     const TTrainingDataProviders& trainingData,
     EBuildIndicesDataParts dataParts,
-    NPar::TLocalExecutor* localExecutor) {
+    NPar::ILocalExecutor* localExecutor) {
 
     ui32 learnSampleCount
         = (dataParts == EBuildIndicesDataParts::TestOnly) ? 0 : trainingData.Learn->GetObjectCount();

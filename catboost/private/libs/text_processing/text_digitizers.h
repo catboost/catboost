@@ -71,7 +71,7 @@ namespace NCB {
         void Apply(
             TSourceTextAccessor&& sourceTextAccessor,
             TDigitizedTextWriter&& digitizedTextWriter,
-            NPar::TLocalExecutor* localExecutor
+            NPar::ILocalExecutor* localExecutor
         ) const {
             TVector<std::pair<ui32, ui32>> sourceToDestinationPairs;
             for (const auto& [sourceTextIdx, digitizedSetIndices]: SourceToDestinationIndexes) {

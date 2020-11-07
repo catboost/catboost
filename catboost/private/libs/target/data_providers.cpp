@@ -41,7 +41,7 @@ namespace NCB {
         bool classCountUnknown,
         const TVector<NJson::TJsonValue> inputClassLabels,
         TVector<NJson::TJsonValue>* outputClassLabels,
-        NPar::TLocalExecutor* localExecutor,
+        NPar::ILocalExecutor* localExecutor,
         ui32* classCount)
     {
         if (!maybeRawTarget) {
@@ -128,7 +128,7 @@ namespace NCB {
         // [objectIdx], should contain integer values, can be empty
         TMaybe<TConstArrayRef<float>> targetClasses,
         TConstArrayRef<float> classWeights, // [classIdx], empty if not specified
-        NPar::TLocalExecutor* localExecutor)
+        NPar::ILocalExecutor* localExecutor)
     {
         CheckDataSize(classWeights.size(), (size_t)classCount, "class weights size", true, "class count");
         Y_VERIFY(!targetClasses || ((size_t)rawWeights.GetSize() == targetClasses->size()));
@@ -172,7 +172,7 @@ namespace NCB {
         const TWeights<float>& rawWeights,
         const TWeights<float>& rawGroupWeights,
         bool isForGpu,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
     ) {
         if (!isForGpu) {
             // TODO(akhropov): make GPU also support trivial TWeights
@@ -507,7 +507,7 @@ namespace NCB {
         const TInputClassificationInfo& inputClassificationInfo,
         TOutputClassificationInfo* outputClassificationInfo,
         TRestorableFastRng64* rand, // for possible pairs generation
-        NPar::TLocalExecutor* localExecutor,
+        NPar::ILocalExecutor* localExecutor,
         TOutputPairsInfo* outputPairsInfo) {
 
         if (mainLossFunction) {
@@ -766,7 +766,7 @@ namespace NCB {
         const TOutputPairsInfo& outputPairsInfo,
         ui64 cpuRamLimit,
         TProcessedDataProvider* processedDataProvider,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
     ) {
         *processedDataProvider = *processedDataProvider->GetSubset(
             TObjectsGroupingSubset(
@@ -794,7 +794,7 @@ namespace NCB {
         const TFullModel& model,
         ui64 cpuRamLimit,
         TRestorableFastRng64* rand, // for possible pairs generation
-        NPar::TLocalExecutor* localExecutor) {
+        NPar::ILocalExecutor* localExecutor) {
 
         TVector<NCatboostOptions::TLossDescription> updatedMetricsDescriptions(
             metricDescriptions.begin(),
@@ -963,7 +963,7 @@ namespace NCB {
         const TFullModel& model,
         ui64 cpuRamLimit,
         TRestorableFastRng64* rand,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
     ) {
         const TString ParamsJsonKey = "params";
         const TString DataProcessingOptionsJsonKey = "data_processing_options";

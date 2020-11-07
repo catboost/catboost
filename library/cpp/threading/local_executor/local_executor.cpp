@@ -269,7 +269,7 @@ void NPar::TLocalExecutor::Exec(TIntrusivePtr<ILocallyExecutable> exec, int id, 
     Impl_->HasJob.Signal();
 }
 
-void NPar::TLocalExecutor::Exec(TLocallyExecutableFunction exec, int id, int flags) {
+void NPar::ILocalExecutor::Exec(TLocallyExecutableFunction exec, int id, int flags) {
     Exec(new TFunctionWrapper(std::move(exec)), id, flags);
 }
 
@@ -305,14 +305,14 @@ void NPar::TLocalExecutor::ExecRange(TIntrusivePtr<ILocallyExecutable> exec, int
     }
 }
 
-void NPar::TLocalExecutor::ExecRange(TLocallyExecutableFunction exec, int firstId, int lastId, int flags) {
+void NPar::ILocalExecutor::ExecRange(TLocallyExecutableFunction exec, int firstId, int lastId, int flags) {
     if (TryExecRangeSequentially(exec, firstId, lastId, flags)) {
         return;
     }
     ExecRange(new TFunctionWrapper(exec), firstId, lastId, flags);
 }
 
-void NPar::TLocalExecutor::ExecRangeWithThrow(TLocallyExecutableFunction exec, int firstId, int lastId, int flags) {
+void NPar::ILocalExecutor::ExecRangeWithThrow(TLocallyExecutableFunction exec, int firstId, int lastId, int flags) {
     Y_VERIFY((flags & WAIT_COMPLETE) != 0, "ExecRangeWithThrow() requires WAIT_COMPLETE to wait if exceptions arise.");
     if (TryExecRangeSequentially(exec, firstId, lastId, flags)) {
         return;
@@ -324,7 +324,7 @@ void NPar::TLocalExecutor::ExecRangeWithThrow(TLocallyExecutableFunction exec, i
 }
 
 TVector<NThreading::TFuture<void>>
-NPar::TLocalExecutor::ExecRangeWithFutures(TLocallyExecutableFunction exec, int firstId, int lastId, int flags) {
+NPar::ILocalExecutor::ExecRangeWithFutures(TLocallyExecutableFunction exec, int firstId, int lastId, int flags) {
     TFunctionWrapperWithPromise* execWrapper = new TFunctionWrapperWithPromise(exec, firstId, lastId);
     TVector<NThreading::TFuture<void>> out = execWrapper->GetFutures();
     ExecRange(execWrapper, firstId, lastId, flags);

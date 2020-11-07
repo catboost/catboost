@@ -166,7 +166,7 @@ namespace NCB {
         const int threadCount,
         TDataProvider& dataProvider,
         TVector<double>* predictions,
-        NPar::TLocalExecutor* executor) {
+        NPar::ILocalExecutor* executor) {
 
         size_t objectCount = dataProvider.GetObjectCount();
 

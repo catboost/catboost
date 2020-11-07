@@ -11,7 +11,7 @@ using namespace NCB;
 struct TCtrCalcerParams {
     const int IteratorBlockSize = 4096;
 
-    TCtrCalcerParams(size_t sampleCount, ui64* hashArrayPtr, NPar::TLocalExecutor* localExecutor)
+    TCtrCalcerParams(size_t sampleCount, ui64* hashArrayPtr, NPar::ILocalExecutor* localExecutor)
         : BlockExecutionParams(0, sampleCount)
         , HashArrayPtr(hashArrayPtr)
         , LocalExecutor(localExecutor)
@@ -28,9 +28,9 @@ struct TCtrCalcerParams {
 
     TVector<THolder<IFeatureValuesHolder>> PermutedFeatureColumns;
     TVector<std::function<void(TArrayRef<ui64>, IDynamicBlockIteratorBase*)>> PerIteratorCallbacks;
-    NPar::TLocalExecutor::TExecRangeParams BlockExecutionParams;
+    NPar::ILocalExecutor::TExecRangeParams BlockExecutionParams;
     ui64* HashArrayPtr;
-    NPar::TLocalExecutor* LocalExecutor;
+    NPar::ILocalExecutor* LocalExecutor;
 
     void ThreadFunc(int threadId) {
         const int blockFirstId = BlockExecutionParams.FirstId + threadId * BlockExecutionParams.GetBlockSize();
@@ -74,7 +74,7 @@ void CalcHashes(
     const TPerfectHashedToHashedCatValuesMap* perfectHashedToHashedCatValuesMap,
     ui64* begin,
     ui64* end,
-    NPar::TLocalExecutor* localExecutor) {
+    NPar::ILocalExecutor* localExecutor) {
 
     const size_t sampleCount = end - begin;
     Y_VERIFY((size_t)featuresSubsetIndexing.Size() == sampleCount);

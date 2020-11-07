@@ -104,7 +104,7 @@ double CalcMetric(
     const IMetric& metric,
     const TTargetDataProviderPtr& targetData,
     const TVector<TVector<double>>& approx,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) {
     CB_ENSURE(
         approx[0].size() == targetData->GetObjectCount(),

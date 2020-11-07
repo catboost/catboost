@@ -34,7 +34,7 @@ void CalcHashes(
     const NCB::TPerfectHashedToHashedCatValuesMap* perfectHashedToHashedCatValuesMap,
     ui64* begin,
     ui64* end,
-    NPar::TLocalExecutor* localExecutor);
+    NPar::ILocalExecutor* localExecutor);
 
 
 /// Compute reindexHash and reindex hash values in range [begin,end).

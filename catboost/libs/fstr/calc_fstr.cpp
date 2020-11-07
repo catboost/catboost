@@ -143,7 +143,7 @@ static THashMap<TFeature, int, TFeatureHash> GetFeatureToIdxMap(
 static const TDataProvider GetSubset(
         const TDataProvider& dataset,
         ui32 maxDocumentCount,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
 ) {
     auto documentCount = dataset.ObjectsData->GetObjectCount();
 
@@ -172,7 +172,7 @@ static const TDataProvider GetSubset(
 static TVector<std::pair<double, TFeature>> CalcFeatureEffectAverageChange(
     const TFullModel& model,
     const TDataProviderPtr dataset,
-    NPar::TLocalExecutor* localExecutor)
+    NPar::ILocalExecutor* localExecutor)
 {
     if (model.GetTreeCount() == 0) {
         return TVector<std::pair<double, TFeature>>();
@@ -239,7 +239,7 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectAverageChange(
 static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
     const TFullModel& model,
     const TDataProvider& dataProvider,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     ECalcTypeShapValues calcType
 )
 {
@@ -358,7 +358,7 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
             calcType);
 
         for (int featureIdx = 0; featureIdx < featuresCount; ++featureIdx) {
-            NPar::TLocalExecutor::TExecRangeParams blockParams(begin, end);
+            NPar::ILocalExecutor::TExecRangeParams blockParams(begin, end);
             blockParams.SetBlockCountToThreadCount();
             localExecutor->ExecRange([&](ui32 docIdx) {
                 for (int dimensionIdx = 0; dimensionIdx < approxDimension; ++dimensionIdx) {
@@ -421,7 +421,7 @@ TVector<std::pair<double, TFeature>> CalcFeatureEffect(
     const TFullModel& model,
     const TDataProviderPtr dataset,
     EFstrType type,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     ECalcTypeShapValues calcType
 )
 {
@@ -507,7 +507,7 @@ TVector<double> CalcRegularFeatureEffect(
     const TFullModel& model,
     const TDataProviderPtr dataset,
     EFstrType type,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     ECalcTypeShapValues calcType
 )
 {
@@ -628,7 +628,7 @@ static TVector<TVector<double>> CalcFstr(
     const TFullModel& model,
     const TDataProviderPtr dataset,
     EFstrType type,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     ECalcTypeShapValues calcType
 )
 {

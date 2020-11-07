@@ -11,7 +11,7 @@
 TVector<double> CollectLeavesStatistics(
     const NCB::TDataProvider& dataset,
     const TFullModel& model,
-    NPar::TLocalExecutor* localExecutor);
+    NPar::ILocalExecutor* localExecutor);
 
 bool TryGetLossDescription(const TFullModel& model, NCatboostOptions::TLossDescription* lossDescription);
 

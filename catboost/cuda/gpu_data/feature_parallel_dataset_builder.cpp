@@ -7,7 +7,7 @@
 
 namespace NCatboostCuda {
     TFeatureParallelDataSetsHolder TFeatureParallelDataSetHoldersBuilder::BuildDataSet(const ui32 permutationCount,
-                                                                                       NPar::TLocalExecutor* localExecutor) {
+                                                                                       NPar::ILocalExecutor* localExecutor) {
         TFeatureParallelDataSetsHolder dataSetsHolder(DataProvider,
                                                       FeaturesManager);
 
@@ -315,7 +315,7 @@ namespace NCatboostCuda {
 
     void TFeatureParallelDataSetHoldersBuilder::BuildCompressedCatFeatures(const NCB::TTrainingDataProvider& dataProvider,
                                                                            TCompressedCatFeatureDataSet& dataset,
-                                                                           NPar::TLocalExecutor* localExecutor) {
+                                                                           NPar::ILocalExecutor* localExecutor) {
         TCompressedCatFeatureDataSetBuilder builder(dataProvider,
                                                     FeaturesManager,
                                                     dataset,

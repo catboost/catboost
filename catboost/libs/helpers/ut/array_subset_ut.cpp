@@ -206,7 +206,7 @@ Y_UNIT_TEST_SUITE(TArraySubset) {
         const TVector<int>& v,
         const NCB::TArraySubsetIndexing<size_t> arraySubsetIndexing,
         const TVector<int>& expectedVSubset,
-        TMaybe<NPar::TLocalExecutor*> localExecutor
+        TMaybe<NPar::ILocalExecutor*> localExecutor
     ) {
         {
             TVector<int> vSubset = NCB::GetSubset<int>(v, arraySubsetIndexing, localExecutor);

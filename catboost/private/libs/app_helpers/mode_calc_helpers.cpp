@@ -126,7 +126,7 @@ static NCB::TEvalResult Apply(
     size_t evalPeriod,
     size_t virtualEnsemblesCount,
     bool isUncertaintyPrediction,
-    NPar::TLocalExecutor* executor) {
+    NPar::ILocalExecutor* executor) {
 
     NCB::TEvalResult resultApprox;
     TVector<TVector<TVector<double>>>& rawValues = resultApprox.GetRawValuesRef();

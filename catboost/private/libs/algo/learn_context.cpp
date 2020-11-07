@@ -105,7 +105,7 @@ TFoldsCreationParams::TFoldsCreationParams(
 
 ui32 TFoldsCreationParams::CalcCheckSum(
     const NCB::TObjectsGrouping& objectsGrouping,
-    NPar::TLocalExecutor* localExecutor) const {
+    NPar::ILocalExecutor* localExecutor) const {
 
     ui32 checkSum = MultiHash(
         IsOrderedBoosting,
@@ -235,7 +235,7 @@ TLearnContext::TLearnContext(
     TMaybe<TFullModel*> initModel,
     THolder<TLearnProgress> initLearnProgress, // will be modified if not non-nullptr
     NCB::TDataProviders initModelApplyCompatiblePools,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     const TString& fileNamesPrefix)
 
     : TCommonContext(
@@ -449,7 +449,7 @@ TLearnProgress::TLearnProgress(
     const NCatboostOptions::TObliviousTreeLearnerOptions& trainOptions,
     TMaybe<TFullModel*> initModel,
     NCB::TDataProviders initModelApplyCompatiblePools,
-    NPar::TLocalExecutor* localExecutor)
+    NPar::ILocalExecutor* localExecutor)
     : StartingApprox(foldsCreationParams.StartingApprox)
     , FoldCreationParamsCheckSum(foldCreationParamsCheckSum)
     , CatFeatures(CreateCatFeatures(*data.Learn->ObjectsData->GetFeaturesLayout()))
@@ -629,7 +629,7 @@ void TLearnProgress::SetSeparateInitModel(
     const TDataProviders& initModelApplyCompatiblePools,
     bool isOrderedBoosting,
     bool storeExpApproxes,
-    NPar::TLocalExecutor* localExecutor) {
+    NPar::ILocalExecutor* localExecutor) {
 
     CATBOOST_DEBUG_LOG << "TLearnProgress::SetSeparateInitModel\n";
 

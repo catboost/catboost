@@ -110,7 +110,7 @@ inline void OutputFeatureImportanceMatrix(
 
 inline void CalcAndOutputFstr(const TFullModel& model,
                               const NCB::TDataProviderPtr dataset, // can be nullptr
-                              NPar::TLocalExecutor* localExecutor,
+                              NPar::ILocalExecutor* localExecutor,
                               const TString* regularFstrPath,
                               const TString* internalFstrPath,
                               EFstrType type) {

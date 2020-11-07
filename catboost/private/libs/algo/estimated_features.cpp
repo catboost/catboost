@@ -155,7 +155,7 @@ static void Quantize(
     TConstArrayRef<float> srcValues,
     TConstArrayRef<float> borders,
     const TArraySubsetIndexing<ui32>* fullSubsetIndexing,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     THolder<IQuantizedFloatValuesHolder>* dstColumn
 ) {
     TTypeCastArraySubset<float, float> arraySubset(
@@ -206,7 +206,7 @@ static TCalculatedFeatureVisitor CreateSingleFeatureWriter(
     const TArraySubsetIndexing<ui32>* fullSubsetIndexing,
     TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
     const TFeaturesArraySubsetIndexing* calcBordersSubset,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TVector<THolder<IQuantizedFloatValuesHolder>>* featuresData
 ) {
     return TCalculatedFeatureVisitor(
@@ -330,7 +330,7 @@ TEstimatedForCPUObjectsDataProviders NCB::CreateEstimatedFeaturesData(
     const TTrainingDataProviders& trainingDataProviders,
     TFeatureEstimatorsPtr featureEstimators,
     TMaybe<TConstArrayRef<ui32>> learnPermutation,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TRestorableFastRng64* rand
 ) {
     const bool isOnline = learnPermutation.Defined();

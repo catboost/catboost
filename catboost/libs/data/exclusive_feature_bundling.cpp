@@ -36,7 +36,7 @@ namespace NCB {
         TVector<ui64> UsedObjects; // block non default masks
 
     public:
-        TExclusiveFeatureBundleForMerging(ui32 objectCount, NPar::TLocalExecutor* localExecutor)
+        TExclusiveFeatureBundleForMerging(ui32 objectCount, NPar::ILocalExecutor* localExecutor)
             : IntersectionCount(0)
             , NonDefaultCount(0)
         {
@@ -99,7 +99,7 @@ namespace NCB {
         TConstArrayRef<ui32> featuresNonDefaultCounts,
         TConstArrayRef<ui32> flatFeatureIndicesToCalc,
         const TExclusiveFeaturesBundlingOptions& options,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
     ) {
         const auto& featuresLayout = *quantizedFeaturesInfo.GetFeaturesLayout();
 
@@ -322,7 +322,7 @@ namespace NCB {
         const TFeaturesLayout& featuresLayout,
         const TQuantizedFeaturesInfo& quantizedFeaturesInfo,
         const TExclusiveFeaturesBundlingOptions& options,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
     ) {
         const ui32 objectCount = rawObjectsDataIncrementalIndexing.SrcSubsetIndexing.Size();
 

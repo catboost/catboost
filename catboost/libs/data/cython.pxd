@@ -276,7 +276,7 @@ cdef extern from "catboost/libs/data/objects_grouping.h" namespace "NCB":
 
 cdef extern from "catboost/libs/data/columns.h" namespace "NCB":
     cdef cppclass TFloatValuesHolder:
-        TMaybeOwningArrayHolder[float] ExtractValues(TLocalExecutor* localExecutor) except +ProcessException
+        TMaybeOwningArrayHolder[float] ExtractValues(ILocalExecutor* localExecutor) except +ProcessException
 
 cdef extern from "catboost/libs/data/objects.h":
     cdef void CheckModelAndDatasetCompatibility(

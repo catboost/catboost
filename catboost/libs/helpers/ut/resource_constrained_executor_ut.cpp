@@ -30,7 +30,7 @@ Y_UNIT_TEST_SUITE(TResourceConstrainedExecutor) {
         size_t resourceConsumption = 0;
         std::array<size_t, TASK_TYPE_COUNT> counters{};
 
-        auto func = [&] (NPar::TLocalExecutor& localExecutor) {
+        auto func = [&] (NPar::ILocalExecutor& localExecutor) {
             {
                 NCB::TResourceConstrainedExecutor executor(
                     "Memory",

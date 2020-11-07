@@ -25,7 +25,7 @@
 struct TRestorableFastRng64;
 
 namespace NPar {
-    class TLocalExecutor;
+    class ILocalExecutor;
 }
 
 
@@ -141,7 +141,7 @@ public:
         const NCatboostOptions::TBinarizationOptions& onlineEstimatedFeaturesQuantizationOptions,
         NCB::TQuantizedFeaturesInfoPtr onlineEstimatedFeaturesQuantizedInfo, // can be nullptr
         TRestorableFastRng64* rand,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
     );
 
     static TFold BuildPlainFold(
@@ -156,7 +156,7 @@ public:
         const NCatboostOptions::TBinarizationOptions& onlineEstimatedFeaturesQuantizationOptions,
         NCB::TQuantizedFeaturesInfoPtr onlineEstimatedFeaturesQuantizedInfo, // can be nullptr
         TRestorableFastRng64* rand,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
     );
 
     double GetSumWeight() const { return SumWeight; }
@@ -174,7 +174,7 @@ private:
     void AssignTarget(
         NCB::TMaybeData<TConstArrayRef<TConstArrayRef<float>>> target,
         const TVector<TTargetClassifier>& targetClassifiers,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
     );
 
     void SetWeights(TConstArrayRef<float> weights, ui32 learnSampleCount);
@@ -183,7 +183,7 @@ private:
         const NCatboostOptions::TBinarizationOptions& quantizationOptions,
         NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
         const NCB::TTrainingDataProviders& data,
-        NPar::TLocalExecutor* localExecutor,
+        NPar::ILocalExecutor* localExecutor,
         TRestorableFastRng64* rand
     );
 

@@ -100,7 +100,7 @@ inline void UpdateApprox(
     const TUpdateFunc& updateFunc,
     const TVector<TVector<double>>& delta,
     TVector<TVector<double>>* approx,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) {
     Y_ASSERT(delta.size() == approx->size());
     for (size_t dimensionIdx : xrange(delta.size())) {
@@ -112,7 +112,7 @@ inline void UpdateApprox(
             continue;
         }
 
-        NPar::TLocalExecutor::TExecRangeParams blockParams(0, approxDim.size());
+        NPar::ILocalExecutor::TExecRangeParams blockParams(0, approxDim.size());
         blockParams.SetBlockCount(AdjustBlockCountLimit(approxDim.size(), localExecutor->GetThreadCount() + 1));
         localExecutor->ExecRange(
             [=, &updateFunc](int idx) {
@@ -127,7 +127,7 @@ inline void UpdateApprox(
 inline void CopyApprox(
     const TVector<TVector<double>>& src,
     TVector<TVector<double>>* dst,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) {
     if (dst->empty() && !src.empty()) {
         dst->resize(src.size());
@@ -153,7 +153,7 @@ TVector<double> SumLeafWeights(
     TConstArrayRef<TIndexType> leafIndices,
     TConstArrayRef<ui32> learnPermutation,
     TConstArrayRef<float> learnWeights, // can be empty
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 );
 
 template <typename TElementType>

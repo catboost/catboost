@@ -163,7 +163,7 @@ void UpdateIndices(
     const TTrainingDataProviders& trainingData,
     const TIndexedSubset<ui32>& docsSubset,
     const TFold& fold,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TArrayRef<TIndexType> indicesRef
 ) {
     TQuantizedObjectsDataProviderPtr objectsDataProvider;
@@ -222,7 +222,7 @@ void BuildIndicesForDataset(
     const TVector<const TOnlineCTR*>& onlineCtrs,
     ui32 docOffset,
     ui32 objectSubsetIdx, // 0 - learn, 1+ - test (subtract 1 for testIndex)
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TIndexType* indices) {
 
     TIndexedSubsetCache indexedSubsetCache;

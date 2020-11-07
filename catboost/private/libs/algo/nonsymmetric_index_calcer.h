@@ -13,7 +13,7 @@ struct TNonSymmetricTreeStructure;
 struct TOnlineCTR;
 
 namespace NPar {
-    class TLocalExecutor;
+    class ILocalExecutor;
 }
 
 
@@ -22,7 +22,7 @@ void UpdateIndices(
     const NCB::TTrainingDataProviders& trainingData,
     const NCB::TIndexedSubset<ui32>& docsSubset,
     const TFold& fold,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TArrayRef<TIndexType> indices
 );
 
@@ -34,5 +34,5 @@ void BuildIndicesForDataset(
     const TVector<const TOnlineCTR*>& onlineCtrs,
     ui32 docOffset,
     ui32 objectSubsetIdx, // 0 - learn, 1+ - test (subtract 1 for testIndex)
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TIndexType* indices);

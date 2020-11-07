@@ -17,7 +17,7 @@ using namespace NCB;
 TVector<double> CollectLeavesStatistics(
     const TDataProvider& dataset,
     const TFullModel& model,
-    NPar::TLocalExecutor* localExecutor) {
+    NPar::ILocalExecutor* localExecutor) {
 
     TConstArrayRef<float> weights;
 
@@ -123,7 +123,7 @@ TVector<int> GetBinFeatureCombinationClassByDepth(
     const size_t depthOfTree = forest.GetModelTreeData()->GetTreeSizes()[treeIdx];
     TVector<int> binFeatureCombinationClassByDepth(depthOfTree);
     for (size_t depth = 0; depth < depthOfTree; ++depth) {
-		const size_t remainingDepth = depthOfTree - depth - 1;
+        const size_t remainingDepth = depthOfTree - depth - 1;
         const int combinationClass = binFeatureCombinationClass[
             forest.GetModelTreeData()->GetTreeSplits()[forest.GetModelTreeData()->GetTreeStartOffsets()[treeIdx] + remainingDepth]
         ];

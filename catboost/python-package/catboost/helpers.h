@@ -184,7 +184,7 @@ void SetDataFromScipyCsrSparse(
     TConstArrayRef<ui32> indices,
     TConstArrayRef<bool> isCatFeature,
     NCB::IRawObjectsOrderDataVisitor* builderVisitor,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) {
     CB_ENSURE_INTERNAL(indptr.size() > 1, "Empty sparse arrays should be processed in Python for speed");
     const auto objCount = indptr.size() - 1;

@@ -73,7 +73,7 @@ static bool CompareSamplesByTarget(const TSample& left, const TSample& right) {
 static double ParallelSortAndCountInversions(
     TVector<TSample>* samples,
     TVector<TSample>* aux,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) {
     if (samples->size() <= 1u) {
         return 0;
@@ -169,7 +169,7 @@ static double ParallelSortAndCountInversions(
     return result;
 }
 
-double CalcAUC(TVector<TSample>* samples, NPar::TLocalExecutor* localExecutor, double* outWeightSum, double* outPairWeightSum) {
+double CalcAUC(TVector<TSample>* samples, NPar::ILocalExecutor* localExecutor, double* outWeightSum, double* outPairWeightSum) {
     TVector<TSample> aux(samples->begin(), samples->end());
 
     NCB::ParallelMergeSort(CompareSamplesByPrediction, samples, localExecutor, &aux);
@@ -238,7 +238,7 @@ static bool CompareBinClassSamplesByPrediction(const TBinClassSample& left, cons
 double CalcBinClassAuc(
     TVector<TBinClassSample>* positiveSamples,
     TVector<TBinClassSample>* negativeSamples,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) {
     if (positiveSamples->empty() || negativeSamples->empty()) {
         return 0;

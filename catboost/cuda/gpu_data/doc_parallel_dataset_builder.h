@@ -23,7 +23,7 @@ namespace NCatboostCuda {
         }
 
         TDocParallelDataSetsHolder BuildDataSet(const ui32 permutationCount,
-                                                NPar::TLocalExecutor* localExecutor);
+                                                NPar::ILocalExecutor* localExecutor);
 
     private:
         void WriteCtrsAndEstimatedFeatures(
@@ -34,7 +34,7 @@ namespace NCatboostCuda {
             const TVector<ui32>& permutationIndependent,
             const TVector<ui32>& permutationDependent,
             NCatboostCuda::TSharedCompressedIndexBuilder<NCatboostCuda::TDocParallelLayout>* compressedIndexBuilder,
-            NPar::TLocalExecutor* localExecutor);
+            NPar::ILocalExecutor* localExecutor);
         TBinarizedFeaturesManager& FeaturesManager;
         const NCB::TTrainingDataProvider& DataProvider;
         const NCB::TFeatureEstimators& Estimators;

@@ -25,7 +25,7 @@ TVector<TVector<double>> TDocumentImportancesEvaluator::GetDocumentImportances(
     auto binarizedFeatures = MakeQuantizedFeaturesForEvaluator(Model, *processedData.ObjectsData.Get());
     LocalExecutor->ExecRange([&] (int treeId) {
         leafIndices[treeId] = BuildIndicesForBinTree(Model, binarizedFeatures.Get(), treeId);
-    }, NPar::TLocalExecutor::TExecRangeParams(0, TreeCount), NPar::TLocalExecutor::WAIT_COMPLETE);
+    }, NPar::ILocalExecutor::TExecRangeParams(0, TreeCount), NPar::TLocalExecutor::WAIT_COMPLETE);
 
     UpdateFinalFirstDerivatives(leafIndices, *processedData.TargetData->GetOneDimensionalTarget());
     TVector<TVector<double>> documentImportances(DocCount, TVector<double>(processedData.GetObjectCount()));
@@ -42,7 +42,7 @@ TVector<TVector<double>> TDocumentImportancesEvaluator::GetDocumentImportances(
             TVector<TVector<TVector<double>>> leafDerivatives(TreeCount, TVector<TVector<double>>(LeavesEstimationIterations)); // [treeCount][LeavesEstimationIterationsCount][leafCount]
             UpdateLeavesDerivatives(docId, &leafDerivatives);
             GetDocumentImportancesForOneTrainDoc(leafDerivatives, leafIndices, &documentImportances[docId]);
-        }, NPar::TLocalExecutor::TExecRangeParams(start, end), NPar::TLocalExecutor::WAIT_COMPLETE);
+        }, NPar::ILocalExecutor::TExecRangeParams(start, end), NPar::TLocalExecutor::WAIT_COMPLETE);
 
         processDocumentsProfile.FinishIterationBlock(end - start);
         auto profileResults = processDocumentsProfile.GetProfileResults();

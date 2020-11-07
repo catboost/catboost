@@ -65,7 +65,7 @@ void TrimOnlineCTRcache(const TVector<TFold*>& folds) {
 
 static double CalcDerivativesStDevFromZeroOrderedBoosting(
     const TFold& fold,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) {
     double sum2 = 0;
     size_t count = 0;
@@ -86,7 +86,7 @@ static double CalcDerivativesStDevFromZeroOrderedBoosting(
 
 static double CalcDerivativesStDevFromZeroPlainBoosting(
     const TFold& fold,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) {
     Y_ASSERT(fold.BodyTailArr.size() == 1);
     Y_ASSERT(fold.BodyTailArr.front().WeightedDerivatives.size() > 0);
@@ -104,7 +104,7 @@ static double CalcDerivativesStDevFromZeroPlainBoosting(
 static double CalcDerivativesStDevFromZero(
     const TFold& fold,
     const EBoostingType boosting,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) {
     switch (boosting) {
         case EBoostingType::Ordered:

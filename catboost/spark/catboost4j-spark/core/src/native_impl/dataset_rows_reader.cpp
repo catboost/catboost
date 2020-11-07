@@ -51,7 +51,7 @@ static void ParseOptions(
 
 class TRawDatasetRowsReaderVisitor final : public IRawObjectsOrderDataVisitor {
 public:
-    TRawDatasetRowsReaderVisitor(TRawDatasetRowsReader* parent, NPar::TLocalExecutor* localExecutor)
+    TRawDatasetRowsReaderVisitor(TRawDatasetRowsReader* parent, NPar::ILocalExecutor* localExecutor)
         : Parent(parent)
         , LocalExecutor(localExecutor)
     {}
@@ -314,7 +314,7 @@ public:
 
 private:
     TRawDatasetRowsReader* Parent;
-    NPar::TLocalExecutor* LocalExecutor;
+    NPar::ILocalExecutor* LocalExecutor;
 
     bool FirstBlock = true;
     bool IsSparse = false;

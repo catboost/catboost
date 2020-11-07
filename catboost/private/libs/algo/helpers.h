@@ -32,7 +32,7 @@ double CalcMetric(
     const IMetric& metric,
     const NCB::TTargetDataProviderPtr& targetData,
     const TVector<TVector<double>>& approx,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 );
 
 void CalcErrors(

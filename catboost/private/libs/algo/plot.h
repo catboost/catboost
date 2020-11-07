@@ -16,7 +16,7 @@
 
 
 namespace NPar {
-    class TLocalExecutor;
+    class ILocalExecutor;
 }
 
 
@@ -30,7 +30,7 @@ public:
         ui32 last,
         ui32 step,
         ui32 processIterationStep, // = -1
-        NPar::TLocalExecutor* executor
+        NPar::ILocalExecutor* executor
     );
 
     void SetDeleteTmpDirOnExit(bool flag) {
@@ -176,7 +176,7 @@ private:
 
 private:
     const TFullModel& Model;
-    NPar::TLocalExecutor& Executor;
+    NPar::ILocalExecutor& Executor;
 
     ui32 First;
     ui32 Last;
@@ -211,5 +211,5 @@ TMetricsPlotCalcer CreateMetricCalcer(
     int processedIterationsStep,
     const TString& tmpDir,
     const TVector<THolder<IMetric>>& metrics,
-    NPar::TLocalExecutor* executor
+    NPar::ILocalExecutor* executor
 );

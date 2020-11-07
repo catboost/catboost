@@ -209,7 +209,7 @@ namespace NCB {
         }
 
         TPerfectHashedToHashedCatValuesMap CalcPerfectHashedToHashedCatValuesMap(
-            NPar::TLocalExecutor* localExecutor
+            NPar::ILocalExecutor* localExecutor
         ) const;
 
         ui32 CalcCheckSum() const;

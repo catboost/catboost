@@ -108,7 +108,7 @@ TFold TFold::BuildDynamicFold(
     const NCatboostOptions::TBinarizationOptions& onlineEstimatedFeaturesQuantizationOptions,
     TQuantizedFeaturesInfoPtr onlineEstimatedFeaturesQuantizedInfo,
     TRestorableFastRng64* rand,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) {
     const NCB::TTrainingDataProvider& learnData = *data.Learn;
 
@@ -228,7 +228,7 @@ TFold TFold::BuildPlainFold(
     const NCatboostOptions::TBinarizationOptions& onlineEstimatedFeaturesQuantizationOptions,
     TQuantizedFeaturesInfoPtr onlineEstimatedFeaturesQuantizedInfo,
     TRestorableFastRng64* rand,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) {
     const NCB::TTrainingDataProvider& learnData = *data.Learn;
 
@@ -320,7 +320,7 @@ void TFold::DropEmptyCTRs() {
 void TFold::AssignTarget(
     TMaybeData<TConstArrayRef<TConstArrayRef<float>>> target,
     const TVector<TTargetClassifier>& targetClassifiers,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) {
     ui32 learnSampleCount = GetLearnSampleCount();
     if (target && target->size() > 0) {
@@ -376,7 +376,7 @@ void TFold::InitOnlineEstimatedFeatures(
     const NCatboostOptions::TBinarizationOptions& quantizationOptions,
     TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
     const NCB::TTrainingDataProviders& data,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TRestorableFastRng64* rand
 ) {
     OnlineEstimatedFeatures = CreateEstimatedFeaturesData(

@@ -12,7 +12,7 @@ class TFold;
 struct TRestorableFastRng64;
 
 namespace NPar {
-    class TLocalExecutor;
+    class ILocalExecutor;
 }
 
 
@@ -27,14 +27,14 @@ public:
         EBoostingType boostingType,
         const TVector<TVector<TVector<double>>>& leafValues,
         TRestorableFastRng64* rand,
-        NPar::TLocalExecutor* localExecutor,
+        NPar::ILocalExecutor* localExecutor,
         TFold* fold) const;
 
 private:
     double GetLambda(
         const TVector<TConstArrayRef<double>>& derivatives,
         const TVector<TVector<TVector<double>>>& leafValues,
-        NPar::TLocalExecutor* localExecutor) const;
+        NPar::ILocalExecutor* localExecutor) const;
     double CalculateThreshold(
         TVector<double>::iterator candidatesBegin,
         TVector<double>::iterator candidatesEnd,

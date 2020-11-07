@@ -16,7 +16,7 @@
 
 
 namespace NPar {
-    class TLocalExecutor;
+    class ILocalExecutor;
 }
 
 
@@ -31,7 +31,7 @@ namespace NCB {
 
         virtual TVector<float> Process(ERawTargetType targetType,
                                        const TRawTarget& rawTarget,
-                                       NPar::TLocalExecutor* localExecutor) = 0;
+                                       NPar::ILocalExecutor* localExecutor) = 0;
 
         // call after all processing
         virtual ui32 GetClassCount() const = 0;

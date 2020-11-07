@@ -22,7 +22,7 @@ void SetTrainDataFromQuantizedPool(
 void SetTrainDataFromMaster(
     const NCB::TTrainingDataProviders& trainData,
     ui64 cpuUsedRamLimit,
-    NPar::TLocalExecutor* localExecutor);
+    NPar::ILocalExecutor* localExecutor);
 void MapBuildPlainFold(TLearnContext* ctx);
 void MapRestoreApproxFromTreeStruct(TLearnContext* ctx);
 void MapTensorSearchStart(TLearnContext* ctx);

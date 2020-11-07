@@ -397,7 +397,7 @@ static void InitPreparedTrees(
     bool calcInternalValues,
     ECalcTypeShapValues calcType,
     EExplainableModelOutput modelOutputType,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TShapPreparedTrees* preparedTrees
 ) {
     const size_t treeCount = model.GetTreeCount();
@@ -450,7 +450,7 @@ static void InitPreparedTrees(
 static void InitLeafWeights(
     const TFullModel& model,
     const TDataProvider* dataset,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TVector<double>* leafWeights
 ) {
     const auto leafWeightsOfModels = model.ModelTrees->GetModelTreeData()->GetLeafWeights();
@@ -486,7 +486,7 @@ TShapPreparedTrees PrepareTrees(
     const TDataProvider* dataset, // can be nullptr if model has LeafWeights
     const TDataProviderPtr referenceDataset,
     EPreCalcShapValues mode,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     bool calcInternalValues,
     ECalcTypeShapValues calcType,
     EExplainableModelOutput modelOutputType
@@ -502,7 +502,7 @@ TShapPreparedTrees PrepareTrees(
 
 TShapPreparedTrees PrepareTrees(
     const TFullModel& model,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) {
     CB_ENSURE(
         !model.ModelTrees->GetModelTreeData()->GetLeafWeights().empty(),

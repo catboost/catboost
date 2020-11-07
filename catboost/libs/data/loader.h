@@ -58,7 +58,7 @@ namespace NCB {
         EObjectsOrder ObjectsOrder;
         ui32 BlockSize;
         TDatasetSubset DatasetSubset;
-        NPar::TLocalExecutor* LocalExecutor;
+        NPar::ILocalExecutor* LocalExecutor;
     };
 
     // pass this struct to to IDatasetLoader ctor

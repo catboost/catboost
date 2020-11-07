@@ -44,7 +44,7 @@ namespace NCB {
     TIncrementalDenseIndexing::TIncrementalDenseIndexing(
         const TFeaturesArraySubsetIndexing& srcSubsetIndexing,
         bool hasDenseData,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
     ) {
         if (hasDenseData && !HoldsAlternative<TFullSubset<ui32>>(srcSubsetIndexing)) {
             TVector<ui32> srcIndices;
@@ -106,7 +106,7 @@ namespace NCB {
         TSubsetIndexingForBuildBorders(
             const TFeaturesArraySubsetIndexing& srcIndexing,
             const TFeaturesArraySubsetIndexing& subsetIndexing,
-            NPar::TLocalExecutor* localExecutor
+            NPar::ILocalExecutor* localExecutor
         ) {
             ComposedSubset = MakeIncrementalIndexing(Compose(srcIndexing, subsetIndexing), localExecutor);
             InvertedSubset = GetInvertedIndexing(subsetIndexing, srcIndexing.Size(), localExecutor);
@@ -121,7 +121,7 @@ namespace NCB {
         EObjectsOrder srcObjectsOrder,
         const TQuantizationOptions& options,
         TRestorableFastRng64* rand,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
     ) {
         if (NeedToCalcBorders(featuresLayoutForQuantization, quantizedFeaturesInfo)) {
             TFeaturesArraySubsetIndexing subsetIndexing = GetArraySubsetForBuildBorders(
@@ -938,7 +938,7 @@ namespace NCB {
         const TSrc& srcFeature,
         const TIncrementalDenseIndexing& incrementalDenseIndexing,
         TValueQuantizer<TSrc> valueQuantizer,
-        NPar::TLocalExecutor* localExecutor,
+        NPar::ILocalExecutor* localExecutor,
         TCallback&& callback
     ) {
         using TValueType = typename TSrc::TValueType;
@@ -989,7 +989,7 @@ namespace NCB {
         const TIncrementalDenseIndexing& incrementalDenseIndexing,
         TValueQuantizer<TSrc> valueQuantizer,
         const TFeaturesArraySubsetIndexing* dstSubsetIndexing,
-        NPar::TLocalExecutor* localExecutor,
+        NPar::ILocalExecutor* localExecutor,
 
         // pass as parameter to enable type deduction
         THolder<TDst>* dstFeature
@@ -1045,7 +1045,7 @@ namespace NCB {
         const TIncrementalDenseIndexing& incrementalDenseIndexing,
         ESparseArrayIndexingType sparseArrayIndexingType,
         const TFeaturesArraySubsetIndexing* dstSubsetIndexing,
-        NPar::TLocalExecutor* localExecutor,
+        NPar::ILocalExecutor* localExecutor,
 
         // pass as parameter to enable type deduction
         THolder<TDst>* dstFeature
@@ -1122,7 +1122,7 @@ namespace NCB {
             const TIncrementalDenseIndexing& incrementalDenseIndexing,
             const TFeaturesLayout& featuresLayout,
             const TFeaturesArraySubsetIndexing* quantizedDataSubsetIndexing,
-            NPar::TLocalExecutor* localExecutor,
+            NPar::ILocalExecutor* localExecutor,
             TRawObjectsData* rawObjectsData,
             TQuantizedForCPUObjectsData* quantizedObjectsData
         )
@@ -1278,7 +1278,7 @@ namespace NCB {
         const TIncrementalDenseIndexing& IncrementalDenseIndexing;
         const TFeaturesLayout& FeaturesLayout;
         const TFeaturesArraySubsetIndexing* QuantizedDataSubsetIndexing;
-        NPar::TLocalExecutor* LocalExecutor;
+        NPar::ILocalExecutor* LocalExecutor;
         TRawObjectsData* RawObjectsData;
         TQuantizedForCPUObjectsData* QuantizedObjectsData;
 
@@ -1763,7 +1763,7 @@ namespace NCB {
         // can be TNothing if generateBordersOnly
         const TMaybe<TIncrementalDenseIndexing>& incrementalDenseIndexing,
         const TFeaturesArraySubsetIndexing* dstSubsetIndexing,  // can be nullptr if generateBordersOnly
-        NPar::TLocalExecutor* localExecutor,
+        NPar::ILocalExecutor* localExecutor,
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
         THolder<IQuantizedFloatValuesHolder>* dstQuantizedFeature // can be nullptr if generateBordersOnly
     ) {
@@ -1887,7 +1887,7 @@ namespace NCB {
         bool storeFeaturesDataAsExternalValuesHolder,
         const TIncrementalDenseIndexing& incrementalDenseIndexing,
         const TFeaturesArraySubsetIndexing* dstSubsetIndexing,
-        NPar::TLocalExecutor* localExecutor,
+        NPar::ILocalExecutor* localExecutor,
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
         THolder<IQuantizedCatValuesHolder>* dstQuantizedFeature
     ) {
@@ -2072,7 +2072,7 @@ namespace NCB {
         const TFeaturesArraySubsetIndexing* dstSubsetIndexing,
         const TTextDigitizers& textDigitizers,
         TArrayRef<THolder<TTokenizedTextValuesHolder>> dstQuantizedFeatures,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
     ) {
         textDigitizers.Apply(
             [textFeatures](ui32 textFeatureIdx) {
@@ -2095,7 +2095,7 @@ namespace NCB {
         TArrayRef<THolder<TEmbeddingValuesHolder>> embeddingFeatures,
         TArrayRef<THolder<TEmbeddingValuesHolder>> dstFeatures,
         const TFeaturesArraySubsetIndexing* dstSubsetIndexing,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
     ) {
         const ui32 embeddingFeatureCount = embeddingFeatures.size();
         for (ui32 embeddingFeatureIdx: xrange(embeddingFeatureCount)) {
@@ -2198,7 +2198,7 @@ namespace NCB {
             TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
             bool calcQuantizationAndNanModeOnly,
             TRestorableFastRng64* rand,
-            NPar::TLocalExecutor* localExecutor,
+            NPar::ILocalExecutor* localExecutor,
             const TInitialBorders& initialBorders = Nothing()
         ) {
             auto& srcObjectsCommonData = rawDataProvider->ObjectsData->CommonData;
@@ -2517,7 +2517,7 @@ namespace NCB {
         TRawDataProviderPtr rawDataProvider,
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
         TRestorableFastRng64* rand,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
     ) {
         TQuantizationImpl::Do(
             options,
@@ -2534,7 +2534,7 @@ namespace NCB {
         TRawObjectsDataProviderPtr rawObjectsDataProvider,
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
         TRestorableFastRng64* rand,
-        NPar::TLocalExecutor* localExecutor,
+        NPar::ILocalExecutor* localExecutor,
         const TInitialBorders& initialBorders
     ) {
         TDataMetaInfo dataMetaInfo;
@@ -2570,7 +2570,7 @@ namespace NCB {
         TRawDataProviderPtr rawDataProvider,
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
         TRestorableFastRng64* rand,
-        NPar::TLocalExecutor* localExecutor,
+        NPar::ILocalExecutor* localExecutor,
         const TInitialBorders& initialBorders
     ) {
         return TQuantizationImpl::Do(
@@ -2589,7 +2589,7 @@ namespace NCB {
         TDataProviderPtr srcData,
         const TMaybe<TString>& bordersFile,
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
-        NPar::TLocalExecutor* localExecutor,
+        NPar::ILocalExecutor* localExecutor,
         TRestorableFastRng64* rand,
         const TInitialBorders& initialBorders) {
 

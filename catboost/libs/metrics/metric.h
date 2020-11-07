@@ -146,7 +146,7 @@ struct IMetric {
         TConstArrayRef<TQueryInfo> queriesInfo,
         int begin,
         int end,
-        NPar::TLocalExecutor& executor
+        NPar::ILocalExecutor& executor
     ) const = 0;
     virtual TMetricHolder Eval(
         const TConstArrayRef<TConstArrayRef<double>> approx,
@@ -157,7 +157,7 @@ struct IMetric {
         TConstArrayRef<TQueryInfo> queriesInfo,
         int begin,
         int end,
-        NPar::TLocalExecutor& executor
+        NPar::ILocalExecutor& executor
     ) const = 0;
     virtual TString GetDescription() const = 0;
     virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const = 0;
@@ -203,7 +203,7 @@ struct TMultiRegressionMetric: public TMetric {
         TConstArrayRef<float> weight,
         int begin,
         int end,
-        NPar::TLocalExecutor& executor
+        NPar::ILocalExecutor& executor
     ) const = 0;
     TMetricHolder Eval(
         const TVector<TVector<double>>& /*approx*/,
@@ -212,7 +212,7 @@ struct TMultiRegressionMetric: public TMetric {
         TConstArrayRef<TQueryInfo> /*queriesInfo*/,
         int /*begin*/,
         int /*end*/,
-        NPar::TLocalExecutor& /*executor*/
+        NPar::ILocalExecutor& /*executor*/
     ) const final {
         CB_ENSURE(false, "Multiregression metrics should not be used like regular metric");
     }
@@ -225,7 +225,7 @@ struct TMultiRegressionMetric: public TMetric {
         TConstArrayRef<TQueryInfo> /*queriesInfo*/,
         int /*begin*/,
         int /*end*/,
-        NPar::TLocalExecutor& /*executor*/
+        NPar::ILocalExecutor& /*executor*/
     ) const final {
         CB_ENSURE(false, "Multiregression metrics should not be used like regular metric");
     }
@@ -239,8 +239,8 @@ static inline int GetMinBlockSize(int objectCount) {
 }
 
 template <typename TEvalFunction>
-static inline TMetricHolder ParallelEvalMetric(TEvalFunction eval, int minBlockSize, int begin, int end, NPar::TLocalExecutor& executor) {
-    NPar::TLocalExecutor::TExecRangeParams blockParams(begin, end);
+static inline TMetricHolder ParallelEvalMetric(TEvalFunction eval, int minBlockSize, int begin, int end, NPar::ILocalExecutor& executor) {
+    NPar::ILocalExecutor::TExecRangeParams blockParams(begin, end);
 
     const int threadCount = executor.GetThreadCount() + 1;
     const int effectiveBlockCount = Min(threadCount, (int)ceil((end - begin) * 1.0 / minBlockSize));
@@ -334,7 +334,7 @@ TMetricHolder EvalErrors(
     TConstArrayRef<float> weight,
     TConstArrayRef<TQueryInfo> queriesInfo,
     const IMetric& error,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 );
 
 TMetricHolder EvalErrors(
@@ -345,7 +345,7 @@ TMetricHolder EvalErrors(
     TConstArrayRef<float> weight,
     TConstArrayRef<TQueryInfo> queriesInfo,
     const IMetric& error,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 );
 
 TMetricHolder EvalErrors(
@@ -356,7 +356,7 @@ TMetricHolder EvalErrors(
     TConstArrayRef<float> weight,
     TConstArrayRef<TQueryInfo> queriesInfo,
     const IMetric& error,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 );
 
 inline static TMetricHolder EvalErrors(
@@ -365,7 +365,7 @@ inline static TMetricHolder EvalErrors(
     TConstArrayRef<float> weight,
     TConstArrayRef<TQueryInfo> queriesInfo,
     const IMetric& error,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) {
     return EvalErrors(
         approx,
