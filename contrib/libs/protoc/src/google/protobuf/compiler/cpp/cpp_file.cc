@@ -58,7 +58,7 @@ namespace cpp {
 namespace {
 // The list of names that are defined as macros on some platforms. We need to
 // #undef them for the generated code to compile.
-const char* kMacroNames[] = {"major", "minor"};
+const char* kMacroNames[] = {"major", "minor", "DELETE", "IN", "NEAR"};
 
 bool IsMacroName(const string& name) {
   // Just do a linear search as the number of elements is very small.
@@ -66,6 +66,15 @@ bool IsMacroName(const string& name) {
     if (name == kMacroNames[i]) return true;
   }
   return false;
+}
+
+void CollectMacroNames(const EnumDescriptor* enum_type, std::vector<string>* names) {
+  for (int i = 0; i < enum_type->value_count(); ++i) {
+    const EnumValueDescriptor* value = enum_type->value(i);
+    if (IsMacroName(value->name())) {
+      names->push_back(value->name());
+    }
+  }
 }
 
 void CollectMacroNames(const Descriptor* message, std::vector<string>* names) {
@@ -78,17 +87,17 @@ void CollectMacroNames(const Descriptor* message, std::vector<string>* names) {
   for (int i = 0; i < message->nested_type_count(); ++i) {
     CollectMacroNames(message->nested_type(i), names);
   }
+  for (int i = 0; i < message->enum_type_count(); ++i) {
+    CollectMacroNames(message->enum_type(i), names);
+  }
 }
 
 void CollectMacroNames(const FileDescriptor* file, std::vector<string>* names) {
-  // Only do this for protobuf's own types. There are some google3 protos using
-  // macros as field names and the generated code compiles after the macro
-  // expansion. Undefing these macros actually breaks such code.
-  if (file->name() != "google/protobuf/compiler/plugin.proto") {
-    return;
-  }
   for (int i = 0; i < file->message_type_count(); ++i) {
     CollectMacroNames(file->message_type(i), names);
+  }
+  for (int i = 0; i < file->enum_type_count(); ++i) {
+    CollectMacroNames(file->enum_type(i), names);
   }
 }
 
