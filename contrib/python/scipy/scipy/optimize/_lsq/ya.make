@@ -1,7 +1,6 @@
 PY23_LIBRARY()
 
 
-
 ADDINCL(
     contrib/python/scipy
 )

@@ -1061,7 +1061,7 @@ static void TrainModel(
             *trainingData.Learn->ObjectsData->GetQuantizedFeaturesInfo());
     }
 
-    const auto defaultTrainingCallbacks = MakeHolder<ITrainingCallbacks>();
+    const auto defaultTrainingCallbacks = MakeHolder<ITrainingCallbacks>();    
     modelTrainerHolder->TrainModel(
         TTrainModelInternalOptions(),
         catBoostOptions,

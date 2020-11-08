@@ -1,7 +1,5 @@
 PY23_LIBRARY()
 
-
-
 IF (PYTHON2)
     PEERDIR(
         contrib/python/pandas/py2
