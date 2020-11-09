@@ -221,9 +221,10 @@ TVector<TString> GetTreeSplitsDescriptions(const TFullModel& model, size_t treeI
 TVector<TString> GetTreeLeafValuesDescriptions(const TFullModel& model, size_t treeIdx) {
     CB_ENSURE(treeIdx < model.GetTreeCount(),
         "Requested tree leaf values for tree " << treeIdx << ", but model has " << model.GetTreeCount());
-    size_t leafOffset = model.ModelTrees->GetFirstLeafOffsets()[treeIdx];
+    auto applyData = model.ModelTrees->GetApplyData();
+    size_t leafOffset = applyData->TreeFirstLeafOffsets[treeIdx];
     size_t nextTreeLeafOffset = (treeIdx + 1 < model.GetTreeCount())
-        ? model.ModelTrees->GetFirstLeafOffsets()[treeIdx + 1]
+        ? applyData->TreeFirstLeafOffsets[treeIdx + 1]
         : model.ModelTrees->GetModelTreeData()->GetLeafValues().size();
 
     TVector<double> leafValues(
@@ -262,7 +263,8 @@ TVector<ui32> GetTreeNodeToLeaf(const TFullModel& model, size_t treeIdx) {
     const size_t offset = model.ModelTrees->GetModelTreeData()->GetTreeStartOffsets()[treeIdx];
     const auto start = model.ModelTrees->GetModelTreeData()->GetNonSymmetricNodeIdToLeafId().begin() + offset;
     const auto end = start + model.ModelTrees->GetModelTreeData()->GetTreeSizes()[treeIdx];
-    const size_t firstLeafOffset = model.ModelTrees->GetFirstLeafOffsets()[treeIdx];
+    auto applyData = model.ModelTrees->GetApplyData();
+    const size_t firstLeafOffset = applyData->TreeFirstLeafOffsets[treeIdx];
     TVector<ui32> nodeToLeaf(start, end);
     for (auto& value : nodeToLeaf) {
         value -= firstLeafOffset;

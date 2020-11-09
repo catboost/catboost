@@ -57,9 +57,10 @@ TVector<double> CollectLeavesStatistics(
     auto binFeatures = MakeQuantizedFeaturesForEvaluator(model, *dataset.ObjectsData.Get());
 
     const auto documentsCount = dataset.GetObjectCount();
+    auto applyData = model.ModelTrees->GetApplyData();
     for (size_t treeIdx = 0; treeIdx < treeCount; ++treeIdx) {
         TVector<TIndexType> indices = BuildIndicesForBinTree(model, binFeatures.Get(), treeIdx);
-        const int offset = model.ModelTrees->GetFirstLeafOffsets()[treeIdx] / approxDimension;
+        const int offset = applyData->TreeFirstLeafOffsets[treeIdx] / approxDimension;
         if (indices.empty()) {
             continue;
         }

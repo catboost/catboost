@@ -9,6 +9,7 @@ namespace NCB::NModelEvaluation {
                   typename TTextFeatureAccessor, typename TEmbeddingFeatureAccessor>
         inline void CalcGeneric(
             const TModelTrees& trees,
+            const TModelTrees::TForApplyData& applyData,
             const TIntrusivePtr<ICtrProvider>& ctrProvider,
             const TIntrusivePtr<TTextProcessingCollection>& textProcessingCollection,
             const TIntrusivePtr<TEmbeddingProcessingCollection>& embeddingProcessingCollection,
@@ -64,6 +65,7 @@ namespace NCB::NModelEvaluation {
                     auto blockResultsView = resultProcessor.GetViewForRawEvaluation(blockId);
                     calcTrees(
                         trees,
+                        applyData,
                         quantizedData,
                         docCountInBlock,
                         docCount == 1 ? nullptr : indexesVec.data(),
@@ -82,6 +84,7 @@ namespace NCB::NModelEvaluation {
         public:
             explicit TCpuEvaluator(const TFullModel& fullModel)
                 : ModelTrees(fullModel.ModelTrees)
+                , ApplyData(ModelTrees->GetApplyData())
                 , CtrProvider(fullModel.CtrProvider)
                 , TextProcessingCollection(fullModel.TextProcessingCollection)
                 , EmbeddingProcessingCollection(fullModel.EmbeddingProcessingCollection)
@@ -160,6 +163,7 @@ namespace NCB::NModelEvaluation {
                 CB_ENSURE(docCount.Defined(), "couldn't determine document count, something went wrong");
                 CalcGeneric(
                     *ModelTrees,
+                    *ApplyData,
                     CtrProvider,
                     TextProcessingCollection,
                     EmbeddingProcessingCollection,
@@ -206,6 +210,7 @@ namespace NCB::NModelEvaluation {
                 }
                 CalcGeneric(
                     *ModelTrees,
+                    *ApplyData,
                     CtrProvider,
                     TextProcessingCollection,
                     EmbeddingProcessingCollection,
@@ -242,6 +247,7 @@ namespace NCB::NModelEvaluation {
                 );
                 CalcGeneric(
                     *ModelTrees,
+                    *ApplyData,
                     CtrProvider,
                     TextProcessingCollection,
                     EmbeddingProcessingCollection,
@@ -301,6 +307,7 @@ namespace NCB::NModelEvaluation {
                 const size_t docCount = Max(catFeatures.size(), floatFeatures.size());
                 CalcGeneric(
                     *ModelTrees,
+                    *ApplyData,
                     CtrProvider,
                     TextProcessingCollection,
                     EmbeddingProcessingCollection,
@@ -362,6 +369,7 @@ namespace NCB::NModelEvaluation {
                 const size_t docCount = Max(catFeatures.size(), floatFeatures.size(), textFeatures.size());
                 CalcGeneric(
                     *ModelTrees,
+                    *ApplyData,
                     CtrProvider,
                     TextProcessingCollection,
                     EmbeddingProcessingCollection,
@@ -401,6 +409,7 @@ namespace NCB::NModelEvaluation {
                 const size_t docCount = Max(catFeatures.size(), floatFeatures.size(), textFeatures.size());
                 CalcGeneric(
                     *ModelTrees,
+                    *ApplyData,
                     CtrProvider,
                     TextProcessingCollection,
                     EmbeddingProcessingCollection,
@@ -513,7 +522,9 @@ namespace NCB::NModelEvaluation {
                 for (size_t blockId = 0; blockId < cpuQuantizedFeatures->BlocksCount; ++blockId) {
                     auto subBlock = cpuQuantizedFeatures->ExtractBlock(blockId);
                     calcFunction(
-                        *ModelTrees, &subBlock,
+                        *ModelTrees,
+                        *ApplyData,
+                        &subBlock,
                         subBlock.ObjectsCount,
                         indexesVec.data(),
                         treeStart,
@@ -557,6 +568,7 @@ namespace NCB::NModelEvaluation {
                     TCalcerIndexType* transposedLeafIndexesPtr = tmpLeafIndexHolder.data();
                     calcFunction(
                         *ModelTrees,
+                        *ApplyData,
                         &subBlock,
                         subBlock.ObjectsCount,
                         transposedLeafIndexesPtr,
@@ -587,18 +599,18 @@ namespace NCB::NModelEvaluation {
                     CB_ENSURE(catFeatures.size() == floatFeatures.size());
                 }
                 CB_ENSURE(
-                    ModelTrees->GetUsedFloatFeaturesCount() == 0 || !floatFeatures.empty(),
+                    ApplyData->UsedFloatFeaturesCount == 0 || !floatFeatures.empty(),
                     "Model has float features but no float features provided"
                 );
                 CB_ENSURE(
-                    ModelTrees->GetUsedCatFeaturesCount() == 0 || !catFeatures.empty(),
+                    ApplyData->UsedCatFeaturesCount == 0 || !catFeatures.empty(),
                     "Model has categorical features but no categorical features provided"
                 );
                 CB_ENSURE(
-                    ModelTrees->GetUsedTextFeaturesCount() == 0 || !textFeatures.empty(),
+                    ApplyData->UsedTextFeaturesCount == 0 || !textFeatures.empty(),
                     "Model has text features but no text features provided"
                 );
-                size_t minimalSufficientFloatFeatureCount = ModelTrees->GetMinimalSufficientFloatFeaturesVectorSize();
+                size_t minimalSufficientFloatFeatureCount = ApplyData->MinimalSufficientFloatFeaturesVectorSize;
                 if (featureInfo && featureInfo->FloatFeatureIndexes.Defined()) {
                     CB_ENSURE(featureInfo->FloatFeatureIndexes->size() >= minimalSufficientFloatFeatureCount);
                     minimalSufficientFloatFeatureCount = *MaxElement(
@@ -613,7 +625,7 @@ namespace NCB::NModelEvaluation {
                         << " expected: " << minimalSufficientFloatFeatureCount
                     );
                 }
-                size_t minimalSufficientCatFeatureCount = ModelTrees->GetMinimalSufficientCatFeaturesVectorSize();
+                size_t minimalSufficientCatFeatureCount = ApplyData->MinimalSufficientCatFeaturesVectorSize;
                 if (featureInfo && featureInfo->CatFeatureIndexes.Defined()) {
                     CB_ENSURE(featureInfo->CatFeatureIndexes->size() >= minimalSufficientCatFeatureCount);
                     minimalSufficientCatFeatureCount = *MaxElement(
@@ -628,7 +640,7 @@ namespace NCB::NModelEvaluation {
                         << " expected: " << minimalSufficientCatFeatureCount
                     );
                 }
-                size_t minimalSufficientTextFeatureCount = ModelTrees->GetMinimalSufficientTextFeaturesVectorSize();
+                size_t minimalSufficientTextFeatureCount = ApplyData->MinimalSufficientTextFeaturesVectorSize;
                 if (featureInfo && featureInfo->TextFeatureIndexes.Defined()) {
                     CB_ENSURE(featureInfo->TextFeatureIndexes->size() >= minimalSufficientTextFeatureCount);
                     minimalSufficientTextFeatureCount = *MaxElement(
@@ -656,6 +668,7 @@ namespace NCB::NModelEvaluation {
             }
         private:
             TCOWTreeWrapper ModelTrees;
+            TAtomicSharedPtr<TModelTrees::TForApplyData> ApplyData;
             const TIntrusivePtr<ICtrProvider> CtrProvider;
             const TIntrusivePtr<TTextProcessingCollection> TextProcessingCollection;
             const TIntrusivePtr<TEmbeddingProcessingCollection> EmbeddingProcessingCollection;

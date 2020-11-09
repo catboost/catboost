@@ -65,7 +65,8 @@ TVector<TVector<TFloatFeatureBucketRange>> CalculateBucketRangesAndWeightsOblivi
 
     const auto& binSplits = model.ModelTrees->GetBinFeatures();
     const auto& treeSplitOffsets = model.ModelTrees->GetModelTreeData()->GetTreeStartOffsets();
-    const auto& leafOffsets = model.ModelTrees->GetFirstLeafOffsets();
+    auto applyData = model.ModelTrees->GetApplyData();
+    const auto& leafOffsets = applyData->TreeFirstLeafOffsets;
     const auto& treeSizes = model.ModelTrees->GetModelTreeData()->GetTreeSizes();
     const auto& treeSplits = model.ModelTrees->GetModelTreeData()->GetTreeSplits();
     size_t leafNum = model.ModelTrees->GetModelTreeData()->GetLeafValues().size();

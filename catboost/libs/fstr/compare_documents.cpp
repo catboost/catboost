@@ -83,8 +83,9 @@ static void CalcNonSymmetricIndicatorCoefficients(
     const auto& stepNodes = model.ModelTrees->GetModelTreeData()->GetNonSymmetricStepNodes();
     const auto& binFeatures = model.ModelTrees->GetBinFeatures();
 
+    auto applyData = model.ModelTrees->GetApplyData();
     for (size_t treeId = 0; treeId < model.ModelTrees->GetTreeCount(); ++treeId) {
-        size_t leafOffset = model.ModelTrees->GetFirstLeafOffsets()[treeId];
+        size_t leafOffset = applyData->TreeFirstLeafOffsets[treeId];
         double leafValue = model.ModelTrees->GetModelTreeData()->GetLeafValues()[leafOffset + treeLeafIdxes[treeId]];
         size_t splitIdx = model.ModelTrees->GetModelTreeData()->GetTreeStartOffsets()[treeId];
         int nextSplitStep = 0;

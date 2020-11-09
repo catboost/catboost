@@ -200,7 +200,8 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectAverageChange(
         TVector<TMxTree> trees = BuildTrees(featureToIdx, model);
 
         TVector<TConstArrayRef<double>> mxTreeWeightsPresentation;
-        auto leafOffsetPtr = model.ModelTrees->GetFirstLeafOffsets();
+        auto applyData = model.ModelTrees->GetApplyData();
+        auto leafOffsetPtr = applyData->TreeFirstLeafOffsets.data();
         const auto leafSizes = model.ModelTrees->GetModelTreeData()->GetTreeSizes();
         const int approxDimension = model.ModelTrees->GetDimensionsCount();
         for (size_t treeIdx = 0; treeIdx < model.GetTreeCount(); ++treeIdx) {

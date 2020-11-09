@@ -185,7 +185,8 @@ static TVector<TVector<double>> CalcSubtreeWeightsForTree(
         subtreeWeights.resize(treeDepth + 1);
         subtreeWeights[treeDepth].resize(size_t(1) << treeDepth);
         TArrayRef<double> subtreeWeightsOnTreeDepth = MakeArrayRef(subtreeWeights[treeDepth]);
-        const int weightOffset = forest.GetFirstLeafOffsets()[treeIdx] / forest.GetDimensionsCount();
+        auto applyData = forest.GetApplyData();
+        const int weightOffset = applyData->TreeFirstLeafOffsets[treeIdx] / forest.GetDimensionsCount();
 
         for (size_t nodeIdx = 0; nodeIdx < size_t(1) << treeDepth; ++nodeIdx) {
             subtreeWeightsOnTreeDepth[nodeIdx] = leafWeights[weightOffset + nodeIdx];
