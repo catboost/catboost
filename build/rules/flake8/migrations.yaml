@@ -690,7 +690,6 @@ migrations:
     - yweb/antispam/clean_web/router
     - yweb/antispam/mascot/monitorings/check_table_age
     - yweb/antispam/ytgr/legal_loader/library
-    - yweb/news/news_back/api/v2
     - yweb/robot/limbo
     - yweb/robot/metrics/pmusca/graph/bin/extract_urls_from_serp
     - yweb/robot/metrics/pmusca/update_jupiter_urlinfo
@@ -928,8 +927,6 @@ migrations:
     - maps/garden/modules/ymapsdf/lib
     - maps/garden/modules/ymapsdf/lib/ymapsdf_tester
     - maps/garden/server/bin
-    - maps/garden/server/lib
-    - maps/garden/server/tests
     - maps/garden/tools/cron_monitoring
     - maps/garden/tools/garden_cli/lib
     - maps/garden/tools/module_monitoring/lib
@@ -1129,7 +1126,6 @@ migrations:
     - yabs/infra/deploy/controller
     - yabs/stat/direct_monitoring/helpers/data_creation
     - yabs/stat/direct_monitoring/libs
-    - yandex_io/tools/update_external_libs
     - ydo/tools/rubricator/validate_wizards
     - yweb/antimalware/hitrobot/pipelines/queue_provider
     - yweb/antispam/mascot/samsara2sb/test
