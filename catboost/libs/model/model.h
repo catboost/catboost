@@ -218,10 +218,9 @@ public:
             other.ModelTreeData->Clone(IModelTreeData::ECloningPolicy::Default)
         );
 
-        ClearRuntimeData();
-        TGuard<TAdaptiveLock> guardApply(MutableDataLock);
         RepackedBins = other.RepackedBins;
         RuntimeData = other.RuntimeData;
+        ApplyData = other.ApplyData;
 
         return *this;
     }
@@ -449,25 +448,9 @@ public:
      *  features currently used in model.
      * Should be called after any modifications.
      */
-    void UpdateRuntimeData() const;
-
-    /**
-     * Internal usage only. Clears BinFeatures and ApplyData
-     */
-    void ClearRuntimeData() const;
+    void UpdateRuntimeData();
 
     TAtomicSharedPtr<TForApplyData> GetApplyData() const {
-        TGuard<TAdaptiveLock> guardApply(MutableDataLock);
-        if (ApplyData) {
-            return ApplyData;
-        }
-        ApplyData = MakeAtomicShared<TForApplyData>();
-        ProcessFloatFeatures(ApplyData);
-        ProcessCatFeatures(ApplyData);
-        ProcessTextFeatures(ApplyData);
-        ProcessEstimatedFeatures(ApplyData);
-        CalcUsedModelCtrs(ApplyData);
-        CalcFirstLeafOffsets(ApplyData);
         return ApplyData;
     }
 
@@ -476,14 +459,10 @@ public:
      * @return
      */
     TConstArrayRef<TModelSplit> GetBinFeatures() const {
-        CalcBinFeatures();
         return RuntimeData->BinFeatures;
     }
 
     TConstArrayRef<TRepackedBin> GetRepackedBins() const {
-        if (!RepackedBins.GetSize()) {
-            CalcBinFeatures();
-        }
         return *RepackedBins;
     }
 
@@ -513,7 +492,6 @@ public:
     }
 
     ui32 GetEffectiveBinaryFeaturesBucketsCount() const {
-        CalcBinFeatures();
         return RuntimeData->EffectiveBinFeaturesBucketCount;
     }
 
@@ -539,14 +517,23 @@ private:
 
     void SetScaleAndBias(const NCatBoostFbs::TModelTrees* fbObj);
 
-    void CalcBinFeatures() const;
-    void CalcUsedModelCtrs(TAtomicSharedPtr<TForApplyData> applyData) const;
-    void CalcFirstLeafOffsets(TAtomicSharedPtr<TForApplyData> applyData) const;
-    void ProcessFloatFeatures(TAtomicSharedPtr<TForApplyData> applyData) const;
-    void ProcessCatFeatures(TAtomicSharedPtr<TForApplyData> applyData) const;
-    void ProcessTextFeatures(TAtomicSharedPtr<TForApplyData> applyData) const;
-    void ProcessEstimatedFeatures(TAtomicSharedPtr<TForApplyData> applyData) const;
-    void ProcessEmbeddingFeatures(TAtomicSharedPtr<TForApplyData> ref) const;
+    void CalcBinFeatures();
+    void CalcForApplyData() {
+        ApplyData = MakeAtomicShared<TForApplyData>();
+        ProcessFloatFeatures();
+        ProcessCatFeatures();
+        ProcessTextFeatures();
+        ProcessEstimatedFeatures();
+        CalcUsedModelCtrs();
+        CalcFirstLeafOffsets();
+    }
+    void CalcUsedModelCtrs();
+    void CalcFirstLeafOffsets();
+    void ProcessFloatFeatures();
+    void ProcessCatFeatures();
+    void ProcessTextFeatures();
+    void ProcessEstimatedFeatures();
+    void ProcessEmbeddingFeatures();
 private:
     //! Number of classes in model, in most cases equals to 1.
     int ApproxDimension = 1;
@@ -579,9 +566,8 @@ private:
     //! For computing final formula result as `Scale * sumTrees + Bias`
     TScaleAndBias ScaleAndBias;
 
-    TAdaptiveLock MutableDataLock;
-    mutable TAtomicSharedPtr<TRuntimeData> RuntimeData;
-    mutable TAtomicSharedPtr<TForApplyData> ApplyData;
+    TAtomicSharedPtr<TRuntimeData> RuntimeData;
+    TAtomicSharedPtr<TForApplyData> ApplyData;
 
     /**
     * This vector contains ui32 that contains such information:
