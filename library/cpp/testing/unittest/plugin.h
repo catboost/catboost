@@ -3,6 +3,7 @@
 #include <util/generic/ptr.h>
 
 namespace NUnitTest {
+    // Plugins are deprecated, please use Y_TEST_HOOK_* from library/cpp/hook/hook.h
     namespace NPlugin {
         class IPlugin {
         public:
