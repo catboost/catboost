@@ -749,7 +749,13 @@ bool IsValidUTF8(PyObject* obj) {
   }
 }
 
-bool AllowInvalidUTF8(const FieldDescriptor* field) { return true; }
+bool AllowInvalidUTF8(const FieldDescriptor* field) {
+#ifdef Y_PROTOBUF_UTF8_VALIDATION_ENABLED_FOR_PYTHON
+  return false;
+#else
+  return true;
+#endif
+}
 
 PyObject* CheckString(PyObject* arg, const FieldDescriptor* descriptor) {
   GOOGLE_DCHECK(descriptor->type() == FieldDescriptor::TYPE_STRING ||
