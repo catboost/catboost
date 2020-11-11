@@ -259,18 +259,14 @@ namespace NCB {
                 switch (featureType) {
                     case EFeatureType::Float:
                         return FloatFeatureInternalIdxToExternalIdx;
-                        break;
                     case EFeatureType::Categorical:
                         return CatFeatureInternalIdxToExternalIdx;
-                        break;
                     case EFeatureType::Text:
                         return TextFeatureInternalIdxToExternalIdx;
-                        break;
                     case EFeatureType::Embedding:
                         return EmbeddingFeatureInternalIdxToExternalIdx;
-                        break;
                     default:
-                        CB_ENSURE(false); // "Unsupported feature type " << featureType << " for layout");
+                        CB_ENSURE(false, "Unsupported feature type " << featureType << " for layout");
                 }
             }();
             for (const auto& feature : features) {

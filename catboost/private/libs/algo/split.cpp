@@ -31,18 +31,21 @@ TModelSplit TSplit::GetModelSplit(
         split.FloatFeature.FloatFeature = FeatureIdx;
         split.FloatFeature.Split = ctx.LearnProgress->FloatFeatures[FeatureIdx].Borders[BinBorder];
     } else if (Type == ESplitType::EstimatedFeature) {
-        const auto& estimatedFeaturesInfo = (
+        const auto &estimatedFeaturesInfo = (
             IsOnlineEstimatedFeature ? onlineEstimatedFeaturesInfo : offlineEstimatedFeaturesInfo
         );
         const TEstimatedFeatureId estimatedFeatureId = estimatedFeaturesInfo.Layout[FeatureIdx];
-
-        split.EstimatedFeature.SourceFeatureId
-            = featureEstimators.GetEstimatorSourceFeatureIdx(estimatedFeatureId.EstimatorId).TextFeatureId;
-        split.EstimatedFeature.CalcerId = featureEstimators.GetEstimatorGuid(estimatedFeatureId.EstimatorId);
-        split.EstimatedFeature.LocalId = SafeIntegerCast<int>(estimatedFeatureId.LocalFeatureId);
-        split.EstimatedFeature.Split = estimatedFeaturesInfo.QuantizedFeaturesInfo->GetBorders(
-            TFloatFeatureIdx(SafeIntegerCast<ui32>(FeatureIdx))
-        )[BinBorder];
+        return TModelSplit(TEstimatedFeatureSplit{
+            TModelEstimatedFeature{
+                (int)featureEstimators.GetEstimatorSourceFeatureIdx(estimatedFeatureId.EstimatorId).TextFeatureId,
+                featureEstimators.GetEstimatorGuid(estimatedFeatureId.EstimatorId),
+                SafeIntegerCast<int>(estimatedFeatureId.LocalFeatureId),
+                FeatureTypeToEstimatedSourceFeatureType(featureEstimators.GetEstimatorSourceType(estimatedFeatureId.EstimatorId))
+            },
+            estimatedFeaturesInfo.QuantizedFeaturesInfo->GetBorders(
+                TFloatFeatureIdx(SafeIntegerCast<ui32>(FeatureIdx))
+            )[BinBorder]
+        });
     } else if (Type == ESplitType::OneHotFeature) {
         split.OneHotFeature.CatFeatureIdx = FeatureIdx;
         split.OneHotFeature.Value = perfectHashedToHashedCatValuesMap[FeatureIdx][BinBorder];

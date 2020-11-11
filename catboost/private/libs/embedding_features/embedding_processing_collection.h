@@ -73,6 +73,10 @@ namespace NCB {
             return FeatureCalcers[calcerId];
         }
 
+        TEmbeddingFeatureCalcerPtr GetCalcer(const TGuid& calcerGuid) const {
+            return FeatureCalcers[CalcerGuidToFlatIdx.at(calcerGuid)];
+        }
+
         ui32 NumberOfOutputFeatures(ui32 featureId) const;
         ui32 TotalNumberOfOutputFeatures() const;
 

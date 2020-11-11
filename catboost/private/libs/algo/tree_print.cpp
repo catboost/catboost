@@ -151,7 +151,7 @@ TString BuildDescription(const NCB::TFeaturesLayout& layout, const TModelSplit& 
     } else if (feature.Type == ESplitType::FloatFeature) {
         result << BuildFeatureDescription(layout, feature.FloatFeature.FloatFeature, EFeatureType::Float);
     } else if (feature.Type == ESplitType::EstimatedFeature) {
-        const TEstimatedFeatureSplit& split = feature.EstimatedFeature;
+        const TModelEstimatedFeature& split = feature.EstimatedFeature.ModelEstimatedFeature;
         result << " src_feature_id=" << split.SourceFeatureId;
         result << " calcer_id=" << split.CalcerId;
         result << " local_id=" << split.LocalId;
@@ -164,6 +164,8 @@ TString BuildDescription(const NCB::TFeaturesLayout& layout, const TModelSplit& 
         result << ", border=" << feature.OnlineCtr.Border;
     } else if (feature.Type == ESplitType::FloatFeature) {
         result << ", bin=" << feature.FloatFeature.Split;
+    } else if (feature.Type == ESplitType::EstimatedFeature) {
+        result << ", bin=" << feature.EstimatedFeature.Split;
     } else {
         Y_ASSERT(feature.Type == ESplitType::OneHotFeature);
         result << ", value=";

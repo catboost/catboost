@@ -101,11 +101,6 @@ TFullModel DeserializeModel(const TString& serializedModel) {
     return DeserializeModel(TMemoryInput{serializedModel.data(), serializedModel.size()});
 }
 
-static bool EstimatedFeatureIdsAreEqual(const TEstimatedFeature& lhs, const TEstimatedFeatureSplit& rhs) {
-    return std::tie(lhs.SourceFeatureIndex, lhs.CalcerId, lhs.LocalIndex)
-        == std::tie(rhs.SourceFeatureId, rhs.CalcerId, rhs.LocalId);
-}
-
 struct TSolidModelTree : IModelTreeData {
     TConstArrayRef<int> GetTreeSplits() const override;
     TConstArrayRef<int> GetTreeSizes() const override;
@@ -193,22 +188,22 @@ void TModelTrees::ProcessSplitsSet(
             FloatFeatures.at(internalFloatIndex).Borders.push_back(split.FloatFeature.Split);
         } else if (split.Type == ESplitType::EstimatedFeature) {
             const TEstimatedFeatureSplit estimatedFeatureSplit = split.EstimatedFeature;
+            EEstimatedSourceFeatureType featureType;
             if (std::find(textFeaturesInternalIndexesMap.begin(),
                           textFeaturesInternalIndexesMap.end(),
-                          estimatedFeatureSplit.SourceFeatureId) !=
+                          estimatedFeatureSplit.ModelEstimatedFeature.SourceFeatureId) !=
                           textFeaturesInternalIndexesMap.end()) {
-                usedTextFeatureIndexes.insert(estimatedFeatureSplit.SourceFeatureId);
+                usedTextFeatureIndexes.insert(estimatedFeatureSplit.ModelEstimatedFeature.SourceFeatureId);
+                featureType = EEstimatedSourceFeatureType::Text;
             } else {
-                usedEmbeddingFeatureIndexes.insert(estimatedFeatureSplit.SourceFeatureId);
+                usedEmbeddingFeatureIndexes.insert(estimatedFeatureSplit.ModelEstimatedFeature.SourceFeatureId);
+                featureType = EEstimatedSourceFeatureType::Embedding;
             }
             if (EstimatedFeatures.empty() ||
-                !EstimatedFeatureIdsAreEqual(EstimatedFeatures.back(), estimatedFeatureSplit)
+                EstimatedFeatures.back().ModelEstimatedFeature != estimatedFeatureSplit.ModelEstimatedFeature
             ) {
-                TEstimatedFeature estimatedFeature{
-                    estimatedFeatureSplit.SourceFeatureId,
-                    estimatedFeatureSplit.CalcerId,
-                    estimatedFeatureSplit.LocalId
-                };
+                TEstimatedFeature estimatedFeature(estimatedFeatureSplit.ModelEstimatedFeature);
+                Y_ASSERT(estimatedFeatureSplit.ModelEstimatedFeature.SourceFeatureType == featureType);
                 EstimatedFeatures.emplace_back(estimatedFeature);
             }
 
@@ -503,9 +498,7 @@ void TModelTrees::CalcBinFeatures() {
     for (const auto& feature : EstimatedFeatures) {
         for (int borderId = 0; borderId < feature.Borders.ysize(); ++borderId) {
             TEstimatedFeatureSplit split{
-                feature.SourceFeatureIndex,
-                feature.CalcerId,
-                feature.LocalIndex,
+                feature.ModelEstimatedFeature,
                 feature.Borders[borderId]
             };
             ref.BinFeatures.emplace_back(split);

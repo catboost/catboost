@@ -487,6 +487,22 @@ public:
         }
     }
 
+    size_t GetNumTextFeatures() const {
+        if (TextFeatures.empty()) {
+            return 0;
+        } else {
+            return static_cast<size_t>(TextFeatures.back().Position.Index) + 1;
+        }
+    }
+
+    size_t GetNumEmbeddingFeatures() const {
+        if (EmbeddingFeatures.empty()) {
+            return 0;
+        } else {
+            return static_cast<size_t>(EmbeddingFeatures.back().Position.Index) + 1;
+        }
+    }
+
     size_t GetBinaryFeaturesFullCount() const {
         return GetBinFeatures().size();
     }
@@ -775,6 +791,20 @@ public:
      */
     size_t GetNumCatFeatures() const {
         return ModelTrees->GetNumCatFeatures();
+    }
+
+    /**
+    * @return Expected text features vector length for this model
+    */
+    size_t GetNumTextFeatures() const {
+        return ModelTrees->GetNumTextFeatures();
+    }
+
+    /**
+    * @return Expected embeddings features vector length for this model
+    */
+    size_t GetNumEmbeddingFeatures() const {
+        return ModelTrees->GetNumEmbeddingFeatures();
     }
 
     /**

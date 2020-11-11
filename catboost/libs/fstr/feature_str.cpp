@@ -1,9 +1,12 @@
 #include "feature_str.h"
 
+#include <catboost/private/libs/options/enum_helpers.h>
+
 #include <util/generic/algorithm.h>
 #include <util/generic/hash.h>
 #include <util/generic/utility.h>
 #include <util/generic/xrange.h>
+#include <util/string/cast.h>
 #include <util/system/yassert.h>
 
 #include <algorithm>
@@ -43,6 +46,14 @@ TString TFeature::BuildDescription(const NCB::TFeaturesLayout& layout) const {
         result << " type=" << Ctr.Base.CtrType;
     } else if (Type == ESplitType::FloatFeature) {
         result << BuildFeatureDescription(layout, FeatureIdx, EFeatureType::Float);
+    } else if (Type == ESplitType::EstimatedFeature) {
+        result << "{";
+        EFeatureType featureType = EstimatedSourceFeatureTypeToFeatureType(EstimatedFeature.SourceFeatureType);
+        result << BuildFeatureDescription(layout, FeatureIdx, featureType);
+        result << "}";
+        result << " local_id=" << EstimatedFeature.LocalId;
+        result << " calcer_type=" << FeatureCalcerType;
+
     } else {
         Y_ASSERT(Type == ESplitType::OneHotFeature);
         result << BuildFeatureDescription(layout, FeatureIdx, EFeatureType::Categorical);
@@ -215,7 +226,7 @@ static void DFS(const TFullModel& model, const THashMap<TFeature, int, TFeatureH
     const auto& binFeatures = model.ModelTrees->GetBinFeatures();
     const auto& node = model.ModelTrees->GetModelTreeData()->GetNonSymmetricStepNodes()[nodeIdx];
 
-    const auto& feature = GetFeature(binFeatures[split]);
+    const auto& feature = GetFeature(model, binFeatures[split]);
     const int featureIdx = featureToIdx.at(feature);
 
     const ui32 leftNodeIdx = nodeIdx + node.LeftSubtreeDiff;
@@ -283,7 +294,7 @@ TVector<TFeaturePairInteractionInfo> CalcMostInteractingFeatures(const TFullMode
     return PostProcessSumInteractions(sumInteractions, featureCount, topPairsCount);
 }
 
-TFeature GetFeature(const TModelSplit& split) {
+TFeature GetFeature(const TFullModel& model, const TModelSplit& split) {
     TFeature result;
     result.Type = split.Type;
     switch(result.Type) {
@@ -297,8 +308,22 @@ TFeature GetFeature(const TModelSplit& split) {
             result.Ctr = split.OnlineCtr.Ctr;
             break;
         case ESplitType::EstimatedFeature:
-            CB_ENSURE(false, "Text features is not supported in fstr mode yet");
+            result.EstimatedFeature = TModelEstimatedFeature{
+                split.EstimatedFeature.ModelEstimatedFeature.SourceFeatureId,
+                split.EstimatedFeature.ModelEstimatedFeature.CalcerId,
+                split.EstimatedFeature.ModelEstimatedFeature.LocalId,
+                split.EstimatedFeature.ModelEstimatedFeature.SourceFeatureType
+            };
+            if (split.EstimatedFeature.ModelEstimatedFeature.SourceFeatureType == EEstimatedSourceFeatureType::Text) {
+                result.FeatureCalcerType = model.TextProcessingCollection->GetCalcer(split.EstimatedFeature.ModelEstimatedFeature.CalcerId)->Type();
+            } else {
+                CB_ENSURE(split.EstimatedFeature.ModelEstimatedFeature.SourceFeatureType == EEstimatedSourceFeatureType::Embedding);
+                result.FeatureCalcerType = model.EmbeddingProcessingCollection->GetCalcer(split.EstimatedFeature.ModelEstimatedFeature.CalcerId)->Type();
+            }
+            result.FeatureIdx = split.EstimatedFeature.ModelEstimatedFeature.SourceFeatureId;
             break;
+        default:
+            CB_ENSURE(false, "Unsupported split type " << result.Type);
     }
     return result;
 }

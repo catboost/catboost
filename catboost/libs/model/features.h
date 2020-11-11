@@ -2,6 +2,7 @@
 
 #include "fwd.h"
 
+#include "model_estimated_features.h"
 #include "online_ctr.h"
 
 #include <catboost/libs/helpers/guid.h>
@@ -199,7 +200,7 @@ struct TEmbeddingFeature {
 public:
     TFeaturePosition Position;
     TString FeatureId;
-    int Dimension;
+    int Dimension = 0;
 public:
     TEmbeddingFeature() = default;
 
@@ -244,44 +245,49 @@ private:
 
 struct TEstimatedFeature {
 public:
-    int SourceFeatureIndex = -1;
-    NCB::TGuid CalcerId;
-    int LocalIndex = -1;
+    TModelEstimatedFeature ModelEstimatedFeature;
     TVector<float> Borders;
 
 public:
     TEstimatedFeature() = default;
 
     TEstimatedFeature(
-        int sourceFeatureIndex,
-        const NCB::TGuid& calcerId,
-        int localIndex
+        int sourceFeatureId,
+        NCB::TGuid calcerId,
+        int localId,
+        EEstimatedSourceFeatureType sourceFeatureType
     )
-        : SourceFeatureIndex(sourceFeatureIndex)
-        , CalcerId(calcerId)
-        , LocalIndex(localIndex)
+        : ModelEstimatedFeature(TModelEstimatedFeature(sourceFeatureId, calcerId, localId, sourceFeatureType))
+    {}
+
+    TEstimatedFeature(
+        int sourceFeatureId,
+        int localId,
+        EEstimatedSourceFeatureType sourceFeatureType
+    )
+        : ModelEstimatedFeature(TModelEstimatedFeature(sourceFeatureId, localId, sourceFeatureType))
+    {}
+
+    TEstimatedFeature(
+        const TModelEstimatedFeature& modelEstimatedFeature
+    )
+        : ModelEstimatedFeature(modelEstimatedFeature)
+    {}
+
+    TEstimatedFeature(
+        const TModelEstimatedFeature& modelEstimatedFeature,
+        const TVector<float>& borders
+    )
+        : ModelEstimatedFeature(modelEstimatedFeature)
+        , Borders(borders)
     {}
 
     bool operator<(const TEstimatedFeature& other) const {
-        return std::tie(
-            SourceFeatureIndex,
-            CalcerId,
-            LocalIndex) <
-               std::tie(
-                   other.SourceFeatureIndex,
-                   other.CalcerId,
-                   other.LocalIndex);
+        return std::tie(ModelEstimatedFeature) < std::tie(other.ModelEstimatedFeature);
     }
 
     bool operator==(const TEstimatedFeature& other) const {
-        return std::tie(
-            SourceFeatureIndex,
-            CalcerId,
-            LocalIndex) ==
-            std::tie(
-                other.SourceFeatureIndex,
-                other.CalcerId,
-                other.LocalIndex);
+        return std::tie(ModelEstimatedFeature) == std::tie(other.ModelEstimatedFeature);
     }
 
     bool operator!=(const TEstimatedFeature& other) const {
@@ -292,7 +298,7 @@ public:
         flatbuffers::FlatBufferBuilder& builder
     ) const;
     void FBDeserialize(const NCatBoostFbs::TEstimatedFeature* fbObj);
-    Y_SAVELOAD_DEFINE(SourceFeatureIndex, CalcerId, LocalIndex, Borders);
+    Y_SAVELOAD_DEFINE(ModelEstimatedFeature, Borders);
 };
 
 class TModelPartsCachingSerializer;

@@ -1,0 +1,983 @@
+0.1580309209	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=32 calcer_type=BoW
+0.1580309209	{synopsis} local_id=44 calcer_type=BoW	{synopsis} local_id=32 calcer_type=BoW
+0.1580309209	{review} local_id=5 calcer_type=BoW	{synopsis} local_id=32 calcer_type=BoW
+0.1514520688	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=44 calcer_type=BoW
+0.1339336863	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=19 calcer_type=BoW
+0.1339336863	{synopsis} local_id=0 calcer_type=BoW	{synopsis} local_id=19 calcer_type=BoW
+0.1250253742	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=102 calcer_type=BoW
+0.1211602863	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{review} local_id=5 calcer_type=BoW
+0.1211602863	{synopsis} local_id=44 calcer_type=BoW	{review} local_id=5 calcer_type=BoW
+0.1171014663	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{review} local_id=22 calcer_type=BoW
+0.1170175863	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=101 calcer_type=BoW
+0.1133811064	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=66 calcer_type=BoW
+0.1064978515	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=0 calcer_type=BoW
+0.1012715257	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=60 calcer_type=BoW
+0.1008091163	{review} local_id=7 calcer_type=BoW	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
+0.09821937654	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{review} local_id=8 calcer_type=BoW
+0.09776903174	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=13 calcer_type=BoW
+0.09776903174	{synopsis} local_id=0 calcer_type=BoW	{synopsis} local_id=13 calcer_type=BoW
+0.09776903174	{synopsis} local_id=19 calcer_type=BoW	{synopsis} local_id=13 calcer_type=BoW
+0.09730449623	{review} local_id=7 calcer_type=BoW	{review} local_id=16 calcer_type=BoW
+0.09730449623	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{review} local_id=16 calcer_type=BoW
+0.09725827358	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=88 calcer_type=BoW
+0.09689671576	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{review} local_id=6 calcer_type=BoW
+0.09689671576	{synopsis} local_id=66 calcer_type=BoW	{review} local_id=6 calcer_type=BoW
+0.09689671576	{synopsis} local_id=33 calcer_type=BoW	{review} local_id=6 calcer_type=BoW
+0.09390576383	{synopsis} local_id=102 calcer_type=BoW	{synopsis} local_id=77 calcer_type=BoW
+0.09390576383	{synopsis} local_id=39 calcer_type=BoW	{synopsis} local_id=77 calcer_type=BoW
+0.09390576383	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=77 calcer_type=BoW
+0.09241241223	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=23 calcer_type=BoW
+0.09220872998	{synopsis} local_id=88 calcer_type=BoW	{synopsis} local_id=83 calcer_type=BoW
+0.09220872998	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=83 calcer_type=BoW
+0.08995322395	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=100 calcer_type=BoW
+0.08839473198	{synopsis} local_id=88 calcer_type=BoW	{synopsis} local_id=85 calcer_type=BoW
+0.08839473198	{synopsis} local_id=83 calcer_type=BoW	{synopsis} local_id=85 calcer_type=BoW
+0.08839473198	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=85 calcer_type=BoW
+0.0880531633	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=33 calcer_type=BoW
+0.0880531633	{synopsis} local_id=66 calcer_type=BoW	{synopsis} local_id=33 calcer_type=BoW
+0.08805293942	{synopsis} local_id=102 calcer_type=BoW	{synopsis} local_id=39 calcer_type=BoW
+0.08805293942	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=39 calcer_type=BoW
+0.08279101536	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=58 calcer_type=BoW
+0.07903754566	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{review} local_id=29 calcer_type=BoW
+0.0767620873	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=32 calcer_type=BoW
+0.0767620873	{review} local_id=22 calcer_type=BoW	{synopsis} local_id=32 calcer_type=BoW
+0.0767620873	{synopsis} local_id=16 calcer_type=BoW	{synopsis} local_id=32 calcer_type=BoW
+0.07585235786	{synopsis} local_id=23 calcer_type=BoW	{synopsis} local_id=51 calcer_type=BoW
+0.07585235786	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=51 calcer_type=BoW
+0.07450746578	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=18 calcer_type=BoW
+0.07450746578	{synopsis} local_id=101 calcer_type=BoW	{synopsis} local_id=18 calcer_type=BoW
+0.07438172039	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{review} local_id=14 calcer_type=BoW
+0.07325988196	dvd_date	{review} local_id=20 calcer_type=BoW
+0.07325988196	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{review} local_id=20 calcer_type=BoW
+0.07197022172	{synopsis} local_id=9 calcer_type=BoW	{synopsis} local_id=83 calcer_type=BoW
+0.07197022172	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=83 calcer_type=BoW
+0.07192644851	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=48 calcer_type=BoW
+0.07192644851	{synopsis} local_id=58 calcer_type=BoW	{synopsis} local_id=48 calcer_type=BoW
+0.07159837654	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=16 calcer_type=BoW
+0.07159837654	{review} local_id=22 calcer_type=BoW	{synopsis} local_id=16 calcer_type=BoW
+0.07125376476	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{review} local_id=32 calcer_type=BoW
+0.07125376476	{synopsis} local_id=31 calcer_type=BoW	{review} local_id=32 calcer_type=BoW
+0.07125376476	{synopsis} local_id=100 calcer_type=BoW	{review} local_id=32 calcer_type=BoW
+0.07099900375	{review} local_id=29 calcer_type=BoW	{synopsis} local_id=91 calcer_type=BoW
+0.07099900375	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=91 calcer_type=BoW
+0.07096109772	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=95 calcer_type=BoW
+0.07096109772	{review} local_id=8 calcer_type=BoW	{synopsis} local_id=95 calcer_type=BoW
+0.0697018851	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=39 calcer_type=BoW
+0.0697018851	{synopsis} local_id=60 calcer_type=BoW	{synopsis} local_id=39 calcer_type=BoW
+0.06848028863	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{review} local_id=18 calcer_type=BoW
+0.06827195362	{synopsis} local_id=23 calcer_type=BoW	{review} local_id=15 calcer_type=BoW
+0.06827195362	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{review} local_id=15 calcer_type=BoW
+0.06827195362	{genre} local_id=1 calcer_type=BoW	{review} local_id=15 calcer_type=BoW
+0.06827195362	{synopsis} local_id=51 calcer_type=BoW	{review} local_id=15 calcer_type=BoW
+0.06756815359	{review} local_id=13 calcer_type=BoW	{review} local_id=26 calcer_type=BoW
+0.06756815359	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{review} local_id=26 calcer_type=BoW
+0.06756815359	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{review} local_id=13 calcer_type=BoW
+0.06681188068	{synopsis} local_id=91 calcer_type=BoW	{review} local_id=0 calcer_type=BoW
+0.06681188068	{review} local_id=29 calcer_type=BoW	{review} local_id=0 calcer_type=BoW
+0.06681188068	{synopsis} local_id=80 calcer_type=BoW	{review} local_id=0 calcer_type=BoW
+0.06681188068	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{review} local_id=0 calcer_type=BoW
+0.06679744003	{review} local_id=29 calcer_type=BoW	{synopsis} local_id=80 calcer_type=BoW
+0.06679744003	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=80 calcer_type=BoW
+0.06679744003	{synopsis} local_id=91 calcer_type=BoW	{synopsis} local_id=80 calcer_type=BoW
+0.06656900442	{synopsis} local_id=18 calcer_type=BoW	{review} local_id=12 calcer_type=BoW
+0.06656900442	{synopsis} local_id=101 calcer_type=BoW	{review} local_id=12 calcer_type=BoW
+0.06656900442	{synopsis} local_id=12 calcer_type=BoW	{review} local_id=12 calcer_type=BoW
+0.06656900442	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{review} local_id=12 calcer_type=BoW
+0.06308021408	{review} local_id=13 calcer_type=BoW	{synopsis} local_id=48 calcer_type=BoW
+0.06308021408	{review} local_id=26 calcer_type=BoW	{synopsis} local_id=48 calcer_type=BoW
+0.06308021408	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=48 calcer_type=BoW
+0.06189835098	{synopsis} local_id=100 calcer_type=BoW	{synopsis} local_id=31 calcer_type=BoW
+0.06189835098	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=31 calcer_type=BoW
+0.06087578273	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=65 calcer_type=BoW
+0.06087578273	{synopsis} local_id=22 calcer_type=BoW	{synopsis} local_id=65 calcer_type=BoW
+0.06064464883	{review} local_id=7 calcer_type=BoW	{synopsis} local_id=41 calcer_type=BoW
+0.06064464883	{review} local_id=16 calcer_type=BoW	{synopsis} local_id=41 calcer_type=BoW
+0.06064464883	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=41 calcer_type=BoW
+0.05998655041	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=29 calcer_type=BoW
+0.05998655041	{synopsis} local_id=60 calcer_type=BoW	{synopsis} local_id=29 calcer_type=BoW
+0.05998655041	{synopsis} local_id=39 calcer_type=BoW	{synopsis} local_id=29 calcer_type=BoW
+0.05997022198	{synopsis} local_id=83 calcer_type=BoW	{review} local_id=11 calcer_type=BoW
+0.05997022198	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{review} local_id=11 calcer_type=BoW
+0.05997022198	{synopsis} local_id=73 calcer_type=BoW	{review} local_id=11 calcer_type=BoW
+0.05997022198	{synopsis} local_id=9 calcer_type=BoW	{review} local_id=11 calcer_type=BoW
+0.05892433059	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=63 calcer_type=BoW
+0.05892433059	{review} local_id=18 calcer_type=BoW	{synopsis} local_id=63 calcer_type=BoW
+0.05859227456	{review} local_id=26 calcer_type=BoW	{review} local_id=17 calcer_type=BoW
+0.05859227456	{synopsis} local_id=48 calcer_type=BoW	{review} local_id=17 calcer_type=BoW
+0.05859227456	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{review} local_id=17 calcer_type=BoW
+0.05859227456	{review} local_id=13 calcer_type=BoW	{review} local_id=17 calcer_type=BoW
+0.05504939206	{review} local_id=18 calcer_type=BoW	{synopsis} local_id=41 calcer_type=BoW
+0.05504939206	{synopsis} local_id=63 calcer_type=BoW	{synopsis} local_id=41 calcer_type=BoW
+0.05504939206	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=41 calcer_type=BoW
+0.05488958079	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=72 calcer_type=BoW
+0.05488958079	{review} local_id=14 calcer_type=BoW	{synopsis} local_id=72 calcer_type=BoW
+0.05454329228	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{review} local_id=33 calcer_type=BoW
+0.0526778867	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=22 calcer_type=BoW
+0.05241152219	{synopsis} local_id=23 calcer_type=BoW	{genre} local_id=1 calcer_type=BoW
+0.05241152219	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{genre} local_id=1 calcer_type=BoW
+0.05241152219	{synopsis} local_id=51 calcer_type=BoW	{genre} local_id=1 calcer_type=BoW
+0.05224821567	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=60 calcer_type=BoW
+0.05224821567	{review} local_id=18 calcer_type=BoW	{synopsis} local_id=60 calcer_type=BoW
+0.05224821567	{synopsis} local_id=41 calcer_type=BoW	{synopsis} local_id=60 calcer_type=BoW
+0.05224821567	{synopsis} local_id=63 calcer_type=BoW	{synopsis} local_id=60 calcer_type=BoW
+0.05195790514	{synopsis} local_id=58 calcer_type=BoW	{synopsis} local_id=81 calcer_type=BoW
+0.05195790514	{synopsis} local_id=6 calcer_type=BoW	{synopsis} local_id=81 calcer_type=BoW
+0.05195790514	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=81 calcer_type=BoW
+0.05195790514	{synopsis} local_id=48 calcer_type=BoW	{synopsis} local_id=81 calcer_type=BoW
+0.05073945296	{synopsis} local_id=73 calcer_type=BoW	{synopsis} local_id=70 calcer_type=BoW
+0.05073945296	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=70 calcer_type=BoW
+0.05073945296	{review} local_id=11 calcer_type=BoW	{synopsis} local_id=70 calcer_type=BoW
+0.05073945296	{synopsis} local_id=9 calcer_type=BoW	{synopsis} local_id=70 calcer_type=BoW
+0.05073945296	{synopsis} local_id=83 calcer_type=BoW	{synopsis} local_id=70 calcer_type=BoW
+0.050256622	{synopsis} local_id=72 calcer_type=BoW	{review} local_id=35 calcer_type=BoW
+0.050256622	{synopsis} local_id=4 calcer_type=BoW	{review} local_id=35 calcer_type=BoW
+0.050256622	{review} local_id=14 calcer_type=BoW	{review} local_id=35 calcer_type=BoW
+0.050256622	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{review} local_id=35 calcer_type=BoW
+0.05011540624	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=91 calcer_type=BoW
+0.05011540624	{synopsis} local_id=62 calcer_type=BoW	{synopsis} local_id=91 calcer_type=BoW
+0.05011540624	{synopsis} local_id=30 calcer_type=BoW	{synopsis} local_id=91 calcer_type=BoW
+0.05011540624	{review} local_id=8 calcer_type=BoW	{synopsis} local_id=91 calcer_type=BoW
+0.05011540624	{synopsis} local_id=95 calcer_type=BoW	{synopsis} local_id=91 calcer_type=BoW
+0.05005294704	{synopsis} local_id=88 calcer_type=BoW	{synopsis} local_id=71 calcer_type=BoW
+0.05005294704	{synopsis} local_id=85 calcer_type=BoW	{synopsis} local_id=71 calcer_type=BoW
+0.05005294704	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=71 calcer_type=BoW
+0.05005294704	{synopsis} local_id=83 calcer_type=BoW	{synopsis} local_id=71 calcer_type=BoW
+0.05005294704	{synopsis} local_id=2 calcer_type=BoW	{synopsis} local_id=71 calcer_type=BoW
+0.04986495905	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=9 calcer_type=BoW
+0.04961639554	{synopsis} local_id=48 calcer_type=BoW	{review} local_id=4 calcer_type=BoW
+0.04961639554	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{review} local_id=4 calcer_type=BoW
+0.04961639554	{review} local_id=13 calcer_type=BoW	{review} local_id=4 calcer_type=BoW
+0.04961639554	{review} local_id=26 calcer_type=BoW	{review} local_id=4 calcer_type=BoW
+0.04961639554	{review} local_id=17 calcer_type=BoW	{review} local_id=4 calcer_type=BoW
+0.04862671854	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{review} local_id=13 calcer_type=BoW
+0.04862671854	{synopsis} local_id=0 calcer_type=BoW	{review} local_id=13 calcer_type=BoW
+0.04797022225	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=73 calcer_type=BoW
+0.04797022225	{synopsis} local_id=83 calcer_type=BoW	{synopsis} local_id=73 calcer_type=BoW
+0.04797022225	{synopsis} local_id=9 calcer_type=BoW	{synopsis} local_id=73 calcer_type=BoW
+0.04768536548	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=43 calcer_type=BoW
+0.04739179214	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=62 calcer_type=BoW
+0.04739179214	{review} local_id=8 calcer_type=BoW	{synopsis} local_id=62 calcer_type=BoW
+0.04739179214	{synopsis} local_id=95 calcer_type=BoW	{synopsis} local_id=62 calcer_type=BoW
+0.0466227698	{synopsis} local_id=45 calcer_type=BoW	{review} local_id=12 calcer_type=BoW
+0.0466227698	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{review} local_id=12 calcer_type=BoW
+0.0466227698	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=63 calcer_type=BoW
+0.0466227698	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=45 calcer_type=BoW
+0.0466227698	{synopsis} local_id=45 calcer_type=BoW	{synopsis} local_id=63 calcer_type=BoW
+0.0466227698	{review} local_id=12 calcer_type=BoW	{synopsis} local_id=63 calcer_type=BoW
+0.0466227698	dvd_date	{synopsis} local_id=63 calcer_type=BoW
+0.0466227698	dvd_date	{review} local_id=12 calcer_type=BoW
+0.0466227698	dvd_date	{synopsis} local_id=45 calcer_type=BoW
+0.04614633065	{synopsis} local_id=85 calcer_type=BoW	{synopsis} local_id=61 calcer_type=BoW
+0.04614633065	{synopsis} local_id=88 calcer_type=BoW	{synopsis} local_id=61 calcer_type=BoW
+0.04614633065	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=61 calcer_type=BoW
+0.04614633065	{synopsis} local_id=83 calcer_type=BoW	{synopsis} local_id=61 calcer_type=BoW
+0.04614633065	{synopsis} local_id=2 calcer_type=BoW	{synopsis} local_id=61 calcer_type=BoW
+0.04479722248	{synopsis} local_id=96 calcer_type=BoW	{synopsis} local_id=80 calcer_type=BoW
+0.04479722248	{synopsis} local_id=0 calcer_type=BoW	{synopsis} local_id=96 calcer_type=BoW
+0.04479722248	{synopsis} local_id=0 calcer_type=BoW	{synopsis} local_id=80 calcer_type=BoW
+0.04479722248	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=96 calcer_type=BoW
+0.04479722248	{synopsis} local_id=0 calcer_type=BoW	{review} local_id=33 calcer_type=BoW
+0.04479722248	{review} local_id=33 calcer_type=BoW	{synopsis} local_id=80 calcer_type=BoW
+0.04479722248	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=80 calcer_type=BoW
+0.04479722248	{review} local_id=33 calcer_type=BoW	{synopsis} local_id=96 calcer_type=BoW
+0.04479722248	{review} local_id=13 calcer_type=BoW	{synopsis} local_id=80 calcer_type=BoW
+0.04479722248	{review} local_id=13 calcer_type=BoW	{review} local_id=33 calcer_type=BoW
+0.04479722248	{review} local_id=13 calcer_type=BoW	{synopsis} local_id=96 calcer_type=BoW
+0.04478438952	{synopsis} local_id=18 calcer_type=BoW	{synopsis} local_id=12 calcer_type=BoW
+0.04478438952	{synopsis} local_id=101 calcer_type=BoW	{synopsis} local_id=12 calcer_type=BoW
+0.04478438952	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=12 calcer_type=BoW
+0.04466328823	{synopsis} local_id=65 calcer_type=BoW	{review} local_id=1 calcer_type=BoW
+0.04466328823	{synopsis} local_id=22 calcer_type=BoW	{review} local_id=1 calcer_type=BoW
+0.04466328823	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{review} local_id=1 calcer_type=BoW
+0.04413822752	{synopsis} local_id=81 calcer_type=BoW	{synopsis} local_id=53 calcer_type=BoW
+0.04413822752	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=53 calcer_type=BoW
+0.04413822752	{synopsis} local_id=6 calcer_type=BoW	{synopsis} local_id=53 calcer_type=BoW
+0.04413822752	{synopsis} local_id=58 calcer_type=BoW	{synopsis} local_id=53 calcer_type=BoW
+0.04413822752	{synopsis} local_id=48 calcer_type=BoW	{synopsis} local_id=53 calcer_type=BoW
+0.04363948968	{synopsis} local_id=77 calcer_type=BoW	{review} local_id=30 calcer_type=BoW
+0.04363948968	{synopsis} local_id=102 calcer_type=BoW	{review} local_id=30 calcer_type=BoW
+0.04363948968	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{review} local_id=30 calcer_type=BoW
+0.04363948968	{synopsis} local_id=2 calcer_type=BoW	{review} local_id=30 calcer_type=BoW
+0.04363948968	{synopsis} local_id=39 calcer_type=BoW	{review} local_id=30 calcer_type=BoW
+0.04286297081	{synopsis} local_id=32 calcer_type=BoW	{synopsis} local_id=45 calcer_type=BoW
+0.04286297081	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=45 calcer_type=BoW
+0.04286297081	{synopsis} local_id=16 calcer_type=BoW	{synopsis} local_id=45 calcer_type=BoW
+0.04286297081	{review} local_id=22 calcer_type=BoW	{synopsis} local_id=45 calcer_type=BoW
+0.04264899346	{synopsis} local_id=72 calcer_type=BoW	{synopsis} local_id=81 calcer_type=BoW
+0.04264899346	{review} local_id=14 calcer_type=BoW	{synopsis} local_id=81 calcer_type=BoW
+0.04264899346	{review} local_id=35 calcer_type=BoW	{synopsis} local_id=81 calcer_type=BoW
+0.04264899346	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=81 calcer_type=BoW
+0.04264899346	{synopsis} local_id=4 calcer_type=BoW	{synopsis} local_id=81 calcer_type=BoW
+0.04158760619	{synopsis} local_id=62 calcer_type=BoW	{synopsis} local_id=30 calcer_type=BoW
+0.04158760619	{synopsis} local_id=95 calcer_type=BoW	{synopsis} local_id=30 calcer_type=BoW
+0.04158760619	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=30 calcer_type=BoW
+0.04158760619	{review} local_id=8 calcer_type=BoW	{synopsis} local_id=30 calcer_type=BoW
+0.04147208158	{review} local_id=6 calcer_type=BoW	{synopsis} local_id=98 calcer_type=BoW
+0.04147208158	{synopsis} local_id=33 calcer_type=BoW	{synopsis} local_id=98 calcer_type=BoW
+0.04147208158	{synopsis} local_id=66 calcer_type=BoW	{synopsis} local_id=98 calcer_type=BoW
+0.04147208158	{review} local_id=0 calcer_type=NaiveBayes	{synopsis} local_id=98 calcer_type=BoW
+0.04147208158	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=98 calcer_type=BoW
+0.04034672097	{synopsis} local_id=29 calcer_type=BoW	{synopsis} local_id=95 calcer_type=BoW
+0.04034672097	{synopsis} local_id=39 calcer_type=BoW	{synopsis} local_id=95 calcer_type=BoW
+0.04034672097	{synopsis} local_id=60 calcer_type=BoW	{synopsis} local_id=95 calcer_type=BoW
+0.04034672097	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=95 calcer_type=BoW
+0.03881404407	{synopsis} local_id=41 calcer_type=BoW	{synopsis} local_id=21 calcer_type=BoW
+0.03881404407	{review} local_id=18 calcer_type=BoW	{synopsis} local_id=21 calcer_type=BoW
+0.03881404407	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=21 calcer_type=BoW
+0.03881404407	{synopsis} local_id=63 calcer_type=BoW	{synopsis} local_id=21 calcer_type=BoW
+0.03881404407	{synopsis} local_id=60 calcer_type=BoW	{synopsis} local_id=21 calcer_type=BoW
+0.03793209955	{synopsis} local_id=45 calcer_type=BoW	{synopsis} local_id=8 calcer_type=BoW
+0.03793209955	{review} local_id=12 calcer_type=BoW	{synopsis} local_id=8 calcer_type=BoW
+0.03793209955	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=8 calcer_type=BoW
+0.03793209955	dvd_date	{synopsis} local_id=8 calcer_type=BoW
+0.03793209955	{synopsis} local_id=63 calcer_type=BoW	{synopsis} local_id=8 calcer_type=BoW
+0.03690056558	{synopsis} local_id=1 calcer_type=BoW	{synopsis} local_id=69 calcer_type=BoW
+0.03690056558	{synopsis} local_id=19 calcer_type=BoW	{synopsis} local_id=69 calcer_type=BoW
+0.03690056558	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=69 calcer_type=BoW
+0.03690056558	{synopsis} local_id=13 calcer_type=BoW	{synopsis} local_id=69 calcer_type=BoW
+0.03690056558	{synopsis} local_id=0 calcer_type=BoW	{synopsis} local_id=69 calcer_type=BoW
+0.03619407596	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{review} local_id=7 calcer_type=BoW
+0.03589027208	{review} local_id=12 calcer_type=BoW	{synopsis} local_id=43 calcer_type=BoW
+0.03589027208	{synopsis} local_id=18 calcer_type=BoW	{synopsis} local_id=43 calcer_type=BoW
+0.03589027208	{synopsis} local_id=12 calcer_type=BoW	{synopsis} local_id=43 calcer_type=BoW
+0.03589027208	{synopsis} local_id=101 calcer_type=BoW	{synopsis} local_id=43 calcer_type=BoW
+0.0358775934	{review} local_id=14 calcer_type=BoW	{synopsis} local_id=4 calcer_type=BoW
+0.0358775934	{synopsis} local_id=72 calcer_type=BoW	{synopsis} local_id=4 calcer_type=BoW
+0.0358775934	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=4 calcer_type=BoW
+0.03530755339	{review} local_id=6 calcer_type=BoW	{synopsis} local_id=42 calcer_type=BoW
+0.03530755339	{synopsis} local_id=33 calcer_type=BoW	{synopsis} local_id=42 calcer_type=BoW
+0.03530755339	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=42 calcer_type=BoW
+0.03530755339	{review} local_id=0 calcer_type=NaiveBayes	{synopsis} local_id=42 calcer_type=BoW
+0.03530755339	{synopsis} local_id=66 calcer_type=BoW	{synopsis} local_id=42 calcer_type=BoW
+0.03512504828	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	dvd_date
+0.03511775879	{synopsis} local_id=27 calcer_type=BoW	{synopsis} local_id=82 calcer_type=BoW
+0.03511775879	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=82 calcer_type=BoW
+0.03511775879	{review} local_id=7 calcer_type=BoW	{synopsis} local_id=82 calcer_type=BoW
+0.03511775879	{review} local_id=16 calcer_type=BoW	{synopsis} local_id=82 calcer_type=BoW
+0.03511775879	{synopsis} local_id=41 calcer_type=BoW	{synopsis} local_id=82 calcer_type=BoW
+0.03445977179	{synopsis} local_id=102 calcer_type=BoW	{synopsis} local_id=38 calcer_type=BoW
+0.03445977179	{synopsis} local_id=39 calcer_type=BoW	{synopsis} local_id=38 calcer_type=BoW
+0.03445977179	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=38 calcer_type=BoW
+0.03445977179	{synopsis} local_id=2 calcer_type=BoW	{synopsis} local_id=38 calcer_type=BoW
+0.03445977179	{synopsis} local_id=77 calcer_type=BoW	{synopsis} local_id=38 calcer_type=BoW
+0.03270881489	{review} local_id=22 calcer_type=BoW	{synopsis} local_id=87 calcer_type=BoW
+0.03270881489	{synopsis} local_id=32 calcer_type=BoW	{synopsis} local_id=87 calcer_type=BoW
+0.03270881489	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=87 calcer_type=BoW
+0.03270881489	{synopsis} local_id=16 calcer_type=BoW	{synopsis} local_id=87 calcer_type=BoW
+0.03270881489	{synopsis} local_id=45 calcer_type=BoW	{synopsis} local_id=87 calcer_type=BoW
+0.03249919561	{synopsis} local_id=44 calcer_type=BoW	{review} local_id=36 calcer_type=BoW
+0.03249919561	{synopsis} local_id=17 calcer_type=BoW	{review} local_id=36 calcer_type=BoW
+0.03249919561	{review} local_id=5 calcer_type=BoW	{review} local_id=36 calcer_type=BoW
+0.03249919561	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{review} local_id=36 calcer_type=BoW
+0.03240225257	{synopsis} local_id=48 calcer_type=BoW	{synopsis} local_id=6 calcer_type=BoW
+0.03240225257	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=6 calcer_type=BoW
+0.03240225257	{synopsis} local_id=58 calcer_type=BoW	{synopsis} local_id=6 calcer_type=BoW
+0.03230769159	{review} local_id=10 calcer_type=BoW	{review} local_id=7 calcer_type=BoW
+0.03230769159	{review} local_id=10 calcer_type=BoW	{synopsis} local_id=84 calcer_type=BoW
+0.03230769159	{synopsis} local_id=84 calcer_type=BoW	{review} local_id=7 calcer_type=BoW
+0.03230769159	{synopsis} local_id=101 calcer_type=BoW	{review} local_id=10 calcer_type=BoW
+0.03230769159	{synopsis} local_id=101 calcer_type=BoW	{review} local_id=7 calcer_type=BoW
+0.03230769159	{synopsis} local_id=101 calcer_type=BoW	{synopsis} local_id=84 calcer_type=BoW
+0.03230769159	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=84 calcer_type=BoW
+0.03230769159	{synopsis} local_id=18 calcer_type=BoW	{review} local_id=10 calcer_type=BoW
+0.03230769159	{synopsis} local_id=18 calcer_type=BoW	{synopsis} local_id=84 calcer_type=BoW
+0.03230769159	{synopsis} local_id=18 calcer_type=BoW	{review} local_id=7 calcer_type=BoW
+0.03230769159	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{review} local_id=7 calcer_type=BoW
+0.03230769159	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{review} local_id=10 calcer_type=BoW
+0.03198304026	{synopsis} local_id=51 calcer_type=BoW	{synopsis} local_id=11 calcer_type=BoW
+0.03198304026	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=11 calcer_type=BoW
+0.03198304026	{genre} local_id=1 calcer_type=BoW	{synopsis} local_id=11 calcer_type=BoW
+0.03198304026	{review} local_id=15 calcer_type=BoW	{synopsis} local_id=11 calcer_type=BoW
+0.03198304026	{synopsis} local_id=23 calcer_type=BoW	{synopsis} local_id=11 calcer_type=BoW
+0.0317209166	{synopsis} local_id=31 calcer_type=BoW	{synopsis} local_id=28 calcer_type=BoW
+0.0317209166	{synopsis} local_id=100 calcer_type=BoW	{synopsis} local_id=28 calcer_type=BoW
+0.0317209166	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=28 calcer_type=BoW
+0.0317209166	{review} local_id=32 calcer_type=BoW	{synopsis} local_id=28 calcer_type=BoW
+0.03169756661	{review} local_id=29 calcer_type=BoW	{synopsis} local_id=14 calcer_type=BoW
+0.03169756661	{synopsis} local_id=80 calcer_type=BoW	{synopsis} local_id=14 calcer_type=BoW
+0.03169756661	{synopsis} local_id=91 calcer_type=BoW	{synopsis} local_id=14 calcer_type=BoW
+0.03169756661	{review} local_id=0 calcer_type=BoW	{synopsis} local_id=14 calcer_type=BoW
+0.03169756661	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=14 calcer_type=BoW
+0.03099265451	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=70 calcer_type=BoW
+0.03099265451	{synopsis} local_id=28 calcer_type=BoW	{synopsis} local_id=70 calcer_type=BoW
+0.03099265451	{review} local_id=32 calcer_type=BoW	{synopsis} local_id=70 calcer_type=BoW
+0.03099265451	{synopsis} local_id=100 calcer_type=BoW	{synopsis} local_id=70 calcer_type=BoW
+0.03099265451	{synopsis} local_id=31 calcer_type=BoW	{synopsis} local_id=70 calcer_type=BoW
+0.02956750037	{synopsis} local_id=60 calcer_type=BoW	{synopsis} local_id=78 calcer_type=BoW
+0.02956750037	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=78 calcer_type=BoW
+0.02956750037	{synopsis} local_id=39 calcer_type=BoW	{synopsis} local_id=78 calcer_type=BoW
+0.02956750037	{synopsis} local_id=29 calcer_type=BoW	{synopsis} local_id=78 calcer_type=BoW
+0.02956750037	{synopsis} local_id=95 calcer_type=BoW	{synopsis} local_id=78 calcer_type=BoW
+0.02936697555	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=43 calcer_type=BoW
+0.02936697555	{synopsis} local_id=45 calcer_type=BoW	{synopsis} local_id=43 calcer_type=BoW
+0.02936697555	{synopsis} local_id=16 calcer_type=BoW	{synopsis} local_id=43 calcer_type=BoW
+0.02936697555	{synopsis} local_id=32 calcer_type=BoW	{synopsis} local_id=43 calcer_type=BoW
+0.02936697555	{review} local_id=22 calcer_type=BoW	{synopsis} local_id=43 calcer_type=BoW
+0.02879912167	{synopsis} local_id=41 calcer_type=BoW	{synopsis} local_id=34 calcer_type=BoW
+0.02879912167	{synopsis} local_id=27 calcer_type=BoW	{synopsis} local_id=34 calcer_type=BoW
+0.02879912167	{review} local_id=7 calcer_type=BoW	{synopsis} local_id=34 calcer_type=BoW
+0.02879912167	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=34 calcer_type=BoW
+0.02879912167	{review} local_id=16 calcer_type=BoW	{synopsis} local_id=34 calcer_type=BoW
+0.02860175285	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=54 calcer_type=BoW
+0.02860175285	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=30 calcer_type=BoW
+0.02860175285	{synopsis} local_id=7 calcer_type=BoW	{synopsis} local_id=54 calcer_type=BoW
+0.02860175285	{synopsis} local_id=7 calcer_type=BoW	{synopsis} local_id=30 calcer_type=BoW
+0.02860175285	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=7 calcer_type=BoW
+0.02860175285	{synopsis} local_id=102 calcer_type=BoW	{synopsis} local_id=54 calcer_type=BoW
+0.02860175285	{synopsis} local_id=102 calcer_type=BoW	{synopsis} local_id=30 calcer_type=BoW
+0.02860175285	{synopsis} local_id=39 calcer_type=BoW	{synopsis} local_id=30 calcer_type=BoW
+0.02860175285	{synopsis} local_id=39 calcer_type=BoW	{synopsis} local_id=54 calcer_type=BoW
+0.02860175285	{synopsis} local_id=54 calcer_type=BoW	{synopsis} local_id=30 calcer_type=BoW
+0.02860175285	{synopsis} local_id=102 calcer_type=BoW	{synopsis} local_id=7 calcer_type=BoW
+0.02860175285	{synopsis} local_id=39 calcer_type=BoW	{synopsis} local_id=7 calcer_type=BoW
+0.02812775661	{review} local_id=5 calcer_type=BoW	{synopsis} local_id=17 calcer_type=BoW
+0.02812775661	{synopsis} local_id=44 calcer_type=BoW	{synopsis} local_id=17 calcer_type=BoW
+0.02812775661	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=17 calcer_type=BoW
+0.02786601723	{synopsis} local_id=41 calcer_type=BoW	{synopsis} local_id=27 calcer_type=BoW
+0.02786601723	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=27 calcer_type=BoW
+0.02786601723	{review} local_id=16 calcer_type=BoW	{synopsis} local_id=27 calcer_type=BoW
+0.02786601723	{review} local_id=7 calcer_type=BoW	{synopsis} local_id=27 calcer_type=BoW
+0.02777981833	{synopsis} local_id=10 calcer_type=BoW	{synopsis} local_id=96 calcer_type=BoW
+0.02777981833	{synopsis} local_id=10 calcer_type=BoW	{synopsis} local_id=103 calcer_type=BoW
+0.02777981833	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=96 calcer_type=BoW
+0.02777981833	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=103 calcer_type=BoW
+0.02777981833	{review} local_id=20 calcer_type=BoW	{synopsis} local_id=103 calcer_type=BoW
+0.02777981833	{review} local_id=20 calcer_type=BoW	{synopsis} local_id=96 calcer_type=BoW
+0.02777981833	{synopsis} local_id=96 calcer_type=BoW	{synopsis} local_id=103 calcer_type=BoW
+0.02777981833	dvd_date	{synopsis} local_id=103 calcer_type=BoW
+0.02777981833	dvd_date	{synopsis} local_id=96 calcer_type=BoW
+0.02720969801	{synopsis} local_id=49 calcer_type=BoW	{synopsis} local_id=57 calcer_type=BoW
+0.02720969801	{synopsis} local_id=49 calcer_type=BoW	{synopsis} local_id=21 calcer_type=BoW
+0.02720969801	{genre} local_id=0 calcer_type=NaiveBayes	{synopsis} local_id=57 calcer_type=BoW
+0.02720969801	{genre} local_id=0 calcer_type=NaiveBayes	{synopsis} local_id=21 calcer_type=BoW
+0.02720969801	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{genre} local_id=0 calcer_type=NaiveBayes
+0.02720969801	{synopsis} local_id=44 calcer_type=BoW	{synopsis} local_id=57 calcer_type=BoW
+0.02720969801	{synopsis} local_id=44 calcer_type=BoW	{synopsis} local_id=21 calcer_type=BoW
+0.02720969801	{synopsis} local_id=44 calcer_type=BoW	{genre} local_id=0 calcer_type=NaiveBayes
+0.02720969801	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=57 calcer_type=BoW
+0.02720969801	{synopsis} local_id=57 calcer_type=BoW	{synopsis} local_id=21 calcer_type=BoW
+0.02720969801	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=21 calcer_type=BoW
+0.02655038179	{synopsis} local_id=68 calcer_type=BoW	{synopsis} local_id=52 calcer_type=BoW
+0.02655038179	{synopsis} local_id=68 calcer_type=BoW	{synopsis} local_id=67 calcer_type=BoW
+0.02655038179	{synopsis} local_id=16 calcer_type=BoW	{synopsis} local_id=52 calcer_type=BoW
+0.02655038179	{synopsis} local_id=16 calcer_type=BoW	{synopsis} local_id=67 calcer_type=BoW
+0.02655038179	{review} local_id=22 calcer_type=BoW	{synopsis} local_id=68 calcer_type=BoW
+0.02655038179	{synopsis} local_id=16 calcer_type=BoW	{synopsis} local_id=68 calcer_type=BoW
+0.02655038179	{review} local_id=22 calcer_type=BoW	{synopsis} local_id=52 calcer_type=BoW
+0.02655038179	{synopsis} local_id=67 calcer_type=BoW	{synopsis} local_id=52 calcer_type=BoW
+0.02655038179	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=67 calcer_type=BoW
+0.02655038179	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=68 calcer_type=BoW
+0.02655038179	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=52 calcer_type=BoW
+0.02655038179	{review} local_id=22 calcer_type=BoW	{synopsis} local_id=67 calcer_type=BoW
+0.02639999941	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=15 calcer_type=BoW
+0.02639999941	{synopsis} local_id=6 calcer_type=BoW	{synopsis} local_id=15 calcer_type=BoW
+0.02639999941	{synopsis} local_id=101 calcer_type=BoW	{synopsis} local_id=15 calcer_type=BoW
+0.02639999941	{synopsis} local_id=12 calcer_type=BoW	{synopsis} local_id=15 calcer_type=BoW
+0.02639999941	{synopsis} local_id=18 calcer_type=BoW	{synopsis} local_id=15 calcer_type=BoW
+0.02481961174	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{review} local_id=16 calcer_type=BoW
+0.02481961174	{synopsis} local_id=41 calcer_type=BoW	{review} local_id=2 calcer_type=BoW
+0.02481961174	{review} local_id=7 calcer_type=BoW	{review} local_id=2 calcer_type=BoW
+0.02481961174	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
+0.02481961174	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=41 calcer_type=BoW
+0.02481961174	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{review} local_id=2 calcer_type=BoW
+0.02481961174	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{review} local_id=2 calcer_type=BoW
+0.02481961174	{review} local_id=16 calcer_type=BoW	{review} local_id=2 calcer_type=BoW
+0.02351412154	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=36 calcer_type=BoW
+0.02351412154	{synopsis} local_id=48 calcer_type=BoW	{synopsis} local_id=36 calcer_type=BoW
+0.02351412154	{review} local_id=27 calcer_type=BoW	{synopsis} local_id=36 calcer_type=BoW
+0.02351412154	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{review} local_id=27 calcer_type=BoW
+0.02351412154	{synopsis} local_id=6 calcer_type=BoW	{synopsis} local_id=36 calcer_type=BoW
+0.02351412154	{synopsis} local_id=58 calcer_type=BoW	{review} local_id=27 calcer_type=BoW
+0.02351412154	{synopsis} local_id=58 calcer_type=BoW	{synopsis} local_id=36 calcer_type=BoW
+0.02351412154	{synopsis} local_id=6 calcer_type=BoW	{review} local_id=27 calcer_type=BoW
+0.02351412154	{synopsis} local_id=48 calcer_type=BoW	{review} local_id=27 calcer_type=BoW
+0.02321240906	{synopsis} local_id=100 calcer_type=BoW	{synopsis} local_id=87 calcer_type=BoW
+0.02321240906	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=87 calcer_type=BoW
+0.02321240906	{synopsis} local_id=31 calcer_type=BoW	{synopsis} local_id=87 calcer_type=BoW
+0.02321240906	{synopsis} local_id=28 calcer_type=BoW	{synopsis} local_id=87 calcer_type=BoW
+0.02321240906	{review} local_id=32 calcer_type=BoW	{synopsis} local_id=87 calcer_type=BoW
+0.02313935368	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=33 calcer_type=BoW
+0.02313935368	{synopsis} local_id=66 calcer_type=BoW	{synopsis} local_id=33 calcer_type=BoW
+0.02313935368	{synopsis} local_id=100 calcer_type=BoW	{synopsis} local_id=97 calcer_type=BoW
+0.02313935368	{synopsis} local_id=97 calcer_type=BoW	{synopsis} local_id=33 calcer_type=BoW
+0.02313935368	{synopsis} local_id=100 calcer_type=BoW	{synopsis} local_id=33 calcer_type=BoW
+0.02313935368	{synopsis} local_id=66 calcer_type=BoW	{synopsis} local_id=97 calcer_type=BoW
+0.02313935368	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=97 calcer_type=BoW
+0.02313935368	{synopsis} local_id=31 calcer_type=BoW	{synopsis} local_id=33 calcer_type=BoW
+0.02313935368	{synopsis} local_id=31 calcer_type=BoW	{synopsis} local_id=97 calcer_type=BoW
+0.02313935368	{synopsis} local_id=31 calcer_type=BoW	{synopsis} local_id=66 calcer_type=BoW
+0.02313935368	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=66 calcer_type=BoW
+0.02313935368	{synopsis} local_id=100 calcer_type=BoW	{synopsis} local_id=66 calcer_type=BoW
+0.02210526266	{synopsis} local_id=101 calcer_type=BoW	{synopsis} local_id=36 calcer_type=BoW
+0.02210526266	{synopsis} local_id=101 calcer_type=BoW	{synopsis} local_id=28 calcer_type=BoW
+0.02210526266	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=69 calcer_type=BoW
+0.02210526266	{synopsis} local_id=36 calcer_type=BoW	{synopsis} local_id=62 calcer_type=BoW
+0.02210526266	{synopsis} local_id=28 calcer_type=BoW	{synopsis} local_id=62 calcer_type=BoW
+0.02210526266	{synopsis} local_id=36 calcer_type=BoW	{synopsis} local_id=28 calcer_type=BoW
+0.02210526266	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=62 calcer_type=BoW
+0.02210526266	{synopsis} local_id=20 calcer_type=BoW	{synopsis} local_id=49 calcer_type=BoW
+0.02210526266	{synopsis} local_id=69 calcer_type=BoW	{synopsis} local_id=20 calcer_type=BoW
+0.02210526266	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=28 calcer_type=BoW
+0.02210526266	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=49 calcer_type=BoW
+0.02210526266	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=20 calcer_type=BoW
+0.02210526266	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=52 calcer_type=BoW
+0.02210526266	{synopsis} local_id=9 calcer_type=BoW	{synopsis} local_id=52 calcer_type=BoW
+0.02210526266	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=36 calcer_type=BoW
+0.02210526266	{synopsis} local_id=69 calcer_type=BoW	{synopsis} local_id=49 calcer_type=BoW
+0.02210526266	{synopsis} local_id=9 calcer_type=BoW	{synopsis} local_id=69 calcer_type=BoW
+0.02210526266	{synopsis} local_id=20 calcer_type=BoW	{synopsis} local_id=52 calcer_type=BoW
+0.02210526266	{synopsis} local_id=69 calcer_type=BoW	{synopsis} local_id=52 calcer_type=BoW
+0.02210526266	{synopsis} local_id=101 calcer_type=BoW	{synopsis} local_id=62 calcer_type=BoW
+0.02210526266	{synopsis} local_id=52 calcer_type=BoW	{synopsis} local_id=49 calcer_type=BoW
+0.02210526266	{synopsis} local_id=9 calcer_type=BoW	{synopsis} local_id=49 calcer_type=BoW
+0.02210526266	{synopsis} local_id=9 calcer_type=BoW	{synopsis} local_id=20 calcer_type=BoW
+0.02194421337	{review} local_id=20 calcer_type=BoW	{synopsis} local_id=10 calcer_type=BoW
+0.02194421337	dvd_date	{synopsis} local_id=10 calcer_type=BoW
+0.02194421337	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=10 calcer_type=BoW
+0.02187377649	{genre} local_id=0 calcer_type=BoW	{review} local_id=3 calcer_type=BoW
+0.02187377649	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{review} local_id=3 calcer_type=BoW
+0.02187377649	{review} local_id=5 calcer_type=BoW	{review} local_id=3 calcer_type=BoW
+0.02187377649	{synopsis} local_id=44 calcer_type=BoW	{review} local_id=3 calcer_type=BoW
+0.02187377649	{synopsis} local_id=32 calcer_type=BoW	{review} local_id=3 calcer_type=BoW
+0.0217846149	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=6 calcer_type=BoW
+0.0217846149	{synopsis} local_id=101 calcer_type=BoW	{synopsis} local_id=6 calcer_type=BoW
+0.0217846149	{synopsis} local_id=18 calcer_type=BoW	{synopsis} local_id=6 calcer_type=BoW
+0.0217846149	{synopsis} local_id=12 calcer_type=BoW	{synopsis} local_id=6 calcer_type=BoW
+0.0215193539	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{review} local_id=9 calcer_type=BoW
+0.0215193539	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{review} local_id=2 calcer_type=BoW
+0.0215193539	{review} local_id=8 calcer_type=BoW	{review} local_id=2 calcer_type=BoW
+0.0215193539	{synopsis} local_id=95 calcer_type=BoW	{review} local_id=9 calcer_type=BoW
+0.0215193539	{synopsis} local_id=62 calcer_type=BoW	{review} local_id=2 calcer_type=BoW
+0.0215193539	{synopsis} local_id=95 calcer_type=BoW	{review} local_id=2 calcer_type=BoW
+0.0215193539	{synopsis} local_id=62 calcer_type=BoW	{review} local_id=9 calcer_type=BoW
+0.0215193539	{review} local_id=8 calcer_type=BoW	{review} local_id=9 calcer_type=BoW
+0.0215193539	{review} local_id=9 calcer_type=BoW	{review} local_id=2 calcer_type=BoW
+0.02023107094	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{review} local_id=10 calcer_type=BoW
+0.02023107094	{review} local_id=10 calcer_type=BoW	{synopsis} local_id=99 calcer_type=BoW
+0.02023107094	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{genre} local_id=1 calcer_type=BoW
+0.02023107094	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=55 calcer_type=BoW
+0.02023107094	{synopsis} local_id=99 calcer_type=BoW	{genre} local_id=1 calcer_type=BoW
+0.02023107094	{review} local_id=10 calcer_type=BoW	{synopsis} local_id=55 calcer_type=BoW
+0.02023107094	{review} local_id=10 calcer_type=BoW	{genre} local_id=1 calcer_type=BoW
+0.02023107094	{synopsis} local_id=55 calcer_type=BoW	{genre} local_id=1 calcer_type=BoW
+0.02023107094	{synopsis} local_id=55 calcer_type=BoW	{synopsis} local_id=99 calcer_type=BoW
+0.02023107094	{synopsis} local_id=102 calcer_type=BoW	{review} local_id=10 calcer_type=BoW
+0.02023107094	{synopsis} local_id=102 calcer_type=BoW	{synopsis} local_id=55 calcer_type=BoW
+0.02023107094	{synopsis} local_id=102 calcer_type=BoW	{genre} local_id=1 calcer_type=BoW
+0.02023107094	{synopsis} local_id=102 calcer_type=BoW	{synopsis} local_id=99 calcer_type=BoW
+0.02023107094	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=99 calcer_type=BoW
+0.01979688897	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=14 calcer_type=BoW
+0.01979688897	{synopsis} local_id=60 calcer_type=BoW	{synopsis} local_id=14 calcer_type=BoW
+0.01979688897	{synopsis} local_id=60 calcer_type=BoW	{synopsis} local_id=24 calcer_type=BoW
+0.01979688897	{synopsis} local_id=39 calcer_type=BoW	{synopsis} local_id=24 calcer_type=BoW
+0.01979688897	{publisher} prior_num=1 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=14 calcer_type=BoW
+0.01979688897	{synopsis} local_id=39 calcer_type=BoW	{synopsis} local_id=14 calcer_type=BoW
+0.01979688897	{synopsis} local_id=24 calcer_type=BoW	{synopsis} local_id=14 calcer_type=BoW
+0.01979688897	{publisher} prior_num=1 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=24 calcer_type=BoW
+0.01979688897	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=24 calcer_type=BoW
+0.01977049035	{synopsis} local_id=13 calcer_type=BoW	{synopsis} local_id=1 calcer_type=BoW
+0.01977049035	{synopsis} local_id=0 calcer_type=BoW	{synopsis} local_id=1 calcer_type=BoW
+0.01977049035	{synopsis} local_id=19 calcer_type=BoW	{synopsis} local_id=1 calcer_type=BoW
+0.01977049035	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=1 calcer_type=BoW
+0.01946940222	{review} local_id=8 calcer_type=BoW	{review} local_id=34 calcer_type=BoW
+0.01946940222	{synopsis} local_id=27 calcer_type=BoW	{review} local_id=34 calcer_type=BoW
+0.01946940222	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=27 calcer_type=BoW
+0.01946940222	{review} local_id=8 calcer_type=BoW	{synopsis} local_id=27 calcer_type=BoW
+0.01946940222	{synopsis} local_id=95 calcer_type=BoW	{synopsis} local_id=67 calcer_type=BoW
+0.01946940222	{synopsis} local_id=95 calcer_type=BoW	{synopsis} local_id=27 calcer_type=BoW
+0.01946940222	{review} local_id=8 calcer_type=BoW	{synopsis} local_id=67 calcer_type=BoW
+0.01946940222	{synopsis} local_id=95 calcer_type=BoW	{review} local_id=34 calcer_type=BoW
+0.01946940222	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{review} local_id=34 calcer_type=BoW
+0.01946940222	{synopsis} local_id=67 calcer_type=BoW	{review} local_id=34 calcer_type=BoW
+0.01946940222	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=67 calcer_type=BoW
+0.01946940222	{synopsis} local_id=27 calcer_type=BoW	{synopsis} local_id=67 calcer_type=BoW
+0.01908980369	{synopsis} local_id=44 calcer_type=BoW	{synopsis} local_id=49 calcer_type=BoW
+0.01908980369	{genre} local_id=0 calcer_type=NaiveBayes	{synopsis} local_id=49 calcer_type=BoW
+0.01908980369	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=49 calcer_type=BoW
+0.01857184413	{synopsis} local_id=19 calcer_type=BoW	{synopsis} local_id=11 calcer_type=BoW
+0.01857184413	{synopsis} local_id=0 calcer_type=BoW	{synopsis} local_id=11 calcer_type=BoW
+0.01857184413	{synopsis} local_id=13 calcer_type=BoW	{synopsis} local_id=11 calcer_type=BoW
+0.01857184413	{synopsis} local_id=31 calcer_type=BoW	{synopsis} local_id=11 calcer_type=BoW
+0.01857184413	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=11 calcer_type=BoW
+0.01854064322	{synopsis} local_id=59 calcer_type=BoW	{synopsis} local_id=78 calcer_type=BoW
+0.01854064322	{synopsis} local_id=59 calcer_type=BoW	{synopsis} local_id=9 calcer_type=BoW
+0.01854064322	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=9 calcer_type=BoW
+0.01854064322	{review} local_id=31 calcer_type=BoW	{synopsis} local_id=9 calcer_type=BoW
+0.01854064322	{review} local_id=31 calcer_type=BoW	{synopsis} local_id=78 calcer_type=BoW
+0.01854064322	{synopsis} local_id=9 calcer_type=BoW	{synopsis} local_id=78 calcer_type=BoW
+0.01854064322	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{review} local_id=31 calcer_type=BoW
+0.01854064322	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=78 calcer_type=BoW
+0.01854064322	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=59 calcer_type=BoW
+0.01854064322	{synopsis} local_id=88 calcer_type=BoW	{review} local_id=31 calcer_type=BoW
+0.01854064322	{synopsis} local_id=88 calcer_type=BoW	{synopsis} local_id=59 calcer_type=BoW
+0.01854064322	{synopsis} local_id=88 calcer_type=BoW	{synopsis} local_id=9 calcer_type=BoW
+0.01854064322	{review} local_id=31 calcer_type=BoW	{synopsis} local_id=59 calcer_type=BoW
+0.01854064322	{synopsis} local_id=88 calcer_type=BoW	{synopsis} local_id=78 calcer_type=BoW
+0.01822383439	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=5 calcer_type=BoW
+0.01822383439	{synopsis} local_id=94 calcer_type=BoW	{synopsis} local_id=26 calcer_type=BoW
+0.01822383439	{synopsis} local_id=100 calcer_type=BoW	{synopsis} local_id=94 calcer_type=BoW
+0.01822383439	{synopsis} local_id=94 calcer_type=BoW	{synopsis} local_id=5 calcer_type=BoW
+0.01822383439	{synopsis} local_id=100 calcer_type=BoW	{synopsis} local_id=5 calcer_type=BoW
+0.01822383439	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=94 calcer_type=BoW
+0.01822383439	{synopsis} local_id=7 calcer_type=BoW	{synopsis} local_id=26 calcer_type=BoW
+0.01822383439	{synopsis} local_id=7 calcer_type=BoW	{synopsis} local_id=94 calcer_type=BoW
+0.01822383439	{synopsis} local_id=7 calcer_type=BoW	{synopsis} local_id=100 calcer_type=BoW
+0.01822383439	{synopsis} local_id=7 calcer_type=BoW	{synopsis} local_id=5 calcer_type=BoW
+0.01822383439	{synopsis} local_id=7 calcer_type=BoW	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
+0.01822383439	{synopsis} local_id=5 calcer_type=BoW	{synopsis} local_id=26 calcer_type=BoW
+0.01822383439	{synopsis} local_id=100 calcer_type=BoW	{synopsis} local_id=26 calcer_type=BoW
+0.01822383439	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=26 calcer_type=BoW
+0.01813300337	{synopsis} local_id=60 calcer_type=BoW	{review} local_id=9 calcer_type=BoW
+0.01813300337	{synopsis} local_id=29 calcer_type=BoW	{review} local_id=9 calcer_type=BoW
+0.01813300337	{synopsis} local_id=95 calcer_type=BoW	{review} local_id=9 calcer_type=BoW
+0.01813300337	{synopsis} local_id=39 calcer_type=BoW	{review} local_id=9 calcer_type=BoW
+0.01813300337	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{review} local_id=9 calcer_type=BoW
+0.01800124869	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=2 calcer_type=BoW
+0.01800124869	{synopsis} local_id=77 calcer_type=BoW	{synopsis} local_id=2 calcer_type=BoW
+0.01800124869	{synopsis} local_id=102 calcer_type=BoW	{synopsis} local_id=2 calcer_type=BoW
+0.01800124869	{synopsis} local_id=39 calcer_type=BoW	{synopsis} local_id=2 calcer_type=BoW
+0.01662617731	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=92 calcer_type=BoW
+0.01662617731	{synopsis} local_id=92 calcer_type=BoW	{synopsis} local_id=64 calcer_type=BoW
+0.01662617731	{synopsis} local_id=60 calcer_type=BoW	{synopsis} local_id=92 calcer_type=BoW
+0.01662617731	{synopsis} local_id=39 calcer_type=BoW	{synopsis} local_id=64 calcer_type=BoW
+0.01662617731	{synopsis} local_id=29 calcer_type=BoW	{synopsis} local_id=64 calcer_type=BoW
+0.01662617731	{synopsis} local_id=60 calcer_type=BoW	{synopsis} local_id=64 calcer_type=BoW
+0.01662617731	{synopsis} local_id=39 calcer_type=BoW	{synopsis} local_id=92 calcer_type=BoW
+0.01662617731	{synopsis} local_id=29 calcer_type=BoW	{synopsis} local_id=92 calcer_type=BoW
+0.01662617731	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=64 calcer_type=BoW
+0.01625940697	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=1 calcer_type=BoW
+0.01625940697	{synopsis} local_id=17 calcer_type=BoW	{synopsis} local_id=1 calcer_type=BoW
+0.01625940697	{review} local_id=36 calcer_type=BoW	{synopsis} local_id=1 calcer_type=BoW
+0.01625940697	{synopsis} local_id=44 calcer_type=BoW	{synopsis} local_id=1 calcer_type=BoW
+0.01625940697	{review} local_id=5 calcer_type=BoW	{synopsis} local_id=1 calcer_type=BoW
+0.01605675803	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{publisher} prior_num=1 prior_denom=1 targetborder=0 type=Borders
+0.01605675803	{synopsis} local_id=39 calcer_type=BoW	{publisher} prior_num=1 prior_denom=1 targetborder=0 type=Borders
+0.01605675803	{synopsis} local_id=60 calcer_type=BoW	{publisher} prior_num=1 prior_denom=1 targetborder=0 type=Borders
+0.01586043142	{synopsis} local_id=47 calcer_type=BoW	{synopsis} local_id=17 calcer_type=BoW
+0.01586043142	{synopsis} local_id=23 calcer_type=BoW	{synopsis} local_id=47 calcer_type=BoW
+0.01586043142	{synopsis} local_id=51 calcer_type=BoW	{synopsis} local_id=17 calcer_type=BoW
+0.01586043142	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=47 calcer_type=BoW
+0.01586043142	{genre} local_id=1 calcer_type=BoW	{synopsis} local_id=17 calcer_type=BoW
+0.01586043142	{genre} local_id=1 calcer_type=BoW	{synopsis} local_id=47 calcer_type=BoW
+0.01586043142	{synopsis} local_id=23 calcer_type=BoW	{synopsis} local_id=17 calcer_type=BoW
+0.01586043142	{synopsis} local_id=51 calcer_type=BoW	{synopsis} local_id=47 calcer_type=BoW
+0.01586043142	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=17 calcer_type=BoW
+0.01514341433	{review} local_id=7 calcer_type=BoW	{synopsis} local_id=25 calcer_type=BoW
+0.01514341433	{synopsis} local_id=40 calcer_type=BoW	{synopsis} local_id=25 calcer_type=BoW
+0.01514341433	{genre} local_id=0 calcer_type=NaiveBayes	{synopsis} local_id=40 calcer_type=BoW
+0.01514341433	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=40 calcer_type=BoW
+0.01514341433	{genre} local_id=0 calcer_type=NaiveBayes	{synopsis} local_id=25 calcer_type=BoW
+0.01514341433	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=25 calcer_type=BoW
+0.01514341433	{review} local_id=7 calcer_type=BoW	{synopsis} local_id=40 calcer_type=BoW
+0.0143790286	{synopsis} local_id=4 calcer_type=BoW	{synopsis} local_id=18 calcer_type=BoW
+0.0143790286	{synopsis} local_id=72 calcer_type=BoW	{synopsis} local_id=72 calcer_type=BoW
+0.0143790286	{review} local_id=14 calcer_type=BoW	{synopsis} local_id=18 calcer_type=BoW
+0.0143790286	{synopsis} local_id=72 calcer_type=BoW	{synopsis} local_id=18 calcer_type=BoW
+0.0143790286	{synopsis} local_id=4 calcer_type=BoW	{synopsis} local_id=72 calcer_type=BoW
+0.0143790286	{synopsis} local_id=72 calcer_type=BoW	{synopsis} local_id=18 calcer_type=BoW
+0.0143790286	{review} local_id=14 calcer_type=BoW	{synopsis} local_id=72 calcer_type=BoW
+0.0143790286	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=18 calcer_type=BoW
+0.0143790286	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=72 calcer_type=BoW
+0.01395255259	{review} local_id=6 calcer_type=BoW	{review} local_id=0 calcer_type=NaiveBayes
+0.01395255259	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{review} local_id=0 calcer_type=NaiveBayes
+0.01395255259	{synopsis} local_id=33 calcer_type=BoW	{review} local_id=0 calcer_type=NaiveBayes
+0.01395255259	{synopsis} local_id=66 calcer_type=BoW	{review} local_id=0 calcer_type=NaiveBayes
+0.01366176992	{synopsis} local_id=30 calcer_type=BoW	{synopsis} local_id=47 calcer_type=BoW
+0.01366176992	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=47 calcer_type=BoW
+0.01366176992	{synopsis} local_id=62 calcer_type=BoW	{synopsis} local_id=47 calcer_type=BoW
+0.01366176992	{review} local_id=8 calcer_type=BoW	{synopsis} local_id=47 calcer_type=BoW
+0.01366176992	{synopsis} local_id=95 calcer_type=BoW	{synopsis} local_id=47 calcer_type=BoW
+0.01297937609	{review} local_id=7 calcer_type=BoW	{synopsis} local_id=74 calcer_type=BoW
+0.01297937609	{review} local_id=7 calcer_type=BoW	{review} local_id=5 calcer_type=BoW
+0.01297937609	{review} local_id=7 calcer_type=BoW	{review} local_id=8 calcer_type=BoW
+0.01297937609	{review} local_id=8 calcer_type=BoW	{synopsis} local_id=74 calcer_type=BoW
+0.01297937609	{review} local_id=8 calcer_type=BoW	{review} local_id=5 calcer_type=BoW
+0.01297937609	{review} local_id=5 calcer_type=BoW	{synopsis} local_id=74 calcer_type=BoW
+0.01297937609	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{review} local_id=8 calcer_type=BoW
+0.01297937609	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{review} local_id=5 calcer_type=BoW
+0.01297937609	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=74 calcer_type=BoW
+0.01297937609	{review} local_id=16 calcer_type=BoW	{review} local_id=5 calcer_type=BoW
+0.01297937609	{review} local_id=16 calcer_type=BoW	{review} local_id=8 calcer_type=BoW
+0.01297937609	{review} local_id=16 calcer_type=BoW	{synopsis} local_id=74 calcer_type=BoW
+0.01280626603	{synopsis} local_id=0 calcer_type=BoW	{synopsis} local_id=31 calcer_type=BoW
+0.01280626603	{synopsis} local_id=13 calcer_type=BoW	{synopsis} local_id=31 calcer_type=BoW
+0.01280626603	{synopsis} local_id=19 calcer_type=BoW	{synopsis} local_id=31 calcer_type=BoW
+0.01280626603	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=31 calcer_type=BoW
+0.01266397153	{synopsis} local_id=89 calcer_type=BoW	{synopsis} local_id=25 calcer_type=BoW
+0.01266397153	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=89 calcer_type=BoW
+0.01266397153	{synopsis} local_id=37 calcer_type=BoW	{synopsis} local_id=25 calcer_type=BoW
+0.01266397153	{synopsis} local_id=89 calcer_type=BoW	{synopsis} local_id=37 calcer_type=BoW
+0.01266397153	{synopsis} local_id=66 calcer_type=BoW	{synopsis} local_id=37 calcer_type=BoW
+0.01266397153	{synopsis} local_id=33 calcer_type=BoW	{synopsis} local_id=25 calcer_type=BoW
+0.01266397153	{synopsis} local_id=33 calcer_type=BoW	{synopsis} local_id=37 calcer_type=BoW
+0.01266397153	{synopsis} local_id=33 calcer_type=BoW	{synopsis} local_id=89 calcer_type=BoW
+0.01266397153	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=37 calcer_type=BoW
+0.01266397153	{synopsis} local_id=66 calcer_type=BoW	{synopsis} local_id=89 calcer_type=BoW
+0.01266397153	{synopsis} local_id=66 calcer_type=BoW	{synopsis} local_id=25 calcer_type=BoW
+0.01266397153	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=25 calcer_type=BoW
+0.01251018989	{synopsis} local_id=0 calcer_type=BoW	{synopsis} local_id=77 calcer_type=BoW
+0.01251018989	{synopsis} local_id=77 calcer_type=BoW	{review} local_id=37 calcer_type=BoW
+0.01251018989	{synopsis} local_id=0 calcer_type=BoW	{review} local_id=37 calcer_type=BoW
+0.01251018989	{synopsis} local_id=86 calcer_type=BoW	{synopsis} local_id=77 calcer_type=BoW
+0.01251018989	{synopsis} local_id=86 calcer_type=BoW	{review} local_id=37 calcer_type=BoW
+0.01251018989	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=77 calcer_type=BoW
+0.01251018989	{synopsis} local_id=0 calcer_type=BoW	{synopsis} local_id=86 calcer_type=BoW
+0.01251018989	{synopsis} local_id=19 calcer_type=BoW	{synopsis} local_id=77 calcer_type=BoW
+0.01251018989	{synopsis} local_id=19 calcer_type=BoW	{synopsis} local_id=86 calcer_type=BoW
+0.01251018989	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=86 calcer_type=BoW
+0.01251018989	{synopsis} local_id=19 calcer_type=BoW	{review} local_id=37 calcer_type=BoW
+0.01251018989	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{review} local_id=37 calcer_type=BoW
+0.01199999973	{synopsis} local_id=9 calcer_type=BoW	{synopsis} local_id=53 calcer_type=BoW
+0.01199999973	{synopsis} local_id=9 calcer_type=BoW	{synopsis} local_id=76 calcer_type=BoW
+0.01199999973	{synopsis} local_id=83 calcer_type=BoW	{synopsis} local_id=53 calcer_type=BoW
+0.01199999973	{synopsis} local_id=76 calcer_type=BoW	{synopsis} local_id=53 calcer_type=BoW
+0.01199999973	{synopsis} local_id=83 calcer_type=BoW	{synopsis} local_id=76 calcer_type=BoW
+0.01199999973	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=53 calcer_type=BoW
+0.01199999973	{synopsis} local_id=73 calcer_type=BoW	{synopsis} local_id=53 calcer_type=BoW
+0.01199999973	{synopsis} local_id=73 calcer_type=BoW	{synopsis} local_id=76 calcer_type=BoW
+0.01199999973	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=76 calcer_type=BoW
+0.01179509341	{synopsis} local_id=43 calcer_type=BoW	{genre} local_id=0 calcer_type=BoW
+0.01179509341	{synopsis} local_id=88 calcer_type=BoW	{genre} local_id=0 calcer_type=BoW
+0.01179509341	{synopsis} local_id=83 calcer_type=BoW	{genre} local_id=0 calcer_type=BoW
+0.01179509341	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=56 calcer_type=BoW
+0.01179509341	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{genre} local_id=0 calcer_type=BoW
+0.01179509341	{synopsis} local_id=83 calcer_type=BoW	{synopsis} local_id=56 calcer_type=BoW
+0.01179509341	{synopsis} local_id=43 calcer_type=BoW	{synopsis} local_id=56 calcer_type=BoW
+0.01179509341	{synopsis} local_id=88 calcer_type=BoW	{synopsis} local_id=56 calcer_type=BoW
+0.01179509341	{synopsis} local_id=43 calcer_type=BoW	{synopsis} local_id=83 calcer_type=BoW
+0.01179509341	{synopsis} local_id=43 calcer_type=BoW	{synopsis} local_id=88 calcer_type=BoW
+0.01179509341	{synopsis} local_id=56 calcer_type=BoW	{genre} local_id=0 calcer_type=BoW
+0.01175315992	{synopsis} local_id=84 calcer_type=BoW	{review} local_id=21 calcer_type=BoW
+0.01175315992	{synopsis} local_id=93 calcer_type=BoW	{review} local_id=21 calcer_type=BoW
+0.01175315992	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=84 calcer_type=BoW
+0.01175315992	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=23 calcer_type=BoW
+0.01175315992	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{review} local_id=21 calcer_type=BoW
+0.01175315992	{synopsis} local_id=60 calcer_type=BoW	{synopsis} local_id=93 calcer_type=BoW
+0.01175315992	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=93 calcer_type=BoW
+0.01175315992	{synopsis} local_id=23 calcer_type=BoW	{synopsis} local_id=84 calcer_type=BoW
+0.01175315992	{synopsis} local_id=23 calcer_type=BoW	{synopsis} local_id=93 calcer_type=BoW
+0.01175315992	{synopsis} local_id=84 calcer_type=BoW	{synopsis} local_id=93 calcer_type=BoW
+0.01175315992	{synopsis} local_id=60 calcer_type=BoW	{review} local_id=21 calcer_type=BoW
+0.01175315992	{synopsis} local_id=60 calcer_type=BoW	{synopsis} local_id=23 calcer_type=BoW
+0.01175315992	{synopsis} local_id=60 calcer_type=BoW	{synopsis} local_id=84 calcer_type=BoW
+0.01175315992	{synopsis} local_id=23 calcer_type=BoW	{review} local_id=21 calcer_type=BoW
+0.01168052562	{review} local_id=1 calcer_type=BoW	{synopsis} local_id=79 calcer_type=BoW
+0.01168052562	{synopsis} local_id=19 calcer_type=BoW	{synopsis} local_id=13 calcer_type=BoW
+0.01168052562	{review} local_id=8 calcer_type=BoW	{synopsis} local_id=19 calcer_type=BoW
+0.01168052562	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{review} local_id=1 calcer_type=BoW
+0.01168052562	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=79 calcer_type=BoW
+0.01168052562	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=19 calcer_type=BoW
+0.01168052562	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=13 calcer_type=BoW
+0.01168052562	{review} local_id=8 calcer_type=BoW	{synopsis} local_id=79 calcer_type=BoW
+0.01168052562	{review} local_id=8 calcer_type=BoW	{review} local_id=1 calcer_type=BoW
+0.01168052562	{synopsis} local_id=13 calcer_type=BoW	{review} local_id=1 calcer_type=BoW
+0.01168052562	{synopsis} local_id=13 calcer_type=BoW	{synopsis} local_id=79 calcer_type=BoW
+0.01168052562	{synopsis} local_id=19 calcer_type=BoW	{review} local_id=1 calcer_type=BoW
+0.01168052562	{synopsis} local_id=19 calcer_type=BoW	{synopsis} local_id=79 calcer_type=BoW
+0.01168052562	{review} local_id=8 calcer_type=BoW	{synopsis} local_id=13 calcer_type=BoW
+0.01137446422	{synopsis} local_id=39 calcer_type=BoW	{synopsis} local_id=4 calcer_type=BoW
+0.01137446422	{synopsis} local_id=77 calcer_type=BoW	{synopsis} local_id=4 calcer_type=BoW
+0.01137446422	{synopsis} local_id=39 calcer_type=BoW	{review} local_id=7 calcer_type=BoW
+0.01137446422	{synopsis} local_id=102 calcer_type=BoW	{synopsis} local_id=4 calcer_type=BoW
+0.01137446422	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=4 calcer_type=BoW
+0.01137446422	{review} local_id=7 calcer_type=BoW	{synopsis} local_id=4 calcer_type=BoW
+0.01137446422	{synopsis} local_id=102 calcer_type=BoW	{review} local_id=7 calcer_type=BoW
+0.01137446422	{synopsis} local_id=77 calcer_type=BoW	{review} local_id=7 calcer_type=BoW
+0.01069333552	{synopsis} local_id=32 calcer_type=BoW	{synopsis} local_id=24 calcer_type=BoW
+0.01069333552	{review} local_id=22 calcer_type=BoW	{synopsis} local_id=24 calcer_type=BoW
+0.01069333552	{synopsis} local_id=32 calcer_type=BoW	{synopsis} local_id=7 calcer_type=BoW
+0.01069333552	{synopsis} local_id=16 calcer_type=BoW	{synopsis} local_id=24 calcer_type=BoW
+0.01069333552	{synopsis} local_id=16 calcer_type=BoW	{synopsis} local_id=7 calcer_type=BoW
+0.01069333552	{review} local_id=22 calcer_type=BoW	{synopsis} local_id=7 calcer_type=BoW
+0.01069333552	{synopsis} local_id=7 calcer_type=BoW	{synopsis} local_id=24 calcer_type=BoW
+0.01069333552	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=24 calcer_type=BoW
+0.01069333552	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=7 calcer_type=BoW
+0.009746069801	{review} local_id=33 calcer_type=BoW	{synopsis} local_id=10 calcer_type=BoW
+0.009746069801	{review} local_id=33 calcer_type=BoW	{synopsis} local_id=72 calcer_type=BoW
+0.009746069801	{review} local_id=14 calcer_type=BoW	{synopsis} local_id=10 calcer_type=BoW
+0.009746069801	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=71 calcer_type=BoW
+0.009746069801	{review} local_id=33 calcer_type=BoW	{synopsis} local_id=71 calcer_type=BoW
+0.009746069801	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=10 calcer_type=BoW
+0.009746069801	{synopsis} local_id=71 calcer_type=BoW	{synopsis} local_id=10 calcer_type=BoW
+0.009746069801	{synopsis} local_id=72 calcer_type=BoW	{synopsis} local_id=71 calcer_type=BoW
+0.009746069801	{review} local_id=33 calcer_type=BoW	{review} local_id=14 calcer_type=BoW
+0.009746069801	{synopsis} local_id=72 calcer_type=BoW	{synopsis} local_id=10 calcer_type=BoW
+0.009746069801	{review} local_id=14 calcer_type=BoW	{synopsis} local_id=71 calcer_type=BoW
+0.009592897719	{synopsis} local_id=15 calcer_type=BoW	{synopsis} local_id=35 calcer_type=BoW
+0.009592897719	{synopsis} local_id=15 calcer_type=BoW	{synopsis} local_id=42 calcer_type=BoW
+0.009592897719	{review} local_id=18 calcer_type=BoW	{synopsis} local_id=35 calcer_type=BoW
+0.009592897719	{synopsis} local_id=42 calcer_type=BoW	{synopsis} local_id=5 calcer_type=BoW
+0.009592897719	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=5 calcer_type=BoW
+0.009592897719	{synopsis} local_id=15 calcer_type=BoW	{synopsis} local_id=5 calcer_type=BoW
+0.009592897719	{review} local_id=18 calcer_type=BoW	{synopsis} local_id=42 calcer_type=BoW
+0.009592897719	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=15 calcer_type=BoW
+0.009592897719	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=42 calcer_type=BoW
+0.009592897719	{review} local_id=18 calcer_type=BoW	{synopsis} local_id=5 calcer_type=BoW
+0.009592897719	{synopsis} local_id=35 calcer_type=BoW	{synopsis} local_id=5 calcer_type=BoW
+0.009592897719	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=35 calcer_type=BoW
+0.009592897719	{review} local_id=18 calcer_type=BoW	{synopsis} local_id=15 calcer_type=BoW
+0.009592897719	{synopsis} local_id=35 calcer_type=BoW	{synopsis} local_id=42 calcer_type=BoW
+0.009574427876	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=74 calcer_type=BoW
+0.009574427876	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=90 calcer_type=BoW
+0.009574427876	{review} local_id=18 calcer_type=BoW	{synopsis} local_id=90 calcer_type=BoW
+0.009574427876	{review} local_id=18 calcer_type=BoW	{review} local_id=0 calcer_type=BoW
+0.009574427876	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{review} local_id=0 calcer_type=BoW
+0.009574427876	{synopsis} local_id=90 calcer_type=BoW	{synopsis} local_id=74 calcer_type=BoW
+0.009574427876	{synopsis} local_id=90 calcer_type=BoW	{review} local_id=0 calcer_type=BoW
+0.009574427876	{synopsis} local_id=74 calcer_type=BoW	{review} local_id=0 calcer_type=BoW
+0.009574427876	{synopsis} local_id=63 calcer_type=BoW	{synopsis} local_id=90 calcer_type=BoW
+0.009574427876	{review} local_id=18 calcer_type=BoW	{synopsis} local_id=74 calcer_type=BoW
+0.009574427876	{synopsis} local_id=63 calcer_type=BoW	{synopsis} local_id=74 calcer_type=BoW
+0.009574427876	{synopsis} local_id=63 calcer_type=BoW	{review} local_id=0 calcer_type=BoW
+0.009458571176	{synopsis} local_id=0 calcer_type=BoW	{synopsis} local_id=8 calcer_type=BoW
+0.009458571176	{synopsis} local_id=19 calcer_type=BoW	{synopsis} local_id=8 calcer_type=BoW
+0.009458571176	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=8 calcer_type=BoW
+0.009458571176	{synopsis} local_id=13 calcer_type=BoW	{synopsis} local_id=8 calcer_type=BoW
+0.009458571176	{synopsis} local_id=1 calcer_type=BoW	{synopsis} local_id=8 calcer_type=BoW
+0.008197896033	{synopsis} local_id=57 calcer_type=BoW	{synopsis} local_id=37 calcer_type=BoW
+0.008197896033	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=37 calcer_type=BoW
+0.008197896033	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=20 calcer_type=BoW
+0.008197896033	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=57 calcer_type=BoW
+0.008197896033	{synopsis} local_id=37 calcer_type=BoW	{synopsis} local_id=20 calcer_type=BoW
+0.008197896033	{synopsis} local_id=57 calcer_type=BoW	{synopsis} local_id=20 calcer_type=BoW
+0.008197896033	{synopsis} local_id=57 calcer_type=BoW	{review} local_id=19 calcer_type=BoW
+0.008197896033	{review} local_id=19 calcer_type=BoW	{synopsis} local_id=37 calcer_type=BoW
+0.008197896033	{synopsis} local_id=22 calcer_type=BoW	{synopsis} local_id=20 calcer_type=BoW
+0.008197896033	{synopsis} local_id=22 calcer_type=BoW	{review} local_id=19 calcer_type=BoW
+0.008197896033	{synopsis} local_id=22 calcer_type=BoW	{synopsis} local_id=37 calcer_type=BoW
+0.008197896033	{review} local_id=19 calcer_type=BoW	{synopsis} local_id=20 calcer_type=BoW
+0.008197896033	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{review} local_id=19 calcer_type=BoW
+0.008197896033	{synopsis} local_id=22 calcer_type=BoW	{synopsis} local_id=57 calcer_type=BoW
+0.00811989432	{genre} local_id=0 calcer_type=NaiveBayes	{synopsis} local_id=79 calcer_type=BoW
+0.00811989432	{synopsis} local_id=44 calcer_type=BoW	{synopsis} local_id=79 calcer_type=BoW
+0.00811989432	{genre} local_id=0 calcer_type=NaiveBayes	{synopsis} local_id=94 calcer_type=BoW
+0.00811989432	{genre} local_id=0 calcer_type=NaiveBayes	{synopsis} local_id=93 calcer_type=BoW
+0.00811989432	{synopsis} local_id=82 calcer_type=BoW	{synopsis} local_id=75 calcer_type=BoW
+0.00811989432	{synopsis} local_id=44 calcer_type=BoW	{synopsis} local_id=94 calcer_type=BoW
+0.00811989432	{synopsis} local_id=93 calcer_type=BoW	{synopsis} local_id=75 calcer_type=BoW
+0.00811989432	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=75 calcer_type=BoW
+0.00811989432	{synopsis} local_id=44 calcer_type=BoW	{synopsis} local_id=75 calcer_type=BoW
+0.00811989432	{genre} local_id=0 calcer_type=NaiveBayes	{synopsis} local_id=82 calcer_type=BoW
+0.00811989432	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=93 calcer_type=BoW
+0.00811989432	{synopsis} local_id=44 calcer_type=BoW	{synopsis} local_id=93 calcer_type=BoW
+0.00811989432	{synopsis} local_id=44 calcer_type=BoW	{synopsis} local_id=82 calcer_type=BoW
+0.00811989432	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=82 calcer_type=BoW
+0.00811989432	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=79 calcer_type=BoW
+0.00811989432	{genre} local_id=0 calcer_type=NaiveBayes	{synopsis} local_id=75 calcer_type=BoW
+0.00811989432	{synopsis} local_id=49 calcer_type=BoW	{synopsis} local_id=94 calcer_type=BoW
+0.00811989432	{synopsis} local_id=79 calcer_type=BoW	{synopsis} local_id=94 calcer_type=BoW
+0.00811989432	{synopsis} local_id=93 calcer_type=BoW	{synopsis} local_id=82 calcer_type=BoW
+0.00811989432	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=94 calcer_type=BoW
+0.00811989432	{synopsis} local_id=49 calcer_type=BoW	{synopsis} local_id=79 calcer_type=BoW
+0.00783269656	{genre} local_id=0 calcer_type=NaiveBayes	{review} local_id=7 calcer_type=BoW
+0.00783269656	{genre} local_id=0 calcer_type=NaiveBayes	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
+0.007804545704	{synopsis} local_id=85 calcer_type=BoW	{synopsis} local_id=44 calcer_type=BoW
+0.007804545704	{synopsis} local_id=85 calcer_type=BoW	{synopsis} local_id=58 calcer_type=BoW
+0.007804545704	{synopsis} local_id=83 calcer_type=BoW	{synopsis} local_id=58 calcer_type=BoW
+0.007804545704	{synopsis} local_id=83 calcer_type=BoW	{synopsis} local_id=44 calcer_type=BoW
+0.007804545704	{synopsis} local_id=88 calcer_type=BoW	{synopsis} local_id=44 calcer_type=BoW
+0.007804545704	{synopsis} local_id=88 calcer_type=BoW	{synopsis} local_id=58 calcer_type=BoW
+0.007804545704	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=58 calcer_type=BoW
+0.007804545704	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=44 calcer_type=BoW
+0.007804545704	{synopsis} local_id=44 calcer_type=BoW	{synopsis} local_id=58 calcer_type=BoW
+0.007597673854	{review} local_id=22 calcer_type=BoW	{synopsis} local_id=51 calcer_type=BoW
+0.007597673854	{review} local_id=22 calcer_type=BoW	{synopsis} local_id=35 calcer_type=BoW
+0.007597673854	{synopsis} local_id=35 calcer_type=BoW	{synopsis} local_id=73 calcer_type=BoW
+0.007597673854	{synopsis} local_id=85 calcer_type=BoW	{synopsis} local_id=35 calcer_type=BoW
+0.007597673854	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=85 calcer_type=BoW
+0.007597673854	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=73 calcer_type=BoW
+0.007597673854	{synopsis} local_id=85 calcer_type=BoW	{synopsis} local_id=73 calcer_type=BoW
+0.007597673854	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=51 calcer_type=BoW
+0.007597673854	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=35 calcer_type=BoW
+0.007597673854	{synopsis} local_id=35 calcer_type=BoW	{synopsis} local_id=51 calcer_type=BoW
+0.007597673854	{synopsis} local_id=73 calcer_type=BoW	{synopsis} local_id=51 calcer_type=BoW
+0.007597673854	{synopsis} local_id=85 calcer_type=BoW	{synopsis} local_id=51 calcer_type=BoW
+0.007597673854	{review} local_id=22 calcer_type=BoW	{synopsis} local_id=73 calcer_type=BoW
+0.007597673854	{review} local_id=22 calcer_type=BoW	{synopsis} local_id=85 calcer_type=BoW
+0.007504047134	{synopsis} local_id=48 calcer_type=BoW	{synopsis} local_id=64 calcer_type=BoW
+0.007504047134	{synopsis} local_id=58 calcer_type=BoW	{synopsis} local_id=64 calcer_type=BoW
+0.007504047134	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=64 calcer_type=BoW
+0.007310717772	{review} local_id=7 calcer_type=BoW	{synopsis} local_id=61 calcer_type=BoW
+0.007310717772	{review} local_id=7 calcer_type=BoW	{synopsis} local_id=75 calcer_type=BoW
+0.007310717772	{review} local_id=7 calcer_type=BoW	{synopsis} local_id=46 calcer_type=BoW
+0.007310717772	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=61 calcer_type=BoW
+0.007310717772	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=75 calcer_type=BoW
+0.007310717772	{synopsis} local_id=61 calcer_type=BoW	{synopsis} local_id=75 calcer_type=BoW
+0.007310717772	{synopsis} local_id=46 calcer_type=BoW	{synopsis} local_id=61 calcer_type=BoW
+0.007310717772	{synopsis} local_id=46 calcer_type=BoW	{synopsis} local_id=75 calcer_type=BoW
+0.007310717772	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=46 calcer_type=BoW
+0.007310717772	{genre} local_id=0 calcer_type=NaiveBayes	{synopsis} local_id=46 calcer_type=BoW
+0.007310717772	{genre} local_id=0 calcer_type=NaiveBayes	{synopsis} local_id=61 calcer_type=BoW
+0.007310717772	{genre} local_id=0 calcer_type=NaiveBayes	{synopsis} local_id=75 calcer_type=BoW
+0.006891969947	{synopsis} local_id=100 calcer_type=BoW	{synopsis} local_id=86 calcer_type=BoW
+0.006891969947	{synopsis} local_id=100 calcer_type=BoW	{synopsis} local_id=88 calcer_type=BoW
+0.006891969947	{review} local_id=32 calcer_type=BoW	{synopsis} local_id=86 calcer_type=BoW
+0.006891969947	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=86 calcer_type=BoW
+0.006891969947	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=88 calcer_type=BoW
+0.006891969947	{synopsis} local_id=31 calcer_type=BoW	{synopsis} local_id=88 calcer_type=BoW
+0.006891969947	{synopsis} local_id=86 calcer_type=BoW	{synopsis} local_id=88 calcer_type=BoW
+0.006891969947	{review} local_id=32 calcer_type=BoW	{synopsis} local_id=88 calcer_type=BoW
+0.006891969947	{synopsis} local_id=31 calcer_type=BoW	{synopsis} local_id=86 calcer_type=BoW
+0.006724683207	{synopsis} local_id=50 calcer_type=BoW	{synopsis} local_id=16 calcer_type=BoW
+0.006724683207	{synopsis} local_id=41 calcer_type=BoW	{synopsis} local_id=16 calcer_type=BoW
+0.006724683207	{synopsis} local_id=41 calcer_type=BoW	{synopsis} local_id=50 calcer_type=BoW
+0.006724683207	{review} local_id=18 calcer_type=BoW	{synopsis} local_id=16 calcer_type=BoW
+0.006724683207	{synopsis} local_id=63 calcer_type=BoW	{synopsis} local_id=50 calcer_type=BoW
+0.006724683207	{synopsis} local_id=63 calcer_type=BoW	{synopsis} local_id=16 calcer_type=BoW
+0.006724683207	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=50 calcer_type=BoW
+0.006724683207	{review} local_id=18 calcer_type=BoW	{synopsis} local_id=50 calcer_type=BoW
+0.006724683207	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=16 calcer_type=BoW
+0.005765578107	{synopsis} local_id=13 calcer_type=BoW	{synopsis} local_id=54 calcer_type=BoW
+0.005765578107	{synopsis} local_id=19 calcer_type=BoW	{synopsis} local_id=54 calcer_type=BoW
+0.005765578107	{synopsis} local_id=31 calcer_type=BoW	{synopsis} local_id=54 calcer_type=BoW
+0.005765578107	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=54 calcer_type=BoW
+0.005765578107	{synopsis} local_id=0 calcer_type=BoW	{synopsis} local_id=54 calcer_type=BoW
+0.005537300242	{review} local_id=5 calcer_type=BoW	{synopsis} local_id=0 calcer_type=BM25
+0.005537300242	{synopsis} local_id=44 calcer_type=BoW	{synopsis} local_id=0 calcer_type=BM25
+0.005537300242	{synopsis} local_id=32 calcer_type=BoW	{synopsis} local_id=0 calcer_type=BM25
+0.005537300242	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=0 calcer_type=BM25
+0.005537300242	{genre} local_id=0 calcer_type=BoW	{synopsis} local_id=0 calcer_type=BM25
+0.004615384512	{synopsis} local_id=6 calcer_type=BoW	{review} local_id=24 calcer_type=BoW
+0.004615384512	{synopsis} local_id=18 calcer_type=BoW	{review} local_id=24 calcer_type=BoW
+0.004615384512	{synopsis} local_id=18 calcer_type=BoW	{synopsis} local_id=46 calcer_type=BoW
+0.004615384512	{review} local_id=12 calcer_type=BoW	{synopsis} local_id=46 calcer_type=BoW
+0.004615384512	{synopsis} local_id=101 calcer_type=BoW	{review} local_id=24 calcer_type=BoW
+0.004615384512	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{review} local_id=24 calcer_type=BoW
+0.004615384512	{synopsis} local_id=101 calcer_type=BoW	{synopsis} local_id=46 calcer_type=BoW
+0.004615384512	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=46 calcer_type=BoW
+0.004615384512	{synopsis} local_id=12 calcer_type=BoW	{synopsis} local_id=46 calcer_type=BoW
+0.004615384512	{synopsis} local_id=12 calcer_type=BoW	{review} local_id=24 calcer_type=BoW
+0.004487939513	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{review} local_id=23 calcer_type=BoW
+0.004487939513	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=59 calcer_type=BoW
+0.004487939513	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=89 calcer_type=BoW
+0.004487939513	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=12 calcer_type=BoW
+0.004487939513	{review} local_id=13 calcer_type=BoW	{synopsis} local_id=59 calcer_type=BoW
+0.004487939513	{review} local_id=13 calcer_type=BoW	{synopsis} local_id=12 calcer_type=BoW
+0.004487939513	{synopsis} local_id=59 calcer_type=BoW	{synopsis} local_id=12 calcer_type=BoW
+0.004487939513	{synopsis} local_id=89 calcer_type=BoW	{synopsis} local_id=12 calcer_type=BoW
+0.004487939513	{review} local_id=13 calcer_type=BoW	{review} local_id=23 calcer_type=BoW
+0.004487939513	{review} local_id=13 calcer_type=BoW	{synopsis} local_id=89 calcer_type=BoW
+0.004487939513	{review} local_id=23 calcer_type=BoW	{synopsis} local_id=12 calcer_type=BoW
+0.004487939513	{synopsis} local_id=89 calcer_type=BoW	{review} local_id=23 calcer_type=BoW
+0.004487939513	{synopsis} local_id=59 calcer_type=BoW	{review} local_id=23 calcer_type=BoW
+0.004487939513	{synopsis} local_id=59 calcer_type=BoW	{synopsis} local_id=89 calcer_type=BoW
+0.004371438998	{synopsis} local_id=17 calcer_type=BoW	{synopsis} local_id=34 calcer_type=BoW
+0.004371438998	{synopsis} local_id=44 calcer_type=BoW	{synopsis} local_id=34 calcer_type=BoW
+0.004371438998	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{review} local_id=6 calcer_type=BoW
+0.004371438998	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=34 calcer_type=BoW
+0.004371438998	{synopsis} local_id=44 calcer_type=BoW	{review} local_id=6 calcer_type=BoW
+0.004371438998	{review} local_id=5 calcer_type=BoW	{synopsis} local_id=34 calcer_type=BoW
+0.004371438998	{review} local_id=5 calcer_type=BoW	{review} local_id=6 calcer_type=BoW
+0.004371438998	{synopsis} local_id=17 calcer_type=BoW	{review} local_id=6 calcer_type=BoW
+0.004371438998	{synopsis} local_id=34 calcer_type=BoW	{review} local_id=6 calcer_type=BoW
+0.004243968057	{synopsis} local_id=97 calcer_type=BoW	{review} local_id=3 calcer_type=BoW
+0.004243968057	dvd_date	{review} local_id=28 calcer_type=BoW
+0.004243968057	{review} local_id=20 calcer_type=BoW	{review} local_id=3 calcer_type=BoW
+0.004243968057	{review} local_id=28 calcer_type=BoW	{synopsis} local_id=97 calcer_type=BoW
+0.004243968057	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=97 calcer_type=BoW
+0.004243968057	dvd_date	{synopsis} local_id=97 calcer_type=BoW
+0.004243968057	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{review} local_id=28 calcer_type=BoW
+0.004243968057	{review} local_id=28 calcer_type=BoW	{review} local_id=3 calcer_type=BoW
+0.004243968057	{review} local_id=20 calcer_type=BoW	{review} local_id=28 calcer_type=BoW
+0.004243968057	{review} local_id=20 calcer_type=BoW	{synopsis} local_id=97 calcer_type=BoW
+0.004243968057	dvd_date	{review} local_id=3 calcer_type=BoW
+0.004243968057	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{review} local_id=3 calcer_type=BoW
+0.004143527426	{synopsis} local_id=47 calcer_type=BoW	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
+0.004143527426	{synopsis} local_id=29 calcer_type=BoW	{synopsis} local_id=92 calcer_type=BoW
+0.004143527426	{synopsis} local_id=58 calcer_type=BoW	{synopsis} local_id=50 calcer_type=BoW
+0.004143527426	{synopsis} local_id=58 calcer_type=BoW	{synopsis} local_id=29 calcer_type=BoW
+0.004143527426	{synopsis} local_id=47 calcer_type=BoW	{synopsis} local_id=29 calcer_type=BoW
+0.004143527426	{synopsis} local_id=58 calcer_type=BoW	{synopsis} local_id=92 calcer_type=BoW
+0.004143527426	{synopsis} local_id=47 calcer_type=BoW	{synopsis} local_id=58 calcer_type=BoW
+0.004143527426	{synopsis} local_id=50 calcer_type=BoW	{synopsis} local_id=92 calcer_type=BoW
+0.004143527426	{synopsis} local_id=47 calcer_type=BoW	{synopsis} local_id=50 calcer_type=BoW
+0.004143527426	{synopsis} local_id=50 calcer_type=BoW	{synopsis} local_id=29 calcer_type=BoW
+0.004143527426	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=50 calcer_type=BoW
+0.004143527426	{synopsis} local_id=47 calcer_type=BoW	{synopsis} local_id=92 calcer_type=BoW
+0.004143527426	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=29 calcer_type=BoW
+0.004143527426	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=92 calcer_type=BoW
+0.004131628585	{synopsis} local_id=23 calcer_type=BoW	{synopsis} local_id=22 calcer_type=BoW
+0.004131628585	{synopsis} local_id=23 calcer_type=BoW	{review} local_id=25 calcer_type=BoW
+0.004131628585	{synopsis} local_id=23 calcer_type=BoW	{synopsis} local_id=3 calcer_type=BoW
+0.004131628585	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=22 calcer_type=BoW
+0.004131628585	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{review} local_id=25 calcer_type=BoW
+0.004131628585	{synopsis} local_id=3 calcer_type=BoW	{review} local_id=25 calcer_type=BoW
+0.004131628585	{review} local_id=25 calcer_type=BoW	{synopsis} local_id=22 calcer_type=BoW
+0.004131628585	{synopsis} local_id=3 calcer_type=BoW	{synopsis} local_id=22 calcer_type=BoW
+0.004131628585	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=3 calcer_type=BoW
+0.004131628585	{synopsis} local_id=51 calcer_type=BoW	{review} local_id=25 calcer_type=BoW
+0.004131628585	{synopsis} local_id=51 calcer_type=BoW	{synopsis} local_id=3 calcer_type=BoW
+0.004131628585	{synopsis} local_id=51 calcer_type=BoW	{synopsis} local_id=22 calcer_type=BoW
+0.00411041734	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=38 calcer_type=BoW
+0.00411041734	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=26 calcer_type=BoW
+0.00411041734	{review} local_id=29 calcer_type=BoW	{synopsis} local_id=38 calcer_type=BoW
+0.00411041734	{review} local_id=29 calcer_type=BoW	{synopsis} local_id=26 calcer_type=BoW
+0.00411041734	{synopsis} local_id=26 calcer_type=BoW	{synopsis} local_id=38 calcer_type=BoW
+0.00411041734	{synopsis} local_id=80 calcer_type=BoW	{synopsis} local_id=38 calcer_type=BoW
+0.00411041734	{synopsis} local_id=80 calcer_type=BoW	{synopsis} local_id=26 calcer_type=BoW
+0.00411041734	{synopsis} local_id=91 calcer_type=BoW	{synopsis} local_id=38 calcer_type=BoW
+0.00411041734	{synopsis} local_id=91 calcer_type=BoW	{synopsis} local_id=26 calcer_type=BoW
+0.004019270954	{synopsis} local_id=91 calcer_type=BoW	{synopsis} local_id=56 calcer_type=BoW
+0.004019270954	{review} local_id=29 calcer_type=BoW	{synopsis} local_id=56 calcer_type=BoW
+0.004019270954	{synopsis} local_id=91 calcer_type=BoW	{synopsis} local_id=68 calcer_type=BoW
+0.004019270954	{synopsis} local_id=91 calcer_type=BoW	{synopsis} local_id=0 calcer_type=BoW
+0.004019270954	{review} local_id=29 calcer_type=BoW	{synopsis} local_id=68 calcer_type=BoW
+0.004019270954	{synopsis} local_id=56 calcer_type=BoW	{synopsis} local_id=0 calcer_type=BoW
+0.004019270954	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=68 calcer_type=BoW
+0.004019270954	{review} local_id=29 calcer_type=BoW	{synopsis} local_id=0 calcer_type=BoW
+0.004019270954	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=56 calcer_type=BoW
+0.004019270954	{synopsis} local_id=56 calcer_type=BoW	{synopsis} local_id=68 calcer_type=BoW
+0.004019270954	{synopsis} local_id=68 calcer_type=BoW	{synopsis} local_id=0 calcer_type=BoW
+0.004019270954	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=0 calcer_type=BoW
+0.003906616396	{synopsis} local_id=85 calcer_type=BoW	{synopsis} local_id=2 calcer_type=BoW
+0.003906616396	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=2 calcer_type=BoW
+0.003906616396	{synopsis} local_id=88 calcer_type=BoW	{synopsis} local_id=2 calcer_type=BoW
+0.003906616396	{synopsis} local_id=83 calcer_type=BoW	{synopsis} local_id=2 calcer_type=BoW
+0.003740130945	{synopsis} local_id=60 calcer_type=BoW	{synopsis} local_id=3 calcer_type=BoW
+0.003740130945	{publisher} prior_num=1 prior_denom=1 targetborder=0 type=Borders	{review} local_id=11 calcer_type=BoW
+0.003740130945	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{review} local_id=11 calcer_type=BoW
+0.003740130945	{synopsis} local_id=39 calcer_type=BoW	{review} local_id=11 calcer_type=BoW
+0.003740130945	{publisher} prior_num=1 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=3 calcer_type=BoW
+0.003740130945	{synopsis} local_id=39 calcer_type=BoW	{synopsis} local_id=3 calcer_type=BoW
+0.003740130945	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=3 calcer_type=BoW
+0.003740130945	{synopsis} local_id=60 calcer_type=BoW	{review} local_id=11 calcer_type=BoW
+0.003740130945	{synopsis} local_id=3 calcer_type=BoW	{review} local_id=11 calcer_type=BoW
+0.0004903840827	{synopsis} local_id=32 calcer_type=BoW	{genre} local_id=0 calcer_type=BoW
+0.0004903840827	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{genre} local_id=0 calcer_type=BoW
+0.0004903840827	{synopsis} local_id=44 calcer_type=BoW	{genre} local_id=0 calcer_type=BoW
+0.0004903840827	{review} local_id=5 calcer_type=BoW	{genre} local_id=0 calcer_type=BoW
+0	dvd_date	{synopsis} local_id=76 calcer_type=BoW
+0	{synopsis} local_id=76 calcer_type=BoW	{synopsis} local_id=40 calcer_type=BoW
+0	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{rating} prior_num=1 prior_denom=1 targetborder=0 type=Borders
+0	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{review} local_id=4 calcer_type=BoW
+0	{synopsis} local_id=9 calcer_type=BoW	{synopsis} local_id=90 calcer_type=BoW
+0	{synopsis} local_id=9 calcer_type=BoW	{synopsis} local_id=65 calcer_type=BoW
+0	{synopsis} local_id=9 calcer_type=BoW	{genre} local_id=0 calcer_type=BM25
+0	dvd_date	{synopsis} local_id=40 calcer_type=BoW
+0	{genre} local_id=0 calcer_type=BM25	{synopsis} local_id=90 calcer_type=BoW
+0	{synopsis} local_id=60 calcer_type=BoW	{synopsis} local_id=55 calcer_type=BoW
+0	{synopsis} local_id=10 calcer_type=BoW	{synopsis} local_id=76 calcer_type=BoW
+0	{review} local_id=20 calcer_type=BoW	{synopsis} local_id=76 calcer_type=BoW
+0	{genre} local_id=0 calcer_type=BM25	{synopsis} local_id=65 calcer_type=BoW
+0	{synopsis} local_id=83 calcer_type=BoW	{synopsis} local_id=90 calcer_type=BoW
+0	{review} local_id=20 calcer_type=BoW	{synopsis} local_id=40 calcer_type=BoW
+0	{synopsis} local_id=83 calcer_type=BoW	{genre} local_id=0 calcer_type=BM25
+0	{synopsis} local_id=83 calcer_type=BoW	{synopsis} local_id=65 calcer_type=BoW
+0	{publisher} prior_num=1 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=55 calcer_type=BoW
+0	{synopsis} local_id=32 calcer_type=BoW	{review} local_id=4 calcer_type=BoW
+0	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=55 calcer_type=BoW
+0	{synopsis} local_id=44 calcer_type=BoW	{review} local_id=4 calcer_type=BoW
+0	{synopsis} local_id=32 calcer_type=BoW	{rating} prior_num=1 prior_denom=1 targetborder=0 type=Borders
+0	{synopsis} local_id=39 calcer_type=BoW	{synopsis} local_id=55 calcer_type=BoW
+0	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=90 calcer_type=BoW
+0	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{genre} local_id=0 calcer_type=BM25
+0	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=65 calcer_type=BoW
+0	{synopsis} local_id=44 calcer_type=BoW	{rating} prior_num=1 prior_denom=1 targetborder=0 type=Borders
+0	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=76 calcer_type=BoW
+0	{review} local_id=5 calcer_type=BoW	{rating} prior_num=1 prior_denom=1 targetborder=0 type=Borders
+0	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{synopsis} local_id=40 calcer_type=BoW
+0	{review} local_id=4 calcer_type=BoW	{rating} prior_num=1 prior_denom=1 targetborder=0 type=Borders
+0	{review} local_id=5 calcer_type=BoW	{review} local_id=4 calcer_type=BoW
+0	{synopsis} local_id=10 calcer_type=BoW	{synopsis} local_id=40 calcer_type=BoW
+0	{synopsis} local_id=3 calcer_type=BoW	{synopsis} local_id=55 calcer_type=BoW
+0	{synopsis} local_id=65 calcer_type=BoW	{synopsis} local_id=90 calcer_type=BoW

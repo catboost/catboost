@@ -4,6 +4,7 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/model/ctr_value_table.h>
+#include <catboost/libs/model/model_estimated_features.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/model/model_export/model_exporter.h>
 #include <catboost/libs/model/static_ctr_provider.h>
@@ -63,7 +64,7 @@ namespace {
 
             TVector<ui32> localIds;
             for (const auto& estimatedFeature : estimatedFeatures) {
-                localIds.push_back(estimatedFeature.LocalIndex);
+                localIds.push_back(estimatedFeature.ModelEstimatedFeature.LocalId);
             }
 
             const ui32 calcerFlatIdx = AddCalcer(MakeFinalFeatureCalcer(calcerId, MakeConstArrayRef(localIds)));
@@ -151,12 +152,14 @@ namespace {
         ) {
             const auto& calcer = Calcers[calcerFlatIdx];
             for (ui32 localIndex: xrange(calcer->FeatureCount())) {
-                TEstimatedFeature estimatedFeature = TEstimatedFeature{
-                    SafeIntegerCast<int>(textFeatureId),
-                    calcer->Id(),
-                    SafeIntegerCast<int>(localIndex)
-                };
-                estimatedFeature.Borders = estimatedFeatures[localIndex].Borders;
+                TEstimatedFeature estimatedFeature(TModelEstimatedFeature{
+                        SafeIntegerCast<int>(textFeatureId),
+                        calcer->Id(),
+                        SafeIntegerCast<int>(localIndex),
+                        EEstimatedSourceFeatureType::Text
+                    },
+                    estimatedFeatures[localIndex].Borders
+                );
                 EstimatedFeatures.push_back(estimatedFeature);
             }
         }
@@ -248,7 +251,7 @@ namespace {
 
             TVector<ui32> localIds;
             for (const auto& estimatedFeature : estimatedFeatures) {
-                localIds.push_back(estimatedFeature.LocalIndex);
+                localIds.push_back(estimatedFeature.ModelEstimatedFeature.LocalId);
             }
 
             const ui32 calcerFlatIdx = AddCalcer(MakeFinalFeatureCalcer(calcerId, MakeConstArrayRef(localIds)));
@@ -294,11 +297,12 @@ namespace {
         )  {
             const auto& calcer = Calcers[calcerFlatIdx];
             for (ui32 localIndex: xrange(calcer->FeatureCount())) {
-                TEstimatedFeature estimatedFeature = TEstimatedFeature{
+                TEstimatedFeature estimatedFeature(TModelEstimatedFeature{
                     SafeIntegerCast<int>(FeatureId),
                     calcer->Id(),
-                    SafeIntegerCast<int>(localIndex)
-                };
+                    SafeIntegerCast<int>(localIndex),
+                    EEstimatedSourceFeatureType::Embedding
+                });
                 if (localIndex < estimatedFeatures.size()) {
                     estimatedFeature.Borders = estimatedFeatures[localIndex].Borders;
                 }
@@ -737,10 +741,10 @@ namespace NCB {
         );
 
         TVector<TEstimatedFeature> usedEstimatedFeatures;
-        TGuid lastCalcerId = estimatedFeatures[0].CalcerId;
+        TGuid lastCalcerId = estimatedFeatures[0].ModelEstimatedFeature.CalcerId;
 
         for (const auto& estimatedFeature: estimatedFeatures) {
-            const TGuid currentCalcerIndex = estimatedFeature.CalcerId;
+            const TGuid currentCalcerIndex = estimatedFeature.ModelEstimatedFeature.CalcerId;
             if (lastCalcerId != currentCalcerIndex) {
                 if (featureEstimators.GetEstimatorSourceType(lastCalcerId) == EFeatureType::Text) {
                     textCollectionBuilder.AddFeatureEstimator(lastCalcerId, usedEstimatedFeatures);
