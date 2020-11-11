@@ -15,7 +15,7 @@ class TBlob;
 
 class TDirectoryModelsArchiveReader : public IModelsArchiveReader {
 public:
-    TDirectoryModelsArchiveReader(const TString& path, bool lockMemory);
+    TDirectoryModelsArchiveReader(const TString& path, bool lockMemory = false, bool ownBlobs = false);
     virtual ~TDirectoryModelsArchiveReader() override;
 
     virtual size_t Count() const noexcept override;
@@ -28,7 +28,7 @@ public:
 
 private:
     TString NormalizePath(TString path) const; // in archive path works unix-like path delimiter and leading slash is neccesery
-    void LoadFilesAndSubdirs(const TString& subPath, bool lockMemory);
+    void LoadFilesAndSubdirs(const TString& subPath, bool lockMemory, bool ownBlobs);
 
 private:
     TString Path_;

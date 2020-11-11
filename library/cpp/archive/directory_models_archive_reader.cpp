@@ -9,12 +9,12 @@
 #include <util/stream/input.h>
 #include <util/stream/mem.h>
 
-TDirectoryModelsArchiveReader::TDirectoryModelsArchiveReader(const TString& path, bool lockMemory)
+TDirectoryModelsArchiveReader::TDirectoryModelsArchiveReader(const TString& path, bool lockMemory, bool ownBlobs)
     : Path_(path)
 {
     Y_ENSURE(IsDir(path), "directory not found on this path");
 
-    LoadFilesAndSubdirs("", lockMemory);
+    LoadFilesAndSubdirs("", lockMemory, ownBlobs);
 }
 
 TDirectoryModelsArchiveReader::~TDirectoryModelsArchiveReader() {}
@@ -56,7 +56,6 @@ TBlob TDirectoryModelsArchiveReader::BlobByKey(const TStringBuf key) const {
         return *ptr;
     }
     if (auto ptr = PathByKey_.FindPtr(key); ptr) {
-        Y_ENSURE(ptr);
         return TBlob::FromFile(*ptr);
     }
     Y_UNREACHABLE();
@@ -75,7 +74,7 @@ TString TDirectoryModelsArchiveReader::NormalizePath(TString path) const {
     return path;
 }
 
-void TDirectoryModelsArchiveReader::LoadFilesAndSubdirs(const TString& subPath, bool lockMemory) {
+void TDirectoryModelsArchiveReader::LoadFilesAndSubdirs(const TString& subPath, bool lockMemory, bool ownBlobs) {
     TFileList fileList;
     fileList.Fill(JoinFsPaths(Path_, subPath));
     const char* file;
@@ -98,7 +97,7 @@ void TDirectoryModelsArchiveReader::LoadFilesAndSubdirs(const TString& subPath, 
             }
         } else {
             const TString normalizedPath = NormalizePath(key);
-            if (lockMemory) {
+            if (lockMemory || ownBlobs) {
                 BlobByKey_.emplace(normalizedPath, fileBlob);
             } else {
                 PathByKey_.emplace(normalizedPath, RealPath(fullPath));
@@ -111,6 +110,6 @@ void TDirectoryModelsArchiveReader::LoadFilesAndSubdirs(const TString& subPath, 
     dirsList.Fill(JoinFsPaths(Path_, subPath));
     const char* dir;
     while ((dir = dirsList.Next()) != nullptr) {
-        LoadFilesAndSubdirs(JoinFsPaths(subPath, TString(dir)), lockMemory);
+        LoadFilesAndSubdirs(JoinFsPaths(subPath, TString(dir)), lockMemory, ownBlobs);
     }
 }
