@@ -6,7 +6,7 @@ PROVIDES(protobuf)
 
 
 
-VERSION(3.4.0)
+VERSION(3.4.1)
 
 LICENSE(BSD-3-Clause)
 
