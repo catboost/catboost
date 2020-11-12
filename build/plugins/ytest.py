@@ -701,8 +701,9 @@ def onjava_test(unit, *args):
     path = _common.strip_roots(unit_path)
 
     test_data = get_norm_paths(unit, 'TEST_DATA_VALUE')
-    test_data.append('arcadia/build/scripts/unpacking_jtest_runner.py')
+    test_data.append('arcadia/build/scripts/run_junit.py')
     test_data.append('arcadia/build/scripts/run_testng.py')
+    test_data.append('arcadia/build/scripts/unpacking_jtest_runner.py')
 
     data, data_files = get_canonical_test_resources(unit)
     test_data += data

@@ -11,8 +11,9 @@ TEST_SRCS(
     build_mn.py
     build_pln_header.py
     cat.py
-    check_config_h.py
     cgo1_wrapper.py
+    check_config_h.py
+    collect_java_srcs.py
     compile_cuda.py
     compile_java.py
     compile_jsrc.py
@@ -24,8 +25,8 @@ TEST_SRCS(
     extract_jacoco_report.py
     f2c.py
     fail_module_cmd.py
-    fetch_from_external.py
     fetch_from.py
+    fetch_from_external.py
     fetch_from_mds.py
     fetch_from_sandbox.py
     fetch_resource.py
@@ -37,8 +38,8 @@ TEST_SRCS(
     gen_java_codenav_entry.py
     gen_java_codenav_protobuf.py
     gen_mx_table.py
-    gen_py_reg.py
     gen_py3_reg.py
+    gen_py_reg.py
     gen_test_apk_gradle_script.py
     gen_ub.py
     generate_pom.py
@@ -63,22 +64,22 @@ TEST_SRCS(
     py_compile.py
     run_ios_simulator.py
     run_javac.py
+    run_junit.py
     run_llvm_dsymutil.py
     run_msvc_wine.py
     run_tool.py
     stdout2stderr.py
     symlink.py
-    tared_protoc.py
     tar_directory.py
+    tared_protoc.py
     touch.py
     unpacking_jtest_runner.py
     vcs_info.py
     with_coverage.py
     with_crash_on_timeout.py
     with_pathsep_resolve.py
-    wrapper.py
     wrap_groovyc.py
-    collect_java_srcs.py
+    wrapper.py
     writer.py
     xargs.py
     yield_line.py
