@@ -2,6 +2,8 @@ UNITTEST(catboost_ut)
 
 
 
+SIZE(MEDIUM)
+
 SRCS(
     apply_ut.cpp
     train_ut.cpp
