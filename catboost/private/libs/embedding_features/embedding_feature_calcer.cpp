@@ -19,7 +19,7 @@ namespace NCB {
         TEmbeddingCalcerFbs anyCalcerFbs = SaveParametersToFB(builder);
         auto fbsGuid = CreateFbsGuid(Guid);
 
-        auto calcerFbs = NCatBoostFbs::CreateTEmbeddingCalcer(
+        auto calcerFbs = NCatBoostFbs::NEmbeddings::CreateTEmbeddingCalcer(
             builder,
             &fbsGuid,
             ActiveFeatureIndicesToFB(builder),
@@ -47,12 +47,12 @@ namespace NCB {
         {
             flatbuffers::Verifier verifier{buffer.Get(), static_cast<size_t>(bufferSize)};
             CB_ENSURE(
-                NCatBoostFbs::VerifyTEmbeddingCalcerBuffer(verifier),
+                NCatBoostFbs::NEmbeddings::VerifyTEmbeddingCalcerBuffer(verifier),
                 "Flatbuffers model verification failed"
             );
         }
 
-        auto calcer = flatbuffers::GetRoot<NCatBoostFbs::TEmbeddingCalcer>(buffer.Get());
+        auto calcer = flatbuffers::GetRoot<NCatBoostFbs::NEmbeddings::TEmbeddingCalcer>(buffer.Get());
         ActiveFeatureIndices = TVector<ui32>(
             calcer->ActiveFeatureIndices()->begin(),
             calcer->ActiveFeatureIndices()->end()
@@ -71,7 +71,7 @@ namespace NCB {
         Y_FAIL("Serialization is not implemented");
     }
 
-    void TEmbeddingFeatureCalcer::LoadParametersFromFB(const NCatBoostFbs::TEmbeddingCalcer*) {
+    void TEmbeddingFeatureCalcer::LoadParametersFromFB(const NCatBoostFbs::NEmbeddings::TEmbeddingCalcer*) {
         Y_FAIL("Deserialization from flatbuffer is not implemented");
     }
 

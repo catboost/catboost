@@ -1,6 +1,6 @@
 include "catboost/libs/helpers/flatbuffers/guid.fbs";
 
-namespace NCatBoostFbs;
+namespace NCatBoostFbs.NEmbeddings;
 
 table AdjacencyList {
     Ids: [uint32];
@@ -20,5 +20,5 @@ table TCollectionPart {
     Id: TGuid;
 }
 
-root_type TCollectionHeader;
 root_type TCollectionPart;
+root_type TCollectionHeader;

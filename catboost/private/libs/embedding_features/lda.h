@@ -72,7 +72,7 @@ namespace NCB {
 
     protected:
         TEmbeddingFeatureCalcer::TEmbeddingCalcerFbs SaveParametersToFB(flatbuffers::FlatBufferBuilder& builder) const override;
-        void LoadParametersFromFB(const NCatBoostFbs::TEmbeddingCalcer* calcerFbs) override;
+        void LoadParametersFromFB(const NCatBoostFbs::NEmbeddings::TEmbeddingCalcer* calcerFbs) override;
 
         void SaveLargeParameters(IOutputStream*) const override;
         void LoadLargeParameters(IInputStream*) override;

@@ -201,7 +201,7 @@ namespace NCB {
     }
 
     TEmbeddingFeatureCalcer::TEmbeddingCalcerFbs TLinearDACalcer::SaveParametersToFB(flatbuffers::FlatBufferBuilder& builder) const {
-        using namespace NCatBoostFbs;
+        using namespace NCatBoostFbs::NEmbeddings;
 
         auto fbProjectionMatrix = builder.CreateVector(
             ProjectionMatrix.data(),
@@ -218,7 +218,7 @@ namespace NCB {
         return TEmbeddingCalcerFbs(TAnyEmbeddingCalcer_TLDA, fbLDA.Union());
     }
 
-    void TLinearDACalcer::LoadParametersFromFB(const NCatBoostFbs::TEmbeddingCalcer* calcer) {
+    void TLinearDACalcer::LoadParametersFromFB(const NCatBoostFbs::NEmbeddings::TEmbeddingCalcer* calcer) {
         auto fbLDA = calcer->FeatureCalcerImpl_as_TLDA();
         TotalDimension = fbLDA->TotalDimension();
         NumClasses = fbLDA->NumClasses();
