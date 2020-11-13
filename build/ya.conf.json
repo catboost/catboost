@@ -404,6 +404,9 @@
         },
         "buf": {
             "description": "Protobuf lint and breaking change detector"
+        },
+        "iceflame": {
+            "description": "Performance data collection and analysis"
         }
     },
     "toolchain": {
@@ -5813,6 +5816,28 @@
                     "default": true
                 }
             ]
+        },
+        "iceflame": {
+            "tools": {
+                "iceflame": {
+                    "bottle": "iceflame",
+                    "executable": "iceflame"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
         }
     },
     "bottles": {
@@ -8024,6 +8049,17 @@
             "executable": {
                 "buf": [
                     "buf"
+                ]
+            }
+        },
+        "iceflame": {
+            "formula": {
+                "sandbox_id": 817870506,
+                "match": "iceflame"
+            },
+            "executable": {
+                "iceflame": [
+                    "iceflame"
                 ]
             }
         }
