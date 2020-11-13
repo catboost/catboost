@@ -4386,7 +4386,7 @@ cdef class _CatBoost:
         return metrics, [to_native_str(name) for name in metric_names]
 
     cpdef _get_loss_function_name(self):
-        return self.__model.GetLossFunctionName()
+        return to_native_str(self.__model.GetLossFunctionName())
 
     cpdef _calc_partial_dependence(self, _PoolBase pool, features, int thread_count):
         thread_count = UpdateThreadCount(thread_count);
