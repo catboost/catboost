@@ -90,7 +90,6 @@ migrations:
     - browser/infra/bitbucket/bitbucket
     - browser/infra/ci/backend
     - clickhouse/utils/github
-    - cloud/blockstore/sandbox/libs/yc
     - cloud/mdb/clickhouse/tools/monrun_checks
     - cloud/mdb/dbaas-internal-api-image/dbaas_internal_api/modules/hadoop
     - cloud/mdb/dbaas-internal-api-image/dbaas_internal_api/modules/postgres
@@ -559,7 +558,6 @@ migrations:
     - travel/hotels/tools/city_pages_builder/renderer/renderer
     - travel/library/python/sender
     - travel/rasp/morda_backend/tests
-    - travel/rasp/suggests_tasks/tests
     - vcs/svn/migrations
     - vcs/svn/pr
     - voicetech/asr/core/lib/subword_ngram_lm/nirvana/build_freq_table
