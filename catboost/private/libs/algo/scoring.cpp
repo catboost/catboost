@@ -160,7 +160,7 @@ static void GetIndexingParams(
 
 static void GetBitsPerValueAndRawPtr(
     const TQuantizedForCPUObjectsDataProvider& objectsDataProvider,
-    const std::tuple<const TOnlineCTRHash&, const TOnlineCTRHash&>& allCtrs,
+    const std::tuple<const TOnlineCtrBase&, const TOnlineCtrBase&>& allCtrs,
     const TSplitEnsemble& splitEnsemble,
     size_t* bitsPerValue,
     const char** rawPtr
@@ -168,7 +168,7 @@ static void GetBitsPerValueAndRawPtr(
     if (splitEnsemble.IsSplitOfType(ESplitType::OnlineCtr)) {
         const TCtr& ctr = splitEnsemble.SplitCandidate.Ctr;
         *bitsPerValue = 8;
-        *rawPtr = (const char*)GetCtr(allCtrs, ctr.Projection).Feature[ctr.CtrIdx][ctr.TargetBorderIdx][ctr.PriorIdx].data();
+        *rawPtr = (const char*)GetCtr(allCtrs, ctr.Projection).GetData(ctr, /*datasetIdx*/ 0).data();
     } else {
         switch (splitEnsemble.Type) {
             case ESplitEnsembleType::OneFeature: {
@@ -336,7 +336,7 @@ static void CalcStatsPairwise(
     const TCalcScoreFold& fold,
     const TQuantizedForCPUObjectsDataProvider& objectsDataProvider,
     const TFlatPairsInfo& pairs,
-    const std::tuple<const TOnlineCTRHash&, const TOnlineCTRHash&>& allCtrs,
+    const std::tuple<const TOnlineCtrBase&, const TOnlineCtrBase&>& allCtrs,
     const TSplitEnsemble& splitEnsemble,
     int bucketCount,
     ui32 oneHotMaxSize,
@@ -409,8 +409,7 @@ static void CalcStatsPairwise(
                                 {
                                     const TCtr& ctr = splitCandidate.Ctr;
                                     TConstArrayRef<ui8> buckets =
-                                        GetCtr(allCtrs, ctr.Projection)
-                                            .Feature[ctr.CtrIdx][ctr.TargetBorderIdx][ctr.PriorIdx];
+                                        GetCtr(allCtrs, ctr.Projection).GetData(ctr, /*datasetIdx*/ 0);
 
                                     ComputePairwiseStats<ui8>(
                                         ESplitEnsembleType::OneFeature,
@@ -773,7 +772,7 @@ static void CalculateNonPairwiseScore(
 
 void CalcStatsAndScores(
     const TQuantizedForCPUObjectsDataProvider& objectsDataProvider,
-    const std::tuple<const TOnlineCTRHash&, const TOnlineCTRHash&>& allCtrs,
+    const std::tuple<const TOnlineCtrBase&, const TOnlineCtrBase&>& allCtrs,
     const TCalcScoreFold& fold,
     const TCalcScoreFold& prevLevelData,
     const TFold* initialFold,

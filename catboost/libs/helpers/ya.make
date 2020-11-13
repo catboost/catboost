@@ -6,7 +6,6 @@ SRCS(
     array_subset.cpp
     borders_io.cpp
     checksum.cpp
-    clear_array.cpp
     compression.cpp
     connected_components.cpp
     cpu_random.cpp

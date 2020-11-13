@@ -260,7 +260,7 @@ void TrainOneIteration(const NCB::TTrainingDataProviders& data, TLearnContext* c
                 const NCB::TTrainingDataProviders* data;
                 TProjection Projection;
                 TFold* Fold;
-                TOnlineCTR* Ctr;
+                TOwnedOnlineCtr* Ctr;
 
             public:
                 void DoTask(TLearnContext* ctx) {
@@ -276,9 +276,10 @@ void TrainOneIteration(const NCB::TTrainingDataProviders& data, TLearnContext* c
                     continue;
                 }
                 for (auto* foldPtr : allFolds) {
-                    if (!foldPtr->GetCtrs(proj).contains(proj) || foldPtr->GetCtr(proj).Feature.empty()) {
+                    auto* ownedCtrs = foldPtr->GetOwnedCtrs(proj);
+                    if (ownedCtrs && ownedCtrs->Data[proj].Feature.empty()) {
                         parallelJobsData.emplace_back(
-                            TLocalJobData{ &data, proj, foldPtr, &foldPtr->GetCtrRef(proj) }
+                            TLocalJobData{ &data, proj, foldPtr, ownedCtrs}
                         );
                     }
                 }

@@ -1027,6 +1027,7 @@ namespace {
                     objectiveDescriptor,
                     evalMetricDescriptor,
                     trainTestData,
+                    /*precomputedSingleOnlineCtrDataForSingleFold*/ Nothing(),
                     labelConverter,
                     defaultTrainingCallbacks.Get(), // TODO(ilikepugs): MLTOOLS-3540
                     /*initModel*/ Nothing(),

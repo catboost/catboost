@@ -43,12 +43,12 @@ using TBucketStatsRefOptionalHolder = TDataRefOptionalHolder<TBucketStats>;
 /* A helper function that returns calculated ctr values for this projection
    (== feature or feature combination) from cache.
 */
-inline const TOnlineCTR& GetCtr(
-    const std::tuple<const TOnlineCTRHash&, const TOnlineCTRHash&>& allCtrs,
+inline const TOnlineCtrBase& GetCtr(
+    const std::tuple<const TOnlineCtrBase&, const TOnlineCtrBase&>& allCtrs,
     const TProjection& proj
 ) {
     static const constexpr size_t OnlineSingleCtrsIndex = 0;
     static const constexpr size_t OnlineCTRIndex = 1;
-    return proj.HasSingleFeature() ? std::get<OnlineSingleCtrsIndex>(allCtrs).at(proj)
-                                   : std::get<OnlineCTRIndex>(allCtrs).at(proj);
+    return proj.HasSingleFeature() ? std::get<OnlineSingleCtrsIndex>(allCtrs)
+                                   : std::get<OnlineCTRIndex>(allCtrs);
 }

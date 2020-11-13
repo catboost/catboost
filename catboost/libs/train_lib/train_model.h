@@ -2,6 +2,7 @@
 
 #include <catboost/private/libs/algo/learn_context.h>
 #include <catboost/private/libs/algo_helpers/custom_objective_descriptor.h>
+#include <catboost/libs/data/ctrs.h>
 #include <catboost/libs/data/data_provider.h>
 #include <catboost/libs/eval_result/eval_result.h>
 #include <catboost/libs/loggers/catboost_logger_helpers.h>
@@ -76,6 +77,9 @@ public:
         const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
         NCB::TTrainingDataProviders trainingData,
+
+        // can be non-empty only if there is single fold
+        TMaybe<NCB::TPrecomputedOnlineCtrData> precomputedSingleOnlineCtrDataForSingleFold,
         const TLabelConverter& labelConverter,
         ITrainingCallbacks* trainingCallbacks,
         TMaybe<TFullModel*> initModel,

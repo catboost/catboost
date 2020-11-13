@@ -711,6 +711,7 @@ namespace {
             const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
             const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
             TTrainingDataProviders trainingData,
+            TMaybe<TPrecomputedOnlineCtrData> precomputedSingleOnlineCtrDataForSingleFold,
             const TLabelConverter& labelConverter,
             ITrainingCallbacks* trainingCallbacks,
             TMaybe<TFullModel*> initModel,
@@ -799,6 +800,7 @@ namespace {
                 evalMetricDescriptor,
                 outputOptions,
                 trainingData,
+                std::move(precomputedSingleOnlineCtrDataForSingleFold),
                 labelConverter,
                 startingApprox,
                 rand,
@@ -896,6 +898,9 @@ static void TrainModel(
     const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
     TDataProviders pools,
+
+    // can be non-empty only if there is single fold
+    TMaybe<TPrecomputedOnlineCtrData> precomputedSingleOnlineCtrDataForSingleFold,
     TMaybe<TFullModel*> initModel,
     THolder<TLearnProgress> initLearnProgress,
     const NCatboostOptions::TPoolLoadParams* poolLoadOptions,
@@ -1064,6 +1069,7 @@ static void TrainModel(
         objectiveDescriptor,
         evalMetricDescriptor,
         std::move(trainingData),
+        std::move(precomputedSingleOnlineCtrDataForSingleFold),
         labelConverter,
         defaultTrainingCallbacks.Get(),
         std::move(initModel),
@@ -1167,6 +1173,8 @@ void TrainModel(
         needFstr = false;
     }
 
+    TMaybe<TPrecomputedOnlineCtrData> precomputedSingleOnlineCtrDataForSingleFold;
+
     TVector<TString> outputColumns;
     if (!evalOutputFileName.empty() && !pools.Test.empty()) {
         outputColumns = outputOptions.GetOutputColumns(pools.Test[0]->MetaInfo.TargetCount);
@@ -1215,6 +1223,7 @@ void TrainModel(
         /*objectiveDescriptor*/ Nothing(),
         /*evalMetricDescriptor*/ Nothing(),
         needPoolAfterTrain ? pools : std::move(pools),
+        std::move(precomputedSingleOnlineCtrDataForSingleFold),
         /*initModel*/ Nothing(),
         /*initLearnProgress*/ nullptr,
         &loadOptions,
@@ -1516,6 +1525,7 @@ void TrainModel(
         objectiveDescriptor,
         evalMetricDescriptor,
         std::move(pools),
+        /*precomputedSingleOnlineCtrDataForSingleFold*/ Nothing(),
         std::move(initModel),
         initLearnProgress ? std::move(*initLearnProgress) : THolder<TLearnProgress>(),
         /*poolLoadOptions*/nullptr,

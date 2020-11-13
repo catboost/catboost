@@ -238,13 +238,8 @@ void ScheduleUpdateIndicesForSplit(
 struct TUpdateIndicesForSplitParams {
     ui32 Depth;
     const TSplit& Split;
-    const TOnlineCTR* OnlineCtr;
+    const TOnlineCtrBase* OnlineCtr;
 };
-
-
-static TConstArrayRef<ui8> GetCtrValues(const TSplit& split, const TOnlineCTR& ctr) {
-    return ctr.Feature[split.Ctr.CtrIdx][split.Ctr.TargetBorderIdx][split.Ctr.PriorIdx];
-}
 
 
 void GetObjectsDataAndIndexing(
@@ -312,7 +307,6 @@ void GetObjectsDataAndIndexing(
 static void UpdateIndices(
     bool initIndices,
     TConstArrayRef<TUpdateIndicesForSplitParams> params,
-    ui32 onlineCtrObjectOffset,
     const TTrainingDataProviders& trainingData,
     const TFold& fold,
     ui32 objectSubsetIdx, // 0 - learn, 1+ - test (subtract 1 for testIndex)
@@ -331,10 +325,8 @@ static void UpdateIndices(
         const auto& split = splitParams.Split;
 
         if (split.Type == ESplitType::OnlineCtr) {
-            const auto ctr = splitParams.OnlineCtr;
             const auto binBorder = split.BinBorder;
-
-            const ui8* histogram = GetCtrValues(split, *ctr).data() + onlineCtrObjectOffset;
+            const ui8* histogram = splitParams.OnlineCtr->GetData(split.Ctr, objectSubsetIdx).data();
 
             updateBlockCallbacks.push_back(
                 [=] (TIndexRange<ui32> indexRange) {
@@ -459,9 +451,9 @@ void SetPermutedIndices(
 
     CB_ENSURE(curDepth > 0);
 
-    const TOnlineCTR* onlineCtr = nullptr;
+    const TOnlineCtrBase* onlineCtr = nullptr;
     if (split.Type == ESplitType::OnlineCtr) {
-        onlineCtr = &fold.GetCtr(split.Ctr.Projection);
+        onlineCtr = &fold.GetCtrs(split.Ctr.Projection);
     }
 
     TUpdateIndicesForSplitParams params{ (ui32)(curDepth - 1), split, onlineCtr };
@@ -469,7 +461,6 @@ void SetPermutedIndices(
     UpdateIndices(
         /*initIndices*/ false,
         TConstArrayRef<TUpdateIndicesForSplitParams>(&params, 1),
-        /*onlineCtrObjectOffset*/ 0,
         trainingData,
         fold,
         0, // learn
@@ -562,31 +553,37 @@ int GetRedundantSplitIdx(const TVector<bool>& isLeafEmpty) {
     return -1;
 }
 
-// Get OnlineCTRs associated with a fold
-static TVector<const TOnlineCTR*> GetOnlineCtrs(const TFold& fold, const TSplitTree& tree) {
-    TVector<const TOnlineCTR*> onlineCtrs(tree.GetDepth());
+// Get OnlineCtrBases associated with a fold
+static TVector<const TOnlineCtrBase*> GetOnlineCtrs(const TFold& fold, const TSplitTree& tree) {
+    TVector<const TOnlineCtrBase*> onlineCtrs(tree.GetDepth());
     for (int splitIdx = 0; splitIdx < tree.GetDepth(); ++splitIdx) {
         const auto& split = tree.Splits[splitIdx];
         if (split.Type == ESplitType::OnlineCtr) {
-            onlineCtrs[splitIdx] = &fold.GetCtr(split.Ctr.Projection);
+            onlineCtrs[splitIdx] = &fold.GetCtrs(split.Ctr.Projection);
         }
     }
     return onlineCtrs;
 }
 
-static TVector<const TOnlineCTR*> GetOnlineCtrs(const TFold& fold, const TNonSymmetricTreeStructure& tree) {
+static TVector<const TOnlineCtrBase*> GetOnlineCtrs(
+    const TFold& fold,
+    const TNonSymmetricTreeStructure& tree) {
+
     const auto nodes = tree.GetNodes();
-    TVector<const TOnlineCTR*> onlineCtrs(nodes.size());
+    TVector<const TOnlineCtrBase*> onlineCtrs(nodes.size());
     for (auto nodeIdx : xrange(nodes.size())) {
         const auto& split = nodes[nodeIdx].Split;
         if (split.Type == ESplitType::OnlineCtr) {
-            onlineCtrs[nodeIdx] = &fold.GetCtr(split.Ctr.Projection);
+            onlineCtrs[nodeIdx] = &fold.GetCtrs(split.Ctr.Projection);
         }
     }
     return onlineCtrs;
 }
 
-static TVector<const TOnlineCTR*> GetOnlineCtrs(const TFold& fold, const TVariant<TSplitTree, TNonSymmetricTreeStructure>& tree) {
+static TVector<const TOnlineCtrBase*> GetOnlineCtrs(
+    const TFold& fold,
+    const TVariant<TSplitTree, TNonSymmetricTreeStructure>& tree) {
+
     if (HoldsAlternative<TSplitTree>(tree)) {
         return GetOnlineCtrs(fold, Get<TSplitTree>(tree));
     } else {
@@ -599,8 +596,7 @@ static void BuildIndicesForDataset(
     const TTrainingDataProviders& trainingData,
     const TFold& fold,
     ui32 sampleCount,
-    const TVector<const TOnlineCTR*>& onlineCtrs,
-    ui32 docOffset,
+    const TVector<const TOnlineCtrBase*>& onlineCtrs,
     ui32 objectSubsetIdx, // 0 - learn, 1+ - test (subtract 1 for testIndex)
     NPar::ILocalExecutor* localExecutor,
     TIndexType* indices) {
@@ -615,7 +611,6 @@ static void BuildIndicesForDataset(
     UpdateIndices(
         /*initIndices*/ true,
         params,
-        docOffset,
         trainingData,
         fold,
         objectSubsetIdx,
@@ -628,8 +623,7 @@ static void BuildIndicesForDataset(
     const TTrainingDataProviders& trainingData,
     const TFold& fold,
     ui32 sampleCount,
-    const TVector<const TOnlineCTR*>& onlineCtrs,
-    ui32 docOffset,
+    const TVector<const TOnlineCtrBase*>& onlineCtrs,
     ui32 objectSubsetIdx, // 0 - learn, 1+ - test (subtract 1 for testIndex)
     NPar::ILocalExecutor* localExecutor,
     TIndexType* indices) {
@@ -641,7 +635,6 @@ static void BuildIndicesForDataset(
             fold,
             sampleCount,
             onlineCtrs,
-            docOffset,
             objectSubsetIdx,
             localExecutor,
             indices);
@@ -667,7 +660,7 @@ TVector<TIndexType> BuildIndices(
     ui32 tailSampleCount
         = (dataParts == EBuildIndicesDataParts::LearnOnly) ? 0 : trainingData.GetTestSampleCount();
 
-    const TVector<const TOnlineCTR*>& onlineCtrs = GetOnlineCtrs(fold, tree);
+    const TVector<const TOnlineCtrBase*>& onlineCtrs = GetOnlineCtrs(fold, tree);
 
     TVector<TIndexType> indices;
     indices.yresize(learnSampleCount + tailSampleCount);
@@ -679,7 +672,6 @@ TVector<TIndexType> BuildIndices(
             fold,
             learnSampleCount,
             onlineCtrs,
-            0,
             /*objectSubsetIdx*/ 0, // learn
             localExecutor,
             indices.begin());
@@ -694,7 +686,6 @@ TVector<TIndexType> BuildIndices(
                 fold,
                 testSet.GetObjectCount(),
                 onlineCtrs,
-                docOffset,
                 testIdx + 1,
                 localExecutor,
                 indices.begin() + docOffset);
