@@ -121,6 +121,7 @@
   - sys/acl.h
   - sys/aio.h
   - sys/attr.h
+  - sys/clonefile.h
   - sys/dirent.h
   - sys/disk.h
   - sys/domain.h

@@ -4,6 +4,7 @@ import codecs
 import errno
 import logging
 import os
+import sys
 import shutil
 import six
 import stat
@@ -451,3 +452,9 @@ def copytree3(src, dst, symlinks=False, ignore=None,
 def walk_relative(path, topdown=True, onerror=None, followlinks=False):
     for dirpath, dirnames, filenames in os.walk(path, topdown=topdown, onerror=onerror, followlinks=followlinks):
         yield os.path.relpath(dirpath, path), dirnames, filenames
+
+def supports_clone():
+    if 'darwin' in sys.platform:
+        import platform
+        return map(int, platform.mac_ver()[0].split('.')) >= [10, 13]
+    return False
