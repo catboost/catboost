@@ -10,15 +10,17 @@
 
 class TStatsForSubtractionTrick {
 public:
-    TStatsForSubtractionTrick(TArrayRef<TBucketStats> statsRef,
-                              TArrayRef<TBucketStats> parentStatsRef,
-                              TArrayRef<TBucketStats> siblingStatsRef,
-                              int maxBucketCount, int maxSplitEnsamples)
-                              : StatsRef(statsRef),
-                                ParentStatsRef(parentStatsRef),
-                                SiblingStatsRef(siblingStatsRef),
-                                MaxBucketCount(maxBucketCount),
-                                MaxSplitEnsamples(maxSplitEnsamples) {
+    TStatsForSubtractionTrick(
+        TArrayRef<TBucketStats> statsRef,
+        TArrayRef<TBucketStats> parentStatsRef,
+        TArrayRef<TBucketStats> siblingStatsRef,
+        int maxBucketCount,
+        int maxSplitEnsamples)
+        : StatsRef(statsRef),
+          ParentStatsRef(parentStatsRef),
+          SiblingStatsRef(siblingStatsRef),
+          MaxBucketCount(maxBucketCount),
+          MaxSplitEnsamples(maxSplitEnsamples) {
     }
     TStatsForSubtractionTrick()
         : StatsRef(nullptr, (size_t)0),

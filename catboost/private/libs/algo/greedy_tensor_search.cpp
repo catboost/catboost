@@ -1447,16 +1447,17 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
             TArrayRef<TBucketStats> siblingStats,
             double* gainLocal,
             TArrayRef<const TCandidateInfo*> bestSplitCandidateLocal,
-            TSplit* bestSplitLocal) {
-                TStatsForSubtractionTrick statsForSubtractionTrick(stats, parentStats, siblingStats, maxBucketCount, maxSplitEnsamples);
-                CalcBestScoreLeafwise(data, {id}, ctx->LearnProgress->Rand.GenRand(), scoreStDev, &candidatesContexts, fold, ctx, statsForSubtractionTrick);
-                double bestScoreLocal = MINIMAL_SCORE;
-                SelectBestCandidate(*ctx, candidatesContexts, maxFeatureValueCount, *fold, &bestScoreLocal, bestSplitCandidateLocal.data());
-                double scoreBeforeSplitLocal = CalcScoreWithoutSplit(id, *fold, *ctx);
-                if (bestSplitCandidateLocal.data() != nullptr) {
-                    *bestSplitLocal = (*bestSplitCandidateLocal.data())->GetBestSplit(data, *fold, ctx->Params.CatFeatureParams->OneHotMaxSize);
-                }
-                *gainLocal = bestScoreLocal - scoreBeforeSplitLocal;
+            TSplit* bestSplitLocal
+        ) {
+            TStatsForSubtractionTrick statsForSubtractionTrick(stats, parentStats, siblingStats, maxBucketCount, maxSplitEnsamples);
+            CalcBestScoreLeafwise(data, {id}, ctx->LearnProgress->Rand.GenRand(), scoreStDev, &candidatesContexts, fold, ctx, statsForSubtractionTrick);
+            double bestScoreLocal = MINIMAL_SCORE;
+            SelectBestCandidate(*ctx, candidatesContexts, maxFeatureValueCount, *fold, &bestScoreLocal, bestSplitCandidateLocal.data());
+            double scoreBeforeSplitLocal = CalcScoreWithoutSplit(id, *fold, *ctx);
+            if (bestSplitCandidateLocal.data() != nullptr) {
+                *bestSplitLocal = (*bestSplitCandidateLocal.data())->GetBestSplit(data, *fold, ctx->Params.CatFeatureParams->OneHotMaxSize);
+            }
+            *gainLocal = bestScoreLocal - scoreBeforeSplitLocal;
         };
 
         TSplit bestSplitNext;
