@@ -54,5 +54,4 @@ constexpr ui32 GetMaxTreeCtrBinarizationForGpu() {
 
 //CPU restriction
 using TIndexType = ui32;
-
 constexpr int CB_THREAD_LIMIT = 128;

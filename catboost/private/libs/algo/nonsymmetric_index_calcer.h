@@ -20,10 +20,12 @@ namespace NPar {
 void UpdateIndicesWithSplit(
     const TSplitNode& node,
     const NCB::TTrainingDataProviders& trainingData,
-    const TArrayRef<ui32>& docsSubset,
+    const NCB::TIndexedSubset<ui32>& docsSubset,
     const TFold& fold,
     NPar::ILocalExecutor* localExecutor,
-    TArrayRef<TIndexType> indices, TArrayRef<ui32>& leftIndices, TArrayRef<ui32>& rightIndices
+    TArrayRef<TIndexType> indices,
+    NCB::TIndexedSubset<ui32>& leftIndices,
+    NCB::TIndexedSubset<ui32>& rightIndices
 );
 
 void UpdateIndices(

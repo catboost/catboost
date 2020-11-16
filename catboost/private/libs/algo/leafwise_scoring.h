@@ -8,6 +8,47 @@
 #include <catboost/private/libs/algo_helpers/scoring_helpers.h>
 #include <catboost/private/libs/data_types/pair.h>
 
+class TStatsForSubtractionTrick {
+public:
+    TStatsForSubtractionTrick(TArrayRef<TBucketStats> statsRef,
+                              TArrayRef<TBucketStats> parentStatsRef,
+                              TArrayRef<TBucketStats> siblingStatsRef,
+                              int maxBucketCount, int maxSplitEnsamples)
+                              : StatsRef(statsRef),
+                                ParentStatsRef(parentStatsRef),
+                                SiblingStatsRef(siblingStatsRef),
+                                MaxBucketCount(maxBucketCount),
+                                MaxSplitEnsamples(maxSplitEnsamples) {
+    }
+    TStatsForSubtractionTrick()
+        : StatsRef(nullptr, (size_t)0),
+          ParentStatsRef(nullptr, (size_t)0),
+          SiblingStatsRef(nullptr, (size_t)0),
+          MaxBucketCount(0),
+          MaxSplitEnsamples(0) {
+    }
+    TArrayRef<TBucketStats> GetStatsRef() {
+        return StatsRef;
+    }
+    TArrayRef<TBucketStats> GetParentStatsRef() {
+        return ParentStatsRef;
+    }
+    TArrayRef<TBucketStats> GetSiblingStatsRef() {
+        return SiblingStatsRef;
+    }
+    int GetMaxBucketCount() {
+        return MaxBucketCount;
+    }
+    int GetMaxSplitEnsamples() {
+        return MaxSplitEnsamples;
+    }
+private:
+    TArrayRef<TBucketStats> StatsRef;
+    TArrayRef<TBucketStats> ParentStatsRef;
+    TArrayRef<TBucketStats> SiblingStatsRef;
+    int MaxBucketCount = 0;
+    int MaxSplitEnsamples = 0;
+};
 
 class TCalcScoreFold;
 class TFold;
@@ -29,10 +70,7 @@ TVector<TVector<double>> CalcScoresForOneCandidate(
     const TFold& initialFold,
     const TVector<TIndexType>& leafs,
     TLearnContext* ctx,
-    TArrayRef<TBucketStats> statsRef = {nullptr, (size_t)0},
-    TArrayRef<TBucketStats> parentStatsRef = {nullptr, (size_t)0},
-    TArrayRef<TBucketStats> siblingStatsRef = {nullptr, (size_t)0},
-    int maxBucketCount = 0
+    TStatsForSubtractionTrick statsForSubtractionTrick = TStatsForSubtractionTrick{}
 );
 
 double CalcScoreWithoutSplit(int leaf, const TFold& fold, const TLearnContext& ctx);

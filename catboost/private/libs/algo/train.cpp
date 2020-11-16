@@ -233,6 +233,7 @@ void TrainOneIteration(const NCB::TTrainingDataProviders& data, TLearnContext* c
             MapSetDerivatives(ctx);
         }
         profile.AddOperation("Calc derivatives");
+
         GreedyTensorSearch(
             data,
             modelLength,
@@ -299,9 +300,9 @@ void TrainOneIteration(const NCB::TTrainingDataProviders& data, TLearnContext* c
 
         TVector<TVector<double>> treeValues; // [dim][leafId]
         TVector<double> sumLeafWeights; // [leafId]
+
         if (ctx->Params.SystemOptions->IsSingleHost()) {
             const TVector<ui64> randomSeeds = GenRandUI64Vector(foldCount, ctx->LearnProgress->Rand.GenRand());
-
             ctx->LocalExecutor->ExecRangeWithThrow(
                 [&](int foldId) {
                     UpdateLearningFold(
@@ -322,6 +323,7 @@ void TrainOneIteration(const NCB::TTrainingDataProviders& data, TLearnContext* c
             CheckInterrupted(); // check after long-lasting operation
 
             TVector<TIndexType> indices;
+
             const bool treeHasMonotonicConstraints = !ctx->Params.ObliviousTreeOptions->MonotoneConstraints.GetUnchecked().empty();
             if (
                 ctx->Params.ObliviousTreeOptions->DevLeafwiseApproxes.Get() &&
@@ -368,6 +370,7 @@ void TrainOneIteration(const NCB::TTrainingDataProviders& data, TLearnContext* c
                 sumLeafWeights,
                 &treeValues
             );
+
             UpdateAvrgApprox(
                 error->GetIsExpApprox(),
                 data.Learn->GetObjectCount(),
@@ -397,5 +400,4 @@ void TrainOneIteration(const NCB::TTrainingDataProviders& data, TLearnContext* c
         profile.AddOperation("Update final approxes");
         CheckInterrupted(); // check after long-lasting operation
     }
-
 }
