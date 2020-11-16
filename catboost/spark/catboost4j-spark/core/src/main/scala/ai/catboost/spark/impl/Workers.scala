@@ -127,7 +127,7 @@ private[spark] class Workers(
     val executorNativeMemoryLimit = SparkHelpers.getExecutorNativeMemoryLimit(spark)
     if (executorNativeMemoryLimit.isDefined) {
       catBoostJsonParamsForWorkers
-        = catBoostJsonParamsForWorkers ~ ("used_ram_limit" -> executorNativeMemoryLimit.get)
+        = catBoostJsonParamsForWorkers ~ ("used_ram_limit" -> s"${executorNativeMemoryLimit.get / 1024}KB")
     }
 
     val catBoostJsonParamsForWorkersString = compact(catBoostJsonParamsForWorkers)
