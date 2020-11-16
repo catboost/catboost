@@ -48,6 +48,7 @@ Y_UNIT_TEST_SUITE(TQueryCrossEntropyTests) {
             NCudaLib::TMappingBuilder<TStripeMapping> docMapping;
 
             TVector<bool> flags;
+            TVector<ui32> trueClassCount;
             ui32 dev = 0;
             ui32 devOffset = 0;
             for (ui32 qid = 0; qid < queryCount; ++qid) {
@@ -55,10 +56,15 @@ Y_UNIT_TEST_SUITE(TQueryCrossEntropyTests) {
                 ui32 querySize = 1 + (random.NextUniformL() % 16);
                 const bool isSingleClassQuery = ((random.NextUniformL()) % 3 == 0) || querySize == 1; //;
 
+                ui32 trueCount = 0;
                 for (ui32 i = 0; i < querySize; ++i) {
                     double target = isSingleClassQuery ? 0 : random.NextUniform();
                     targets.push_back(target);
                     flags.push_back(isSingleClassQuery);
+                    trueCount += (target > 0.5);
+                }
+                for (ui32 i = 0; i < querySize; ++i) {
+                    trueClassCount.push_back(trueCount);
                 }
                 devOffset += querySize;
 
@@ -77,6 +83,7 @@ Y_UNIT_TEST_SUITE(TQueryCrossEntropyTests) {
 
             auto targetsGpu = TStripeBuffer<float>::Create(docMapping.Build());
             auto gpuFlags = TStripeBuffer<bool>::CopyMapping(targetsGpu);
+            auto gpuTrueClassCount = TStripeBuffer<ui32>::CopyMapping(targetsGpu);
             UNIT_ASSERT_EQUAL_C(targetsGpu.GetObjectsSlice().Size(), targets.size(), TStringBuilder() << targetsGpu.GetObjectsSlice().Size() << " " << targets.size());
             targetsGpu.Write(targets);
 
@@ -84,9 +91,10 @@ Y_UNIT_TEST_SUITE(TQueryCrossEntropyTests) {
             MakeSequence(loadIndices);
 
             //
-#define CHECK(k)                                                                                                                        \
-    FillBuffer(gpuFlags, false);                                                                                                        \
-    MakeIsSingleClassQueryFlags(targetsGpu.ConstCopyView(), loadIndices.ConstCopyView(), gpuQueryOffset.ConstCopyView(), k, &gpuFlags); \
+#define CHECK(k)                                                                                                                                            \
+    FillBuffer(gpuFlags, false);                                                                                                                            \
+    FillBuffer(gpuTrueClassCount, 0);                                                                                                                       \
+    MakeIsSingleClassQueryFlags(targetsGpu.ConstCopyView(), loadIndices.ConstCopyView(), gpuQueryOffset.ConstCopyView(), k, &gpuFlags, &gpuTrueClassCount); \
     AssertEqual(flags, gpuFlags);
 
             CHECK(2)
@@ -244,12 +252,17 @@ Y_UNIT_TEST_SUITE(TQueryCrossEntropyTests) {
             auto gpuCursor = TStripeBuffer<float>::CopyMapping(gpuTargets);
             auto gpuQids = TStripeBuffer<ui32>::CopyMapping(gpuTargets);
             auto gpuFlags = TStripeBuffer<bool>::CopyMapping(gpuTargets);
+            ui32 approxScaleSize = 0;
+            auto approxScale = TMirrorBuffer<float>::Create(NCudaLib::TMirrorMapping(1));
+            auto trueClassCount = TStripeBuffer<ui32>::CopyMapping(gpuTargets);
 
             gpuTargets.Write(targets);
             gpuWeights.Write(weights);
             gpuCursor.Write(cursor);
             gpuQids.Write(qids);
             gpuFlags.Write(flags);
+            approxScale.Write(cursor);
+            trueClassCount.Write(TVector<ui32>(cursor.size(), 0));
 
             auto funcValueGpu = TStripeBuffer<float>::Create(TStripeMapping::RepeatOnAllDevices(1));
             auto der = TStripeBuffer<float>::CopyMapping(gpuTargets);
@@ -258,12 +271,16 @@ Y_UNIT_TEST_SUITE(TQueryCrossEntropyTests) {
             auto groupDer2 = TStripeBuffer<float>::Create(queriesMapping);
 
             QueryCrossEntropy<TStripeMapping>(alpha,
+                                              /*defaultScale*/ 1.0f,
+                                              approxScaleSize,
                                               gpuTargets,
                                               gpuWeights,
                                               gpuCursor,
                                               gpuQids,
                                               gpuFlags,
                                               gpuQueryOffsets,
+                                              approxScale,
+                                              trueClassCount,
                                               &funcValueGpu,
                                               &der,
                                               &der2llp,

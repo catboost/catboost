@@ -135,6 +135,7 @@ namespace NCatboostCuda {
             TCudaBuffer<bool, TMapping> FuncValueFlags;
             TCudaBuffer<ui32, TMapping> FuncValueQids;
             TCudaBuffer<ui32, TMapping> FuncValueQidOffsets;
+            TCudaBuffer<ui32, TMapping> TrueClassCount; // [docId]
         };
 
     private:
@@ -154,6 +155,12 @@ namespace NCatboostCuda {
                 const auto querySize = grouping.GetQuerySize(qid);
                 CB_ENSURE(querySize <= GetMaxQuerySize(), "Error: max query size supported on GPU for QueryCrossEntropy is " << GetMaxQuerySize() << ", got " << querySize);
             }
+            TVector<float> approxScale;
+            GetApproxScaleQueryCrossEntropy(targetOptions, &approxScale, &ApproxScaleSize, &DefaultScale);
+            if (ApproxScaleSize > 0) {
+                ApproxScale = TMirrorBuffer<float>::Create(NCudaLib::TMirrorMapping(approxScale.size()));
+                ApproxScale.Write(approxScale);
+            }
         }
 
         TQuerywiseSampler& GetQueriesSampler() const {
@@ -166,7 +173,8 @@ namespace NCatboostCuda {
         void MakeQidsForLLMax(TStripeBuffer<ui32>* order,
                               TStripeBuffer<ui32>* orderQids,
                               TStripeBuffer<ui32>* orderQidOffsets,
-                              TStripeBuffer<bool>* flags) const;
+                              TStripeBuffer<bool>* flags,
+                              TStripeBuffer<ui32>* trueClassCount) const;
 
         const TQueryLogitApproxHelpData& GetCachedMetadata() const;
 
@@ -180,6 +188,9 @@ namespace NCatboostCuda {
         mutable THolder<TQuerywiseSampler> QueriesSampler;
         double Alpha;
         mutable TQueryLogitApproxHelpData CachedMetadata;
+        TCudaBuffer<float, NCudaLib::TMirrorMapping> ApproxScale; // [querySize][trueClassCount]
+        float DefaultScale;
+        ui32 ApproxScaleSize;
     };
 
 }

@@ -107,6 +107,64 @@ double NCatboostOptions::GetAlphaQueryCrossEntropy(const TLossDescription& lossF
     return GetAlphaQueryCrossEntropy(lossParams);
 }
 
+void NCatboostOptions::GetApproxScaleQueryCrossEntropy(
+    const TLossDescription& lossFunctionConfig,
+    TVector<float>* approxScale,
+    ui32* approxScaleSize,
+    float* defaultScale
+) {
+    const auto formatErrorMessage = "raw_values_scale should be space separated list of "
+        "items group_size,true_count:scale where true_count <= group_size. "
+        "If group_size = 0, scale is default scale for non-listed sizes and counts. "
+        "If all group_size > 0, default scale is 1.";
+
+    const auto& lossParams = lossFunctionConfig.GetLossParamsMap();
+    const auto& rawValuesScale = GetParamOrDefault(lossParams, "raw_values_scale", TString());
+    const TVector<TStringBuf> tokens = StringSplitter(rawValuesScale).Split(' ');
+
+    if (tokens.empty() || (tokens.size() == 1 && tokens[0].empty())) {
+        *approxScaleSize = 0;
+        *defaultScale = 1;
+        approxScale->clear();
+        return;
+    }
+
+    TVector<ui32> groupSizes;
+    TVector<ui32> trueCounts;
+    TVector<float> scales;
+    for (const auto& token : tokens) {
+        const TVector<TString> idxScale = StringSplitter(token).Split(':').Limit(2);
+        CB_ENSURE(idxScale.size() == 2, formatErrorMessage);
+        const TVector<TString> idx = StringSplitter(idxScale[0]).Split(',').Limit(2);
+        CB_ENSURE(idx.size() == 2, formatErrorMessage);
+        groupSizes.emplace_back();
+        trueCounts.emplace_back();
+        scales.emplace_back();
+        CB_ENSURE(
+            TryFromString<ui32>(idx[0], groupSizes.back())
+            && TryFromString<ui32>(idx[1], trueCounts.back())
+            && trueCounts.back() <= groupSizes.back(),
+            formatErrorMessage);
+        CB_ENSURE(TryFromString<float>(idxScale[1], scales.back()), formatErrorMessage);
+    }
+    *approxScaleSize = SafeIntegerCast<ui32>(*MaxElement(groupSizes.begin(), groupSizes.end()));
+    if (*approxScaleSize == 0) {
+        *defaultScale = scales[0];
+        approxScale->clear();
+        return;
+    }
+    *approxScaleSize += 1;
+    *defaultScale = 1;
+    const auto defaultScaleIdx = FindIndex(groupSizes, 0);
+    if (defaultScaleIdx != NPOS) {
+        *defaultScale = scales[defaultScaleIdx];
+    }
+    approxScale->resize(*approxScaleSize * *approxScaleSize, *defaultScale);
+    for (auto idx : xrange(groupSizes.size())) {
+        (*approxScale)[groupSizes[idx] * *approxScaleSize + trueCounts[idx]] = scales[idx];
+    }
+}
+
 int NCatboostOptions::GetYetiRankPermutations(const TLossDescription& lossFunctionConfig) {
     Y_ASSERT(
         lossFunctionConfig.GetLossFunction() == ELossFunction::YetiRank ||
