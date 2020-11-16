@@ -167,7 +167,6 @@ namespace NCB {
             loadedBytes == textDataHeaderSize,
             "Failed to deserialize: Failed to load TextProcessingCollection header"
         );
-
         auto headerTable = flatbuffers::GetRoot<NCatBoostFbs::TCollectionHeader>(arrayHolder.Get());
         FBDeserializeGuidArray(*headerTable->TokenizerId(), &TokenizerId);
         FBDeserializeGuidArray(*headerTable->DictionaryId(), &DictionaryId);
@@ -220,6 +219,11 @@ namespace NCB {
             stream.Write(builder.GetBufferPointer(), builder.GetSize());
 
             TTextCalcerSerializer::Save(&stream, *FeatureCalcers[calcerId]);
+        }
+        {
+            flatbuffers::FlatBufferBuilder builder;
+            auto guid = TGuid();
+            SaveGuidAndType(guid, NCatBoostFbs::EPartType::EPartType_Terminate, &builder, &stream);
         }
     }
 
@@ -322,6 +326,8 @@ namespace NCB {
                 TTextFeatureCalcerPtr calcer = TTextCalcerSerializer::Load(stream);
                 FeatureCalcers[guidId[partId]] = calcer;
                 CB_ENSURE(partId == calcer->Id(), "Failed to deserialize: CalcerId not equal to PartId");
+            } else if (collectionPart->PartType() == NCatBoostFbs::EPartType_Terminate){
+                break;
             } else {
                 CB_ENSURE(false, "Failed to deserialize: Unknown part type");
             }
@@ -370,6 +376,8 @@ namespace NCB {
                 TTextFeatureCalcerPtr calcer = TTextCalcerSerializer::Load(in);
                 FeatureCalcers[guidId[partId]] = calcer;
                 CB_ENSURE(partId == calcer->Id(), "Failed to deserialize: CalcerId not equal to PartId");
+            } else if (collectionPart->PartType() == NCatBoostFbs::EPartType_Terminate){
+                break;
             } else {
                 CB_ENSURE(false, "Failed to deserialize: Unknown part type");
             }
