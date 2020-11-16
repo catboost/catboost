@@ -4888,16 +4888,7 @@ class CatBoostRegressor(CatBoost):
             otherwise one-dimensional numpy.ndarray of formula return values for each object.
         """
         if prediction_type is None:
-            prediction_type = 'RawFormulaVal'
-            # TODO(ilyzhin) change on get_all_params after MLTOOLS-4758
-            params = deepcopy(self._init_params)
-            _process_synonyms(params)
-            loss_function = params.get('loss_function')
-            if loss_function and isinstance(loss_function, str):
-                if loss_function.startswith('Poisson') or loss_function.startswith('Tweedie'):
-                    prediction_type = 'Exponent'
-                if loss_function == 'RMSEWithUncertainty':
-                    prediction_type = 'RMSEWithUncertainty'
+            prediction_type = self._get_default_prediction_type()
         return self._predict(data, prediction_type, ntree_start, ntree_end, thread_count, verbose, 'predict')
 
     def staged_predict(self, data, prediction_type='RawFormulaVal', ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, verbose=None):
@@ -4964,7 +4955,7 @@ class CatBoostRegressor(CatBoost):
         y = np.array(y, dtype=np.float64)
         predictions = self._predict(
             X,
-            prediction_type='RawFormulaVal',
+            prediction_type=self._get_default_prediction_type(),
             ntree_start=0,
             ntree_end=0,
             thread_count=-1,
@@ -4984,6 +4975,17 @@ class CatBoostRegressor(CatBoost):
             raise CatBoostError("Invalid loss_function='{}': for regressor use "
                                 "RMSE, MultiRMSE, MAE, Quantile, LogLinQuantile, Poisson, MAPE, Lq or custom objective object".format(loss_function))
 
+    def _get_default_prediction_type(self):
+        # TODO(ilyzhin) change on get_all_params after MLTOOLS-4758
+        params = deepcopy(self._init_params)
+        _process_synonyms(params)
+        loss_function = params.get('loss_function')
+        if loss_function and isinstance(loss_function, str):
+            if loss_function.startswith('Poisson') or loss_function.startswith('Tweedie'):
+                return 'Exponent'
+            if loss_function == 'RMSEWithUncertainty':
+                return 'RMSEWithUncertainty'
+        return 'RawFormulaVal'
 
 def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None, iterations=None,
           num_boost_round=None, evals=None, eval_set=None, plot=None, verbose_eval=None, metric_period=None,
