@@ -422,6 +422,12 @@ def onadd_ytest(unit, *args):
         'TEST_PARTITION': unit.get("TEST_PARTITION") or 'SEQUENTIAL',
     }
 
+    if flat_args[1] == "go.bench":
+        if "ya:run_go_benchmark" not in test_record["TAG"]:
+            return
+        else:
+            test_record["TEST-NAME"] += "_bench"
+
     if flat_args[1] == 'fuzz.test' and unit.get('FUZZING') == 'yes':
         test_record['FUZZING'] = '1'
         # use all cores if fuzzing requested
