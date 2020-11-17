@@ -123,6 +123,10 @@
   includes:
     - xray/xray_interface.h: contrib/libs/clang10-rt/include/xray/xray_interface.h
 
+- source_filter: "^contrib/libs/clang11-rt"
+  includes:
+    - xray/xray_interface.h: contrib/libs/clang11-rt/include/xray/xray_interface.h
+
 - source_filter: "^contrib/libs/llvm"
   includes:
     - plugin-api.h # GNU linker plugin API.
@@ -536,4 +540,3 @@
     - cmqxc.h
     - cmqcfc.h
     - cmqbc.h
-

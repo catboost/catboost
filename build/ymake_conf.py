@@ -1552,6 +1552,7 @@ class GnuCompiler(Compiler):
         # fuzzing configuration
         if self.tc.is_clang and self.tc.version_at_least(5, 0):
             emit('LIBFUZZER_PATH',
+                 'contrib/libs/libfuzzer11' if self.tc.version_at_least(11) else
                  'contrib/libs/libfuzzer10' if self.tc.version_at_least(10) else
                  'contrib/libs/libfuzzer8' if self.tc.version_at_least(8) else
                  'contrib/libs/libfuzzer7' if self.tc.version_at_least(7) else
