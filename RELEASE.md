@@ -1,3 +1,16 @@
+# Release 0.24.3
+
+
+## New functionality
+* Support fstr text features and embeddings. Issue #1293
+   
+## Bugfixes:
+* Fix model apply speed regression from 0.24.1 & 0.24.2
+* Different fixes in embeddings support: fixed apply and model serialization, fixed apply on texts and embeddings
+* Fixed virtual ensembles prediction - use proper scaling, fix apply (issue #1462)
+* Fix `score()` method for `RMSEWithUncertainty` issue #1482
+* Automatically use correct `prediction_type` in `score()`
+
 # Release 0.24.2
 
 ## Uncertainty prediction
