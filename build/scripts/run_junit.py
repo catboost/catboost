@@ -43,7 +43,7 @@ def main():
     except SignalInterruptionError:
         sys.stderr.write("\nGot {} signal: going to shutdown junit\n".format(signum))
         # Dump stack traces
-        subprocess.check_call([jstack_binary, str(proc.pid)], stdout=sys.stderr)
+        subprocess.call([jstack_binary, str(proc.pid)], stdout=sys.stderr)
         # Kill junit - for more info see DEVTOOLS-7636
         os.kill(proc.pid, signal.SIGKILL)
         proc.wait()
