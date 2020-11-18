@@ -420,6 +420,7 @@ def onadd_ytest(unit, *args):
         'TEST_IOS_RUNTIME_TYPE': unit.get('TEST_IOS_RUNTIME_TYPE_VALUE') or '',
         'ANDROID_APK_TEST_ACTIVITY': unit.get('ANDROID_APK_TEST_ACTIVITY_VALUE') or '',
         'TEST_PARTITION': unit.get("TEST_PARTITION") or 'SEQUENTIAL',
+        'GO_BENCH_TIMEOUT': unit.get('GO_BENCH_TIMEOUT') or '',
     }
 
     if flat_args[1] == "go.bench":
