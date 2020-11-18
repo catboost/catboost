@@ -450,7 +450,7 @@ void TModelTrees::ProcessTextFeatures() {
 }
 
 void TModelTrees::ProcessEmbeddingFeatures() {
-    for (const auto& feature : TextFeatures) {
+    for (const auto& feature : EmbeddingFeatures) {
         if (feature.UsedInModel()) {
             ++ApplyData->UsedEmbeddingFeaturesCount;
             ApplyData->MinimalSufficientEmbeddingFeaturesVectorSize = static_cast<size_t>(feature.Position.Index) + 1;
