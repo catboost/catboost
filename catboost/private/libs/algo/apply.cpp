@@ -500,45 +500,68 @@ void ApplyVirtualEnsembles(
     NPar::ILocalExecutor* executor
 ) {
     auto& rawValues = *rawValuesPtr;
-    size_t begin = 0;
     TModelCalcerOnPool modelCalcerOnPool(model, dataset.ObjectsData, executor);
     TVector<double> flatApprox;
     TVector<TVector<double>> approx;
     TVector<TVector<double>> baseApprox;
-    size_t evalPeriod = end / (2 * virtualEnsemblesCount);
+    const auto approxDimension = model.GetDimensionsCount();
+    const size_t evalPeriod = end / (2 * virtualEnsemblesCount);
     CB_ENSURE(evalPeriod > 0 && evalPeriod * virtualEnsemblesCount < end,
               "Not enough trees in model for " << virtualEnsemblesCount << " virtual Ensembles");
-    begin = end - evalPeriod * virtualEnsemblesCount;
+    size_t begin = end - evalPeriod * virtualEnsemblesCount;
     modelCalcerOnPool.ApplyModelMulti(
         EPredictionType::InternalRawFormulaVal,
         0,
         begin,
         &flatApprox,
         &baseApprox);
-    for (size_t idx = 0; idx < virtualEnsemblesCount; ++idx) {
-        rawValues.insert(rawValues.end(), baseApprox.begin(), baseApprox.end());
+    const auto objectCount = baseApprox[0].size();
+    Y_ASSERT(rawValues.empty());
+    // init first virtual ensemble predictions by prediction on trees [0; end / 2)
+    rawValues.insert(rawValues.end(), baseApprox.begin(), baseApprox.end());
+    rawValues.resize(virtualEnsemblesCount * approxDimension);
+    for (auto i : xrange(approxDimension, approxDimension * virtualEnsemblesCount)) {
+        rawValues[i].resize(objectCount);
     }
 
     const float actualShrinkCoef = model.GetActualShrinkCoef();
     CB_ENSURE(actualShrinkCoef >= 0.0f && actualShrinkCoef < 1.0f,
               "For Constant shrink mode: (model_shrink_rate * learning_rate) should be in [0, 1).");
-    float multiplicator = 1.;
-    const float coef = pow(1. - actualShrinkCoef, evalPeriod);
-    for (size_t vEnsembleIdx = 0; begin < end; begin += evalPeriod) {
+
+    auto copyerLambda = [actualShrinkCoef, evalPeriod, virtualEnsemblesCount, approxDimension, objectCount] (
+            const auto copyToNextEnsemble,
+            const TVector<TVector<double>>& approx,
+            TVector<TVector<double>>& rawValues,
+            size_t vEnsembleIdx
+        ) {
+        const float coef = pow(1. - actualShrinkCoef, evalPeriod * (virtualEnsemblesCount - vEnsembleIdx - 1));
+        const size_t shift = vEnsembleIdx * approxDimension;
+        for (size_t i = 0; i < approxDimension; ++i) {
+            const auto srcPtr = approx[i].data();
+            auto dstPtr = rawValues[shift + i].data();
+            auto nextDstPtr = rawValues[Min(shift + approxDimension + i, rawValues.size() - 1)].data(); // failsafe ptr !
+            for (size_t j = 0; j < objectCount; ++j) {
+                dstPtr[j] += srcPtr[j];
+                if constexpr (copyToNextEnsemble) {
+                    nextDstPtr[j] = dstPtr[j];
+                }
+                dstPtr[j] *= coef;
+            }
+        }
+    };
+
+    for (size_t vEnsembleIdx = 0; begin < end; begin += evalPeriod, vEnsembleIdx++) {
         modelCalcerOnPool.ApplyModelMulti(
             EPredictionType::InternalRawFormulaVal,
             begin,
             Min(begin + evalPeriod, end),
             &flatApprox,
             &approx);
-        size_t shift = vEnsembleIdx * approx.size();
-        for (size_t i = 0; i < approx.size(); ++i) {
-            for (size_t j = 0; j < approx[0].size(); ++j) {
-                rawValues[shift + i][j] += approx[i][j] * multiplicator;
-            }
+        if (vEnsembleIdx != virtualEnsemblesCount - 1) {
+            copyerLambda(std::true_type(), approx, rawValues, vEnsembleIdx);
+        } else {
+            copyerLambda(std::false_type(), approx, rawValues, vEnsembleIdx);
         }
-        vEnsembleIdx++;
-        multiplicator *= coef;
     }
 }
 
