@@ -1492,9 +1492,9 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
                 if (!skipNext) {
                     TIndexType smallId = 0;
                     TIndexType largeId = 0;
-                    if (leafBounds.GetSize() <= ctx->SampledDocs.LeavesBounds[curLevelLeafs[id+1]].GetSize()) {
+                    if (leafBounds.GetSize() <= ctx->SampledDocs.LeavesBounds[curLevelLeafs[id + 1]].GetSize()) {
                         smallId = curLevelLeafs[id];
-                        largeId = curLevelLeafs[id+1];
+                        largeId = curLevelLeafs[id + 1];
 
                         TVector<TBucketStats> smallStats;
                         smallStats.yresize(maxBucketCount * nFeatures * maxSplitEnsamples);
@@ -1508,7 +1508,7 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
                         ConditionalPushToParentsQueue(gain, bestSplitCandidate, smallStats, parentsQueue);
                         ConditionalPushToParentsQueue(nextGain, bestSplitCandidateNext, largeStats, parentsQueue);
                     } else {
-                        if (ctx->SampledDocs.LeavesBounds[curLevelLeafs[id+1]].GetSize() == 0) {
+                        if (ctx->SampledDocs.LeavesBounds[curLevelLeafs[id + 1]].GetSize() == 0) {
                             TVector<TBucketStats> stats;
                             stats.yresize(maxBucketCount * nFeatures * maxSplitEnsamples);
                             calcBestScoreAndCandidate(curLevelLeafs[id], stats, {nullptr, (size_t)0}, {nullptr, (size_t)0}, &gain, {&bestSplitCandidate, (size_t)1}, &bestSplit);
@@ -1518,7 +1518,7 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
 
                             zeroSiblingLleft = false;
                         } else {
-                            smallId = curLevelLeafs[id+1];
+                            smallId = curLevelLeafs[id + 1];
                             largeId = curLevelLeafs[id];
                             TVector<TBucketStats> smallStats;
                             smallStats.yresize(maxBucketCount * nFeatures * maxSplitEnsamples);
@@ -1531,7 +1531,7 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
                             parentsQueue.pop();
                             ConditionalPushToParentsQueue(gain, bestSplitCandidate, largeStats, parentsQueue);
                             ConditionalPushToParentsQueue(nextGain, bestSplitCandidateNext, smallStats, parentsQueue,
-                                                          ctx->SampledDocs.LeavesBounds[curLevelLeafs[id+1]].GetSize());
+                                                          ctx->SampledDocs.LeavesBounds[curLevelLeafs[id + 1]].GetSize());
                         }
                     }
                     skipNext = true;
