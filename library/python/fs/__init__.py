@@ -456,5 +456,5 @@ def walk_relative(path, topdown=True, onerror=None, followlinks=False):
 def supports_clone():
     if 'darwin' in sys.platform:
         import platform
-        return map(int, platform.mac_ver()[0].split('.')) >= [10, 13]
+        return list(map(int, platform.mac_ver()[0].split('.'))) >= [10, 13]
     return False
