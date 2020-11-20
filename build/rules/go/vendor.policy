@@ -57,6 +57,22 @@ ALLOW .* -> vendor/github.com/coreos/etcd/pkg/stringutil
 ALLOW .* -> vendor/github.com/coreos/etcd/pkg/transport
 ALLOW .* -> vendor/github.com/coreos/etcd/pkg/types
 
+#etcd version 3.4
+DENY .* -> vendor/go.etcd.io/etcd/clientv3/naming
+ALLOW .* -> vendor/go.etcd.io/etcd/mvcc
+ALLOW .* -> vendor/go.etcd.io/etcd/etcdserver/stats
+ALLOW .* -> vendor/go.etcd.io/etcd/etcdserver/api
+ALLOW .* -> vendor/go.etcd.io/etcd/wal
+ALLOW .* -> vendor/go.etcd.io/etcd/raft
+ALLOW .* -> vendor/go.etcd.io/etcd/rafthttp
+ALLOW .* -> vendor/go.etcd.io/etcd/snap
+ALLOW .* -> vendor/go.etcd.io/etcd/clientv3
+ALLOW .* -> vendor/go.etcd.io/etcd/pkg/fileutil
+ALLOW .* -> vendor/go.etcd.io/etcd/pkg/stringutil
+ALLOW .* -> vendor/go.etcd.io/etcd/pkg/transport
+ALLOW .* -> vendor/go.etcd.io/etcd/pkg/types
+
+
 # logging to systemd
 ALLOW .* -> vendor/github.com/coreos/go-systemd/journal
 
