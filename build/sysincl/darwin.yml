@@ -107,6 +107,7 @@
   - netinet/udp_var.h
   - netinet6/in6.h
   - nlist.h
+  - objc/objc-sync.h
   - objc/runtime.h
   - os/lock.h
   - os/trace.h
@@ -116,6 +117,7 @@
   - readline/readline.h
   - readpassphrase.h
   - runetype.h
+  - simd/simd.h
   - strhash.h
   - sys/_types.h
   - sys/acl.h
@@ -154,7 +156,7 @@
   - tzfile.h
   - util.h
   - vis.h
-  - simd/simd.h
+  - xpc/xpc.h
 
   # OSX frameworks
   - Accelerate/Accelerate.h
