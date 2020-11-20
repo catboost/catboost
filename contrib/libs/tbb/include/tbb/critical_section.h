@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2019 Intel Corporation
+    Copyright (c) 2005-2020 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -136,7 +136,7 @@ public:
     static const bool is_fair_mutex = true;
 }; // critical_section_v4
 } // namespace internal
-__TBB_DEPRECATED_VERBOSE_MSG("tbb::critical_section is deprecated, use std::mutex") typedef internal::critical_section_v4 critical_section;
+__TBB_DEPRECATED_IN_VERBOSE_MODE_MSG("tbb::critical_section is deprecated, use std::mutex") typedef internal::critical_section_v4 critical_section;
 
 __TBB_DEFINE_PROFILING_SET_NAME(critical_section)
 } // namespace tbb

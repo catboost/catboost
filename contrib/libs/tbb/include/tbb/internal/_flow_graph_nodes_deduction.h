@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2019 Intel Corporation
+    Copyright (c) 2005-2020 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -29,6 +29,13 @@ struct declare_body_types {
     using output_type = Output;
 };
 
+struct NoInputBody {};
+
+template <typename Output>
+struct declare_body_types<NoInputBody, Output> {
+    using output_type = Output;
+};
+
 template <typename T> struct body_types;
 
 template <typename T, typename Input, typename Output>
@@ -48,6 +55,15 @@ struct body_types<Output (*)(Input&)> : declare_body_types<Input, Output> {};
 
 template <typename Input, typename Output>
 struct body_types<Output (*)(const Input&)> : declare_body_types<Input, Output> {};
+
+template <typename T, typename Output>
+struct body_types<Output (T::*)(flow_control&) const> : declare_body_types<NoInputBody, Output> {};
+
+template <typename T, typename Output>
+struct body_types<Output (T::*)(flow_control&)> : declare_body_types<NoInputBody, Output> {};
+
+template <typename Output>
+struct body_types<Output (*)(flow_control&)> : declare_body_types<NoInputBody, Output> {};
 
 template <typename Body>
 using input_t = typename body_types<Body>::input_type;
@@ -80,9 +96,31 @@ template <typename Body>
 decltype(decide_on_operator_overload(std::declval<Body>())) decide_on_callable_type(...);
 
 // Deduction guides for Flow Graph nodes
+#if TBB_USE_SOURCE_NODE_AS_ALIAS
+#if TBB_DEPRECATED_INPUT_NODE_BODY
+template <typename GraphOrSet, typename Body>
+source_node(GraphOrSet&&, Body)
+->source_node<input_t<decltype(decide_on_callable_type<Body>(0))>>;
+#else
+template <typename GraphOrSet, typename Body>
+source_node(GraphOrSet&&, Body)
+->source_node<output_t<decltype(decide_on_callable_type<Body>(0))>>;
+#endif // TBB_DEPRECATED_INPUT_NODE_BODY
+#else
 template <typename GraphOrSet, typename Body>
 source_node(GraphOrSet&&, Body, bool = true)
 ->source_node<input_t<decltype(decide_on_callable_type<Body>(0))>>;
+#endif
+
+#if TBB_DEPRECATED_INPUT_NODE_BODY
+template <typename GraphOrSet, typename Body>
+input_node(GraphOrSet&&, Body, bool = true)
+->input_node<input_t<decltype(decide_on_callable_type<Body>(0))>>;
+#else
+template <typename GraphOrSet, typename Body>
+input_node(GraphOrSet&&, Body)
+->input_node<output_t<decltype(decide_on_callable_type<Body>(0))>>;
+#endif
 
 #if __TBB_PREVIEW_FLOW_GRAPH_NODE_SET
 

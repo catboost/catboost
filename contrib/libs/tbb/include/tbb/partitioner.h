@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2019 Intel Corporation
+    Copyright (c) 2005-2020 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -76,7 +76,7 @@ namespace interface9 {
 namespace internal { //< @cond INTERNAL
 size_t __TBB_EXPORTED_FUNC get_initial_auto_partitioner_divisor();
 
-//! Defines entry point for affinity partitioner into tbb run-time library.
+//! Defines entry point for affinity partitioner into TBB run-time library.
 class affinity_partitioner_base_v3: no_copy {
     friend class tbb::affinity_partitioner;
     friend class tbb::interface9::internal::affinity_partition_type;

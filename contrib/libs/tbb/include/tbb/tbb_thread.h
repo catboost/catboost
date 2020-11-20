@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2019 Intel Corporation
+    Copyright (c) 2005-2020 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -307,7 +307,7 @@ namespace internal {
 } // namespace internal;
 
 //! Users reference thread class by name tbb_thread
-__TBB_DEPRECATED_VERBOSE_MSG("tbb::thread is deprecated, use std::thread") typedef internal::tbb_thread_v3 tbb_thread;
+__TBB_DEPRECATED_IN_VERBOSE_MODE_MSG("tbb::thread is deprecated, use std::thread") typedef internal::tbb_thread_v3 tbb_thread;
 
 using internal::operator==;
 using internal::operator!=;
@@ -328,11 +328,11 @@ inline void swap( internal::tbb_thread_v3& t1, internal::tbb_thread_v3& t2 )  __
 }
 
 namespace this_tbb_thread {
-    __TBB_DEPRECATED_VERBOSE inline tbb_thread::id get_id() { return internal::thread_get_id_v3(); }
+    __TBB_DEPRECATED_IN_VERBOSE_MODE inline tbb_thread::id get_id() { return internal::thread_get_id_v3(); }
     //! Offers the operating system the opportunity to schedule another thread.
-    __TBB_DEPRECATED_VERBOSE inline void yield() { internal::thread_yield_v3(); }
+    __TBB_DEPRECATED_IN_VERBOSE_MODE inline void yield() { internal::thread_yield_v3(); }
     //! The current thread blocks at least until the time specified.
-    __TBB_DEPRECATED_VERBOSE inline void sleep(const tick_count::interval_t &i) {
+    __TBB_DEPRECATED_IN_VERBOSE_MODE inline void sleep(const tick_count::interval_t &i) {
         internal::thread_sleep_v3(i);
     }
 }  // namespace this_tbb_thread

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2019 Intel Corporation
+    Copyright (c) 2005-2020 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -278,6 +278,33 @@ template <typename Comp, typename K>
 using is_transparent = typename std::conditional<true, Comp, K>::type::is_transparent;
 
 #endif /* __TBB_CPP11_PRESENT */
+
+template <typename F>
+struct body_arg_detector;
+
+template <typename Callable, typename ReturnType, typename T>
+struct body_arg_detector<ReturnType(Callable::*)(T)> {
+    typedef T arg_type;
+};
+
+template <typename Callable, typename ReturnType, typename T>
+struct body_arg_detector<ReturnType(Callable::*)(T) const> {
+    typedef T arg_type;
+};
+
+#if __TBB_CPP11_PRESENT
+using std::conditional;
+#else
+template <bool C, typename T, typename U>
+struct conditional {
+    typedef U type;
+};
+
+template <typename T, typename U>
+struct conditional<true, T, U> {
+    typedef T type;
+};
+#endif
 
 } } // namespace internal, namespace tbb
 

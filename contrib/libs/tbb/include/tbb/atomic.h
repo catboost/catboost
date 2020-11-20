@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2019 Intel Corporation
+    Copyright (c) 2005-2020 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -414,7 +414,7 @@ public:
 /** See the Reference for details.
     @ingroup synchronization */
 template<typename T>
-struct __TBB_DEPRECATED_VERBOSE_MSG("tbb::atomic is deprecated, use std::atomic")
+struct __TBB_DEPRECATED_IN_VERBOSE_MODE_MSG("tbb::atomic is deprecated, use std::atomic")
 atomic: internal::atomic_impl<T> {
 #if __TBB_ATOMIC_CTORS
     atomic() = default;
@@ -430,7 +430,7 @@ atomic: internal::atomic_impl<T> {
 
 #if __TBB_ATOMIC_CTORS
     #define __TBB_DECL_ATOMIC(T)                                                                    \
-        template<> struct __TBB_DEPRECATED_VERBOSE_MSG("tbb::atomic is deprecated, use std::atomic")  \
+        template<> struct __TBB_DEPRECATED_IN_VERBOSE_MODE_MSG("tbb::atomic is deprecated, use std::atomic")  \
         atomic<T>: internal::atomic_impl_with_arithmetic<T,T,char> {                                \
             atomic() = default;                                                                     \
             constexpr atomic(T arg): internal::atomic_impl_with_arithmetic<T,T,char>(arg) {}        \
@@ -442,7 +442,7 @@ atomic: internal::atomic_impl<T> {
         };
 #else
     #define __TBB_DECL_ATOMIC(T)                                                                    \
-        template<> struct __TBB_DEPRECATED_VERBOSE_MSG("tbb::atomic is deprecated, use std::atomic")  \
+        template<> struct __TBB_DEPRECATED_IN_VERBOSE_MODE_MSG("tbb::atomic is deprecated, use std::atomic")  \
         atomic<T>: internal::atomic_impl_with_arithmetic<T,T,char> {                                \
             T operator=( T rhs ) {return store_with_release(rhs);}                                  \
             atomic<T>& operator=( const atomic<T>& rhs ) {store_with_release(rhs); return *this;}   \
@@ -467,7 +467,7 @@ __TBB_DECL_ATOMIC(unsigned long)
    type synonyms on the platform.  Type U should be the wider variant of T from the
    perspective of /Wp64. */
 #define __TBB_DECL_ATOMIC_ALT(T,U) \
-    template<> struct __TBB_DEPRECATED_VERBOSE_MSG("tbb::atomic is deprecated, use std::atomic") \
+    template<> struct __TBB_DEPRECATED_IN_VERBOSE_MODE_MSG("tbb::atomic is deprecated, use std::atomic") \
     atomic<T>: internal::atomic_impl_with_arithmetic<T,T,char> {                               \
         atomic() = default ;                                                                   \
         constexpr atomic(T arg): internal::atomic_impl_with_arithmetic<T,T,char>(arg) {}       \
@@ -479,7 +479,7 @@ __TBB_DECL_ATOMIC(unsigned long)
     };
 #else
 #define __TBB_DECL_ATOMIC_ALT(T,U) \
-    template<> struct __TBB_DEPRECATED_VERBOSE_MSG("tbb::atomic is deprecated, use std::atomic") \
+    template<> struct __TBB_DEPRECATED_IN_VERBOSE_MODE_MSG("tbb::atomic is deprecated, use std::atomic") \
     atomic<T>: internal::atomic_impl_with_arithmetic<T,T,char> {                               \
         T operator=( U rhs ) {return store_with_release(T(rhs));}                              \
         atomic<T>& operator=( const atomic<T>& rhs ) {store_with_release(rhs); return *this;}  \
@@ -503,7 +503,7 @@ __TBB_DECL_ATOMIC(wchar_t)
 #endif /* _MSC_VER||!defined(_NATIVE_WCHAR_T_DEFINED) */
 
 //! Specialization for atomic<T*> with arithmetic and operator->.
-template<typename T> struct __TBB_DEPRECATED_VERBOSE_MSG("tbb::atomic is deprecated, use std::atomic")
+template<typename T> struct __TBB_DEPRECATED_IN_VERBOSE_MODE_MSG("tbb::atomic is deprecated, use std::atomic")
 atomic<T*>: internal::atomic_impl_with_arithmetic<T*,ptrdiff_t,T> {
 #if __TBB_ATOMIC_CTORS
     atomic() = default ;
@@ -523,7 +523,7 @@ atomic<T*>: internal::atomic_impl_with_arithmetic<T*,ptrdiff_t,T> {
 };
 
 //! Specialization for atomic<void*>, for sake of not allowing arithmetic or operator->.
-template<> struct __TBB_DEPRECATED_VERBOSE_MSG("tbb::atomic is deprecated, use std::atomic")
+template<> struct __TBB_DEPRECATED_IN_VERBOSE_MODE_MSG("tbb::atomic is deprecated, use std::atomic")
 atomic<void*>: internal::atomic_impl<void*> {
 #if __TBB_ATOMIC_CTORS
     atomic() = default ;

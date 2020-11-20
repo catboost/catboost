@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2019 Intel Corporation
+    Copyright (c) 2005-2020 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -118,7 +118,7 @@ private:
 } // namespace internal
 
 template <typename T>
-class async_msg {
+class __TBB_DEPRECATED async_msg {
     template< typename > friend class receiver;
     template< typename, typename > friend struct internal::async_helpers;
 public:

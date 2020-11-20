@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2019 Intel Corporation
+    Copyright (c) 2005-2020 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -23,6 +23,9 @@
 #include "task.h"
 #include "tbb_exception.h"
 #include "internal/_template_helpers.h"
+#if __TBB_NUMA_SUPPORT
+#include "info.h"
+#endif /*__TBB_NUMA_SUPPORT*/
 #if TBB_USE_THREADING_TOOLS
 #include "atomic.h" // for as_atomic
 #endif
@@ -100,6 +103,18 @@ public:
 };
 
 class task_arena_base {
+#if __TBB_NUMA_SUPPORT
+public:
+    // TODO: consider version approach to resolve backward compatibility potential issues.
+    struct constraints {
+        constraints(numa_node_id id = automatic, int maximal_concurrency = automatic)
+            : numa_id(id)
+            , max_concurrency(maximal_concurrency)
+        {}
+        numa_node_id numa_id;
+        int max_concurrency;
+    };
+#endif /*__TBB_NUMA_SUPPORT*/
 protected:
     //! NULL if not currently initialized.
     internal::arena* my_arena;
@@ -118,11 +133,30 @@ protected:
     //! Special settings
     intptr_t my_version_and_traits;
 
+    bool my_initialized;
+
+#if __TBB_NUMA_SUPPORT
+    //! The NUMA node index to which the arena will be attached
+    numa_node_id my_numa_id;
+
+    // Do not access my_numa_id without the following runtime check.
+    // Despite my_numa_id is accesible, it does not exist in task_arena_base on user side
+    // if TBB_PREVIEW_NUMA_SUPPORT macro is not defined by the user. To be sure that
+    // my_numa_id exists in task_arena_base layout we check the traits.
+    // TODO: Consider increasing interface version for task_arena_base instead of this runtime check.
+    numa_node_id numa_id() {
+        return (my_version_and_traits & numa_support_flag) == numa_support_flag ? my_numa_id : automatic;
+    }
+#endif
+
     enum {
         default_flags = 0
 #if __TBB_TASK_GROUP_CONTEXT
         | (task_group_context::default_traits & task_group_context::exact_exception)  // 0 or 1 << 16
         , exact_exception_flag = task_group_context::exact_exception // used to specify flag for context directly
+#endif
+#if __TBB_NUMA_SUPPORT
+        , numa_support_flag = 1
 #endif
     };
 
@@ -133,8 +167,30 @@ protected:
 #endif
         , my_max_concurrency(max_concurrency)
         , my_master_slots(reserved_for_masters)
+#if __TBB_NUMA_SUPPORT
+        , my_version_and_traits(default_flags | numa_support_flag)
+#else
         , my_version_and_traits(default_flags)
+#endif
+        , my_initialized(false)
+#if __TBB_NUMA_SUPPORT
+        , my_numa_id(automatic)
+#endif
         {}
+
+#if __TBB_NUMA_SUPPORT
+    task_arena_base(const constraints& constraints_, unsigned reserved_for_masters)
+        : my_arena(0)
+#if __TBB_TASK_GROUP_CONTEXT
+        , my_context(0)
+#endif
+        , my_max_concurrency(constraints_.max_concurrency)
+        , my_master_slots(reserved_for_masters)
+        , my_version_and_traits(default_flags | numa_support_flag)
+        , my_initialized(false)
+        , my_numa_id(constraints_.numa_id )
+        {}
+#endif /*__TBB_NUMA_SUPPORT*/
 
     void __TBB_EXPORTED_METHOD internal_initialize();
     void __TBB_EXPORTED_METHOD internal_terminate();
@@ -177,7 +233,6 @@ class task_arena : public internal::task_arena_base {
 #endif
     );
     friend int tbb::this_task_arena::max_concurrency();
-    bool my_initialized;
     void mark_initialized() {
         __TBB_ASSERT( my_arena, "task_arena initialization is incomplete" );
 #if __TBB_TASK_GROUP_CONTEXT
@@ -226,14 +281,24 @@ public:
      **/
     task_arena(int max_concurrency_ = automatic, unsigned reserved_for_masters = 1)
         : task_arena_base(max_concurrency_, reserved_for_masters)
-        , my_initialized(false)
+    {}
+
+#if __TBB_NUMA_SUPPORT
+    //! Creates task arena pinned to certain NUMA node
+    task_arena(const constraints& constraints_, unsigned reserved_for_masters = 1)
+        : task_arena_base(constraints_, reserved_for_masters)
     {}
 
     //! Copies settings from another task_arena
     task_arena(const task_arena &s) // copy settings but not the reference or instance
-        : task_arena_base(s.my_max_concurrency, s.my_master_slots)
-        , my_initialized(false)
+        : task_arena_base(constraints(s.my_numa_id, s.my_max_concurrency), s.my_master_slots)
     {}
+#else
+    //! Copies settings from another task_arena
+    task_arena(const task_arena &s) // copy settings but not the reference or instance
+        : task_arena_base(s.my_max_concurrency, s.my_master_slots)
+    {}
+#endif /*__TBB_NUMA_SUPPORT*/
 
     //! Tag class used to indicate the "attaching" constructor
     struct attach {};
@@ -241,7 +306,6 @@ public:
     //! Creates an instance of task_arena attached to the current arena of the thread
     explicit task_arena( attach )
         : task_arena_base(automatic, 1) // use default settings if attach fails
-        , my_initialized(false)
     {
         internal_attach();
         if( my_arena ) my_initialized = true;
@@ -265,6 +329,19 @@ public:
             initialize();
         }
     }
+
+#if __TBB_NUMA_SUPPORT
+    inline void initialize(constraints constraints_, unsigned reserved_for_masters = 1) {
+        // TODO: decide if this call must be thread-safe
+        __TBB_ASSERT(!my_arena, "Impossible to modify settings of an already initialized task_arena");
+        if( !my_initialized ) {
+            my_numa_id = constraints_.numa_id;
+            my_max_concurrency = constraints_.max_concurrency;
+            my_master_slots = reserved_for_masters;
+            initialize();
+        }
+    }
+#endif /*__TBB_NUMA_SUPPORT*/
 
     //! Attaches this instance to the current arena of the thread
     inline void initialize(attach) {

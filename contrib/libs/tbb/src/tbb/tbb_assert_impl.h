@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2019 Intel Corporation
+    Copyright (c) 2005-2020 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -79,7 +79,7 @@ namespace tbb {
 #   define vsnprintf _vsnprintf
 #endif
 
-#if !__TBBMALLOC_BUILD
+#if !__TBBMALLOC_BUILD && !__TBBBIND_BUILD
     namespace internal {
         //! Report a runtime warning.
         void __TBB_EXPORTED_FUNC runtime_warning( const char* format, ... )

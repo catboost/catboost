@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2019 Intel Corporation
+    Copyright (c) 2005-2020 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -92,7 +92,7 @@ There are some implications:
 
 */
 
-class __TBB_DEPRECATED_VERBOSE runtime_loader : tbb::internal::no_copy {
+class __TBB_DEPRECATED_IN_VERBOSE_MODE runtime_loader : tbb::internal::no_copy {
 
     public:
 

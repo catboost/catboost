@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2019 Intel Corporation
+    Copyright (c) 2005-2020 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ namespace tbb {
 /** The elements are not constructed or destroyed by this class.
     @ingroup memory_allocation */
 template<typename T,size_t N=1>
-class __TBB_DEPRECATED_VERBOSE_MSG("tbb::aligned_space is deprecated, use std::aligned_storage") aligned_space {
+class __TBB_DEPRECATED_IN_VERBOSE_MODE_MSG("tbb::aligned_space is deprecated, use std::aligned_storage") aligned_space {
 private:
     typedef __TBB_TypeWithAlignmentAtLeastAsStrict(T) element_type;
     element_type array[(sizeof(T)*N+sizeof(element_type)-1)/sizeof(element_type)];

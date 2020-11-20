@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2019 Intel Corporation
+    Copyright (c) 2005-2020 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -79,17 +79,17 @@ namespace interface5 {
 
 // C++0x standard working draft 30.4.3
 // Lock tag types
-struct __TBB_DEPRECATED_VERBOSE defer_lock_t { }; //! do not acquire ownership of the mutex
-struct __TBB_DEPRECATED_VERBOSE try_to_lock_t { }; //! try to acquire ownership of the mutex without blocking
-struct __TBB_DEPRECATED_VERBOSE adopt_lock_t { }; //! assume the calling thread has already
-__TBB_DEPRECATED_VERBOSE const defer_lock_t defer_lock = {};
-__TBB_DEPRECATED_VERBOSE const try_to_lock_t try_to_lock = {};
-__TBB_DEPRECATED_VERBOSE const adopt_lock_t adopt_lock = {};
+struct __TBB_DEPRECATED_IN_VERBOSE_MODE defer_lock_t { }; //! do not acquire ownership of the mutex
+struct __TBB_DEPRECATED_IN_VERBOSE_MODE try_to_lock_t { }; //! try to acquire ownership of the mutex without blocking
+struct __TBB_DEPRECATED_IN_VERBOSE_MODE adopt_lock_t { }; //! assume the calling thread has already
+__TBB_DEPRECATED_IN_VERBOSE_MODE const defer_lock_t defer_lock = {};
+__TBB_DEPRECATED_IN_VERBOSE_MODE const try_to_lock_t try_to_lock = {};
+__TBB_DEPRECATED_IN_VERBOSE_MODE const adopt_lock_t adopt_lock = {};
 
 // C++0x standard working draft 30.4.3.1
 //! lock_guard
 template<typename M>
-class __TBB_DEPRECATED_VERBOSE lock_guard : tbb::internal::no_copy {
+class __TBB_DEPRECATED_IN_VERBOSE_MODE lock_guard : tbb::internal::no_copy {
 public:
     //! mutex type
     typedef M mutex_type;
@@ -112,7 +112,7 @@ private:
 // C++0x standard working draft 30.4.3.2
 //! unique_lock
 template<typename M>
-class __TBB_DEPRECATED_VERBOSE unique_lock : tbb::internal::no_copy {
+class __TBB_DEPRECATED_IN_VERBOSE_MODE unique_lock : tbb::internal::no_copy {
     friend class condition_variable;
 public:
     typedef M mutex_type;
@@ -245,7 +245,7 @@ private:
 };
 
 template<typename M>
-__TBB_DEPRECATED_VERBOSE bool unique_lock<M>::try_lock_for( const tick_count::interval_t &i)
+__TBB_DEPRECATED_IN_VERBOSE_MODE bool unique_lock<M>::try_lock_for( const tick_count::interval_t &i)
 {
     const int unique_lock_tick = 100; /* microseconds; 0.1 milliseconds */
     // the smallest wait-time is 0.1 milliseconds.
@@ -292,7 +292,7 @@ enum cv_status { no_timeout, timeout };
 //! condition variable
 /** C++0x standard working draft 30.5.1
     @ingroup synchronization */
-class __TBB_DEPRECATED_VERBOSE condition_variable : tbb::internal::no_copy {
+class __TBB_DEPRECATED_IN_VERBOSE_MODE condition_variable : tbb::internal::no_copy {
 public:
     //! Constructor
     condition_variable() {

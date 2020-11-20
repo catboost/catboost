@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2019 Intel Corporation
+    Copyright (c) 2005-2020 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -63,7 +63,7 @@ namespace internal {
     and will persist until this thread exits. Default concurrency level is defined
     as described in task_scheduler_init::initialize().
     @ingroup task_scheduling */
-class __TBB_DEPRECATED_VERBOSE task_scheduler_init: internal::no_copy {
+class __TBB_DEPRECATED_IN_VERBOSE_MODE task_scheduler_init: internal::no_copy {
     enum ExceptionPropagationMode {
         propagation_mode_exact = 1u,
         propagation_mode_captured = 2u,
@@ -146,8 +146,8 @@ public:
     /** Result returned by this method does not depend on whether the scheduler
         has already been initialized.
 
-        Because tbb 2.0 does not support blocking tasks yet, you may use this method
-        to boost the number of threads in the tbb's internal pool, if your tasks are
+        Because TBB 2.0 does not support blocking tasks yet, you may use this method
+        to boost the number of threads in the TBB's internal pool, if your tasks are
         doing I/O operations. The optimal number of additional threads depends on how
         much time your tasks spend in the blocked state.
 

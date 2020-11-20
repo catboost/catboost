@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2019 Intel Corporation
+    Copyright (c) 2005-2020 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -21,6 +21,10 @@
 #include "tbb/tbb_machine.h"
 #include "tbb/atomic.h"     // For atomic_xxx definitions
 
+#if __TBB_NUMA_SUPPORT
+#include "tbb/info.h"
+#endif /*__TBB_NUMA_SUPPORT*/
+
 #if __linux__ || __FreeBSD__
 #include <sys/param.h>  // __FreeBSD_version
 #if __FreeBSD_version >= 701000
@@ -35,6 +39,7 @@
 #define __TBB_USE_OS_AFFINITY_SYSCALL (__TBB_OS_AFFINITY_SYSCALL_PRESENT && !__bg__)
 
 namespace tbb {
+
 namespace internal {
 
 const size_t MByte = 1024*1024;
@@ -264,6 +269,22 @@ inline void run_initializer( bool (*f)(), atomic<do_once_state>& state ) {
 bool cpu_has_speculation();
 bool gcc_rethrow_exception_broken();
 void fix_broken_rethrow();
+
+#if __TBB_NUMA_SUPPORT
+class binding_handler;
+
+binding_handler* construct_binding_handler(int slot_num);
+void destroy_binding_handler(binding_handler* handler_ptr);
+void bind_thread_to_node(binding_handler* handler_ptr, int slot_num , int numa_id);
+void restore_affinity_mask(binding_handler* handler_ptr, int slot_num);
+
+namespace numa_topology {
+    bool is_initialized();
+    void initialize();
+    void destroy();
+}
+
+#endif /*__TBB_NUMA_SUPPORT*/
 
 } // namespace internal
 } // namespace tbb

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2019 Intel Corporation
+    Copyright (c) 2005-2020 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -360,7 +360,7 @@ inline const __T wrap_dcons(__T*) { return __T(); }
 
 // tuple definition
 template<typename __T0, typename __T1, typename __T2, typename __T3, typename __T4 __TBB_TYPENAME_T_PACK >
-class __TBB_DEPRECATED_VERBOSE tuple : public internal::tuple_traits<__T0, __T1, __T2, __T3, __T4 __TBB_T_PACK >::U {
+class __TBB_DEPRECATED_IN_VERBOSE_MODE tuple : public internal::tuple_traits<__T0, __T1, __T2, __T3, __T4 __TBB_T_PACK >::U {
     // friends
     template <typename __T> friend class tuple_size;
     template<int __N, typename __T> friend struct tuple_element;
@@ -376,7 +376,7 @@ class __TBB_DEPRECATED_VERBOSE tuple : public internal::tuple_traits<__T0, __T1,
     typedef typename internal::tuple_traits<__T0,__T1,__T2,__T3, __T4 __TBB_T_PACK >::U my_cons;
 
 public:
-    __TBB_DEPRECATED_VERBOSE tuple(const __T0& t0=internal::wrap_dcons((__T0*)NULL)
+    __TBB_DEPRECATED_IN_VERBOSE_MODE tuple(const __T0& t0=internal::wrap_dcons((__T0*)NULL)
           ,const __T1& t1=internal::wrap_dcons((__T1*)NULL)
           ,const __T2& t2=internal::wrap_dcons((__T2*)NULL)
           ,const __T3& t3=internal::wrap_dcons((__T3*)NULL)
@@ -435,7 +435,7 @@ public:
 
 // empty tuple
 template<>
-class __TBB_DEPRECATED_VERBOSE tuple<null_type, null_type, null_type, null_type, null_type __TBB_NULL_TYPE_PACK > : public null_type {
+class __TBB_DEPRECATED_IN_VERBOSE_MODE tuple<null_type, null_type, null_type, null_type, null_type __TBB_NULL_TYPE_PACK > : public null_type {
 };
 
 // helper classes

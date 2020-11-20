@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2019 Intel Corporation
+    Copyright (c) 2005-2020 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ namespace tbb {
 //! Mutex that allows recursive mutex acquisition.
 /** Mutex that allows recursive mutex acquisition.
     @ingroup synchronization */
-class __TBB_DEPRECATED_VERBOSE_MSG("tbb::recursive_mutex is deprecated, use std::recursive_mutex")
+class __TBB_DEPRECATED_IN_VERBOSE_MODE_MSG("tbb::recursive_mutex is deprecated, use std::recursive_mutex")
 recursive_mutex : internal::mutex_copy_deprecated_and_disabled {
 public:
     //! Construct unacquired recursive_mutex.

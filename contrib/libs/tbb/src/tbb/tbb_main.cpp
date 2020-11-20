@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2019 Intel Corporation
+    Copyright (c) 2005-2020 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -445,7 +445,6 @@ void itt_set_sync_name_v3( void* obj, const tchar* name) {
     ITT_SYNC_RENAME(obj, name);
     suppress_unused_warning(obj, name);
 }
-
 
 class control_storage {
     friend class tbb::interface9::global_control;
