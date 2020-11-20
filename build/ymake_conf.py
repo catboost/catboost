@@ -1310,6 +1310,46 @@ class GnuCompiler(Compiler):
                     '-Wno-pass-failed',
                 ))
 
+            if self.tc.version_at_least(10):
+                # See https://releases.llvm.org/10.0.0/tools/clang/docs/ReleaseNotes.html#major-new-features
+                # Useful warnings that should be enabled ASAP:
+                self.c_warnings.extend((
+                    '-Wno-implicit-int-float-conversion',
+                    '-Wno-int-in-bool-context',
+                    '-Wno-misleading-indentation',
+                    '-Wno-sizeof-array-div',
+                    '-Wno-string-compare',
+                    '-Wno-tautological-overlap-compare',
+                    '-Wno-unused-result',
+                    '-Wno-unknown-warning-option',  # For nvcc to accept the above.
+                ))
+                self.cxx_warnings.extend((
+                    '-Wno-c99-designator',
+                    '-Wno-dangling-gsl',
+                    '-Wno-deprecated-copy',
+                    '-Wno-final-dtor-non-final-class',
+                    '-Wno-initializer-overrides',
+                    '-Wno-pessimizing-move',
+                    '-Wno-range-loop-construct',
+                    '-Wno-reorder-init-list',
+                    '-Wno-string-plus-int',
+                    '-Wno-unused-lambda-capture',
+                ))
+
+            if self.tc.version_at_least(11):
+                # See https://releases.llvm.org/11.0.0/tools/clang/docs/ReleaseNotes.html#improvements-to-clang-s-diagnostics
+                # See https://releases.llvm.org/11.0.0/tools/clang/docs/ReleaseNotes.html#modified-compiler-flags
+                # Disable useful -f and -W that should be restored ASAP:
+                self.c_foptions.append('-fcommon')
+                self.c_warnings.extend((
+                    '-Wno-implicit-const-int-float-conversion',
+                    '-Wno-pointer-to-int-cast',
+                ))
+                self.cxx_warnings.extend((
+                    '-Wno-non-c-typedef-for-linkage',
+                    '-Wno-uninitialized-const-reference',
+                ))
+
         if self.tc.is_gcc and self.tc.version_at_least(4, 9):
             self.c_foptions.append('-fno-delete-null-pointer-checks')
             self.c_foptions.append('-fabi-version=8')
@@ -1603,6 +1643,9 @@ class Linker(object):
             elif self.tc.is_clang:
                 if is_positive('USE_LTO') and not is_positive('MUSL'):
                     # DEVTOOLS-6782: LLD fails to link LTO builds with in-memory ELF objects larger than 4 GiB
+                    return Linker.GOLD
+                elif (is_positive('CLANG10') or is_positive('CLANG11')) and (is_positive('USE_LTO') or is_positive('USE_THINLTO')):
+                    # DEVTOOLS-7709: LLD has to be updated to 11.
                     return Linker.GOLD
                 else:
                     return Linker.LLD
