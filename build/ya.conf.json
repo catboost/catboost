@@ -7,10 +7,13 @@
             "description": "Run C++ compiler"
         },
         "clang-format": {
-            "description": "Run Clang Format"
+            "description": "Run Clang-Format source code formatter"
+        },
+        "clang-rename": {
+            "description": "Run Clang-Rename refactoring tool"
         },
         "clang-tidy": {
-            "description": "Run Clang Tidy"
+            "description": "Run Clang-Tidy source code linter"
         },
         "cling": {
             "description": "Run cling"
@@ -2294,25 +2297,9 @@
                     "bottle": "clang10",
                     "executable": "c++"
                 },
-                "c++filt": {
-                    "bottle": "clang10",
-                    "executable": "c++filt"
-                },
                 "cc": {
                     "bottle": "clang10",
                     "executable": "cc"
-                },
-                "clang-format": {
-                    "bottle": "clang10",
-                    "executable": "clang-format"
-                },
-                "clang-tidy": {
-                    "bottle": "clang10",
-                    "executable": "clang-tidy"
-                },
-                "gcov": {
-                    "bottle": "clang10",
-                    "executable": "gcov"
                 },
                 "llvm-cov": {
                     "bottle": "clang10",
@@ -2597,9 +2584,17 @@
                     "bottle": "clang11",
                     "executable": "cc"
                 },
+                "clang-apply-replacements": {
+                    "bottle": "clang11",
+                    "executable": "clang-apply-replacements"
+                },
                 "clang-format": {
                     "bottle": "clang11",
                     "executable": "clang-format"
+                },
+                "clang-rename": {
+                    "bottle": "clang11",
+                    "executable": "clang-rename"
                 },
                 "clang-tidy": {
                     "bottle": "clang11",
@@ -2607,7 +2602,7 @@
                 },
                 "gcov": {
                     "bottle": "clang11",
-                    "executable": "gcov"
+                    "executable": "llvm-gcov"
                 },
                 "llvm-cov": {
                     "bottle": "clang11",
@@ -6732,25 +6727,9 @@
                     "bin",
                     "clang++"
                 ],
-                "c++filt": [
-                    "bin",
-                    "c++filt"
-                ],
                 "cc": [
                     "bin",
                     "clang"
-                ],
-                "clang-format": [
-                    "bin",
-                    "clang-format"
-                ],
-                "clang-tidy": [
-                    "bin",
-                    "clang-tidy"
-                ],
-                "gcov": [
-                    "bin",
-                    "llvm-gcov"
                 ],
                 "llvm-cov": [
                     "bin",
@@ -6781,8 +6760,8 @@
         "clang11": {
             "formula": {
                 "sandbox_id": [
-                    827888804,
-                    827889365,
+                    828499077,
+                    828496042,
                     827918501
                 ],
                 "match": "CLANG"
@@ -6794,21 +6773,29 @@
                 ],
                 "c++filt": [
                     "bin",
-                    "c++filt"
+                    "llvm-cxxfilt"
                 ],
                 "cc": [
                     "bin",
                     "clang"
                 ],
+                "clang-apply-replacements": [
+                    "bin",
+                    "clang-apply-replacements"
+                ],
                 "clang-format": [
                     "bin",
                     "clang-format"
+                ],
+                "clang-rename": [
+                    "bin",
+                    "clang-rename"
                 ],
                 "clang-tidy": [
                     "bin",
                     "clang-tidy"
                 ],
-                "gcov": [
+                "llvm-gcov": [
                     "bin",
                     "llvm-gcov"
                 ],

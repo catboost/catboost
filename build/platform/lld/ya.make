@@ -16,7 +16,7 @@ ELSE()
         DECLARE_EXTERNAL_RESOURCE(LLD_ROOT sbr:1843327928)
     ENDIF()
 
-    LDFLAGS("-fuse-ld=$LLD_ROOT_RESOURCE_GLOBAL/ld")
+    LDFLAGS("-fuse-ld=$LLD_ROOT_RESOURCE_GLOBAL/ld" "-Wl,--no-rosegment")
 ENDIF()
 
 END()
