@@ -9,6 +9,32 @@ namespace NThreading {
 
 namespace {
 
+    class TCopyCounter {
+    public:
+        TCopyCounter(size_t* numCopies)
+            : NumCopies(numCopies)
+        {}
+
+        TCopyCounter(const TCopyCounter& that)
+            : NumCopies(that.NumCopies)
+        {
+            ++*NumCopies;
+        }
+
+        TCopyCounter& operator=(const TCopyCounter& that) {
+            NumCopies = that.NumCopies;
+            ++*NumCopies;
+            return *this;
+        }
+
+        TCopyCounter(TCopyCounter&& that) = default;
+
+        TCopyCounter& operator=(TCopyCounter&& that) = default;
+
+    private:
+        size_t* NumCopies = nullptr;
+    };
+
     template <typename T>
     auto MakePromise() {
         if constexpr (std::is_same_v<T, void>) {
@@ -540,6 +566,59 @@ namespace {
         Y_UNIT_TEST(FutureStateId) {
             TestFutureStateId<void>();
             TestFutureStateId<int>();
+        }
+
+        template <typename T>
+        void TestApplyNoRvalueCopyImpl() {
+            size_t numCopies = 0;
+            TCopyCounter copyCounter(&numCopies);
+
+            auto promise = MakePromise<T>();
+
+            const auto future = promise.GetFuture().Apply(
+                [copyCounter = std::move(copyCounter)] (const auto&) {}
+            );
+
+            if constexpr (std::is_same_v<T, void>) {
+                promise.SetValue();
+            } else {
+                promise.SetValue(T());
+            }
+
+            future.GetValueSync();
+
+            UNIT_ASSERT_VALUES_EQUAL(numCopies, 0);
+        }
+
+        Y_UNIT_TEST(ApplyNoRvalueCopy) {
+            TestApplyNoRvalueCopyImpl<void>();
+            TestApplyNoRvalueCopyImpl<int>();
+        }
+
+        template <typename T>
+        void TestApplyLvalueCopyImpl() {
+            size_t numCopies = 0;
+            TCopyCounter copyCounter(&numCopies);
+
+            auto promise = MakePromise<T>();
+
+            auto func = [copyCounter = std::move(copyCounter)] (const auto&) {};
+            const auto future = promise.GetFuture().Apply(func);
+
+            if constexpr (std::is_same_v<T, void>) {
+                promise.SetValue();
+            } else {
+                promise.SetValue(T());
+            }
+
+            future.GetValueSync();
+
+            UNIT_ASSERT_VALUES_EQUAL(numCopies, 1);
+        }
+
+        Y_UNIT_TEST(ApplyLvalueCopy) {
+            TestApplyLvalueCopyImpl<void>();
+            TestApplyLvalueCopyImpl<int>();
         }
     }
 
