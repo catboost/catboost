@@ -279,8 +279,6 @@ ALLOW dict/ontodb/tools/fields_diff/lib -> contrib/python/MySQL-python
 ALLOW maps/streetview/backoffice/lib -> contrib/python/MySQL-python
 ALLOW market/sre/tools/cs_mysql_monitoring/mysql_monitoring -> contrib/python/MySQL-python
 ALLOW metrika/core/monitoring/mobile-logs-api-export-generator-check -> contrib/python/MySQL-python
-ALLOW passport/cpp/daemons/blackbox/ut/totp_manual/tests -> contrib/python/MySQL-python
-ALLOW passport/cpp/recipes/passport/passport_mock -> contrib/python/MySQL-python
 ALLOW passport/python/adm_api -> contrib/python/MySQL-python
 ALLOW passport/python/api -> contrib/python/MySQL-python
 ALLOW passport/python/core/tests -> contrib/python/MySQL-python
