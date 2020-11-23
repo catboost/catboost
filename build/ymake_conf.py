@@ -1294,7 +1294,7 @@ class GnuCompiler(Compiler):
                 '-Wno-undefined-var-template',
             ]
 
-            if self.target.is_linux:
+            if self.target.is_linux and not self.tc.version_at_least(10):
                 self.c_foptions.append('-fuse-init-array')
 
             if self.tc.version_at_least(7):
