@@ -8,7 +8,7 @@ import tempfile
 from six.moves import range
 
 
-OUT_DIR_FALG_PATTERN = re.compile('^(--go\w+=)')
+OUT_DIR_FLAG_PATTERN = re.compile('^(--go\w+=)')
 
 
 def move_tree(src_root, dst_root):
@@ -25,7 +25,7 @@ def main(arcadia_prefix, contrib_prefix, proto_namespace, args):
     out_dir_orig = None
     out_dir_temp = None
     for i in range(len(args)):
-        m = re.match(OUT_DIR_FALG_PATTERN, args[i])
+        m = re.match(OUT_DIR_FLAG_PATTERN, args[i])
         if m:
             out_dir_flag = m.group(1)
             index = max(len(out_dir_flag), args[i].rfind(':')+1)
