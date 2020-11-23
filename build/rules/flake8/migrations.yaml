@@ -1156,7 +1156,6 @@ migrations:
     - extsearch/ymusic/quality/learning/lib
     - library/python/cyson
     - library/python/cyson/cyson
-    - library/python/ticket_parser2/src/ut
     - mail/freezing_tests/active_users_aggregation
     - mail/python/sendr-qtools/src/sendr_aiopg/tests
     - mail/shiva/tests/lib
