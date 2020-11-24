@@ -1,5 +1,5 @@
 {
-    "auto_start": false,
+    "auto_start": true,
     "notification": "telegram",
     "approve_count": 1,
     "total_reviewers": 4,
