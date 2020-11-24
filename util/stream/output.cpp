@@ -174,11 +174,6 @@ void Out<TUtf32String>(IOutputStream& o, const TUtf32String& w) {
     void Out<type>(IOutputStream & o, type p) {                   \
         char buf[len];                                            \
         o.Write(buf, ToString(p, buf, sizeof(buf)));              \
-    }                                                             \
-                                                                  \
-    template <>                                                   \
-    void Out<volatile type>(IOutputStream & o, volatile type p) { \
-        Out<type>(o, p);                                          \
     }
 
 DEF_CONV_NUM(bool, 64)
