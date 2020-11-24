@@ -28,6 +28,12 @@ def split(lst, limit):
         yield bucket
 
 
+def remove_prefix(text, prefix):
+    if text.startswith(prefix):
+        return text[len(prefix):]
+    return text
+
+
 def onfat_resource(unit, *args):
     unit.onpeerdir(['library/cpp/resource'])
 
@@ -46,11 +52,11 @@ def onfat_resource(unit, *args):
 
 def onresource_files(unit, *args):
     """
-    @usage: RESOURCE_FILES([PREFIX {prefix}] {path})
+    @usage: RESOURCE_FILES([PREFIX {prefix}] [STRIP prefix_to_strip] {path})
 
     This macro expands into
     RESOURCE({path} resfs/file/{prefix}{path}
-        - resfs/src/resfs/file/{prefix}{path}={rootrel_arc_src(path)}
+        - resfs/src/resfs/file/{prefix}{remove_prefix(path, prefix_to_strip)}={rootrel_arc_src(path)}
     )
 
     resfs/src/{key} stores a source root (or build root) relative path of the
@@ -65,6 +71,7 @@ def onresource_files(unit, *args):
     @see: https://wiki.yandex-team.ru/devtools/commandsandvars/resourcefiles/
     """
     prefix = ''
+    prefix_to_strip = None
     dest = None
     res = []
 
@@ -74,9 +81,11 @@ def onresource_files(unit, *args):
             prefix, dest = next(args), None
         elif arg == 'DEST':
             dest, prefix = next(args), None
+        elif arg == 'STRIP':
+            prefix_to_strip = next(args)
         else:
             path = arg
-            key = 'resfs/file/' + (dest or (prefix + path))
+            key = 'resfs/file/' + (dest or (prefix + (path if not prefix_to_strip else remove_prefix(path, prefix_to_strip))))
             src = 'resfs/src/{}={}'.format(key, rootrel_arc_src(path, unit))
             res += ['-', src, path, key]
 
