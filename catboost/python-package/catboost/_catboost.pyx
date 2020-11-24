@@ -5511,6 +5511,10 @@ cpdef is_maximizable_metric(metric_name):
     return IsMaxOptimal(to_arcadia_string(metric_name))
 
 
+cpdef is_user_defined_metric(metric_name):
+    return IsUserDefined(to_arcadia_string(metric_name))
+
+
 cpdef get_experiment_name(ui32 feature_set_idx, ui32 fold_idx):
     cdef TString experiment_name = GetExperimentName(feature_set_idx, fold_idx)
     cdef const char* c_experiment_name_string = experiment_name.c_str()

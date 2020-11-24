@@ -55,6 +55,7 @@ bool AreZeroWeightsAfterBootstrap(EBootstrapType type);
 bool ShouldSkipCalcOnTrainByDefault(ELossFunction lossFunction);
 
 bool IsUserDefined(ELossFunction lossFunction);
+bool IsUserDefined(TStringBuf metricName);
 
 bool IsEmbeddingFeatureEstimator(EFeatureCalcerType estimatorType);
 

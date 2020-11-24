@@ -584,6 +584,11 @@ bool IsUserDefined(ELossFunction loss) {
     return GetInfo(loss)->HasFlags(EMetricAttribute::IsUserDefined);
 }
 
+bool IsUserDefined(TStringBuf metricName) {
+    ELossFunction lossType = ParseLossType(metricName);
+    return IsUserDefined(lossType);
+}
+
 bool IsClassificationObjective(const TStringBuf lossDescription) {
     ELossFunction lossType = ParseLossType(lossDescription);
     return IsClassificationObjective(lossType);
