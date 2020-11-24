@@ -56,21 +56,6 @@ migrations:
       - a.yandex-team.ru/cloud/iam/accessservice/client/go/cloudauth_test
   ST1003:
     packages:
-      - a.yandex-team.ru/games/backend/pkg/server/sdk/games_features_service
-      - a.yandex-team.ru/games/backend/pkg/server/light_catalogue/div_cards_service
-      - a.yandex-team.ru/games/backend/pkg/server/light_catalogue
-      - a.yandex-team.ru/games/backend/pkg/games_service
-      - a.yandex-team.ru/games/backend/internal/purchases_utils
-      - a.yandex-team.ru/games/backend/pkg/payments_service
-      - a.yandex-team.ru/games/backend/pkg/rtx_v2
-      - a.yandex-team.ru/games/backend/pkg/payments_service/payments_storage
-      - a.yandex-team.ru/games/backend/pkg/categories_service
-      - a.yandex-team.ru/games/backend/pkg/app_types_service
-      - a.yandex-team.ru/games/backend/pkg/publishers_service
-      - a.yandex-team.ru/games/backend/pkg/server/catalogue/async_getter
-      - a.yandex-team.ru/games/backend/pkg/leader_boards_service
-      - a.yandex-team.ru/games/backend/pkg/users_service
-      - a.yandex-team.ru/games/backend/internal/db_utils
       - a.yandex-team.ru/infra/rtc/instance_resolver/pkg/fresh_cache
   protonaming:
     packages:
