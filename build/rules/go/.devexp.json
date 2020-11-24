@@ -9,7 +9,7 @@
         "prime",
         "sidh"
     ],
-    "strict: true
+    "strict": true,
     "reset_after_publish": true,
     "update_status": true,
     "update_reviewers": false,
