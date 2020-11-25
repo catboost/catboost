@@ -1345,7 +1345,6 @@ class GnuCompiler(Compiler):
                 ))
                 self.cxx_warnings.extend((
                     '-Wno-non-c-typedef-for-linkage',
-                    '-Wno-uninitialized-const-reference',
                 ))
 
         if self.tc.is_gcc and self.tc.version_at_least(4, 9):
