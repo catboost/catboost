@@ -932,6 +932,8 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
         TConstArrayRef[bool_t] catFeaturesMask,
         IRawObjectsOrderDataVisitor* builderVisitor,
         ILocalExecutor* localExecutor) nogil except +ProcessException
+    cdef size_t GetNumPairs(const TDataProvider& dataProvider) except +ProcessException
+    cdef TConstArrayRef[TPair] GetUngroupedPairs(const TDataProvider& dataProvider) except +ProcessException
 
 
 cdef extern from "catboost/python-package/catboost/helpers.h":
@@ -3330,7 +3332,7 @@ cdef class _PoolBase:
 
         cdef TPathWithScheme pairs_file_path
         if len(pairs_file):
-            pairs_file_path = TPathWithScheme(<TStringBuf>to_arcadia_string(pairs_file), TStringBuf(<char*>'dsv'))
+            pairs_file_path = TPathWithScheme(<TStringBuf>to_arcadia_string(pairs_file), TStringBuf(<char*>'dsv-flat'))
 
         cdef TPathWithScheme feature_names_file_path
         if len(feature_names_file):
@@ -3670,7 +3672,7 @@ cdef class _PoolBase:
         )
 
     cpdef _set_pairs_weight(self, pairs_weight):
-        cdef TConstArrayRef[TPair] old_pairs = self.__pool.Get()[0].RawTargetData.GetPairs()
+        cdef TConstArrayRef[TPair] old_pairs = GetUngroupedPairs(self.__pool.Get()[0])
         cdef TVector[TPair] new_pairs
         for i in range(old_pairs.size()):
             new_pairs.push_back(TPair(old_pairs[i].WinnerId, old_pairs[i].LoserId, pairs_weight[i]))
@@ -3765,7 +3767,7 @@ cdef class _PoolBase:
         -------
         number of pairs : int
         """
-        return self.__pool.Get()[0].RawTargetData.GetPairs().size()
+        return GetNumPairs(self.__pool.Get()[0])
 
     @property
     def shape(self):

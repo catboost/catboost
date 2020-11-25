@@ -202,7 +202,7 @@ static TRawTargetData CreateRawTargetData() {
     };
     targetData.Weights = TWeights<float>{TVector<float>{1.0f, 0.0f, 0.2f, 0.12f, 0.45f, 0.89f}};
     targetData.GroupWeights = TWeights<float>(6);
-    targetData.Pairs = {TPair{0, 1, 0.1f}, TPair{3, 4, 1.0f}, TPair{3, 5, 2.0f}};
+    targetData.Pairs = TFlatPairsInfo{TPair{0, 1, 0.1f}, TPair{3, 4, 1.0f}, TPair{3, 5, 2.0f}};
 
     return targetData;
 }
@@ -218,7 +218,7 @@ static TRawTargetData CreateRawMultiTargetData() {
     };
     targetData.Weights = TWeights<float>{TVector<float>{1.0f, 0.0f, 0.2f, 0.12f, 0.45f, 0.89f}};
     targetData.GroupWeights = TWeights<float>(6);
-    targetData.Pairs = {TPair{0, 1, 0.1f}, TPair{3, 4, 1.0f}, TPair{3, 5, 2.0f}};
+    targetData.Pairs = TFlatPairsInfo{TPair{0, 1, 0.1f}, TPair{3, 4, 1.0f}, TPair{3, 5, 2.0f}};
 
     return targetData;
 }

@@ -165,7 +165,11 @@ namespace NCB {
      * Indices of objects passed to visitor methods are indices from the beginning of the subset (not indices in the whole dataset).
      * objectCount parameter represents the number of objects in the subset.
      */
-    void SetPairs(const TPathWithScheme& pairsPath, ui32 objectCount, TDatasetSubset loadSubset, IDatasetVisitor* visitor);
+    void SetPairs(
+        const TPathWithScheme& pairsPath,
+        TDatasetSubset loadSubset,
+        TMaybeData<TConstArrayRef<TGroupId>> groupIds,
+        IDatasetVisitor* visitor);
     void SetGroupWeights(
         const TPathWithScheme& groupWeightsPath,
         ui32 objectCount,
@@ -267,7 +271,7 @@ namespace NCB {
             if (!inBlock) {
                 const ui32 objectCount = GetObjectCountSynchronized();
                 SetGroupWeights(Args.GroupWeightsFilePath, objectCount, Args.DatasetSubset, visitor);
-                SetPairs(Args.PairsFilePath, objectCount, Args.DatasetSubset, visitor);
+                SetPairs(Args.PairsFilePath, Args.DatasetSubset, visitor->GetGroupIds(), visitor);
                 SetTimestamps(Args.TimestampsFilePath, objectCount, Args.DatasetSubset, visitor);
             }
             visitor->Finish();

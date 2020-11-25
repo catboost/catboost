@@ -65,6 +65,8 @@ namespace NCB {
         TMaybe<TSrcColumn<float>> GroupWeights;
 
         TStringBuf PairsFileData;
+        TString PairsFilePathScheme = "dsv-flat";
+
         TStringBuf GroupWeightsFileData;
         TStringBuf BaselineFileData;
 

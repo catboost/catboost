@@ -76,7 +76,7 @@ public:
          CB_ENSURE(false, "SetBaseline is incompatible with blocked processing");
      }
 
-     void SetPairs(TVector<TPair>&& pairs) override {
+     void SetPairs(TRawPairsData&& pairs) override {
          Y_UNUSED(pairs);
          CB_ENSURE(false, "SetPairs is incompatible with blocked processing");
      }

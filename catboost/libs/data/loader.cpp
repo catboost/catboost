@@ -1,5 +1,6 @@
 #include "baseline.h"
 #include "loader.h"
+#include "pairs_data_loaders.h"
 
 #include <catboost/libs/column_description/column.h>
 #include <catboost/libs/helpers/exception.h>
@@ -55,67 +56,6 @@ namespace NCB {
                 : "All features are requested to be ignored"));
     }
 
-
-    static TVector<TPair> ReadPairs(const TPathWithScheme& filePath, ui64 docCount, TDatasetSubset loadSubset) {
-        THolder<ILineDataReader> reader = GetLineDataReader(filePath);
-
-        TVector<TPair> pairs;
-        TString line;
-        for (size_t lineNumber = 0; reader->ReadLine(&line); lineNumber++) {
-            TVector<TString> tokens = StringSplitter(line).Split('\t');
-            if (tokens.empty()) {
-                continue;
-            }
-            try {
-                CB_ENSURE(tokens.ysize() == 2 || tokens.ysize() == 3,
-                    "Each line should have two or three columns. This line has " << tokens.size()
-                );
-                TPair pair;
-
-                size_t tokenIdx = 0;
-                auto parseIdFunc = [&](TStringBuf description, ui32* id) {
-                    CB_ENSURE(
-                        TryFromString(tokens[tokenIdx], *id),
-                        "Invalid " << description << " index: cannot parse as nonnegative index ("
-                        << tokens[tokenIdx] << ')'
-                    );
-                    *id -= loadSubset.Range.Begin;
-                    if (*id < loadSubset.GetSize()) {
-                        CB_ENSURE(
-                            *id < docCount,
-                            "Invalid " << description << " index (" << *id << "): not less than number of samples"
-                            " (" << docCount << ')'
-                        );
-                    }
-                    ++tokenIdx;
-                };
-                parseIdFunc(AsStringBuf("Winner"), &pair.WinnerId);
-                parseIdFunc(AsStringBuf("Loser"), &pair.LoserId);
-
-                pair.Weight = 1.0f;
-                if (tokens.ysize() == 3) {
-                    CB_ENSURE(
-                        TryFromString(tokens[2], pair.Weight),
-                        "Invalid weight: cannot parse as float (" << tokens[2] << ')'
-                    );
-                }
-                if (pair.WinnerId < loadSubset.GetSize() && pair.LoserId < loadSubset.GetSize()) {
-                    pairs.push_back(std::move(pair));
-                } else {
-                    CB_ENSURE(
-                        pair.WinnerId >= loadSubset.GetSize() && pair.LoserId >= loadSubset.GetSize(),
-                        "Load subset " << loadSubset.Range << " must contain loser "
-                        << pair.LoserId + loadSubset.Range.Begin << " and winner " << pair.WinnerId + loadSubset.Range.Begin
-                    );
-                }
-            } catch (const TCatBoostException& e) {
-                throw TCatBoostException() << "Incorrect file with pairs. Invalid line number #" << lineNumber
-                    << ": " << e.what();
-            }
-        }
-
-        return pairs;
-    }
 
     static TVector<TVector<float>> ReadBaseline(const TPathWithScheme& filePath, ui64 docCount, TDatasetSubset loadSubset, const TVector<TString>& classNames) {
         TBaselineReader reader(filePath, classNames);
@@ -267,12 +207,47 @@ namespace NCB {
         return timestamps;
     }
 
-
-
-    void SetPairs(const TPathWithScheme& pairsPath, ui32 objectCount, TDatasetSubset loadSubset, IDatasetVisitor* visitor) {
+    void SetPairs(
+        const TPathWithScheme& pairsPath,
+        TDatasetSubset loadSubset,
+        TMaybeData<TConstArrayRef<TGroupId>> groupIds,
+        IDatasetVisitor* visitor
+    ) {
         DumpMemUsage("After data read");
         if (pairsPath.Inited()) {
-            visitor->SetPairs(ReadPairs(pairsPath, objectCount, loadSubset));
+            auto pairsDataLoader = GetProcessor<IPairsDataLoader>(
+                pairsPath,
+                TPairsDataLoaderArgs{pairsPath, loadSubset}
+            );
+            THashMap<TGroupId, ui32> groupIdToIdxMap;
+            if (pairsDataLoader->NeedGroupIdToIdxMap()) {
+                CB_ENSURE(groupIds, "Cannot load pairs data with group ids for a dataset without groups");
+
+                TConstArrayRef<TGroupId> groupIdsArray = *groupIds;
+                if (!groupIdsArray.empty()) {
+                    TGroupId currentGroupId = groupIdsArray[0];
+                    ui32 currentGroupIdx = 0;
+
+                    auto insertCurrentGroup = [&] () {
+                        CB_ENSURE(
+                            !groupIdToIdxMap.contains(currentGroupId),
+                            "Group id " << currentGroupId << " is used for several groups in the dataset"
+                        );
+                        groupIdToIdxMap.emplace(currentGroupId, currentGroupIdx++);
+                    };
+
+                    for (TGroupId groupId : groupIdsArray) {
+                        if (groupId != currentGroupId) {
+                            insertCurrentGroup();
+                            currentGroupId = groupId;
+                        }
+                    }
+                    insertCurrentGroup();
+                }
+
+                pairsDataLoader->SetGroupIdToIdxMap(&groupIdToIdxMap);
+            }
+            pairsDataLoader->Do(visitor);
         }
     }
 

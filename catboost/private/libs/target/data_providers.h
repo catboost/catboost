@@ -1,6 +1,7 @@
 #pragma once
 
 #include <catboost/libs/data/data_provider.h>
+#include <catboost/libs/data/pairs.h>
 #include <catboost/libs/data/util.h>
 #include <catboost/private/libs/data_types/groupid.h>
 #include <catboost/libs/helpers/restorable_rng.h>
@@ -109,6 +110,6 @@ namespace NCB {
         const TObjectsGrouping& objectsGrouping,
         TMaybeData<TConstArrayRef<TSubgroupId>> subgroupIds,
         const TWeights<float>& groupWeights,
-        TConstArrayRef<TPair> pairs);
+        TMaybe<TRawPairsDataRef> pairs);
 
 }

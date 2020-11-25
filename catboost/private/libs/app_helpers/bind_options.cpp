@@ -110,13 +110,13 @@ inline static void BindPoolLoadParams(NLastGetopt::TOpts* parser, NCatboostOptio
     parser->AddLongOption("learn-pairs", "path to learn pairs")
         .RequiredArgument("[SCHEME://]PATH")
         .Handler1T<TStringBuf>([loadParamsPtr](const TStringBuf& str) {
-            loadParamsPtr->PairsFilePath = TPathWithScheme(str, "file");
+            loadParamsPtr->PairsFilePath = TPathWithScheme(str, "dsv-flat");
         });
 
     parser->AddLongOption("test-pairs", "path to test pairs")
         .RequiredArgument("[SCHEME://]PATH")
         .Handler1T<TStringBuf>([loadParamsPtr](const TStringBuf& str) {
-            loadParamsPtr->TestPairsFilePath = TPathWithScheme(str, "file");
+            loadParamsPtr->TestPairsFilePath = TPathWithScheme(str, "dsv-flat");
         });
 
     parser->AddLongOption("learn-group-weights", "path to learn group weights")

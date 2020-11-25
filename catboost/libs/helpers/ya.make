@@ -15,6 +15,7 @@ SRCS(
     double_array_iterator.cpp
     dynamic_iterator.cpp
     element_range.cpp
+    equal.cpp
     exception.cpp
     flatbuffers/guid.fbs
     guid.cpp
@@ -24,7 +25,7 @@ SRCS(
     map_merge.cpp
     math_utils.cpp
     matrix.cpp
-    maybe_data.cpp
+    maybe.cpp
     maybe_owning_array_holder.cpp
     mem_usage.cpp
     parallel_tasks.cpp

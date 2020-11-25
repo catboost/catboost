@@ -33,6 +33,8 @@ SRCS(
     objects_grouping.cpp
     order.cpp
     packed_binary_features.cpp
+    pairs.cpp
+    GLOBAL pairs_data_loaders.cpp
     proceed_pool_in_blocks.cpp
     quantization.cpp
     quantized_features_info.cpp

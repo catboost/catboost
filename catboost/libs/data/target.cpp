@@ -136,10 +136,13 @@ void NCB::CheckGroupWeights(
 }
 
 void NCB::CheckPairs(TConstArrayRef<TPair> pairs, const TObjectsGrouping& objectsGrouping) {
+    size_t objectCount = objectsGrouping.GetObjectCount();
     for (auto pairIdx : xrange(pairs.size())) {
         const auto& pair = pairs[pairIdx];
         try {
             CB_ENSURE(pair.WinnerId != pair.LoserId, "WinnerId is equal to LoserId");
+            CB_ENSURE(pair.WinnerId < objectCount, "WinnerId is not less than object count");
+            CB_ENSURE(pair.LoserId < objectCount, "LoserId is not less than object count");
             CB_ENSURE(pair.Weight >= 0.0f, "Weight is negative");
 
             if (!objectsGrouping.IsTrivial()) {
@@ -155,6 +158,43 @@ void NCB::CheckPairs(TConstArrayRef<TPair> pairs, const TObjectsGrouping& object
         } catch (const TCatBoostException& e) {
             // throw, not ythrow to avoid duplication of line info
             throw TCatBoostException() << "Pair #" << pairIdx << ' ' << HumanReadableDescription(pair) << ": "
+                << e.what();
+        }
+    }
+}
+
+static void CheckPairs(TConstArrayRef<TPairInGroup> pairs, const TObjectsGrouping& objectsGrouping) {
+    CB_ENSURE(
+        !objectsGrouping.IsTrivial(),
+        "Pairs in groups are specified, but there's no group info in dataset"
+    );
+
+    for (auto pairIdx : xrange(pairs.size())) {
+        const auto& pairInGroup = pairs[pairIdx];
+        try {
+            CB_ENSURE(
+                pairInGroup.GroupIdx < objectsGrouping.GetGroupCount(),
+                "GroupIdx is not less than total number of groups (" << objectsGrouping.GetGroupCount() << ')'
+            );
+
+            CB_ENSURE(
+                pairInGroup.WinnerIdxInGroup != pairInGroup.LoserIdxInGroup,
+                "WinnerIdxInGroup is equal to LoserIdxInGroup"
+            );
+            ui32 groupSize = objectsGrouping.GetGroup(pairInGroup.GroupIdx).GetSize();
+            auto checkIdx = [&] (auto idx, TStringBuf fieldName) {
+                CB_ENSURE(
+                    idx < groupSize,
+                    fieldName << " (" << idx << ") > group size (" << groupSize << ')'
+                );
+            };
+            checkIdx(pairInGroup.WinnerIdxInGroup, AsStringBuf("WinnerIdxInGroup"));
+            checkIdx(pairInGroup.LoserIdxInGroup, AsStringBuf("LoserIdxInGroup"));
+
+            CB_ENSURE(pairInGroup.Weight >= 0.0f, "Weight is negative");
+        } catch (const TCatBoostException& e) {
+            // throw, not ythrow to avoid duplication of line info
+            throw TCatBoostException() << "Pair #" << pairIdx << ' ' << pairInGroup << ": "
                 << e.what();
         }
     }
@@ -295,7 +335,8 @@ bool Equal(const TVector<TRawTarget>& lhs, const TVector<TRawTarget>& rhs) {
 
 bool TRawTargetData::operator==(const TRawTargetData& rhs) const {
     return (TargetType == rhs.TargetType) && Equal(Target, rhs.Target) && (Baseline == rhs.Baseline) &&
-        (Weights == rhs.Weights) && (GroupWeights == rhs.GroupWeights) && EqualAsMultiSets(Pairs, rhs.Pairs);
+        (Weights == rhs.Weights) && (GroupWeights == rhs.GroupWeights) &&
+        Equal(Pairs, rhs.Pairs, EqualWithoutOrder);
 }
 
 
@@ -332,11 +373,18 @@ void TRawTargetData::Check(
         }
     );
 
-    tasks.emplace_back(
-        [&, this]() {
-            CheckPairs(Pairs, objectsGrouping);
-        }
-    );
+    if (Pairs) {
+        tasks.emplace_back(
+            [&, this]() {
+                Visit(
+                    [&] (const auto& pairsData) {
+                        CheckPairs(pairsData, objectsGrouping);
+                    },
+                    *Pairs
+                );
+            }
+        );
+    }
 
     ExecuteTasksInParallel(&tasks, localExecutor);
 }
@@ -361,7 +409,7 @@ void TRawTargetData::PrepareForInitialization(
     // here they are set to trivial to clear previous buffers
     SetTrivialWeights(objectCount);
 
-    Pairs.clear();
+    Pairs.Clear();
 }
 
 
@@ -391,7 +439,7 @@ void TRawTargetDataProvider::SetObjectsGrouping(TObjectsGroupingPtr objectsGroup
         "Cannot update objects grouping if target data already has non-trivial group weights"
     );
     CB_ENSURE(
-        Data.Pairs.empty(),
+        !Data.Pairs,
         "Cannot update objects grouping if target data already has pairs"
     );
     ObjectsGrouping = objectsGrouping;
@@ -457,35 +505,113 @@ static void GetMultidimBaselineSubset(
     }
 }
 
-static void GetPairsSubset(
-    // assumes pairs and objectsGrouping consistency has already been checked
+static TFlatPairsInfo GetPairsSubset(
     TConstArrayRef<TPair> pairs,
     const TObjectsGrouping& objectsGrouping,
-    const TObjectsGroupingSubset& objectsGroupingSubset,
-    TVector<TPair>* result
+    const TObjectsGroupingSubset& objectsGroupingSubset
 ) {
-    if (HoldsAlternative<TFullSubset<ui32>>(objectsGroupingSubset.GetObjectsIndexing())) {
-        Assign(pairs, result);
-        return;
-    }
-
-    TVector<TMaybe<ui32>> srcToDstIndices(objectsGrouping.GetObjectCount());
+    TVector<TMaybe<ui32>> srcToDstObjectIndices(objectsGrouping.GetObjectCount());
     objectsGroupingSubset.GetObjectsIndexing().ForEach(
-        [&srcToDstIndices] (ui32 idx, ui32 srcIdx) { srcToDstIndices[srcIdx] = idx; }
+        [&srcToDstObjectIndices] (ui32 idx, ui32 srcIdx) { srcToDstObjectIndices[srcIdx] = idx; }
     );
 
-    result->clear();
+    TFlatPairsInfo result;
     for (const auto& pair : pairs) {
-        const auto& maybeDstWinnerId = srcToDstIndices[pair.WinnerId];
+        const auto& maybeDstWinnerId = srcToDstObjectIndices[pair.WinnerId];
         if (!maybeDstWinnerId) {
             continue;
         }
-        const auto& maybeDstLoserId = srcToDstIndices[pair.LoserId];
+        const auto& maybeDstLoserId = srcToDstObjectIndices[pair.LoserId];
         if (!maybeDstLoserId) {
             continue;
         }
-        result->emplace_back(*maybeDstWinnerId, *maybeDstLoserId, pair.Weight);
+        result.emplace_back(*maybeDstWinnerId, *maybeDstLoserId, pair.Weight);
     }
+    return result;
+}
+
+
+struct TSrcToDstGroupMap {
+    ui32 DstGroupIdx;
+    TVector<TMaybe<ui32>> InGroupIndicesMap; // srcInGroupIdx -> dstInGroupIdx
+};
+
+static TGroupedPairsInfo GetPairsSubset(
+    TConstArrayRef<TPairInGroup> pairs,
+    const TObjectsGrouping& objectsGrouping,
+    const TObjectsGroupingSubset& objectsGroupingSubset
+) {
+    TVector<TMaybe<ui32>> srcToDstObjectIndices(objectsGrouping.GetObjectCount());
+    objectsGroupingSubset.GetObjectsIndexing().ForEach(
+        [&srcToDstObjectIndices] (ui32 idx, ui32 srcIdx) { srcToDstObjectIndices[srcIdx] = idx; }
+    );
+
+    const TObjectsGrouping& subsetGrouping = *objectsGroupingSubset.GetSubsetGrouping();
+    TVector<TMaybe<TSrcToDstGroupMap>> srcToDstGroupMaps; // [groupIdx]
+    objectsGroupingSubset.GetGroupsIndexing().ForEach(
+        [&] (ui32 groupIdx, ui32 srcGroupIdx) {
+            TSrcToDstGroupMap srcToDstGroupMap;
+            srcToDstGroupMap.DstGroupIdx = groupIdx;
+
+            TGroupBounds srcGroupBounds = objectsGrouping.GetGroup(srcGroupIdx);
+            ui32 dstGroupStartIdx = subsetGrouping.GetGroup(groupIdx).Begin;
+
+            srcToDstGroupMap.InGroupIndicesMap.resize(srcGroupBounds.GetSize());
+            for (ui32 srcInGroupIdx : xrange(srcGroupBounds.GetSize())) {
+                ui32 srcIdx = srcGroupBounds.Begin + srcInGroupIdx;
+                TMaybe<ui32> maybeDstObjectIdx = srcToDstObjectIndices[srcIdx];
+                if (maybeDstObjectIdx) {
+                    srcToDstGroupMap.InGroupIndicesMap[srcInGroupIdx] = *maybeDstObjectIdx - dstGroupStartIdx;
+                }
+            }
+            srcToDstGroupMaps[srcGroupIdx] = std::move(srcToDstGroupMap);
+        }
+    );
+
+    TGroupedPairsInfo result;
+    for (const auto& pair : pairs) {
+        const TMaybe<TSrcToDstGroupMap>& srcToDstGroupMap = srcToDstGroupMaps[pair.GroupIdx];
+        if (!srcToDstGroupMap) {
+            continue;
+        }
+        const auto& maybeDstWinnerIdxInGroup = srcToDstGroupMap->InGroupIndicesMap[pair.WinnerIdxInGroup];
+        if (!maybeDstWinnerIdxInGroup) {
+            continue;
+        }
+        const auto& maybeDstLoserIdxInGroup = srcToDstGroupMap->InGroupIndicesMap[pair.LoserIdxInGroup];
+        if (!maybeDstLoserIdxInGroup) {
+            continue;
+        }
+        result.push_back(
+            TPairInGroup{
+                srcToDstGroupMap->DstGroupIdx,
+                *maybeDstWinnerIdxInGroup,
+                *maybeDstLoserIdxInGroup,
+                pair.Weight
+            }
+        );
+    }
+    return result;
+}
+
+
+static void GetPairsSubset(
+    // assumes pairs and objectsGrouping consistency has already been checked
+    const TRawPairsData& pairs,
+    const TObjectsGrouping& objectsGrouping,
+    const TObjectsGroupingSubset& objectsGroupingSubset,
+    TRawPairsData* result
+) {
+    if (HoldsAlternative<TFullSubset<ui32>>(objectsGroupingSubset.GetObjectsIndexing())) {
+        *result = pairs;
+        return;
+    }
+    Visit(
+        [&] (const auto& pairs) {
+            *result = GetPairsSubset(pairs, objectsGrouping, objectsGroupingSubset);
+        },
+        pairs
+    );
 }
 
 
@@ -540,10 +666,12 @@ TRawTargetDataProvider TRawTargetDataProvider::GetSubset(
         }
     );
 
-    if (!Data.Pairs.empty()) {
+    if (Data.Pairs) {
         tasks.emplace_back(
             [&, this]() {
-                GetPairsSubset(Data.Pairs, *ObjectsGrouping, objectsGroupingSubset, &subsetData.Pairs);
+                TRawPairsData subsetPairs;
+                GetPairsSubset(*Data.Pairs, *ObjectsGrouping, objectsGroupingSubset, &subsetPairs);
+                subsetData.Pairs = std::move(subsetPairs);
             }
         );
     }
