@@ -1339,7 +1339,6 @@ class GnuCompiler(Compiler):
                 self.c_foptions.append('-fcommon')
                 self.c_warnings.extend((
                     '-Wno-implicit-const-int-float-conversion',
-                    '-Wno-pointer-to-int-cast',
                 ))
                 self.cxx_warnings.extend((
                     '-Wno-non-c-typedef-for-linkage',
