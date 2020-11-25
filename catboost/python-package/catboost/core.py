@@ -1813,7 +1813,7 @@ class CatBoost(_CatBoostBase):
         loss = self._object._get_loss_function_name()
         if loss and is_groupwise_metric(loss):
             pass  # too expensive
-        elif (len(self.get_text_feature_indices()) > 0) or (len(self.get_embedding_feature_indices()) > 0):
+        elif (len(self.get_embedding_feature_indices()) > 0):
             pass  # is not implemented yet
         else:
             if not self._object._has_leaf_weights_in_model():
