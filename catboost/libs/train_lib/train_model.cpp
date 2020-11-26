@@ -1044,7 +1044,7 @@ static void TrainModel(
             Nothing(),
         initModel.Defined(),
         !!initLearnProgress,
-        &updatedOutputOptions.UseBestModel,
+        &updatedOutputOptions,
         &catBoostOptions
     );
 
@@ -1402,7 +1402,7 @@ static void ModelBasedEval(
             Nothing(),
         /*continueFromModel*/ false,
         /*continueFromProgress*/ false,
-        &updatedOutputOptions.UseBestModel,
+        &updatedOutputOptions,
         &catBoostOptions
     );
     InitializeEvalMetricIfNotSet(catBoostOptions.MetricOptions->ObjectiveMetric, &catBoostOptions.MetricOptions->EvalMetric);

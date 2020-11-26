@@ -97,17 +97,18 @@ void UpdateYetiRankEvalMetric(
     }
 }
 
-static void UpdateUseBestModel(bool learningContinuation, bool hasTest, bool hasTestConstTarget, bool hasTestPairs, NCatboostOptions::TOption<bool>* useBestModel) {
-    if (useBestModel->NotSet() && !learningContinuation && hasTest && (!hasTestConstTarget || hasTestPairs)) {
-        *useBestModel = true;
+static void UpdateUseBestModel(
+    bool hasTest,
+    bool hasTestConstTarget,
+    bool hasTestPairs,
+    NCatboostOptions::TOutputFilesOptions* outputFilesOptions
+) {
+    if (outputFilesOptions->UseBestModel.NotSet() && hasTest && (!hasTestConstTarget || hasTestPairs)) {
+        outputFilesOptions->UseBestModel = true;
     }
-    if (learningContinuation && *useBestModel) {
-        CATBOOST_WARNING_LOG << "Using best model is not supported for learning continuation. use_best_model parameter has been switched to false value." << Endl;
-        *useBestModel = false;
-    }
-    if (!hasTest && *useBestModel) {
+    if (!hasTest && outputFilesOptions->UseBestModel) {
         CATBOOST_WARNING_LOG << "You should provide test set for use best model. use_best_model parameter has been switched to false value." << Endl;
-        *useBestModel = false;
+        outputFilesOptions->UseBestModel = false;
     }
 }
 
@@ -400,16 +401,16 @@ void SetDataDependentDefaults(
     const TMaybe<NCB::TDataMetaInfo>& testDataMetaInfo,
     bool continueFromModel,
     bool continueFromProgress,
-    NCatboostOptions::TOption<bool>* useBestModel,
+    NCatboostOptions::TOutputFilesOptions* outputFilesOptions,
     NCatboostOptions::TCatBoostOptions* catBoostOptions
 ) {
     const ui64 learnPoolSize = trainDataMetaInfo.ObjectCount;
     const ui64 testPoolSize = testDataMetaInfo.Defined() ? testDataMetaInfo->ObjectCount : 0;
     const bool isConstTestTarget = testDataMetaInfo.Defined() && IsConstTarget(*testDataMetaInfo);
     const bool hasTestPairs = testDataMetaInfo.Defined() && testDataMetaInfo->HasPairs;
-    UpdateUseBestModel(continueFromModel || continueFromProgress, testPoolSize, isConstTestTarget, hasTestPairs, useBestModel);
+    UpdateUseBestModel(testPoolSize, isConstTestTarget, hasTestPairs, outputFilesOptions);
     UpdateBoostingTypeOption(learnPoolSize, catBoostOptions);
-    UpdateLearningRate(learnPoolSize, useBestModel->Get(), catBoostOptions);
+    UpdateLearningRate(learnPoolSize, outputFilesOptions->UseBestModel.Get(), catBoostOptions);
     UpdateOneHotMaxSize(
         trainDataMetaInfo.MaxCatFeaturesUniqValuesOnLearn,
         trainDataMetaInfo.TargetCount > 0,
