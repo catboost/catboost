@@ -447,7 +447,6 @@ migrations:
     - sandbox/projects/mail/Load/QuinnShooting
     - sandbox/projects/mail/Load/WebApiShooting
     - sandbox/projects/mail/RotateMailNotifyRules
-    - sandbox/projects/maps/common
     - sandbox/projects/marty
     - sandbox/projects/mobile_apps/android_sdk_preparer
     - sandbox/projects/mssngr/runtime/MssngrRouterLoadTest
@@ -675,11 +674,6 @@ migrations:
     ignore:
     - F541
     prefixes:
-    - adfox/infra/amacs_config/lib
-    - adfox/infra/deprecated/mdb/copier
-    - adfox/infra/monitoring/agent
-    - adfox/solo_adfox/tests/scripts/get_solomon_data
-    - adfox/solo_adfox/verification
     - alice/cuttlefish/bin/cuttlefish/tests
     - alice/cuttlefish/bin/cuttlefish/tests/common
     - alice/hollywood/library/python/testing/integration
@@ -1057,7 +1051,6 @@ migrations:
     - voicetech/uniproxy2/tests/common
     - voicetech/vqe/pylibs
     - voicetech/vqe/tests/common
-    - voicetech/vqe/tests/yandexstation_2/aggregated_large
     - web/app_host/daemons/horizon/agent
     - web/app_host/daemons/horizon/agent/nora
     - web/app_host/daemons/horizon/src/agent
@@ -1115,8 +1108,6 @@ migrations:
     - dict/ontodb/isa/libshorttext/converter/stemmer
     - dict/ontodb/report/common
     - dict/ontodb/utils/export_src_codes
-    - distribution_interface/backend/backend
-    - distribution_interface/backend/backend/pydi
     - dj/nirvana/nirvana_make
     - dj/services/alisa_skills/server/tests
     - edadeal/analytics/scripts/CashbackReport/CashbackReportLib
