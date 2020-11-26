@@ -1340,9 +1340,6 @@ class GnuCompiler(Compiler):
                 self.c_warnings.extend((
                     '-Wno-implicit-const-int-float-conversion',
                 ))
-                self.cxx_warnings.extend((
-                    '-Wno-non-c-typedef-for-linkage',
-                ))
 
         if self.tc.is_gcc and self.tc.version_at_least(4, 9):
             self.c_foptions.append('-fno-delete-null-pointer-checks')
