@@ -1316,7 +1316,6 @@ class GnuCompiler(Compiler):
                     '-Wno-implicit-int-float-conversion',
                     '-Wno-int-in-bool-context',
                     '-Wno-misleading-indentation',
-                    '-Wno-string-compare',
                     '-Wno-tautological-overlap-compare',
                     '-Wno-unused-result',
                     '-Wno-unknown-warning-option',  # For nvcc to accept the above.
