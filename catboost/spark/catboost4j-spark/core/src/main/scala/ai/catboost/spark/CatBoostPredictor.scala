@@ -89,21 +89,26 @@ trait CatBoostPredictorTrait[
     val spark = trainPool.data.sparkSession
 
     val partitionCount = get(sparkPartitionCount).getOrElse(SparkHelpers.getWorkerCount(spark))
+    this.logInfo(s"fit. partitionCount=${partitionCount}")
 
     val quantizedTrainPool = if (trainPool.isQuantized) {
       trainPool
     } else {
       val quantizationParams = new ai.catboost.spark.params.QuantizationParams
       this.copyValues(quantizationParams)
+      this.logInfo(s"fit. schedule quantization for train dataset")
       trainPool.quantize(quantizationParams)
     }.repartition(partitionCount)
 
     // TODO(akhropov): eval pools are not distributed for now, so they are not repartitioned
+    var evalIdx = 0
     val quantizedEvalPools = evalPools.map {
       evalPool => {
+        evalIdx = evalIdx + 1
         if (evalPool.isQuantized) {
           evalPool
         } else {
+          this.logInfo(s"fit. schedule quantization for eval dataset #${evalIdx - 1}")
           evalPool.quantize(quantizedTrainPool.quantizedFeaturesInfo)
         }
       }
@@ -123,7 +128,10 @@ trait CatBoostPredictorTrait[
     )
 
     val listeningPort = trainingDriver.getListeningPort
+    this.logInfo(s"fit. TrainingDriver listening port = ${listeningPort}")
 
+    this.logInfo(s"fit. Training started")
+    
     val ecs = new ExecutorCompletionService[Unit](Executors.newFixedThreadPool(2))
 
     val trainingDriverFuture = ecs.submit(trainingDriver, ())
@@ -139,6 +147,8 @@ trait CatBoostPredictorTrait[
     } else { // firstCompletedFuture == trainingDriverFuture
       impl.Helpers.checkOneFutureAndWaitForOther(trainingDriverFuture, workersFuture, "master")
     }
+    
+    this.logInfo(s"fit. Training finished")
 
     createModel(master.nativeModelResult)
   }
