@@ -667,10 +667,6 @@ static TVector<TVector<double>> CalcFstr(
     CB_ENSURE(
         !model.ModelTrees->GetModelTreeData()->GetLeafWeights().empty() || (dataset != nullptr),
         "CalcFstr requires either non-empty LeafWeights in model or provided dataset");
-    CB_ENSURE(
-        model.ModelTrees->GetEmbeddingFeatures().empty(),
-        "CalcFstr is not implemented for models with embeddings features"
-    );
 
     TVector<double> regularEffect = CalcRegularFeatureEffect(model, dataset, type, localExecutor, calcType);
     TVector<TVector<double>> result;
