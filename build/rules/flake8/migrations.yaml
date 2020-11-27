@@ -1902,7 +1902,6 @@ migrations:
     - library/python/bstr
     - library/python/coredump_filter
     - library/python/pytest/plugins
-    - library/python/ticket_parser2/src/ut
     - library/python/toloka_client/tests
     - load/projects/yatool_perf_test/lib
     - logbroker/juggler/bundle/checks
@@ -2061,7 +2060,6 @@ migrations:
     - ott/tv/webeka/proxy
     - ott/tv/webeka/proxy/api
     - ott/tv/webeka/proxy/serializers
-    - passport/go/daemons/shooting_gallery/shooter/ut
     - passport/python/core
     - passport/python/core/validators/password
     - passport/python/library/distprim
