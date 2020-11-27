@@ -1327,9 +1327,13 @@ class GnuCompiler(Compiler):
                 ))
 
             if self.tc.version_at_least(11):
+                # See https://releases.llvm.org/11.0.0/tools/clang/docs/ReleaseNotes.html#improvements-to-clang-s-diagnostics
                 # See https://releases.llvm.org/11.0.0/tools/clang/docs/ReleaseNotes.html#modified-compiler-flags
-                # Disable useful -f that should be restored ASAP:
+                # Disable useful -f and -W that should be restored ASAP:
                 self.c_foptions.append('-fcommon')
+                self.c_warnings.extend((
+                    '-Wno-implicit-const-int-float-conversion',
+                ))
                 self.cxx_warnings.extend((
                     '-Wno-deprecated-anon-enum-enum-conversion',
                     '-Wno-deprecated-enum-enum-conversion',
