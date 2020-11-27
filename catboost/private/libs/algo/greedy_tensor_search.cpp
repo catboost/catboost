@@ -766,6 +766,7 @@ static void CalcBestScoreLeafwise(
     TVector<TCandidatesContext>* candidatesContexts, // [dataset]
     TFold* fold,
     TLearnContext* ctx) {
+
     TVector<std::pair<size_t, size_t>> tasks; // vector of (contextIdx, candId)
 
     for (auto contextIdx : xrange(candidatesContexts->size())) {
@@ -1121,7 +1122,6 @@ static void MarkFeaturesAsUsed(
         );
     }
 }
-
 
 static TSplitTree GreedyTensorSearchOblivious(
     const TTrainingDataProviders& data,
