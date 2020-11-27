@@ -226,13 +226,17 @@ public:
         return FailOnError_;
     }
 
-    void ScheduleIoWait(TFdEvent* event) {
+    void RegisterInWaitQueue(NCoro::TContPollEvent* event) {
         WaitQueue_.Register(event);
+    }
+
+    void ScheduleIoWait(TFdEvent* event) {
+        RegisterInWaitQueue(event);
         Poller_.Schedule(event);
     }
 
     void ScheduleIoWait(TTimerEvent* event) noexcept {
-        WaitQueue_.Register(event);
+        RegisterInWaitQueue(event);
     }
 
 private:
