@@ -24,8 +24,8 @@ void UpdateIndicesWithSplit(
     const TFold& fold,
     NPar::ILocalExecutor* localExecutor,
     TArrayRef<TIndexType> indices,
-    NCB::TIndexedSubset<ui32>& leftIndices,
-    NCB::TIndexedSubset<ui32>& rightIndices
+    NCB::TIndexedSubset<ui32>* leftIndices,
+    NCB::TIndexedSubset<ui32>* rightIndices
 );
 
 void UpdateIndices(

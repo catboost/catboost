@@ -760,12 +760,12 @@ static void DoBootstrap(
 static void CalcBestScoreLeafwise(
     const TTrainingDataProviders& data,
     const TVector<TIndexType>& leafs,
+    const TStatsForSubtractionTrick& statsForSubtractionTrick,
     ui64 randSeed,
     double scoreStDev,
     TVector<TCandidatesContext>* candidatesContexts, // [dataset]
     TFold* fold,
-    TLearnContext* ctx,
-    TStatsForSubtractionTrick statsForSubtractionTrick = TStatsForSubtractionTrick{}) {
+    TLearnContext* ctx) {
     TVector<std::pair<size_t, size_t>> tasks; // vector of (contextIdx, candId)
 
     for (auto contextIdx : xrange(candidatesContexts->size())) {
@@ -793,16 +793,8 @@ static void CalcBestScoreLeafwise(
                 }
             }
             const int maxBucketCount = statsForSubtractionTrick.GetMaxBucketCount();
-            const int maxSplitEnsamples = statsForSubtractionTrick.GetMaxSplitEnsamples();
-            const size_t statsSize = maxBucketCount*maxSplitEnsamples;
-            TArrayRef<TBucketStats> statsRefLocal(statsForSubtractionTrick.GetStatsRef().data() + taskIdx * statsSize, statsSize);
-            TArrayRef<TBucketStats> parentStatsRefLocal(statsForSubtractionTrick.GetParentStatsRef().data() + taskIdx * statsSize, statsSize);
-            TArrayRef<TBucketStats> siblingStatsRefLocal(statsForSubtractionTrick.GetSiblingStatsRef().data() + taskIdx * statsSize, statsSize);
-            TArrayRef<TBucketStats> emptyRef;
-            TStatsForSubtractionTrick statsForSubtractionTrickLocal(statsForSubtractionTrick.GetStatsRef().data() != nullptr ? statsRefLocal : emptyRef,
-                                                                    statsForSubtractionTrick.GetParentStatsRef().data() != nullptr ? parentStatsRefLocal : emptyRef,
-                                                                    statsForSubtractionTrick.GetSiblingStatsRef().data() != nullptr ? siblingStatsRefLocal : emptyRef,
-                                                                    maxBucketCount, 0);
+            const int maxSplitEnsembles = statsForSubtractionTrick.GetMaxSplitEnsembles();
+            const size_t statsSize = maxBucketCount * maxSplitEnsembles;
 
             const auto candidateScores = CalcScoresForOneCandidate(
                 *candidatesContext.LearnData,
@@ -810,8 +802,8 @@ static void CalcBestScoreLeafwise(
                 ctx->SampledDocs,
                 *fold,
                 leafs,
-                ctx,
-                statsForSubtractionTrickLocal);
+                statsForSubtractionTrick.MakeSlice(taskIdx, statsSize),
+                ctx);
 
             SetBestScore(
                 randSeed + taskIdx,
@@ -872,6 +864,7 @@ static void CalcScores(
             CalcBestScoreLeafwise(
                 data,
                 xrange(ctx->SampledDocs.LeavesCount),
+                /*statsForSubtractionTrick*/ TStatsForSubtractionTrick{},
                 randSeed,
                 scoreStDev,
                 candidatesContexts,
@@ -1282,7 +1275,7 @@ static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
             return;
         }
         auto candidatesContexts = SelectFeaturesForScoring(data, {}, fold, ctx);
-        CalcBestScoreLeafwise(data, {leaf}, ctx->LearnProgress->Rand.GenRand(), scoreStDev, &candidatesContexts, fold, ctx);
+        CalcBestScoreLeafwise(data, {leaf}, /*statsForSubtractionTrick*/ TStatsForSubtractionTrick{}, ctx->LearnProgress->Rand.GenRand(), scoreStDev, &candidatesContexts, fold, ctx);
         const size_t maxFeatureValueCount = CalcMaxFeatureValueCount(*fold, candidatesContexts);
         CheckInterrupted(); // check after long-lasting operation
 
@@ -1372,9 +1365,13 @@ static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
     return currentStructure;
 }
 
-inline static void ConditionalPushToParentsQueue(const double gain, const TCandidateInfo* bestSplitCandidate,
-                                                 const TVector<TBucketStats>& stats, TQueue<TVector<TBucketStats>>& parentsQueue, const size_t subSampleSize = 1) {
-    if (!(gain < 1e-9) && bestSplitCandidate != nullptr && subSampleSize != 0) {
+inline static void ConditionalPushToParentsQueue(
+    const double gain,
+    const TCandidateInfo* bestSplitCandidate,
+    const TVector<TBucketStats>& stats,
+    TQueue<TVector<TBucketStats>>& parentsQueue) {
+
+    if (!(gain < 1e-9) && bestSplitCandidate != nullptr) {
         parentsQueue.push(std::move(stats));
     }
 }
@@ -1409,12 +1406,12 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
 
         size_t nTasks = 0;
         int maxBucketCount = 0;
-        ui64 maxSplitEnsamples = 0;
+        ui64 maxSplitEnsembles = 0;
         for (auto contextIdx : xrange(candidatesContexts.size())) {
             TCandidatesContext& candidatesContext = candidatesContexts[contextIdx];
             nTasks += candidatesContext.CandidateList.size();
             for (auto candId : xrange(candidatesContext.CandidateList.size())) {
-                maxSplitEnsamples = std::max(maxSplitEnsamples, candidatesContext.CandidateList[candId].Candidates.size());
+                maxSplitEnsembles = std::max(maxSplitEnsembles, candidatesContext.CandidateList[candId].Candidates.size());
                 for(auto id : xrange(candidatesContext.CandidateList[candId].Candidates.size())) {
                     const int currentBucketCount = GetBucketCount(
                         candidatesContext.CandidateList[candId].Candidates[id].SplitEnsemble,
@@ -1441,16 +1438,13 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
         const size_t maxFeatureValueCount = CalcMaxFeatureValueCount(*fold, candidatesContexts);
 
         const auto calcBestScoreAndCandidate = [&] (
-            TIndexType id,
-            TArrayRef<TBucketStats> stats,
-            TArrayRef<TBucketStats> parentStats,
-            TArrayRef<TBucketStats> siblingStats,
+            const TIndexType id,
+            const TStatsForSubtractionTrick& statsForSubtractionTrick, 
             double* gainLocal,
             TArrayRef<const TCandidateInfo*> bestSplitCandidateLocal,
             TSplit* bestSplitLocal
         ) {
-            TStatsForSubtractionTrick statsForSubtractionTrick(stats, parentStats, siblingStats, maxBucketCount, maxSplitEnsamples);
-            CalcBestScoreLeafwise(data, {id}, ctx->LearnProgress->Rand.GenRand(), scoreStDev, &candidatesContexts, fold, ctx, statsForSubtractionTrick);
+            CalcBestScoreLeafwise(data, {id}, statsForSubtractionTrick, ctx->LearnProgress->Rand.GenRand(), scoreStDev, &candidatesContexts, fold, ctx/*, statsForSubtractionTrick*/);
             double bestScoreLocal = MINIMAL_SCORE;
             SelectBestCandidate(*ctx, candidatesContexts, maxFeatureValueCount, *fold, &bestScoreLocal, bestSplitCandidateLocal.data());
             double scoreBeforeSplitLocal = CalcScoreWithoutSplit(id, *fold, *ctx);
@@ -1459,20 +1453,60 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
             }
             *gainLocal = bestScoreLocal - scoreBeforeSplitLocal;
         };
+        const auto calculateWithSubtractTrick = [&] (
+            const TIndexType smallId,
+            const TIndexType largeId,
+            const ui64 statsSize,
+            const bool reversedPush,
+            TQueue<TVector<TBucketStats>>& parentsQueue,
+            double* gain,
+            const TCandidateInfo** bestSplitCandidate,
+            TSplit* bestSplit,
+            double* nextGain,
+            const TCandidateInfo** bestSplitCandidateNext,
+            TSplit* bestSplitNext
+        ) {
+            TVector<TBucketStats> smallStats;
+            smallStats.yresize(statsSize);
+            const TArrayRef<TBucketStats> emptyStats;
+            const TStatsForSubtractionTrick statsForSubtractionTrickSmall(smallStats, emptyStats, emptyStats, maxBucketCount, maxSplitEnsembles);
+            calcBestScoreAndCandidate(smallId, statsForSubtractionTrickSmall, gain, {bestSplitCandidate, (size_t)1}, bestSplit);
 
+            TVector<TBucketStats> largeStats;
+            if (nextGain != nullptr && bestSplitCandidateNext != nullptr && bestSplitNext != nullptr) {
+                largeStats.yresize(statsSize);
+                TStatsForSubtractionTrick statsForSubtractionTrickLarge(largeStats,  parentsQueue.front(), smallStats, maxBucketCount, maxSplitEnsembles);
+                calcBestScoreAndCandidate(largeId, statsForSubtractionTrickLarge, nextGain, {bestSplitCandidateNext, (size_t)1}, bestSplitNext);
+            }
+
+            if (!parentsQueue.empty()) {
+                parentsQueue.pop();
+            }
+            if (reversedPush) {
+                if (nextGain != nullptr && bestSplitCandidateNext != nullptr) {
+                    ConditionalPushToParentsQueue(*nextGain, *bestSplitCandidateNext, largeStats, parentsQueue);
+                }
+                ConditionalPushToParentsQueue(*gain, *bestSplitCandidate, smallStats, parentsQueue);
+            } else {
+                ConditionalPushToParentsQueue(*gain, *bestSplitCandidate, smallStats, parentsQueue);
+                if (nextGain != nullptr && bestSplitCandidateNext != nullptr) {
+                    ConditionalPushToParentsQueue(*nextGain, *bestSplitCandidateNext, largeStats, parentsQueue);
+                }
+            }
+        };
         TSplit bestSplitNext;
         const TCandidateInfo* bestSplitCandidateNext = nullptr;
         double nextGain = 0;
 
         bool skipNext = false;
 
-        bool zeroSiblingLleft = false;
+        bool zeroSiblingLeft = false;
         for (unsigned long id = 0; id < curLevelLeafs.size(); ++id) {
             const auto& leafBounds = ctx->SampledDocs.LeavesBounds[curLevelLeafs[id]];
             if (leafBounds.GetSize() < ctx->Params.ObliviousTreeOptions->MinDataInLeaf) {
                 if (!skipNext) {
                     skipNext = true;
-                    zeroSiblingLleft = true;
+                    zeroSiblingLeft = true;
                 } else {
                     skipNext = false;
                 }
@@ -1482,68 +1516,86 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
             const TCandidateInfo* bestSplitCandidate = nullptr;
             double gain = 0;
             TSplit bestSplit;
-
+            const ui64 statsSize = maxBucketCount * nFeatures * maxSplitEnsembles;
             if (curDepth == 0) {
-                TVector<TBucketStats> stats;
-                stats.yresize(maxBucketCount * nFeatures * maxSplitEnsamples);
-                calcBestScoreAndCandidate(curLevelLeafs[id], stats, {nullptr, (size_t)0}, {nullptr, (size_t)0}, &gain, {&bestSplitCandidate, (size_t)1}, &bestSplit);
-                ConditionalPushToParentsQueue(gain, bestSplitCandidate, stats, parentsQueue);
+                calculateWithSubtractTrick(
+                    curLevelLeafs[id],
+                    0,
+                    statsSize,
+                    false,
+                    parentsQueue,
+                    &gain,
+                    &bestSplitCandidate,
+                    &bestSplit,
+                    nullptr,
+                    nullptr,
+                    nullptr
+                );
             } else {
                 if (!skipNext) {
-                    TIndexType smallId = 0;
-                    TIndexType largeId = 0;
                     if (leafBounds.GetSize() <= ctx->SampledDocs.LeavesBounds[curLevelLeafs[id + 1]].GetSize()) {
-                        smallId = curLevelLeafs[id];
-                        largeId = curLevelLeafs[id + 1];
-
-                        TVector<TBucketStats> smallStats;
-                        smallStats.yresize(maxBucketCount * nFeatures * maxSplitEnsamples);
-                        calcBestScoreAndCandidate(smallId, smallStats, {nullptr, (size_t)0}, {nullptr, (size_t)0}, &gain, {&bestSplitCandidate, (size_t)1}, &bestSplit);
-
-                        TVector<TBucketStats> largeStats;
-                        largeStats.yresize(maxBucketCount * nFeatures * maxSplitEnsamples);
-                        calcBestScoreAndCandidate(largeId, largeStats, parentsQueue.front(), smallStats, &nextGain, {&bestSplitCandidateNext, (size_t)1}, &bestSplitNext);
-
-                        parentsQueue.pop();
-                        ConditionalPushToParentsQueue(gain, bestSplitCandidate, smallStats, parentsQueue);
-                        ConditionalPushToParentsQueue(nextGain, bestSplitCandidateNext, largeStats, parentsQueue);
+                        calculateWithSubtractTrick(
+                            curLevelLeafs[id],
+                            curLevelLeafs[id + 1],
+                            statsSize,
+                            false,
+                            parentsQueue,
+                            &gain,
+                            &bestSplitCandidate,
+                            &bestSplit,
+                            &nextGain,
+                            &bestSplitCandidateNext,
+                            &bestSplitNext
+                        );
                     } else {
-                        if (ctx->SampledDocs.LeavesBounds[curLevelLeafs[id + 1]].GetSize() == 0) {
-                            TVector<TBucketStats> stats;
-                            stats.yresize(maxBucketCount * nFeatures * maxSplitEnsamples);
-                            calcBestScoreAndCandidate(curLevelLeafs[id], stats, {nullptr, (size_t)0}, {nullptr, (size_t)0}, &gain, {&bestSplitCandidate, (size_t)1}, &bestSplit);
-
-                            parentsQueue.pop();
-                            ConditionalPushToParentsQueue(gain, bestSplitCandidate, stats, parentsQueue);
-
-                            zeroSiblingLleft = false;
+                        if (ctx->SampledDocs.LeavesBounds[curLevelLeafs[id + 1]].GetSize() < ctx->Params.ObliviousTreeOptions->MinDataInLeaf) {
+                            calculateWithSubtractTrick(
+                                curLevelLeafs[id],
+                                0,
+                                statsSize,
+                                false,
+                                parentsQueue,
+                                &gain,
+                                &bestSplitCandidate,
+                                &bestSplit,
+                                nullptr,
+                                nullptr,
+                                nullptr
+                            );
+                            zeroSiblingLeft = false;
                         } else {
-                            smallId = curLevelLeafs[id + 1];
-                            largeId = curLevelLeafs[id];
-                            TVector<TBucketStats> smallStats;
-                            smallStats.yresize(maxBucketCount * nFeatures * maxSplitEnsamples);
-                            calcBestScoreAndCandidate(smallId, smallStats, {nullptr, (size_t)0}, {nullptr, (size_t)0}, &nextGain, {&bestSplitCandidateNext, (size_t)1}, &bestSplitNext);
-
-                            TVector<TBucketStats> largeStats;
-                            largeStats.yresize(maxBucketCount * nFeatures * maxSplitEnsamples);
-                            calcBestScoreAndCandidate(largeId, largeStats, parentsQueue.front(), smallStats, &gain, {&bestSplitCandidate, (size_t)1}, &bestSplit);
-
-                            parentsQueue.pop();
-                            ConditionalPushToParentsQueue(gain, bestSplitCandidate, largeStats, parentsQueue);
-                            ConditionalPushToParentsQueue(nextGain, bestSplitCandidateNext, smallStats, parentsQueue,
-                                                          ctx->SampledDocs.LeavesBounds[curLevelLeafs[id + 1]].GetSize());
+                            calculateWithSubtractTrick(
+                                curLevelLeafs[id + 1],
+                                curLevelLeafs[id],
+                                statsSize,
+                                true,
+                                parentsQueue,
+                                &nextGain,
+                                &bestSplitCandidateNext,
+                                &bestSplitNext,
+                                &gain,
+                                &bestSplitCandidate,
+                                &bestSplit
+                            );
                         }
                     }
                     skipNext = true;
                 } else {
-                    if (zeroSiblingLleft) {
-                        TVector<TBucketStats> stats;
-                        stats.yresize(maxBucketCount * nFeatures * maxSplitEnsamples);
-                        calcBestScoreAndCandidate(curLevelLeafs[id], stats, {nullptr, (size_t)0}, {nullptr, (size_t)0}, &gain, {&bestSplitCandidate, (size_t)1}, &bestSplit);
-
-                        parentsQueue.pop();
-                        ConditionalPushToParentsQueue(gain, bestSplitCandidate, stats, parentsQueue);
-                        zeroSiblingLleft = false;
+                    if (zeroSiblingLeft) {
+                        calculateWithSubtractTrick(
+                            curLevelLeafs[id],
+                            0,
+                            statsSize,
+                            false,
+                            parentsQueue,
+                            &gain,
+                            &bestSplitCandidate,
+                            &bestSplit,
+                            nullptr,
+                            nullptr,
+                            nullptr
+                        );
+                        zeroSiblingLeft = false;
                     } else {
                         gain = nextGain;
                         bestSplit = bestSplitNext;
@@ -1585,7 +1637,9 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
                 subsetsForLeafs[curLevelLeafs[id]],
                 *fold,
                 ctx->LocalExecutor,
-                indicesRef, subsetsForLeafs[leftChildIdx], subsetsForLeafs[rightChildIdx]
+                indicesRef,
+                &subsetsForLeafs[leftChildIdx],
+                &subsetsForLeafs[rightChildIdx]
             );
         }
 
