@@ -21,29 +21,6 @@
 #include "AddressSpace.hpp"
 #include "UnwindCursor.hpp"
 
-#include <sys/mman.h>
-
-void* libunwind::AllocPage(size_t len) {
-#if defined(_LIBUNWIND_NO_HEAP)
-    return 0;
-#else
-    if (len > 4096) {
-        abort();
-    }
-
-    return mmap(0, 4096, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0);
-#endif
-}
-
-void libunwind::FreePage(void* p) {
-#if defined(_LIBUNWIND_NO_HEAP)
-    (void)p;
-    abort();
-#else
-    munmap(p, 4096);
-#endif
-}
-
 using namespace libunwind;
 
 /// internal object to represent this processes address space
@@ -73,6 +50,8 @@ _LIBUNWIND_HIDDEN int __unw_init_local(unw_cursor_t *cursor,
 # define REGISTER_KIND Registers_arm
 #elif defined(__or1k__)
 # define REGISTER_KIND Registers_or1k
+#elif defined(__hexagon__)
+# define REGISTER_KIND Registers_hexagon
 #elif defined(__mips__) && defined(_ABIO32) && _MIPS_SIM == _ABIO32
 # define REGISTER_KIND Registers_mips_o32
 #elif defined(__mips64)

@@ -13,14 +13,10 @@
 #if !defined(__USING_SJLJ_EXCEPTIONS__)
 
 #if defined(__i386__)
-DEFINE_LIBUNWIND_FUNCTION(_ZN9libunwind13Registers_x866jumptoEv)
+DEFINE_LIBUNWIND_FUNCTION(__libunwind_Registers_x86_jumpto)
 #
-# void libunwind::Registers_x86::jumpto()
+# extern "C" void __libunwind_Registers_x86_jumpto(Registers_x86 *);
 #
-#if defined(_WIN32)
-# On windows, the 'this' pointer is passed in ecx instead of on the stack
-  movl   %ecx, %eax
-#else
 # On entry:
 #  +                       +
 #  +-----------------------+
@@ -30,7 +26,6 @@ DEFINE_LIBUNWIND_FUNCTION(_ZN9libunwind13Registers_x866jumptoEv)
 #  +-----------------------+   <-- SP
 #  +                       +
   movl   4(%esp), %eax
-#endif
   # set up eax and ret on new stack location
   movl  28(%eax), %edx # edx holds new stack pointer
   subl  $8,%edx
@@ -60,9 +55,9 @@ DEFINE_LIBUNWIND_FUNCTION(_ZN9libunwind13Registers_x866jumptoEv)
 
 #elif defined(__x86_64__)
 
-DEFINE_LIBUNWIND_FUNCTION(_ZN9libunwind16Registers_x86_646jumptoEv)
+DEFINE_LIBUNWIND_FUNCTION(__libunwind_Registers_x86_64_jumpto)
 #
-# void libunwind::Registers_x86_64::jumpto()
+# extern "C" void __libunwind_Registers_x86_64_jumpto(Registers_x86_64 *);
 #
 #if defined(_WIN64)
 # On entry, thread_state pointer is in rcx; move it into rdi
@@ -175,7 +170,7 @@ DEFINE_LIBUNWIND_FUNCTION(_ZN9libunwind15Registers_ppc646jumptoEv)
   PPC64_LR(30)
   PPC64_LR(31)
 
-#ifdef PPC64_HAS_VMX
+#if defined(__VSX__)
 
   // restore VS registers
   // (note that this also restores floating point registers and V registers,
@@ -317,6 +312,7 @@ PPC64_CLVS_BOTTOM(n)
   PPC64_LF(30)
   PPC64_LF(31)
 
+#if defined(__ALTIVEC__)
   // restore vector registers if any are in use
   ld    %r5, PPC64_OFFS_VRSAVE(%r3)   // test VRsave
   cmpwi %r5, 0
@@ -378,6 +374,7 @@ PPC64_CLV_UNALIGNED_BOTTOM(n)
   PPC64_CLV_UNALIGNEDh(31)
 
 #endif
+#endif
 
 Lnovec:
   ld    %r0, PPC64_OFFS_CR(%r3)
@@ -436,6 +433,7 @@ DEFINE_LIBUNWIND_FUNCTION(_ZN9libunwind13Registers_ppc6jumptoEv)
   lwz     %r30,128(%r3)
   lwz     %r31,132(%r3)
 
+#ifndef __NO_FPRS__
   // restore float registers
   lfd     %f0, 160(%r3)
   lfd     %f1, 168(%r3)
@@ -469,7 +467,9 @@ DEFINE_LIBUNWIND_FUNCTION(_ZN9libunwind13Registers_ppc6jumptoEv)
   lfd     %f29,392(%r3)
   lfd     %f30,400(%r3)
   lfd     %f31,408(%r3)
+#endif
 
+#if defined(__ALTIVEC__)
   // restore vector registers if any are in use
   lwz     %r5, 156(%r3)       // test VRsave
   cmpwi   %r5, 0
@@ -542,6 +542,7 @@ DEFINE_LIBUNWIND_FUNCTION(_ZN9libunwind13Registers_ppc6jumptoEv)
   LOAD_VECTOR_UNALIGNEDh(29)
   LOAD_VECTOR_UNALIGNEDh(30)
   LOAD_VECTOR_UNALIGNEDh(31)
+#endif
 
 Lnovec:
   lwz     %r0, 136(%r3)   // __cr
@@ -557,16 +558,16 @@ Lnovec:
   lwz     %r3,  20(%r3)   // do r3 last
   bctr
 
-#elif defined(__arm64__) || defined(__aarch64__)
+#elif defined(__aarch64__)
 
 //
-// void libunwind::Registers_arm64::jumpto()
+// extern "C" void __libunwind_Registers_arm64_jumpto(Registers_arm64 *);
 //
 // On entry:
 //  thread_state pointer is in x0
 //
   .p2align 2
-DEFINE_LIBUNWIND_FUNCTION(_ZN9libunwind15Registers_arm646jumptoEv)
+DEFINE_LIBUNWIND_FUNCTION(__libunwind_Registers_arm64_jumpto)
   // skip restore of x0,x1 for now
   ldp    x2, x3,  [x0, #0x010]
   ldp    x4, x5,  [x0, #0x020]
@@ -808,6 +809,48 @@ DEFINE_LIBUNWIND_FUNCTION(_ZN9libunwind14Registers_or1k6jumptoEv)
   l.jr     r9
    l.nop
 
+#elif defined(__hexagon__)
+# On entry:
+#  thread_state pointer is in r2
+DEFINE_LIBUNWIND_FUNCTION(_ZN9libunwind17Registers_hexagon6jumptoEv)
+#
+# void libunwind::Registers_hexagon::jumpto()
+#
+  r8 = memw(r0+#32)
+  r9 = memw(r0+#36)
+  r10 = memw(r0+#40)
+  r11 = memw(r0+#44)
+
+  r12 = memw(r0+#48)
+  r13 = memw(r0+#52)
+  r14 = memw(r0+#56)
+  r15 = memw(r0+#60)
+
+  r16 = memw(r0+#64)
+  r17 = memw(r0+#68)
+  r18 = memw(r0+#72)
+  r19 = memw(r0+#76)
+
+  r20 = memw(r0+#80)
+  r21 = memw(r0+#84)
+  r22 = memw(r0+#88)
+  r23 = memw(r0+#92)
+
+  r24 = memw(r0+#96)
+  r25 = memw(r0+#100)
+  r26 = memw(r0+#104)
+  r27 = memw(r0+#108)
+
+  r28 = memw(r0+#112)
+  r29 = memw(r0+#116)
+  r30 = memw(r0+#120)
+  r31 = memw(r0+#132)
+
+  r1 = memw(r0+#128)
+  c4 = r1   // Predicate register
+  r1 = memw(r0+#4)
+  r0 = memw(r0)
+  jumpr r31
 #elif defined(__mips__) && defined(_ABIO32) && _MIPS_SIM == _ABIO32
 
 //
@@ -1075,7 +1118,7 @@ DEFINE_LIBUNWIND_FUNCTION(_ZN9libunwind15Registers_riscv6jumptoEv)
 #endif
 
   // x0 is zero
-  ld    x1, (8 * 1)(a0)
+  ld    x1, (8 * 0)(a0) // restore pc into ra
   ld    x2, (8 * 2)(a0)
   ld    x3, (8 * 3)(a0)
   ld    x4, (8 * 4)(a0)
