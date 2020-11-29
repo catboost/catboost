@@ -256,6 +256,8 @@ void BuildIndicesForDataset(
     TConstArrayRef<std::function<bool(ui32 objIdx)>> nodesSplitFunctionsRef = nodesSplitFunctions;
     TArrayRef<TIndexType> indicesRef(indices, sampleCount);
 
+    NPar::TLocalExecutor::TExecRangeParams params(0, sampleCount);
+    params.SetBlockCount(localExecutor->GetThreadCount() + 1);
     localExecutor->ExecRange(
         [root=tree.GetRoot(), nodesRef, nodesSplitFunctionsRef, indicesRef](ui32 idx) {
             int nodeIdx = root;
@@ -265,7 +267,6 @@ void BuildIndicesForDataset(
             }
             indicesRef[idx] = ~nodeIdx;
         },
-        0,
-        SafeIntegerCast<int>(sampleCount),
+        params,
         NPar::TLocalExecutor::WAIT_COMPLETE);
 }
