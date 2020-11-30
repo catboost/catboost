@@ -385,8 +385,8 @@ static void Train(
         profile.StartNextIteration();
 
         if (timer.Passed() > ctx->OutputOptions.GetSnapshotSaveInterval()) {
-            profile.AddOperation("Save snapshot");
             ctx->SaveProgress(onSaveSnapshotCallback);
+            profile.AddOperation("Save snapshot");
             timer.Reset();
         }
 
