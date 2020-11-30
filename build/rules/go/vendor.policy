@@ -622,23 +622,19 @@ ALLOW yt/jaeger/plugin/cmd/collector -> vendor/github.com/pkg/errors
 
 # IGNIETFERRO-1396
 
-ALLOW cloud/blockstore/tests/hwlab/pg_test/pgshooter -> vendor/github.com/jackc/pgx
 ALLOW district/feed_reader/app/lib -> vendor/github.com/jackc/pgx
 ALLOW edadeal/backend/go/charm/cmd/charm -> vendor/github.com/jackc/pgx
 ALLOW edadeal/backend/go/gluon/internal/app/bootstrap -> vendor/github.com/jackc/pgx
 ALLOW edadeal/backend/go/nachalnik/internal/app/bootstrap -> vendor/github.com/jackc/pgx
 ALLOW edadeal/backend/go/nachalnik/internal/pkg/store -> vendor/github.com/jackc/pgx
 ALLOW extsearch/video/robot/rt_transcoder/video-manager/db -> vendor/github.com/jackc/pgx
-ALLOW games/backend/internal/db_utils -> vendor/github.com/jackc/pgx
-ALLOW games/backend/internal -> vendor/github.com/jackc/pgx
+ALLOW games/backend/internal/dbutils -> vendor/github.com/jackc/pgx
 ALLOW games/backend/pkg/database -> vendor/github.com/jackc/pgx
-ALLOW games/backend -> vendor/github.com/jackc/pgx
 ALLOW mail/calendar/load/bbmock -> vendor/github.com/jackc/pgx
 ALLOW mail/collectors/tests-load/pandora -> vendor/github.com/jackc/pgx
 ALLOW market/sre/services/dist_meta_store/app -> vendor/github.com/jackc/pgx
 ALLOW market/sre/services/dist_meta_store/database -> vendor/github.com/jackc/pgx
 ALLOW quasar/gackend/db -> vendor/github.com/jackc/pgx
-ALLOW quasar/tsup/db -> vendor/github.com/jackc/pgx
 ALLOW transfer_manager/go/cmd/load_generator -> vendor/github.com/jackc/pgx
 ALLOW transfer_manager/go/pkg/mapreduce/pg_to_yt -> vendor/github.com/jackc/pgx
 ALLOW transfer_manager/go/pkg/sink/pg -> vendor/github.com/jackc/pgx
@@ -647,20 +643,11 @@ ALLOW transfer_manager/go/pkg/storage/pg -> vendor/github.com/jackc/pgx
 ALLOW transfer_manager/go/pkg/worker/tasks -> vendor/github.com/jackc/pgx
 ALLOW transfer_manager/go/pkg/pg -> vendor/github.com/jackc/pgx
 ALLOW transfer_manager/go/tests/e2e/pg2pg/replication -> vendor/github.com/jackc/pgx
-ALLOW travel/avia/shared_flights/status_importer/internal/db -> vendor/github.com/jackc/pgx
-ALLOW travel/avia/shared_flights/status_importer/internal/objects/db/carrier -> vendor/github.com/jackc/pgx
-ALLOW travel/avia/shared_flights/status_importer/internal/objects/db/flight-leg -> vendor/github.com/jackc/pgx
-ALLOW travel/avia/shared_flights/status_importer/internal/objects/db/station -> vendor/github.com/jackc/pgx
-ALLOW travel/avia/shared_flights/status_importer/internal/objects/db/status-source -> vendor/github.com/jackc/pgx
-ALLOW travel/avia/shared_flights/status_importer/internal/status -> vendor/github.com/jackc/pgx
-ALLOW travel/avia/shared_flights/status_importer/internal/storage -> vendor/github.com/jackc/pgx
 ALLOW yabs/telephony/platform/common/db -> vendor/github.com/jackc/pgx
 ALLOW yabs/telephony/platform/common/lifecycle -> vendor/github.com/jackc/pgx
 ALLOW yabs/telephony/platform/registrar-agent -> vendor/github.com/jackc/pgx
 ALLOW yabs/vh/cms-pgaas/dhdd/db -> vendor/github.com/jackc/pgx
 ALLOW yabs/vh/cms-pgaas/transcoded -> vendor/github.com/jackc/pgx
-ALLOW zootopia/analytics/dajr/models -> vendor/github.com/jackc/pgx
-ALLOW zootopia/analytics/drive/models -> vendor/github.com/jackc/pgx
 
 #
 # Permanent exceptions.
