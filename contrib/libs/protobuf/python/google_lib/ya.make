@@ -14,10 +14,14 @@ NO_COMPILER_WARNINGS()
 
 NO_LINT()
 
-OPTIMIZE_PY_PROTOS()
+IF (USE_VANILLA_PROTOC)
+    PEERDIR(contrib/libs/protobuf_std)
+ELSE()
+    OPTIMIZE_PY_PROTOS()
+    PEERDIR(contrib/libs/protobuf)
+ENDIF()
 
 PEERDIR(
-    contrib/libs/protobuf
     contrib/python/six
 )
 
