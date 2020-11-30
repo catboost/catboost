@@ -129,6 +129,6 @@ int main() {
         TDuration mean = TDuration::Seconds(stats.Mean());
         TDuration stddev = TDuration::Seconds(stats.StandardDeviation());
         Cerr << fmt.LightRedColor() << bench->Name() << " [threads = " << bench->Threads() << ", reps = " << bench->Reps() << "]" << fmt.OldColor() << ": ";
-        Cerr << fmt.LightCyanColor() << HumanReadable(mean) << u8" ± " << HumanReadable(stddev) << fmt.OldColor() << Endl;
+        Cerr << fmt.LightCyanColor() << HumanReadable(mean) << " ± " << HumanReadable(stddev) << fmt.OldColor() << Endl;
     }
 }
