@@ -709,8 +709,8 @@ public:
     UNIT_TEST_SUITE_END();
 
     void TestAppendUtf16() {
-        TString appended = TString(u8"А роза упала").AppendUtf16(u" на лапу Азора");
-        UNIT_ASSERT(appended == u8"А роза упала на лапу Азора");
+        TString appended = TString("А роза упала").AppendUtf16(u" на лапу Азора");
+        UNIT_ASSERT(appended == "А роза упала на лапу Азора");
     }
 };
 
