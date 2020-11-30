@@ -239,7 +239,7 @@ void UpdateIndicesWithSplit(
     auto func = BuildNodeSplitFunction(
         node,
         *objectsDataProvider,
-        node.Split.Type == ESplitType::OnlineCtr ? &fold.GetCtr(node.Split.Ctr.Projection) : nullptr,
+        node.Split.Type == ESplitType::OnlineCtr ? &fold.GetCtrs(node.Split.Ctr.Projection) : nullptr,
         /* docOffset */ 0);
 
     // TODO(ilyzhin) std::function is very slow for calling many times (maybe replace it with lambda)
