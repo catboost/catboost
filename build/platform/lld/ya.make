@@ -2,9 +2,28 @@ RESOURCES_LIBRARY()
 
 
 
+IF (CLANG7 OR CLANG8)
+    IF (USE_LTO OR USE_THINLTO)
+        # Use LLD 8 for old Clang because its IR code fails LLD 11 validation.
+        ENABLE(USE_LLD8)
+    ENDIF()
+ENDIF()
+
 IF (OS_ANDROID)
-    # Use lld shipped with Android NDK
+    # Use LLD shipped with Android NDK.
     LDFLAGS("-fuse-ld=lld")
+ELSEIF (USE_LLD8)
+    IF (HOST_OS_LINUX)
+        IF (HOST_ARCH_PPC64LE)
+            DECLARE_EXTERNAL_RESOURCE(LLD_ROOT sbr:1610790447)
+        ELSE()
+            DECLARE_EXTERNAL_RESOURCE(LLD_ROOT sbr:1063258680)
+        ENDIF()
+    ELSEIF (HOST_OS_DARWIN)
+        DECLARE_EXTERNAL_RESOURCE(LLD_ROOT sbr:1063258537)
+    ENDIF()
+
+    LDFLAGS("-fuse-ld=$LLD_ROOT_RESOURCE_GLOBAL/ld")
 ELSE()
     IF (HOST_OS_LINUX)
         IF (HOST_ARCH_PPC64LE)
