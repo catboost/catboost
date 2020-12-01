@@ -94,6 +94,7 @@
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\private\libs\options\enums.h_serialized.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\feature_eval_options.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\feature_penalties_options.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\features_select_options.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\json_helper.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\private\libs\options\json_helper.h_serialized.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\load_options.cpp"/>
@@ -181,6 +182,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\enum_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\feature_eval_options.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\feature_penalties_options.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\features_select_options.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\load_options.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\loss_description.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\metric_options.h"/>
