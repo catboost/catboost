@@ -63,39 +63,7 @@ TDataMetaInfo::TDataMetaInfo(
     HasTimestamp = ColumnsInfo->CountColumns(EColumn::Timestamp) != 0 || hasTimestamp;
     HasPairs = hasPairs;
 
-    // if featureNames is defined - take from it, otherwise take from Id in columns
-    TVector<TString> finalFeatureNames;
-    if (featureNames) {
-        finalFeatureNames = **featureNames;
-    }
-
-    TVector<ui32> catFeatureIndices;
-    TVector<ui32> textFeatureIndices;
-    TVector<ui32> embeddingFeatureIndices;
-
-    ui32 featureIdx = 0;
-    for (const auto& column : ColumnsInfo->Columns) {
-        if (IsFactorColumn(column.Type)) {
-            if (!featureNames) {
-                finalFeatureNames.push_back(column.Id);
-            }
-            if (column.Type == EColumn::Categ) {
-                catFeatureIndices.push_back(featureIdx);
-            } else if (column.Type == EColumn::Text) {
-                textFeatureIndices.push_back(featureIdx);
-            } else if (column.Type == EColumn::NumVector) {
-                embeddingFeatureIndices.push_back(featureIdx);
-            }
-            ++featureIdx;
-        }
-    }
-
-    FeaturesLayout = MakeIntrusive<TFeaturesLayout>(
-        featureIdx,
-        std::move(catFeatureIndices),
-        std::move(textFeatureIndices),
-        std::move(embeddingFeatureIndices),
-        finalFeatureNames);
+    FeaturesLayout = TFeaturesLayout::CreateFeaturesLayout(ColumnsInfo->Columns, featureNames);
 
     ColumnsInfo->Validate();
     Validate();
