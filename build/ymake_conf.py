@@ -727,16 +727,6 @@ when (($USEMPROF == "yes") || ($USE_MPROF == "yes")) {
 }
 '''
 
-    def print_android_const(self):
-        # Set `ANDROID_API=XXX` for substitution purposes
-        emit('ANDROID_API', str(self.platform.android_api))
-
-        # Since ymake does not support `>=` expressions, set
-        # `ANDROID_API_AT_LEAST_XXX` for each supported API level
-        min_android_api = 16  # api levels below are not supported by modern NDK and can be assumed implicitly
-        for api_level in xrange(min_android_api, self.platform.android_api + 1):
-            emit('ANDROID_API_AT_LEAST_{}'.format(api_level), 'yes')
-
     def print_target_settings(self):
         emit('TARGET_PLATFORM', self.platform.os_compat)
         emit('HARDWARE_ARCH', '32' if self.platform.is_32_bit else '64')
@@ -749,7 +739,7 @@ when (($USEMPROF == "yes") || ($USE_MPROF == "yes")) {
             emit(variable, 'yes')
 
         if self.platform.is_android:
-            self.print_android_const()
+            emit('ANDROID_API', str(self.platform.android_api))
 
         if self.platform.is_posix:
             self.print_nix_target_const()

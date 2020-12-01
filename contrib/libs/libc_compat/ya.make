@@ -26,11 +26,14 @@ IF (NOT OS_WINDOWS)
     )
 ENDIF()
 
-IF (OS_ANDROID AND NOT ANDROID_API_AT_LEAST_28)
-    SRCS(
-        glob.c
-        reallocarray.c
-    )
+# NB: nested IF's are needed due to the lack of lazy evaluation of logical statements: DEVTOOLS-7837
+IF (OS_ANDROID)
+    IF (ANDROID_API < 28)
+        SRCS(
+            glob.c
+            reallocarray.c
+        )
+    ENDIF()
 ENDIF()
 
 IF (OS_WINDOWS OR OS_DARWIN OR OS_IOS)
