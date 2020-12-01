@@ -210,8 +210,6 @@ public:
         NPar::ILocalExecutor* localExecutor,
         const TString& fileNamesPrefix = "");
 
-    ~TLearnContext();
-
     void SaveProgress(std::function<void(IOutputStream*)> onSaveSnapshot = [] (IOutputStream* /*snapshot*/) {});
     bool TryLoadProgress(std::function<bool(IInputStream*)> onLoadSnapshot = [] (IInputStream* /*snapshot*/) { return true; });
     bool UseTreeLevelCaching() const;

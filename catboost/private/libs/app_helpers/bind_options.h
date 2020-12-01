@@ -29,6 +29,15 @@ void ParseFeatureEvalCommandLine(
     NCatboostOptions::TPoolLoadParams* params
 );
 
+void ParseFeaturesSelectCommandLine(
+    int argc,
+    const char* argv[],
+    NJson::TJsonValue* plainJsonPtr,
+    NJson::TJsonValue* featuresSelectOptions,
+    TString* paramPath,
+    NCatboostOptions::TPoolLoadParams* params
+);
+
 void InitOptions(
     const TString& optionsFile,
     NJson::TJsonValue* catBoostJsonOptions,

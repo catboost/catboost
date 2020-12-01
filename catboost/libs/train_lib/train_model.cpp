@@ -14,7 +14,6 @@
 #include <catboost/libs/data/feature_names_converter.h>
 #include <catboost/libs/data/borders_io.h>
 #include <catboost/libs/data/load_data.h>
-#include <catboost/private/libs/data_util/exists_checker.h>
 #include <catboost/private/libs/distributed/master.h>
 #include <catboost/private/libs/distributed/worker.h>
 #include <catboost/libs/fstr/calc_fstr.h>
@@ -870,27 +869,6 @@ namespace {
 
 TTrainerFactory::TRegistrator<TCPUModelTrainer> CPURegistrator(ETaskType::CPU);
 
-static bool HaveLearnFeaturesInMemory(
-    const NCatboostOptions::TPoolLoadParams* loadOptions,
-    const NCatboostOptions::TCatBoostOptions& catBoostOptions
-) {
-    #if defined(USE_MPI)
-    const bool isGpuDistributed = catBoostOptions.GetTaskType() == ETaskType::GPU;
-    #else
-    const bool isGpuDistributed = false;
-    #endif
-    const bool isCpuDistributed = catBoostOptions.SystemOptions->IsMaster();
-    if (!isCpuDistributed && !isGpuDistributed) {
-        return true;
-    }
-    if (loadOptions == nullptr) {
-        return true;
-    }
-    const auto& learnSetPath = loadOptions->LearnSetPath;
-    const bool isQuantized = learnSetPath.Scheme.find("quantized") != std::string::npos;
-    return !IsSharedFs(learnSetPath) || !isQuantized;
-}
-
 static void TrainModel(
     const NJson::TJsonValue& trainOptionsJson,
     const NCatboostOptions::TOutputFilesOptions& outputOptions,
@@ -1081,6 +1059,10 @@ static void TrainModel(
         evalResultPtrs,
         metricsAndTimeHistory,
         dstLearnProgress);
+
+    if (catBoostOptions.SystemOptions->IsMaster()) {
+        FinalizeMaster(catBoostOptions.SystemOptions);
+    }
 }
 
 

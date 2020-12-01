@@ -12,6 +12,7 @@ struct TRestorableFastRng64;
 
 namespace NCatboostOptions {
     class TCatBoostOptions;
+    struct TPoolLoadParams;
 }
 
 namespace NPar {
@@ -49,5 +50,15 @@ namespace NCB {
         NPar::ILocalExecutor* localExecutor,
         TRestorableFastRng64* rand,
         TMaybe<TFullModel*> initModel = Nothing());
+
+    TTrainingDataProviders MakeFeatureSubsetTrainingData(
+        const TVector<ui32>& ignoredFeatures,
+        const NCB::TTrainingDataProviders& trainingData
+    );
+
+    bool HaveLearnFeaturesInMemory(
+        const NCatboostOptions::TPoolLoadParams* loadOptions,
+        const NCatboostOptions::TCatBoostOptions& catBoostOptions
+    );
 
 }

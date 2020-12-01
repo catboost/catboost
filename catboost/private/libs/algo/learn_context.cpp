@@ -356,12 +356,6 @@ TLearnContext::TLearnContext(
 }
 
 
-TLearnContext::~TLearnContext() {
-    if (Params.SystemOptions->IsMaster()) {
-        FinalizeMaster(this);
-    }
-}
-
 void TLearnContext::SaveProgress(std::function<void(IOutputStream*)> onSaveSnapshot) {
     if (!OutputOptions.SaveSnapshot()) {
         return;

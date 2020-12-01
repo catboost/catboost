@@ -11,7 +11,7 @@
 #include <catboost/private/libs/options/load_options.h>
 
 void InitializeMaster(const NCatboostOptions::TSystemOptions& systemOptions);
-void FinalizeMaster(TLearnContext* ctx);
+void FinalizeMaster(const NCatboostOptions::TSystemOptions& systemOptions);
 void SetTrainDataFromQuantizedPool(
     const NCatboostOptions::TPoolLoadParams& poolLoadOptions,
     const NCatboostOptions::TCatBoostOptions& catBoostOptions,
