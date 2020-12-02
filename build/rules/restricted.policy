@@ -165,6 +165,9 @@ ALLOW contrib/libs/libosmium -> contrib/restricted/protozero
 # ashmem is a limited-use low level library
 ALLOW contrib/libs/android_crazy_linker -> contrib/restricted/ashmem
 
+# allow usage of MIT part
+ALLOW .* -> contrib/restricted/librseq/headeronly
+
 # Default policies:
 
 # 1. All peerdirs within contrib/restricted are permitted
