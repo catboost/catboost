@@ -290,7 +290,7 @@ void UpdateIndicesWithSplit(
         NPar::TLocalExecutor::WAIT_COMPLETE
     );
 
-    for(int i = 1; i < blockCount + 1; ++i) {
+    for (int i = 1; i < blockCount + 1; ++i) {
         leftCounts[i] += leftCounts[i - 1];
         rightCounts[i] += rightCounts[i - 1];
     }
@@ -311,10 +311,10 @@ void UpdateIndicesWithSplit(
             const size_t rightSize = rightCounts[blockId + 1] - rightStart;
             TConstArrayRef<ui32> localLeftsRef(localLefts[blockId].data(), leftSize);
             TConstArrayRef<ui32> localRightsRef(localRights[blockId].data(), rightSize);
-            for(size_t j = 0; j < leftSize; ++j) {
+            for (size_t j = 0; j < leftSize; ++j) {
                 leftIndicesRef[leftStart++] = localLeftsRef[j];
             }
-            for(size_t j = 0; j < rightSize; ++j) {
+            for (size_t j = 0; j < rightSize; ++j) {
                 rightIndicesRef[rightStart++] = localRightsRef[j];
             }
         },

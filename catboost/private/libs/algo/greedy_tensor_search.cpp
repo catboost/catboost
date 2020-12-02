@@ -1369,10 +1369,10 @@ inline static void ConditionalPushToParentsQueue(
     const double gain,
     const TCandidateInfo* bestSplitCandidate,
     const TVector<TBucketStats>& stats,
-    TQueue<TVector<TBucketStats>>& parentsQueue) {
+    TQueue<TVector<TBucketStats>>* parentsQueue) {
 
     if (!(gain < 1e-9) && bestSplitCandidate != nullptr) {
-        parentsQueue.push(std::move(stats));
+        parentsQueue->push(std::move(stats));
     }
 }
 
@@ -1424,7 +1424,7 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
                 }
             }
         }
-        const unsigned long nFeatures = nTasks;
+        const auto nFeatures = nTasks;
 
         CheckInterrupted(); // check after long-lasting operation
 
@@ -1436,15 +1436,16 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
         TVector<TIndexType> splittedLeafs;
         TVector<TIndexType> nextLevelLeafs;
         const size_t maxFeatureValueCount = CalcMaxFeatureValueCount(*fold, candidatesContexts);
+        const ui64 statsSize = maxBucketCount * nFeatures * maxSplitEnsembles;
 
         const auto calcBestScoreAndCandidate = [&] (
             const TIndexType id,
-            const TStatsForSubtractionTrick& statsForSubtractionTrick, 
+            const TStatsForSubtractionTrick& statsForSubtractionTrick,
             double* gainLocal,
             TArrayRef<const TCandidateInfo*> bestSplitCandidateLocal,
             TSplit* bestSplitLocal
         ) {
-            CalcBestScoreLeafwise(data, {id}, statsForSubtractionTrick, ctx->LearnProgress->Rand.GenRand(), scoreStDev, &candidatesContexts, fold, ctx/*, statsForSubtractionTrick*/);
+            CalcBestScoreLeafwise(data, {id}, statsForSubtractionTrick, ctx->LearnProgress->Rand.GenRand(), scoreStDev, &candidatesContexts, fold, ctx);
             double bestScoreLocal = MINIMAL_SCORE;
             SelectBestCandidate(*ctx, candidatesContexts, maxFeatureValueCount, *fold, &bestScoreLocal, bestSplitCandidateLocal.data());
             double scoreBeforeSplitLocal = CalcScoreWithoutSplit(id, *fold, *ctx);
@@ -1456,9 +1457,7 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
         const auto calculateWithSubtractTrick = [&] (
             const TIndexType smallId,
             const TIndexType largeId,
-            const ui64 statsSize,
             const bool reversedPush,
-            TQueue<TVector<TBucketStats>>& parentsQueue,
             double* gain,
             const TCandidateInfo** bestSplitCandidate,
             TSplit* bestSplit,
@@ -1473,8 +1472,10 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
             calcBestScoreAndCandidate(smallId, statsForSubtractionTrickSmall, gain, {bestSplitCandidate, (size_t)1}, bestSplit);
 
             TVector<TBucketStats> largeStats;
-            if (nextGain != nullptr && bestSplitCandidateNext != nullptr && bestSplitNext != nullptr) {
+            const bool haveNotEmptySibling = nextGain != nullptr && bestSplitCandidateNext != nullptr && bestSplitNext != nullptr;
+            if (haveNotEmptySibling) {
                 largeStats.yresize(statsSize);
+                CB_ENSURE(!parentsQueue.empty());
                 TStatsForSubtractionTrick statsForSubtractionTrickLarge(largeStats,  parentsQueue.front(), smallStats, maxBucketCount, maxSplitEnsembles);
                 calcBestScoreAndCandidate(largeId, statsForSubtractionTrickLarge, nextGain, {bestSplitCandidateNext, (size_t)1}, bestSplitNext);
             }
@@ -1483,127 +1484,87 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
                 parentsQueue.pop();
             }
             if (reversedPush) {
-                if (nextGain != nullptr && bestSplitCandidateNext != nullptr) {
-                    ConditionalPushToParentsQueue(*nextGain, *bestSplitCandidateNext, largeStats, parentsQueue);
+                if (haveNotEmptySibling) {
+                    ConditionalPushToParentsQueue(*nextGain, *bestSplitCandidateNext, largeStats, &parentsQueue);
                 }
-                ConditionalPushToParentsQueue(*gain, *bestSplitCandidate, smallStats, parentsQueue);
+                ConditionalPushToParentsQueue(*gain, *bestSplitCandidate, smallStats, &parentsQueue);
             } else {
-                ConditionalPushToParentsQueue(*gain, *bestSplitCandidate, smallStats, parentsQueue);
-                if (nextGain != nullptr && bestSplitCandidateNext != nullptr) {
-                    ConditionalPushToParentsQueue(*nextGain, *bestSplitCandidateNext, largeStats, parentsQueue);
+                ConditionalPushToParentsQueue(*gain, *bestSplitCandidate, smallStats, &parentsQueue);
+                if (haveNotEmptySibling) {
+                    ConditionalPushToParentsQueue(*nextGain, *bestSplitCandidateNext, largeStats, &parentsQueue);
                 }
             }
         };
         TSplit bestSplitNext;
         const TCandidateInfo* bestSplitCandidateNext = nullptr;
         double nextGain = 0;
-
         bool skipNext = false;
 
-        bool zeroSiblingLeft = false;
-        for (unsigned long id = 0; id < curLevelLeafs.size(); ++id) {
+
+        if (curDepth != 0) {
+            CB_ENSURE(curLevelLeafs.size() % 2 == 0);
+        }
+
+        for (size_t id = 0; id < curLevelLeafs.size(); ++id) {
             const auto& leafBounds = ctx->SampledDocs.LeavesBounds[curLevelLeafs[id]];
-            if (leafBounds.GetSize() < ctx->Params.ObliviousTreeOptions->MinDataInLeaf) {
-                if (!skipNext) {
-                    skipNext = true;
-                    zeroSiblingLeft = true;
-                } else {
-                    skipNext = false;
-                }
+            const ui32 leafBoundsSize = leafBounds.GetSize();
+            const ui32 nextleafBoundsSize = (id == (curLevelLeafs.size() - 1)) ? 0 : ctx->SampledDocs.LeavesBounds[curLevelLeafs[id + 1]].GetSize();
+            const bool isNextLeafConsidered = nextleafBoundsSize >= ctx->Params.ObliviousTreeOptions->MinDataInLeaf;
+            const bool isEvenId = id % 2 == 0;
+            if (leafBoundsSize < ctx->Params.ObliviousTreeOptions->MinDataInLeaf) {
                 continue;
             }
 
             const TCandidateInfo* bestSplitCandidate = nullptr;
             double gain = 0;
             TSplit bestSplit;
-            const ui64 statsSize = maxBucketCount * nFeatures * maxSplitEnsembles;
-            if (curDepth == 0) {
+
+            if (!isEvenId && skipNext) {
+                gain = nextGain;
+                bestSplit = bestSplitNext;
+                bestSplitCandidate = bestSplitCandidateNext;
+                skipNext = false;
+            } else if (isEvenId && (leafBoundsSize <= nextleafBoundsSize) && isNextLeafConsidered) {
                 calculateWithSubtractTrick(
                     curLevelLeafs[id],
-                    0,
-                    statsSize,
-                    false,
-                    parentsQueue,
+                    curLevelLeafs[id + 1],
+                    /*reversedPush*/false,
                     &gain,
                     &bestSplitCandidate,
                     &bestSplit,
-                    nullptr,
-                    nullptr,
-                    nullptr
+                    &nextGain,
+                    &bestSplitCandidateNext,
+                    &bestSplitNext
                 );
+                skipNext = true;
+            } else if (isEvenId && (leafBoundsSize > nextleafBoundsSize) && isNextLeafConsidered) {
+                calculateWithSubtractTrick(
+                    curLevelLeafs[id + 1],
+                    curLevelLeafs[id],
+                    /*reversedPush*/true,
+                    &nextGain,
+                    &bestSplitCandidateNext,
+                    &bestSplitNext,
+                    &gain,
+                    &bestSplitCandidate,
+                    &bestSplit
+                );
+                skipNext = true;
             } else {
-                if (!skipNext) {
-                    if (leafBounds.GetSize() <= ctx->SampledDocs.LeavesBounds[curLevelLeafs[id + 1]].GetSize()) {
-                        calculateWithSubtractTrick(
-                            curLevelLeafs[id],
-                            curLevelLeafs[id + 1],
-                            statsSize,
-                            false,
-                            parentsQueue,
-                            &gain,
-                            &bestSplitCandidate,
-                            &bestSplit,
-                            &nextGain,
-                            &bestSplitCandidateNext,
-                            &bestSplitNext
-                        );
-                    } else {
-                        if (ctx->SampledDocs.LeavesBounds[curLevelLeafs[id + 1]].GetSize() < ctx->Params.ObliviousTreeOptions->MinDataInLeaf) {
-                            calculateWithSubtractTrick(
-                                curLevelLeafs[id],
-                                0,
-                                statsSize,
-                                false,
-                                parentsQueue,
-                                &gain,
-                                &bestSplitCandidate,
-                                &bestSplit,
-                                nullptr,
-                                nullptr,
-                                nullptr
-                            );
-                            zeroSiblingLeft = false;
-                        } else {
-                            calculateWithSubtractTrick(
-                                curLevelLeafs[id + 1],
-                                curLevelLeafs[id],
-                                statsSize,
-                                true,
-                                parentsQueue,
-                                &nextGain,
-                                &bestSplitCandidateNext,
-                                &bestSplitNext,
-                                &gain,
-                                &bestSplitCandidate,
-                                &bestSplit
-                            );
-                        }
-                    }
-                    skipNext = true;
-                } else {
-                    if (zeroSiblingLeft) {
-                        calculateWithSubtractTrick(
-                            curLevelLeafs[id],
-                            0,
-                            statsSize,
-                            false,
-                            parentsQueue,
-                            &gain,
-                            &bestSplitCandidate,
-                            &bestSplit,
-                            nullptr,
-                            nullptr,
-                            nullptr
-                        );
-                        zeroSiblingLeft = false;
-                    } else {
-                        gain = nextGain;
-                        bestSplit = bestSplitNext;
-                        bestSplitCandidate = bestSplitCandidateNext;
-                    }
-                    skipNext = false;
-                }
+                calculateWithSubtractTrick(
+                    curLevelLeafs[id],
+                    /*largeId*/0,
+                    /*reversedPush*/false,
+                    &gain,
+                    &bestSplitCandidate,
+                    &bestSplit,
+                    /*nextGain*/nullptr,
+                    /*bestSplitCandidateNext*/nullptr,
+                    /*bestSplitNext*/nullptr
+                );
+                skipNext = false;
             }
+
             if (bestSplitCandidate == nullptr) {
                 continue;
             }

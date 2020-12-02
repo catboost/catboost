@@ -368,7 +368,6 @@ static void CalcScoresForSubCandidate(
             }
     };
 
-    // TODO(ilyzhin) make caching for nonsymmetric trees
     if (!ctx->UseTreeLevelCaching() || ctx->Params.ObliviousTreeOptions->GrowPolicy != EGrowPolicy::SymmetricTree) {
         if (statsRef.data() == nullptr) {
             TVector<TBucketStats> stats;
