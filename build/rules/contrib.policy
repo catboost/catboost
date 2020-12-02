@@ -413,3 +413,6 @@ DENY .* -> contrib/python/face$
 ALLOW contrib/python/webstruct -> contrib/python/webstruct
 ALLOW yweb/antimalware/direct/fraud_html_detector -> contrib/python/webstruct
 DENY .* -> contrib/python/webstruct
+
+ALLOW contrib/tools/unbound -> contrib/tools/unbound
+DENY .* -> contrib/tools/unbound
