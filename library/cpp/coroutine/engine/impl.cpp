@@ -145,16 +145,22 @@ void TContExecutor::WaitForIO() {
         // If there are woken coroutines we do not want to sleep in the poller
         //      yet still we want to check for new io
         //      to prevent ourselves from locking out of io by constantly waking coroutines.
-        Poller_.Wait(Events_, ReadyNext_.Empty() ? next : now);
 
-        // Waking a coroutine puts it into ReadyNext_ list
-        ProcessEvents();
+        if (ReadyNext_.Empty()) {
+            Poll(next);
+        } else if (LastPoll_ + TDuration::MilliSeconds(5) < now) {
+            Poll(now);
+        }
 
         Ready_.Append(ReadyNext_);
     }
 }
 
-void TContExecutor::ProcessEvents() {
+void TContExecutor::Poll(TInstant deadline) {
+    Poller_.Wait(Events_, deadline);
+    LastPoll_ = Now();
+
+    // Waking a coroutine puts it into ReadyNext_ list
     for (auto event : Events_) {
         auto* lst = (NCoro::TPollEventList*)event.Data;
         const int status = event.Status;
