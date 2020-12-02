@@ -1,6 +1,9 @@
 #include "modes.h"
 
+#if defined(USE_MPI)
+#include <catboost/cuda/cuda_lib/cuda_manager.h>
 #include <catboost/cuda/cuda_lib/mpi/mpi_manager.h>
+#endif
 
 #include <catboost/libs/data/feature_names_converter.h>
 #include <catboost/libs/data/load_data.h>
