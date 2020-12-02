@@ -1,6 +1,4 @@
-from _common import sort_by_keywords
-
-ANTLR4_JAR_PATH = 'antlr-4.7-complete.jar'
+ANTLR4_JAR_PATH = 'antlr-4.9-complete.jar'
 
 
 def onrun_antlr4(unit, *args):
