@@ -2149,7 +2149,6 @@ migrations:
     - yabs/rmp/backend/src/app_stores/google_play
     - yabs/rmp/backend/src/uac/avatars
     - yabs/rmp/backend/src/uac/yauth
-    - yabs/rmp/backend/src/uac/ydb
     - yabs/rmp/backend/tests/lib/uac/app_info
     - yabs/rmp/backend/tests/lib/uac/campaign
     - yabs/rmp/backend/tests/lib/uac/content
@@ -2199,7 +2198,6 @@ migrations:
     - yweb/antispam/cid/analytics/pushes/push_sender/args
     - yweb/antispam/cid/analytics/pushes/push_sender/cli
     - yweb/antispam/cid/support/auto_answer/args
-    - yweb/antispam/clean_web/clients/uslugi
     - yweb/antispam/clean_web/metrics/quality/make_sample/src
     - yweb/blender/scripts/blender_viewer/conveyor_experiments/utils
     - yweb/freshness/scripts/sport_pushes
@@ -2631,7 +2629,6 @@ migrations:
     - metrika/pylib/log/tests
     - metrika/tasklets/build/impl
     - metrika/tasklets/deploy/impl
-    - ml/pulsar/server/instance_executor
     - ml/tensorflow/tfnn/tests/tools
     - ml/tensorflow/ytensorflow
     - modadvert/configurator/test_utils
@@ -2899,7 +2896,6 @@ migrations:
     - weather/workers/common/outer_execution
     - weather/workers/warnings/general
     - weather/workers/warnings/nowcasting
-    - web/app_host/conf/graph_generator/tests/light
     - web/app_host/daemons/horizon/tests/nora
     - web/app_host/tools/upper_template_generator/src/graph
     - web/app_host/tools/upper_template_generator/src/web_graph
@@ -3163,7 +3159,6 @@ migrations:
     - maps/infra/sedem/machine/client
     - maps/infra/sedem/machine/tests
     - maps/infra/sedem/tools/changelog_collector
-    - maps/infra/sedem/tools/rm_to_sm_migrate/lib
     - maps/infra/sedem/tools/update_configs
     - maps/pylibs/fixtures
     - maps/pylibs/infrastructure_api/awacs
@@ -3207,7 +3202,6 @@ migrations:
     - market/sre/tools/resource_usage/src/bot
     - market/sre/tools/resource_usage/src/conductor
     - market/sre/tools/resource_usage/src/export
-    - media-billing/tools/deploy-secret-properties
     - metrika/admin/brb/agent/lib
     - metrika/admin/python/bishop/frontend/bishop
     - metrika/admin/python/clickhouse_backups/cli/lib
@@ -3719,7 +3713,6 @@ migrations:
     - yabs/rmp/backend/tests/lib/uac/campaign
     - yabs/rmp/backend/tests/lib/uac/content
     - yabs/rmp/backend/tests/lib/uac/user
-    - yabs/rmp/backend/tests/lib/uac/ydb
     - yabs/rmp/backend/tests/lib/ydb
     - yabs/vh/cms-pgaas/ugc_api
     - yabs/vh/cms-pgaas/ugc_api/models
