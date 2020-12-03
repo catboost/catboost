@@ -567,6 +567,9 @@ ALLOW .* -> vendor/github.com/coredns/coredns/plugin/rewrite
 # CONTRIB-2021
 ALLOW .* -> vendor/github.com/shopspring/decimal
 
+# CONTRIB-2051
+ALLOW .* -> vendor/github.com/envoyproxy/go-control-plane
+
 #
 # Tools
 #
