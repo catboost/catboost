@@ -174,6 +174,9 @@ namespace NCoro {
             P_->Wait(events, deadLine);
         }
 
+        EContPoller PollEngine() const {
+            return P_->PollEngine();
+        }
     private:
         static ui16 Flags(TIntrusiveList<IPollEvent>& lst)  noexcept {
             ui16 ret = 0;

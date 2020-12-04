@@ -10,6 +10,7 @@
 #include <util/system/info.h>
 #include <util/system/thread.h>
 #include <util/generic/xrange.h>
+#include <util/generic/serialized_enum.h>
 
 // TODO (velavokr): BALANCER-1345 add more tests on pollers
 
@@ -44,6 +45,7 @@ class TCoroTest: public TTestBase {
     UNIT_TEST(TestEventQueue)
     UNIT_TEST(TestNestedExecutor)
     UNIT_TEST(TestComputeCoroutineYield)
+    UNIT_TEST(TestPollEngines);
     UNIT_TEST_SUITE_END();
 
 public:
@@ -75,6 +77,7 @@ public:
     void TestEventQueue();
     void TestNestedExecutor();
     void TestComputeCoroutineYield();
+    void TestPollEngines();
 };
 
 void TCoroTest::TestException() {
@@ -975,6 +978,27 @@ void TCoroTest::TestComputeCoroutineYield() {
     exec.Create(io, "io");
 
     exec.Execute();
+}
+
+void TCoroTest::TestPollEngines() {
+    bool defaultChecked = false;
+    for (auto engine : GetEnumAllValues<EContPoller>()) {
+        auto poller = IPollerFace::Construct(engine);
+        if (!poller) {
+            continue;
+        }
+
+        TContExecutor exec(32000, IPollerFace::Construct(engine));
+
+        if (engine == EContPoller::Default) {
+            defaultChecked = true;
+            UNIT_ASSERT_VALUES_EQUAL(exec.Poller()->PollEngine(), EContPoller::Combined);
+        } else {
+            UNIT_ASSERT_VALUES_EQUAL(exec.Poller()->PollEngine(), engine);
+        }
+    }
+
+    UNIT_ASSERT(defaultChecked);
 }
 
 UNIT_TEST_SUITE_REGISTRATION(TCoroTest);
