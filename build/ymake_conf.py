@@ -1222,6 +1222,7 @@ class GnuCompiler(Compiler):
         self.cxx_warnings = [
             '-Woverloaded-virtual', '-Wno-invalid-offsetof', '-Wno-attributes',
         ]
+        self.cxx_extra_options = []
         if not (self.tc.is_gcc and not self.tc.version_at_least(7)):
             self.cxx_warnings.extend([
                 '-Wno-dynamic-exception-spec',  # IGNIETFERRO-282 some problems with lucid
@@ -1320,17 +1321,22 @@ class GnuCompiler(Compiler):
                 # See https://releases.llvm.org/11.0.0/tools/clang/docs/ReleaseNotes.html#improvements-to-clang-s-diagnostics
                 # See https://releases.llvm.org/11.0.0/tools/clang/docs/ReleaseNotes.html#modified-compiler-flags
                 # Disable useful -f and -W that should be restored ASAP:
-                self.c_foptions.append('-fcommon')
-                self.c_warnings.extend((
+                self.c_foptions += ['-fcommon']
+                self.c_warnings += [
                     '-Wno-implicit-const-int-float-conversion',
-                ))
-                self.cxx_warnings.extend((
+                ]
+                self.cxx_warnings += [
                     '-Wno-deprecated-anon-enum-enum-conversion',
                     '-Wno-deprecated-enum-enum-conversion',
                     '-Wno-deprecated-enum-float-conversion',
                     '-Wno-ambiguous-reversed-operator',
                     '-Wno-deprecated-volatile',
-                ))
+                ]
+                self.cxx_extra_options += [
+                    # FIXME thegeorg@: this is the easiest way to add clang++ option without breaking nvcc compilation
+                    # ¯\_(ツ)_/¯
+                    '-fchar8_t',
+                ]
 
         if self.tc.is_gcc and self.tc.version_at_least(4, 9):
             self.c_foptions.append('-fno-delete-null-pointer-checks')
@@ -1406,7 +1412,7 @@ class GnuCompiler(Compiler):
             }''')
 
         append('CFLAGS', self.c_flags, '$DEBUG_INFO_FLAGS', self.c_foptions, '$C_WARNING_OPTS', '$GCC_PREPROCESSOR_OPTS', '$USER_CFLAGS', '$USER_CFLAGS_GLOBAL')
-        append('CXXFLAGS', '$CFLAGS', '-std=' + self.tc.cxx_std, '$CXX_WARNING_OPTS', '$USER_CXXFLAGS')
+        append('CXXFLAGS', '$CFLAGS', '-std=' + self.tc.cxx_std, '$CXX_WARNING_OPTS', self.cxx_extra_options, '$USER_CXXFLAGS')
         append('CONLYFLAGS', '$USER_CONLYFLAGS')
         emit('CXX_COMPILER_UNQUOTED', self.tc.cxx_compiler)
         emit('CXX_COMPILER', '${quo:CXX_COMPILER_UNQUOTED}')
