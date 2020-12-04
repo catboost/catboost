@@ -443,7 +443,7 @@ ALLOW .* -> vendor/google.golang.org/api/firebaseremoteconfig/v1
 ALLOW .* -> vendor/github.com/zaf/g711
 
 # CONTRIB-1505 The exponential backoff algorithm & retry library
-ALLOW .* -> vendor/github.com/cenkalti/backoff
+ALLOW .* -> vendor/github.com/cenkalti/backoff/v4
 
 # CONTRIB-1491 A parser library for Go
 ALLOW .* -> vendor/github.com/alecthomas/participle
