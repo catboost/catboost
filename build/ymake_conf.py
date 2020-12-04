@@ -1303,7 +1303,6 @@ class GnuCompiler(Compiler):
                 # Useful warnings that should be enabled ASAP:
                 self.c_warnings.extend((
                     '-Wno-implicit-int-float-conversion',
-                    '-Wno-misleading-indentation',
                     '-Wno-unknown-warning-option',  # For nvcc to accept the above.
                 ))
                 self.cxx_warnings.extend((
