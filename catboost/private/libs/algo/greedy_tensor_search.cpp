@@ -1368,7 +1368,7 @@ static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
 inline static void ConditionalPushToParentsQueue(
     const double gain,
     const TCandidateInfo* bestSplitCandidate,
-    const TVector<TBucketStats>& stats,
+    TVector<TBucketStats>&& stats,
     TQueue<TVector<TBucketStats>>* parentsQueue) {
 
     if (!(gain < 1e-9) && bestSplitCandidate != nullptr) {
@@ -1485,13 +1485,13 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
             }
             if (reversedPush) {
                 if (haveNotEmptySibling) {
-                    ConditionalPushToParentsQueue(*nextGain, *bestSplitCandidateNext, largeStats, &parentsQueue);
+                    ConditionalPushToParentsQueue(*nextGain, *bestSplitCandidateNext, std::move(largeStats), &parentsQueue);
                 }
-                ConditionalPushToParentsQueue(*gain, *bestSplitCandidate, smallStats, &parentsQueue);
+                ConditionalPushToParentsQueue(*gain, *bestSplitCandidate, std::move(smallStats), &parentsQueue);
             } else {
-                ConditionalPushToParentsQueue(*gain, *bestSplitCandidate, smallStats, &parentsQueue);
+                ConditionalPushToParentsQueue(*gain, *bestSplitCandidate, std::move(smallStats), &parentsQueue);
                 if (haveNotEmptySibling) {
-                    ConditionalPushToParentsQueue(*nextGain, *bestSplitCandidateNext, largeStats, &parentsQueue);
+                    ConditionalPushToParentsQueue(*nextGain, *bestSplitCandidateNext, std::move(largeStats), &parentsQueue);
                 }
             }
         };
