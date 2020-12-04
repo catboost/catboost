@@ -443,6 +443,13 @@ DEF_INT_SPEC(int)
 DEF_INT_SPEC(long)
 DEF_INT_SPEC(long long)
 
+#ifdef __cpp_char8_t
+template <>
+size_t ToStringImpl<char8_t>(char8_t value, char* buf, size_t len) {
+    return FormatInt<ui64, 10, char>(value, buf, len);
+}
+#endif
+
 using TCharIType = std::conditional_t<std::is_signed<char>::value, i64, ui64>;
 using TWCharIType = std::conditional_t<std::is_signed<wchar_t>::value, i64, ui64>;
 
