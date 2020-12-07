@@ -1365,14 +1365,142 @@ static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
     return currentStructure;
 }
 
+struct TSubtarctTrickInfo {
+    const TTrainingDataProviders* Data;
+    TVector<TCandidatesContext>* CandidatesContexts;
+    TFold* Fold;
+    TLearnContext* Ctx;
+    TQueue<TVector<TBucketStats>>* ParentsQueue;
+    bool IsMultiClass;
+    double ScoreStDev;
+    int MaxBucketCount;
+    ui64 MaxSplitEnsembles;
+    ui64 StatsSize;
+    size_t MaxFeatureValueCount;
+
+    TSubtarctTrickInfo(
+        const TTrainingDataProviders* data,
+        TVector<TCandidatesContext>* candidatesContexts,
+        TFold* fold,
+        TLearnContext* ctx,
+        TQueue<TVector<TBucketStats>>* parentsQueue,
+        bool isMultiClass,
+        double scoresStDev,
+        int maxBucketCount,
+        ui64 maxSplitEnsembles,
+        ui64 statsSize,
+        size_t maxFeatureValueCount)
+        : Data(data)
+        , CandidatesContexts(candidatesContexts)
+        , Fold(fold)
+        , Ctx(ctx)
+        , ParentsQueue(parentsQueue)
+        , IsMultiClass(isMultiClass)
+        , ScoreStDev(scoresStDev)
+        , MaxBucketCount(maxBucketCount)
+        , MaxSplitEnsembles(maxSplitEnsembles)
+        , StatsSize(statsSize)
+        , MaxFeatureValueCount(maxFeatureValueCount)
+    {
+    }
+};
+
 inline static void ConditionalPushToParentsQueue(
     const double gain,
     const TCandidateInfo* bestSplitCandidate,
     TVector<TBucketStats>&& stats,
     TQueue<TVector<TBucketStats>>* parentsQueue) {
 
-    if (!(gain < 1e-9) && bestSplitCandidate != nullptr) {
+    if (!(gain < 1e-9) && bestSplitCandidate != nullptr && stats.size() != 0) {
         parentsQueue->push(std::move(stats));
+    }
+}
+
+inline static void calcBestScoreAndCandidate (
+    const TSubtarctTrickInfo& subTrickInfo,
+    const TIndexType id,
+    const TStatsForSubtractionTrick& statsForSubtractionTrick,
+    double* gainLocal,
+    TArrayRef<const TCandidateInfo*> bestSplitCandidateLocal,
+    TSplit* bestSplitLocal) {
+
+    CalcBestScoreLeafwise(
+        *subTrickInfo.Data,
+        {id},
+        statsForSubtractionTrick,
+        subTrickInfo.Ctx->LearnProgress->Rand.GenRand(),
+        subTrickInfo.ScoreStDev,
+        subTrickInfo.CandidatesContexts,
+        subTrickInfo.Fold,
+        subTrickInfo.Ctx);
+    double bestScoreLocal = MINIMAL_SCORE;
+    SelectBestCandidate(
+        *subTrickInfo.Ctx,
+        *subTrickInfo.CandidatesContexts,
+        subTrickInfo.MaxFeatureValueCount,
+        *subTrickInfo.Fold,
+        &bestScoreLocal,
+        bestSplitCandidateLocal.data());
+    double scoreBeforeSplitLocal = CalcScoreWithoutSplit(id, *subTrickInfo.Fold, *subTrickInfo.Ctx);
+    if (bestSplitCandidateLocal.data() != nullptr) {
+        *bestSplitLocal = (*bestSplitCandidateLocal.data())->GetBestSplit(
+            *subTrickInfo.Data,
+            *subTrickInfo.Fold,
+            subTrickInfo.Ctx->Params.CatFeatureParams->OneHotMaxSize);
+    }
+    *gainLocal = bestScoreLocal - scoreBeforeSplitLocal;
+}
+void calculateWithSubtractTrick(
+    const TSubtarctTrickInfo& subTrickInfo,
+    const TIndexType smallId,
+    const TIndexType largeId,
+    const bool reversedPush,
+    double* gain,
+    const TCandidateInfo** bestSplitCandidate,
+    TSplit* bestSplit,
+    double* nextGain,
+    const TCandidateInfo** bestSplitCandidateNext,
+    TSplit* bestSplitNext) {
+
+    TVector<TBucketStats> smallStats;
+    // TODO(ShvetsKS, espetrov) speedup memory allocation to enable subtraction trick for multiclass
+    if(!subTrickInfo.IsMultiClass) {
+        smallStats.yresize(subTrickInfo.StatsSize);
+    }
+    const TArrayRef<TBucketStats> emptyStats;
+    const TStatsForSubtractionTrick statsForSubtractionTrickSmall(
+        smallStats,
+        emptyStats,
+        emptyStats,
+        subTrickInfo.MaxBucketCount,
+        subTrickInfo.MaxSplitEnsembles);
+    calcBestScoreAndCandidate(subTrickInfo, smallId, statsForSubtractionTrickSmall, gain, {bestSplitCandidate, (size_t)1}, bestSplit);
+    TVector<TBucketStats> largeStats;
+    const bool haveNotEmptySibling = nextGain != nullptr && bestSplitCandidateNext != nullptr && bestSplitNext != nullptr;
+    if (haveNotEmptySibling) {
+        largeStats.yresize(subTrickInfo.StatsSize);
+        CB_ENSURE(!subTrickInfo.ParentsQueue->empty());
+        TStatsForSubtractionTrick statsForSubtractionTrickLarge(
+            largeStats,
+            subTrickInfo.ParentsQueue->front(),
+            smallStats,
+            subTrickInfo.MaxBucketCount,
+            subTrickInfo.MaxSplitEnsembles);
+        calcBestScoreAndCandidate(subTrickInfo, largeId, statsForSubtractionTrickLarge, nextGain, {bestSplitCandidateNext, (size_t)1}, bestSplitNext);
+    }
+    if (!subTrickInfo.ParentsQueue->empty()) {
+        subTrickInfo.ParentsQueue->pop();
+    }
+    if (reversedPush) {
+        if (haveNotEmptySibling) {
+            ConditionalPushToParentsQueue(*nextGain, *bestSplitCandidateNext, std::move(largeStats), subTrickInfo.ParentsQueue);
+        }
+        ConditionalPushToParentsQueue(*gain, *bestSplitCandidate, std::move(smallStats), subTrickInfo.ParentsQueue);
+    } else {
+        ConditionalPushToParentsQueue(*gain, *bestSplitCandidate, std::move(smallStats), subTrickInfo.ParentsQueue);
+        if (haveNotEmptySibling) {
+            ConditionalPushToParentsQueue(*nextGain, *bestSplitCandidateNext, std::move(largeStats), subTrickInfo.ParentsQueue);
+        }
     }
 }
 
@@ -1437,69 +1565,25 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
         TVector<TIndexType> nextLevelLeafs;
         const size_t maxFeatureValueCount = CalcMaxFeatureValueCount(*fold, candidatesContexts);
         const ui64 statsSize = maxBucketCount * nFeatures * maxSplitEnsembles;
+        const bool isMultiClass = fold->GetApproxDimension() != 1;
 
-        const auto calcBestScoreAndCandidate = [&] (
-            const TIndexType id,
-            const TStatsForSubtractionTrick& statsForSubtractionTrick,
-            double* gainLocal,
-            TArrayRef<const TCandidateInfo*> bestSplitCandidateLocal,
-            TSplit* bestSplitLocal
-        ) {
-            CalcBestScoreLeafwise(data, {id}, statsForSubtractionTrick, ctx->LearnProgress->Rand.GenRand(), scoreStDev, &candidatesContexts, fold, ctx);
-            double bestScoreLocal = MINIMAL_SCORE;
-            SelectBestCandidate(*ctx, candidatesContexts, maxFeatureValueCount, *fold, &bestScoreLocal, bestSplitCandidateLocal.data());
-            double scoreBeforeSplitLocal = CalcScoreWithoutSplit(id, *fold, *ctx);
-            if (bestSplitCandidateLocal.data() != nullptr) {
-                *bestSplitLocal = (*bestSplitCandidateLocal.data())->GetBestSplit(data, *fold, ctx->Params.CatFeatureParams->OneHotMaxSize);
-            }
-            *gainLocal = bestScoreLocal - scoreBeforeSplitLocal;
-        };
-        const auto calculateWithSubtractTrick = [&] (
-            const TIndexType smallId,
-            const TIndexType largeId,
-            const bool reversedPush,
-            double* gain,
-            const TCandidateInfo** bestSplitCandidate,
-            TSplit* bestSplit,
-            double* nextGain,
-            const TCandidateInfo** bestSplitCandidateNext,
-            TSplit* bestSplitNext
-        ) {
-            TVector<TBucketStats> smallStats;
-            smallStats.yresize(statsSize);
-            const TArrayRef<TBucketStats> emptyStats;
-            const TStatsForSubtractionTrick statsForSubtractionTrickSmall(smallStats, emptyStats, emptyStats, maxBucketCount, maxSplitEnsembles);
-            calcBestScoreAndCandidate(smallId, statsForSubtractionTrickSmall, gain, {bestSplitCandidate, (size_t)1}, bestSplit);
+        TSubtarctTrickInfo subTrickInfo(
+            &data,
+            &candidatesContexts,
+            fold,
+            ctx,
+            &parentsQueue,
+            isMultiClass,
+            scoreStDev,
+            maxBucketCount,
+            maxSplitEnsembles,
+            statsSize,
+            maxFeatureValueCount);
 
-            TVector<TBucketStats> largeStats;
-            const bool haveNotEmptySibling = nextGain != nullptr && bestSplitCandidateNext != nullptr && bestSplitNext != nullptr;
-            if (haveNotEmptySibling) {
-                largeStats.yresize(statsSize);
-                CB_ENSURE(!parentsQueue.empty());
-                TStatsForSubtractionTrick statsForSubtractionTrickLarge(largeStats,  parentsQueue.front(), smallStats, maxBucketCount, maxSplitEnsembles);
-                calcBestScoreAndCandidate(largeId, statsForSubtractionTrickLarge, nextGain, {bestSplitCandidateNext, (size_t)1}, bestSplitNext);
-            }
-
-            if (!parentsQueue.empty()) {
-                parentsQueue.pop();
-            }
-            if (reversedPush) {
-                if (haveNotEmptySibling) {
-                    ConditionalPushToParentsQueue(*nextGain, *bestSplitCandidateNext, std::move(largeStats), &parentsQueue);
-                }
-                ConditionalPushToParentsQueue(*gain, *bestSplitCandidate, std::move(smallStats), &parentsQueue);
-            } else {
-                ConditionalPushToParentsQueue(*gain, *bestSplitCandidate, std::move(smallStats), &parentsQueue);
-                if (haveNotEmptySibling) {
-                    ConditionalPushToParentsQueue(*nextGain, *bestSplitCandidateNext, std::move(largeStats), &parentsQueue);
-                }
-            }
-        };
         TSplit bestSplitNext;
         const TCandidateInfo* bestSplitCandidateNext = nullptr;
         double nextGain = 0;
         bool skipNext = false;
-
 
         if (curDepth != 0) {
             CB_ENSURE(curLevelLeafs.size() % 2 == 0);
@@ -1524,8 +1608,9 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
                 bestSplit = bestSplitNext;
                 bestSplitCandidate = bestSplitCandidateNext;
                 skipNext = false;
-            } else if (isEvenId && (leafBoundsSize <= nextleafBoundsSize) && isNextLeafConsidered) {
+            } else if (isEvenId && (leafBoundsSize <= nextleafBoundsSize) && isNextLeafConsidered && !isMultiClass) {
                 calculateWithSubtractTrick(
+                    subTrickInfo,
                     curLevelLeafs[id],
                     curLevelLeafs[id + 1],
                     /*reversedPush*/false,
@@ -1537,8 +1622,9 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
                     &bestSplitNext
                 );
                 skipNext = true;
-            } else if (isEvenId && (leafBoundsSize > nextleafBoundsSize) && isNextLeafConsidered) {
+            } else if (isEvenId && (leafBoundsSize > nextleafBoundsSize) && isNextLeafConsidered && !isMultiClass) {
                 calculateWithSubtractTrick(
+                    subTrickInfo,
                     curLevelLeafs[id + 1],
                     curLevelLeafs[id],
                     /*reversedPush*/true,
@@ -1552,6 +1638,7 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
                 skipNext = true;
             } else {
                 calculateWithSubtractTrick(
+                    subTrickInfo,
                     curLevelLeafs[id],
                     /*largeId*/0,
                     /*reversedPush*/false,
