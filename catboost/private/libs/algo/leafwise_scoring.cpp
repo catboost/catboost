@@ -563,7 +563,7 @@ double CalcScoreWithoutSplit(int leaf, const TFold& fold, const TLearnContext& c
     const int blockCount = rangesGenerator.RangesCount();
 
     TVector<double> sumWeightedDerivativesLocal(blockCount, 0);
-    TVector<float> sumWeightsLocal(blockCount, 0);
+    TVector<double> sumWeightsLocal(blockCount, 0);
 
     ctx.LocalExecutor->ExecRange(
         [&](int blockId) {
@@ -575,7 +575,7 @@ double CalcScoreWithoutSplit(int leaf, const TFold& fold, const TLearnContext& c
                 }
             }
             sumWeightedDerivativesLocal[blockId] = localSumWeightedDerivatives;
-            float localSumWeights = 0;
+            double localSumWeights = 0;
             TConstArrayRef<float> sumWeightsRef(ctx.SampledDocs.SampleWeights.data() + leafBounds.Begin, leafBoundsSize);
             for(auto idx : rangesGenerator.GetRange(blockId).Iter()) {
                 localSumWeights += sumWeightsRef[idx];

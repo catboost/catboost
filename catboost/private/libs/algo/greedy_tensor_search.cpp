@@ -1463,7 +1463,7 @@ void calculateWithSubtractTrick(
     TSplit* bestSplitNext) {
 
     TVector<TBucketStats> smallStats;
-    // TODO(ShvetsKS, espetrov) speedup memory allocation to enable subtraction trick for multiclass
+    // TODO(ShvetsKS, espetrov) speedup memory allocation to enable subtraction trick for multiclass, mnist dataset
     if(!subTrickInfo.IsMultiClass) {
         smallStats.yresize(subTrickInfo.StatsSize);
     }
