@@ -68,8 +68,6 @@ namespace NCatboostDistributed {
         EHessianType HessianType;
 
     public:
-        TPlainFoldBuilderParams() = default;
-
         SAVELOAD(
             TargetClassifiers,
             RandomSeed,
@@ -89,8 +87,6 @@ namespace NCatboostDistributed {
         ui64 RandomSeed;
 
     public:
-        TDatasetLoaderParams() = default;
-
         SAVELOAD(
             PoolLoadOptions,
             TrainOptions,

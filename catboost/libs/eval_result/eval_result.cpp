@@ -21,9 +21,11 @@ namespace {
         size_t Index;
         bool IsCategorical;
 
-    public:
-        // no sane default-initialization
-        TFeatureDesc() = delete;
+        TFeatureDesc(size_t Index_, bool IsCategorical_)
+            : Index(Index_)
+            , IsCategorical(IsCategorical_)
+        {
+        }
     };
 
     using TFeatureIdToDesc = THashMap<TString, TFeatureDesc>;
