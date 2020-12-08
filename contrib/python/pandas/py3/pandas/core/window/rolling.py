@@ -2193,26 +2193,52 @@ class RollingGroupby(WindowGroupByMixin, Rolling):
             use_numba_cache,
             **kwargs,
         )
-        # Cannot use _wrap_outputs because we calculate the result all at once
-        # Compose MultiIndex result from grouping levels then rolling level
-        # Aggregate the MultiIndex data as tuples then the level names
-        grouped_object_index = self.obj.index
-        grouped_index_name = [*grouped_object_index.names]
-        groupby_keys = [grouping.name for grouping in self._groupby.grouper._groupings]
-        result_index_names = groupby_keys + grouped_index_name
+        # Reconstruct the resulting MultiIndex from tuples
+        # 1st set of levels = group by labels
+        # 2nd set of levels = original index
+        # Ignore 2nd set of levels if a group by label include an index level
+        result_index_names = [
+            grouping.name for grouping in self._groupby.grouper._groupings
+        ]
+        grouped_object_index = None
 
-        result_index_data = []
-        for key, values in self._groupby.grouper.indices.items():
-            for value in values:
-                data = [
-                    *com.maybe_make_list(key),
-                    *com.maybe_make_list(grouped_object_index[value]),
-                ]
-                result_index_data.append(tuple(data))
+        column_keys = [
+            key
+            for key in result_index_names
+            if key not in self.obj.index.names or key is None
+        ]
 
-        result_index = MultiIndex.from_tuples(
-            result_index_data, names=result_index_names
+        if len(column_keys) == len(result_index_names):
+            grouped_object_index = self.obj.index
+            grouped_index_name = [*grouped_object_index.names]
+            result_index_names += grouped_index_name
+        else:
+            # Our result will have still kept the column in the result
+            result = result.drop(columns=column_keys, errors="ignore")
+
+        codes = self._groupby.grouper.codes
+        levels = self._groupby.grouper.levels
+
+        group_indices = self._groupby.grouper.indices.values()
+        if group_indices:
+            indexer = np.concatenate(list(group_indices))
+        else:
+            indexer = np.array([], dtype=np.intp)
+        codes = [c.take(indexer) for c in codes]
+
+        # if the index of the original dataframe needs to be preserved, append
+        # this index (but reordered) to the codes/levels from the groupby
+        if grouped_object_index is not None:
+            idx = grouped_object_index.take(indexer)
+            if not isinstance(idx, MultiIndex):
+                idx = MultiIndex.from_arrays([idx])
+            codes.extend(list(idx.codes))
+            levels.extend(list(idx.levels))
+
+        result_index = MultiIndex(
+            levels, codes, names=result_index_names, verify_integrity=False
         )
+
         result.index = result_index
         return result
 

@@ -889,7 +889,7 @@ class Series(base.IndexOpsMixin, generic.NDFrame):
 
                 return result
 
-            except KeyError:
+            except (KeyError, TypeError):
                 if isinstance(key, tuple) and isinstance(self.index, MultiIndex):
                     # We still have the corner case where a tuple is a key
                     # in the first level of our MultiIndex
@@ -953,7 +953,7 @@ class Series(base.IndexOpsMixin, generic.NDFrame):
             return result
 
         if not isinstance(self.index, MultiIndex):
-            raise ValueError("key of type tuple not found and not a MultiIndex")
+            raise KeyError("key of type tuple not found and not a MultiIndex")
 
         # If key is contained, would have returned by now
         indexer, new_index = self.index.get_loc_level(key)
@@ -967,7 +967,8 @@ class Series(base.IndexOpsMixin, generic.NDFrame):
         except ValueError:
             # mpl compat if we look up e.g. ser[:, np.newaxis];
             #  see tests.series.timeseries.test_mpl_compat_hack
-            return self._values[indexer]
+            # the asarray is needed to avoid returning a 2D DatetimeArray
+            return np.asarray(self._values)[indexer]
 
     def _get_value(self, label, takeable: bool = False):
         """
@@ -1009,7 +1010,7 @@ class Series(base.IndexOpsMixin, generic.NDFrame):
 
         except TypeError as err:
             if isinstance(key, tuple) and not isinstance(self.index, MultiIndex):
-                raise ValueError(
+                raise KeyError(
                     "key of type tuple not found and not a MultiIndex"
                 ) from err
 
