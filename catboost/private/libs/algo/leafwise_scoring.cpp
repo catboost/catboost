@@ -347,21 +347,20 @@ static void CalcScoresForSubCandidate(
     TArrayRef<TBucketStats> siblingStatsRef = statsForSubtractionTrick.GetSiblingStatsRef();
 
     auto calcStatsScores = [&] (TArrayRef<TBucketStats> stats) {
-        const bool useSubtractionTrick = parentStatsRef.data() != nullptr && siblingStatsRef.data() != nullptr;
+        // TODO(ShvetsKS, espetrov) enable subtraction trick for multiclass
+        const bool useSubtractionTrick = parentStatsRef.data() != nullptr && siblingStatsRef.data() != nullptr && approxDimension == 1;
         for (auto leaf : leafs) {
             const auto leafBounds = fold.LeavesBounds[leaf];
             if (leafBounds.Empty()) {
                 continue;
             }
             if (useSubtractionTrick) {
-                // TODO(ShvetsKS, espetrov) enable subtraction trick for multiclass
-                Y_ASSERT(approxDimension == 1);
                 for(int i = 0; i < bucketCount; ++i) {
                     stats[i].SumWeightedDelta = parentStatsRef[i].SumWeightedDelta - siblingStatsRef[i].SumWeightedDelta;
                     stats[i].SumWeight = parentStatsRef[i].SumWeight - siblingStatsRef[i].SumWeight;
                 }
                 calcScores(stats);
-            } else {                
+            } else {
                 extractBucketIndex(leafBounds);
                 for (int dim : xrange(approxDimension)) {
                     calcStats(leafBounds, dim, stats);
