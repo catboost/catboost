@@ -574,6 +574,10 @@ ALLOW .* -> vendor/github.com/shopspring/decimal
 # CONTRIB-2051
 ALLOW .* -> vendor/github.com/envoyproxy/go-control-plane
 
+# CONTRIB-2043
+ALLOW .* -> vendor/github.com/xitongsys/parquet-go
+ALLOW vendor -> vendor/github.com/slon/thrift
+
 #
 # Tools
 #
