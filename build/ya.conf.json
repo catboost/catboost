@@ -6247,9 +6247,7 @@
         },
         "ymake": {
             "formula": {
-                "sandbox_id": [
-                    822239159
-                ],
+                "sandbox_id": [840095086],
                 "match": "ymake"
             },
             "executable": {
@@ -6831,7 +6829,7 @@
         "clang11": {
             "formula": {
                 "sandbox_id": [
-                    837162742,
+                    840779205,
                     828496042,
                     827918501
                 ],
@@ -7913,7 +7911,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 839999797,
+                "sandbox_id": 840911140,
                 "match": "horadric"
             },
             "executable": {
@@ -7924,7 +7922,7 @@
         },
         "logbroker": {
             "formula": {
-                "sandbox_id": 839999924,
+                "sandbox_id": 840911400,
                 "match": "logbroker"
             },
             "executable": {
@@ -7935,7 +7933,7 @@
         },
         "zcli": {
             "formula": {
-                "sandbox_id": 839884855,
+                "sandbox_id": 840736230,
                 "match": "zcli"
             },
             "executable": {
@@ -8056,7 +8054,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 798680401,
+                "sandbox_id": 840911157,
                 "match": "app_host_launcher"
             },
             "executable": {
@@ -8517,7 +8515,7 @@
         },
         "iceflame": {
             "formula": {
-                "sandbox_id": 840000015,
+                "sandbox_id": 840911674,
                 "match": "iceflame"
             },
             "executable": {

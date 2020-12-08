@@ -9,7 +9,8 @@ LICENSE(
 IF (CLANG10BC AND CLANG10 AND HOST_OS_LINUX)
     DECLARE_EXTERNAL_HOST_RESOURCES_BUNDLE(
         CLANG # Clang 10
-        sbr:1805752492 FOR LINUX
+        sbr:1871274282 FOR LINUX
+        sbr:1844539535 FOR DARWIN
     )
 ELSE()
     # Remove -std=c++17 flag from LLVM_COMPILE_CXX and CLANG_EMIT_AST_CXX macro when update clang to 11
