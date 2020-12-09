@@ -48,6 +48,10 @@ SRCS(
     confusion_matrix.cpp
 )
 
+IF (USE_MPI)
+    CFLAGS(-DUSE_MPI)
+ENDIF()
+
 PEERDIR(
     catboost/libs/cat_feature
     catboost/libs/data

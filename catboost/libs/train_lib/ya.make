@@ -37,8 +37,4 @@ PEERDIR(
     library/cpp/threading/local_executor
 )
 
-IF (USE_MPI)
-    CFLAGS(-DUSE_MPI)
-ENDIF()
-
 END()
