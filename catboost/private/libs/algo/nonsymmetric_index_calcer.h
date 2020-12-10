@@ -17,6 +17,17 @@ namespace NPar {
 }
 
 
+void UpdateIndicesWithSplit(
+    const TSplitNode& node,
+    const NCB::TTrainingDataProviders& trainingData,
+    const NCB::TIndexedSubset<ui32>& docsSubset,
+    const TFold& fold,
+    NPar::ILocalExecutor* localExecutor,
+    TArrayRef<TIndexType> indices,
+    NCB::TIndexedSubset<ui32>* leftIndices,
+    NCB::TIndexedSubset<ui32>* rightIndices
+);
+
 void UpdateIndices(
     const TSplitNode& node,
     const NCB::TTrainingDataProviders& trainingData,
