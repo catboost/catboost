@@ -1051,14 +1051,25 @@ class Ya(object):
         return root
 
     def _detect_output_root(self):
-        for p in [
-            # if run from kept test working dir
-            tools.TESTING_OUT_DIR_NAME,
-            # if run from source dir
-            os.path.join("test-results", os.path.basename(os.path.splitext(sys.argv[0])[0]), tools.TESTING_OUT_DIR_NAME),
-        ]:
-            if os.path.exists(p):
-                return p
+
+        # if run from kept test working dir
+        if os.path.exists(tools.TESTING_OUT_DIR_NAME):
+            return tools.TESTING_OUT_DIR_NAME
+
+        # if run from source dir
+        if sys.version_info.major == 3:
+            test_results_dir = "py3test"
+        else:
+            test_results_dir = "pytest"
+
+        test_results_output_path = os.path.join("test-results", test_results_dir, tools.TESTING_OUT_DIR_NAME)
+        if os.path.exists(test_results_output_path):
+            return test_results_output_path
+
+        if os.path.exists(os.path.dirname(test_results_output_path)):
+            os.mkdir(test_results_output_path)
+            return test_results_output_path
+
         return None
 
     def set_test_item_node_id(self, node_id):
