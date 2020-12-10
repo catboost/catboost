@@ -581,6 +581,9 @@ ALLOW .* -> vendor/github.com/envoyproxy/go-control-plane
 ALLOW .* -> vendor/github.com/xitongsys/parquet-go
 ALLOW vendor -> vendor/github.com/slon/thrift
 
+# CONTRIB-2063 flatbuffers support
+ALLOW .* -> vendor/github.com/google/flatbuffers/go
+
 #
 # Tools
 #
