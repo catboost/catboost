@@ -401,6 +401,7 @@ DENY .* -> contrib/python/Quart
 
 # https://st.yandex-team.ru/CONTRIB-2012
 ALLOW maps/geomarketing -> contrib/python/facebook-business
+ALLOW sandbox/projects/maps/geomarketing -> contrib/python/facebook-business
 ALLOW jupytercloud/arcadia_kernel/default -> contrib/python/facebook-business
 ALLOW jupytercloud/arcadia_kernel/default_yql -> contrib/python/facebook-business
 DENY .* -> contrib/python/facebook-business
