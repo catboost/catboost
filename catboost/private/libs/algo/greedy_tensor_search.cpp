@@ -1399,7 +1399,7 @@ namespace {
                 TCandidatesContext& candidatesContext = (*CandidatesContexts)[contextIdx];
                 nFeatures += candidatesContext.CandidateList.size();
                 for (auto candId : xrange(candidatesContext.CandidateList.size())) {
-                    MaxSplitEnsembles = std::max(MaxSplitEnsembles, candidatesContext.CandidateList[candId].Candidates.size());
+                    MaxSplitEnsembles = std::max(MaxSplitEnsembles, (ui64)candidatesContext.CandidateList[candId].Candidates.size());
                     for (auto id : xrange(candidatesContext.CandidateList[candId].Candidates.size())) {
                         const int currentBucketCount = GetBucketCount(
                             candidatesContext.CandidateList[candId].Candidates[id].SplitEnsemble,
@@ -1491,7 +1491,7 @@ static TVector<TBucketStats> CalculateStats(
         subTrickInfo.MaxSplitEnsembles);
     CalcBestScoreAndCandidate(subTrickInfo, smallId, statsForSubtractionTrickSmall, gain, {bestSplitCandidate, (size_t)1}, bestSplit);
 
-    return std::move(smallStats);
+    return smallStats;
 }
 
 static TVector<TBucketStats> CalculateWithSubtractTrick(
@@ -1514,7 +1514,7 @@ static TVector<TBucketStats> CalculateWithSubtractTrick(
         subTrickInfo.MaxSplitEnsembles);
     CalcBestScoreAndCandidate(subTrickInfo, largeId, statsForSubtractionTrickLarge, gain, {bestSplitCandidate, (size_t)1}, bestSplit);
 
-    return std::move(largeStats);
+    return largeStats;
 }
 
 static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
