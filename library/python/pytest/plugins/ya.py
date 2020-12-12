@@ -130,7 +130,7 @@ def setup_logging(log_path, level=logging.DEBUG, *other_logs):
     root_logger = logging.getLogger()
     for i in range(len(root_logger.handlers) - 1, -1, -1):
         if isinstance(root_logger.handlers[i], YaTestLoggingFileHandler):
-            root_logger.handlers.pop(i)
+            root_logger.handlers.pop(i).close()
     root_logger.setLevel(level)
     for log_file in logs:
         file_handler = YaTestLoggingFileHandler(log_file)
