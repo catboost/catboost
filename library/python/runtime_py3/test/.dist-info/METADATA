@@ -1,0 +1,14 @@
+Metadata-Version: 2.1
+Name: foo-bar
+Version: 1.2.3
+Summary: 
+Home-page: https://foo.org/
+Author: Foo
+Author-email: foo@ya.com
+License: UNKNOWN
+Platform: any
+Classifier: Development Status :: 4 - Beta
+Classifier: Programming Language :: Python :: 3
+Requires-Python: >=3.8
+Requires-Dist: Werkzeug (>=0.15)
+Requires-Dist: Jinja2 (>=2.10.1)

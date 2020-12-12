@@ -11,12 +11,17 @@ PY_SRCS(
 )
 
 TEST_SRCS(
+    test_metadata.py
     test_resources.py
     test_traceback.py
 )
 
 RESOURCE_FILES(
     PREFIX library/python/runtime_py3/test/
+    .dist-info/METADATA
+    .dist-info/RECORD
+    .dist-info/entry_points.txt
+    .dist-info/top_level.txt
     resources/foo.txt
     resources/submodule/bar.txt
 )

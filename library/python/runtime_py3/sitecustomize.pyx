@@ -3,7 +3,7 @@ import sys
 import __res
 
 from importlib.abc import ResourceReader
-from importlib.metadata import Distribution, DistributionFinder
+from importlib.metadata import Distribution, DistributionFinder, PackageNotFoundError
 
 ResourceReader.register(__res._ResfsResourceReader)
 
@@ -26,13 +26,14 @@ class ArcadiaMetadataFinder(DistributionFinder):
 
     prefixes = {}
 
-    def find_distributions(self, context=DistributionFinder.Context()):
-        found = self._search_prefixes(context.name)
+    @classmethod
+    def find_distributions(cls, context=DistributionFinder.Context()):
+        found = cls._search_prefixes(context.name)
         return map(ArcadiaDistribution, found)
 
     @classmethod
     def _init_prefixes(cls):
-        cls.prefixes = {}
+        cls.prefixes.clear()
 
         for resource in __res.resfs_files():
             resource = resource.decode('utf-8')
@@ -41,7 +42,7 @@ class ArcadiaMetadataFinder(DistributionFinder):
             data = __res.resfs_read(resource).decode('utf-8')
             for top_level in data.split('\n'):
                 if top_level:
-                    cls.prefixes[top_level] = resource[:-len('top_level.txt')]
+                    cls.prefixes[top_level.lower()] = resource[:-len('top_level.txt')]
 
     @classmethod
     def _search_prefixes(cls, name):
@@ -49,10 +50,15 @@ class ArcadiaMetadataFinder(DistributionFinder):
             cls._init_prefixes()
 
         if name:
-            yield cls.prefixes[name.replace('-', '_')]
+            try:
+                yield cls.prefixes[name.lower().replace('-', '_')]
+            except KeyError:
+                raise PackageNotFoundError(name)
         else:
             for prefix in sorted(set(cls.prefixes.values())):
                 yield prefix
 
 
-sys.meta_path.append(ArcadiaMetadataFinder())
+# monkeypatch standart library
+import importlib.metadata
+importlib.metadata.MetadataPathFinder = ArcadiaMetadataFinder
