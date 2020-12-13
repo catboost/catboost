@@ -440,7 +440,7 @@ class NodeKeywords(MappingMixin):
         return "<NodeKeywords for node %s>" % (self.node,)
 
 
-@attr.s(cmp=False, hash=False)
+@attr.s(eq=False, order=False, hash=False)
 class NodeMarkers(object):
     """
     internal structure for storing marks belonging to a node
