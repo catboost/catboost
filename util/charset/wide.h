@@ -3,6 +3,7 @@
 #include "recode_result.h"
 #include "unidata.h"
 #include "utf8.h"
+#include "wide_specific.h"
 
 #include <util/generic/algorithm.h>
 #include <util/generic/string.h>
