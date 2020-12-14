@@ -643,6 +643,10 @@ namespace NPrivate {
             return Token();
         }
 
+        bool operator==(TStringBufType toCompare) const {
+            return TStringBufType(*this) == toCompare;
+        }
+
         explicit operator bool() const {
             return !Empty();
         }

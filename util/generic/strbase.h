@@ -298,18 +298,19 @@ public:
     }
 
     template <typename TDerived2, typename TTraits2>
-    friend bool operator==(const TSelf& s1, const TStringBase<TDerived2, TChar, TTraits2>& s2) noexcept {
-        return equal(s1, s2);
+    bool operator==(const TStringBase<TDerived2, TChar, TTraits2>& s2) const noexcept {
+        return equal(*this, s2);
     }
 
-    friend bool operator==(const TSelf& s1, TStringView s2) noexcept {
-        return equal(s1, s2);
+    bool operator==(TStringView s2) const noexcept {
+        return equal(*this, s2);
     }
 
-    friend bool operator==(const TSelf& s, const TCharType* pc) noexcept {
-        return equal(s, pc);
+    bool operator==(const TCharType* pc) const noexcept {
+        return equal(*this, pc);
     }
 
+    #ifndef __cpp_impl_three_way_comparison
     friend bool operator==(const TCharType* pc, const TSelf& s) noexcept {
         return equal(pc, s);
     }
@@ -330,6 +331,7 @@ public:
     friend bool operator!=(const TCharType* pc, const TSelf& s) noexcept {
         return !(pc == s);
     }
+    #endif
 
     template <typename TDerived2, typename TTraits2>
     friend bool operator<(const TSelf& s1, const TStringBase<TDerived2, TChar, TTraits2>& s2) noexcept {
