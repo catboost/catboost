@@ -99,10 +99,6 @@ migrations:
     - alice/paskills/nirvana_inflector
     - alice/paskills/recipe_utils/lib
     - alice/tests/difftest/request_miner
-    - alice/tests/integration_tests
-    - alice/tests/integration_tests/surface
-    - alice/tests/integration_tests/test
-    - alice/tests/integration_tests/test/random
     - alice/tools/telegram/alice_battle_angel_bot
     - alice/vins/apps/navi
     - alice/vins/apps/navi/navi_app/lib
@@ -2289,7 +2285,6 @@ migrations:
     - alice/nlu/py_libs/tf_model_applier
     - alice/nlu/py_libs/tokenizer
     - alice/nlu/tools/lstm_classifier_trainer
-    - alice/tests/integration_tests
     - alice/tools/telegram/alice_battle_angel_bot
     - alice/uniproxy/bin/send-digest
     - alice/uniproxy/library/activation_storage
@@ -2869,7 +2864,6 @@ migrations:
     ignore:
     - F541
     prefixes:
-    - alice/tests/integration_tests
     - datalens/backend/bi-api
     - datalens/backend/bi-api/bi/resources
     - datalens/backend/bi-api/tests/db
