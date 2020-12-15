@@ -72,6 +72,16 @@ TEXT_FEATURE_ESTIMATORS = [
     'BoW,NaiveBayes,BM25'
 ]
 
+ROTTEN_TOMATOES_WITH_EMBEDDINGS_TRAIN_FILE = data_file('rotten_tomatoes_small_with_embeddings', 'train')
+ROTTEN_TOMATOES_WITH_EMBEDDINGS_CD_BINCLASS_FILE = data_file(
+    'rotten_tomatoes_small_with_embeddings',
+    'cd_binclass'
+)
+ROTTEN_TOMATOES_ONLY_EMBEDDINGS_CD_BINCLASS_FILE = data_file(
+    'rotten_tomatoes_small_with_embeddings',
+    'cd_binclass_only_embeddings'
+)
+
 
 def diff_tool(threshold=None):
     return get_limited_precision_dsv_diff_tool(threshold, True)
@@ -9064,6 +9074,45 @@ def test_fit_with_per_feature_text_options(boosting_type):
     execute_catboost_fit('CPU', cmd)
 
     apply_catboost(output_model_path, test_file, cd_file, calc_eval_path, output_columns=['RawFormulaVal'])
+    assert filecmp.cmp(test_eval_path, calc_eval_path)
+
+    return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
+
+
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+def test_embeddings_train(boosting_type):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    learn_error_path = yatest.common.test_output_path('learn.tsv')
+    test_error_path = yatest.common.test_output_path('test.tsv')
+
+    test_eval_path = yatest.common.test_output_path('test.eval')
+    calc_eval_path = yatest.common.test_output_path('calc.eval')
+
+    cmd = (
+        '--loss-function', 'Logloss',
+        '--eval-metric', 'AUC',
+        '-f', ROTTEN_TOMATOES_WITH_EMBEDDINGS_TRAIN_FILE,
+        '-t', ROTTEN_TOMATOES_WITH_EMBEDDINGS_TRAIN_FILE,
+        '--column-description', ROTTEN_TOMATOES_ONLY_EMBEDDINGS_CD_BINCLASS_FILE,
+        '--boosting-type', boosting_type,
+        '-i', '20',
+        '-T', '4',
+        '-m', output_model_path,
+        '--learn-err-log', learn_error_path,
+        '--test-err-log', test_error_path,
+        '--eval-file', test_eval_path,
+        '--output-columns', 'RawFormulaVal',
+        '--use-best-model', 'false',
+    )
+    execute_catboost_fit('CPU', cmd)
+
+    apply_catboost(
+        output_model_path,
+        ROTTEN_TOMATOES_WITH_EMBEDDINGS_TRAIN_FILE,
+        ROTTEN_TOMATOES_ONLY_EMBEDDINGS_CD_BINCLASS_FILE,
+        calc_eval_path,
+        output_columns=['RawFormulaVal']
+    )
     assert filecmp.cmp(test_eval_path, calc_eval_path)
 
     return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]

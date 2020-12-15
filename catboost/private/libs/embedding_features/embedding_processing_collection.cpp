@@ -188,7 +188,7 @@ namespace NCB {
             for (ui32 docId: xrange(docCount)) {
                 calcer->Compute(
                     embeddingFeature[docId],
-                    TOutputFloatIterator(result.data() + docId, docCount, result.size())
+                    TOutputFloatIterator(currentResult.data() + docId, docCount, currentResult.size())
                 );
             }
         }

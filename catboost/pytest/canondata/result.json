@@ -1720,6 +1720,22 @@
             "uri": "file://test.test_dist_train_yetirank/test_1.eval"
         }
     ],
+    "test.test_embeddings_train[Ordered]": [
+        {
+            "uri": "file://test.test_embeddings_train_Ordered_/learn.tsv"
+        },
+        {
+            "uri": "file://test.test_embeddings_train_Ordered_/test.tsv"
+        }
+    ],
+    "test.test_embeddings_train[Plain]": [
+        {
+            "uri": "file://test.test_embeddings_train_Plain_/learn.tsv"
+        },
+        {
+            "uri": "file://test.test_embeddings_train_Plain_/test.tsv"
+        }
+    ],
     "test.test_empty_eval[Ordered]": [
         {
             "uri": "file://test.test_empty_eval_Ordered_/test.eval"

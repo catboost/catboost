@@ -18,8 +18,8 @@ namespace NCB {
     TVector<ui32> TKNNCloud::GetNearestNeighbors(const float* embed, ui32 knum) const  {
         TVector<ui32> result;
         auto neighbors = Cloud.GetNearestNeighbors<NOnlineHnsw::TDenseVectorExtendableItemStorage<float>,
-                                                   TL2Distance<NHnsw::TL2SqrDistance<float>>>(embed,
-                                                   knum, 2 * knum, Points, Dist);
+                                                   TL2Distance>(embed,
+                                                   knum, 300, Points, Dist);
         for (size_t pos = 0; pos < neighbors.size(); ++pos) {
             result.push_back(neighbors[pos].Id);
         }
@@ -76,23 +76,41 @@ namespace NCB {
 
     void TKNNCalcer::SaveLargeParameters(IOutputStream* stream) const {
         ::Save(stream, Targets);
-        auto cl = dynamic_cast<TKNNUpdatableCloud*>(Cloud.Get());
-        NOnlineHnsw::TOnlineHnswIndexData indexData = cl->GetCloud().ConstructIndexData();
-        ::SaveSize(stream, NOnlineHnsw::ExpectedSize(indexData));
-        TCountingOutput ss(stream);
-        NOnlineHnsw::WriteIndex(indexData, ss);
-        ::Save(stream, cl->GetVector());
+        if (auto updatableCloud = dynamic_cast<TKNNUpdatableCloud*>(Cloud.Get())) {
+            NOnlineHnsw::TOnlineHnswIndexData indexData = updatableCloud->GetCloud().ConstructIndexData();
+            auto expectedIndexSize = NOnlineHnsw::ExpectedSize(indexData);
+            ::SaveSize(stream, expectedIndexSize);
+            TCountingOutput countingOutput(stream);
+            NOnlineHnsw::WriteIndex(indexData, countingOutput);
+            CB_ENSURE(
+                countingOutput.Counter() == expectedIndexSize,
+                LabeledOutput(countingOutput.Counter(), expectedIndexSize) << " should be equal."
+            );
+            ::Save(stream, updatableCloud->GetVector());
+        } else {
+            const auto staticCloud = dynamic_cast<const TKNNCloud*>(Cloud.Get());
+            CB_ENSURE(staticCloud, "Expected NCB::TKNNCloud pointer");
+            const auto& indexDataBlob = staticCloud->GetIndexDataBlob();
+            ::SaveSize(stream, indexDataBlob.Size());
+            stream->Write(indexDataBlob.Data(), indexDataBlob.Size());
+            ::Save(stream, staticCloud->GetPointsVector());
+        }
     }
 
     void TKNNCalcer::LoadLargeParameters(IInputStream* stream) {
         ::Load(stream, Targets);
         size_t indexSize = ::LoadSize(stream);
-        TArrayHolder<ui8> indexArray = TArrayHolder<ui8>(new ui8[indexSize]);
-        stream->Load(indexArray.Get(), indexSize);
+        TLengthLimitedInput indexArrayStream(stream, indexSize);
+        auto indexArray = TBlob::FromStream(indexArrayStream);
+        CB_ENSURE(indexArray.Size() == indexSize);
         TVector<float> points(TotalDimension * Size);
         ::Load(stream, points);
-        auto cloudPtr = MakeHolder<TKNNCloud>(std::move(indexArray), indexSize,
-                                              std::move(points), TotalDimension, Size);
+        Cloud = MakeHolder<TKNNCloud>(
+            std::move(indexArray),
+            std::move(points),
+            Size,
+            TotalDimension
+        );
     }
 
     TEmbeddingFeatureCalcerFactory::TRegistrator<TKNNCalcer> KNNRegistrator(EFeatureCalcerType::KNN);
