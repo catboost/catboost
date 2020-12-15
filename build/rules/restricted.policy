@@ -9,6 +9,11 @@ ALLOW clickhouse -> contrib/restricted/cityhash-1.0.2
 # Ryu is a fast enough alternative to double-conversion, but not the fastest.
 ALLOW clickhouse -> contrib/restricted/ryu
 
+# fast_float is a faster alternative to double-conversion for float parsing.
+# ClickHouse uses the best libraries for performance, that's why it changes them with insane speed. 
+# Arcadia is not ready for this, that's why we added this library in restricted.
+ALLOW clickhouse -> contrib/restricted/fast_float
+
 ALLOW contrib/libs/clickhouse -> contrib/restricted/apache-orc
 
 # Patched webrtc dependency: CONTRIB-1851
