@@ -146,8 +146,6 @@ migrations:
     - balancer/test/functional/regexp_host
     - balancer/test/util
     - balancer/test/util/dnsfake
-    - billing/agency_rewards/agency_rewards
-    - billing/agency_rewards/agency_rewards/butils
     - billing/apikeys/apikeys
     - billing/apikeys/apikeys/butils_port
     - billing/apikeys/apikeys/butils_port/application
@@ -1490,7 +1488,6 @@ migrations:
     - balancer/test/functional/regexp_path
     - billing/agency_rewards/agency_rewards
     - billing/agency_rewards/agency_rewards/main
-    - billing/agency_rewards/agency_rewards/utils
     - billing/apikeys/apikeys
     - billing/apikeys/apikeys/mapper
     - billing/bcl/bcl
@@ -1625,7 +1622,6 @@ migrations:
     - infra/yp/monitoring/yp_dns_monitoring
     - infra/yp_dns/tools/handle_duplicate_records/lib
     - infra/yp_dns_api/tests
-    - infra/yp_quota_distributor/app/hosts
     - infra/yp_quota_distributor/lib
     - intranet/domenator/src
     - intranet/domenator/src/api
@@ -1770,7 +1766,6 @@ migrations:
     - modadvert/libs/utils/codegeneration/ut
     - modadvert/libs/utils/dictutils/ut
     - modadvert/programs/cv_app/libs
-    - modadvert/programs/supermoderation_api/libs/handlers/add_verdicts
     - modadvert/programs/white_list_spam_client/libs
     - modadvert/tools/accept_campaigns
     - mssngr/botfarm/src/bot
@@ -2094,7 +2089,6 @@ migrations:
     - yandex_io/pylibs/apk_builder
     - ydo/async_api/tests/medium
     - ydo/bg_task_processor/tests/tasks_tests
-    - ydo/database/sending_center/lib
     - ydo/libs/async_api
     - ydo/libs/errorbooster/tests
     - ydo/server/extract_backend_request_source/lib
@@ -2150,8 +2144,6 @@ migrations:
     - alice/uniproxy/library/notificator
     - alice/uniproxy/library/notificator_api
     - arc/tables_creation/tests
-    - billing/dwh/grocery
-    - billing/dwh/grocery/dcs/export/common
     - browser/infra/ci/backend
     - browser/infra/ci/backend/ci/settings
     - cloud/ai/speechkit/stt/tests/data_pipeline/join
@@ -2282,7 +2274,6 @@ migrations:
     - ads/tools/mx_feature_remapper/lib
     - ads/watchman/contrib/flask-marshmallow-patched
     - ads/watchman/contrib/flask-restplus-patched
-    - alice/acceptance/modules/request_generator/lib
     - alice/analytics/wer
     - alice/bass/tests
     - alice/boltalka/generative/tfnn/infer
@@ -2315,7 +2306,6 @@ migrations:
     - arc/ci/tests
     - balancer/test/functional/rate_limiter
     - billing/apikeys/tests
-    - billing/dwh/grocery
     - billing/log_tariffication/py/tests/integration/core_tariff
     - billing/log_tariffication/py/tests/integration/partner_tariff
     - browser/infra/bitbucket/bitbucket
@@ -2535,7 +2525,6 @@ migrations:
     - modadvert/nirvana/sm_api/add_verdicts/libs
     - modadvert/nirvana/sm_api/enrich_direct_banner/it
     - modadvert/nirvana/sm_api/find_related/libs
-    - modadvert/nirvana/totalizator/libs
     - modadvert/programs/monika/libs
     - modadvert/programs/multik/libs
     - modadvert/programs/saas_indexer/ut
@@ -2652,7 +2641,6 @@ migrations:
     - sandbox/projects/clickhouse/util
     - sandbox/projects/cloud/billing/build_analytics_cube/source
     - sandbox/projects/cmnt/PumpkinSettings
-    - sandbox/projects/common/wizard
     - sandbox/projects/devops
     - sandbox/projects/dj/AutoDeploy
     - sandbox/projects/dj/DjCompareBasesearchResponses
@@ -2882,19 +2870,6 @@ migrations:
     - F541
     prefixes:
     - alice/tests/integration_tests
-    - billing/agency_rewards/agency_rewards
-    - billing/agency_rewards/agency_rewards/main
-    - billing/agency_rewards/agency_rewards/utils
-    - billing/agency_rewards/cashback
-    - billing/agency_rewards/cashback/bin
-    - billing/contrib/py3solomon
-    - billing/contrib/py3solomon/py3solomon
-    - billing/datalens/deploy
-    - billing/datalens/utils
-    - billing/dcsaap/backend/api
-    - billing/dwh/grocery
-    - billing/dwh/grocery/dcs/export
-    - billing/dwh/grocery/targets
     - datalens/backend/bi-api
     - datalens/backend/bi-api/bi/resources
     - datalens/backend/bi-api/tests/db
@@ -3264,8 +3239,6 @@ migrations:
     - alice/hollywood/library/scenarios/general_conversation/it/runner
     - alice/hollywood/library/scenarios/music/it/generator
     - alice/hollywood/library/scenarios/transform_face/it
-    - billing/agency_rewards/agency_rewards
-    - billing/agency_rewards/agency_rewards/platform
     - billing/log_tariffication/py/tests/integration/partner_tariff
     - catboost/yandex_specific/tools/pool_ops/test
     - crypta/dmp/yandex/bin/ftp_to_yt/bin/test
