@@ -643,8 +643,15 @@ namespace NPrivate {
             return Token();
         }
 
-        bool operator==(TStringBufType toCompare) const {
-            return TStringBufType(*this) == toCompare;
+        template<
+            typename Other,
+            class = typename std::enable_if<
+                std::is_convertible<Other, TStringBufType>::value,
+                void
+            >::type
+        >
+        bool operator==(const Other& toCompare) const {
+            return TStringBufType(*this) == TStringBufType(toCompare);
         }
 
         explicit operator bool() const {
