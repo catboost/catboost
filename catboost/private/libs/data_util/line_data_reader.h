@@ -40,6 +40,9 @@ namespace NCB {
                 << EscapeC(NumVectorDelimiter) << ')'
             );
         }
+
+        SAVELOAD(HasHeader, Delimiter, NumVectorDelimiter, IgnoreCsvQuoting);
+        Y_SAVELOAD_DEFINE(HasHeader, Delimiter, NumVectorDelimiter, IgnoreCsvQuoting);
     };
 
     struct TLineDataReaderArgs {

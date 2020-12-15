@@ -2,6 +2,7 @@
 
 #include "implementation_type_enum.h"
 
+#include <catboost/libs/eval_result/eval_result.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/private/libs/options/analytical_mode_params.h>
 
@@ -37,4 +38,14 @@ namespace NCB {
         size_t evalPeriod,
         size_t virtualEnsemblesCount,
         TFullModel&& model);
+
+    TEvalResult Apply(
+        const TFullModel& model,
+        const NCB::TDataProvider& dataset,
+        size_t begin,
+        size_t end,
+        size_t evalPeriod,
+        size_t virtualEnsemblesCount,
+        bool isUncertaintyPrediction,
+        NPar::ILocalExecutor* executor);
 }

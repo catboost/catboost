@@ -30,6 +30,11 @@ namespace NCB {
     class TDSVPoolColumnsPrinter : public IPoolColumnsPrinter {
     public:
         TDSVPoolColumnsPrinter(
+            THolder<ILineDataReader>&& lineDataReader,
+            const TDsvFormatOptions& format,
+            const TMaybe<TDataColumnsMetaInfo>& columnsMetaInfo
+        );
+        TDSVPoolColumnsPrinter(
             const TPathWithScheme& testSetPath,
             const TDsvFormatOptions& format,
             const TMaybe<TDataColumnsMetaInfo>& columnsMetaInfo

@@ -13,18 +13,29 @@
 
 
 namespace NCB {
+    TDSVPoolColumnsPrinter::TDSVPoolColumnsPrinter(
+        THolder<ILineDataReader>&& lineDataReader,
+        const TDsvFormatOptions& format,
+        const TMaybe<TDataColumnsMetaInfo>& columnsMetaInfo
+    )
+        : LineDataReader(std::move(lineDataReader))
+        , Delimiter(format.Delimiter)
+        , DocId(-1)
+    {
+        UpdateColumnTypeInfo(columnsMetaInfo);
+    }
 
     TDSVPoolColumnsPrinter::TDSVPoolColumnsPrinter(
         const TPathWithScheme& testSetPath,
         const TDsvFormatOptions& format,
         const TMaybe<TDataColumnsMetaInfo>& columnsMetaInfo
     )
-        : LineDataReader(GetLineDataReader(testSetPath, format))
-        , Delimiter(format.Delimiter)
-        , DocId(-1)
-    {
-        UpdateColumnTypeInfo(columnsMetaInfo);
-    }
+        : TDSVPoolColumnsPrinter(
+            GetLineDataReader(testSetPath, format),
+            format,
+            columnsMetaInfo)
+    {}
+
 
     void TDSVPoolColumnsPrinter::OutputColumnByType(IOutputStream* outStream, ui64 docId, EColumn columnType) {
         CB_ENSURE(FromColumnTypeToColumnId.contains(columnType),
