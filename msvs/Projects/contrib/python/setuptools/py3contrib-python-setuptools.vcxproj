@@ -587,7 +587,9 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/easy_install.py-" "$(SolutionDir)../contrib/python/setuptools/easy_install.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/easy_install.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/easy_install.py-" "$(SolutionDir)../contrib/python/setuptools/easy_install.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/easy_install.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -602,7 +604,9 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/easy_install.py-" "$(SolutionDir)../contrib/python/setuptools/easy_install.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/easy_install.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/easy_install.py-" "$(SolutionDir)../contrib/python/setuptools/easy_install.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/easy_install.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -618,7 +622,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/__init__.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/__init__.py.qhpe.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/__init__.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/__init__.py.qhpe.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -629,7 +635,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/__init__.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/__init__.py.qhpe.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/__init__.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/__init__.py.qhpe.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -645,7 +653,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/_vendor/__init__.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/_vendor/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/_vendor/__init__.py.iuqx.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/_vendor/__init__.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/_vendor/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/_vendor/__init__.py.iuqx.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -656,7 +666,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/_vendor/__init__.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/_vendor/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/_vendor/__init__.py.iuqx.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/_vendor/__init__.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/_vendor/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/_vendor/__init__.py.iuqx.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -672,7 +684,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/_vendor/appdirs.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/_vendor/appdirs.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/_vendor/appdirs.py.kshf.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/_vendor/appdirs.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/_vendor/appdirs.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/_vendor/appdirs.py.kshf.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -683,7 +697,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/_vendor/appdirs.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/_vendor/appdirs.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/_vendor/appdirs.py.kshf.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/_vendor/appdirs.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/_vendor/appdirs.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/_vendor/appdirs.py.kshf.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -699,7 +715,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/_vendor/packaging/__about__.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/_vendor/packaging/__about__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/_vendor/packaging/__about__.py.g4g7.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/_vendor/packaging/__about__.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/_vendor/packaging/__about__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/_vendor/packaging/__about__.py.g4g7.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -710,7 +728,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/_vendor/packaging/__about__.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/_vendor/packaging/__about__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/_vendor/packaging/__about__.py.g4g7.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/_vendor/packaging/__about__.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/_vendor/packaging/__about__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/_vendor/packaging/__about__.py.g4g7.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -726,7 +746,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/_vendor/packaging/__init__.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/_vendor/packaging/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/_vendor/packaging/__init__.py.j4p3.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/_vendor/packaging/__init__.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/_vendor/packaging/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/_vendor/packaging/__init__.py.j4p3.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -737,7 +759,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/_vendor/packaging/__init__.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/_vendor/packaging/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/_vendor/packaging/__init__.py.j4p3.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/_vendor/packaging/__init__.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/_vendor/packaging/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/_vendor/packaging/__init__.py.j4p3.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -753,7 +777,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/_vendor/packaging/_compat.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/_vendor/packaging/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/_vendor/packaging/_compat.py.mojx.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/_vendor/packaging/_compat.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/_vendor/packaging/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/_vendor/packaging/_compat.py.mojx.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -764,7 +790,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/_vendor/packaging/_compat.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/_vendor/packaging/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/_vendor/packaging/_compat.py.mojx.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/_vendor/packaging/_compat.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/_vendor/packaging/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/_vendor/packaging/_compat.py.mojx.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -780,7 +808,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/_vendor/packaging/_structures.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/_vendor/packaging/_structures.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/_vendor/packaging/_structures.py.fwby.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/_vendor/packaging/_structures.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/_vendor/packaging/_structures.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/_vendor/packaging/_structures.py.fwby.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -791,7 +821,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/_vendor/packaging/_structures.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/_vendor/packaging/_structures.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/_vendor/packaging/_structures.py.fwby.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/_vendor/packaging/_structures.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/_vendor/packaging/_structures.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/_vendor/packaging/_structures.py.fwby.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -807,7 +839,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/_vendor/packaging/markers.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/_vendor/packaging/markers.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/_vendor/packaging/markers.py.bqck.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/_vendor/packaging/markers.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/_vendor/packaging/markers.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/_vendor/packaging/markers.py.bqck.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -818,7 +852,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/_vendor/packaging/markers.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/_vendor/packaging/markers.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/_vendor/packaging/markers.py.bqck.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/_vendor/packaging/markers.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/_vendor/packaging/markers.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/_vendor/packaging/markers.py.bqck.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -834,7 +870,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/_vendor/packaging/requirements.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/_vendor/packaging/requirements.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/_vendor/packaging/requirements.py.ajis.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/_vendor/packaging/requirements.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/_vendor/packaging/requirements.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/_vendor/packaging/requirements.py.ajis.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -845,7 +883,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/_vendor/packaging/requirements.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/_vendor/packaging/requirements.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/_vendor/packaging/requirements.py.ajis.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/_vendor/packaging/requirements.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/_vendor/packaging/requirements.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/_vendor/packaging/requirements.py.ajis.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -861,7 +901,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/_vendor/packaging/specifiers.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/_vendor/packaging/specifiers.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/_vendor/packaging/specifiers.py.zeu7.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/_vendor/packaging/specifiers.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/_vendor/packaging/specifiers.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/_vendor/packaging/specifiers.py.zeu7.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -872,7 +914,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/_vendor/packaging/specifiers.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/_vendor/packaging/specifiers.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/_vendor/packaging/specifiers.py.zeu7.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/_vendor/packaging/specifiers.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/_vendor/packaging/specifiers.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/_vendor/packaging/specifiers.py.zeu7.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -888,7 +932,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/_vendor/packaging/utils.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/_vendor/packaging/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/_vendor/packaging/utils.py.urev.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/_vendor/packaging/utils.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/_vendor/packaging/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/_vendor/packaging/utils.py.urev.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -899,7 +945,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/_vendor/packaging/utils.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/_vendor/packaging/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/_vendor/packaging/utils.py.urev.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/_vendor/packaging/utils.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/_vendor/packaging/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/_vendor/packaging/utils.py.urev.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -915,7 +963,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/_vendor/packaging/version.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/_vendor/packaging/version.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/_vendor/packaging/version.py.7pt5.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/_vendor/packaging/version.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/_vendor/packaging/version.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/_vendor/packaging/version.py.7pt5.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -926,7 +976,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/_vendor/packaging/version.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/_vendor/packaging/version.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/_vendor/packaging/version.py.7pt5.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/_vendor/packaging/version.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/_vendor/packaging/version.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/_vendor/packaging/version.py.7pt5.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -942,7 +994,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/_vendor/pyparsing.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/_vendor/pyparsing.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/_vendor/pyparsing.py.3qn3.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/_vendor/pyparsing.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/_vendor/pyparsing.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/_vendor/pyparsing.py.3qn3.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -953,7 +1007,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/_vendor/pyparsing.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/_vendor/pyparsing.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/_vendor/pyparsing.py.3qn3.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/_vendor/pyparsing.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/_vendor/pyparsing.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/_vendor/pyparsing.py.3qn3.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -969,7 +1025,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/_vendor/six.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/_vendor/six.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/_vendor/six.py.nggk.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/_vendor/six.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/_vendor/six.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/_vendor/six.py.nggk.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -980,7 +1038,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/_vendor/six.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/_vendor/six.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/_vendor/six.py.nggk.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/_vendor/six.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/_vendor/six.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/_vendor/six.py.nggk.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -996,7 +1056,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/extern/__init__.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/extern/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/extern/__init__.py.bhvf.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/extern/__init__.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/extern/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/extern/__init__.py.bhvf.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1007,7 +1069,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/extern/__init__.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/extern/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/extern/__init__.py.bhvf.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/extern/__init__.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/extern/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/extern/__init__.py.bhvf.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1023,7 +1087,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/py31compat.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/py31compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/py31compat.py.mtxh.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/py31compat.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/py31compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/py31compat.py.mtxh.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1034,7 +1100,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/py31compat.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/py31compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/py31compat.py.mtxh.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/pkg_resources/py31compat.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/py31compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/py31compat.py.mtxh.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1050,7 +1118,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/__init__.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/__init__.py.nnmr.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/__init__.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/__init__.py.nnmr.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1061,7 +1131,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/__init__.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/__init__.py.nnmr.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/__init__.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/__init__.py.nnmr.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1077,7 +1149,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_deprecation_warning.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_deprecation_warning.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_deprecation_warning.py.xopx.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_deprecation_warning.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_deprecation_warning.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_deprecation_warning.py.xopx.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1088,7 +1162,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_deprecation_warning.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_deprecation_warning.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_deprecation_warning.py.xopx.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_deprecation_warning.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_deprecation_warning.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_deprecation_warning.py.xopx.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1108,7 +1184,9 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_imp.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_imp.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_imp.py.kj2r.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_imp.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_imp.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_imp.py.kj2r.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1123,7 +1201,9 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_imp.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_imp.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_imp.py.kj2r.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_imp.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_imp.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_imp.py.kj2r.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1139,7 +1219,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/__init__.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/__init__.py.lo27.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/__init__.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/__init__.py.lo27.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1150,7 +1232,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/__init__.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/__init__.py.lo27.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/__init__.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/__init__.py.lo27.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1166,7 +1250,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/ordered_set.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/ordered_set.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/ordered_set.py.56wj.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/ordered_set.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/ordered_set.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/ordered_set.py.56wj.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1177,7 +1263,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/ordered_set.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/ordered_set.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/ordered_set.py.56wj.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/ordered_set.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/ordered_set.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/ordered_set.py.56wj.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1193,7 +1281,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/packaging/__about__.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/packaging/__about__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/packaging/__about__.py.bco6.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/packaging/__about__.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/packaging/__about__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/packaging/__about__.py.bco6.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1204,7 +1294,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/packaging/__about__.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/packaging/__about__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/packaging/__about__.py.bco6.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/packaging/__about__.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/packaging/__about__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/packaging/__about__.py.bco6.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1220,7 +1312,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/packaging/__init__.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/packaging/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/packaging/__init__.py.eap5.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/packaging/__init__.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/packaging/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/packaging/__init__.py.eap5.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1231,7 +1325,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/packaging/__init__.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/packaging/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/packaging/__init__.py.eap5.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/packaging/__init__.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/packaging/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/packaging/__init__.py.eap5.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1247,7 +1343,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/packaging/_compat.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/packaging/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/packaging/_compat.py.53ai.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/packaging/_compat.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/packaging/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/packaging/_compat.py.53ai.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1258,7 +1356,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/packaging/_compat.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/packaging/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/packaging/_compat.py.53ai.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/packaging/_compat.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/packaging/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/packaging/_compat.py.53ai.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1274,7 +1374,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/packaging/_structures.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/packaging/_structures.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/packaging/_structures.py.jmvv.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/packaging/_structures.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/packaging/_structures.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/packaging/_structures.py.jmvv.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1285,7 +1387,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/packaging/_structures.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/packaging/_structures.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/packaging/_structures.py.jmvv.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/packaging/_structures.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/packaging/_structures.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/packaging/_structures.py.jmvv.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1301,7 +1405,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/packaging/markers.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/packaging/markers.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/packaging/markers.py.jihr.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/packaging/markers.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/packaging/markers.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/packaging/markers.py.jihr.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1312,7 +1418,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/packaging/markers.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/packaging/markers.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/packaging/markers.py.jihr.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/packaging/markers.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/packaging/markers.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/packaging/markers.py.jihr.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1328,7 +1436,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/packaging/requirements.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/packaging/requirements.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/packaging/requirements.py.6jia.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/packaging/requirements.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/packaging/requirements.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/packaging/requirements.py.6jia.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1339,7 +1449,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/packaging/requirements.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/packaging/requirements.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/packaging/requirements.py.6jia.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/packaging/requirements.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/packaging/requirements.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/packaging/requirements.py.6jia.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1355,7 +1467,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/packaging/specifiers.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/packaging/specifiers.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/packaging/specifiers.py.lzcr.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/packaging/specifiers.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/packaging/specifiers.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/packaging/specifiers.py.lzcr.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1366,7 +1480,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/packaging/specifiers.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/packaging/specifiers.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/packaging/specifiers.py.lzcr.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/packaging/specifiers.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/packaging/specifiers.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/packaging/specifiers.py.lzcr.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1382,7 +1498,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/packaging/tags.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/packaging/tags.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/packaging/tags.py.v3b2.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/packaging/tags.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/packaging/tags.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/packaging/tags.py.v3b2.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1393,7 +1511,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/packaging/tags.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/packaging/tags.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/packaging/tags.py.v3b2.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/packaging/tags.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/packaging/tags.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/packaging/tags.py.v3b2.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1409,7 +1529,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/packaging/utils.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/packaging/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/packaging/utils.py.wn3k.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/packaging/utils.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/packaging/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/packaging/utils.py.wn3k.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1420,7 +1542,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/packaging/utils.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/packaging/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/packaging/utils.py.wn3k.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/packaging/utils.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/packaging/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/packaging/utils.py.wn3k.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1436,7 +1560,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/packaging/version.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/packaging/version.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/packaging/version.py.xso5.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/packaging/version.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/packaging/version.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/packaging/version.py.xso5.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1447,7 +1573,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/packaging/version.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/packaging/version.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/packaging/version.py.xso5.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/packaging/version.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/packaging/version.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/packaging/version.py.xso5.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1463,7 +1591,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/pyparsing.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/pyparsing.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/pyparsing.py.luve.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/pyparsing.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/pyparsing.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/pyparsing.py.luve.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1474,7 +1604,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/pyparsing.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/pyparsing.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/pyparsing.py.luve.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/pyparsing.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/pyparsing.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/pyparsing.py.luve.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1490,7 +1622,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/six.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/six.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/six.py.73kg.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/six.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/six.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/six.py.73kg.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1501,7 +1635,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/six.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/six.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/six.py.73kg.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/_vendor/six.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/_vendor/six.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/_vendor/six.py.73kg.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1517,7 +1653,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/archive_util.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/archive_util.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/archive_util.py.fa4k.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/archive_util.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/archive_util.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/archive_util.py.fa4k.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1528,7 +1666,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/archive_util.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/archive_util.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/archive_util.py.fa4k.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/archive_util.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/archive_util.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/archive_util.py.fa4k.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1544,7 +1684,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/build_meta.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/build_meta.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/build_meta.py.ntrs.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/build_meta.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/build_meta.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/build_meta.py.ntrs.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1555,7 +1697,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/build_meta.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/build_meta.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/build_meta.py.ntrs.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/build_meta.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/build_meta.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/build_meta.py.ntrs.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1571,7 +1715,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/__init__.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/__init__.py.az5f.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/__init__.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/__init__.py.az5f.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1582,7 +1728,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/__init__.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/__init__.py.az5f.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/__init__.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/__init__.py.az5f.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1598,7 +1746,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/alias.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/alias.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/alias.py.tcq6.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/alias.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/alias.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/alias.py.tcq6.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1609,7 +1759,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/alias.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/alias.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/alias.py.tcq6.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/alias.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/alias.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/alias.py.tcq6.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1625,7 +1777,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/bdist_egg.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/bdist_egg.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/bdist_egg.py.bygj.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/bdist_egg.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/bdist_egg.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/bdist_egg.py.bygj.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1636,7 +1790,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/bdist_egg.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/bdist_egg.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/bdist_egg.py.bygj.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/bdist_egg.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/bdist_egg.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/bdist_egg.py.bygj.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1652,7 +1808,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/bdist_rpm.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/bdist_rpm.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/bdist_rpm.py.thtb.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/bdist_rpm.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/bdist_rpm.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/bdist_rpm.py.thtb.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1663,7 +1821,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/bdist_rpm.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/bdist_rpm.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/bdist_rpm.py.thtb.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/bdist_rpm.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/bdist_rpm.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/bdist_rpm.py.thtb.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1679,7 +1839,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/bdist_wininst.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/bdist_wininst.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/bdist_wininst.py.hrrz.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/bdist_wininst.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/bdist_wininst.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/bdist_wininst.py.hrrz.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1690,7 +1852,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/bdist_wininst.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/bdist_wininst.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/bdist_wininst.py.hrrz.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/bdist_wininst.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/bdist_wininst.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/bdist_wininst.py.hrrz.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1706,7 +1870,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/build_clib.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/build_clib.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/build_clib.py.vqvk.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/build_clib.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/build_clib.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/build_clib.py.vqvk.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1717,7 +1883,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/build_clib.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/build_clib.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/build_clib.py.vqvk.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/build_clib.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/build_clib.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/build_clib.py.vqvk.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1733,7 +1901,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/build_ext.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/build_ext.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/build_ext.py.vmxj.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/build_ext.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/build_ext.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/build_ext.py.vmxj.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1744,7 +1914,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/build_ext.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/build_ext.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/build_ext.py.vmxj.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/build_ext.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/build_ext.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/build_ext.py.vmxj.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1760,7 +1932,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/build_py.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/build_py.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/build_py.py.yary.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/build_py.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/build_py.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/build_py.py.yary.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1771,7 +1945,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/build_py.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/build_py.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/build_py.py.yary.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/build_py.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/build_py.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/build_py.py.yary.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1787,7 +1963,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/develop.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/develop.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/develop.py.jgij.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/develop.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/develop.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/develop.py.jgij.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1798,7 +1976,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/develop.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/develop.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/develop.py.jgij.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/develop.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/develop.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/develop.py.jgij.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1818,7 +1998,9 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/dist_info.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/dist_info.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/dist_info.py.t3it.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/dist_info.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/dist_info.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/dist_info.py.t3it.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1833,7 +2015,9 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/dist_info.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/dist_info.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/dist_info.py.t3it.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/dist_info.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/dist_info.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/dist_info.py.t3it.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1849,7 +2033,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/easy_install.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/easy_install.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/easy_install.py.a7t2.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/easy_install.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/easy_install.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/easy_install.py.a7t2.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1860,7 +2046,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/easy_install.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/easy_install.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/easy_install.py.a7t2.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/easy_install.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/easy_install.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/easy_install.py.a7t2.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1876,7 +2064,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/egg_info.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/egg_info.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/egg_info.py.7pcm.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/egg_info.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/egg_info.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/egg_info.py.7pcm.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1887,7 +2077,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/egg_info.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/egg_info.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/egg_info.py.7pcm.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/egg_info.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/egg_info.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/egg_info.py.7pcm.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1903,7 +2095,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/install.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/install.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/install.py.h7tp.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/install.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/install.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/install.py.h7tp.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1914,7 +2108,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/install.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/install.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/install.py.h7tp.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/install.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/install.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/install.py.h7tp.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1930,7 +2126,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/install_egg_info.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/install_egg_info.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/install_egg_info.py.yc7i.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/install_egg_info.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/install_egg_info.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/install_egg_info.py.yc7i.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1941,7 +2139,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/install_egg_info.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/install_egg_info.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/install_egg_info.py.yc7i.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/install_egg_info.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/install_egg_info.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/install_egg_info.py.yc7i.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1957,7 +2157,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/install_lib.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/install_lib.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/install_lib.py.tlzb.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/install_lib.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/install_lib.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/install_lib.py.tlzb.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1968,7 +2170,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/install_lib.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/install_lib.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/install_lib.py.tlzb.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/install_lib.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/install_lib.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/install_lib.py.tlzb.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1984,7 +2188,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/install_scripts.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/install_scripts.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/install_scripts.py.7kyv.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/install_scripts.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/install_scripts.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/install_scripts.py.7kyv.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1995,7 +2201,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/install_scripts.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/install_scripts.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/install_scripts.py.7kyv.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/install_scripts.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/install_scripts.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/install_scripts.py.7kyv.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2011,7 +2219,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/py36compat.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/py36compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/py36compat.py.qjj6.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/py36compat.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/py36compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/py36compat.py.qjj6.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2022,7 +2232,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/py36compat.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/py36compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/py36compat.py.qjj6.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/py36compat.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/py36compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/py36compat.py.qjj6.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2038,7 +2250,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/register.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/register.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/register.py.pln2.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/register.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/register.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/register.py.pln2.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2049,7 +2263,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/register.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/register.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/register.py.pln2.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/register.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/register.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/register.py.pln2.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2065,7 +2281,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/rotate.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/rotate.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/rotate.py.sqbb.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/rotate.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/rotate.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/rotate.py.sqbb.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2076,7 +2294,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/rotate.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/rotate.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/rotate.py.sqbb.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/rotate.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/rotate.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/rotate.py.sqbb.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2092,7 +2312,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/saveopts.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/saveopts.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/saveopts.py.uxww.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/saveopts.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/saveopts.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/saveopts.py.uxww.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2103,7 +2325,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/saveopts.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/saveopts.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/saveopts.py.uxww.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/saveopts.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/saveopts.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/saveopts.py.uxww.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2119,7 +2343,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/sdist.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/sdist.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/sdist.py.4jyd.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/sdist.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/sdist.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/sdist.py.4jyd.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2130,7 +2356,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/sdist.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/sdist.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/sdist.py.4jyd.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/sdist.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/sdist.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/sdist.py.4jyd.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2146,7 +2374,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/setopt.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/setopt.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/setopt.py.ufyu.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/setopt.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/setopt.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/setopt.py.ufyu.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2157,7 +2387,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/setopt.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/setopt.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/setopt.py.ufyu.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/setopt.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/setopt.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/setopt.py.ufyu.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2177,7 +2409,9 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/test.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/test.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/test.py.czzs.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/test.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/test.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/test.py.czzs.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2192,7 +2426,9 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/test.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/test.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/test.py.czzs.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/test.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/test.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/test.py.czzs.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2208,7 +2444,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/upload.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/upload.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/upload.py.d6lg.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/upload.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/upload.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/upload.py.d6lg.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2219,7 +2457,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/upload.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/upload.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/upload.py.d6lg.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/upload.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/upload.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/upload.py.d6lg.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2235,7 +2475,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/upload_docs.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/upload_docs.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/upload_docs.py.ik5e.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/upload_docs.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/upload_docs.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/upload_docs.py.ik5e.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2246,7 +2488,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/upload_docs.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/upload_docs.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/upload_docs.py.ik5e.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/command/upload_docs.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/upload_docs.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/upload_docs.py.ik5e.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2262,7 +2506,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/config.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/config.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/config.py.gyaf.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/config.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/config.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/config.py.gyaf.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2273,7 +2519,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/config.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/config.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/config.py.gyaf.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/config.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/config.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/config.py.gyaf.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2289,7 +2537,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/dep_util.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/dep_util.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/dep_util.py.kpzj.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/dep_util.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/dep_util.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/dep_util.py.kpzj.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2300,7 +2550,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/dep_util.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/dep_util.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/dep_util.py.kpzj.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/dep_util.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/dep_util.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/dep_util.py.kpzj.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2316,7 +2568,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/depends.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/depends.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/depends.py.jsud.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/depends.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/depends.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/depends.py.jsud.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2327,7 +2581,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/depends.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/depends.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/depends.py.jsud.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/depends.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/depends.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/depends.py.jsud.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2343,7 +2599,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/dist.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/dist.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/dist.py.b4z5.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/dist.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/dist.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/dist.py.b4z5.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2354,7 +2612,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/dist.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/dist.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/dist.py.b4z5.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/dist.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/dist.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/dist.py.b4z5.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2374,7 +2634,9 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/errors.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/errors.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/errors.py.tm3s.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/errors.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/errors.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/errors.py.tm3s.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2389,7 +2651,9 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/errors.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/errors.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/errors.py.tm3s.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/errors.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/errors.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/errors.py.tm3s.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2405,7 +2669,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/extension.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/extension.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/extension.py.66nm.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/extension.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/extension.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/extension.py.66nm.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2416,7 +2682,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/extension.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/extension.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/extension.py.66nm.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/extension.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/extension.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/extension.py.66nm.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2432,7 +2700,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/extern/__init__.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/extern/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/extern/__init__.py.y2kq.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/extern/__init__.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/extern/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/extern/__init__.py.y2kq.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2443,7 +2713,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/extern/__init__.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/extern/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/extern/__init__.py.y2kq.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/extern/__init__.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/extern/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/extern/__init__.py.y2kq.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2459,7 +2731,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/glob.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/glob.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/glob.py.oaur.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/glob.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/glob.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/glob.py.oaur.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2470,7 +2744,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/glob.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/glob.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/glob.py.oaur.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/glob.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/glob.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/glob.py.oaur.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2486,7 +2762,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/installer.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/installer.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/installer.py.dijm.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/installer.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/installer.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/installer.py.dijm.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2497,7 +2775,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/installer.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/installer.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/installer.py.dijm.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/installer.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/installer.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/installer.py.dijm.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2513,7 +2793,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/launch.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/launch.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/launch.py.g2fd.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/launch.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/launch.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/launch.py.g2fd.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2524,7 +2806,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/launch.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/launch.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/launch.py.g2fd.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/launch.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/launch.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/launch.py.g2fd.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2540,7 +2824,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/lib2to3_ex.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/lib2to3_ex.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/lib2to3_ex.py.wwas.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/lib2to3_ex.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/lib2to3_ex.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/lib2to3_ex.py.wwas.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2551,7 +2837,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/lib2to3_ex.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/lib2to3_ex.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/lib2to3_ex.py.wwas.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/lib2to3_ex.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/lib2to3_ex.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/lib2to3_ex.py.wwas.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2571,7 +2859,9 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/monkey.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/monkey.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/monkey.py.pjlq.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/monkey.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/monkey.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/monkey.py.pjlq.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2586,7 +2876,9 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/monkey.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/monkey.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/monkey.py.pjlq.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/monkey.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/monkey.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/monkey.py.pjlq.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2602,7 +2894,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/msvc.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/msvc.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/msvc.py.5po2.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/msvc.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/msvc.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/msvc.py.5po2.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2613,7 +2907,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/msvc.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/msvc.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/msvc.py.5po2.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/msvc.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/msvc.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/msvc.py.5po2.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2629,7 +2925,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/namespaces.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/namespaces.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/namespaces.py.nixu.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/namespaces.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/namespaces.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/namespaces.py.nixu.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2640,7 +2938,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/namespaces.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/namespaces.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/namespaces.py.nixu.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/namespaces.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/namespaces.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/namespaces.py.nixu.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2656,7 +2956,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/package_index.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/package_index.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/package_index.py.fxks.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/package_index.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/package_index.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/package_index.py.fxks.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2667,7 +2969,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/package_index.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/package_index.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/package_index.py.fxks.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/package_index.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/package_index.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/package_index.py.fxks.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2683,7 +2987,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/py27compat.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/py27compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/py27compat.py.p45l.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/py27compat.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/py27compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/py27compat.py.p45l.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2694,7 +3000,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/py27compat.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/py27compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/py27compat.py.p45l.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/py27compat.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/py27compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/py27compat.py.p45l.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2710,7 +3018,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/py31compat.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/py31compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/py31compat.py.iav2.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/py31compat.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/py31compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/py31compat.py.iav2.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2721,7 +3031,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/py31compat.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/py31compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/py31compat.py.iav2.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/py31compat.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/py31compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/py31compat.py.iav2.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2737,7 +3049,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/py33compat.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/py33compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/py33compat.py.idaz.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/py33compat.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/py33compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/py33compat.py.idaz.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2748,7 +3062,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/py33compat.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/py33compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/py33compat.py.idaz.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/py33compat.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/py33compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/py33compat.py.idaz.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2768,7 +3084,9 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/py34compat.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/py34compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/py34compat.py.hpfy.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/py34compat.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/py34compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/py34compat.py.hpfy.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2783,7 +3101,9 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/py34compat.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/py34compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/py34compat.py.hpfy.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/py34compat.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/py34compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/py34compat.py.hpfy.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2799,7 +3119,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/sandbox.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/sandbox.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/sandbox.py.tiw7.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/sandbox.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/sandbox.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/sandbox.py.tiw7.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2810,7 +3132,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/sandbox.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/sandbox.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/sandbox.py.tiw7.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/sandbox.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/sandbox.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/sandbox.py.tiw7.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2826,7 +3150,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/site-patch.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/site-patch.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/site-patch.py.3qsw.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/site-patch.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/site-patch.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/site-patch.py.3qsw.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2837,7 +3163,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/site-patch.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/site-patch.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/site-patch.py.3qsw.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/site-patch.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/site-patch.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/site-patch.py.3qsw.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2853,7 +3181,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/ssl_support.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/ssl_support.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/ssl_support.py.smdc.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/ssl_support.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/ssl_support.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/ssl_support.py.smdc.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2864,7 +3194,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/ssl_support.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/ssl_support.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/ssl_support.py.smdc.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/ssl_support.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/ssl_support.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/ssl_support.py.smdc.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2880,7 +3212,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/unicode_utils.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/unicode_utils.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/unicode_utils.py.ma4w.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/unicode_utils.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/unicode_utils.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/unicode_utils.py.ma4w.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2891,7 +3225,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/unicode_utils.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/unicode_utils.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/unicode_utils.py.ma4w.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/unicode_utils.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/unicode_utils.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/unicode_utils.py.ma4w.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2907,7 +3243,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/version.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/version.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/version.py.2kt3.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/version.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/version.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/version.py.2kt3.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2918,7 +3256,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/version.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/version.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/version.py.2kt3.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/version.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/version.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/version.py.2kt3.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2934,7 +3274,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/wheel.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/wheel.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/wheel.py.c62s.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/wheel.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/wheel.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/wheel.py.c62s.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2945,7 +3287,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/wheel.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/wheel.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/wheel.py.c62s.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/wheel.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/wheel.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/wheel.py.c62s.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2965,7 +3309,9 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/windows_support.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/windows_support.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/windows_support.py.6cz3.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/windows_support.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/windows_support.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/windows_support.py.6cz3.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2980,7 +3326,9 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/windows_support.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/windows_support.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/windows_support.py.6cz3.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/setuptools/setuptools/windows_support.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/windows_support.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/windows_support.py.6cz3.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

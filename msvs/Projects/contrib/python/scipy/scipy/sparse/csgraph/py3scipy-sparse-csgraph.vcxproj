@@ -206,7 +206,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/sparse/csgraph/__init__.py-" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/csgraph/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/csgraph/__init__.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/sparse/csgraph/__init__.py-" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/csgraph/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/csgraph/__init__.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph
 if %errorlevel% neq 0 goto :cmEnd
@@ -221,7 +223,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/sparse/csgraph/__init__.py-" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/csgraph/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/csgraph/__init__.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/sparse/csgraph/__init__.py-" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/csgraph/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/csgraph/__init__.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph
 if %errorlevel% neq 0 goto :cmEnd
@@ -241,7 +245,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/sparse/csgraph/_components.py-" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/csgraph/_components.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/csgraph/_components.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/sparse/csgraph/_components.py-" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/csgraph/_components.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/csgraph/_components.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -252,7 +258,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/sparse/csgraph/_components.py-" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/csgraph/_components.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/csgraph/_components.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/sparse/csgraph/_components.py-" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/csgraph/_components.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/csgraph/_components.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -268,7 +276,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/sparse/csgraph/_laplacian.py-" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/csgraph/_laplacian.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/csgraph/_laplacian.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/sparse/csgraph/_laplacian.py-" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/csgraph/_laplacian.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/csgraph/_laplacian.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -279,7 +289,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/sparse/csgraph/_laplacian.py-" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/csgraph/_laplacian.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/csgraph/_laplacian.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/sparse/csgraph/_laplacian.py-" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/csgraph/_laplacian.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/csgraph/_laplacian.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -295,7 +307,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/sparse/csgraph/_validation.py-" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/csgraph/_validation.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/csgraph/_validation.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/sparse/csgraph/_validation.py-" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/csgraph/_validation.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/csgraph/_validation.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -306,7 +320,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/sparse/csgraph/_validation.py-" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/csgraph/_validation.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/csgraph/_validation.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/sparse/csgraph/_validation.py-" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/csgraph/_validation.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/csgraph/_validation.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

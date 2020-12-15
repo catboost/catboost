@@ -274,7 +274,9 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/__init__.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/__init__.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/__init__.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/__init__.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -289,7 +291,9 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/__init__.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/__init__.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/__init__.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/__init__.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -305,7 +309,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/_basinhopping.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_basinhopping.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_basinhopping.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/_basinhopping.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_basinhopping.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_basinhopping.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -316,7 +322,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/_basinhopping.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_basinhopping.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_basinhopping.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/_basinhopping.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_basinhopping.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_basinhopping.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -332,7 +340,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/_differentialevolution.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_differentialevolution.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_differentialevolution.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/_differentialevolution.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_differentialevolution.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_differentialevolution.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -343,7 +353,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/_differentialevolution.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_differentialevolution.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_differentialevolution.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/_differentialevolution.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_differentialevolution.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_differentialevolution.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -359,7 +371,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/_hungarian.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_hungarian.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_hungarian.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/_hungarian.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_hungarian.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_hungarian.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -370,7 +384,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/_hungarian.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_hungarian.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_hungarian.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/_hungarian.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_hungarian.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_hungarian.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -390,7 +406,9 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/_linprog.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_linprog.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_linprog.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/_linprog.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_linprog.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_linprog.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -405,7 +423,9 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/_linprog.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_linprog.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_linprog.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/_linprog.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_linprog.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_linprog.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -421,7 +441,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/_minimize.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_minimize.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_minimize.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/_minimize.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_minimize.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_minimize.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -432,7 +454,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/_minimize.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_minimize.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_minimize.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/_minimize.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_minimize.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_minimize.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -448,7 +472,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/_numdiff.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_numdiff.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_numdiff.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/_numdiff.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_numdiff.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_numdiff.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -459,7 +485,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/_numdiff.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_numdiff.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_numdiff.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/_numdiff.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_numdiff.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_numdiff.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -479,7 +507,9 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/_root.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_root.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_root.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/_root.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_root.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_root.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -494,7 +524,9 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/_root.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_root.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_root.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/_root.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_root.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_root.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -510,7 +542,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/_spectral.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_spectral.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_spectral.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/_spectral.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_spectral.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_spectral.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -521,7 +555,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/_spectral.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_spectral.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_spectral.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/_spectral.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_spectral.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_spectral.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -537,7 +573,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/_trustregion.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_trustregion.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_trustregion.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/_trustregion.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_trustregion.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_trustregion.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -548,7 +586,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/_trustregion.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_trustregion.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_trustregion.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/_trustregion.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_trustregion.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_trustregion.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -564,7 +604,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/_trustregion_dogleg.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_trustregion_dogleg.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_trustregion_dogleg.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/_trustregion_dogleg.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_trustregion_dogleg.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_trustregion_dogleg.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -575,7 +617,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/_trustregion_dogleg.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_trustregion_dogleg.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_trustregion_dogleg.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/_trustregion_dogleg.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_trustregion_dogleg.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_trustregion_dogleg.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -591,7 +635,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/_trustregion_ncg.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_trustregion_ncg.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_trustregion_ncg.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/_trustregion_ncg.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_trustregion_ncg.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_trustregion_ncg.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -602,7 +648,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/_trustregion_ncg.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_trustregion_ncg.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_trustregion_ncg.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/_trustregion_ncg.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_trustregion_ncg.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_trustregion_ncg.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -622,7 +670,9 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/_tstutils.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_tstutils.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_tstutils.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/_tstutils.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_tstutils.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_tstutils.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -637,7 +687,9 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/_tstutils.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_tstutils.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_tstutils.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/_tstutils.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_tstutils.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_tstutils.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -653,7 +705,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/cobyla.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/cobyla.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/cobyla.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/cobyla.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/cobyla.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/cobyla.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -664,7 +718,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/cobyla.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/cobyla.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/cobyla.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/cobyla.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/cobyla.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/cobyla.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -680,7 +736,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/lbfgsb.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/lbfgsb.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/lbfgsb.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/lbfgsb.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/lbfgsb.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/lbfgsb.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -691,7 +749,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/lbfgsb.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/lbfgsb.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/lbfgsb.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/lbfgsb.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/lbfgsb.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/lbfgsb.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -707,7 +767,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/linesearch.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/linesearch.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/linesearch.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/linesearch.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/linesearch.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/linesearch.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -718,7 +780,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/linesearch.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/linesearch.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/linesearch.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/linesearch.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/linesearch.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/linesearch.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -734,7 +798,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/minpack.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/minpack.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/minpack.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/minpack.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/minpack.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/minpack.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -745,7 +811,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/minpack.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/minpack.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/minpack.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/minpack.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/minpack.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/minpack.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -761,7 +829,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/nnls.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/nnls.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/nnls.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/nnls.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/nnls.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/nnls.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -772,7 +842,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/nnls.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/nnls.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/nnls.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/nnls.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/nnls.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/nnls.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -788,7 +860,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/nonlin.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/nonlin.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/nonlin.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/nonlin.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/nonlin.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/nonlin.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -799,7 +873,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/nonlin.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/nonlin.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/nonlin.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/nonlin.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/nonlin.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/nonlin.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -815,7 +891,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/optimize.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/optimize.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/optimize.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/optimize.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/optimize.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/optimize.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -826,7 +904,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/optimize.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/optimize.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/optimize.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/optimize.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/optimize.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/optimize.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -842,7 +922,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/slsqp.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/slsqp.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/slsqp.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/slsqp.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/slsqp.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/slsqp.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -853,7 +935,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/slsqp.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/slsqp.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/slsqp.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/slsqp.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/slsqp.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/slsqp.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -869,7 +953,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/tnc.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/tnc.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/tnc.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/tnc.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/tnc.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/tnc.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -880,7 +966,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/tnc.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/tnc.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/tnc.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/tnc.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/tnc.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/tnc.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -896,7 +984,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/zeros.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/zeros.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/zeros.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/zeros.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/zeros.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/zeros.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -907,7 +997,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/zeros.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/zeros.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/zeros.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/optimize/zeros.py-" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/zeros.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/zeros.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

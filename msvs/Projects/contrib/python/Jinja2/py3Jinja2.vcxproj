@@ -435,7 +435,9 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/__init__.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/__init__.py.l5ij.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/__init__.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/__init__.py.l5ij.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -450,7 +452,9 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/__init__.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/__init__.py.l5ij.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/__init__.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/__init__.py.l5ij.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -466,7 +470,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/_compat.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/_compat.py.tx3s.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/_compat.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/_compat.py.tx3s.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -477,7 +483,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/_compat.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/_compat.py.tx3s.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/_compat.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/_compat.py.tx3s.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -493,7 +501,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/_identifier.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/_identifier.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/_identifier.py.mmvx.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/_identifier.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/_identifier.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/_identifier.py.mmvx.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -504,7 +514,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/_identifier.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/_identifier.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/_identifier.py.mmvx.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/_identifier.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/_identifier.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/_identifier.py.mmvx.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -524,7 +536,9 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/asyncfilters.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/asyncfilters.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/asyncfilters.py.zdrf.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/asyncfilters.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/asyncfilters.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/asyncfilters.py.zdrf.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -539,7 +553,9 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/asyncfilters.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/asyncfilters.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/asyncfilters.py.zdrf.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/asyncfilters.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/asyncfilters.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/asyncfilters.py.zdrf.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -555,7 +571,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/asyncsupport.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/asyncsupport.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/asyncsupport.py.wzjo.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/asyncsupport.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/asyncsupport.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/asyncsupport.py.wzjo.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -566,7 +584,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/asyncsupport.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/asyncsupport.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/asyncsupport.py.wzjo.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/asyncsupport.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/asyncsupport.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/asyncsupport.py.wzjo.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -582,7 +602,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/bccache.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/bccache.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/bccache.py.ecyu.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/bccache.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/bccache.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/bccache.py.ecyu.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -593,7 +615,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/bccache.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/bccache.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/bccache.py.ecyu.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/bccache.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/bccache.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/bccache.py.ecyu.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -609,7 +633,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/compiler.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/compiler.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/compiler.py.yhkg.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/compiler.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/compiler.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/compiler.py.yhkg.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -620,7 +646,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/compiler.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/compiler.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/compiler.py.yhkg.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/compiler.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/compiler.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/compiler.py.yhkg.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -636,7 +664,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/constants.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/constants.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/constants.py.nqlf.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/constants.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/constants.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/constants.py.nqlf.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -647,7 +677,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/constants.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/constants.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/constants.py.nqlf.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/constants.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/constants.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/constants.py.nqlf.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -663,7 +695,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/debug.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/debug.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/debug.py.fykt.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/debug.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/debug.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/debug.py.fykt.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -674,7 +708,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/debug.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/debug.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/debug.py.fykt.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/debug.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/debug.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/debug.py.fykt.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -694,7 +730,9 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/defaults.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/defaults.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/defaults.py.zipj.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/defaults.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/defaults.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/defaults.py.zipj.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -709,7 +747,9 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/defaults.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/defaults.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/defaults.py.zipj.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/defaults.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/defaults.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/defaults.py.zipj.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -725,7 +765,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/environment.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/environment.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/environment.py.qs6l.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/environment.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/environment.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/environment.py.qs6l.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -736,7 +778,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/environment.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/environment.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/environment.py.qs6l.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/environment.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/environment.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/environment.py.qs6l.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -752,7 +796,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/exceptions.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/exceptions.py.wamp.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/exceptions.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/exceptions.py.wamp.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -763,7 +809,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/exceptions.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/exceptions.py.wamp.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/exceptions.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/exceptions.py.wamp.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -779,7 +827,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/ext.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/ext.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/ext.py.7rb3.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/ext.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/ext.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/ext.py.7rb3.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -790,7 +840,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/ext.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/ext.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/ext.py.7rb3.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/ext.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/ext.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/ext.py.7rb3.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -806,7 +858,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/filters.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/filters.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/filters.py.gpon.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/filters.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/filters.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/filters.py.gpon.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -817,7 +871,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/filters.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/filters.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/filters.py.gpon.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/filters.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/filters.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/filters.py.gpon.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -833,7 +889,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/idtracking.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/idtracking.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/idtracking.py.w64v.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/idtracking.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/idtracking.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/idtracking.py.w64v.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -844,7 +902,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/idtracking.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/idtracking.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/idtracking.py.w64v.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/idtracking.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/idtracking.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/idtracking.py.w64v.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -860,7 +920,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/lexer.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/lexer.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/lexer.py.mxj7.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/lexer.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/lexer.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/lexer.py.mxj7.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -871,7 +933,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/lexer.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/lexer.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/lexer.py.mxj7.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/lexer.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/lexer.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/lexer.py.mxj7.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -887,7 +951,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/loaders.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/loaders.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/loaders.py.cddh.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/loaders.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/loaders.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/loaders.py.cddh.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -898,7 +964,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/loaders.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/loaders.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/loaders.py.cddh.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/loaders.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/loaders.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/loaders.py.cddh.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -914,7 +982,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/meta.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/meta.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/meta.py.ujws.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/meta.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/meta.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/meta.py.ujws.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -925,7 +995,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/meta.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/meta.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/meta.py.ujws.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/meta.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/meta.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/meta.py.ujws.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -941,7 +1013,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/nativetypes.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/nativetypes.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/nativetypes.py.ji25.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/nativetypes.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/nativetypes.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/nativetypes.py.ji25.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -952,7 +1026,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/nativetypes.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/nativetypes.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/nativetypes.py.ji25.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/nativetypes.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/nativetypes.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/nativetypes.py.ji25.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -968,7 +1044,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/nodes.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/nodes.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/nodes.py.k7cz.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/nodes.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/nodes.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/nodes.py.k7cz.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -979,7 +1057,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/nodes.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/nodes.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/nodes.py.k7cz.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/nodes.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/nodes.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/nodes.py.k7cz.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -995,7 +1075,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/optimizer.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/optimizer.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/optimizer.py.b2us.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/optimizer.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/optimizer.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/optimizer.py.b2us.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1006,7 +1088,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/optimizer.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/optimizer.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/optimizer.py.b2us.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/optimizer.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/optimizer.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/optimizer.py.b2us.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1022,7 +1106,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/parser.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/parser.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/parser.py.lcg2.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/parser.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/parser.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/parser.py.lcg2.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1033,7 +1119,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/parser.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/parser.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/parser.py.lcg2.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/parser.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/parser.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/parser.py.lcg2.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1049,7 +1137,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/runtime.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/runtime.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/runtime.py.halr.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/runtime.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/runtime.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/runtime.py.halr.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1060,7 +1150,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/runtime.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/runtime.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/runtime.py.halr.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/runtime.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/runtime.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/runtime.py.halr.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1076,7 +1168,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/sandbox.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/sandbox.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/sandbox.py.wuk5.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/sandbox.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/sandbox.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/sandbox.py.wuk5.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1087,7 +1181,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/sandbox.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/sandbox.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/sandbox.py.wuk5.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/sandbox.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/sandbox.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/sandbox.py.wuk5.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1103,7 +1199,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/tests.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/tests.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/tests.py.xyxl.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/tests.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/tests.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/tests.py.xyxl.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1114,7 +1212,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/tests.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/tests.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/tests.py.xyxl.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/tests.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/tests.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/tests.py.xyxl.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1130,7 +1230,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/utils.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/utils.py.r53l.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/utils.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/utils.py.r53l.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1141,7 +1243,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/utils.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/utils.py.r53l.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/utils.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/utils.py.r53l.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1157,7 +1261,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/visitor.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/visitor.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/visitor.py.6nxw.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/visitor.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/visitor.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/visitor.py.6nxw.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1168,7 +1274,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/visitor.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/visitor.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/visitor.py.6nxw.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/Jinja2/jinja2/visitor.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/visitor.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/visitor.py.6nxw.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

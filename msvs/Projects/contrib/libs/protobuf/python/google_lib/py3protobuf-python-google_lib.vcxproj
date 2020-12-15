@@ -101,7 +101,9 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/pyext/python__int___pb2.py-" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google/protobuf/pyext/python__int___pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google/protobuf/pyext/python__int___pb2.py.cfhw.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/pyext/python__int___pb2.py-" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google/protobuf/pyext/python__int___pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google/protobuf/pyext/python__int___pb2.py.cfhw.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
@@ -116,7 +118,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/pyext/python__int___pb2.py-" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google/protobuf/pyext/python__int___pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google/protobuf/pyext/python__int___pb2.py.cfhw.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/pyext/python__int___pb2.py-" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google/protobuf/pyext/python__int___pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google/protobuf/pyext/python__int___pb2.py.cfhw.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
@@ -544,7 +548,9 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/__init__.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/__init__.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/__init__.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/__init__.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/__init__.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/__init__.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -559,7 +565,9 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/__init__.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/__init__.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/__init__.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/__init__.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/__init__.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/__init__.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -575,7 +583,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/__init__.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/__init__.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/__init__.py.dwjn.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/__init__.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/__init__.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/__init__.py.dwjn.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -586,7 +596,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/__init__.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/__init__.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/__init__.py.dwjn.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/__init__.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/__init__.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/__init__.py.dwjn.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -602,7 +614,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/any_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/any_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/any_pb2.py.n4fy.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/any_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/any_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/any_pb2.py.n4fy.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -613,7 +627,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/any_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/any_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/any_pb2.py.n4fy.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/any_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/any_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/any_pb2.py.n4fy.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -629,7 +645,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/api_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/api_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/api_pb2.py.vxcn.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/api_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/api_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/api_pb2.py.vxcn.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -640,7 +658,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/api_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/api_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/api_pb2.py.vxcn.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/api_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/api_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/api_pb2.py.vxcn.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -656,7 +676,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/compiler/__init__.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/compiler/__init__.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/compiler/__init__.py.hhlu.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/compiler/__init__.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/compiler/__init__.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/compiler/__init__.py.hhlu.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -667,7 +689,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/compiler/__init__.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/compiler/__init__.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/compiler/__init__.py.hhlu.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/compiler/__init__.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/compiler/__init__.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/compiler/__init__.py.hhlu.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -683,7 +707,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/compiler/plugin_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/compiler/plugin_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/compiler/plugin_pb2.py.g6cg.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/compiler/plugin_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/compiler/plugin_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/compiler/plugin_pb2.py.g6cg.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -694,7 +720,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/compiler/plugin_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/compiler/plugin_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/compiler/plugin_pb2.py.g6cg.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/compiler/plugin_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/compiler/plugin_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/compiler/plugin_pb2.py.g6cg.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -710,7 +738,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/descriptor.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/descriptor.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/descriptor.py.6jal.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/descriptor.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/descriptor.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/descriptor.py.6jal.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -721,7 +751,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/descriptor.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/descriptor.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/descriptor.py.6jal.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/descriptor.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/descriptor.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/descriptor.py.6jal.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -737,7 +769,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/descriptor_database.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/descriptor_database.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/descriptor_database.py.5rlx.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/descriptor_database.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/descriptor_database.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/descriptor_database.py.5rlx.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -748,7 +782,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/descriptor_database.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/descriptor_database.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/descriptor_database.py.5rlx.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/descriptor_database.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/descriptor_database.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/descriptor_database.py.5rlx.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -764,7 +800,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/descriptor_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/descriptor_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/descriptor_pb2.py.hxps.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/descriptor_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/descriptor_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/descriptor_pb2.py.hxps.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -775,7 +813,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/descriptor_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/descriptor_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/descriptor_pb2.py.hxps.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/descriptor_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/descriptor_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/descriptor_pb2.py.hxps.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -791,7 +831,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/descriptor_pool.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/descriptor_pool.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/descriptor_pool.py.ikfo.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/descriptor_pool.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/descriptor_pool.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/descriptor_pool.py.ikfo.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -802,7 +844,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/descriptor_pool.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/descriptor_pool.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/descriptor_pool.py.ikfo.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/descriptor_pool.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/descriptor_pool.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/descriptor_pool.py.ikfo.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -818,7 +862,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/duration_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/duration_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/duration_pb2.py.ub7z.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/duration_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/duration_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/duration_pb2.py.ub7z.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -829,7 +875,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/duration_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/duration_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/duration_pb2.py.ub7z.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/duration_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/duration_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/duration_pb2.py.ub7z.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -845,7 +893,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/empty_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/empty_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/empty_pb2.py.i64h.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/empty_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/empty_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/empty_pb2.py.i64h.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -856,7 +906,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/empty_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/empty_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/empty_pb2.py.i64h.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/empty_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/empty_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/empty_pb2.py.i64h.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -872,7 +924,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/field_mask_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/field_mask_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/field_mask_pb2.py.b3jc.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/field_mask_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/field_mask_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/field_mask_pb2.py.b3jc.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -883,7 +937,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/field_mask_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/field_mask_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/field_mask_pb2.py.b3jc.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/field_mask_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/field_mask_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/field_mask_pb2.py.b3jc.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -903,7 +959,9 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/__init__.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/__init__.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/__init__.py.s6lv.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/__init__.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/__init__.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/__init__.py.s6lv.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -918,7 +976,9 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/__init__.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/__init__.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/__init__.py.s6lv.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/__init__.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/__init__.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/__init__.py.s6lv.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -934,7 +994,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/_parameterized.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/_parameterized.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/_parameterized.py.thjw.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/_parameterized.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/_parameterized.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/_parameterized.py.thjw.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -945,7 +1007,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/_parameterized.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/_parameterized.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/_parameterized.py.thjw.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/_parameterized.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/_parameterized.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/_parameterized.py.thjw.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -961,7 +1025,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/api_implementation.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/api_implementation.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/api_implementation.py.tl6f.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/api_implementation.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/api_implementation.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/api_implementation.py.tl6f.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -972,7 +1038,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/api_implementation.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/api_implementation.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/api_implementation.py.tl6f.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/api_implementation.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/api_implementation.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/api_implementation.py.tl6f.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -988,7 +1056,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/containers.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/containers.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/containers.py.rblj.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/containers.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/containers.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/containers.py.rblj.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -999,7 +1069,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/containers.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/containers.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/containers.py.rblj.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/containers.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/containers.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/containers.py.rblj.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1015,7 +1087,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/decoder.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/decoder.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/decoder.py.i4k4.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/decoder.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/decoder.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/decoder.py.i4k4.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1026,7 +1100,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/decoder.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/decoder.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/decoder.py.i4k4.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/decoder.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/decoder.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/decoder.py.i4k4.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1042,7 +1118,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/encoder.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/encoder.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/encoder.py.maz4.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/encoder.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/encoder.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/encoder.py.maz4.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1053,7 +1131,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/encoder.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/encoder.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/encoder.py.maz4.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/encoder.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/encoder.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/encoder.py.maz4.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1069,7 +1149,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/enum_type_wrapper.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/enum_type_wrapper.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/enum_type_wrapper.py.pcft.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/enum_type_wrapper.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/enum_type_wrapper.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/enum_type_wrapper.py.pcft.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1080,7 +1162,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/enum_type_wrapper.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/enum_type_wrapper.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/enum_type_wrapper.py.pcft.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/enum_type_wrapper.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/enum_type_wrapper.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/enum_type_wrapper.py.pcft.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1096,7 +1180,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/message_listener.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/message_listener.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/message_listener.py.277j.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/message_listener.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/message_listener.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/message_listener.py.277j.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1107,7 +1193,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/message_listener.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/message_listener.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/message_listener.py.277j.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/message_listener.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/message_listener.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/message_listener.py.277j.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1123,7 +1211,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/python_message.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/python_message.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/python_message.py.mdga.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/python_message.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/python_message.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/python_message.py.mdga.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1134,7 +1224,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/python_message.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/python_message.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/python_message.py.mdga.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/python_message.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/python_message.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/python_message.py.mdga.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1150,7 +1242,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/type_checkers.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/type_checkers.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/type_checkers.py.7z4r.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/type_checkers.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/type_checkers.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/type_checkers.py.7z4r.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1161,7 +1255,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/type_checkers.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/type_checkers.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/type_checkers.py.7z4r.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/type_checkers.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/type_checkers.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/type_checkers.py.7z4r.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1177,7 +1273,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/well_known_types.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/well_known_types.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/well_known_types.py.oqvg.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/well_known_types.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/well_known_types.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/well_known_types.py.oqvg.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1188,7 +1286,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/well_known_types.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/well_known_types.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/well_known_types.py.oqvg.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/well_known_types.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/well_known_types.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/well_known_types.py.oqvg.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1204,7 +1304,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/wire_format.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/wire_format.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/wire_format.py.pqp5.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/wire_format.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/wire_format.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/wire_format.py.pqp5.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1215,7 +1317,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/wire_format.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/wire_format.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/wire_format.py.pqp5.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/wire_format.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/wire_format.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/wire_format.py.pqp5.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1231,7 +1335,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/json_format.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/json_format.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/json_format.py.bvsc.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/json_format.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/json_format.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/json_format.py.bvsc.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1242,7 +1348,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/json_format.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/json_format.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/json_format.py.bvsc.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/json_format.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/json_format.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/json_format.py.bvsc.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1258,7 +1366,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/message.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/message.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/message.py.2qug.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/message.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/message.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/message.py.2qug.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1269,7 +1379,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/message.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/message.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/message.py.2qug.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/message.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/message.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/message.py.2qug.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1285,7 +1397,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/message_factory.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/message_factory.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/message_factory.py.5cdf.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/message_factory.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/message_factory.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/message_factory.py.5cdf.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1296,7 +1410,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/message_factory.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/message_factory.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/message_factory.py.5cdf.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/message_factory.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/message_factory.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/message_factory.py.5cdf.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1312,7 +1428,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/proto_builder.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/proto_builder.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/proto_builder.py.bvxk.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/proto_builder.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/proto_builder.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/proto_builder.py.bvxk.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1323,7 +1441,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/proto_builder.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/proto_builder.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/proto_builder.py.bvxk.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/proto_builder.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/proto_builder.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/proto_builder.py.bvxk.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1339,7 +1459,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/pyext/__init__.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/pyext/__init__.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/pyext/__init__.py.nigy.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/pyext/__init__.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/pyext/__init__.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/pyext/__init__.py.nigy.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1350,7 +1472,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/pyext/__init__.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/pyext/__init__.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/pyext/__init__.py.nigy.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/pyext/__init__.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/pyext/__init__.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/pyext/__init__.py.nigy.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1366,7 +1490,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/pyext/cpp_message.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/pyext/cpp_message.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/pyext/cpp_message.py.te43.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/pyext/cpp_message.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/pyext/cpp_message.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/pyext/cpp_message.py.te43.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1377,7 +1503,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/pyext/cpp_message.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/pyext/cpp_message.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/pyext/cpp_message.py.te43.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/pyext/cpp_message.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/pyext/cpp_message.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/pyext/cpp_message.py.te43.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1436,7 +1564,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/reflection.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/reflection.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/reflection.py.wwwe.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/reflection.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/reflection.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/reflection.py.wwwe.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1447,7 +1577,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/reflection.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/reflection.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/reflection.py.wwwe.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/reflection.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/reflection.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/reflection.py.wwwe.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1463,7 +1595,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/service.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/service.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/service.py.yghi.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/service.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/service.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/service.py.yghi.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1474,7 +1608,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/service.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/service.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/service.py.yghi.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/service.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/service.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/service.py.yghi.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1490,7 +1626,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/service_reflection.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/service_reflection.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/service_reflection.py.6lwv.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/service_reflection.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/service_reflection.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/service_reflection.py.6lwv.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1501,7 +1639,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/service_reflection.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/service_reflection.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/service_reflection.py.6lwv.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/service_reflection.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/service_reflection.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/service_reflection.py.6lwv.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1517,7 +1657,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/source_context_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/source_context_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/source_context_pb2.py.l23m.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/source_context_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/source_context_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/source_context_pb2.py.l23m.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1528,7 +1670,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/source_context_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/source_context_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/source_context_pb2.py.l23m.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/source_context_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/source_context_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/source_context_pb2.py.l23m.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1544,7 +1688,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/struct_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/struct_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/struct_pb2.py.ir4o.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/struct_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/struct_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/struct_pb2.py.ir4o.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1555,7 +1701,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/struct_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/struct_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/struct_pb2.py.ir4o.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/struct_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/struct_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/struct_pb2.py.ir4o.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1571,7 +1719,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/symbol_database.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/symbol_database.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/symbol_database.py.gonx.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/symbol_database.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/symbol_database.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/symbol_database.py.gonx.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1582,7 +1732,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/symbol_database.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/symbol_database.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/symbol_database.py.gonx.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/symbol_database.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/symbol_database.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/symbol_database.py.gonx.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1598,7 +1750,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/text_encoding.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/text_encoding.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/text_encoding.py.tllt.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/text_encoding.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/text_encoding.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/text_encoding.py.tllt.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1609,7 +1763,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/text_encoding.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/text_encoding.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/text_encoding.py.tllt.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/text_encoding.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/text_encoding.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/text_encoding.py.tllt.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1625,7 +1781,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/text_format.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/text_format.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/text_format.py.mad7.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/text_format.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/text_format.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/text_format.py.mad7.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1636,7 +1794,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/text_format.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/text_format.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/text_format.py.mad7.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/text_format.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/text_format.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/text_format.py.mad7.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1656,7 +1816,9 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/timestamp_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/timestamp_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/timestamp_pb2.py.4btb.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/timestamp_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/timestamp_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/timestamp_pb2.py.4btb.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1671,7 +1833,9 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/timestamp_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/timestamp_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/timestamp_pb2.py.4btb.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/timestamp_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/timestamp_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/timestamp_pb2.py.4btb.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1687,7 +1851,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/type_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/type_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/type_pb2.py.guzv.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/type_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/type_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/type_pb2.py.guzv.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1698,7 +1864,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/type_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/type_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/type_pb2.py.guzv.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/type_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/type_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/type_pb2.py.guzv.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1714,7 +1882,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/wrappers_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/wrappers_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/wrappers_pb2.py.kv46.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/wrappers_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/wrappers_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/wrappers_pb2.py.kv46.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1725,7 +1895,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/wrappers_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/wrappers_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/wrappers_pb2.py.kv46.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/wrappers_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/wrappers_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/wrappers_pb2.py.kv46.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

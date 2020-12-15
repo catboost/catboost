@@ -459,7 +459,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/__init__.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/__init__.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/__init__.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/__init__.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
@@ -474,7 +476,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/__init__.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/__init__.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/__init__.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/__init__.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
@@ -494,7 +498,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/_decomp_polar.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/_decomp_polar.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/_decomp_polar.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/_decomp_polar.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/_decomp_polar.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/_decomp_polar.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -505,7 +511,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/_decomp_polar.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/_decomp_polar.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/_decomp_polar.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/_decomp_polar.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/_decomp_polar.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/_decomp_polar.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -521,7 +529,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/_decomp_qz.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/_decomp_qz.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/_decomp_qz.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/_decomp_qz.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/_decomp_qz.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/_decomp_qz.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -532,7 +542,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/_decomp_qz.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/_decomp_qz.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/_decomp_qz.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/_decomp_qz.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/_decomp_qz.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/_decomp_qz.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -548,7 +560,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/_expm_frechet.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/_expm_frechet.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/_expm_frechet.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/_expm_frechet.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/_expm_frechet.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/_expm_frechet.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -559,7 +573,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/_expm_frechet.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/_expm_frechet.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/_expm_frechet.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/_expm_frechet.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/_expm_frechet.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/_expm_frechet.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -575,7 +591,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/_interpolative_backend.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/_interpolative_backend.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/_interpolative_backend.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/_interpolative_backend.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/_interpolative_backend.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/_interpolative_backend.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -586,7 +604,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/_interpolative_backend.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/_interpolative_backend.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/_interpolative_backend.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/_interpolative_backend.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/_interpolative_backend.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/_interpolative_backend.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -602,7 +622,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/_matfuncs_inv_ssq.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/_matfuncs_inv_ssq.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/_matfuncs_inv_ssq.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/_matfuncs_inv_ssq.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/_matfuncs_inv_ssq.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/_matfuncs_inv_ssq.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -613,7 +635,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/_matfuncs_inv_ssq.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/_matfuncs_inv_ssq.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/_matfuncs_inv_ssq.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/_matfuncs_inv_ssq.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/_matfuncs_inv_ssq.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/_matfuncs_inv_ssq.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -629,7 +653,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/_matfuncs_sqrtm.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/_matfuncs_sqrtm.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/_matfuncs_sqrtm.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/_matfuncs_sqrtm.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/_matfuncs_sqrtm.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/_matfuncs_sqrtm.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -640,7 +666,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/_matfuncs_sqrtm.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/_matfuncs_sqrtm.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/_matfuncs_sqrtm.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/_matfuncs_sqrtm.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/_matfuncs_sqrtm.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/_matfuncs_sqrtm.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -656,7 +684,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/_procrustes.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/_procrustes.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/_procrustes.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/_procrustes.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/_procrustes.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/_procrustes.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -667,7 +697,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/_procrustes.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/_procrustes.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/_procrustes.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/_procrustes.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/_procrustes.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/_procrustes.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -683,7 +715,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/_solvers.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/_solvers.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/_solvers.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/_solvers.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/_solvers.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/_solvers.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -694,7 +728,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/_solvers.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/_solvers.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/_solvers.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/_solvers.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/_solvers.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/_solvers.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -710,7 +746,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/basic.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/basic.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/basic.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/basic.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/basic.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/basic.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -721,7 +759,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/basic.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/basic.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/basic.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/basic.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/basic.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/basic.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -737,7 +777,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/blas.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/blas.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/blas.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/blas.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/blas.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/blas.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -748,7 +790,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/blas.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/blas.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/blas.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/blas.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/blas.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/blas.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -764,7 +808,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/calc_lwork.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/calc_lwork.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/calc_lwork.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/calc_lwork.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/calc_lwork.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/calc_lwork.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -775,7 +821,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/calc_lwork.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/calc_lwork.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/calc_lwork.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/calc_lwork.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/calc_lwork.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/calc_lwork.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -795,7 +843,9 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/decomp.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/decomp.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/decomp.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/decomp.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/decomp.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/decomp.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -810,7 +860,9 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/decomp.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/decomp.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/decomp.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/decomp.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/decomp.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/decomp.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -826,7 +878,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/decomp_cholesky.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/decomp_cholesky.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/decomp_cholesky.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/decomp_cholesky.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/decomp_cholesky.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/decomp_cholesky.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -837,7 +891,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/decomp_cholesky.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/decomp_cholesky.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/decomp_cholesky.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/decomp_cholesky.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/decomp_cholesky.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/decomp_cholesky.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -853,7 +909,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/decomp_lu.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/decomp_lu.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/decomp_lu.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/decomp_lu.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/decomp_lu.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/decomp_lu.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -864,7 +922,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/decomp_lu.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/decomp_lu.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/decomp_lu.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/decomp_lu.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/decomp_lu.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/decomp_lu.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -880,7 +940,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/decomp_qr.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/decomp_qr.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/decomp_qr.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/decomp_qr.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/decomp_qr.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/decomp_qr.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -891,7 +953,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/decomp_qr.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/decomp_qr.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/decomp_qr.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/decomp_qr.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/decomp_qr.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/decomp_qr.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -907,7 +971,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/decomp_schur.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/decomp_schur.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/decomp_schur.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/decomp_schur.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/decomp_schur.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/decomp_schur.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -918,7 +984,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/decomp_schur.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/decomp_schur.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/decomp_schur.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/decomp_schur.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/decomp_schur.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/decomp_schur.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -934,7 +1002,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/decomp_svd.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/decomp_svd.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/decomp_svd.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/decomp_svd.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/decomp_svd.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/decomp_svd.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -945,7 +1015,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/decomp_svd.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/decomp_svd.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/decomp_svd.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/decomp_svd.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/decomp_svd.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/decomp_svd.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -961,7 +1033,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/flinalg.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/flinalg.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/flinalg.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/flinalg.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/flinalg.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/flinalg.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -972,7 +1046,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/flinalg.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/flinalg.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/flinalg.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/flinalg.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/flinalg.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/flinalg.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -988,7 +1064,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/interpolative.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/interpolative.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/interpolative.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/interpolative.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/interpolative.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/interpolative.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -999,7 +1077,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/interpolative.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/interpolative.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/interpolative.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/interpolative.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/interpolative.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/interpolative.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1015,7 +1095,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/lapack.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/lapack.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/lapack.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/lapack.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/lapack.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/lapack.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1026,7 +1108,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/lapack.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/lapack.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/lapack.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/lapack.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/lapack.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/lapack.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1042,7 +1126,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/linalg_version.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/linalg_version.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/linalg_version.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/linalg_version.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/linalg_version.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/linalg_version.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1053,7 +1139,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/linalg_version.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/linalg_version.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/linalg_version.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/linalg_version.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/linalg_version.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/linalg_version.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1069,7 +1157,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/matfuncs.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/matfuncs.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/matfuncs.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/matfuncs.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/matfuncs.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/matfuncs.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1080,7 +1170,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/matfuncs.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/matfuncs.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/matfuncs.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/matfuncs.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/matfuncs.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/matfuncs.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1096,7 +1188,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/misc.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/misc.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/misc.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/misc.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/misc.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/misc.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1107,7 +1201,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/misc.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/misc.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/misc.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/misc.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/misc.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/misc.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1123,7 +1219,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/special_matrices.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/special_matrices.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/special_matrices.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/special_matrices.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/special_matrices.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/special_matrices.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1134,7 +1232,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/special_matrices.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/special_matrices.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/special_matrices.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/linalg/special_matrices.py-" "$(SolutionDir)../contrib/python/scipy/scipy/linalg/special_matrices.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/special_matrices.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

@@ -337,7 +337,9 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/__init__.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/__init__.py.2amy.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/__init__.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/__init__.py.2amy.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -352,7 +354,9 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/__init__.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/__init__.py.2amy.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/__init__.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/__init__.py.2amy.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -368,7 +372,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/_common.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/_common.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/_common.py.qziv.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/_common.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/_common.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/_common.py.qziv.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -379,7 +385,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/_common.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/_common.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/_common.py.qziv.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/_common.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/_common.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/_common.py.qziv.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -395,7 +403,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/_version.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/_version.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/_version.py.tbfg.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/_version.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/_version.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/_version.py.tbfg.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -406,7 +416,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/_version.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/_version.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/_version.py.tbfg.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/_version.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/_version.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/_version.py.tbfg.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -422,7 +434,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/easter.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/easter.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/easter.py.lqev.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/easter.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/easter.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/easter.py.lqev.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -433,7 +447,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/easter.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/easter.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/easter.py.lqev.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/easter.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/easter.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/easter.py.lqev.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -449,7 +465,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/parser/__init__.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/parser/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/parser/__init__.py.lony.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/parser/__init__.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/parser/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/parser/__init__.py.lony.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -460,7 +478,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/parser/__init__.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/parser/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/parser/__init__.py.lony.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/parser/__init__.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/parser/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/parser/__init__.py.lony.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -476,7 +496,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/parser/_parser.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/parser/_parser.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/parser/_parser.py.jns6.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/parser/_parser.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/parser/_parser.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/parser/_parser.py.jns6.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -487,7 +509,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/parser/_parser.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/parser/_parser.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/parser/_parser.py.jns6.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/parser/_parser.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/parser/_parser.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/parser/_parser.py.jns6.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -503,7 +527,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/parser/isoparser.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/parser/isoparser.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/parser/isoparser.py.p7e2.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/parser/isoparser.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/parser/isoparser.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/parser/isoparser.py.p7e2.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -514,7 +540,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/parser/isoparser.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/parser/isoparser.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/parser/isoparser.py.p7e2.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/parser/isoparser.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/parser/isoparser.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/parser/isoparser.py.p7e2.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -534,7 +562,9 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/relativedelta.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/relativedelta.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/relativedelta.py.4s6e.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/relativedelta.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/relativedelta.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/relativedelta.py.4s6e.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -549,7 +579,9 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/relativedelta.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/relativedelta.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/relativedelta.py.4s6e.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/relativedelta.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/relativedelta.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/relativedelta.py.4s6e.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -565,7 +597,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/rrule.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/rrule.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/rrule.py.bt4w.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/rrule.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/rrule.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/rrule.py.bt4w.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -576,7 +610,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/rrule.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/rrule.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/rrule.py.bt4w.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/rrule.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/rrule.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/rrule.py.bt4w.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -592,7 +628,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/tz/__init__.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/tz/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz/__init__.py.2vl7.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/tz/__init__.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/tz/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz/__init__.py.2vl7.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -603,7 +641,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/tz/__init__.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/tz/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz/__init__.py.2vl7.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/tz/__init__.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/tz/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz/__init__.py.2vl7.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -619,7 +659,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/tz/_common.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/tz/_common.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz/_common.py.kgcn.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/tz/_common.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/tz/_common.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz/_common.py.kgcn.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -630,7 +672,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/tz/_common.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/tz/_common.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz/_common.py.kgcn.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/tz/_common.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/tz/_common.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz/_common.py.kgcn.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -646,7 +690,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/tz/_factories.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/tz/_factories.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz/_factories.py.chu6.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/tz/_factories.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/tz/_factories.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz/_factories.py.chu6.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -657,7 +703,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/tz/_factories.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/tz/_factories.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz/_factories.py.chu6.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/tz/_factories.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/tz/_factories.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz/_factories.py.chu6.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -673,7 +721,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/tz/tz.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/tz/tz.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz/tz.py.xapn.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/tz/tz.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/tz/tz.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz/tz.py.xapn.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -684,7 +734,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/tz/tz.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/tz/tz.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz/tz.py.xapn.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/tz/tz.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/tz/tz.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz/tz.py.xapn.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -700,7 +752,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/tz/win.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/tz/win.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz/win.py.4huy.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/tz/win.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/tz/win.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz/win.py.4huy.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -711,7 +765,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/tz/win.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/tz/win.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz/win.py.4huy.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/tz/win.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/tz/win.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz/win.py.4huy.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -731,7 +787,9 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/tzwin.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/tzwin.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tzwin.py.kmxm.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/tzwin.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/tzwin.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tzwin.py.kmxm.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -746,7 +804,9 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/tzwin.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/tzwin.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tzwin.py.kmxm.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/tzwin.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/tzwin.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tzwin.py.kmxm.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -762,7 +822,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/utils.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/utils.py.wkmw.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/utils.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/utils.py.wkmw.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -773,7 +835,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/utils.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/utils.py.wkmw.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/utils.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/utils.py.wkmw.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -789,7 +853,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/zoneinfo/__init__.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/zoneinfo/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/zoneinfo/__init__.py.skpy.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/zoneinfo/__init__.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/zoneinfo/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/zoneinfo/__init__.py.skpy.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -800,7 +866,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/zoneinfo/__init__.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/zoneinfo/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/zoneinfo/__init__.py.skpy.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/zoneinfo/__init__.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/zoneinfo/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/zoneinfo/__init__.py.skpy.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -816,7 +884,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/zoneinfo/rebuild.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/zoneinfo/rebuild.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/zoneinfo/rebuild.py.3ens.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/zoneinfo/rebuild.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/zoneinfo/rebuild.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/zoneinfo/rebuild.py.3ens.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -827,7 +897,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/zoneinfo/rebuild.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/zoneinfo/rebuild.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/zoneinfo/rebuild.py.3ens.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/zoneinfo/rebuild.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/zoneinfo/rebuild.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/zoneinfo/rebuild.py.3ens.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
