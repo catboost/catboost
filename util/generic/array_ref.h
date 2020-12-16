@@ -16,7 +16,7 @@
  *
  * Note that `TArrayRef` can be auto-constructed from any contiguous container
  * (with `size` and `data` members), and thus you don't have to change client code
- * when swithcing over from passing `TVector` to `TArrayRef`.
+ * when switching over from passing `TVector` to `TArrayRef`.
  *
  * Note that `TArrayRef` has the same const-semantics as raw pointers:
  * - `TArrayRef<T>` is a non-const reference to non-const data (like `T*`);
@@ -157,7 +157,7 @@ public:
     /**
      * Obtains a ref that is a view over the first `count` elements of this TArrayRef.
      *
-     * The behavor is undefined if count > size().
+     * The behavior is undefined if count > size().
      */
     TArrayRef first(size_t count) const {
         Y_ASSERT(count <= size());
