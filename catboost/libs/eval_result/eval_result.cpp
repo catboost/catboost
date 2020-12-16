@@ -158,17 +158,15 @@ namespace NCB {
         return poolColumnsPrinter;
     }
 
-    void OutputEvalResultToFile(
+    TVector<THolder<IColumnPrinter>> InitializeColumnWriter(
         const TEvalResult& evalResult,
         NPar::ILocalExecutor* executor,
         const TVector<TString>& outputColumns,
         const TString& lossFunctionName,
         const TExternalLabelsHelper& visibleLabelsHelper,
         const TDataProvider& pool,
-        IOutputStream* outputStream,
         TIntrusivePtr<IPoolColumnsPrinter> poolColumnsPrinter,
         std::pair<int, int> testFileWhichOf,
-        bool writeHeader,
         ui64 docIdOffset,
         TMaybe<std::pair<size_t, size_t>> evalParameters) {
 
@@ -176,18 +174,26 @@ namespace NCB {
 
         TVector<THolder<IColumnPrinter>> columnPrinter;
 
+        const auto targetDim = pool.RawTargetData.GetTargetDimension();
+        const bool isMultiTarget = targetDim > 1;
+
         for (const auto& outputColumn : outputColumns) {
             EPredictionType type;
             if (TryFromString<EPredictionType>(outputColumn, type)) {
-                columnPrinter.push_back(MakeHolder<TEvalPrinter>(executor, evalResult.GetRawValuesConstRef(), type, lossFunctionName,
-                                                                 pool.RawTargetData.GetTargetDimension(), visibleLabelsHelper, evalParameters));
+                PushBackEvalPrinters(evalResult.GetRawValuesConstRef(),
+                                     type,
+                                     lossFunctionName,
+                                     isMultiTarget,
+                                     visibleLabelsHelper,
+                                     evalParameters,
+                                     &columnPrinter,
+                                     executor);
                 continue;
             }
             EColumn outputType;
             if (TryFromString<EColumn>(ToCanonicalColumnName(outputColumn), outputType)) {
                 if (outputType == EColumn::Label) {
                     const auto target = pool.RawTargetData.GetTarget().GetRef();
-                    const auto targetDim = target.size();
                     for (auto targetIdx : xrange(targetDim)) {
                         TStringBuilder header;
                         header << outputColumn;
@@ -251,7 +257,7 @@ namespace NCB {
                     continue;
                 }
                 if (outputType == EColumn::Baseline) {
-                    auto baseline = *pool.RawTargetData.GetBaseline();
+                    auto baseline = pool.RawTargetData.GetBaseline().GetRef();
                     for (size_t idx = 0; idx < baseline.size(); ++idx) {
                         TStringBuilder header;
                         header << "Baseline";
@@ -265,6 +271,7 @@ namespace NCB {
             }
             if (!outputColumn.compare(0, BaselinePrefix.length(), BaselinePrefix)) {
                 int idx = FromString<int>(outputColumn.substr(BaselinePrefix.length()));
+                // NonOwning
                 columnPrinter.push_back(MakeHolder<TArrayPrinter<float>>((*pool.RawTargetData.GetBaseline())[idx], outputColumn));
                 continue;
             }
@@ -312,6 +319,35 @@ namespace NCB {
                 }
             }
         }
+        return columnPrinter;
+    }
+
+    void OutputEvalResultToFile(
+        const TEvalResult& evalResult,
+        NPar::ILocalExecutor* executor,
+        const TVector<TString>& outputColumns,
+        const TString& lossFunctionName,
+        const TExternalLabelsHelper& visibleLabelsHelper,
+        const TDataProvider& pool,
+        IOutputStream* outputStream,
+        TIntrusivePtr<IPoolColumnsPrinter> poolColumnsPrinter,
+        std::pair<int, int> testFileWhichOf,
+        bool writeHeader,
+        ui64 docIdOffset,
+        TMaybe<std::pair<size_t, size_t>> evalParameters) {
+
+        TVector<THolder<IColumnPrinter>> columnPrinter = InitializeColumnWriter(
+            evalResult,
+            executor,
+            outputColumns,
+            lossFunctionName,
+            visibleLabelsHelper,
+            pool,
+            poolColumnsPrinter,
+            testFileWhichOf,
+            docIdOffset,
+            evalParameters);
+
         if (writeHeader) {
             TString delimiter = "";
             for (auto& printer : columnPrinter) {
