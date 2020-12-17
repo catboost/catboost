@@ -233,7 +233,7 @@ def build(arc_root, out_root, tail_args):
     os.chdir(os.path.join(arc_root, 'catboost', 'python-package', 'catboost'))
 
     py_trait = PythonTrait(arc_root, out_root, tail_args)
-    ver = get_version(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'version.py'))
+    ver = get_version(os.path.join(os.getcwd(), 'version.py'))
     pkg_name = os.environ.get('CATBOOST_PACKAGE_NAME', 'catboost')
 
     try_to_build_gpu_version = True
