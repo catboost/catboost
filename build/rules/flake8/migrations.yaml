@@ -1025,7 +1025,6 @@ migrations:
     - sandbox/projects/qafw
     - sandbox/projects/qafw/ansible
     - sandbox/projects/reconf
-    - sandbox/projects/release_machine/components/configs
     - sandbox/projects/release_machine/tests
     - sandbox/projects/sandbox_ci/managers
     - sandbox/projects/sandbox_ci/sandbox_ci_compare_load_test
@@ -1853,8 +1852,6 @@ migrations:
     - sandbox/projects/news/runtime_tests/CompareNewsApphostServiceResponses
     - sandbox/projects/partner
     - sandbox/projects/partner/tasks/build_all
-    - sandbox/projects/release_machine/components/configs
-    - sandbox/projects/release_machine/helpers/deploy
     - sandbox/projects/runtime_models
     - sandbox/projects/runtime_models/BuildYabsRtModelsPackage
     - sandbox/projects/runtime_models/CreateWebRtModelsRequestsPlan
@@ -2611,7 +2608,6 @@ migrations:
     - sandbox/projects/news
     - sandbox/projects/nmaps
     - sandbox/projects/quality/tasks
-    - sandbox/projects/release_machine/components/configs
     - sandbox/projects/repo/pciexpress/legs
     - sandbox/projects/resource_types
     - sandbox/projects/sandbox/build_sandbox_tasks
@@ -3307,7 +3303,6 @@ migrations:
     - sandbox/projects/market/checkout/MarketCheckouterLoadGenerateAmmoFullLoad
     - sandbox/projects/nmaps
     - sandbox/projects/nmaps/address_pushes/AddressPushes
-    - sandbox/projects/release_machine/arc_helper
     - sandbox/projects/weather/StatfaceReports/pogoda_analytics
     - search/metrics/ccc/ccc_service
     - search/mon/iconostasis_validator/bin/icval
