@@ -678,9 +678,9 @@ ALLOW passport/python/oauth/core/db/eav -> contrib/python/sqlalchemy/sqlalchemy-
 ALLOW passport/python/oauth/core/db -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW passport/python/oauth/sql/bin -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW passport/python/perimeter/auth_api/db -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW passport/python/perimeter/tests_auth_api/db -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW passport/python/perimeter/tests_auth_api/ldap_email_code -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW passport/python/perimeter/tests_auth_api/ldap_totp -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW passport/python/perimeter/tests/db -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW passport/python/perimeter/tests/ldap_email_code -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW passport/python/perimeter/tests/ldap_totp -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW passport/python/qa/test_user_service/tus_api -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW passport/python/social/api -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW passport/python/social/common -> contrib/python/sqlalchemy/sqlalchemy-1.2
