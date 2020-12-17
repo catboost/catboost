@@ -381,8 +381,10 @@ DENY .* -> contrib/python/Geohash
 
 ALLOW metrika/java/api -> contrib/java/patched/com/android/tools/r8
 ALLOW metrika/java/api -> contrib/java/patched/com/ryantenney/metrics/metrics-spring
+ALLOW direct -> contrib/java/patched/io/leangen/graphql/spqr
 ALLOW contrib/java/patched/com/android/tools/r8 -> contrib/java/patched/com/android/tools/r8
 ALLOW contrib/java/patched/com/ryantenney/metrics/metrics-spring -> contrib/java/patched/com/ryantenney/metrics/metrics-spring
+ALLOW contrib/java/patched/io/leangen/graphql/spqr -> contrib/java/patched/io/leangen/graphql/spqr
 DENY .* -> contrib/java/patched
 
 # because library will not work without external dependencies - IBM MQ
