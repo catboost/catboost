@@ -29,7 +29,7 @@
 #endif
 
 #if defined(ARDUINO) && !defined(ARDUINOSTL_M_H)
-  #include <utility.h> // Y_IGNORE
+  #error #include <utility.h>
 #else
   #include <utility>
 #endif
@@ -252,6 +252,7 @@ template<typename T> T EndianSwap(T t) {
 #if defined(_MSC_VER)
   #pragma warning(pop)
 #endif
+
 
 template<typename T> T EndianScalar(T t) {
   #if FLATBUFFERS_LITTLEENDIAN
