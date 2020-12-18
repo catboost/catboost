@@ -34,6 +34,7 @@ namespace NCB {
            not thread-safe
         */
         virtual bool ReadLine(TString* line) = 0;
+        virtual bool ReadLine(TString*, TString*) = 0;
 
         virtual ~ILineDataReader() = default;
     };
