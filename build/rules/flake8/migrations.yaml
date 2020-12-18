@@ -2837,7 +2837,6 @@ migrations:
     - education/schoolbook/analytics/ml/nirvana_ops/repetition
     - education/schoolbook/analytics/ml/nirvana_ops/run_train
     - education/schoolbook/analytics/ml/nirvana_ops/simple_stat_to_json
-    - education/schoolbook/reactor_automation/lib
     - education/services/ext_lms_connector/app
     - education/services/ext_lms_connector/app/queue
     - education/services/ext_lms_connector/app/schemas
