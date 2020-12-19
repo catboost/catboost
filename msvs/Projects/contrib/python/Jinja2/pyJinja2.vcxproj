@@ -279,7 +279,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/join_72620ad1562164b66edcc4b4ca.yasm" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_0d8e08a1055d1a60cb70e787a3.yasm" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_8a8b800fa50d1b1054425fe1fa.yasm" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_ed02f6f44d278bd1d77bc2f841.yasm"
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/join_72620ad1562164b66edcc4b4ca.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_0d8e08a1055d1a60cb70e787a3.yasm" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_8a8b800fa50d1b1054425fe1fa.yasm" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_ed02f6f44d278bd1d77bc2f841.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -290,7 +290,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/join_72620ad1562164b66edcc4b4ca.yasm" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_0d8e08a1055d1a60cb70e787a3.yasm" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_8a8b800fa50d1b1054425fe1fa.yasm" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_ed02f6f44d278bd1d77bc2f841.yasm"
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/join_72620ad1562164b66edcc4b4ca.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_0d8e08a1055d1a60cb70e787a3.yasm" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_8a8b800fa50d1b1054425fe1fa.yasm" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_ed02f6f44d278bd1d77bc2f841.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -306,7 +306,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/join_0a51fcb7f875f2802e0c254d0d.cpp" "contrib/python/Jinja2/0d8e08a1055d1a60cb70e787a3.cpp" "contrib/python/Jinja2/8a8b800fa50d1b1054425fe1fa.cpp" "contrib/python/Jinja2/ed02f6f44d278bd1d77bc2f841.cpp"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/join_0a51fcb7f875f2802e0c254d0d.cpp" "--ya-start-command-file" "contrib/python/Jinja2/0d8e08a1055d1a60cb70e787a3.cpp" "contrib/python/Jinja2/8a8b800fa50d1b1054425fe1fa.cpp" "contrib/python/Jinja2/ed02f6f44d278bd1d77bc2f841.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -317,7 +317,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/join_0a51fcb7f875f2802e0c254d0d.cpp" "contrib/python/Jinja2/0d8e08a1055d1a60cb70e787a3.cpp" "contrib/python/Jinja2/8a8b800fa50d1b1054425fe1fa.cpp" "contrib/python/Jinja2/ed02f6f44d278bd1d77bc2f841.cpp"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/join_0a51fcb7f875f2802e0c254d0d.cpp" "--ya-start-command-file" "contrib/python/Jinja2/0d8e08a1055d1a60cb70e787a3.cpp" "contrib/python/Jinja2/8a8b800fa50d1b1054425fe1fa.cpp" "contrib/python/Jinja2/ed02f6f44d278bd1d77bc2f841.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

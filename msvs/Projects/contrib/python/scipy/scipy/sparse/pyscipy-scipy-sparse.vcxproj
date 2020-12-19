@@ -176,7 +176,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/join_c82ee722b03096f1d2b07ae152.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/_736965de85d8aa4f6368964c96.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/_6cdd10a8a10aacd02b86f9ed87.yasm"
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/join_c82ee722b03096f1d2b07ae152.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/_736965de85d8aa4f6368964c96.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/_6cdd10a8a10aacd02b86f9ed87.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -187,7 +187,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/join_c82ee722b03096f1d2b07ae152.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/_736965de85d8aa4f6368964c96.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/_6cdd10a8a10aacd02b86f9ed87.yasm"
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/join_c82ee722b03096f1d2b07ae152.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/_736965de85d8aa4f6368964c96.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/_6cdd10a8a10aacd02b86f9ed87.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -203,7 +203,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/join_622b3cc4bddbce81b39f9fe49a.cpp" "contrib/python/scipy/scipy/sparse/736965de85d8aa4f6368964c96.cpp" "contrib/python/scipy/scipy/sparse/6cdd10a8a10aacd02b86f9ed87.cpp"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/join_622b3cc4bddbce81b39f9fe49a.cpp" "--ya-start-command-file" "contrib/python/scipy/scipy/sparse/736965de85d8aa4f6368964c96.cpp" "contrib/python/scipy/scipy/sparse/6cdd10a8a10aacd02b86f9ed87.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -214,7 +214,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/join_622b3cc4bddbce81b39f9fe49a.cpp" "contrib/python/scipy/scipy/sparse/736965de85d8aa4f6368964c96.cpp" "contrib/python/scipy/scipy/sparse/6cdd10a8a10aacd02b86f9ed87.cpp"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/join_622b3cc4bddbce81b39f9fe49a.cpp" "--ya-start-command-file" "contrib/python/scipy/scipy/sparse/736965de85d8aa4f6368964c96.cpp" "contrib/python/scipy/scipy/sparse/6cdd10a8a10aacd02b86f9ed87.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

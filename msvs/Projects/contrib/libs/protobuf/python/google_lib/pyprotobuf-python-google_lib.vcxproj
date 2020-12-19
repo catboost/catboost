@@ -392,7 +392,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/join_0fa7fb1184db53860b9499ea17.yasm" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_58a2d40d8451b408437a6969a1.yasm" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_15113b4f6341100bf77c20c8db.yasm" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_bd4377d641c73506c464c19f9a.yasm" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_ab7b5e3b5ee19577da78ee69be.yasm" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_2388fb6ccacd6817217000453c.yasm"
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/join_0fa7fb1184db53860b9499ea17.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_58a2d40d8451b408437a6969a1.yasm" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_15113b4f6341100bf77c20c8db.yasm" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_bd4377d641c73506c464c19f9a.yasm" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_ab7b5e3b5ee19577da78ee69be.yasm" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_2388fb6ccacd6817217000453c.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -403,7 +403,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/join_0fa7fb1184db53860b9499ea17.yasm" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_58a2d40d8451b408437a6969a1.yasm" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_15113b4f6341100bf77c20c8db.yasm" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_bd4377d641c73506c464c19f9a.yasm" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_ab7b5e3b5ee19577da78ee69be.yasm" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_2388fb6ccacd6817217000453c.yasm"
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/join_0fa7fb1184db53860b9499ea17.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_58a2d40d8451b408437a6969a1.yasm" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_15113b4f6341100bf77c20c8db.yasm" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_bd4377d641c73506c464c19f9a.yasm" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_ab7b5e3b5ee19577da78ee69be.yasm" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_2388fb6ccacd6817217000453c.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -419,11 +419,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/join_f3dcbcae867e47e4612fbe0b97.cpp" "contrib/libs/protobuf/python/google_lib/58a2d40d8451b408437a6969a1.cpp" "contrib/libs/protobuf/python/google_lib/15113b4f6341100bf77c20c8db.cpp" "contrib/libs/protobuf/python/google_lib/bd4377d641c73506c464c19f9a.cpp" "contrib/libs/protobuf/python/google_lib/ab7b5e3b5ee19577da78ee69be.cpp" "contrib/libs/protobuf/python/google_lib/2388fb6ccacd6817217000453c.cpp"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/join_f3dcbcae867e47e4612fbe0b97.cpp" "--ya-start-command-file" "contrib/libs/protobuf/python/google_lib/58a2d40d8451b408437a6969a1.cpp" "contrib/libs/protobuf/python/google_lib/15113b4f6341100bf77c20c8db.cpp" "contrib/libs/protobuf/python/google_lib/bd4377d641c73506c464c19f9a.cpp" "contrib/libs/protobuf/python/google_lib/ab7b5e3b5ee19577da78ee69be.cpp" "contrib/libs/protobuf/python/google_lib/2388fb6ccacd6817217000453c.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/join_wjmkk2da6rydgzvtfxlefheuo4.cpp" "contrib/libs/protobuf/python/google/protobuf/pyext/python.pb.h" "contrib/libs/protobuf/python/google/protobuf/pyext/python.pb.cc"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/join_wjmkk2da6rydgzvtfxlefheuo4.cpp" "--ya-start-command-file" "contrib/libs/protobuf/python/google/protobuf/pyext/python.pb.h" "contrib/libs/protobuf/python/google/protobuf/pyext/python.pb.cc" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -434,11 +434,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/join_f3dcbcae867e47e4612fbe0b97.cpp" "contrib/libs/protobuf/python/google_lib/58a2d40d8451b408437a6969a1.cpp" "contrib/libs/protobuf/python/google_lib/15113b4f6341100bf77c20c8db.cpp" "contrib/libs/protobuf/python/google_lib/bd4377d641c73506c464c19f9a.cpp" "contrib/libs/protobuf/python/google_lib/ab7b5e3b5ee19577da78ee69be.cpp" "contrib/libs/protobuf/python/google_lib/2388fb6ccacd6817217000453c.cpp"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/join_f3dcbcae867e47e4612fbe0b97.cpp" "--ya-start-command-file" "contrib/libs/protobuf/python/google_lib/58a2d40d8451b408437a6969a1.cpp" "contrib/libs/protobuf/python/google_lib/15113b4f6341100bf77c20c8db.cpp" "contrib/libs/protobuf/python/google_lib/bd4377d641c73506c464c19f9a.cpp" "contrib/libs/protobuf/python/google_lib/ab7b5e3b5ee19577da78ee69be.cpp" "contrib/libs/protobuf/python/google_lib/2388fb6ccacd6817217000453c.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/join_wjmkk2da6rydgzvtfxlefheuo4.cpp" "contrib/libs/protobuf/python/google/protobuf/pyext/python.pb.h" "contrib/libs/protobuf/python/google/protobuf/pyext/python.pb.cc"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/join_wjmkk2da6rydgzvtfxlefheuo4.cpp" "--ya-start-command-file" "contrib/libs/protobuf/python/google/protobuf/pyext/python.pb.h" "contrib/libs/protobuf/python/google/protobuf/pyext/python.pb.cc" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

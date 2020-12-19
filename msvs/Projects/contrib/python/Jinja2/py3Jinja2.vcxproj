@@ -350,7 +350,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/join_17c82974c0e816073295f55c69.yasm" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_421be46edc778f6a883ccd58bf.yasm" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_1f853d7a29cbec1ff8bd475748.yasm" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_d3b3f7990615378dc7c35e88df.yasm" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_7bff6417ba20aa2f1468e1c02f.yasm"
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/join_17c82974c0e816073295f55c69.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_421be46edc778f6a883ccd58bf.yasm" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_1f853d7a29cbec1ff8bd475748.yasm" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_d3b3f7990615378dc7c35e88df.yasm" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_7bff6417ba20aa2f1468e1c02f.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -361,7 +361,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/join_17c82974c0e816073295f55c69.yasm" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_421be46edc778f6a883ccd58bf.yasm" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_1f853d7a29cbec1ff8bd475748.yasm" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_d3b3f7990615378dc7c35e88df.yasm" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_7bff6417ba20aa2f1468e1c02f.yasm"
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/join_17c82974c0e816073295f55c69.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_421be46edc778f6a883ccd58bf.yasm" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_1f853d7a29cbec1ff8bd475748.yasm" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_d3b3f7990615378dc7c35e88df.yasm" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_7bff6417ba20aa2f1468e1c02f.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -377,7 +377,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/join_3fa8d7bf6deda859a6c336284d.cpp" "contrib/python/Jinja2/421be46edc778f6a883ccd58bf.cpp" "contrib/python/Jinja2/1f853d7a29cbec1ff8bd475748.cpp" "contrib/python/Jinja2/d3b3f7990615378dc7c35e88df.cpp" "contrib/python/Jinja2/7bff6417ba20aa2f1468e1c02f.cpp"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/join_3fa8d7bf6deda859a6c336284d.cpp" "--ya-start-command-file" "contrib/python/Jinja2/421be46edc778f6a883ccd58bf.cpp" "contrib/python/Jinja2/1f853d7a29cbec1ff8bd475748.cpp" "contrib/python/Jinja2/d3b3f7990615378dc7c35e88df.cpp" "contrib/python/Jinja2/7bff6417ba20aa2f1468e1c02f.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -388,7 +388,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/join_3fa8d7bf6deda859a6c336284d.cpp" "contrib/python/Jinja2/421be46edc778f6a883ccd58bf.cpp" "contrib/python/Jinja2/1f853d7a29cbec1ff8bd475748.cpp" "contrib/python/Jinja2/d3b3f7990615378dc7c35e88df.cpp" "contrib/python/Jinja2/7bff6417ba20aa2f1468e1c02f.cpp"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/join_3fa8d7bf6deda859a6c336284d.cpp" "--ya-start-command-file" "contrib/python/Jinja2/421be46edc778f6a883ccd58bf.cpp" "contrib/python/Jinja2/1f853d7a29cbec1ff8bd475748.cpp" "contrib/python/Jinja2/d3b3f7990615378dc7c35e88df.cpp" "contrib/python/Jinja2/7bff6417ba20aa2f1468e1c02f.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

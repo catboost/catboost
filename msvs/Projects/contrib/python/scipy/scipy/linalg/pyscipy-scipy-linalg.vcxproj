@@ -279,7 +279,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/join_5cacc63b7a8ded047d032e4b2b.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/_fad652aa62822368d279b6e943.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/_d95997754e3e092532db7e0c0b.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/_a696091571bbb2505bcd568b95.yasm"
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/join_5cacc63b7a8ded047d032e4b2b.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/_fad652aa62822368d279b6e943.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/_d95997754e3e092532db7e0c0b.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/_a696091571bbb2505bcd568b95.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -290,7 +290,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/join_5cacc63b7a8ded047d032e4b2b.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/_fad652aa62822368d279b6e943.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/_d95997754e3e092532db7e0c0b.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/_a696091571bbb2505bcd568b95.yasm"
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/join_5cacc63b7a8ded047d032e4b2b.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/_fad652aa62822368d279b6e943.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/_d95997754e3e092532db7e0c0b.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/_a696091571bbb2505bcd568b95.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -306,7 +306,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/join_658938f5f16a6716f97608c292.cpp" "contrib/python/scipy/scipy/linalg/fad652aa62822368d279b6e943.cpp" "contrib/python/scipy/scipy/linalg/d95997754e3e092532db7e0c0b.cpp" "contrib/python/scipy/scipy/linalg/a696091571bbb2505bcd568b95.cpp"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/join_658938f5f16a6716f97608c292.cpp" "--ya-start-command-file" "contrib/python/scipy/scipy/linalg/fad652aa62822368d279b6e943.cpp" "contrib/python/scipy/scipy/linalg/d95997754e3e092532db7e0c0b.cpp" "contrib/python/scipy/scipy/linalg/a696091571bbb2505bcd568b95.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -317,7 +317,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/join_658938f5f16a6716f97608c292.cpp" "contrib/python/scipy/scipy/linalg/fad652aa62822368d279b6e943.cpp" "contrib/python/scipy/scipy/linalg/d95997754e3e092532db7e0c0b.cpp" "contrib/python/scipy/scipy/linalg/a696091571bbb2505bcd568b95.cpp"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/join_658938f5f16a6716f97608c292.cpp" "--ya-start-command-file" "contrib/python/scipy/scipy/linalg/fad652aa62822368d279b6e943.cpp" "contrib/python/scipy/scipy/linalg/d95997754e3e092532db7e0c0b.cpp" "contrib/python/scipy/scipy/linalg/a696091571bbb2505bcd568b95.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

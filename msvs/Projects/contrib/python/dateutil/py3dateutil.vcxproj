@@ -252,7 +252,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/join_6c00f74bcf5cd43fd5443b2fd4.yasm" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_e58b4203614322d2e32cb040f5.yasm" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_703937c056e520c87deeb34f4d.yasm" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_64808b10dcc67cdc847d9c1db5.yasm"
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/join_6c00f74bcf5cd43fd5443b2fd4.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_e58b4203614322d2e32cb040f5.yasm" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_703937c056e520c87deeb34f4d.yasm" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_64808b10dcc67cdc847d9c1db5.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -263,7 +263,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/join_6c00f74bcf5cd43fd5443b2fd4.yasm" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_e58b4203614322d2e32cb040f5.yasm" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_703937c056e520c87deeb34f4d.yasm" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_64808b10dcc67cdc847d9c1db5.yasm"
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/join_6c00f74bcf5cd43fd5443b2fd4.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_e58b4203614322d2e32cb040f5.yasm" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_703937c056e520c87deeb34f4d.yasm" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_64808b10dcc67cdc847d9c1db5.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -279,7 +279,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/join_2b61eafb7befdc8258ba4ef348.cpp" "contrib/python/dateutil/e58b4203614322d2e32cb040f5.cpp" "contrib/python/dateutil/703937c056e520c87deeb34f4d.cpp" "contrib/python/dateutil/64808b10dcc67cdc847d9c1db5.cpp"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/join_2b61eafb7befdc8258ba4ef348.cpp" "--ya-start-command-file" "contrib/python/dateutil/e58b4203614322d2e32cb040f5.cpp" "contrib/python/dateutil/703937c056e520c87deeb34f4d.cpp" "contrib/python/dateutil/64808b10dcc67cdc847d9c1db5.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -290,7 +290,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/join_2b61eafb7befdc8258ba4ef348.cpp" "contrib/python/dateutil/e58b4203614322d2e32cb040f5.cpp" "contrib/python/dateutil/703937c056e520c87deeb34f4d.cpp" "contrib/python/dateutil/64808b10dcc67cdc847d9c1db5.cpp"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/join_2b61eafb7befdc8258ba4ef348.cpp" "--ya-start-command-file" "contrib/python/dateutil/e58b4203614322d2e32cb040f5.cpp" "contrib/python/dateutil/703937c056e520c87deeb34f4d.cpp" "contrib/python/dateutil/64808b10dcc67cdc847d9c1db5.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
