@@ -3,15 +3,17 @@ import platform
 import sys
 import shutil
 
+import process_command_files as pcf
+
+
 if __name__ == '__main__':
     # Support @response-file notation for windows to reduce cmd length
-    if sys.argv[1].startswith('@'):
-        with open(sys.argv[1][1:]) as afile:
-            args = afile.read().splitlines()
+    if pcf.is_cmdfile_arg(sys.argv[1]):
+        args = pcf.read_from_command_file(pcf.cmdfile_path(sys.argv[1]))
         sys.argv[:] = [sys.argv[0]] + args + sys.argv[2:]
 
     mode = sys.argv[1]
-    args = sys.argv[2:]
+    args = list(pcf.iter_args(sys.argv[2:]))
 
     if mode == 'copy':
         shutil.copy(args[0], args[1])
