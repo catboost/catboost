@@ -45,7 +45,7 @@ private:
     };
 
 public:
-    using value_type = unsigned char;
+    using value_type = ui8;
     using const_reference = const value_type&;
     using const_pointer = const value_type*;
     using const_iterator = const_pointer;
@@ -130,6 +130,19 @@ public:
     /*
      * Some stl-like methods
      */
+
+    /// Returns a const reference to the data array.
+    /// result type is const ui8* which is not consistent with Data method above
+    /// but it's consistent with operator[], Begin and End methods below
+    /// Also it allows us to construct TArrayRef from TBlob
+    inline const_pointer data() const noexcept {
+        return static_cast<const_pointer>(Data());
+    }
+
+    /// Returns the size of the data array in bytes.
+    inline size_t size() const noexcept {
+        return Length();
+    }
 
     /// Returns the size of the data array in bytes.
     inline size_t Size() const noexcept {
