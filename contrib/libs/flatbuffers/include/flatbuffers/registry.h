@@ -17,7 +17,7 @@
 #ifndef FLATBUFFERS_REGISTRY_H_
 #define FLATBUFFERS_REGISTRY_H_
 
-#include "flatbuffers/idl.h"
+#include "idl.h"
 
 namespace flatbuffers {
 

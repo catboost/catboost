@@ -1246,7 +1246,7 @@ class FlatBufferBuilder {
   /// of T::c_str() and T::length() to store in the buffer.
   /// @return Returns the offset in the buffer where the string starts.
   template<typename T> Offset<String> CreateString(const T &str) {
-    return CreateString(str.c_str(), str.length());
+    return CreateString(str.data(), str.length());
   }
 
   /// @brief Store a string in the buffer, which can contain any binary data.
