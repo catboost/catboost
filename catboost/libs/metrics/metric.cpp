@@ -519,7 +519,8 @@ TMetricHolder TRMSEWithUncertaintyMetric::EvalSingleThread(
             double weight = realWeight(i);
             double expSum = -2 * realApprox(1, i);
             FastExpInplace(&expSum, /*count*/ 1);
-            stats0 += weight * (0.39908993417 + realApprox(1, i) + 0.5 * expSum * Sqr(realApprox(0, i) - target[0][i]));
+            // np.log(2 * np.pi) / 2.0
+            stats0 += weight * (0.9189385332046 + realApprox(1, i) + 0.5 * expSum * Sqr(realApprox(0, i) - target[0][i]));
             stats1 += weight;
         }
         error.Stats[0] += stats0;
