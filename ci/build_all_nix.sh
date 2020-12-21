@@ -24,11 +24,15 @@ function python_version {
 }
 
 function os_sdk {
+    python_version=`python_version python`
+    # workaround for python3.9 - don't use system python for it
+    #TODO(kirillovs): remove workaround when 3.9 will be put in arcadia
     case `uname -s` in
-        Linux) echo "-DOS_SDK=ubuntu-10 -DUSE_SYSTEM_PYTHON=`python_version python`" ;;
+        Linux) echo "-DOS_SDK=ubuntu-10" ; if [[ "$python_version" != "3.9" ]]; then echo "-DUSE_SYSTEM_PYTHON=$python_version"; fi ;;
         *) echo "-DOS_SDK=local" ;;
     esac
 }
+
 
 lnx_common_flags="-DNO_DEBUGINFO $CUDA_ARG"
 
