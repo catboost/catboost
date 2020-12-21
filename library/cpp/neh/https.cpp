@@ -1266,7 +1266,7 @@ namespace NNeh {
                 if (sz != cl) {
                     throw yexception() << TStringBuf("not full content: ") << sz << TStringBuf(" bytes from ") << cl;
                 }
-            } else {
+            } else if (in.HasContent()) {
                 TVector<char> buff(9500); //common jumbo frame size
 
                 while (size_t len = in.Read(buff.data(), buff.size())) {
