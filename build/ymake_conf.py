@@ -595,7 +595,9 @@ class Build(object):
                 python.configure_posix()
                 python.print_variables()
 
-        Cuda(self).print_()
+        cuda = Cuda(self)
+        cuda.print_()
+        CuDNN(cuda).print_()
 
         print_swig_config()
 
@@ -2880,6 +2882,26 @@ class Cuda(object):
 
     def auto_cuda_arcadia_includes(self):
         return self.cuda_version_list >= [9, 0]
+
+
+class CuDNN(object):
+    def __init__(self, cuda):
+        """
+        :type cuda: Cuda
+        """
+        self.cuda = cuda
+
+        self.cudnn_version = Setting('CUDNN_VERSION', auto=self.auto_cudnn_version)
+
+    def have_cudnn(self):
+        return self.cudnn_version.value in ('7.6.5', '8.0.5')
+
+    def auto_cudnn_version(self):
+        return '7.6.5'
+
+    def print_(self):
+        if self.cuda.have_cuda.value and self.have_cudnn():
+            self.cudnn_version.emit()
 
 
 class Yasm(object):
