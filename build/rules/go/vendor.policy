@@ -371,7 +371,7 @@ ALLOW .* -> vendor/github.com/tus/tusd
 ALLOW .* -> vendor/github.com/twmb/murmur3
 
 # gopsutil: psutil for golang
-ALLOW .* -> vendor/github.com/shirou/gopsutil
+ALLOW .* -> vendor/github.com/shirou/gopsutil/v3
 
 # Go Imagick is a Go bind to ImageMagick's MagickWand C API
 ALLOW .* -> vendor/gopkg.in/gographics/imagick.v2
