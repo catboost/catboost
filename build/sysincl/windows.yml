@@ -7,6 +7,8 @@
   - adhoc.h
   - apiset.h
   - apisetcconv.h
+  - atltime.h
+  - audioclient.h
   - authz.h
   - basetyps.h
   - bcrypt.h
@@ -47,6 +49,7 @@
   - downloadmgr.h
   - driverspecs.h
   - dshow.h
+  - dsound.h
   - dsparse.h
   - dv.h
   - dvdmedia.h
@@ -121,6 +124,7 @@
   - minwinbase.h
   - minwindef.h
   - mlang.h
+  - mmdeviceapi.h
   - mmsystem.h
   - mq.h
   - mshtmdid.h
