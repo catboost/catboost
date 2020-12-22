@@ -94,6 +94,11 @@ public:
     /// заголовок на новый.
     void AddOrReplaceHeader(const THttpInputHeader& header);
 
+    template <typename ValueType>
+    void AddOrReplaceHeader(TString name, const ValueType& value) {
+        AddOrReplaceHeader(THttpInputHeader(std::move(name), ToString(value)));
+    }
+
     // Проверяет, есть ли такой заголовок
     bool HasHeader(TStringBuf header) const;
 
