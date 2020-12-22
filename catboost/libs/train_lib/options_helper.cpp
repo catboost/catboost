@@ -360,7 +360,8 @@ static void AdjustBoostFromAverageDefaultValue(
         // boost from average is enabled by default only for RMSE, MAE, Quantile and MAPE now
         && EqualToOneOf(
             catBoostOptions->LossFunctionDescription->GetLossFunction(),
-            ELossFunction::RMSE, ELossFunction::MAE, ELossFunction::Quantile, ELossFunction::MAPE)
+            ELossFunction::RMSE, ELossFunction::MAE, ELossFunction::Quantile, ELossFunction::MAPE,
+            ELossFunction::MultiRMSE)
     ) {
         catBoostOptions->BoostingOptions->BoostFromAverage.Set(true);
     }

@@ -129,20 +129,35 @@ namespace NCB {
 
     inline TMaybe<TVector<double>> CalcOptimumConstApprox(
         const NCatboostOptions::TLossDescription& lossDescription,
-        TConstArrayRef<float> target,
+        TConstArrayRef<TConstArrayRef<float>> target,
         TConstArrayRef<float> weights
     ) {
         auto lossFunction = lossDescription.GetLossFunction();
-        if (lossFunction == ELossFunction::RMSEWithUncertainty) {
-            double mean = CalculateWeightedTargetAverage(target, weights);
-            double var = CalculateWeightedTargetVariance(target, weights, mean);
-            return TVector<double>({mean, 0.5 * log(var)});
-        } else {
-            TMaybe<double> optimum = CalcOneDimensionalOptimumConstApprox(lossDescription, target, weights);
-            if (optimum.Defined()) {
-                return TVector<double>(1, *optimum.Get());
-            } else {
-                return Nothing();
+        switch (lossFunction) {
+            case ELossFunction::RMSEWithUncertainty:
+            {
+                double mean = CalculateWeightedTargetAverage(target[0], weights);
+                double var = CalculateWeightedTargetVariance(target[0], weights, mean);
+                return TVector<double>({mean, 0.5 * log(var)});
+            }
+            case ELossFunction::MultiRMSE:
+            {
+                NCatboostOptions::TLossDescription singleRMSELoss;
+                singleRMSELoss.LossFunction = ELossFunction::RMSE;
+                TVector<double> startPoint(target.size());
+                for (int dim : xrange(target.size())) {
+                    startPoint[dim] = *CalcOneDimensionalOptimumConstApprox(singleRMSELoss, target[dim], weights);
+                }
+                return startPoint;
+            }
+            default:
+            {
+                TMaybe<double> optimum = CalcOneDimensionalOptimumConstApprox(lossDescription, target[0], weights);
+                if (optimum.Defined()) {
+                    return TVector<double>(1, *optimum.Get());
+                } else {
+                    return Nothing();
+                }
             }
         }
     }

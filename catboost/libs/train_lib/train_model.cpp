@@ -775,20 +775,18 @@ namespace {
 
             TMaybe<TVector<double>> startingApprox;
             if (catboostOptions.BoostingOptions->BoostFromAverage.Get()) {
-                // TODO(fedorlebed): add boost from average support for multiregression
                 CB_ENSURE(trainingData.Learn->TargetData->GetTargetDimension() != 0, "Target is required for boosting from average");
-                CB_ENSURE(trainingData.Learn->TargetData->GetTargetDimension() == 1, "Multi-dimensional target boosting from average is unimplemented yet");
 
                 startingApprox = CalcOptimumConstApprox(
                     catboostOptions.LossFunctionDescription,
-                    *trainingData.Learn->TargetData->GetOneDimensionalTarget(),
+                    *trainingData.Learn->TargetData->GetTarget(),
                     GetWeights(*trainingData.Learn->TargetData)
                 );
             } else {
                 if (catboostOptions.LossFunctionDescription->GetLossFunction() == ELossFunction::RMSEWithUncertainty) {
                     startingApprox = CalcOptimumConstApprox(
                         catboostOptions.LossFunctionDescription,
-                        *trainingData.Learn->TargetData->GetOneDimensionalTarget(),
+                        *trainingData.Learn->TargetData->GetTarget(),
                         GetWeights(*trainingData.Learn->TargetData)
                     );
                 }

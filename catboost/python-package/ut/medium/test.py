@@ -2377,16 +2377,32 @@ def test_multilabel_custom_objective(task_type, n=10):
     test_pool = Pool(data=xs,
                      label=ys)
 
-    model = CatBoostRegressor(iterations=5, learning_rate=0.03, use_best_model=True,
-                               loss_function=MultiRMSEObjective(), eval_metric="MultiRMSE",
-                               # Leaf estimation method and gradient iteration are set to match
-                               # defaults for Logloss.
-                               leaf_estimation_method="Newton", leaf_estimation_iterations=1, task_type=task_type, devices='0')
+    model = CatBoostRegressor(
+        iterations=5,
+        learning_rate=0.03,
+        use_best_model=True,
+        loss_function=MultiRMSEObjective(),
+        eval_metric="MultiRMSE",
+        # Leaf estimation method and gradient iteration are set to match
+        # defaults for Logloss.
+        leaf_estimation_method="Newton",
+        leaf_estimation_iterations=1,
+        task_type=task_type,
+        devices='0'
+    )
 
     model.fit(train_pool, eval_set=test_pool)
     pred1 = model.predict(test_pool, prediction_type='RawFormulaVal')
 
-    model2 = CatBoostRegressor(iterations=5, learning_rate=0.03, use_best_model=True, loss_function="MultiRMSE", leaf_estimation_method="Newton", leaf_estimation_iterations=1)
+    model2 = CatBoostRegressor(
+        iterations=5,
+        learning_rate=0.03,
+        boost_from_average=False,
+        use_best_model=True,
+        loss_function="MultiRMSE",
+        leaf_estimation_method="Newton",
+        leaf_estimation_iterations=1
+    )
     model2.fit(train_pool, eval_set=test_pool)
     pred2 = model2.predict(test_pool, prediction_type='RawFormulaVal')
 

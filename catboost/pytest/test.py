@@ -123,7 +123,8 @@ def test_dist_train_multiregression(dev_score_calc_obj_block_size):
         train='train',
         test='test',
         cd='train.cd',
-        dev_score_calc_obj_block_size=dev_score_calc_obj_block_size)))]
+        dev_score_calc_obj_block_size=dev_score_calc_obj_block_size,
+        other_options=('--boost-from-average', '0'))))]
 
 
 @pytest.mark.parametrize(
@@ -138,7 +139,8 @@ def test_dist_train_multiregression_single(dev_score_calc_obj_block_size):
         train='train',
         test='test',
         cd='train_single.cd',
-        dev_score_calc_obj_block_size=dev_score_calc_obj_block_size)))]
+        dev_score_calc_obj_block_size=dev_score_calc_obj_block_size,
+        other_options=('--boost-from-average', '0'))))]
 
 
 @pytest.mark.parametrize('boosting_type, grow_policy', BOOSTING_TYPE_WITH_GROW_POLICIES)
