@@ -2901,6 +2901,7 @@
                 "werror_mode": "all",
                 "c_compiler": "$(CLANG)/bin/clang",
                 "cxx_compiler": "$(CLANG)/bin/clang++",
+                "cxx_std": "c++20",
                 "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
                 "objcopy": "$(CLANG)/bin/llvm-objcopy",
                 "strip": "$(CLANG)/bin/llvm-strip",
