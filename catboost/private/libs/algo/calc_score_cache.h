@@ -123,6 +123,7 @@ inline static int CountNonCtrBuckets(
 class TBucketStatsCache {
 public:
     inline void Create(const TVector<TFold>& folds, int bucketCount, int depth) {
+        Stats.clear();
         ApproxDimension = folds[0].GetApproxDimension();
         MaxBodyTailCount = GetMaxBodyTailCount(folds);
         InitialSize = sizeof(TBucketStats) * bucketCount * (1ULL << depth) * ApproxDimension * MaxBodyTailCount;
