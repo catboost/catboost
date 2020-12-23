@@ -8,6 +8,8 @@ import json
 import argparse
 import errno
 
+import process_command_files as pcf
+
 
 procs = []
 build_kekeke = 45
@@ -398,7 +400,7 @@ def run_main():
     binary = args.binary
     version = args.version
     incl_paths = args.incl_paths
-    free_args = args.free_args
+    free_args = pcf.skip_markers(args.free_args)
     bld_root = args.arcadia_build_root
 
     wine_dir = os.path.dirname(os.path.dirname(wine))
