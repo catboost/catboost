@@ -432,7 +432,15 @@ def execute(
     if env is None:
         env = os.environ.copy()
     else:
-        mandatory_system_vars = ["TMPDIR"]
+        # Certain environment variables must be present for programs to work properly.
+        # For more info see DEVTOOLSSUPPORT-4907
+        mandatory_env_name = 'YA_MANDATORY_ENV_VARS'
+        if mandatory_env_name in os.environ:
+            env[mandatory_env_name] = os.environ[mandatory_env_name]
+            mandatory_system_vars = filter(None, os.environ.get('YA_MANDATORY_ENV_VARS', '').split(':'))
+        else:
+            mandatory_system_vars = ['TMPDIR']
+
         for var in mandatory_system_vars:
             if var not in env and var in os.environ:
                 env[var] = os.environ[var]
