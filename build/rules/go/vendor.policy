@@ -13,6 +13,9 @@ ALLOW .* -> vendor/github.com/andybalholm/cascadia
 # CONTRIB-2082 prometheus-libvirt-exporter
 ALLOW .* -> vendor/github.com/zhangjianweibj/prometheus-libvirt-exporter
 
+# CONTRIB-2086 go-libvirt
+ALLOW .* -> vendor/github.com/digitalocean/go-libvirt
+
 # CONTRIB-1872 pure ipp proto implementation
 ALLOW .* -> vendor/github.com/phin1x/go-ipp
 
