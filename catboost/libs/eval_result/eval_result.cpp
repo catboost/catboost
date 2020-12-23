@@ -1,6 +1,7 @@
 #include "eval_result.h"
 
 #include "eval_helpers.h"
+#include "pool_printer.h"
 
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/logging/logging.h>
@@ -79,6 +80,8 @@ namespace NCB {
 
         bool hasPrediction = false;
 
+        bool notQuantizedPool = bool(dynamic_cast<TRawObjectsDataProvider*>(pool.ObjectsData.Get()));
+
         for (const auto& name : outputColumns) {
             EPredictionType predictionType;
             if (TryFromString<EPredictionType>(name, predictionType)) {
@@ -99,11 +102,9 @@ namespace NCB {
                         CB_ENSURE(pool.MetaInfo.HasWeights, "bad output column name " << name << " (No WeightId info in pool)");
                         break;
                     case (EColumn::GroupId):
-                        CB_ENSURE(pool.MetaInfo.ColumnsInfo.Defined(), "GroupId output is currently supported only for columnar pools");
                         CB_ENSURE(pool.MetaInfo.HasGroupId, "bad output column name " << name << " (No GroupId info in pool)");
                         break;
                     case (EColumn::SubgroupId):
-                        CB_ENSURE(pool.MetaInfo.ColumnsInfo.Defined(), "SubgroupId output is currently supported only for columnar pools");
                         CB_ENSURE(pool.MetaInfo.HasSubgroupIds, "bad output column name " << name << " (No SubgroupIds info in pool)");
                         break;
                     case (EColumn::Timestamp):
@@ -123,19 +124,21 @@ namespace NCB {
             }
 
             if (name[0] == '#') {
-                CB_ENSURE(pool.MetaInfo.ColumnsInfo.Defined(),
-                          "Non-columnar pool, can't specify column index");
+                CB_ENSURE(notQuantizedPool, "Quantized pool, can't specify column index");
                 ui32 columnNumber;
                 TString columnName;
                 ParseOutputColumnByIndex(name, &columnNumber, &columnName);
-                CB_ENSURE(columnNumber < pool.MetaInfo.ColumnsInfo->Columns.size(),
-                          "column number " << columnNumber << " is out of range");
+                if (pool.MetaInfo.ColumnsInfo.Defined()) {
+                    CB_ENSURE(columnNumber < pool.MetaInfo.ColumnsInfo->Columns.size(),
+                              "column number " << columnNumber << " is out of range");
+                } else {
+                    CB_ENSURE(columnNumber < pool.MetaInfo.FeaturesLayout->GetExternalFeatureCount(),
+                        "column number " << columnNumber << " is out of range");
+                }
             } else {
                 CB_ENSURE(featureIds.contains(name), "Pool doesn't has column with name `" << name << "`.");
-                CB_ENSURE(
-                    dynamic_cast<TRawObjectsDataProvider*>(pool.ObjectsData.Get()),
-                    "Raw feature values are not available for quantized pools"
-                );
+                CB_ENSURE(notQuantizedPool,
+                          "Raw feature values are not available for quantized pools");
             }
             CB_ENSURE(!CV_mode, "can't output pool column in cross validation mode");
         }
@@ -153,6 +156,17 @@ namespace NCB {
                 poolColumnsPrinter = TIntrusivePtr<IPoolColumnsPrinter>(new TQuantizedPoolColumnsPrinter(testSetPath));
             } else if (testSetPath.Scheme.Contains("dsv")) {
                 poolColumnsPrinter = TIntrusivePtr<IPoolColumnsPrinter>(new TDSVPoolColumnsPrinter(testSetPath, testSetFormat, columnsMetaInfo));
+            } else if (testSetPath.Scheme.Contains("proto")) {
+                poolColumnsPrinter = TIntrusivePtr<IPoolColumnsPrinter>(GetProcessor<IPoolColumnsPrinter>(
+                    testSetPath,
+                    TPoolColumnsPrinterPushArgs{
+                        GetProcessor<ILineDataReader>(
+                            testSetPath,
+                            TLineDataReaderArgs{testSetPath, testSetFormat}
+                        ),
+                        testSetFormat,
+                        columnsMetaInfo
+                    }).Release());
             }
         }
         return poolColumnsPrinter;

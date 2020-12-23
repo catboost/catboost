@@ -27,13 +27,17 @@ namespace NCB {
         THashMap<EColumn, ui32> FromColumnTypeToColumnId; // Only for DSV pools
     };
 
+    // pass this struct to to IPoolColumnsPrinter constructor
+    struct TPoolColumnsPrinterPushArgs {
+        THolder<ILineDataReader> Reader;
+        const TDsvFormatOptions Format;
+        const TMaybe<TDataColumnsMetaInfo> ColumnsMetaInfo;
+    };
+
+
     class TDSVPoolColumnsPrinter : public IPoolColumnsPrinter {
     public:
-        TDSVPoolColumnsPrinter(
-            THolder<ILineDataReader>&& lineDataReader,
-            const TDsvFormatOptions& format,
-            const TMaybe<TDataColumnsMetaInfo>& columnsMetaInfo
-        );
+        TDSVPoolColumnsPrinter(TPoolColumnsPrinterPushArgs&& args);
         TDSVPoolColumnsPrinter(
             const TPathWithScheme& testSetPath,
             const TDsvFormatOptions& format,
@@ -75,5 +79,10 @@ namespace NCB {
         TQuantizedPool QuantizedPool;
         THashMap<EColumn, ColumnInfo> ColumnsInfo;
     };
+
+    using TPoolColumnsPrinterLoaderFactory =
+    NObjectFactory::TParametrizedObjectFactory<IPoolColumnsPrinter,
+        TString,
+        TPoolColumnsPrinterPushArgs>;
 
 } // namespace NCB
