@@ -864,7 +864,7 @@ public:
         wchar16 upperCase[n];
         std::copy(wideCyrillicAlphabet, wideCyrillicAlphabet + n, upperCase);
         ToLower(upperCase, n);
-        UNIT_ASSERT(TCharTraits<wchar16>::Compare(upperCase, wideCyrillicAlphabet + n, n) == 0);
+        UNIT_ASSERT(TWtringBuf(upperCase, n) == TWtringBuf(wideCyrillicAlphabet + n, n));
     }
 
     void TestToUpper() {
@@ -872,7 +872,7 @@ public:
         wchar16 lowerCase[n];
         std::copy(wideCyrillicAlphabet + n, wideCyrillicAlphabet + n * 2, lowerCase);
         ToUpper(lowerCase, n);
-        UNIT_ASSERT(TCharTraits<wchar16>::Compare(lowerCase, wideCyrillicAlphabet, n) == 0);
+        UNIT_ASSERT(TWtringBuf(lowerCase, n) == TWtringBuf(wideCyrillicAlphabet, n));
     }
 
     void TestWideString() {

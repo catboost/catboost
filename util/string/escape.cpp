@@ -315,11 +315,8 @@ static TStr& DoUnescapeC(const TChar* p, size_t sz, TStr& res) {
 
             ++p;
         } else {
-            auto n = TStr::TTraits::Find(p, '\\', pe - p);
-
-            if (!n) {
-                n = pe;
-            }
+            const auto r = std::basic_string_view<TChar>(p, pe - p).find('\\');
+            const auto n = r != std::string::npos ? p + r : pe;
 
             res.append(p, n);
             p = n;
@@ -337,25 +334,18 @@ TBasicString<TChar>& UnescapeCImpl(const TChar* p, size_t sz, TBasicString<TChar
 template <class TChar>
 TChar* UnescapeC(const TChar* str, size_t len, TChar* buf) {
     struct TUnboundedString {
-        using TTraits = TCharTraits<TChar>;
-
-        inline void append(TChar ch) noexcept {
+        void append(TChar ch) noexcept {
             *P++ = ch;
         }
 
-        inline void append(const TChar* b, const TChar* e) noexcept {
+        void append(const TChar* b, const TChar* e) noexcept {
             while (b != e) {
                 append(*b++);
             }
         }
 
-        inline void AppendNoAlias(const TChar* s, size_t l) noexcept {
+        void AppendNoAlias(const TChar* s, size_t l) noexcept {
             append(s, s + l);
-        }
-
-        inline void X() {
-            TTraits t;
-            (void)t;
         }
 
         TChar* P;

@@ -87,7 +87,7 @@ public:
 
     template <class TCharTraits>
     inline constexpr operator std::basic_string_view<TCharType, TCharTraits>() const {
-        return std::basic_string_view<TCharType>(data(), size());
+        return std::basic_string_view<TCharType, TCharTraits>(data(), size());
     }
 
     template <class TCharTraits, class Allocator>
@@ -193,19 +193,22 @@ private:
 public:
     // ~~~ Comparison ~~~ : FAMILY0(int, compare)
     static int compare(const TSelf& s1, const TSelf& s2) noexcept {
-        return TTraits::Compare(s1.Ptr(), s1.Len(), s2.Ptr(), s2.Len());
+        return s1.AsStringView().compare(s2.AsStringView());
     }
 
     static int compare(const TCharType* p, const TSelf& s2) noexcept {
-        return TTraits::Compare(p, StrLen(p), s2.Ptr(), s2.Len());
+        TCharType null{0};
+        return TStringViewWithTraits(p ? p : &null).compare(s2.AsStringView());
     }
 
     static int compare(const TSelf& s1, const TCharType* p) noexcept {
-        return TTraits::Compare(s1.Ptr(), s1.Len(), p, StrLen(p));
+        TCharType null{0};
+        return s1.AsStringView().compare(p ? p : &null);
     }
 
     static int compare(const TStringView s1, const TStringView s2) noexcept {
-        return TTraits::Compare(s1.data(), s1.length(), s2.data(), s2.length());
+        return TStringViewWithTraits(s1.data(), s1.size()).compare(
+                TStringViewWithTraits(s2.data(), s2.size()));
     }
 
     template <class T>
@@ -230,7 +233,7 @@ public:
     }
 
     static bool equal(const TSelf& s1, const TSelf& s2) noexcept {
-        return TStringViewWithTraits{s1.data(), s1.size()} == TStringViewWithTraits{s2.data(), s2.size()};
+        return s1.AsStringView() == s2.AsStringView();
     }
 
     static bool equal(const TSelf& s1, const TCharType* p) noexcept {
@@ -238,7 +241,7 @@ public:
             return s1.Len() == 0;
         }
 
-        return TStringViewWithTraits{s1.data(), s1.size()} == p;
+        return s1.AsStringView() == p;
     }
 
     static bool equal(const TCharType* p, const TSelf& s2) noexcept {
@@ -267,11 +270,11 @@ public:
     }
 
     static inline bool StartsWith(const TCharType* what, size_t whatLen, const TCharType* with, size_t withLen) noexcept {
-        return withLen <= whatLen && TTraits::Compare(what, withLen, with, withLen) == 0;
+        return withLen <= whatLen && TStringViewWithTraits(what, withLen) == TStringViewWithTraits(with, withLen);
     }
 
     static inline bool EndsWith(const TCharType* what, size_t whatLen, const TCharType* with, size_t withLen) noexcept {
-        return withLen <= whatLen && TTraits::Compare(what + whatLen - withLen, withLen, with, withLen) == 0;
+        return withLen <= whatLen && TStringViewWithTraits(what + whatLen - withLen, withLen) == TStringViewWithTraits(with, withLen);
     }
 
     inline bool StartsWith(const TCharType* s, size_t n) const noexcept {
@@ -421,37 +424,30 @@ public:
      * @return                          Position of the substring inside this string, or `npos` if not found.
      */
     inline size_t find(const TStringView s, size_t pos = 0) const noexcept {
-        if (Y_UNLIKELY(!s.length())) {
-            return pos <= Len() ? pos : npos;
-        }
-        return GenericFind<TTraits::Find>(s.data(), s.length(), pos);
+        return find(s.data(), pos, s.size());
     }
 
     inline size_t find(const TCharType* s, size_t pos, size_t count) const noexcept {
-        return find(TStringView(s, count), pos);
+        return AsStringView().find(s, pos, count);
     }
 
     inline size_t find(TCharType c, size_t pos = 0) const noexcept {
-        if (pos >= Len()) {
-            return npos;
-        }
-        return off(TTraits::Find(Ptr() + pos, c, Len() - pos));
+        return AsStringView().find(c, pos);
     }
 
     inline size_t rfind(TCharType c) const noexcept {
-        return off(TTraits::RFind(Ptr(), c, Len()));
+        return AsStringView().rfind(c);
     }
 
     inline size_t rfind(TCharType c, size_t pos) const noexcept {
-        if (pos > Len()) {
-            pos = Len();
+        if (pos == 0) {
+            return npos;
         }
-
-        return off(TTraits::RFind(Ptr(), c, pos));
+        return AsStringView().rfind(c, pos - 1);
     }
 
     inline size_t rfind(const TStringView str, size_t pos = npos) const {
-        return off(TTraits::RFind(Ptr(), Len(), str.data(), str.length(), pos));
+        return AsStringView().rfind(str.data(), pos, str.size());
     }
 
     //~~~~Contains~~~~
@@ -484,7 +480,7 @@ public:
     }
 
     inline size_t find_first_of(const TStringView set, size_t pos) const noexcept {
-        return GenericFind<TTraits::FindFirstOf>(set.data(), set.length(), pos);
+        return AsStringView().find_first_of(set.data(), pos, set.size());
     }
 
     inline size_t find_first_not_of(TCharType c) const noexcept {
@@ -500,7 +496,7 @@ public:
     }
 
     inline size_t find_first_not_of(const TStringView set, size_t pos) const noexcept {
-        return GenericFind<TTraits::FindFirstNotOf>(set.data(), set.length(), pos);
+        return AsStringView().find_first_not_of(set.data(), pos, set.size());
     }
 
     inline size_t find_last_of(TCharType c, size_t pos = npos) const noexcept {
@@ -512,23 +508,11 @@ public:
     }
 
     inline size_t find_last_of(const TCharType* set, size_t pos, size_t n) const noexcept {
-        ssize_t startpos = pos >= size() ? static_cast<ssize_t>(size()) - 1 : static_cast<ssize_t>(pos);
-
-        for (ssize_t i = startpos; i >= 0; --i) {
-            const TCharType c = Ptr()[i];
-
-            for (const TCharType* p = set; p < set + n; ++p) {
-                if (TTraits::eq(c, *p)) {
-                    return static_cast<size_t>(i);
-                }
-            }
-        }
-
-        return npos;
+        return AsStringView().find_last_of(set, pos, n);
     }
 
     inline size_t find_last_not_of(TCharType c, size_t pos = npos) const noexcept {
-        return find_last_not_of(&c, pos, 1);
+        return AsStringView().find_last_not_of(c, pos);
     }
 
     inline size_t find_last_not_of(const TStringView set, size_t pos = npos) const noexcept {
@@ -536,24 +520,7 @@ public:
     }
 
     inline size_t find_last_not_of(const TCharType* set, size_t pos, size_t n) const noexcept {
-        ssize_t startpos = pos >= size() ? static_cast<ssize_t>(size()) - 1 : static_cast<ssize_t>(pos);
-
-        for (ssize_t i = startpos; i >= 0; --i) {
-            const TCharType c = Ptr()[i];
-
-            bool found = true;
-            for (const TCharType* p = set; p < set + n; ++p) {
-                if (TTraits::eq(c, *p)) {
-                    found = false;
-                    break;
-                }
-            }
-            if (found) {
-                return static_cast<size_t>(i);
-            }
-        }
-
-        return npos;
+        return AsStringView().find_last_not_of(set, pos, n);
     }
 
     inline size_t copy(TCharType* pc, size_t n, size_t pos) const {
@@ -589,13 +556,8 @@ public:
 private:
     using GenericFinder = const TCharType* (*)(const TCharType*, size_t, const TCharType*, size_t);
 
-    template <GenericFinder finder>
-    inline size_t GenericFind(const TCharType* s, size_t n, size_t pos = npos) const noexcept {
-        if (pos >= Len()) {
-            return npos;
-        }
-
-        return off(finder(Ptr() + pos, Len() - pos, s, n));
+    TStringViewWithTraits AsStringView() const {
+        return static_cast<TStringViewWithTraits>(*this);
     }
 
     constexpr inline const TCharType* Ptr() const noexcept {

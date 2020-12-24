@@ -101,7 +101,6 @@ JOIN_SRCS(
     generic/bt_exception.cpp
     generic/buffer.cpp
     generic/cast.cpp
-    generic/chartraits.cpp
     generic/deque.cpp
     generic/explicit_type.cpp
     generic/fastqueue.cpp
