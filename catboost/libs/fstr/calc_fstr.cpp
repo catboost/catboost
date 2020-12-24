@@ -153,30 +153,30 @@ static THashMap<TFeature, int, TFeatureHash> GetFeatureToIdxMap(
     return featureToIdx;
 }
 
-static const TDataProvider GetSubset(
-        const TDataProvider& dataset,
-        ui32 maxDocumentCount,
-        NPar::ILocalExecutor* localExecutor
+const TDataProviderPtr GetSubsetForFstrCalc(
+    const TDataProviderPtr dataset,
+    NPar::ILocalExecutor* localExecutor
 ) {
-    auto documentCount = dataset.ObjectsData->GetObjectCount();
+    ui32 totalDocumentCount = dataset->ObjectsData->GetObjectCount();
+    ui32 maxDocumentCount = Min(totalDocumentCount, Max(ui32(2e5), ui32(2e9 / dataset->ObjectsData->GetFeaturesLayout()->GetExternalFeatureCount())));
 
-    if (documentCount > maxDocumentCount) {
-        ui32 foldCount = documentCount / maxDocumentCount;
+    if (totalDocumentCount > maxDocumentCount) {
+        ui32 foldCount = totalDocumentCount / maxDocumentCount;
 
         TVector<NCB::TArraySubsetIndexing<ui32>> testSubsets;
 
-        testSubsets = NCB::Split(*dataset.ObjectsGrouping, foldCount, /*oldCvStyleSplit*/ true);
+        testSubsets = NCB::Split(*dataset->ObjectsGrouping, foldCount, /*oldCvStyleSplit*/ true);
 
-        auto subset = dataset.GetSubset(
+        auto subset = dataset->GetSubset(
                 GetSubset(
-                        dataset.ObjectsGrouping,
+                        dataset->ObjectsGrouping,
                         std::move(testSubsets[0]),
                         NCB::EObjectsOrder::Ordered
                 ),
                 NSystemInfo::TotalMemorySize(),
                 localExecutor
         );
-        return *subset.Get();
+        return subset;
     } else {
         return dataset;
     }
@@ -252,7 +252,7 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectAverageChange(
 
 static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
     const TFullModel& model,
-    const TDataProvider& dataProvider,
+    const TDataProviderPtr dataProvider,
     NPar::ILocalExecutor* localExecutor,
     ECalcTypeShapValues calcType
 )
@@ -269,23 +269,20 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
         return result;
     }
 
-    ui32 totalDocumentCount = dataProvider.ObjectsData->GetObjectCount();
-    ui32 maxDocuments = Min(totalDocumentCount, Max(ui32(2e5), ui32(2e9 / dataProvider.ObjectsData->GetFeaturesLayout()->GetExternalFeatureCount())));
+    const auto dataset = GetSubsetForFstrCalc(dataProvider, localExecutor);
 
-    const auto dataset = GetSubset(dataProvider, maxDocuments, localExecutor);
+    ui32 documentCount = dataset->ObjectsData->GetObjectCount();
+    const TObjectsDataProvider& objectsData = *dataset->ObjectsData;
 
-    ui32 documentCount = dataset.ObjectsData->GetObjectCount();
-    const TObjectsDataProvider& objectsData = *dataset.ObjectsData;
-
-    CATBOOST_INFO_LOG << "Selected " << documentCount << " documents from " << totalDocumentCount << " for LossFunctionChange calculation." << Endl;
+    CATBOOST_INFO_LOG << "Selected " << documentCount << " documents from " << dataProvider->GetObjectCount() << " for LossFunctionChange calculation." << Endl;
 
     TRestorableFastRng64 rand(0);
-    auto targetData = CreateModelCompatibleProcessedDataProvider(dataset, {metricDescription}, model, GetMonopolisticFreeCpuRam(), &rand, localExecutor).TargetData;
+    auto targetData = CreateModelCompatibleProcessedDataProvider(*dataset.Get(), {metricDescription}, model, GetMonopolisticFreeCpuRam(), &rand, localExecutor).TargetData;
     CB_ENSURE(targetData->GetTargetDimension() <= 1, "Multi-dimensional target fstr is unimplemented yet");
 
     TShapPreparedTrees preparedTrees = PrepareTrees(
         model,
-        &dataset,
+        dataset.Get(),
         /*referenceDataset*/ nullptr,
         EPreCalcShapValues::Auto,
         localExecutor,
@@ -448,7 +445,7 @@ TVector<std::pair<double, TFeature>> CalcFeatureEffect(
             dataset,
             "Dataset is not provided for " << EFstrType::LossFunctionChange << ", choose "
                 << EFstrType::PredictionValuesChange << " fstr type explicitly or provide dataset.");
-        return CalcFeatureEffectLossChange(model, *dataset.Get(), localExecutor, calcType);
+        return CalcFeatureEffectLossChange(model, dataset, localExecutor, calcType);
     } else {
         CB_ENSURE_INTERNAL(
             type == EFstrType::PredictionValuesChange || type == EFstrType::InternalFeatureImportance,

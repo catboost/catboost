@@ -17,7 +17,6 @@
 
 #include <util/generic/hash_set.h>
 
-
 using namespace NCatboostOptions;
 
 
@@ -161,7 +160,7 @@ namespace NCB {
     template <typename TCalcLoss>
     static void EliminateFeaturesBasedOnShapValues(
         const TFullModel& model,
-        const TDataProviderPtr testPool,
+        const TDataProviderPtr fstrPool,
         const ui32 numFeaturesToEliminateAtThisStep,
         const ECalcTypeShapValues shapCalcType,
         double currentLossValue,
@@ -175,7 +174,7 @@ namespace NCB {
         CATBOOST_DEBUG_LOG << "Calc Shap Values" << Endl;
         TVector<TVector<TVector<double>>> shapValues = CalcShapValuesMulti(
             model,
-            *testPool.Get(),
+            *fstrPool.Get(),
             /*referenceDataset*/ nullptr,
             /*fixedFeatureParams*/ Nothing(),
             /*logPeriod*/1000000,
@@ -184,7 +183,7 @@ namespace NCB {
             shapCalcType
         );
 
-        NPar::ILocalExecutor::TExecRangeParams blockParams(0, static_cast<int>(testPool->GetObjectCount()));
+        NPar::ILocalExecutor::TExecRangeParams blockParams(0, static_cast<int>(fstrPool->GetObjectCount()));
         blockParams.SetBlockCount(executor->GetThreadCount() + 1);
 
         CATBOOST_DEBUG_LOG << "Select features to eliminate" << Endl;
@@ -217,7 +216,7 @@ namespace NCB {
                 }
             }, blockParams, NPar::TLocalExecutor::WAIT_COMPLETE);
 
-            CATBOOST_INFO_LOG << "Feature #" << worstFeatureIdx << " eliminated" << Endl;
+            CATBOOST_NOTICE_LOG << "Feature #" << worstFeatureIdx << " eliminated" << Endl;
             featuresForSelectSet->erase(worstFeatureIdx);
             summary->EliminatedFeatures.push_back(worstFeatureIdx);
             currentLossValue += featureToLossValueChange[worstFeatureIdx];
@@ -228,7 +227,7 @@ namespace NCB {
 
     static void EliminateFeaturesBasedOnFeatureEffect(
         const TFullModel& model,
-        const TDataProviderPtr testPool,
+        const TDataProviderPtr fstrPool,
         const ui32 numFeaturesToEliminateAtThisStep,
         const EFstrType fstrType,
         const ECalcTypeShapValues shapCalcType,
@@ -241,7 +240,7 @@ namespace NCB {
         CATBOOST_DEBUG_LOG << "Calc Feature Effect" << Endl;
         TVector<double> featureEffect = CalcRegularFeatureEffect(
             model,
-            testPool,
+            fstrPool,
             fstrType,
             executor,
             shapCalcType
@@ -258,7 +257,7 @@ namespace NCB {
         for (ui32 featureIdx : featureIndices) {
             if (featuresForSelectSet->contains(featureIdx)) {
                 CATBOOST_DEBUG_LOG << "Feature #" << featureIdx << " has effect " << featureEffect[featureIdx] << Endl;
-                CATBOOST_INFO_LOG << "Feature #" << featureIdx << " eliminated" << Endl;
+                CATBOOST_NOTICE_LOG << "Feature #" << featureIdx << " eliminated" << Endl;
                 featuresForSelectSet->erase(featureIdx);
                 summary->EliminatedFeatures.push_back(featureIdx);
                 if (fstrType == EFstrType::LossFunctionChange) {
@@ -367,6 +366,7 @@ namespace NCB {
         const THolder<IMetric> loss = std::move(CreateMetricFromDescription(lossDescription, approxDimension)[0]);
 
         const auto& testPool = pools.Test.empty() ? pools.Learn : pools.Test[0];
+        const auto fstrPool = GetSubsetForFstrCalc(testPool, executor);
         const TTargetDataProviderPtr testTarget = trainingData.Test.empty()
             ? trainingData.Learn->TargetData
             : trainingData.Test[0]->TargetData;
@@ -403,7 +403,7 @@ namespace NCB {
         };
 
         for (auto step : xrange(alreadyPassedSteps, featuresSelectOptions.Steps.Get())) {
-            CATBOOST_INFO_LOG << "Step #" << step + 1 << " out of " << featuresSelectOptions.Steps.Get() << Endl;
+            CATBOOST_NOTICE_LOG << "Step #" << step + 1 << " out of " << featuresSelectOptions.Steps.Get() << Endl;
             const TFullModel model = trainModel();
             TVector<TVector<double>> approx = applyModel(model);
             double currentLossValue = calcLoss(approx);
@@ -414,7 +414,7 @@ namespace NCB {
                 case EFeaturesSelectionAlgorithm::RecursiveByShapValues: {
                     EliminateFeaturesBasedOnShapValues(
                         model,
-                        testPool,
+                        fstrPool,
                         numFeaturesToEliminateBySteps[step],
                         featuresSelectOptions.ShapCalcType,
                         currentLossValue,
@@ -434,7 +434,7 @@ namespace NCB {
                         : EFstrType::LossFunctionChange;
                     EliminateFeaturesBasedOnFeatureEffect(
                         model,
-                        testPool,
+                        fstrPool,
                         numFeaturesToEliminateBySteps[step],
                         fstrType,
                         featuresSelectOptions.ShapCalcType,
@@ -454,13 +454,13 @@ namespace NCB {
         }
 
         if (featuresSelectOptions.TrainFinalModel.Get()) {
-            CATBOOST_INFO_LOG << "Train final model" << Endl;
+            CATBOOST_NOTICE_LOG << "Train final model" << Endl;
             const TFullModel finalModel = trainModel();
             const double lossValue = calcLoss(applyModel(finalModel));
 
             lossGraphBuilder.AddPrecisePoint(summary.EliminatedFeatures.size(), lossValue);
 
-            CATBOOST_INFO_LOG << "Save final model" << Endl;
+            CATBOOST_NOTICE_LOG << "Save final model" << Endl;
             ExportFullModel(
                 finalModel,
                 initialOutputFileOptions.GetResultModelFilename(),

@@ -68,6 +68,11 @@ public:
     {}
 };
 
+const NCB::TDataProviderPtr GetSubsetForFstrCalc(
+    const NCB::TDataProviderPtr dataset,
+    NPar::ILocalExecutor* localExecutor
+);
+
 TVector<std::pair<double, TFeature>> CalcFeatureEffect(
     const TFullModel& model,
     const NCB::TDataProviderPtr dataset, // can be nullptr
