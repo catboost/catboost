@@ -164,6 +164,7 @@
   - AppKit/NSView.h
   - ApplicationServices/ApplicationServices.h
   - AudioToolbox/AudioToolbox.h
+  - AVFoundation/AVFoundation.h
   - Cocoa/Cocoa.h
   - CoreFoundation/CFBase.h
   - CoreFoundation/CFData.h
@@ -208,6 +209,7 @@
   - OpenCL/cl_gl.h
   - OpenCL/opencl.h
   - OpenGLES/ES2/gl.h
+  - Speech/Speech.h
   - QuartzCore/QuartzCore.h
   - QuartzCore/CAEAGLLayer.h
   - QuartzCore/CAMetalLayer.h
