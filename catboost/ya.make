@@ -1,6 +1,6 @@
 
 
-IF (NOT SANITIZER_TYPE STREQUAL "undefined")  # XXX
+IF (SANITIZER_TYPE != "undefined")  # XXX
 
 RECURSE(
     R-package
