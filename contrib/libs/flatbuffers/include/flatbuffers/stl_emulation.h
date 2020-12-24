@@ -37,9 +37,9 @@
 // Not possible if Microsoft Compiler before 2012
 // Possible is the language feature __cpp_alias_templates is defined well
 // Or possible if the C++ std is C+11 or newer
-#if !(defined(_MSC_VER) && _MSC_VER <= 1700 /* MSVC2012 */) \
-  && ((defined(__cpp_alias_templates) && __cpp_alias_templates >= 200704) \
-    || (defined(__cplusplus) && __cplusplus >= 201103L))
+#if (defined(_MSC_VER) && _MSC_VER > 1700 /* MSVC2012 */) \
+    || (defined(__cpp_alias_templates) && __cpp_alias_templates >= 200704) \
+    || (defined(__cplusplus) && __cplusplus >= 201103L)
   #define FLATBUFFERS_TEMPLATES_ALIASES
 #endif
 
@@ -88,12 +88,33 @@ inline void vector_emplace_back(std::vector<T> *vector, V &&data) {
   #endif  // defined(FLATBUFFERS_TEMPLATES_ALIASES)
 #else
   template <typename T> class numeric_limits :
-      public std::numeric_limits<T> {};
+      public std::numeric_limits<T> {
+    public:
+      // Android NDK fix.
+      static T lowest() {
+        return std::numeric_limits<T>::min();
+      }
+  };
+
+  template <> class numeric_limits<float> :
+      public std::numeric_limits<float> {
+    public:
+      static float lowest() { return -FLT_MAX; }
+  };
+
+  template <> class numeric_limits<double> :
+      public std::numeric_limits<double> {
+    public:
+      static double lowest() { return -DBL_MAX; }
+  };
 
   template <> class numeric_limits<unsigned long long> {
    public:
     static unsigned long long min() { return 0ULL; }
     static unsigned long long max() { return ~0ULL; }
+    static unsigned long long lowest() {
+      return numeric_limits<unsigned long long>::min();
+    }
   };
 
   template <> class numeric_limits<long long> {
@@ -105,6 +126,9 @@ inline void vector_emplace_back(std::vector<T> *vector, V &&data) {
       return static_cast<long long>(
           (1ULL << ((sizeof(long long) << 3) - 1)) - 1);
     }
+    static long long lowest() {
+      return numeric_limits<long long>::min();
+    }
   };
 #endif  // FLATBUFFERS_CPP98_STL
 
@@ -114,6 +138,12 @@ inline void vector_emplace_back(std::vector<T> *vector, V &&data) {
     template <typename T, typename U> using is_same = std::is_same<T,U>;
     template <typename T> using is_floating_point = std::is_floating_point<T>;
     template <typename T> using is_unsigned = std::is_unsigned<T>;
+    template <typename T> using is_enum = std::is_enum<T>;
+    template <typename T> using make_unsigned = std::make_unsigned<T>;
+    template<bool B, class T, class F>
+    using conditional = std::conditional<B, T, F>;
+    template<class T, T v>
+    using integral_constant = std::integral_constant<T, v>;
   #else
     // Map C++ TR1 templates defined by stlport.
     template <typename T> using is_scalar = std::tr1::is_scalar<T>;
@@ -121,6 +151,22 @@ inline void vector_emplace_back(std::vector<T> *vector, V &&data) {
     template <typename T> using is_floating_point =
         std::tr1::is_floating_point<T>;
     template <typename T> using is_unsigned = std::tr1::is_unsigned<T>;
+    template <typename T> using is_enum = std::tr1::is_enum<T>;
+    // Android NDK doesn't have std::make_unsigned or std::tr1::make_unsigned.
+    template<typename T> struct make_unsigned {
+      static_assert(is_unsigned<T>::value, "Specialization not implemented!");
+      using type = T;
+    };
+    template<> struct make_unsigned<char> { using type = unsigned char; };
+    template<> struct make_unsigned<short> { using type = unsigned short; };
+    template<> struct make_unsigned<int> { using type = unsigned int; };
+    template<> struct make_unsigned<long> { using type = unsigned long; };
+    template<>
+    struct make_unsigned<long long> { using type = unsigned long long; };
+    template<bool B, class T, class F>
+    using conditional = std::tr1::conditional<B, T, F>;
+    template<class T, T v>
+    using integral_constant = std::tr1::integral_constant<T, v>;
   #endif  // !FLATBUFFERS_CPP98_STL
 #else
   // MSVC 2010 doesn't support C++11 aliases.
@@ -129,6 +175,12 @@ inline void vector_emplace_back(std::vector<T> *vector, V &&data) {
   template <typename T> struct is_floating_point :
         public std::is_floating_point<T> {};
   template <typename T> struct is_unsigned : public std::is_unsigned<T> {};
+  template <typename T> struct is_enum : public std::is_enum<T> {};
+  template <typename T> struct make_unsigned : public std::make_unsigned<T> {};
+  template<bool B, class T, class F>
+  struct conditional : public std::conditional<B, T, F> {};
+  template<class T, T v>
+  struct integral_constant : public std::integral_constant<T, v> {};
 #endif  // defined(FLATBUFFERS_TEMPLATES_ALIASES)
 
 #ifndef FLATBUFFERS_CPP98_STL
@@ -231,6 +283,23 @@ inline void vector_emplace_back(std::vector<T> *vector, V &&data) {
   template <class T> bool operator==(const unique_ptr<T>& x, intptr_t y) {
     return reinterpret_cast<intptr_t>(x.get()) == y;
   }
+
+  template <class T> bool operator!=(const unique_ptr<T>& x, decltype(nullptr)) {
+    return !!x;
+  }
+
+  template <class T> bool operator!=(decltype(nullptr), const unique_ptr<T>& x) {
+    return !!x;
+  }
+
+  template <class T> bool operator==(const unique_ptr<T>& x, decltype(nullptr)) {
+    return !x;
+  }
+
+  template <class T> bool operator==(decltype(nullptr), const unique_ptr<T>& x) {
+    return !x;
+  }
+
 #endif  // !FLATBUFFERS_CPP98_STL
 
 }  // namespace flatbuffers
