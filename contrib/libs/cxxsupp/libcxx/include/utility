@@ -1391,7 +1391,7 @@ struct _LIBCPP_TEMPLATE_VIS hash<unsigned char>
     size_t operator()(unsigned char __v) const _NOEXCEPT {return static_cast<size_t>(__v);}
 };
 
-#ifdef __cpp_char8_t
+#ifndef _LIBCPP_NO_HAS_CHAR8_T
 template <>
 struct _LIBCPP_TEMPLATE_VIS hash<char8_t>
     : public unary_function<char8_t, size_t>
@@ -1399,7 +1399,7 @@ struct _LIBCPP_TEMPLATE_VIS hash<char8_t>
     _LIBCPP_INLINE_VISIBILITY
     size_t operator()(char8_t __v) const _NOEXCEPT {return static_cast<size_t>(__v);}
 };
-#endif // __cpp_char8_t
+#endif // !_LIBCPP_NO_HAS_CHAR8_T
 
 #ifndef _LIBCPP_HAS_NO_UNICODE_CHARS
 
