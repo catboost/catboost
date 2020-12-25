@@ -25,6 +25,7 @@ using namespace NCB;
 static TVector<double> CalcMeanValueForTree(
     const TModelTrees& forest,
     const TVector<TVector<double>>& subtreeWeights,
+    TConstArrayRef<double> leafWeights,
     size_t treeIdx
 ) {
     const int approxDimension = forest.GetDimensionsCount();
@@ -46,7 +47,6 @@ static TVector<double> CalcMeanValueForTree(
         const size_t startOffset = forest.GetModelTreeData()->GetTreeStartOffsets()[treeIdx];
         const size_t endOffset = isLastTree ? totalNodesCount : forest.GetModelTreeData()->GetTreeStartOffsets()[treeIdx + 1];
         const auto leafValues = forest.GetModelTreeData()->GetLeafValues();
-        const auto leafWeights = forest.GetModelTreeData()->GetLeafWeights();
         const auto nonSymmetricNodeIdToLeafId = forest.GetModelTreeData()->GetNonSymmetricNodeIdToLeafId();
         const size_t leafValueCount = leafValues.size();
         for (size_t nodeIdx = startOffset; nodeIdx < endOffset; ++nodeIdx) {
@@ -391,8 +391,12 @@ static void CalcTreeStats(
     const size_t treeCount = forest.GetTreeCount();
     for (size_t treeIdx = 0; treeIdx < treeCount; ++treeIdx) {
         preparedTrees->SubtreeWeightsForAllTrees[treeIdx] = CalcSubtreeWeightsForTree(forest, leafWeights, treeIdx);
-        preparedTrees->MeanValuesForAllTrees[treeIdx]
-           = CalcMeanValueForTree(forest, preparedTrees->SubtreeWeightsForAllTrees[treeIdx], treeIdx);
+        preparedTrees->MeanValuesForAllTrees[treeIdx] = CalcMeanValueForTree(
+            forest,
+            preparedTrees->SubtreeWeightsForAllTrees[treeIdx],
+            preparedTrees->LeafWeightsForAllTrees,
+            treeIdx
+        );
         if (calcType == ECalcTypeShapValues::Approximate) {
             preparedTrees->SubtreeValuesForAllTrees[treeIdx] =
                     CalcSubtreeValuesForTree(forest, preparedTrees->SubtreeWeightsForAllTrees[treeIdx],
@@ -415,7 +419,6 @@ static void InitPreparedTrees(
 ) {
     const size_t treeCount = model.GetTreeCount();
     // use only if model.ModelTrees->LeafWeights is empty
-    TVector<double> leafWeights;
     if (model.ModelTrees->GetModelTreeData()->GetLeafWeights().empty()) {
         CB_ENSURE(
             dataset,
@@ -423,16 +426,9 @@ static void InitPreparedTrees(
         );
         CB_ENSURE(dataset->ObjectsGrouping->GetObjectCount() != 0, "To calculate shap values, dataset must contain objects.");
         CB_ENSURE(dataset->MetaInfo.GetFeatureCount() > 0, "To calculate shap values, dataset must contain features.");
-        leafWeights = CollectLeavesStatistics(*dataset, model, localExecutor);
     }
 
     preparedTrees->CalcShapValuesByLeafForAllTrees = IsPrepareTreesCalcShapValues(model, dataset, mode);
-
-    if (!preparedTrees->CalcShapValuesByLeafForAllTrees) {
-        TVector<double> modelLeafWeights(model.ModelTrees->GetModelTreeData()->GetLeafWeights().begin(), model.ModelTrees->GetModelTreeData()->GetLeafWeights().end());
-        preparedTrees->LeafWeightsForAllTrees
-            = modelLeafWeights.empty() ? leafWeights : modelLeafWeights;
-    }
 
     preparedTrees->ShapValuesByLeafForAllTrees.resize(treeCount);
     preparedTrees->SubtreeWeightsForAllTrees.resize(treeCount);
@@ -467,7 +463,8 @@ static void InitLeafWeights(
     TVector<double>* leafWeights
 ) {
     const auto leafWeightsOfModels = model.ModelTrees->GetModelTreeData()->GetLeafWeights();
-    if (leafWeightsOfModels.empty()) {
+    const bool needSumModelAndDatasetWeights = HasNonZeroApproxForZeroWeightLeaf(model);
+    if (leafWeightsOfModels.empty() || needSumModelAndDatasetWeights) {
         CB_ENSURE(
             dataset,
             "To calculate shap values, either a model with leaf weights, or a dataset are required."
@@ -475,9 +472,21 @@ static void InitLeafWeights(
         CB_ENSURE(dataset->ObjectsGrouping->GetObjectCount() != 0, "To calculate shap values, dataset must contain objects.");
         CB_ENSURE(dataset->MetaInfo.GetFeatureCount() > 0, "To calculate shap values, dataset must contain features.");
         *leafWeights = CollectLeavesStatistics(*dataset, model, localExecutor);
-    } else {
-        leafWeights->assign(leafWeightsOfModels.begin(), leafWeightsOfModels.end());
     }
+    if (!leafWeightsOfModels.empty()){
+        if (!leafWeights->empty()) {
+            auto dst = leafWeights->data();
+            for (auto i : xrange(leafWeights->size())) {
+                dst[i] += leafWeightsOfModels[i];
+            }
+        } else {
+            leafWeights->assign(leafWeightsOfModels.begin(), leafWeightsOfModels.end());
+        }
+    }
+    CB_ENSURE(
+        !leafWeights->empty(),
+        "For Shap values calculation either model should contain leaf weights or user should provide non-empty dataset"
+    );
 }
 
 static inline bool IsMultiClassification(const TFullModel& model) {
@@ -504,12 +513,11 @@ TShapPreparedTrees PrepareTrees(
     ECalcTypeShapValues calcType,
     EExplainableModelOutput modelOutputType
 ) {
-    TVector<double> leafWeights;
-    InitLeafWeights(model, dataset, localExecutor, &leafWeights);
     TShapPreparedTrees preparedTrees;
+    InitLeafWeights(model, dataset, localExecutor, &preparedTrees.LeafWeightsForAllTrees);
     InitPreparedTrees(model, dataset, referenceDataset, mode, calcInternalValues, calcType, modelOutputType, localExecutor, &preparedTrees);
     const bool isMultiClass = IsMultiClassification(model);
-    CalcTreeStats(*model.ModelTrees, leafWeights, isMultiClass, calcType, &preparedTrees);
+    CalcTreeStats(*model.ModelTrees, preparedTrees.LeafWeightsForAllTrees, isMultiClass, calcType, &preparedTrees);
     return preparedTrees;
 }
 

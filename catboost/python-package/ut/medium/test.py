@@ -8337,8 +8337,7 @@ def test_shap_assert():
 
     json.dump(json_model, open(model_path, 'w'))
     model = CatBoost().load_model(model_path, format='json')
-    with pytest.raises(CatBoostError):
-        model.get_feature_importance(type='ShapValues', data=pool)
+    model.get_feature_importance(type='ShapValues', data=pool)
 
 
 @pytest.mark.parametrize('shrink_mode', ['Constant', 'Decreasing'])
