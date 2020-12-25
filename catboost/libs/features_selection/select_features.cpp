@@ -36,6 +36,13 @@ namespace NCB {
         }
 
         const auto& featuresForSelect = featuresSelectOptions.FeaturesForSelect.Get();
+        CB_ENSURE(featuresSelectOptions.NumberOfFeaturesToSelect.IsSet(), "You should specify the number of features to select");
+        CB_ENSURE(featuresSelectOptions.NumberOfFeaturesToSelect.Get() > 0, "Number of features to select should be positive");
+        CB_ENSURE(featuresForSelect.size() > 0, "You should specify features to select from");
+        CB_ENSURE(
+            static_cast<int>(featuresForSelect.size()) >= featuresSelectOptions.NumberOfFeaturesToSelect,
+            "It is impossible to select " << featuresSelectOptions.NumberOfFeaturesToSelect << " features from " << featuresForSelect.size() << " features"
+        );
         const ui32 featureCount = pools.Learn->MetaInfo.GetFeatureCount();
         for (const ui32 feature : featuresForSelect) {
             CB_ENSURE(feature < featureCount, "Tested feature " << feature << " is not present; dataset contains only " << featureCount << " features");

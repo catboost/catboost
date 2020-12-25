@@ -33,7 +33,6 @@ void ParseFeaturesSelectCommandLine(
     int argc,
     const char* argv[],
     NJson::TJsonValue* plainJsonPtr,
-    NJson::TJsonValue* featuresSelectOptions,
     TString* paramPath,
     NCatboostOptions::TPoolLoadParams* params
 );
@@ -41,7 +40,8 @@ void ParseFeaturesSelectCommandLine(
 void InitOptions(
     const TString& optionsFile,
     NJson::TJsonValue* catBoostJsonOptions,
-    NJson::TJsonValue* outputOptionsJson
+    NJson::TJsonValue* outputOptionsJson,
+    NJson::TJsonValue* featuresSelectOptions = nullptr
 );
 
 void CopyIgnoredFeaturesToPoolParams(
