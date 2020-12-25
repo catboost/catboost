@@ -59,6 +59,10 @@ namespace NPyBind {
             res = TString();
             return FromPyObject(obj, res.As<TString>());
         }
+        if (PyBytes_Check(obj)) {
+            res = TString();
+            return FromPyObject(obj, res.As<TString>());
+        }
 #endif
         if (PyList_Check(obj)) {
             res = NYT::TNode::CreateList();

@@ -8,7 +8,6 @@
 
 #include <util/charset/unidata.h> // for ToLower
 #include <util/system/defaults.h>
-#include <util/generic/chartraits.h>
 #include <util/generic/algorithm.h>
 #include <util/generic/hash_set.h>
 #include <util/generic/yexception.h>

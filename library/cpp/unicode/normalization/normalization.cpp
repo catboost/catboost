@@ -1,7 +1,5 @@
 #include "normalization.h"
 
-#include <util/generic/chartraits.h>
-
 static const wchar32 S_BASE = 0xAC00;
 static const wchar32 L_BASE = 0x1100;
 static const wchar32 V_BASE = 0x1161;

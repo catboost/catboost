@@ -1,5 +1,3 @@
-#include <util/generic/chartraits.h>
-
 #include "nlptypes.h"
 #include "token_structure.h"
 
