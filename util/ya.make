@@ -15,19 +15,9 @@ PEERDIR(
     contrib/libs/double-conversion
 )
 
-# socket
 PEERDIR(
     contrib/libs/libc_compat
 )
-
-IF (OS_ANDROID)
-    PEERDIR(
-        contrib/libs/android_ifaddrs
-    )
-    ADDINCL(
-        contrib/libs/android_ifaddrs
-    )
-ENDIF()
 
 # datetime
 JOIN_SRCS(
