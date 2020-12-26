@@ -76,7 +76,7 @@ static inline I1* FastStrChr(I1* str, I2 f) noexcept {
     I1* ret = NStringSplitPrivate::Find(str, f);
 
     if (!ret) {
-        ret = str + TCharTraits<I1>::length(str);
+        ret = str + std::char_traits<I1>::length(str);
     }
 
     return ret;
@@ -106,7 +106,7 @@ template <class Char>
 struct TStringDelimiter {
     inline TStringDelimiter(Char* delim) noexcept
         : Delim(delim)
-        , Len(TCharTraits<Char>::length(delim))
+        , Len(std::char_traits<Char>::length(delim))
     {
     }
 

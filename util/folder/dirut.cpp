@@ -604,7 +604,7 @@ TString GetBaseName(const TString& path) {
 }
 
 static bool IsAbsolutePath(const char* str) {
-    return str && TPathSplitTraitsLocal::IsAbsolutePath(TStringBuf(str, TCharTraits<char>::GetLength(str, 3)));
+    return str && TPathSplitTraitsLocal::IsAbsolutePath(TStringBuf(str, NStringPrivate::GetStringLengthWithLimit(str, 3)));
 }
 
 int ResolvePath(const char* rel, const char* abs, char res[/*MAXPATHLEN*/], bool isdir) {
