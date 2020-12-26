@@ -556,9 +556,6 @@ migrations:
     - mail/notsolitesrv/tools/resend_mails2
     - mail/python/theatre/app
     - mail/retriever/unistat
-    - mail/shiva/stages/api
-    - mail/shiva/stages/api/props/shard
-    - mail/tools/dbaas/helpers
     - mail/tools/ews_call/ews_call
     - mail/tools/safely_delete_stids/lib
     - mail/yasm/lib
@@ -1530,11 +1527,7 @@ migrations:
     - education/checking_system/marker_checker/lib/markers/columncalc_helpers
     - education/checking_system/marker_checker/lib/operations/arithmetic_operations/ut
     - education/lib/common
-    - education/media_platform/services/api/it
     - education/schoolbook/analytics/adhoc/ANALITICSEDU-687
-    - education/services/sections/app
-    - education/services/sections/app/handlers
-    - education/services/sections/it
     - entity/ontodb/tasks/vloggers
     - entity/recommender/nirvana/operations/abt_experiments_launcher
     - entity/ugc/nirvana/ugcdb/support_hidden_import/lib/ut
@@ -1624,7 +1617,6 @@ migrations:
     - mail/python/fake_mulcagate
     - mail/python/theatre/app
     - mail/python/theatre/app/log_helpers
-    - mail/tools/dbaas/helpers
     - mail/tools/sql_execute_per_shard/lib
     - maps/analytics/legacy/nile/statadhoc-8703-site-api-report
     - maps/analytics/tools/lama/lib
@@ -1698,7 +1690,6 @@ migrations:
     - metrika/admin/python/duty/bot/lib
     - metrika/admin/python/duty/frontend/duty
     - metrika/admin/python/scripts/jrun
-    - metrika/admin/python/strogg/frontend/strogg
     - metrika/admin/python/zooface/frontend/zooface
     - metrika/tasklets/conductor/impl
     - milab/lib/i2tclient/python
@@ -1927,7 +1918,6 @@ migrations:
     - travel/avia/ticket_daemon/ticket_daemon/daemon
     - travel/avia/ticket_daemon/ticket_daemon/partners
     - travel/avia/ticket_daemon_api
-    - travel/avia/ticket_daemon_api/jsonrpc/handlers/v3
     - travel/avia/ticket_daemon_api/tests
     - travel/avia/ticket_daemon_api/tests/handlers/v3
     - travel/hotels/suggest/builder
@@ -1965,7 +1955,6 @@ migrations:
     - voicetech/spotter/train/lib
     - voicetech/uniproxy2/tests
     - voicetech/uniproxy2/tests/common
-    - voicetech/vqe/pylibs
     - weather/ml/experiments/neural_nowcasting/neural_nowcasting
     - weather/ml/experiments/neural_nowcasting/neural_nowcasting/layers
     - weather/workers/exports/yt/dsync
@@ -2237,7 +2226,6 @@ migrations:
     - arc/ci/tests
     - balancer/test/functional/rate_limiter
     - billing/apikeys/tests
-    - billing/log_tariffication/py/tests/integration/partner_tariff
     - browser/infra/bitbucket/bitbucket
     - browser/infra/ci/backend
     - clickhouse/utils/github
@@ -2279,11 +2267,8 @@ migrations:
     - education/checking_system/marker_checker/it
     - education/checking_system/marker_checker/lib
     - education/lib/contrib/glove_python
-    - education/schoolbook/analytics/ml/blender/ut
-    - education/schoolbook/analytics/ml/repetition/ut
     - education/schoolbook/services/recommender/app
     - education/schoolbook/services/recommender/it
-    - education/services/sections/app
     - entity/ontodb/tasks/vloggers
     - entity/ontodb/util/yt_helpers
     - entity/recommender/nirvana/operations/yam/yam_positions
@@ -2343,7 +2328,6 @@ migrations:
     - mail/github/calendar-attach-processor
     - mail/mxtests/tests
     - mail/nwsmtp/tests/lib
-    - mail/shiva/stages/api
     - maps/analyzer/pylibs/train_catboost
     - maps/analyzer/sandbox/jams_level_prediction/prepare_history_storage/lib
     - maps/analyzer/sandbox/masstransit/quality/lib
@@ -2424,7 +2408,6 @@ migrations:
     - metrika/admin/python/bishop/frontend/tests
     - metrika/admin/python/cms/agent/lib
     - metrika/admin/python/cms/frontend/cms
-    - metrika/admin/python/strogg/frontend/strogg
     - metrika/core/monitoring/clickhouse-table-structure-check
     - metrika/core/programs/mobile_yt_to_yc_export
     - metrika/core/recipes/mysql
@@ -2786,39 +2769,10 @@ migrations:
     ignore:
     - F541
     prefixes:
-    - education/media_platform/services/api/it
-    - education/schoolbook/analytics/ml/boosting/lib
-    - education/schoolbook/analytics/ml/boosting/ut
-    - education/schoolbook/analytics/ml/compute_diff/ut
-    - education/schoolbook/analytics/ml/lib
-    - education/schoolbook/analytics/ml/nirvana_ops/blender
-    - education/schoolbook/analytics/ml/nirvana_ops/predict_new_themes
-    - education/schoolbook/analytics/ml/nirvana_ops/predict_simple_stat
-    - education/schoolbook/analytics/ml/nirvana_ops/repetition
-    - education/schoolbook/analytics/ml/nirvana_ops/run_train
-    - education/schoolbook/analytics/ml/nirvana_ops/simple_stat_to_json
-    - education/services/ext_lms_connector/app
-    - education/services/ext_lms_connector/app/queue
-    - education/services/ext_lms_connector/app/schemas
-    - education/services/sections/app
-    - education/services/sections/app/handlers
-    - education/services/sections/app/schemas
-    - education/services/sections/it
     - logbroker/juggler/bundle/checks
     - logbroker/tools/unified_agent_yt_compare_test
-    - mail/borador/tests
-    - mail/husky/stages/worker
-    - mail/husky/stages/worker/interactions/db
     - mail/python/theatre/stages/bucket_holder
     - mail/python/theatre/stages/bucket_holder/roles
-    - mail/qmgr/to_review/components/io/storage/schema/tools/qdb
-    - mail/qmgr/to_review/components/io/storage/schema/tools/qdb/operations
-    - mail/shiva/stages/api
-    - mail/shiva/stages/api/props/shard
-    - mail/so/daemons/knn_bot
-    - mail/tools/dbaas/bin/check_shard_clearness
-    - mail/tools/dbaas/bin/create_shard
-    - mail/tools/dbaas/helpers
     - maps/automotive/carwashes/tests/src/lib
     - maps/b2bgeo/mvrp_solver/backend/async_backend/tests
     - maps/b2bgeo/pipedrive_gate
@@ -2911,20 +2865,11 @@ migrations:
     - voicetech/asr/tools/metrics/metrics_diff_tool
     - voicetech/asr/tools/metrics/yt_table_metrics
     - voicetech/asr/tools/trash_talk/tests
-    - voicetech/bio/pipeline/vh/train
-    - voicetech/bio/scripts/score/server_score/bin/score_classification
-    - voicetech/common/voicetable/bin/rotation
     - voicetech/infra/gpu_stat
     - voicetech/infra/net_stat
     - voicetech/infra/tools/library/websocket_tts
     - voicetech/infra/tools/ttssocket-client
     - voicetech/infra/voice_ext_mon/library/monitoring
-    - voicetech/spotter/difftools/ark
-    - voicetech/tts/client
-    - voicetech/uniproxy2/tests
-    - voicetech/uniproxy2/tests/common
-    - voicetech/vqe/pylibs
-    - voicetech/vqe/tests/common
   F405:
     ignore:
     - F405
@@ -3047,7 +2992,6 @@ migrations:
     - alice/hollywood/library/scenarios/general_conversation/it/runner
     - alice/hollywood/library/scenarios/music/it/generator
     - alice/hollywood/library/scenarios/transform_face/it
-    - billing/log_tariffication/py/tests/integration/partner_tariff
     - catboost/yandex_specific/tools/pool_ops/test
     - crypta/dmp/yandex/bin/ftp_to_yt/bin/test
     - crypta/profile/lib/python/date_helpers/test
