@@ -110,7 +110,7 @@ public:
         if (type == NLP_WORD || type == NLP_INTEGER || type == NLP_FLOAT || type == NLP_MARK) {
             Y_ASSERT(token.Leng <= TOKEN_MAX_LEN);
             LastType = type;
-            TCharTraits<wchar16>::copy(Buffer, token.Token, token.Leng);
+            std::char_traits<wchar16>::copy(Buffer, token.Token, token.Leng);
             //LastToken.Token = Buffer; assigned in the constructor
             LastToken.Leng = token.Leng;
             LastToken.SubTokens = token.SubTokens;
