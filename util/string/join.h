@@ -60,7 +60,7 @@ namespace NPrivate {
 
     template <>
     inline size_t GetLength(const char* const& s) {
-        return (s ? std::char_traits<char>::length(s) : 0);
+        return (s ? TCharTraits<char>::length(s) : 0);
     }
 
     inline size_t GetAppendLength(const TStringBuf /*delim*/) {
