@@ -285,7 +285,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\util\generic\bt_exception.h"/>
     <ClInclude Include="$(SolutionDir)..\util\generic\buffer.h"/>
     <ClInclude Include="$(SolutionDir)..\util\generic\cast.h"/>
-    <ClInclude Include="$(SolutionDir)..\util\generic\chartraits.h"/>
     <ClInclude Include="$(SolutionDir)..\util\generic\deque.h"/>
     <ClInclude Include="$(SolutionDir)..\util\generic\explicit_type.h"/>
     <ClInclude Include="$(SolutionDir)..\util\generic\fastqueue.h"/>
