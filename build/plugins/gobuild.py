@@ -30,8 +30,12 @@ def get_appended_values(unit, key):
 
 
 def compare_versions(version1, version2):
-    v1 = tuple(str(int(x)).zfill(8) for x in version1.split('.'))
-    v2 = tuple(str(int(x)).zfill(8) for x in version2.split('.'))
+    def last_index(version):
+        index = version.find('beta')
+        return len(version) if index < 0 else index
+
+    v1 = tuple(x.zfill(8) for x in version1[:last_index(version1)].split('.'))
+    v2 = tuple(x.zfill(8) for x in version2[:last_index(version2)].split('.'))
     if v1 == v2:
         return 0
     return 1 if v1 < v2 else -1
