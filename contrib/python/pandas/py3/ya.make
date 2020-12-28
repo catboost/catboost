@@ -1,6 +1,6 @@
 PY3_LIBRARY()
 
-VERSION(1.1.5)
+VERSION(1.2.0)
 
 LICENSE(BSD-3-Clause)
 
@@ -37,6 +37,7 @@ NO_LINT()
 CFLAGS(
     # For pandas.json
     -D__LITTLE_ENDIAN__=1
+    -DNPY_NO_DEPRECATED_API=0
 )
 
 INCLUDE(symbols.cmake)
@@ -137,7 +138,9 @@ PY_SRCS(
     pandas/core/apply.py
     pandas/core/array_algos/__init__.py
     pandas/core/array_algos/masked_reductions.py
+    pandas/core/array_algos/replace.py
     pandas/core/array_algos/transforms.py
+    pandas/core/arraylike.py
     pandas/core/arrays/__init__.py
     pandas/core/arrays/_arrow_utils.py
     pandas/core/arrays/_mixins.py
@@ -147,9 +150,11 @@ PY_SRCS(
     pandas/core/arrays/categorical.py
     pandas/core/arrays/datetimelike.py
     pandas/core/arrays/datetimes.py
+    pandas/core/arrays/floating.py
     pandas/core/arrays/integer.py
     pandas/core/arrays/interval.py
     pandas/core/arrays/masked.py
+    pandas/core/arrays/numeric.py
     pandas/core/arrays/numpy_.py
     pandas/core/arrays/period.py
     pandas/core/arrays/sparse/__init__.py
@@ -158,6 +163,7 @@ PY_SRCS(
     pandas/core/arrays/sparse/dtype.py
     pandas/core/arrays/sparse/scipy_sparse.py
     pandas/core/arrays/string_.py
+    pandas/core/arrays/string_arrow.py
     pandas/core/arrays/timedeltas.py
     pandas/core/base.py
     pandas/core/common.py
@@ -186,6 +192,7 @@ PY_SRCS(
     pandas/core/dtypes/generic.py
     pandas/core/dtypes/inference.py
     pandas/core/dtypes/missing.py
+    pandas/core/flags.py
     pandas/core/frame.py
     pandas/core/generic.py
     pandas/core/groupby/__init__.py
@@ -194,6 +201,7 @@ PY_SRCS(
     pandas/core/groupby/generic.py
     pandas/core/groupby/groupby.py
     pandas/core/groupby/grouper.py
+    pandas/core/groupby/numba_.py
     pandas/core/groupby/ops.py
     pandas/core/index.py
     pandas/core/indexers.py
@@ -246,7 +254,10 @@ PY_SRCS(
     pandas/core/sorting.py
     pandas/core/sparse/__init__.py
     pandas/core/sparse/api.py
-    pandas/core/strings.py
+    pandas/core/strings/__init__.py
+    pandas/core/strings/accessor.py
+    pandas/core/strings/base.py
+    pandas/core/strings/object_array.py
     pandas/core/tools/__init__.py
     pandas/core/tools/datetimes.py
     pandas/core/tools/numeric.py
@@ -281,6 +292,7 @@ PY_SRCS(
     pandas/io/excel/_xlwt.py
     pandas/io/feather_format.py
     pandas/io/formats/__init__.py
+    pandas/io/formats/_color_data.py
     pandas/io/formats/console.py
     pandas/io/formats/css.py
     pandas/io/formats/csvs.py
@@ -290,6 +302,7 @@ PY_SRCS(
     pandas/io/formats/info.py
     pandas/io/formats/latex.py
     pandas/io/formats/printing.py
+    pandas/io/formats/string.py
     pandas/io/formats/style.py
     pandas/io/gbq.py
     pandas/io/html.py

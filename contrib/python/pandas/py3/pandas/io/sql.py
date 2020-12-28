@@ -7,7 +7,7 @@ from contextlib import contextmanager
 from datetime import date, datetime, time
 from functools import partial
 import re
-from typing import Iterator, Optional, Union, overload
+from typing import Iterator, List, Optional, Union, overload
 import warnings
 
 import numpy as np
@@ -212,7 +212,7 @@ def read_sql_table(
     table_name : str
         Name of SQL table in database.
     con : SQLAlchemy connectable or str
-        A database URI could be provided as as str.
+        A database URI could be provided as str.
         SQLite DBAPI connection mode not supported.
     schema : str, default None
         Name of SQL schema in database to query (if database flavor
@@ -439,7 +439,8 @@ def read_sql(
     con : SQLAlchemy connectable, str, or sqlite3 connection
         Using SQLAlchemy makes it possible to use any DB supported by that
         library. If a DBAPI2 object, only sqlite3 is supported. The user is responsible
-        for engine disposal and connection closure for the SQLAlchemy connectable. See
+        for engine disposal and connection closure for the SQLAlchemy connectable; str
+        connections are closed automatically. See
         `here <https://docs.sqlalchemy.org/en/13/core/connections.html>`_.
     index_col : str or list of str, optional, default: None
         Column(s) to set as index(MultiIndex).
@@ -1158,9 +1159,7 @@ class SQLDatabase(PandasSQL):
 
     def execute(self, *args, **kwargs):
         """Simple passthrough to SQLAlchemy connectable"""
-        return self.connectable.execution_options(no_parameters=True).execute(
-            *args, **kwargs
-        )
+        return self.connectable.execution_options().execute(*args, **kwargs)
 
     def read_table(
         self,
@@ -1454,9 +1453,22 @@ class SQLDatabase(PandasSQL):
             self.get_table(table_name, schema).drop()
             self.meta.clear()
 
-    def _create_sql_schema(self, frame, table_name, keys=None, dtype=None):
+    def _create_sql_schema(
+        self,
+        frame: DataFrame,
+        table_name: str,
+        keys: Optional[List[str]] = None,
+        dtype: Optional[dict] = None,
+        schema: Optional[str] = None,
+    ):
         table = SQLTable(
-            table_name, self, frame=frame, index=False, keys=keys, dtype=dtype
+            table_name,
+            self,
+            frame=frame,
+            index=False,
+            keys=keys,
+            dtype=dtype,
+            schema=schema,
         )
         return str(table.sql_schema())
 
@@ -1587,9 +1599,13 @@ class SQLiteTable(SQLTable):
             create_tbl_stmts.append(
                 f"CONSTRAINT {self.name}_pk PRIMARY KEY ({cnames_br})"
             )
-
+        if self.schema:
+            schema_name = self.schema + "."
+        else:
+            schema_name = ""
         create_stmts = [
             "CREATE TABLE "
+            + schema_name
             + escape(self.name)
             + " (\n"
             + ",\n  ".join(create_tbl_stmts)
@@ -1844,14 +1860,20 @@ class SQLiteDatabase(PandasSQL):
         drop_sql = f"DROP TABLE {_get_valid_sqlite_name(name)}"
         self.execute(drop_sql)
 
-    def _create_sql_schema(self, frame, table_name, keys=None, dtype=None):
+    def _create_sql_schema(self, frame, table_name, keys=None, dtype=None, schema=None):
         table = SQLiteTable(
-            table_name, self, frame=frame, index=False, keys=keys, dtype=dtype
+            table_name,
+            self,
+            frame=frame,
+            index=False,
+            keys=keys,
+            dtype=dtype,
+            schema=schema,
         )
         return str(table.sql_schema())
 
 
-def get_schema(frame, name, keys=None, con=None, dtype=None):
+def get_schema(frame, name, keys=None, con=None, dtype=None, schema=None):
     """
     Get the SQL db table schema for the given frame.
 
@@ -1869,7 +1891,12 @@ def get_schema(frame, name, keys=None, con=None, dtype=None):
     dtype : dict of column name to SQL type, default None
         Optional specifying the datatype for columns. The SQL type should
         be a SQLAlchemy type, or a string for sqlite3 fallback connection.
+    schema: str, default: None
+        Optional specifying the schema to be used in creating the table.
 
+        .. versionadded:: 1.2.0
     """
     pandas_sql = pandasSQL_builder(con=con)
-    return pandas_sql._create_sql_schema(frame, name, keys=keys, dtype=dtype)
+    return pandas_sql._create_sql_schema(
+        frame, name, keys=keys, dtype=dtype, schema=schema
+    )

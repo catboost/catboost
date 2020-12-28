@@ -515,7 +515,7 @@ class Formatter(object):
     responsible for converting a LogRecord to (usually) a string which can
     be interpreted by either a human or an external system. The base Formatter
     allows a formatting string to be specified. If none is supplied, the
-    the style-dependent default value, "%(message)s", "{message}", or
+    style-dependent default value, "%(message)s", "{message}", or
     "${message}", is used.
 
     The Formatter can be initialized with a format string which makes use of
@@ -753,8 +753,8 @@ class Filter(object):
         """
         Determine if the specified record is to be logged.
 
-        Is the specified record to be logged? Returns 0 for no, nonzero for
-        yes. If deemed appropriate, the record may be modified in-place.
+        Returns True if the record should be logged, or False otherwise.
+        If deemed appropriate, the record may be modified in-place.
         """
         if self.nlen == 0:
             return True
@@ -1268,6 +1268,14 @@ class Manager(object):
         self.loggerDict = {}
         self.loggerClass = None
         self.logRecordFactory = None
+
+    @property
+    def disable(self):
+        return self._disable
+
+    @disable.setter
+    def disable(self, value):
+        self._disable = _checkLevel(value)
 
     def getLogger(self, name):
         """

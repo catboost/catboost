@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: pandas
-Version: 1.1.5
+Version: 1.2.0
 Summary: Powerful data structures for data analysis, time series, and statistics
 Home-page: https://pandas.pydata.org
 Maintainer: The PyData Development Team
@@ -16,18 +16,17 @@ Classifier: Operating System :: OS Independent
 Classifier: Intended Audience :: Science/Research
 Classifier: Programming Language :: Python
 Classifier: Programming Language :: Python :: 3
-Classifier: Programming Language :: Python :: 3.6
 Classifier: Programming Language :: Python :: 3.7
 Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Cython
 Classifier: Topic :: Scientific/Engineering
-Requires-Python: >=3.6.1
+Requires-Python: >=3.7.1
 Requires-Dist: python-dateutil (>=2.7.3)
-Requires-Dist: pytz (>=2017.2)
-Requires-Dist: numpy (>=1.15.4)
+Requires-Dist: pytz (>=2017.3)
+Requires-Dist: numpy (>=1.16.5)
 Provides-Extra: test
-Requires-Dist: pytest (>=4.0.2) ; extra == 'test'
+Requires-Dist: pytest (>=5.0.1) ; extra == 'test'
 Requires-Dist: pytest-xdist ; extra == 'test'
 Requires-Dist: hypothesis (>=3.58) ; extra == 'test'
 
