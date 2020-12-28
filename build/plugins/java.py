@@ -82,7 +82,6 @@ def onjava_module(unit, *args):
         'PATH': unit.path(),
         'MODULE_TYPE': unit.get('MODULE_TYPE'),
         'MODULE_ARGS': unit.get('MODULE_ARGS'),
-        'PEERDIR': unit.get_module_dirs('PEERDIRS'),
         'MANAGED_PEERS': '${MANAGED_PEERS}',
         'MANAGED_PEERS_CLOSURE': '${MANAGED_PEERS_CLOSURE}',
         'NON_NAMAGEABLE_PEERS': '${NON_NAMAGEABLE_PEERS}',
