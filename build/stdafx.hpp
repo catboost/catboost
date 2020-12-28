@@ -241,7 +241,6 @@
 #include <util/generic/function.h>
 #include <util/generic/flags.h>
 #include <util/generic/strfcpy.h>
-#include <util/generic/chartraits.h>
 #include <util/generic/string.h>
 #include <util/generic/fastqueue.h>
 #include <util/generic/explicit_type.h>
