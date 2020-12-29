@@ -569,17 +569,8 @@ migrations:
     - maps/automotive/remote_access/autotests/tests/data_types
     - maps/b2bgeo/apikeys_billing/preprocess_geosaas_logs
     - maps/b2bgeo/mvrp_solver/backend/tests_lib
-    - maps/b2bgeo/pipedrive_gate
     - maps/b2bgeo/test_lib/tests
     - maps/b2bgeo/tools/release_notes
-    - maps/b2bgeo/ya_courier/backend
-    - maps/b2bgeo/ya_courier/backend/tests
-    - maps/b2bgeo/ya_courier/backend/tests/logic
-    - maps/b2bgeo/ya_courier/backend/tests/ut
-    - maps/b2bgeo/ya_courier/backend/tests/util
-    - maps/b2bgeo/ya_courier/backend/ya_courier_backend
-    - maps/b2bgeo/ya_courier/backend/ya_courier_backend/resources
-    - maps/b2bgeo/ya_courier/backend/ya_courier_backend/util
     - maps/carparks/regression/renderer/generate_ammo
     - maps/carparks/tools/route_lost_viewer/bin
     - maps/infra/ecstatic/common/worker/lib
@@ -1060,7 +1051,6 @@ migrations:
     - sandbox/serviceapi
     - sandbox/serviceapi/handlers
     - sandbox/yasandbox/database/clickhouse
-    - search/alice/research/src/models_compare
     - search/geo/tools/iznanka/prepare_factors
     - search/geo/tools/social_links/extract_facts/lib
     - search/geo/tools/task_manager/system
@@ -1626,10 +1616,6 @@ migrations:
     - maps/automotive/qa/metrics/common/ut
     - maps/automotive/tools/statistics_auto/pylib/track_match_finder
     - maps/b2bgeo/mvrp_solver/annealing_mvrp/tests_lib
-    - maps/b2bgeo/ya_courier/backend
-    - maps/b2bgeo/ya_courier/backend/tests
-    - maps/b2bgeo/ya_courier/backend/tools/db_tool
-    - maps/b2bgeo/ya_courier/backend/ya_courier_backend/logic
     - maps/doc/schemas/ymapsdf/tests
     - maps/infra/apiteka/config_uploader/tests
     - maps/infra/ecstatic/common/worker/lib
@@ -2238,7 +2224,6 @@ migrations:
     - cv/imageproc/ocr/tools/nirvana/captcha_renderer
     - cv/short2long/nirvana/lib
     - cv/short2long/training/yt_load_highlights
-    - datalens/backend/bi-common
     - datalens/backend/bi-materializer
     - dict/mt/analytics/make/tools/toloka/simple_toloka
     - dict/mt/make/modules/bleu/tests
@@ -2364,7 +2349,6 @@ migrations:
     - market/backctld/pyb
     - market/cataloger/lite
     - market/click_n_collect/mt
-    - market/dynamic_pricing/pricing/dynamic_pricing/price_calculator
     - market/dynamic_pricing/pricing/dynamic_pricing/rules_uploader/tests
     - market/dynamic_pricing/pricing/library
     - market/dynamic_pricing/tools/kvi_evaluation
@@ -2771,20 +2755,6 @@ migrations:
     prefixes:
     - logbroker/juggler/bundle/checks
     - logbroker/tools/unified_agent_yt_compare_test
-    - mail/python/theatre/stages/bucket_holder
-    - mail/python/theatre/stages/bucket_holder/roles
-    - maps/automotive/carwashes/tests/src/lib
-    - maps/b2bgeo/mvrp_solver/backend/async_backend/tests
-    - maps/b2bgeo/pipedrive_gate
-    - maps/b2bgeo/pipedrive_gate/bin_sedem
-    - maps/b2bgeo/tools/sql_utils
-    - maps/b2bgeo/ya_courier/backend
-    - maps/b2bgeo/ya_courier/backend/integration_tests
-    - maps/b2bgeo/ya_courier/backend/sql/scripts/copy_eta_url_to_tracking_token
-    - maps/b2bgeo/ya_courier/backend/tests
-    - maps/b2bgeo/ya_courier/backend/tools/db_tool
-    - maps/b2bgeo/ya_courier/backend/ya_courier_backend/resources
-    - maps/b2bgeo/ya_courier/backend/ya_courier_backend/util
     - maps/infra/balancer_deployer
     - maps/infra/pycare/example/bin
     - maps/infra/sedem/cli/lib
@@ -2827,19 +2797,9 @@ migrations:
     - maps_adv/statistics/dashboard/server/tests
     - maps_adv/statistics/dashboard/server/tests/data_manager
     - mssngr/tools/tests
-    - search/alice/research/src/models_compare
-    - search/horadric2/cli
-    - search/horadric2/core/cairn_stones/alchemy
-    - search/horadric2/core/cairn_stones/steed
-    - search/its_executor/recipes/util
-    - search/its_executor/src
-    - search/martylib/tests/py3only/test_tracedump/warnings
-    - search/martylib/trace/tracedump
     - search/metrics/ccc/ccc_lib
     - search/metrics/ccc/ccc_lib/criteria
     - search/metrics/ccc/ccc_lib/tests/criteria_tests
-    - search/metrics/monitoring/cli
-    - search/metrics/sss
     - search/mon/rviewer/modules/nanny
     - search/mon/rviewer/modules/yt
     - search/mon/tickenator/src
@@ -2985,7 +2945,6 @@ migrations:
     ignore:
     - F811
     prefixes:
-    - ads/logos/libs/testy/logos_wrapper/mt
     - ads/quality/adv_machine/scripts/service_tools
     - ads/quality/future_prgg/dssm_pool
     - alice/hollywood/library/scenarios/draw_picture/it
@@ -3040,7 +2999,6 @@ migrations:
     - mail/shiva/tests/lib
     - mail/shiva/tests/lib/steps
     - mapreduce/yt/library/blob/tools/file-yt/tests
-    - maps/b2bgeo/mvrp_solver/backend/async_backend/tests
     - maps/b2bgeo/ya_courier/backend/tests
     - maps/infra/apiteka/client/fixture
     - maps/infra/balancer_deployer
@@ -3140,7 +3098,6 @@ migrations:
     - quality/ab_testing/cofe/projects/eda_ab
     - quality/ab_testing/cofe/projects/mail
     - quality/ab_testing/cofe/projects/mail/features
-    - quality/ab_testing/cofe/projects/ott
     - quality/ab_testing/cofe/projects/uslugi/search
     - quality/ab_testing/scripts/ems
     - quality/ab_testing/scripts/ems/modules/idm/controllers
