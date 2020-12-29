@@ -357,7 +357,7 @@ namespace NCB {
             );
         }
 
-        const TLossDescription lossDescription = catBoostOptions.LossFunctionDescription.Get();
+        const TLossDescription lossDescription = catBoostOptions.MetricOptions->ObjectiveMetric.Get();
         const size_t approxDimension = GetApproxDimension(
             catBoostOptions,
             labelConverter,
