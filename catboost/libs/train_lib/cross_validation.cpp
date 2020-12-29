@@ -110,10 +110,7 @@ inline bool DivisibleOrLastIteration(int currentIteration, int iterationsCount, 
 
 
 /*
- * For CPU foldContexts contain LearnProgress that allows quick learning resume when switching
- *  between folds, so use one iteration batches.
- *
- * For GPU where fold context switch is relatively expensive init batch size based on profile data
+ * Init batch size based on profile data and metric update interval
  */
 static ui32 CalcBatchSize(
     ETaskType taskType,
@@ -121,16 +118,11 @@ static ui32 CalcBatchSize(
     ui32 batchStartIteration,
     double batchIterationsTime, // in sec
     double batchIterationsPlusTrainInitializationTime, // in sec
-    double maxTimeSpentOnFixedCostRatio,
+    double metricUpdateInterval, // in sec
     ui32 maxIterationsBatchSize,
     ui32 globalMaxIteration
 ) {
     CATBOOST_DEBUG_LOG << "CalcBatchSize:\n\t" << LabeledOutput(taskType) << "\n\t";
-
-    if (taskType == ETaskType::CPU) {
-        CATBOOST_DEBUG_LOG << "set batch size to 1\n";
-        return 1;
-    }
 
     CB_ENSURE_INTERNAL(batchIterationsTime > 0.0, "batchIterationTime <= 0.0");
     CB_ENSURE_INTERNAL(
@@ -142,9 +134,7 @@ static ui32 CalcBatchSize(
     double averageIterationTime = batchIterationsTime / double(lastIteration - batchStartIteration + 1);
 
     // estimated to be under fixed cost limit
-    double estimatedBatchSize =
-        std::ceil((1.0 - maxTimeSpentOnFixedCostRatio)*timeSpentOnFixedCost
-           / (maxTimeSpentOnFixedCostRatio*averageIterationTime));
+    double estimatedBatchSize = Max<double>(1.0, (metricUpdateInterval - timeSpentOnFixedCost) / averageIterationTime);
 
     CATBOOST_DEBUG_LOG
         << LabeledOutput(
@@ -152,7 +142,7 @@ static ui32 CalcBatchSize(
             batchIterationsTime,
             batchIterationsPlusTrainInitializationTime,
             averageIterationTime) << Endl
-        << '\t' << LabeledOutput(timeSpentOnFixedCost, maxTimeSpentOnFixedCostRatio, globalMaxIteration)
+        << '\t' << LabeledOutput(timeSpentOnFixedCost, metricUpdateInterval, globalMaxIteration)
         << "\n\testimated batch size to be under fixed cost ratio limit: "
         << estimatedBatchSize << Endl;
 
@@ -196,7 +186,7 @@ class TCrossValidationCallbacks : public ITrainingCallbacks {
 public:
     TCrossValidationCallbacks(
         ELoggingLevel loggingLevel,
-        double maxTimeSpentOnFixedCostRatio,
+        double metricUpdateInterval,
         ui32 maxIterationsBatchSize,
         size_t globalMaxIteration,
         bool isErrorTrackerActive,
@@ -206,7 +196,7 @@ public:
         TFoldContext* foldContext)
     : BatchStartIteration(foldContext->MetricValuesOnTest.size())
     , LoggingLevel(loggingLevel)
-    , MaxTimeSpentOnFixedCostRatio(maxTimeSpentOnFixedCostRatio)
+    , MetricUpdateInterval(metricUpdateInterval)
     , MaxIterationsBatchSize(maxIterationsBatchSize)
     , GlobalMaxIteration(globalMaxIteration)
     , IsErrorTrackerActive(isErrorTrackerActive)
@@ -242,7 +232,7 @@ public:
                     BatchStartIteration,
                     BatchIterationsTime,
                     TrainTimer.Passed(),
-                    MaxTimeSpentOnFixedCostRatio,
+                    MetricUpdateInterval,
                     MaxIterationsBatchSize,
                     GlobalMaxIteration);
 
@@ -273,7 +263,7 @@ public:
 private:
     size_t BatchStartIteration;
     ELoggingLevel LoggingLevel;
-    double MaxTimeSpentOnFixedCostRatio;
+    double MetricUpdateInterval;
     ui32 MaxIterationsBatchSize;
     size_t GlobalMaxIteration;
     bool IsErrorTrackerActive;
@@ -292,7 +282,7 @@ void TrainBatch(
     const TLabelConverter& labelConverter,
     TConstArrayRef<THolder<IMetric>> metrics,
     TConstArrayRef<bool> skipMetricOnTrain,
-    double maxTimeSpentOnFixedCostRatio,
+    double metricUpdateInterval,
     ui32 maxIterationsBatchSize,
     size_t globalMaxIteration,
     bool isErrorTrackerActive,
@@ -321,7 +311,7 @@ void TrainBatch(
 
     const THolder<ITrainingCallbacks> cvCallbacks = MakeHolder<TCrossValidationCallbacks>(
         loggingLevel,
-        maxTimeSpentOnFixedCostRatio,
+        metricUpdateInterval,
         maxIterationsBatchSize,
         globalMaxIteration,
         isErrorTrackerActive,
@@ -719,7 +709,7 @@ void CrossValidate(
                 labelConverter,
                 metrics,
                 skipMetricOnTrain,
-                cvParams.MaxTimeSpentOnFixedCostRatio,
+                cvParams.MetricUpdateInterval,
                 cvParams.DevMaxIterationsBatchSize,
                 globalMaxIteration,
                 errorTracker.IsActive(),
