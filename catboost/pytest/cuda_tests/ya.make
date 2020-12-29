@@ -17,9 +17,9 @@ DEPENDS(
 
 SIZE(MEDIUM)
 
-TAG(ya:yt)
+TAG(ya:yt ya:ytexec)
 
-YT_SPEC(catboost/pytest/cuda_tests/yt_spec.json)
+YT_SPEC(catboost/pytest/cuda_tests/yt_spec.yson)
 
 IF(AUTOCHECK)
     FORK_SUBTESTS()

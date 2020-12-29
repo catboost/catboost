@@ -7,10 +7,10 @@ SIZE(MEDIUM)
 IF (SANITIZER_TYPE)
     TAG(ya:not_autocheck)
 ELSE()
-    TAG(ya:yt)
+    TAG(ya:yt ya:ytexec)
 ENDIF()
 
-YT_SPEC(catboost/pytest/cuda_tests/yt_spec.json)
+YT_SPEC(catboost/pytest/cuda_tests/yt_spec.yson)
 
 SRCS(
     test_auc.cpp
