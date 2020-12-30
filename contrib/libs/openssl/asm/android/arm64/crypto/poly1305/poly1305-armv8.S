@@ -5,9 +5,12 @@
 // forward "declarations" are required for Apple
 
 .globl	poly1305_blocks
+.hidden poly1305_blocks
 .globl	poly1305_emit
+.hidden poly1305_emit
 
 .globl	poly1305_init
+.hidden poly1305_init
 .type	poly1305_init,%function
 .align	5
 poly1305_init:
