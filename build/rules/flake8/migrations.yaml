@@ -575,14 +575,11 @@ migrations:
     - maps/carparks/tools/route_lost_viewer/bin
     - maps/infra/ecstatic/common/worker/lib
     - maps/infra/monitoring/sla_calculator/core/services
-    - maps/infra/sedem/machine/tests
     - maps/jams/renderer2/common/ecstatic/lib
     - maps/jams/tools/tie-xml-jams/tests/tie_upload_test
     - maps/mobile/server/tools/cache_deprecator
     - maps/mobile/tools/android-manifest
     - maps/pylibs/dataset_collector
-    - maps/pylibs/fixtures
-    - maps/pylibs/infrastructure_api/awacs
     - maps/pylibs/infrastructure_api/staff
     - maps/pylibs/monitoring/lib
     - maps/pylibs/monitoring/tests
@@ -744,7 +741,6 @@ migrations:
     - quality/ab_testing/cofe/projects/disk
     - quality/ab_testing/cofe/projects/disk/utils
     - quality/ab_testing/cofe/projects/geo/geoadv
-    - quality/ab_testing/cofe/python/backends/nile
     - quality/ab_testing/cofe/tests/bin/lib/projects
     - quality/ab_testing/scripts/kati
     - quality/ab_testing/scripts/kati/lib
@@ -1590,7 +1586,6 @@ migrations:
     - library/python/coredump_filter
     - library/python/pytest/plugins
     - load/projects/yatool_perf_test/lib
-    - logbroker/juggler/bundle/checks
     - logbroker/public/client/lib
     - logbroker/tools/deploy/layer_test_old
     - logbroker/tools/manual/collect_capacity/base_2020
@@ -1624,11 +1619,9 @@ migrations:
     - maps/infra/sedem/cli/tests/release/utils
     - maps/infra/sedem/machine/lib
     - maps/infra/sedem/machine/lib/endpoints
-    - maps/infra/sedem/machine/tests
     - maps/poi/notification/lib
     - maps/poi/notification/lib/sup
     - maps/poi/statistics/protected_geo_product/impressions/bebr
-    - maps/pylibs/fixtures
     - maps/pylibs/infrastructure_api/arc
     - maps/renderer/stylerepo/lib
     - maps/renderer/stylerepo/tests
@@ -1926,15 +1919,10 @@ migrations:
     - voicetech/asr/pipeline/vh/eou
     - voicetech/asr/pipeline/vh/language_models
     - voicetech/asr/pipeline/vh/metrics_nightly
-    - voicetech/asr/server/stress/lib
-    - voicetech/asr/server/stress/lib/asynclib
     - voicetech/asr/tools/metrics/bin
     - voicetech/asr/tools/run_normalizer/prepare_data_for_mt_normalizer
-    - voicetech/infra/gpu_stat
     - voicetech/infra/uniproxy/tests/session
     - voicetech/infra/voice_ext_mon/bin
-    - voicetech/infra/voice_ext_mon/library/monitoring
-    - voicetech/infra/voice_ext_mon/library/monitoring/checks
     - voicetech/spotter/ov_approval/lib/tests
     - voicetech/spotter/score/lib/test
     - voicetech/spotter/selection_for_annotation/bin
@@ -1982,7 +1970,6 @@ migrations:
     - yabs/server/cs/test/cs_import/direct_context
     - yabs/server/test/ft/BSDEV-80203
     - yabs/server/test/ft/BSSERVER-11699
-    - yabs/server/test/ft/BSSERVER-12340
     - yabs/server/test/ft/BSSERVER-13708
     - yabs/server/test/ft/BSSERVER-14014
     - yabs/server/test/ft/BSSERVER-14049
@@ -2331,12 +2318,9 @@ migrations:
     - maps/factory/pylibs
     - maps/infopoint/statistics/lib
     - maps/infra/apiteka/client/tests
-    - maps/infra/balancer_deployer
     - maps/infra/ecstatic/tool/ecstatic_api
     - maps/masstransit/tools/gtfs_utils/converter/lib
     - maps/poi/notification/lib
-    - maps/pylibs/fixtures
-    - maps/pylibs/infrastructure_api/awacs
     - maps/pylibs/test_helpers
     - maps/qa/passed_by_assessors/markup_script
     - maps/renderer/stylerepo/lib
@@ -2443,7 +2427,6 @@ migrations:
     - quality/ab_testing/cofe/projects/mapkit/via_points_and_alternatives
     - quality/ab_testing/cofe/projects/maps
     - quality/ab_testing/cofe/projects/router
-    - quality/ab_testing/cofe/projects/tvandroid
     - quality/ab_testing/cofe/projects/uslugi/searchcost
     - quality/ab_testing/cofe/projects/yabs_clickhouse
     - quality/ab_testing/cofe/projects/zalogin
@@ -2627,13 +2610,10 @@ migrations:
     - voicetech/asr/core/lib/subword_ngram_lm/nirvana/build_model
     - voicetech/asr/core/lib/subword_ngram_lm/nirvana/fit_lambda
     - voicetech/asr/core/lib/subword_ngram_lm/nirvana/fit_vocabulary
-    - voicetech/asr/markup/append_alignment_info
     - voicetech/asr/markup/lib
     - voicetech/asr/pipeline/train
-    - voicetech/asr/server/stress/lib
     - voicetech/asr/tools/metrics/lib
     - voicetech/asr/tools/metrics/tests
-    - voicetech/asr/tools/metrics/yt_table_metrics
     - voicetech/asr/tools/question/make_train_from_vt
     - voicetech/asr/tools/regular_metrics_run/run/vh
     - voicetech/asr/tools/regular_metrics_run/upload_metrics_to_yt
@@ -2753,30 +2733,6 @@ migrations:
     ignore:
     - F541
     prefixes:
-    - logbroker/juggler/bundle/checks
-    - logbroker/tools/unified_agent_yt_compare_test
-    - maps/infra/balancer_deployer
-    - maps/infra/pycare/example/bin
-    - maps/infra/sedem/cli/lib
-    - maps/infra/sedem/cli/lib/schema
-    - maps/infra/sedem/machine/client
-    - maps/infra/sedem/machine/tests
-    - maps/infra/sedem/tools/changelog_collector
-    - maps/infra/sedem/tools/update_configs
-    - maps/pylibs/fixtures
-    - maps/pylibs/infrastructure_api/awacs
-    - maps_adv/adv_store/v2/tests
-    - maps_adv/adv_store/v2/tests/api/campaigns
-    - maps_adv/export
-    - maps_adv/export/lib/core/client
-    - maps_adv/farmacy/clients
-    - maps_adv/farmacy/clients/lib/asna
-    - maps_adv/farmacy/clients/tests
-    - maps_adv/farmacy/store/server/tests
-    - maps_adv/farmacy/store/server/tests/api
-    - maps_adv/farmacy/store/server/tests/data_manager
-    - maps_adv/farmacy/store/server/tests/data_manager/backoffice
-    - maps_adv/farmacy/store/server/tests/tasks
     - maps_adv/geosmb/crane_operator/tests
     - maps_adv/geosmb/crane_operator/tests/domain
     - maps_adv/geosmb/doorman/server
@@ -2816,20 +2772,6 @@ migrations:
     - search/mon/workplace/src/libs
     - search/mon/workplace/src/libs/report
     - search/scraper/parser_platform/parsers
-    - voicetech/asr/experiments/VOICE-6097-mt-g2p/get_transcription_from_align
-    - voicetech/asr/markup/append_alignment_info
-    - voicetech/asr/server/stress/bin/asr-stress-generator
-    - voicetech/asr/server/stress/lib
-    - voicetech/asr/server/stress/lib/bio
-    - voicetech/asr/tools/eou_sub_threshold/bin/draw_curves
-    - voicetech/asr/tools/metrics/metrics_diff_tool
-    - voicetech/asr/tools/metrics/yt_table_metrics
-    - voicetech/asr/tools/trash_talk/tests
-    - voicetech/infra/gpu_stat
-    - voicetech/infra/net_stat
-    - voicetech/infra/tools/library/websocket_tts
-    - voicetech/infra/tools/ttssocket-client
-    - voicetech/infra/voice_ext_mon/library/monitoring
   F405:
     ignore:
     - F405
@@ -3001,7 +2943,6 @@ migrations:
     - mapreduce/yt/library/blob/tools/file-yt/tests
     - maps/b2bgeo/ya_courier/backend/tests
     - maps/infra/apiteka/client/fixture
-    - maps/infra/balancer_deployer
     - maps/infra/ecstatic/integration_tests
     - maps/infra/quotateka/client/fixture
     - maps/infra/sedem/cli/tests/release/fixtures
@@ -3137,7 +3078,6 @@ migrations:
     - travel/avia/ticket_daemon/tests/partners
     - voicetech/asr/pipeline/vh
     - voicetech/infra/tools/asrsocket-client
-    - voicetech/infra/tools/ttssocket-client
     - voicetech/spotter/debug_tools/spottest_outputs/lib/tests
     - voicetech/spotter/embedded/tests
     - voicetech/spotter/online_metrics/calc/test
