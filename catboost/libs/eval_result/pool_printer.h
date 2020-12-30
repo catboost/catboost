@@ -18,9 +18,10 @@ namespace NCB {
     class IPoolColumnsPrinter : public TThrRefBase {
     public:
         virtual void OutputColumnByType(IOutputStream* outstream, ui64 docId, EColumn columnType) = 0;
-        virtual void OutputColumnByIndex(IOutputStream* outstream, ui64 docId, ui32 columnId) = 0;
+        virtual void OutputFeatureColumnByIndex(IOutputStream* outstream, ui64 docId, ui32 featureId) = 0;
         virtual void UpdateColumnTypeInfo(const TMaybe<TDataColumnsMetaInfo>& /*columnsMetaInfo*/) {}
         virtual ~IPoolColumnsPrinter() = default;
+        virtual size_t GetOutputFeatureType(ui32 featureId) = 0;
         bool HasDocIdColumn = false;
     private:
         // TODO(nikitxskv): Temporary solution until MLTOOLS-140 is implemented.
@@ -44,8 +45,9 @@ namespace NCB {
             const TMaybe<TDataColumnsMetaInfo>& columnsMetaInfo
         );
         void OutputColumnByType(IOutputStream* outStream, ui64 docId, EColumn columnType) override;
-        void OutputColumnByIndex(IOutputStream* outStream, ui64 docId, ui32 columnId) override;
+        void OutputFeatureColumnByIndex(IOutputStream* outStream, ui64 docId, ui32 featureId) override;
         void UpdateColumnTypeInfo(const TMaybe<TDataColumnsMetaInfo>& columnsMetaInfo) override;
+        size_t GetOutputFeatureType(ui32 columnId) override;
 
     private:
         const TString& GetCell(ui64 docId, ui32 colId);
@@ -55,13 +57,16 @@ namespace NCB {
         ui64 DocId;
         TVector<TString> Columns;
         THashMap<EColumn, ui32> FromColumnTypeToColumnId;
+        TVector<ui32> FromExternalIdToColumnId;
+        TMaybe<TDataColumnsMetaInfo> ColumnsMetaInfo;
     };
 
     class TQuantizedPoolColumnsPrinter : public IPoolColumnsPrinter {
     public:
         TQuantizedPoolColumnsPrinter(const TPathWithScheme& testSetPath);
         void OutputColumnByType(IOutputStream* outStream, ui64 docId, EColumn columnType) override;
-        void OutputColumnByIndex(IOutputStream* outStream, ui64 docId, ui32 columnId) override;
+        void OutputFeatureColumnByIndex(IOutputStream* outStream, ui64 docId, ui32 featureId) override;
+        size_t GetOutputFeatureType(ui32 featureId) override;
 
     private:
         struct ColumnInfo {

@@ -11,6 +11,7 @@
 #include <util/generic/fwd.h>
 #include <util/generic/vector.h>
 
+namespace NCB {
 
 TVector<TVector<double>> PrepareEvalForInternalApprox(
     const EPredictionType prediction_type,
@@ -53,3 +54,11 @@ TVector<TVector<double>> PrepareEval(
     const TString& lossFunctionName,
     const TVector<TVector<double>>& approx,
     int threadCount);
+
+using TColumnPrinterOuputType = TVariant<i64, ui64, double, float, TString>;
+
+template<typename T>
+size_t GetOutputTypeIndex() {
+    return TVariantIndexV<T, TColumnPrinterOuputType>;
+}
+}

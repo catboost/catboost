@@ -207,6 +207,7 @@ static void CalcRegressionUncertaitny(
     }
 }
 
+namespace NCB {
 bool IsMulticlass(const TVector<TVector<double>>& approx) {
     return approx.size() > 1;
 }
@@ -381,4 +382,5 @@ TVector<TVector<double>> PrepareEval(const EPredictionType predictionType,
     TVector<TVector<double>> result;
     PrepareEval(predictionType, lossFunctionName, approx, localExecutor, &result);
     return result;
+}
 }
