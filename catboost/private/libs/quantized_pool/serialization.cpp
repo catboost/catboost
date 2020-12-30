@@ -923,13 +923,13 @@ namespace NCB {
         }
         THolder<TSrcColumn<TDst>> dst(new TSrcColumn<TDst>(columnType));
 
-        auto srcIteratorPtr = featureColumn.GetBlockIterator();
-        IDynamicBlockIterator<TDst>& srcIterator
-            = dynamic_cast<IDynamicBlockIterator<TDst>&>(*srcIteratorPtr);
-
-        while (auto block = srcIterator.Next(QUANTIZED_POOL_COLUMN_DEFAULT_SLICE_COUNT)) {
-            dst->Data.push_back(TVector<TDst>(block.begin(), block.end()));
-        }
+        featureColumn.ForEachBlock(
+            [&dst] (auto blockStartIdx, auto block) {
+                Y_UNUSED(blockStartIdx);
+                dst->Data.push_back(TVector<TDst>(block.begin(), block.end()));
+            },
+            QUANTIZED_POOL_COLUMN_DEFAULT_SLICE_COUNT
+        );
 
         return dst;
     }
