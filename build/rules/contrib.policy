@@ -371,7 +371,6 @@ ALLOW trust/emulator -> contrib/python/pycrypto
 ALLOW trust/processing_holder -> contrib/python/pycrypto
 ALLOW trust/tests/tests_trust_bindings -> contrib/python/pycrypto
 ALLOW yabs/server/tools/banner_user_choice -> contrib/python/pycrypto
-ALLOW yabs/server/test -> contrib/python/pycrypto
 ALLOW ydo/database/models -> contrib/python/pycrypto
 ALLOW yweb/antispam/cid -> contrib/python/pycrypto
 ALLOW mail/payments/payments -> contrib/python/pycrypto
