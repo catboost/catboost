@@ -478,8 +478,6 @@ migrations:
     - infra/cqudp/src
     - infra/cqudp/src/eggs
     - infra/deploy/tools/yd_migrate/lib
-    - infra/dist/cacus/lib
-    - infra/dist/cacus/lib/import_repo
     - infra/gencfg-gui
     - infra/gencfg-monitoring
     - infra/gencfg-monitoring/web/collector
@@ -1535,8 +1533,6 @@ migrations:
     - infra/awacs/awacslet/test
     - infra/deploy_queue_controller/lib
     - infra/diskmanager/tests/server
-    - infra/dist/cacus/lib
-    - infra/dist/cacus/lib/daemon/duploader
     - infra/dist/dmover/bin/dmover
     - infra/dist/dmover/lib
     - infra/dist/dmover/lib/internal
@@ -1544,7 +1540,6 @@ migrations:
     - infra/environments/builder
     - infra/host-cpu-metrics
     - infra/host-cpu-metrics/host_metrics
-    - infra/kernel/test/misc
     - infra/porto/api_py
     - infra/qemu/vmexec
     - infra/qyp/vmproxy/tests
@@ -2260,7 +2255,6 @@ migrations:
     - extsearch/video/ugc/sqs_moderation/mod2
     - extsearch/ymusic/tools/crawl_test_data
     - extsearch/ymusic/tools/generate_test_data
-    - infra/kernel/test/misc
     - infra/kernel/test/recipe/cgleak_check/example
     - infra/portoshell/tests
     - infra/yasm/zoom/python/tests
@@ -2868,8 +2862,6 @@ migrations:
     - extsearch/images/robot/tools/branches_metrics
     - extsearch/video/robot/cm/dups/cmpy/url_pairs
     - games/admin/libs/turbo/tests
-    - infra/dist/cacus/lib
-    - infra/kernel/test/misc
     - intranet/dogma/mon
     - intranet/trip/tests
     - intranet/trip/tests/api
