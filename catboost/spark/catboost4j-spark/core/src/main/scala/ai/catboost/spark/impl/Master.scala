@@ -141,15 +141,15 @@ private[spark] class Master(
 
     var failedBecauseOfWorkerConnectionLost = false
 
-    val outputReader = new BufferedReader(new InputStreamReader(masterAppProcess.getInputStream()))
+    val errorStreamReader = new BufferedReader(new InputStreamReader(masterAppProcess.getErrorStream()))
     try {
       breakable {
         while (true) {
-          val line = outputReader.readLine
+          val line = errorStreamReader.readLine
           if (line == null) {
             break
           }
-          println("[CatBoost Master] " + line)
+          System.err.println("[CatBoost Master] " + line)
 
           if (failedBecauseOfWorkerConnectionLostRegexp.matcher(line).matches) {
             failedBecauseOfWorkerConnectionLost = true
@@ -157,7 +157,7 @@ private[spark] class Master(
         }
       }
     } finally {
-      outputReader.close
+      errorStreamReader.close
     }
 
     val returnValue = masterAppProcess.waitFor
