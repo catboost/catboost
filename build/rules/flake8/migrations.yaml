@@ -2826,8 +2826,6 @@ migrations:
     ignore:
     - F811
     prefixes:
-    - ads/quality/adv_machine/scripts/service_tools
-    - ads/quality/future_prgg/dssm_pool
     - alice/hollywood/library/scenarios/draw_picture/it
     - alice/hollywood/library/scenarios/general_conversation/it/runner
     - alice/hollywood/library/scenarios/music/it/generator
