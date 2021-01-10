@@ -512,8 +512,6 @@ migrations:
     - intranet/search/core/sources/invite
     - irt/bmgen/market_data
     - irt/bmgen/synonyms
-    - juggler/juggler_client/jclient
-    - juggler/juggler_client/jclient/scheduling
     - jupytercloud/tools/calc_notebooks_stats
     - keyboard/analytics/toloka/nirvana/blocks
     - keyboard/analytics/toloka/nirvana/swipe
