@@ -64,12 +64,12 @@ ui64 DurationToCycles(TDuration duration);
 
 class TPrecisionTimer {
 private:
-    ui64 Start;
-    const char* Message;
+    ui64 Start = 0;
 
 public:
-    TPrecisionTimer(const char* message = "took ");
-    ~TPrecisionTimer();
+    TPrecisionTimer();
+
+    ui64 GetCycleCount() const;
 };
 
 TString FormatCycles(ui64 cycles);
