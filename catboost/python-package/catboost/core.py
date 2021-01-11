@@ -2348,9 +2348,6 @@ class CatBoost(_CatBoostBase):
         tmp_dir : string (default=None)
             The name of the temporary directory for intermediate results.
             If None, then the name will be generated.
-
-        plot : bool, optional (default=False)
-            If True, draw train and eval error in Jupyter notebook
         """
 
         if model is None:
