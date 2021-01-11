@@ -100,35 +100,7 @@ namespace {
 }
 
 size_t BackTrace(void** p, size_t len) {
-#if defined(pg_sanitizer_enabled)
-    struct TStackFrame {
-        const TStackFrame* Next;
-        void* Ret;
-    };
-
-    const TStackFrame* frame = (const TStackFrame*)__builtin_frame_address(0);
-    const TStackFrame* bound = frame + 4096;
-
-    size_t cnt = 0;
-
-    while (frame && cnt < len) {
-        p[cnt++] = frame->Ret;
-
-        if (frame->Next < frame || frame->Next > bound) {
-            if (cnt < 5) {
-                return NGCCBacktrace::BackTrace(p, len);
-            } else {
-                return cnt;
-            }
-        }
-
-        frame = frame->Next;
-    }
-
-    return cnt;
-#else
     return NGCCBacktrace::BackTrace(p, len);
-#endif
 }
 #endif
 
