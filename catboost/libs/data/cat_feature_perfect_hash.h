@@ -242,7 +242,7 @@ namespace NCB {
         void CheckHasFeature(const TCatFeatureIdx catFeatureIdx) const {
             CB_ENSURE_INTERNAL(
                 HasFeature(catFeatureIdx),
-                "Error: unknown categorical feature #" << catFeatureIdx
+                "Error: unknown " << catFeatureIdx
             );
         }
 
