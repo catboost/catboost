@@ -715,7 +715,6 @@ migrations:
     - passport/python/core/models/tests
     - passport/python/core/serializers/base
     - passport/python/core/suggest
-    - passport/python/core/tests/validators
     - passport/python/core/types
     - passport/python/core/types/login
     - passport/python/core/validators
@@ -1681,7 +1680,6 @@ migrations:
     - music/analytics/jam-sox/music_lib/financial_reports/tests/unit
     - music/tools/download-info
     - passport/python/core
-    - passport/python/core/validators/password
     - passport/python/library/distprim
     - passport/python/library/distprim/threading
     - passport/python/meltingpot/utils
@@ -1782,7 +1780,6 @@ migrations:
     - sandbox/projects/logbroker/tasks/BuildSeveralResources
     - sandbox/projects/masstransit/MapsMasstransitImportVehicleTasks
     - sandbox/projects/music/deployment/MusicRestoreMdb/YandexCloudDatabase
-    - sandbox/projects/music/deployment/UpdateTestResources/helpers
     - sandbox/projects/music/deployment/helpers
     - sandbox/projects/news
     - sandbox/projects/news/RunNewsComplexLoadtests
@@ -2849,7 +2846,6 @@ migrations:
     - entity/ugc/robot/tools/user_activity_processor/lib/ut
     - extsearch/images/robot/tools/branches_metrics
     - extsearch/video/robot/cm/dups/cmpy/url_pairs
-    - games/admin/libs/turbo/tests
     - intranet/dogma/mon
     - intranet/trip/tests
     - intranet/trip/tests/api
