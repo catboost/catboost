@@ -11,21 +11,21 @@ ENDIF()
 IF (USE_ARCADIA_CUDA)
     IF (HOST_OS_LINUX AND HOST_ARCH_X86_64)
         IF (OS_LINUX AND ARCH_X86_64)
-            IF (CUDA_VERSION STREQUAL "11.1")
+            IF (CUDA_VERSION == "11.1")
                 DECLARE_EXTERNAL_RESOURCE(CUDA sbr:1882836946) # CUDA Toolkit 11.1.1 for Linux x86-64
-            ELSEIF (CUDA_VERSION STREQUAL "11.0")
+            ELSEIF (CUDA_VERSION == "11.0")
                 DECLARE_EXTERNAL_RESOURCE(CUDA sbr:1647896014) # CUDA Toolkit 11.0.2 for Linux x86-64
-            ELSEIF (CUDA_VERSION STREQUAL "10.1")
+            ELSEIF (CUDA_VERSION == "10.1")
                 DECLARE_EXTERNAL_RESOURCE(CUDA sbr:983615296) # CUDA Toolkit 10.1.168 for Linux x86-64
-            ELSEIF (CUDA_VERSION STREQUAL "10.0")
+            ELSEIF (CUDA_VERSION == "10.0")
                 DECLARE_EXTERNAL_RESOURCE(CUDA sbr:840560679) # CUDA Toolkit 10.0.130 for Linux x86-64
-            ELSEIF (CUDA_VERSION STREQUAL "9.2")
+            ELSEIF (CUDA_VERSION == "9.2")
                 DECLARE_EXTERNAL_RESOURCE(CUDA sbr:701412509) # CUDA Toolkit 9.2.148.1 for Linux x86-64
-            ELSEIF (CUDA_VERSION STREQUAL "9.1")
+            ELSEIF (CUDA_VERSION == "9.1")
                 DECLARE_EXTERNAL_RESOURCE(CUDA sbr:494273996) # CUDA Toolkit 9.1.85.1 for Linux x86-64
-            ELSEIF(CUDA_VERSION STREQUAL "9.0")
+            ELSEIF(CUDA_VERSION == "9.0")
                 DECLARE_EXTERNAL_RESOURCE(CUDA sbr:562939434) # CUDA Toolkit 9.0.176.2 for Linux x86-64
-            ELSEIF(CUDA_VERSION STREQUAL "8.0")
+            ELSEIF(CUDA_VERSION == "8.0")
                 DECLARE_EXTERNAL_RESOURCE(CUDA sbr:494267287) # CUDA Toolkit 8.0.61.2 for Linux x86-64
             ELSE()
                 ENABLE(CUDA_NOT_FOUND)
@@ -37,7 +37,7 @@ IF (USE_ARCADIA_CUDA)
 
     ELSEIF (HOST_OS_LINUX AND HOST_ARCH_PPC64LE)
         IF (OS_LINUX AND ARCH_PPC64LE)
-            IF (CUDA_VERSION STREQUAL "10.1")
+            IF (CUDA_VERSION == "10.1")
                 DECLARE_EXTERNAL_RESOURCE(CUDA sbr:1586537264) # CUDA Toolkit 10.1.168 for Linux ppc64le
             ELSE()
                 ENABLE(CUDA_NOT_FOUND)
@@ -49,15 +49,15 @@ IF (USE_ARCADIA_CUDA)
 
     ELSEIF (HOST_OS_DARWIN AND HOST_ARCH_X86_64)
         IF (OS_DARWIN AND ARCH_X86_64)
-            IF (CUDA_VERSION STREQUAL "10.1")
+            IF (CUDA_VERSION == "10.1")
                 DECLARE_EXTERNAL_RESOURCE(CUDA sbr:978727023) # CUDA Toolkit 10.1.168 for macOS x86-64
-            ELSEIF (CUDA_VERSION STREQUAL "10.0")
+            ELSEIF (CUDA_VERSION == "10.0")
                 DECLARE_EXTERNAL_RESOURCE(CUDA sbr:840563990) # CUDA Toolkit 10.0.130 for macOS x86-64
-            ELSEIF (CUDA_VERSION STREQUAL "9.2")
+            ELSEIF (CUDA_VERSION == "9.2")
                 DECLARE_EXTERNAL_RESOURCE(CUDA sbr:701198442) # CUDA Toolkit 9.2.148.1 for macOS x86-64
-            ELSEIF (CUDA_VERSION STREQUAL "9.1")
+            ELSEIF (CUDA_VERSION == "9.1")
                 DECLARE_EXTERNAL_RESOURCE(CUDA sbr:494327636) # CUDA Toolkit 9.1.128 for macOS x86-64
-            ELSEIF (CUDA_VERSION STREQUAL "9.0")
+            ELSEIF (CUDA_VERSION == "9.0")
                 DECLARE_EXTERNAL_RESOURCE(CUDA sbr:564419703) # CUDA Toolkit 9.0.176 for macOS x86-64
             ENDIF()
 
@@ -67,17 +67,17 @@ IF (USE_ARCADIA_CUDA)
 
     ELSEIF (HOST_OS_WINDOWS AND HOST_ARCH_X86_64)
         IF (OS_WINDOWS AND ARCH_X86_64)
-            IF (CUDA_VERSION STREQUAL "11.1")
+            IF (CUDA_VERSION == "11.1")
                 DECLARE_EXTERNAL_RESOURCE(CUDA sbr:1896564605) # CUDA Toolkit 11.1.1 for Windows x86-64
-            ELSEIF (CUDA_VERSION STREQUAL "10.1")
+            ELSEIF (CUDA_VERSION == "10.1")
                 DECLARE_EXTERNAL_RESOURCE(CUDA sbr:978734165) # CUDA Toolkit 10.1.168 for Windows x86-64
-            ELSEIF (CUDA_VERSION STREQUAL "10.0")
+            ELSEIF (CUDA_VERSION == "10.0")
                 DECLARE_EXTERNAL_RESOURCE(CUDA sbr:840570409) # CUDA Toolkit 10.0.130 for Windows x86-64
-            ELSEIF (CUDA_VERSION STREQUAL "9.2")
+            ELSEIF (CUDA_VERSION == "9.2")
                 DECLARE_EXTERNAL_RESOURCE(CUDA sbr:631278491) # CUDA Toolkit 9.2.148 for Windows 10 x86-64
-            ELSEIF (CUDA_VERSION STREQUAL "9.1")
+            ELSEIF (CUDA_VERSION == "9.1")
                 DECLARE_EXTERNAL_RESOURCE(CUDA sbr:636532525) # CUDA Toolkit 9.1.85.3 for Windows 10 x86-64
-            ELSEIF (CUDA_VERSION STREQUAL "9.0")
+            ELSEIF (CUDA_VERSION == "9.0")
                 DECLARE_EXTERNAL_RESOURCE(CUDA sbr:636578532) # CUDA Toolkit 9.0.176.4 for Windows 10 x86-64
             ELSE()
                 ENABLE(CUDA_NOT_FOUND)
@@ -95,21 +95,21 @@ ENDIF()
 IF (USE_ARCADIA_CUDA_HOST_COMPILER)
     IF (HOST_OS_LINUX AND HOST_ARCH_X86_64)
         IF (OS_LINUX AND ARCH_X86_64)
-            IF (CUDA_VERSION STREQUAL "11.1")
+            IF (CUDA_VERSION == "11.1")
                 DECLARE_EXTERNAL_RESOURCE(CUDA_HOST_TOOLCHAIN sbr:971092418) # Clang 8.0 for Linux x86-64 (may be not latest)
-            ELSEIF (CUDA_VERSION STREQUAL "11.0")
+            ELSEIF (CUDA_VERSION == "11.0")
                 DECLARE_EXTERNAL_RESOURCE(CUDA_HOST_TOOLCHAIN sbr:971092418) # Clang 8.0 for Linux x86-64 (may be not latest)
-            ELSEIF (CUDA_VERSION STREQUAL "10.1")
+            ELSEIF (CUDA_VERSION == "10.1")
                 DECLARE_EXTERNAL_RESOURCE(CUDA_HOST_TOOLCHAIN sbr:243907179) # Clang 4.0 for Linux x86-64 (not latest)
-            ELSEIF (CUDA_VERSION STREQUAL "10.0")
+            ELSEIF (CUDA_VERSION == "10.0")
                 DECLARE_EXTERNAL_RESOURCE(CUDA_HOST_TOOLCHAIN sbr:243907179) # Clang 4.0 for Linux x86-64 (not latest)
-            ELSEIF (CUDA_VERSION STREQUAL "9.2")
+            ELSEIF (CUDA_VERSION == "9.2")
                 DECLARE_EXTERNAL_RESOURCE(CUDA_HOST_TOOLCHAIN sbr:243907179) # Clang 4.0 for Linux x86-64 (not latest)
-            ELSEIF (CUDA_VERSION STREQUAL "9.1")
+            ELSEIF (CUDA_VERSION == "9.1")
                 DECLARE_EXTERNAL_RESOURCE(CUDA_HOST_TOOLCHAIN sbr:243907179) # Clang 4.0 for Linux x86-64
-            ELSEIF(CUDA_VERSION STREQUAL "9.0")
+            ELSEIF(CUDA_VERSION == "9.0")
                 DECLARE_EXTERNAL_RESOURCE(CUDA_HOST_TOOLCHAIN sbr:133831678) # Clang 3.8 for Linux x86-64
-            ELSEIF(CUDA_VERSION STREQUAL "8.0")
+            ELSEIF(CUDA_VERSION == "8.0")
                 DECLARE_EXTERNAL_RESOURCE(CUDA_HOST_TOOLCHAIN sbr:133831678) # Clang 3.8 for Linux x86-64
             ELSE()
                 ENABLE(CUDA_HOST_COMPILER_NOT_FOUND)
@@ -121,7 +121,7 @@ IF (USE_ARCADIA_CUDA_HOST_COMPILER)
 
     ELSEIF (HOST_OS_LINUX AND HOST_ARCH_PPC64LE)
         IF (OS_LINUX AND ARCH_PPC64LE)
-            IF (CUDA_VERSION STREQUAL "10.1")
+            IF (CUDA_VERSION == "10.1")
                 DECLARE_EXTERNAL_RESOURCE(CUDA_HOST_TOOLCHAIN sbr:1566513994) # Clang 7.0 for Linux ppc64le (not latest)
             ELSE()
                 ENABLE(CUDA_HOST_COMPILER_NOT_FOUND)
@@ -134,15 +134,15 @@ IF (USE_ARCADIA_CUDA_HOST_COMPILER)
     ELSEIF (HOST_OS_DARWIN AND HOST_ARCH_X86_64)
         IF (OS_DARWIN AND ARCH_X86_64)
             SET(__XCODE_RESOURCE_NAME CUDA_HOST_TOOLCHAIN)
-            IF (CUDA_VERSION STREQUAL "10.1")
+            IF (CUDA_VERSION == "10.1")
                 SET(__XCODE_TOOLCHAIN_VERSION "9.2") # (not latest)
-            ELSEIF (CUDA_VERSION STREQUAL "10.0")
+            ELSEIF (CUDA_VERSION == "10.0")
                 SET(__XCODE_TOOLCHAIN_VERSION "9.2") # (not latest)
-            ELSEIF (CUDA_VERSION STREQUAL "9.2")
+            ELSEIF (CUDA_VERSION == "9.2")
                 SET(__XCODE_TOOLCHAIN_VERSION "9.2")
-            ELSEIF (CUDA_VERSION STREQUAL "9.1")
+            ELSEIF (CUDA_VERSION == "9.1")
                 SET(__XCODE_TOOLCHAIN_VERSION "8.3.3")
-            ELSEIF (CUDA_VERSION STREQUAL "9.0")
+            ELSEIF (CUDA_VERSION == "9.0")
                 SET(__XCODE_TOOLCHAIN_VERSION "8.2.1")
             ELSE()
                 SET(__XCODE_TOOLCHAIN_VERSION "")
@@ -157,9 +157,9 @@ IF (USE_ARCADIA_CUDA_HOST_COMPILER)
 
     ELSEIF (HOST_OS_WINDOWS AND HOST_ARCH_X86_64)
         IF (OS_WINDOWS AND ARCH_X86_64)
-            IF (CUDA_HOST_MSVC_VERSION STREQUAL "14.11.25503")
+            IF (CUDA_HOST_MSVC_VERSION == "14.11.25503")
                 DECLARE_EXTERNAL_RESOURCE(CUDA_HOST_TOOLCHAIN sbr:637113754) # Microsoft Visual C++ 14.11.25503
-            ELSEIF (CUDA_HOST_MSVC_VERSION STREQUAL "14.13.26128")
+            ELSEIF (CUDA_HOST_MSVC_VERSION == "14.13.26128")
                 DECLARE_EXTERNAL_RESOURCE(CUDA_HOST_TOOLCHAIN sbr:631304468) # Microsoft Visual C++ 14.13.26128
             ELSE()
                 MESSAGE(FATAL_ERROR "Unexpected or unspecified Microsoft Visual C++ CUDA host compiler version")
