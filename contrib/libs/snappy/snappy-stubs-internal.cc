@@ -27,16 +27,16 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <algorithm>
-#include <string>
+#include <util/generic/string.h>
 
 #include "snappy-stubs-internal.h"
 
 namespace snappy {
 
-void Varint::Append32(string* s, uint32 value) {
+void Varint::Append32(TString* s, uint32 value) {
   char buf[Varint::kMax32];
   const char* p = Varint::Encode32(buf, value);
-  s->AppendNoAlias(buf, p - buf);
+  s->append(buf, p - buf);
 }
 
 }  // namespace snappy
