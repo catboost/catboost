@@ -81,13 +81,6 @@ IF (OS_LINUX OR OS_WINDOWS)
 )
 ENDIF()
 
-IF (OS_WINDOWS AND USE_UWP)
-    # Other platforms will be added on demand or in background
-    RECURSE(
-    
-)
-ENDIF()
-
 IF (OS_ANDROID)
     RECURSE(
     
