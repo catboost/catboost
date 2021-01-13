@@ -602,6 +602,9 @@ ALLOW .* -> vendor/github.com/jinzhu/inflection
 # CONTRIB-2069
 ALLOW .* -> vendor/github.com/coredhcp/coredhcp
 
+# CONTRIB-2094
+ALLOW .* -> vendor/github.com/osrg/gobgp
+
 #
 # Tools
 #
@@ -746,9 +749,6 @@ ALLOW load/projects/pandora -> vendor/github.com/onsi/ginkgo
 
 # CONTRIB-2029
 ALLOW load/projects/pandora -> vendor/github.com/magiconair/properties/assert
-
-# CONTRIB-2094
-ALLOW .* -> vendor/github.com/osrg/gobgp
 
 #
 # This section is for EXCEPTIONS. Add new rule above, not here.
