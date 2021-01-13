@@ -53,6 +53,11 @@ using namespace NCB;
     }                                                               \
     RestoreOriginalLogger();                                        \
 
+#if defined(_WIN32)
+#define EXPORT_FUNCTION __declspec(dllexport) SEXP
+#else
+#define EXPORT_FUNCTION SEXP
+#endif
 
 typedef TDataProvider* TPoolHandle;
 typedef TDataProviderPtr TPoolPtr;
@@ -114,7 +119,7 @@ static int UpdateThreadCount(int threadCount) {
 
 extern "C" {
 
-SEXP CatBoostCreateFromFile_R(SEXP poolFileParam,
+EXPORT_FUNCTION CatBoostCreateFromFile_R(SEXP poolFileParam,
                               SEXP cdFileParam,
                               SEXP pairsFileParam,
                               SEXP featureNamesFileParam,
@@ -165,7 +170,7 @@ SEXP CatBoostCreateFromFile_R(SEXP poolFileParam,
     return result;
 }
 
-SEXP CatBoostCreateFromMatrix_R(SEXP matrixParam,
+EXPORT_FUNCTION CatBoostCreateFromMatrix_R(SEXP matrixParam,
                                 SEXP targetParam,
                                 SEXP catFeaturesParam,
                                 SEXP pairsParam,
@@ -316,7 +321,7 @@ SEXP CatBoostCreateFromMatrix_R(SEXP matrixParam,
     return result;
 }
 
-SEXP CatBoostHashStrings_R(SEXP stringsParam) {
+EXPORT_FUNCTION CatBoostHashStrings_R(SEXP stringsParam) {
    SEXP result = PROTECT(allocVector(REALSXP, length(stringsParam)));
    for (int i = 0; i < length(stringsParam); ++i) {
        REAL(result)[i] = static_cast<double>(ConvertCatFeatureHashToFloat(CalcCatFeatureHash(TString(CHAR(STRING_ELT(stringsParam, i))))));
@@ -325,7 +330,7 @@ SEXP CatBoostHashStrings_R(SEXP stringsParam) {
    return result;
 }
 
-SEXP CatBoostPoolNumRow_R(SEXP poolParam) {
+EXPORT_FUNCTION CatBoostPoolNumRow_R(SEXP poolParam) {
     SEXP result = NULL;
     R_API_BEGIN();
     TPoolHandle pool = reinterpret_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
@@ -334,7 +339,7 @@ SEXP CatBoostPoolNumRow_R(SEXP poolParam) {
     return result;
 }
 
-SEXP CatBoostPoolNumCol_R(SEXP poolParam) {
+EXPORT_FUNCTION CatBoostPoolNumCol_R(SEXP poolParam) {
     SEXP result = NULL;
     R_API_BEGIN();
     TPoolHandle pool = reinterpret_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
@@ -346,7 +351,7 @@ SEXP CatBoostPoolNumCol_R(SEXP poolParam) {
     return result;
 }
 
-SEXP CatBoostGetNumTrees_R(SEXP modelParam) {
+EXPORT_FUNCTION CatBoostGetNumTrees_R(SEXP modelParam) {
     SEXP result = NULL;
     R_API_BEGIN();
     TFullModelHandle model = reinterpret_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
@@ -356,11 +361,11 @@ SEXP CatBoostGetNumTrees_R(SEXP modelParam) {
 }
 
 // TODO(dbakshee): remove this backward compatibility gag in v0.11
-SEXP CatBoostPoolNumTrees_R(SEXP modelParam) {
+EXPORT_FUNCTION CatBoostPoolNumTrees_R(SEXP modelParam) {
     return CatBoostGetNumTrees_R(modelParam);
 }
 
-SEXP CatBoostIsOblivious_R(SEXP modelParam) {
+EXPORT_FUNCTION CatBoostIsOblivious_R(SEXP modelParam) {
     SEXP result = NULL;
     R_API_BEGIN();
     TFullModelHandle model = reinterpret_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
@@ -369,7 +374,7 @@ SEXP CatBoostIsOblivious_R(SEXP modelParam) {
     return result;
 }
 
-SEXP CatBoostPoolSlice_R(SEXP poolParam, SEXP sizeParam, SEXP offsetParam) {
+EXPORT_FUNCTION CatBoostPoolSlice_R(SEXP poolParam, SEXP sizeParam, SEXP offsetParam) {
     SEXP result = NULL;
     size_t size, offset;
     R_API_BEGIN();
@@ -470,7 +475,7 @@ SEXP CatBoostPoolSlice_R(SEXP poolParam, SEXP sizeParam, SEXP offsetParam) {
     return result;
 }
 
-SEXP CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitParamsAsJsonParam) {
+EXPORT_FUNCTION CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitParamsAsJsonParam) {
     SEXP result = NULL;
     R_API_BEGIN();
     TPoolHandle learnPool = reinterpret_cast<TPoolHandle>(R_ExternalPtrAddr(learnPoolParam));
@@ -520,7 +525,7 @@ SEXP CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitParamsAsJson
     return result;
 }
 
-SEXP CatBoostSumModels_R(SEXP modelsParam,
+EXPORT_FUNCTION CatBoostSumModels_R(SEXP modelsParam,
                          SEXP weightsParam,
                          SEXP ctrMergePolicyParam) {
     SEXP result = NULL;
@@ -545,7 +550,7 @@ SEXP CatBoostSumModels_R(SEXP modelsParam,
     return result;
 }
 
-SEXP CatBoostCV_R(SEXP fitParamsAsJsonParam,
+EXPORT_FUNCTION CatBoostCV_R(SEXP fitParamsAsJsonParam,
                   SEXP poolParam,
                   SEXP foldCountParam,
                   SEXP typeParam,
@@ -646,7 +651,7 @@ SEXP CatBoostCV_R(SEXP fitParamsAsJsonParam,
     return result;
 }
 
-SEXP CatBoostOutputModel_R(SEXP modelParam, SEXP fileParam,
+EXPORT_FUNCTION CatBoostOutputModel_R(SEXP modelParam, SEXP fileParam,
                            SEXP formatParam, SEXP exportParametersParam, SEXP poolParam) {
     R_API_BEGIN();
     TFullModelHandle model = reinterpret_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
@@ -675,7 +680,7 @@ SEXP CatBoostOutputModel_R(SEXP modelParam, SEXP fileParam,
     return ScalarLogical(1);
 }
 
-SEXP CatBoostReadModel_R(SEXP fileParam, SEXP formatParam) {
+EXPORT_FUNCTION CatBoostReadModel_R(SEXP fileParam, SEXP formatParam) {
     SEXP result = NULL;
     R_API_BEGIN();
     EModelType modelType;
@@ -691,7 +696,7 @@ SEXP CatBoostReadModel_R(SEXP fileParam, SEXP formatParam) {
     return result;
 }
 
-SEXP CatBoostSerializeModel_R(SEXP handleParam) {
+EXPORT_FUNCTION CatBoostSerializeModel_R(SEXP handleParam) {
     SEXP result = NULL;
     R_API_BEGIN();
     TFullModelHandle modelHandle = reinterpret_cast<TFullModelHandle>(R_ExternalPtrAddr(handleParam));
@@ -703,7 +708,7 @@ SEXP CatBoostSerializeModel_R(SEXP handleParam) {
     return result;
 }
 
-SEXP CatBoostDeserializeModel_R(SEXP rawParam) {
+EXPORT_FUNCTION CatBoostDeserializeModel_R(SEXP rawParam) {
     SEXP result = NULL;
     R_API_BEGIN();
     TFullModelPtr modelPtr = std::make_unique<TFullModel>();
@@ -716,7 +721,7 @@ SEXP CatBoostDeserializeModel_R(SEXP rawParam) {
     return result;
 }
 
-SEXP CatBoostPredictMulti_R(SEXP modelParam, SEXP poolParam, SEXP verboseParam,
+EXPORT_FUNCTION CatBoostPredictMulti_R(SEXP modelParam, SEXP poolParam, SEXP verboseParam,
                             SEXP typeParam, SEXP treeCountStartParam, SEXP treeCountEndParam, SEXP threadCountParam) {
     SEXP result = NULL;
     R_API_BEGIN();
@@ -745,7 +750,7 @@ SEXP CatBoostPredictMulti_R(SEXP modelParam, SEXP poolParam, SEXP verboseParam,
     return result;
 }
 
-SEXP CatBoostPrepareEval_R(SEXP approxParam, SEXP typeParam, SEXP lossFunctionName, SEXP columnCountParam, SEXP threadCountParam) {
+EXPORT_FUNCTION CatBoostPrepareEval_R(SEXP approxParam, SEXP typeParam, SEXP lossFunctionName, SEXP columnCountParam, SEXP threadCountParam) {
     SEXP result = NULL;
     R_API_BEGIN();
     SEXP dataDim = getAttrib(approxParam, R_DimSymbol);
@@ -776,7 +781,7 @@ SEXP CatBoostPrepareEval_R(SEXP approxParam, SEXP typeParam, SEXP lossFunctionNa
     return result;
 }
 
-SEXP CatBoostShrinkModel_R(SEXP modelParam, SEXP treeCountStartParam, SEXP treeCountEndParam) {
+EXPORT_FUNCTION CatBoostShrinkModel_R(SEXP modelParam, SEXP treeCountStartParam, SEXP treeCountEndParam) {
     R_API_BEGIN();
     TFullModelHandle model = reinterpret_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
     model->Truncate(asInteger(treeCountStartParam), asInteger(treeCountEndParam));
@@ -784,7 +789,7 @@ SEXP CatBoostShrinkModel_R(SEXP modelParam, SEXP treeCountStartParam, SEXP treeC
     return ScalarLogical(1);
 }
 
-SEXP CatBoostDropUnusedFeaturesFromModel_R(SEXP modelParam) {
+EXPORT_FUNCTION CatBoostDropUnusedFeaturesFromModel_R(SEXP modelParam) {
     R_API_BEGIN();
     TFullModelHandle model = reinterpret_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
     model->ModelTrees.GetMutable()->DropUnusedFeatures();
@@ -792,7 +797,7 @@ SEXP CatBoostDropUnusedFeaturesFromModel_R(SEXP modelParam) {
     return ScalarLogical(1);
 }
 
-SEXP CatBoostGetModelParams_R(SEXP modelParam) {
+EXPORT_FUNCTION CatBoostGetModelParams_R(SEXP modelParam) {
     SEXP result = NULL;
     R_API_BEGIN();
     TFullModelHandle model = reinterpret_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
@@ -803,7 +808,7 @@ SEXP CatBoostGetModelParams_R(SEXP modelParam) {
 }
 
 
-SEXP CatBoostGetPlainParams_R(SEXP modelParam) {
+EXPORT_FUNCTION CatBoostGetPlainParams_R(SEXP modelParam) {
     SEXP result = NULL;
     R_API_BEGIN();
     TFullModelHandle model = reinterpret_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
@@ -813,7 +818,7 @@ SEXP CatBoostGetPlainParams_R(SEXP modelParam) {
     return result;
 }
 
-SEXP CatBoostCalcRegularFeatureEffect_R(SEXP modelParam, SEXP poolParam, SEXP fstrTypeParam, SEXP threadCountParam) {
+EXPORT_FUNCTION CatBoostCalcRegularFeatureEffect_R(SEXP modelParam, SEXP poolParam, SEXP fstrTypeParam, SEXP threadCountParam) {
     SEXP result = NULL;
     SEXP resultDim = NULL;
     R_API_BEGIN();
@@ -882,7 +887,7 @@ SEXP CatBoostCalcRegularFeatureEffect_R(SEXP modelParam, SEXP poolParam, SEXP fs
     return result;
 }
 
-SEXP CatBoostEvaluateObjectImportances_R(
+EXPORT_FUNCTION CatBoostEvaluateObjectImportances_R(
     SEXP modelParam,
     SEXP poolParam,
     SEXP trainPoolParam,
@@ -934,7 +939,7 @@ SEXP CatBoostEvaluateObjectImportances_R(
     return result;
 }
 
-SEXP CatBoostIsNullHandle_R(SEXP handleParam) {
+EXPORT_FUNCTION CatBoostIsNullHandle_R(SEXP handleParam) {
     return ScalarLogical(!R_ExternalPtrAddr(handleParam));
 }
 }

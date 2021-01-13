@@ -1,7 +1,10 @@
 R_MODULE(
     catboostr
 )
-EXPORTS_SCRIPT(catboostr.exports)
+
+IF (NOT OS_WINDOWS)
+    EXPORTS_SCRIPT(catboostr.exports)
+ENDIF()
 
 
 
