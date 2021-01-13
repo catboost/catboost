@@ -1302,7 +1302,6 @@ migrations:
     - yweb/antispam/webspam/collections/vw_model_applier/bin
     - yweb/antispam/webspam/export/tries/tools/upper_tries
     - yweb/antispam/ytgr/viewer
-    - yweb/antispam/zen/common
     - yweb/blender/find_similar_queries/processes_manager
     - yweb/blender/newsletter/unused_formulas
     - yweb/blender/scripts/blender_viewer/conveyor_experiments/utils
@@ -2151,7 +2150,6 @@ migrations:
     - alice/boltalka/generative/tfnn/infer
     - alice/boltalka/generative/training/data/nn/filtered_twitter
     - alice/cuttlefish/library/python/testing
-    - alice/hollywood/library/scenarios/general_conversation/it/runner
     - alice/hollywood/library/scenarios/music/it
     - alice/hollywood/library/scenarios/news/it
     - alice/hollywood/library/scenarios/tr_navi/handcrafted/it
@@ -2289,7 +2287,6 @@ migrations:
     - maps/automotive/tools/statistics_auto/pylib/import_metrics
     - maps/b2bgeo/apikeys_billing/preprocess_mapkit_logs
     - maps/b2bgeo/tools/load_testing/lib
-    - maps/b2bgeo/ya_courier/backend
     - maps/doc/proto/yandex/maps/proto/factory/tests
     - maps/factory/pylibs
     - maps/infopoint/statistics/lib
@@ -2369,7 +2366,6 @@ migrations:
     - modadvert/libs/supermoderation
     - modadvert/libs/utils/py3/auth
     - modadvert/libs/utils/text/ut
-    - modadvert/nirvana/automoderator_formatter/merger/cupid/libs
     - modadvert/nirvana/m1_update_media_objects/it
     - modadvert/nirvana/sm_api/add_verdicts/libs
     - modadvert/nirvana/sm_api/enrich_direct_banner/it
@@ -2746,7 +2742,6 @@ migrations:
     - mlp/mail/aspam/nirvana_operations/conveyor/build_prod_graph/outbound
     - mlp/mail/aspam/nirvana_operations/conveyor/calc_dsats
     - modadvert/libs/laas/workers/misprints/it
-    - modadvert/nirvana/automoderator_formatter/merger/lyncher/it
     - modadvert/nirvana/sm_api/add_total_verdict/it
     - modadvert/nirvana/sm_api/enrich_direct_banner/it
     - modadvert/nirvana/threats_mapping/ut
@@ -2806,7 +2801,6 @@ migrations:
     - voicetech/asr/core/lib/subword_ngram_lm/nirvana/fit_lambda
     - voicetech/asr/core/lib/subword_ngram_lm/nirvana/fit_vocabulary
     - voicetech/asr/tools/language_model/tests/test_linear_merge
-    - web/app_host/daemons/horizon/agent
     - yt/yt/tests/integration/tests
     - yweb/tellurium/tools/store_history_to_yt
     - yweb/tellurium/ui
@@ -2814,18 +2808,12 @@ migrations:
     ignore:
     - F811
     prefixes:
-    - alice/hollywood/library/scenarios/draw_picture/it
-    - alice/hollywood/library/scenarios/general_conversation/it/runner
-    - alice/hollywood/library/scenarios/music/it/generator
-    - alice/hollywood/library/scenarios/transform_face/it
-    - catboost/yandex_specific/tools/pool_ops/test
     - cv/imgclassifiers/danet/data_provider/ext/readers/ut/yt/run_test
     - cv/imgclassifiers/danet/data_provider/ext/readers/yt/ut/run_fast
     - cv/imgclassifiers/framework/nirvana/nirvana_dl/data/ut
     - cv/imgclassifiers/framework/nirvana/runners/yt_runner/ut
     - cv/short2long/nirvana/ut
     - cv/verticals/auto_ru/reconstruct_360/lib
-    - devtools/ya/test/tests/go
     - dict/lm/ngrams/tools/build_ngrams/test/with_yql
     - dict/lm/sources/tools/parse_logs/test
     - dict/mt/oilrig/docs/tools/dclassifier/tools/yt_doc_classifier/tests
@@ -2835,7 +2823,6 @@ migrations:
     - dict/ontodb/utils/cleanup/ut
     - dict/ontodb/utils/solomon
     - dict/tools/mktrie-yt/test
-    - education/lib/valhalla
     - entity/ontodb/robot/tools/send_main_delta_time_stats/lib/ut
     - entity/recommender/lib/python/common
     - entity/ugc/robot/tools/installed_apps_sites_activity_loader/tests
@@ -2855,7 +2842,6 @@ migrations:
     - mail/shiva/tests/lib
     - mail/shiva/tests/lib/steps
     - mapreduce/yt/library/blob/tools/file-yt/tests
-    - maps/b2bgeo/ya_courier/backend/tests
     - maps/infra/apiteka/client/fixture
     - maps/infra/ecstatic/integration_tests
     - maps/infra/quotateka/client/fixture
