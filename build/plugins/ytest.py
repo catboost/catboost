@@ -703,7 +703,6 @@ def onjava_test(unit, *args):
 
     test_data = get_norm_paths(unit, 'TEST_DATA_VALUE')
     test_data.append('arcadia/build/scripts/run_junit.py')
-    test_data.append('arcadia/build/scripts/run_testng.py')
     test_data.append('arcadia/build/scripts/unpacking_jtest_runner.py')
 
     data, data_files = get_canonical_test_resources(unit)
@@ -721,9 +720,7 @@ def onjava_test(unit, *args):
 
     test_cwd = unit.get('TEST_CWD_VALUE') or ''  # TODO: validate test_cwd value
 
-    if unit.get('MODULE_TYPE') == 'TESTNG':
-        script_rel_path = 'testng.test'
-    elif unit.get('MODULE_TYPE') == 'JUNIT5':
+    if unit.get('MODULE_TYPE') == 'JUNIT5':
         script_rel_path = 'junit5.test'
     else:
         script_rel_path = 'junit.test'
