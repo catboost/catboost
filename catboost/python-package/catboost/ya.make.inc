@@ -19,8 +19,9 @@ ADDINCL(
 PEERDIR(
     catboost/libs/cat_feature
     catboost/libs/data
-    catboost/libs/fstr
     catboost/libs/eval_result
+    catboost/libs/features_selection
+    catboost/libs/fstr
     catboost/libs/helpers
     catboost/libs/loggers
     catboost/libs/logging

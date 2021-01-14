@@ -61,6 +61,7 @@ class MetricVisualizer(DOMWidget):
         data = {}
         dirs = [{'name': name, 'path': path} for name, path in zip(self._names, self._train_dirs)]
 
+        all_completed = True
         for dir_info in dirs:
             path = dir_info.get('path')
             content = self._update_data_from_dir(path)
@@ -76,8 +77,10 @@ class MetricVisualizer(DOMWidget):
 
             passed_iterations = data[path]['content']['passed_iterations']
             total_iterations = data[path]['content']['total_iterations']
-            if passed_iterations + 1 >= total_iterations and total_iterations != 0:
-                self._need_to_stop.set()
+            all_completed &= (passed_iterations + 1 >= total_iterations and total_iterations != 0)
+
+        if all_completed:
+            self._need_to_stop.set()
 
         self.data = data
 

@@ -23,7 +23,6 @@ using namespace NCatboostOptions;
 namespace NCB {
     static void CheckOptions(
         const TCatBoostOptions& catBoostOptions,
-        const TPoolLoadParams& poolLoadParams,
         const TFeaturesSelectOptions& featuresSelectOptions,
         const TDataProviders& pools
     ) {
@@ -46,18 +45,16 @@ namespace NCB {
         const ui32 featureCount = pools.Learn->MetaInfo.GetFeatureCount();
         for (const ui32 feature : featuresForSelect) {
             CB_ENSURE(feature < featureCount, "Tested feature " << feature << " is not present; dataset contains only " << featureCount << " features");
-            CB_ENSURE(Count(poolLoadParams.IgnoredFeatures, feature) == 0, "Tested feature " << feature << " should not be ignored");
+            CB_ENSURE(
+                !pools.Learn->MetaInfo.FeaturesLayout->GetExternalFeatureMetaInfo(feature).IsIgnored,
+                "Tested feature " << feature << " should not be ignored"
+            );
         }
-        const auto nFeaturesToEliminate = (int)featuresSelectOptions.FeaturesForSelect->size() - featuresSelectOptions.NumberOfFeaturesToSelect;
-        CB_ENSURE(
-            featuresSelectOptions.Steps <= nFeaturesToEliminate,
-            "Features selection steps should not be greater than number of features to eliminate."
-        );
     }
 
 
     static TTrainingDataProviders QuantizePools(
-        const TPoolLoadParams& poolLoadParams,
+        const TPoolLoadParams* poolLoadParams,
         const TOutputFilesOptions& outputFileOptions,
         const TDataProviders& pools,
         TCatBoostOptions* catBoostOptions,
@@ -78,9 +75,9 @@ namespace NCB {
             catBoostOptions->DataProcessingOptions->EmbeddingProcessingOptions.Get(),
             /*allowNansInTestOnly*/true
         );
-        if (poolLoadParams.BordersFile) {
+        if (poolLoadParams && poolLoadParams->BordersFile) {
             LoadBordersAndNanModesFromFromFileInMatrixnetFormat(
-                poolLoadParams.BordersFile,
+                poolLoadParams->BordersFile,
                 quantizedFeaturesInfo.Get());
         }
 
@@ -100,7 +97,7 @@ namespace NCB {
             NCB::NPrivate::CreateTrainDirWithTmpDirIfNotExist(outputFileOptions.GetTrainDir(), &tmpDir);
         }
 
-        const bool haveLearnFeaturesInMemory = HaveLearnFeaturesInMemory(&poolLoadParams, *catBoostOptions);
+        const bool haveLearnFeaturesInMemory = HaveLearnFeaturesInMemory(poolLoadParams, *catBoostOptions);
 
         TTrainingDataProviders trainingData = GetTrainingData(
             pools,
@@ -120,18 +117,19 @@ namespace NCB {
     }
 
 
-
     TFeaturesSelectionSummary SelectFeatures(
         TCatBoostOptions catBoostOptions,
         TOutputFilesOptions outputFileOptions,
-        const TPoolLoadParams& poolLoadParams,
+        const TPoolLoadParams* poolLoadParams,
         const TFeaturesSelectOptions& featuresSelectOptions,
         const TDataProviders& pools,
+        TFullModel* dstModel,
         NPar::ILocalExecutor* executor
     ) {
+        TSetLogging inThisScope(catBoostOptions.LoggingLevel);
+
         CheckOptions(
             catBoostOptions,
-            poolLoadParams,
             featuresSelectOptions,
             pools
         );
@@ -152,14 +150,14 @@ namespace NCB {
             executor
         );
 
-        const bool haveLearnFeaturesInMemory = HaveLearnFeaturesInMemory(&poolLoadParams, catBoostOptions);
+        const bool haveLearnFeaturesInMemory = HaveLearnFeaturesInMemory(poolLoadParams, catBoostOptions);
         // TODO(ilyzhin) support distributed training with quantized pool
         CB_ENSURE(haveLearnFeaturesInMemory, "Features selection doesn't support distributed training with quantized pool yet.");
         if (catBoostOptions.SystemOptions->IsMaster()) {
             InitializeMaster(catBoostOptions.SystemOptions);
             if (!haveLearnFeaturesInMemory) {
                 SetTrainDataFromQuantizedPool(
-                    poolLoadParams,
+                    *poolLoadParams,
                     catBoostOptions,
                     *trainingData.Learn->ObjectsGrouping,
                     *trainingData.Learn->MetaInfo.FeaturesLayout,
@@ -192,13 +190,58 @@ namespace NCB {
             pools,
             labelConverter,
             trainingData,
+            dstModel,
             executor
         );
+
+        const auto featuresNames = pools.Learn->MetaInfo.FeaturesLayout->GetExternalFeatureIds();
+        for (auto featureIdx : summary.SelectedFeatures) {
+            summary.SelectedFeaturesNames.push_back(featuresNames[featureIdx]);
+        }
+        for (auto featureIdx : summary.EliminatedFeatures) {
+            summary.EliminatedFeaturesNames.push_back(featuresNames[featureIdx]);
+        }
 
         if (catBoostOptions.SystemOptions->IsMaster()) {
             FinalizeMaster(catBoostOptions.SystemOptions);
         }
 
         return summary;
+    }
+
+
+    NJson::TJsonValue SelectFeatures(
+        const NJson::TJsonValue& plainJsonParams,
+        const TDataProviders& pools,
+        TFullModel* dstModel
+    ) {
+        NJson::TJsonValue catBoostJsonOptions;
+        NJson::TJsonValue outputOptionsJson;
+        NJson::TJsonValue featuresSelectJsonOptions;
+        PlainJsonToOptions(plainJsonParams, &catBoostJsonOptions, &outputOptionsJson, &featuresSelectJsonOptions);
+        ConvertFeaturesForSelectFromStringToIndices(pools.Learn.Get()->MetaInfo, &featuresSelectJsonOptions);
+
+        const auto taskType = GetTaskType(catBoostJsonOptions);
+        TCatBoostOptions catBoostOptions(taskType);
+        catBoostOptions.Load(catBoostJsonOptions);
+        TOutputFilesOptions outputFileOptions;
+        outputFileOptions.Load(outputOptionsJson);
+        TFeaturesSelectOptions featuresSelectOptions;
+        featuresSelectOptions.Load(featuresSelectJsonOptions);
+        featuresSelectOptions.CheckAndUpdateSteps();
+
+        NPar::TLocalExecutor executor;
+        executor.RunAdditionalThreads(catBoostOptions.SystemOptions->NumThreads - 1);
+
+        const auto summary = SelectFeatures(
+            catBoostOptions,
+            outputFileOptions,
+            /*poolLoadParams*/ nullptr,
+            featuresSelectOptions,
+            pools,
+            dstModel,
+            &executor
+        );
+        return ToJson(summary);
     }
 }

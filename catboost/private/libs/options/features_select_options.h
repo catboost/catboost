@@ -27,5 +27,7 @@ namespace NCatboostOptions {
         TOption<TString> ResultPath;
         TOption<NCB::EFeaturesSelectionAlgorithm> Algorithm;
         TOption<ECalcTypeShapValues> ShapCalcType;
+
+        void CheckAndUpdateSteps();
     };
 }

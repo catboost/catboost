@@ -169,6 +169,24 @@ class EFstrType(Enum):
     ShapInteractionValues = 6
 
 
+class EShapCalcType(Enum):
+    """Calculate regular SHAP values"""
+    Regular = "Regular"
+    """Calculate approximate SHAP values"""
+    Approximate = "Approximate"
+    """Calculate exact SHAP values"""
+    Exact = "Exact"
+
+
+class EFeaturesSelectionAlgorithm(Enum):
+    """Use prediction values change as feature strength, eliminate batch of features at once"""
+    RecursiveByPredictionValuesChange = "RecursiveByPredictionValuesChange"
+    """Use loss function change as feature strength, eliminate batch of features at each step"""
+    RecursiveByLossFunctionChange = "RecursiveByLossFunctionChange"
+    """Use shap values to estimate loss function change, eliminate features one by one"""
+    RecursiveByShapValues = "RecursiveByShapValues"
+
+
 def _get_features_indices(features, feature_names):
     """
         Parameters
@@ -260,6 +278,110 @@ def _update_params_quantize_part(params, ignored_features, per_float_feature_qua
         })
 
     return params
+
+
+def plot_features_selection_loss_graph(summary):
+    warn_msg = "To draw plots you should install plotly."
+    try:
+        import plotly.graph_objs as go
+    except ImportError as e:
+        warnings.warn(warn_msg)
+        raise ImportError(str(e))
+
+    eliminated_features = summary['eliminated_features']
+    eliminated_features_names = summary['eliminated_features_names']
+    names_present = any(eliminated_features_names)
+    names_or_indices = eliminated_features_names if names_present else list(map(str, eliminated_features))
+    loss_values = summary['loss_graph']['loss_values']
+    removed_features_cnt = summary['loss_graph']['removed_features_count']
+    main_indices = summary['loss_graph']['main_indices']
+
+    fig = go.Figure()
+    color = 'rgb(51,160,44)'
+    # line with all points
+    fig.add_trace(go.Scatter(
+        x=removed_features_cnt,
+        y=loss_values,
+        line=go.scatter.Line(color=color),
+        mode='lines+markers',
+        text=[''] + names_or_indices,
+        name=''
+    ))
+    # red markers for main points
+    fig.add_trace(go.Scatter(
+        x=[removed_features_cnt[idx] for idx in main_indices],
+        y=[loss_values[idx] for idx in main_indices],
+        mode='markers',
+        marker=go.scatter.Marker(size=10, symbol='square'),
+        text=[names_or_indices[idx - 1] if idx > 0 else '' for idx in main_indices],
+        name=''
+    ))
+    # labels with features indices
+    fig.add_trace(go.Scatter(
+        x=removed_features_cnt,
+        y=loss_values,
+        mode='text',
+        text=[''] + list(map(str, eliminated_features)),
+        textposition='bottom center',
+        textfont=dict(family='sans serif', size=18, color=color),
+        name='',
+        visible=False
+    ))
+    if names_present:
+        # labels with features names
+        fig.add_trace(go.Scatter(
+            x=removed_features_cnt,
+            y=loss_values,
+            mode='text',
+            text=[''] + eliminated_features_names,
+            textfont=dict(family='sans serif', size=18, color=color),
+            textposition='bottom center',
+            name='',
+            visible=False
+        ))
+    axis_options = dict(
+        gridcolor='rgb(255,255,255)', showgrid=True, showline=False,
+        showticklabels=True, tickcolor='rgb(127,127,127)', ticks='outside', zeroline=False
+    )
+    fig['layout']['xaxis1'].update(title='number of removed features', **axis_options)
+    fig['layout']['yaxis1'].update(title='loss value', **axis_options)
+
+    buttons = []
+    buttons.append(dict(
+        label='Hide features',
+        method='update',
+        args=[{"visible": [True, True, False, False]}]
+    ))
+    buttons.append(dict(
+        label='Show indices',
+        method='update',
+        args=[{"visible": [True, True, True, False]}]
+    ))
+    if names_present:
+        buttons.append(dict(
+            label='Show names',
+            method='update',
+            args=[{"visible": [True, True, False, True]}]
+        ))
+
+    fig.update_layout(
+        updatemenus=[dict(
+            active=0,
+            buttons=buttons,
+            pad={"r": 10, "t": 10},
+            showactive=True,
+            x=-0.25,
+            xanchor="left",
+            y=1.03,
+            yanchor="top"
+        )]
+    )
+
+    fig.update_layout(
+        showlegend=False
+    )
+
+    return fig
 
 
 class Pool(_PoolBase):
@@ -1662,10 +1784,12 @@ class CatBoost(_CatBoostBase):
         """
         super(CatBoost, self).__init__(params)
 
-    def _prepare_train_params(self, X, y, cat_features, text_features, embedding_features, pairs, sample_weight, group_id, group_weight,
-                              subgroup_id, pairs_weight, baseline, use_best_model, eval_set, verbose, logging_level,
-                              plot, column_description, verbose_eval, metric_period, silent, early_stopping_rounds,
-                              save_snapshot, snapshot_file, snapshot_interval, init_model):
+    def _prepare_train_params(self, X=None, y=None, cat_features=None, text_features=None, embedding_features=None,
+                              pairs=None, sample_weight=None, group_id=None, group_weight=None, subgroup_id=None,
+                              pairs_weight=None, baseline=None, use_best_model=None, eval_set=None, verbose=None,
+                              logging_level=None, plot=None, column_description=None, verbose_eval=None,
+                              metric_period=None, silent=None, early_stopping_rounds=None, save_snapshot=None,
+                              snapshot_file=None, snapshot_interval=None, init_model=None):
         params = deepcopy(self._init_params)
         if params is None:
             params = {}
@@ -1792,11 +1916,13 @@ class CatBoost(_CatBoostBase):
             raise CatBoostError("y may be None only when X is an instance of catboost.Pool or string")
 
         train_params = self._prepare_train_params(
-            X, y, cat_features, text_features, embedding_features, pairs, sample_weight, group_id,
-            group_weight, subgroup_id, pairs_weight, baseline,
-            use_best_model, eval_set, verbose, logging_level, plot,
-            column_description, verbose_eval, metric_period, silent, early_stopping_rounds,
-            save_snapshot, snapshot_file, snapshot_interval, init_model
+            X=X, y=y, cat_features=cat_features, text_features=text_features, embedding_features=embedding_features,
+            pairs=pairs, sample_weight=sample_weight, group_id=group_id, group_weight=group_weight,
+            subgroup_id=subgroup_id, pairs_weight=pairs_weight, baseline=baseline, use_best_model=use_best_model,
+            eval_set=eval_set, verbose=verbose, logging_level=logging_level, plot=plot,
+            column_description=column_description, verbose_eval=verbose_eval, metric_period=metric_period,
+            silent=silent, early_stopping_rounds=early_stopping_rounds, save_snapshot=save_snapshot,
+            snapshot_file=snapshot_file, snapshot_interval=snapshot_interval, init_model=init_model
         )
         params = train_params["params"]
         train_pool = train_params["train_pool"]
@@ -2470,7 +2596,7 @@ class CatBoost(_CatBoostBase):
                     Use direct SHAP Values calculation calculation with complexity O(NTLD^2). Direct algorithm
                     is faster when N < L (algorithm from https://arxiv.org/abs/1802.03888)
 
-        shap_calc_type : string, optional (default="Regular")
+        shap_calc_type : EShapCalcType or string, optional (default="Regular")
             used only for ShapValues type
             Possible values:
                 - "Regular"
@@ -2549,6 +2675,7 @@ class CatBoost(_CatBoostBase):
                 raise CatBoostError("data is empty.")
 
         with log_fixup():
+            shap_calc_type = enum_from_enum_or_str(EShapCalcType, shap_calc_type).value
             fstr, feature_names = self._calc_fstr(type, data, reference_data, thread_count, verbose, model_output, shap_mode, interaction_indices,
                                                   shap_calc_type)
         if type in (EFstrType.PredictionValuesChange, EFstrType.LossFunctionChange, EFstrType.PredictionDiff):
@@ -3386,10 +3513,7 @@ class CatBoost(_CatBoostBase):
         if not isinstance(param_grid, (Mapping, Iterable)):
             raise TypeError('Parameter grid is not a dict or a list ({!r})'.format(param_grid))
 
-        train_params = self._prepare_train_params(
-            X, y, None, None, None, None, None, None, None, None, None, None, None, None, None,
-            None, None, None, None, None, True, None, None, None, None, None
-        )
+        train_params = self._prepare_train_params(X=X, y=y)
         params = train_params["params"]
 
         custom_folds = None
@@ -3616,6 +3740,145 @@ class CatBoost(_CatBoostBase):
             search_by_train_test_split=search_by_train_test_split, refit=refit, shuffle=shuffle,
             stratified=stratified, train_size=train_size, verbose=verbose, plot=plot
         )
+
+    def select_features(self, X, y=None, eval_set=None, features_for_select=None, num_features_to_select=None,
+                        algorithm=None, steps=None, shap_calc_type=None, train_final_model=True, verbose=None,
+                        logging_level=None, plot=False):
+        """
+        Select best features from pool according to loss value.
+
+        Parameters
+        ----------
+        X : catboost.Pool or list or numpy.ndarray or pandas.DataFrame or pandas.Series
+            If not catboost.Pool, 2 dimensional Feature matrix or string - file with dataset.
+
+        y : list or numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
+            Labels, 1 dimensional array like.
+            Use only if X is not catboost.Pool.
+
+        eval_set : catboost.Pool or tuple (X, y) or list [(X, y)], optional (default=None)
+            Dataset for evaluation.
+
+        features_for_select : str or list of feature indices, names or ranges
+            Which features should participate in the selection.
+            Format examples:
+                - [0, 2, 3, 4, 17]
+                - [0, "2-4", 17] (both ends in ranges are inclusive)
+                - "0,2-4,20"
+                - ["Name0", "Name2", "Name3", "Name4", "Name20"]
+
+        num_features_to_select : positive int
+            How many features to select from features_for_select.
+
+        algorithm : EFeaturesSelectionAlgorithm or string, optional (default=RecursiveByShapValues)
+            Which algorithm to use for features selection.
+            Possible values:
+                - RecursiveByPredictionValuesChange
+                    Use prediction values change as feature strength, eliminate batch of features at once.
+                - RecursiveByLossFunctionChange
+                    Use loss function change as feature strength, eliminate batch of features at each step.
+                - RecursiveByShapValues
+                    Use shap values to estimate loss function change, eliminate features one by one.
+
+        steps : positive int, optional (default=1)
+            How many steps should be performed. In other words, how many times a full model will be trained.
+            More steps give more accurate results.
+
+        shap_calc_type : EShapCalcType or string, optional (default=Regular)
+            Which method to use for calculation of shap values.
+            Possible values:
+                - Regular
+                    Calculate regular SHAP values
+                - Approximate
+                    Calculate approximate SHAP values
+                - Exact
+                    Calculate exact SHAP values
+
+        train_final_model : bool, optional (default=True)
+            Need to fit model with selected features.
+
+        verbose : bool or int
+            If verbose is bool, then if set to True, logging_level is set to Verbose,
+            if set to False, logging_level is set to Silent.
+            If verbose is int, it determines the frequency of writing metrics to output and
+            logging_level is set to Verbose.
+
+        logging_level : string, optional (default=None)
+            Possible values:
+                - 'Silent'
+                - 'Verbose'
+                - 'Info'
+                - 'Debug'
+
+        plot : bool, optional (default=False)
+            If True, draw train and eval error in Jupyter notebook.
+
+        Returns
+        -------
+        dict with fields:
+            'selected_features': list of selected features indices
+            'eliminated_features': list of eliminated features indices
+        """
+        if train_final_model and self.is_fitted():
+            raise CatBoostError("Model was already fitted. Set train_final_model to False or use not fitted model.")
+        if X is None:
+            raise CatBoostError("X must not be None")
+        if y is None and not isinstance(X, STRING_TYPES + (Pool,)):
+            raise CatBoostError("y may be None only when X is an instance of catboost.Pool or string")
+        if isinstance(features_for_select, Iterable) and not isinstance(features_for_select, STRING_TYPES):
+            features_for_select = ",".join(map(str, features_for_select))
+        if features_for_select is None:
+            raise CatBoostError("You should specify features_for_select")
+        if num_features_to_select is None:
+            raise CatBoostError("You should specify num_features_to_select")
+
+        train_params = self._prepare_train_params(X=X, y=y, eval_set=eval_set, verbose=verbose, logging_level=logging_level)
+        params = train_params["params"]
+        objective = params.get("loss_function")
+        is_custom_objective = objective is not None and not isinstance(objective, string_types)
+        if is_custom_objective:
+            raise CatBoostError("Custom objective is not supported for features selection")
+        params["features_for_select"] = features_for_select
+        params["num_features_to_select"] = num_features_to_select
+        if algorithm is not None:
+            params["features_selection_algorithm"] = enum_from_enum_or_str(EFeaturesSelectionAlgorithm, algorithm).value
+        if steps is not None:
+            params["features_selection_steps"] = steps
+        if shap_calc_type is not None:
+            params["shap_calc_type"] = enum_from_enum_or_str(EShapCalcType, shap_calc_type).value
+        if train_final_model:
+            params["train_final_model"] = True
+
+        train_pool = train_params["train_pool"]
+        test_pool = None
+        if len(train_params["eval_sets"]) > 1:
+            raise CatBoostError("Multiple eval sets are not supported for features selection")
+        elif len(train_params["eval_sets"]) == 1:
+            test_pool = train_params["eval_sets"][0]
+
+        create_if_not_exist = lambda path: os.mkdir(path) if not os.path.exists(path) else None
+        train_dir = _get_train_dir(self.get_params())
+        create_if_not_exist(train_dir)
+        plot_dirs = []
+        for step in range(steps or 1):
+            plot_dirs.append(os.path.join(train_dir, 'model-{}'.format(step)))
+        if train_final_model:
+            plot_dirs.append(os.path.join(train_dir, 'model-final'))
+        for plot_dir in plot_dirs:
+            create_if_not_exist(plot_dir)
+
+        with log_fixup(), plot_wrapper(plot, plot_dirs):
+            summary = self._object._select_features(train_pool, test_pool, params)
+
+        if train_final_model:
+            self._set_trained_model_attributes()
+
+        if plot:
+            fig = plot_features_selection_loss_graph(summary)
+            fig.show()
+
+        summary.pop('loss_graph')  # required only for graph plotting
+        return summary
 
     def _convert_to_asymmetric_representation(self):
         self._object._convert_oblivious_to_asymmetric()

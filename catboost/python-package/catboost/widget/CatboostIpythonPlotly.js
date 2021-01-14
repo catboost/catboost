@@ -586,10 +586,10 @@ CatboostIpython.prototype.addPoints = function(parent, data) {
                                     self.hovertextParameters[pointIndex] += '<br>' + parameter + ' : ' + valueOfParameter;
                                 }
                             }
-                        }
-                        if (!hovertextParametersAdded && type === 'test') {
-                            hovertextParametersAdded = true;
-                            trace.hovertext[pointIndex] += self.hovertextParameters[pointIndex];
+                            if (!hovertextParametersAdded && type === 'test') {
+                                hovertextParametersAdded = true;
+                                trace.hovertext[pointIndex] += self.hovertextParameters[pointIndex];
+                            }
                         }
                         smoothedTrace.x[pointIndex] = pointIndex;
                     }
@@ -899,12 +899,14 @@ CatboostIpython.prototype.groupTraces = function() {
 };
 
 CatboostIpython.prototype.drawTraces = function() {
-    if ($('.catboost-panel__series .catboost-panel__serie', this.layout).length) {
-        return;
-    }
-
     var html = '',
         tracesHash = this.groupTraces();
+
+    var curLength = $('.catboost-panel__series .catboost-panel__serie', this.layout).length;
+    var newLength = Object.keys(tracesHash).filter(hasOwnProperty.bind(tracesHash)).length;
+    if (newLength === curLength) {
+        return;
+    }
 
     for (var train in tracesHash) {
         if (tracesHash.hasOwnProperty(train)) {

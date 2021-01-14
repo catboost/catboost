@@ -13,9 +13,16 @@ namespace NCB {
     TFeaturesSelectionSummary SelectFeatures(
         NCatboostOptions::TCatBoostOptions catBoostOptions,
         NCatboostOptions::TOutputFilesOptions outputFileOptions,
-        const NCatboostOptions::TPoolLoadParams& poolLoadParams,
+        const NCatboostOptions::TPoolLoadParams* poolLoadParams, // can be nullptr
         const NCatboostOptions::TFeaturesSelectOptions& featuresSelectOptions,
         const TDataProviders& pools,
+        TFullModel* dstModel, // can be nullptr
         NPar::ILocalExecutor* executor
+    );
+
+    NJson::TJsonValue SelectFeatures(
+        const NJson::TJsonValue& plainJsonParams,
+        const TDataProviders& pools,
+        TFullModel* dstModel
     );
 }

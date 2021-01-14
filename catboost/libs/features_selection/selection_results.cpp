@@ -25,7 +25,9 @@ namespace NCB {
     TJsonValue ToJson(const TFeaturesSelectionSummary& summary) {
         TJsonValue summaryJson(JSON_MAP);
         summaryJson["selected_features"] = ToJsonArray(summary.SelectedFeatures);
+        summaryJson["selected_features_names"] = ToJsonArray(summary.SelectedFeaturesNames);
         summaryJson["eliminated_features"] = ToJsonArray(summary.EliminatedFeatures);
+        summaryJson["eliminated_features_names"] = ToJsonArray(summary.EliminatedFeaturesNames);
         summaryJson["loss_graph"] = ToJson(summary.LossGraph);
         return summaryJson;
     }

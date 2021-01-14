@@ -1,5 +1,6 @@
 #include "features_select_options.h"
 
+#include <catboost/libs/logging/logging.h>
 #include <catboost/private/libs/options/json_helper.h>
 
 
@@ -39,3 +40,14 @@ bool NCatboostOptions::TFeaturesSelectOptions::operator==(const TFeaturesSelectO
 bool NCatboostOptions::TFeaturesSelectOptions::operator!=(const TFeaturesSelectOptions& rhs) const {
     return !(rhs == *this);
 }
+
+void NCatboostOptions::TFeaturesSelectOptions::CheckAndUpdateSteps() {
+    const auto nFeaturesToEliminate = (int)FeaturesForSelect->size() - NumberOfFeaturesToSelect;
+    if (Steps > nFeaturesToEliminate) {
+        CATBOOST_WARNING_LOG << "The number of features selection steps (" << Steps << ") is greater than "
+                             << "the number of features to eliminate (" << nFeaturesToEliminate << "). "
+                             << "The number of steps was reduced to " << nFeaturesToEliminate << "." << Endl;
+        Steps = nFeaturesToEliminate;
+    }
+}
+
