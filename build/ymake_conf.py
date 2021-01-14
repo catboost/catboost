@@ -1789,6 +1789,9 @@ class LD(Linker):
             if not preset('NO_DEBUGINFO'):
                 self.dwarf_command = '$DWARF_TOOL $TARGET -o ${output;pre=$MODULE_PREFIX$REALPRJNAME.dSYM/Contents/Resources/DWARF/$MODULE_PREFIX:REALPRJNAME}'
 
+        if self.target.is_ios and preset('MAPSMOBI_BUILD_TARGET') and self.target.is_arm:
+            self.ld_flags.extend(('-fembed-bitcode', '-Wl,-bitcode_verify'))
+
         if self.build.profiler_type == Profiler.GProf:
             self.ld_flags.append('-pg')
 
