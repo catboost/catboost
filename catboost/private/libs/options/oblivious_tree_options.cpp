@@ -34,6 +34,7 @@ NCatboostOptions::TObliviousTreeLearnerOptions::TObliviousTreeLearnerOptions(ETa
       , MonotoneConstraints("monotone_constraints", {}, taskType)
       , DevLeafwiseApproxes("dev_leafwise_approxes", false, taskType)
       , FeaturePenalties("penalties", TFeaturePenaltiesOptions(), taskType)
+      , TaskType("task_type", taskType)
 {
     SamplingFrequency.ChangeLoadUnimplementedPolicy(ELoadUnimplementedPolicy::ExceptionOnChange);
 
@@ -131,4 +132,8 @@ void NCatboostOptions::TObliviousTreeLearnerOptions::Validate() const {
     CB_ENSURE(LeavesEstimationIterations.Get() > 0, "Leaves estimation iterations should be positive");
     CB_ENSURE(L2Reg.Get() >= 0, "L2LeafRegularizer should be >= 0, current value: " << L2Reg.Get());
     CB_ENSURE(PairwiseNonDiagReg.Get() >= 0, "PairwiseNonDiagReg should be >= 0, current value: " << PairwiseNonDiagReg.Get());
+    CB_ENSURE(
+        TaskType.Get() == ETaskType::GPU || EqualToOneOf(ScoreFunction, EScoreFunction::Cosine, EScoreFunction::L2),
+        "Only Cosine and L2 score functions are supported for CPU."
+    );
 }
