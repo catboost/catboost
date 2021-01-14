@@ -29,6 +29,11 @@ namespace NCatboostCuda {
                                                TVec* der,
                                                ui32 stream = 0) const = 0;
 
+        virtual void ComputeExactValue(const TConstVec& approx,
+                                       TVec* value,
+                                       TVec* weights,
+                                       ui32 stream = 0) const = 0;
+
         //        virtual ui32 HessianBlockCount() const = 0;
         //        virtual ui32 HessianBlockSize() const = 0;
 
@@ -85,6 +90,22 @@ namespace NCatboostCuda {
                                 0,
                                 der2,
                                 stream);
+        }
+
+        void ComputeExactValue(const TConstVec& approx,
+                               TVec* value,
+                               TVec* weights,
+                               ui32 stream = 0) const final {
+            auto targetScratch = TStripeBuffer<float>::CopyMapping(Target);
+            FillBuffer(targetScratch, 0.0f, stream);
+            AddVector(targetScratch, Target, stream);
+
+            FillBuffer(*value, 0.0f, stream);
+            SubtractVector(targetScratch, approx, stream);
+            AddVector(*value, targetScratch, stream);
+
+            FillBuffer(*weights, 0.0f, stream);
+            AddVector(*weights, Weights, stream);
         }
 
         void ComputeValueAndDerivative(const TVec& point,
@@ -158,6 +179,18 @@ namespace NCatboostCuda {
                                               0, /* der2 row */
                                               der2,
                                               stream);
+        }
+
+        void ComputeExactValue(const TConstVec& approx,
+                               TVec* value,
+                               TVec* weights,
+                               ui32 stream = 0) const final {
+            Y_UNUSED(approx);
+            Y_UNUSED(value);
+            Y_UNUSED(weights);
+            Y_UNUSED(stream);
+
+            CB_ENSURE(false, "Exact leaves estimation method on GPU is not supported for non-pointwise target");
         }
 
         void ComputeValueAndDerivative(const TVec& point,

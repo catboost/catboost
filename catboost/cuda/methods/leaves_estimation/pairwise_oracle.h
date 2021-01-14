@@ -101,6 +101,10 @@ namespace NCatboostCuda {
                                std::move(pointLeafIndices)));
         }
 
+        TVector<float> EstimateExact() {
+            CB_ENSURE(false, "Exact leaves estimation method on GPU is not supported for pairwise oracle");
+        }
+
     private:
         TOracle(const TPairwiseTarget& target,
                 TStripeBuffer<const float>&& baseline,

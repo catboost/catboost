@@ -25,6 +25,7 @@ namespace NCatboostCuda {
                                   bool makeZeroAverage = false)
             : FeaturesManager(featuresManager)
             , TreeConfig(config.ObliviousTreeOptions)
+            , LossDescription(config.LossFunctionDescription.Get())
             , Seed(config.RandomSeed)
             , MakeZeroAverage(makeZeroAverage)
         {
@@ -52,7 +53,7 @@ namespace NCatboostCuda {
         TObliviousTreeLeavesEstimator CreateEstimator() {
             CB_ENSURE(NeedEstimation());
             return TObliviousTreeLeavesEstimator(FeaturesManager,
-                                                 CreateLeavesEstimationConfig(TreeConfig, MakeZeroAverage));
+                                                 CreateLeavesEstimationConfig(TreeConfig, MakeZeroAverage, LossDescription));
         }
 
         template <class TDataSet>
@@ -63,6 +64,7 @@ namespace NCatboostCuda {
     private:
         const TBinarizedFeaturesManager& FeaturesManager;
         const NCatboostOptions::TObliviousTreeLearnerOptions& TreeConfig;
+        const NCatboostOptions::TLossDescription& LossDescription;
         THolder<TBootstrap<NCudaLib::TStripeMapping>> Bootstrap;
         ui64 Seed;
         bool MakeZeroAverage = false;

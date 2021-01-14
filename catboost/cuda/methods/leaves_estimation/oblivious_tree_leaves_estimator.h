@@ -42,6 +42,18 @@ namespace NCatboostCuda {
                      TCudaBuffer<double, NCudaLib::TStripeMapping>* der,
                      TCudaBuffer<double, NCudaLib::TStripeMapping>* der2,
                      ui32 stream = 0);
+
+        void ComputeExact(TVector<ui32>& bins,
+                          TVector<float>& leavesValues,
+                          TVector<float>& leavesWeights,
+                          ui32 stream = 0) {
+            Bins.Read(bins);
+            auto value = TStripeBuffer<float>::CopyMapping(Bins);
+            auto weights = TStripeBuffer<float>::CopyMapping(Bins);
+            DerCalcer->ComputeExactValue(Baseline, &value, &weights, stream);
+            value.Read(leavesValues);
+            weights.Read(leavesWeights);
+        }
     };
 
     /*
@@ -79,6 +91,8 @@ namespace NCatboostCuda {
         void ComputePartWeights();
 
         TEstimationTaskHelper& NextTask(TObliviousTreeModel& model);
+
+        TVector<float> EstimateExact() final;
 
     public:
         TObliviousTreeLeavesEstimator(const TBinarizedFeaturesManager& featuresManager,

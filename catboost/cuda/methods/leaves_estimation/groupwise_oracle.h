@@ -73,6 +73,10 @@ namespace NCatboostCuda {
                                   pairDer2Stats);
         }
 
+        TVector<float> EstimateExact() {
+            CB_ENSURE(false, "Exact leaves estimation method on GPU is not supported for groupwise oracle");
+        }
+
         static THolder<ILeavesEstimationOracle> Create(const TGroupwiseTarget& target,
                                                        TStripeBuffer<const float>&& baseline,
                                                        TStripeBuffer<const ui32>&& bins,

@@ -2,6 +2,7 @@
 #include <catboost/cuda/models/add_bin_values.h>
 #include <catboost/cuda/cuda_util/partitions_reduce.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer_helpers/all_reduce.h>
+#include <catboost/libs/metrics/optimal_const_for_loss.h>
 
 namespace NCatboostCuda {
     void TBinOptimizedOracle::WriteWeights(TVector<double>* dst) {
@@ -117,7 +118,8 @@ namespace NCatboostCuda {
             CB_ENSURE(DerAtPoint.Defined(), "Error: write der first");
         }
 
-        if (LeavesEstimationConfig.UseNewton) {
+        CB_ENSURE(LeavesEstimationConfig.LeavesEstimationMethod != ELeavesEstimation::Exact);
+        if (LeavesEstimationConfig.LeavesEstimationMethod == ELeavesEstimation::Newton) {
             if (Der2AtPoint) {
                 (*secondDer) = *Der2AtPoint;
             } else {
@@ -187,6 +189,39 @@ namespace NCatboostCuda {
                 }
             }
         }
+    }
+
+    TVector<float> TBinOptimizedOracle::EstimateExact() {
+        auto valuesBuffer = TStripeBuffer<float>::CopyMapping(Bins);
+        auto weightsBuffer = TStripeBuffer<float>::CopyMapping(Bins);
+        DerCalcer->ComputeExactValue(Cursor, &valuesBuffer, &weightsBuffer);
+
+        TVector<float> values;
+        TVector<float> weights;
+        valuesBuffer.Read(values);
+        weightsBuffer.Read(weights);
+
+        ui32 numberOfLeaves = BinCount * SingleBinDim();
+        TVector<TVector<float>> leavesValues(numberOfLeaves);
+        TVector<TVector<float>> leavesWeights(numberOfLeaves);
+
+        TVector<ui32> bins;
+        Bins.Read(bins);
+        for (size_t index = 0; index < bins.size(); ++index) {
+            leavesValues[bins[index]].push_back(values[index]);
+            leavesWeights[bins[index]].push_back(weights[index]);
+        }
+
+        TVector<float> point(numberOfLeaves);
+        CB_ENSURE(leavesValues.size() == leavesWeights.size());
+        for (ui32 leafNum = 0; leafNum < numberOfLeaves; ++leafNum) {
+            point[leafNum] = *NCB::CalcOneDimensionalOptimumConstApprox(LeavesEstimationConfig.LossDescription,
+                                                                        leavesValues[leafNum],
+                                                                        leavesWeights[leafNum]);
+        }
+
+        MoveTo(point);
+        return MakeEstimationResult(point);
     }
 
     TBinOptimizedOracle::TBinOptimizedOracle(const TLeavesEstimationConfig& leavesEstimationConfig,

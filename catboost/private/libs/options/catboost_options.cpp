@@ -240,12 +240,12 @@ void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
     if (lossFunctionConfig.GetLossFunction() == ELossFunction::UserQuerywiseMetric) {
         treeConfig.PairwiseNonDiagReg.SetDefault(0);
     }
+    const bool useExact = EqualToOneOf(lossFunctionConfig.GetLossFunction(), ELossFunction::MAE, ELossFunction::MAPE, ELossFunction::Quantile)
+            && SystemOptions->IsSingleHost()
+            && TaskType == ETaskType::CPU
+            && !BoostingOptions->ApproxOnFullHistory
+            && treeConfig.MonotoneConstraints.Get().empty();
 
-    const bool useExact = TaskType == ETaskType::CPU
-        && EqualToOneOf(lossFunctionConfig.GetLossFunction(), ELossFunction::MAE, ELossFunction::MAPE, ELossFunction::Quantile)
-        && SystemOptions->IsSingleHost()
-        && !BoostingOptions->ApproxOnFullHistory
-        && treeConfig.MonotoneConstraints.Get().empty();
     if (useExact) {
         defaultEstimationMethod = ELeavesEstimation::Exact;
         defaultNewtonIterations = 1;
@@ -297,8 +297,7 @@ void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
         auto loss = lossFunctionConfig.GetLossFunction();
         CB_ENSURE(EqualToOneOf(loss, ELossFunction::Quantile, ELossFunction::MAE, ELossFunction::MAPE),
             "Exact method is only available for Quantile, MAE and MAPE loss functions.");
-        CB_ENSURE(!BoostingOptions->ApproxOnFullHistory, "ApproxOnFullHistory option is not available within Exact method.");
-        CB_ENSURE(TaskType == ETaskType::CPU, "Exact method is only available on CPU.");
+        CB_ENSURE(TaskType == ETaskType::GPU || !BoostingOptions->ApproxOnFullHistory, "ApproxOnFullHistory option is not available within Exact method on CPU.");
     }
 
     if (treeConfig.L2Reg == 0.0f) {
