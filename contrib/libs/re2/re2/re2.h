@@ -185,9 +185,7 @@
 #include <map>
 #include <mutex>
 #include <string>
-#ifdef FAKEID
 #include <util/generic/string.h>
-#endif
 
 #include "re2/stringpiece.h"
 
@@ -256,10 +254,8 @@ class RE2 {
 #endif
   RE2(const StringPiece& pattern);
   RE2(const StringPiece& pattern, const Options& options);
-#ifdef FAKEID
   // ambiguity resolution.
   RE2(const TString& pattern) : RE2(StringPiece(pattern)) {}
-#endif
   ~RE2();
 
   // Returns whether RE2 was created properly.
@@ -274,12 +270,6 @@ class RE2 {
   // Else returns the empty string.
   const string& error() const { return *error_; }
 
-#ifdef FAKEID
-  TString Pattern() const { return TString(pattern_); }
-
-  TString Error() const { return TString(*error_); }
-#endif
-
   // If RE2 could not be created properly, returns an error code.
   // Else returns RE2::NoError (== 0).
   ErrorCode error_code() const { return error_code_; }
@@ -287,10 +277,6 @@ class RE2 {
   // If RE2 could not be created properly, returns the offending
   // portion of the regexp.
   const string& error_arg() const { return error_arg_; }
-
-#ifdef FAKEID
-  TString ErrorArg() const { return TString(error_arg_); }
-#endif
 
   // Returns the program size, a very approximate measure of a regexp's "cost".
   // Larger numbers are more expensive than smaller numbers.
@@ -415,7 +401,6 @@ class RE2 {
                       const RE2& pattern,
                       const StringPiece& rewrite);
 
-#ifdef FAKEID
   static bool Replace(TString *str,
                       const RE2& pattern,
                       const StringPiece& rewrite) {
@@ -424,7 +409,6 @@ class RE2 {
     *str = tmp;
     return res;
   }
-#endif
 
   // Like Replace(), except replaces successive non-overlapping occurrences
   // of the pattern in the string with the rewrite. E.g.
@@ -443,7 +427,6 @@ class RE2 {
                            const RE2& pattern,
                            const StringPiece& rewrite);
 
-#ifdef FAKEID
   static int GlobalReplace(TString *str,
                            const RE2& pattern,
                            const StringPiece& rewrite) {
@@ -452,7 +435,6 @@ class RE2 {
     *str = tmp;
     return res;
   }
-#endif
 
   // Like Replace, except that if the pattern matches, "rewrite"
   // is copied into "out" with substitutions.  The non-matching
@@ -467,7 +449,6 @@ class RE2 {
                       const StringPiece &rewrite,
                       string *out);
 
-#ifdef FAKEID
   static bool Extract(const StringPiece &text,
                       const RE2& pattern,
                       const StringPiece &rewrite,
@@ -477,7 +458,6 @@ class RE2 {
     *out = tmp;
     return res;
   }
-#endif
 
   // Escapes all potentially meaningful regexp characters in
   // 'unquoted'.  The returned string, used as a regular expression,
@@ -565,7 +545,6 @@ class RE2 {
   // fail because of a bad rewrite string.
   bool CheckRewriteString(const StringPiece& rewrite, string* error) const;
 
-#ifdef FAKEID
   bool CheckRewriteString(const StringPiece& rewrite, nullptr_t error) const {
     return CheckRewriteString(rewrite, static_cast<string*>(error));
   }
@@ -580,7 +559,6 @@ class RE2 {
       return CheckRewriteString(rewrite, nullptr);
     }
   }
-#endif
 
   // Returns the maximum submatch needed for the rewrite to be done by
   // Replace(). E.g. if rewrite == "foo \\2,\\1", returns 2.
@@ -856,10 +834,8 @@ class RE2::Arg {
   MAKE_PARSER(float,              parse_float);
   MAKE_PARSER(double,             parse_double);
   MAKE_PARSER(string,             parse_string);
-#ifdef FAKEID
-  MAKE_PARSER(TString,             parse_TString);
-#endif
   MAKE_PARSER(StringPiece,        parse_stringpiece);
+  MAKE_PARSER(TString,            parse_tstring);
 
   MAKE_PARSER(short,              parse_short);
   MAKE_PARSER(unsigned short,     parse_ushort);
@@ -892,10 +868,8 @@ class RE2::Arg {
   static bool parse_float         (const char* str, size_t n, void* dest);
   static bool parse_double        (const char* str, size_t n, void* dest);
   static bool parse_string        (const char* str, size_t n, void* dest);
-#ifdef FAKEID
-  static bool parse_TString        (const char* str, size_t n, void* dest);
-#endif
   static bool parse_stringpiece   (const char* str, size_t n, void* dest);
+  static bool parse_tstring       (const char* str, size_t n, void* dest);
 
 #define DECLARE_INTEGER_PARSER(name)                                       \
  private:                                                                  \

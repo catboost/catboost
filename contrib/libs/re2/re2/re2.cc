@@ -946,15 +946,15 @@ bool RE2::Arg::parse_string(const char* str, size_t n, void* dest) {
   return true;
 }
 
-bool RE2::Arg::parse_TString(const char* str, size_t n, void* dest) {
-  if (dest == NULL) return true;
-  reinterpret_cast<TString*>(dest)->assign(str, n);
-  return true;
-}
-
 bool RE2::Arg::parse_stringpiece(const char* str, size_t n, void* dest) {
   if (dest == NULL) return true;
   *(reinterpret_cast<StringPiece*>(dest)) = StringPiece(str, n);
+  return true;
+}
+
+bool RE2::Arg::parse_tstring(const char* str, size_t n, void* dest) {
+  if (dest == NULL) return true;
+  reinterpret_cast<TString*>(dest)->assign(str, n);
   return true;
 }
 

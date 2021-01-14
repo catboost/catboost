@@ -19,4 +19,5 @@ void SStringPrintf(string* dst, const char* format, ...);
 void StringAppendF(string* dst, const char* format, ...);
 
 }  // namespace re2
+
 #endif  // UTIL_STRUTIL_H_

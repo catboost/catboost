@@ -91,10 +91,9 @@
 #include <set>
 #include <string>
 
-// Solve include ambiguity by using relative paths
-#include "../util/util.h"
-#include "../util/logging.h"
-#include "../util/utf.h"
+#include "util/util.h"
+#include "util/logging.h"
+#include "util/utf.h"
 #include "re2/stringpiece.h"
 
 namespace re2 {

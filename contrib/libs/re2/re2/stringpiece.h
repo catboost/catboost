@@ -25,10 +25,7 @@
 #include <iosfwd>
 #include <iterator>
 #include <string>
-
-#ifdef FAKEID
 #include <util/generic/string.h>
-#endif
 
 namespace re2 {
 
@@ -54,10 +51,8 @@ class StringPiece {
       : data_(NULL), size_(0) {}
   StringPiece(const std::string& str)
       : data_(str.data()), size_(str.size()) {}
-#ifdef FAKEID
   StringPiece(const TString& str)
-      : data_(str.data()), size_(str.size()) {}
-#endif
+      : StringPiece(str.data(), str.size()) {}
   StringPiece(const char* str)
       : data_(str), size_(str == NULL ? 0 : strlen(str)) {}
   StringPiece(const char* str, size_type len)
