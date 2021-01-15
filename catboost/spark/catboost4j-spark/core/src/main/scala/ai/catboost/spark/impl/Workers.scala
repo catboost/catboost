@@ -4,6 +4,7 @@ import collection.mutable.HashMap
 
 import java.net._
 import java.util.concurrent.{ExecutorCompletionService,Executors}
+import java.util.concurrent.atomic.AtomicBoolean
 
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
@@ -15,10 +16,13 @@ import org.apache.spark.TaskContext
 
 import ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl._
 
+import ai.catboost.CatBoostError
 import ai.catboost.spark._
 
 
 private[spark] object Worker {
+  val usedInCurrentProcess : AtomicBoolean = new AtomicBoolean
+
   def processPartition(
     trainingDriverListeningAddress: InetSocketAddress,
     catBoostJsonParamsString: String,
@@ -29,73 +33,82 @@ private[spark] object Worker {
     threadCount: Int,
     rows: Iterator[Row]
   ) = {
-    // TaskContext.getPartitionId will become invalid when iteration over rows is finished, so save it
-    val partitionId = TaskContext.getPartitionId
-
-    var quantizedDataProvider : TDataProviderPtr = null
-
-    if (rows.hasNext) {
-      quantizedDataProvider = DataHelpers.loadQuantizedDataset(
-        quantizedFeaturesInfo,
-        columnsIndexMap,
-        dataMetaInfo,
-        schema,
-        threadCount,
-        rows
-      )
+    if (!usedInCurrentProcess.compareAndSet(false, true)) {
+      throw new CatBoostError("An active CatBoost worker is already present in the current process")
     }
 
-    val partitionSize = if (quantizedDataProvider != null) quantizedDataProvider.GetObjectCount.toInt else 0
+    try {
+      // TaskContext.getPartitionId will become invalid when iteration over rows is finished, so save it
+      val partitionId = TaskContext.getPartitionId
 
-    if (partitionSize != 0) {
-      native_impl.CreateTrainingDataForWorker(
-        partitionId,
-        threadCount,
-        catBoostJsonParamsString,
-        quantizedDataProvider,
-        quantizedFeaturesInfo
-      )
-    }
+      var quantizedDataProvider : TDataProviderPtr = null
 
-    val workerPort = TrainingDriver.getWorkerPort()
+      if (rows.hasNext) {
+        quantizedDataProvider = DataHelpers.loadQuantizedDataset(
+          quantizedFeaturesInfo,
+          columnsIndexMap,
+          dataMetaInfo,
+          schema,
+          threadCount,
+          rows
+        )
+      }
 
-    val ecs = new ExecutorCompletionService[Unit](Executors.newFixedThreadPool(2))
+      val partitionSize = if (quantizedDataProvider != null) quantizedDataProvider.GetObjectCount.toInt else 0
 
-    val sendWorkerInfoFuture = ecs.submit(
-      new Runnable() {
-        def run() = {
-          TrainingDriver.waitForListeningPortAndSendWorkerInfo(
-            trainingDriverListeningAddress,
-            partitionId,
-            partitionSize,
-            workerPort
-          )
-        }
-      },
-      ()
-    )
+      if (partitionSize != 0) {
+        native_impl.CreateTrainingDataForWorker(
+          partitionId,
+          threadCount,
+          catBoostJsonParamsString,
+          quantizedDataProvider,
+          quantizedFeaturesInfo
+        )
+      }
 
-    val workerFuture = ecs.submit(
-      new Runnable() {
-        def run() = {
-          if (partitionSize != 0) {
-            native_impl.RunWorkerWrapper(threadCount, workerPort)
+      val workerPort = TrainingDriver.getWorkerPort()
+
+      val ecs = new ExecutorCompletionService[Unit](Executors.newFixedThreadPool(2))
+
+      val sendWorkerInfoFuture = ecs.submit(
+        new Runnable() {
+          def run() = {
+            TrainingDriver.waitForListeningPortAndSendWorkerInfo(
+              trainingDriverListeningAddress,
+              partitionId,
+              partitionSize,
+              workerPort
+            )
           }
-        }
-      },
-      ()
-    )
-
-    val firstCompletedFuture = ecs.take()
-
-    if (firstCompletedFuture == workerFuture) {
-      impl.Helpers.checkOneFutureAndWaitForOther(workerFuture, sendWorkerInfoFuture, "native_impl.RunWorkerWrapper")
-    } else { // firstCompletedFuture == sendWorkerInfoFuture
-      impl.Helpers.checkOneFutureAndWaitForOther(
-        sendWorkerInfoFuture,
-        workerFuture,
-        "TrainingDriver.waitForListeningPortAndSendWorkerInfo"
+        },
+        ()
       )
+
+      val workerFuture = ecs.submit(
+        new Runnable() {
+          def run() = {
+            if (partitionSize != 0) {
+              native_impl.RunWorkerWrapper(threadCount, workerPort)
+            }
+          }
+        },
+        ()
+      )
+
+      val firstCompletedFuture = ecs.take()
+
+      if (firstCompletedFuture == workerFuture) {
+        impl.Helpers.checkOneFutureAndWaitForOther(workerFuture, sendWorkerInfoFuture, "native_impl.RunWorkerWrapper")
+      } else { // firstCompletedFuture == sendWorkerInfoFuture
+        impl.Helpers.checkOneFutureAndWaitForOther(
+          sendWorkerInfoFuture,
+          workerFuture,
+          "TrainingDriver.waitForListeningPortAndSendWorkerInfo"
+        )
+      }
+
+    } finally {
+      usedInCurrentProcess.set(false)
     }
   }
 }
