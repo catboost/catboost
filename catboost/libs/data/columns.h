@@ -358,7 +358,7 @@ namespace NCB {
                     0,
                     MakeArrayRef(
                         compressedDataSubset.GetSrc()->GetRawPtr() + *consecutiveSubsetBegin * byteSize,
-                        compressedDataSubset.Size())
+                        compressedDataSubset.Size() * byteSize)
                 );
             }
             return TBase::CalcChecksum(localExecutor);
