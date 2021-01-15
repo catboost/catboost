@@ -2961,7 +2961,6 @@ migrations:
     - sandbox/projects/weather/StatfaceReports/pogoda_analytics
     - search/metrics/ccc/ccc_service
     - search/mon/iconostasis_validator/bin/icval
-    - search/scraper/parser_platform/tests
     - travel/avia/admin
     - travel/avia/admin/www/templatetags
     - travel/avia/admin/www/utils
