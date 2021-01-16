@@ -2246,8 +2246,6 @@ migrations:
     - infra/portoshell/tests
     - infra/yasm/zoom/python/tests
     - infra/yp_dns_api/tests
-    - infra/yp_eviction_alerter/bin
-    - infra/yp_eviction_alerter/libs
     - infra/yp_quota_distributor/lib
     - intranet/dogma/mon
     - intranet/pypi/src
@@ -2664,6 +2662,8 @@ migrations:
     - ydo/payments/balance_notifications_processor/lib
     - ydo/server/apphost_source/lib/endpoints
     - ydo/tools/direct/make_ya_clients_export
+    - yp/eviction_alerter/bin
+    - yp/eviction_alerter/libs
     - yp/scheduler_simulator/analysis/library
     - yp/tests
     - yql/library/test_framework
