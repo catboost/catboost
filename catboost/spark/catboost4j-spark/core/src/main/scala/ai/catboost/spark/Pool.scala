@@ -124,6 +124,9 @@ object Pool {
    * @param columnDescription Path to
    *  [[https://catboost.ai/docs/concepts/input-data_column-descfile.html column description file]]
    * @param params Additional params specifying data format.
+   * @param pairsDataPathWithScheme (optional) Path with scheme to dataset pairs in CatBoost format.
+   *  Only "dsv-grouped" format is supported for now.
+   *  For example, `dsv-grouped:///home/user/datasets/my_dataset/train_pairs.dsv`
    * @return [[Pool]] containing loaded data.
    *
    * @example
@@ -138,13 +141,21 @@ object Pool {
    *   "dsv:///home/user/datasets/my_dataset/train.dsv",
    *   columnDescription = "/home/user/datasets/my_dataset/cd"
    * )
+   * 
+   *  val poolWithPairs = Pool.load(
+   *   spark,
+   *   "dsv:///home/user/datasets/my_dataset_with_pairs/train.dsv",
+   *   columnDescription = "/home/user/datasets/my_dataset_with_pairs/cd",
+   *   pairsDataPathWithScheme = "dsv-grouped:///home/user/datasets/my_dataset_with_pairs/train_pairs.dsv"
+   * )
    * }}}
    */
   def load(
     spark: SparkSession,
     dataPathWithScheme: String,
     columnDescription: Path = null, // API for Java, so no Option[_] here.
-    params: PoolLoadParams = new PoolLoadParams()): Pool = {
+    params: PoolLoadParams = new PoolLoadParams(),
+    pairsDataPathWithScheme: String = null): Pool = {
 
     val pathParts = dataPathWithScheme.split("://", 2)
     val (dataScheme, dataPath) =
@@ -154,8 +165,16 @@ object Pool {
       case "dsv" | "libsvm" => "ai.catboost.spark.CatBoostTextFileFormat"
       case _ => throw new CatBoostError(s"Loading pool from scheme ${dataScheme} is not supported")
     }
-
+    
     val dataSourceOptions = mutable.Map[String,String]()
+
+    val pairsData = if (pairsDataPathWithScheme != null) {
+      dataSourceOptions.update("addSampleId", "true")
+      CatBoostPairsDataLoader.load(spark, pairsDataPathWithScheme)
+    } else {
+      null
+    }
+
     dataSourceOptions.update("dataScheme", dataScheme)
 
     params.extractParamMap.toSeq.foreach {
@@ -172,9 +191,15 @@ object Pool {
     )
     dataSourceOptions.update("uuid", java.util.UUID.randomUUID().toString)
 
-    val data = spark.read.format(format).options(dataSourceOptions).load(dataPath)
+    var data = spark.read.format(format).options(dataSourceOptions).load(dataPath)
+    if (pairsData != null) {
+      data = DataHelpers.mapSampleIdxToPerGroupSampleIdx(data)
+    }
 
-    val pool = new Pool(if (dataScheme == "libsvm") updateSparseFeaturesSize(data) else data)
+    val pool = new Pool(
+      if (dataScheme == "libsvm") updateSparseFeaturesSize(data) else data,
+      pairsData=pairsData
+    )
 
     setColumnParamsFromLoadedData(pool)
 
@@ -240,18 +265,22 @@ class Pool (
     override val uid: String,
     val data: DataFrame = null,
     protected var featuresLayout: TFeaturesLayout = null, // updated on demand if not initialized
-    val quantizedFeaturesInfo: QuantizedFeaturesInfoPtr = null)
+    val quantizedFeaturesInfo: QuantizedFeaturesInfoPtr = null,
+    val pairsData: DataFrame = null)
   extends Params with HasLabelCol with HasFeaturesCol with HasWeightCol {
 
   private[spark] def this(
     data: DataFrame,
+    pairsData: DataFrame,
     quantizedFeaturesInfo: QuantizedFeaturesInfoPtr
   ) =
     this(
       Identifiable.randomUID("catboostPool"),
       data,
       if (quantizedFeaturesInfo != null) quantizedFeaturesInfo.GetFeaturesLayout().__deref__() else null,
-      quantizedFeaturesInfo)
+      quantizedFeaturesInfo,
+      pairsData
+    )
 
   /** Construct [[Pool]] from [[DataFrame]]
    *  Call set*Col methods to specify non-default columns.
@@ -286,7 +315,59 @@ class Pool (
    *   pool.data.show()
    * }}}
    */
-  def this(data: DataFrame) = this(data, null)
+  def this(data: DataFrame) = this(data, null, null)
+
+  /** Construct [[Pool]] from [[DataFrame]] also specifying pairs data in an additional [[DataFrame]]
+   * @example
+   * {{{
+   *   val spark = SparkSession.builder()
+   *     .master("local[4]")
+   *     .appName("PoolWithPairsTest")
+   *     .getOrCreate();
+   *
+   *   val srcData = Seq(
+   *     Row(Vectors.dense(0.1, 0.2, 0.11), "0.12", 0x0L, 0.12f, 0),
+   *     Row(Vectors.dense(0.97, 0.82, 0.33), "0.22", 0x0L, 0.18f, 1),
+   *     Row(Vectors.dense(0.13, 0.22, 0.23), "0.34", 0x1L, 1.0f, 2),
+   *     Row(Vectors.dense(0.23, 0.01, 0.0), "0.0", 0x1L, 1.2f, 3)
+   *   )
+   *
+   *   val srcDataSchema = Seq(
+   *     StructField("features", SQLDataTypes.VectorType),
+   *     StructField("label", StringType),
+   *     StructField("groupId", LongType),
+   *     StructField("weight", FloatType)
+   *     StructField("sampleId", LongType)
+   *   )
+   *
+   *   val df = spark.createDataFrame(spark.sparkContext.parallelize(srcData), StructType(srcDataSchema))
+   *   
+   *   val srcPairsData = Seq(
+   *     Row(0x0L, 0, 1),
+   *     Row(0x1L, 3, 2)
+   *   )
+   *
+   *   val srcPairsDataSchema = Seq(
+   *     StructField("groupId", LongType),
+   *     StructField("winnerId", IntegerType),
+   *     StructField("loserId", IntegerType)
+   *   )
+   *
+   *   val pairsDf = spark.createDataFrame(
+   *     spark.sparkContext.parallelize(srcPairsData),
+   *     StructType(srcPairsDataSchema)
+   *   )
+   *
+   *   val pool = new Pool(df, pairsDf)
+   *     .setGroupIdCol("groupId")
+   *     .setWeightCol("weight")
+   *     .setSampleIdCol("sampleId")
+   *
+   *   pool.data.show()
+   *   pool.pairsData.show()
+   * }}}
+   */
+  def this(data: DataFrame, pairsData: DataFrame) = this(data, pairsData, null)
 
   def getFeaturesLayout : TFeaturesLayout = {
     if (featuresLayout == null) {
@@ -382,6 +463,10 @@ class Pool (
    *  [[org.apache.spark.sql.Dataset]]
    */
   def count : Long = data.count
+  
+  /** @return Number of pairs in the dataset
+   */
+  def pairsCount : Long = if (pairsData != null) pairsData.count else 0.toLong
 
   /**
    * @return dimension of formula baseline, 0 if no baseline specified
@@ -513,7 +598,7 @@ class Pool (
       }
     )(quantizedDataEncoder)
 
-    val quantizedPool = new Pool(quantizedData, quantizedFeaturesInfo)
+    val quantizedPool = new Pool(quantizedData, pairsData, quantizedFeaturesInfo)
     copyValues(quantizedPool)
   }
 
@@ -590,7 +675,7 @@ class Pool (
     } else {
       data.repartition(partitionCount)
     }
-    val result = new Pool(newData, this.quantizedFeaturesInfo)
+    val result = new Pool(newData, pairsData, this.quantizedFeaturesInfo)
     copyValues(result)
   }
 }

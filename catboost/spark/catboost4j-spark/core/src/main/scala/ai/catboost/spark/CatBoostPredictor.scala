@@ -88,9 +88,6 @@ trait CatBoostPredictorTrait[
 
     val spark = trainPool.data.sparkSession
 
-    val partitionCount = get(sparkPartitionCount).getOrElse(SparkHelpers.getWorkerCount(spark))
-    this.logInfo(s"fit. partitionCount=${partitionCount}")
-
     val quantizedTrainPool = if (trainPool.isQuantized) {
       trainPool
     } else {
@@ -98,8 +95,8 @@ trait CatBoostPredictorTrait[
       this.copyValues(quantizationParams)
       this.logInfo(s"fit. schedule quantization for train dataset")
       trainPool.quantize(quantizationParams)
-    }.repartition(partitionCount)
-
+    }
+    
     // TODO(akhropov): eval pools are not distributed for now, so they are not repartitioned
     var evalIdx = 0
     val quantizedEvalPools = evalPools.map {
@@ -117,8 +114,15 @@ trait CatBoostPredictorTrait[
       quantizedTrainPool,
       quantizedEvalPools
     )
-
-    val master = impl.Master(preprocessedTrainPool, preprocessedEvalPools, compact(catBoostJsonParams))
+    
+    val master = impl.Master(
+      preprocessedTrainPool, 
+      preprocessedEvalPools, 
+      compact(catBoostJsonParams)
+    )
+    
+    val partitionCount = get(sparkPartitionCount).getOrElse(SparkHelpers.getWorkerCount(spark))
+    this.logInfo(s"fit. partitionCount=${partitionCount}")
 
     val trainingDriver : TrainingDriver = new TrainingDriver(
       listeningPort = 0,
@@ -136,7 +140,13 @@ trait CatBoostPredictorTrait[
 
     val trainingDriverFuture = ecs.submit(trainingDriver, ())
 
-    val workers = new impl.Workers(spark, listeningPort, preprocessedTrainPool, catBoostJsonParams)
+    val workers = new impl.Workers(
+      spark,
+      partitionCount,
+      listeningPort,
+      preprocessedTrainPool,
+      catBoostJsonParams
+    )
 
     val workersFuture = ecs.submit(workers, ())
 

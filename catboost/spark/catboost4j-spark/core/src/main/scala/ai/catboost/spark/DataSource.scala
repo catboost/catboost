@@ -19,7 +19,7 @@ import org.apache.spark.TaskContext
 import org.apache.spark.internal.Logging
 import org.apache.spark.ml.attribute._
 import org.apache.spark.ml.linalg.{SQLDataTypes,Vectors}
-import org.apache.spark.sql.{Row, SparkSession}
+import org.apache.spark.sql.{DataFrame,Row, SparkSession}
 import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.catalyst.encoders.{ExpressionEncoder,RowEncoder}
 import org.apache.spark.sql.execution.datasources._
@@ -141,6 +141,7 @@ private[spark] object DatasetRowsReaderIterator {
     dataSchema: StructType,
     intermediateDataMetaInfo: TIntermediateDataMetaInfo,
     options: Map[String, String],
+    lineOffset: Long,
     lineCount: Long,
     hasHeader: Boolean,
     threadCount: Int
@@ -299,6 +300,21 @@ private[spark] object DatasetRowsReaderIterator {
           result.currentOutRow(fieldIdx) = datasetRow.getTimestamp
         }
       }
+      
+      fieldIdxCounter = fieldIdxCounter + 1
+    }
+    
+    if (options.contains("addSampleId")) {
+      val fieldIdx = fieldIdxCounter // to capture fixed value
+      
+      var sampleId = lineOffset
+
+      result.callbacks += {
+        datasetRow => {
+          result.currentOutRow(fieldIdx) = sampleId
+          sampleId = sampleId + 1
+        }
+      }
     }
 
     result.updateBlock
@@ -348,7 +364,7 @@ private[spark] object CatBoostTextFileFormat {
   }
 
 
-  def makeSchema(intermediateDataMetaInfo: TIntermediateDataMetaInfo) : StructType = {
+  def makeSchema(intermediateDataMetaInfo: TIntermediateDataMetaInfo, addSampleId: Boolean) : StructType = {
     val fields = new mutable.ArrayBuffer[StructField]()
 
     fields += StructField(
@@ -392,8 +408,8 @@ private[spark] object CatBoostTextFileFormat {
     if (intermediateDataMetaInfo.getHasTimestamp) {
       fields += StructField("timestamp", DataTypes.LongType, nullable = false)
     }
-    if (intermediateDataMetaInfo.getHasPairs) {
-      throw new CatBoostError("Pairs are not supported yet")
+    if (addSampleId) {
+      fields += StructField("sampleId", DataTypes.LongType, nullable = false)
     }
 
     StructType(fields.toArray)
@@ -421,6 +437,7 @@ private[spark] class CatBoostTextFileFormat
    *  "catboostJsonParams" -> CatBoost plain params JSON serialized to String
    *  "uuid" -> uuid as String. generated to be able to get data from cachedColumnDescriptions
    *  "blockSize" -> optional. Block size for TRawDatasetRowsReader
+   *  "addSampleId" -> optional. Add sampleId column with original file line index
    */
 
 
@@ -450,7 +467,7 @@ private[spark] class CatBoostTextFileFormat
       cachedMetaInfo.update(uuidString, intermediateDataMetaInfo)
     }
 
-    Some(CatBoostTextFileFormat.makeSchema(intermediateDataMetaInfo))
+    Some(CatBoostTextFileFormat.makeSchema(intermediateDataMetaInfo, options.contains("addSampleId")))
   }
 
   override def prepareWrite(
@@ -500,10 +517,60 @@ private[spark] class CatBoostTextFileFormat
         dataSchema,
         broadcastedDataMetaInfo.value,
         options,
+        if (hasHeaderParamValue) { file.start - 1 } else { file.start },
         file.length,
         hasHeaderParamValue && (file.start == 0),
         threadCountForTask
       )
     }
+  }
+}
+
+private[spark] object CatBoostPairsDataLoader {
+  /**
+   * @param pairsDataPathWithScheme (optional) Path with scheme to dataset pairs in CatBoost format.
+   * @return [[DataFrame]] containing loaded pairs.
+   */
+  def load(spark: SparkSession, pairsDataPathWithScheme: String) : DataFrame = {
+        val pairsPathParts = pairsDataPathWithScheme.split("://", 2)
+    val (pairsDataScheme, pairsDataPath) = if (pairsPathParts.size == 1) {
+        ("dsv-flat", pairsPathParts(0)) 
+      } else { 
+        (pairsPathParts(0), pairsPathParts(1)) 
+      }
+    if (pairsDataScheme != "dsv-grouped") {
+      throw new CatBoostError("Only 'dsv-grouped' scheme is supported for pairs now")
+    }
+    var schemaWithGroupIdAsStringFields = Seq(
+      StructField("groupId", StringType, false),
+      StructField("winnerId", IntegerType, false),
+      StructField("loserId", IntegerType, false)
+    )
+    
+    import spark.implicits._
+    val firstLineArray = spark.read.text(pairsDataPath).limit(1).as[String].collect()
+    if (firstLineArray.isEmpty) {
+      throw new CatBoostError(s"No data in pairs file ${pairsDataPath}")
+    }
+    val nFields = firstLineArray(0).split('\t').length
+    schemaWithGroupIdAsStringFields = nFields match {
+      case 3 => schemaWithGroupIdAsStringFields
+      case 4 => schemaWithGroupIdAsStringFields :+ StructField("weight", FloatType, false)
+      case nFields => throw new CatBoostError(
+        s"Incorrect number of columns (must be 3 or 4) in pairs file ${pairsDataPath}"
+      )
+    }
+    
+    val dfWithStringGroupId = spark.read.schema(StructType(schemaWithGroupIdAsStringFields))
+      .option("sep", "\t")
+      .csv(pairsDataPath)
+      
+    def schema = StructType(
+      Seq(StructField("groupId", LongType, false)) ++ schemaWithGroupIdAsStringFields.toSeq.tail
+    )
+    
+    dfWithStringGroupId.map(
+      row => Row.fromSeq(Seq(native_impl.CalcGroupIdForString(row.getString(0))) ++ row.toSeq.tail)
+    )(RowEncoder(schema))
   }
 }

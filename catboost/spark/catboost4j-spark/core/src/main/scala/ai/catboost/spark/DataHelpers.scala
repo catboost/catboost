@@ -9,6 +9,7 @@ import java.nio.file.{Files,Path}
 import org.apache.spark.ml.attribute._
 import org.apache.spark.ml.linalg._
 import org.apache.spark.ml.param._
+import org.apache.spark.rdd.RDD
 import org.apache.spark.sql._
 import org.apache.spark.sql.types._
 
@@ -130,7 +131,44 @@ private[spark] class ProcessRowsOutputIterator(
 }
 
 
+private[spark] class PoolFilesPaths(
+  val mainData : Path,
+  val pairsData : Option[Path]
+)
+
+
 private[spark] object DataHelpers {
+  def mapSampleIdxToPerGroupSampleIdx(data: DataFrame) : DataFrame = {
+    val groupIdIdx = data.schema.fieldIndex("groupId")
+    val sampleIdIdx = data.schema.fieldIndex("sampleId")
+    
+    // Cannot use DataFrame API directly with RowEncoder because it loses schema columns metadata
+    val resultAsRDD = data.rdd.groupBy(row => row.getLong(groupIdIdx)).flatMap{
+      case (groupId, rows) => {
+        var startSampleId : Long = Long.MaxValue
+        val rowsCopy = rows.map(
+          row => {
+            startSampleId = startSampleId.min(row.getLong(sampleIdIdx))
+            row
+          }
+        ).toSeq
+        rowsCopy.map(
+          row => { 
+            var fields = row.toSeq.toArray
+            fields(sampleIdIdx) = fields(sampleIdIdx).asInstanceOf[Long] - startSampleId
+            Row.fromSeq(fields)
+          }
+        )
+      }
+    }
+    
+    data.sparkSession.createDataFrame(resultAsRDD, data.schema)
+  }
+  
+  
+  // first Iterable if main dataset data, second Iterable is pairs data
+  type GroupsIterator = Iterator[(Long, (Iterable[Iterable[Row]], Iterable[Iterable[Row]]))]
+  
   def makeFeaturesMetadata(initialFeatureNames: Array[String]) : Metadata = {
     val featureNames = new Array[String](initialFeatureNames.length)
 
@@ -287,24 +325,10 @@ private[spark] object DataHelpers {
     }
   }
 
-
-  /**
-   * Create quantized data provider from iterating over DataFrame's Rows.
-   * @returns quantized data provider. type is TDataProviderPtr because that's generic interface that
-   *  clients (like training, prediction, feature quality estimators) accept
-   */
-  def loadQuantizedDataset(
-    quantizedFeaturesInfo: QuantizedFeaturesInfoPtr,
+  def getDataProviderBuilderAndVisitor(
     columnIndexMap: HashMap[String, Int], // column type -> idx in schema
-    dataMetaInfo: TIntermediateDataMetaInfo,
-    schema: StructType,
-    threadCount: Int,
-    rows: Iterator[Row]
-  ) : TDataProviderPtr = {
-
-    val callbacks = new mutable.ArrayBuffer[Row => Unit]
-    val postprocessingCallbacks = new mutable.ArrayBuffer[() => Unit]
-
+    threadCount: Int
+  ) : (TDataProviderClosureForJVM, IQuantizedFeaturesDataVisitor) = {
     val dataProviderBuilderOptions = new TDataProviderBuilderOptions
 
     val dataProviderClosure = new TDataProviderClosureForJVM(
@@ -318,7 +342,23 @@ private[spark] object DataHelpers {
       throw new CatBoostError("Failure to create IQuantizedFeaturesDataVisitor")
     }
 
-    // Add column handlers
+    (dataProviderClosure, visitor)
+  }
+  
+
+  /**
+   * @returns (row callbacks, postprocessing callbacks)
+   */
+  def getMainDataProcessingCallbacks(
+    quantizedFeaturesInfo: QuantizedFeaturesInfoPtr,
+    columnIndexMap: HashMap[String, Int], // column type -> idx in schema
+    dataMetaInfo: TIntermediateDataMetaInfo,
+    visitor: IQuantizedFeaturesDataVisitor,
+    schema: StructType
+  ) : (mutable.ArrayBuffer[Row => Unit], mutable.ArrayBuffer[() => Unit]) = {
+
+    val callbacks = new mutable.ArrayBuffer[Row => Unit]
+    val postprocessingCallbacks = new mutable.ArrayBuffer[() => Unit]
 
     if (columnIndexMap.contains("features")) {
       val fieldIdx = columnIndexMap("features")
@@ -437,11 +477,83 @@ private[spark] object DataHelpers {
       }
     }
 
+    (callbacks, postprocessingCallbacks)
+  }
+  
+  /**
+   * @return (row callback, postprocessing callback)
+   * 	row callback has (groupIdx: Int, sampleIdToIdxInGroup: HashMap[Long,Int], row: Row) arguments.
+   */
+  def getPairsDataProcessingCallbacks(
+    visitor: IQuantizedFeaturesDataVisitor,
+    schema: StructType
+  ) : ((Int, HashMap[Long,Int], Row) => Unit, () => Unit) = {
+    val pairsDataBuilder = new TPairsDataBuilder
+    
+    val winnerIdIdx = schema.fieldIndex("winnerId")
+    val loserIdIdx = schema.fieldIndex("loserId")
+    var maybeWeightIdx : Option[Int] = None
+
+    for ((structField, idx) <- schema.zipWithIndex) {
+      structField.name match {
+        case "weight" => { maybeWeightIdx = Some(idx) }
+        case _ => {}
+      }
+    }
+    
+    val rowCallback = maybeWeightIdx match {
+      case Some(weightIdx) => {
+        (groupIdx: Int, sampleIdToIdxInGroup: HashMap[Long,Int], row: Row) => {
+          pairsDataBuilder.Add(
+            groupIdx, 
+            row.getAs[Int](sampleIdToIdxInGroup(winnerIdIdx)),
+            row.getAs[Int](sampleIdToIdxInGroup(loserIdIdx)),
+            row.getAs[Float](weightIdx)
+          )
+        } 
+      }
+      case None => {
+        (groupIdx: Int, sampleIdToIdxInGroup: HashMap[Long,Int], row: Row) => {
+          pairsDataBuilder.Add(
+            groupIdx, 
+            row.getAs[Int](sampleIdToIdxInGroup(winnerIdIdx)),
+            row.getAs[Int](sampleIdToIdxInGroup(loserIdIdx))
+          )
+        } 
+      }
+    }
+    
+    (rowCallback, () => { pairsDataBuilder.AddToResult(visitor) })
+  }
+
+  /**
+   * Create quantized data provider from iterating over DataFrame's Rows.
+   * @returns quantized data provider. type is TDataProviderPtr because that's generic interface that
+   *  clients (like training, prediction, feature quality estimators) accept
+   */
+  def loadQuantizedDataset(
+    quantizedFeaturesInfo: QuantizedFeaturesInfoPtr,
+    columnIndexMap: HashMap[String, Int], // column type -> idx in schema
+    dataMetaInfo: TIntermediateDataMetaInfo,
+    schema: StructType,
+    threadCount: Int,
+    rows: Iterator[Row]
+  ) : TDataProviderPtr = {
+    val (dataProviderBuilderClosure, visitor) = getDataProviderBuilderAndVisitor(columnIndexMap, threadCount)
+
+    val (mainDataRowCallbacks, postprocessingCallbacks) = getMainDataProcessingCallbacks(
+      quantizedFeaturesInfo,
+      columnIndexMap,
+      dataMetaInfo,
+      visitor,
+      schema
+    )
+    
     var objectCount = 0
 
     rows.foreach {
       row => {
-        callbacks.foreach(_(row))
+        mainDataRowCallbacks.foreach(_(row))
         objectCount = objectCount + 1
       }
     }
@@ -454,7 +566,84 @@ private[spark] object DataHelpers {
 
     visitor.Finish
 
-    dataProviderClosure.GetResult()
+    dataProviderBuilderClosure.GetResult()
+  }
+
+  /**
+   * Create quantized data provider from iterating over cogrouped main dataset and pairs data.
+   * @returns quantized data provider. type is TDataProviderPtr because that's generic interface that
+   *  clients (like training, prediction, feature quality estimators) accept
+   */
+  def loadQuantizedDatasetWithPairs(
+    quantizedFeaturesInfo: QuantizedFeaturesInfoPtr,
+    columnIndexMap: HashMap[String, Int], // column type -> idx in schema
+    dataMetaInfo: TIntermediateDataMetaInfo,
+    datasetSchema: StructType,
+    pairsDatasetSchema: StructType,
+    threadCount: Int,
+    groupsIterator: GroupsIterator
+  ) : TDataProviderPtr = {
+    val (dataProviderBuilderClosure, visitor) = getDataProviderBuilderAndVisitor(columnIndexMap, threadCount)
+
+    val (mainDataRowCallbacks, mainDataPostprocessingCallbacks) = getMainDataProcessingCallbacks(
+      quantizedFeaturesInfo,
+      columnIndexMap,
+      dataMetaInfo,
+      visitor,
+      datasetSchema
+    )
+    val (pairsDataRowCallback, pairsDataPostprocessingCallback) = getPairsDataProcessingCallbacks(
+      visitor,
+      pairsDatasetSchema
+    )
+
+    var objectCount = 0
+    var groupIdx = 0
+    
+    val sampleIdIdx = columnIndexMap("sampleId")
+
+    groupsIterator.foreach(
+      (group: (Long, (Iterable[Iterable[Row]], Iterable[Iterable[Row]]))) => {
+        val sampleIdToIdxInGroup = new HashMap[Long,Int]
+        var objectIdxInGroup = 0
+        group._2._1.foreach(
+          (it : Iterable[Row]) => {
+            it.foreach(
+              row => {
+                mainDataRowCallbacks.foreach(_(row))
+                
+                val sampleId = row.getLong(sampleIdIdx)
+                sampleIdToIdxInGroup.put(sampleId, objectIdxInGroup)
+                
+                objectIdxInGroup = objectIdxInGroup + 1
+              } 
+            )
+          }
+        )
+        objectCount = objectCount + objectIdxInGroup
+        group._2._2.foreach(
+          (it : Iterable[Row]) => {
+            it.foreach(
+              row => {
+                pairsDataRowCallback(groupIdx, sampleIdToIdxInGroup, row)
+              } 
+            )
+          }
+        )
+        groupIdx = groupIdx + 1
+      }
+    )
+
+    dataMetaInfo.setObjectCount(java.math.BigInteger.valueOf(objectCount))
+
+    visitor.Start(dataMetaInfo, objectCount, quantizedFeaturesInfo.__deref__)
+
+    mainDataPostprocessingCallbacks.foreach(_())
+    pairsDataPostprocessingCallback()
+
+    visitor.Finish
+
+    dataProviderBuilderClosure.GetResult()
   }
 
 
@@ -463,7 +652,8 @@ private[spark] object DataHelpers {
    */
   def selectColumnsForTrainingAndReturnIndex(
     pool: Pool,
-    includeFeatures: Boolean
+    includeFeatures: Boolean,
+    includeSampleId: Boolean
   ) : (DataFrame, HashMap[String, Int]) = {
     val columnTypesMap = new mutable.HashMap[String, Int]()
 
@@ -480,6 +670,9 @@ private[spark] object DataHelpers {
     if (includeFeatures) {
       columnTypeNames += "features"
     }
+    if (includeSampleId) {
+      columnTypeNames += "sampleId"
+    }
     var columnsList = new mutable.ArrayBuffer[String]()
     var i = 0
     for (columnTypeName <- columnTypeNames) {
@@ -495,29 +688,74 @@ private[spark] object DataHelpers {
     val dfWithColumnsForTraining = pool.data.select(columnsList.head, columnsList.tail: _*)
     (dfWithColumnsForTraining, columnTypesMap)
   }
+  
+  def getCogroupedMainAndPairsRDD(
+    mainData: DataFrame,
+    mainDataGroupIdFieldIdx: Int,
+    pairsData: DataFrame
+  ) : RDD[(Long, (Iterable[Iterable[Row]], Iterable[Iterable[Row]]))] = {
+      val groupedMainData = mainData.rdd.groupBy(row => row.getLong(mainDataGroupIdFieldIdx))
 
-  def downloadQuantizedPoolToTempFile(
+      val pairsGroupIdx = pairsData.schema.fieldIndex("groupId")
+      val groupedPairsData = pairsData.rdd.groupBy(row => row.getLong(pairsGroupIdx))
+
+      groupedMainData.cogroup(groupedPairsData)
+  }
+
+  /**
+   * @return (path to main data, optional path to pairs data (in 'dsv-grouped' format))
+   */
+  def downloadQuantizedPoolToTempFiles(
     pool: Pool,
     includeFeatures: Boolean,
     threadCount: Int = 1,
     tmpFilePrefix: String = null,
     tmpFileSuffix: String = null
-  ) : Path = {
-    val (selectedDF, columnIndexMap) = selectColumnsForTrainingAndReturnIndex(pool, includeFeatures)
-
-    val dataProvider = loadQuantizedDataset(
-      pool.quantizedFeaturesInfo,
-      columnIndexMap,
-      pool.createDataMetaInfo,
-      selectedDF.schema,
-      threadCount,
-      selectedDF.toLocalIterator.asScala
+  ) : PoolFilesPaths = {
+    val (selectedDF, columnIndexMap) = selectColumnsForTrainingAndReturnIndex(
+      pool,
+      includeFeatures,
+      includeSampleId = (pool.pairsData != null)
     )
 
-    val tmpFilePath = Files.createTempFile(tmpFilePrefix, tmpFileSuffix)
-    tmpFilePath.toFile.deleteOnExit
+    val dataProvider = if (pool.pairsData != null) {
+      val cogroupedMainAndPairsRDD = getCogroupedMainAndPairsRDD(
+        selectedDF, 
+        columnIndexMap("groupId"), 
+        pool.pairsData
+      ).sortByKey() // sortByKey to be consistent
+      
+      loadQuantizedDatasetWithPairs(
+        pool.quantizedFeaturesInfo,
+        columnIndexMap,
+        pool.createDataMetaInfo,
+        selectedDF.schema,
+        pool.pairsData.schema,
+        threadCount,
+        cogroupedMainAndPairsRDD.toLocalIterator
+      )
+    } else {
+      loadQuantizedDataset(
+        pool.quantizedFeaturesInfo,
+        columnIndexMap,
+        pool.createDataMetaInfo,
+        selectedDF.schema,
+        threadCount,
+        selectedDF.toLocalIterator.asScala
+      )
+    }
 
-    native_impl.SaveQuantizedPoolWrapper(dataProvider, tmpFilePath.toString)
-    tmpFilePath
+    val tmpMainDataFilePath = Files.createTempFile(tmpFilePrefix, tmpFileSuffix)
+    tmpMainDataFilePath.toFile.deleteOnExit
+    native_impl.SaveQuantizedPoolWrapper(dataProvider, tmpMainDataFilePath.toString)
+
+    var tmpPairsDataFilePath : Option[Path] = None
+    if (pool.pairsData != null) {
+      tmpPairsDataFilePath = Some(Files.createTempFile(tmpFilePrefix, tmpFileSuffix))
+      tmpPairsDataFilePath.get.toFile.deleteOnExit
+      native_impl.SavePairsInGroupedDsvFormat(dataProvider, tmpPairsDataFilePath.get.toString)
+    }
+
+    new PoolFilesPaths(tmpMainDataFilePath, tmpPairsDataFilePath)
   }
 }

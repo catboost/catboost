@@ -47,7 +47,7 @@ class PoolLoadingTest {
             ("label", StringType)
           ),
           featureNames,
-          nullable=true
+          nullableFields = Seq("features", "label")
         ),
         Seq(
           Row(Vectors.dense(0.1, 0.2), "0"),
@@ -94,7 +94,7 @@ class PoolLoadingTest {
             ("label", StringType)
           ),
           featureNames,
-          nullable=true
+          nullableFields = Seq("features", "label")
         ),
         Seq(
           Row(Vectors.dense(0.1, 0.2), "0"),
@@ -141,7 +141,7 @@ class PoolLoadingTest {
             ("label", StringType)
           ),
           featureNames,
-          nullable=true
+          nullableFields = Seq("features", "label")
         ),
         Seq(
           Row(Vectors.dense(0.1, 0.2), "0"),
@@ -201,7 +201,7 @@ class PoolLoadingTest {
             ("weight", FloatType)
           ),
           featureNames,
-          nullable=true
+          nullableFields = Seq("features", "label", "groupId", "groupWeight", "subgroupId", "weight")
         ),
         Seq(
           Row(Vectors.dense(0.1, 0.2, 0.11), "0.12", 0xB337C6FEFE2E2F73L, 1.0f, 0xD34BFBD7, 0.12f),
@@ -288,7 +288,7 @@ class PoolLoadingTest {
             ("label", FloatType)
           ),
           featureNames,
-          nullable=true
+          nullableFields = Seq("features", "label")
         ),
         Seq(
           Row(Vectors.sparse(8, Seq((0, 0.1), (2, 0.2))), 0.0f),
@@ -343,7 +343,7 @@ class PoolLoadingTest {
             ("label", FloatType)
           ),
           featureNames,
-          nullable=true
+          nullableFields = Seq("features", "label")
         ),
         Seq(
           Row(Vectors.sparse(8, Seq((0, 0.1), (2, 0.2))), 0.0f),
@@ -351,6 +351,177 @@ class PoolLoadingTest {
           Row(Vectors.sparse(8, Seq((2, 0.13), (6, 0.22), (7, 0.17))), 0.0f)
         ),
         featureNames
+      )
+    }
+    
+    @Test
+    @throws(classOf[Exception])
+    def testLoadDSVWithPairs() = {
+      val dataFile = PoolTestHelpers.writeToTempFile(
+        "0.12\tquery0\tsite1\t0.12\t1.0\t0.1\t0.2\t0.11\n" +
+        "0.22\tquery0\tsite22\t0.18\t1.0\t0.97\t0.82\t0.33\n" +
+        "0.34\tquery1\tSite9\t1.0\t0.0\t0.13\t0.22\t0.23\n" +
+        "0.42\tQuery 2\tsite12\t0.45\t0.5\t0.14\t0.18\t0.1\n" +
+        "0.01\tQuery 2\tsite22\t1.0\t0.5\t0.9\t0.67\t0.17\n" +
+        "0.0\tQuery 2\tSite45\t2.0\t0.5\t0.66\t0.1\t0.31\n"
+      )
+      val cdFile = PoolTestHelpers.writeToTempFile(
+        "0\tTarget\n" +
+        "1\tGroupId\n" +
+        "2\tSubgroupId\n" +
+        "3\tWeight\n" +
+        "4\tGroupWeight\n" +
+        "5\tNum\tf0\n" +
+        "6\tNum\tf1\n" +
+        "7\tNum\tf2\n"
+      )
+      val pairsFile = PoolTestHelpers.writeToTempFile(
+        "query0\t0\t1\n" +
+        "Query 2\t0\t2\n" + 
+        "Query 2\t1\t2\n"
+      )
+
+      val spark = SparkSession.builder()
+        //.master("local[4]")
+        .master("local[1]")
+        .appName("testLoadDSVWithPairs")
+        .getOrCreate()
+
+      val pool = Pool.load(
+        spark,
+        dataFile.toString,
+        columnDescription = cdFile,
+        params = new PoolLoadParams(),
+        pairsDataPathWithScheme = "dsv-grouped://" + pairsFile.toString
+      )
+
+      val featureNames = Array[String]("f0", "f1", "f2")
+
+      PoolTestHelpers.comparePoolWithExpectedData(
+        pool,
+        PoolTestHelpers.createSchema(
+          Seq(
+            ("features", SQLDataTypes.VectorType),
+            ("label", StringType),
+            ("groupId", LongType),
+            ("groupWeight", FloatType),
+            ("subgroupId", IntegerType),
+            ("weight", FloatType),
+            ("sampleId", LongType)
+          ),
+          featureNames,
+          nullableFields = Seq("features", "label", "groupId", "groupWeight", "subgroupId", "weight", "sampleId")
+        ),
+        Seq(
+          Row(Vectors.dense(0.13, 0.22, 0.23), "0.34", 0x86F1B93B695F9E61L, 0.0f, 0x23D794E9, 1.0f, 0L),
+          Row(Vectors.dense(0.1, 0.2, 0.11), "0.12", 0xB337C6FEFE2E2F73L, 1.0f, 0xD34BFBD7, 0.12f, 0L),
+          Row(Vectors.dense(0.97, 0.82, 0.33), "0.22", 0xB337C6FEFE2E2F73L, 1.0f, 0x19CE5B0A, 0.18f, 1L),
+          Row(Vectors.dense(0.14, 0.18, 0.1), "0.42", 0xD9DBDD3199D6518AL, 0.5f, 0x62772D1C, 0.45f, 0L),
+          Row(Vectors.dense(0.9, 0.67, 0.17), "0.01", 0xD9DBDD3199D6518AL, 0.5f, 0x19CE5B0A, 1.0f, 1L),
+          Row(Vectors.dense(0.66, 0.1, 0.31), "0.0", 0xD9DBDD3199D6518AL, 0.5f, 0x1FA606FD, 2.0f, 2L)
+        ),
+        featureNames,
+        Some(
+          Seq(
+            Row(0xB337C6FEFE2E2F73L, 0, 1),
+            Row(0xD9DBDD3199D6518AL, 0, 2),
+            Row(0xD9DBDD3199D6518AL, 1, 2)
+          )
+        ),
+        Some(
+          Seq(
+            StructField("groupId", LongType, false),
+            StructField("winnerId", IntegerType, false),
+            StructField("loserId", IntegerType, false)
+          )
+        ),
+        compareByIds = true
+      )
+    }
+    
+    @Test
+    @throws(classOf[Exception])
+    def testLoadDSVWithPairsWithWeights() = {
+      val dataFile = PoolTestHelpers.writeToTempFile(
+        "0.12\tquery0\tsite1\t0.12\t1.0\t0.1\t0.2\t0.11\n" +
+        "0.22\tquery0\tsite22\t0.18\t1.0\t0.97\t0.82\t0.33\n" +
+        "0.34\tquery1\tSite9\t1.0\t0.0\t0.13\t0.22\t0.23\n" +
+        "0.42\tQuery 2\tsite12\t0.45\t0.5\t0.14\t0.18\t0.1\n" +
+        "0.01\tQuery 2\tsite22\t1.0\t0.5\t0.9\t0.67\t0.17\n" +
+        "0.0\tQuery 2\tSite45\t2.0\t0.5\t0.66\t0.1\t0.31\n"
+      )
+      val cdFile = PoolTestHelpers.writeToTempFile(
+        "0\tTarget\n" +
+        "1\tGroupId\n" +
+        "2\tSubgroupId\n" +
+        "3\tWeight\n" +
+        "4\tGroupWeight\n" +
+        "5\tNum\tf0\n" +
+        "6\tNum\tf1\n" +
+        "7\tNum\tf2\n"
+      )
+      val pairsFile = PoolTestHelpers.writeToTempFile(
+        "query0\t0\t1\t1.0\n" +
+        "Query 2\t0\t2\t2.0\n" +
+        "Query 2\t1\t2\t0.5\n"
+      )
+
+      val spark = SparkSession.builder()
+        //.master("local[4]")
+        .master("local[1]")
+        .appName("testLoadDSVWithPairsWithWeights")
+        .getOrCreate()
+
+      val pool = Pool.load(
+        spark,
+        dataFile.toString,
+        columnDescription = cdFile,
+        params = new PoolLoadParams(),
+        pairsDataPathWithScheme = "dsv-grouped://" + pairsFile.toString
+      )
+
+      val featureNames = Array[String]("f0", "f1", "f2")
+
+      PoolTestHelpers.comparePoolWithExpectedData(
+        pool,
+        PoolTestHelpers.createSchema(
+          Seq(
+            ("features", SQLDataTypes.VectorType),
+            ("label", StringType),
+            ("groupId", LongType),
+            ("groupWeight", FloatType),
+            ("subgroupId", IntegerType),
+            ("weight", FloatType),
+            ("sampleId", LongType)
+          ),
+          featureNames,
+          nullableFields = Seq("features", "label", "groupId", "groupWeight", "subgroupId", "weight", "sampleId")
+        ),
+        Seq(
+          Row(Vectors.dense(0.13, 0.22, 0.23), "0.34", 0x86F1B93B695F9E61L, 0.0f, 0x23D794E9, 1.0f, 0L),
+          Row(Vectors.dense(0.1, 0.2, 0.11), "0.12", 0xB337C6FEFE2E2F73L, 1.0f, 0xD34BFBD7, 0.12f, 0L),
+          Row(Vectors.dense(0.97, 0.82, 0.33), "0.22", 0xB337C6FEFE2E2F73L, 1.0f, 0x19CE5B0A, 0.18f, 1L),
+          Row(Vectors.dense(0.14, 0.18, 0.1), "0.42", 0xD9DBDD3199D6518AL, 0.5f, 0x62772D1C, 0.45f, 0L),
+          Row(Vectors.dense(0.9, 0.67, 0.17), "0.01", 0xD9DBDD3199D6518AL, 0.5f, 0x19CE5B0A, 1.0f, 1L),
+          Row(Vectors.dense(0.66, 0.1, 0.31), "0.0", 0xD9DBDD3199D6518AL, 0.5f, 0x1FA606FD, 2.0f, 2L)
+        ),
+        featureNames,
+        Some(
+          Seq(
+            Row(0xB337C6FEFE2E2F73L, 0, 1, 1.0f),
+            Row(0xD9DBDD3199D6518AL, 0, 2, 2.0f),
+            Row(0xD9DBDD3199D6518AL, 1, 2, 0.5f)
+          )
+        ),
+        Some(
+          Seq(
+            StructField("groupId", LongType, false),
+            StructField("winnerId", IntegerType, false),
+            StructField("loserId", IntegerType, false),
+            StructField("weight", FloatType, false)
+          )
+        ),
+        compareByIds = true
       )
     }
 }

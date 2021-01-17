@@ -32,7 +32,7 @@ class PoolQuantizationTest {
 
         Assert.assertEquals(quantizedPool.data.schema, StructType(expectedQuantizedDataSchema))
 
-        PoolTestHelpers.assertEqualsWithPrecision(
+        TestHelpers.assertEqualsWithPrecision(
           quantizedPool.data,
           spark.createDataFrame(
             spark.sparkContext.parallelize(expectedQuantizedData),

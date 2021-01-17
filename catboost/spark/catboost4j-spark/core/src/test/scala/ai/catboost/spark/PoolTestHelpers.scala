@@ -15,7 +15,7 @@ object PoolTestHelpers {
       schemaDesc: Seq[(String,DataType)],
       featureNames: Seq[String],
       addFeatureNamesMetadata: Boolean = true,
-      nullable: Boolean = false
+      nullableFields: Seq[String] = Seq()
     ) : Seq[StructField] = {
       schemaDesc.map {
         case (name, dataType) if (addFeatureNamesMetadata && (name == "features")) => {
@@ -23,9 +23,9 @@ object PoolTestHelpers {
           val attrs = featureNames.map(defaultAttr.withName).toArray
           val attrGroup = new AttributeGroup("userFeatures", attrs.asInstanceOf[Array[Attribute]])
 
-          StructField(name, dataType, nullable, attrGroup.toMetadata)
+          StructField(name, dataType, nullableFields.contains(name), attrGroup.toMetadata)
         }
-        case (name, dataType) => StructField(name, dataType, nullable)
+        case (name, dataType) => StructField(name, dataType, nullableFields.contains(name))
       }
     }
 
@@ -36,63 +36,61 @@ object PoolTestHelpers {
       tempFile
     }
 
-    def assertEqualsWithPrecision(lhs: DataFrame, rhs: DataFrame) = {
-      Assert.assertEquals(lhs.count, rhs.count)
-
-      Assert.assertEquals(lhs.schema, rhs.schema)
-
-      val schema = lhs.schema
-      val rowSize = schema.size
-
-      val lhsRows = lhs.collect()
-      val rhsRows = rhs.collect()
-
-      for (rowIdx <- 0 until lhsRows.size) {
-        val lRow = lhsRows(rowIdx)
-        val rRow = rhsRows(rowIdx)
-
-        Assert.assertEquals(lRow.size, rowSize)
-        Assert.assertEquals(rRow.size, rowSize)
-
-        for (fieldIdx <- 0 until rowSize) {
-          schema(fieldIdx).dataType match {
-            case FloatType =>
-              Assert.assertEquals(lRow.getAs[Float](fieldIdx), rRow.getAs[Float](fieldIdx), 1e-5f)
-            case DoubleType =>
-              Assert.assertEquals(lRow.getAs[Double](fieldIdx), rRow.getAs[Double](fieldIdx), 1e-6)
-            case SQLDataTypes.VectorType =>
-              Assert.assertArrayEquals(
-                lRow.getAs[Vector](fieldIdx).toArray,
-                rRow.getAs[Vector](fieldIdx).toArray,
-                1e-6
-              )
-            case BinaryType =>
-              java.util.Arrays.equals(lRow.getAs[Array[Byte]](fieldIdx), rRow.getAs[Array[Byte]](fieldIdx))
-            case _ =>
-              Assert.assertEquals(lRow(fieldIdx), rRow(fieldIdx))
-          }
-        }
-      }
-    }
-
-
     @throws(classOf[java.lang.AssertionError])
     def comparePoolWithExpectedData(
         pool: Pool,
         expectedDataSchema: Seq[StructField],
         expectedData: Seq[Row],
-        expectedFeatureNames: Array[String]
+        expectedFeatureNames: Array[String],
+        expectedPairsData: Option[Seq[Row]] = None,
+        expectedPairsDataSchema: Option[Seq[StructField]] = None,
+        
+         // set to true if order of rows might change. Requires sampleId or (groupId, sampleId) in data
+        compareByIds: Boolean = false
     ) = {
       val spark = pool.data.sparkSession
 
-      assertEqualsWithPrecision(
-        pool.data,
-        spark.createDataFrame(
-          spark.sparkContext.parallelize(expectedData),
-          StructType(expectedDataSchema)
-        )
+      val expectedDf = spark.createDataFrame(
+        spark.sparkContext.parallelize(expectedData),
+        StructType(expectedDataSchema)
       )
-
+      
       Assert.assertTrue(pool.getFeatureNames.sameElements(expectedFeatureNames))
+      
+      Assert.assertEquals(pool.data.schema, StructType(expectedDataSchema))
+      
+      val (expectedDataToCompare, poolDataToCompare) = if (compareByIds) {
+        if (pool.isDefined(pool.groupIdCol)) {
+          (
+            expectedDf.orderBy(pool.getOrDefault(pool.groupIdCol), pool.getOrDefault(pool.sampleIdCol)),
+            pool.data.orderBy(pool.getOrDefault(pool.groupIdCol), pool.getOrDefault(pool.sampleIdCol))
+          )
+        } else {
+          (
+            expectedDf.orderBy(pool.getOrDefault(pool.sampleIdCol)),
+            pool.data.orderBy(pool.getOrDefault(pool.sampleIdCol))
+          )
+        }
+      } else {
+        (expectedDf, pool.data)
+      }
+
+      TestHelpers.assertEqualsWithPrecision(expectedDataToCompare, poolDataToCompare)
+
+      expectedPairsData match {
+        case Some(expectedPairsData) => {
+          val poolPairsDataToCompare = pool.pairsData.orderBy("groupId", "winnerIdInGroup", "loserIdInGroup")
+          
+          val expectedPairsDataToCompare = spark.createDataFrame(
+            spark.sparkContext.parallelize(expectedPairsData),
+            StructType(expectedPairsDataSchema.get)
+          ).orderBy("groupId", "winnerIdInGroup", "loserIdInGroup")
+          
+          Assert.assertTrue(pool.pairsData != null)
+          TestHelpers.assertEqualsWithPrecision(expectedPairsDataToCompare, poolPairsDataToCompare)
+        }
+        case None => Assert.assertTrue(pool.pairsData == null)
+      }
     }
+
 }
