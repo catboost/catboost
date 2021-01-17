@@ -1948,7 +1948,6 @@ migrations:
     - yabs/server/test/ft/BSSERVER-14049
     - yabs/server/test/ft/BSSERVER-14390
     - yabs/server/test/ft/BSSERVER-14407
-    - yabs/server/test/ft/BSSERVER-14894
     - yabs/server/test/ft/BSSERVER-15684
     - yabs/server/test/ft/BSSERVER-8899
     - yabs/stat/dropstat2/api
