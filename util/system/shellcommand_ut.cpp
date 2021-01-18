@@ -432,4 +432,24 @@ Y_UNIT_TEST_SUITE(TShellCommandTest) {
         UNIT_ASSERT_VALUES_EQUAL(cmd.GetOutput(), "hello" NL);
         UNIT_ASSERT_VALUES_EQUAL(cmd.GetError().size(), 0u);
     }
+    Y_UNIT_TEST(TestPipeOutput) {
+        TShellCommandOptions options;
+        options.SetAsync(true);
+        options.PipeOutput();
+        constexpr TStringBuf firstMessage = "first message";
+        constexpr TStringBuf secondMessage = "second message";
+        const TString command = TStringBuilder() << "echo '" << firstMessage << "' && sleep 10 && echo '" << secondMessage << "'";
+        TShellCommand cmd(command, options);
+        cmd.Run();
+        TUnbufferedFileInput cmdOutput(TFile(cmd.GetOutputHandle().Release()));
+        TString firstLineOutput, secondLineOutput;
+        {
+            Sleep(TDuration::Seconds(5));
+            firstLineOutput = cmdOutput.ReadLine();
+            cmd.Wait();
+            secondLineOutput = cmdOutput.ReadLine();
+        }
+        UNIT_ASSERT_VALUES_EQUAL(firstLineOutput, firstMessage);
+        UNIT_ASSERT_VALUES_EQUAL(secondLineOutput, secondLineOutput);
+    }
 }
