@@ -4,6 +4,7 @@
 #include <catboost/libs/data/quantized_features_info.h>
 #include <catboost/libs/data/unaligned_mem.h>
 #include <catboost/libs/data/visitor.h>
+#include <catboost/libs/helpers/exception.h>
 
 #include <util/generic/fwd.h>
 #include <util/generic/array_ref.h>
@@ -22,6 +23,7 @@
 
 
 %template(TVector_TMaybeOwningConstArrayHolder_float) TVector<NCB::TMaybeOwningConstArrayHolder<float>>;
+%template(TVector_TMaybeOwningConstArrayHolder_i32) TVector<NCB::TMaybeOwningConstArrayHolder<i32>>;
 
 
 %{
@@ -79,7 +81,8 @@ namespace NCB {
 
             // TQuantizedObjectsData
 
-            void AddFloatFeature(
+            void AddFeature(
+                const NCB::TFeaturesLayout& featuresLayout,
                 i32 flatFeatureIdx,
                 i32 objectCount,
                 i8 bitsPerDocumentFeature,
@@ -90,37 +93,31 @@ namespace NCB {
                     * CeilDiv<size_t>(bitsPerDocumentFeature, CHAR_BIT);
 
                 auto dataArray = TConstArrayRef<ui8>((ui8*)featureDataBuffer->data(), sizeInBytes);
-                self->AddFloatFeaturePart(
-                    SafeIntegerCast<ui32>(flatFeatureIdx),
-                    0,
-                    SafeIntegerCast<ui8>(bitsPerDocumentFeature),
-                    NCB::TMaybeOwningConstArrayHolder<ui8>::CreateOwning(
-                        dataArray,
-                        MakeIntrusive<NCB::TVectorHolder<i64>>(std::move(*featureDataBuffer))
-                    )
+                auto dataArrayHolder = NCB::TMaybeOwningConstArrayHolder<ui8>::CreateOwning(
+                    dataArray,
+                    MakeIntrusive<NCB::TVectorHolder<i64>>(std::move(*featureDataBuffer))
                 );
-            }
-
-            void AddCatFeature(
-                i32 flatFeatureIdx,
-                i32 objectCount,
-                i8 bitsPerDocumentFeature,
-                TVector<i64>* featureDataBuffer // moved into per-object data size depends on BitsPerKey
-            ) throw (yexception) {
-                size_t sizeInBytes =
-                    SafeIntegerCast<size_t>(objectCount)
-                    * CeilDiv<size_t>(bitsPerDocumentFeature, CHAR_BIT);
-
-                auto dataArray = TConstArrayRef<ui8>((ui8*)featureDataBuffer->data(), sizeInBytes);
-                self->AddCatFeaturePart(
-                    SafeIntegerCast<ui32>(flatFeatureIdx),
-                    0,
-                    SafeIntegerCast<ui8>(bitsPerDocumentFeature),
-                    NCB::TMaybeOwningConstArrayHolder<ui8>::CreateOwning(
-                        dataArray,
-                        MakeIntrusive<NCB::TVectorHolder<i64>>(std::move(*featureDataBuffer))
-                    )
-                );
+                auto featureType = featuresLayout.GetExternalFeatureType(flatFeatureIdx);
+                switch (featureType) {
+                    case EFeatureType::Float:
+                        self->AddFloatFeaturePart(
+                            SafeIntegerCast<ui32>(flatFeatureIdx),
+                            0,
+                            SafeIntegerCast<ui8>(bitsPerDocumentFeature),
+                            dataArrayHolder
+                        );
+                        break;
+                    case EFeatureType::Categorical:
+                        self->AddCatFeaturePart(
+                            SafeIntegerCast<ui32>(flatFeatureIdx),
+                            0,
+                            SafeIntegerCast<ui8>(bitsPerDocumentFeature),
+                            dataArrayHolder
+                        );
+                        break;
+                    default:
+                        CB_ENSURE(false, "AddFeature: Unsupported feature type: " << featureType);
+                }
             }
 
 

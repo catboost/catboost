@@ -19,7 +19,7 @@ import org.apache.spark.TaskContext
 import org.apache.spark.internal.Logging
 import org.apache.spark.ml.attribute._
 import org.apache.spark.ml.linalg.{SQLDataTypes,Vectors}
-import org.apache.spark.sql.{DataFrame,Row, SparkSession}
+import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.catalyst.encoders.{ExpressionEncoder,RowEncoder}
 import org.apache.spark.sql.execution.datasources._

@@ -58,17 +58,9 @@ private[spark] trait CatBoostModelTrait[Model <: org.apache.spark.ml.PredictionM
     } else {
       val resultSchema = StructType(dataset.schema.toSeq ++ additionalColumnsForApply)
 
-      val datasetFeatureNames = new TVector_TString(
-        Pool.getFeatureNames(dataFrame, $(featuresCol))
-      )
-
-      val featuresLayoutPtr = new TFeaturesLayoutPtr(
-        native_impl.MakeFeaturesLayout(
-          datasetFeatureNames.size,
-          datasetFeatureNames,
-          new TVector_i32
-        )
-      )
+      val pool = new Pool(dataFrame).setFeaturesCol($(featuresCol))
+      val featuresLayoutPtr = new TFeaturesLayoutPtr(pool.getFeaturesLayout)
+      val maxUniqCatFeatureValues = Pool.getCatFeaturesMaxUniqValueCount(dataFrame, $(featuresCol))
 
       val dstRowLength = resultSchema.length
       val threadCountForTask = SparkHelpers.getThreadCountForTask(dataset.sparkSession)
@@ -83,9 +75,10 @@ private[spark] trait CatBoostModelTrait[Model <: org.apache.spark.ml.PredictionM
               rowsIterator,
               featuresColumnIdx,
               featuresLayoutPtr,
-              native_impl.GetAvailableFloatFeatures(featuresLayoutPtr.__deref__()).toPrimitiveArray,
+              maxUniqCatFeatureValues,
               keepRawFeaturesInDstRows = true,
-              dstRowLength = dstRowLength
+              dstRowLength = dstRowLength,
+              threadCount = threadCountForTask
             )
             getResultIteratorForApply(rawObjectsDataProviderPtr, dstRows, threadCountForTask)
           } else {

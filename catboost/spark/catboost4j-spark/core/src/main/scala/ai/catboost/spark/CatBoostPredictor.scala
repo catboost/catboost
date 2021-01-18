@@ -19,8 +19,10 @@ import org.apache.spark.ml.util.DefaultParamsWritable
 import org.apache.spark.sql.{DataFrame,Dataset,Row}
 import org.apache.spark.TaskContext
 
-import ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl
-import ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl.QuantizedFeaturesInfoPtr
+import ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl._
+
+import ai.catboost.spark.impl.{CtrsContext,CtrFeatures}
+
 
 /**
  * Base trait with common functionality for both [[CatBoostClassifier]] and [[CatBoostRegressor]]
@@ -34,24 +36,57 @@ trait CatBoostPredictorTrait[
 {
   this: params.TrainingParamsTrait =>
 
+  /**
+   *  @return (preprocessedTrainPool, preprocessedEvalPools, ctrsContext)
+   */
+  protected def addEstimatedCtrFeatures(
+    quantizedTrainPool: Pool,
+    quantizedEvalPools: Array[Pool],
+    catBoostJsonParams: JObject
+  ) : (Pool, Array[Pool], CtrsContext) = {
+    val catFeaturesMaxUniqValueCount = native_impl.CalcMaxCategoricalFeaturesUniqueValuesCountOnLearn(
+      quantizedTrainPool.quantizedFeaturesInfo.__deref__()
+    )
+
+    val oneHotMaxSize = native_impl.GetOneHotMaxSize(
+      catFeaturesMaxUniqValueCount, 
+      quantizedTrainPool.isDefined(quantizedTrainPool.labelCol),
+      compact(catBoostJsonParams)
+    )
+    if (catFeaturesMaxUniqValueCount > oneHotMaxSize) {
+      CtrFeatures.addCtrsAsEstimated(
+        quantizedTrainPool,
+        quantizedEvalPools,
+        this,
+        oneHotMaxSize
+      )
+    } else {
+      (quantizedTrainPool, quantizedEvalPools, null)
+    }
+  }
+    
 
   /**
    *  override in descendants if necessary
    *
-   *  @return (preprocessedTrainPool, preprocessedEvalPools, catBoostJsonParams)
+   *  @return (preprocessedTrainPool, preprocessedEvalPools, catBoostJsonParams, ctrsContext)
    */
   protected def preprocessBeforeTraining(
     quantizedTrainPool: Pool,
     quantizedEvalPools: Array[Pool]
-  ) : (Pool, Array[Pool], JObject) = {
+  ) : (Pool, Array[Pool], JObject, CtrsContext) = {
+    val catBoostJsonParams = ai.catboost.spark.params.Helpers.sparkMlParamsToCatBoostJsonParams(this)
+    val (preprocessedTrainPool, preprocessedEvalPools, ctrsContext) 
+        = addEstimatedCtrFeatures(quantizedTrainPool, quantizedEvalPools, catBoostJsonParams)
     (
-      quantizedTrainPool,
-      quantizedEvalPools,
-      ai.catboost.spark.params.Helpers.sparkMlParamsToCatBoostJsonParams(this)
+      preprocessedTrainPool, 
+      preprocessedEvalPools, 
+      catBoostJsonParams, 
+      ctrsContext
     )
   }
 
-  protected def createModel(fullModel: native_impl.TFullModel) : Model;
+  protected def createModel(fullModel: TFullModel) : Model;
 
   protected override def train(dataset: Dataset[_]): Model = {
     val pool = new Pool(dataset.asInstanceOf[DataFrame])
@@ -96,7 +131,7 @@ trait CatBoostPredictorTrait[
       this.logInfo(s"fit. schedule quantization for train dataset")
       trainPool.quantize(quantizationParams)
     }
-    
+
     // TODO(akhropov): eval pools are not distributed for now, so they are not repartitioned
     var evalIdx = 0
     val quantizedEvalPools = evalPools.map {
@@ -110,19 +145,27 @@ trait CatBoostPredictorTrait[
         }
       }
     }
-    val (preprocessedTrainPool, preprocessedEvalPools, catBoostJsonParams) = preprocessBeforeTraining(
-      quantizedTrainPool,
-      quantizedEvalPools
-    )
-    
-    val master = impl.Master(
-      preprocessedTrainPool, 
-      preprocessedEvalPools, 
-      compact(catBoostJsonParams)
-    )
-    
+    val (preprocessedTrainPool, preprocessedEvalPools, catBoostJsonParams, ctrsContext) 
+      = preprocessBeforeTraining(
+        quantizedTrainPool,
+        quantizedEvalPools
+      )
+      
     val partitionCount = get(sparkPartitionCount).getOrElse(SparkHelpers.getWorkerCount(spark))
     this.logInfo(s"fit. partitionCount=${partitionCount}")
+    
+    val precomputedOnlineCtrMetaDataAsJsonString = if (ctrsContext != null) {
+      ctrsContext.precomputedOnlineCtrMetaDataAsJsonString
+    } else {
+      null
+    }
+
+    val master = impl.Master(
+      preprocessedTrainPool,
+      preprocessedEvalPools,
+      compact(catBoostJsonParams),
+      precomputedOnlineCtrMetaDataAsJsonString
+    )
 
     val trainingDriver : TrainingDriver = new TrainingDriver(
       listeningPort = 0,
@@ -145,7 +188,8 @@ trait CatBoostPredictorTrait[
       partitionCount,
       listeningPort,
       preprocessedTrainPool,
-      catBoostJsonParams
+      catBoostJsonParams,
+      precomputedOnlineCtrMetaDataAsJsonString
     )
 
     val workersFuture = ecs.submit(workers, ())
@@ -160,6 +204,18 @@ trait CatBoostPredictorTrait[
     
     this.logInfo(s"fit. Training finished")
 
-    createModel(master.nativeModelResult)
+    createModel(
+      if (ctrsContext != null) {
+        this.logInfo(s"fit. Add CtrProvider to model")
+        CtrFeatures.addCtrProviderToModel(
+          master.nativeModelResult,
+          ctrsContext,
+          preprocessedTrainPool,
+          preprocessedEvalPools
+        ) 
+      } else {
+        master.nativeModelResult 
+      }
+    )
   }
 }

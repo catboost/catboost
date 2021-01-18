@@ -115,7 +115,7 @@ public:
 public:
     NCB::TOnlineCtrUniqValuesCounts GetUniqValuesCounts(const TProjection& projection) const override {
         Y_ASSERT(projection.IsSingleCatFeature());
-        return Data.ValuesCounts[projection.CatFeatures[0]];
+        return Data.Meta.ValuesCounts.at(projection.CatFeatures[0]);
     }
 
     TConstArrayRef<ui8> GetData(const TCtr& ctr, ui32 datasetIdx) const override;
@@ -138,7 +138,7 @@ void ComputeOnlineCTRs(
     const TVector<TVector<int>>& foldLearnTargetClass,
     const TVector<int>& foldTargetClassesCount,
     const NCatboostOptions::TCatFeatureParams& catFeatureParams,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     IOnlineCtrProjectionDataWriter* writer
 );
 

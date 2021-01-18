@@ -1292,7 +1292,11 @@ void NCB::DbgDumpQuantizedFeatures(
 
     featuresLayout.IterateOverAvailableFeatures<EFeatureType::Float>(
         [&] (TFloatFeatureIdx floatFeatureIdx) {
-            (*quantizedObjectsDataProvider.GetFloatFeature(*floatFeatureIdx))->ForEachBlock(
+            auto feature = quantizedObjectsDataProvider.GetFloatFeature(*floatFeatureIdx);
+            if (!feature)
+                return;
+
+            (*feature)->ForEachBlock(
                 [out, floatFeatureIdx] (size_t blockStartOffset, auto block) {
                     for (auto i : xrange(block.size())) {
                         auto objectIdx = i + blockStartOffset;
@@ -1306,7 +1310,11 @@ void NCB::DbgDumpQuantizedFeatures(
 
     featuresLayout.IterateOverAvailableFeatures<EFeatureType::Categorical>(
         [&] (TCatFeatureIdx catFeatureIdx) {
-            (*quantizedObjectsDataProvider.GetCatFeature(*catFeatureIdx))->ForEachBlock(
+            auto feature = quantizedObjectsDataProvider.GetCatFeature(*catFeatureIdx);
+            if (!feature)
+                return;
+
+            (*feature)->ForEachBlock(
                 [out, catFeatureIdx] (size_t blockStartOffset, auto block) {
                     for (auto i : xrange(block.size())) {
                         auto objectIdx = i + blockStartOffset;

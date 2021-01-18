@@ -1206,7 +1206,6 @@ static TSplitTree GreedyTensorSearchOblivious(
                 }
             }
         } else {
-            Y_ASSERT(bestSplit.Type != ESplitType::OnlineCtr);
             MapSetIndices(bestSplit, ctx);
         }
         currentSplitTree.AddSplit(bestSplit);

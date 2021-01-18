@@ -1,8 +1,7 @@
 #include "features_layout.h"
 
-#include <util/generic/cast.h>
 #include <util/generic/string.h>
-#include <util/generic/vector.h>
+
 
 using namespace NCB;
 
@@ -35,14 +34,21 @@ TFeaturesLayout MakeFeaturesLayout(
     return result;
 }
 
-TVector<i32> GetAvailableFloatFeatures(const TFeaturesLayout& featuresLayout) throw (yexception) {
-    TVector<i32> result;
-    result.reserve(featuresLayout.GetFloatFeatureCount());
-    featuresLayout.IterateOverAvailableFeatures<EFeatureType::Float>(
-        [&] (TFloatFeatureIdx idx) {
-            result.push_back(SafeIntegerCast<i32>(*idx));
-        }
-    );
-
-    return result;
+NCB::TFeaturesLayoutPtr CloneWithSelectedFeatures(
+    const NCB::TFeaturesLayout& featuresLayout,
+    TConstArrayRef<i32> selectedFeatures
+) throw (yexception) {
+    TConstArrayRef<TFeatureMetaInfo> srcFeaturesMetaInfo = featuresLayout.GetExternalFeaturesMetaInfo();
+    TVector<TFeatureMetaInfo> dstFeaturesMetaInfo;
+    dstFeaturesMetaInfo.reserve(srcFeaturesMetaInfo.size());
+    for (const auto& srcFeatureMetaInfo : srcFeaturesMetaInfo) {
+        dstFeaturesMetaInfo.push_back(srcFeatureMetaInfo);
+        dstFeaturesMetaInfo.back().IsIgnored = true;
+        dstFeaturesMetaInfo.back().IsAvailable = false;
+    }
+    for (auto i : selectedFeatures) {
+        dstFeaturesMetaInfo[i].IsIgnored = false;
+        dstFeaturesMetaInfo[i].IsAvailable = true;
+    }
+    return MakeIntrusive<TFeaturesLayout>(&dstFeaturesMetaInfo);
 }

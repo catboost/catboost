@@ -15,12 +15,23 @@ object PoolTestHelpers {
       schemaDesc: Seq[(String,DataType)],
       featureNames: Seq[String],
       addFeatureNamesMetadata: Boolean = true,
-      nullableFields: Seq[String] = Seq()
+      nullableFields: Seq[String] = Seq(),
+      catFeaturesNumValues: Map[String,Int] = Map[String,Int](),
+      catFeaturesValues: Map[String,Seq[String]] = Map[String,Seq[String]]()
     ) : Seq[StructField] = {
       schemaDesc.map {
-        case (name, dataType) if (addFeatureNamesMetadata && (name == "features")) => {
-          val defaultAttr = NumericAttribute.defaultAttr
-          val attrs = featureNames.map(defaultAttr.withName).toArray
+        case (name, dataType) if (addFeatureNamesMetadata && ((name == "features") || (name == "f1"))) => {
+          val attrs = featureNames.map(
+            name => {
+              if (catFeaturesNumValues.contains(name)) {
+                NominalAttribute.defaultAttr.withName(name).withNumValues(catFeaturesNumValues(name))
+              } else if (catFeaturesValues.contains(name)) {
+                NominalAttribute.defaultAttr.withName(name).withValues(catFeaturesValues(name).toArray)
+              } else {
+                NumericAttribute.defaultAttr.withName(name)
+              }
+            }
+          ).toArray
           val attrGroup = new AttributeGroup("userFeatures", attrs.asInstanceOf[Array[Attribute]])
 
           StructField(name, dataType, nullableFields.contains(name), attrGroup.toMetadata)
@@ -76,15 +87,16 @@ object PoolTestHelpers {
       }
 
       TestHelpers.assertEqualsWithPrecision(expectedDataToCompare, poolDataToCompare)
-
+      
+      
       expectedPairsData match {
         case Some(expectedPairsData) => {
-          val poolPairsDataToCompare = pool.pairsData.orderBy("groupId", "winnerIdInGroup", "loserIdInGroup")
+          val poolPairsDataToCompare = pool.pairsData.orderBy("groupId", "winnerId", "loserId")
           
           val expectedPairsDataToCompare = spark.createDataFrame(
             spark.sparkContext.parallelize(expectedPairsData),
             StructType(expectedPairsDataSchema.get)
-          ).orderBy("groupId", "winnerIdInGroup", "loserIdInGroup")
+          ).orderBy("groupId", "winnerId", "loserId")
           
           Assert.assertTrue(pool.pairsData != null)
           TestHelpers.assertEqualsWithPrecision(expectedPairsDataToCompare, poolPairsDataToCompare)
@@ -93,4 +105,33 @@ object PoolTestHelpers {
       }
     }
 
+    def createRawPool(
+      appName: String,
+      srcDataSchema : Seq[StructField],
+      srcData: Seq[Row], 
+      columnNames: Map[String, String] // standard column name to name of column in the dataset
+    ) : Pool = {
+      val spark = TestHelpers.getOrCreateSparkSession(appName)
+
+      val df = spark.createDataFrame(spark.sparkContext.parallelize(srcData), StructType(srcDataSchema));
+
+      var pool = new Pool(df)
+      
+      if (columnNames.contains("features")) {
+        pool = pool.setFeaturesCol(columnNames("features"))
+      }
+      if (columnNames.contains("groupId")) {
+        pool = pool.setGroupIdCol(columnNames("groupId"))
+      }
+      if (columnNames.contains("subgroupId")) {
+        pool = pool.setSubgroupIdCol(columnNames("subgroupId"))
+      }
+      if (columnNames.contains("weight")) {
+        pool = pool.setWeightCol(columnNames("weight"))
+      }
+      if (columnNames.contains("groupWeight")) {
+        pool = pool.setGroupWeightCol(columnNames("groupWeight"))
+      }
+      pool
+    }
 }

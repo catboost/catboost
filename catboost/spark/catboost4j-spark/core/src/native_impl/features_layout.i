@@ -125,3 +125,9 @@ namespace NCB {
 %template(TFeaturesLayoutPtr) TIntrusivePtr<NCB::TFeaturesLayout>;
 
 %include "features_layout.h"
+
+%template(GetAvailableFeatures_Float) GetAvailableFeatures<EFeatureType::Float>;
+%template(GetAvailableFeatures_Categorical) GetAvailableFeatures<EFeatureType::Categorical>;
+
+%template(GetAvailableFeaturesFlatIndices_Float) GetAvailableFeaturesFlatIndices<EFeatureType::Float>;
+%template(GetAvailableFeaturesFlatIndices_Categorical) GetAvailableFeaturesFlatIndices<EFeatureType::Categorical>;

@@ -35,6 +35,8 @@ namespace NCatboostOptions {
         NCB::TPathWithScheme LearnSetPath;
         TVector<NCB::TPathWithScheme> TestSetPaths;
 
+        TVector<NCB::TPathWithScheme> TestPrecomputedSetPaths;
+
         NCB::TPathWithScheme PairsFilePath;
         NCB::TPathWithScheme TestPairsFilePath;
 
@@ -55,6 +57,8 @@ namespace NCatboostOptions {
 
         bool HostsAlreadyContainLoadedData = false;
 
+        TString PrecomputedMetadataFile;
+
         TPoolLoadParams() = default;
 
         void Validate() const;
@@ -62,10 +66,11 @@ namespace NCatboostOptions {
         void ValidateLearn() const;
 
         SAVELOAD(
-            CvParams, ColumnarPoolFormatParams, LearnSetPath, TestSetPaths,
+            CvParams, ColumnarPoolFormatParams, LearnSetPath, TestSetPaths, TestPrecomputedSetPaths,
             PairsFilePath, TestPairsFilePath, GroupWeightsFilePath, TestGroupWeightsFilePath,
             TimestampsFilePath, TestTimestampsFilePath, BaselineFilePath, TestBaselineFilePath,
-            ClassLabels, IgnoredFeatures, BordersFile, FeatureNamesPath, HostsAlreadyContainLoadedData
+            ClassLabels, IgnoredFeatures, BordersFile, FeatureNamesPath, HostsAlreadyContainLoadedData,
+            PrecomputedMetadataFile
         );
     };
 

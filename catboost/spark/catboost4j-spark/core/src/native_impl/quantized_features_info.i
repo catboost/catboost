@@ -115,7 +115,7 @@ namespace NCB {
                     out.writeObject(featuresLayout);
 
                     int[] availableFloatFeatures
-                        = native_impl.GetAvailableFloatFeatures(featuresLayout).toPrimitiveArray();
+                        = native_impl.GetAvailableFeatures_Float(featuresLayout).toPrimitiveArray();
 
                     ENanMode nanMode;
                     TVector_float borders = new TVector_float();
@@ -133,6 +133,8 @@ namespace NCB {
                             out.writeUnshared(defaultQuantizedBin);
                         }
                     }
+
+                    out.writeUnshared(native_impl.GetCategoricalFeaturesUniqueValuesCounts(this));
                 } catch (Exception e) {
                     throw new IOException(e);
                 }
@@ -146,7 +148,7 @@ namespace NCB {
                     TFeaturesLayout featuresLayout = (TFeaturesLayout)in.readObject();
 
                     int[] availableFloatFeatures
-                        = native_impl.GetAvailableFloatFeatures(featuresLayout).toPrimitiveArray();
+                        = native_impl.GetAvailableFeatures_Float(featuresLayout).toPrimitiveArray();
 
                     Init(featuresLayout);
 
@@ -160,6 +162,12 @@ namespace NCB {
                         }
                         this.SetQuantization(i, borders, defaultQuantizedBin);
                     }
+
+                    TVector_i32 catFeaturesUniqueValuesCounts = (TVector_i32)in.readUnshared();
+                    native_impl.UpdateCatFeaturesInfo(
+                        catFeaturesUniqueValuesCounts.toPrimitiveArray(),
+                        this
+                    );
                 } catch (Exception e) {
                     throw new IOException(e);
                 }
