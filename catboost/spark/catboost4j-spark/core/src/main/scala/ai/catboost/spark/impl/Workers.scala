@@ -2,6 +2,9 @@ package ai.catboost.spark.impl
 
 import collection.mutable.HashMap
 
+import concurrent.duration.Duration
+import concurrent.{Await,Future}
+
 import java.net._
 import java.util.concurrent.{ExecutorCompletionService,Executors}
 import java.util.concurrent.atomic.AtomicBoolean
@@ -121,7 +124,11 @@ private[spark] class Workers(
   val trainingDriverListeningPort: Int,
   val preprocessedTrainPool: Pool,
   val catBoostJsonParams: JObject,
-  val precomputedOnlineCtrMetaDataAsJsonString: String
+  val precomputedOnlineCtrMetaDataAsJsonString: String,
+  
+  // needed here because CatBoost master should get all its data before workers 
+  // occupy all cores on their executors
+  val masterSavedPoolsFuture: Future[(PoolFilesPaths, Array[PoolFilesPaths])]
 ) extends Runnable {
   def run() = {
     val trainingDriverListeningAddress = new InetSocketAddress(
@@ -162,7 +169,14 @@ private[spark] class Workers(
         trainDataForWorkers, 
         columnIndexMapForWorkers("groupId"), 
         preprocessedTrainPool.pairsData
-      ).repartition(workerCount)
+      ).repartition(workerCount).cache()
+      
+      // Force cache before starting worker processes
+      cogroupedTrainData.count()
+      
+      // make sure CatBoost master downloaded all the necessary data from cluster before starting worker processes
+      Await.result(masterSavedPoolsFuture, Duration.Inf)
+      
       val pairsSchema = preprocessedTrainPool.pairsData.schema
 
       cogroupedTrainData.foreachPartition {
@@ -193,7 +207,15 @@ private[spark] class Workers(
         }
       }
     } else {
-      trainDataForWorkers.repartition(workerCount).foreachPartition {
+      val repartitionedTrainDataForWorkers = trainDataForWorkers.repartition(workerCount).cache()
+      
+      // Force cache before starting worker processes
+      repartitionedTrainDataForWorkers.count()
+      
+      // make sure CatBoost master downloaded all the necessary data from cluster before starting worker processes
+      Await.result(masterSavedPoolsFuture, Duration.Inf)
+      
+      repartitionedTrainDataForWorkers.foreachPartition {
         rows : Iterator[Row] => {
           Worker.processPartition(
             trainingDriverListeningAddress,
