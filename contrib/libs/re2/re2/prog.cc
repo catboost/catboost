@@ -7,6 +7,12 @@
 
 #include "re2/prog.h"
 
+#if defined(__AVX2__)
+#include <immintrin.h>
+#ifdef _MSC_VER
+#include <intrin.h>
+#endif
+#endif
 #include <stdint.h>
 #include <string.h>
 #include <algorithm>
@@ -34,7 +40,7 @@ void Prog::Inst::InitByteRange(int lo, int hi, int foldcase, uint32_t out) {
   set_out_opcode(out, kInstByteRange);
   lo_ = lo & 0xFF;
   hi_ = hi & 0xFF;
-  foldcase_ = foldcase & 0xFF;
+  hint_foldcase_ = foldcase&1;
 }
 
 void Prog::Inst::InitCapture(int cap, uint32_t out) {
@@ -65,7 +71,7 @@ void Prog::Inst::InitFail() {
   set_opcode(kInstFail);
 }
 
-string Prog::Inst::Dump() {
+std::string Prog::Inst::Dump() {
   switch (opcode()) {
     default:
       return StringPrintf("opcode %d", static_cast<int>(opcode()));
@@ -77,9 +83,9 @@ string Prog::Inst::Dump() {
       return StringPrintf("altmatch -> %d | %d", out(), out1_);
 
     case kInstByteRange:
-      return StringPrintf("byte%s [%02x-%02x] -> %d",
-                          foldcase_ ? "/i" : "",
-                          lo_, hi_, out());
+      return StringPrintf("byte%s [%02x-%02x] %d -> %d",
+                          foldcase() ? "/i" : "",
+                          lo_, hi_, hint(), out());
 
     case kInstCapture:
       return StringPrintf("capture %d -> %d", cap_, out());
@@ -109,11 +115,10 @@ Prog::Prog()
     start_unanchored_(0),
     size_(0),
     bytemap_range_(0),
-    first_byte_(-1),
-    flags_(0),
+    prefix_size_(0),
+    prefix_front_(-1),
+    prefix_back_(-1),
     list_count_(0),
-    inst_(NULL),
-    onepass_nodes_(NULL),
     dfa_mem_(0),
     dfa_first_(NULL),
     dfa_longest_(NULL) {
@@ -122,8 +127,6 @@ Prog::Prog()
 Prog::~Prog() {
   DeleteDFA(dfa_longest_);
   DeleteDFA(dfa_first_);
-  delete[] onepass_nodes_;
-  delete[] inst_;
 }
 
 typedef SparseSet Workq;
@@ -133,12 +136,12 @@ static inline void AddToQueue(Workq* q, int id) {
     q->insert(id);
 }
 
-static string ProgToString(Prog* prog, Workq* q) {
-  string s;
+static std::string ProgToString(Prog* prog, Workq* q) {
+  std::string s;
   for (Workq::iterator i = q->begin(); i != q->end(); ++i) {
     int id = *i;
     Prog::Inst* ip = prog->inst(id);
-    StringAppendF(&s, "%d. %s\n", id, ip->Dump().c_str());
+    s += StringPrintf("%d. %s\n", id, ip->Dump().c_str());
     AddToQueue(q, ip->out());
     if (ip->opcode() == kInstAlt || ip->opcode() == kInstAltMatch)
       AddToQueue(q, ip->out1());
@@ -146,19 +149,19 @@ static string ProgToString(Prog* prog, Workq* q) {
   return s;
 }
 
-static string FlattenedProgToString(Prog* prog, int start) {
-  string s;
+static std::string FlattenedProgToString(Prog* prog, int start) {
+  std::string s;
   for (int id = start; id < prog->size(); id++) {
     Prog::Inst* ip = prog->inst(id);
     if (ip->last())
-      StringAppendF(&s, "%d. %s\n", id, ip->Dump().c_str());
+      s += StringPrintf("%d. %s\n", id, ip->Dump().c_str());
     else
-      StringAppendF(&s, "%d+ %s\n", id, ip->Dump().c_str());
+      s += StringPrintf("%d+ %s\n", id, ip->Dump().c_str());
   }
   return s;
 }
 
-string Prog::Dump() {
+std::string Prog::Dump() {
   if (did_flatten_)
     return FlattenedProgToString(this, start_);
 
@@ -167,7 +170,7 @@ string Prog::Dump() {
   return ProgToString(this, &q);
 }
 
-string Prog::DumpUnanchored() {
+std::string Prog::DumpUnanchored() {
   if (did_flatten_)
     return FlattenedProgToString(this, start_unanchored_);
 
@@ -176,27 +179,44 @@ string Prog::DumpUnanchored() {
   return ProgToString(this, &q);
 }
 
-string Prog::DumpByteMap() {
-  string map;
+std::string Prog::DumpByteMap() {
+  std::string map;
   for (int c = 0; c < 256; c++) {
     int b = bytemap_[c];
     int lo = c;
     while (c < 256-1 && bytemap_[c+1] == b)
       c++;
     int hi = c;
-    StringAppendF(&map, "[%02x-%02x] -> %d\n", lo, hi, b);
+    map += StringPrintf("[%02x-%02x] -> %d\n", lo, hi, b);
   }
   return map;
 }
 
-int Prog::first_byte() {
-  std::call_once(first_byte_once_, [](Prog* prog) {
-    prog->first_byte_ = prog->ComputeFirstByte();
-  }, this);
-  return first_byte_;
-}
+// Is ip a guaranteed match at end of text, perhaps after some capturing?
+static bool IsMatch(Prog* prog, Prog::Inst* ip) {
+  for (;;) {
+    switch (ip->opcode()) {
+      default:
+        LOG(DFATAL) << "Unexpected opcode in IsMatch: " << ip->opcode();
+        return false;
 
-static bool IsMatch(Prog*, Prog::Inst*);
+      case kInstAlt:
+      case kInstAltMatch:
+      case kInstByteRange:
+      case kInstFail:
+      case kInstEmptyWidth:
+        return false;
+
+      case kInstCapture:
+      case kInstNop:
+        ip = prog->inst(ip->out());
+        break;
+
+      case kInstMatch:
+        return true;
+    }
+  }
+}
 
 // Peep-hole optimizer.
 void Prog::Optimize() {
@@ -262,54 +282,28 @@ void Prog::Optimize() {
   }
 }
 
-// Is ip a guaranteed match at end of text, perhaps after some capturing?
-static bool IsMatch(Prog* prog, Prog::Inst* ip) {
-  for (;;) {
-    switch (ip->opcode()) {
-      default:
-        LOG(DFATAL) << "Unexpected opcode in IsMatch: " << ip->opcode();
-        return false;
-
-      case kInstAlt:
-      case kInstAltMatch:
-      case kInstByteRange:
-      case kInstFail:
-      case kInstEmptyWidth:
-        return false;
-
-      case kInstCapture:
-      case kInstNop:
-        ip = prog->inst(ip->out());
-        break;
-
-      case kInstMatch:
-        return true;
-    }
-  }
-}
-
 uint32_t Prog::EmptyFlags(const StringPiece& text, const char* p) {
   int flags = 0;
 
   // ^ and \A
-  if (p == text.begin())
+  if (p == text.data())
     flags |= kEmptyBeginText | kEmptyBeginLine;
   else if (p[-1] == '\n')
     flags |= kEmptyBeginLine;
 
   // $ and \z
-  if (p == text.end())
+  if (p == text.data() + text.size())
     flags |= kEmptyEndText | kEmptyEndLine;
-  else if (p < text.end() && p[0] == '\n')
+  else if (p < text.data() + text.size() && p[0] == '\n')
     flags |= kEmptyEndLine;
 
   // \b and \B
-  if (p == text.begin() && p == text.end()) {
+  if (p == text.data() && p == text.data() + text.size()) {
     // no word boundary here
-  } else if (p == text.begin()) {
+  } else if (p == text.data()) {
     if (IsWordChar(p[0]))
       flags |= kEmptyWordBoundary;
-  } else if (p == text.end()) {
+  } else if (p == text.data() + text.size()) {
     if (IsWordChar(p[-1]))
       flags |= kEmptyWordBoundary;
   } else {
@@ -345,7 +339,6 @@ class ByteMapBuilder {
     // This will avoid problems during the second phase,
     // in which we assign byte classes numbered from 0.
     splits_.Set(255);
-    colors_.resize(256);
     colors_[255] = 256;
     nextcolor_ = 257;
   }
@@ -358,7 +351,7 @@ class ByteMapBuilder {
   int Recolor(int oldcolor);
 
   Bitmap256 splits_;
-  std::vector<int> colors_;
+  int colors_[256];
   int nextcolor_;
   std::vector<std::pair<int, int>> colormap_;
   std::vector<std::pair<int, int>> ranges_;
@@ -472,8 +465,11 @@ void Prog::ComputeByteMap() {
           foldlo = 'a';
         if (foldhi > 'z')
           foldhi = 'z';
-        if (foldlo <= foldhi)
-          builder.Mark(foldlo + 'A' - 'a', foldhi + 'A' - 'a');
+        if (foldlo <= foldhi) {
+          foldlo += 'A' - 'a';
+          foldhi += 'A' - 'a';
+          builder.Mark(foldlo, foldhi);
+        }
       }
       // If this Inst is not the last Inst in its list AND the next Inst is
       // also a ByteRange AND the Insts have the same out, defer the merge.
@@ -540,7 +536,7 @@ void Prog::ComputeByteMap() {
 // dominator of the instructions reachable from some "successor root" (i.e. it
 // has an unreachable predecessor) and is considered a "dominator root". Since
 // only Alt instructions can be "dominator roots" (other instructions would be
-// "leaves"), only Alt instructions require their predecessors to be computed.
+// "leaves"), only Alt instructions are required to be marked as predecessors.
 //
 // Dividing the Prog into "trees" comprises two passes: marking the "successor
 // roots" and the predecessors; and marking the "dominator roots". Sorting the
@@ -595,6 +591,9 @@ void Prog::Flatten() {
     flatmap[i->value()] = static_cast<int>(flat.size());
     EmitList(i->index(), &rootmap, &flat, &reachable, &stk);
     flat.back().set_last();
+    // We have the bounds of the "list", so this is the
+    // most convenient point at which to compute hints.
+    ComputeHints(&flat, flatmap[i->value()], static_cast<int>(flat.size()));
   }
 
   list_count_ = static_cast<int>(flatmap.size());
@@ -628,9 +627,18 @@ void Prog::Flatten() {
 
   // Finally, replace the old instructions with the new instructions.
   size_ = static_cast<int>(flat.size());
-  delete[] inst_;
-  inst_ = new Inst[size_];
-  memmove(inst_, flat.data(), size_ * sizeof *inst_);
+  inst_ = PODArray<Inst>(size_);
+  memmove(inst_.data(), flat.data(), size_*sizeof inst_[0]);
+
+  // Populate the list heads for BitState.
+  // 512 instructions limits the memory footprint to 1KiB.
+  if (size_ <= 512) {
+    list_heads_ = PODArray<uint16_t>(size_);
+    // 0xFF makes it more obvious if we try to look up a non-head.
+    memset(list_heads_.data(), 0xFF, size_*sizeof list_heads_[0]);
+    for (int i = 0; i < list_count_; ++i)
+      list_heads_[flatmap[i]] = i;
+  }
 }
 
 void Prog::MarkSuccessors(SparseArray<int>* rootmap,
@@ -820,6 +828,160 @@ void Prog::EmitList(int root, SparseArray<int>* rootmap,
         memmove(&flat->back(), ip, sizeof *ip);
         break;
     }
+  }
+}
+
+// For each ByteRange instruction in [begin, end), computes a hint to execution
+// engines: the delta to the next instruction (in flat) worth exploring iff the
+// current instruction matched.
+//
+// Implements a coloring algorithm related to ByteMapBuilder, but in this case,
+// colors are instructions and recoloring ranges precisely identifies conflicts
+// between instructions. Iterating backwards over [begin, end) is guaranteed to
+// identify the nearest conflict (if any) with only linear complexity.
+void Prog::ComputeHints(std::vector<Inst>* flat, int begin, int end) {
+  Bitmap256 splits;
+  int colors[256];
+
+  bool dirty = false;
+  for (int id = end; id >= begin; --id) {
+    if (id == end ||
+        (*flat)[id].opcode() != kInstByteRange) {
+      if (dirty) {
+        dirty = false;
+        splits.Clear();
+      }
+      splits.Set(255);
+      colors[255] = id;
+      // At this point, the [0-255] range is colored with id.
+      // Thus, hints cannot point beyond id; and if id == end,
+      // hints that would have pointed to id will be 0 instead.
+      continue;
+    }
+    dirty = true;
+
+    // We recolor the [lo-hi] range with id. Note that first ratchets backwards
+    // from end to the nearest conflict (if any) during recoloring.
+    int first = end;
+    auto Recolor = [&](int lo, int hi) {
+      // Like ByteMapBuilder, we split at lo-1 and at hi.
+      --lo;
+
+      if (0 <= lo && !splits.Test(lo)) {
+        splits.Set(lo);
+        int next = splits.FindNextSetBit(lo+1);
+        colors[lo] = colors[next];
+      }
+      if (!splits.Test(hi)) {
+        splits.Set(hi);
+        int next = splits.FindNextSetBit(hi+1);
+        colors[hi] = colors[next];
+      }
+
+      int c = lo+1;
+      while (c < 256) {
+        int next = splits.FindNextSetBit(c);
+        // Ratchet backwards...
+        first = std::min(first, colors[next]);
+        // Recolor with id - because it's the new nearest conflict!
+        colors[next] = id;
+        if (next == hi)
+          break;
+        c = next+1;
+      }
+    };
+
+    Inst* ip = &(*flat)[id];
+    int lo = ip->lo();
+    int hi = ip->hi();
+    Recolor(lo, hi);
+    if (ip->foldcase() && lo <= 'z' && hi >= 'a') {
+      int foldlo = lo;
+      int foldhi = hi;
+      if (foldlo < 'a')
+        foldlo = 'a';
+      if (foldhi > 'z')
+        foldhi = 'z';
+      if (foldlo <= foldhi) {
+        foldlo += 'A' - 'a';
+        foldhi += 'A' - 'a';
+        Recolor(foldlo, foldhi);
+      }
+    }
+
+    if (first != end) {
+      uint16_t hint = static_cast<uint16_t>(std::min(first - id, 32767));
+      ip->hint_foldcase_ |= hint<<1;
+    }
+  }
+}
+
+#if defined(__AVX2__)
+// Finds the least significant non-zero bit in n.
+static int FindLSBSet(uint32_t n) {
+  DCHECK_NE(n, 0);
+#if defined(__GNUC__)
+  return __builtin_ctz(n);
+#elif defined(_MSC_VER) && (defined(_M_X64) || defined(_M_IX86))
+  unsigned long c;
+  _BitScanForward(&c, n);
+  return static_cast<int>(c);
+#else
+  int c = 31;
+  for (int shift = 1 << 4; shift != 0; shift >>= 1) {
+    uint32_t word = n << shift;
+    if (word != 0) {
+      n = word;
+      c -= shift;
+    }
+  }
+  return c;
+#endif
+}
+#endif
+
+const void* Prog::PrefixAccel_FrontAndBack(const void* data, size_t size) {
+  DCHECK_GE(prefix_size_, 2);
+  if (size < prefix_size_)
+    return NULL;
+  // Don't bother searching the last prefix_size_-1 bytes for prefix_front_.
+  // This also means that probing for prefix_back_ doesn't go out of bounds.
+  size -= prefix_size_-1;
+
+#if defined(__AVX2__)
+  // Use AVX2 to look for prefix_front_ and prefix_back_ 32 bytes at a time.
+  if (size >= sizeof(__m256i)) {
+    const __m256i* fp = reinterpret_cast<const __m256i*>(
+        reinterpret_cast<const char*>(data));
+    const __m256i* bp = reinterpret_cast<const __m256i*>(
+        reinterpret_cast<const char*>(data) + prefix_size_-1);
+    const __m256i* endfp = fp + size/sizeof(__m256i);
+    const __m256i f_set1 = _mm256_set1_epi8(prefix_front_);
+    const __m256i b_set1 = _mm256_set1_epi8(prefix_back_);
+    while (fp != endfp) {
+      const __m256i f_loadu = _mm256_loadu_si256(fp++);
+      const __m256i b_loadu = _mm256_loadu_si256(bp++);
+      const __m256i f_cmpeq = _mm256_cmpeq_epi8(f_set1, f_loadu);
+      const __m256i b_cmpeq = _mm256_cmpeq_epi8(b_set1, b_loadu);
+      const int fb_testz = _mm256_testz_si256(f_cmpeq, b_cmpeq);
+      if (fb_testz == 0) {  // ZF: 1 means zero, 0 means non-zero.
+        const __m256i fb_and = _mm256_and_si256(f_cmpeq, b_cmpeq);
+        const int fb_movemask = _mm256_movemask_epi8(fb_and);
+        const int fb_ctz = FindLSBSet(fb_movemask);
+        return reinterpret_cast<const char*>(fp-1) + fb_ctz;
+      }
+    }
+    data = fp;
+    size = size%sizeof(__m256i);
+  }
+#endif
+
+  const char* p0 = reinterpret_cast<const char*>(data);
+  for (const char* p = p0;; p++) {
+    DCHECK_GE(size, static_cast<size_t>(p-p0));
+    p = reinterpret_cast<const char*>(memchr(p, prefix_front_, size - (p-p0)));
+    if (p == NULL || p[prefix_size_-1] == prefix_back_)
+      return p;
   }
 }
 

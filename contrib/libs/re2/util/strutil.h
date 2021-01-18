@@ -12,11 +12,9 @@
 
 namespace re2 {
 
-string CEscape(const StringPiece& src);
-string PrefixSuccessor(const StringPiece& prefix);
-string StringPrintf(const char* format, ...);
-void SStringPrintf(string* dst, const char* format, ...);
-void StringAppendF(string* dst, const char* format, ...);
+std::string CEscape(const StringPiece& src);
+void PrefixSuccessor(std::string* prefix);
+std::string StringPrintf(const char* format, ...);
 
 }  // namespace re2
 
