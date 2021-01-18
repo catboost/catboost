@@ -40,3 +40,7 @@ SRCS(
 )
 
 END()
+
+RECURSE(
+    re2/testing
+)
