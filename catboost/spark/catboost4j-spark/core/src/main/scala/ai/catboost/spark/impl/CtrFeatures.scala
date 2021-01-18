@@ -124,6 +124,10 @@ object CtrFeatures {
   ) : (Pool, Array[Pool], CtrsContext) = {
     val spark = quantizedTrainPool.data.sparkSession
     
+    // Cache pools data because it's heavily reused here
+    quantizedTrainPool.data.cache()
+    quantizedEvalPools.map(evalPool => evalPool.data.cache())
+    
     val catBoostJsonParams = ai.catboost.spark.params.Helpers.sparkMlParamsToCatBoostJsonParams(params)
    
     var learnTarget = getLearnTarget(quantizedTrainPool)
@@ -218,6 +222,9 @@ object CtrFeatures {
         )
       }
     }.toArray
+    
+    quantizedTrainPool.data.unpersist()
+    quantizedEvalPools.map(evalPool => evalPool.data.unpersist())
       
     (
       trainPoolWithEstimatedFeatures,
