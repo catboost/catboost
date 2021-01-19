@@ -1872,7 +1872,7 @@ catboost.get_feature_importance <- function(model, pool = NULL, type = "FeatureI
 #' @param top_size Method returns the result of the top_size most important train objects. If -1, then the top size is not limited.
 #'
 #' Default value: -1
-#' @param type.
+#' @param type
 #'
 #' Possible values:
 #' \itemize{
