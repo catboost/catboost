@@ -940,8 +940,6 @@ migrations:
     - sandbox/projects/common/market_report
     - sandbox/projects/common/mobilesearch
     - sandbox/projects/common/mobilesearch/startrek_client
-    - sandbox/projects/common/search
-    - sandbox/projects/common/search/components
     - sandbox/projects/common/yabs
     - sandbox/projects/facts
     - sandbox/projects/facts/update_fconsole_data_task
@@ -1460,7 +1458,6 @@ migrations:
     - cmnt/tools/regression/request_classes
     - crypta/cm/services/quoter/bin/test
     - cv/imageproc/ocr/tools/database_extraction/nirvana/imgaug/src/augmenters
-    - cv/short2long/nirvana/ut
     - cv/short2long/training/yt_calc_factors
     - datacloud/log_reader/lib
     - datalens/backend/app/bi_billing
@@ -1547,8 +1544,6 @@ migrations:
     - intranet/domenator/src/api
     - intranet/table_flow/src
     - intranet/table_flow/src/users
-    - intranet/trip/tests
-    - intranet/trip/tests/lib
     - intranet/vconf/src/call
     - intranet/vconf/src/cms_sync
     - keyboard/analytics/collect_logs
@@ -1963,7 +1958,6 @@ migrations:
     - ydo/libs/async_api
     - ydo/libs/errorbooster/tests
     - ydo/server/extract_backend_request_source/lib
-    - ydo/server/extract_backend_request_source/tests
     - ydo/tools/workers_quality/strikomat
     - yt/admin/luigi/src/luigi
     - yt/admin/luigi/src/luigi/commands/service
@@ -2244,11 +2238,9 @@ migrations:
     - infra/yasm/zoom/python/tests
     - infra/yp_dns_api/tests
     - infra/yp_quota_distributor/lib
-    - intranet/dogma/mon
     - intranet/pypi/src
     - intranet/table_flow/src
     - intranet/table_flow/tests
-    - intranet/trip/tests
     - kikimr/tools/dstool
     - kikimr/tools/ic_load
     - kikimr/yf/tests/no_recipe
@@ -2334,7 +2326,6 @@ migrations:
     - market/sre/tools/kraken/src/kraken_monrun
     - market/tools/corewatcher-rtc/src
     - market/yamarec/yamarec/yamarec1
-    - mds/mastermind/mastermind-cache/tests/http_tests/drooz_like_server
     - mds/nscfg/server
     - metrika/admin/python/bishop/frontend/tests
     - metrika/admin/python/cms/agent/lib
@@ -2800,12 +2791,6 @@ migrations:
     ignore:
     - F811
     prefixes:
-    - cv/imgclassifiers/danet/data_provider/ext/readers/ut/yt/run_test
-    - cv/imgclassifiers/danet/data_provider/ext/readers/yt/ut/run_fast
-    - cv/imgclassifiers/framework/nirvana/nirvana_dl/data/ut
-    - cv/imgclassifiers/framework/nirvana/runners/yt_runner/ut
-    - cv/short2long/nirvana/ut
-    - cv/verticals/auto_ru/reconstruct_360/lib
     - dict/lm/ngrams/tools/build_ngrams/test/with_yql
     - dict/lm/sources/tools/parse_logs/test
     - dict/mt/oilrig/docs/tools/dclassifier/tools/yt_doc_classifier/tests
@@ -2825,9 +2810,6 @@ migrations:
     - entity/ugc/robot/tools/user_activity_processor/lib/ut
     - extsearch/images/robot/tools/branches_metrics
     - extsearch/video/robot/cm/dups/cmpy/url_pairs
-    - intranet/dogma/mon
-    - intranet/trip/tests
-    - intranet/trip/tests/api
     - mail/mops/tests
     - mail/sharpei/tests/integration
     - mail/sharpei/tests/integration/steps
@@ -2851,9 +2833,6 @@ migrations:
     - market/idx/promos/yt_promo_indexer/test/yatf
     - market/idx/tools/subzero
     - market/pylibrary/async_publishing/tests
-    - mds/mastermind/mastermind-cache/tests/http_tests/drooz_like_server
-    - mds/walle_cms/cms/lib/tests
-    - ml/nirvana/nope/tests/lib
     - modadvert/configurator/libs/it
     - modadvert/configurator/test_utils
     - modadvert/libs/clustering/it
@@ -2919,7 +2898,6 @@ migrations:
     - modadvert/programs/white_list_spam_client/it
     - modadvert/resources/supermoderation/service_confs/ut
     - modadvert/test_utils/sandbox/upload_xls
-    - mssngr/botplatform/client/examples/polling
     - music/tools/haproxy_configurator
     - music/tools/haproxy_configurator/lib/Haproxy
     - ofd/api/tests/functional/test_check_receipt
