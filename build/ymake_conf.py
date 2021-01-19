@@ -2021,8 +2021,12 @@ class MSVCToolchainOptions(ToolchainOptions):
             # TODO(somov): Определять автоматически self.version в этом случае
 
         else:
-            self.sdk_version = '10.0.16299.0'
-            sdk_dir = '$(WINDOWS_KITS-sbr:1379398385)'
+            if self.version_at_least(2019):
+                self.sdk_version = '10.0.18362.0'
+                sdk_dir = '$(WINDOWS_KITS-sbr:1939557911)'
+            else:
+                self.sdk_version = '10.0.16299.0'
+                sdk_dir = '$(WINDOWS_KITS-sbr:1379398385)'
 
             self.vc_root = self.name_marker if not self.use_clang else '$MSVC_FOR_CLANG_RESOURCE_GLOBAL'
             self.kit_includes = os.path.join(sdk_dir, 'Include', self.sdk_version)
