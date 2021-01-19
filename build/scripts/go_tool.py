@@ -322,7 +322,7 @@ def _do_compile_go(args):
     cmd.extend(get_trimpath_args(args))
     if is_std_module:
         cmd.append('-std')
-        if import_path == 'runtime' or import_path.startswith('runtime/internal/'):
+        if import_path in ('runtime', 'internal/cpu', 'internal/bytealg') or import_path.startswith('runtime/internal/'):
             cmd.append('-+')
     import_config_name = create_import_config(args.peers, True, args.import_map, args.module_map)
     if import_config_name:
@@ -334,13 +334,14 @@ def _do_compile_go(args):
             cmd.append('-complete')
     if args.asmhdr:
         cmd += ['-asmhdr', args.asmhdr]
-    if compare_versions('1.12', args.goversion) >= 0:
-        if args.symabis:
-            cmd += ['-symabis'] + args.symabis
-        if compare_versions('1.13', args.goversion) >= 0:
-            pass
-        elif import_path in ('runtime', 'runtime/internal/atomic'):
-            cmd.append('-allabis')
+    # Use .symabis (starting from 1.12 version)
+    if args.symabis:
+        cmd += ['-symabis'] + args.symabis
+    # If 1.12 <= version < 1.13 we have to pass -allabis for 'runtime' and 'runtime/internal/atomic'
+    # if compare_versions('1.13', args.goversion) >= 0:
+    #     pass
+    # elif import_path in ('runtime', 'runtime/internal/atomic'):
+    #     cmd.append('-allabis')
     compile_workers = '4'
     if args.compile_flags:
         if import_path == 'runtime' or import_path.startswith('runtime/'):
@@ -386,6 +387,9 @@ def do_compile_go(args):
 
 
 def do_compile_asm(args):
+    def need_compiling_runtime(import_path):
+        return import_path in ('runtime', 'reflect', 'syscall') or import_path.startswith('runtime/internal/')
+
     assert(len(args.srcs) == 1 and len(args.asm_srcs) == 1)
     cmd = [args.go_asm]
     cmd += get_trimpath_args(args)
@@ -393,7 +397,8 @@ def do_compile_asm(args):
     cmd += ['-D', 'GOOS_' + args.targ_os, '-D', 'GOARCH_' + args.targ_arch, '-o', args.output]
     # TODO: This is just a quick fix to start work on 1.16 support
     if compare_versions('1.16', args.goversion) >= 0:
-        if args.import_path in ('runtime', 'reflect') or args.import_path.startswith('runtime/internal/'):
+        cmd += ['-p', args.import_path]
+        if need_compiling_runtime(args.import_path):
             cmd += ['-compiling-runtime']
     if args.asm_flags:
         cmd += args.asm_flags
@@ -748,6 +753,7 @@ if __name__ == '__main__':
     parser.add_argument('++test-miner', nargs='?')
     parser.add_argument('++arc-project-prefix', nargs='?', default=arc_project_prefix)
     parser.add_argument('++std-lib-prefix', nargs='?', default=std_lib_prefix)
+    parser.add_argument('++vendor-prefix', nargs='?', default=vendor_prefix)
     parser.add_argument('++extld', nargs='?', default=None)
     parser.add_argument('++extldflags', nargs='+', default=None)
     parser.add_argument('++goversion', required=True)
@@ -767,6 +773,7 @@ if __name__ == '__main__':
 
     arc_project_prefix = args.arc_project_prefix
     std_lib_prefix = args.std_lib_prefix
+    vendor_prefix = args.vendor_prefix
     vet_info_ext = args.vet_info_ext
     vet_report_ext = args.vet_report_ext
 
