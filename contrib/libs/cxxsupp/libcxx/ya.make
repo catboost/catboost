@@ -36,6 +36,9 @@ ELSEIF (CLANG OR MUSL OR OS_DARWIN OR USE_LTO)
     IF (ARCH_ARM7)
         # XXX: libcxxrt support for ARM is currently broken
         DEFAULT(CXX_RT "glibcxx_static")
+
+        # ARM7 OS_SDK has old libstdc++ without aligned allocation support
+        CFLAGS(GLOBAL -D_LIBCPP_HAS_NO_ALIGNED_ALLOCATION)
     ELSE()
         DEFAULT(CXX_RT "libcxxrt")
     ENDIF()
