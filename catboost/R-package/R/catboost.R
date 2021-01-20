@@ -51,20 +51,20 @@ NULL
 #' pool_path <- system.file("extdata", "adult_train.1000", package = "catboost")
 #' cd_path <- system.file("extdata", "adult.cd", package = "catboost")
 #' pool <- catboost.load_pool(pool_path, column_description = cd_path)
-#' head(pool)
+#' print(pool)
 #'
 #' # From matrix
 #' target <- 1
 #' data_matrix <-matrix(runif(18), 6, 3)
 #' pool <- catboost.load_pool(data_matrix[, -target], label = data_matrix[, target])
-#' head(pool)
+#' print(pool)
 #'
 #' # From data.frame
-#' nonsense <- c('A', 'B', 'C')
+#' nonsense <- factor(c('A', 'B', 'C'))
 #' data_frame <- data.frame(value = runif(10), category = nonsense[(1:10) %% 3 + 1])
 #' label = (1:10) %% 2
 #' pool <- catboost.load_pool(data_frame, label = label, cat_features = c(2))
-#' head(pool)
+#' print(pool)
 #'
 #' @export
 catboost.load_pool <- function(data, label = NULL, cat_features = NULL, column_description = NULL,
@@ -1677,8 +1677,14 @@ catboost.save_model <- function(model, model_path,
 #' Possible values:
 #' \itemize{
 #'   \item 'Probability'
+#'   \item 'LogProbability'
 #'   \item 'Class'
 #'   \item 'RawFormulaVal'
+#'   \item 'Exponent'
+#'   \item 'RMSEWithUncertainty'
+#'   \item 'InternalRawFormulaVal'
+#'   \item 'VirtEnsembles'
+#'   \item 'TotalUncertainty'
 #' }
 #'
 #' Default value: 'RawFormulaVal'
