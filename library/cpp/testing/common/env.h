@@ -28,9 +28,6 @@ TString GetArcadiaTestsData();
 // @brief return current working dir (from env:TEST_WORK_PATH or cwd)
 TString GetWorkPath();
 
-// @brief return .ya dir path (~/.ya or from env:YA_CACHE_DIR)
-TFsPath GetYaPath();
-
 // @brief return tests output path (workdir + testing_out_stuff)
 TFsPath GetOutputPath();
 

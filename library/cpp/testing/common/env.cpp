@@ -67,14 +67,6 @@ TString GetWorkPath() {
     return GetCwd();
 }
 
-TFsPath GetYaPath() {
-    TString envPath = GetEnv("YA_CACHE_DIR");
-    if (!envPath) {
-        envPath = GetHomeDir() + "/.ya";
-    }
-    return envPath;
-}
-
 TFsPath GetOutputPath() {
     return GetWorkPath() + "/testing_out_stuff";
 }
