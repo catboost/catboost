@@ -416,7 +416,6 @@ migrations:
     - entity/quality/metrics/not_film_lists/combine_attributes_for_stupids_marking
     - entity/quality/metrics/passport
     - entity/quality/ontodb/defect_rate/lib
-    - entity/recommender/nirvana/operations/yam/yam_positions
     - entity/ugc/db/python/offline_processing
     - entity/ugc/quality/reviews_ranking/ml/lib/trueskill
     - entity/ugc/robot/tools/fetch_sprav_data/lib
@@ -1364,7 +1363,6 @@ migrations:
     - ads/bsyeti/libs/argument_tree/test
     - ads/bsyeti/samogon/caesar_resharder/plugin
     - ads/bsyeti/tests/bsdiff
-    - ads/bsyeti/tools/solomon/alerts
     - ads/emily/mvp/backend_agnostik/backends/nirvana
     - ads/libs/py_mapreduce/yabs-mapreduce-modules/py-modules/yabs/tabtools
     - ads/logos/libs/reactor_runner/ut
