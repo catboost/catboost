@@ -1717,7 +1717,7 @@ def _params_type_cast(params):
 
 
 def _is_data_single_object(data):
-    if isinstance(data, (Pool, FeaturesData, Series, DataFrame) + SPARSE_MATRIX_TYPES):
+    if isinstance(data, (Pool, FeaturesData, DataFrame) + SPARSE_MATRIX_TYPES):
         return False
     if not isinstance(data, ARRAY_TYPES):
         raise CatBoostError(
