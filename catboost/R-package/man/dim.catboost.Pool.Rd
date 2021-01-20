@@ -11,6 +11,9 @@
 
 Default value: Required argument}
 }
-\description{
+\value{
 Returns a vector of row numbers and column numbers in an catboost.Pool.
+}
+\description{
+Get dimensions of a Pool.
 }

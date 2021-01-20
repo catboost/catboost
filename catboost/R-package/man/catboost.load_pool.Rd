@@ -4,11 +4,23 @@
 \alias{catboost.load_pool}
 \title{Create a dataset}
 \usage{
-catboost.load_pool(data, label = NULL, cat_features = NULL,
-  column_description = NULL, pairs = NULL, delimiter = "\\t",
-  has_header = FALSE, weight = NULL, group_id = NULL,
-  group_weight = NULL, subgroup_id = NULL, pairs_weight = NULL,
-  baseline = NULL, feature_names = NULL, thread_count = -1)
+catboost.load_pool(
+  data,
+  label = NULL,
+  cat_features = NULL,
+  column_description = NULL,
+  pairs = NULL,
+  delimiter = "\\t",
+  has_header = FALSE,
+  weight = NULL,
+  group_id = NULL,
+  group_weight = NULL,
+  subgroup_id = NULL,
+  pairs_weight = NULL,
+  baseline = NULL,
+  feature_names = NULL,
+  thread_count = -1
+)
 }
 \arguments{
 \item{data}{A file path, matrix or data.frame with features.
@@ -83,5 +95,4 @@ data_frame <- data.frame(value = runif(10), category = nonsense[(1:10) \%\% 3 + 
 label = (1:10) \%\% 2
 pool <- catboost.load_pool(data_frame, label = label, cat_features = c(2))
 head(pool)
-
 }

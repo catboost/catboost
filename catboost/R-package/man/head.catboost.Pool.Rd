@@ -17,14 +17,16 @@ Default value: 10}
 
 \item{...}{not currently used}
 }
+\value{
+A matrix containing the first \code{n} objects of the dataset.
+}
 \description{
 Return a list with the first n objects of the dataset.
-}
-\details{
-Each line of this list contains the following information for each object:
-\itemize{
-    \item The label value.
-    \item The weight value.
-    \item The feature values.
-}
+
+             Each line of this list contains the following information for each object:
+             \itemize{
+                 \item The label value.
+                 \item The weight value.
+                 \item The feature values.
+             }
 }

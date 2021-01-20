@@ -4,8 +4,14 @@
 \alias{catboost.save_pool}
 \title{Save the dataset}
 \usage{
-catboost.save_pool(data, label = NULL, weight = NULL,
-  baseline = NULL, pool_path = "data.pool", cd_path = "cd.pool")
+catboost.save_pool(
+  data,
+  label = NULL,
+  weight = NULL,
+  baseline = NULL,
+  pool_path = "data.pool",
+  cd_path = "cd.pool"
+)
 }
 \arguments{
 \item{data}{A data.frame with features.
@@ -30,18 +36,22 @@ Default value: Required argument}
 \item{baseline}{Vector of initial (raw) values of the label function for the object.
 Used in the calculation of final values of trees.}
 
-\item{pool_path}{The path to the otuptut file that contains the dataset description.}
+\item{pool_path}{The path to the output file that contains the dataset description.}
 
 \item{cd_path}{The path to the output file that contains the column descriptions.}
 }
+\value{
+Nothing. This method writes a dataset to disk.
+}
 \description{
 Save the dataset to the CatBoost format.
-Files with the following data are created:
-\itemize{
-    \item Dataset description
-    \item Column descriptions
-}
-Use the catboost.load_pool function to read the resulting files.
-These files can also be used in the \href{https://catboost.ai/docs/concepts/cli-installation.html}{Command-line version}
-and the \href{https://catboost.ai/docs/concepts/python-installation.html}{Python library}.
+             Files with the following data are created:
+             \itemize{
+                 \item Dataset description
+                 \item Column descriptions
+             }
+             Use the catboost.load_pool function to read the resulting files.
+             These files can also be used in the
+             \href{https://catboost.ai/docs/concepts/cli-installation.html}{Command-line version}
+             and the \href{https://catboost.ai/docs/concepts/python-installation.html}{Python library}.
 }

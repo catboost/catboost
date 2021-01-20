@@ -4,8 +4,13 @@
 \alias{catboost.save_model}
 \title{Save the model}
 \usage{
-catboost.save_model(model, model_path, file_format = "cbm",
-  export_parameters = NULL, pool = NULL)
+catboost.save_model(
+  model,
+  model_path,
+  file_format = "cbm",
+  export_parameters = NULL,
+  pool = NULL
+)
 }
 \arguments{
 \item{model}{The model to be saved.
@@ -40,11 +45,14 @@ Default value: 'cbm'}
 
 \item{pool}{is training pool.}
 }
+\value{
+Status, the result of model shrinking. TRUE if shrinking succeeded, FALSE otherwise.
+}
 \description{
 Save the model to a file.
-}
-\details{
-Note: Feature importance (see \url{https://catboost.ai/docs/concepts/fstr.html#fstr}) is not saved when using this function.
+
+             Note: Feature importance (see \url{https://catboost.ai/docs/concepts/fstr.html#fstr})
+             is not saved when using this function.
 }
 \seealso{
 \url{https://catboost.ai/docs/features/export-model-to-core-ml.html}

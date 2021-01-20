@@ -7,9 +7,10 @@
 catboost.get_model_params(model)
 }
 \arguments{
-\item{model}{The model obtained as the result of training.
-
-Default value: Required argument}
+\item{model}{The model obtained as the result of training.}
+}
+\value{
+A list object with model parameters.
 }
 \description{
 Return the model parameters.

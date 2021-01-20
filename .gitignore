@@ -25,3 +25,7 @@ test-results
 
 /msvs/Debug/*
 /msvs/Release/*
+
+# R build artifacts
+catboost*.tar.gz
+catboost.Rcheck/
