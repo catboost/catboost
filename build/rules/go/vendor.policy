@@ -608,6 +608,11 @@ ALLOW .* -> vendor/github.com/coredhcp/coredhcp
 ALLOW .* -> vendor/github.com/osrg/gobgp
 
 #
+# CONTRIB-2097 QUIC(HTTP/3) implementation library
+#
+ALLOW .* -> vendor/github.com/lucas-clemente/quic-go
+
+#
 # Tools
 #
 
