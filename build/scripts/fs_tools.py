@@ -6,6 +6,13 @@ import shutil
 import process_command_files as pcf
 
 
+def link_or_copy(src, dst):
+    if platform.system().lower() == 'windows':
+        shutil.copy(src, dst)
+    else:
+        os.link(src, dst)
+
+
 if __name__ == '__main__':
     mode = sys.argv[1]
     args = pcf.get_args(sys.argv[2:])
@@ -62,10 +69,12 @@ if __name__ == '__main__':
             except OSError:
                 pass
     elif mode == 'link_or_copy':
-        if platform.system().lower() == 'windows':
-            shutil.copy(args[0], args[1])
-        else:
-            os.link(args[0], args[1])
+        link_or_copy(args[0], args[1])
+    elif mode == 'link_or_copy_to_dir':
+        assert len(args) > 1
+        dst = args[-1]
+        for src in args[0:-1]:
+            link_or_copy(src, os.path.join(dst, os.path.basename(src)))
     elif mode == 'cat':
         with open(args[0], 'w') as dst:
             for input_name in args[1:]:
