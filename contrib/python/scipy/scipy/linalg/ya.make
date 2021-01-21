@@ -7,7 +7,7 @@ NO_COMPILER_WARNINGS()
 ADDINCLSELF()
 
 ADDINCL(
-    contrib/python/scipy
+    FOR cython contrib/python/scipy
 )
 
 PEERDIR(
