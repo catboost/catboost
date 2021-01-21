@@ -2440,17 +2440,18 @@ class MSVCLinker(MSVC, Linker):
         link_flags_lib = flags_ignore + [flag_machine]
 
         stdlibs = [
-            'kernel32.lib',
-            'user32.lib',
+            'advapi32.lib',
+            'comdlg32.lib',
+            'crypt32.lib',
             'gdi32.lib',
-            'winspool.lib',
-            'shell32.lib',
+            'kernel32.lib',
             'ole32.lib',
             'oleaut32.lib',
+            'shell32.lib',
+            'user32.lib',
             'uuid.lib',
-            'comdlg32.lib',
-            'advapi32.lib',
-            'crypt32.lib',
+            'winspool.lib',
+            'ws2_32.lib',
         ]
 
         emit('LINK_LIB_CMD', linker_lib)
