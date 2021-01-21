@@ -690,8 +690,6 @@ migrations:
     - mssngr/botplatform/src/bots/common/yamb
     - mssngr/router/tests/lib
     - mssngr/router/tools/state_cache_updater_v2
-    - music/tools/haproxy_configurator/tests
-    - music/tools/haproxy_configurator/tests/test_cases
     - opensource/sync/bin/arc2git
     - opensource/sync/bin/git2git
     - orgvisits/library/python/test_tools/yql/lib
@@ -700,7 +698,6 @@ migrations:
     - orgvisits/metrics/ugc_feedback/ctr
     - passport/python/adm_api/views/meltingpot
     - passport/python/core
-    - passport/python/core/builders/blackbox/tests
     - passport/python/core/builders/frodo
     - passport/python/core/builders/social_broker
     - passport/python/core/builders/yasms
@@ -2183,7 +2180,6 @@ migrations:
     - dict/mt/make/pipeline/lm/tests
     - dict/mt/make/pipeline/nmt
     - dict/mt/make/pipeline/phrase_lm/tests
-    - dict/mt/make/tools/train_cls
     - dict/mt/make/tools/translate_tfnn/tests
     - dict/mt/make/tools/yt_transform/tests
     - dict/mt/normalizer/tts/bugfix
@@ -2651,7 +2647,6 @@ migrations:
     - yp/eviction_alerter/bin
     - yp/eviction_alerter/libs
     - yp/scheduler_simulator/analysis/library
-    - yp/tests
     - yql/library/test_framework
     - yt/admin/infra_cli/src/infra_cli
     - yt/admin/luigi/src/luigi
@@ -2896,8 +2891,6 @@ migrations:
     - modadvert/programs/white_list_spam_client/it
     - modadvert/resources/supermoderation/service_confs/ut
     - modadvert/test_utils/sandbox/upload_xls
-    - music/tools/haproxy_configurator
-    - music/tools/haproxy_configurator/lib/Haproxy
     - ofd/api/tests/functional/test_check_receipt
     - quality/ab_testing/cofe/projects/alice
     - quality/ab_testing/cofe/projects/eda_ab
@@ -2962,16 +2955,5 @@ migrations:
     - yabs/vh/cms-pgaas/ugc_api
     - yabs/vh/cms-pgaas/ugc_api/models
     - yaphone/advisor/advisor
-    - ydo/tools/db/clear_ydb_table/tests
-    - yp/tests
-    - yql/tests/custom
     - yt/admin/luigi/src/luigi
     - yt/yt/tests/integration/tests
-    - yweb/antiporno/yt_tools/demon_cat/tests
-    - yweb/antiporno/yt_tools/normalize_query-yt/tests
-    - yweb/incproc/komutator/tests/import
-    - yweb/incproc/komutator/tests/yt
-    - yweb/news/news_back/api/v3
-    - yweb/news/news_back/api/v3/common
-    - yweb/news/news_back/api/v3/forms
-    - yweb/sitelinks/astrolabe/build_bna/html_handler/tests/lib
