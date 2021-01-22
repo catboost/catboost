@@ -1365,7 +1365,6 @@ migrations:
     - ads/logos/libs/reactor_runner/ut
     - ads/logos/tasks/mediation_fast_lm_features
     - ads/ml_engine/learn/result/local_extended_fstr/lib
-    - ads/pytorch/lib/online_learning/production/cross_check/lib
     - ads/pytorch/lib/online_learning/production/processors/tsar_processor/lib
     - ads/quality/adv_machine/cm_robot/tests/small
     - ads/quality/adv_machine/scripts/cluster_master
