@@ -63,7 +63,7 @@
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
-      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;gdi32.lib;kernel32.lib;ole32.lib;oleaut32.lib;shell32.lib;user32.lib;uuid.lib;winspool.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -492,7 +492,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_lsq
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "-E" "UNAME_SYSNAME=Windows" "--module-name" "scipy.optimize._lsq.givens_elimination" "--init-suffix" "5scipy8optimize4_lsq18givens_elimination" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=contrib/python/scipy/scipy/optimize/_lsq/givens_elimination.pyx" "--cplus" "-I$(SolutionDir)../contrib/python/scipy" "-I$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I$(SolutionDir)$(Configuration)" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_lsq/givens_elimination.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_lsq/givens_elimination.pyx.cpp"
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "-E" "UNAME_SYSNAME=Windows" "--module-name" "scipy.optimize._lsq.givens_elimination" "--init-suffix" "5scipy8optimize4_lsq18givens_elimination" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=contrib/python/scipy/scipy/optimize/_lsq/givens_elimination.pyx" "--cplus" "-I$(SolutionDir)$(Configuration)" "-I$(SolutionDir).." "-I$(SolutionDir)../contrib/python/scipy" "-I$(SolutionDir)../contrib/tools/cython/Cython/Includes" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_lsq/givens_elimination.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_lsq/givens_elimination.pyx.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -503,7 +503,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_lsq
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "-E" "UNAME_SYSNAME=Windows" "--module-name" "scipy.optimize._lsq.givens_elimination" "--init-suffix" "5scipy8optimize4_lsq18givens_elimination" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=contrib/python/scipy/scipy/optimize/_lsq/givens_elimination.pyx" "--cplus" "-I$(SolutionDir)../contrib/python/scipy" "-I$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I$(SolutionDir)$(Configuration)" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_lsq/givens_elimination.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_lsq/givens_elimination.pyx.cpp"
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "-E" "UNAME_SYSNAME=Windows" "--module-name" "scipy.optimize._lsq.givens_elimination" "--init-suffix" "5scipy8optimize4_lsq18givens_elimination" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=contrib/python/scipy/scipy/optimize/_lsq/givens_elimination.pyx" "--cplus" "-I$(SolutionDir)$(Configuration)" "-I$(SolutionDir).." "-I$(SolutionDir)../contrib/python/scipy" "-I$(SolutionDir)../contrib/tools/cython/Cython/Includes" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_lsq/givens_elimination.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_lsq/givens_elimination.pyx.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
