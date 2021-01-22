@@ -81,6 +81,7 @@ ALLOW quasar/backend/src/base -> contrib/restricted/spdlog
 ALLOW crypta/lib/native/log -> contrib/restricted/spdlog
 ALLOW yandex_io -> contrib/restricted/spdlog
 ALLOW smart_devices/tools/launcher2 -> contrib/restricted/spdlog
+ALLOW smart_devices/tools/updater -> contrib/restricted/spdlog
 
 ALLOW contrib/libs/tcmalloc -> contrib/restricted/abseil-cpp
 ALLOW contrib/libs/webrtc -> contrib/restricted/abseil-cpp
