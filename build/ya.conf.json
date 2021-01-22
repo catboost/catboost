@@ -6291,7 +6291,9 @@
         },
         "ymake": {
             "formula": {
-                "sandbox_id": [876417050],
+                "sandbox_id": [
+                    876417050
+                ],
                 "match": "ymake"
             },
             "executable": {
@@ -7977,7 +7979,7 @@
         },
         "zcli": {
             "formula": {
-                "sandbox_id": 876441655,
+                "sandbox_id": 876966265,
                 "match": "zcli"
             },
             "executable": {
