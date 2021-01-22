@@ -79,6 +79,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\strings\382b569d63c534fb927f20f890.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\strings\library.python.strings.strings.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\strings\strings.py.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\strings\_382b569d63c534fb927f20f890.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\strings
@@ -133,6 +135,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\library\python\strings\382b569d63c534fb927f20f890.cpp;</Outputs>
     </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_py_reg.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\library\python\strings
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "library.python.strings.strings" "$(SolutionDir)$(Configuration)/library/python/strings/library.python.strings.strings.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\library\python\strings
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "library.python.strings.strings" "$(SolutionDir)$(Configuration)/library/python/strings/library.python.strings.strings.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/library/python/strings/library.python.strings.strings.reg.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_py_reg.py;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\strings\library.python.strings.strings.reg.cpp;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\strings
@@ -159,6 +188,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/library/python/strings/__init__.py.yapyc	</Message>
       <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\library\python\strings\__init__.py;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\library\python\strings\__init__.py.yapyc;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\tools\cython\cython.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\library\python\strings
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "-E" "UNAME_SYSNAME=Windows" "--module-name" "library.python.strings.strings" "--init-suffix" "7library6python7strings7strings" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=library/python/strings/strings.py" "--cplus" "-I$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I$(SolutionDir)$(Configuration)" "-I$(SolutionDir).." "$(SolutionDir)../library/python/strings/strings.py" "-o" "$(SolutionDir)$(Configuration)/library/python/strings/strings.py.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\library\python\strings
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "-E" "UNAME_SYSNAME=Windows" "--module-name" "library.python.strings.strings" "--init-suffix" "7library6python7strings7strings" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=library/python/strings/strings.py" "--cplus" "-I$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I$(SolutionDir)$(Configuration)" "-I$(SolutionDir).." "$(SolutionDir)../library/python/strings/strings.py" "-o" "$(SolutionDir)$(Configuration)/library/python/strings/strings.py.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/library/python/strings/strings.py.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\tools\cython\cython.py;$(SolutionDir)..\library\python\strings\strings.py;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\strings\strings.py.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\library\python\strings\__init__.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
