@@ -1373,7 +1373,6 @@ migrations:
     - ads/quality/embedding/tsar_tensor/ft_pool/lib
     - ads/quality/ltp/libs/build_pool
     - ads/quality/simulate_auction_py/scripts/simulate_yt
-    - ads/sandbox_scripts/cpa_autobudget/lib
     - ads/sandbox_scripts/ggmonitor
     - ads/tools/mr_select/lib
     - alice/analytics/wer/g2p
@@ -1488,7 +1487,6 @@ migrations:
     - edadeal/analytics/scripts/CashbackReport/CashbackReportLib/CashbackReportLib
     - education/checking_system/api/it
     - education/checking_system/marker_checker/lib
-    - education/checking_system/marker_checker/lib/markers/columncalc_helpers
     - education/checking_system/marker_checker/lib/operations/arithmetic_operations/ut
     - education/lib/common
     - education/schoolbook/analytics/adhoc/ANALITICSEDU-687
@@ -1969,7 +1967,6 @@ migrations:
     - yweb/blender/scripts/blender_viewer/conveyor_experiments/utils
     - yweb/freshness/scripts/sport_pushes
     - yweb/news/dupsd/tests
-    - yweb/news/news_back/api/tools
     - yweb/news/zen/video_export
     - yweb/sitelinks/astrolabe/migration/bna_to_mysql
     - yweb/webscripts/video/duplicates/nirvana_scripts/knn/filter_knn_source
@@ -2017,7 +2014,6 @@ migrations:
     - edadeal/analytics/scripts/CashbackReport/CashbackReportLib/CashbackReportLib
     - education/services/sections/it
     - extsearch/geo/recommender/runtime/config/generation
-    - extsearch/ymusic/quality/learning/lib
     - mail/collectors/tests-system/src/main
     - mail/freezing_tests/active_users_aggregation
     - maps/analyzer/tools/online_jams/pylib
@@ -2699,7 +2695,6 @@ migrations:
     - edadeal/analytics/scripts/CashbackReport/CashbackReportLib/CashbackReportLib
     - education/services/sections/it
     - extsearch/geo/recommender/runtime/config/generation
-    - extsearch/ymusic/quality/learning/lib
     - library/python/cyson
     - library/python/cyson/cyson
     - mail/freezing_tests/active_users_aggregation
