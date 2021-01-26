@@ -118,7 +118,7 @@ trait TrainingParamsTrait
   @ParamGetterSetter
   final val subsample: FloatParam = new FloatParam(
     this,
-    "baggingTemperature",
+    "subsample",
     "Sample rate for bagging. "
     + "The default value depends on the dataset size and the bootstrap type, see documentation for details."
   )
