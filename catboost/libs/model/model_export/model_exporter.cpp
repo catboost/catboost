@@ -172,7 +172,7 @@ namespace NCB {
                 {
                     CB_ENSURE(
                         userParametersJson.empty(),
-                        "JSON user params for CatBoost model export are not supported"
+                        "JSON user params for JSON model export are not supported"
                     );
 
                     OutputModelJson(model, modelFileName, featureId, catFeaturesHashToString);
