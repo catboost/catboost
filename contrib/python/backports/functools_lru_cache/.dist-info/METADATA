@@ -1,0 +1,72 @@
+Metadata-Version: 2.1
+Name: backports.functools-lru-cache
+Version: 1.6.1
+Summary: Backport of functools.lru_cache
+Home-page: https://github.com/jaraco/backports.functools_lru_cache
+Author: Raymond Hettinger
+Author-email: raymond.hettinger@gmail.com
+Maintainer: Jason R. Coombs
+Maintainer-email: jaraco@jaraco.com
+License: UNKNOWN
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 2.6
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Requires-Python: >=2.6
+Provides-Extra: docs
+Requires-Dist: sphinx ; extra == 'docs'
+Requires-Dist: jaraco.packaging (>=3.2) ; extra == 'docs'
+Requires-Dist: rst.linker (>=1.9) ; extra == 'docs'
+Provides-Extra: testing
+Requires-Dist: pytest (!=3.7.3,>=3.5) ; extra == 'testing'
+Requires-Dist: pytest-checkdocs (>=1.2.3) ; extra == 'testing'
+Requires-Dist: pytest-flake8 ; extra == 'testing'
+Requires-Dist: pytest-black-multipy ; extra == 'testing'
+Requires-Dist: pytest-cov ; extra == 'testing'
+
+.. image:: https://img.shields.io/pypi/v/backports.functools_lru_cache.svg
+   :target: https://pypi.org/project/backports.functools_lru_cache
+
+.. image:: https://img.shields.io/pypi/pyversions/backports.functools_lru_cache.svg
+
+.. image:: https://img.shields.io/travis/jaraco/backports.functools_lru_cache/master.svg
+   :target: https://travis-ci.org/jaraco/backports.functools_lru_cache
+
+.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
+   :target: https://github.com/psf/black
+   :alt: Code style: Black
+
+.. .. image:: https://img.shields.io/appveyor/ci/jaraco/skeleton/master.svg
+..    :target: https://ci.appveyor.com/project/jaraco/skeleton/branch/master
+
+.. image:: https://readthedocs.org/projects/backportsfunctools_lru_cache/badge/?version=latest
+   :target: https://backportsfunctools_lru_cache.readthedocs.io/en/latest/?badge=latest
+
+.. image:: https://tidelift.com/badges/package/pypi/backports.functools_lru_cache
+   :target: https://tidelift.com/subscription/pkg/pypi-backports.functools_lru_cache?utm_source=pypi-backports.functools_lru_cache&utm_medium=readme
+
+Backport of functools.lru_cache from Python 3.3 as published at `ActiveState
+<http://code.activestate.com/recipes/578078/>`_.
+
+Usage
+=====
+
+Consider using this technique for importing the 'lru_cache' function::
+
+    try:
+        from functools import lru_cache
+    except ImportError:
+        from backports.functools_lru_cache import lru_cache
+
+
+Security Contact
+================
+
+To report a security vulnerability, please use the
+`Tidelift security contact <https://tidelift.com/security>`_.
+Tidelift will coordinate the fix and disclosure.
+
+

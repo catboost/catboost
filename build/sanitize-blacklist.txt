@@ -1,5 +1,4 @@
 src:*contrib/tools/python/src*
 src:*contrib/tools/python3/src*
-src:*yt/19_2*
 src:*contrib/libs/luajit*
 type:std::__*::locale::id=init

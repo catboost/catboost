@@ -65,8 +65,8 @@ def configure_pdb_on_demand():
 
     if hasattr(signal, "SIGUSR1"):
         def on_signal(*args):
-            import pdb
-            pdb.set_trace()
+            import ipdb
+            ipdb.set_trace()
 
         signal.signal(signal.SIGUSR1, on_signal)
 

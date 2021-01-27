@@ -279,9 +279,13 @@ def emit_big(text):
 
 
 class Variables(dict):
-    def emit(self):
+    def emit(self, with_ignore_comment=[]):
+        with_ignore_comment_set = set(with_ignore_comment)
         for k in sorted(self.keys()):
-            emit(k, self[k])
+            if k in with_ignore_comment_set:
+                emit_with_ignore_comment(k, self[k])
+            else:
+                emit(k, self[k])
 
     def update_from_presets(self):
         for k in self.iterkeys():
@@ -602,8 +606,8 @@ class Build(object):
         print_swig_config()
 
         if self.ignore_local_files or host.is_windows or is_positive('NO_SVN_DEPENDS'):
-            emit('SVN_DEPENDS')
-            emit('SVN_DEPENDS_CACHE__NO_UID__')
+            emit_with_ignore_comment('SVN_DEPENDS')
+            emit_with_ignore_comment('SVN_DEPENDS_CACHE__NO_UID__')
         else:
             def find_svn():
                 for i in range(0, 3):
@@ -625,8 +629,8 @@ class Build(object):
 
                 return ''
 
-            emit('SVN_DEPENDS', find_svn())
-            emit('SVN_DEPENDS_CACHE__NO_UID__', '${hide;kv:"disable_cache"}')
+            emit_with_ignore_comment('SVN_DEPENDS', find_svn())
+            emit_with_ignore_comment('SVN_DEPENDS_CACHE__NO_UID__', '${hide;kv:"disable_cache"}')
 
     @staticmethod
     def _load_json_from_base64(base64str):
@@ -654,7 +658,7 @@ class YMake(object):
     def print_presets():
         if opts().presets:
             print '# Variables set from command line by -D options'
-            for key in opts().presets:
+            for key in sorted(opts().presets):
                 if key in ('MY_YMAKE_BIN', 'REAL_YMAKE_BIN'):
                     emit_with_ignore_comment(key, opts().presets[key])
                 else:
@@ -2641,7 +2645,7 @@ class Perl(object):
         })
 
         variables.reset_if_any(reset_value='PERL-NOT-FOUND')
-        variables.emit()
+        variables.emit(with_ignore_comment=variables.keys())
 
     def _iter_config(self, config_keys):
         # Run perl -V:version -V:etc...

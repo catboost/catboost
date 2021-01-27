@@ -1604,8 +1604,6 @@ migrations:
     - market/idx/api/backend/blueprints
     - market/idx/datacamp/routines/lib
     - market/idx/datacamp/routines/lib/tasks
-    - market/idx/devtools/dukalis/offer_diagnostics/lib/analyzer
-    - market/idx/devtools/dukalis/offer_diagnostics/lib/analyzer/items
     - market/idx/export/awaps/compare-with-report
     - market/idx/feeds/robot/offersrobot
     - market/idx/mir/stub
@@ -2015,7 +2013,6 @@ migrations:
     - maps/analyzer/tools/online_jams/pylib
     - maps/tools/naviguide/tools/extract_uuid_info
     - market/idx/quick/saashub/tests/yatf/bids
-    - market/idx/tools/subzero/lib
     - market/replenishment/data_preparation/ut
     - market/seo/offer_base
     - market/sre/tools/logkeeper/logkeeper
@@ -2059,7 +2056,6 @@ migrations:
     - voicetech/asr/cloud_engine/cli/nirvana/make_kenlm_lingware
     - voicetech/asr/cloud_engine/cli/nirvana/make_subword_lm_lingware
     - voicetech/asr/cloud_engine/cli/nirvana/merge_lingwares
-    - voicetech/asr/cloud_engine/cli/nirvana/normalize_texts
     - voicetech/asr/cloud_engine/cli/nirvana/select_best_kenlm
     - voicetech/asr/cloud_engine/server/client/common
     - voicetech/asr/core/lib/subword_ngram_lm/nirvana/build_freq_table
@@ -2276,7 +2272,6 @@ migrations:
     - market/dynamic_pricing/tools/offline_modeling
     - market/idx/datacamp/controllers/piper/tests
     - market/idx/datacamp/controllers/stroller/tests
-    - market/idx/datacamp/miner/tests
     - market/idx/datacamp/parser/tests
     - market/idx/datacamp/pycommon
     - market/idx/datacamp/yatf
@@ -2755,7 +2750,6 @@ migrations:
     - voicetech/asr/cloud_engine/cli/nirvana/make_kenlm_lingware
     - voicetech/asr/cloud_engine/cli/nirvana/make_subword_lm_lingware
     - voicetech/asr/cloud_engine/cli/nirvana/merge_lingwares
-    - voicetech/asr/cloud_engine/cli/nirvana/normalize_texts
     - voicetech/asr/cloud_engine/cli/nirvana/select_best_kenlm
     - voicetech/asr/cloud_engine/server/client/common
     - voicetech/asr/core/lib/subword_ngram_lm/nirvana/build_freq_table
@@ -2793,19 +2787,6 @@ migrations:
     - mail/sharpei/tests/integration/steps
     - mail/shiva/tests/lib
     - mail/shiva/tests/lib/steps
-    - market/amore/output/lbdumper_amore/tests/yatf
-    - market/backctld/tests
-    - market/idx/datacamp/controllers/piper/tests
-    - market/idx/datacamp/miner/tests
-    - market/idx/datacamp/parser/tests
-    - market/idx/datacamp/routines/tests
-    - market/idx/devtools/dukalis/offer_diagnostics/lib/analyzer
-    - market/idx/devtools/dukalis/offer_diagnostics/lib/analyzer/items
-    - market/idx/generation/tests/yatf/prepare
-    - market/idx/input/uc_dumper/tests/yatf
-    - market/idx/promos/yt_promo_indexer/test/yatf
-    - market/idx/tools/subzero
-    - market/pylibrary/async_publishing/tests
     - modadvert/configurator/libs/it
     - modadvert/configurator/test_utils
     - modadvert/libs/clustering/it
@@ -2871,7 +2852,6 @@ migrations:
     - modadvert/programs/white_list_spam_client/it
     - modadvert/resources/supermoderation/service_confs/ut
     - modadvert/test_utils/sandbox/upload_xls
-    - ofd/api/tests/functional/test_check_receipt
     - quality/ab_testing/cofe/projects/alice
     - quality/ab_testing/cofe/projects/eda_ab
     - quality/ab_testing/cofe/projects/mail
