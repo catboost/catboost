@@ -1,5 +1,7 @@
 LIBRARY()
 
+LICENSE(Not-Applicable)
+
 
 
 NO_PLATFORM()
