@@ -38,3 +38,24 @@ TString GetRamDrivePath();
 TString GetOutputRamDrivePath();
 
 #define SRC_(path) ArcadiaFromCurrentLocation(__SOURCE_FILE__, path)
+
+namespace NPrivate {
+    class TTestEnv {
+    public:
+        TTestEnv();
+
+        void ReInitialize();
+
+        bool IsRunningFromTest;
+        TString ArcadiaTestsDataDir;
+        TString SourceRoot;
+        TString BuildRoot;
+        TString WorkPath;
+        TString RamDrivePath;
+        TString TestOutputRamDrivePath;
+    };
+
+    TString GetCwd();
+
+    const TTestEnv& GetTestEnv();
+}
