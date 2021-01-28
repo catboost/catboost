@@ -257,7 +257,7 @@ object Pool {
     val attributes = AttributeGroup.fromStructField(data.schema(featuresCol)).attributes
     if (attributes.isEmpty) {
       val result = new Array[Int](featureCount)
-      Arrays.fill(result.asInstanceOf[Array[Object]], 0, featureCount, 0)
+      Arrays.fill(result, 0)
       result
     } else {
       if (attributes.get.size != featureCount) {
