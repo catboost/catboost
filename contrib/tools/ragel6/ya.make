@@ -13,8 +13,6 @@ VERSION(6.10)
 
 LICENSE(GPL-2.0)
 
-ALLOCATOR(LF)
-
 PEERDIR(
     contrib/tools/ragel5/aapl
 )
