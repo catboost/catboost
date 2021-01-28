@@ -712,8 +712,8 @@ private[spark] object DataHelpers {
         (groupIdx: Int, sampleIdToIdxInGroup: HashMap[Long,Int], row: Row) => {
           pairsDataBuilder.Add(
             groupIdx, 
-            row.getAs[Int](sampleIdToIdxInGroup(winnerIdIdx)),
-            row.getAs[Int](sampleIdToIdxInGroup(loserIdIdx)),
+            sampleIdToIdxInGroup(row.getAs[Long](winnerIdIdx)),
+            sampleIdToIdxInGroup(row.getAs[Long](loserIdIdx)),
             row.getAs[Float](weightIdx)
           )
         } 
@@ -722,10 +722,10 @@ private[spark] object DataHelpers {
         (groupIdx: Int, sampleIdToIdxInGroup: HashMap[Long,Int], row: Row) => {
           pairsDataBuilder.Add(
             groupIdx, 
-            row.getAs[Int](sampleIdToIdxInGroup(winnerIdIdx)),
-            row.getAs[Int](sampleIdToIdxInGroup(loserIdIdx))
+            sampleIdToIdxInGroup(row.getAs[Long](winnerIdIdx)),
+            sampleIdToIdxInGroup(row.getAs[Long](loserIdIdx))
           )
-        } 
+        }
       }
     }
     
