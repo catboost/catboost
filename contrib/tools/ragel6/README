@@ -1,0 +1,32 @@
+
+                     Ragel State Machine Compiler -- README
+                     ======================================
+
+1. Build Requirements
+---------------------
+
+ * Make
+ * g++
+
+If you would like to modify Ragel and need to build Ragel's scanners and
+parsers from the specifications then set "build_parsers=yes" the DIST file and
+reconfigure. This variable is normally set to "no" in the distribution tarballs
+and "yes" in version control. You will need the following programs:
+
+ * ragel (the most recent version)
+ * kelbt (the most recent version)
+
+To build the user guide set "build_manual=yes" in the DIST file and
+reconfigure. You will need the following extra programs:
+
+ * fig2dev
+ * pdflatex
+
+2. Compilation and Installation
+-------------------------------
+
+Ragel uses autoconf and automake. 
+
+$ ./configure --prefix=PREFIX
+$ make
+$ make install
