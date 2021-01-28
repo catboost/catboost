@@ -543,8 +543,8 @@ private[spark] object CatBoostPairsDataLoader {
     }
     var schemaWithGroupIdAsStringFields = Seq(
       StructField("groupId", StringType, false),
-      StructField("winnerId", IntegerType, false),
-      StructField("loserId", IntegerType, false)
+      StructField("winnerId", LongType, false),
+      StructField("loserId", LongType, false)
     )
     
     import spark.implicits._
