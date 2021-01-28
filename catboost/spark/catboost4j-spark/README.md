@@ -265,7 +265,6 @@ Known limitations
 * Monotone constraints are not supported.
 * Multitarget training is not supported.
 * Stochastic Gradient Langevin Boosting mode is not supported.
-* Training with pairs is not supported.
 
 Build from source
 --------
