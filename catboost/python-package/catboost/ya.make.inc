@@ -9,12 +9,21 @@ ENDIF()
 PYTHON_ADDINCL()
 
 # add only headers for dynamic linking
-ADDINCL(
-    contrib/python/numpy/numpy/core/include
-    contrib/python/numpy/numpy/core/include/numpy
-    contrib/python/numpy/numpy/core/src/common
-    contrib/python/numpy/numpy/core/src/npymath
-)
+IF (PYTHON2)
+    ADDINCL(
+        contrib/python/numpy/py2/numpy/core/include
+        contrib/python/numpy/py2/numpy/core/include/numpy
+        contrib/python/numpy/py2/numpy/core/src/common
+        contrib/python/numpy/py2/numpy/core/src/npymath
+    )
+ELSE()
+    ADDINCL(
+        contrib/python/numpy/py3/numpy/core/include
+        contrib/python/numpy/py3/numpy/core/include/numpy
+        contrib/python/numpy/py3/numpy/core/src/common
+        contrib/python/numpy/py3/numpy/core/src/npymath
+    )
+ENDIF()
 
 PEERDIR(
     catboost/libs/cat_feature
@@ -46,8 +55,8 @@ PEERDIR(
 )
 
 SRCS(
-	helpers.cpp
-	monoforest_helpers.cpp
+    helpers.cpp
+    monoforest_helpers.cpp
 )
 
 # have to disable them because cython's numpy integration uses deprecated numpy API

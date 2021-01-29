@@ -2,10 +2,15 @@ PY23_LIBRARY()
 
 
 
-
-PEERDIR(
-    contrib/python/numpy/numpy/f2py/src
-)
+IF (PYTHON2)
+    PEERDIR(
+        contrib/python/numpy/py2/numpy/f2py/src
+    )
+ELSE()
+    PEERDIR(
+        contrib/python/numpy/py3/numpy/f2py/src
+    )
+ENDIF()
 
 NO_COMPILER_WARNINGS()
 
