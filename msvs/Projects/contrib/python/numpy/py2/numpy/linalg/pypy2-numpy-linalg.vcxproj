@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{D024E71D-9552-4094-E945-CF72AC4E5BA3}</ProjectGUID>
+    <ProjectGUID>{BB89FDA4-798A-F454-B1AD-D4603CF461F6}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>pynumpy-numpy-linalg</ProjectName>
+    <ProjectName>pypy2-numpy-linalg</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>pynumpy-numpy-linalg</TargetName>
+    <TargetName>pypy2-numpy-linalg</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\D024E71D-9552-4094-E945-CF72AC4E5BA3\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\linalg\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\BB89FDA4-798A-F454-B1AD-D4603CF461F6\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,20 +78,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg\44de86f4c09ea53b2cf43a5c82.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\numpy\linalg\lapack_litemodule.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\linalg\b2982c22544f5f53998440df4a.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\linalg\lapack_litemodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg\numpy.linalg._umath_linalg.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg\numpy.linalg.lapack_lite.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\numpy\linalg\umath_linalg.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\linalg\numpy.linalg._umath_linalg.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\linalg\numpy.linalg.lapack_lite.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\linalg\umath_linalg.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg\_44de86f4c09ea53b2cf43a5c82.yasm">
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\linalg\_b2982c22544f5f53998440df4a.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/linalg/_44de86f4c09ea53b2cf43a5c82.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/linalg/_44de86f4c09ea53b2cf43a5c82.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/linalg/_b2982c22544f5f53998440df4a.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/linalg/_b2982c22544f5f53998440df4a.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -100,9 +100,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/linalg/_44de86f4c09ea53b2cf43a5c82.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/linalg/_44de86f4c09ea53b2cf43a5c82.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/linalg/_b2982c22544f5f53998440df4a.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/linalg/_b2982c22544f5f53998440df4a.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -110,15 +110,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/numpy/numpy/linalg/_44de86f4c09ea53b2cf43a5c82.py2.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg\_44de86f4c09ea53b2cf43a5c82.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg\_44de86f4c09ea53b2cf43a5c82.py2.obj;</Outputs>
+      <Message>$B/contrib/python/numpy/py2/numpy/linalg/_b2982c22544f5f53998440df4a.py2.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\linalg\_b2982c22544f5f53998440df4a.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\linalg\_b2982c22544f5f53998440df4a.py2.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/linalg/44de86f4c09ea53b2cf43a5c82.cpp" "_29040d5150aaf301cc33a10eca=/py_modules/numpy.linalg.__init__" "_380fc283390945bba07cdb6022=resfs/src//py_modules/numpy.linalg.__init__" "_92fadd64d0498446231a4352bd=/py_code/numpy.linalg.__init__" "_9c34177e68031292c08a3296cd=/py_modules/numpy.linalg.info" "_6646b97a5fb7a1ee637943fc6b=resfs/src//py_modules/numpy.linalg.info" "_ab071c57a19ad1b122ebc484f1=/py_code/numpy.linalg.info" "_07a8eed9dc98363b0d1e82d7a0=/py_modules/numpy.linalg.linalg" "_ccf433ddfc8c35aca7a1dac088=resfs/src//py_modules/numpy.linalg.linalg" "_ebc614e21a6d7b8c8365aaec68=/py_code/numpy.linalg.linalg"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/linalg/b2982c22544f5f53998440df4a.cpp" "_afaccdf93eb5d8b50278b69527=/py_modules/numpy.linalg.__init__" "_588fac4f3f5f88b0f5935c4418=resfs/src//py_modules/numpy.linalg.__init__" "_e903561069d885f1a05920966b=/py_code/numpy.linalg.__init__" "_e50514cf8cb62de081efd63b9e=/py_modules/numpy.linalg.info" "_75b0b7cc04a8b94cf237d131ee=resfs/src//py_modules/numpy.linalg.info" "_db2e41625567bc0fedcf524c72=/py_code/numpy.linalg.info" "_5c613b837864542f114a9d83de=/py_modules/numpy.linalg.linalg" "_b620026958f9d8a2cf824dbbdf=resfs/src//py_modules/numpy.linalg.linalg" "_1f9eda5e580351e2439d2b7560=/py_code/numpy.linalg.linalg"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -127,9 +127,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/linalg/44de86f4c09ea53b2cf43a5c82.cpp" "_29040d5150aaf301cc33a10eca=/py_modules/numpy.linalg.__init__" "_380fc283390945bba07cdb6022=resfs/src//py_modules/numpy.linalg.__init__" "_92fadd64d0498446231a4352bd=/py_code/numpy.linalg.__init__" "_9c34177e68031292c08a3296cd=/py_modules/numpy.linalg.info" "_6646b97a5fb7a1ee637943fc6b=resfs/src//py_modules/numpy.linalg.info" "_ab071c57a19ad1b122ebc484f1=/py_code/numpy.linalg.info" "_07a8eed9dc98363b0d1e82d7a0=/py_modules/numpy.linalg.linalg" "_ccf433ddfc8c35aca7a1dac088=resfs/src//py_modules/numpy.linalg.linalg" "_ebc614e21a6d7b8c8365aaec68=/py_code/numpy.linalg.linalg"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/linalg/b2982c22544f5f53998440df4a.cpp" "_afaccdf93eb5d8b50278b69527=/py_modules/numpy.linalg.__init__" "_588fac4f3f5f88b0f5935c4418=resfs/src//py_modules/numpy.linalg.__init__" "_e903561069d885f1a05920966b=/py_code/numpy.linalg.__init__" "_e50514cf8cb62de081efd63b9e=/py_modules/numpy.linalg.info" "_75b0b7cc04a8b94cf237d131ee=resfs/src//py_modules/numpy.linalg.info" "_db2e41625567bc0fedcf524c72=/py_code/numpy.linalg.info" "_5c613b837864542f114a9d83de=/py_modules/numpy.linalg.linalg" "_b620026958f9d8a2cf824dbbdf=resfs/src//py_modules/numpy.linalg.linalg" "_1f9eda5e580351e2439d2b7560=/py_code/numpy.linalg.linalg"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -137,19 +137,19 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/numpy/numpy/linalg/44de86f4c09ea53b2cf43a5c82.cpp	</Message>
+      <Message>$B/contrib/python/numpy/py2/numpy/linalg/b2982c22544f5f53998440df4a.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg\44de86f4c09ea53b2cf43a5c82.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\linalg\b2982c22544f5f53998440df4a.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_py_reg.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "numpy.linalg._umath_linalg" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/linalg/numpy.linalg._umath_linalg.reg.cpp"
+"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "numpy.linalg._umath_linalg" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/linalg/numpy.linalg._umath_linalg.reg.cpp"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "numpy.linalg.lapack_lite" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/linalg/numpy.linalg.lapack_lite.reg.cpp"
+"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "numpy.linalg.lapack_lite" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/linalg/numpy.linalg.lapack_lite.reg.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -158,13 +158,13 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "numpy.linalg._umath_linalg" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/linalg/numpy.linalg._umath_linalg.reg.cpp"
+"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "numpy.linalg._umath_linalg" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/linalg/numpy.linalg._umath_linalg.reg.cpp"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "numpy.linalg.lapack_lite" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/linalg/numpy.linalg.lapack_lite.reg.cpp"
+"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "numpy.linalg.lapack_lite" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/linalg/numpy.linalg.lapack_lite.reg.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -172,23 +172,23 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/numpy/numpy/linalg/numpy.linalg._umath_linalg.reg.cpp	$B/contrib/python/numpy/numpy/linalg/numpy.linalg.lapack_lite.reg.cpp	</Message>
+      <Message>$B/contrib/python/numpy/py2/numpy/linalg/numpy.linalg._umath_linalg.reg.cpp	$B/contrib/python/numpy/py2/numpy/linalg/numpy.linalg.lapack_lite.reg.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_py_reg.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg\numpy.linalg._umath_linalg.reg.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg\numpy.linalg.lapack_lite.reg.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\linalg\numpy.linalg._umath_linalg.reg.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\linalg\numpy.linalg.lapack_lite.reg.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/numpy/numpy/linalg/__init__.py-" "$(SolutionDir)../contrib/python/numpy/numpy/linalg/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/linalg/__init__.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/numpy/py2/numpy/linalg/__init__.py-" "$(SolutionDir)../contrib/python/numpy/py2/numpy/linalg/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/linalg/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/numpy/numpy/linalg/info.py-" "$(SolutionDir)../contrib/python/numpy/numpy/linalg/info.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/linalg/info.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/numpy/py2/numpy/linalg/info.py-" "$(SolutionDir)../contrib/python/numpy/py2/numpy/linalg/info.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/linalg/info.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/numpy/numpy/linalg/linalg.py-" "$(SolutionDir)../contrib/python/numpy/numpy/linalg/linalg.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/linalg/linalg.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/numpy/py2/numpy/linalg/linalg.py-" "$(SolutionDir)../contrib/python/numpy/py2/numpy/linalg/linalg.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/linalg/linalg.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -197,17 +197,17 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/numpy/numpy/linalg/__init__.py-" "$(SolutionDir)../contrib/python/numpy/numpy/linalg/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/linalg/__init__.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/numpy/py2/numpy/linalg/__init__.py-" "$(SolutionDir)../contrib/python/numpy/py2/numpy/linalg/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/linalg/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/numpy/numpy/linalg/info.py-" "$(SolutionDir)../contrib/python/numpy/numpy/linalg/info.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/linalg/info.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/numpy/py2/numpy/linalg/info.py-" "$(SolutionDir)../contrib/python/numpy/py2/numpy/linalg/info.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/linalg/info.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/numpy/numpy/linalg/linalg.py-" "$(SolutionDir)../contrib/python/numpy/numpy/linalg/linalg.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/linalg/linalg.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/numpy/py2/numpy/linalg/linalg.py-" "$(SolutionDir)../contrib/python/numpy/py2/numpy/linalg/linalg.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/linalg/linalg.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -215,15 +215,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/numpy/numpy/linalg/__init__.py.yapyc	$B/contrib/python/numpy/numpy/linalg/info.py.yapyc	$B/contrib/python/numpy/numpy/linalg/linalg.py.yapyc	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\contrib\python\numpy\numpy\linalg\__init__.py;$(SolutionDir)..\contrib\python\numpy\numpy\linalg\info.py;$(SolutionDir)..\contrib\python\numpy\numpy\linalg\linalg.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg\__init__.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg\info.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg\linalg.py.yapyc;</Outputs>
+      <Message>$B/contrib/python/numpy/py2/numpy/linalg/__init__.py.yapyc	$B/contrib/python/numpy/py2/numpy/linalg/info.py.yapyc	$B/contrib/python/numpy/py2/numpy/linalg/linalg.py.yapyc	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\contrib\python\numpy\py2\numpy\linalg\__init__.py;$(SolutionDir)..\contrib\python\numpy\py2\numpy\linalg\info.py;$(SolutionDir)..\contrib\python\numpy\py2\numpy\linalg\linalg.py;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\linalg\__init__.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\linalg\info.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\linalg\linalg.py.yapyc;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\numpy\numpy\linalg\__init__.py">
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\linalg\__init__.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/linalg/_44de86f4c09ea53b2cf43a5c82.yasm" "$(SolutionDir)../contrib/python/numpy/numpy/linalg/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/linalg/_29040d5150aaf301cc33a10eca.rodata" "-" "contrib/python/numpy/numpy/linalg/__init__.py" "_380fc283390945bba07cdb6022.rodata" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/linalg/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/linalg/_92fadd64d0498446231a4352bd.rodata" "$(SolutionDir)../contrib/python/numpy/numpy/linalg/info.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/linalg/_9c34177e68031292c08a3296cd.rodata" "-" "contrib/python/numpy/numpy/linalg/info.py" "_6646b97a5fb7a1ee637943fc6b.rodata" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/linalg/info.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/linalg/_ab071c57a19ad1b122ebc484f1.rodata" "$(SolutionDir)../contrib/python/numpy/numpy/linalg/linalg.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/linalg/_07a8eed9dc98363b0d1e82d7a0.rodata" "-" "contrib/python/numpy/numpy/linalg/linalg.py" "_ccf433ddfc8c35aca7a1dac088.rodata" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/linalg/linalg.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/linalg/_ebc614e21a6d7b8c8365aaec68.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/linalg/_b2982c22544f5f53998440df4a.yasm" "$(SolutionDir)../contrib/python/numpy/py2/numpy/linalg/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/linalg/_afaccdf93eb5d8b50278b69527.rodata" "-" "contrib/python/numpy/py2/numpy/linalg/__init__.py" "_588fac4f3f5f88b0f5935c4418.rodata" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/linalg/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/linalg/_e903561069d885f1a05920966b.rodata" "$(SolutionDir)../contrib/python/numpy/py2/numpy/linalg/info.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/linalg/_e50514cf8cb62de081efd63b9e.rodata" "-" "contrib/python/numpy/py2/numpy/linalg/info.py" "_75b0b7cc04a8b94cf237d131ee.rodata" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/linalg/info.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/linalg/_db2e41625567bc0fedcf524c72.rodata" "$(SolutionDir)../contrib/python/numpy/py2/numpy/linalg/linalg.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/linalg/_5c613b837864542f114a9d83de.rodata" "-" "contrib/python/numpy/py2/numpy/linalg/linalg.py" "_b620026958f9d8a2cf824dbbdf.rodata" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/linalg/linalg.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/linalg/_1f9eda5e580351e2439d2b7560.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -232,9 +232,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/linalg/_44de86f4c09ea53b2cf43a5c82.yasm" "$(SolutionDir)../contrib/python/numpy/numpy/linalg/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/linalg/_29040d5150aaf301cc33a10eca.rodata" "-" "contrib/python/numpy/numpy/linalg/__init__.py" "_380fc283390945bba07cdb6022.rodata" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/linalg/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/linalg/_92fadd64d0498446231a4352bd.rodata" "$(SolutionDir)../contrib/python/numpy/numpy/linalg/info.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/linalg/_9c34177e68031292c08a3296cd.rodata" "-" "contrib/python/numpy/numpy/linalg/info.py" "_6646b97a5fb7a1ee637943fc6b.rodata" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/linalg/info.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/linalg/_ab071c57a19ad1b122ebc484f1.rodata" "$(SolutionDir)../contrib/python/numpy/numpy/linalg/linalg.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/linalg/_07a8eed9dc98363b0d1e82d7a0.rodata" "-" "contrib/python/numpy/numpy/linalg/linalg.py" "_ccf433ddfc8c35aca7a1dac088.rodata" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/linalg/linalg.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/linalg/_ebc614e21a6d7b8c8365aaec68.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/linalg/_b2982c22544f5f53998440df4a.yasm" "$(SolutionDir)../contrib/python/numpy/py2/numpy/linalg/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/linalg/_afaccdf93eb5d8b50278b69527.rodata" "-" "contrib/python/numpy/py2/numpy/linalg/__init__.py" "_588fac4f3f5f88b0f5935c4418.rodata" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/linalg/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/linalg/_e903561069d885f1a05920966b.rodata" "$(SolutionDir)../contrib/python/numpy/py2/numpy/linalg/info.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/linalg/_e50514cf8cb62de081efd63b9e.rodata" "-" "contrib/python/numpy/py2/numpy/linalg/info.py" "_75b0b7cc04a8b94cf237d131ee.rodata" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/linalg/info.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/linalg/_db2e41625567bc0fedcf524c72.rodata" "$(SolutionDir)../contrib/python/numpy/py2/numpy/linalg/linalg.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/linalg/_5c613b837864542f114a9d83de.rodata" "-" "contrib/python/numpy/py2/numpy/linalg/linalg.py" "_b620026958f9d8a2cf824dbbdf.rodata" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/linalg/linalg.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/linalg/_1f9eda5e580351e2439d2b7560.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -242,9 +242,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/numpy/numpy/linalg/_44de86f4c09ea53b2cf43a5c82.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\numpy\numpy\linalg\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg\__init__.py.yapyc;$(SolutionDir)..\contrib\python\numpy\numpy\linalg\info.py;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg\info.py.yapyc;$(SolutionDir)..\contrib\python\numpy\numpy\linalg\linalg.py;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg\linalg.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg\_44de86f4c09ea53b2cf43a5c82.yasm;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg\_29040d5150aaf301cc33a10eca.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg\_92fadd64d0498446231a4352bd.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg\_9c34177e68031292c08a3296cd.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg\_ab071c57a19ad1b122ebc484f1.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg\_07a8eed9dc98363b0d1e82d7a0.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg\_ebc614e21a6d7b8c8365aaec68.rodata;</Outputs>
+      <Message>$B/contrib/python/numpy/py2/numpy/linalg/_b2982c22544f5f53998440df4a.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\numpy\py2\numpy\linalg\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\linalg\__init__.py.yapyc;$(SolutionDir)..\contrib\python\numpy\py2\numpy\linalg\info.py;$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\linalg\info.py.yapyc;$(SolutionDir)..\contrib\python\numpy\py2\numpy\linalg\linalg.py;$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\linalg\linalg.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\linalg\_b2982c22544f5f53998440df4a.yasm;$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\linalg\_afaccdf93eb5d8b50278b69527.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\linalg\_e903561069d885f1a05920966b.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\linalg\_e50514cf8cb62de081efd63b9e.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\linalg\_db2e41625567bc0fedcf524c72.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\linalg\_5c613b837864542f114a9d83de.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\linalg\_1f9eda5e580351e2439d2b7560.rodata;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
