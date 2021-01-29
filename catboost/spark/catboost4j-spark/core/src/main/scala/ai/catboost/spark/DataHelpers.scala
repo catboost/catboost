@@ -218,6 +218,7 @@ private[spark] class FeaturesColumnStorage (
       javaBuffersUi32(i) = buffersUi32(i).asDirectByteBuffer
       javaBuffersUi32(i).order(java.nio.ByteOrder.nativeOrder)
     }
+    bufferSize = newSize
   }
 
   def addToVisitor(visitor: IQuantizedFeaturesDataVisitor) = {
