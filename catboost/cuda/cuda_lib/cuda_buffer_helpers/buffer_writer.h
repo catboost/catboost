@@ -84,7 +84,6 @@ namespace NCudaLib {
                         ui64 readOffset = mapping.MemoryOffset(intersection);
                         CB_ENSURE(readOffset >= SrcOffset);
                         readOffset -= SrcOffset;
-                        Y_ASSERT(writeSize <= SrcMaxSize);
                         CB_ENSURE(writeSize <= SrcMaxSize);
 
                         //TODO(noxoom): if(constexpr) after cpp17

@@ -12,6 +12,7 @@
 #include <catboost/cuda/cuda_lib/mapping.h>
 #include <catboost/cuda/cuda_lib/slice.h>
 
+#include <catboost/libs/data/lazy_columns.h>
 #include <catboost/libs/helpers/cpu_random.h>
 #include <catboost/libs/helpers/exception.h>
 
@@ -110,6 +111,19 @@ namespace NCatboostCuda {
             TStripeBuffer<ui8> tmp = TStripeBuffer<ui8>::Create(docsMapping);
             tmp.Write(bins);
             WriteCompressedFeature(feature, tmp, *compressedIndex);
+        }
+
+        static void WriteToLazyCompressedIndex(const NCudaLib::TDistributedObject<TCFeature>& feature,
+                                           const NCB::TLazyQuantizedFloatValuesHolder* lazyQuantizedColumn,
+                                           ui32 featureId,
+                                           const NCudaLib::TStripeMapping& docsMapping,
+                                           TStripeBuffer<ui32>* compressedIndex) {
+            WriteLazyCompressedFeature(
+                feature,
+                docsMapping,
+                lazyQuantizedColumn->GetPoolPathWithScheme(),
+                featureId,
+                *compressedIndex);
         }
     };
 

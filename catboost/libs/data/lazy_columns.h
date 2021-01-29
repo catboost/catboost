@@ -78,6 +78,10 @@ namespace NCB {
             );
         }
 
+        TPathWithScheme GetPoolPathWithScheme() const {
+            return PoolLoader->GetPoolPathWithScheme();
+        }
+
         IDynamicBlockIteratorBasePtr GetBlockIterator(ui32 offset) const override {
             return MakeHolder<TLazyCompressedValuesIterator<ui8>>(
                 SubsetIndexing,
@@ -111,4 +115,8 @@ namespace NCB {
         const TFeaturesArraySubsetIndexing* SubsetIndexing;
         TAtomicSharedPtr<IQuantizedPoolLoader> PoolLoader;
     };
+
+    using TLazyQuantizedFloatValuesHolder = TLazyCompressedValuesHolderImpl<IQuantizedFloatValuesHolder>;
+    template <typename IQuantizedValuesHolder>
+    const TLazyQuantizedFloatValuesHolder* CastToLazyQuantizedFloatValuesHolder(const IQuantizedValuesHolder* quantizedFeatureColumn);
 }
