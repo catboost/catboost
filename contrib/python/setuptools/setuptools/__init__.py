@@ -129,10 +129,27 @@ if PY3:
 def _install_setup_requires(attrs):
     # Note: do not use `setuptools.Distribution` directly, as
     # our PEP 517 backend patch `distutils.core.Distribution`.
-    dist = distutils.core.Distribution(dict(
-        (k, v) for k, v in attrs.items()
-        if k in ('dependency_links', 'setup_requires')
-    ))
+    class MinimalDistribution(distutils.core.Distribution):
+        """
+        A minimal version of a distribution for supporting the
+        fetch_build_eggs interface.
+        """
+        def __init__(self, attrs):
+            _incl = 'dependency_links', 'setup_requires'
+            filtered = {
+                k: attrs[k]
+                for k in set(_incl) & set(attrs)
+            }
+            distutils.core.Distribution.__init__(self, filtered)
+
+        def finalize_options(self):
+            """
+            Disable finalize_options to avoid building the working set.
+            Ref #2158.
+            """
+
+    dist = MinimalDistribution(attrs)
+
     # Honor setup.cfg's options.
     dist.parse_config_files(ignore_option_errors=True)
     if dist.setup_requires:
