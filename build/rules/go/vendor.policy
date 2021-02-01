@@ -4,6 +4,9 @@
 
 ALLOW vendor/ -> .*
 
+# CONTRIB-2087
+ALLOW .* -> vendor/github.com/armon/go-radix
+
 # CONTRIB-1972 stomp protocol
 ALLOW .* -> vendor/github.com/go-stomp/stomp
 
