@@ -5,7 +5,7 @@
 
     Multi-Dialect Lexer for Modula-2.
 
-    :copyright: Copyright 2006-2020 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -228,8 +228,8 @@ class Modula2Lexer(RegexLexer):
             (r'[0-9A-F]+H', Number.Hex),
         ],
         'string_literals': [
-            (r"'(\\\\|\\'|[^'])*'", String),  # single quoted string
-            (r'"(\\\\|\\"|[^"])*"', String),  # double quoted string
+            (r'"(\\\\|\\[^\\]|[^"\\])*"', String.Double),
+            (r"'(\\\\|\\[^\\]|[^'\\])*'", String.Single),
         ],
         'digraph_operators': [
             # Dot Product Operator

@@ -5,7 +5,7 @@
 
     Lexers for Prolog and Prolog-like languages.
 
-    :copyright: Copyright 2006-2020 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -227,7 +227,7 @@ class LogtalkLexer(RegexLexer):
             # Existential quantifier
             (r'\^', Operator),
             # Strings
-            (r'"(\\\\|\\"|[^"])*"', String),
+            (r'"(\\\\|\\[^\\]|[^"\\])*"', String),
             # Punctuation
             (r'[()\[\],.|]', Text),
             # Atoms
@@ -277,7 +277,7 @@ class LogtalkLexer(RegexLexer):
             (r"[a-z][a-zA-Z0-9_]*", Text),
             (r"'", String, 'quoted_atom'),
             # Strings
-            (r'"(\\\\|\\"|[^"])*"', String),
+            (r'"(\\\\|\\[^\\]|[^"\\])*"', String),
             # End of entity-opening directive
             (r'([)]\.)', Text, 'root'),
             # Scope operator

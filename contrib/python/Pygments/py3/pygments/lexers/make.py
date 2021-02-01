@@ -5,7 +5,7 @@
 
     Lexers for Makefiles and similar.
 
-    :copyright: Copyright 2006-2020 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -92,8 +92,8 @@ class BaseMakefileLexer(RegexLexer):
             (r'([\w${}().-]+)(\s*)([!?:+]?=)([ \t]*)((?:.*\\\n)+|.*\n)',
              bygroups(Name.Variable, Text, Operator, Text, using(BashLexer))),
             # strings
-            (r'(?s)"(\\\\|\\.|[^"\\])*"', String.Double),
-            (r"(?s)'(\\\\|\\.|[^'\\])*'", String.Single),
+            (r'"(\\\\|\\[^\\]|[^"\\])*"', String.Double),
+            (r"'(\\\\|\\[^\\]|[^'\\])*'", String.Single),
             # targets
             (r'([^\n:]+)(:+)([ \t]*)', bygroups(Name.Function, Operator, Text),
              'block-header'),

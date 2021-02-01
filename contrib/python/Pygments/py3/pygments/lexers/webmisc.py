@@ -5,7 +5,7 @@
 
     Lexers for misc. web stuff.
 
-    :copyright: Copyright 2006-2020 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -128,7 +128,8 @@ class XQueryLexer(ExtendedRegexLexer):
 
     def popstate_tag_callback(lexer, match, ctx):
         yield match.start(), Name.Tag, match.group(1)
-        ctx.stack.append(lexer.xquery_parse_state.pop())
+        if lexer.xquery_parse_state:
+            ctx.stack.append(lexer.xquery_parse_state.pop())
         ctx.pos = match.end()
 
     def popstate_xmlcomment_callback(lexer, match, ctx):
@@ -857,8 +858,8 @@ class QmlLexer(RegexLexer):
             (r'[0-9][0-9]*\.[0-9]+([eE][0-9]+)?[fd]?', Number.Float),
             (r'0x[0-9a-fA-F]+', Number.Hex),
             (r'[0-9]+', Number.Integer),
-            (r'"(\\\\|\\"|[^"])*"', String.Double),
-            (r"'(\\\\|\\'|[^'])*'", String.Single),
+            (r'"(\\\\|\\[^\\]|[^"\\])*"', String.Double),
+            (r"'(\\\\|\\[^\\]|[^'\\])*'", String.Single),
         ]
     }
 

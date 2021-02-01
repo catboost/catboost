@@ -5,7 +5,7 @@
 
     Lexers for various shells.
 
-    :copyright: Copyright 2006-2020 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -57,7 +57,7 @@ class BashLexer(RegexLexer):
             (r'\$', Text),
         ],
         'basic': [
-            (r'\b(if|fi|else|while|do|done|for|then|return|function|case|'
+            (r'\b(if|fi|else|while|in|do|done|for|then|return|function|case|'
              r'select|continue|until|esac|elif)(\s*)\b',
              bygroups(Keyword, Text)),
             (r'\b(alias|bg|bind|break|builtin|caller|cd|command|compgen|'
@@ -232,7 +232,7 @@ class BashSessionLexer(ShellSessionBaseLexer):
     _innerLexerCls = BashLexer
     _ps1rgx = re.compile(
         r'^((?:(?:\[.*?\])|(?:\(\S+\))?(?:| |sh\S*?|\w+\S+[@:]\S+(?:\s+\S+)' \
-        r'?|\[\S+[@:][^\n]+\].+))\s*[$#%])(.*\n?)')
+        r'?|\[\S+[@:][^\n]+\].+))\s*[$#%]\s*)(.*\n?)')
     _ps2 = '>'
 
 

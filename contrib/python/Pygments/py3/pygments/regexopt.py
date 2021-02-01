@@ -6,7 +6,7 @@
     An algorithm that generates optimized regexes for matching long lists of
     literal strings.
 
-    :copyright: Copyright 2006-2020 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 

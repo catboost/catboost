@@ -6,7 +6,7 @@
     This file contains the names of functions for Stan used by
     ``pygments.lexers.math.StanLexer. This is for Stan language version 2.17.0.
 
-    :copyright: Copyright 2006-2020 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 

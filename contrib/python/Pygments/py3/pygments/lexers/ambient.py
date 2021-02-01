@@ -5,7 +5,7 @@
 
     Lexers for AmbientTalk language.
 
-    :copyright: Copyright 2006-2020 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -44,7 +44,7 @@ class AmbientTalkLexer(RegexLexer):
             (builtin, Name.Builtin),
             (r'(true|false|nil)\b', Keyword.Constant),
             (r'(~|lobby|jlobby|/)\.', Keyword.Constant, 'namespace'),
-            (r'"(\\\\|\\"|[^"])*"', String),
+            (r'"(\\\\|\\[^\\]|[^"\\])*"', String),
             (r'\|', Punctuation, 'arglist'),
             (r'<:|[*^!%&<>+=,./?-]|:=', Operator),
             (r"`[a-zA-Z_]\w*", String.Symbol),

@@ -5,18 +5,16 @@
 
     Utility functions.
 
-    :copyright: Copyright 2006-2020 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
 import re
-import sys
 from io import TextIOWrapper
 
 
 split_path_re = re.compile(r'[/\\ ]')
 doctype_lookup_re = re.compile(r'''
-    (<\?.*?\?>)?\s*
     <!DOCTYPE\s+(
      [a-zA-Z_][a-zA-Z0-9]*
      (?: \s+      # optional in HTML5
@@ -177,7 +175,7 @@ def doctype_matches(text, regex):
     m = doctype_lookup_re.search(text)
     if m is None:
         return False
-    doctype = m.group(2)
+    doctype = m.group(1)
     return re.compile(regex, re.I).match(doctype.strip()) is not None
 
 

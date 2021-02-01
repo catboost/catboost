@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: Pygments
-Version: 2.7.3
+Version: 2.7.4
 Summary: Pygments is a syntax highlighting package written in Python.
 Home-page: https://pygments.org/
 Author: Georg Brandl
@@ -43,7 +43,7 @@ are:
 * a number of output formats, presently HTML, LaTeX, RTF, SVG, all image     formats that PIL supports and ANSI sequences
 * it is usable as a command-line tool and as a library
 
-:copyright: Copyright 2006-2020 by the Pygments team, see AUTHORS.
+:copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
 :license: BSD, see LICENSE for details.
 
 

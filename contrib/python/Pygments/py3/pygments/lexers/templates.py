@@ -5,7 +5,7 @@
 
     Lexers for various template engines' markup.
 
-    :copyright: Copyright 2006-2020 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -179,8 +179,8 @@ class SmartyLexer(RegexLexer):
             (r'(true|false|null)\b', Keyword.Constant),
             (r"[0-9](\.[0-9]*)?(eE[+-][0-9])?[flFLdD]?|"
              r"0[xX][0-9a-fA-F]+[Ll]?", Number),
-            (r'"(\\\\|\\"|[^"])*"', String.Double),
-            (r"'(\\\\|\\'|[^'])*'", String.Single),
+            (r'"(\\\\|\\[^\\]|[^"\\])*"', String.Double),
+            (r"'(\\\\|\\[^\\]|[^'\\])*'", String.Single),
             (r'[a-zA-Z_]\w*', Name.Attribute)
         ]
     }
@@ -252,8 +252,8 @@ class VelocityLexer(RegexLexer):
             (r'\$!?\{?', Punctuation, 'variable'),
             (r'\s+', Text),
             (r'[,:]', Punctuation),
-            (r'"(\\\\|\\"|[^"])*"', String.Double),
-            (r"'(\\\\|\\'|[^'])*'", String.Single),
+            (r'"(\\\\|\\[^\\]|[^"\\])*"', String.Double),
+            (r"'(\\\\|\\[^\\]|[^'\\])*'", String.Single),
             (r"0[xX][0-9a-fA-F]+[Ll]?", Number),
             (r"\b[0-9]+\b", Number),
             (r'(true|false|null)\b', Keyword.Constant),
@@ -371,8 +371,8 @@ class DjangoLexer(RegexLexer):
             (r'(loop|block|super|forloop)\b', Name.Builtin),
             (r'[a-zA-Z_][\w-]*', Name.Variable),
             (r'\.\w+', Name.Variable),
-            (r':?"(\\\\|\\"|[^"])*"', String.Double),
-            (r":?'(\\\\|\\'|[^'])*'", String.Single),
+            (r':?"(\\\\|\\[^\\]|[^"\\])*"', String.Double),
+            (r":?'(\\\\|\\[^\\]|[^'\\])*'", String.Single),
             (r'([{}()\[\]+\-*/%,:~]|[><=]=?|!=)', Operator),
             (r"[0-9](\.[0-9]*)?(eE[+-][0-9])?[flFLdD]?|"
              r"0[xX][0-9a-fA-F]+[Ll]?", Number),
@@ -1405,7 +1405,7 @@ class EvoqueLexer(RegexLexer):
             # see doc for handling first name arg: /directives/evoque/
             # + minor inconsistency: the "name" in e.g. $overlay{name=site_base}
             # should be using(PythonLexer), not passed out as String
-            (r'(\$)(evoque|overlay)(\{(%)?)(\s*[#\w\-"\'.]+[^=,%}]+?)?'
+            (r'(\$)(evoque|overlay)(\{(%)?)(\s*[#\w\-"\'.]+)?'
              r'(.*?)((?(4)%)\})',
              bygroups(Punctuation, Name.Builtin, Punctuation, None,
                       String, using(PythonLexer), Punctuation)),
@@ -1735,7 +1735,7 @@ class LassoCssLexer(DelegatingLexer):
 
     def analyse_text(text):
         rv = LassoLexer.analyse_text(text) - 0.05
-        if re.search(r'\w+:.+?;', text):
+        if re.search(r'\w+:[^;]+;', text):
             rv += 0.1
         if 'padding:' in text:
             rv += 0.1
@@ -1834,8 +1834,8 @@ class HandlebarsLexer(RegexLexer):
             include('variable'),
 
             # borrowed from DjangoLexer
-            (r':?"(\\\\|\\"|[^"])*"', String.Double),
-            (r":?'(\\\\|\\'|[^'])*'", String.Single),
+            (r':?"(\\\\|\\[^\\]|[^"\\])*"', String.Double),
+            (r":?'(\\\\|\\[^\\]|[^'\\])*'", String.Single),
             (r"[0-9](\.[0-9]*)?(eE[+-][0-9])?[flFLdD]?|"
              r"0[xX][0-9a-fA-F]+[Ll]?", Number),
         ]
@@ -2147,8 +2147,8 @@ class TwigLexer(RegexLexer):
             (_ident_inner, Name.Variable),
             (r'\.' + _ident_inner, Name.Variable),
             (r'\.[0-9]+', Number),
-            (r':?"(\\\\|\\"|[^"])*"', String.Double),
-            (r":?'(\\\\|\\'|[^'])*'", String.Single),
+            (r':?"(\\\\|\\[^\\]|[^"\\])*"', String.Double),
+            (r":?'(\\\\|\\[^\\]|[^'\\])*'", String.Single),
             (r'([{}()\[\]+\-*/,:~%]|\.\.|\?|:|\*\*|\/\/|!=|[><=]=?)', Operator),
             (r"[0-9](\.[0-9]*)?(eE[+-][0-9])?[flFLdD]?|"
              r"0[xX][0-9a-fA-F]+[Ll]?", Number),
@@ -2227,8 +2227,8 @@ class Angular2Lexer(RegexLexer):
 
             # Literals
             (r':?(true|false)', String.Boolean),
-            (r':?"(\\\\|\\"|[^"])*"', String.Double),
-            (r":?'(\\\\|\\'|[^'])*'", String.Single),
+            (r':?"(\\\\|\\[^\\]|[^"\\])*"', String.Double),
+            (r":?'(\\\\|\\[^\\]|[^'\\])*'", String.Single),
             (r"[0-9](\.[0-9]*)?(eE[+-][0-9])?[flFLdD]?|"
              r"0[xX][0-9a-fA-F]+[Ll]?", Number),
 

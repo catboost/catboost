@@ -5,7 +5,7 @@
 
     Lexers for Varnish configuration
 
-    :copyright: Copyright 2006-2020 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -61,7 +61,7 @@ class VCLLexer(RegexLexer):
              bygroups(Name.Attribute, Operator, Name.Variable.Global, Punctuation)),
             (r'(\.probe)(\s*=\s*)(\{)',
              bygroups(Name.Attribute, Operator, Punctuation), 'probe'),
-            (r'(\.\w+\b)(\s*=\s*)([^;]*)(\s*;)',
+            (r'(\.\w+\b)(\s*=\s*)([^;\s]*)(\s*;)',
              bygroups(Name.Attribute, Operator, using(this), Punctuation)),
             (r'\{', Punctuation, '#push'),
             (r'\}', Punctuation, '#pop'),

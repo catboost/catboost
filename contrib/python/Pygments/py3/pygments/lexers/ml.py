@@ -5,7 +5,7 @@
 
     Lexers for ML family languages.
 
-    :copyright: Copyright 2006-2020 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -142,7 +142,7 @@ class SMLLexer(RegexLexer):
             (r'#\s+(%s)' % symbolicid_re, Name.Label),
             # Some reserved words trigger a special, local lexer state change
             (r'\b(datatype|abstype)\b(?!\')', Keyword.Reserved, 'dname'),
-            (r'(?=\b(exception)\b(?!\'))', Text, ('ename')),
+            (r'\b(exception)\b(?!\')', Keyword.Reserved, 'ename'),
             (r'\b(functor|include|open|signature|structure)\b(?!\')',
              Keyword.Reserved, 'sname'),
             (r'\b(type|eqtype)\b(?!\')', Keyword.Reserved, 'tname'),
@@ -315,15 +315,14 @@ class SMLLexer(RegexLexer):
         'ename': [
             include('whitespace'),
 
-            (r'(exception|and)\b(\s+)(%s)' % alphanumid_re,
+            (r'(and\b)(\s+)(%s)' % alphanumid_re,
              bygroups(Keyword.Reserved, Text, Name.Class)),
-            (r'(exception|and)\b(\s*)(%s)' % symbolicid_re,
+            (r'(and\b)(\s*)(%s)' % symbolicid_re,
              bygroups(Keyword.Reserved, Text, Name.Class)),
             (r'\b(of)\b(?!\')', Keyword.Reserved),
+            (r'(%s)|(%s)' % (alphanumid_re, symbolicid_re), Name.Class),
 
-            include('breakout'),
-            include('core'),
-            (r'\S+', Error),
+            default('#pop'),
         ],
 
         'datcon': [
@@ -444,6 +443,7 @@ class OcamlLexer(RegexLexer):
             default('#pop'),
         ],
     }
+
 
 class OpaLexer(RegexLexer):
     """

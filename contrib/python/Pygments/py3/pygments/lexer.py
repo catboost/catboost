@@ -5,7 +5,7 @@
 
     Base lexer classes.
 
-    :copyright: Copyright 2006-2020 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -794,8 +794,9 @@ def do_insertions(insertions, tokens):
         oldi = 0
         while insleft and i + len(v) >= index:
             tmpval = v[oldi:index - i]
-            yield realpos, t, tmpval
-            realpos += len(tmpval)
+            if tmpval:
+                yield realpos, t, tmpval
+                realpos += len(tmpval)
             for it_index, it_token, it_value in itokens:
                 yield realpos, it_token, it_value
                 realpos += len(it_value)
@@ -805,8 +806,9 @@ def do_insertions(insertions, tokens):
             except StopIteration:
                 insleft = False
                 break  # not strictly necessary
-        yield realpos, t, v[oldi:]
-        realpos += len(v) - oldi
+        if oldi < len(v):
+            yield realpos, t, v[oldi:]
+            realpos += len(v) - oldi
 
     # leftover tokens
     while insleft:

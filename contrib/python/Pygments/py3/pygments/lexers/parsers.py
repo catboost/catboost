@@ -5,7 +5,7 @@
 
     Lexers for parser generators.
 
-    :copyright: Copyright 2006-2020 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -64,10 +64,10 @@ class RagelLexer(RegexLexer):
             (r'[+-]?[0-9]+', Number.Integer),
         ],
         'literals': [
-            (r'"(\\\\|\\"|[^"])*"', String),              # double quote string
-            (r"'(\\\\|\\'|[^'])*'", String),              # single quote string
-            (r'\[(\\\\|\\\]|[^\]])*\]', String),          # square bracket literals
-            (r'/(?!\*)(\\\\|\\/|[^/])*/', String.Regex),  # regular expressions
+            (r'"(\\\\|\\[^\\]|[^"\\])*"', String.Double),
+            (r"'(\\\\|\\[^\\]|[^'\\])*'", String.Single),
+            (r'\[(\\\\|\\[^\\]|[^\\\]])*\]', String),          # square bracket literals
+            (r'/(?!\*)(\\\\|\\[^\\]|[^/\\])*/', String.Regex),  # regular expressions
         ],
         'identifiers': [
             (r'[a-zA-Z_]\w*', Name.Variable),
@@ -106,15 +106,15 @@ class RagelLexer(RegexLexer):
                 r'[^\\]\\[{}]',  # allow escaped { or }
 
                 # strings and comments may safely contain unsafe characters
-                r'"(\\\\|\\"|[^"])*"',  # double quote string
-                r"'(\\\\|\\'|[^'])*'",  # single quote string
+                r'"(\\\\|\\[^\\]|[^"\\])*"',
+                r"'(\\\\|\\[^\\]|[^'\\])*'",
                 r'//.*$\n?',            # single line comment
                 r'/\*(.|\n)*?\*/',      # multi-line javadoc-style comment
                 r'\#.*$\n?',            # ruby comment
 
                 # regular expression: There's no reason for it to start
                 # with a * and this stops confusion with comments.
-                r'/(?!\*)(\\\\|\\/|[^/])*/',
+                r'/(?!\*)(\\\\|\\[^\\]|[^/\\])*/',
 
                 # / is safe now that we've handled regex and javadoc comments
                 r'/',
@@ -147,12 +147,12 @@ class RagelEmbeddedLexer(RegexLexer):
                 r'%(?=[^%]|$)',   # a single % sign is okay, just not 2 of them
 
                 # strings and comments may safely contain unsafe characters
-                r'"(\\\\|\\"|[^"])*"',  # double quote string
-                r"'(\\\\|\\'|[^'])*'",  # single quote string
+                r'"(\\\\|\\[^\\]|[^"\\])*"',
+                r"'(\\\\|\\[^\\]|[^'\\])*'",
                 r'/\*(.|\n)*?\*/',      # multi-line javadoc-style comment
                 r'//.*$\n?',  # single line comment
                 r'\#.*$\n?',  # ruby/ragel comment
-                r'/(?!\*)(\\\\|\\/|[^/])*/',  # regular expression
+                r'/(?!\*)(\\\\|\\[^\\]|[^/\\])*/',  # regular expression
 
                 # / is safe now that we've handled regex and javadoc comments
                 r'/',
@@ -182,7 +182,7 @@ class RagelEmbeddedLexer(RegexLexer):
 
                     # specifically allow regex followed immediately by *
                     # so it doesn't get mistaken for a comment
-                    r'/(?!\*)(\\\\|\\/|[^/])*/\*',
+                    r'/(?!\*)(\\\\|\\[^\\]|[^/\\])*/\*',
 
                     # allow / as long as it's not followed by another / or by a *
                     r'/(?=[^/*]|$)',
@@ -193,9 +193,9 @@ class RagelEmbeddedLexer(RegexLexer):
                 )) + r')+',
 
                 # strings and comments may safely contain unsafe characters
-                r'"(\\\\|\\"|[^"])*"',      # double quote string
-                r"'(\\\\|\\'|[^'])*'",      # single quote string
-                r"\[(\\\\|\\\]|[^\]])*\]",  # square bracket literal
+                r'"(\\\\|\\[^\\]|[^"\\])*"',
+                r"'(\\\\|\\[^\\]|[^'\\])*'",
+                r"\[(\\\\|\\[^\\]|[^\]\\])*\]",  # square bracket literal
                 r'/\*(.|\n)*?\*/',          # multi-line javadoc-style comment
                 r'//.*$\n?',                # single line comment
                 r'\#.*$\n?',                # ruby/ragel comment
@@ -416,8 +416,8 @@ class AntlrLexer(RegexLexer):
             (r':', Punctuation),
 
             # literals
-            (r"'(\\\\|\\'|[^'])*'", String),
-            (r'"(\\\\|\\"|[^"])*"', String),
+            (r'"(\\\\|\\[^\\]|[^"\\])*"', String.Double),
+            (r"'(\\\\|\\[^\\]|[^'\\])*'", String.Single),
             (r'<<([^>]|>[^>])>>', String),
             # identifiers
             # Tokens start with capital letter.
@@ -456,14 +456,14 @@ class AntlrLexer(RegexLexer):
                 r'[^${}\'"/\\]+',  # exclude unsafe characters
 
                 # strings and comments may safely contain unsafe characters
-                r'"(\\\\|\\"|[^"])*"',  # double quote string
-                r"'(\\\\|\\'|[^'])*'",  # single quote string
+                r'"(\\\\|\\[^\\]|[^"\\])*"',
+                r"'(\\\\|\\[^\\]|[^'\\])*'",
                 r'//.*$\n?',            # single line comment
                 r'/\*(.|\n)*?\*/',      # multi-line javadoc-style comment
 
                 # regular expression: There's no reason for it to start
                 # with a * and this stops confusion with comments.
-                r'/(?!\*)(\\\\|\\/|[^/])*/',
+                r'/(?!\*)(\\\\|\\[^\\]|[^/\\])*/',
 
                 # backslashes are okay, as long as we are not backslashing a %
                 r'\\(?!%)',
@@ -483,14 +483,14 @@ class AntlrLexer(RegexLexer):
                 r'[^$\[\]\'"/]+',  # exclude unsafe characters
 
                 # strings and comments may safely contain unsafe characters
-                r'"(\\\\|\\"|[^"])*"',  # double quote string
-                r"'(\\\\|\\'|[^'])*'",  # single quote string
+                r'"(\\\\|\\[^\\]|[^"\\])*"',
+                r"'(\\\\|\\[^\\]|[^'\\])*'",
                 r'//.*$\n?',            # single line comment
                 r'/\*(.|\n)*?\*/',      # multi-line javadoc-style comment
 
                 # regular expression: There's no reason for it to start
                 # with a * and this stops confusion with comments.
-                r'/(?!\*)(\\\\|\\/|[^/])*/',
+                r'/(?!\*)(\\\\|\\[^\\]|[^/\\])*/',
 
                 # Now that we've handled regex and javadoc comments
                 # it's safe to let / through.
@@ -701,8 +701,8 @@ class TreetopBaseLexer(RegexLexer):
         'rule': [
             include('space'),
             include('end'),
-            (r'"(\\\\|\\"|[^"])*"', String.Double),
-            (r"'(\\\\|\\'|[^'])*'", String.Single),
+            (r'"(\\\\|\\[^\\]|[^"\\])*"', String.Double),
+            (r"'(\\\\|\\[^\\]|[^'\\])*'", String.Single),
             (r'([A-Za-z_]\w*)(:)', bygroups(Name.Label, Punctuation)),
             (r'[A-Za-z_]\w*', Name),
             (r'[()]', Punctuation),
