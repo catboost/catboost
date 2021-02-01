@@ -5,6 +5,7 @@ LICENSE(BSD-3-Clause)
 
 
 ADDINCL(
+    FOR cython contrib/python/numpy/py3
     contrib/python/numpy/py3/numpy/core/include
     contrib/python/numpy/py3/numpy/core/include/numpy
     contrib/python/numpy/py3/numpy/core/src/common
