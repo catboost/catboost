@@ -18,7 +18,7 @@ static bool IsNumberT(const TStringType& s) noexcept {
         return false;
     }
 
-    return std::all_of(s.begin(), s.end(), [](auto ch) { return IsAsciiDigit(ch); });
+    return std::all_of(s.begin(), s.end(), IsAsciiDigit<typename TStringType::value_type>);
 }
 
 bool IsNumber(const TStringBuf s) noexcept {
@@ -35,7 +35,7 @@ static bool IsHexNumberT(const TStringType& s) noexcept {
         return false;
     }
 
-    return std::all_of(s.begin(), s.end(), [](auto ch) { return IsAsciiHex(ch); });
+    return std::all_of(s.begin(), s.end(), IsAsciiHex<typename TStringType::value_type>);
 }
 
 bool IsHexNumber(const TStringBuf s) noexcept {
