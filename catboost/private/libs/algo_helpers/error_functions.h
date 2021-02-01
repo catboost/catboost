@@ -20,6 +20,7 @@
 #include <util/generic/ymath.h>
 #include <util/string/split.h>
 #include <util/system/yassert.h>
+#include <util/random/shuffle.h>
 
 #include <cmath>
 
@@ -960,7 +961,7 @@ public:
     }
 
 private:
-    void CalcQueryDers(
+void CalcQueryDers(
         int offset,
         int offsetDer,
         int querySize,
@@ -973,17 +974,40 @@ private:
         const double baselineLoss = CalcBaseline(offset, querySize, approx, target);
         TVector<double> probs(querySize, 0.);
 
+        // Source: https://paste.yandex-team.ru/1345062
+
         for (int i = 0; i < NumEstimations; ++i) {
             int pos = 0;
             double loss = 0.0;
+            TVector<bool> isFiltered(querySize);
+            TVector<int> isChoosen;
+
+            // сохраняю индексы выбранных элементов в isChoosen, после чего равномерно
+            // перемешиваю их и начиная с n_meta выставляю им флажок False  в isFiltered
+            // итого остается n_meta элементов
+            unsigned long n_meta = 50;
 
             for (int j = 0; j < querySize; ++j) {
                 const double prob = Sigmoid(approx[offset + j] * Sigma);
-                const bool isFiltered = prob >= Rand->GenRandReal1();
-                loss += isFiltered ? target[offset + j] / (pos + 1) : 0.;
-                pos += isFiltered;
-                probs[j] = isFiltered ? (1 - prob) : -prob;
+                isFiltered[j] = prob >= Rand->GenRandReal1();
+                if (isFiltered[j] == true) {
+                    isChoosen.push_back(j);
+                }
             }
+
+            Shuffle(isChoosen.begin(), isChoosen.end());
+
+            for (unsigned long j = std::min(n_meta, isChoosen.size()); j < isChoosen.size(); ++j) {
+                isFiltered[isChoosen[j]] = false;
+            }
+
+            for (int j = 0; j < querySize; ++j) {
+                const double prob = Sigmoid(approx[offset + j] * Sigma);
+                loss += isFiltered[j] ? target[offset + j] / (pos + 1) : 0.;
+                pos += isFiltered[j];
+                probs[j] = isFiltered[j] ? (1 - prob) : -prob;
+            }
+
             for (int j = 0; j < querySize; ++j) {
                 ders[offsetDer + j].Der1 += probs[j] * (loss - baselineLoss) / NumEstimations;
             }
