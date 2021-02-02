@@ -2,7 +2,7 @@ PY23_LIBRARY()
 
 
 
-VERSION(0.6.0)
+VERSION(0.7.0)
 
 LICENSE(ISC)
 
@@ -14,6 +14,12 @@ PY_SRCS(
     ptyprocess/_fork_pty.py
     ptyprocess/ptyprocess.py
     ptyprocess/util.py
+)
+
+RESOURCE_FILES(
+    PREFIX contrib/python/ptyprocess/
+    .dist-info/METADATA
+    .dist-info/top_level.txt
 )
 
 END()
