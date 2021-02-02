@@ -8,7 +8,7 @@ IF (PYTHON2)
     )
 ELSE()
     PEERDIR(
-        contrib/python/numpy/py3
+        contrib/python/numpy/py2
     )
 ENDIF()
 

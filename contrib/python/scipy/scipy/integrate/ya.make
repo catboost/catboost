@@ -6,6 +6,7 @@ NO_COMPILER_WARNINGS()
 
 PEERDIR(
     contrib/python/numpy
+    contrib/python/numpy/py2/numpy/f2py/src
 
     contrib/python/scipy/scipy/special
     contrib/python/scipy/scipy/sparse
@@ -16,16 +17,6 @@ PEERDIR(
     contrib/python/scipy/scipy/integrate/dop
     contrib/python/scipy/scipy/integrate/mach
 )
-
-IF (PYTHON2)
-    PEERDIR(
-        contrib/python/numpy/py2/numpy/f2py/src
-    )
-ELSE()
-    PEERDIR(
-        contrib/python/numpy/py3/numpy/f2py/src
-    )
-ENDIF()
 
 NO_LINT()
 

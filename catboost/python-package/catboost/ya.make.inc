@@ -9,21 +9,12 @@ ENDIF()
 PYTHON_ADDINCL()
 
 # add only headers for dynamic linking
-IF (PYTHON2)
-    ADDINCL(
-        contrib/python/numpy/py2/numpy/core/include
-        contrib/python/numpy/py2/numpy/core/include/numpy
-        contrib/python/numpy/py2/numpy/core/src/common
-        contrib/python/numpy/py2/numpy/core/src/npymath
-    )
-ELSE()
-    ADDINCL(
-        contrib/python/numpy/py3/numpy/core/include
-        contrib/python/numpy/py3/numpy/core/include/numpy
-        contrib/python/numpy/py3/numpy/core/src/common
-        contrib/python/numpy/py3/numpy/core/src/npymath
-    )
-ENDIF()
+ADDINCL(
+    contrib/python/numpy/py2/numpy/core/include
+    contrib/python/numpy/py2/numpy/core/include/numpy
+    contrib/python/numpy/py2/numpy/core/src/common
+    contrib/python/numpy/py2/numpy/core/src/npymath
+)
 
 PEERDIR(
     catboost/libs/cat_feature
