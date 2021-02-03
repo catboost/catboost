@@ -1,8 +1,6 @@
 PY23_LIBRARY()
 
-LICENSE(
-    BSD
-)
+LICENSE(BSD)
 
 VERSION(5.9.0)
 
