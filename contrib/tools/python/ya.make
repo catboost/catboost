@@ -2,6 +2,8 @@ PROGRAM(python)
 
 
 
+LICENSE(PSF-2.0)
+
 VERSION(2.7.16)
 
 PEERDIR(
