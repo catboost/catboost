@@ -30,6 +30,7 @@ def parse_args():
 
     parser = optparse.OptionParser()
     parser.add_option('--no-gpl', action='store_true')
+    parser.add_option('--allow-lgpl', action='store_true')
     parser.add_option('--build-root')
     parser.add_option('--module-name')
     parser.add_option('-o', '--output')
@@ -52,7 +53,8 @@ def validate_mf(mf, module_type):
         if bad_mfs:
             raise BadMfError("Can't validate licenses for {}: no 'licenses' info for dependency(es) {}".format(path,', '.join(bad_mfs)))
 
-        bad_lics = ["[[imp]]{}[[rst]] licensed with {}".format(dep['path'], lic) for dep in mf['dependencies'] for lic in dep['licenses'] if 'gpl' in lic.lower()]
+        lgpl_ok = mf.get('allow_lgpl', False)
+        bad_lics = ["[[imp]]{}[[rst]] licensed with {}".format(dep['path'], lic) for dep in mf['dependencies'] for lic in dep['licenses'] if 'gpl' in lic.lower() and (not lgpl_ok or 'lgpl' not in lic.lower())]
         if bad_lics:
             raise GplNotAllowed('[[bad]]License check failed:[[rst]]\n{}'.format('\n'.join(bad_lics)))
 
@@ -64,7 +66,7 @@ def validate_mf(mf, module_type):
 def generate_mf():
     lics, peers, options = parse_args()
 
-    meta = {'module_name': options.module_name, 'path': os.path.dirname(options.output), 'licenses': lics, 'dependencies': [], 'no_gpl': options.no_gpl}
+    meta = {'module_name': options.module_name, 'path': os.path.dirname(options.output), 'licenses': lics, 'dependencies': [], 'no_gpl': options.no_gpl, 'allow_lgpl': options.allow_lgpl}
 
     build_root = options.build_root
     file_name = os.path.join(build_root, options.output)
