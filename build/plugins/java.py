@@ -85,6 +85,7 @@ def onjava_module(unit, *args):
         'MANAGED_PEERS': '${MANAGED_PEERS}',
         'MANAGED_PEERS_CLOSURE': '${MANAGED_PEERS_CLOSURE}',
         'NON_NAMAGEABLE_PEERS': '${NON_NAMAGEABLE_PEERS}',
+        'TEST_CLASSPATH_MANAGED': '${TEST_CLASSPATH_MANAGED}',
         'EXCLUDE': extract_macro_calls(unit, 'EXCLUDE_VALUE', args_delim),
         'JAVA_SRCS': extract_macro_calls(unit, 'JAVA_SRCS_VALUE', args_delim),
         'JAVAC_FLAGS': extract_macro_calls(unit, 'JAVAC_FLAGS_VALUE', args_delim),
