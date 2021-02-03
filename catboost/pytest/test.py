@@ -21,6 +21,7 @@ from catboost_pytest_lib import (
     execute_dist_train,
     format_crossvalidation,
     generate_concatenated_random_labeled_dataset,
+    get_catboost_binary_path,
     get_limited_precision_dsv_diff_tool,
     local_canonical_file,
     permute_dataset_columns,
@@ -9118,3 +9119,32 @@ def test_embeddings_train(boosting_type):
     assert filecmp.cmp(test_eval_path, calc_eval_path)
 
     return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
+
+
+def test_dump_options():
+    snapshot_path = yatest.common.test_output_path('snapshot.bin')
+    key = 'summary'
+    value = '{"key1":"value1", "key2":"value2"}'
+    cmd = (
+        '--loss-function', 'Logloss',
+        '-f', data_file('adult', 'train_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-i', '20',
+        '-T', '4',
+        '--snapshot-file', snapshot_path,
+        '--use-best-model', 'false',
+        '--set-metadata-from-freeargs', '--', key, value,
+    )
+    execute_catboost_fit('CPU', cmd)
+
+    options_path = yatest.common.test_output_path('options.json')
+    dump_options_cmd = (
+        get_catboost_binary_path(),
+        'dump-options',
+        '--input', snapshot_path,
+        '--output', options_path
+    )
+    yatest.common.execute(dump_options_cmd)
+    with open(options_path) as options:
+        options_json = json.load(options)
+        assert options_json['metadata'][key] == value
