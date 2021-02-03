@@ -1,8 +1,6 @@
 LIBRARY()
 
-LICENSE(
-    MIT
-)
+LICENSE(MIT)
 
 
 

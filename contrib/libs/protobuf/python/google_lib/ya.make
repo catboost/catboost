@@ -1,7 +1,5 @@
 PY23_LIBRARY()
-LICENSE(
-    BSD3
-)
+LICENSE(BSD3)
 
 
 

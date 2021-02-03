@@ -1,8 +1,6 @@
 LIBRARY()
 
-LICENSE(
-    BSD3
-)
+LICENSE(BSD3)
 
 NO_RUNTIME()
 
