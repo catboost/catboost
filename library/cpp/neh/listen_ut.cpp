@@ -76,6 +76,10 @@ Y_UNIT_TEST_SUITE(THttpListen) {
                 : UnixSocketPath_(unixSocketPath)
             {}
 
+            ~TUnixSocketServer() {
+                unlink(UnixSocketPath_.Path.data());
+            }
+
             virtual void Process(void*) {
                 SOCKET socketFd = socket(AF_UNIX, SOCK_STREAM, 0);
                 DestructIfTrue(socketFd == -1, {socketFd}, "socket");
