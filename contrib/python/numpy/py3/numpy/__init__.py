@@ -283,7 +283,7 @@ else:
                     "Otherwise report this to the vendor "
                     "that provided NumPy.\n{}\n".format(
                         error_message))
-                raise RuntimeError(msg)
+                # raise RuntimeError(msg)
     del _mac_os_check
 
     def _win_os_check():
