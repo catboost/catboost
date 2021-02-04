@@ -506,12 +506,6 @@ private[spark] class CatBoostTextFileFormat
       val linesReader = new HadoopFileLinesReader(file, broadcastedHadoopConf.value.value)
       Option(TaskContext.get()).foreach(_.addTaskCompletionListener[Unit](_ => linesReader.close()))
 
-
-
-      /*linesReader.map { _ =>
-        val features = Vectors.dense(1.0, 1.0)
-        converter.toRow(Row(2.0, features))
-      }*/
       DatasetRowsReaderIterator(
         linesReader,
         dataSchema,
