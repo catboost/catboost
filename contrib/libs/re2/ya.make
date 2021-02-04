@@ -2,11 +2,11 @@
 
 LIBRARY()
 
+LICENSE(BSD-3-Clause)
+
 
 
 VERSION(2020-11-01)
-
-LICENSE(BSD-3-Clause)
 
 ADDINCL(
     GLOBAL contrib/libs/re2

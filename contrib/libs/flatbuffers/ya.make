@@ -2,11 +2,11 @@
 
 LIBRARY()
 
+LICENSE(Apache-2.0)
+
 
 
 VERSION(1.12.0)
-
-LICENSE(Apache-2.0)
 
 ADDINCL(
     contrib/libs/flatbuffers/include

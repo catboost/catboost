@@ -2,11 +2,11 @@
 
 LIBRARY()
 
+LICENSE(BSD-3-Clause)
+
 
 
 VERSION(1.1.8)
-
-LICENSE(BSD-3-Clause)
 
 ADDINCL(
     GLOBAL contrib/libs/snappy/include

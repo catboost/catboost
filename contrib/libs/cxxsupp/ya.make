@@ -1,6 +1,6 @@
 LIBRARY()
 
-LICENSE(Not-Applicable)
+LICENSE(MIT)
 
 
 

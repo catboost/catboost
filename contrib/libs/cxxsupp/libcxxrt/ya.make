@@ -1,6 +1,6 @@
 LIBRARY()
 
-LICENSE(BSD)
+LICENSE(MIT)
 
 
 

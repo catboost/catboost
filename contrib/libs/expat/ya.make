@@ -2,11 +2,11 @@
 
 LIBRARY()
 
+LICENSE(MIT)
+
 
 
 VERSION(2.2.7)
-
-LICENSE(MIT)
 
 ADDINCL(
     contrib/libs/expat

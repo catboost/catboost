@@ -1,8 +1,8 @@
 LIBRARY()
 
-
-
 LICENSE(MIT)
+
+
 
 IF (OS_LINUX AND ARCH_X86_64)
     SRCS(md5-fast-x8664.S)
