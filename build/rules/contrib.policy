@@ -15,11 +15,6 @@ ALLOW devtools/experimental/mds -> contrib/deprecated/wangle
 DENY .* -> contrib/deprecated/folly
 DENY .* -> contrib/deprecated/wangle
 
-ALLOW contrib/deprecated/uriparser -> contrib/deprecated/uriparser
-ALLOW mds -> contrib/deprecated/uriparser
-ALLOW devtools/experimental/mds -> contrib/deprecated/uriparser
-DENY .* -> contrib/deprecated/uriparser
-
 # django-1.11 deprecation
 ALLOW contrib/python/.*/tests? -> contrib/python/django/django-1.11
 ALLOW contrib/deprecated/python/.*/tests? -> contrib/python/django/django-1.11
