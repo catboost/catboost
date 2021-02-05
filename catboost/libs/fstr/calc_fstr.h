@@ -48,8 +48,12 @@ struct TFeatureInteraction {
 public:
     TFeatureInteraction() = default;
 
-    TFeatureInteraction(double score, EFeatureType firstFeatureType, int firstFeatureIndex,
-                   EFeatureType secondFeatureType, int secondFeatureIndex)
+    TFeatureInteraction(
+        double score,
+        EFeatureType firstFeatureType,
+        int firstFeatureIndex,
+        EFeatureType secondFeatureType,
+        int secondFeatureIndex)
         : Score(score)
         , FirstFeature{firstFeatureType, firstFeatureIndex}
         , SecondFeature{secondFeatureType, secondFeatureIndex}
@@ -83,7 +87,8 @@ TVector<std::pair<double, TFeature>> CalcFeatureEffect(
 
 TVector<TFeatureEffect> CalcRegularFeatureEffect(
     const TVector<std::pair<double, TFeature>>& effect,
-    const TFullModel& model);
+    const TFullModel& model
+);
 
 TVector<double> CalcRegularFeatureEffect(
     const TFullModel& model,
@@ -96,7 +101,8 @@ TVector<double> CalcRegularFeatureEffect(
 TVector<TInternalFeatureInteraction> CalcInternalFeatureInteraction(const TFullModel& model);
 TVector<TFeatureInteraction> CalcFeatureInteraction(
     const TVector<TInternalFeatureInteraction>& internalFeatureInteraction,
-    const NCB::TFeaturesLayout& layout);
+    const NCB::TFeaturesLayout& layout
+);
 
 TVector<TVector<double>> CalcInteraction(const TFullModel& model);
 TVector<TVector<double>> GetFeatureImportances(
@@ -142,5 +148,6 @@ TVector<TVector<TVector<TVector<double>>>> CalcShapFeatureInteractionMulti(
  */
 TVector<TString> GetMaybeGeneratedModelFeatureIds(
     const TFullModel& model,
-    const NCB::TDataProviderPtr dataset); // can be nullptr
+    const NCB::TDataProviderPtr dataset // can be nullptr
+);
 
