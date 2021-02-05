@@ -1,8 +1,8 @@
 PY23_LIBRARY(simplegeneric)
 
-VERSION(0.8.1)
+LICENSE(ZPL-2.1 ZPL-2.1)
 
-LICENSE(ZPL21)
+VERSION(0.8.1)
 
 
 

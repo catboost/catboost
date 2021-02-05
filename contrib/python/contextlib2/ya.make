@@ -1,10 +1,10 @@
 PY23_LIBRARY() # Backport from Python 3.
 
+LICENSE(PSF-2.0)
+
 
 
 VERSION(0.6.0)
-
-LICENSE(PSF)
 
 NO_LINT()
 
