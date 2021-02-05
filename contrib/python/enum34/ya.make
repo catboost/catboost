@@ -2,7 +2,7 @@
 
 PY_LIBRARY() # Backport from Python 3.
 
-LICENSE(BSD)
+LICENSE(BSD-3-Clause)
 
 VERSION(
     1.1.6

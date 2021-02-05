@@ -1,10 +1,10 @@
 PY23_LIBRARY(Jinja2)
 
+LICENSE(BSD-3-Clause)
+
 
 
 VERSION(2.11.3)
-
-LICENSE(BSD-3-Clause)
 
 PEERDIR(
     contrib/python/MarkupSafe

@@ -1,6 +1,6 @@
 PY23_LIBRARY()
 
-LICENSE(BSD)
+LICENSE(BSD-3-Clause)
 
 VERSION(5.9.0)
 
@@ -37,7 +37,6 @@ IF (OS_DARWIN)
         contrib/python/appnope
     )
 ENDIF ()
-
 
 IF (PYTHON2)
     PEERDIR(

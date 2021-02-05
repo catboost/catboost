@@ -2,9 +2,9 @@
 
 PY3_LIBRARY()
 
-PROVIDES(numpy)
-
 LICENSE(BSD-3-Clause)
+
+PROVIDES(numpy)
 
 VERSION(1.19.5)
 

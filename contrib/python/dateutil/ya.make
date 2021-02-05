@@ -1,8 +1,9 @@
 PY23_LIBRARY(dateutil)
 
+LICENSE(BSD-3-Clause)
 
 
-LICENSE(Apache-2.0)
+
 VERSION(2.8.1)
 
 PEERDIR(

@@ -1,10 +1,10 @@
 PY3_LIBRARY()
 
+LICENSE(BSD-2-Clause)
+
 
 
 VERSION(2.7.3)
-
-LICENSE(BSD-2-Clause)
 
 PROVIDES(Pygments)
 

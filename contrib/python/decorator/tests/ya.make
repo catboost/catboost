@@ -1,5 +1,7 @@
 PY23_LIBRARY()
 
+LICENSE(BSD-2-Clause)
+
 
 
 PEERDIR(

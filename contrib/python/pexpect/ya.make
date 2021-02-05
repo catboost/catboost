@@ -1,10 +1,10 @@
 PY23_LIBRARY()
 
+LICENSE(ISC)
+
 
 
 VERSION(4.8.0)
-
-LICENSE(ISC)
 
 PEERDIR(
     contrib/python/ptyprocess

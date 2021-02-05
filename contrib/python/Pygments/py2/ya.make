@@ -1,10 +1,10 @@
 PY23_LIBRARY()
 
+LICENSE(BSD-2-Clause)
+
 
 
 VERSION(2.5.2)
-
-LICENSE(BSD-2-Clause)
 
 PROVIDES(Pygments)
 
