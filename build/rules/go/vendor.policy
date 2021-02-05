@@ -4,6 +4,9 @@
 
 ALLOW vendor/ -> .*
 
+# CONTRIB-2116
+ALLOW .* -> vendor/github.com/google/licensecheck
+
 # CONTRIB-2087
 ALLOW .* -> vendor/github.com/armon/go-radix
 
