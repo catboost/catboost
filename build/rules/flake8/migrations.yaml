@@ -4,10 +4,7 @@ migrations:
     - W605
     prefixes:
     - addappter/backend/testing
-    - addappter/backend/testing/fixtures/configuration/android
     - addappter/backend/testing/fixtures/configuration/ios
-    - addappter/libs/fixtures
-    - addappter/libs/zora
     - adfox/amacs/tests/functional/tests_amacs/bugs/medium
     - adfox/amacs/tests/functional/tests_amacs/dynamic_monetization/v2
     - adfox/amacs/tests/functional/tests_amacs/targeting/referrer
@@ -725,7 +722,6 @@ migrations:
     - portal/tools/morda-release/server
     - quality/ab_testing/abt_resources_lib/loaders/tests/long_metrics
     - quality/ab_testing/cofe/bin/cofe_ctl
-    - quality/ab_testing/cofe/projects/alice/boltalka
     - quality/ab_testing/cofe/projects/disk
     - quality/ab_testing/cofe/projects/disk/utils
     - quality/ab_testing/cofe/projects/geo/geoadv
@@ -1030,12 +1026,6 @@ migrations:
     - sandbox/serviceapi
     - sandbox/serviceapi/handlers
     - sandbox/yasandbox/database/clickhouse
-    - search/geo/tools/iznanka/prepare_factors
-    - search/geo/tools/social_links/extract_facts/lib
-    - search/geo/tools/task_manager/system
-    - search/pumpkin/serp_collector_deploy/lib
-    - search/pumpkin/yalite_service/libyalite/common
-    - search/tools/fast_data_deployment/lib
     - skynet/kernel
     - skynet/kernel/util/sys/user
     - skynet/library
@@ -1043,8 +1033,6 @@ migrations:
     - smart_devices/crash_analytics/tools/minidump_analyzer
     - smart_devices/tools/launcher2/tests/restarts
     - smm/lib/models/sklearn
-    - specsearches/lyrics/scripts/changes
-    - specsearches/lyrics/scripts/reindex
     - sport/backend/django_mds
     - sprav/mining/botanik_miner
     - statbox/nile/tests/unittests/common
@@ -1057,9 +1045,6 @@ migrations:
     - sup/ml/click_predictor/lib/features
     - sup/stat/find_pushes
     - talents/nlu/scripts/train/geoname
-    - taxi/antifraud/adhoc/TAXISECTEAM-5331
-    - taxi/graph/packages/mds-downloader
-    - taxi/graph/packages/taxijamsd
     - testenv/jobs/rtyserver
     - tools/mkdocs_builder/lib
     - tools/mkdocs_builder/mkdocs_yandex
@@ -1128,8 +1113,6 @@ migrations:
     - voicetech/infra/gdpr_proxy/service
     - voicetech/tts/vh/utils
     - voicetech/vqe/tools/yt_uploader
-    - weather/workers/imports/cmc
-    - weather/workers/imports/geobase
     - weather/workers/warnings/general
     - web/app_host/lib/python/split
     - web/app_host/lib/python/split/charts
@@ -1640,7 +1623,6 @@ migrations:
     - paysys/sre/tools/monitorings/lib/util
     - plus/gift/gift
     - plus/gift/gift/admin
-    - quality/ab_testing/cofe/projects/alice/heartbeats
     - quality/ab_testing/cofe/projects/geo/navigator/common
     - quality/ab_testing/cofe/projects/geo/suggest/byak
     - quality/ab_testing/cofe/projects/push
@@ -2274,7 +2256,6 @@ migrations:
     - paysys/sre/tools/monitorings/lib
     - plus/oneyear/oneyear_by
     - quality/ab_testing/cofe/projects/alice
-    - quality/ab_testing/cofe/projects/eda_ab
     - quality/ab_testing/cofe/projects/geo/navigator/common
     - quality/ab_testing/cofe/projects/geo/search
     - quality/ab_testing/cofe/projects/mapkit/false_route_lost
@@ -2774,11 +2755,6 @@ migrations:
     - modadvert/programs/white_list_spam_client/it
     - modadvert/resources/supermoderation/service_confs/ut
     - modadvert/test_utils/sandbox/upload_xls
-    - quality/ab_testing/cofe/projects/alice
-    - quality/ab_testing/cofe/projects/eda_ab
-    - quality/ab_testing/cofe/projects/mail
-    - quality/ab_testing/cofe/projects/mail/features
-    - quality/ab_testing/cofe/projects/uslugi/search
     - quality/ab_testing/scripts/ems
     - quality/ab_testing/scripts/ems/modules/idm/controllers
     - quality/ab_testing/scripts/ems/modules/metric
