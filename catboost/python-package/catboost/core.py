@@ -2538,11 +2538,19 @@ class CatBoost(_CatBoostBase):
         """
         Parameters
         ----------
-        data : catboost.Pool or None
+        data :
             Data to get feature importance.
-            If type in ('Shap', 'PredictionValuesChange') data is a dataset. For every object in this dataset feature importances will be calculated.
-            If type == 'PredictionValuesChange', data is None or train dataset (in case if model was explicitly trained with flag store no leaf weights).
-            If type == 'PredictionDiff' data is list of list of np.ndarray shape (2, n_features).
+            If type in ('LossFunctionChange', 'ShapValues', 'ShapInteractionValues') data must of Pool type.
+                For every object in this dataset feature importances will be calculated.
+            If type == 'PredictionValuesChange', data is None or a dataset of Pool type
+                Dataset specification is needed only in case if the model does not contain leaf weight information (trained with CatBoost v < 0.9).
+            If type == 'PredictionDiff' data must contain a matrix of feature values of shape (2, n_features).
+                Possible types are catboost.Pool or list of lists or numpy.ndarray or pandas.DataFrame or pandas.Series
+                or catboost.FeaturesData or pandas.SparseDataFrame or scipy.sparse.spmatrix
+            If type == 'FeatureImportance'
+                See 'PredictionValuesChange' for non-ranking metrics and 'LossFunctionChange' for ranking metrics.
+            If type == 'Interaction'
+                This parameter is not used.
 
         reference_data: catboost.Pool or None
             Reference data for Independent Tree SHAP values from https://arxiv.org/abs/1905.04610v1
@@ -2609,9 +2617,12 @@ class CatBoost(_CatBoostBase):
         interaction_indices : list of int or string (feature_idx_1, feature_idx_2), optional (default=None)
             used only for ShapInteractionValues type
             Calculate SHAP Interaction Values between pair of features feature_idx_1 and feature_idx_2 for every object
+
         Returns
         -------
         depends on type:
+            - FeatureImportance
+                See PredictionValuesChange for non-ranking metrics and LossFunctionChange for ranking metrics.
             - PredictionValuesChange, LossFunctionChange, PredictionDiff with prettified=False (default)
                 list of length [n_features] with feature_importance values (float) for feature
             - PredictionValuesChange, LossFunctionChange, PredictionDiff with prettified=True
@@ -2622,9 +2633,9 @@ class CatBoost(_CatBoostBase):
                 (n_objects, classes_count, n_features + 1). For each object it contains Shap values (float).
                 Values are calculated for RawFormulaVal predictions.
             - ShapInteractionValues
-                np.array of shape (n_objects, n_features + 1, n_features + 1) whith Shap interaction values (float) for (object, feature(i), feature(j)).
-                In case of multiclass the returned value is np.array of shape
-                (n_objects, classes_count, n_features + 1, , n_features + 1). For each object it contains Shap interaction values (float).
+                np.ndarray of shape (n_objects, n_features + 1, n_features + 1) with Shap interaction values (float) for (object, feature(i), feature(j)).
+                In case of multiclass the returned value is np.ndarray of shape
+                (n_objects, classes_count, n_features + 1, n_features + 1). For each object it contains Shap interaction values (float).
                 Values are calculated for RawFormulaVal predictions.
             - Interaction
                 list of length [n_features] of 3-element lists of (first_feature_index, second_feature_index, interaction_score (float))
