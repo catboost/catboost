@@ -1503,7 +1503,7 @@ cdef ECalcTypeShapValues string_to_calc_type(shap_calc_type) except *:
 cdef EExplainableModelOutput string_to_model_output(model_output_str) except *:
     cdef EExplainableModelOutput model_output
     if not TryFromString[EExplainableModelOutput](to_arcadia_string(model_output_str), model_output):
-        raise CatBoostError("Unknown shap values mode {}.".format(model_output_str))
+        raise CatBoostError("Unknown shap values model output {}.".format(model_output_str))
     return model_output
 
 
