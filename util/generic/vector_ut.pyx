@@ -1,3 +1,5 @@
+# cython: c_string_type=str, c_string_encoding=utf8
+
 from util.generic.vector cimport TVector
 from util.generic.string cimport TString
 
