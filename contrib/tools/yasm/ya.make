@@ -33,21 +33,6 @@ CFLAGS(
     -DYASM_LIB_SOURCE
 )
 
-IF (OS_WINDOWS AND ARCH_X86_64)
-    LDFLAGS(
-        advapi32.lib
-        comdlg32.lib
-        gdi32.lib
-        kernel32.lib
-        ole32.lib
-        oleaut32.lib
-        shell32.lib
-        user32.lib
-        uuid.lib
-        winspool.lib
-    )
-ENDIF()
-
 ENABLE(NO_WINDOWS_STRICT)
 
 SRCS(

@@ -110,8 +110,8 @@ IF (OS_DARWIN AND ARCH_X86_64)
     )
 ENDIF()
 
-IF (OS_WINDOWS) 
-    IF (ARCH_X86_64) 
+IF (OS_WINDOWS)
+    IF (ARCH_X86_64)
         CFLAGS(
             -DENGINESDIR="\"C:\\\\Program\ Files\\\\OpenSSL\\\\lib\\\\engines-1_1\""
             -DOPENSSLDIR="\"C:\\\\Program\ Files\\\\Common\ Files\\\\SSL\""
@@ -148,12 +148,6 @@ ENDIF()
 
 IF (ARCH_X86_64 AND NOT MSVC)
     SET_APPEND(SFLAGS -mavx512bw -mavx512ifma -mavx512vl)
-ENDIF()
-
-IF (OS_WINDOWS AND ARCH_X86_64)
-    LDFLAGS(
-        ws2_32.lib
-    )
 ENDIF()
 
 IF(OS_WINDOWS)
@@ -856,7 +850,7 @@ ENDIF()
 
 IF (OS_LINUX AND ARCH_ARM7)
     IF (CLANG)
-        # XXX: This is a workarond for 'out of range immediate fixup value' 
+        # XXX: This is a workarond for 'out of range immediate fixup value'
         # error with clang integrated assembler:
         # https://github.com/openssl/openssl/issues/7878
         CFLAGS(-mno-thumb)

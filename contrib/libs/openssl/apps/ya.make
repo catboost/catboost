@@ -79,17 +79,6 @@ IF (OS_WINDOWS AND ARCH_X86_64)
     )
 ENDIF()
 
-IF (OS_WINDOWS AND ARCH_X86_64)
-    LDFLAGS(
-        advapi32.lib
-        crypt32.lib
-        gdi32.lib
-        setargv.obj
-        user32.lib
-        ws2_32.lib
-    )
-ENDIF()
-
 SRCS(
     app_rand.c
     apps.c
