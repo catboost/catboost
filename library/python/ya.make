@@ -2,7 +2,8 @@
 
 RECURSE(
     coredump_filter
-    coredump_filter/ut
+    coredump_filter/tests
+    coredump_filter/tests/data
     cores
     filelock
     filelock/ut

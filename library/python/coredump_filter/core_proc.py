@@ -2,11 +2,14 @@
 # coding: utf-8
 
 from __future__ import print_function
-import os
-import sys
-import re
+
 import datetime
+import os
+import re
+import sys
 from json import JSONEncoder
+
+from library.python.coredump_filter import const
 
 
 ARCADIA_ROOT_LINK = "https://a.yandex-team.ru/arc/trunk/arcadia/"
@@ -253,11 +256,14 @@ CORE_PROC_VERSION = "0.1.006"
 
 ARCADIA_ROOT_SIGN = '$S/'
 SIGNAL_FLAG = 'Program terminated with signal'
-
+SIGNAL_FLAG_LLDB = 'stop reason = signal'
+SIGNAL_NOT_FOUND = 'signal not found'
 
 # #6  0x0000000001d9203e in NAsio::TIOService::TImpl::Run (this=0x137b1ec00) at /place/
 # sandbox-data/srcdir/arcadia_cache/library/neh/asio/io_service_impl.cpp:77
-regexp_1 = re.compile(r'#(?P<frame_no>\d+)[ \t]+(?P<addr>0x[0-9a-f]+) in (?P<func>.*) at (?P<source>/.*)')
+regexp_1 = re.compile(
+    r'#(?P<frame_no>\d+)[ \t]+(?P<addr>0x[0-9a-f]+) in (?P<func>.*) at (?P<source>/.*)'
+)
 
 # #5 TCondVar::WaitD (this=this@entry=0x10196b2b8, mutex=..., deadLine=..., deadLine@entry=...)
 # at /place/sandbox-data/srcdir/arcadia_cache/util/system/condvar.cpp:150
@@ -265,13 +271,38 @@ regexp_2 = re.compile(r'#(?P<frame_no>\d+)[ \t]+(?P<func>.*) at (?P<source>/.*)'
 
 # #0  0x00007faf8eb31d84 in pthread_cond_wait@@GLIBC_2.3.2 ()
 # from /lib/x86_64-linux-gnu/libpthread.so.0
-regexp_3 = re.compile(r'#(?P<frame_no>\d+)[ \t]+(?P<addr>0x[0-9a-f]+) in (?P<func>.*) from (?P<source>.*)')
+regexp_3 = re.compile(
+    r'#(?P<frame_no>\d+)[ \t]+(?P<addr>0x[0-9a-f]+) in (?P<func>.*) from (?P<source>.*)'
+)
 
 # mvel doesn't provide example :-)
 # #10 0x0000000000000000 in ?? ()
 regexp_4 = re.compile(r'#(?P<frame_no>\d+)[ \t]+(?P<addr>0x[0-9a-f]+) in (?P<func>.*)')
 
-regexp_all = [regexp_1, regexp_2, regexp_3, regexp_4]
+regexp_5 = re.compile(
+    r'frame #(?P<frame_no>\d+): (?P<addr>0x[0-9a-f]+).+inlined]\s(?P<func>.+)\sat\s(?P<source>.+)'
+)
+
+regexp_6 = re.compile(
+    r'frame #(?P<frame_no>\d+): (?P<addr>0x[0-9a-f]+).+`(?P<func>.+)\sat\s(?P<source>.+)'
+)
+
+regexp_7 = re.compile(
+    r'frame #(?P<frame_no>\d+): (?P<addr>0x[0-9a-f]+)\s(?P<source>.+)`(?P<func>.+)\s\+\s(?P<source_no>\d+)'
+)
+
+regexp_all = [
+    regexp_1,
+    regexp_2,
+    regexp_3,
+    regexp_4,
+]
+
+regexp_lldb = [
+    regexp_5,
+    regexp_6,
+    regexp_7,
+]
 
 
 class EncoderStack(JSONEncoder):
@@ -314,6 +345,70 @@ def highlight_func(s):
         .replace('=', '<span class="symbol">=</span>') \
         .replace('(', '<span class="symbol">(</span>') \
         .replace(')', '<span class="symbol">)</span>')
+
+
+class LLDBFrame:
+    def __init__(self, frame_no=None, addr='', func='', source='', source_no='', func_name=''):
+        self.frame_no = frame_no
+        self.addr = addr
+        self.func = func
+        self.source = source
+        self.source_no = source_no
+        self.func_name = func_name
+
+        m = re.match(r'[\w,:,<,>]+', func)  # overwrite func_name if name is in func
+        if m:
+            self.func_name = m.group(0)
+
+        if source_no:
+            self.source_no = source_no
+            self.source = source
+        else:
+            m = re.match(r'(.*?[^\d]):(\d+)', source)
+            if m:
+                self.source = m.group(1)
+                self.source_no = m.group(2)
+
+    def __str__(self):
+        return "{}\t{}\t{}".format(
+            self.frame_no,
+            self.func,
+            self.source,
+        )
+
+    def fingerprint(self):
+        return self.func_name
+
+    def cropped_source(self):
+        return self.source
+
+    def find_source(self):
+        """
+        :return: pair (source, source_fmt)
+        """
+        source_fmt = ''
+
+        if self.source_no:
+            source_fmt = ' +<span class="source-no">{}</span>'.format(self.source_no)
+
+        return self.source, source_fmt
+
+    def raw(self):
+        return u'{frame} {func} {source}'.format(frame=self.frame_no, func=self.func,
+                                                 source=self.source)
+
+    def html(self):
+        source, source_fmt = self.find_source()
+        return (
+            u'<span class="frame">{frame}</span>'
+            u'<span class="func">{func}</span> '
+            u'<span class="source">{source}</span>{source_fmt}\n'.format(
+                frame=self.frame_no,
+                func=highlight_func(self.func.replace('&', '&amp;').replace('<', '&lt;')),
+                source=source,
+                source_fmt=source_fmt,
+            )
+        )
 
 
 class Frame:
@@ -376,7 +471,8 @@ class Frame:
         return source, source_fmt
 
     def raw(self):
-        return u'{frame} {func} {source}'.format(frame=self.frame_no, func=self.func, source=self.source)
+        return u'{frame} {func} {source}'.format(frame=self.frame_no, func=self.func,
+                                                 source=self.source)
 
     def html(self):
         source, source_fmt = self.find_source()
@@ -419,6 +515,11 @@ class Stack:
         'abort',
         'close_all_fds',
         '__cxa_throw',
+        'SDC_VERIFY',
+        'yandex::sdc',
+        'ros',
+        'boost',
+        'tensorflow',
     ]
 
     low_important_functions_eq = [
@@ -436,6 +537,7 @@ class Stack:
         'nanosleep',
         'pthread_cond_wait',
         'pthread_cond_timedwait',
+        'gsignal',
     ]
 
     def __init__(
@@ -448,12 +550,17 @@ class Stack:
         stack_fp=None,
         fingerprint_hash=None,
         stream=None,
+        lldb_mode=False,
     ):
         self.lines = lines
         self.thread_ptr = thread_ptr
         self.thread_id = thread_id
+        self.lldb_mode = lldb_mode
         if frames and type(frames[0]) is dict:
-            frames = map(lambda x: Frame(**x), frames)
+            if self.lldb_mode:
+                frames = map(lambda x: LLDBFrame(**x), frames)
+            else:
+                frames = map(lambda x: Frame(**x), frames)
         self.frames = frames or []
         self.important = important or Stack.DEFAULT_IMPORTANT
         if thread_id == 1:
@@ -495,12 +602,16 @@ class Stack:
         """
         Parse one stack
         """
+        re_list = regexp_lldb if self.lldb_mode else regexp_all
         for line in self.lines:
-
-            for regexp in regexp_all:
+            for regexp in re_list:
                 m = regexp.match(line)
                 if m:
-                    self.push_frame(Frame(**m.groupdict()))
+                    if self.lldb_mode:
+                        self.push_frame(LLDBFrame(**m.groupdict()))
+                    else:
+                        self.push_frame(Frame(**m.groupdict()))
+                    break
             self.bad_frame(line)
 
     def bad_frame(self, line):
@@ -511,9 +622,7 @@ class Stack:
         if self.low_important():
             return
 
-        res = ""
-        for f in self.frames:
-            res += f + "\n"
+        res = '\n'.join(self.frames)
         res += "----------------------------- DEBUG END\n"
         if return_result:
             return res
@@ -548,19 +657,17 @@ class Stack:
         """
         Stack fingerprint: concatenation of non-common stack frames
         """
-
-        stack_fp = ""
+        stack_fp = list()
         len_frames = min((max_num or len(self.frames)), len(self.frames))
-        for f in self.frames[: len_frames]:
+        for f in self.frames[:len_frames]:
             fp = f.fingerprint()
             if len(fp) == 0:
                 continue
-            if fp in Stack.fingerprint_blacklist:
+            if fp in Stack.fingerprint_blacklist or fp in stack_fp:
                 continue
+            stack_fp.append(fp.strip())
 
-            stack_fp += fp + "\n"
-        stack_fp = stack_fp.strip()
-        return stack_fp
+        return '\n'.join(stack_fp)
 
     def simple_html(self, num_frames=None):
         if not num_frames:
@@ -584,7 +691,9 @@ class Stack:
         return self.fingerprint_hash
 
 
-python_frame_regex = re.compile(r'File \"(?P<source>.*)\", line (?P<source_no>\d+), in (?P<func_name>.*)')
+python_frame_regex = re.compile(
+    r'File \"(?P<source>.*)\", line (?P<source_no>\d+), in (?P<func_name>.*)'
+)
 
 
 def parse_python_traceback(trace):
@@ -646,7 +755,6 @@ def _file_contents(file_name):
 
 def html_prolog(stream):
     prolog = _file_contents('prolog.html')
-
     stream.write(prolog.format(
         style=_file_contents('styles.css'),
         jquery_js=_file_contents(get_jquery_path()),
@@ -660,8 +768,22 @@ def html_epilog(stream):
     stream.write(_file_contents('epilog.html'))
 
 
-def filter_stackdump(
-    file_name=None, use_fingerprint=False, sandbox_failed_task_id=None, stream=None, file_lines=None, use_stream=True,
+def detect_coredump_type(cores_text):
+    if len(cores_text) == 0:
+        raise Exception("Text stacktrace is blank")
+
+    if "(lldb)" in cores_text:
+        return const.CoredumpType.LLDB
+
+    return const.CoredumpType.GDB
+
+
+def filter_stackdump_lldb(
+    file_name=None,
+    file_lines=None,
+    stream=None,
+    use_fingerprint=False,
+    use_stream=True
 ):
     stack_lines = []
     main_info = []
@@ -669,7 +791,105 @@ def filter_stackdump(
     stack_detected = False
     thread_id = None
     stream = stream or sys.stdout
-    signal = 'signal not found'
+    signal = SIGNAL_NOT_FOUND
+
+    skip_lines = (
+        '(lldb) target create',
+        'Core file',
+        '(lldb) bt all',
+        '(lldb) script import sys',
+        '$$',
+    )
+
+    if file_name:
+        with open(file_name, 'r') as fd:
+            file_lines = fd.readlines()
+
+    for line in file_lines:
+        line = line.strip()
+        if len(line) == 0:
+            continue
+
+        for skip_line in skip_lines:
+            if skip_line in line:
+                continue
+
+        if SIGNAL_FLAG_LLDB in line and signal == SIGNAL_NOT_FOUND:
+            signal = line.split()[-1]
+            # continue?
+
+        tm = re.match(r'.*thread #(\d+), .*', line)
+        if tm:
+            stack_detected = True
+            if len(stack_lines) > 0:
+                stacks.append(
+                    Stack(lines=stack_lines, thread_id=thread_id, lldb_mode=True, stream=stream)
+                )
+            stack_lines = []
+            thread_id = int(tm.group(1))
+
+        if stack_detected:
+            stack_lines.append(line)
+        else:
+            main_info.append(line)
+
+    stack = Stack(lines=stack_lines, thread_id=thread_id, lldb_mode=True, stream=stream)
+    stacks.append(stack)
+
+    for stack in stacks:
+        stack.parse()
+        # stack.debug()
+
+    if use_stream:
+        if use_fingerprint:
+            for stack in stacks:
+                stream.write(stack.fingerprint() + '\n')
+                stream.write('--------------------------------------\n')
+            return
+        else:
+            html_prolog(stream)
+            pre_class = ""
+            stream.write('<pre class="{0}">\n'.format(pre_class))
+            for line in main_info:
+                stream.write(line.replace('&', '&amp;').replace('<', '&lt;') + '\n')
+            stream.write('</pre>\n')
+
+    prev_hash = None
+    all_hash_stacks = []
+    cur_hash_stacks = []
+    sorted_stacks = sorted(stacks, key=lambda x: (x.important, x.fingerprint()), reverse=True)
+    for stack in sorted_stacks:
+        if stack.hash() == 0:
+            continue
+        same_hash = stack.hash() == prev_hash
+        if not same_hash:
+            if len(cur_hash_stacks) > 0:
+                all_hash_stacks.append(cur_hash_stacks)
+            cur_hash_stacks = [stack, ]
+        else:
+            cur_hash_stacks.append(stack)
+        prev_hash = stack.hash()
+    # push last
+    if len(cur_hash_stacks) > 0:
+        all_hash_stacks.append(cur_hash_stacks)
+
+    raw_hash_stacks = [[stack.raw() for stack in common_hash_stacks] for common_hash_stacks in
+                       all_hash_stacks]
+
+    return all_hash_stacks, raw_hash_stacks, signal
+
+
+def filter_stackdump(
+    file_name=None, use_fingerprint=False, sandbox_failed_task_id=None, stream=None,
+    file_lines=None, use_stream=True,
+):
+    stack_lines = []
+    main_info = []
+    stacks = []
+    stack_detected = False
+    thread_id = None
+    stream = stream or sys.stdout
+    signal = SIGNAL_NOT_FOUND
 
     sandbox_task_id = None
 
@@ -795,7 +1015,8 @@ def filter_stackdump(
 
         html_epilog(stream)
     else:
-        raw_hash_stacks = [[stack.raw() for stack in common_hash_stacks] for common_hash_stacks in all_hash_stacks]
+        raw_hash_stacks = [[stack.raw() for stack in common_hash_stacks] for common_hash_stacks in
+                           all_hash_stacks]
         return all_hash_stacks, raw_hash_stacks, signal
 
 
@@ -824,8 +1045,19 @@ Usage:
             use_fingerprint = True
         sandbox_failed_task_id = sys.argv[2]
 
-    filter_stackdump(
-        file_name=sys.argv[1],
-        use_fingerprint=use_fingerprint,
-        sandbox_failed_task_id=sandbox_failed_task_id,
-    )
+    core_text = ''
+    with open(sys.argv[1]) as fd:
+        core_text = ''.join(fd.readlines())
+
+    core_type = detect_coredump_type(core_text)
+    if core_type == const.CoredumpType.GDB:
+        filter_stackdump(
+            file_name=sys.argv[1],
+            use_fingerprint=use_fingerprint,
+            sandbox_failed_task_id=sandbox_failed_task_id,
+        )
+    else:
+        filter_stackdump_lldb(
+            file_name=sys.argv[1],
+            use_fingerprint=True,
+        )
