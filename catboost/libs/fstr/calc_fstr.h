@@ -142,10 +142,15 @@ TVector<TVector<TVector<TVector<double>>>> CalcShapFeatureInteractionMulti(
 
 /*
  * model is the primary source of featureIds,
- * if model does not contain featureIds data then try to get this data from pool (if provided (non nullptr))
+ * if model does not contain featureIds data then try to get this data from dataset (if provided (non nullptr))
  * for all remaining features without id generated featureIds will be just their external indices
  * (indices in original training dataset)
  */
+TVector<TString> GetMaybeGeneratedModelFeatureIds(
+    const TFullModel& model,
+    const NCB::TFeaturesLayoutPtr datasetFeaturesLayout // can be nullptr
+);
+
 TVector<TString> GetMaybeGeneratedModelFeatureIds(
     const TFullModel& model,
     const NCB::TDataProviderPtr dataset // can be nullptr

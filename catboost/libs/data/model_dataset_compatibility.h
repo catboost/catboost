@@ -9,6 +9,10 @@
 
 
 namespace NCB {
+    void CheckModelAndDatasetCompatibility(
+        const TFullModel& model,
+        const TFeaturesLayout& datasetFeaturesLayout,
+        THashMap<ui32, ui32>* columnIndexesReorderMap);
 
     void CheckModelAndDatasetCompatibility(
         const TFullModel& model,

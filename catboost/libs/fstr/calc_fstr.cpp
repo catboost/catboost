@@ -900,14 +900,17 @@ TVector<TVector<TVector<TVector<double>>>> CalcShapFeatureInteractionMulti(
     );
 }
 
-TVector<TString> GetMaybeGeneratedModelFeatureIds(const TFullModel& model, const TDataProviderPtr dataset) {
+TVector<TString> GetMaybeGeneratedModelFeatureIds(
+    const TFullModel& model,
+    const TFeaturesLayoutPtr datasetFeaturesLayout)
+{
     const NCB::TFeaturesLayout modelFeaturesLayout = MakeFeaturesLayout(model);
     TVector<TString> modelFeatureIds(modelFeaturesLayout.GetExternalFeatureCount());
     if (AllFeatureIdsEmpty(modelFeaturesLayout.GetExternalFeaturesMetaInfo())) {
-        if (dataset) {
-            CheckModelAndDatasetCompatibility(model, *dataset->ObjectsData.Get());
-            const auto& datasetFeaturesLayout = *dataset->MetaInfo.FeaturesLayout;
-            const auto datasetFeaturesMetaInfo = datasetFeaturesLayout.GetExternalFeaturesMetaInfo();
+        if (datasetFeaturesLayout) {
+            THashMap<ui32, ui32> columnIndexesReorderMap; // unused
+            CheckModelAndDatasetCompatibility(model, *datasetFeaturesLayout, &columnIndexesReorderMap);
+            const auto datasetFeaturesMetaInfo = datasetFeaturesLayout->GetExternalFeaturesMetaInfo();
             if (!AllFeatureIdsEmpty(datasetFeaturesMetaInfo)) {
                 CB_ENSURE(
                     datasetFeaturesMetaInfo.size() >= modelFeatureIds.size(),
@@ -927,5 +930,13 @@ TVector<TString> GetMaybeGeneratedModelFeatureIds(const TFullModel& model, const
         }
     }
     return modelFeatureIds;
+}
+
+TVector<TString> GetMaybeGeneratedModelFeatureIds(const TFullModel& model, const TDataProviderPtr dataset) {
+    TFeaturesLayoutPtr datasetFeaturesLayout;
+    if (dataset) {
+        datasetFeaturesLayout = dataset->MetaInfo.FeaturesLayout;
+    }
+    return GetMaybeGeneratedModelFeatureIds(model, std::move(datasetFeaturesLayout));
 }
 
