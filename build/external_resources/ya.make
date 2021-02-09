@@ -23,7 +23,6 @@ ENDIF()
 IF (OS_LINUX)
     RECURSE(
     codenavigation
-    llvm_cov9
 )
 ENDIF()
 
