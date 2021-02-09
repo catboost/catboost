@@ -65,13 +65,15 @@ object CtrFeatures {
     quantizedTrainPool: Pool,
     quantizedEvalPools: Array[Pool],
     quantizedFeaturesIndices: QuantizedFeaturesIndices,
-    selectedFlatFeaturesIndices: Set[Int]
+    selectedFlatFeaturesIndices: Set[Int],
+    localExecutor: TLocalExecutor
   ) : (TQuantizedObjectsDataProviderPtr, TVector_TQuantizedObjectsDataProviderPtr) = {
     (
       DataHelpers.downloadSubsetOfQuantizedFeatures(
         quantizedTrainPool,
         quantizedFeaturesIndices,
-        selectedFlatFeaturesIndices
+        selectedFlatFeaturesIndices,
+        localExecutor
       ),
       new TVector_TQuantizedObjectsDataProviderPtr(
         quantizedEvalPools.map(
@@ -79,7 +81,8 @@ object CtrFeatures {
             DataHelpers.downloadSubsetOfQuantizedFeatures(
               evalPool,
               quantizedFeaturesIndices,
-              selectedFlatFeaturesIndices
+              selectedFlatFeaturesIndices,
+              localExecutor
             )
           }
         )
@@ -170,7 +173,8 @@ object CtrFeatures {
         quantizedTrainPool,
         quantizedEvalPools,
         quantizedFeaturesIndices,
-        Set[Int](catFeatureFlatIdx)
+        Set[Int](catFeatureFlatIdx),
+        localExecutor
       )
       
       val estimatedData = new TEstimatedForCPUObjectsDataProviders
@@ -269,7 +273,8 @@ object CtrFeatures {
         quantizedTrainPool,
         quantizedEvalPools,
         quantizedFeaturesIndices,
-        Set[Int](catFeatureFlatIdx)
+        Set[Int](catFeatureFlatIdx),
+        ctrsContext.localExecutor
       )
       finalCtrsCalcer.ProcessForFeature(catFeatureFlatIdx, trainColumnData, evalsColumnData)
     }

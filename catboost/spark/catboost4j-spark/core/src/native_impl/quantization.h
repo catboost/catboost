@@ -9,6 +9,9 @@
 #include <util/generic/yexception.h>
 #include <util/system/types.h>
 
+namespace NPar {
+    class TLocalExecutor;
+}
 
 namespace NCB {
     class TFeaturesLayout;
@@ -48,7 +51,7 @@ private:
 NCB::TQuantizedObjectsDataProviderPtr Quantize(
     NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
     NCB::TRawObjectsDataProviderPtr* rawObjectsDataProvider, // moved into
-    int threadCount
+    NPar::TLocalExecutor* localExecutor
 ) throw (yexception);
 
 

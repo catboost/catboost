@@ -11,6 +11,10 @@
 #include <util/system/types.h>
 #include <util/system/yassert.h>
 
+namespace NPar {
+    class TLocalExecutor;
+}
+
 
 class TApplyResultIterator {
 public:
@@ -18,7 +22,7 @@ public:
         const TFullModel& model,
         NCB::TRawObjectsDataProviderPtr rawObjectsDataProvider,
         EPredictionType predictionType,
-        i32 threadCount
+        NPar::TLocalExecutor* localExecutor
     ) throw(yexception);
 
     double GetSingleDimensionalResult(i32 objectIdx) const {

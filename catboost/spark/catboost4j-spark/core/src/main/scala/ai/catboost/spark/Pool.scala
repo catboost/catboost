@@ -680,6 +680,9 @@ class Pool (
 
     val quantizedData = data.mapPartitions(
       rowsIterator => {
+        val localExecutor = new TLocalExecutor
+        localExecutor.Init(threadCountForTask)
+
         // source features column will be replaced by quantizedFeatures
         val (dstRows, rawObjectsDataProviderPtr) = DataHelpers.processDatasetWithRawFeatures(
           rowsIterator,
@@ -688,13 +691,13 @@ class Pool (
           catFeaturesMaxUniqValueCount,
           keepRawFeaturesInDstRows = false,
           dstRowLength = quantizedDataSchema.length,
-          threadCount = threadCountForTask
+          localExecutor = localExecutor
         )
 
         val quantizedObjectsDataProvider = native_impl.Quantize(
           quantizedFeaturesInfo,
           rawObjectsDataProviderPtr,
-          threadCountForTask
+          localExecutor
         )
 
         QuantizedRowsOutputIterator(dstRows, featuresColumnIdx, quantizedObjectsDataProvider)
