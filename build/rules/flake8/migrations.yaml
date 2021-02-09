@@ -1114,10 +1114,6 @@ migrations:
     - voicetech/tts/vh/utils
     - voicetech/vqe/tools/yt_uploader
     - weather/workers/warnings/general
-    - web/app_host/lib/python/split
-    - web/app_host/lib/python/split/charts
-    - web/app_host/tools/pva/lib
-    - web/daemons/begemot/scripts/nanny_tidiness
     - yabs/analytics/anomaly_analyzer/src
     - yabs/chat_bot/bot
     - yabs/event-utils
@@ -1222,8 +1218,6 @@ migrations:
     - yql/tools/docs/wiki2markdown
     - yql/tools/mrjob/test
     - yql/tools/qplayer
-    - yt/admin/ytcfgen/src/ytcfg
-    - yt/admin/ytcfgen/src/ytcfg/lib/components/periodic
     - yt/yt/tests/integration/tests
     - yweb/antimalware/mitb/mitb_monitor/lib
     - yweb/antiporno/analyze_yt_ops
@@ -1833,7 +1827,6 @@ migrations:
     - yabs/qa/oneshots/astkachev/BSSERVER-14230/noload_rsya_only
     - yabs/qa/oneshots/astkachev/BSSERVER-14230/noload_search_only
     - yabs/qa/oneshots/sergtaim/BSSERVER-14259/AddKeywordWithNewIdToYT-test
-    - yabs/rmp/backend/tests/lib/uac/campaign
     - yabs/server/cs/pylibs/dash_board
     - yabs/server/cs/pylibs/full_graph_plot
     - yabs/server/cs/pylibs/gantt_chart/lib
@@ -1984,7 +1977,6 @@ migrations:
     - F401
     prefixes:
     - ads/autobudget/ml_pipeline
-    - ads/bsyeti/samogon/caesar_resharder/plugin
     - ads/bsyeti/samogon/resharder/plugin
     - ads/bsyeti/tests/eagle/ft
     - ads/emily/storage
@@ -2773,7 +2765,5 @@ migrations:
     - quality/nirvana_tools/conveyor_operations/meta_formula_bfmf_bundle/lib
     - quality/relev_tools/choice_screen/vh_operations
     - quality/relev_tools/mx_ops/tests/fat
-    - yabs/rmp/backend/tests/lib/uac/campaign
-    - yabs/rmp/backend/tests/lib/uac/content
     - yt/admin/luigi/src/luigi
     - yt/yt/tests/integration/tests
