@@ -921,8 +921,6 @@ migrations:
     - sandbox/projects/canvas/video_constructor_utils
     - sandbox/projects/clickhouse/util
     - sandbox/projects/cloud/yfm
-    - sandbox/projects/common/build
-    - sandbox/projects/common/build/sdk
     - sandbox/projects/common/compare_upper_results
     - sandbox/projects/common/fusion
     - sandbox/projects/common/gencfg
@@ -1624,12 +1622,7 @@ migrations:
     - quality/ab_testing/cofe/projects/zalogin
     - quality/ab_testing/cofe/python/backends/nile
     - quality/ab_testing/scripts/ems
-    - quality/ab_testing/scripts/ems/application
-    - quality/ab_testing/scripts/ems/core
     - quality/ab_testing/scripts/ems/modules/metric
-    - quality/ab_testing/scripts/ems/modules/metric/backends
-    - quality/ab_testing/scripts/ems/modules/metric/controllers
-    - quality/ab_testing/scripts/ems/modules/metrics/base/controllers
     - quality/functionality/chats/common/utils
     - quality/functionality/chats/feedback/src/feedback/api
     - quality/functionality/chats/feedback/src/feedback/api/v1
@@ -2261,7 +2254,6 @@ migrations:
     - quality/ab_testing/cofe/projects/maps
     - quality/ab_testing/cofe/projects/router
     - quality/ab_testing/cofe/projects/uslugi/searchcost
-    - quality/ab_testing/cofe/projects/yabs_clickhouse
     - quality/ab_testing/cofe/projects/zalogin
     - quality/ab_testing/cofe/python/metrics
     - quality/functionality/chats/common/bunker_client
@@ -2407,7 +2399,6 @@ migrations:
     - strm/pinger/lib
     - strm/pult/backend/bin/prod_channels_generator
     - strm/pult/backend/tests/unit
-    - testenv/jobs/begemot
     - tools/mkdocs_builder/lib
     - tools/releaser/src
     - travel/avia/api_gateway
@@ -2584,7 +2575,6 @@ migrations:
     - library/python/cyson/cyson
     - mail/freezing_tests/active_users_aggregation
     - mail/python/sendr-qtools/src/sendr_aiopg/tests
-    - mail/shiva/tests/lib
     - maps/analyzer/tools/online_jams/pylib
     - maps/tools/naviguide/tools/extract_uuid_info
     - market/idx/quick/saashub/tests/yatf/bids
@@ -2660,28 +2650,6 @@ migrations:
     ignore:
     - F811
     prefixes:
-    - dict/lm/ngrams/tools/build_ngrams/test/with_yql
-    - dict/lm/sources/tools/parse_logs/test
-    - dict/mt/oilrig/docs/tools/dclassifier/tools/yt_doc_classifier/tests
-    - dict/mt/tools/ngram_yt/test
-    - dict/ontodb/onto_lib/filtration/selection_processing/generated_facts/ut
-    - dict/ontodb/utils/build_helpers/ut
-    - dict/ontodb/utils/cleanup/ut
-    - dict/ontodb/utils/solomon
-    - dict/tools/mktrie-yt/test
-    - entity/ontodb/robot/tools/send_main_delta_time_stats/lib/ut
-    - entity/recommender/lib/python/common
-    - entity/ugc/robot/tools/installed_apps_sites_activity_loader/tests
-    - entity/ugc/robot/tools/lib/tests
-    - entity/ugc/robot/tools/reviews_to_saas/tests
-    - entity/ugc/robot/tools/superapp/lib/ut
-    - entity/ugc/robot/tools/transaction_sites_activity_loader/tests
-    - entity/ugc/robot/tools/user_activity_processor/lib/ut
-    - mail/mops/tests
-    - mail/sharpei/tests/integration
-    - mail/sharpei/tests/integration/steps
-    - mail/shiva/tests/lib
-    - mail/shiva/tests/lib/steps
     - modadvert/configurator/libs/it
     - modadvert/configurator/test_utils
     - modadvert/libs/clustering/it
@@ -2747,11 +2715,6 @@ migrations:
     - modadvert/programs/white_list_spam_client/it
     - modadvert/resources/supermoderation/service_confs/ut
     - modadvert/test_utils/sandbox/upload_xls
-    - quality/ab_testing/scripts/ems
-    - quality/ab_testing/scripts/ems/modules/idm/controllers
-    - quality/ab_testing/scripts/ems/modules/metric
-    - quality/ab_testing/scripts/ems/modules/metric/backends
-    - quality/ab_testing/scripts/ems/modules/metrics/abt/api/v1
     - quality/functionality/turbo/auto_morda/state_builder/tests
     - quality/functionality/turbo/forms/app/tests
     - quality/functionality/turbo/remove_404_pages/remover/tests
@@ -2765,5 +2728,3 @@ migrations:
     - quality/nirvana_tools/conveyor_operations/meta_formula_bfmf_bundle/lib
     - quality/relev_tools/choice_screen/vh_operations
     - quality/relev_tools/mx_ops/tests/fat
-    - yt/admin/luigi/src/luigi
-    - yt/yt/tests/integration/tests
