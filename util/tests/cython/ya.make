@@ -16,6 +16,7 @@ PY_SRCS(
     generic/vector_ut.pyx
     generic/list_ut.pyx
     generic/hash_ut.pyx
+    memory/blob_ut.pyx
     string/cast_ut.pyx
     system/types_ut.pyx
     digest/multi_ut.pyx
@@ -23,6 +24,7 @@ PY_SRCS(
 
 TEST_SRCS(
     test_generic.py
+    test_memory.py
     test_system.py
     test_digest.py
 )
