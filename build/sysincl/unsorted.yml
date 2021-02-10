@@ -715,7 +715,6 @@
   - sys/systeminfo.h
   - sys/vfstab.h
   - sys/vmount.h
-  - libxsmm.h
   - CL/sycl.hpp
   # libpcap files
   - os-proto.h
