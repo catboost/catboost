@@ -412,7 +412,6 @@ migrations:
     - entity/quality/ontodb/defect_rate/lib
     - entity/ugc/db/python/offline_processing
     - entity/ugc/quality/reviews_ranking/ml/lib/trueskill
-    - entity/ugc/robot/tools/fetch_sprav_data/lib
     - entity/ugc/robot/tools/sprav_reviews_loader/lib/ut
     - entity/ugc/robot/util
     - entity/ugc/tests/lib
@@ -1866,8 +1865,6 @@ migrations:
     - yweb/webscripts/video/duplicates/nirvana_scripts/knn/filter_knn_source
     - yweb/yasap/answers/tests
     - yweb/yasap/answers/tests/test_resources
-    - yweb/yasap/answers_admin/admin
-    - yweb/yasap/answers_admin/admin/resources
     - yweb/yasap/pdb/tools/backup/create_backup
     - yweb/yasap/znatoki/znatoki_ctl/lib
     - yweb/yasap/znatoki/znatoki_ctl/lib/commands
@@ -2213,7 +2210,6 @@ migrations:
     - metrika/tasklets/deploy/impl
     - ml/tensorflow/tfnn/tests/tools
     - ml/tensorflow/ytensorflow
-    - modadvert/configurator/test_utils
     - modadvert/libs/antispam/threat_mapping/ut
     - modadvert/libs/jsonrpc2/client
     - modadvert/libs/laas/workers/misprints
@@ -2650,32 +2646,6 @@ migrations:
     ignore:
     - F811
     prefixes:
-    - modadvert/configurator/libs/it
-    - modadvert/configurator/test_utils
-    - modadvert/libs/clustering/it
-    - modadvert/libs/factors/mx_client_karma/it
-    - modadvert/libs/laas/workers/text_has_age_mark/ut
-    - modadvert/libs/lyncher/common/it
-    - modadvert/libs/lyncher/factor_providers/banned_clients/it
-    - modadvert/libs/lyncher/factor_providers/bsml/it
-    - modadvert/libs/lyncher/factor_providers/client_factors/it
-    - modadvert/libs/lyncher/factor_providers/clients_black_list/it
-    - modadvert/libs/lyncher/factor_providers/clients_vip_list/it
-    - modadvert/libs/lyncher/factor_providers/clients_white_list/it
-    - modadvert/libs/lyncher/factor_providers/crypta_karma/it
-    - modadvert/libs/lyncher/factor_providers/crypta_matching_filter/it
-    - modadvert/libs/lyncher/factor_providers/fastml/it
-    - modadvert/libs/lyncher/factor_providers/local_catalogia/it
-    - modadvert/libs/lyncher/factor_providers/misprints/it
-    - modadvert/libs/lyncher/factor_providers/phrase_antikarma_cid/it
-    - modadvert/libs/lyncher/factor_providers/sitelinks_filter/it
-    - modadvert/libs/lyncher/factor_providers/superlative/it
-    - modadvert/libs/lyncher/factor_providers/yellow_text_dssm/it
-    - modadvert/libs/lyncher/factor_providers/yt_lookup_filter/it
-    - modadvert/libs/lyncher/it/config_parser
-    - modadvert/libs/lyncher/it/rules
-    - modadvert/libs/sm_api/processors/search_v2/ut
-    - modadvert/libs/utils/state/it
     - modadvert/nirvana/angel_to_SM/it
     - modadvert/nirvana/m1_add_verdicts/ut
     - modadvert/nirvana/minus_regions/it
@@ -2713,8 +2683,6 @@ migrations:
     - modadvert/programs/supermoderation_api/ut/handlers
     - modadvert/programs/toloka_clustering/it
     - modadvert/programs/white_list_spam_client/it
-    - modadvert/resources/supermoderation/service_confs/ut
-    - modadvert/test_utils/sandbox/upload_xls
     - quality/functionality/turbo/auto_morda/state_builder/tests
     - quality/functionality/turbo/forms/app/tests
     - quality/functionality/turbo/remove_404_pages/remover/tests
