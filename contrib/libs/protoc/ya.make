@@ -2,13 +2,13 @@
 
 LIBRARY()
 
-LICENSE(BSD-3-Clause)
-
 PROVIDES(protoc)
 
 
 
 VERSION(3.4.1)
+
+LICENSE(BSD-3-Clause)
 
 PEERDIR(
     contrib/libs/protobuf
