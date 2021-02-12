@@ -18,7 +18,6 @@
 #include <util/system/getpid.h>
 #include <util/system/mem_info.h>
 #include <util/system/rusage.h>
-#include <util/system/user.h>
 #include <util/system/cpu_id.h>
 #include <util/system/unaligned_mem.h>
 #include <util/generic/buffer.h>
@@ -73,12 +72,6 @@ namespace {
                     auto ru = TRusage::Get();
 
                     out.Write(&ru, sizeof(ru));
-                }
-
-                try {
-                    Save(&out, GetUsername());
-                } catch (...) {
-                    // May fail e.g. when sssd_be crashes.
                 }
 
                 {
