@@ -54,12 +54,25 @@ TFsPath GetOutputPath() {
     return GetWorkPath() + "/testing_out_stuff";
 }
 
-TString GetRamDrivePath() {
+const TString& GetRamDrivePath() {
     return NPrivate::GetTestEnv().RamDrivePath;
 }
 
-TString GetOutputRamDrivePath() {
+const TString& GetOutputRamDrivePath() {
     return NPrivate::GetTestEnv().TestOutputRamDrivePath;
+}
+
+const TString& GdbPath() {
+    return NPrivate::GetTestEnv().GdbPath;
+}
+
+TString GetTestParam(TStringBuf name) {
+    auto& testParameters = NPrivate::GetTestEnv().TestParameters;
+    auto it = testParameters.find(name.data());
+    if (it != testParameters.end()) {
+        return it->second;
+    }
+    return "";
 }
 
 bool FromYaTest() {
@@ -79,6 +92,8 @@ namespace NPrivate {
         WorkPath = "";
         RamDrivePath = "";
         TestOutputRamDrivePath = "";
+        GdbPath = "";
+        TestParameters.clear();
 
         const TString contextFilename = GetEnv("YA_TEST_CONTEXT_FILE");
         if (contextFilename) {
@@ -115,6 +130,15 @@ namespace NPrivate {
             value = context.GetValueByPath("runtime.test_output_ram_drive_path");
             if (value) {
                 TestOutputRamDrivePath = value->GetStringSafe("");
+            }
+
+            value = context.GetValueByPath("runtime.gdb_bin");
+            if (value) {
+                GdbPath = value->GetStringSafe("");
+            }
+
+            for (const auto& entry : context.GetValueByPath("runtime.test_params")->GetMap()) {
+                TestParameters[entry.first] = entry.second.GetStringSafe("");
             }
         }
 
