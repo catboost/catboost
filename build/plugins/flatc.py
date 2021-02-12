@@ -63,6 +63,7 @@ class Flatc(FlatcBase):
         return [
             '--yandex-maps-iter',
             '--gen-object-api',
+            '--gen-mutable',
         ]
 
 
