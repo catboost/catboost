@@ -18,7 +18,7 @@ void FormatBackTrace(IOutputStream* out, void* const* backtrace, size_t backtrac
 void FormatBackTrace(IOutputStream* out);
 void PrintBackTrace();
 
-using TFormatBackTraceFn = void (*)(IOutputStream*);
+using TFormatBackTraceFn = void (*)(IOutputStream*, void* const* backtrace, size_t backtraceSize);
 
 TFormatBackTraceFn SetFormatBackTraceFn(TFormatBackTraceFn f);
 TFormatBackTraceFn GetFormatBackTraceFn();
