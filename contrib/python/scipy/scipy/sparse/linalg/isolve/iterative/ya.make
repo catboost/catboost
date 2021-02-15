@@ -9,7 +9,7 @@ PEERDIR(
     contrib/libs/clapack
 
     contrib/python/scipy/scipy/_build_utils/src
-    contrib/python/numpy/py2/numpy/f2py/src
+    contrib/python/numpy
 )
 
 NO_COMPILER_WARNINGS()

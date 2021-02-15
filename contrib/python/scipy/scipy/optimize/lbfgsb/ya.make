@@ -5,7 +5,7 @@ LICENSE(BSD-3-Clause)
 
 
 PEERDIR(
-    contrib/python/numpy/py2/numpy/f2py/src
+    contrib/python/numpy
 )
 
 NO_COMPILER_WARNINGS()

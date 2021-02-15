@@ -17,8 +17,8 @@ PEERDIR(
 
 ADDINCL(
     contrib/python/numpy/py3/numpy/core
-    GLOBAL contrib/python/numpy/py3/numpy/core/include
-    GLOBAL FOR cython contrib/python/numpy/py3/numpy/core/include
+    contrib/python/numpy/py3/numpy/core/include
+    FOR cython contrib/python/numpy/py3/numpy/core/include
     contrib/python/numpy/py3/numpy/core/include/numpy
     contrib/python/numpy/py3/numpy/core/src
     contrib/python/numpy/py3/numpy/core/src/common
@@ -303,6 +303,7 @@ SRCS(
     numpy/core/src/umath/ufunc_object.c
     numpy/core/src/umath/ufunc_type_resolution.c
     numpy/core/src/umath/umathmodule.c
+    numpy/f2py/src/fortranobject.c
     numpy/fft/_pocketfft.c
     # numpy/linalg/lapack_lite/python_xerbla.c is defined in blas.
     numpy/linalg/lapack_litemodule.c

@@ -21,8 +21,8 @@ PEERDIR(
 
 ADDINCL(
     contrib/python/numpy/py2/numpy/core
-    GLOBAL contrib/python/numpy/py2/numpy/core/include
-    GLOBAL FOR cython contrib/python/numpy/py2/numpy/core/include
+    contrib/python/numpy/py2/numpy/core/include
+    FOR cython contrib/python/numpy/py2/numpy/core/include
     contrib/python/numpy/py2/numpy/core/include/numpy
     contrib/python/numpy/py2/numpy/core/src
     contrib/python/numpy/py2/numpy/core/src/common
@@ -254,6 +254,7 @@ SRCS(
     numpy/core/src/npysort/mergesort.c
     numpy/core/src/npysort/quicksort.c
     numpy/core/src/npysort/selection.c
+    numpy/f2py/src/fortranobject.c
 )
 
 END()

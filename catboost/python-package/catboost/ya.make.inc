@@ -8,14 +8,6 @@ ENDIF()
 
 PYTHON_ADDINCL()
 
-# add only headers for dynamic linking
-ADDINCL(
-    contrib/python/numpy/py2/numpy/core/include
-    contrib/python/numpy/py2/numpy/core/include/numpy
-    contrib/python/numpy/py2/numpy/core/src/common
-    contrib/python/numpy/py2/numpy/core/src/npymath
-)
-
 PEERDIR(
     catboost/libs/cat_feature
     catboost/libs/data
@@ -39,6 +31,7 @@ PEERDIR(
     catboost/private/libs/options
     catboost/private/libs/quantized_pool_analysis
     catboost/private/libs/target
+    contrib/python/numpy/include # add only headers for dynamic linking
     library/cpp/containers/2d_array
     library/cpp/json/writer
     library/cpp/text_processing/tokenizer
