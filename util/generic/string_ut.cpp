@@ -973,6 +973,8 @@ private:
 
         UNIT_ASSERT(strWide == TUtf32String::FromUtf8(strUtf8.c_str()));
         UNIT_ASSERT(strWide == TUtf32String::FromUtf8(strUtf8));
+        UNIT_ASSERT(strWide == UTF8ToUTF32<true>(strUtf8));
+        UNIT_ASSERT(strWide == UTF8ToUTF32<false>(strUtf8));
         UNIT_ASSERT(strWide == TUtf32String::FromUtf8(TStringBuf(strUtf8)));
 
         // assign
