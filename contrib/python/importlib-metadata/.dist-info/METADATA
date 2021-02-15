@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: importlib-metadata
-Version: 2.0.0
+Version: 2.1.1
 Summary: Read metadata from Python packages
 Home-page: http://importlib-metadata.readthedocs.io/
 Author: Jason R. Coombs
@@ -23,14 +23,21 @@ Requires-Dist: rst.linker ; extra == 'docs'
 Provides-Extra: testing
 Requires-Dist: packaging ; extra == 'testing'
 Requires-Dist: pep517 ; extra == 'testing'
+Requires-Dist: unittest2 ; (python_version < "3") and extra == 'testing'
 Requires-Dist: importlib-resources (>=1.3) ; (python_version < "3.9") and extra == 'testing'
 
 =========================
  ``importlib_metadata``
 =========================
 
-``importlib_metadata`` is a library to access the metadata for a Python
-package.  It is intended to be ported to Python 3.8.
+``importlib_metadata`` is a library to access the metadata for a
+Python package.
+
+As of Python 3.8, this functionality has been added to the
+`Python standard library
+<https://docs.python.org/3/library/importlib.metadata.html>`_.
+This package supplies backports of that functionality including
+improvements added to subsequent Python versions.
 
 
 Usage
@@ -57,9 +64,9 @@ tools (or other conforming packages). It does not support:
 Project details
 ===============
 
- * Project home: https://gitlab.com/python-devs/importlib_metadata
- * Report bugs at: https://gitlab.com/python-devs/importlib_metadata/issues
- * Code hosting: https://gitlab.com/python-devs/importlib_metadata.git
- * Documentation: http://importlib_metadata.readthedocs.io/
+ * Project home: https://github.com/python/importlib_metadata
+ * Report bugs at: https://github.com/python/importlib_metadata/issues
+ * Code hosting: https://github.com/python/importlib_metadata
+ * Documentation: https://importlib_metadata.readthedocs.io/
 
 
