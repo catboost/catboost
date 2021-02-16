@@ -706,12 +706,19 @@ public:
     UNIT_TEST(TestIterators);
     UNIT_TEST(TestReverseIterators);
     UNIT_TEST(TestAppendUtf16)
+    UNIT_TEST(TestFillingAssign)
     //UNIT_TEST(TestOperatorsCI); must fail
     UNIT_TEST_SUITE_END();
 
     void TestAppendUtf16() {
         TString appended = TString("А роза упала").AppendUtf16(u" на лапу Азора");
         UNIT_ASSERT(appended == "А роза упала на лапу Азора");
+    }
+
+    void TestFillingAssign() {
+        TString s("abc");
+        s.assign(5, 'a');
+        UNIT_ASSERT_VALUES_EQUAL(s, "aaaaa");
     }
 };
 

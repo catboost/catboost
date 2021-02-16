@@ -669,6 +669,12 @@ public:
     }
 
     // ~~~ Assignment ~~~ : FAMILY0(TBasicString&, assign);
+    TBasicString& assign(size_t size, TCharType ch) {
+        ReserveAndResize(size);
+        std::fill(begin(), vend(), ch);
+        return *this;
+    }
+
     TBasicString& assign(const TBasicString& s) {
         TBasicString(s).swap(*this);
 
