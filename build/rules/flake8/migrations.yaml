@@ -2629,8 +2629,3 @@ migrations:
     - yt/yt/tests/integration/tests
     - yweb/tellurium/tools/store_history_to_yt
     - yweb/tellurium/ui
-  F811:
-    ignore:
-    - F811
-    prefixes:
-    - quality/nirvana_tools/conveyor_operations/meta_formula_bfmf_bundle/lib
