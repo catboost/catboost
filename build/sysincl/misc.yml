@@ -151,11 +151,6 @@
   includes:
     - port.h:        contrib/libs/glog/missing_includes/port.h
 
-- source_filter: "^contrib/libs/intel"
-  includes:
-    - CL/cl.h:       contrib/libs/intel/FPGA_pro/hld/host/include/CL/cl.h
-    - CL/opencl.h:   contrib/libs/intel/FPGA_pro/hld/host/include/CL/opencl.h
-
 - source_filter: "^contrib/libs/intel/onednn"
   includes:
     - mkl_cblas.h: contrib/libs/intel/mkl/include/mkl_cblas.h
