@@ -109,13 +109,31 @@ object PoolTestHelpers {
       appName: String,
       srcDataSchema : Seq[StructField],
       srcData: Seq[Row], 
-      columnNames: Map[String, String] // standard column name to name of column in the dataset
+      columnNames: Map[String, String], // standard column name to name of column in the dataset
+      srcPairsData: Option[Seq[Row]] = None,
+      pairsHaveWeight: Boolean=false
     ) : Pool = {
       val spark = TestHelpers.getOrCreateSparkSession(appName)
 
       val df = spark.createDataFrame(spark.sparkContext.parallelize(srcData), StructType(srcDataSchema));
-
-      var pool = new Pool(df)
+      var pool = srcPairsData match {
+        case Some(srcPairsData) => {  
+          var pairsSchema = Seq(
+            StructField("groupId", LongType, false),
+            StructField("winnerId", LongType, false),
+            StructField("loserId", LongType, false)
+          )
+          if (pairsHaveWeight) {
+            pairsSchema = pairsSchema :+ StructField("weight", FloatType, false)
+          }
+          val pairsDf = spark.createDataFrame(
+            spark.sparkContext.parallelize(srcPairsData),
+            StructType(pairsSchema)
+          )
+          new Pool(df, pairsDf)
+        } 
+        case None => new Pool(df)
+      }
       
       if (columnNames.contains("features")) {
         pool = pool.setFeaturesCol(columnNames("features"))
