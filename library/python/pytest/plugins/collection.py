@@ -54,7 +54,7 @@ class DoctestModule(LoadedModule):
             for test in finder.find(module, self.name[:-(len(".py"))]):
                 if test.examples:  # skip empty doctests
                     yield _pytest.doctest.DoctestItem(test.name, self, runner, test)
-        except Exception as e:
+        except Exception:
             import logging
             logging.exception('DoctestModule failed, probably you can add NO_DOCTESTS() macro to ya.make')
             etype, exc, tb = sys.exc_info()

@@ -1497,7 +1497,6 @@ migrations:
     - lbs/viewer
     - library/python/bstr
     - library/python/coredump_filter
-    - library/python/pytest/plugins
     - load/projects/yatool_perf_test/lib
     - logbroker/public/client/lib
     - logbroker/tools/deploy/layer_test_old
