@@ -1,4 +1,95 @@
 migrations:
+  F403:
+    ignore:
+    - F403
+    prefixes:
+    - adfox/infra/registrator
+    - adfox/infra/registrator/lib
+    - ads/libs/py_dssm_lib/dssm_applier
+    - ads/libs/py_ml_factors/matrixnet
+    - ads/libs/py_vw_lib
+    - ads/nirvana/xfactor-yt
+    - ads/tools/mx_feature_remapper
+    - ads/watchman/contrib/flask-restplus-patched
+    - ads/watchman/contrib/flask-restplus-patched/flask_restplus_patched
+    - alice/analytics/utils/marty/run_nirvana_instance
+    - alice/uniproxy/library/notificator
+    - alice/uniproxy/library/notificator_api
+    - arc/tables_creation/tests
+    - browser/infra/ci/backend
+    - browser/infra/ci/backend/ci/settings
+    - cloud/ai/speechkit/stt/tests/data_pipeline/join
+    - crm/crm-logbroker-consumer
+    - cv/short2long/nirvana/lib
+    - datalens/backend/app/dls
+    - datalens/backend/app/dls/yadls
+    - devtools/signer/signer
+    - dict/ontodb/cmpy/lib
+    - dict/ontodb/isa/libshorttext/converter/stemmer
+    - dict/ontodb/report/common
+    - dict/ontodb/utils/export_src_codes
+    - dj/services/alisa_skills/server/tests
+    - edadeal/analytics/scripts/CashbackReport/CashbackReportLib
+    - edadeal/analytics/scripts/CashbackReport/CashbackReportLib/CashbackReportLib
+    - education/services/sections/it
+    - extsearch/geo/recommender/runtime/config/generation
+    - mail/collectors/tests-system/src/main
+    - mail/freezing_tests/active_users_aggregation
+    - maps/analyzer/tools/online_jams/pylib
+    - maps/tools/naviguide/tools/extract_uuid_info
+    - market/idx/quick/saashub/tests/yatf/bids
+    - market/replenishment/data_preparation/ut
+    - market/seo/offer_base
+    - market/sre/tools/logkeeper/logkeeper
+    - mediapers/feature_machine/nirvana/script_runner
+    - metrika/core/test_framework/steps/clients
+    - mlp/mail/aspam/nirvana_operations/conveyor/build_prod_graph/inbound
+    - mlp/mail/aspam/nirvana_operations/conveyor/build_prod_graph/outbound
+    - mlp/mail/aspam/nirvana_operations/conveyor/calc_dsats
+    - modadvert/nirvana/sm_api/enrich_direct_banner/it
+    - nirvana/vh3/src
+    - nirvana/vh3/src/vh3/util/six/backports
+    - passport/python/api/tests/views/bundle/change_avatar
+    - quality/ab_testing/cofe/projects/alice/sesame/v1_1
+    - quality/neural_net/bert/bert/utils/distributed
+    - quality/neural_net/bert/bert/utils/fs
+    - sandbox/projects/tycoon/TycoonAdverts
+    - sdc/labeling/storage/tests
+    - search/base_search/tools/explain_l1
+    - search/metrics/ccc/ccc_lib
+    - search/mon/rviewer/app
+    - search/mon/rviewer/db
+    - search/mon/rviewer/modules
+    - search/mon/rviewer/modules/clients
+    - search/mon/rviewer/modules/orchestrator
+    - travel/avia/admin
+    - travel/avia/admin/i18n
+    - travel/avia/admin/promosearch
+    - travel/avia/admin/stats
+    - travel/avia/admin/tests
+    - travel/avia/avia_api
+    - travel/avia/avia_api/avia/settings
+    - travel/avia/avia_api/avia/v1/schemas
+    - travel/avia/avia_api/tests
+    - travel/avia/ticket_daemon
+    - travel/avia/ticket_daemon/tests
+    - travel/avia/ticket_daemon/ticket_daemon/api/models_utils
+    - travel/avia/ticket_daemon_api/tests
+    - voicetech/asr/cloud_engine/cli/nirvana/aggregate_kenlm_outputs
+    - voicetech/asr/cloud_engine/cli/nirvana/aggregate_subword_lm_outputs
+    - voicetech/asr/cloud_engine/cli/nirvana/build_lm
+    - voicetech/asr/cloud_engine/cli/nirvana/make_kenlm_lingware
+    - voicetech/asr/cloud_engine/cli/nirvana/make_subword_lm_lingware
+    - voicetech/asr/cloud_engine/cli/nirvana/merge_lingwares
+    - voicetech/asr/cloud_engine/cli/nirvana/select_best_kenlm
+    - voicetech/asr/core/lib/subword_ngram_lm/nirvana/build_freq_table
+    - voicetech/asr/core/lib/subword_ngram_lm/nirvana/build_mixture_model
+    - voicetech/asr/core/lib/subword_ngram_lm/nirvana/build_model
+    - voicetech/asr/core/lib/subword_ngram_lm/nirvana/fit_lambda
+    - voicetech/asr/core/lib/subword_ngram_lm/nirvana/fit_vocabulary
+    - voicetech/asr/tools/language_model/tests/test_linear_merge
+    - yabs/outdoor/viewer/back/logic
+    - yt/yt/tests/integration/tests
   W605:
     ignore:
     - W605
@@ -759,7 +850,6 @@ migrations:
     - quality/nirvana_tools/conveyor_operations/eval_feature/eval_feature_viewer
     - quality/nirvana_tools/conveyor_operations/meta_formula_bfmf_bundle/append_formula_factors
     - quality/nirvana_tools/conveyor_operations/meta_formula_bfmf_bundle/get_cache_from_appended_features
-    - quality/nirvana_tools/conveyor_operations/meta_formula_bfmf_bundle/lib
     - quality/nirvana_tools/conveyor_operations/parse_web_dump/make_aggregation
     - quality/nirvana_tools/conveyor_operations/parse_web_dump/make_aggregation/external_tests
     - quality/nirvana_tools/conveyor_operations/stove/prepare_stove_dataset
@@ -1860,97 +1950,6 @@ migrations:
     - zootopia/analytics/ml/features/geo_features/idle_duration_features
     - zootopia/analytics/ml/join_features/lib
     - zootopia/analytics/ml/util/logs_context_manager/lib
-  F403:
-    ignore:
-    - F403
-    prefixes:
-    - adfox/infra/registrator
-    - adfox/infra/registrator/lib
-    - ads/libs/py_dssm_lib/dssm_applier
-    - ads/libs/py_ml_factors/matrixnet
-    - ads/libs/py_vw_lib
-    - ads/nirvana/xfactor-yt
-    - ads/tools/mx_feature_remapper
-    - ads/watchman/contrib/flask-restplus-patched
-    - ads/watchman/contrib/flask-restplus-patched/flask_restplus_patched
-    - alice/analytics/utils/marty/run_nirvana_instance
-    - alice/uniproxy/library/notificator
-    - alice/uniproxy/library/notificator_api
-    - arc/tables_creation/tests
-    - browser/infra/ci/backend
-    - browser/infra/ci/backend/ci/settings
-    - cloud/ai/speechkit/stt/tests/data_pipeline/join
-    - crm/crm-logbroker-consumer
-    - cv/short2long/nirvana/lib
-    - datalens/backend/app/dls
-    - datalens/backend/app/dls/yadls
-    - devtools/signer/signer
-    - dict/ontodb/cmpy/lib
-    - dict/ontodb/isa/libshorttext/converter/stemmer
-    - dict/ontodb/report/common
-    - dict/ontodb/utils/export_src_codes
-    - dj/services/alisa_skills/server/tests
-    - edadeal/analytics/scripts/CashbackReport/CashbackReportLib
-    - edadeal/analytics/scripts/CashbackReport/CashbackReportLib/CashbackReportLib
-    - education/services/sections/it
-    - extsearch/geo/recommender/runtime/config/generation
-    - mail/collectors/tests-system/src/main
-    - mail/freezing_tests/active_users_aggregation
-    - maps/analyzer/tools/online_jams/pylib
-    - maps/tools/naviguide/tools/extract_uuid_info
-    - market/idx/quick/saashub/tests/yatf/bids
-    - market/replenishment/data_preparation/ut
-    - market/seo/offer_base
-    - market/sre/tools/logkeeper/logkeeper
-    - mediapers/feature_machine/nirvana/script_runner
-    - metrika/core/test_framework/steps/clients
-    - mlp/mail/aspam/nirvana_operations/conveyor/build_prod_graph/inbound
-    - mlp/mail/aspam/nirvana_operations/conveyor/build_prod_graph/outbound
-    - mlp/mail/aspam/nirvana_operations/conveyor/calc_dsats
-    - modadvert/nirvana/sm_api/enrich_direct_banner/it
-    - nirvana/vh3/src
-    - nirvana/vh3/src/vh3/util/six/backports
-    - passport/python/api/tests/views/bundle/change_avatar
-    - quality/ab_testing/cofe/projects/alice/sesame/v1_1
-    - quality/neural_net/bert/bert/utils/distributed
-    - quality/neural_net/bert/bert/utils/fs
-    - sandbox/projects/tycoon/TycoonAdverts
-    - sdc/labeling/storage/tests
-    - search/base_search/tools/explain_l1
-    - search/metrics/ccc/ccc_lib
-    - search/mon/rviewer/app
-    - search/mon/rviewer/db
-    - search/mon/rviewer/modules
-    - search/mon/rviewer/modules/clients
-    - search/mon/rviewer/modules/orchestrator
-    - travel/avia/admin
-    - travel/avia/admin/i18n
-    - travel/avia/admin/promosearch
-    - travel/avia/admin/stats
-    - travel/avia/admin/tests
-    - travel/avia/avia_api
-    - travel/avia/avia_api/avia/settings
-    - travel/avia/avia_api/avia/v1/schemas
-    - travel/avia/avia_api/tests
-    - travel/avia/ticket_daemon
-    - travel/avia/ticket_daemon/tests
-    - travel/avia/ticket_daemon/ticket_daemon/api/models_utils
-    - travel/avia/ticket_daemon_api/tests
-    - voicetech/asr/cloud_engine/cli/nirvana/aggregate_kenlm_outputs
-    - voicetech/asr/cloud_engine/cli/nirvana/aggregate_subword_lm_outputs
-    - voicetech/asr/cloud_engine/cli/nirvana/build_lm
-    - voicetech/asr/cloud_engine/cli/nirvana/make_kenlm_lingware
-    - voicetech/asr/cloud_engine/cli/nirvana/make_subword_lm_lingware
-    - voicetech/asr/cloud_engine/cli/nirvana/merge_lingwares
-    - voicetech/asr/cloud_engine/cli/nirvana/select_best_kenlm
-    - voicetech/asr/core/lib/subword_ngram_lm/nirvana/build_freq_table
-    - voicetech/asr/core/lib/subword_ngram_lm/nirvana/build_mixture_model
-    - voicetech/asr/core/lib/subword_ngram_lm/nirvana/build_model
-    - voicetech/asr/core/lib/subword_ngram_lm/nirvana/fit_lambda
-    - voicetech/asr/core/lib/subword_ngram_lm/nirvana/fit_vocabulary
-    - voicetech/asr/tools/language_model/tests/test_linear_merge
-    - yabs/outdoor/viewer/back/logic
-    - yt/yt/tests/integration/tests
   F401:
     ignore:
     - F401
