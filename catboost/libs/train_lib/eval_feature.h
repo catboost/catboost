@@ -24,6 +24,7 @@ struct TFeatureEvaluationSummary {
     TVector<TVector<TVector<TMetricsHistory>>> MetricsHistory; // [is test][feature set count][fold count]
     TVector<TVector<TVector<TVector<std::pair<double, TString>>>>> FeatureStrengths; // [is test][feature set count][fold count][feature index]
     TVector<TVector<TVector<TVector<std::pair<double, TString>>>>> RegularFeatureStrengths; // [is test][feature set count][fold count][feature index]
+    TVector<TVector<TVector<TFullModel>>> Models; // [is test][feature set count][fold count]
     struct TProcessorsUsage {
         float Time;
         ui32 Iteration;
@@ -73,6 +74,7 @@ public:
         MetricsHistory,
         FeatureStrengths,
         RegularFeatureStrengths,
+        Models,
         ProcessorsUsage,
         BestMetrics,
         BestBaselineIterations,

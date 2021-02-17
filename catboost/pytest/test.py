@@ -8227,14 +8227,16 @@ def test_eval_feature_timesplit(eval_mode, fold_size_unit):
 @pytest.mark.parametrize('eval_mode', ['OneVsNone', 'OneVsAll', 'OneVsOthers', 'OthersVsAll'])
 @pytest.mark.parametrize('features_to_eval', ['2-5', '2-5;10-15'], ids=['one_set', 'two_sets'])
 @pytest.mark.parametrize('offset', [0, 2])
-def test_eval_feature_snapshot(eval_mode, features_to_eval, offset):
+@pytest.mark.parametrize('fstr_mode', ['fstr', 'model'])
+def test_eval_feature_snapshot(eval_mode, features_to_eval, offset, fstr_mode):
     test_err_log = 'test_error.log'
     fstr_file = 'fstrs'
+    model_file = 'model.bin'
     fold_count = 2
     snapshot_interval = 1
 
     def make_cmd(summary, train_dir):
-        return (
+        cmd = (
             CATBOOST_PATH,
             'eval-feature',
             '--loss-function', 'RMSE',
@@ -8255,8 +8257,15 @@ def test_eval_feature_snapshot(eval_mode, features_to_eval, offset):
             '--fold-size', '40',
             '--test-err-log', test_err_log,
             '--train-dir', train_dir,
-            '--fstr-file', fstr_file,
         )
+        if fstr_mode == 'fstr':
+            cmd += ('--fstr-file', fstr_file,)
+        else:
+            cmd += (
+                '--model-file', model_file,
+                '--use-best-model', 'False',
+            )
+        return cmd
 
     reference_summary = yatest.common.test_output_path('reference_feature.eval')
     reference_dir = yatest.common.test_output_path('reference')
@@ -8286,7 +8295,23 @@ def test_eval_feature_snapshot(eval_mode, features_to_eval, offset):
     set_count = len(features_to_eval.split(';'))
     for output_dir in enumerate_eval_feature_output_dirs(eval_mode, set_count, offset, fold_count):
         assert filecmp.cmp(pj(reference_dir, output_dir, test_err_log), pj(snapshot_dir, output_dir, test_err_log))
-        assert filecmp.cmp(pj(reference_dir, output_dir, fstr_file), pj(snapshot_dir, output_dir, fstr_file))
+        if fstr_mode == 'fstr':
+            assert filecmp.cmp(pj(reference_dir, output_dir, fstr_file), pj(snapshot_dir, output_dir, fstr_file))
+        else:
+            def load_json_model(model_path):
+                model = catboost.CatBoost()
+                model.load_model(model_path)
+                model.save_model(model_path + '.json', format='json')
+                with open(model_path + '.json') as json_model_file:
+                    json_model = json.load(json_model_file)
+                json_model["model_info"]["output_options"] = ""
+                json_model["model_info"]["train_finish_time"] = ""
+                json_model["model_info"]["model_guid"] = ""
+                json_model["model_info"]["params"]["flat_params"]["snapshot_file"] = ""
+                json_model["model_info"]["params"]["flat_params"]["save_snapshot"] = ""
+                json_model["model_info"]["params"]["flat_params"]["train_dir"] = ""
+                return json_model
+            assert load_json_model(pj(reference_dir, output_dir, model_file)) == load_json_model(pj(snapshot_dir, output_dir, model_file))
 
 
 def test_eval_feature_snapshot_wrong_options():
