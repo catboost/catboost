@@ -137,8 +137,11 @@ namespace NPrivate {
                 GdbPath = value->GetStringSafe("");
             }
 
-            for (const auto& entry : context.GetValueByPath("runtime.test_params")->GetMap()) {
-                TestParameters[entry.first] = entry.second.GetStringSafe("");
+            value = context.GetValueByPath("runtime.test_params");
+            if (value) {
+                for (const auto& entry : context.GetValueByPath("runtime.test_params")->GetMap()) {
+                    TestParameters[entry.first] = entry.second.GetStringSafe("");
+                }
             }
         }
 
