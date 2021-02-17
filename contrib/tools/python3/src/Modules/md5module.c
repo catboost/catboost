@@ -503,13 +503,15 @@ static PyTypeObject MD5type = {
 _md5.md5
 
     string: object(c_default="NULL") = b''
+    *
+    usedforsecurity: bool = True
 
 Return a new MD5 hash object; optionally initialized with a string.
 [clinic start generated code]*/
 
 static PyObject *
-_md5_md5_impl(PyObject *module, PyObject *string)
-/*[clinic end generated code: output=2cfd0f8c091b97e6 input=d12ef8f72d684f7b]*/
+_md5_md5_impl(PyObject *module, PyObject *string, int usedforsecurity)
+/*[clinic end generated code: output=587071f76254a4ac input=7a144a1905636985]*/
 {
     MD5object *new;
     Py_buffer buf;
@@ -550,9 +552,6 @@ static struct PyMethodDef MD5_functions[] = {
 
 /* Initialize this module. */
 
-#define insint(n,v) { PyModule_AddIntConstant(m,n,v); }
-
-
 static struct PyModuleDef _md5module = {
         PyModuleDef_HEAD_INIT,
         "_md5",
@@ -570,13 +569,15 @@ PyInit__md5(void)
 {
     PyObject *m;
 
-    Py_TYPE(&MD5type) = &PyType_Type;
-    if (PyType_Ready(&MD5type) < 0)
+    Py_SET_TYPE(&MD5type, &PyType_Type);
+    if (PyType_Ready(&MD5type) < 0) {
         return NULL;
+    }
 
     m = PyModule_Create(&_md5module);
-    if (m == NULL)
+    if (m == NULL) {
         return NULL;
+    }
 
     Py_INCREF((PyObject *)&MD5type);
     PyModule_AddObject(m, "MD5Type", (PyObject *)&MD5type);

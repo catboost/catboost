@@ -1,10 +1,11 @@
 SET(PYTHON3_LIB_SRCS
     __future__.py
+    _aix_support.py
     _bootlocale.py
+    _bootsubprocess.py
     _collections_abc.py
     _compat_pickle.py
     _compression.py
-    _dummy_thread.py
     _markupbase.py
     _osx_support.py
     _py_abc.py
@@ -43,6 +44,7 @@ SET(PYTHON3_LIB_SRCS
     asyncio/streams.py
     asyncio/subprocess.py
     asyncio/tasks.py
+    asyncio/threads.py
     asyncio/transports.py
     asyncio/trsock.py
     asyncio/unix_events.py
@@ -154,7 +156,6 @@ SET(PYTHON3_LIB_SRCS
     distutils/version.py
     distutils/versionpredicate.py
     doctest.py
-    dummy_threading.py
     email/__init__.py
     email/_encoded_words.py
     email/_header_value_parser.py
@@ -272,7 +273,6 @@ SET(PYTHON3_LIB_SRCS
     encodings/kz1048.py
     encodings/latin_1.py
     encodings/mac_arabic.py
-    encodings/mac_centeuro.py
     encodings/mac_croatian.py
     encodings/mac_cyrillic.py
     encodings/mac_farsi.py
@@ -308,6 +308,7 @@ SET(PYTHON3_LIB_SRCS
     encodings/uu_codec.py
     encodings/zlib_codec.py
     ensurepip/__init__.py
+    ensurepip/_bundled/__init__.py
     ensurepip/_uninstall.py
     enum.py
     filecmp.py
@@ -322,6 +323,7 @@ SET(PYTHON3_LIB_SRCS
     getpass.py
     gettext.py
     glob.py
+    graphlib.py
     gzip.py
     hashlib.py
     heapq.py
@@ -340,6 +342,7 @@ SET(PYTHON3_LIB_SRCS
     importlib/__init__.py
     importlib/_bootstrap.py
     importlib/_bootstrap_external.py
+    importlib/_common.py
     importlib/abc.py
     importlib/machinery.py
     importlib/metadata.py
@@ -474,6 +477,7 @@ SET(PYTHON3_LIB_SRCS
     types.py
     typing.py
     unittest/__init__.py
+    unittest/_log.py
     unittest/async_case.py
     unittest/case.py
     unittest/loader.py
@@ -532,4 +536,8 @@ SET(PYTHON3_LIB_SRCS
     zipapp.py
     zipfile.py
     zipimport.py
+    zoneinfo/__init__.py
+    zoneinfo/_common.py
+    zoneinfo/_tzpath.py
+    zoneinfo/_zoneinfo.py
 )
