@@ -3,9 +3,6 @@
 # NOTE: rules should be ordered from specific to generic (first matching rule is used)
 # See rule syntax docs: https://wiki.yandex-team.ru/devrules/overall/peerdirprohibition/
 
-# aws-sdk-cpp parts are not meant to be used directly.
-ALLOW contrib/libs/aws-sdk-cpp -> contrib/restricted/aws
-
 # CityHash-1.0.2 is a specific version hardwired into ClickHouse public interface
 ALLOW clickhouse -> contrib/restricted/cityhash-1.0.2
 
@@ -17,25 +14,16 @@ ALLOW clickhouse -> contrib/restricted/dragonbox
 # Arcadia is not ready for this, that's why we added this library in restricted.
 ALLOW clickhouse -> contrib/restricted/fast_float
 
-ALLOW contrib/libs/clickhouse -> contrib/restricted/apache-orc
-
-# Patched webrtc dependency: CONTRIB-1851
-ALLOW contrib/libs/webrtc -> contrib/restricted/rnnoise
-
-ALLOW contrib/libs/libbpf -> contrib/restricted/libelf
-
 # For HBase client: CONTRIB-1790
 ALLOW passport/cpp -> contrib/restricted/thrift
 
 # For Apache Arrow: CONTRIB-1662
-ALLOW contrib/libs/arrow -> contrib/restricted/uriparser
 ALLOW mds -> contrib/restricted/uriparser
 
 # https://st.yandex-team.ru/CONTRIB-2020
 ALLOW weather -> contrib/restricted/range-v3
 
 # ALSA library is LGPL
-ALLOW contrib/libs/webrtc -> contrib/restricted/alsa-lib
 ALLOW yandex_io -> contrib/restricted/alsa-lib
 ALLOW smart_devices -> contrib/restricted/alsa-lib
 
@@ -43,11 +31,6 @@ ALLOW smart_devices -> contrib/restricted/alsa-lib
 ALLOW yandex_io -> contrib/restricted/avahi
 
 # GLib is LGPL
-ALLOW contrib/libs/gdk-pixbuf -> contrib/restricted/glib
-ALLOW contrib/libs/harfbuzz/glib -> contrib/restricted/glib
-ALLOW contrib/libs/libcroco -> contrib/restricted/glib
-ALLOW contrib/libs/librsvg -> contrib/restricted/glib
-ALLOW contrib/libs/pango -> contrib/restricted/glib
 ALLOW maps/libs/img -> contrib/restricted/glib
 ALLOW maps/renderer/libs/svgrenderer -> contrib/restricted/glib
 ALLOW market/cataloger -> contrib/restricted/glib
@@ -84,33 +67,12 @@ ALLOW yandex_io -> contrib/restricted/spdlog
 ALLOW smart_devices/tools/launcher2 -> contrib/restricted/spdlog
 ALLOW smart_devices/tools/updater -> contrib/restricted/spdlog
 
-ALLOW contrib/libs/tcmalloc -> contrib/restricted/abseil-cpp
-ALLOW contrib/libs/webrtc -> contrib/restricted/abseil-cpp
-ALLOW contrib/libs/ortools -> contrib/restricted/abseil-cpp
-
-# tensorflow requires special version of abseil (std::string has to be replaced with TString)
-ALLOW contrib/libs/tf-1.14 -> contrib/restricted/abseil-cpp-tstring
-ALLOW contrib/libs/tf-2.4  -> contrib/restricted/abseil-cpp-tstring
-# gemmlowp, libxsmm, ruy are yet another libraries for matrix multiplication.
-# They are restricted in order to keep contrib/libs tidy,
-# but there are no limitations preventing them to be moved into contrib/libs upon request
-ALLOW contrib/libs/tf-2.4 -> contrib/restricted/gemmlowp
-ALLOW contrib/libs/tf-2.4 -> contrib/restricted/libxsmm
-ALLOW contrib/libs/tf-2.4 -> contrib/restricted/ruy
-# Use util provided API to access CPU information instead
-ALLOW contrib/libs/tf-2.4 -> contrib/restricted/cpuinfo
-
 # cmph is a limited-use library
 ALLOW ads/yacontext -> contrib/restricted/cmph
 ALLOW mssngr/router -> contrib/restricted/cmph
 
 # http-parser is a low-level parser for http bytestream.
 # Consider using high-level alternatives.
-ALLOW contrib/libs/libgit2 -> contrib/restricted/http-parser
-ALLOW contrib/libs/nodejs_12 -> contrib/restricted/http-parser
-ALLOW contrib/python/aiohttp -> contrib/restricted/http-parser
-ALLOW contrib/python/http_parser -> contrib/restricted/http-parser
-ALLOW contrib/python/httptools -> contrib/restricted/http-parser
 ALLOW mds -> contrib/restricted/http-parser
 ALLOW passport/python/contrib/bjoern -> contrib/restricted/http-parser
 ALLOW taxi/uservices -> contrib/restricted/http-parser
@@ -160,18 +122,6 @@ ALLOW yabs/telephony -> contrib/restricted/boost
 ALLOW yandex_io -> contrib/restricted/boost
 ALLOW yweb/robot/js -> contrib/restricted/boost
 
-# Allow boost in all contrib projects
-ALLOW contrib/deprecated -> contrib/restricted/boost
-ALLOW contrib/libs -> contrib/restricted/boost
-ALLOW contrib/python/horovod -> contrib/restricted/boost
-ALLOW contrib/tools -> contrib/restricted/boost
-
-# libffi is a limited-use low level library
-ALLOW contrib/deprecated -> contrib/restricted/libffi
-ALLOW contrib/libs -> contrib/restricted/libffi
-ALLOW contrib/python -> contrib/restricted/libffi
-ALLOW contrib/tools -> contrib/restricted/libffi
-
 # use GTEST target in ya.make instead of PEERDIRing contrib/restricted/googletest
 # and include <library/cpp/testing/gtest.h> instead of <gtest/gtest.h> (<gmock/gmock.h>)
 ALLOW contrib -> contrib/restricted/googletest
@@ -187,20 +137,13 @@ ALLOW maps/mobile/libs -> contrib/restricted/googletest
 ALLOW maps/mobile/bundle -> contrib/restricted/googletest
 ALLOW mds -> contrib/restricted/googletest
 
-# protozero is yet another protobuf implementation. use contrib/libs/protobuf instead
-
-ALLOW contrib/libs/libosmium -> contrib/restricted/protozero
-
-# ashmem is a limited-use low level library
-ALLOW contrib/libs/android_crazy_linker -> contrib/restricted/ashmem
-
 # allow usage of MIT part
 ALLOW .* -> contrib/restricted/librseq/headeronly
 
 # Default policies:
 
 # 1. All peerdirs within contrib/restricted are permitted
-ALLOW contrib/restricted -> contrib/restricted
+ALLOW contrib -> contrib/restricted
 
 # 2. Allow junk for debug purposes
 ALLOW junk -> contrib/restricted
