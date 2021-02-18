@@ -1438,11 +1438,11 @@ print.catboost.Pool <- function(x, ...) {
 #' @export
 #' @seealso \url{https://catboost.ai/docs/concepts/r-reference_catboost-train.html}
 catboost.train <- function(learn_pool, test_pool = NULL, params = list()) {
-    if (class(learn_pool) != "catboost.Pool")
+    if (!inherits(learn_pool, "catboost.Pool"))
         stop("Expected catboost.Pool, got: ", class(learn_pool))
     if (is.null.handle(learn_pool))
         stop("'learn_pool' object is invalid.")
-    if (class(test_pool) != "catboost.Pool" && !is.null(test_pool))
+    if (!is.null(test_pool) && !inherits(test_pool, "catboost.Pool"))
         stop("Expected catboost.Pool, got: ", class(test_pool))
     if (!is.null(test_pool) && is.null.handle(test_pool))
         stop("'test_pool' object is invalid.")
@@ -1507,7 +1507,7 @@ catboost.cv <- function(pool, params = list(),
                         stratified = FALSE,
                         early_stopping_rounds = NULL) {
 
-    if (class(pool) != "catboost.Pool")
+    if (!inherits(pool, "catboost.Pool"))
         stop("Expected catboost.Pool, got: ", class(pool))
     if (is.null.handle(pool))
         stop("Pool object is invalid.")
@@ -1555,16 +1555,16 @@ catboost.sum_models <- function(models, weights = NULL, ctr_merge_policy = 'Inte
         stop("The length of this list must be equal to the number of blended models.");
     }
 
-    i <- 1
+    i <- 1L
     modelsVector <- list()
     for (model in models) {
-        if (class(model) != "catboost.Model")
+        if (!inherits(model, "catboost.Model"))
             stop("Expected catboost.Model, got: ", class(model))
         if (is.null.handle(model$handle))
             model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
 
         modelsVector[[i]] <- model$handle
-        i <- i + 1
+        i <- i + 1L
     }
     handle <- .Call("CatBoostSumModels_R", modelsVector, weights, ctr_merge_policy)
     raw <- .Call("CatBoostSerializeModel_R", handle)
@@ -1640,7 +1640,7 @@ catboost.save_model <- function(model, model_path,
                                 file_format = "cbm",
                                 export_parameters = NULL,
                                 pool = NULL) {
-    if (!is.null(pool) && class(pool) != "catboost.Pool")
+    if (!is.null(pool) && !inherits(pool, "catboost.Pool"))
         stop("Expected catboost.Pool, got: ", class(pool))
     if (!is.null(pool) && is.null.handle(pool))
         stop("Pool object is invalid.")
@@ -1704,9 +1704,9 @@ catboost.save_model <- function(model, model_path,
 catboost.predict <- function(model, pool,
                              verbose = FALSE, prediction_type = "RawFormulaVal",
                              ntree_start = 0, ntree_end = 0, thread_count = -1) {
-    if (class(model) != "catboost.Model")
+    if (!inherits(model, "catboost.Model"))
         stop("Expected catboost.Model, got: ", class(model))
-    if (class(pool) != "catboost.Pool")
+    if (!inherits(pool, "catboost.Pool"))
         stop("Expected catboost.Pool, got: ", class(pool))
     if (is.null.handle(pool))
         stop("Pool object is invalid.")
@@ -1715,9 +1715,8 @@ catboost.predict <- function(model, pool,
         model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
     prediction <- .Call("CatBoostPredictMulti_R", model$handle, pool,
                         verbose, prediction_type, ntree_start, ntree_end, thread_count)
-    prediction_columns <- length(prediction) / nrow(pool)
-    if (prediction_columns != 1) {
-        prediction <- matrix(prediction, ncol = prediction_columns, byrow = TRUE)
+    if (length(prediction) != nrow(pool)) {
+        prediction <- matrix(prediction, nrow = nrow(pool), byrow = TRUE)
     }
     return(prediction)
 }
@@ -1766,14 +1765,14 @@ catboost.predict <- function(model, pool,
 #' @export
 #' @seealso \url{https://catboost.ai/docs/concepts/r-reference_catboost-staged_predict.html}
 catboost.staged_predict <- function(model, pool, verbose = FALSE, prediction_type = "RawFormulaVal",
-                                    ntree_start = 0, ntree_end = 0, eval_period = 1, thread_count = -1) {
-    if (class(model) != "catboost.Model")
+                                    ntree_start = 0L, ntree_end = 0L, eval_period = 1, thread_count = -1) {
+    if (!inherits(model, "catboost.Model"))
         stop("Expected catboost.Model, got: ", class(model))
-    if (class(pool) != "catboost.Pool")
+    if (!inherits(pool, "catboost.Pool"))
         stop("Expected catboost.Pool, got: ", class(pool))
     if (is.null.handle(pool))
         stop("Pool object is invalid.")
-    if (ntree_end == 0)
+    if (ntree_end == 0L)
         ntree_end <- model$tree_count
 
     current_tree_count <- ntree_start
@@ -1856,7 +1855,7 @@ catboost.get_feature_importance <- function(model, pool = NULL, type = "FeatureI
     if (!is.null(fstr_type)) {
         type <- fstr_type
     }
-    if (class(model) != "catboost.Model")
+    if (!inherits(model, "catboost.Model"))
         stop("Expected catboost.Model, got: ", class(model))
     if (!is.null(pool) && class(pool) != "catboost.Pool")
         stop("Expected catboost.Pool, got: ", class(pool))
@@ -1948,11 +1947,11 @@ catboost.get_object_importance <- function(
     thread_count = -1,
     ostr_type = NULL
 ) {
-    if (class(model) != "catboost.Model")
+    if (!inherits(model, "catboost.Model"))
         stop("Expected catboost.Model, got: ", class(model))
-    if (class(pool) != "catboost.Pool")
+    if (!inherits(pool, "catboost.Pool"))
         stop("Expected catboost.Pool, got: ", class(pool))
-    if (class(train_pool) != "catboost.Pool")
+    if (!inherits(train_pool, "catboost.Pool"))
         stop("Expected catboost.Pool, got: ", class(train_pool))
     if (is.null.handle(pool))
         stop("'pool' object is invalid.")
@@ -1990,7 +1989,7 @@ catboost.get_object_importance <- function(
 #' @export
 #' @seealso \url{https://catboost.ai/docs/concepts/r-reference_catboost-shrink.html}
 catboost.shrink <- function(model, ntree_end, ntree_start = 0) {
-    if (class(model) != "catboost.Model")
+    if (!inherits(model, "catboost.Model"))
         stop("Expected catboost.Model, got: ", class(model))
     if (ntree_start > ntree_end)
         stop("ntree_start should be less than ntree_end.")
@@ -2013,7 +2012,7 @@ catboost.shrink <- function(model, ntree_end, ntree_start = 0) {
 #'
 #' @export
 catboost.drop_unused_features <- function(model, ntree_end, ntree_start = 0) {
-    if (class(model) != "catboost.Model")
+    if (!inherits(model, "catboost.Model"))
         stop("Expected catboost.Model, got: ", class(model))
 
     if (is.null.handle(model$handle))
@@ -2025,7 +2024,7 @@ catboost.drop_unused_features <- function(model, ntree_end, ntree_start = 0) {
 
 
 catboost.ntrees <- function(model) {
-    if (class(model) != "catboost.Model")
+    if (!inherits(model, "catboost.Model"))
         stop("Expected catboost.Model, got: ", class(model))
     if (is.null.handle(model$handle))
         model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
@@ -2035,7 +2034,7 @@ catboost.ntrees <- function(model) {
 
 
 catboost._is_oblivious <- function(model) {
-    if (class(model) != "catboost.Model")
+    if (!inherits(model, "catboost.Model"))
         stop("Expected catboost.Model, got: ", class(model))
     if (is.null.handle(model$handle))
         model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
@@ -2055,7 +2054,7 @@ catboost._is_oblivious <- function(model) {
 #' @export
 #' @seealso \url{https://catboost.ai/docs/concepts/r-reference_catboost-get_model_params.html}
 catboost.get_model_params <- function(model) {
-    if (class(model) != "catboost.Model")
+    if (!inherits(model, "catboost.Model"))
         stop("Expected catboost.Model, got: ", class(model))
     if (is.null.handle(model$handle))
         model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
@@ -2074,7 +2073,7 @@ catboost.get_model_params <- function(model) {
 #' Default value: Required argument
 #' @export
 catboost.get_plain_params <- function(model) {
-    if (class(model) != "catboost.Model")
+    if (!inherits(model, "catboost.Model"))
         stop("Expected catboost.Model, got: ", class(model))
     if (is.null.handle(model$handle))
         model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
@@ -2106,7 +2105,7 @@ catboost.get_plain_params <- function(model) {
 #' @return The model object with its handle pointing to a valid object in memory.
 #' @export
 catboost.restore_handle <- function(model) {
-    if (class(model) != "catboost.Model")
+    if (!inherits(model, "catboost.Model"))
         stop("Expected catboost.Model, got: ", class(model))
     if (is.null.handle(model$handle))
         model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
