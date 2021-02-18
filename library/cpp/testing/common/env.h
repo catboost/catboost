@@ -40,7 +40,10 @@ const TString& GetRamDrivePath();
 const TString& GetOutputRamDrivePath();
 
 // @brief return test parameter by name. If not exists, return an empty string
-TString GetTestParam(TStringBuf name);
+const TString& GetTestParam(TStringBuf name);
+
+// @brief return test parameter by name. If not exists, return specified default value
+const TString& GetTestParam(TStringBuf name, const TString& def);
 
 // @brief return path to the gdb
 const TString& GdbPath();
@@ -53,6 +56,8 @@ namespace NPrivate {
         TTestEnv();
 
         void ReInitialize();
+
+        void AddTestParam(TStringBuf name, TStringBuf value);
 
         bool IsRunningFromTest;
         TString ArcadiaTestsDataDir;

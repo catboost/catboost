@@ -127,4 +127,8 @@ TEST(Runtime, GetTestParam) {
     EXPECT_EQ("b", GetTestParam("a"));
     EXPECT_EQ("d", GetTestParam("c"));
     EXPECT_EQ("", GetTestParam("e"));
+    EXPECT_EQ("w", GetTestParam("e", "w"));
+
+    Singleton<NPrivate::TTestEnv>()->AddTestParam("e", "e");
+    EXPECT_EQ("e", GetTestParam("e"));
 }
