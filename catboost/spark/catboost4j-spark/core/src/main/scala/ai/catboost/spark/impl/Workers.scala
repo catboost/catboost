@@ -36,17 +36,20 @@ private[spark] object Worker {
     threadCount: Int,
     
     // returns (quantizedDataProvider, estimatedQuantizedDataProvider) can return null
-    getDataProvidersCallback : () => (TDataProviderPtr, TDataProviderPtr)
+    getDataProvidersCallback : (TLocalExecutor) => (TDataProviderPtr, TDataProviderPtr)
   ) = {
     if (!usedInCurrentProcess.compareAndSet(false, true)) {
       throw new CatBoostError("An active CatBoost worker is already present in the current process")
     }
 
     try {
+      val localExecutor = new TLocalExecutor
+      localExecutor.Init(threadCount)
+
       // TaskContext.getPartitionId will become invalid when iteration over rows is finished, so save it
       val partitionId = TaskContext.getPartitionId
 
-      var (quantizedDataProvider, estimatedQuantizedDataProvider) = getDataProvidersCallback()
+      var (quantizedDataProvider, estimatedQuantizedDataProvider) = getDataProvidersCallback(localExecutor)
 
       val partitionSize = if (quantizedDataProvider != null) quantizedDataProvider.GetObjectCount.toInt else 0
 
@@ -187,7 +190,7 @@ private[spark] class Workers(
             quantizedFeaturesInfo,
             precomputedOnlineCtrMetaDataAsJsonStringCopy,
             threadCount,
-            () => {
+            (localExecutor: TLocalExecutor) => {
               if (groups.hasNext) {
                 DataHelpers.loadQuantizedDatasetsWithPairs(
                   quantizedFeaturesInfo,
@@ -196,7 +199,7 @@ private[spark] class Workers(
                   schemaForWorkers,
                   pairsSchema,
                   estimatedFeatureCount,
-                  threadCount,
+                  localExecutor,
                   groups
                 )
               } else {
@@ -223,7 +226,7 @@ private[spark] class Workers(
             quantizedFeaturesInfo,
             precomputedOnlineCtrMetaDataAsJsonStringCopy,
             threadCount,
-            () => {
+            (localExecutor: TLocalExecutor) => {
               if (rows.hasNext) {
                 DataHelpers.loadQuantizedDatasets(
                   quantizedFeaturesInfo,
@@ -231,7 +234,7 @@ private[spark] class Workers(
                   dataMetaInfo,
                   schemaForWorkers,
                   estimatedFeatureCount,
-                  threadCount,
+                  localExecutor,
                   rows
                 )
               } else {

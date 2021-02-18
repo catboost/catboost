@@ -271,6 +271,7 @@ void TFeatureEvaluationSummary::CreateLogs(
     const auto& metricsHistory = MetricsHistory[isTest];
     const auto& featureStrengths = FeatureStrengths[isTest];
     const auto& regularFeatureStrengths = RegularFeatureStrengths[isTest];
+    const auto& models = Models[isTest];
     const auto& metricsMetaJson = GetJsonMeta(
         iterationCount,
         outputFileOptions.GetName(),
@@ -317,6 +318,11 @@ void TFeatureEvaluationSummary::CreateLogs(
                     regularFeatureStrengths[useSetZeroAlways ? 0 : setIdx][absoluteFoldIdx - absoluteOffset],
                     regularFstrPath);
             }
+            const auto outputModelPath = options.CreateResultModelFullPath();
+            if (!outputModelPath.empty()) {
+                TFileOutput modelFile(outputModelPath);
+                models[useSetZeroAlways ? 0 : setIdx][absoluteFoldIdx - absoluteOffset].Save(&modelFile);
+            }
         }
     }
 }
@@ -341,6 +347,7 @@ void TFeatureEvaluationSummary::SetHeaderInfo(
     ResizeRank2(2, featureSetCount, MetricsHistory);
     ResizeRank2(2, featureSetCount, FeatureStrengths);
     ResizeRank2(2, featureSetCount, RegularFeatureStrengths);
+    ResizeRank2(2, featureSetCount, Models);
     ResizeRank2(2, featureSetCount, BestMetrics);
     BestBaselineIterations.resize(featureSetCount);
 }
@@ -997,6 +1004,7 @@ static void EvaluateFeaturesImpl(
 
             results->MetricsHistory[isTest][featureSetIdx].emplace_back(foldContext.MetricValuesOnTest);
             results->AppendFeatureSetMetrics(isTest, featureSetIdx, foldContext.MetricValuesOnTest);
+            results->Models[isTest][featureSetIdx].emplace_back(foldContext.FullModel.GetRef());
 
             CATBOOST_INFO_LOG << "Fold " << foldContext.FoldIdx << ": model built in " <<
                 FloatToString(timer.Passed(), PREC_NDIGITS, 2) << " sec" << Endl;
@@ -1064,6 +1072,7 @@ static void EvaluateFeaturesImpl(
             results->MetricsHistory[/*isTest*/1][featureSetIdx] = results->MetricsHistory[/*isTest*/0][baselineIdx];
             results->FeatureStrengths[/*isTest*/1][featureSetIdx] = results->FeatureStrengths[/*isTest*/0][baselineIdx];
             results->RegularFeatureStrengths[/*isTest*/1][featureSetIdx] = results->RegularFeatureStrengths[/*isTest*/0][baselineIdx];
+            results->Models[/*isTest*/1][featureSetIdx] = results->Models[/*isTest*/0][baselineIdx];
             results->BestMetrics[/*isTest*/1][featureSetIdx] = results->BestMetrics[/*isTest*/0][baselineIdx];
         }
     }

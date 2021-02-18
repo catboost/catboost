@@ -1,5 +1,7 @@
 PY23_LIBRARY()
 
+LICENSE(BSD-3-Clause)
+
 
 
 PEERDIR(
@@ -7,9 +9,8 @@ PEERDIR(
     contrib/libs/clapack
 
     contrib/python/scipy/scipy/_build_utils/src
-    contrib/python/numpy/numpy/f2py/src
+    contrib/python/numpy
 )
-
 
 NO_COMPILER_WARNINGS()
 

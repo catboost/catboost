@@ -415,3 +415,41 @@ namespace {
     TDatasetLoaderFactory::TRegistrator<NCB::TCBQuantizedDataLoader> CBQuantizedDataLoaderReg("quantized");
 }
 
+TAtomicSharedPtr<NCB::IQuantizedPoolLoader> NCB::TQuantizedPoolLoadersCache::GetLoader(const TPathWithScheme& pathWithScheme) {
+    auto& loadersCache = GetRef();
+    TAtomicSharedPtr<IQuantizedPoolLoader> loader = nullptr;
+    with_lock(loadersCache.Lock) {
+        if (!loadersCache.Cache.contains(pathWithScheme)) {
+            loadersCache.Cache[pathWithScheme] = GetProcessor<IQuantizedPoolLoader, const TPathWithScheme&>(pathWithScheme, pathWithScheme).Release();
+        }
+        loader = loadersCache.Cache.at(pathWithScheme);
+    }
+    return loader;
+}
+
+bool NCB::TQuantizedPoolLoadersCache::HaveLoader(const TPathWithScheme& pathWithScheme) {
+    auto& loadersCache = GetRef();
+    with_lock(loadersCache.Lock) {
+        return loadersCache.Cache.contains(pathWithScheme);
+    }
+}
+
+bool NCB::TQuantizedPoolLoadersCache::IsEmpty() {
+    auto& loadersCache = GetRef();
+    with_lock(loadersCache.Lock) {
+        return loadersCache.Cache.empty();
+    }
+}
+
+void NCB::TQuantizedPoolLoadersCache::DropAllLoaders() {
+    auto& loadersCache = GetRef();
+    with_lock(loadersCache.Lock) {
+        for (auto& keyValue : loadersCache.Cache) {
+            CB_ENSURE(
+                keyValue.second.RefCount() <= 1,
+                "Loader for " << keyValue.first.Scheme << "://" << keyValue.first.Path
+                << " is still referenced");
+        }
+        loadersCache.Cache.clear();
+    }
+}

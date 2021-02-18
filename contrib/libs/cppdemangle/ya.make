@@ -1,9 +1,6 @@
 LIBRARY()
 
-LICENSE(
-    MIT
-    BSD
-)
+LICENSE(Apache-2.0)
 
 
 

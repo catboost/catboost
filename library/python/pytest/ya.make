@@ -11,12 +11,13 @@ PY_SRCS(
 )
 
 PEERDIR(
+    contrib/python/dateutil
+    contrib/python/ipdb
+    contrib/python/py
+    contrib/python/pytest
     library/python/pytest/plugins
     library/python/testing/yatest_common
     library/python/testing/yatest_lib
-    contrib/python/py
-    contrib/python/pytest
-    contrib/python/dateutil
 )
 
 NO_LINT()

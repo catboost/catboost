@@ -669,6 +669,12 @@ public:
     }
 
     // ~~~ Assignment ~~~ : FAMILY0(TBasicString&, assign);
+    TBasicString& assign(size_t size, TCharType ch) {
+        ReserveAndResize(size);
+        std::fill(begin(), vend(), ch);
+        return *this;
+    }
+
     TBasicString& assign(const TBasicString& s) {
         TBasicString(s).swap(*this);
 
@@ -1530,6 +1536,7 @@ public:
 };
 
 std::ostream& operator<<(std::ostream&, const TString&);
+std::istream& operator>>(std::istream&, TString&);
 
 template<typename TCharType, typename TTraits>
 TBasicString<TCharType> to_lower(const TBasicString<TCharType, TTraits>& s) {

@@ -7,6 +7,18 @@ import java.nio.file.Paths
 
 
 private[spark] object RunClassInNewProcess {
+  private def getClassPathString() : String = {
+    val classPathURIs = (new io.github.classgraph.ClassGraph()).getClasspathURIs().asScala
+    classPathURIs.flatMap(
+        uri => {
+          uri.getScheme match {
+            case "file" | "local" => Seq(uri.getPath)
+            case _ => Seq()
+          }
+        }
+    ).mkString(System.getProperty("path.separator"))
+  }
+  
   // Strips trailing $ from Scala's object class name to get companion class with static "main" method.
   private def getAppMainClassName(className: String) : String = {
     if (className.endsWith("$")) { className.substring(0, className.length - 1) } else { className }
@@ -23,8 +35,8 @@ private[spark] object RunClassInNewProcess {
     redirectError: Option[ProcessBuilder.Redirect] = None
   ) : java.lang.Process = {
     val javaBin = Paths.get(System.getProperty("java.home"), "bin", "java").toString
-    val classpath = System.getProperty("java.class.path")
-
+    val classpath = getClassPathString()
+    
     val cmd = new mutable.ArrayBuffer[String]
     cmd += javaBin
     if (jvmArgs.isDefined) {

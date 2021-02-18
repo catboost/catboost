@@ -81,7 +81,6 @@
     <ClCompile Include="$(SolutionDir)..\library\cpp\terminate_handler\segv_handler.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\cpp\terminate_handler\terminate_handler.cpp"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\terminate_handler\segv_handler.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\cpp\terminate_handler\terminate_handler.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>

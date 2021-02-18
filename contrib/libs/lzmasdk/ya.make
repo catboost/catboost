@@ -1,10 +1,10 @@
 LIBRARY()
 
+LICENSE(PD)
+
 
 
 VERSION(19.00) # https://www.7-zip.org/sdk.html
-
-LICENSE(PD)
 
 CFLAGS(-D_7ZIP_ST=1)
 

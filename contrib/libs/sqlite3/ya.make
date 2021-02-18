@@ -2,11 +2,11 @@
 
 LIBRARY()
 
+LICENSE(PD)
+
 
 
 VERSION(3.34.0)
-
-LICENSE(publicDomain)
 
 ADDINCL(
     contrib/libs/sqlite3

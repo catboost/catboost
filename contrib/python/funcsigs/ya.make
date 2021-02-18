@@ -1,10 +1,10 @@
 PY23_LIBRARY()
 
+LICENSE(Apache-2.0)
+
 
 
 VERSION(1.0.2)
-
-LICENSE(Apache)
 
 NO_LINT()
 

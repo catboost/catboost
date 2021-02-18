@@ -67,8 +67,8 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;gdi32.lib;kernel32.lib;ole32.lib;oleaut32.lib;shell32.lib;user32.lib;uuid.lib;winspool.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  ws2_32.lib crypt32.lib ws2_32.lib</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  ws2_32.lib crypt32.lib ws2_32.lib</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  crypt32.lib ws2_32.lib</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  crypt32.lib ws2_32.lib</AdditionalOptions>
       <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
       <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">DebugFastLink</GenerateDebugInformation>
       <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</RandomizedBaseAddress>
@@ -78,13 +78,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\coredump_filter\01ef4ae6a62e66c79a3f0a5be9.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\coredump_filter\9cb25e2aebdea673e809198d66.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\coredump_filter\f9a37fd4ba931a709a71d5fb89.cpp"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\coredump_filter\_01ef4ae6a62e66c79a3f0a5be9.yasm">
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\coredump_filter\_9cb25e2aebdea673e809198d66.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\coredump_filter
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/libc_compat/include/windows" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/restricted/libffi/include" "-I" "$(SolutionDir)../contrib/restricted/libffi/configs/x86_64-microsoft-windows/include" "-o" "$(SolutionDir)$(Configuration)/library/python/coredump_filter/_01ef4ae6a62e66c79a3f0a5be9.py2.obj" "$(SolutionDir)$(Configuration)/library/python/coredump_filter/_01ef4ae6a62e66c79a3f0a5be9.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/library/python/coredump_filter/_9cb25e2aebdea673e809198d66.py2.obj" "$(SolutionDir)$(Configuration)/library/python/coredump_filter/_9cb25e2aebdea673e809198d66.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -95,7 +95,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\coredump_filter
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/libc_compat/include/windows" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/restricted/libffi/include" "-I" "$(SolutionDir)../contrib/restricted/libffi/configs/x86_64-microsoft-windows/include" "-o" "$(SolutionDir)$(Configuration)/library/python/coredump_filter/_01ef4ae6a62e66c79a3f0a5be9.py2.obj" "$(SolutionDir)$(Configuration)/library/python/coredump_filter/_01ef4ae6a62e66c79a3f0a5be9.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/library/python/coredump_filter/_9cb25e2aebdea673e809198d66.py2.obj" "$(SolutionDir)$(Configuration)/library/python/coredump_filter/_9cb25e2aebdea673e809198d66.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -103,15 +103,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/coredump_filter/_01ef4ae6a62e66c79a3f0a5be9.py2.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\library\python\coredump_filter\_01ef4ae6a62e66c79a3f0a5be9.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\coredump_filter\_01ef4ae6a62e66c79a3f0a5be9.py2.obj;</Outputs>
+      <Message>$B/library/python/coredump_filter/_9cb25e2aebdea673e809198d66.py2.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\library\python\coredump_filter\_9cb25e2aebdea673e809198d66.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\coredump_filter\_9cb25e2aebdea673e809198d66.py2.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\coredump_filter\_f9a37fd4ba931a709a71d5fb89.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\coredump_filter
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/libc_compat/include/windows" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/restricted/libffi/include" "-I" "$(SolutionDir)../contrib/restricted/libffi/configs/x86_64-microsoft-windows/include" "-o" "$(SolutionDir)$(Configuration)/library/python/coredump_filter/_f9a37fd4ba931a709a71d5fb89.py2.obj" "$(SolutionDir)$(Configuration)/library/python/coredump_filter/_f9a37fd4ba931a709a71d5fb89.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/library/python/coredump_filter/_f9a37fd4ba931a709a71d5fb89.py2.obj" "$(SolutionDir)$(Configuration)/library/python/coredump_filter/_f9a37fd4ba931a709a71d5fb89.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -122,7 +122,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\coredump_filter
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/libc_compat/include/windows" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/restricted/libffi/include" "-I" "$(SolutionDir)../contrib/restricted/libffi/configs/x86_64-microsoft-windows/include" "-o" "$(SolutionDir)$(Configuration)/library/python/coredump_filter/_f9a37fd4ba931a709a71d5fb89.py2.obj" "$(SolutionDir)$(Configuration)/library/python/coredump_filter/_f9a37fd4ba931a709a71d5fb89.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/library/python/coredump_filter/_f9a37fd4ba931a709a71d5fb89.py2.obj" "$(SolutionDir)$(Configuration)/library/python/coredump_filter/_f9a37fd4ba931a709a71d5fb89.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -138,7 +138,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\coredump_filter
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/coredump_filter/01ef4ae6a62e66c79a3f0a5be9.cpp" "_b87ad743a2f93a6d05a630675f=/py_modules/library.python.coredump_filter.core_proc" "_3a612dc5eae9ed88a5979aba1b=resfs/src//py_modules/library.python.coredump_filter.core_proc" "_35e82cf1fcf298bf97692ce337=/py_code/library.python.coredump_filter.core_proc"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/coredump_filter/9cb25e2aebdea673e809198d66.cpp" "_d69dce690f6d02ce89beed405d=/py_modules/library.python.coredump_filter.const" "_d25336b2e2b371057505a9e48b=resfs/src//py_modules/library.python.coredump_filter.const" "_84edb404f2f78ccecdf002975e=/py_code/library.python.coredump_filter.const" "_b87ad743a2f93a6d05a630675f=/py_modules/library.python.coredump_filter.core_proc" "_3a612dc5eae9ed88a5979aba1b=resfs/src//py_modules/library.python.coredump_filter.core_proc" "_35e82cf1fcf298bf97692ce337=/py_code/library.python.coredump_filter.core_proc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\coredump_filter
 if %errorlevel% neq 0 goto :cmEnd
@@ -153,7 +153,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\coredump_filter
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/coredump_filter/01ef4ae6a62e66c79a3f0a5be9.cpp" "_b87ad743a2f93a6d05a630675f=/py_modules/library.python.coredump_filter.core_proc" "_3a612dc5eae9ed88a5979aba1b=resfs/src//py_modules/library.python.coredump_filter.core_proc" "_35e82cf1fcf298bf97692ce337=/py_code/library.python.coredump_filter.core_proc"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/coredump_filter/9cb25e2aebdea673e809198d66.cpp" "_d69dce690f6d02ce89beed405d=/py_modules/library.python.coredump_filter.const" "_d25336b2e2b371057505a9e48b=resfs/src//py_modules/library.python.coredump_filter.const" "_84edb404f2f78ccecdf002975e=/py_code/library.python.coredump_filter.const" "_b87ad743a2f93a6d05a630675f=/py_modules/library.python.coredump_filter.core_proc" "_3a612dc5eae9ed88a5979aba1b=resfs/src//py_modules/library.python.coredump_filter.core_proc" "_35e82cf1fcf298bf97692ce337=/py_code/library.python.coredump_filter.core_proc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\coredump_filter
 if %errorlevel% neq 0 goto :cmEnd
@@ -165,14 +165,18 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/coredump_filter/01ef4ae6a62e66c79a3f0a5be9.cpp	$B/library/python/coredump_filter/f9a37fd4ba931a709a71d5fb89.cpp	</Message>
+      <Message>$B/library/python/coredump_filter/9cb25e2aebdea673e809198d66.cpp	$B/library/python/coredump_filter/f9a37fd4ba931a709a71d5fb89.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\coredump_filter\01ef4ae6a62e66c79a3f0a5be9.cpp;$(SolutionDir)$(Configuration)\library\python\coredump_filter\f9a37fd4ba931a709a71d5fb89.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\coredump_filter\9cb25e2aebdea673e809198d66.cpp;$(SolutionDir)$(Configuration)\library\python\coredump_filter\f9a37fd4ba931a709a71d5fb89.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\coredump_filter
 if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/coredump_filter/const.py-" "$(SolutionDir)../library/python/coredump_filter/const.py" "$(SolutionDir)$(Configuration)/library/python/coredump_filter/const.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\library\python\coredump_filter
+if %errorlevel% neq 0 goto :cmEnd
 "python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/coredump_filter/core_proc.py-" "$(SolutionDir)../library/python/coredump_filter/core_proc.py" "$(SolutionDir)$(Configuration)/library/python/coredump_filter/core_proc.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -184,6 +188,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\coredump_filter
 if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/coredump_filter/const.py-" "$(SolutionDir)../library/python/coredump_filter/const.py" "$(SolutionDir)$(Configuration)/library/python/coredump_filter/const.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\library\python\coredump_filter
+if %errorlevel% neq 0 goto :cmEnd
 "python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/coredump_filter/core_proc.py-" "$(SolutionDir)../library/python/coredump_filter/core_proc.py" "$(SolutionDir)$(Configuration)/library/python/coredump_filter/core_proc.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -192,9 +200,36 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/coredump_filter/core_proc.py.yapyc	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\library\python\coredump_filter\core_proc.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\coredump_filter\core_proc.py.yapyc;</Outputs>
+      <Message>$B/library/python/coredump_filter/const.py.yapyc	$B/library/python/coredump_filter/core_proc.py.yapyc	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\library\python\coredump_filter\const.py;$(SolutionDir)..\library\python\coredump_filter\core_proc.py;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\coredump_filter\const.py.yapyc;$(SolutionDir)$(Configuration)\library\python\coredump_filter\core_proc.py.yapyc;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\library\python\coredump_filter\const.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\library\python\coredump_filter
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/coredump_filter/_9cb25e2aebdea673e809198d66.yasm" "$(SolutionDir)../library/python/coredump_filter/const.py" "$(SolutionDir)$(Configuration)/library/python/coredump_filter/_d69dce690f6d02ce89beed405d.rodata" "-" "library/python/coredump_filter/const.py" "_d25336b2e2b371057505a9e48b.rodata" "$(SolutionDir)$(Configuration)/library/python/coredump_filter/const.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/coredump_filter/_84edb404f2f78ccecdf002975e.rodata" "$(SolutionDir)../library/python/coredump_filter/core_proc.py" "$(SolutionDir)$(Configuration)/library/python/coredump_filter/_b87ad743a2f93a6d05a630675f.rodata" "-" "library/python/coredump_filter/core_proc.py" "_3a612dc5eae9ed88a5979aba1b.rodata" "$(SolutionDir)$(Configuration)/library/python/coredump_filter/core_proc.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/coredump_filter/_35e82cf1fcf298bf97692ce337.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\library\python\coredump_filter
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/coredump_filter/_9cb25e2aebdea673e809198d66.yasm" "$(SolutionDir)../library/python/coredump_filter/const.py" "$(SolutionDir)$(Configuration)/library/python/coredump_filter/_d69dce690f6d02ce89beed405d.rodata" "-" "library/python/coredump_filter/const.py" "_d25336b2e2b371057505a9e48b.rodata" "$(SolutionDir)$(Configuration)/library/python/coredump_filter/const.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/coredump_filter/_84edb404f2f78ccecdf002975e.rodata" "$(SolutionDir)../library/python/coredump_filter/core_proc.py" "$(SolutionDir)$(Configuration)/library/python/coredump_filter/_b87ad743a2f93a6d05a630675f.rodata" "-" "library/python/coredump_filter/core_proc.py" "_3a612dc5eae9ed88a5979aba1b.rodata" "$(SolutionDir)$(Configuration)/library/python/coredump_filter/core_proc.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/coredump_filter/_35e82cf1fcf298bf97692ce337.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/library/python/coredump_filter/_9cb25e2aebdea673e809198d66.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\library\python\coredump_filter\const.py;$(SolutionDir)$(Configuration)\library\python\coredump_filter\const.py.yapyc;$(SolutionDir)..\library\python\coredump_filter\core_proc.py;$(SolutionDir)$(Configuration)\library\python\coredump_filter\core_proc.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\coredump_filter\_9cb25e2aebdea673e809198d66.yasm;$(SolutionDir)$(Configuration)\library\python\coredump_filter\_d69dce690f6d02ce89beed405d.rodata;$(SolutionDir)$(Configuration)\library\python\coredump_filter\_84edb404f2f78ccecdf002975e.rodata;$(SolutionDir)$(Configuration)\library\python\coredump_filter\_b87ad743a2f93a6d05a630675f.rodata;$(SolutionDir)$(Configuration)\library\python\coredump_filter\_35e82cf1fcf298bf97692ce337.rodata;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\library\python\coredump_filter\core_proc.js">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -222,33 +257,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/library/python/coredump_filter/_f9a37fd4ba931a709a71d5fb89.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)..\library\python\coredump_filter\core_proc.js;$(SolutionDir)..\library\python\coredump_filter\epilog.html;$(SolutionDir)..\library\python\coredump_filter\prolog.html;$(SolutionDir)..\library\python\coredump_filter\styles.css;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\library\python\coredump_filter\_f9a37fd4ba931a709a71d5fb89.yasm;$(SolutionDir)$(Configuration)\library\python\coredump_filter\_12fb1be92d3dd13102c851564f.rodata;$(SolutionDir)$(Configuration)\library\python\coredump_filter\_ef4e9c7cb8056dd140d9ef275f.rodata;$(SolutionDir)$(Configuration)\library\python\coredump_filter\_6d4d44e87d246daf313e1e2983.rodata;$(SolutionDir)$(Configuration)\library\python\coredump_filter\_560b0f09375e0390e1b14a991f.rodata;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\library\python\coredump_filter\core_proc.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\python\coredump_filter
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/coredump_filter/_01ef4ae6a62e66c79a3f0a5be9.yasm" "$(SolutionDir)../library/python/coredump_filter/core_proc.py" "$(SolutionDir)$(Configuration)/library/python/coredump_filter/_b87ad743a2f93a6d05a630675f.rodata" "-" "library/python/coredump_filter/core_proc.py" "_3a612dc5eae9ed88a5979aba1b.rodata" "$(SolutionDir)$(Configuration)/library/python/coredump_filter/core_proc.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/coredump_filter/_35e82cf1fcf298bf97692ce337.rodata"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\python\coredump_filter
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/coredump_filter/_01ef4ae6a62e66c79a3f0a5be9.yasm" "$(SolutionDir)../library/python/coredump_filter/core_proc.py" "$(SolutionDir)$(Configuration)/library/python/coredump_filter/_b87ad743a2f93a6d05a630675f.rodata" "-" "library/python/coredump_filter/core_proc.py" "_3a612dc5eae9ed88a5979aba1b.rodata" "$(SolutionDir)$(Configuration)/library/python/coredump_filter/core_proc.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/coredump_filter/_35e82cf1fcf298bf97692ce337.rodata"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/coredump_filter/_01ef4ae6a62e66c79a3f0a5be9.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\library\python\coredump_filter\core_proc.py;$(SolutionDir)$(Configuration)\library\python\coredump_filter\core_proc.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\coredump_filter\_01ef4ae6a62e66c79a3f0a5be9.yasm;$(SolutionDir)$(Configuration)\library\python\coredump_filter\_b87ad743a2f93a6d05a630675f.rodata;$(SolutionDir)$(Configuration)\library\python\coredump_filter\_35e82cf1fcf298bf97692ce337.rodata;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
@@ -298,6 +306,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd\contrib-libs-zstd.vcxproj">
       <Project>{0F7ECE1F-EE4E-A88C-12F5-7D1C49F1BC75}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\enum34\pycontrib-python-enum34.vcxproj">
+      <Project>{A4701379-95E5-BF2B-2E20-B71461B5CC55}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\libffi\contrib-restricted-libffi.vcxproj">
       <Project>{C4244186-1688-FFD7-FAB5-CB9E056577E2}</Project>

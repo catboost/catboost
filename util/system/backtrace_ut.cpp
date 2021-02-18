@@ -16,7 +16,7 @@ int Dbg2(void** buf, size_t len) {
     return ret;
 }
 
-void FormatBackTraceReplacement(IOutputStream* out) {
+void FormatBackTraceReplacement(IOutputStream* out, void * const *, size_t) {
     *out << "WorksLikeACharm" << Endl;
 }
 

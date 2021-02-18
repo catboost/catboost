@@ -1,8 +1,6 @@
 RESOURCES_LIBRARY()
 
-LICENSE(
-    BSD
-)
+LICENSE(BSD-3-Clause)
 
 
 

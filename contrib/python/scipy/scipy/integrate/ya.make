@@ -1,12 +1,13 @@
 PY23_LIBRARY()
 
+LICENSE(BSD-3-Clause)
+
 
 
 NO_COMPILER_WARNINGS()
 
 PEERDIR(
     contrib/python/numpy
-    contrib/python/numpy/numpy/f2py/src
 
     contrib/python/scipy/scipy/special
     contrib/python/scipy/scipy/sparse

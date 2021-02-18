@@ -70,6 +70,7 @@ int main(int argc, const char* argv[]) {
         modChooser.AddMode("model-based-eval", mode_model_based_eval, "model-based eval");
         modChooser.AddMode("normalize-model", mode_normalize_model, "normalize model on a pool");
         modChooser.AddMode("select-features", mode_select_features, "select most important features");
+        modChooser.AddMode("dump-options", mode_dump_options, "dump training options");
         modChooser.DisableSvnRevisionOption();
         modChooser.SetVersionHandler(PrintProgramSvnVersion);
         return modChooser.Run(argc, argv);

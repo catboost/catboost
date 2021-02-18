@@ -3,6 +3,7 @@ PY23_LIBRARY()
 
 
 PY_SRCS(
+    const.py
     core_proc.py
 )
 
@@ -16,6 +17,10 @@ RESOURCE(
 PEERDIR(
     contrib/libs/jquery
 )
+
+IF(PYTHON2)
+    PEERDIR(contrib/python/enum34)
+ENDIF()
 
 END()
 

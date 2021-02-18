@@ -868,7 +868,13 @@ void CalcShapValuesForDocumentMulti(
     ECalcTypeShapValues calcType,
     size_t documentIdx
 ) {
-    const int approxDimension = model.GetDimensionsCount();
+    const TString lossFunctionName = model.GetLossFunctionName();
+    TMaybe<ELossFunction> lossFunction = Nothing();
+    if (lossFunctionName) {
+        lossFunction = FromString<ELossFunction>(lossFunctionName);
+    }
+    const bool isRMSEWithUncertainty = lossFunction == ELossFunction::RMSEWithUncertainty;
+    const int approxDimension = isRMSEWithUncertainty ? 1 : model.GetDimensionsCount();
     shapValues->assign(approxDimension, TVector<double>(featuresCount + 1, 0.0));
     const TModelTrees& forest = *model.ModelTrees;
     const auto& binFeatureCombinationClass = preparedTrees.BinFeatureCombinationClass;
@@ -1028,8 +1034,7 @@ void CalcShapValuesForDocumentMulti(
             }
         }
     }
-    const double bias = model.GetScaleAndBias().GetOneDimensionalBiasOrZero(
-        "Non single-dimension approxes are not supported");
+    const TVector<double>& bias = model.GetScaleAndBias().GetBiasRef();
     if (isIndependent) {
         Y_ASSERT(independentTreeShapParams);
         PostProcessingIndependent(
@@ -1044,8 +1049,8 @@ void CalcShapValuesForDocumentMulti(
             shapValues
         );
     } else {
-        if (approxDimension == 1) {
-            (*shapValues)[0][featuresCount] += bias;
+        for (int dimension = 0; dimension < approxDimension; ++dimension) {
+            (*shapValues)[dimension][featuresCount] += bias[dimension];
         }
     }
 }
@@ -1384,7 +1389,7 @@ static TVector<TVector<TVector<double>>> CalcShapValuesWithPreparedTrees(
     const TDataProvider& dataset,
     const TMaybe<TFixedFeatureParams>& fixedFeatureParams,
     int logPeriod,
-    TShapPreparedTrees* preparedTrees,
+    const TShapPreparedTrees& preparedTrees,
     NPar::ILocalExecutor* localExecutor,
     ECalcTypeShapValues calcType
 ) {
@@ -1414,7 +1419,7 @@ static TVector<TVector<TVector<double>>> CalcShapValuesWithPreparedTrees(
             model,
             *featuresBlockIterator,
             flatFeatureCount,
-            *preparedTrees,
+            preparedTrees,
             fixedFeatureParams,
             start,
             end,
@@ -1467,7 +1472,7 @@ TVector<TVector<TVector<double>>> CalcShapValuesMulti(
         dataset,
         fixedFeatureParams,
         logPeriod,
-        &preparedTrees,
+        preparedTrees,
         localExecutor,
         calcType
     );

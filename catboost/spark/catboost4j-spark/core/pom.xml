@@ -12,7 +12,7 @@
     <parent>
         <groupId>ai.catboost</groupId>
         <artifactId>catboost-spark-aggregate_2.11</artifactId>
-        <version>0.25-rc2</version>
+        <version>0.25-rc3</version>
         <relativePath>..</relativePath>
     </parent>
 
@@ -74,6 +74,26 @@
                             <workingDirectory>${user.dir}</workingDirectory>
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>Generate PySpark wrapper code</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>java</executable>
+                            <classpathScope>compile</classpathScope>>
+                            <arguments>
+                                <argument>-classpath</argument>
+                                <!-- automatically creates the classpath using all project dependencies,
+                                     also adding the project build directory -->
+                                <classpath/>
+                                <argument>ai.catboost.spark.impl.pyspark_wrapper_generator.Generator</argument>
+                                <argument>${project.version}</argument>
+                                <argument>${project.build.directory}/classes/catboost_spark</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
             <plugin>
@@ -131,6 +151,23 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-site-plugin</artifactId>
                 <version>3.7.1</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.22.2</version>
+                <configuration>
+                    <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                    <trimStackTrace>false</trimStackTrace>
+                    <forkCount>1C</forkCount>
+                    <reuseForks>false</reuseForks>
+                    <argLine>-Xmx1024m -XX:MaxPermSize=256m</argLine>
+                    <systemPropertyVariables>
+                        <catboost.test.data.path>${project.basedir}/../../../pytest/data</catboost.test.data.path>
+                        <canonical.data.path>${project.basedir}/src/test/resources/canondata</canonical.data.path>
+                    </systemPropertyVariables>
+                    <workingDirectory>FORK_DIRECTORY_${surefire.forkNumber}</workingDirectory>
+                </configuration>
             </plugin>
         </plugins>
 
@@ -195,7 +232,13 @@
             <artifactId>jackson-module-scala_${scala.compat.version}</artifactId>
             <version>2.6.7.1</version>
         </dependency>
-        
+
+        <dependency>
+            <groupId>io.github.classgraph</groupId>
+            <artifactId>classgraph</artifactId>
+            <version>4.8.98</version>
+        </dependency>
+
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-mapreduce-client-core</artifactId>

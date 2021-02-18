@@ -85,7 +85,7 @@ class DurationParam(
   }
 }
 
-/** supported V types are String, Long, Float or Boolean */
+/** supported V types are String, Long, Double or Boolean */
 class OrderedStringMapParam[V](
   parent: String,
   name: String,
@@ -113,7 +113,7 @@ class OrderedStringMapParam[V](
           (acc, kv) => {
             val jValue = kv._2 match {
               case s : String => JString(s)
-              case num: Float => JDouble(num)
+              case num: Double => JDouble(num)
               case num: Long => JLong(num)
               case value: Boolean => JBool(value)
               case _ => throw new RuntimeException("Unsupported map value type")
@@ -131,7 +131,7 @@ class OrderedStringMapParam[V](
     for ((key, jValue) <- jObject.obj) {
       jValue match {
         case JString(s) =>  result.put(key, s.asInstanceOf[V])
-        case JDouble(num) =>  result.put(key, num.toFloat.asInstanceOf[V])
+        case JDouble(num) =>  result.put(key, num.asInstanceOf[V])
         case JLong(num) =>  result.put(key, num.asInstanceOf[V])
         case JBool(value) =>  result.put(key, value.asInstanceOf[V])
         case _ => throw new RuntimeException("Unexpected JSON object value type for map")
@@ -193,7 +193,7 @@ private[spark] object Helpers {
     }
     var classWeightsSize : Option[Int] = None
     if (params.contains("classWeightsMap")) {
-      classWeightsSize = Some(params("classWeightsMap").asInstanceOf[java.util.LinkedHashMap[String, Float]].size)
+      classWeightsSize = Some(params("classWeightsMap").asInstanceOf[java.util.LinkedHashMap[String, Double]].size)
     }
     if (params.contains("classWeightsList")) {
       classWeightsSize = Some(params("classWeightsList").asInstanceOf[Array[Double]].length)
@@ -229,7 +229,7 @@ private[spark] object Helpers {
     classNamesFromLabelData: Option[Array[String]]
   ) : JObject = {
     if (params.contains("classWeightsMap")) {
-      val classWeightsMap = params("classWeightsMap").asInstanceOf[java.util.LinkedHashMap[String, Float]]
+      val classWeightsMap = params("classWeightsMap").asInstanceOf[java.util.LinkedHashMap[String, Double]]
       val classWeightsList = new Array[Double](classWeightsMap.size)
       var result = JObject()
 

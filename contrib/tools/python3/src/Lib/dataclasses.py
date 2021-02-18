@@ -7,6 +7,7 @@ import keyword
 import builtins
 import functools
 import _thread
+from types import GenericAlias
 
 
 __all__ = ['dataclass',
@@ -199,11 +200,7 @@ _POST_INIT_NAME = '__post_init__'
 # https://bugs.python.org/issue33453 for details.
 _MODULE_IDENTIFIER_RE = re.compile(r'^(?:\s*(\w+)\s*\.)?\s*(\w+)')
 
-class _InitVarMeta(type):
-    def __getitem__(self, params):
-        return InitVar(params)
-
-class InitVar(metaclass=_InitVarMeta):
+class InitVar:
     __slots__ = ('type', )
 
     def __init__(self, type):
@@ -216,6 +213,9 @@ class InitVar(metaclass=_InitVarMeta):
             # typing objects, e.g. List[int]
             type_name = repr(self.type)
         return f'dataclasses.InitVar[{type_name}]'
+
+    def __class_getitem__(cls, type):
+        return InitVar(type)
 
 
 # Instances of Field are only ever created from within this module,
@@ -284,6 +284,8 @@ class Field:
             # There is a __set_name__ method on the descriptor, call
             # it.
             func(self.default, owner, name)
+
+    __class_getitem__ = classmethod(GenericAlias)
 
 
 class _DataclassParams:
@@ -1231,7 +1233,7 @@ def make_dataclass(cls_name, fields, *, bases=(), namespace=None, init=True,
                      unsafe_hash=unsafe_hash, frozen=frozen)
 
 
-def replace(*args, **changes):
+def replace(obj, /, **changes):
     """Return a new object replacing specified fields with new values.
 
     This is especially useful for frozen classes.  Example usage:
@@ -1245,17 +1247,6 @@ def replace(*args, **changes):
       c1 = replace(c, x=3)
       assert c1.x == 3 and c1.y == 2
       """
-    if len(args) > 1:
-        raise TypeError(f'replace() takes 1 positional argument but {len(args)} were given')
-    if args:
-        obj, = args
-    elif 'obj' in changes:
-        obj = changes.pop('obj')
-        import warnings
-        warnings.warn("Passing 'obj' as keyword argument is deprecated",
-                      DeprecationWarning, stacklevel=2)
-    else:
-        raise TypeError("replace() missing 1 required positional argument: 'obj'")
 
     # We're going to mutate 'changes', but that's okay because it's a
     # new dict, even if called with 'replace(obj, **my_changes)'.
@@ -1291,4 +1282,3 @@ def replace(*args, **changes):
     # changes that aren't fields, this will correctly raise a
     # TypeError.
     return obj.__class__(**changes)
-replace.__text_signature__ = '(obj, /, **kwargs)'

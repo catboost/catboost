@@ -2,9 +2,7 @@
 
 LIBRARY()
 
-LICENSE(
-    BSD2
-)
+LICENSE(BSD-2-Clause)
 
 NO_UTIL()
 

@@ -162,7 +162,7 @@ void TNanModeAndBordersBuilder::Finish(i32 threadCount) throw (yexception) {
 TQuantizedObjectsDataProviderPtr Quantize(
     NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
     NCB::TRawObjectsDataProviderPtr* rawObjectsDataProvider, // moved into
-    int threadCount
+    NPar::TLocalExecutor* localExecutor
 ) throw (yexception) {
     TQuantizationOptions options;
     options.BundleExclusiveFeatures = false;
@@ -171,17 +171,12 @@ TQuantizedObjectsDataProviderPtr Quantize(
 
     TRestorableFastRng64 rand(0);
 
-    CB_ENSURE(threadCount >= 1);
-
-    NPar::TLocalExecutor localExecutor;
-    localExecutor.RunAdditionalThreads(threadCount - 1);
-
     return Quantize(
         options,
         std::move(*rawObjectsDataProvider),
         quantizedFeaturesInfo,
         &rand,
-        &localExecutor
+        localExecutor
     );
 }
 

@@ -2,11 +2,11 @@
 
 LIBRARY()
 
+LICENSE(BSD-3-Clause Zlib)
+
 
 
 VERSION(1.0.6.0.1)
-
-LICENSE(BSD-4-Clause)
 
 ADDINCL(
     contrib/libs/libbz2

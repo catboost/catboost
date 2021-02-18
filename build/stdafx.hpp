@@ -191,7 +191,6 @@
 #include <util/generic/object_counter.h>
 #include <util/draft/datetime.h>
 #include <library/cpp/deprecated/estimators/estimators.h>
-#include <util/network/netloss.h>
 #include <library/cpp/deprecated/enum_codegen/enum_codegen.h>
 #include <util/generic/array_size.h>
 #include <util/generic/bitmap.h>

@@ -1,5 +1,7 @@
 PY23_LIBRARY()
 
+LICENSE(MIT)
+
 
 
 PEERDIR(

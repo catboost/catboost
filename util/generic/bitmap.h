@@ -546,7 +546,7 @@ public:
     TThis& Reset(size_t start, size_t end) {
         Y_ASSERT(start <= end);
         if (start < end && (start >> DivCount) < Mask.GetChunkCapacity()) {
-            UpdateRange<TResetOp>(start, end);
+            UpdateRange<TResetOp>(start, Min(end, Mask.GetBitCapacity()));
         }
         return *this;
     }

@@ -134,9 +134,6 @@ namespace NCB {
             pools
         );
 
-        InitializeEvalMetricIfNotSet(catBoostOptions.MetricOptions->ObjectiveMetric,
-                                    &catBoostOptions.MetricOptions->EvalMetric);
-
         TLabelConverter labelConverter;
         TRestorableFastRng64 rand(catBoostOptions.RandomSeed);
 
@@ -182,6 +179,9 @@ namespace NCB {
             &outputFileOptions,
             &catBoostOptions
         );
+
+        InitializeEvalMetricIfNotSet(catBoostOptions.MetricOptions->ObjectiveMetric,
+                                     &catBoostOptions.MetricOptions->EvalMetric);
 
         TFeaturesSelectionSummary summary = DoRecursiveFeaturesElimination(
             catBoostOptions,

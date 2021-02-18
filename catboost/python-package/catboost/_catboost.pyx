@@ -16,6 +16,7 @@ from collections import defaultdict
 import functools
 import traceback
 import numbers
+import os
 
 import sys
 if sys.version_info >= (3, 3):
@@ -53,6 +54,14 @@ from util.generic.string cimport TString, TStringBuf
 from util.generic.vector cimport TVector
 from util.system.types cimport ui8, ui16, ui32, ui64, i32, i64
 from util.string.cast cimport StrToD, TryFromString, ToString
+
+
+def fspath(path):
+    if path is None:
+        return None
+    if sys.version_info >= (3, 6):
+        return os.fspath(path)
+    return str(path)
 
 
 SPARSE_MATRIX_TYPES = (
@@ -1503,7 +1512,7 @@ cdef ECalcTypeShapValues string_to_calc_type(shap_calc_type) except *:
 cdef EExplainableModelOutput string_to_model_output(model_output_str) except *:
     cdef EExplainableModelOutput model_output
     if not TryFromString[EExplainableModelOutput](to_arcadia_string(model_output_str), model_output):
-        raise CatBoostError("Unknown shap values mode {}.".format(model_output_str))
+        raise CatBoostError("Unknown shap values model output {}.".format(model_output_str))
     return model_output
 
 
@@ -3336,22 +3345,22 @@ cdef class _PoolBase:
 
     cpdef _read_pool(self, pool_file, cd_file, pairs_file, feature_names_file, delimiter, bool_t has_header, bool_t ignore_csv_quoting, int thread_count, dict quantization_params):
         cdef TPathWithScheme pool_file_path
-        pool_file_path = TPathWithScheme(<TStringBuf>to_arcadia_string(pool_file), TStringBuf(<char*>'dsv'))
+        pool_file_path = TPathWithScheme(<TStringBuf>to_arcadia_string(fspath(pool_file)), TStringBuf(<char*>'dsv'))
 
         cdef TPathWithScheme pairs_file_path
-        if len(pairs_file):
-            pairs_file_path = TPathWithScheme(<TStringBuf>to_arcadia_string(pairs_file), TStringBuf(<char*>'dsv-flat'))
+        if pairs_file:
+            pairs_file_path = TPathWithScheme(<TStringBuf>to_arcadia_string(fspath(pairs_file)), TStringBuf(<char*>'dsv-flat'))
 
         cdef TPathWithScheme feature_names_file_path
-        if len(feature_names_file):
-            feature_names_file_path = TPathWithScheme(<TStringBuf>to_arcadia_string(feature_names_file), TStringBuf(<char*>'dsv'))
+        if feature_names_file:
+            feature_names_file_path = TPathWithScheme(<TStringBuf>to_arcadia_string(fspath(feature_names_file)), TStringBuf(<char*>'dsv'))
 
         cdef TColumnarPoolFormatParams columnarPoolFormatParams
         columnarPoolFormatParams.DsvFormat.HasHeader = has_header
         columnarPoolFormatParams.DsvFormat.Delimiter = ord(delimiter)
         columnarPoolFormatParams.DsvFormat.IgnoreCsvQuoting = ignore_csv_quoting
-        if len(cd_file):
-            columnarPoolFormatParams.CdFilePath = TPathWithScheme(<TStringBuf>to_arcadia_string(cd_file), TStringBuf(<char*>'dsv'))
+        if cd_file:
+            columnarPoolFormatParams.CdFilePath = TPathWithScheme(<TStringBuf>to_arcadia_string(fspath(cd_file)), TStringBuf(<char*>'dsv'))
 
         thread_count = UpdateThreadCount(thread_count)
 
@@ -3362,7 +3371,7 @@ cdef class _PoolBase:
             block_size = quantization_params.pop("dev_block_size", None)
             prep_params = _PreprocessParams(quantization_params)
             if input_borders:
-                input_borders_file_path = TPathWithScheme(<TStringBuf>to_arcadia_string(input_borders), TStringBuf(<char*>'dsv'))
+                input_borders_file_path = TPathWithScheme(<TStringBuf>to_arcadia_string(fspath(input_borders)), TStringBuf(<char*>'dsv'))
             self.__pool = ReadAndQuantizeDataset(
                 pool_file_path,
                 pairs_file_path,
@@ -3631,7 +3640,7 @@ cdef class _PoolBase:
             )
 
     cpdef _save(self, fname):
-        cdef TString file_name = to_arcadia_string(fname)
+        cdef TString file_name = to_arcadia_string(fspath(fname))
         SaveQuantizedPool(self.__pool, file_name)
 
 
@@ -3723,7 +3732,7 @@ cdef class _PoolBase:
         cdef TQuantizedFeaturesInfoPtr quantizedFeaturesInfo
         cdef TQuantizedObjectsDataProviderPtr quantizedObjects
 
-        if (_input_borders):
+        if _input_borders:
             quantizedFeaturesInfo = _init_quantized_feature_info(self.__pool, _input_borders)
 
         with nogil:
@@ -4011,7 +4020,7 @@ cdef class _PoolBase:
 
         Parameters
         ----------
-        output_file : string
+        output_file : string or pathlib.Path
             Output file name.
 
         Examples
@@ -4026,7 +4035,7 @@ cdef class _PoolBase:
         if not quantized_objects_data_provider:
             raise CatBoostError("Pool is not quantized")
 
-        cdef TString fname = to_arcadia_string(output_file)
+        cdef TString fname = to_arcadia_string(fspath(output_file))
         cdef TQuantizedFeaturesInfoPtr quantized_features_info = quantized_objects_data_provider[0].GetQuantizedFeaturesInfo()
 
         with nogil:
@@ -4091,7 +4100,7 @@ cdef TQuantizedFeaturesInfoPtr _init_quantized_feature_info(TDataProviderPtr poo
         TConstArrayRef[ui32](),
         TBinarizationOptions()
     )
-    input_borders_str = to_arcadia_string(_input_borders)
+    input_borders_str = to_arcadia_string(fspath(_input_borders))
     with nogil:
         LoadBordersAndNanModesFromFromFileInMatrixnetFormat(
             input_borders_str,
@@ -4389,8 +4398,8 @@ cdef class _CatBoost:
             ntree_end,
             eval_period,
             thread_count,
-            to_arcadia_string(result_dir),
-            to_arcadia_string(tmp_dir)
+            to_arcadia_string(fspath(result_dir)),
+            to_arcadia_string(fspath(tmp_dir))
         )
         cdef TVector[TString] metric_names = GetMetricNames(dereference(self.__model), metricDescriptions)
         return metrics, [to_native_str(name) for name in metric_names]
@@ -4541,7 +4550,7 @@ cdef class _CatBoost:
     cpdef _load_model(self, model_file, format):
         cdef TFullModel tmp_model
         cdef EModelType modelType = string_to_model_type(format)
-        tmp_model = ReadModel(to_arcadia_string(model_file), modelType)
+        tmp_model = ReadModel(to_arcadia_string(fspath(model_file)), modelType)
         self.model_blob = None
         self.__model.Swap(tmp_model)
 
@@ -4559,7 +4568,7 @@ cdef class _CatBoost:
 
         ExportModel(
             dereference(self.__model),
-            to_arcadia_string(output_file),
+            to_arcadia_string(fspath(output_file)),
             modelType,
             to_arcadia_string(export_parameters),
             False,
@@ -4643,7 +4652,7 @@ cdef class _CatBoost:
         self.__model.Swap(tmp_model)
 
     cpdef _save_borders(self, output_file):
-        SaveModelBorders( to_arcadia_string(output_file), dereference(self.__model))
+        SaveModelBorders(to_arcadia_string(fspath(output_file)), dereference(self.__model))
 
     cpdef _check_model_and_dataset_compatibility(self, _PoolBase pool):
         if pool:
@@ -5282,7 +5291,7 @@ cdef class _MetricCalcerBase:
 
         self.__calcer = new TMetricsPlotCalcerPythonWrapper(metricsDescription, dereference(self.__catboost.__model),
                                                             ntree_start, ntree_end, eval_period, thread_count,
-                                                            to_arcadia_string(tmp_dir), delete_temp_dir_on_exit)
+                                                            to_arcadia_string(fspath(tmp_dir)), delete_temp_dir_on_exit)
 
         self._metric_descriptions = list()
 
@@ -5584,7 +5593,7 @@ cpdef _get_gpu_device_count():
 
 
 cpdef _reset_trace_backend(file):
-    ResetTraceBackend(to_arcadia_string(file))
+    ResetTraceBackend(to_arcadia_string(fspath(file)))
 
 
 @cython.embedsignature(True)

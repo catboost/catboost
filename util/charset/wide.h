@@ -350,7 +350,17 @@ template <bool robust>
 inline TWtringBuf UTF8ToWide(const TStringBuf src, TUtf16String& dst) {
     dst.ReserveAndResize(src.size());
     size_t written = 0;
-    UTF8ToWide<robust>(src.data(), src.size(), dst.begin(), written);
+    UTF8ToWideImpl<robust>(src.data(), src.size(), dst.begin(), written);
+    dst.resize(written);
+    return dst;
+}
+
+//! if not robust will stop at first error position
+template <bool robust>
+inline TUtf32StringBuf UTF8ToUTF32(const TStringBuf src, TUtf32String& dst) {
+    dst.ReserveAndResize(src.size());
+    size_t written = 0;
+    UTF8ToWideImpl<robust>(src.data(), src.size(), dst.begin(), written);
     dst.resize(written);
     return dst;
 }
@@ -366,6 +376,13 @@ inline TUtf16String UTF8ToWide(const char* text, size_t len) {
 template <bool robust>
 inline TUtf16String UTF8ToWide(const TStringBuf s) {
     return UTF8ToWide<robust>(s.data(), s.size());
+}
+
+template <bool robust>
+inline TUtf32String UTF8ToUTF32(const TStringBuf s) {
+    TUtf32String r;
+    UTF8ToUTF32<robust>(s, r);
+    return r;
 }
 
 inline TUtf16String UTF8ToWide(const TStringBuf s) {

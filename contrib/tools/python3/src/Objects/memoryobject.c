@@ -11,9 +11,8 @@
  */
 
 #include "Python.h"
+#include "pycore_abstract.h"   // _PyIndex_Check()
 #include "pycore_object.h"
-#include "pycore_pymem.h"
-#include "pycore_pystate.h"
 #include "pystrhex.h"
 #include <stddef.h>
 
@@ -1058,7 +1057,8 @@ _memory_release(PyMemoryViewObject *self)
         return -1;
     }
 
-    Py_FatalError("_memory_release(): negative export count");
+    PyErr_SetString(PyExc_SystemError,
+                    "_memory_release(): negative export count");
     return -1;
 }
 
@@ -1972,7 +1972,7 @@ struct_get_unpacker(const char *fmt, Py_ssize_t itemsize)
     if (format == NULL)
         goto error;
 
-    structobj = PyObject_CallFunctionObjArgs(Struct, format, NULL);
+    structobj = PyObject_CallOneArg(Struct, format);
     if (structobj == NULL)
         goto error;
 
@@ -2011,7 +2011,7 @@ struct_unpack_single(const char *ptr, struct unpacker *x)
     PyObject *v;
 
     memcpy(x->item, ptr, x->itemsize);
-    v = PyObject_CallFunctionObjArgs(x->unpack_from, x->mview, NULL);
+    v = PyObject_CallOneArg(x->unpack_from, x->mview);
     if (v == NULL)
         return NULL;
 
@@ -2420,8 +2420,9 @@ is_multiindex(PyObject *key)
     size = PyTuple_GET_SIZE(key);
     for (i = 0; i < size; i++) {
         PyObject *x = PyTuple_GET_ITEM(key, i);
-        if (!PyIndex_Check(x))
+        if (!_PyIndex_Check(x)) {
             return 0;
+        }
     }
     return 1;
 }
@@ -2458,7 +2459,7 @@ memory_subscript(PyMemoryViewObject *self, PyObject *key)
         }
     }
 
-    if (PyIndex_Check(key)) {
+    if (_PyIndex_Check(key)) {
         Py_ssize_t index;
         index = PyNumber_AsSsize_t(key, PyExc_IndexError);
         if (index == -1 && PyErr_Occurred())
@@ -2529,7 +2530,7 @@ memory_ass_sub(PyMemoryViewObject *self, PyObject *key, PyObject *value)
         }
     }
 
-    if (PyIndex_Check(key)) {
+    if (_PyIndex_Check(key)) {
         Py_ssize_t index;
         if (1 < view->ndim) {
             PyErr_SetString(PyExc_NotImplementedError,

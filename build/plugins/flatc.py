@@ -15,7 +15,6 @@ class FlatcBase(iw.CustomCommand):
     def __init__(self, path, unit):
         self._path = path
         self._incl_dirs = ['$S', '$B']
-        self._reflect_names = unit.get('FLATBUF_REFLECTION') == 'yes'
         self._user_extra_args = split_args(unit.get('FLATBUF_FLAGS'))
 
     def input(self):
@@ -61,7 +60,11 @@ class Flatc(FlatcBase):
         return ".bfbs"
 
     def extra_arguments(self):
-        return ['--yandex-maps-iter'] + (['--reflect-names'] if self._reflect_names else [])
+        return [
+            '--yandex-maps-iter',
+            '--gen-object-api',
+            '--gen-mutable',
+        ]
 
 
 class Flatc64(FlatcBase):

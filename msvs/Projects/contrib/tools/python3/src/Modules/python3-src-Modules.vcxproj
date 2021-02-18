@@ -67,8 +67,8 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;gdi32.lib;kernel32.lib;ole32.lib;oleaut32.lib;shell32.lib;user32.lib;uuid.lib;winspool.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  ws2_32.lib</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  ws2_32.lib</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  </AdditionalOptions>
       <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
       <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">DebugFastLink</GenerateDebugInformation>
       <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</RandomizedBaseAddress>
@@ -132,7 +132,7 @@
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_decimal\libmpdec\io.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_decimal\libmpdec\memory.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_decimal\libmpdec\mpalloc.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_decimal\libmpdec\mpdecimal.c">
@@ -240,6 +240,9 @@
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_operator.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_peg_parser.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_pickle.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
@@ -276,6 +279,9 @@
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_xxsubinterpretersmodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_zoneinfo.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\arraymodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
@@ -298,9 +304,6 @@
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\getbuildinfo.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\hashtable.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\itertoolsmodule.c">
@@ -417,6 +420,7 @@
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\cjkcodecs\multibytecodec.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\_abc.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\_asynciomodule.c.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\_bisectmodule.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\_bz2module.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\_codecsmodule.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\_collectionsmodule.c.h"/>
@@ -456,7 +460,6 @@
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\unicodedata.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\zlibmodule.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\hashlib.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\hashtable.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\posixmodule.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\rotatingtree.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\socketmodule.h"/>

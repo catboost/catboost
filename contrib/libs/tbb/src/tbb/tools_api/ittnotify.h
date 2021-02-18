@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2020 Intel Corporation
+    Copyright (c) 2005-2021 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -22,7 +22,8 @@
 @brief Public User API functions and types
 @mainpage
 
-The Instrumentation and Tracing Technology API (ITT API) is used to annotate a user's program with additional information
+The Instrumentation and Tracing Technology API (ITT API) is used to 
+annotate a user's program with additional information
 that can be used by correctness and performance tools. The user inserts
 calls in their program. Those calls generate information that is collected
 at runtime, and used by Intel(R) Threading Tools.

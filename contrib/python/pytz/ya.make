@@ -2,9 +2,9 @@
 
 PY23_LIBRARY()
 
-VERSION(2020.4)
-
 LICENSE(MIT)
+
+VERSION(2021.1)
 
 PEERDIR(
     contrib/python/setuptools
@@ -620,7 +620,6 @@ RESOURCE_FILES(
     pytz/zoneinfo/Zulu
     pytz/zoneinfo/iso3166.tab
     pytz/zoneinfo/leapseconds
-    pytz/zoneinfo/posixrules
     pytz/zoneinfo/tzdata.zi
     pytz/zoneinfo/zone.tab
     pytz/zoneinfo/zone1970.tab

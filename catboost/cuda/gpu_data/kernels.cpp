@@ -13,5 +13,6 @@ namespace NCudaLib {
     REGISTER_KERNEL(0xBBAA007, TFillTakenDocsMaskKernel)
     REGISTER_KERNEL(0xBBAA008, TRemoveQueryMeans)
     REGISTER_KERNEL(0xBBAA009, TRemoveQueryMax)
-
+    REGISTER_KERNEL(0xBBA00A, TWriteLazyCompressedIndexKernel)
+    REGISTER_KERNEL(0xBBA00B, TDropAllLoaders)
 }

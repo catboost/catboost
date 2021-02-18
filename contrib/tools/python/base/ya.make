@@ -1,8 +1,6 @@
 LIBRARY()
 
-LICENSE(
-    PSF
-)
+LICENSE(PSF-2.0)
 
 
 

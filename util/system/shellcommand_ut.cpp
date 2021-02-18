@@ -452,4 +452,13 @@ Y_UNIT_TEST_SUITE(TShellCommandTest) {
         UNIT_ASSERT_VALUES_EQUAL(firstLineOutput, firstMessage);
         UNIT_ASSERT_VALUES_EQUAL(secondLineOutput, secondLineOutput);
     }
+    Y_UNIT_TEST(TestOptionsConsistency) {
+        TShellCommandOptions options;
+
+        options.SetInheritOutput(false).SetInheritError(false);
+        options.SetOutputStream(nullptr).SetErrorStream(nullptr);
+
+        UNIT_ASSERT(options.OutputMode == TShellCommandOptions::HANDLE_STREAM);
+        UNIT_ASSERT(options.ErrorMode == TShellCommandOptions::HANDLE_STREAM);
+    }
 }

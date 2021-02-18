@@ -164,7 +164,7 @@ def postprocess_whole_archive(opts, args):
         return key if key and key in peers else None
 
 
-    def construct_cmd_darwin(opts, args):
+    def construct_cmd_apple(opts, args):
         whole_archive_peers = { x : 0 for x in opts.whole_archive }
 
         force_load_flag = '-Wl,-force_load'
@@ -233,8 +233,8 @@ def postprocess_whole_archive(opts, args):
 
         return cmd
 
-    if opts.arch == 'DARWIN':
-        return construct_cmd_darwin(opts, args)
+    if opts.arch in ('DARWIN', 'IOS'):
+        return construct_cmd_apple(opts, args)
 
     return construct_cmd_linux(opts, args)
 

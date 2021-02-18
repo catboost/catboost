@@ -1,7 +1,5 @@
 - source_filter: "^contrib"
   includes:
-    - CL/cl.h
-    - CL/opencl.h
     - port.h
     - types.h
     - stat.h
@@ -715,7 +713,6 @@
   - sys/systeminfo.h
   - sys/vfstab.h
   - sys/vmount.h
-  - libxsmm.h
   - CL/sycl.hpp
   # libpcap files
   - os-proto.h

@@ -4,6 +4,12 @@
 
 ALLOW vendor/ -> .*
 
+# CONTRIB-2116
+ALLOW .* -> vendor/github.com/google/licensecheck
+
+# CONTRIB-2087
+ALLOW .* -> vendor/github.com/armon/go-radix
+
 # CONTRIB-1972 stomp protocol
 ALLOW .* -> vendor/github.com/go-stomp/stomp
 
@@ -606,6 +612,14 @@ ALLOW .* -> vendor/github.com/coredhcp/coredhcp
 
 # CONTRIB-2094
 ALLOW .* -> vendor/github.com/osrg/gobgp
+
+#
+# CONTRIB-2097 QUIC(HTTP/3) implementation library
+#
+ALLOW .* -> vendor/github.com/lucas-clemente/quic-go
+
+# CONTRIB-2111 distributed lock on redis
+ALLOW .* -> vendor/github.com/go-redsync/redsync/v4
 
 #
 # Tools

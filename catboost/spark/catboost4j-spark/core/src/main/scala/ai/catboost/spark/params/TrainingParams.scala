@@ -118,7 +118,7 @@ trait TrainingParamsTrait
   @ParamGetterSetter
   final val subsample: FloatParam = new FloatParam(
     this,
-    "baggingTemperature",
+    "subsample",
     "Sample rate for bagging. "
     + "The default value depends on the dataset size and the bootstrap type, see documentation for details."
   )
@@ -285,7 +285,7 @@ trait TrainingParamsTrait
   )
 
   @ParamGetterSetter
-  final val featureWeightsMap: OrderedStringMapParam[Float] = new OrderedStringMapParam[Float](
+  final val featureWeightsMap: OrderedStringMapParam[Double] = new OrderedStringMapParam[Double](
     this,
     "featureWeightsMap",
     "Per-feature multiplication weights used when choosing the best split. Map is 'feature_name' -> weight. "
@@ -304,7 +304,7 @@ trait TrainingParamsTrait
   )
 
   @ParamGetterSetter
-  final val firstFeatureUsePenaltiesMap: OrderedStringMapParam[Float] = new OrderedStringMapParam[Float](
+  final val firstFeatureUsePenaltiesMap: OrderedStringMapParam[Double] = new OrderedStringMapParam[Double](
     this,
     "firstFeatureUsePenaltiesMap",
     "Per-feature penalties for the first occurrence of the feature in the model. The given value is "
@@ -332,7 +332,7 @@ trait TrainingParamsTrait
   )
 
   @ParamGetterSetter
-  final val perObjectFeaturePenaltiesMap: OrderedStringMapParam[Float] = new OrderedStringMapParam[Float](
+  final val perObjectFeaturePenaltiesMap: OrderedStringMapParam[Double] = new OrderedStringMapParam[Double](
     this,
     "perObjectFeaturePenaltiesMap",
     "Per-object penalties for the first use of the feature for the object. The given value is multiplied by "
@@ -472,7 +472,7 @@ trait TrainingParamsTrait
  */
 trait ClassifierTrainingParamsTrait extends TrainingParamsTrait {
   @ParamGetterSetter
-  final val classWeightsMap: OrderedStringMapParam[Float] = new OrderedStringMapParam[Float](
+  final val classWeightsMap: OrderedStringMapParam[Double] = new OrderedStringMapParam[Double](
     this,
     "classWeightsMap",
     "Map from class name to weight. The values are used as multipliers for the object weights. "

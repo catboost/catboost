@@ -15,7 +15,7 @@ VERSIONS = {
     "matplotlib": "2.2.3",
     "numexpr": "2.6.8",
     "odfpy": "1.3.0",
-    "openpyxl": "2.5.7",
+    "openpyxl": "2.6.0",
     "pandas_gbq": "0.12.0",
     "pyarrow": "0.15.0",
     "pytest": "5.0.1",
@@ -46,7 +46,7 @@ INSTALL_MAPPING = {
 }
 
 
-def _get_version(module: types.ModuleType) -> str:
+def get_version(module: types.ModuleType) -> str:
     version = getattr(module, "__version__", None)
     if version is None:
         # xlrd uses a capitalized attribute name
@@ -112,7 +112,7 @@ def import_optional_dependency(
 
     minimum_version = VERSIONS.get(name)
     if minimum_version:
-        version = _get_version(module)
+        version = get_version(module)
         if distutils.version.LooseVersion(version) < minimum_version:
             assert on_version in {"warn", "raise", "ignore"}
             msg = (

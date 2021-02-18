@@ -36,6 +36,7 @@ ALLOW contrib/libs/leveldb -> library/cpp/logger
 ALLOW contrib/libs/leveldb -> library/cpp/digest/crc32c
 ALLOW contrib/libs/lua -> library/cpp/archive
 ALLOW contrib/libs/phonedetect/src -> library/cpp/digest/md5
+ALLOW contrib/python/certifi -> library/python/certifi
 ALLOW contrib/python/horovod/horovod/common/syms -> library/python/symbols/registry
 ALLOW contrib/python/opensfm -> library/cpp/vl_feat
 ALLOW contrib/python/pytest-mongodb -> devtools/swag/lib

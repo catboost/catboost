@@ -1,9 +1,12 @@
 %{
 #include <catboost/spark/catboost4j-spark/core/src/native_impl/model.h>
 #include <catboost/spark/catboost4j-spark/core/src/native_impl/vector_output.h>
+#include <catboost/libs/cat_feature/cat_feature.h>
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/model/enums.h>
 #include <catboost/libs/model/eval_processing.h>
 #include <catboost/libs/model/model.h>
+#include <catboost/libs/model/model_export/model_exporter.h>
 #include <util/generic/algorithm.h>
 #include <util/generic/vector.h>
 #include <util/generic/xrange.h>
@@ -11,6 +14,8 @@
 %}
 
 %include <bindings/swiglib/stroka.swg>
+
+%include "catboost_enums.i"
 
 %include "defaults.i"
 %include "java_helpers.i"
@@ -49,6 +54,29 @@ public:
                 featuresAsFloat[numericFeaturesIndices[i]] = numericFeaturesValues[i];
             }
             self->Calc(featuresAsFloat, TConstArrayRef<int>(), result);
+        }
+        
+        void Save(
+            const TString& fileName,
+            EModelType format,
+            const TString& exportParametersJsonString,
+            i32 poolCatFeaturesMaxUniqValueCount
+        ) throw (yexception) {
+            THashMap<ui32, TString> catFeaturesHashToString;
+            for (auto v : xrange(SafeIntegerCast<ui32>(poolCatFeaturesMaxUniqValueCount))) {
+                const TString vAsString = ToString(v);
+                catFeaturesHashToString.emplace(CalcCatFeatureHash(vAsString), vAsString);
+            }
+        
+            NCB::ExportModel(
+                *self, 
+                fileName, 
+                format, 
+                exportParametersJsonString,
+                /*addFileFormatExtension*/ false,
+                /*featureId*/ nullptr,
+                &catFeaturesHashToString
+            );
         }
     }
 

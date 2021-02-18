@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2020 Intel Corporation
+    Copyright (c) 2005-2021 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -14,20 +14,24 @@
     limitations under the License.
 */
 
-#include "../rml/include/rml_tbb.h"
-#include "../rml/server/thread_monitor.h"
-#include "tbb/atomic.h"
-#include "tbb/cache_aligned_allocator.h"
+#include "oneapi/tbb/cache_aligned_allocator.h"
+
+#include "rml_tbb.h"
+#include "rml_thread_monitor.h"
+
 #include "scheduler_common.h"
 #include "governor.h"
-#include "tbb_misc.h"
+#include "misc.h"
 
-using rml::internal::thread_monitor;
+#include <atomic>
+
 
 namespace tbb {
-namespace internal {
+namespace detail {
+namespace r1 {
 namespace rml {
 
+using rml::internal::thread_monitor;
 typedef thread_monitor::handle_type thread_handle;
 
 class private_server;
@@ -51,7 +55,7 @@ private:
         //! Associated thread has ended normal life sequence and promises to never touch *this again.
         st_quit
     };
-    atomic<state_t> my_state;
+    std::atomic<state_t> my_state;
 
     //! Associated server
     private_server& my_server;
@@ -60,7 +64,7 @@ private:
     tbb_client& my_client;
 
     //! index used for avoiding the 64K aliasing problem
-    const size_t my_index;
+    const std::size_t my_index;
 
     //! Monitor for sleeping when there is no work to do.
     /** The invariant that holds for sleeping workers is:
@@ -76,7 +80,7 @@ private:
     friend class private_server;
 
     //! Actions executed by the associated thread
-    void run();
+    void run() noexcept;
 
     //! Wake up associated thread (or launch a thread if there is none)
     void wake_or_launch();
@@ -89,16 +93,13 @@ private:
     static void release_handle(thread_handle my_handle, bool join);
 
 protected:
-    private_worker( private_server& server, tbb_client& client, const size_t i ) :
-        my_server(server), my_client(client), my_index(i),
+    private_worker( private_server& server, tbb_client& client, const std::size_t i ) :
+        my_state(st_init), my_server(server), my_client(client), my_index(i),
         my_thread_monitor(), my_handle(), my_next()
-    {
-        my_state = st_init;
-    }
+    {}
 };
 
-static const size_t cache_line_size = tbb::internal::NFS_MaxLineSize;
-
+static const std::size_t cache_line_size = tbb::detail::max_nfs_size;
 
 #if _MSC_VER && !defined(__INTEL_COMPILER)
     // Suppress overzealous compiler warnings about uninstantiable class
@@ -108,7 +109,7 @@ static const size_t cache_line_size = tbb::internal::NFS_MaxLineSize;
 class padded_private_worker: public private_worker {
     char pad[cache_line_size - sizeof(private_worker)%cache_line_size];
 public:
-    padded_private_worker( private_server& server, tbb_client& client, const size_t i )
+    padded_private_worker( private_server& server, tbb_client& client, const std::size_t i )
     : private_worker(server,client,i) { suppress_unused_warning(pad); }
 };
 #if _MSC_VER && !defined(__INTEL_COMPILER)
@@ -123,29 +124,29 @@ private:
     const tbb_client::size_type my_n_thread;
 
     //! Stack size for each thread. */
-    const size_t my_stack_size;
+    const std::size_t my_stack_size;
 
     //! Number of jobs that could use their associated thread minus number of active threads.
     /** If negative, indicates oversubscription.
         If positive, indicates that more threads should run.
         Can be lowered asynchronously, but must be raised only while holding my_asleep_list_mutex,
         because raising it impacts the invariant for sleeping threads. */
-    atomic<int> my_slack;
+    std::atomic<int> my_slack;
 
     //! Counter used to determine when to delete this.
-    atomic<int> my_ref_count;
+    std::atomic<int> my_ref_count;
 
     padded_private_worker* my_thread_array;
 
     //! List of workers that are asleep or committed to sleeping until notified by another thread.
-    tbb::atomic<private_worker*> my_asleep_list_root;
+    std::atomic<private_worker*> my_asleep_list_root;
 
     //! Protects my_asleep_list_root
     typedef scheduler_mutex_type asleep_list_mutex_type;
     asleep_list_mutex_type my_asleep_list_mutex;
 
 #if TBB_USE_ASSERT
-    atomic<int> my_net_slack_requests;
+    std::atomic<int> my_net_slack_requests;
 #endif /* TBB_USE_ASSERT */
 
     //! Wake up to two sleeping workers, if there are any sleeping.
@@ -153,7 +154,7 @@ private:
         which in turn each wake up two threads, etc. */
     void propagate_chain_reaction() {
         // First test of a double-check idiom.  Second test is inside wake_some(0).
-        if( my_asleep_list_root )
+        if( my_asleep_list_root.load(std::memory_order_acquire) )
             wake_some(0);
     }
 
@@ -177,27 +178,27 @@ private:
 public:
     private_server( tbb_client& client );
 
-    version_type version() const __TBB_override {
+    version_type version() const override {
         return 0;
     }
 
-    void request_close_connection( bool /*exiting*/ ) __TBB_override {
-        for( size_t i=0; i<my_n_thread; ++i )
+    void request_close_connection( bool /*exiting*/ ) override {
+        for( std::size_t i=0; i<my_n_thread; ++i )
             my_thread_array[i].start_shutdown();
         remove_server_ref();
     }
 
-    void yield() __TBB_override {__TBB_Yield();}
+    void yield() override { d0::yield(); }
 
-    void independent_thread_number_changed( int ) __TBB_override {__TBB_ASSERT(false,NULL);}
+    void independent_thread_number_changed( int ) override {__TBB_ASSERT(false,NULL);}
 
-    unsigned default_concurrency() const __TBB_override { return governor::default_num_threads() - 1; }
+    unsigned default_concurrency() const override { return governor::default_num_threads() - 1; }
 
-    void adjust_job_count_estimate( int delta ) __TBB_override;
+    void adjust_job_count_estimate( int delta ) override;
 
 #if _WIN32||_WIN64
-    void register_master ( ::rml::server::execution_resource_t& ) __TBB_override {}
-    void unregister_master ( ::rml::server::execution_resource_t ) __TBB_override {}
+    void register_external_thread ( ::rml::server::execution_resource_t& ) override {}
+    void unregister_external_thread ( ::rml::server::execution_resource_t ) override {}
 #endif /* _WIN32||_WIN64 */
 };
 
@@ -231,13 +232,12 @@ void private_worker::release_handle(thread_handle handle, bool join) {
 }
 
 void private_worker::start_shutdown() {
-    state_t s;
+    state_t expected_state = my_state.load(std::memory_order_acquire);
+    __TBB_ASSERT( expected_state!=st_quit, NULL );
 
-    do {
-        s = my_state;
-        __TBB_ASSERT( s!=st_quit, NULL );
-    } while( my_state.compare_and_swap( st_quit, s )!=s );
-    if( s==st_normal || s==st_starting ) {
+    while( !my_state.compare_exchange_strong( expected_state, st_quit ) );
+
+    if( expected_state==st_normal || expected_state==st_starting ) {
         // May have invalidated invariant for sleeping, so wake up the thread.
         // Note that the notify() here occurs without maintaining invariants for my_slack.
         // It does not matter, because my_state==st_quit overrides checking of my_slack.
@@ -245,15 +245,15 @@ void private_worker::start_shutdown() {
         // Do not need release handle in st_init state,
         // because in this case the thread wasn't started yet.
         // For st_starting release is done at launch site.
-        if (s==st_normal)
+        if (expected_state==st_normal)
             release_handle(my_handle, governor::does_client_join_workers(my_client));
-    } else if( s==st_init ) {
+    } else if( expected_state==st_init ) {
         // Perform action that otherwise would be performed by associated thread when it quits.
         my_server.remove_server_ref();
     }
 }
 
-void private_worker::run() {
+void private_worker::run() noexcept {
     my_server.propagate_chain_reaction();
 
     // Transiting to st_normal here would require setting my_handle,
@@ -261,15 +261,15 @@ void private_worker::run() {
     // complications in handle management on Windows.
 
     ::rml::job& j = *my_client.create_one_job();
-    while( my_state!=st_quit ) {
-        if( my_server.my_slack>=0 ) {
+    while( my_state.load(std::memory_order_acquire)!=st_quit ) {
+        if( my_server.my_slack.load(std::memory_order_acquire)>=0 ) {
             my_client.process(j);
         } else {
             thread_monitor::cookie c;
             // Prepare to wait
             my_thread_monitor.prepare_wait(c);
             // Check/set the invariant for sleeping
-            if( my_state!=st_quit && my_server.try_insert_in_asleep_list(*this) ) {
+            if( my_state.load(std::memory_order_acquire)!=st_quit && my_server.try_insert_in_asleep_list(*this) ) {
                 my_thread_monitor.commit_wait(c);
                 __TBB_ASSERT( my_state==st_quit || !my_next, "Thread monitor missed a spurious wakeup?" );
                 my_server.propagate_chain_reaction();
@@ -286,24 +286,25 @@ void private_worker::run() {
 }
 
 inline void private_worker::wake_or_launch() {
-    if( my_state==st_init && my_state.compare_and_swap( st_starting, st_init )==st_init ) {
+    state_t expected_state = st_init;
+    if( my_state.compare_exchange_strong( expected_state, st_starting ) ) {
         // after this point, remove_server_ref() must be done by created thread
-#if USE_WINTHREAD
+#if __TBB_USE_WINAPI
         my_handle = thread_monitor::launch( thread_routine, this, my_server.my_stack_size, &this->my_index );
-#elif USE_PTHREAD
+#elif __TBB_USE_POSIX
         {
         affinity_helper fpa;
         fpa.protect_affinity_mask( /*restore_process_mask=*/true );
         my_handle = thread_monitor::launch( thread_routine, this, my_server.my_stack_size );
         // Implicit destruction of fpa resets original affinity mask.
         }
-#endif /* USE_PTHREAD */
-        state_t s = my_state.compare_and_swap( st_normal, st_starting );
-        if (st_starting != s) {
+#endif /* __TBB_USE_POSIX */
+        expected_state = st_starting;
+        if ( !my_state.compare_exchange_strong( expected_state, st_normal ) ) {
             // Do shutdown during startup. my_handle can't be released
             // by start_shutdown, because my_handle value might be not set yet
             // at time of transition from st_starting to st_quit.
-            __TBB_ASSERT( s==st_quit, NULL );
+            __TBB_ASSERT( expected_state==st_quit, NULL );
             release_handle(my_handle, governor::does_client_join_workers(my_client));
         }
     }
@@ -320,28 +321,27 @@ private_server::private_server( tbb_client& client ) :
     my_client(client),
     my_n_thread(client.max_job_count()),
     my_stack_size(client.min_stack_size()),
-    my_thread_array(NULL)
-{
-    my_ref_count = my_n_thread+1;
-    my_slack = 0;
+    my_slack(0),
+    my_ref_count(my_n_thread+1),
+    my_thread_array(NULL),
+    my_asleep_list_root(NULL)
 #if TBB_USE_ASSERT
-    my_net_slack_requests = 0;
+    , my_net_slack_requests(0)
 #endif /* TBB_USE_ASSERT */
-    my_asleep_list_root = NULL;
+{
     my_thread_array = tbb::cache_aligned_allocator<padded_private_worker>().allocate( my_n_thread );
-    for( size_t i=0; i<my_n_thread; ++i ) {
+    for( std::size_t i=0; i<my_n_thread; ++i ) {
         private_worker* t = new( &my_thread_array[i] ) padded_private_worker( *this, client, i );
-        t->my_next = my_asleep_list_root;
-        my_asleep_list_root = t;
+        t->my_next = my_asleep_list_root.exchange(t, std::memory_order_relaxed);
     }
 }
 
 private_server::~private_server() {
     __TBB_ASSERT( my_net_slack_requests==0, NULL );
-    for( size_t i=my_n_thread; i--; )
+    for( std::size_t i=my_n_thread; i--; )
         my_thread_array[i].~padded_private_worker();
     tbb::cache_aligned_allocator<padded_private_worker>().deallocate( my_thread_array, my_n_thread );
-    tbb::internal::poison_pointer( my_thread_array );
+    tbb::detail::poison_pointer( my_thread_array );
 }
 
 inline bool private_server::try_insert_in_asleep_list( private_worker& t ) {
@@ -352,8 +352,7 @@ inline bool private_server::try_insert_in_asleep_list( private_worker& t ) {
     // it sees us sleeping on the list and wakes us up.
     int k = ++my_slack;
     if( k<=0 ) {
-        t.my_next = my_asleep_list_root;
-        my_asleep_list_root = &t;
+        t.my_next = my_asleep_list_root.exchange(&t, std::memory_order_relaxed);
         return true;
     } else {
         --my_slack;
@@ -367,21 +366,23 @@ void private_server::wake_some( int additional_slack ) {
     private_worker**w = wakee;
     {
         asleep_list_mutex_type::scoped_lock lock(my_asleep_list_mutex);
-        while( my_asleep_list_root && w<wakee+2 ) {
+        while( my_asleep_list_root.load(std::memory_order_relaxed) && w<wakee+2 ) {
             if( additional_slack>0 ) {
-                if (additional_slack+my_slack<=0) // additional demand does not exceed surplus supply
+                // additional demand does not exceed surplus supply
+                if ( additional_slack+my_slack.load(std::memory_order_acquire)<=0 )
                     break;
                 --additional_slack;
             } else {
                 // Chain reaction; Try to claim unit of slack
-                int old;
+                int old = my_slack;
                 do {
-                    old = my_slack;
                     if( old<=0 ) goto done;
-                } while( my_slack.compare_and_swap(old-1,old)!=old );
+                } while( !my_slack.compare_exchange_strong(old,old-1) );
             }
             // Pop sleeping worker to combine with claimed unit of slack
-            my_asleep_list_root = (*w++ = my_asleep_list_root)->my_next;
+            auto old = my_asleep_list_root.load(std::memory_order_relaxed);
+            my_asleep_list_root.store(old->my_next, std::memory_order_relaxed);
+            *w++ = old;
         }
         if( additional_slack ) {
             // Contribute our unused slack to my_slack.
@@ -413,6 +414,7 @@ tbb_server* make_private_server( tbb_client& client ) {
 }
 
 } // namespace rml
-} // namespace internal
-
+} // namespace r1
+} // namespace detail
 } // namespace tbb
+

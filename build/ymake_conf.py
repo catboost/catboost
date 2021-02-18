@@ -279,9 +279,13 @@ def emit_big(text):
 
 
 class Variables(dict):
-    def emit(self):
+    def emit(self, with_ignore_comment=[]):
+        with_ignore_comment_set = set(with_ignore_comment)
         for k in sorted(self.keys()):
-            emit(k, self[k])
+            if k in with_ignore_comment_set:
+                emit_with_ignore_comment(k, self[k])
+            else:
+                emit(k, self[k])
 
     def update_from_presets(self):
         for k in self.iterkeys():
@@ -602,8 +606,8 @@ class Build(object):
         print_swig_config()
 
         if self.ignore_local_files or host.is_windows or is_positive('NO_SVN_DEPENDS'):
-            emit('SVN_DEPENDS')
-            emit('SVN_DEPENDS_CACHE__NO_UID__')
+            emit_with_ignore_comment('SVN_DEPENDS')
+            emit_with_ignore_comment('SVN_DEPENDS_CACHE__NO_UID__')
         else:
             def find_svn():
                 for i in range(0, 3):
@@ -625,8 +629,8 @@ class Build(object):
 
                 return ''
 
-            emit('SVN_DEPENDS', find_svn())
-            emit('SVN_DEPENDS_CACHE__NO_UID__', '${hide;kv:"disable_cache"}')
+            emit_with_ignore_comment('SVN_DEPENDS', find_svn())
+            emit_with_ignore_comment('SVN_DEPENDS_CACHE__NO_UID__', '${hide;kv:"disable_cache"}')
 
     @staticmethod
     def _load_json_from_base64(base64str):
@@ -654,7 +658,7 @@ class YMake(object):
     def print_presets():
         if opts().presets:
             print '# Variables set from command line by -D options'
-            for key in opts().presets:
+            for key in sorted(opts().presets):
                 if key in ('MY_YMAKE_BIN', 'REAL_YMAKE_BIN'):
                     emit_with_ignore_comment(key, opts().presets[key])
                 else:
@@ -1544,7 +1548,7 @@ class GnuCompiler(Compiler):
         append('C_DEFINES', '-D__LONG_LONG_SUPPORTED')
 
         emit('OBJECT_SUF', '$OBJ_SUF%s.o' % self.cross_suffix)
-        emit('GCC_COMPILE_FLAGS', '$EXTRA_C_FLAGS -c -o $_COMPILE_OUTPUTS', '${input:SRC} ${pre=-I:_C__INCLUDE} ${pre=-I:INCLUDE}')
+        emit('GCC_COMPILE_FLAGS', '$EXTRA_C_FLAGS -c -o $_COMPILE_OUTPUTS', '${input:SRC} ${pre=-I:_C__INCLUDE}')
         emit('EXTRA_COVERAGE_OUTPUT', '${output;noauto;hide;suf=${OBJ_SUF}%s.gcno:SRC}' % self.cross_suffix)
         emit('YNDEXER_OUTPUT_FILE', '${output;noauto;suf=${OBJ_SUF}%s.ydx.pb2:SRC}' % self.cross_suffix)  # should be the last output
 
@@ -2024,6 +2028,8 @@ class MSVCToolchainOptions(ToolchainOptions):
             if self.version_at_least(2019):
                 self.sdk_version = '10.0.18362.0'
                 sdk_dir = '$(WINDOWS_KITS-sbr:1939557911)'
+                if is_positive('MSVC20'):  # XXX: temporary flag, remove after DTCC-123 is completed
+                    self.cxx_std = 'c++latest'
             else:
                 self.sdk_version = '10.0.16299.0'
                 sdk_dir = '$(WINDOWS_KITS-sbr:1379398385)'
@@ -2194,6 +2200,10 @@ class MSVCCompiler(MSVC, Compiler):
 
         if self.tc.use_clang:
             flags.append('-fcase-insensitive-paths')
+            if target.is_x86:
+                flags.append('-m32')
+            if target.is_x86_64:
+                flags.append('-m64')
 
             # Some warnings are getting triggered even when NO_COMPILER_WARNINGS is enabled
             flags.extend((
@@ -2238,6 +2248,10 @@ class MSVCCompiler(MSVC, Compiler):
                 '-Wno-ambiguous-delete',
                 '-Wno-microsoft-unqualified-friend',
             ]
+            if self.tc.version_at_least(2019):
+                cxx_warnings += [
+                    '-Wno-deprecated-volatile',
+                ]
             if self.tc.ide_msvs:
                 cxx_warnings += [
                     '-Wno-unused-command-line-argument',
@@ -2360,11 +2374,11 @@ class MSVCCompiler(MSVC, Compiler):
             }
 
             macro _SRC_cpp(SRC, SRCFLAGS...) {
-                .CMD=${TOOLCHAIN_ENV} ${CL_WRAPPER} ${CXX_COMPILER} /c /Fo$_COMPILE_OUTPUTS ${input;msvs_source:SRC} ${EXTRA_C_FLAGS} ${pre=/I :_C__INCLUDE} ${pre=/I :INCLUDE} ${CXXFLAGS} ${SRCFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
+                .CMD=${TOOLCHAIN_ENV} ${CL_WRAPPER} ${CXX_COMPILER} /c /Fo$_COMPILE_OUTPUTS ${input;msvs_source:SRC} ${EXTRA_C_FLAGS} ${pre=/I :_C__INCLUDE} ${CXXFLAGS} ${SRCFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
             }
 
             macro _SRC_c(SRC, SRCFLAGS...) {
-                .CMD=${TOOLCHAIN_ENV} ${CL_WRAPPER} ${C_COMPILER} /c /Fo$_COMPILE_OUTPUTS ${input;msvs_source:SRC} ${EXTRA_C_FLAGS} ${pre=/I :_C__INCLUDE} ${pre=/I :INCLUDE} ${CFLAGS} ${CONLYFLAGS} ${SRCFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
+                .CMD=${TOOLCHAIN_ENV} ${CL_WRAPPER} ${C_COMPILER} /c /Fo$_COMPILE_OUTPUTS ${input;msvs_source:SRC} ${EXTRA_C_FLAGS} ${pre=/I :_C__INCLUDE} ${CFLAGS} ${CONLYFLAGS} ${SRCFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
             }
 
             macro _SRC_m(SRC, SRCFLAGS...) {
@@ -2641,7 +2655,7 @@ class Perl(object):
         })
 
         variables.reset_if_any(reset_value='PERL-NOT-FOUND')
-        variables.emit()
+        variables.emit(with_ignore_comment=variables.keys())
 
     def _iter_config(self, config_keys):
         # Run perl -V:version -V:etc...
@@ -2765,7 +2779,7 @@ class Cuda(object):
     def print_macros(self):
         cmd_vars = {
             'skip_nocxxinc': '' if self.cuda_arcadia_includes.value else '--y_skip_nocxxinc',
-            'includes': '${pre=-I:_C__INCLUDE} ${pre=-I:INCLUDE}' if self.cuda_arcadia_includes.value else '-I$ARCADIA_ROOT',
+            'includes': '${pre=-I:_C__INCLUDE}' if self.cuda_arcadia_includes.value else '-I$ARCADIA_ROOT',
         }
 
         if not self.cuda_use_clang.value:
@@ -2939,7 +2953,7 @@ class Yasm(object):
         output = '${{output;noext;suf={}:SRC}}'.format('${OBJ_SUF}.o' if self.fmt != 'win' else '${OBJ_SUF}.obj')
         print '''\
 macro _SRC_yasm_impl(SRC, PREINCLUDES[], SRCFLAGS...) {{
-    .CMD={} -f {}$HARDWARE_ARCH {} $YASM_DEBUG_INFO $YASM_DEBUG_INFO_DISABLE_CACHE__NO_UID__ -D ${{pre=_;suf=_:HARDWARE_TYPE}} -D_YASM_ $ASM_PREFIX_VALUE {} ${{YASM_FLAGS}} ${{pre=-I :_ASM__INCLUDE}} ${{pre=-I :INCLUDE}} ${{SRCFLAGS}} -o {} ${{pre=-P :PREINCLUDES}} ${{input;hide:PREINCLUDES}} ${{input:SRC}} ${{kv;hide:"p AS"}} ${{kv;hide:"pc light-green"}}
+    .CMD={} -f {}$HARDWARE_ARCH {} $YASM_DEBUG_INFO $YASM_DEBUG_INFO_DISABLE_CACHE__NO_UID__ -D ${{pre=_;suf=_:HARDWARE_TYPE}} -D_YASM_ $ASM_PREFIX_VALUE {} ${{YASM_FLAGS}} ${{pre=-I :_ASM__INCLUDE}} ${{SRCFLAGS}} -o {} ${{pre=-P :PREINCLUDES}} ${{input;hide:PREINCLUDES}} ${{input:SRC}} ${{kv;hide:"p AS"}} ${{kv;hide:"pc light-green"}}
 
 }}
 '''.format(self.yasm_tool, self.fmt, d_platform, ' '.join(self.flags), output)

@@ -19,6 +19,7 @@ SRCS(
     mode_roc.cpp
     mode_run_worker.cpp
     mode_select_features.cpp
+    mode_dump_options.cpp
     GLOBAL signal_handling.cpp
 )
 

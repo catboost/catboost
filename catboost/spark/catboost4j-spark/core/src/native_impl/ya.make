@@ -40,6 +40,7 @@ PEERDIR(
     catboost/libs/helpers
     catboost/libs/logging
     catboost/libs/model
+    catboost/libs/model/model_export
     catboost/libs/train_lib
     catboost/private/libs/algo
     catboost/private/libs/app_helpers

@@ -1040,8 +1040,10 @@ static void TrainModel(
     }
 
     const auto defaultTrainingCallbacks = MakeHolder<ITrainingCallbacks>();
+    TTrainModelInternalOptions trainModelInternalOptions;
+    trainModelInternalOptions.HaveLearnFeatureInMemory = haveLearnFeaturesInMemory;
     modelTrainerHolder->TrainModel(
-        TTrainModelInternalOptions(),
+        trainModelInternalOptions,
         catBoostOptions,
         updatedOutputOptions,
         objectiveDescriptor,

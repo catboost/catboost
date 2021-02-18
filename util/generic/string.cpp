@@ -64,6 +64,13 @@ std::ostream& operator<<(std::ostream& os, const TString& s) {
     return os.write(s.data(), s.size());
 }
 
+std::istream& operator>>(std::istream& is, TString& s) {
+    std::string stdString;
+    is >> stdString;
+    s.assign(stdString.data(), stdString.size());
+    return is;
+}
+
 template<>
 bool TBasicString<char, std::char_traits<char>>::to_lower(size_t pos, size_t n) {
     return Transform([](size_t, char c) { return AsciiToLower(c); }, pos, n);

@@ -145,18 +145,19 @@ namespace NCatboostCuda {
             , FeaturesManager(&featuresManager)
         {
             CompressedIndex = new TCompressedIndex();
-            //            const ui32 loadBalancingPermutationId = 42;
-            const ui32 loadBalancingPermutationId = FromString<ui32>(GetEnv("CB_LOAD_BALANCE_PERMUTATION", "42"));
 
-            LearnDocPerDevicesSplit = MakeHolder<TDocParallelSplit>(*DataProvider,
-                                                            DataProvider->MetaInfo.HasGroupId
-                                                                ? GetPermutation(dataProvider, loadBalancingPermutationId)
-                                                                : GetPermutation(dataProvider, TDataPermutation::IdentityPermutationId()));
+            const auto getPermutation = [&] (const auto& dataProvider) {
+                if (FeaturesManager->UseShuffle() && dataProvider.MetaInfo.HasGroupId) {
+                    const ui32 loadBalancingPermutationId = FromString<ui32>(GetEnv("CB_LOAD_BALANCE_PERMUTATION", "42"));
+                    return GetPermutation(dataProvider, loadBalancingPermutationId);
+                } else {
+                    return GetPermutation(dataProvider, TDataPermutation::IdentityPermutationId());
+                }
+            };
+            LearnDocPerDevicesSplit = MakeHolder<TDocParallelSplit>(*DataProvider, getPermutation(*DataProvider));
+
             if (TestDataProvider) {
-                TestDocPerDevicesSplit = MakeHolder<TDocParallelSplit>(*TestDataProvider,
-                                                               DataProvider->MetaInfo.HasGroupId
-                                                                   ? GetPermutation(*TestDataProvider, loadBalancingPermutationId)
-                                                                   : GetPermutation(*TestDataProvider, TDataPermutation::IdentityPermutationId()));
+                TestDocPerDevicesSplit = MakeHolder<TDocParallelSplit>(*TestDataProvider, getPermutation(*TestDataProvider));
             }
         }
 

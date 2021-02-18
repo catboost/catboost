@@ -220,6 +220,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\data\catboost-cuda-data.vcxproj">
       <Project>{7A8B786E-2597-9616-5F4E-B17CEE2501EE}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\idl\pool\flat\idl-pool-flat.vcxproj">
+      <Project>{215B0CED-E132-32D3-B5B5-71B6CD17231C}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\idl\pool\proto\idl-pool-proto.vcxproj">
       <Project>{DC2F8CD1-9883-449F-5F63-13AE540A462A}</Project>
     </ProjectReference>
@@ -277,11 +280,17 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\quantization_schema\private-libs-quantization_schema.vcxproj">
       <Project>{615033B0-5579-FBC3-1630-AF28EB4E0D00}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\quantized_pool\private-libs-quantized_pool.vcxproj">
+      <Project>{99DC1DEE-5972-B246-E371-76454FEDA000}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\text_features\private-libs-text_features.vcxproj">
       <Project>{FB7B0D88-A00A-6D89-CEDA-F16BC181EC85}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\text_processing\private-libs-text_processing.vcxproj">
       <Project>{2FD7974D-753A-8A5B-1DDD-D82AF77A73A1}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\validate_fb\private-libs-validate_fb.vcxproj">
+      <Project>{53950737-2B1C-B981-49E0-906A97994F3A}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\base64\avx2\libs-base64-avx2.vcxproj">
       <Project>{69A3431A-8A49-B198-8E40-2F61C1B0C1BC}</Project>

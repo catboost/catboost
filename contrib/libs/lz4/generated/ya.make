@@ -1,8 +1,8 @@
 LIBRARY()
 
+LICENSE(BSD-2-Clause)
 
 
-LICENSE(BSD-2-Clause) # For the license check.
 
 NO_UTIL()
 

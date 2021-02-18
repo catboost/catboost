@@ -207,8 +207,16 @@ TVector<TVector<double>> ApplyModelMulti(
     int end,
     int threadCount)
 {
+    const auto baseline = data.RawTargetData.GetBaseline();
+    if(baseline) {
+        CB_ENSURE(
+            baseline->size() == model.GetDimensionsCount(),
+            "Baseline should have the same dimension count as model: expected " << model.GetDimensionsCount()
+                                                                                << " got " << baseline->size()
+        );
+    }
     auto approxes = ApplyModelMulti(model, *data.ObjectsData, verbose, predictionType, begin, end, threadCount);
-    if (const auto& baseline = data.RawTargetData.GetBaseline()) {
+    if (baseline) {
         for (size_t i = 0; i < approxes.size(); ++i) {
             for (size_t j = 0; j < approxes[0].size(); ++j) {
                 approxes[i][j] += (*baseline)[i][j];

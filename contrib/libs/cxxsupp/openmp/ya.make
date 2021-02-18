@@ -1,9 +1,6 @@
 LIBRARY()
 
-LICENSE(
-    MIT
-    BSD
-)
+LICENSE(MIT)
 
 
 

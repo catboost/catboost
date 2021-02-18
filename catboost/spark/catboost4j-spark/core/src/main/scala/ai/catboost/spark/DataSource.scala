@@ -504,14 +504,8 @@ private[spark] class CatBoostTextFileFormat
 
     (file: PartitionedFile) => {
       val linesReader = new HadoopFileLinesReader(file, broadcastedHadoopConf.value.value)
-      Option(TaskContext.get()).foreach(_.addTaskCompletionListener[Unit](_ => linesReader.close()))
+      Option(TaskContext.get()).foreach(_.addTaskCompletionListener(_ => linesReader.close()))
 
-
-
-      /*linesReader.map { _ =>
-        val features = Vectors.dense(1.0, 1.0)
-        converter.toRow(Row(2.0, features))
-      }*/
       DatasetRowsReaderIterator(
         linesReader,
         dataSchema,
@@ -532,7 +526,7 @@ private[spark] object CatBoostPairsDataLoader {
    * @return [[DataFrame]] containing loaded pairs.
    */
   def load(spark: SparkSession, pairsDataPathWithScheme: String) : DataFrame = {
-        val pairsPathParts = pairsDataPathWithScheme.split("://", 2)
+    val pairsPathParts = pairsDataPathWithScheme.split("://", 2)
     val (pairsDataScheme, pairsDataPath) = if (pairsPathParts.size == 1) {
         ("dsv-flat", pairsPathParts(0)) 
       } else { 
@@ -543,8 +537,8 @@ private[spark] object CatBoostPairsDataLoader {
     }
     var schemaWithGroupIdAsStringFields = Seq(
       StructField("groupId", StringType, false),
-      StructField("winnerId", IntegerType, false),
-      StructField("loserId", IntegerType, false)
+      StructField("winnerId", LongType, false),
+      StructField("loserId", LongType, false)
     )
     
     import spark.implicits._

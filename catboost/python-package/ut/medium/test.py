@@ -3527,6 +3527,43 @@ def test_exact_shap_feature_importance_multiclass(task_type):
     return local_canonical_file(fimp_npy_path)
 
 
+@pytest.mark.parametrize('calc_shap_mode', ['TreeSHAP', 'IndependentTreeSHAP'])
+def test_shap_feature_importance_multirmse(task_type, calc_shap_mode):
+    train_file = data_file('multiregression', 'train')
+    cd_file = data_file('multiregression', 'train.cd')
+    pool = Pool(train_file, column_description=cd_file)
+    reference_data = make_reference_data(pool, calc_shap_mode)
+    model = CatBoostRegressor(iterations=5, learning_rate=0.03, task_type=task_type, devices='0', loss_function='MultiRMSE')
+    model.fit(pool)
+    fimp_npy_path = test_output_path(FIMP_NPY_PATH)
+    np.save(fimp_npy_path, np.around(np.array(model.get_feature_importance(type=EFstrType.ShapValues, data=pool, reference_data=reference_data)), 9))
+    return local_canonical_file(fimp_npy_path)
+
+
+def test_approximate_shap_feature_importance_multirmse(task_type):
+    train_file = data_file('multiregression', 'train')
+    cd_file = data_file('multiregression', 'train.cd')
+    pool = Pool(train_file, column_description=cd_file)
+    model = CatBoostRegressor(iterations=5, learning_rate=0.03, task_type=task_type, devices='0', loss_function='MultiRMSE')
+    model.fit(pool)
+    fimp_npy_path = test_output_path(FIMP_NPY_PATH)
+    np.save(fimp_npy_path, np.around(np.array(model.get_feature_importance(type=EFstrType.ShapValues, data=pool,
+                                                                           shap_calc_type="Approximate")), 9))
+    return local_canonical_file(fimp_npy_path)
+
+
+def test_exact_shap_feature_importance_multirmse(task_type):
+    train_file = data_file('multiregression', 'train')
+    cd_file = data_file('multiregression', 'train.cd')
+    pool = Pool(train_file, column_description=cd_file)
+    model = CatBoostRegressor(iterations=5, learning_rate=0.03, task_type=task_type, devices='0', loss_function='MultiRMSE')
+    model.fit(pool)
+    fimp_npy_path = test_output_path(FIMP_NPY_PATH)
+    np.save(fimp_npy_path, np.around(np.array(model.get_feature_importance(type=EFstrType.ShapValues, data=pool,
+                                                                           shap_calc_type="Exact")), 9))
+    return local_canonical_file(fimp_npy_path)
+
+
 def test_shap_feature_importance_ranking(task_type):
     pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE, pairs=QUERYWISE_TRAIN_PAIRS_FILE)
     model = CatBoost(

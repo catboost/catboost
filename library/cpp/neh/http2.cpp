@@ -121,6 +121,10 @@ bool THttp2Options::Set(TStringBuf name, TStringBuf value) {
     return true;
 }
 
+namespace NNeh {
+    const NDns::TResolvedHost* Resolve(const TStringBuf host, ui16 port, NHttp::EResolverType resolverType);
+}
+
 namespace {
 //#define DEBUG_STAT
 
@@ -384,7 +388,7 @@ namespace {
             , RequestSettings_(s)
             , Msg_(msg)
             , Loc_(msg.Addr)
-            , Addr_(Resolve(TString{Loc_.Host}, Loc_.GetPort(), RequestSettings_.ResolverType))
+            , Addr_(Resolve(Loc_.Host, Loc_.GetPort(), RequestSettings_.ResolverType))
             , AddrIter_(Addr_->Addr.Begin())
             , Canceled_(false)
             , RequestSendedCompletely_(false)
@@ -2048,9 +2052,9 @@ namespace NNeh {
         return FastTlsSingleton<TUnixSocketResolver>();
     }
 
-    const NDns::TResolvedHost* Resolve(const TString& host, ui16 port, NHttp::EResolverType resolverType) {
+    const NDns::TResolvedHost* Resolve(const TStringBuf host, ui16 port, NHttp::EResolverType resolverType) {
         if (resolverType == EResolverType::EUNIXSOCKET) {
-            return UnixSocketResolver()->Resolve(host);
+            return UnixSocketResolver()->Resolve(TString(host));
         }
         return NDns::CachedResolve(NDns::TResolveInfo(host, port));
 

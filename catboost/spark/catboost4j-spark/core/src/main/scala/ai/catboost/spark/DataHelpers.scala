@@ -218,6 +218,7 @@ private[spark] class FeaturesColumnStorage (
       javaBuffersUi32(i) = buffersUi32(i).asDirectByteBuffer
       javaBuffersUi32(i).order(java.nio.ByteOrder.nativeOrder)
     }
+    bufferSize = newSize
   }
 
   def addToVisitor(visitor: IQuantizedFeaturesDataVisitor) = {
@@ -285,14 +286,14 @@ private[spark] object EstimatedFeaturesLoadingContext {
   def createAndUpdateCallbacks(
     estimatedFeatureCount: Int,
     estimatedFeaturesColumnIdxInSchema: Int,
-    threadCount: Int,
+    localExecutor: TLocalExecutor,
     mainDataRowCallbacks: mutable.ArrayBuffer[Row => Unit],
     postprocessingCallbacks: mutable.ArrayBuffer[() => Unit]
   ) : EstimatedFeaturesLoadingContext = {
     
     val (dataProviderBuilder, visitor) = DataHelpers.getDataProviderBuilderAndVisitor(
       /*hasFeatures*/ true,
-      threadCount
+      localExecutor
     )
     
     val result = new EstimatedFeaturesLoadingContext(dataProviderBuilder, visitor)
@@ -362,7 +363,7 @@ private[spark] object DataHelpers {
     for (i <- 0 until featureNames.size) {
       val name = initialFeatureNames(i)
       if (name.isEmpty) {
-        val generatedName = s"_f$i"
+        val generatedName = i.toString
         if (featureNamesSet.contains(generatedName)) {
           throw new CatBoostError(
             s"""Unable to use generated name "$generatedName" for feature with unspecified name because"""
@@ -406,7 +407,7 @@ private[spark] object DataHelpers {
     maxUniqCatFeatureValues: Int,
     keepRawFeaturesInDstRows: Boolean,
     dstRowLength: Int,
-    threadCount: Int
+    localExecutor: TLocalExecutor
   ) : (mutable.ArrayBuffer[Array[Any]], SWIGTYPE_p_NCB__TRawObjectsDataProviderPtr) = {
     val dstRows = new mutable.ArrayBuffer[Array[Any]]
 
@@ -465,7 +466,7 @@ private[spark] object DataHelpers {
       availableFloatFeaturesDataForBuilder,
       availableCatFeaturesDataForBuilder,
       maxUniqCatFeatureValues,
-      threadCount
+      localExecutor
     )
 
     // try to force cleanup of no longer used data
@@ -534,7 +535,7 @@ private[spark] object DataHelpers {
 
   def getDataProviderBuilderAndVisitor(
     hasFeatures: Boolean,
-    threadCount: Int
+    localExecutor: TLocalExecutor
   ) : (TDataProviderClosureForJVM, IQuantizedFeaturesDataVisitor) = {
     val dataProviderBuilderOptions = new TDataProviderBuilderOptions
 
@@ -542,7 +543,7 @@ private[spark] object DataHelpers {
       EDatasetVisitorType.QuantizedFeatures,
       dataProviderBuilderOptions,
       hasFeatures,
-      threadCount
+      localExecutor
     )
     val visitor = dataProviderClosure.GetQuantizedVisitor
     if (visitor == null) {
@@ -712,8 +713,8 @@ private[spark] object DataHelpers {
         (groupIdx: Int, sampleIdToIdxInGroup: HashMap[Long,Int], row: Row) => {
           pairsDataBuilder.Add(
             groupIdx, 
-            row.getAs[Int](sampleIdToIdxInGroup(winnerIdIdx)),
-            row.getAs[Int](sampleIdToIdxInGroup(loserIdIdx)),
+            sampleIdToIdxInGroup(row.getAs[Long](winnerIdIdx)),
+            sampleIdToIdxInGroup(row.getAs[Long](loserIdIdx)),
             row.getAs[Float](weightIdx)
           )
         } 
@@ -722,10 +723,10 @@ private[spark] object DataHelpers {
         (groupIdx: Int, sampleIdToIdxInGroup: HashMap[Long,Int], row: Row) => {
           pairsDataBuilder.Add(
             groupIdx, 
-            row.getAs[Int](sampleIdToIdxInGroup(winnerIdIdx)),
-            row.getAs[Int](sampleIdToIdxInGroup(loserIdIdx))
+            sampleIdToIdxInGroup(row.getAs[Long](winnerIdIdx)),
+            sampleIdToIdxInGroup(row.getAs[Long](loserIdIdx))
           )
-        } 
+        }
       }
     }
     
@@ -746,13 +747,13 @@ private[spark] object DataHelpers {
     dataMetaInfo: TIntermediateDataMetaInfo,
     schema: StructType,
     estimatedFeatureCount: Option[Int],
-    threadCount: Int,
+    localExecutor: TLocalExecutor,
     rows: Iterator[Row]
   ) : (TDataProviderPtr, TDataProviderPtr) = {
 
     val (dataProviderBuilderClosure, visitor) = getDataProviderBuilderAndVisitor(
       columnIndexMap.contains("features"),
-      threadCount
+      localExecutor
     )
     
     var (mainDataRowCallbacks, postprocessingCallbacks) = getMainDataProcessingCallbacks(
@@ -769,7 +770,7 @@ private[spark] object DataHelpers {
       estimatedFeaturesLoadingContext = EstimatedFeaturesLoadingContext.createAndUpdateCallbacks(
         estimatedFeatureCount.get,
         columnIndexMap("_estimatedFeatures"),
-        threadCount,
+        localExecutor,
         mainDataRowCallbacks,
         postprocessingCallbacks
       )
@@ -816,12 +817,12 @@ private[spark] object DataHelpers {
     datasetSchema: StructType,
     pairsDatasetSchema: StructType,
     estimatedFeatureCount: Option[Int],
-    threadCount: Int,
+    localExecutor: TLocalExecutor,
     groupsIterator: GroupsIterator
   ) : (TDataProviderPtr, TDataProviderPtr) = {
     val (dataProviderBuilderClosure, visitor) = getDataProviderBuilderAndVisitor(
       columnIndexMap.contains("features"),
-      threadCount
+      localExecutor
     )
 
     val (mainDataRowCallbacks, mainDataPostprocessingCallbacks) = getMainDataProcessingCallbacks(
@@ -838,7 +839,7 @@ private[spark] object DataHelpers {
       estimatedFeaturesLoadingContext = EstimatedFeaturesLoadingContext.createAndUpdateCallbacks(
         estimatedFeatureCount.get,
         columnIndexMap("_estimatedFeatures"),
-        threadCount,
+        localExecutor,
         mainDataRowCallbacks,
         mainDataPostprocessingCallbacks
       )
@@ -948,7 +949,7 @@ private[spark] object DataHelpers {
       }
     }
     val estimatedFeatureCount
-      = if (includeEstimatedFeatures && pool.data.schema.names.contains("_estimatedFeatures")) {
+      = if (includeEstimatedFeatures && pool.data.schema.fieldNames.contains("_estimatedFeatures")) {
           columnsList += "_estimatedFeatures"
           columnTypesMap.update("_estimatedFeatures", i)
           Some(pool.getEstimatedFeatureCount)
@@ -982,7 +983,7 @@ private[spark] object DataHelpers {
     pool: Pool,
     includeFeatures: Boolean,
     includeEstimatedFeatures: Boolean,
-    threadCount: Int = 1,
+    localExecutor: TLocalExecutor,
     tmpFilePrefix: String = null,
     tmpFileSuffix: String = null
   ) : PoolFilesPaths = {
@@ -1007,7 +1008,7 @@ private[spark] object DataHelpers {
         selectedDF.schema,
         pool.pairsData.schema,
         estimatedFeatureCount,
-        threadCount,
+        localExecutor,
         cogroupedMainAndPairsRDD.toLocalIterator
       )
     } else {
@@ -1017,7 +1018,7 @@ private[spark] object DataHelpers {
         pool.createDataMetaInfo,
         selectedDF.schema,
         estimatedFeatureCount,
-        threadCount,
+        localExecutor,
         selectedDF.toLocalIterator.asScala
       )
     }
@@ -1048,7 +1049,7 @@ private[spark] object DataHelpers {
     pool: Pool,
     quantizedFeaturesIndices: QuantizedFeaturesIndices,
     selectedFeaturesFlatIndices: Set[Int],
-    threadCount: Int = 1
+    localExecutor: TLocalExecutor
   ) : TQuantizedObjectsDataProviderPtr = {
     if (!pool.isQuantized) {
       throw new CatBoostError("downloadSubsetOfQuantizedFeatures is applicable only for quantized pools")
@@ -1102,7 +1103,7 @@ private[spark] object DataHelpers {
       dataMetaInfo,
       selectedFeaturesSchema,
       /*estimatedFeatureCount*/ None,
-      threadCount,
+      localExecutor,
       selectedFeaturesDf.toLocalIterator.asScala
     )._1.GetQuantizedObjectsDataProvider()
   }

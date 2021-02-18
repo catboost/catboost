@@ -67,8 +67,8 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;gdi32.lib;kernel32.lib;ole32.lib;oleaut32.lib;shell32.lib;user32.lib;uuid.lib;winspool.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  ws2_32.lib crypt32.lib ws2_32.lib</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  ws2_32.lib crypt32.lib ws2_32.lib</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  crypt32.lib ws2_32.lib</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  crypt32.lib ws2_32.lib</AdditionalOptions>
       <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
       <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">DebugFastLink</GenerateDebugInformation>
       <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</RandomizedBaseAddress>
@@ -78,13 +78,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\enum34\2204d84a0874c8df7a27c992bd.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\enum34\0536fa03d6f33efaf60b0403f4.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\enum34\c9e67d8f763378ecda909426d9.cpp"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\enum34\_2204d84a0874c8df7a27c992bd.yasm">
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\enum34\_0536fa03d6f33efaf60b0403f4.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\enum34
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/libc_compat/include/windows" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/restricted/libffi/include" "-I" "$(SolutionDir)../contrib/restricted/libffi/configs/x86_64-microsoft-windows/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/enum34/_2204d84a0874c8df7a27c992bd.obj" "$(SolutionDir)$(Configuration)/contrib/python/enum34/_2204d84a0874c8df7a27c992bd.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/enum34/_0536fa03d6f33efaf60b0403f4.obj" "$(SolutionDir)$(Configuration)/contrib/python/enum34/_0536fa03d6f33efaf60b0403f4.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -95,7 +95,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\enum34
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/libc_compat/include/windows" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/restricted/libffi/include" "-I" "$(SolutionDir)../contrib/restricted/libffi/configs/x86_64-microsoft-windows/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/enum34/_2204d84a0874c8df7a27c992bd.obj" "$(SolutionDir)$(Configuration)/contrib/python/enum34/_2204d84a0874c8df7a27c992bd.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/enum34/_0536fa03d6f33efaf60b0403f4.obj" "$(SolutionDir)$(Configuration)/contrib/python/enum34/_0536fa03d6f33efaf60b0403f4.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -103,15 +103,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/enum34/_2204d84a0874c8df7a27c992bd.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\enum34\_2204d84a0874c8df7a27c992bd.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\enum34\_2204d84a0874c8df7a27c992bd.obj;</Outputs>
+      <Message>$B/contrib/python/enum34/_0536fa03d6f33efaf60b0403f4.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\enum34\_0536fa03d6f33efaf60b0403f4.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\enum34\_0536fa03d6f33efaf60b0403f4.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\enum34\_c9e67d8f763378ecda909426d9.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\enum34
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/libc_compat/include/windows" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/restricted/libffi/include" "-I" "$(SolutionDir)../contrib/restricted/libffi/configs/x86_64-microsoft-windows/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/enum34/_c9e67d8f763378ecda909426d9.obj" "$(SolutionDir)$(Configuration)/contrib/python/enum34/_c9e67d8f763378ecda909426d9.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/enum34/_c9e67d8f763378ecda909426d9.obj" "$(SolutionDir)$(Configuration)/contrib/python/enum34/_c9e67d8f763378ecda909426d9.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -122,7 +122,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\enum34
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/libc_compat/include/windows" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/restricted/libffi/include" "-I" "$(SolutionDir)../contrib/restricted/libffi/configs/x86_64-microsoft-windows/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/enum34/_c9e67d8f763378ecda909426d9.obj" "$(SolutionDir)$(Configuration)/contrib/python/enum34/_c9e67d8f763378ecda909426d9.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/enum34/_c9e67d8f763378ecda909426d9.obj" "$(SolutionDir)$(Configuration)/contrib/python/enum34/_c9e67d8f763378ecda909426d9.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -138,7 +138,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\enum34
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/enum34/2204d84a0874c8df7a27c992bd.cpp" "_93c206a031cd1696826936df42=/py_modules/enum.__init__" "_a1d7ba02d04a38e64c1f5ca7f3=resfs/src//py_modules/enum.__init__" "_2cb8fa859b14d7006ec00ffb41=/py_code/enum.__init__" "_7ff5fca3482a07ae1870e5bcf5=/py_modules/enum.enum" "_374abc0554b573792d16f4b1b1=resfs/src//py_modules/enum.enum" "_2d9b456fdb26aec1ce497bac82=/py_code/enum.enum"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/enum34/0536fa03d6f33efaf60b0403f4.cpp" "_93c206a031cd1696826936df42=/py_modules/enum.__init__" "_a1d7ba02d04a38e64c1f5ca7f3=resfs/src//py_modules/enum.__init__" "_2cb8fa859b14d7006ec00ffb41=/py_code/enum.__init__"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\enum34
 if %errorlevel% neq 0 goto :cmEnd
@@ -153,7 +153,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\enum34
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/enum34/2204d84a0874c8df7a27c992bd.cpp" "_93c206a031cd1696826936df42=/py_modules/enum.__init__" "_a1d7ba02d04a38e64c1f5ca7f3=resfs/src//py_modules/enum.__init__" "_2cb8fa859b14d7006ec00ffb41=/py_code/enum.__init__" "_7ff5fca3482a07ae1870e5bcf5=/py_modules/enum.enum" "_374abc0554b573792d16f4b1b1=resfs/src//py_modules/enum.enum" "_2d9b456fdb26aec1ce497bac82=/py_code/enum.enum"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/enum34/0536fa03d6f33efaf60b0403f4.cpp" "_93c206a031cd1696826936df42=/py_modules/enum.__init__" "_a1d7ba02d04a38e64c1f5ca7f3=resfs/src//py_modules/enum.__init__" "_2cb8fa859b14d7006ec00ffb41=/py_code/enum.__init__"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\enum34
 if %errorlevel% neq 0 goto :cmEnd
@@ -165,9 +165,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/enum34/2204d84a0874c8df7a27c992bd.cpp	$B/contrib/python/enum34/c9e67d8f763378ecda909426d9.cpp	</Message>
+      <Message>$B/contrib/python/enum34/0536fa03d6f33efaf60b0403f4.cpp	$B/contrib/python/enum34/c9e67d8f763378ecda909426d9.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\enum34\2204d84a0874c8df7a27c992bd.cpp;$(SolutionDir)$(Configuration)\contrib\python\enum34\c9e67d8f763378ecda909426d9.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\enum34\0536fa03d6f33efaf60b0403f4.cpp;$(SolutionDir)$(Configuration)\contrib\python\enum34\c9e67d8f763378ecda909426d9.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -175,10 +175,6 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\enum34
 if %errorlevel% neq 0 goto :cmEnd
 "python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/enum34/enum/__init__.py-" "$(SolutionDir)../contrib/python/enum34/enum/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/enum34/enum/__init__.py.y7lh.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\enum34
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/enum34/enum/enum.py-" "$(SolutionDir)../contrib/python/enum34/enum/enum.py" "$(SolutionDir)$(Configuration)/contrib/python/enum34/enum/enum.py.tkng.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
@@ -190,19 +186,15 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\enum34
 if %errorlevel% neq 0 goto :cmEnd
 "python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/enum34/enum/__init__.py-" "$(SolutionDir)../contrib/python/enum34/enum/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/enum34/enum/__init__.py.y7lh.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\enum34
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/enum34/enum/enum.py-" "$(SolutionDir)../contrib/python/enum34/enum/enum.py" "$(SolutionDir)$(Configuration)/contrib/python/enum34/enum/enum.py.tkng.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/enum34/enum/__init__.py.y7lh.yapyc	$B/contrib/python/enum34/enum/enum.py.tkng.yapyc	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\contrib\python\enum34\enum\__init__.py;$(SolutionDir)..\contrib\python\enum34\enum\enum.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\enum34\enum\__init__.py.y7lh.yapyc;$(SolutionDir)$(Configuration)\contrib\python\enum34\enum\enum.py.tkng.yapyc;</Outputs>
+      <Message>$B/contrib/python/enum34/enum/__init__.py.y7lh.yapyc	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\contrib\python\enum34\enum\__init__.py;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\enum34\enum\__init__.py.y7lh.yapyc;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\enum34\.dist-info\METADATA">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -235,7 +227,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\enum34
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/enum34/_2204d84a0874c8df7a27c992bd.yasm" "$(SolutionDir)../contrib/python/enum34/enum/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/enum34/_93c206a031cd1696826936df42.rodata" "-" "contrib/python/enum34/enum/__init__.py" "_a1d7ba02d04a38e64c1f5ca7f3.rodata" "$(SolutionDir)$(Configuration)/contrib/python/enum34/enum/__init__.py.y7lh.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/enum34/_2cb8fa859b14d7006ec00ffb41.rodata" "$(SolutionDir)../contrib/python/enum34/enum/enum.py" "$(SolutionDir)$(Configuration)/contrib/python/enum34/_7ff5fca3482a07ae1870e5bcf5.rodata" "-" "contrib/python/enum34/enum/enum.py" "_374abc0554b573792d16f4b1b1.rodata" "$(SolutionDir)$(Configuration)/contrib/python/enum34/enum/enum.py.tkng.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/enum34/_2d9b456fdb26aec1ce497bac82.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/enum34/_0536fa03d6f33efaf60b0403f4.yasm" "$(SolutionDir)../contrib/python/enum34/enum/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/enum34/_93c206a031cd1696826936df42.rodata" "-" "contrib/python/enum34/enum/__init__.py" "_a1d7ba02d04a38e64c1f5ca7f3.rodata" "$(SolutionDir)$(Configuration)/contrib/python/enum34/enum/__init__.py.y7lh.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/enum34/_2cb8fa859b14d7006ec00ffb41.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -246,7 +238,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\enum34
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/enum34/_2204d84a0874c8df7a27c992bd.yasm" "$(SolutionDir)../contrib/python/enum34/enum/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/enum34/_93c206a031cd1696826936df42.rodata" "-" "contrib/python/enum34/enum/__init__.py" "_a1d7ba02d04a38e64c1f5ca7f3.rodata" "$(SolutionDir)$(Configuration)/contrib/python/enum34/enum/__init__.py.y7lh.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/enum34/_2cb8fa859b14d7006ec00ffb41.rodata" "$(SolutionDir)../contrib/python/enum34/enum/enum.py" "$(SolutionDir)$(Configuration)/contrib/python/enum34/_7ff5fca3482a07ae1870e5bcf5.rodata" "-" "contrib/python/enum34/enum/enum.py" "_374abc0554b573792d16f4b1b1.rodata" "$(SolutionDir)$(Configuration)/contrib/python/enum34/enum/enum.py.tkng.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/enum34/_2d9b456fdb26aec1ce497bac82.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/enum34/_0536fa03d6f33efaf60b0403f4.yasm" "$(SolutionDir)../contrib/python/enum34/enum/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/enum34/_93c206a031cd1696826936df42.rodata" "-" "contrib/python/enum34/enum/__init__.py" "_a1d7ba02d04a38e64c1f5ca7f3.rodata" "$(SolutionDir)$(Configuration)/contrib/python/enum34/enum/__init__.py.y7lh.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/enum34/_2cb8fa859b14d7006ec00ffb41.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -254,9 +246,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/enum34/_2204d84a0874c8df7a27c992bd.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\enum34\enum\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\enum34\enum\__init__.py.y7lh.yapyc;$(SolutionDir)..\contrib\python\enum34\enum\enum.py;$(SolutionDir)$(Configuration)\contrib\python\enum34\enum\enum.py.tkng.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\enum34\_2204d84a0874c8df7a27c992bd.yasm;$(SolutionDir)$(Configuration)\contrib\python\enum34\_93c206a031cd1696826936df42.rodata;$(SolutionDir)$(Configuration)\contrib\python\enum34\_2cb8fa859b14d7006ec00ffb41.rodata;$(SolutionDir)$(Configuration)\contrib\python\enum34\_7ff5fca3482a07ae1870e5bcf5.rodata;$(SolutionDir)$(Configuration)\contrib\python\enum34\_2d9b456fdb26aec1ce497bac82.rodata;</Outputs>
+      <Message>$B/contrib/python/enum34/_0536fa03d6f33efaf60b0403f4.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\enum34\enum\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\enum34\enum\__init__.py.y7lh.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\enum34\_0536fa03d6f33efaf60b0403f4.yasm;$(SolutionDir)$(Configuration)\contrib\python\enum34\_93c206a031cd1696826936df42.rodata;$(SolutionDir)$(Configuration)\contrib\python\enum34\_2cb8fa859b14d7006ec00ffb41.rodata;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

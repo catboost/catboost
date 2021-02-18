@@ -28,8 +28,6 @@
 
 #include <Python.h>
 #include "longintrepr.h"
-#include "pythread.h"
-#include "structmember.h"
 #include "complexobject.h"
 #include "mpdecimal.h"
 
@@ -38,8 +36,8 @@
 #include "docstrings.h"
 
 
-#if !defined(MPD_VERSION_HEX) || MPD_VERSION_HEX < 0x02040100
-  #error "libmpdec version >= 2.4.1 required"
+#if !defined(MPD_VERSION_HEX) || MPD_VERSION_HEX < 0x02050000
+  #error "libmpdec version >= 2.5.0 required"
 #endif
 
 
@@ -58,12 +56,10 @@
 
 #define BOUNDS_CHECK(x, MIN, MAX) x = (x < MIN || MAX < x) ? MAX : x
 
-#ifndef UNUSED
 #if defined(__GNUC__) && !defined(__INTEL_COMPILER)
   #define UNUSED __attribute__((unused))
 #else
   #define UNUSED
-#endif
 #endif
 
 /* _Py_DEC_MINALLOC >= MPD_MINALLOC */
@@ -103,9 +99,9 @@ static PyTypeObject PyDec_Type;
 static PyTypeObject *PyDecSignalDict_Type;
 static PyTypeObject PyDecContext_Type;
 static PyTypeObject PyDecContextManager_Type;
-#define PyDec_CheckExact(v) (Py_TYPE(v) == &PyDec_Type)
+#define PyDec_CheckExact(v) Py_IS_TYPE(v, &PyDec_Type)
 #define PyDec_Check(v) PyObject_TypeCheck(v, &PyDec_Type)
-#define PyDecSignalDict_Check(v) (Py_TYPE(v) == PyDecSignalDict_Type)
+#define PyDecSignalDict_Check(v) Py_IS_TYPE(v, PyDecSignalDict_Type)
 #define PyDecContext_Check(v) PyObject_TypeCheck(v, &PyDecContext_Type)
 #define MPD(v) (&((PyDecObject *)v)->dec)
 #define SdFlagAddr(v) (((PyDecSignalDictObject *)v)->flags)
@@ -1885,7 +1881,7 @@ dec_dealloc(PyObject *dec)
 /******************************************************************************/
 
 Py_LOCAL_INLINE(int)
-is_space(enum PyUnicode_Kind kind, void *data, Py_ssize_t pos)
+is_space(enum PyUnicode_Kind kind, const void *data, Py_ssize_t pos)
 {
     Py_UCS4 ch = PyUnicode_READ(kind, data, pos);
     return Py_UNICODE_ISSPACE(ch);
@@ -1903,7 +1899,7 @@ static char *
 numeric_as_ascii(const PyObject *u, int strip_ws, int ignore_underscores)
 {
     enum PyUnicode_Kind kind;
-    void *data;
+    const void *data;
     Py_UCS4 ch;
     char *res, *cp;
     Py_ssize_t j, len;
@@ -2733,7 +2729,7 @@ PyDecType_FromObjectExact(PyTypeObject *type, PyObject *v, PyObject *context)
     else {
         PyErr_Format(PyExc_TypeError,
             "conversion from %s to Decimal is not supported",
-            v->ob_type->tp_name);
+            Py_TYPE(v)->tp_name);
         return NULL;
     }
 }
@@ -2782,7 +2778,7 @@ PyDec_FromObject(PyObject *v, PyObject *context)
     else {
         PyErr_Format(PyExc_TypeError,
             "conversion from %s to Decimal is not supported",
-            v->ob_type->tp_name);
+            Py_TYPE(v)->tp_name);
         return NULL;
     }
 }
@@ -2845,7 +2841,7 @@ convert_op(int type_err, PyObject **conv, PyObject *v, PyObject *context)
     if (type_err) {
         PyErr_Format(PyExc_TypeError,
             "conversion from %s to Decimal is not supported",
-            v->ob_type->tp_name);
+            Py_TYPE(v)->tp_name);
     }
     else {
         Py_INCREF(Py_NotImplemented);
@@ -3402,9 +3398,9 @@ dec_as_long(PyObject *dec, PyObject *context, int round)
         i--;
     }
 
-    Py_SIZE(pylong) = i;
+    Py_SET_SIZE(pylong, i);
     if (mpd_isnegative(x) && !mpd_iszero(x)) {
-        Py_SIZE(pylong) = -i;
+        Py_SET_SIZE(pylong, -i);
     }
 
     mpd_del(x);

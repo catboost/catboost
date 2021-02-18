@@ -8,6 +8,9 @@ import tempfile
 import six
 import shutil
 
+from .core import PATH_TYPES, fspath
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -75,9 +78,9 @@ def _get_cache_path():
 
 
 def set_cache_path(path):
-    assert isinstance(path, str), 'expected string'
+    assert isinstance(path, PATH_TYPES), 'expected string or pathlib.Path'
     global _cache_path
-    _cache_path = path
+    _cache_path = fspath(path)
 
 
 def _download_dataset(url, md5, dataset_name, train_file, test_file, cache=False):

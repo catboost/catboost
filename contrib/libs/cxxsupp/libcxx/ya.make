@@ -1,8 +1,6 @@
 LIBRARY()
 
-LICENSE(
-    APACHE
-)
+LICENSE(MIT)
 
 
 
@@ -38,7 +36,7 @@ ELSEIF (CLANG OR MUSL OR OS_DARWIN OR USE_LTO)
         DEFAULT(CXX_RT "glibcxx_static")
 
         # ARM7 OS_SDK has old libstdc++ without aligned allocation support
-        CFLAGS(GLOBAL -D_LIBCPP_HAS_NO_ALIGNED_ALLOCATION)
+        CFLAGS(GLOBAL -fno-aligned-new)
     ELSE()
         DEFAULT(CXX_RT "libcxxrt")
     ENDIF()

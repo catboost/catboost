@@ -241,22 +241,18 @@ void FormatBackTrace(IOutputStream* out, void* const* backtrace, size_t backtrac
     }
 }
 
-void FormatBackTraceImpl(IOutputStream* out) {
-    void* array[300];
-    const size_t s = BackTrace(array, Y_ARRAY_SIZE(array));
-    FormatBackTrace(out, array, s);
-}
-
-TFormatBackTraceFn FormatBackTraceFn = FormatBackTraceImpl;
-
-void FormatBackTrace(IOutputStream* out) {
-    FormatBackTraceFn(out);
-}
+TFormatBackTraceFn FormatBackTraceFn = FormatBackTrace;
 
 TFormatBackTraceFn SetFormatBackTraceFn(TFormatBackTraceFn f) {
     TFormatBackTraceFn prevFn = FormatBackTraceFn;
     FormatBackTraceFn = f;
     return prevFn;
+}
+
+void FormatBackTrace(IOutputStream* out) {
+    void* array[300];
+    const size_t s = BackTrace(array, Y_ARRAY_SIZE(array));
+    FormatBackTraceFn(out, array, s);
 }
 
 TFormatBackTraceFn GetFormatBackTraceFn() {

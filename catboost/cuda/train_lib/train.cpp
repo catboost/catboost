@@ -350,7 +350,8 @@ namespace NCatboostCuda {
                                                       trainingData.FeatureEstimators,
                                                       *trainingData.Learn->MetaInfo.FeaturesLayout,
                                                       exclusiveBundlesCopy,
-                                                      quantizedFeaturesInfo);
+                                                      quantizedFeaturesInfo,
+                                                      /*enableShuffling*/internalOptions.HaveLearnFeatureInMemory);
 
 
             SetDataDependentDefaultsForGpu(

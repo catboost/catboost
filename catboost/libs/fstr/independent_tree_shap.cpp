@@ -383,7 +383,7 @@ static TVector<double> GetUnpackedShapValues(
 
 static TVector<TVector<double>> GetProbabilityMeanValues(
     const TVector<TVector<TVector<double>>>& shapValues, // [refIdx][dim][feature]
-    double bias
+    const TVector<double>& bias
 ) {
     TVector<TVector<double>> probabilityMeanValues(shapValues[0].size(), TVector<double>(shapValues.size(), 0.0));
     for (auto referenceIdx : xrange(shapValues.size())) {
@@ -391,7 +391,7 @@ static TVector<TVector<double>> GetProbabilityMeanValues(
         const size_t approxDimension = shapValuesForReference.size();
         TVector<double> meanValuesForReference(approxDimension);
         for (auto dimension : xrange(approxDimension)) {
-            meanValuesForReference[dimension] = shapValuesForReference[dimension].back() + bias;
+            meanValuesForReference[dimension] = shapValuesForReference[dimension].back() + bias[dimension];
         }
         TVector<double> probabilityMeanValuesForReference(approxDimension);
         CalcSoftmax(meanValuesForReference, &probabilityMeanValuesForReference);
@@ -410,7 +410,7 @@ void PostProcessingIndependent(
     size_t flatFeatureCount,
     size_t documentIdx,
     bool calcInternalValues,
-    double bias,
+    const TVector<double>& bias,
     TVector<TVector<double>>* shapValues
 ) {
     const size_t featureCount = calcInternalValues ? combinationClassFeatures.size() : flatFeatureCount;
@@ -464,7 +464,7 @@ void PostProcessingIndependent(
                 modelOutputType,
                 targetOfDocument,
                 isNotRawOutputType,
-                bias
+                bias[dimension]
             );
         const auto& shapValuesForAllReferencesOneDimensional = shapValuesForAllReferences[dimension];
         TArrayRef<double> shapValuesRef = MakeArrayRef((*shapValues)[dimension]);

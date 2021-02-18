@@ -15,11 +15,6 @@ ALLOW devtools/experimental/mds -> contrib/deprecated/wangle
 DENY .* -> contrib/deprecated/folly
 DENY .* -> contrib/deprecated/wangle
 
-ALLOW contrib/deprecated/uriparser -> contrib/deprecated/uriparser
-ALLOW mds -> contrib/deprecated/uriparser
-ALLOW devtools/experimental/mds -> contrib/deprecated/uriparser
-DENY .* -> contrib/deprecated/uriparser
-
 # django-1.11 deprecation
 ALLOW contrib/python/.*/tests? -> contrib/python/django/django-1.11
 ALLOW contrib/deprecated/python/.*/tests? -> contrib/python/django/django-1.11
@@ -48,8 +43,6 @@ ALLOW comdep_analytics/telephony/telephony -> contrib/python/django/django-1.11
 ALLOW contrib/deprecated/python/po_file_checker -> contrib/python/django/django-1.11
 ALLOW devtools/dummy_arcadia/django_settings -> contrib/python/django/django-1.11
 ALLOW devtools/signer/signer -> contrib/python/django/django-1.11
-ALLOW distribution_interface/backend/backend -> contrib/python/django/django-1.11
-ALLOW distribution_interface/backend/tests -> contrib/python/django/django-1.11
 ALLOW douber/backend -> contrib/python/django/django-1.11
 ALLOW intranet/audit/src -> contrib/python/django/django-1.11
 ALLOW intranet/crt/tests -> contrib/python/django/django-1.11
@@ -69,33 +62,6 @@ ALLOW library/python/django_russian -> contrib/python/django/django-1.11
 ALLOW library/python/metrics_framework -> contrib/python/django/django-1.11
 ALLOW library/python/python-django-yauth/tests -> contrib/python/django/django-1.11
 ALLOW library/python/tools_mongodb_cache -> contrib/python/django/django-1.11
-ALLOW metrika/admin/packages/noodle/nginx/docker.json -> contrib/python/django/django-1.11
-ALLOW metrika/admin/python/bishop/config_api/base -> contrib/python/django/django-1.11
-ALLOW metrika/admin/python/bishop/config_api/bin -> contrib/python/django/django-1.11
-ALLOW metrika/admin/python/bishop/config_api/config_api -> contrib/python/django/django-1.11
-ALLOW metrika/admin/python/bishop/frontend/base -> contrib/python/django/django-1.11
-ALLOW metrika/admin/python/bishop/frontend/bin -> contrib/python/django/django-1.11
-ALLOW metrika/admin/python/bishop/frontend/bishop/migrations -> contrib/python/django/django-1.11
-ALLOW metrika/admin/python/bishop/frontend/bishop -> contrib/python/django/django-1.11
-ALLOW metrika/admin/python/clickhouse_backups/frontend/backups/migrations -> contrib/python/django/django-1.11
-ALLOW metrika/admin/python/clickhouse_backups/frontend/backups -> contrib/python/django/django-1.11
-ALLOW metrika/admin/python/clickhouse_backups/frontend/base -> contrib/python/django/django-1.11
-ALLOW metrika/admin/python/clickhouse_rbac/frontend/base -> contrib/python/django/django-1.11
-ALLOW metrika/admin/python/clickhouse_rbac/frontend/rbac/migrations -> contrib/python/django/django-1.11
-ALLOW metrika/admin/python/clickhouse_rbac/frontend/rbac -> contrib/python/django/django-1.11
-ALLOW metrika/admin/python/cms/frontend/base -> contrib/python/django/django-1.11
-ALLOW metrika/admin/python/cms/frontend/cms/migrations -> contrib/python/django/django-1.11
-ALLOW metrika/admin/python/cms/frontend/cms -> contrib/python/django/django-1.11
-ALLOW metrika/admin/python/duty/frontend/base -> contrib/python/django/django-1.11
-ALLOW metrika/admin/python/duty/frontend/duty/migrations -> contrib/python/django/django-1.11
-ALLOW metrika/admin/python/duty/frontend/duty -> contrib/python/django/django-1.11
-ALLOW metrika/admin/python/strogg/frontend/base -> contrib/python/django/django-1.11
-ALLOW metrika/admin/python/strogg/frontend/strogg/migrations -> contrib/python/django/django-1.11
-ALLOW metrika/admin/python/strogg/frontend/strogg -> contrib/python/django/django-1.11
-ALLOW metrika/admin/python/zooface/frontend/base -> contrib/python/django/django-1.11
-ALLOW metrika/admin/python/zooface/frontend/zooface/migrations -> contrib/python/django/django-1.11
-ALLOW metrika/admin/python/zooface/frontend/zooface -> contrib/python/django/django-1.11
-ALLOW metrika/pylib/noodle -> contrib/python/django/django-1.11
 ALLOW mssngr/botplatform/src/bots/common/fanout -> contrib/python/django/django-1.11
 ALLOW mssngr/botplatform/src/bots/common -> contrib/python/django/django-1.11
 ALLOW mssngr/botplatform/tests -> contrib/python/django/django-1.11
@@ -202,10 +168,6 @@ ALLOW yaphone/dialer/project -> contrib/python/django/django-1.11
 ALLOW yaphone/utils/geo -> contrib/python/django/django-1.11
 DENY .* -> contrib/python/django/django-1.11
 
-# django-2.2 constraints
-ALLOW contrib/python/.*/tests? -> contrib/python/django/django-2.2
-DENY contrib/python -> contrib/python/django/django-2.2
-
 ALLOW maps -> maps/contrib
 DENY .* -> maps/contrib
 
@@ -233,7 +195,6 @@ DENY .* -> contrib/libs/sophos
 ALLOW contrib/python/backports/tempfile ->  contrib/python/backports/weakref
 DENY .* ->  contrib/python/backports/weakref
 
-ALLOW contrib/python/opentracing -> contrib/python/thrift
 ALLOW contrib/python/thrift/tests -> contrib/python/thrift
 ALLOW contrib/python/jaeger-client -> contrib/python/thrift
 ALLOW search/mon/wabbajack/libs/generated/iss3 -> contrib/python/thrift
@@ -276,9 +237,17 @@ ALLOW market/sre/tools/cs_mysql_monitoring/mysql_monitoring -> contrib/python/My
 ALLOW metrika/core/monitoring/mobile-logs-api-export-generator-check -> contrib/python/MySQL-python
 ALLOW passport/python/adm_api -> contrib/python/MySQL-python
 ALLOW passport/python/api -> contrib/python/MySQL-python
+ALLOW passport/python/core/serializers/eav/tests -> contrib/python/MySQL-python
 ALLOW passport/python/core/tests -> contrib/python/MySQL-python
+ALLOW passport/python/core/db/tests -> contrib/python/MySQL-python
+ALLOW passport/python/core/db/read_api/tests -> contrib/python/MySQL-python
+ALLOW passport/python/core/dbmanager/tests -> contrib/python/MySQL-python
+ALLOW passport/python/core/frodo/tests -> contrib/python/MySQL-python
 ALLOW passport/python/core/mailer/faker/tests -> contrib/python/MySQL-python
 ALLOW passport/python/core/models/tests -> contrib/python/MySQL-python
+ALLOW passport/python/core/serializers/domain/tests -> contrib/python/MySQL-python
+ALLOW passport/python/core/serializers/tests -> contrib/python/MySQL-python
+ALLOW passport/python/core/yasms -> contrib/python/MySQL-python
 ALLOW passport/python/dbscripts -> contrib/python/MySQL-python
 ALLOW passport/python/grants_configurator -> contrib/python/MySQL-python
 ALLOW passport/python/social -> contrib/python/MySQL-python
@@ -402,6 +371,8 @@ ALLOW maps/geomarketing -> contrib/python/facebook-business
 ALLOW sandbox/projects/maps/geomarketing -> contrib/python/facebook-business
 ALLOW jupytercloud/arcadia_kernel/default -> contrib/python/facebook-business
 ALLOW jupytercloud/arcadia_kernel/default_yql -> contrib/python/facebook-business
+ALLOW geoproduct/amocrm/fb_leads -> contrib/python/facebook-business
+ALLOW statbox/statkey -> contrib/python/facebook-business
 DENY .* -> contrib/python/facebook-business
 
 # https://st.yandex-team.ru/CONTRIB-1954
@@ -474,26 +445,18 @@ ALLOW cloud/support/dutybot -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW cloud/support/mdb-support-bot -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW comdep_analytics/crm_advisor/lib/db -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW comdep_analytics/crm_advisor/lib/log -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW contrib/python/aiopg/aiopg/sa -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW contrib/python/alembic -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/apscheduler/tests -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/Authlib -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW contrib/python/clickhouse-sqlalchemy -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/databases -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/fastapi-utils -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/flask_admin/flask_admin/tests -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/flask_admin -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW contrib/python/flask_sqlalchemy -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/geoalchemy -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/gino -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/graphene_sqlalchemy/graphene_sqlalchemy/tests -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/graphene_sqlalchemy -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW contrib/python/ipython-sql -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW contrib/python/jupyterhub/jupyterhub/alembic -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW contrib/python/jupyterhub -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/luigi -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/marshmallow-sqlalchemy/py2 -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW contrib/python/marshmallow-sqlalchemy/py3 -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/sentry-sdk/sentry_sdk/integrations/sqlalchemy -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/SQLAlchemy-Continuum -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/sqlalchemy/sqlalchemy-1.2/sqlalchemy/testing -> contrib/python/sqlalchemy/sqlalchemy-1.2
@@ -534,9 +497,6 @@ ALLOW intranet/vconf/src -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW intranet/wiki/src -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW intranet/wiki/src.template -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW intranet/yandex_directory/src -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW jupytercloud/arcadia_kernel.libra_noyql.inc -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW jupytercloud/backend/db/alembic -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW jupytercloud/backend -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW keyboard/analytics/toloka/daemon/backend -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW mail/callmeback/callmeback/stages/api -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW mail/callmeback/callmeback/stages/db_stats -> contrib/python/sqlalchemy/sqlalchemy-1.2
@@ -674,6 +634,7 @@ ALLOW passport/python/core/dbmanager -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW passport/python/core/db/read_api -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW passport/python/core/db -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW passport/python/core/serializers/domain -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW passport/python/core/serializers/domain/tests -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW passport/python/core/serializers/eav/query -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW passport/python/core -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW passport/python/library/errors -> contrib/python/sqlalchemy/sqlalchemy-1.2

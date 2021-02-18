@@ -706,12 +706,34 @@ public:
     UNIT_TEST(TestIterators);
     UNIT_TEST(TestReverseIterators);
     UNIT_TEST(TestAppendUtf16)
+    UNIT_TEST(TestFillingAssign)
+    UNIT_TEST(TestStdStreamApi)
     //UNIT_TEST(TestOperatorsCI); must fail
     UNIT_TEST_SUITE_END();
 
     void TestAppendUtf16() {
         TString appended = TString("А роза упала").AppendUtf16(u" на лапу Азора");
         UNIT_ASSERT(appended == "А роза упала на лапу Азора");
+    }
+
+    void TestFillingAssign() {
+        TString s("abc");
+        s.assign(5, 'a');
+        UNIT_ASSERT_VALUES_EQUAL(s, "aaaaa");
+    }
+
+    void TestStdStreamApi() {
+        const TString data = "abracadabra";
+        std::stringstream ss;
+        ss << data;
+
+        UNIT_ASSERT_VALUES_EQUAL(data, ss.str());
+
+        ss << '\n' << data << std::endl;
+
+        TString read;
+        ss >> read;
+        UNIT_ASSERT_VALUES_EQUAL(read, data);
     }
 };
 
@@ -973,6 +995,8 @@ private:
 
         UNIT_ASSERT(strWide == TUtf32String::FromUtf8(strUtf8.c_str()));
         UNIT_ASSERT(strWide == TUtf32String::FromUtf8(strUtf8));
+        UNIT_ASSERT(strWide == UTF8ToUTF32<true>(strUtf8));
+        UNIT_ASSERT(strWide == UTF8ToUTF32<false>(strUtf8));
         UNIT_ASSERT(strWide == TUtf32String::FromUtf8(TStringBuf(strUtf8)));
 
         // assign

@@ -465,7 +465,7 @@ class LIBPROTOBUF_EXPORT RepeatedPtrFieldBase {
   template<typename TypeHandler>
   void Truncate(int new_size) {
     GOOGLE_DCHECK_LE(new_size, current_size_);
-    for (int i = new_size + 1; i < current_size_; i++) {
+    for (int i = new_size; i < current_size_; i++) {
       TypeHandler::Clear(cast<TypeHandler>(rep_->elements[i]));
     }
     current_size_ = new_size;
@@ -791,6 +791,17 @@ class RepeatedPtrField : public internal::RepeatedPtrFieldBase {
 
   const Element& operator[](int index) const { return Get(index); }
   Element& operator[](int index) { return *Mutable(index); }
+
+  const Element& at(int index) const {
+    GOOGLE_CHECK_GE(index, 0);
+    GOOGLE_CHECK_LT(index, size());
+    return this->operator[](index);
+  }
+  Element& at(int index) {
+    GOOGLE_CHECK_GE(index, 0);
+    GOOGLE_CHECK_LT(index, size());
+    return this->operator[](index);
+  }
 
   // Remove the last element in the array.
   // Ownership of the element is retained by the array.

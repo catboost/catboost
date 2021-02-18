@@ -1,6 +1,6 @@
 LIBRARY()
 
-LICENSE(APACHE2)
+LICENSE(Apache-2.0)
 
 SRCS(gamma_function.cpp)
 

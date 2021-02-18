@@ -59,10 +59,17 @@ IF (OS_WINDOWS OR OS_DARWIN OR OS_IOS)
     )
 ENDIF()
 
+IF (OS_DARWIN)
+    SRCS(
+        reallocarray.c
+    )
+ENDIF()
+
 IF (OS_WINDOWS)
     ADDINCL(GLOBAL contrib/libs/libc_compat/include/windows)
 
     SRCS(
+        reallocarray.c
         stpcpy.c
         strlcat.c
         strlcpy.c
@@ -72,8 +79,15 @@ IF (OS_WINDOWS)
     )
 ENDIF()
 
-IF (NOT MUSL AND OS_LINUX AND OS_SDK STREQUAL "ubuntu-12")
+IF (OS_LINUX AND NOT MUSL AND OS_SDK == "ubuntu-12")
     ADDINCL(GLOBAL contrib/libs/libc_compat/include/uchar)
+ENDIF()
+
+IF (OS_LINUX AND NOT MUSL AND OS_SDK != "ubuntu-20")
+    SRCS(
+        # reallocarray was added in glibc=2.29
+        reallocarray.c
+    )
 ENDIF()
 
 END()

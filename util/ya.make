@@ -162,7 +162,6 @@ JOIN_SRCS(
     network/interface.cpp
     network/iovec.cpp
     network/ip.cpp
-    network/netloss.cpp
     network/nonblock.cpp
     network/pair.cpp
     network/poller.cpp

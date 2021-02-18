@@ -435,9 +435,10 @@ def execute(
         # Certain environment variables must be present for programs to work properly.
         # For more info see DEVTOOLSSUPPORT-4907
         mandatory_env_name = 'YA_MANDATORY_ENV_VARS'
-        if mandatory_env_name in os.environ:
-            env[mandatory_env_name] = os.environ[mandatory_env_name]
-            mandatory_system_vars = filter(None, os.environ.get('YA_MANDATORY_ENV_VARS', '').split(':'))
+        mandatory_vars = env.get(mandatory_env_name, os.environ.get(mandatory_env_name)) or ''
+        if mandatory_vars:
+            env[mandatory_env_name] = mandatory_vars
+            mandatory_system_vars = filter(None, mandatory_vars.split(':'))
         else:
             mandatory_system_vars = ['TMPDIR']
 
