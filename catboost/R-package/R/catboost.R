@@ -296,7 +296,7 @@ catboost.save_pool <- function(data, label = NULL, weight = NULL, baseline = NUL
 #' @name dim.catboost.Pool
 #' @title Dimensions of catboost.Pool
 #' @description Get dimensions of a Pool.
-#' 
+#'
 #' @param x The input dataset.
 #'
 #' Default value: Required argument
@@ -1477,7 +1477,7 @@ catboost.train <- function(learn_pool, test_pool = NULL, params = list()) {
 prepare_train_export_parameters <- function(params) {
 
     if (length(params) == 0) {
-        return ("{}")   
+        return ("{}")
     }
 
     if (!is.null(params$early_stopping_rounds)) {
@@ -1494,8 +1494,8 @@ prepare_train_export_parameters <- function(params) {
     if (!is.null(params$ignored_features)) {
         params$ignored_features <- as.character(params$ignored_features)
     }
-   
-    return(jsonlite::toJSON(params, auto_unbox = TRUE))
+
+    return(jsonlite::toJSON(params, auto_unbox = TRUE, digits = 10))
 }
 
 #' @name catboost.cv
@@ -2127,7 +2127,7 @@ catboost.get_plain_params <- function(model) {
 #'              fresh model object and increases memory usage inbetween calls to the garbage collector.
 #'              This function allows restoring the internal object beforehand so as to avoid
 #'              restoring the object multiple times.
-#'              
+#'
 #'              Note that the model object needs to be re-assigned as the output of this function,
 #'              as the modifications are not done in-place.
 #'
