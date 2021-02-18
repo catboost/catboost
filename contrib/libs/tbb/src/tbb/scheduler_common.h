@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2020 Intel Corporation
+    Copyright (c) 2005-2021 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -17,68 +17,32 @@
 #ifndef _TBB_scheduler_common_H
 #define _TBB_scheduler_common_H
 
-#include "tbb/tbb_machine.h"
-#include "tbb/cache_aligned_allocator.h"
-
-#include <string.h>  // for memset, memcpy, memmove
-
-#include "tbb_statistics.h"
-
-#if TBB_USE_ASSERT > 1
-#include <stdio.h>
-#endif /* TBB_USE_ASSERT > 1 */
-
-/* Temporarily change "private" to "public" while including "tbb/task.h".
-   This hack allows us to avoid publishing internal types and methods
-   in the public header files just for sake of friend declarations. */
-#ifndef private
-    #define private public
-    #define undef_private
-#endif
-
-#include "tbb/task.h"
-#include "tbb/tbb_exception.h"
-
-#ifdef undef_private
-    #undef private
-#endif
+#include "oneapi/tbb/detail/_utils.h"
+#include "oneapi/tbb/detail/_template_helpers.h"
+#include "oneapi/tbb/detail/_task.h"
+#include "oneapi/tbb/detail/_machine.h"
+#include "oneapi/tbb/task_group.h"
+#include "oneapi/tbb/cache_aligned_allocator.h"
+#include "itt_notify.h"
+#include "co_context.h"
+#include "misc.h"
+#include "governor.h"
 
 #ifndef __TBB_SCHEDULER_MUTEX_TYPE
 #define __TBB_SCHEDULER_MUTEX_TYPE tbb::spin_mutex
 #endif
 // TODO: add conditional inclusion based on specified type
-#include "tbb/spin_mutex.h"
+#include "oneapi/tbb/spin_mutex.h"
 
-// This macro is an attempt to get rid of ugly ifdefs in the shared parts of the code.
-// It drops the second argument depending on whether the controlling macro is defined.
-// The first argument is just a convenience allowing to keep comma before the macro usage.
-#if __TBB_TASK_GROUP_CONTEXT
-    #define __TBB_CONTEXT_ARG1(context) context
-    #define __TBB_CONTEXT_ARG(arg1, context) arg1, context
-#else /* !__TBB_TASK_GROUP_CONTEXT */
-    #define __TBB_CONTEXT_ARG1(context)
-    #define __TBB_CONTEXT_ARG(arg1, context) arg1
-#endif /* !__TBB_TASK_GROUP_CONTEXT */
-
-#if __TBB_TASK_ISOLATION
-    #define __TBB_ISOLATION_EXPR(isolation) isolation
-    #define __TBB_ISOLATION_ARG(arg1, isolation) arg1, isolation
-#else
-    #define __TBB_ISOLATION_EXPR(isolation)
-    #define __TBB_ISOLATION_ARG(arg1, isolation) arg1
-#endif /* __TBB_TASK_ISOLATION */
-
-
-#if DO_TBB_TRACE
-#include <cstdio>
-#define TBB_TRACE(x) ((void)std::printf x)
-#else
-#define TBB_TRACE(x) ((void)(0))
-#endif /* DO_TBB_TRACE */
-
-#if !__TBB_CPU_CTL_ENV_PRESENT
-#include <fenv.h>
+#if TBB_USE_ASSERT
+#include <atomic>
 #endif
+
+#include <cstdint>
+#include <exception>
+
+//! Mutex type for global locks in the scheduler
+using scheduler_mutex_type = __TBB_SCHEDULER_MUTEX_TYPE;
 
 #if _MSC_VER && !defined(__INTEL_COMPILER)
     // Workaround for overzealous compiler warnings
@@ -88,51 +52,228 @@
 #endif
 
 namespace tbb {
-namespace interface7 {
-namespace internal {
-class task_arena_base;
-class delegated_task;
-class wait_task;
-}}
-namespace internal {
-using namespace interface7::internal;
+namespace detail {
+namespace r1 {
 
 class arena;
-template<typename SchedulerTraits> class custom_scheduler;
-class generic_scheduler;
-class governor;
+class mail_inbox;
 class mail_outbox;
 class market;
 class observer_proxy;
-class task_scheduler_observer_v3;
 
-#if __TBB_TASK_PRIORITY
-static const intptr_t num_priority_levels = 3;
-static const intptr_t normalized_normal_priority = (num_priority_levels - 1) / 2;
+enum task_stream_accessor_type { front_accessor = 0, back_nonnull_accessor };
+template<task_stream_accessor_type> class task_stream;
 
-inline intptr_t normalize_priority ( priority_t p ) {
-    return intptr_t(p - priority_low) / priority_stride_v4;
-}
+using isolation_type = std::intptr_t;
+constexpr isolation_type no_isolation = 0;
 
-static const priority_t priority_from_normalized_rep[num_priority_levels] = {
-    priority_low, priority_normal, priority_high
+//------------------------------------------------------------------------
+// Extended execute data
+//------------------------------------------------------------------------
+
+//! Execute data used on a task dispatcher side, reflects a current execution state
+struct execution_data_ext : d1::execution_data {
+    task_dispatcher* task_disp{};
+    isolation_type isolation{};
+    d1::wait_context* wait_ctx{};
 };
 
-inline void assert_priority_valid ( intptr_t p ) {
-    __TBB_ASSERT_EX( p >= 0 && p < num_priority_levels, NULL );
+//------------------------------------------------------------------------
+// Task accessor
+//------------------------------------------------------------------------
+
+//! Interpretation of reserved task fields inside a task dispatcher
+struct task_accessor {
+    static constexpr std::uint64_t proxy_task_trait = 1;
+    static constexpr std::uint64_t resume_task_trait = 2;
+    static d1::task_group_context*& context(d1::task& t) {
+        task_group_context** tgc = reinterpret_cast<task_group_context**>(&t.m_reserved[0]);
+        return *tgc;
+    }
+    static isolation_type& isolation(d1::task& t) {
+        isolation_type* tag = reinterpret_cast<isolation_type*>(&t.m_reserved[2]);
+        return *tag;
+    }
+    static void set_proxy_trait(d1::task& t) {
+        // TODO: refactor proxy tasks not to work on uninitialized memory.
+        //__TBB_ASSERT((t.m_version_and_traits & proxy_task_trait) == 0, nullptr);
+        t.m_version_and_traits |= proxy_task_trait;
+    }
+    static bool is_proxy_task(d1::task& t) {
+        return (t.m_version_and_traits & proxy_task_trait) != 0;
+    }
+    static void set_resume_trait(d1::task& t) {
+        __TBB_ASSERT((t.m_version_and_traits & resume_task_trait) == 0, nullptr);
+        t.m_version_and_traits |= resume_task_trait;
+    }
+    static bool is_resume_task(d1::task& t) {
+        return (t.m_version_and_traits & resume_task_trait) != 0;
+    }
+};
+
+//------------------------------------------------------------------------
+//! Extended variant of the standard offsetof macro
+/** The standard offsetof macro is not sufficient for TBB as it can be used for
+    POD-types only. The constant 0x1000 (not NULL) is necessary to appease GCC. **/
+#define __TBB_offsetof(class_name, member_name) \
+    ((ptrdiff_t)&(reinterpret_cast<class_name*>(0x1000)->member_name) - 0x1000)
+
+//! Returns address of the object containing a member with the given name and address
+#define __TBB_get_object_ref(class_name, member_name, member_addr) \
+    (*reinterpret_cast<class_name*>((char*)member_addr - __TBB_offsetof(class_name, member_name)))
+
+//! Helper class for tracking floating point context and task group context switches
+/** Assuming presence of an itt collector, in addition to keeping track of floating
+    point context, this class emits itt events to indicate begin and end of task group
+    context execution **/
+template <bool report_tasks>
+class context_guard_helper {
+    const d1::task_group_context* curr_ctx;
+    d1::cpu_ctl_env guard_cpu_ctl_env;
+    d1::cpu_ctl_env curr_cpu_ctl_env;
+public:
+    context_guard_helper() : curr_ctx(NULL) {
+        guard_cpu_ctl_env.get_env();
+        curr_cpu_ctl_env = guard_cpu_ctl_env;
+    }
+    ~context_guard_helper() {
+        if (curr_cpu_ctl_env != guard_cpu_ctl_env)
+            guard_cpu_ctl_env.set_env();
+        if (report_tasks && curr_ctx)
+            ITT_TASK_END;
+    }
+    // The function is called from bypass dispatch loop on the hot path.
+    // Consider performance issues when refactoring.
+    void set_ctx(const d1::task_group_context* ctx) {
+        if (!ctx)
+            return;
+        const d1::cpu_ctl_env* ctl = reinterpret_cast<const d1::cpu_ctl_env*>(&ctx->my_cpu_ctl_env);
+        // Compare the FPU settings directly because the context can be reused between parallel algorithms.
+        if (*ctl != curr_cpu_ctl_env) {
+            curr_cpu_ctl_env = *ctl;
+            curr_cpu_ctl_env.set_env();
+        }
+        if (report_tasks && ctx != curr_ctx) {
+            // if task group context was active, report end of current execution frame.
+            if (curr_ctx)
+                ITT_TASK_END;
+            // reporting begin of new task group context execution frame.
+            // using address of task group context object to group tasks (parent).
+            // id of task execution frame is NULL and reserved for future use.
+            ITT_TASK_BEGIN(ctx, ctx->my_name, NULL);
+            curr_ctx = ctx;
+        }
+    }
+#if _WIN64
+    void restore_default() {
+        if (curr_cpu_ctl_env != guard_cpu_ctl_env) {
+            guard_cpu_ctl_env.set_env();
+            curr_cpu_ctl_env = guard_cpu_ctl_env;
+        }
+    }
+#endif // _WIN64
+};
+
+#if (_WIN32 || _WIN64 || __linux__) && (__TBB_x86_32 || __TBB_x86_64)
+#if _MSC_VER
+#pragma intrinsic(__rdtsc)
+#endif
+inline std::uint64_t machine_time_stamp() {
+#if __INTEL_COMPILER
+    return _rdtsc();
+#elif _MSC_VER
+    return __rdtsc();
+#else
+    std::uint32_t hi, lo;
+    __asm__ __volatile__("rdtsc" : "=d"(hi), "=a"(lo));
+    return (std::uint64_t(hi) << 32) | lo;
+#endif
 }
 
-inline intptr_t& priority ( task& t ) {
-    return t.prefix().context->my_priority;
+inline void prolonged_pause_impl() {
+    // Assumption based on practice: 1000-2000 ticks seems to be a suitable invariant for the
+    // majority of platforms. Currently, skip platforms that define __TBB_STEALING_PAUSE
+    // because these platforms require very careful tuning.
+    std::uint64_t prev = machine_time_stamp();
+    const std::uint64_t finish = prev + 1000;
+    atomic_backoff backoff;
+    do {
+        backoff.bounded_pause();
+        std::uint64_t curr = machine_time_stamp();
+        if (curr <= prev)
+            // Possibly, the current logical thread is moved to another hardware thread or overflow is occurred.
+            break;
+        prev = curr;
+    } while (prev < finish);
 }
-#else /* __TBB_TASK_PRIORITY */
-static const intptr_t num_priority_levels = 1;
-#endif /* __TBB_TASK_PRIORITY */
+#else
+inline void prolonged_pause_impl() {
+#ifdef __TBB_ipf
+    static const long PauseTime = 1500;
+#else
+    static const long PauseTime = 80;
+#endif
+    // TODO IDEA: Update PauseTime adaptively?
+    machine_pause(PauseTime);
+}
+#endif
 
-//! Mutex type for global locks in the scheduler
-typedef __TBB_SCHEDULER_MUTEX_TYPE scheduler_mutex_type;
+inline void prolonged_pause() {
+#if __TBB_WAITPKG_INTRINSICS_PRESENT && (_WIN32 || _WIN64 || __linux__) && (__TBB_x86_32 || __TBB_x86_64)
+    if (governor::wait_package_enabled()) {
+        std::uint64_t time_stamp = machine_time_stamp();
+        // _tpause function directs the processor to enter an implementation-dependent optimized state
+        // until the Time Stamp Counter reaches or exceeds the value specified in second parameter.
+        // Constant "700" is ticks to wait for.
+        // First parameter 0 selects between a lower power (cleared) or faster wakeup (set) optimized state.
+        _tpause(0, time_stamp + 700);
+    }
+    else
+#endif
+    prolonged_pause_impl();
+}
 
-#if __TBB_TASK_GROUP_CONTEXT
+class stealing_loop_backoff {
+    const int my_pause_threshold;
+    const int my_yield_threshold;
+    int my_pause_count;
+    int my_yield_count;
+public:
+    // my_yield_threshold = 100 is an experimental value. Ideally, once we start calling __TBB_Yield(),
+    // the time spent spinning before calling is_out_of_work() should be approximately
+    // the time it takes for a thread to be woken up. Doing so would guarantee that we do
+    // no worse than 2x the optimal spin time. Or perhaps a time-slice quantum is the right amount.
+    stealing_loop_backoff(int num_workers)
+        : my_pause_threshold{ 2 * (num_workers + 1) }
+#if __APPLE__
+        // threshold value tuned separately for macOS due to high cost of sched_yield there
+        , my_yield_threshold{10}
+#else
+        , my_yield_threshold{100}
+#endif
+        , my_pause_count{}
+        , my_yield_count{}
+    {}
+    bool pause() {
+        prolonged_pause();
+        if (my_pause_count++ >= my_pause_threshold) {
+            my_pause_count = my_pause_threshold;
+            d0::yield();
+            if (my_yield_count++ >= my_yield_threshold) {
+                my_yield_count = my_yield_threshold;
+                return true;
+            }
+        }
+        return false;
+    }
+    void reset_wait() {
+        my_pause_count = my_yield_count = 0;
+    }
+};
+
+//------------------------------------------------------------------------
+// Exception support
+//------------------------------------------------------------------------
 //! Task group state change propagation global epoch
 /** Together with generic_scheduler::my_context_state_propagation_epoch forms
     cross-thread signaling mechanism that allows to avoid locking at the hot path
@@ -143,313 +284,222 @@ typedef __TBB_SCHEDULER_MUTEX_TYPE scheduler_mutex_type;
     and thus registration/deregistration routines take slower branch that may block
     (at most one thread of the pool can be blocked at any moment). Otherwise the
     control path is lock-free and fast. **/
-extern uintptr_t the_context_state_propagation_epoch;
+extern std::atomic<std::uintptr_t> the_context_state_propagation_epoch;
 
 //! Mutex guarding state change propagation across task groups forest.
 /** Also protects modification of related data structures. **/
 typedef scheduler_mutex_type context_state_propagation_mutex_type;
 extern context_state_propagation_mutex_type the_context_state_propagation_mutex;
-#endif /* __TBB_TASK_GROUP_CONTEXT */
 
-//! Alignment for a task object
-const size_t task_alignment = 32;
+class tbb_exception_ptr {
+    std::exception_ptr my_ptr;
+public:
+    static tbb_exception_ptr* allocate() noexcept;
 
-//! Number of bytes reserved for a task prefix
-/** If not exactly sizeof(task_prefix), the extra bytes *precede* the task_prefix. */
-const size_t task_prefix_reservation_size = ((sizeof(internal::task_prefix)-1)/task_alignment+1)*task_alignment;
+    //! Destroys this objects
+    /** Note that objects of this type can be created only by the allocate() method. **/
+    void destroy() noexcept;
 
-//! Definitions for bits in task_prefix::extra_state
-enum task_extra_state {
-    //! Tag for v1 tasks (i.e. tasks in TBB 1.0 and 2.0)
-    es_version_1_task = 0,
-    //! Tag for v3 tasks (i.e. tasks in TBB 2.1-2.2)
-    es_version_3_task = 1,
-#if __TBB_PREVIEW_CRITICAL_TASKS
-    //! Tag for critical tasks
-    es_task_critical = 0x8,
-#endif
-    //! Tag for enqueued tasks
-    es_task_enqueued = 0x10,
-    //! Tag for v3 task_proxy.
-    es_task_proxy = 0x20,
-    //! Set if ref_count might be changed by another thread.  Used for debugging.
-    es_ref_count_active = 0x40,
-    //! Set if the task has been stolen
-    es_task_is_stolen = 0x80
-};
+    //! Throws the contained exception .
+    void throw_self();
 
-inline void reset_extra_state ( task *t ) {
-    t->prefix().extra_state &= ~(es_task_is_stolen | es_task_enqueued);
-}
-
-//! Optimization hint to free_task that enables it omit unnecessary tests and code.
-enum free_task_hint {
-    //! No hint
-    no_hint=0,
-    //! Task is known to have been allocated by this scheduler
-    local_task=1,
-    //! Task is known to be a small task.
-    /** Task should be returned to the free list of *some* scheduler, possibly not this scheduler. */
-    small_task=2,
-    //! Bitwise-OR of local_task and small_task.
-    /** Task should be returned to free list of this scheduler. */
-    small_local_task=3,
-    //! Disable caching for a small task.
-    no_cache = 4,
-    //! Task is known to be a small task and must not be cached.
-    no_cache_small_task = no_cache | small_task
-};
+private:
+    tbb_exception_ptr(const std::exception_ptr& src) : my_ptr(src) {}
+}; // class tbb_exception_ptr
 
 //------------------------------------------------------------------------
 // Debugging support
 //------------------------------------------------------------------------
 
 #if TBB_USE_ASSERT
+static const std::uintptr_t venom = tbb::detail::select_size_t_constant<0xDEADBEEFU, 0xDDEEAADDDEADBEEFULL>::value;
 
-static const uintptr_t venom = tbb::internal::select_size_t_constant<0xDEADBEEFU,0xDDEEAADDDEADBEEFULL>::value;
+inline void poison_value(std::uintptr_t& val) { val = venom; }
 
-template <typename T>
-void poison_value ( T& val ) { val = * punned_cast<T*>(&venom); }
+inline void poison_value(std::atomic<std::uintptr_t>& val) { val.store(venom, std::memory_order_relaxed); }
 
 /** Expected to be used in assertions only, thus no empty form is defined. **/
-inline bool is_alive( uintptr_t v ) { return v != venom; }
+inline bool is_alive(std::uintptr_t v) { return v != venom; }
 
 /** Logically, this method should be a member of class task.
     But we do not want to publish it, so it is here instead. */
-inline void assert_task_valid( const task* task ) {
-    __TBB_ASSERT( task!=NULL, NULL );
-    __TBB_ASSERT( !is_poisoned(&task), NULL );
-    __TBB_ASSERT( (uintptr_t)task % task_alignment == 0, "misaligned task" );
-    __TBB_ASSERT( task->prefix().ref_count >= 0, NULL);
-#if __TBB_RECYCLE_TO_ENQUEUE
-    __TBB_ASSERT( (unsigned)task->state()<=(unsigned)task::to_enqueue, "corrupt task (invalid state)" );
-#else
-    __TBB_ASSERT( (unsigned)task->state()<=(unsigned)task::recycle, "corrupt task (invalid state)" );
-#endif
+inline void assert_task_valid(const d1::task* t) {
+    assert_pointer_valid(t);
 }
-
 #else /* !TBB_USE_ASSERT */
 
 /** In contrast to debug version poison_value() is a macro here because
     the variable used as its argument may be undefined in release builds. **/
 #define poison_value(g) ((void)0)
 
-inline void assert_task_valid( const task* ) {}
+inline void assert_task_valid(const d1::task*) {}
 
 #endif /* !TBB_USE_ASSERT */
 
-//------------------------------------------------------------------------
-// Helpers
-//------------------------------------------------------------------------
+struct suspend_point_type {
+#if __TBB_RESUMABLE_TASKS
+    //! The arena related to this task_dispatcher
+    arena* m_arena{ nullptr };
+    //! The random for the resume task
+    FastRandom m_random;
+    //! The flag is raised when the original owner should return to this task dispatcher.
+    std::atomic<bool> m_is_owner_recalled{ false };
+    //! Inicates if the resume task should be placed to the critical task stream.
+    bool m_is_critical{ false };
+    //! Associated coroutine
+    co_context m_co_context;
 
-#if __TBB_TASK_GROUP_CONTEXT
-inline bool ConcurrentWaitsEnabled ( task& t ) {
-    return (t.prefix().context->my_version_and_traits & task_group_context::concurrent_wait) != 0;
-}
-
-inline bool CancellationInfoPresent ( task& t ) {
-    return t.prefix().context->my_cancellation_requested != 0;
-}
-
-#if TBB_USE_CAPTURED_EXCEPTION
-    inline tbb_exception* TbbCurrentException( task_group_context*, tbb_exception* src) { return src->move(); }
-    inline tbb_exception* TbbCurrentException( task_group_context* c, captured_exception* src) {
-        if( c->my_version_and_traits & task_group_context::exact_exception )
-            runtime_warning( "Exact exception propagation is requested by application but the linked library is built without support for it");
-        return src;
-    }
-    #define TbbRethrowException(TbbCapturedException) (TbbCapturedException)->throw_self()
-#else
-    // Using macro instead of an inline function here allows to avoid evaluation of the
-    // TbbCapturedException expression when exact propagation is enabled for the context.
-    #define TbbCurrentException(context, TbbCapturedException) \
-        context->my_version_and_traits & task_group_context::exact_exception    \
-            ? tbb_exception_ptr::allocate()    \
-            : tbb_exception_ptr::allocate( *(TbbCapturedException) );
-    #define TbbRethrowException(TbbCapturedException) \
-        { \
-            if( governor::rethrow_exception_broken() ) fix_broken_rethrow(); \
-            (TbbCapturedException)->throw_self(); \
+    struct resume_task final : public d1::task {
+        task_dispatcher& m_target;
+        explicit resume_task(task_dispatcher& target) : m_target(target) {
+            task_accessor::set_resume_trait(*this);
         }
-#endif /* !TBB_USE_CAPTURED_EXCEPTION */
-
-#define TbbRegisterCurrentException(context, TbbCapturedException) \
-    if ( context->cancel_group_execution() ) {  \
-        /* We are the first to signal cancellation, so store the exception that caused it. */  \
-        context->my_exception = TbbCurrentException( context, TbbCapturedException ); \
-    }
-
-#define TbbCatchAll(context)  \
-    catch ( tbb_exception& exc ) {  \
-        TbbRegisterCurrentException( context, &exc );   \
-    } catch ( std::exception& exc ) {   \
-        TbbRegisterCurrentException( context, captured_exception::allocate(typeid(exc).name(), exc.what()) ); \
-    } catch ( ... ) {   \
-        TbbRegisterCurrentException( context, captured_exception::allocate("...", "Unidentified exception") );\
-    }
-
-#else /* !__TBB_TASK_GROUP_CONTEXT */
-
-inline bool ConcurrentWaitsEnabled ( task& t ) { return false; }
-
-#endif /* __TBB_TASK_GROUP_CONTEXT */
-
-inline void prolonged_pause() {
-#if defined(__TBB_time_stamp) && !__TBB_STEALING_PAUSE
-    // Assumption based on practice: 1000-2000 ticks seems to be a suitable invariant for the
-    // majority of platforms. Currently, skip platforms that define __TBB_STEALING_PAUSE
-    // because these platforms require very careful tuning.
-    machine_tsc_t prev = __TBB_time_stamp();
-    const machine_tsc_t finish = prev + 1000;
-    atomic_backoff backoff;
-    do {
-        backoff.bounded_pause();
-        machine_tsc_t curr = __TBB_time_stamp();
-        if ( curr <= prev )
-            // Possibly, the current logical thread is moved to another hardware thread or overflow is occurred.
-            break;
-        prev = curr;
-    } while ( prev < finish );
-#else
-#ifdef __TBB_STEALING_PAUSE
-    static const long PauseTime = __TBB_STEALING_PAUSE;
-#elif __TBB_ipf
-    static const long PauseTime = 1500;
-#else
-    static const long PauseTime = 80;
-#endif
-    // TODO IDEA: Update PauseTime adaptively?
-    __TBB_Pause(PauseTime);
-#endif
-}
-
-//------------------------------------------------------------------------
-// arena_slot
-//------------------------------------------------------------------------
-struct arena_slot_line1 {
-    //TODO: make this tbb:atomic<>.
-    //! Scheduler of the thread attached to the slot
-    /** Marks the slot as busy, and is used to iterate through the schedulers belonging to this arena **/
-    generic_scheduler* my_scheduler;
-
-    // Synchronization of access to Task pool
-    /** Also is used to specify if the slot is empty or locked:
-         0 - empty
-        -1 - locked **/
-    task* *__TBB_atomic task_pool;
-
-    //! Index of the first ready task in the deque.
-    /** Modified by thieves, and by the owner during compaction/reallocation **/
-    __TBB_atomic size_t head;
-
-#if __TBB_PREVIEW_RESUMABLE_TASKS
-    //! The flag is raised when the original owner of the scheduler should return to this scheduler (for resume).
-    tbb::atomic<bool>* my_scheduler_is_recalled;
-#endif
-};
-
-struct arena_slot_line2 {
-    //! Hint provided for operations with the container of starvation-resistant tasks.
-    /** Modified by the owner thread (during these operations). **/
-    unsigned hint_for_pop;
-
-#if __TBB_PREVIEW_CRITICAL_TASKS
-    //! Similar to 'hint_for_pop' but for critical tasks.
-    unsigned hint_for_critical;
-#endif
-
-    //! Index of the element following the last ready task in the deque.
-    /** Modified by the owner thread. **/
-    __TBB_atomic size_t tail;
-
-    //! Capacity of the primary task pool (number of elements - pointers to task).
-    size_t my_task_pool_size;
-
-    //! Task pool of the scheduler that owns this slot
-    task* *__TBB_atomic task_pool_ptr;
-
-#if __TBB_STATISTICS
-    //! Set of counters to accumulate internal statistics related to this arena
-    statistics_counters *my_counters;
-#endif /* __TBB_STATISTICS */
-};
-
-struct arena_slot : padded<arena_slot_line1>, padded<arena_slot_line2> {
-#if TBB_USE_ASSERT
-    void fill_with_canary_pattern ( size_t first, size_t last ) {
-        for ( size_t i = first; i < last; ++i )
-            poison_pointer(task_pool_ptr[i]);
-    }
-#else
-    void fill_with_canary_pattern ( size_t, size_t ) {}
-#endif /* TBB_USE_ASSERT */
-
-    void allocate_task_pool( size_t n ) {
-        size_t byte_size = ((n * sizeof(task*) + NFS_MaxLineSize - 1) / NFS_MaxLineSize) * NFS_MaxLineSize;
-        my_task_pool_size = byte_size / sizeof(task*);
-        task_pool_ptr = (task**)NFS_Allocate( 1, byte_size, NULL );
-        // No need to clear the fresh deque since valid items are designated by the head and tail members.
-        // But fill it with a canary pattern in the high vigilance debug mode.
-        fill_with_canary_pattern( 0, my_task_pool_size );
-    }
-
-    //! Deallocate task pool that was allocated by means of allocate_task_pool.
-    void free_task_pool( ) {
-        // TODO: understand the assertion and modify
-        // __TBB_ASSERT( !task_pool /*TODO: == EmptyTaskPool*/, NULL);
-        if( task_pool_ptr ) {
-           __TBB_ASSERT( my_task_pool_size, NULL);
-           NFS_Free( task_pool_ptr );
-           task_pool_ptr = NULL;
-           my_task_pool_size = 0;
+        d1::task* execute(d1::execution_data& ed) override;
+        d1::task* cancel(d1::execution_data&) override {
+            __TBB_ASSERT(false, "The resume task cannot be canceled");
+            return nullptr;
         }
-    }
+    } m_resume_task;
+
+    suspend_point_type(arena* a, std::size_t stack_size, task_dispatcher& target);
+#endif /*__TBB_RESUMABLE_TASKS */
 };
 
-#if !__TBB_CPU_CTL_ENV_PRESENT
-class cpu_ctl_env {
-    fenv_t *my_fenv_ptr;
+class alignas (max_nfs_size) task_dispatcher {
 public:
-    cpu_ctl_env() : my_fenv_ptr(NULL) {}
-    ~cpu_ctl_env() {
-        if ( my_fenv_ptr )
-            tbb::internal::NFS_Free( (void*)my_fenv_ptr );
-    }
-    // It is possible not to copy memory but just to copy pointers but the following issues should be addressed:
-    //   1. The arena lifetime and the context lifetime are independent;
-    //   2. The user is allowed to recapture different FPU settings to context so 'current FPU settings' inside
-    //   dispatch loop may become invalid.
-    // But do we really want to improve the fenv implementation? It seems to be better to replace the fenv implementation
-    // with a platform specific implementation.
-    cpu_ctl_env( const cpu_ctl_env &src ) : my_fenv_ptr(NULL) {
-        *this = src;
-    }
-    cpu_ctl_env& operator=( const cpu_ctl_env &src ) {
-        __TBB_ASSERT( src.my_fenv_ptr, NULL );
-        if ( !my_fenv_ptr )
-            my_fenv_ptr = (fenv_t*)tbb::internal::NFS_Allocate(1, sizeof(fenv_t), NULL);
-        *my_fenv_ptr = *src.my_fenv_ptr;
-        return *this;
-    }
-    bool operator!=( const cpu_ctl_env &ctl ) const {
-        __TBB_ASSERT( my_fenv_ptr, "cpu_ctl_env is not initialized." );
-        __TBB_ASSERT( ctl.my_fenv_ptr, "cpu_ctl_env is not initialized." );
-        return memcmp( (void*)my_fenv_ptr, (void*)ctl.my_fenv_ptr, sizeof(fenv_t) );
-    }
-    void get_env () {
-        if ( !my_fenv_ptr )
-            my_fenv_ptr = (fenv_t*)tbb::internal::NFS_Allocate(1, sizeof(fenv_t), NULL);
-        fegetenv( my_fenv_ptr );
-    }
-    const cpu_ctl_env& set_env () const {
-        __TBB_ASSERT( my_fenv_ptr, "cpu_ctl_env is not initialized." );
-        fesetenv( my_fenv_ptr );
-        return *this;
-    }
-};
-#endif /* !__TBB_CPU_CTL_ENV_PRESENT */
+    // TODO: reconsider low level design to better organize dependencies and files.
+    friend class thread_data;
+    friend class arena_slot;
+    friend class nested_arena_context;
+    friend class delegated_task;
+    friend struct base_waiter;
 
-} // namespace internal
+    //! The data of the current thread attached to this task_dispatcher
+    thread_data* m_thread_data{ nullptr };
+
+    //! The current execution data
+    execution_data_ext m_execute_data_ext;
+
+    //! Properties
+    struct properties {
+        bool outermost{ true };
+        bool fifo_tasks_allowed{ true };
+        bool critical_task_allowed{ true };
+    } m_properties;
+
+    //! Position in the call stack when stealing is still allowed.
+    std::uintptr_t m_stealing_threshold{};
+
+    //! Suspend point (null if this task dispatcher has been never suspended)
+    suspend_point_type* m_suspend_point{ nullptr };
+
+    //! Attempt to get a task from the mailbox.
+    /** Gets a task only if it has not been executed by its sender or a thief
+        that has stolen it from the sender's task pool. Otherwise returns NULL.
+        This method is intended to be used only by the thread extracting the proxy
+        from its mailbox. (In contrast to local task pool, mailbox can be read only
+        by its owner). **/
+    d1::task* get_mailbox_task(mail_inbox& my_inbox, execution_data_ext& ed, isolation_type isolation);
+
+    d1::task* get_critical_task(d1::task*, execution_data_ext&, isolation_type, bool);
+
+    template <bool ITTPossible, typename Waiter>
+    d1::task* receive_or_steal_task(thread_data& tls, execution_data_ext& ed, Waiter& waiter,
+                                isolation_type isolation, bool outermost, bool criticality_absence);
+
+    template <bool ITTPossible, typename Waiter>
+    d1::task* local_wait_for_all(d1::task * t, Waiter& waiter);
+
+    task_dispatcher(const task_dispatcher&) = delete;
+
+    bool can_steal();
+public:
+    task_dispatcher(arena* a);
+
+    ~task_dispatcher() {
+        if (m_suspend_point) {
+            m_suspend_point->~suspend_point_type();
+            cache_aligned_deallocate(m_suspend_point);
+        }
+        poison_pointer(m_thread_data);
+        poison_pointer(m_suspend_point);
+    }
+
+    template <typename Waiter>
+    d1::task* local_wait_for_all(d1::task* t, Waiter& waiter);
+
+    bool allow_fifo_task(bool new_state) {
+        bool old_state = m_properties.fifo_tasks_allowed;
+        m_properties.fifo_tasks_allowed = new_state;
+        return old_state;
+    }
+
+    isolation_type set_isolation(isolation_type isolation) {
+        isolation_type prev = m_execute_data_ext.isolation;
+        m_execute_data_ext.isolation = isolation;
+        return prev;
+    }
+
+    thread_data& get_thread_data() {
+        __TBB_ASSERT(m_thread_data, nullptr);
+        return *m_thread_data;
+    }
+
+    static void execute_and_wait(d1::task* t, d1::wait_context& wait_ctx, d1::task_group_context& w_ctx);
+
+    void set_stealing_threshold(std::uintptr_t stealing_threshold) {
+        bool assert_condition = (stealing_threshold == 0 && m_stealing_threshold != 0) ||
+                                (stealing_threshold != 0 && m_stealing_threshold == 0);
+        __TBB_ASSERT_EX( assert_condition, nullptr );
+        m_stealing_threshold = stealing_threshold;
+    }
+
+    d1::task* get_inbox_or_critical_task(execution_data_ext&, mail_inbox&, isolation_type, bool);
+    d1::task* get_stream_or_critical_task(execution_data_ext&, arena&, task_stream<front_accessor>&,
+                                      unsigned& /*hint_for_stream*/, isolation_type,
+                                      bool /*critical_allowed*/);
+    d1::task* steal_or_get_critical(execution_data_ext&, arena&, unsigned /*arena_index*/, FastRandom&,
+                                isolation_type, bool /*critical_allowed*/);
+
+#if __TBB_RESUMABLE_TASKS
+    /* [[noreturn]] */ void co_local_wait_for_all() noexcept;
+    void suspend(suspend_callback_type suspend_callback, void* user_callback);
+    void resume(task_dispatcher& target);
+    suspend_point_type* get_suspend_point();
+    void init_suspend_point(arena* a, std::size_t stack_size);
+    friend void internal_resume(suspend_point_type*);
+    void recall_point();
+#endif /* __TBB_RESUMABLE_TASKS */
+};
+
+inline std::uintptr_t calculate_stealing_threshold(std::uintptr_t base, std::size_t stack_size) {
+    return base - stack_size / 2;
+}
+
+struct task_group_context_impl {
+    static void destroy(d1::task_group_context&);
+    static void initialize(d1::task_group_context&);
+    static void register_with(d1::task_group_context&, thread_data*);
+    static void bind_to_impl(d1::task_group_context&, thread_data*);
+    static void bind_to(d1::task_group_context&, thread_data*);
+    template <typename T>
+    static void propagate_task_group_state(d1::task_group_context&, std::atomic<T> d1::task_group_context::*, d1::task_group_context&, T);
+    static bool cancel_group_execution(d1::task_group_context&);
+    static bool is_group_execution_cancelled(const d1::task_group_context&);
+    static void reset(d1::task_group_context&);
+    static void capture_fp_settings(d1::task_group_context&);
+    static void copy_fp_settings(d1::task_group_context& ctx, const d1::task_group_context& src);
+};
+
+
+//! Forward declaration for scheduler entities
+bool gcc_rethrow_exception_broken();
+void fix_broken_rethrow();
+//! Forward declaration: throws std::runtime_error with what() returning error_code description prefixed with aux_info
+void handle_perror(int error_code, const char* aux_info);
+
+} // namespace r1
+} // namespace detail
 } // namespace tbb
 
 #endif /* _TBB_scheduler_common_H */

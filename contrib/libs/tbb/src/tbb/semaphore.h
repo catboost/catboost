@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2020 Intel Corporation
+    Copyright (c) 2005-2021 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -14,32 +14,116 @@
     limitations under the License.
 */
 
-#ifndef __TBB_tbb_semaphore_H
-#define __TBB_tbb_semaphore_H
+#ifndef __TBB_semaphore_H
+#define __TBB_semaphore_H
 
-#include <tbb/atomic.h>
-#include "tbb/tbb_stddef.h"
+#include "oneapi/tbb/detail/_utils.h"
 
 #if _WIN32||_WIN64
-#include "tbb/machine/windows_api.h"
-
+#include <windows.h>
 #elif __APPLE__
 #include <mach/semaphore.h>
 #include <mach/task.h>
 #include <mach/mach_init.h>
 #include <mach/error.h>
-
 #else
 #include <semaphore.h>
 #ifdef TBB_USE_DEBUG
-#include <errno.h>
+#include <cerrno>
 #endif
 #endif /*_WIN32||_WIN64*/
 
+#include <atomic>
+
+#if __linux__ || __FreeBSD__ || __NetBSD__ || __OpenBSD__
+
+/* Futex definitions */
+#include <unistd.h>
+#include <sys/syscall.h>
+
+#if defined(SYS_futex)
+
+/* This section is included for Linux and some other systems that may support futexes.*/
+
+#define __TBB_USE_FUTEX 1
+
+#if defined(__has_include)
+#define __TBB_has_include __has_include
+#else
+#define __TBB_has_include(x) 0
+#endif
+
+/*
+If available, use typical headers where futex API is defined. While Linux and OpenBSD
+are known to provide such headers, other systems might have them as well.
+*/
+#if defined(__linux__) || __TBB_has_include(<linux/futex.h>)
+#include <linux/futex.h>
+#elif defined(__OpenBSD__) || __TBB_has_include(<sys/futex.h>)
+#error #include <sys/futex.h>
+#endif
+
+#include <climits>
+#include <cerrno>
+
+/*
+Some systems might not define the macros or use different names. In such case we expect
+the actual parameter values to match Linux: 0 for wait, 1 for wake.
+*/
+#if defined(FUTEX_WAIT_PRIVATE)
+#define __TBB_FUTEX_WAIT FUTEX_WAIT_PRIVATE
+#elif defined(FUTEX_WAIT)
+#define __TBB_FUTEX_WAIT FUTEX_WAIT
+#else
+#define __TBB_FUTEX_WAIT 0
+#endif
+
+#if defined(FUTEX_WAKE_PRIVATE)
+#define __TBB_FUTEX_WAKE FUTEX_WAKE_PRIVATE
+#elif defined(FUTEX_WAKE)
+#define __TBB_FUTEX_WAKE FUTEX_WAKE
+#else
+#define __TBB_FUTEX_WAKE 1
+#endif
+
+#endif // SYS_futex
+#endif // __linux__ || __FreeBSD__ || __NetBSD__ || __OpenBSD__
+
 namespace tbb {
-namespace internal {
+namespace detail {
+namespace r1 {
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Futex implementation
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#if __TBB_USE_FUTEX
+
+static inline int futex_wait( void *futex, int comparand ) {
+    int r = ::syscall( SYS_futex,futex,__TBB_FUTEX_WAIT,comparand,NULL,NULL,0 );
+#if TBB_USE_ASSERT
+    int e = errno;
+    __TBB_ASSERT( r==0||r==EWOULDBLOCK||(r==-1&&(e==EAGAIN||e==EINTR)), "futex_wait failed." );
+#endif /* TBB_USE_ASSERT */
+    return r;
+}
+
+static inline int futex_wakeup_one( void *futex ) {
+    int r = ::syscall( SYS_futex,futex,__TBB_FUTEX_WAKE,1,NULL,NULL,0 );
+    __TBB_ASSERT( r==0||r==1, "futex_wakeup_one: more than one thread woken up?" );
+    return r;
+}
+
+// Additional possible methods that are not required right now
+// static inline int futex_wakeup_all( void *futex ) {
+//     int r = ::syscall( SYS_futex,futex,__TBB_FUTEX_WAKE,INT_MAX,NULL,NULL,0 );
+//     __TBB_ASSERT( r>=0, "futex_wakeup_all: error in waking up threads" );
+//     return r;
+// }
+
+#endif // __TBB_USE_FUTEX
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 #if _WIN32||_WIN64
 typedef LONG sem_count_t;
 //! Edsger Dijkstra's counting semaphore
@@ -197,24 +281,24 @@ public:
     ~binary_semaphore() {}
     //! wait/acquire
     void P() {
-        int s;
-        if( (s = my_sem.compare_and_swap( 1, 0 ))!=0 ) {
+        int s = 0;
+        if( !my_sem.compare_exchange_strong( s, 1 ) ) {
             if( s!=2 )
-                s = my_sem.fetch_and_store( 2 );
+                s = my_sem.exchange( 2 );
             while( s!=0 ) { // This loop deals with spurious wakeup
                 futex_wait( &my_sem, 2 );
-                s = my_sem.fetch_and_store( 2 );
+                s = my_sem.exchange( 2 );
             }
         }
     }
     //! post/release
     void V() {
-        __TBB_ASSERT( my_sem>=1, "multiple V()'s in a row?" );
-        if( my_sem.fetch_and_store( 0 )==2 )
+        __TBB_ASSERT( my_sem.load(std::memory_order_relaxed)>=1, "multiple V()'s in a row?" );
+        if( my_sem.exchange( 0 )==2 )
             futex_wakeup_one( &my_sem );
     }
 private:
-    atomic<int> my_sem; // 0 - open; 1 - closed, no waits; 2 - closed, possible waits
+    std::atomic<int> my_sem; // 0 - open; 1 - closed, no waits; 2 - closed, possible waits
 };
 #else
 typedef uint32_t sem_count_t;
@@ -244,7 +328,8 @@ private:
 #endif /* __TBB_USE_FUTEX */
 #endif /* _WIN32||_WIN64 */
 
-} // namespace internal
+} // namespace r1
+} // namespace detail
 } // namespace tbb
 
-#endif /* __TBB_tbb_semaphore_H */
+#endif /* __TBB_semaphore_H */

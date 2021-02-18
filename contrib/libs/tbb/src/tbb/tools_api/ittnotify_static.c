@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2020 Intel Corporation
+    Copyright (c) 2005-2021 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -938,7 +938,7 @@ static const char* __itt_get_lib_name(void)
     return lib_name;
 }
 
-/* Avoid clashes with std::min, reported by tbb team */
+/* Avoid clashes with std::min */
 #define __itt_min(a,b) ((a) < (b) ? (a) : (b))
 
 static __itt_group_id __itt_get_groups(void)
