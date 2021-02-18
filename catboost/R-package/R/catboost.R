@@ -404,7 +404,7 @@ print.catboost.Pool <- function(x, ...) {
 #' @export
 print.catboost.Model <- function(x, ...) {
     cat(sprintf("CatBoost model (%d trees)\n", x$tree_count))
-    cat(sprintf("Evaluation metric: %s\n", catboost.get_plain_params(x)$eval_metric))
+    cat(sprintf("Loss function: %s\n", catboost.get_plain_params(x)$loss_function))
     cat(sprintf("Fit to %d features\n", NROW(x$feature_importances)))
     if (is.null.handle(x$handle))
         cat("(Handle is incomplete)\n")
