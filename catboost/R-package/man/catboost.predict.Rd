@@ -59,12 +59,14 @@ Allows you to optimize the speed of execution. This parameter doesn't affect res
 
 Default value: 1}
 }
+\value{
+Vector of predictions (matrix for multi-class classification).
+}
 \description{
 Apply the model to the given dataset.
-}
-\details{
-Peculiarities: In case of multiclassification the prediction is returned in the form of a matrix.
-Each line of this matrix contains the predictions for one object of the input dataset.
+
+             Peculiarities: In case of multiclassification the prediction is returned in the form of a matrix.
+             Each line of this matrix contains the predictions for one object of the input dataset.
 }
 \seealso{
 \url{https://catboost.ai/docs/concepts/r-reference_catboost-predict.html}
