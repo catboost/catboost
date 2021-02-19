@@ -94,6 +94,8 @@ public:
 
     void ReSchedule() noexcept;
 
+    void Switch() noexcept;
+
     void SwitchTo(TExceptionSafeContext* ctx) {
         Trampoline_.SwitchTo(ctx);
     }
@@ -156,10 +158,6 @@ public:
     template <typename T, void (T::*M)(TCont*)>
     void Execute(T* obj) noexcept {
         Execute(ContHelperMemberFunc<T, M>, obj);
-    }
-
-    TExceptionSafeContext* SchedContext() noexcept {
-        return &SchedContext_;
     }
 
     template <class Functor>
@@ -251,8 +249,6 @@ private:
     void ScheduleExecution(TCont* cont) noexcept;
 
     void ScheduleExecutionNow(TCont* cont) noexcept;
-
-    void Activate(TCont* cont) noexcept;
 
     void DeleteScheduled() noexcept;
 
