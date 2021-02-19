@@ -4,8 +4,11 @@
 \alias{catboost.sum_models}
 \title{Sum models.}
 \usage{
-catboost.sum_models(models, weights = NULL,
-  ctr_merge_policy = "IntersectingCountersAverage")
+catboost.sum_models(
+  models,
+  weights = NULL,
+  ctr_merge_policy = "IntersectingCountersAverage"
+)
 }
 \arguments{
 \item{models}{Models for the summation.
@@ -29,6 +32,11 @@ Possible values:
 
 Default value: 'IntersectingCountersAverage'}
 }
+\value{
+Model object.
+}
 \description{
-Sum models.
+Blend trees and counters of two or more trained CatBoost models into a new model.
+             Leaf values can be individually weighted for each input model. For example, it may
+             be useful to blend models trained on different validation datasets.
 }
