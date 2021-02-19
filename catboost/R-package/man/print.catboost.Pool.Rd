@@ -13,9 +13,6 @@ Default value: Required argument}
 
 \item{...}{not currently used}
 }
-\value{
-Nothing. This method prints pool dimensions.
-}
 \description{
 Print dimensions of catboost.Pool.
 }

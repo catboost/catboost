@@ -11,9 +11,6 @@
 
 Default value: Required argument}
 }
-\value{
-A list with the two elements. The second element contains the column names.
-}
 \description{
-Get dimension names of a Pool.
+Return a list with the two elements. The second element contains the column names.
 }

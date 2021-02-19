@@ -15,14 +15,11 @@ Default value: Required argument}
 
 Default value: 'cbm'}
 }
-\value{
-A model object.
-}
 \description{
 Load the model from a file.
-
-             Note: Feature importance (see \url{https://catboost.ai/docs/concepts/fstr.html#fstr})
-             is not saved when using this function.
+}
+\details{
+Note: Feature importance (see \url{https://catboost.ai/docs/concepts/fstr.html#fstr}) is not saved when using this function.
 }
 \seealso{
 \url{https://catboost.ai/docs/concepts/r-reference_catboost-load_model.html}

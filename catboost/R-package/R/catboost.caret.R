@@ -1,5 +1,4 @@
-#' @name catboost.caret
-#' @title Support caret interface
+#' Support caret interface
 #'
 #' @export
 catboost.caret <- list(label = "Catboost",
@@ -129,7 +128,7 @@ catboost.caret$predict <- function(modelFit, newdata, preProc = NULL, submodels 
 }
 
 
-#' Predict class probabilities
+#' Predict class probabillties
 #'
 #' @param modelFit: the model produced by the fit code shown above
 #' @param newdata: the predictor values of the instances being predicted (e.g. out-of-bag samples)

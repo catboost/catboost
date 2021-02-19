@@ -8,22 +8,25 @@ catboost.restore_handle(model)
 }
 \arguments{
 \item{model}{The model obtained as the result of training which has been serialized and is
-now de-serialized.}
+now de-serialized.
+
+Default value: Required argument}
 }
 \value{
 The model object with its handle pointing to a valid object in memory.
 }
 \description{
 After de-serializing a model object through R base's functions (`readRDS`, `load`),
-             its underlying object will not exist in the computer's memory anymore, and needs
-             to be restored from the raw bytes that the model stores.
+its underlying object will not exist in the computer's memory anymore, and needs
+to be restored from the raw bytes that the model stores.
+}
+\details{
+This is automatically done internally when calling functions such as \link{catboost.predict},
+but the process is repeated at each call, which makes them slower than if using a
+fresh model object and increases memory usage inbetween calls to the garbage collector.
+This function allows restoring the internal object beforehand so as to avoid
+restoring the object multiple times.
 
-             This is automatically done internally when calling functions such as \link{catboost.predict},
-             but the process is repeated at each call, which makes them slower than if using a
-             fresh model object and increases memory usage inbetween calls to the garbage collector.
-             This function allows restoring the internal object beforehand so as to avoid
-             restoring the object multiple times.
-             
-             Note that the model object needs to be re-assigned as the output of this function,
-             as the modifications are not done in-place.
+Note that the model object needs to be re-assigned as the output of this function,
+as the modifications are not done in-place.
 }
