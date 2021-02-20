@@ -97,7 +97,7 @@ public class CatBoostModel implements AutoCloseable {
             super(name, featureIndex, flatFeatureIndex, usedInModel);
         }
     }
-    
+
     static {
         try {
             NativeLib.smartLoad("catboost4j-prediction");
@@ -203,9 +203,22 @@ public class CatBoostModel implements AutoCloseable {
      */
     @NotNull
     public static CatBoostModel loadModel(final @NotNull String modelPath) throws CatBoostError {
+        return loadModel(modelPath, "bin");
+    }
+
+    /**
+     * Load CatBoost model from file modelPath.
+     *
+     * @param modelPath   Path to the model.
+     * @param modelFormat Model file format (bin or json)
+     * @return            CatBoost model.
+     * @throws CatBoostError When failed to load model.
+     */
+    @NotNull
+    public static CatBoostModel loadModel(final @NotNull String modelPath, @NotNull String modelFormat) throws CatBoostError {
         final long[] handles = new long[1];
 
-        implLibrary.catBoostLoadModelFromFile(modelPath, handles);
+        implLibrary.catBoostLoadModelFromFile(modelPath, handles, modelFormat);
         return new CatBoostModel(handles[0]);
     }
 

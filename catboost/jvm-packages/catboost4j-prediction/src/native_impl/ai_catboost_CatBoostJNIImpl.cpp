@@ -3,6 +3,7 @@
 #include <catboost/libs/cat_feature/cat_feature.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/model/model.h>
+#include <catboost/private/libs/options/output_file_options.h>
 
 #include <util/generic/cast.h>
 #include <util/generic/scope.h>
@@ -202,7 +203,7 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostFreeModel
 }
 
 JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostLoadModelFromFile
-  (JNIEnv* jenv, jclass, jstring jmodelPath, jlongArray jhandles) {
+  (JNIEnv* jenv, jclass, jstring jmodelPath, jlongArray jhandles, jstring jmodelFormat) {
     Y_BEGIN_JNI_API_CALL();
 
     const auto modelPathSize = jenv->GetStringUTFLength(jmodelPath);
@@ -213,9 +214,20 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostLoadModelFrom
     };
     CB_ENSURE(modelPath, "got nullptr modelPath");
 
+    const auto* const modelFormat = jenv->GetStringUTFChars(jmodelFormat, nullptr);
+    CB_ENSURE(modelFormat, "OutOfMemoryError");
+    Y_SCOPE_EXIT(jenv, jmodelFormat, modelFormat) {
+        jenv->ReleaseStringUTFChars(jmodelFormat, modelFormat);
+    };
+
+    EModelType modelType;
+    if( !NCatboostOptions::TryGetModelTypeFromExtension(TString(modelFormat), modelType) ) {
+        modelType = EModelType::CatboostBinary;
+    }
+
     // TODO(yazevnul): `ReadModel` should return `THolder<TFullModel>` instead of `TFullModel`
     auto model = MakeHolder<TFullModel>();
-    *model = ReadModel(TString(modelPath, modelPathSize));
+    *model = ReadModel(TString(modelPath, modelPathSize), modelType);
 
     const auto handle = ToHandle(model.Get());
     jenv->SetLongArrayRegion(jhandles, 0, 1, &handle);

@@ -145,6 +145,21 @@ public class CatBoostModelTest {
     }
 
     @Test
+    public void testSuccessfulLoadModelFromFileJsonFormat() throws IOException, CatBoostError {
+        final File file = File.createTempFile("numeric_only_model", "json");
+        file.deleteOnExit();
+
+        try(OutputStream out = new BufferedOutputStream(new FileOutputStream(file.getAbsoluteFile()))) {
+            copyStream(
+                    ClassLoader.getSystemResourceAsStream("models/numeric_only_model.json"),
+                    out);
+        }
+
+        final CatBoostModel model = CatBoostModel.loadModel(file.getAbsolutePath(), "json");
+        model.close();
+    }
+
+    @Test
     public void testFailLoadModelFromStream() throws IOException {
         try {
             final CatBoostModel model = CatBoostModel.loadModel(ClassLoader.getSystemResourceAsStream("models/not_a_model.cbm"));
@@ -879,7 +894,7 @@ public class CatBoostModelTest {
             }
         }
     }
-    
+
     @Test
     public void testEmptyFeaturesArray() throws CatBoostError {
         try(final CatBoostModel model = loadTestModel()) {

@@ -1,8 +1,9 @@
 #include "model_import_interface.h"
 
 #include <catboost/libs/logging/logging.h>
-#include <catboost/private/libs/options/json_helper.h>
 #include <catboost/private/libs/options/check_train_options.h>
+#include <catboost/private/libs/options/json_helper.h>
+#include <catboost/libs/model/model_export/json_model_helpers.h>
 
 namespace NCB {
     class TBinaryModelLoader : public NCB::IModelLoader {
@@ -18,6 +19,22 @@ namespace NCB {
     NCB::TModelLoaderFactory::TRegistrator<TBinaryModelLoader> BinaryModelLoaderRegistrator(EModelType::CatboostBinary);
 
     void* BinaryModelLoaderRegistratorPointer = &BinaryModelLoaderRegistrator;
+
+    class TJsonModelLoader : public NCB::IModelLoader {
+    public:
+        TFullModel ReadModel(IInputStream* modelStream) const override {
+            TFullModel model;
+            NJson::TJsonValue jsonModel = NJson::ReadJsonTree(modelStream);
+            CB_ENSURE(jsonModel.IsDefined(), "Json model deserialization failed");
+            ConvertJsonToCatboostModel(jsonModel, &model);
+            CheckModel(&model);
+            return model;
+        }
+    };
+
+    TModelLoaderFactory::TRegistrator<TJsonModelLoader> JsonModelLoaderRegistrator(EModelType::Json);
+
+    void* JsonModelLoaderRegistratorPointer = &JsonModelLoaderRegistrator;
 
 #ifndef CATBOOST_NO_PARAMS_CHECK_ON_LOAD
     static NJson::TJsonValue RemoveInvalidParams(const NJson::TJsonValue& params) {
