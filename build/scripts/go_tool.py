@@ -444,9 +444,6 @@ def do_link_exe(args):
         cmd += ['-importcfg', import_config_name]
     if args.link_flags:
         cmd += args.link_flags
-    # temporary workaround to turn off dwarf for darwin due to xcrun issue
-    if args.targ_os == 'darwin' and args.cgo and compare_versions('1.16', args.goversion) >= 0:
-        cmd.append('-w')
 
     if args.mode in ('exe', 'test'):
         cmd.append('-buildmode=exe')
@@ -772,7 +769,6 @@ if __name__ == '__main__':
     parser.add_argument('++skip-tests', nargs='*', default=None)
     parser.add_argument('++ydx-file', default='')
     parser.add_argument('++debug-root-map', default=None)
-    parser.add_argument('++cgo', action='store_true')
     args = parser.parse_args(args)
 
     arc_project_prefix = args.arc_project_prefix
