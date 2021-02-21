@@ -2621,7 +2621,7 @@ _PyObject_CallFunction_SizeT(PyObject *callable, char *format, ...)
 }
 
 PyObject *
-PyObject_CallMethod(PyObject *o, char *name, char *format, ...)
+PyObject_CallMethod(PyObject *o, const char *name, char *format, ...)
 {
     va_list va;
     PyObject *args;
@@ -2658,7 +2658,7 @@ PyObject_CallMethod(PyObject *o, char *name, char *format, ...)
 }
 
 PyObject *
-_PyObject_CallMethod_SizeT(PyObject *o, char *name, char *format, ...)
+_PyObject_CallMethod_SizeT(PyObject *o, const char *name, char *format, ...)
 {
     va_list va;
     PyObject *args;
