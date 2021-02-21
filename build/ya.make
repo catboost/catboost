@@ -29,7 +29,6 @@ RECURSE(
     external_resources
     platform/java
     platform/perl
-    platform/perl/5.14.4
     platform/python
     platform/python/ldflags
     plugins
