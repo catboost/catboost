@@ -87,6 +87,7 @@ def preprocess_args(args):
     assert args.output is None or args.output_root == os.path.dirname(args.output)
     assert args.output_root.startswith(args.build_root_dir)
     args.module_path = args.output_root[len(args.build_root_dir):]
+    args.source_module_dir = os.path.join(args.source_root, args.module_path) + os.path.sep
     assert len(args.module_path) > 0
     args.import_path, args.is_std = get_import_path(args.module_path)
 
@@ -198,6 +199,24 @@ def create_import_config(peers, gen_importmap, import_map={}, module_map={}):
             f.write(content)
             return f.name
     return None
+
+
+def create_emded_config(args):
+    data = {
+        'Patterns': {},
+        'Files': {},
+    }
+    for info in args.embed:
+        pattern = info[0]
+        if pattern.endswith('/**/*'):
+            pattern = pattern[:-3]
+        files = {os.path.relpath(f, args.source_module_dir): f for f in info[1:]}
+        data['Patterns'][pattern] = list(files.keys())
+        data['Files'].update(files)
+    # sys.stderr.write('{}\n'.format(json.dumps(data, indent=4)))
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.embedcfg') as f:
+        f.write(json.dumps(data))
+        return f.name
 
 
 def vet_info_output_name(path, ext=None):
@@ -332,6 +351,9 @@ def _do_compile_go(args):
             pass
         else:
             cmd.append('-complete')
+    if args.embed and compare_versions('1.16', args.goversion) >= 0:
+        embed_config_name = create_emded_config(args)
+        cmd.extend(['-embedcfg', embed_config_name])
     if args.asmhdr:
         cmd += ['-asmhdr', args.asmhdr]
     # Use .symabis (starting from 1.12 version)
@@ -769,6 +791,7 @@ if __name__ == '__main__':
     parser.add_argument('++skip-tests', nargs='*', default=None)
     parser.add_argument('++ydx-file', default='')
     parser.add_argument('++debug-root-map', default=None)
+    parser.add_argument('++embed', action='append', nargs='*')
     args = parser.parse_args(args)
 
     arc_project_prefix = args.arc_project_prefix
