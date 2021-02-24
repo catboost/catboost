@@ -16,6 +16,7 @@ RECURSE(
     gamma_function_apache_math_port
     jdk
     jemalloc
+    jemalloc/dynamic
     libbz2
     libc_compat
     libunwind
