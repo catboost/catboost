@@ -1,6 +1,18 @@
 LIBRARY()
 
-LICENSE(MIT)
+# Part of compiler-rt LLVM subproject
+
+# git repository: https://github.com/llvm/llvm-project.git
+# directory: compiler-rt/lib/builtins
+# revision: 08f0372c351a57b01afee6c64066961203da28c5
+
+# os_version_check.c was taken from revision 81b89fd7bdddb7da66f2cdace97d6ede5f99d58a
+# os_version_check.c was patched from git repository https://github.com/apple/llvm-project.git revision a02454b91d2aec347b9ce03020656c445f3b2841
+
+LICENSE(
+    MIT
+    Apache-2.0 WITH LLVM-exception
+)
 
 
 

@@ -1,6 +1,10 @@
 LIBRARY()
 
-LICENSE(MIT)
+LICENSE(
+    MIT
+    Apache-2.0 WITH LLVM-exception
+    BSD-2-Clause # in src/support/solaris/*.inc
+)
 
 
 
