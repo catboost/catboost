@@ -908,13 +908,13 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir).."
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)../contrib/libs/protobuf/src" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf/src" "--cpp_out=$(SolutionDir)$(Configuration)/" "--cpp_styleguide_out=$(SolutionDir)$(Configuration)/" "--plugin=protoc-gen-cpp_styleguide=$(SolutionDir)$(Configuration)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.exe" "contrib/libs/protobuf/python/google/protobuf/pyext/python.proto"
+"$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir).." "-I=$(SolutionDir)../contrib/libs/protobuf/src" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf/src" "--cpp_out=$(SolutionDir)$(Configuration)/" "--cpp_styleguide_out=$(SolutionDir)$(Configuration)/" "--plugin=protoc-gen-cpp_styleguide=$(SolutionDir)$(Configuration)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.exe" "contrib/libs/protobuf/python/google/protobuf/pyext/python.proto"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir).."
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_protos.py" "--suffixes" "_pb2.py" "--" "$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)../contrib/libs/protobuf/src" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf/src" "--python_out=$(SolutionDir)$(Configuration)/" "contrib/libs/protobuf/python/google/protobuf/pyext/python.proto"
+"python" "$(SolutionDir)../build/scripts/gen_py_protos.py" "--suffixes" "_pb2.py" "--" "$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir).." "-I=$(SolutionDir)../contrib/libs/protobuf/src" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf/src" "--python_out=$(SolutionDir)$(Configuration)/" "contrib/libs/protobuf/python/google/protobuf/pyext/python.proto"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -927,13 +927,13 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir).."
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)../contrib/libs/protobuf/src" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf/src" "--cpp_out=$(SolutionDir)$(Configuration)/" "--cpp_styleguide_out=$(SolutionDir)$(Configuration)/" "--plugin=protoc-gen-cpp_styleguide=$(SolutionDir)$(Configuration)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.exe" "contrib/libs/protobuf/python/google/protobuf/pyext/python.proto"
+"$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir).." "-I=$(SolutionDir)../contrib/libs/protobuf/src" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf/src" "--cpp_out=$(SolutionDir)$(Configuration)/" "--cpp_styleguide_out=$(SolutionDir)$(Configuration)/" "--plugin=protoc-gen-cpp_styleguide=$(SolutionDir)$(Configuration)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.exe" "contrib/libs/protobuf/python/google/protobuf/pyext/python.proto"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir).."
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_protos.py" "--suffixes" "_pb2.py" "--" "$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)../contrib/libs/protobuf/src" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf/src" "--python_out=$(SolutionDir)$(Configuration)/" "contrib/libs/protobuf/python/google/protobuf/pyext/python.proto"
+"python" "$(SolutionDir)../build/scripts/gen_py_protos.py" "--suffixes" "_pb2.py" "--" "$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir).." "-I=$(SolutionDir)../contrib/libs/protobuf/src" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf/src" "--python_out=$(SolutionDir)$(Configuration)/" "contrib/libs/protobuf/python/google/protobuf/pyext/python.proto"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
