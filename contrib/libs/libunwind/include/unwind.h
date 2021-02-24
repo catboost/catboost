@@ -396,6 +396,21 @@ extern EXCEPTION_DISPOSITION _GCC_specific_handler(EXCEPTION_RECORD *exc,
                                                    _Unwind_Personality_Fn pers);
 #endif
 
+#ifdef _YNDX_LIBUNWIND_ENABLE_EXCEPTION_BACKTRACE
+
+#define _YNDX_LIBUNWIND_EXCEPTION_BACKTRACE_SIZE 128
+// NB. How to compute:
+// offsetof(__cxa_exception, unwindHeader) + (sizeof(_Unwind_Backtrace_Buffer) + 15) / 16 * 16 - sizeof(_Unwind_Backtrace_Buffer)
+// Correctness of this value is static_assert'd in contrib/libs/cxxsupp/libcxxrta/exception.cc
+#define _YNDX_LIBUNWIND_EXCEPTION_BACKTRACE_MAGIC_OFFSET 104
+#define _YNDX_LIBUNWIND_EXCEPTION_BACKTRACE_PRIMARY_CLASS 0xacadacadull
+#define _YNDX_LIBUNWIND_EXCEPTION_BACKTRACE_DEPENDENT_CLASS 0xddddacadull
+
+typedef struct _Unwind_Backtrace_Buffer {
+    size_t size;
+    void* backtrace[_YNDX_LIBUNWIND_EXCEPTION_BACKTRACE_SIZE];
+} _Unwind_Backtrace_Buffer;
+#endif
 #ifdef __cplusplus
 }
 #endif

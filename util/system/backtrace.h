@@ -25,7 +25,7 @@ TFormatBackTraceFn GetFormatBackTraceFn();
 
 class TBackTrace {
 private:
-    static const size_t CAPACITY = 300;
+    static constexpr size_t CAPACITY = 300;
     void* Data[CAPACITY];
     size_t Size;
 
@@ -34,4 +34,6 @@ public:
     void Capture();
     void PrintTo(IOutputStream&) const;
     TString PrintToString() const;
+
+    static TBackTrace FromCurrentException();
 };
