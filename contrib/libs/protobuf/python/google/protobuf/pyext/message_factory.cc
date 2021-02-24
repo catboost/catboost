@@ -31,10 +31,10 @@
 #include <Python.h>
 
 #include <google/protobuf/dynamic_message.h>
-#include "pyext/descriptor.h"
-#include "pyext/message.h"
-#include "pyext/message_factory.h"
-#include "pyext/scoped_pyobject_ptr.h"
+#include <google/protobuf/pyext/descriptor.h>
+#include <google/protobuf/pyext/message.h>
+#include <google/protobuf/pyext/message_factory.h>
+#include <google/protobuf/pyext/scoped_pyobject_ptr.h>
 
 #if PY_MAJOR_VERSION >= 3
   #if PY_VERSION_HEX < 0x03030000
@@ -100,8 +100,7 @@ PyObject* New(PyTypeObject* type, PyObject* args, PyObject* kwargs) {
       NewMessageFactory(type, reinterpret_cast<PyDescriptorPool*>(pool)));
 }
 
-static void Dealloc(PyObject* object) {
-  PyMessageFactory* self = reinterpret_cast<PyMessageFactory*>(object);
+static void Dealloc(PyMessageFactory* self) {
   // TODO(amauryfa): When the MessageFactory is not created from the
   // DescriptorPool this reference should be owned, not borrowed.
   // Py_CLEAR(self->pool);

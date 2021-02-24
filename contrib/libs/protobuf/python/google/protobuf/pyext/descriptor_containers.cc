@@ -52,10 +52,10 @@
 #include <Python.h>
 
 #include <google/protobuf/descriptor.h>
-#include "pyext/descriptor_containers.h"
-#include "pyext/descriptor_pool.h"
-#include "pyext/descriptor.h"
-#include "pyext/scoped_pyobject_ptr.h"
+#include <google/protobuf/pyext/descriptor_containers.h>
+#include <google/protobuf/pyext/descriptor_pool.h>
+#include <google/protobuf/pyext/descriptor.h>
+#include <google/protobuf/pyext/scoped_pyobject_ptr.h>
 
 #if PY_MAJOR_VERSION >= 3
   #define PyString_FromStringAndSize PyUnicode_FromStringAndSize

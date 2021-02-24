@@ -33,12 +33,12 @@
 #include <Python.h>
 
 #include <google/protobuf/descriptor.pb.h>
-#include "pyext/descriptor.h"
-#include "pyext/descriptor_database.h"
-#include "pyext/descriptor_pool.h"
-#include "pyext/message.h"
-#include "pyext/message_factory.h"
-#include "pyext/scoped_pyobject_ptr.h"
+#include <google/protobuf/pyext/descriptor.h>
+#include <google/protobuf/pyext/descriptor_database.h>
+#include <google/protobuf/pyext/descriptor_pool.h>
+#include <google/protobuf/pyext/message.h>
+#include <google/protobuf/pyext/message_factory.h>
+#include <google/protobuf/pyext/scoped_pyobject_ptr.h>
 #include <google/protobuf/stubs/hash.h>
 
 #if PY_MAJOR_VERSION >= 3

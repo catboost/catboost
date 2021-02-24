@@ -31,7 +31,7 @@
 // Author: anuraag@google.com (Anuraag Agrawal)
 // Author: tibell@google.com (Johan Tibell)
 
-#include "pyext/repeated_composite_container.h"
+#include <google/protobuf/pyext/repeated_composite_container.h>
 
 #include <memory>
 #ifndef _SHARED_PTR_H
@@ -43,11 +43,11 @@
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/dynamic_message.h>
 #include <google/protobuf/message.h>
-#include "pyext/descriptor.h"
-#include "pyext/descriptor_pool.h"
-#include "pyext/message.h"
-#include "pyext/message_factory.h"
-#include "pyext/scoped_pyobject_ptr.h"
+#include <google/protobuf/pyext/descriptor.h>
+#include <google/protobuf/pyext/descriptor_pool.h>
+#include <google/protobuf/pyext/message.h>
+#include <google/protobuf/pyext/message_factory.h>
+#include <google/protobuf/pyext/scoped_pyobject_ptr.h>
 #include <google/protobuf/reflection.h>
 
 #if PY_MAJOR_VERSION >= 3

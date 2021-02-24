@@ -35,7 +35,7 @@
 
 #include <google/protobuf/stubs/hash.h>
 #include <google/protobuf/descriptor.h>
-#include "pyext/descriptor_pool.h"
+#include <google/protobuf/pyext/descriptor_pool.h>
 
 namespace google {
 namespace protobuf {
