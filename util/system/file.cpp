@@ -25,6 +25,11 @@
 
 #if defined(_unix_)
 #include <fcntl.h>
+
+#if defined(_linux_) && !defined(_android_) && !defined(FALLOC_FL_KEEP_SIZE)
+#include <linux/falloc.h>
+#endif
+
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/mman.h>
@@ -384,6 +389,18 @@ bool TFileHandle::Reserve(i64 length) noexcept {
 #error unsupported platform
 #endif
     return true;
+}
+
+bool TFileHandle::FallocateNoResize(i64 length) noexcept {
+    if (!IsOpen()) {
+        return false;
+    }
+#if defined(_linux_) && !defined(_android_)
+    return !fallocate(Fd_, FALLOC_FL_KEEP_SIZE, 0, length);
+#else
+    Y_UNUSED(length);
+    return true;
+#endif
 }
 
 bool TFileHandle::Flush() noexcept {
@@ -872,6 +889,12 @@ public:
         }
     }
 
+    void FallocateNoResize(i64 length) {
+        if (!Handle_.FallocateNoResize(length)) {
+            ythrow TFileError() << "can't allocate " << length << "bytes of space for file " << FileName_.Quote();
+        }
+    }
+
     void Flush() {
         if (!Handle_.Flush()) {
             ythrow TFileError() << "can't flush " << FileName_.Quote();
@@ -1089,6 +1112,10 @@ void TFile::Resize(i64 length) {
 
 void TFile::Reserve(i64 length) {
     Impl_->Reserve(length);
+}
+
+void TFile::FallocateNoResize(i64 length) {
+    Impl_->FallocateNoResize(length);
 }
 
 void TFile::Flush() {

@@ -108,6 +108,7 @@ public:
     i64 Seek(i64 offset, SeekDir origin) noexcept;
     bool Resize(i64 length) noexcept;
     bool Reserve(i64 length) noexcept;
+    bool FallocateNoResize(i64 length) noexcept;
     bool Flush() noexcept;
     //flush data only, without file metadata
     bool FlushData() noexcept;
@@ -162,6 +163,7 @@ public:
     i64 Seek(i64 offset, SeekDir origin);
     void Resize(i64 length);
     void Reserve(i64 length);
+    void FallocateNoResize(i64 length);
     void Flush();
     void FlushData();
 

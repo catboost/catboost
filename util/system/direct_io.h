@@ -37,6 +37,10 @@ public:
         return File.GetHandle();
     }
 
+    inline void FallocateNoResize(ui64 length) {
+        File.FallocateNoResize(length);
+    }
+
 private:
     inline bool IsAligned(i64 value) {
         return Alignment ? value == AlignDown<i64>(value, Alignment) : true;
