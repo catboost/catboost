@@ -6,14 +6,16 @@
 #include <catboost/private/libs/data_util/line_data_reader.h>
 
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/logging/logging.h>
 
 #include <util/generic/hash.h>
 #include <util/generic/strbuf.h>
 #include <util/generic/vector.h>
+#include <util/generic/ymath.h>
 #include <util/string/cast.h>
 #include <util/string/split.h>
 #include <util/system/compiler.h>
-
+#include <util/system/hp_timer.h>
 
 namespace NCB {
     void IPairsDataLoader::SetGroupIdToIdxMap(const THashMap<TGroupId, ui32>* groupIdToIdxMap) {
@@ -25,11 +27,24 @@ namespace NCB {
     }
 
     void NCB::TDsvFlatPairsLoader::Do(IDatasetVisitor* visitor) {
-        THolder<ILineDataReader> reader = GetLineDataReader(Args.Path);
+        THolder<ILineDataReader> reader = GetLineDataReader(Args.Path, NCB::TDsvFormatOptions(), /*keepLineOrder*/false);
 
+        const auto approxmatePairsCount = reader->GetDataLineCount(/*estimate*/true);
         TVector<TPair> pairs;
+        pairs.reserve(approxmatePairsCount);
         TString line;
-        for (size_t lineNumber = 0; reader->ReadLine(&line); lineNumber++) {
+        ui64 lineNumber;
+        THPTimer progressTimer;
+        ui64 progressIndex = 0;
+        while (reader->ReadLine(&line, &lineNumber)) {
+            if (progressTimer.Passed() > 60/*seconds*/) {
+                if (progressIndex < approxmatePairsCount) {
+                    CATBOOST_DEBUG_LOG << "Last minute status: " << progressIndex / CeilDiv<ui32>(approxmatePairsCount, 100) << "% pairs loaded" << Endl;
+                } else {
+                    CATBOOST_DEBUG_LOG << "Last minute status: " << progressIndex << " pairs loaded" << Endl;
+                }
+                progressTimer.Reset();
+            }
             TVector<TString> tokens = StringSplitter(line).Split('\t');
             if (tokens.empty()) {
                 continue;
@@ -78,6 +93,7 @@ namespace NCB {
                 throw TCatBoostException() << "Incorrect pairs data. Invalid line number #"
                     << lineNumber << ": " << e.what();
             }
+            ++progressIndex;
         }
 
         visitor->SetPairs(TRawPairsData(std::move(pairs)));

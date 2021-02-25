@@ -20,22 +20,24 @@ namespace NCB {
     };
 
     struct ILineDataReader {
-        /* returns number of data lines (w/o header, if present)
-           in some cases (e.g. for files, could be expensive)
+        /* if estimate == false, returns number of data lines (w/o header, if present)
+           in some cases could be expensive, e.g. for files
+           if estimate == true, returns some quick estimation, lower or upper
         */
-        virtual ui64 GetDataLineCount() = 0;
+        virtual ui64 GetDataLineCount(bool estimate = false) = 0;
 
-        /* call before any calls to NextLine if you need it
+        /* call before any calls to ReadLine if you need it
            it is an error to call GetHeader after any ReadLine calls
         */
         virtual TMaybe<TString> GetHeader() = 0;
 
-        /* returns true if there still was some data
+        /* returns true, if data were read
+           implementation may return lines in any order
+           logical line index is stored to *lineIdx, if lineIdx != nullptr
            not thread-safe
         */
-        virtual bool ReadLine(TString* line) = 0;
-        virtual bool ReadLine(TString*, TString*) = 0;
-
+        virtual bool ReadLine(TString* line, ui64* lineIdx = nullptr) = 0;
+        virtual bool ReadLine(TString*, TString*, ui64* lineIdx = nullptr) = 0;
         virtual ~ILineDataReader() = default;
     };
 }

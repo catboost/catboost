@@ -33,16 +33,22 @@ private:
 
 struct IJVMLineDataReader : public NCB::ILineDataReader {
     // should be marked 'final', but SWIG is unable to parse it
-    bool ReadLine(TString* line) override {
+    bool ReadLine(TString* line, ui64* lineIdx) override {
+        if (lineIdx) {
+            *lineIdx = LineIndex;
+        }
+        ++LineIndex;
         return ReadLineJVM(TStringOutWrapper(line));
     }
 
-    bool ReadLine(TString*, TString*) override {
+    bool ReadLine(TString*, TString*, ui64*) override {
         Y_UNREACHABLE();
     }
 
     // override this method in derived JVM classes
     virtual bool ReadLineJVM(TStringOutWrapper line) = 0;
+
+    ui64 LineIndex = 0;
 };
 
 
