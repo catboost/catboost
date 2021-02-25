@@ -201,7 +201,7 @@ def create_import_config(peers, gen_importmap, import_map={}, module_map={}):
     return None
 
 
-def create_emded_config(args):
+def create_embed_config(args):
     data = {
         'Patterns': {},
         'Files': {},
@@ -352,7 +352,7 @@ def _do_compile_go(args):
         else:
             cmd.append('-complete')
     if args.embed and compare_versions('1.16', args.goversion) >= 0:
-        embed_config_name = create_emded_config(args)
+        embed_config_name = create_embed_config(args)
         cmd.extend(['-embedcfg', embed_config_name])
     if args.asmhdr:
         cmd += ['-asmhdr', args.asmhdr]
