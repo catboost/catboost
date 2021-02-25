@@ -1,6 +1,6 @@
 LIBRARY()
 
-LICENSE(BSD-3-Clause)
+LICENSE(OpenSSL SSLeay)
 
 
 
