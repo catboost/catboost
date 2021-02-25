@@ -257,7 +257,7 @@ namespace NCB {
         TVector<ui32> TextFeatureInternalIdxToExternalIdx;
         TVector<ui32> EmbeddingFeatureInternalIdxToExternalIdx;
 
-        template<class TFeatureElement>
+        template <class TFeatureElement>
         inline void UpdateFeaturesMetaInfo(
             TConstArrayRef<TFeatureElement> features,
             EFeatureType featureType)
@@ -284,16 +284,23 @@ namespace NCB {
                 if ((size_t)feature.Position.FlatIndex >= ExternalIdxToMetaInfo.size()) {
                     CB_ENSURE(
                         (size_t)feature.Position.FlatIndex < (size_t)Max<ui32>(),
-                        "feature.Position.FlatIndex is greater than maximum allowed index: " << (Max<ui32>() - 1)
+                        "feature.Position.FlatIndex is greater than maximum allowed index: "
+                        << (Max<ui32>() - 1)
                     );
                     ExternalIdxToMetaInfo.resize(feature.Position.FlatIndex + 1, defaultIgnoredMetaInfo);
-                    FeatureExternalIdxToInternalIdx.resize(feature.Position.FlatIndex + 1, internalOrExternalIndexPlaceholder);
+                    FeatureExternalIdxToInternalIdx.resize(
+                        feature.Position.FlatIndex + 1,
+                        internalOrExternalIndexPlaceholder
+                    );
                 }
                 ExternalIdxToMetaInfo[feature.Position.FlatIndex] =
                     TFeatureMetaInfo(featureType, feature.FeatureId);
                 FeatureExternalIdxToInternalIdx[feature.Position.FlatIndex] = feature.Position.Index;
                 if ((size_t)feature.Position.Index >= featureInternalIdxToExternalIdx.size()) {
-                    featureInternalIdxToExternalIdx.resize((size_t)feature.Position.Index + 1, internalOrExternalIndexPlaceholder);
+                    featureInternalIdxToExternalIdx.resize(
+                        (size_t)feature.Position.Index + 1,
+                        internalOrExternalIndexPlaceholder
+                    );
                 }
                 featureInternalIdxToExternalIdx[feature.Position.Index] = feature.Position.FlatIndex;
             }
