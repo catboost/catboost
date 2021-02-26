@@ -262,7 +262,12 @@ namespace NCB {
             TConstArrayRef<TFeatureElement> features,
             EFeatureType featureType)
         {
-            const TFeatureMetaInfo defaultIgnoredMetaInfo(EFeatureType::Float, TString(), true);
+            const TFeatureMetaInfo defaultIgnoredMetaInfo(
+                EFeatureType::Float,
+                /*name*/ TString(),
+                /*isSparse*/ false,
+                /*isIgnored*/ true
+            );
             const ui32 internalOrExternalIndexPlaceholder = Max<ui32>();
             TVector<ui32>& featureInternalIdxToExternalIdx = [&]()->TVector<ui32>& {
                 switch (featureType) {
