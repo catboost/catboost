@@ -74,8 +74,6 @@ namespace NUnitTest {
         {
         }
 
-        const TString& GetParam(const TString& key, const TString& def) const;
-
         using TMetrics = THashMap<TString, double>;
         TMetrics Metrics;
 
@@ -145,10 +143,6 @@ namespace NUnitTest {
 
         // --fork-tests is set (warning: this may be false, but never the less test will be forked if called inside UNIT_FORKED_TEST)
         virtual bool GetForkTests() const;
-
-        virtual void SetParam(const TString& /*key*/, const TString& /*value*/);
-
-        virtual const TString& GetParam(const TString& /*key*/, const TString& /*def*/) const;
 
     private:
         virtual void OnStart();
@@ -743,8 +737,6 @@ public:                       \
 #define UNIT_ASSERT_TEST_FAILS(A) UNIT_ASSERT_TEST_FAILS_C(A, "")
 
 #define UNIT_ADD_METRIC(name, value) ut_context.Metrics[name] = value
-
-#define UNIT_GET_PARAM(key, def) ut_context.Processor->GetParam(key, def)
 
     class TTestFactory {
         friend class TTestBase;

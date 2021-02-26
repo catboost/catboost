@@ -172,12 +172,6 @@ static size_t CountTests(const TMap<TString, size_t>& testErrors, bool succeeded
     return cnt;
 }
 
-const TString& NUnitTest::TTestContext::GetParam(const TString& key, const TString& def) const {
-    if (Processor == nullptr)
-        return def;
-    return Processor->GetParam(key, def);
-}
-
 NUnitTest::ITestSuiteProcessor::ITestSuiteProcessor() = default;
 
 NUnitTest::ITestSuiteProcessor::~ITestSuiteProcessor() = default;
@@ -250,13 +244,6 @@ bool NUnitTest::ITestSuiteProcessor::GetIsForked() const {
 
 bool NUnitTest::ITestSuiteProcessor::GetForkTests() const {
     return false;
-}
-
-void NUnitTest::ITestSuiteProcessor::SetParam(const TString& /*key*/, const TString& /*value*/) {
-}
-
-const TString& NUnitTest::ITestSuiteProcessor::GetParam(const TString& /*key*/, const TString& def) const {
-    return def;
 }
 
 void NUnitTest::ITestSuiteProcessor::OnStart() {

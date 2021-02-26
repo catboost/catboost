@@ -47,17 +47,6 @@ TEST(ETest, Test1) {
     UNIT_CHECK_GENERATED_NO_EXCEPTION(true, yexception);
 }
 
-Y_UNIT_TEST_SUITE(TestParams) {
-    Y_UNIT_TEST(TestDefault){
-        UNIT_ASSERT_EQUAL(UNIT_GET_PARAM("key", "default"), "default");
-    }
-
-    Y_UNIT_TEST(TestSetParam) {
-        ut_context.Processor->SetParam("key", "value");
-        UNIT_ASSERT_EQUAL(UNIT_GET_PARAM("key", ""), "value");
-    }
-}
-
 Y_UNIT_TEST_SUITE(TestSingleTestFixture)
 {
     Y_UNIT_TEST_F(Test3, TSimpleFixture) {
