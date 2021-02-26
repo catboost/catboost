@@ -2145,7 +2145,6 @@ migrations:
     - market/dynamic_pricing/pricing/library
     - market/dynamic_pricing/tools/kvi_evaluation
     - market/dynamic_pricing/tools/offline_modeling
-    - market/idx/datacamp/controllers/piper/tests
     - market/idx/devtools/common_proxy_monitor/tests
     - market/idx/devtools/dukalis/library/analyzer
     - market/idx/feeds/feedparser/test/yatf/negative
