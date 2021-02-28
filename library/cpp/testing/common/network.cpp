@@ -100,10 +100,10 @@ namespace {
             , Ranges_(GetPortRanges())
             , TotalCount_(0)
         {
-            if (SyncDir_.empty()) {
+            if (!SyncDir_.IsDefined()) {
                 SyncDir_ = TFsPath(GetSystemTempDir()) / "yandex_port_locks";
             }
-            Y_VERIFY(!SyncDir_.empty());
+            Y_VERIFY(SyncDir_.IsDefined());
             NFs::MakeDirectoryRecursive(SyncDir_);
 
             for (auto [left, right] : Ranges_) {
@@ -167,24 +167,25 @@ namespace {
 
     private:
         THolder<NTesting::IPort> TryAcquirePort(ui16 port) const {
+            auto lock = MakeHolder<TFileLock>(TString(SyncDir_ / ::ToString(port)));
+            if (!lock->TryAcquire()) {
+                return nullptr;
+            }
+
             TInet6StreamSocket sock;
             Y_VERIFY_SYSERROR(INVALID_SOCKET != static_cast<SOCKET>(sock));
 
             TSockAddrInet6 addr("::", port);
             if (sock.Bind(&addr) != 0) {
+                lock->Release();
                 Y_VERIFY(EADDRINUSE == LastSystemError(), "unexpected error: %d", LastSystemError());
-                return nullptr;
-            }
-
-            auto lock = MakeHolder<TFileLock>(TString(TFsPath(SyncDir_) / ::ToString(port)));
-            if (!lock->TryAcquire()) {
                 return nullptr;
             }
             return MakeHolder<TPortGuard>(port, std::move(lock));
         }
 
     private:
-        TString SyncDir_;
+        TFsPath SyncDir_;
         TVector<std::pair<ui16, ui16>> Ranges_;
         size_t TotalCount_;
     };
