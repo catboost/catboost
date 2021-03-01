@@ -712,6 +712,9 @@ ALLOW yabs/vh/cms-pgaas/transcoded -> vendor/github.com/jackc/pgx
 # Permanent exceptions.
 #
 
+# Docker is not vendored property. Docker dependency must be pulled-in explicitly.
+ALLOW vendor/ -> vendor/github.com/opencontainers/go-digest
+
 # CONTRIB-865. Jaeger YT plugin. responsible: prime@
 ALLOW yt/jaeger/plugin -> vendor/github.com/jaegertracing/jaeger
 ALLOW yt/jaeger/plugin -> vendor/github.com/spf13/viper
