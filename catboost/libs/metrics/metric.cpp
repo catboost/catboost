@@ -4378,6 +4378,56 @@ void TAverageGain::GetBestValue(EMetricBestValue* valueType, float*) const {
     *valueType = EMetricBestValue::Max;
 }
 
+/* QueryAUC */
+
+namespace {
+    class TQueryAUC final: public TAdditiveMetric {
+    public:
+        explicit TQueryAUC(ELossFunction lossFunction, const TLossParams& params)
+        : TAdditiveMetric(lossFunction, params) {
+
+        }
+
+
+        static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
+
+        TMetricHolder EvalSingleThread(
+            const TConstArrayRef<TConstArrayRef<double>> approx,
+            const TConstArrayRef<TConstArrayRef<double>> approxDelta,
+            bool isExpApprox,
+            TConstArrayRef<float> target,
+            TConstArrayRef<float> weight,
+            TConstArrayRef<TQueryInfo> queriesInfo,
+            int queryStartIndex,
+            int queryEndIndex
+        ) const override;
+        EErrorType GetErrorType() const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+    }
+}
+
+TVector<THolder<IMetric>> TQueryAUC::Create(const TMetricConfig& config) {
+    return AsVector(MakeHolder<TQueryAUC>(config.Metric, config.Params));
+}
+
+TMetricHolder TQueryAUC:EvalSingleThread(
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
+    bool isExpApprox,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> /*weight*/,
+    TConstArrayRef<TQueryInfo> queriesInfo,
+    int queryStartIndex,
+    int queryEndIndex
+) const {
+
+
+}
+
+EErrorType TQueryAUC::GetErrorType() const {
+    return EErrorType::QuerywiseError;
+}
+
 /* CombinationLoss */
 
 namespace {
