@@ -5,6 +5,10 @@ import argparse
 import process_command_files as pcf
 
 
+def writelines(f, rng):
+    f.writelines(item + '\n' for item in rng)
+
+
 def main():
     args = pcf.get_args(sys.argv[1:])
     parser = argparse.ArgumentParser()
@@ -35,7 +39,7 @@ def main():
             continue
         elif next_arg == SRCDIR_ARG:
             assert cur_srcdir is None
-            cur_srcdir = src
+            cur_srcdir = src if os.path.isabs(src) else os.path.join(os.getcwd(), src)
             next_arg = FILE_ARG
             continue
 
@@ -49,7 +53,7 @@ def main():
             if src == '--resources':
                 if cur_resources_list_file is not None:
                     with open(cur_resources_list_file, 'w') as f:
-                        f.writelines(cur_resources)
+                        writelines(f, cur_resources)
                 cur_resources_list_file = None
                 cur_srcdir = None
                 cur_resources = []
@@ -62,17 +66,17 @@ def main():
 
     if cur_resources_list_file is not None:
         with open(cur_resources_list_file, 'w') as f:
-            f.writelines(cur_resources)
+            writelines(f, cur_resources)
 
     if args.java:
         with open(args.java, 'w') as f:
-            f.writelines(java)
+            writelines(f, java)
     if args.kotlin:
         with open(args.kotlin, 'w') as f:
-            f.writelines(kotlin)
+            writelines(f, kotlin)
     if args.groovy:
         with open(args.groovy, 'w') as f:
-            f.writelines(groovy)
+            writelines(f, groovy)
 
     return 0
 
