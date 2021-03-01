@@ -272,8 +272,6 @@ private:
         TString InternalError;
     };
 
-private:
-    TString GetQuotedCommand() const;
 #if defined(_unix_)
     void OnFork(TPipes& pipes, sigset_t oldmask, char* const* argv, char* const* envp) const;
 #else
@@ -500,6 +498,8 @@ public:
         }
         return nullptr;
     }
+
+    TString GetQuotedCommand() const;
 };
 
 #if defined(_win_)
@@ -1157,4 +1157,8 @@ TShellCommand& TShellCommand::Wait() {
 TShellCommand& TShellCommand::CloseInput() {
     Impl->CloseInput();
     return *this;
+}
+
+TString TShellCommand::GetQuotedCommand() const {
+    return Impl->GetQuotedCommand();
 }
