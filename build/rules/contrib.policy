@@ -245,6 +245,7 @@ ALLOW passport/python/core/dbmanager/tests -> contrib/python/MySQL-python
 ALLOW passport/python/core/frodo/tests -> contrib/python/MySQL-python
 ALLOW passport/python/core/mailer/faker/tests -> contrib/python/MySQL-python
 ALLOW passport/python/core/models/tests -> contrib/python/MySQL-python
+ALLOW passport/python/core/models/phones/faker/tests -> contrib/python/MySQL-python
 ALLOW passport/python/core/serializers/domain/tests -> contrib/python/MySQL-python
 ALLOW passport/python/core/serializers/tests -> contrib/python/MySQL-python
 ALLOW passport/python/core/yasms -> contrib/python/MySQL-python
