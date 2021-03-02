@@ -5,15 +5,9 @@ IF (USE_PREBUILT_TOOLS)
 ENDIF()
 
 IF (NOT PREBUILT)
-    PROGRAM()
-
-    PEERDIR(
-        library/cpp/resource
-    )
-
-    SRCS(
-        main.cpp
-    )
-
-    END()
+    INCLUDE(${ARCADIA_ROOT}/tools/rescompressor/bin/ya.make)
 ENDIF()
+
+RECURSE(
+    bin
+)
