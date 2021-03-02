@@ -10,7 +10,7 @@ import sys
 
 from contextlib import contextmanager
 
-__version__ = '0.13.4'
+__version__ = '0.13.5'
 
 from IPython import get_ipython
 from IPython.core.debugger import BdbQuit_excepthook
@@ -80,11 +80,11 @@ def set_trace(frame=None, context=None, cond=True):
 def get_context_from_config():
     try:
         parser = get_config()
-        return parser.getint("ipdb", "context")
+        return parser.getint("tool.ipdb", "context", fallback=parser.getint("ipdb", "context"))
     except (configparser.NoSectionError, configparser.NoOptionError):
         return 3
     except ValueError:
-        value = parser.get("ipdb", "context")
+        value = parser.get("tool.ipdb", "context", fallback=parser.get("ipdb", "context"))
         raise ValueError(
             "In %s,  context value [%s] cannot be converted into an integer."
             % (parser.filepath, value)
@@ -140,7 +140,7 @@ def get_config():
     filepaths = []
 
     # Low priority goes first in the list
-    for cfg_file in ("setup.cfg", ".ipdb"):
+    for cfg_file in ("setup.cfg", ".ipdb", "pyproject.toml"):
         cwd_filepath = os.path.join(os.getcwd(), cfg_file)
         if os.path.isfile(cwd_filepath):
             filepaths.append(cwd_filepath)
@@ -168,10 +168,12 @@ def get_config():
             parser.filepath = filepath
             # Users are expected to put an [ipdb] section
             # only if they use setup.cfg
-            if filepath.endswith('setup.cfg'):
+            if filepath.endswith('setup.cfg') or filepath.endswith('pyproject.toml'):
                 with open(filepath) as f:
+                    parser.remove_section("ipdb")
                     read_func(f)
             else:
+                parser.remove_section("tool.ipdb")
                 read_func(ConfigFile(filepath))
     return parser
 
