@@ -4,7 +4,7 @@ LICENSE(PSF-2.0)
 
 
 
-VERSION(0.6.0)
+VERSION(0.6.0.post1)
 
 NO_LINT()
 
