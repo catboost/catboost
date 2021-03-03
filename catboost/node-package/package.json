@@ -1,0 +1,19 @@
+{
+  "name": "catboost",
+  "version": "1.0.0",
+  "description": "Node bindings for CatBoost library to apply models. CatBoost is a machine learning method based on gradient boosting over decision trees.",
+  "main": "lib/index.js",
+  "dependencies": {
+    "node-addon-api": "^1.1.0"
+  },
+  "scripts": {
+    "build": "tsc && node-gyp build",
+    "test": "npm run build && node --napi-modules ./lib/tests/description.js"
+  },
+  "author": "catboost.ai",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@types/node": "^7.0.22",
+    "typescript": "^3.6.5"
+  }
+}
