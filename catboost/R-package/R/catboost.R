@@ -405,6 +405,34 @@ print.catboost.Pool <- function(x, ...) {
 }
 
 
+#' @title Print basic information about model
+#' @description Displays the most general characteristics of a CatBoost model.
+#' @param x The model obtained as the result of training.
+#' @param ... Not used
+#' @return The same model that was passed as input.
+#' @export
+print.catboost.Model <- function(x, ...) {
+    cat(sprintf("CatBoost model (%d trees)\n", x$tree_count))
+    cat(sprintf("Loss function: %s\n", catboost.get_plain_params(x)$loss_function))
+    cat(sprintf("Fit to %d features\n", NROW(x$feature_importances)))
+    if (is.null.handle(x$handle))
+        cat("(Handle is incomplete)\n")
+    return(invisible(x))
+}
+
+
+#' @title Print basic information about model
+#' @description Displays the most general characteristics of a CatBoost model
+#' (same as 'print').
+#' @param object The model obtained as the result of training.
+#' @param ... Not used
+#' @return The same model that was passed as input.
+#' @export
+summary.catboost.Model <- function(object, ...) {
+    print.catboost.Model(object)
+}
+
+
 #' @name catboost.train
 #' @title Train the model
 #'
