@@ -251,7 +251,11 @@
 #define __TBB_CPP17_IS_SWAPPABLE_PRESENT                (__TBB_LANG >= 201703L)
 #define __TBB_CPP20_COMPARISONS_PRESENT                 __TBB_CPP20_PRESENT
 
-#define __TBB_RESUMABLE_TASKS                           (!__TBB_WIN8UI_SUPPORT && !__ANDROID__ && !__APPLE__)
+#if (!__TBB_WIN8UI_SUPPORT && !__ANDROID__ && !__APPLE__ && !defined(_musl_))
+#define __TBB_RESUMABLE_TASKS 1
+#else
+#define __TBB_RESUMABLE_TASKS 0
+#endif
 
 /* This macro marks incomplete code or comments describing ideas which are considered for the future.
  * See also for plain comment with TODO and FIXME marks for small improvement opportunities.
