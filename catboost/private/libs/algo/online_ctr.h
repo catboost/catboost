@@ -11,6 +11,7 @@
 #include <catboost/libs/model/target_classifier.h>
 
 #include <catboost/private/libs/index_range/index_range.h>
+#include <catboost/private/libs/algo_helpers/scratch_cache.h>
 
 #include <util/generic/array_ref.h>
 #include <util/generic/fwd.h>
@@ -139,6 +140,7 @@ void ComputeOnlineCTRs(
     const TVector<int>& foldTargetClassesCount,
     const NCatboostOptions::TCatFeatureParams& catFeatureParams,
     NPar::ILocalExecutor* localExecutor,
+    NCB::TScratchCache* scratchCache,
     IOnlineCtrProjectionDataWriter* writer
 );
 
@@ -146,7 +148,7 @@ void ComputeOnlineCTRs(
     const NCB::TTrainingDataProviders& data,
     const TFold& fold,
     const TProjection& proj,
-    const TLearnContext* ctx,
+    TLearnContext* ctx,
     TOwnedOnlineCtr* onlineCtrStorage
 );
 
