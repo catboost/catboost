@@ -7,6 +7,7 @@
 #include <set>
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/compiler/code_generator.h>
+#include <google/protobuf/compiler/cpp/cpp_helpers.h>
 #include <google/protobuf/stubs/common.h>
 #include <google/protobuf/stubs/strutil.h>
 
@@ -22,19 +23,6 @@ class ServiceDescriptor;
 namespace io { class Printer; }
 
 namespace compiler {
-
-// A couple of the C++ code generator headers are not installed, but
-// we need to call into that code in a few places.  We duplicate the
-// function prototypes here.
-
-namespace cpp {
-  extern string ClassName(const Descriptor* descriptor, bool qualified);
-  extern string ClassName(const EnumDescriptor* enum_descriptor, 
-			  bool qualified);
-  extern string FieldName(const FieldDescriptor* field);
-  extern string StripProto(const string& filename);
-}
-
 namespace perlxs {
 
 // CodeGenerator implementation for generated Perl/XS protocol buffer
@@ -52,7 +40,7 @@ class LIBPROTOC_EXPORT PerlXSGenerator : public CodeGenerator {
 			const string& parameter,
 			OutputDirectory* output_directory,
 			string* error) const;
-  
+
   bool ProcessOption(const string& option);
 
  private:
@@ -80,7 +68,7 @@ class LIBPROTOC_EXPORT PerlXSGenerator : public CodeGenerator {
 
   void GenerateEnumModule(const EnumDescriptor* enum_descriptor,
 			  OutputDirectory* outdir) const;
-  
+
   void GenerateMessageXSFieldAccessors(const FieldDescriptor* field,
 				       io::Printer& printer,
 				       const string& classname) const;
@@ -99,7 +87,7 @@ class LIBPROTOC_EXPORT PerlXSGenerator : public CodeGenerator {
 
   void GenerateMessageStatics(const Descriptor* descriptor,
 			      io::Printer& printer) const;
-  
+
   void GenerateMessageXSPackage(const Descriptor* descriptor,
 				io::Printer& printer) const;
 
@@ -157,7 +145,7 @@ class LIBPROTOC_EXPORT PerlXSGenerator : public CodeGenerator {
   // --perlxs-package option (if given)
   TProtoStringType perlxs_package_;
 };
- 
+
 }  // namespace perlxs
 }  // namespace compiler
 }  // namespace protobuf
