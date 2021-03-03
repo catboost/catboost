@@ -945,6 +945,14 @@ class ToolchainOptions(object):
     def version_at_least(self, *args):
         return args <= tuple(self.compiler_version_list)
 
+    def version_exactly(self, *args):
+        if not args or len(args) > len(self.compiler_version_list):
+            return False
+        for l, r in zip(args, list(self.compiler_version_list)[:len(args)]):
+            if l != r:
+                return False
+        return True
+
     @property
     def is_gcc(self):
         return self.type == 'gnu'
@@ -2264,6 +2272,17 @@ class MSVCCompiler(MSVC, Compiler):
                     '-Wno-final-dtor-non-final-class',
                     '-Wno-pointer-to-int-cast',  # didn't fail on linux
                 ]
+
+                # heretic: на момент коммита в нашей конфигурации указано, что тулчейн clang11-windows - аналог msvc 2019
+                # https://a.yandex-team.ru/arc/trunk/arcadia/build/ya.conf.json?rev=r7910792#L2185
+                # сам clang11 по дефолту представляется msvc2017 (#define _MSC_VER 1911)
+                # https://a.yandex-team.ru/arc/trunk/arcadia/contrib/libs/clang11/lib/Driver/ToolChains/MSVC.cpp?rev=r7913127#L1352
+                # вручную заставляем его представляться msvc2019 (#define _MSC_VER 1921)
+                # значение версии взято вот отсюда:
+                # https://a.yandex-team.ru/arc/trunk/arcadia/contrib/libs/llvm11/include/llvm/Support/Compiler.h?blame=true&rev=r7913127#L89
+                if self.tc.version_exactly(2019):
+                    flags.append('-fms-compatibility-version=19.21')
+
             if self.tc.ide_msvs:
                 cxx_warnings += [
                     '-Wno-unused-command-line-argument',
