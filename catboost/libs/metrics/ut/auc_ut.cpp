@@ -1,6 +1,8 @@
 #include <catboost/libs/metrics/auc.h>
+#include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/metrics/metric_holder.h>
 #include <catboost/libs/helpers/cpu_random.h>
+#include <catboost/private/libs/data_types/query.h>
 
 #include <library/cpp/testing/unittest/registar.h>
 
@@ -180,6 +182,34 @@ Y_UNIT_TEST_SUITE(AUCMetricTests) {
         UNIT_ASSERT_DOUBLES_EQUAL(scoreParallel, score, eps);
     }
 
+    static void TestQueryAuc(
+        TString description,
+        TVector<TVector<double>> prediction,
+        const TVector<float>& targets,
+        const TVector<float>& weights,
+        const TVector<TQueryInfo> queryInfos,
+        const TMetricHolder expected,
+        const double eps)
+    {
+        NPar::TLocalExecutor executor;
+        executor.RunAdditionalThreads(31);
+
+        const auto queryAUC = std::move(CreateMetricsFromDescription({description}, 1).front());
+        const auto metric = queryAUC->Eval(
+            prediction,
+            targets,
+            weights,
+            queryInfos,
+            0,
+            queryInfos.size(),
+            executor);
+
+        UNIT_ASSERT_VALUES_EQUAL(expected.Stats.size(), 2);
+        UNIT_ASSERT_VALUES_EQUAL(expected.Stats.size(), metric.Stats.size());
+        UNIT_ASSERT_DOUBLES_EQUAL(expected.Stats[1], metric.Stats[1], eps);
+        UNIT_ASSERT_DOUBLES_EQUAL(expected.Stats[0], metric.Stats[0], eps);
+    }
+
     static void TestBinClassAuc(
         const TVector<double>& prediction,
         const TVector<bool>& target,
@@ -321,6 +351,57 @@ Y_UNIT_TEST_SUITE(AUCMetricTests) {
             {1, 0.5, 2, 1, 1, 0.75, 1, 1.5, 1.25, 3},
             EPS
         );
+    }
+
+    Y_UNIT_TEST(SimpleQueryAucTest) {
+        {
+            TMetricHolder expected(2);
+            expected.Stats[0] = 0.6708133971291866;
+            expected.Stats[1] = 1;
+            TQueryInfo info(0, 10);
+            TestQueryAuc(
+                "QueryAUC:type=Ranking;use_weights=true",
+                {{1, 1, 2, 3, 1, 4, 1, 2, 3, 1}}, // predicts
+                {1, 2, 3, 4, 5, 5, 4, 3, 2, 1}, // targets
+                {1, 0.5, 2, 1, 1, 0.75, 1, 1.5, 1.25, 3}, // weights
+                {info},
+                expected,
+                EPS
+            );
+        }
+        
+        {
+            TMetricHolder expected(2);
+            expected.Stats[0] = 0.5;
+            expected.Stats[1] = 1;
+            TQueryInfo info(0, 3);
+            TestQueryAuc(
+                "QueryAUC:type=Ranking;use_weights=true",
+                {{3, 2, 1}}, // predicts
+                {0, 1, 0}, // targets
+                {1, 1, 1}, // weights
+                {info},
+                expected,
+                EPS
+            );
+        }
+            TMetricHolder expected(2);
+            expected.Stats[0] = 1.1708133971291866;
+            expected.Stats[1] = 2;
+            TQueryInfo info1(0, 10);
+            TQueryInfo info2(10, 13);
+            TestQueryAuc(
+                "QueryAUC:type=Ranking;use_weights=true",
+                {{1, 1, 2, 3, 1, 4, 1, 2, 3, 1, 3, 2, 1}}, // predicts
+                {1, 2, 3, 4, 5, 5, 4, 3, 2, 1, 0, 1, 0}, // targets
+                {1, 0.5, 2, 1, 1, 0.75, 1, 1.5, 1.25, 3, 1, 1, 1}, // weights
+                {info1, info2},
+                expected,
+                EPS
+            );
+        {
+
+        }
     }
 
     Y_UNIT_TEST(ParallelizationOnTest) {

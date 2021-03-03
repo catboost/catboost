@@ -4381,13 +4381,27 @@ void TAverageGain::GetBestValue(EMetricBestValue* valueType, float*) const {
 /* QueryAUC */
 
 namespace {
-    class TQueryAUC final: public TAdditiveMetric {
+    class TQueryAUCMetric final: public TAdditiveMetric {
     public:
-        explicit TQueryAUC(ELossFunction lossFunction, const TLossParams& params)
-        : TAdditiveMetric(lossFunction, params) {
-
+        explicit TQueryAUCMetric(const TLossParams& params, EAucType singleClassType)
+        : TAdditiveMetric(ELossFunction::AUC, params)
+        , Type(singleClassType) {
+            UseWeights.SetDefaultValue(false);
         }
 
+        explicit TQueryAUCMetric(const TLossParams& params, int positiveClass)
+        : TAdditiveMetric(ELossFunction::AUC, params)
+        , PositiveClass(positiveClass)
+        , Type(EAucType::OneVsAll) {
+            UseWeights.SetDefaultValue(false);
+        }
+
+        explicit TQueryAUCMetric(const TLossParams& params, const TMaybe<TVector<TVector<double>>>& misclassCostMatrix = Nothing())
+            : TAdditiveMetric(ELossFunction::AUC, params)
+            , Type(EAucType::Mu)
+            , MisclassCostMatrix(misclassCostMatrix) {
+            UseWeights.SetDefaultValue(false);
+        }
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
 
@@ -4403,29 +4417,132 @@ namespace {
         ) const override;
         EErrorType GetErrorType() const override;
         void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+    private:
+        int PositiveClass = 1;
+        EAucType Type;
+        TMaybe<TVector<TVector<double>>> MisclassCostMatrix = Nothing();
+    };
+}
+
+TVector<THolder<IMetric>> TQueryAUCMetric::Create(const TMetricConfig& config) {
+    config.ValidParams->insert("type");
+    EAucType aucType = config.ApproxDimension == 1 ? EAucType::Classic : EAucType::Mu;
+    if (config.GetParamsMap().contains("type")) {
+        const TString name = config.GetParamsMap().at("type");
+        aucType = FromString<EAucType>(name);
+        if (config.ApproxDimension == 1) {
+            CB_ENSURE(aucType == EAucType::Classic || aucType == EAucType::Ranking,
+                      "AUC type \"" << aucType << "\" isn't a singleclass AUC type");
+        } else {
+            CB_ENSURE(aucType == EAucType::Mu || aucType == EAucType::OneVsAll,
+                      "AUC type \"" << aucType << "\" isn't a multiclass AUC type");
+        }
+    }
+
+    switch (aucType) {
+        case EAucType::Classic: {
+            return AsVector(MakeHolder<TQueryAUCMetric>(config.Params, EAucType::Classic));
+            break;
+        }
+        case EAucType::Ranking: {
+            return AsVector(MakeHolder<TQueryAUCMetric>(config.Params, EAucType::Ranking));
+            break;
+        }
+        case EAucType::Mu: {
+            config.ValidParams->insert("misclass_cost_matrix");
+            TMaybe<TVector<TVector<double>>> misclassCostMatrix = Nothing();
+            if (config.GetParamsMap().contains("misclass_cost_matrix")) {
+                misclassCostMatrix.ConstructInPlace(ConstructSquareMatrix<double>(
+                        config.GetParamsMap().at("misclass_cost_matrix")));
+            }
+            if (misclassCostMatrix) {
+                for (ui32 i = 0; i < misclassCostMatrix->size(); ++i) {
+                    CB_ENSURE((*misclassCostMatrix)[i][i] == 0, "Diagonal elements of the misclass cost matrix should be equal to 0.");
+                }
+            }
+            return AsVector(MakeHolder<TQueryAUCMetric>(config.Params, misclassCostMatrix));
+            break;
+        }
+        case EAucType::OneVsAll: {
+            TVector<THolder<IMetric>> metrics;
+            for (int i = 0; i < config.ApproxDimension; ++i) {
+                metrics.push_back(MakeHolder<TQueryAUCMetric>(config.Params, i));
+            }
+            return metrics;
+            break;
+        }
+        default: {
+            Y_VERIFY(false);
+        }
     }
 }
 
-TVector<THolder<IMetric>> TQueryAUC::Create(const TMetricConfig& config) {
-    return AsVector(MakeHolder<TQueryAUC>(config.Metric, config.Params));
-}
-
-TMetricHolder TQueryAUC:EvalSingleThread(
+TMetricHolder TQueryAUCMetric::EvalSingleThread(
     const TConstArrayRef<TConstArrayRef<double>> approx,
     const TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
     TConstArrayRef<float> target,
-    TConstArrayRef<float> /*weight*/,
+    TConstArrayRef<float> weight,
     TConstArrayRef<TQueryInfo> queriesInfo,
     int queryStartIndex,
     int queryEndIndex
 ) const {
+    Y_ASSERT(!isExpApprox);
+
+    TMetricHolder error(2);
+
+    const auto realApprox = [&](int idx) {
+        return approx[Type == EAucType::OneVsAll ? PositiveClass : 0][idx]
+        + (approxDelta.empty() ? 0.0 : approxDelta[Type == EAucType::OneVsAll ? PositiveClass : 0][idx]);
+    };
+    const auto realWeight = [&](int idx) {
+        return UseWeights && !weight.empty() ? weight[idx] : 1.0;
+    };
+    const auto realTarget = [&](int idx) {
+        return Type == EAucType::OneVsAll ? target[idx] == static_cast<double>(PositiveClass) : target[idx];
+    };
+
+    for (int queryIndex = queryStartIndex; queryIndex < queryEndIndex; ++queryIndex) {
+        auto startIdx = queriesInfo[queryIndex].Begin;
+        auto endIdx = queriesInfo[queryIndex].End;
+        const float queryWeight = UseWeights ? queriesInfo[queryIndex].Weight : 1.0;
+
+        if (Type == EAucType::Ranking) {
+            TVector<NMetrics::TSample> samples;
+            samples.reserve(endIdx - startIdx );
+            for (int i : xrange(startIdx, endIdx)) {
+                samples.emplace_back(realTarget(i), realApprox(i), realWeight(i));
+            }
+
+            error.Stats[0] += CalcAUC(&samples) * queryWeight;
+        } else {
+            TVector<NMetrics::TBinClassSample> positiveSamples, negativeSamples;
+            for (int i : xrange(startIdx, endIdx)) {
+                const auto currentTarget = realTarget(i);
+                CB_ENSURE(0 <= currentTarget && currentTarget <= 1, "All target values should be in the segment [0, 1], for Ranking AUC please use type=Ranking.");
+                if (currentTarget > 0) {
+                    positiveSamples.emplace_back(realApprox(i), currentTarget * realWeight(i));
+                }
+                if (currentTarget < 1) {
+                    negativeSamples.emplace_back(realApprox(i), (1 - currentTarget) * realWeight(i));
+                }
+            }
+            error.Stats[0] += CalcBinClassAuc(&positiveSamples, &negativeSamples) * queryWeight;
+        }
 
 
+        error.Stats[1] += queryWeight;
+    }
+
+    return error;
 }
 
-EErrorType TQueryAUC::GetErrorType() const {
+EErrorType TQueryAUCMetric::GetErrorType() const {
     return EErrorType::QuerywiseError;
+}
+
+void TQueryAUCMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Max;
 }
 
 /* CombinationLoss */
@@ -4766,6 +4883,9 @@ TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TLossParams& 
             break;
         case ELossFunction::QueryRMSE:
             AppendTemporaryMetricsVector(TQueryRMSEMetric::Create(config), &result);
+            break;
+        case ELossFunction::QueryAUC:
+            AppendTemporaryMetricsVector(TQueryAUCMetric::Create(config), &result);
             break;
         case ELossFunction::QuerySoftMax:
             AppendTemporaryMetricsVector(TQuerySoftMaxMetric::Create(config), &result);
