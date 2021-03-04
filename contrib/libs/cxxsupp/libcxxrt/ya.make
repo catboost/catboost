@@ -6,7 +6,7 @@ LICENSE(MIT BSD-2-Clause)
 
 PEERDIR(contrib/libs/cppdemangle)
 
-IF (CXX_UNWIND STREQUAL "glibcxx_dynamic" OR ARCH_PPC64LE)
+IF (CXX_UNWIND == "glibcxx_dynamic" OR ARCH_PPC64LE)
     LDFLAGS(-lgcc_s)
 ELSE()
     PEERDIR(contrib/libs/libunwind)
