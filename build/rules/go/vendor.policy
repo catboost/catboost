@@ -53,6 +53,7 @@ DENY .* -> vendor/github.com/go-git/go-git/v5/storage/test
 DENY .* -> vendor/github.com/go-git/go-git/v5/plumbing/transport/test
 DENY .* -> vendor/github.com/go-git/go-git/v5;test
 ALLOW .* -> vendor/github.com/go-git/go-git/v5
+ALLOW .* -> vendor/github.com/go-git/go-billy/v5
 
 # etcd client
 DENY .* -> vendor/go.etcd.io/etcd/clientv3/naming
