@@ -46,6 +46,7 @@ class TCoroTest: public TTestBase {
     UNIT_TEST(TestNestedExecutor)
     UNIT_TEST(TestComputeCoroutineYield)
     UNIT_TEST(TestPollEngines);
+    UNIT_TEST(TestUserEvent);
     UNIT_TEST_SUITE_END();
 
 public:
@@ -78,6 +79,7 @@ public:
     void TestNestedExecutor();
     void TestComputeCoroutineYield();
     void TestPollEngines();
+    void TestUserEvent();
 };
 
 void TCoroTest::TestException() {
@@ -1001,4 +1003,26 @@ void TCoroTest::TestPollEngines() {
     UNIT_ASSERT(defaultChecked);
 }
 
+void TCoroTest::TestUserEvent() {
+    TContExecutor exec(32000);
+
+    struct TUserEvent : public IUserEvent {
+        bool Called = false;
+        void Execute() override {
+            Called = true;
+        }
+    } event;
+
+    auto f = [&](TCont* cont) {
+        UNIT_ASSERT(!event.Called);
+        exec.ScheduleUserEvent(&event);
+        UNIT_ASSERT(!event.Called);
+        cont->Yield();
+        UNIT_ASSERT(event.Called);
+    };
+
+    exec.Execute(f);
+
+    UNIT_ASSERT(event.Called);
+}
 UNIT_TEST_SUITE_REGISTRATION(TCoroTest);

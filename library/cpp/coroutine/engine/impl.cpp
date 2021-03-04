@@ -145,6 +145,14 @@ void TContExecutor::WaitForIO() {
         // Waking a coroutine puts it into ReadyNext_ list
         const auto next = WaitQueue_.WakeTimedout(now);
 
+        if (!UserEvents_.Empty()) {
+            TIntrusiveList<IUserEvent> userEvents;
+            userEvents.Swap(UserEvents_);
+            do {
+                userEvents.PopFront()->Execute();
+            } while (!userEvents.Empty());
+        }
+
         // Polling will return as soon as there is an event to process or a timeout.
         // If there are woken coroutines we do not want to sleep in the poller
         //      yet still we want to check for new io
@@ -161,11 +169,11 @@ void TContExecutor::WaitForIO() {
 }
 
 void TContExecutor::Poll(TInstant deadline) {
-    Poller_.Wait(Events_, deadline);
+    Poller_.Wait(PollerEvents_, deadline);
     LastPoll_ = Now();
 
     // Waking a coroutine puts it into ReadyNext_ list
-    for (auto event : Events_) {
+    for (auto event : PollerEvents_) {
         auto* lst = (NCoro::TPollEventList*)event.Data;
         const int status = event.Status;
 
