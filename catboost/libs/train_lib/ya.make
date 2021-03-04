@@ -1,7 +1,5 @@
 LIBRARY()
 
-
-
 SRCS(
     cross_validation.cpp
     dir_helper.cpp
