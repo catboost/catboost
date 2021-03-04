@@ -39,7 +39,7 @@ def main():
 
     def is_doctest_module(name):
         for package in doctest_packages:
-            if name == package or name.startswith(package + "."):
+            if name == package or name.startswith(str(package) + "."):
                 return True
         return False
 
