@@ -1,4 +1,4 @@
-PY23_LIBRARY()
+PY_LIBRARY()
 
 LICENSE(BSD-3-Clause)
 
@@ -7,13 +7,14 @@ VERSION(5.9.0)
 
 
 PEERDIR(
+    contrib/python/backports-shutil_get_terminal_size
     contrib/python/decorator
     contrib/python/pickleshare
     contrib/python/simplegeneric
     contrib/python/traitlets
     contrib/python/path.py
     contrib/python/pathlib2
-    contrib/python/prompt_toolkit/py2
+    contrib/python/prompt_toolkit
     contrib/python/Pygments
 )
 
@@ -37,12 +38,6 @@ IF (OS_DARWIN)
         contrib/python/appnope
     )
 ENDIF ()
-
-IF (PYTHON2)
-    PEERDIR(
-        contrib/python/backports-shutil_get_terminal_size
-    )
-ENDIF()
 
 NO_CHECK_IMPORTS(IPython.*)
 
