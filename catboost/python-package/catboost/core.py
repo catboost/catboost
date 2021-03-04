@@ -3218,7 +3218,7 @@ class CatBoost(_CatBoostBase):
 
     def calc_feature_statistics(self, data, target=None, feature=None, prediction_type=None,
                                 cat_feature_values=None, plot=True, max_cat_features_on_plot=10,
-                                thread_count=-1, plot_file=None):
+                                thread_count=-1, plot_file=None, skip_unused_features_on_plot=True):
         """
         Get statistics for the feature using the model, dataset and target.
         To use this function, you should install plotly.
@@ -3266,6 +3266,9 @@ class CatBoost(_CatBoostBase):
             Number of threads to use for getting statistics.
         plot_file: str
             Output file for plot statistics.
+        skip_unused_features_on_plot: bool
+            Not show not used in model features on plots.
+
         Returns
         -------
         dict if parameter 'feature' is int or string, else dict of dicts:
@@ -3378,15 +3381,11 @@ class CatBoost(_CatBoostBase):
         # draw only unique plots
         if plot or plot_file is not None:
             warn_msg = "To draw plots you should install plotly."
-            figs = []
-            for feature_num in statistics_by_feature:
-                feature_name = self.feature_names_[feature_num]
-                figs += _plot_feature_statistics(
-                    statistics_by_feature[feature_num],
-                    feature_name,
-                    max_cat_features_on_plot
-                )
-
+            fig = _plot_feature_statistics(
+                statistics_by_feature,
+                self.feature_names_,
+                skip_unused_features_on_plot,
+                max_cat_features_on_plot)
             if plot:
                 try:
                     from plotly.offline import iplot
@@ -3395,12 +3394,10 @@ class CatBoost(_CatBoostBase):
                 except ImportError as e:
                     warnings.warn(warn_msg)
                     raise ImportError(str(e))
-
-                for fig in figs:
-                    iplot(fig)
+                iplot(fig)
 
             if plot_file is not None:
-                _save_plot_file(plot_file, 'Catboost metrics graph', figs)
+                _save_plot_file(plot_file, 'Catboost metrics graph', [fig])
 
         if is_for_one_feature:
             return statistics_by_feature[feature_name_to_num[feature_names[0]]]
@@ -5631,9 +5628,8 @@ def sum_models(models, weights=None, ctr_merge_policy='IntersectingCountersAvera
     return result
 
 
-def _calc_feature_statistics_layout(go, feature, xaxis):
+def _calc_feature_statistics_layout(go, xaxis):
     return go.Layout(
-        title="Statistics for feature '{}'".format(feature),
         yaxis={
             'title': 'Prediction and target',
             'side': 'left',
@@ -5648,7 +5644,7 @@ def _calc_feature_statistics_layout(go, feature, xaxis):
     )
 
 
-def _build_binarized_feature_statistics_fig(statistics, feature):
+def _build_binarized_feature_statistics_fig(statistics):
     try:
         import plotly.graph_objs as go
     except ImportError as e:
@@ -5658,8 +5654,7 @@ def _build_binarized_feature_statistics_fig(statistics, feature):
     if 'borders' in statistics.keys():
         if len(statistics['borders']) == 0:
             xaxis = go.layout.XAxis(title='Bins', tickvals=[0])
-            return go.Figure(data=[],
-                             layout=_calc_feature_statistics_layout(go, feature, xaxis))
+            return go.Figure(data=[], layout=_calc_feature_statistics_layout(go, xaxis))
 
         order = np.arange(len(statistics['objects_per_bin']))
         bar_width = 0.8
@@ -5732,31 +5727,67 @@ def _build_binarized_feature_statistics_fig(statistics, feature):
         data = [trace_1, trace_2, trace_3, trace_4, trace_5]
     else:
         data = [trace_1, trace_2, trace_4, trace_5]
-    layout = _calc_feature_statistics_layout(go, feature, xaxis)
+    layout = _calc_feature_statistics_layout(go, xaxis)
     fig = go.Figure(data=data, layout=layout)
 
     return fig
 
 
-def _plot_feature_statistics(statistics, feature, max_cat_features_on_plot):
+def _plot_feature_statistics_units(statistics, feature_name, max_cat_features_on_plot):
     if 'cat_values' in statistics.keys() and len(statistics['cat_values']) > max_cat_features_on_plot:
         figs = []
         for begin in range(0, len(statistics['cat_values']), max_cat_features_on_plot):
-            sub_statistics = {
-                'cat_values': statistics['cat_values'][begin:begin+max_cat_features_on_plot],
-                'mean_target': statistics['mean_target'][begin:begin+max_cat_features_on_plot],
-                'mean_weighted_target': statistics['mean_weighted_target'][begin:begin+max_cat_features_on_plot],
-                'mean_prediction': statistics['mean_prediction'][begin:begin+max_cat_features_on_plot],
-                'objects_per_bin': statistics['objects_per_bin'][begin:begin+max_cat_features_on_plot],
-                'predictions_on_varying_feature':
-                    statistics['predictions_on_varying_feature'][begin:begin+max_cat_features_on_plot]
-            }
-            fig = _build_binarized_feature_statistics_fig(sub_statistics, feature)
-            figs.append(fig)
+            end = begin + max_cat_features_on_plot
+            statistics_keys = ['cat_values', 'mean_target', 'mean_weighted_target', 'mean_prediction',
+                               'objects_per_bin', 'predictions_on_varying_feature']
+            sub_statistics = dict([(key, statistics[key][begin : end]) for key in statistics_keys])
+            fig = _build_binarized_feature_statistics_fig(sub_statistics)
+            feature_name_with_part_suffix = '{}_parts[{}:{}]'.format(feature_name, begin, end)
+            figs += [(fig, feature_name_with_part_suffix)]
         return figs
     else:
-        fig = _build_binarized_feature_statistics_fig(statistics, feature)
-        return [fig]
+        fig = _build_binarized_feature_statistics_fig(statistics)
+        return [(fig, feature_name)]
+
+
+def _plot_feature_statistics(statistics_by_feature, feature_names, skip_unused_features_on_plot, max_cat_features_on_plot):
+    figs_with_names = []
+    for feature_num in statistics_by_feature:
+        feature_name = feature_names[feature_num]
+        statistics = statistics_by_feature[feature_num]
+        if skip_unused_features_on_plot and 'borders' in statistics.keys() and len(statistics['borders']) == 0:
+            continue
+        figs_with_names += _plot_feature_statistics_units(statistics, feature_name, max_cat_features_on_plot)
+
+    main_fig = figs_with_names[0][0]
+    buttons = []
+    for fig, feature_name in figs_with_names:
+        buttons.append(
+            dict(
+                label=feature_name,
+                method='update',
+                args=[{'y': [data.y for data in fig.data]}, {'xaxis': fig.layout.xaxis}],
+            ),
+        )
+    main_fig.update_layout(
+        updatemenus=[
+            dict(
+                direction='down',
+                pad={'r': 10, 't': 10},
+                showactive=True,
+                x=0.25,
+                xanchor='left',
+                y=1.09,
+                yanchor='top',
+                buttons=buttons,
+            )
+        ],
+        annotations=[
+            dict(text='Statistics for feature', showarrow=False,
+                 x=0, xref='paper', y=1.05, yref='paper', align='left')
+        ]
+    )
+    return main_fig
 
 
 def to_regressor(model):
