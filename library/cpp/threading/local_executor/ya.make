@@ -1,13 +1,6 @@
 
 
 LIBRARY()
-PEERDIR(
-    contrib/libs/tbb
-)
-
-ADDINCL(
-    contrib/libs/tbb/include
-)
 
 SRCS(
     local_executor.cpp
