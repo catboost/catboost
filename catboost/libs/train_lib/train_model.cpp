@@ -59,9 +59,9 @@ static THolder<NPar::ILocalExecutor> CreateLocalExecutor(const NCatboostOptions:
     const bool isGpuDeviceType = catBoostOptions.GetTaskType() == ETaskType::GPU;
     const int threadCount = catBoostOptions.SystemOptions.Get().NumThreads.Get();
     if (isGpuDeviceType && TTrainerFactory::Has(ETaskType::GPU)) {
-        THolder<NPar::TLocalExecutor> tLocalExecutorHolder = MakeHolder<NPar::TLocalExecutor>();
-        tLocalExecutorHolder->RunAdditionalThreads(threadCount - 1);
-        return tLocalExecutorHolder;
+        auto localExecutorHolder = MakeHolder<NPar::TLocalExecutor>();
+        localExecutorHolder->RunAdditionalThreads(threadCount - 1);
+        return localExecutorHolder;
     } else {
         return MakeHolder<NPar::TTbbLocalExecutor<>>(threadCount);
     }
