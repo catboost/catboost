@@ -4477,6 +4477,7 @@ TVector<THolder<IMetric>> TQueryAUCMetric::Create(const TMetricConfig& config) {
     }
 }
 
+
 TMetricHolder TQueryAUCMetric::EvalSingleThread(
     const TConstArrayRef<TConstArrayRef<double>> approx,
     const TConstArrayRef<TConstArrayRef<double>> approxDelta,
@@ -4517,20 +4518,26 @@ TMetricHolder TQueryAUCMetric::EvalSingleThread(
 
             error.Stats[0] += CalcAUC(&samples) * queryWeight;
         } else if (Type == EAucType::Mu) {
+            TConstArrayRef<float> currentTarget(target.begin() + startIdx, target.begin() + endIdx);
+            TConstArrayRef<float> currentWeight(weight.begin() + startIdx, weight.begin() + endIdx);
+
             TVector<TVector<double>> currentApprox;
-            TVector<float> currentTarget(target.begin() + startIdx, target.begin() + endIdx);
-            TVector<float> currentWeight(weight.begin() + startIdx, weight.begin() + endIdx);
             TVector<TVector<double>> currentApproxDelta;
 
             ResizeRank2(querySize, approx[0].size(), currentApprox);
-            AssignRank2(MakeArrayRef(approx), &currentApprox);
-            if (!currentApproxDelta.empty()) {
+            AssignRank2(TArrayRef(approx.begin() + startIdx, approx.begin() + endIdx), &currentApprox);
+
+            if (!approxDelta.empty()) {
+                ResizeRank2(querySize, approxDelta[0].size(), currentApproxDelta);
+                AssignRank2(TArrayRef(approxDelta.begin() + startIdx, approxDelta.begin() + endIdx), &currentApproxDelta);
+
                 for (ui32 i = 0; i < currentApprox.size(); ++i) {
                     for (ui32 j = 0; j < currentApprox[i].size(); ++j) {
                         currentApprox[i][j] += currentApproxDelta[i][j];
                     }
                 }
             }
+
             error.Stats[0] = CalcMuAuc(currentApprox, currentTarget, UseWeights ? currentWeight : TConstArrayRef<float>(), 1, MisclassCostMatrix) * queryWeight;
         }
         else {

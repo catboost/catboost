@@ -158,6 +158,7 @@ static double CalcAucSingleThread(TVector<TSample>* samples, double* outWeightSu
     return (optimisticAUC + pessimisticAUC) / 2.0;
 }
 
+
 Y_UNIT_TEST_SUITE(AUCMetricTests) {
     static void TestAuc(
         const TVector<double>& prediction,
@@ -188,11 +189,25 @@ Y_UNIT_TEST_SUITE(AUCMetricTests) {
         const TVector<float>& targets,
         const TVector<float>& weights,
         const TVector<TQueryInfo> queryInfos,
-        const TMetricHolder expected,
         const double eps)
     {
         NPar::TLocalExecutor executor;
         executor.RunAdditionalThreads(31);
+
+        TMetricHolder metricHm(2);
+
+        for (const auto& info: queryInfos) {
+            TVector<NMetrics::TSample> samples;
+            auto startIdx = info.Begin;
+            auto querySize = info.End - info.Begin;
+
+            for (ui32 i = 0; i < querySize; ++i) {
+                samples.emplace_back(targets[startIdx + i], prediction[0][startIdx + i], weights[startIdx + i]);
+            }
+
+            metricHm.Stats[0] += CalcAUC(&samples);
+            metricHm.Stats[1] += 1;
+        }
 
         const auto queryAUC = std::move(CreateMetricsFromDescription({description}, 1).front());
         const auto metric = queryAUC->Eval(
@@ -204,10 +219,10 @@ Y_UNIT_TEST_SUITE(AUCMetricTests) {
             queryInfos.size(),
             executor);
 
-        UNIT_ASSERT_VALUES_EQUAL(expected.Stats.size(), 2);
-        UNIT_ASSERT_VALUES_EQUAL(expected.Stats.size(), metric.Stats.size());
-        UNIT_ASSERT_DOUBLES_EQUAL(expected.Stats[1], metric.Stats[1], eps);
-        UNIT_ASSERT_DOUBLES_EQUAL(expected.Stats[0], metric.Stats[0], eps);
+        UNIT_ASSERT_VALUES_EQUAL(metricHm.Stats.size(), 2);
+        UNIT_ASSERT_VALUES_EQUAL(metricHm.Stats.size(), metric.Stats.size());
+        UNIT_ASSERT_DOUBLES_EQUAL(metricHm.Stats[1], metric.Stats[1], eps);
+        UNIT_ASSERT_DOUBLES_EQUAL(metricHm.Stats[0], metric.Stats[0], eps);
     }
 
     static void TestBinClassAuc(
@@ -355,9 +370,7 @@ Y_UNIT_TEST_SUITE(AUCMetricTests) {
 
     Y_UNIT_TEST(SimpleQueryAucTest) {
         {
-            TMetricHolder expected(2);
-            expected.Stats[0] = 0.6708133971291866;
-            expected.Stats[1] = 1;
+
             TQueryInfo info(0, 10);
             TestQueryAuc(
                 "QueryAUC:type=Ranking;use_weights=true",
@@ -365,15 +378,11 @@ Y_UNIT_TEST_SUITE(AUCMetricTests) {
                 {1, 2, 3, 4, 5, 5, 4, 3, 2, 1}, // targets
                 {1, 0.5, 2, 1, 1, 0.75, 1, 1.5, 1.25, 3}, // weights
                 {info},
-                expected,
                 EPS
             );
         }
         
         {
-            TMetricHolder expected(2);
-            expected.Stats[0] = 0.5;
-            expected.Stats[1] = 1;
             TQueryInfo info(0, 3);
             TestQueryAuc(
                 "QueryAUC:type=Ranking;use_weights=true",
@@ -381,13 +390,9 @@ Y_UNIT_TEST_SUITE(AUCMetricTests) {
                 {0, 1, 0}, // targets
                 {1, 1, 1}, // weights
                 {info},
-                expected,
                 EPS
             );
         }
-            TMetricHolder expected(2);
-            expected.Stats[0] = 1.1708133971291866;
-            expected.Stats[1] = 2;
             TQueryInfo info1(0, 10);
             TQueryInfo info2(10, 13);
             TestQueryAuc(
@@ -396,7 +401,6 @@ Y_UNIT_TEST_SUITE(AUCMetricTests) {
                 {1, 2, 3, 4, 5, 5, 4, 3, 2, 1, 0, 1, 0}, // targets
                 {1, 0.5, 2, 1, 1, 0.75, 1, 1.5, 1.25, 3, 1, 1, 1}, // weights
                 {info1, info2},
-                expected,
                 EPS
             );
         {
