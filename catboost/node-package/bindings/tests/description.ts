@@ -1,4 +1,4 @@
-import * as catboost from '..';
+import * as catboost from '../index';
 import * as assert from 'assert';
 
 function testDescription() {

@@ -7,8 +7,9 @@
     "node-addon-api": "^1.1.0"
   },
   "scripts": {
-    "build": "tsc && node-gyp build",
-    "test": "npm run build && node --napi-modules ./lib/tests/description.js"
+    "install": "./install.sh",
+    "build": "./build.sh",
+    "test": "npm run build && node ./lib/tests/model.js"
   },
   "author": "catboost.ai",
   "license": "Apache-2.0",
