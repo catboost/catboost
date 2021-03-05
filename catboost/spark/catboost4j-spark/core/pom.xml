@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>catboost-spark_2.11</artifactId>
+    <artifactId>catboost-spark_2.4_2.11</artifactId>
     <packaging>jar</packaging>
     <name>CatBoost for Spark</name>
     <description>JVM module to use CatBoost on Spark</description>
@@ -15,6 +15,11 @@
         <version>0.25-rc3</version>
         <relativePath>..</relativePath>
     </parent>
+
+    <properties>
+        <spark.version>2.4.7</spark.version>
+        <hadoop.version>2.7.3</hadoop.version>
+    </properties>
 
     <distributionManagement>
         <snapshotRepository>
