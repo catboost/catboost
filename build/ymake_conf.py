@@ -654,30 +654,44 @@ class YMake(object):
     def __init__(self, arcadia):
         self.arcadia = arcadia
 
-    @staticmethod
-    def print_presets():
-        if opts().presets:
+    def print_presets(self):
+        presets = opts().presets
+        if presets and 'YMAKE_JAVA_MODULES' in presets:
+            self._print_conf_content(self._find_conf('ymake.parts/java.ymake.conf'))
+        else:
+            self._print_conf_content(self._find_conf('ymake.parts/jbuild.ymake.conf'))
+
+        if presets:
             print '# Variables set from command line by -D options'
-            for key in sorted(opts().presets):
+            for key in sorted(presets):
                 if key in ('MY_YMAKE_BIN', 'REAL_YMAKE_BIN'):
                     emit_with_ignore_comment(key, opts().presets[key])
+                elif key == 'YMAKE_JAVA_MODULES':
+                    continue
                 else:
                     emit(key, opts().presets[key])
 
+    @staticmethod
+    def _print_conf_content(path):
+        with open(path, 'r') as fin:
+            print(fin.read())
+
     def print_core_conf(self):
-        with open(self._find_core_conf(), 'r') as fin:
-            print fin.read()
+        self._print_conf_content(self._find_core_conf())
 
     def print_settings(self):
         emit_with_ignore_comment('ARCADIA_ROOT', self.arcadia.root)
 
     @staticmethod
-    def _find_core_conf():
+    def _find_conf(conf_file):
         script_dir = os.path.dirname(__file__)
-        full_path = os.path.join(script_dir, 'ymake.core.conf')
+        full_path = os.path.join(script_dir, conf_file)
         if os.path.exists(full_path):
             return full_path
         return None
+
+    def _find_core_conf(self):
+        return self._find_conf('ymake.core.conf')
 
 
 class System(object):
