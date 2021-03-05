@@ -89,7 +89,7 @@ def on_go_process_srcs(unit):
         GO module (GO_LIBRARY, GO_PROGRAM)
     """
 
-    srcs_files = get_appended_values(unit, 'GO_SRCS_VALUE')
+    srcs_files = get_appended_values(unit, '_GO_SRCS_VALUE')
 
     asm_files = []
     c_files = []
@@ -129,7 +129,7 @@ def on_go_process_srcs(unit):
                     unit.oncopy_file_with_context([f, f, 'OUTPUT_INCLUDES', '${BINDIR}/_cgo_export.h'])
                     f = '${BINDIR}/' + f
                 else:
-                    ymake.report_configure_error('Unmatched CGO_EXPORT keyword in SRCS()/_GO_SRCS() macro')
+                    ymake.report_configure_error('Unmatched CGO_EXPORT keyword in SRCS() macro')
             ext_files.append(f)
         elif f == 'CGO_EXPORT':
             is_cgo_export = True
@@ -137,13 +137,13 @@ def on_go_process_srcs(unit):
             # FIXME(snermolaev): We can report an unsupported files for _GO_SRCS here
             pass
     if is_cgo_export:
-        ymake.report_configure_error('Unmatched CGO_EXPORT keyword in SRCS()/_GO_SRCS() macro')
+        ymake.report_configure_error('Unmatched CGO_EXPORT keyword in SRCS() macro')
 
     for f in go_files:
         if f.endswith('_test.go'):
             ymake.report_configure_error('file {} must be listed in GO_TEST_SRCS() or GO_XTEST_SRCS() macros'.format(f))
-    go_test_files = get_appended_values(unit, 'GO_TEST_SRCS_VALUE')
-    go_xtest_files = get_appended_values(unit, 'GO_XTEST_SRCS_VALUE')
+    go_test_files = get_appended_values(unit, '_GO_TEST_SRCS_VALUE')
+    go_xtest_files = get_appended_values(unit, '_GO_XTEST_SRCS_VALUE')
     for f in go_test_files + go_xtest_files:
         if not f.endswith('_test.go'):
             ymake.report_configure_error('file {} should not be listed in GO_TEST_SRCS() or GO_XTEST_SRCS() macros'.format(f))
@@ -185,13 +185,13 @@ def on_go_process_srcs(unit):
 
         # go_files should be empty now since the initial list shouldn't contain
         # any non-go or go test file. The value of go_files list will be used later
-        # to update the value of GO_SRCS_VALUE
+        # to update the value of _GO_SRCS_VALUE
         go_files = []
         unit.set(['GO_COVER_INFO_VALUE', ' '.join(cover_info)])
 
-    # We have cleaned up the list of files from GO_SRCS_VALUE var and we have to update
+    # We have cleaned up the list of files from _GO_SRCS_VALUE var and we have to update
     # the value since it is used in module command line
-    unit.set(['GO_SRCS_VALUE', ' '.join(itertools.chain(go_files, asm_files, syso_files))])
+    unit.set(['_GO_SRCS_VALUE', ' '.join(itertools.chain(go_files, asm_files, syso_files))])
 
     unit_path = unit.path()
 
@@ -225,7 +225,7 @@ def on_go_process_srcs(unit):
         unit.on_go_compile_symabis(asm_files + symabis_flags)
 
     # Process cgo files
-    cgo_files = get_appended_values(unit, 'CGO_SRCS_VALUE')
+    cgo_files = get_appended_values(unit, '_CGO_SRCS_VALUE')
 
     cgo_cflags = []
     if len(c_files) + len(cxx_files) + len(s_files) + len(cgo_files) > 0:
