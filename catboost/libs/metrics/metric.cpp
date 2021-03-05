@@ -4384,20 +4384,20 @@ namespace {
     class TQueryAUCMetric final: public TAdditiveMetric {
     public:
         explicit TQueryAUCMetric(const TLossParams& params, EAucType singleClassType)
-        : TAdditiveMetric(ELossFunction::AUC, params)
+        : TAdditiveMetric(ELossFunction::QueryAUC, params)
         , Type(singleClassType) {
             UseWeights.SetDefaultValue(false);
         }
 
         explicit TQueryAUCMetric(const TLossParams& params, int positiveClass)
-        : TAdditiveMetric(ELossFunction::AUC, params)
+        : TAdditiveMetric(ELossFunction::QueryAUC, params)
         , PositiveClass(positiveClass)
         , Type(EAucType::OneVsAll) {
             UseWeights.SetDefaultValue(false);
         }
 
         explicit TQueryAUCMetric(const TLossParams& params, const TMaybe<TVector<TVector<double>>>& misclassCostMatrix = Nothing())
-            : TAdditiveMetric(ELossFunction::AUC, params)
+            : TAdditiveMetric(ELossFunction::QueryAUC, params)
             , Type(EAucType::Mu)
             , MisclassCostMatrix(misclassCostMatrix) {
             UseWeights.SetDefaultValue(false);
@@ -4432,10 +4432,10 @@ TVector<THolder<IMetric>> TQueryAUCMetric::Create(const TMetricConfig& config) {
         aucType = FromString<EAucType>(name);
         if (config.ApproxDimension == 1) {
             CB_ENSURE(aucType == EAucType::Classic || aucType == EAucType::Ranking,
-                      "AUC type \"" << aucType << "\" isn't a singleclass AUC type");
+                      "QueryAUC type \"" << aucType << "\" isn't a singleclass AUC type");
         } else {
             CB_ENSURE(aucType == EAucType::Mu || aucType == EAucType::OneVsAll,
-                      "AUC type \"" << aucType << "\" isn't a multiclass AUC type");
+                      "QueryAUC type \"" << aucType << "\" isn't a multiclass AUC type");
         }
     }
 

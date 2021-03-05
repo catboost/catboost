@@ -546,7 +546,7 @@ def test_queryauc(boosting_type):
         '--boosting-type', boosting_type,
         '-i', '20',
         '-T', '4',
-        '--eval-metric', 'QueryAUC:hints=skip_train~false',
+        '--custom-metric', 'QueryAUC:hints=skip_train~false',
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
         '--use-best-model', 'false',
