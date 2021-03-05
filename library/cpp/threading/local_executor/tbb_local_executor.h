@@ -40,6 +40,7 @@ namespace NPar {
 
         // Submit tasks for async run
         void SubmitAsyncTasks(TLocallyExecutableFunction exec, int firstId, int lastId);
+
     private:
         mutable tbb::task_arena TbbArena;
         tbb::task_group Group;

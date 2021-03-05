@@ -1148,10 +1148,8 @@ void TrainModel(
             << pathScheme << ";" << " fstr type is set to " << EFstrType::PredictionValuesChange << Endl;
         fstrType = EFstrType::PredictionValuesChange;
     }
-    TDataProviders pools;
     THolder<NPar::ILocalExecutor> localExecutorHolder = CreateLocalExecutor(catBoostOptions);
-    TMaybe<TPrecomputedOnlineCtrData> precomputedSingleOnlineCtrDataForSingleFold;
-    pools = LoadPools(
+    TDataProviders pools = LoadPools(
         loadOptions,
         catBoostOptions.GetTaskType(),
         ParseMemorySizeDescription(catBoostOptions.SystemOptions->CpuUsedRamLimit.Get()),
@@ -1160,6 +1158,13 @@ void TrainModel(
         &classLabels,
         localExecutorHolder.Get(),
         &profile);
+
+    const bool hasEmbeddingFeatures = pools.Learn->MetaInfo.FeaturesLayout->GetEmbeddingFeatureCount() > 0;
+    if (hasEmbeddingFeatures) {
+        needFstr = false;
+    }
+
+    TMaybe<TPrecomputedOnlineCtrData> precomputedSingleOnlineCtrDataForSingleFold;
     if (loadOptions.PrecomputedMetadataFile) {
         precomputedSingleOnlineCtrDataForSingleFold = ReadPrecomputedOnlineCtrData(
             catBoostOptions.GetTaskType(),
@@ -1167,11 +1172,6 @@ void TrainModel(
             localExecutorHolder.Get(),
             &profile
         );
-    }
-
-    const bool hasEmbeddingFeatures = pools.Learn->MetaInfo.FeaturesLayout->GetEmbeddingFeatureCount() > 0;
-    if (hasEmbeddingFeatures) {
-        needFstr = false;
     }
 
     TVector<TString> outputColumns;
