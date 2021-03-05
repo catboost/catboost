@@ -14,7 +14,9 @@ int NPar::TTbbLocalExecutor<RespectTls>::GetThreadCount() const noexcept {
 
 template <bool RespectTls>
 int NPar::TTbbLocalExecutor<RespectTls>::GetWorkerThreadId() const noexcept {
-    return  tbb::this_task_arena::current_thread_index();
+    return TbbArena.execute([] {
+        return tbb::this_task_arena::current_thread_index();
+    });
 }
 
 template <bool RespectTls>

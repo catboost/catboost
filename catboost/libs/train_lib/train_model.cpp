@@ -1149,28 +1149,24 @@ void TrainModel(
         fstrType = EFstrType::PredictionValuesChange;
     }
     TDataProviders pools;
+    THolder<NPar::ILocalExecutor> localExecutorHolder = CreateLocalExecutor(catBoostOptions);
     TMaybe<TPrecomputedOnlineCtrData> precomputedSingleOnlineCtrDataForSingleFold;
-    {
-        NPar::TLocalExecutor localExecutor;
-        const int threadCount = catBoostOptions.SystemOptions.Get().NumThreads.Get();
-        localExecutor.RunAdditionalThreads(threadCount - 1);
-        pools = LoadPools(
-            loadOptions,
+    pools = LoadPools(
+        loadOptions,
+        catBoostOptions.GetTaskType(),
+        ParseMemorySizeDescription(catBoostOptions.SystemOptions->CpuUsedRamLimit.Get()),
+        objectsOrder,
+        TDatasetSubset::MakeColumns(haveLearnFeaturesInMemory),
+        &classLabels,
+        localExecutorHolder.Get(),
+        &profile);
+    if (loadOptions.PrecomputedMetadataFile) {
+        precomputedSingleOnlineCtrDataForSingleFold = ReadPrecomputedOnlineCtrData(
             catBoostOptions.GetTaskType(),
-            ParseMemorySizeDescription(catBoostOptions.SystemOptions->CpuUsedRamLimit.Get()),
-            objectsOrder,
-            TDatasetSubset::MakeColumns(haveLearnFeaturesInMemory),
-            &classLabels,
-            &localExecutor,
-            &profile);
-        if (loadOptions.PrecomputedMetadataFile) {
-            precomputedSingleOnlineCtrDataForSingleFold = ReadPrecomputedOnlineCtrData(
-                catBoostOptions.GetTaskType(),
-                loadOptions,
-                &localExecutor,
-                &profile
-            );
-        }
+            loadOptions,
+            localExecutorHolder.Get(),
+            &profile
+        );
     }
 
     const bool hasEmbeddingFeatures = pools.Learn->MetaInfo.FeaturesLayout->GetEmbeddingFeatureCount() > 0;
@@ -1219,7 +1215,6 @@ void TrainModel(
     }
 
     bool needPoolAfterTrain = !evalOutputFileName.empty() || isLossFunctionChangeFstr;
-    THolder<NPar::ILocalExecutor> localExecutorHolder = CreateLocalExecutor(catBoostOptions);
     TrainModel(
         updatedTrainJson,
         outputOptions,
