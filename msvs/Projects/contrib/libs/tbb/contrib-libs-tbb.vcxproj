@@ -105,6 +105,7 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\task_dispatcher.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\task_group_context.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\version.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\oneapi\tbb\blocked_range.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\oneapi\tbb\cache_aligned_allocator.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\oneapi\tbb\concurrent_queue.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\oneapi\tbb\detail\_aligned_space.h"/>
@@ -128,6 +129,7 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\oneapi\tbb\detail\_utils.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\oneapi\tbb\global_control.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\oneapi\tbb\info.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\oneapi\tbb\parallel_for.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\oneapi\tbb\parallel_pipeline.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\oneapi\tbb\partitioner.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\oneapi\tbb\profiling.h"/>
@@ -140,6 +142,10 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\oneapi\tbb\task_scheduler_observer.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\oneapi\tbb\tbb_allocator.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\oneapi\tbb\version.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\blocked_range.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\parallel_for.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\task_arena.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\task_group.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\arena.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\arena_slot.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\assert_impl.h"/>
