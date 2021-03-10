@@ -47,6 +47,7 @@ Authors@R: c(
       comment = "R package preparation for CRAN submission"),
     person("Dmitry", "Baksheev", role = "aut")
     )
+Author: CatBoost DevTeam [aut, cre]
 Maintainer: Stanislav Kirillov <staskirillov@gmail.com>
 URL: https://catboost.ai/, https://github.com/catboost/catboost
 BugReports: https://github.com/catboost/catboost/issues
