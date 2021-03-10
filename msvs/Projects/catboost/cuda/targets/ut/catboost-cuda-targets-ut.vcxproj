@@ -82,6 +82,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\targets\ut\test_combination.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\targets\ut\test_multi_logit.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\targets\ut\test_query_cross_entropy.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\cuda\targets\ut\test_tweedie.cpp"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
