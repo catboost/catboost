@@ -605,6 +605,9 @@ ALLOW .* -> vendor/github.com/andybalholm/brotli
 # CONTRIB-2081 BTree implementation for Go
 ALLOW .* -> vendor/github.com/google/btree
 
+# CONTRIB-2136 simple lexer for go, it's like shlex.py with whitespace_split=True
+ALLOW .* -> vendor/github.com/google/shlex
+
 # CONTRIB-2084 Word transformation
 ALLOW .* -> vendor/github.com/jinzhu/inflection
 #
