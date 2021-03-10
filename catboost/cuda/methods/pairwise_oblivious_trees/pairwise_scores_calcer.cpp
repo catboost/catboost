@@ -14,10 +14,12 @@ static void ValidateSplits(
 
     for (size_t policyIdx = 0; policyIdx < policies.size(); ++policyIdx) {
         const auto policy = policies[policyIdx];
+        bool policyHasSplits = false;
         for (ui32 deviceIdx = 0; deviceIdx < deviceCount; ++deviceIdx) {
             const auto split = splits[policyIdx * deviceCount + deviceIdx];
             bool haveSplit = split.Index != std::numeric_limits<ui32>::max();
             if (haveSplit) {
+                policyHasSplits = true;
                 const auto message = TStringBuilder()
                     << "got invalid split ("
                     << LabeledOutput(policy, policyIdx, deviceIdx, split.Index, split.FeatureId, split.BinId, split.Score)
@@ -26,10 +28,9 @@ static void ValidateSplits(
                 CB_ENSURE(
                     split.FeatureId != std::numeric_limits<ui32>::max() && split.BinId != std::numeric_limits<ui32>::max() && IsValidFloat(split.Score),
                     message);
-                return;
             }
         }
-        CB_ENSURE_INTERNAL(false, "No splits for " << LabeledOutput(policy, policyIdx));
+        CB_ENSURE_INTERNAL(policyHasSplits, "No splits for " << LabeledOutput(policy, policyIdx));
     }
 }
 
