@@ -7010,6 +7010,24 @@ def test_equal_feature_names():
         Pool(train_data, feature_names=['first', 'second', 'third', 'fourth', 'second', 'sixth'])
 
 
+@pytest.mark.parametrize('variance_power', [1.001, 1.42, 1.8, 1.999])
+def test_tweedie_loss_on_gpu(variance_power):
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    test_pool = Pool(TEST_FILE, column_description=CD_FILE)
+
+    model = CatBoost(
+        {
+            'iterations': 10,
+            'loss_function': 'Tweedie:variance_power=' + str(variance_power),
+            'task_type': 'GPU',
+            'devices': '0-7'
+        }
+    )
+
+    model.fit(train_pool)
+    model.predict(test_pool)
+
+
 class TestModelWithoutParams(object):
 
     @pytest.fixture(
