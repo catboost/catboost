@@ -59,6 +59,26 @@ test_that("model: catboost.train with per_float_quantization and ignored_feature
   expect_true(TRUE)
 })
 
+test_that("model: catboost.train synonyms", {
+  target <- sample(c(1, -1), size = 1000, replace = TRUE)
+  features <- data.frame(f1 = rnorm(length(target), mean = 0, sd = 1),
+                         f2 = rnorm(length(target), mean = 0, sd = 1))
+  
+  split <- sample(nrow(features), size = floor(0.75 * nrow(features)))
+  
+  pool_train <- catboost.load_pool(features[split, ], target[split])
+  pool_test <- catboost.load_pool(features[-split, ], target[-split])
+  
+  params <- list(n_estimators = 10,
+                iterations = 10,
+                loss_function = "Logloss",
+                random_seed = 12345,
+                use_best_model = FALSE)
+  
+  catboost.train(pool_train, pool_test, params)
+  expect_error(params1, ".*should be initialized.")
+})
+
 test_that("model: catboost.importance", {
   target <- sample(c(1, -1), size = 1000, replace = TRUE)
   features <- data.frame(f1 = rnorm(length(target), mean = 0, sd = 1),

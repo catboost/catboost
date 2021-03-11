@@ -1487,6 +1487,7 @@ catboost.train <- function(learn_pool, test_pool = NULL, params = list()) {
     if (length(params) == 0)
         message("Training catboost with default parameters! See help(catboost.train).")
 
+    params <- process_synonyms(params)
     json_params <- prepare_train_export_parameters(params)
     handle <- .Call("CatBoostFit_R", learn_pool, test_pool, json_params)
     raw <- .Call("CatBoostSerializeModel_R", handle)
@@ -1500,6 +1501,44 @@ catboost.train <- function(learn_pool, test_pool = NULL, params = list()) {
     model$tree_count <- catboost.ntrees(model)
     model$learning_rate <- catboost.get_plain_params(model)[['learning_rate']]
     return(model)
+}
+
+process_synonyms <- function(params) {
+    params <- process_synonyms_in_one_group(c('loss_function', 'objective'), params)
+    params <- process_synonyms_in_one_group(c('iterations', 'n_estimators', 'num_boost_round', 'num_trees'), params)
+    params <- process_synonyms_in_one_group(c('learning_rate', 'eta'), params)
+    params <- process_synonyms_in_one_group(c('random_seed', 'random_state'), params)
+    params <- process_synonyms_in_one_group(c('l2_leaf_reg', 'reg_lambda'), params)
+    params <- process_synonyms_in_one_group(c('depth', 'max_depth'), params)
+    params <- process_synonyms_in_one_group(c('min_data_in_leaf', 'min_child_samples'), params)
+    params <- process_synonyms_in_one_group(c('max_leaves', 'num_leaves'), params)
+    params <- process_synonyms_in_one_group(c('rsm', 'colsample_bylevel'), params)
+    params <- process_synonyms_in_one_group(c('border_count', 'max_bin'), params)
+    params <- process_synonyms_in_one_group(c('verbose', 'verbose_eval'), params)
+    
+    return(params)
+}
+
+process_synonyms_in_one_group <- function(synonyms, params) {
+    value = NULL
+    for (synonym in synonyms) {
+        if (synonym %in% names(params)) {
+            if (!is.null(value)) {
+                message <- paste("Only one of the parameters (", 
+                                paste(synonyms, collapse=', '),
+                                ") should be initialized.",sep="")
+                stop(message)
+            }
+            value = params[[synonym]]
+            params[[synonym]] <- NULL
+        }
+   }
+  
+  if (!is.null(value)) {
+      params[[synonyms[[1]]]] <- value
+  }
+  
+  return(params)
 }
 
 prepare_train_export_parameters <- function(params) {
