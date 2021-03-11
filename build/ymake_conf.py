@@ -2210,7 +2210,11 @@ class MSVCCompiler(MSVC, Compiler):
                 MSVC_INLINE_FLAG=/Zc:inline-
             }''')
 
-        flags = ['/nologo', '/Zm500', '/GR', '/bigobj', '/FC', '/EHs', '/errorReport:prompt', '$MSVC_INLINE_FLAG', '/utf-8']
+        flags = [
+            '/nologo', '/Zm500', '/GR', '/bigobj', '/FC', '/EHs', '/errorReport:prompt', '$MSVC_INLINE_FLAG', '/utf-8',
+            # enable standard conforming mode
+            '/permissive-'
+        ]
         flags += self.tc.arch_opt
 
         c_warnings = ['/we{}'.format(code) for code in warns_as_error]
