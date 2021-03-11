@@ -8,7 +8,9 @@ from catboost.libs.monoforest._monoforest cimport *
 
 import atexit
 import six
-from six import iteritems, string_types, PY3
+from six import iteritems, string_types
+from cpython.version cimport PY_MAJOR_VERSION
+
 from six.moves import range
 from json import dumps, loads, JSONEncoder
 from copy import deepcopy
@@ -206,6 +208,8 @@ class MultiRegressionCustomObjective:
         """
         raise CatBoostError("calc_ders_multi method is not implemented")
 
+cdef extern from "Python.h":
+    char* PyUnicode_AsUTF8AndSize(object s, Py_ssize_t* l)
 
 cdef extern from "catboost/libs/logging/logging.h":
     cdef void SetCustomLoggingFunction(void(*func)(const char*, size_t len) except * with gil, void(*func)(const char*, size_t len) except * with gil)
@@ -1090,24 +1094,25 @@ if not getattr(sys, "is_standalone_binary", False) and platform.system() == 'Win
 
 
 cdef inline float _FloatOrNan(object obj) except *:
+    # here lies fastpath
+    cdef type obj_type = type(obj)
+    if obj is None:
+        return _FLOAT_NAN
+    elif obj_type is float:
+        return <float>obj
+    elif obj_type is int:
+        return <int>obj
+    elif obj_type is str or obj_type is unicode or obj_type is bytes or obj_type is _npbytes_ or obj_type is _npunicode_ or isinstance(obj, string_types + (_npbytes_, _npunicode_)):
+        return _FloatOrNanFromString(to_arcadia_string(obj))
     try:
         return float(obj)
     except:
-        pass
-
-    cdef float res
-    if obj is None:
-        res = _FLOAT_NAN
-    elif isinstance(obj, string_types + (np.string_,)):
-        res = _FloatOrNanFromString(to_arcadia_string(obj))
-    else:
         raise TypeError("Cannot convert obj {} to float".format(str(obj)))
-    return res
 
 cdef TString _MetricGetDescription(void* customData) except * with gil:
     cdef metricObject = <object>customData
     name = metricObject.__class__.__name__
-    if PY3:
+    if PY_MAJOR_VERSION >= 3:
         name = name.encode()
     return TString(<const char*>name)
 
@@ -1601,31 +1606,40 @@ cdef class _PreprocessGrids:
 
 cdef TString to_arcadia_string(s) except *:
     cdef const unsigned char[:] bytes_s
+    cdef const char* utf8_str_pointer
+    cdef Py_ssize_t utf8_str_size
     cdef type s_type = type(s)
     if len(s) == 0:
         return TString()
-    if s_type is unicode:
+    if s_type is unicode or s_type is _npunicode_:
         # Fast path for most common case(s).
-        tmp = (<unicode>s).encode('utf8')
-        return TString(<const char*>tmp, len(tmp))
-    elif s_type is bytes:
+        if PY_MAJOR_VERSION >= 3:
+            # we fallback to calling .encode method to properly report error
+            utf8_str_pointer = PyUnicode_AsUTF8AndSize(s, &utf8_str_size)
+            if utf8_str_pointer != nullptr:
+                return TString(utf8_str_pointer, utf8_str_size)
+        else:
+            tmp = (<unicode>s).encode('utf8')
+            return TString(<const char*>tmp, len(tmp))
+    elif s_type is bytes or s_type is _npbytes_:
         return TString(<const char*>s, len(s))
 
-    if PY3 and hasattr(s, 'encode'):
+    if PY_MAJOR_VERSION >= 3 and hasattr(s, 'encode'):
         # encode to the specific encoding used inside of the module
-        bytes_s = s.encode()
+        bytes_s = s.encode('utf8')
     else:
         bytes_s = s
     return TString(<const char*>&bytes_s[0], len(bytes_s))
 
 cdef to_native_str(binary):
-    if PY3 and hasattr(binary, 'decode'):
+    if PY_MAJOR_VERSION >= 3 and hasattr(binary, 'decode'):
         return binary.decode()
     return binary
 
 cdef all_string_types_plus_bytes = string_types + (bytes,)
 
-cdef _npstring_ = np.string_
+cdef _npbytes_ = np.bytes_
+cdef _npunicode_ = np.unicode_
 cdef _npint32 = np.int32
 cdef _npint64 = np.int64
 cdef _npuint32 = np.uint32
@@ -1671,7 +1685,7 @@ cdef inline get_id_object_bytes_string_representation(
 
     # For some reason Cython does not allow assignment to dereferenced pointer, so we are using ptr[0] trick
     # Here we have shortcuts for most of base types
-    if obj_type is str or obj_type is unicode or obj_type is bytes or obj_type is _npstring_:
+    if obj_type is str or obj_type is unicode or obj_type is bytes or obj_type is _npbytes_ or obj_type is _npunicode_:
         bytes_string_buf_representation[0] = to_arcadia_string(id_object)
     elif obj_type is int or obj_type is long or obj_type is _npint32 or obj_type is _npint64:
         bytes_string_buf_representation[0] = ToString[i64](<i64>id_object)
@@ -2077,7 +2091,7 @@ cdef get_text_factor_bytes_representation(
     TString* factor_strbuf
 ):
     cdef type obj_type = type(factor)
-    if obj_type is str or obj_type is unicode or obj_type is bytes or obj_type is _npstring_:
+    if obj_type is str or obj_type is unicode or obj_type is bytes or obj_type is _npbytes_ or obj_type is _npunicode_:
         factor_strbuf[0] = to_arcadia_string(factor)
     else:
         if non_default_doc_idx == -1:
@@ -2705,7 +2719,7 @@ def _set_data_from_scipy_csr_sparse(
             builder_visitor,
             <ILocalExecutor*>&py_builder_visitor.local_executor)
 
-    if numpy_num_dtype == np.float64_t:
+    elif numpy_num_dtype == np.float64_t:
         data_np = cast_to_nparray(data, np.float64)
         return SetDataFromScipyCsrSparse[np.float64_t](
             indptr_i32_ref,
@@ -2715,7 +2729,7 @@ def _set_data_from_scipy_csr_sparse(
             builder_visitor,
             <ILocalExecutor*>&py_builder_visitor.local_executor)
 
-    if numpy_num_dtype == np.int8_t:
+    elif numpy_num_dtype == np.int8_t:
         data_np = cast_to_nparray(data, np.int8)
         return SetDataFromScipyCsrSparse[np.int8_t](
             indptr_i32_ref,
@@ -2725,7 +2739,7 @@ def _set_data_from_scipy_csr_sparse(
             builder_visitor,
             <ILocalExecutor*>&py_builder_visitor.local_executor)
 
-    if numpy_num_dtype == np.uint8_t:
+    elif numpy_num_dtype == np.uint8_t:
         data_np = cast_to_nparray(data, np.uint8)
         return SetDataFromScipyCsrSparse[np.uint8_t](
             indptr_i32_ref,
@@ -2735,7 +2749,7 @@ def _set_data_from_scipy_csr_sparse(
             builder_visitor,
             <ILocalExecutor*>&py_builder_visitor.local_executor)
 
-    if numpy_num_dtype == np.int16_t:
+    elif numpy_num_dtype == np.int16_t:
         data_np = cast_to_nparray(data, np.int16)
         return SetDataFromScipyCsrSparse[np.int16_t](
             indptr_i32_ref,
@@ -2745,7 +2759,7 @@ def _set_data_from_scipy_csr_sparse(
             builder_visitor,
             <ILocalExecutor*>&py_builder_visitor.local_executor)
 
-    if numpy_num_dtype == np.uint16_t:
+    elif numpy_num_dtype == np.uint16_t:
         data_np = cast_to_nparray(data, np.uint16)
         return SetDataFromScipyCsrSparse[np.uint16_t](
             indptr_i32_ref,
@@ -2755,7 +2769,7 @@ def _set_data_from_scipy_csr_sparse(
             builder_visitor,
             <ILocalExecutor*>&py_builder_visitor.local_executor)
 
-    if numpy_num_dtype == np.int32_t:
+    elif numpy_num_dtype == np.int32_t:
         data_np = cast_to_nparray(data, np.int32)
         return SetDataFromScipyCsrSparse[np.int32_t](
             indptr_i32_ref,
@@ -2765,7 +2779,7 @@ def _set_data_from_scipy_csr_sparse(
             builder_visitor,
             <ILocalExecutor*>&py_builder_visitor.local_executor)
 
-    if numpy_num_dtype == np.uint32_t:
+    elif numpy_num_dtype == np.uint32_t:
         data_np = cast_to_nparray(data, np.uint32)
         return SetDataFromScipyCsrSparse[np.uint32_t](
             indptr_i32_ref,
@@ -2775,7 +2789,7 @@ def _set_data_from_scipy_csr_sparse(
             builder_visitor,
             <ILocalExecutor*>&py_builder_visitor.local_executor)
 
-    if numpy_num_dtype == np.int64_t:
+    elif numpy_num_dtype == np.int64_t:
         data_np = cast_to_nparray(data, np.int64)
         return SetDataFromScipyCsrSparse[np.int64_t](
             indptr_i32_ref,
@@ -2785,7 +2799,7 @@ def _set_data_from_scipy_csr_sparse(
             builder_visitor,
             <ILocalExecutor*>&py_builder_visitor.local_executor)
 
-    if numpy_num_dtype == np.uint64_t:
+    elif numpy_num_dtype == np.uint64_t:
         data_np = cast_to_nparray(data, np.uint64)
         return SetDataFromScipyCsrSparse[np.uint64_t](
             indptr_i32_ref,
@@ -2794,8 +2808,8 @@ def _set_data_from_scipy_csr_sparse(
             is_cat_feature_ref,
             builder_visitor,
             <ILocalExecutor*>&py_builder_visitor.local_executor)
-
-    assert False, "CSR sparse arrays support only numeric data types"
+    else:
+        assert False, "CSR sparse arrays support only numeric data types"
 
 
 cdef _set_data_from_scipy_lil_sparse(
@@ -3103,7 +3117,7 @@ cdef TString obj_to_arcadia_string(obj) except *:
         return ToString[double](<double>obj)
     elif ((obj_type is int or obj_type is long) and (INT64_MIN <= obj <= INT64_MAX)) or obj_type is _npint32 or obj_type is _npint64:
         return ToString[i64](<i64>obj)
-    elif obj_type is str or obj_type is unicode or obj_type is bytes or obj_type is _npstring_:
+    elif obj_type is str or obj_type is unicode or obj_type is bytes or obj_type is _npbytes_ or obj_type is _npunicode_:
         return to_arcadia_string(obj)
     else:
         return to_arcadia_string(str(obj))
@@ -4579,7 +4593,7 @@ cdef class _CatBoost:
     cpdef _serialize_model(self):
         cdef TString tstr = SerializeModel(dereference(self.__model))
         cdef const char* c_serialized_model_string = tstr.c_str()
-        cpdef bytes py_serialized_model_str = c_serialized_model_string[:tstr.size()]
+        cdef bytes py_serialized_model_str = c_serialized_model_string[:tstr.size()]
         return py_serialized_model_str
 
     cpdef _deserialize_model(self, serialized_model_str):
@@ -5559,7 +5573,7 @@ cpdef is_user_defined_metric(metric_name):
 cpdef get_experiment_name(ui32 feature_set_idx, ui32 fold_idx):
     cdef TString experiment_name = GetExperimentName(feature_set_idx, fold_idx)
     cdef const char* c_experiment_name_string = experiment_name.c_str()
-    cpdef bytes py_experiment_name_str = c_experiment_name_string[:experiment_name.size()]
+    cdef bytes py_experiment_name_str = c_experiment_name_string[:experiment_name.size()]
     return py_experiment_name_str
 
 

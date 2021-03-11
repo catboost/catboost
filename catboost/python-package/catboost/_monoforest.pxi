@@ -100,7 +100,7 @@ class FeatureExplanation:
         if self.type == "Float":
             values.append(self.expected_bias[dim])
             for border_expl in self.borders_explanations:
-                values.append(values[-1] + border_expl.expected_value_change[dim])
+                values.append(values[len(values) - 1] + border_expl.expected_value_change[dim])
         else:
             for border_expl in self.borders_explanations:
                 values.append(self.expected_bias[dim] + border_expl.expected_value_change[dim])

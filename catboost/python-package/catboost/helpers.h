@@ -81,6 +81,12 @@ inline TVector<NCatboostOptions::TLossDescription> CreateMetricLossDescriptions(
     return result;
 }
 
+#if PY_MAJOR_VERSION < 3
+inline const char* PyUnicode_AsUTF8AndSize(PyObject *unicode, Py_ssize_t *size) {
+    return nullptr;
+}
+#endif
+
 
 class TMetricsPlotCalcerPythonWrapper {
 public:
