@@ -203,6 +203,11 @@ MakeRegister(LossInfos,
     RankingRegistree(QueryRMSE, ERankingType::AbsoluteValue,
         EMetricAttribute::IsGroupwise
     ),
+    RankingRegistree(QueryAUC, ERankingType::AbsoluteValue,
+        EMetricAttribute::IsBinaryClassCompatible
+        | EMetricAttribute::IsMultiClassCompatible
+        | EMetricAttribute::IsGroupwise
+    ),
     RankingRegistree(QuerySoftMax, ERankingType::CrossEntropy,
         EMetricAttribute::IsBinaryClassCompatible
         | EMetricAttribute::IsGroupwise
@@ -412,6 +417,7 @@ bool ShouldSkipCalcOnTrainByDefault(ELossFunction loss) {
         loss == ELossFunction::YetiRank ||
         loss == ELossFunction::YetiRankPairwise ||
         loss == ELossFunction::AUC ||
+        loss == ELossFunction::QueryAUC ||
         loss == ELossFunction::PFound ||
         loss == ELossFunction::NDCG ||
         loss == ELossFunction::DCG ||
@@ -464,6 +470,7 @@ static const TVector<ELossFunction> RankingObjectives = {
     ELossFunction::YetiRank,
     ELossFunction::YetiRankPairwise,
     ELossFunction::QueryRMSE,
+    ELossFunction::QueryAUC,
     ELossFunction::QuerySoftMax,
     ELossFunction::QueryCrossEntropy,
     ELossFunction::StochasticFilter,
@@ -501,6 +508,7 @@ ERankingType GetRankingType(ELossFunction loss) {
 
 static bool IsFromAucFamily(ELossFunction loss) {
     return loss == ELossFunction::AUC
+        || loss == ELossFunction::QueryAUC
         || loss == ELossFunction::NormalizedGini;
 }
 

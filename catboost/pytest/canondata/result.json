@@ -6550,6 +6550,22 @@
             "uri": "file://test.test_query_output/test.eval"
         }
     ],
+    "test.test_queryauc[Ordered]": [
+        {
+            "uri": "file://test.test_queryauc_Ordered_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_queryauc_Ordered_/test_error.tsv"
+        }
+    ],
+    "test.test_queryauc[Plain]": [
+        {
+            "uri": "file://test.test_queryauc_Plain_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_queryauc_Plain_/test_error.tsv"
+        }
+    ],
     "test.test_queryaverage[Ordered]": [
         {
             "uri": "file://test.test_queryaverage_Ordered_/learn_error.tsv"
