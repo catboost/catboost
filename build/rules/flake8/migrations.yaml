@@ -40,7 +40,6 @@ migrations:
     - market/idx/quick/saashub/tests/yatf/bids
     - market/replenishment/data_preparation/ut
     - market/seo/offer_base
-    - market/sre/tools/logkeeper/logkeeper
     - mediapers/feature_machine/nirvana/script_runner
     - metrika/core/test_framework/steps/clients
     - mlp/mail/aspam/nirvana_operations/conveyor/build_prod_graph/inbound
@@ -371,7 +370,6 @@ migrations:
     - dict/ontodb/onto_lib/sources/musicbrainz
     - dict/ontodb/onto_lib/sources/transfermarkt
     - dict/ontodb/onto_lib/sources/www
-    - dict/ontodb/onto_lib/sources/yandex_maps
     - dict/ontodb/ontodb_log/ctr
     - dict/ontodb/pra/lib
     - dict/ontodb/report/common
@@ -486,7 +484,6 @@ migrations:
     - education/schoolbook/analytics/adhoc/ANALITICSEDU-687
     - entity/ontodb/robot/tools/extdata_import/khl/lib
     - entity/ontodb/robot/tools/extdata_import/wiki_pagecounts/lib
-    - entity/ontodb/robot/tools/extdata_import/ymp/lib
     - entity/ontodb/robot/tools/extdata_import/ytv/lib/ut
     - entity/ontodb/tasks/backup_yt_tables/lib
     - entity/ontodb/tasks/clean_old_data
@@ -2537,7 +2534,6 @@ migrations:
     - market/idx/quick/saashub/tests/yatf/bids
     - market/replenishment/data_preparation/ut
     - market/seo/offer_base
-    - market/sre/tools/logkeeper/logkeeper
     - mediapers/feature_machine/nirvana/script_runner
     - metrika/core/test_framework/steps/clients
     - mlp/mail/aspam/nirvana_operations/conveyor/build_prod_graph/inbound
