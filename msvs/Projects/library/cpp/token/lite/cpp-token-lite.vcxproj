@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{E6C46AB0-C7AB-1025-2F16-BF83205FE0C1}</ProjectGUID>
+    <ProjectGUID>{DE431774-C72C-63FB-F8CD-0FE2C5497BE4}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>library-cpp-token</ProjectName>
+    <ProjectName>cpp-token-lite</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>library-cpp-token</TargetName>
+    <TargetName>cpp-token-lite</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\cpp\token\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\E6C46AB0-C7AB-1025-2F16-BF83205FE0C1\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\cpp\token\lite\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\DE431774-C72C-63FB-F8CD-0FE2C5497BE4\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,17 +78,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\cpp\token\generated\custom_decompositions.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\cpp\token\charfilter.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\library\cpp\token\formtype.h_serialized.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\token\accent.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\cpp\token\nlptypes.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\library\cpp\token\nlptypes.h_serialized.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\cpp\token\token_util.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\library\cpp\token\lite\formtype.h_serialized.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\library\cpp\token\lite\nlptypes.h_serialized.cpp"/>
     <CustomBuild Include="$(SolutionDir)..\library\cpp\token\formtype.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\cpp\token
+cd /d $(SolutionDir)$(Configuration)\library\cpp\token\lite
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/cpp/token/formtype.h" "--include-path" "library/cpp/token/formtype.h" "--output" "$(SolutionDir)$(Configuration)/library/cpp/token/formtype.h_serialized.cpp"
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/cpp/token/formtype.h" "--include-path" "library/cpp/token/formtype.h" "--output" "$(SolutionDir)$(Configuration)/library/cpp/token/lite/formtype.h_serialized.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -97,9 +96,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\cpp\token
+cd /d $(SolutionDir)$(Configuration)\library\cpp\token\lite
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/cpp/token/formtype.h" "--include-path" "library/cpp/token/formtype.h" "--output" "$(SolutionDir)$(Configuration)/library/cpp/token/formtype.h_serialized.cpp"
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/cpp/token/formtype.h" "--include-path" "library/cpp/token/formtype.h" "--output" "$(SolutionDir)$(Configuration)/library/cpp/token/lite/formtype.h_serialized.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -107,15 +106,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/cpp/token/formtype.h_serialized.cpp	</Message>
+      <Message>$B/library/cpp/token/lite/formtype.h_serialized.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)..\library\cpp\token\formtype.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\cpp\token\formtype.h_serialized.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\cpp\token\lite\formtype.h_serialized.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\library\cpp\token\nlptypes.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\cpp\token
+cd /d $(SolutionDir)$(Configuration)\library\cpp\token\lite
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/cpp/token/nlptypes.h" "--include-path" "library/cpp/token/nlptypes.h" "--output" "$(SolutionDir)$(Configuration)/library/cpp/token/nlptypes.h_serialized.cpp"
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/cpp/token/nlptypes.h" "--include-path" "library/cpp/token/nlptypes.h" "--output" "$(SolutionDir)$(Configuration)/library/cpp/token/lite/nlptypes.h_serialized.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -124,9 +123,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\cpp\token
+cd /d $(SolutionDir)$(Configuration)\library\cpp\token\lite
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/cpp/token/nlptypes.h" "--include-path" "library/cpp/token/nlptypes.h" "--output" "$(SolutionDir)$(Configuration)/library/cpp/token/nlptypes.h_serialized.cpp"
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/cpp/token/nlptypes.h" "--include-path" "library/cpp/token/nlptypes.h" "--output" "$(SolutionDir)$(Configuration)/library/cpp/token/lite/nlptypes.h_serialized.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -134,14 +133,10 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/cpp/token/nlptypes.h_serialized.cpp	</Message>
+      <Message>$B/library/cpp/token/lite/nlptypes.h_serialized.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)..\library\cpp\token\nlptypes.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\cpp\token\nlptypes.h_serialized.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\cpp\token\lite\nlptypes.h_serialized.cpp;</Outputs>
     </CustomBuild>
-    <ClInclude Include="$(SolutionDir)..\library\cpp\token\charfilter.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\cpp\token\token_iterator.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\cpp\token\token_structure.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\cpp\token\token_util.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
@@ -172,9 +167,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\langs\library-cpp-langs.vcxproj">
       <Project>{7A259257-161F-BD3F-016E-D02C15A4826D}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\unicode\normalization\cpp-unicode-normalization.vcxproj">
-      <Project>{6E0E64B9-3A05-DBD1-DC49-86C427EBD124}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_parser\enum_parser.vcxproj">
       <Project>{F6CDBBB3-9B26-9DC1-90B1-CF3F94F04C9B}</Project>
