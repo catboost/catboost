@@ -75,8 +75,40 @@ test_that("model: catboost.train synonyms", {
                 random_seed = 12345,
                 use_best_model = FALSE)
   
-  catboost.train(pool_train, pool_test, params)
-  expect_error(params1, ".*should be initialized.")
+  expect_error(catboost.train(pool_train, pool_test, params), ".*should be initialized.")
+  
+  synonym_params <- c(
+      c('loss_function', 'objective'),
+      c('iterations', 'num_boost_round', 'n_estimators', 'num_trees'),
+      c('learning_rate', 'eta'),
+      c('random_seed', 'random_state'),
+      c('l2_leaf_reg', 'reg_lambda'),
+      c('depth', 'max_depth'),
+      c('min_data_in_leaf', 'min_child_samples'),
+      c('max_leaves', 'num_leaves'),
+      c('rsm', 'colsample_bylevel'),
+      c('border_count', 'max_bin'),
+      c('verbose', 'verbose_eval')
+  )
+  params_values <- c('Logloss', 5, 0.04, 12345, 4, 5, 1, 31, 0.5, 32, TRUE)
+  params_count <- lengths(synonym_params)
+  
+  # ten random iterations
+  for (i in 1:10) {
+      params_num <- sample.int(params_count, 1)
+      params_idx <- sample.int(params_count, params_num)
+      
+      params <- vector(mode = "list", length = params_num)
+      for (idx in params_idx) {
+          synonym_group <- synonym_params[[idx]]
+          len <- lengths(synonym_group)
+          synonym_idx <- sample.int(len, 1)
+          params[[synonym_group[[synonym_idx]]]] <- params_values[[idx]]
+      }
+      
+      catboost.train(pool_train, NULL, params)
+      expect_true(TRUE)
+  }
 })
 
 test_that("model: catboost.importance", {
