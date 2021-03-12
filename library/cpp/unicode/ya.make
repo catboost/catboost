@@ -1,4 +1,0 @@
-RECURSE(
-    normalization
-    normalization/ut
-)

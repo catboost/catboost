@@ -122,10 +122,10 @@ RECURSE(
     token
     tokenizer
     tokenizer/ut
+    token/lite
     token/serialization
     token/serialization/ut
     token/ut
-    unicode
     yson
     yson/node
     yson/node/pybind
