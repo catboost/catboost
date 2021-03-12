@@ -1033,3 +1033,5 @@ def test_commonpath():
     assert library.python.fs.commonpath([pj('t', '1', '1'), pj('t', '1', '2'), pj('t', '1', '3')]) == pj('t', '1')
 
     assert library.python.fs.commonpath([pja('t', '1', '1'), pja('t', '1', '2')]) == pja('t', '1')
+
+    assert library.python.fs.commonpath({pj('t', '1'), pj('t', '2')}) == pj('t')
