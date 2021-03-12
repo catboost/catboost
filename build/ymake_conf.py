@@ -1026,7 +1026,7 @@ class GnuToolchainOptions(ToolchainOptions):
                 return 'ubuntu-14'
 
             # Default OS SDK for Linux builds
-            return 'ubuntu-12'
+            return 'ubuntu-14'
 
 
 class Toolchain(object):
