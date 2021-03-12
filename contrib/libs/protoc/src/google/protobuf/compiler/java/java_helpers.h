@@ -139,7 +139,7 @@ inline string ShortMutableJavaClassName(const Descriptor* descriptor) {
 
 // Whether we should generate multiple java files for messages.
 inline bool MultipleJavaFiles(
-    const FileDescriptor* descriptor, bool immutable) {
+    const FileDescriptor* descriptor, bool /* immutable */) {
   return descriptor->options().java_multiple_files();
 }
 
