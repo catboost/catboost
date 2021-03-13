@@ -2068,7 +2068,6 @@ migrations:
     - extsearch/video/robot/cm/transcoder/cmpy/vh_index_dups_matcher
     - extsearch/video/robot/cm/vicont/cmpy/content
     - extsearch/video/robot/cm/vicont/cmpy/renew
-    - extsearch/video/robot/cm/vicont/cmpy/zora
     - extsearch/video/robot/crawling/player_testing/core
     - extsearch/video/robot/crawling/player_testing/services/live_capture
     - extsearch/video/robot/crawling/player_testing/services/live_proxy
@@ -2286,7 +2285,6 @@ migrations:
     - sandbox/projects/clickhouse/ClickhouseBuildLauncher
     - sandbox/projects/clickhouse/ClickhouseCommitTrigger
     - sandbox/projects/clickhouse/ClickhouseDockerHubPush
-    - sandbox/projects/clickhouse/ClickhouseFunctionalStatelessTestDebug
     - sandbox/projects/clickhouse/ClickhousePerformanceComparison
     - sandbox/projects/clickhouse/ClickhousePullRequestTrigger
     - sandbox/projects/clickhouse/util
