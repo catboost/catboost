@@ -81,6 +81,8 @@ inline TVector<NCatboostOptions::TLossDescription> CreateMetricLossDescriptions(
     return result;
 }
 
+NJson::TJsonValue GetDummyMetrics();
+
 #if PY_MAJOR_VERSION < 3
 inline const char* PyUnicode_AsUTF8AndSize(PyObject *unicode, Py_ssize_t *size) {
     return nullptr;

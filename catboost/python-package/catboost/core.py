@@ -117,7 +117,6 @@ def log_fixup(log_cout=sys.stdout, log_cerr=sys.stderr):
     yield
     _reset_logger()
 
-
 def _cast_to_base_types(value):
     # NOTE: Special case, avoiding new list creation.
     if isinstance(value, list):
@@ -2451,6 +2450,7 @@ class CatBoost(_CatBoostBase):
 
         metrics : list of strings
             List of evaluated metrics.
+            TODO(kkorovina): accept a list of BuiltinMetric objects, and convert them to string in this method.
 
         ntree_start: int, optional (default=0)
             Model is applied on the interval [ntree_start, ntree_end) (zero-based indexing).

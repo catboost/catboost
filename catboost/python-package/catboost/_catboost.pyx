@@ -942,7 +942,10 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
         ILocalExecutor* localExecutor) nogil except +ProcessException
     cdef size_t GetNumPairs(const TDataProvider& dataProvider) except +ProcessException
     cdef TConstArrayRef[TPair] GetUngroupedPairs(const TDataProvider& dataProvider) except +ProcessException
+    cdef TJsonValue GetDummyMetrics() nogil
 
+def DummyMetrics():
+    return loads(to_native_str(WriteTJsonValue(GetDummyMetrics())))
 
 cdef extern from "catboost/python-package/catboost/helpers.h":
     cdef TVector[TVector[double]] EvalMetrics(
