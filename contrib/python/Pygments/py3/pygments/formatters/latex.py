@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
     pygments.formatters.latex
     ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -300,13 +299,13 @@ class LatexFormatter(Formatter):
                 cmndef += (r'\def\$$@tc##1{\textcolor[rgb]{%s}{##1}}' %
                            rgbcolor(ndef['color']))
             if ndef['border']:
-                cmndef += (r'\def\$$@bc##1{\setlength{\fboxsep}{0pt}'
-                           r'\fcolorbox[rgb]{%s}{%s}{\strut ##1}}' %
+                cmndef += (r'\def\$$@bc##1{{\setlength{\fboxsep}{-\fboxrule}'
+                           r'\fcolorbox[rgb]{%s}{%s}{\strut ##1}}}' %
                            (rgbcolor(ndef['border']),
                             rgbcolor(ndef['bgcolor'])))
             elif ndef['bgcolor']:
-                cmndef += (r'\def\$$@bc##1{\setlength{\fboxsep}{0pt}'
-                           r'\colorbox[rgb]{%s}{\strut ##1}}' %
+                cmndef += (r'\def\$$@bc##1{{\setlength{\fboxsep}{0pt}'
+                           r'\colorbox[rgb]{%s}{\strut ##1}}}' %
                            rgbcolor(ndef['bgcolor']))
             if cmndef == '':
                 continue
@@ -322,8 +321,7 @@ class LatexFormatter(Formatter):
         cp = self.commandprefix
         styles = []
         for name, definition in self.cmd2def.items():
-            styles.append(r'\expandafter\def\csname %s@tok@%s\endcsname{%s}' %
-                          (cp, name, definition))
+            styles.append(r'\@namedef{%s@tok@%s}{%s}' % (cp, name, definition))
         return STYLE_TEMPLATE % {'cp': self.commandprefix,
                                  'styles': '\n'.join(styles)}
 
@@ -343,7 +341,8 @@ class LatexFormatter(Formatter):
                           (start and ',firstnumber=%d' % start or '') +
                           (step and ',stepnumber=%d' % step or ''))
         if self.mathescape or self.texcomments or self.escapeinside:
-            outfile.write(',codes={\\catcode`\\$=3\\catcode`\\^=7\\catcode`\\_=8}')
+            outfile.write(',codes={\\catcode`\\$=3\\catcode`\\^=7'
+                          '\\catcode`\\_=8\\relax}')
         if self.verboptions:
             outfile.write(',' + self.verboptions)
         outfile.write(']\n')
