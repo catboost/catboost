@@ -143,6 +143,9 @@ MakeRegister(LossInfos,
     Registree(RMSE,
         EMetricAttribute::IsRegression
     ),
+    Registree(Cox, 
+        EMetricAttribute::IsRegression
+    ),
     Registree(Lq,
         EMetricAttribute::IsRegression
     ),
@@ -449,7 +452,8 @@ static const TVector<ELossFunction> RegressionObjectives = {
     ELossFunction::Poisson,
     ELossFunction::Lq,
     ELossFunction::Huber,
-    ELossFunction::Tweedie
+    ELossFunction::Tweedie,
+    ELossFunction::Cox
 };
 
 static const TVector<ELossFunction> MultiRegressionObjectives = {
