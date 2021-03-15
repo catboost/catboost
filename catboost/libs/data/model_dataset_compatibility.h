@@ -12,11 +12,15 @@ namespace NCB {
     void CheckModelAndDatasetCompatibility(
         const TFullModel& model,
         const TFeaturesLayout& datasetFeaturesLayout,
+
+        // modelFlatFeatureIdx -> dataFlatFeatureIdx, only for features used in the model
         THashMap<ui32, ui32>* columnIndexesReorderMap);
 
     void CheckModelAndDatasetCompatibility(
         const TFullModel& model,
         const TObjectsDataProvider& objectsData,
+
+        // modelFlatFeatureIdx -> dataFlatFeatureIdx, only for features used in the model
         THashMap<ui32, ui32>* columnIndexesReorderMap);
 
     void CheckModelAndDatasetCompatibility(
