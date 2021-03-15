@@ -13,15 +13,18 @@ NO_COMPILER_WARNINGS()
 
 NO_LINT()
 
-IF (USE_VANILLA_PROTOC)
-    PEERDIR(contrib/libs/protobuf_std)
-ELSE()
-    OPTIMIZE_PY_PROTOS()
-    PEERDIR(contrib/libs/protobuf)
-ENDIF()
+PEERDIR(contrib/libs/protobuf)
 
 PEERDIR(
     contrib/python/six
+)
+
+# Workaround ymake inability to combine multiple PROTO_NAMESPACE in a single PY23_LIBRARY
+# by splitting necessary .proto files across multiple PY23_LIBRARY units.
+PEERDIR(
+    contrib/libs/protobuf/python/google_lib/protos_from_protobuf
+    contrib/libs/protobuf/python/google_lib/protos_from_protoc
+    contrib/libs/protobuf/python/google_lib/protos_from_pyext
 )
 
 ADDINCL(
@@ -29,74 +32,60 @@ ADDINCL(
 )
 
 SRCDIR(
-    contrib/libs/protobuf/python/google
+    contrib/libs/protobuf/python
 )
 
 CFLAGS(
     -DPYTHON_PROTO2_CPP_IMPL_V2
+    -D_SHARED_PTR_H
 )
 
 PY_SRCS(
-    NAMESPACE google
-    __init__.py
-    protobuf/__init__.py
-    protobuf/any_pb2.py
-    protobuf/api_pb2.py
-    protobuf/compiler/__init__.py
-    protobuf/compiler/plugin_pb2.py
-    protobuf/descriptor.py
-    protobuf/descriptor_database.py
-    protobuf/descriptor_pb2.py
-    protobuf/descriptor_pool.py
-    protobuf/duration_pb2.py
-    protobuf/empty_pb2.py
-    protobuf/field_mask_pb2.py
-    protobuf/internal/__init__.py
-    protobuf/internal/_parameterized.py
-    protobuf/internal/api_implementation.py
-    protobuf/internal/containers.py
-    protobuf/internal/decoder.py
-    protobuf/internal/encoder.py
-    protobuf/internal/enum_type_wrapper.py
-    protobuf/internal/message_listener.py
-    protobuf/internal/python_message.py
-    protobuf/internal/type_checkers.py
-    protobuf/internal/well_known_types.py
-    protobuf/internal/wire_format.py
-    protobuf/json_format.py
-    protobuf/message.py
-    protobuf/message_factory.py
-    protobuf/proto_builder.py
-    protobuf/pyext/__init__.py
-    protobuf/pyext/cpp_message.py
-    protobuf/pyext/python.proto
-    protobuf/reflection.py
-    protobuf/service.py
-    protobuf/service_reflection.py
-    protobuf/source_context_pb2.py
-    protobuf/struct_pb2.py
-    protobuf/symbol_database.py
-    protobuf/text_encoding.py
-    protobuf/text_format.py
-    protobuf/timestamp_pb2.py
-    protobuf/type_pb2.py
-    protobuf/wrappers_pb2.py
+    TOP_LEVEL
+    google/protobuf/__init__.py
+    google/protobuf/descriptor.py
+    google/protobuf/descriptor_database.py
+    google/protobuf/descriptor_pool.py
+    google/protobuf/internal/__init__.py
+    google/protobuf/internal/_parameterized.py
+    google/protobuf/internal/api_implementation.py
+    google/protobuf/internal/containers.py
+    google/protobuf/internal/decoder.py
+    google/protobuf/internal/encoder.py
+    google/protobuf/internal/enum_type_wrapper.py
+    google/protobuf/internal/message_listener.py
+    google/protobuf/internal/python_message.py
+    google/protobuf/internal/type_checkers.py
+    google/protobuf/internal/well_known_types.py
+    google/protobuf/internal/wire_format.py
+    google/protobuf/json_format.py
+    google/protobuf/message.py
+    google/protobuf/message_factory.py
+    google/protobuf/proto_builder.py
+    google/protobuf/pyext/__init__.py
+    google/protobuf/pyext/cpp_message.py
+    google/protobuf/reflection.py
+    google/protobuf/service.py
+    google/protobuf/service_reflection.py
+    google/protobuf/symbol_database.py
+    google/protobuf/text_encoding.py
+    google/protobuf/text_format.py
 )
 
 SRCS(
-    protobuf/internal/api_implementation.cc
-    protobuf/internal/python_protobuf.cc
-    protobuf/pyext/descriptor.cc
-    protobuf/pyext/descriptor_containers.cc
-    protobuf/pyext/descriptor_database.cc
-    protobuf/pyext/descriptor_pool.cc
-    protobuf/pyext/extension_dict.cc
-    protobuf/pyext/map_container.cc
-    protobuf/pyext/message.cc
-    protobuf/pyext/message_factory.cc
-    protobuf/pyext/message_module.cc
-    protobuf/pyext/repeated_composite_container.cc
-    protobuf/pyext/repeated_scalar_container.cc
+    google/protobuf/internal/api_implementation.cc
+    google/protobuf/internal/python_protobuf.cc
+    google/protobuf/pyext/descriptor.cc
+    google/protobuf/pyext/descriptor_containers.cc
+    google/protobuf/pyext/descriptor_database.cc
+    google/protobuf/pyext/descriptor_pool.cc
+    google/protobuf/pyext/extension_dict.cc
+    google/protobuf/pyext/map_container.cc
+    google/protobuf/pyext/message.cc
+    google/protobuf/pyext/message_factory.cc
+    google/protobuf/pyext/message_module.cc
+    google/protobuf/pyext/repeated_composite_container.cc
+    google/protobuf/pyext/repeated_scalar_container.cc
 )
 
 PY_REGISTER(google.protobuf.pyext._message)
