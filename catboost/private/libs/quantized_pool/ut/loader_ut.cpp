@@ -100,6 +100,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
             /*timestampsFilePath*/TPathWithScheme(),
             readDatasetMainParams.BaselineFilePath, // can be uninited
             /*featureNamesPath*/TPathWithScheme(),
+            /*poolMetaInfoPath*/TPathWithScheme(),
             NCatboostOptions::TColumnarPoolFormatParams(),
             testCase.SrcData.IgnoredFeatures,
             testCase.SrcData.ObjectsOrder,

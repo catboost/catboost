@@ -156,6 +156,7 @@ EXPORT_FUNCTION CatBoostCreateFromFile_R(SEXP poolFileParam,
                                            /*baselineFilePath=*/TPathWithScheme(),
                                            !featureNamesPathWithScheme.empty() ?
                                                 TPathWithScheme(featureNamesPathWithScheme, "dsv") : TPathWithScheme(),
+                                           /*poolMetaInfoPath=*/TPathWithScheme(),
                                            columnarPoolFormatParams,
                                            TVector<ui32>(),
                                            EObjectsOrder::Undefined,

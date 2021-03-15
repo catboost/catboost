@@ -9195,3 +9195,161 @@ def test_dump_options():
     with open(options_path) as options:
         options_json = json.load(options)
         assert options_json['metadata'][key] == value
+
+
+def prepare_pool_metainfo_with_feature_tags():
+    pool_metainfo = {
+        'tags': {
+            'A': {
+                'features': [0, 1, 2, 3, 4, 5, 6, 7]
+            },
+            'B': {
+                'features': [12, 13, 14, 15, 16]
+            },
+            'C': {
+                'features': [5, 6, 7, 8, 9, 10, 11, 12, 13]
+            }
+        }
+    }
+    pool_metainfo_path = yatest.common.test_output_path('pool_metainfo.json')
+    with open(pool_metainfo_path, 'w') as f:
+        json.dump(pool_metainfo, f)
+
+    return pool_metainfo, pool_metainfo_path
+
+
+def test_feature_tags_in_ignore_features():
+    pool_metainfo, pool_metainfo_path = prepare_pool_metainfo_with_feature_tags()
+
+    base_cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-i', '50',
+        '-T', '4',
+    )
+
+    for ignored_tags in (['A'], ['A', 'B'], ['B', 'C']):
+        output_eval_path_1 = yatest.common.test_output_path('1_test.eval')
+        ignored_features = sum((pool_metainfo['tags'][tag]['features'] for tag in ignored_tags), [])
+        cmd_1 = base_cmd + (
+            '--eval-file', output_eval_path_1,
+            '--ignore-features', ':'.join(map(str, ignored_features)),
+        )
+
+        output_eval_path_2 = yatest.common.test_output_path('2_test.eval')
+        cmd_2 = base_cmd + (
+            '--eval-file', output_eval_path_2,
+            '--ignore-features', ':'.join('#{}'.format(tag) for tag in ignored_tags),
+            '--pool-metainfo-path', pool_metainfo_path,
+        )
+
+        yatest.common.execute(cmd_1)
+        yatest.common.execute(cmd_2)
+        assert filecmp.cmp(output_eval_path_1, output_eval_path_2)
+
+
+def test_feature_tags_in_features_for_select():
+    pool_metainfo, pool_metainfo_path = prepare_pool_metainfo_with_feature_tags()
+
+    base_cmd = (
+        CATBOOST_PATH,
+        'select-features',
+        '--loss-function', 'Logloss',
+        '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-i', '50',
+        '-T', '4',
+        '--num-features-to-select', '3',
+        '--features-selection-algorithm', 'RecursiveByPredictionValuesChange',
+        '--features-selection-steps', '2',
+        '--train-final-model',
+    )
+
+    for selection_tags in (['A', 'B'], ['A', 'C'], ['B', 'C'], ['A', 'B', 'C']):
+        output_summary_path_1 = yatest.common.test_output_path('1_summary.json')
+        features_for_select = sum((pool_metainfo['tags'][tag]['features'] for tag in selection_tags), [])
+        cmd_1 = base_cmd + (
+            '--features-selection-result-path', output_summary_path_1,
+            '--features-for-select', ','.join(map(str, features_for_select)),
+        )
+
+        output_summary_path_2 = yatest.common.test_output_path('2_summary.json')
+        cmd_2 = base_cmd + (
+            '--features-selection-result-path', output_summary_path_2,
+            '--features-for-select', ','.join('#{}'.format(tag) for tag in selection_tags),
+            '--pool-metainfo-path', pool_metainfo_path,
+        )
+
+        yatest.common.execute(cmd_1)
+        yatest.common.execute(cmd_2)
+        assert filecmp.cmp(output_summary_path_1, output_summary_path_2)
+
+
+def test_feature_tags_in_features_to_evaluate():
+    pool_metainfo, pool_metainfo_path = prepare_pool_metainfo_with_feature_tags()
+
+    base_cmd = (
+        CATBOOST_PATH,
+        'eval-feature',
+        '--loss-function', 'Logloss',
+        '-f', data_file('adult', 'train_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '--feature-eval-mode', 'OneVsAll',
+        '-i', '30',
+        '-T', '4',
+        '--fold-count', '2',
+        '--fold-size-unit', 'Object',
+        '--fold-size', '50'
+    )
+
+    features_to_evaluate_1 = []
+    features_to_evaluate_2 = []
+    for tags_set in (['A'], ['A', 'B'], ['B', 'C']):
+        features_set = sum((pool_metainfo['tags'][tag]['features'] for tag in tags_set), [])
+        features_to_evaluate_1.append(','.join(map(str, features_set)))
+        features_to_evaluate_2.append(','.join('#{}'.format(tag) for tag in tags_set))
+
+    output_eval_path_1 = yatest.common.test_output_path('1_feature.eval')
+    cmd_1 = base_cmd + (
+        '--feature-eval-output-file', output_eval_path_1,
+        '--features-to-evaluate', ';'.join(map(str, features_to_evaluate_1)),
+    )
+
+    output_eval_path_2 = yatest.common.test_output_path('2_feature.eval')
+    cmd_2 = base_cmd + (
+        '--feature-eval-output-file', output_eval_path_2,
+        '--features-to-evaluate', ';'.join(features_to_evaluate_2),
+        '--pool-metainfo-path', pool_metainfo_path,
+    )
+
+    yatest.common.execute(cmd_1)
+    yatest.common.execute(cmd_2)
+    assert filecmp.cmp(output_eval_path_1, output_eval_path_2)
+
+
+def test_feature_tags_in_options_file():
+    pool_metainfo, pool_metainfo_path = prepare_pool_metainfo_with_feature_tags()
+
+    training_options_path = yatest.common.test_output_path('training_options.json')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-i', '50',
+        '-T', '4',
+        '--pool-metainfo-path', pool_metainfo_path,
+        '--training-options-file', training_options_path,
+    )
+    yatest.common.execute(cmd)
+
+    with open(training_options_path) as f:
+        options = json.load(f)
+        assert options['pool_metainfo_options'] == pool_metainfo
