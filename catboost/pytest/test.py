@@ -8916,12 +8916,19 @@ def test_virtual_ensembles(loss_function):
 
 @pytest.mark.parametrize('virtual_ensembles_count', ['1', '10'])
 @pytest.mark.parametrize('prediction_type', ['TotalUncertainty', 'VirtEnsembles'])
-@pytest.mark.parametrize('loss_function', ['RMSE', 'RMSEWithUncertainty', 'Logloss'])
+@pytest.mark.parametrize('loss_function', ['RMSE', 'RMSEWithUncertainty', 'Logloss', 'MultiClass'])
 def test_uncertainty_prediction(virtual_ensembles_count, prediction_type, loss_function):
     output_model_path = yatest.common.test_output_path('model.bin')
-    train_path = data_file('querywise', 'train') if loss_function in REGRESSION_LOSSES else data_file('adult', 'train_small')
-    test_path = data_file('querywise', 'test') if loss_function in REGRESSION_LOSSES else data_file('adult', 'test_small')
-    cd_path = data_file('querywise', 'train.cd') if loss_function in REGRESSION_LOSSES else data_file('adult', 'train.cd')
+    pool_names = {
+        'RMSE' : 'querywise',
+        'RMSEWithUncertainty' : 'querywise',
+        'Logloss' : 'adult',
+        'MultiClass' : 'cloudness_small'
+    }
+    pool_name = pool_names[loss_function]
+    train_path = data_file(pool_name, 'train') if loss_function in REGRESSION_LOSSES else data_file(pool_name, 'train_small')
+    test_path = data_file(pool_name, 'test') if loss_function in REGRESSION_LOSSES else data_file(pool_name, 'test_small')
+    cd_path = data_file(pool_name, 'train.cd') if loss_function in REGRESSION_LOSSES else data_file(pool_name, 'train.cd')
     cmd = (
         '--use-best-model', 'false',
         '-f', train_path,
