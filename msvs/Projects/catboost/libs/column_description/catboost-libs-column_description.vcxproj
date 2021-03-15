@@ -81,6 +81,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\column_description\cd_parser.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\column_description\column.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\column_description\column.h_serialized.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\column_description\feature_tag.cpp"/>
     <CustomBuild Include="$(SolutionDir)..\catboost\libs\column_description\column.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\libs\column_description
@@ -109,6 +110,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\column_description\column.h_serialized.cpp;</Outputs>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\column_description\cd_parser.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\column_description\feature_tag.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
