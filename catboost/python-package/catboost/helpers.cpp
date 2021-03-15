@@ -109,17 +109,15 @@ TVector<TString> GetMetricNames(const TFullModel& model, const TVector<TString>&
 NJson::TJsonValue GetDummyMetrics() {
     NJson::TJsonValue metricDescriptions;
 
-    NJson::TJsonValue lq_params, lq_mandatory;
+    NJson::TJsonValue lq_params;
     lq_params.InsertValue("use_weights", NJson::TJsonValue(true));
-    lq_mandatory.AppendValue("q");
-    lq_mandatory.AppendValue("q2");  // doesn't exist, just for the format
-    lq_params.InsertValue("mandatory_params", lq_mandatory);
+    lq_params.InsertValue("q", NJson::TJsonValue() /*mandatory*/);
     metricDescriptions.InsertValue("Lq", lq_params);
 
-    NJson::TJsonValue huber_params, huber_mandatory;
-    lq_params.InsertValue("use_weights", NJson::TJsonValue(true));
-    lq_params.InsertValue("mandatory_params", huber_mandatory.AppendValue("delta"));
-    metricDescriptions.InsertValue("Huber", lq_params);
+    NJson::TJsonValue huber_params;
+    huber_params.InsertValue("use_weights", NJson::TJsonValue(true));
+    huber_params.InsertValue("delta", NJson::TJsonValue() /*mandatory*/);
+    metricDescriptions.InsertValue("Huber", huber_params);
 
     return metricDescriptions;
 }
