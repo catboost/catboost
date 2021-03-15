@@ -26,6 +26,7 @@ PEERDIR(
     build/platform/python/python36
     build/platform/python/python37
     build/platform/python/python38
+    build/platform/python/python39
 )
 
 END()
