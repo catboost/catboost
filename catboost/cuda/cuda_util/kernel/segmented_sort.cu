@@ -72,13 +72,12 @@ namespace NKernel {
     }
 
 
-
-    template cudaError_t SegmentedRadixSort(ui32* keys, ui32* values,
-                                            ui32* tmpKeys, ui32* tmpValues, int size,
-                                            const ui32* segmentStarts, const ui32* segmentEnds, int segmentsCount,
+    #define SEGMENTED_RADIX_SORT(Type) \
+    template cudaError_t SegmentedRadixSort(Type* keys, Type* values, Type* tmpKeys, Type* tmpValues, int size, \
+                                            const ui32* segmentStarts, const ui32* segmentEnds, int segmentsCount, \
                                             TSegmentedRadixSortContext& context, TCudaStream stream);
 
-
-
+    SEGMENTED_RADIX_SORT(float)
+    SEGMENTED_RADIX_SORT(ui32)
 
 }

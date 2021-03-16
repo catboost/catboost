@@ -1,10 +1,11 @@
 #include "leaves_estimation_helper.h"
-#include <catboost/cuda/cuda_lib/cuda_buffer_helpers/all_reduce.h>
 #include <catboost/cuda/methods/pairwise_kernels.h>
 #include <catboost/cuda/gpu_data/non_zero_filter.h>
 #include <catboost/cuda/models/add_bin_values.h>
-
 #include <catboost/libs/helpers/math_utils.h>
+
+#include <catboost/cuda/cuda_util/reduce.h>
+#include <catboost/cuda/cuda_util/transform.h>
 
 namespace NCatboostCuda {
     void ReorderPairs(TStripeBuffer<ui32>* pairBins,
@@ -24,16 +25,6 @@ namespace NCatboostCuda {
 
         TStripeBuffer<uint2>::Swap(sortedPairs, *pairs);
         TStripeBuffer<float>::Swap(sortedPairWeights, *pairWeights);
-    }
-
-    TStripeBuffer<ui32> ComputeBinOffsets(const TStripeBuffer<ui32>& sortedBins,
-                                          ui32 binCount) {
-        TStripeBuffer<ui32> offsets;
-        auto offsetsMapping = NCudaLib::TStripeMapping::RepeatOnAllDevices(binCount + 1);
-        offsets.Reset(offsetsMapping);
-        UpdatePartitionOffsets(sortedBins,
-                               offsets);
-        return offsets;
     }
 
     void FilterZeroLeafBins(const TStripeBuffer<const ui32>& bins,
@@ -62,20 +53,6 @@ namespace NCatboostCuda {
         auto reducedStat = TStripeBuffer<double>::Create(reducedStatsMapping);
         ComputePartitionStats(stat, NCudaLib::ParallelStripeView(partOffsets, TSlice(0, partCount + 1)), &reducedStat);
         return ReadReduce(reducedStat);
-    }
-
-    void ComputeByLeafOrder(const TStripeBuffer<const ui32>& bins, ui32 binCount,
-                            TStripeBuffer<ui32>* binOffsets,
-                            TStripeBuffer<ui32>* indices) {
-        auto orderedBins = TStripeBuffer<ui32>::CopyMapping(bins);
-        indices->Reset(bins.GetMapping());
-
-        orderedBins.Copy(bins);
-        MakeSequence(*indices);
-
-        const ui32 depth = NCB::IntLog2(binCount);
-        RadixSort(orderedBins, *indices, false, 0, depth);
-        (*binOffsets) = ComputeBinOffsets(orderedBins, binCount);
     }
 
     void MakeSupportPairsMatrix(const TStripeBuffer<const ui32>& bins, ui32 binCount,
@@ -120,5 +97,4 @@ namespace NCatboostCuda {
         Gather(tmp, weights, *orderByPart);
         (*pointLeafWeights) = ComputeBinStatisticsForParts(tmp, *partOffsets, binCount);
     }
-
 }
