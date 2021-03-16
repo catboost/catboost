@@ -1,3 +1,3 @@
 #!/usr/bin/env sh
 
-node-gyp configure && ./build.sh
+node-gyp configure && node-gyp build

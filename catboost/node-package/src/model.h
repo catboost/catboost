@@ -4,7 +4,7 @@
 
 #include <napi.h>
 
-#include <vector>
+#include <util/generic/vector.h>
 
 namespace NodeCatBoost {
 
@@ -22,10 +22,10 @@ private:
     ModelCalcerHandle* Handle = nullptr;
 
     Napi::Array calcPredictionHash(Napi::Env env, 
-                                   const std::vector<float>& floatFeatures, 
+                                   const TVector<float>& floatFeatures, 
                                    const Napi::Array& catFeatures);
     Napi::Array calcPredictionString(Napi::Env env, 
-                                   const std::vector<float>& floatFeatures, 
+                                   const TVector<float>& floatFeatures, 
                                    const Napi::Array& catFeatures);
 
     Model(const Model&) = delete;

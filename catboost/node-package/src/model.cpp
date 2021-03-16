@@ -1,7 +1,5 @@
 #include "model.h"
 
-#include <vector>
-
 static void check(Napi::Env env, bool condition, const std::string& message) {
     if (!condition) {
         Napi::TypeError::New(env, message)
@@ -70,7 +68,7 @@ Napi::Value Model::CalcPrediction(const Napi::CallbackInfo& info) {
     const Napi::Array floatFeatures = info[0].As<Napi::Array>();
     const uint32_t floatFeaturesSize = floatFeatures.Length();
     
-    std::vector<float> floatFeatureValues;
+    TVector<float> floatFeatureValues;
     floatFeatureValues.reserve(floatFeaturesSize);
 
     for (uint32_t i = 0; i < floatFeaturesSize; ++i) {
@@ -88,9 +86,9 @@ Napi::Value Model::CalcPrediction(const Napi::CallbackInfo& info) {
 }
 
 Napi::Array Model::calcPredictionHash(Napi::Env env, 
-                                   const std::vector<float>& floatFeatures, 
+                                   const TVector<float>& floatFeatures, 
                                    const Napi::Array& catFeatures) {
-    std::vector<int> catHashValues;
+    TVector<int> catHashValues;
     catHashValues.reserve(catFeatures.Length());
 
     for (uint32_t i = 0; i < catFeatures.Length(); ++i) {
@@ -112,10 +110,10 @@ Napi::Array Model::calcPredictionHash(Napi::Env env,
 }
 
 Napi::Array Model::calcPredictionString(Napi::Env env, 
-                                   const std::vector<float>& floatFeatures, 
+                                   const TVector<float>& floatFeatures, 
                                    const Napi::Array& catFeatures) {
-    std::vector<std::string> catStrings;
-    std::vector<const char*> catStringValues;
+    TVector<std::string> catStrings;
+    TVector<const char*> catStringValues;
     catStrings.reserve(catFeatures.Length());
     catStringValues.reserve(catFeatures.Length());
 

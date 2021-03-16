@@ -8,12 +8,12 @@
                  ],
       'include_dirs': [
                          "<!@(node -p \"require('node-addon-api').include\")",
-                         "../libs/model_interface"
+                         "<(module_root_dir)/build",
+                         "<(module_root_dir)/build/libcxx_include"
                       ],
       'dependencies': [ "<!(node -p \"require('node-addon-api').gyp\")" ],
       'libraries': [ 
-                     "-L<(module_root_dir)/build/catboost/libs/model_interface",
-                     "-lcatboostmodel",
+                     "<(module_root_dir)/build/catboost/libs/model_interface/libcatboostmodel.so.1",
                      "-Wl,-rpath <(module_root_dir)/build/catboost/libs/model_interface"
                    ],
       'cflags!': [ '-fno-exceptions' ],
