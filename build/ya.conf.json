@@ -8252,7 +8252,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 919391038,
+                "sandbox_id": 920296310,
                 "match": "app_host_launcher"
             },
             "executable": {
