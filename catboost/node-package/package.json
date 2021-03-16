@@ -2,6 +2,11 @@
   "name": "catboost",
   "version": "1.0.0",
   "description": "Node bindings for CatBoost library to apply models. CatBoost is a machine learning method based on gradient boosting over decision trees.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ikholopov/catboost.git",
+    "directory": "catboost/node-package"
+  },
   "main": "lib/index.js",
   "dependencies": {
     "node-addon-api": "^1.1.0"
