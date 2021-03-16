@@ -3,6 +3,10 @@ package ai.catboost.spark;
 import java.nio.file.Path
 import java.util.{Arrays,ArrayList,Collections};
 
+import concurrent.duration.Duration
+import concurrent.{Await,Future}
+import concurrent.ExecutionContext.Implicits.global
+
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.collection.mutable.{ArrayBuffer,ArrayBuilder}
@@ -608,6 +612,15 @@ class Pool (
     nanModeAndBordersBuilder: TNanModeAndBordersBuilder,
     quantizationParams: QuantizationParamsTrait
   ) = {
+    val calcHasNansSeparately = count > QuantizationParams.MaxSubsetSizeForBuildBordersAlgorithms
+    val calcHasNansFuture = Future {
+      if (calcHasNansSeparately) {
+        DataHelpers.calcFeaturesHasNans(data, getFeaturesCol, this.getFeatureCount)
+      } else {
+        Array[Byte]()
+      }
+    }
+    
     val dataForBuildBorders =
       if (count > QuantizationParams.MaxSubsetSizeForBuildBordersAlgorithms) {
         data.select(getFeaturesCol).sample(
@@ -623,12 +636,15 @@ class Pool (
     for (row <- dataForBuildBorders.toLocalIterator) {
        nanModeAndBordersBuilder.AddSample(row.getAs[Vector](0).toArray)
     }
-
-    nanModeAndBordersBuilder.Finish(
+    
+    nanModeAndBordersBuilder.CalcBordersWithoutNans(
       quantizationParams.get(quantizationParams.threadCount).getOrElse(
         SparkHelpers.getThreadCountForDriver(data.sparkSession)
       )
     )
+    
+    val hasNansArray = Await.result(calcHasNansFuture, Duration.Inf)
+    nanModeAndBordersBuilder.Finish(hasNansArray)
   }
 
   protected def updateCatFeaturesInfo(quantizedFeaturesInfo: QuantizedFeaturesInfoPtr) = {

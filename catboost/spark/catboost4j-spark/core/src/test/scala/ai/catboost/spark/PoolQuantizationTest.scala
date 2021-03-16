@@ -278,9 +278,6 @@ class PoolQuantizationTest {
           val quantizedFeaturesInfoPtr = native_impl.MakeQuantizedFeaturesInfo(featuresLayout)
           quantizedFeaturesInfoPtr.SetNanMode(0, ENanMode.Max)
           quantizedFeaturesInfoPtr.SetQuantization(0, new TVector_float(Array[Float](0.05f, 0.15f, Float.MaxValue)))
-          quantizedFeaturesInfoPtr.SetQuantization(1, new TVector_float())
-          quantizedFeaturesInfoPtr.SetNanMode(2, ENanMode.Max)
-          quantizedFeaturesInfoPtr.SetQuantization(2, new TVector_float())
           quantizedFeaturesInfoPtr.SetQuantization(3, new TVector_float(Array[Float](81.6499938f, 105.555f)))
 
           quantizedFeaturesInfoPtr
