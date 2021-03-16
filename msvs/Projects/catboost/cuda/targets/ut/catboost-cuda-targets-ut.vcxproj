@@ -80,9 +80,11 @@
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\targets\ut\test_auc.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\targets\ut\test_combination.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\cuda\targets\ut\test_huber.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\targets\ut\test_multi_logit.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\targets\ut\test_query_cross_entropy.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\targets\ut\test_tweedie.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\targets\ut\loss_functions_gpu_helper.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
