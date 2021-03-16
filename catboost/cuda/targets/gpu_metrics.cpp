@@ -215,7 +215,8 @@ namespace NCatboostCuda {
                 case ELossFunction::MAPE:
                 case ELossFunction::Poisson:
                 case ELossFunction::Expectile:
-                case ELossFunction::Tweedie: {
+                case ELossFunction::Tweedie:
+                case ELossFunction::Huber: {
                     float alpha = 0.5;
                     auto tmp = TVec::Create(cursor.GetMapping().RepeatOnAllDevices(1));
                     //TODO(noxoomo): make param dispatch on device side
@@ -230,6 +231,9 @@ namespace NCatboostCuda {
                     }
                     if (metricType == ELossFunction::Tweedie) {
                         alpha = FromString<float>(params.at("variance_power"));
+                    }
+                    if (metricType == ELossFunction::Huber) {
+                        alpha = FromString<float>(params.at("delta"));
                     }
 
                     ApproximatePointwise(target,
@@ -517,7 +521,8 @@ namespace NCatboostCuda {
             case ELossFunction::NumErrors:
             case ELossFunction::Poisson:
             case ELossFunction::Expectile:
-            case ELossFunction::Tweedie: {
+            case ELossFunction::Tweedie:
+            case ELossFunction::Huber: {
                 result.emplace_back(new TGpuPointwiseMetric(metricDescription, approxDim));
                 break;
             }
