@@ -297,7 +297,7 @@ namespace NCB {
             );
             result.DataProviders.Test.push_back(
                TQuantizedObjectsDataProviderPtr(
-                   dynamic_cast<TQuantizedForCPUObjectsDataProvider*>(datasetPtr->ObjectsData.Get())
+                   dynamic_cast<TQuantizedObjectsDataProvider*>(datasetPtr->ObjectsData.Get())
                )
             );
             CB_ENSURE(

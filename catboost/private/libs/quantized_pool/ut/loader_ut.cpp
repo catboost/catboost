@@ -109,7 +109,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
             &localExecutor
         );
 
-        Compare<TQuantizedForCPUObjectsDataProvider>(std::move(dataProvider), testCase.ExpectedData);
+        Compare<TQuantizedObjectsDataProvider>(std::move(dataProvider), testCase.ExpectedData);
     }
 
 

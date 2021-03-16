@@ -391,14 +391,6 @@ namespace NCB {
             objectsData.GetQuantizedFeaturesInfo()->CalcMaxCategoricalFeaturesUniqueValuesCountOnLearn(),
             expectedData.Objects.MaxCategoricalFeaturesUniqValuesOnLearn
         );
-    }
-
-    void CompareObjectsData(
-        const TQuantizedForCPUObjectsDataProvider& objectsData,
-        const TExpectedQuantizedData& expectedData,
-        bool /*catFeaturesHashCanContainExtraData*/
-    ) {
-        CompareObjectsData((const TQuantizedObjectsDataProvider&)objectsData, expectedData);
 
         const auto& featuresLayout = *objectsData.GetFeaturesLayout();
 
@@ -471,15 +463,12 @@ namespace NCB {
             expectedData.Objects.PackedBinaryFeaturesData.SrcData.size()
         );
 
-        NPar::TLocalExecutor localExecutor;
-
         for (auto packIdx : xrange(objectsData.GetBinaryFeaturesPacksSize())) {
             UNIT_ASSERT_EQUAL(
                 expectedData.Objects.PackedBinaryFeaturesData.SrcData[packIdx]->ExtractValues<ui8>(&localExecutor),
                 objectsData.GetBinaryFeaturesPack(packIdx).ExtractValues<ui8>(&localExecutor)
             );
         }
-
     }
 
     void CompareTargetData(

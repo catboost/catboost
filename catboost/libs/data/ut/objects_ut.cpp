@@ -783,7 +783,7 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                 std::make_pair(false, true),
                 std::make_pair(true, true)
             }) {
-                TQuantizedForCPUObjectsData data;
+                TQuantizedObjectsData data;
 
                 TVector<ui32> catFeatureIndices;
                 if (useFeatureTypes.second) {
@@ -810,7 +810,7 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                 TCommonObjectsData commonDataCopy(commonData);
                 commonDataCopy.FeaturesLayout = featuresLayoutPtr;
 
-                data.Data.QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
+                data.QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
                     featuresLayout,
                     TConstArrayRef<ui32>(),
                     NCatboostOptions::TBinarizationOptions()
@@ -822,7 +822,7 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                 );
                 data.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
                     featuresLayout,
-                    *data.Data.QuantizedFeaturesInfo,
+                    *data.QuantizedFeaturesInfo,
                     data.ExclusiveFeatureBundlesData,
                     true
                 );
@@ -845,7 +845,7 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                             CompressVector<ui64>(floatFeature.data(), floatFeature.size(), bitsPerKey)
                         );
 
-                        data.Data.FloatFeatures.emplace_back(
+                        data.FloatFeatures.emplace_back(
                             MakeHolder<TQuantizedFloatValuesHolder>(
                                 featureId,
                                 TCompressedArray(floatFeature.size(), bitsPerKey, storage),
@@ -858,7 +858,7 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
 
                 if (useFeatureTypes.second) {
                     TCatFeaturesPerfectHashHelper catFeaturesPerfectHashHelper(
-                        data.Data.QuantizedFeaturesInfo
+                        data.QuantizedFeaturesInfo
                     );
 
                     for (auto catFeatureIdx : xrange(srcCatFeatures.size())) {
@@ -896,7 +896,7 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                             CompressVector<ui64>(catFeature.data(), catFeature.size(), bitsPerKey)
                         );
 
-                        data.Data.CatFeatures.emplace_back(
+                        data.CatFeatures.emplace_back(
                             MakeHolder<TQuantizedCatValuesHolder>(
                                 featureId,
                                 TCompressedArray(catFeature.size(), bitsPerKey, storage),
@@ -911,11 +911,11 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                 NPar::TLocalExecutor localExecutor;
                 localExecutor.RunAdditionalThreads(2);
 
-                THolder<TQuantizedForCPUObjectsDataProvider> objectsDataProvider;
+                THolder<TQuantizedObjectsDataProvider> objectsDataProvider;
 
-                objectsDataProvider = MakeHolder<TQuantizedForCPUObjectsDataProvider>(
+                objectsDataProvider = MakeHolder<TQuantizedObjectsDataProvider>(
                     GetMaybeSubsetDataProvider(
-                        TQuantizedForCPUObjectsDataProvider(
+                        TQuantizedObjectsDataProvider(
                             Nothing(),
                             std::move(commonDataCopy),
                             std::move(data),
@@ -953,7 +953,7 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                 }
                 if (taskType == ETaskType::CPU) {
                     auto& quantizedForCPUObjectsDataProvider =
-                        dynamic_cast<TQuantizedForCPUObjectsDataProvider&>(*objectsDataProvider);
+                        dynamic_cast<TQuantizedObjectsDataProvider&>(*objectsDataProvider);
 
                     if (useFeatureTypes.first) {
                         for (auto i : xrange(subsetFloatFeatures.size())) {
