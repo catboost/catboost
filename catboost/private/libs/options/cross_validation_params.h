@@ -23,6 +23,7 @@ struct TCrossValidationParams : public TSplitParams {
     ui32 DevMaxIterationsBatchSize = 100000; // useful primarily for tests
     ECrossValidation Type = ECrossValidation::Classical;
     bool IsCalledFromSearchHyperparameters = false;
+    bool ReturnCVModels = false;
 
 public:
     bool Initialized() const {

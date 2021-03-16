@@ -819,6 +819,12 @@ void CrossValidate(
         }
     }
 
+    if (cvParams.ReturnCVModels) {
+        for (const auto& foldContext : foldContexts) {
+            results->front().CVFullModels.push_back(foldContext.FullModel.Get());
+        }
+    }
+
     if (!outputFileOptions.GetRocOutputPath().empty()) {
         CB_ENSURE(
             catBoostOptions.LossFunctionDescription->GetLossFunction() == ELossFunction::Logloss,
