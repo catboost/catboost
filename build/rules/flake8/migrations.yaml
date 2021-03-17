@@ -1762,7 +1762,6 @@ migrations:
     - sandbox/projects/news/runtime_tests
     - sandbox/projects/news/runtime_tests/CompareNewsApphostServiceResponses
     - sandbox/projects/runtime_models
-    - sandbox/projects/runtime_models/BuildYabsRtModelsPackage
     - sandbox/projects/runtime_models/CreateWebRtModelsRequestsPlan
     - sandbox/projects/saas/backups/DetachServiceIndex2
     - sandbox/projects/sport_wizard/DeploySportProxyData
