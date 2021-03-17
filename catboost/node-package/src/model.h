@@ -1,35 +1,38 @@
 #pragma once
 
-#include <c_api.h>
-
+// N-API (node-addon-api)
 #include <napi.h>
+// Catboost C API
+#include <c_api.h>
 
 #include <util/generic/vector.h>
 
-namespace NodeCatBoost {
+namespace NNodeCatBoost {
 
-class Model: public Napi::ObjectWrap<Model> {
+class TModel: public Napi::ObjectWrap<TModel> {
 public:
-    explicit Model(const Napi::CallbackInfo&);
-    virtual ~Model();
+    explicit TModel(const Napi::CallbackInfo&);
+    virtual ~TModel();
     
     static Napi::Function GetClass(Napi::Env);
     
     void LoadFullFromFile(const Napi::CallbackInfo& info);
     Napi::Value CalcPrediction(const Napi::CallbackInfo& info);
+    
+    Napi::Value GetModelFloatFeaturesCount(const Napi::CallbackInfo& info);
 
 private:
     ModelCalcerHandle* Handle = nullptr;
 
-    Napi::Array calcPredictionHash(Napi::Env env, 
+    Napi::Array CalcPredictionHash(Napi::Env env, 
                                    const TVector<float>& floatFeatures, 
                                    const Napi::Array& catFeatures);
-    Napi::Array calcPredictionString(Napi::Env env, 
+    Napi::Array CalcPredictionString(Napi::Env env, 
                                    const TVector<float>& floatFeatures, 
                                    const Napi::Array& catFeatures);
 
-    Model(const Model&) = delete;
-    Model(Model&&) = delete;
+    TModel(const TModel&) = delete;
+    TModel(TModel&&) = delete;
 };
 
 }

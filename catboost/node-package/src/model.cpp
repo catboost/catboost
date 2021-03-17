@@ -1,139 +1,178 @@
 #include "model.h"
 
-static void check(Napi::Env env, bool condition, const std::string& message) {
-    if (!condition) {
-        Napi::TypeError::New(env, message)
-	    .ThrowAsJavaScriptException();
+#include "api_helpers.h"
+
+
+namespace {
+
+template <typename T, typename V = const T*, typename C = const TVector<T>>
+TVector<V> CollectMatrixRowPointers(C& matrix, uint32_t rowLength) {
+    TVector<V> pointers;
+    for (uint32_t i = 0; i < matrix.size(); i += rowLength) {
+        pointers.push_back(matrix.data() + i * rowLength);
     }
+
+    return pointers;
 }
 
 template <typename T>
-static void checkNotNull(Napi::Env env, T* ptr, const std::string& message) {
-    check(env, ptr != nullptr, message);
-}
-
-static void checkNotNullHandle(Napi::Env env, ModelCalcerHandle* handle) {
-    return checkNotNull(env, handle, "Internal error - null handle encountered");
-}
-
-static void checkStatus(Napi::Env& env, bool status) {
-    if (!status) {
-        const char* errorMessage = GetErrorString();
-        checkNotNull(env, errorMessage, "Internal error - error message expected, but missing");
-        Napi::Error::New(env, errorMessage).ThrowAsJavaScriptException();
+Napi::Array ConvertToArray(Napi::Env env, const TVector<T>& values) {
+    Napi::Array result = Napi::Array::New(env);
+    uint32_t index = 0;
+    for (const auto value: values) {
+        result[index++] = Napi::Number::New(env, value);
     }
+
+    return result;
 }
 
-namespace NodeCatBoost {
+} 
 
-Model::Model(const Napi::CallbackInfo& info): Napi::ObjectWrap<Model>(info) {
+namespace NNodeCatBoost {
+
+TModel::TModel(const Napi::CallbackInfo& info): Napi::ObjectWrap<TModel>(info) {
     Napi::Env env = info.Env();
 
     this->Handle = ModelCalcerCreate(); 
-    checkNotNullHandle(env, this->Handle);
+    NHelper::CheckNotNullHandle(env, this->Handle);
 }
 
-Model::~Model() {
+TModel::~TModel() {
     if (this->Handle != nullptr) {
        ModelCalcerDelete(this->Handle); 
     }
 }
 
-Napi::Function Model::GetClass(Napi::Env env) {
+Napi::Function TModel::GetClass(Napi::Env env) {
     return DefineClass(env, "Model", {
-        Model::InstanceMethod("loadFullFromFile", &Model::LoadFullFromFile),
-        Model::InstanceMethod("calcPrediction", &Model::CalcPrediction),
+        TModel::InstanceMethod("loadFullFromFile", &TModel::LoadFullFromFile),
+        TModel::InstanceMethod("calcPrediction", &TModel::CalcPrediction),
+        TModel::InstanceMethod("getFloatFeaturesCount", &TModel::GetModelFloatFeaturesCount),
     });
 }
 
 
-void Model::LoadFullFromFile(const Napi::CallbackInfo& info) {
+void TModel::LoadFullFromFile(const Napi::CallbackInfo& info) {
     Napi::Env env = info.Env();
 
-    check(env, info.Length() >= 1, "Wrong number of arguments");
-    check(env, info[0].IsString(), "File name string is required");
+    NHelper::Check(env, info.Length() >= 1, "Wrong number of arguments");
+    NHelper::Check(env, info[0].IsString(), "File name string is required");
 
-    checkNotNullHandle(env, this->Handle);
+    NHelper::CheckNotNullHandle(env, this->Handle);
     const bool status = LoadFullModelFromFile(this->Handle, 
                                               info[0].As<Napi::String>().Utf8Value().c_str());
-    checkStatus(env, status);
+    NHelper::CheckStatus(env, status);
 }
 
-Napi::Value Model::CalcPrediction(const Napi::CallbackInfo& info) {
+Napi::Value TModel::CalcPrediction(const Napi::CallbackInfo& info) {
     Napi::Env env = info.Env();
 
-    check(env, info.Length() >= 2, "Wrong number of arguments");
-    check(env, info[0].IsArray(), "Expected first argument to be array of floats");
+    NHelper::Check(env, info.Length() >= 2, "Wrong number of arguments - expected 2");
+    NHelper::Check(env, NHelper::IsMatrix(info[0], NHelper::NAT_NUMBER),  
+        "Expected the first argument to be a matrix of floats");
 
     const Napi::Array floatFeatures = info[0].As<Napi::Array>();
-    const uint32_t floatFeaturesSize = floatFeatures.Length();
+    const uint32_t docsCount = floatFeatures.Length();
+    if (docsCount == 0) {
+        return Napi::Array::New(env);
+    }
+
+    const uint32_t floatFeaturesSize = floatFeatures[0u].As<Napi::Array>().Length();
     
     TVector<float> floatFeatureValues;
-    floatFeatureValues.reserve(floatFeaturesSize);
+    floatFeatureValues.reserve(floatFeaturesSize * docsCount);
 
-    for (uint32_t i = 0; i < floatFeaturesSize; ++i) {
-        check(env, floatFeatures[i].IsNumber(), "Expected first argument to be array of floats");
-        floatFeatureValues.push_back(floatFeatures[i].As<Napi::Number>().FloatValue());
+    for (uint32_t i = 0; i < docsCount; ++i) {
+        const Napi::Array row = floatFeatures[i].As<Napi::Array>();
+        for (uint32_t j = 0; j < floatFeaturesSize; ++j) {
+            floatFeatureValues.push_back(row[j].As<Napi::Number>().FloatValue());
+        }
     }
 
-    check(env, info[0].IsArray(), 
-               "Expected first argument to be array of strings or numbers");    
+    NHelper::Check(env, 
+        NHelper::IsMatrix(info[1], NHelper::NAT_NUMBER) || NHelper::IsMatrix(info[1], NHelper::NAT_STRING),
+        "Expected second argument to be a matrix of strings or numbers");    
     const Napi::Array catFeatures = info[1].As<Napi::Array>();
-    if (catFeatures == 0 || catFeatures[0u].IsNumber()) {
-        return calcPredictionHash(env, floatFeatureValues, catFeatures);
+
+    NHelper::Check(env, catFeatures.Length() == docsCount,
+        "Expected the number of docs to be the same for both float and categorial features");
+    const Napi::Array catRow = catFeatures[0u].As<Napi::Array>();
+    if (catRow.Length() == 0 || catRow[0u].IsNumber()) {
+        return CalcPredictionHash(env, floatFeatureValues, catFeatures);
     }
-    return calcPredictionString(env, floatFeatureValues, catFeatures);
+    return CalcPredictionString(env, floatFeatureValues, catFeatures);
 }
 
-Napi::Array Model::calcPredictionHash(Napi::Env env, 
+Napi::Value TModel::GetModelFloatFeaturesCount(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+    const size_t count = GetFloatFeaturesCount(this->Handle);
+
+    return Napi::Number::New(env, count);
+}
+
+Napi::Array TModel::CalcPredictionHash(Napi::Env env, 
                                    const TVector<float>& floatFeatures, 
                                    const Napi::Array& catFeatures) {
+    const uint32_t docsCount = catFeatures.Length();
+    const uint32_t catFeaturesSize = catFeatures[0u].As<Napi::Array>().Length();
+    const uint32_t floatFeaturesSize = floatFeatures.size() / docsCount;
+
     TVector<int> catHashValues;
-    catHashValues.reserve(catFeatures.Length());
+    catHashValues.reserve(catFeaturesSize * docsCount);
 
-    for (uint32_t i = 0; i < catFeatures.Length(); ++i) {
-        check(env, catFeatures[i].IsNumber(), "Expected first argument to be array of strings or integers");
-        catHashValues.push_back(catFeatures[i].As<Napi::Number>().Int32Value());
+    for (uint32_t i = 0; i < docsCount; ++i) {
+        const Napi::Array row = catFeatures[i].As<Napi::Array>();
+        for (uint32_t j = 0; j < catFeaturesSize; ++j) {
+            catHashValues.push_back(row[j].As<Napi::Number>().Int32Value());
+        }
     }
 
-    double resultValue = 0;
-    const float* floatPtr = floatFeatures.data();
-    const int* catPtr = catHashValues.data();
-    checkStatus(env, 
-        CalcModelPredictionWithHashedCatFeatures(this->Handle, 1, 
-                        &floatPtr, floatFeatures.size(),
-                        &catPtr, catHashValues.size(),
-                        &resultValue, 1));
-    Napi::Array result = Napi::Array::New(env);
-    result[0u] = Napi::Number::New(env, resultValue);
-    return result;
+    TVector<double> resultValues;
+    resultValues.resize(docsCount);
+
+    TVector<const float*> floatPtrs = CollectMatrixRowPointers<float>(floatFeatures, floatFeaturesSize);
+    TVector<const int*> catPtrs = CollectMatrixRowPointers<int>(catHashValues, catFeaturesSize);
+    NHelper::CheckStatus(env, 
+        CalcModelPredictionWithHashedCatFeatures(this->Handle, docsCount, 
+                        floatPtrs.data(), floatFeaturesSize,
+                        catPtrs.data(), catFeaturesSize,
+                        resultValues.data(), docsCount));
+
+    return ConvertToArray(env, resultValues);
 }
 
-Napi::Array Model::calcPredictionString(Napi::Env env, 
+Napi::Array TModel::CalcPredictionString(Napi::Env env, 
                                    const TVector<float>& floatFeatures, 
                                    const Napi::Array& catFeatures) {
+    const uint32_t docsCount = catFeatures.Length();
+    const uint32_t catFeaturesSize = catFeatures[0u].As<Napi::Array>().Length();
+    const uint32_t floatFeaturesSize = floatFeatures.size() / docsCount;
+
     TVector<std::string> catStrings;
     TVector<const char*> catStringValues;
-    catStrings.reserve(catFeatures.Length());
-    catStringValues.reserve(catFeatures.Length());
+    catStrings.reserve(catFeaturesSize * docsCount);
+    catStringValues.reserve(catFeaturesSize * docsCount);
 
-    for (uint32_t i = 0; i < catFeatures.Length(); ++i) {
-        check(env, catFeatures[i].IsString(), "Expected second argument to be array of strings or integers");
-        catStrings.push_back(catFeatures[i].As<Napi::String>().Utf8Value());
-        catStringValues.push_back(catStrings.back().c_str());
+    for (uint32_t i = 0; i < docsCount; ++i) {
+        const Napi::Array row = catFeatures[i].As<Napi::Array>();
+        for (uint32_t j = 0; j < catFeaturesSize; ++j) {
+            catStrings.push_back(row[j].As<Napi::String>().Utf8Value());
+            catStringValues.push_back(catStrings.back().c_str());
+        }
     }
 
-    double resultValue = 0;
-    const float* floatPtr = floatFeatures.data();
-    const char** catPtr = catStringValues.data();
-    checkStatus(env, 
-        CalcModelPrediction(this->Handle, 1, 
-                        &floatPtr, floatFeatures.size(),
-                        &catPtr, catStringValues.size(),
-                        &resultValue, 1));
-    Napi::Array result = Napi::Array::New(env);
-    result[0u] = Napi::Number::New(env, resultValue);
-    return result;
+    TVector<double> resultValues;
+    resultValues.resize(docsCount);
+
+    TVector<const float*> floatPtrs = CollectMatrixRowPointers<float>(floatFeatures, floatFeaturesSize);
+    TVector<const char**> catPtrs = CollectMatrixRowPointers<const char*, const char**>(catStringValues, catFeaturesSize);
+    NHelper::CheckStatus(env, 
+        CalcModelPrediction(this->Handle, docsCount, 
+                        floatPtrs.data(), floatFeaturesSize,
+                        catPtrs.data(), catFeaturesSize,
+                        resultValues.data(), docsCount));
+    
+    return ConvertToArray(env, resultValues);
 }
 
 }

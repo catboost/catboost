@@ -6,6 +6,7 @@ export type CatBoostCategoryFeatures = Array<number[]>|Array<string[]>;
 
 export class Model {
 	loadFullFromFile(path: string): void;
-	calcPrediction(floatFeatures: number[], 
-		catFeatures: number[]|string[]): number[];
+	calcPrediction(floatFeatures: CatBoostFloatFeatures, 
+		catFeatures: CatBoostCategoryFeatures): number[];
+	getFloatFeaturesCount(): number;
 }

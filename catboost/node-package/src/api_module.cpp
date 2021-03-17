@@ -19,7 +19,7 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
     exports.Set(Napi::String::New(env, "CreateHandle"),
 		            Napi::Function::New(env, CreateHandleMethod));
     exports.Set(Napi::String::New(env, "Model"),
-		            NodeCatBoost::Model::GetClass(env));
+		            NNodeCatBoost::TModel::GetClass(env));
     return exports;
 }
 

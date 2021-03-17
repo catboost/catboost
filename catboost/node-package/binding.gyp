@@ -3,6 +3,7 @@
     {
       'target_name': 'catboost-node',
       'sources': [ 
+                      'src/api_helpers.cpp',
                       'src/api_module.cpp',
                       'src/model.cpp',
                  ],
