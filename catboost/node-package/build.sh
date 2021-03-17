@@ -4,4 +4,5 @@ node-gyp configure && \
     cp ../libs/model_interface/c_api.h ./build/c_api.h && \
     cp -r ../../util ./build/util && \
     cp -r ../../contrib/libs/cxxsupp/system_stl/include ./build/libcxx_include && \
+    ../../ya make -r ../libs/model_interface -o ./build && \
     ./compile.sh

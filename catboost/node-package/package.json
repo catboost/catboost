@@ -15,7 +15,8 @@
     "install": "./install.sh",
     "build": "./build.sh",
     "compile": "./compile.sh",
-    "test": "npm run compile && node ./lib/tests/model.js"
+    "test": "npm run compile && node ./lib/tests/model.js",
+    "clean": "rm -r ./build ./lib"
   },
   "author": "catboost.ai",
   "license": "Apache-2.0",
