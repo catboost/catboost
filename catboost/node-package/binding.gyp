@@ -14,7 +14,8 @@
                       ],
       'dependencies': [ "<!(node -p \"require('node-addon-api').gyp\")" ],
       'libraries': [ 
-                     "<(module_root_dir)/build/catboost/libs/model_interface/libcatboostmodel.so.1",
+                     "-L<(module_root_dir)/build/catboost/libs/model_interface/",
+                     "-lcatboostmodel",
                      "-Wl,-rpath <(module_root_dir)/build/catboost/libs/model_interface"
                    ],
       'cflags!': [ '-fno-exceptions' ],
