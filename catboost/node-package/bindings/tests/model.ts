@@ -38,4 +38,31 @@ function testFloatFeaturesCount() {
 }
 assert.doesNotThrow(testFloatFeaturesCount);
 
+function testCatFeaturesCount() {
+    const model = new Model();
+    model.loadFullFromFile('./test_data/adult.cbm');
+
+    const count = model.getCatFeaturesCount();
+    assert.strictEqual(count, 8, `Expected [8], got ${count}`);
+}
+assert.doesNotThrow(testCatFeaturesCount);
+
+function testTreeCount() {
+    const model = new Model();
+    model.loadFullFromFile('./test_data/adult.cbm');
+
+    const count = model.getTreeCount();
+    assert.strictEqual(count, 100, `Expected [100], got ${count}`);
+}
+assert.doesNotThrow(testTreeCount);
+
+function testDimensionsCount() {
+    const model = new Model();
+    model.loadFullFromFile('./test_data/adult.cbm');
+
+    const count = model.getDimensionsCount();
+    assert.strictEqual(count, 1, `Expected [1], got ${count}`);
+}
+assert.doesNotThrow(testDimensionsCount);
+
 console.log("Model tests passed")

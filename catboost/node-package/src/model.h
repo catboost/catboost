@@ -18,8 +18,11 @@ public:
     
     void LoadFullFromFile(const Napi::CallbackInfo& info);
     Napi::Value CalcPrediction(const Napi::CallbackInfo& info);
-    
+
     Napi::Value GetModelFloatFeaturesCount(const Napi::CallbackInfo& info);
+    Napi::Value GetModelCatFeaturesCount(const Napi::CallbackInfo& info);
+    Napi::Value GetModelTreeCount(const Napi::CallbackInfo& info);
+    Napi::Value GetModelDimensionsCount(const Napi::CallbackInfo& info);
 
 private:
     ModelCalcerHandle* Handle = nullptr;

@@ -9,4 +9,7 @@ export class Model {
 	calcPrediction(floatFeatures: CatBoostFloatFeatures, 
 		catFeatures: CatBoostCategoryFeatures): number[];
 	getFloatFeaturesCount(): number;
+	getCatFeaturesCount(): number;
+	getTreeCount(): number;
+	getDimensionsCount(): number;
 }

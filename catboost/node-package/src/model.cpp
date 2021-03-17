@@ -48,6 +48,9 @@ Napi::Function TModel::GetClass(Napi::Env env) {
         TModel::InstanceMethod("loadFullFromFile", &TModel::LoadFullFromFile),
         TModel::InstanceMethod("calcPrediction", &TModel::CalcPrediction),
         TModel::InstanceMethod("getFloatFeaturesCount", &TModel::GetModelFloatFeaturesCount),
+        TModel::InstanceMethod("getCatFeaturesCount", &TModel::GetModelCatFeaturesCount),
+        TModel::InstanceMethod("getTreeCount", &TModel::GetModelTreeCount),
+        TModel::InstanceMethod("getDimensionsCount", &TModel::GetModelDimensionsCount),
     });
 }
 
@@ -106,6 +109,27 @@ Napi::Value TModel::CalcPrediction(const Napi::CallbackInfo& info) {
 Napi::Value TModel::GetModelFloatFeaturesCount(const Napi::CallbackInfo& info) {
     Napi::Env env = info.Env();
     const size_t count = GetFloatFeaturesCount(this->Handle);
+
+    return Napi::Number::New(env, count);
+}
+
+Napi::Value TModel::GetModelCatFeaturesCount(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+    const size_t count = GetCatFeaturesCount(this->Handle);
+
+    return Napi::Number::New(env, count);
+}
+
+Napi::Value TModel::GetModelTreeCount(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+    const size_t count = GetTreeCount(this->Handle);
+
+    return Napi::Number::New(env, count);
+}
+
+Napi::Value TModel::GetModelDimensionsCount(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+    const size_t count = GetDimensionsCount(this->Handle);
 
     return Napi::Number::New(env, count);
 }
