@@ -9,16 +9,20 @@
 
 namespace NNodeCatBoost {
 
+// Wrapper over Calcer handle.
 class TModel: public Napi::ObjectWrap<TModel> {
 public:
     explicit TModel(const Napi::CallbackInfo&);
     virtual ~TModel();
-    
+
     static Napi::Function GetClass(Napi::Env);
-    
+
     void LoadFullFromFile(const Napi::CallbackInfo& info);
+
+    // Calculate prediction for matrices of numeric and categorial features.
     Napi::Value CalcPrediction(const Napi::CallbackInfo& info);
 
+    // Model parameter getters.
     Napi::Value GetModelFloatFeaturesCount(const Napi::CallbackInfo& info);
     Napi::Value GetModelCatFeaturesCount(const Napi::CallbackInfo& info);
     Napi::Value GetModelTreeCount(const Napi::CallbackInfo& info);
@@ -27,11 +31,11 @@ public:
 private:
     ModelCalcerHandle* Handle = nullptr;
 
-    Napi::Array CalcPredictionHash(Napi::Env env, 
-                                   const TVector<float>& floatFeatures, 
+    Napi::Array CalcPredictionHash(Napi::Env env,
+                                   const TVector<float>& floatFeatures,
                                    const Napi::Array& catFeatures);
-    Napi::Array CalcPredictionString(Napi::Env env, 
-                                   const TVector<float>& floatFeatures, 
+    Napi::Array CalcPredictionString(Napi::Env env,
+                                   const TVector<float>& floatFeatures,
                                    const Napi::Array& catFeatures);
 
     TModel(const TModel&) = delete;

@@ -18,7 +18,7 @@ bool IsMatrix(const Napi::Value& value, ENApiType type) {
         return false;
     }
     const uint32_t columnsCount = floatFeatures[0u].As<Napi::Array>().Length();
-    
+
     for (uint32_t i = 0; i < rowsCount; ++i) {
         if (!floatFeatures[i].IsArray()) {
             return false;
