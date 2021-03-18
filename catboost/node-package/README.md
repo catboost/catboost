@@ -40,7 +40,7 @@ prediction = model.calcPrediction([
 console.log(prediction);
 ```
 
-### Development plans
+### Development roadmap
 
  - [x] Implement basic API calls.
  - [ ] Extend exposed API, improve test coverage.
