@@ -5474,7 +5474,7 @@ class CatBoostRanker(CatBoost):
             verbose_eval=None, metric_period=None, silent=None, early_stopping_rounds=None,
             save_snapshot=None, snapshot_file=None, snapshot_interval=None, init_model=None):
         """
-        Fit the CatBoostClassifier model.
+        Fit the CatBoostRanker model.
         Parameters
         ----------
         X : catboost.Pool or list or numpy.ndarray or pandas.DataFrame or pandas.Series
@@ -5633,7 +5633,6 @@ class CatBoostRanker(CatBoost):
             X = Pool(X, group_id=group_id)
         return self._staged_predict(X, 'RawFormulaVal', ntree_start, ntree_end, eval_period, thread_count, verbose, 'staged_predict')
 
-    # ANNA если есть group_id, берётся отдельно, не из Pool !!!
     def score(self, X, y=None, group_id=None, top=10):
         """
         Calculate NDCG@top. Be careful! If group_id is applicable, always pass the argument even if a pool X includes group_id
