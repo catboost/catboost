@@ -29,6 +29,24 @@ function testCalculateSingle() {
 }
 assert.doesNotThrow(testCalculateSingle);
 
+function testCalculateMany() {
+    const model = new Model();
+    model.loadFullFromFile('./test_data/adult.cbm');
+
+    const predictions = model.calcPrediction([
+            [40., 85019., 16., 0., 0., 45.],
+            [28., 85019., 13., 0., 0., 13.],
+        ], 
+        [
+            ["Private", "Doctorate", "Married-civ-spouce", "Prof-specialty", "Husband", "Asian-Pac-Islander", "Male", "nan"],
+            ["Self-emp-not-inc", "Bachelors", "Married-civ-spouce", "Exec-managerial", "Husband", "White", "Male", "United-States"],
+        ]);
+        assert.strictEqual(predictions.length, 2, `Expected 2 elements, got ${predictions}`);
+    assert.strictEqual(predictions[0].toFixed(2), '1.54', `Expected [1.54], got ${predictions}`);
+    assert.strictEqual(predictions[1].toFixed(2), '-1.17', `Expected [-1.17], got ${predictions}`);
+}
+assert.doesNotThrow(testCalculateMany);
+
 function testFloatFeaturesCount() {
     const model = new Model();
     model.loadFullFromFile('./test_data/adult.cbm');

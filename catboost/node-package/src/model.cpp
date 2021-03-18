@@ -10,7 +10,7 @@ template <typename T, typename V = const T*, typename C = const TVector<T>>
 TVector<V> CollectMatrixRowPointers(C& matrix, uint32_t rowLength) {
     TVector<V> pointers;
     for (uint32_t i = 0; i < matrix.size(); i += rowLength) {
-        pointers.push_back(matrix.data() + i * rowLength);
+        pointers.push_back(matrix.data() + i);
     }
 
     return pointers;
@@ -180,6 +180,7 @@ Napi::Array TModel::CalcPredictionString(Napi::Env env,
 
     TVector<const float*> floatPtrs = CollectMatrixRowPointers<float>(floatFeatures, floatFeaturesSize);
     TVector<const char**> catPtrs = CollectMatrixRowPointers<const char*, const char**>(catStringValues, catFeaturesSize);
+
     NHelper::CheckStatus(env,
         CalcModelPrediction(this->Handle, docsCount,
                         floatPtrs.data(), floatFeaturesSize,
