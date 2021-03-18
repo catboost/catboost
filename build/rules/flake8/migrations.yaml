@@ -33,7 +33,6 @@ migrations:
     - edadeal/analytics/scripts/CashbackReport/CashbackReportLib/CashbackReportLib
     - education/services/sections/it
     - extsearch/geo/recommender/runtime/config/generation
-    - mail/collectors/tests-system/src/main
     - mail/freezing_tests/active_users_aggregation
     - maps/analyzer/tools/online_jams/pylib
     - maps/tools/naviguide/tools/extract_uuid_info
@@ -53,7 +52,6 @@ migrations:
     - quality/neural_net/bert/bert/utils/distributed
     - quality/neural_net/bert/bert/utils/fs
     - sandbox/projects/tycoon/TycoonAdverts
-    - sdc/labeling/storage/tests
     - search/base_search/tools/explain_l1
     - search/metrics/ccc/ccc_lib
     - search/mon/rviewer/app
@@ -499,7 +497,6 @@ migrations:
     - entity/quality/ontodb/defect_rate/lib
     - entity/ugc/db/python/offline_processing
     - entity/ugc/quality/reviews_ranking/ml/lib/trueskill
-    - entity/ugc/robot/util
     - entity/ugc/tests/lib
     - entity/ugc/tools/bell/replay_requests
     - entity/ugc/tools/comments/prepare_business_replies_for_cmnt
@@ -717,7 +714,6 @@ migrations:
     - market/pylibrary/versioned_data/versioned_data
     - market/reductor/configure/lib
     - market/reductor/www
-    - market/sre/conf/slb-haproxy/common/tests
     - market/sre/library/python/maaslib
     - market/sre/services/balancer_api/lib
     - market/sre/tools/balancer_regenerate/lib
@@ -1915,8 +1911,6 @@ migrations:
     - yweb/news/zen/video_export
     - yweb/sitelinks/astrolabe/migration/bna_to_mysql
     - yweb/webscripts/video/duplicates/nirvana_scripts/knn/filter_knn_source
-    - yweb/yasap/answers/tests
-    - yweb/yasap/answers/tests/test_resources
     - yweb/yasap/pdb/tools/backup/create_backup
     - yweb/yasap/znatoki/znatoki_ctl/lib
     - yweb/yasap/znatoki/znatoki_ctl/lib/commands
