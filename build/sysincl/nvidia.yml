@@ -25,3 +25,9 @@
   - nppi.h
   - nvToolsExt.h
   - vector_types.h
+# These headers should be provided by TensorRT.
+# Proper solution must be found in DTCC-171
+- source_filter: "^contrib/libs/tf-2.4/.*"
+  includes:
+  - NvInfer.h
+  - NvInferPlugin.h
