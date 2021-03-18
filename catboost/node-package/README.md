@@ -23,9 +23,9 @@ npm install $PATH_TO_CATBOOST_REPO/catboost/node-package
 2. Apply the pretrained model:
 
 ```js
-catboost = require('catboost');
+catboost = require('catboost-model');
 
-model = catboost.Model();
+model = new catboost.Model();
 model.loadFullFromFile('test_data/adult.cbm');
 
 prediction = model.calcPrediction([
