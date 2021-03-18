@@ -6,6 +6,7 @@ from copy import deepcopy
 
 from sklearn.model_selection import ParameterGrid
 
+from catboost import CatBoostRanker
 from models import *
 from utils import read_dataset
 
@@ -32,6 +33,17 @@ def argmin(fn, space):
 
 def _params_to_str(params):
     return ''.join(map(lambda (key, value): '{}[{}]'.format(key, str(value)), params.items()))
+
+
+def _eval_ndcg(model, data, eval_period=10):
+    staged_predictions = list(model.staged_predict(data, eval_period))
+
+    eval_log = []
+    for y_pred in staged_predictions:
+        value = CatBoostRanker.NDCGScore(y_pred, data.y_test, data.queries_test)
+        eval_log.append(value)
+
+    return eval_log
 
 
 def eval_params(ranker_name, RankerType, data, static_params, param_space, log_file, out_file):
@@ -62,7 +74,7 @@ def eval_params(ranker_name, RankerType, data, static_params, param_space, log_f
         train_time = datetime.datetime.now() - start
         train_time = train_time.total_seconds()
 
-        eval_log = ranker.eval_ndcg(data)
+        eval_log = _eval_ndcg(ranker, data)
 
         log[ranker_name][params_str] = {
             'time': train_time,

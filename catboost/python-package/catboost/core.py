@@ -16,6 +16,7 @@ import ctypes
 import platform
 import tempfile
 import shutil
+from functools import cmp_to_key
 from enum import Enum
 from operator import itemgetter
 
@@ -56,6 +57,7 @@ is_cv_stratified_objective = _catboost.is_cv_stratified_objective
 is_regression_objective = _catboost.is_regression_objective
 is_multiregression_objective = _catboost.is_multiregression_objective
 is_groupwise_metric = _catboost.is_groupwise_metric
+is_pairwise_metric = _catboost.is_pairwise_metric
 _PreprocessParams = _catboost._PreprocessParams
 _check_train_params = _catboost._check_train_params
 _MetadataHashProxy = _catboost._MetadataHashProxy
@@ -1259,7 +1261,7 @@ def _process_synonyms(params):
 
 def _get_loss_function_for_train(params, estimator_type, train_pool):
     """
-        estimator_type must be 'classifier', 'regressor' or None
+        estimator_type must be 'classifier', 'regressor', 'ranker' or None
         train_pool must be Pool
     """
 
@@ -1281,8 +1283,10 @@ def _get_loss_function_for_train(params, estimator_type, train_pool):
         """
         is_multiclass_task = len(set(label)) > 2 and 'target_border' not in params
         return 'MultiClass' if is_multiclass_task else 'Logloss'
-    else:
+    elif estimator_type == 'regressor':
         return 'RMSE'
+    elif estimator_type == 'ranker':
+        return 'YetiRank'
 
 
 def _save_plot_file(plot_file, plot_name, figs):
@@ -1545,6 +1549,12 @@ class _CatBoostBase(object):
 
     def _is_multiregression_objective(self, loss_function):
         return isinstance(loss_function, str) and is_multiregression_objective(loss_function)
+
+    def _is_groupwise_objective(self, loss_function):
+        return isinstance(loss_function, str) and is_groupwise_metric(loss_function)
+
+    def _is_pairwise_objective(self, loss_function):
+        return isinstance(loss_function, str) and is_pairwise_metric(loss_function)
 
     def get_metadata(self):
         return self._object._get_metadata_wrapper()
@@ -5266,6 +5276,405 @@ class CatBoostRegressor(CatBoost):
                 return 'RMSEWithUncertainty'
         return 'RawFormulaVal'
 
+class CatBoostRanker(CatBoost):
+    """
+    Implementation of the scikit-learn API for CatBoost ranking.
+    Parameters
+    ----------
+    Like in CatBoostClassifier, except loss_function, classes_count, class_names and class_weights
+    loss_function : string, [default='YetiRank']
+        'YetiRank'
+        'YetiRankPairwise'
+        'StochasticFilter'
+        'StochasticRank'
+        'QueryCrossEntropy'
+        'QueryRMSE'
+        'QuerySoftMax'
+        'PFound'
+        'NDCG'
+        'DCG'
+        'FilteredDCG'
+        'AverageGain'
+        'PrecisionAt'
+        'RecallAt'
+        'MAP'
+    """
+
+    _estimator_type = 'ranker'
+
+    class NDCGScore:
+        """
+        Implementation of ndcg@top score for ranking
+        """
+
+        @staticmethod
+        def ndcg(y_pred, y_true, top):
+            assert y_pred.shape[0] == y_true.shape[0]
+            top = min(top, y_pred.shape[0])
+
+            first_k_docs = sorted(zip(y_true, y_pred), key=cmp_to_key(CatBoostRanker.NDCGScore._doc_comparator))
+            first_k_docs = np.array(first_k_docs)[:top,0]
+
+            top_k_idxs = np.argsort(y_true)[::-1][:top]
+            top_k_docs = y_true[top_k_idxs]
+
+            dcg = CatBoostRanker.NDCGScore._cumulative_gain(first_k_docs)
+            idcg = CatBoostRanker.NDCGScore._cumulative_gain(top_k_docs)
+
+            return dcg / idcg if idcg > 0 else 1.
+
+        @staticmethod
+        def mean_ndcg(y_pred, y_true, query_idxs, top=10):
+            sum_ndcg = 0
+            queries = np.unique(query_idxs)
+
+            for query in queries:
+                idxs = (query_idxs == query)
+                value = CatBoostRanker.NDCGScore.ndcg(y_pred[idxs], y_true[idxs], top)
+                sum_ndcg += value
+
+            return sum_ndcg / float(queries.shape[0])
+
+        @staticmethod
+        def _doc_comparator(doc1, doc2):
+            if doc1[1] < doc2[1]:
+                return 1
+            elif doc1[1] == doc2[1]:
+                return int(doc1[0] > doc2[0])
+            else:
+                return -1
+
+        @staticmethod
+        def _cumulative_gain(relevances):
+            return np.sum((2 ** relevances - 1) / np.log2(np.arange(relevances.shape[0]) + 2))
+
+    def __init__(
+        self,
+        iterations=None,
+        learning_rate=None,
+        depth=None,
+        l2_leaf_reg=None,
+        model_size_reg=None,
+        rsm=None,
+        loss_function='YetiRank',
+        border_count=None,
+        feature_border_type=None,
+        per_float_feature_quantization=None,
+        input_borders=None,
+        output_borders=None,
+        fold_permutation_block=None,
+        od_pval=None,
+        od_wait=None,
+        od_type=None,
+        nan_mode=None,
+        counter_calc_method=None,
+        leaf_estimation_iterations=None,
+        leaf_estimation_method=None,
+        thread_count=None,
+        random_seed=None,
+        use_best_model=None,
+        best_model_min_trees=None,
+        verbose=None,
+        silent=None,
+        logging_level=None,
+        metric_period=None,
+        ctr_leaf_count_limit=None,
+        store_all_simple_ctr=None,
+        max_ctr_complexity=None,
+        has_time=None,
+        allow_const_label=None,
+        target_border=None,
+        one_hot_max_size=None,
+        random_strength=None,
+        name=None,
+        ignored_features=None,
+        train_dir=None,
+        custom_metric=None,
+        eval_metric=None,
+        bagging_temperature=None,
+        save_snapshot=None,
+        snapshot_file=None,
+        snapshot_interval=None,
+        fold_len_multiplier=None,
+        used_ram_limit=None,
+        gpu_ram_part=None,
+        pinned_memory_size=None,
+        allow_writing_files=None,
+        final_ctr_computation_mode=None,
+        approx_on_full_history=None,
+        boosting_type=None,
+        simple_ctr=None,
+        combinations_ctr=None,
+        per_feature_ctr=None,
+        ctr_description=None,
+        ctr_target_border_count=None,
+        task_type=None,
+        device_config=None,
+        devices=None,
+        bootstrap_type=None,
+        subsample=None,
+        mvs_reg=None,
+        sampling_frequency=None,
+        sampling_unit=None,
+        dev_score_calc_obj_block_size=None,
+        dev_efb_max_buckets=None,
+        sparse_features_conflict_fraction=None,
+        max_depth=None,
+        n_estimators=None,
+        num_boost_round=None,
+        num_trees=None,
+        colsample_bylevel=None,
+        random_state=None,
+        reg_lambda=None,
+        objective=None,
+        eta=None,
+        max_bin=None,
+        gpu_cat_features_storage=None,
+        data_partition=None,
+        metadata=None,
+        early_stopping_rounds=None,
+        cat_features=None,
+        grow_policy=None,
+        min_data_in_leaf=None,
+        min_child_samples=None,
+        max_leaves=None,
+        num_leaves=None,
+        score_function=None,
+        leaf_estimation_backtracking=None,
+        ctr_history_unit=None,
+        monotone_constraints=None,
+        feature_weights=None,
+        penalties_coefficient=None,
+        first_feature_use_penalties=None,
+        per_object_feature_penalties=None,
+        model_shrink_rate=None,
+        model_shrink_mode=None,
+        langevin=None,
+        diffusion_temperature=None,
+        posterior_sampling=None,
+        boost_from_average=None,
+        text_features=None,
+        tokenizers=None,
+        dictionaries=None,
+        feature_calcers=None,
+        text_processing=None,
+        embedding_features=None
+    ):
+        params = {}
+        not_params = ["not_params", "self", "params", "__class__"]
+        for key, value in iteritems(locals().copy()):
+            if key not in not_params and value is not None:
+                params[key] = value
+
+        super(CatBoostRanker, self).__init__(params)
+
+    def fit(self, X, y=None, group_id=None, cat_features=None, text_features=None, embedding_features=None,
+            sample_weight=None, baseline=None, use_best_model=None,
+            eval_set=None, verbose=None, logging_level=None, plot=False, column_description=None,
+            verbose_eval=None, metric_period=None, silent=None, early_stopping_rounds=None,
+            save_snapshot=None, snapshot_file=None, snapshot_interval=None, init_model=None):
+        """
+        Fit the CatBoostClassifier model.
+        Parameters
+        ----------
+        X : catboost.Pool or list or numpy.ndarray or pandas.DataFrame or pandas.Series
+            If not catboost.Pool, 2 dimensional Feature matrix or string - file with dataset.
+        y : list or numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
+            Labels, 1 dimensional array like.
+            Use only if X is not catboost.Pool.
+        group_id : numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
+            Ranking groups, 1 dimensional array like.
+            Use only if X is not catboost.Pool.
+        cat_features : list or numpy.ndarray, optional (default=None)
+            If not None, giving the list of Categ columns indices.
+            Use only if X is not catboost.Pool.
+        text_features : list or numpy.ndarray, optional (default=None)
+            If not None, giving the list of Text columns indices.
+            Use only if X is not catboost.Pool.
+        embedding_features : list or numpy.ndarray, optional (default=None)
+            If not None, giving the list of Embedding columns indices.
+            Use only if X is not catboost.Pool.
+        sample_weight : list or numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
+            Instance weights, 1 dimensional array like.
+        baseline : list or numpy.ndarray, optional (default=None)
+            If not None, giving 2 dimensional array like data.
+            Use only if X is not catboost.Pool.
+        use_best_model : bool, optional (default=None)
+            Flag to use best model
+        eval_set : catboost.Pool or list, optional (default=None)
+            A list of (X, y) tuple pairs to use as a validation set for early-stopping
+        verbose : bool or int
+            If verbose is bool, then if set to True, logging_level is set to Verbose,
+            if set to False, logging_level is set to Silent.
+            If verbose is int, it determines the frequency of writing metrics to output and
+            logging_level is set to Verbose.
+        logging_level : string, optional (default=None)
+            Possible values:
+                - 'Silent'
+                - 'Verbose'
+                - 'Info'
+                - 'Debug'
+        plot : bool, optional (default=False)
+            If True, draw train and eval error in Jupyter notebook
+        verbose_eval : bool or int
+            Synonym for verbose. Only one of these parameters should be set.
+        metric_period : int
+            Frequency of evaluating metrics.
+        silent : bool
+            If silent is True, logging_level is set to Silent.
+            If silent is False, logging_level is set to Verbose.
+        early_stopping_rounds : int
+            Activates Iter overfitting detector with od_wait set to early_stopping_rounds.
+        save_snapshot : bool, [default=None]
+            Enable progress snapshotting for restoring progress after crashes or interruptions
+        snapshot_file : string or pathlib.Path, [default=None]
+            Learn progress snapshot file path, if None will use default filename
+        snapshot_interval: int, [default=600]
+            Interval between saving snapshots (seconds)
+        init_model : CatBoost class or string or pathlib.Path, [default=None]
+            Continue training starting from the existing model.
+            If this parameter is a string or pathlib.Path, load initial model from the path specified by this string.
+        Returns
+        -------
+        model : CatBoost
+        """
+
+        params = deepcopy(self._init_params)
+        _process_synonyms(params)
+        if 'loss_function' in params:
+            self._check_is_ranking_loss(params['loss_function'])
+
+        if ('loss_function' in params and
+            'max_depth' in params and
+             params['loss_function'] == 'PairLogitPairwise' and
+             params['max_depth'] >= 8
+           ):
+            raise Exception('max_depth for pair-logit-pairwise should be < 8')
+
+        if not isinstance(X, Pool) and group_id is None:
+            group_id = np.zeros(X.shape[0], dtype=int)
+
+        self._fit(X, y, cat_features, text_features, embedding_features, None,
+                  sample_weight, group_id, None, None, None, baseline, use_best_model,
+                  eval_set, verbose, logging_level, plot, column_description, verbose_eval, metric_period,
+                  silent, early_stopping_rounds, save_snapshot, snapshot_file, snapshot_interval, init_model)
+        return self
+
+    def predict(self, X, group_id=None, ntree_start=0, ntree_end=0, thread_count=-1, verbose=None):
+        """
+        Predict with data.
+        Parameters
+        ----------
+        data : catboost.Pool or list of features or list of lists or numpy.ndarray or pandas.DataFrame or pandas.Series
+                or catboost.FeaturesData
+            Data to apply model on.
+            If data is a simple list (not list of lists) or a one-dimensional numpy.ndarray it is interpreted
+            as a list of features for a single object.
+        group_id : list or numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
+            Ranking groups, 1 dimensional array like.
+            Use only if X is not catboost.Pool.
+        ntree_start: int, optional (default=0)
+            Model is applied on the interval [ntree_start, ntree_end) (zero-based indexing).
+        ntree_end: int, optional (default=0)
+            Model is applied on the interval [ntree_start, ntree_end) (zero-based indexing).
+            If value equals to 0 this parameter is ignored and ntree_end equal to tree_count_.
+        thread_count : int (default=-1)
+            The number of threads to use when applying the model.
+            Allows you to optimize the speed of execution. This parameter doesn't affect results.
+            If -1, then the number of threads is set to the number of CPU cores.
+        verbose : bool
+            If True, writes the evaluation metric measured set to stderr.
+        Returns
+        -------
+        prediction :
+            If data is for a single object, the return value is single float formula return value
+            otherwise one-dimensional numpy.ndarray of formula return values for each object.
+        """
+        if not isinstance(X, Pool):
+            group_id = group_id if group_id is not None else np.zeros(X.shape[0], dtype=int)
+            X = Pool(X, group_id=group_id)
+        return self._predict(X, 'RawFormulaVal', ntree_start, ntree_end, thread_count, verbose, 'predict')
+
+    def staged_predict(self, X, group_id=None, ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, verbose=None):
+        """
+        Predict target at each stage for data.
+        Parameters
+        ----------
+        data : catboost.Pool or list of features or list of lists or numpy.ndarray or pandas.DataFrame or pandas.Series
+                or catboost.FeaturesData
+            Data to apply model on.
+            If data is a simple list (not list of lists) or a one-dimensional numpy.ndarray it is interpreted
+            as a list of features for a single object.
+        group_id : list or numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
+            Ranking groups, 1 dimensional array like.
+            Use only if X is not catboost.Pool.
+        ntree_start: int, optional (default=0)
+            Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+        ntree_end: int, optional (default=0)
+            Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+            If value equals to 0 this parameter is ignored and ntree_end equal to tree_count_.
+        eval_period: int, optional (default=1)
+            Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+        thread_count : int (default=-1)
+            The number of threads to use when applying the model.
+            Allows you to optimize the speed of execution. This parameter doesn't affect results.
+            If -1, then the number of threads is set to the number of CPU cores.
+        verbose : bool
+            If True, writes the evaluation metric measured set to stderr.
+        Returns
+        -------
+        prediction : generator for each iteration that generates:
+            If data is for a single object, the return value is single float formula return value
+            otherwise one-dimensional numpy.ndarray of formula return values for each object.
+        """
+
+        if not isinstance(X, Pool):
+            group_id = group_id if group_id is not None else np.zeros(X.shape[0], dtype=int)
+            X = Pool(X, group_id=group_id)
+        return self._staged_predict(X, 'RawFormulaVal', ntree_start, ntree_end, eval_period, thread_count, verbose, 'staged_predict')
+
+    # ANNA если есть group_id, берётся отдельно, не из Pool !!!
+    def score(self, X, y=None, group_id=None, top=10):
+        """
+        Calculate NDCG@top. Be careful! If group_id is applicable, always pass the argument even if a pool X includes group_id
+        Parameters
+        ----------
+        X : catboost.Pool or list or numpy.ndarray or pandas.DataFrame or pandas.Series
+            Data to apply model on.
+        y : list or numpy.ndarray
+            True labels.
+        group_id : list or numpy.ndarray
+            Ranking groups. If X is a Pool, group_id in X will be overwritten.
+        Returns
+        -------
+        NDCG@top : float
+                   higher is better
+        """
+
+        group_id = group_id if group_id is not None else np.zeros(X.shape[0], dtype=int)
+        if isinstance(X, Pool):
+            if y is not None:
+                raise CatBoostError("Wrong initializing y: X is catboost.Pool object, y must be initialized inside catboost.Pool.")
+            y = X.get_label()
+            if y is None:
+                raise CatBoostError("Label in X has not initialized.")
+            X.set_group_id(group_id)
+        predictions = self.predict(X)
+        return self.NDCGScore.mean_ndcg(predictions, y, group_id, top)
+
+    def _check_is_ranking_loss(self, loss_function):
+        is_ranking = self._is_groupwise_objective(loss_function) or self._is_pairwise_objective(loss_function)
+        is_regression = self._is_regression_objective(loss_function) or self._is_multiregression_objective(loss_function)
+
+        if isinstance(loss_function, str) and is_regression:
+            warnings.warn("Regression loss ('{}') ignores an important ranking parameter 'group_id'".format(loss_function), RuntimeWarning)
+        if isinstance(loss_function, str) and not (is_ranking or is_regression):
+            raise CatBoostError("Invalid loss_function='{}': for ranker use "
+                                "YetiRank, YetiRankPairwise, StochasticFilter, StochasticRank, "
+                                "QueryCrossEntropy, QueryRMSE, QuerySoftMax, PFound, NDCG, DCG, "
+                                "FilteredDCG, AverageGain, PrecisionAt, RecallAt, MAP. "
+                                "It's also possible to use a regression loss".format(loss_function))
+
 def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None, iterations=None,
           num_boost_round=None, evals=None, eval_set=None, plot=None, verbose_eval=None, metric_period=None,
           early_stopping_rounds=None, save_snapshot=None, snapshot_file=None, snapshot_interval=None,
@@ -5826,3 +6235,21 @@ def to_classifier(model):
     for attr in model.__dict__:
         setattr(classifier, attr, getattr(model, attr))
     return classifier
+
+def to_ranker(model):
+    if isinstance(model, CatBoostRanker):
+        return model
+    if not isinstance(model, CatBoost):
+        raise CatBoostError('model should be a subclass of CatBoost')
+
+    ranker = CatBoostRanker.__new__(CatBoostRanker)
+
+    # TODO(ilyzhin) change on get_all_params after MLTOOLS-4758
+    params = deepcopy(model._init_params)
+    _process_synonyms(params)
+    if 'loss_function' in params:
+        ranker._check_is_ranking_loss(params['loss_function'])
+
+    for attr in model.__dict__:
+        setattr(ranker, attr, getattr(model, attr))
+    return ranker
