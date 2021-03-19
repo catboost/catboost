@@ -1088,14 +1088,17 @@ cdef inline float _FloatOrNan(object obj) except *:
         return _FLOAT_NAN
     elif obj_type is float:
         return <float>obj
-    elif obj_type is int:
-        return <int>obj
     elif obj_type is str or obj_type is unicode or obj_type is bytes or obj_type is _npbytes_ or obj_type is _npunicode_ or isinstance(obj, string_types + (_npbytes_, _npunicode_)):
         return _FloatOrNanFromString(to_arcadia_string(obj))
     try:
         return float(obj)
     except:
         raise TypeError("Cannot convert obj {} to float".format(str(obj)))
+
+
+cpdef _float_or_nan(obj):
+    return _FloatOrNan(obj)
+
 
 cdef TString _MetricGetDescription(void* customData) except * with gil:
     cdef metricObject = <object>customData
