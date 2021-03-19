@@ -631,6 +631,9 @@ ALLOW library/go/core/log/compat/logrus -> vendor/github.com/sirupsen/logrus
 # CONTRIB-2127
 ALLOW .* -> vendor/github.com/hashicorp/terraform-plugin-sdk/v2
 
+# CONTRIB-2139 library for building GraphQL servers without any fuss.
+ALLOW .* -> vendor/github.com/99designs/gqlgen
+
 #
 # Tools
 #
