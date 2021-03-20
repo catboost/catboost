@@ -132,6 +132,7 @@ void TrainModel(
     NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo, // can be nullptr
     const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+    const TMaybe<TCustomCallbackDescriptor>& callbackDescriptor,
     NCB::TDataProviders pools, // not rvalue reference because Cython does not support them
     TMaybe<TFullModel*> initModel,
 

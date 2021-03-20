@@ -138,6 +138,13 @@ struct TCustomMetricDescriptor {
     }
 };
 
+struct TCustomCallbackDescriptor {
+    using TAfterIterationFuncPtr = bool (*)(int iteration, void* customData);
+
+    void* CustomData = nullptr;
+    TAfterIterationFuncPtr AfterIterationFunc = nullptr;
+};
+
 struct IMetric {
     virtual TMetricHolder Eval(
         const TVector<TVector<double>>& approx,

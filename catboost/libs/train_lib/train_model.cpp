@@ -710,6 +710,27 @@ static void SaveModel(
     }
 }
 
+namespace {
+    class TCustomCallbacks : public ITrainingCallbacks {
+    public:
+        explicit TCustomCallbacks(const TMaybe<TCustomCallbackDescriptor>& callbackDescriptor)
+        : CallbackDescriptor(callbackDescriptor)
+        {
+        }
+
+        bool IsContinueTraining(const TMetricsAndTimeLeftHistory&) override {
+            ++Iteration;
+            if (!CallbackDescriptor.Empty()) {
+                return CallbackDescriptor->AfterIterationFunc(Iteration, CallbackDescriptor->CustomData);
+            }
+            return true;
+        }
+    private:
+        const TMaybe<TCustomCallbackDescriptor>& CallbackDescriptor;
+        int Iteration {-1};
+    };
+}
+
 
 namespace {
     class TCPUModelTrainer : public IModelTrainer {
@@ -886,6 +907,7 @@ static void TrainModel(
     TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
     const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+    const TMaybe<TCustomCallbackDescriptor>& callbackDescriptor,
     TDataProviders pools,
 
     // can be non-empty only if there is single fold
@@ -1050,7 +1072,7 @@ static void TrainModel(
             *trainingData.Learn->ObjectsData->GetQuantizedFeaturesInfo());
     }
 
-    const auto defaultTrainingCallbacks = MakeHolder<ITrainingCallbacks>();
+    TCustomCallbacks customCallbacks(callbackDescriptor);
     TTrainModelInternalOptions trainModelInternalOptions;
     trainModelInternalOptions.HaveLearnFeatureInMemory = haveLearnFeaturesInMemory;
     modelTrainerHolder->TrainModel(
@@ -1062,7 +1084,7 @@ static void TrainModel(
         std::move(trainingData),
         std::move(precomputedSingleOnlineCtrDataForSingleFold),
         labelConverter,
-        defaultTrainingCallbacks.Get(),
+        &customCallbacks,
         std::move(initModel),
         std::move(initLearnProgress),
         needInitModelApplyCompatiblePools ? std::move(pools) : TDataProviders(),
@@ -1221,6 +1243,7 @@ void TrainModel(
         quantizedFeaturesInfo,
         /*objectiveDescriptor*/ Nothing(),
         /*evalMetricDescriptor*/ Nothing(),
+        /*callbackDescriptor*/ Nothing(),
         needPoolAfterTrain ? pools : std::move(pools),
         std::move(precomputedSingleOnlineCtrDataForSingleFold),
         /*initModel*/ Nothing(),
@@ -1493,6 +1516,7 @@ void TrainModel(
     NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo, // can be nullptr
     const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+    const TMaybe<TCustomCallbackDescriptor>& callbackDescriptor,
     NCB::TDataProviders pools, // not rvalue reference because Cython does not support them
     TMaybe<TFullModel*> initModel,
     THolder<TLearnProgress>* initLearnProgress,
@@ -1519,6 +1543,7 @@ void TrainModel(
         quantizedFeaturesInfo,
         objectiveDescriptor,
         evalMetricDescriptor,
+        callbackDescriptor,
         std::move(pools),
         /*precomputedSingleOnlineCtrDataForSingleFold*/ Nothing(),
         std::move(initModel),

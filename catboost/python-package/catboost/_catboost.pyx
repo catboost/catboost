@@ -614,6 +614,11 @@ cdef extern from "catboost/libs/metrics/metric.h":
     cdef bool_t IsMaxOptimal(const TString& metricName) nogil except +ProcessException
     cdef bool_t IsMinOptimal(const TString& metricName) nogil except +ProcessException
 
+cdef extern from "catboost/libs/metrics/metric.h":
+    cdef cppclass TCustomCallbackDescriptor:
+        void* CustomData
+
+        bool_t (*AfterIterationFunc)(int iteration, void *customData) except * with gil
 
 cdef extern from "catboost/private/libs/algo_helpers/custom_objective_descriptor.h":
     cdef cppclass TCustomObjectiveDescriptor:
@@ -692,6 +697,7 @@ cdef extern from "catboost/libs/train_lib/train_model.h":
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
         const TMaybe[TCustomObjectiveDescriptor]& objectiveDescriptor,
         const TMaybe[TCustomMetricDescriptor]& evalMetricDescriptor,
+        const TMaybe[TCustomCallbackDescriptor]& callbackDescriptor,
         TDataProviders pools,
         TMaybe[TFullModel*] initModel,
         THolder[TLearnProgress]* initLearnProgress,
@@ -1136,6 +1142,9 @@ cdef double _MetricGetFinalError(const TMetricHolder& error, void *customData) e
     cdef metricObject = <object>customData
     return metricObject.get_final_error(error.Stats[0], error.Stats[1])
 
+cdef bool_t _CallbackAfterIteration(int iteration, void* customData) except * with gil:
+    cdef callbackObject = <object>customData
+    return callbackObject.after_iteration(iteration)
 
 cdef _constarrayref_of_double_to_np_array(const TConstArrayRef[double] arr):
     result = np.empty(arr.size(), dtype=_npfloat64)
@@ -1539,6 +1548,12 @@ cdef TCustomMetricDescriptor _BuildCustomMetricDescriptor(object metricObject):
     descriptor.GetFinalErrorFunc = &_MetricGetFinalError
     return descriptor
 
+cdef TCustomCallbackDescriptor _BuildCustomCallbackDescritor(object callbackObject):
+    cdef TCustomCallbackDescriptor descriptor
+    descriptor.CustomData = <void*>callbackObject
+    descriptor.AfterIterationFunc = &_CallbackAfterIteration
+    return descriptor
+
 cdef TCustomObjectiveDescriptor _BuildCustomObjectiveDescriptor(object objectiveObject):
     cdef TCustomObjectiveDescriptor descriptor
     _try_jit_methods(objectiveObject, custom_objective_methods_to_optimize)
@@ -1610,12 +1625,15 @@ cdef class _PreprocessParams:
     cdef TJsonValue tree
     cdef TMaybe[TCustomObjectiveDescriptor] customObjectiveDescriptor
     cdef TMaybe[TCustomMetricDescriptor] customMetricDescriptor
+    cdef TMaybe[TCustomCallbackDescriptor] customCallbackDescriptor
     def __init__(self, dict params):
         eval_metric = params.get("eval_metric")
         objective = params.get("loss_function")
+        callback = params.get("callbacks")
 
         is_custom_eval_metric = eval_metric is not None and not isinstance(eval_metric, string_types)
         is_custom_objective = objective is not None and not isinstance(objective, string_types)
+        is_custom_callback = callback is not None
 
         devices = params.get('devices')
         if devices is not None and isinstance(devices, list):
@@ -1626,7 +1644,7 @@ cdef class _PreprocessParams:
 
         params_to_json = params
 
-        if is_custom_objective or is_custom_eval_metric:
+        if is_custom_objective or is_custom_eval_metric or is_custom_callback:
             if params.get("task_type") == "GPU":
                 raise CatBoostError("User defined loss functions and metrics are not supported for GPU")
             keys_to_replace = set()
@@ -1634,6 +1652,8 @@ cdef class _PreprocessParams:
                 keys_to_replace.add("loss_function")
             if is_custom_eval_metric:
                 keys_to_replace.add("eval_metric")
+            if is_custom_callback:
+                keys_to_replace.add("callbacks")
 
             params_to_json = {}
 
@@ -1654,6 +1674,9 @@ cdef class _PreprocessParams:
             self.customMetricDescriptor = _BuildCustomMetricDescriptor(params["eval_metric"])
             if (issubclass(params["eval_metric"].__class__, MultiRegressionCustomMetric)):
                 params_to_json["eval_metric"] = "PythonUserDefinedMultiRegression"
+
+        if params_to_json.get("callbacks") == "PythonUserDefinedPerObject":
+            self.customCallbackDescriptor = _BuildCustomCallbackDescritor(params["callbacks"])
 
         dumps_params = dumps(params_to_json, cls=_NumpyAwareEncoder)
 
@@ -4342,6 +4365,7 @@ cdef class _CatBoost:
                     quantizedFeaturesInfo,
                     prep_params.customObjectiveDescriptor,
                     prep_params.customMetricDescriptor,
+                    prep_params.customCallbackDescriptor,
                     dataProviders,
                     init_model_param,
                     init_learn_progress_param,
