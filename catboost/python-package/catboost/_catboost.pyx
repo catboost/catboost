@@ -641,6 +641,7 @@ cdef extern from "catboost/private/libs/options/cross_validation_params.h":
         double MetricUpdateInterval
         ui32 DevMaxIterationsBatchSize
         bool_t IsCalledFromSearchHyperparameters
+        bool_t ReturnCVModels
 
 cdef extern from "catboost/private/libs/options/split_params.h":
     cdef cppclass TTrainTestSplitParams:
@@ -698,6 +699,7 @@ cdef extern from "catboost/libs/train_lib/cross_validation.h":
         TVector[double] StdDevTrain
         TVector[double] AverageTest
         TVector[double] StdDevTest
+        TVector[TFullModel] CVFullModels
 
     cdef void CrossValidate(
         TJsonValue jsonParams,
@@ -5026,8 +5028,17 @@ cdef TCustomTrainTestSubsets _make_train_test_subsets(_PoolBase pool, folds) exc
     return result
 
 
+cpdef _prepare_cv_models(const TCVResult& cv_result):
+    catboost_models = []
+    for i in range(cv_result.CVFullModels.size()):
+        catboost_model = _CatBoost()
+        catboost_model.__model.Swap(<TFullModel>cv_result.CVFullModels[i])
+    return catboost_models
+
+
 cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int partition_random_seed,
-          bool_t shuffle, bool_t stratified, float metric_update_interval, bool_t as_pandas, folds, type):
+          bool_t shuffle, bool_t stratified, float metric_update_interval, bool_t as_pandas, folds, 
+          type, bool_t return_cv_models):
     prep_params = _PreprocessParams(params)
     cdef TCrossValidationParams cvParams
     cdef TVector[TCVResult] results
@@ -5037,6 +5048,7 @@ cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int part
     cvParams.Shuffle = shuffle
     cvParams.Stratified = stratified
     cvParams.MetricUpdateInterval = metric_update_interval
+    cvParams.ReturnCVModels = return_cv_models
 
     if type == 'Classical':
         cvParams.Type = ECrossValidation_Classical
@@ -5083,8 +5095,13 @@ cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int part
         )
         result_metrics.add(name)
     if as_pandas:
-        return pd.DataFrame.from_dict(cv_results)
-    return cv_results
+        results_output = pd.DataFrame.from_dict(cv_results)
+    else:
+        results_output = cv_results
+    if return_cv_models:
+        cv_models = _prepare_cv_models(results[0])
+        return results_output, cv_models
+    return results_output
 
 
 cdef _convert_to_visible_labels(EPredictionType predictionType, TVector[TVector[double]] raws, int thread_count, TFullModel* model):
