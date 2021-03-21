@@ -1372,8 +1372,6 @@ migrations:
     - alice/uniproxy/library/messenger/ut
     - alice/uniproxy/library/musicstream
     - alice/uniproxy/library/notificator
-    - alice/uniproxy/library/processors
-    - alice/uniproxy/library/processors/ut
     - alice/uniproxy/library/subway/pull_client
     - alice/uniproxy/library/subway/server
     - alice/uniproxy/library/testing
@@ -1922,7 +1920,6 @@ migrations:
     - alice/uniproxy/library/backends_asr
     - alice/uniproxy/library/common_handlers
     - alice/uniproxy/library/notificator
-    - alice/uniproxy/library/processors
     - alice/uniproxy/library/subway/pull_client
     - alice/uniproxy/library/subway/push_client
     - alice/uniproxy/tools/perf_results_parser
