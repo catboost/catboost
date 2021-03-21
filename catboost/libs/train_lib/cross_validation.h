@@ -38,7 +38,7 @@ struct TCVResult {
     TVector<double> AverageTest;
     TVector<double> StdDevTest;
 
-    TVector<const TFullModel*> CVFullModels;
+    TVector<TFullModel> CVFullModels;
 
     //for painting
     TVector<double> LastTrainEvalMetric;//[foldIdx]
