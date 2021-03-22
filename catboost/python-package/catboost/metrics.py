@@ -3,6 +3,8 @@ from functools import partial
 
 from . import _catboost
 
+__all__ = []
+
 _dummy_metrics = _catboost.DummyMetrics
 
 class BuiltinMetric(object):
@@ -114,3 +116,4 @@ for metric_name, metric_params in _dummy_metrics().items():
     globals()[metric_name] = _MetricGenerator(str(metric_name), (BuiltinMetric,), {
         "_valid_params": metric_params,
     })
+    globals()["__all__"].append(metric_name)
