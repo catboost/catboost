@@ -5028,20 +5028,13 @@ cdef TCustomTrainTestSubsets _make_train_test_subsets(_PoolBase pool, folds) exc
     return result
 
 
-cpdef _prepare_cv_models(const TCVResult& cv_result):
-    catboost_models = []
-    for i in range(cv_result.CVFullModels.size()):
-        catboost_model = _CatBoost()
-        catboost_model.__model.Swap(<TFullModel>cv_result.CVFullModels[i])
-    return catboost_models
-
-
 cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int partition_random_seed,
           bool_t shuffle, bool_t stratified, float metric_update_interval, bool_t as_pandas, folds, 
           type, bool_t return_cv_models):
     prep_params = _PreprocessParams(params)
     cdef TCrossValidationParams cvParams
     cdef TVector[TCVResult] results
+    cdef TVector[TFullModel] cvFullModels
 
     cvParams.FoldCount = fold_count
     cvParams.PartitionRandSeed = partition_random_seed
@@ -5099,7 +5092,12 @@ cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int part
     else:
         results_output = cv_results
     if return_cv_models:
-        cv_models = _prepare_cv_models(results[0])
+        cv_models = []
+        cvFullModels = results.front().CVFullModels
+        for i in range(<int>cvFullModels.size()):
+            catboost_model = _CatBoost()
+            catboost_model.__model.Swap(cvFullModels[i])
+            cv_models.append(catboost_model)
         return results_output, cv_models
     return results_output
 
