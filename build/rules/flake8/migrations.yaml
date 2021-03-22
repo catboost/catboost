@@ -1079,10 +1079,6 @@ migrations:
     - tools/mkdocs_builder/mkdocs_yandex/mkdocs_yandex/ext/markdown
     - tools/releaser/src
     - tools/ygetparam
-    - travel/avia/backend/tests
-    - travel/avia/backend/tests/main/rest/airports
-    - travel/avia/backend/tests/main/rest/settlements
-    - travel/avia/backend/tests/repository
     - travel/avia/library/python/common
     - travel/avia/library/python/common/tests
     - travel/avia/library/python/common/tests/lib
@@ -1493,8 +1489,6 @@ migrations:
     - infra/yp_dns/tools/handle_duplicate_records/lib
     - infra/yp_dns_api/tests
     - infra/yp_quota_distributor/lib
-    - intranet/domenator/src
-    - intranet/domenator/src/api
     - intranet/table_flow/src
     - intranet/table_flow/src/users
     - intranet/vconf/src/call
@@ -1744,10 +1738,6 @@ migrations:
     - travel/avia/admin
     - travel/avia/api_gateway
     - travel/avia/api_gateway/application/fetcher/flight_landing
-    - travel/avia/backend/tests
-    - travel/avia/backend/tests/main/api_types
-    - travel/avia/backend/tests/main/rest/airlines
-    - travel/avia/backend/tests/repository
     - travel/avia/revise
     - travel/avia/revise/partners
     - travel/avia/shared_flights/data_importer/tests
@@ -1816,12 +1806,10 @@ migrations:
     - yabs/server/cs/pylibs/settings
     - yabs/server/cs/test/cs_import/direct_context
     - yabs/server/test/ft/BSDEV-80203
-    - yabs/server/test/ft/BSSERVER-11699
     - yabs/server/test/ft/BSSERVER-13708
     - yabs/server/test/ft/BSSERVER-14014
     - yabs/server/test/ft/BSSERVER-14049
     - yabs/server/test/ft/BSSERVER-14390
-    - yabs/server/test/ft/BSSERVER-14407
     - yabs/server/test/ft/BSSERVER-15684
     - yabs/stat/dropstat2/api
     - yabs/vh/cms-pgaas/sport_api_importer/sport_api_importer_lib
@@ -2257,7 +2245,6 @@ migrations:
     - travel/avia/avia_statistics/median_prices_updater/lib
     - travel/avia/avia_statistics/popular_months_by_route_updater/lib
     - travel/avia/avia_statistics/route_infos_updater/lib
-    - travel/avia/backend
     - travel/avia/flight_status_fetcher
     - travel/avia/library/python/iata_correction
     - travel/avia/shared_flights/admin/app/view
@@ -2465,7 +2452,6 @@ migrations:
     - travel/avia/avia_api
     - travel/avia/avia_api/avia/settings
     - travel/avia/avia_api/tests
-    - travel/avia/backend/tests
     - travel/avia/ticket_daemon
     - travel/avia/ticket_daemon/tests
     - travel/avia/ticket_daemon/ticket_daemon/api/models_utils
