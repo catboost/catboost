@@ -6702,6 +6702,7 @@ def test_feature_statistics(combination):
         model = sum_models([model0, model1])
 
     feature_num = 0
+    model.calc_feature_statistics({'learn': X, 'test': X}, {'learn': y, 'test': y}, feature_num, plot=False)
     res = model.calc_feature_statistics(X, y, feature_num, plot=False)
 
     def mean_per_bin(res, feature_num, data):
@@ -7432,6 +7433,7 @@ def test_quantized_pool_calc_feature_statistics(models_trained_on_raw_and_quanti
             plot=False
         )
         assert serialize_feature_statistics(stats) == serialize_feature_statistics(stats_with_quantized_pool)
+        model.calc_feature_statistics({'learn': pool, 'test': pool}, plot=False)
 
 
 @pytest.mark.parametrize('pool_type', ['train', 'test'])

@@ -8,7 +8,7 @@ if sys.version_info >= (3, 3):
 else:
     from collections import Iterable, Sequence, Mapping, MutableMapping
 
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 
 import warnings
 import numpy as np
@@ -39,6 +39,7 @@ import scipy.sparse
 
 _typeof = type
 
+from .plot_helpers import save_plot_file, try_plot_offline
 from . import _catboost
 
 
@@ -1284,34 +1285,6 @@ def _get_loss_function_for_train(params, estimator_type, train_pool):
     else:
         return 'RMSE'
 
-
-def _save_plot_file(plot_file, plot_name, figs):
-    warn_msg = "To draw plots you should install plotly."
-    try:
-        from plotly.offline import plot as plotly_plot
-    except ImportError as e:
-        warnings.warn(warn_msg)
-        raise ImportError(str(e))
-
-    with open(fspath(plot_file), 'w') as html_plot_file:
-        html_plot_file.write('\n'.join((
-            '<html>',
-            '<head>',
-            '<meta charset="utf-8" />',
-            '<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>',
-            '<title>{}</title>'.format(plot_name),
-            '</head>',
-            '<body>'
-        )))
-        for fig in figs:
-            graph_div = plotly_plot(
-                fig,
-                output_type='div',
-                show_link=False,
-                include_plotlyjs=False
-            )
-            html_plot_file.write('\n{}\n'.format(graph_div))
-        html_plot_file.write('</body>\n</html>')
 
 class _CatBoostBase(object):
     def __init__(self, params):
@@ -3087,19 +3060,10 @@ class CatBoost(_CatBoostBase):
             figs += [go.Figure(data=trace, layout=layout)]
 
         if plot:
-            try:
-                from plotly.offline import iplot
-                from plotly.offline import init_notebook_mode
-                init_notebook_mode(connected=True)
-            except ImportError as e:
-                warn_msg = "To draw plots you should install plotly."
-                warnings.warn(warn_msg)
-                raise ImportError(str(e))
-            for fig in figs:
-                iplot(fig)
+            try_plot_offline(figs)
 
         if plot_file:
-            _save_plot_file(plot_file, 'Predictions for all buckets', figs)
+            save_plot_file(plot_file, 'Predictions for all buckets', figs)
 
         return all_predictions, figs
 
@@ -3199,26 +3163,17 @@ class CatBoost(_CatBoostBase):
             fig = plot1d(features_idx[0], borders[0], all_predictions)
 
         if plot:
-            try:
-                from plotly.offline import iplot
-                from plotly.offline import init_notebook_mode
-                init_notebook_mode(connected=True)
-            except ImportError as e:
-                warn_msg = "To draw plots you should install plotly."
-                warnings.warn(warn_msg)
-                raise ImportError(str(e))
-            iplot(fig)
+            try_plot_offline(fig)
 
         if plot_file:
-            _save_plot_file(plot_file, "Partial dependence plot for features '{}'".format(features), fig)
-
+            save_plot_file(plot_file, "Partial dependence plot for features '{}'".format(features), fig)
 
         return all_predictions, fig
 
 
     def calc_feature_statistics(self, data, target=None, feature=None, prediction_type=None,
                                 cat_feature_values=None, plot=True, max_cat_features_on_plot=10,
-                                thread_count=-1, plot_file=None, skip_unused_features_on_plot=True):
+                                thread_count=-1, plot_file=None):
         """
         Get statistics for the feature using the model, dataset and target.
         To use this function, you should install plotly.
@@ -3240,9 +3195,9 @@ class CatBoost(_CatBoostBase):
 
         Parameters
         ----------
-        data: numpy.ndarray or pandas.DataFrame or catboost.Pool
+        data: numpy.ndarray or pandas.DataFrame or catboost. Pool or dict {'pool_name': pool} if you want several pools
             Data to compute statistics on
-        target: numpy.ndarray or pandas.Series or None
+        target: numpy.ndarray or pandas.Series or dict {'pool_name': target} if you want several pools or None
             Target corresponding to data
             Use only if data is not catboost.Pool.
         feature: None, int, string, or list of int or strings
@@ -3266,8 +3221,6 @@ class CatBoost(_CatBoostBase):
             Number of threads to use for getting statistics.
         plot_file: str
             Output file for plot statistics.
-        skip_unused_features_on_plot: bool
-            Not show not used in model features on plots.
 
         Returns
         -------
@@ -3284,7 +3237,16 @@ class CatBoost(_CatBoostBase):
                     varying feature (see above)
             For one-hot feature, returns the same, but with 'cat_values' instead of 'borders'
         """
-        data, _ = self._process_predict_input_data(data, "get_binarized_statistics", thread_count, target)
+        target_is_none = target is None
+        if not isinstance(data, dict):
+            data = {'': data}
+        if not isinstance(target, dict):
+            target = {'': target}
+        assert target_is_none or len(data) == len(target), 'inconsistent size of data and target'
+        assert target_is_none or target.keys() == data.keys(), 'inconsistent pool_names of data and target'
+        for key in data.keys():
+            data[key], _ = self._process_predict_input_data(data[key], "get_binarized_statistics", thread_count, target.get(key, None))
+        data, pool_names = list(data.values()), list(data.keys())
 
         if prediction_type is None:
             prediction_type = 'Probability' if self.get_param('loss_function') in ['CrossEntropy', 'Logloss'] \
@@ -3338,16 +3300,16 @@ class CatBoost(_CatBoostBase):
             else:
                 float_features_nums.append(feature_internal_index)
                 feature_type_mapper.append('float')
-        res = self._object._get_binarized_statistics(
-            data,
+        results = [self._object._get_binarized_statistics(
+            data_item,
             cat_features_nums,
             float_features_nums,
             prediction_type,
             thread_count
-        )
+        ) for data_item in data]
         # res = [dict,   dict,   ...,   dict,  dict,   dict,   ...,   dict ]
         #        |  stat for cat features  |  |  stat for float features  |
-        statistics_by_feature = {}
+        statistics_by_feature = defaultdict(list)
         to_float_offset = len(cat_features_nums)
         cat_index, float_index = 0, to_float_offset
         for i, type in enumerate(feature_type_mapper):
@@ -3369,35 +3331,33 @@ class CatBoost(_CatBoostBase):
                 for val in cat_feature_values_:
                     val_to_hash[val] = self._object._calc_cat_feature_perfect_hash(val, cat_features_nums[cat_index])
                 hash_to_val = {hash: val for val, hash in val_to_hash.items()}
-                res[cat_index]['cat_values'] = np.array([hash_to_val[i] for i in sorted(hash_to_val.keys())])
-                res[cat_index].pop('borders', None)
-                statistics_by_feature[feature_num] = res[cat_index]
+                for i, res in enumerate(results):
+                    res[cat_index]['cat_values'] = np.array([hash_to_val[i] for i in sorted(hash_to_val.keys())])
+                    res[cat_index].pop('borders', None)
+                    statistics_by_feature[feature_num].append(res[cat_index])
                 cat_index += 1
             else:
-                statistics_by_feature[feature_num] = res[float_index]
+                for res in results:
+                    statistics_by_feature[feature_num].append(res[float_index])
                 float_index += 1
         # now order in statistics_by_feature is the same as in features
 
         # draw only unique plots
         if plot or plot_file is not None:
-            warn_msg = "To draw plots you should install plotly."
             fig = _plot_feature_statistics(
                 statistics_by_feature,
+                pool_names,
                 self.feature_names_,
-                skip_unused_features_on_plot,
                 max_cat_features_on_plot)
             if plot:
-                try:
-                    from plotly.offline import iplot
-                    from plotly.offline import init_notebook_mode
-                    init_notebook_mode(connected=True)
-                except ImportError as e:
-                    warnings.warn(warn_msg)
-                    raise ImportError(str(e))
-                iplot(fig)
+                try_plot_offline(fig)
 
             if plot_file is not None:
-                _save_plot_file(plot_file, 'Catboost metrics graph', [fig])
+                save_plot_file(plot_file, 'Catboost metrics graph', [fig])
+
+        for key in statistics_by_feature.keys():
+            if len(statistics_by_feature[key]) == 1:
+                statistics_by_feature[key] = statistics_by_feature[key][0]
 
         if is_for_one_feature:
             return statistics_by_feature[feature_name_to_num[feature_names[0]]]
@@ -5628,7 +5588,7 @@ def sum_models(models, weights=None, ctr_merge_policy='IntersectingCountersAvera
     return result
 
 
-def _calc_feature_statistics_layout(go, xaxis):
+def _calc_feature_statistics_layout(go, xaxis, single_pool):
     return go.Layout(
         yaxis={
             'title': 'Prediction and target',
@@ -5636,25 +5596,33 @@ def _calc_feature_statistics_layout(go, xaxis):
             'overlaying': 'y2'
         },
         yaxis2={
-            'title': 'Objects per bin',
+            'title': 'Objects per bin' if single_pool else '% pool objects in bin',
             'side': 'right',
             'position': 1.0
         },
-        xaxis=xaxis
+        xaxis=xaxis,
+        legend={
+            'bgcolor': 'rgba(0,0,0,0)',
+            'x': 1.07
+        }
     )
 
 
-def _build_binarized_feature_statistics_fig(statistics):
+def _build_binarized_feature_statistics_fig(statistics_list, pool_names):
     try:
         import plotly.graph_objs as go
+        import plotly.colors as colors
     except ImportError as e:
         warnings.warn("To draw binarized feature statistics you should install plotly.")
         raise ImportError(str(e))
 
+    pools_count = len(statistics_list)
+    data = []
+    statistics = statistics_list[0]
     if 'borders' in statistics.keys():
         if len(statistics['borders']) == 0:
             xaxis = go.layout.XAxis(title='Bins', tickvals=[0])
-            return go.Figure(data=[], layout=_calc_feature_statistics_layout(go, xaxis))
+            return go.Figure(data=[], layout=_calc_feature_statistics_layout(go, xaxis, pools_count == 1))
 
         order = np.arange(len(statistics['objects_per_bin']))
         bar_width = 0.8
@@ -5681,83 +5649,114 @@ def _build_binarized_feature_statistics_fig(statistics):
     else:
         raise CatBoostError('Expected field "borders" or "cat_values" in binarized feature statistics')
 
-    trace_1 = go.Scatter(
-        y=statistics['mean_target'][order],
-        mode='lines+markers',
-        name='Mean target',
-        yaxis='y1',
-        xaxis='x'
-    )
-
-    trace_2 = go.Scatter(
-        y=statistics['mean_prediction'][order],
-        mode='lines+markers',
-        name='Mean prediction on each segment of feature values',
-        yaxis='y1',
-        xaxis='x'
-    )
-    if (len(statistics['mean_weighted_target']) != 0):
-        trace_3 = go.Scatter(
-            y=statistics['mean_weighted_target'][order],
+    for i, statistics in enumerate(statistics_list):
+        if  pools_count == 1:
+            name_suffix = ''
+        else:
+            name_suffix = ', {} pool'.format(pool_names[i])
+        trace_1 = go.Scatter(
+            y=statistics['mean_target'][order],
             mode='lines+markers',
-            name='Mean weighted target',
+            name='Mean target' + name_suffix,
+            yaxis='y1',
+            xaxis='x',
+        )
+
+        trace_2 = go.Scatter(
+            y=statistics['mean_prediction'][order],
+            mode='lines+markers',
+            line={'dash' : 'dash'},
+            name='Mean prediction on each segment of feature values' + name_suffix,
             yaxis='y1',
             xaxis='x'
         )
+        if (len(statistics['mean_weighted_target']) != 0):
+            trace_3 = go.Scatter(
+                y=statistics['mean_weighted_target'][order],
+                mode='lines+markers',
+                line={'dash' : 'dot'},
+                name='Mean weighted target' + name_suffix,
+                yaxis='y1',
+                xaxis='x'
+            )
 
-    trace_4 = go.Bar(
-        y=statistics['objects_per_bin'][order],
-        width=bar_width,
-        name='Objects per bin',
-        yaxis='y2',
-        xaxis='x',
-        marker={
-            'color': 'rgba(30, 150, 30, 0.4)'
-        }
-    )
+        if pools_count > 1:
+            objects_in_pool = statistics['objects_per_bin'].sum()
+            color_a = np.array([30, 150, 30])
+            color_b = np.array([30, 30, 150])
+            color = (color_a * i  + color_b * (pools_count - 1 - i)) / float(pools_count - 1)
+            color = color.astype(int)
+            trace_4 = go.Bar(
+                y=statistics['objects_per_bin'][order] / objects_in_pool,
+                width=bar_width / pools_count,
+                name='% pool objects in bin (total {})'.format(objects_in_pool) + name_suffix,
+                yaxis='y2',
+                xaxis='x',
+                marker={
+                    'color': 'rgba({}, {}, {}, 0.4)'.format(*color)
+                }
+            )
+        else:
+            trace_4 = go.Bar(
+                y=statistics['objects_per_bin'][order],
+                width=bar_width,
+                name='Objects per bin' + name_suffix,
+                yaxis='y2',
+                xaxis='x',
+                marker={
+                    'color': 'rgba(30, 150, 30, 0.4)'
+                }
+            )
 
-    trace_5 = go.Scatter(
-        y=statistics['predictions_on_varying_feature'][order],
-        mode='lines+markers',
-        name='Mean prediction with substituted feature',
-        yaxis='y1',
-        xaxis='x'
-    )
-    if (len(statistics['mean_weighted_target']) != 0):
-        data = [trace_1, trace_2, trace_3, trace_4, trace_5]
-    else:
-        data = [trace_1, trace_2, trace_4, trace_5]
-    layout = _calc_feature_statistics_layout(go, xaxis)
+        trace_5 = go.Scatter(
+            y=statistics['predictions_on_varying_feature'][order],
+            mode='lines+markers',
+            line={'dash' : 'dashdot'},
+            name='Mean prediction with substituted feature' + name_suffix,
+            yaxis='y1',
+            xaxis='x'
+        )
+        if (len(statistics['mean_weighted_target']) != 0):
+            data += [trace_1, trace_2, trace_3, trace_4, trace_5]
+        else:
+            data += [trace_1, trace_2, trace_4, trace_5]
+
+    layout = _calc_feature_statistics_layout(go, xaxis, pools_count == 1)
     fig = go.Figure(data=data, layout=layout)
 
     return fig
 
 
-def _plot_feature_statistics_units(statistics, feature_name, max_cat_features_on_plot):
-    if 'cat_values' in statistics.keys() and len(statistics['cat_values']) > max_cat_features_on_plot:
+def _plot_feature_statistics_units(statistics, pool_names, feature_name, max_cat_features_on_plot):
+    if 'cat_values' in statistics[0].keys() and len(statistics[0]['cat_values']) > max_cat_features_on_plot:
         figs = []
-        for begin in range(0, len(statistics['cat_values']), max_cat_features_on_plot):
+        for begin in range(0, len(statistics[0]['cat_values']), max_cat_features_on_plot):
             end = begin + max_cat_features_on_plot
             statistics_keys = ['cat_values', 'mean_target', 'mean_weighted_target', 'mean_prediction',
                                'objects_per_bin', 'predictions_on_varying_feature']
-            sub_statistics = dict([(key, statistics[key][begin : end]) for key in statistics_keys])
-            fig = _build_binarized_feature_statistics_fig(sub_statistics)
+            sub_statistics = dict([(k, dict([(key, stats[key][begin : end]) for key in statistics_keys])) for k, stats in statistics])
+            fig = _build_binarized_feature_statistics_fig(sub_statistics, pool_names)
             feature_name_with_part_suffix = '{}_parts[{}:{}]'.format(feature_name, begin, end)
             figs += [(fig, feature_name_with_part_suffix)]
         return figs
     else:
-        fig = _build_binarized_feature_statistics_fig(statistics)
+        fig = _build_binarized_feature_statistics_fig(statistics, pool_names)
         return [(fig, feature_name)]
 
 
-def _plot_feature_statistics(statistics_by_feature, feature_names, skip_unused_features_on_plot, max_cat_features_on_plot):
+def _plot_feature_statistics(statistics_by_feature, pool_names, feature_names, max_cat_features_on_plot):
     figs_with_names = []
     for feature_num in statistics_by_feature:
         feature_name = feature_names[feature_num]
         statistics = statistics_by_feature[feature_num]
-        if skip_unused_features_on_plot and 'borders' in statistics.keys() and len(statistics['borders']) == 0:
+        need_skip = True
+        if 'borders' in statistics[0].keys():
+            for stats in statistics:
+                if len(stats['borders']) > 0:
+                    need_skip = False
+        if need_skip:
             continue
-        figs_with_names += _plot_feature_statistics_units(statistics, feature_name, max_cat_features_on_plot)
+        figs_with_names += _plot_feature_statistics_units(statistics, pool_names, feature_name, max_cat_features_on_plot)
 
     main_fig = figs_with_names[0][0]
     buttons = []
