@@ -718,6 +718,7 @@ def onjava_test(unit, *args):
     else:
         script_rel_path = 'junit.test'
 
+    ymake_java_test = unit.get('YMAKE_JAVA_TEST') == 'yes'
     test_record = {
         'SOURCE-FOLDER-PATH': path,
         'TEST-NAME': '-'.join([os.path.basename(os.path.dirname(path)), os.path.basename(path)]),
@@ -742,17 +743,17 @@ def onjava_test(unit, *args):
         'SYSTEM_PROPERTIES': props,
         'TEST-CWD': test_cwd,
         'SKIP_TEST': unit.get('SKIP_TEST_VALUE') or '',
-        'JAVA_CLASSPATH_CMD_TYPE': java_cp_arg_type
+        'JAVA_CLASSPATH_CMD_TYPE': java_cp_arg_type,
+        'NO_JBUILD': 'yes' if ymake_java_test else 'no'
     }
     test_classpath_origins = unit.get('TEST_CLASSPATH_VALUE')
     if test_classpath_origins:
         test_record['TEST_CLASSPATH_ORIGINS'] = test_classpath_origins
         test_record['TEST_CLASSPATH'] = '${TEST_CLASSPATH_MANAGED}'
-    elif unit.get('YMAKE_JAVA_TEST') == 'yes':
+    elif ymake_java_test:
         test_record['TEST_CLASSPATH'] = '${DART_CLASSPATH}'
         test_record['TEST_CLASSPATH_DEPS'] = '${DART_CLASSPATH_DEPS}'
         test_record['TEST_JAR'] = '{}/{}.jar'.format(unit.get('MODDIR'), unit.get('REALPRJNAME'))
-        test_record['NO_JBUILD'] = 'yes'
 
     data = dump_test(unit, test_record)
     if data:
