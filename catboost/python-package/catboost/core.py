@@ -3317,7 +3317,7 @@ class CatBoost(_CatBoostBase):
             feature_num = feature_name_to_num[feature_name]
             if type == 'cat':
                 if feature_name not in cat_feature_values:
-                    cat_feature_values_ = self._object._get_cat_feature_values(data, feature_num)
+                    cat_feature_values_ = self._object._get_cat_feature_values(data[0], feature_num)
                     cat_feature_values_ = [val for val in cat_feature_values_]
                 else:
                     cat_feature_values_ = cat_feature_values[feature_name]
