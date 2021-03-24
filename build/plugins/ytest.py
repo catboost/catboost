@@ -54,6 +54,14 @@ def prepare_env(data):
     return serialize_list(shlex.split(data))
 
 
+def is_yt_spec_contain_pool_info(filename):  # XXX switch to yson in ymake + perf test for configure
+    pool_re = re.compile(r"""['"]*pool['"]*\s*?=""")
+    cypress_root_re = re.compile(r"""['"]*cypress_root['"]*\s*=""")
+    with open(filename, 'r') as afile:
+        yt_spec = afile.read()
+        return pool_re.search(yt_spec) and cypress_root_re.search(yt_spec)
+
+
 def validate_sb_vault(name, value):
     if not CANON_SB_VAULT_REGEX.match(value):
         return "sb_vault value '{}' should follow pattern <ENV_NAME>=:<value|file>:<owner>:<vault key>".format(value)
@@ -244,6 +252,9 @@ def validate_test(unit, kw):
                 if not os.path.exists(filename):
                     errors.append("File '{}' specified in the YT_SPEC macro doesn't exist".format(filename))
                     continue
+                if is_yt_spec_contain_pool_info(filename) and "ya:external" not in tags:
+                    tags.append("ya:external")
+                    tags.append("ya:yt_research_pool")
 
     if valid_kw.get("USE_ARCADIA_PYTHON") == "yes" and valid_kw.get("SCRIPT-REL-PATH") == "py.test":
         errors.append("PYTEST_SCRIPT is deprecated")
