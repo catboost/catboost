@@ -22,6 +22,7 @@ import org.apache.spark.sql._
 import org.apache.spark.sql.catalyst.encoders.RowEncoder
 import org.apache.spark.sql.functions.udf
 import org.apache.spark.sql.types._
+import org.apache.spark.storage.StorageLevel
 import org.apache.spark.TaskContext
 
 import ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl._;
@@ -305,6 +306,8 @@ object Pool {
  *  This is useful if this dataset is used for training multiple times and quantization parameters do not
  *  change. Pre-quantized [[Pool]] allows to cache quantized features data and so do not re-run
  *  feature quantization step at the start of an each training.
+ *  
+ * @groupname persistence Caching and Persistence
  */
 class Pool (
     override val uid: String,
@@ -587,6 +590,124 @@ class Pool (
       ERawTargetType.None
     }
   }
+
+  /**
+   * Persist Datasets of this Pool with the default storage level (MEMORY_AND_DISK).
+   * 
+   * @group persistence
+   */
+  def cache() : Pool = {
+    val result = new Pool(
+      this.data.cache(),
+      if (this.pairsData != null) this.pairsData.cache() else null,
+      this.quantizedFeaturesInfo,
+      this.partitionedByGroups
+    )
+    copyValues(result)
+  }
+
+  /**
+   * Returns Pool with checkpointed Datasets.
+   *
+   * @param eager Whether to checkpoint Datasets immediately
+   *
+   * @group persistence
+   */
+  def checkpoint(eager: Boolean) : Pool = {
+    val result = new Pool(
+      this.data.checkpoint(eager),
+      if (this.pairsData != null) this.pairsData.checkpoint(eager) else null,
+      this.quantizedFeaturesInfo,
+      this.partitionedByGroups
+    )
+    copyValues(result)
+  }
+
+  /**
+   * Returns Pool with eagerly checkpointed Datasets.
+   *
+   * @group persistence
+   */
+  def checkpoint() : Pool = {
+    checkpoint(eager = true)
+  }
+
+  /**
+   * Returns Pool with locally checkpointed Datasets.
+   * 
+   * @param eager Whether to checkpoint Datasets immediately
+   *
+   * @group persistence
+   */
+  def localCheckpoint(eager: Boolean) : Pool = {
+    val result = new Pool(
+      this.data.localCheckpoint(eager),
+      if (this.pairsData != null) this.pairsData.localCheckpoint(eager) else null,
+      this.quantizedFeaturesInfo,
+      this.partitionedByGroups
+    )
+    copyValues(result)
+  }
+
+  /**
+   * Returns Pool with eagerly locally checkpointed Datasets.
+   *
+   * @group persistence
+   */
+  def localCheckpoint() : Pool = {
+    localCheckpoint(eager = true)
+  }
+  
+  /**
+   * Returns Pool with Datasets persisted with the given storage level.
+   *
+   * @group persistence
+   */
+  def persist(storageLevel: StorageLevel) : Pool = {
+    val result = new Pool(
+      this.data.persist(storageLevel),
+      if (this.pairsData != null) this.pairsData.persist(storageLevel) else null,
+      this.quantizedFeaturesInfo,
+      this.partitionedByGroups
+    )
+    copyValues(result)
+  }
+
+  /**
+   * Persist Datasets of this Pool with the default storage level (MEMORY_AND_DISK).
+   *
+   * @group persistence
+   */
+  def persist() : Pool = {
+    persist(StorageLevel.MEMORY_AND_DISK)
+  }
+
+  /**
+   * Mark Datasets of this Pool as non-persistent, and remove all blocks for them from memory and disk.
+   *
+   * @group persistence
+   */
+  def unpersist() : Pool = {
+    unpersist(blocking = false)
+  }
+
+  /**
+   * Mark Datasets of this Pool as non-persistent, and remove all blocks for them from memory and disk.
+   *
+   * @param blocking Whether to block until all blocks are deleted.
+   *
+   * @group persistence
+   */
+  def unpersist(blocking: Boolean) : Pool = {
+    val result = new Pool(
+      this.data.unpersist(blocking),
+      if (this.pairsData != null) this.pairsData.unpersist(blocking) else null,
+      this.quantizedFeaturesInfo,
+      this.partitionedByGroups
+    )
+    copyValues(result)
+  }
+
 
   private[spark] def createDataMetaInfo(selectedColumnTypes: Seq[String] = null) : TIntermediateDataMetaInfo = {
     val result = new TIntermediateDataMetaInfo
