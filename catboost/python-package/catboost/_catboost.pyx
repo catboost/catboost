@@ -5280,7 +5280,7 @@ class EvalMetricsResult:
 
     def get_metric(self, metric_description):
         key = _metric_description_or_str_to_str(metric_description)
-        return self._metric_descriptions[metric_description]
+        return self._metric_descriptions[key]
 
     def get_result(self, metric_description):
         key = _metric_description_or_str_to_str(metric_description)
