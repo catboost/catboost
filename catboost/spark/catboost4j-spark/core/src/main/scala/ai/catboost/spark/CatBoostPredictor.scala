@@ -160,7 +160,7 @@ trait CatBoostPredictorTrait[
       null
     }
 
-    val master = impl.Master(
+    val master = impl.CatBoostMasterWrapper(
       preprocessedTrainPool,
       preprocessedEvalPools,
       compact(catBoostJsonParams),
@@ -183,7 +183,7 @@ trait CatBoostPredictorTrait[
 
     val trainingDriverFuture = ecs.submit(trainingDriver, ())
 
-    val workers = new impl.Workers(
+    val workers = new impl.CatBoostWorkers(
       spark,
       partitionCount,
       listeningPort,

@@ -7,6 +7,8 @@ import collection.JavaConverters._
 import java.nio.file.{Files,Path}
 import java.util.Arrays
 
+import org.slf4j.Logger
+
 import org.apache.spark.ml.attribute._
 import org.apache.spark.ml.linalg._
 import org.apache.spark.ml.param._
@@ -1094,10 +1096,14 @@ private[spark] object DataHelpers {
     includeFeatures: Boolean,
     includeEstimatedFeatures: Boolean,
     localExecutor: TLocalExecutor,
+    dataPartName: String,
+    log: Logger,
     tmpFilePrefix: String = null,
     tmpFileSuffix: String = null
   ) : PoolFilesPaths = {
-    val (selectedDF, columnIndexMap, estimatedFeatureCount) = selectColumnsForTrainingAndReturnIndex(
+    log.info(s"downloadQuantizedPoolToTempFiles for ${dataPartName}: start")
+
+    var (selectedDF, columnIndexMap, estimatedFeatureCount) = selectColumnsForTrainingAndReturnIndex(
       pool,
       includeFeatures,
       includeSampleId = (pool.pairsData != null),
@@ -1105,13 +1111,14 @@ private[spark] object DataHelpers {
     )
 
     val (mainDataProvider, estimatedDataProvider, _) = if (pool.pairsData != null) {
+      log.info(s"loadQuantizedDatasetsWithPairs for ${dataPartName}: start")
       val cogroupedMainAndPairsRDD = getCogroupedMainAndPairsRDD(
         selectedDF, 
         columnIndexMap("groupId"), 
         pool.pairsData
       ).sortByKey() // sortByKey to be consistent
       
-      loadQuantizedDatasetsWithPairs(
+      val result = loadQuantizedDatasetsWithPairs(
         pool.quantizedFeaturesInfo,
         columnIndexMap,
         pool.createDataMetaInfo(),
@@ -1121,8 +1128,11 @@ private[spark] object DataHelpers {
         localExecutor,
         cogroupedMainAndPairsRDD.toLocalIterator
       )
+      log.info(s"loadQuantizedDatasetsWithPairs for ${dataPartName}: finish")
+      result
     } else {
-      loadQuantizedDatasets(
+      log.info(s"loadQuantizedDatasets for ${dataPartName}: start")
+      val result = loadQuantizedDatasets(
         pool.quantizedFeaturesInfo,
         columnIndexMap,
         pool.createDataMetaInfo(),
@@ -1131,7 +1141,11 @@ private[spark] object DataHelpers {
         localExecutor,
         selectedDF.toLocalIterator.asScala
       )
+      log.info(s"loadQuantizedDatasets for ${dataPartName}: finish")
+      result
     }
+
+    log.info(s"${dataPartName}: save loaded data to files: start")
 
     val tmpMainFilePath = Files.createTempFile(tmpFilePrefix, tmpFileSuffix)
     tmpMainFilePath.toFile.deleteOnExit
@@ -1150,7 +1164,11 @@ private[spark] object DataHelpers {
       tmpEstimatedFilePath.get.toFile.deleteOnExit
       native_impl.SaveQuantizedPoolWrapper(estimatedDataProvider, tmpEstimatedFilePath.get.toString)
     }
-    
+
+    log.info(s"${dataPartName}: save loaded data to files: finish")
+
+    log.info(s"downloadQuantizedPoolToTempFiles for ${dataPartName}: finish")
+
     new PoolFilesPaths(tmpMainFilePath, tmpPairsDataFilePath, tmpEstimatedFilePath)
   }
   

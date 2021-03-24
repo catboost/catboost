@@ -45,6 +45,10 @@ private[spark] class WorkerInfo (
       port.equals(rhsWorkerInfo.port)
     }
   }
+  
+  override def toString() : String = {
+    s"partitionId=${partitionId}, partitionSize=${partitionSize}, host=${host}, port=${port}"
+  }
 }
 
 
@@ -52,7 +56,7 @@ private[spark] class UpdatableWorkersInfo (
   private val workersInfo: Array[WorkerInfo],
   var workerRegistrationUpdatedSinceLastMasterStart : AtomicBoolean,
   val serverSocket: ServerSocket
-) extends Runnable with Closeable {
+) extends Runnable with Closeable with Logging {
   def this(
     listeningPort: Int,
     workerCount: Int
@@ -88,6 +92,7 @@ private[spark] class UpdatableWorkersInfo (
       while (registeredWorkerCount < workersInfo.length) {
         acceptAndProcessWorkerInfo(
           workerInfo => {
+            log.info(s"received workerInfo=${workerInfo}")
             if (workersInfo(workerInfo.partitionId) == null) {
               registeredWorkerCount = registeredWorkerCount + 1
             }
@@ -110,6 +115,7 @@ private[spark] class UpdatableWorkersInfo (
         acceptAndProcessWorkerInfo(
           workerInfo => {
             this.synchronized {
+              log.info(s"received workerInfo=${workerInfo}")
               workersInfo(workerInfo.partitionId) = workerInfo
               workerRegistrationUpdatedSinceLastMasterStart.set(true)
             }
@@ -187,8 +193,9 @@ private[spark] class TrainingDriver (
           log.info("wait for workers info")
           val workersInfo = updatableWorkersInfo.getWorkersInfo
           try {
+            log.info("CatBoost master: starting")
             startMasterCallback(workersInfo)
-            log.info("CatBoost master has been started")
+            log.info("CatBoost master: finished successfully")
             success = true
           } catch {
             // try to relaunch if
@@ -197,7 +204,7 @@ private[spark] class TrainingDriver (
               Thread.sleep(workerInitializationTimeout.toMillis)
               if (!updatableWorkersInfo.workerRegistrationUpdatedSinceLastMasterStart.get()) {
                 throw new CatBoostError(
-                  "Master won't be restarted - no relaunched workers after timeout " +
+                  "CatBoost master won't be restarted - no relaunched workers after timeout " +
                   s"${impl.TimeHelpers.format(workerInitializationTimeout)} expired"
                 )
               }
@@ -278,6 +285,7 @@ private[spark] object TrainingDriver extends Logging {
       socket.getLocalAddress.getHostAddress,
       workerPort
     )
+    log.info(s"WorkerInfo=${workerInfo}")
     try {
       val outputStream = socket.getOutputStream
       try {
