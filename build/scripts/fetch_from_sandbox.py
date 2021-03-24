@@ -136,7 +136,9 @@ def fetch(resource_id, custom_fetcher):
     try:
         resource_info = get_resource_info(resource_id, touch=True, no_links=True)
     except Exception as e:
-        raise ResourceInfoError(str(e))
+        raise ResourceInfoError(
+            "Failed to fetch resource {}: {}".format(resource_id, str(e))
+        )
 
     if resource_info.get('state', 'DELETED') != 'READY':
         raise ResourceInfoError("Resource {} is not READY".format(resource_id))
