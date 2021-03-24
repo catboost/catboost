@@ -1,4 +1,4 @@
-CatBoost for Apache Spark Package
+CatBoost Spark Package
 ======================
 
 Setup 
@@ -7,12 +7,12 @@ Setup
 #### Requirements
 
 * Linux or Mac OS X. Windows support in progress.
-* Apache Spark 2.4+
+* Apache Spark 2.3 - 3.0
 * Scala 2.11 or 2.12
 
 Get the appropriate `catboost_spark_version` (you can look up available versions at [Maven central](https://search.maven.org/search?q=catboost-spark))
 
-Add dependency with the appropriate `scala_compat_version` (`2.11` or `2.12`)
+Add dependency with the appropriate `spark_compat_version` (`2.3`, `2.4` or `3.0`) and `scala_compat_version` (`2.11` or `2.12`)
 
 #### Java or Scala
 
@@ -25,6 +25,7 @@ Add to pom.xml of your project :
 ```
   <properties>
     ...
+    <spark.compat.version>spark_compat_version</spark.compat.version>
     <scala.compat.version>scala_compat_version</scala.compat.version>
     ...
   </properties>
@@ -33,7 +34,7 @@ Add to pom.xml of your project :
     ...
     <dependency>
       <groupId>ai.catboost</groupId>
-      <artifactId>catboost-spark_${scala.compat.version}</artifactId>
+      <artifactId>catboost-spark_${spark.compat.version}_${scala.compat.version}</artifactId>
       <version>catboost_spark_version</version>
     </dependency>
    ...
@@ -43,20 +44,20 @@ Add to pom.xml of your project :
 
 ```
 libraryDependencies ++= Seq(
-  "ai.catboost" %% "catboost-spark" % "catboost_spark_version"
+  "ai.catboost" %% ("catboost-spark_" + sparkCompatVersion) +  % "catboost_spark_version"
 )
 ```
 
 #### Python (PySpark)
 
-Just add `catboost-spark` Maven artifact with appropriate `scala_compat_version` and `catboost_spark_version` to `spark.jar.packages` Spark config parameter and import `catboost_spark` package:
+Just add `catboost-spark` Maven artifact with appropriate `spark_compat_version`, `scala_compat_version` and `catboost_spark_version` to `spark.jar.packages` Spark config parameter and import `catboost_spark` package:
 
 ```python
 from pyspark.sql import SparkSession
 
 sparkSession = (SparkSession.builder
 	.master(...)
-	.config("spark.jars.packages", "ai.catboost:catboost-spark_<scala_compat_version>:<catboost_spark_version>")
+	.config("spark.jars.packages", "ai.catboost:catboost-spark_<spark_compat_version>_<scala_compat_version>:<catboost_spark_version>")
 	.getOrCreate()
 )
 
@@ -325,7 +326,7 @@ from pyspark.sql.types import *
 
 spark = (SparkSession.builder
   .master("local[*]")
-  .config("spark.jars.packages", "ai.catboost:catboost-spark_2.11:0.25-rc3")
+  .config("spark.jars.packages", "ai.catboost:catboost-spark_2.4_2.12:0.25")
   .appName("ClassifierTest")
   .getOrCreate()
 )
@@ -473,7 +474,7 @@ from pyspark.sql.types import *
 
 spark = (SparkSession.builder
   .master("local[*]")
-  .config("spark.jars.packages", "ai.catboost:catboost-spark_2.11:0.25-rc3")
+  .config("spark.jars.packages", "ai.catboost:catboost-spark_2.4_2.12:0.25")
   .appName("RegressorTest")
   .getOrCreate()
 )
@@ -549,8 +550,8 @@ Known limitations
 
 * Windows is not supported. Work in progress.
 * GPU is not supported. Work in progress.
-* Text features are not supported. Work in progress.
-* Model analysis like feature importance and feature statistics with datasets on Spark is not supported. But it is possible to run such analysis with models exported to local files in usual CatBoost format.
+* Text and embeddings features are not supported. Work in progress.
+* Feature distribution statistics (like `calc_feature_statistfzics`on CatBoost python package) with datasets on Spark is not supported. But it is possible to run such analysis with models exported to local files in usual CatBoost format.
 * Generic string class labels are not supported. String class labels can be used only if these strings represent integer indices.
 * ``boosting_type=Ordered`` is not supported.
 * Training of models with non-symmetric trees is not supported. But such models can be loaded and applied on datasets in Spark.
