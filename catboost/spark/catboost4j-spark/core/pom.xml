@@ -6,8 +6,8 @@
 
     <artifactId>catboost-spark_2.4_2.11</artifactId>
     <packaging>jar</packaging>
-    <name>CatBoost for Spark</name>
-    <description>JVM module to use CatBoost on Spark</description>
+    <name>CatBoost for Apache Spark</name>
+    <description>JVM module to use CatBoost on Apache Spark</description>
 
     <parent>
         <groupId>ai.catboost</groupId>
