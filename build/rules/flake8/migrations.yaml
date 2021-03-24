@@ -563,7 +563,6 @@ migrations:
     - infra/scripts/eventlog_uploader/script
     - infra/swatlib
     - infra/vmagent/src/vmctl
-    - infra/ya_salt/lib
     - infra/yp_drcp/lib
     - infra/yp_dru/bin
     - intranet/pypi/tests
@@ -835,7 +834,6 @@ migrations:
     - robot/quality/robotrank/mk_learn_pool/lib
     - robot/salmon_agent/counters
     - robot/salmon_agent/utils
-    - rt-research/bannerland/lib
     - rt-research/broadmatching/mr/IRT-1517
     - rt-research/broadmatching/mr/local_yt/copy_phits_db
     - rt-research/broadmatching/scripts/dyn-smart-banners/update_dyn_trashfilter
@@ -1446,9 +1444,6 @@ migrations:
     - extsearch/video/transcoder/per_title/handler
     - extsearch/video/transcoder/per_title/vmaf
     - extsearch/video/vh/tape/lib
-    - games/admin/libs/utils
-    - games/admin/server
-    - games/admin/server/schemas/tests
     - geosuggest/conveyors/learn_pool/lst_weights/lib
     - haas/cmis/hwr_preorders
     - haas/graphite_sync/get_report
