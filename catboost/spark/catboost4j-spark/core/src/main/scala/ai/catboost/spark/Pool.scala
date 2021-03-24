@@ -786,7 +786,7 @@ class Pool (
         )
       } else {
         data.select(getFeaturesCol)
-      }
+      }.persist(StorageLevel.MEMORY_ONLY)
 
     nanModeAndBordersBuilder.SetSampleSize(dataForBuildBorders.count.toInt)
     
@@ -795,6 +795,8 @@ class Pool (
        nanModeAndBordersBuilder.AddSample(row.getAs[Vector](0).toArray)
     }
     log.info("calcNanModesAndBorders: reading data: end")
+
+    dataForBuildBorders.unpersist()
 
     log.info("CalcBordersWithoutNans: start")
     nanModeAndBordersBuilder.CalcBordersWithoutNans(

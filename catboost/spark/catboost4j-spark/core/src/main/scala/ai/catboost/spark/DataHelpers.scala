@@ -16,6 +16,7 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.sql._
 import org.apache.spark.sql.catalyst.encoders.RowEncoder
 import org.apache.spark.sql.types._
+import org.apache.spark.storage.StorageLevel
 
 import ai.catboost.CatBoostError
 
@@ -427,7 +428,7 @@ private[spark] object DataHelpers {
         }
         Iterator[Array[Byte]](result)
       }
-    )
+    ).persist(StorageLevel.MEMORY_ONLY)
 
     var result = new Array[Byte](featureCount)
     Arrays.fill(result, 0.toByte)
@@ -439,6 +440,8 @@ private[spark] object DataHelpers {
         }
       }
     }
+
+    partialResultDf.unpersist()
 
     result
   }
@@ -1116,8 +1119,8 @@ private[spark] object DataHelpers {
         selectedDF, 
         columnIndexMap("groupId"), 
         pool.pairsData
-      ).sortByKey() // sortByKey to be consistent
-      
+      ).sortByKey().persist(StorageLevel.MEMORY_ONLY) // sortByKey to be consistent
+
       val result = loadQuantizedDatasetsWithPairs(
         pool.quantizedFeaturesInfo,
         columnIndexMap,
@@ -1128,10 +1131,12 @@ private[spark] object DataHelpers {
         localExecutor,
         cogroupedMainAndPairsRDD.toLocalIterator
       )
+      cogroupedMainAndPairsRDD.unpersist()
       log.info(s"loadQuantizedDatasetsWithPairs for ${dataPartName}: finish")
       result
     } else {
       log.info(s"loadQuantizedDatasets for ${dataPartName}: start")
+      selectedDF = selectedDF.persist(StorageLevel.MEMORY_ONLY)
       val result = loadQuantizedDatasets(
         pool.quantizedFeaturesInfo,
         columnIndexMap,
@@ -1141,6 +1146,7 @@ private[spark] object DataHelpers {
         localExecutor,
         selectedDF.toLocalIterator.asScala
       )
+      selectedDF.unpersist()
       log.info(s"loadQuantizedDatasets for ${dataPartName}: finish")
       result
     }
