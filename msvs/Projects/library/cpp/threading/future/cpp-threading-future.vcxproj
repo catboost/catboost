@@ -84,6 +84,8 @@
       <ObjectFileName>$(IntDir)fwd_extra1.obj</ObjectFileName>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\library\cpp\threading\future\wait\wait.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\threading\future\wait\wait_group.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\threading\future\wait\wait_policy.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\cpp\threading\future\async.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\cpp\threading\future\fwd.cpp">
       <ObjectFileName>$(IntDir)fwd_extra2.obj</ObjectFileName>
@@ -97,6 +99,9 @@
     <ClInclude Include="$(SolutionDir)..\library\cpp\threading\future\wait\fwd.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\threading\future\wait\wait-inl.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\threading\future\wait\wait.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\threading\future\wait\wait_group-inl.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\threading\future\wait\wait_group.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\threading\future\wait\wait_policy.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
