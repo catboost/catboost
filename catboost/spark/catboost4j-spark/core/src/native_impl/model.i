@@ -45,24 +45,21 @@ public:
             return !self->ModelTrees->GetModelTreeData()->GetLeafWeights().empty();
         }
 
-        void Calc(TConstArrayRef<double> numericFeatures, TArrayRef<double> result) const {
-            TVector<float> featuresAsFloat;
-            featuresAsFloat.yresize(numericFeatures.size());
-            Copy(numericFeatures.begin(), numericFeatures.end(), featuresAsFloat.begin());
-            self->Calc(featuresAsFloat, TConstArrayRef<int>(), result);
+        void Calc(TConstArrayRef<double> featureValuesFromSpark, TArrayRef<double> result) const {
+            CalcOnSparkFeatureVector(*self, featureValuesFromSpark, result);
         }
 
         void CalcSparse(
             i32 size,
-            TConstArrayRef<i32> numericFeaturesIndices,
-            TConstArrayRef<double> numericFeaturesValues,
+            TConstArrayRef<i32> featureIndicesFromSpark,
+            TConstArrayRef<double> featureValuesFromSpark,
             TArrayRef<double> result
         ) const {
-            TVector<float> featuresAsFloat(size, 0.0f);
-            for (auto i : xrange(numericFeaturesIndices.size())) {
-                featuresAsFloat[numericFeaturesIndices[i]] = numericFeaturesValues[i];
+            TVector<float> denseFeaturesValues(size, 0.0f);
+            for (auto i : xrange(featureIndicesFromSpark.size())) {
+                denseFeaturesValues[featureIndicesFromSpark[i]] = featureValuesFromSpark[i];
             }
-            self->Calc(featuresAsFloat, TConstArrayRef<int>(), result);
+            CalcOnSparkFeatureVector<float>(*self, denseFeaturesValues, result);
         }
         
         void Save(
