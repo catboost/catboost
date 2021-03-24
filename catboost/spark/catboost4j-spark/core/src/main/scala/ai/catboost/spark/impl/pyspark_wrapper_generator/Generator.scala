@@ -649,6 +649,13 @@ ${generateParamsPart(model, modelParamsKeywordArgs)}
         return $modelClassName(java_model)
 
 
+    def transformPool(pool):
+        "\""
+        This function is useful when the dataset has been already quantized but works with any Pool
+        "\""
+        return self._call_java("transformPool", pool)
+
+
     def getFeatureImportance(self, 
                              fstrType=EFstrType.FeatureImportance,
                              data=None,

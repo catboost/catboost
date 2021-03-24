@@ -1,5 +1,7 @@
 package ai.catboost.spark
 
+import scala.reflect.classTag
+
 import collection.mutable
 import collection.JavaConverters._
 
@@ -13,6 +15,7 @@ import org.apache.spark.SparkContext
 import org.apache.spark.ml.linalg._
 import org.apache.spark.ml.util._
 import org.apache.spark.sql._
+import org.apache.spark.sql.catalyst.encoders.RowEncoder
 import org.apache.spark.sql.types._
 
 import ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl._
@@ -56,7 +59,7 @@ private[spark] trait CatBoostModelTrait[Model <: org.apache.spark.ml.PredictionM
   protected def getAdditionalColumnsForApply : Seq[StructField]
 
   protected def getResultIteratorForApply(
-    rawObjectsDataProvider: SWIGTYPE_p_NCB__TRawObjectsDataProviderPtr,
+    objectsDataProvider: SWIGTYPE_p_NCB__TObjectsDataProviderPtr,
     dstRows: mutable.ArrayBuffer[Array[Any]], // guaranteed to be non-empty
     localExecutor: TLocalExecutor
   ) : Iterator[Row]
@@ -98,7 +101,7 @@ private[spark] trait CatBoostModelTrait[Model <: org.apache.spark.ml.PredictionM
               dstRowLength = dstRowLength,
               localExecutor = localExecutor
             )
-            getResultIteratorForApply(rawObjectsDataProviderPtr, dstRows, localExecutor)
+            getResultIteratorForApply(rawObjectsDataProviderPtr.ToBase(), dstRows, localExecutor)
           } else {
             Iterator[Row]()
           }
@@ -107,6 +110,50 @@ private[spark] trait CatBoostModelTrait[Model <: org.apache.spark.ml.PredictionM
       dataFrame.sparkSession.createDataFrame(resultAsRDD, resultSchema)
     }
   }
+  
+  /**
+   * This function is useful when the dataset has been already quantized but works with any Pool
+   */
+  def transformPool(dataset: Pool) : DataFrame = {
+    if (dataset.getFeaturesCol != this.getFeaturesCol) {
+      throw new CatBoostError(
+        s"model and dataset have incompatible features column names: ${this.getFeaturesCol} and "
+        + dataset.getFeaturesCol
+      )
+    }
+    if (dataset.isQuantized) {
+      val additionalColumnsForApply = getAdditionalColumnsForApply
+      if (additionalColumnsForApply.isEmpty) {
+        this.logWarning(s"$uid: transform() was called as NOOP since no output columns were set.")
+        dataset.data
+      } else {
+        val resultSchema = StructType(dataset.data.schema.toSeq ++ additionalColumnsForApply)
+      
+        dataset.mapQuantizedPartitions(
+          selectedColumns=Seq(dataset.getFeaturesCol),
+          includeEstimatedFeatures=false,
+          includePairsIfPresent=false,
+          dstColumnNames=null,
+          dstRowLength=resultSchema.length,
+          (
+            dataProvider: TDataProviderPtr,
+            estimatedDataProvider: TDataProviderPtr,
+            dstRows: mutable.ArrayBuffer[Array[Any]],
+            localExecutor: TLocalExecutor
+          ) => {
+            getResultIteratorForApply(
+              dataProvider.GetQuantizedObjectsDataProvider().ToBase(),
+              dstRows,
+              localExecutor
+            )
+          }
+        )(RowEncoder(resultSchema), classTag[Row])  
+      }
+    } else {
+      transformImpl(dataset.data)
+    }
+  }
+  
 
   override def write: MLWriter = new CatBoostModelWriter[Model](this)
   

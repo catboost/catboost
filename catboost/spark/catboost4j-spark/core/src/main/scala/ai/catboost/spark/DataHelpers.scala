@@ -457,7 +457,7 @@ private[spark] object DataHelpers {
     keepRawFeaturesInDstRows: Boolean,
     dstRowLength: Int,
     localExecutor: TLocalExecutor
-  ) : (mutable.ArrayBuffer[Array[Any]], SWIGTYPE_p_NCB__TRawObjectsDataProviderPtr) = {
+  ) : (mutable.ArrayBuffer[Array[Any]], TRawObjectsDataProviderPtr) = {
     val dstRows = new mutable.ArrayBuffer[Array[Any]]
 
     val availableFloatFeaturesFlatIndices 
@@ -788,18 +788,24 @@ private[spark] object DataHelpers {
    */
   def addDstRowsCallback(
     mainDataProcessingCallbacks : mutable.ArrayBuffer[Row => Unit],
-    dstRowsColumnIndices: Array[Int] // can be null
-  ) : mutable.ArrayBuffer[mutable.ArrayBuffer[Any]]  = {
-    if (dstRowsColumnIndices != null) {
-      val dstRows = new mutable.ArrayBuffer[mutable.ArrayBuffer[Any]]
-      val dstRowLength = dstRowsColumnIndices.length
-      mainDataProcessingCallbacks += {
-        row => {
-           val rowFields = new mutable.ArrayBuffer[Any](dstRowLength)
-           for (i <- 0 until dstRowLength) {
-             rowFields += row(dstRowsColumnIndices(i))
-           }
-           dstRows += rowFields
+    dstRowsColumnIndices: Array[Int], // can be null
+    dstRowLength: Int
+  ) : mutable.ArrayBuffer[Array[Any]]  = {
+    if (dstRowLength > 0) {
+      val dstRows = new mutable.ArrayBuffer[Array[Any]]
+      if (dstRowsColumnIndices != null) {
+        mainDataProcessingCallbacks += {
+          row => {
+             val rowFields = new Array[Any](dstRowLength)
+             for (i <- 0 until dstRowsColumnIndices.size) {
+               rowFields(i) = row(dstRowsColumnIndices(i))
+             }
+             dstRows += rowFields
+          }
+        }
+      } else {
+        mainDataProcessingCallbacks += {
+          row => { dstRows += new Array[Any](dstRowLength) }
         }
       }
       dstRows
@@ -825,8 +831,9 @@ private[spark] object DataHelpers {
     estimatedFeatureCount: Option[Int],
     localExecutor: TLocalExecutor,
     rows: Iterator[Row],
-    dstRowsColumnIndices: Array[Int] = null
-  ) : (TDataProviderPtr, TDataProviderPtr, mutable.ArrayBuffer[mutable.ArrayBuffer[Any]]) = {
+    dstRowsColumnIndices: Array[Int] = null,
+    dstRowLength: Int = 0
+  ) : (TDataProviderPtr, TDataProviderPtr, mutable.ArrayBuffer[Array[Any]]) = {
 
     val (dataProviderBuilderClosure, visitor) = getDataProviderBuilderAndVisitor(
       columnIndexMap.contains("features"),
@@ -841,7 +848,7 @@ private[spark] object DataHelpers {
       schema
     )
 
-    val dstRows = addDstRowsCallback(mainDataRowCallbacks, dstRowsColumnIndices)
+    val dstRows = addDstRowsCallback(mainDataRowCallbacks, dstRowsColumnIndices, dstRowLength)
 
     var estimatedFeaturesLoadingContext : EstimatedFeaturesLoadingContext = null
     
@@ -901,8 +908,9 @@ private[spark] object DataHelpers {
     estimatedFeatureCount: Option[Int],
     localExecutor: TLocalExecutor,
     groupsIterator: GroupsIterator,
-    dstRowsColumnIndices: Array[Int] = null
-  ) : (TDataProviderPtr, TDataProviderPtr, mutable.ArrayBuffer[mutable.ArrayBuffer[Any]]) = {
+    dstRowsColumnIndices: Array[Int] = null,
+    dstRowLength: Int = 0
+  ) : (TDataProviderPtr, TDataProviderPtr, mutable.ArrayBuffer[Array[Any]]) = {
     val (dataProviderBuilderClosure, visitor) = getDataProviderBuilderAndVisitor(
       columnIndexMap.contains("features"),
       localExecutor
@@ -916,7 +924,7 @@ private[spark] object DataHelpers {
       datasetSchema
     )
 
-    val dstRows = addDstRowsCallback(mainDataRowCallbacks, dstRowsColumnIndices)
+    val dstRows = addDstRowsCallback(mainDataRowCallbacks, dstRowsColumnIndices, dstRowLength)
 
     var estimatedFeaturesLoadingContext : EstimatedFeaturesLoadingContext = null
     

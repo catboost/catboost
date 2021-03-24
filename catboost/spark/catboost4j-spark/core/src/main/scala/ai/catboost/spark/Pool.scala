@@ -1063,7 +1063,8 @@ class Pool (
     includeEstimatedFeatures: Boolean,
     includePairsIfPresent: Boolean,
     dstColumnNames: Array[String], // can be null, add all columns to dst in this case
-    f : (TDataProviderPtr, TDataProviderPtr, mutable.ArrayBuffer[mutable.ArrayBuffer[Any]], TLocalExecutor) => Iterator[R]
+    dstRowLength: Int,
+    f : (TDataProviderPtr, TDataProviderPtr, mutable.ArrayBuffer[Array[Any]], TLocalExecutor) => Iterator[R]
   ) : Dataset[R] = {
     if (!this.isQuantized) {
       throw new CatBoostError("mapQuantizedPartitions requires quantized pool")
@@ -1081,6 +1082,9 @@ class Pool (
       includeEstimatedFeatures,
       if (dstColumnNames != null) { dstColumnNames } else { preparedPool.data.schema.fieldNames }
     )
+    if (dstColumnIndices.size > dstRowLength) {
+      throw new CatBoostError(s"dstRowLength ($dstRowLength) < dstColumnIndices.size (${dstColumnIndices.size})")
+    }
 
     val spark = preparedPool.data.sparkSession
     val threadCountForTask = SparkHelpers.getThreadCountForTask(spark)
@@ -1112,7 +1116,8 @@ class Pool (
               estimatedFeatureCount,
               localExecutor,
               groups,
-              dstColumnIndices
+              dstColumnIndices,
+              dstRowLength
             )
             f(dataProvider, estimatedFeaturesDataProvider, dstRows, localExecutor)
           } else {
@@ -1136,7 +1141,8 @@ class Pool (
               estimatedFeatureCount,
               localExecutor,
               rows,
-              dstColumnIndices
+              dstColumnIndices,
+              dstRowLength
             )
             f(dataProvider, estimatedFeaturesDataProvider, dstRows, localExecutor)
           } else {

@@ -27,7 +27,7 @@ class TApplyResultIterator {
 public:
     TApplyResultIterator(
         const TFullModel& model,
-        NCB::TRawObjectsDataProviderPtr rawObjectsDataProvider,
+        NCB::TObjectsDataProviderPtr objectsDataProvider,
         EPredictionType predictionType,
         NPar::TLocalExecutor* localExecutor
     ) throw(yexception);
