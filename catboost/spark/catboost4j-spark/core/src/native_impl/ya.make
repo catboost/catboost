@@ -5,7 +5,7 @@ NO_WERROR()
 
 
 SRCS(
-    apply_result_iterator.cpp
+    calc_fstr.cpp
     ctrs.cpp
     dataset_rows_reader.cpp
     data_provider_builders.cpp
@@ -15,6 +15,7 @@ SRCS(
     master.cpp
     meta_info.cpp
     model.cpp
+    model_application.cpp
     options_helper.cpp
     pairs.cpp
     quantized_features_info.cpp

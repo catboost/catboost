@@ -36,6 +36,15 @@ public:
     size_t GetDimensionsCount() const;
 
     %extend {
+        i32 GetLeafCount() const {
+            const int approxDimension = self->ModelTrees->GetDimensionsCount();
+            return i32(self->ModelTrees->GetModelTreeData()->GetLeafValues().size() / approxDimension);
+        }
+
+        bool HasLeafWeights() const {
+            return !self->ModelTrees->GetModelTreeData()->GetLeafWeights().empty();
+        }
+
         void Calc(TConstArrayRef<double> numericFeatures, TArrayRef<double> result) const {
             TVector<float> featuresAsFloat;
             featuresAsFloat.yresize(numericFeatures.size());

@@ -1,5 +1,6 @@
 package ai.catboost.spark.impl
 
+import collection.mutable
 import collection.mutable.HashMap
 
 import concurrent.duration.Duration
@@ -35,8 +36,8 @@ private[spark] object Worker {
     precomputedOnlineCtrMetaDataAsJsonString: String,
     threadCount: Int,
     
-    // returns (quantizedDataProvider, estimatedQuantizedDataProvider) can return null
-    getDataProvidersCallback : (TLocalExecutor) => (TDataProviderPtr, TDataProviderPtr)
+    // returns (quantizedDataProvider, estimatedQuantizedDataProvider, dstRows) can return null
+    getDataProvidersCallback : (TLocalExecutor) => (TDataProviderPtr, TDataProviderPtr, mutable.ArrayBuffer[mutable.ArrayBuffer[Any]])
   ) = {
     if (!usedInCurrentProcess.compareAndSet(false, true)) {
       throw new CatBoostError("An active CatBoost worker is already present in the current process")
@@ -49,7 +50,7 @@ private[spark] object Worker {
       // TaskContext.getPartitionId will become invalid when iteration over rows is finished, so save it
       val partitionId = TaskContext.getPartitionId
 
-      var (quantizedDataProvider, estimatedQuantizedDataProvider) = getDataProvidersCallback(localExecutor)
+      var (quantizedDataProvider, estimatedQuantizedDataProvider, _) = getDataProvidersCallback(localExecutor)
 
       val partitionSize = if (quantizedDataProvider != null) quantizedDataProvider.GetObjectCount.toInt else 0
 
@@ -161,7 +162,7 @@ private[spark] class Workers(
 
     val catBoostJsonParamsForWorkersString = compact(catBoostJsonParamsForWorkers)
 
-    val dataMetaInfo = preprocessedTrainPool.createDataMetaInfo
+    val dataMetaInfo = preprocessedTrainPool.createDataMetaInfo()
     val schemaForWorkers = trainDataForWorkers.schema
 
     // copy needed because Spark will try to capture the whole Workers class and fail

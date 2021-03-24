@@ -3,6 +3,8 @@ package ai.catboost.spark;
 import java.nio.file.Path
 import java.util.{Arrays,ArrayList,Collections};
 
+import scala.reflect.ClassTag
+
 import concurrent.duration.Duration
 import concurrent.{Await,Future}
 import concurrent.ExecutionContext.Implicits.global
@@ -307,22 +309,25 @@ object Pool {
 class Pool (
     override val uid: String,
     val data: DataFrame = null,
-    protected var featuresLayout: TFeaturesLayout = null, // updated on demand if not initialized
+    protected var featuresLayout: TFeaturesLayoutPtr = null, // updated on demand if not initialized
     val quantizedFeaturesInfo: QuantizedFeaturesInfoPtr = null,
-    val pairsData: DataFrame = null)
+    val pairsData: DataFrame = null,
+    val partitionedByGroups: Boolean = false)
   extends Params with HasLabelCol with HasFeaturesCol with HasWeightCol {
 
   private[spark] def this(
     data: DataFrame,
     pairsData: DataFrame,
-    quantizedFeaturesInfo: QuantizedFeaturesInfoPtr
+    quantizedFeaturesInfo: QuantizedFeaturesInfoPtr,
+    partitionedByGroups: Boolean
   ) =
     this(
       Identifiable.randomUID("catboostPool"),
       data,
-      if (quantizedFeaturesInfo != null) quantizedFeaturesInfo.GetFeaturesLayout().__deref__() else null,
+      if (quantizedFeaturesInfo != null) quantizedFeaturesInfo.GetFeaturesLayout() else null,
       quantizedFeaturesInfo,
-      pairsData
+      pairsData,
+      partitionedByGroups
     )
 
   /** Construct [[Pool]] from [[DataFrame]]
@@ -358,7 +363,7 @@ class Pool (
    *   pool.data.show()
    * }}}
    */
-  def this(data: DataFrame) = this(data, null, null)
+  def this(data: DataFrame) = this(data, null, null, false)
 
   /** Construct [[Pool]] from [[DataFrame]] also specifying pairs data in an additional [[DataFrame]]
    * @example
@@ -410,9 +415,9 @@ class Pool (
    *   pool.pairsData.show()
    * }}}
    */
-  def this(data: DataFrame, pairsData: DataFrame) = this(data, pairsData, null)
+  def this(data: DataFrame, pairsData: DataFrame) = this(data, pairsData, null, false)
 
-  def getFeaturesLayout : TFeaturesLayout = {
+  def getFeaturesLayout : TFeaturesLayoutPtr = {
     if (featuresLayout == null) {
       if (isQuantized) {
         throw new CatBoostError("featuresLayout must be defined for quantized pool")
@@ -444,8 +449,8 @@ class Pool (
         }
       }
 
-      featuresLayout = new TFeaturesLayout
-      featuresLayout.Init(featuresMetaInfo)
+      featuresLayout = new TFeaturesLayoutPtr(new TFeaturesLayout)
+      featuresLayout.__deref__.Init(featuresMetaInfo)
     }
     featuresLayout
   }
@@ -519,11 +524,11 @@ class Pool (
   def isQuantized: Boolean = { quantizedFeaturesInfo != null }
 
   def getFeatureCount: Int = {
-    getFeaturesLayout.GetExternalFeatureCount.toInt
+    getFeaturesLayout.__deref__.GetExternalFeatureCount.toInt
   }
 
   def getFeatureNames : Array[String] = {
-    getFeaturesLayout.GetExternalFeatureIds.toArray(new Array[String](0))
+    getFeaturesLayout.__deref__.GetExternalFeatureIds.toArray(new Array[String](0))
   }
   
   def getCatFeaturesUniqValueCounts : Array[Int] = {
@@ -583,27 +588,52 @@ class Pool (
     }
   }
 
-  private[spark] def createDataMetaInfo : TIntermediateDataMetaInfo = {
+  private[spark] def createDataMetaInfo(selectedColumnTypes: Seq[String] = null) : TIntermediateDataMetaInfo = {
     val result = new TIntermediateDataMetaInfo
     result.setObjectCount(java.math.BigInteger.valueOf(count))
-    if (isQuantized) {
-      result.setFeaturesLayout(quantizedFeaturesInfo.GetFeaturesLayout)
-    } else {
-      result.setFeaturesLayout(new TFeaturesLayoutPtr(this.getFeaturesLayout))
-    }
+    result.setFeaturesLayout(this.getFeaturesLayout)
 
-    val targetType = getTargetType
-    if (targetType != ERawTargetType.None) {
-      result.setTargetType(targetType)
-      result.setTargetCount(1)
-      //result.setClassLabelsFromJsonString()
+    if (selectedColumnTypes == null) {
+      val targetType = getTargetType
+      if (targetType != ERawTargetType.None) {
+        result.setTargetType(targetType)
+        result.setTargetCount(1)
+        //result.setClassLabelsFromJsonString()
+      }
+      result.setBaselineCount(getBaselineCount)
+      result.setHasGroupId(isDefined(groupIdCol))
+      result.setHasGroupWeight(isDefined(groupWeightCol))
+      result.setHasSubgroupIds(isDefined(subgroupIdCol))
+      result.setHasWeights(isDefined(weightCol))
+      result.setHasTimestamp(isDefined(timestampCol))
+    } else {
+      if (selectedColumnTypes.contains("label")) {
+        val targetType = getTargetType
+        if (targetType != ERawTargetType.None) {
+          result.setTargetType(targetType)
+          result.setTargetCount(1)
+          //result.setClassLabelsFromJsonString()
+        }
+        if (selectedColumnTypes.contains("baseline")) {
+          result.setBaselineCount(getBaselineCount)
+        }
+        if (selectedColumnTypes.contains("groupId")) {
+          result.setHasGroupId(isDefined(groupIdCol))
+        }
+        if (selectedColumnTypes.contains("groupWeight")) {
+          result.setHasGroupWeight(isDefined(groupWeightCol))
+        }
+        if (selectedColumnTypes.contains("subgroupId")) {
+          result.setHasSubgroupIds(isDefined(subgroupIdCol))
+        }
+        if (selectedColumnTypes.contains("weight")) {
+          result.setHasWeights(isDefined(weightCol))
+        }
+        if (selectedColumnTypes.contains("timestamp")) {
+          result.setHasTimestamp(isDefined(timestampCol))
+        }
+      }
     }
-    result.setBaselineCount(getBaselineCount)
-    result.setHasGroupId(isDefined(groupIdCol))
-    result.setHasGroupWeight(isDefined(groupWeightCol))
-    result.setHasSubgroupIds(isDefined(subgroupIdCol))
-    result.setHasWeights(isDefined(weightCol))
-    result.setHasTimestamp(isDefined(timestampCol))
 
     result
   }
@@ -657,7 +687,7 @@ class Pool (
 
     val catBoostJsonParamsString = Helpers.sparkMlParamsToCatBoostJsonParamsString(quantizationParams)
     val quantizedFeaturesInfo = native_impl.PrepareQuantizationParameters(
-      getFeaturesLayout,
+      getFeaturesLayout.__deref__,
       catBoostJsonParamsString
     )
 
@@ -696,31 +726,35 @@ class Pool (
 
     val quantizedData = data.mapPartitions(
       rowsIterator => {
-        val localExecutor = new TLocalExecutor
-        localExecutor.Init(threadCountForTask)
+        if (rowsIterator.isEmpty) {
+          Iterator[Row]()
+        } else {
+          val localExecutor = new TLocalExecutor
+          localExecutor.Init(threadCountForTask)
 
-        // source features column will be replaced by quantizedFeatures
-        val (dstRows, rawObjectsDataProviderPtr) = DataHelpers.processDatasetWithRawFeatures(
-          rowsIterator,
-          featuresColumnIdx,
-          quantizedFeaturesInfo.GetFeaturesLayout(),
-          catFeaturesMaxUniqValueCount,
-          keepRawFeaturesInDstRows = false,
-          dstRowLength = quantizedDataSchema.length,
-          localExecutor = localExecutor
-        )
+          // source features column will be replaced by quantizedFeatures
+          val (dstRows, rawObjectsDataProviderPtr) = DataHelpers.processDatasetWithRawFeatures(
+            rowsIterator,
+            featuresColumnIdx,
+            quantizedFeaturesInfo.GetFeaturesLayout(),
+            catFeaturesMaxUniqValueCount,
+            keepRawFeaturesInDstRows = false,
+            dstRowLength = quantizedDataSchema.length,
+            localExecutor = localExecutor
+          )
 
-        val quantizedObjectsDataProvider = native_impl.Quantize(
-          quantizedFeaturesInfo,
-          rawObjectsDataProviderPtr,
-          localExecutor
-        )
+          val quantizedObjectsDataProvider = native_impl.Quantize(
+            quantizedFeaturesInfo,
+            rawObjectsDataProviderPtr,
+            localExecutor
+          )
 
-        QuantizedRowsOutputIterator(dstRows, featuresColumnIdx, quantizedObjectsDataProvider)
+          QuantizedRowsOutputIterator(dstRows, featuresColumnIdx, quantizedObjectsDataProvider)
+        }
       }
     )(quantizedDataEncoder)
 
-    val quantizedPool = new Pool(quantizedData, pairsData, quantizedFeaturesInfo)
+    val quantizedPool = new Pool(quantizedData, pairsData, quantizedFeaturesInfo, partitionedByGroups)
     copyValues(quantizedPool)
   }
 
@@ -775,6 +809,27 @@ class Pool (
     updateCatFeaturesInfo(quantizedFeaturesInfo) // because there can be new values
     createQuantized(quantizedFeaturesInfo)
   }
+  
+  private[spark] def quantizeForModelApplicationImpl(model: TFullModel) : Pool = {
+    if (this.isQuantized) {
+      native_impl.CheckModelAndDatasetCompatibility(model, this.quantizedFeaturesInfo.__deref__())
+      this
+    } else {
+      this.quantize(
+        native_impl.CreateQuantizedFeaturesInfoForModelApplication(model, this.getFeaturesLayout.__deref__)
+      )
+    }
+  }
+  
+  /**
+   * Create [[Pool]] with quantized features from [[Pool]] with raw features.
+   * This variant of the method is used when we want to apply CatBoostModel on Pool
+   */
+  def quantizeForModelApplication[Model <: org.apache.spark.ml.PredictionModel[Vector, Model]](
+    model: CatBoostModelTrait[Model]
+  ) : Pool = {
+    this.quantizeForModelApplicationImpl(model.nativeModel)
+  }
 
   /**
    * Repartition data to the specified number of partitions.
@@ -783,7 +838,9 @@ class Pool (
    */
   def repartition(partitionCount: Int, byGroupColumnsIfPresent: Boolean = true) : Pool = {
     val maybeGroupIdCol = get(groupIdCol)
+    var partitionedByGroups = false
     val newData = if (byGroupColumnsIfPresent && maybeGroupIdCol.isDefined) {
+      partitionedByGroups = true
       val maybeSubgroupIdCol = get(subgroupIdCol)
       if (maybeSubgroupIdCol.isDefined) {
         data.repartition(partitionCount, new Column(maybeGroupIdCol.get)).sortWithinPartitions(
@@ -798,7 +855,7 @@ class Pool (
     } else {
       data.repartition(partitionCount)
     }
-    val result = new Pool(newData, pairsData, this.quantizedFeaturesInfo)
+    val result = new Pool(newData, pairsData, this.quantizedFeaturesInfo, partitionedByGroups)
     copyValues(result)
   }
 
@@ -834,16 +891,125 @@ class Pool (
         new Pool(
           spark.createDataFrame(sampledMainData, this.data.schema),
           spark.createDataFrame(sampledPairsData, this.pairsData.schema),
-          this.quantizedFeaturesInfo
+          this.quantizedFeaturesInfo,
+          true
         )
       } else {
         val sampledGroupedMainData = groupedMainData.sample(withReplacement=false, fraction=fraction)
         val sampledMainData = sampledGroupedMainData.flatMap(_._2)
-        new Pool(spark.createDataFrame(sampledMainData, this.data.schema), null, this.quantizedFeaturesInfo)
+        new Pool(
+          spark.createDataFrame(sampledMainData, this.data.schema),
+          null,
+          this.quantizedFeaturesInfo,
+          true
+        )
       }
     } else {
-      new Pool(this.data.sample(fraction), null, this.quantizedFeaturesInfo)
+      new Pool(this.data.sample(fraction), null, this.quantizedFeaturesInfo, false)
     }
     this.copyValues(sampledPool)
+  }
+  
+  /**
+   * ensure that if groups are present data in partitions contains whole groups in consecutive order
+   */
+  def ensurePartitionByGroupsIfPresent() : Pool = {
+    if (!this.isDefined(this.groupIdCol) || this.partitionedByGroups) {
+      this
+    } else {
+      this.repartition(partitionCount=this.data.rdd.getNumPartitions, byGroupColumnsIfPresent=true)
+    }
+  }
+  
+  /**
+   * Map over partitions for quantized Pool
+   */
+  def mapQuantizedPartitions[R : Encoder : ClassTag](
+    selectedColumns: Seq[String],
+    includeEstimatedFeatures: Boolean,
+    includePairsIfPresent: Boolean,
+    dstColumnNames: Array[String], // can be null, add all columns to dst in this case
+    f : (TDataProviderPtr, TDataProviderPtr, mutable.ArrayBuffer[mutable.ArrayBuffer[Any]], TLocalExecutor) => Iterator[R]
+  ) : Dataset[R] = {
+    if (!this.isQuantized) {
+      throw new CatBoostError("mapQuantizedPartitions requires quantized pool")
+    }
+
+    val preparedPool = if (selectedColumns.contains("groupId")) {
+      this.ensurePartitionByGroupsIfPresent()
+    } else {
+      this
+    }
+
+    val (selectedDF, columnIndexMap, dstColumnIndices, estimatedFeatureCount) = DataHelpers.selectColumnsAndReturnIndex(
+      preparedPool,
+      selectedColumns,
+      includeEstimatedFeatures,
+      if (dstColumnNames != null) { dstColumnNames } else { preparedPool.data.schema.fieldNames }
+    )
+
+    val spark = preparedPool.data.sparkSession
+    val threadCountForTask = SparkHelpers.getThreadCountForTask(spark)
+
+    val quantizedFeaturesInfo = preparedPool.quantizedFeaturesInfo
+    val dataMetaInfo = preparedPool.createDataMetaInfo(selectedColumns)
+
+    val schema = preparedPool.data.schema
+
+    if (includePairsIfPresent && (preparedPool.pairsData != null)) {
+      val cogroupedData = DataHelpers.getCogroupedMainAndPairsRDD(
+        selectedDF, 
+        columnIndexMap("groupId"), 
+        preparedPool.pairsData
+      )
+      val pairsSchema = preparedPool.pairsData.schema
+      val resultRDD = cogroupedData.mapPartitions {
+        groups : Iterator[(Long, (Iterable[Iterable[Row]], Iterable[Iterable[Row]]))] => {
+          if (groups.hasNext) {
+            val localExecutor = new TLocalExecutor
+            localExecutor.Init(threadCountForTask)
+
+            val (dataProvider, estimatedFeaturesDataProvider, dstRows) = DataHelpers.loadQuantizedDatasetsWithPairs(
+              quantizedFeaturesInfo,
+              columnIndexMap,
+              dataMetaInfo,
+              schema,
+              pairsSchema,
+              estimatedFeatureCount,
+              localExecutor,
+              groups,
+              dstColumnIndices
+            )
+            f(dataProvider, estimatedFeaturesDataProvider, dstRows, localExecutor)
+          } else {
+            Iterator[R]()
+          }
+        }
+      }
+      spark.createDataset(resultRDD)
+    } else {
+      selectedDF.mapPartitions[R]{
+        rows : Iterator[Row] => {
+          if (rows.hasNext) {
+            val localExecutor = new TLocalExecutor
+            localExecutor.Init(threadCountForTask)
+
+            val (dataProvider, estimatedFeaturesDataProvider, dstRows) = DataHelpers.loadQuantizedDatasets(
+              quantizedFeaturesInfo,
+              columnIndexMap,
+              dataMetaInfo,
+              schema,
+              estimatedFeatureCount,
+              localExecutor,
+              rows,
+              dstColumnIndices
+            )
+            f(dataProvider, estimatedFeaturesDataProvider, dstRows, localExecutor)
+          } else {
+            Iterator[R]()
+          }
+        }
+      }
+    }
   }
 }

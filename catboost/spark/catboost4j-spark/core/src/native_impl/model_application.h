@@ -1,6 +1,7 @@
 #pragma once
 
 #include <catboost/libs/data/objects.h>
+#include <catboost/libs/data/quantized_features_info.h>
 
 #include <catboost/private/libs/options/enums.h>
 
@@ -11,8 +12,14 @@
 #include <util/system/types.h>
 #include <util/system/yassert.h>
 
+class TFullModel;
+
 namespace NPar {
     class TLocalExecutor;
+}
+
+namespace NCB {
+    class TFeaturesLayout;
 }
 
 
@@ -48,3 +55,14 @@ public:
 private:
     TVector<TVector<double>> ApplyResult; // [modelDimensionIdx][objectIdx]
 };
+
+void CheckModelAndDatasetCompatibility(
+    const TFullModel& model,
+    const NCB::TQuantizedFeaturesInfo& datasetQuantizedFeaturesInfo
+) throw (yexception);
+
+
+NCB::TQuantizedFeaturesInfoPtr CreateQuantizedFeaturesInfoForModelApplication(
+    const TFullModel& model,
+    const NCB::TFeaturesLayout& datasetFeaturesLayout
+) throw (yexception);
