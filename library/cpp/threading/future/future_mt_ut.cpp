@@ -8,13 +8,24 @@
 
 #include <atomic>
 #include <exception>
-#include <limits>
 
 using NThreading::NewPromise;
 using NThreading::TFuture;
 using NThreading::TPromise;
+using NThreading::TWaitPolicy;
 
 namespace {
+    // Wait* implementation without optimizations, to test TWaitGroup better
+    template <class WaitPolicy, class TContainer>
+    TFuture<void> WaitNoOpt(const TContainer& futures) {
+        NThreading::TWaitGroup<WaitPolicy> wg;
+        for (const auto& fut : futures) {
+            wg.Add(fut);
+        }
+
+        return std::move(wg).Finish();
+    }
+
     class TRelaxedBarrier {
     public:
         explicit TRelaxedBarrier(i64 size)
@@ -55,6 +66,7 @@ namespace {
 
     struct TStateSnapshot {
         i64 Started = -1;
+        i64 StartedException = -1;
         const TVector<TFuture<void>>* Futures = nullptr;
     };
 
@@ -66,13 +78,14 @@ namespace {
 
         const auto exception = std::make_exception_ptr(42);
 
-        for (auto numPromises : xrange(2, 5)) {
+        for (auto numPromises : xrange(1, 5)) {
             for (auto loopIter : xrange(1024 * 64)) {
                 const auto numParticipants = numPromises + 1;
 
                 TRelaxedBarrier barrier{numParticipants};
 
                 std::atomic<i64> started = 0;
+                std::atomic<i64> startedException = 0;
                 std::atomic<i64> completed = 0;
 
                 TVector<TPromise<void>> promises;
@@ -86,6 +99,7 @@ namespace {
                 auto snapshotter = [&] {
                     return TStateSnapshot{
                         .Started = started.load(std::memory_order_relaxed),
+                        .StartedException = startedException.load(std::memory_order_relaxed),
                         .Futures = &futures,
                     };
                 };
@@ -99,6 +113,7 @@ namespace {
                         started.fetch_add(1, std::memory_order_relaxed);
 
                         if ((loopIter % 4 == 0) && i == 0) {
+                            startedException.fetch_add(1, std::memory_order_relaxed);
                             promises[i].SetException(exception);
                         } else {
                             promises[i].SetValue();
@@ -130,66 +145,71 @@ Y_UNIT_TEST_SUITE(TFutureMultiThreadedTest) {
         RunWaitTest(
             [](auto snapshotter) {
                 return [=]() {
-                    NThreading::WaitAll(*snapshotter().Futures)
-                        .Subscribe([=](auto&&) {
-                            TStateSnapshot snap = snapshotter();
-                            UNIT_ASSERT_VALUES_EQUAL(snap.Started, snap.Futures->size());
-                        });
+                    auto* futures = snapshotter().Futures;
+
+                    auto all = WaitNoOpt<TWaitPolicy::TAll>(*futures);
+
+                    // tests safety part
+                    all.Subscribe([=] (auto&& all) {
+                        TStateSnapshot snap = snapshotter();
+
+                        // value safety: all is set => every future is set
+                        UNIT_ASSERT(all.HasValue() <= ((snap.Started == (i64)snap.Futures->size()) && !snap.StartedException));
+
+                        // safety for hasException: all is set => every future is set and some has exception
+                        UNIT_ASSERT(all.HasException() <= ((snap.Started == (i64)snap.Futures->size()) && snap.StartedException > 0));
+                    });
+
+                    // test liveness
+                    all.Wait();
                 };
             });
     }
 
     Y_UNIT_TEST(WaitAny) {
-        std::atomic<i64> lowest = std::numeric_limits<i64>::max();
-
         RunWaitTest(
-            [lowest = &lowest](auto snapshotter) mutable {
+            [](auto snapshotter) {
                 return [=]() {
-                    NThreading::WaitAny(*snapshotter().Futures)
-                        .Subscribe([=](auto&&) {
-                            TStateSnapshot snap = snapshotter();
+                    auto* futures = snapshotter().Futures;
 
-                            auto l = lowest->load(std::memory_order_relaxed);
-                            auto current = snap.Started;
-                            if (current < l) {
-                                lowest->store(current, std::memory_order_relaxed);
-                            }
-                        });
+                    auto any = WaitNoOpt<TWaitPolicy::TAny>(*futures);
+
+                    // safety: any is ready => some f is ready
+                    any.Subscribe([=](auto&&) {
+                        UNIT_ASSERT(snapshotter().Started > 0);
+                    });
+
+                    // do we need better multithreaded liveness tests?
+                    any.Wait();
                 };
             });
-
-        UNIT_ASSERT_VALUES_EQUAL(lowest.load(), 1);
     }
 
     Y_UNIT_TEST(WaitExceptionOrAll) {
-        std::atomic<i64> lowest = 1024;
-
         RunWaitTest(
-            [lowest = &lowest](auto snapshotter) mutable {
+            [](auto snapshotter) {
                 return [=]() {
                     NThreading::WaitExceptionOrAll(*snapshotter().Futures)
                         .Subscribe([=](auto&&) {
-                            TStateSnapshot snap = snapshotter();
+                            auto* futures = snapshotter().Futures;
 
-                            auto l = lowest->load(std::memory_order_relaxed);
-                            auto current = snap.Started;
-                            if (current < l) {
-                                lowest->store(current, std::memory_order_relaxed);
-                            }
+                            auto exceptionOrAll = WaitNoOpt<TWaitPolicy::TExceptionOrAll>(*futures);
 
-                            bool allStarted = current == (i64)snap.Futures->size();
-                            bool anyException = false;
+                            exceptionOrAll.Subscribe([snapshotter](auto&& exceptionOrAll) {
+                                TStateSnapshot snap = snapshotter();
 
-                            for (auto&& fut : *snap.Futures) {
-                                anyException = anyException || fut.HasException();
-                            }
+                                // safety for hasException: exceptionOrAll has exception => some has exception
+                                UNIT_ASSERT(exceptionOrAll.HasException() ? snap.StartedException > 0 : true);
 
-                            UNIT_ASSERT(allStarted || anyException);
+                                // value safety: exceptionOrAll has value => all have value
+                                UNIT_ASSERT(exceptionOrAll.HasValue() == ((snap.Started == (i64)snap.Futures->size()) && !snap.StartedException));
+                            });
+
+                            // do we need better multithreaded liveness tests?
+                            exceptionOrAll.Wait();
                         });
                 };
             });
-
-        UNIT_ASSERT_VALUES_EQUAL(lowest.load(), 1);
     }
 }
 
