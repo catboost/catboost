@@ -5687,7 +5687,7 @@ def _build_binarized_feature_statistics_fig(statistics_list, pool_names):
             color = (color_a * i  + color_b * (pools_count - 1 - i)) / float(pools_count - 1)
             color = color.astype(int)
             trace_4 = go.Bar(
-                y=statistics['objects_per_bin'][order] / objects_in_pool,
+                y=statistics['objects_per_bin'][order] / float(objects_in_pool),
                 width=bar_width / pools_count,
                 name='% pool objects in bin (total {})'.format(objects_in_pool) + name_suffix,
                 yaxis='y2',
