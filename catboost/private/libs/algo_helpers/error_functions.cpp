@@ -109,6 +109,137 @@ void IDerCalcer::CalcDersRange(
     useTDers, IsExpApprox, hasDelta);
 }
 
+void TCoxError::CalcDersRange(
+    int start,
+    int count,
+    bool /*calcThirdDer*/,
+    const double* approxes,
+    const double* approxesDeltas,
+    const float* targets,
+    const float* /*weights*/,
+    TDers* ders
+) const {
+    // object weights are not supported yet
+
+    TVector<size_t> label_order(count);
+    std::iota(label_order.begin(), label_order.end(), 0);
+    std::sort(label_order.begin(), label_order.end(), [&]
+        (size_t lhs, size_t rhs){
+            float l_label = targets[start + lhs] >= 0 ? targets[start + lhs] : -targets[start + lhs];
+            float r_label = targets[start + rhs] >= 0 ? targets[start + rhs] : -targets[start + rhs];
+            return l_label < r_label;
+        }
+    );
+
+    double exp_p_sum = 0;
+    for (yssize_t i = 0; i < count; ++i) {
+        double updatedApprox = approxes[start + i];
+        if (approxesDeltas != nullptr) {
+            updatedApprox += approxesDeltas[start + i];
+        }
+        exp_p_sum += std::exp(updatedApprox);
+    }
+
+    double r_k = 0;
+    double s_k = 0;
+    double last_exp_p = 0.0;
+    double last_abs_y = 0.0;
+    double accumulated_sum = 0;
+    for (yssize_t i = 0; i < count; ++i) {
+        const size_t ind = label_order[start + i];
+        const double p = approxes[ind] + (approxesDeltas == nullptr ? 0 : approxesDeltas[ind]);
+
+        const double exp_p = std::exp(p);
+        const double y = targets[ind];
+        const double abs_y = std::abs(y);
+        // only update the denominator after we move forward in time (labels are sorted)
+        // this is Breslow's method for ties
+        accumulated_sum += last_exp_p;
+        if (last_abs_y < abs_y) {
+            exp_p_sum -= accumulated_sum;
+            accumulated_sum = 0;
+        }
+        //CHECK(last_abs_y <= abs_y) << "CoxRegression: labels must be in sorted order, " <<
+        //                            "MetaInfo::LabelArgsort failed!";
+
+        if (y > 0) {
+            r_k += 1.0/exp_p_sum;
+            s_k += 1.0/(exp_p_sum*exp_p_sum);
+        }
+
+        const double grad = exp_p*r_k - static_cast<float>(y > 0);
+        const double hess = exp_p*r_k - exp_p*exp_p * s_k;
+        ders[ind].Der1 =  grad;
+        ders[ind].Der2 = hess;
+
+        last_abs_y = abs_y;
+        last_exp_p = exp_p;
+    }
+}
+
+void TCoxError::CalcFirstDerRange(
+        int start,
+        int count,
+        const double* approxes,
+        const double* approxesDeltas,
+        const float* targets,
+        const float* /*weights*/,
+        double* firstDers
+    ) const {
+    // object weights are not supported yet
+
+    TVector<size_t> label_order(count);
+    std::iota(label_order.begin(), label_order.end(), 0);
+    std::sort(label_order.begin(), label_order.end(), [&]
+        (size_t lhs, size_t rhs){
+            float l_label = targets[start + lhs] >= 0 ? targets[start + lhs] : -targets[start + lhs];
+            float r_label = targets[start + rhs] >= 0 ? targets[start + rhs] : -targets[start + rhs];
+            return l_label < r_label;
+        }
+    );
+
+    double exp_p_sum = 0;
+    for (yssize_t i = 0; i < count; ++i) {
+        double updatedApprox = approxes[start + i];
+        if (approxesDeltas != nullptr) {
+            updatedApprox += approxesDeltas[start + i];
+        }
+        exp_p_sum += std::exp(updatedApprox);
+    }
+
+    double r_k = 0;
+    double last_exp_p = 0.0;
+    double last_abs_y = 0.0;
+    double accumulated_sum = 0;
+    for (yssize_t i = 0; i < count; ++i) {
+        const size_t ind = label_order[start + i];
+        const double p = approxes[ind] + (approxesDeltas == nullptr ? 0 : approxesDeltas[ind]);
+
+        const double exp_p = std::exp(p);
+        const double y = targets[ind];
+        const double abs_y = std::abs(y);
+        // only update the denominator after we move forward in time (labels are sorted)
+        // this is Breslow's method for ties
+        accumulated_sum += last_exp_p;
+        if (last_abs_y < abs_y) {
+            exp_p_sum -= accumulated_sum;
+            accumulated_sum = 0;
+        }
+            //CHECK(last_abs_y <= abs_y) << "CoxRegression: labels must be in sorted order, " <<
+            //                            "MetaInfo::LabelArgsort failed!";
+
+        if (y > 0) {
+            r_k += 1.0/exp_p_sum;
+        }
+
+        const double grad = exp_p*r_k - static_cast<float>(y > 0);
+        firstDers[ind] =  grad; // GradientPair(grad * w, hess * w);
+
+        last_abs_y = abs_y;
+        last_exp_p = exp_p;
+    }
+}
+
 namespace {
     template <int Capacity>
     class TExpForwardView {

@@ -4873,6 +4873,29 @@ def test_without_cat_features(boosting_type, dev_score_calc_obj_block_size):
     return [local_canonical_file(output_eval_path)]
 
 
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+def test_cox_regression(boosting_type):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    cmd = (
+        '--use-best-model', 'false',
+        '--loss-function', 'Cox',
+        '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '--boosting-type', boosting_type,
+        '-i', '10',
+        '-T', '1',
+        '--bootstrap-type', 'No',
+        '--random-strength', '0',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+    )
+    execute_catboost_fit('CPU', cmd)
+
+    return [local_canonical_file(output_eval_path)]
+
+
 def make_deterministic_train_cmd(loss_function, pool, train, test, cd, schema='', test_schema='', dev_score_calc_obj_block_size=None, other_options=()):
     pool_path = schema + data_file(pool, train)
     test_path = test_schema + data_file(pool, test)
