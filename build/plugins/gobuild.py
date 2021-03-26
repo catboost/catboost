@@ -232,9 +232,8 @@ def on_go_process_srcs(unit):
         if is_test_module:
             go_test_for_dir = unit.get('GO_TEST_FOR_DIR')
             if go_test_for_dir and go_test_for_dir.startswith('$S/'):
-                cgo_cflags.append(os.path.join('-I${ARCADIA_ROOT}', go_test_for_dir[3:]))
-        cgo_cflags.append('-I$CURDIR')
-        unit.oncgo_cflags(cgo_cflags)
+                unit.onaddincl(['FOR', 'c', go_test_for_dir[3:]])
+        unit.onaddincl(['FOR', 'c', unit.get('MODDIR')])
         cgo_cflags = get_appended_values(unit, 'CGO_CFLAGS_VALUE')
 
     for f in itertools.chain(c_files, cxx_files, s_files):
