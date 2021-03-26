@@ -17,6 +17,7 @@
     </parent>
 
     <properties>
+        <spark.compat.version>2.4</spark.compat.version>
         <spark.version>2.4.0</spark.version>
         <hadoop.version>2.7.3</hadoop.version>
     </properties>
@@ -96,6 +97,7 @@
                                 <argument>ai.catboost.spark.impl.pyspark_wrapper_generator.Generator</argument>
                                 <argument>${project.version}</argument>
                                 <argument>${project.build.directory}/classes/catboost_spark</argument>
+                                <argument>${spark.compat.version}</argument>
                             </arguments>
                         </configuration>
                     </execution>
