@@ -1,4 +1,4 @@
-CatBoost Spark Package
+CatBoost for Apache Spark Package
 ======================
 
 Setup 
