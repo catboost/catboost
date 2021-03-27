@@ -79,6 +79,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\graphviz\753826f288d004a76cf015c999.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\graphviz\84426baf7a7b6fa7d0489fa15b.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\graphviz\_753826f288d004a76cf015c999.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\graphviz
@@ -106,11 +107,42 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\graphviz\_753826f288d004a76cf015c999.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\graphviz\_753826f288d004a76cf015c999.py3.obj;</Outputs>
     </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\graphviz\_84426baf7a7b6fa7d0489fa15b.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\graphviz
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/graphviz/_84426baf7a7b6fa7d0489fa15b.py3.obj" "$(SolutionDir)$(Configuration)/contrib/python/graphviz/_84426baf7a7b6fa7d0489fa15b.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\graphviz
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/graphviz/_84426baf7a7b6fa7d0489fa15b.py3.obj" "$(SolutionDir)$(Configuration)/contrib/python/graphviz/_84426baf7a7b6fa7d0489fa15b.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/graphviz/_84426baf7a7b6fa7d0489fa15b.py3.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\graphviz\_84426baf7a7b6fa7d0489fa15b.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\graphviz\_84426baf7a7b6fa7d0489fa15b.py3.obj;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\graphviz
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/graphviz/753826f288d004a76cf015c999.cpp" "_eabcfdfe7a8dc9885079f5bbcd=resfs/src/resfs/file/py/graphviz/__init__.py" "_c20d703868fe9b9beab3d37abd=resfs/file/py/graphviz/__init__.py" "_f634aa3ffb05831f2000e5df25=resfs/src/resfs/file/py/graphviz/__init__.py.yapyc3" "_4bdac9d5e36982fac00bccd244=resfs/file/py/graphviz/__init__.py.yapyc3" "_373c3099b78e53bfeee56fd2b2=resfs/src/resfs/file/py/graphviz/_compat.py" "_0e3249c7cbadb9c4342bc25979=resfs/file/py/graphviz/_compat.py" "_4baf79e990f4e0a4c6a4896f81=resfs/src/resfs/file/py/graphviz/_compat.py.yapyc3" "_f4910b02aad61e398429eed783=resfs/file/py/graphviz/_compat.py.yapyc3" "_68e46d814f53b8dea00e6799d7=resfs/src/resfs/file/py/graphviz/backend.py" "_6543fd6559501c9d2cb79c6be7=resfs/file/py/graphviz/backend.py" "_d23c300c9d8f9bb2bb24aa9d2c=resfs/src/resfs/file/py/graphviz/backend.py.yapyc3" "_26d0928bf894e7410fda08baa1=resfs/file/py/graphviz/backend.py.yapyc3" "_c22226bafe333e86c1e9117bcc=resfs/src/resfs/file/py/graphviz/dot.py" "_f6447c3da09a51083df68d3480=resfs/file/py/graphviz/dot.py" "_0eec4ebb64e956644021ee742b=resfs/src/resfs/file/py/graphviz/dot.py.yapyc3" "_2a8ef9de832bcbb10f43b7f8dc=resfs/file/py/graphviz/dot.py.yapyc3" "_2e0cc5b3ece601e06cc897aa45=resfs/src/resfs/file/py/graphviz/files.py" "_5816fe0722e176dbd638f9aa54=resfs/file/py/graphviz/files.py" "_ae58f49a4a13aad9f363f88b25=resfs/src/resfs/file/py/graphviz/files.py.yapyc3" "_27b55f551e7c354d8408d60e54=resfs/file/py/graphviz/files.py.yapyc3" "_5567fb116f6f8da83d066796e8=resfs/src/resfs/file/py/graphviz/lang.py" "_fe4a2742c18974a759f4a3a6c0=resfs/file/py/graphviz/lang.py" "_b8085f46ae9ad629bdb9a2772c=resfs/src/resfs/file/py/graphviz/lang.py.yapyc3" "_e3bb286208dc310081208644e0=resfs/file/py/graphviz/lang.py.yapyc3" "_2717fe44c9498e3780008a4fbc=resfs/src/resfs/file/py/graphviz/tools.py" "_e4b82bf14ea6fa9c76e3af823c=resfs/file/py/graphviz/tools.py" "_2dd6ad63fb121dd56d2f7689cd=resfs/src/resfs/file/py/graphviz/tools.py.yapyc3" "_bcc624d1907c05697f4c59b22e=resfs/file/py/graphviz/tools.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\graphviz
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/graphviz/84426baf7a7b6fa7d0489fa15b.cpp" "_8b2a9af2f0bf60451d1b2c052d=resfs/src/resfs/file/contrib/python/graphviz/.dist-info/METADATA" "_ad0c80ee63e44e22d29df10751=resfs/file/contrib/python/graphviz/.dist-info/METADATA" "_18f1205d1819c9c58cce56e3c9=resfs/src/resfs/file/contrib/python/graphviz/.dist-info/top_level.txt" "_66f138bf3826db71201f3460c7=resfs/file/contrib/python/graphviz/.dist-info/top_level.txt"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -123,15 +155,46 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\graphviz
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/graphviz/753826f288d004a76cf015c999.cpp" "_eabcfdfe7a8dc9885079f5bbcd=resfs/src/resfs/file/py/graphviz/__init__.py" "_c20d703868fe9b9beab3d37abd=resfs/file/py/graphviz/__init__.py" "_f634aa3ffb05831f2000e5df25=resfs/src/resfs/file/py/graphviz/__init__.py.yapyc3" "_4bdac9d5e36982fac00bccd244=resfs/file/py/graphviz/__init__.py.yapyc3" "_373c3099b78e53bfeee56fd2b2=resfs/src/resfs/file/py/graphviz/_compat.py" "_0e3249c7cbadb9c4342bc25979=resfs/file/py/graphviz/_compat.py" "_4baf79e990f4e0a4c6a4896f81=resfs/src/resfs/file/py/graphviz/_compat.py.yapyc3" "_f4910b02aad61e398429eed783=resfs/file/py/graphviz/_compat.py.yapyc3" "_68e46d814f53b8dea00e6799d7=resfs/src/resfs/file/py/graphviz/backend.py" "_6543fd6559501c9d2cb79c6be7=resfs/file/py/graphviz/backend.py" "_d23c300c9d8f9bb2bb24aa9d2c=resfs/src/resfs/file/py/graphviz/backend.py.yapyc3" "_26d0928bf894e7410fda08baa1=resfs/file/py/graphviz/backend.py.yapyc3" "_c22226bafe333e86c1e9117bcc=resfs/src/resfs/file/py/graphviz/dot.py" "_f6447c3da09a51083df68d3480=resfs/file/py/graphviz/dot.py" "_0eec4ebb64e956644021ee742b=resfs/src/resfs/file/py/graphviz/dot.py.yapyc3" "_2a8ef9de832bcbb10f43b7f8dc=resfs/file/py/graphviz/dot.py.yapyc3" "_2e0cc5b3ece601e06cc897aa45=resfs/src/resfs/file/py/graphviz/files.py" "_5816fe0722e176dbd638f9aa54=resfs/file/py/graphviz/files.py" "_ae58f49a4a13aad9f363f88b25=resfs/src/resfs/file/py/graphviz/files.py.yapyc3" "_27b55f551e7c354d8408d60e54=resfs/file/py/graphviz/files.py.yapyc3" "_5567fb116f6f8da83d066796e8=resfs/src/resfs/file/py/graphviz/lang.py" "_fe4a2742c18974a759f4a3a6c0=resfs/file/py/graphviz/lang.py" "_b8085f46ae9ad629bdb9a2772c=resfs/src/resfs/file/py/graphviz/lang.py.yapyc3" "_e3bb286208dc310081208644e0=resfs/file/py/graphviz/lang.py.yapyc3" "_2717fe44c9498e3780008a4fbc=resfs/src/resfs/file/py/graphviz/tools.py" "_e4b82bf14ea6fa9c76e3af823c=resfs/file/py/graphviz/tools.py" "_2dd6ad63fb121dd56d2f7689cd=resfs/src/resfs/file/py/graphviz/tools.py.yapyc3" "_bcc624d1907c05697f4c59b22e=resfs/file/py/graphviz/tools.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\graphviz
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/graphviz/84426baf7a7b6fa7d0489fa15b.cpp" "_8b2a9af2f0bf60451d1b2c052d=resfs/src/resfs/file/contrib/python/graphviz/.dist-info/METADATA" "_ad0c80ee63e44e22d29df10751=resfs/file/contrib/python/graphviz/.dist-info/METADATA" "_18f1205d1819c9c58cce56e3c9=resfs/src/resfs/file/contrib/python/graphviz/.dist-info/top_level.txt" "_66f138bf3826db71201f3460c7=resfs/file/contrib/python/graphviz/.dist-info/top_level.txt"
+if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/graphviz/753826f288d004a76cf015c999.cpp	</Message>
+      <Message>$B/contrib/python/graphviz/753826f288d004a76cf015c999.cpp	$B/contrib/python/graphviz/84426baf7a7b6fa7d0489fa15b.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\graphviz\753826f288d004a76cf015c999.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\graphviz\753826f288d004a76cf015c999.cpp;$(SolutionDir)$(Configuration)\contrib\python\graphviz\84426baf7a7b6fa7d0489fa15b.cpp;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\graphviz\.dist-info\METADATA">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\graphviz
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/graphviz/_84426baf7a7b6fa7d0489fa15b.yasm" "-" "contrib/python/graphviz/.dist-info/METADATA" "_8b2a9af2f0bf60451d1b2c052d.rodata" "$(SolutionDir)../contrib/python/graphviz/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/graphviz/_ad0c80ee63e44e22d29df10751.rodata" "-" "contrib/python/graphviz/.dist-info/top_level.txt" "_18f1205d1819c9c58cce56e3c9.rodata" "$(SolutionDir)../contrib/python/graphviz/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/graphviz/_66f138bf3826db71201f3460c7.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\graphviz
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/graphviz/_84426baf7a7b6fa7d0489fa15b.yasm" "-" "contrib/python/graphviz/.dist-info/METADATA" "_8b2a9af2f0bf60451d1b2c052d.rodata" "$(SolutionDir)../contrib/python/graphviz/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/graphviz/_ad0c80ee63e44e22d29df10751.rodata" "-" "contrib/python/graphviz/.dist-info/top_level.txt" "_18f1205d1819c9c58cce56e3c9.rodata" "$(SolutionDir)../contrib/python/graphviz/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/graphviz/_66f138bf3826db71201f3460c7.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/graphviz/_84426baf7a7b6fa7d0489fa15b.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\graphviz\.dist-info\METADATA;$(SolutionDir)..\contrib\python\graphviz\.dist-info\top_level.txt;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\graphviz\_84426baf7a7b6fa7d0489fa15b.yasm;$(SolutionDir)$(Configuration)\contrib\python\graphviz\_ad0c80ee63e44e22d29df10751.rodata;$(SolutionDir)$(Configuration)\contrib\python\graphviz\_66f138bf3826db71201f3460c7.rodata;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\graphviz\graphviz\__init__.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
