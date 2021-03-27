@@ -575,7 +575,6 @@ migrations:
     - mail/contrib/ccs-caldavtester/verifiers
     - mail/contrib/tatsu/test
     - mail/contrib/tatsu/test/grammar
-    - mail/mxtests/lib
     - mail/python/theatre/app
     - mail/retriever/unistat
     - mail/tools/ews_call/ews_call
@@ -661,7 +660,6 @@ migrations:
     - ml/nirvana/nope
     - ml/pulsar/server/pulsar_app
     - ml/tensorflow/ytensorflow
-    - ml/tensorflow/ytensorflow/tests
     - ml/tensorflow/ytensorflow/ytensorflow/inference
     - ml/tensorflow/ytensorflow/ytensorflow/quantization
     - ml/tensorflow/ytensorflow/ytensorflow/train/hooks
@@ -997,7 +995,6 @@ migrations:
     - sandbox/projects/yabs/auto_supbs_2/lib/order_processor_lib
     - sandbox/projects/yabs/auto_supbs_2/lib/simple_issue_processor
     - sandbox/projects/yabs/nanpu/tasks/DiffTask
-    - sandbox/projects/yabs/qa/ammo_module/requestlog
     - sandbox/projects/yabs/qa/tasks/YabsBinarySearchHelper
     - sandbox/projects/yabs/qa/tasks/YabsServerB2BFuncShootCmp
     - sandbox/projects/yane/ParseYanswerFactLogs
@@ -1074,7 +1071,6 @@ migrations:
     - voicetech/common/voicetable/lib
     - voicetech/infra/gdpr_proxy/service
     - voicetech/tts/vh/utils
-    - voicetech/vqe/tools/yt_uploader
     - weather/workers/warnings/general
     - yabs/analytics/anomaly_analyzer/src
     - yabs/chat_bot/bot
@@ -1296,8 +1292,6 @@ migrations:
     - alice/uniproxy/bin/uniproxy-unistat
     - alice/uniproxy/bin/yabio-storage
     - alice/uniproxy/library/activation_storage
-    - alice/uniproxy/library/async_http_client
-    - alice/uniproxy/library/async_http_client/ut
     - alice/uniproxy/library/backends_asr
     - alice/uniproxy/library/backends_bio
     - alice/uniproxy/library/backends_bio/ut
@@ -1433,7 +1427,6 @@ migrations:
     - kikimr/tools/create_svp
     - kikimr/tools/dstool
     - kikimr/tools/duty_bot
-    - kikimr/tools/release
     - kikimr/yf/tests/embedded
     - kikimr/yf/tests/lib
     - kikimr/yf/tests/ydb
@@ -1787,7 +1780,6 @@ migrations:
     - ads/quality/adv_machine/cm_robot/cmpy/stuff
     - ads/quality/adv_machine/cm_robot/tests/small
     - ads/quality/bid_correction/lm/pconv
-    - ads/quality/bid_correction/lm/train
     - ads/quality/embedding/join_banners
     - ads/quality/embedding/tsar_tensor/BSFACTOR-44/gram_eval
     - ads/quality/embedding/tsar_tensor/BSFACTOR-44/preprocess
@@ -1912,7 +1904,6 @@ migrations:
     - logbroker/tools/deploy_consistency_test
     - mail/collectors/tests-system/src
     - mail/github/calendar-attach-processor
-    - mail/mxtests/tests
     - maps/analyzer/pylibs/train_catboost
     - maps/analyzer/sandbox/jams_level_prediction/prepare_history_storage/lib
     - maps/analyzer/sandbox/masstransit/quality/lib
@@ -1943,7 +1934,6 @@ migrations:
     - market/backctld/pyb
     - market/cataloger/lite
     - market/click_n_collect/mt
-    - market/dynamic_pricing/pricing/library
     - market/dynamic_pricing/tools/kvi_evaluation
     - market/dynamic_pricing/tools/offline_modeling
     - market/mobile_validator/mt
