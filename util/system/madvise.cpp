@@ -90,7 +90,12 @@ void MadviseEvict(TArrayRef<const ui8> data) {
 }
 
 void MadviseExcludeFromCoreDump(const void* begin, size_t size) {
-#if !defined(_win_)
+#if defined(_darwin_)
+    // Don't try to call function with flag which doesn't work
+    // https://st.yandex-team.ru/PASSP-31755#6050bbafc68f501f2c22caab
+    Y_UNUSED(begin);
+    Y_UNUSED(size);
+#elif !defined(_win_)
     Madvise(MADV_DONTDUMP, begin, size);
 #endif
 }
@@ -104,7 +109,10 @@ void MadviseExcludeFromCoreDump(TArrayRef<const ui8> data) {
 }
 
 void MadviseIncludeIntoCoreDump(const void* begin, size_t size) {
-#if !defined(_win_)
+#if defined(_darwin_)
+    Y_UNUSED(begin);
+    Y_UNUSED(size);
+#elif !defined(_win_)
     Madvise(MADV_DODUMP, begin, size);
 #endif
 }
