@@ -11,7 +11,6 @@ import hashlib
 
 from base64 import urlsafe_b64encode
 
-
 sys.dont_write_bytecode = True
 
 PL_LINUX = 'manylinux1_x86_64'
@@ -191,9 +190,12 @@ def make_wheel(wheel_name, pkg_name, ver, arc_root, so_path):
     # Create py files
     python_package_dir = os.path.join(arc_root, 'catboost/python-package')
     os.makedirs(os.path.join(dir_path, pkg_name))
-    for file_name in ['__init__.py', 'version.py', 'core.py', 'datasets.py', 'utils.py', 'eval', 'widget', 'monoforest.py', 'plot_helpers.py', 'text_processing.py']:
+    for file_name in ['__init__.py', 'version.py', 'core.py', 'datasets.py', 'utils.py', 'eval', 'widget/__init__.py',
+                      'widget/ipythonwidget.py', 'monoforest.py', 'plot_helpers.py', 'text_processing.py']:
         src = os.path.join(python_package_dir, 'catboost', file_name)
         dst = os.path.join(dir_path, pkg_name, file_name)
+        os.makedirs(os.path.dirname(dst), exist_ok=True)
+
         if os.path.isdir(src):
             shutil.copytree(src, dst)
         else:
@@ -217,8 +219,22 @@ def make_wheel(wheel_name, pkg_name, ver, arc_root, so_path):
         )
         with open(file_path, 'w') as fm:
             fm.write(metadata)
+
     substitute_vars(os.path.join(dist_info_dir, 'METADATA'))
     substitute_vars(os.path.join(dist_info_dir, 'top_level.txt'))
+
+    data_dir = os.path.join(dir_path, '{}-{}.data'.format(pkg_name, ver), 'data')
+    widget_dir = os.path.join(python_package_dir, 'catboost', 'widget')
+    for file in ['extension.js', 'index.js']:
+        src = os.path.join(widget_dir, 'nbextension', file)
+        dst = os.path.join(data_dir, 'share', 'jupyter', 'nbextensions', 'catboost_widget', file)
+        os.makedirs(os.path.dirname(dst), exist_ok=True)
+        shutil.copy(src, dst)
+
+    src = os.path.join(widget_dir, 'catboost_widget.json')
+    dst = os.path.join(data_dir, 'etc', 'jupyter', 'nbconfig', 'notebook.d', 'catboost_widget.json')
+    os.makedirs(os.path.dirname(dst), exist_ok=True)
+    shutil.copy(src, dst)
 
     # Create record
     make_record(dir_path, dist_info_dir)
@@ -227,6 +243,12 @@ def make_wheel(wheel_name, pkg_name, ver, arc_root, so_path):
     shutil.make_archive(wheel_name, 'zip', dir_path)
     shutil.move(wheel_name + '.zip', wheel_name)
     shutil.rmtree(dir_path)
+
+
+def build_widget():
+    js_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'widget', 'js')
+    subprocess.check_call(['npm', 'install'], cwd=js_dir)
+    subprocess.check_call(['npm', 'run', 'build'], cwd=js_dir)
 
 
 def build(arc_root, out_root, tail_args):
@@ -250,7 +272,9 @@ def build(arc_root, out_root, tail_args):
             src = os.path.join(py_trait.out_root, 'catboost', 'python-package', 'catboost', py_trait.so_name())
             dst = '.'.join([src, task_type])
             shutil.move(src, dst)
-            wheel_name = os.path.join(py_trait.arc_root, 'catboost', 'python-package', '{}-{}-{}-none-{}.whl'.format(pkg_name, ver, py_trait.lang, py_trait.platform))
+            build_widget()
+            wheel_name = os.path.join(py_trait.arc_root, 'catboost', 'python-package',
+                                      '{}-{}-{}-none-{}.whl'.format(pkg_name, ver, py_trait.lang, py_trait.platform))
             make_wheel(wheel_name, pkg_name, ver, arc_root, dst)
             os.remove(dst)
             return wheel_name

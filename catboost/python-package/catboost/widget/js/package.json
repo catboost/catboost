@@ -1,0 +1,25 @@
+{
+  "name": "catboost_ipython_widget",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/index.js",
+  "scripts": {
+    "build": "webpack --mode=development",
+    "clean": "rimraf dist && rimraf ../nbextension",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@jupyter-widgets/base": "^4.0.0",
+    "lodash": "^4.17.21",
+    "plotly.js-dist-min": "^1.58.4"
+  },
+  "devDependencies": {
+    "css-loader": "^5.2.0",
+    "rimraf": "^3.0.2",
+    "style-loader": "^2.0.0",
+    "webpack": "^5.28.0",
+    "webpack-cli": "^4.5.0"
+  }
+}
