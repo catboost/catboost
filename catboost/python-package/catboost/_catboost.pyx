@@ -1214,47 +1214,15 @@ cdef _vector_of_size_t_to_np_array(const TVector[size_t]& vec):
         result[i] = vec[i]
     return result
 
-cdef class _FloatArrayWrapper:
-    cdef const float* _arr
-    cdef int _count
+cdef np.ndarray _CreateNumpyFloatArrayView(const float* array, int count):
+    cdef np.npy_intp dims[1]
+    dims[0] = count
+    return np.PyArray_SimpleNewFromData(1, dims, np.NPY_FLOAT, <void*>array)
 
-    @staticmethod
-    cdef create(const float* arr, int count):
-        wrapper = _FloatArrayWrapper()
-        wrapper._arr = arr
-        wrapper._count = count
-        return wrapper
-
-    def __getitem__(self, key):
-        if key >= self._count:
-            raise IndexError()
-
-        return self._arr[key]
-
-    def __len__(self):
-        return self._count
-
-
-# Cython does not have generics so using small copy-paste here and below
-cdef class _DoubleArrayWrapper:
-    cdef const double* _arr
-    cdef int _count
-
-    @staticmethod
-    cdef create(const double* arr, int count):
-        wrapper = _DoubleArrayWrapper()
-        wrapper._arr = arr
-        wrapper._count = count
-        return wrapper
-
-    def __getitem__(self, key):
-        if key >= self._count:
-            raise IndexError()
-
-        return self._arr[key]
-
-    def __len__(self):
-        return self._count
+cdef np.ndarray _CreateNumpyDoubleArrayView(const double* array, int count):
+    cdef np.npy_intp dims[1]
+    dims[0] = count
+    return np.PyArray_SimpleNewFromData(1, dims, np.NPY_DOUBLE, <void*>array)
 
 cdef TMetricHolder _MetricEval(
     const TVector[TVector[double]]& approx,
@@ -1269,13 +1237,13 @@ cdef TMetricHolder _MetricEval(
     cdef TMetricHolder holder
     holder.Stats.resize(2)
 
-    approxes = [_DoubleArrayWrapper.create(approx[i].data() + begin, end - begin) for i in xrange(approx.size())]
-    targets = _FloatArrayWrapper.create(target.data() + begin, end - begin)
+    approxes = [_CreateNumpyDoubleArrayView(approx[i].data() + begin, end - begin) for i in xrange(approx.size())]
+    targets = _CreateNumpyFloatArrayView(target.data() + begin, end - begin)
 
     if weight.size() == 0:
         weights = None
     else:
-        weights = _FloatArrayWrapper.create(weight.data() + begin, end - begin)
+        weights = _CreateNumpyFloatArrayView(weight.data() + begin, end - begin)
 
     try:
         error, weight_ = metricObject.evaluate(approxes, targets, weights)
@@ -1301,13 +1269,13 @@ cdef TMetricHolder _MultiregressionMetricEval(
     cdef TMetricHolder holder
     holder.Stats.resize(2)
 
-    approxes = [_DoubleArrayWrapper.create(approx[i].data() + begin, end - begin) for i in xrange(approx.size())]
-    targets = [_FloatArrayWrapper.create(target[i].data() + begin, end - begin) for i in xrange(target.size())]
+    approxes = [_CreateNumpyDoubleArrayView(approx[i].data() + begin, end - begin) for i in xrange(approx.size())]
+    targets = [_CreateNumpyFloatArrayView(target[i].data() + begin, end - begin) for i in xrange(target.size())]
 
     if weight.size() == 0:
         weights = None
     else:
-        weights = _FloatArrayWrapper.create(weight.data() + begin, end - begin)
+        weights = _CreateNumpyFloatArrayView(weight.data() + begin, end - begin)
 
     try:
         error, weight_ = metricObject.evaluate(approxes, targets, weights)
@@ -1344,11 +1312,11 @@ cdef void _ObjectiveCalcDersRange(
     cdef objectiveObject = <object>(customData)
     cdef TString errorMessage
 
-    approx = _DoubleArrayWrapper.create(approxes, count)
-    target = _FloatArrayWrapper.create(targets, count)
+    approx = _CreateNumpyDoubleArrayView(approxes, count)
+    target = _CreateNumpyFloatArrayView(targets, count)
 
     if weights:
-        weight = _FloatArrayWrapper.create(weights, count)
+        weight = _CreateNumpyFloatArrayView(weights, count)
     else:
         weight = None
 
@@ -1376,7 +1344,7 @@ cdef void _ObjectiveCalcDersMultiClass(
     cdef objectiveObject = <object>(customData)
     cdef TString errorMessage
 
-    approxes = _DoubleArrayWrapper.create(approx.data(), approx.size())
+    approxes = _CreateNumpyDoubleArrayView(approx.data(), approx.size())
 
     try:
         ders_vector, second_ders_matrix = objectiveObject.calc_ders_multi(approxes, target, weight)
@@ -1406,8 +1374,8 @@ cdef void _ObjectiveCalcDersMultiRegression(
     cdef objectiveObject = <object>(customData)
     cdef TString errorMessage
 
-    approxes = _DoubleArrayWrapper.create(approx.data(), approx.size())
-    targetes = _FloatArrayWrapper.create(target.data(), target.size())
+    approxes = _CreateNumpyDoubleArrayView(approx.data(), approx.size())
+    targetes = _CreateNumpyFloatArrayView(target.data(), target.size())
 
     try:
         ders_vector, second_ders_matrix = objectiveObject.calc_ders_multi(approxes, targetes, weight)
