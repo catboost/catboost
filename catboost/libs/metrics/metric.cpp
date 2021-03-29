@@ -710,7 +710,7 @@ TMetricHolder TCoxMetric::Eval(
         last_abs_y = abs_y;
         last_exp_p = exp_p;
     }
-
+    error.Stats[0] = - error.Stats[0];
 
     return error;
 }
