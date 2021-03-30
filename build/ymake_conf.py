@@ -2906,7 +2906,7 @@ class Cuda(object):
         if self.cuda_version.value in ('8.0', '9.0', '9.1', '9.2'):
             raise ConfigureError('CUDA versions 8.x and 9.x are no longer supported.\nSee DEVTOOLS-7108.')
 
-        if self.cuda_version.value in ('10.0', '10.1', '11.0', '11.1'):
+        if self.cuda_version.value in ('10.0', '10.1', '11.0', '11.1', '11.2'):
             return True
 
         return False
