@@ -763,7 +763,7 @@ ALLOW yweb/news/support/viewer -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW yweb/news/themes_viewer/app -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW yweb/rca/server/storage -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW yweb/webdaemons/expcookier/tests -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW yweb/yasap/answers_admin/admin -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW yweb/yasap/answers/admin/admin -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW yweb/yasap/answers/answers -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW yweb/yasap/answers/database_migrations -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW yweb/yasap/answers_nirvana/answers_acceptance -> contrib/python/sqlalchemy/sqlalchemy-1.2
