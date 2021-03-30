@@ -142,8 +142,9 @@ ALLOW mail -> contrib/restricted/googletest
 ALLOW maps/mobile/libs -> contrib/restricted/googletest
 ALLOW maps/mobile/bundle -> contrib/restricted/googletest
 ALLOW mds -> contrib/restricted/googletest
-# TODO remove this lines upon solving IGNIETFERRO-1827
-ALLOW market/library/shiny/stat/mock -> contrib/restricted/googletest/googlemock
+# A mere proxy to allow using gmock in libraries without being bound to specific test framework
+# See IGNIETFERRO-1827 for details.
+ALLOW library/cpp/testing/gmock -> contrib/restricted/googletest/googlemock
 
 # allow usage of MIT part
 ALLOW .* -> contrib/restricted/librseq/headeronly
