@@ -75,7 +75,7 @@ namespace NPrivate {
 
     private:
         std::aligned_storage_t<sizeof(T), alignof(T)> StackBasedStorage[CountOnStack];
-        size_t IsStorageUsed = false;
+        bool IsStorageUsed = false;
         Alloc FallbackAllocator;
     };
 }
