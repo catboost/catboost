@@ -3,7 +3,7 @@ var version = require('./package.json').version;
 
 var rules = [
     {test: /\.css$/, use: ['style-loader', 'css-loader']}
-]
+];
 
 
 module.exports = [

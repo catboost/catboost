@@ -1,10 +1,10 @@
 require('./CatboostIpython.css');
 
-var widgets = require("@jupyter-widgets/base");
-var _ = require("lodash");
+var widgets = require('@jupyter-widgets/base');
+var _ = require('lodash');
 var Plotly = require('plotly.js-dist-min');
-
-var version = require("../package.json").version;
+var $ = require('jquery');
+var widget_version = require('../package.json').version;
 
 /* global Highcharts, Plotly*/
 
@@ -1486,7 +1486,7 @@ CatboostIpython.prototype.convertTime = function (time) {
     var minutes = time % 60;
     time = parseInt(time / 60, 10);
     var hours = time % 24;
-    var out = "";
+    var out = '';
     if (hours && hours > 0) {
         out += hours + 'h ';
         seconds = 0;
@@ -1642,7 +1642,7 @@ var CatboostIpythonWidget = widgets.DOMWidgetView.extend({
 
         for (var path in data) {
             if (data.hasOwnProperty(path)) {
-                this.process_row(parent, data[path])
+                this.process_row(parent, data[path]);
             }
         }
     },
@@ -1660,7 +1660,7 @@ var CatboostIpythonWidget = widgets.DOMWidgetView.extend({
         }
 
         if (!catboostIpython.lastIndex) {
-            catboostIpython.lastIndex = {}
+            catboostIpython.lastIndex = {};
         }
 
         if (catboostIpython.lastIndex[path]) {
@@ -1697,8 +1697,8 @@ var CatboostWidgetModel = widgets.DOMWidgetModel.extend({
         _view_name: 'CatboostWidgetView',
         _model_module: 'catboost_widget',
         _view_module: 'catboost_widget',
-        _model_module_version: version,
-        _view_module_version: version,
+        _model_module_version: widget_version,
+        _view_module_version: widget_version,
     })
 });
 

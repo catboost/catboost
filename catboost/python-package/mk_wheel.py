@@ -231,6 +231,16 @@ def make_wheel(wheel_name, pkg_name, ver, arc_root, so_path):
         os.makedirs(os.path.dirname(dst), exist_ok=True)
         shutil.copy(src, dst)
 
+    labextension_dir = os.path.join(python_package_dir, 'catboost', 'widget', 'labextension')
+    for file in os.listdir(labextension_dir):
+        src = os.path.join(labextension_dir, file)
+        dst = os.path.join(data_dir, 'share', 'jupyter', 'labextensions', 'catboost_widget', file)
+        os.makedirs(os.path.dirname(dst), exist_ok=True)
+        if os.path.isdir(src):
+            shutil.copytree(src, dst)
+        else:
+            shutil.copy(src, dst)
+
     src = os.path.join(widget_dir, 'catboost_widget.json')
     dst = os.path.join(data_dir, 'etc', 'jupyter', 'nbconfig', 'notebook.d', 'catboost_widget.json')
     os.makedirs(os.path.dirname(dst), exist_ok=True)
@@ -247,8 +257,9 @@ def make_wheel(wheel_name, pkg_name, ver, arc_root, so_path):
 
 def build_widget():
     js_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'widget', 'js')
-    subprocess.check_call(['npm', 'install'], cwd=js_dir)
-    subprocess.check_call(['npm', 'run', 'build'], cwd=js_dir)
+    subprocess.check_call(['yarn', 'clean'], cwd=js_dir)
+    subprocess.check_call(['yarn', 'install'], cwd=js_dir)
+    subprocess.check_call(['yarn', 'build'], cwd=js_dir)
 
 
 def build(arc_root, out_root, tail_args):

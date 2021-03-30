@@ -11,6 +11,8 @@ class MetricVisualizer(DOMWidget):
     _model_name = Unicode('CatboostWidgetModel').tag(sync=True)
     _view_module = Unicode('catboost_widget').tag(sync=True)
     _model_module = Unicode('catboost_widget').tag(sync=True)
+    _view_module_version = Unicode('^1.0.0').tag(sync=True)
+    _model_module_version = Unicode('^1.0.0').tag(sync=True)
 
     data = Dict({}).tag(sync=True, **widget_serialization)
 
