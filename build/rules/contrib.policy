@@ -30,6 +30,7 @@ ALLOW intranet/dogma/dogma -> contrib/python/django/django-1.11
 ALLOW intranet/magiclinks/src -> contrib/python/django/django-1.11
 ALLOW intranet/paste/src -> contrib/python/django/django-1.11
 ALLOW intranet/pypi/src -> contrib/python/django/django-1.11
+ALLOW intranet/qooker/src -> contrib/python/django/django-1.11
 ALLOW intranet/search/core -> contrib/python/django/django-1.11
 ALLOW intranet/search/settings -> contrib/python/django/django-1.11
 ALLOW intranet/sync_tools/tests -> contrib/python/django/django-1.11
