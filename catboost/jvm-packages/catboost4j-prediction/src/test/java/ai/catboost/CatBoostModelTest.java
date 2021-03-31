@@ -145,6 +145,12 @@ public class CatBoostModelTest {
     }
 
     @Test
+    public void testSuccessfulLoadModelFromJsonStream() throws CatBoostError, IOException {
+        final CatBoostModel model = CatBoostModel.loadModel(ClassLoader.getSystemResourceAsStream("models/numeric_only_model.json"), "json");
+        model.close();
+    }
+
+    @Test
     public void testSuccessfulLoadModelFromFileJsonFormat() throws IOException, CatBoostError {
         final File file = File.createTempFile("numeric_only_model", "json");
         file.deleteOnExit();

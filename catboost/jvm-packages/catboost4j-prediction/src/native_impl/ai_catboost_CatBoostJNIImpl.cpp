@@ -239,7 +239,7 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostLoadModelFrom
 }
 
 JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostLoadModelFromArray
-  (JNIEnv* jenv, jclass, jbyteArray jdata, jlongArray jhandles) {
+  (JNIEnv* jenv, jclass, jbyteArray jdata, jlongArray jhandles, jstring jmodelFormat) {
     Y_BEGIN_JNI_API_CALL();
 
     const auto* const data = jenv->GetByteArrayElements(jdata, nullptr);
@@ -249,8 +249,19 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostLoadModelFrom
     };
     const size_t dataSize = jenv->GetArrayLength(jdata);
 
+    const auto* const modelFormat = jenv->GetStringUTFChars(jmodelFormat, nullptr);
+    CB_ENSURE(modelFormat, "OutOfMemoryError");
+    Y_SCOPE_EXIT(jenv, jmodelFormat, modelFormat) {
+        jenv->ReleaseStringUTFChars(jmodelFormat, modelFormat);
+    };
+
+    EModelType modelType;
+    if( !NCatboostOptions::TryGetModelTypeFromExtension(TString(modelFormat), modelType) ) {
+        modelType = EModelType::CatboostBinary;
+    }
+
     auto model = MakeHolder<TFullModel>();
-    *model = ReadModel(data, dataSize);
+    *model = ReadModel(data, dataSize, modelType);
 
     const auto handle = ToHandle(model.Get());
     jenv->SetLongArrayRegion(jhandles, 0, 1, &handle);
