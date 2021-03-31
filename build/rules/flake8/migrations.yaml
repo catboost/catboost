@@ -162,7 +162,6 @@ migrations:
     - alice/boltalka/generative/training/data/nn/util/dict
     - alice/boltalka/tools/dssm_preprocessing/preprocessing/lib
     - alice/hollywood/library/python/perf_testing
-    - alice/nlu/granet/tools/vins/converter
     - alice/nlu/py_libs/tokenizer/ut/py2
     - alice/nlu/py_libs/tokenizer/ut/py3
     - alice/nlu/tools/paraphrase_finder
@@ -528,7 +527,6 @@ migrations:
     - infra/rtc/janitor
     - infra/rtc/juggler/bundle/tests
     - infra/rtc/packages/yandex-hbf-agent/tests
-    - infra/rtc/walle_validator/tests
     - infra/scripts/eventlog_uploader/script
     - infra/swatlib
     - infra/vmagent/src/vmctl
@@ -1320,7 +1318,6 @@ migrations:
     - april/web/bas/ca
     - april/web/bas/ca/forms
     - april/web/bas/collector
-    - arc/ci/tests/integration
     - arc/ci/tests/local
     - arc/ci/tests/public
     - aurora/scripts/parsers/zoon_ru
@@ -1331,7 +1328,6 @@ migrations:
     - billing/apikeys/apikeys
     - billing/apikeys/apikeys/mapper
     - billing/bcl/bcl
-    - billing/dcsaap/backend/manage
     - billing/refs/refs
     - browser/infra/yaml_merger/tests
     - cloud/blockstore/public/sdk/python/client
@@ -1714,7 +1710,6 @@ migrations:
     - yabs/server/test/ft/BSSERVER-15684
     - yabs/stat/dropstat2/api
     - yabs/vh/cms-pgaas/sport_api_importer/sport_api_importer_lib
-    - yabs/vh/frontend/json_templating/streams_generator/pylib/ut
     - yabs/vh/frontend/test/ft/HOME-43539
     - ydo/bg_task_processor/tests/tasks_tests
     - ydo/libs/errorbooster/tests
@@ -1748,7 +1743,6 @@ migrations:
     - F401
     prefixes:
     - ads/autobudget/ml_pipeline
-    - ads/bsyeti/tests/eagle/ft
     - ads/factor_check/workflow/lib
     - ads/libs/py_autobudget
     - ads/libs/py_dssm_lib/dssm_applier
@@ -1900,7 +1894,6 @@ migrations:
     - maps/analyzer/pylibs/train_catboost
     - maps/analyzer/sandbox/jams_level_prediction/prepare_history_storage/lib
     - maps/analyzer/sandbox/masstransit/quality/lib
-    - maps/analyzer/sandbox/signals_reports/tests
     - maps/analyzer/tools/qyp_quota
     - maps/automotive/carwashes/tests/fake-env
     - maps/automotive/carwashes/tests/src
@@ -2039,7 +2032,6 @@ migrations:
     - robot/quality/robotrank/nirvana/compare_formulas
     - robot/selectionrank/sr_conduct_rules_experiment/graphs
     - rtmapreduce/config/user_tasks
-    - rtmapreduce/monitoring/checks/production
     - saas/rtyserver_test/local_saas
     - saas/tools/refresh/import_rtyserver
     - saas/tools/user_if/ssm-front/backend
@@ -2253,7 +2245,6 @@ migrations:
     - yweb/sitelinks/scripts/sitelinks
     - yweb/webscripts/video/duplicates/nirvana_scripts/knn/filter_knn_source
     - yweb/yasap/answers/answers
-    - yweb/yasap/answers_admin/admin
     - yweb/yasap/pdb/tools/add_card_owners
     - yweb/yasap/pdb/tools/saas_snippets
     - zootopia/analytics/drive/source/drive/operations/support/registrations/reg_quality
