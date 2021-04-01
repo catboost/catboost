@@ -11,7 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@jupyter-widgets/base": "^4.0.0",
+    "@jupyter-widgets/base": "^2 || ^3 || ^4.0.0",
     "jquery": "^3.6.0",
     "lodash": "^4.17.21",
     "plotly.js-dist-min": "^1.58.4"
