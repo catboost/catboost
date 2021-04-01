@@ -18,7 +18,7 @@ IF (USE_ARCADIA_CUDA)
             ELSEIF (CUDA_VERSION == "11.0")
                 DECLARE_EXTERNAL_RESOURCE(CUDA sbr:1647896014) # CUDA Toolkit 11.0.2 for Linux x86-64
             ELSEIF (CUDA_VERSION == "10.1")
-                DECLARE_EXTERNAL_RESOURCE(CUDA sbr:983615296) # CUDA Toolkit 10.1.168 for Linux x86-64
+                DECLARE_EXTERNAL_RESOURCE(CUDA sbr:2077988857) # CUDA Toolkit 10.1.168 for Linux x86-64
             ELSEIF (CUDA_VERSION == "10.0")
                 DECLARE_EXTERNAL_RESOURCE(CUDA sbr:840560679) # CUDA Toolkit 10.0.130 for Linux x86-64
             ELSE()
@@ -77,18 +77,14 @@ ENDIF()
 IF (USE_ARCADIA_CUDA_HOST_COMPILER)
     IF (HOST_OS_LINUX AND HOST_ARCH_X86_64)
         IF (OS_LINUX AND ARCH_X86_64)
-            IF (CUDA_VERSION == "11.2")
-                DECLARE_EXTERNAL_RESOURCE(CUDA_HOST_TOOLCHAIN sbr:1886578148) # Clang 11.0.0 for linux-x86_64
-            ELSEIF (CUDA_VERSION == "11.1")
-                DECLARE_EXTERNAL_RESOURCE(CUDA_HOST_TOOLCHAIN sbr:971092418) # Clang 8.0 for Linux x86-64 (may be not latest)
-            ELSEIF (CUDA_VERSION == "11.0")
-                DECLARE_EXTERNAL_RESOURCE(CUDA_HOST_TOOLCHAIN sbr:971092418) # Clang 8.0 for Linux x86-64 (may be not latest)
-            ELSEIF (CUDA_VERSION == "10.1")
-                DECLARE_EXTERNAL_RESOURCE(CUDA_HOST_TOOLCHAIN sbr:971092418) # Clang 8.0 for Linux x86-64 (not latest)
-            ELSEIF (CUDA_VERSION == "10.0")
-                DECLARE_EXTERNAL_RESOURCE(CUDA_HOST_TOOLCHAIN sbr:971092418) # Clang 8.0 for Linux x86-64 (not latest)
+            IF (CUDA_VERSION == "10.0")
+                DECLARE_EXTERNAL_RESOURCE(CUDA_HOST_TOOLCHAIN sbr:531642148) # Clang 5.0.0 for linux
             ELSE()
-                ENABLE(CUDA_HOST_COMPILER_NOT_FOUND)
+                DECLARE_EXTERNAL_RESOURCE(CUDA_HOST_TOOLCHAIN sbr:1886578148) # Clang 11.0.0 for linux-x86_64
+                IF (CUDA_VERSION VERSION_LT "11.2")
+                    # Equivalent to nvcc -allow-unsupported-compiler (present since 11.0).
+                    CFLAGS(GLOBAL "-D__NV_NO_HOST_COMPILER_CHECK")
+                ENDIF()
             ENDIF()
 
         ELSE()
