@@ -425,10 +425,10 @@ class _Printer(object):
         out.write(str(value))
     elif field.cpp_type == descriptor.FieldDescriptor.CPPTYPE_STRING:
       out.write('\"')
-#      if isinstance(value, six.text_type):
-#        out_value = value.encode('utf-8')
-#      else:
-      out_value = value
+      if isinstance(value, six.text_type) and (six.PY2 or not self.as_utf8):
+        out_value = value.encode('utf-8')
+      else:
+        out_value = value
       if field.type == descriptor.FieldDescriptor.TYPE_BYTES:
         # We need to escape non-UTF8 chars in TYPE_BYTES field.
         out_as_utf8 = False
@@ -485,7 +485,10 @@ def Parse(text,
     ParseError: On text parsing problems.
   """
   if not isinstance(text, str):
-    text = text.decode('utf-8')
+    if six.PY3:
+      text = text.decode('utf-8')
+    else:
+      text = text.encode('utf-8')
   return ParseLines(text.split('\n'),
                     message,
                     allow_unknown_extension,
@@ -517,6 +520,11 @@ def Merge(text,
   Raises:
     ParseError: On text parsing problems.
   """
+  if not isinstance(text, str):
+    if six.PY3:
+      text = text.decode('utf-8')
+    else:
+      text = text.encode('utf-8')
   return MergeLines(
       text.split('\n'),
       message,
@@ -1226,12 +1234,11 @@ class Tokenizer(object):
     Raises:
       ParseError: If a string value couldn't be consumed.
     """
-    return self.ConsumeByteString()
-#    the_bytes = self.ConsumeByteString()
-#    try:
-#      return six.text_type(the_bytes, 'utf-8')
-#    except UnicodeDecodeError as e:
-#      raise self._StringParseError(e)
+    the_bytes = self.ConsumeByteString()
+    try:
+      return six.text_type(the_bytes, 'utf-8')
+    except UnicodeDecodeError as e:
+      raise self._StringParseError(e)
 
   def ConsumeByteString(self):
     """Consumes a byte array value.
