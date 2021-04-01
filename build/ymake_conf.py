@@ -2233,6 +2233,8 @@ class MSVCCompiler(MSVC, Compiler):
             '/D__STDC_FORMAT_MACROS',
             '/D_USING_V110_SDK71_',
             '/D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES',
+            '/DNOMINMAX',
+            '/DWIN32_LEAN_AND_MEAN',
         ]
 
         if target.is_x86_64:
