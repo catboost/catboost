@@ -104,6 +104,16 @@ public:
         return TotalSize;
     }
 
+    size_t GetMaxSize() const {
+        return MaxSize;
+    }
+
+    // It does not remove current items if newSize is less than TotalSize.
+    // Caller should use RemoveIfOverflown to clean up list in this case
+    void SetMaxSize(size_t newSize) {
+        MaxSize = newSize;
+    }
+
 private:
     typedef TIntrusiveList<TItem> TListType;
     TListType List;
@@ -199,6 +209,16 @@ public:
 
     size_t GetSize() const {
         return ListSize;
+    }
+
+    size_t GetMaxSize() const {
+        return MaxSize;
+    }
+
+    // It does not remove current items if newSize is less than TotalSize.
+    // Caller should use RemoveIfOverflown to clean up list in this case
+    void SetMaxSize(size_t newSize) {
+        MaxSize = newSize;
     }
 
 private:
@@ -310,6 +330,16 @@ public:
 
     [[nodiscard]] size_t GetSize() const {
         return Size;
+    }
+
+    size_t GetMaxSize() const {
+        return MaxSize;
+    }
+
+    // It does not remove current items if newSize is less than TotalSize.
+    // Caller should use RemoveIfOverflown to clean up list in this case
+    void SetMaxSize(size_t newSize) {
+        MaxSize = newSize;
     }
 
     void Clear() {
@@ -498,6 +528,20 @@ public:
         }
         Y_ASSERT(List.GetSize() == 0);
         Index.clear();
+    }
+
+    void SetMaxSize(size_t newSize) {
+        List.SetMaxSize(newSize);
+
+        TItem* removedItem = nullptr;
+        while ((removedItem = List.RemoveIfOverflown())) {
+            EraseFromIndex(removedItem);
+        }
+        Y_ASSERT(Index.size() == List.GetSize());
+    }
+
+    size_t GetMaxSize() const {
+        return List.GetMaxSize();
     }
 
 protected:
