@@ -692,7 +692,8 @@
                 "c_compiler": "$(MSVC)/bin/Hostx64/x64/cl.exe",
                 "cxx_compiler": "$(MSVC)/bin/Hostx64/x64/cl.exe",
                 "cxx_std": "c++latest",
-                "version": "2019"
+                "version": "2019",
+                "for_ide": "msvs2019"
             }
         },
         "msvc2019-arm": {
