@@ -215,7 +215,6 @@ migrations:
     - billing/dcs/dcs/temporary/butils
     - billing/dcs/dcs/temporary/butils/application
     - catboost/yandex_specific/tools/performance_evaluation/lib
-    - cloud/blockstore/tools/ops/release/tests
     - cloud/bootstrap/db/src/admin
     - cloud/iam/codegen/python/codegen
     - cloud/netinfra/rknfilter/yc_rkn_s3tools
@@ -580,7 +579,6 @@ migrations:
     - mapreduce/yt/tools/du-yt
     - maps/analyzer/pylibs/watchman_api/lib
     - maps/automotive/proxy/config_generator
-    - maps/automotive/proxy/tests
     - maps/automotive/remote_access/autotests/tests/data_types
     - maps/b2bgeo/apikeys_billing/preprocess_geosaas_logs
     - maps/b2bgeo/mvrp_solver/backend/tests_lib
@@ -1370,7 +1368,6 @@ migrations:
     - entity/ontodb/tasks/vloggers
     - entity/recommender/nirvana/operations/abt_experiments_launcher
     - entity/ugc/nirvana/ugcdb/support_hidden_import/lib/ut
-    - entity/ugc/robot/tools/reviews_to_saas/lib/ut
     - entity/ugc/tools/update_photos
     - extsearch/audio/generative/py/uploader
     - extsearch/images/tools/nirvana/download_serps
@@ -1626,7 +1623,6 @@ migrations:
     - statbox/statkey/jam/jobs/cubes/superapp/cohorts_daily/v2
     - statbox/statkey/jam/jobs/cubes/superapp/feeds/v1
     - strm/generate/lib/generate
-    - strm/pinger/lib
     - strm/pult/backend/lib
     - strm/pult/backend/lib/cache
     - taxi/graph/packages/mds-downloader
@@ -1704,7 +1700,6 @@ migrations:
     - yabs/stat/dropstat2/api
     - yabs/vh/cms-pgaas/sport_api_importer/sport_api_importer_lib
     - yabs/vh/frontend/test/ft/HOME-43539
-    - ydo/bg_task_processor/tests/tasks_tests
     - ydo/libs/errorbooster/tests
     - ydo/server/extract_backend_request_source/lib
     - yt/admin/luigi/src/luigi
@@ -1935,7 +1930,6 @@ migrations:
     - modadvert/libs/jsonrpc2/client
     - modadvert/libs/laas/workers/misprints
     - modadvert/libs/nirvana/program
-    - modadvert/libs/sm_api/processors/search_v2
     - modadvert/libs/supermoderation
     - modadvert/libs/utils/py3/auth
     - modadvert/libs/utils/text/ut
@@ -2102,12 +2096,10 @@ migrations:
     - statbox/statkey/jam/jobs/key_reports/desktop_retention
     - statbox/statkey/jam/jobs/tech_report/event_money_stat
     - statbox/statkey/jam/libs
-    - strm/pinger/lib
     - strm/pult/backend/bin/prod_channels_generator
     - strm/pult/backend/tests/unit
     - tools/mkdocs_builder/lib
     - tools/releaser/src
-    - travel/avia/api_gateway
     - travel/avia/avia_api
     - travel/avia/avia_statistics/alternative_routes_prices_updater/lib
     - travel/avia/avia_statistics/median_prices_updater/lib
