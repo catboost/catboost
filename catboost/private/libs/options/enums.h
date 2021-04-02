@@ -205,6 +205,9 @@ enum class ELossFunction {
     DCG,
     FilteredDCG,
 
+    /* survival-regression */
+    SurvivalAft,
+
     /* multi-regression */
     MultiRMSE,
 

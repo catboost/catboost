@@ -4,6 +4,7 @@
 
 #include <util/generic/xrange.h>
 #include <util/random/normal.h>
+#include <util/stream/output.h>
 
 
 template <int MaxDerivativeOrder, bool UseTDers, bool UseExpApprox, bool HasDelta>
@@ -214,6 +215,99 @@ static void CalcCrossEntropyDerRangeImpl(
         }
     }
 }
+
+void TSurvivalAftError::CalcDers(
+    TConstArrayRef<double> approx,
+    TConstArrayRef<float> target,
+    float /*weight*/,
+    TVector<double>* der,
+    THessianInfo* der2
+) const {
+    
+    double transformedTargetLower = 0, transformedTargetUpper = 0;
+    double firstDerNumerator, firstDerDenominator, secondDerNumerator, secondDerDenominator;
+    bool target_sign;
+    ECensoredType censorType;
+    const auto distributionType = Distribution->GetDistributionType();
+    if (target[0] == target[1]){
+        transformedTargetLower =  InverseMonotoneTransform(approx[0],target[0],Scale);
+        target_sign = transformedTargetLower>0;
+        censorType = ECensoredType::Uncensored;
+        const auto pdf = Distribution->CalcPdf(transformedTargetLower);
+        const auto der1 = Distribution->CalcPdfDer1(pdf, transformedTargetLower);
+
+        firstDerNumerator = der1;
+        firstDerDenominator = Scale*pdf;
+        if (der2 != nullptr) {
+            Y_ASSERT(der2->HessianType == EHessianType::Diagonal &&
+                        der2->ApproxDimension == approx.ysize());
+
+            secondDerNumerator = -(pdf*Distribution->CalcPdfDer2(pdf, transformedTargetLower)-std::pow(der1,2));
+            secondDerDenominator = std::pow(Scale*pdf, 2);
+        }
+    }
+    else{
+        censorType = ECensoredType::IntervalCensored;
+        double pdfUpper, pdfLower, cdfUpper, cdfLower, der1Upper, der1Lower;
+        if (target[1] == -1){
+            pdfUpper = 0;
+            cdfUpper = 1;
+            der1Upper = 0;
+            censorType = ECensoredType::RightCensored;
+        }
+        else{
+            transformedTargetUpper = InverseMonotoneTransform(approx[0],target[1],Scale);
+            pdfUpper = Distribution->CalcPdf(transformedTargetUpper);
+            cdfUpper = Distribution->CalcCdf(transformedTargetUpper);
+            der1Upper = Distribution->CalcPdfDer1(pdfUpper, transformedTargetUpper);
+        }
+        if (target[0] == -1){
+            pdfLower = 0;
+            cdfLower = 0;
+            der1Lower = 0;
+            censorType = ECensoredType::LeftCensored;
+        }
+        else{
+            transformedTargetLower = InverseMonotoneTransform(approx[0],target[0],Scale);
+            pdfLower = Distribution->CalcPdf(transformedTargetLower);;
+            cdfLower = Distribution->CalcCdf(transformedTargetLower);
+            der1Lower = Distribution->CalcPdfDer1(pdfLower, transformedTargetLower);
+        }
+        target_sign = (transformedTargetLower>0 || transformedTargetUpper>0);
+        const auto pdfDiff = pdfUpper - pdfLower;
+        const auto der1Diff = der1Upper - der1Lower;
+        const auto cdfDiff = cdfUpper - cdfLower;
+
+        firstDerNumerator = pdfDiff;
+        firstDerDenominator = Scale*cdfDiff;
+        
+        if (der2 != nullptr) {
+            Y_ASSERT(der2->HessianType == EHessianType::Diagonal &&
+                        der2->ApproxDimension == approx.ysize());
+
+            secondDerNumerator = -cdfDiff*der1Diff+std::pow(pdfDiff,2);
+            secondDerDenominator = std::pow(Scale*cdfDiff, 2);
+        }
+    }
+
+
+    (*der)[0] = firstDerNumerator/firstDerDenominator;
+    if (firstDerDenominator<EPS && (IsNan((*der)[0]) || !IsFinite((*der)[0]))){
+        const auto [minDer1, maxDer1] = DispatchDerivativeLimits(distributionType, EDerivativeOrder::First, censorType, Scale);
+        (*der)[0] = target_sign ?  minDer1 : maxDer1;
+    }
+    (*der)[0] = -ClipDerivatives((*der)[0], MIN_FIRST_DER, MAX_FIRST_DER);
+        
+    if (der2 != nullptr) {
+        der2->Data[0] = secondDerNumerator/secondDerDenominator;
+        if (secondDerDenominator<EPS && (IsNan(der2->Data[0]) || !IsFinite(der2->Data[0]))){
+            const auto [minDer2, maxDer2] = DispatchDerivativeLimits(distributionType, EDerivativeOrder::Second, censorType, Scale);
+            der2->Data[0] = target_sign ? minDer2 : maxDer2;
+        }
+        der2->Data[0] = -ClipDerivatives(der2->Data[0], MIN_SECOND_DER, MAX_SECOND_DER);
+    }
+}
+
 
 void TCrossEntropyError::CalcFirstDerRange(
     int start,

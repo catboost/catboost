@@ -403,6 +403,80 @@ void TCtrFactorMetric::GetBestValue(EMetricBestValue* valueType, float* bestValu
     *bestValue = 1;
 }
 
+/* SurvivalAFT */
+namespace {
+    struct TSurvivalAftMetric final: public TAdditiveMultiRegressionMetric {
+        explicit TSurvivalAftMetric(const TLossParams& params)
+            : TAdditiveMultiRegressionMetric(ELossFunction::SurvivalAft, params){
+            }
+
+        static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
+
+        TMetricHolder EvalSingleThread(
+            TConstArrayRef<TVector<double>> approx,
+            TConstArrayRef<TVector<double>> approxDelta,
+            TConstArrayRef<TConstArrayRef<float>> target,
+            TConstArrayRef<float> weight,
+            int begin,
+            int end
+        ) const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+        double GetFinalError(const TMetricHolder& error) const override;
+    };
+}
+
+
+
+TVector<THolder<IMetric>> TSurvivalAftMetric::Create(const TMetricConfig& config) {
+    config.ValidParams->insert("scale");
+    config.ValidParams->insert("dist");
+    return AsVector(MakeHolder<TSurvivalAftMetric>(config.Params));
+}
+
+TMetricHolder TSurvivalAftMetric::EvalSingleThread(
+    TConstArrayRef<TVector<double>> approx,
+    TConstArrayRef<TVector<double>> approxDelta,
+    TConstArrayRef<TConstArrayRef<float>> target,
+    TConstArrayRef<float> weight,
+    int begin,
+    int end
+) const {
+    const auto evalImpl = [=](bool useWeights, bool hasDelta) {
+        const auto realApprox = [=](int dim, int idx) { return fast_exp(approx[dim][idx] + (hasDelta ? approxDelta[dim][idx] : 0)); };
+        const auto realWeight = [=](int idx) { return useWeights ? weight[idx] : 1; };
+        const auto intervalHit = [=](double targetLower, double targetUpper, double approx){
+            if (targetUpper==-1){
+                return approx>=targetLower;
+            }
+            else if(targetLower==-1){
+                return approx<=targetUpper;
+            }
+            return (approx>=targetLower) && (approx<=targetUpper);
+        };
+
+        TMetricHolder error(2);
+        for (auto i : xrange(begin, end)) {
+            if (intervalHit(target[0][i], target[1][i], realApprox(0,i))){
+                error.Stats[0] += realWeight(i);
+            }
+            error.Stats[1] += realWeight(i);
+        }
+
+        return error;
+    };
+
+    return DispatchGenericLambda(evalImpl, !weight.empty(), !approxDelta.empty());
+}
+
+double TSurvivalAftMetric::GetFinalError(const TMetricHolder& error) const {
+    return error.Stats[1] == 0 ? 0 : error.Stats[0] / error.Stats[1];
+}
+
+void TSurvivalAftMetric::GetBestValue(EMetricBestValue* valueType, float* /*bestValue*/) const {
+    *valueType = EMetricBestValue::Max;
+}
+//TODO
+
 /* MultiRMSE */
 namespace {
     struct TMultiRMSEMetric final: public TAdditiveMultiRegressionMetric {
@@ -4846,6 +4920,9 @@ TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TLossParams& 
     switch (metric) {
         case ELossFunction::MultiRMSE:
             AppendTemporaryMetricsVector(TMultiRMSEMetric::Create(config), &result);
+            break;
+        case ELossFunction::SurvivalAft:
+           AppendTemporaryMetricsVector(TSurvivalAftMetric::Create(config), &result);
             break;
         case ELossFunction::RMSEWithUncertainty:
             AppendTemporaryMetricsVector(TRMSEWithUncertaintyMetric::Create(config), &result);

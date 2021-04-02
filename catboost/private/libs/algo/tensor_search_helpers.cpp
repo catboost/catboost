@@ -7,6 +7,7 @@
 #include <catboost/libs/data/objects.h>
 #include <catboost/libs/helpers/restorable_rng.h>
 #include <catboost/private/libs/options/catboost_options.h>
+#include <catboost/private/libs/algo_helpers/survival_aft_utils.h>
 
 #include <library/cpp/threading/local_executor/local_executor.h>
 
@@ -145,6 +146,36 @@ THolder<IDerCalcer> BuildError(
 ) {
     const bool isStoreExpApprox = IsStoreExpApprox(params.LossFunctionDescription->GetLossFunction());
     switch (params.LossFunctionDescription->GetLossFunction()) {
+        case ELossFunction::SurvivalAft:{
+            const auto& lossParams = params.LossFunctionDescription->GetLossParamsMap();   
+            for (auto &param: lossParams) {
+            CB_ENSURE(
+                    param.first == "dist" || param.first == "scale",
+                    "Invalid loss description" << ToString(params.LossFunctionDescription.Get()));
+            }
+            std::unique_ptr<IDistribution> distribution;
+            if (lossParams.contains("dist")){
+                CB_ENSURE(
+                    lossParams.at("dist") == "Normal" || lossParams.at("dist") == "Extreme" || lossParams.at("dist") == "Logistic",
+                    "This distribution is not supported" << ToString(lossParams.at("dist")));
+               switch(DistributionFromString(lossParams.at("dist"))){
+                   case EDistributionType::Extreme:
+                       distribution = std::make_unique<TExtremeDistribution>();     
+                       break; 
+                   case EDistributionType::Logistic:
+                       distribution = std::make_unique<TLogisticDistribution>();     
+                       break; 
+                   case EDistributionType::Normal:
+                       distribution = std::make_unique<TNormalDistribution>();     
+                       break; 
+               }
+            }
+            else{
+               distribution = std::make_unique<TNormalDistribution>();
+            } 
+            double scale = lossParams.contains("scale") ? FromString<double>(lossParams.at("scale")) : 1;
+            return MakeHolder<TSurvivalAftError>(std::move(distribution), scale);
+        }
         case ELossFunction::MultiRMSE:
             return MakeHolder<TMultiRMSEError>();
         case ELossFunction::RMSEWithUncertainty: {

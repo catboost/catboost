@@ -10,6 +10,7 @@
 #include <catboost/private/libs/options/catboost_options.h>
 #include <catboost/private/libs/options/enums.h>
 #include <catboost/private/libs/options/restrictions.h>
+#include <catboost/private/libs/algo_helpers/survival_aft_utils.h>
 
 #include <library/cpp/containers/2d_array/2d_array.h>
 #include <library/cpp/fast_exp/fast_exp.h>
@@ -22,6 +23,7 @@
 #include <util/system/yassert.h>
 
 #include <cmath>
+#include <memory>
 
 class IDerCalcer {
 public:
@@ -214,6 +216,28 @@ public:
             }
         }
     }
+};
+
+class TSurvivalAftError final : public TMultiDerCalcer {
+public:
+    const double Scale;
+    std::unique_ptr<IDistribution> Distribution;
+public:
+    explicit TSurvivalAftError(std::unique_ptr<IDistribution> distribution, double scale)
+        : TMultiDerCalcer(EHessianType::Diagonal),
+        Scale(scale),
+        Distribution(std::move(distribution))
+        {
+        CB_ENSURE(Scale> 0, "Scale should be positive");
+    }
+
+    void CalcDers(
+        TConstArrayRef<double> approx,
+        TConstArrayRef<float> target,
+        float weight,
+        TVector<double>* der,
+        THessianInfo* der2
+    ) const override;
 };
 
 class TRMSEWithUncertaintyError final : public TMultiDerCalcer {
