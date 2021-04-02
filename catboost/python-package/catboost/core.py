@@ -5352,7 +5352,7 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
        shuffle=True, logging_level=None, stratified=None, as_pandas=True, metric_period=None,
        verbose=None, verbose_eval=None, plot=False, early_stopping_rounds=None,
        save_snapshot=None, snapshot_file=None, snapshot_interval=None, metric_update_interval=0.5, 
-       folds=None, type='Classical', return_cv_models=False):
+       folds=None, type='Classical', return_models=False):
     """
     Cross-validate the CatBoost model.
 
@@ -5456,6 +5456,9 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
         (https://scikit-learn.org/stable/modules/classes.html#splitter-classes)
         and have ``split`` method.
         if folds is not None, then all of fold_count, shuffle, partition_random_seed, inverted are None
+
+    return_models: bool, optional (default=False)
+        if True, return a list of fitted models from each CV fold
 
     Returns
     -------
@@ -5565,7 +5568,7 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
 
     with log_fixup(), plot_wrapper(plot, [_get_train_dir(params)]):
         return _cv(params, pool, fold_count, inverted, partition_random_seed, shuffle, stratified,
-                   metric_update_interval, as_pandas, folds, type, return_cv_models)
+                   metric_update_interval, as_pandas, folds, type, return_models)
 
 
 class BatchMetricCalcer(_MetricCalcerBase):

@@ -641,7 +641,7 @@ cdef extern from "catboost/private/libs/options/cross_validation_params.h":
         double MetricUpdateInterval
         ui32 DevMaxIterationsBatchSize
         bool_t IsCalledFromSearchHyperparameters
-        bool_t ReturnCVModels
+        bool_t ReturnModels
 
 cdef extern from "catboost/private/libs/options/split_params.h":
     cdef cppclass TTrainTestSplitParams:
@@ -5030,7 +5030,7 @@ cdef TCustomTrainTestSubsets _make_train_test_subsets(_PoolBase pool, folds) exc
 
 cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int partition_random_seed,
           bool_t shuffle, bool_t stratified, float metric_update_interval, bool_t as_pandas, folds, 
-          type, bool_t return_cv_models):
+          type, bool_t return_models):
     prep_params = _PreprocessParams(params)
     cdef TCrossValidationParams cvParams
     cdef TVector[TCVResult] results
@@ -5041,7 +5041,7 @@ cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int part
     cvParams.Shuffle = shuffle
     cvParams.Stratified = stratified
     cvParams.MetricUpdateInterval = metric_update_interval
-    cvParams.ReturnCVModels = return_cv_models
+    cvParams.ReturnModels = return_models
 
     if type == 'Classical':
         cvParams.Type = ECrossValidation_Classical
@@ -5091,7 +5091,7 @@ cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int part
         results_output = pd.DataFrame.from_dict(cv_results)
     else:
         results_output = cv_results
-    if return_cv_models:
+    if return_models:
         cv_models = []
         cvFullModels = results.front().CVFullModels
         for i in range(<int>cvFullModels.size()):

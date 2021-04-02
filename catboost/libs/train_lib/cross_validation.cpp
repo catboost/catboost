@@ -819,7 +819,7 @@ void CrossValidate(
         }
     }
 
-    if (cvParams.ReturnCVModels) {
+    if (cvParams.ReturnModels) {
         for (const auto& foldContext : foldContexts) {
             results->front().CVFullModels.push_back(*foldContext.FullModel.Get());
         }
