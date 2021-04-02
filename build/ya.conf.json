@@ -198,6 +198,9 @@
         "yf": {
             "description": "Run YF client"
         },
+        "rtmr-deploy": {
+            "description": "Run RTMR deploy"
+        },
         "yt": {
             "description": "Run YT client"
         },
@@ -4452,6 +4455,22 @@
                 }
             ]
         },
+        "rtmr-deploy": {
+            "tools": {
+                "rtmr-deploy": {
+                    "bottle": "rtmr-deploy",
+                    "executable": "rtmr-deploy"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "yp-util": {
             "tools": {
                 "yp-util": {
@@ -7698,6 +7717,15 @@
                 "match": "yf-client"
             },
             "executable": "yf-client"
+        },
+        "rtmr-deploy": {
+            "formula": {
+                "sandbox_id": [
+                    935545596
+                ],
+                "match": "rtmr-deploy"
+            },
+            "executable": "rtmr-deploy"
         },
         "yp-util": {
             "formula": {
