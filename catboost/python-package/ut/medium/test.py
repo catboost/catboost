@@ -2930,6 +2930,41 @@ def test_cv_with_save_snapshot(task_type):
         )
 
 
+def test_cv_return_models(task_type):
+    model_params = {
+        "iterations": 20,
+        "learning_rate": 0.03,
+        "loss_function": "Logloss",
+        "eval_metric": "AUC",
+        "task_type": task_type
+    }
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    test_pool = Pool(TEST_FILE, column_description=CD_FILE)
+    fold_count = 3
+    results, cv_models = cv(
+        train_pool,
+        model_params,
+        fold_count=fold_count,
+        return_models=True,
+    )
+    
+    assert len(cv_models) == fold_count
+
+    single_model = CatBoost(model_params).fit(train_pool)
+    single_model_prediction = single_model.predict(test_pool)
+    single_model_roc_auc = eval_metric(test_pool.get_label(), single_model_prediction, 'AUC')[0]
+
+    for model in cv_models:
+        assert isinstance(model, CatBoost)
+        assert model.random_seed_ == single_model.random_seed_
+        assert model.tree_count_ == model_params["iterations"]
+
+        model_prediction = model.predict(test_pool)
+
+        cv_model_roc_auc = eval_metric(test_pool.get_label(), model_prediction, 'AUC')[0]
+        assert np.allclose(cv_model_roc_auc, single_model_roc_auc, atol=results["test-AUC-std"][0])
+
+
 def test_cv_small_data():
     cv_data = [["France", 1924, 44],
                ["USA", 1932, 37],
