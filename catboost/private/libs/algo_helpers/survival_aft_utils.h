@@ -114,17 +114,4 @@ double ClipDerivatives(double der, double minDerivative, double maxDerivative);
 template<EDistributionType Distribution>
 std::tuple<double, double> GetDerivativeLimits(EDerivativeOrder order, ECensoredType censoredType, double scale);
 
-// template<EDistributionType Distribution>
-// std::tuple<double, double> GetFirstDerivativeLimits(ECensoredType censoredType, double scale);
-
-// template<EDistributionType Distribution>
-// std::tuple<double, double> GetSecondDerivativeLimits(ECensoredType censoredType, double scale);
-
-// template<EDistributionType distribution>
-// using DerivativeFunction = std::tuple<double,double> (*)<distribution>(ECensoredType, double);
-
 std::tuple<double,double> DispatchDerivativeLimits(EDistributionType type, EDerivativeOrder derivativeOrder, ECensoredType censoredType, double scale);
-
-// std::tuple<double, double> GetFirstDerivativeLimits(EDistributionType distributionType, ECensoredType censoredType, double scale);
-
-// std::tuple<double, double> GetSecondDerivativeLimits(EDistributionType distributionType, ECensoredType censoredType, double scale);
