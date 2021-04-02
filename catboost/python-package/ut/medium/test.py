@@ -2964,6 +2964,19 @@ def test_cv_return_models(task_type):
         cv_model_roc_auc = eval_metric(test_pool.get_label(), model_prediction, 'AUC')[0]
         assert np.allclose(cv_model_roc_auc, single_model_roc_auc, atol=results["test-AUC-std"][0])
 
+        # Other methods
+        model.calc_leaf_indexes(test_pool)
+        try:
+            model.compare(single_model, test_pool, ["AUC"])
+        except ImportError as ie:
+            pytest.xfail(str(ie)) if str(ie) == "No module named widget" \
+                else pytest.fail(str(ie))
+        assert model.get_all_params().keys() == single_model.get_all_params().keys()
+        assert not np.isna(model.get_feature_importance(test_pool)).any()
+        assert not np.isna(model.get_scale_and_bias()).any()
+        new_model = model.copy()
+        del model
+
 
 def test_cv_small_data():
     cv_data = [["France", 1924, 44],
