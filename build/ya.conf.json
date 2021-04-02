@@ -159,6 +159,9 @@
         "perf": {
             "description": "Run Perf"
         },
+        "sre": {
+            "description": "Run sretool"
+        },
         "samogonctl": {
             "description": "Run Samogon Controller"
         },
@@ -3975,6 +3978,22 @@
                 }
             ]
         },
+        "sre": {
+            "tools": {
+                "sre": {
+                    "bottle": "sre",
+                    "executable": "sre"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "samogonctl": {
             "tools": {
                 "samogonctl": {
@@ -7551,6 +7570,17 @@
             "executable": {
                 "perf": [
                     "perf"
+                ]
+            }
+        },
+        "sre": {
+            "formula": {
+                "sandbox_id": 935602829,
+                "match": "infra/rtc/sretools/sretools.tar.gz"
+            },
+            "executable": {
+                "sre": [
+										"sretool"
                 ]
             }
         },
