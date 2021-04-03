@@ -673,9 +673,7 @@ TMetricHolder TCoxMetric::Eval(
     std::iota(label_order.begin(), label_order.end(), 0);
     std::sort(label_order.begin(), label_order.end(), [&]
         (size_t lhs, size_t rhs){
-            float l_label = target[lhs] >= 0 ? target[lhs] : -target[lhs];
-            float r_label = target[rhs] >= 0 ? target[rhs] : -target[rhs];
-            return l_label < r_label;
+            return std::abs(targets[lhs]) < std::abs(targets[rhs]);
         }
     );
 
