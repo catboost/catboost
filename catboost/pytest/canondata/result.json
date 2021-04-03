@@ -806,6 +806,11 @@
             "uri": "file://test.test_const_feature_calc_block=5000000-Ordered_/test.eval"
         }
     ],
+    "test.test_cox_regression": [
+        {
+            "uri": "file://test.test_cox_regression/test.eval"
+        }
+    ],
     "test.test_const_feature[calc_block=5000000-Plain]": [
         {
             "uri": "file://test.test_const_feature_calc_block=5000000-Plain_/test.eval"

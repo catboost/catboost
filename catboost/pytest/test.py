@@ -4873,17 +4873,16 @@ def test_without_cat_features(boosting_type, dev_score_calc_obj_block_size):
     return [local_canonical_file(output_eval_path)]
 
 
-@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_cox_regression(boosting_type):
+def test_cox_regression():
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
     cmd = (
         '--use-best-model', 'false',
         '--loss-function', 'Cox',
-        '-f', data_file('adult', 'train_small'),
-        '-t', data_file('adult', 'test_small'),
-        '--column-description', data_file('adult', 'train.cd'),
-        '--boosting-type', boosting_type,
+        '-f', data_file('veteran', 'train'),
+        '-t', data_file('veteran', 'test'),
+        '--column-description', data_file('veteran', 'train.cd'),
+        '--boosting-type', 'Plain',
         '-i', '10',
         '-T', '1',
         '--bootstrap-type', 'No',

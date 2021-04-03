@@ -122,12 +122,10 @@ void TCoxError::CalcDersRange(
     // object weights are not supported yet
 
     TVector<size_t> label_order(count);
-    std::iota(label_order.begin(), label_order.end(), 0);
+    std::iota(label_order.begin(), label_order.end(), start);
     std::sort(label_order.begin(), label_order.end(), [&]
         (size_t lhs, size_t rhs){
-            float l_label = targets[start + lhs] >= 0 ? targets[start + lhs] : -targets[start + lhs];
-            float r_label = targets[start + rhs] >= 0 ? targets[start + rhs] : -targets[start + rhs];
-            return l_label < r_label;
+            return std::abs(targets[lhs]) < std::abs(targets[rhs]);
         }
     );
 
@@ -146,7 +144,7 @@ void TCoxError::CalcDersRange(
     double last_abs_y = 0.0;
     double accumulated_sum = 0;
     for (yssize_t i = 0; i < count; ++i) {
-        const size_t ind = label_order[start + i];
+        const size_t ind = label_order[i];
         const double p = approxes[ind] + (approxesDeltas == nullptr ? 0 : approxesDeltas[ind]);
 
         const double exp_p = std::exp(p);
@@ -158,19 +156,19 @@ void TCoxError::CalcDersRange(
         if (last_abs_y < abs_y) {
             exp_p_sum -= accumulated_sum;
             accumulated_sum = 0;
+        } else {
+            CB_ENSURE(last_abs_y <= abs_y);
         }
-        //CHECK(last_abs_y <= abs_y) << "CoxRegression: labels must be in sorted order, " <<
-        //                            "MetaInfo::LabelArgsort failed!";
 
         if (y > 0) {
-            r_k += 1.0/exp_p_sum;
-            s_k += 1.0/(exp_p_sum*exp_p_sum);
+            r_k += 1.0 / exp_p_sum;
+            s_k += 1.0 / (exp_p_sum*exp_p_sum);
         }
 
-        const double grad = exp_p*r_k - static_cast<float>(y > 0);
-        const double hess = exp_p*r_k - exp_p*exp_p * s_k;
-        ders[ind].Der1 =  grad;
-        ders[ind].Der2 = hess;
+        const double grad = exp_p * r_k - static_cast<float>(y > 0);
+        const double hess = exp_p * r_k - exp_p*exp_p * s_k;
+        ders[ind].Der1 = -grad;
+        ders[ind].Der2 = -hess;
 
         last_abs_y = abs_y;
         last_exp_p = exp_p;
@@ -189,12 +187,10 @@ void TCoxError::CalcFirstDerRange(
     // object weights are not supported yet
 
     TVector<size_t> label_order(count);
-    std::iota(label_order.begin(), label_order.end(), 0);
+    std::iota(label_order.begin(), label_order.end(), start);
     std::sort(label_order.begin(), label_order.end(), [&]
         (size_t lhs, size_t rhs){
-            float l_label = targets[start + lhs] >= 0 ? targets[start + lhs] : -targets[start + lhs];
-            float r_label = targets[start + rhs] >= 0 ? targets[start + rhs] : -targets[start + rhs];
-            return l_label < r_label;
+            return std::abs(targets[lhs]) < std::abs(targets[rhs]);
         }
     );
 
@@ -224,16 +220,16 @@ void TCoxError::CalcFirstDerRange(
         if (last_abs_y < abs_y) {
             exp_p_sum -= accumulated_sum;
             accumulated_sum = 0;
+        } else {
+            CB_ENSURE(last_abs_y <= abs_y);
         }
-            //CHECK(last_abs_y <= abs_y) << "CoxRegression: labels must be in sorted order, " <<
-            //                            "MetaInfo::LabelArgsort failed!";
 
         if (y > 0) {
             r_k += 1.0/exp_p_sum;
         }
 
-        const double grad = exp_p*r_k - static_cast<float>(y > 0);
-        firstDers[ind] =  grad; // GradientPair(grad * w, hess * w);
+        const double grad = exp_p * r_k - static_cast<float>(y > 0);
+        firstDers[ind] =  -grad; // GradientPair(grad * w, hess * w);
 
         last_abs_y = abs_y;
         last_exp_p = exp_p;

@@ -716,7 +716,7 @@ TMetricHolder TCoxMetric::Eval(
 }
 
 double TCoxMetric::GetFinalError(const TMetricHolder& error) const {
-    return sqrt(error.Stats[0] / (error.Stats[1] + 1e-38));
+    return error.Stats[0];
 }
 
 void TCoxMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
