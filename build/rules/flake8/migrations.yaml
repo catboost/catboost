@@ -197,7 +197,6 @@ migrations:
     - april/web/bas/bm
     - april/web/bas/bm/utils
     - april/web/bas/collector
-    - arc/ci/tests/local
     - aurora/aurora/core
     - aurora/aurora/core/services
     - aurora/aurora/core/toloka
@@ -553,9 +552,6 @@ migrations:
     - kikimr/tools/kikimr_slice
     - library/python/testing/filter
     - library/python/testing/gtest
-    - load/projects/yandex-tank
-    - load/projects/yandex-tank/yandextank/plugins/ResourceCheck
-    - load/projects/yandex-tank/yandextank/plugins/Solomon
     - locdoc/doc_tools/yoda/friends/okapi
     - locdoc/doc_tools/yoda/friends/okapi/operations
     - logbroker/tools/manual/alter_sqs_tables
@@ -733,7 +729,6 @@ migrations:
     - quality/functionality/snippets/top_hosts/plugins/calculator888
     - quality/functionality/turbo/analytics/ecommerce/lib/page_classifier
     - quality/functionality/turbo/auto_cleanup/lib
-    - quality/functionality/turbo/merger/ut/medium
     - quality/functionality/turbo/rss/parser_job/tests/small
     - quality/functionality/turbo/tools/infinity/tools/wmc
     - quality/functionality/turbo/tools/rediff
@@ -1033,7 +1028,6 @@ migrations:
     - travel/avia/travelers/application
     - travel/avia/travelers/application/validations/bonus_card_types
     - travel/avia/travelers/application/validations/document_types
-    - travel/rasp/blablacar/blablacar/tests
     - travel/rasp/bus/admin/utils
     - travel/rasp/bus/admin/utils/points
     - travel/rasp/library/python/common/tests
@@ -1089,7 +1083,6 @@ migrations:
     - yabs/server/libs/internal_ver/depgrapher/lib
     - yabs/server/libs/py_markdown_strings
     - yabs/server/test/ft/BSDEV-73064
-    - yabs/server/test/ft/BSDEV-77691
     - yabs/server/test/ft/BSSERVER-10514
     - yabs/server/test/ft/BSSERVER-11503
     - yabs/server/test/ft/BSSERVER-12018
@@ -1313,7 +1306,6 @@ migrations:
     - april/web/bas/ca
     - april/web/bas/ca/forms
     - april/web/bas/collector
-    - arc/ci/tests/local
     - arc/ci/tests/public
     - aurora/scripts/parsers/zoon_ru
     - balancer/test/functional/regexp_host
@@ -1325,7 +1317,6 @@ migrations:
     - billing/bcl/bcl
     - billing/refs/refs
     - browser/infra/yaml_merger/tests
-    - cloud/blockstore/public/sdk/python/client
     - cloud/filestore/public/sdk/python/client
     - cloud/iam/token_agent/bin
     - cloud/marketplace/queue/yc_marketplace_queue
@@ -1532,7 +1523,6 @@ migrations:
     - quality/functionality/turbo/analytics/quality/samplers/cms_sampler
     - quality/functionality/turbo/autoparser/flags_postprocess/tests/medium
     - quality/functionality/turbo/init/ut/small
-    - quality/functionality/turbo/merger/ut/medium
     - quality/functionality/turbo/tools/pq_delete_docs
     - quality/functionality/turbo/tools/tdm
     - quality/logs/mousetrack_lib/python/tests
@@ -1645,7 +1635,6 @@ migrations:
     - travel/avia/ticket_daemon_api/tests/handlers/v3
     - travel/hotels/suggest/builder
     - travel/hotels/suggest/metrics_builder
-    - travel/rasp/blablacar/blablacar/tests
     - travel/rasp/content/rzdParser
     - travel/rasp/infra/tools/devprocess_metrics/startrek
     - travel/rasp/morda_backend
@@ -1973,7 +1962,6 @@ migrations:
     - quality/functionality/scripts/psuh/HomeWorkMetricsLib/HomeWorkMetricsLib
     - quality/functionality/turbo/analytics/quality/samplers/cms_sampler
     - quality/functionality/turbo/forms/app/lib
-    - quality/functionality/turbo/merger/ut/medium
     - quality/functionality/turbo/ml_ads/prepare_daily_logs
     - quality/functionality/turbo/tools/rthub_dev/prepare_autoparser
     - quality/functionality/turbo/yml_process/lib
@@ -1992,7 +1980,6 @@ migrations:
     - quality/sbs/ytschemas
     - quasar/infra/tasklets/update_devices_in_db/impl
     - regulargeo/geolayer/olap
-    - repo/pciexpress/monitoring
     - robot/bert/tools/predict_diff
     - robot/mercury/test/rtdups_test
     - robot/quality/crawl_quality_metrics/push_to_solomon_every_day_crawl
@@ -2169,7 +2156,6 @@ migrations:
     - yabs/server/test/ft/BSDEV-78831
     - yabs/server/test/ft/BSDEV-79055
     - yabs/server/test/ft/BSDEV-80203
-    - yabs/server/test/ft/BSDEV-80319
     - yabs/server/test/ft/BSSERVER-12201
     - yabs/server/test/ft/BSSERVER-12402
     - yabs/server/test/ft/BSSERVER-13708
