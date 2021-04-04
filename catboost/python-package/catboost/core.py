@@ -42,7 +42,7 @@ _typeof = type
 
 from .plot_helpers import save_plot_file, try_plot_offline
 from . import _catboost
-
+from .metrics import BuiltinMetric
 
 _PoolBase = _catboost._PoolBase
 _CatBoost = _catboost._CatBoost
@@ -1289,6 +1289,19 @@ def _process_synonyms(params):
     if 'used_ram_limit' in params:
         params['used_ram_limit'] = str(params['used_ram_limit'])
 
+def stringify_builtin_metrics(params):
+    for f in ["loss_function", "objective", "eval_metric"]:
+        if f not in params:
+            continue
+        obj = params[f]
+        if isinstance(obj, BuiltinMetric):
+            params[f] = obj.to_string()
+
+def stringify_builtin_metrics_list(metrics):
+    if isinstance(metrics, BuiltinMetric):
+        return metrics.to_string()
+    return [m.to_string() for m in metrics]
+
 
 def _get_loss_function_for_train(params, estimator_type, train_pool):
     """
@@ -1322,7 +1335,9 @@ def _get_loss_function_for_train(params, estimator_type, train_pool):
 
 class _CatBoostBase(object):
     def __init__(self, params):
-        self._init_params = params.copy() if params is not None else {}
+        init_params = params.copy() if params is not None else {}
+        stringify_builtin_metrics(init_params)
+        self._init_params = init_params
         if 'thread_count' in self._init_params and self._init_params['thread_count'] == -1:
             self._init_params.pop('thread_count')
         self._object = _CatBoost()
@@ -2427,13 +2442,14 @@ class CatBoost(_CatBoostBase):
             raise CatBoostError("Invalid data type={}, must be catboost.Pool.".format(type(data)))
         if data.is_empty_:
             raise CatBoostError("Data is empty.")
-        if not isinstance(metrics, ARRAY_TYPES) and not isinstance(metrics, STRING_TYPES):
-            raise CatBoostError("Invalid metrics type={}, must be list() or str().".format(type(metrics)))
-        if not all(map(lambda metric: isinstance(metric, string_types), metrics)):
-            raise CatBoostError("Invalid metric type: must be string().")
+        if not isinstance(metrics, ARRAY_TYPES) and not isinstance(metrics, STRING_TYPES) and not isinstance(metrics, BuiltinMetric):
+            raise CatBoostError("Invalid metrics type={}, must be list(), str() or catboost.metrics.BuiltinMetric.".format(type(metrics)))
+        if not all(map(lambda metric: isinstance(metric, string_types) or isinstance(metric, BuiltinMetric), metrics)):
+            raise CatBoostError("Invalid metric type: must be string() or catboost.metrics.BuiltinMetric.")
         if tmp_dir is None:
             tmp_dir = tempfile.mkdtemp()
 
+        metrics = stringify_builtin_metrics_list(metrics)
         with log_fixup(log_cout, log_cerr), plot_wrapper(plot, [res_dir]):
             metrics_score, metric_names = self._base_eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count, res_dir, tmp_dir)
 
@@ -2448,7 +2464,7 @@ class CatBoost(_CatBoostBase):
         data : catboost.Pool
             Data to evaluate metrics on.
 
-        metrics : list of strings
+        metrics : list of strings or catboost.metrics.BuiltinMetric
             List of evaluated metrics.
             TODO(kkorovina): accept a list of BuiltinMetric objects, and convert them to string in this method.
 
@@ -2496,7 +2512,7 @@ class CatBoost(_CatBoostBase):
         data : catboost.Pool
             Data to evaluate metrics on.
 
-        metrics : list of strings
+        metrics : list of strings or catboost.metrics.BuiltinMetric
             List of evaluated metrics.
 
         ntree_start: int, optional (default=0)
@@ -2566,8 +2582,8 @@ class CatBoost(_CatBoostBase):
         # Large dataset is partitioned into parts [part1, part2]
         model.fit(params)
         batch_calcer = model.create_metric_calcer(['Logloss'])
-        batch_calcer.add_pool(part1)
-        batch_calcer.add_pool(part2)
+        batch_calcer.add(part1)
+        batch_calcer.add(part2)
         metrics = batch_calcer.eval_metrics()
         """
         if not self.is_fitted():
@@ -6078,6 +6094,7 @@ class BatchMetricCalcer(_MetricCalcerBase):
         else:
             delete_temp_dir_flag = False
 
+        metrics = stringify_builtin_metrics_list(metrics)
         if isinstance(metrics, str):
             metrics = [metrics]
         self._create_calcer(metrics, ntree_start, ntree_end, eval_period, thread_count, tmp_dir, delete_temp_dir_flag)

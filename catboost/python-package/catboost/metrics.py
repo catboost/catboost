@@ -8,19 +8,31 @@ __all__ = []
 _dummy_metrics = _catboost.DummyMetrics
 
 class BuiltinMetric(object):
-    pass
+    @staticmethod
+    def params_with_defaults():
+        '''
+        Get valid metric parameters with defaults, if any.
+        Implemented in child classes.
+
+        Returns
+        ----------
+        valid_params: dict: param_name -> default value or None.
+        '''
+        raise Exception("Should be overridden by the child class.")
+
+    def to_string():
+        '''
+        Get the representation of the metric object with overridden parameters.
+        Implemented in child classes.
+
+        Returns
+        ----------
+        metric_string: str representing the metric object.
+        '''
+        raise Exception("Should be overridden by the child class.")
 
 class _MetricGenerator(type):
     def __new__(mcls, name, parents, attrs):
-        '''
-        Construct a new metric class.
-        Params:
-            mcls -- metaclass object,
-            name -- string name of the class we are constructing,
-            parents -- tuple of base classes for this new class,
-            attrs -- dict of attributes that have to be set.
-        Returns: metric class object.
-        '''
         for k in attrs["_valid_params"]:
             attrs[k] = property(
                 partial(_get_param, name=k),
@@ -29,11 +41,10 @@ class _MetricGenerator(type):
                 "Parameter {} of metric {}".format(k, name),
             )
 
-        # Name for this function -- up to discussion (parameters, valid_parameters, etc)
         attrs["params_with_defaults"] = staticmethod(lambda: copy(attrs["_valid_params"]))
 
         # Set the serialization function.
-        attrs["to_string"] = _to_string
+        attrs["to_string"] = lambda self: _to_string(self, False)
         fmt = ["Builtin metric: '{}'".format(name)]
         fmt.append("Parameters:")
         if not attrs["_valid_params"]:
@@ -44,17 +55,11 @@ class _MetricGenerator(type):
             else:
                 fmt.append(" " * 4 + "{} (no default)".format(k))
         attrs["__doc__"] = "\n".join(fmt)
-        attrs["__repr__"] = attrs["__str__"] = _to_repr
+        attrs["__repr__"] = attrs["__str__"] = lambda self: _to_string(self, True)
         cls = super(_MetricGenerator, mcls).__new__(mcls, name, parents, attrs)
         return cls
 
     def __call__(cls, **kwargs):
-        '''
-        Construct a new Metric object with validated parameters.
-        Parameters:
-            kwargs -- dict of metric parameters.
-        Returns: a new metric object.
-        '''
         metric_obj = cls.__new__(cls)
         params = {k: v for k, v in cls._valid_params.items()}
 
@@ -91,26 +96,28 @@ def _get_param(metric_obj, name):
     return getattr(metric_obj, "_"+name)
 
 def _set_param(metric_obj, value, name):
-    """Validates a new parameter value in a created metric object."""
+    """Validate a new parameter value in a created metric object."""
     if value is None:
         value = metric_obj._valid_params[name]
         if value is None:
             raise ValueError("Parameter {} is mandatory, cannot reset.".format(name))
     setattr(metric_obj, "_" + name, value)
 
-def _to_string(metric_obj):
+def _to_string(metric_obj, with_defaults):
     s = type(metric_obj).__name__
     if len(metric_obj._params) == 0:
         return s
+    valid_params = metric_obj.params_with_defaults()
     ps = []
     for param in metric_obj._params:
         val = getattr(metric_obj, param)
+        if not with_defaults:
+            # Skip reporting parameters which are set to their default values.
+            default_val = valid_params[param]
+            if default_val == val:
+                continue
         ps.append(param + "=" + str(val))
-    return s + ":" + ",".join(ps)
-
-def _to_repr(metric_obj):
-    return _to_string(metric_obj)
-
+    return s + ":" + ";".join(ps)
 
 for metric_name, metric_params in _dummy_metrics().items():
     globals()[metric_name] = _MetricGenerator(str(metric_name), (BuiltinMetric,), {
