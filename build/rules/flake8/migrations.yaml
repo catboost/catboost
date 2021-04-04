@@ -918,7 +918,6 @@ migrations:
     - sandbox/projects/media/kp-front-nginx/config-validation
     - sandbox/projects/media_crm/tasks
     - sandbox/projects/media_crm/tasks/media_crm_deploy
-    - sandbox/projects/metrika/admins/clickhouse/clickhouse_statbox_traf_tests_pipeline
     - sandbox/projects/metrika/admins/infra/metrika_infra_upload
     - sandbox/projects/metrika/core/metrika_core_tracker_update
     - sandbox/projects/metrika/frontend/metrika_watch_old_release
@@ -1434,7 +1433,6 @@ migrations:
     - maps/automotive/carwashes/tests/src
     - maps/automotive/qa/metrics/common/ut
     - maps/automotive/tools/statistics_auto/pylib/track_match_finder
-    - maps/b2bgeo/mvrp_solver/annealing_mvrp/tests_lib
     - maps/infra/apiteka/config_uploader/tests
     - maps/infra/ecstatic/common/worker/lib
     - maps/infra/sedem/cli/tests/release
