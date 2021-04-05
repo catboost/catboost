@@ -5938,7 +5938,7 @@
         "bpftrace": {
             "tools": {
                 "bpftrace": {
-                    "bottle": "bpftrace",
+                    "bottle": "sre",
                     "executable": "bpftrace"
                 }
             },
@@ -7573,12 +7573,16 @@
         },
         "sre": {
             "formula": {
-                "sandbox_id": 935602829,
+                "sandbox_id": 936458890,
                 "match": "infra/rtc/sretools/sretools.tar.gz"
             },
             "executable": {
                 "sre": [
                     "sretool"
+                ],
+                "bpftrace": [
+                    "tools",
+                    "bpftrace"
                 ]
             }
         },
