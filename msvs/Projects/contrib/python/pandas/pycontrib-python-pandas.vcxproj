@@ -174,6 +174,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pytz\pycontrib-python-pytz.vcxproj">
       <Project>{45CA8061-AE16-9692-4CE9-60B4968D9B52}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\setuptools\py2\pypython-setuptools-py2.vcxproj">
+      <Project>{C1D10CB8-B94C-C430-F3B3-494136748EA6}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\setuptools\pycontrib-python-setuptools.vcxproj">
       <Project>{8179ED86-9B97-876C-F62E-DE7CEB78CDDF}</Project>
     </ProjectReference>
