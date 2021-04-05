@@ -1,3 +1,14 @@
+# Release 0.25.1
+
+## Speedup
+* Now CatBoost uses non-owning Numpy arrays for passing c++ data to user-defined metric and loss functions in Python. This opens lot's of speedup probabilities: using those vectors in numba.jitted code, in cython code or just using numpy vector functions. Thanks @micyril!
+
+## Bugfixes
+* Fix #1620 - retrieval of R pointers by @david-cortes
+* Fix `EvalMetricsResult.get_metric()` by @Roffild
+* Fix multiclass AUC calculation #1615
+
+
 # Release 0.25
 
 ## CatBoost for Apache Spark
