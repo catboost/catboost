@@ -8798,6 +8798,7 @@
         }
     },
     "toolchain_aliases": {
-        "clang-win-x86_64": "clang11-win-x86_64"
+        "clang-win-x86_64": "clang11-win-x86_64",
+        "gcc-linux-x86_64": "gcc82-linux-x86_64"
     }
 }
