@@ -1941,7 +1941,8 @@ class LD(Linker):
         shared_flag = '-shared'
         exec_shared_flag = '-pie -fPIE -Wl,--unresolved-symbols=ignore-all -rdynamic' if self.target.is_linux else ''
         if self.whole_archive:
-            srcs_globals = self.whole_archive + ' ${rootrel;ext=.a:SRCS_GLOBAL} ' + self.no_whole_archive + ' ${rootrel;ext=.o:SRCS_GLOBAL}'
+            srcs_globals = self.whole_archive + ' ${rootrel;ext=.a:SRCS_GLOBAL} ' + self.no_whole_archive \
+            + ' ${rootrel;ext=.o:SRCS_GLOBAL}' + ' ${rootrel;ext=.supp:SRCS_GLOBAL}'
         else:
             srcs_globals = '${rootrel:SRCS_GLOBAL}'
 
@@ -1957,7 +1958,7 @@ class LD(Linker):
 
         emit('LINK_SCRIPT_EXE_FLAGS')
         emit('REAL_LINK_EXE',
-             '$YMAKE_PYTHON ${input:"build/scripts/link_exe.py"}', '$LINK_SCRIPT_EXE_FLAGS',
+             '$YMAKE_PYTHON ${input:"build/scripts/link_exe.py"}', '--source-root $ARCADIA_ROOT', '$LINK_SCRIPT_EXE_FLAGS',
              '$GCCFILTER',
              '$CXX_COMPILER', srcs_globals, '$VCS_C_OBJ $AUTO_INPUT -o $TARGET', self.rdynamic, exe_flags,
              ld_env_style)

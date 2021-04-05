@@ -31,7 +31,7 @@ def get_args():
 
 
 def strip_suppression_files(srcs):
-    return [s for s in srcs if not s.endswith('.supp.o')]
+    return [s for s in srcs if not s.endswith('.supp')]
 
 
 def main():
