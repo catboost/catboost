@@ -1,20 +1,22 @@
 /** CatBoost numeric features for multiple documents. */
 export type CatBoostFloatFeatures = Array<number[]>;
-/** 
+/**
  * CatBoost categorial features for multiple documents - either integer hashes
- * or string values. 
+ * or string values.
  */
 export type CatBoostCategoryFeatures = Array<number[]>|Array<string[]>;
 
 /** CatBoost model instance. */
 export class Model {
+	constructor(path?: string);
+
 	/** Loads model from file. */
-	loadFullFromFile(path: string): void;
-	/** 
-	 * Calculate prediction for multiple documents. 
+	loadModel(path: string): void;
+	/**
+	 * Calculate prediction for multiple documents.
 	 * The same number of numeric and categorial features is expected.
 	 */
-	calcPrediction(floatFeatures: CatBoostFloatFeatures, 
+	predict(floatFeatures: CatBoostFloatFeatures,
 		catFeatures: CatBoostCategoryFeatures): number[];
 	/** The number of numeric features. */
 	getFloatFeaturesCount(): number;
