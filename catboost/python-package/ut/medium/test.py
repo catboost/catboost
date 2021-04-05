@@ -2947,7 +2947,7 @@ def test_cv_return_models(task_type):
         fold_count=fold_count,
         return_models=True,
     )
-    
+
     assert len(cv_models) == fold_count
 
     single_model = CatBoost(model_params).fit(train_pool)
@@ -2974,7 +2974,7 @@ def test_cv_return_models(task_type):
         assert model.get_all_params().keys() == single_model.get_all_params().keys()
         assert not np.isna(model.get_feature_importance(test_pool)).any()
         assert not np.isna(model.get_scale_and_bias()).any()
-        new_model = model.copy()
+        model.copy()
         del model
 
 

@@ -5471,7 +5471,7 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
         if folds is not None, then all of fold_count, shuffle, partition_random_seed, inverted are None
 
     return_models: bool, optional (default=False)
-        if True, return a list of fitted models from each CV fold
+        if True, return a list of models fitted for each CV fold
 
     Returns
     -------
