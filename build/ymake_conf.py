@@ -2828,7 +2828,6 @@ class Cuda(object):
         self.cuda_host_compiler_env = Setting('CUDA_HOST_COMPILER_ENV')
         self.cuda_host_msvc_version = Setting('CUDA_HOST_MSVC_VERSION')
         self.cuda_nvcc_flags = Setting('CUDA_NVCC_FLAGS', auto=[])
-        self.cuda_arcadia_includes = Setting('CUDA_ARCADIA_INCLUDES', auto=self.auto_cuda_arcadia_includes, convert=to_bool)
 
         self.peerdirs = ['build/platform/cuda']
 
@@ -2883,22 +2882,17 @@ class Cuda(object):
         emit('NVCC_OBJ_EXT', '.o' if not self.build.target.is_windows else '.obj')
 
     def print_macros(self):
-        cmd_vars = {
-            'skip_nocxxinc': '' if self.cuda_arcadia_includes.value else '--y_skip_nocxxinc',
-            'includes': '${pre=-I:_C__INCLUDE}' if self.cuda_arcadia_includes.value else '-I$ARCADIA_ROOT',
-        }
-
         if not self.cuda_use_clang.value:
-            cmd = '$YMAKE_PYTHON ${input:"build/scripts/compile_cuda.py"} ${tool:"tools/mtime0"} $NVCC $NVCC_FLAGS -c ${input:SRC} -o ${output;suf=${OBJ_SUF}${NVCC_OBJ_EXT}:SRC} %(skip_nocxxinc)s %(includes)s --cflags $C_FLAGS_PLATFORM $CXXFLAGS $NVCC_STD $SRCFLAGS ${input;hide:"build/platform/cuda/cuda_runtime_include.h"} $CUDA_HOST_COMPILER_ENV ${kv;hide:"p CC"} ${kv;hide:"pc light-green"}'  # noqa E501
+            cmd = '$YMAKE_PYTHON ${input:"build/scripts/compile_cuda.py"} ${tool:"tools/mtime0"} $NVCC $NVCC_FLAGS -c ${input:SRC} -o ${output;suf=${OBJ_SUF}${NVCC_OBJ_EXT}:SRC} ${pre=-I:_C__INCLUDE} --cflags $C_FLAGS_PLATFORM $CXXFLAGS $NVCC_STD $SRCFLAGS ${input;hide:"build/platform/cuda/cuda_runtime_include.h"} $CUDA_HOST_COMPILER_ENV ${kv;hide:"p CC"} ${kv;hide:"pc light-green"}'  # noqa E501
         else:
-            cmd = '$CXX_COMPILER --cuda-path=$CUDA_ROOT $C_FLAGS_PLATFORM -c ${input:SRC} -o ${output;suf=${OBJ_SUF}${NVCC_OBJ_EXT}:SRC} %(includes)s $CXXFLAGS $SRCFLAGS $TOOLCHAIN_ENV ${kv;hide:"p CU"} ${kv;hide:"pc green"}'  # noqa E501
+            cmd = '$CXX_COMPILER --cuda-path=$CUDA_ROOT $C_FLAGS_PLATFORM -c ${input:SRC} -o ${output;suf=${OBJ_SUF}${NVCC_OBJ_EXT}:SRC} ${pre=-I:_C__INCLUDE} $CXXFLAGS $SRCFLAGS $TOOLCHAIN_ENV ${kv;hide:"p CU"} ${kv;hide:"pc green"}'  # noqa E501
 
         emit_big('''
             macro _SRC("cu", SRC, SRCFLAGS...) {
                 .CMD=%s
                 .PEERDIR=%s
             }
-        ''' % (cmd % cmd_vars, ' '.join(sorted(self.peerdirs))))
+        ''' % (cmd, ' '.join(sorted(self.peerdirs))))
 
     def have_cuda_in_arcadia(self):
         host, target = self.build.host_target
@@ -3004,9 +2998,6 @@ class Cuda(object):
         vc_root = get_root()
         if vc_root:
             self.cuda_host_compiler_env.value = format_env({'Y_VC_Root': vc_root})
-
-    def auto_cuda_arcadia_includes(self):
-        return self.cuda_version_list >= [9, 0]
 
 
 class CuDNN(object):
