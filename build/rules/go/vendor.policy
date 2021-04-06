@@ -636,6 +636,10 @@ ALLOW .* -> vendor/github.com/hashicorp/terraform-plugin-sdk/v2
 ALLOW .* -> vendor/github.com/99designs/gqlgen
 ALLOW .* -> vendor/github.com/vektah/gqlparser/v2
 
+# CONTRIB-2148 dsl for json generating
+DENY .* -> vendor/github.com/google/go-jsonnet/c-bindings
+ALLOW .* -> vendor/github.com/google/go-jsonnet
+
 #
 # Tools
 #
