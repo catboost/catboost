@@ -582,6 +582,7 @@ ALLOW .* -> vendor/github.com/coredns/coredns/plugin/reload
 ALLOW .* -> vendor/github.com/coredns/coredns/plugin/rewrite
 ALLOW .* -> vendor/github.com/coredns/coredns/plugin/ready
 ALLOW .* -> vendor/github.com/coredns/coredns/plugin/root
+ALLOW .* -> vendor/github.com/coredns/coredns/plugin/loadbalance
 
 # CONTRIB-2021
 ALLOW .* -> vendor/github.com/shopspring/decimal
@@ -613,6 +614,7 @@ ALLOW .* -> vendor/github.com/jinzhu/inflection
 #
 # CONTRIB-2069
 ALLOW .* -> vendor/github.com/coredhcp/coredhcp
+ALLOW .* -> vendor/github.com/insomniacslk/dhcp
 
 # CONTRIB-2094
 ALLOW .* -> vendor/github.com/osrg/gobgp
@@ -629,6 +631,14 @@ ALLOW library/go/core/log/compat/logrus -> vendor/github.com/sirupsen/logrus
 
 # CONTRIB-2127
 ALLOW .* -> vendor/github.com/hashicorp/terraform-plugin-sdk/v2
+
+# CONTRIB-2139 library for building GraphQL servers without any fuss.
+ALLOW .* -> vendor/github.com/99designs/gqlgen
+ALLOW .* -> vendor/github.com/vektah/gqlparser/v2
+
+# CONTRIB-2148 dsl for json generating
+DENY .* -> vendor/github.com/google/go-jsonnet/c-bindings
+ALLOW .* -> vendor/github.com/google/go-jsonnet
 
 #
 # Tools

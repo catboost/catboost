@@ -10,6 +10,7 @@ SRCS(
     test_tree_searcher.cpp
     test_pairwise_tree_searcher.cpp
     test_multistat_histograms.cpp
+    test_exact_leaves_estimation.cpp
 )
 
 PEERDIR(

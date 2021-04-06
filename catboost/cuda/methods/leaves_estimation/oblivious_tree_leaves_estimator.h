@@ -31,6 +31,8 @@ namespace NCatboostCuda {
         TStripeBuffer<float> TmpValue;
         TStripeBuffer<float> TmpDer2;
 
+        ui32 BinCount;
+
         TEstimationTaskHelper() = default;
 
         void MoveToPoint(const TMirrorBuffer<float>& point, ui32 stream = 0);
@@ -43,16 +45,14 @@ namespace NCatboostCuda {
                      TCudaBuffer<double, NCudaLib::TStripeMapping>* der2,
                      ui32 stream = 0);
 
-        void ComputeExact(TVector<ui32>& bins,
-                          TVector<float>& leavesValues,
-                          TVector<float>& leavesWeights,
+        void ComputeExact(TVector<float>& point,
+                          const NCatboostOptions::TLossDescription& lossDescription,
                           ui32 stream = 0) {
-            Bins.Read(bins);
-            auto value = TStripeBuffer<float>::CopyMapping(Bins);
+            auto values = TStripeBuffer<float>::CopyMapping(Bins);
             auto weights = TStripeBuffer<float>::CopyMapping(Bins);
-            DerCalcer->ComputeExactValue(Baseline, &value, &weights, stream);
-            value.Read(leavesValues);
-            weights.Read(leavesWeights);
+
+            DerCalcer->ComputeExactValue(Baseline, &values, &weights, stream);
+            ComputeExactApprox(Bins, values, weights, BinCount, point, lossDescription);
         }
     };
 
@@ -163,6 +163,7 @@ namespace NCatboostCuda {
             UpdatePartitionOffsets(task.Bins, task.Offsets);
 
             task.DerCalcer = CreatePermutationDerCalcer(std::move(strippedTarget), std::move(indices));
+            task.BinCount = binCount;
 
             return *this;
         }
@@ -198,6 +199,7 @@ namespace NCatboostCuda {
 
             task.DerCalcer = CreatePermutationDerCalcer(TTarget(target),
                                                         std::move(indices));
+            task.BinCount = binCount;
 
             return *this;
         }

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
     pygments.lexers.basic
     ~~~~~~~~~~~~~~~~~~~~~
@@ -352,10 +351,10 @@ class CbmBasicV2Lexer(RegexLexer):
         ]
     }
 
-    def analyse_text(self, text):
+    def analyse_text(text):
         # if it starts with a line number, it shouldn't be a "modern" Basic
         # like VB.net
-        if re.match(r'\d+', text):
+        if re.match(r'^\d+', text):
             return 0.2
 
 

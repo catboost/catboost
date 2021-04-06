@@ -18,13 +18,16 @@ def in_env(case):
     def wrapped_case(*args, **kwargs):
         with library.python.tmp.temp_dir() as temp_dir:
             case(lambda path: os.path.join(temp_dir, path))
+
     return wrapped_case
 
 
 def mkfile(path, data=''):
     with open(path, 'wb') as f:
         if data:
-            f.write(data) if isinstance(data, six.binary_type) else f.write(data.encode(library.python.strings.fs_encoding()))
+            f.write(data) if isinstance(data, six.binary_type) else f.write(
+                data.encode(library.python.strings.fs_encoding())
+            )
 
 
 def mktree_example(path, name):
@@ -817,14 +820,20 @@ def test_read_file_empty(path):
 @in_env
 def test_read_file_multiline(path):
     mkfile(path('src'), 'SRC line 1\nSRC line 2\n')
-    assert library.python.fs.read_file(path('src')).decode(library.python.strings.fs_encoding()) == 'SRC line 1\nSRC line 2\n'
+    assert (
+        library.python.fs.read_file(path('src')).decode(library.python.strings.fs_encoding())
+        == 'SRC line 1\nSRC line 2\n'
+    )
     assert library.python.fs.read_file(path('src'), binary=False) == 'SRC line 1\nSRC line 2\n'
 
 
 @in_env
 def test_read_file_multiline_crlf(path):
     mkfile(path('src'), 'SRC line 1\r\nSRC line 2\r\n')
-    assert library.python.fs.read_file(path('src')).decode(library.python.strings.fs_encoding()) == 'SRC line 1\r\nSRC line 2\r\n'
+    assert (
+        library.python.fs.read_file(path('src')).decode(library.python.strings.fs_encoding())
+        == 'SRC line 1\r\nSRC line 2\r\n'
+    )
     if library.python.windows.on_win() or six.PY3:  # universal newlines are by default in text mode in python3
         assert library.python.fs.read_file(path('src'), binary=False) == 'SRC line 1\nSRC line 2\n'
     else:
@@ -996,7 +1005,9 @@ def test_copy_tree_custom_copy_function():
         shutil.copy2(src, dst)
         copied.append(dst)
 
-    library.python.fs.copy_tree("test_copy_tree_src", yatest.common.work_path("test_copy_tree_dst"), copy_function=copy_function)
+    library.python.fs.copy_tree(
+        "test_copy_tree_src", yatest.common.work_path("test_copy_tree_dst"), copy_function=copy_function
+    )
     assert len(copied) == 2
     assert yatest.common.work_path("test_copy_tree_dst/deepper/deepper.txt") in copied
     assert yatest.common.work_path("test_copy_tree_dst/deepper/inner/inner.txt") in copied
@@ -1008,3 +1019,19 @@ def test_copy2():
 
     assert os.path.islink("link2")
     assert os.readlink("link2") == "non-existent"
+
+
+def test_commonpath():
+    pj = os.path.join
+    pja = lambda *x: os.path.abspath(pj(*x))
+
+    assert library.python.fs.commonpath(['a', 'b']) == ''
+    assert library.python.fs.commonpath([pj('t', '1')]) == pj('t', '1')
+    assert library.python.fs.commonpath([pj('t', '1'), pj('t', '2')]) == pj('t')
+    assert library.python.fs.commonpath([pj('t', '1', '2'), pj('t', '1', '2')]) == pj('t', '1', '2')
+    assert library.python.fs.commonpath([pj('t', '1', '1'), pj('t', '1', '2')]) == pj('t', '1')
+    assert library.python.fs.commonpath([pj('t', '1', '1'), pj('t', '1', '2'), pj('t', '1', '3')]) == pj('t', '1')
+
+    assert library.python.fs.commonpath([pja('t', '1', '1'), pja('t', '1', '2')]) == pja('t', '1')
+
+    assert library.python.fs.commonpath({pj('t', '1'), pj('t', '2')}) == pj('t')

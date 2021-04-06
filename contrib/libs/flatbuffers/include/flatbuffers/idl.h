@@ -645,7 +645,7 @@ struct IDLOptions {
         force_defaults(false),
         java_primitive_has_method(false),
         cs_gen_json_serializer(false),
-        filename_suffix(".fbs"),
+        filename_suffix("_generated"),
         filename_extension(),
         lang(IDLOptions::kJava),
         mini_reflect(IDLOptions::kNone),

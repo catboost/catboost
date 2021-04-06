@@ -54,6 +54,14 @@ def prepare_env(data):
     return serialize_list(shlex.split(data))
 
 
+def is_yt_spec_contain_pool_info(filename):  # XXX switch to yson in ymake + perf test for configure
+    pool_re = re.compile(r"""['"]*pool['"]*\s*?=""")
+    cypress_root_re = re.compile(r"""['"]*cypress_root['"]*\s*=""")
+    with open(filename, 'r') as afile:
+        yt_spec = afile.read()
+        return pool_re.search(yt_spec) and cypress_root_re.search(yt_spec)
+
+
 def validate_sb_vault(name, value):
     if not CANON_SB_VAULT_REGEX.match(value):
         return "sb_vault value '{}' should follow pattern <ENV_NAME>=:<value|file>:<owner>:<vault key>".format(value)
@@ -132,7 +140,7 @@ def validate_test(unit, kw):
     in_autocheck = "ya:not_autocheck" not in tags and 'ya:manual' not in tags
     is_fat = 'ya:fat' in tags
     is_force_sandbox = 'ya:force_distbuild' not in tags and is_fat
-    is_ytexec_run = 'ya:yt' in tags and 'ya:ytexec' in tags
+    is_ytexec_run = 'ya:yt' in tags
     is_fuzzing = valid_kw.get("FUZZING", False)
     is_kvm = 'kvm' in requirements_orig
     requirements = {}
@@ -236,7 +244,7 @@ def validate_test(unit, kw):
                 break
 
     if valid_kw.get("YT-SPEC"):
-        if 'ya:yt' not in tags:
+        if not is_ytexec_run:
             errors.append("You can use YT_SPEC macro only tests marked with ya:yt tag")
         else:
             for filename in get_list("YT-SPEC"):
@@ -244,19 +252,9 @@ def validate_test(unit, kw):
                 if not os.path.exists(filename):
                     errors.append("File '{}' specified in the YT_SPEC macro doesn't exist".format(filename))
                     continue
-                if 'ya:ytexec' not in tags:
-                    try:
-                        with open(filename) as afile:
-                            data = json.load(afile)
-                    except Exception as e:
-                        errors.append("Malformed data in {}: {} ({})".format(unit.path(), e, filename))
-                        continue
-
-                    known = {'operation_spec', 'task_spec'}
-                    unknown = set(data.keys()) - known
-                    if unknown:
-                        errors.append("Don't know what to do with {} field(s) in {}. You can use only: {}".format(unknown, unit.path(), known))
-                        continue
+                if is_yt_spec_contain_pool_info(filename) and "ya:external" not in tags:
+                    tags.append("ya:external")
+                    tags.append("ya:yt_research_pool")
 
     if valid_kw.get("USE_ARCADIA_PYTHON") == "yes" and valid_kw.get("SCRIPT-REL-PATH") == "py.test":
         errors.append("PYTEST_SCRIPT is deprecated")
@@ -278,7 +276,7 @@ def validate_test(unit, kw):
             errors.append('Incorrect SPLIT_FACTOR value: {}'.format(e))
 
     unit_path = get_norm_unit_path(unit)
-    if not is_fat and "ya:noretries" in tags and 'ya:yt' not in tags \
+    if not is_fat and "ya:noretries" in tags and not is_ytexec_run \
             and not unit_path.startswith("devtools/") \
             and not unit_path.startswith("infra/kernel/") \
             and not unit_path.startswith("yt/python/yt") \
@@ -438,50 +436,6 @@ def onadd_ytest(unit, *args):
     if data:
         unit.set_property(["DART_DATA", data])
         save_in_file(unit.get('TEST_DART_OUT_FILE'), data)
-
-
-def onadd_test(unit, *args):
-    flat_args, spec_args = _common.sort_by_keywords({"DEPENDS": -1, "TIMEOUT": 1, "DATA": -1, "TAG": -1, "REQUIREMENTS": -1, "FORK_MODE": 1,
-                                                     "SPLIT_FACTOR": 1, "FORK_SUBTESTS": 0, "FORK_TESTS": 0, "SIZE": 1}, args)
-    test_type = flat_args[0]
-    test_files = flat_args[1:]
-    if test_type in ["PEP8", "PY_FLAKES"]:
-        return
-        # unit_path = unit.path()
-        # paths = []
-        # for test_file in test_files:
-        #     if test_file == ".":
-        #         path_to_check = unit_path
-        #     else:
-        #         path_to_check = os.path.join(unit_path, test_file)
-        #     paths.append(path_to_check)
-        # return onadd_check(unit, *tuple([test_type] + sorted(paths)))
-
-    custom_deps = spec_args.get('DEPENDS', [])
-    timeout = spec_args.get("TIMEOUT", [])
-    if timeout:
-        timeout = timeout[0]
-    else:
-        timeout = '0'
-    fork_mode = []
-    if 'FORK_SUBTESTS' in spec_args:
-        fork_mode.append('subtests')
-    if 'FORK_TESTS' in spec_args:
-        fork_mode.append('tests')
-    fork_mode = fork_mode or spec_args.get('FORK_MODE', [])
-    split_factor = ''.join(spec_args.get('SPLIT_FACTOR', [])) or ''
-    test_size = ''.join(spec_args.get('SIZE', [])) or 'SMALL'
-    test_dir = unit.path()
-    tags = _get_test_tags(unit, spec_args)
-    requirements = spec_args.get('REQUIREMENTS', []) + get_values_list(unit, 'TEST_REQUIREMENTS_VALUE')
-    test_data = spec_args.get("DATA", []) + get_norm_paths(unit, 'TEST_DATA_VALUE')
-    python_paths = get_values_list(unit, 'TEST_PYTHON_PATH_VALUE')
-    if test_type == "PY_TEST":
-        old_pytest = True
-    else:
-        old_pytest = False
-
-    _dump_test(unit, test_type, test_files, timeout, test_dir, custom_deps, test_data, python_paths, split_factor, fork_mode, test_size, tags, requirements, None, old_pytest)
 
 
 def onadd_check(unit, *args):
@@ -725,6 +679,7 @@ def onjava_test(unit, *args):
     else:
         script_rel_path = 'junit.test'
 
+    ymake_java_test = unit.get('YMAKE_JAVA_TEST') == 'yes'
     test_record = {
         'SOURCE-FOLDER-PATH': path,
         'TEST-NAME': '-'.join([os.path.basename(os.path.dirname(path)), os.path.basename(path)]),
@@ -749,12 +704,17 @@ def onjava_test(unit, *args):
         'SYSTEM_PROPERTIES': props,
         'TEST-CWD': test_cwd,
         'SKIP_TEST': unit.get('SKIP_TEST_VALUE') or '',
-        'JAVA_CLASSPATH_CMD_TYPE': java_cp_arg_type
+        'JAVA_CLASSPATH_CMD_TYPE': java_cp_arg_type,
+        'NO_JBUILD': 'yes' if ymake_java_test else 'no'
     }
     test_classpath_origins = unit.get('TEST_CLASSPATH_VALUE')
     if test_classpath_origins:
         test_record['TEST_CLASSPATH_ORIGINS'] = test_classpath_origins
         test_record['TEST_CLASSPATH'] = '${TEST_CLASSPATH_MANAGED}'
+    elif ymake_java_test:
+        test_record['TEST_CLASSPATH'] = '${DART_CLASSPATH}'
+        test_record['TEST_CLASSPATH_DEPS'] = '${DART_CLASSPATH_DEPS}'
+        test_record['TEST_JAR'] = '{}/{}.jar'.format(unit.get('MODDIR'), unit.get('REALPRJNAME'))
 
     data = dump_test(unit, test_record)
     if data:
@@ -831,10 +791,6 @@ def _dump_test(
 
     if test_type == "PY_TEST":
         script_rel_path = "py.test"
-    elif test_type == "PEP8":
-        script_rel_path = "py.test.pep8"
-    elif test_type == "PY_FLAKES":
-        script_rel_path = "py.test.flakes"
     else:
         script_rel_path = test_type
 
@@ -844,52 +800,45 @@ def _dump_test(
     use_arcadia_python = unit.get('USE_ARCADIA_PYTHON')
     if test_cwd:
         test_cwd = test_cwd.replace("$TEST_CWD_VALUE", "").replace('"MACRO_CALLS_DELIM"', "").strip()
+    test_name = os.path.basename(binary_path)
+    test_record = {
+        'TEST-NAME': os.path.splitext(test_name)[0],
+        'TEST-TIMEOUT': timeout,
+        'SCRIPT-REL-PATH': script_rel_path,
+        'TESTED-PROJECT-NAME': test_name,
+        'SOURCE-FOLDER-PATH': test_dir,
+        'CUSTOM-DEPENDENCIES': " ".join(custom_deps),
+        'TEST-ENV': prepare_env(unit.get("TEST_ENV_VALUE")),
+        #  'TEST-PRESERVE-ENV': 'da',
+        'TEST-DATA': serialize_list(sorted(_common.filter_out_by_keyword(test_data, 'AUTOUPDATED'))),
+        'TEST-RECIPES': prepare_recipes(unit.get("TEST_RECIPES_VALUE")),
+        'SPLIT-FACTOR': split_factor,
+        'TEST_PARTITION': unit.get('TEST_PARTITION') or 'SEQUENTIAL',
+        'FORK-MODE': fork_mode,
+        'FORK-TEST-FILES': fork_test_files,
+        'TEST-FILES': serialize_list(test_files),
+        'SIZE': test_size,
+        'TAG': serialize_list(tags),
+        'REQUIREMENTS': serialize_list(requirements),
+        'USE_ARCADIA_PYTHON': use_arcadia_python or '',
+        'OLD_PYTEST': 'yes' if old_pytest else 'no',
+        'PYTHON-PATHS': serialize_list(python_paths),
+        'TEST-CWD': test_cwd or '',
+        'SKIP_TEST': unit.get('SKIP_TEST_VALUE') or '',
+        'BUILD-FOLDER-PATH': _common.strip_roots(unit_path),
+        'BLOB': unit.get('TEST_BLOB_DATA') or '',
+        'CANONIZE_SUB_PATH': unit.get('CANONIZE_SUB_PATH') or '',
+    }
     if binary_path:
-        if fork_test_files == 'on' or unit.get('FORK_TEST_FILES_FILTER') == 'yes':
-            tests = test_files
-        else:
-            tests = [os.path.basename(binary_path)]
-    else:
-        tests = test_files
-    for test_name in tests:
-        test_record = {
-            'TEST-NAME': os.path.splitext(test_name)[0],
-            'TEST-TIMEOUT': timeout,
-            'SCRIPT-REL-PATH': script_rel_path,
-            'TESTED-PROJECT-NAME': test_name,
-            'SOURCE-FOLDER-PATH': test_dir,
-            'CUSTOM-DEPENDENCIES': " ".join(custom_deps),
-            'TEST-ENV': prepare_env(unit.get("TEST_ENV_VALUE")),
-            #  'TEST-PRESERVE-ENV': 'da',
-            'TEST-DATA': serialize_list(sorted(_common.filter_out_by_keyword(test_data, 'AUTOUPDATED'))),
-            'TEST-RECIPES': prepare_recipes(unit.get("TEST_RECIPES_VALUE")),
-            'SPLIT-FACTOR': split_factor,
-            'TEST_PARTITION': unit.get('TEST_PARTITION') or 'SEQUENTIAL',
-            'FORK-MODE': fork_mode,
-            'FORK-TEST-FILES': fork_test_files,
-            'TEST-FILES': serialize_list(tests),
-            'SIZE': test_size,
-            'TAG': serialize_list(tags),
-            'REQUIREMENTS': serialize_list(requirements),
-            'USE_ARCADIA_PYTHON': use_arcadia_python or '',
-            'OLD_PYTEST': 'yes' if old_pytest else 'no',
-            'PYTHON-PATHS': serialize_list(python_paths),
-            'TEST-CWD': test_cwd or '',
-            'SKIP_TEST': unit.get('SKIP_TEST_VALUE') or '',
-            'BUILD-FOLDER-PATH': _common.strip_roots(unit_path),
-            'BLOB': unit.get('TEST_BLOB_DATA') or '',
-            'CANONIZE_SUB_PATH': unit.get('CANONIZE_SUB_PATH') or '',
-        }
-        if binary_path:
-            test_record['BINARY-PATH'] = _common.strip_roots(binary_path)
-        if runner_bin:
-            test_record['TEST-RUNNER-BIN'] = runner_bin
-        if yt_spec:
-            test_record['YT-SPEC'] = serialize_list(yt_spec)
-        data = dump_test(unit, test_record)
-        if data:
-            unit.set_property(["DART_DATA", data])
-            save_in_file(unit.get('TEST_DART_OUT_FILE'), data)
+        test_record['BINARY-PATH'] = _common.strip_roots(binary_path)
+    if runner_bin:
+        test_record['TEST-RUNNER-BIN'] = runner_bin
+    if yt_spec:
+        test_record['YT-SPEC'] = serialize_list(yt_spec)
+    data = dump_test(unit, test_record)
+    if data:
+        unit.set_property(["DART_DATA", data])
+        save_in_file(unit.get('TEST_DART_OUT_FILE'), data)
 
 
 def onsetup_pytest_bin(unit, *args):

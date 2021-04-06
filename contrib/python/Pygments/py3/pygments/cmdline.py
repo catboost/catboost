@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
     pygments.cmdline
     ~~~~~~~~~~~~~~~~
@@ -11,7 +10,8 @@
 
 import os
 import sys
-import getopt
+import shutil
+import argparse
 from textwrap import dedent
 
 from pygments import __version__, highlight
@@ -28,84 +28,6 @@ from pygments.formatters.terminal import TerminalFormatter
 from pygments.formatters.terminal256 import Terminal256Formatter
 from pygments.filters import get_all_filters, find_filter_class
 from pygments.styles import get_all_styles, get_style_by_name
-
-
-USAGE = """\
-Usage: %s [-l <lexer> | -g] [-F <filter>[:<options>]] [-f <formatter>]
-          [-O <options>] [-P <option=value>] [-s] [-v] [-x] [-o <outfile>] [<infile>]
-
-       %s -S <style> -f <formatter> [-a <arg>] [-O <options>] [-P <option=value>]
-       %s -L [<which> ...]
-       %s -N <filename>
-       %s -H <type> <name>
-       %s -h | -V
-
-Highlight the input file and write the result to <outfile>.
-
-If no input file is given, use stdin, if -o is not given, use stdout.
-
-If -s is passed, lexing will be done in "streaming" mode, reading and
-highlighting one line at a time.  This will only work properly with
-lexers that have no constructs spanning multiple lines!
-
-<lexer> is a lexer name (query all lexer names with -L). If -l is not
-given, the lexer is guessed from the extension of the input file name
-(this obviously doesn't work if the input is stdin).  If -g is passed,
-attempt to guess the lexer from the file contents, or pass through as
-plain text if this fails (this can work for stdin).
-
-Likewise, <formatter> is a formatter name, and will be guessed from
-the extension of the output file name. If no output file is given,
-the terminal formatter will be used by default.
-
-The additional option -x allows custom lexers and formatters to be
-loaded from a .py file relative to the current working directory. For
-example, ``-l ./customlexer.py -x``. By default, this option expects a
-file with a class named CustomLexer or CustomFormatter; you can also
-specify your own class name with a colon (``-l ./lexer.py:MyLexer``).
-Users should be very careful not to use this option with untrusted files,
-because it will import and run them.
-
-With the -O option, you can give the lexer and formatter a comma-
-separated list of options, e.g. ``-O bg=light,python=cool``.
-
-The -P option adds lexer and formatter options like the -O option, but
-you can only give one option per -P. That way, the option value may
-contain commas and equals signs, which it can't with -O, e.g.
-``-P "heading=Pygments, the Python highlighter".
-
-With the -F option, you can add filters to the token stream, you can
-give options in the same way as for -O after a colon (note: there must
-not be spaces around the colon).
-
-The -O, -P and -F options can be given multiple times.
-
-With the -S option, print out style definitions for style <style>
-for formatter <formatter>. The argument given by -a is formatter
-dependent.
-
-The -L option lists lexers, formatters, styles or filters -- set
-`which` to the thing you want to list (e.g. "styles"), or omit it to
-list everything.
-
-The -N option guesses and prints out a lexer name based solely on
-the given filename. It does not take input or highlight anything.
-If no specific lexer can be determined "text" is returned.
-
-The -H option prints detailed help for the object <name> of type <type>,
-where <type> is one of "lexer", "formatter" or "filter".
-
-The -s option processes lines one at a time until EOF, rather than
-waiting to process the entire file.  This only works for stdin, and
-is intended for streaming input such as you get from 'tail -f'.
-Example usage: "tail -f sql.log | pygmentize -s -l sql"
-
-The -v option prints a detailed traceback on unhandled exceptions,
-which is useful for debugging and bug reports.
-
-The -h option prints this help.
-The -V option prints the package version.
-"""
 
 
 def _parse_options(o_strs):
@@ -213,95 +135,94 @@ def _print_list(what):
             print("    %s" % docstring_headline(cls))
 
 
-def main_inner(popts, args, usage):
-    opts = {}
-    O_opts = []
-    P_opts = []
-    F_opts = []
-    for opt, arg in popts:
-        if opt == '-O':
-            O_opts.append(arg)
-        elif opt == '-P':
-            P_opts.append(arg)
-        elif opt == '-F':
-            F_opts.append(arg)
-        opts[opt] = arg
-
-    if opts.pop('-h', None) is not None:
-        print(usage)
+def main_inner(parser, argns):
+    if argns.help:
+        parser.print_help()
         return 0
 
-    if opts.pop('-V', None) is not None:
-        print('Pygments version %s, (c) 2006-2021 by Georg Brandl.' % __version__)
+    if argns.V:
+        print('Pygments version %s, (c) 2006-2021 by Georg Brandl, Matthäus '
+              'Chajdas and contributors.' % __version__)
         return 0
+
+    def is_only_option(opt):
+        return not any(v for (k, v) in vars(argns).items() if k != opt)
 
     # handle ``pygmentize -L``
-    L_opt = opts.pop('-L', None)
-    if L_opt is not None:
-        if opts:
-            print(usage, file=sys.stderr)
+    if argns.L is not None:
+        if not is_only_option('L'):
+            parser.print_help(sys.stderr)
             return 2
-
         # print version
         main(['', '-V'])
-        if not args:
-            args = ['lexer', 'formatter', 'filter', 'style']
-        for arg in args:
-            _print_list(arg.rstrip('s'))
+        allowed_types = {'lexer', 'formatter', 'filter', 'style'}
+        largs = [arg.rstrip('s') for arg in argns.L]
+        if any(arg not in allowed_types for arg in largs):
+            parser.print_help(sys.stderr)
+            return 0
+        if not largs:
+            largs = allowed_types
+        for arg in largs:
+            _print_list(arg)
         return 0
 
     # handle ``pygmentize -H``
-    H_opt = opts.pop('-H', None)
-    if H_opt is not None:
-        if opts or len(args) != 2:
-            print(usage, file=sys.stderr)
+    if argns.H:
+        if not is_only_option('H'):
+            parser.print_help(sys.stderr)
             return 2
-
-        what, name = args  # pylint: disable=unbalanced-tuple-unpacking
+        what, name = argns.H
         if what not in ('lexer', 'formatter', 'filter'):
-            print(usage, file=sys.stderr)
+            parser.print_help(sys.stderr)
             return 2
-
         return _print_help(what, name)
 
     # parse -O options
-    parsed_opts = _parse_options(O_opts)
-    opts.pop('-O', None)
+    parsed_opts = _parse_options(argns.O or [])
 
     # parse -P options
-    for p_opt in P_opts:
+    for p_opt in argns.P or []:
         try:
             name, value = p_opt.split('=', 1)
         except ValueError:
             parsed_opts[p_opt] = True
         else:
             parsed_opts[name] = value
-    opts.pop('-P', None)
 
     # encodings
     inencoding = parsed_opts.get('inencoding', parsed_opts.get('encoding'))
     outencoding = parsed_opts.get('outencoding', parsed_opts.get('encoding'))
 
     # handle ``pygmentize -N``
-    infn = opts.pop('-N', None)
-    if infn is not None:
-        lexer = find_lexer_class_for_filename(infn)
+    if argns.N:
+        lexer = find_lexer_class_for_filename(argns.N)
         if lexer is None:
             lexer = TextLexer
 
         print(lexer.aliases[0])
         return 0
 
+    # handle ``pygmentize -C``
+    if argns.C:
+        inp = sys.stdin.buffer.read()
+        try:
+            lexer = guess_lexer(inp, inencoding=inencoding)
+        except ClassNotFound:
+            lexer = TextLexer
+
+        print(lexer.aliases[0])
+        return 0
+
     # handle ``pygmentize -S``
-    S_opt = opts.pop('-S', None)
-    a_opt = opts.pop('-a', None)
+    S_opt = argns.S
+    a_opt = argns.a
     if S_opt is not None:
-        f_opt = opts.pop('-f', None)
+        f_opt = argns.f
         if not f_opt:
-            print(usage, file=sys.stderr)
+            parser.print_help(sys.stderr)
             return 2
-        if opts or args:
-            print(usage, file=sys.stderr)
+        if argns.l or argns.INPUTFILE:
+            parser.print_help(sys.stderr)
             return 2
 
         try:
@@ -315,24 +236,21 @@ def main_inner(popts, args, usage):
         return 0
 
     # if no -S is given, -a is not allowed
-    if a_opt is not None:
-        print(usage, file=sys.stderr)
+    if argns.a is not None:
+        parser.print_help(sys.stderr)
         return 2
 
     # parse -F options
-    F_opts = _parse_filters(F_opts)
-    opts.pop('-F', None)
+    F_opts = _parse_filters(argns.F or [])
 
-    allow_custom_lexer_formatter = False
     # -x: allow custom (eXternal) lexers and formatters
-    if opts.pop('-x', None) is not None:
-        allow_custom_lexer_formatter = True
+    allow_custom_lexer_formatter = bool(argns.x)
 
     # select lexer
     lexer = None
 
     # given by name?
-    lexername = opts.pop('-l', None)
+    lexername = argns.l
     if lexername:
         # custom lexer, located relative to user's cwd
         if allow_custom_lexer_formatter and '.py' in lexername:
@@ -365,17 +283,13 @@ def main_inner(popts, args, usage):
     # read input code
     code = None
 
-    if args:
-        if len(args) > 1:
-            print(usage, file=sys.stderr)
-            return 2
-
-        if '-s' in opts:
+    if argns.INPUTFILE:
+        if argns.s:
             print('Error: -s option not usable when input file specified',
                   file=sys.stderr)
             return 2
 
-        infn = args[0]
+        infn = argns.INPUTFILE
         try:
             with open(infn, 'rb') as infp:
                 code = infp.read()
@@ -390,7 +304,7 @@ def main_inner(popts, args, usage):
             try:
                 lexer = get_lexer_for_filename(infn, code, **parsed_opts)
             except ClassNotFound as err:
-                if '-g' in opts:
+                if argns.g:
                     try:
                         lexer = guess_lexer(code, **parsed_opts)
                     except ClassNotFound:
@@ -402,7 +316,7 @@ def main_inner(popts, args, usage):
                 print('Error:', err, file=sys.stderr)
                 return 1
 
-    elif '-s' not in opts:  # treat stdin as full file (-s support is later)
+    elif not argns.s:  # treat stdin as full file (-s support is later)
         # read code from terminal, always in binary mode since we want to
         # decode ourselves and be tolerant with it
         code = sys.stdin.buffer.read()  # use .buffer to get a binary stream
@@ -430,8 +344,8 @@ def main_inner(popts, args, usage):
             return 1
 
     # select formatter
-    outfn = opts.pop('-o', None)
-    fmter = opts.pop('-f', None)
+    outfn = argns.o
+    fmter = argns.f
     if fmter:
         # custom formatter, located relative to user's cwd
         if allow_custom_lexer_formatter and '.py' in fmter:
@@ -447,7 +361,7 @@ def main_inner(popts, args, usage):
 
                 if filename and name:
                     fmter = load_formatter_from_file(filename, name,
-                                    **parsed_opts)
+                                                     **parsed_opts)
                 else:
                     fmter = load_formatter_from_file(fmter, **parsed_opts)
             except ClassNotFound as err:
@@ -513,7 +427,7 @@ def main_inner(popts, args, usage):
         lexer = LatexEmbeddedLexer(left, right, lexer)
 
     # ... and do it!
-    if '-s' not in opts:
+    if not argns.s:
         # process whole input as per normal...
         try:
             highlight(code, lexer, fmter, outfile)
@@ -541,22 +455,128 @@ def main_inner(popts, args, usage):
                 outfile.close()
 
 
+class HelpFormatter(argparse.HelpFormatter):
+    def __init__(self, prog, indent_increment=2, max_help_position=16, width=None):
+        if width is None:
+            try:
+                width = shutil.get_terminal_size().columns - 2
+            except Exception:
+                pass
+        argparse.HelpFormatter.__init__(self, prog, indent_increment,
+                                        max_help_position, width)
+
+
 def main(args=sys.argv):
     """
     Main command line entry point.
     """
-    usage = USAGE % ((args[0],) * 6)
+    desc = "Highlight an input file and write the result to an output file."
+    parser = argparse.ArgumentParser(description=desc, add_help=False,
+                                     formatter_class=HelpFormatter)
+
+    operation = parser.add_argument_group('Main operation')
+    lexersel = operation.add_mutually_exclusive_group()
+    lexersel.add_argument(
+        '-l', metavar='LEXER',
+        help='Specify the lexer to use.  (Query names with -L.)  If not '
+        'given and -g is not present, the lexer is guessed from the filename.')
+    lexersel.add_argument(
+        '-g', action='store_true',
+        help='Guess the lexer from the file contents, or pass through '
+        'as plain text if nothing can be guessed.')
+    operation.add_argument(
+        '-F', metavar='FILTER[:options]', action='append',
+        help='Add a filter to the token stream.  (Query names with -L.) '
+        'Filter options are given after a colon if necessary.')
+    operation.add_argument(
+        '-f', metavar='FORMATTER',
+        help='Specify the formatter to use.  (Query names with -L.) '
+        'If not given, the formatter is guessed from the output filename, '
+        'and defaults to the terminal formatter if the output is to the '
+        'terminal or an unknown file extension.')
+    operation.add_argument(
+        '-O', metavar='OPTION=value[,OPTION=value,...]', action='append',
+        help='Give options to the lexer and formatter as a comma-separated '
+        'list of key-value pairs. '
+        'Example: `-O bg=light,python=cool`.')
+    operation.add_argument(
+        '-P', metavar='OPTION=value', action='append',
+        help='Give a single option to the lexer and formatter - with this '
+        'you can pass options whose value contains commas and equal signs. '
+        'Example: `-P "heading=Pygments, the Python highlighter"`.')
+    operation.add_argument(
+        '-o', metavar='OUTPUTFILE',
+        help='Where to write the output.  Defaults to standard output.')
+
+    operation.add_argument(
+        'INPUTFILE', nargs='?',
+        help='Where to read the input.  Defaults to standard input.')
+
+    flags = parser.add_argument_group('Operation flags')
+    flags.add_argument(
+        '-v', action='store_true',
+        help='Print a detailed traceback on unhandled exceptions, which '
+        'is useful for debugging and bug reports.')
+    flags.add_argument(
+        '-s', action='store_true',
+        help='Process lines one at a time until EOF, rather than waiting to '
+        'process the entire file.  This only works for stdin, only for lexers '
+        'with no line-spanning constructs, and is intended for streaming '
+        'input such as you get from `tail -f`. '
+        'Example usage: `tail -f sql.log | pygmentize -s -l sql`.')
+    flags.add_argument(
+        '-x', action='store_true',
+        help='Allow custom lexers and formatters to be loaded from a .py file '
+        'relative to the current working directory. For example, '
+        '`-l ./customlexer.py -x`. By default, this option expects a file '
+        'with a class named CustomLexer or CustomFormatter; you can also '
+        'specify your own class name with a colon (`-l ./lexer.py:MyLexer`). '
+        'Users should be very careful not to use this option with untrusted '
+        'files, because it will import and run them.')
+
+    special_modes_group = parser.add_argument_group(
+        'Special modes - do not do any highlighting')
+    special_modes = special_modes_group.add_mutually_exclusive_group()
+    special_modes.add_argument(
+        '-S', metavar='STYLE -f formatter',
+        help='Print style definitions for STYLE for a formatter '
+        'given with -f. The argument given by -a is formatter '
+        'dependent.')
+    special_modes.add_argument(
+        '-L', nargs='*', metavar='WHAT',
+        help='List lexers, formatters, styles or filters -- '
+        'give additional arguments for the thing(s) you want to list '
+        '(e.g. "styles"), or omit them to list everything.')
+    special_modes.add_argument(
+        '-N', metavar='FILENAME',
+        help='Guess and print out a lexer name based solely on the given '
+        'filename. Does not take input or highlight anything. If no specific '
+        'lexer can be determined, "text" is printed.')
+    special_modes.add_argument(
+        '-C', action='store_true',
+        help='Like -N, but print out a lexer name based solely on '
+        'a given content from standard input.')
+    special_modes.add_argument(
+        '-H', action='store', nargs=2, metavar=('NAME', 'TYPE'),
+        help='Print detailed help for the object <name> of type <type>, '
+        'where <type> is one of "lexer", "formatter" or "filter".')
+    special_modes.add_argument(
+        '-V', action='store_true',
+        help='Print the package version.')
+    special_modes.add_argument(
+        '-h', '--help', action='store_true',
+        help='Print this help.')
+    special_modes_group.add_argument(
+        '-a', metavar='ARG',
+        help='Formatter-specific additional argument for the -S (print '
+        'style sheet) mode.')
+
+    argns = parser.parse_args(args[1:])
 
     try:
-        popts, args = getopt.getopt(args[1:], "l:f:F:o:O:P:LS:a:N:vhVHgsx")
-    except getopt.GetoptError:
-        print(usage, file=sys.stderr)
-        return 2
-
-    try:
-        return main_inner(popts, args, usage)
+        return main_inner(parser, argns)
     except Exception:
-        if '-v' in dict(popts):
+        if argns.v:
             print(file=sys.stderr)
             print('*' * 65, file=sys.stderr)
             print('An unhandled exception occurred while highlighting.',

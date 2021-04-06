@@ -6,6 +6,8 @@
 #include "unimplemented_aware_option.h"
 #include "loss_description.h"
 
+#include <catboost/libs/column_description/feature_tag.h>
+
 #include <library/cpp/json/json_value.h>
 #include <library/cpp/json/json_reader.h>
 
@@ -102,30 +104,42 @@ namespace NCatboostOptions {
         }
     };
 
-    template <class TKey, class T>
-    class TJsonFieldHelper<TMap<TKey, T>, false> {
-    public:
-        static Y_NO_INLINE void Read(const NJson::TJsonValue& src, TMap<TKey, T>* dst) {
-            dst->clear();
-            if (src.IsMap()) {
-                const auto& data = src.GetMapSafe();
-                for (const auto& entry : data) {
-                    TJsonFieldHelper<T>::Read(entry.second, &((*dst)[FromString<TKey>(entry.first)]));
-                }
-            } else {
-                ythrow TCatBoostException() << "Error: wrong json type";
-            }
-        }
+    namespace {
+        // TMap / THashMap
+        template <class TMapping>
+        class TJsonFieldHelperImplForMapping {
+            using TKey = typename TMapping::key_type;
+            using T = typename TMapping::mapped_type;
 
-        static Y_NO_INLINE void Write(const TMap<TKey, T>& src, NJson::TJsonValue* dst) {
-            (*dst) = NJson::TJsonValue(NJson::EJsonValueType::JSON_MAP);
-            for (const auto& entry : src) {
-                NJson::TJsonValue value;
-                TJsonFieldHelper<T>::Write(entry.second, &value);
-                (*dst)[ToString<TKey>(entry.first)] = std::move(value);
+        public:
+            static Y_NO_INLINE void Read(const NJson::TJsonValue& src, TMapping* dst) {
+                dst->clear();
+                if (src.IsMap()) {
+                    const auto& data = src.GetMapSafe();
+                    for (const auto& entry : data) {
+                        TJsonFieldHelper<T>::Read(entry.second, &((*dst)[FromString<TKey>(entry.first)]));
+                    }
+                } else {
+                    ythrow TCatBoostException() << "Error: wrong json type";
+                }
             }
-        }
-    };
+
+            static Y_NO_INLINE void Write(const TMapping& src, NJson::TJsonValue* dst) {
+                (*dst) = NJson::TJsonValue(NJson::EJsonValueType::JSON_MAP);
+                for (const auto& entry : src) {
+                    NJson::TJsonValue value;
+                    TJsonFieldHelper<T>::Write(entry.second, &value);
+                    (*dst)[ToString<TKey>(entry.first)] = std::move(value);
+                }
+            }
+        };
+    }
+
+    template <class TKey, class T>
+    class TJsonFieldHelper<TMap<TKey, T>, false> : public TJsonFieldHelperImplForMapping<TMap<TKey, T>> {};
+
+    template <class TKey, class T>
+    class TJsonFieldHelper<THashMap<TKey, T>, false> : public TJsonFieldHelperImplForMapping<THashMap<TKey, T>> {};
 
     template <>
     class TJsonFieldHelper<NJson::TJsonValue, false> {
@@ -260,6 +274,24 @@ namespace NCatboostOptions {
                     keyOrderList.GetStringRobust()
                 );
             }
+        }
+    };
+
+    template<>
+    class TJsonFieldHelper<NCB::TTagDescription, false> {
+    public:
+        static Y_NO_INLINE void Read(const NJson::TJsonValue& src, NCB::TTagDescription* dst) {
+            if (src.IsMap()) {
+                const auto& data = src.GetMapSafe();
+                TJsonFieldHelper<TVector<ui32>>::Read(data.at("features"), &dst->Features);
+            } else {
+                ythrow TCatBoostException() << "Error: wrong json type";
+            }
+        }
+
+        static Y_NO_INLINE void Write(const NCB::TTagDescription& src, NJson::TJsonValue* dst) {
+            (*dst) = NJson::TJsonValue(NJson::EJsonValueType::JSON_MAP);
+            TJsonFieldHelper<TVector<ui32>>::Write(src.Features, &(*dst)["features"]);
         }
     };
 

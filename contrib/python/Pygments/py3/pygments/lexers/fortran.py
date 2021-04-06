@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
     pygments.lexers.fortran
     ~~~~~~~~~~~~~~~~~~~~~~~
@@ -56,6 +55,9 @@ class FortranLexer(RegexLexer):
                 'CODIMENSION', 'COMMON', 'CONCURRRENT', 'CONTIGUOUS', 'CONTAINS',
                 'CONTINUE', 'CRITICAL', 'CYCLE', 'DATA', 'DEALLOCATE', 'DECODE',
                 'DEFERRED', 'DIMENSION', 'DO', 'ELEMENTAL', 'ELSE', 'ENCODE', 'END',
+                'ENDASSOCIATE', 'ENDBLOCK', 'ENDDO', 'ENDENUM', 'ENDFORALL',
+                'ENDFUNCTION',  'ENDIF', 'ENDINTERFACE', 'ENDMODULE', 'ENDPROGRAM',
+                'ENDSELECT', 'ENDSUBMODULE', 'ENDSUBROUTINE', 'ENDTYPE', 'ENDWHERE',
                 'ENTRY', 'ENUM', 'ENUMERATOR', 'EQUIVALENCE', 'ERROR STOP', 'EXIT',
                 'EXTENDS', 'EXTERNAL', 'EXTRINSIC', 'FILE', 'FINAL', 'FORALL', 'FORMAT',
                 'FUNCTION', 'GENERIC', 'GOTO', 'IF', 'IMAGES', 'IMPLICIT',

@@ -29,7 +29,7 @@
 # since they do not peerdir contrib/libs/jdk.
 # Resolve Python.h from swig/Lib/python/pyruntime.swg when building non-python .swg
 # since they do not peerdir contrib/libs/python.
-- source_filter: "[.]swg$"
+- source_filter: "[.]swg([.](h|c(pp|cxx)?))?$"
   includes:
   - jni.h:           contrib/libs/jdk/include/jni.h
   - Python.h:        contrib/libs/python/Include/Python.h
@@ -145,7 +145,6 @@
     - fontconfig/fontconfig.h
     - fribidi.h
     - stdatomic.h:   contrib/libs/ffmpeg-3.4.1/compat/atomics/win32/stdatomic.h
-    - nppi.h:        contrib/libs/ffmpeg-3/libavfilter/vf_scale_npp.c
 
 - source_filter: "^contrib/libs/glog"
   includes:

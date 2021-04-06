@@ -97,13 +97,13 @@ class CatBoostRegressionModel (
   }
 
   protected override def getResultIteratorForApply(
-    rawObjectsDataProvider: native_impl.SWIGTYPE_p_NCB__TRawObjectsDataProviderPtr,
+    objectsDataProvider: native_impl.SWIGTYPE_p_NCB__TObjectsDataProviderPtr,
     dstRows: mutable.ArrayBuffer[Array[Any]], // guaranteed to be non-empty
     localExecutor: native_impl.TLocalExecutor
   ) : Iterator[Row] = {
     val applyResults = new native_impl.TApplyResultIterator(
       nativeModel,
-      rawObjectsDataProvider,
+      objectsDataProvider,
       native_impl.EPredictionType.RawFormulaVal,
       localExecutor
     ).GetSingleDimensionalResults.toPrimitiveArray

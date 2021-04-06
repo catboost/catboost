@@ -28,7 +28,7 @@ struct TProjection;
 /// @param begin, @param end - Result range
 void CalcHashes(
     const TProjection& proj,
-    const NCB::TQuantizedForCPUObjectsDataProvider& objectsDataProvider,
+    const NCB::TQuantizedObjectsDataProvider& objectsDataProvider,
     const NCB::TFeaturesArraySubsetIndexing& featuresSubsetIndexing,
     const NCB::TPerfectHashedToHashedCatValuesMap* perfectHashedToHashedCatValuesMap,
     ui64* begin,

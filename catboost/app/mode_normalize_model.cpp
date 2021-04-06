@@ -165,6 +165,7 @@ namespace {
                     TVector<NJson::TJsonValue>(),  // ClassLabels
                     TPathWithScheme(),  // PairsFilePath
                     TPathWithScheme(),  // FeatureNamesPath
+                    TPathWithScheme(),  // PoolMetaInfoPath
                     TVector<ui32>(),  // IgnoredFeatures
                 },
                 10000,  // blockSize

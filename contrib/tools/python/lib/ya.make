@@ -1,8 +1,10 @@
 LIBRARY()
 
+PROVIDES(python)
+
+
+
 LICENSE(PSF-2.0)
-
-
 
 INCLUDE(${ARCADIA_ROOT}/contrib/tools/python/pyconfig.inc)
 

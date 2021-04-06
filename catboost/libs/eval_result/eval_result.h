@@ -23,7 +23,7 @@ namespace NCB {
 
     class TEvalResult {
     public:
-        TEvalResult() {
+        TEvalResult(size_t ensemblesCount = 1) : EnsemblesCount(ensemblesCount){
             RawValues.resize(1);
         }
 
@@ -33,8 +33,10 @@ namespace NCB {
 
         /// *Move* data from `rawValues` to `RawValues[0]`
         void SetRawValuesByMove(TVector<TVector<double>>& rawValues);
+        size_t GetEnsemblesCount() const;
 
     private:
+        size_t EnsemblesCount;
         TVector<TVector<TVector<double>>> RawValues; // [evalIter][dim][docIdx]
     };
 

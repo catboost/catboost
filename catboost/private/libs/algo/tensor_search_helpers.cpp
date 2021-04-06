@@ -17,7 +17,7 @@
 using namespace NCB;
 
 
-const TQuantizedForCPUObjectsDataProvider& GetLearnObjectsData(
+const TQuantizedObjectsDataProvider& GetLearnObjectsData(
     const TSplitCandidate& splitCandidate,
     const TTrainingDataProviders& data,
     const TFold& fold
@@ -52,7 +52,7 @@ TSplit TCandidateInfo::GetBestSplit(
 
 TSplit TCandidateInfo::GetSplit(
     int binId,
-    const TQuantizedForCPUObjectsDataProvider& objectsData,
+    const TQuantizedObjectsDataProvider& objectsData,
     ui32 oneHotMaxSize
 ) const {
     auto getCandidateType = [&] (EFeatureType featureType) {

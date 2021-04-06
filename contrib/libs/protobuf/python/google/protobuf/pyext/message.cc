@@ -38,8 +38,9 @@
 #ifndef _SHARED_PTR_H
 #error #include <google/protobuf/stubs/shared_ptr.h>
 #endif
+#include <string>
 #include <vector>
-#include "structmember.h"  // A Python header file.
+#include <structmember.h>  // A Python header file.
 
 #ifndef PyVarObject_HEAD_INIT
 #define PyVarObject_HEAD_INIT(type, size) PyObject_HEAD_INIT(type) size,
@@ -75,19 +76,16 @@
   #define PyString_Check PyUnicode_Check
   #define PyString_FromString PyUnicode_FromString
   #define PyString_FromStringAndSize PyUnicode_FromStringAndSize
-  #define PyString_FromFormat PyUnicode_FromFormat
   #if PY_VERSION_HEX < 0x03030000
     #error "Python 3.0 - 3.2 are not supported."
   #else
   #define PyString_AsString(ob) \
     (PyUnicode_Check(ob)? PyUnicode_AsUTF8(ob): PyBytes_AsString(ob))
-#define PyString_AsStringAndSize(ob, charpp, sizep)                           \
-  (PyUnicode_Check(ob) ? ((*(charpp) = const_cast<char*>(                     \
-                               PyUnicode_AsUTF8AndSize(ob, (sizep)))) == NULL \
-                              ? -1                                            \
-                              : 0)                                            \
-                       : PyBytes_AsStringAndSize(ob, (charpp), (sizep)))
-#endif
+  #define PyString_AsStringAndSize(ob, charpp, sizep) \
+    (PyUnicode_Check(ob)? \
+       ((*(charpp) = const_cast<char*>(PyUnicode_AsUTF8AndSize(ob, (sizep)))) == NULL? -1: 0): \
+       PyBytes_AsStringAndSize(ob, (charpp), (sizep)))
+  #endif
 #endif
 
 namespace google {
@@ -432,7 +430,7 @@ PyTypeObject CMessageClass_Type = {
   0,                                   // tp_iternext
   0,                                   // tp_methods
   0,                                   // tp_members
-  0 /* message_meta::Getters */,       // tp_getset
+  0, /* message_meta::Getters, */      // tp_getset
   0,                                   // tp_base
   0,                                   // tp_dict
   0,                                   // tp_descr_get
@@ -2882,8 +2880,8 @@ PyTypeObject CMessage_Type = {
 
 // --- Exposing the C proto living inside Python proto to C code:
 
-extern const Message* (*GetCProtoInsidePyProtoPtr)(PyObject* msg);
-extern Message* (*MutableCProtoInsidePyProtoPtr)(PyObject* msg);
+const Message* (*GetCProtoInsidePyProtoPtr)(PyObject* msg);
+Message* (*MutableCProtoInsidePyProtoPtr)(PyObject* msg);
 
 static const Message* GetCProtoInsidePyProtoImpl(PyObject* msg) {
   if (!PyObject_TypeCheck(msg, &CMessage_Type)) {
@@ -2977,8 +2975,12 @@ bool InitProto2MessageModule(PyObject *m) {
         reinterpret_cast<PyObject*>(
             &RepeatedCompositeContainer_Type));
 
-    // Register them as collections.Sequence
+    // Register them as MutableSequence.
+#if PY_MAJOR_VERSION >= 3
+    ScopedPyObjectPtr collections(PyImport_ImportModule("collections.abc"));
+#else
     ScopedPyObjectPtr collections(PyImport_ImportModule("collections"));
+#endif
     if (collections == NULL) {
       return false;
     }

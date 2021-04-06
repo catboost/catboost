@@ -280,6 +280,7 @@ namespace NCB {
         const EPredictionType predictionType,
         const TString& lossFunctionName,
         bool isMultiTarget,
+        size_t ensemblesCount,
         const TExternalLabelsHelper& visibleLabelsHelper,
         TMaybe<std::pair<size_t, size_t>> evalParameters,
         TVector<THolder<IColumnPrinter>>* result,
@@ -395,6 +396,7 @@ namespace NCB {
         EPredictionType predictionType,
         const TExternalLabelsHelper& visibleLabelsHelper,
         const TString& lossFunctionName,
+        size_t ensemblesCount,
         ui32 startTreeIndex = 0,
         std::pair<size_t, size_t>* evalParameters = nullptr);
 } // namespace NCB

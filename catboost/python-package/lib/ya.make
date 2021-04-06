@@ -82,6 +82,7 @@ IF(NOT OS_ANDROID OR PYTHON2)
         version.py
         core.py
         datasets.py
+        plot_helpers.py
         monoforest.py
         text_processing.py
         utils.py

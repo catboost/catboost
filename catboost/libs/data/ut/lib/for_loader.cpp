@@ -80,6 +80,7 @@ namespace NCB {
                 /*timestampsFilePath*/TPathWithScheme(),
                 readDatasetMainParams.BaselineFilePath, // can be uninited
                 readDatasetMainParams.FeatureNamesFilePath, // can be uninited
+                /*poolMetaInfoFilePath*/TPathWithScheme(),
                 readDatasetMainParams.ColumnarPoolFormatParams,
                 testCase.SrcData.IgnoredFeatures,
                 testCase.SrcData.ObjectsOrder,

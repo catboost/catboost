@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
     pygments.lexers.eiffel
     ~~~~~~~~~~~~~~~~~~~~~~
@@ -45,7 +44,7 @@ class EiffelLexer(RegexLexer):
                 'require', 'rescue', 'retry', 'select', 'separate', 'then',
                 'undefine', 'until', 'variant', 'when'), prefix=r'(?i)\b', suffix=r'\b'),
              Keyword.Reserved),
-            (r'"\[(([^\]%]|\n)|%(.|\n)|\][^"])*?\]"', String),
+            (r'"\[([^\]%]|%(.|\n)|\][^"])*?\]"', String),
             (r'"([^"%\n]|%.)*?"', String),
             include('numbers'),
             (r"'([^'%]|%'|%%)'", String.Char),

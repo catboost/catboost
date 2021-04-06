@@ -159,6 +159,9 @@
         "perf": {
             "description": "Run Perf"
         },
+        "sre": {
+            "description": "Run sretool"
+        },
         "samogonctl": {
             "description": "Run Samogon Controller"
         },
@@ -197,6 +200,9 @@
         },
         "yf": {
             "description": "Run YF client"
+        },
+        "rtmr-deploy": {
+            "description": "Run RTMR deploy"
         },
         "yt": {
             "description": "Run YT client"
@@ -269,17 +275,17 @@
         "news": {
             "description": "Run news team tools"
         },
-        "go_1.15.7": {
-            "description": "Run go tool (1.15.7)"
+        "go_1.16.2": {
+            "description": "Run go tool (1.16.2)"
         },
-        "gofmt_1.15.7": {
-            "description": "Run gofmt tool (1.15.7)"
+        "gofmt_1.16.2": {
+            "description": "Run gofmt tool (1.16.2)"
         },
         "go": {
-            "description": "Run go tool (1.15.8)"
+            "description": "Run go tool (1.16.3)"
         },
         "gofmt": {
-            "description": "Run gofmt tool (1.15.8)"
+            "description": "Run gofmt tool (1.16.3)"
         },
         "godoc": {
             "description": "Arcadia version of godoc"
@@ -658,7 +664,7 @@
                 "werror_mode": "compiler_specific",
                 "c_compiler": "$(MSVC)/bin/Hostx64/x86/cl.exe",
                 "cxx_compiler": "$(MSVC)/bin/Hostx64/x86/cl.exe",
-                "cxx_std": "c++17",
+                "cxx_std": "c++latest",
                 "version": "2019"
             }
         },
@@ -688,8 +694,9 @@
                 "werror_mode": "compiler_specific",
                 "c_compiler": "$(MSVC)/bin/Hostx64/x64/cl.exe",
                 "cxx_compiler": "$(MSVC)/bin/Hostx64/x64/cl.exe",
-                "cxx_std": "c++17",
-                "version": "2019"
+                "cxx_std": "c++latest",
+                "version": "2019",
+                "for_ide": "msvs2019"
             }
         },
         "msvc2019-arm": {
@@ -722,7 +729,7 @@
                 "werror_mode": "compiler_specific",
                 "c_compiler": "$(MSVC)/bin/Hostx64/arm/cl.exe",
                 "cxx_compiler": "$(MSVC)/bin/Hostx64/arm/cl.exe",
-                "cxx_std": "c++17",
+                "cxx_std": "c++latest",
                 "version": "2019"
             }
         },
@@ -756,7 +763,7 @@
                 "werror_mode": "compiler_specific",
                 "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:1093314933)/bin/wine64 -v140 c $WINE_ENV ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/x86/cl.exe",
                 "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:1093314933)/bin/wine64 -v140 cxx $WINE_ENV ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/x86/cl.exe",
-                "cxx_std": "c++17",
+                "cxx_std": "c++latest",
                 "version": "2019",
                 "wine": "yes"
             }
@@ -790,7 +797,7 @@
                 "werror_mode": "compiler_specific",
                 "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:1093314933)/bin/wine64 -v140 c $WINE_ENV ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/x64/cl.exe",
                 "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:1093314933)/bin/wine64 -v140 cxx $WINE_ENV ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/x64/cl.exe",
-                "cxx_std": "c++17",
+                "cxx_std": "c++latest",
                 "version": "2019",
                 "wine": "yes"
             }
@@ -825,7 +832,7 @@
                 "werror_mode": "compiler_specific",
                 "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:1093314933)/bin/wine64 -v140 c $WINE_ENV ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/arm/cl.exe",
                 "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:1093314933)/bin/wine64 -v140 cxx $WINE_ENV ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/arm/cl.exe",
-                "cxx_std": "c++17",
+                "cxx_std": "c++latest",
                 "version": "2019",
                 "wine": "yes"
             }
@@ -3971,6 +3978,22 @@
                 }
             ]
         },
+        "sre": {
+            "tools": {
+                "sre": {
+                    "bottle": "sre",
+                    "executable": "sre"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "samogonctl": {
             "tools": {
                 "samogonctl": {
@@ -4441,6 +4464,22 @@
                 "yf": {
                     "bottle": "yf",
                     "executable": "yf"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                }
+            ]
+        },
+        "rtmr-deploy": {
+            "tools": {
+                "rtmr-deploy": {
+                    "bottle": "rtmr-deploy",
+                    "executable": "rtmr-deploy"
                 }
             },
             "platforms": [
@@ -5648,19 +5687,19 @@
                 }
             ]
         },
-        "golang_1_15_7": {
+        "golang_1_16_2": {
             "tools": {
-                "golang_1.15.7": {
-                    "bottle": "golang_1.15.7",
-                    "executable": "golang_1.15.7"
+                "golang_1.16.2": {
+                    "bottle": "golang_1.16.2",
+                    "executable": "golang_1.16.2"
                 },
-                "go_1.15.7": {
-                    "bottle": "golang_1.15.7",
-                    "executable": "go_1.15.7"
+                "go_1.16.2": {
+                    "bottle": "golang_1.16.2",
+                    "executable": "go_1.16.2"
                 },
-                "gofmt_1.15.7": {
-                    "bottle": "golang_1.15.7",
-                    "executable": "gofmt_1.15.7"
+                "gofmt_1.16.2": {
+                    "bottle": "golang_1.16.2",
+                    "executable": "gofmt_1.16.2"
                 }
             },
             "platforms": [
@@ -5685,21 +5724,21 @@
             ],
             "params": {
                 "type": "golang",
-                "version": "1.15.7"
+                "version": "1.16.2"
             }
         },
-        "golang_1_15_8": {
+        "golang_1_16_3": {
             "tools": {
                 "golang": {
-                    "bottle": "golang_1.15.8",
+                    "bottle": "golang_1.16.3",
                     "executable": "golang"
                 },
                 "go": {
-                    "bottle": "golang_1.15.8",
+                    "bottle": "golang_1.16.3",
                     "executable": "go"
                 },
                 "gofmt": {
-                    "bottle": "golang_1.15.8",
+                    "bottle": "golang_1.16.3",
                     "executable": "gofmt"
                 }
             },
@@ -5725,7 +5764,7 @@
             ],
             "params": {
                 "type": "golang",
-                "version": "1.15.8"
+                "version": "1.16.3"
             }
         },
         "godoc": {
@@ -5899,7 +5938,7 @@
         "bpftrace": {
             "tools": {
                 "bpftrace": {
-                    "bottle": "bpftrace",
+                    "bottle": "sre",
                     "executable": "bpftrace"
                 }
             },
@@ -6387,7 +6426,7 @@
         "ymake": {
             "formula": {
                 "sandbox_id": [
-                    908194269
+                    937969156
                 ],
                 "match": "ymake"
             },
@@ -6411,7 +6450,7 @@
         "arc": {
             "formula": {
                 "sandbox_id": [
-                    912401242
+                    934110499
                 ],
                 "match": "arc"
             },
@@ -6435,8 +6474,8 @@
         "yo": {
             "formula": {
                 "sandbox_id": [
-                    888418483,
-                    888418472
+                    922660942,
+                    922660897
                 ],
                 "match": "yo"
             },
@@ -6477,7 +6516,7 @@
         "delve": {
             "formula": {
                 "sandbox_id": [
-                    883633700
+                    922741434
                 ],
                 "match": "delve"
             },
@@ -6528,7 +6567,7 @@
         "tvmknife": {
             "formula": {
                 "sandbox_id": [
-                    896992690
+                    924668072
                 ],
                 "match": "tvmknife"
             },
@@ -6873,8 +6912,8 @@
         "clang11-windows": {
             "formula": {
                 "sandbox_id": [
-                    898093597,
-                    899158915
+                    926924521,
+                    927633953
                 ],
                 "match": "CLANG"
             },
@@ -7446,7 +7485,9 @@
         },
         "yt": {
             "formula": {
-                "sandbox_id": 903305509,
+                "sandbox_id": [
+                    929881772
+                ],
                 "match": "YT"
             },
             "executable": {
@@ -7529,6 +7570,21 @@
             "executable": {
                 "perf": [
                     "perf"
+                ]
+            }
+        },
+        "sre": {
+            "formula": {
+                "sandbox_id": 936458890,
+                "match": "infra/rtc/sretools/sretools.tar.gz"
+            },
+            "executable": {
+                "sre": [
+                    "sretool"
+                ],
+                "bpftrace": [
+                    "tools",
+                    "bpftrace"
                 ]
             }
         },
@@ -7699,10 +7755,19 @@
             },
             "executable": "yf-client"
         },
+        "rtmr-deploy": {
+            "formula": {
+                "sandbox_id": [
+                    938961207
+                ],
+                "match": "rtmr-deploy"
+            },
+            "executable": "rtmr-deploy"
+        },
         "yp-util": {
             "formula": {
                 "sandbox_id": [
-                    912333670
+                    936149770
                 ],
                 "match": "yp_util"
             },
@@ -7715,9 +7780,9 @@
         "yp": {
             "formula": {
                 "sandbox_id": [
-                    912333921
+                    936150371
                 ],
-                "match": "yp"
+                "match": "YP"
             },
             "executable": {
                 "yp": [
@@ -7728,7 +7793,7 @@
         "yd-migrate": {
             "formula": {
                 "sandbox_id": [
-                    885831242
+                    910016141
                 ],
                 "match": "yd_migrate"
             },
@@ -7741,7 +7806,7 @@
         "dctl": {
             "formula": {
                 "sandbox_id": [
-                    901122774
+                    926911895
                 ],
                 "match": "dctl"
             },
@@ -8111,7 +8176,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 915593909,
+                "sandbox_id": 939184207,
                 "match": "horadric"
             },
             "executable": {
@@ -8133,7 +8198,7 @@
         },
         "zcli": {
             "formula": {
-                "sandbox_id": 915735091,
+                "sandbox_id": 925763286,
                 "match": "zcli"
             },
             "executable": {
@@ -8210,7 +8275,7 @@
         },
         "ycmerge": {
             "formula": {
-                "sandbox_id": 914618642,
+                "sandbox_id": 932492411,
                 "match": "ycmerge"
             },
             "executable": {
@@ -8254,7 +8319,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 915594079,
+                "sandbox_id": 939184405,
                 "match": "app_host_launcher"
             },
             "executable": {
@@ -8265,7 +8330,7 @@
         },
         "news": {
             "formula": {
-                "sandbox_id": 881745887,
+                "sandbox_id": 926909087,
                 "match": "news_launcher"
             },
             "executable": {
@@ -8274,32 +8339,32 @@
                 ]
             }
         },
-        "golang_1.15.7": {
+        "golang_1.16.2": {
             "formula": {
                 "sandbox_id": [
-                    874690160,
-                    874690855,
-                    874691497
+                    917391032,
+                    917392378,
+                    917393324
                 ],
                 "match": "GOLANG"
             },
             "executable": {
-                "go_1.15.7": [
+                "go_1.16.2": [
                     "bin",
                     "go"
                 ],
-                "gofmt_1.15.7": [
+                "gofmt_1.16.2": [
                     "bin",
                     "gofmt"
                 ]
             }
         },
-        "golang_1.15.8": {
+        "golang_1.16.3": {
             "formula": {
                 "sandbox_id": [
-                    891692206,
-                    891693575,
-                    891694631
+                    938748144,
+                    938749617,
+                    938751382
                 ],
                 "match": "GOLANG"
             },
@@ -8360,7 +8425,7 @@
         "fio": {
             "formula": {
                 "sandbox_id": [
-                    897210323
+                    916684450
                 ],
                 "match": "infra/kernel/tools/fio/build/fio-static.tar.gz"
             },
@@ -8595,8 +8660,10 @@
         },
         "vmexec": {
             "formula": {
-                "sandbox_id": 901636930,
-                "match": "infra/qemu/vmexec/vmexec"
+                "sandbox_id": [
+                    936040141
+                ],
+                "match": "infra/qemu/vmexec"
             },
             "executable": {
                 "vmexec": [
@@ -8628,7 +8695,7 @@
         },
         "sedem": {
             "formula": {
-                "sandbox_id": 912662916,
+                "sandbox_id": 936169826,
                 "match": "SEDEM archive"
             },
             "executable": {
@@ -8682,7 +8749,7 @@
         },
         "yadi": {
             "formula": {
-                "sandbox_id": 832380091,
+                "sandbox_id": 924407440,
                 "match": "yadi-arc"
             },
             "executable": {
@@ -8715,7 +8782,7 @@
         },
         "iceflame": {
             "formula": {
-                "sandbox_id": 915593604,
+                "sandbox_id": 939184606,
                 "match": "iceflame"
             },
             "executable": {
@@ -8726,7 +8793,7 @@
         },
         "wall-e": {
             "formula": {
-                "sandbox_id": 846366628,
+                "sandbox_id": 921700156,
                 "match": "wall-e"
             },
             "executable": {
@@ -8735,5 +8802,9 @@
                 ]
             }
         }
+    },
+    "toolchain_aliases": {
+        "clang-win-x86_64": "clang11-win-x86_64",
+        "gcc-linux-x86_64": "gcc82-linux-x86_64"
     }
 }

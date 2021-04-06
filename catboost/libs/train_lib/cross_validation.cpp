@@ -476,7 +476,7 @@ void UpdatePermutationBlockSize(
 
     const auto isConsecutiveLearnFeaturesData = [&] (const TTrainingDataProviders& foldData) {
         const auto& learnObjectsDataProvider
-            = dynamic_cast<const TQuantizedForCPUObjectsDataProvider&>(*foldData.Learn->ObjectsData);
+            = dynamic_cast<const TQuantizedObjectsDataProvider&>(*foldData.Learn->ObjectsData);
         return learnObjectsDataProvider.GetFeaturesArraySubsetIndexing().IsConsecutive();
     };
     if (!AllOf(foldsData, isConsecutiveLearnFeaturesData)) {

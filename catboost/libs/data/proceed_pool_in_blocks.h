@@ -29,6 +29,7 @@ inline void ReadAndProceedPoolInBlocks(const NCatboostOptions::TDatasetReadingPa
                 /*BaselineFilePath=*/NCB::TPathWithScheme(),
                 /*TimestampsFilePath*/NCB::TPathWithScheme(),
                 params.FeatureNamesPath,
+                params.PoolMetaInfoPath,
                 params.ClassLabels,
                 params.ColumnarPoolFormatParams.DsvFormat,
                 MakeCdProviderFromFile(params.ColumnarPoolFormatParams.CdFilePath),

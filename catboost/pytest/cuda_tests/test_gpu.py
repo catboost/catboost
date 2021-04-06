@@ -210,6 +210,28 @@ def test_tweedie_with_fixed_variance_power(boosting_type, leaf_estimation_method
     fit_catboost_gpu(params)
 
 
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+@pytest.mark.parametrize('leaf_estimation_method', LEAF_ESTIMATION_METHODS)
+def test_huber_with_fixed_delta(boosting_type, leaf_estimation_method):
+    output_model_path = yatest.common.test_output_path('model.bin')
+
+    params = {
+        '--use-best-model': 'false',
+        '--loss-function': 'Huber:delta=1.0',
+        '-f': data_file('adult', 'train_small'),
+        '-t': data_file('adult', 'test_small'),
+        '--column-description': data_file('adult', 'train.cd'),
+        '--boosting-type': boosting_type,
+        '--leaf-estimation-method': leaf_estimation_method,
+        '-i': '10',
+        '-w': '0.001',
+        '-T': '4',
+        '--rsm': 1,
+        '-m': output_model_path,
+    }
+    fit_catboost_gpu(params)
+
+
 @pytest.mark.xfail(reason='Need fixing')
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 def test_rsm_with_pairwise(boosting_type):

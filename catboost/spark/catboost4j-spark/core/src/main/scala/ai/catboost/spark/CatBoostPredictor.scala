@@ -18,6 +18,7 @@ import org.apache.spark.ml.param._
 import org.apache.spark.ml.util.DefaultParamsWritable
 import org.apache.spark.sql.{DataFrame,Dataset,Row}
 import org.apache.spark.TaskContext
+import org.apache.spark.storage.StorageLevel
 
 import ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl._
 
@@ -150,7 +151,11 @@ trait CatBoostPredictorTrait[
         quantizedTrainPool,
         quantizedEvalPools
       )
-      
+
+    this.logInfo("fit. persist preprocessedTrainPool: start")
+    preprocessedTrainPool.persist(StorageLevel.MEMORY_ONLY)
+    this.logInfo("fit. persist preprocessedTrainPool: finish")
+
     val partitionCount = get(sparkPartitionCount).getOrElse(SparkHelpers.getWorkerCount(spark))
     this.logInfo(s"fit. partitionCount=${partitionCount}")
     
@@ -160,7 +165,7 @@ trait CatBoostPredictorTrait[
       null
     }
 
-    val master = impl.Master(
+    val master = impl.CatBoostMasterWrapper(
       preprocessedTrainPool,
       preprocessedEvalPools,
       compact(catBoostJsonParams),
@@ -183,7 +188,7 @@ trait CatBoostPredictorTrait[
 
     val trainingDriverFuture = ecs.submit(trainingDriver, ())
 
-    val workers = new impl.Workers(
+    val workers = new impl.CatBoostWorkers(
       spark,
       partitionCount,
       listeningPort,
@@ -205,7 +210,7 @@ trait CatBoostPredictorTrait[
     
     this.logInfo(s"fit. Training finished")
 
-    createModel(
+    val resultModel = createModel(
       if (ctrsContext != null) {
         this.logInfo(s"fit. Add CtrProvider to model")
         CtrFeatures.addCtrProviderToModel(
@@ -218,5 +223,9 @@ trait CatBoostPredictorTrait[
         master.nativeModelResult 
       }
     )
+
+    preprocessedTrainPool.unpersist()
+
+    resultModel
   }
 }

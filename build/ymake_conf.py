@@ -490,6 +490,12 @@ class Build(object):
         compiler.print_compiler()
         linker.print_linker()
 
+        emit("GENERATE_JAVA_MF",
+             '$YMAKE_PYTHON', '${input:"build/scripts/generate_mf.py"}',
+             '--build-root $ARCADIA_BUILD_ROOT --module-name $REALPRJNAME -o ${output;rootrel;pre=$MODULE_PREFIX;suf=$MODULE_SUFFIX.mf:REALPRJNAME}',
+             '-t $MODULE_TYPE $NO_GPL_FLAG -Ya,lics $LICENSE_NAMES -Ya,peers ${rootrel:MANAGED_PEERS_CLOSURE}'
+             )
+
         self._print_other_settings(compiler)
 
     def _print_build_settings(self):
@@ -1026,7 +1032,7 @@ class GnuToolchainOptions(ToolchainOptions):
                 return 'ubuntu-14'
 
             # Default OS SDK for Linux builds
-            return 'ubuntu-12'
+            return 'ubuntu-14'
 
 
 class Toolchain(object):
@@ -1590,8 +1596,36 @@ class GnuCompiler(Compiler):
         append('EXTRA_OUTPUT')
 
         style = ['${hide;kv:"p CC"} ${hide;kv:"pc green"}']
-        cxx_args = ['$GCCFILTER', '$YNDEXER_ARGS', '$CXX_COMPILER', '$C_FLAGS_PLATFORM', '$GCC_COMPILE_FLAGS', '$CXXFLAGS', '$CL_MACRO_INFO', '$CL_MACRO_INFO_DISABLE_CACHE__NO_UID__', '$EXTRA_OUTPUT', '$SRCFLAGS', '$TOOLCHAIN_ENV', '$YNDEXER_OUTPUT'] + style
-        c_args = ['$GCCFILTER', '$YNDEXER_ARGS', '$C_COMPILER', '$C_FLAGS_PLATFORM', '$GCC_COMPILE_FLAGS', '$CFLAGS', '$CL_MACRO_INFO', '$CL_MACRO_INFO_DISABLE_CACHE__NO_UID__', '$CONLYFLAGS', '$EXTRA_OUTPUT', '$SRCFLAGS', '$TOOLCHAIN_ENV', '$YNDEXER_OUTPUT'] + style
+        cxx_args = [
+            '$GCCFILTER',
+            '$YNDEXER_ARGS',
+            '$CXX_COMPILER',
+            '$C_FLAGS_PLATFORM',
+            '$GCC_COMPILE_FLAGS',
+            '$CXXFLAGS',
+            '$CL_MACRO_INFO',
+            '$CL_MACRO_INFO_DISABLE_CACHE__NO_UID__',
+            '$EXTRA_OUTPUT',
+            '$SRCFLAGS',
+            '$TOOLCHAIN_ENV',
+            '$YNDEXER_OUTPUT'
+        ] + style
+
+        c_args = [
+            '$GCCFILTER',
+            '$YNDEXER_ARGS',
+            '$C_COMPILER',
+            '$C_FLAGS_PLATFORM',
+            '$GCC_COMPILE_FLAGS',
+            '$CFLAGS',
+            '$CL_MACRO_INFO',
+            '$CL_MACRO_INFO_DISABLE_CACHE__NO_UID__',
+            '$CONLYFLAGS',
+            '$EXTRA_OUTPUT',
+            '$SRCFLAGS',
+            '$TOOLCHAIN_ENV',
+            '$YNDEXER_OUTPUT'
+        ] + style
 
         ignore_c_args_no_deps = ['$SRCFLAGS', '$YNDEXER_ARGS', '$YNDEXER_OUTPUT', '$EXTRA_OUTPUT', '$EXTRA_COVERAGE_OUTPUT', '$CL_MACRO_INFO', '$CL_MACRO_INFO_DISABLE_CACHE__NO_UID__']
         c_args_nodeps = [c if c != '$GCC_COMPILE_FLAGS' else '$EXTRA_C_FLAGS -c -o ${OUTFILE} ${SRC} ${pre=-I:INC}' for c in c_args if c not in ignore_c_args_no_deps]
@@ -1906,6 +1940,11 @@ class LD(Linker):
         soname_flag = '-Wl,{option},$SONAME'.format(option=self.soname_option)
         shared_flag = '-shared'
         exec_shared_flag = '-pie -fPIE -Wl,--unresolved-symbols=ignore-all -rdynamic' if self.target.is_linux else ''
+        if self.whole_archive:
+            srcs_globals = self.whole_archive + ' ${rootrel;ext=.a:SRCS_GLOBAL} ' + self.no_whole_archive \
+            + ' ${rootrel;ext=.o:SRCS_GLOBAL}' + ' ${rootrel;ext=.supp:SRCS_GLOBAL}'
+        else:
+            srcs_globals = '${rootrel:SRCS_GLOBAL}'
 
         ld_env_style = '${cwd:ARCADIA_BUILD_ROOT} $TOOLCHAIN_ENV ${kv;hide:"p LD"} ${kv;hide:"pc light-blue"} ${kv;hide:"show_out"}'
 
@@ -1919,16 +1958,16 @@ class LD(Linker):
 
         emit('LINK_SCRIPT_EXE_FLAGS')
         emit('REAL_LINK_EXE',
-             '$YMAKE_PYTHON ${input:"build/scripts/link_exe.py"}', '$LINK_SCRIPT_EXE_FLAGS',
+             '$YMAKE_PYTHON ${input:"build/scripts/link_exe.py"}', '--source-root $ARCADIA_ROOT', '$LINK_SCRIPT_EXE_FLAGS',
              '$GCCFILTER',
-             '$CXX_COMPILER ${rootrel:SRCS_GLOBAL} $VCS_C_OBJ $AUTO_INPUT -o $TARGET', self.rdynamic, exe_flags,
+             '$CXX_COMPILER', srcs_globals, '$VCS_C_OBJ $AUTO_INPUT -o $TARGET', self.rdynamic, exe_flags,
              ld_env_style)
 
         # Executable Shared Library
 
         emit('REAL_LINK_EXEC_DYN_LIB_CMDLINE',
              '$YMAKE_PYTHON ${input:"build/scripts/link_dyn_lib.py"} --target $TARGET ${pre=--whole-archive :WHOLE_ARCHIVE_PEERS}', arch_flag, '$LINK_DYN_LIB_FLAGS',
-             '$CXX_COMPILER ${rootrel:SRCS_GLOBAL} $VCS_C_OBJ $AUTO_INPUT -o $TARGET', exec_shared_flag, soname_flag, exe_flags,
+             '$CXX_COMPILER', srcs_globals, '$VCS_C_OBJ $AUTO_INPUT -o $TARGET', exec_shared_flag, soname_flag, exe_flags,
              ld_env_style)
         emit_big('''
         macro REAL_LINK_EXEC_DYN_LIB_IMPL(WHOLE_ARCHIVE_PEERS...) {
@@ -1942,7 +1981,7 @@ class LD(Linker):
         emit('LINK_DYN_LIB_FLAGS')
         emit('REAL_LINK_DYN_LIB_CMDLINE',
              '$YMAKE_PYTHON ${input:"build/scripts/link_dyn_lib.py"} --target $TARGET ${pre=--whole-archive :WHOLE_ARCHIVE_PEERS}', arch_flag, '$LINK_DYN_LIB_FLAGS',
-             '$CXX_COMPILER ${rootrel:SRCS_GLOBAL} $VCS_C_OBJ $AUTO_INPUT -o $TARGET', shared_flag, soname_flag, exe_flags,
+             '$CXX_COMPILER', srcs_globals, '$VCS_C_OBJ $AUTO_INPUT -o $TARGET', shared_flag, soname_flag, exe_flags,
              ld_env_style)
         emit_big('''
         macro REAL_LINK_DYN_LIB_IMPL(WHOLE_ARCHIVE_PEERS...) {
@@ -1961,18 +2000,18 @@ class LD(Linker):
         emit('SWIG_DLL_JAR_CMD', '$GENERATE_MF && $GENERATE_VCS_C_INFO_NODEP && $REAL_SWIG_DLL_JAR_CMD && $DWARF_COMMAND')
 
         archiver = '$YMAKE_PYTHON ${input:"build/scripts/link_lib.py"} ${quo:AR_TOOL} $AR_TYPE %s $ARCADIA_BUILD_ROOT %s' % (self.llvm_ar_format, self.ar_plugin or 'None')
-
+        tail_link_lib = '$AUTO_INPUT ${kv;hide:"p AR"} $TOOLCHAIN_ENV ${kv;hide:"pc light-red"} ${kv;hide:"show_out"}'
         # Static Library
 
-        emit('LINK_LIB', '$GENERATE_MF &&', archiver, '$TARGET $AUTO_INPUT ${kv;hide:"p AR"}',
-             '$TOOLCHAIN_ENV ${kv;hide:"pc light-red"} ${kv;hide:"show_out"}')
+        emit('LINK_LIB', '$GENERATE_MF &&', archiver, '$TARGET', tail_link_lib)
+        emit('GLOBAL_LINK_LIB', archiver, '$GLOBAL_TARGET', tail_link_lib)
 
         # "Fat Object" : pre-linked global objects and static library with all dependencies
         def emit_link_fat_obj(cmd_name, *extended_flags):
             prefix = ['$GENERATE_MF && $GENERATE_VCS_C_INFO_NODEP &&',
                       '$YMAKE_PYTHON ${input:"build/scripts/link_fat_obj.py"} --build-root $ARCADIA_BUILD_ROOT']
             suffix = [arch_flag,
-                      '-Ya,input $AUTO_INPUT $VCS_C_OBJ -Ya,global_srcs ${rootrel:SRCS_GLOBAL} -Ya,peers $PEERS',
+                      '-Ya,input $AUTO_INPUT $VCS_C_OBJ -Ya,global_srcs', srcs_globals, '-Ya,peers $PEERS',
                       '-Ya,linker $CXX_COMPILER $C_FLAGS_PLATFORM', self.ld_sdk, '-Ya,archiver', archiver,
                       '$TOOLCHAIN_ENV ${kv;hide:"p LD"} ${kv;hide:"pc light-blue"} ${kv;hide:"show_out"}']
             emit(cmd_name, *(prefix + list(extended_flags) + suffix))
@@ -2080,7 +2119,11 @@ class MSVCToolchainOptions(ToolchainOptions):
             def prefix(_type, _path):
                 if not self.under_wine:
                     return _path
-                return '{wine} {type} $WINE_ENV ${{ARCADIA_ROOT}} ${{ARCADIA_BUILD_ROOT}} {path}'.format(wine='${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:1093314933)/bin/wine64 -v140', type=_type, path=_path)
+                return '{wine} {type} $WINE_ENV ${{ARCADIA_ROOT}} ${{ARCADIA_BUILD_ROOT}} {path}'.format(
+                    wine='${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:1093314933)/bin/wine64 -v140',
+                    type=_type,
+                    path=_path
+                )
 
             self.masm_compiler = prefix('masm', os.path.join(bindir, tools_name, asm_name))
             self.link = prefix('link', os.path.join(bindir, tools_name, 'link.exe'))
@@ -2191,6 +2234,8 @@ class MSVCCompiler(MSVC, Compiler):
             '/D__STDC_FORMAT_MACROS',
             '/D_USING_V110_SDK71_',
             '/D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES',
+            '/DNOMINMAX',
+            '/DWIN32_LEAN_AND_MEAN',
         ]
 
         if target.is_x86_64:
@@ -2210,7 +2255,11 @@ class MSVCCompiler(MSVC, Compiler):
                 MSVC_INLINE_FLAG=/Zc:inline-
             }''')
 
-        flags = ['/nologo', '/Zm500', '/GR', '/bigobj', '/FC', '/EHs', '/errorReport:prompt', '$MSVC_INLINE_FLAG', '/utf-8']
+        flags = [
+            '/nologo', '/Zm500', '/GR', '/bigobj', '/FC', '/EHs', '/errorReport:prompt', '$MSVC_INLINE_FLAG', '/utf-8',
+            # enable standard conforming mode
+            '/permissive-'
+        ]
         flags += self.tc.arch_opt
 
         c_warnings = ['/we{}'.format(code) for code in warns_as_error]
@@ -2432,7 +2481,7 @@ class MSVCCompiler(MSVC, Compiler):
 
             macro _SRC_masm(SRC, SRCFLAGS...) {
                 .CMD=${cwd:ARCADIA_BUILD_ROOT} ${TOOLCHAIN_ENV} ${ML_WRAPPER} ${MASM_COMPILER} ${MASMFLAGS} ${SRCFLAGS} ''' + masm_io + ''' ${kv;hide:"p AS"} ${kv;hide:"pc yellow"}
-            }''')
+            }''')  # noqa E501
 
 
 class MSVCLinker(MSVC, Linker):
@@ -2558,34 +2607,41 @@ class MSVCLinker(MSVC, Linker):
              '-t $MODULE_TYPE $NO_GPL_FLAG -Ya,lics $LICENSE_NAMES -Ya,peers ${rootrel:PEERS}',
              )
 
-        emit('REAL_LINK_DYN_LIB', ' ${TOOLCHAIN_ENV} ${cwd:ARCADIA_BUILD_ROOT} ${LINK_WRAPPER} ${LINK_WRAPPER_DYNLIB} ${LINK_EXE_CMD} \
-            --ya-start-command-file ${LINK_IMPLIB_VALUE} /DLL /OUT:${qe;rootrel:TARGET} ${LINK_EXTRA_OUTPUT} ${EXPORTS_VALUE} \
-            ${qe;rootrel:SRCS_GLOBAL} ${VCS_C_OBJ_RR} ${qe;rootrel:AUTO_INPUT} ${qe;rootrel:PEERS} \
-            $LINK_EXE_FLAGS $LINK_STDLIBS $LDFLAGS $LDFLAGS_GLOBAL $OBJADDE --ya-end-command-file')
+        # we split srcs_global into two groups: libs and objs
+        # # each group can be in its own command file
+        # first group need /WHOLEARCHIVE: prefix which will be added in fix_msvc_output.py or run_msvc_wine.py
+        # the tail of link commands will be added in the third command file
+        srcs_globals = '--start-wa --ya-start-command-file ${qe;rootrel;ext=.lib:SRCS_GLOBAL} --ya-end-command-file --end-wa \
+                        --ya-start-command-file ${qe;rootrel;ext=.obj:SRCS_GLOBAL} --ya-end-command-file'
+        emit('REAL_LINK_DYN_LIB', '${TOOLCHAIN_ENV} ${cwd:ARCADIA_BUILD_ROOT} ${LINK_WRAPPER} ${LINK_WRAPPER_DYNLIB} ${LINK_EXE_CMD} \
+             ${LINK_IMPLIB_VALUE} /DLL /OUT:${qe;rootrel:TARGET} ${LINK_EXTRA_OUTPUT} ${EXPORTS_VALUE}',
+             srcs_globals, '--ya-start-command-file ${VCS_C_OBJ_RR} ${qe;rootrel:AUTO_INPUT} ${qe;rootrel:PEERS} \
+             $LINK_EXE_FLAGS $LINK_STDLIBS $LDFLAGS $LDFLAGS_GLOBAL $OBJADDE --ya-end-command-file')
 
         emit('SWIG_DLL_JAR_CMD', '$GENERATE_MF && $GENERATE_VCS_C_INFO_NODEP && $REAL_SWIG_DLL_JAR_CMD')
+
+        head_link_lib = '${TOOLCHAIN_ENV} ${cwd:ARCADIA_BUILD_ROOT} ${LIB_WRAPPER} ${LINK_LIB_CMD} --ya-start-command-file'
+        tail_link_lib = '${qe;rootrel:AUTO_INPUT} $LINK_LIB_FLAGS --ya-end-command-file ${hide;kv:"soe"} ${hide;kv:"p AR"} ${hide;kv:"pc light-red"}'
+        emit('LINK_LIB', '${GENERATE_MF} &&', head_link_lib, '/OUT:${qe;rootrel:TARGET}', tail_link_lib)
+        emit('GLOBAL_LINK_LIB', head_link_lib, '/OUT:${qe;rootrel:GLOBAL_TARGET}', tail_link_lib)
 
         emit_big('''
             when ($EXPORTS_FILE) {
                 LINK_IMPLIB_VALUE=$LINK_IMPLIB
                 EXPORTS_VALUE=/DEF:${input:EXPORTS_FILE}
-            }
+            }''')
 
-            LINK_LIB=${GENERATE_MF} && ${TOOLCHAIN_ENV} ${cwd:ARCADIA_BUILD_ROOT} ${LIB_WRAPPER} ${LINK_LIB_CMD} --ya-start-command-file /OUT:${qe;rootrel:TARGET} \
-            ${qe;rootrel:AUTO_INPUT} $LINK_LIB_FLAGS --ya-end-command-file ${hide;kv:"soe"} ${hide;kv:"p AR"} ${hide;kv:"pc light-red"}
+        emit('LINK_EXE', '${GENERATE_MF} && $GENERATE_VCS_C_INFO_NODEP && ${TOOLCHAIN_ENV} ${cwd:ARCADIA_BUILD_ROOT} ${LINK_WRAPPER} ${LINK_EXE_CMD} /OUT:${qe;rootrel:TARGET}',
+             '${LINK_EXTRA_OUTPUT}', srcs_globals, '--ya-start-command-file ${VCS_C_OBJ_RR} ${qe;rootrel:AUTO_INPUT} $LINK_EXE_FLAGS $LINK_STDLIBS $LDFLAGS $LDFLAGS_GLOBAL $OBJADDE \
+             ${qe;rootrel:PEERS} --ya-end-command-file ${hide;kv:"soe"} ${hide;kv:"p LD"} ${hide;kv:"pc blue"}')
 
-            LINK_EXE=${GENERATE_MF} && $GENERATE_VCS_C_INFO_NODEP && ${TOOLCHAIN_ENV} ${cwd:ARCADIA_BUILD_ROOT} ${LINK_WRAPPER} ${LINK_EXE_CMD} --ya-start-command-file /OUT:${qe;rootrel:TARGET} \
-            ${LINK_EXTRA_OUTPUT} ${qe;rootrel:SRCS_GLOBAL} ${VCS_C_OBJ_RR} ${qe;rootrel:AUTO_INPUT} $LINK_EXE_FLAGS $LINK_STDLIBS $LDFLAGS $LDFLAGS_GLOBAL $OBJADDE \
-            ${qe;rootrel:PEERS} --ya-end-command-file ${hide;kv:"soe"} ${hide;kv:"p LD"} ${hide;kv:"pc blue"}
+        emit('LINK_DYN_LIB', '${GENERATE_MF} && $GENERATE_VCS_C_INFO_NODEP && $REAL_LINK_DYN_LIB ${hide;kv:"soe"} ${hide;kv:"p LD"} ${hide;kv:"pc blue"}')
 
-            LINK_DYN_LIB=${GENERATE_MF} && $GENERATE_VCS_C_INFO_NODEP && $REAL_LINK_DYN_LIB ${hide;kv:"soe"} ${hide;kv:"p LD"} ${hide;kv:"pc blue"}
+        emit('LINK_EXEC_DYN_LIB', '${GENERATE_MF} && $GENERATE_VCS_C_INFO_NODEP && ${TOOLCHAIN_ENV} ${cwd:ARCADIA_BUILD_ROOT} ${LINK_WRAPPER} ${LINK_WRAPPER_DYNLIB} ${LINK_EXE_CMD} \
+             /OUT:${qe;rootrel:TARGET} ${LINK_EXTRA_OUTPUT} ${EXPORTS_VALUE}', srcs_globals, '--ya-start-command-file ${VCS_C_OBJ_RR} ${qe;rootrel:AUTO_INPUT} ${qe;rootrel:PEERS} \
+             $LINK_EXE_FLAGS $LINK_STDLIBS $LDFLAGS $LDFLAGS_GLOBAL $OBJADDE --ya-end-command-file ${hide;kv:"soe"} ${hide;kv:"p LD"} ${hide;kv:"pc blue"}')
 
-            LINK_EXEC_DYN_LIB=${GENERATE_MF} && $GENERATE_VCS_C_INFO_NODEP && ${TOOLCHAIN_ENV} ${cwd:ARCADIA_BUILD_ROOT} ${LINK_WRAPPER} ${LINK_WRAPPER_DYNLIB} ${LINK_EXE_CMD} \
-            --ya-start-command-file /OUT:${qe;rootrel:TARGET} ${LINK_EXTRA_OUTPUT} ${EXPORTS_VALUE} \
-            ${qe;rootrel:SRCS_GLOBAL} ${VCS_C_OBJ_RR} ${qe;rootrel:AUTO_INPUT} ${qe;rootrel:PEERS} \
-            $LINK_EXE_FLAGS $LINK_STDLIBS $LDFLAGS $LDFLAGS_GLOBAL $OBJADDE --ya-end-command-file ${hide;kv:"soe"} ${hide;kv:"p LD"} ${hide;kv:"pc blue"}
-
-            LINK_FAT_OBJECT=${GENERATE_MF} && $GENERATE_VCS_C_INFO_NODEP && $YMAKE_PYTHON ${input:"build/scripts/touch.py"} $TARGET ${kv;hide:"p LD"} ${kv;hide:"pc light-blue"} ${kv;hide:"show_out"}''')
+        emit('LINK_FAT_OBJECT', '${GENERATE_MF} && $GENERATE_VCS_C_INFO_NODEP && $YMAKE_PYTHON ${input:"build/scripts/touch.py"} $TARGET ${kv;hide:"p LD"} ${kv;hide:"pc light-blue"} ${kv;hide:"show_out"}')  # noqa E501
 
 
 # TODO(somov): Rename!
@@ -2772,13 +2828,15 @@ class Cuda(object):
         self.cuda_host_compiler_env = Setting('CUDA_HOST_COMPILER_ENV')
         self.cuda_host_msvc_version = Setting('CUDA_HOST_MSVC_VERSION')
         self.cuda_nvcc_flags = Setting('CUDA_NVCC_FLAGS', auto=[])
-        self.cuda_arcadia_includes = Setting('CUDA_ARCADIA_INCLUDES', auto=self.auto_cuda_arcadia_includes, convert=to_bool)
 
         self.peerdirs = ['build/platform/cuda']
 
         self.cuda_version_list = map(int, self.cuda_version.value.split('.')) if self.cuda_version.value else None
+        self.nvcc_std = '-std=c++14' if self.cuda_version_list >= [9, 0] else '-std=c++11'
+        if self.build.tc.type == 'msvc':
+            self.nvcc_std = self.nvcc_std.replace('-std=', '/std:')
 
-        self.nvcc_flags = ['-std=c++14' if self.cuda_version_list >= [9, 0] else '-std=c++11']
+        self.nvcc_flags = []
 
         if not self.have_cuda.value:
             return
@@ -2819,26 +2877,22 @@ class Cuda(object):
 
         emit('NVCC_UNQUOTED', self.build.host.exe('$CUDA_ROOT', 'bin', 'nvcc'))
         emit('NVCC', '${quo:NVCC_UNQUOTED}')
+        emit('NVCC_STD', self.nvcc_std)
         emit('NVCC_FLAGS', self.nvcc_flags, '$CUDA_NVCC_FLAGS')
         emit('NVCC_OBJ_EXT', '.o' if not self.build.target.is_windows else '.obj')
 
     def print_macros(self):
-        cmd_vars = {
-            'skip_nocxxinc': '' if self.cuda_arcadia_includes.value else '--y_skip_nocxxinc',
-            'includes': '${pre=-I:_C__INCLUDE}' if self.cuda_arcadia_includes.value else '-I$ARCADIA_ROOT',
-        }
-
         if not self.cuda_use_clang.value:
-            cmd = '$YMAKE_PYTHON ${input:"build/scripts/compile_cuda.py"} ${tool:"tools/mtime0"} $NVCC $NVCC_FLAGS -c ${input:SRC} -o ${output;suf=${OBJ_SUF}${NVCC_OBJ_EXT}:SRC} %(skip_nocxxinc)s %(includes)s --cflags $C_FLAGS_PLATFORM $CFLAGS $SRCFLAGS ${input;hide:"build/platform/cuda/cuda_runtime_include.h"} $CUDA_HOST_COMPILER_ENV ${kv;hide:"p CC"} ${kv;hide:"pc light-green"}'
+            cmd = '$YMAKE_PYTHON ${input:"build/scripts/compile_cuda.py"} ${tool:"tools/mtime0"} $NVCC $NVCC_FLAGS -c ${input:SRC} -o ${output;suf=${OBJ_SUF}${NVCC_OBJ_EXT}:SRC} ${pre=-I:_C__INCLUDE} --cflags $C_FLAGS_PLATFORM $CXXFLAGS $NVCC_STD $SRCFLAGS ${input;hide:"build/platform/cuda/cuda_runtime_include.h"} $CUDA_HOST_COMPILER_ENV ${kv;hide:"p CC"} ${kv;hide:"pc light-green"}'  # noqa E501
         else:
-            cmd = '$CXX_COMPILER --cuda-path=$CUDA_ROOT $C_FLAGS_PLATFORM -c ${input:SRC} -o ${output;suf=${OBJ_SUF}${NVCC_OBJ_EXT}:SRC} %(includes)s $CXXFLAGS $SRCFLAGS $TOOLCHAIN_ENV ${kv;hide:"p CU"} ${kv;hide:"pc green"}'
+            cmd = '$CXX_COMPILER --cuda-path=$CUDA_ROOT $C_FLAGS_PLATFORM -c ${input:SRC} -o ${output;suf=${OBJ_SUF}${NVCC_OBJ_EXT}:SRC} ${pre=-I:_C__INCLUDE} $CXXFLAGS $SRCFLAGS $TOOLCHAIN_ENV ${kv;hide:"p CU"} ${kv;hide:"pc green"}'  # noqa E501
 
         emit_big('''
             macro _SRC("cu", SRC, SRCFLAGS...) {
                 .CMD=%s
                 .PEERDIR=%s
             }
-        ''' % (cmd % cmd_vars, ' '.join(sorted(self.peerdirs))))
+        ''' % (cmd, ' '.join(sorted(self.peerdirs))))
 
     def have_cuda_in_arcadia(self):
         host, target = self.build.host_target
@@ -2853,7 +2907,7 @@ class Cuda(object):
         if self.cuda_version.value in ('8.0', '9.0', '9.1', '9.2'):
             raise ConfigureError('CUDA versions 8.x and 9.x are no longer supported.\nSee DEVTOOLS-7108.')
 
-        if self.cuda_version.value in ('10.0', '10.1', '11.0', '11.1'):
+        if self.cuda_version.value in ('10.0', '10.1', '11.0', '11.1', '11.2'):
             return True
 
         return False
@@ -2945,9 +2999,6 @@ class Cuda(object):
         if vc_root:
             self.cuda_host_compiler_env.value = format_env({'Y_VC_Root': vc_root})
 
-    def auto_cuda_arcadia_includes(self):
-        return self.cuda_version_list >= [9, 0]
-
 
 class CuDNN(object):
     def __init__(self, cuda):
@@ -3002,7 +3053,7 @@ macro _SRC_yasm_impl(SRC, PREINCLUDES[], SRCFLAGS...) {{
     .CMD={} -f {}$HARDWARE_ARCH {} $YASM_DEBUG_INFO $YASM_DEBUG_INFO_DISABLE_CACHE__NO_UID__ -D ${{pre=_;suf=_:HARDWARE_TYPE}} -D_YASM_ $ASM_PREFIX_VALUE {} ${{YASM_FLAGS}} ${{pre=-I :_ASM__INCLUDE}} ${{SRCFLAGS}} -o {} ${{pre=-P :PREINCLUDES}} ${{input;hide:PREINCLUDES}} ${{input:SRC}} ${{kv;hide:"p AS"}} ${{kv;hide:"pc light-green"}}
 
 }}
-'''.format(self.yasm_tool, self.fmt, d_platform, ' '.join(self.flags), output)
+'''.format(self.yasm_tool, self.fmt, d_platform, ' '.join(self.flags), output)  # noqa E501
 
 
 def print_swig_config():

@@ -26,7 +26,7 @@ class Swig(iw.CustomCommand):
         self._main_out = os.path.join(
             self._bindir,
             '' if relpath == '.' else relpath.replace('..', '__'),
-            self._input_name + '_wrap.c')
+            self._input_name + '_wrap.swg.c')
 
         if not path.endswith('.c.swg'):
             self._flags += ['-c++']

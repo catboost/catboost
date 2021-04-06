@@ -4,13 +4,9 @@ LIBRARY()
 
 
 
-VERSION(1.0.6.0.1)
+VERSION(1.0.8)
 
 LICENSE(BSD-4-Clause)
-
-ADDINCL(
-    contrib/libs/libbz2
-)
 
 NO_COMPILER_WARNINGS()
 
