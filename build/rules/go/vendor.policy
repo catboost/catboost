@@ -614,6 +614,7 @@ ALLOW .* -> vendor/github.com/jinzhu/inflection
 #
 # CONTRIB-2069
 ALLOW .* -> vendor/github.com/coredhcp/coredhcp
+ALLOW .* -> vendor/github.com/insomniacslk/dhcp
 
 # CONTRIB-2094
 ALLOW .* -> vendor/github.com/osrg/gobgp
