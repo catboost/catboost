@@ -13,5 +13,9 @@
     "typeRoots": [
       "node_modules/@types"
     ]
-  }
+  },
+  "exclude": [
+    "./build_scripts/*",
+    "./lib/*/**"
+  ],
 }

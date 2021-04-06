@@ -17,12 +17,13 @@
     "build": "./build.sh",
     "compile": "./compile.sh",
     "test": "npm run compile && node ./lib/tests/model.js",
-    "clean": "rm -r ./build ./lib"
+    "clean": "rm -r ./build ./lib ./build_scripts/out",
+    "compile_build_scripts": "tsc"
   },
   "author": "catboost.ai",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@types/node": "^7.0.22",
+    "@types/node": "^7.10.14",
     "typescript": "^3.6.5"
   }
 }

@@ -1,3 +1,3 @@
 #!/usr/bin/env sh
 
-./build_model.sh && ./compile.sh
+node ./build_scripts/bootstrap.js build_model && ./compile.sh
