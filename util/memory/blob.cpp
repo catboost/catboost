@@ -129,7 +129,7 @@ public:
     }
 
     ~TMappedBlobBase() {
-        if (Mode_ == LockedMapping)
+        if (Mode_ == LockedMapping && Length())
             UnlockMemory(Data(), Length());
     }
 
