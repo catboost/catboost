@@ -1520,13 +1520,13 @@ process_synonyms <- function(params) {
 }
 
 process_synonyms_in_one_group <- function(synonyms, params) {
-    value = NULL
+    value <- NULL
     for (synonym in synonyms) {
         if (synonym %in% names(params)) {
             if (!is.null(value)) {
-                message <- paste("Only one of the parameters (", 
+                message <- paste("Only one of the parameters [",
                                 paste(synonyms, collapse=', '),
-                                ") should be initialized.",sep="")
+                                "] should be initialized.", sep="")
                 stop(message)
             }
             value = params[[synonym]]
