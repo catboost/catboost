@@ -5477,6 +5477,7 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
     -------
     cv results : pandas.core.frame.DataFrame with cross-validation results
         columns are: test-error-mean  test-error-std  train-error-mean  train-error-std
+    cv models : list of trained models, if return_models=True
     """
     if params is None:
         raise CatBoostError("params should be set.")
