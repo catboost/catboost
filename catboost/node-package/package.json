@@ -14,11 +14,11 @@
   },
   "scripts": {
     "install": "./install.sh",
-    "build": "./build.sh",
-    "compile": "./compile.sh",
+    "build": "node ./build_scripts/bootstrap.js build_ya",
+    "compile": "node ./build_scripts/bootstrap.js compile",
     "test": "npm run compile && node ./lib/tests/model.js",
     "clean": "rm -r ./build ./lib ./build_scripts/out",
-    "compile_build_scripts": "tsc"
+    "compile_build_scripts": "node ./build_scripts/bootstrap.js bootstrap"
   },
   "author": "catboost.ai",
   "license": "Apache-2.0",

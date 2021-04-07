@@ -10,6 +10,5 @@ then
     node-gyp build && \
     rm -rf ./catboost-${CATBOOST_RELEASE} ./catboost.tar.gz
 else
-  ./build.sh &&
-    node-gyp build
+  node ./build_scripts/bootstrap.js build_ya
 fi
