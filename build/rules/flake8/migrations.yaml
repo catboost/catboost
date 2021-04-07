@@ -190,7 +190,6 @@ migrations:
     - antiadblock/cryprox/cryprox/config
     - antiadblock/cryprox/cryprox/service
     - antiadblock/cryprox/tests/unit
-    - antirobot/daemon/arcadia_test
     - antirobot/tools/daily_routine/lib
     - april/web/bas/bm
     - april/web/bas/bm/utils
@@ -1272,7 +1271,6 @@ migrations:
     - alice/uniproxy/bin/uniproxy-unistat
     - alice/uniproxy/bin/yabio-storage
     - alice/uniproxy/library/activation_storage
-    - alice/uniproxy/library/backends_asr
     - alice/uniproxy/library/backends_bio
     - alice/uniproxy/library/backends_bio/ut
     - alice/uniproxy/library/backends_common
@@ -1295,7 +1293,6 @@ migrations:
     - alice/uniproxy/library/web_handlers
     - alice/uniproxy/tools/balancer_top
     - alice/vins/core/vins_core/test
-    - antirobot/daemon/arcadia_test
     - apphost/conf/tests/blackbox
     - april/badb
     - april/badb/badb/db/mysql
@@ -1531,7 +1528,6 @@ migrations:
     - rnd_toolbox/nyamm
     - robot/library/yuppie
     - robot/library/yuppie/modules
-    - robot/mercury/cmpy/injector_urldat
     - robot/metrics/speed_sbr/nirvana
     - robot/quality/nirvana/refererrank/premetric_map
     - robot/quality/samovar_conveyour/tools/get_samples
@@ -1763,7 +1759,6 @@ migrations:
     - alice/tools/telegram/alice_battle_angel_bot
     - alice/uniproxy/bin/send-digest
     - alice/uniproxy/library/activation_storage
-    - alice/uniproxy/library/backends_asr
     - alice/uniproxy/library/common_handlers
     - alice/uniproxy/library/notificator
     - alice/uniproxy/library/subway/pull_client
@@ -1873,7 +1868,6 @@ migrations:
     - maps/infopoint/statistics/lib
     - maps/infra/apiteka/client/tests
     - maps/infra/ecstatic/tool/ecstatic_api
-    - maps/masstransit/tools/gtfs_utils/converter/lib
     - maps/pylibs/test_helpers
     - maps/qa/passed_by_assessors/markup_script
     - maps/renderer/stylerepo/lib
@@ -2028,7 +2022,6 @@ migrations:
     - sandbox/projects/mssngr/runtime/MssngrRouterLoadTest
     - sandbox/projects/news
     - sandbox/projects/quality/tasks
-    - sandbox/projects/repo/pciexpress/legs
     - sandbox/projects/resource_types
     - sandbox/projects/sandbox/build_sandbox_tasks
     - sandbox/projects/school/Load/MeduzaShooting
