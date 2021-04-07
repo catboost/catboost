@@ -79,6 +79,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\ut\test_exact_leaves_estimation.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\ut\test_langevin.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\ut\test_multistat_histograms.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\ut\test_pairwise_tree_searcher.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\ut\test_tree_searcher.cpp"/>
