@@ -197,6 +197,7 @@ def test_multiregression(boosting_type, grow_policy, n_trees):
         local_canonical_file(output_metric_path)
     ]
 
+
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 def test_survival_aft(boosting_type):
     output_model_path = yatest.common.test_output_path('model.bin')
@@ -217,7 +218,7 @@ def test_survival_aft(boosting_type):
         '--use-best-model', 'false',
     )
     execute_catboost_fit('CPU', cmd_fit)
-    
+
     cmd_calc = (
         CATBOOST_PATH,
         'calc',
@@ -246,6 +247,7 @@ def test_survival_aft(boosting_type):
         local_canonical_file(output_metric_path)
     ]
 
+
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 @pytest.mark.parametrize('distribution_type', DISTRIBUTION_TYPE)
 def test_survival_aft_with_nondefault_distributions(boosting_type, distribution_type):
@@ -267,7 +269,7 @@ def test_survival_aft_with_nondefault_distributions(boosting_type, distribution_
         '--use-best-model', 'false',
     )
     execute_catboost_fit('CPU', cmd_fit)
-    
+
     cmd_calc = (
         CATBOOST_PATH,
         'calc',

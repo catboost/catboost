@@ -222,13 +222,14 @@ class TSurvivalAftError final : public TMultiDerCalcer {
 public:
     const double Scale;
     std::unique_ptr<IDistribution> Distribution;
+
 public:
     explicit TSurvivalAftError(std::unique_ptr<IDistribution> distribution, double scale)
-        : TMultiDerCalcer(EHessianType::Diagonal),
-        Scale(scale),
-        Distribution(std::move(distribution))
-        {
-        CB_ENSURE(Scale> 0, "Scale should be positive");
+        : TMultiDerCalcer(EHessianType::Diagonal)
+        , Scale(scale)
+        , Distribution(std::move(distribution))
+    {
+        CB_ENSURE(Scale > 0, "Scale should be positive");
     }
 
     void CalcDers(

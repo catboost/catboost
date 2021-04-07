@@ -443,25 +443,17 @@ TMetricHolder TSurvivalAftMetric::EvalSingleThread(
 ) const {
     const auto evalImpl = [=](bool useWeights, bool hasDelta) {
         const auto realApprox = [=](int dim, int idx) { return fast_exp(approx[dim][idx] + (hasDelta ? approxDelta[dim][idx] : 0)); };
+        const auto realTarget = [=](int dim, int idx) { return target[dim][idx] == -1 ? std::numeric_limits<float>::infinity() : target[dim][idx]; };
         const auto realWeight = [=](int idx) { return useWeights ? weight[idx] : 1; };
-        const auto intervalHit = [=](double targetLower, double targetUpper, double approx){
-            if (targetUpper==-1){
-                return approx>=targetLower;
-            }
-            else if(targetLower==-1){
-                return approx<=targetUpper;
-            }
-            return (approx>=targetLower) && (approx<=targetUpper);
-        };
 
         TMetricHolder error(2);
         for (auto i : xrange(begin, end)) {
-            if (intervalHit(target[0][i], target[1][i], realApprox(0,i))){
-                error.Stats[0] += realWeight(i);
+            if ((realApprox(0, i) <= realTarget(0, i)) || (realApprox(0, i) >= realTarget(1, i))) {
+                double distanceFromInterval = Min(Abs(realApprox(0, i) - realTarget(0, i)), Abs(realApprox(0, i) - realTarget(1, i)));
+                error.Stats[0] += distanceFromInterval * realWeight(i);
             }
             error.Stats[1] += realWeight(i);
         }
-
         return error;
     };
 
@@ -473,9 +465,8 @@ double TSurvivalAftMetric::GetFinalError(const TMetricHolder& error) const {
 }
 
 void TSurvivalAftMetric::GetBestValue(EMetricBestValue* valueType, float* /*bestValue*/) const {
-    *valueType = EMetricBestValue::Max;
+    *valueType = EMetricBestValue::Min;
 }
-//TODO
 
 /* MultiRMSE */
 namespace {
