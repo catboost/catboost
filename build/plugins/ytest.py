@@ -6,7 +6,7 @@ import copy
 import base64
 import shlex
 import _common
-import _metric_resolvers as mr
+import lib._metric_resolvers as mr
 import _test_const as consts
 import _requirements as reqs
 import StringIO
