@@ -694,10 +694,6 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
              "Posterior Sampling requires Сonstant Model Shrink Mode");
     }
 
-    if (BoostingOptions->Langevin.GetUnchecked()) {
-        CB_ENSURE(SystemOptions->IsSingleHost(), "Langevin boosting is supported in single-host mode only.");
-    }
-
     if (GetTaskType() == ETaskType::CPU && ObliviousTreeOptions->FeaturePenalties.IsSet()) {
         ValidateFeaturePenaltiesOptions(ObliviousTreeOptions->FeaturePenalties.Get());
     }
@@ -896,7 +892,7 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
             BoostingOptions->Langevin.SetDefault(true);
         }
 
-        if (BoostingOptions->DiffusionTemperature.GetUnchecked() > 0.0f && BoostingOptions->Langevin.NotSet()) {
+        if (BoostingOptions->DiffusionTemperature > 0.0f && BoostingOptions->Langevin.NotSet()) {
             BoostingOptions->Langevin.SetDefault(true);
         }
 

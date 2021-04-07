@@ -75,6 +75,7 @@ namespace NCatboostCuda {
 
         TVector<float> CurrentPoint;
         THolder<TVector<double>> CurrentPointInfo;
+        TGpuAwareRandom& Random;
 
     private:
         const TVector<double>& GetCurrentPointInfo();
@@ -96,9 +97,11 @@ namespace NCatboostCuda {
 
     public:
         TObliviousTreeLeavesEstimator(const TBinarizedFeaturesManager& featuresManager,
-                                      const TLeavesEstimationConfig& config)
+                                      const TLeavesEstimationConfig& config,
+                                      TGpuAwareRandom& random)
             : FeaturesManager(featuresManager)
             , LeavesEstimationConfig(config)
+            , Random(random)
         {
         }
 
@@ -205,5 +208,8 @@ namespace NCatboostCuda {
         }
 
         void Estimate(NPar::ILocalExecutor* localExecutor);
+
+        void AddLangevinNoiseToDerivatives(TVector<double>* derivatives,
+                                           NPar::ILocalExecutor* localExecutor);
     };
 }

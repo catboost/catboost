@@ -137,8 +137,10 @@ namespace NCatboostCuda {
                 Oracle.MoveTo(point.Point);
                 Oracle.WriteValueAndFirstDerivatives(&point.Value,
                                                      &point.Gradient);
+                Oracle.AddLangevinNoiseToDerivatives(&point.Gradient, localExecutor);
 
                 Oracle.WriteSecondDerivatives(&point.Hessian);
+                Oracle.AddLangevinNoiseToDerivatives(&point.Hessian, localExecutor);
 
                 return point;
             }(),
@@ -178,12 +180,14 @@ namespace NCatboostCuda {
                 Oracle.MoveTo(nextPoint);
                 Oracle.WriteValueAndFirstDerivatives(&nextPointWithFuncInfo.Value,
                                                      &nextPointWithFuncInfo.Gradient);
+                Oracle.AddLangevinNoiseToDerivatives(&nextPointWithFuncInfo.Gradient, localExecutor);
 
                 if (stepEstimation->IsSatisfied(step,
                                                 nextPointWithFuncInfo.Value,
                                                 nextPointWithFuncInfo.Gradient))
                 {
                     Oracle.WriteSecondDerivatives(&nextPointWithFuncInfo.Hessian);
+                    Oracle.AddLangevinNoiseToDerivatives(&nextPointWithFuncInfo.Gradient, localExecutor);
                     double gradNorm = nextPointWithFuncInfo.GradientNorm();
 
                     CATBOOST_DEBUG_LOG
