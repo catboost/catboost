@@ -1402,7 +1402,6 @@ migrations:
     - lbs/viewer
     - library/python/bstr
     - library/python/coredump_filter
-    - load/projects/yatool_perf_test/lib
     - logbroker/public/client/lib
     - logbroker/tools/deploy/layer_test_old
     - logbroker/tools/manual/collect_capacity/base_2020
@@ -1846,7 +1845,6 @@ migrations:
     - lbs/research/LBS381_choosing_gsm_over_wifi/calc_stats
     - lbs/research_tools/find_keys_causing_losses
     - library/python/async_clients
-    - load/projects/yatool_perf_test/lib
     - logbroker/public/client/lib
     - logbroker/tools/deploy_consistency_test
     - mail/collectors/tests-system/src
@@ -2135,7 +2133,6 @@ migrations:
     - yabs/server/infra/yt_tables_freshness/solo
     - yabs/server/libs/py_db_cluster
     - yabs/server/test/ft/BSDEV-77232
-    - yabs/server/test/ft/BSDEV-78831
     - yabs/server/test/ft/BSDEV-79055
     - yabs/server/test/ft/BSDEV-80203
     - yabs/server/test/ft/BSSERVER-12201
