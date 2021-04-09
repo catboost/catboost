@@ -2193,7 +2193,7 @@ class WindowsScriptWriter(ScriptWriter):
     @classmethod
     def _adjust_header(cls, type_, orig_header):
         """
-        Make sure 'pythonw' is used for gui and and 'python' is used for
+        Make sure 'pythonw' is used for gui and 'python' is used for
         console (regardless of what sys.executable is).
         """
         pattern = 'pythonw.exe'

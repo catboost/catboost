@@ -8,6 +8,11 @@ import warnings
 is_pypy = '__pypy__' in sys.builtin_module_names
 
 
+warnings.filterwarnings('ignore',
+                        '.+ distutils .+ deprecated',
+                        DeprecationWarning)
+
+
 def warn_distutils_present():
     if 'distutils' not in sys.modules:
         return
