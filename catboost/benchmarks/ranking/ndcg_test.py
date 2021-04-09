@@ -1,6 +1,6 @@
 import numpy as np
 from ndcg_kaggle import ndcg_score
-from utils import ndcg
+import catboost as cb
 
 
 def generate_relevances(size=10):
@@ -15,7 +15,7 @@ def test():
         rel_true, rel_pred = generate_relevances(size)
 
         expect = ndcg_score([rel_true], [rel_pred], top)
-        real = ndcg(rel_pred, rel_true, top)
+        real = cb.CatBoostRanker.NDCGScore.ndcg(rel_pred, rel_true, top)
 
         if np.abs(real - expect) > 1e-6:
             print('real ' + str(real) + ' but expect ' + str(expect))
