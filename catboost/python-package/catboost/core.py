@@ -69,6 +69,7 @@ SPARSE_MATRIX_TYPES = _catboost.SPARSE_MATRIX_TYPES
 MultiRegressionCustomMetric = _catboost.MultiRegressionCustomMetric
 MultiRegressionCustomObjective = _catboost.MultiRegressionCustomObjective
 fspath = _catboost.fspath
+_ComputeNDCG = _catboost._ComputeNDCG
 
 
 from contextlib import contextmanager  # noqa E402
@@ -5262,52 +5263,6 @@ class CatBoostRanker(CatBoost):
 
     _estimator_type = 'ranker'
 
-    class NDCGScore:
-        """
-        Implementation of ndcg@top score for ranking
-        """
-
-        @staticmethod
-        def ndcg(y_pred, y_true, top):
-            assert y_pred.shape[0] == y_true.shape[0]
-            top = min(top, y_pred.shape[0])
-
-            first_k_docs = sorted(zip(y_true, y_pred), key=cmp_to_key(CatBoostRanker.NDCGScore._doc_comparator))
-            first_k_docs = np.array(first_k_docs)[:top,0]
-
-            top_k_idxs = np.argsort(y_true)[::-1][:top]
-            top_k_docs = y_true[top_k_idxs]
-
-            dcg = CatBoostRanker.NDCGScore._cumulative_gain(first_k_docs)
-            idcg = CatBoostRanker.NDCGScore._cumulative_gain(top_k_docs)
-
-            return dcg / idcg if idcg > 0 else 1.
-
-        @staticmethod
-        def mean_ndcg(y_pred, y_true, query_idxs, top=10):
-            sum_ndcg = 0
-            queries = np.unique(query_idxs)
-
-            for query in queries:
-                idxs = (query_idxs == query)
-                value = CatBoostRanker.NDCGScore.ndcg(y_pred[idxs], y_true[idxs], top)
-                sum_ndcg += value
-
-            return sum_ndcg / float(queries.shape[0])
-
-        @staticmethod
-        def _doc_comparator(doc1, doc2):
-            if doc1[1] < doc2[1]:
-                return 1
-            elif doc1[1] == doc2[1]:
-                return int(doc1[0] > doc2[0])
-            else:
-                return -1
-
-        @staticmethod
-        def _cumulative_gain(relevances):
-            return np.sum((2 ** relevances - 1) / np.log2(np.arange(relevances.shape[0]) + 2))
-
     def __init__(
         self,
         iterations=None,
@@ -5428,8 +5383,9 @@ class CatBoostRanker(CatBoost):
 
         super(CatBoostRanker, self).__init__(params)
 
-    def fit(self, X, y=None, group_id=None, cat_features=None, text_features=None, embedding_features=None,
-            sample_weight=None, baseline=None, use_best_model=None,
+    def fit(self, X, y=None, group_id=None, cat_features=None, text_features=None,
+            embedding_features=None, pairs=None, sample_weight=None, group_weight=None,
+            subgroup_id=None, pairs_weight=None, baseline=None, use_best_model=None,
             eval_set=None, verbose=None, logging_level=None, plot=False, column_description=None,
             verbose_eval=None, metric_period=None, silent=None, early_stopping_rounds=None,
             save_snapshot=None, snapshot_file=None, snapshot_interval=None, init_model=None):
@@ -5454,8 +5410,26 @@ class CatBoostRanker(CatBoost):
         embedding_features : list or numpy.ndarray, optional (default=None)
             If not None, giving the list of Embedding columns indices.
             Use only if X is not catboost.Pool.
+        pairs : list or numpy.ndarray or pandas.DataFrame, optional (default=None)
+            The pairs description in the form of a two-dimensional matrix of shape N by 2:
+            N is the number of pairs.
+            The first element of the pair is the zero-based index of the winner object from the input dataset for pairwise comparison.
+            The second element of the pair is the zero-based index of the loser object from the input dataset for pairwise comparison.
         sample_weight : list or numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
             Instance weights, 1 dimensional array like.
+        group_weight : list or numpy.ndarray (default=None)
+            The weights of all objects within the defined groups from the input data in the form of one-dimensional array-like data.
+            Used for calculating the final values of trees. By default, it is set to 1 for all objects in all groups.
+            Only a weight or group_weight parameter can be used at a time
+        subgroup_id : list or numpy.ndarray (default=None)
+            Subgroup identifiers for all input objects. Supported identifier types are:
+            int
+            string types (string or unicode for Python 2 and bytes or string for Python 3).
+        pairs_weight : list or numpy.ndarray (default=None)
+            The weight of each input pair of objects in the form of one-dimensional array-like pairs.
+            The number of given values must match the number of specified pairs.
+            This information is used for calculation and optimization of Pairwise metrics .
+            By default, it is set to 1 for all pairs.
         baseline : list or numpy.ndarray, optional (default=None)
             If not None, giving 2 dimensional array like data.
             Use only if X is not catboost.Pool.
@@ -5514,8 +5488,8 @@ class CatBoostRanker(CatBoost):
         if not isinstance(X, Pool) and group_id is None:
             group_id = np.zeros(X.shape[0], dtype=int)
 
-        self._fit(X, y, cat_features, text_features, embedding_features, None,
-                  sample_weight, group_id, None, None, None, baseline, use_best_model,
+        self._fit(X, y, cat_features, text_features, embedding_features, pairs,
+                  sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, use_best_model,
                   eval_set, verbose, logging_level, plot, column_description, verbose_eval, metric_period,
                   silent, early_stopping_rounds, save_snapshot, snapshot_file, snapshot_interval, init_model)
         return self
@@ -5593,9 +5567,9 @@ class CatBoostRanker(CatBoost):
             X = Pool(X, group_id=group_id)
         return self._staged_predict(X, 'RawFormulaVal', ntree_start, ntree_end, eval_period, thread_count, verbose, 'staged_predict')
 
-    def score(self, X, y=None, group_id=None, top=10):
+    def score(self, X, y=None, group_id=None, metric_type='Base', top=int(pow(2, 32) - 1), denominator_type='LogPosition'):
         """
-        Calculate NDCG@top. Be careful! If group_id is applicable, always pass the argument even if a pool X includes group_id
+        Calculate NDCG@top
         Parameters
         ----------
         X : catboost.Pool or list or numpy.ndarray or pandas.DataFrame or pandas.Series
@@ -5603,23 +5577,46 @@ class CatBoostRanker(CatBoost):
         y : list or numpy.ndarray
             True labels.
         group_id : list or numpy.ndarray
-            Ranking groups. If X is a Pool, group_id in X will be overwritten.
+            Ranking groups. If X is a Pool, group_id must be defined into X
+        metric_type : str
+            'Base' or 'Exp'
+        top : unsigned integer, up to uint_32 range
+            number of top-ranked objects to calculate NDCG
+        denominator_type : str
+            'LogPosition' or 'Position'
         Returns
         -------
         NDCG@top : float
                    higher is better
         """
 
-        group_id = group_id if group_id is not None else np.zeros(X.shape[0], dtype=int)
         if isinstance(X, Pool):
             if y is not None:
                 raise CatBoostError("Wrong initializing y: X is catboost.Pool object, y must be initialized inside catboost.Pool.")
             y = X.get_label()
-            if y is None:
-                raise CatBoostError("Label in X has not initialized.")
-            X.set_group_id(group_id)
+            if group_id is not None:
+                raise CatBoostError("Wrong initializing group_id: X is catboost.Pool object, group_id must be initialized inside catboost.Pool.")
+            group_id = X.get_group_id_hash()
+
+        if y is None:
+            raise CatBoostError("y must be initialized.")
+
         predictions = self.predict(X)
-        return self.NDCGScore.mean_ndcg(predictions, y, group_id, top)
+        return self._compute_mean_ndcg(predictions, y, group_id, metric_type, top, denominator_type)
+
+    def _compute_mean_ndcg(self, y_pred, y_true, group_id=None, metric_type='Base', top=int(pow(2, 32) - 1), denominator_type='LogPosition'):
+            y_pred = np.array(y_pred, dtype=np.float64)
+            y_true = np.array(y_true, dtype=np.float64)
+            group_id = np.array(group_id) if group_id is not None else np.zeros(len(y_pred), dtype=int)
+            queries = np.unique(group_id)
+
+            sum_ndcg = 0.0
+            for query in queries:
+                idxs = (group_id == query)
+                value = _ComputeNDCG(y_pred[idxs], y_true[idxs], metric_type, top, denominator_type)
+                sum_ndcg += value
+
+            return sum_ndcg / len(queries)
 
     def _check_is_ranking_loss(self, loss_function):
         is_ranking = self._is_groupwise_objective(loss_function) or self._is_pairwise_objective(loss_function)

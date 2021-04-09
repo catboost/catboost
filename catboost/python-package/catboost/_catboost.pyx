@@ -533,6 +533,19 @@ cdef extern from "util/system/atexit.h":
     cdef void ManualRunAtExitFinalizers()
 
 
+cdef extern from "catboost/libs/metrics/sample.h" namespace "NMetrics":
+    cdef cppclass TSample:
+        double Target
+        double Prediction
+        double Weight
+
+        @staticmethod
+        TVector[TSample] FromVectors(TConstArrayRef[double] targets, TConstArrayRef[double] predictions) except +ProcessException
+
+    cdef cppclass TBinClassSample:
+        pass
+
+
 cdef extern from "catboost/libs/metrics/metric_holder.h":
     cdef cppclass TMetricHolder:
         TVector[double] Stats
@@ -546,6 +559,15 @@ cdef extern from "catboost/libs/metrics/metric.h":
 
 cdef extern from "catboost/libs/metrics/metric.h":
     cdef bool_t IsMaxOptimal(const IMetric& metric) except +ProcessException
+
+
+cdef extern from "catboost/libs/metrics/dcg.h":
+    cdef double CalcNdcg(
+        TConstArrayRef[TSample] samples,
+        ENdcgMetricType type,
+        ui32 topSize,
+        ENdcgDenominatorType denominator
+    ) except +ProcessException
 
 
 cdef extern from "catboost/private/libs/algo/tree_print.h":
@@ -3952,6 +3974,16 @@ cdef class _PoolBase:
             return [weight for weight in non_trivial_data]
 
 
+    cpdef get_group_id_hash(self):
+        cdef TMaybeData[TConstArrayRef[TGroupId]] arr_group_ids = self.__pool.Get()[0].ObjectsData.Get()[0].GetGroupIds()
+        if arr_group_ids.Defined():
+            result_group_ids = []
+            for group_id in arr_group_ids.GetRef():
+                result_group_ids.append(group_id)
+            return result_group_ids
+        return np.zeros(self.num_row(), dtype=int)
+
+
     cpdef get_baseline(self):
         """
         Get baseline from Pool.
@@ -4943,36 +4975,18 @@ cdef class _MetadataHashProxy:
         return ((to_native_str(kv.first), to_native_str(kv.second)) for kv in self._catboost.__model.ModelInfo)
 
 
-cdef object _get_hash_group_id(_PoolBase pool):
-    cdef TMaybeData[TConstArrayRef[TGroupId]] arr_group_ids = pool.__pool.Get()[0].ObjectsData.Get()[0].GetGroupIds()
-    if arr_group_ids.Defined():
-        result_group_ids = []
-        for group_id in arr_group_ids.GetRef():
-            result_group_ids.append(group_id)
-
-        return result_group_ids
-
-    return None
-
-
 cdef TCustomTrainTestSubsets _make_train_test_subsets(_PoolBase pool, folds) except *:
-    num_data = pool.num_row()
-
     if not hasattr(folds, '__iter__') and not hasattr(folds, 'split'):
         raise AttributeError("folds should be a generator or iterator of (train_idx, test_idx) tuples "
                              "or scikit-learn splitter object with split method")
 
-    group_info = _get_hash_group_id(pool)
-
+    flatted_group = pool.get_group_id_hash()
     if hasattr(folds, 'split'):
-        if group_info is not None:
-            flatted_group = group_info
-        else:
-            flatted_group = np.zeros(num_data, dtype=int)
-        folds = folds.split(X=np.zeros(num_data), y=pool.get_label(), groups=flatted_group)
+        folds = folds.split(X=np.zeros(pool.num_row()), y=pool.get_label(), groups=flatted_group)
 
     cdef TVector[TVector[ui32]] custom_train_subsets
     cdef TVector[TVector[ui32]] custom_test_subsets
+    group_info = flatted_group if len(np.unique(flatted_group)) > 1 else None
 
     if group_info is None:
         for train_test in folds:
@@ -5645,6 +5659,59 @@ cpdef _get_onnx_model(model, export_parameters):
     cdef const char* result_ptr = result.c_str()
     cdef size_t result_len = result.size()
     return bytes(result_ptr[:result_len])
+
+
+def _check_np_array(array, shape_len, dtype=np.float32, array_name=''):
+    if not (
+        array is not None and
+        isinstance(array, np.ndarray) and
+        len(array.shape) == shape_len and
+        len(array) and
+        array[0].dtype == dtype and
+        array[0].flags.c_contiguous
+    ):
+        raise CatBoostError("{} array should be a non-empty {} array with .flags.c_contiguous=True" \
+                            "and len({}.shape)={}".format(array_name, dtype, array_name, shape_len))
+
+
+cpdef double _ComputeNDCG(
+    np.ndarray[double, ndim=1] predictions,
+    np.ndarray[double, ndim=1] targets,
+    str metric_type='Base',
+    ui32 top=int(pow(2, 32) - 1),
+    str denominator_type='LogPosition'
+):
+    _check_np_array(targets, 1, np.float64, 'targets')
+    _check_np_array(predictions, 1, np.float64, 'predictions')
+    assert len(targets) == len(predictions)
+
+    cdef ENdcgMetricType metric_enum;
+    if metric_type == 'Base':
+        metric_enum = ENdcgMetricType_Base
+    elif metric_type == 'Exp':
+        metric_enum = ENdcgMetricType_Exp
+    else:
+        raise CatBoostError("metric_type can be 'Base' or 'Exp'")
+
+    if top < 0 or top > int(pow(2, 32) - 1):
+        raise CatBoostError("top should be in the range 0 .. 2^32-1")
+
+    cdef ENdcgDenominatorType denominator_enum;
+    if denominator_type == 'LogPosition':
+        denominator_enum = ENdcgDenominatorType_LogPosition
+    elif denominator_type == 'Position':
+        denominator_enum = ENdcgDenominatorType_Position
+    else:
+        raise CatBoostError("denominator_enum can be 'LogPosition' or 'Position'")
+
+    cdef size_t length = len(targets)
+    cdef TVector[TSample] samples = TSample.FromVectors(
+        TConstArrayRef[double](<double*>&targets[0], length),
+        TConstArrayRef[double](<double*>&predictions[0], length)
+    )
+    cdef TConstArrayRef[TSample] samples_ref = TConstArrayRef[TSample](samples)
+    return CalcNdcg(samples_ref, metric_enum, top, denominator_enum)
+
 
 include "_monoforest.pxi"
 include "_text_processing.pxi"
