@@ -1,4 +1,4 @@
-from catboost import CatBoostRanker, Pool
+from catboost import CatBoost, Pool
 from collections import Counter
 from utils import mean_ndcg
 import lightgbm as lgb
@@ -35,7 +35,39 @@ class Data:
             self.train_pool = lgb.Dataset(self.X_train, self.y_train, group=group_train)
 
 
-class XGBoostRanker:
+class Ranker:
+    def eval_ndcg(self, data, eval_period=10):
+        staged_predictions = self.staged_predict(data, eval_period)
+
+        eval_log = []
+        for y_pred in staged_predictions:
+            value = mean_ndcg(y_pred, data.y_test, data.queries_test)
+            eval_log.append(value)
+
+        return eval_log
+
+    def fit(self, train):
+        raise Exception('call of interface function')
+
+    def staged_predict(self, data, eval_period):
+        raise Exception('call of interface function')
+
+
+class CatBoostRanker(Ranker):
+    def __init__(self, params):
+        self.params = params
+        if params['loss_function'] == 'PairLogitPairwise' and params['max_depth'] >= 8:
+            raise Exception('max_depth for pair-logit-pairwise should be < 8')
+        self.model = CatBoost(params)
+
+    def fit(self, data):
+        self.model.fit(X=data.train_pool)
+
+    def staged_predict(self, data, eval_period):
+        return list(self.model.staged_predict(data.test_pool, eval_period=eval_period))
+
+
+class XGBoostRanker(Ranker):
     def __init__(self, params):
         self.params = params
 
@@ -58,7 +90,7 @@ class XGBoostRanker:
         return staged_predictions
 
 
-class LightGBMRanker:
+class LightGBMRanker(Ranker):
     def __init__(self, params):
         self.params = params
 
