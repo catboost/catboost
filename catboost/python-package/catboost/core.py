@@ -16,7 +16,6 @@ import ctypes
 import platform
 import tempfile
 import shutil
-from functools import cmp_to_key
 from enum import Enum
 from operator import itemgetter
 
