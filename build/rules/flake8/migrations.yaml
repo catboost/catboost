@@ -952,8 +952,6 @@ migrations:
     - sandbox/projects/statinfra
     - sandbox/projects/statinfra/statinfra_task
     - sandbox/projects/statinfra/statinfra_task_beta
-    - sandbox/projects/tank/build
-    - sandbox/projects/tank/build/CheckFreshTag
     - sandbox/projects/tests
     - sandbox/projects/turbo
     - sandbox/projects/turbo/CompareTurboResponses
@@ -1289,7 +1287,6 @@ migrations:
     - alice/uniproxy/library/unimemcached
     - alice/uniproxy/library/web_handlers
     - alice/uniproxy/tools/balancer_top
-    - alice/vins/core/vins_core/test
     - apphost/conf/tests/blackbox
     - april/badb
     - april/badb/badb/db/mysql
@@ -1319,8 +1316,6 @@ migrations:
     - datacloud/log_reader/lib
     - devtools/contrib/statistics/auto_import
     - devtools/local_cache/ac/tests/perfac
-    - devtools/ya/core/imprint
-    - devtools/ya/yalibrary/resource_autoupdater
     - dict/bert/make/lib
     - dict/bert/make/lib/models
     - dict/bert/make/lib/tasks
@@ -1824,7 +1819,6 @@ migrations:
     - extsearch/ymusic/tools/crawl_test_data
     - extsearch/ymusic/tools/generate_test_data
     - infra/kernel/test/recipe/cgleak_check/example
-    - infra/portoshell/tests
     - infra/yasm/zoom/python/tests
     - infra/yp_quota_distributor/lib
     - intranet/pypi/src
