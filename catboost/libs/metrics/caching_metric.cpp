@@ -893,7 +893,7 @@ void TTotalF1CachingMetric::GetBestValue(EMetricBestValue* valueType, float*) co
 
 TVector<TParamInfo> TTotalF1CachingMetric::ValidParams() {
     return {TParamInfo{"use_weights", false, true},
-            TParamInfo{"average", false, "Weighted"}};
+            TParamInfo{"average", false, ToString(EF1AverageType::Weighted)}};
 };
 
 /* Kappa */

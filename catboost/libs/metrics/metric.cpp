@@ -2940,14 +2940,6 @@ namespace {
     };
 }
 
-TVector<TParamInfo> TAUCMetric::ValidParams() {
-    NJson::TJsonValue typeValue;
-    typeValue.InsertValue("Dimension==1", "Classic");
-    typeValue.InsertValue("Dimension>1", "Mu");
-    return {TParamInfo{"use_weights", false, false},
-            TParamInfo{"type", false, typeValue}};
-};
-
 TVector<THolder<IMetric>> TAUCMetric::Create(const TMetricConfig& config) {
     config.ValidParams->insert("type");
     EAucType aucType = config.ApproxDimension == 1 ? EAucType::Classic : EAucType::Mu;
@@ -2999,6 +2991,15 @@ TVector<THolder<IMetric>> TAUCMetric::Create(const TMetricConfig& config) {
         }
     }
 }
+
+TVector<TParamInfo> TAUCMetric::ValidParams() {
+    NJson::TJsonValue typeValue;
+    typeValue.InsertValue("Dimension==1", ToString(EAucType::Classic));
+    typeValue.InsertValue("Dimension>1", ToString(EAucType::Mu));
+    return {TParamInfo{"use_weights", false, false},
+            TParamInfo{"type", false, typeValue}};
+};
+
 
 THolder<IMetric> MakeBinClassAucMetric(const TLossParams& params) {
     return MakeHolder<TAUCMetric>(params, NCatboostOptions::GetAucType(params.GetParamsMap()));
@@ -4188,8 +4189,8 @@ void TPRAUCMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
 
 TVector<TParamInfo> TPRAUCMetric::ValidParams() {
     NJson::TJsonValue typeValue;
-    typeValue.InsertValue("Dimension==1", "Classic");
-    typeValue.InsertValue("Dimension>1", "OneVsAll");
+    typeValue.InsertValue("Dimension==1", ToString(EAucType::Classic));
+    typeValue.InsertValue("Dimension>1", ToString(EAucType::OneVsAll));
     return {TParamInfo{"use_weights", false, false},
             TParamInfo{"type", false, typeValue}};
 };
@@ -4875,14 +4876,6 @@ namespace {
     };
 }
 
-TVector<TParamInfo> TQueryAUCMetric::ValidParams() {
-    NJson::TJsonValue typeValue;
-    typeValue.InsertValue("Dimension==1", "Classic");
-    typeValue.InsertValue("Dimension>1", "Mu");
-    return {TParamInfo{"use_weights", false, false},
-            TParamInfo{"type", false, typeValue}};
-};
-
 TVector<THolder<IMetric>> TQueryAUCMetric::Create(const TMetricConfig& config) {
     config.ValidParams->insert("type");
     EAucType aucType = config.ApproxDimension == 1 ? EAucType::Classic : EAucType::Mu;
@@ -4935,7 +4928,6 @@ TVector<THolder<IMetric>> TQueryAUCMetric::Create(const TMetricConfig& config) {
         }
     }
 }
-
 
 TMetricHolder TQueryAUCMetric::EvalSingleThread(
     const TConstArrayRef<TConstArrayRef<double>> approx,
@@ -5013,8 +5005,6 @@ TMetricHolder TQueryAUCMetric::EvalSingleThread(
             }
             error.Stats[0] += CalcBinClassAuc(&positiveSamples, &negativeSamples) * queryWeight;
         }
-
-
         error.Stats[1] += queryWeight;
     }
 
@@ -5028,6 +5018,14 @@ EErrorType TQueryAUCMetric::GetErrorType() const {
 void TQueryAUCMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
     *valueType = EMetricBestValue::Max;
 }
+
+TVector<TParamInfo> TQueryAUCMetric::ValidParams() {
+    NJson::TJsonValue typeValue;
+    typeValue.InsertValue("Dimension==1", ToString(EAucType::Classic));
+    typeValue.InsertValue("Dimension>1", ToString(EAucType::Mu));
+    return {TParamInfo{"use_weights", false, false},
+            TParamInfo{"type", false, typeValue}};
+};
 
 /* CombinationLoss */
 
