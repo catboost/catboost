@@ -2944,7 +2944,7 @@ TVector<TParamInfo> TAUCMetric::ValidParams() {
     NJson::TJsonValue typeValue;
     typeValue.InsertValue("Dimension==1", "Classic");
     typeValue.InsertValue("Dimension>1", "Mu");
-    return {TParamInfo{"use_weights", false, true},
+    return {TParamInfo{"use_weights", false, false},
             TParamInfo{"type", false, typeValue}};
 };
 
@@ -4187,7 +4187,11 @@ void TPRAUCMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
 }
 
 TVector<TParamInfo> TPRAUCMetric::ValidParams() {
-    return {TParamInfo{"use_weights", false, true}};
+    NJson::TJsonValue typeValue;
+    typeValue.InsertValue("Dimension==1", "Classic");
+    typeValue.InsertValue("Dimension>1", "OneVsAll");
+    return {TParamInfo{"use_weights", false, false},
+            TParamInfo{"type", false, typeValue}};
 };
 
 /* Custom */
@@ -4875,7 +4879,7 @@ TVector<TParamInfo> TQueryAUCMetric::ValidParams() {
     NJson::TJsonValue typeValue;
     typeValue.InsertValue("Dimension==1", "Classic");
     typeValue.InsertValue("Dimension>1", "Mu");
-    return {TParamInfo{"use_weights", false, true},
+    return {TParamInfo{"use_weights", false, false},
             TParamInfo{"type", false, typeValue}};
 };
 
