@@ -156,6 +156,9 @@ namespace {
             , PredictionBorder(predictionBorder)
         {
         }
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
         TMetricHolder Eval(
             const TConstArrayRef<TConstArrayRef<double>> approx,
             const TConstArrayRef<TConstArrayRef<double>> approxDelta,
@@ -273,7 +276,9 @@ namespace {
             return true;
         }
 
-        static TMap<TString, IMetric::TParamInfo> ValidParams();
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
 
     private:
         static constexpr double TargetBorder = GetDefaultTargetBorder();
@@ -354,7 +359,9 @@ namespace {
             return true;
         }
 
-        static TMap<TString, IMetric::TParamInfo> ValidParams();
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
 
     private:
         static constexpr double TargetBorder = GetDefaultTargetBorder();
@@ -438,7 +445,9 @@ namespace {
             return true;
         }
 
-        static TMap<TString, IMetric::TParamInfo> ValidParams();
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
 
     private:
         static constexpr double TargetBorder = GetDefaultTargetBorder();
@@ -545,7 +554,9 @@ namespace {
             return true;
         }
 
-        static TMap<TString, IMetric::TParamInfo> ValidParams();
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
 
     private:
         static constexpr double TargetBorder = GetDefaultTargetBorder();
@@ -654,7 +665,9 @@ namespace {
             return true;
         }
 
-        static TMap<TString, IMetric::TParamInfo> ValidParams();
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
 
     private:
         static constexpr double TargetBorder = GetDefaultTargetBorder();
@@ -769,7 +782,9 @@ namespace {
             return true;
         }
 
-        static TMap<TString, IMetric::TParamInfo> ValidParams();
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
 
     private:
         static constexpr double TargetBorder = GetDefaultTargetBorder();
@@ -880,7 +895,9 @@ namespace {
         }
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
-        static TMap<TString, IMetric::TParamInfo> ValidParams();
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
 
         TMetricHolder Eval(
                 const TConstArrayRef<TConstArrayRef<double>> approx,
@@ -964,7 +981,9 @@ namespace {
         }
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
-        static TMap<TString, IMetric::TParamInfo> ValidParams();
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
 
         TMetricHolder Eval(
                 const TConstArrayRef<TConstArrayRef<double>> approx,
@@ -1213,4 +1232,30 @@ TVector<THolder<IMetric>> CreateCachingMetrics(const TMetricConfig& config) {
     }
 
     return result;
+}
+
+TMap<TString, TParamInfo> CachingMetricValidParams(ELossFunction metric) {
+    switch (metric) {
+    case ELossFunction::F1:
+        return TF1CachingMetric::ValidParams();
+    case ELossFunction::TotalF1:
+        return TTotalF1CachingMetric::ValidParams();
+    case ELossFunction::MCC:
+        return TMCCCachingMetric::ValidParams();
+    case ELossFunction::ZeroOneLoss:
+        return TZeroOneLossCachingMetric::ValidParams();
+    case ELossFunction::Accuracy:
+        return TAccuracyCachingMetric::ValidParams();
+    case ELossFunction::Precision:
+        return TPrecisionCachingMetric::ValidParams();
+    case ELossFunction::Recall:
+        return TRecallCachingMetric::ValidParams();
+    case ELossFunction::Kappa:
+        return TKappaMetric::ValidParams();
+    case ELossFunction::WKappa:
+        return TWKappaMetric::ValidParams();
+    default:
+        CB_ENSURE(false, "Unsupported metric: " << metric);
+        return {};
+    }
 }

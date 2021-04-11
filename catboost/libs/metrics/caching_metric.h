@@ -13,8 +13,10 @@
 
 struct IMetric;
 struct TMetricConfig;
+struct TParamInfo;
 
 TVector<THolder<IMetric>> CreateCachingMetrics(const TMetricConfig& config);
+TMap<TString, TParamInfo> CachingMetricValidParams(ELossFunction metric);
 
 TVector<TMetricHolder> EvalErrorsWithCaching(
     const TVector<TVector<double>>& approx,

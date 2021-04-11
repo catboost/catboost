@@ -207,7 +207,9 @@ namespace {
         explicit TCrossEntropyMetric(ELossFunction lossFunction, const TLossParams& params);
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
-        static TMap<TString, IMetric::TParamInfo> ValidParams();
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
 
         TMetricHolder EvalSingleThread(
             const TConstArrayRef<TConstArrayRef<double>> approx,
@@ -348,7 +350,9 @@ namespace {
         explicit TCtrFactorMetric(const TLossParams& params)
             : TAdditiveMetric(ELossFunction::CtrFactor, params) {
         }
-        static TMap<TString, IMetric::TParamInfo> ValidParams();
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
         TMetricHolder EvalSingleThread(
             const TConstArrayRef<TConstArrayRef<double>> approx,
             const TConstArrayRef<TConstArrayRef<double>> approxDelta,
@@ -479,7 +483,9 @@ namespace {
         {}
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
-        static TMap<TString, IMetric::TParamInfo> ValidParams();
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
 
         TMetricHolder EvalSingleThread(
             TConstArrayRef<TVector<double>> approx,
@@ -543,7 +549,9 @@ namespace {
             const TLossParams& descriptionParams);
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
-        static TMap<TString, IMetric::TParamInfo> ValidParams();
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
 
         TMetricHolder EvalSingleThread(
             TConstArrayRef<TVector<double>> approx,
@@ -621,7 +629,9 @@ namespace {
         {}
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
-        static TMap<TString, IMetric::TParamInfo> ValidParams();
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
         TMetricHolder EvalSingleThread(
             const TConstArrayRef<TConstArrayRef<double>> approx,
             const TConstArrayRef<TConstArrayRef<double>> approxDelta,
@@ -806,7 +816,9 @@ namespace {
         }
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
-        static TMap<TString, IMetric::TParamInfo> ValidParams();
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
 
         TMetricHolder EvalSingleThread(
                 const TConstArrayRef<TConstArrayRef<double>> approx,
@@ -885,7 +897,9 @@ namespace {
                                  const TLossParams& params, double alpha, double delta);
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
-        static TMap<TString, IMetric::TParamInfo> ValidParams();
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
 
         TMetricHolder EvalSingleThread(
             const TConstArrayRef<TConstArrayRef<double>> approx,
@@ -1016,7 +1030,9 @@ namespace {
         explicit TExpectileMetric(const TLossParams& params, double alpha);
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
-        static TMap<TString, IMetric::TParamInfo> ValidParams();
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
 
         TMetricHolder EvalSingleThread(
             const TConstArrayRef<TConstArrayRef<double>> approx,
@@ -1104,7 +1120,9 @@ namespace {
         explicit TLogLinQuantileMetric(const TLossParams& params, double alpha);
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
-        static TMap<TString, IMetric::TParamInfo> ValidParams();
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
 
         TMetricHolder EvalSingleThread(
             const TConstArrayRef<TConstArrayRef<double>> approx,
@@ -1207,6 +1225,9 @@ namespace {
         {}
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
 
         TMetricHolder EvalSingleThread(
             const TConstArrayRef<TConstArrayRef<double>> approx,
@@ -1278,7 +1299,9 @@ namespace {
         }
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
-        static TMap<TString, IMetric::TParamInfo> ValidParams();
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
 
         TMetricHolder EvalSingleThread(
                 const TConstArrayRef<TConstArrayRef<double>> approx,
@@ -1344,7 +1367,9 @@ namespace {
         }
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
-        static TMap<TString, IMetric::TParamInfo> ValidParams();
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
         TMetricHolder EvalSingleThread(
             const TConstArrayRef<TConstArrayRef<double>> approx,
             const TConstArrayRef<TConstArrayRef<double>> approxDelta,
@@ -1438,7 +1463,9 @@ namespace {
         }
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
-        static TMap<TString, IMetric::TParamInfo> ValidParams();
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
 
         TMetricHolder EvalSingleThread(
                 const TConstArrayRef<TConstArrayRef<double>> approx,
@@ -1519,7 +1546,9 @@ namespace {
         {}
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
-        static TMap<TString, IMetric::TParamInfo> ValidParams();
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
 
         TMetricHolder EvalSingleThread(
                 const TConstArrayRef<TConstArrayRef<double>> approx,
@@ -1585,7 +1614,9 @@ namespace {
         }
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
-        static TMap<TString, IMetric::TParamInfo> ValidParams();
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
 
         TMetricHolder Eval(
                 const TVector<TVector<double>>& approx,
@@ -1670,7 +1701,9 @@ namespace {
         }
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
-        static TMap<TString, IMetric::TParamInfo> ValidParams();
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
 
         TMetricHolder EvalSingleThread(
                 const TConstArrayRef<TConstArrayRef<double>> approx,
@@ -1737,7 +1770,9 @@ namespace {
         }
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
-        static TMap<TString, IMetric::TParamInfo> ValidParams();
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
 
         TMetricHolder EvalSingleThread(
                 const TConstArrayRef<TConstArrayRef<double>> approx,
@@ -1797,7 +1832,9 @@ namespace {
         }
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
-        static TMap<TString, IMetric::TParamInfo> ValidParams();
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
 
         TMetricHolder EvalSingleThread(
             const TConstArrayRef<TConstArrayRef<double>> approx,
@@ -1889,7 +1926,9 @@ namespace {
         }
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
-        static TMap<TString, IMetric::TParamInfo> ValidParams();
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
 
         TMetricHolder EvalSingleThread(
             const TConstArrayRef<TConstArrayRef<double>> approx,
@@ -1958,7 +1997,9 @@ namespace {
         }
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
-        static TMap<TString, IMetric::TParamInfo> ValidParams();
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
 
         TMetricHolder EvalSingleThread(
             const TConstArrayRef<TConstArrayRef<double>> approx,
@@ -2071,7 +2112,9 @@ namespace {
         }
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
-        static TMap<TString, IMetric::TParamInfo> ValidParams();
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
 
         TMetricHolder EvalSingleThread(
             const TConstArrayRef<TConstArrayRef<double>> approx,
@@ -2190,7 +2233,9 @@ namespace {
                 int topSize, double decay);
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
-        static TMap<TString, IMetric::TParamInfo> ValidParams();
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
 
         TMetricHolder EvalSingleThread(
             const TConstArrayRef<TConstArrayRef<double>> approx,
@@ -2295,7 +2340,9 @@ namespace {
                             int topSize, ENdcgMetricType type, bool normalized, ENdcgDenominatorType denominator);
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
-        static TMap<TString, IMetric::TParamInfo> ValidParams();
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
 
         TMetricHolder EvalSingleThread(
                 const TConstArrayRef<TConstArrayRef<double>> approx,
@@ -2431,7 +2478,9 @@ namespace {
         }
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
-        static TMap<TString, IMetric::TParamInfo> ValidParams();
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
 
         TMetricHolder EvalSingleThread(
             const TConstArrayRef<TConstArrayRef<double>> approx,
@@ -2628,7 +2677,9 @@ namespace {
         {}
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
-        static TMap<TString, IMetric::TParamInfo> ValidParams();
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
 
         TMetricHolder Eval(
             const TVector<TVector<double>>& approx,
@@ -2788,7 +2839,9 @@ namespace {
         }
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
-        static TMap<TString, IMetric::TParamInfo> ValidParams();
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
 
         TMetricHolder Eval(
             const TVector<TVector<double>>& approx,
@@ -3019,7 +3072,9 @@ namespace {
             , IsMultiClass(true) {
         }
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
-        static TMap<TString, IMetric::TParamInfo> ValidParams();
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
         TMetricHolder Eval(
             const TVector<TVector<double>>& approx,
             TConstArrayRef<float> target,
@@ -3123,7 +3178,9 @@ namespace {
         }
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
-        static TMap<TString, IMetric::TParamInfo> ValidParams();
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
 
         TMetricHolder EvalSingleThread(
             const TConstArrayRef<TConstArrayRef<double>> approx,
@@ -3188,7 +3245,9 @@ namespace {
         }
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
-        static TMap<TString, IMetric::TParamInfo> ValidParams();
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
 
         TMetricHolder EvalSingleThread(
                 const TConstArrayRef<TConstArrayRef<double>> approx,
@@ -3253,7 +3312,9 @@ namespace {
         }
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
-        static TMap<TString, IMetric::TParamInfo> ValidParams();
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
 
         TMetricHolder EvalSingleThread(
                 const TConstArrayRef<TConstArrayRef<double>> approx,
@@ -3314,7 +3375,9 @@ namespace {
             : TAdditiveMetric(ELossFunction::BrierScore, params) {
             UseWeights.MakeIgnored();
         }
-        static TMap<TString, IMetric::TParamInfo> ValidParams();
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
         TMetricHolder EvalSingleThread(
                 const TConstArrayRef<TConstArrayRef<double>> approx,
                 const TConstArrayRef<TConstArrayRef<double>> approxDelta,
@@ -3366,7 +3429,9 @@ namespace {
             {}
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
-        static TMap<TString, IMetric::TParamInfo> ValidParams();
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
 
         TMetricHolder EvalSingleThread(
                 const TConstArrayRef<TConstArrayRef<double>> approx,
@@ -3422,7 +3487,9 @@ namespace {
                                     double predictionBorder);
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
-        static TMap<TString, IMetric::TParamInfo> ValidParams();
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
 
         TMetricHolder EvalSingleThread(
                 const TConstArrayRef<TConstArrayRef<double>> approx,
@@ -3505,7 +3572,9 @@ namespace {
         }
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
-        static TMap<TString, IMetric::TParamInfo> ValidParams();
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
 
         TMetricHolder EvalSingleThread(
             const TConstArrayRef<TConstArrayRef<double>> approx,
@@ -3573,7 +3642,9 @@ namespace {
                                      float targetBorder);
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
-        static TMap<TString, IMetric::TParamInfo> ValidParams();
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
 
         TMetricHolder EvalSingleThread(
                 const TConstArrayRef<TConstArrayRef<double>> approx,
@@ -3654,7 +3725,9 @@ namespace {
     struct TRecallAtKMetric final: public TAdditiveMetric {
         explicit TRecallAtKMetric(const TLossParams& params, int topSize, float targetBorder);
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
-        static TMap<TString, IMetric::TParamInfo> ValidParams();
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
         TMetricHolder EvalSingleThread(
                 const TConstArrayRef<TConstArrayRef<double>> approx,
                 const TConstArrayRef<TConstArrayRef<double>> approxDelta,
@@ -3734,7 +3807,9 @@ namespace {
     struct TMAPKMetric final: public TAdditiveMetric {
         explicit TMAPKMetric(const TLossParams& params, int topSize, float targetBorder);
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
-        static TMap<TString, IMetric::TParamInfo> ValidParams();
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
         TMetricHolder EvalSingleThread(
                 const TConstArrayRef<TConstArrayRef<double>> approx,
                 const TConstArrayRef<TConstArrayRef<double>> approxDelta,
@@ -3827,6 +3902,9 @@ namespace {
         }
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
 
         TMetricHolder Eval(
                 const TVector<TVector<double>>& approx,
@@ -4284,7 +4362,9 @@ namespace {
     public:
         explicit TUserDefinedQuerywiseMetric(const TLossParams& params);
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
-        static TMap<TString, IMetric::TParamInfo> ValidParams();
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
         TMetricHolder EvalSingleThread(
             const TConstArrayRef<TConstArrayRef<double>> approx,
             const TConstArrayRef<TConstArrayRef<double>> approxDelta,
@@ -4353,7 +4433,9 @@ namespace {
         }
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
-        static TMap<TString, IMetric::TParamInfo> ValidParams();
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
 
         TMetricHolder EvalSingleThread(
                 const TConstArrayRef<TConstArrayRef<double>> approx,
@@ -4426,7 +4508,9 @@ namespace {
                                     ENdcgMetricType metricType, ENdcgDenominatorType denominatorType);
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
-        static TMap<TString, IMetric::TParamInfo> ValidParams();
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
 
         TMetricHolder EvalSingleThread(
                 const TConstArrayRef<TConstArrayRef<double>> approx,
@@ -4522,7 +4606,9 @@ namespace {
         }
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
-        static TMap<TString, IMetric::TParamInfo> ValidParams();
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
 
         TMetricHolder EvalSingleThread(
             const TConstArrayRef<TConstArrayRef<double>> approx,
@@ -4632,7 +4718,9 @@ namespace {
         }
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
-        static TMap<String, IMetric::TParamInfo> ValidParams();
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
 
         TMetricHolder EvalSingleThread(
             const TConstArrayRef<TConstArrayRef<double>> approx,
@@ -4811,7 +4899,9 @@ namespace {
         }
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
-        static TMap<String, IMetric::TParamInfo> ValidParams();
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
 
         TMetricHolder EvalSingleThread(
             const TConstArrayRef<TConstArrayRef<double>> approx,
@@ -4929,7 +5019,9 @@ namespace {
         explicit TQueryCrossEntropyMetric(const TLossParams& params,
                                           double alpha);
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
-        static TMap<TString, IMetric::TParamInfo> ValidParams();
+        static TMap<TString, TParamInfo> ValidParams() {
+            return {};
+        }
         TMetricHolder EvalSingleThread(
                 const TConstArrayRef<TConstArrayRef<double>> approx,
                 const TConstArrayRef<TConstArrayRef<double>> approxDelta,
@@ -5515,6 +5607,109 @@ TVector<THolder<IMetric>> CreateMetrics(
         }
     }
     return metrics;
+}
+
+TMap<TString, TParamInfo> ValidParams(ELossFunction metric) {
+    switch (metric) {
+        case ELossFunction::MultiRMSE:
+            return TMultiRMSEMetric::ValidParams();
+        case ELossFunction::RMSEWithUncertainty:
+            return TRMSEWithUncertaintyMetric::ValidParams();
+        case ELossFunction::Logloss:
+            return TCrossEntropyMetric::ValidParams();
+        case ELossFunction::CrossEntropy:
+            return TCrossEntropyMetric::ValidParams();
+        case ELossFunction::RMSE:
+            return TRMSEMetric::ValidParams();
+        case ELossFunction::Lq:
+            return TLqMetric::ValidParams();
+        case ELossFunction::MAE:
+        case ELossFunction::Quantile:
+            return TQuantileMetric::ValidParams();
+        case ELossFunction::Expectile:
+            return TExpectileMetric::ValidParams();
+        case ELossFunction::LogLinQuantile:
+            return TLogLinQuantileMetric::ValidParams();
+        case ELossFunction::AverageGain:
+        case ELossFunction::QueryAverage:
+            return TAverageGain::ValidParams();
+        case ELossFunction::MAPE:
+            return TMAPEMetric::ValidParams();
+        case ELossFunction::Poisson:
+            return TPoissonMetric::ValidParams();
+        case ELossFunction::Tweedie:
+            return TTweedieMetric::ValidParams();
+        case ELossFunction::MedianAbsoluteError:
+            return TMedianAbsoluteErrorMetric::ValidParams();
+        case ELossFunction::SMAPE:
+            return TSMAPEMetric::ValidParams();
+        case ELossFunction::MSLE:
+            return TMSLEMetric::ValidParams();
+        case ELossFunction::PRAUC:
+            return TPRAUCMetric::ValidParams();
+        case ELossFunction::MultiClass:
+            return TMultiClassMetric::ValidParams();
+        case ELossFunction::MultiClassOneVsAll:
+            return TMultiClassOneVsAllMetric::ValidParams();
+        case ELossFunction::PairLogit:
+            return TPairLogitMetric::ValidParams();
+        case ELossFunction::QueryRMSE:
+            return TQueryRMSEMetric::ValidParams();
+        case ELossFunction::QueryAUC:
+            return TQueryAUCMetric::ValidParams();
+        case ELossFunction::QuerySoftMax:
+            return TQuerySoftMaxMetric::ValidParams();
+        case ELossFunction::PFound:
+            return TPFoundMetric::ValidParams();
+        case ELossFunction::LogLikelihoodOfPrediction:
+            return TLLPMetric::ValidParams();
+        case ELossFunction::DCG:
+        case ELossFunction::NDCG:
+            return TDcgMetric::ValidParams();
+        case ELossFunction::R2:
+            return TR2Metric::ValidParams();
+        case ELossFunction::NumErrors:
+            return TNumErrorsMetric::ValidParams();
+        case ELossFunction::AUC:
+            return TAUCMetric::ValidParams();
+        case ELossFunction::BalancedAccuracy:
+            return TBalancedAccuracyMetric::ValidParams();
+        case ELossFunction::BalancedErrorRate:
+            return TBalancedErrorRate::ValidParams();
+        case ELossFunction::HammingLoss:
+            return THammingLossMetric::ValidParams();
+        case ELossFunction::HingeLoss:
+            return THingeLossMetric::ValidParams();
+        case ELossFunction::PairAccuracy:
+            return TPairAccuracyMetric::ValidParams();
+        case ELossFunction::PrecisionAt:
+            return TPrecisionAtKMetric::ValidParams();
+        case ELossFunction::RecallAt:
+            return TRecallAtKMetric::ValidParams();
+        case ELossFunction::MAP:
+            return TMAPKMetric::ValidParams();
+        case ELossFunction::UserQuerywiseMetric:
+            return TUserDefinedQuerywiseMetric::ValidParams();
+        case ELossFunction::QueryCrossEntropy:
+            return TQueryCrossEntropyMetric::ValidParams();
+        case ELossFunction::Huber:
+            return THuberLossMetric::ValidParams();
+        case ELossFunction::FilteredDCG:
+            return TFilteredDcgMetric::ValidParams();
+        case ELossFunction::FairLoss:
+            return TFairLossMetric::ValidParams();
+        case ELossFunction::NormalizedGini:
+            return TNormalizedGini::ValidParams();
+        case ELossFunction::Combination:
+            return TCombinationLoss::ValidParams();
+        case ELossFunction::BrierScore:
+            return TBrierScoreMetric::ValidParams();
+        case ELossFunction::CtrFactor:
+            return TCtrFactorMetric::ValidParams();
+        default:
+            return CachingMetricValidParams(metric);
+            // includes ELossFunction::UserPerObjMetric
+    }
 }
 
 static inline bool ShouldConsiderWeightsByDefault(const THolder<IMetric>& metric) {

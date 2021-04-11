@@ -169,14 +169,14 @@ struct IMetric {
     virtual void AddHint(const TString& key, const TString& value) = 0;
     virtual bool NeedTarget() const = 0;
     virtual ~IMetric() = default;
-    struct TParamInfo {
-        TString Name;
-        bool IsMandatory;
-        TMaybe<NJson::TJsonValue> DefaultValue;
-    };
-
 public:
     TMetricParam<bool> UseWeights{"use_weights", true};
+};
+
+struct TParamInfo {
+    TString Name;
+    bool IsMandatory;
+    TMaybe<NJson::TJsonValue> DefaultValue;
 };
 
 struct TMetric: public IMetric {
