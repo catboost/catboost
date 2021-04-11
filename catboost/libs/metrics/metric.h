@@ -176,7 +176,7 @@ public:
 struct TParamInfo {
     TString Name;
     bool IsMandatory;
-    TMaybe<NJson::TJsonValue> DefaultValue;
+    NJson::TJsonValue DefaultValue;
 };
 
 struct TMetric: public IMetric {
