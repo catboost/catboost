@@ -157,7 +157,9 @@ namespace {
         {
         }
         static TMap<TString, TParamInfo> ValidParams() {
-            return {};
+            TMap<TString, TParamInfo> m;
+            m.emplace("use_weights", TParamInfo{"use_weights", false, true});
+            return m;
         }
         TMetricHolder Eval(
             const TConstArrayRef<TConstArrayRef<double>> approx,
@@ -277,7 +279,9 @@ namespace {
         }
 
         static TMap<TString, TParamInfo> ValidParams() {
-            return {};
+            TMap<TString, TParamInfo> m;
+            m.emplace("use_weights", TParamInfo{"use_weights", false, true});
+            return m;
         }
 
     private:
@@ -360,7 +364,9 @@ namespace {
         }
 
         static TMap<TString, TParamInfo> ValidParams() {
-            return {};
+            TMap<TString, TParamInfo> m;
+            m.emplace("use_weights", TParamInfo{"use_weights", false, true});
+            return m;
         }
 
     private:
@@ -446,7 +452,9 @@ namespace {
         }
 
         static TMap<TString, TParamInfo> ValidParams() {
-            return {};
+            TMap<TString, TParamInfo> m;
+            m.emplace("use_weights", TParamInfo{"use_weights", false, true});
+            return m;
         }
 
     private:
@@ -555,7 +563,9 @@ namespace {
         }
 
         static TMap<TString, TParamInfo> ValidParams() {
-            return {};
+            TMap<TString, TParamInfo> m;
+            m.emplace("use_weights", TParamInfo{"use_weights", false, true});
+            return m;
         }
 
     private:
@@ -666,7 +676,9 @@ namespace {
         }
 
         static TMap<TString, TParamInfo> ValidParams() {
-            return {};
+            TMap<TString, TParamInfo> m;
+            m.emplace("use_weights", TParamInfo{"use_weights", false, true});
+            return m;
         }
 
     private:
@@ -783,7 +795,9 @@ namespace {
         }
 
         static TMap<TString, TParamInfo> ValidParams() {
-            return {};
+            TMap<TString, TParamInfo> m;
+            m.emplace("use_weights", TParamInfo{"use_weights", false, true});
+            return m;
         }
 
     private:
@@ -896,7 +910,9 @@ namespace {
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
         static TMap<TString, TParamInfo> ValidParams() {
-            return {};
+            TMap<TString, TParamInfo> m;
+            m.emplace("use_weights", TParamInfo{"use_weights", false, true});
+            return m;
         }
 
         TMetricHolder Eval(
@@ -982,7 +998,9 @@ namespace {
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
         static TMap<TString, TParamInfo> ValidParams() {
-            return {};
+            TMap<TString, TParamInfo> m;
+            m.emplace("use_weights", TParamInfo{"use_weights", false, true});
+            return m;
         }
 
         TMetricHolder Eval(

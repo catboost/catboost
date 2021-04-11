@@ -5712,6 +5712,34 @@ TMap<TString, TParamInfo> ValidParams(ELossFunction metric) {
     }
 }
 
+TMap<ELossFunction, TMap<TString, TParamInfo>> GetAllMetricsValidParams() {
+	TMap<ELossFunction, TMap<TString, TParamInfo>> allMetricParams;
+	for (const ELossFunction& loss : GetEnumAllValues<ELossFunction>()) {
+        try {
+            allMetricParams.emplace(loss, ValidParams(loss));
+        } catch (...) {
+            continue;
+        }
+    }
+    return allMetricParams;
+}
+
+NJson::TJsonValue ExportAllMetricsParamsToJson() {
+    NJson::TJsonValue exportJsonParams;
+    for (const auto& [loss, params] : GetAllMetricsValidParams()) {
+        NJson::TJsonValue metricJsonParams;
+        for (const auto& [parameter, value] : params) {
+            if (!value.IsMandatory) {
+                metricJsonParams.InsertValue(parameter, *value.DefaultValue);
+            } else {
+                metricJsonParams.InsertValue(parameter, NJson::TJsonValue());
+            }
+        }
+        exportJsonParams.InsertValue(ToString(loss), metricJsonParams);
+    }
+    return exportJsonParams;
+}
+
 static inline bool ShouldConsiderWeightsByDefault(const THolder<IMetric>& metric) {
     return ParseLossType(metric->GetDescription()) != ELossFunction::AUC && !metric->UseWeights.IsUserDefined() && !metric->UseWeights.IsIgnored();
 }

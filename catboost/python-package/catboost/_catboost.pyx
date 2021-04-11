@@ -548,7 +548,10 @@ cdef extern from "catboost/libs/metrics/metric.h":
 
 cdef extern from "catboost/libs/metrics/metric.h":
     cdef bool_t IsMaxOptimal(const IMetric& metric) except +ProcessException
+    cdef TJsonValue ExportAllMetricsParamsToJson() except +ProcessException
 
+def AllMetricsParams():
+    return loads(to_native_str(WriteTJsonValue(ExportAllMetricsParamsToJson())))
 
 cdef extern from "catboost/private/libs/algo/tree_print.h":
     TVector[TString] GetTreeSplitsDescriptions(

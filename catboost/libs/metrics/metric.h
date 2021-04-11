@@ -328,6 +328,8 @@ void InitializeEvalMetricIfNotSet(
 TVector<TString> GetMetricsDescription(const TVector<const IMetric*>& metrics);
 TVector<TString> GetMetricsDescription(const TVector<THolder<IMetric>>& metrics);
 
+NJson::TJsonValue ExportAllMetricsParamsToJson();
+
 TVector<bool> GetSkipMetricOnTrain(const TVector<const IMetric*>& metrics);
 TVector<bool> GetSkipMetricOnTrain(const TVector<THolder<IMetric>>& metrics);
 
