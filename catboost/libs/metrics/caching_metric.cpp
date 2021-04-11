@@ -273,6 +273,8 @@ namespace {
             return true;
         }
 
+        static TMap<TString, IMetric::TParamInfo> ValidParams();
+
     private:
         static constexpr double TargetBorder = GetDefaultTargetBorder();
         const int ClassesCount = BinaryClassesCount;
@@ -351,6 +353,8 @@ namespace {
         bool IsAdditiveMetric() const override {
             return true;
         }
+
+        static TMap<TString, IMetric::TParamInfo> ValidParams();
 
     private:
         static constexpr double TargetBorder = GetDefaultTargetBorder();
@@ -433,6 +437,8 @@ namespace {
         bool IsAdditiveMetric() const override {
             return true;
         }
+
+        static TMap<TString, IMetric::TParamInfo> ValidParams();
 
     private:
         static constexpr double TargetBorder = GetDefaultTargetBorder();
@@ -538,6 +544,8 @@ namespace {
         bool IsAdditiveMetric() const override {
             return true;
         }
+
+        static TMap<TString, IMetric::TParamInfo> ValidParams();
 
     private:
         static constexpr double TargetBorder = GetDefaultTargetBorder();
@@ -645,6 +653,8 @@ namespace {
         bool IsAdditiveMetric() const override {
             return true;
         }
+
+        static TMap<TString, IMetric::TParamInfo> ValidParams();
 
     private:
         static constexpr double TargetBorder = GetDefaultTargetBorder();
@@ -759,6 +769,8 @@ namespace {
             return true;
         }
 
+        static TMap<TString, IMetric::TParamInfo> ValidParams();
+
     private:
         static constexpr double TargetBorder = GetDefaultTargetBorder();
         const int ClassesCount = BinaryClassesCount;
@@ -868,6 +880,7 @@ namespace {
         }
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
+        static TMap<TString, IMetric::TParamInfo> ValidParams();
 
         TMetricHolder Eval(
                 const TConstArrayRef<TConstArrayRef<double>> approx,
@@ -951,6 +964,7 @@ namespace {
         }
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
+        static TMap<TString, IMetric::TParamInfo> ValidParams();
 
         TMetricHolder Eval(
                 const TConstArrayRef<TConstArrayRef<double>> approx,
