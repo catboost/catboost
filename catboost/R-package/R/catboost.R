@@ -2176,3 +2176,61 @@ is.null.handle <- function(handle) {
   stopifnot(typeof(handle) == "externalptr")
   .Call("CatBoostIsNullHandle_R", handle)
 }
+
+
+#' @name catboost.eval_metrics
+#' @title Calculate metrics.
+#'
+#' @description Calculate the specified metrics for the specified dataset.
+#'
+#' @param model The model obtained as the result of training.
+#'
+#' Default value: Required argument
+#' @param pool The pool for which you want to evaluate the metrics.
+#'
+#' Default value: Required argument
+#' @param metrics The list of metrics to be calculated.
+#' (Supported metrics https://catboost.ai/docs/references/custom-metric__supported-metrics.html)
+#'
+#' Default value: Required argument
+#' @param ntree_start Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+#'
+#' Default value: 0
+#' @param ntree_end Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+#'
+#' Default value: 0 (if value equals to 0 this parameter is ignored and ntree_end equal to tree_count)
+#' @param eval_period Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+#'
+#' Default value: 1
+#' @param thread_count The number of threads to use when applying the model.
+#' If -1, then the number of threads is set to the number of CPU cores.
+#'
+#' Allows you to optimize the speed of execution. This parameter doesn't affect results.
+#'
+#' Default value: -1
+#' @return dict: metric -> array of shape [(ntree_end - ntree_start) / eval_period].
+#' @export
+#' @seealso \url{https://catboost.ai/docs/concepts/python-reference_catboost_eval-metrics.html}
+catboost.eval_metrics <- function(model, pool, metrics, ntree_start = 0L,
+                                  ntree_end = 0L, eval_period = 1, thread_count = -1) {
+  if (!inherits(model, "catboost.Model"))
+    stop("Expected catboost.Model, got: ", class(model))
+  if (!inherits(pool, "catboost.Pool"))
+    stop("Expected catboost.Pool, got: ", class(pool))
+  if (is.null.handle(pool))
+    stop("Pool object is invalid.")
+  if (ntree_end == 0L)
+    ntree_end <- model$tree_count
+  if (ntree_start > ntree_end)
+    stop("ntree_start should be less than ntree_end.")
+  if (!is.list(metrics) || !(is.character(metrics) && length(metrics) == 1))
+    stop("Unsupported metrics type, expecting list or string, got: ", typeof(metrics))
+
+  if (is.null.handle(model$handle))
+    model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
+
+  result <- .Call("CatBoostEvalMetrics_R", model$handle, pool, metrics,
+               ntree_start, ntree_end, eval_period, thread_count)
+
+  return(result)
+}

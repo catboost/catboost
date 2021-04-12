@@ -957,4 +957,43 @@ EXPORT_FUNCTION CatBoostEvaluateObjectImportances_R(
 EXPORT_FUNCTION CatBoostIsNullHandle_R(SEXP handleParam) {
     return ScalarLogical(!R_ExternalPtrAddr(handleParam));
 }
+
+EXPORT_FUNCTION CatBoostEvalMetrics_R(
+        SEXP modelParam,
+        SEXP poolParam,
+        SEXP metricsParam,
+        SEXP treeCountStartParam,
+        SEXP treeCountEndParam,
+        SEXP evalPeriodParam,
+        SEXP threadCountParam) {
+    SEXP result = NULL;
+    R_API_BEGIN()
+    cdef TVector[TString] metricNames
+    for (size_t i = 0; i < metricsParam.size(); ++i) {
+        metricNames.push_back(metricsParam[i])
+    }
+    //tmpDir = ???
+    //resultDir = ???
+
+    cdef TVector[TVector[double]] metrics
+    metrics = EvalMetrics(
+        modelParam),
+        poolParam,
+        metricsNames,
+        treeCountStartParam,
+        treeCountEndParam,
+        evalPeriodParam,
+        UpdateThreadCount(asInteger(threadCountParam)),
+        resultDir,
+        tmpDir
+    )
+    cdef TVector[TString] metricNamesRes = GetMetricNames(modelParam, metricNames)
+    result = PROTECT(allocVector(REALSXP, metricNamesRes.size()));
+    for (size_t i = 0; i < metricNamesRes.size(); ++i) {
+        result.push_back(metrics[i])
+    }
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
 }
