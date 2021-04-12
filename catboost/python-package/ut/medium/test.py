@@ -2930,51 +2930,52 @@ def test_cv_with_save_snapshot(task_type):
         )
 
 
-def test_cv_return_models(task_type):
-    model_params = {
-        "iterations": 20,
-        "learning_rate": 0.03,
-        "loss_function": "Logloss",
-        "eval_metric": "AUC",
-        "task_type": task_type
-    }
+@pytest.mark.parametrize("params", [
+    {"loss_function": "Logloss", "eval_metric": "AUC"},
+    {"loss_function": "RMSE", "eval_metric": "R2"},
+])
+def test_cv_return_models(params):
+    params.update({"iterations": 20, "learning_rate": 0.03})
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
-    fold_count = 3
+    fold_count = 5
     results, cv_models = cv(
         train_pool,
-        model_params,
+        params,
         fold_count=fold_count,
         return_models=True,
     )
 
     assert len(cv_models) == fold_count
 
-    single_model = CatBoost(model_params).fit(train_pool)
-    single_model_prediction = single_model.predict(test_pool)
-    single_model_roc_auc = eval_metric(test_pool.get_label(), single_model_prediction, 'AUC')[0]
+    single_model = CatBoost(params).fit(train_pool)
+    single_model_prediction = single_model.predict(test_pool, prediction_type="RawFormulaVal")
+    single_model_metric = eval_metric(test_pool.get_label(), single_model_prediction, params["eval_metric"])
 
     for model in cv_models:
         assert isinstance(model, CatBoost)
         assert model.random_seed_ == single_model.random_seed_
-        assert model.tree_count_ == model_params["iterations"]
+        assert model.tree_count_ == params["iterations"]
 
-        model_prediction = model.predict(test_pool)
-
-        cv_model_roc_auc = eval_metric(test_pool.get_label(), model_prediction, 'AUC')[0]
-        assert np.allclose(cv_model_roc_auc, single_model_roc_auc, atol=results["test-AUC-std"][0])
+        model_prediction = model.predict(test_pool, prediction_type="RawFormulaVal")
+        cv_model_metric = eval_metric(test_pool.get_label(), model_prediction, params["eval_metric"])
+        assert np.allclose(
+            cv_model_metric,
+            single_model_metric,
+            atol=results["test-{}-std".format(params["eval_metric"])][0]
+        )
 
         # Other methods
         model.calc_leaf_indexes(test_pool)
+        assert model.get_all_params().keys() == single_model.get_all_params().keys()
+        assert not np.isnan(model.get_feature_importance(test_pool)).any()
+        assert not np.isnan(model.get_scale_and_bias()).any()
+        model = model.copy()
         try:
-            model.compare(single_model, test_pool, ["AUC"])
+            model.compare(single_model, test_pool, [params["eval_metric"]])
         except ImportError as ie:
             pytest.xfail(str(ie)) if str(ie) == "No module named widget" \
                 else pytest.fail(str(ie))
-        assert model.get_all_params().keys() == single_model.get_all_params().keys()
-        assert not np.isna(model.get_feature_importance(test_pool)).any()
-        assert not np.isna(model.get_scale_and_bias()).any()
-        model.copy()
         del model
 
 
