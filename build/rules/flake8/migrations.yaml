@@ -2105,7 +2105,6 @@ migrations:
     - yabs/qa/oneshots/liapustin/BSSERVER-14049
     - yabs/qa/oneshots/sergtaim/BSSERVER-14259/AddKeywordToYT-Via-Simple-IudYtOneshot
     - yabs/qa/oneshots/serval/BSSERVER-14292/first_json_option_new
-    - yabs/sb-bins/mobile_app_data_updater
     - yabs/sbyt/ytstatcollector/advmachine/tests
     - yabs/sbyt/ytstatcollector/direct_feed/tests/banners_log_splitter
     - yabs/sbyt/ytstatcollector/moderation/tests
