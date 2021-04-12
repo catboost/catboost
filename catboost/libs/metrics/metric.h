@@ -179,6 +179,11 @@ struct TParamInfo {
     NJson::TJsonValue DefaultValue;
 };
 
+struct TParamSet {
+    TVector<TParamInfo> ValidParams;
+    TString NameSuffix;
+};
+
 struct TMetric: public IMetric {
     explicit TMetric(ELossFunction lossFunction, TLossParams descriptionParams);
     virtual EErrorType GetErrorType() const override;
