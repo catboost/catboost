@@ -26,9 +26,9 @@ npm install $PATH_TO_CATBOOST_REPO/catboost/node-package
 catboost = require('catboost-model');
 
 model = new catboost.Model();
-model.loadFullFromFile('test_data/adult.cbm');
+model.loadModel('test_data/adult.cbm');
 
-prediction = model.calcPrediction([
+prediction = model.predict([
             [40., 85019., 16., 0., 0., 45.],
             [28., 85019., 13., 0., 0., 13.],
         ], 
