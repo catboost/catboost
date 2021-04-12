@@ -643,6 +643,10 @@ ALLOW .* -> vendor/github.com/google/go-jsonnet
 # CONTRIB-2152 JMESPath is a query language for JSON
 ALLOW .* -> vendor/github.com/jmespath/go-jmespath
 
+# CONTRIB-2156 library that communicates directly with a TPM device on Linux or Windows machines
+ALLOW .* -> vendor/github.com/google/go-tpm/tpm2
+ALLOW .* -> vendor/github.com/google/go-tpm/tpmutil
+
 #
 # Tools
 #
