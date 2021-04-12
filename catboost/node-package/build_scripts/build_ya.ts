@@ -1,8 +1,3 @@
-import {buildModel, compileBindings} from './build';
-
-async function buildYa() {
-    await buildModel();
-    await compileBindings();
-}
+import {buildYa} from './build';
 
 buildYa();

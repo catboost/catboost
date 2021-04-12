@@ -1,10 +1,16 @@
 const childProcess = require('child_process');
-const fs = require("fs");
+const fs = require('fs');
 
 process.chdir('./build_scripts');
 
 function compileBuildScripts() {
     const buildRun = childProcess.exec('../node_modules/.bin/tsc');
+    buildRun.stdout.on('data', chunk => {
+        console.log(chunk);
+    });
+    buildRun.stderr.on('data', chunk => {
+        console.error(chunk);
+    });
     
     return new Promise(resolve => {
         buildRun.on('error', err => resolve({err}));
@@ -15,7 +21,7 @@ function compileBuildScripts() {
 function runScript(script) {
     process.chdir('..');
 
-    const child = childProcess.fork('./build_scripts/out/' + script + '.js');
+    const child = childProcess.fork('./build_scripts/out/' + script + '.js', process.argv);
     return new Promise(resolve => {
         child.on('error', err => resolve({err}));
         child.on('exit', (code, signal) => resolve({code, signal}));

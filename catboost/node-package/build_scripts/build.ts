@@ -1,8 +1,10 @@
 import {execProcess} from './common';
-import {readFileSync, writeFileSync} from 'fs'
+import {linkSync, readFileSync, writeFileSync} from 'fs'
+import { downloadBinaryFile } from './download';
+import { readConfig } from './config';
 
 async function compileTypeScript() {
-    const result = await execProcess('tsc');
+    const result = await execProcess('npm run tsc');
     if (result.code !== 0) {
         console.error(`Building ts library failed: 
             ${result.code} ${result.signal} ${result.err?.message}`);
@@ -15,7 +17,8 @@ function copyBindings() {
     writeFileSync('./lib/catboost.js', readFileSync('./bindings/catboost.js'));
 }
 
-async function compileNativeAddon() {
+async function compileNativeAddon(srcPath = '../..') {
+    process.env['CATBOOST_SRC_PATH'] = srcPath;
     const result = await execProcess('node-gyp build');
     if (result.code !== 0) {
         console.error(`Building native-addon library failed: 
@@ -24,9 +27,13 @@ async function compileNativeAddon() {
     }
 }
 
-export async function compileBindings() {
+export async function compileJs() {
     await compileTypeScript();
     copyBindings();
+}
+
+export async function compileBindings() {
+    await compileJs();
     await compileNativeAddon();
 }
 
@@ -40,15 +47,44 @@ async function buildModelInterfaceLibrary() {
     }
 }
 
-export async function buildModel() {
+async function configureGyp(srcPath = '../..') {
+    process.env['CATBOOST_SRC_PATH'] = srcPath;
     const result = await execProcess('node-gyp configure');
     if (result.code !== 0) {
         console.error(`Node-gyp configuration failed: 
-${result.code} ${result.signal} ${result.err?.message}`);
+            ${result.code} ${result.signal} ${result.err?.message}`);
         process.exit(1);
     }
-
-    await buildModelInterfaceLibrary();
-    // TODO
 }
 
+export async function buildModel() {
+    await configureGyp();
+    await buildModelInterfaceLibrary();
+}
+
+/** Build binary from repository. */
+export async function buildYa() {
+    await configureGyp();
+    await buildModelInterfaceLibrary();
+    await compileBindings();
+}
+
+async function preparePlatformBinary(platform: string) {
+    const config = readConfig();
+    switch (platform) {
+        case 'linux':
+            await downloadBinaryFile(config.binaries['linux']);
+            linkSync('./build/catboost/libs/model_interface/libcatboostmodel.so', 
+                './build/catboost/libs/model_interface/libcatboostmodel.so.1');
+            return;
+        default:
+            throw new Error(`Platform ${platform} is not supported`);
+    }
+
+}
+
+export async function buildLocal(platform: string) {
+    await preparePlatformBinary(platform);
+    await configureGyp('./inc');
+    await compileNativeAddon('./inc');
+}
