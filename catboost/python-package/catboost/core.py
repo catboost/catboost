@@ -5574,6 +5574,9 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
                                 " vs " + str(pool.get_cat_feature_indices()))
         del params['cat_features']
 
+    if is_classification_objective(params['loss_function']):
+        params['class_names'] = [i for i in range(len(set(pool.get_label())))]
+
     if 'text_features' in params:
         raise CatBoostError("Cv with text features is not implemented.")
 
