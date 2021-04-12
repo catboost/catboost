@@ -74,7 +74,6 @@ ALLOW smart_devices/tools/updater -> contrib/restricted/spdlog
 
 # cmph is a limited-use library
 ALLOW ads/yacontext -> contrib/restricted/cmph
-ALLOW mssngr/router -> contrib/restricted/cmph
 
 # http-parser is a low-level parser for http bytestream.
 # Consider using high-level alternatives.
