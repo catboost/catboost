@@ -1,6 +1,6 @@
 import {readFileSync, writeFileSync} from 'fs';
-import { join } from 'path';
-import { calculateFileHash, downloadBinaryFile, downloadFile } from './download';
+import {join} from 'path';
+import {calculateFileHash, downloadFile} from './download';
 
 const GITHUB_PATH = 'https://github.com/catboost/catboost/releases/download/';
 
@@ -54,7 +54,7 @@ export function readConfig(): BinaryConfig {
 }
 
 export function writeConfig(config: BinaryConfig) {
-    writeFileSync('./config.json', JSON.stringify(config.binaries));
+    writeFileSync('./config.json', JSON.stringify(config.binaries, null, 1));
 }
 
 export async function createConfigForVersion(version: string): Promise<BinaryConfig> {

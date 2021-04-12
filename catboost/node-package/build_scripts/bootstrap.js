@@ -37,7 +37,7 @@ function runCommand(command) {
     runScript(command);
 } 
 
-const command = process.argv[process.argv.length - 1];
+const command = process.argv[2];
 
 if (!fs.existsSync('./out')) {
     compileBuildScripts().then(result => {
