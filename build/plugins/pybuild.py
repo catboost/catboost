@@ -152,7 +152,7 @@ def onpy_srcs(unit, *args):
         __init__.py never required, but if present (and specified in PY_SRCS), it will be imported when you import package modules with __init__.py Oh.
 
         Example of library declaration with PY_SRCS():
-        PY_LIBRARY(mymodule)
+        PY2_LIBRARY(mymodule)
         PY_SRCS(a.py sub/dir/b.py e.proto sub/dir/f.proto c.pyx sub/dir/d.pyx g.swg sub/dir/h.swg)
         END()
 
