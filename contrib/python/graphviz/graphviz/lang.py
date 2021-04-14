@@ -2,27 +2,39 @@
 
 """Quote strings to be valid DOT identifiers, assemble attribute lists."""
 
-import re
 import collections
+import functools
+import re
 
-from . import _compat, tools
+from . import _compat
 
-__all__ = ['quote', 'quote_edge', 'a_list', 'attr_list']
+from . import tools
 
-# http://www.graphviz.org/doc/info/lang.html
+__all__ = ['quote', 'quote_edge', 'a_list', 'attr_list', 'escape', 'nohtml']
+
+# https://www.graphviz.org/doc/info/lang.html
+# https://www.graphviz.org/doc/info/attrs.html#k:escString
 
 HTML_STRING = re.compile(r'<.*>$', re.DOTALL)
 
-ID = re.compile(r'([a-zA-Z_][a-zA-Z0-9_]*|-?(\.\d+|\d+(\.\d*)?))$')
+ID = re.compile(r'([a-zA-Z_][a-zA-Z0-9_]*|-?(\.[0-9]+|[0-9]+(\.[0-9]*)?))$')
 
 KEYWORDS = {'node', 'edge', 'graph', 'digraph', 'subgraph', 'strict'}
 
 COMPASS = {'n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw', 'c', '_'}  # TODO
 
+QUOTE_OPTIONAL_BACKSLASHES = re.compile(r'(?P<bs>(?:\\\\)*)'
+                                        r'\\?(?P<quote>")')
+
+ESCAPE_UNESCAPED_QUOTES = functools.partial(QUOTE_OPTIONAL_BACKSLASHES.sub,
+                                            r'\g<bs>\\\g<quote>')
+
 
 def quote(identifier,
-          html=HTML_STRING.match, valid_id=ID.match, dot_keywords=KEYWORDS):
-    """Return DOT identifier from string, quote if needed.
+          is_html_string=HTML_STRING.match,
+          is_valid_id=ID.match, dot_keywords=KEYWORDS,
+          escape_unescaped_quotes=ESCAPE_UNESCAPED_QUOTES):
+    r"""Return DOT identifier from string, quote if needed.
 
     >>> quote('')
     '""'
@@ -44,11 +56,23 @@ def quote(identifier,
 
     >>> quote(nohtml('<>'))
     '"<>"'
+
+    >>> print(quote('"'))
+    "\""
+
+    >>> print(quote('\\"'))
+    "\""
+
+    >>> print(quote('\\\\"'))
+    "\\\""
+
+    >>> print(quote('\\\\\\"'))
+    "\\\""
     """
-    if html(identifier) and not isinstance(identifier, NoHtml):
+    if is_html_string(identifier) and not isinstance(identifier, NoHtml):
         pass
-    elif not valid_id(identifier) or identifier.lower() in dot_keywords:
-        return '"%s"' % identifier.replace('"', '\\"')
+    elif not is_valid_id(identifier) or identifier.lower() in dot_keywords:
+        return '"%s"' % escape_unescaped_quotes(identifier)
     return identifier
 
 
@@ -83,13 +107,13 @@ def a_list(label=None, kwargs=None, attributes=None):
     result = ['label=%s' % quote(label)] if label is not None else []
     if kwargs:
         items = ['%s=%s' % (quote(k), quote(v))
-            for k, v in tools.mapping_items(kwargs) if v is not None]
+                 for k, v in tools.mapping_items(kwargs) if v is not None]
         result.extend(items)
     if attributes:
         if hasattr(attributes, 'items'):
             attributes = tools.mapping_items(attributes)
         items = ['%s=%s' % (quote(k), quote(v))
-            for k, v in attributes if v is not None]
+                 for k, v in attributes if v is not None]
         result.extend(items)
     return ' '.join(result)
 
@@ -97,7 +121,7 @@ def a_list(label=None, kwargs=None, attributes=None):
 def attr_list(label=None, kwargs=None, attributes=None):
     """Return assembled DOT attribute list string.
 
-    Sorts kwargs and attributes if they are plain dicts (to avoid
+    Sorts ``kwargs`` and ``attributes`` if they are plain dicts (to avoid
     unpredictable order from hash randomization in Python 3 versions).
 
     >>> attr_list()
@@ -115,12 +139,29 @@ def attr_list(label=None, kwargs=None, attributes=None):
     return ' [%s]' % content
 
 
+def escape(s):
+    r"""Return ``s`` as literal disabling special meaning of backslashes and ``'<...>'``.
+
+    see also https://www.graphviz.org/doc/info/attrs.html#k:escString
+
+    Args:
+        s: String in which backslashes and ``'<...>'`` should be treated as literal.
+
+    Raises:
+        TypeError: If ``s`` is not a ``str`` on Python 3, or a ``str``/``unicode`` on Python 2.
+
+    >>> print(escape(r'\l'))
+    \\l
+    """
+    return nohtml(s.replace('\\', '\\\\'))
+
+
 class NoHtml(object):
-    """Mixin for string subclasses disabling fall-through of ``<...>``."""
+    """Mixin for string subclasses disabling fall-through of ``'<...>'``."""
 
     __slots__ = ()
 
-    _doc = "%s subclass that does not treat ``<...>`` as DOT HTML string."
+    _doc = "%s subclass that does not treat ``'<...>'`` as DOT HTML string."
 
     @classmethod
     def _subcls(cls, other):
@@ -134,12 +175,13 @@ NOHTML = collections.OrderedDict((c, NoHtml._subcls(c)) for c in _compat.string_
 
 
 def nohtml(s):
-    """Return copy of ``s`` that will not treat ``<...>`` as DOT HTML string in quoting.
+    """Return copy of ``s`` that will not treat ``'<...>'`` as DOT HTML string in quoting.
 
     Args:
-        s: String in which leading ``<`` and trailing ``>`` should be treated as literal.
+        s: String in which leading ``'<'`` and trailing ``'>'`` should be treated as literal.
+
     Raises:
-        TypeError: If s is not a ``str`` on Python 3, or a ``str``/``unicode`` on Python 2.
+        TypeError: If ``s`` is not a ``str`` on Python 3, or a ``str``/``unicode`` on Python 2.
 
     >>> quote('<>-*-<>')
     '<>-*-<>'
@@ -150,6 +192,6 @@ def nohtml(s):
     try:
         subcls = NOHTML[type(s)]
     except KeyError:
-        raise TypeError('%r does not have one of the required types: %r' %
-                        (s, list(NOHTML)))
-    return subcls(s) 
+        raise TypeError('%r does not have one of the required types:'
+                        ' %r' % (s, list(NOHTML)))
+    return subcls(s)

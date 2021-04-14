@@ -2,7 +2,7 @@
 
 PY23_LIBRARY()
 
-LICENSE(Yandex)
+LICENSE(YandexOpen)
 
 NO_PYTHON_INCLUDES()
 
@@ -19,7 +19,7 @@ IF (USE_ARCADIA_PYTHON)
         )
     ENDIF()
 
-    IF (MODULE_TAG STREQUAL "PY2")
+    IF (MODULE_TAG == "PY2")
         PEERDIR(
             contrib/tools/python/lib
             library/python/runtime

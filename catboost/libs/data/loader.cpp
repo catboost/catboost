@@ -86,14 +86,6 @@ namespace NCB {
         return baseline;
     }
 
-    namespace {
-        enum class EReadLocation {
-            BeforeSubset,
-            InSubset,
-            AfterSubset
-        };
-    }
-
     static TVector<float> ReadGroupWeights(
         const TPathWithScheme& filePath,
         TConstArrayRef<TGroupId> groupIds,
@@ -102,12 +94,9 @@ namespace NCB {
     ) {
         Y_UNUSED(loadSubset);
         CB_ENSURE(groupIds.size() == docCount, "GroupId count should correspond to object count.");
-        TVector<float> groupWeights;
-        groupWeights.reserve(docCount);
-        ui64 groupIdCursor = 0;
-        EReadLocation readLocation = EReadLocation::BeforeSubset;
         THolder<ILineDataReader> reader = GetLineDataReader(filePath);
         TString line;
+        THashMap<TGroupId, float> groupWeightsByGroupId;
         for (size_t lineNumber = 0; reader->ReadLine(&line); lineNumber++) {
             try {
                 TVector<TString> tokens = StringSplitter(line).Split('\t');
@@ -120,38 +109,19 @@ namespace NCB {
                     TryFromString(tokens[1], groupWeight),
                     "Invalid group weight: cannot parse as float (" << tokens[1] << ')'
                 );
-
-                if (readLocation == EReadLocation::BeforeSubset) {
-                    if (groupId != groupIds[groupIdCursor]) {
-                        continue;
-                    }
-                    readLocation = EReadLocation::InSubset;
-                }
-                if (readLocation == EReadLocation::InSubset) {
-                    if (groupIdCursor < docCount) {
-                        ui64 groupSize = 0;
-                        CB_ENSURE(
-                            groupId == groupIds[groupIdCursor],
-                            "Group starting at line " << groupIdCursor
-                            << " in dataset is missing in group weight file, or groups are ordered differently");
-                        while (groupIdCursor < docCount && groupId == groupIds[groupIdCursor]) {
-                            ++groupSize;
-                            ++groupIdCursor;
-                        }
-                        groupWeights.insert(groupWeights.end(), groupSize, groupWeight);
-                    } else {
-                        readLocation = EReadLocation::AfterSubset;
-                    }
-                }
+                CB_ENSURE(!groupWeightsByGroupId.contains(groupId), "GroupId at line " << lineNumber << " is repeated in group weights file");
+                groupWeightsByGroupId[groupId] = groupWeight;
             } catch (const TCatBoostException& e) {
                 throw TCatBoostException() << "Incorrect file with group weights. Invalid line number #"
                     << lineNumber << ": " << e.what();
             }
         }
-        CB_ENSURE(readLocation != EReadLocation::BeforeSubset,
-            "Requested group ids are absent or non-consecutive in group weights file.");
-        CB_ENSURE(groupWeights.size() == docCount,
-            "Group weights file should have as many weights as the objects in the dataset.");
+        TVector<float> groupWeights;
+        groupWeights.reserve(docCount);
+        for (auto rowIdx : xrange(groupIds.size())) {
+            CB_ENSURE(groupWeightsByGroupId.contains(groupIds[rowIdx]), "GroupId from row " << rowIdx << " in dataset is not found in group weights file");
+            groupWeights.emplace_back(groupWeightsByGroupId.at(groupIds[rowIdx]));
+        }
 
         return groupWeights;
     }

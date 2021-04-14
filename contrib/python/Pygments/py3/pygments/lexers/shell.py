@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
     pygments.lexers.shell
     ~~~~~~~~~~~~~~~~~~~~~
@@ -169,10 +168,6 @@ class ShellSessionBaseLexer(Lexer):
 
         for match in line_re.finditer(text):
             line = match.group()
-            if backslash_continuation:
-                curcode += line
-                backslash_continuation = curcode.endswith('\\\n')
-                continue
 
             venv_match = self._venv.match(line)
             if venv_match:
@@ -197,7 +192,7 @@ class ShellSessionBaseLexer(Lexer):
                                    [(0, Generic.Prompt, m.group(1))]))
                 curcode += m.group(2)
                 backslash_continuation = curcode.endswith('\\\n')
-            elif line.startswith(self._ps2):
+            elif line.startswith(self._ps2) and backslash_continuation:
                 insertions.append((len(curcode),
                                    [(0, Generic.Prompt, line[:len(self._ps2)])]))
                 curcode += line[len(self._ps2):]
@@ -233,7 +228,7 @@ class BashSessionLexer(ShellSessionBaseLexer):
     _ps1rgx = re.compile(
         r'^((?:(?:\[.*?\])|(?:\(\S+\))?(?:| |sh\S*?|\w+\S+[@:]\S+(?:\s+\S+)' \
         r'?|\[\S+[@:][^\n]+\].+))\s*[$#%]\s*)(.*\n?)')
-    _ps2 = '>'
+    _ps2 = '> '
 
 
 class BatchLexer(RegexLexer):

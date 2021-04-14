@@ -60,28 +60,6 @@ void CopyIgnoredFeaturesToPoolParams(
     poolLoadParams->Validate(taskType);
 }
 
-inline static TVector<int> ParseIndicesLine(const TStringBuf indicesLine, char delimiter) {
-    TVector<int> result;
-    for (const auto& t : StringSplitter(indicesLine).Split(delimiter)) {
-        const auto s = t.Token();
-        int from = FromString<int>(s.Before('-'));
-        int to = FromString<int>(s.After('-')) + 1;
-        for (int i = from; i < to; ++i) {
-            result.push_back(i);
-        }
-    }
-    return result;
-}
-
-inline static TVector<TVector<int>> ParseIndexSetsLine(const TStringBuf indicesLine) {
-    TVector<TVector<int>> result;
-    for (const auto& t : StringSplitter(indicesLine).Split(';')) {
-        const auto s = t.Token();
-        result.push_back(ParseIndicesLine(s, ','));
-    }
-    return result;
-}
-
 void BindQuantizerPoolLoadParams(NLastGetopt::TOpts* parser, NCatboostOptions::TPoolLoadParams* loadParamsPtr) {
     BindColumnarPoolFormatParams(parser, &(loadParamsPtr->ColumnarPoolFormatParams));
     parser->AddLongOption("input-borders-file", "file with borders")
@@ -222,6 +200,12 @@ void BindPoolLoadParams(NLastGetopt::TOpts* parser, NCatboostOptions::TPoolLoadP
     parser->AddLongOption("precomputed-data-meta", "file with precomputed data metadata")
         .RequiredArgument("PATH")
         .StoreResult(&loadParamsPtr->PrecomputedMetadataFile);
+
+    parser->AddLongOption("pool-metainfo-path", "json file with pool metainfo")
+        .RequiredArgument("[SCHEME://]PATH")
+        .Handler1T<TStringBuf>([loadParamsPtr](const TStringBuf& str) {
+            loadParamsPtr->PoolMetaInfoPath = TPathWithScheme(str);
+        });
 }
 
 static void BindMetricParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* plainJsonPtr) {
@@ -633,8 +617,7 @@ static void BindFeatureEvalParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonVal
         .RequiredArgument("INDEXES[;INDEXES...]")
         .Help("Evaluate impact of each set of features on test error; each set is a comma-separated list of indices and index intervals, e.g. 4,78-89,312.")
         .Handler1T<TString>([plainJsonPtr](const TString& indicesLine) {
-            auto featuresToEvaluate = ParseIndexSetsLine(indicesLine);
-            NCatboostOptions::TJsonFieldHelper<TVector<TVector<int>>>::Write(featuresToEvaluate, &(*plainJsonPtr)["features_to_evaluate"]);
+            (*plainJsonPtr)["features_to_evaluate"] = indicesLine;
         });
     parser
         .AddLongOption("feature-eval-mode")
@@ -742,15 +725,16 @@ static void BindFeaturesSelectParams(NLastGetopt::TOpts* parserPtr, NJson::TJson
         });
     parser
         .AddLongOption("features-selection-algorithm")
-        .Help("Which algorithm to use for features selection.")
+        .Help(TString::Join(
+            "Which algorithm to use for features selection.\n",
+            "Should be one of: ", GetEnumAllNames<EFeaturesSelectionAlgorithm>()))
         .Handler1T<EFeaturesSelectionAlgorithm>([plainJsonPtr](const auto algorithm) {
             (*plainJsonPtr)["features_selection_algorithm"] = ToString(algorithm);
         });
     parser
         .AddLongOption("shap-calc-type")
         .DefaultValue("Regular")
-        .Help(TString::Join(
-            "Should be one of: ", GetEnumAllNames<ECalcTypeShapValues>()))
+        .Help("Should be one of: 'Approximate', 'Regular', 'Exact'.")
         .Handler1T<ECalcTypeShapValues>([plainJsonPtr](const ECalcTypeShapValues calcType) {
             (*plainJsonPtr)["shap_calc_type"] = ToString(calcType);
         });

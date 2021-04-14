@@ -73,13 +73,13 @@ namespace NCatboostOptions {
 }
 
 namespace NCB {
-    class TQuantizedForCPUObjectsDataProvider;
+    class TQuantizedObjectsDataProvider;
 }
 
 bool IsLeafwiseScoringApplicable(const NCatboostOptions::TCatBoostOptions& params);
 
 TVector<TVector<double>> CalcScoresForOneCandidate(
-    const NCB::TQuantizedForCPUObjectsDataProvider& data,
+    const NCB::TQuantizedObjectsDataProvider& data,
     const TCandidatesInfoList& candidate,
     const TCalcScoreFold& fold,
     const TFold& initialFold,

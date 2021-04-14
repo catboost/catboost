@@ -152,7 +152,7 @@ def onpy_srcs(unit, *args):
         __init__.py never required, but if present (and specified in PY_SRCS), it will be imported when you import package modules with __init__.py Oh.
 
         Example of library declaration with PY_SRCS():
-        PY_LIBRARY(mymodule)
+        PY2_LIBRARY(mymodule)
         PY_SRCS(a.py sub/dir/b.py e.proto sub/dir/f.proto c.pyx sub/dir/d.pyx g.swg sub/dir/h.swg)
         END()
 
@@ -167,6 +167,8 @@ def onpy_srcs(unit, *args):
     py3 = is_py3(unit)
     with_py = not unit.get('PYBUILD_NO_PY')
     with_pyc = not unit.get('PYBUILD_NO_PYC')
+    in_proto_library = unit.get('PY_PROTO') or unit.get('PY3_PROTO')
+    need_gazetteer_peerdir = False
 
     if not upath.startswith('contrib/tools/python') and not upath.startswith('library/python/runtime') and unit.get('NO_PYTHON_INCLS') != 'yes':
         unit.onpeerdir(['contrib/libs/python'])
@@ -236,7 +238,7 @@ def onpy_srcs(unit, *args):
         elif arg == 'SWIG_CPP':
             swigs = swigs_cpp
         # Unsupported but legal PROTO_LIBRARY arguments.
-        elif arg == 'GLOBAL' or arg.endswith('.gztproto'):
+        elif arg == 'GLOBAL' or not in_proto_library and arg.endswith('.gztproto'):
             pass
         # Sources.
         else:
@@ -248,7 +250,11 @@ def onpy_srcs(unit, *args):
                 main_py = False
                 path, mod = arg.split('=', 1)
             else:
-                path = arg
+                if arg.endswith('.gztproto'):
+                    need_gazetteer_peerdir = True
+                    path = '{}.proto'.format(arg[:-9])
+                else:
+                    path = arg
                 main_py = (path == '__main__.py' or path.endswith('/__main__.py'))
                 if not py3 and unit_needs_main and main_py:
                     mod = '__main__'
@@ -430,6 +436,9 @@ def onpy_srcs(unit, *args):
 
         if optimize_proto:
             unit.onsrcs(proto_paths)
+
+            if need_gazetteer_peerdir:
+                unit.onpeerdir(['kernel/gazetteer/proto'])
 
             pb_cc_outs = [
                 pb_cc_arg(cc_suf, path, unit)

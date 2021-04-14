@@ -59,11 +59,11 @@ def generate_dart(unit, as_lib=False):
         docs_config = os.path.join(module_dir, docs_config)
 
     if not docs_config.startswith(docs_dir + os.path.sep) and not docs_config.startswith(module_dir + os.path.sep) :
-        unit.message(['error', 'DOCS_CONFIG value "{}" is outside the project directory and DOCS_DIR'.format(docs_config)])
+        unit.message(['error', 'DOCS_CONFIG path "{}" is outside the project directory and DOCS_DIR'.format(docs_config)])
         return
 
     if not os.path.exists(unit.resolve('$S/' + docs_config)):
-        unit.message(['error', 'DOCS_CONFIG value "{}" does not exist'.format(docs_config)])
+        unit.message(['error', 'DOCS_CONFIG payj "{}" does not exist'.format(docs_config)])
         return
 
     includes = extract_macro_calls(unit, 'DOCSINCLUDESOURCES')
@@ -89,7 +89,7 @@ def generate_dart(unit, as_lib=False):
         include_path = unit.resolve('$S/' + i)
 
         if not os.path.exists(include_path):
-            ymake.report_configure_error('DOCS_INCLUDE_SOURCES value "{}" does not exist'.format(i))
+            ymake.report_configure_error('DOCS_INCLUDE_SOURCES path "{}" does not exist'.format(i))
 
         elif not os.path.isfile(include_path):
-            ymake.report_configure_error('DOCS_INCLUDE_SOURCES value "{}" must be a file'.format(i))
+            ymake.report_configure_error('DOCS_INCLUDE_SOURCES path "{}" must be a file'.format(i))

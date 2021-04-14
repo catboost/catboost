@@ -18,6 +18,8 @@ SRCS(
     test_multi_logit.cpp
     test_query_cross_entropy.cpp
     test_combination.cpp
+    test_tweedie.cpp
+    test_huber.cpp
 )
 
 PEERDIR(

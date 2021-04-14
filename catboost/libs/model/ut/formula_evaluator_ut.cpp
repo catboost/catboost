@@ -175,7 +175,7 @@ Y_UNIT_TEST_SUITE(TObliviousTreeModel) {
             ui32 treeIndex = estimatedFeatureId;
             model.Calc(
                 {},
-                {},
+                TConstArrayRef<TVector<TStringBuf>>{},
                 transposedTextFeatures,
                 treeIndex,
                 treeIndex + 1,

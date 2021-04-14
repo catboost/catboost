@@ -46,12 +46,10 @@
   #if PY_VERSION_HEX < 0x03030000
     #error "Python 3.0 - 3.2 are not supported."
   #endif
-#define PyString_AsStringAndSize(ob, charpp, sizep)                           \
-  (PyUnicode_Check(ob) ? ((*(charpp) = const_cast<char*>(                     \
-                               PyUnicode_AsUTF8AndSize(ob, (sizep)))) == NULL \
-                              ? -1                                            \
-                              : 0)                                            \
-                       : PyBytes_AsStringAndSize(ob, (charpp), (sizep)))
+  #define PyString_AsStringAndSize(ob, charpp, sizep) \
+    (PyUnicode_Check(ob)? \
+       ((*(charpp) = const_cast<char*>(PyUnicode_AsUTF8AndSize(ob, (sizep)))) == NULL? -1: 0): \
+       PyBytes_AsStringAndSize(ob, (charpp), (sizep)))
 #endif
 
 namespace google {
@@ -138,9 +136,9 @@ static PyDescriptorPool* PyDescriptorPool_NewWithDatabase(
 // The public DescriptorPool constructor.
 static PyObject* New(PyTypeObject* type,
                      PyObject* args, PyObject* kwargs) {
-  static char* kwlist[] = {"descriptor_db", 0};
+  static const char* kwlist[] = {"descriptor_db", 0};
   PyObject* py_database = NULL;
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|O", kwlist, &py_database)) {
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|O", const_cast<char**>(kwlist), &py_database)) {
     return NULL;
   }
   DescriptorDatabase* database = NULL;
@@ -151,8 +149,7 @@ static PyObject* New(PyTypeObject* type,
       PyDescriptorPool_NewWithDatabase(database));
 }
 
-static void Dealloc(PyObject* object) {
-  PyDescriptorPool* self = reinterpret_cast<PyDescriptorPool*>(object);
+static void Dealloc(PyDescriptorPool* self) {
   descriptor_pool_map.erase(self->pool);
   Py_CLEAR(self->py_message_factory);
   for (hash_map<const void*, PyObject*>::iterator it =

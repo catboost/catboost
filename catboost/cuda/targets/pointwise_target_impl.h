@@ -271,6 +271,14 @@ namespace NCatboostCuda {
                     Border = NCatboostOptions::GetLogLossBorder(targetOptions);
                     break;
                 }
+                case ELossFunction::Tweedie: {
+                    VariancePower = NCatboostOptions::GetTweedieParam(targetOptions);
+                    break;
+                }
+                case ELossFunction::Huber: {
+                    Alpha = NCatboostOptions::GetHuberParam(targetOptions);
+                    break;
+                }
                 default: {
                     ythrow TCatBoostException() << "Unsupported loss function " << targetOptions.GetLossFunction();
                 }
@@ -328,6 +336,7 @@ namespace NCatboostCuda {
         ELossFunction Type = ELossFunction::PythonUserDefinedPerObject;
         double Alpha = 0;
         double Border = 0;
+        double VariancePower = 1.5;
         TString MetricName;
     };
 

@@ -82,7 +82,7 @@ Y_UNIT_TEST_SUITE(Quantization) {
                             &rand,
                             &localExecutor)->CastMoveTo<TObjectsDataProvider>();
 
-                        Compare<TQuantizedForCPUObjectsDataProvider>(
+                        Compare<TQuantizedObjectsDataProvider>(
                                 std::move(quantizedDataProvider),
                                 testCase.ExpectedData
                         );

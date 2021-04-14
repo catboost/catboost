@@ -6702,6 +6702,7 @@ def test_feature_statistics(combination):
         model = sum_models([model0, model1])
 
     feature_num = 0
+    model.calc_feature_statistics({'learn': X, 'test': X}, {'learn': y, 'test': y}, feature_num, plot=False)
     res = model.calc_feature_statistics(X, y, feature_num, plot=False)
 
     def mean_per_bin(res, feature_num, data):
@@ -7010,6 +7011,42 @@ def test_equal_feature_names():
         Pool(train_data, feature_names=['first', 'second', 'third', 'fourth', 'second', 'sixth'])
 
 
+@pytest.mark.parametrize('variance_power', [1.001, 1.42, 1.8, 1.999])
+def test_tweedie_loss_on_gpu(task_type, variance_power):
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    test_pool = Pool(TEST_FILE, column_description=CD_FILE)
+
+    model = CatBoost(
+        {
+            'iterations': 10,
+            'loss_function': 'Tweedie:variance_power=' + str(variance_power),
+            'task_type': task_type,
+            'devices': '0-7'
+        }
+    )
+
+    model.fit(train_pool)
+    model.predict(test_pool)
+
+
+@pytest.mark.parametrize('delta', [0.01, 0.5, 1, 1.5])
+def test_huber_loss_on_gpu(task_type, delta):
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    test_pool = Pool(TEST_FILE, column_description=CD_FILE)
+
+    model = CatBoost(
+        {
+            'iterations': 10,
+            'loss_function': 'Huber:delta=' + str(delta),
+            'task_type': task_type,
+            'devices': '0-7'
+        }
+    )
+
+    model.fit(train_pool)
+    model.predict(test_pool)
+
+
 class TestModelWithoutParams(object):
 
     @pytest.fixture(
@@ -7266,9 +7303,11 @@ def test_quantized_pool_with_all_features_ignored():
 
 
 @pytest.fixture(params=[
+    ('adult', TRAIN_FILE, TEST_FILE, CD_FILE, 'Logloss'),
     ('higgs', HIGGS_TRAIN_FILE, HIGGS_TEST_FILE, HIGGS_CD_FILE, 'Logloss'),
     ('querywise', QUERYWISE_TRAIN_FILE, QUERYWISE_TEST_FILE, QUERYWISE_CD_FILE, 'RMSE'),
 ], ids=[
+    'adult',
     'higgs',
     'querywise'
 ])
@@ -7294,6 +7333,7 @@ def train_on_raw_and_quantized_data_params_fixture(request):
     assert(test_quantized_pool.is_quantized())
 
     return {
+        'pool_name': pool_name,
         'train_pool': train_pool,
         'test_pool': test_pool,
         'train_quantized_pool': train_quantized_pool,
@@ -7319,6 +7359,7 @@ def models_trained_on_raw_and_quantized_data_fixture(train_on_raw_and_quantized_
     model_fitted_with_quantized_pool.fit(train_quantized_pool)
 
     return {
+        'pool_name': train_on_raw_and_quantized_data_params_fixture['pool_name'],
         'train_pool': train_pool,
         'test_pool': test_pool,
         'train_quantized_pool': train_quantized_pool,
@@ -7381,9 +7422,18 @@ def test_quantized_pool_calc_feature_statistics(models_trained_on_raw_and_quanti
     def serialize_feature_statistics(stats):
         return json.dumps(stats, cls=NumpyEncoder, sort_keys=True)
 
-    stats = model.calc_feature_statistics(pool, plot=False)
-    stats_with_quantized_pool = model_fitted_with_quantized_pool.calc_feature_statistics(quantized_pool, plot=False)
-    assert serialize_feature_statistics(stats) == serialize_feature_statistics(stats_with_quantized_pool)
+    if models_trained_on_raw_and_quantized_data_fixture['pool_name'] == 'adult':
+        # TODO(akhropov): calc_feature_statistics does not support CTR features
+        with pytest.raises(CatBoostError):
+            model.calc_feature_statistics(pool, plot=False)
+    else:
+        stats = model.calc_feature_statistics(pool, plot=False)
+        stats_with_quantized_pool = model_fitted_with_quantized_pool.calc_feature_statistics(
+            quantized_pool,
+            plot=False
+        )
+        assert serialize_feature_statistics(stats) == serialize_feature_statistics(stats_with_quantized_pool)
+        model.calc_feature_statistics({'learn': pool, 'test': pool}, plot=False)
 
 
 @pytest.mark.parametrize('pool_type', ['train', 'test'])
@@ -8326,7 +8376,7 @@ def test_bad_uncertainty_prediction_types_usage():
 
 @pytest.mark.parametrize('virtual_ensembles_count', [1, 5])
 @pytest.mark.parametrize('prediction_type', ['TotalUncertainty', 'VirtEnsembles'])
-@pytest.mark.parametrize('loss_function', ['RMSE', 'RMSEWithUncertainty', 'Logloss'])
+@pytest.mark.parametrize('loss_function', ['RMSE', 'RMSEWithUncertainty', 'Logloss', 'MultiClass'])
 def test_uncertainty_prediction_types(virtual_ensembles_count, prediction_type, loss_function):
     pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE) \
         if loss_function != 'Logloss' \
@@ -8347,7 +8397,7 @@ def test_uncertainty_prediction_types(virtual_ensembles_count, prediction_type, 
         shape = preds.shape
         assert len(shape) == 3 and shape[1] == virtual_ensembles_count
         preds = preds.reshape(shape[0], shape[1] * shape[2])
-    np.savetxt(preds_path, preds, fmt='%.15f', delimiter='\t')
+    np.savetxt(preds_path, preds, fmt='%.9f', delimiter='\t')
     return local_canonical_file(preds_path)
 
 
@@ -9065,3 +9115,36 @@ def test_same_params(params):
     params['loss_function'] = 'Logloss'
     CatBoost(params).fit(train_pool).save_model(model_path)
     assert CatBoost().load_model(model_path).get_params() == params
+
+
+@pytest.mark.parametrize('task', ['binclass', 'multiclass'])
+@pytest.mark.parametrize('metric', ['TotalF1', 'MCC', 'F1', 'Precision', 'Recall'])
+@pytest.mark.parametrize('use_weights', [True, False])
+def test_eval_metric_with_weights(task_type, task, metric, use_weights):
+    X = np.random.random()
+    if task == 'multiclass' and metric in ('F1', 'Precision', 'Recall'):
+        pytest.skip('Metric with multiple values is not allowed to use as eval_metric')
+    np.random.seed(0)
+    X = np.random.random(size=(100, 10))
+    if task == 'binclass':
+        y = [0] * 30 + [1] * 70
+    else:
+        y = [0] * 20 + [1] * 30 + [2] * 50
+    np.random.shuffle(y)
+    weight = np.random.random(size=100)
+    pool = Pool(X, y, weight=weight)
+
+    full_metric_name = '{}:use_weights={}'.format(metric, str(use_weights).lower())
+    full_metric_name_inverse = '{}:use_weights={}'.format(metric, str(not use_weights).lower())
+    model = CatBoostClassifier(
+        loss_function='Logloss' if task == 'binclass' else 'MultiClass',
+        iterations=1,
+        eval_metric=full_metric_name,
+        task_type=task_type
+    )
+    model.fit(pool)
+    fit_metric = model.evals_result_['learn'][full_metric_name]
+    eval_metric = model.eval_metrics(pool, full_metric_name)[full_metric_name]
+    eval_metric_inverse = model.eval_metrics(pool, full_metric_name_inverse)[full_metric_name_inverse]
+    assert not np.array_equal(eval_metric, eval_metric_inverse)
+    assert np.array_equal(fit_metric, eval_metric)

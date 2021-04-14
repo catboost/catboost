@@ -52,7 +52,7 @@ public:
     // objectsData must be from the corresponding source data for this split
     TSplit GetSplit(
         int binId,
-        const NCB::TQuantizedForCPUObjectsDataProvider& objectsData,
+        const NCB::TQuantizedObjectsDataProvider& objectsData,
         ui32 oneHotMaxSize
     ) const;
 };

@@ -7,6 +7,7 @@
 #include "split.h"
 
 #include <catboost/private/libs/algo_helpers/custom_objective_descriptor.h>
+#include <catboost/private/libs/algo_helpers/scratch_cache.h>
 #include <catboost/libs/data/data_provider.h>
 #include <catboost/libs/data/features_layout.h>
 #include <catboost/libs/helpers/restorable_rng.h>
@@ -224,6 +225,8 @@ public:
     TCalcScoreFold SampledDocs;
     TBucketStatsCache PrevTreeLevelStats;
     TProfileInfo Profile;
+
+    NCB::TScratchCache ScratchCache;
 
 private:
     bool UseTreeLevelCachingFlag;

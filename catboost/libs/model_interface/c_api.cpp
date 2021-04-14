@@ -177,6 +177,30 @@ CATBOOST_API bool CalcModelPredictionWithHashedCatFeatures(ModelCalcerHandle* mo
     return true;
 }
 
+CATBOOST_API bool CalcModelPredictionWithHashedCatAndTextFeatures(ModelCalcerHandle* modelHandle, size_t docCount,
+                                                    const float** floatFeatures, size_t floatFeaturesSize,
+                                                    const int** catFeatures, size_t catFeaturesSize,
+                                                    const char*** textFeatures, size_t textFeaturesSize,
+                                                    double* result, size_t resultSize) {
+    try {
+        TVector<TConstArrayRef<float>> floatFeaturesVec(docCount);
+        TVector<TConstArrayRef<int>> catFeaturesVec(docCount);
+        TVector<TVector<TStringBuf>> textFeaturesVec(docCount, TVector<TStringBuf>(textFeaturesSize));
+        for (size_t i = 0; i < docCount; ++i) {
+            floatFeaturesVec[i] = TConstArrayRef<float>(floatFeatures[i], floatFeaturesSize);
+            catFeaturesVec[i] = TConstArrayRef<int>(catFeatures[i], catFeaturesSize);
+            for (size_t textFeatureIdx = 0; textFeatureIdx < textFeaturesSize; ++textFeatureIdx) {
+                textFeaturesVec[i][textFeatureIdx] = textFeatures[i][textFeatureIdx];
+            }
+        }
+        FULL_MODEL_PTR(modelHandle)->CalcWithHashedCatAndText(floatFeaturesVec, catFeaturesVec, textFeaturesVec, TArrayRef<double>(result, resultSize));
+    } catch (...) {
+        Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
+        return false;
+    }
+    return true;
+}
+
 CATBOOST_API int GetStringCatFeatureHash(const char* data, size_t size) {
     return CalcCatFeatureHash(TStringBuf(data, size));
 }

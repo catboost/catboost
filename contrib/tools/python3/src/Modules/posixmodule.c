@@ -56,7 +56,13 @@
  */
 #if defined(__APPLE__)
 
-#if defined(__has_builtin) && __has_builtin(__builtin_available)
+#if defined(__has_builtin)
+#if __has_builtin(__builtin_available)
+#define HAVE_BUILTIN_AVAILABLE 1
+#endif
+#endif
+
+#ifdef HAVE_BUILTIN_AVAILABLE
 #  define HAVE_FSTATAT_RUNTIME __builtin_available(macOS 10.10, iOS 8.0, *)
 #  define HAVE_FACCESSAT_RUNTIME __builtin_available(macOS 10.10, iOS 8.0, *)
 #  define HAVE_FCHMODAT_RUNTIME __builtin_available(macOS 10.10, iOS 8.0, *)
@@ -633,7 +639,7 @@ _PyLong_FromGid(gid_t gid)
 }
 
 int
-_Py_Uid_Converter(PyObject *obj, void *p)
+_Py_Uid_Converter(PyObject *obj, uid_t *p)
 {
     uid_t uid;
     PyObject *index;
@@ -720,7 +726,7 @@ _Py_Uid_Converter(PyObject *obj, void *p)
 
 success:
     Py_DECREF(index);
-    *(uid_t *)p = uid;
+    *p = uid;
     return 1;
 
 underflow:
@@ -739,7 +745,7 @@ fail:
 }
 
 int
-_Py_Gid_Converter(PyObject *obj, void *p)
+_Py_Gid_Converter(PyObject *obj, gid_t *p)
 {
     gid_t gid;
     PyObject *index;
@@ -827,7 +833,7 @@ _Py_Gid_Converter(PyObject *obj, void *p)
 
 success:
     Py_DECREF(index);
-    *(gid_t *)p = gid;
+    *p = gid;
     return 1;
 
 underflow:
@@ -1154,7 +1160,10 @@ path_converter(PyObject *o, void *p)
 
     if (is_unicode) {
 #ifdef MS_WINDOWS
+_Py_COMP_DIAG_PUSH
+_Py_COMP_DIAG_IGNORE_DEPR_DECLS
         wide = PyUnicode_AsUnicodeAndSize(o, &length);
+_Py_COMP_DIAG_POP
         if (!wide) {
             goto error_exit;
         }
@@ -1245,7 +1254,10 @@ path_converter(PyObject *o, void *p)
         goto error_exit;
     }
 
+_Py_COMP_DIAG_PUSH
+_Py_COMP_DIAG_IGNORE_DEPR_DECLS
     wide = PyUnicode_AsUnicodeAndSize(wo, &length);
+_Py_COMP_DIAG_POP
     if (!wide) {
         goto error_exit;
     }
@@ -13233,7 +13245,10 @@ DirEntry_fetch_stat(PyObject *module, DirEntry *self, int follow_symlinks)
 #ifdef MS_WINDOWS
     if (!PyUnicode_FSDecoder(self->path, &ub))
         return NULL;
+_Py_COMP_DIAG_PUSH
+_Py_COMP_DIAG_IGNORE_DEPR_DECLS
     const wchar_t *path = PyUnicode_AsUnicode(ub);
+_Py_COMP_DIAG_POP
 #else /* POSIX */
     if (!PyUnicode_FSConverter(self->path, &ub))
         return NULL;
@@ -13455,7 +13470,10 @@ os_DirEntry_inode_impl(DirEntry *self)
 
         if (!PyUnicode_FSDecoder(self->path, &unicode))
             return NULL;
+_Py_COMP_DIAG_PUSH
+_Py_COMP_DIAG_IGNORE_DEPR_DECLS
         path = PyUnicode_AsUnicode(unicode);
+_Py_COMP_DIAG_POP
         result = LSTAT(path, &stat);
         Py_DECREF(unicode);
 

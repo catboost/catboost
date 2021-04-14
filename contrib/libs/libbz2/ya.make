@@ -4,19 +4,15 @@ LIBRARY()
 
 
 
-VERSION(1.0.6.0.1)
+VERSION(1.0.8)
 
 LICENSE(BSD-4-Clause)
-
-ADDINCL(
-    contrib/libs/libbz2
-)
 
 NO_COMPILER_WARNINGS()
 
 NO_RUNTIME()
 
-IF (SANITIZER_TYPE STREQUAL undefined)
+IF (SANITIZER_TYPE == undefined)
     NO_SANITIZE()
 ENDIF()
 

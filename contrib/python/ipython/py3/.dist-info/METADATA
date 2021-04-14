@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: ipython
-Version: 7.19.0
+Version: 7.22.0
 Summary: IPython: Productive Interactive Computing
 Home-page: https://ipython.org
 Author: The IPython Development Team
@@ -24,7 +24,7 @@ Classifier: Programming Language :: Python :: 3 :: Only
 Classifier: Topic :: System :: Shells
 Requires-Python: >=3.7
 Requires-Dist: setuptools (>=18.5)
-Requires-Dist: jedi (>=0.10)
+Requires-Dist: jedi (>=0.16)
 Requires-Dist: decorator
 Requires-Dist: pickleshare
 Requires-Dist: traitlets (>=4.2)
@@ -43,7 +43,7 @@ Requires-Dist: nbconvert ; extra == 'all'
 Requires-Dist: nbformat ; extra == 'all'
 Requires-Dist: nose (>=0.10.1) ; extra == 'all'
 Requires-Dist: notebook ; extra == 'all'
-Requires-Dist: numpy (>=1.14) ; extra == 'all'
+Requires-Dist: numpy (>=1.16) ; extra == 'all'
 Requires-Dist: pygments ; extra == 'all'
 Requires-Dist: qtconsole ; extra == 'all'
 Requires-Dist: requests ; extra == 'all'
@@ -71,7 +71,7 @@ Requires-Dist: testpath ; extra == 'test'
 Requires-Dist: pygments ; extra == 'test'
 Requires-Dist: nbformat ; extra == 'test'
 Requires-Dist: ipykernel ; extra == 'test'
-Requires-Dist: numpy (>=1.14) ; extra == 'test'
+Requires-Dist: numpy (>=1.16) ; extra == 'test'
 
 
 IPython provides a rich toolkit to help you make the most out of using Python

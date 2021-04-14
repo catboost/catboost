@@ -266,7 +266,7 @@ namespace NCatboostCuda {
                 }
             };
 
-            auto weak = MakeWeakLearner<TWeakLearner>(FeaturesManager, CatBoostOptions);
+            auto weak = MakeWeakLearner<TWeakLearner>(FeaturesManager, Config, CatBoostOptions, Random);
             while (!progressTracker->ShouldStop()) {
                 CheckInterrupted(); // check after long-lasting operation
                 auto iterationTimeGuard = profiler.Profile("Boosting iteration");

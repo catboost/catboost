@@ -214,7 +214,9 @@ namespace NCatboostCuda {
                 case ELossFunction::NumErrors:
                 case ELossFunction::MAPE:
                 case ELossFunction::Poisson:
-                case ELossFunction::Expectile: {
+                case ELossFunction::Expectile:
+                case ELossFunction::Tweedie:
+                case ELossFunction::Huber: {
                     float alpha = 0.5;
                     auto tmp = TVec::Create(cursor.GetMapping().RepeatOnAllDevices(1));
                     //TODO(noxoomo): make param dispatch on device side
@@ -226,6 +228,12 @@ namespace NCatboostCuda {
                     }
                     if (metricType == ELossFunction::Lq) {
                         alpha = FromString<float>(params.at("q"));
+                    }
+                    if (metricType == ELossFunction::Tweedie) {
+                        alpha = FromString<float>(params.at("variance_power"));
+                    }
+                    if (metricType == ELossFunction::Huber) {
+                        alpha = FromString<float>(params.at("delta"));
                     }
 
                     ApproximatePointwise(target,
@@ -511,31 +519,21 @@ namespace NCatboostCuda {
             case ELossFunction::Accuracy:
             case ELossFunction::ZeroOneLoss:
             case ELossFunction::NumErrors:
+            case ELossFunction::TotalF1:
+            case ELossFunction::MCC:
             case ELossFunction::Poisson:
-            case ELossFunction::Expectile: {
+            case ELossFunction::Expectile:
+            case ELossFunction::Tweedie:
+            case ELossFunction::Huber: {
                 result.emplace_back(new TGpuPointwiseMetric(metricDescription, approxDim));
                 break;
             }
-            case ELossFunction::TotalF1: {
-                EF1AverageType averageType = EF1AverageType::Weighted;
-                if (params.GetParamsMap().contains("average")) {
-                    averageType = FromString<EF1AverageType>(params.GetParamsMap().at("average"));
-                }
-                result.emplace_back(new TGpuPointwiseMetric(MakeTotalF1Metric(params, numClasses, averageType), 0, numClasses, isMulticlass, metricDescription));
-                break;
-            }
-            case ELossFunction::MCC: {
-                result.emplace_back(new TGpuPointwiseMetric(MakeMCCMetric(params, numClasses), 0, numClasses, isMulticlass, metricDescription));
-                break;
-            }
+            case ELossFunction::Precision:
+            case ELossFunction::Recall:
             case ELossFunction::F1: {
-                if (approxDim == 1) {
-                    result.emplace_back(new TGpuPointwiseMetric(MakeBinClassF1Metric(params), 1, 2, isMulticlass, metricDescription));
-                } else {
-                    for (ui32 i = 0; i < approxDim; ++i) {
-                        result.emplace_back(new TGpuPointwiseMetric(MakeMultiClassF1Metric(params, approxDim, i),
-                                                                    i, approxDim, isMulticlass, metricDescription));
-                    }
+                auto cpuMetrics = CreateMetricFromDescription(metricDescription, approxDim);
+                for (ui32 i = 0; i < approxDim; ++i) {
+                    result.emplace_back(new TGpuPointwiseMetric(std::move(cpuMetrics[i]), i, numClasses, isMulticlass, metricDescription));
                 }
                 break;
             }
@@ -581,29 +579,6 @@ namespace NCatboostCuda {
 
             case ELossFunction::HingeLoss: {
                 result.emplace_back(new TCpuFallbackMetric(CreateSingleMetric(metricType, params, approxDim), metricDescription));
-                break;
-            }
-
-            case ELossFunction::Precision: {
-                if (approxDim == 1) {
-                    result.emplace_back(new TGpuPointwiseMetric(MakeBinClassPrecisionMetric(params), 1, 2, isMulticlass, metricDescription));
-                } else {
-                    for (ui32 i = 0; i < approxDim; ++i) {
-                        result.emplace_back(new TGpuPointwiseMetric(MakeMultiClassPrecisionMetric(params, approxDim, i), i, approxDim, isMulticlass, metricDescription));
-                    }
-                }
-                break;
-            }
-            case ELossFunction::Recall: {
-                if (approxDim == 1) {
-                    result.emplace_back(new TGpuPointwiseMetric(MakeBinClassRecallMetric(params),
-                                        1, 2, isMulticlass, metricDescription));
-                } else {
-                    for (ui32 i = 0; i < approxDim; ++i) {
-                        result.emplace_back(new TGpuPointwiseMetric(MakeMultiClassRecallMetric(params, approxDim, i),
-                                            i, approxDim, isMulticlass, metricDescription));
-                    }
-                }
                 break;
             }
             case ELossFunction::QueryRMSE:

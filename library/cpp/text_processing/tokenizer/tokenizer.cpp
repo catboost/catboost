@@ -289,6 +289,7 @@ void NTokenizer::TTokenizer::Tokenize(
     TVector<TString>* tokens,
     TVector<NTokenizer::ETokenType>* tokenTypes
 ) const {
+    Y_ASSERT(tokens);
     tokens->clear();
     if (tokenTypes) {
         tokenTypes->clear();

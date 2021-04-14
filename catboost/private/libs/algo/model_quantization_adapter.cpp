@@ -55,14 +55,25 @@ namespace {
 
         void Visit(const TQuantizedFeaturesBlockIterator& quantizedFeaturesBlockIterator) override {
             TQuantizedFeatureAccessor quantizedFeatureAccessor = quantizedFeaturesBlockIterator.GetAccessor();
-            AssignFeatureBins(
-               *Model.ModelTrees,
-               *Model.ModelTrees->GetApplyData(),
-               quantizedFeatureAccessor.GetFloatAccessor(),
-               quantizedFeatureAccessor.GetCatAccessor(),
-               0,
-               ObjectsEnd - ObjectsStart,
-               Result.Get());
+
+            const auto docCount = ObjectsEnd - ObjectsStart;
+            const auto blockSize = Min(docCount, FORMULA_EVALUATION_BLOCK_SIZE);
+            TVector<ui32> transposedHash(blockSize * Model.GetUsedCatFeaturesCount());
+            auto applyData = Model.ModelTrees->GetApplyData();
+            TVector<float> ctrs(applyData->UsedModelCtrs.size() * blockSize);
+
+            ComputeEvaluatorFeaturesFromPreQuantizedData(
+                *Model.ModelTrees,
+                *applyData,
+                Model.CtrProvider,
+                quantizedFeatureAccessor.GetFloatAccessor(),
+                quantizedFeatureAccessor.GetCatAccessor(),
+                0,
+                docCount,
+                Result.Get(),
+                transposedHash,
+                ctrs
+            );
         }
 
         TIntrusivePtr<TCPUEvaluatorQuantizedData> GetResult() {

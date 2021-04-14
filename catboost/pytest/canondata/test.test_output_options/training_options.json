@@ -18,6 +18,9 @@
         "permutation_count" : 4,
         "learning_rate" : 0.133344993
     },
+    "pool_metainfo_options" : {
+        "tags" : { }
+    },
     "metrics" : {
         "objective_metric" : {
             "type" : "Logloss",

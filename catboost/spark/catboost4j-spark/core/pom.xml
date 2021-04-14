@@ -4,17 +4,23 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>catboost-spark_2.11</artifactId>
+    <artifactId>catboost-spark_2.4_2.11</artifactId>
     <packaging>jar</packaging>
-    <name>CatBoost for Spark</name>
-    <description>JVM module to use CatBoost on Spark</description>
+    <name>CatBoost for Apache Spark</name>
+    <description>JVM module to use CatBoost on Apache Spark</description>
 
     <parent>
         <groupId>ai.catboost</groupId>
         <artifactId>catboost-spark-aggregate_2.11</artifactId>
-        <version>0.25-rc3</version>
+        <version>0.25.1</version>
         <relativePath>..</relativePath>
     </parent>
+
+    <properties>
+        <spark.compat.version>2.4</spark.compat.version>
+        <spark.version>2.4.0</spark.version>
+        <hadoop.version>2.7.3</hadoop.version>
+    </properties>
 
     <distributionManagement>
         <snapshotRepository>
@@ -91,6 +97,7 @@
                                 <argument>ai.catboost.spark.impl.pyspark_wrapper_generator.Generator</argument>
                                 <argument>${project.version}</argument>
                                 <argument>${project.build.directory}/classes/catboost_spark</argument>
+                                <argument>${spark.compat.version}</argument>
                             </arguments>
                         </configuration>
                     </execution>

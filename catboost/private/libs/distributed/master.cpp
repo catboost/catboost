@@ -109,7 +109,7 @@ void SetTrainDataFromMaster(
         workerTrainData.FeatureEstimators = trainData.FeatureEstimators;
         if (trainData.EstimatedObjectsData.Learn) {
             workerTrainData.EstimatedObjectsData.Learn =
-                dynamic_cast<TQuantizedForCPUObjectsDataProvider*>(
+                dynamic_cast<TQuantizedObjectsDataProvider*>(
                     trainData.EstimatedObjectsData.Learn->GetSubset(
                         objectsGroupingSubset,
                         cpuUsedRamLimit,

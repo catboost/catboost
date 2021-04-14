@@ -38,8 +38,9 @@
 #ifndef _SHARED_PTR_H
 #error #include <google/protobuf/stubs/shared_ptr.h>
 #endif
+#include <string>
 #include <vector>
-#include "structmember.h"  // A Python header file.
+#include <structmember.h>  // A Python header file.
 
 #ifndef PyVarObject_HEAD_INIT
 #define PyVarObject_HEAD_INIT(type, size) PyObject_HEAD_INIT(type) size,
@@ -75,19 +76,16 @@
   #define PyString_Check PyUnicode_Check
   #define PyString_FromString PyUnicode_FromString
   #define PyString_FromStringAndSize PyUnicode_FromStringAndSize
-  #define PyString_FromFormat PyUnicode_FromFormat
   #if PY_VERSION_HEX < 0x03030000
     #error "Python 3.0 - 3.2 are not supported."
   #else
   #define PyString_AsString(ob) \
     (PyUnicode_Check(ob)? PyUnicode_AsUTF8(ob): PyBytes_AsString(ob))
-#define PyString_AsStringAndSize(ob, charpp, sizep)                           \
-  (PyUnicode_Check(ob) ? ((*(charpp) = const_cast<char*>(                     \
-                               PyUnicode_AsUTF8AndSize(ob, (sizep)))) == NULL \
-                              ? -1                                            \
-                              : 0)                                            \
-                       : PyBytes_AsStringAndSize(ob, (charpp), (sizep)))
-#endif
+  #define PyString_AsStringAndSize(ob, charpp, sizep) \
+    (PyUnicode_Check(ob)? \
+       ((*(charpp) = const_cast<char*>(PyUnicode_AsUTF8AndSize(ob, (sizep)))) == NULL? -1: 0): \
+       PyBytes_AsStringAndSize(ob, (charpp), (sizep)))
+  #endif
 #endif
 
 namespace google {
@@ -200,12 +198,12 @@ static int AddDescriptors(PyObject* cls, const Descriptor* descriptor) {
 
 static PyObject* New(PyTypeObject* type,
                      PyObject* args, PyObject* kwargs) {
-  static char *kwlist[] = {"name", "bases", "dict", 0};
+  static const char *kwlist[] = {"name", "bases", "dict", 0};
   PyObject *bases, *dict;
   const char* name;
 
   // Check arguments: (name, bases, dict)
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "sO!O!:type", kwlist,
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "sO!O!:type", const_cast<char**>(kwlist),
                                    &name,
                                    &PyTuple_Type, &bases,
                                    &PyDict_Type, &dict)) {
@@ -432,7 +430,7 @@ PyTypeObject CMessageClass_Type = {
   0,                                   // tp_iternext
   0,                                   // tp_methods
   0,                                   // tp_members
-  0 /* message_meta::Getters */,       // tp_getset
+  0, /* message_meta::Getters, */      // tp_getset
   0,                                   // tp_base
   0,                                   // tp_dict
   0,                                   // tp_descr_get
@@ -573,7 +571,7 @@ PyObject* DecodeError_class;
 PyObject* PickleError_class;
 
 /* Is 64bit */
-void FormatTypeError(PyObject* arg, char* expected_types) {
+void FormatTypeError(PyObject* arg, const char* expected_types) {
   PyObject* repr = PyObject_Repr(arg);
   if (repr) {
     PyErr_Format(PyExc_TypeError,
@@ -749,13 +747,7 @@ bool IsValidUTF8(PyObject* obj) {
   }
 }
 
-bool AllowInvalidUTF8(const FieldDescriptor* field) {
-#ifdef Y_PROTOBUF_UTF8_VALIDATION_DISABLED_FOR_PYTHON
-  return true;
-#else
-  return false;
-#endif
-}
+bool AllowInvalidUTF8(const FieldDescriptor* field) { return false; }
 
 PyObject* CheckString(PyObject* arg, const FieldDescriptor* descriptor) {
   GOOGLE_DCHECK(descriptor->type() == FieldDescriptor::TYPE_STRING ||
@@ -766,7 +758,7 @@ PyObject* CheckString(PyObject* arg, const FieldDescriptor* descriptor) {
       return NULL;
     }
 
-    if (!AllowInvalidUTF8(descriptor) && !IsValidUTF8(arg)) {
+    if (!IsValidUTF8(arg) && !AllowInvalidUTF8(descriptor)) {
       PyObject* repr = PyObject_Repr(arg);
       PyErr_Format(PyExc_ValueError,
                    "%s has type str, but isn't valid UTF-8 "
@@ -1827,9 +1819,9 @@ static PyObject* InternalSerializeToString(
     CMessage* self, PyObject* args, PyObject* kwargs,
     bool require_initialized) {
   // Parse the "deterministic" kwarg; defaults to False.
-  static char* kwlist[] = { "deterministic", 0 };
+  static const char* kwlist[] = { "deterministic", 0 };
   PyObject* deterministic_obj = Py_None;
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|O", kwlist,
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|O", const_cast<char**>(kwlist),
                                    &deterministic_obj)) {
     return NULL;
   }
@@ -2888,8 +2880,8 @@ PyTypeObject CMessage_Type = {
 
 // --- Exposing the C proto living inside Python proto to C code:
 
-extern const Message* (*GetCProtoInsidePyProtoPtr)(PyObject* msg);
-extern Message* (*MutableCProtoInsidePyProtoPtr)(PyObject* msg);
+const Message* (*GetCProtoInsidePyProtoPtr)(PyObject* msg);
+Message* (*MutableCProtoInsidePyProtoPtr)(PyObject* msg);
 
 static const Message* GetCProtoInsidePyProtoImpl(PyObject* msg) {
   if (!PyObject_TypeCheck(msg, &CMessage_Type)) {
@@ -2983,8 +2975,12 @@ bool InitProto2MessageModule(PyObject *m) {
         reinterpret_cast<PyObject*>(
             &RepeatedCompositeContainer_Type));
 
-    // Register them as collections.Sequence
+    // Register them as MutableSequence.
+#if PY_MAJOR_VERSION >= 3
+    ScopedPyObjectPtr collections(PyImport_ImportModule("collections.abc"));
+#else
     ScopedPyObjectPtr collections(PyImport_ImportModule("collections"));
+#endif
     if (collections == NULL) {
       return false;
     }

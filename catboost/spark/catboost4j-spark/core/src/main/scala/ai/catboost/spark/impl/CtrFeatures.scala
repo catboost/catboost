@@ -137,7 +137,11 @@ object CtrFeatures {
     
     val catBoostOptions = new TCatBoostOptions(ETaskType.CPU)
     native_impl.InitCatBoostOptions(compact(catBoostJsonParams), catBoostOptions)
-    val ctrHelper = native_impl.GetCtrHelper(catBoostOptions, quantizedTrainPool.getFeaturesLayout, learnTarget)
+    val ctrHelper = native_impl.GetCtrHelper(
+      catBoostOptions,
+      quantizedTrainPool.getFeaturesLayout.__deref__(),
+      learnTarget
+    )
     
     val localExecutor = new TLocalExecutor
     localExecutor.Init(SparkHelpers.getThreadCountForDriver(spark))
@@ -215,14 +219,16 @@ object CtrFeatures {
     val trainPoolWithEstimatedFeatures = new Pool(
       trainWithIds.join(aggregateEstimatedTrainData, "_id"),
       quantizedTrainPool.pairsData,
-      quantizedFeaturesInfo
+      quantizedFeaturesInfo,
+      false
     )
     val evalPoolsWithEstimatedFeatures = (0 until quantizedEvalPools.length).map{
       i => {
         new Pool(
           evalsWithIds(i).join(aggregateEstimatedEvalsData(i), "_id"),
           quantizedEvalPools(i).pairsData,
-          quantizedEvalPools(i).quantizedFeaturesInfo
+          quantizedEvalPools(i).quantizedFeaturesInfo,
+          false
         )
       }
     }.toArray

@@ -1,6 +1,6 @@
 PY23_LIBRARY()
 
-LICENSE(Yandex)
+LICENSE(YandexOpen)
 
 
 

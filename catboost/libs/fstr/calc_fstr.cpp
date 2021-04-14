@@ -24,6 +24,7 @@
 #include <catboost/private/libs/target/data_providers.h>
 
 #include <util/generic/algorithm.h>
+#include <util/generic/cast.h>
 #include <util/generic/hash.h>
 #include <util/generic/xrange.h>
 #include <util/string/builder.h>
@@ -38,7 +39,7 @@
 using namespace NCB;
 
 
-static TVector<TFeature>  GetCombinationClassFeatures(const TFullModel& model) {
+TCombinationClassFeatures GetCombinationClassFeatures(const TFullModel& model) {
     NCB::TFeaturesLayout layout = MakeFeaturesLayout(model);
     TVector<std::pair<TVector<int>, TFeature>> featuresCombinations;
     const TModelTrees& forest = *model.ModelTrees;
@@ -92,7 +93,7 @@ static TVector<TFeature>  GetCombinationClassFeatures(const TFullModel& model) {
             return featuresCombinations[feature1].first < featuresCombinations[feature2].first;
         }
     );
-    TVector<TFeature> combinationClassFeatures;
+    TCombinationClassFeatures combinationClassFeatures;
 
     for (ui32 featureIdx = 0; featureIdx < featuresCombinations.size(); ++featureIdx) {
         int currentFeature = sortedBinFeatures[featureIdx];
@@ -160,14 +161,21 @@ static THashMap<TFeature, int, TFeatureHash> GetFeatureToIdxMap(
     return featureToIdx;
 }
 
+i64 GetMaxObjectCountForFstrCalc(i64 objectCount, i32 featureCount) {
+    return Min(objectCount, Max(i64(2e5), i64(2e9 / featureCount)));
+}
+
+
 const TDataProviderPtr GetSubsetForFstrCalc(
     const TDataProviderPtr dataset,
     NPar::ILocalExecutor* localExecutor)
 {
     ui32 totalDocumentCount = dataset->ObjectsData->GetObjectCount();
-    ui32 maxDocumentCount = Min(
-        totalDocumentCount,
-        Max(ui32(2e5), ui32(2e9 / dataset->ObjectsData->GetFeaturesLayout()->GetExternalFeatureCount()))
+    ui32 maxDocumentCount = SafeIntegerCast<ui32>(
+        GetMaxObjectCountForFstrCalc(
+            totalDocumentCount,
+            SafeIntegerCast<i64>(dataset->ObjectsData->GetFeaturesLayout()->GetExternalFeatureCount())
+        )
     );
 
     if (totalDocumentCount > maxDocumentCount) {
@@ -192,33 +200,15 @@ const TDataProviderPtr GetSubsetForFstrCalc(
     }
 }
 
-static TVector<std::pair<double, TFeature>> CalcFeatureEffectAverageChange(
+TVector<std::pair<double, TFeature>> CalcFeatureEffectAverageChange(
     const TFullModel& model,
-    const TDataProviderPtr dataset,
-    NPar::ILocalExecutor* localExecutor)
+    TConstArrayRef<double> weights)
 {
     if (model.GetTreeCount() == 0) {
         return TVector<std::pair<double, TFeature>>();
     }
     TVector<double> effect;
     TVector<TFeature> features;
-
-    TVector<double> leavesStatistics;
-    TConstArrayRef<double> weights;
-    if (dataset) {
-        CB_ENSURE(dataset->GetObjectCount() != 0, "no docs in pool");
-        CB_ENSURE(dataset->MetaInfo.GetFeatureCount() > 0, "no features in pool");
-        CATBOOST_INFO_LOG << "Used dataset leave statistics for fstr calculation" << Endl;
-
-        leavesStatistics = CollectLeavesStatistics(*dataset, model, localExecutor);
-        weights = leavesStatistics;
-    } else {
-        CB_ENSURE(
-            !model.ModelTrees->GetModelTreeData()->GetLeafWeights().empty(),
-            "CalcFeatureEffect requires either non-empty LeafWeights in model or provided dataset"
-        );
-        weights = model.ModelTrees->GetModelTreeData()->GetLeafWeights();
-    }
 
     THashMap<TFeature, int, TFeatureHash> featureToIdx = GetFeatureToIdxMap(model, &features);
     if (model.IsOblivious()) {
@@ -262,34 +252,82 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectAverageChange(
     return result;
 }
 
-static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
+static TVector<std::pair<double, TFeature>> CalcFeatureEffectAverageChange(
     const TFullModel& model,
-    const TDataProviderPtr dataProvider,
-    NPar::ILocalExecutor* localExecutor,
-    ECalcTypeShapValues calcType)
+    const TDataProviderPtr dataset,
+    NPar::ILocalExecutor* localExecutor)
 {
-    NCatboostOptions::TLossDescription metricDescription;
+    TVector<double> leavesStatistics;
+    TConstArrayRef<double> weights;
+    if (dataset) {
+        CB_ENSURE(dataset->GetObjectCount() != 0, "no docs in pool");
+        CB_ENSURE(dataset->MetaInfo.GetFeatureCount() > 0, "no features in pool");
+        CATBOOST_INFO_LOG << "Used dataset leave statistics for fstr calculation" << Endl;
+
+        leavesStatistics = CollectLeavesStatistics(*dataset, model, localExecutor);
+        weights = leavesStatistics;
+    } else {
+        CB_ENSURE(
+            !model.ModelTrees->GetModelTreeData()->GetLeafWeights().empty(),
+            "CalcFeatureEffect requires either non-empty LeafWeights in model or provided dataset"
+        );
+        weights = model.ModelTrees->GetModelTreeData()->GetLeafWeights();
+    }
+    return CalcFeatureEffectAverageChange(model, weights);
+}
+
+
+void CreateMetricAndLossDescriptionForLossChange(
+    const TFullModel& model,
+    NCatboostOptions::TLossDescription* metricDescription,
+    NCatboostOptions::TLossDescription* lossDescription,
+    bool* needYetiRankPairs,
+    THolder<IMetric>* metric)
+{
     CB_ENSURE(
-        TryGetObjectiveMetric(model, &metricDescription),
+        TryGetObjectiveMetric(model, metricDescription),
         "Cannot calculate LossFunctionChange feature importances without metric, need model with params"
     );
-    CATBOOST_INFO_LOG << "Used " << metricDescription << " metric for fstr calculation" << Endl;
-    int approxDimension = model.ModelTrees->GetDimensionsCount();
+    CATBOOST_INFO_LOG << "Used " << *metricDescription << " metric for fstr calculation" << Endl;
 
-    auto combinationClassFeatures = GetCombinationClassFeatures(model);
-    int featuresCount = combinationClassFeatures.size();
-    if (featuresCount == 0) {
-        TVector<std::pair<double, TFeature>> result;
-        return result;
+    CB_ENSURE(TryGetLossDescription(model, lossDescription), "No loss_function in model params");
+
+    // NDCG and PFound metrics are possible for YetiRank
+    // PFound replace with PairLogit (with YetiRank generated pairs) due to quality
+    // NDCG used for labels not in [0., 1.] and don't use YetiRank pairs
+    *needYetiRankPairs =
+        (IsYetiRankLossFunction(lossDescription->GetLossFunction())
+         && metricDescription->LossFunction != ELossFunction::NDCG);
+    if (*needYetiRankPairs) {
+        *metricDescription = NCatboostOptions::ParseLossDescription("PairLogit");
     }
+    *metric = std::move(
+        CreateMetricFromDescription(*metricDescription, model.ModelTrees->GetDimensionsCount())[0]
+    );
+    CB_ENSURE((*metric)->IsAdditiveMetric(), "LossFunctionChange support only additive metric");
+}
 
-    const auto dataset = GetSubsetForFstrCalc(dataProvider, localExecutor);
 
-    ui32 documentCount = dataset->ObjectsData->GetObjectCount();
-    const TObjectsDataProvider& objectsData = *dataset->ObjectsData;
+TVector<TMetricHolder> CalcFeatureEffectLossChangeMetricStats(
+    const TFullModel& model,
+    const int featuresCount,
+    const TShapPreparedTrees& preparedTrees,
+    const TDataProviderPtr dataset,
+    ECalcTypeShapValues calcType,
+    NPar::ILocalExecutor* localExecutor)
+{
+    NCatboostOptions::TLossDescription metricDescription;
+    NCatboostOptions::TLossDescription lossDescription;
+    bool needYetiRankPairs = false;
+    THolder<IMetric> metric;
 
-    CATBOOST_INFO_LOG << "Selected " << documentCount << " documents from " << dataProvider->GetObjectCount()
-        << " for LossFunctionChange calculation." << Endl;
+    CreateMetricAndLossDescriptionForLossChange(
+        model,
+        &metricDescription,
+        &lossDescription,
+        &needYetiRankPairs,
+        &metric
+    );
 
     TRestorableFastRng64 rand(0);
     auto targetData = CreateModelCompatibleProcessedDataProvider(
@@ -302,24 +340,9 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
     ).TargetData;
     CB_ENSURE(targetData->GetTargetDimension() <= 1, "Multi-dimensional target fstr is unimplemented yet");
 
-    TShapPreparedTrees preparedTrees = PrepareTrees(
-        model,
-        dataset.Get(),
-        /*referenceDataset*/ nullptr,
-        EPreCalcShapValues::Auto,
-        localExecutor,
-        /*calcInternalValues*/ true,
-        calcType
-    );
-    CalcShapValuesByLeaf(
-        model,
-        /*fixedFeatureParams*/ Nothing(),
-        /*logPeriod*/ 0,
-        preparedTrees.CalcInternalValues,
-        localExecutor,
-        &preparedTrees,
-        calcType
-    );
+    ui32 documentCount = dataset->ObjectsData->GetObjectCount();
+    const TObjectsDataProvider& objectsData = *dataset->ObjectsData;
+
     TVector<TMetricHolder> scores(featuresCount + 1);
 
     TConstArrayRef<TQueryInfo> targetQueriesInfo
@@ -337,15 +360,6 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
     ui32 blockCount = queriesInfo.empty() ? documentCount : queriesInfo.size();
     ui32 blockSize = Min(ui32(10000), ui32(1e6) / (featuresCount * approx.ysize())); // shapValues[blockSize][featuresCount][dim] double
 
-    NCatboostOptions::TLossDescription lossDescription;
-    CB_ENSURE(TryGetLossDescription(model, &lossDescription), "No loss_function in model params");
-
-    // NDCG and PFound metrics are possible for YetiRank
-    // PFound replace with PairLogit (with YetiRank generated pairs) due to quality
-    // NDCG used for labels not in [0., 1.] and don't use YetiRank pairs
-    bool needYetiRankPairs =
-        (IsYetiRankLossFunction(lossDescription.GetLossFunction())
-         && metricDescription.LossFunction != ELossFunction::NDCG);
     if (needYetiRankPairs) {
         ui32 maxQuerySize = 0;
         for (const auto& query : queriesInfo) {
@@ -353,8 +367,8 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
         }
         blockSize = Min(blockSize, ui32(ceil(20000. / maxQuerySize)));
     }
-    THolder<IMetric> metric = std::move(CreateMetricFromDescription(metricDescription, approxDimension)[0]);
-    CB_ENSURE(metric->IsAdditiveMetric(), "LossFunctionChange support only additive metric");
+
+    int approxDimension = model.ModelTrees->GetDimensionsCount();
 
     TProfileInfo profile(documentCount);
     TImportanceLogger importanceLogger(
@@ -446,13 +460,27 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
         importanceLogger.Log(profile.GetProfileResults());
     }
 
+    return scores;
+}
+
+TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChangeFromScores(
+    const TCombinationClassFeatures& combinationClassFeatures,
+    const IMetric& metric,
+    const TVector<TMetricHolder>& scores)
+{
+    int featuresCount = combinationClassFeatures.size();
+    if (featuresCount == 0) {
+        TVector<std::pair<double, TFeature>> result;
+        return result;
+    }
+
     TVector<std::pair<double, int>> featureScore(featuresCount);
 
     EMetricBestValue valueType;
     float bestValue;
-    metric->GetBestValue(&valueType, &bestValue);
+    metric.GetBestValue(&valueType, &bestValue);
     for (int idx = 0; idx < featuresCount; ++idx) {
-        double score = metric->GetFinalError(scores[idx]) - metric->GetFinalError(scores.back());
+        double score = metric.GetFinalError(scores[idx]) - metric.GetFinalError(scores.back());
         switch(valueType) {
             case EMetricBestValue::Min:
                 break;
@@ -460,8 +488,8 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
                 score = -score;
                 break;
             case EMetricBestValue::FixedValue:
-                score = abs(metric->GetFinalError(scores[idx]) - bestValue)
-                    - abs(metric->GetFinalError(scores.back()) - bestValue);
+                score = abs(metric.GetFinalError(scores[idx]) - bestValue)
+                    - abs(metric.GetFinalError(scores.back()) - bestValue);
                 break;
             default:
                 ythrow TCatBoostException() << "unsupported bestValue metric type";
@@ -478,6 +506,68 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
         result.back().second = combinationClassFeatures[score.second];
     }
     return result;
+}
+
+
+
+static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
+    const TFullModel& model,
+    const TDataProviderPtr dataProvider,
+    NPar::ILocalExecutor* localExecutor,
+    ECalcTypeShapValues calcType)
+{
+    NCatboostOptions::TLossDescription metricDescription;
+    NCatboostOptions::TLossDescription lossDescription;
+    bool needYetiRankPairs = false;
+    THolder<IMetric> metric;
+
+    CreateMetricAndLossDescriptionForLossChange(
+        model,
+        &metricDescription,
+        &lossDescription,
+        &needYetiRankPairs,
+        &metric
+    );
+
+    const auto dataset = GetSubsetForFstrCalc(dataProvider, localExecutor);
+
+    ui32 documentCount = dataset->ObjectsData->GetObjectCount();
+
+    CATBOOST_INFO_LOG << "Selected " << documentCount << " documents from " << dataProvider->GetObjectCount()
+        << " for LossFunctionChange calculation." << Endl;
+
+    TShapPreparedTrees preparedTrees = PrepareTrees(
+        model,
+        dataset.Get(),
+        /*referenceDataset*/ nullptr,
+        EPreCalcShapValues::Auto,
+        localExecutor,
+        /*calcInternalValues*/ true,
+        calcType
+    );
+    CalcShapValuesByLeaf(
+        model,
+        /*fixedFeatureParams*/ Nothing(),
+        /*logPeriod*/ 0,
+        preparedTrees.CalcInternalValues,
+        localExecutor,
+        &preparedTrees,
+        calcType
+    );
+
+    auto combinationClassFeatures = GetCombinationClassFeatures(model);
+    int featuresCount = combinationClassFeatures.size();
+
+    auto scores = CalcFeatureEffectLossChangeMetricStats(
+        model,
+        featuresCount,
+        preparedTrees,
+        dataset,
+        calcType,
+        localExecutor
+    );
+
+    return CalcFeatureEffectLossChangeFromScores(combinationClassFeatures, *metric, scores);
 }
 
 TVector<std::pair<double, TFeature>> CalcFeatureEffect(
@@ -590,19 +680,14 @@ TVector<TFeatureEffect> CalcRegularFeatureEffect(
     return regularFeatureEffect;
 }
 
-TVector<double> CalcRegularFeatureEffect(
-    const TFullModel& model,
-    const TDataProviderPtr dataset,
-    EFstrType type,
-    NPar::ILocalExecutor* localExecutor,
-    ECalcTypeShapValues calcType)
-{
-    const NCB::TFeaturesLayout layout = MakeFeaturesLayout(model);
 
-    TVector<TFeatureEffect> regularEffect = CalcRegularFeatureEffect(
-        CalcFeatureEffect(model, dataset, type, localExecutor, calcType),
-        model
-    );
+TVector<double> GetFeatureEffectForLinearIndices(
+    const TVector<std::pair<double, TFeature>>& featureEffect,
+    const TFullModel& model)
+{
+    TVector<TFeatureEffect> regularEffect = CalcRegularFeatureEffect(featureEffect, model);
+
+    const NCB::TFeaturesLayout layout = MakeFeaturesLayout(model);
 
     TVector<double> effect(layout.GetExternalFeatureCount());
     for (const auto& featureEffect : regularEffect) {
@@ -614,6 +699,19 @@ TVector<double> CalcRegularFeatureEffect(
     }
 
     return effect;
+}
+
+TVector<double> CalcRegularFeatureEffect(
+    const TFullModel& model,
+    const TDataProviderPtr dataset,
+    EFstrType type,
+    NPar::ILocalExecutor* localExecutor,
+    ECalcTypeShapValues calcType)
+{
+    return GetFeatureEffectForLinearIndices(
+        CalcFeatureEffect(model, dataset, type, localExecutor, calcType),
+        model
+    );
 }
 
 TVector<TInternalFeatureInteraction> CalcInternalFeatureInteraction(const TFullModel& model) {

@@ -80,6 +80,17 @@ void CalcShapValuesByLeaf(
 );
 
 // returned: ShapValues[documentIdx][dimension][feature]
+TVector<TVector<TVector<double>>> CalcShapValuesWithPreparedTrees(
+    const TFullModel& model,
+    const NCB::TDataProvider& dataset,
+    const TMaybe<TFixedFeatureParams>& fixedFeatureParams,
+    int logPeriod,
+    const TShapPreparedTrees& preparedTrees,
+    NPar::ILocalExecutor* localExecutor,
+    ECalcTypeShapValues calcType
+);
+
+// returned: ShapValues[documentIdx][dimension][feature]
 TVector<TVector<TVector<double>>> CalcShapValuesMulti(
     const TFullModel& model,
     const NCB::TDataProvider& dataset,

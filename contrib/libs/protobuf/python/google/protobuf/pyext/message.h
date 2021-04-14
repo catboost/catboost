@@ -41,6 +41,7 @@
 #ifndef _SHARED_PTR_H
 #error #include <google/protobuf/stubs/shared_ptr.h>
 #endif
+#include <string>
 
 namespace google {
 namespace protobuf {
@@ -54,6 +55,7 @@ class MessageFactory;
 
 #ifdef _SHARED_PTR_H
 using std::shared_ptr;
+using string = TProtoStringType;
 #else
 using internal::shared_ptr;
 #endif
@@ -322,7 +324,7 @@ PyObject* SetAllowOversizeProtos(PyObject* m, PyObject* arg);
 
 #define FULL_MODULE_NAME "google.protobuf.pyext._message"
 
-void FormatTypeError(PyObject* arg, char* expected_types);
+void FormatTypeError(PyObject* arg, const char* expected_types);
 template<class T>
 bool CheckAndGetInteger(PyObject* arg, T* value);
 bool CheckAndGetDouble(PyObject* arg, double* value);

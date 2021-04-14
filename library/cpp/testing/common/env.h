@@ -48,6 +48,12 @@ const TString& GetTestParam(TStringBuf name, const TString& def);
 // @brief return path to the gdb
 const TString& GdbPath();
 
+// @brief register the process. Test suite will be marked as failed if the process is terminated with a core dump file after testing
+void WatchProcessCore(int pid, const TFsPath& binaryPath, const TFsPath& cwd = TFsPath());
+
+// @brief mark the process as successfully completed - a test machinery won't try to recover core dump file for the process
+void StopProcessCoreWatching(int pid);
+
 #define SRC_(path) ArcadiaFromCurrentLocation(__SOURCE_FILE__, path)
 
 namespace NPrivate {
@@ -65,8 +71,10 @@ namespace NPrivate {
         TString BuildRoot;
         TString WorkPath;
         TString RamDrivePath;
+        TString YtHddPath;
         TString TestOutputRamDrivePath;
         TString GdbPath;
+        TString CoreSearchFile;
         std::unordered_map<TString, TString> TestParameters;
     };
 

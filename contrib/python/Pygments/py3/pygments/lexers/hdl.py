@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
     pygments.lexers.hdl
     ~~~~~~~~~~~~~~~~~~~
@@ -13,7 +12,7 @@ import re
 
 from pygments.lexer import RegexLexer, bygroups, include, using, this, words
 from pygments.token import Text, Comment, Operator, Keyword, Name, String, \
-    Number, Punctuation, Error
+    Number, Punctuation
 
 __all__ = ['VerilogLexer', 'SystemVerilogLexer', 'VhdlLexer']
 
@@ -51,7 +50,6 @@ class VerilogLexer(RegexLexer):
             (r'([0-9]+)|(\'o)[0-7]+', Number.Oct),
             (r'\'[01xz]', Number),
             (r'\d+[Ll]?', Number.Integer),
-            (r'\*/', Error),
             (r'[~!%^&*+=|?:<>/-]', Operator),
             (r'[()\[\],.;\']', Punctuation),
             (r'`[a-zA-Z_]\w*', Name.Constant),
@@ -190,8 +188,6 @@ class SystemVerilogLexer(RegexLexer):
 
             (r'\'[01xXzZ]', Number),
             (r'[0-9][_0-9]*', Number.Integer),
-
-            (r'\*/', Error),
 
             (r'[~!%^&*+=|?:<>/-]', Operator),
             (words(('inside', 'dist'), suffix=r'\b'), Operator.Word),

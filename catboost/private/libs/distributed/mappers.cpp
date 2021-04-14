@@ -37,7 +37,7 @@ namespace NCatboostDistributed {
         }
     }
 
-    static const NCB::TQuantizedForCPUObjectsDataProvider& GetLearnObjectsData(
+    static const NCB::TQuantizedObjectsDataProvider& GetLearnObjectsData(
         const NCB::TTrainingDataProviders& trainingData,
         bool estimated
     ) {

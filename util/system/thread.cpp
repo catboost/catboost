@@ -417,9 +417,9 @@ void TThread::SetCurrentThreadName(const char* name) {
     pthread_t thread = pthread_self();
     pthread_set_name_np(thread, name);
 #elif defined(_linux_)
-    Y_VERIFY(prctl(PR_SET_NAME, name, 0, 0, 0) == 0, "pctl failed: %s", strerror(errno));
+    prctl(PR_SET_NAME, name, 0, 0, 0);
 #elif defined(_darwin_)
-    Y_VERIFY(pthread_setname_np(name) == 0, "pthread_setname_np failed: %s", strerror(errno));
+    pthread_setname_np(name);
 #elif defined(_win_)
     auto api = Singleton<TWinThreadDescrAPI>();
     if (api->HasAPI()) {

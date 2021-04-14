@@ -161,7 +161,8 @@ Y_MAP_ARGS(
     Y_CATBOOST_CUDA_F_IMPL_PROXY,
     (ui32, ui32, TMirrorMapping),
     (ui32, ui32, TSingleMapping),
-    (ui32, ui32, TStripeMapping));
+    (ui32, ui32, TStripeMapping),
+    (float, float, TSingleMapping));
 
 #undef Y_CATBOOST_CUDA_F_IMPL
 #undef Y_CATBOOST_CUDA_F_IMPL_PROXY
@@ -200,7 +201,8 @@ Y_MAP_ARGS(
     Y_CATBOOST_CUDA_F_IMPL_PROXY,
     (ui32, ui32, TMirrorMapping),
     (ui32, ui32, TSingleMapping),
-    (ui32, ui32, TStripeMapping));
+    (ui32, ui32, TStripeMapping),
+    (float, float, TSingleMapping));
 
 #undef Y_CATBOOST_CUDA_F_IMPL
 #undef Y_CATBOOST_CUDA_F_IMPL_PROXY

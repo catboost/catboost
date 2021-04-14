@@ -3,6 +3,7 @@
 #include "quantized_features_info.h"
 
 #include <catboost/private/libs/algo/index_hash_calcer.h>
+#include <catboost/private/libs/algo_helpers/scratch_cache.h>
 #include <catboost/private/libs/options/defaults_helper.h>
 #include <catboost/private/libs/options/system_options.h>
 
@@ -165,14 +166,14 @@ static TQuantizedObjectsDataProviderPtr CreateEstimatedObjectsDataProvider(
     commonObjectsData.SubsetIndexing
         = MakeAtomicShared<TArraySubsetIndexing<ui32>>(TFullSubset<ui32>(objectCount));
 
-    TQuantizedForCPUObjectsData dstData;
-    dstData.Data.QuantizedFeaturesInfo = std::move(quantizedFeaturesInfo);
+    TQuantizedObjectsData dstData;
+    dstData.QuantizedFeaturesInfo = std::move(quantizedFeaturesInfo);
     dstData.PackedBinaryFeaturesData.FlatFeatureIndexToPackedBinaryIndex.resize(data.size());
     dstData.ExclusiveFeatureBundlesData.FlatFeatureIndexToBundlePart.resize(data.size());
     dstData.FeaturesGroupsData.FlatFeatureIndexToGroupPart.resize(data.size());
 
     for (auto featureIdx : xrange<ui32>(data.size())) {
-        dstData.Data.FloatFeatures.push_back(
+        dstData.FloatFeatures.push_back(
             MakeHolder<TQuantizedFloatValuesHolder>(
                 featureIdx,
                 TCompressedArray(objectCount, /*bitsPerKey*/ 8, std::move(data[featureIdx])),
@@ -181,7 +182,7 @@ static TQuantizedObjectsDataProviderPtr CreateEstimatedObjectsDataProvider(
         );
     }
 
-    return MakeIntrusive<TQuantizedForCPUObjectsDataProvider>(
+    return MakeIntrusive<TQuantizedObjectsDataProvider>(
         MakeIntrusive<TObjectsGrouping>(objectCount),
         std::move(commonObjectsData),
         std::move(dstData),
@@ -214,6 +215,8 @@ void ComputeEstimatedCtrFeatures(
 
     TEstimatedColumnsDataWriter dataWriter(dataSizes);
 
+    NCB::TScratchCache scratchCache;
+
     const auto& featuresLayout = *(learnData->GetFeaturesLayout());
     featuresLayout.IterateOverAvailableFeatures<EFeatureType::Categorical>(
         [&] (TCatFeatureIdx catFeatureIdx) {
@@ -229,6 +232,7 @@ void ComputeEstimatedCtrFeatures(
                 targetStats.TargetClassesCount,
                 catBoostOptions.CatFeatureParams,
                 localExecutor,
+                &scratchCache,
                 &dataWriter
             );
         }

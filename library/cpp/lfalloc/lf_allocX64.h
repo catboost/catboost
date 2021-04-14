@@ -1089,6 +1089,7 @@ struct TLocalPerTagAllocCounter {
 };
 
 static const int DBG_ALLOC_MAX_TAG = 1000;
+static const int DBG_ALLOC_ALIGNED_TAG = 0xF0000000;
 static const int DBG_ALLOC_NUM_SIZES = 30;
 static TPerTagAllocCounter GlobalPerTagAllocCounters[DBG_ALLOC_MAX_TAG][DBG_ALLOC_NUM_SIZES];
 
@@ -1306,17 +1307,25 @@ static void AllocThreadInfo() {
 #if defined(LFALLOC_DBG)
 
 struct TAllocHeader {
-    size_t Size;
+    uint64_t Size;
     int Tag;
     int Cookie;
 };
+
+// should be power of 2
+static_assert(sizeof(TAllocHeader) == 16);
 
 static inline void* GetAllocPtr(TAllocHeader* p) {
     return p + 1;
 }
 
 static inline TAllocHeader* GetAllocHeader(void* p) {
-    return ((TAllocHeader*)p) - 1;
+    auto* header = ((TAllocHeader*)p) - 1;
+    if (header->Tag == DBG_ALLOC_ALIGNED_TAG) {
+        return (TAllocHeader*)header->Size;
+    }
+
+    return header;
 }
 
 PERTHREAD int AllocationTag;
@@ -1670,7 +1679,7 @@ static void DebugTraceMMgr(const char* pszFormat, ...) // __cdecl
 #ifdef _win_
     OutputDebugStringA(buff);
 #else
-    fprintf(stderr, buff);
+    fputs(buff, stderr);
 #endif
 }
 
@@ -1859,15 +1868,6 @@ static const char* LFAlloc_GetParam(const char* param) {
     return nullptr;
 }
 
-static Y_FORCE_INLINE void* LFVAlloc(size_t size) {
-    const size_t pg = N_PAGE_SIZE;
-    size_t bigsize = (size + pg - 1) & (~(pg - 1));
-    void* p = LFAlloc(bigsize);
-
-    Y_ASSERT_NOBT((intptr_t)p % N_PAGE_SIZE == 0);
-    return p;
-}
-
 static Y_FORCE_INLINE int LFPosixMemalign(void** memptr, size_t alignment, size_t size) {
     if (Y_UNLIKELY(alignment > 4096)) {
         const char* error = "Larger alignment are not guaranteed with this implementation\n";
@@ -1882,7 +1882,45 @@ static Y_FORCE_INLINE int LFPosixMemalign(void** memptr, size_t alignment, size_
     } else if (bigsize < 2 * alignment) {
         bigsize = 2 * alignment;
     }
+#if defined(LFALLOC_DBG)
+    if (alignment > sizeof(TAllocHeader)) {
+        bigsize += alignment;
+    }
+#endif
+
     *memptr = LFAlloc(bigsize);
+
+#if defined(LFALLOC_DBG)
+    if (alignment > sizeof(TAllocHeader)) {
+        // memptr isn't aligned due to alloc header
+        const auto* header = GetAllocHeader(*memptr);
+        *memptr = (void*)((const char*) (*memptr) + alignment - sizeof(TAllocHeader));
+
+        // make fake header to retrieve original header ptr on dealloc
+        auto* next = GetAllocHeader(*memptr);
+        next->Tag = DBG_ALLOC_ALIGNED_TAG;
+        next->Size = (uint64_t)header;
+        next->Cookie = 0;
+    }
+#endif
+
+    Y_ASSERT_NOBT((intptr_t)*memptr % alignment == 0);
     return 0;
 }
+
+static Y_FORCE_INLINE void* LFVAlloc(size_t size) {
+    const size_t pg = N_PAGE_SIZE;
+    void* p = nullptr;
+
+#if defined(LFALLOC_DBG)
+    LFPosixMemalign(&p, pg, size);
+#else
+    size_t bigsize = (size + pg - 1) & (~(pg - 1));
+    p = LFAlloc(bigsize);
+#endif
+
+    Y_ASSERT_NOBT((intptr_t)p % N_PAGE_SIZE == 0);
+    return p;
+}
+
 #endif

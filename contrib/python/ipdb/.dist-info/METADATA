@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: ipdb
-Version: 0.13.4
+Version: 0.13.7
 Summary: IPython-enabled pdb
 Home-page: https://github.com/gotcha/ipdb
 Author: Godefroid Chapelle
@@ -23,7 +23,15 @@ Classifier: License :: OSI Approved :: BSD License
 Requires-Python: >=2.7
 Requires-Dist: setuptools
 Requires-Dist: ipython (<6.0.0,>=5.1.0) ; python_version == "2.7"
-Requires-Dist: ipython (>=5.1.0) ; python_version >= "3.4"
+Requires-Dist: toml (>=0.10.2) ; python_version == "2.7"
+Requires-Dist: ipython (<7.0.0,>=6.0.0) ; python_version == "3.4"
+Requires-Dist: toml (>=0.10.2) ; python_version == "3.4"
+Requires-Dist: ipython (<7.10.0,>=7.0.0) ; python_version == "3.5"
+Requires-Dist: toml (>=0.10.2) ; python_version == "3.5"
+Requires-Dist: ipython (<7.17.0,>=7.10.0) ; python_version == "3.6"
+Requires-Dist: toml (>=0.10.2) ; python_version == "3.6"
+Requires-Dist: ipython (>=7.17.0) ; python_version > "3.6"
+Requires-Dist: toml (>=0.10.2) ; python_version > "3.6"
 
 IPython `pdb`
 =============
@@ -66,11 +74,11 @@ interface whenever `cond` equals to `True`.
 Using configuration file
 ++++++++++++++++++++++++
 
-It's possible to set up context using a `.ipdb` file on your home folder or `setup.cfg`
-on your project folder. You can also set your file location via env var `$IPDB_CONFIG`.
-Your environment variable has priority over the home configuration file,
-which in turn has priority over the setup config file. Currently, only context setting
-is available.
+It's possible to set up context using a `.ipdb` file on your home folder, `setup.cfg`
+or `pyproject.toml` on your project folder. You can also set your file location via
+env var `$IPDB_CONFIG`. Your environment variable has priority over the home
+configuration file, which in turn has priority over the setup config file.
+Currently, only context setting is available.
 
 A valid setup.cfg is as follows
 
@@ -84,6 +92,14 @@ A valid .ipdb is as follows
 
 ::
 
+        context=5
+
+
+A valid pyproject.toml is as follows
+
+::
+
+        [tool.ipdb]
         context=5
 
 
@@ -159,12 +175,20 @@ Development
 
 Pull requests should take care of updating the changelog ``HISTORY.txt``.
 
+Under the unreleased section, add your changes and your username.
+
 Manual testing
 ++++++++++++++
 
 To test your changes, make use of ``manual_test.py``. Create a virtual environment,
 install IPython and run ``python manual_test.py`` and check if your changes are in effect.
 If possible, create automated tests for better behaviour control.
+
+Automated testing
++++++++++++++++++
+
+To run automated tests locally, create a virtual environment, install `coverage`
+and run `coverage run setup.py test`.
 
 Third-party support
 -------------------
@@ -196,6 +220,33 @@ instead of ``pdb``. (It does not depend on ``ipdb`` anymore).
 
 Changelog
 =========
+
+0.13.7 (2021-03-16)
+-------------------
+
+- Do not instantiate IPython on import
+  [adamchainz]
+
+
+0.13.6 (2021-03-08)
+-------------------
+
+- Fix broken parsing of pyproject.toml
+  [alexandrebarbaruiva]
+
+
+0.13.5 (2021-03-02)
+-------------------
+
+- Add support for pyproject.toml as configuration file
+  [alexandrebarbaruiva]
+
+- For users using python 3.4, install 6.0.0 <= IPython < 7.0.0,
+  for users using python 3.5, install 7.0.0 <= IPython < 7.10.0,
+  for users using python 3.6, install 7.10.0 <= IPython < 7.17.0,
+  for users using python>3.6, install IPython >= 7.17.0.
+  [d1618033]
+
 
 0.13.4 (2020-10-01)
 -------------------

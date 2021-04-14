@@ -2,7 +2,7 @@
 
 PY23_LIBRARY()
 
-LICENSE(Yandex)
+LICENSE(YandexOpen)
 
 PEERDIR(
     library/cpp/testing/unittest

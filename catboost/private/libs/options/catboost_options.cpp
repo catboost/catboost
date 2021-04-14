@@ -248,9 +248,7 @@ void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
     }
     const bool useExact = EqualToOneOf(lossFunctionConfig.GetLossFunction(), ELossFunction::MAE, ELossFunction::MAPE, ELossFunction::Quantile)
             && SystemOptions->IsSingleHost()
-            && TaskType == ETaskType::CPU
-            && !BoostingOptions->ApproxOnFullHistory
-            && treeConfig.MonotoneConstraints.Get().empty();
+            && (TaskType == ETaskType::GPU || !BoostingOptions->ApproxOnFullHistory && treeConfig.MonotoneConstraints.Get().empty());
 
     if (useExact) {
         defaultEstimationMethod = ELeavesEstimation::Exact;
@@ -327,8 +325,8 @@ void NCatboostOptions::TCatBoostOptions::Load(const NJson::TJsonValue& options) 
                 &ObliviousTreeOptions,
                 &DataProcessingOptions, &LossFunctionDescription,
                 &RandomSeed, &CatFeatureParams,
-                &FlatParams, &Metadata, &LoggingLevel,
-                &IsProfile, &MetricOptions);
+                &FlatParams, &Metadata, &PoolMetaInfoOptions,
+                &LoggingLevel, &IsProfile, &MetricOptions);
     SetNotSpecifiedOptionsToDefaults();
     CB_ENSURE(currentTaskType == GetTaskType(), "Task type in json-config is not equal to one specified for options");
     Validate();
@@ -338,7 +336,7 @@ void NCatboostOptions::TCatBoostOptions::Save(NJson::TJsonValue* options) const 
     SaveFields(options, TaskType, SystemOptions, BoostingOptions, ModelBasedEvalOptions, ObliviousTreeOptions,
                DataProcessingOptions, LossFunctionDescription,
                RandomSeed, CatFeatureParams, FlatParams,
-               Metadata, LoggingLevel, IsProfile, MetricOptions);
+               Metadata, PoolMetaInfoOptions, LoggingLevel, IsProfile, MetricOptions);
 }
 
 NCatboostOptions::TCtrDescription
@@ -702,10 +700,6 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
              "Posterior Sampling requires Сonstant Model Shrink Mode");
     }
 
-    if (BoostingOptions->Langevin.GetUnchecked()) {
-        CB_ENSURE(SystemOptions->IsSingleHost(), "Langevin boosting is supported in single-host mode only.");
-    }
-
     if (GetTaskType() == ETaskType::CPU && ObliviousTreeOptions->FeaturePenalties.IsSet()) {
         ValidateFeaturePenaltiesOptions(ObliviousTreeOptions->FeaturePenalties.Get());
     }
@@ -904,7 +898,7 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
             BoostingOptions->Langevin.SetDefault(true);
         }
 
-        if (BoostingOptions->DiffusionTemperature.GetUnchecked() > 0.0f && BoostingOptions->Langevin.NotSet()) {
+        if (BoostingOptions->DiffusionTemperature > 0.0f && BoostingOptions->Langevin.NotSet()) {
             BoostingOptions->Langevin.SetDefault(true);
         }
 
@@ -1077,6 +1071,7 @@ NCatboostOptions::TCatBoostOptions::TCatBoostOptions(ETaskType taskType)
     , CatFeatureParams("cat_feature_params", TCatFeatureParams(taskType))
     , FlatParams("flat_params", NJson::TJsonValue(NJson::JSON_MAP))
     , Metadata("metadata", NJson::TJsonValue(NJson::JSON_MAP))
+    , PoolMetaInfoOptions("pool_metainfo_options", TPoolMetaInfoOptions())
     , RandomSeed("random_seed", 0)
     , LoggingLevel("logging_level", ELoggingLevel::Verbose)
     , IsProfile("detailed_profile", false)
@@ -1088,11 +1083,11 @@ NCatboostOptions::TCatBoostOptions::TCatBoostOptions(ETaskType taskType)
 bool NCatboostOptions::TCatBoostOptions::operator==(const TCatBoostOptions& rhs) const {
     return std::tie(SystemOptions, BoostingOptions, ModelBasedEvalOptions, ObliviousTreeOptions,  DataProcessingOptions,
             LossFunctionDescription, CatFeatureParams, RandomSeed, LoggingLevel,
-            IsProfile, MetricOptions, FlatParams, Metadata) ==
+            IsProfile, MetricOptions, FlatParams, Metadata, PoolMetaInfoOptions) ==
         std::tie(rhs.SystemOptions, rhs.BoostingOptions, rhs.ModelBasedEvalOptions, rhs.ObliviousTreeOptions,
                 rhs.DataProcessingOptions, rhs.LossFunctionDescription, rhs.CatFeatureParams,
                 rhs.RandomSeed, rhs.LoggingLevel,
-                rhs.IsProfile, rhs.MetricOptions, rhs.FlatParams, rhs.Metadata);
+                rhs.IsProfile, rhs.MetricOptions, rhs.FlatParams, rhs.Metadata, rhs.PoolMetaInfoOptions);
 }
 
 bool NCatboostOptions::TCatBoostOptions::operator!=(const TCatBoostOptions& rhs) const {

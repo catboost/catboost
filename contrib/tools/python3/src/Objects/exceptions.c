@@ -2310,7 +2310,8 @@ MemoryError_dealloc(PyBaseExceptionObject *self)
     BaseException_clear(self);
 
     if (!Py_IS_TYPE(self, (PyTypeObject *) PyExc_MemoryError)) {
-        return Py_TYPE(self)->tp_free((PyObject *)self);
+        Py_TYPE(self)->tp_free((PyObject *)self);
+        return;
     }
 
     _PyObject_GC_UNTRACK(self);
@@ -2531,8 +2532,10 @@ _PyExc_Init(void)
     do { \
         PyObject *_code = PyLong_FromLong(CODE); \
         assert(_PyObject_RealIsSubclass(PyExc_ ## TYPE, PyExc_OSError)); \
-        if (!_code || PyDict_SetItem(errnomap, _code, PyExc_ ## TYPE)) \
+        if (!_code || PyDict_SetItem(errnomap, _code, PyExc_ ## TYPE)) { \
+            Py_XDECREF(_code); \
             return _PyStatus_ERR("errmap insertion problem."); \
+        } \
         Py_DECREF(_code); \
     } while (0)
 
