@@ -6,7 +6,11 @@ RECURSE(
     libffi.closures
 )
 
-IF (NOT OS_IOS)
+IF (OS_DARWIN AND ARCH_AARCH64)
+    SET(MAC_M1 yes)
+ENDIF()
+
+IF (NOT MAC_M1 AND NOT OS_IOS)
     RECURSE(
     libffi.go
 )
