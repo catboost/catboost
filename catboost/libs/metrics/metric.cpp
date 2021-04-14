@@ -658,7 +658,7 @@ TMetricHolder TCoxMetric::Eval(
             const TConstArrayRef<TConstArrayRef<double>> approx,
             const TConstArrayRef<TConstArrayRef<double>> /*approxDelta*/,
             bool isExpApprox,
-            TConstArrayRef<float> target,
+            TConstArrayRef<float> targets,
             TConstArrayRef<float> /*weight*/,
             TConstArrayRef<TQueryInfo> /*queriesInfo*/,
             int /*begin*/,
@@ -669,7 +669,7 @@ TMetricHolder TCoxMetric::Eval(
     TMetricHolder error(2);
     error.Stats[1] = 1;
 
-    TVector<size_t> label_order(target.ysize());
+    TVector<size_t> label_order(targets.ysize());
     std::iota(label_order.begin(), label_order.end(), 0);
     std::sort(label_order.begin(), label_order.end(), [&]
         (size_t lhs, size_t rhs){
@@ -677,7 +677,7 @@ TMetricHolder TCoxMetric::Eval(
         }
     );
 
-    const yssize_t ndata = target.ysize();
+    const yssize_t ndata = targets.ysize();
     double exp_p_sum = 0;
     for (yssize_t i = 0; i < ndata; ++i) {
         exp_p_sum += std::exp(approx[0][i]);
@@ -689,7 +689,7 @@ TMetricHolder TCoxMetric::Eval(
     for (yssize_t i = 0; i < ndata; ++i) {
         const size_t ind = label_order[i];
 
-        const double y = target[ind];
+        const double y = targets[ind];
         const double abs_y = std::abs(y);
 
         const double p = approx[0][ind];
