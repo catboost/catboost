@@ -670,44 +670,44 @@ TMetricHolder TCoxMetric::Eval(
     TMetricHolder error(2);
     error.Stats[1] = 1;
 
-    TVector<size_t> label_order(targets.ysize());
-    std::iota(label_order.begin(), label_order.end(), 0);
-    std::sort(label_order.begin(), label_order.end(), [&]
+    TVector<size_t> labelOrder(targets.ysize());
+    std::iota(labelOrder.begin(), labelOrder.end(), 0);
+    std::sort(labelOrder.begin(), labelOrder.end(), [&]
         (size_t lhs, size_t rhs){
             return std::abs(targets[lhs]) < std::abs(targets[rhs]);
         }
     );
 
     const yssize_t ndata = targets.ysize();
-    double exp_p_sum = 0;
+    double expPSum = 0;
     for (yssize_t i = 0; i < ndata; ++i) {
-        exp_p_sum += std::exp(approx[0][i]);
+        expPSum += std::exp(approx[0][i]);
     }
 
-    double last_exp_p = 0.0;
-    double last_abs_y = 0.0;
-    double accumulated_sum = 0;
+    double lastExpP = 0.0;
+    double lastAbsY = 0.0;
+    double accumulatedSum = 0;
     for (yssize_t i = 0; i < ndata; ++i) {
-        const size_t ind = label_order[i];
+        const size_t ind = labelOrder[i];
 
         const double y = targets[ind];
-        const double abs_y = std::abs(y);
+        const double absY = std::abs(y);
 
         const double p = approx[0][ind];
-        const double exp_p = std::exp(p);
+        const double expP = std::exp(p);
 
-        accumulated_sum += last_exp_p;
-        if (last_abs_y < abs_y) {
-            exp_p_sum -= accumulated_sum;
-            accumulated_sum = 0;
+        accumulatedSum += lastExpP;
+        if (lastAbsY < absY) {
+            expPSum -= accumulatedSum;
+            accumulatedSum = 0;
         }
 
         if (y > 0) {
-            error.Stats[0] += p - std::log(exp_p_sum);
+            error.Stats[0] += p - std::log(expPSum);
         }
 
-        last_abs_y = abs_y;
-        last_exp_p = exp_p;
+        lastAbsY = absY;
+        lastExpP = expP;
     }
     error.Stats[0] = - error.Stats[0];
 
