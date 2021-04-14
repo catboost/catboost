@@ -496,7 +496,6 @@ migrations:
     - health/yamd/libs/cross_links
     - health/yamd/libs/utils
     - health/yamd/libs/utils/parsers
-    - infra/awacs/awacsctl2/src/tests
     - infra/awacs/vendor/awacs/pire/ut
     - infra/callisto/agent
     - infra/callisto/agent/v2/multibeta2
@@ -567,7 +566,6 @@ migrations:
     - mail/yasm/lib
     - mail/yasm/lib/calendar/alerts
     - mail/yasm/lib/calendar/panels
-    - mail/yasm/lib/shiva/panels
     - mapreduce/yt/tools/du-yt
     - maps/analyzer/pylibs/watchman_api/lib
     - maps/automotive/proxy/config_generator
@@ -594,7 +592,6 @@ migrations:
     - maps/routing/router/regression/gen-stopwatch-ammo
     - maps/routing/router/scripts/gen-ammo
     - maps/routing/versus/lib
-    - maps/search/geocoder/segmenter/grammar/converter/lib
     - maps/tools/matcher_quality/routes_to_geoms
     - maps/tools/package_releaser/lib
     - maps/tools/tanker-build/translate_messages
@@ -788,7 +785,6 @@ migrations:
     - rt-research/broadmatching/scripts/yt/dyn-sources/generate_dse_banners
     - rt-research/broadmatching/scripts/yt/dyn-sources/generate_dse_banners/generate_filtered_links
     - rt-research/broadmatching/scripts/yt/dyn-sources/yt_prepare_dyn_sources
-    - rt-research/broadmatching/scripts/yt/put-data-to-yt/upload-conversion-stats
     - rt-research/multik/deploy/deploy
     - rt-research/multik/tasks/labeling/catalogia_candidates
     - rtmapreduce/mrtasks/create_sessions/diff_tool
@@ -2153,7 +2149,6 @@ migrations:
     - yweb/antiporno/cp_conv/text_classif/bin
     - yweb/antispam/achievements/cbrf_import
     - yweb/antispam/cid/library/geo
-    - yweb/antispam/clean_web/backends/fast_only
     - yweb/antispam/clean_web/router
     - yweb/antispam/mascot/monitorings/check_table_age
     - yweb/antispam/ytgr/legal_loader/library
