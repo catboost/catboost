@@ -3531,7 +3531,6 @@
                 "ar": "$(NDK)/llvm-toolchain/bin/llvm-ar",
                 "c_compiler": "$(NDK)/llvm-toolchain/bin/clang",
                 "cxx_compiler": "$(NDK)/llvm-toolchain/bin/clang++",
-                "cxx_std": "c++17",
                 "objcopy": "$(NDK)/llvm-toolchain/bin/llvm-objcopy",
                 "strip": "$(NDK)/llvm-toolchain/bin/llvm-strip",
                 "werror_mode": "all",
