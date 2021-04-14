@@ -5826,3 +5826,71 @@ def to_classifier(model):
     for attr in model.__dict__:
         setattr(classifier, attr, getattr(model, attr))
     return classifier
+
+
+from catboost.utils import read_cd
+
+
+class ColumnDescription:
+    column_type_synonyms_map = {
+        'Target': 'Label',
+        'DocId': 'SampleId',
+        'QueryId': 'GroupId'
+    }
+
+    def __init__(self, cd_file=None, column_count=None, data_file=None, canonize_column_types=False):
+        self.canonize_column_types = canonize_column_types
+        self.column_type_to_indices = {}
+        self.column_dtypes = {}
+        self.cat_feature_indices = set()
+        self.text_feature_indices = set()
+        self.embedding_feature_indices = set()
+        self.column_names = []
+        self.non_feature_column_indices = set()
+
+        if cd_file:
+            data = read_cd(cd_file, column_count, data_file, canonize_column_types)
+            self.column_type_to_indices = data['column_type_to_indices']
+            self.column_dtypes = data['column_dtypes']
+            self.cat_feature_indices = set(data['cat_feature_indices'])
+            self.text_feature_indices = set(data['text_feature_indices'])
+            self.embedding_feature_indices = set(data['embedding_feature_indices'])
+            self.column_names = data['column_names']
+            self.non_feature_column_indices = set(data['non_feature_column_indices'])
+
+    def add_feature(self, column_idx, column_type=None, column_name=None):
+        if column_idx < 0:
+            raise Exception('Negative column indices in ColumnDescription')
+
+        if column_idx in self.cat_feature_indices or \
+                column_idx in self.text_feature_indices or \
+                column_idx in self.embedding_feature_indices or \
+                column_idx in self.non_feature_column_indices:
+            raise Exception('Feature description exist yet')
+
+        if self.canonize_column_types:
+            column_type = ColumnDescription.column_type_synonyms_map.get(column_type, column_type)
+
+        self.column_type_to_indices.setdefault(column_type, []).append(column_idx)
+
+        if column_type in ['Num', 'Categ', 'Text', 'NumVector']:
+            feature_idx = column_idx - len(self.non_feature_column_indices)
+            if column_name is None:
+                column_name = 'feature_%i' % feature_idx
+            if column_type == 'Categ':
+                self.cat_feature_indices.add(feature_idx)
+                self.column_dtypes[column_name] = 'category'
+            elif column_type == 'Text':
+                self.text_feature_indices.add(feature_idx)
+                self.column_dtypes[column_name] = object
+            elif column_type == 'NumVector':
+                self.embedding_feature_indices.add(feature_idx)
+                self.column_dtypes[column_name] = object
+            else:
+                self.column_dtypes[column_name] = np.float32
+        else:
+            self.non_feature_column_indices.add(column_idx)
+            if column_name is None:
+                column_name = column_type
+
+        self.column_names.append(column_name)

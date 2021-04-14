@@ -20,6 +20,7 @@ from catboost import (
     FeaturesData,
     Pool,
     cv,
+    ColumnDescription,
     sum_models,
     train,
     _have_equal_features,
@@ -280,6 +281,33 @@ def load_simple_dataset_as_lists(is_test):
 
 # Test cases begin here ########################################################
 
+def test_column_description_from_file():
+    cd = ColumnDescription(cd_file=ROTTEN_TOMATOES_CD_BINCLASS_FILE,
+                           data_file=ROTTEN_TOMATOES_TRAIN_SMALL_NO_QUOTES_FILE,
+                           canonize_column_types=True)
+
+
+def test_column_from_empty():
+    cd = ColumnDescription()
+    desc = [(1,  "Categ", "mpaa_film_rating"),
+            (2,	 "Text",  "genre"),
+            (3,	 "Categ", "director"),
+            (4,  "Categ", "writer"),
+            (5,  "Num",   "theater_date"),
+            (6,	 "Num",	  "dvd_date"),
+            (7,	 "Text",  "review"),
+            (8,	 "Categ", "rating"),
+            (9,  "Categ", None),
+            (10, "Categ", "critic"),
+            (11, "Label", "top_critic"),
+            (12, "Categ", "publisher"),
+            (13, "Num",   "date")
+            ]
+
+    for (idx, tp, name) in desc:
+        cd.add_feature(idx, tp, name)
+
+'''
 @pytest.mark.parametrize('niter', [100, 500])
 def test_multiregression_custom_eval(niter, n=10):
     class MultiRMSE(MultiRegressionCustomMetric):
@@ -9083,3 +9111,4 @@ def test_same_params(params):
     params['loss_function'] = 'Logloss'
     CatBoost(params).fit(train_pool).save_model(model_path)
     assert CatBoost().load_model(model_path).get_params() == params
+'''
