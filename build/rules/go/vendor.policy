@@ -726,7 +726,7 @@ ALLOW transfer_manager/go/pkg/sink/pg -> vendor/github.com/jackc/pgx
 ALLOW transfer_manager/go/pkg/source/pg -> vendor/github.com/jackc/pgx
 ALLOW transfer_manager/go/pkg/storage/pg -> vendor/github.com/jackc/pgx
 ALLOW transfer_manager/go/pkg/worker/tasks -> vendor/github.com/jackc/pgx
-ALLOW transfer_manager/go/pkg/pg -> vendor/github.com/jackc/pgx
+ALLOW transfer_manager/go/pkg/dataagent/pg -> vendor/github.com/jackc/pgx
 ALLOW transfer_manager/go/tests/e2e/pg2pg/replication -> vendor/github.com/jackc/pgx
 ALLOW yabs/telephony/platform/common/db -> vendor/github.com/jackc/pgx
 ALLOW yabs/telephony/platform/common/lifecycle -> vendor/github.com/jackc/pgx
