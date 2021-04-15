@@ -91,14 +91,14 @@ def _urlopen(url, data=None, headers=None):
             return urllib2.urlopen(request, timeout=tout).read()
 
         except urllib2.HTTPError as e:
-            logging.error(e)
+            logging.warning('failed to fetch URL %s with HTTP code %d: %s', url, e.code, e)
             retry_after = int(e.headers.get('Retry-After', str(retry_after)))
 
             if e.code not in TEMPORARY_ERROR_CODES:
                 raise
 
         except Exception as e:
-            logging.error(e)
+            logging.warning('failed to fetch URL %s: %s', url, e)
 
         if i + 1 == n:
             raise e
@@ -194,10 +194,10 @@ def fetch(resource_id, custom_fetcher):
         except UnsupportedProtocolException:
             pass
         except subprocess.CalledProcessError as e:
-            logging.error(e)
+            logging.warning('failed to fetch resource %s with subprocess: %s', resource_id, e)
             time.sleep(i)
         except urllib2.HTTPError as e:
-            logging.error(e)
+            logging.warning('failed to fetch resource %s with HTTP code %d: %s', resource_id, e.code, e)
             if e.code not in TEMPORARY_ERROR_CODES:
                 exc_info = exc_info or sys.exc_info()
             time.sleep(i)
