@@ -26,7 +26,6 @@ migrations:
     - dict/ontodb/isa/libshorttext/converter/stemmer
     - dict/ontodb/report/common
     - dict/ontodb/utils/export_src_codes
-    - dj/services/alisa_skills/server/tests
     - edadeal/analytics/scripts/CashbackReport/CashbackReportLib
     - edadeal/analytics/scripts/CashbackReport/CashbackReportLib/CashbackReportLib
     - education/services/sections/it
@@ -633,8 +632,6 @@ migrations:
     - media/media_support/media_support/chats
     - metrika/admin/maas/lib/core/common
     - metrika/admin/python/seeker/lib
-    - metrika/core/utils/alteroscope
-    - metrika/core/utils/alteroscope/tools
     - metrika/pylib/iptruler
     - metrika/pylib/utils
     - ml/nirvana/nope
@@ -1230,7 +1227,6 @@ migrations:
     - ads/bsyeti/tests/bsdiff
     - ads/emily/mvp/backend_agnostik/backends/nirvana
     - ads/libs/py_mapreduce/yabs-mapreduce-modules/py-modules/yabs/tabtools
-    - ads/logos/libs/reactor_runner/ut
     - ads/logos/tasks/mediation_fast_lm_features
     - ads/ml_engine/learn/result/local_extended_fstr/lib
     - ads/pytorch/lib/online_learning/production/processors/tsar_processor/lib
@@ -1248,7 +1244,6 @@ migrations:
     - alice/hollywood/tests/perf_test
     - alice/megamind/tests/library
     - alice/paskills/granet_server/tests
-    - alice/tools/telegram/alice_battle_angel_bot
     - alice/uniproxy/bin/send-digest
     - alice/uniproxy/bin/uniproxy
     - alice/uniproxy/bin/uniproxy-delivery
@@ -1369,7 +1364,6 @@ migrations:
     - keyboard/analytics/collect_logs
     - keyboard/dict/nirvana/config_generator/blocks
     - keyboard/dict/synthetic_ngrams/synthetic_ngrams_builder
-    - kikimr/ci/tests/client/improved
     - kikimr/juggler/bundles/kikhouse_bundle
     - kikimr/tools/create_svp
     - kikimr/yf/tests/embedded
@@ -1838,12 +1832,10 @@ migrations:
     - maps/wikimap/stat/tasks_payment/tasks_logging/feedback/lib
     - maps_adv/common/shared_mock
     - market/backctld/pyb
-    - market/cataloger/lite
     - market/click_n_collect/mt
     - market/dynamic_pricing/tools/kvi_evaluation
     - market/dynamic_pricing/tools/offline_modeling
     - market/mobile_validator/mt
-    - market/report/runtime_cloud/juggler_bundle/ut
     - market/report/runtime_cloud/zeus/zeus_prepare
     - market/seo/tools/postgres_local/recipe
     - market/sre/tools/kraken/src/kraken_monrun
@@ -2173,7 +2165,6 @@ migrations:
     - dict/ontodb/report/common
     - dict/ontodb/utils/export_src_codes
     - dj/nirvana/nirvana_make
-    - dj/services/alisa_skills/server/tests
     - edadeal/analytics/scripts/CashbackReport/CashbackReportLib
     - edadeal/analytics/scripts/CashbackReport/CashbackReportLib/CashbackReportLib
     - education/services/sections/it
