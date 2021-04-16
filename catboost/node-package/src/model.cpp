@@ -2,7 +2,6 @@
 
 #include "api_helpers.h"
 
-
 namespace {
 
 // Collect pointers to matrix rows into a vector.
@@ -25,6 +24,18 @@ TModel::TModel(const Napi::CallbackInfo& info): Napi::ObjectWrap<TModel>(info) {
 
     this->Handle = ModelCalcerCreate();
     NHelper::CheckNotNullHandle(env, this->Handle);
+
+    if (info.Length() == 0) {
+        return;
+    }
+
+    NHelper::Check(env, info[0].IsString(), "File name argument should be a string");
+    const bool status = LoadFullModelFromFile(this->Handle,
+                                              info[0].As<Napi::String>().Utf8Value().c_str());
+    // Even if it fails, this check schedules NodeJS exception, not C++ one.
+    // The C++ object is considered to be successfully created and will be destoryed by Node runtime
+    // later as usual.
+    NHelper::CheckStatus(env, status);
 }
 
 TModel::~TModel() {
@@ -35,8 +46,8 @@ TModel::~TModel() {
 
 Napi::Function TModel::GetClass(Napi::Env env) {
     return DefineClass(env, "Model", {
-        TModel::InstanceMethod("loadFullFromFile", &TModel::LoadFullFromFile),
-        TModel::InstanceMethod("calcPrediction", &TModel::CalcPrediction),
+        TModel::InstanceMethod("loadModel", &TModel::LoadFullFromFile),
+        TModel::InstanceMethod("predict", &TModel::CalcPrediction),
         TModel::InstanceMethod("getFloatFeaturesCount", &TModel::GetModelFloatFeaturesCount),
         TModel::InstanceMethod("getCatFeaturesCount", &TModel::GetModelCatFeaturesCount),
         TModel::InstanceMethod("getTreeCount", &TModel::GetModelTreeCount),
