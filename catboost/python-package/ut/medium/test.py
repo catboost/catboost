@@ -376,24 +376,6 @@ def test_save_model_multiregression(niter):
     assert _check_data(pred1, pred2)
 
 
-def test_ranking_ndcg_score():
-    model = CatBoostRanker()
-
-    approx = [5.0, 4.0, 3.0]
-    target = [5.0, 4.0, 3.0]
-    score = model._compute_mean_ndcg(approx, target, metric_type='Base')
-    assert np.isclose(score, 1.0, atol=1e-5)
-    score = model._compute_mean_ndcg(approx, target, metric_type='Exp')
-    assert np.isclose(score, 1.0, atol=1e-5)
-
-    approx = [1.0, 1.0, 2.0]
-    target = [1.0, 0.0, 2.0]
-    score = model._compute_mean_ndcg(approx, target, metric_type='Base')
-    assert np.isclose(score, 0.9502344168, atol=1e-5)
-    score = model._compute_mean_ndcg(approx, target, metric_type='Exp')
-    assert np.isclose(score, 0.9639404333, atol=1e-5)
-
-
 def test_load_file():
     assert _check_shape(Pool(TRAIN_FILE, column_description=CD_FILE), 101, 17)
 

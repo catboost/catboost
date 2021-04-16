@@ -87,20 +87,6 @@ cdef extern from "catboost/private/libs/options/enums.h" namespace "NCB":
     cdef ERawTargetType ERawTargetType_None "NCB::ERawTargetType::None"
 
 
-cdef extern from "catboost/private/libs/options/enums.h":
-    cdef cppclass ENdcgMetricType:
-        bool_t operator==(ENdcgMetricType)
-
-    cdef ENdcgMetricType ENdcgMetricType_Base "ENdcgMetricType::Base"
-    cdef ENdcgMetricType ENdcgMetricType_Exp "ENdcgMetricType::Exp"
-
-    cdef cppclass ENdcgDenominatorType:
-        bool_t operator==(ENdcgDenominatorType)
-
-    cdef ENdcgDenominatorType ENdcgDenominatorType_LogPosition "ENdcgDenominatorType::LogPosition"
-    cdef ENdcgDenominatorType ENdcgDenominatorType_Position "ENdcgDenominatorType::Position"
-
-
 cdef extern from "catboost/private/libs/options/model_based_eval_options.h" namespace "NCatboostOptions" nogil:
     cdef TString GetExperimentName(ui32 featureSetIdx, ui32 foldIdx) except +ProcessException
 

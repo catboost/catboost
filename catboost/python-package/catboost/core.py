@@ -68,7 +68,7 @@ SPARSE_MATRIX_TYPES = _catboost.SPARSE_MATRIX_TYPES
 MultiRegressionCustomMetric = _catboost.MultiRegressionCustomMetric
 MultiRegressionCustomObjective = _catboost.MultiRegressionCustomObjective
 fspath = _catboost.fspath
-_ComputeNDCG = _catboost._ComputeNDCG
+_eval_metric_util = _catboost._eval_metric_util
 
 
 from contextlib import contextmanager  # noqa E402
@@ -5250,14 +5250,8 @@ class CatBoostRanker(CatBoost):
         'QueryCrossEntropy'
         'QueryRMSE'
         'QuerySoftMax'
-        'PFound'
-        'NDCG'
-        'DCG'
-        'FilteredDCG'
-        'AverageGain'
-        'PrecisionAt'
-        'RecallAt'
-        'MAP'
+        'PairLogit'
+        'PairLogitPairwise'
     """
 
     _estimator_type = 'ranker'
@@ -5477,16 +5471,6 @@ class CatBoostRanker(CatBoost):
         if 'loss_function' in params:
             self._check_is_ranking_loss(params['loss_function'])
 
-        if ('loss_function' in params and
-            'max_depth' in params and
-             params['loss_function'] == 'PairLogitPairwise' and
-             params['max_depth'] >= 8
-           ):
-            raise Exception('max_depth for pair-logit-pairwise should be < 8')
-
-        if not isinstance(X, Pool) and group_id is None:
-            group_id = np.zeros(X.shape[0], dtype=int)
-
         self._fit(X, y, cat_features, text_features, embedding_features, pairs,
                   sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, use_best_model,
                   eval_set, verbose, logging_level, plot, column_description, verbose_eval, metric_period,
@@ -5524,7 +5508,6 @@ class CatBoostRanker(CatBoost):
             otherwise one-dimensional numpy.ndarray of formula return values for each object.
         """
         if not isinstance(X, Pool):
-            group_id = group_id if group_id is not None else np.zeros(X.shape[0], dtype=int)
             X = Pool(X, group_id=group_id)
         return self._predict(X, 'RawFormulaVal', ntree_start, ntree_end, thread_count, verbose, 'predict')
 
@@ -5562,32 +5545,41 @@ class CatBoostRanker(CatBoost):
         """
 
         if not isinstance(X, Pool):
-            group_id = group_id if group_id is not None else np.zeros(X.shape[0], dtype=int)
             X = Pool(X, group_id=group_id)
         return self._staged_predict(X, 'RawFormulaVal', ntree_start, ntree_end, eval_period, thread_count, verbose, 'staged_predict')
 
-    def score(self, X, y=None, group_id=None, metric_type='Base', top=int(pow(2, 32) - 1), denominator_type='LogPosition'):
+    def score(self, X, y=None, group_id=None, top=None, type=None, denominator=None, group_weight=None, thread_count=-1):
         """
         Calculate NDCG@top
         Parameters
         ----------
         X : catboost.Pool or list or numpy.ndarray or pandas.DataFrame or pandas.Series
             Data to apply model on.
-        y : list or numpy.ndarray
+        y : list or numpy.ndarrays or pandas.DataFrame or pandas.Series
             True labels.
-        group_id : list or numpy.ndarray
+        group_id : list or numpy.ndarray or pandas.DataFrame or pandas.Series
             Ranking groups. If X is a Pool, group_id must be defined into X
-        metric_type : str
-            'Base' or 'Exp'
-        top : unsigned integer, up to uint_32 range
-            number of top-ranked objects to calculate NDCG
-        denominator_type : str
-            'LogPosition' or 'Position'
+        top : unsigned integer, up to `pow(2, 32) / 2 - 1`
+            NDCG, Number of top-ranked objects to calculate NDCG
+        type : str
+            NDCG, Metric_type: 'Base' or 'Exp'
+        denominator : str
+            NDCG, Denominator type: 'LogPosition' or 'Position'
+        group_weight : list or numpy.ndarray or pandas.DataFrame or pandas.Series
+            Group weights.
+        thread_count : int, optional (default=-1)
+            Number of threads to work with.
         Returns
         -------
         NDCG@top : float
                    higher is better
         """
+        def get_params_line(values, names):
+            params = ':'
+            for value, name in zip(values, names):
+                if value is not None:
+                    params += "{}={};".format(name, value)
+            return params[:-1]
 
         if isinstance(X, Pool):
             if y is not None:
@@ -5599,36 +5591,25 @@ class CatBoostRanker(CatBoost):
 
         if y is None:
             raise CatBoostError("y must be initialized.")
+        group_id = group_id if group_id is not None else np.zeros(X.shape[0], dtype=int)
 
         predictions = self.predict(X)
-        return self._compute_mean_ndcg(predictions, y, group_id, metric_type, top, denominator_type)
+        params = get_params_line([top, type, denominator], ['top', 'type', 'denominator'])
+        return _eval_metric_util([y], [predictions], "NDCG{}".format(params), None, group_id, group_weight, None, None, thread_count)[0]
 
-    def _compute_mean_ndcg(self, y_pred, y_true, group_id=None, metric_type='Base', top=int(pow(2, 32) - 1), denominator_type='LogPosition'):
-            y_pred = np.array(y_pred, dtype=np.float64)
-            y_true = np.array(y_true, dtype=np.float64)
-            group_id = np.array(group_id) if group_id is not None else np.zeros(len(y_pred), dtype=int)
-            queries = np.unique(group_id)
-
-            sum_ndcg = 0.0
-            for query in queries:
-                idxs = (group_id == query)
-                value = _ComputeNDCG(y_pred[idxs], y_true[idxs], metric_type, top, denominator_type)
-                sum_ndcg += value
-
-            return sum_ndcg / len(queries)
 
     def _check_is_ranking_loss(self, loss_function):
         is_ranking = self._is_groupwise_objective(loss_function) or self._is_pairwise_objective(loss_function)
-        is_regression = self._is_regression_objective(loss_function) or self._is_multiregression_objective(loss_function)
+        is_regression = self._is_regression_objective(loss_function)
 
-        if isinstance(loss_function, str) and is_regression:
+        if is_regression:
             warnings.warn("Regression loss ('{}') ignores an important ranking parameter 'group_id'".format(loss_function), RuntimeWarning)
-        if isinstance(loss_function, str) and not (is_ranking or is_regression):
+        if not (is_ranking or is_regression):
             raise CatBoostError("Invalid loss_function='{}': for ranker use "
                                 "YetiRank, YetiRankPairwise, StochasticFilter, StochasticRank, "
-                                "QueryCrossEntropy, QueryRMSE, QuerySoftMax, PFound, NDCG, DCG, "
-                                "FilteredDCG, AverageGain, PrecisionAt, RecallAt, MAP. "
+                                "QueryCrossEntropy, QueryRMSE, QuerySoftMax, PairLogit, PairLogitPairwise. "
                                 "It's also possible to use a regression loss".format(loss_function))
+
 
 def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None, iterations=None,
           num_boost_round=None, evals=None, eval_set=None, plot=None, verbose_eval=None, metric_period=None,

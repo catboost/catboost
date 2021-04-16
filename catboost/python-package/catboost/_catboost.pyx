@@ -533,19 +533,6 @@ cdef extern from "util/system/atexit.h":
     cdef void ManualRunAtExitFinalizers()
 
 
-cdef extern from "catboost/libs/metrics/sample.h" namespace "NMetrics":
-    cdef cppclass TSample:
-        double Target
-        double Prediction
-        double Weight
-
-        @staticmethod
-        TVector[TSample] FromVectors(TConstArrayRef[double] targets, TConstArrayRef[double] predictions) except +ProcessException
-
-    cdef cppclass TBinClassSample:
-        pass
-
-
 cdef extern from "catboost/libs/metrics/metric_holder.h":
     cdef cppclass TMetricHolder:
         TVector[double] Stats
@@ -559,15 +546,6 @@ cdef extern from "catboost/libs/metrics/metric.h":
 
 cdef extern from "catboost/libs/metrics/metric.h":
     cdef bool_t IsMaxOptimal(const IMetric& metric) except +ProcessException
-
-
-cdef extern from "catboost/libs/metrics/dcg.h":
-    cdef double CalcNdcg(
-        TConstArrayRef[TSample] samples,
-        ENdcgMetricType type,
-        ui32 topSize,
-        ENdcgDenominatorType denominator
-    ) except +ProcessException
 
 
 cdef extern from "catboost/private/libs/algo/tree_print.h":
@@ -5659,58 +5637,6 @@ cpdef _get_onnx_model(model, export_parameters):
     cdef const char* result_ptr = result.c_str()
     cdef size_t result_len = result.size()
     return bytes(result_ptr[:result_len])
-
-
-def _check_np_array(array, shape_len, dtype=np.float32, array_name=''):
-    if not (
-        array is not None and
-        isinstance(array, np.ndarray) and
-        len(array.shape) == shape_len and
-        len(array) and
-        array[0].dtype == dtype and
-        array[0].flags.c_contiguous
-    ):
-        raise CatBoostError("{} array should be a non-empty {} array with .flags.c_contiguous=True" \
-                            "and len({}.shape)={}".format(array_name, dtype, array_name, shape_len))
-
-
-cpdef double _ComputeNDCG(
-    np.ndarray[double, ndim=1] predictions,
-    np.ndarray[double, ndim=1] targets,
-    str metric_type='Base',
-    ui32 top=int(pow(2, 32) - 1),
-    str denominator_type='LogPosition'
-):
-    _check_np_array(targets, 1, np.float64, 'targets')
-    _check_np_array(predictions, 1, np.float64, 'predictions')
-    assert len(targets) == len(predictions)
-
-    cdef ENdcgMetricType metric_enum;
-    if metric_type == 'Base':
-        metric_enum = ENdcgMetricType_Base
-    elif metric_type == 'Exp':
-        metric_enum = ENdcgMetricType_Exp
-    else:
-        raise CatBoostError("metric_type can be 'Base' or 'Exp'")
-
-    if top < 0 or top > int(pow(2, 32) - 1):
-        raise CatBoostError("top should be in the range 0 .. 2^32-1")
-
-    cdef ENdcgDenominatorType denominator_enum;
-    if denominator_type == 'LogPosition':
-        denominator_enum = ENdcgDenominatorType_LogPosition
-    elif denominator_type == 'Position':
-        denominator_enum = ENdcgDenominatorType_Position
-    else:
-        raise CatBoostError("denominator_enum can be 'LogPosition' or 'Position'")
-
-    cdef size_t length = len(targets)
-    cdef TVector[TSample] samples = TSample.FromVectors(
-        TConstArrayRef[double](<double*>&targets[0], length),
-        TConstArrayRef[double](<double*>&predictions[0], length)
-    )
-    cdef TConstArrayRef[TSample] samples_ref = TConstArrayRef[TSample](samples)
-    return CalcNdcg(samples_ref, metric_enum, top, denominator_enum)
 
 
 include "_monoforest.pxi"
