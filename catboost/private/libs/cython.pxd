@@ -86,7 +86,6 @@ cdef extern from "catboost/private/libs/options/enums.h" namespace "NCB":
     cdef ERawTargetType ERawTargetType_String "NCB::ERawTargetType::String"
     cdef ERawTargetType ERawTargetType_None "NCB::ERawTargetType::None"
 
-
 cdef extern from "catboost/private/libs/options/model_based_eval_options.h" namespace "NCatboostOptions" nogil:
     cdef TString GetExperimentName(ui32 featureSetIdx, ui32 foldIdx) except +ProcessException
 
