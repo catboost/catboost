@@ -2,7 +2,7 @@
 
 NEED_CHECK()
 
-PY_LIBRARY()
+PY2_LIBRARY()
 
 PY_SRCS(
     ymake_conf.py

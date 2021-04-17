@@ -1,6 +1,6 @@
 
 
-PYTEST()
+PY2TEST()
 
 TEST_SRCS(
     build_dll_and_java.py
