@@ -141,7 +141,6 @@ migrations:
     - ads/sandbox_scripts/clean_mapreduce/ut
     - ads/sandbox_scripts/cpa_autobudget/lib
     - ads/sandbox_scripts/join_yabar
-    - ads/sandbox_scripts/monitor_quota
     - ads/targeting/bsmr-scripts/ut_fat
     - ads/tools/mr_select/lib
     - ads/tools/mranalyze
@@ -152,7 +151,6 @@ migrations:
     - ads/watchman/funnel/lib
     - advq/offline_phits/monitoring
     - alice/acceptance/modules/request_generator/lib
-    - alice/bass/tests
     - alice/boltalka/generative/tfnn/preprocess
     - alice/boltalka/generative/training/data/nn/filtered_twitter
     - alice/boltalka/generative/training/data/nn/util
@@ -518,7 +516,6 @@ migrations:
     - infra/reconf_juggler/tools/jdiff/tests
     - infra/rtc/janitor
     - infra/rtc/juggler/bundle/tests
-    - infra/rtc/packages/yandex-hbf-agent/tests
     - infra/scripts/eventlog_uploader/script
     - infra/swatlib
     - infra/vmagent/src/vmctl
@@ -1223,7 +1220,6 @@ migrations:
     - adfox/xpd/tests/functional/tests/tvm_mock
     - ads/autobudget/metrics/equivalency_monitoring
     - ads/autobudget/metrics/example_monitoring
-    - ads/bsyeti/libs/argument_tree/test
     - ads/bsyeti/tests/bsdiff
     - ads/emily/mvp/backend_agnostik/backends/nirvana
     - ads/libs/py_mapreduce/yabs-mapreduce-modules/py-modules/yabs/tabtools
@@ -1317,7 +1313,6 @@ migrations:
     - dj/tools/viewer/custom/entity
     - edadeal/analytics/scripts/CashbackReport/CashbackReportLib
     - edadeal/analytics/scripts/CashbackReport/CashbackReportLib/CashbackReportLib
-    - education/checking_system/api/it
     - education/checking_system/marker_checker/lib
     - education/checking_system/marker_checker/lib/operations/arithmetic_operations/ut
     - education/lib/common
@@ -1504,7 +1499,6 @@ migrations:
     - rt-research/broadmatching/scripts/yt/dyn-sources/yt_prepare_dyn_sources
     - rt-research/multik/tools/jupyter
     - rtmapreduce/tests/recipes/rtmr_processing_recipe
-    - rtmapreduce/tools/deploy/handlers
     - saas/tools/devops/check_backup
     - saas/tools/devops/lib23
     - saas/tools/refresh/import_rtyserver
@@ -1708,7 +1702,6 @@ migrations:
     - ads/watchman/contrib/flask-marshmallow-patched
     - ads/watchman/contrib/flask-restplus-patched
     - alice/analytics/wer
-    - alice/bass/tests
     - alice/boltalka/generative/tfnn/infer
     - alice/boltalka/generative/training/data/nn/filtered_twitter
     - alice/hollywood/library/scenarios/music/it
@@ -1757,7 +1750,6 @@ migrations:
     - dict/ontodb/proto/tools
     - direct/infra/dt-dump-b2yt-data
     - drive/analytics/binary/thiefs
-    - education/checking_system/api/app
     - education/checking_system/marker_checker/it
     - education/checking_system/marker_checker/lib
     - education/lib/contrib/glove_python
