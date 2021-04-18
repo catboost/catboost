@@ -2,11 +2,22 @@
 % Please edit documentation in R/catboost.R
 \name{catboost.predict}
 \alias{catboost.predict}
-\title{Apply the model}
+\alias{predict.catboost.Model}
+\title{Get predictions from a CatBoost model}
 \usage{
+\method{predict}{catboost.Model}(
+  object,
+  newdata,
+  verbose = FALSE,
+  prediction_type = "RawFormulaVal",
+  ntree_start = 0,
+  ntree_end = 0,
+  thread_count = -1
+)
+
 catboost.predict(
-  model,
-  pool,
+  object,
+  newdata,
   verbose = FALSE,
   prediction_type = "RawFormulaVal",
   ntree_start = 0,
@@ -15,11 +26,12 @@ catboost.predict(
 )
 }
 \arguments{
-\item{model}{The model obtained as the result of training.
+\item{object}{The model obtained as the result of training.
 
 Default value: Required argument}
 
-\item{pool}{The input dataset.
+\item{newdata}{The input data on which to make predictions. Should be a `catboost.Pool`
+object.
 
 Default value: Required argument}
 
@@ -63,10 +75,14 @@ Default value: 1}
 Vector of predictions (matrix for multi-class classification).
 }
 \description{
-Apply the model to the given dataset.
+Get predictions from a CatBoost model on new data.
+}
+\details{
+The function `catboost.predict` is a synonym for `predict.catboost.Model`,
+which is an S3 method (i.e. called like `predict(model, newdata)`).
 
-             Peculiarities: In case of multiclassification the prediction is returned in the form of a matrix.
-             Each line of this matrix contains the predictions for one object of the input dataset.
+In case of multiclassification the prediction is returned in the form of a matrix.
+Each row of this matrix contains the predictions for one row of the input dataset.
 }
 \seealso{
 \url{https://catboost.ai/docs/concepts/r-reference_catboost-predict.html}
