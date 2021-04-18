@@ -1,4 +1,5 @@
 #' @import jsonlite
+#' @importFrom stats predict
 #' @importFrom utils head
 #' @importFrom utils tail
 #' @importFrom utils write.table
