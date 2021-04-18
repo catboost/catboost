@@ -77,6 +77,9 @@ async function preparePlatformBinary(platform: string) {
             linkSync('./build/catboost/libs/model_interface/libcatboostmodel.so', 
                 './build/catboost/libs/model_interface/libcatboostmodel.so.1');
             return;
+        case 'darwin':
+            await downloadBinaryFile(config.binaries['mac']);
+            return;
         default:
             throw new Error(`Platform ${platform} is not supported`);
     }

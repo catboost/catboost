@@ -14,11 +14,34 @@
                          "<!@(node -p \"process.env['CATBOOST_SRC_PATH'] || '../..'\")/contrib/libs/cxxsupp/system_stl/include",
                       ],
       'dependencies': [ "<!(node -p \"require('node-addon-api').gyp\")" ],
-      'libraries': [ 
+      'conditions': [
+        ['OS=="linux"', {
+          'libraries': [ 
                      "-L<(module_root_dir)/build/catboost/libs/model_interface/",
                      "-lcatboostmodel",
                      "-Wl,-rpath <(module_root_dir)/build/catboost/libs/model_interface"
                    ],
+        }],
+        ['OS=="mac"', {
+          'libraries': [ 
+                     "-L<(module_root_dir)/build/catboost/libs/model_interface/",
+                     "-lcatboostmodel",
+                     "-Wl,-rpath,@loader_path/../catboost/libs/model_interface"
+                   ],
+          'postbuilds': [
+            {
+              'postbuild_name': 'Adjust load path',
+              'action': [
+                'install_name_tool',
+                "-change",
+                "libcatboostmodel.dylib.1",
+                "@rpath/libcatboostmodel.dylib",
+                "<(PRODUCT_DIR)/catboost-node.node"
+              ]
+            },
+          ],
+        }],
+      ],
       'cflags!': [ '-fno-exceptions' ],
       'cflags_cc!': [ '-fno-exceptions' ],
       'xcode_settings': {
