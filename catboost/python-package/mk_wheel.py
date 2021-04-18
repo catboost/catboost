@@ -184,7 +184,7 @@ def make_record(dir_path, dist_info_dir):
                 record.write(item[tmp_dir_length:] + ',,\n')
 
 
-def make_wheel(wheel_name, pkg_name, ver, arc_root, so_path):
+def make_wheel(wheel_name, pkg_name, ver, arc_root, so_path, should_build_widget):
     dir_path = tempfile.mkdtemp()
 
     # Create py files
@@ -223,28 +223,29 @@ def make_wheel(wheel_name, pkg_name, ver, arc_root, so_path):
     substitute_vars(os.path.join(dist_info_dir, 'METADATA'))
     substitute_vars(os.path.join(dist_info_dir, 'top_level.txt'))
 
-    data_dir = os.path.join(dir_path, '{}-{}.data'.format(pkg_name, ver), 'data')
-    widget_dir = os.path.join(python_package_dir, 'catboost', 'widget')
-    for file in ['extension.js', 'index.js']:
-        src = os.path.join(widget_dir, 'nbextension', file)
-        dst = os.path.join(data_dir, 'share', 'jupyter', 'nbextensions', 'catboost_widget', file)
-        os.makedirs(os.path.dirname(dst), exist_ok=True)
-        shutil.copy(src, dst)
-
-    labextension_dir = os.path.join(python_package_dir, 'catboost', 'widget', 'labextension')
-    for file in os.listdir(labextension_dir):
-        src = os.path.join(labextension_dir, file)
-        dst = os.path.join(data_dir, 'share', 'jupyter', 'labextensions', 'catboost_widget', file)
-        os.makedirs(os.path.dirname(dst), exist_ok=True)
-        if os.path.isdir(src):
-            shutil.copytree(src, dst)
-        else:
+    if should_build_widget:
+        data_dir = os.path.join(dir_path, '{}-{}.data'.format(pkg_name, ver), 'data')
+        widget_dir = os.path.join(python_package_dir, 'catboost', 'widget')
+        for file in ['extension.js', 'index.js']:
+            src = os.path.join(widget_dir, 'nbextension', file)
+            dst = os.path.join(data_dir, 'share', 'jupyter', 'nbextensions', 'catboost_widget', file)
+            os.makedirs(os.path.dirname(dst), exist_ok=True)
             shutil.copy(src, dst)
 
-    src = os.path.join(widget_dir, 'catboost_widget.json')
-    dst = os.path.join(data_dir, 'etc', 'jupyter', 'nbconfig', 'notebook.d', 'catboost_widget.json')
-    os.makedirs(os.path.dirname(dst), exist_ok=True)
-    shutil.copy(src, dst)
+        labextension_dir = os.path.join(python_package_dir, 'catboost', 'widget', 'labextension')
+        for file in os.listdir(labextension_dir):
+            src = os.path.join(labextension_dir, file)
+            dst = os.path.join(data_dir, 'share', 'jupyter', 'labextensions', 'catboost_widget', file)
+            os.makedirs(os.path.dirname(dst), exist_ok=True)
+            if os.path.isdir(src):
+                shutil.copytree(src, dst)
+            else:
+                shutil.copy(src, dst)
+
+        src = os.path.join(widget_dir, 'catboost_widget.json')
+        dst = os.path.join(data_dir, 'etc', 'jupyter', 'nbconfig', 'notebook.d', 'catboost_widget.json')
+        os.makedirs(os.path.dirname(dst), exist_ok=True)
+        shutil.copy(src, dst)
 
     # Create record
     make_record(dir_path, dist_info_dir)
@@ -255,14 +256,14 @@ def make_wheel(wheel_name, pkg_name, ver, arc_root, so_path):
     shutil.rmtree(dir_path)
 
 
-def build_widget():
-    js_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'widget', 'js')
+def build_widget(arc_root):
+    js_dir = os.path.join(arc_root, 'catboost', 'python-package', 'catboost', 'widget', 'js')
     subprocess.check_call(['yarn', 'clean'], cwd=js_dir)
     subprocess.check_call(['yarn', 'install'], cwd=js_dir)
     subprocess.check_call(['yarn', 'build'], cwd=js_dir)
 
 
-def build(arc_root, out_root, tail_args):
+def build(arc_root, out_root, tail_args, should_build_widget):
     os.chdir(os.path.join(arc_root, 'catboost', 'python-package', 'catboost'))
 
     py_trait = PythonTrait(arc_root, out_root, tail_args)
@@ -283,10 +284,11 @@ def build(arc_root, out_root, tail_args):
             src = os.path.join(py_trait.out_root, 'catboost', 'python-package', 'catboost', py_trait.so_name())
             dst = '.'.join([src, task_type])
             shutil.move(src, dst)
-            build_widget()
+            if should_build_widget:
+                build_widget(arc_root)
             wheel_name = os.path.join(py_trait.arc_root, 'catboost', 'python-package',
                                       '{}-{}-{}-none-{}.whl'.format(pkg_name, ver, py_trait.lang, py_trait.platform))
-            make_wheel(wheel_name, pkg_name, ver, arc_root, dst)
+            make_wheel(wheel_name, pkg_name, ver, arc_root, dst, should_build_widget)
             os.remove(dst)
             return wheel_name
         except Exception as e:
@@ -297,5 +299,13 @@ def build(arc_root, out_root, tail_args):
 if __name__ == '__main__':
     arc_root = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
     out_root = tempfile.mkdtemp()
-    wheel_name = build(arc_root, out_root, sys.argv[1:])
+
+    widget_args = [arg for arg in sys.argv[1:] if 'BUILD_WIDGET' in arg]
+    catboost_args = [arg for arg in sys.argv[1:] if 'BUILD_WIDGET' not in arg]
+
+    should_build_widget = True
+    if 'BUILD_WIDGET=no' in widget_args:
+        should_build_widget = False
+
+    wheel_name = build(arc_root, out_root, catboost_args, should_build_widget)
     print(wheel_name)
