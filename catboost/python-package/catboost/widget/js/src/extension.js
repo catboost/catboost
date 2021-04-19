@@ -2,7 +2,7 @@ if (window.require) {
     window.require.config({
         map: {
             '*': {
-                'catboost_widget': 'nbextensions/catboost_widget/index',
+                'catboost-widget': 'nbextensions/catboost-widget/index',
             }
         }
     });

@@ -35,7 +35,7 @@ module.exports = [
             filename: 'index.js',
             path: path.resolve(__dirname, 'dist'),
             libraryTarget: 'amd',
-            publicPath: 'https://unpkg.com/catboost_widget@' + version + '/dist/'
+            publicPath: 'https://unpkg.com/catboost-widget@' + version + '/dist/'
         },
         module: {
             rules: rules

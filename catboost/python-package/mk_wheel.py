@@ -228,22 +228,22 @@ def make_wheel(wheel_name, pkg_name, ver, arc_root, so_path, should_build_widget
         widget_dir = os.path.join(python_package_dir, 'catboost', 'widget')
         for file in ['extension.js', 'index.js']:
             src = os.path.join(widget_dir, 'nbextension', file)
-            dst = os.path.join(data_dir, 'share', 'jupyter', 'nbextensions', 'catboost_widget', file)
+            dst = os.path.join(data_dir, 'share', 'jupyter', 'nbextensions', 'catboost-widget', file)
             os.makedirs(os.path.dirname(dst), exist_ok=True)
             shutil.copy(src, dst)
 
         labextension_dir = os.path.join(python_package_dir, 'catboost', 'widget', 'labextension')
         for file in os.listdir(labextension_dir):
             src = os.path.join(labextension_dir, file)
-            dst = os.path.join(data_dir, 'share', 'jupyter', 'labextensions', 'catboost_widget', file)
+            dst = os.path.join(data_dir, 'share', 'jupyter', 'labextensions', 'catboost-widget', file)
             os.makedirs(os.path.dirname(dst), exist_ok=True)
             if os.path.isdir(src):
                 shutil.copytree(src, dst)
             else:
                 shutil.copy(src, dst)
 
-        src = os.path.join(widget_dir, 'catboost_widget.json')
-        dst = os.path.join(data_dir, 'etc', 'jupyter', 'nbconfig', 'notebook.d', 'catboost_widget.json')
+        src = os.path.join(widget_dir, 'catboost-widget.json')
+        dst = os.path.join(data_dir, 'etc', 'jupyter', 'nbconfig', 'notebook.d', 'catboost-widget.json')
         os.makedirs(os.path.dirname(dst), exist_ok=True)
         shutil.copy(src, dst)
 

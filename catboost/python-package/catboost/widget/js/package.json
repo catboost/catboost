@@ -1,5 +1,5 @@
 {
-  "name": "catboost_widget",
+  "name": "catboost-widget",
   "version": "1.0.0",
   "description": "",
   "main": "src/index.js",

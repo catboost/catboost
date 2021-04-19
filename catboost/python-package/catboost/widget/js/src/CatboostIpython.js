@@ -1695,8 +1695,8 @@ var CatboostWidgetModel = widgets.DOMWidgetModel.extend({
     defaults: _.extend(widgets.DOMWidgetModel.prototype.defaults(), {
         _model_name: 'CatboostWidgetModel',
         _view_name: 'CatboostWidgetView',
-        _model_module: 'catboost_widget',
-        _view_module: 'catboost_widget',
+        _model_module: 'catboost-widget',
+        _view_module: 'catboost-widget',
         _model_module_version: widget_version,
         _view_module_version: widget_version,
     })
