@@ -2302,37 +2302,56 @@ def test_custom_eval():
     assert np.all(pred1 == pred2)
 
 
-@fails_on_gpu(how='cuda/train_lib/train.cpp:283: Error: loss function is not supported for GPU learning Custom')
-def test_custom_objective(task_type):
-    class LoglossObjective(object):
-        def calc_ders_range(self, approxes, targets, weights):
-            assert len(approxes) == len(targets)
+class LoglossObjective(object):
+    def calc_ders_range(self, approxes, targets, weights):
+        assert len(approxes) == len(targets)
+        if weights is not None:
+            assert len(weights) == len(approxes)
+
+        exponents = []
+        for index in xrange(len(approxes)):
+            exponents.append(math.exp(approxes[index]))
+
+        result = []
+        for index in xrange(len(targets)):
+            p = exponents[index] / (1 + exponents[index])
+            der1 = (1 - p) if targets[index] > 0.0 else -p
+            der2 = -p * (1 - p)
+
             if weights is not None:
-                assert len(weights) == len(approxes)
+                der1 *= weights[index]
+                der2 *= weights[index]
 
-            exponents = []
-            for index in xrange(len(approxes)):
-                exponents.append(math.exp(approxes[index]))
+            result.append((der1, der2))
 
-            result = []
-            for index in xrange(len(targets)):
-                p = exponents[index] / (1 + exponents[index])
-                der1 = (1 - p) if targets[index] > 0.0 else -p
-                der2 = -p * (1 - p)
+        return result
 
-                if weights is not None:
-                    der1 *= weights[index]
-                    der2 *= weights[index]
 
-                result.append((der1, der2))
+class LoglossObjectiveNumpy(object):
+    def __init__(self):
+        self._objective = LoglossObjective()
 
-            return result
+    def calc_ders_range(self, approxes, targets, weights):
+        return np.array(self._objective.calc_ders_range(approxes, targets, weights))
+
+
+class LoglossObjectiveNumpy32(object):
+    def __init__(self):
+        self._objective = LoglossObjective()
+
+    def calc_ders_range(self, approxes, targets, weights):
+        return np.array(self._objective.calc_ders_range(approxes, targets, weights), dtype=np.float32)
+
+
+@pytest.mark.parametrize('loss_objective', [LoglossObjective, LoglossObjectiveNumpy, LoglossObjectiveNumpy32])
+@fails_on_gpu(how='cuda/train_lib/train.cpp:283: Error: loss function is not supported for GPU learning Custom')
+def test_custom_objective(task_type, loss_objective):
 
     train_pool = Pool(data=TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(data=TEST_FILE, column_description=CD_FILE)
 
     model = CatBoostClassifier(iterations=5, learning_rate=0.03, use_best_model=True,
-                               loss_function=LoglossObjective(), eval_metric="Logloss",
+                               loss_function=loss_objective(), eval_metric="Logloss",
                                # Leaf estimation method and gradient iteration are set to match
                                # defaults for Logloss.
                                leaf_estimation_method="Newton", leaf_estimation_iterations=1, task_type=task_type, devices='0')

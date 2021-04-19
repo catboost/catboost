@@ -36,6 +36,7 @@ import scipy.sparse
 np.import_array()
 
 cimport cython
+from cpython cimport PyList_GET_ITEM, PyTuple_GET_ITEM, PyFloat_AsDouble
 from cython.operator cimport dereference, preincrement
 
 from libc.math cimport isnan, modf
@@ -1311,6 +1312,9 @@ cdef void _ObjectiveCalcDersRange(
 ) with gil:
     cdef objectiveObject = <object>(customData)
     cdef TString errorMessage
+    cdef Py_ssize_t index
+    cdef np.float32_t[:,:] pairs_np_float
+    cdef np.float64_t[:,:] pairs_np_double
 
     approx = _CreateNumpyDoubleArrayView(approxes, count)
     target = _CreateNumpyFloatArrayView(targets, count)
@@ -1327,11 +1331,27 @@ cdef void _ObjectiveCalcDersRange(
         with nogil:
             ThrowCppExceptionWithMessage(errorMessage)
 
-    index = 0
-    for der1, der2 in result:
-        ders[index].Der1 = der1
-        ders[index].Der2 = der2
-        index += 1
+    if len(result) == 0:
+        return
+
+    if (type(result) == np.ndarray and len(result.shape) == 2 and result.shape[1] == 2 and
+          result.dtype in [np.float32, np.float64]):
+        if result.dtype == np.float32:
+            pairs_np_float = result
+            for index in range(len(pairs_np_float)):
+                ders[index].Der1 = pairs_np_float[index, 0]
+                ders[index].Der2 = pairs_np_float[index, 1]
+        elif result.dtype == np.float64:
+            pairs_np_double = result
+            for index in range(len(pairs_np_double)):
+                ders[index].Der1 = pairs_np_double[index, 0]
+                ders[index].Der2 = pairs_np_double[index, 1]
+    else:
+        index = 0
+        for der1, der2 in result:
+            ders[index].Der1 = <double>der1
+            ders[index].Der2 = <double>der2
+            index += 1
 
 cdef void _ObjectiveCalcDersMultiClass(
     const TVector[double]& approx,
