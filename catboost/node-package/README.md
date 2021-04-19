@@ -4,7 +4,7 @@ A Node.js package for applying pretrained CatBoost model.
 
 > NOTE: The package is still under heavy development and can introduce breaking changes.  
 
-> NOTE: Only Linux platform is supported at the moment.
+> NOTE: Only Linux and Mac OS platforms are supported at the moment.
 
 ## Usage example
 
