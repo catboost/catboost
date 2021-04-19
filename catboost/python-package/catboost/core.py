@@ -5486,7 +5486,7 @@ class CatBoostRanker(CatBoost):
         Predict with data.
         Parameters
         ----------
-        data : catboost.Pool or list of features or list of lists or numpy.ndarray or pandas.DataFrame or pandas.Series
+        X : catboost.Pool or list of features or list of lists or numpy.ndarray or pandas.DataFrame or pandas.Series
                 or catboost.FeaturesData
             Data to apply model on.
             If data is a simple list (not list of lists) or a one-dimensional numpy.ndarray it is interpreted
@@ -5515,7 +5515,7 @@ class CatBoostRanker(CatBoost):
         Predict target at each stage for data.
         Parameters
         ----------
-        data : catboost.Pool or list of features or list of lists or numpy.ndarray or pandas.DataFrame or pandas.Series
+        X : catboost.Pool or list of features or list of lists or numpy.ndarray or pandas.DataFrame or pandas.Series
                 or catboost.FeaturesData
             Data to apply model on.
             If data is a simple list (not list of lists) or a one-dimensional numpy.ndarray it is interpreted
