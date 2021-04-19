@@ -58,6 +58,7 @@ is_regression_objective = _catboost.is_regression_objective
 is_multiregression_objective = _catboost.is_multiregression_objective
 is_groupwise_metric = _catboost.is_groupwise_metric
 is_pairwise_metric = _catboost.is_pairwise_metric
+is_ranking_metric = _catboost.is_ranking_metric
 _PreprocessParams = _catboost._PreprocessParams
 _check_train_params = _catboost._check_train_params
 _MetadataHashProxy = _catboost._MetadataHashProxy
@@ -1528,6 +1529,9 @@ class _CatBoostBase(object):
 
     def _is_pairwise_objective(self, loss_function):
         return isinstance(loss_function, str) and is_pairwise_metric(loss_function)
+
+    def _is_ranking_objective(self, loss_function):
+        return isinstance(loss_function, str) and is_ranking_metric(loss_function)
 
     def get_metadata(self):
         return self._object._get_metadata_wrapper()
@@ -5477,7 +5481,7 @@ class CatBoostRanker(CatBoost):
                   silent, early_stopping_rounds, save_snapshot, snapshot_file, snapshot_interval, init_model)
         return self
 
-    def predict(self, X, group_id=None, ntree_start=0, ntree_end=0, thread_count=-1, verbose=None):
+    def predict(self, X, ntree_start=0, ntree_end=0, thread_count=-1, verbose=None):
         """
         Predict with data.
         Parameters
@@ -5487,9 +5491,6 @@ class CatBoostRanker(CatBoost):
             Data to apply model on.
             If data is a simple list (not list of lists) or a one-dimensional numpy.ndarray it is interpreted
             as a list of features for a single object.
-        group_id : list or numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
-            Ranking groups, 1 dimensional array like.
-            Use only if X is not catboost.Pool.
         ntree_start: int, optional (default=0)
             Model is applied on the interval [ntree_start, ntree_end) (zero-based indexing).
         ntree_end: int, optional (default=0)
@@ -5507,11 +5508,9 @@ class CatBoostRanker(CatBoost):
             If data is for a single object, the return value is single float formula return value
             otherwise one-dimensional numpy.ndarray of formula return values for each object.
         """
-        if not isinstance(X, Pool):
-            X = Pool(X, group_id=group_id)
         return self._predict(X, 'RawFormulaVal', ntree_start, ntree_end, thread_count, verbose, 'predict')
 
-    def staged_predict(self, X, group_id=None, ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, verbose=None):
+    def staged_predict(self, X, ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, verbose=None):
         """
         Predict target at each stage for data.
         Parameters
@@ -5521,9 +5520,6 @@ class CatBoostRanker(CatBoost):
             Data to apply model on.
             If data is a simple list (not list of lists) or a one-dimensional numpy.ndarray it is interpreted
             as a list of features for a single object.
-        group_id : list or numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
-            Ranking groups, 1 dimensional array like.
-            Use only if X is not catboost.Pool.
         ntree_start: int, optional (default=0)
             Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
         ntree_end: int, optional (default=0)
@@ -5543,9 +5539,6 @@ class CatBoostRanker(CatBoost):
             If data is for a single object, the return value is single float formula return value
             otherwise one-dimensional numpy.ndarray of formula return values for each object.
         """
-
-        if not isinstance(X, Pool):
-            X = Pool(X, group_id=group_id)
         return self._staged_predict(X, 'RawFormulaVal', ntree_start, ntree_end, eval_period, thread_count, verbose, 'staged_predict')
 
     def score(self, X, y=None, group_id=None, top=None, type=None, denominator=None, group_weight=None, thread_count=-1):
@@ -5574,12 +5567,10 @@ class CatBoostRanker(CatBoost):
         NDCG@top : float
                    higher is better
         """
-        def get_params_line(values, names):
-            params = ':'
-            for value, name in zip(values, names):
-                if value is not None:
-                    params += "{}={};".format(name, value)
-            return params[:-1]
+        def get_ndcg_metric_name(values, names):
+            if not np.any(np.array(values) == None):
+                return 'NDCG'
+            return 'NDCG:' + ';'.join(['{}={}'.format(n, v) for v, n in zip(values, names) if v is not None])
 
         if isinstance(X, Pool):
             if y is not None:
@@ -5591,15 +5582,15 @@ class CatBoostRanker(CatBoost):
 
         if y is None:
             raise CatBoostError("y must be initialized.")
-        group_id = group_id if group_id is not None else np.zeros(X.shape[0], dtype=int)
+        if group_id is None:
+            raise CatBoostError("group_id must be initialized. If groups are not expected, pass an array of zeros")
 
         predictions = self.predict(X)
-        params = get_params_line([top, type, denominator], ['top', 'type', 'denominator'])
-        return _eval_metric_util([y], [predictions], "NDCG{}".format(params), None, group_id, group_weight, None, None, thread_count)[0]
+        return _eval_metric_util([y], [predictions], get_ndcg_metric_name(), None, group_id, group_weight, None, None, thread_count)[0]
 
 
     def _check_is_ranking_loss(self, loss_function):
-        is_ranking = self._is_groupwise_objective(loss_function) or self._is_pairwise_objective(loss_function)
+        is_ranking = self._is_ranking_objective(loss_function)
         is_regression = self._is_regression_objective(loss_function)
 
         if is_regression:

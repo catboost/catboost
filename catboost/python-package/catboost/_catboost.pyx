@@ -3953,13 +3953,18 @@ cdef class _PoolBase:
 
 
     cpdef get_group_id_hash(self):
+        """
+        Get hashes generated from group_id.
+
+        Returns
+        -------
+        group_id : list if group_id was defined or None overwise.
+        """
         cdef TMaybeData[TConstArrayRef[TGroupId]] arr_group_ids = self.__pool.Get()[0].ObjectsData.Get()[0].GetGroupIds()
         if arr_group_ids.Defined():
-            result_group_ids = []
-            for group_id in arr_group_ids.GetRef():
-                result_group_ids.append(group_id)
+            result_group_ids = [group_id for group_id in arr_group_ids.GetRef()]
             return result_group_ids
-        return np.zeros(self.num_row(), dtype=int)
+        return None
 
 
     cpdef get_baseline(self):
@@ -4954,17 +4959,23 @@ cdef class _MetadataHashProxy:
 
 
 cdef TCustomTrainTestSubsets _make_train_test_subsets(_PoolBase pool, folds) except *:
+    num_data = pool.num_row()
+
     if not hasattr(folds, '__iter__') and not hasattr(folds, 'split'):
         raise AttributeError("folds should be a generator or iterator of (train_idx, test_idx) tuples "
                              "or scikit-learn splitter object with split method")
 
-    flatted_group = pool.get_group_id_hash()
+    group_info = pool.get_group_id_hash()
+
     if hasattr(folds, 'split'):
-        folds = folds.split(X=np.zeros(pool.num_row()), y=pool.get_label(), groups=flatted_group)
+        if group_info is not None:
+            flatted_group = group_info
+        else:
+            flatted_group = np.zeros(num_data, dtype=int)
+        folds = folds.split(X=np.zeros(num_data), y=pool.get_label(), groups=flatted_group)
 
     cdef TVector[TVector[ui32]] custom_train_subsets
     cdef TVector[TVector[ui32]] custom_test_subsets
-    group_info = flatted_group if len(np.unique(flatted_group)) > 1 else None
 
     if group_info is None:
         for train_test in folds:
@@ -5511,6 +5522,10 @@ cpdef is_multiclass_metric(metric_name):
 
 cpdef is_pairwise_metric(metric_name):
     return IsPairwiseMetric(to_arcadia_string(metric_name))
+
+
+cpdef is_ranking_metric(metric_name):
+    return IsRankingMetric(to_arcadia_string(metric_name))
 
 
 cpdef is_minimizable_metric(metric_name):
