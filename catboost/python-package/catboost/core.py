@@ -57,7 +57,6 @@ is_cv_stratified_objective = _catboost.is_cv_stratified_objective
 is_regression_objective = _catboost.is_regression_objective
 is_multiregression_objective = _catboost.is_multiregression_objective
 is_groupwise_metric = _catboost.is_groupwise_metric
-is_pairwise_metric = _catboost.is_pairwise_metric
 is_ranking_metric = _catboost.is_ranking_metric
 _PreprocessParams = _catboost._PreprocessParams
 _check_train_params = _catboost._check_train_params
@@ -1515,22 +1514,20 @@ class _CatBoostBase(object):
                 params[key] = value
         return params
 
-    def _is_classification_objective(self, loss_function):
+    @staticmethod
+    def _is_classification_objective(loss_function):
         return isinstance(loss_function, str) and is_classification_objective(loss_function)
 
-    def _is_regression_objective(self, loss_function):
+    @staticmethod
+    def _is_regression_objective(loss_function):
         return isinstance(loss_function, str) and is_regression_objective(loss_function)
 
-    def _is_multiregression_objective(self, loss_function):
+    @staticmethod
+    def _is_multiregression_objective(loss_function):
         return isinstance(loss_function, str) and is_multiregression_objective(loss_function)
 
-    def _is_groupwise_objective(self, loss_function):
-        return isinstance(loss_function, str) and is_groupwise_metric(loss_function)
-
-    def _is_pairwise_objective(self, loss_function):
-        return isinstance(loss_function, str) and is_pairwise_metric(loss_function)
-
-    def _is_ranking_objective(self, loss_function):
+    @staticmethod
+    def _is_ranking_objective(loss_function):
         return isinstance(loss_function, str) and is_ranking_metric(loss_function)
 
     def get_metadata(self):
@@ -4548,7 +4545,7 @@ class CatBoostClassifier(CatBoost):
         params = self._init_params.copy()
         _process_synonyms(params)
         if 'loss_function' in params:
-            self._check_is_classification_objective(params['loss_function'])
+            CatBoostClassifier._check_is_compatible_loss(params['loss_function'])
 
         self._fit(X, y, cat_features, text_features, embedding_features, None, sample_weight, None, None, None, None, baseline, use_best_model,
                   eval_set, verbose, logging_level, plot, column_description, verbose_eval, metric_period,
@@ -4871,8 +4868,9 @@ class CatBoostClassifier(CatBoost):
                 raise CatBoostError('predicted classes have string type but specified y is boolean')
         return np.mean(np.array(predicted_classes) == np.array(y))
 
-    def _check_is_classification_objective(self, loss_function):
-        if isinstance(loss_function, str) and not self._is_classification_objective(loss_function):
+    @staticmethod
+    def _check_is_compatible_loss(loss_function):
+        if isinstance(loss_function, str) and not CatBoost._is_classification_objective(loss_function):
             raise CatBoostError("Invalid loss_function='{}': for classifier use "
                                 "Logloss, CrossEntropy, MultiClass, MultiClassOneVsAll or custom objective object".format(loss_function))
 
@@ -5095,7 +5093,7 @@ class CatBoostRegressor(CatBoost):
         params = deepcopy(self._init_params)
         _process_synonyms(params)
         if 'loss_function' in params:
-            self._check_is_regressor_loss(params['loss_function'])
+            CatBoostRegressor._check_is_compatible_loss(params['loss_function'])
 
         return self._fit(X, y, cat_features, None, None, None, sample_weight, None, None, None, None, baseline,
                          use_best_model, eval_set, verbose, logging_level, plot, column_description,
@@ -5222,8 +5220,9 @@ class CatBoostRegressor(CatBoost):
         residual_sum_of_squares = np.sum((y - predictions) ** 2)
         return 1 - residual_sum_of_squares / total_sum_of_squares
 
-    def _check_is_regressor_loss(self, loss_function):
-        is_regression = self._is_regression_objective(loss_function) or self._is_multiregression_objective(loss_function)
+    @staticmethod
+    def _check_is_compatible_loss(loss_function):
+        is_regression = CatBoost._is_regression_objective(loss_function) or CatBoost._is_multiregression_objective(loss_function)
         if isinstance(loss_function, str) and not is_regression:
             raise CatBoostError("Invalid loss_function='{}': for regressor use "
                                 "RMSE, MultiRMSE, MAE, Quantile, LogLinQuantile, Poisson, MAPE, Lq or custom objective object".format(loss_function))
@@ -5473,7 +5472,7 @@ class CatBoostRanker(CatBoost):
         params = deepcopy(self._init_params)
         _process_synonyms(params)
         if 'loss_function' in params:
-            self._check_is_ranking_loss(params['loss_function'])
+            CatBoostRanker._check_is_compatible_loss(params['loss_function'])
 
         self._fit(X, y, cat_features, text_features, embedding_features, pairs,
                   sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, use_best_model,
@@ -5589,9 +5588,10 @@ class CatBoostRanker(CatBoost):
         return _eval_metric_util([y], [predictions], get_ndcg_metric_name(), None, group_id, group_weight, None, None, thread_count)[0]
 
 
-    def _check_is_ranking_loss(self, loss_function):
-        is_ranking = self._is_ranking_objective(loss_function)
-        is_regression = self._is_regression_objective(loss_function)
+    @staticmethod
+    def _check_is_compatible_loss(loss_function):
+        is_ranking = CatBoost._is_ranking_objective(loss_function)
+        is_regression = CatBoost._is_regression_objective(loss_function)
 
         if is_regression:
             warnings.warn("Regression loss ('{}') ignores an important ranking parameter 'group_id'".format(loss_function), RuntimeWarning)
@@ -6165,57 +6165,48 @@ def _plot_feature_statistics(statistics_by_feature, pool_names, feature_names, m
     return main_fig
 
 
-def to_regressor(model):
-    if isinstance(model, CatBoostRegressor):
+def _to_subclass(model, subclass):
+    """
+    Convert a CatBoost model to a sklearn-compatible model.
+
+    Parameters
+    ----------
+    model : CatBoost model
+        a model to convert from
+
+    subclass : an sklearn-compatible class
+        a class to convert to : CatBoostClassifier, CatBoostRegressor or CatBoostRanker
+
+    Returns
+    -------
+    a converted model : `subclass` type
+        a model converted from the initial CatBoost `model` to a sklearn-compatible `subclass` model
+    """
+    if isinstance(model, subclass):
         return model
     if not isinstance(model, CatBoost):
         raise CatBoostError('model should be a subclass of CatBoost')
 
-    regressor = CatBoostRegressor.__new__(CatBoostRegressor)
+    converted_model = subclass.__new__(subclass)
 
     # TODO(ilyzhin) change on get_all_params after MLTOOLS-4758
     params = deepcopy(model._init_params)
     _process_synonyms(params)
     if 'loss_function' in params:
-        regressor._check_is_regressor_loss(params['loss_function'])
+        subclass._check_is_compatible_loss(params['loss_function'])
 
     for attr in model.__dict__:
-        setattr(regressor, attr, getattr(model, attr))
-    return regressor
+        setattr(converted_model, attr, getattr(model, attr))
+    return converted_model
+
+
+def to_regressor(model):
+    return _to_subclass(model, CatBoostRegressor)
 
 
 def to_classifier(model):
-    if isinstance(model, CatBoostClassifier):
-        return model
-    if not isinstance(model, CatBoost):
-        raise CatBoostError('model should be a subclass of CatBoost')
+    return _to_subclass(model, CatBoostClassifier)
 
-    classifier = CatBoostClassifier.__new__(CatBoostClassifier)
-
-    # TODO(ilyzhin) change on get_all_params after MLTOOLS-4758
-    params = deepcopy(model._init_params)
-    _process_synonyms(params)
-    if 'loss_function' in params:
-        classifier._check_is_classification_objective(params['loss_function'])
-
-    for attr in model.__dict__:
-        setattr(classifier, attr, getattr(model, attr))
-    return classifier
 
 def to_ranker(model):
-    if isinstance(model, CatBoostRanker):
-        return model
-    if not isinstance(model, CatBoost):
-        raise CatBoostError('model should be a subclass of CatBoost')
-
-    ranker = CatBoostRanker.__new__(CatBoostRanker)
-
-    # TODO(ilyzhin) change on get_all_params after MLTOOLS-4758
-    params = deepcopy(model._init_params)
-    _process_synonyms(params)
-    if 'loss_function' in params:
-        ranker._check_is_ranking_loss(params['loss_function'])
-
-    for attr in model.__dict__:
-        setattr(ranker, attr, getattr(model, attr))
-    return ranker
+    return _to_subclass(model, CatBoostRanker)
