@@ -3958,7 +3958,7 @@ cdef class _PoolBase:
 
         Returns
         -------
-        group_id : list if group_id was defined or None overwise.
+        group_id : list if group_id was defined or None otherwise.
         """
         cdef TMaybeData[TConstArrayRef[TGroupId]] arr_group_ids = self.__pool.Get()[0].ObjectsData.Get()[0].GetGroupIds()
         if arr_group_ids.Defined():

@@ -1284,10 +1284,10 @@ def _get_loss_function_for_train(params, estimator_type, train_pool):
         """
         is_multiclass_task = len(set(label)) > 2 and 'target_border' not in params
         return 'MultiClass' if is_multiclass_task else 'Logloss'
-    elif estimator_type == 'regressor':
-        return 'RMSE'
     elif estimator_type == 'ranker':
         return 'YetiRank'
+    else:
+        return 'RMSE'
 
 
 class _CatBoostBase(object):
