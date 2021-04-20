@@ -27,7 +27,6 @@ migrations:
     - dict/ontodb/utils/export_src_codes
     - edadeal/analytics/scripts/CashbackReport/CashbackReportLib
     - edadeal/analytics/scripts/CashbackReport/CashbackReportLib/CashbackReportLib
-    - education/services/sections/it
     - extsearch/geo/recommender/runtime/config/generation
     - mail/freezing_tests/active_users_aggregation
     - maps/analyzer/tools/online_jams/pylib
@@ -1311,8 +1310,8 @@ migrations:
     - dj/tools/viewer/custom/entity
     - edadeal/analytics/scripts/CashbackReport/CashbackReportLib
     - edadeal/analytics/scripts/CashbackReport/CashbackReportLib/CashbackReportLib
-    - education/checking_system/marker_checker/lib
-    - education/checking_system/marker_checker/lib/operations/arithmetic_operations/ut
+    - education/services/checking_system/marker_checker/lib
+    - education/services/checking_system/marker_checker/lib/operations/arithmetic_operations/ut
     - education/lib/common
     - education/schoolbook/analytics/adhoc/ANALITICSEDU-687
     - entity/ontodb/tasks/vloggers
@@ -1745,8 +1744,8 @@ migrations:
     - dict/ontodb/proto/tools
     - direct/infra/dt-dump-b2yt-data
     - drive/analytics/binary/thiefs
-    - education/checking_system/marker_checker/it
-    - education/checking_system/marker_checker/lib
+    - education/services/checking_system/marker_checker/it
+    - education/services/checking_system/marker_checker/lib
     - education/lib/contrib/glove_python
     - education/schoolbook/services/recommender/app
     - education/schoolbook/services/recommender/it
@@ -2152,7 +2151,6 @@ migrations:
     - dj/nirvana/nirvana_make
     - edadeal/analytics/scripts/CashbackReport/CashbackReportLib
     - edadeal/analytics/scripts/CashbackReport/CashbackReportLib/CashbackReportLib
-    - education/services/sections/it
     - extsearch/geo/recommender/runtime/config/generation
     - library/python/cyson
     - library/python/cyson/cyson
