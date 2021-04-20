@@ -300,11 +300,15 @@ if __name__ == '__main__':
     arc_root = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
     out_root = tempfile.mkdtemp()
 
-    widget_args = [arg for arg in sys.argv[1:] if 'BUILD_WIDGET' in arg]
-    catboost_args = [arg for arg in sys.argv[1:] if 'BUILD_WIDGET' not in arg]
+    widget_args = [arg for arg in sys.argv[1:] if arg.startswith('-DBUILD_WIDGET=')]
+    catboost_args = [arg for arg in sys.argv[1:] if not arg.startswith('-DBUILD_WIDGET=')]
+
+    if any([arg != '-DBUILD_WIDGET=yes' and arg != '-DBUILD_WIDGET=no' for arg in widget_args]):
+        print("Please specify -DBUILD_WIDGET=yes/no")
+        exit()
 
     should_build_widget = True
-    if 'BUILD_WIDGET=no' in widget_args:
+    if '-DBUILD_WIDGET=no' in widget_args:
         should_build_widget = False
 
     wheel_name = build(arc_root, out_root, catboost_args, should_build_widget)
