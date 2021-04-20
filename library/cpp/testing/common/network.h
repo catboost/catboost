@@ -16,7 +16,7 @@ namespace NTesting {
     class TPortHolder : private THolder<IPort> {
         using TBase = THolder<IPort>;
     public:
-        using TBase::THolder;
+        using TBase::TBase;
         using TBase::Release;
         using TBase::Reset;
 
