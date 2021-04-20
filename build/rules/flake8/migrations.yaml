@@ -19,7 +19,6 @@ migrations:
     - browser/infra/ci/backend
     - browser/infra/ci/backend/ci/settings
     - cloud/ai/speechkit/stt/tests/data_pipeline/join
-    - crm/crm-logbroker-consumer
     - cv/short2long/nirvana/lib
     - devtools/signer/signer
     - dict/ontodb/cmpy/lib
@@ -871,7 +870,6 @@ migrations:
     - sandbox/projects/browser/merge/BrowserMergeTurnStatesOn
     - sandbox/projects/browser/merge/conflicts/BrowserAutoRevert
     - sandbox/projects/bsyeti
-    - sandbox/projects/bsyeti/build_bigb_package
     - sandbox/projects/canvas
     - sandbox/projects/canvas/video_constructor_utils
     - sandbox/projects/clickhouse/util
@@ -1352,8 +1350,6 @@ migrations:
     - infra/skybit/src
     - infra/yp_dns/tools/handle_duplicate_records/lib
     - infra/yp_quota_distributor/lib
-    - intranet/table_flow/src
-    - intranet/table_flow/src/users
     - intranet/vconf/src/call
     - intranet/vconf/src/cms_sync
     - keyboard/analytics/collect_logs
@@ -1615,7 +1611,6 @@ migrations:
     - yabs/autobudget/pylibs/tasks
     - yabs/awaps_pvl/pvl/logic
     - yabs/outdoor/py_schedule/logic
-    - yabs/pnocsy/plugin
     - yabs/qa/oneshots/astkachev/BSSERVER-14230/noload_rsya_only
     - yabs/qa/oneshots/astkachev/BSSERVER-14230/noload_search_only
     - yabs/qa/oneshots/sergtaim/BSSERVER-14259/AddKeywordWithNewIdToYT-test
@@ -1787,7 +1782,6 @@ migrations:
     - infra/yasm/zoom/python/tests
     - infra/yp_quota_distributor/lib
     - intranet/pypi/src
-    - intranet/table_flow/src
     - intranet/table_flow/tests
     - kikimr/tools/ic_load
     - kikimr/yf/tests/no_recipe
@@ -2150,7 +2144,6 @@ migrations:
     - alice/uniproxy/library/notificator_api
     - arc/tables_creation/tests
     - cloud/ai/speechkit/stt/tests/data_pipeline/join
-    - crm/crm-logbroker-consumer
     - devtools/signer/signer
     - dict/lm/sources/lib/launcher
     - dict/ontodb/isa/libshorttext/converter/stemmer
