@@ -6,7 +6,7 @@ async function install(): Promise<void> {
         await buildYa();
         return;
     }
-    await buildLocal('linux')
+    await buildLocal(process.platform);
 }
 
 install();

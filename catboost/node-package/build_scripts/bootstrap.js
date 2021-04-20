@@ -22,9 +22,16 @@ function runScript(script) {
     process.chdir('..');
 
     const child = childProcess.fork('./build_scripts/out/' + script + '.js', process.argv);
-    return new Promise(resolve => {
-        child.on('error', err => resolve({err}));
+    return new Promise((resolve, reject) => {
         child.on('exit', (code, signal) => resolve({code, signal}));
+        child.on('exit', (code, signal) => {
+            if (code !== 0) {
+                console.error(`Script failed with exit code: ${code}`);
+                reject(code);
+                return;
+            } 
+            resolve({code, signal});
+        });
     });
 }
 
