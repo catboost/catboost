@@ -10,6 +10,7 @@ import tempfile
 import hashlib
 
 from base64 import urlsafe_b64encode
+from argparse import ArgumentParser
 
 sys.dont_write_bytecode = True
 
@@ -300,16 +301,10 @@ if __name__ == '__main__':
     arc_root = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
     out_root = tempfile.mkdtemp()
 
-    widget_args = [arg for arg in sys.argv[1:] if arg.startswith('-DBUILD_WIDGET=')]
-    catboost_args = [arg for arg in sys.argv[1:] if not arg.startswith('-DBUILD_WIDGET=')]
-
-    if any([arg != '-DBUILD_WIDGET=yes' and arg != '-DBUILD_WIDGET=no' for arg in widget_args]):
-        print("Please specify -DBUILD_WIDGET=yes/no")
-        exit()
-
-    should_build_widget = True
-    if '-DBUILD_WIDGET=no' in widget_args:
-        should_build_widget = False
+    widget_args_parser = ArgumentParser()
+    widget_args_parser.add_argument('--build_widget', choices=['yes', 'no'], default='yes')
+    widget_args, catboost_args = widget_args_parser.parse_known_args()
+    should_build_widget = widget_args.build_widget == 'yes'
 
     wheel_name = build(arc_root, out_root, catboost_args, should_build_widget)
     print(wheel_name)
