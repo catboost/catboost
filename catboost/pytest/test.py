@@ -4879,9 +4879,9 @@ def test_cox_regression():
     cmd = (
         '--use-best-model', 'false',
         '--loss-function', 'Cox',
-        '-f', data_file('veteran', 'train'),
-        '-t', data_file('veteran', 'test'),
-        '--column-description', data_file('veteran', 'train.cd'),
+        '-f', data_file('patients', 'train'),
+        '-t', data_file('patients', 'test'),
+        '--column-description', data_file('patients', 'train.cd'),
         '--boosting-type', 'Plain',
         '-i', '10',
         '-T', '1',
