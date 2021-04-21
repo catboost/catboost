@@ -3974,6 +3974,21 @@ cdef class _PoolBase:
             return [weight for weight in non_trivial_data]
 
 
+    cpdef get_group_id_hash(self):
+        """
+        Get hashes generated from group_id.
+
+        Returns
+        -------
+        group_id : list if group_id was defined or None otherwise.
+        """
+        cdef TMaybeData[TConstArrayRef[TGroupId]] arr_group_ids = self.__pool.Get()[0].ObjectsData.Get()[0].GetGroupIds()
+        if arr_group_ids.Defined():
+            result_group_ids = [group_id for group_id in arr_group_ids.GetRef()]
+            return result_group_ids
+        return None
+
+
     cpdef get_baseline(self):
         """
         Get baseline from Pool.
@@ -4965,18 +4980,6 @@ cdef class _MetadataHashProxy:
         return ((to_native_str(kv.first), to_native_str(kv.second)) for kv in self._catboost.__model.ModelInfo)
 
 
-cdef object _get_hash_group_id(_PoolBase pool):
-    cdef TMaybeData[TConstArrayRef[TGroupId]] arr_group_ids = pool.__pool.Get()[0].ObjectsData.Get()[0].GetGroupIds()
-    if arr_group_ids.Defined():
-        result_group_ids = []
-        for group_id in arr_group_ids.GetRef():
-            result_group_ids.append(group_id)
-
-        return result_group_ids
-
-    return None
-
-
 cdef TCustomTrainTestSubsets _make_train_test_subsets(_PoolBase pool, folds) except *:
     num_data = pool.num_row()
 
@@ -4984,7 +4987,7 @@ cdef TCustomTrainTestSubsets _make_train_test_subsets(_PoolBase pool, folds) exc
         raise AttributeError("folds should be a generator or iterator of (train_idx, test_idx) tuples "
                              "or scikit-learn splitter object with split method")
 
-    group_info = _get_hash_group_id(pool)
+    group_info = pool.get_group_id_hash()
 
     if hasattr(folds, 'split'):
         if group_info is not None:
@@ -5556,6 +5559,10 @@ cpdef is_pairwise_metric(metric_name):
     return IsPairwiseMetric(to_arcadia_string(metric_name))
 
 
+cpdef is_ranking_metric(metric_name):
+    return IsRankingMetric(to_arcadia_string(metric_name))
+
+
 cpdef is_minimizable_metric(metric_name):
     return IsMinOptimal(to_arcadia_string(metric_name))
 
@@ -5680,6 +5687,7 @@ cpdef _get_onnx_model(model, export_parameters):
     cdef const char* result_ptr = result.c_str()
     cdef size_t result_len = result.size()
     return bytes(result_ptr[:result_len])
+
 
 include "_monoforest.pxi"
 include "_text_processing.pxi"
