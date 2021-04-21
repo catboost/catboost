@@ -103,6 +103,27 @@ def generate_concatenated_random_labeled_dataset(nrows, nvals, labels, seed=2018
     feature = prng.random_sample([nrows, nvals])
     return np.concatenate([label, feature], axis=1)
 
+def generate_patients_datasets(train_path, test_path):
+    samples = 237
+
+    for samples, path in zip([237, 154], [train_path, test_path]):
+        data = DataFrame()
+        data['age'] = np.random.randint(20, 71, size=samples)
+        data['gender'] = np.where(np.random.binomial(1, 0.7, samples) == 1, 'male', 'female')
+        data['diet'] = np.where(np.random.binomial(1, 0.1, samples) == 1, 'yes', 'no')
+        data['glucose'] = np.random.uniform(4, 12, size=samples)
+        data['platelets'] = np.random.randint(100, 500, size=samples)
+        data['cholesterol'] = np.random.uniform(4.5, 6.5, size=samples)
+        data['survival_in_days'] = np.random.randint(30, 500, size=samples)
+        data['outcome'] = np.where(np.random.binomial(1, 0.8, size=samples) == 1, 'dead', 'alive')
+        data['target'] = np.where(data['outcome'] == 'dead', data['survival_in_days'], - data['survival_in_days'])
+        data = data.drop(['outcome', 'survival_in_days'], axis=1)
+        data.to_csv(
+            path, 
+            header=False, 
+            index=False,
+            sep='\t'
+        )
 
 # returns (features : numpy.ndarray, labels : list) tuple
 def generate_random_labeled_dataset(
