@@ -4914,7 +4914,7 @@ class CatBoostRegressor(CatBoost):
     Parameters
     ----------
     Like in CatBoostClassifier, except loss_function, classes_count, class_names and class_weights
-    
+
     loss_function : string, [default='RMSE']
         'RMSE'
         'MAE'
