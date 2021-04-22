@@ -1820,6 +1820,8 @@ class LD(Linker):
             self.ld_flags.extend(['-Wl,--no-as-needed'])
         elif target.is_linux:
             self.ld_flags.extend(['-ldl', '-lrt', '-Wl,--no-as-needed'])
+            if self.tc.is_gcc:
+                self.ld_flags.extend(('-Wl,-Bstatic', '-latomic', '-Wl,-Bdynamic'))
         elif target.is_android:
             self.ld_flags.extend(['-ldl', '-Wl,--no-as-needed'])
             if self.type == Linker.LLD and target.android_api < 29:
