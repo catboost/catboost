@@ -216,11 +216,13 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\ssl\tls_srp.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\engines\e_padlock-x86_64.asm">
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\engines\e_padlock-x86_64.masm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/_/asm/windows/engines/e_padlock-x86_64.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/engines/e_padlock-x86_64.asm"
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/_/asm/windows/engines/e_padlock-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/engines/e_padlock-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -231,7 +233,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/_/asm/windows/engines/e_padlock-x86_64.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/engines/e_padlock-x86_64.asm"
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/_/asm/windows/engines/e_padlock-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/engines/e_padlock-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -239,9 +243,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/openssl/_/asm/windows/engines/e_padlock-x86_64.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\libs\openssl\asm\windows\engines\e_padlock-x86_64.asm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\_\asm\windows\engines\e_padlock-x86_64.obj;</Outputs>
+      <Message>$B/contrib/libs/openssl/_/asm/windows/engines/e_padlock-x86_64.masm.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\contrib\libs\openssl\asm\windows\engines\e_padlock-x86_64.masm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\_\asm\windows\engines\e_padlock-x86_64.masm.obj;</Outputs>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\e_os.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\engines\e_capi_err.h"/>
@@ -257,7 +261,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\bn_conf-ios-armv7.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\bn_conf-ios-i386.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\bn_conf-ios-x86_64.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\bn_conf-osx-linux_aarch64-linux.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\bn_conf-osx-linux_aarch64-osx_arm64-linux.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\bn_conf-win.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\bn_conf.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\bn_dh.h"/>
@@ -265,9 +269,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\chacha.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\cryptlib.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\ctype.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\dso_conf-android.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\dso_conf-osx-linux_aarch64-linux.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\dso_conf-win.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\dso_conf.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\dso_conf_darwin_arm64.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\ec.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\engine.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\err.h"/>
@@ -371,6 +377,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\opensslconf-linux.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\opensslconf-linux_aarch64.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\opensslconf-linux_arm.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\opensslconf-osx-arm64.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\opensslconf-osx.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\opensslconf-win.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\opensslconf.h"/>
@@ -433,9 +440,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
       <Project>{E8A35EC0-40EE-2D96-1FB2-D065B804958D}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\yasm\yasm.vcxproj">
-      <Project>{1959E211-4FF5-553B-2DD1-9BDC1CFDC107}</Project>
     </ProjectReference>
   </ItemGroup>
 </Project>
