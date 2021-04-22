@@ -981,10 +981,12 @@ EXPORT_FUNCTION CatBoostEvalMetrics_R(
     TFullModelHandle model = reinterpret_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
     TPoolHandle pool = reinterpret_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
 
-    auto metricsParamLen = length(metricsParam);
-    TVector<TString> metricDescriptions(metricsParamLen);
-    TVector<NCatboostOptions::TLossDescription> metricLossDescriptions(metricsParamLen);
-    for (size_t i = 0; i < metricDescriptions.size(); ++i) {
+    size_t metricsParamLen = length(metricsParam);
+    TVector<TString> metricDescriptions;
+    TVector<NCatboostOptions::TLossDescription> metricLossDescriptions;
+    metricDescriptions.reserve(metricsParamLen);
+    metricLossDescriptions.reserve(metricsParamLen);
+    for (size_t i = 0; i < metricsParamLen; ++i) {
       TString metricDescription = CHAR(asChar(VECTOR_ELT(metricsParam, i)));
       metricDescriptions.push_back(metricDescription);
       metricLossDescriptions.emplace_back(NCatboostOptions::ParseLossDescription(metricDescription));
@@ -1029,18 +1031,8 @@ EXPORT_FUNCTION CatBoostEvalMetrics_R(
     plotCalcer.SaveResult(CHAR(asChar(resultDirParam)), /*metricsFile=*/"", /*saveMetrics*/ false, /*saveStats=*/true).ClearTempFiles();
 
     auto metricsResult = CreateMetricsFromDescription(metricDescriptions, model->GetDimensionsCount());
-//    TVector<TString> metricNames;
-//    metricNames.reserve(resultMetrics.ysize());
-//    for (auto& resultMetric : resultMetrics) {
-//      metricNames.push_back(resultMetric->GetDescription());
-//    }
-
-//    result = PROTECT(allocVector(REALSXP, metricNamesRes.size()));
-//    for (size_t i = 0; i < metricNamesRes.size(); ++i) {
-//        result.push_back(metrics[i]);
-//    }
-
     metricsCount = metricsResult.ysize();
+
     result = PROTECT(allocVector(VECSXP, metricsCount));
     SEXP metricNames = PROTECT(allocVector(STRSXP, metricsCount));
 
@@ -1048,7 +1040,7 @@ EXPORT_FUNCTION CatBoostEvalMetrics_R(
         TString metricName = metricsResult[metricIdx]->GetDescription();
         size_t numberOfIterations = metricsScore[metricIdx].size();
 
-        SEXP metricScore = PROTECT(allocVector(REALSXP, numberOfIterations));//
+        SEXP metricScore = PROTECT(allocVector(REALSXP, numberOfIterations));
         for (size_t i = 0; i < numberOfIterations; ++i) {
             REAL(metricScore)[i] = metricsScore[metricIdx][i];
         }
