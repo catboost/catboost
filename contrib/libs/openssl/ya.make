@@ -207,7 +207,7 @@ ENDIF()
 
 IF (OS_WINDOWS AND ARCH_X86_64)
     SRCS(
-        asm/windows/engines/e_padlock-x86_64.asm
+        asm/windows/engines/e_padlock-x86_64.masm
     )
 ENDIF()
 

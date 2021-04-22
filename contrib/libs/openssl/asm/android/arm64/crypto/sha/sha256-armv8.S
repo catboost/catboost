@@ -1,4 +1,4 @@
-// Copyright 2014-2019 The OpenSSL Project Authors. All Rights Reserved.
+// Copyright 2014-2020 The OpenSSL Project Authors. All Rights Reserved.
 //
 // Licensed under the OpenSSL license (the "License").  You may not use
 // this file except in compliance with the License.  You can obtain a copy
@@ -59,6 +59,7 @@
 .text
 
 
+.hidden	OPENSSL_armcap_P
 .globl	sha256_block_data_order
 .type	sha256_block_data_order,%function
 .align	6
@@ -2060,6 +2061,3 @@ sha256_block_neon:
 	add	sp,sp,#16*4+16
 	ret
 .size	sha256_block_neon,.-sha256_block_neon
-#ifndef	__KERNEL__
-.comm	OPENSSL_armcap_P,4,4
-#endif
