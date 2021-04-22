@@ -195,7 +195,8 @@ def make_wheel(wheel_name, pkg_name, ver, arc_root, so_path, should_build_widget
                       'widget/ipythonwidget.py', 'monoforest.py', 'plot_helpers.py', 'text_processing.py']:
         src = os.path.join(python_package_dir, 'catboost', file_name)
         dst = os.path.join(dir_path, pkg_name, file_name)
-        os.makedirs(os.path.dirname(dst), exist_ok=True)
+        if not os.path.exists(os.path.dirname(dst)):
+            os.makedirs(os.path.dirname(dst))
 
         if os.path.isdir(src):
             shutil.copytree(src, dst)
@@ -230,14 +231,16 @@ def make_wheel(wheel_name, pkg_name, ver, arc_root, so_path, should_build_widget
         for file in ['extension.js', 'index.js']:
             src = os.path.join(widget_dir, 'nbextension', file)
             dst = os.path.join(data_dir, 'share', 'jupyter', 'nbextensions', 'catboost-widget', file)
-            os.makedirs(os.path.dirname(dst), exist_ok=True)
+            if not os.path.exists(os.path.dirname(dst)):
+                os.makedirs(os.path.dirname(dst))
             shutil.copy(src, dst)
 
         labextension_dir = os.path.join(python_package_dir, 'catboost', 'widget', 'labextension')
         for file in os.listdir(labextension_dir):
             src = os.path.join(labextension_dir, file)
             dst = os.path.join(data_dir, 'share', 'jupyter', 'labextensions', 'catboost-widget', file)
-            os.makedirs(os.path.dirname(dst), exist_ok=True)
+            if not os.path.exists(os.path.dirname(dst)):
+                os.makedirs(os.path.dirname(dst))
             if os.path.isdir(src):
                 shutil.copytree(src, dst)
             else:
@@ -245,7 +248,8 @@ def make_wheel(wheel_name, pkg_name, ver, arc_root, so_path, should_build_widget
 
         src = os.path.join(widget_dir, 'catboost-widget.json')
         dst = os.path.join(data_dir, 'etc', 'jupyter', 'nbconfig', 'notebook.d', 'catboost-widget.json')
-        os.makedirs(os.path.dirname(dst), exist_ok=True)
+        if not os.path.exists(os.path.dirname(dst)):
+            os.makedirs(os.path.dirname(dst))
         shutil.copy(src, dst)
 
     # Create record
