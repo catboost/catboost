@@ -110,6 +110,14 @@ IF (OS_DARWIN AND ARCH_X86_64)
     )
 ENDIF()
 
+IF (OS_DARWIN AND ARCH_ARM64)
+    CFLAGS(
+        -DL_ENDIAN
+        -DOPENSSL_PIC
+        -D_REENTRANT
+    )
+ENDIF()
+
 IF (OS_WINDOWS)
     IF (ARCH_X86_64)
         CFLAGS(
@@ -845,6 +853,31 @@ IF (OS_DARWIN AND ARCH_X86_64)
         ../asm/darwin/crypto/sha/sha512-x86_64.s
         ../asm/darwin/crypto/whrlpool/wp-x86_64.s
         ../asm/darwin/crypto/x86_64cpuid.s
+    )
+ENDIF()
+
+
+IF (OS_DARWIN AND ARCH_ARM64)
+    SRCS(
+        ../asm/darwin-arm64/crypto/sha/keccak1600-armv8.S
+        ../asm/darwin-arm64/crypto/sha/sha512-armv8.S
+        ../asm/darwin-arm64/crypto/sha/sha1-armv8.S
+        ../asm/darwin-arm64/crypto/sha/sha256-armv8.S
+        ../asm/darwin-arm64/crypto/poly1305/poly1305-armv8.S
+        ../asm/darwin-arm64/crypto/ec/ecp_nistz256-armv8.S
+        ../asm/darwin-arm64/crypto/chacha/chacha-armv8.S
+        ../asm/darwin-arm64/crypto/bn/armv8-mont.S
+        ../asm/darwin-arm64/crypto/arm64cpuid.S
+        ../asm/darwin-arm64/crypto/aes/aesv8-armx.S
+        ../asm/darwin-arm64/crypto/aes/vpaes-armv8.S
+        ../asm/darwin-arm64/crypto/modes/ghashv8-armx.S
+        armcap.c
+        bn/bn_asm.c
+        camellia/camellia.c
+        camellia/cmll_cbc.c
+        rc4/rc4_enc.c
+        rc4/rc4_skey.c
+        whrlpool/wp_block.c
     )
 ENDIF()
 
