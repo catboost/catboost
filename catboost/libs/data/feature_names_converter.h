@@ -16,6 +16,8 @@
 
 TMap<TString, ui32> MakeIndicesFromNames(const NCatboostOptions::TPoolLoadParams& poolLoadParams);
 TMap<TString, ui32> MakeIndicesFromNames(const NCB::TDataMetaInfo& metaInfo);
+THashMap<TString, TVector<ui32>> MakeIndicesFromTags(const NCatboostOptions::TPoolLoadParams& poolLoadParams);
+THashMap<TString, TVector<ui32>> MakeIndicesFromTags(const NCB::TDataMetaInfo& metaInfo);
 
 inline ui32 ConvertToIndex(const TString& nameOrIndex, const TMap<TString, ui32>& indicesFromNames) {
     if (IsNumber(nameOrIndex)) {
@@ -26,6 +28,55 @@ inline ui32 ConvertToIndex(const TString& nameOrIndex, const TMap<TString, ui32>
             "String " + nameOrIndex + " is not a feature name");
         return indicesFromNames.at(nameOrIndex);
     }
+}
+
+namespace {
+    class TIndicesMapper {
+    public:
+        TIndicesMapper(
+            TMap<TString, ui32> indicesFromNames,
+            THashMap<TString, TVector<ui32>> indicesFromTags
+        )
+            : IndicesFromNames(std::move(indicesFromNames))
+            , IndicesFromTags(std::move(indicesFromTags))
+        { }
+
+        TIndicesMapper(const NCatboostOptions::TPoolLoadParams& poolLoadParams)
+            : TIndicesMapper(MakeIndicesFromNames(poolLoadParams), MakeIndicesFromTags(poolLoadParams))
+        { }
+
+        TIndicesMapper(const NCB::TDataMetaInfo& metaInfo)
+            : TIndicesMapper(MakeIndicesFromNames(metaInfo), MakeIndicesFromTags(metaInfo))
+        { }
+
+        void Map(const TString& str, TVector<ui32>* indices) const {
+            if (IsNumber(str)) {
+                indices->push_back(FromString<ui32>(str));
+            } else if (str.StartsWith("#")) {
+                const TStringBuf tag(str.data() + 1, str.size() - 1);
+                const auto tagIndices = IndicesFromTags.FindPtr(tag);
+                CB_ENSURE(tagIndices, TStringBuf() << "There is no tag '#" << tag << "' in pool metainfo");
+                indices->insert(indices->end(), tagIndices->begin(), tagIndices->end());
+            } else {
+                auto left = str;
+                auto right = str;
+                StringSplitter(str).Split('-').TryCollectInto(&left, &right);
+                for (ui32 idx : xrange(ConvertToIndex(left, IndicesFromNames), ConvertToIndex(right, IndicesFromNames) + 1)) {
+                    indices->push_back(idx);
+                }
+            }
+        }
+
+        TVector<ui32> Map(const TString& str) const {
+            TVector<ui32> indices;
+            Map(str, &indices);
+            return indices;
+        }
+
+    private:
+        TMap<TString, ui32> IndicesFromNames;
+        THashMap<TString, TVector<ui32>> IndicesFromTags;
+    };
 }
 
 void ConvertPerFeatureOptionsFromStringToIndices(const TMap<TString, ui32>& indicesFromNames, NJson::TJsonValue* options);
@@ -51,6 +102,7 @@ void ConvertAllFeaturePenaltiesFromStringToIndices(const TSource& matchingSource
     }
 }
 
+void ConvertFeaturesFromStringToIndices(const NCB::TPathWithScheme& cdFilePath, const NCB::TPathWithScheme& poolMetaInfoPath, NJson::TJsonValue* featuresArrayJson);
 void ConvertIgnoredFeaturesFromStringToIndices(const NCatboostOptions::TPoolLoadParams& poolLoadParams, NJson::TJsonValue* catBoostJsonOptions);
 void ConvertIgnoredFeaturesFromStringToIndices(const NCB::TDataMetaInfo& metaInfo, NJson::TJsonValue* catBoostJsonOptions);
 void ConvertMonotoneConstraintsFromStringToIndices(const NCB::TDataMetaInfo& metaInfo, NJson::TJsonValue* catBoostJsonOptions);
@@ -59,15 +111,12 @@ void ConvertFeaturesToEvaluateFromStringToIndices(const NCatboostOptions::TPoolL
 
 template <typename TSource>
 void ConvertFeaturesForSelectFromStringToIndices(const TSource& stringsToIndicesMatchingSource, NJson::TJsonValue* featuresSelectJsonOptions) {
-    const auto& indicesFromNames = MakeIndicesFromNames(stringsToIndicesMatchingSource);
+    const TIndicesMapper mapper(stringsToIndicesMatchingSource);
     const auto& featureNamesForSelect = (*featuresSelectJsonOptions)["features_for_select"].GetString();
     TVector<int> featuresForSelect;
     for (const auto& nameOrRange : StringSplitter(featureNamesForSelect).Split(',').SkipEmpty()) {
         const TString nameOrRangeAsString(nameOrRange);
-        auto left = nameOrRangeAsString;
-        auto right = nameOrRangeAsString;
-        StringSplitter(nameOrRangeAsString).Split('-').TryCollectInto(&left, &right);
-        for (ui32 idx : xrange(ConvertToIndex(left, indicesFromNames), ConvertToIndex(right, indicesFromNames) + 1)) {
+        for (ui32 idx : mapper.Map(nameOrRangeAsString)) {
             featuresForSelect.push_back(idx);
         }
     }

@@ -46,7 +46,6 @@ TYPE_TO_DESERIALIZE_METHOD: A dictionary with field types and deserialization
 __author__ = 'robinson@google.com (Will Robinson)'
 
 import numbers
-import os
 import six
 
 if six.PY3:
@@ -59,8 +58,6 @@ from google.protobuf.internal import wire_format
 from google.protobuf import descriptor
 
 _FieldDescriptor = descriptor.FieldDescriptor
-_ALLOW_UNICODE_PYTHON_STRINGS_IN_PROTOBUF = \
-  os.environ.get('Y_ALLOW_UNICODE_PYTHON_STRINGS_IN_PROTOBUF') == '1' and six.PY3
 
 def SupportsOpenEnums(field_descriptor):
   return field_descriptor.containing_type.syntax == "proto3"
@@ -76,8 +73,7 @@ def GetTypeChecker(field):
     of values assigned to a field of the specified type.
   """
   if (field.cpp_type == _FieldDescriptor.CPPTYPE_STRING and
-      field.type == _FieldDescriptor.TYPE_STRING and
-      _ALLOW_UNICODE_PYTHON_STRINGS_IN_PROTOBUF):
+      field.type == _FieldDescriptor.TYPE_STRING):
     return UnicodeValueChecker()
   if field.cpp_type == _FieldDescriptor.CPPTYPE_ENUM:
     if SupportsOpenEnums(field):

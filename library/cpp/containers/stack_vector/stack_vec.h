@@ -58,7 +58,7 @@ namespace NPrivate {
                     Y_FAIL(
                             "Stack storage overflow. Capacity: %d, requested: %d", (int)CountOnStack, int(n));
                 }
-                return FallbackAllocator.allocate(n, hint);
+                return FallbackAllocator().allocate(n, hint);
             }
         }
 
@@ -69,14 +69,18 @@ namespace NPrivate {
                 Y_VERIFY(IsStorageUsed);
                 IsStorageUsed = false;
             } else {
-                FallbackAllocator.deallocate(p, n);
+                FallbackAllocator().deallocate(p, n);
             }
         }
 
     private:
         std::aligned_storage_t<sizeof(T), alignof(T)> StackBasedStorage[CountOnStack];
-        size_t IsStorageUsed = false;
-        Alloc FallbackAllocator;
+        bool IsStorageUsed = false;
+
+    private:
+        Alloc& FallbackAllocator() noexcept {
+            return static_cast<Alloc&>(*this);
+        }
     };
 }
 

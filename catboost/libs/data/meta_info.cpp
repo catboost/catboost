@@ -1,5 +1,6 @@
 #include "meta_info.h"
 
+#include <catboost/libs/column_description/feature_tag.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/serialization.h>
 
@@ -42,6 +43,7 @@ TDataMetaInfo::TDataMetaInfo(
     bool hasPairs,
     TMaybe<ui32> additionalBaselineCount,
     TMaybe<const TVector<TString>*> featureNames,
+    TMaybe<const THashMap<TString, TTagDescription>*> featureTags,
     const TVector<NJson::TJsonValue>& classLabels
 )
     : TargetType(targetType)
@@ -63,7 +65,7 @@ TDataMetaInfo::TDataMetaInfo(
     HasTimestamp = ColumnsInfo->CountColumns(EColumn::Timestamp) != 0 || hasTimestamp;
     HasPairs = hasPairs;
 
-    FeaturesLayout = TFeaturesLayout::CreateFeaturesLayout(ColumnsInfo->Columns, featureNames);
+    FeaturesLayout = TFeaturesLayout::CreateFeaturesLayout(ColumnsInfo->Columns, featureNames, featureTags);
 
     ColumnsInfo->Validate();
     Validate();

@@ -1,4 +1,4 @@
-PY_LIBRARY() # Need for Python 2 only
+PY2_LIBRARY() # Need for Python 2 only
 
 LICENSE(MIT)
 

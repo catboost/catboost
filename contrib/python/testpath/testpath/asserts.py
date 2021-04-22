@@ -21,10 +21,16 @@ __all__ = ['assert_path_exists', 'assert_not_path_exists',
            'assert_issocket', 'assert_not_issocket',
           ]
 
-def _strpath(p):
-    if isinstance(p, Path):
-        return str(p)
-    return p
+
+if hasattr(os, 'fspath'):
+    _strpath = os.fspath
+else:
+    def _strpath(p):
+        if hasattr(p, '__fspath__'):
+            return p.__fspath__()
+        elif isinstance(p, Path):
+            return str(p)
+        return p
 
 def _stat_for_assert(path, follow_symlinks=True, msg=None):
     stat = os.stat if follow_symlinks else os.lstat

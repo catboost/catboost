@@ -1,19 +1,19 @@
 # backend.py - execute rendering, open files in viewer
 
-import os
-import io
-import re
-import sys
 import errno
+import logging
+import os
 import platform
+import re
 import subprocess
-import contextlib
 
-from ._compat import stderr_write_binary
+from . import _compat
 
 from . import tools
 
-__all__ = ['render', 'pipe', 'version', 'view']
+__all__ = ['render', 'pipe', 'unflatten', 'version', 'view',
+           'ENGINES', 'FORMATS', 'RENDERERS', 'FORMATTERS',
+           'ExecutableNotFound', 'RequiredArgumentError']
 
 ENGINES = {  # http://www.graphviz.org/pdf/dot.1.pdf
     'dot', 'neato', 'twopi', 'circo', 'fdp', 'sfdp', 'patchwork', 'osage',
@@ -59,14 +59,31 @@ FORMATS = {  # http://www.graphviz.org/doc/info/output.html
     'x11',
 }
 
+RENDERERS = {  # $ dot -T:
+    'cairo',
+    'dot',
+    'fig',
+    'gd',
+    'gdiplus',
+    'map',
+    'pic',
+    'pov',
+    'ps',
+    'svg',
+    'tk',
+    'vml',
+    'vrml',
+    'xdot',
+}
+
+FORMATTERS = {'cairo', 'core', 'gd', 'gdiplus', 'gdwbmp', 'xlib'}
+
+ENCODING = 'utf-8'
+
 PLATFORM = platform.system().lower()
 
-STARTUPINFO = None
 
-if PLATFORM == 'windows':  # pragma: no cover
-    STARTUPINFO = subprocess.STARTUPINFO()
-    STARTUPINFO.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-    STARTUPINFO.wShowWindow = subprocess.SW_HIDE
+log = logging.getLogger(__name__)
 
 
 class ExecutableNotFound(RuntimeError):
@@ -79,151 +96,281 @@ class ExecutableNotFound(RuntimeError):
         super(ExecutableNotFound, self).__init__(self._msg % args)
 
 
-def command(engine, format, filepath=None):
-    """Return args list for subprocess.Popen and name of the rendered file."""
+class RequiredArgumentError(Exception):
+    """Exception raised if a required argument is missing."""
+
+
+class CalledProcessError(_compat.CalledProcessError):
+
+    def __str__(self):
+        s = super(CalledProcessError, self).__str__()
+        return '%s [stderr: %r]' % (s, self.stderr)
+
+
+def command(engine, format_, filepath=None, renderer=None, formatter=None):
+    """Return args list for ``subprocess.Popen`` and name of the rendered file."""
+    if formatter is not None and renderer is None:
+        raise RequiredArgumentError('formatter given without renderer')
+
     if engine not in ENGINES:
         raise ValueError('unknown engine: %r' % engine)
-    if format not in FORMATS:
-        raise ValueError('unknown format: %r' % format)
+    if format_ not in FORMATS:
+        raise ValueError('unknown format: %r' % format_)
+    if renderer is not None and renderer not in RENDERERS:
+        raise ValueError('unknown renderer: %r' % renderer)
+    if formatter is not None and formatter not in FORMATTERS:
+        raise ValueError('unknown formatter: %r' % formatter)
 
-    args, rendered = [engine, '-T%s' % format], None
-    if filepath is not None:
-        args.extend(['-O', filepath])
-        rendered = '%s.%s' % (filepath, format)
+    output_format = [f for f in (format_, renderer, formatter) if f is not None]
+    cmd = ['dot', '-K%s' % engine, '-T%s' % ':'.join(output_format)]
 
-    return args, rendered
+    if filepath is None:
+        rendered = None
+    else:
+        cmd.extend(['-O', filepath])
+        suffix = '.'.join(reversed(output_format))
+        rendered = '%s.%s' % (filepath, suffix)
+
+    return cmd, rendered
 
 
-def render(engine, format, filepath, quiet=False):
-    """Render file with Graphviz engine into format,  return result filename.
+if PLATFORM == 'windows':  # pragma: no cover
+    def get_startupinfo():
+        """Return subprocess.STARTUPINFO instance hiding the console window."""
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        startupinfo.wShowWindow = subprocess.SW_HIDE
+        return startupinfo
+else:
+    def get_startupinfo():
+        """Return None for startupinfo argument of ``subprocess.Popen``."""
+        return None
+
+
+def run(cmd, input=None, capture_output=False, check=False, encoding=None,
+        quiet=False, **kwargs):
+    """Run the command described by cmd and return its (stdout, stderr) tuple."""
+    log.debug('run %r', cmd)
+
+    if input is not None:
+        kwargs['stdin'] = subprocess.PIPE
+        if encoding is not None:
+            input = input.encode(encoding)
+
+    if capture_output:
+        kwargs['stdout'] = kwargs['stderr'] = subprocess.PIPE
+
+    try:
+        proc = subprocess.Popen(cmd, startupinfo=get_startupinfo(), **kwargs)
+    except OSError as e:
+        if e.errno == errno.ENOENT:
+            raise ExecutableNotFound(cmd)
+        else:
+            raise
+
+    out, err = proc.communicate(input)
+
+    if not quiet and err:
+        _compat.stderr_write_bytes(err, flush=True)
+
+    if encoding is not None:
+        if out is not None:
+            out = out.decode(encoding)
+        if err is not None:
+            err = err.decode(encoding)
+
+    if check and proc.returncode:
+        raise CalledProcessError(proc.returncode, cmd,
+                                 output=out, stderr=err)
+
+    return out, err
+
+
+def render(engine, format, filepath, renderer=None, formatter=None, quiet=False):
+    """Render file with Graphviz ``engine`` into ``format``,  return result filename.
 
     Args:
-        engine: The layout commmand used for rendering ('dot', 'neato', ...).
-        format: The output format used for rendering ('pdf', 'png', ...).
+        engine: The layout commmand used for rendering (``'dot'``, ``'neato'``, ...).
+        format: The output format used for rendering (``'pdf'``, ``'png'``, ...).
         filepath: Path to the DOT source file to render.
-        quiet(bool): Suppress stderr output on non-zero exit status.
+        renderer: The output renderer used for rendering (``'cairo'``, ``'gd'``, ...).
+        formatter: The output formatter used for rendering (``'cairo'``, ``'gd'``, ...).
+        quiet (bool): Suppress ``stderr`` output from the layout subprocess.
+
     Returns:
         The (possibly relative) path of the rendered file.
+
     Raises:
-        ValueError: If engine or format are not known.
+        ValueError: If ``engine``, ``format``, ``renderer``, or ``formatter`` are not known.
+        graphviz.RequiredArgumentError: If ``formatter`` is given but ``renderer`` is None.
         graphviz.ExecutableNotFound: If the Graphviz executable is not found.
         subprocess.CalledProcessError: If the exit status is non-zero.
+
+    The layout command is started from the directory of ``filepath``, so that
+    references to external files (e.g. ``[image=...]``) can be given as paths
+    relative to the DOT source file.
     """
-    args, rendered = command(engine, format, filepath)
+    dirname, filename = os.path.split(filepath)
+    del filepath
 
-    if quiet:
-        open = io.open
+    cmd, rendered = command(engine, format, filename, renderer, formatter)
+    if dirname:
+        cwd = dirname
+        rendered = os.path.join(dirname, rendered)
     else:
-        @contextlib.contextmanager
-        def open(name, mode):
-            assert name == os.devnull and mode == 'w'
-            yield None
+        cwd = None
 
-    with open(os.devnull, 'w') as stderr:
-        try:
-            subprocess.check_call(args, startupinfo=STARTUPINFO, stderr=stderr)
-        except OSError as e:
-            if e.errno == errno.ENOENT:
-                raise ExecutableNotFound(args)
-            else:  # pragma: no cover
-                raise
-
+    run(cmd, capture_output=True, cwd=cwd, check=True, quiet=quiet)
     return rendered
 
 
-def pipe(engine, format, data, quiet=False):
-    """Return data piped through Graphviz engine into format.
+def pipe(engine, format, data, renderer=None, formatter=None, quiet=False):
+    """Return ``data`` piped through Graphviz ``engine`` into ``format``.
 
     Args:
-        engine: The layout commmand used for rendering ('dot', 'neato', ...).
-        format: The output format used for rendering ('pdf', 'png', ...).
+        engine: The layout commmand used for rendering (``'dot'``, ``'neato'``, ...).
+        format: The output format used for rendering (``'pdf'``, ``'png'``, ...).
         data: The binary (encoded) DOT source string to render.
-        quiet(bool): Suppress stderr output on non-zero exit status.
+        renderer: The output renderer used for rendering (``'cairo'``, ``'gd'``, ...).
+        formatter: The output formatter used for rendering (``'cairo'``, ``'gd'``, ...).
+        quiet (bool): Suppress ``stderr`` output from the layout subprocess.
+
     Returns:
         Binary (encoded) stdout of the layout command.
+
     Raises:
-        ValueError: If engine or format are not known.
+        ValueError: If ``engine``, ``format``, ``renderer``, or ``formatter`` are not known.
+        graphviz.RequiredArgumentError: If ``formatter`` is given but ``renderer`` is None.
         graphviz.ExecutableNotFound: If the Graphviz executable is not found.
         subprocess.CalledProcessError: If the exit status is non-zero.
     """
-    args, _ = command(engine, format)
+    cmd, _ = command(engine, format, None, renderer, formatter)
+    out, _ = run(cmd, input=data, capture_output=True, check=True, quiet=quiet)
+    return out
 
-    try:
-        proc = subprocess.Popen(args, stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-            startupinfo=STARTUPINFO)
-    except OSError as e:
-        if e.errno == errno.ENOENT:
-            raise ExecutableNotFound(args)
-        else:  # pragma: no cover
-            raise
 
-    outs, errs = proc.communicate(data)
-    if proc.returncode:
-        if not quiet:
-            stderr_write_binary(errs)
-            sys.stderr.flush()
-        raise subprocess.CalledProcessError(proc.returncode, args, output=outs)
+def unflatten(source,
+              stagger=None, fanout=False, chain=None,
+              encoding=ENCODING):
+    """Return DOT ``source`` piped through Graphviz *unflatten* preprocessor.
 
-    return outs
+    Args:
+        source (str): The DOT source to process (improve layout aspect ratio).
+        stagger (int): Stagger the minimum length of leaf edges between 1 and this small integer.
+        fanout (bool): Fanout nodes with indegree = outdegree = 1 when staggering (requires ``stagger``).
+        chain (int): Form disconnected nodes into chains of up to this many nodes.
+        encoding: Encoding used to encode unflatten stdin and decode its stdout.
+
+    Returns:
+        str: Decoded stdout of the Graphviz unflatten command.
+
+    Raises:
+        graphviz.RequiredArgumentError: If ``fanout`` is given but ``stagger`` is None.
+        graphviz.ExecutableNotFound: If the Graphviz unflatten executable is not found.
+        subprocess.CalledProcessError: If the exit status is non-zero.
+
+    See also:
+        https://www.graphviz.org/pdf/unflatten.1.pdf
+    """
+    if fanout and stagger is None:
+        raise RequiredArgumentError('fanout given without stagger')
+
+    cmd = ['unflatten']
+    if stagger is not None:
+        cmd += ['-l', str(stagger)]
+    if fanout:
+        cmd.append('-f')
+    if chain is not None:
+        cmd += ['-c', str(chain)]
+
+    out, _ = run(cmd, input=source, capture_output=True, encoding=encoding)
+    return out
 
 
 def version():
-    """Return the version number tuple from the stderr output of ``dot -V``.
+    """Return the version number tuple from the ``stderr`` output of ``dot -V``.
 
     Returns:
-        Two or three int version tuple.
+        Two, three, or four ``int`` version ``tuple``.
     Raises:
         graphviz.ExecutableNotFound: If the Graphviz executable is not found.
         subprocess.CalledProcessError: If the exit status is non-zero.
         RuntimmeError: If the output cannot be parsed into a version number.
+
+    Note:
+        Ignores the ``~dev.<YYYYmmdd.HHMM>`` portion of development versions.
+
+    See also:
+        Graphviz Release version entry format
+        https://gitlab.com/graphviz/graphviz/-/blob/f94e91ba819cef51a4b9dcb2d76153684d06a913/gen_version.py#L17-20
     """
-    args = ['dot', '-V']
-    try:
-        outs = subprocess.check_output(args, startupinfo=STARTUPINFO,
-                                       stderr=subprocess.STDOUT)
-    except OSError as e:
-        if e.errno == errno.ENOENT:
-            raise ExecutableNotFound(args)
-        else:  # pragma: no cover
-            raise
+    cmd = ['dot', '-V']
+    out, _ = run(cmd, check=True, encoding='ascii',
+                 stdout=subprocess.PIPE,
+                 stderr=subprocess.STDOUT)
 
-    info = outs.decode('ascii')
-    ma = re.search(r'graphviz version (\d+\.\d+(?:\.\d+)?) ', info)
+    ma = re.search(r'graphviz version'
+                   r' '
+                   r'(\d+)\.(\d+)'
+                   r'(?:\.(\d+)'
+                       r'(?:'
+                           r'~dev\.\d{8}\.\d{4}'
+                           r'|'
+                           r'\.(\d+)'
+                       r')?'
+                   r')?'
+                   r' ', out)
     if ma is None:
-        raise RuntimeError
-    return tuple(int(d) for d in ma.group(1).split('.'))
+        raise RuntimeError('cannot parse %r output: %r' % (cmd, out))
+
+    return tuple(int(d) for d in ma.groups() if d is not None)
 
 
-def view(filepath):
+def view(filepath, quiet=False):
     """Open filepath with its default viewing application (platform-specific).
 
     Args:
         filepath: Path to the file to open in viewer.
+        quiet (bool): Suppress ``stderr`` output from the viewer process
+                      (ineffective on Windows).
+
     Raises:
         RuntimeError: If the current platform is not supported.
+
+    Note:
+        There is no option to wait for the application to close, and no way
+        to retrieve the application's exit status.
     """
     try:
         view_func = getattr(view, PLATFORM)
     except AttributeError:
         raise RuntimeError('platform %r not supported' % PLATFORM)
-    view_func(filepath)
+    view_func(filepath, quiet)
 
 
 @tools.attach(view, 'darwin')
-def view_darwin(filepath):
+def view_darwin(filepath, quiet):
     """Open filepath with its default application (mac)."""
-    subprocess.Popen(['open', filepath])
+    cmd = ['open', filepath]
+    log.debug('view: %r', cmd)
+    popen_func = _compat.Popen_stderr_devnull if quiet else subprocess.Popen
+    popen_func(cmd)
 
 
 @tools.attach(view, 'linux')
 @tools.attach(view, 'freebsd')
-def view_unixoid(filepath):
+def view_unixoid(filepath, quiet):
     """Open filepath in the user's preferred application (linux, freebsd)."""
-    subprocess.Popen(['xdg-open', filepath])
+    cmd = ['xdg-open', filepath]
+    log.debug('view: %r', cmd)
+    popen_func = _compat.Popen_stderr_devnull if quiet else subprocess.Popen
+    popen_func(cmd)
 
 
 @tools.attach(view, 'windows')
-def view_windows(filepath):
+def view_windows(filepath, quiet):
     """Start filepath with its associated application (windows)."""
-    os.startfile(os.path.normpath(filepath))
+    # TODO: implement quiet=True
+    filepath = os.path.normpath(filepath)
+    log.debug('view: %r', filepath)
+    os.startfile(filepath)

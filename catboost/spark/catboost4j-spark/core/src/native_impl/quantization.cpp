@@ -95,40 +95,31 @@ void TNanModeAndBordersBuilder::AddSample(TConstArrayRef<double> objectData) thr
     }
 }
 
-void TNanModeAndBordersBuilder::Finish(i32 threadCount) throw (yexception) {
+void TNanModeAndBordersBuilder::CalcBordersWithoutNans(i32 threadCount) throw (yexception) {
     CB_ENSURE(threadCount >= 1);
 
     NPar::TLocalExecutor localExecutor;
     localExecutor.RunAdditionalThreads(threadCount - 1);
 
-    TFeaturesLayout& featuresLayout = *(QuantizedFeaturesInfo->GetFeaturesLayout());
+    const TFeaturesLayout& featuresLayout = *(QuantizedFeaturesInfo->GetFeaturesLayout());
 
+    HasNans.yresize(FeatureIndicesToCalc.size());
+    QuantizationWithoutNans.resize(FeatureIndicesToCalc.size());
     localExecutor.ExecRangeWithThrow(
         [&] (int i) {
+            HasNans[i] = Data[i].size() < SampleSize;
+
             auto floatFeatureIdx =
                 featuresLayout.GetInternalFeatureIdx<EFeatureType::Float>(FeatureIndicesToCalc[i]);
 
-            const NCatboostOptions::TBinarizationOptions& binarizationOptions =
-                QuantizedFeaturesInfo->GetFloatFeatureBinarization(*floatFeatureIdx);
-
-            ENanMode nanMode;
-            if (Data[i].size() < SampleSize) { // has NaNs
-                CB_ENSURE(
-                    binarizationOptions.NanMode != ENanMode::Forbidden,
-                    "Feature #" << FeatureIndicesToCalc[i] << ": There are nan factors and nan values for "
-                    " float features are not allowed. Set nan_mode != Forbidden."
-                );
-                nanMode = binarizationOptions.NanMode;
-            } else {
-                nanMode = ENanMode::Forbidden;
-            }
-
-            NSplitSelection::TQuantization quantization;
             if (Data[i].empty()) {
                 CATBOOST_DEBUG_LOG << "Float Feature #" << *floatFeatureIdx
                     << ": sample data contains only NaNs" << Endl;
             } else {
-                quantization = NSplitSelection::BestSplit(
+                const NCatboostOptions::TBinarizationOptions& binarizationOptions =
+                    QuantizedFeaturesInfo->GetFloatFeatureBinarization(*floatFeatureIdx);
+
+                QuantizationWithoutNans[i] = NSplitSelection::BestSplit(
                     NSplitSelection::TFeatureValues(std::move(Data[i])),
                     /*featureValuesMayContainNans*/ false,
                     binarizationOptions.BorderCount.Get(),
@@ -136,27 +127,55 @@ void TNanModeAndBordersBuilder::Finish(i32 threadCount) throw (yexception) {
                     /*quantizedDefaultBinFraction*/ Nothing(),
                     /*initialBorders*/ Nothing()
                 );
-                if (nanMode == ENanMode::Min) {
-                    quantization.Borders.insert(quantization.Borders.begin(), std::numeric_limits<float>::lowest());
-                } else if (nanMode == ENanMode::Max) {
-                    quantization.Borders.push_back(std::numeric_limits<float>::max());
-                }
-            }
-            {
-                TWriteGuard writeGuard(QuantizedFeaturesInfo->GetRWMutex());
-                if (quantization.Borders.empty()) {
-                    CATBOOST_DEBUG_LOG << "Float Feature #" << *floatFeatureIdx << " is empty" << Endl;
-
-                    featuresLayout.IgnoreExternalFeature(FeatureIndicesToCalc[i]);
-                }
-                QuantizedFeaturesInfo->SetNanMode(floatFeatureIdx, nanMode);
-                QuantizedFeaturesInfo->SetQuantization(floatFeatureIdx, std::move(quantization));
             }
         },
         0,
         SafeIntegerCast<int>(FeatureIndicesToCalc.size()),
         NPar::TLocalExecutor::WAIT_COMPLETE
     );
+}
+
+void TNanModeAndBordersBuilder::Finish(TConstArrayRef<i8> hasNans) throw (yexception) {
+    TFeaturesLayout& featuresLayout = *(QuantizedFeaturesInfo->GetFeaturesLayout());
+
+    for (auto i : xrange(FeatureIndicesToCalc.size())) {
+        auto flatFeatureIdx = FeatureIndicesToCalc[i];
+        if (!hasNans.empty()) {
+            HasNans[i] = hasNans[flatFeatureIdx] == 1;
+        }
+
+        auto floatFeatureIdx = featuresLayout.GetInternalFeatureIdx<EFeatureType::Float>(flatFeatureIdx);
+
+        const NCatboostOptions::TBinarizationOptions& binarizationOptions =
+            QuantizedFeaturesInfo->GetFloatFeatureBinarization(*floatFeatureIdx);
+
+        ENanMode nanMode;
+        if (HasNans[i]) {
+            CB_ENSURE(
+                binarizationOptions.NanMode != ENanMode::Forbidden,
+                "Feature #" << flatFeatureIdx << ": There are nan factors and nan values for "
+                " float features are not allowed. Set nan_mode != Forbidden."
+            );
+            nanMode = binarizationOptions.NanMode;
+        } else {
+            nanMode = ENanMode::Forbidden;
+        }
+
+        NSplitSelection::TQuantization quantization = std::move(QuantizationWithoutNans[i]);
+        if (quantization.Borders.empty()) {
+            CATBOOST_DEBUG_LOG << "Float Feature #" << *floatFeatureIdx << " is empty" << Endl;
+
+            featuresLayout.IgnoreExternalFeature(flatFeatureIdx);
+        } else {
+            if (nanMode == ENanMode::Min) {
+                quantization.Borders.insert(quantization.Borders.begin(), std::numeric_limits<float>::lowest());
+            } else if (nanMode == ENanMode::Max) {
+                quantization.Borders.push_back(std::numeric_limits<float>::max());
+            }
+            QuantizedFeaturesInfo->SetNanMode(floatFeatureIdx, nanMode);
+            QuantizedFeaturesInfo->SetQuantization(floatFeatureIdx, std::move(quantization));
+        }
+    }
 }
 
 TQuantizedObjectsDataProviderPtr Quantize(

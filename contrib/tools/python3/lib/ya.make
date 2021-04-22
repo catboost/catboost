@@ -1,5 +1,7 @@
 LIBRARY()
 
+PROVIDES(python)
+
 
 
 LICENSE(Python-2.0)

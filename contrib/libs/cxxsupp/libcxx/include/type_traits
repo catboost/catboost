@@ -499,6 +499,7 @@ template<class... _Pack>
 struct _Sizeof {
     static constexpr size_t value = sizeof...(_Pack);
 };
+#ifdef _LIBCPP_COMPILER_MSVC
 // Workaround for MSVC. Sometimes MSVC can't match definition and declaration
 // when they use _EnableIf. So simplify _EnableIf metaprogramming to avoid the issue.
 template<bool, class> struct _MetaBase2;
@@ -508,6 +509,10 @@ struct _MetaBase2<true, _Tp> {
 };
 template <bool _Cond, class _Ret = void>
 using _EnableIf _LIBCPP_NODEBUG_TYPE = typename _MetaBase2<_Cond, _Ret>::_EnableIfImpl;
+#else
+template <bool _Cond, class _Ret = void>
+using _EnableIf _LIBCPP_NODEBUG_TYPE = typename _MetaBase<_Cond>::template _EnableIfImpl<_Ret>;
+#endif
 // CUDA headers use libc++ internals.
 #ifdef __CUDACC__
 template <bool _Cond, class _Ret = void>
@@ -515,20 +520,6 @@ using __lazy_enable_if _LIBCPP_NODEBUG_TYPE = _EnableIf<_Cond, _Ret>;
 #endif
 template <bool _Cond, class _IfRes, class _ElseRes>
 using _If _LIBCPP_NODEBUG_TYPE = typename _MetaBase<_Cond>::template _SelectImpl<_IfRes, _ElseRes>;
-// CUDA compiler doesn't substitute parameter packs correctly in usings.
-// Use structs instead.
-#ifdef __CUDACC__
-template <class ..._Rest>
-struct _Or _LIBCPP_NODEBUG_TYPE : _MetaBase< _Sizeof<_Rest...>::value != 0 >::template _OrImpl<false_type, _Rest...> {};
-template <class ..._Rest>
-struct _And _LIBCPP_NODEBUG_TYPE : _MetaBase< _Sizeof<_Rest...>::value != 0 >::template _AndImpl<true_type, _Rest...> {};
-template <class _Pred>
-struct _Not _LIBCPP_NODEBUG_TYPE : _BoolConstant<!_Pred::value> {};
-template <class ..._Args>
-struct _FirstType _LIBCPP_NODEBUG_TYPE : _MetaBase<(_Sizeof<_Args...>::value >= 1)>::template _FirstImpl<_Args...>{};
-template <class ..._Args>
-struct _SecondType _LIBCPP_NODEBUG_TYPE : _MetaBase<(_Sizeof<_Args...>::value >= 2)>::template _SecondImpl<_Args...>{};
-#else
 template <class ..._Rest>
 using _Or _LIBCPP_NODEBUG_TYPE = typename _MetaBase< _Sizeof<_Rest...>::value != 0 >::template _OrImpl<false_type, _Rest...>;
 template <class ..._Rest>
@@ -539,7 +530,6 @@ template <class ..._Args>
 using _FirstType _LIBCPP_NODEBUG_TYPE = typename _MetaBase<(_Sizeof<_Args...>::value >= 1)>::template _FirstImpl<_Args...>;
 template <class ..._Args>
 using _SecondType _LIBCPP_NODEBUG_TYPE = typename _MetaBase<(_Sizeof<_Args...>::value >= 2)>::template _SecondImpl<_Args...>;
-#endif
 
 template <template <class...> class _Func, class ..._Args>
 struct _Lazy : _Func<_Args...> {};

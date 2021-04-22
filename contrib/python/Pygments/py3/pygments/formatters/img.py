@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
     pygments.formatters.img
     ~~~~~~~~~~~~~~~~~~~~~~~
@@ -156,7 +155,7 @@ class FontManager:
                     valname = '%s%s%s' % (basename, style and ' '+style, suffix)
                     val, _ = _winreg.QueryValueEx(key, valname)
                     return val
-                except EnvironmentError:
+                except OSError:
                     continue
         else:
             if fail:
@@ -190,7 +189,7 @@ class FontManager:
                     lookuperror = err
                 finally:
                     _winreg.CloseKey(key)
-            except EnvironmentError:
+            except OSError:
                 pass
         else:
             # If we get here, we checked all registry keys and had no luck
@@ -453,6 +452,16 @@ class ImageFormatter(Formatter):
             fill = '#000'
         return fill
 
+    def _get_text_bg_color(self, style):
+        """
+        Get the correct background color for the token from the style.
+        """
+        if style['bgcolor'] is not None:
+            bg_color = '#' + style['bgcolor']
+        else:
+            bg_color = None
+        return bg_color
+
     def _get_style_font(self, style):
         """
         Get the correct font for the style.
@@ -475,14 +484,15 @@ class ImageFormatter(Formatter):
             str(lineno).rjust(self.line_number_chars),
             font=self.fonts.get_font(self.line_number_bold,
                                      self.line_number_italic),
-            fill=self.line_number_fg,
+            text_fg=self.line_number_fg,
+            text_bg=None,
         )
 
-    def _draw_text(self, pos, text, font, **kw):
+    def _draw_text(self, pos, text, font, text_fg, text_bg):
         """
         Remember a single drawable tuple to paint later.
         """
-        self.drawables.append((pos, text, font, kw))
+        self.drawables.append((pos, text, font, text_fg, text_bg))
 
     def _create_drawables(self, tokensource):
         """
@@ -507,7 +517,8 @@ class ImageFormatter(Formatter):
                         self._get_text_pos(linelength, lineno),
                         temp,
                         font = self._get_style_font(style),
-                        fill = self._get_text_color(style)
+                        text_fg = self._get_text_color(style),
+                        text_bg = self._get_text_bg_color(style),
                     )
                     temp_width, temp_hight = self.fonts.get_text_size(temp)
                     linelength += temp_width
@@ -577,8 +588,11 @@ class ImageFormatter(Formatter):
                 y = self._get_line_y(linenumber - 1)
                 draw.rectangle([(x, y), (x + rectw, y + recth)],
                                fill=self.hl_color)
-        for pos, value, font, kw in self.drawables:
-            draw.text(pos, value, font=font, **kw)
+        for pos, value, font, text_fg, text_bg in self.drawables:
+            if text_bg:
+                text_size = draw.textsize(text=value, font=font)
+                draw.rectangle([pos[0], pos[1], pos[0] + text_size[0], pos[1] + text_size[1]], fill=text_bg)
+            draw.text(pos, value, font=font, fill=text_fg)
         im.save(outfile, self.image_format.upper())
 
 

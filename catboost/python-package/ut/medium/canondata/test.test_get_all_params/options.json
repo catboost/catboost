@@ -37,6 +37,9 @@
     "one_hot_max_size": 2, 
     "penalties_coefficient": 1, 
     "permutation_count": 4, 
+    "pool_metainfo_options": {
+        "tags": {}
+    }, 
     "posterior_sampling": false, 
     "random_seed": 0, 
     "random_strength": 1, 

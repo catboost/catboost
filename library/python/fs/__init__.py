@@ -4,11 +4,11 @@ import codecs
 import errno
 import logging
 import os
-import sys
+import random
 import shutil
 import six
 import stat
-import random
+import sys
 
 import library.python.func
 import library.python.strings
@@ -198,12 +198,17 @@ def hardlink(src, lnk):
 
 @errorfix_win
 def hardlink_or_copy(src, lnk):
-
     def should_fallback_to_copy(exc):
         if WindowsError is not None and isinstance(exc, WindowsError) and exc.winerror == 1142:  # too many hardlinks
             return True
         # cross-device hardlink or too many hardlinks, or some known WSL error
-        if isinstance(exc, OSError) and exc.errno in (errno.EXDEV, errno.EMLINK, errno.EINVAL, errno.EACCES, errno.EPERM, ):
+        if isinstance(exc, OSError) and exc.errno in (
+            errno.EXDEV,
+            errno.EMLINK,
+            errno.EINVAL,
+            errno.EACCES,
+            errno.EPERM,
+        ):
             return True
         return False
 
@@ -307,7 +312,9 @@ def read_file_unicode(path, binary=True, enc='utf-8'):
 
 @errorfix_win
 def open_file(*args, **kwargs):
-    return library.python.windows.open_file(*args, **kwargs) if library.python.windows.on_win() else open(*args, **kwargs)
+    return (
+        library.python.windows.open_file(*args, **kwargs) if library.python.windows.on_win() else open(*args, **kwargs)
+    )
 
 
 # Atomic file write
@@ -356,8 +363,15 @@ def get_tree_size(path, recursive=False, raise_all_errors=False):
 
 
 # Directory copy ported from Python 3
-def copytree3(src, dst, symlinks=False, ignore=None,
-              copy_function=shutil.copy2, ignore_dangling_symlinks=False, dirs_exist_ok=False):
+def copytree3(
+    src,
+    dst,
+    symlinks=False,
+    ignore=None,
+    copy_function=shutil.copy2,
+    ignore_dangling_symlinks=False,
+    dirs_exist_ok=False,
+):
     """Recursively copy a directory tree.
 
     The copytree3 is a port of shutil.copytree function from python-3.2.
@@ -453,8 +467,28 @@ def walk_relative(path, topdown=True, onerror=None, followlinks=False):
     for dirpath, dirnames, filenames in os.walk(path, topdown=topdown, onerror=onerror, followlinks=followlinks):
         yield os.path.relpath(dirpath, path), dirnames, filenames
 
+
 def supports_clone():
     if 'darwin' in sys.platform:
         import platform
+
         return list(map(int, platform.mac_ver()[0].split('.'))) >= [10, 13]
     return False
+
+
+def commonpath(paths):
+    assert paths
+    if len(paths) == 1:
+        return next(iter(paths))
+
+    split_paths = [path.split(os.sep) for path in paths]
+    smin = min(split_paths)
+    smax = max(split_paths)
+
+    common = smin
+    for i, c in enumerate(smin):
+        if c != smax[i]:
+            common = smin[:i]
+            break
+
+    return os.path.sep.join(common)

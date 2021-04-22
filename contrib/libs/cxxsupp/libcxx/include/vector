@@ -2056,7 +2056,8 @@ template <class _Tp, class _Allocator>
 void
 vector<_Tp, _Allocator>::yresize(size_type __new_size)
 {
-    if (is_pod<_Tp>::value) {
+    // https://en.cppreference.com/w/cpp/named_req/TriviallyCopyable
+    if (is_trivially_copyable<_Tp>::value) {
         resize_uninitialized(__new_size);
     } else {
         resize(__new_size);

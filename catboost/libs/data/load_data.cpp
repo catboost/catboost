@@ -23,6 +23,7 @@ namespace NCB {
         const TPathWithScheme& timestampsFilePath, // can be uninited
         const TPathWithScheme& baselineFilePath, // can be uninited
         const TPathWithScheme& featureNamesPath, // can be uninited
+        const TPathWithScheme& poolMetaInfoPath, // can be uninited
         const NCatboostOptions::TColumnarPoolFormatParams& columnarPoolFormatParams,
         const TVector<ui32>& ignoredFeatures,
         EObjectsOrder objectsOrder,
@@ -47,6 +48,7 @@ namespace NCB {
                     baselineFilePath,
                     timestampsFilePath,
                     featureNamesPath,
+                    poolMetaInfoPath,
                     classLabels ? **classLabels : TVector<NJson::TJsonValue>(),
                     columnarPoolFormatParams.DsvFormat,
                     MakeCdProviderFromFile(columnarPoolFormatParams.CdFilePath),
@@ -89,6 +91,7 @@ namespace NCB {
         const TPathWithScheme& timestampsFilePath, // can be uninited
         const TPathWithScheme& baselineFilePath, // can be uninited
         const TPathWithScheme& featureNamesPath, // can be uninited
+        const TPathWithScheme& poolMetaInfoPath, // can be uninited
         const NCatboostOptions::TColumnarPoolFormatParams& columnarPoolFormatParams,
         const TVector<ui32>& ignoredFeatures,
         EObjectsOrder objectsOrder,
@@ -109,6 +112,7 @@ namespace NCB {
             timestampsFilePath,
             baselineFilePath,
             featureNamesPath,
+            poolMetaInfoPath,
             columnarPoolFormatParams,
             ignoredFeatures,
             objectsOrder,
@@ -128,6 +132,7 @@ namespace NCB {
         const TPathWithScheme& timestampsFilePath, // can be uninited
         const TPathWithScheme& baselineFilePath, // can be uninited
         const TPathWithScheme& featureNamesPath, // can be uninited
+        const TPathWithScheme& poolMetaInfoPath, // can be uninited
         const TDsvFormatOptions& poolFormat,
         const TVector<TColumn>& columnsDescription, // TODO(smirnovpavel): TVector<EColumn>
         const TVector<ui32>& ignoredFeatures,
@@ -157,6 +162,7 @@ namespace NCB {
                     baselineFilePath,
                     timestampsFilePath,
                     featureNamesPath,
+                    poolMetaInfoPath,
                     classLabels ? **classLabels : TVector<NJson::TJsonValue>(),
                     poolFormat,
                     MakeCdProviderFromArray(columnsDescription),
@@ -201,6 +207,7 @@ namespace NCB {
                 loadOptions.TimestampsFilePath,
                 loadOptions.BaselineFilePath,
                 loadOptions.FeatureNamesPath,
+                loadOptions.PoolMetaInfoPath,
                 loadOptions.ColumnarPoolFormatParams,
                 loadOptions.IgnoredFeatures,
                 objectsOrder,
@@ -236,6 +243,7 @@ namespace NCB {
                     testTimestampsFilePath,
                     testBaselineFilePath,
                     loadOptions.FeatureNamesPath,
+                    loadOptions.PoolMetaInfoPath,
                     loadOptions.ColumnarPoolFormatParams,
                     loadOptions.IgnoredFeatures,
                     objectsOrder,
@@ -279,6 +287,7 @@ namespace NCB {
                 /*timestampsFilePath*/ TPathWithScheme(),
                 /*baselineFilePath*/ TPathWithScheme(),
                 /*featureNamesPath*/ TPathWithScheme(),
+                /*poolMetaInfoPath*/ TPathWithScheme(),
                 columnarPoolFormatParams,
                 /*ignoredFeatures*/ emptyVector,
                 EObjectsOrder::Ordered,
@@ -288,7 +297,7 @@ namespace NCB {
             );
             result.DataProviders.Test.push_back(
                TQuantizedObjectsDataProviderPtr(
-                   dynamic_cast<TQuantizedForCPUObjectsDataProvider*>(datasetPtr->ObjectsData.Get())
+                   dynamic_cast<TQuantizedObjectsDataProvider*>(datasetPtr->ObjectsData.Get())
                )
             );
             CB_ENSURE(

@@ -3,6 +3,8 @@
 #include <catboost/libs/data/objects.h>
 #include <catboost/libs/data/quantized_features_info.h>
 
+#include <library/cpp/grid_creator/binarization.h>
+
 #include <util/generic/fwd.h>
 #include <util/generic/array_ref.h>
 #include <util/generic/vector.h>
@@ -37,14 +39,22 @@ public:
 
     void AddSample(TConstArrayRef<double> objectData) throw (yexception);
 
-    // updates parameters in quantizedFeaturesInfo passed to constructor
-    void Finish(i32 threadCount) throw (yexception);
+    void CalcBordersWithoutNans(i32 threadCount) throw (yexception);
+
+    /* updates parameters in quantizedFeaturesInfo passed to constructor
+     * @param hasNans is an array with flatFeatureIdx index, can be empty
+     */
+    void Finish(TConstArrayRef<i8> hasNans) throw (yexception);
 
 private:
     size_t SampleSize = 0;
     TVector<ui32> FeatureIndicesToCalc;
     NCB::TQuantizedFeaturesInfoPtr QuantizedFeaturesInfo;
     TVector<TVector<float>> Data; // [featureIdxToCalc]
+
+    // need to save them until full hasNans information becomes available
+    TVector<NSplitSelection::TQuantization> QuantizationWithoutNans; // [featureIdxToCalc]
+    TVector<bool> HasNans; // [featureIdxToCalc]
 };
 
 

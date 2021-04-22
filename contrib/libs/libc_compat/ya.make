@@ -14,15 +14,6 @@ IF (NOT OS_WINDOWS)
     )
 ENDIF()
 
-IF (OS_LINUX)
-    IF (NOT MUSL)
-        SRCS(
-            strlcat.c
-            strlcpy.c
-        )
-    ENDIF()
-ENDIF()
-
 # Android libc function appearance is documented here:
 # https://android.googlesource.com/platform/bionic/+/master/docs/status.md
 #
@@ -79,15 +70,35 @@ IF (OS_WINDOWS)
     )
 ENDIF()
 
-IF (OS_LINUX AND NOT MUSL AND OS_SDK == "ubuntu-12")
-    ADDINCL(GLOBAL contrib/libs/libc_compat/include/uchar)
-ENDIF()
+IF (OS_LINUX AND NOT MUSL)
+    IF (OS_SDK == "ubuntu-12")
+        ADDINCL(
+            # uchar.h was introduced in glibc=2.16
+            GLOBAL contrib/libs/libc_compat/include/uchar
+        )
+    ENDIF()
 
-IF (OS_LINUX AND NOT MUSL AND OS_SDK != "ubuntu-20")
+    IF (OS_SDK == "ubuntu-12" OR OS_SDK == "ubuntu-14")
+        ADDINCL(GLOBAL contrib/libs/libc_compat/include/random)
+        SRCS(
+            # getrandom was added in glibc=2.25
+            getrandom.c
+        )
+    ENDIF()
+
+    IF (OS_SDK != "ubuntu-20")
+        SRCS(
+            # reallocarray was added in glibc=2.29
+            reallocarray.c
+        )
+    ENDIF()
+
     SRCS(
-        # reallocarray was added in glibc=2.29
-        reallocarray.c
+        # glibc does not offer strlcat / strlcpy yet
+        strlcat.c
+        strlcpy.c
     )
+
 ENDIF()
 
 END()

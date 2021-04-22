@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: ipdb
-Version: 0.13.5
+Version: 0.13.7
 Summary: IPython-enabled pdb
 Home-page: https://github.com/gotcha/ipdb
 Author: Godefroid Chapelle
@@ -23,10 +23,15 @@ Classifier: License :: OSI Approved :: BSD License
 Requires-Python: >=2.7
 Requires-Dist: setuptools
 Requires-Dist: ipython (<6.0.0,>=5.1.0) ; python_version == "2.7"
+Requires-Dist: toml (>=0.10.2) ; python_version == "2.7"
 Requires-Dist: ipython (<7.0.0,>=6.0.0) ; python_version == "3.4"
+Requires-Dist: toml (>=0.10.2) ; python_version == "3.4"
 Requires-Dist: ipython (<7.10.0,>=7.0.0) ; python_version == "3.5"
+Requires-Dist: toml (>=0.10.2) ; python_version == "3.5"
 Requires-Dist: ipython (<7.17.0,>=7.10.0) ; python_version == "3.6"
+Requires-Dist: toml (>=0.10.2) ; python_version == "3.6"
 Requires-Dist: ipython (>=7.17.0) ; python_version > "3.6"
+Requires-Dist: toml (>=0.10.2) ; python_version > "3.6"
 
 IPython `pdb`
 =============
@@ -215,6 +220,20 @@ instead of ``pdb``. (It does not depend on ``ipdb`` anymore).
 
 Changelog
 =========
+
+0.13.7 (2021-03-16)
+-------------------
+
+- Do not instantiate IPython on import
+  [adamchainz]
+
+
+0.13.6 (2021-03-08)
+-------------------
+
+- Fix broken parsing of pyproject.toml
+  [alexandrebarbaruiva]
+
 
 0.13.5 (2021-03-02)
 -------------------

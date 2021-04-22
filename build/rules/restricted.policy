@@ -74,7 +74,6 @@ ALLOW smart_devices/tools/updater -> contrib/restricted/spdlog
 
 # cmph is a limited-use library
 ALLOW ads/yacontext -> contrib/restricted/cmph
-ALLOW mssngr/router -> contrib/restricted/cmph
 
 # http-parser is a low-level parser for http bytestream.
 # Consider using high-level alternatives.
@@ -126,6 +125,7 @@ ALLOW weather/grid_api/lib -> contrib/restricted/boost
 ALLOW yabs/telephony -> contrib/restricted/boost
 ALLOW yandex_io -> contrib/restricted/boost
 ALLOW yweb/robot/js -> contrib/restricted/boost
+ALLOW market/access/server/env -> contrib/restricted/boost
 
 # use GTEST target in ya.make instead of PEERDIRing contrib/restricted/googletest
 # and include <library/cpp/testing/gtest.h> instead of <gtest/gtest.h> (<gmock/gmock.h>)
@@ -141,6 +141,9 @@ ALLOW mail -> contrib/restricted/googletest
 ALLOW maps/mobile/libs -> contrib/restricted/googletest
 ALLOW maps/mobile/bundle -> contrib/restricted/googletest
 ALLOW mds -> contrib/restricted/googletest
+# A mere proxy to allow using gmock in libraries without being bound to specific test framework
+# See IGNIETFERRO-1827 for details.
+ALLOW library/cpp/testing/gmock -> contrib/restricted/googletest/googlemock
 
 # allow usage of MIT part
 ALLOW .* -> contrib/restricted/librseq/headeronly

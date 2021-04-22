@@ -166,14 +166,14 @@ static TQuantizedObjectsDataProviderPtr CreateEstimatedObjectsDataProvider(
     commonObjectsData.SubsetIndexing
         = MakeAtomicShared<TArraySubsetIndexing<ui32>>(TFullSubset<ui32>(objectCount));
 
-    TQuantizedForCPUObjectsData dstData;
-    dstData.Data.QuantizedFeaturesInfo = std::move(quantizedFeaturesInfo);
+    TQuantizedObjectsData dstData;
+    dstData.QuantizedFeaturesInfo = std::move(quantizedFeaturesInfo);
     dstData.PackedBinaryFeaturesData.FlatFeatureIndexToPackedBinaryIndex.resize(data.size());
     dstData.ExclusiveFeatureBundlesData.FlatFeatureIndexToBundlePart.resize(data.size());
     dstData.FeaturesGroupsData.FlatFeatureIndexToGroupPart.resize(data.size());
 
     for (auto featureIdx : xrange<ui32>(data.size())) {
-        dstData.Data.FloatFeatures.push_back(
+        dstData.FloatFeatures.push_back(
             MakeHolder<TQuantizedFloatValuesHolder>(
                 featureIdx,
                 TCompressedArray(objectCount, /*bitsPerKey*/ 8, std::move(data[featureIdx])),
@@ -182,7 +182,7 @@ static TQuantizedObjectsDataProviderPtr CreateEstimatedObjectsDataProvider(
         );
     }
 
-    return MakeIntrusive<TQuantizedForCPUObjectsDataProvider>(
+    return MakeIntrusive<TQuantizedObjectsDataProvider>(
         MakeIntrusive<TObjectsGrouping>(objectCount),
         std::move(commonObjectsData),
         std::move(dstData),

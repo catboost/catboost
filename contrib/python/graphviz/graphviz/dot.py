@@ -28,7 +28,9 @@ graph {
 'test-output/m00se.gv.pdf'
 """
 
-from . import lang, files
+from . import backend
+from . import files
+from . import lang
 
 __all__ = ['Graph', 'Digraph']
 
@@ -51,10 +53,9 @@ class Dot(files.File):
 
     def __init__(self, name=None, comment=None,
                  filename=None, directory=None,
-                 format=None, engine=None, encoding=files.File._encoding,
+                 format=None, engine=None, encoding=backend.ENCODING,
                  graph_attr=None, node_attr=None, edge_attr=None, body=None,
                  strict=False):
-
         self.name = name
         self.comment = comment
 
@@ -70,20 +71,20 @@ class Dot(files.File):
 
     def _kwargs(self):
         result = super(Dot, self)._kwargs()
-        result.update({
-            'name': self.name, 'comment': self.comment,
-            'graph_attr': dict(self.graph_attr),
-            'node_attr': dict(self.node_attr),
-            'edge_attr': dict(self.edge_attr),
-            'body': list(self.body), 'strict': self.strict,
-        })
+        result.update(name=self.name,
+                      comment=self.comment,
+                      graph_attr=dict(self.graph_attr),
+                      node_attr=dict(self.node_attr),
+                      edge_attr=dict(self.edge_attr),
+                      body=list(self.body),
+                      strict=self.strict)
         return result
 
     def clear(self, keep_attrs=False):
         """Reset content to an empty body, clear graph/node/egde_attr mappings.
 
         Args:
-            keep_attrs(bool): preserve graph/node/egde_attr mappings
+            keep_attrs (bool): preserve graph/node/egde_attr mappings
         """
         if not keep_attrs:
             for a in (self.graph_attr, self.node_attr, self.edge_attr):
@@ -113,18 +114,17 @@ class Dot(files.File):
 
         yield self._tail
 
-    def __str__(self):
+    @property
+    def source(self):
         """The DOT source code as string."""
         return '\n'.join(self)
-
-    source = property(__str__, doc=__str__.__doc__)
 
     def node(self, name, label=None, _attributes=None, **attrs):
         """Create a node.
 
         Args:
             name: Unique identifier for the node inside the source.
-            label: Caption to be displayed (defaults to the node name).
+            label: Caption to be displayed (defaults to the node ``name``).
             attrs: Any additional node attributes (must be strings).
         """
         name = self._quote(name)
@@ -136,10 +136,16 @@ class Dot(files.File):
         """Create an edge between two nodes.
 
         Args:
-            tail_name: Start node identifier.
-            head_name: End node identifier.
+            tail_name: Start node identifier (format: ``node[:port[:compass]]``).
+            head_name: End node identifier (format: ``node[:port[:compass]]``).
             label: Caption to be displayed near the edge.
             attrs: Any additional edge attributes (must be strings).
+
+        Note:
+            The ``tail_name`` and ``head_name`` strings are separated by
+            (optional) colon(s) into ``node`` name, ``port`` name, and
+            ``compass`` (e.g. ``sw``).
+            See :ref:`details in the User Guide <ports>`.
         """
         tail_name = self._quote_edge(tail_name)
         head_name = self._quote_edge(head_name)
@@ -151,7 +157,15 @@ class Dot(files.File):
         """Create a bunch of edges.
 
         Args:
-            tail_head_iter: Iterable of (tail_name, head_name) pairs.
+            tail_head_iter: Iterable of ``(tail_name, head_name)`` pairs
+            (format:``node[:port[:compass]]``).
+
+
+        Note:
+            The ``tail_name`` and ``head_name`` strings are separated by
+            (optional) colon(s) into ``node`` name, ``port`` name, and
+            ``compass`` (e.g. ``sw``).
+            See :ref:`details in the User Guide <ports>`.
         """
         edge = self._edge_plain
         quote = self._quote_edge
@@ -162,7 +176,7 @@ class Dot(files.File):
         """Add a general or graph/node/edge attribute statement.
 
         Args:
-            kw: Attributes target (None or 'graph', 'node', 'edge').
+            kw: Attributes target (``None`` or ``'graph'``, ``'node'``, ``'edge'``).
             attrs: Attributes to be set (must be strings, may be empty).
 
         See the :ref:`usage examples in the User Guide <attributes>`.
@@ -181,39 +195,52 @@ class Dot(files.File):
 
     def subgraph(self, graph=None, name=None, comment=None,
                  graph_attr=None, node_attr=None, edge_attr=None, body=None):
-        """Add the current content of the given sole `graph` argument as subgraph \
+        """Add the current content of the given sole ``graph`` argument as subgraph \
            or return a context manager returning a new graph instance created \
-           with the given (`name`, `comment`, etc.) arguments whose content is \
+           with the given (``name``, ``comment``, etc.) arguments whose content is \
            added as subgraph when leaving the context manager's ``with``-block.
 
         Args:
             graph: An instance of the same kind (:class:`.Graph`, :class:`.Digraph`)
                    as the current graph (sole argument in non-with-block use).
-            name: Subgraph name (with-block use).
-            comment: Subgraph comment (with-block use).
-            graph_attr: Subgraph-level attribute-value mapping (with-block use).
-            node_attr: Node-level attribute-value mapping (with-block use).
-            edge_attr: Edge-level attribute-value mapping (with-block use).
-            body: Verbatim lines to add to the subgraph body (with-block use).
+            name: Subgraph name (``with``-block use).
+            comment: Subgraph comment (``with``-block use).
+            graph_attr: Subgraph-level attribute-value mapping (``with``-block use).
+            node_attr: Node-level attribute-value mapping (``with``-block use).
+            edge_attr: Edge-level attribute-value mapping (``with``-block use).
+            body: Verbatim lines to add to the subgraph ``body`` (``with``-block use).
 
         See the :ref:`usage examples in the User Guide <subgraphs>`.
 
-        .. note::
-            If the `name` of the subgraph begins with 'cluster' (all lowercase)
+        When used as a context manager, the returned new graph instance uses
+        ``strict=None`` and the parent graph's values for ``directory``,
+        ``format``, ``engine``, and ``encoding`` by default.
+
+        Note:
+            If the ``name`` of the subgraph begins with ``'cluster'`` (all lowercase)
             the layout engine will treat it as a special cluster subgraph.
         """
         if graph is None:
-            kwargs = {'name': name, 'comment': comment,
-                      'graph_attr': graph_attr, 'node_attr': node_attr,
-                      'edge_attr': edge_attr, 'body': body}
-            return SubgraphContext(self, kwargs)
+            return SubgraphContext(self, {'name': name,
+                                          'comment': comment,
+                                          'directory': self.directory,
+                                          'format': self.format,
+                                          'engine': self.engine,
+                                          'encoding': self.encoding,
+                                          'graph_attr': graph_attr,
+                                          'node_attr': node_attr,
+                                          'edge_attr': edge_attr,
+                                          'body': body,
+                                          'strict': None})
 
         args = [name, comment, graph_attr, node_attr, edge_attr, body]
         if not all(a is None for a in args):
             raise ValueError('graph must be sole argument of subgraph()')
+
         if graph.directed != self.directed:
-            raise ValueError('%r cannot add subgraph of different kind: %r '
-                % (self, graph))
+            raise ValueError('%r cannot add subgraph of different kind:'
+                             ' %r' % (self, graph))
+
         lines = ['\t' + line for line in graph.__iter__(subgraph=True)]
         self.body.extend(lines)
 
@@ -239,19 +266,19 @@ class Graph(Dot):
     Args:
         name: Graph name used in the source code.
         comment: Comment added to the first line of the source.
-        filename: Filename for saving the source (defaults to `name` + '.gv').
+        filename: Filename for saving the source (defaults to ``name`` + ``'.gv'``).
         directory: (Sub)directory for source saving and rendering.
-        format: Rendering output format ('pdf', 'png', ...).
-        engine: Layout command used ('dot', 'neato', ...).
+        format: Rendering output format (``'pdf'``, ``'png'``, ...).
+        engine: Layout command used (``'dot'``, ``'neato'``, ...).
         encoding: Encoding for saving the source.
-        graph_attr: Mapping of (attribute, value) pairs for the graph.
-        node_attr: Mapping of (attribute, value) pairs set for all nodes.
-        edge_attr: Mapping of (attribute, value) pairs set for all edges.
-        body: Iterable of verbatim lines to add to the graph body.
-        strict(bool): Rendering should merge multi-edges.
+        graph_attr: Mapping of ``(attribute, value)`` pairs for the graph.
+        node_attr: Mapping of ``(attribute, value)`` pairs set for all nodes.
+        edge_attr: Mapping of ``(attribute, value)`` pairs set for all edges.
+        body: Iterable of verbatim lines to add to the graph ``body``.
+        strict (bool): Rendering should merge multi-edges.
 
-    .. note::
-        All parameters are optional and can be changed under their
+    Note:
+        All parameters are `optional` and can be changed under their
         corresponding attribute name after instance creation.
     """
 
@@ -269,7 +296,8 @@ class Graph(Dot):
 class Digraph(Dot):
     """Directed graph source code in the DOT language."""
 
-    __doc__ += Graph.__doc__.partition('.')[2]
+    if Graph.__doc__ is not None:
+        __doc__ += Graph.__doc__.partition('.')[2]
 
     _head = 'digraph %s{'
     _head_strict = 'strict %s' % _head

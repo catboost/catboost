@@ -7,6 +7,7 @@
 
 #include <catboost/cuda/gpu_data/oblivious_tree_bin_builder.h>
 #include <catboost/cuda/cuda_util/run_stream_parallel_jobs.h>
+#include <catboost/cuda/methods/langevin_utils.h>
 
 #include <catboost/libs/helpers/math_utils.h>
 
@@ -402,6 +403,20 @@ namespace NCatboostCuda {
                                                    streams[(2 * i) % streamCount].GetId());
                     task.TestTarget->NewtonAtZero(testTarget, testWeights,
                                                   streams[(2 * i + 1) % streamCount].GetId());
+                }
+
+                if (BoostingOptions.Langevin) {
+                    auto &trainSeeds = Random.GetGpuSeeds<NCudaLib::TMirrorMapping>();
+                    AddLangevinNoise(trainSeeds,
+                                     &learnTarget,
+                                     BoostingOptions.DiffusionTemperature,
+                                     BoostingOptions.LearningRate);
+
+                    auto &testSeeds = Random.GetGpuSeeds<NCudaLib::TMirrorMapping>();
+                    AddLangevinNoise(testSeeds,
+                                     &testTarget,
+                                     BoostingOptions.DiffusionTemperature,
+                                     BoostingOptions.LearningRate);
                 }
             }
 

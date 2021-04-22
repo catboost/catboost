@@ -271,8 +271,12 @@ namespace NCatboostCuda {
                     Border = NCatboostOptions::GetLogLossBorder(targetOptions);
                     break;
                 }
-                case ELossFunction:: Tweedie: {
+                case ELossFunction::Tweedie: {
                     VariancePower = NCatboostOptions::GetTweedieParam(targetOptions);
+                    break;
+                }
+                case ELossFunction::Huber: {
+                    Alpha = NCatboostOptions::GetHuberParam(targetOptions);
                     break;
                 }
                 default: {

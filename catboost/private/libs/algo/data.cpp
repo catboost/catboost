@@ -82,8 +82,8 @@ namespace NCB {
         trainingData->MetaInfo = srcData->MetaInfo;
         trainingData->ObjectsGrouping = srcData->ObjectsGrouping;
 
-        if (auto* quantizedForCPUObjectsDataProvider
-                = dynamic_cast<TQuantizedForCPUObjectsDataProvider*>(srcData->ObjectsData.Get()))
+        if (auto* quantizedObjectsDataProvider
+                = dynamic_cast<TQuantizedObjectsDataProvider*>(srcData->ObjectsData.Get()))
         {
             if (params->GetTaskType() == ETaskType::CPU) {
                 /*
@@ -91,13 +91,13 @@ namespace NCB {
                  * but there're cases (e.g. CV with many folds) when limiting used CPU RAM is more important
                  */
                 if (ensureConsecutiveIfDenseFeaturesDataForCpu) {
-                    if (!quantizedForCPUObjectsDataProvider->GetFeaturesArraySubsetIndexing().IsConsecutive()) {
+                    if (!quantizedObjectsDataProvider->GetFeaturesArraySubsetIndexing().IsConsecutive()) {
                         // TODO(akhropov): make it work in non-shared case
                         CB_ENSURE_INTERNAL(
-                            (srcData->RefCount() <= 1) && (quantizedForCPUObjectsDataProvider->RefCount() <= 1),
+                            (srcData->RefCount() <= 1) && (quantizedObjectsDataProvider->RefCount() <= 1),
                             "Cannot modify QuantizedForCPUObjectsDataProvider because it's shared"
                         );
-                        quantizedForCPUObjectsDataProvider->EnsureConsecutiveIfDenseFeaturesData(localExecutor);
+                        quantizedObjectsDataProvider->EnsureConsecutiveIfDenseFeaturesData(localExecutor);
                     }
                 }
             } else { // GPU
@@ -108,19 +108,19 @@ namespace NCB {
                  */
                 CB_ENSURE(
                     (srcData->MetaInfo.FeaturesLayout->GetCatFeatureCount() == 0) ||
-                    quantizedForCPUObjectsDataProvider,
+                    quantizedObjectsDataProvider,
                     "Quantized objects data is not compatible with final CTR calculation"
                 );
             }
 
             if (params->DataProcessingOptions.Get().IgnoredFeatures.IsSet()) {
-                trainingData->ObjectsData = dynamic_cast<TQuantizedForCPUObjectsDataProvider*>(
-                    quantizedForCPUObjectsDataProvider->GetFeaturesSubset(
+                trainingData->ObjectsData = dynamic_cast<TQuantizedObjectsDataProvider*>(
+                    quantizedObjectsDataProvider->GetFeaturesSubset(
                         params->DataProcessingOptions.Get().IgnoredFeatures,
                         localExecutor).Get()
                 );
             } else {
-                trainingData->ObjectsData = quantizedForCPUObjectsDataProvider;
+                trainingData->ObjectsData = quantizedObjectsDataProvider;
             }
         } else {
             trainingData->ObjectsData = GetQuantizedObjectsData(
@@ -207,6 +207,7 @@ namespace NCB {
         trainingData->MetaInfo.HasPairs = outputPairsInfo.HasPairs;
         trainingData->MetaInfo.HasWeights |= !inputClassificationInfo.ClassWeights.empty();
         trainingData->MetaInfo.HasWeights |= inputClassificationInfo.AutoClassWeightsType != EAutoClassWeightsType::None;
+        trainingData->MetaInfo.ClassLabels = outputClassificationInfo.ClassLabels;
         dataProcessingOptions.ClassLabels.Get() = outputClassificationInfo.ClassLabels;
         *targetBorder = outputClassificationInfo.TargetBorder;
 
@@ -506,11 +507,11 @@ namespace NCB {
         const TVector<ui32>& ignoredFeatures,
         NCB::TTrainingDataProviderPtr trainingDataProvider
     ) {
-        TQuantizedObjectsDataProviderPtr newObjects = dynamic_cast<TQuantizedForCPUObjectsDataProvider*>(
+        TQuantizedObjectsDataProviderPtr newObjects = dynamic_cast<TQuantizedObjectsDataProvider*>(
             trainingDataProvider->ObjectsData->GetFeaturesSubset(ignoredFeatures, &NPar::LocalExecutor()).Get());
         CB_ENSURE(
             newObjects,
-            "Objects data provider must be TQuantizedForCPUObjectsDataProvider or TQuantizedObjectsDataProvider");
+            "Objects data provider must be TQuantizedObjectsDataProvider or TQuantizedObjectsDataProvider");
         TDataMetaInfo newMetaInfo = trainingDataProvider->MetaInfo;
         newMetaInfo.FeaturesLayout = newObjects->GetFeaturesLayout();
         return MakeIntrusive<TTrainingDataProvider>(

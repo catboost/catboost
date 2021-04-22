@@ -4,19 +4,25 @@ LICENSE(MIT)
 
 
 
-VERSION(0.8.2)
+VERSION(0.16)
 
 NO_LINT()
 
 PY_SRCS(
-  TOP_LEVEL
-  graphviz/__init__.py
-  graphviz/_compat.py
-  graphviz/backend.py
-  graphviz/dot.py
-  graphviz/files.py
-  graphviz/lang.py
-  graphviz/tools.py
+    TOP_LEVEL
+    graphviz/__init__.py
+    graphviz/_compat.py
+    graphviz/backend.py
+    graphviz/dot.py
+    graphviz/files.py
+    graphviz/lang.py
+    graphviz/tools.py
+)
+
+RESOURCE_FILES(
+    PREFIX contrib/python/graphviz/
+    .dist-info/METADATA
+    .dist-info/top_level.txt
 )
 
 END()

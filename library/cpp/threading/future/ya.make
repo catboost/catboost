@@ -9,6 +9,8 @@ SRCS(
     fwd.cpp
     wait/fwd.cpp
     wait/wait.cpp
+    wait/wait_group.cpp
+    wait/wait_policy.cpp
 )
 
 END()

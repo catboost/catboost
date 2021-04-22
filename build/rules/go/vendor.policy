@@ -556,6 +556,9 @@ ALLOW .* -> vendor/github.com/minio/sha256-simd
 # CONTRIB-1979 command line editor with history
 ALLOW .* -> vendor/github.com/peterh/liner
 
+# CONTRIB-1999 strongSwan vici client library
+ALLOW .* -> vendor/github.com/strongswan/govici/vici
+
 # CONTRIB-2002 A Go implementation of RTP
 ALLOW .* -> vendor/github.com/pion/rtp
 
@@ -582,6 +585,7 @@ ALLOW .* -> vendor/github.com/coredns/coredns/plugin/reload
 ALLOW .* -> vendor/github.com/coredns/coredns/plugin/rewrite
 ALLOW .* -> vendor/github.com/coredns/coredns/plugin/ready
 ALLOW .* -> vendor/github.com/coredns/coredns/plugin/root
+ALLOW .* -> vendor/github.com/coredns/coredns/plugin/loadbalance
 
 # CONTRIB-2021
 ALLOW .* -> vendor/github.com/shopspring/decimal
@@ -613,6 +617,7 @@ ALLOW .* -> vendor/github.com/jinzhu/inflection
 #
 # CONTRIB-2069
 ALLOW .* -> vendor/github.com/coredhcp/coredhcp
+ALLOW .* -> vendor/github.com/insomniacslk/dhcp
 
 # CONTRIB-2094
 ALLOW .* -> vendor/github.com/osrg/gobgp
@@ -629,6 +634,21 @@ ALLOW library/go/core/log/compat/logrus -> vendor/github.com/sirupsen/logrus
 
 # CONTRIB-2127
 ALLOW .* -> vendor/github.com/hashicorp/terraform-plugin-sdk/v2
+
+# CONTRIB-2139 library for building GraphQL servers without any fuss.
+ALLOW .* -> vendor/github.com/99designs/gqlgen
+ALLOW .* -> vendor/github.com/vektah/gqlparser/v2
+
+# CONTRIB-2148 dsl for json generating
+DENY .* -> vendor/github.com/google/go-jsonnet/c-bindings
+ALLOW .* -> vendor/github.com/google/go-jsonnet
+
+# CONTRIB-2152 JMESPath is a query language for JSON
+ALLOW .* -> vendor/github.com/jmespath/go-jmespath
+
+# CONTRIB-2156 library that communicates directly with a TPM device on Linux or Windows machines
+ALLOW .* -> vendor/github.com/google/go-tpm/tpm2
+ALLOW .* -> vendor/github.com/google/go-tpm/tpmutil
 
 #
 # Tools
@@ -709,7 +729,7 @@ ALLOW transfer_manager/go/pkg/sink/pg -> vendor/github.com/jackc/pgx
 ALLOW transfer_manager/go/pkg/source/pg -> vendor/github.com/jackc/pgx
 ALLOW transfer_manager/go/pkg/storage/pg -> vendor/github.com/jackc/pgx
 ALLOW transfer_manager/go/pkg/worker/tasks -> vendor/github.com/jackc/pgx
-ALLOW transfer_manager/go/pkg/pg -> vendor/github.com/jackc/pgx
+ALLOW transfer_manager/go/pkg/dataagent/pg -> vendor/github.com/jackc/pgx
 ALLOW transfer_manager/go/tests/e2e/pg2pg/replication -> vendor/github.com/jackc/pgx
 ALLOW yabs/telephony/platform/common/db -> vendor/github.com/jackc/pgx
 ALLOW yabs/telephony/platform/common/lifecycle -> vendor/github.com/jackc/pgx
