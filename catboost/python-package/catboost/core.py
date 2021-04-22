@@ -4914,7 +4914,6 @@ class CatBoostRegressor(CatBoost):
     Parameters
     ----------
     Like in CatBoostClassifier, except loss_function, classes_count, class_names and class_weights
-    #TODO add aft
     loss_function : string, [default='RMSE']
         'RMSE'
         'MAE'
@@ -4923,6 +4922,7 @@ class CatBoostRegressor(CatBoost):
         'Poisson'
         'MAPE'
         'Lq:q=value'
+        'SurvivalAft:dist=value;scale=value'
     """
 
     _estimator_type = 'regressor'
