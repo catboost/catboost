@@ -1702,6 +1702,11 @@ class Linker(object):
                 return Linker.LLD
             else:
                 # GCC et al.
+
+                if self.tc.is_gcc and is_positive('MUSL'):
+                    # See MUSL_BFD comment below
+                    return Linker.BFD
+
                 return Linker.GOLD
 
         # There is no linker choice on Darwin (ld64) or Windows (link.exe)
@@ -1712,7 +1717,8 @@ class Linker(object):
 
     def _print_linker_selector(self):
         if self.type and self.tc.is_clang:
-            # GCC does not support -fuse-ld.
+            # GCC does not support -fuse-ld with an executable path, only
+            # -fuse-ld=bfd or -fuse-ld=gold (or -fuse-ld=lld in later versions).
             emit_big('''
                 macro _USE_LINKER() {
                     DEFAULT(_LINKER_ID %(default_linker)s)
@@ -1818,6 +1824,11 @@ class LD(Linker):
 
         if self.musl.value:
             self.ld_flags.extend(['-Wl,--no-as-needed'])
+            if self.tc.is_gcc:
+                # MUSL_BFD: musl build uses --no-dynamic-linker linker flag
+                # which gold doesn't know about. And we can only specify linker
+                # type, not it's path as we do for Clang through linker selector.
+                self.ld_flags.append('-fuse-ld=bfd')
         elif target.is_linux:
             self.ld_flags.extend(['-ldl', '-lrt', '-Wl,--no-as-needed'])
             if self.tc.is_gcc:
