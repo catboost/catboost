@@ -20,8 +20,6 @@ PEERDIR(
     library/python/testing/yatest_lib
 )
 
-NO_LINT()
-
 RESOURCE_FILES(
     PREFIX library/python/pytest/
     pytest.yatest.ini

@@ -8,6 +8,4 @@ PY_SRCS(
     minidump2core/minidump2core.py
 )
 
-NO_LINT()
-
 END()
