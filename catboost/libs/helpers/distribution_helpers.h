@@ -8,12 +8,10 @@
 static constexpr double INV_SQRT_2PI = 0.398942280401432677939946;
 
 enum class EDistributionType {
-    Normal,
-    Logistic,
-    Extreme
+    Normal /* "Normal" */,
+    Logistic /* "Logistic" */,
+    Extreme /* "Extreme" */,
 };
-
-EDistributionType DistributionFromString(const TString& distribution);
 
 class IDistribution {
 public:
@@ -26,7 +24,7 @@ public:
         double pdf,
         double x) const = 0;
     virtual EDistributionType GetDistributionType() const = 0;
-    virtual ~IDistribution()= default;
+    virtual ~IDistribution() = default;
 };
 
 class TNormalDistribution : public IDistribution {

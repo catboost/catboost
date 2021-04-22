@@ -5538,6 +5538,10 @@ cpdef is_multiregression_objective(loss_name):
     return IsMultiRegressionObjective(to_arcadia_string(loss_name))
 
 
+cpdef is_survivalregression_objective(loss_name):
+    return IsSurvivalRegressionObjective(to_arcadia_string(loss_name))
+
+
 cpdef is_groupwise_metric(metric_name):
     return IsGroupwiseMetric(to_arcadia_string(metric_name))
 

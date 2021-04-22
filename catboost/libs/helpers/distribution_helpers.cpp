@@ -1,15 +1,5 @@
 #include "distribution_helpers.h"
 
-EDistributionType DistributionFromString(const TString& distribution) {
-    if (distribution == "Normal") {
-        return EDistributionType::Normal;
-    } else if (distribution == "Logistic") {
-        return EDistributionType::Logistic;
-    } else {
-        return EDistributionType::Extreme;
-    }
-}
-
 double TNormalDistribution::CalcPdf(double x) const {
     auto zValue = fast_exp(-Sqr(x) / 2.0);
     return zValue * INV_SQRT_2PI;
@@ -73,9 +63,9 @@ double TExtremeDistribution::CalcPdfDer1(double pdf, double x) const {
 double TExtremeDistribution::CalcPdfDer2(double pdf, double x) const {
     const double expX = fast_exp(x);
     if (!IsFinite(expX) || !IsFinite(std::pow(expX, 2))) {
-      return 0.0;
+        return 0.0;
     } else {
-      return (std::pow(expX, 2) - 3 * expX + 1) * pdf;
+        return (std::pow(expX, 2) - 3 * expX + 1) * pdf;
     }
 }
 
@@ -92,9 +82,9 @@ double TLogisticDistribution::CalcPdf(double x) const {
     const double expX = fast_exp(x);
     const double sqrt_denominator = 1 + expX;
     if (!IsFinite(expX) || !IsFinite(std::pow(expX, 2))) {
-      return 0.0;
+        return 0.0;
     } else {
-      return expX / (std::pow(sqrt_denominator, 2));
+        return expX / (std::pow(sqrt_denominator, 2));
     }
 }
 
@@ -107,9 +97,9 @@ double TLogisticDistribution::CalcPdfDer2(double pdf, double x) const {
     const double expX = fast_exp(x);
     const double expXSquared = std::pow(expX, 2);
     if (!IsFinite(expX) || !IsFinite(expXSquared)) {
-      return 0.0;
+        return 0.0;
     } else {
-      return pdf * (expXSquared - 4 * expX + 1) / ((1 + expX) * (1 + expX));
+        return pdf * (expXSquared - 4 * expX + 1) / ((1 + expX) * (1 + expX));
     }
 }
 

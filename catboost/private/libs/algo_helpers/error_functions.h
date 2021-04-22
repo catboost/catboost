@@ -4,13 +4,13 @@
 #include "custom_objective_descriptor.h"
 #include "ders_holder.h"
 #include "hessian.h"
+#include "survival_aft_utils.h"
 
 #include <catboost/private/libs/data_types/pair.h>
 #include <catboost/libs/model/eval_processing.h>
 #include <catboost/private/libs/options/catboost_options.h>
 #include <catboost/private/libs/options/enums.h>
 #include <catboost/private/libs/options/restrictions.h>
-#include <catboost/private/libs/algo_helpers/survival_aft_utils.h>
 
 #include <library/cpp/containers/2d_array/2d_array.h>
 #include <library/cpp/fast_exp/fast_exp.h>

@@ -55,6 +55,7 @@ is_classification_objective = _catboost.is_classification_objective
 is_cv_stratified_objective = _catboost.is_cv_stratified_objective
 is_regression_objective = _catboost.is_regression_objective
 is_multiregression_objective = _catboost.is_multiregression_objective
+is_survivalregression_objective = _catboost.is_survivalregression_objective
 is_groupwise_metric = _catboost.is_groupwise_metric
 _PreprocessParams = _catboost._PreprocessParams
 _check_train_params = _catboost._check_train_params
@@ -1545,6 +1546,9 @@ class _CatBoostBase(object):
 
     def _is_multiregression_objective(self, loss_function):
         return isinstance(loss_function, str) and is_multiregression_objective(loss_function)
+    
+    def _is_survivalregression_objective(self, loss_function):
+        return isinstance(loss_function, str) and is_survivalregression_objective(loss_function)
 
     def get_metadata(self):
         return self._object._get_metadata_wrapper()
@@ -4910,7 +4914,7 @@ class CatBoostRegressor(CatBoost):
     Parameters
     ----------
     Like in CatBoostClassifier, except loss_function, classes_count, class_names and class_weights
-
+    #TODO add aft
     loss_function : string, [default='RMSE']
         'RMSE'
         'MAE'
@@ -5249,10 +5253,10 @@ class CatBoostRegressor(CatBoost):
         return 1 - residual_sum_of_squares / total_sum_of_squares
 
     def _check_is_regressor_loss(self, loss_function):
-        is_regression = self._is_regression_objective(loss_function) or self._is_multiregression_objective(loss_function)
+        is_regression = self._is_regression_objective(loss_function) or self._is_multiregression_objective(loss_function) or self._is_survivalregression_objective(loss_function)
         if isinstance(loss_function, str) and not is_regression:
             raise CatBoostError("Invalid loss_function='{}': for regressor use "
-                                "RMSE, MultiRMSE, MAE, Quantile, LogLinQuantile, Poisson, MAPE, Lq or custom objective object".format(loss_function))
+                                "RMSE, MultiRMSE, SurvivalAft, MAE, Quantile, LogLinQuantile, Poisson, MAPE, Lq or custom objective object".format(loss_function))
 
     def _get_default_prediction_type(self):
         # TODO(ilyzhin) change on get_all_params after MLTOOLS-4758

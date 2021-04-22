@@ -407,7 +407,7 @@ void TCtrFactorMetric::GetBestValue(EMetricBestValue* valueType, float* bestValu
 namespace {
     struct TSurvivalAftMetric final: public TAdditiveMultiRegressionMetric {
         explicit TSurvivalAftMetric(const TLossParams& params)
-            : TAdditiveMultiRegressionMetric(ELossFunction::SurvivalAft, params){
+            : TAdditiveMultiRegressionMetric(ELossFunction::SurvivalAft, params) {
             }
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);

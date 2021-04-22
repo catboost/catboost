@@ -155,19 +155,18 @@ THolder<IDerCalcer> BuildError(
             }
             std::unique_ptr<IDistribution> distribution;
             if (lossParams.contains("dist")) {
-                CB_ENSURE(
-                    lossParams.at("dist") == "Normal" || lossParams.at("dist") == "Extreme" || lossParams.at("dist") == "Logistic",
-                    "This distribution is not supported" << ToString(lossParams.at("dist")));
-               switch (DistributionFromString(lossParams.at("dist"))) {
-                   case EDistributionType::Extreme:
-                       distribution = std::make_unique<TExtremeDistribution>();     
-                       break; 
-                   case EDistributionType::Logistic:
-                       distribution = std::make_unique<TLogisticDistribution>();     
-                       break; 
-                   case EDistributionType::Normal:
-                       distribution = std::make_unique<TNormalDistribution>();     
-                       break; 
+                switch (FromString<EDistributionType>(lossParams.at("dist"))) {
+                    case EDistributionType::Extreme:
+                        distribution = std::make_unique<TExtremeDistribution>();     
+                        break; 
+                    case EDistributionType::Logistic:
+                        distribution = std::make_unique<TLogisticDistribution>();     
+                        break; 
+                    case EDistributionType::Normal:
+                        distribution = std::make_unique<TNormalDistribution>();     
+                        break; 
+                    default:
+                        CB_ENSURE(false, "Unsupported distribution type " << lossParams.at("dist"));
                }
             } else {
                distribution = std::make_unique<TNormalDistribution>();
