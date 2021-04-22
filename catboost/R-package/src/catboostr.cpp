@@ -7,6 +7,7 @@
 #include <catboost/libs/helpers/int_cast.h>
 #include <catboost/libs/helpers/mem_usage.h>
 #include <catboost/libs/logging/logging.h>
+#include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/model/model_export/model_exporter.h>
 #include <catboost/libs/model/utils.h>
@@ -14,9 +15,12 @@
 #include <catboost/libs/train_lib/cross_validation.h>
 #include <catboost/private/libs/algo/apply.h>
 #include <catboost/private/libs/algo/helpers.h>
+#include <catboost/private/libs/algo/mvs.h>
+#include <catboost/private/libs/algo/plot.h>
 #include <catboost/private/libs/documents_importance/docs_importance.h>
 #include <catboost/private/libs/documents_importance/enums.h>
 #include <catboost/private/libs/options/cross_validation_params.h>
+#include <catboost/private/libs/target/data_providers.h>
 
 #include <util/generic/cast.h>
 #include <util/generic/mem_copy.h>
@@ -965,35 +969,97 @@ EXPORT_FUNCTION CatBoostEvalMetrics_R(
         SEXP treeCountStartParam,
         SEXP treeCountEndParam,
         SEXP evalPeriodParam,
-        SEXP threadCountParam) {
-    SEXP result = NULL;
-    R_API_BEGIN()
-    cdef TVector[TString] metricNames
-    for (size_t i = 0; i < metricsParam.size(); ++i) {
-        metricNames.push_back(metricsParam[i])
-    }
-    //tmpDir = ???
-    //resultDir = ???
+        SEXP threadCountParam,
+        SEXP tmpDirParam,
+        SEXP resultDirParam) {
 
-    cdef TVector[TVector[double]] metrics
-    metrics = EvalMetrics(
-        modelParam),
-        poolParam,
-        metricsNames,
-        treeCountStartParam,
-        treeCountEndParam,
-        evalPeriodParam,
-        UpdateThreadCount(asInteger(threadCountParam)),
-        resultDir,
-        tmpDir
-    )
-    cdef TVector[TString] metricNamesRes = GetMetricNames(modelParam, metricNames)
-    result = PROTECT(allocVector(REALSXP, metricNamesRes.size()));
-    for (size_t i = 0; i < metricNamesRes.size(); ++i) {
-        result.push_back(metrics[i])
+    SEXP result = NULL;
+    size_t metricsCount;
+
+    R_API_BEGIN()
+    TFullModelHandle model = reinterpret_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
+    TPoolHandle pool = reinterpret_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+
+    auto metricsParamLen = length(metricsParam);
+    TVector<TString> metricDescriptions(metricsParamLen);
+    TVector<NCatboostOptions::TLossDescription> metricLossDescriptions(metricsParamLen);
+    for (size_t i = 0; i < metricDescriptions.size(); ++i) {
+      TString metricDescription = CHAR(asChar(VECTOR_ELT(metricsParam, i)));
+      metricDescriptions.push_back(metricDescription);
+      metricLossDescriptions.emplace_back(NCatboostOptions::ParseLossDescription(metricDescription));
     }
+    auto metrics = CreateMetrics(metricLossDescriptions, model->GetDimensionsCount());
+
+    NPar::TLocalExecutor executor;
+    executor.RunAdditionalThreads(UpdateThreadCount(asInteger(threadCountParam)) - 1);
+
+    TMetricsPlotCalcer plotCalcer = CreateMetricCalcer(
+        *model,
+        asInteger(treeCountStartParam),
+        asInteger(treeCountEndParam),
+        asInteger(evalPeriodParam),
+        /*processedIterationsStep=*/50,
+        CHAR(asChar(tmpDirParam)),
+        metrics,
+        &executor
+    );
+
+    TRestorableFastRng64 rand(0);
+    auto processedDataProvider = CreateModelCompatibleProcessedDataProvider(
+        *pool,
+        metricLossDescriptions,
+        *model,
+        GetMonopolisticFreeCpuRam(),
+        &rand,
+        &executor
+    );
+
+    if (plotCalcer.HasAdditiveMetric()) {
+        plotCalcer.ProceedDataSetForAdditiveMetrics(processedDataProvider);
+    }
+    if (plotCalcer.HasNonAdditiveMetric()) {
+        while (!plotCalcer.AreAllIterationsProcessed()) {
+            plotCalcer.ProceedDataSetForNonAdditiveMetrics(processedDataProvider);
+            plotCalcer.FinishProceedDataSetForNonAdditiveMetrics();
+        }
+    }
+
+    TVector<TVector<double>> metricsScore = plotCalcer.GetMetricsScore();
+    plotCalcer.SaveResult(CHAR(asChar(resultDirParam)), /*metricsFile=*/"", /*saveMetrics*/ false, /*saveStats=*/true).ClearTempFiles();
+
+    auto metricsResult = CreateMetricsFromDescription(metricDescriptions, model->GetDimensionsCount());
+//    TVector<TString> metricNames;
+//    metricNames.reserve(resultMetrics.ysize());
+//    for (auto& resultMetric : resultMetrics) {
+//      metricNames.push_back(resultMetric->GetDescription());
+//    }
+
+//    result = PROTECT(allocVector(REALSXP, metricNamesRes.size()));
+//    for (size_t i = 0; i < metricNamesRes.size(); ++i) {
+//        result.push_back(metrics[i]);
+//    }
+
+    metricsCount = metricsResult.ysize();
+    result = PROTECT(allocVector(VECSXP, metricsCount));
+    SEXP metricNames = PROTECT(allocVector(STRSXP, metricsCount));
+
+    for (size_t metricIdx = 0; metricIdx < metricsCount; ++metricIdx) {
+        TString metricName = metricsResult[metricIdx]->GetDescription();
+        size_t numberOfIterations = metricsScore[metricIdx].size();
+
+        SEXP metricScore = PROTECT(allocVector(REALSXP, numberOfIterations));//
+        for (size_t i = 0; i < numberOfIterations; ++i) {
+            REAL(metricScore)[i] = metricsScore[metricIdx][i];
+        }
+
+        SET_VECTOR_ELT(result, metricIdx, metricScore);
+        SET_STRING_ELT(metricNames, metricIdx, mkChar(metricName.c_str()));
+    }
+
+    setAttrib(result, R_NamesSymbol, metricNames);
+
     R_API_END();
-    UNPROTECT(1);
+    UNPROTECT(metricsCount + 2);
     return result;
 }
 }

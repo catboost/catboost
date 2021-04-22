@@ -2208,11 +2208,15 @@ is.null.handle <- function(handle) {
 #' Allows you to optimize the speed of execution. This parameter doesn't affect results.
 #'
 #' Default value: -1
+#' @param tmp_dir  The name of the temporary directory for intermediate results.
+#' If NULL, then the name will be generated.
+#'
+#' Default value: NULL
 #' @return dict: metric -> array of shape [(ntree_end - ntree_start) / eval_period].
 #' @export
 #' @seealso \url{https://catboost.ai/docs/concepts/python-reference_catboost_eval-metrics.html}
-catboost.eval_metrics <- function(model, pool, metrics, ntree_start = 0L,
-                                  ntree_end = 0L, eval_period = 1, thread_count = -1) {
+catboost.eval_metrics <- function(model, pool, metrics, ntree_start = 0L, ntree_end = 0L,
+                                  eval_period = 1, thread_count = -1, tmp_dir = NULL) {
   if (!inherits(model, "catboost.Model"))
     stop("Expected catboost.Model, got: ", class(model))
   if (!inherits(pool, "catboost.Pool"))
@@ -2223,14 +2227,27 @@ catboost.eval_metrics <- function(model, pool, metrics, ntree_start = 0L,
     ntree_end <- model$tree_count
   if (ntree_start > ntree_end)
     stop("ntree_start should be less than ntree_end.")
-  if (!is.list(metrics) || !(is.character(metrics) && length(metrics) == 1))
+  if (!is.list(metrics) && !(is.character(metrics) && length(metrics) == 1))
     stop("Unsupported metrics type, expecting list or string, got: ", typeof(metrics))
+  if (is.character(metrics) && length(metrics) == 1)
+    metrics <- list(metrics)
+  if (length(metrics) == 0)
+    stop("No metrics found")
+  if (is.null(tmp_dir))
+    tmp_dir <- tempdir()
 
+  tmp_dir <- path.expand(tmp_dir)
   if (is.null.handle(model$handle))
     model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
 
+  params <- catboost.get_plain_params(model)
+  train_dir <- params[['train_dir']]
+  if (is.null(params[['train_dir']]))
+    train_dir <- 'catboost_info'
+
   result <- .Call("CatBoostEvalMetrics_R", model$handle, pool, metrics,
-               ntree_start, ntree_end, eval_period, thread_count)
+               ntree_start, ntree_end, eval_period,
+               thread_count, tmp_dir, train_dir)
 
   return(result)
 }

@@ -387,3 +387,21 @@ test_that("model: catboost.sum_models", {
     prediction_one_model <- catboost.predict(sum_mod, pool_test, prediction_type='RawFormulaVal')
     expect_equal(prediction_sum_models, prediction_one_model)
 })
+
+test_that("model: catboost.eval_metrics", {
+  target <- sample(c(1, -1), size = 1000, replace = TRUE)
+  features <- data.frame(f1 = rnorm(length(target), mean = 0, sd = 1),
+                         f2 = rnorm(length(target), mean = 0, sd = 1))
+
+  pool <- catboost.load_pool(features, target)
+
+  iterations <- 10
+  params <- list(iterations = iterations,
+                 loss_function = "Logloss",
+                 random_seed = 12345)
+
+  model <- catboost.train(pool, NULL, params)
+
+  result <- catboost.eval_metrics(model, pool, c('AUC'))
+  print(result)
+})
