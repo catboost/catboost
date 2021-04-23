@@ -420,4 +420,7 @@ test_that("model: catboost.eval_metrics", {
 
   diff <- abs(train_metric - eval_metric)
   expect_true(all(diff <= 1e-9))
+
+  expect_error( catboost.eval_metrics(model, pool_test, list()),
+               "No metrics found.", fixed = TRUE)
 })

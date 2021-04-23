@@ -2197,7 +2197,7 @@ catboost.eval_metrics <- function(model, pool, metrics, ntree_start = 0L, ntree_
   if (is.character(metrics) && length(metrics) == 1)
     metrics <- list(metrics)
   if (length(metrics) == 0)
-    stop("No metrics found")
+    stop("No metrics found.")
   if (is.null(tmp_dir))
     tmp_dir <- tempdir()
   tmp_dir <- path.expand(tmp_dir)
