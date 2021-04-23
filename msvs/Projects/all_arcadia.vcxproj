@@ -144,6 +144,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\jvm-packages\catboost4j-prediction\src\native_impl\catboost4j-prediction.vcxproj">
       <Project>1ED2DCD1-3769-9401-E4FF-0C54F35EC1A6</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\calc_metrics\catboost-libs-calc_metrics.vcxproj">
+      <Project>99F5E297-8316-4C38-ACF7-A0831C9EB2BD</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\cat_feature\catboost-libs-cat_feature.vcxproj">
       <Project>39CEAA9A-D75F-AA0D-96C0-E8C323B015CB</Project>
     </ProjectReference>
