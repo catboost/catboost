@@ -393,15 +393,31 @@ test_that("model: catboost.eval_metrics", {
   features <- data.frame(f1 = rnorm(length(target), mean = 0, sd = 1),
                          f2 = rnorm(length(target), mean = 0, sd = 1))
 
-  pool <- catboost.load_pool(features, target)
+  split <- sample(nrow(features), size = floor(0.75 * nrow(features)))
 
-  iterations <- 10
-  params <- list(iterations = iterations,
+  pool_train <- catboost.load_pool(features[split, ], target[split])
+  pool_test <- catboost.load_pool(features[-split, ], target[-split])
+
+  metric <- 'AUC'
+  params <- list(iterations = 10,
                  loss_function = "Logloss",
-                 random_seed = 12345)
+                 random_seed = 12345,
+                 eval_metric = metric,
+                 use_best_model = FALSE)
 
-  model <- catboost.train(pool, NULL, params)
+  model <- catboost.train(pool_train, pool_test, params)
+  train_metrics <- read.table(file = 'catboost_info/test_error.tsv', sep = '\t', header = TRUE)
+  train_metric <- train_metrics[[metric]]
 
-  result <- catboost.eval_metrics(model, pool, c('AUC'))
-  print(result)
+  eval_metrics <- catboost.eval_metrics(model, pool_test, metric)
+  eval_metric <- eval_metrics[[metric]]
+
+  diff <- abs(train_metric - eval_metric)
+  expect_true(all(diff <= 1e-9))
+
+  eval_metrics <- catboost.eval_metrics(model, pool_test, list(metric))
+  eval_metric <- eval_metrics[[metric]]
+
+  diff <- abs(train_metric - eval_metric)
+  expect_true(all(diff <= 1e-9))
 })

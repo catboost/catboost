@@ -2143,40 +2143,6 @@ catboost.get_plain_params <- function(model) {
     return(params)
 }
 
-#' @name catboost.restore_handle
-#' @title Restore or complete model handle after de-serializing
-#'
-#' @description After de-serializing a model object through R base's functions (`readRDS`, `load`),
-#'              its underlying object will not exist in the computer's memory anymore, and needs
-#'              to be restored from the raw bytes that the model stores.
-#'
-#'              This is automatically done internally when calling functions such as \link{catboost.predict},
-#'              but the process is repeated at each call, which makes them slower than if using a
-#'              fresh model object and increases memory usage inbetween calls to the garbage collector.
-#'              This function allows restoring the internal object beforehand so as to avoid
-#'              restoring the object multiple times.
-#'
-#'              Note that the model object needs to be re-assigned as the output of this function,
-#'              as the modifications are not done in-place.
-#'
-#' @param model The model obtained as the result of training which has been serialized and is
-#'              now de-serialized.
-#'
-#' @return The model object with its handle pointing to a valid object in memory.
-#' @export
-catboost.restore_handle <- function(model) {
-    if (!inherits(model, "catboost.Model"))
-        stop("Expected catboost.Model, got: ", class(model))
-    if (is.null.handle(model$handle))
-        model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
-    return(model)
-}
-
-is.null.handle <- function(handle) {
-  stopifnot(typeof(handle) == "externalptr")
-  .Call("CatBoostIsNullHandle_R", handle)
-}
-
 
 #' @name catboost.eval_metrics
 #' @title Calculate metrics.
@@ -2217,8 +2183,7 @@ is.null.handle <- function(handle) {
 #' @seealso \url{https://catboost.ai/docs/concepts/python-reference_catboost_eval-metrics.html}
 catboost.eval_metrics <- function(model, pool, metrics, ntree_start = 0L, ntree_end = 0L,
                                   eval_period = 1, thread_count = -1, tmp_dir = NULL) {
-  if (!inherits(model, "catboost.Model"))
-    stop("Expected catboost.Model, got: ", class(model))
+  catboost.restore_handle(model)
   if (!inherits(pool, "catboost.Pool"))
     stop("Expected catboost.Pool, got: ", class(pool))
   if (is.null.handle(pool))
@@ -2235,10 +2200,7 @@ catboost.eval_metrics <- function(model, pool, metrics, ntree_start = 0L, ntree_
     stop("No metrics found")
   if (is.null(tmp_dir))
     tmp_dir <- tempdir()
-
   tmp_dir <- path.expand(tmp_dir)
-  if (is.null.handle(model$handle))
-    model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
 
   params <- catboost.get_plain_params(model)
   train_dir <- params[['train_dir']]
@@ -2246,8 +2208,43 @@ catboost.eval_metrics <- function(model, pool, metrics, ntree_start = 0L, ntree_
     train_dir <- 'catboost_info'
 
   result <- .Call("CatBoostEvalMetrics_R", model$handle, pool, metrics,
-               ntree_start, ntree_end, eval_period,
-               thread_count, tmp_dir, train_dir)
+                  ntree_start, ntree_end, eval_period,
+                  thread_count, tmp_dir, train_dir)
 
   return(result)
+}
+
+
+#' @name catboost.restore_handle
+#' @title Restore or complete model handle after de-serializing
+#'
+#' @description After de-serializing a model object through R base's functions (`readRDS`, `load`),
+#'              its underlying object will not exist in the computer's memory anymore, and needs
+#'              to be restored from the raw bytes that the model stores.
+#'
+#'              This is automatically done internally when calling functions such as \link{catboost.predict},
+#'              but the process is repeated at each call, which makes them slower than if using a
+#'              fresh model object and increases memory usage inbetween calls to the garbage collector.
+#'              This function allows restoring the internal object beforehand so as to avoid
+#'              restoring the object multiple times.
+#'
+#'              Note that the model object needs to be re-assigned as the output of this function,
+#'              as the modifications are not done in-place.
+#'
+#' @param model The model obtained as the result of training which has been serialized and is
+#'              now de-serialized.
+#'
+#' @return The model object with its handle pointing to a valid object in memory.
+#' @export
+catboost.restore_handle <- function(model) {
+    if (!inherits(model, "catboost.Model"))
+        stop("Expected catboost.Model, got: ", class(model))
+    if (is.null.handle(model$handle))
+        model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
+    return(model)
+}
+
+is.null.handle <- function(handle) {
+  stopifnot(typeof(handle) == "externalptr")
+  .Call("CatBoostIsNullHandle_R", handle)
 }
