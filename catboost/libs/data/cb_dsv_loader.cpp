@@ -4,6 +4,7 @@
 #include <catboost/libs/column_description/cd_parser.h>
 #include <catboost/libs/helpers/mem_usage.h>
 #include <catboost/private/libs/data_util/exists_checker.h>
+#include <catboost/private/libs/data_util/line_data_reader.h>
 #include <catboost/private/libs/labels/helpers.h>
 #include <catboost/private/libs/options/pool_metainfo_options.h>
 
@@ -182,7 +183,7 @@ namespace NCB {
                     TStringBuf token = splitter.Consume();
                     CB_ENSURE(
                         tokenIdx < columnsDescription.size(),
-                        "wrong column count: found more than " << columnsDescription.ysize() << " values"
+                        "wrong column count: found token " << token << " with id more than " << columnsDescription.ysize() << " values:\n" << line
                     );
                     try {
                         switch (columnsDescription[tokenIdx].Type) {
@@ -331,6 +332,15 @@ namespace NCB {
 
             AsyncBaselineRowProcessor.ProcessBlock(parseBaselineBlock);
         }
+    }
+
+    int GetDsvColumnCount(const TPathWithScheme& pathWithScheme, const TDsvFormatOptions& format, bool ignoreCsvQuoting) {
+        CB_ENSURE_INTERNAL(pathWithScheme.Scheme == "dsv", "Unsupported scheme " << pathWithScheme.Scheme);
+        TString firstLine;
+        CB_ENSURE(GetLineDataReader(pathWithScheme, format)->ReadLine(&firstLine),
+                  "TCBDsvDataLoader: no data rows in pool");
+        return TVector<TString>(
+            NCsvFormat::CsvSplitter(firstLine, format.Delimiter, ignoreCsvQuoting ? '\0' : '"')).size();
     }
 
     namespace {
