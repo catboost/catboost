@@ -46,7 +46,7 @@ function runCommand(command) {
 
 const command = process.argv[2];
 
-if (!fs.existsSync('./out') || command === 'prepare_package') {
+if (!fs.existsSync('./out') || command === 'package_prepublish') {
     compileBuildScripts().then(result => {
         if (result.code === 0) {
             runCommand(command);
