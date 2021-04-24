@@ -41,7 +41,17 @@
             },
           ],
         }],
+        ['OS=="win"', {
+          'libraries': ["<(module_root_dir)/build/catboost/libs/model_interface/catboostmodel.lib"],
+          'copies': [{
+            'destination': '<(PRODUCT_DIR)',
+            'files': [
+              '<(module_root_dir)/build/catboost/libs/model_interface/catboostmodel.dll'
+            ]
+          }]
+        }],
       ],
+      'defines': [ 'NDEBUG' ],
       'cflags!': [ '-fno-exceptions' ],
       'cflags_cc!': [ '-fno-exceptions' ],
       'xcode_settings': {

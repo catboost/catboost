@@ -16,6 +16,9 @@ export async function downloadFile(url: string, targetPath: string): Promise<voi
                     await downloadFile(rsp.headers.location, targetPath);
                     return resolve();
                 }
+                if (rsp.statusCode && rsp.statusCode >= 400) {
+                    return reject(new Error(`Status code: ${rsp.statusCode}`));
+                }
                 rsp.pipe(localFile).on('close', () => resolve());
             });
         } catch (err) {
@@ -51,8 +54,8 @@ export function calculateFileHash(path: string): string {
     return createHash('sha256').update(readFileSync(path)).digest('hex');
 }
 
-export async function downloadBinaryFile(binary: BinaryFileData): Promise<string> {
-    const targetFile = join('./build/catboost/libs/model_interface', binary.targetFile);
+export async function downloadBinaryFile(targetDirPath: string, binary: BinaryFileData): Promise<string> {
+    const targetFile = join(targetDirPath, binary.targetFile);
     await downloadFile(binary.url, targetFile);
     const actualHash = calculateFileHash(targetFile);
     if (actualHash !== binary.sha256) {

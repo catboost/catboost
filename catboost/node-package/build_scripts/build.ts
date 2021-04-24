@@ -73,12 +73,24 @@ async function preparePlatformBinary(platform: string) {
     const config = readConfig();
     switch (platform) {
         case 'linux':
-            await downloadBinaryFile(config.binaries['linux']);
+            for (const binary of config.binaries['linux']) {
+                await downloadBinaryFile('./build/catboost/libs/model_interface',
+                    binary);
+            }
             linkSync('./build/catboost/libs/model_interface/libcatboostmodel.so', 
                 './build/catboost/libs/model_interface/libcatboostmodel.so.1');
             return;
         case 'darwin':
-            await downloadBinaryFile(config.binaries['mac']);
+            for (const binary of config.binaries['mac']) {
+                await downloadBinaryFile('./build/catboost/libs/model_interface', 
+                    binary);
+            }
+            return;
+        case 'win32':
+            for (const binary of config.binaries['win']) {
+                await downloadBinaryFile('./build/catboost/libs/model_interface',
+                    binary);
+            }
             return;
         default:
             throw new Error(`Platform ${platform} is not supported`);

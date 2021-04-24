@@ -46,7 +46,7 @@ function runCommand(command) {
 
 const command = process.argv[2];
 
-if (!fs.existsSync('./out')) {
+if (!fs.existsSync('./out') || command === 'prepare_package') {
     compileBuildScripts().then(result => {
         if (result.code === 0) {
             runCommand(command);
