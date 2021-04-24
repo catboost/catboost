@@ -4,8 +4,6 @@ A Node.js package for applying pretrained CatBoost model.
 
 > NOTE: The package is still under heavy development and can introduce breaking changes.  
 
-> NOTE: Only Linux and Mac OS platforms are supported at the moment.
-
 ## Usage example
 
 1. Install the package. You have two options:
@@ -50,7 +48,7 @@ console.log(prediction);
  - [x] Implement basic API calls.
  - [ ] Extend exposed API, improve test coverage.
  - [X] Migrate away from shell scripts.
- - [ ] Support Windows and MacOS platforms.
+ - [X] Support Windows and MacOS platforms.
  - [X] Switch to downloading and verifying the pre-built binary instead of building it from scratch.
  - [X] Publish the alpha version of the package.
  - [ ] Publish the generally available version of the package.
