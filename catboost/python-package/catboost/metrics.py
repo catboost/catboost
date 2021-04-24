@@ -5,15 +5,12 @@ from . import _catboost
 
 __all__ = []
 
-_dummy_metrics = _catboost.DummyMetrics
-
 class BuiltinMetric(object):
     @staticmethod
     def params_with_defaults():
         '''
         Get valid metric parameters with defaults, if any.
         Implemented in child classes.
-
         Returns
         ----------
         valid_params: dict: param_name -> default value or None.
@@ -24,7 +21,6 @@ class BuiltinMetric(object):
         '''
         Get the representation of the metric object with overridden parameters.
         Implemented in child classes.
-
         Returns
         ----------
         metric_string: str representing the metric object.
@@ -104,9 +100,7 @@ def _set_param(metric_obj, value, name):
     setattr(metric_obj, "_" + name, value)
 
 def _to_string(metric_obj, with_defaults):
-    s = type(metric_obj).__name__
-    if len(metric_obj._params) == 0:
-        return s
+    s = metric_obj._underlying_metric_name
     valid_params = metric_obj.params_with_defaults()
     ps = []
     for param in metric_obj._params:
@@ -117,10 +111,16 @@ def _to_string(metric_obj, with_defaults):
             if default_val == val:
                 continue
         ps.append(param + "=" + str(val))
+    if len(ps) == 0:
+        return s
     return s + ":" + ";".join(ps)
 
-for metric_name, metric_params in _dummy_metrics().items():
-    globals()[metric_name] = _MetricGenerator(str(metric_name), (BuiltinMetric,), {
-        "_valid_params": metric_params,
+for metric_name, metric_params in _catboost.AllMetricsParams().items():
+    derived_name = metric_name + metric_params["_name_suffix"]
+    del metric_params["_name_suffix"]
+    globals()[derived_name] = _MetricGenerator(str(derived_name), (BuiltinMetric,), {
+        "_valid_params": {param: param_value["default_value"] if not param_value["is_mandatory"] else None
+                         for param, param_value in metric_params.items()},
+        "_underlying_metric_name": metric_name,
     })
-    globals()["__all__"].append(metric_name)
+    globals()["__all__"].append(derived_name)
