@@ -221,10 +221,10 @@ public:
 class TSurvivalAftError final : public TMultiDerCalcer {
 public:
     const double Scale;
-    std::unique_ptr<IDistribution> Distribution;
+    std::unique_ptr<NCB::IDistribution> Distribution;
 
 public:
-    explicit TSurvivalAftError(std::unique_ptr<IDistribution> distribution, double scale)
+    explicit TSurvivalAftError(std::unique_ptr<NCB::IDistribution> distribution, double scale)
         : TMultiDerCalcer(EHessianType::Diagonal)
         , Scale(scale)
         , Distribution(std::move(distribution))

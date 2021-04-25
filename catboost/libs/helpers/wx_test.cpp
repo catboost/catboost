@@ -1,6 +1,10 @@
 #include "distribution_helpers.h"
 #include "wx_test.h"
 
+
+using namespace NCB;
+
+
 static double NormalCDF(double x) {
     return 0.5 + 0.5 * ErrorFunction(x / sqrt(2.0));
 }

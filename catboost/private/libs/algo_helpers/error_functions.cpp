@@ -6,6 +6,9 @@
 #include <util/random/normal.h>
 
 
+using namespace NCB;
+
+
 template <int MaxDerivativeOrder, bool UseTDers, bool UseExpApprox, bool HasDelta>
 void IDerCalcer::CalcDersRangeImpl(
     int start,
@@ -287,19 +290,19 @@ void TSurvivalAftError::CalcDers(
 
 
     (*der)[0] = firstDerNumerator / firstDerDenominator;
-    if (firstDerDenominator < EPS && (IsNan((*der)[0]) || !IsFinite((*der)[0]))) {
+    if (firstDerDenominator < TDerivativeConstants::Epsilon && (IsNan((*der)[0]) || !IsFinite((*der)[0]))) {
         const auto [minDer1, maxDer1] = DispatchDerivativeLimits(distributionType, EDerivativeOrder::First, censorType, Scale);
         (*der)[0] = target_sign ? minDer1 : maxDer1;
     }
-    (*der)[0] = -ClipDerivatives((*der)[0], MIN_FIRST_DER, MAX_FIRST_DER);
+    (*der)[0] = -ClipDerivatives((*der)[0], TDerivativeConstants::MinFirstDer, TDerivativeConstants::MaxFirstDer);
         
     if (der2 != nullptr) {
         der2->Data[0] = secondDerNumerator / secondDerDenominator;
-        if (secondDerDenominator < EPS && (IsNan(der2->Data[0]) || !IsFinite(der2->Data[0]))) {
+        if (secondDerDenominator < TDerivativeConstants::Epsilon && (IsNan(der2->Data[0]) || !IsFinite(der2->Data[0]))) {
             const auto [minDer2, maxDer2] = DispatchDerivativeLimits(distributionType, EDerivativeOrder::Second, censorType, Scale);
             der2->Data[0] = target_sign ? minDer2 : maxDer2;
         }
-        der2->Data[0] = -ClipDerivatives(der2->Data[0], MIN_SECOND_DER, MAX_SECOND_DER);
+        der2->Data[0] = -ClipDerivatives(der2->Data[0], TDerivativeConstants::MinSecondDer, TDerivativeConstants::MaxSecondDer);
     }
 }
 

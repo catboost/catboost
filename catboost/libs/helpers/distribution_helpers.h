@@ -5,81 +5,84 @@
 #include <util/generic/string.h>
 #include <util/generic/ymath.h>
 
-static constexpr double INV_SQRT_2PI = 0.398942280401432677939946;
 
-enum class EDistributionType {
-    Normal /* "Normal" */,
-    Logistic /* "Logistic" */,
-    Extreme /* "Extreme" */,
-};
+namespace NCB {
+    static constexpr double INV_SQRT_2PI = 0.398942280401432677939946;
 
-class IDistribution {
-public:
-    virtual double CalcPdf(double x) const = 0;
-    virtual double CalcCdf(double x) const = 0;
-    virtual double CalcPdfDer1(
-        double pdf,
-        double x) const = 0;
-    virtual double CalcPdfDer2(
-        double pdf,
-        double x) const = 0;
-    virtual EDistributionType GetDistributionType() const = 0;
-    virtual ~IDistribution() = default;
-};
+    enum class EDistributionType {
+        Normal /* "Normal" */,
+        Logistic /* "Logistic" */,
+        Extreme /* "Extreme" */,
+    };
 
-class TNormalDistribution : public IDistribution {
-public:
-    virtual double CalcPdf(double x) const override;
+    class IDistribution {
+    public:
+        virtual double CalcPdf(double x) const = 0;
+        virtual double CalcCdf(double x) const = 0;
+        virtual double CalcPdfDer1(
+            double pdf,
+            double x) const = 0;
+        virtual double CalcPdfDer2(
+            double pdf,
+            double x) const = 0;
+        virtual EDistributionType GetDistributionType() const = 0;
+        virtual ~IDistribution() = default;
+    };
 
-    virtual double CalcPdfDer1(
-        double pdf,
-        double x) const override;
+    class TNormalDistribution : public IDistribution {
+    public:
+        virtual double CalcPdf(double x) const override;
 
-    virtual double CalcPdfDer2(
-        double pdf,
-        double x) const override;
+        virtual double CalcPdfDer1(
+            double pdf,
+            double x) const override;
 
-    virtual double CalcCdf (double x) const override;
+        virtual double CalcPdfDer2(
+            double pdf,
+            double x) const override;
 
-    virtual EDistributionType GetDistributionType() const override;
-};
+        virtual double CalcCdf (double x) const override;
 
-double ErrorFunction(const double x);
+        virtual EDistributionType GetDistributionType() const override;
+    };
 
-class TExtremeDistribution : public IDistribution {
-public:
-    virtual double CalcPdf(double x) const override;
+    double ErrorFunction(const double x);
 
-    virtual double CalcPdfDer1(
-        double pdf,
-        double x) const override;
+    class TExtremeDistribution : public IDistribution {
+    public:
+        virtual double CalcPdf(double x) const override;
 
-    virtual double CalcPdfDer2(
-        double pdf,
-        double x) const override;
+        virtual double CalcPdfDer1(
+            double pdf,
+            double x) const override;
 
-    virtual double CalcCdf (double x) const override;
+        virtual double CalcPdfDer2(
+            double pdf,
+            double x) const override;
 
-    virtual EDistributionType GetDistributionType() const override;
+        virtual double CalcCdf (double x) const override;
 
-    double ErrorFunction(const double x) const;
-};
+        virtual EDistributionType GetDistributionType() const override;
 
-class TLogisticDistribution : public IDistribution {
-public:
-    virtual double CalcPdf(double x) const override;
+        double ErrorFunction(const double x) const;
+    };
 
-    virtual double CalcPdfDer1(
-        double pdf,
-        double x) const override;
+    class TLogisticDistribution : public IDistribution {
+    public:
+        virtual double CalcPdf(double x) const override;
 
-    virtual double CalcPdfDer2(
-        double pdf,
-        double x) const override;
+        virtual double CalcPdfDer1(
+            double pdf,
+            double x) const override;
 
-    virtual double CalcCdf (double x) const override;
+        virtual double CalcPdfDer2(
+            double pdf,
+            double x) const override;
 
-    virtual EDistributionType GetDistributionType() const override;
+        virtual double CalcCdf (double x) const override;
 
-    double ErrorFunction(const double x) const;
-};
+        virtual EDistributionType GetDistributionType() const override;
+
+        double ErrorFunction(const double x) const;
+    };
+}

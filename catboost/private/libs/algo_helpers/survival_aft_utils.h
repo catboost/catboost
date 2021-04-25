@@ -10,29 +10,34 @@
 #include <cmath>
 #include <tuple>
 
-static constexpr double MIN_FIRST_DER = -15.0;
-static constexpr double MAX_FIRST_DER = 15.0;
-static constexpr double MIN_SECOND_DER = 1e-16;
-static constexpr double MAX_SECOND_DER = 15.0;
-static constexpr double EPS = 1e-12; 
 
-enum class ECensoredType {
-    Uncensored,
-    IntervalCensored,
-    RightCensored,
-    LeftCensored
-};
+namespace NCB {
+    struct TDerivativeConstants {
+        static constexpr double MinFirstDer = -15.0;
+        static constexpr double MaxFirstDer = 15.0;
+        static constexpr double MinSecondDer = 1e-16;
+        static constexpr double MaxSecondDer = 15.0;
+        static constexpr double Epsilon = 1e-12;
+    };
 
-enum class EDerivativeOrder {
-    First,
-    Second
-};
+    enum class ECensoredType {
+        Uncensored,
+        IntervalCensored,
+        RightCensored,
+        LeftCensored
+    };
 
-double InverseMonotoneTransform(double approx, double target, double scale);
+    enum class EDerivativeOrder {
+        First,
+        Second
+    };
 
-double ClipDerivatives(double der, double minDerivative, double maxDerivative);
+    double InverseMonotoneTransform(double approx, double target, double scale);
 
-template<EDistributionType Distribution>
-std::tuple<double, double> GetDerivativeLimits(EDerivativeOrder order, ECensoredType censoredType, double scale);
+    double ClipDerivatives(double der, double minDerivative, double maxDerivative);
 
-std::tuple<double, double> DispatchDerivativeLimits(EDistributionType type, EDerivativeOrder derivativeOrder, ECensoredType censoredType, double scale);
+    template<EDistributionType Distribution>
+    std::tuple<double, double> GetDerivativeLimits(EDerivativeOrder order, ECensoredType censoredType, double scale);
+
+    std::tuple<double, double> DispatchDerivativeLimits(EDistributionType type, EDerivativeOrder derivativeOrder, ECensoredType censoredType, double scale);
+}
