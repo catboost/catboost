@@ -358,6 +358,24 @@ def make_full_path_arg(arg, bld_root, short_root):
         return os.path.join(short_root, arg)
     return arg
 
+def process_whole_archive(args):
+    cmd = []
+
+    prefix = '/WHOLEARCHIVE:'
+    start_wa = '--start-wa'
+    end_wa = '--end-wa'
+    is_inside_wa = False
+    for arg in args:
+        if arg == start_wa:
+            is_inside_wa = True
+        elif arg == end_wa:
+            is_inside_wa = False
+        elif is_inside_wa:
+            cmd.append(prefix + arg)
+        else:
+            cmd.append(arg)
+
+    return cmd
 
 def run_main():
     topdirs = ['/%s/' % d for d in os.listdir('/')]
@@ -401,7 +419,7 @@ def run_main():
     version = args.version
     incl_paths = args.incl_paths
     # By now just unpack. Ideally we should fix path and pack arguments back into command file
-    free_args = pcf.get_args(args.free_args)
+    free_args = process_whole_archive(pcf.get_args(args.free_args))
     bld_root = args.arcadia_build_root
 
     wine_dir = os.path.dirname(os.path.dirname(wine))

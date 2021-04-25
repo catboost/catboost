@@ -32,7 +32,6 @@ RECURSE(
     openssl/dynamic
     protobuf
     protobuf/python
-    protobuf/python/test
     pugixml
     python
     python/ut

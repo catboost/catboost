@@ -7,6 +7,8 @@ import collection.JavaConverters._
 import java.nio.file.{Files,Path}
 import java.util.Arrays
 
+import org.slf4j.Logger
+
 import org.apache.spark.ml.attribute._
 import org.apache.spark.ml.linalg._
 import org.apache.spark.ml.param._
@@ -14,6 +16,7 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.sql._
 import org.apache.spark.sql.catalyst.encoders.RowEncoder
 import org.apache.spark.sql.types._
+import org.apache.spark.storage.StorageLevel
 
 import ai.catboost.CatBoostError
 
@@ -325,6 +328,14 @@ private[spark] object EstimatedFeaturesLoadingContext {
 
 
 private[spark] object DataHelpers {
+  def selectSchemaFields(srcSchema: StructType, fieldNames: Array[String] = null) : Seq[StructField] = {
+    if (fieldNames == null) {
+      srcSchema.toSeq
+    } else {
+      srcSchema.filter(field => fieldNames.contains(field.name))
+    }
+  }
+
   def mapSampleIdxToPerGroupSampleIdx(data: DataFrame) : DataFrame = {
     val groupIdIdx = data.schema.fieldIndex("groupId")
     val sampleIdIdx = data.schema.fieldIndex("sampleId")
@@ -417,7 +428,7 @@ private[spark] object DataHelpers {
         }
         Iterator[Array[Byte]](result)
       }
-    )
+    ).persist(StorageLevel.MEMORY_ONLY)
 
     var result = new Array[Byte](featureCount)
     Arrays.fill(result, 0.toByte)
@@ -429,6 +440,8 @@ private[spark] object DataHelpers {
         }
       }
     }
+
+    partialResultDf.unpersist()
 
     result
   }
@@ -444,7 +457,7 @@ private[spark] object DataHelpers {
     keepRawFeaturesInDstRows: Boolean,
     dstRowLength: Int,
     localExecutor: TLocalExecutor
-  ) : (mutable.ArrayBuffer[Array[Any]], SWIGTYPE_p_NCB__TRawObjectsDataProviderPtr) = {
+  ) : (mutable.ArrayBuffer[Array[Any]], TRawObjectsDataProviderPtr) = {
     val dstRows = new mutable.ArrayBuffer[Array[Any]]
 
     val availableFloatFeaturesFlatIndices 
@@ -769,13 +782,46 @@ private[spark] object DataHelpers {
     (rowCallback, () => { pairsDataBuilder.AddToResult(visitor) })
   }
 
+  
+  /**
+   * return src rows with selected dstRowsColumnIndices, null if dstRowsColumnIndices is null
+   */
+  def addDstRowsCallback(
+    mainDataProcessingCallbacks : mutable.ArrayBuffer[Row => Unit],
+    dstRowsColumnIndices: Array[Int], // can be null
+    dstRowLength: Int
+  ) : mutable.ArrayBuffer[Array[Any]]  = {
+    if (dstRowLength > 0) {
+      val dstRows = new mutable.ArrayBuffer[Array[Any]]
+      if (dstRowsColumnIndices != null) {
+        mainDataProcessingCallbacks += {
+          row => {
+             val rowFields = new Array[Any](dstRowLength)
+             for (i <- 0 until dstRowsColumnIndices.size) {
+               rowFields(i) = row(dstRowsColumnIndices(i))
+             }
+             dstRows += rowFields
+          }
+        }
+      } else {
+        mainDataProcessingCallbacks += {
+          row => { dstRows += new Array[Any](dstRowLength) }
+        }
+      }
+      dstRows
+    } else {
+      null
+    }
+  }
+  
 
   /**
    * Create quantized data providers from iterating over DataFrame's Rows.
-   * @returns (quantized data provider, quantized estimated features provider).
+   * @returns (quantized data provider, quantized estimated features provider, dstRows).
    *  types of quantized data providers are TDataProviderPtr because that's generic interface that
    *  clients (like training, prediction, feature quality estimators) accept.
    *  Quantized estimated features provider is created if estimatedFeatureCount is defined
+   *  dstRows - src rows with selected dstRowsColumnIndices, null if dstRowsColumnIndices is null
    */
   def loadQuantizedDatasets(
     quantizedFeaturesInfo: QuantizedFeaturesInfoPtr,
@@ -784,8 +830,10 @@ private[spark] object DataHelpers {
     schema: StructType,
     estimatedFeatureCount: Option[Int],
     localExecutor: TLocalExecutor,
-    rows: Iterator[Row]
-  ) : (TDataProviderPtr, TDataProviderPtr) = {
+    rows: Iterator[Row],
+    dstRowsColumnIndices: Array[Int] = null,
+    dstRowLength: Int = 0
+  ) : (TDataProviderPtr, TDataProviderPtr, mutable.ArrayBuffer[Array[Any]]) = {
 
     val (dataProviderBuilderClosure, visitor) = getDataProviderBuilderAndVisitor(
       columnIndexMap.contains("features"),
@@ -799,7 +847,9 @@ private[spark] object DataHelpers {
       visitor,
       schema
     )
-    
+
+    val dstRows = addDstRowsCallback(mainDataRowCallbacks, dstRowsColumnIndices, dstRowLength)
+
     var estimatedFeaturesLoadingContext : EstimatedFeaturesLoadingContext = null
     
     if (estimatedFeatureCount.isDefined) {
@@ -835,16 +885,19 @@ private[spark] object DataHelpers {
     
     if (estimatedFeatureCount.isDefined) {
       estimatedFeaturesLoadingContext.finish()
-      (dataProviderBuilderClosure.GetResult(), estimatedFeaturesLoadingContext.getResult())
+      (dataProviderBuilderClosure.GetResult(), estimatedFeaturesLoadingContext.getResult(), dstRows)
     } else {
-      (dataProviderBuilderClosure.GetResult(), null)
+      (dataProviderBuilderClosure.GetResult(), null, dstRows)
     }
   }
   
   /**
    * Create quantized data provider from iterating over cogrouped main dataset and pairs data.
-   * @returns quantized data provider. type is TDataProviderPtr because that's generic interface that
-   *  clients (like training, prediction, feature quality estimators) accept
+   * @returns (quantized data provider, quantized estimated features provider, dstRows).
+   *  types of quantized data providers are TDataProviderPtr because that's generic interface that
+   *  clients (like training, prediction, feature quality estimators) accept.
+   *  Quantized estimated features provider is created if estimatedFeatureCount is defined
+   *  dstRows - src rows with selected dstRowsColumnIndices, null if dstRowsColumnIndices is null
    */
   def loadQuantizedDatasetsWithPairs(
     quantizedFeaturesInfo: QuantizedFeaturesInfoPtr,
@@ -854,8 +907,10 @@ private[spark] object DataHelpers {
     pairsDatasetSchema: StructType,
     estimatedFeatureCount: Option[Int],
     localExecutor: TLocalExecutor,
-    groupsIterator: GroupsIterator
-  ) : (TDataProviderPtr, TDataProviderPtr) = {
+    groupsIterator: GroupsIterator,
+    dstRowsColumnIndices: Array[Int] = null,
+    dstRowLength: Int = 0
+  ) : (TDataProviderPtr, TDataProviderPtr, mutable.ArrayBuffer[Array[Any]]) = {
     val (dataProviderBuilderClosure, visitor) = getDataProviderBuilderAndVisitor(
       columnIndexMap.contains("features"),
       localExecutor
@@ -868,7 +923,9 @@ private[spark] object DataHelpers {
       visitor,
       datasetSchema
     )
-    
+
+    val dstRows = addDstRowsCallback(mainDataRowCallbacks, dstRowsColumnIndices, dstRowLength)
+
     var estimatedFeaturesLoadingContext : EstimatedFeaturesLoadingContext = null
     
     if (estimatedFeatureCount.isDefined) {
@@ -939,12 +996,60 @@ private[spark] object DataHelpers {
 
     if (estimatedFeatureCount.isDefined) {
       estimatedFeaturesLoadingContext.finish()
-      (dataProviderBuilderClosure.GetResult(), estimatedFeaturesLoadingContext.getResult())
+      (dataProviderBuilderClosure.GetResult(), estimatedFeaturesLoadingContext.getResult(), dstRows)
     } else {
-      (dataProviderBuilderClosure.GetResult(), null)
+      (dataProviderBuilderClosure.GetResult(), null, dstRows)
     }
   }
 
+
+  /**
+   * @returns (pool with columns, map of column type -> index in schema, dst column indices, estimatedFeatureCount)
+   */
+  def selectColumnsAndReturnIndex(
+    pool: Pool,
+    columnTypeNames: Seq[String],
+    includeEstimatedFeatures: Boolean,
+    dstColumnNames: Seq[String] = Seq()
+  ) : (DataFrame, HashMap[String, Int], Array[Int], Option[Int]) = {
+    val columnTypesMap = new mutable.HashMap[String, Int]()
+    var columnsList = new mutable.ArrayBuffer[String]()
+    var i = 0
+    for (columnTypeName <- columnTypeNames) {
+      val param = pool.getParam(columnTypeName + "Col").asInstanceOf[Param[String]]
+      if (pool.isDefined(param)) {
+        val paramValue = pool.getOrDefault(param)
+        columnsList += paramValue
+        columnTypesMap.update(columnTypeName, i)
+        i = i + 1
+      }
+    }
+    val estimatedFeatureCount
+      = if (includeEstimatedFeatures && pool.data.schema.fieldNames.contains("_estimatedFeatures")) {
+          columnsList += "_estimatedFeatures"
+          columnTypesMap.update("_estimatedFeatures", i)
+          i = i + 1
+          Some(pool.getEstimatedFeatureCount)
+        } else {
+          None
+        }
+    
+    val dstColumnIndices = new mutable.ArrayBuffer[Int]()
+    for (dstColumnName <- dstColumnNames) {
+      val selectedIdx = columnsList.indexOf(dstColumnName)
+      if (selectedIdx == -1) {
+        columnsList += dstColumnName
+        dstColumnIndices += i
+        i = i + 1
+      } else {
+        dstColumnIndices += selectedIdx
+      }
+    }
+
+    val dfWithSelectedColumns = pool.data.select(columnsList.head, columnsList.tail: _*)
+    (dfWithSelectedColumns, columnTypesMap, dstColumnIndices.toArray, estimatedFeatureCount)
+  }
+  
 
   /**
    * @returns (pool with columns for training, map of column type -> index in schema, estimatedFeatureCount)
@@ -955,8 +1060,6 @@ private[spark] object DataHelpers {
     includeSampleId: Boolean,
     includeEstimatedFeatures: Boolean
   ) : (DataFrame, HashMap[String, Int], Option[Int]) = {
-    val columnTypesMap = new mutable.HashMap[String, Int]()
-
     // Pool param name is columnTypeName + "Col"
     val columnTypeNames = mutable.ArrayBuffer[String](
       "label",
@@ -973,28 +1076,12 @@ private[spark] object DataHelpers {
     if (includeSampleId) {
       columnTypeNames += "sampleId"
     }
-    var columnsList = new mutable.ArrayBuffer[String]()
-    var i = 0
-    for (columnTypeName <- columnTypeNames) {
-      val param = pool.getParam(columnTypeName + "Col").asInstanceOf[Param[String]]
-      if (pool.isDefined(param)) {
-        val paramValue = pool.getOrDefault(param)
-        columnsList += paramValue
-        columnTypesMap.update(columnTypeName, i)
-        i = i + 1
-      }
-    }
-    val estimatedFeatureCount
-      = if (includeEstimatedFeatures && pool.data.schema.fieldNames.contains("_estimatedFeatures")) {
-          columnsList += "_estimatedFeatures"
-          columnTypesMap.update("_estimatedFeatures", i)
-          Some(pool.getEstimatedFeatureCount)
-        } else {
-          None
-        }
-
-    val dfWithColumnsForTraining = pool.data.select(columnsList.head, columnsList.tail: _*)
-    (dfWithColumnsForTraining, columnTypesMap, estimatedFeatureCount)
+    val (selectedDF, columnIndexMap, _, estimatedFeatureCount) = selectColumnsAndReturnIndex(
+      pool,
+      columnTypeNames,
+      includeEstimatedFeatures
+    )
+    (selectedDF, columnIndexMap, estimatedFeatureCount)
   }
   
   def getCogroupedMainAndPairsRDD(
@@ -1020,44 +1107,59 @@ private[spark] object DataHelpers {
     includeFeatures: Boolean,
     includeEstimatedFeatures: Boolean,
     localExecutor: TLocalExecutor,
+    dataPartName: String,
+    log: Logger,
     tmpFilePrefix: String = null,
     tmpFileSuffix: String = null
   ) : PoolFilesPaths = {
-    val (selectedDF, columnIndexMap, estimatedFeatureCount) = selectColumnsForTrainingAndReturnIndex(
+    log.info(s"downloadQuantizedPoolToTempFiles for ${dataPartName}: start")
+
+    var (selectedDF, columnIndexMap, estimatedFeatureCount) = selectColumnsForTrainingAndReturnIndex(
       pool,
       includeFeatures,
       includeSampleId = (pool.pairsData != null),
       includeEstimatedFeatures
     )
 
-    val (mainDataProvider, estimatedDataProvider) = if (pool.pairsData != null) {
+    val (mainDataProvider, estimatedDataProvider, _) = if (pool.pairsData != null) {
+      log.info(s"loadQuantizedDatasetsWithPairs for ${dataPartName}: start")
       val cogroupedMainAndPairsRDD = getCogroupedMainAndPairsRDD(
         selectedDF, 
         columnIndexMap("groupId"), 
         pool.pairsData
-      ).sortByKey() // sortByKey to be consistent
-      
-      loadQuantizedDatasetsWithPairs(
+      ).sortByKey().persist(StorageLevel.MEMORY_ONLY) // sortByKey to be consistent
+
+      val result = loadQuantizedDatasetsWithPairs(
         pool.quantizedFeaturesInfo,
         columnIndexMap,
-        pool.createDataMetaInfo,
+        pool.createDataMetaInfo(),
         selectedDF.schema,
         pool.pairsData.schema,
         estimatedFeatureCount,
         localExecutor,
         cogroupedMainAndPairsRDD.toLocalIterator
       )
+      cogroupedMainAndPairsRDD.unpersist()
+      log.info(s"loadQuantizedDatasetsWithPairs for ${dataPartName}: finish")
+      result
     } else {
-      loadQuantizedDatasets(
+      log.info(s"loadQuantizedDatasets for ${dataPartName}: start")
+      selectedDF = selectedDF.persist(StorageLevel.MEMORY_ONLY)
+      val result = loadQuantizedDatasets(
         pool.quantizedFeaturesInfo,
         columnIndexMap,
-        pool.createDataMetaInfo,
+        pool.createDataMetaInfo(),
         selectedDF.schema,
         estimatedFeatureCount,
         localExecutor,
         selectedDF.toLocalIterator.asScala
       )
+      selectedDF.unpersist()
+      log.info(s"loadQuantizedDatasets for ${dataPartName}: finish")
+      result
     }
+
+    log.info(s"${dataPartName}: save loaded data to files: start")
 
     val tmpMainFilePath = Files.createTempFile(tmpFilePrefix, tmpFileSuffix)
     tmpMainFilePath.toFile.deleteOnExit
@@ -1076,7 +1178,11 @@ private[spark] object DataHelpers {
       tmpEstimatedFilePath.get.toFile.deleteOnExit
       native_impl.SaveQuantizedPoolWrapper(estimatedDataProvider, tmpEstimatedFilePath.get.toString)
     }
-    
+
+    log.info(s"${dataPartName}: save loaded data to files: finish")
+
+    log.info(s"downloadQuantizedPoolToTempFiles for ${dataPartName}: finish")
+
     new PoolFilesPaths(tmpMainFilePath, tmpPairsDataFilePath, tmpEstimatedFilePath)
   }
   

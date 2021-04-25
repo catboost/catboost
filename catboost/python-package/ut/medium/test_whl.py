@@ -14,7 +14,7 @@ def test_wheel():
     cpu_so_path = yatest.common.binary_path(os.path.join(PYTHON_PACKAGE_DIR, "catboost", "no_cuda", cpu_so_name))
     wheel_name = 'catboost.whl'
 
-    make_wheel(wheel_name, 'catboost', '0.0.0', yatest.common.source_path('.'), cpu_so_path)
+    make_wheel(wheel_name, 'catboost', '0.0.0', yatest.common.source_path('.'), cpu_so_path, should_build_widget=False)
 
     with zipfile.ZipFile(wheel_name, 'r') as f:
         f.extractall('catboost')

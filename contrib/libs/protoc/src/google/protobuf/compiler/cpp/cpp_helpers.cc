@@ -44,10 +44,6 @@
 #include <google/protobuf/stubs/strutil.h>
 #include <google/protobuf/stubs/substitute.h>
 
-// msvs defines STRICT macro
-#ifdef STRICT
-#undef STRICT
-#endif
 
 
 

@@ -260,13 +260,10 @@ def onexternal_jar(unit, *args):
 
 def on_check_java_srcdir(unit, *args):
     args = list(args)
-    source_root = unit.resolve('$S')
-    mod_root = os.path.join(source_root, unit.get('MODDIR'))
     for arg in args:
-        srcdir = unit.resolve(arg)
-        if not os.path.isabs(srcdir):
-            srcdir = os.path.join(mod_root, srcdir)
-        if not srcdir.startswith(source_root):
+        srcdir = unit.resolve_arc_path(arg)
+        if not srcdir.startswith('$S'):
             continue
-        if not os.path.exists(srcdir) or not os.path.isdir(srcdir):
-            ymake.report_configure_error('SRCDIR {} does not exists or not a directory'.format(os.path.relpath(srcdir, source_root)))
+        abs_srcdir = unit.resolve(srcdir)
+        if not os.path.exists(abs_srcdir) or not os.path.isdir(abs_srcdir):
+            ymake.report_configure_error('SRCDIR {} does not exists or not a directory'.format(srcdir[3:]))

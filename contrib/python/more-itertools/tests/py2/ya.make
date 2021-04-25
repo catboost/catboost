@@ -1,4 +1,4 @@
-PYTEST()
+PY2TEST()
 
 
 

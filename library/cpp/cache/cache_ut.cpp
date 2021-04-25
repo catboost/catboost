@@ -172,6 +172,145 @@ Y_UNIT_TEST_SUITE(TCacheTest) {
         UNIT_ASSERT(s.Find(3) == s.End());
     }
 
+    Y_UNIT_TEST(LRUSetMaxSizeTest) {
+        typedef TLRUCache<int, TString> TCache;
+        TCache s(2); // size 2
+        s.Insert(1, "abcd");
+        s.Insert(2, "efgh");
+        s.Insert(3, "ijkl");
+        UNIT_ASSERT(s.GetOldest() == "efgh");
+        UNIT_ASSERT(s.Find(1) == s.End());
+        UNIT_ASSERT(s.Find(2) != s.End());
+        UNIT_ASSERT(s.Find(3) != s.End());
+
+        // Increasing size should not change anything
+        s.SetMaxSize(3);
+        UNIT_ASSERT(s.GetOldest() == "efgh");
+        UNIT_ASSERT(s.Find(1) == s.End());
+        UNIT_ASSERT(s.Find(2) != s.End());
+        UNIT_ASSERT(s.Find(3) != s.End());
+
+        // And we should be able to add fit more entries
+        s.Insert(4, "mnop");
+        s.Insert(5, "qrst");
+        UNIT_ASSERT(s.GetOldest() == "ijkl");
+        UNIT_ASSERT(s.Find(1) == s.End());
+        UNIT_ASSERT(s.Find(2) == s.End());
+        UNIT_ASSERT(s.Find(3) != s.End());
+        UNIT_ASSERT(s.Find(4) != s.End());
+        UNIT_ASSERT(s.Find(5) != s.End());
+
+        // Decreasing size should remove oldest entries
+        s.SetMaxSize(2);
+        UNIT_ASSERT(s.GetOldest() == "mnop");
+        UNIT_ASSERT(s.Find(1) == s.End());
+        UNIT_ASSERT(s.Find(2) == s.End());
+        UNIT_ASSERT(s.Find(3) == s.End());
+        UNIT_ASSERT(s.Find(4) != s.End());
+        UNIT_ASSERT(s.Find(5) != s.End());
+
+        // Ano no more entries will fit
+        s.Insert(6, "uvwx");
+        UNIT_ASSERT(s.GetOldest() == "qrst");
+        UNIT_ASSERT(s.Find(1) == s.End());
+        UNIT_ASSERT(s.Find(2) == s.End());
+        UNIT_ASSERT(s.Find(3) == s.End());
+        UNIT_ASSERT(s.Find(4) == s.End());
+        UNIT_ASSERT(s.Find(5) != s.End());
+        UNIT_ASSERT(s.Find(6) != s.End());
+    }
+
+    Y_UNIT_TEST(LWSetMaxSizeTest) {
+        typedef TLWCache<int, TString, size_t, TStrokaWeighter> TCache;
+        TCache s(2); // size 2
+        s.Insert(1, "a");
+        s.Insert(2, "aa");
+        s.Insert(3, "aaa");
+        UNIT_ASSERT(s.GetLightest() == "aa");
+        UNIT_ASSERT(s.Find(1) == s.End());
+        UNIT_ASSERT(s.Find(2) != s.End());
+        UNIT_ASSERT(s.Find(3) != s.End());
+
+        // Increasing size should not change anything
+        s.SetMaxSize(3);
+        UNIT_ASSERT(s.GetLightest() == "aa");
+        UNIT_ASSERT(s.Find(1) == s.End());
+        UNIT_ASSERT(s.Find(2) != s.End());
+        UNIT_ASSERT(s.Find(3) != s.End());
+
+        // And we should be able to add fit more entries
+        s.Insert(4, "aaaa");
+        s.Insert(5, "aaaaa");
+        UNIT_ASSERT(s.GetLightest() == "aaa");
+        UNIT_ASSERT(s.Find(1) == s.End());
+        UNIT_ASSERT(s.Find(2) == s.End());
+        UNIT_ASSERT(s.Find(3) != s.End());
+        UNIT_ASSERT(s.Find(4) != s.End());
+        UNIT_ASSERT(s.Find(5) != s.End());
+
+        // Decreasing size should remove oldest entries
+        s.SetMaxSize(2);
+        UNIT_ASSERT(s.GetLightest() == "aaaa");
+        UNIT_ASSERT(s.Find(1) == s.End());
+        UNIT_ASSERT(s.Find(2) == s.End());
+        UNIT_ASSERT(s.Find(3) == s.End());
+        UNIT_ASSERT(s.Find(4) != s.End());
+        UNIT_ASSERT(s.Find(5) != s.End());
+
+        // Ano no more entries will fit
+        s.Insert(6, "aaaaaa");
+        UNIT_ASSERT(s.GetLightest() == "aaaaa");
+        UNIT_ASSERT(s.Find(1) == s.End());
+        UNIT_ASSERT(s.Find(2) == s.End());
+        UNIT_ASSERT(s.Find(3) == s.End());
+        UNIT_ASSERT(s.Find(4) == s.End());
+        UNIT_ASSERT(s.Find(5) != s.End());
+        UNIT_ASSERT(s.Find(6) != s.End());
+    }
+
+    Y_UNIT_TEST(LFUSetMaxSizeTest) {
+        typedef TLFUCache<int, TString> TCache;
+        TCache s(2); // size 2
+        s.Insert(1, "abcd");
+        s.Insert(2, "efgh");
+        s.Insert(3, "ijkl");
+        UNIT_ASSERT(s.Find(1) == s.End());
+        UNIT_ASSERT(s.Find(2) != s.End());
+        UNIT_ASSERT(s.Find(3) != s.End());
+
+        // Increasing size should not change anything
+        s.SetMaxSize(3);
+        UNIT_ASSERT(s.Find(1) == s.End());
+        UNIT_ASSERT(s.Find(2) != s.End());
+        UNIT_ASSERT(s.Find(3) != s.End());
+
+        // And we should be able to add fit more entries
+        s.Insert(4, "mnop");
+        s.Insert(5, "qrst");
+        UNIT_ASSERT(s.Find(1) == s.End());
+        UNIT_ASSERT(s.Find(2) == s.End());
+        UNIT_ASSERT(s.Find(3) != s.End());
+        UNIT_ASSERT(s.Find(4) != s.End());
+        UNIT_ASSERT(s.Find(5) != s.End());
+
+        // Decreasing size should remove oldest entries
+        s.SetMaxSize(2);
+        UNIT_ASSERT(s.Find(1) == s.End());
+        UNIT_ASSERT(s.Find(2) == s.End());
+        UNIT_ASSERT(s.Find(3) != s.End());
+        UNIT_ASSERT(s.Find(4) == s.End());
+        UNIT_ASSERT(s.Find(5) != s.End());
+
+        // Ano no more entries will fit
+        s.Insert(6, "uvwx");
+        UNIT_ASSERT(s.Find(1) == s.End());
+        UNIT_ASSERT(s.Find(2) == s.End());
+        UNIT_ASSERT(s.Find(3) != s.End());
+        UNIT_ASSERT(s.Find(4) == s.End());
+        UNIT_ASSERT(s.Find(5) == s.End());
+        UNIT_ASSERT(s.Find(6) != s.End());
+    }
+
     Y_UNIT_TEST(MultiCacheTest) {
         typedef TLRUCache<int, TString> TCache;
         TCache s(3, true);

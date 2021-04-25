@@ -70,6 +70,7 @@ cdef extern from "catboost/private/libs/options/enum_helpers.h":
     cdef bool_t IsGroupwiseMetric(const TString& metricName) nogil except +ProcessException
     cdef bool_t IsMultiClassCompatibleMetric(const TString& metricName) nogil except +ProcessException
     cdef bool_t IsPairwiseMetric(const TString& metricName) nogil except +ProcessException
+    cdef bool_t IsRankingMetric(const TString& metricName) nogil except +ProcessException
     cdef bool_t IsUserDefined(const TString& metricName) nogil except +ProcessException
 
 

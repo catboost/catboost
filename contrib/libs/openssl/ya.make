@@ -101,6 +101,14 @@ IF (OS_DARWIN AND ARCH_X86_64)
     )
 ENDIF()
 
+IF (OS_DARWIN AND ARCH_ARM64)
+    CFLAGS(
+        -DL_ENDIAN
+        -DOPENSSL_PIC
+        -D_REENTRANT
+    )
+ENDIF()
+
 IF (OS_WINDOWS AND ARCH_X86_64)
     CFLAGS(
         -DENGINESDIR="\"C:\\\\Program\ Files\\\\OpenSSL\\\\lib\\\\engines-1_1\""
@@ -207,7 +215,7 @@ ENDIF()
 
 IF (OS_WINDOWS AND ARCH_X86_64)
     SRCS(
-        asm/windows/engines/e_padlock-x86_64.asm
+        asm/windows/engines/e_padlock-x86_64.masm
     )
 ENDIF()
 

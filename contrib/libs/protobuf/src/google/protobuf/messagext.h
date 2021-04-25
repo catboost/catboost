@@ -1,9 +1,7 @@
-#ifndef GOOGLE_PROTOBUF_MESSAGEXT_H__
-#define GOOGLE_PROTOBUF_MESSAGEXT_H__
+#pragma once
 
-#include <google/protobuf/message.h>
+#include <google/protobuf/stubs/port.h>
 #include <google/protobuf/io/coded_stream.h>
-#include <google/protobuf/text_format.h>
 #include <util/stream/output.h>
 #include <util/generic/buffer.h>
 
@@ -13,9 +11,27 @@
 
 namespace google {
 namespace protobuf {
+
+class Message;
+
+namespace internal {
+
+struct TAsBinary {
+  const Message& Message_;
+  friend IOutputStream& operator <<(IOutputStream& output, const TAsBinary& wrappedMessage);
+};
+
+struct TAsStreamSeq {
+  const Message& Message_;
+  friend IOutputStream& operator <<(IOutputStream& output, const TAsStreamSeq& wrappedMessage);
+};
+
+} // namespace internal
+
 namespace io {
 
 /// Parse*Seq methods read message size from stream to find a message boundary
+
 /// there is not parse from IInputStream, because it is not push-backable
 
 bool ParseFromCodedStreamSeq(Message* msg, io::CodedInputStream* input);
@@ -132,10 +148,9 @@ private:
     static const size_t DefaultBufferSize = (1 << 16);
 };
 
-
-}
-}
-}
+} // namespace io
+} // namespace protobuf
+} // namespace google
 
 // arcadia-style serialization
 inline void Save(IOutputStream* output, const google::protobuf::Message& msg) {
@@ -147,21 +162,4 @@ inline void Load(IInputStream* input, google::protobuf::Message& msg) {
 }
 
 // A mix of ShortDebugString and Utf8DebugString
-inline TString ShortUtf8DebugString(const google::protobuf::Message& msg) {
-    google::protobuf::TextFormat::Printer printer;
-    printer.SetSingleLineMode(true);
-    printer.SetUseUtf8StringEscaping(true);
-
-    TProtoStringType string;
-    printer.PrintToString(msg, &string);
-
-    // Copied from text_format.h
-    // Single line mode currently might have an extra space at the end.
-    if (string.size() > 0 && string[string.size() - 1] == ' ') {
-        string.resize(string.size() - 1);
-    }
-
-    return string;
-}
-
-#endif
+TProtoStringType ShortUtf8DebugString(const google::protobuf::Message& msg);

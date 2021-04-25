@@ -1,3 +1,66 @@
+# Release 0.25.1
+
+## Speedup
+* Now CatBoost uses non-owning Numpy arrays for passing c++ data to user-defined metric and loss functions in Python. This opens lot's of speedup probabilities: using those vectors in numba.jitted code, in cython code or just using numpy vector functions. Thanks @micyril!
+
+## Bugfixes
+* Fix #1620 - retrieval of R pointers by @david-cortes
+* Fix `EvalMetricsResult.get_metric()` by @Roffild
+* Fix multiclass AUC calculation #1615
+
+
+# Release 0.25
+
+## CatBoost for Apache Spark
+This release includes CatBoost for Apache Spark package that supports training, model application and feature evaluation on Apache Spark platform. We've prepared [CatBoost for Apache Spark introduction](https://www.youtube.com/watch?v=47-mAVms-b8) and [CatBoost for Apache Spark Architecture
+](https://www.youtube.com/watch?v=nrGt5VKZpzc) videos for introduction. More details available at [CatBoost for Apache Spark home page](https://github.com/catboost/catboost/tree/master/catboost/spark/catboost4j-spark).
+
+
+## Feature selection
+CatBoost supports recursive feature elimination procedure - when you have lot's of feature candidates and you want to select only most influential features by training models and selecting only strongest by feature importance. You can look for details in our [tutorial](https://github.com/catboost/catboost/blob/master/catboost/tutorials/feature_selection/select_features_tutorial.ipynb)
+
+## New features
+* Supported exact leaves estimation method for quantile, MAE and MAPE losses on GPU. You can enable it by setting ```leaf_estimation_method=Exact``` explicitly, in next releases we are planning to set it by default.
+* Supported uncertainty prediction for multiclassification models
+* #1568 Added support shap values calculation MultiRMSE models
+* #1520 Added support for ```pathlib.Path``` in python package
+* #1456 Added prehashed categorical features and text features to C API for model inference.
+
+## Losses and metrics
+* Supported Huber and Tweedie losses in GPU training
+* QueryAUC metric implemented by @fibersel
+
+
+## Breaking changes
+* We changed NDCG calculation principle for groups without relevant docs to make our NDCG score fully compatible with XGBoost and LightGBM implementations. Now we calc ```dcg==1``` when there is no relevant objects in group (when ideal DCG equals zero), later we used ```score==0``` in that case.
+
+## Speedups
+* With help of Intel developers team we switched our threading model implementation to Intel Threading Building Blocks. That gives us up to 20% speedup on 28 threads and around 2x speedup when training in 120 threads and largely improves scalability.
+* Speed up rendering fstat plots.
+* Slightly speed up string casting in python package during pool creation.
+
+## R package
+* Added path expansion when saving/loading files in R by @david-cortes
+* Added functionality to restore R handle after deserializing model by @david-cortes
+* Retrieve R pointers outside loops to speed up scalar access by @david-cortes
+* Multiple R documentation edits from @david-cortes and @jameslamb
+* #1588 Added precision for converting params to json
+
+## Bugfixes
+* #1525 Problem with missing exported functions in Windows R package dll
+* #1315 Low CPU utilization in CPU cross-validation
+* #785 Predict on single item with iloc fixed by @feeeper
+* Segfaults due to null pointer in pool in R package fixed by @david-cortes
+* #1553 Added check for baseline dimensions count in apply
+* #1606 Allow to use CatBoost in AWS Lambda environment: fix bug with setting thread names
+* #1609 and #1309 Print proper error message if all params in grid were invalid
+* Ability to use docstrings in estimators added by @pawelopiela
+* Allow extra space at the end of line for libsvm format
+
+## Thanks!
+*  We would like to recognize Intel software engineering team’s contributions to Catboost project.
+* Many thanks to our individual contributors: @david-cortes  @jameslamb @pawelopiela @feeeper @fibersel
+
 # Release 0.24.4
 
 ## Speedup
@@ -20,7 +83,7 @@
 
 ## New functionality
 * Support fstr text features and embeddings. Issue #1293
-   
+
 ## Bugfixes:
 * Fix model apply speed regression from 0.24.1 & 0.24.2
 * Different fixes in embeddings support: fixed apply and model serialization, fixed apply on texts and embeddings
@@ -37,15 +100,15 @@
 ## New functionality
 * Allow categorical feature counters for `MultiRMSE` loss function.
 * `group_weight` parameter added to `catboost.utils.eval_metric` method to allow passing weights for object groups. Allows correctly match weighted ranking metrics computation when group weights present.
-* Faster non-owning deserialization from memory with less memory overhead - moved some dynamically computed data to model file, other data is computed in lazy manner only when needed. 
+* Faster non-owning deserialization from memory with less memory overhead - moved some dynamically computed data to model file, other data is computed in lazy manner only when needed.
 
 ## Experimental functionality
 * Supported embedding features as input and linear discriminant analysis for embeddings preprocessing. Try adding your embeddings as new columns with embedding values array in Pandas.Dataframe and passing corresponding column names to `Pool` constructor or `fit` function with `embedding_features=['EmbeddingFeaturesColumnName1, ...]` parameter. Another way of adding your embedding vectors is new type of column in Column Description file `NumVector` and adding semicolon separated embeddings column to your XSV file: ```ClassLabel\t0.1;0.2;0.3\t...```.
 
 ## Educational materials
-* Published new [tutorial](https://github.com/catboost/catboost/blob/master/catboost/tutorials/uncertainty/uncertainty_regression.ipynb) on uncertainty prediction. 
+* Published new [tutorial](https://github.com/catboost/catboost/blob/master/catboost/tutorials/uncertainty/uncertainty_regression.ipynb) on uncertainty prediction.
 
-   
+
 ## Bugfixes:
 * Reduced GPU memory usage in multi gpu training when there is no need to compute categorical feature counters.
 * Now CatBoost allows to specify `use_weights` for metrics when `auto_class_weights` parameter is set.
@@ -69,10 +132,10 @@ Calling `model.virtual_ensembles_predict(.., prediction_type='VirtEnsembles')` r
 ## New functionality
 * Supported non-owning model deserialization for models with categorical feature counters
 ## Speedups
-* We've done lot's of speedups for sparse data loading. For example, on bosch sparse dataset preprocessing speed got 4.5x speedup while running in 28 thread setting.   
+* We've done lot's of speedups for sparse data loading. For example, on bosch sparse dataset preprocessing speed got 4.5x speedup while running in 28 thread setting.
 ## Bugfixes:
 * Fixed target check for PairLogitPairwise on GPU. Issue #1217
-* Supported `n_features_in_` attribute required for using CatBoost in sklearn pipelines. Issue #1363 
+* Supported `n_features_in_` attribute required for using CatBoost in sklearn pipelines. Issue #1363
 
 
 # Release 0.24
@@ -88,16 +151,16 @@ Calling `model.virtual_ensembles_predict(.., prediction_type='VirtEnsembles')` r
 * New loss function ```RMSEWithUncertainty``` - it allows to estimate data uncertainty for trained regression models. The trained model will give you a two-element vector for each object with the first element as regression model prediction and the second element as an estimation of data uncertainty for that prediction.
 
 ## Speedups
-* Major speedups for CPU training: kdd98 -9%, higgs -18%, msrank -28%. We would like to recognize Intel software engineering team’s contributions to Catboost project. This was mutually beneficial activity, and we look forward to continuing joint cooperation. 
+* Major speedups for CPU training: kdd98 -9%, higgs -18%, msrank -28%. We would like to recognize Intel software engineering team’s contributions to Catboost project. This was mutually beneficial activity, and we look forward to continuing joint cooperation.
 
 ## Bugfixes:
 * Fixed CatBoost model export as Python code
 * Fixed AUC metric creation
 * Add text features to `model.feature_names_`. Issue#1314
-* Allow models, trained on datasets with NaN values (Min treatment) and without NaNs in `model_sum()` or as the base model in `init_model=`. Issue #1271 
+* Allow models, trained on datasets with NaN values (Min treatment) and without NaNs in `model_sum()` or as the base model in `init_model=`. Issue #1271
 
 ## Educational materials
-* Published new [tutorial](https://github.com/catboost/catboost/blob/master/catboost/tutorials/categorical_features/categorical_features_parameters.ipynb) on categorical features parameters. Thanks @garkavem 
+* Published new [tutorial](https://github.com/catboost/catboost/blob/master/catboost/tutorials/categorical_features/categorical_features_parameters.ipynb) on categorical features parameters. Thanks @garkavem
 
 # Release 0.23.2
 

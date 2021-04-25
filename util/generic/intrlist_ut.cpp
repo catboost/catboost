@@ -20,6 +20,7 @@ class TListTest: public TTestBase {
     UNIT_TEST(TestListWithAutoDeleteMoveCtor);
     UNIT_TEST(TestListWithAutoDeleteMoveOpEq);
     UNIT_TEST(TestListWithAutoDeleteClear);
+    UNIT_TEST(TestSecondTag);
     UNIT_TEST_SUITE_END();
 
 private:
@@ -37,6 +38,7 @@ private:
     void TestListWithAutoDeleteMoveCtor();
     void TestListWithAutoDeleteMoveOpEq();
     void TestListWithAutoDeleteClear();
+    void TestSecondTag();
 };
 
 UNIT_TEST_SUITE_REGISTRATION(TListTest);
@@ -472,4 +474,37 @@ void TListTest::TestListWithAutoDeleteClear() {
     }
 
     UNIT_ASSERT_EQUAL(counter, 0);
+}
+
+struct TSecondTag { };
+
+class TDoubleNode
+    : public TInt
+    , public TIntrusiveListItem<TDoubleNode, TSecondTag>
+{
+public:
+    TDoubleNode(int value) noexcept: TInt(value)  { }
+};
+
+void TListTest::TestSecondTag() {
+    TDoubleNode zero(0), one(1);
+    TIntrusiveList<TInt> first;
+    TIntrusiveList<TDoubleNode, TSecondTag> second;
+
+    first.PushFront(&zero);
+    first.PushFront(&one);
+    second.PushBack(&zero);
+    second.PushBack(&one);
+
+    UNIT_ASSERT_EQUAL(*first.Front(), 1);
+    UNIT_ASSERT_EQUAL(*++first.Begin(), 0);
+    UNIT_ASSERT_EQUAL(*first.Back(), 0);
+
+    UNIT_ASSERT_EQUAL(*second.Front(), 0);
+    UNIT_ASSERT_EQUAL(*++second.Begin(), 1);
+    UNIT_ASSERT_EQUAL(*second.Back(), 1);
+
+    second.Remove(&zero);
+    UNIT_ASSERT_EQUAL(*second.Front(), 1);
+    UNIT_ASSERT_EQUAL(*first.Back(), 0);
 }

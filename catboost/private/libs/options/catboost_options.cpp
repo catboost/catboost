@@ -248,9 +248,7 @@ void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
     }
     const bool useExact = EqualToOneOf(lossFunctionConfig.GetLossFunction(), ELossFunction::MAE, ELossFunction::MAPE, ELossFunction::Quantile)
             && SystemOptions->IsSingleHost()
-            && TaskType == ETaskType::CPU
-            && !BoostingOptions->ApproxOnFullHistory
-            && treeConfig.MonotoneConstraints.Get().empty();
+            && (TaskType == ETaskType::GPU || !BoostingOptions->ApproxOnFullHistory && treeConfig.MonotoneConstraints.Get().empty());
 
     if (useExact) {
         defaultEstimationMethod = ELeavesEstimation::Exact;
@@ -702,10 +700,6 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
              "Posterior Sampling requires Сonstant Model Shrink Mode");
     }
 
-    if (BoostingOptions->Langevin.GetUnchecked()) {
-        CB_ENSURE(SystemOptions->IsSingleHost(), "Langevin boosting is supported in single-host mode only.");
-    }
-
     if (GetTaskType() == ETaskType::CPU && ObliviousTreeOptions->FeaturePenalties.IsSet()) {
         ValidateFeaturePenaltiesOptions(ObliviousTreeOptions->FeaturePenalties.Get());
     }
@@ -904,7 +898,7 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
             BoostingOptions->Langevin.SetDefault(true);
         }
 
-        if (BoostingOptions->DiffusionTemperature.GetUnchecked() > 0.0f && BoostingOptions->Langevin.NotSet()) {
+        if (BoostingOptions->DiffusionTemperature > 0.0f && BoostingOptions->Langevin.NotSet()) {
             BoostingOptions->Langevin.SetDefault(true);
         }
 

@@ -22,42 +22,18 @@
 #endif
 
 namespace {
-    enum EMadvise {
-        M_MADVISE_SEQUENTIAL = 0,
-        M_MADVISE_RANDOM = 1,
-        M_MADVISE_EVICT = 2,
-        M_MADVISE_DONTDUMP = 3,
-        M_MADVISE_DODUMP = 4,
-    };
-
-    void Madvise(EMadvise madv, const void* cbegin, size_t size) {
+    void Madvise(int flag, const void* cbegin, size_t size) {
         static const size_t pageSize = NSystemInfo::GetPageSize();
         void* begin = AlignDown(const_cast<void*>(cbegin), pageSize);
         size = AlignUp(size, pageSize);
 
 #if defined(_win_)
-        if (M_MADVISE_EVICT == madv) {
-            if (!VirtualFree((LPVOID)begin, size, MEM_DECOMMIT)) {
-                TString err(LastSystemErrorText());
-                ythrow yexception() << "VirtualFree(" << begin << ", " << size << ", " << MEM_DECOMMIT << ")"
-                                    << " returned error: " << err;
-            }
+        if (!VirtualFree((LPVOID)begin, size, flag)) {
+            TString err(LastSystemErrorText());
+            ythrow yexception() << "VirtualFree(" << begin << ", " << size << ", " << flag << ")"
+                                << " returned error: " << err;
         }
 #else
-        static const int madviseFlags[] = {
-            MADV_SEQUENTIAL,
-            MADV_RANDOM,
-#if defined(_linux_) || defined(_cygwin_)
-            MADV_DONTNEED,
-#else // freebsd, osx
-            MADV_FREE,
-#endif
-            MADV_DONTDUMP,
-            MADV_DODUMP,
-        };
-
-        const int flag = madviseFlags[madv];
-
         if (-1 == madvise(begin, size, flag)) {
             TString err(LastSystemErrorText());
             ythrow yexception() << "madvise(" << begin << ", " << size << ", " << flag << ")"
@@ -68,7 +44,9 @@ namespace {
 }
 
 void MadviseSequentialAccess(const void* begin, size_t size) {
-    Madvise(M_MADVISE_SEQUENTIAL, begin, size);
+#if !defined(_win_)
+    Madvise(MADV_SEQUENTIAL, begin, size);
+#endif
 }
 
 void MadviseSequentialAccess(TArrayRef<const char> data) {
@@ -80,7 +58,9 @@ void MadviseSequentialAccess(TArrayRef<const ui8> data) {
 }
 
 void MadviseRandomAccess(const void* begin, size_t size) {
-    Madvise(M_MADVISE_RANDOM, begin, size);
+#if !defined(_win_)
+    Madvise(MADV_RANDOM, begin, size);
+#endif
 }
 
 void MadviseRandomAccess(TArrayRef<const char> data) {
@@ -92,7 +72,13 @@ void MadviseRandomAccess(TArrayRef<const ui8> data) {
 }
 
 void MadviseEvict(const void* begin, size_t size) {
-    Madvise(M_MADVISE_EVICT, begin, size);
+#if defined(_win_)
+    Madvise(MEM_DECOMMIT, begin, size);
+#elif defined(_linux_) || defined(_cygwin_)
+    Madvise(MADV_DONTNEED, begin, size);
+#else // freebsd, osx
+    Madvise(MADV_FREE, begin, size);
+#endif
 }
 
 void MadviseEvict(TArrayRef<const char> data) {
@@ -104,7 +90,14 @@ void MadviseEvict(TArrayRef<const ui8> data) {
 }
 
 void MadviseExcludeFromCoreDump(const void* begin, size_t size) {
-    Madvise(M_MADVISE_DONTDUMP, begin, size);
+#if defined(_darwin_)
+    // Don't try to call function with flag which doesn't work
+    // https://st.yandex-team.ru/PASSP-31755#6050bbafc68f501f2c22caab
+    Y_UNUSED(begin);
+    Y_UNUSED(size);
+#elif !defined(_win_)
+    Madvise(MADV_DONTDUMP, begin, size);
+#endif
 }
 
 void MadviseExcludeFromCoreDump(TArrayRef<const char> data) {
@@ -116,7 +109,12 @@ void MadviseExcludeFromCoreDump(TArrayRef<const ui8> data) {
 }
 
 void MadviseIncludeIntoCoreDump(const void* begin, size_t size) {
-    Madvise(M_MADVISE_DODUMP, begin, size);
+#if defined(_darwin_)
+    Y_UNUSED(begin);
+    Y_UNUSED(size);
+#elif !defined(_win_)
+    Madvise(MADV_DODUMP, begin, size);
+#endif
 }
 
 void MadviseIncludeIntoCoreDump(TArrayRef<const char> data) {

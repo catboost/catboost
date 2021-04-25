@@ -1,6 +1,6 @@
 
 
-PYTEST()
+PY2TEST()
 
 TEST_SRCS(
     build_dll_and_java.py
@@ -86,6 +86,6 @@ TEST_SRCS(
     yndexer.py
 )
 
-NO_LINT()
+
 
 END()

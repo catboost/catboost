@@ -1,6 +1,10 @@
 package ai.catboost.spark
 
+import scala.collection.JavaConverters._
+
 import java.io.{File,PrintWriter}
+import java.nio.file.{Files, Path}
+import java.util.zip.ZipFile
 
 import org.apache.spark.ml.linalg._
 import org.apache.spark.sql._
@@ -80,4 +84,27 @@ object TestHelpers {
       }
     }
   }
+  
+  def addIndexColumn(df: DataFrame) : DataFrame = {
+    df.sparkSession.createDataFrame(
+      df.rdd.zipWithIndex.map {
+        case (row, index) => Row.fromSeq(row.toSeq :+ index)
+      },
+      StructType(df.schema.fields :+ StructField("index", LongType, false))
+    )
+  }
+  
+  def unzip(zipPath: Path, outputPath: Path): Unit = {
+    val zipFile = new ZipFile(zipPath.toFile)
+    for (entry <- zipFile.entries.asScala) {
+      val path = outputPath.resolve(entry.getName)
+      if (entry.isDirectory) {
+        Files.createDirectories(path)
+      } else {
+        Files.createDirectories(path.getParent)
+        Files.copy(zipFile.getInputStream(entry), path)
+      }
+    }
+  }
+
 }

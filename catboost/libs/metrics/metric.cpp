@@ -18,6 +18,7 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/short_vector_ops.h>
 #include <catboost/libs/helpers/vector_helpers.h>
+#include <catboost/libs/eval_result/eval_helpers.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/private/libs/options/enum_helpers.h>
 #include <catboost/private/libs/options/enums.h>
@@ -2763,8 +2764,8 @@ TMetricHolder TAUCMetric::Eval(
         CB_ENSURE(MisclassCostMatrix->size() == approx.size(), "Number of classes should be equal to the size of the misclass cost matrix.");
     }
 
-    if (Type == EAucType::Mu) {
-        TVector<TVector<double>> currentApprox;
+    TVector<TVector<double>> currentApprox;
+    if (Type == EAucType::Mu || Type == EAucType::OneVsAll) {
         ResizeRank2(approx.size(), approx[0].size(), currentApprox);
         AssignRank2(MakeArrayRef(approx), &currentApprox);
         if (!approxDelta.empty()) {
@@ -2774,15 +2775,21 @@ TMetricHolder TAUCMetric::Eval(
                 }
             }
         }
+    }
+    if (Type == EAucType::Mu) {
         TMetricHolder error(2);
         error.Stats[0] = CalcMuAuc(currentApprox, target, UseWeights ? weight : TConstArrayRef<float>(), &executor, MisclassCostMatrix);
         error.Stats[1] = 1;
         return error;
     }
 
+    TVector<double> probability;
+    if (Type == EAucType::OneVsAll) {
+        probability = CalcSoftmax(currentApprox, &executor)[PositiveClass];
+
+    }
     const auto realApprox = [&](int idx) {
-        return approx[Type == EAucType::OneVsAll ? PositiveClass : 0][idx]
-        + (approxDelta.empty() ? 0.0 : approxDelta[Type == EAucType::OneVsAll ? PositiveClass : 0][idx]);
+        return Type == EAucType::OneVsAll ? probability[idx] : approx[0][idx] + (approxDelta.empty() ? 0.0 : approxDelta[0][idx]);
     };
     const auto realWeight = [&](int idx) {
         return UseWeights && !weight.empty() ? weight[idx] : 1.0;

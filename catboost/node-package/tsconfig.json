@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "declaration": true,
+    "lib": [ "esnext" ],
+    "module": "commonjs",
+    "outDir": "./lib",
+    "rootDir": "./bindings",
+    "strict": true,
+    "target": "es6",
+    "types": [
+      "node"
+    ],
+    "typeRoots": [
+      "node_modules/@types"
+    ]
+  },
+  "exclude": [
+    "./build_scripts/*",
+    "./lib/*/**"
+  ],
+}

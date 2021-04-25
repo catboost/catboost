@@ -612,6 +612,13 @@ namespace NThreading {
 
     template <typename T>
     template <typename F>
+    inline const TFuture<T>& TFuture<T>::NoexceptSubscribe(F&& func) const noexcept {
+        return Subscribe(std::forward<F>(func));
+    }
+
+
+    template <typename T>
+    template <typename F>
     inline TFuture<TFutureType<TFutureCallResult<F, T>>> TFuture<T>::Apply(F&& func) const {
         auto promise = NewPromise<TFutureType<TFutureCallResult<F, T>>>();
         Subscribe([promise, func = std::forward<F>(func)](const TFuture<T>& future) mutable {
@@ -703,6 +710,12 @@ namespace NThreading {
         }
         return *this;
     }
+
+    template <typename F>
+    inline const TFuture<void>& TFuture<void>::NoexceptSubscribe(F&& func) const noexcept {
+        return Subscribe(std::forward<F>(func));
+    }
+
 
     template <typename F>
     inline TFuture<TFutureType<TFutureCallResult<F, void>>> TFuture<void>::Apply(F&& func) const {

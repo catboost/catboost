@@ -72,7 +72,7 @@ namespace NCB {
         }
         bool isRMSEWithUncertainty = lossFunction == ELossFunction::RMSEWithUncertainty;
         if (isUncertainty) {
-            const ui32 modelDim = isRMSEWithUncertainty ? 1 : approxDimension / ensemblesCount;
+            ui32 predictionDim = isRMSEWithUncertainty ? 1 : approxDimension / ensemblesCount;
             TVector<TString> uncertaintyHeaders;
             if (predictionType == EPredictionType::VirtEnsembles) {
                 uncertaintyHeaders = {"ApproxRawFormulaVal"};
@@ -89,14 +89,16 @@ namespace NCB {
                     uncertaintyHeaders = {"DataUnc", "TotalUnc"};
                 }
                 ensemblesCount = 1;
+                predictionDim = 1;
             }
-            headers.reserve(ensemblesCount * modelDim * uncertaintyHeaders.size());
+            headers.reserve(ensemblesCount * predictionDim * uncertaintyHeaders.size());
+            // TODO(eermishkina): support multiRMSE
             for (ui32 veId = 0; veId < ensemblesCount; ++veId) {
-                for (ui32 dimId  = 0; dimId  < modelDim; ++dimId ) {
+                for (ui32 dimId  = 0; dimId  < predictionDim; ++dimId ) {
                     for (const auto &name: uncertaintyHeaders) {
                         TStringBuilder str;
                         str << predictionType << ":" << name;
-                        if (modelDim > 1) {
+                        if (predictionDim > 1) {
                             str << (isMultiTarget ? ":Dim=" : ":Class=")
                                 << visibleLabelsHelper.GetVisibleClassNameFromClass(dimId );
                         }

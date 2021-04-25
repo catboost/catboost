@@ -1,4 +1,4 @@
-# tools.py
+# tools.py - generic helpers
 
 import os
 
@@ -8,7 +8,7 @@ __all__ = ['attach', 'mkdirs', 'mapping_items']
 
 
 def attach(object, name):
-    """Return a decorator doing setattr(object, name) with its argument.
+    """Return a decorator doing ``setattr(object, name)`` with its argument.
 
     >>> spam = type('Spam', (object,), {})()
     >>> @attach(spam, 'eggs')
@@ -24,15 +24,15 @@ def attach(object, name):
 
 
 def mkdirs(filename, mode=0o777):
-    """Recursively create directories up to the path of filename as needed."""
+    """Recursively create directories up to the path of ``filename`` as needed."""
     dirname = os.path.dirname(filename)
     if not dirname:
         return
     _compat.makedirs(dirname, mode=mode, exist_ok=True)
 
 
-def mapping_items(mapping, _iteritems=_compat.iteritems):
-    """Return an iterator over the mapping items, sort if it's a plain dict.
+def mapping_items(mapping):
+    """Return an iterator over the ``mapping`` items, sort if it's a plain dict.
 
     >>> list(mapping_items({'spam': 0, 'ham': 1, 'eggs': 2}))
     [('eggs', 2), ('ham', 1), ('spam', 0)]
@@ -41,6 +41,7 @@ def mapping_items(mapping, _iteritems=_compat.iteritems):
     >>> list(mapping_items(OrderedDict(enumerate(['spam', 'ham', 'eggs']))))
     [(0, 'spam'), (1, 'ham'), (2, 'eggs')]
     """
+    result = _compat.iteritems(mapping)
     if type(mapping) is dict:
-        return iter(sorted(_iteritems(mapping)))
-    return _iteritems(mapping)
+        result = iter(sorted(result))
+    return result

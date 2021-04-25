@@ -89,7 +89,13 @@ class EnumTypeWrapper(object):
             for value_descriptor in self._enum_type.values]
 
   def __getattr__(self, name):
-    """Returns the value coresponding to the given enum name."""
-    if name in self._enum_type.values_by_name:
-      return self._enum_type.values_by_name[name].number
-    raise AttributeError
+    """Returns the value corresponding to the given enum name."""
+    try:
+      return super(
+          EnumTypeWrapper,
+          self).__getattribute__('_enum_type').values_by_name[name].number
+    except KeyError:
+      pass  # fall out to break exception chaining
+    raise AttributeError('Enum {} has no value defined for name {!r}'.format(
+        self._enum_type.name, name))
+   

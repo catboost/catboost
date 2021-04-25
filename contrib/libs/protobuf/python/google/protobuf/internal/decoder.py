@@ -540,7 +540,6 @@ def BytesDecoder(field_number, is_repeated, is_packed, key, new_default):
       return new_pos
     return DecodeField
 
-StringDecoder = BytesDecoder
 
 def GroupDecoder(field_number, is_repeated, is_packed, key, new_default):
   """Returns a decoder for a group field."""

@@ -19,7 +19,7 @@ import ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl
 
 
 object Generator {
-  def generateCorePyPrologue(out: PrintWriter) = {
+  def generateCorePyPrologue(sparkCompatVersion: String, out: PrintWriter) = {
     out.println(
       s"""
 import collections
@@ -30,12 +30,35 @@ from py4j.java_gateway import JavaObject
 
 from pyspark import keyword_only, SparkContext
 from pyspark.ml.classification import JavaClassificationModel
+"""
+    )
+
+    if (sparkCompatVersion.startsWith("3.")) {
+        out.println("from pyspark.ml.regression import JavaRegressionModel")
+    }
+
+    out.println(
+      s"""
 import pyspark.ml.common
 from pyspark.ml.common import inherit_doc
 from pyspark.ml.param import Param, Params
-from pyspark.ml.util import JavaPredictionModel, JavaMLReader, JavaMLWriter, JavaMLWritable, MLReadable
+from pyspark.ml.util import JavaMLReader, JavaMLWriter, JavaMLWritable, MLReadable
+"""
+    )
+
+    if (!sparkCompatVersion.startsWith("3.")) {
+      out.println(
+        s"""
+from pyspark.ml.util import JavaPredictionModel
+from pyspark.ml.wrapper import JavaModel
+"""
+      )
+    }
+
+    out.println(
+      s"""
 import pyspark.ml.wrapper
-from pyspark.ml.wrapper import JavaParams, JavaEstimator, JavaModel, JavaWrapper
+from pyspark.ml.wrapper import JavaParams, JavaEstimator, JavaWrapper
 from pyspark.sql import DataFrame, SparkSession
 
 
@@ -525,6 +548,7 @@ ${generateForwardedAccessors(forwardedAccessors)}
     modelBaseClassName: String,
     estimatorDoc: String,
     modelDoc: String,
+    sparkCompatVersion: String,
     out: PrintWriter
   ) = {
     val estimatorClassName = typeOf[EstimatorClass].typeSymbol.name.toString.split("\\.").last
@@ -607,9 +631,17 @@ ${generateParamsPart(estimator, estimatorParamsKeywordArgs)}
             java_model = self._java_obj.fit(_py2java(sc, trainDataset), evalDatasetsAsJavaObject)
             return $modelClassName(java_model)
 
+@inherit_doc"""
+    )
 
-@inherit_doc
-class $modelClassName(JavaModel, $modelBaseClassName, MLReadable, JavaMLWritable):
+    if (sparkCompatVersion.startsWith("3.")) {
+      out.print(s"class $modelClassName($modelBaseClassName, MLReadable, JavaMLWritable):")
+    } else {
+      out.print(s"class $modelClassName(JavaModel, $modelBaseClassName, MLReadable, JavaMLWritable):")
+    }
+
+  out.println(
+      s"""
     "\""
     $modelDoc
     "\""
@@ -648,9 +680,207 @@ ${generateParamsPart(model, modelParamsKeywordArgs)}
         java_model = sc._jvm.ai.catboost.spark.$modelClassName.loadNativeModel(fileName, _py2java(sc, format))
         return $modelClassName(java_model)
 
+
+    def transformPool(pool):
+        "\""
+        This function is useful when the dataset has been already quantized but works with any Pool
+        "\""
+        return self._call_java("transformPool", pool)
+
+
+    def getFeatureImportance(self, 
+                             fstrType=EFstrType.FeatureImportance,
+                             data=None,
+                             calcType=ECalcTypeShapValues.Regular
+                            ):
+        "\""
+        Parameters
+        ----------
+        fstrType : EFstrType
+            Supported values are FeatureImportance, PredictionValuesChange, LossFunctionChange, PredictionDiff
+        data : Pool
+            if fstrType is PredictionDiff it is required and must contain 2 samples
+            if fstrType is PredictionValuesChange this param is required in case if model was explicitly trained
+             with flag to store no leaf weights.
+            otherwise it can be null
+        calcType : ECalcTypeShapValues
+            Used only for PredictionValuesChange. 
+            Possible values:
+            - Regular
+                Calculate regular SHAP values
+            - Approximate
+                Calculate approximate SHAP values
+            - Exact
+                Calculate exact SHAP values
+
+        Returns
+        -------
+        list of float
+            array of feature importances (index corresponds to the order of features in the model)
+        "\""
+        return self._call_java("getFeatureImportance", fstrType, data, calcType)
+
+    def getFeatureImportancePrettified(self, 
+                                       fstrType=EFstrType.FeatureImportance,
+                                       data=None,
+                                       calcType=ECalcTypeShapValues.Regular
+                                      ):
+        "\""
+        Parameters
+        ----------
+        fstrType : EFstrType
+            Supported values are FeatureImportance, PredictionValuesChange, LossFunctionChange, PredictionDiff
+        data : Pool
+            if fstrType is PredictionDiff it is required and must contain 2 samples
+            if fstrType is PredictionValuesChange this param is required in case if model was explicitly trained
+             with flag to store no leaf weights.
+            otherwise it can be null
+        calcType : ECalcTypeShapValues
+            Used only for PredictionValuesChange. 
+            Possible values:
+            - Regular
+                Calculate regular SHAP values
+            - Approximate
+                Calculate approximate SHAP values
+            - Exact
+                Calculate exact SHAP values
+        Returns
+        -------
+        list of FeatureImportance
+            array of feature importances sorted in descending order by importance
+        "\""
+        return self._call_java("getFeatureImportancePrettified", fstrType, data, calcType)
+
+    def getFeatureImportanceShapValues(self,
+                                       data,
+                                       preCalcMode=EPreCalcShapValues.Auto,
+                                       calcType=ECalcTypeShapValues.Regular,
+                                       modelOutputType=EExplainableModelOutput.Raw,
+                                       referenceData=None,
+                                       outputColumns=None
+                                      ):
+        "\""
+        Parameters
+        ----------
+        data : Pool
+            dataset to calculate SHAP values for
+        preCalcMode : EPreCalcShapValues
+            Possible values:
+            - Auto
+                Use direct SHAP Values calculation only if data size is smaller than average leaves number
+                (the best of two strategies below is chosen).
+            - UsePreCalc
+                Calculate SHAP Values for every leaf in preprocessing. Final complexity is
+                O(NT(D+F))+O(TL^2 D^2) where N is the number of documents(objects), T - number of trees,
+                D - average tree depth, F - average number of features in tree, L - average number of leaves in tree
+                This is much faster (because of a smaller constant) than direct calculation when N >> L
+            - NoPreCalc
+                Use direct SHAP Values calculation calculation with complexity O(NTLD^2). Direct algorithm
+                is faster when N < L (algorithm from https://arxiv.org/abs/1802.03888)
+        calcType : ECalcTypeShapValues
+            Possible values:
+            - Regular
+                Calculate regular SHAP values
+            - Approximate
+                Calculate approximate SHAP values
+            - Exact
+                Calculate exact SHAP values
+        referenceData : Pool
+            reference data for Independent Tree SHAP values from https://arxiv.org/abs/1905.04610v1
+            if referenceData is not null, then Independent Tree SHAP values are calculated
+        outputColumns : list of str
+            columns from data to add to output DataFrame, if None - add all columns
+
+        Returns
+        -------
+        DataFrame
+            - for regression and binclass models: 
+              contains outputColumns and "shapValues" column with Vector of length (n_features + 1) with SHAP values
+            - for multiclass models:
+              contains outputColumns and "shapValues" column with Matrix of shape (n_classes x (n_features + 1)) with SHAP values
+        "\""
+        return self._call_java(
+            "getFeatureImportanceShapValues", 
+            data, 
+            preCalcMode,
+            calcType,
+            modelOutputType,
+            referenceData,
+            outputColumns
+        )
+
+    def getFeatureImportanceShapInteractionValues(self,
+                                                  data,
+                                                  featureIndices=None,
+                                                  featureNames=None,
+                                                  preCalcMode=EPreCalcShapValues.Auto,
+                                                  calcType=ECalcTypeShapValues.Regular,
+                                                  outputColumns=None):
+        "\""
+        SHAP interaction values are calculated for all features pairs if nor featureIndices nor featureNames 
+          are specified.
+
+        Parameters
+        ----------
+        data : Pool
+            dataset to calculate SHAP interaction values
+        featureIndices : (int, int), optional
+            pair of features indices to calculate SHAP interaction values for.
+        featureNames : (str, str), optional
+            pair of features names to calculate SHAP interaction values for.
+        preCalcMode : EPreCalcShapValues
+            Possible values:
+            - Auto
+                Use direct SHAP Values calculation only if data size is smaller than average leaves number
+                (the best of two strategies below is chosen).
+            - UsePreCalc
+                Calculate SHAP Values for every leaf in preprocessing. Final complexity is
+                O(NT(D+F))+O(TL^2 D^2) where N is the number of documents(objects), T - number of trees,
+                D - average tree depth, F - average number of features in tree, L - average number of leaves in tree
+                This is much faster (because of a smaller constant) than direct calculation when N >> L
+            - NoPreCalc
+                Use direct SHAP Values calculation calculation with complexity O(NTLD^2). Direct algorithm
+                is faster when N < L (algorithm from https://arxiv.org/abs/1802.03888)
+        calcType : ECalcTypeShapValues
+            Possible values:
+            - Regular
+                Calculate regular SHAP values
+            - Approximate
+                Calculate approximate SHAP values
+            - Exact
+                Calculate exact SHAP values
+        outputColumns : list of str
+            columns from data to add to output DataFrame, if None - add all columns
+
+        Returns
+        -------
+        DataFrame
+            - for regression and binclass models: 
+              contains outputColumns and "featureIdx1", "featureIdx2", "shapInteractionValue" columns
+            - for multiclass models:
+              contains outputColumns and "classIdx", "featureIdx1", "featureIdx2", "shapInteractionValue" columns
+        "\""
+        return self._call_java(
+            "getFeatureImportanceShapInteractionValues", 
+            data,
+            featureIndices,
+            featureNames,
+            preCalcMode, 
+            calcType,
+            outputColumns
+        )
+
+    def getFeatureImportanceInteraction(self):
+        "\""
+        Returns
+        -------
+        list of FeatureInteractionScore
+        "\""
+        return self._call_java("getFeatureImportanceInteraction")
+
 """
     )
-    if (modelBaseClassName == "JavaClassificationModel") {
+    if (!sparkCompatVersion.startsWith("3.") && (modelBaseClassName == "JavaClassificationModel")) {
       // Add methods that are defined in JavaClassificationModel only since Spark 3.0.0
       out.println(
 s"""
@@ -715,10 +945,15 @@ __all__ = [
   }
   
   /**
-   * @param args expects 2 arguments: 1st argument - package version, 2nd argument - output dir
+   * @param args expects 3 arguments: 
+   *  1) package version
+   *  2) output dir
+   *  3) spark compat version (like '2.4')
    */
   def main(args: Array[String]) : Unit = {
     try {
+      val sparkCompatVersion = args(2)
+      
       val modulePath = new File(args(1))
       modulePath.mkdirs()
       
@@ -730,13 +965,14 @@ __all__ = [
           ++ getEnumNamesUsedInParams(new CatBoostClassifier)
           ++ getEnumNamesUsedInParams(new CatBoostRegressor)
           + "EModelType"
+          ++ Set("EFstrType", "ECalcTypeShapValues", "EPreCalcShapValues", "EExplainableModelOutput")
       )
       
       generateInitPy(modulePath, enumsUsedInParams)
       
       val corePyWriter = new PrintWriter(new File(modulePath, "core.py"))
       try {
-        generateCorePyPrologue(corePyWriter)
+        generateCorePyPrologue(sparkCompatVersion, corePyWriter)
         generateStandardParamsWrapper(new params.PoolLoadParams(), corePyWriter)
         generateStandardParamsWrapper(new params.QuantizationParams(), corePyWriter)
         generatePoolWrapper(corePyWriter)
@@ -744,9 +980,10 @@ __all__ = [
         generateEstimatorAndModelWrapper(
           new CatBoostRegressor, 
           new CatBoostRegressionModel(new native_impl.TFullModel()), 
-          "JavaPredictionModel", 
+          if (sparkCompatVersion.startsWith("3.")) { "JavaRegressionModel" } else { "JavaPredictionModel" },
           "Class to train CatBoostRegressionModel",
           "Regression model trained by CatBoost. Use CatBoostRegressor to train it",
+          sparkCompatVersion,
           corePyWriter
         )
         generateEstimatorAndModelWrapper(
@@ -755,6 +992,7 @@ __all__ = [
           "JavaClassificationModel", 
           "Class to train CatBoostClassificationModel",
           "Classification model trained by CatBoost. Use CatBoostClassifier to train it",
+          sparkCompatVersion,
           corePyWriter
         )
       } finally {

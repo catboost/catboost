@@ -92,7 +92,7 @@ class ParseError(Error):
 def MessageToJson(message,
                   including_default_value_fields=False,
                   preserving_proto_field_name=False,
-                  indent=4,
+                  indent=2,
                   sort_keys=False,
                   use_integers_for_enums=False):
   """Converts protobuf message to JSON format.
@@ -168,7 +168,7 @@ class _Printer(object):
 
   def ToJsonString(self, message, indent, sort_keys):
     js = self._MessageToJsonObject(message)
-    return json.dumps(js, indent=indent, sort_keys=sort_keys, ensure_ascii=False, separators=(',', ': '))
+    return json.dumps(js, indent=indent, sort_keys=sort_keys)
 
   def _MessageToJsonObject(self, message):
     """Converts message to an object according to Proto3 JSON Specification."""

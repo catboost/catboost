@@ -308,6 +308,7 @@ namespace NCB {
         if (isDatasetQuantized) {
             poolBinsRemap = GetFloatFeatureBordersRemap(
                 model.ModelTrees->GetFloatFeatures()[featureNum],
+                featureNum,
                 *quantizedPtr->GetQuantizedFeaturesInfo().Get());
             CB_ENSURE_INTERNAL(!poolBinsRemap.empty(), "Float feature #" << featureNum << " cannot be remapped");
             auto blockFunc = [&binNumsWriteIter, &poolBinsRemap](size_t /*blockStartIdx*/, auto block) {

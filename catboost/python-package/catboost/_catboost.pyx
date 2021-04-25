@@ -36,6 +36,7 @@ import scipy.sparse
 np.import_array()
 
 cimport cython
+from cpython cimport PyList_GET_ITEM, PyTuple_GET_ITEM, PyFloat_AsDouble
 from cython.operator cimport dereference, preincrement
 
 from libc.math cimport isnan, modf
@@ -641,6 +642,7 @@ cdef extern from "catboost/private/libs/options/cross_validation_params.h":
         double MetricUpdateInterval
         ui32 DevMaxIterationsBatchSize
         bool_t IsCalledFromSearchHyperparameters
+        bool_t ReturnModels
 
 cdef extern from "catboost/private/libs/options/split_params.h":
     cdef cppclass TTrainTestSplitParams:
@@ -698,6 +700,7 @@ cdef extern from "catboost/libs/train_lib/cross_validation.h":
         TVector[double] StdDevTrain
         TVector[double] AverageTest
         TVector[double] StdDevTest
+        TVector[TFullModel] CVFullModels
 
     cdef void CrossValidate(
         TJsonValue jsonParams,
@@ -1088,14 +1091,17 @@ cdef inline float _FloatOrNan(object obj) except *:
         return _FLOAT_NAN
     elif obj_type is float:
         return <float>obj
-    elif obj_type is int:
-        return <int>obj
     elif obj_type is str or obj_type is unicode or obj_type is bytes or obj_type is _npbytes_ or obj_type is _npunicode_ or isinstance(obj, string_types + (_npbytes_, _npunicode_)):
         return _FloatOrNanFromString(to_arcadia_string(obj))
     try:
         return float(obj)
     except:
         raise TypeError("Cannot convert obj {} to float".format(str(obj)))
+
+
+cpdef _float_or_nan(obj):
+    return _FloatOrNan(obj)
+
 
 cdef TString _MetricGetDescription(void* customData) except * with gil:
     cdef metricObject = <object>customData
@@ -1211,47 +1217,15 @@ cdef _vector_of_size_t_to_np_array(const TVector[size_t]& vec):
         result[i] = vec[i]
     return result
 
-cdef class _FloatArrayWrapper:
-    cdef const float* _arr
-    cdef int _count
+cdef np.ndarray _CreateNumpyFloatArrayView(const float* array, int count):
+    cdef np.npy_intp dims[1]
+    dims[0] = count
+    return np.PyArray_SimpleNewFromData(1, dims, np.NPY_FLOAT, <void*>array)
 
-    @staticmethod
-    cdef create(const float* arr, int count):
-        wrapper = _FloatArrayWrapper()
-        wrapper._arr = arr
-        wrapper._count = count
-        return wrapper
-
-    def __getitem__(self, key):
-        if key >= self._count:
-            raise IndexError()
-
-        return self._arr[key]
-
-    def __len__(self):
-        return self._count
-
-
-# Cython does not have generics so using small copy-paste here and below
-cdef class _DoubleArrayWrapper:
-    cdef const double* _arr
-    cdef int _count
-
-    @staticmethod
-    cdef create(const double* arr, int count):
-        wrapper = _DoubleArrayWrapper()
-        wrapper._arr = arr
-        wrapper._count = count
-        return wrapper
-
-    def __getitem__(self, key):
-        if key >= self._count:
-            raise IndexError()
-
-        return self._arr[key]
-
-    def __len__(self):
-        return self._count
+cdef np.ndarray _CreateNumpyDoubleArrayView(const double* array, int count):
+    cdef np.npy_intp dims[1]
+    dims[0] = count
+    return np.PyArray_SimpleNewFromData(1, dims, np.NPY_DOUBLE, <void*>array)
 
 cdef TMetricHolder _MetricEval(
     const TVector[TVector[double]]& approx,
@@ -1266,13 +1240,13 @@ cdef TMetricHolder _MetricEval(
     cdef TMetricHolder holder
     holder.Stats.resize(2)
 
-    approxes = [_DoubleArrayWrapper.create(approx[i].data() + begin, end - begin) for i in xrange(approx.size())]
-    targets = _FloatArrayWrapper.create(target.data() + begin, end - begin)
+    approxes = [_CreateNumpyDoubleArrayView(approx[i].data() + begin, end - begin) for i in xrange(approx.size())]
+    targets = _CreateNumpyFloatArrayView(target.data() + begin, end - begin)
 
     if weight.size() == 0:
         weights = None
     else:
-        weights = _FloatArrayWrapper.create(weight.data() + begin, end - begin)
+        weights = _CreateNumpyFloatArrayView(weight.data() + begin, end - begin)
 
     try:
         error, weight_ = metricObject.evaluate(approxes, targets, weights)
@@ -1298,13 +1272,13 @@ cdef TMetricHolder _MultiregressionMetricEval(
     cdef TMetricHolder holder
     holder.Stats.resize(2)
 
-    approxes = [_DoubleArrayWrapper.create(approx[i].data() + begin, end - begin) for i in xrange(approx.size())]
-    targets = [_FloatArrayWrapper.create(target[i].data() + begin, end - begin) for i in xrange(target.size())]
+    approxes = [_CreateNumpyDoubleArrayView(approx[i].data() + begin, end - begin) for i in xrange(approx.size())]
+    targets = [_CreateNumpyFloatArrayView(target[i].data() + begin, end - begin) for i in xrange(target.size())]
 
     if weight.size() == 0:
         weights = None
     else:
-        weights = _FloatArrayWrapper.create(weight.data() + begin, end - begin)
+        weights = _CreateNumpyFloatArrayView(weight.data() + begin, end - begin)
 
     try:
         error, weight_ = metricObject.evaluate(approxes, targets, weights)
@@ -1340,12 +1314,15 @@ cdef void _ObjectiveCalcDersRange(
 ) with gil:
     cdef objectiveObject = <object>(customData)
     cdef TString errorMessage
+    cdef Py_ssize_t index
+    cdef np.float32_t[:,:] pairs_np_float
+    cdef np.float64_t[:,:] pairs_np_double
 
-    approx = _DoubleArrayWrapper.create(approxes, count)
-    target = _FloatArrayWrapper.create(targets, count)
+    approx = _CreateNumpyDoubleArrayView(approxes, count)
+    target = _CreateNumpyFloatArrayView(targets, count)
 
     if weights:
-        weight = _FloatArrayWrapper.create(weights, count)
+        weight = _CreateNumpyFloatArrayView(weights, count)
     else:
         weight = None
 
@@ -1356,11 +1333,27 @@ cdef void _ObjectiveCalcDersRange(
         with nogil:
             ThrowCppExceptionWithMessage(errorMessage)
 
-    index = 0
-    for der1, der2 in result:
-        ders[index].Der1 = der1
-        ders[index].Der2 = der2
-        index += 1
+    if len(result) == 0:
+        return
+
+    if (type(result) == np.ndarray and len(result.shape) == 2 and result.shape[1] == 2 and
+          result.dtype in [np.float32, np.float64]):
+        if result.dtype == np.float32:
+            pairs_np_float = result
+            for index in range(len(pairs_np_float)):
+                ders[index].Der1 = pairs_np_float[index, 0]
+                ders[index].Der2 = pairs_np_float[index, 1]
+        elif result.dtype == np.float64:
+            pairs_np_double = result
+            for index in range(len(pairs_np_double)):
+                ders[index].Der1 = pairs_np_double[index, 0]
+                ders[index].Der2 = pairs_np_double[index, 1]
+    else:
+        index = 0
+        for der1, der2 in result:
+            ders[index].Der1 = <double>der1
+            ders[index].Der2 = <double>der2
+            index += 1
 
 cdef void _ObjectiveCalcDersMultiClass(
     const TVector[double]& approx,
@@ -1373,7 +1366,7 @@ cdef void _ObjectiveCalcDersMultiClass(
     cdef objectiveObject = <object>(customData)
     cdef TString errorMessage
 
-    approxes = _DoubleArrayWrapper.create(approx.data(), approx.size())
+    approxes = _CreateNumpyDoubleArrayView(approx.data(), approx.size())
 
     try:
         ders_vector, second_ders_matrix = objectiveObject.calc_ders_multi(approxes, target, weight)
@@ -1403,8 +1396,8 @@ cdef void _ObjectiveCalcDersMultiRegression(
     cdef objectiveObject = <object>(customData)
     cdef TString errorMessage
 
-    approxes = _DoubleArrayWrapper.create(approx.data(), approx.size())
-    targetes = _FloatArrayWrapper.create(target.data(), target.size())
+    approxes = _CreateNumpyDoubleArrayView(approx.data(), approx.size())
+    targetes = _CreateNumpyFloatArrayView(target.data(), target.size())
 
     try:
         ders_vector, second_ders_matrix = objectiveObject.calc_ders_multi(approxes, targetes, weight)
@@ -3981,6 +3974,21 @@ cdef class _PoolBase:
             return [weight for weight in non_trivial_data]
 
 
+    cpdef get_group_id_hash(self):
+        """
+        Get hashes generated from group_id.
+
+        Returns
+        -------
+        group_id : list if group_id was defined or None otherwise.
+        """
+        cdef TMaybeData[TConstArrayRef[TGroupId]] arr_group_ids = self.__pool.Get()[0].ObjectsData.Get()[0].GetGroupIds()
+        if arr_group_ids.Defined():
+            result_group_ids = [group_id for group_id in arr_group_ids.GetRef()]
+            return result_group_ids
+        return None
+
+
     cpdef get_baseline(self):
         """
         Get baseline from Pool.
@@ -4972,18 +4980,6 @@ cdef class _MetadataHashProxy:
         return ((to_native_str(kv.first), to_native_str(kv.second)) for kv in self._catboost.__model.ModelInfo)
 
 
-cdef object _get_hash_group_id(_PoolBase pool):
-    cdef TMaybeData[TConstArrayRef[TGroupId]] arr_group_ids = pool.__pool.Get()[0].ObjectsData.Get()[0].GetGroupIds()
-    if arr_group_ids.Defined():
-        result_group_ids = []
-        for group_id in arr_group_ids.GetRef():
-            result_group_ids.append(group_id)
-
-        return result_group_ids
-
-    return None
-
-
 cdef TCustomTrainTestSubsets _make_train_test_subsets(_PoolBase pool, folds) except *:
     num_data = pool.num_row()
 
@@ -4991,7 +4987,7 @@ cdef TCustomTrainTestSubsets _make_train_test_subsets(_PoolBase pool, folds) exc
         raise AttributeError("folds should be a generator or iterator of (train_idx, test_idx) tuples "
                              "or scikit-learn splitter object with split method")
 
-    group_info = _get_hash_group_id(pool)
+    group_info = pool.get_group_id_hash()
 
     if hasattr(folds, 'split'):
         if group_info is not None:
@@ -5056,16 +5052,19 @@ cdef TCustomTrainTestSubsets _make_train_test_subsets(_PoolBase pool, folds) exc
 
 
 cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int partition_random_seed,
-          bool_t shuffle, bool_t stratified, float metric_update_interval, bool_t as_pandas, folds, type):
+          bool_t shuffle, bool_t stratified, float metric_update_interval, bool_t as_pandas, folds, 
+          type, bool_t return_models):
     prep_params = _PreprocessParams(params)
     cdef TCrossValidationParams cvParams
     cdef TVector[TCVResult] results
+    cdef TVector[TFullModel] cvFullModels
 
     cvParams.FoldCount = fold_count
     cvParams.PartitionRandSeed = partition_random_seed
     cvParams.Shuffle = shuffle
     cvParams.Stratified = stratified
     cvParams.MetricUpdateInterval = metric_update_interval
+    cvParams.ReturnModels = return_models
 
     if type == 'Classical':
         cvParams.Type = ECrossValidation_Classical
@@ -5112,8 +5111,18 @@ cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int part
         )
         result_metrics.add(name)
     if as_pandas:
-        return pd.DataFrame.from_dict(cv_results)
-    return cv_results
+        results_output = pd.DataFrame.from_dict(cv_results)
+    else:
+        results_output = cv_results
+    if return_models:
+        cv_models = []
+        cvFullModels = results.front().CVFullModels
+        for i in range(<int>cvFullModels.size()):
+            catboost_model = _CatBoost()
+            catboost_model.__model.Swap(cvFullModels[i])
+            cv_models.append(catboost_model)
+        return results_output, cv_models
+    return results_output
 
 
 cdef _convert_to_visible_labels(EPredictionType predictionType, TVector[TVector[double]] raws, int thread_count, TFullModel* model):
@@ -5277,7 +5286,7 @@ class EvalMetricsResult:
 
     def get_metric(self, metric_description):
         key = _metric_description_or_str_to_str(metric_description)
-        return self._metric_descriptions[metric_description]
+        return self._metric_descriptions[key]
 
     def get_result(self, metric_description):
         key = _metric_description_or_str_to_str(metric_description)
@@ -5554,6 +5563,10 @@ cpdef is_pairwise_metric(metric_name):
     return IsPairwiseMetric(to_arcadia_string(metric_name))
 
 
+cpdef is_ranking_metric(metric_name):
+    return IsRankingMetric(to_arcadia_string(metric_name))
+
+
 cpdef is_minimizable_metric(metric_name):
     return IsMinOptimal(to_arcadia_string(metric_name))
 
@@ -5678,6 +5691,7 @@ cpdef _get_onnx_model(model, export_parameters):
     cdef const char* result_ptr = result.c_str()
     cdef size_t result_len = result.size()
     return bytes(result_ptr[:result_len])
+
 
 include "_monoforest.pxi"
 include "_text_processing.pxi"

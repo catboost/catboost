@@ -1,4 +1,4 @@
-- source_filter: "^contrib"
+- source_filter: "^contrib(?!/restricted/gstreamer/gst/parse)"
   includes:
     - port.h
     - types.h
@@ -248,23 +248,12 @@
   - BaseTsd.h
   - iphlpapi.h
 
+- source_filter: "^(?!contrib/python/line_profiler/)"
+  includes:
+  - timers.h
+
 - includes:
   - cpu-features.h
-  - cuda.h
-  - cublas.h
-  - cublas_v2.h
-  - cublasLt.h
-  - cuda_runtime.h
-  - cuda_runtime_api.h
-  - cusolverDn.h
-  - cupti.h
-  - curand.h
-  - curand_mtgp32_host.h
-  - curand_mtgp32dc_p_11213.h
-  - cusparse.h
-  - cooperative_groups.h
-  - driver_types.h
-  - nvToolsExt.h
   - cuda/include/cuComplex.h
   - cuda/include/cublas_v2.h
   - cuda/include/cuda.h
@@ -344,7 +333,6 @@
   - sys/timespec.h
   - sys/umtx.h
   - sys/uuid.h
-  - timers.h
   - ucred.h
   - varargs.h
   - vm/vm_param.h
@@ -684,11 +672,7 @@
   - tr1/complex
   - tbb/scalable_allocator.h
   - libmemcached/dtrace_probes.h
-  # CUDA include files, potentially referenced by cv/imgclassifiers/contrib
-  - cuda_fp16.h
-  - curand_kernel.h
-  - host_defines.h
-  - vector_types.h
+  # unknown
   - win_stdint.h
   - probes.h
   - thread.h
@@ -980,17 +964,11 @@
   #endif
   - zend_exceptions.h
   #if MATLAB_MEX_FILE
-  # ICU
-  # CUDA include files, potentially referenced by cv/imgclassifiers/contrib
-  - cuComplex.h
-  - cuda/extras/CUPTI/include/cupti.h
-  - cufft.h
+  # unknown
   - GL/glx.h
   - CL/va_ext.h
   - sys/sysconf.h
-  - npp.h
   - ivx.hpp
-  - cuda_gl_interop.h
   - clAmdBlas.h
   - clAmdFft.h
   - va/va.h

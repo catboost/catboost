@@ -128,8 +128,8 @@ public:
             LockMemory(Data(), Length());
     }
 
-    ~TMappedBlobBase() {
-        if (Mode_ == LockedMapping)
+    ~TMappedBlobBase() override {
+        if (Mode_ == LockedMapping && Length())
             UnlockMemory(Data(), Length());
     }
 

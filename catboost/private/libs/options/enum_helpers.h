@@ -20,6 +20,7 @@ bool IsBinaryClassOnlyMetric(ELossFunction lossFunction);
 bool IsMultiClassOnlyMetric(ELossFunction lossFunction);
 
 bool IsRankingMetric(ELossFunction lossFunction);
+bool IsRankingMetric(TStringBuf metricName);
 bool IsGroupwiseMetric(ELossFunction lossFunction);
 bool IsGroupwiseMetric(TStringBuf metricName);
 bool IsPairwiseMetric(ELossFunction lossFunction);

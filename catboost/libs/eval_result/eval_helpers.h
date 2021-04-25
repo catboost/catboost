@@ -57,7 +57,6 @@ TVector<TVector<double>> PrepareEval(
     const TString& lossFunctionName,
     const TVector<TVector<double>>& approx,
     int threadCount);
-
 using TColumnPrinterOuputType = TVariant<i64, ui64, double, float, TString>;
 
 template<typename T>
@@ -65,3 +64,7 @@ size_t GetOutputTypeIndex() {
     return TVariantIndexV<T, TColumnPrinterOuputType>;
 }
 }
+
+TVector<TVector<double>> CalcSoftmax(
+    const TVector<TVector<double>>& approx,
+    NPar::ILocalExecutor* executor);
