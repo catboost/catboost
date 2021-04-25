@@ -1290,17 +1290,33 @@ def _process_synonyms(params):
         params['used_ram_limit'] = str(params['used_ram_limit'])
 
 def stringify_builtin_metrics(params):
-    for f in ["loss_function", "objective", "eval_metric"]:
+    """Replace all occurrences of BuiltinMetric with their string representations."""
+    for f in [
+            "loss_function",
+            "objective",
+            "eval_metric",
+            "custom_metric",
+            "custom_loss"
+        ]:
         if f not in params:
             continue
-        obj = params[f]
-        if isinstance(obj, BuiltinMetric):
-            params[f] = obj.to_string()
+        val = params[f]
+        if isinstance(val, BuiltinMetric):
+            params[f] = val.to_string()
+        elif isinstance(val, str):
+            continue
+        elif isinstance(val, Sequence):
+            params[f] = stringify_builtin_metrics_list(val)
+
 
 def stringify_builtin_metrics_list(metrics):
-    if isinstance(metrics, BuiltinMetric):
-        return metrics.to_string()
-    return [m.to_string() for m in metrics]
+    ret = []
+    for m in metrics:
+        if isinstance(m, BuiltinMetric):
+            ret.append(m.to_string())
+        else:
+            ret.append(m)
+    return ret
 
 
 def _get_loss_function_for_train(params, estimator_type, train_pool):
@@ -2449,6 +2465,8 @@ class CatBoost(_CatBoostBase):
         if tmp_dir is None:
             tmp_dir = tempfile.mkdtemp()
 
+        if isinstance(metrics, str) or isinstance(metrics, BuiltinMetric):
+            metrics = [metrics]
         metrics = stringify_builtin_metrics_list(metrics)
         with log_fixup(log_cout, log_cerr), plot_wrapper(plot, [res_dir]):
             metrics_score, metric_names = self._base_eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count, res_dir, tmp_dir)
@@ -6094,9 +6112,9 @@ class BatchMetricCalcer(_MetricCalcerBase):
         else:
             delete_temp_dir_flag = False
 
-        metrics = stringify_builtin_metrics_list(metrics)
-        if isinstance(metrics, str):
+        if isinstance(metrics, str) or isinstance(metrics, BuiltinMetric):
             metrics = [metrics]
+        metrics = stringify_builtin_metrics_list(metrics)
         self._create_calcer(metrics, ntree_start, ntree_end, eval_period, thread_count, tmp_dir, delete_temp_dir_flag)
 
 

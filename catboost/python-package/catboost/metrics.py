@@ -11,21 +11,35 @@ class BuiltinMetric(object):
         '''
         Get valid metric parameters with defaults, if any.
         Implemented in child classes.
+
         Returns
         ----------
         valid_params: dict: param_name -> default value or None.
         '''
         raise Exception("Should be overridden by the child class.")
 
-    def to_string():
+    def to_string(self):
         '''
         Get the representation of the metric object with overridden parameters.
         Implemented in child classes.
+
         Returns
         ----------
         metric_string: str representing the metric object.
         '''
         raise Exception("Should be overridden by the child class.")
+
+    def set_hints(self, **hints):
+        '''
+        Set hints for the metric. Hints are not validated.
+        Implemented in child classes.
+
+        Returns
+        ----------
+        self: for chained calls.
+        '''
+        raise Exception("Should be overridden by the child class.")
+
 
 class _MetricGenerator(type):
     def __new__(mcls, name, parents, attrs):
@@ -41,8 +55,7 @@ class _MetricGenerator(type):
 
         # Set the serialization function.
         attrs["to_string"] = lambda self: _to_string(self, False)
-        fmt = ["Builtin metric: '{}'".format(name)]
-        fmt.append("Parameters:")
+        fmt = ["Builtin metric: '{}'".format(name), "Parameters:"]
         if not attrs["_valid_params"]:
             fmt[-1] += " none"
         for k, v in attrs["_valid_params"].items():
@@ -52,6 +65,17 @@ class _MetricGenerator(type):
                 fmt.append(" " * 4 + "{} (no default)".format(k))
         attrs["__doc__"] = "\n".join(fmt)
         attrs["__repr__"] = attrs["__str__"] = lambda self: _to_string(self, True)
+
+        def set_hints(self, **hints):
+            for k, v in hints.items():
+                if isinstance(v, bool):
+                    hints[k] = str(v).lower()
+            setattr(self, "hints",  "|".join(["{}~{}".format(k, v) for k, v in hints.items()]))
+            if "hints" not in self._params:
+                self._params.append("hints")
+            return self
+        attrs["set_hints"] = set_hints
+
         cls = super(_MetricGenerator, mcls).__new__(mcls, name, parents, attrs)
         return cls
 
@@ -105,6 +129,8 @@ def _to_string(metric_obj, with_defaults):
     ps = []
     for param in metric_obj._params:
         val = getattr(metric_obj, param)
+        if param == "hints" and val == "":
+            continue
         if not with_defaults:
             # Skip reporting parameters which are set to their default values.
             default_val = valid_params[param]
@@ -115,12 +141,15 @@ def _to_string(metric_obj, with_defaults):
         return s
     return s + ":" + ";".join(ps)
 
-for metric_name, metric_params in _catboost.AllMetricsParams().items():
-    derived_name = metric_name + metric_params["_name_suffix"]
-    del metric_params["_name_suffix"]
-    globals()[derived_name] = _MetricGenerator(str(derived_name), (BuiltinMetric,), {
-        "_valid_params": {param: param_value["default_value"] if not param_value["is_mandatory"] else None
-                         for param, param_value in metric_params.items()},
-        "_underlying_metric_name": metric_name,
-    })
-    globals()["__all__"].append(derived_name)
+for metric_name, metric_param_sets in _catboost.AllMetricsParams().items():
+    for param_set in metric_param_sets:
+        derived_name = metric_name + param_set["_name_suffix"]
+        del param_set["_name_suffix"]
+        valid_params = {param: param_value["default_value"] if not param_value["is_mandatory"] else None
+                        for param, param_value in param_set.items()}
+        valid_params.update({"hints": ""})
+        globals()[derived_name] = _MetricGenerator(str(derived_name), (BuiltinMetric,), {
+            "_valid_params": valid_params,
+            "_underlying_metric_name": metric_name,
+        })
+        globals()["__all__"].append(derived_name)

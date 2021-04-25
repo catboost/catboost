@@ -3097,7 +3097,8 @@ TVector<TParamSet> TAUCMetric::ValidParamSets() {
         TParamSet{
             {
                 TParamInfo{"use_weights", false, false},
-                TParamInfo{"type", false, ToString(EAucType::Mu)}
+                TParamInfo{"type", false, ToString(EAucType::Mu)},
+                TParamInfo{"misclass_cost_matrix", false, ""}
             },
             "Multiclass"
         }
@@ -6159,6 +6160,7 @@ NJson::TJsonValue ExportAllMetricsParamsToJson() {
     NJson::TJsonValue exportJson;
     for (const ELossFunction& loss : GetEnumAllValues<ELossFunction>()) {
         try {
+            NJson::TJsonValue paramSets;
             for (const auto& paramSet : ValidParamSets(loss)) {
                 NJson::TJsonValue metricJson;
                 metricJson.InsertValue("_name_suffix", paramSet.NameSuffix);
@@ -6168,8 +6170,9 @@ NJson::TJsonValue ExportAllMetricsParamsToJson() {
                     paramJson.InsertValue("default_value", paramInfo.DefaultValue);
                     metricJson.InsertValue(paramInfo.Name, paramJson);
                 }
-                exportJson.InsertValue(ToString(loss), metricJson);
+                paramSets.AppendValue(metricJson);
             }
+            exportJson.InsertValue(ToString(loss), paramSets);
         } catch (...) {
             continue;
         }
