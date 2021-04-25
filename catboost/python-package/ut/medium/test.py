@@ -29,6 +29,7 @@ from catboost import (
     to_ranker,
     MultiRegressionCustomMetric,
     MultiRegressionCustomObjective,)
+from catboost import metrics
 from catboost.eval.catboost_evaluation import CatboostEvaluation, EvalType
 from catboost.utils import eval_metric, create_cd, read_cd, get_roc_curve, select_threshold, quantize
 from catboost.utils import DataMetaInfo, TargetStats, compute_training_options
@@ -2258,6 +2259,35 @@ def test_duplicate_params_regressor():
     model = CatBoostRegressor(learning_rate=0.1, eta=0.03, border_count=10, max_bin=12)
     with pytest.raises(CatBoostError):
         model.fit(data, label)
+
+
+def test_generated_metrics():
+    # Test equivalence of the generated metric classes to string representations.
+    train_pool = Pool(data=TRAIN_FILE, column_description=CD_FILE)
+    test_pool = Pool(data=TEST_FILE, column_description=CD_FILE)
+
+    model1 = CatBoostClassifier(loss_function="Logloss")
+    model1.fit(train_pool, eval_set=test_pool)
+    pred1 = model1.predict(test_pool)
+
+    model2 = CatBoostClassifier(loss_function=metrics.Logloss())
+    model2.fit(train_pool, eval_set=test_pool)
+    pred2 = model2.predict(test_pool)
+
+    assert np.all(pred1 == pred2)
+
+    # Test parameter check.
+    with pytest.raises(ValueError):
+        model = CatBoostRegressor(loss_function=metrics.Lq(q=3))
+    model = CatBoostRegressor()
+    model.fit(train_pool)
+    eval_metrics = [metrics.Lq(q=3)]
+    metrics_evals = model.eval_metrics(test_pool, eval_metrics)
+    for metric in eval_metrics:
+        assert metric.to_string() in metrics_evals
+
+    # TODO: custom_metric with hints (such as AUC).
+    # TODO: Test AUC and AUCMulticlass.
 
 
 def test_custom_eval():
