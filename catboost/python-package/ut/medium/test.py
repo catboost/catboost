@@ -2278,7 +2278,7 @@ def test_generated_metrics():
 
     # Test parameter check.
     with pytest.raises(ValueError):
-        model = CatBoostRegressor(loss_function=metrics.Lq(q=3))
+        model = CatBoostRegressor(loss_function=metrics.Lq())
     model = CatBoostRegressor()
     model.fit(train_pool)
     eval_metrics = [metrics.Lq(q=3)]
@@ -2286,8 +2286,20 @@ def test_generated_metrics():
     for metric in eval_metrics:
         assert metric.to_string() in metrics_evals
 
-    # TODO: custom_metric with hints (such as AUC).
-    # TODO: Test AUC and AUCMulticlass.
+    # Test setting hints and default values.
+    results = cv(
+        train_pool,
+        {
+            "iterations": 20,
+            "learning_rate": 0.03,
+            "loss_function": metrics.Logloss().set_hints(skip_train=True),
+            "eval_metric": metrics.AUC(),
+        },
+    )
+    assert "train-Logloss-mean" not in results
+    assert "train-Logloss-std" not in results
+    assert "train-AUC-mean" not in results
+    assert "train-AUC-std" not in results
 
 
 def test_custom_eval():

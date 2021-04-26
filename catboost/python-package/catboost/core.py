@@ -1307,6 +1307,7 @@ def stringify_builtin_metrics(params):
             continue
         elif isinstance(val, Sequence):
             params[f] = stringify_builtin_metrics_list(val)
+    return params
 
 
 def stringify_builtin_metrics_list(metrics):
@@ -5994,6 +5995,7 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
 
     params = deepcopy(params)
     _process_synonyms(params)
+    stringify_builtin_metrics(params)
 
     metric_period, verbose, logging_level = _process_verbose(
         metric_period, verbose, logging_level, verbose_eval)
