@@ -422,7 +422,7 @@ migrations:
     - disk/admin/robot_switcher
     - dj/services/alisa_skills/tools/bass_to_dialogs_image_uploader
     - dj/tools/viewer/custom/entity
-    - education/infra/nirvana/operations/yt_nodes_deep_diff
+    - education/lib/nirvana/operations/yt_nodes_deep_diff
     - education/schoolbook/analytics/adhoc/ANALITICSEDU-515
     - education/schoolbook/analytics/adhoc/ANALITICSEDU-687
     - entity/ontodb/robot/tools/extdata_import/khl/lib
