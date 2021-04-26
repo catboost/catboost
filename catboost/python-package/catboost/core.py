@@ -457,7 +457,7 @@ class Pool(_PoolBase):
               parameter or if data is pandas.DataFrame (feature names are initialized from it's column names)
             Must be None if 'data' parameter has FeaturesData type
 
-        column_description : string or pathlib.Path, optional (default=None)
+        column_description : string or pathlib.Path or ColumnDescription, optional (default=None)
             ColumnsDescription parameter.
             There are several columns description types: Label, Categ, Num, Auxiliary, DocId, Weight, Baseline, GroupId, Timestamp.
             All columns are Num as default, it's not necessary to specify
@@ -519,13 +519,28 @@ class Pool(_PoolBase):
             If -1, then the number of threads is set to the number of CPU cores.
 
         """
+
+        if isinstance(column_description, ColumnDescription):
+            column_type_to_indices, names = column_description.get_metadata()
+
+            cat_features = column_type_to_indices["Categ"]
+            text_features = column_type_to_indices["Text"]
+            embedding_features = column_type_to_indices[""]
+            weight = column_type_to_indices["Weight"]
+            group_id = column_type_to_indices["GroupId"]
+            group_weight = column_type_to_indices["GroupWeight"]
+            subgroup_id = column_type_to_indices["SubgroupId"]
+            baseline = column_type_to_indices["Baseline"]
+            feature_names = names
+            column_description = None
+
         if data is not None:
             self._check_data_type(data)
             self._check_data_empty(data)
             if pairs is not None and isinstance(data, PATH_TYPES) != isinstance(pairs, PATH_TYPES):
                 raise CatBoostError("data and pairs parameters should be the same types.")
             if column_description is not None and not isinstance(data, PATH_TYPES):
-                raise CatBoostError("data should be the string or pathlib.Path type if column_description parameter is specified.")
+                raise CatBoostError("data should be the string or pathlib.Path or ColumnDescription type if column_description parameter is specified.")
             if isinstance(data, PATH_TYPES):
                 if any(v is not None for v in [cat_features, text_features, embedding_features, weight, group_id, group_weight,
                                                subgroup_id, pairs_weight, baseline, label]):
@@ -5828,69 +5843,159 @@ def to_classifier(model):
     return classifier
 
 
+class EColumnType(Enum):
+    """The target variable."""
+    Label = 0
+    """A numerical feature."""
+    Num = 1
+    """A categorical feature."""
+    Categ = 2
+    """A text feature."""
+    Text = 3
+    """Any data."""
+    Auxiliary = 4
+    """An alphanumeric ID of the object."""
+    SampleId = 5
+    """The object's weight."""
+    Weight = 6
+    """The group weight."""
+    GroupWeight = 7
+    """The initial formula values for all input objects. """
+    Baseline = 8
+    """The identifier of the object's group."""
+    GroupId = 9
+    """The identifier of the object's subgroup."""
+    SubgroupId = 10
+    """The timestamp of the object."""
+    Timestamp = 11
+
+
 from catboost.utils import read_cd
+from collections import defaultdict
 
 
 class ColumnDescription:
-    column_type_synonyms_map = {
-        'Target': 'Label',
-        'DocId': 'SampleId',
-        'QueryId': 'GroupId'
-    }
+    class Column:
+        def __init__(self, type, name):
+            """
+            Single column description
+            """
+            self.type = type
+            self.name = name
 
     def __init__(self, cd_file=None, column_count=None, data_file=None, canonize_column_types=False):
+        """
+        ColumnDescription is an internal data structure that is used by CatBoost.
+        You can construct ColumnDescription from string or int.
+
+        Parameters
+        ----------
+
+        cd_file : string or pathlib.Path or ColumnDescription, optional (default=None)
+            Path to the file.
+            Specifies the path to the file with the column description. See Columns description for details.
+            If None, Label column is 0 (zero) as default, all data columns are Num as default.
+            If string or pathlib.Path, giving the path to the file with ColumnsDescription in column_description format.
+
+        column_count : int
+            Number of columns.
+            If not None, giving 1 or 2 dimensional array like data with floats.
+            If data is a file, then label must be in the file, that is label must be equals to None
+
+        data_file : str or pathlib.Path
+            path to dataset file in CatBoost format
+            specify either column_count directly or data_file to detect it
+
+        canonize_column_types : bool
+            if set to True types for columns with synonyms are renamed to canonical type.
+        """
+
         self.canonize_column_types = canonize_column_types
-        self.column_type_to_indices = {}
-        self.column_dtypes = {}
-        self.cat_feature_indices = set()
-        self.text_feature_indices = set()
-        self.embedding_feature_indices = set()
-        self.column_names = []
-        self.non_feature_column_indices = set()
+        self.column_count = column_count
+        self.columns = []
 
-        if cd_file:
-            data = read_cd(cd_file, column_count, data_file, canonize_column_types)
-            self.column_type_to_indices = data['column_type_to_indices']
-            self.column_dtypes = data['column_dtypes']
-            self.cat_feature_indices = set(data['cat_feature_indices'])
-            self.text_feature_indices = set(data['text_feature_indices'])
-            self.embedding_feature_indices = set(data['embedding_feature_indices'])
-            self.column_names = data['column_names']
-            self.non_feature_column_indices = set(data['non_feature_column_indices'])
+        if cd_file is not None:
+            if column_count is not None:
+                raise CatBoostError(
+                    "column_count have the None type when the ColumnDescription is read from the file."
+                )
 
-    def add_feature(self, column_idx, column_type=None, column_name=None):
-        if column_idx < 0:
-            raise Exception('Negative column indices in ColumnDescription')
+            columns_metadata = read_cd(cd_file, column_count, data_file, canonize_column_types)
+            column_names = columns_metadata['column_names']
+            column_type_to_indices = columns_metadata['column_type_to_indices']
 
-        if column_idx in self.cat_feature_indices or \
-                column_idx in self.text_feature_indices or \
-                column_idx in self.embedding_feature_indices or \
-                column_idx in self.non_feature_column_indices:
-            raise Exception('Feature description exist yet')
+            self.column_count = len(column_names)
 
-        if self.canonize_column_types:
-            column_type = ColumnDescription.column_type_synonyms_map.get(column_type, column_type)
+            for i in range(self.column_count):
+                self.columns.append(ColumnDescription.Column(None, column_names[i]))
 
-        self.column_type_to_indices.setdefault(column_type, []).append(column_idx)
+            for type, indices in column_type_to_indices.items():
+                for index in indices:
+                    if type not in EColumnType.__members__:
+                        raise CatBoostError(
+                            'Invalid column type {}'.format(type)
+                        )
+                    self.columns[index].type = EColumnType[type]
+            return
 
-        if column_type in ['Num', 'Categ', 'Text', 'NumVector']:
-            feature_idx = column_idx - len(self.non_feature_column_indices)
-            if column_name is None:
-                column_name = 'feature_%i' % feature_idx
-            if column_type == 'Categ':
-                self.cat_feature_indices.add(feature_idx)
-                self.column_dtypes[column_name] = 'category'
-            elif column_type == 'Text':
-                self.text_feature_indices.add(feature_idx)
-                self.column_dtypes[column_name] = object
-            elif column_type == 'NumVector':
-                self.embedding_feature_indices.add(feature_idx)
-                self.column_dtypes[column_name] = object
-            else:
-                self.column_dtypes[column_name] = np.float32
+        if column_count is None:
+            if data_file is None:
+                raise CatBoostError(
+                    "Cannot obtain column count: either specify column_count parameter or specify data_file "
+                    + "parameter to get it"
+                )
+            with open(fspath(data_file)) as f:
+                self.column_count = len(f.readline()[:-1].split('\t'))
         else:
-            self.non_feature_column_indices.add(column_idx)
-            if column_name is None:
-                column_name = column_type
+            if not isinstance(column_count, int):
+                raise CatBoostError('Parameter {} should have a type of {}, got {}'.format('column_count',
+                                                                                           'int', type(column_count)))
+            if column_count <= 0:
+                raise CatBoostError('Parameter {} should be > 0'.format("column_count"))
 
-        self.column_names.append(column_name)
+        for i in range(self.column_count):
+            self.columns.append(ColumnDescription.Column(EColumnType.Num, "feature_{}".format(i)))
+        self.columns[0].type = EColumnType.Label
+
+    def get_metadata(self):
+        """
+        Get the ColumnDescription metadata.
+
+        Returns
+        -------
+        tuple with values:
+            column_type_to_indices :
+                dict of column_type -> column_indices list, column_type is 'Label', 'Categ' etc.
+            column_names :
+                list of strings
+        """
+        column_type_to_indices = defaultdict(lambda: None)
+        names = []
+
+        for i, column in zip(range(self.column_count), self.columns):
+            type_name = column.type.name
+            if type_name not in column_type_to_indices:
+                column_type_to_indices[type_name] = []
+            column_type_to_indices[type_name].append(i)
+            names.append(column.name)
+
+        return (column_type_to_indices, names)
+
+    def save(self, fname):
+        """
+        Save the ColumnDescription to a file.
+
+        Parameters
+        ----------
+        fname : string or pathlib.Path
+            Output file name.
+        """
+        with open(fspath(fname), 'w') as f:
+            for index, column in zip(range(len(self.columns)), self.columns):
+                f.write("{}\t{}\t{}\n".format(index, column.type.name, column.name))
+
+    def __iter__(self):
+        return (column for column in self.columns)
+
+    def __getitem__(self, key):
+        return self.columns[key]

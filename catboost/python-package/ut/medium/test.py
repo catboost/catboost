@@ -27,7 +27,8 @@ from catboost import (
     to_regressor,
     to_classifier,
     MultiRegressionCustomMetric,
-    MultiRegressionCustomObjective,)
+    MultiRegressionCustomObjective,
+    EColumnType)
 from catboost.eval.catboost_evaluation import CatboostEvaluation, EvalType
 from catboost.utils import eval_metric, create_cd, read_cd, get_roc_curve, select_threshold, quantize
 from catboost.utils import DataMetaInfo, TargetStats, compute_training_options
@@ -281,33 +282,49 @@ def load_simple_dataset_as_lists(is_test):
 
 # Test cases begin here ########################################################
 
-def test_column_description_from_file():
+def test_column_description_load_save():
     cd = ColumnDescription(cd_file=ROTTEN_TOMATOES_CD_BINCLASS_FILE,
                            data_file=ROTTEN_TOMATOES_TRAIN_SMALL_NO_QUOTES_FILE,
                            canonize_column_types=True)
 
+    fname = 'column_desciprion.cd'
+    column_description_path = test_output_path(fname)
+    cd.save(column_description_path)
 
-def test_column_from_empty():
-    cd = ColumnDescription()
-    desc = [(1,  "Categ", "mpaa_film_rating"),
-            (2,	 "Text",  "genre"),
-            (3,	 "Categ", "director"),
-            (4,  "Categ", "writer"),
-            (5,  "Num",   "theater_date"),
-            (6,	 "Num",	  "dvd_date"),
-            (7,	 "Text",  "review"),
-            (8,	 "Categ", "rating"),
-            (9,  "Categ", None),
-            (10, "Categ", "critic"),
-            (11, "Label", "top_critic"),
-            (12, "Categ", "publisher"),
-            (13, "Num",   "date")
-            ]
+    cd = ColumnDescription(cd_file=column_description_path,
+                           data_file=ROTTEN_TOMATOES_TRAIN_SMALL_NO_QUOTES_FILE,
+                           canonize_column_types=True)
 
-    for (idx, tp, name) in desc:
-        cd.add_feature(idx, tp, name)
 
-'''
+def test_column_description_create_pool():
+    n_features = 14
+    n_objects = 20
+    cd = ColumnDescription(column_count=n_features)
+
+    features_data = np.empty((n_objects, n_features))
+
+    desc = [(0, EColumnType.Num, "synopsis"),
+            (1, EColumnType.Num, "mpaa_film_rating"),
+            (2, EColumnType.Num, "genre"),
+            (3, EColumnType.Num, "director"),
+            (4, EColumnType.Num, "writer"),
+            (5, EColumnType.Num, "theater_date"),
+            (6, EColumnType.Label, "dvd_date"),
+            (7, EColumnType.Num, "review"),
+            (8, EColumnType.Num, "rating"),
+            (9, EColumnType.Num, "feature"),
+            (10, EColumnType.Num, "critic"),
+            (11, EColumnType.Num, "top_critic"),
+            (12, EColumnType.Num, "publisher"),
+            (13, EColumnType.Num, "date")]
+
+    for column, (id, type, name) in zip(cd, desc):
+        column.type = type
+        column.name = name
+
+    pool_from_data = Pool(features_data, column_description=cd)
+
+
 @pytest.mark.parametrize('niter', [100, 500])
 def test_multiregression_custom_eval(niter, n=10):
     class MultiRMSE(MultiRegressionCustomMetric):
@@ -9111,4 +9128,3 @@ def test_same_params(params):
     params['loss_function'] = 'Logloss'
     CatBoost(params).fit(train_pool).save_model(model_path)
     assert CatBoost().load_model(model_path).get_params() == params
-'''
