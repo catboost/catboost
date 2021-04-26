@@ -4,6 +4,10 @@
 
 ALLOW vendor/ -> .*
 
+# CONTRIB-2163
+ALLOW .* -> vendor/go.temporal.io/sdk
+ALLOW .* -> vendor/go.temporal.io/api
+
 # CONTRIB-2116
 ALLOW .* -> vendor/github.com/google/licensecheck
 
