@@ -6537,7 +6537,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\contrib\python\numpy\py3\numpy\core\include\numpy\npy_1_7_deprecated_api.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\python\numpy\py3\numpy\core\include\numpy\npy_3kcompat.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\python\numpy\py3\numpy\core\include\numpy\npy_common.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\python\numpy\py3\numpy\core\include\numpy\npy_config.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\python\numpy\py3\numpy\core\include\numpy\npy_cpu.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\python\numpy\py3\numpy\core\include\numpy\npy_endian.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\python\numpy\py3\numpy\core\include\numpy\npy_interrupt.h"/>
