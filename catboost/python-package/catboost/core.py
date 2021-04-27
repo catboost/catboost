@@ -1303,7 +1303,7 @@ def stringify_builtin_metrics(params):
         val = params[f]
         if isinstance(val, BuiltinMetric):
             params[f] = val.to_string()
-        elif isinstance(val, str):
+        elif isinstance(val, STRING_TYPES):
             continue
         elif isinstance(val, Sequence):
             params[f] = stringify_builtin_metrics_list(val)
@@ -2466,7 +2466,7 @@ class CatBoost(_CatBoostBase):
         if tmp_dir is None:
             tmp_dir = tempfile.mkdtemp()
 
-        if isinstance(metrics, str) or isinstance(metrics, BuiltinMetric):
+        if isinstance(metrics, STRING_TYPES) or isinstance(metrics, BuiltinMetric):
             metrics = [metrics]
         metrics = stringify_builtin_metrics_list(metrics)
         with log_fixup(log_cout, log_cerr), plot_wrapper(plot, [res_dir]):
@@ -6114,7 +6114,7 @@ class BatchMetricCalcer(_MetricCalcerBase):
         else:
             delete_temp_dir_flag = False
 
-        if isinstance(metrics, str) or isinstance(metrics, BuiltinMetric):
+        if isinstance(metrics, STRING_TYPES) or isinstance(metrics, BuiltinMetric):
             metrics = [metrics]
         metrics = stringify_builtin_metrics_list(metrics)
         self._create_calcer(metrics, ntree_start, ntree_end, eval_period, thread_count, tmp_dir, delete_temp_dir_flag)
