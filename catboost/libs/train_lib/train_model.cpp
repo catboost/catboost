@@ -348,6 +348,7 @@ static void Train(
     const TTrainModelInternalOptions& internalOptions,
     const TTrainingDataProviders& data,
     ITrainingCallbacks* trainingCallbacks,
+    ICustomCallbacks* customCallbacks,
     TLearnContext* ctx,
     TVector<TVector<TVector<double>>>* testMultiApprox // [test][dim][docIdx]
 ) {
@@ -455,7 +456,8 @@ static void Train(
             break;
         }
 
-        continueTraining = trainingCallbacks->IsContinueTraining(ctx->LearnProgress->MetricsAndTimeHistory);
+        continueTraining = trainingCallbacks->IsContinueTraining(ctx->LearnProgress->MetricsAndTimeHistory)
+                && customCallbacks->IsContinueTraining(ctx->LearnProgress->MetricsAndTimeHistory);
     }
 
     ctx->SaveProgress(onSaveSnapshotCallback);
@@ -711,23 +713,21 @@ static void SaveModel(
 }
 
 namespace {
-    class TCustomCallbacks : public ITrainingCallbacks {
+    class TCustomCallbacks : public ICustomCallbacks {
     public:
         explicit TCustomCallbacks(const TMaybe<TCustomCallbackDescriptor>& callbackDescriptor)
         : CallbackDescriptor(callbackDescriptor)
         {
         }
 
-        bool IsContinueTraining(const TMetricsAndTimeLeftHistory&) override {
-            ++Iteration;
+        bool IsContinueTraining(const TMetricsAndTimeLeftHistory& history) override {
             if (!CallbackDescriptor.Empty()) {
-                return CallbackDescriptor->AfterIterationFunc(Iteration, CallbackDescriptor->CustomData);
+                return CallbackDescriptor->IsContinueTrainingFunc(history, CallbackDescriptor->CustomData);
             }
             return true;
         }
     private:
         const TMaybe<TCustomCallbackDescriptor>& CallbackDescriptor;
-        int Iteration {-1};
     };
 }
 
@@ -745,6 +745,7 @@ namespace {
             TMaybe<TPrecomputedOnlineCtrData> precomputedSingleOnlineCtrDataForSingleFold,
             const TLabelConverter& labelConverter,
             ITrainingCallbacks* trainingCallbacks,
+            ICustomCallbacks* customCallbacks,
             TMaybe<TFullModel*> initModel,
             THolder<TLearnProgress> initLearnProgress,
             TDataProviders initModelApplyCompatiblePools,
@@ -858,7 +859,7 @@ namespace {
             TVector<TVector<double>> oneRawValues(ctx.LearnProgress->ApproxDimension);
             TVector<TVector<TVector<double>>> rawValues(trainingData.Test.size(), oneRawValues);
 
-            Train(internalOptions, trainingData, trainingCallbacks, &ctx, &rawValues);
+            Train(internalOptions, trainingData, trainingCallbacks, customCallbacks, &ctx, &rawValues);
 
             if (!dstLearnProgress) {
                 // Save memory as it is no longer needed
@@ -1072,7 +1073,8 @@ static void TrainModel(
             *trainingData.Learn->ObjectsData->GetQuantizedFeaturesInfo());
     }
 
-    TCustomCallbacks customCallbacks(callbackDescriptor);
+    const auto defaultTrainingCallbacks = MakeHolder<ITrainingCallbacks>();
+    const auto customCallbacks = MakeHolder<TCustomCallbacks>(callbackDescriptor);
     TTrainModelInternalOptions trainModelInternalOptions;
     trainModelInternalOptions.HaveLearnFeatureInMemory = haveLearnFeaturesInMemory;
     modelTrainerHolder->TrainModel(
@@ -1084,7 +1086,8 @@ static void TrainModel(
         std::move(trainingData),
         std::move(precomputedSingleOnlineCtrDataForSingleFold),
         labelConverter,
-        &customCallbacks,
+        defaultTrainingCallbacks.Get(),
+        customCallbacks.Get(),
         std::move(initModel),
         std::move(initLearnProgress),
         needInitModelApplyCompatiblePools ? std::move(pools) : TDataProviders(),

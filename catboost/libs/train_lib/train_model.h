@@ -59,6 +59,13 @@ struct TTrainModelInternalOptions {
     bool HaveLearnFeatureInMemory = true;
 };
 
+struct TCustomCallbackDescriptor {
+    using TIsContinueTraining = bool (*)(const TMetricsAndTimeLeftHistory& history, void* customData);
+
+    void* CustomData = nullptr;
+    TIsContinueTraining IsContinueTrainingFunc = nullptr;
+};
+
 class ITrainingCallbacks {
 public:
     virtual bool IsContinueTraining(const TMetricsAndTimeLeftHistory& /*history*/) {
@@ -73,6 +80,14 @@ public:
     virtual ~ITrainingCallbacks() = default;
 };
 
+class ICustomCallbacks {
+public:
+    virtual bool IsContinueTraining(const TMetricsAndTimeLeftHistory& /*history*/) {
+        return true;
+    }
+
+    virtual ~ICustomCallbacks() = default;
+};
 
 class IModelTrainer {
 public:
@@ -88,6 +103,7 @@ public:
         TMaybe<NCB::TPrecomputedOnlineCtrData> precomputedSingleOnlineCtrDataForSingleFold,
         const TLabelConverter& labelConverter,
         ITrainingCallbacks* trainingCallbacks,
+        ICustomCallbacks* customCallbacks,
         TMaybe<TFullModel*> initModel,
         THolder<TLearnProgress> initLearnProgress, // can be nullptr, can be modified if non-nullptr
 

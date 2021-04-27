@@ -614,11 +614,6 @@ cdef extern from "catboost/libs/metrics/metric.h":
     cdef bool_t IsMaxOptimal(const TString& metricName) nogil except +ProcessException
     cdef bool_t IsMinOptimal(const TString& metricName) nogil except +ProcessException
 
-cdef extern from "catboost/libs/metrics/metric.h":
-    cdef cppclass TCustomCallbackDescriptor:
-        void* CustomData
-
-        bool_t (*AfterIterationFunc)(int iteration, void *customData) except * with gil
 
 cdef extern from "catboost/private/libs/algo_helpers/custom_objective_descriptor.h":
     cdef cppclass TCustomObjectiveDescriptor:
@@ -707,6 +702,14 @@ cdef extern from "catboost/libs/train_lib/train_model.h":
         TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
         THolder[TLearnProgress]* dstLearnProgress
     ) nogil except +ProcessException
+    
+    cdef cppclass TCustomCallbackDescriptor:
+        void* CustomData
+
+        bool_t (*IsContinueTrainingFunc)(
+            const TMetricsAndTimeLeftHistory& history, 
+            void *customData
+        ) except * with gil
 
 cdef extern from "catboost/libs/data/quantization.h"  namespace "NCB":
     cdef TQuantizedObjectsDataProviderPtr ConstructQuantizedPoolFromRawPool(
@@ -1142,9 +1145,13 @@ cdef double _MetricGetFinalError(const TMetricHolder& error, void *customData) e
     cdef metricObject = <object>customData
     return metricObject.get_final_error(error.Stats[0], error.Stats[1])
 
-cdef bool_t _CallbackAfterIteration(int iteration, void* customData) except * with gil:
+cdef bool_t _CallbackIsContinueTraining(
+        const TMetricsAndTimeLeftHistory& history, 
+        void* customData
+    ) except * with gil:
     cdef callbackObject = <object>customData
-    return callbackObject.after_iteration(iteration)
+    metrics_evals = _get_metrics_evals_pydict(history)
+    return callbackObject.is_continue_training(history.LearnMetricsHistory.size(), metrics_evals)
 
 cdef _constarrayref_of_double_to_np_array(const TConstArrayRef[double] arr):
     result = np.empty(arr.size(), dtype=_npfloat64)
@@ -1551,7 +1558,7 @@ cdef TCustomMetricDescriptor _BuildCustomMetricDescriptor(object metricObject):
 cdef TCustomCallbackDescriptor _BuildCustomCallbackDescritor(object callbackObject):
     cdef TCustomCallbackDescriptor descriptor
     descriptor.CustomData = <void*>callbackObject
-    descriptor.AfterIterationFunc = &_CallbackAfterIteration
+    descriptor.IsContinueTrainingFunc = &_CallbackIsContinueTraining
     return descriptor
 
 cdef TCustomObjectiveDescriptor _BuildCustomObjectiveDescriptor(object objectiveObject):
@@ -1646,7 +1653,7 @@ cdef class _PreprocessParams:
 
         if is_custom_objective or is_custom_eval_metric or is_custom_callback:
             if params.get("task_type") == "GPU":
-                raise CatBoostError("User defined loss functions and metrics are not supported for GPU")
+                raise CatBoostError("User defined loss functions, metrics and callbacks are not supported for GPU")
             keys_to_replace = set()
             if is_custom_objective:
                 keys_to_replace.add("loss_function")
@@ -4401,24 +4408,7 @@ cdef class _CatBoost:
         return test_evals
 
     cpdef _get_metrics_evals(self):
-        metrics_evals = defaultdict(functools.partial(defaultdict, list))
-        iteration_count = self.__metrics_history.LearnMetricsHistory.size()
-        for iteration_num in range(iteration_count):
-            for metric, value in self.__metrics_history.LearnMetricsHistory[iteration_num]:
-                metrics_evals["learn"][to_native_str(metric)].append(value)
-
-        if not self.__metrics_history.TestMetricsHistory.empty():
-            test_count = 0
-            for i in range(iteration_count):
-                test_count = max(test_count, self.__metrics_history.TestMetricsHistory[i].size())
-            for iteration_num in range(iteration_count):
-                for test_index in range(self.__metrics_history.TestMetricsHistory[iteration_num].size()):
-                    eval_set_name = "validation"
-                    if test_count > 1:
-                        eval_set_name += "_" + str(test_index)
-                    for metric, value in self.__metrics_history.TestMetricsHistory[iteration_num][test_index]:
-                        metrics_evals[eval_set_name][to_native_str(metric)].append(value)
-        return {k: dict(v) for k, v in iteritems(metrics_evals)}
+        return _get_metrics_evals_pydict(self.__metrics_history)
 
     cpdef _get_best_score(self):
         if self.__metrics_history.LearnBestError.empty():
@@ -5275,6 +5265,29 @@ cdef _convert_to_visible_labels(EPredictionType predictionType, TVector[TVector[
         return result
 
     return _2d_vector_of_double_to_np_array(raws)
+
+
+cdef _get_metrics_evals_pydict(TMetricsAndTimeLeftHistory history):
+    metrics_evals = defaultdict(functools.partial(defaultdict, list))
+  
+    iteration_count = history.LearnMetricsHistory.size()
+    for iteration_num in range(iteration_count):
+        for metric, value in history.LearnMetricsHistory[iteration_num]:
+            metrics_evals["learn"][to_native_str(metric)].append(value)
+
+    if not history.TestMetricsHistory.empty():
+        test_count = 0
+        for i in range(iteration_count):
+            test_count = max(test_count, history.TestMetricsHistory[i].size())
+        for iteration_num in range(iteration_count):
+            for test_index in range(history.TestMetricsHistory[iteration_num].size()):
+                eval_set_name = "validation"
+                if test_count > 1:
+                    eval_set_name += "_" + str(test_index)
+                for metric, value in history.TestMetricsHistory[iteration_num][test_index]:
+                    metrics_evals[eval_set_name][to_native_str(metric)].append(value)
+    return {k: dict(v) for k, v in iteritems(metrics_evals)}
+
 
 
 cdef class _StagedPredictIterator:

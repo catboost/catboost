@@ -1903,7 +1903,7 @@ class CatBoost(_CatBoostBase):
             params['snapshot_interval'] = snapshot_interval
         
         if callbacks is not None:
-            params['callbacks'] = callbacks
+            params['callbacks'] = _AllCallback(callbacks)
 
         _check_param_types(params)
         params = _params_type_cast(params)
@@ -6395,3 +6395,17 @@ def to_classifier(model):
 
 def to_ranker(model):
     return _to_subclass(model, CatBoostRanker)
+    for attr in model.__dict__:
+        setattr(classifier, attr, getattr(model, attr))
+    return classifier
+
+
+class _AllCallback(object):
+    def __init__(self, callbacks):
+        self._callbacks = callbacks
+
+    def is_continue_training(self, iteration, metrics_evals):
+        for cb in self._callbacks:
+            if not cb.is_continue_training(iteration, metrics_evals):
+                return False
+        return True

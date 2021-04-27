@@ -266,7 +266,6 @@ void NCatboostOptions::PlainJsonToOptions(
     }
 
     if (plainOptions.Has("callbacks")) {
-        // TODO maybe do something...
         seenKeys.insert("callbacks");
     }
 

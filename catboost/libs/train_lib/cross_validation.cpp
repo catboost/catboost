@@ -319,6 +319,7 @@ void TrainBatch(
         skipMetricOnTrain,
         upToIteration,
         foldContext);
+    const auto defaultCustomCallbacks = MakeHolder<ICustomCallbacks>();
 
     auto foldOutputOptions = foldContext->OutputOptions;
     auto trainDir = foldOutputOptions.GetTrainDir();
@@ -337,6 +338,7 @@ void TrainBatch(
         /*precomputedSingleOnlineCtrDataForSingleFold*/ Nothing(),
         labelConverter,
         cvCallbacks.Get(),
+        defaultCustomCallbacks.Get(),
         /*initModel*/ Nothing(),
         std::move(foldContext->LearnProgress),
         /*initModelApplyCompatiblePools*/ TDataProviders(),
@@ -406,6 +408,7 @@ void Train(
         foldOutputOptions.ResultModelPath = NCatboostOptions::TOption<TString>("result_model_file", "model");
     }
     TMetricsAndTimeLeftHistory metricsAndTimeHistory;
+    const auto defaultCustomCallbacks = MakeHolder<ICustomCallbacks>();
     modelTrainer->TrainModel(
         internalOptions,
         catboostOption,
@@ -416,6 +419,7 @@ void Train(
         /*precomputedSingleOnlineCtrDataForSingleFold*/ Nothing(),
         labelConverter,
         trainingCallbacks,
+        defaultCustomCallbacks.Get(),
         /*initModel*/ Nothing(),
         THolder<TLearnProgress>(),
         /*initModelApplyCompatiblePools*/ TDataProviders(),
