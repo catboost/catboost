@@ -240,8 +240,8 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model_interface\static\lib\model_interface-static-lib.vcxproj">
       <Project>26A1D776-9ECB-45E1-C061-632ACB686E26</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model_interface\static\libcatboostmodel.o.vcxproj">
-      <Project>325357DB-9CA1-7299-6753-17428916460D</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model_interface\static\libcatboostmodel.global.vcxproj">
+      <Project>3847F950-BA39-75F6-DAB0-D46956BEB562</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\monoforest\catboost-libs-monoforest.vcxproj">
       <Project>A92A8F45-E094-AA7F-FCC1-C39BE30D4254</Project>
