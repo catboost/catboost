@@ -23,7 +23,7 @@ function runScript(script) {
 
     const child = childProcess.fork('./build_scripts/out/' + script + '.js', process.argv);
     return new Promise((resolve, reject) => {
-        child.on('exit', (code, signal) => resolve({code, signal}));
+        child.on('error', err => reject({err}));
         child.on('exit', (code, signal) => {
             if (code !== 0) {
                 console.error(`Script failed with exit code: ${code}`);
@@ -46,7 +46,7 @@ function runCommand(command) {
 
 const command = process.argv[2];
 
-if (!fs.existsSync('./out')) {
+if (!fs.existsSync('./out') || command === 'package_prepublish') {
     compileBuildScripts().then(result => {
         if (result.code === 0) {
             runCommand(command);
