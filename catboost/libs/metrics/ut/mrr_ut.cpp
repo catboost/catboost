@@ -111,4 +111,31 @@ Y_UNIT_TEST_SUITE(MRRTests) {
             UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0.25, 1e-5);
         }
     }
+
+    Y_UNIT_TEST(MRRTestWithBorder) {
+        {
+            TVector<TVector<double>> approx{{1, 0, -2, 5}};
+            TVector<float> target{0.3, 0.1, 0.4, 0.6};
+            TVector<TQueryInfo> queries;
+            queries.push_back(TQueryInfo(0, 4));
+
+            NPar::TLocalExecutor executor;
+            const auto metric = std::move(CreateMetric(ELossFunction::MRR, TLossParams::FromVector({{"border", "0.8"}}), 1)[0]);
+            TMetricHolder score = metric->Eval(approx, target, {}, queries, 0, queries.size(), executor);
+
+            UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0.0, 1e-5);
+        }
+        {
+            TVector<TVector<double>> approx{{1, 2, 2, 2}};
+            TVector<float> target{0.4, 0.1, 0.4, 0.1};
+            TVector<TQueryInfo> queries;
+            queries.push_back(TQueryInfo(0, 4));
+
+            NPar::TLocalExecutor executor;
+            const auto metric = std::move(CreateMetric(ELossFunction::MRR, TLossParams::FromVector({{"border", "0.3"}}), 1)[0]);
+            TMetricHolder score = metric->Eval(approx, target, {}, queries, 0, queries.size(), executor);
+
+            UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 1./3., 1e-5);
+        }
+    }
 }
