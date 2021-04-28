@@ -19,11 +19,12 @@ static TVector<float> SelectBorders(
     TConstArrayRef<float> target,
     int targetBorderCount,
     EBorderSelectionType targetBorderType,
-    bool allowConstLabel) {
+    bool allowConstLabel,
+    bool featureValuesMayContainNans) {
 
     TVector<float> learnTarget(target.begin(), target.end());
 
-    THashSet<float> borderSet = BestSplit(learnTarget, targetBorderCount, targetBorderType);
+    THashSet<float> borderSet = BestSplit(learnTarget, targetBorderCount, targetBorderType, featureValuesMayContainNans);
     TVector<float> borders(borderSet.begin(), borderSet.end());
     CB_ENSURE((borders.ysize() > 0) || allowConstLabel, "0 target borders");
     if (borders.empty()) {
@@ -50,6 +51,7 @@ TTargetClassifier BuildTargetClassifier(
 
     CB_ENSURE(!target.empty(), "train target should not be empty");
 
+    bool targetValuesMayContainNans = false;
     TMinMax<float> targetBounds = CalcMinMax<float>(target);
     CB_ENSURE(
         (targetBounds.Min != targetBounds.Max) || allowConstLabel,
@@ -59,7 +61,12 @@ TTargetClassifier BuildTargetClassifier(
         case ELossFunction::RMSE:
         case ELossFunction::MultiRMSE:
             return TTargetClassifier(
-                SelectBorders(target, targetBorderCount, targetBorderType, allowConstLabel),
+                SelectBorders(target, targetBorderCount, targetBorderType, allowConstLabel, targetValuesMayContainNans),
+                targetId);
+        case ELossFunction::MultiRMSEWithMissingValues:
+            targetValuesMayContainNans = true;
+            return TTargetClassifier(
+                SelectBorders(target, targetBorderCount, targetBorderType, allowConstLabel, targetValuesMayContainNans),
                 targetId);
         case ELossFunction::RMSEWithUncertainty:
         case ELossFunction::Quantile:
@@ -84,7 +91,7 @@ TTargetClassifier BuildTargetClassifier(
         case ELossFunction::UserQuerywiseMetric:
         case ELossFunction::Tweedie:
             return TTargetClassifier(
-                SelectBorders(target, targetBorderCount, targetBorderType, allowConstLabel),
+                SelectBorders(target, targetBorderCount, targetBorderType, allowConstLabel, targetValuesMayContainNans),
                 targetId);
 
         case ELossFunction::MultiClass:
@@ -95,7 +102,7 @@ TTargetClassifier BuildTargetClassifier(
         case ELossFunction::PythonUserDefinedPerObject: {
             Y_ASSERT(objectiveDescriptor.Defined());
             return TTargetClassifier(
-                SelectBorders(target, targetBorderCount, targetBorderType, allowConstLabel),
+                SelectBorders(target, targetBorderCount, targetBorderType, allowConstLabel, targetValuesMayContainNans),
                 targetId);
         }
 

@@ -16,16 +16,28 @@
 
 namespace NCB {
     inline float CalculateWeightedTargetAverage(TConstArrayRef<float> target, TConstArrayRef<float> weights) {
-        const double summaryWeight = weights.empty() ? target.size() : Accumulate(weights, 0.0);
+        double summaryWeight = 0.0;
         double targetSum = 0.0;
-        if (weights.empty()) {
-            targetSum = Accumulate(target, 0.0);
-        } else {
-            Y_ASSERT(target.size() == weights.size());
+         if (weights.empty()) {
             for (size_t i = 0; i < target.size(); ++i) {
-                targetSum += target[i] * weights[i];
+                 if (!std::isnan(target[i])) {
+                    targetSum += target[i];
+                    summaryWeight += 1.0;
+                } else {
+                    continue;
+                }
             }
-        }
+         } else {
+             Y_ASSERT(target.size() == weights.size());
+            for (size_t i = 0; i < target.size(); ++i){
+                if (!std::isnan(target[i])) {
+                    targetSum += target[i] * weights[i];
+                    summaryWeight += weights[i];
+                } else {
+                    continue;
+                }
+             }
+         }
         return targetSum / summaryWeight;
     }
 

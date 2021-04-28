@@ -88,6 +88,56 @@ def diff_tool(threshold=None):
     return get_limited_precision_dsv_diff_tool(threshold, True)
 
 
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+@pytest.mark.parametrize('n_trees', [100, 500])
+def test_multiregression_with_missing_values(boosting_type, n_trees):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    output_calc_path = yatest.common.test_output_path('test.calc')
+    output_metric_path = yatest.common.test_output_path('test.metric')
+
+    cmd_fit = (
+        '--loss-function', 'MultiRMSEWithMissingValues',
+        '--boosting-type', boosting_type,
+        '-f', data_file('multiregression_with_missing', 'train'),
+        '-t', data_file('multiregression_with_missing', 'test'),
+        '--column-description', data_file('multiregression_with_missing', 'train.cd'),
+        '-i', '{}'.format(n_trees),
+        '-T', '4',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+        '--use-best-model', 'false',
+    )
+    execute_catboost_fit('CPU', cmd_fit)
+
+    cmd_calc = (
+        CATBOOST_PATH,
+        'calc',
+        '--column-description', data_file('multiregression_with_missing', 'train.cd'),
+        '-T', '4',
+        '-m', output_model_path,
+        '--input-path', data_file('multiregression_with_missing', 'test'),
+        '-o', output_calc_path
+    )
+    yatest.common.execute(cmd_calc)
+
+    cmd_metric = (
+        CATBOOST_PATH,
+        'eval-metrics',
+        '--column-description', data_file('multiregression_with_missing', 'train.cd'),
+        '-T', '4',
+        '-m', output_model_path,
+        '--input-path', data_file('multiregression_with_missing', 'test'),
+        '-o', output_metric_path,
+        '--metrics', 'MultiRMSEWithMissingValues'
+    )
+    yatest.common.execute(cmd_metric)
+    return [
+        local_canonical_file(output_eval_path),
+        local_canonical_file(output_calc_path),
+        local_canonical_file(output_metric_path)
+    ]
+
 @pytest.mark.parametrize('is_inverted', [False, True], ids=['', 'inverted'])
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 def test_cv_multiregression(is_inverted, boosting_type):

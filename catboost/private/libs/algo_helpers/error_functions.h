@@ -216,6 +216,43 @@ public:
     }
 };
 
+class TMultiRMSEErrorWithMissingValues final : public TMultiDerCalcer {
+public:
+    explicit TMultiRMSEErrorWithMissingValues()
+        : TMultiDerCalcer(EHessianType::Diagonal) {
+    }
+
+    void CalcDers(
+        TConstArrayRef<double> approx,
+        TConstArrayRef<float> target,
+        float weight,
+        TVector<double>* der,
+        THessianInfo* der2
+    ) const override {
+        const int dim = target.size();
+        for (auto i : xrange(dim)) {
+            if (std::isnan((float)target[i])) {
+                (*der)[i] = 0.0;
+            } else {
+                (*der)[i] = weight * (target[i] - approx[i]);
+            }
+        }
+
+        if (der2 != nullptr) {
+            Y_ASSERT(der2->HessianType == EHessianType::Diagonal &&
+                     der2->ApproxDimension == dim);
+
+            for (auto i : xrange(dim)) {
+                if (std::isnan((float)target[i])) {
+                    der2->Data[i] = 0.f;
+                } else {
+                    der2->Data[i] = -weight;
+                }
+            }
+        }
+    }
+};
+
 class TRMSEWithUncertaintyError final : public TMultiDerCalcer {
 public:
     explicit TRMSEWithUncertaintyError()

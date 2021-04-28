@@ -86,12 +86,17 @@ namespace NSplitSelection {
                 throw (yexception() << "Unexpected Nan value.");
             }
         }
-
-        auto firstNanPos = std::remove_if(features.Values.begin(), features.Values.end(), IsNan);
-        if (firstNanPos != features.Values.end()) {
-            if (featureValuesMayContainNans) {
+        
+        if(featureValuesMayContainNans){
+            // Remove all nan to calculate borders in MultiRMSEWithMissingValues
+            auto firstNanPos = std::remove_if(features.Values.begin(), features.Values.end(), IsNan);
+            while(firstNanPos != features.Values.end()){
                 features.Values.erase(firstNanPos, features.Values.end());
-            } else {
+            }
+        }
+        else{
+            auto firstNanPos = std::remove_if(features.Values.begin(), features.Values.end(), IsNan);
+            if (firstNanPos != features.Values.end()) {
                 throw (yexception() << "Unexpected Nan value.");
             }
         }

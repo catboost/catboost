@@ -494,8 +494,16 @@ namespace NCB {
                 << " loss/metrics require target data"
             );
         }
-
-        const bool needCheckTarget = !mainLossFunction || !IsRegressionObjective(mainLossFunction->GetLossFunction());
+        bool needCheckTarget;
+        if(mainLossFunction->GetLossFunction() == ELossFunction::MultiRMSEWithMissingValues){
+            // We accept nan in MultiRMSEWithMissingValues and
+            // we skip them during the border calculation loss/error function calculation.
+            needCheckTarget = false;
+        }
+        else{
+            needCheckTarget = !mainLossFunction || !IsRegressionObjective(mainLossFunction->GetLossFunction());
+        }
+        
         // TODO(akhropov): Will be split by target type. MLTOOLS-2337.
         if (target) {
             CheckPreprocessedTarget(
@@ -529,6 +537,12 @@ namespace NCB {
                 IsMultiRegressionObjective(mainLossFunction->GetLossFunction()) || rawData.GetTargetDimension() <= 1,
                 "Currently only multi-regression objectives work with multidimensional target"
             );
+            
+            if(IsRegressionObjective(mainLossFunction->GetLossFunction()))
+                CB_ENSURE(!rawData.TargetsContainsNan(),
+                    "Single-dimensional regression do not work with missing values on target"
+                );
+
         }
 
         TMaybe<ui32> knownClassCount = inputClassificationInfo.KnownClassCount;

@@ -417,6 +417,25 @@ ERawTargetType TRawTargetDataProvider::GetTargetType() const {
     return Data.TargetType;
 }
 
+
+bool TRawTargetDataProvider::TargetsContainsNan() const {
+    if(!Data.Target.empty() && GetTargetType() == ERawTargetType::Float) {
+        for (auto targetIdx : xrange(GetTargetDimension())) {
+            TVector<float> targetNumeric(GetObjectCount());
+            TArrayRef<float> targetNumericRef = targetNumeric;
+            ToArray(*Get<ITypedSequencePtr<float>>(Data.Target[targetIdx]), targetNumericRef);
+            for (auto objectIdx : xrange(targetNumericRef.size())) {
+                if(std::isnan(targetNumericRef[objectIdx])){
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    return false;
+}
+
+
 void TRawTargetDataProvider::GetNumericTarget(TArrayRef<TArrayRef<float>> dst) const {
     CB_ENSURE(dst.size() == Data.Target.size());
     for (auto targetIdx : xrange(Data.Target.size())) {

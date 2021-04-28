@@ -12,6 +12,8 @@
 #include <util/generic/map.h>
 #include <util/generic/ptr.h>
 #include <util/string/cast.h>
+#include <util/generic/ymath.h>
+
 
 namespace {
     enum class EMetricAttribute : ui32 {
@@ -135,6 +137,9 @@ MakeRegister(LossInfos,
         EMetricAttribute::IsBinaryClassCompatible
     ),
     Registree(MultiRMSE,
+        EMetricAttribute::IsMultiRegression
+    ),
+    Registree(MultiRMSEWithMissingValues,
         EMetricAttribute::IsMultiRegression
     ),
     Registree(RMSEWithUncertainty,
@@ -462,6 +467,7 @@ static const TVector<ELossFunction> RegressionObjectives = {
 
 static const TVector<ELossFunction> MultiRegressionObjectives = {
     ELossFunction::MultiRMSE,
+    ELossFunction::MultiRMSEWithMissingValues,
     ELossFunction::PythonUserDefinedMultiRegression
 };
 

@@ -78,4 +78,3 @@ bool IsUncertaintyPredictionType(EPredictionType type);
 EEstimatedSourceFeatureType FeatureTypeToEstimatedSourceFeatureType(EFeatureType featureType);
 
 EFeatureType EstimatedSourceFeatureTypeToFeatureType(EEstimatedSourceFeatureType featureType);
-

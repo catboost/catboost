@@ -209,6 +209,7 @@ enum class ELossFunction {
 
     /* multi-regression */
     MultiRMSE,
+    MultiRMSEWithMissingValues,
 
     Combination
 };
