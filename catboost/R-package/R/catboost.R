@@ -590,6 +590,8 @@ summary.catboost.Model <- function(object, ...) {
 #'         \item 'PrecisionAt'
 #'         \item 'RecallAt'
 #'         \item 'MAP'
+#'         \item 'MRR'
+#'         \item 'ERR'
 #'       }
 #'
 #'       Supported parameters:
@@ -659,6 +661,8 @@ summary.catboost.Model <- function(object, ...) {
 #'         \item 'PrecisionAt'
 #'         \item 'RecallAt'
 #'         \item 'MAP'
+#'         \item 'MRR'
+#'         \item 'ERR'
 #'       }
 #'
 #'       Format:

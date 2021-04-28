@@ -5708,7 +5708,9 @@ class Metrics(object):
             'QuerySoftMax',
             'PFound',
             'NDCG',
-            'AverageGain'
+            'AverageGain',
+            'MRR',
+            'ERR',
         }
         good = re.compile(r'^({})(\W|$)'.format('|'.join(supported_by)))
         return filter(lambda case: good.match(case), cases)
@@ -5774,6 +5776,8 @@ class Metrics(object):
             'YetiRankPairwise',
             'ZeroOneLoss',
             'LogLikelihoodOfPrediction',
+            'MRR',
+            'ERR',
         }
         for attr in query.split():
             if attr.startswith('-'):
