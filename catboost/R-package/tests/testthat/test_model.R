@@ -59,6 +59,73 @@ test_that("model: catboost.train with per_float_quantization and ignored_feature
   expect_true(TRUE)
 })
 
+check_models_with_synonyms <- function(pool, init_params, synonym_params, params_values) {
+  params_num = length(synonym_params)
+  max_synonym_length <- max(lengths(synonym_params))
+
+  prediction <- NULL
+  for (synonym_idx in 1:max_synonym_length) {
+    params <- init_params
+    for (params_idx in 1:params_num) {
+      idx <- synonym_idx
+      if (length(synonym_params[[params_idx]]) < synonym_idx) {
+        idx <- 1
+      }
+      params[[synonym_params[[params_idx]][[idx]]]] <- params_values[[params_idx]]
+    }
+
+    model <- catboost.train(pool, NULL, params)
+    prediction_with_synonyms <- catboost.predict(model, pool)
+    if (is.null(prediction)) {
+      prediction = prediction_with_synonyms
+    } else {
+      expect_equal(prediction, prediction_with_synonyms)
+    }
+  }
+}
+
+test_that("model: catboost.train synonyms", {
+  target <- sample(c(1, -1), size = 1000, replace = TRUE)
+  features <- data.frame(f1 = rnorm(length(target), mean = 0, sd = 1),
+                         f2 = rnorm(length(target), mean = 0, sd = 1))
+  
+  pool <- catboost.load_pool(features, target)
+  
+  params <- list(iterations = 10,
+                loss_function = "Logloss",
+                random_seed = 12345,
+                random_state = 12345)
+  
+  expect_error(catboost.train(pool, NULL, params),
+               "Only one of the parameters [random_seed, random_state] should be initialized.",
+               fixed = TRUE)
+  
+  synonym_params <- list(
+      c('loss_function', 'objective'),
+      c('iterations', 'num_boost_round', 'n_estimators', 'num_trees'),
+      c('learning_rate', 'eta'),
+      c('random_seed', 'random_state'),
+      c('l2_leaf_reg', 'reg_lambda'),
+      c('depth', 'max_depth'),
+      c('rsm', 'colsample_bylevel'),
+      c('border_count', 'max_bin'),
+      c('verbose', 'verbose_eval')
+  )
+  params_values <- list('Logloss', 5, 0.04, 12345, 4, 5, 0.5, 32, 20)
+  check_models_with_synonyms(pool, vector(mode = "list"), synonym_params, params_values)
+
+  synonym_params <- list(
+    c('min_data_in_leaf', 'min_child_samples'),
+    c('max_leaves', 'num_leaves')
+  )
+  params_values <- list(1, 31)
+  init_params <- list(iterations = 5,
+                      loss_function = "Logloss",
+                      grow_policy = "Lossguide",
+                      random_seed = 12345)
+  check_models_with_synonyms(pool, init_params, synonym_params, params_values)
+})
+
 test_that("model: catboost.importance", {
   target <- sample(c(1, -1), size = 1000, replace = TRUE)
   features <- data.frame(f1 = rnorm(length(target), mean = 0, sd = 1),
