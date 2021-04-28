@@ -9,7 +9,7 @@ A Node.js package for applying pretrained CatBoost model.
 1. Install the package. You have two options:
    - Install from npm registry:
    ```sh
-   npm i catboost-model
+   npm i catboost
    ```
    - Build package from source. Navigate to this directory inside the repo and run:
 
@@ -26,7 +26,7 @@ A Node.js package for applying pretrained CatBoost model.
 1. Apply the pretrained model:
 
 ```js
-catboost = require('catboost-model');
+catboost = require('catboost');
 
 model = new catboost.Model();
 model.loadModel('test_data/adult.cbm');

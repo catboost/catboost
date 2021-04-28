@@ -1,0 +1,28 @@
+{
+ "linux": [
+  {
+   "url": "https:/github.com/catboost/catboost/releases/download/v0.25.1/libcatboostmodel.so",
+   "sha256": "ebc47ea32da1473220930014e1c705c07e7d60eda356325fabef691cd7ca8ab3",
+   "targetFile": "libcatboostmodel.so"
+  }
+ ],
+ "mac": [
+  {
+   "url": "https:/github.com/catboost/catboost/releases/download/v0.25.1/libcatboostmodel.dylib",
+   "sha256": "47e92550090944cdcd0af8157b7dc198fd04cc814d9662c99160bd6b227d63bb",
+   "targetFile": "libcatboostmodel.dylib"
+  }
+ ],
+ "win": [
+  {
+   "url": "https:/github.com/catboost/catboost/releases/download/v0.25.1/catboostmodel.dll",
+   "sha256": "388921ad26d36a5fe865bf446f42a9f9e1e84fed3d2c0e104c4a777880bd6b27",
+   "targetFile": "catboostmodel.dll"
+  },
+  {
+    "url": "https://storage.googleapis.com/ikholopov-public-bin/catboost-v0.25.1/catboostmodel.lib",
+    "sha256": "67fdfadffc10ae5660a013b5845f5036094738d85346602c19d8ef207bc0c0b5",
+    "targetFile": "catboostmodel.lib"
+  }
+ ]
+}
