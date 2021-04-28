@@ -306,7 +306,7 @@ if __name__ == '__main__':
     out_root = tempfile.mkdtemp()
 
     widget_args_parser = ArgumentParser()
-    widget_args_parser.add_argument('--build_widget', choices=['yes', 'no'], default='yes')
+    widget_args_parser.add_argument('--build-widget', choices=['yes', 'no'], default='yes')
     widget_args, catboost_args = widget_args_parser.parse_known_args()
     should_build_widget = widget_args.build_widget == 'yes'
 
