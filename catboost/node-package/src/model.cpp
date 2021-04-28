@@ -36,6 +36,9 @@ TModel::TModel(const Napi::CallbackInfo& info): Napi::ObjectWrap<TModel>(info) {
     // The C++ object is considered to be successfully created and will be destoryed by Node runtime
     // later as usual.
     NHelper::CheckStatus(env, status);
+    if (status) {
+        this->ModelLoaded = true;
+    }
 }
 
 TModel::~TModel() {
@@ -66,14 +69,20 @@ void TModel::LoadFullFromFile(const Napi::CallbackInfo& info) {
     const bool status = LoadFullModelFromFile(this->Handle,
                                               info[0].As<Napi::String>().Utf8Value().c_str());
     NHelper::CheckStatus(env, status);
+    if (status) {
+        this->ModelLoaded = true;
+    }
 }
 
 Napi::Value TModel::CalcPrediction(const Napi::CallbackInfo& info) {
     Napi::Env env = info.Env();
 
-    NHelper::Check(env, info.Length() >= 2, "Wrong number of arguments - expected 2");
-    NHelper::Check(env, NHelper::IsMatrix(info[0], NHelper::NAT_NUMBER),
-        "Expected the first argument to be a matrix of floats");
+    if (!NHelper::Check(env, info.Length() >= 2, "Wrong number of arguments - expected 2") ||
+        !NHelper::Check(env, NHelper::IsMatrix(info[0], NHelper::NAT_NUMBER),
+            "Expected the first argument to be a matrix of floats")  ||
+        !NHelper::Check(env, this->ModelLoaded, "Trying to predict from the empty model")) {
+        return env.Undefined();
+    }
 
     const Napi::Array floatFeatures = info[0].As<Napi::Array>();
     const uint32_t docsCount = floatFeatures.Length();
@@ -93,13 +102,17 @@ Napi::Value TModel::CalcPrediction(const Napi::CallbackInfo& info) {
         }
     }
 
-    NHelper::Check(env,
-        NHelper::IsMatrix(info[1], NHelper::NAT_NUMBER) || NHelper::IsMatrix(info[1], NHelper::NAT_STRING),
-        "Expected second argument to be a matrix of strings or numbers");
+    if (!NHelper::Check(env, NHelper::IsMatrix(info[1], NHelper::NAT_NUMBER) ||
+            NHelper::IsMatrix(info[1], NHelper::NAT_STRING),
+            "Expected second argument to be a matrix of strings or numbers")) {
+        return env.Undefined();
+    }
     const Napi::Array catFeatures = info[1].As<Napi::Array>();
 
-    NHelper::Check(env, catFeatures.Length() == docsCount,
-        "Expected the number of docs to be the same for both float and categorial features");
+    if (!NHelper::Check(env, catFeatures.Length() == docsCount,
+        "Expected the number of docs to be the same for both float and categorial features")) {
+        return env.Undefined();
+    }
     const Napi::Array catRow = catFeatures[0u].As<Napi::Array>();
     if (catRow.Length() == 0 || catRow[0u].IsNumber()) {
         return CalcPredictionHash(env, floatFeatureValues, catFeatures);
@@ -192,11 +205,13 @@ Napi::Array TModel::CalcPredictionString(Napi::Env env,
     TVector<const float*> floatPtrs = CollectMatrixRowPointers<float>(floatFeatures, floatFeaturesSize);
     TVector<const char**> catPtrs = CollectMatrixRowPointers<const char*, const char**>(catStringValues, catFeaturesSize);
 
-    NHelper::CheckStatus(env,
-        CalcModelPrediction(this->Handle, docsCount,
+    if (!NHelper::CheckStatus(env,
+            CalcModelPrediction(this->Handle, docsCount,
                         floatPtrs.data(), floatFeaturesSize,
                         catPtrs.data(), catFeaturesSize,
-                        resultValues.data(), docsCount));
+                        resultValues.data(), docsCount))) {
+        return Napi::Array::New(env);
+    }
 
     return NHelper::ConvertToArray(env, resultValues);
 }
