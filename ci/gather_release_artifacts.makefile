@@ -11,6 +11,7 @@ upload += libcatboostr.dll
 upload += libcatboostr-linux.so
 upload += libcatboostr-darwin.so
 upload += catboostmodel.dll
+upload += catboostmodel.lib
 
 all: $(addprefix ${UDIR}/, ${upload})
 
@@ -52,6 +53,11 @@ ${UDIR}/libcatboostr-darwin.so: R/catboost-R-Darwin.tgz
 	touch $@
 
 ${UDIR}/catboostmodel.dll: model_interface_win/model_interface/catboostmodel.dll
+	cp -p $< $@
+	md5sum $@
+	a=`md5sum $@` ; grep $$a *_BuildAll_*_md5.checksum
+
+${UDIR}/catboostmodel.lib: model_interface_win/model_interface/catboostmodel.lib
 	cp -p $< $@
 	md5sum $@
 	a=`md5sum $@` ; grep $$a *_BuildAll_*_md5.checksum
