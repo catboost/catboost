@@ -415,9 +415,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\expat\contrib-libs-expat.vcxproj">
       <Project>{BF794ED3-B687-CE38-5FC3-A9AC59EC392B}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\jquery\contrib-libs-jquery.vcxproj">
-      <Project>{912CB8E0-911C-D43E-4D7A-730FD6B8DB60}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libbz2\contrib-libs-libbz2.vcxproj">
       <Project>{22D13723-C5D2-BCB5-73F8-368EA5B1CBE5}</Project>
     </ProjectReference>
