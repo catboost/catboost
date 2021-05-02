@@ -6136,6 +6136,10 @@ TVector<TParamSet> ValidParamSets(ELossFunction metric) {
             return TUserDefinedQuerywiseMetric::ValidParamSets();
         case ELossFunction::QueryCrossEntropy:
             return TQueryCrossEntropyMetric::ValidParamSets();
+        case ELossFunction::MRR:
+            return TMRRMetric::ValidParamSets();
+        case ELossFunction::ERR:
+            return TERRMetric::ValidParamSets();
         case ELossFunction::Huber:
             return THuberLossMetric::ValidParamSets();
         case ELossFunction::FilteredDCG:

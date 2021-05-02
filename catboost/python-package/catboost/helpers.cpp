@@ -106,22 +106,6 @@ TVector<TString> GetMetricNames(const TFullModel& model, const TVector<TString>&
     return metricNames;
 }
 
-NJson::TJsonValue GetDummyMetrics() {
-    NJson::TJsonValue metricDescriptions;
-
-    NJson::TJsonValue lq_params;
-    lq_params.InsertValue("use_weights", NJson::TJsonValue(true));
-    lq_params.InsertValue("q", NJson::TJsonValue() /*mandatory*/);
-    metricDescriptions.InsertValue("Lq", lq_params);
-
-    NJson::TJsonValue huber_params;
-    huber_params.InsertValue("use_weights", NJson::TJsonValue(true));
-    huber_params.InsertValue("delta", NJson::TJsonValue() /*mandatory*/);
-    metricDescriptions.InsertValue("Huber", huber_params);
-
-    return metricDescriptions;
-}
-
 TVector<double> EvalMetricsForUtils(
     TConstArrayRef<TVector<float>> label,
     const TVector<TVector<double>>& approx,

@@ -16,7 +16,7 @@ class BuiltinMetric(object):
         ----------
         valid_params: dict: param_name -> default value or None.
         '''
-        raise Exception("Should be overridden by the child class.")
+        raise NotImplementedError("Should be overridden by the child class.")
 
     def to_string(self):
         '''
@@ -27,7 +27,7 @@ class BuiltinMetric(object):
         ----------
         metric_string: str representing the metric object.
         '''
-        raise Exception("Should be overridden by the child class.")
+        raise NotImplementedError("Should be overridden by the child class.")
 
     def set_hints(self, **hints):
         '''
@@ -38,7 +38,7 @@ class BuiltinMetric(object):
         ----------
         self: for chained calls.
         '''
-        raise Exception("Should be overridden by the child class.")
+        raise NotImplementedError("Should be overridden by the child class.")
 
 
 class _MetricGenerator(type):
