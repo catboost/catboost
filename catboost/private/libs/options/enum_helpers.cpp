@@ -356,6 +356,14 @@ MakeRegister(LossInfos,
         EMetricAttribute::IsBinaryClassCompatible
         | EMetricAttribute::IsGroupwise
     ),
+    RankingRegistree(MRR, ERankingType::Order,
+        EMetricAttribute::IsBinaryClassCompatible
+        | EMetricAttribute::IsGroupwise
+    ),
+    RankingRegistree(ERR, ERankingType::Order,
+        EMetricAttribute::IsBinaryClassCompatible
+        | EMetricAttribute::IsGroupwise
+    ),
     Registree(Tweedie,
         EMetricAttribute::IsRegression
     )

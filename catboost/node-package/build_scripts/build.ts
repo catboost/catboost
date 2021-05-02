@@ -1,7 +1,7 @@
 import {execProcess} from './common';
 import {linkSync, readFileSync, writeFileSync} from 'fs'
-import { downloadBinaryFile } from './download';
-import { readConfig } from './config';
+import {downloadBinaryFile} from './download';
+import {readConfig} from './config';
 
 async function compileTypeScript() {
     const result = await execProcess('npm run tsc');
@@ -73,9 +73,24 @@ async function preparePlatformBinary(platform: string) {
     const config = readConfig();
     switch (platform) {
         case 'linux':
-            await downloadBinaryFile(config.binaries['linux']);
+            for (const binary of config.binaries['linux']) {
+                await downloadBinaryFile('./build/catboost/libs/model_interface',
+                    binary);
+            }
             linkSync('./build/catboost/libs/model_interface/libcatboostmodel.so', 
                 './build/catboost/libs/model_interface/libcatboostmodel.so.1');
+            return;
+        case 'darwin':
+            for (const binary of config.binaries['mac']) {
+                await downloadBinaryFile('./build/catboost/libs/model_interface', 
+                    binary);
+            }
+            return;
+        case 'win32':
+            for (const binary of config.binaries['win']) {
+                await downloadBinaryFile('./build/catboost/libs/model_interface',
+                    binary);
+            }
             return;
         default:
             throw new Error(`Platform ${platform} is not supported`);

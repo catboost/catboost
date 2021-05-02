@@ -144,6 +144,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\jvm-packages\catboost4j-prediction\src\native_impl\catboost4j-prediction.vcxproj">
       <Project>1ED2DCD1-3769-9401-E4FF-0C54F35EC1A6</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\calc_metrics\catboost-libs-calc_metrics.vcxproj">
+      <Project>99F5E297-8316-4C38-ACF7-A0831C9EB2BD</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\cat_feature\catboost-libs-cat_feature.vcxproj">
       <Project>39CEAA9A-D75F-AA0D-96C0-E8C323B015CB</Project>
     </ProjectReference>
@@ -237,8 +240,8 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model_interface\static\lib\model_interface-static-lib.vcxproj">
       <Project>26A1D776-9ECB-45E1-C061-632ACB686E26</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model_interface\static\libcatboostmodel.o.vcxproj">
-      <Project>325357DB-9CA1-7299-6753-17428916460D</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model_interface\static\libcatboostmodel.global.vcxproj">
+      <Project>3847F950-BA39-75F6-DAB0-D46956BEB562</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\monoforest\catboost-libs-monoforest.vcxproj">
       <Project>A92A8F45-E094-AA7F-FCC1-C39BE30D4254</Project>
@@ -500,9 +503,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\gamma_function_apache_math_port\contrib-libs-gamma_function_apache_math_port.vcxproj">
       <Project>80882C98-2659-8885-5B61-34A8E4283441</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\jquery\contrib-libs-jquery.vcxproj">
-      <Project>912CB8E0-911C-D43E-4D7A-730FD6B8DB60</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libbz2\contrib-libs-libbz2.vcxproj">
       <Project>22D13723-C5D2-BCB5-73F8-368EA5B1CBE5</Project>

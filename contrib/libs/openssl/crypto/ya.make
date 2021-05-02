@@ -110,6 +110,14 @@ IF (OS_DARWIN AND ARCH_X86_64)
     )
 ENDIF()
 
+IF (OS_DARWIN AND ARCH_ARM64)
+    CFLAGS(
+        -DL_ENDIAN
+        -DOPENSSL_PIC
+        -D_REENTRANT
+    )
+ENDIF()
+
 IF (OS_WINDOWS)
     IF (ARCH_X86_64)
         CFLAGS(
@@ -848,6 +856,31 @@ IF (OS_DARWIN AND ARCH_X86_64)
     )
 ENDIF()
 
+
+IF (OS_DARWIN AND ARCH_ARM64)
+    SRCS(
+        ../asm/darwin-arm64/crypto/sha/keccak1600-armv8.S
+        ../asm/darwin-arm64/crypto/sha/sha512-armv8.S
+        ../asm/darwin-arm64/crypto/sha/sha1-armv8.S
+        ../asm/darwin-arm64/crypto/sha/sha256-armv8.S
+        ../asm/darwin-arm64/crypto/poly1305/poly1305-armv8.S
+        ../asm/darwin-arm64/crypto/ec/ecp_nistz256-armv8.S
+        ../asm/darwin-arm64/crypto/chacha/chacha-armv8.S
+        ../asm/darwin-arm64/crypto/bn/armv8-mont.S
+        ../asm/darwin-arm64/crypto/arm64cpuid.S
+        ../asm/darwin-arm64/crypto/aes/aesv8-armx.S
+        ../asm/darwin-arm64/crypto/aes/vpaes-armv8.S
+        ../asm/darwin-arm64/crypto/modes/ghashv8-armx.S
+        armcap.c
+        bn/bn_asm.c
+        camellia/camellia.c
+        camellia/cmll_cbc.c
+        rc4/rc4_enc.c
+        rc4/rc4_skey.c
+        whrlpool/wp_block.c
+    )
+ENDIF()
+
 IF (OS_LINUX AND ARCH_ARM7)
     IF (CLANG)
         # XXX: This is a workarond for 'out of range immediate fixup value'
@@ -978,34 +1011,35 @@ ENDIF()
 
 IF (OS_WINDOWS AND ARCH_X86_64)
     SRCS(
-        ../asm/windows/crypto/aes/aesni-mb-x86_64.asm
-        ../asm/windows/crypto/aes/aesni-sha1-x86_64.asm
-        ../asm/windows/crypto/aes/aesni-sha256-x86_64.asm
-        ../asm/windows/crypto/aes/aesni-x86_64.asm
-        ../asm/windows/crypto/aes/vpaes-x86_64.asm
-        ../asm/windows/crypto/bn/rsaz-avx2.asm
-        ../asm/windows/crypto/bn/rsaz-x86_64.asm
-        ../asm/windows/crypto/bn/x86_64-gf2m.asm
-        ../asm/windows/crypto/bn/x86_64-mont.asm
-        ../asm/windows/crypto/bn/x86_64-mont5.asm
-        ../asm/windows/crypto/camellia/cmll-x86_64.asm
-        ../asm/windows/crypto/chacha/chacha-x86_64.asm
-        ../asm/windows/crypto/ec/ecp_nistz256-x86_64.asm
-        ../asm/windows/crypto/ec/x25519-x86_64.asm
-        ../asm/windows/crypto/md5/md5-x86_64.asm
-        ../asm/windows/crypto/modes/aesni-gcm-x86_64.asm
-        ../asm/windows/crypto/modes/ghash-x86_64.asm
-        ../asm/windows/crypto/poly1305/poly1305-x86_64.asm
-        ../asm/windows/crypto/rc4/rc4-md5-x86_64.asm
-        ../asm/windows/crypto/rc4/rc4-x86_64.asm
-        ../asm/windows/crypto/sha/keccak1600-x86_64.asm
-        ../asm/windows/crypto/sha/sha1-mb-x86_64.asm
-        ../asm/windows/crypto/sha/sha1-x86_64.asm
-        ../asm/windows/crypto/sha/sha256-mb-x86_64.asm
-        ../asm/windows/crypto/sha/sha256-x86_64.asm
-        ../asm/windows/crypto/sha/sha512-x86_64.asm
-        ../asm/windows/crypto/whrlpool/wp-x86_64.asm
-        ../asm/windows/crypto/x86_64cpuid.asm
+        ../asm/windows/crypto/aes/aesni-mb-x86_64.masm
+        ../asm/windows/crypto/aes/aesni-sha1-x86_64.masm
+        ../asm/windows/crypto/aes/aesni-sha256-x86_64.masm
+        ../asm/windows/crypto/aes/aesni-x86_64.masm
+        ../asm/windows/crypto/aes/vpaes-x86_64.masm
+        ../asm/windows/crypto/bn/rsaz-avx2.masm
+        ../asm/windows/crypto/bn/rsaz-x86_64.masm
+        ../asm/windows/crypto/bn/x86_64-gf2m.masm
+        ../asm/windows/crypto/bn/x86_64-mont.masm
+        ../asm/windows/crypto/bn/x86_64-mont5.masm
+        ../asm/windows/crypto/camellia/cmll-x86_64.masm
+        ../asm/windows/crypto/chacha/chacha-x86_64.masm
+        ../asm/windows/crypto/ec/ecp_nistz256-x86_64.masm
+        ../asm/windows/crypto/ec/x25519-x86_64.masm
+        ../asm/windows/crypto/md5/md5-x86_64.masm
+        ../asm/windows/crypto/modes/aesni-gcm-x86_64.masm
+        ../asm/windows/crypto/modes/ghash-x86_64.masm
+        ../asm/windows/crypto/poly1305/poly1305-x86_64.masm
+        ../asm/windows/crypto/rc4/rc4-md5-x86_64.masm
+        ../asm/windows/crypto/rc4/rc4-x86_64.masm
+        ../asm/windows/crypto/sha/keccak1600-x86_64.masm
+        ../asm/windows/crypto/sha/sha1-mb-x86_64.masm
+        ../asm/windows/crypto/sha/sha1-x86_64.masm
+        ../asm/windows/crypto/sha/sha256-mb-x86_64.masm
+        ../asm/windows/crypto/sha/sha256-x86_64.masm
+        ../asm/windows/crypto/sha/sha512-x86_64.masm
+        ../asm/windows/crypto/whrlpool/wp-x86_64.masm
+        ../asm/windows/crypto/uplink-x86_64.masm
+        ../asm/windows/crypto/x86_64cpuid.masm
     )
 ENDIF()
 

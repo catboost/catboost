@@ -956,8 +956,6 @@ class ToolchainOptions(object):
 
         # default C++ standard is set here, some older toolchains might need to redefine it in ya.conf.json
         self.cxx_std = self.params.get('cxx_std', 'c++20')
-        if preset('MAPSMOBI_BUILD_TARGET') and self.target.is_android:
-            self.cxx_std = 'c++17'  # MAPSMOBI does not build with c++20 yet DTCC-55
 
         self._env = tc_json.get('env', {})
 
@@ -1649,14 +1647,11 @@ class GnuCompiler(Compiler):
         print 'macro _SRC_masm(SRC, SRCFLAGS...) {\n}'
 
         # fuzzing configuration
-        if self.tc.is_clang and self.tc.version_at_least(5, 0):
-            emit('LIBFUZZER_PATH',
-                 'contrib/libs/libfuzzer11' if self.tc.version_at_least(11) else
-                 'contrib/libs/libfuzzer10' if self.tc.version_at_least(10) else
-                 'contrib/libs/libfuzzer8' if self.tc.version_at_least(8) else
-                 'contrib/libs/libfuzzer7' if self.tc.version_at_least(7) else
-                 'contrib/libs/libfuzzer6' if self.tc.version_at_least(6) else
-                 'contrib/libs/libfuzzer-5.0')
+        if self.tc.is_clang:
+            if self.tc.version_at_least(12):
+                emit('LIBFUZZER_PATH', 'contrib/libs/libfuzzer12')
+            elif self.tc.version_at_least(11):
+                emit('LIBFUZZER_PATH', 'contrib/libs/libfuzzer11')
 
 
 class SwiftCompiler(object):
@@ -1702,6 +1697,11 @@ class Linker(object):
                 return Linker.LLD
             else:
                 # GCC et al.
+
+                if self.tc.is_gcc and is_positive('MUSL'):
+                    # See MUSL_BFD comment below
+                    return Linker.BFD
+
                 return Linker.GOLD
 
         # There is no linker choice on Darwin (ld64) or Windows (link.exe)
@@ -1712,7 +1712,8 @@ class Linker(object):
 
     def _print_linker_selector(self):
         if self.type and self.tc.is_clang:
-            # GCC does not support -fuse-ld.
+            # GCC does not support -fuse-ld with an executable path, only
+            # -fuse-ld=bfd or -fuse-ld=gold (or -fuse-ld=lld in later versions).
             emit_big('''
                 macro _USE_LINKER() {
                     DEFAULT(_LINKER_ID %(default_linker)s)
@@ -1818,8 +1819,15 @@ class LD(Linker):
 
         if self.musl.value:
             self.ld_flags.extend(['-Wl,--no-as-needed'])
+            if self.tc.is_gcc:
+                # MUSL_BFD: musl build uses --no-dynamic-linker linker flag
+                # which gold doesn't know about. And we can only specify linker
+                # type, not it's path as we do for Clang through linker selector.
+                self.ld_flags.append('-fuse-ld=bfd')
         elif target.is_linux:
             self.ld_flags.extend(['-ldl', '-lrt', '-Wl,--no-as-needed'])
+            if self.tc.is_gcc:
+                self.ld_flags.extend(('-Wl,-Bstatic', '-latomic', '-Wl,-Bdynamic'))
         elif target.is_android:
             self.ld_flags.extend(['-ldl', '-Wl,--no-as-needed'])
             if self.type == Linker.LLD and target.android_api < 29:
@@ -2023,7 +2031,7 @@ class LD(Linker):
             prefix = ['$GENERATE_MF && $GENERATE_VCS_C_INFO_NODEP &&',
                       '$YMAKE_PYTHON ${input:"build/scripts/link_fat_obj.py"} --build-root $ARCADIA_BUILD_ROOT']
             suffix = [arch_flag,
-                      '-Ya,input $AUTO_INPUT $VCS_C_OBJ -Ya,global_srcs', srcs_globals, '-Ya,peers $PEERS',
+                      '-Ya,input $AUTO_INPUT $VCS_C_OBJ -Ya,global_srcs ${rootrel:SRCS_GLOBAL} -Ya,peers $PEERS',
                       '-Ya,linker $CXX_COMPILER $C_FLAGS_PLATFORM', self.ld_sdk, '-Ya,archiver', archiver,
                       '$TOOLCHAIN_ENV ${kv;hide:"p LD"} ${kv;hide:"pc light-blue"} ${kv;hide:"show_out"}']
             emit(cmd_name, *(prefix + list(extended_flags) + suffix))
@@ -2564,13 +2572,23 @@ class MSVCLinker(MSVC, Linker):
             'advapi32.lib',
             'comdlg32.lib',
             'crypt32.lib',
+            'dnsapi.lib',
             'gdi32.lib',
+            'iphlpapi.lib',
             'kernel32.lib',
+            'mswsock.lib',
             'ole32.lib',
             'oleaut32.lib',
+            'psapi.lib',
+            'rpcrt4.lib',
+            'secur32.lib',
             'shell32.lib',
+            'shlwapi.lib',
             'user32.lib',
+            'userenv.lib',
             'uuid.lib',
+            'version.lib',
+            'winmm.lib',
             'winspool.lib',
             'ws2_32.lib',
         ]
@@ -2652,7 +2670,11 @@ class MSVCLinker(MSVC, Linker):
              /OUT:${qe;rootrel:TARGET} ${LINK_EXTRA_OUTPUT} ${EXPORTS_VALUE}', srcs_globals, '--ya-start-command-file ${VCS_C_OBJ_RR} ${qe;rootrel:AUTO_INPUT} ${qe;rootrel:PEERS} \
              $LINK_EXE_FLAGS $LINK_STDLIBS $LDFLAGS $LDFLAGS_GLOBAL $OBJADDE --ya-end-command-file ${hide;kv:"soe"} ${hide;kv:"p LD"} ${hide;kv:"pc blue"}')
 
-        emit('LINK_FAT_OBJECT', '${GENERATE_MF} && $GENERATE_VCS_C_INFO_NODEP && $YMAKE_PYTHON ${input:"build/scripts/touch.py"} $TARGET ${kv;hide:"p LD"} ${kv;hide:"pc light-blue"} ${kv;hide:"show_out"}')  # noqa E501
+        emit('LINK_GLOBAL_FAT_OBJECT', '${TOOLCHAIN_ENV} ${cwd:ARCADIA_BUILD_ROOT} ${LIB_WRAPPER} ${LINK_LIB_CMD} /OUT:${qe;rootrel:TARGET} \
+            --ya-start-command-file ${qe;rootrel:SRCS_GLOBAL} ${qe;rootrel:AUTO_INPUT} $LINK_LIB_FLAGS --ya-end-command-file')
+        emit('LINK_PEERS_FAT_OBJECT', '${TOOLCHAIN_ENV} ${cwd:ARCADIA_BUILD_ROOT} ${LIB_WRAPPER} ${LINK_LIB_CMD} /OUT:${qe;rootrel;output:REALPRJNAME.lib} \
+            --ya-start-command-file ${qe;rootrel:PEERS} $LINK_LIB_FLAGS --ya-end-command-file')
+        emit('LINK_FAT_OBJECT', '${GENERATE_MF} && $GENERATE_VCS_C_INFO_NODEP && $LINK_GLOBAL_FAT_OBJECT && $LINK_PEERS_FAT_OBJECT ${kv;hide:"p LD"} ${kv;hide:"pc light-blue"} ${kv;hide:"show_out"}')  # noqa E501
 
 
 # TODO(somov): Rename!

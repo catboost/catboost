@@ -66,7 +66,7 @@
       <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/python/numpy/py2/numpy/core;$(SolutionDir)../contrib/python/numpy/py2/numpy/core/include;$(SolutionDir)../contrib/python/numpy/py2/numpy/core/include/numpy;$(SolutionDir)../contrib/python/numpy/py2/numpy/core/src;$(SolutionDir)../contrib/python/numpy/py2/numpy/core/src/common;$(SolutionDir)../contrib/python/numpy/py2/numpy/core/src/multiarray;$(SolutionDir)../contrib/python/numpy/py2/numpy/core/src/npymath;$(SolutionDir)../contrib/python/numpy/py2/numpy/core/src/npysort;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)../contrib/libs/libc_compat/include/windows;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/libs/openssl/include;$(SolutionDir)../contrib/restricted/libffi/include;$(SolutionDir)../contrib/restricted/libffi/configs/x86_64-microsoft-windows/include;$(SolutionDir)../contrib/libs/libf2c;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;gdi32.lib;kernel32.lib;ole32.lib;oleaut32.lib;shell32.lib;user32.lib;uuid.lib;winspool.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;dnsapi.lib;gdi32.lib;iphlpapi.lib;kernel32.lib;mswsock.lib;ole32.lib;oleaut32.lib;psapi.lib;rpcrt4.lib;secur32.lib;shell32.lib;shlwapi.lib;user32.lib;userenv.lib;uuid.lib;version.lib;winmm.lib;winspool.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  crypt32.lib ws2_32.lib</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  crypt32.lib ws2_32.lib</AdditionalOptions>
       <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
@@ -2408,7 +2408,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\include\numpy\npy_1_7_deprecated_api.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\include\numpy\npy_3kcompat.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\include\numpy\npy_common.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\include\numpy\npy_config.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\include\numpy\npy_cpu.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\include\numpy\npy_endian.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\include\numpy\npy_interrupt.h"/>

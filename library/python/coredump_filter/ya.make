@@ -14,10 +14,6 @@ RESOURCE(
     library/python/coredump_filter/styles.css /coredump_filter_data/styles.css
 )
 
-PEERDIR(
-    contrib/libs/jquery
-)
-
 IF(PYTHON2)
     PEERDIR(contrib/python/enum34)
 ENDIF()

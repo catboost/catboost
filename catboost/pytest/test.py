@@ -1270,6 +1270,28 @@ def test_yetirank_default_metric(loss_function):
     return [local_canonical_file(test_error_path)]
 
 
+@pytest.mark.parametrize('eval_metric', ['MRR', 'MRR:top=1', 'ERR', 'ERR:top=1'])
+def test_reciprocal_rank_metrics(eval_metric):
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+
+    cmd = (
+        '--loss-function', 'YetiRank',
+        '--eval-metric', eval_metric,
+        '-f', data_file('querywise', 'train'),
+        '-t', data_file('querywise', 'test'),
+        '--column-description', data_file('querywise', 'train.cd.query_id'),
+        '--boosting-type', 'Plain',
+        '-i', '20',
+        '-T', '4',
+        '--learn-err-log', learn_error_path,
+        '--test-err-log', test_error_path,
+    )
+    execute_catboost_fit('CPU', cmd)
+
+    return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
+
+
 NAN_MODE = ['Min', 'Max']
 
 

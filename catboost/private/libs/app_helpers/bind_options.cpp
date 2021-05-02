@@ -794,6 +794,18 @@ static void BindTreeParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* pla
             (*plainJsonPtr)["l2_leaf_reg"] = reg;
         });
 
+    parser.AddLongOption("meta-l2-leaf-exponent", "GPU only. Exponent value for meta L2 score function.")
+        .RequiredArgument("float")
+        .Handler1T<float>([plainJsonPtr](float exponent) {
+            (*plainJsonPtr)["meta_l2_exponent"] = exponent;
+        });
+
+    parser.AddLongOption("meta-l2-leaf-frequency", "GPU only. Frequency value for meta L2 score function.")
+        .RequiredArgument("float")
+        .Handler1T<float>([plainJsonPtr](float frequency) {
+            (*plainJsonPtr)["meta_l2_frequency"] = frequency;
+        });
+
     parser.AddLongOption("bayesian-matrix-reg", "Regularization value. Should be >= 0")
             .RequiredArgument("float")
             .Handler1T<float>([plainJsonPtr](float reg) {

@@ -1,77 +1,4 @@
 migrations:
-  F403:
-    ignore:
-    - F403
-    prefixes:
-    - adfox/infra/registrator
-    - adfox/infra/registrator/lib
-    - ads/libs/py_dssm_lib/dssm_applier
-    - ads/libs/py_ml_factors/matrixnet
-    - ads/libs/py_vw_lib
-    - ads/nirvana/xfactor-yt
-    - ads/tools/mx_feature_remapper
-    - ads/watchman/contrib/flask-restplus-patched
-    - ads/watchman/contrib/flask-restplus-patched/flask_restplus_patched
-    - alice/analytics/utils/marty/run_nirvana_instance
-    - alice/uniproxy/library/notificator
-    - alice/uniproxy/library/notificator_api
-    - arc/tables_creation/tests
-    - browser/infra/ci/backend
-    - browser/infra/ci/backend/ci/settings
-    - cloud/ai/speechkit/stt/tests/data_pipeline/join
-    - cv/short2long/nirvana/lib
-    - devtools/signer/signer
-    - dict/ontodb/cmpy/lib
-    - dict/ontodb/isa/libshorttext/converter/stemmer
-    - dict/ontodb/report/common
-    - dict/ontodb/utils/export_src_codes
-    - edadeal/analytics/scripts/CashbackReport/CashbackReportLib
-    - edadeal/analytics/scripts/CashbackReport/CashbackReportLib/CashbackReportLib
-    - extsearch/geo/recommender/runtime/config/generation
-    - mail/freezing_tests/active_users_aggregation
-    - maps/analyzer/tools/online_jams/pylib
-    - maps/tools/naviguide/tools/extract_uuid_info
-    - market/seo/offer_base
-    - mediapers/feature_machine/nirvana/script_runner
-    - metrika/core/test_framework/steps/clients
-    - mlp/mail/aspam/nirvana_operations/conveyor/build_prod_graph/inbound
-    - mlp/mail/aspam/nirvana_operations/conveyor/build_prod_graph/outbound
-    - mlp/mail/aspam/nirvana_operations/conveyor/calc_dsats
-    - passport/python/api/tests/views/bundle/change_avatar
-    - quality/ab_testing/cofe/projects/alice/sesame/v1_1
-    - quality/neural_net/bert/bert/utils/distributed
-    - quality/neural_net/bert/bert/utils/fs
-    - sandbox/projects/tycoon/TycoonAdverts
-    - search/base_search/tools/explain_l1
-    - search/metrics/ccc/ccc_lib
-    - search/mon/rviewer/app
-    - search/mon/rviewer/db
-    - search/mon/rviewer/modules
-    - search/mon/rviewer/modules/clients
-    - search/mon/rviewer/modules/orchestrator
-    - travel/avia/avia_api
-    - travel/avia/avia_api/avia/settings
-    - travel/avia/avia_api/avia/v1/schemas
-    - travel/avia/avia_api/tests
-    - travel/avia/ticket_daemon
-    - travel/avia/ticket_daemon/tests
-    - travel/avia/ticket_daemon/ticket_daemon/api/models_utils
-    - travel/avia/ticket_daemon_api/tests
-    - voicetech/asr/cloud_engine/cli/nirvana/aggregate_kenlm_outputs
-    - voicetech/asr/cloud_engine/cli/nirvana/aggregate_subword_lm_outputs
-    - voicetech/asr/cloud_engine/cli/nirvana/build_lm
-    - voicetech/asr/cloud_engine/cli/nirvana/make_kenlm_lingware
-    - voicetech/asr/cloud_engine/cli/nirvana/make_subword_lm_lingware
-    - voicetech/asr/cloud_engine/cli/nirvana/merge_lingwares
-    - voicetech/asr/cloud_engine/cli/nirvana/select_best_kenlm
-    - voicetech/asr/core/lib/subword_ngram_lm/nirvana/build_freq_table
-    - voicetech/asr/core/lib/subword_ngram_lm/nirvana/build_mixture_model
-    - voicetech/asr/core/lib/subword_ngram_lm/nirvana/build_model
-    - voicetech/asr/core/lib/subword_ngram_lm/nirvana/fit_lambda
-    - voicetech/asr/core/lib/subword_ngram_lm/nirvana/fit_vocabulary
-    - voicetech/asr/tools/language_model/tests/test_linear_merge
-    - yabs/outdoor/viewer/back/logic
-    - yt/yt/tests/integration/tests
   W605:
     ignore:
     - W605
@@ -102,7 +29,6 @@ migrations:
     - ads/libs/py_prgmg
     - ads/libs/py_prgmg/factors
     - ads/libs/py_test_mapreduce
-    - ads/libs/py_yt2logbroker
     - ads/logos/libs/core
     - ads/logos/libs/core/ut
     - ads/ml_engine/learn/result/flow_generate_extended_fstr
@@ -177,14 +103,6 @@ migrations:
     - alice/vins/tools/vins_tools
     - alice/vins/tools/vins_tools/nlu/ner
     - alice/vins/tools/vins_tools/utils
-    - antiadblock/adblock_rule_sonar/tests
-    - antiadblock/configs_api/tests/functional
-    - antiadblock/cryprox/cryprox
-    - antiadblock/cryprox/cryprox/common
-    - antiadblock/cryprox/cryprox/common/tools
-    - antiadblock/cryprox/cryprox/config
-    - antiadblock/cryprox/cryprox/service
-    - antiadblock/cryprox/tests/unit
     - antirobot/tools/daily_routine/lib
     - april/web/bas/bm
     - april/web/bas/bm/utils
@@ -422,7 +340,7 @@ migrations:
     - disk/admin/robot_switcher
     - dj/services/alisa_skills/tools/bass_to_dialogs_image_uploader
     - dj/tools/viewer/custom/entity
-    - education/infrastructure/nirvana/operations/yt_nodes_deep_diff
+    - education/lib/nirvana/operations/yt_nodes_deep_diff
     - education/schoolbook/analytics/adhoc/ANALITICSEDU-515
     - education/schoolbook/analytics/adhoc/ANALITICSEDU-687
     - entity/ontodb/robot/tools/extdata_import/khl/lib
@@ -512,7 +430,6 @@ migrations:
     - infra/qyp/vmctl/src
     - infra/reconf_juggler/tools/jdiff/tests
     - infra/rtc/janitor
-    - infra/rtc/juggler/bundle/tests
     - infra/scripts/eventlog_uploader/script
     - infra/swatlib
     - infra/vmagent/src/vmctl
@@ -533,12 +450,6 @@ migrations:
     - keyboard/analytics/toloka/nirvana/swipe
     - keyboard/analytics/toloka/nirvana/typing
     - keyboard/dict/nirvana/blocks
-    - kikimr/ci/libraries/ut/matchers
-    - kikimr/library/ci/teamcity_core
-    - kikimr/library/ci/teamcity_core/core
-    - kikimr/library/sched/dev/test/perf
-    - kikimr/tools/cluster_analyzer
-    - kikimr/tools/kikimr_slice
     - library/python/testing/filter
     - library/python/testing/gtest
     - locdoc/doc_tools/yoda/friends/okapi
@@ -546,7 +457,6 @@ migrations:
     - logbroker/tools/manual/alter_sqs_tables
     - logbroker/tools/manual/create_logbroker_account/lib
     - logbroker/tools/manual/load_test/load
-    - mail/collie/unistat
     - mail/contrib/ccs-caldavtester
     - mail/contrib/ccs-caldavtester/src
     - mail/contrib/ccs-caldavtester/verifiers
@@ -646,8 +556,6 @@ migrations:
     - modadvert/programs/saas_indexer/libs
     - modadvert/programs/transfer_manager/libs
     - modadvert/programs/update_flags_offline/tables_manager/libs
-    - mssngr/botplatform/src/bots/common
-    - mssngr/botplatform/src/bots/common/yamb
     - mssngr/router/tests/lib
     - mssngr/router/tools/state_cache_updater_v2
     - opensource/sync/bin/arc2git
@@ -732,8 +640,6 @@ migrations:
     - quality/relev_tools/lboost_ops/nirvana/operations/main/tests
     - quality/trailer/suggest/services/maps/conveyors/doc_features/chronostat
     - quality/trailer/suggest/services/maps/conveyors/pool/make_pointwise_pool
-    - quality/trailer/suggest/services/maps/pygeosg/pygeosg
-    - quality/trailer/suggest/services/maps/pygeosg/pygeosg/utils
     - quality/trailer/suggest/services/maps/tools/retrieval_test
     - quality/trailer/suggest_dict/suggest_framework/tools
     - quality/user_sessions/market/custom_statistics
@@ -778,7 +684,6 @@ migrations:
     - rt-research/multik/deploy/deploy
     - rt-research/multik/tasks/labeling/catalogia_candidates
     - rtmapreduce/mrtasks/create_sessions/diff_tool
-    - saas/library/python/nanny_rest/tests/fake
     - saas/tools/devops/fban
     - saas/tools/devops/lib
     - saas/tools/devops/lib23/tests/py2
@@ -995,8 +900,6 @@ migrations:
     - travel/avia/library/python/geosearch/views
     - travel/avia/library/python/route_search
     - travel/avia/library/python/route_search/by_number
-    - travel/avia/ticket_daemon
-    - travel/avia/ticket_daemon/ticket_daemon/partners
     - travel/avia/travelers
     - travel/avia/travelers/application
     - travel/avia/travelers/application/validations/bonus_card_types
@@ -1010,8 +913,6 @@ migrations:
     - travel/rasp/library/python/geosearch/views
     - travel/rasp/library/python/route_search
     - travel/rasp/library/python/route_search/by_number
-    - travel/rasp/rasp_scripts
-    - travel/rasp/rasp_scripts/scripts/long_haul/export
     - travel/rasp/train_api
     - travel/rasp/train_api/scripts
     - travel/rasp/train_api/tests
@@ -1051,7 +952,6 @@ migrations:
     - yabs/server/infra/trivial_cron
     - yabs/server/infra/validator/hooks_bin/coredumps_cloud
     - yabs/server/infra/validator/hooks_bin/shoot_search
-    - yabs/server/libs/config/helpers
     - yabs/server/libs/config/tests/updater
     - yabs/server/libs/internal_ver/depgrapher/lib
     - yabs/server/libs/py_markdown_strings
@@ -1099,7 +999,6 @@ migrations:
     - yabs/server/test/qabs_bsserver_pytest
     - yabs/server/test/qabs_bsserver_pytest/db
     - yabs/server/test/tools/oneshot_tester/lib
-    - yabs/server/tools/config/launcher
     - yabs/stat/dropstat2/api/lib
     - yabs/stat/infra/clickhouse/repair_master_report
     - yabs/utils/autosupbs/pylibs/tasks_generator
@@ -1140,7 +1039,6 @@ migrations:
     - yweb/antispam/adblock/viewer
     - yweb/antispam/cid/backend/miner
     - yweb/antispam/clean_web/lib
-    - yweb/antispam/clean_web/lib/module
     - yweb/antispam/clean_web/lib/tests/medium
     - yweb/antispam/clean_web/lib/tests/medium/module
     - yweb/antispam/clean_web/router/lib/tests/small
@@ -1259,9 +1157,7 @@ migrations:
     - alice/uniproxy/library/subway/server
     - alice/uniproxy/library/testing
     - alice/uniproxy/library/testing/mocks
-    - alice/uniproxy/library/uaas
     - alice/uniproxy/library/unimemcached
-    - alice/uniproxy/library/web_handlers
     - alice/uniproxy/tools/balancer_top
     - apphost/conf/tests/blackbox
     - april/badb
@@ -1279,7 +1175,6 @@ migrations:
     - billing/bcl/bcl
     - billing/refs/refs
     - browser/infra/yaml_merger/tests
-    - cloud/filestore/public/sdk/python/client
     - cloud/iam/token_agent/bin
     - cloud/marketplace/queue/yc_marketplace_queue
     - cloud/netinfra/rknfilter/yc_rkn_common
@@ -1342,7 +1237,6 @@ migrations:
     - infra/porto/api_py
     - infra/qemu/vmexec
     - infra/qyp/vmproxy/tests
-    - infra/rtc_sla_tentacles/backend/lib/harvesters
     - infra/shawshank/tests
     - infra/skybit
     - infra/skybit/src
@@ -1353,16 +1247,10 @@ migrations:
     - keyboard/analytics/collect_logs
     - keyboard/dict/nirvana/config_generator/blocks
     - keyboard/dict/synthetic_ngrams/synthetic_ngrams_builder
-    - kikimr/juggler/bundles/kikhouse_bundle
-    - kikimr/tools/create_svp
-    - kikimr/yf/tests/embedded
-    - kikimr/yf/tests/lib
-    - kikimr/yf/tests/ydb
     - lbs/metrics/lbs_binbase_diff
     - lbs/viewer
     - library/python/bstr
     - library/python/coredump_filter
-    - logbroker/public/client/lib
     - logbroker/tools/deploy/layer_test_old
     - logbroker/tools/manual/collect_capacity/base_2020
     - logbroker/tools/manual/collect_capacity/collect_pre
@@ -1372,15 +1260,11 @@ migrations:
     - logbroker/tools/startrek/st
     - mail/devpack/lib
     - mail/devpack/lib/components
-    - mail/docker_tests
-    - mail/docker_tests/tests_common/steps
     - mail/python/fake_mulcagate
     - mail/python/theatre/app
     - mail/python/theatre/app/log_helpers
     - mail/tools/sql_execute_per_shard/lib
     - maps/analytics/legacy/nile/statadhoc-8703-site-api-report
-    - maps/analytics/tools/lama/lib
-    - maps/analytics/tools/lama/lib/providers
     - maps/analyzer/pylibs/envkit
     - maps/automotive/carwashes/tests/src
     - maps/automotive/qa/metrics/common/ut
@@ -1389,12 +1273,8 @@ migrations:
     - maps/infra/ecstatic/common/worker/lib
     - maps/infra/sedem/cli/tests/release
     - maps/infra/sedem/cli/tests/release/utils
-    - maps/infra/sedem/machine/lib
-    - maps/infra/sedem/machine/lib/endpoints
     - maps/poi/statistics/protected_geo_product/impressions/bebr
     - maps/pylibs/infrastructure_api/arc
-    - maps/renderer/stylerepo/lib
-    - maps/renderer/stylerepo/tests
     - maps/search/metrics/pipeline/geo/geocoder/lib
     - maps/tools/matcher_quality/routes_to_geoms
     - maps_adv/common/shared_mock/tests
@@ -1408,7 +1288,6 @@ migrations:
     - market/sre/services/cema/lib/classes
     - market/sre/services/tablo-idm-licenser/lib
     - market/sre/tools/hyperion-tools/yandex-market-hyp2bb/lib
-    - market/sre/tools/logkeeper/logkeeper
     - market/yamarec/yamarec/yamarec1
     - market/yamarec/yamarec/yamarec1/tasks
     - mds/elliptics/bin/dnet_cache_balancer
@@ -1452,7 +1331,6 @@ migrations:
     - plus/gift/gift/admin
     - quality/ab_testing/cofe/projects/geo/navigator/common
     - quality/ab_testing/cofe/projects/geo/suggest/byak
-    - quality/ab_testing/cofe/projects/push
     - quality/ab_testing/cofe/projects/uslugi/competition
     - quality/ab_testing/cofe/projects/zalogin
     - quality/ab_testing/cofe/python/backends/nile
@@ -1551,7 +1429,6 @@ migrations:
     - smart_devices/tools/launcher2/tests/restarts
     - smarttv/alice/mm_backend/common
     - statbox/statkey/jam/jobs
-    - statbox/statkey/jam/jobs/cubes/ads_facebook/v1
     - statbox/statkey/jam/jobs/cubes/superapp/autofill/v2
     - statbox/statkey/jam/jobs/cubes/superapp/bi_turboappweb_turbo_counter/v2
     - statbox/statkey/jam/jobs/cubes/superapp/cohorts_daily/v2
@@ -1565,13 +1442,6 @@ migrations:
     - testenv/core/web_server
     - travel/avia/shared_flights/tasks/schedules_dumper
     - travel/avia/ticket_daemon
-    - travel/avia/ticket_daemon/ticket_daemon
-    - travel/avia/ticket_daemon/ticket_daemon/api/models_utils
-    - travel/avia/ticket_daemon/ticket_daemon/daemon
-    - travel/avia/ticket_daemon/ticket_daemon/partners
-    - travel/avia/ticket_daemon_api
-    - travel/avia/ticket_daemon_api/tests
-    - travel/avia/ticket_daemon_api/tests/handlers/v3
     - travel/hotels/suggest/builder
     - travel/hotels/suggest/metrics_builder
     - travel/rasp/content/rzdParser
@@ -1595,7 +1465,6 @@ migrations:
     - weather/ml/experiments/neural_nowcasting/neural_nowcasting
     - weather/ml/experiments/neural_nowcasting/neural_nowcasting/layers
     - weather/workers/warnings/push
-    - web/app_host/tools/proto_converter
     - yabs/analytics/anomaly_analyzer/src
     - yabs/analytics/new_traffic_generation/src
     - yabs/analytics/traffic_generation/z_2_barnavig_click_counter
@@ -1653,6 +1522,76 @@ migrations:
     - zootopia/analytics/ml/features/geo_features/idle_duration_features
     - zootopia/analytics/ml/join_features/lib
     - zootopia/analytics/ml/util/logs_context_manager/lib
+  F403:
+    ignore:
+    - F403
+    prefixes:
+    - adfox/infra/registrator
+    - adfox/infra/registrator/lib
+    - ads/libs/py_dssm_lib/dssm_applier
+    - ads/libs/py_ml_factors/matrixnet
+    - ads/libs/py_vw_lib
+    - ads/nirvana/xfactor-yt
+    - ads/tools/mx_feature_remapper
+    - ads/watchman/contrib/flask-restplus-patched
+    - ads/watchman/contrib/flask-restplus-patched/flask_restplus_patched
+    - alice/analytics/utils/marty/run_nirvana_instance
+    - alice/uniproxy/library/notificator
+    - alice/uniproxy/library/notificator_api
+    - arc/tables_creation/tests
+    - browser/infra/ci/backend
+    - browser/infra/ci/backend/ci/settings
+    - cloud/ai/speechkit/stt/tests/data_pipeline/join
+    - cv/short2long/nirvana/lib
+    - devtools/signer/signer
+    - dict/ontodb/cmpy/lib
+    - dict/ontodb/isa/libshorttext/converter/stemmer
+    - dict/ontodb/report/common
+    - dict/ontodb/utils/export_src_codes
+    - edadeal/analytics/scripts/CashbackReport/CashbackReportLib
+    - edadeal/analytics/scripts/CashbackReport/CashbackReportLib/CashbackReportLib
+    - extsearch/geo/recommender/runtime/config/generation
+    - mail/freezing_tests/active_users_aggregation
+    - maps/analyzer/tools/online_jams/pylib
+    - maps/tools/naviguide/tools/extract_uuid_info
+    - market/seo/offer_base
+    - mediapers/feature_machine/nirvana/script_runner
+    - metrika/core/test_framework/steps/clients
+    - mlp/mail/aspam/nirvana_operations/conveyor/build_prod_graph/inbound
+    - mlp/mail/aspam/nirvana_operations/conveyor/build_prod_graph/outbound
+    - mlp/mail/aspam/nirvana_operations/conveyor/calc_dsats
+    - passport/python/api/tests/views/bundle/change_avatar
+    - quality/ab_testing/cofe/projects/alice/sesame/v1_1
+    - quality/neural_net/bert/bert/utils/distributed
+    - quality/neural_net/bert/bert/utils/fs
+    - sandbox/projects/tycoon/TycoonAdverts
+    - search/base_search/tools/explain_l1
+    - search/metrics/ccc/ccc_lib
+    - search/mon/rviewer/app
+    - search/mon/rviewer/db
+    - search/mon/rviewer/modules
+    - search/mon/rviewer/modules/clients
+    - search/mon/rviewer/modules/orchestrator
+    - travel/avia/avia_api
+    - travel/avia/avia_api/avia/settings
+    - travel/avia/avia_api/avia/v1/schemas
+    - travel/avia/avia_api/tests
+    - travel/avia/ticket_daemon
+    - voicetech/asr/cloud_engine/cli/nirvana/aggregate_kenlm_outputs
+    - voicetech/asr/cloud_engine/cli/nirvana/aggregate_subword_lm_outputs
+    - voicetech/asr/cloud_engine/cli/nirvana/build_lm
+    - voicetech/asr/cloud_engine/cli/nirvana/make_kenlm_lingware
+    - voicetech/asr/cloud_engine/cli/nirvana/make_subword_lm_lingware
+    - voicetech/asr/cloud_engine/cli/nirvana/merge_lingwares
+    - voicetech/asr/cloud_engine/cli/nirvana/select_best_kenlm
+    - voicetech/asr/core/lib/subword_ngram_lm/nirvana/build_freq_table
+    - voicetech/asr/core/lib/subword_ngram_lm/nirvana/build_mixture_model
+    - voicetech/asr/core/lib/subword_ngram_lm/nirvana/build_model
+    - voicetech/asr/core/lib/subword_ngram_lm/nirvana/fit_lambda
+    - voicetech/asr/core/lib/subword_ngram_lm/nirvana/fit_vocabulary
+    - voicetech/asr/tools/language_model/tests/test_linear_merge
+    - yabs/outdoor/viewer/back/logic
+    - yt/yt/tests/integration/tests
   F401:
     ignore:
     - F401
@@ -1674,8 +1613,6 @@ migrations:
     - ads/nirvana/automl/pipelines/offline_pytorch/full_example
     - ads/nirvana/gensim_w2v
     - ads/nirvana/mappers/w2v_recommender
-    - ads/pytorch/lib/online_learning/production/train_ctl/lib
-    - ads/pytorch/lib/run/ut
     - ads/quality/adv_machine/cm_robot/cmpy/fresh_stats
     - ads/quality/adv_machine/cm_robot/cmpy/search_query_recom_attempt
     - ads/quality/adv_machine/cm_robot/cmpy/stuff
@@ -1719,8 +1656,6 @@ migrations:
     - clickhouse/utils/github
     - crypta/cm/services/common/test_utils
     - crypta/cm/services/quoter/bin/test
-    - crypta/graph/fingerprint/match/lib
-    - crypta/graph/fingerprint/match/tests
     - crypta/lab/test/yt
     - cv/imageproc/ocr/tools/nirvana/captcha_renderer
     - cv/short2long/nirvana/lib
@@ -1780,13 +1715,9 @@ migrations:
     - infra/yp_quota_distributor/lib
     - intranet/pypi/src
     - intranet/table_flow/tests
-    - kikimr/tools/ic_load
-    - kikimr/yf/tests/no_recipe
-    - kikimr/yf/tests/ydb
     - lbs/research/LBS381_choosing_gsm_over_wifi/calc_stats
     - lbs/research_tools/find_keys_causing_losses
     - library/python/async_clients
-    - logbroker/public/client/lib
     - logbroker/tools/deploy_consistency_test
     - mail/collectors/tests-system/src
     - mail/github/calendar-attach-processor
@@ -1808,8 +1739,6 @@ migrations:
     - maps/infra/ecstatic/tool/ecstatic_api
     - maps/pylibs/test_helpers
     - maps/qa/passed_by_assessors/markup_script
-    - maps/renderer/stylerepo/lib
-    - maps/renderer/stylerepo/utils/lib
     - maps/wikimap/feedback/pushes/addresses/make_pushes/tests
     - maps/wikimap/stat/kpi/valuable_edits/users_home_regions/lib
     - maps/wikimap/stat/tasks_payment/tasks_logging/feedback/lib
@@ -2085,7 +2014,6 @@ migrations:
     - yabs/server/test/pylibs/simulator
     - yabs/server/test/qabs_bsserver_pytest
     - yabs/server/test/tools/lua_test_generator/lib
-    - yabs/stat/yabs-yt-audit/audits/billable_event_vs_archive
     - yabs/utils/log_stats/test
     - yabs/vh/cms-pgaas/cms_common
     - yabs/vh/cms-pgaas/sport_api_importer/sport_api_importer_lib/lib/sport_client
@@ -2151,7 +2079,6 @@ migrations:
     - library/python/cyson
     - library/python/cyson/cyson
     - mail/freezing_tests/active_users_aggregation
-    - mail/python/sendr-qtools/src/sendr_aiopg/tests
     - maps/analyzer/tools/online_jams/pylib
     - maps/tools/naviguide/tools/extract_uuid_info
     - market/seo/offer_base
@@ -2169,8 +2096,6 @@ migrations:
     - quality/functionality/chats/feedback/src/feedback/core
     - quality/functionality/chats/feedback/src/feedback/core/celery_tasks
     - quality/neural_net/bert/bert/utils/distributed
-    - quality/trailer/suggest/services/maps/pygeosg/pygeosg
-    - quality/trailer/suggest/services/maps/pygeosg/pygeosg/processing
     - quality/user_sessions/py_amon/cbir
     - quality/user_sessions/py_amon/images
     - repo/yeoman/data/lib
@@ -2188,9 +2113,6 @@ migrations:
     - travel/avia/avia_api/avia/settings
     - travel/avia/avia_api/tests
     - travel/avia/ticket_daemon
-    - travel/avia/ticket_daemon/tests
-    - travel/avia/ticket_daemon/ticket_daemon/api/models_utils
-    - travel/avia/ticket_daemon_api/tests
     - vcs/svn/flat
     - vcs/svn/hooks/test
     - voicetech/asr/cloud_engine/cli/nirvana/aggregate_kenlm_outputs
@@ -2262,13 +2184,15 @@ migrations:
     - ads/logos/tasks/tsar_pytorch_log/ut/lib
     - ads/logos/viewy/yagraph/Backend
     - ads/nirvana/automl/pipelines/offline_pytorch
-    - ads/nirvana/lib
+    - ads/nirvana/yabs_nirvana.py
     - ads/nirvana/mr_operations/mr_do_aggregate
     - ads/nirvana/online_learning/learn_logs_utils/offline_preprocessed_logs
     - ads/nirvana/online_learning/offline_graph_launcher
     - ads/nirvana/online_learning/preprocess/lib
     - ads/nirvana/online_learning/spiral_offline_apply
     - ads/nirvana/upgrade_operation
+    - ads/targeting/bsmr-scripts/py-modules
+    - ads/targeting/python-objstore/py-modules
     - ads/quality/adv_machine/scripts/download_online_resources
     - ads/quality/adv_machine/scripts/quorum_optimizer/beam_search
     - ads/quality/adv_machine/scripts/quorum_optimizer/lib
@@ -2392,15 +2316,16 @@ migrations:
     - billing/yandex_pay/tools/load/integration_tests/recipes/yandexpay_recipe
     - browser/infra/avd_tools/avd_tools
     - captcha/captcha_test_service/bin
-    - catboost/python-package/lib
     - catboost/python-package/ut/medium/python_binary
+    - catboost/python-package/catboost
     - client_analytics/weekly_pack/weekly_pack
     - cloud/ai/dataforge/bin/examples/feedback_loop
     - cloud/ai/dataforge/lib
     - cloud/ai/datasphere/lib/stt/deployment/python_package/lib
     - cloud/ai/datasphere/lib/stt/metrics/normalizer
     - cloud/ai/datasphere/lib/stt/metrics/python_package/lib
-    - cloud/ai/datasphere/lib/stt/metrics/python_package/stt_metrics/normalizer_service
+    - cloud/ai/datasphere/lib/stt/metrics/python_package/stt_metrics
+    - cloud/ai/datasphere/lib/stt/deployment/python_package/stt_deployment
     - cloud/ai/nirvana/job-processor-test/single_test
     - cloud/ai/nirvana/nv_launcher_agent_copy/lib
     - cloud/ai/speechkit/stt/bin/data_pipeline/calculate_markup_statistics
@@ -2510,6 +2435,8 @@ migrations:
     - cloud/mdb/ya-monitoring-charts/yc
     - comdep_analytics/exceller
     - comdep_analytics/telephony
+    - contrib/python/ipython/py2
+    - contrib/python/semantic-version
     - crm/supskills/direct_skill/src
     - crm/supskills/direct_skill/tests
     - crowdsourcing/thirium-mitm-proxy
@@ -2536,9 +2463,6 @@ migrations:
     - devtools/experimental/blackbox
     - devtools/experimental/mds/cocaine/burlak/bin/cocaine-orca
     - devtools/experimental/mds/cocaine/burlak/lib
-    - devtools/experimental/mds/cocaine/burlak/patches/0003-Add-ya.make.patch:40:+PY_SRCS(
-    - devtools/experimental/mds/cocaine/burlak/patches/0003-Add-ya.make.patch:44:+NO_LINT()
-    - devtools/experimental/mds/cocaine/burlak/patches/0003-Add-ya.make.patch:79:+PY_SRCS(
     - devtools/experimental/mds/cocaine/cli/lib
     - devtools/experimental/mds/cocaine/pipeline3/lib
     - devtools/experimental/mds/cocaine/tools
@@ -2742,7 +2666,7 @@ migrations:
     - extsearch/geo/tools/rubric_synonyms/automation
     - extsearch/geo/tools/rubric_synonyms_mining/metasearch
     - extsearch/geo/tools/similar_orgs/acceptance/similars_search
-    - extsearch/images/functionality/monit_robot_process/monit_client/bin
+    - extsearch/images/functionality/monit_robot_process/monit_client
     - extsearch/images/functionality/rock/abgame_server
     - extsearch/images/ganart/viewer
     - extsearch/images/robot/cluster_state
@@ -2852,6 +2776,7 @@ migrations:
     - infra/nanny/sepelib/http
     - infra/nanny/sepelib/metrics
     - infra/nanny/sepelib/mongo
+    - infra/nanny/sepelib/src
     - infra/nanny/sepelib/subprocess
     - infra/nanny/sepelib/util
     - infra/nanny/sepelib/yandex
@@ -2963,14 +2888,6 @@ migrations:
     - keyboard/dict/train_ranker/filter_sentences
     - keyboard/grid/tap_model/python/annotate
     - keyboard/proxy/images
-    - kikimr/ci/libraries
-    - kikimr/library/ci/nemesis
-    - kikimr/tools/benchmarks/slo_workloads/python/utils
-    - kikimr/tools/benchmarks/tpcc
-    - kikimr/tools/sqs/sla_solomon_sender
-    - kikimr/yf/tools/launcher
-    - kikimr/yf/tools/restart_cluster
-    - kikimr/yf/tools/yf_deploy
     - library/python/bclclient
     - library/python/blackbox
     - library/python/clickhouse_client
@@ -3107,6 +3024,7 @@ migrations:
     - maps/tools/statistics_navi_daily/pylib
     - maps/wikimap/jams_arm2/dev/miror/import_db
     - maps/wikimap/mapspro/services/mrc/libs/toloka_client/tools/test_toloka_server
+    - maps/wikimap/mapspro/services/mrc/libs/toloka_client/tests
     - maps/wikimap/mapspro/services/mrc/libs/unittest/tests/pyserver
     - maps/wikimap/mapspro/services/mrc/long_tasks/toloka_manager_cron_jobs/lib/tests/test_server
     - maps/wikimap/mapspro/services/tasks/fastcgi/bin
@@ -3150,33 +3068,31 @@ migrations:
     - market/tools/tickets_summoneer
     - market/ugc/daemon/ht
     - market/yamarec/edera/edera
-    - mds/cocaine/burlak/bin/cocaine-orca
-    - mds/cocaine/burlak/lib
-    - mds/cocaine/darkvoice/bin/emulator
-    - mds/cocaine/darkvoice/lib
+    - mds/cocaine/burlak/src
+    - mds/cocaine/darkvoice/src
     - mds/cocaine/framework/python
     - mds/cocaine/tools
     - mds/eblob_kit
     - mds/elliptics/bindings/python
     - mds/elliptics/recovery/python
+    - mds/elliptics/recovery/elliptics_recovery
+    - mds/elliptics/tests/pytests
     - mds/elliptics/tests/python/server
     - mds/elliptics/tests/python/statistics_checker
     - mds/langoliers
     - mds/libs/eblob/tests/python
     - mds/libs/jerasure/python
-    - mds/lrc-tools/python
-    - mds/lrc-tools/tests/lib
+    - mds/lrc-tools
     - mds/mastermind/common
     - mds/mastermind/core/bin/mastermind
     - mds/mastermind/core/foreign/opster
     - mds/mastermind/core/lib
+    - mds/mastermind/core/src
     - mds/mastermind/flowmastermind/bin
     - mds/mastermind/flowmastermind/src
     - mds/mastermind/job_processor
-    - mds/mastermind/jobs_integration_tests/bin
-    - mds/mastermind/jobs_integration_tests/lib
-    - mds/mastermind/minion/bin
-    - mds/mastermind/minion/lib
+    - mds/mastermind/jobs_integration_tests/src
+    - mds/mastermind/minion
     - mds/mastermind/monolith
     - mds/mastermind/resizer/analyze_utils
     - mds/mastermind/resizer/bin
@@ -4820,6 +4736,7 @@ migrations:
     - voicetech/bio/pybio/train/tf_patched_models
     - voicetech/bio/tf_future
     - voicetech/common/kaldi_features_lib/python-package/lib
+    - voicetech/common/kaldi_features_lib/python-package/kaldi_features
     - voicetech/infra/gdpr_proxy/gdpr-filter
     - voicetech/infra/lingwarefactory/yaldi-apply-soundset
     - voicetech/infra/qa/speechbase-voiceproxy-logsv3-cleanup
@@ -4854,6 +4771,7 @@ migrations:
     - web/daemons/begemot/scripts/yt_priemka
     - wmconsole/backend/packaging-tools
     - yabs/amazon/cache_proxy
+    - yabs/basic_packages/yabs-global-info/py-modules
     - yabs/bscount/protocol/pyfbs
     - yabs/cache-proxy/plugin/proxy_b2b/templates
     - yabs/direct_tools/pylibs/api
@@ -4893,7 +4811,7 @@ migrations:
     - yabs/qa/yabs_b2b_tank/qabs/common
     - yabs/sbyt/devutils/move-release
     - yabs/sbyt/migration/BSDEV-75115-AdvmachineBanners
-    - yabs/sbyt/supervisor/lib
+    - yabs/sbyt/supervisor
     - yabs/server/cs/pylibs/yt_query_map
     - yabs/server/infra/transport/yabs_file_transport
     - yabs/server/infra/validator
@@ -4916,10 +4834,10 @@ migrations:
     - yql/library/test_framework/recipe
     - yql/scripts/run_acceptance_chyt
     - yql/tests/dq/lib
-    - yql/tools/job_perf/bin
+    - yql/tools/job_perf
     - yql/tools/nginx_mon
-    - yql/tools/yqlflask/bin
-    - yql/tools/yqltornado/bin
+    - yql/tools/yqlflask
+    - yql/tools/yqltornado
     - yt/admin/acl_dumper/src
     - yt/admin/allotments_balancer/src
     - yt/admin/brahmagupta/src/brahmagupta_api
@@ -5207,3 +5125,1232 @@ migrations:
     - zootopia/library/py/latlon
     - zootopia/library/py/saaspy
     - zootopia/library/py/statfacepy
+    - FactExtract/Parser/aftextminer/tests/aftextminer_bastard
+    - FactExtract/Parser/aftextminer/tests/aftextminer_contacts
+    - FactExtract/Parser/aftextminer/tests/aftextminer_fdo
+    - FactExtract/Parser/aftextminer/tests/aftextminer_geo
+    - FactExtract/Parser/aftextminer/tests/aftextminer_mail_events
+    - FactExtract/Parser/aftextminer/tests/aftextminer_prettyoutput
+    - FactExtract/Parser/aftextminer/tests/aftextminer_status
+    - FactExtract/Parser/aftextminer/tests/aftextminer_ukr
+    - FactExtract/address_extractor/tests/address_extractor
+    - FactExtract/address_extractor/tests/address_extractor_agree
+    - FactExtract/address_extractor/tests/address_extractor_interface
+    - FactExtract/address_extractor/tests/address_extractor_max_fact
+    - FactExtract/address_extractor/tests/address_extractor_threaded
+    - FactExtract/address_extractor/tests/after_bugs
+    - FactExtract/print_addr_filter/tests
+    - addappter/common/libs/tests
+    - addappter/libs/zora/tests
+    - ads/autobudget/ml_pipeline/scripts/convert_yt_pool_catboost/lib/ft
+    - ads/autobudget/ml_pipeline/scripts/create_cd_file/lib/ft
+    - ads/bsyeti/libs/experiments/py_parameters/ut
+    - ads/bsyeti/libs/py_proto_counters/ut
+    - ads/bsyeti/libs/py_tnode/ut
+    - ads/clemmer/tests/test
+    - ads/clemmer/tests/test2
+    - ads/factor_check/mutial_information/yql/tests
+    - ads/libs/py_autobudget/ut
+    - ads/libs/py_ecommerce/ut
+    - ads/libs/py_mapreduce/yabs-mapreduce-modules/t/mapreducelib
+    - ads/libs/py_mapreduce/yabs-mapreduce-modules/t/mapreducelib_emulator
+    - ads/libs/py_mapreduce/yabs-mapreduce-modules/t/yabs/tabtools
+    - ads/libs/py_mapreduce/yabs-mapreduce-modules/test_pt/functional
+    - ads/libs/py_mapreduce/yabs-mapreduce-modules/test_pt/functional_skiff
+    - ads/libs/py_matrixnet/ut
+    - ads/libs/py_ml_factors/fat/test_mappers
+    - ads/libs/py_ml_factors/fat/test_preprocessors_first_batch
+    - ads/libs/py_ml_factors/fat/test_preprocessors_second_batch
+    - ads/libs/py_ml_factors/fat/test_reducers
+    - ads/libs/py_recordio/test
+    - ads/libs/py_vw_lib/ut
+    - ads/libs/test_yt/example/run
+    - ads/libs/yql/ft
+    - ads/libs/yql/testlib/ft
+    - ads/libs/yql/ut/test
+    - ads/logos/tasks/banner_to_texts/ut
+    - ads/mr_tools/record_formats/ut
+    - ads/mr_tools/slotrecord/ut
+    - ads/nirvana/difacto/dmlc_launcher/test
+    - ads/nirvana/mappers/lib/ut
+    - ads/nirvana/mr_operations/mr_do_map/ut
+    - ads/nirvana/online_learning/run_flowkeeper/workflow_tests
+    - ads/nirvana/tools/shanti/lib/ut
+    - ads/nirvana/wormhole/feature_map/ut
+    - ads/nirvana/wormhole/rehash_features/mt
+    - ads/pytorch/deploy/bindings/ut
+    - ads/pytorch/lib/online_learning/production/util/ut
+    - ads/quality/adv_machine/tsar/cm_robot/cmpy/adv_machine_models
+    - ads/quality/adv_machine/tsar/cm_robot/cmpy/transfer_manager
+    - ads/quality/adv_machine/tsar/cm_robot/cmpy/tsar
+    - ads/quality/adv_machine/tsar/cm_robot/cmpy/turbo
+    - ads/quality/bid_correction/lib/ut
+    - ads/quality/bid_correction/workflow_constructor/test_tasks/test_configs
+    - ads/quality/bid_correction/workflow_constructor/test_tasks/test_configs_canonical
+    - ads/quality/bid_correction/workflow_constructor/test_tasks/test_pipelines
+    - ads/quality/ltp/action_tasks/online/ut
+    - ads/quality/metric_eval/tests/ut
+    - ads/quality/metric_eval/tests/vh_test
+    - ads/quality/simulate_auction/ut
+    - ads/sandbox_scripts/logs_scheme/fat
+    - ads/targeting/bsmr-scripts/ut
+    - ads/targeting/cross_check/ut
+    - advq/generation/advq_stats_config_generator/tests
+    - advq/generation/broadmatch_export/tests
+    - advq/generation/chrono_db_generator/tests
+    - advq/generation/common/db/tests
+    - advq/generation/common/generators/phits_index_uploader/tests
+    - advq/generation/common/generators/sumhits_cleaner/tests
+    - advq/generation/common/generators/sumhits_generator/tests
+    - advq/generation/common/linguistics/tests
+    - advq/generation/common/linguistics/tests3
+    - advq/generation/common/queries/tests
+    - advq/generation/common/queries/tests3
+    - advq/generation/common/tests
+    - advq/generation/phits_generator/tests
+    - advq/generation/pkz_generator/tests
+    - advq/generation/prsya_generator/ut
+    - advq/generation/sumhits_merge_hits/tests
+    - advq/offline_phits/direct_export/ut/test_export
+    - advq/offline_phits/library/ut/process
+    - advq/offline_pkz/test
+    - advq/pokazometer/generation/tests
+    - alice/library/python/decoder/tests
+    - antiadblock/cryprox/tests/functional
+    - antiadblock/postgres_local/tests
+    - april/mediaplan/mediaplan/forecaster/migrations
+    - balancer/test/functional/balancer
+    - billing/agency_rewards/tests
+    - billing/contrib/py3solomon/tests
+    - billing/contrib/pykish_spork/tests
+    - billing/dcsaap/backend/tests/medium
+    - billing/dcsaap/backend/tests/small
+    - billing/yb_reports_monitorings/tests
+    - bindings/java/abt/abt-native/android/tests
+    - build/scripts
+    - catboost/python-package/ut/large
+    - cloud/ai/speechkit/stt/tests/data/model
+    - cloud/ai/speechkit/stt/tests/data/tags
+    - cloud/ai/speechkit/stt/tests/eval/metrics
+    - cloud/ai/speechkit/stt/tests/eval/slice
+    - cloud/ai/speechkit/stt/tests/experiments/records_utterances_split
+    - cloud/ai/tests/python/datasource
+    - cloud/ai/tests/python/serialization
+    - cloud/gauthling/yc_auth/test
+    - cloud/gauthling/yc_auth_tornado/test
+    - cloud/mdb/dbaas-internal-api-image/dbaas_internal_api/utils/dataproc_joblog
+    - cloud/mdb/dbaas-internal-api-image/dbaas_internal_api/utils/iam_token
+    - cloud/mdb/dbaas-internal-api-image/tests
+    - cloud/mdb/salt/salt/components/datacloud/dist-sync/tests
+    - cloud/mdb/salt/salt/components/downtimer/tests
+    - crypta/dit/mr_dit_process/test
+    - crypta/graph/v1/tests/test-graph-all
+    - crypta/graph/v1/tests/test-graph-soup
+    - crypta/graph/v1/unittests
+    - cv/imageproc/ocr/api/android_lite/tests_05.11.2020
+    - cv/imageproc/ocr/api/android_lite/tests_21.05.2019
+    - cv/imageproc/ocr/api/android_lite/tests_21.05.2019_old
+    - cv/imageproc/ocr/api/android_lite/tests_22.11.2019
+    - cv/imageproc/ocr/api/android_lite/tests_23.08.2019
+    - cv/imageproc/ocr/ocr_runner/load_cfg
+    - cv/imageproc/ocr/ocr_runner/tests
+    - cv/library/imageparserlib/rawinterface/tests
+    - cv/semidups/fastmatcher/fastmatchermr/it
+    - datacloud/features/dssm/tests
+    - datacloud/features/geo/tests
+    - dict/bornochecker/console/tests
+    - dict/ext/pairfreq/findpairs3/tests/ctxt
+    - dict/ext/pairfreq/findpairs3/tests/ctxtid
+    - dict/ext/pairfreq/findpairs3/tests/estim
+    - dict/ext/pairfreq/findpairs3/tests/find
+    - dict/ext/pairfreq/findpairs3/tests/lemmatize
+    - dict/gen_phrases/tests
+    - dict/geninflnames/tests
+    - dict/morphdict/translit/kaz_official/translit/tool/tests
+    - dict/mt/analytics/make/modules/logs/sample/lib/tests
+    - dict/mt/make/modules/corpus_generation/kwyt_html_parse/tests
+    - dict/mt/make/processes/gen_kwyt_corpus_graph/directions_graph/tests
+    - dict/mt/make/tools/build_unigram_blacklist/tests
+    - dict/mt/make/tools/lm_diff/tests
+    - dict/mt/make/tools/make_cap_model/ut
+    - dict/mt/make/tools/merge_opensubtitles/tool/tests
+    - dict/mt/make/tools/tfnn/tests
+    - dict/mt/make/tools/title_rate_filter/tests
+    - dict/mt/make/tools/yt_shuffle/tests
+    - dict/mt/pt_build/tools/yql_build/test
+    - dict/mt/tools/cluster_filter_yt/test
+    - dict/mt/tools/deduplicate_yt/test
+    - dict/mt/tools/hierarchy_clustering/tests
+    - dict/mt/tools/rake_filter_yt/test
+    - dict/mt/tools/zipf_filter_yt/test
+    - dict/mystem/tests/pipe
+    - dict/tools/disamb_test/tests
+    - dict/tools/docrec_html_parser/tests
+    - dict/tools/make_morphdict/main/tests
+    - dict/tools/make_morphdict/normalize/tests
+    - dict/tools/make_morphdict/scripts/prepare/tests
+    - dict/tools/make_morphdict/scripts/schemes/tests
+    - dict/tools/make_morphdict/tests
+    - dict/tools/morphotest/morphopy/tests
+    - dict/tools/query_disamb_test/tests
+    - dict/tools/unicode_test/tests
+    - dict/tools/untransliter/tests
+    - dict/word2vec/tools/convert_model/tests
+    - dj/lib/processing/yt/impl/ut/run_test
+    - dj/lib/shard2/yt_prepare/ut/run_test
+    - dj/tools/rthub_profiles/profile_update_triggers/profile_update_trigger_rtmr/tests
+    - dj/unity/projects/user_profiles/tests/config_tests/canon
+    - education/lib/contrib/pampy
+    - education/lib/reactor_automation/ut
+    - entity/ontodb/robot/tests/integration
+    - entity/ontodb/robot/tools/extdata_import/wiki_dumps/lib/ut
+    - entity/ontodb/tasks/watson_converter/lib/ut
+    - entity/recommender/nirvana/operations/build_static_profiles/ut
+    - entity/recommender/nirvana/operations/build_tops_profiles/ut
+    - entity/recommender/nirvana/operations/make_sbs_film_polls/lib/ut
+    - entity/recommender/tools/features_diff_checker/ut
+    - entity/ugc/clients/market/toloka_mediator_uploader/lib/ut
+    - entity/ugc/robot/tests/integration
+    - extsearch/audio/yamrec/upper
+    - extsearch/fresh/meta/rearrange_data/tests
+    - extsearch/geo/meta/tests/behavioral/bin_pytest
+    - extsearch/geo/meta/tests/blackbox
+    - extsearch/images/base/snippets/tests
+    - extsearch/images/kernel/new_runtime/doc_factors/tests
+    - extsearch/images/robot/index/indexbuilder/it
+    - extsearch/images/robot/mrdb/hostdb/mkhostdb/it
+    - extsearch/images/robot/mrdb/mkurldb/it
+    - extsearch/images/robot/mrdb/streams/it
+    - extsearch/images/robot/parsers/html_parser/imagelib/ut2
+    - extsearch/images/robot/rtcvdup/it
+    - extsearch/images/robot/userdata/anndata/it
+    - extsearch/images/robot/userdata/click_sim/it
+    - extsearch/images/robot/userdata/fastanndata/it
+    - extsearch/images/robot/userdata/userfactors2/it
+    - extsearch/images/tools/cbircomparer/tests
+    - extsearch/images/tools/query_filter/ut
+    - extsearch/video/contstorage/tests
+    - extsearch/video/indexer/indexurlseq/create/tests
+    - extsearch/video/kernel/delayed_view/tests
+    - extsearch/video/kernel/profile/tools/rtmr_user_actions/tests
+    - extsearch/video/quality/classifiers/danet_image_processor/test
+    - extsearch/video/quality/deep_click/tests
+    - extsearch/video/quality/delayed_view/trie_ops/tests
+    - extsearch/video/quality/vegas/tests
+    - extsearch/video/quality/vuserdata2/tests
+    - extsearch/video/robot/authorfromjson/tests
+    - extsearch/video/robot/authorthumbs/tests
+    - extsearch/video/robot/crawling/custom_html_parser/bin/tests
+    - extsearch/video/robot/crawling/partner_api/bin/tests
+    - extsearch/video/robot/deletes/player_ban/tests
+    - extsearch/video/robot/docbase/docauthor/tests
+    - extsearch/video/robot/docbase/docfactor/tests
+    - extsearch/video/robot/docbase/factors/annfexport/tests
+    - extsearch/video/robot/docbase/factors/authfexport/tests
+    - extsearch/video/robot/docbase/factors/hostfexport/tests
+    - extsearch/video/robot/docbase/factors/thumbfexport/tests
+    - extsearch/video/robot/docbase/factors/urlfexport/tests
+    - extsearch/video/robot/docbase/indexdocs/tests
+    - extsearch/video/robot/docbase/postcalc/tests
+    - extsearch/video/robot/docbase/vegas/adaptor/tests
+    - extsearch/video/robot/factors2/pytests
+    - extsearch/video/robot/frames/merge/tests
+    - extsearch/video/robot/hostsdb/tool/tests
+    - extsearch/video/robot/index/indexfactors/tests
+    - extsearch/video/vh/indexer/tests
+    - extsearch/wizards/fastres2/daemon/tests/small
+    - geobase/python
+    - geobase/tests/timezone_getter
+    - health/turbo_articles/parser/tests
+    - health/turbo_articles/turbo_to_yt/tests
+    - health/yamd/health_backend/tests
+    - health/yamd/libs/cross_links/tests/py2
+    - health/yamd/libs/cross_links/tests/py3
+    - health/yamd/libs/data_layer/tests
+    - health/yamd/libs/utils/tests
+    - infra/deploy_export_stats/tests
+    - infra/nanny/instancectl/tests/func
+    - infra/nanny/instancectl/tests/func_legacy
+    - infra/nanny/instancectl/tests/unit
+    - infra/nanny/sepelib/tests
+    - infra/qyp/vmagent_monitoring/tests
+    - infra/qyp/vmctl/tests
+    - infra/vmagent/tests/unit
+    - infra/wall-e/checks/tests
+    - infra/walle/server/contrib/sepelib/tests
+    - infra/walle/server/tests/clients
+    - infra/walle/server/tests/db_sync
+    - infra/walle/server/tests/failure_reports
+    - infra/walle/server/tests/fsm_stages
+    - infra/walle/server/tests/tasks
+    - infra/walle/server/tests/utilities
+    - infra/yp_dns/tests
+    - intranet/audit/tests
+    - intranet/dogma/dogma_tests
+    - intranet/hidereferer/tests
+    - intranet/magiclinks/tests
+    - intranet/yandex_directory/tests
+    - juggler/bundles/tests
+    - juggler/examples/check_bundles/pythonic/tests
+    - juggler/jctl/lib/tests
+    - juggler/juggler_client/lib/tests
+    - juggler/libjuggler/tests
+    - juggler/netmon/agent/tests/privileged
+    - juggler/server/main/lib/tests/quick
+    - juggler/server/main/lib/tests/slow
+    - kernel/extended_mx_calcer/tools/calcers_test/tests
+    - kernel/geo/tests/geo_utils/tests
+    - kernel/title_ranges/test_title_ranges/tests
+    - keyboard/secure_logging/embedder/cli_applier/ut
+    - library/c/tvmauth/src/ut_export
+    - library/cpp/codecs/static/tools/tests
+    - library/cpp/deprecated/solartrie/test/tests
+    - library/cpp/file_checker/test/tests
+    - library/cpp/pybind/example/ut
+    - library/python/cyson/ut
+    - library/python/func/ut/lib
+    - library/python/testing/pytest_runner/example/test/external
+    - library/python/vault_client/ut/tests
+    - library/recipes/docker_compose/example_test_container
+    - logbroker/juggler/bundle/tests
+    - logbroker/push-client/ft
+    - logbroker/tools/deploy/monitor/tests
+    - logbroker/tools/manual/juggler_stats/tests
+    - logbroker/tools/minimon/tests/integration
+    - logbroker/tools/pctest/tests/integration
+    - logbroker/tools/pctest/tests/unit
+    - logbroker/unified_agent/tests/integration/python_client_tests
+    - logbroker/unified_agent/tools/deploy_logbroker_tools/tests/integration/config
+    - logbroker/unified_agent/tools/deploy_logbroker_tools/tests/ut
+    - logbroker/unified_agent/tools/juggler_bundle/tests
+    - logfeller/lib/table_allocator/functional_tests/dyn_allocator_tests
+    - mail/contrib/aiomonitor/tests
+    - mail/library/python/json_value/tests/py3
+    - mail/pg/mdb/tests/pytest_bdd
+    - mail/xiva/mobile/tests-system
+    - mapreduce/library/native2streaming/tests/tests
+    - mapreduce/yt/tests
+    - maps/fastcgi/meta/bin/tests
+    - maps/garden/modules/geocoder_indexer/tests/test_module
+    - maps/libs/tile/pymod-tests
+    - maps/realty/jams_generator/tests/integration
+    - maps/search/geocoder/indexer/tests/it
+    - maps/search/geocoder/indexer/tests/it_ymapsdf
+    - maps/search/offline/indexer/business/tests/it
+    - maps/wikimap/mapspro/tools/topology_fixer/tests
+    - market/contrib/python/BitTorrent
+    - market/dynamic_pricing/pricing/common/checks/checker/ut
+    - market/dynamic_pricing/pricing/common/checks/solomon_sender/ut
+    - market/dynamic_pricing/pricing/dynamic_pricing/tests
+    - market/forecaster/lite-offline
+    - market/idx/marketindexer/medium_tests/yatf/daily_pos_calc
+    - market/idx/marketindexer/medium_tests/yatf/external
+    - market/idx/marketindexer/tests/doctest
+    - market/idx/promos/blue_gift_with_purchase/tests
+    - market/report/runtime_cloud/lite
+    - market/sre/services/logkeeper-web/ut
+    - market/sre/tools/dpreparer/tests
+    - market/sre/tools/logkeeper/ut
+    - market/yamarec/edera/tests/functional
+    - market/yamarec/edera/tests/system
+    - market/yamarec/edera/tests/unit
+    - market/yamarec/yamarec/tests/functional
+    - mds/cocaine/darkvoice/tests
+    - mds/cocaine/plugins/geobase/tests
+    - mds/cocaine/plugins/langdetect/tests
+    - mds/cocaine/plugins/regional-units/tests
+    - mds/cocaine/plugins/uatraits/tests
+    - mds/elliptics/tests/python/test_basics
+    - mds/elliptics/tests/python/test_cache_balancer
+    - mds/elliptics/tests/python/test_compare
+    - mds/elliptics/tests/python/test_config
+    - mds/elliptics/tests/python/test_dc_recovery
+    - mds/elliptics/tests/python/test_defrag
+    - mds/elliptics/tests/python/test_merge_recovery
+    - mds/elliptics/tests/python/test_mocked_recovery
+    - mds/elliptics/tests/python/test_monitor
+    - mds/elliptics/tests/python/test_session
+    - mds/elliptics/tests/python/test_specific_cases
+    - mds/libs/thevoid/tests
+    - mds/lrc-tools/tests/test_cache
+    - mds/lrc-tools/tests/test_check_defrag
+    - mds/lrc-tools/tests/test_converter
+    - mds/lrc-tools/tests/test_defrag
+    - mds/lrc-tools/tests/test_defrag_analyzer
+    - mds/lrc-tools/tests/test_defrag_job
+    - mds/lrc-tools/tests/test_lepton
+    - mds/lrc-tools/tests/test_lepton_external
+    - mds/lrc-tools/tests/test_listing
+    - mds/lrc-tools/tests/test_mocked_restore
+    - mds/lrc-tools/tests/test_read_records
+    - mds/lrc-tools/tests/test_reader
+    - mds/lrc-tools/tests/test_recovery
+    - mds/lrc-tools/tests/test_remove_records
+    - mds/lrc-tools/tests/test_remover
+    - mds/lrc-tools/tests/test_restore
+    - mds/mastermind/drooz/tests
+    - mds/mastermind/resizer/tests/analyze_utils
+    - mds/mastermind/snapshot/bindings/python/tests
+    - mds/mastermind/snapshot/couples_builder/tests
+    - mds/mastermind/snapshot/snapshot_generator/tests
+    - mds/mastermind/snapshot/statistics_builder/tests
+    - mds/mastermind/snapshot/storage_info_builder/tests
+    - mds/mastermind/snapshot/weight_manager/tests
+    - mds/mastermind/stat_reporter/tests
+    - media/recommender/zen/factor_url_socnet/tests
+    - mediapers/rtmr/tasks/kp/recommendations/tests
+    - metrika/admin/brb/server/tests
+    - ml/cf_sharp/tests
+    - modadvert/libs/algorithms/ut
+    - modadvert/programs/catalogia_flags_diff/ut
+    - modadvert/programs/minus_regions/ut
+    - mssngr/tools/pytests/setup/external
+    - mssngr/tools/pytests/setup/local
+    - nirvana/libs/comparable_dumped_workflow/ut
+    - nirvana/valhalla/tests
+    - ofd/common/tests/test_processor
+    - ofd/notifier/tests/test_unit/test_sender/test_event_types
+    - ofd/notifier/tests/test_unit/test_sender/test_notification_types
+    - ofd/runtime/new/tests
+    - passport/python/dbscripts/tests
+    - passport/python/logbroker_client/account_events/tests
+    - passport/python/logbroker_client/historydb/tests
+    - passport/python/logbroker_client/historydb_yt/tests
+    - passport/python/logbroker_client/oauth/tests
+    - passport/python/logbroker_client/xiva/tests
+    - passport/python/tools/metrics/ut
+    - passport/python/vault/cli/yav/tests
+    - quality/ab_testing/exp_daemon/tests
+    - quality/ab_testing/scripts/exp_veles/exp_mr_server/scripts/ut
+    - quality/ab_testing/tests/calc_abt
+    - quality/ab_testing/tools/postgres_local/tests
+    - quality/antifraud/scripts/prod/tests/large_yql_scripts_tests
+    - quality/antifraud/xurma/uxl/tests
+    - quality/click_machine/tests
+    - quality/functionality/chats/common/bots/tests
+    - quality/functionality/chats/common/feedback_client/tests
+    - quality/functionality/chats/common/requests_wrappers/tests
+    - quality/functionality/content_plugins/lib/doc_parser/tests
+    - quality/functionality/content_plugins/runner/tests
+    - quality/functionality/content_plugins/scripts/tests
+    - quality/functionality/content_plugins/tools/cut_snippets/tests
+    - quality/functionality/entity_search/factqueries/facts_builder_mr/tests/medium
+    - quality/functionality/ideal_snippets/release_data/tests
+    - quality/functionality/parsepl/nirvana/parse_kwyt_full/tests
+    - quality/functionality/parsepl/nirvana/parse_kwyt_sample/tests
+    - quality/functionality/toloka_lib/tests
+    - quality/functionality/turbo/rss/host_ban_job/tests
+    - quality/logs/baobab/api/cpp/tests
+    - quality/logs/baobab/api/python_arc/ut
+    - quality/logs/baobab/api/python_arc/ut3
+    - quality/logs/baobab/tamus/python/ut
+    - quality/logs/baobab/tamus/tests/dump_test
+    - quality/logs/baobab/tests/validation_lib
+    - quality/logs/log_splitter_lib/tests/rec_splitter/tests
+    - quality/logs/logs_ng_verifier/tests
+    - quality/miscdata/prep/tests
+    - quality/mr_apps/mr_cat/test
+    - quality/mr_apps/mr_cp/test
+    - quality/mr_apps/mr_data_manip/test
+    - quality/mr_apps/mr_diff/test
+    - quality/mr_apps/mr_files/test
+    - quality/mr_apps/mr_find/test
+    - quality/mr_apps/mr_get_keys/test
+    - quality/mr_apps/mr_get_table_part/test
+    - quality/mr_apps/mr_grep/test
+    - quality/mr_apps/mr_hash/test
+    - quality/mr_apps/mr_head/test
+    - quality/mr_apps/mr_hist/test
+    - quality/mr_apps/mr_key_count/test
+    - quality/mr_apps/mr_ls/test
+    - quality/mr_apps/mr_mv/test
+    - quality/mr_apps/mr_rm/test
+    - quality/mr_apps/mr_set_ops/test
+    - quality/mr_apps/mr_sort/test
+    - quality/mr_apps/mr_stat/test
+    - quality/mr_apps/mr_touch/test
+    - quality/mr_apps/mr_uniq/test
+    - quality/mr_apps/mr_wc/test
+    - quality/mr_test/tests
+    - quality/mr_trie_tools/mr_coded_blob_test/tests
+    - quality/mr_trie_tools/mr_trie_test/tests
+    - quality/pers/ml/atom/calctarg/tests
+    - quality/pers/ml/atom/distribution/collect_user_ids/tests
+    - quality/pers/ml/atom/distribution/convert_logs/tests
+    - quality/pers/ml/atom/distribution/conveyor/fml_learner/lib/tests
+    - quality/pers/ml/atom/distribution/conveyor/pool_builder/tests
+    - quality/pers/ml/atom/distribution/counter_stat/tests
+    - quality/pers/ml/atom/distribution/crypta_extract/tests
+    - quality/pers/ml/atom/distribution/generate_user_id_mapping/tests
+    - quality/pers/ml/atom/distribution/joiner/tests
+    - quality/pers/ml/atom/distribution/parse_atom_events/tests
+    - quality/pers/ml/atom/distribution/postprocess_product_profiles/tests
+    - quality/pers/ml/atom/distribution/product_profile_and_candidate_score_matcher/tests
+    - quality/pers/ml/atom/distribution/product_profiles2/tests
+    - quality/pers/ml/atom/distribution/search_profiles/tests
+    - quality/pers/ml/atom/docscore/tests
+    - quality/pers/ml/atom/project-specific/entity_search/log_pool/tests
+    - quality/pers/ml/atom/project-specific/entity_search/makepool/tests
+    - quality/pers/ml/outflow/tests
+    - quality/pers/rerank_service/tests/service-test
+    - quality/pers/user_buckets/tests
+    - quality/pers/user_history/geo_requests/tests
+    - quality/pers/user_history/suggest_maps/tests
+    - quality/pers/user_profiles/tests/local_mr
+    - quality/pers/user_profiles/tests/rtmr
+    - quality/relev_tools/fml_mr_utils/pool_sampler/test
+    - quality/relev_tools/fml_mr_utils/prs_intersector/test
+    - quality/relev_tools/fml_mr_utils/prs_unrater/test
+    - quality/relev_tools/fml_plot/tests
+    - quality/relev_tools/lboost_ops/makereqbundle/tests/from_plain_text
+    - quality/relev_tools/lboost_ops/makereqbundle/tests/from_qtree
+    - quality/relev_tools/lboost_ops/tm_calc/tests
+    - quality/relev_tools/matrixnet/python_tests
+    - quality/relev_tools/vpcg/bin/ut
+    - quality/relev_tools/xfactor-yt/lib/ut/build_apply_dictionaries
+    - quality/relev_tools/xfactor-yt/lib/ut/collaborative_filtering
+    - quality/relev_tools/xfactor-yt/lib/ut/convert_output
+    - quality/relev_tools/xfactor-yt/lib/ut/metric_export
+    - quality/relev_tools/xfactor-yt/lib/ut/prepare_input
+    - quality/relev_tools/xfactor-yt/yt_operations/ut
+    - quality/short_beak/sg_collector/tests
+    - quality/tools/scripts/tests
+    - quality/traffic/tests/iterator/tests
+    - quality/trailer/rich_suggest_data/fast_thematic_personalization/tests
+    - quality/trailer/suggest/tests
+    - quality/user_search/qnorm_manip/tests
+    - quality/user_sessions/amon/tests
+    - quality/user_sessions/bali/tests
+    - quality/user_sessions/createlib/qb3/parser/helpers_example/tests
+    - quality/user_sessions/createlib/qb3/parser/local_yt_test_example
+    - quality/user_sessions/createlib/qb3/parser/local_yt_test_example_proto
+    - quality/user_sessions/createlib/qb3/parser/local_yt_test_example_proto_v2
+    - quality/user_sessions/createlib/qb3/tests/create
+    - quality/user_sessions/createlib/qb3/tests/old_create_tests
+    - quality/user_sessions/createlib/tests
+    - quality/user_sessions/request_aggregate_lib/tests/data_dumps
+    - quality/user_sessions/request_aggregate_lib/tests/iterators
+    - quality/user_sessions/request_aggregate_lib/tests/join_graph
+    - quality/user_sessions/request_aggregate_lib/tests/market_offer_click
+    - quality/userdata/prep/tests
+    - quality/ytlib/ytweave/tests
+    - robot/favicon/tests
+    - robot/lemur/ci_yt/smoke
+    - robot/library/oxygen/indexer/input/collection/tests
+    - robot/library/oxygen/indexer/mapper/links/tests
+    - robot/library/oxygen/indexer/output/tests
+    - robot/library/oxygen/indexer/processor/arcdir/tests
+    - robot/library/oxygen/indexer/processor/pruning/tests
+    - robot/superdups/tests
+    - rt-research/broadmatching/mr/monitoring/lib_monitoring/ut
+    - rt-research/common/bindings/jupiter_canonizer/ut/lib
+    - rtmapreduce/mrtasks/blender_cache/tests
+    - rtmapreduce/mrtasks/blender_online_learning/tests
+    - rtmapreduce/mrtasks/bs_fast_stat/tests
+    - rtmapreduce/mrtasks/cocaine_log/tests
+    - rtmapreduce/mrtasks/create_market_requests/tests
+    - rtmapreduce/mrtasks/create_proto_sessions/tests
+    - rtmapreduce/mrtasks/create_scarab_sessions/tests
+    - rtmapreduce/mrtasks/create_sessions/tests
+    - rtmapreduce/mrtasks/drive/surge/tests
+    - rtmapreduce/mrtasks/fresh_intent/tests
+    - rtmapreduce/mrtasks/fresh_requests/tests
+    - rtmapreduce/mrtasks/images_freon_sample/tests
+    - rtmapreduce/mrtasks/keyslist/tests
+    - rtmapreduce/mrtasks/logfeller_create_logs/tests
+    - rtmapreduce/mrtasks/org_load/tests
+    - rtmapreduce/mrtasks/orgvisits/tests
+    - rtmapreduce/mrtasks/parselib_errors/tests
+    - rtmapreduce/mrtasks/postprocess_sessions/tests
+    - rtmapreduce/mrtasks/rtcrypta_geo/tests
+    - rtmapreduce/mrtasks/rtmr/pqout/tests
+    - rtmapreduce/mrtasks/rtmr/rtmr_kpi/tests
+    - rtmapreduce/mrtasks/rtmr/splitter/tests
+    - rtmapreduce/mrtasks/rtmr/trivial_ops_yt/tests
+    - rtmapreduce/mrtasks/sample/tests
+    - rtmapreduce/mrtasks/sbapi_split/tests
+    - rtmapreduce/mrtasks/sessions2detector/tests
+    - rtmapreduce/mrtasks/sessions2trender/tests
+    - rtmapreduce/mrtasks/sp_count/tests
+    - rtmapreduce/mrtasks/stocks/tests
+    - rtmapreduce/mrtasks/united_geolog/tests
+    - rtmapreduce/mrtasks/video_player_errors/tests
+    - rtmapreduce/mrtasks/visitors/tests
+    - rtmapreduce/tests/create-sessions-mainservice-test/test
+    - rtmapreduce/tests/pusher-test/tests
+    - saas/rtyserver_test/tests/cluster
+    - saas/rtyserver_test/tests/unit_10m
+    - saas/rtyserver_test/tests/unit_long
+    - saas/rtyserver_test/tests/with_data
+    - saas/tools/printposfilter/tests
+    - sandbox/projects/devtools/ArcadiaResourceAutoupdater
+    - sandbox/projects/devtools/COPY_RESOURCE
+    - sandbox/projects/devtools/ChangesDetector
+    - sandbox/projects/devtools/CreateArcadiaHgBundle
+    - sandbox/projects/devtools/REPLACE_LD_WITH_LLD
+    - scarab/api/tests/java-mobile-minimal/ut
+    - scarab/api/tests/js/ut
+    - scarab/api/tests/perl/ut
+    - scarab/api/tests/python/ut
+    - scarab/api/tests/swift/ut
+    - sdc/labeling/storage/lib/migrations
+    - search/begemot/tools/spellchecker/framework_adapter
+    - search/geo/tools/golovan/extevlogproc/tests
+    - search/gta/ltv/hc1_reducer/tests
+    - search/lingboost/saas/codecs/test_bundle_codecs/tests/slow
+    - search/panther/tests/convert
+    - search/priemka/yappy/tests/test_clients
+    - search/priemka/yappy/tests/test_model
+    - search/tools/idx_ops/comparer/tests
+    - search/tools/idx_ops/converter/tests
+    - search/tools/request_sampler/tests
+    - search/web/personalization/test_features/tests
+    - search/web/rearrs_upper/tests/medium
+    - search/web/rearrs_upper/tests/small
+    - search/wizard/entitysearch/tools/convertor/tests
+    - search/wizard/entitysearch/tools/outentity/tests
+    - search/wizard/entitysearch/tools/outnerobject/tests
+    - search/wizard/entitysearch/tools/tests
+    - security/ant-secret/snooper/py/ut/lib
+    - serp/foreverdata/test/patcher
+    - skynet/library/tests
+    - strm/vast_converter/tests
+    - sup/stat/rtx_squeeze/push_chunks_sqz/lib/ut
+    - sup/stat/rtx_squeeze/push_win_sqz/lib/ut
+    - tools/clustermaster/tests
+    - tools/dolbilo/executor/tests
+    - tools/fml_sweeper_api/ut
+    - tools/inflector/tests
+    - tools/langdiscr-test/tests
+    - tools/lemmer-test/tests
+    - tools/nlp_test/tests
+    - tools/nodeiter_test/tests
+    - tools/printreqs/tests
+    - tools/printrichnode/tests
+    - tools/rcgtest/tests
+    - tools/recode/tests
+    - tools/segutils/tests/dater2_test/tests
+    - tools/segutils/tests/dater_test/tests
+    - tools/segutils/tests/segmentator_test/tests
+    - tools/segutils/tests/zones_test/tests
+    - tools/snipmake/steam/page_factors/cpp_factors/segmentator_tool/tests
+    - tools/snipmake/urlcut_test/tests
+    - tools/test_norm/tests
+    - tools/tokenize/tests
+    - tools/untranslit_test/tests
+    - transfer_manager/server/tests/e2e
+    - vh/recommender/tools/build_offline_doc2doc/tests
+    - vh/recommender/tools/build_offline_recommendations/tests
+    - vh/recommender/tools/dssm_profiles/ut
+    - vh/recommender/tools/user_sessions_parser/tests
+    - voicetech/asr/cloud_engine/cli/app/pytest/large
+    - voicetech/asr/cloud_engine/cli/app/pytest/medium
+    - voicetech/asr/cloud_engine/server/stt/pytest/medium
+    - weather/admin/migrations/tests
+    - weather/libs/metrics/tests
+    - weather/libs/secrets/tests
+    - weather/workers/apply/apply_task/tests
+    - weather/workers/apply/yt/apply/tests
+    - weather/workers/common/location_indices/tests
+    - web/app_host/conf/http_adapter/tests
+    - web/app_host/daemons/earl/src/ut
+    - web/src_setup/tests/server_test/test_suites/COMMON
+    - web/src_setup/tests/server_test/test_suites/IMGS
+    - web/src_setup/tests/server_test/test_suites/INTERNAL
+    - web/src_setup/tests/server_test/test_suites/SHARED
+    - web/src_setup/tests/server_test/test_suites/VIDEO
+    - web/src_setup/tests/server_test/test_suites/WEB
+    - yabs/bscount/ft
+    - yabs/indoor/tests
+    - yabs/nanpu/tests
+    - yabs/rmp/backend/tests/lib/zora
+    - yabs/server/libs/internal_ver/advmachine_export_banners/test
+    - yabs/server/libs/internal_ver/advmachine_export_phrase_info/test
+    - yabs/server/libs/internal_ver/cs_import/test
+    - yabs/server/libs/internal_ver/lmcounters/test
+    - yabs/server/libs/internal_ver/lmng/test
+    - yabs/server/libs/internal_ver/order/test
+    - yabs/server/libs/internal_ver/tsar/test
+    - yabs/server/libs/py_decrypt_predictions/test
+    - yabs/server/libs/py_pibf/test
+    - yabs/server/test/ft/BSSERVER-2185
+    - yabs/server/test/ft/BSSERVER-2656
+    - yabs/server/test/ft/lua/page_1
+    - yabs/server/test/ft/lua/page_1037
+    - yabs/server/test/ft/lua/page_14
+    - yabs/server/test/ft/lua/page_158973
+    - yabs/server/test/ft/lua/page_162514
+    - yabs/server/test/ft/lua/page_164717
+    - yabs/server/test/ft/lua/page_168577
+    - yabs/server/test/ft/lua/page_172351
+    - yabs/server/test/ft/lua/page_180897
+    - yabs/server/test/ft/lua/page_183
+    - yabs/server/test/ft/lua/page_185459
+    - yabs/server/test/ft/lua/page_186549
+    - yabs/server/test/ft/lua/page_2
+    - yabs/server/test/ft/lua/page_231
+    - yabs/server/test/ft/lua/page_242
+    - yabs/server/test/ft/lua/page_243449
+    - yabs/server/test/ft/lua/page_244345
+    - yabs/server/test/ft/lua/page_270715
+    - yabs/server/test/ft/lua/page_273214
+    - yabs/server/test/ft/lua/page_278239
+    - yabs/server/test/ft/lua/page_280743
+    - yabs/server/test/ft/lua/page_281945
+    - yabs/server/test/ft/lua/page_285318
+    - yabs/server/test/ft/lua/page_2_on_trafarets
+    - yabs/server/test/ft/lua/page_323453
+    - yabs/server/test/ft/lua/page_330437
+    - yabs/server/test/ft/lua/page_338535
+    - yabs/server/test/ft/lua/page_338774
+    - yabs/server/test/ft/lua/page_341469
+    - yabs/server/test/ft/lua/page_342532
+    - yabs/server/test/ft/lua/page_355611
+    - yabs/server/test/ft/lua/page_357267
+    - yabs/server/test/ft/lua/page_3897
+    - yabs/server/test/ft/lua/page_417631
+    - yabs/server/test/ft/lua/page_420097
+    - yabs/server/test/ft/lua/page_92550
+    - yabs/server/test/pylibs/blowfish/test
+    - yabs/server/test/tools/oneshot_tester/lib/tests
+    - yabs/server/test/tools/oneshot_tester/oneshot_test
+    - yabs/vh/cms-pgaas/test/ft/ad_config_importer
+    - yabs/vh/cms-pgaas/test/ft/admin_api
+    - yabs/vh/cms-pgaas/test/ft/content_ksiva_api
+    - yabs/vh/cms-pgaas/test/ft/self_service_api
+    - yabs/vh/cms-pgaas/test/ft/ugc_api
+    - yabs/vh/cms-pgaas/test/ft/ugc_live_api
+    - yabs/vh/frontend/test/ft/VH-3242
+    - yql/library/embedded/python/test
+    - yql/providers/rtmr/operations/tests
+    - yql/scripts/local
+    - yql/tests/cli
+    - yql/tests/dq/misc
+    - yql/tests/dq/ydb
+    - yql/tests/jdbc
+    - yql/tests/multi_process
+    - yql/tests/sql/kikimr_yt
+    - yql/tests/sql/rtmr
+    - yql/tests/sql/rtmr_kikimr
+    - yql/tests/sql/sql2yql
+    - ysite/parser/tools/parse/tests/parse_html
+    - yt/admin/drive_monitor/tests/unit
+    - yt/admin/perf_scraper/tests
+    - yt/admin/shiva/tests/unit
+    - yt/admin/ytcfgen/tests/unit
+    - yt/odin/tests/suites
+    - yt/odin-checks/tests
+    - yweb/antimalware/libs/rwlock/tests
+    - yweb/antimalware/libs/yqltools/tests
+    - yweb/antimalware/libs/yttools/py/tests
+    - yweb/antimalware/queue/server/lib/tests
+    - yweb/antimalware/visual_html_parser/yandex-search-antivirus-memoize1/tests
+    - yweb/antimalware/visual_html_parser/yandex-search-antivirus-pbwalk/tests
+    - yweb/antimalware/visual_html_parser/yandex-search-antivirus-pesignatures/tests
+    - yweb/antiporno/nirvana/operations/find_similar_queries/test
+    - yweb/antiporno/nirvana/operations/query_prepare_clues_v2/test
+    - yweb/antiporno/nirvana/operations/self_updateable/ut
+    - yweb/antiporno/pyutil/draft/simple_yt/tests
+    - yweb/antiporno/pyutil/tests
+    - yweb/antiporno/site_reachability/lib/botanik/tests/medium
+    - yweb/antiporno/site_reachability/lib/botanik/tests/small
+    - yweb/antiporno/site_reachability/lib/export/video/tests/medium
+    - yweb/antiporno/site_reachability/lib/export/video/tests/small
+    - yweb/antiporno/site_reachability/lib/reachability_common/tests
+    - yweb/antiporno/toloka/toloka_manager/utils/test
+    - yweb/antiporno/yt_tools/rsync_yt/tests/medium
+    - yweb/antiporno/yt_tools/rsync_yt/tests/small
+    - yweb/antispam/scripts/script_lib/test
+    - yweb/antispam/tools/masks2qd_trie/tests
+    - yweb/antispam/url_ndp/url_ndp_lua/http_api
+    - yweb/antispam/url_ndp/url_ndp_lua/ut
+    - yweb/autoclassif/subquery/indexer/tests
+    - yweb/blender/lib/libblndr/tests
+    - yweb/blender/scripts/click_int_formula/tests/analysis
+    - yweb/blender/scripts/click_int_formula/tests/test_additional_feats_pool
+    - yweb/blender/scripts/fml_config_server
+    - yweb/blender/scripts/nirvana/jobs/winloss_mc_with_relev_boost/ut
+    - yweb/freshness/fresh_suggest/tests
+    - yweb/freshness/news_doc_contrast/rtmr/tests
+    - yweb/freshness/rtmr_collect_news_bursts/tests
+    - yweb/freshness/rtmr_metrics/fresh_clicks/tests
+    - yweb/freshness/rtmr_metrics/fresh_surplus/tests
+    - yweb/news/bindings/python/url/test
+    - yweb/news/cluster/tests
+    - yweb/news/docindex_lib/test
+    - yweb/news/mr_indexer/tests
+    - yweb/news/rank/rtmr_visits_exporter/tests
+    - yweb/news/rtmr/user_story_visits/tests
+    - yweb/news/rtmr/visits_aggregation/tests
+    - yweb/news/tools/pr_meter/tests
+    - yweb/peoplesearch/rtysearch/lib/profile_dumper/tests/tests
+    - yweb/peoplesearch/rtysearch/rtyindexer/tests
+    - yweb/peoplesearch/social_users/lib/common/tests/tests
+    - yweb/peoplesearch/yweb_social_snippet/tools/socnetsnip_querydata_formatter/tests
+    - yweb/peoplesearch/yweb_social_snippet/tools/yweb_social_snippet_generator_mr/tests
+    - yweb/pumpkin/mrcollector/tests
+    - yweb/querydata/querydata_indexer/tests
+    - yweb/querydata/querydata_indexer_saas/ferryman/abstract_worker/local_yt_tests
+    - yweb/querydata/querydata_indexer_saas/ferryman/json_worker/local_yt_tests
+    - yweb/querydata/querydata_indexer_saas/ferryman/tests/local_yt_tests
+    - yweb/querydata/querydata_indexer_saas/ferryman/worker/local_yt_tests
+    - yweb/querydata/tools/trie_searcher_test/tests
+    - yweb/querydata/tools/url2docid/tests
+    - yweb/querydata/tools/url2owner/tests
+    - yweb/querydata/totalban2/tests
+    - yweb/rca/tools/crca/tests
+    - yweb/robot/kiwi_queries/robot/triggers/dateextractortrigger/test
+    - yweb/robot/kiwi_queries/robot/triggers/disambmasktrigger/test
+    - yweb/robot/kiwi_queries/robot/triggers/extbreaktrigger/test
+    - yweb/robot/kiwi_queries/robot/triggers/freqcalculatortrigger/test
+    - yweb/robot/kiwi_queries/robot/triggers/httpparsetrigger/test
+    - yweb/robot/kiwi_queries/robot/triggers/mediawikitrigger/test
+    - yweb/robot/kiwi_queries/robot/triggers/mergedatacontainertrigger/test
+    - yweb/robot/kiwi_queries/robot/triggers/metadescrtrigger/test
+    - yweb/robot/kiwi_queries/robot/triggers/nameextractortrigger/nameextractortriggertest/tests/rus_docs
+    - yweb/robot/kiwi_queries/robot/triggers/nameextractortrigger/nameextractortriggertest/tests/rus_fio
+    - yweb/robot/kiwi_queries/robot/triggers/nameextractortrigger/nameextractortriggertest/tests/tur_docs
+    - yweb/robot/kiwi_queries/robot/triggers/nameextractortrigger/nameextractortriggertest/tests/tur_fio
+    - yweb/robot/kiwi_queries/robot/triggers/nameextractortrigger/nameextractortriggertest/tests/ukr_docs
+    - yweb/robot/kiwi_queries/robot/triggers/nameextractortrigger/nameextractortriggertest/tests/ukr_fio
+    - yweb/robot/kiwi_queries/robot/triggers/nameextractortrigger/test
+    - yweb/robot/kiwi_queries/robot/triggers/numbertrigger/numbertriggertest/tests
+    - yweb/robot/kiwi_queries/robot/triggers/numbertrigger/test
+    - yweb/robot/kiwi_queries/robot/triggers/phonenumbertrigger/phonetest/tests
+    - yweb/robot/kiwi_queries/robot/triggers/reviewtrigger/test
+    - yweb/robot/kiwi_queries/robot/triggers/segmentatortrigger/test
+    - yweb/robot/kiwi_queries/robot/triggers/shoptrigger/test
+    - yweb/robot/kiwi_queries/robot/triggers/simhashtrigger/test
+    - yweb/robot/kiwi_queries/robot/triggers/urlsegtrigger/test
+    - yweb/robot/kiwi_queries/robot/triggers/yapreviewtrigger/test
+    - yweb/robot/kiwi_queries/test_udf/python
+    - yweb/robot/refarc2omni/test
+    - yweb/safesearch/government/python/tests
+    - yweb/sitelinks/astrolabe/build_bna/candidates/tests/test_daily_logs
+    - yweb/sitelinks/astrolabe/build_bna/candidates/tests/test_merge_daily_logs
+    - yweb/sitelinks/astrolabe/build_bna/candidates/tests/test_nanos
+    - yweb/sitelinks/astrolabe/build_bna/candidates/tests/test_region
+    - yweb/sitelinks/astrolabe/build_bna/naming/tests/test_canonizations/test_apply_canonizations
+    - yweb/sitelinks/astrolabe/build_bna/naming/tests/test_canonizations/test_prepare_canonizations
+    - yweb/sitelinks/astrolabe/build_bna/naming/tests/test_gemini_input
+    - yweb/sitelinks/astrolabe/build_bna/naming/tests/test_generate_sitelinks_from_titles
+    - yweb/sitelinks/astrolabe/build_bna/naming/tests/test_get_candidates_from_refarc
+    - yweb/sitelinks/astrolabe/build_bna/naming/tests/test_naming_candidates
+    - yweb/sitelinks/astrolabe/build_bna/naming/tests/test_prepare_html_urls
+    - yweb/sitelinks/astrolabe/build_bna/naming/tests/test_prepare_input_for_refarc
+    - yweb/sitelinks/astrolabe/migration/tests
+    - yweb/structhtml/mediawiki/tool/tests
+    - yweb/structhtml/microform/tool/tests/datavoctest
+    - yweb/structhtml/microform/tool/tests/microtests
+    - yweb/structhtml/microform/tool/tests/namevaltest
+    - yweb/structhtml/microform/tool/tests/structhtmltest
+    - yweb/structhtml/richsnippets/productoffer/tool/tests
+    - yweb/structhtml/richsnippets/recipe/tool/tests
+    - yweb/structhtml/richsnippets/semanticdata2json/tool/tests
+    - yweb/structhtml/richsnippets/videoobject/tool/tests
+    - yweb/structhtml/schemaorg/tool/tests
+    - yweb/tellurium/test/integration
+    - yweb/tellurium/test/medium
+    - yweb/tellurium/test/unit
+    - yweb/video/index/vtriebuilder/tests
+    - yweb/video/mr_scripts/calcstaticfactors/tests
+    - yweb/video/mr_scripts/vdupmr/tests
+    - yweb/video/mr_scripts/vmetamerge/tests
+    - yweb/video/robot/freshness/mr_sbrstats/tests
+    - yweb/video/series/heartbeat/tests
+    - yweb/video/tools/url2fastban/tests
+    - yweb/video/vprintwzrd_mr/tests
+    - yweb/webdaemons/explogdaemon/tests
+    - yweb/webscripts/video/fastrecrawl/fresh_deltas/tests
+    - yweb/webscripts/video/redirects_unwind
+    - yweb/yasap/answers_recommender/dj/recommender/snippets/utils/ut
+    - yweb/yasap/pdb/backend/rtmr_tasks/collections_sharing/tests
+    - yweb/yasap/pdb/backend/rtmr_tasks/collections_views/tests
+    - yweb/yasap/pdb/pdb-backend/tests/lib/commands/set_market_merchant_data
+    - yweb/yasap/pdb/pdb-backend/tests/lib/detected_objects
+    - yweb/yasap/pdb/pdb-backend/tests/lib/its
+    - yweb/yasap/pdb/pdb-backend/tests/lib/maps
+    - yweb/yasap/pdb/pdb-backend/tests/lib/market
+    - yweb/yasap/pdb/pdb-backend/tests/lib/mds
+    - yweb/yasap/pdb/pdb-backend/tests/lib/messenger
+    - yweb/yasap/pdb/pdb-backend/tests/lib/monit
+    - yweb/yasap/pdb/pdb-backend/tests/lib/passport
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/avatars
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/boards/resources
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cards/resources/ban
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cards/resources/bulk
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cards/resources/card_of_the_day
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cards/resources/competitions
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cards/resources/complaints
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cards/resources/creation
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cards/resources/delete
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cards/resources/delete_board
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cards/resources/forbid_patch
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cards/resources/get
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cards/resources/image_props
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cards/resources/log
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cards/resources/market
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cards/resources/merchants
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cards/resources/organization
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cards/resources/other
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cards/resources/patch
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cards/resources/samovar
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cards/resources/search
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cards/resources/series
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cards/resources/shares
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cards/resources/source_types
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cards/resources/user
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cards/resources/wish
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/celery
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/clicks
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cmnt
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/comments
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/common
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/competitions
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/complaints
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/components
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/decorators
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/entity
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/ephemeral
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/events/tasks
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/export
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/favorites
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/instagram
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/langdetect
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/likes
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/metrics
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/notifiers
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/object_answers
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/object_tags
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/organizations
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/pages
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/push
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/recipes
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/saas
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/shares
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/stats
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/subscriptions
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/suggest
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/tasks
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/toloka
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/ugcdb
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/underside
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/user/resources
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/videohost
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/videos
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/yauth
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/ydb
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/youtube
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/zen
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/zora
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/actions/tasks
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/boards
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/cards/tasks
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/comments
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/common
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/competitions
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/complaints
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/contents
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/e2e
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/idm
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/notifiers
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/object_answers
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/recipes
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/resources
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/subscriptions
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/teasers
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/toloka
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/trashcan
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/turbo
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/users
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/yt
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb_ext/celery
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb_ext/kombu
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb_ext/mongo_proxy
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb_ext/mongoengine
+    - yweb/yasap/pdb/pdb-backend/tests/lib/rtmr
+    - yweb/yasap/pdb/pdb-backend/tests/lib/saas
+    - yweb/yasap/pdb/pdb-backend/tests/lib/sb
+    - yweb/yasap/pdb/pdb-backend/tests/lib/tanker
+    - yweb/yasap/pdb/pdb-backend/tests/lib/ugcdb
+    - yweb/yasap/pdb/pdb-backend/tests/lib/videosearch
+    - yweb/yasap/pdb/pdb-backend/tests/lib/xmlsearch
+    - yweb/yasap/pdb/pdb-backend/tests/lib/ydb
+    - yweb/yasap/pdb/pdb-backend/tests/lib/zen
+    - yweb/yasap/pdb/pdb-backend/tests/lib/zora
+    - yweb/yasap/pdb/quality/profile/action_v2/rtmr/tests
+    - yweb/yasap/pdb/quality/profile/fresh_profiles/event_log_converter_rtmr/tests
+    - yweb/yasap/pdb/quality/profile/redir_actions/rtmr_redir_actions/tests
+    - zen/rtmr/push_processing/tests
+    - zen/rtmr/tasks/tests
+    - quality/mapreduce/tests/common
+    - ads/factor_check/features/tests
+    - ads/libs/py_ml_factors/mt/baseline_model
+    - ads/libs/py_ml_factors/mt/rsya_factors
+    - ads/libs/py_proto_mappers/mt
+    - ads/logos/libs/attributes/mt
+    - ads/logos/libs/monitoring_tools/ut
+    - ads/logos/libs/resource_monitoring/ut
+    - ads/logos/logs/mt
+    - ads/logos/tasks/ads_map_and_join_simulator_log_raw/mt
+    - ads/logos/tasks/ads_post_join_simulator_log/mt
+    - ads/logos/tasks/ads_video_completes/mt
+    - ads/logos/tasks/ads_video_completes_orderid_stats/mt
+    - ads/logos/tasks/aggr_rtb_external/mt
+    - ads/logos/tasks/banner_to_texts/mt
+    - ads/logos/tasks/bmcategory_queryage_coeffs/mt
+    - ads/logos/tasks/build_stat_actions_order_stat_v2/mt
+    - ads/logos/tasks/build_stat_auto_budget_order_stat_v2/mt
+    - ads/logos/tasks/build_stat_bmcategory_ancestor/mt
+    - ads/logos/tasks/build_stat_bmcategory_traffic/mt
+    - ads/logos/tasks/build_stat_direct_apc/mt
+    - ads/logos/tasks/build_stat_domain_apc/mt
+    - ads/logos/tasks/build_stat_domain_ctr_apc_cost/mt
+    - ads/logos/tasks/build_stat_order_installs/mt
+    - ads/logos/tasks/build_stat_p_conv_meta4/mt
+    - ads/logos/tasks/build_stat_pr_good_multi_goal/mt
+    - ads/logos/tasks/build_stat_suggest/mt
+    - ads/logos/tasks/build_stat_user_group/mt
+    - ads/logos/tasks/daily_merge/mt
+    - ads/logos/tasks/drop_rotate_hit_log/mt
+    - ads/logos/tasks/drop_yang_cookie_no_banners/mt
+    - ads/logos/tasks/dump_caesar_table/mt/ad_groups
+    - ads/logos/tasks/dump_caesar_table/mt/banners
+    - ads/logos/tasks/dump_caesar_table/mt/ordrers
+    - ads/logos/tasks/factors_stats_local_ads/mt
+    - ads/logos/tasks/find_badhits/mt
+    - ads/logos/tasks/find_baduniqs/mt
+    - ads/logos/tasks/join_hits/mt
+    - ads/logos/tasks/join_queryfactors/mt
+    - ads/logos/tasks/join_rtb_dsp/mt
+    - ads/logos/tasks/join_true_target/mt
+    - ads/logos/tasks/joined_hfactors/mt
+    - ads/logos/tasks/learn_build_stat_apc/mt
+    - ads/logos/tasks/learn_efh_clicked_05_ns/mt
+    - ads/logos/tasks/learn_efh_internal_2ns/mt
+    - ads/logos/tasks/learn_efh_internal_2ns_grep_local_ads/mt
+    - ads/logos/tasks/learn_efhf_banner_relevance/mt
+    - ads/logos/tasks/learn_efhf_clicked5_page2_slot2/mt
+    - ads/logos/tasks/learn_efhf_conv_big/mt
+    - ads/logos/tasks/learn_efhf_kub/mt
+    - ads/logos/tasks/learn_efhf_lm_search_ns/mt
+    - ads/logos/tasks/learn_efhf_mobile2/mt
+    - ads/logos/tasks/learn_efhf_mobile_linear_ns/mt
+    - ads/logos/tasks/learn_efhf_special_linear2_ns/mt
+    - ads/logos/tasks/learn_efhf_special_linear_ns/mt
+    - ads/logos/tasks/learn_efhf_yandex_premium_ns/mt
+    - ads/logos/tasks/learn_efhw_clicked_05_ns/mt
+    - ads/logos/tasks/learn_efhw_clicked_05_ns_mappers_logs/mt
+    - ads/logos/tasks/learn_efhw_clicked_12/mt
+    - ads/logos/tasks/learn_efhw_internal_2ns_grep_local_ads/mt
+    - ads/logos/tasks/learn_hfactors_efh/mt
+    - ads/logos/tasks/learn_hfactors_efh_performance/mt
+    - ads/logos/tasks/learn_yabar_efhf_dwelltime/mt
+    - ads/logos/tasks/ltp_bbdump/mt/test_ltp_bbdump
+    - ads/logos/tasks/ltp_browser_url_title/mt
+    - ads/logos/tasks/ltp_vector_eval_dssm/mt/test_ltp_vectoreval_bclong
+    - ads/logos/tasks/ltp_vector_eval_torch/mt/test_ltp_vectoreval_kaptar
+    - ads/logos/tasks/make_application_best_banners/mt
+    - ads/logos/tasks/make_application_info/mt
+    - ads/logos/tasks/map_joined_ef/mt
+    - ads/logos/tasks/map_joined_efh/mt
+    - ads/logos/tasks/map_joined_efhfactors/mt
+    - ads/logos/tasks/map_joined_efhwv/mt
+    - ads/logos/tasks/map_joined_hfactors_efh/mt
+    - ads/logos/tasks/map_joined_new_for_local_ads/mt
+    - ads/logos/tasks/map_logs/mt
+    - ads/logos/tasks/map_logs/ut
+    - ads/logos/tasks/map_rotate_hitraw/mt
+    - ads/logos/tasks/map_rotate_rtb/mt
+    - ads/logos/tasks/map_rtb_dsp/mt
+    - ads/logos/tasks/mark_hit/mt
+    - ads/logos/tasks/mediation_lmfeatures_log/mt
+    - ads/logos/tasks/mediation_merge_daily/mt
+    - ads/logos/tasks/mediation_mxfeatures_log/mt
+    - ads/logos/tasks/mediation_wide_log/mt
+    - ads/logos/tasks/merge_local_ads_order/mt
+    - ads/logos/tasks/prepare_banner_text/mt
+    - ads/logos/tasks/prepare_meta_wide_log/mt
+    - ads/logos/tasks/prepare_norm_phrase/mt
+    - ads/logos/tasks/prgg_stats_result_transfer/mt
+    - ads/logos/tasks/publish_join_hits/mt
+    - ads/logos/tasks/rearrange_abuse/mt
+    - ads/logos/tasks/rearrange_dsp/mt
+    - ads/logos/tasks/rearrange_event_debug/mt
+    - ads/logos/tasks/rearrange_factors/mt
+    - ads/logos/tasks/rearrange_hfactors/mt
+    - ads/logos/tasks/rearrange_hit/mt
+    - ads/logos/tasks/rearrange_hit_factors/mt
+    - ads/logos/tasks/rearrange_query_factors/mt
+    - ads/logos/tasks/rearrange_rtb/mt
+    - ads/logos/tasks/rearrange_serpclicks/mt
+    - ads/logos/tasks/rearrange_wide/mt
+    - ads/logos/tasks/rearrange_widetext/mt
+    - ads/logos/tasks/reduced_one_hour_export_access_log/mt
+    - ads/logos/tasks/reduced_two_days_export_access_log/mt
+    - ads/logos/tasks/split_chevent/mt
+    - ads/logos/tasks/suggest_monitoring/mt/suggest
+    - ads/logos/tasks/suggest_monitoring/mt/touch_suggest
+    - ads/logos/tasks/visit_goals_reduced/mt
+    - ads/logos/tasks/vw_apc_src_ef_enriched/mt
+    - ads/logos/tasks/vw_apc_src_efhwv_enriched/mt
+    - quality/user_sessions/createlib/qb3/parser/local_yt_test_example_proto_v2
+    - quality/user_sessions/createlib/qb3/tests/create
+    - billing/agency_rewards/tests_platform
+    - balancer/test/functional/instance
+    - balancer/test/functional/aab_cookie_verify
+    - crypta/adhoc/smart/tasks/join_with_crypta_id/bin/test
+    - crypta/audience/test/fat
+    - crypta/buchhalter/services/main/bin/test/adfox_calc
+    - crypta/buchhalter/services/main/bin/test/audience_add_logins_to_segments
+    - crypta/buchhalter/services/main/bin/test/audience_dmp_report_calc
+    - crypta/buchhalter/services/main/bin/test/audience_filter_shared_chevents
+    - crypta/buchhalter/services/main/bin/test/audience_group_segments
+    - crypta/buchhalter/services/main/bin/test/audience_per_group_calc
+    - crypta/buchhalter/services/main/bin/test/audience_per_owner_calc
+    - crypta/buchhalter/services/main/bin/test/audience_per_segment_events_calc
+    - crypta/buchhalter/services/main/bin/test/audience_shadow_dmp_report_calc
+    - crypta/buchhalter/services/main/bin/test/audience_shadow_dmps_calc
+    - crypta/buchhalter/services/main/bin/test/backuper
+    - crypta/buchhalter/services/main/bin/test/direct_calc
+    - crypta/buchhalter/services/main/bin/test/display_calc
+    - crypta/buchhalter/services/main/bin/test/lookalike_calc
+    - crypta/buchhalter/services/main/bin/test/multipliers_calc
+    - crypta/cm/services/db_stats/bin/test
+    - crypta/dit/mr_dit_process/bin/test/match_dit_to_segments_and_domains
+    - crypta/dmp/adobe/bin/calc_sizes/bin/test
+    - crypta/dmp/adobe/bin/filter_eu_yandexuids/bin/test
+    - crypta/dmp/adobe/bin/match_cookies/bin/test
+    - crypta/dmp/common/calc_sizes/test
+    - crypta/dmp/common/match_cookies/test
+    - crypta/dmp/common/metrics/test/medium
+    - crypta/dmp/yandex/bin/calc_sizes/bin/test
+    - crypta/dmp/yandex/bin/make_mac_hash_yuid/bin/test
+    - crypta/dmp/yandex/bin/match_cookies/bin/test
+    - crypta/dmp/yandex/bin/send_metrics/bin/test
+    - crypta/dmp/yandex/bin/send_metrics_mail/bin/test
+    - crypta/dmp/yandex/bin/upload_to_audience/bin/test
+    - crypta/graph/fuzzy/test
+    - crypta/graph/matching/human/test
+    - crypta/graph/metrics/stats_base/tests
+    - crypta/graph/mrcc/test
+    - crypta/graph/soup/prepare/test
+    - crypta/lookalike/services/metrics/counts_per_parent_type_calc/bin/test
+    - crypta/lookalike/services/metrics/export_metrics/bin/test
+    - crypta/lookalike/services/metrics/recall_calc/bin/test
+    - crypta/lookalike/services/metrics/sizes_diff_calc/bin/test
+    - crypta/profile/tasks/export/test
+    - crypta/profile/tasks/segments/lal_samples/test
+    - crypta/profile/tasks/segments/test
+    - crypta/siberia/bin/convert_to_user_data_stats/bin/test
+    - crypta/siberia/bin/expirator/bin/test
+    - crypta/siberia/bin/make_id_to_crypta_id/bin/test
+    - crypta/siberia/bin/matching_table_uploader/bin/test
+    - crypta/siberia/bin/user_data_uploader/bin/test
+    - crypta/siberia/test
+    - crypta/tx/services/data_import/bin/test/eda
+    - crypta/tx/services/data_import/bin/test/edadeal
+    - crypta/tx/services/data_import/bin/test/market
+    - crypta/tx/services/data_import/bin/test/taxi
+    - dict/mystem/tests
+    - infra/walle/server/tests
+    - market/forecaster/lite
+    - market/idx/marketindexer/medium_tests/yatf
+    - market/report/lite
+    - ofd/notifier/tests/test_unit
+    - passport/python/api/settings/logbroker_takeout
+    - saas/rtyserver_test/tests
+    - search/beholder/services/beholder
+    - search/lingboost/saas/codecs/test_bundle_codecs/tests
+    - statbox/qb2/tests/common
+    - statbox/qb2_core/tests/common
+    - transfer_manager/server/tests
+    - yql/tests/s-expressions
+    - yql/tests/sql
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/boards
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cards
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/events
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/user
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/actions
+    - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/cards
+    - ads/libs/py_autobudget/ft/test_ab_target_mapper
+    - ads/libs/py_autobudget/ft/test_attribution_preprocessor
+    - ads/libs/py_autobudget/ft/test_common_qid_mapper
+    - ads/libs/py_autobudget/ft/test_meaningful_goals_goal_id_mapper
+    - ads/libs/py_autobudget/ft/test_meaningful_goals_mapper
+    - ads/libs/py_autobudget/ft/test_meaningful_goals_to_column_mapper
+    - ads/libs/py_autobudget/ft/test_resampling_preprocessor
+    - ads/libs/py_autobudget/ft/test_reweighting
+    - ads/libs/py_autobudget/ft/test_row_duplicator_mapper
+    - ads/libs/py_autobudget/ft/test_scale_by_column_preprocessor
+    - ads/libs/py_autobudget/ft/test_utils
+    - ads/libs/py_mapreduce/yabs-mapreduce-modules/t
+    - ads/libs/py_mapreduce/yabs-mapreduce-modules/test_pt
+    - ads/sandbox_scripts/cpa_autobudget/lib/ft/test_ab_orders_yql
+    - ads/sandbox_scripts/cpa_autobudget/lib/ft/test_action_yql
+    - ads/sandbox_scripts/cpa_autobudget/lib/ft/test_click_yql
+    - ads/sandbox_scripts/cpa_autobudget/lib/ft/test_compare_yql
+    - ads/sandbox_scripts/cpa_autobudget/lib/ft/test_cpa_bids_yql
+    - ads/sandbox_scripts/cpa_autobudget/lib/ft/test_expected_spendings_yql
+    - ads/sandbox_scripts/cpa_autobudget/lib/ft/test_global_yt
+    - ads/sandbox_scripts/cpa_autobudget/lib/ft/test_merged_bids_yql
+    - ads/sandbox_scripts/cpa_autobudget/lib/ft/test_multipliers_yql
+    - ads/sandbox_scripts/cpa_autobudget/lib/ft/test_perfomance_filters_yql
+    - ads/sandbox_scripts/cpa_autobudget/lib/ft/test_statistics
+    - ads/sandbox_scripts/cpa_autobudget/lib/ft/test_sum_working_history_ab_coeff
+    - ads/sandbox_scripts/cpa_autobudget/lib/ft/test_utils
+    - ads/sandbox_scripts/cpa_autobudget/lib/ft/test_week_limit_bids_yql
+    - balancer/test/functional/rfc_http
+    - balancer/test/functional/dynamic
+    - balancer/test/functional/antirobot
+    - balancer/test/functional/h100
+    - balancer/test/functional/errordocument
+    - balancer/test/functional/log_headers
+    - balancer/test/functional/active_check_reply
+    - balancer/test/functional/rendezvous_hashing
+    - balancer/test/functional/consistent_hashing
+    - balancer/test/functional/pingerprocess
+    - balancer/test/functional/balancer2
+    - balancer/test/functional/unistat
+    - billing/agency_rewards/tests_regression
+    - yabs/autobudget/ml/flatten_visit_log/lib/mt
+    - ads/sandbox_scripts/visibility_stats/fat
+    - ads/sandbox_scripts/truncate_hitfactors/tests
+    - ads/sandbox_scripts/cpa_autobudget/lib/ut
+    - ads/sandbox_scripts/cpa_autobudget/lib/mt/test_ab_orders_yql
+    - ads/sandbox_scripts/cpa_autobudget/lib/mt/test_cpa_bids_yql
+    - ads/sandbox_scripts/cpa_autobudget/lib/mt/test_expected_spendings_yql
+    - ads/sandbox_scripts/cpa_autobudget/lib/mt/test_merged_bids_yql
+    - ads/sandbox_scripts/cpa_autobudget/lib/mt/test_ml_action_model_yql
+    - ads/sandbox_scripts/cpa_autobudget/lib/mt/test_ml_spending_model_yql
+    - ads/sandbox_scripts/cpa_autobudget/lib/mt/test_perfomance_filters_yql
+    - ads/sandbox_scripts/cpa_autobudget/lib/mt/test_pipeline_from_merged_bids_to_exports
+    - ads/sandbox_scripts/cpa_autobudget/lib/mt/test_week_limit_bids_yql
+    - ads/sandbox_scripts/cpa_autobudget/lib/mt/test_working_history_yql
+    - ads/pytorch/lib/preprocess/medium_ut
+    - ads/pytorch/lib/online_learning/production/model_folder/medium_ut
+    - ads/pytorch/ads_pytorch_integration_test
+    - ads/nirvana/online_learning/prepare_factorization_table/tsar_preprocessor/ut
+    - ads/nirvana/automl/pipelines/mlmarines/medium_ut
+    - ads/nirvana/automl/lib/preprocess_pytorch/medium_ut
+    - ads/nirvana/automl/lib/metric_eval/medium_ut
+    - ads/nirvana/automl/lib/joiner/medium_ut
+    - ads/logos/tasks/tsar_pytorch_log/ut
+    - ads/logos/tasks/tsar_pytorch_log/mt
+    - ads/logos/tasks/browser_watch_log/ut
+    - ads/logos/libs/reactor_runner/mt
+    - ads/logos/libs/cpp_client/ut
+    - ads/libs/py_ml_factors/ut/preprocessors
+    - ads/libs/py_ml_factors/ut/matrixnet
+    - ads/libs/py_lmcompute/ut
+    - ads/libs/py_lmcompute/ft
+    - ads/libs/py_autobudget/mt/test_attribution_preprocessor
+    - ads/bigkv/tensor_transport/tests
+    - yt/admin/ytcfgen/tests/unit
+    - scarab/api/python3
+    - release_machine/release_machine/sqla/release_engine
+    - release_machine/release_machine/services
+    - mssngr/botplatform/src/vins_core
+    - mssngr/botplatform/src/bots/core/migrations
+    - cloud/identity/proto
+    - cloud/gauthling/gauthling_daemon/proto

@@ -84,7 +84,7 @@ ALLOW yt/yt/core/http -> contrib/restricted/http-parser
 ALLOW yweb/robot/fetcher/fetcher/user/http -> contrib/restricted/http-parser
 
 # Prefer using skynet for data distribution
-ALLOW maps/infra/ecstatic/ymtorrent -> contrib/restricted/libtorrent
+ALLOW maps/infra/ecstatic -> contrib/restricted/libtorrent
 
 # Only allow boost in yandex projects listed below
 ALLOW adfox -> contrib/restricted/boost

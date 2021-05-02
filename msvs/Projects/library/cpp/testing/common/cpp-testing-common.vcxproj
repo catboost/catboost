@@ -66,7 +66,7 @@
       <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)$(Configuration)/library/cpp/testing/common;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)../contrib/libs/libc_compat/include/windows;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;gdi32.lib;kernel32.lib;ole32.lib;oleaut32.lib;shell32.lib;user32.lib;uuid.lib;winspool.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;dnsapi.lib;gdi32.lib;iphlpapi.lib;kernel32.lib;mswsock.lib;ole32.lib;oleaut32.lib;psapi.lib;rpcrt4.lib;secur32.lib;shell32.lib;shlwapi.lib;user32.lib;userenv.lib;uuid.lib;version.lib;winmm.lib;winspool.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  </AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  </AdditionalOptions>
       <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
@@ -81,6 +81,7 @@
     <ClCompile Include="$(SolutionDir)..\library\cpp\testing\common\env.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\library\cpp\testing\common\env_tmpl.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\cpp\testing\common\network.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\testing\common\probe.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\cpp\testing\common\scope.cpp"/>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\configure_file.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -111,6 +112,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\library\cpp\testing\common\env.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\testing\common\network.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\testing\common\probe.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\testing\common\scope.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
