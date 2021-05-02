@@ -20,9 +20,9 @@
    "targetFile": "catboostmodel.dll"
   },
   {
-    "url": "https://storage.googleapis.com/ikholopov-public-bin/catboost-v0.25.1/catboostmodel.lib",
-    "sha256": "67fdfadffc10ae5660a013b5845f5036094738d85346602c19d8ef207bc0c0b5",
-    "targetFile": "catboostmodel.lib"
+   "url": "https:/github.com/catboost/catboost/releases/download/v0.25.1/catboostmodel.lib",
+   "sha256": "b0acab2cf28bfcdd5e5a47be3c0e54a0bbb27f9c6efaff17d4fa2ee0a315b65b",
+   "targetFile": "catboostmodel.lib"
   }
  ]
 }
