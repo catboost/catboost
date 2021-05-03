@@ -21,6 +21,7 @@ from catboost import (
     FeaturesData,
     Pool,
     cv,
+    metrics,
     sum_models,
     train,
     _have_equal_features,
@@ -29,7 +30,6 @@ from catboost import (
     to_ranker,
     MultiRegressionCustomMetric,
     MultiRegressionCustomObjective,)
-from catboost import metrics
 from catboost.eval.catboost_evaluation import CatboostEvaluation, EvalType
 from catboost.utils import eval_metric, create_cd, read_cd, get_roc_curve, select_threshold, quantize
 from catboost.utils import DataMetaInfo, TargetStats, compute_training_options
@@ -2266,7 +2266,7 @@ def test_generated_metrics():
     train_pool = Pool(data=TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(data=TEST_FILE, column_description=CD_FILE)
 
-    model1 = CatBoostClassifier(loss_function="Logloss")
+    model1 = CatBoostClassifier(loss_function='Logloss')
     model1.fit(train_pool, eval_set=test_pool)
     pred1 = model1.predict(test_pool)
 
@@ -2274,32 +2274,33 @@ def test_generated_metrics():
     model2.fit(train_pool, eval_set=test_pool)
     pred2 = model2.predict(test_pool)
 
-    assert np.all(pred1 == pred2)
+    assert np.allclose(pred1.astype(int), pred2.astype(int))
 
     # Test parameter check.
     with pytest.raises(ValueError):
         model = CatBoostRegressor(loss_function=metrics.Lq())
+
     model = CatBoostRegressor()
     model.fit(train_pool)
     eval_metrics = [metrics.Lq(q=3)]
     metrics_evals = model.eval_metrics(test_pool, eval_metrics)
     for metric in eval_metrics:
-        assert metric.to_string() in metrics_evals
+        assert str(metric) in metrics_evals
 
     # Test setting hints and default values.
     results = cv(
         train_pool,
         {
-            "iterations": 20,
-            "learning_rate": 0.03,
-            "loss_function": metrics.Logloss().set_hints(skip_train=True),
-            "eval_metric": metrics.AUC(),
+            'iterations': 20,
+            'learning_rate': 0.03,
+            'loss_function': metrics.Logloss().set_hints(skip_train=True),
+            'eval_metric': metrics.AUC(),
         },
     )
-    assert "train-Logloss-mean" not in results
-    assert "train-Logloss-std" not in results
-    assert "train-AUC-mean" not in results
-    assert "train-AUC-std" not in results
+    assert 'train-Logloss-mean' not in results
+    assert 'train-Logloss-std' not in results
+    assert 'train-AUC-mean' not in results
+    assert 'train-AUC-std' not in results
 
 
 def test_custom_eval():
@@ -2333,7 +2334,7 @@ def test_custom_eval():
     model.fit(train_pool, eval_set=test_pool)
     pred1 = model.predict(test_pool)
 
-    model2 = CatBoostClassifier(iterations=5, use_best_model=True, eval_metric="Logloss")
+    model2 = CatBoostClassifier(iterations=5, use_best_model=True, eval_metric='Logloss')
     model2.fit(train_pool, eval_set=test_pool)
     pred2 = model2.predict(test_pool)
 
