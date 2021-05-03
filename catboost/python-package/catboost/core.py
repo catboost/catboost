@@ -1302,7 +1302,7 @@ def stringify_builtin_metrics(params):
             continue
         val = params[f]
         if isinstance(val, BuiltinMetric):
-            params[f] = val.to_string()
+            params[f] = str(val)
         elif isinstance(val, STRING_TYPES):
             continue
         elif isinstance(val, Sequence):
@@ -1311,14 +1311,7 @@ def stringify_builtin_metrics(params):
 
 
 def stringify_builtin_metrics_list(metrics):
-    ret = []
-    for m in metrics:
-        if isinstance(m, BuiltinMetric):
-            ret.append(m.to_string())
-        else:
-            ret.append(m)
-    return ret
-
+    return list(map(str, metrics))
 
 def _get_loss_function_for_train(params, estimator_type, train_pool):
     """
