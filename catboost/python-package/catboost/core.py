@@ -5156,7 +5156,7 @@ class CatBoostRegressor(CatBoost):
     def fit(self, X, y=None, cat_features=None, sample_weight=None, baseline=None, use_best_model=None,
             eval_set=None, verbose=None, logging_level=None, plot=False, column_description=None,
             verbose_eval=None, metric_period=None, silent=None, early_stopping_rounds=None,
-            save_snapshot=None, snapshot_file=None, snapshot_interval=None, init_model=None,
+            save_snapshot=None, snapshot_file=None, snapshot_interval=None, init_model=None, callbacks=None,
             log_cout=sys.stdout, log_cerr=sys.stderr):
         """
         Fit the CatBoost model.
@@ -5247,7 +5247,7 @@ class CatBoostRegressor(CatBoost):
         return self._fit(X, y, cat_features, None, None, None, sample_weight, None, None, None, None, baseline,
                          use_best_model, eval_set, verbose, logging_level, plot, column_description,
                          verbose_eval, metric_period, silent, early_stopping_rounds,
-                         save_snapshot, snapshot_file, snapshot_interval, init_model, log_cout, log_cerr)
+                         save_snapshot, snapshot_file, snapshot_interval, init_model, callbacks, log_cout, log_cerr)
 
     def predict(self, data, prediction_type=None, ntree_start=0, ntree_end=0, thread_count=-1, verbose=None):
         """
