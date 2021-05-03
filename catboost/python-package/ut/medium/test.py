@@ -9725,6 +9725,7 @@ def test_callbacks_metrics():
                 for metric_name in metric_names:
                     assert metric_name in info.metrics[dataset_name]
                     assert len(info.metrics[dataset_name][metric_name]) == info.iteration
+            return True
 
     model.fit(train_data, train_labels,
               callbacks=[MetricsCheckerCallback()],
