@@ -2129,6 +2129,9 @@ class CatBoost(_CatBoostBase):
             Continue training starting from the existing model.
             If this parameter is a string or pathlib.Path, load initial model from the path specified by this string.
 
+        callbacks : list, optional (default=None)
+            List of callback objects that are applied at end of each iteration.
+        
         log_cout: output stream or callback for logging
 
         log_cerr: error stream or callback for logging
@@ -4650,6 +4653,9 @@ class CatBoostClassifier(CatBoost):
             Continue training starting from the existing model.
             If this parameter is a string or pathlib.Path, load initial model from the path specified by this string.
 
+        callbacks : list, optional (default=None)
+            List of callback objects that are applied at end of each iteration.
+        
         log_cout: output stream or callback for logging
 
         log_cerr: error stream or callback for logging
@@ -5230,6 +5236,9 @@ class CatBoostRegressor(CatBoost):
             Continue training starting from the existing model.
             If this parameter is a string or pathlib.Path, load initial model from the path specified by this string.
 
+        callbacks : list, optional (default=None)
+            List of callback objects that are applied at end of each iteration.
+        
         log_cout: output stream or callback for logging
 
         log_cerr: error stream or callback for logging
