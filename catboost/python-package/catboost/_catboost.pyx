@@ -1150,8 +1150,10 @@ cdef bool_t _CallbackIsContinueTraining(
         void* customData
     ) except * with gil:
     cdef callbackObject = <object>customData
-    metrics_evals = _get_metrics_evals_pydict(history)
-    return callbackObject.is_continue_training(history.LearnMetricsHistory.size(), metrics_evals)
+    info = types.SimpleNamespace()
+    info.iteration = history.LearnMetricsHistory.size()
+    info.metrics = _get_metrics_evals_pydict(history)
+    return callbackObject.is_continue_training(info)
 
 cdef _constarrayref_of_double_to_np_array(const TConstArrayRef[double] arr):
     result = np.empty(arr.size(), dtype=_npfloat64)
