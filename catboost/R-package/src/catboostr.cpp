@@ -975,21 +975,46 @@ EXPORT_FUNCTION CatBoostEvalMetrics_R(
         SEXP resultDirParam) {
 
     SEXP result = NULL;
-    size_t metricsCount;
+    size_t protectedCount = 0;
 
     R_API_BEGIN()
+    auto treeCountStart = asInteger(treeCountStartParam);
+    auto treeCountEnd = asInteger(treeCountEndParam);
+    auto evalPeriod = asInteger(evalPeriodParam);
+    CB_ENSURE(treeCountStart >= 0, "Tree start index should be greater or equal zero");
+    CB_ENSURE(treeCountStart < treeCountEnd, "Tree start index should be less than tree end index");
+    CB_ENSURE(evalPeriod <= (treeCountEnd - treeCountStart), "Eval period should be less or equal than number of trees");
+    CB_ENSURE(evalPeriod > 0, "Eval period should be more than zero");
+
+    size_t metricsParamLen = length(metricsParam);
+    size_t treeCount = treeCountEnd - treeCountStart;
+    size_t numberOfIterations = treeCount / evalPeriod;
+    if (treeCountStart + (numberOfIterations - 1) * evalPeriod != static_cast<size_t>(treeCountEnd) - 1) {
+        ++numberOfIterations;
+    }
+
+    result = PROTECT(allocVector(VECSXP, metricsParamLen));
+    ++protectedCount;
+    SEXP metricNames = PROTECT(allocVector(STRSXP, metricsParamLen));
+    ++protectedCount;
+
+    for (size_t metricIdx = 0; metricIdx < metricsParamLen; ++metricIdx) {
+        SEXP metricScore = PROTECT(allocVector(REALSXP, numberOfIterations));
+        ++protectedCount;
+        SET_VECTOR_ELT(result, metricIdx, metricScore);
+    }
+
     TFullModelHandle model = reinterpret_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
     TPoolHandle pool = reinterpret_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
 
-    size_t metricsParamLen = length(metricsParam);
     TVector<TString> metricDescriptions;
     TVector<NCatboostOptions::TLossDescription> metricLossDescriptions;
     metricDescriptions.reserve(metricsParamLen);
     metricLossDescriptions.reserve(metricsParamLen);
     for (size_t i = 0; i < metricsParamLen; ++i) {
-      TString metricDescription = CHAR(asChar(VECTOR_ELT(metricsParam, i)));
-      metricDescriptions.push_back(metricDescription);
-      metricLossDescriptions.emplace_back(NCatboostOptions::ParseLossDescription(metricDescription));
+        TString metricDescription = CHAR(asChar(VECTOR_ELT(metricsParam, i)));
+        metricDescriptions.push_back(metricDescription);
+        metricLossDescriptions.emplace_back(NCatboostOptions::ParseLossDescription(metricDescription));
     }
     auto metrics = CreateMetrics(metricLossDescriptions, model->GetDimensionsCount());
 
@@ -998,9 +1023,9 @@ EXPORT_FUNCTION CatBoostEvalMetrics_R(
 
     TMetricsPlotCalcer plotCalcer = CreateMetricCalcer(
         *model,
-        asInteger(treeCountStartParam),
-        asInteger(treeCountEndParam),
-        asInteger(evalPeriodParam),
+        treeCountStart,
+        treeCountEnd,
+        evalPeriod,
         /*processedIterationsStep=*/50,
         CHAR(asChar(tmpDirParam)),
         metrics,
@@ -1031,28 +1056,19 @@ EXPORT_FUNCTION CatBoostEvalMetrics_R(
     plotCalcer.SaveResult(CHAR(asChar(resultDirParam)), /*metricsFile=*/"", /*saveMetrics*/ false, /*saveStats=*/true).ClearTempFiles();
 
     auto metricsResult = CreateMetricsFromDescription(metricDescriptions, model->GetDimensionsCount());
-    metricsCount = metricsResult.ysize();
-
-    result = PROTECT(allocVector(VECSXP, metricsCount));
-    SEXP metricNames = PROTECT(allocVector(STRSXP, metricsCount));
-
-    for (size_t metricIdx = 0; metricIdx < metricsCount; ++metricIdx) {
+    for (size_t metricIdx = 0; metricIdx < metricsParamLen; ++metricIdx) {
         TString metricName = metricsResult[metricIdx]->GetDescription();
-        size_t numberOfIterations = metricsScore[metricIdx].size();
-
-        SEXP metricScore = PROTECT(allocVector(REALSXP, numberOfIterations));
+        SEXP metricScoreResult = VECTOR_ELT(result, metricIdx);
         for (size_t i = 0; i < numberOfIterations; ++i) {
-            REAL(metricScore)[i] = metricsScore[metricIdx][i];
+            REAL(metricScoreResult)[i] = metricsScore[metricIdx][i];
         }
-
-        SET_VECTOR_ELT(result, metricIdx, metricScore);
         SET_STRING_ELT(metricNames, metricIdx, mkChar(metricName.c_str()));
     }
 
     setAttrib(result, R_NamesSymbol, metricNames);
 
     R_API_END();
-    UNPROTECT(metricsCount + 2);
+    UNPROTECT(protectedCount);
     return result;
 }
 }

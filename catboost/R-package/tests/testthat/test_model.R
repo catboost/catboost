@@ -478,16 +478,37 @@ test_that("model: catboost.eval_metrics", {
 
   eval_metrics <- catboost.eval_metrics(model, pool_test, metric)
   eval_metric <- eval_metrics[[metric]]
-
-  diff <- abs(train_metric - eval_metric)
-  expect_true(all(diff <= 1e-9))
+  expect_equal(train_metric, eval_metric, tolerance = 1e-9)
 
   eval_metrics <- catboost.eval_metrics(model, pool_test, list(metric))
   eval_metric <- eval_metrics[[metric]]
+  expect_equal(train_metric, eval_metric, tolerance = 1e-9)
 
-  diff <- abs(train_metric - eval_metric)
-  expect_true(all(diff <= 1e-9))
+  eval_metrics <- catboost.eval_metrics(model, pool_test, list(metric), ntree_end = 500)
+  eval_metric <- eval_metrics[[metric]]
+  expect_equal(train_metric, eval_metric, tolerance = 1e-9)
+
+  eval_metrics <- catboost.eval_metrics(model, pool_test, list(metric), ntree_start = 1, ntree_end = 5, eval_period = 2)
+  eval_metric <- eval_metrics[[metric]]
+  expect_equal(3, length(eval_metric))
+  expect_equal(c(train_metric[2], train_metric[4], train_metric[5]), eval_metric, tolerance = 1e-9)
+
+  eval_metrics <- catboost.eval_metrics(model, pool_test, list(metric), ntree_start = 1, ntree_end = 5, eval_period = 3)
+  eval_metric <- eval_metrics[[metric]]
+  expect_equal(2, length(eval_metric))
+  expect_equal(c(train_metric[2], train_metric[5]), eval_metric, tolerance = 1e-9)
+
+  eval_metrics <- catboost.eval_metrics(model, pool_test, list(metric), ntree_start = 1, ntree_end = 5, eval_period = 15)
+  eval_metric <- eval_metrics[[metric]]
+  expect_equal(2, length(eval_metric))
+  expect_equal(c(train_metric[2], train_metric[5]), eval_metric, tolerance = 1e-9)
 
   expect_error( catboost.eval_metrics(model, pool_test, list()),
                "No metrics found.", fixed = TRUE)
+  expect_error( catboost.eval_metrics(model, pool_test, list(metric), ntree_start = 500),
+                "ntree_start should be less than ntree_end.", fixed = TRUE)
+  expect_error( catboost.eval_metrics(model, pool_test, list(), ntree_start = -1),
+                "ntree_start should be greater or equal zero.", fixed = TRUE)
+  expect_error( catboost.eval_metrics(model, pool_test, list(), eval_period = -1),
+                "eval_period should be greater than zero.", fixed = TRUE)
 })

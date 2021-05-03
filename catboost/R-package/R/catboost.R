@@ -2231,10 +2231,19 @@ catboost.eval_metrics <- function(model, pool, metrics, ntree_start = 0L, ntree_
     stop("Expected catboost.Pool, got: ", class(pool))
   if (is.null.handle(pool))
     stop("Pool object is invalid.")
-  if (ntree_end == 0L)
+  if (ntree_start < 0)
+    stop("ntree_start should be greater or equal zero.")
+  if (ntree_end == 0L) {
     ntree_end <- model$tree_count
-  if (ntree_start > ntree_end)
+  } else {
+    ntree_end <- min(c(ntree_end, model$tree_count))
+  }
+  if (ntree_start >= ntree_end)
     stop("ntree_start should be less than ntree_end.")
+  if (eval_period <= 0)
+    stop("eval_period should be greater than zero.")
+  if (eval_period > (ntree_end - ntree_start))
+    eval_period <- ntree_end - ntree_start
   if (!is.list(metrics) && !(is.character(metrics) && length(metrics) == 1))
     stop("Unsupported metrics type, expecting list or string, got: ", typeof(metrics))
   if (is.character(metrics) && length(metrics) == 1)
