@@ -22,7 +22,7 @@ class AutohotkeyLexer(RegexLexer):
     .. versionadded:: 1.4
     """
     name = 'autohotkey'
-    aliases = ['ahk', 'autohotkey']
+    aliases = ['autohotkey', 'ahk']
     filenames = ['*.ahk', '*.ahkl']
     mimetypes = ['text/x-autohotkey']
 

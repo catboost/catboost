@@ -21,7 +21,7 @@ __all__ = ['IniLexer', 'RegeditLexer', 'PropertiesLexer', 'KconfigLexer',
            'NginxConfLexer', 'LighttpdConfLexer', 'DockerLexer',
            'TerraformLexer', 'TermcapLexer', 'TerminfoLexer',
            'PkgConfigLexer', 'PacmanConfLexer', 'AugeasLexer', 'TOMLLexer',
-           'SingularityLexer']
+           'NestedTextLexer', 'SingularityLexer']
 
 
 class IniLexer(RegexLexer):
@@ -349,7 +349,7 @@ class SquidConfLexer(RegexLexer):
         "cache_effective_user", "cache_host", "cache_host_acl",
         "cache_host_domain", "cache_log", "cache_mem", "cache_mem_high",
         "cache_mem_low", "cache_mgr", "cachemgr_passwd", "cache_peer",
-        "cache_peer_access", "cahce_replacement_policy", "cache_stoplist",
+        "cache_peer_access", "cache_replacement_policy", "cache_stoplist",
         "cache_stoplist_pattern", "cache_store_log", "cache_swap",
         "cache_swap_high", "cache_swap_log", "cache_swap_low", "client_db",
         "client_lifetime", "client_netmask", "connect_timeout", "coredump_dir",
@@ -509,8 +509,8 @@ class LighttpdConfLexer(RegexLexer):
     .. versionadded:: 0.11
     """
     name = 'Lighttpd configuration file'
-    aliases = ['lighty', 'lighttpd']
-    filenames = []
+    aliases = ['lighttpd', 'lighty']
+    filenames = ['lighttpd.conf']
     mimetypes = ['text/x-lighttpd-conf']
 
     tokens = {
@@ -577,56 +577,113 @@ class TerraformLexer(RegexLexer):
     filenames = ['*.tf']
     mimetypes = ['application/x-tf', 'application/x-terraform']
 
-    embedded_keywords = ('ingress', 'egress', 'listener', 'default',
-                         'connection', 'alias', 'terraform', 'tags', 'vars',
-                         'config', 'lifecycle', 'timeouts')
+    classes = ('backend', 'data', 'module', 'output', 'provider',
+             'provisioner', 'resource', 'variable')
+    classes_re = "({})".format(('|').join(classes))
+
+    types = ('string', 'number', 'bool', 'list', 'tuple', 'map', 'object', 'null')
+
+    numeric_functions = ('abs', 'ceil', 'floor', 'log', 'max',
+                         'mix', 'parseint', 'pow', 'signum')
+
+    string_functions = ('chomp', 'format', 'formatlist', 'indent',
+                        'join', 'lower', 'regex', 'regexall', 'replace',
+                        'split', 'strrev', 'substr', 'title', 'trim',
+                        'trimprefix', 'trimsuffix', 'trimspace', 'upper'
+                        )
+
+    collection_functions = ('alltrue', 'anytrue', 'chunklist', 'coalesce',
+                            'coalescelist', 'compact', 'concat', 'contains',
+                            'distinct', 'element', 'flatten', 'index', 'keys',
+                            'length', 'list', 'lookup', 'map', 'matchkeys',
+                            'merge', 'range', 'reverse', 'setintersection',
+                            'setproduct', 'setsubtract', 'setunion', 'slice',
+                            'sort', 'sum', 'transpose', 'values', 'zipmap'
+                            )
+
+    encoding_functions = ('base64decode', 'base64encode', 'base64gzip',
+                          'csvdecode', 'jsondecode', 'jsonencode', 'textdecodebase64',
+                          'textencodebase64', 'urlencode', 'yamldecode', 'yamlencode')
+
+
+    filesystem_functions = ('abspath', 'dirname', 'pathexpand', 'basename',
+                            'file', 'fileexists', 'fileset', 'filebase64', 'templatefile')
+
+    date_time_functions = ('formatdate', 'timeadd', 'timestamp')
+
+    hash_crypto_functions = ('base64sha256', 'base64sha512', 'bcrypt', 'filebase64sha256',
+                             'filebase64sha512', 'filemd5', 'filesha1', 'filesha256', 'filesha512',
+                             'md5', 'rsadecrypt', 'sha1', 'sha256', 'sha512', 'uuid', 'uuidv5')
+
+    ip_network_functions = ('cidrhost', 'cidrnetmask', 'cidrsubnet', 'cidrsubnets')
+
+    type_conversion_functions = ('can', 'defaults', 'tobool', 'tolist', 'tomap',
+                                 'tonumber', 'toset', 'tostring', 'try')
+
+    builtins = numeric_functions + string_functions + collection_functions + encoding_functions +\
+        filesystem_functions + date_time_functions + hash_crypto_functions + ip_network_functions +\
+        type_conversion_functions
+    builtins_re = "({})".format(('|').join(builtins))
 
     tokens = {
         'root': [
-            include('string'),
-            include('punctuation'),
-            include('curly'),
             include('basic'),
             include('whitespace'),
+
+            # Strings
+            (r'(".*")', bygroups(String.Double)),
+
+            # Constants
+            (words(('true', 'false'), prefix=r'\b', suffix=r'\b'), Name.Constant),
+
+            # Types
+            (words(types, prefix=r'\b', suffix=r'\b'), Keyword.Type),
+
+            include('identifier'),
+            include('punctuation'),
             (r'[0-9]+', Number),
         ],
         'basic': [
-            (words(('true', 'false'), prefix=r'\b', suffix=r'\b'), Keyword.Type),
             (r'\s*/\*', Comment.Multiline, 'comment'),
             (r'\s*#.*\n', Comment.Single),
-            (r'(.*?)(\s*)(=)', bygroups(Name.Attribute, Text, Operator)),
-            (words(('variable', 'resource', 'provider', 'provisioner', 'module',
-                    'backend', 'data', 'output'), prefix=r'\b', suffix=r'\b'),
-             Keyword.Reserved, 'function'),
-            (words(embedded_keywords, prefix=r'\b', suffix=r'\b'),
-             Keyword.Declaration),
-            (r'\$\{', String.Interpol, 'var_builtin'),
+            include('whitespace'),
+
+            # e.g. terraform {
+            # e.g. egress {
+            (r'(\s*)([0-9a-zA-Z-_]+)(\s*)(=?)(\s*)(\{)',
+             bygroups(Text, Name.Builtin, Text, Operator, Text, Punctuation)),
+
+            # Assignment with attributes, e.g. something = ...
+            (r'(\s*)([0-9a-zA-Z-_]+)(\s*)(=)(\s*)',
+             bygroups(Text, Name.Attribute, Text, Operator, Text)),
+
+            # Assignment with environment variables and similar, e.g. "something" = ...
+            # or key value assignment, e.g. "SlotName" : ...
+            (r'(\s*)("\S+")(\s*)([=:])(\s*)',
+             bygroups(Text, Literal.String.Double, Text, Operator, Text)),
+
+            # Functions, e.g. jsonencode(element("value"))
+            (builtins_re + r'(\()', bygroups(Name.Function, Punctuation)),
+
+            # List of attributes, e.g. ignore_changes = [last_modified, filename]
+            (r'(\[)([a-z_,\s]+)(\])', bygroups(Punctuation, Name.Builtin, Punctuation)),
+
+            # e.g. resource "aws_security_group" "allow_tls" {
+            # e.g. backend "consul" {
+            (classes_re + r'(\s+)', bygroups(Keyword.Reserved, Text), 'blockname'),
         ],
-        'function': [
-            (r'(\s+)(".*")(\s+)', bygroups(Text, String, Text)),
-            include('punctuation'),
-            include('curly'),
+        'blockname': [
+            # e.g. resource "aws_security_group" "allow_tls" {
+            # e.g. backend "consul" {
+            (r'(\s*)("[0-9a-zA-Z-_]+")?(\s*)("[0-9a-zA-Z-_]+")(\s+)(\{)',
+             bygroups(Text, Name.Class, Text, Name.Variable, Text, Punctuation)),
         ],
-        'var_builtin': [
-            (r'\$\{', String.Interpol, '#push'),
-            (words(('concat', 'file', 'join', 'lookup', 'element'),
-                   prefix=r'\b', suffix=r'\b'), Name.Builtin),
-            include('string'),
-            include('punctuation'),
-            (r'\s+', Text),
-            (r'\}', String.Interpol, '#pop'),
-        ],
-        'string': [
-            (r'(".*")', bygroups(String.Double)),
+        'identifier': [
+            (r'\b(var\.[0-9a-zA-Z-_\.\[\]]+)\b', bygroups(Name.Variable)),
+            (r'\b([0-9a-zA-Z-_\[\]]+\.[0-9a-zA-Z-_\.\[\]]+)\b', bygroups(Name.Variable)),
         ],
         'punctuation': [
-            (r'[\[\](),.]', Punctuation),
-        ],
-        # Keep this seperate from punctuation - we sometimes want to use different
-        # Tokens for { }
-        'curly': [
-            (r'\{', Text.Punctuation),
-            (r'\}', Text.Punctuation),
+            (r'[\[\]()\{\},.?:!=]', Punctuation),
         ],
         'comment': [
             (r'[^*/]', Comment.Multiline),
@@ -940,6 +997,31 @@ class TOMLLexer(RegexLexer):
         ]
     }
 
+class NestedTextLexer(RegexLexer):
+    """
+    Lexer for `NextedText <https://nestedtext.org>`_, a human-friendly data 
+    format.
+    
+    .. versionadded:: 2.9
+    """
+
+    name = 'NestedText'
+    aliases = ['nestedtext', 'nt']
+    filenames = ['*.nt']
+
+    _quoted_dict_item = r'^(\s*)({0})(.*?)({0}: ?)(.*?)(\s*)$'
+
+    tokens = {
+        'root': [
+            (r'^(\s*)(#.*?)$', bygroups(Text, Comment)),
+            (r'^(\s*)(> ?)(.*?)(\s*)$', bygroups(Text, Punctuation, String, Whitespace)),
+            (r'^(\s*)(- ?)(.*?)(\s*)$', bygroups(Text, Punctuation, String, Whitespace)),
+            (_quoted_dict_item.format("'"), bygroups(Text, Punctuation, Name, Punctuation, String, Whitespace)),
+            (_quoted_dict_item.format('"'), bygroups(Text, Punctuation, Name, Punctuation, String, Whitespace)),
+            (r'^(\s*)(.*?)(: ?)(.*?)(\s*)$', bygroups(Text, Name, Punctuation, String, Whitespace)),
+        ],
+    }
+        
 
 class SingularityLexer(RegexLexer):
     """

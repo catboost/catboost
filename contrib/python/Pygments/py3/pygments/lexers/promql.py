@@ -166,7 +166,7 @@ class PromQLLexer(RegexLexer):
             (r"\n", Whitespace),
             (r"\s+", Whitespace),
             (r",", Punctuation),
-            (r'([_a-zA-Z][a-zA-Z0-9_]*?)(\s*?)(=~|!=|=|~!)(\s*?)(")(.*?)(")',
+            (r'([_a-zA-Z][a-zA-Z0-9_]*?)(\s*?)(=~|!=|=|!~)(\s*?)("|\')(.*?)("|\')',
              bygroups(Name.Label, Whitespace, Operator, Whitespace,
                       Punctuation, String, Punctuation)),
         ],

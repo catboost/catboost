@@ -652,7 +652,7 @@ class AntlrActionScriptLexer(DelegatingLexer):
     """
 
     name = 'ANTLR With ActionScript Target'
-    aliases = ['antlr-as', 'antlr-actionscript']
+    aliases = ['antlr-actionscript', 'antlr-as']
     filenames = ['*.G', '*.g']
 
     def __init__(self, **options):

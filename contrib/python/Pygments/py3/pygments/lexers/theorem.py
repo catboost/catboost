@@ -43,6 +43,7 @@ class CoqLexer(RegexLexer):
         'Canonical', 'Coercion', 'Theorem', 'Lemma', 'Corollary',
         'Proposition', 'Fact', 'Remark', 'Example', 'Proof', 'Goal', 'Save',
         'Qed', 'Defined', 'Hint', 'Resolve', 'Rewrite', 'View', 'Search',
+        'Abort', 'Admitted',
         'Show', 'Print', 'Printing', 'All', 'Graph', 'Projections', 'inside',
         'outside', 'Check', 'Global', 'Instance', 'Class', 'Existing',
         'Universe', 'Polymorphic', 'Monomorphic', 'Context'
@@ -55,7 +56,7 @@ class CoqLexer(RegexLexer):
     )
     keywords3 = (
         # Sorts
-        'Type', 'Prop',
+        'Type', 'Prop', 'SProp',
     )
     keywords4 = (
         # Tactics
@@ -94,7 +95,8 @@ class CoqLexer(RegexLexer):
         '<->', '=', '>', '>]', r'>\}', r'\?', r'\?\?', r'\[', r'\[<', r'\[>',
         r'\[\|', ']', '_', '`', r'\{', r'\{<', r'\|', r'\|]', r'\}', '~', '=>',
         r'/\\', r'\\/', r'\{\|', r'\|\}',
-        'Π', 'λ',
+        # 'Π', 'Σ', # Not defined in the standard library
+        'λ', '¬', '∧', '∨', '∀', '∃', '→', '↔', '≠', '≤', '≥',
     )
     operators = r'[!$%&*+\./:<=>?@^|~-]'
     prefix_syms = r'[!?~]'

@@ -35,8 +35,8 @@ class JavascriptLexer(RegexLexer):
     """
 
     name = 'JavaScript'
-    aliases = ['js', 'javascript']
-    filenames = ['*.js', '*.jsm', '*.mjs']
+    aliases = ['javascript', 'js']
+    filenames = ['*.js', '*.jsm', '*.mjs', '*.cjs']
     mimetypes = ['application/javascript', 'application/x-javascript',
                  'text/x-javascript', 'text/javascript']
 
@@ -81,7 +81,7 @@ class JavascriptLexer(RegexLexer):
             (r'[})\].]', Punctuation),
             (r'(for|in|while|do|break|return|continue|switch|case|default|if|else|'
              r'throw|try|catch|finally|new|delete|typeof|instanceof|void|yield|await|async|'
-             r'this|of|static|export|import|debugger|extends|super)\b', Keyword, 'slashstartsregex'),
+             r'this|of|static|export|import|from|as|debugger|extends|super)\b', Keyword, 'slashstartsregex'),
             (r'(var|let|const|with|function|class)\b', Keyword.Declaration, 'slashstartsregex'),
             (r'(abstract|boolean|byte|char|double|enum|final|float|goto'
              r'implements|int|interface|long|native|package|private|protected'
@@ -231,13 +231,13 @@ class LiveScriptLexer(RegexLexer):
     """
     For `LiveScript`_ source code.
 
-    .. _LiveScript: http://gkz.github.com/LiveScript/
+    .. _LiveScript: https://livescript.net/
 
     .. versionadded:: 1.6
     """
 
     name = 'LiveScript'
-    aliases = ['live-script', 'livescript']
+    aliases = ['livescript', 'live-script']
     filenames = ['*.ls']
     mimetypes = ['text/livescript']
 
@@ -449,7 +449,7 @@ class TypeScriptLexer(RegexLexer):
     """
 
     name = 'TypeScript'
-    aliases = ['ts', 'typescript']
+    aliases = ['typescript', 'ts']
     filenames = ['*.ts', '*.tsx']
     mimetypes = ['text/x-typescript']
 
@@ -486,7 +486,7 @@ class TypeScriptLexer(RegexLexer):
             (r'(for|in|while|do|break|return|continue|switch|case|default|if|else|'
              r'throw|try|catch|finally|new|delete|typeof|instanceof|void|of|'
              r'this|async|await|debugger|yield|abstract|static|import|export|'
-             r'implements|super|extends|private|protected|public|readonly)\b',
+             r'from|implements|super|extends|private|protected|public|readonly)\b',
                 Keyword, 'slashstartsregex'),
             (r'(var|let|const|with|function|class|type|enum|interface)\b',
                 Keyword.Declaration, 'slashstartsregex'),
@@ -504,7 +504,7 @@ class TypeScriptLexer(RegexLexer):
             # Match variable type keywords
             (r'\b(string|bool|number)\b', Keyword.Type),
             # Match stuff like: constructor
-            (r'\b(constructor|declare|interface|as|AS)\b', Keyword.Reserved),
+            (r'\b(constructor|declare|interface|as)\b', Keyword.Reserved),
             # Match stuff like: super(argument, list)
             (r'(super)(\s*)(\([\w,?.$\s]+\s*\))',
              bygroups(Keyword.Reserved, Text), 'slashstartsregex'),
@@ -1033,7 +1033,7 @@ class CoffeeScriptLexer(RegexLexer):
     """
 
     name = 'CoffeeScript'
-    aliases = ['coffee-script', 'coffeescript', 'coffee']
+    aliases = ['coffeescript', 'coffee-script', 'coffee']
     filenames = ['*.coffee']
     mimetypes = ['text/coffeescript']
 
