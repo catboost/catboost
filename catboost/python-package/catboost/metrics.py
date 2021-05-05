@@ -61,13 +61,13 @@ class _MetricGenerator(type):
             docstring[-1] += ' none'
         for param, value in attrs['_valid_params'].items():
             if not attrs['_is_mandatory_param'][param]:
-                docstring.append(' ' * 4 + '{} = {} (default value)'.format(param, value))
+                docstring.append(' ' * 4 + '{} = {} (default value)'.format(param, repr(value)))
             else:
                 docstring.append(' ' * 4 + '{} (mandatory)'.format(param))
         attrs['__doc__'] = '\n'.join(docstring)
         attrs['__repr__'] = lambda self: '{}({})'.format(
             self._underlying_metric_name,
-            "\n".join(['{}={} [mandatory={}]'.format(param, repr(value), self._is_mandatory_param[param])
+            ", ".join(['{}={} [mandatory={}]'.format(param, repr(value), self._is_mandatory_param[param])
                       for param, value in _current_params(self, False).items()]),
         )
         attrs['__str__'] = _to_string
@@ -107,6 +107,9 @@ class _MetricGenerator(type):
         metric_obj._params = list(params.keys())
 
         return metric_obj
+
+    def __repr__(cls):
+        return cls.__doc__
 
     def __setattr__(cls, name, value):
         # Protect property fields from being mutated.
@@ -177,8 +180,9 @@ def _generate_metric_classes():
             valid_params = {param: param_value['default_value'] if not param_value['is_mandatory'] else None
                             for param, param_value in param_set.items()}
             is_mandatory_param = {param: param_value['is_mandatory'] for param, param_value in param_set.items()}
-            valid_params.update({'hints': ''})
-            is_mandatory_param.update({'hints': False})
+            if 'hints' not in valid_params:
+                valid_params.update({'hints': ''})
+                is_mandatory_param.update({'hints': False})
             globals()[derived_name] = _MetricGenerator(str(derived_name), (BuiltinMetric,), {
                 '_valid_params': valid_params,
                 '_is_mandatory_param': is_mandatory_param,

@@ -3089,6 +3089,7 @@ TVector<TParamSet> TAUCMetric::ValidParamSets() {
             {
                 TParamInfo{"use_weights", false, false},
                 TParamInfo{"type", false, ToString(EAucType::Classic)},
+                TParamInfo{"hints", false, "skip_train~true"}
             },
             ""
         }
@@ -3098,7 +3099,8 @@ TVector<TParamSet> TAUCMetric::ValidParamSets() {
             {
                 TParamInfo{"use_weights", false, false},
                 TParamInfo{"type", false, ToString(EAucType::Mu)},
-                TParamInfo{"misclass_cost_matrix", false, ""}
+                TParamInfo{"misclass_cost_matrix", false, ""},
+                TParamInfo{"hints", false, "skip_train~true"}
             },
             "Multiclass"
         }
@@ -4386,7 +4388,8 @@ TVector<TParamSet> TPRAUCMetric::ValidParamSets() {
         TParamSet{
             {
                 TParamInfo{"use_weights", false, false},
-                TParamInfo{"type", false, ToString(EAucType::Classic)}
+                TParamInfo{"type", false, ToString(EAucType::Classic)},
+                TParamInfo{"hints", false, "skip_train~true"}
             },
             ""
         }
@@ -4395,7 +4398,8 @@ TVector<TParamSet> TPRAUCMetric::ValidParamSets() {
         TParamSet{
             {
                 TParamInfo{"use_weights", false, false},
-                TParamInfo{"type", false, ToString(EAucType::OneVsAll)}
+                TParamInfo{"type", false, ToString(EAucType::OneVsAll)},
+                TParamInfo{"hints", false, "skip_train~true"}
             },
             "Multiclass"
         }
@@ -5269,7 +5273,8 @@ TVector<TParamSet> TQueryAUCMetric::ValidParamSets() {
         TParamSet{
             {
                 TParamInfo{"use_weights", false, false},
-                TParamInfo{"type", false, ToString(EAucType::Classic)}
+                TParamInfo{"type", false, ToString(EAucType::Classic)},
+                TParamInfo{"hints", false, "skip_train~true"}
             },
             ""
         }
@@ -5278,7 +5283,8 @@ TVector<TParamSet> TQueryAUCMetric::ValidParamSets() {
         TParamSet{
             {
                 TParamInfo{"use_weights", false, false},
-                TParamInfo{"type", false, ToString(EAucType::Mu)}
+                TParamInfo{"type", false, ToString(EAucType::Mu)},
+                TParamInfo{"hints", false, "skip_train~true"}
             },
             "Multiclass"
         }
