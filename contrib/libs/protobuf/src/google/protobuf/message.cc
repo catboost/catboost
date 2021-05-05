@@ -216,11 +216,11 @@ bool Message::ParsePartialFromStream(IInputStream* input) {
   return res && !proxy.HasError();
 }
 
-bool Message::ParseFromIstream(IInputStream* input) {
+bool Message::ParseFromArcadiaStream(IInputStream* input) {
   return ParseFromStream(input);
 }
 
-bool Message::ParsePartialFromIstream(IInputStream* input) {
+bool Message::ParsePartialFromArcadiaStream(IInputStream* input) {
   return ParsePartialFromStream(input);
 }
 
@@ -244,11 +244,11 @@ bool Message::SerializePartialToStream(IOutputStream* output) const {
   return res && !proxy.HasError();
 }
 
-bool Message::SerializeToOstream(IOutputStream* output) const {
+bool Message::SerializeToArcadiaStream(IOutputStream* output) const {
   return SerializeToStream(output);
 }
 
-bool Message::SerializePartialToOstream(IOutputStream* output) const {
+bool Message::SerializePartialToArcadiaStream(IOutputStream* output) const {
   return SerializePartialToStream(output);
 }
 // End of Yandex-specific

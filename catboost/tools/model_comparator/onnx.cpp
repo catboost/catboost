@@ -24,7 +24,7 @@ namespace NCB {
         TMaybe<onnx::ModelProto> model = MakeMaybe<onnx::ModelProto>();
 
         TIFStream in{TString(filePath)};
-        if (!model->ParseFromIstream(&in)) {
+        if (!model->ParseFromArcadiaStream(&in)) {
             return Nothing();
         }
 
