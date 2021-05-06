@@ -79,6 +79,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\library\cpp\cache\cache.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\cache\thread_safe_cache.cpp"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\cache\cache.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\cache\thread_safe_cache.h"/>
   </ItemGroup>
