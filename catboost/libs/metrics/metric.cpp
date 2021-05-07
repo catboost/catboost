@@ -2447,7 +2447,8 @@ TVector<TParamSet> TPFoundMetric::ValidParamSets() {
         TParamSet{
             {
                 TParamInfo{"use_weights", false, true},
-                TParamInfo{"decay", false, DefaultDecay}
+                TParamInfo{"decay", false, DefaultDecay},
+                TParamInfo{"hints", false, "skip_train~true"}
             },
             ""
         }
@@ -2500,7 +2501,8 @@ TVector<TParamSet> TDcgMetric::ValidParamSets() {
                 TParamInfo{"use_weights", false, true},
                 TParamInfo{"top", false, DefaultTopSize},
                 TParamInfo{"type", false, ToString(DefaultMetricType)},
-                TParamInfo{"denominator", false, ToString(DefaultDenominatorType)}
+                TParamInfo{"denominator", false, ToString(DefaultDenominatorType)},
+                TParamInfo{"hints", false, "skip_train~true"}
             },
             ""
         }
@@ -4957,7 +4959,8 @@ TVector<TParamSet> TFilteredDcgMetric::ValidParamSets() {
         TParamSet{
             {
                 TParamInfo{"type", false, ToString(DefaultMetricType)},
-                TParamInfo{"denominator", false, ToString(DefaultDenominatorType)}
+                TParamInfo{"denominator", false, ToString(DefaultDenominatorType)},
+                TParamInfo{"hints", false, "skip_train~true"}
             },
             ""
         }
