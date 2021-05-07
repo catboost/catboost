@@ -1418,8 +1418,8 @@ class _CatBoostBase(object):
     def _get_embedding_feature_indices(self):
         return self._object._get_embedding_feature_indices()
 
-    def _base_predict(self, pool, prediction_type, ntree_start, ntree_end, thread_count, verbose):
-        return self._object._base_predict(pool, prediction_type, ntree_start, ntree_end, thread_count, verbose)
+    def _base_predict(self, pool, prediction_type, ntree_start, ntree_end, thread_count, verbose, binary_probability_threshold):
+        return self._object._base_predict(pool, prediction_type, ntree_start, ntree_end, thread_count, verbose, binary_probability_threshold)
 
     def _base_virtual_ensembles_predict(self, pool, prediction_type, ntree_end, virtual_ensembles_count, thread_count, verbose):
         return self._object._base_virtual_ensembles_predict(pool, prediction_type, ntree_end, virtual_ensembles_count, thread_count, verbose)
@@ -2094,17 +2094,17 @@ class CatBoost(_CatBoostBase):
         if prediction_type not in valid_prediction_types:
             raise CatBoostError("Invalid value of prediction_type={}: must be {}.".format(prediction_type, ', '.join(valid_prediction_types)))
 
-    def _predict(self, data, prediction_type, ntree_start, ntree_end, thread_count, verbose, parent_method_name):
+    def _predict(self, data, prediction_type, ntree_start, ntree_end, thread_count, verbose, parent_method_name, binary_probability_threshold=0.5):
         verbose = verbose or self.get_param('verbose')
         if verbose is None:
             verbose = False
         data, data_is_single_object = self._process_predict_input_data(data, parent_method_name, thread_count)
         self._validate_prediction_type(prediction_type)
 
-        predictions = self._base_predict(data, prediction_type, ntree_start, ntree_end, thread_count, verbose)
+        predictions = self._base_predict(data, prediction_type, ntree_start, ntree_end, thread_count, verbose, binary_probability_threshold)
         return predictions[0] if data_is_single_object else predictions
 
-    def predict(self, data, prediction_type='RawFormulaVal', ntree_start=0, ntree_end=0, thread_count=-1, verbose=None):
+    def predict(self, data, prediction_type='RawFormulaVal', ntree_start=0, ntree_end=0, thread_count=-1, verbose=None, binary_probability_threshold=0.5):
         """
         Predict with data.
 
@@ -2139,6 +2139,9 @@ class CatBoost(_CatBoostBase):
 
         verbose : bool, optional (default=False)
             If True, writes the evaluation metric measured set to stderr.
+
+        binary_probability_threshold : float (default=0.5)
+            The probability border for classes in binary classification.
 
         Returns
         -------
@@ -4552,7 +4555,7 @@ class CatBoostClassifier(CatBoost):
                   silent, early_stopping_rounds, save_snapshot, snapshot_file, snapshot_interval, init_model)
         return self
 
-    def predict(self, data, prediction_type='Class', ntree_start=0, ntree_end=0, thread_count=-1, verbose=None):
+    def predict(self, data, prediction_type='Class', ntree_start=0, ntree_end=0, thread_count=-1, verbose=None, binary_probability_threshold=0.5):
         """
         Predict with data.
 
@@ -4586,6 +4589,9 @@ class CatBoostClassifier(CatBoost):
         verbose : bool, optional (default=False)
             If True, writes the evaluation metric measured set to stderr.
 
+        binary_probability_threshold : float (default=0.5)
+            The probability border for classes in binary classification.
+
         Returns
         -------
         prediction:
@@ -4603,7 +4609,7 @@ class CatBoostClassifier(CatBoost):
                 - 'LogProbability' : two-dimensional numpy.ndarray with shape (number_of_objects x number_of_classes)
                   with log probability for every class for each object.
         """
-        return self._predict(data, prediction_type, ntree_start, ntree_end, thread_count, verbose, 'predict')
+        return self._predict(data, prediction_type, ntree_start, ntree_end, thread_count, verbose, 'predict', binary_probability_threshold)
 
     def predict_proba(self, data, ntree_start=0, ntree_end=0, thread_count=-1, verbose=None):
         """
@@ -4821,7 +4827,7 @@ class CatBoostClassifier(CatBoost):
         """
         return self._staged_predict(data, 'LogProbability', ntree_start, ntree_end, eval_period, thread_count, verbose, 'staged_predict_log_proba')
 
-    def score(self, X, y=None):
+    def score(self, X, y=None, binary_probability_threshold=0.5):
         """
         Calculate accuracy.
 
@@ -4831,6 +4837,8 @@ class CatBoostClassifier(CatBoost):
             Data to apply model on.
         y : list or numpy.ndarray
             True labels.
+        binary_probability_threshold : float (default=0.5)
+            The probability border for classes in binary classification.
 
         Returns
         -------
@@ -4856,7 +4864,8 @@ class CatBoostClassifier(CatBoost):
             ntree_end=0,
             thread_count=-1,
             verbose=None,
-            parent_method_name='score'
+            parent_method_name='score',
+            binary_probability_threshold=binary_probability_threshold
         ).reshape(-1)
         if np.issubdtype(predicted_classes.dtype, np.number):
             if np.issubdtype(y.dtype, np.character):
@@ -5140,7 +5149,7 @@ class CatBoostRegressor(CatBoost):
         """
         if prediction_type is None:
             prediction_type = self._get_default_prediction_type()
-        return self._predict(data, prediction_type, ntree_start, ntree_end, thread_count, verbose, 'predict')
+        return self._predict(data, prediction_type, ntree_start, ntree_end, thread_count, verbose, 'predict', binary_probability_threshold)
 
     def staged_predict(self, data, prediction_type='RawFormulaVal', ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, verbose=None):
         """

@@ -297,35 +297,38 @@ TVector<TVector<double>> PrepareEvalForInternalApprox(
     const EPredictionType predictionType,
     const TFullModel& model,
     const TVector<TVector<double>>& approx,
-    int threadCount
+    int threadCount,
+    double binaryProbabilityThreshold
 ) {
     NPar::TLocalExecutor executor;
     executor.RunAdditionalThreads(threadCount - 1);
-    return PrepareEvalForInternalApprox(predictionType, model, approx, &executor);
+    return PrepareEvalForInternalApprox(predictionType, model, approx, &executor, binaryProbabilityThreshold);
 }
 
 TVector<TVector<double>> PrepareEvalForInternalApprox(
     const EPredictionType predictionType,
     const TFullModel& model,
     const TVector<TVector<double>>& approx,
-    NPar::ILocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor,
+    double binaryProbabilityThreshold
 ) {
     const TExternalLabelsHelper externalLabelsHelper(model);
     const auto& externalApprox
         = (externalLabelsHelper.IsInitialized() && (externalLabelsHelper.GetExternalApproxDimension() > 1)) ?
             MakeExternalApprox(approx, externalLabelsHelper)
             : approx;
-    return PrepareEval(predictionType, /* ensemblesCount */ 1, model.GetLossFunctionName(), externalApprox, localExecutor);
+    return PrepareEval(predictionType, /* ensemblesCount */ 1, model.GetLossFunctionName(), externalApprox, localExecutor, binaryProbabilityThreshold);
 }
 
 TVector<TVector<double>> PrepareEval(const EPredictionType predictionType,
                                      size_t ensemblesCount,
                                      const TString& lossFunctionName,
                                      const TVector<TVector<double>>& approx,
-                                     int threadCount) {
+                                     int threadCount,
+                                     double binaryProbabilityThreshold) {
     NPar::TLocalExecutor executor;
     executor.RunAdditionalThreads(threadCount - 1);
-    return PrepareEval(predictionType, ensemblesCount, lossFunctionName, approx, &executor);
+    return PrepareEval(predictionType, ensemblesCount, lossFunctionName, approx, &executor, binaryProbabilityThreshold);
 }
 
 
@@ -334,7 +337,8 @@ void PrepareEval(const EPredictionType predictionType,
                  const TString& lossFunctionName,
                  const TVector<TVector<double>>& approx,
                  NPar::ILocalExecutor* executor,
-                 TVector<TVector<double>>* result) {
+                 TVector<TVector<double>>* result,
+                 double binaryProbabilityThreshold) {
 
     switch (predictionType) {
         case EPredictionType::LogProbability:
@@ -377,8 +381,8 @@ void PrepareEval(const EPredictionType predictionType,
                 TVector<int> predictions = {SelectBestClass(approx, executor)};
                 (*result)[0].assign(predictions.begin(), predictions.end());
             } else {
-                for (const double prediction : approx[0]) {
-                    (*result)[0].push_back(prediction > 0);
+                for (const double predictionProbability : CalcSigmoid(approx[0])) {
+                    (*result)[0].push_back(predictionProbability > binaryProbabilityThreshold);
                 }
             }
             break;
@@ -442,9 +446,10 @@ TVector<TVector<double>> PrepareEval(const EPredictionType predictionType,
                                      size_t ensemblesCount,
                                      const TString& lossFunctionName,
                                      const TVector<TVector<double>>& approx,
-                                     NPar::ILocalExecutor* localExecutor) {
+                                     NPar::ILocalExecutor* localExecutor,
+                                     double binaryProbabilityThreshold) {
     TVector<TVector<double>> result;
-    PrepareEval(predictionType, ensemblesCount, lossFunctionName, approx, localExecutor, &result);
+    PrepareEval(predictionType, ensemblesCount, lossFunctionName, approx, localExecutor, &result, binaryProbabilityThreshold);
     return result;
 }
 }

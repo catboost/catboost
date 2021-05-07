@@ -8561,6 +8561,36 @@ def test_group_features():
     return [local_canonical_file(learn_error_path), local_canonical_file(test_predictions_path)]
 
 
+def test_binary_classifier_threshold():
+    test_predictions_path = yatest.common.test_output_path('test_predictions.tsv')
+    model_path = yatest.common.test_output_path('model.bin')
+    probability_threshold = '0.8'
+    fit_cmd = [
+        '--loss-function', 'Logloss',
+        '-f', data_file('adult', 'train_small'),
+        '--cd', data_file('adult', 'train.cd'),
+        '-i', '10',
+        '-m', model_path
+    ]
+    execute_catboost_fit('CPU', fit_cmd)
+    calc_cmd = [
+        CATBOOST_PATH,
+        'calc',
+        '-m', model_path,
+        '--input-path', data_file('adult', 'test_small'),
+        '--cd', data_file('adult', 'train.cd'),
+        '--output-path', test_predictions_path,
+        '--threshold', probability_threshold,
+        '--output-columns', 'Probability,Class'
+    ]
+    yatest.common.execute(calc_cmd)
+    with open(test_predictions_path, 'r') as f:
+        f.readline()  # skip header
+        for row in f.readlines():
+            prob, cl = map(float, row.strip().split())
+            assert (cl == (1 if prob > float(probability_threshold) else 0))
+
+
 def test_model_sum():
     model_path = yatest.common.test_output_path('model.bin')
     model_eval = yatest.common.test_output_path('model_eval.txt')

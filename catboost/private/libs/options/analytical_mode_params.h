@@ -30,6 +30,8 @@ namespace NCB {
 
         ECalcTypeShapValues ShapCalcType = ECalcTypeShapValues::Regular;
 
+        double BinaryProbabilityThreshold;
+
         void BindParserOpts(NLastGetopt::TOpts& parser);
     };
 

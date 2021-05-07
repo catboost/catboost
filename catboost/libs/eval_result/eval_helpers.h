@@ -17,13 +17,15 @@ TVector<TVector<double>> PrepareEvalForInternalApprox(
     const EPredictionType prediction_type,
     const TFullModel& model,
     const TVector<TVector<double>>& approx,
-    int threadCount);
+    int threadCount,
+    double binaryProbabilityThreshold = 0.5);
 
 TVector<TVector<double>> PrepareEvalForInternalApprox(
     const EPredictionType prediction_type,
     const TFullModel& model,
     const TVector<TVector<double>>& approx,
-    NPar::ILocalExecutor* executor = nullptr);
+    NPar::ILocalExecutor* executor = nullptr,
+    double binaryProbabilityThreshold = 0.5);
 
 bool IsMulticlass(const TVector<TVector<double>>& approx);
 
@@ -42,21 +44,24 @@ void PrepareEval(
     const TString& lossFunctionName,
     const TVector<TVector<double>>& approx,
     NPar::ILocalExecutor* executor,
-    TVector<TVector<double>>* result);
+    TVector<TVector<double>>* result,
+    double binaryProbabilityThreshold = 0.5);
 
 TVector<TVector<double>> PrepareEval(
     const EPredictionType predictionType,
     size_t ensemblesCount,
     const TString& lossFunctionName,
     const TVector<TVector<double>>& approx,
-    NPar::ILocalExecutor* executor = nullptr);
+    NPar::ILocalExecutor* executor = nullptr,
+    double binaryProbabilityThreshold = 0.5);
 
 TVector<TVector<double>> PrepareEval(
     const EPredictionType predictionType,
     size_t ensemblesCount,
     const TString& lossFunctionName,
     const TVector<TVector<double>>& approx,
-    int threadCount);
+    int threadCount,
+    double binaryProbabilityThreshold = 0.5);
 using TColumnPrinterOuputType = TVariant<i64, ui64, double, float, TString>;
 
 template<typename T>

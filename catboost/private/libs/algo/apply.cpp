@@ -140,7 +140,8 @@ TVector<TVector<double>> ApplyModelMulti(
     const EPredictionType predictionType,
     int begin, /*= 0*/
     int end,   /*= 0*/
-    ILocalExecutor* executor)
+    ILocalExecutor* executor,
+    double binaryProbabilityThreshold)
 {
     const int docCount = SafeIntegerCast<int>(objectsData.GetObjectCount());
     const int approxesDimension = model.GetDimensionsCount();
@@ -185,7 +186,7 @@ TVector<TVector<double>> ApplyModelMulti(
         //shortcut
         return approxes;
     } else {
-        return PrepareEvalForInternalApprox(predictionType, model, approxes, executor);
+        return PrepareEvalForInternalApprox(predictionType, model, approxes, executor, binaryProbabilityThreshold);
     }
 }
 
@@ -196,7 +197,8 @@ TVector<TVector<double>> ApplyModelMulti(
     const EPredictionType predictionType,
     int begin,
     int end,
-    int threadCount)
+    int threadCount,
+    double binaryProbabilityThreshold)
 {
     TSetLoggingVerboseOrSilent inThisScope(verbose);
 
@@ -206,7 +208,7 @@ TVector<TVector<double>> ApplyModelMulti(
 
     NPar::TLocalExecutor executor;
     executor.RunAdditionalThreads(Min<int>(threadCount, blockParams.GetBlockCount()) - 1);
-    const auto& result = ApplyModelMulti(model, objectsData, predictionType, begin, end, &executor);
+    const auto& result = ApplyModelMulti(model, objectsData, predictionType, begin, end, &executor, binaryProbabilityThreshold);
     return result;
 }
 
@@ -217,17 +219,18 @@ TVector<TVector<double>> ApplyModelMulti(
     const EPredictionType predictionType,
     int begin,
     int end,
-    int threadCount)
+    int threadCount,
+    double binaryProbabilityThreshold)
 {
     const auto baseline = data.RawTargetData.GetBaseline();
-    if(baseline) {
+    if (baseline) {
         CB_ENSURE(
             baseline->size() == model.GetDimensionsCount(),
             "Baseline should have the same dimension count as model: expected " << model.GetDimensionsCount()
                                                                                 << " got " << baseline->size()
         );
     }
-    auto approxes = ApplyModelMulti(model, *data.ObjectsData, verbose, predictionType, begin, end, threadCount);
+    auto approxes = ApplyModelMulti(model, *data.ObjectsData, verbose, predictionType, begin, end, threadCount, binaryProbabilityThreshold);
     if (baseline) {
         for (size_t i = 0; i < approxes.size(); ++i) {
             for (size_t j = 0; j < approxes[0].size(); ++j) {
@@ -289,7 +292,8 @@ void TModelCalcerOnPool::ApplyModelMulti(
     int begin,
     int end,
     TVector<double>* flatApproxBuffer,
-    TVector<TVector<double>>* approx)
+    TVector<TVector<double>>* approx,
+    double binaryProbabilityThreshold)
 {
     const ui32 docCount = ObjectsData->GetObjectCount();
     auto approxDimension = Model->GetDimensionsCount();
@@ -331,7 +335,7 @@ void TModelCalcerOnPool::ApplyModelMulti(
         //shortcut
         return;
     } else {
-        (*approx) = PrepareEvalForInternalApprox(predictionType, *Model, *approx, Executor);
+        (*approx) = PrepareEvalForInternalApprox(predictionType, *Model, *approx, Executor, binaryProbabilityThreshold);
     }
     flatApproxBuffer->clear();
 }

@@ -8450,6 +8450,21 @@ def test_log_proba():
     assert np.allclose(log_pred_1, log_pred_2)
 
 
+def test_binary_classification_threshold():
+    # binary classification
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    classifier = CatBoostClassifier(iterations=2)
+    classifier.fit(pool)
+    threshold = 0.6
+    proba = classifier.predict(pool, prediction_type='Probability')[:, 1]
+    pred = classifier.predict(pool, prediction_type='Class', binary_probability_threshold=threshold).astype(int)
+    accuracy = classifier.score(pool, binary_probability_threshold=threshold)
+
+    assert np.any((proba > threshold).astype(int) != 0)  # check for non-dummy case
+    assert np.all(pred == (proba > threshold).astype(int))
+    assert np.allclose(accuracy, np.mean(pred == np.array(pool.get_label()).astype(int)))
+
+
 def test_exponent_prediction_type():
     # poisson regression
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
