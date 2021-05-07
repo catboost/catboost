@@ -318,8 +318,8 @@ def test_multiregression_custom_eval(niter, n=10):
     model2.fit(train_pool, eval_set=test_pool)
     pred2 = model2.predict(test_pool)
 
-    assert np.all(pred1 == pred2)
-    assert np.all(model1.evals_result_ == model2.evals_result_)
+    assert np.allclose(pred1, pred2, atol=1e-6)
+    assert np.allclose(model1.evals_result_, model2.evals_result_, atol=1e-6)
 
 
 @pytest.mark.parametrize('niter', [100, 500])
