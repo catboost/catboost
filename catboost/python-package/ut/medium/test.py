@@ -87,6 +87,10 @@ CLOUDNESS_TEST_FILE = data_file('cloudness_small', 'test_small')
 CLOUDNESS_CD_FILE = data_file('cloudness_small', 'train.cd')
 CLOUDNESS_ONLY_NUM_CD_FILE = data_file('cloudness_small', 'train_float.cd')
 
+MULTIREGRESSION_TRAIN_FILE = data_file('multiregression', 'train')
+MULTIREGRESSION_TEST_FILE = data_file('multiregression', 'test')
+MULTIREGRESSION_CD_FILE = data_file('multiregression', 'train.cd')
+
 QUERYWISE_TRAIN_FILE = data_file('querywise', 'train')
 QUERYWISE_TEST_FILE = data_file('querywise', 'test')
 QUERYWISE_CD_FILE = data_file('querywise', 'train.cd')
@@ -344,8 +348,8 @@ def test_multiregression(niter, n=10):
 
 @pytest.mark.parametrize('niter', [1, 100, 500])
 def test_save_model_multiregression(niter):
-    train_file = data_file('multiregression', 'train')
-    cd_file = data_file('multiregression', 'train.cd')
+    train_file = MULTIREGRESSION_TRAIN_FILE
+    cd_file = MULTIREGRESSION_CD_FILE
     output_model_path = test_output_path(OUTPUT_MODEL_PATH)
 
     train_pool = Pool(train_file, column_description=cd_file)
@@ -485,8 +489,8 @@ def test_load_ndarray_vs_load_from_file(dataset, order):
 
 @pytest.mark.parametrize('order', ['C', 'F'], ids=['order=C', 'order=F'])
 def test_load_ndarray_vs_load_from_file_multitarget(order):
-    train_file = data_file('multiregression', 'train')
-    cd_file = data_file('multiregression', 'train.cd')
+    train_file = MULTIREGRESSION_TRAIN_FILE
+    cd_file = MULTIREGRESSION_CD_FILE
     dtypes = [np.float32, np.float64]
 
     n_objects = np.loadtxt(train_file, delimiter='\t').shape[0]
@@ -631,8 +635,8 @@ def test_load_df_vs_load_from_file(dataset):
 
 
 def test_load_df_vs_load_from_file_multitarget():
-    train_file = data_file('multiregression', 'train')
-    cd_file = data_file('multiregression', 'train.cd')
+    train_file = MULTIREGRESSION_TRAIN_FILE
+    cd_file = MULTIREGRESSION_CD_FILE
     target_idx = [0, 1]
 
     pool1 = Pool(train_file, column_description=cd_file)
@@ -2307,8 +2311,9 @@ def test_generated_classification_metrics():
             'Logloss': metrics.Logloss(), 'CrossEntropy': metrics.CrossEntropy(), 'Precision': metrics.Precision(),
             'Recall': metrics.Recall(), 'F1': metrics.F1(), 'BalancedAccuracy': metrics.BalancedAccuracy(),
             'BalancedErrorRate': metrics.BalancedErrorRate(), 'MCC': metrics.MCC(), 'Accuracy': metrics.Accuracy(),
-            'CtrFactor': metrics.CtrFactor(), 'AUC': metrics.AUC(), 'NormalizedGini': metrics.NormalizedGini(),
-            'BrierScore': metrics.BrierScore(), 'HingeLoss': metrics.HingeLoss(), 'HammingLoss': metrics.HammingLoss(),
+            'CtrFactor': metrics.CtrFactor(), 'AUC': metrics.AUC(), 'AUC:type=Ranking': metrics.AUC(type='Ranking'),
+            'NormalizedGini': metrics.NormalizedGini(), 'BrierScore': metrics.BrierScore(),
+            'HingeLoss': metrics.HingeLoss(), 'HammingLoss': metrics.HammingLoss(),
             'ZeroOneLoss': metrics.ZeroOneLoss(), 'Kappa': metrics.Kappa(), 'WKappa': metrics.WKappa(),
             'LogLikelihoodOfPrediction': metrics.LogLikelihoodOfPrediction()
         }
@@ -2332,6 +2337,7 @@ def test_generated_regression_metrics_with_default_params():
             'R2': metrics.R2(), 'MSLE': metrics.MSLE(), 'MedianAbsoluteError': metrics.MedianAbsoluteError()
         }
     )
+
 
 def test_generated_regression_metrics_with_specified_params():
     _test_generated_metrics(
@@ -2357,7 +2363,44 @@ def test_generated_regression_metrics_with_specified_params():
     )
 
 
-def _test_generated_losses(train_pool, test_pool, losses, result_dtype):
+def test_generated_multiregression_metric():
+    _test_generated_metrics(
+        {'loss_function': metrics.MultiRMSE()},
+        Pool(data=MULTIREGRESSION_TRAIN_FILE, column_description=MULTIREGRESSION_CD_FILE),
+        Pool(data=MULTIREGRESSION_TEST_FILE, column_description=MULTIREGRESSION_CD_FILE),
+        {
+            'MultiRMSE': metrics.MultiRMSE()
+        }
+    )
+
+
+def test_generated_ranking_pairwise_metric():
+    _test_generated_metrics(
+        {'loss_function': 'PairLogit'},
+        Pool(data=QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE),
+        Pool(data=QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE),
+        {
+            'PairLogit': metrics.PairLogit(), 'PairAccuracy': metrics.PairAccuracy(),
+            'AUC': metrics.AUC(), 'AUC:type=Ranking': metrics.AUC(type='Ranking')
+        }
+    )
+
+
+def test_generated_ranking_groupwise_metric():
+    _test_generated_metrics(
+        {'loss_function': 'QueryRMSE'},
+        Pool(data=QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE),
+        Pool(data=QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE),
+        {
+            'QueryRMSE': metrics.QueryRMSE(), 'PFound': metrics.PFound(), 'NDCG:type=Base': metrics.NDCG(),
+            'DCG:type=Base': metrics.DCG(), 'FilteredDCG': metrics.FilteredDCG(), 'AverageGain:top=5': metrics.AverageGain(top=5),
+            'PrecisionAt': metrics.PrecisionAt(), 'RecallAt': metrics.RecallAt(), 'MAP': metrics.MAP(),
+            'AUC': metrics.AUC()
+        }
+    )
+
+
+def _test_generated_losses(train_pool, test_pool, losses, result_dtype=float):
     catboost_params = {'iterations': 50}
     for loss_text, loss_instance in losses.items():
         # text-description metric/loss
@@ -2395,8 +2438,7 @@ def test_generated_regression_losses_with_default_params():
             'RMSEWithUncertainty': metrics.RMSEWithUncertainty(), 'LogLinQuantile': metrics.LogLinQuantile(),
             # BUG: Expectile incorrectly expects alpha in catboost.core.Catboost({'loss_function': 'Expectile'})
             # 'Expectile': metrics.Expectile()
-        },
-        float
+        }
     )
 
 
@@ -2415,8 +2457,30 @@ def test_generated_regression_losses_with_specified_params():
             'Tweedie:variance_power=1.2': metrics.Tweedie(variance_power=1.2),
             'Tweedie:variance_power=1.5': metrics.Tweedie(variance_power=1.5),
             'Tweedie:variance_power=1.8': metrics.Tweedie(variance_power=1.8)
-        },
-        float
+        }
+    )
+
+
+def test_generated_pairwise_ranking_losses():
+    _test_generated_losses(
+        Pool(data=QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE),
+        Pool(data=QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE),
+        {
+            'PairLogit': metrics.PairLogit(), 'PairLogit:max_pairs=2': metrics.PairLogit(max_pairs=2),
+            'PairLogit:max_pairs=5': metrics.PairLogit(max_pairs=5)
+        }
+    )
+
+
+def test_generated_groupwise_ranking_losses():
+    _test_generated_losses(
+        Pool(data=QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE),
+        Pool(data=QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE),
+        {
+            'QueryRMSE': metrics.QueryRMSE(), 'QuerySoftMax': metrics.QuerySoftMax(),
+            'QuerySoftMax:beta=0.5': metrics.QuerySoftMax(beta=0.5),
+            'QuerySoftMax:beta=2.0': metrics.QuerySoftMax(beta=2.0)
+        }
     )
 
 
@@ -3779,8 +3843,8 @@ def test_exact_shap_feature_importance_multiclass(task_type):
 
 @pytest.mark.parametrize('calc_shap_mode', ['TreeSHAP', 'IndependentTreeSHAP'])
 def test_shap_feature_importance_multirmse(task_type, calc_shap_mode):
-    train_file = data_file('multiregression', 'train')
-    cd_file = data_file('multiregression', 'train.cd')
+    train_file = MULTIREGRESSION_TRAIN_FILE
+    cd_file = MULTIREGRESSION_CD_FILE
     pool = Pool(train_file, column_description=cd_file)
     reference_data = make_reference_data(pool, calc_shap_mode)
     model = CatBoostRegressor(iterations=5, learning_rate=0.03, task_type=task_type, devices='0', loss_function='MultiRMSE')
@@ -3791,8 +3855,8 @@ def test_shap_feature_importance_multirmse(task_type, calc_shap_mode):
 
 
 def test_approximate_shap_feature_importance_multirmse(task_type):
-    train_file = data_file('multiregression', 'train')
-    cd_file = data_file('multiregression', 'train.cd')
+    train_file = MULTIREGRESSION_TRAIN_FILE
+    cd_file = MULTIREGRESSION_CD_FILE
     pool = Pool(train_file, column_description=cd_file)
     model = CatBoostRegressor(iterations=5, learning_rate=0.03, task_type=task_type, devices='0', loss_function='MultiRMSE')
     model.fit(pool)
@@ -3803,8 +3867,8 @@ def test_approximate_shap_feature_importance_multirmse(task_type):
 
 
 def test_exact_shap_feature_importance_multirmse(task_type):
-    train_file = data_file('multiregression', 'train')
-    cd_file = data_file('multiregression', 'train.cd')
+    train_file = MULTIREGRESSION_TRAIN_FILE
+    cd_file = MULTIREGRESSION_CD_FILE
     pool = Pool(train_file, column_description=cd_file)
     model = CatBoostRegressor(iterations=5, learning_rate=0.03, task_type=task_type, devices='0', loss_function='MultiRMSE')
     model.fit(pool)
