@@ -51,6 +51,7 @@ Napi::Function TModel::GetClass(Napi::Env env) {
     return DefineClass(env, "Model", {
         TModel::InstanceMethod("loadModel", &TModel::LoadFullFromFile),
         TModel::InstanceMethod("predict", &TModel::CalcPrediction),
+        TModel::InstanceMethod("enableGPUEvaluation", &TModel::EvaluateOnGPU),
         TModel::InstanceMethod("getFloatFeaturesCount", &TModel::GetModelFloatFeaturesCount),
         TModel::InstanceMethod("getCatFeaturesCount", &TModel::GetModelCatFeaturesCount),
         TModel::InstanceMethod("getTreeCount", &TModel::GetModelTreeCount),
@@ -120,6 +121,19 @@ Napi::Value TModel::CalcPrediction(const Napi::CallbackInfo& info) {
         return CalcPredictionHash(env, floatFeatureValues, catFeatures);
     }
     return CalcPredictionString(env, floatFeatureValues, catFeatures);
+}
+
+void TModel::EvaluateOnGPU(const Napi::CallbackInfo& info) {
+   Napi::Env env = info.Env();
+    if (!NHelper::Check(env, info.Length() >= 1, "Wrong number of arguments - expected 1") ||
+        !NHelper::Check(env, info[0].IsNumber(),
+            "Expected the first argument to be a numeric deviceId")) {
+        return;
+    }
+
+    const bool status = EnableGPUEvaluation(this->Handle, info[0].As<Napi::Number>().Int32Value());
+    NHelper::CheckStatus(env, status);
+    return;
 }
 
 Napi::Value TModel::GetModelFloatFeaturesCount(const Napi::CallbackInfo& info) {
