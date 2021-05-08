@@ -62,8 +62,10 @@ Napi::Function TModel::GetClass(Napi::Env env) {
 void TModel::LoadFullFromFile(const Napi::CallbackInfo& info) {
     Napi::Env env = info.Env();
 
-    NHelper::Check(env, info.Length() >= 1, "Wrong number of arguments");
-    NHelper::Check(env, info[0].IsString(), "File name string is required");
+    if (!NHelper::Check(env, info.Length() >= 1, "Wrong number of arguments") ||
+        !NHelper::Check(env, info[0].IsString(), "File name string is required")) {
+        return;
+    }
 
     NHelper::CheckNotNullHandle(env, this->Handle);
     const bool status = LoadFullModelFromFile(this->Handle,
