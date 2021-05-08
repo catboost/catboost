@@ -3101,7 +3101,7 @@ TVector<TParamSet> TAUCMetric::ValidParamSets() {
             {
                 TParamInfo{"use_weights", false, false},
                 TParamInfo{"type", false, ToString(EAucType::Mu)},
-                TParamInfo{"misclass_cost_matrix", false, ""},
+                TParamInfo{"misclass_cost_matrix", false, {}},
                 TParamInfo{"hints", false, "skip_train~true"}
             },
             "Multiclass"

@@ -2385,9 +2385,11 @@ def test_generated_multiclassification_aggregate_metrics():
             'MCC': metrics.MCC(),
             'Accuracy': metrics.Accuracy(), 'HingeLoss': metrics.HingeLoss(), 'HammingLoss': metrics.HammingLoss(),
             'ZeroOneLoss': metrics.ZeroOneLoss(), 'Kappa': metrics.Kappa(), 'WKappa': metrics.WKappa(),
-            'AUC:type=Mu': metrics.AUC(type='Mu')
+            'AUC:type=Mu': metrics.AUCMulticlass(),
+            'AUC:type=Mu;misclass_cost_matrix=0/0.5/2/1/0/1/0/0.5/0':
+                metrics.AUCMulticlass(misclass_cost_matrix=np.array([[0.0, 0.5, 2.0], [1.0, 0.0, 1.0], [0.0, 0.5, 0.0]]))
         },
-        "multiclassification",
+        "multiclassification"
     )
 
 

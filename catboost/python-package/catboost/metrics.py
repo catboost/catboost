@@ -1,5 +1,3 @@
-import sys
-from copy import copy
 from functools import partial
 
 import numpy as np
@@ -230,19 +228,28 @@ def _current_params(metric_obj, override_only):
             continue
         if override_only:
             # Skip reporting parameters which are set to their default values.
-            if params_with_defaults[param]['default_value'] == value:
+            default_value = params_with_defaults[param]['default_value']
+            if (default_value is None and value is None) or (default_value is not None and default_value == value):
                 continue
         param_info[param] = value
     return param_info
 
 
 def _to_string(metric_obj):
+    def _param_to_string(dict_item):
+        param, value = dict_item
+        if param == 'misclass_cost_matrix':
+            str_value = '/'.join(map(str, value.flatten()))
+        else:
+            str_value = str(value)
+        return '{}={}'.format(param, str_value)
+
     param_info = _current_params(metric_obj, True)
     # E.g. AUC for both AUC and AUCMulticlass:
     underlying_name = metric_obj._underlying_metric_name
     if len(param_info) == 0:
         return underlying_name
-    return underlying_name + ':' + ';'.join([param + '=' + str(value) for param, value in param_info.items()])
+    return '{}:{}'.format(underlying_name, ';'.join(map(_param_to_string, param_info.items())))
 
 
 def _generate_metric_classes():
