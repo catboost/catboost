@@ -1007,6 +1007,58 @@ private:
     }
 };
 
+class TLambdaMartError final : public IDerCalcer{
+    ELossFunction TargetMetric;
+    int TopSize;
+    ENdcgMetricType NumeratorType;          // for (N)DCG
+    ENdcgDenominatorType DenominatorType;   // for (N)DCG
+    double Sigma;
+    bool Norm;
+
+public:
+    TLambdaMartError(
+        ELossFunction targetMetric,
+        const TMap<TString, TString>& metricParams,
+        double sigma,
+        bool norm);
+
+    void CalcDersForQueries(
+        int queryStartIndex,
+        int queryEndIndex,
+        const TVector<double>& approxes,
+        const TVector<float>& target,
+        const TVector<float>& /*weights*/,
+        const TVector<TQueryInfo>& queriesInfo,
+        TArrayRef<TDers> ders,
+        ui64 /*randomSeed*/,
+        NPar::ILocalExecutor* localExecutor
+    ) const override;
+
+private:
+    void CalcDersForSingleQuery(
+        TConstArrayRef<double> approxes,
+        TConstArrayRef<float> targets,
+        TArrayRef<TDers> ders
+    ) const;
+
+    inline double CalcNumerator(float target) const {
+        return NumeratorType == ENdcgMetricType::Exp ? (Exp2(target) - 1) : target;
+    }
+
+    inline double CalcDenominator(size_t pos) const {
+        return DenominatorType == ENdcgDenominatorType::LogPosition ? Log2(2.0 + pos) : (1.0 + pos);
+    }
+
+    inline size_t GetQueryTopSize(size_t docCount) const {
+        if (TopSize == -1 || TopSize > (int)docCount) {
+            return docCount;
+        }
+        return TopSize;
+    }
+
+    double IdealMetric(TConstArrayRef<float> target, size_t queryTopSize) const;
+};
+
 class TStochasticRankError final : public IDerCalcer {
     ELossFunction TargetMetric;
     int TopSize;

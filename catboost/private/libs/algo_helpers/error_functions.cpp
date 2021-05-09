@@ -323,6 +323,134 @@ void CheckDerivativeOrderForObjectImportance(ui32 derivativeOrder, ELeavesEstima
     }
 }
 
+// TLambdaMartError definitions
+TLambdaMartError::TLambdaMartError(
+    ELossFunction targetMetric,
+    const TMap<TString, TString>& metricParams,
+    double sigma, bool norm)
+    : IDerCalcer(false, 1, EErrorType::QuerywiseError)
+    , TargetMetric(targetMetric)
+    , TopSize(NCatboostOptions::GetParamOrDefault(metricParams, "top", -1))
+    , NumeratorType(NCatboostOptions::GetParamOrDefault(metricParams, "type", ENdcgMetricType::Base))
+    , DenominatorType(NCatboostOptions::GetParamOrDefault(metricParams, "denominator", ENdcgDenominatorType::LogPosition))
+    , Sigma(sigma)
+    , Norm(norm)
+{
+    CB_ENSURE(EqualToOneOf(TargetMetric, ELossFunction::DCG, ELossFunction::NDCG),
+        "Only DCG and NDCG target metric supported for LambdaMART now");
+    CB_ENSURE(Sigma > 0, "Sigma should be positive");
+}
+
+void TLambdaMartError::CalcDersForQueries(
+    int queryStartIndex,
+    int queryEndIndex,
+    const TVector<double>& approxes,
+    const TVector<float>& target,
+    const TVector<float>& /*weights*/,
+    const TVector<TQueryInfo>& queriesInfo,
+    TArrayRef<TDers> ders,
+    ui64 /*randomSeed*/,
+    NPar::ILocalExecutor* localExecutor
+) const {
+    auto start = queriesInfo[queryStartIndex].Begin;
+    NPar::ParallelFor(*localExecutor, queryStartIndex, queryEndIndex, [&](int queryIndex) {
+        auto begin = queriesInfo[queryIndex].Begin;
+        auto end = queriesInfo[queryIndex].End;
+        auto count = end - begin;
+        TArrayRef<TDers> queryDers(ders.data() + begin - start, count);
+        TConstArrayRef<double> queryApproxes(approxes.data() + begin, count);
+        TConstArrayRef<float> queryTargets(target.data() + begin, count);
+        CalcDersForSingleQuery(queryApproxes, queryTargets, queryDers);
+    });
+}
+
+void TLambdaMartError::CalcDersForSingleQuery(
+    TConstArrayRef<double> approxes,
+    TConstArrayRef<float> targets,
+    TArrayRef<TDers> ders
+) const {
+    size_t count = approxes.size();
+    Y_ASSERT(targets.size() == count);
+    Y_ASSERT(ders.size() == count);
+
+    if (count <= 1) {
+        return;
+    }
+
+    const size_t queryTopSize = GetQueryTopSize(count);
+
+    Fill(ders.begin(), ders.end(), TDers{0.0, 0.0, 0.0});
+
+    double idealScore = IdealMetric(targets, queryTopSize);
+
+    TVector<size_t> order(count);
+    Iota(order.begin(), order.end(), 0);
+    Sort(order.begin(), order.end(), [&](int a, int b) {
+        return approxes[a] > approxes[b];
+    });
+
+    const double maxScore = approxes[order[0]];
+    const double minScore = approxes[order[count - 1]];
+
+    double sumDer1 = 0.0;
+
+    for (size_t firstId = 0; firstId < count; ++firstId) {
+        size_t boundForSecond = firstId < queryTopSize ? count : queryTopSize;
+        for (size_t secondId = 0; secondId < boundForSecond; ++secondId) {
+
+            double firstTarget = targets[order[firstId]];
+            double secondTarget = targets[order[secondId]];
+
+            if (firstTarget <= secondTarget) {
+                continue;
+            }
+
+            double approxDiff = approxes[order[firstId]] - approxes[order[secondId]];
+
+            double dcgNum = CalcNumerator(firstTarget) - CalcNumerator(secondTarget);
+            double dcgDen = std::abs(1.0 / CalcDenominator(firstId) -
+                                     1.0 / CalcDenominator(secondId));
+
+            double delta = dcgNum * dcgDen / idealScore;
+
+            if (Norm && maxScore != minScore) {
+                delta /= 0.01 + std::abs(approxDiff);
+            }
+
+            double coeff = 1.0 / (1.0 + std::exp(Sigma * approxDiff));
+            double hessian = coeff * (1 - coeff);
+            coeff *=  - Sigma * delta;
+            hessian *= Sigma * Sigma * delta;
+
+            ders[order[firstId]].Der1 += coeff;
+            ders[order[firstId]].Der2 += hessian;
+            ders[order[secondId]].Der1 -= coeff;
+            ders[order[secondId]].Der2 += hessian;
+
+            sumDer1 -= 2 * coeff;
+        }
+    }
+    if (Norm && sumDer1 > 0) {
+        double norma = std::log2(1 + sumDer1) / sumDer1;
+        for (auto& der : ders) {
+            der.Der1 *= norma;
+            der.Der2 *= norma;
+        }
+    }
+}
+
+double TLambdaMartError::IdealMetric(TConstArrayRef<float> target, size_t queryTopSize) const {
+    double score = 0;
+    TVector<float> sortedTargets(target.begin(), target.end());
+    Sort(sortedTargets, [](float a, float b) {
+        return a > b;
+    });
+    for (size_t id = 0; id < queryTopSize; ++id) {
+        score += CalcNumerator(sortedTargets[id])  / CalcDenominator(id);
+    }
+    return score;
+}
+
 // TStochasticRankError definitions
 TStochasticRankError::TStochasticRankError(
     ELossFunction targetMetric,

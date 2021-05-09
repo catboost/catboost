@@ -153,6 +153,7 @@ enum class ELossFunction {
     QuerySoftMax,
     QueryCrossEntropy,
     StochasticFilter,
+    LambdaMart,
     StochasticRank,
 
     /* user defined errors */

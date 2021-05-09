@@ -231,6 +231,14 @@ THolder<IDerCalcer> BuildError(
                 params.LossFunctionDescription);
             return MakeHolder<TStochasticFilterError>(sigma, numEstimations, isStoreExpApprox);
         }
+        case ELossFunction::LambdaMart: {
+            const auto& lossParams = params.LossFunctionDescription->GetLossParamsMap();
+            CB_ENSURE(lossParams.contains("metric"), "LambdaMart requires metric param");
+            const ELossFunction targetMetric = FromString<ELossFunction>(lossParams.at("metric"));
+            const double sigma = NCatboostOptions::GetParamOrDefault(lossParams, "sigma", 1.0);
+            const bool norm = NCatboostOptions::GetParamOrDefault(lossParams, "norm", false);
+            return MakeHolder<TLambdaMartError>(targetMetric, lossParams, sigma, norm);
+        }
         case ELossFunction::StochasticRank: {
             const auto& lossParams = params.LossFunctionDescription->GetLossParamsMap();
             CB_ENSURE(lossParams.contains("metric"), "StochasticRank requires metric param");
