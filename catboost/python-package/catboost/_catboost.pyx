@@ -724,8 +724,7 @@ cdef extern from "catboost/private/libs/algo/apply.h":
             int begin,
             int end,
             TVector[double]* flatApprox,
-            TVector[TVector[double]]* approx,
-            double binaryProbabilityThreshold
+            TVector[TVector[double]]* approx
         ) nogil except +ProcessException
 
     cdef cppclass TLeafIndexCalcerOnPool:
@@ -747,8 +746,7 @@ cdef extern from "catboost/private/libs/algo/apply.h":
         const EPredictionType predictionType,
         int begin,
         int end,
-        int threadCount,
-        double binaryProbabilityThreshold
+        int threadCount
     ) nogil except +ProcessException
 
     cdef TVector[TVector[double]] ApplyUncertaintyPredictions(
@@ -820,8 +818,7 @@ cdef extern from "catboost/libs/eval_result/eval_helpers.h" namespace "NCB":
         const EPredictionType predictionType,
         const TFullModel& model,
         const TVector[TVector[double]]& approx,
-        int threadCount,
-        double binaryThresholdProbability
+        int threadCount
     ) nogil except +ProcessException
 
 cdef extern from "catboost/libs/eval_result/eval_result.h" namespace "NCB":
@@ -4339,7 +4336,7 @@ cdef class _CatBoost:
         cdef TConstArrayRef[TFloatFeature] arrayView = self.__model.ModelTrees.Get().GetFloatFeatures()
         return dict([(feature.Position.FlatIndex, feature.Borders) for feature in arrayView])
 
-    cpdef _base_predict(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end, int thread_count, bool_t verbose, double binary_probability_threshold):
+    cpdef _base_predict(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end, int thread_count, bool_t verbose):
         cdef TVector[TVector[double]] pred
         cdef EPredictionType predictionType = string_to_prediction_type(prediction_type)
         thread_count = UpdateThreadCount(thread_count);
@@ -4351,8 +4348,7 @@ cdef class _CatBoost:
                 predictionType,
                 ntree_start,
                 ntree_end,
-                thread_count,
-                binary_probability_threshold
+                thread_count
             )
 
         return transform_predictions(pred, predictionType, thread_count, self.__model)
@@ -4930,6 +4926,9 @@ cdef class _CatBoost:
                 nanTreatments[pair.first] = 'AsTrue'
         return nanTreatments
 
+    cpdef _get_binclass_probability_threshold(self):
+        return self.__model.GetBinClassProbabilityThreshold()
+
 
 cdef class _MetadataHashProxy:
     cdef _CatBoost _catboost
@@ -5159,8 +5158,7 @@ cdef class _StagedPredictIterator:
     cdef TModelCalcerOnPool* __modelCalcerOnPool
     cdef EPredictionType predictionType
     cdef int ntree_start, ntree_end, eval_period, thread_count
-    cdef bool_t verbose,
-    cdef double binary_threshold_probability
+    cdef bool_t verbose
 
     def __cinit__(self, str prediction_type, int ntree_start, int ntree_end, int eval_period, int thread_count, verbose):
         self.predictionType = string_to_prediction_type(prediction_type)
@@ -5194,8 +5192,7 @@ cdef class _StagedPredictIterator:
             self.ntree_start,
             min(self.ntree_start + self.eval_period, self.ntree_end),
             &self.__flatApprox,
-            &self.__pred,
-            0.5
+            &self.__pred
         )
 
         if self.__approx.empty():
@@ -5206,7 +5203,7 @@ cdef class _StagedPredictIterator:
                     self.__approx[i][j] += self.__pred[i][j]
 
         self.ntree_start += self.eval_period
-        self.__pred = PrepareEvalForInternalApprox(self.predictionType, dereference(self.__model), self.__approx, self.thread_count, self.binary_threshold_probability)
+        self.__pred = PrepareEvalForInternalApprox(self.predictionType, dereference(self.__model), self.__approx, self.thread_count)
 
         return transform_predictions(self.__pred, self.predictionType, self.thread_count, self.__model)
 

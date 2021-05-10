@@ -236,7 +236,7 @@ void NCB::CalcModelSingleHost(
                 IsFirstBlock,
                 docIdOffset,
                 std::make_pair(evalPeriod, iterationsLimit),
-                params.BinaryProbabilityThreshold);
+                model.GetBinClassProbabilityThreshold());
             docIdOffset += datasetPart->ObjectsGrouping->GetObjectCount();
             IsFirstBlock = false;
         },

@@ -26,8 +26,7 @@ TVector<TVector<double>> ApplyModelMulti(
     const EPredictionType predictionType,
     int begin,
     int end,
-    NPar::ILocalExecutor* executor = nullptr,
-    double binaryProbabilityThreshold = 0.5);
+    NPar::ILocalExecutor* executor = nullptr);
 
 TVector<TVector<double>> ApplyModelMulti(
     const TFullModel& model,
@@ -36,8 +35,7 @@ TVector<TVector<double>> ApplyModelMulti(
     const EPredictionType predictionType = EPredictionType::RawFormulaVal,
     int begin = 0,
     int end = 0,
-    int threadCount = 1,
-    double binaryProbabilityThreshold = 0.5);
+    int threadCount = 1);
 
 TVector<TVector<double>> ApplyModelMulti(
     const TFullModel& model,
@@ -46,8 +44,7 @@ TVector<TVector<double>> ApplyModelMulti(
     const EPredictionType predictionType = EPredictionType::RawFormulaVal,
     int begin = 0,
     int end = 0,
-    int threadCount = 1,
-    double binaryProbabilityThreshold = 0.5);
+    int threadCount = 1);
 
 TMinMax<double> ApplyModelForMinMax(
     const TFullModel& model,
@@ -72,8 +69,7 @@ public:
         int begin, /*= 0*/
         int end,
         TVector<double>* flatApproxBuffer,
-        TVector<TVector<double>>* approx,
-        double binaryProbabilityThreshold = 0.5);
+        TVector<TVector<double>>* approx);
 
 private:
     const TFullModel* Model;

@@ -8561,7 +8561,7 @@ def test_group_features():
     return [local_canonical_file(learn_error_path), local_canonical_file(test_predictions_path)]
 
 
-def test_binary_classifier_threshold():
+def test_binclass_probability_threshold():
     test_predictions_path = yatest.common.test_output_path('test_predictions.tsv')
     model_path = yatest.common.test_output_path('model.bin')
     probability_threshold = '0.8'
@@ -8573,6 +8573,15 @@ def test_binary_classifier_threshold():
         '-m', model_path
     ]
     execute_catboost_fit('CPU', fit_cmd)
+
+    set_prob_cmd = [
+        CATBOOST_PATH, 'metadata', 'set',
+        '-m', model_path,
+        '--key', 'binclass_probability_threshold',
+        '--value', probability_threshold
+    ]
+    yatest.common.execute(set_prob_cmd)
+
     calc_cmd = [
         CATBOOST_PATH,
         'calc',
@@ -8580,15 +8589,19 @@ def test_binary_classifier_threshold():
         '--input-path', data_file('adult', 'test_small'),
         '--cd', data_file('adult', 'train.cd'),
         '--output-path', test_predictions_path,
-        '--threshold', probability_threshold,
         '--output-columns', 'Probability,Class'
     ]
     yatest.common.execute(calc_cmd)
+
+    test_is_not_dummy = False
     with open(test_predictions_path, 'r') as f:
         f.readline()  # skip header
         for row in f.readlines():
             prob, cl = map(float, row.strip().split())
             assert (cl == (1 if prob > float(probability_threshold) else 0))
+            if 0.5 < prob < 0.8:
+                test_is_not_dummy = True
+    assert test_is_not_dummy
 
 
 def test_model_sum():

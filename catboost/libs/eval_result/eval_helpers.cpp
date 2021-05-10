@@ -297,27 +297,26 @@ TVector<TVector<double>> PrepareEvalForInternalApprox(
     const EPredictionType predictionType,
     const TFullModel& model,
     const TVector<TVector<double>>& approx,
-    int threadCount,
-    double binaryProbabilityThreshold
+    int threadCount
 ) {
     NPar::TLocalExecutor executor;
     executor.RunAdditionalThreads(threadCount - 1);
-    return PrepareEvalForInternalApprox(predictionType, model, approx, &executor, binaryProbabilityThreshold);
+    return PrepareEvalForInternalApprox(predictionType, model, approx, &executor);
 }
 
 TVector<TVector<double>> PrepareEvalForInternalApprox(
     const EPredictionType predictionType,
     const TFullModel& model,
     const TVector<TVector<double>>& approx,
-    NPar::ILocalExecutor* localExecutor,
-    double binaryProbabilityThreshold
+    NPar::ILocalExecutor* localExecutor
 ) {
     const TExternalLabelsHelper externalLabelsHelper(model);
     const auto& externalApprox
         = (externalLabelsHelper.IsInitialized() && (externalLabelsHelper.GetExternalApproxDimension() > 1)) ?
             MakeExternalApprox(approx, externalLabelsHelper)
             : approx;
-    return PrepareEval(predictionType, /* ensemblesCount */ 1, model.GetLossFunctionName(), externalApprox, localExecutor, binaryProbabilityThreshold);
+    return PrepareEval(predictionType, /* ensemblesCount */ 1, model.GetLossFunctionName(),
+                       externalApprox, localExecutor, model.GetBinClassProbabilityThreshold());
 }
 
 TVector<TVector<double>> PrepareEval(const EPredictionType predictionType,
@@ -325,10 +324,10 @@ TVector<TVector<double>> PrepareEval(const EPredictionType predictionType,
                                      const TString& lossFunctionName,
                                      const TVector<TVector<double>>& approx,
                                      int threadCount,
-                                     double binaryProbabilityThreshold) {
+                                     double binclassProbabilityThreshold) {
     NPar::TLocalExecutor executor;
     executor.RunAdditionalThreads(threadCount - 1);
-    return PrepareEval(predictionType, ensemblesCount, lossFunctionName, approx, &executor, binaryProbabilityThreshold);
+    return PrepareEval(predictionType, ensemblesCount, lossFunctionName, approx, &executor, binclassProbabilityThreshold);
 }
 
 
@@ -338,7 +337,7 @@ void PrepareEval(const EPredictionType predictionType,
                  const TVector<TVector<double>>& approx,
                  NPar::ILocalExecutor* executor,
                  TVector<TVector<double>>* result,
-                 double binaryProbabilityThreshold) {
+                 double binClassProbabilityThreshold) {
 
     switch (predictionType) {
         case EPredictionType::LogProbability:
@@ -382,7 +381,7 @@ void PrepareEval(const EPredictionType predictionType,
                 (*result)[0].assign(predictions.begin(), predictions.end());
             } else {
                 for (const double predictionProbability : CalcSigmoid(approx[0])) {
-                    (*result)[0].push_back(predictionProbability > binaryProbabilityThreshold);
+                    (*result)[0].push_back(predictionProbability > binClassProbabilityThreshold);
                 }
             }
             break;
@@ -447,9 +446,9 @@ TVector<TVector<double>> PrepareEval(const EPredictionType predictionType,
                                      const TString& lossFunctionName,
                                      const TVector<TVector<double>>& approx,
                                      NPar::ILocalExecutor* localExecutor,
-                                     double binaryProbabilityThreshold) {
+                                     double binClassProbabilityThreshold) {
     TVector<TVector<double>> result;
-    PrepareEval(predictionType, ensemblesCount, lossFunctionName, approx, localExecutor, &result, binaryProbabilityThreshold);
+    PrepareEval(predictionType, ensemblesCount, lossFunctionName, approx, localExecutor, &result, binClassProbabilityThreshold);
     return result;
 }
 }

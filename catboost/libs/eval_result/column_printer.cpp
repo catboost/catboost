@@ -20,7 +20,7 @@ namespace NCB {
         TMaybe<std::pair<size_t, size_t>> evalParameters,
         TVector<THolder<IColumnPrinter>>* result,
         NPar::ILocalExecutor* executor,
-        double binaryProbabilityThreshold
+        double binClassProbabilityThreshold
     ) {
         int begin = 0;
         const bool callMakeExternalApprox
@@ -29,7 +29,7 @@ namespace NCB {
               && !IsUncertaintyPredictionType(predictionType);
         for (const auto& raws : rawValues) {
             const auto& approx = callMakeExternalApprox ? MakeExternalApprox(raws, visibleLabelsHelper) : raws;
-            auto approxes = PrepareEval(predictionType, ensemblesCount, lossFunctionName, approx, executor, binaryProbabilityThreshold);
+            auto approxes = PrepareEval(predictionType, ensemblesCount, lossFunctionName, approx, executor, binClassProbabilityThreshold);
             const auto& headers = CreatePredictionTypeHeader(
                 approx.size(),
                 isMultiTarget,

@@ -31,9 +31,6 @@ void NCB::TAnalyticalModeCommonParams::BindParserOpts(NLastGetopt::TOpts& parser
 
     parser.AddLongOption('T', "thread-count", "worker thread count (default: core count)")
         .StoreResult(&ThreadCount);
-    parser.AddLongOption("threshold", "Probability threshold for class prediction in binary classification")
-        .DefaultValue(0.5)
-        .StoreResult(&BinaryProbabilityThreshold);
 }
 
 void NCB::BindModelFileParams(NLastGetopt::TOpts* parser, TString* modelFileName, EModelType* modelFormat) {

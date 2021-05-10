@@ -8450,19 +8450,47 @@ def test_log_proba():
     assert np.allclose(log_pred_1, log_pred_2)
 
 
-def test_binary_classification_threshold():
+def test_binclass_probability_threshold():
     # binary classification
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    classifier = CatBoostClassifier(iterations=2)
-    classifier.fit(pool)
-    threshold = 0.6
-    proba = classifier.predict(pool, prediction_type='Probability')[:, 1]
-    pred = classifier.predict(pool, prediction_type='Class', binary_probability_threshold=threshold).astype(int)
-    accuracy = classifier.score(pool, binary_probability_threshold=threshold)
 
-    assert np.any((proba > threshold).astype(int) != 0)  # check for non-dummy case
-    assert np.all(pred == (proba > threshold).astype(int))
+    classifier = CatBoostClassifier(iterations=2, binclass_probability_threshold=0.7)
+    assert classifier.get_probability_threshold() == 0.7  # check initialization from __init__
+
+    classifier = CatBoostClassifier(iterations=2)
+    assert classifier.get_probability_threshold() == 0.5
+
+    classifier.set_probability_threshold(0.6)  # check set before training
+    assert classifier.get_probability_threshold() == 0.6  # check it saved
+
+    classifier.fit(pool)
+    assert classifier.get_probability_threshold() == 0.6  # check it saved after train
+
+    def check_threshold(classifier, threshold):
+        proba = classifier.predict_proba(pool)[:, 1]
+        pred = classifier.predict(pool).astype(int)
+        if threshold < 0.5:
+            assert np.any((proba > threshold) & (proba < 0.5))  # check for non-dummy test case
+        elif threshold > 0.5:
+            assert np.any((proba > 0.5) & (proba < threshold))  # check for non-dummy test case
+
+        assert np.all(pred == (proba > threshold).astype(int))  # check if threshold is working
+
+    check_threshold(classifier, 0.6)
+
+    accuracy = classifier.score(pool)  # check if score function is working too
+    pred = classifier.predict(pool).astype(int)
     assert np.allclose(accuracy, np.mean(pred == np.array(pool.get_label()).astype(int)))
+
+    # change threshold
+    classifier.set_probability_threshold(0.4)
+    assert classifier.get_probability_threshold() == 0.4
+    check_threshold(classifier, 0.4)
+
+    # nullify it
+    classifier.set_probability_threshold(None)
+    assert classifier.get_probability_threshold() == 0.5
+    check_threshold(classifier, 0.5)
 
 
 def test_exponent_prediction_type():

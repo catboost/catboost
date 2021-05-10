@@ -182,7 +182,7 @@ namespace NCB {
         std::pair<int, int> testFileWhichOf,
         ui64 docIdOffset,
         TMaybe<std::pair<size_t, size_t>> evalParameters,
-        double binaryProbabilityThreshold) {
+        double binClassProbabilityThreshold) {
 
         TFeatureIdToDesc featureIdToDesc = GetFeatureIdToDesc(pool);
 
@@ -203,7 +203,7 @@ namespace NCB {
                                      evalParameters,
                                      &columnPrinter,
                                      executor,
-                                     binaryProbabilityThreshold);
+                                     binClassProbabilityThreshold);
                 continue;
             }
             EColumn outputType;
@@ -351,7 +351,7 @@ namespace NCB {
         bool writeHeader,
         ui64 docIdOffset,
         TMaybe<std::pair<size_t, size_t>> evalParameters,
-        double binaryProbabilityThreshold) {
+        double binClassProbabilityThreshold) {
 
         TVector<THolder<IColumnPrinter>> columnPrinter = InitializeColumnWriter(
             evalResult,
@@ -364,7 +364,7 @@ namespace NCB {
             testFileWhichOf,
             docIdOffset,
             evalParameters,
-            binaryProbabilityThreshold);
+            binClassProbabilityThreshold);
 
         if (writeHeader) {
             TString delimiter = "";
@@ -399,7 +399,7 @@ namespace NCB {
         const TDsvFormatOptions& testSetFormat,
         bool writeHeader,
         ui64 docIdOffset,
-        double binaryProbabilityThreshold) {
+        double binClassProbabilityThreshold) {
 
         TIntrusivePtr<IPoolColumnsPrinter> poolColumnsPrinter = CreatePoolColumnPrinter(
             testSetPath,
@@ -419,7 +419,7 @@ namespace NCB {
             writeHeader,
             docIdOffset,
             {},
-            binaryProbabilityThreshold);
+            binClassProbabilityThreshold);
     }
 
 } // namespace NCB

@@ -124,6 +124,7 @@ cdef extern from "catboost/libs/model/model.h":
         void Truncate(size_t begin, size_t end) except +ProcessException
         bool_t IsOblivious() except +ProcessException
         TString GetLossFunctionName() except +ProcessException
+        double GetBinClassProbabilityThreshold() except +ProcessException
         TVector[TJsonValue] GetModelClassLabels() except +ProcessException
         TScaleAndBias GetScaleAndBias() except +ProcessException
         void SetScaleAndBias(const TScaleAndBias&) except +ProcessException
