@@ -2289,9 +2289,8 @@ def test_generated_metrics_default_params():
             metric()
 
 
-def _test_generated_metrics(catboost_params, train_pool, test_pool, metrics, task):
-    catboost_params['iterations'] = 50
-    model = CatBoost(catboost_params)
+def _test_generated_metrics(loss_function, train_pool, test_pool, metrics, task):
+    model = CatBoost({'loss_function': loss_function, 'iterations': 50})
     model.fit(train_pool, eval_set=test_pool)
 
     # text description metrics
@@ -2311,7 +2310,7 @@ def _test_generated_metrics(catboost_params, train_pool, test_pool, metrics, tas
 
 def test_generated_classification_metrics():
     _test_generated_metrics(
-        {'loss_function': 'Logloss'},
+        'Logloss',
         Pool(data=TRAIN_FILE, column_description=CD_FILE),
         Pool(data=TEST_FILE, column_description=CD_FILE),
         {
@@ -2330,15 +2329,15 @@ def test_generated_classification_metrics():
 
 def test_generated_regression_metrics_with_default_params():
     _test_generated_metrics(
-        {'loss_function': 'RMSE'},
+        'RMSE',
         Pool(data=TRAIN_FILE, column_description=CD_FILE),
         Pool(data=TEST_FILE, column_description=CD_FILE),
         {
             'MAE': metrics.MAE(), 'MAPE': metrics.MAPE(), 'Poisson': metrics.Poisson(),
-            # BUG: description of Quantile() should be just 'Quantile', but it's 'Quantile:alpha=0.5'
+            # Metric description should be 'Quantile' instead of 'Quantile:alpha=0.5'
             'Quantile:alpha=0.5': metrics.Quantile(),
             'RMSE': metrics.RMSE(),
-            # BUG: crashes for some reason
+            # BUG - see https://github.com/catboost/catboost/issues/1698
             # 'RMSEWithUncertainty': metrics.RMSEWithUncertainty(),
             'LogLinQuantile': metrics.LogLinQuantile(), 'Expectile': metrics.Expectile(),
             'FairLoss': metrics.FairLoss(), 'SMAPE': metrics.SMAPE(),
@@ -2350,7 +2349,7 @@ def test_generated_regression_metrics_with_default_params():
 
 def test_generated_regression_metrics_with_specified_params():
     _test_generated_metrics(
-        {'loss_function': 'RMSE'},
+        'RMSE',
         Pool(data=TRAIN_FILE, column_description=CD_FILE),
         Pool(data=TEST_FILE, column_description=CD_FILE),
         {
@@ -2375,7 +2374,7 @@ def test_generated_regression_metrics_with_specified_params():
 
 def test_generated_multiclassification_aggregate_metrics():
     _test_generated_metrics(
-        {'loss_function': 'MultiClass'},
+        'MultiClass',
         Pool(data=CLOUDNESS_TRAIN_FILE, column_description=CLOUDNESS_CD_FILE),
         Pool(data=CLOUDNESS_TEST_FILE, column_description=CLOUDNESS_CD_FILE),
         {
@@ -2421,7 +2420,7 @@ def test_generated_multiclassification_class_metrics():
 
 def test_generated_ranking_pairwise_metric():
     _test_generated_metrics(
-        {'loss_function': 'PairLogit'},
+        'PairLogit',
         Pool(data=QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE),
         Pool(data=QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE),
         {
@@ -2434,12 +2433,14 @@ def test_generated_ranking_pairwise_metric():
 
 def test_generated_ranking_groupwise_metric():
     _test_generated_metrics(
-        {'loss_function': 'QueryRMSE'},
+        'QueryRMSE',
         Pool(data=QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE),
         Pool(data=QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE),
         {
-            'QueryRMSE': metrics.QueryRMSE(), 'PFound': metrics.PFound(), 'NDCG:type=Base': metrics.NDCG(),
-            'DCG:type=Base': metrics.DCG(), 'FilteredDCG': metrics.FilteredDCG(), 'AverageGain:top=5': metrics.AverageGain(top=5),
+            'QueryRMSE': metrics.QueryRMSE(), 'PFound': metrics.PFound(),
+            # Metric descriptions should be 'NDCG' & 'DCG' instead of 'NDCG:type=Base' & 'DCG:type=Base' respectively
+            'NDCG:type=Base': metrics.NDCG(), 'DCG:type=Base': metrics.DCG(),
+            'FilteredDCG': metrics.FilteredDCG(), 'AverageGain:top=5': metrics.AverageGain(top=5),
             'PrecisionAt': metrics.PrecisionAt(), 'RecallAt': metrics.RecallAt(), 'MAP': metrics.MAP(),
             'AUC': metrics.AUC()
         },
@@ -2449,7 +2450,7 @@ def test_generated_ranking_groupwise_metric():
 
 def test_generated_multiregression_metric_and_loss():
     _test_generated_metrics(
-        {'loss_function': metrics.MultiRMSE()},
+        metrics.MultiRMSE(),
         Pool(data=MULTIREGRESSION_TRAIN_FILE, column_description=MULTIREGRESSION_CD_FILE),
         Pool(data=MULTIREGRESSION_TEST_FILE, column_description=MULTIREGRESSION_CD_FILE),
         {
@@ -2549,6 +2550,41 @@ def test_generated_groupwise_ranking_losses():
             'QuerySoftMax:beta=2.0': metrics.QuerySoftMax(beta=2.0)
         }
     )
+
+
+def _test_metric_with_default_params_description(loss_function, train_pool, test_pool, metric):
+    model = CatBoost({'loss_function': loss_function, 'iterations': 10})
+    model.fit(train_pool, eval_set=test_pool)
+    results = model.eval_metrics(test_pool, metric)
+    assert metric in results
+
+
+@pytest.mark.xfail
+def test_quantile_with_default_params_description():
+    _test_metric_with_default_params_description(
+        'RMSE',
+        Pool(data=TRAIN_FILE, column_description=CD_FILE),
+        Pool(data=TEST_FILE, column_description=CD_FILE),
+        'Quantile'
+    )
+
+
+@pytest.mark.xfail
+def test_dcg_with_default_params_description():
+    _test_metric_with_default_params_description(
+        'QueryRMSE',
+        Pool(data=TRAIN_FILE, column_description=CD_FILE),
+        Pool(data=TEST_FILE, column_description=CD_FILE),
+        'DCG'
+    )
+
+
+@pytest.mark.xfail
+def test_expectile_loss_with_default_params():
+    train_pool = Pool(data=TRAIN_FILE, column_description=CD_FILE)
+    test_pool = Pool(data=TEST_FILE, column_description=CD_FILE)
+    model = CatBoost({'iterations': 50, 'loss_function': 'Expectile'})
+    model.fit(train_pool, eval_set=test_pool)
 
 
 def test_generated_metrics():
