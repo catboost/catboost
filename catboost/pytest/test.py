@@ -298,6 +298,7 @@ def test_survival_aft_with_nondefault_distributions(boosting_type, distribution_
         local_canonical_file(output_metric_path)
     ]
 
+
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 @pytest.mark.parametrize('n_trees', [100, 500])
 @pytest.mark.parametrize('target_count', [1, 2, 3])

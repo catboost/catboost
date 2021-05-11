@@ -1,7 +1,5 @@
 #pragma once
 
-#include <library/cpp/fast_exp/fast_exp.h>
-
 #include <util/generic/string.h>
 #include <util/generic/ymath.h>
 

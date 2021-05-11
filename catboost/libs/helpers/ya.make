@@ -64,6 +64,7 @@ PEERDIR(
     library/cpp/json
     library/cpp/malloc/api
     library/cpp/threading/local_executor
+    library/cpp/fast_exp
 )
 
 GENERATE_ENUM_SERIALIZATION(sparse_array.h)

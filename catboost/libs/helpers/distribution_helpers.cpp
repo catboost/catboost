@@ -1,5 +1,7 @@
 #include "distribution_helpers.h"
 
+#include <library/cpp/fast_exp/fast_exp.h>
+
 
 namespace NCB {
     double TNormalDistribution::CalcPdf(double x) const {

@@ -1528,7 +1528,7 @@ class _CatBoostBase(object):
         return isinstance(loss_function, str) and is_multiregression_objective(loss_function)
     
     @staticmethod
-    def _is_survivalregression_objective(self, loss_function):
+    def _is_survivalregression_objective(loss_function):
         return isinstance(loss_function, str) and is_survivalregression_objective(loss_function)
 
     @staticmethod
