@@ -8629,7 +8629,7 @@
         },
         "news": {
             "formula": {
-                "sandbox_id": 953647209,
+                "sandbox_id": 967540763,
                 "match": "news_launcher"
             },
             "executable": {
