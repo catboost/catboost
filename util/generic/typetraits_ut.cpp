@@ -237,7 +237,7 @@ Y_UNIT_TEST_SUITE(TTypeTraitsTest) {
         UNIT_ASSERT(std::is_pod<long>::value);
     }
 
-	template <typename T>
+    template <typename T>
     void TestAllTypeTraitFlagsSet() {
         UNIT_ASSERT(TTypeTraits<T>::IsBitwiseCopyable);
         UNIT_ASSERT(TTypeTraits<T>::IsBitwiseSerializable);
