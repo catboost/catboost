@@ -29,8 +29,6 @@ migrations:
     - ads/libs/py_prgmg
     - ads/libs/py_prgmg/factors
     - ads/libs/py_test_mapreduce
-    - ads/logos/libs/core
-    - ads/logos/libs/core/ut
     - ads/ml_engine/learn/result/flow_generate_extended_fstr
     - ads/ml_engine/learn/result/local_extended_fstr
     - ads/ml_engine/learn/result/local_extended_fstr/lib
@@ -583,7 +581,6 @@ migrations:
     - passport/python/core/types/login
     - passport/python/core/validators
     - passport/python/library/yt_hdb/loader
-    - passport/python/social/broker
     - passport/python/social/common
     - passport/python/social/common/providers
     - passport/python/social/common/test
@@ -633,7 +630,6 @@ migrations:
     - quality/nirvana_tools/conveyor_operations/parse_web_dump/make_aggregation
     - quality/nirvana_tools/conveyor_operations/parse_web_dump/make_aggregation/external_tests
     - quality/nirvana_tools/conveyor_operations/stove/prepare_stove_dataset
-    - quality/nirvana_tools/graphs/dumps/learn
     - quality/query_expansions/proc/covfefe/makefile_update
     - quality/query_expansions/tools/tests/test_dummy_process
     - quality/relev_tools/dsat/find_words_with_absent_forms
@@ -927,7 +923,6 @@ migrations:
     - voicetech/asr/tools/asr_analyzer/lib
     - voicetech/common/voicetable/bin/filter_text
     - voicetech/common/voicetable/checks/bin/general_voicetable_check
-    - voicetech/common/voicetable/lib
     - voicetech/infra/gdpr_proxy/service
     - voicetech/tts/vh/utils
     - weather/workers/warnings/general
@@ -1114,7 +1109,6 @@ migrations:
     - adfox/xpd/tests/functional/tests/tvm_mock
     - ads/autobudget/metrics/equivalency_monitoring
     - ads/autobudget/metrics/example_monitoring
-    - ads/bsyeti/tests/bsdiff
     - ads/emily/mvp/backend_agnostik/backends/nirvana
     - ads/libs/py_mapreduce/yabs-mapreduce-modules/py-modules/yabs/tabtools
     - ads/logos/tasks/mediation_fast_lm_features
@@ -1258,8 +1252,6 @@ migrations:
     - logbroker/tools/manual/collect_capacity/topic_list
     - logbroker/tools/manual/create_logbroker_account/lib
     - logbroker/tools/startrek/st
-    - mail/devpack/lib
-    - mail/devpack/lib/components
     - mail/python/fake_mulcagate
     - mail/python/theatre/app
     - mail/python/theatre/app/log_helpers
@@ -1454,7 +1446,6 @@ migrations:
     - vh/lib/sqs_watcher
     - vh/recommender/tools/delayed_view_stats
     - voicetech/asr/markup/select
-    - voicetech/asr/tools/metrics/bin
     - voicetech/asr/tools/run_normalizer/prepare_data_for_mt_normalizer
     - voicetech/infra/uniproxy/tests/session
     - voicetech/infra/voice_ext_mon/bin
@@ -1667,7 +1658,6 @@ migrations:
     - dict/mt/make/modules/corpus_generation/post_filtering/tests
     - dict/mt/make/modules/mixed_case_voc/tests
     - dict/mt/make/modules/prepare_corpus
-    - dict/mt/make/pipeline/lm/tests
     - dict/mt/make/pipeline/nmt
     - dict/mt/make/pipeline/phrase_lm/tests
     - dict/mt/make/tools/yt_transform/tests
@@ -1739,7 +1729,6 @@ migrations:
     - maps/infra/ecstatic/tool/ecstatic_api
     - maps/pylibs/test_helpers
     - maps/qa/passed_by_assessors/markup_script
-    - maps/wikimap/feedback/pushes/addresses/make_pushes/tests
     - maps/wikimap/stat/kpi/valuable_edits/users_home_regions/lib
     - maps/wikimap/stat/tasks_payment/tasks_logging/feedback/lib
     - maps_adv/common/shared_mock
@@ -1768,7 +1757,6 @@ migrations:
     - modadvert/libs/jsonrpc2/client
     - modadvert/libs/laas/workers/misprints
     - modadvert/libs/nirvana/program
-    - modadvert/libs/supermoderation
     - modadvert/libs/utils/py3/auth
     - modadvert/libs/utils/text/ut
     - modadvert/nirvana/m1_update_media_objects/it
@@ -1951,8 +1939,6 @@ migrations:
     - voicetech/asr/core/lib/subword_ngram_lm/nirvana/fit_vocabulary
     - voicetech/asr/markup/lib
     - voicetech/asr/pipeline/train
-    - voicetech/asr/tools/metrics/lib
-    - voicetech/asr/tools/metrics/tests
     - voicetech/asr/tools/question/make_train_from_vt
     - voicetech/asr/tools/regular_metrics_run/run/vh
     - voicetech/asr/tools/regular_metrics_run/upload_metrics_to_yt
@@ -1961,7 +1947,6 @@ migrations:
     - voicetech/bio/scripts/score/robin_metrics/classification/tests
     - voicetech/bio/scripts/yt/make_transaction
     - voicetech/common/voicetable/agency_data_parser/lib
-    - voicetech/common/voicetable/lib
     - voicetech/spotter/difftools/score_output
     - voicetech/spotter/online_metrics/lib
     - voicetech/spotter/run/difftool
