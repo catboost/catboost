@@ -8,9 +8,11 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/logging/logging.h>
+#include <catboost/libs/model/enums.h>
 #include <catboost/libs/model/cpu/evaluator.h>
 #include <catboost/libs/model/scale_and_bias.h>
 #include <catboost/private/libs/options/enum_helpers.h>
+#include <catboost/private/libs/options/json_helper.h>
 
 #include <util/generic/array_ref.h>
 #include <util/generic/cast.h>
@@ -63,7 +65,8 @@ static void BlockedEvaluation(
     ui32 objectBlockStart,
     ui32 objectBlockEnd,
     ui32 subBlockSize,
-    IQuantizedBlockVisitor* visitor
+    IQuantizedBlockVisitor* visitor,
+    EFormulaEvaluatorType formulaEvaluatorType = EFormulaEvaluatorType::CPU
 ) {
     THolder<IFeaturesBlockIterator> featuresBlockIterator
         = CreateFeaturesBlockIterator(model, objectsData, objectBlockStart, objectBlockEnd);
@@ -77,7 +80,8 @@ static void BlockedEvaluation(
             model,
             *featuresBlockIterator,
             objectBlockStart,
-            objectBlockStart + currentBlockSize);
+            objectBlockStart + currentBlockSize,
+            formulaEvaluatorType);
 
         visitor->Do(*quantizedBlock, objectBlockStart, objectBlockStart + currentBlockSize);
     }
@@ -142,6 +146,14 @@ TVector<TVector<double>> ApplyModelMulti(
     int end,   /*= 0*/
     ILocalExecutor* executor)
 {
+    EFormulaEvaluatorType formulaEvaluatorType = EFormulaEvaluatorType::CPU;
+    NJson::TJsonValue paramsJson = ReadTJsonValue(model.ModelInfo.at("params"));
+    auto taskType = paramsJson["task_type"].GetString();
+    if (taskType = "GPU") {
+        formulaEvaluatorType = EFormulaEvaluatorType::GPU;
+        const_cast<TFullModel&>(model).SetEvaluatorType(EFormulaEvaluatorType::GPU);
+    }
+
     const int docCount = SafeIntegerCast<int>(objectsData.GetObjectCount());
     const int approxesDimension = model.GetDimensionsCount();
     TVector<double> approxesFlat(docCount * approxesDimension);
@@ -160,7 +172,8 @@ TVector<TVector<double>> ApplyModelMulti(
             const int blockFirstIdx = blockParams.FirstId + blockId * blockParams.GetBlockSize();
             const int blockLastIdx = Min(blockParams.LastId, blockFirstIdx + blockParams.GetBlockSize());
 
-            BlockedEvaluation(model, objectsData, (ui32)blockFirstIdx, (ui32)blockLastIdx, subBlockSize, &visitor);
+            BlockedEvaluation(model, objectsData, (ui32)blockFirstIdx, (ui32)blockLastIdx, subBlockSize, &visitor,
+                    formulaEvaluatorType);
         };
         if (executor) {
             executor->ExecRangeWithThrow(applyOnBlock, 0, blockParams.GetBlockCount(), ILocalExecutor::WAIT_COMPLETE);

@@ -61,6 +61,7 @@ PEERDIR(
     catboost/libs/logging
     catboost/libs/metrics
     catboost/libs/model
+    catboost/libs/model/cuda
     catboost/libs/overfitting_detector
     catboost/private/libs/algo/approx_calcer
     catboost/private/libs/algo_helpers
