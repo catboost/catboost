@@ -789,6 +789,8 @@ def _dump_test(
         data_files=None
 ):
 
+    if not binary_path:
+        return
     if test_type == "PY_TEST":
         script_rel_path = "py.test"
     else:

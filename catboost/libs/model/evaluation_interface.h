@@ -267,6 +267,11 @@ namespace NCB {  // split due to CUDA-compiler inability to parse nested namespa
                 size_t treeEnd,
                 TArrayRef<TCalcerIndexType> indexes
             ) const = 0;
+
+            virtual void Quantize(
+                    TConstArrayRef<TConstArrayRef<float>> features,
+                    IQuantizedData* quantizedData
+            ) const = 0;
         };
 
         using TEvaluationBackendFactory = NObjectFactory::TParametrizedObjectFactory<IModelEvaluator, EFormulaEvaluatorType, const TFullModel&>;
