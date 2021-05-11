@@ -4,7 +4,7 @@ LICENSE(MIT)
 
 
 
-VERSION(56.1.0)
+VERSION(56.2.0)
 
 PEERDIR(
     library/python/resource
