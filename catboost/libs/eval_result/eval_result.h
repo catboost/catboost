@@ -62,7 +62,7 @@ namespace NCB {
         std::pair<int, int> testFileWhichOf,
         ui64 docIdOffset,
         TMaybe<std::pair<size_t, size_t>> evalParameters = TMaybe<std::pair<size_t, size_t>>(),
-        double binClassProbabilityThreshold = DEFAULT_BINCLASS_PROBABILITY_THRESHOLD);
+        double binClassLogitThreshold = DEFAULT_BINCLASS_LOGIT_THRESHOLD);
 
     void OutputEvalResultToFile(
         const TEvalResult& evalResult,
@@ -77,7 +77,7 @@ namespace NCB {
         bool writeHeader = true,
         ui64 docIdOffset = 0,
         TMaybe<std::pair<size_t, size_t>> evalParameters = TMaybe<std::pair<size_t, size_t>>(),
-        double binClassProbabilityThreshold = DEFAULT_BINCLASS_PROBABILITY_THRESHOLD);
+        double binClassLogitThreshold = DEFAULT_BINCLASS_LOGIT_THRESHOLD);
 
     void OutputEvalResultToFile(
         const TEvalResult& evalResult,
@@ -92,6 +92,6 @@ namespace NCB {
         const NCB::TDsvFormatOptions& testSetFormat,
         bool writeHeader = true,
         ui64 docIdOffset = 0,
-        double binClassProbabilityThreshold = DEFAULT_BINCLASS_PROBABILITY_THRESHOLD);
+        double binClassLogitThreshold = DEFAULT_BINCLASS_LOGIT_THRESHOLD);
 
 } // namespace NCB

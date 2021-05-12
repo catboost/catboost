@@ -316,7 +316,7 @@ TVector<TVector<double>> PrepareEvalForInternalApprox(
             MakeExternalApprox(approx, externalLabelsHelper)
             : approx;
     return PrepareEval(predictionType, /* ensemblesCount */ 1, model.GetLossFunctionName(),
-                       externalApprox, localExecutor, model.GetBinClassProbabilityThreshold());
+                       externalApprox, localExecutor, model.GetBinClassLogitThreshold());
 }
 
 TVector<TVector<double>> PrepareEval(const EPredictionType predictionType,
@@ -324,10 +324,10 @@ TVector<TVector<double>> PrepareEval(const EPredictionType predictionType,
                                      const TString& lossFunctionName,
                                      const TVector<TVector<double>>& approx,
                                      int threadCount,
-                                     double binclassProbabilityThreshold) {
+                                     double binClassLogitThreshold) {
     NPar::TLocalExecutor executor;
     executor.RunAdditionalThreads(threadCount - 1);
-    return PrepareEval(predictionType, ensemblesCount, lossFunctionName, approx, &executor, binclassProbabilityThreshold);
+    return PrepareEval(predictionType, ensemblesCount, lossFunctionName, approx, &executor, binClassLogitThreshold);
 }
 
 
@@ -337,7 +337,7 @@ void PrepareEval(const EPredictionType predictionType,
                  const TVector<TVector<double>>& approx,
                  NPar::ILocalExecutor* executor,
                  TVector<TVector<double>>* result,
-                 double binClassProbabilityThreshold) {
+                 double binClassLogitThreshold) {
 
     switch (predictionType) {
         case EPredictionType::LogProbability:
@@ -380,8 +380,8 @@ void PrepareEval(const EPredictionType predictionType,
                 TVector<int> predictions = {SelectBestClass(approx, executor)};
                 (*result)[0].assign(predictions.begin(), predictions.end());
             } else {
-                for (const double predictionProbability : CalcSigmoid(approx[0])) {
-                    (*result)[0].push_back(predictionProbability > binClassProbabilityThreshold);
+                for (const double prediction : approx[0]) {
+                    (*result)[0].push_back(prediction > binClassLogitThreshold);
                 }
             }
             break;
@@ -446,9 +446,9 @@ TVector<TVector<double>> PrepareEval(const EPredictionType predictionType,
                                      const TString& lossFunctionName,
                                      const TVector<TVector<double>>& approx,
                                      NPar::ILocalExecutor* localExecutor,
-                                     double binClassProbabilityThreshold) {
+                                     double binClassLogitThreshold) {
     TVector<TVector<double>> result;
-    PrepareEval(predictionType, ensemblesCount, lossFunctionName, approx, localExecutor, &result, binClassProbabilityThreshold);
+    PrepareEval(predictionType, ensemblesCount, lossFunctionName, approx, localExecutor, &result, binClassLogitThreshold);
     return result;
 }
 }

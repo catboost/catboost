@@ -43,7 +43,7 @@ void PrepareEval(
     const TVector<TVector<double>>& approx,
     NPar::ILocalExecutor* executor,
     TVector<TVector<double>>* result,
-    double binClassProbabilityThreshold = DEFAULT_BINCLASS_PROBABILITY_THRESHOLD);
+    double binClassLogitThreshold = DEFAULT_BINCLASS_LOGIT_THRESHOLD);
 
 TVector<TVector<double>> PrepareEval(
     const EPredictionType predictionType,
@@ -51,7 +51,7 @@ TVector<TVector<double>> PrepareEval(
     const TString& lossFunctionName,
     const TVector<TVector<double>>& approx,
     NPar::ILocalExecutor* executor = nullptr,
-    double binClassProbabilityThreshold = DEFAULT_BINCLASS_PROBABILITY_THRESHOLD);
+    double binClassLogitThreshold = DEFAULT_BINCLASS_LOGIT_THRESHOLD);
 
 TVector<TVector<double>> PrepareEval(
     const EPredictionType predictionType,
@@ -59,7 +59,7 @@ TVector<TVector<double>> PrepareEval(
     const TString& lossFunctionName,
     const TVector<TVector<double>>& approx,
     int threadCount,
-    double binClassProbabilityThreshold = DEFAULT_BINCLASS_PROBABILITY_THRESHOLD);
+    double binClassLogitThreshold = DEFAULT_BINCLASS_LOGIT_THRESHOLD);
 using TColumnPrinterOuputType = TVariant<i64, ui64, double, float, TString>;
 
 template<typename T>

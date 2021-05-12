@@ -71,6 +71,7 @@ struct TRepackedBin {
 constexpr ui32 MAX_VALUES_PER_BIN = 254;
 
 constexpr double DEFAULT_BINCLASS_PROBABILITY_THRESHOLD = 0.5;
+constexpr double DEFAULT_BINCLASS_LOGIT_THRESHOLD = 0;
 
 // If selected diff is 0 we are in the last node in path
 struct TNonSymmetricTreeStepNode {
@@ -1205,9 +1206,15 @@ public:
 
     /**
      * Get the probability threshold for binary classification to separate classes.
-     * @return the value stored in `binclass_probability_threshold` metadata or 0.5 as default value.
+     * @return the value is stored in `binclass_probability_threshold` metadata or 0.5 as default value.
      */
     double GetBinClassProbabilityThreshold() const;
+
+    /**
+     * Get the logit threshold for binary classification to separate classes.
+     * @return Logit(GetBinClassProbabilityThreshold())
+     */
+    double GetBinClassLogitThreshold() const;
 
     /**
      * Get typed class labels than can be predicted.

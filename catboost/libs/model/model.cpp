@@ -1354,6 +1354,11 @@ double TFullModel::GetBinClassProbabilityThreshold() const {
 }
 
 
+double TFullModel::GetBinClassLogitThreshold() const {
+    return NCB::Logit(GetBinClassProbabilityThreshold());
+}
+
+
 static TVector<NJson::TJsonValue> GetSequentialIntegerClassLabels(size_t classCount) {
     TVector<NJson::TJsonValue> classLabels;
     classLabels.reserve(classCount);
