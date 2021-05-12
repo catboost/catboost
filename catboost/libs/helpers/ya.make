@@ -12,6 +12,7 @@ SRCS(
     dbg_output.cpp
     dense_hash.cpp
     dense_hash_view.cpp
+    distribution_helpers.cpp
     double_array_iterator.cpp
     dynamic_iterator.cpp
     element_range.cpp
@@ -63,9 +64,11 @@ PEERDIR(
     library/cpp/json
     library/cpp/malloc/api
     library/cpp/threading/local_executor
+    library/cpp/fast_exp
 )
 
 GENERATE_ENUM_SERIALIZATION(sparse_array.h)
+GENERATE_ENUM_SERIALIZATION(distribution_helpers.h)
 
 END()
 

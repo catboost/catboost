@@ -208,6 +208,9 @@ enum class ELossFunction {
     MRR,
     ERR,
 
+    /* survival-regression */
+    SurvivalAft,
+
     /* multi-regression */
     MultiRMSE,
 

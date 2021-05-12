@@ -4,6 +4,7 @@
 #include "custom_objective_descriptor.h"
 #include "ders_holder.h"
 #include "hessian.h"
+#include "survival_aft_utils.h"
 
 #include <catboost/private/libs/data_types/pair.h>
 #include <catboost/libs/model/eval_processing.h>
@@ -22,6 +23,7 @@
 #include <util/system/yassert.h>
 
 #include <cmath>
+#include <memory>
 
 class IDerCalcer {
 public:
@@ -214,6 +216,29 @@ public:
             }
         }
     }
+};
+
+class TSurvivalAftError final : public TMultiDerCalcer {
+public:
+    const double Scale;
+    std::unique_ptr<NCB::IDistribution> Distribution;
+
+public:
+    explicit TSurvivalAftError(std::unique_ptr<NCB::IDistribution> distribution, double scale)
+        : TMultiDerCalcer(EHessianType::Diagonal)
+        , Scale(scale)
+        , Distribution(std::move(distribution))
+    {
+        CB_ENSURE(Scale > 0, "Scale should be positive");
+    }
+
+    void CalcDers(
+        TConstArrayRef<double> approx,
+        TConstArrayRef<float> target,
+        float weight,
+        TVector<double>* der,
+        THessianInfo* der2
+    ) const override;
 };
 
 class TRMSEWithUncertaintyError final : public TMultiDerCalcer {
