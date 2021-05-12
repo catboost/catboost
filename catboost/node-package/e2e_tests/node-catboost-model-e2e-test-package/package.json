@@ -1,5 +1,5 @@
 {
-    "name": "node-catboost-e2e-test-package",
+    "name": "node-catboost-model-e2e-test-package",
     "version": "1.0.0",
     "description": "",
     "main": "index.js",
@@ -9,7 +9,7 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
-      "catboost": "*"
+      "catboost-model": "*"
     }
   }
   
