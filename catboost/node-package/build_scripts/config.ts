@@ -89,7 +89,7 @@ export async function createConfigForVersion(version: string): Promise<[BinaryCo
         error = new Error(`\n==========================================
 The following release files failed to get auto-detected:\n${
             failedToDownload.map(file => `\t- ${file}`).join('\n')
-        }\nPlease open 'config.yaml' and adjust the links and checksums manually.
+        }\nPlease open 'config.json' and adjust the links and checksums manually.
 ==========================================\n`);
     }
 
