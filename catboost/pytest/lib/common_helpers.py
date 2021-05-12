@@ -103,6 +103,7 @@ def generate_concatenated_random_labeled_dataset(nrows, nvals, labels, seed=2018
     feature = prng.random_sample([nrows, nvals])
     return np.concatenate([label, feature], axis=1)
 
+
 def generate_patients_datasets(train_path, test_path):
     samples = 237
 
@@ -119,11 +120,12 @@ def generate_patients_datasets(train_path, test_path):
         data['target'] = np.where(data['outcome'] == 'dead', data['survival_in_days'], - data['survival_in_days'])
         data = data.drop(['outcome', 'survival_in_days'], axis=1)
         data.to_csv(
-            path, 
-            header=False, 
+            path,
+            header=False,
             index=False,
             sep='\t'
         )
+
 
 # returns (features : numpy.ndarray, labels : list) tuple
 def generate_random_labeled_dataset(

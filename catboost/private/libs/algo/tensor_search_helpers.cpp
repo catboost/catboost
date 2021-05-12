@@ -624,13 +624,13 @@ void CalcWeightedDerivatives(
                     NPar::TLocalExecutor::WAIT_COMPLETE);
             } else {
                 error.CalcFirstDerRange(
-                    0, // start
-                    target.size(), // count
-                    approx[0].data(), // approx
-                    nullptr, // no approx deltas
-                    target.data(), // targets
-                    weight.data(), // weights
-                    (*weightedDerivatives)[0].data());
+                    /*start*/ 0,
+                    /*count*/ target.size(),
+                    /*approx*/ approx[0].data(),
+                    /*approx deltas*/ nullptr,
+                    /*targets*/ target.data(),
+                    /*weights*/ weight.data(),
+                    /*first ders*/ (*weightedDerivatives)[0].data());
             }
         } else {
             localExecutor->ExecRangeWithThrow(

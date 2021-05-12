@@ -109,7 +109,7 @@ void IDerCalcer::CalcDersRange(
     useTDers, IsExpApprox, hasDelta);
 }
 
-TVector<size_t> argSort(
+TVector<size_t> ArgSort(
     int start,
     int count,
     const float* targets
@@ -125,7 +125,7 @@ TVector<size_t> argSort(
     return labelOrder;
 }
 
-double calcCoxApproxSum(
+double CalcCoxApproxSum(
     int start,
     int count,
     const double* approxes,
@@ -154,9 +154,9 @@ void TCoxError::CalcDersRange(
     TDers* ders
 ) const {
 
-    TVector<size_t> labelOrder = argSort(start, count, targets);
+    TVector<size_t> labelOrder = ArgSort(start, count, targets);
 
-    double expPSum = calcCoxApproxSum(start, count, approxes, approxesDeltas);
+    double expPSum = CalcCoxApproxSum(start, count, approxes, approxesDeltas);
 
     double rk = 0;
     double sk = 0;
@@ -209,9 +209,9 @@ void TCoxError::CalcFirstDerRange(
     //CalcCoxDersRange(start, count, approxes, approxesDeltas, targets, );
     // object weights are not supported yet
 
-    TVector<size_t> labelOrder = argSort(start, count, targets);
+    TVector<size_t> labelOrder = ArgSort(start, count, targets);
 
-    double expPSum = calcCoxApproxSum(start, count, approxes, approxesDeltas);
+    double expPSum = CalcCoxApproxSum(start, count, approxes, approxesDeltas);
 
 
     double rk = 0;
