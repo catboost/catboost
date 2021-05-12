@@ -87,16 +87,11 @@ namespace NSplitSelection {
             }
         }
         
-        if(featureValuesMayContainNans){
-            // Remove all nan to calculate borders in MultiRMSEWithMissingValues
-            auto firstNanPos = std::remove_if(features.Values.begin(), features.Values.end(), IsNan);
-            while(firstNanPos != features.Values.end()){
+        auto firstNanPos = std::remove_if(features.Values.begin(), features.Values.end(), IsNan);
+        if (firstNanPos != features.Values.end()) {
+            if (featureValuesMayContainNans) {
                 features.Values.erase(firstNanPos, features.Values.end());
-            }
-        }
-        else{
-            auto firstNanPos = std::remove_if(features.Values.begin(), features.Values.end(), IsNan);
-            if (firstNanPos != features.Values.end()) {
+            } else {
                 throw (yexception() << "Unexpected Nan value.");
             }
         }

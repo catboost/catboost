@@ -106,4 +106,10 @@ function testLoadNonExistentOnConstruction() {
 }
 assert.throws(testLoadNonExistentOnConstruction);
 
+function testPredictOnEmptyModel() {
+    const model = new Model();
+    model.predict([[10.0]], [["a"]]);
+}
+assert.throws(testPredictOnEmptyModel);
+
 console.log("Model tests passed")

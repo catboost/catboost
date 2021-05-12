@@ -534,12 +534,14 @@ namespace NCB {
 
         if (mainLossFunction) {
             CB_ENSURE(
-                IsMultiRegressionObjective(mainLossFunction->GetLossFunction()) || rawData.GetTargetDimension() <= 1,
-                "Currently only multi-regression objectives work with multidimensional target"
+                IsMultiRegressionObjective(mainLossFunction->GetLossFunction()) ||
+                IsSurvivalRegressionObjective(mainLossFunction->GetLossFunction()) ||
+                rawData.GetTargetDimension() <= 1,
+                "Currently only multi-regression and survival objectives work with multidimensional target"
             );
             
             if(IsRegressionObjective(mainLossFunction->GetLossFunction()))
-                CB_ENSURE(!rawData.TargetsContainsNan(),
+                CB_ENSURE(!rawData.IsTargetsContainsNan(),
                     "Single-dimensional regression do not work with missing values on target"
                 );
 

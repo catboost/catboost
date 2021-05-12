@@ -418,7 +418,7 @@ ERawTargetType TRawTargetDataProvider::GetTargetType() const {
 }
 
 
-bool TRawTargetDataProvider::TargetsContainsNan() const {
+bool TRawTargetDataProvider::IsTargetsContainsNan() const {
     if(!Data.Target.empty() && GetTargetType() == ERawTargetType::Float) {
         for (auto targetIdx : xrange(GetTargetDimension())) {
             TVector<float> targetNumeric(GetObjectCount());
@@ -430,7 +430,6 @@ bool TRawTargetDataProvider::TargetsContainsNan() const {
                 }
             }
         }
-        return false;
     }
     return false;
 }

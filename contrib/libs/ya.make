@@ -9,6 +9,7 @@ RECURSE(
     crcutil
     cxxsupp/libcxx
     cxxsupp/libcxx-filesystem
+    cxxsupp/libcxxabi-parts
     expat
     fastlz
     flatbuffers

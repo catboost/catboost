@@ -716,26 +716,6 @@ def parse_python_traceback(trace):
     return [[stack]], [[stack.raw()]], 6
 
 
-def get_jquery_path():
-    if getattr(sys, 'is_standalone_binary', False):
-        return '/contrib/libs/jquery_data/jquery.min.js'
-
-    cur_dir_path = MY_PATH + '/jquery-1.7.1.min.js'
-    if os.path.exists(cur_dir_path):
-        return cur_dir_path
-
-    same_repo_path = MY_PATH + '/../../contrib/libs/jquery/1.7.1/jquery-1.7.1.min.js'
-    if os.path.exists(same_repo_path):
-        return same_repo_path
-
-    # finally, try to download it
-    os.system("wget 'http://yandex.st/jquery/1.7.1/jquery.min.js' -O " + cur_dir_path)
-    if os.path.exists(cur_dir_path):
-        return cur_dir_path
-
-    raise Exception("Cannot find jquery. ")
-
-
 def _file_contents(file_name):
     if getattr(sys, 'is_standalone_binary', False):
         import __res
@@ -757,7 +737,6 @@ def html_prolog(stream):
     prolog = _file_contents('prolog.html')
     stream.write(prolog.format(
         style=_file_contents('styles.css'),
-        jquery_js=_file_contents(get_jquery_path()),
         coredump_js=_file_contents('core_proc.js'),
         version=CORE_PROC_VERSION,
         timestamp=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),

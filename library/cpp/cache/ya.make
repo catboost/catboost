@@ -4,7 +4,7 @@ LIBRARY()
 
 SRCS(
     cache.cpp
-    cache.h
+    thread_safe_cache.cpp
 )
 
 END()

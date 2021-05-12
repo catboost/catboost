@@ -45,8 +45,9 @@ function runCommand(command) {
 } 
 
 const command = process.argv[2];
+const always_compile_scripts = ['ci', 'package_prepublish'];
 
-if (!fs.existsSync('./out') || command === 'package_prepublish') {
+if (!fs.existsSync('./out') || always_compile_scripts.indexOf(command) !== -1) {
     compileBuildScripts().then(result => {
         if (result.code === 0) {
             runCommand(command);

@@ -12,7 +12,6 @@
 #include <util/generic/map.h>
 #include <util/generic/ptr.h>
 #include <util/string/cast.h>
-#include <util/generic/ymath.h>
 
 
 namespace {
@@ -24,13 +23,14 @@ namespace {
         /** regression **/
         IsRegression                   = 1 << 2,
         IsMultiRegression              = 1 << 3,
+        IsSurvivalRegression           = 1 << 4,
         /** ranking **/
-        IsGroupwise                    = 1 << 4,
-        IsPairwise                     = 1 << 5,
+        IsGroupwise                    = 1 << 5,
+        IsPairwise                     = 1 << 6,
 
         /* various */
-        IsUserDefined                  = 1 << 6,
-        IsCombination                  = 1 << 7
+        IsUserDefined                  = 1 << 7,
+        IsCombination                  = 1 << 8
     };
 
     using EMetricAttributes = TFlags<EMetricAttribute>;
@@ -52,7 +52,8 @@ namespace {
                       || HasFlags(EMetricAttribute::IsPairwise)
                       || HasFlags(EMetricAttribute::IsUserDefined)
                       || HasFlags(EMetricAttribute::IsCombination)
-                      || HasFlags(EMetricAttribute::IsMultiRegression),
+                      || HasFlags(EMetricAttribute::IsMultiRegression)
+                      || HasFlags(EMetricAttribute::IsSurvivalRegression),
                       "no type (regression, classification, ranking) for [" + ToString(loss) + "]");
         }
 
@@ -68,7 +69,8 @@ namespace {
                       || HasFlags(EMetricAttribute::IsPairwise)
                       || HasFlags(EMetricAttribute::IsUserDefined)
                       || HasFlags(EMetricAttribute::IsCombination)
-                      || HasFlags(EMetricAttribute::IsMultiRegression),
+                      || HasFlags(EMetricAttribute::IsMultiRegression)
+                      || HasFlags(EMetricAttribute::IsSurvivalRegression),
                       "no type (regression, classification, ranking) for [" + ToString(loss) + "]");
         }
 
@@ -141,6 +143,9 @@ MakeRegister(LossInfos,
     ),
     Registree(MultiRMSEWithMissingValues,
         EMetricAttribute::IsMultiRegression
+    ),
+    Registree(SurvivalAft,
+        EMetricAttribute::IsSurvivalRegression
     ),
     Registree(RMSEWithUncertainty,
         EMetricAttribute::IsRegression
@@ -226,6 +231,9 @@ MakeRegister(LossInfos,
         | EMetricAttribute::IsGroupwise
     ),
     RankingRegistree(StochasticRank, ERankingType::Order,
+        EMetricAttribute::IsGroupwise
+    ),
+    RankingRegistree(LambdaMart, ERankingType::Order,
         EMetricAttribute::IsGroupwise
     ),
     Registree(PythonUserDefinedPerObject,
@@ -471,6 +479,10 @@ static const TVector<ELossFunction> MultiRegressionObjectives = {
     ELossFunction::PythonUserDefinedMultiRegression
 };
 
+static const TVector<ELossFunction> SurvivalRegressionObjectives = {
+    ELossFunction::SurvivalAft
+};
+
 static const TVector<ELossFunction> ClassificationObjectives = {
     ELossFunction::Logloss,
     ELossFunction::CrossEntropy,
@@ -488,6 +500,7 @@ static const TVector<ELossFunction> RankingObjectives = {
     ELossFunction::QuerySoftMax,
     ELossFunction::QueryCrossEntropy,
     ELossFunction::StochasticFilter,
+    ELossFunction::LambdaMart,
     ELossFunction::StochasticRank,
     ELossFunction::UserPerObjMetric,
     ELossFunction::UserQuerywiseMetric,
@@ -499,6 +512,7 @@ static const TVector<ELossFunction> Objectives = []() {
     TVector<const TVector<ELossFunction>*> objectiveLists = {
         &RegressionObjectives,
         &MultiRegressionObjectives,
+        &SurvivalRegressionObjectives,
         &ClassificationObjectives,
         &RankingObjectives
     };
@@ -578,6 +592,14 @@ bool IsMultiRegressionObjective(ELossFunction loss) {
 
 bool IsMultiRegressionObjective(TStringBuf loss) {
     return IsMultiRegressionObjective(ParseLossType(loss));
+}
+
+bool IsSurvivalRegressionObjective(ELossFunction loss) {
+    return IsIn(SurvivalRegressionObjectives, loss);
+}
+
+bool IsSurvivalRegressionObjective(TStringBuf loss) {
+    return IsSurvivalRegressionObjective(ParseLossType(loss));
 }
 
 bool IsMultiRegressionMetric(ELossFunction loss) {

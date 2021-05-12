@@ -42,7 +42,13 @@ static std::tuple<ui32, ui32, ELeavesEstimation, double> GetEstimationMethodDefa
             defaultGradientIterations = 1;
             break;
         }
-        case ELossFunction::MultiRMSEWithMissingValues: {
+       case ELossFunction::MultiRMSEWithMissingValues: {
+            defaultEstimationMethod = ELeavesEstimation::Newton;
+            defaultNewtonIterations = 1;
+            defaultGradientIterations = 1;
+            break;
+        }
+        case ELossFunction::SurvivalAft: {
             defaultEstimationMethod = ELeavesEstimation::Newton;
             defaultNewtonIterations = 1;
             defaultGradientIterations = 1;
@@ -173,6 +179,12 @@ static std::tuple<ui32, ui32, ELeavesEstimation, double> GetEstimationMethodDefa
         case ELossFunction::StochasticFilter: {
             defaultEstimationMethod = ELeavesEstimation::Gradient;
             defaultGradientIterations = 100;
+            // doesn't have Newton
+            break;
+        }
+        case ELossFunction::LambdaMart: {
+            defaultEstimationMethod = ELeavesEstimation::Gradient;
+            defaultGradientIterations = 1;
             // doesn't have Newton
             break;
         }
@@ -435,7 +447,7 @@ static void ValidateCtrTargetBinarization(
         CB_ENSURE(lossFunction == ELossFunction::RMSE || lossFunction == ELossFunction::Quantile ||
                       lossFunction == ELossFunction::LogLinQuantile || lossFunction == ELossFunction::Poisson ||
                       lossFunction == ELossFunction::MAPE || lossFunction == ELossFunction::MAE || lossFunction == ELossFunction::MultiClass ||
-                      lossFunction == ELossFunction::MultiRMSE || lossFunction == ELossFunction::MultiRMSEWithMissingValues,
+                      lossFunction == ELossFunction::MultiRMSE || lossFunction == ELossFunction::MultiRMSEWithMissingValues || lossFunction == ELossFunction::SurvivalAft,
                   "Setting TargetBorderCount is not supported for loss function " << lossFunction);
     }
 }
@@ -538,6 +550,7 @@ static void EnsureNewtonIsAvailable(ETaskType taskType, const NCatboostOptions::
     const auto lossFunction = lossDescription.GetLossFunction();
     CB_ENSURE(
         lossFunction != ELossFunction::StochasticFilter &&
+        lossFunction != ELossFunction::LambdaMart &&
         lossFunction != ELossFunction::StochasticRank &&
         lossFunction != ELossFunction::Quantile &&
         lossFunction != ELossFunction::MAE &&
@@ -807,6 +820,33 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
         case ELossFunction::StochasticFilter: {
             NCatboostOptions::TLossDescription lossDescription = LossFunctionDescription->CloneWithLossFunction(ELossFunction::FilteredDCG);
             MetricOptions->ObjectiveMetric.Set(lossDescription);
+            break;
+        }
+        case ELossFunction::LambdaMart: {
+            NCatboostOptions::TLossDescription lossDescription;
+            const auto& lossParams = LossFunctionDescription->GetLossParamsMap();
+            CB_ENSURE(lossParams.contains("metric"), "LambdaMart requires metric param");
+            ELossFunction targetMetric = FromString<ELossFunction>(lossParams.at("metric"));
+            TVector<std::pair<TString, TString>> metricParams;
+            TSet<TString> validParams;
+            switch (targetMetric) {
+                case ELossFunction::DCG:
+                case ELossFunction::NDCG:
+                    validParams = {"top", "type", "denominator", "hints"};
+                    break;
+                default:
+                    CB_ENSURE(false, "LambdaMart does not support target_metric " << targetMetric);
+            }
+            for (const auto& key : LossFunctionDescription->GetLossParamKeysOrdered()) {
+                if (!validParams.contains(key)) {
+                    continue;
+                }
+                metricParams.emplace_back(key, lossParams.at(key));
+            }
+            lossDescription.LossParams.Set(TLossParams::FromVector(metricParams));
+            lossDescription.LossFunction.Set(targetMetric);
+            MetricOptions->ObjectiveMetric.Set(lossDescription);
+            ObliviousTreeOptions->LeavesEstimationBacktrackingType.SetDefault(ELeavesEstimationStepBacktracking::No);
             break;
         }
         case ELossFunction::StochasticRank: {

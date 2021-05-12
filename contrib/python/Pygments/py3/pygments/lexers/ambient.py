@@ -25,7 +25,7 @@ class AmbientTalkLexer(RegexLexer):
     """
     name = 'AmbientTalk'
     filenames = ['*.at']
-    aliases = ['at', 'ambienttalk', 'ambienttalk/2']
+    aliases = ['ambienttalk', 'ambienttalk/2', 'at']
     mimetypes = ['text/x-ambienttalk']
 
     flags = re.MULTILINE | re.DOTALL

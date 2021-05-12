@@ -237,7 +237,7 @@ Y_UNIT_TEST_SUITE(TTypeTraitsTest) {
         UNIT_ASSERT(std::is_pod<long>::value);
     }
 
-	template <typename T>
+    template <typename T>
     void TestAllTypeTraitFlagsSet() {
         UNIT_ASSERT(TTypeTraits<T>::IsBitwiseCopyable);
         UNIT_ASSERT(TTypeTraits<T>::IsBitwiseSerializable);
@@ -489,3 +489,8 @@ static_assert(!TIsSpecializationOf<std::pair, std::vector<int>>::value, "");
 static_assert(TIsIterable<std::vector<int>>::value, "");
 static_assert(!TIsIterable<int>::value, "");
 static_assert(TIsIterable<int[42]>::value, "");
+
+// test for TDependentFalse
+static_assert(TDependentFalse<int> == false);
+static_assert(TDependentFalse<TNonPodClass> == false);
+static_assert(TValueDependentFalse<0x1000> == false);

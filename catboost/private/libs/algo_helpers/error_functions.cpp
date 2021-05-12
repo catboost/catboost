@@ -6,6 +6,9 @@
 #include <util/random/normal.h>
 
 
+using namespace NCB;
+
+
 template <int MaxDerivativeOrder, bool UseTDers, bool UseExpApprox, bool HasDelta>
 void IDerCalcer::CalcDersRangeImpl(
     int start,
@@ -215,6 +218,99 @@ static void CalcCrossEntropyDerRangeImpl(
     }
 }
 
+void TSurvivalAftError::CalcDers(
+    TConstArrayRef<double> approx,
+    TConstArrayRef<float> target,
+    float /*weight*/,
+    TVector<double>* der,
+    THessianInfo* der2
+) const {
+    double transformedTargetLower = 0, transformedTargetUpper = 0;
+    double firstDerNumerator, firstDerDenominator, secondDerNumerator, secondDerDenominator;
+    bool target_sign;
+    ECensoredType censorType;
+    const auto distributionType = Distribution->GetDistributionType();
+    if (target[0] == target[1]) {
+        transformedTargetLower = InverseMonotoneTransform(approx[0], target[0], Scale);
+        target_sign = transformedTargetLower > 0;
+        censorType = ECensoredType::Uncensored;
+        const auto pdf = Distribution->CalcPdf(transformedTargetLower);
+        const auto der1 = Distribution->CalcPdfDer1(pdf, transformedTargetLower);
+
+        firstDerNumerator = der1;
+        firstDerDenominator = Scale * pdf;
+        if (der2 != nullptr) {
+            Y_ASSERT(der2->HessianType == EHessianType::Diagonal &&
+                        der2->ApproxDimension == approx.ysize());
+
+            secondDerNumerator = -(pdf * Distribution->CalcPdfDer2(pdf, transformedTargetLower) - std::pow(der1, 2));
+            secondDerDenominator = std::pow(Scale * pdf, 2);
+        }
+    } else {
+        censorType = ECensoredType::IntervalCensored;
+        double pdfUpper, pdfLower, cdfUpper, cdfLower, der1Upper, der1Lower;
+        if (target[1] == -1) {
+            pdfUpper = 0;
+            cdfUpper = 1;
+            der1Upper = 0;
+            censorType = ECensoredType::RightCensored;
+        } else {
+            transformedTargetUpper = InverseMonotoneTransform(approx[0], target[1], Scale);
+            pdfUpper = Distribution->CalcPdf(transformedTargetUpper);
+            cdfUpper = Distribution->CalcCdf(transformedTargetUpper);
+            der1Upper = Distribution->CalcPdfDer1(pdfUpper, transformedTargetUpper);
+        }
+        if (target[0] == -1) {
+            pdfLower = 0;
+            cdfLower = 0;
+            der1Lower = 0;
+            censorType = ECensoredType::LeftCensored;
+        } else {
+            transformedTargetLower = InverseMonotoneTransform(approx[0], target[0], Scale);
+            pdfLower = Distribution->CalcPdf(transformedTargetLower);;
+            cdfLower = Distribution->CalcCdf(transformedTargetLower);
+            der1Lower = Distribution->CalcPdfDer1(pdfLower, transformedTargetLower);
+        }
+        target_sign = (transformedTargetLower > 0 || transformedTargetUpper > 0);
+        const auto pdfDiff = pdfUpper - pdfLower;
+        const auto der1Diff = der1Upper - der1Lower;
+        const auto cdfDiff = cdfUpper - cdfLower;
+
+        firstDerNumerator = pdfDiff;
+        firstDerDenominator = Scale * cdfDiff;
+        
+        if (der2 != nullptr) {
+            Y_ASSERT(der2->HessianType == EHessianType::Diagonal &&
+                        der2->ApproxDimension == approx.ysize());
+
+            secondDerNumerator = -cdfDiff * der1Diff + std::pow(pdfDiff, 2);
+            secondDerDenominator = std::pow(Scale * cdfDiff, 2);
+        }
+    }
+
+
+    (*der)[0] = firstDerNumerator / firstDerDenominator;
+    if (firstDerDenominator < TDerivativeConstants::Epsilon && (IsNan((*der)[0]) || !IsFinite((*der)[0]))) {
+        const auto& ders =  DispatchDerivativeLimits(distributionType, EDerivativeOrder::First, censorType, Scale);
+        auto minDer1 = std::get<0>(ders);
+        auto maxDer1 = std::get<1>(ders);
+        (*der)[0] = target_sign ? minDer1 : maxDer1;
+    }
+    (*der)[0] = -ClipDerivatives((*der)[0], TDerivativeConstants::MinFirstDer, TDerivativeConstants::MaxFirstDer);
+        
+    if (der2 != nullptr) {
+        der2->Data[0] = secondDerNumerator / secondDerDenominator;
+        if (secondDerDenominator < TDerivativeConstants::Epsilon && (IsNan(der2->Data[0]) || !IsFinite(der2->Data[0]))) {
+            const auto& ders =  DispatchDerivativeLimits(distributionType, EDerivativeOrder::Second, censorType, Scale);
+            auto minDer2 = std::get<0>(ders);
+            auto maxDer2 = std::get<1>(ders);
+            der2->Data[0] = target_sign ? minDer2 : maxDer2;
+        }
+        der2->Data[0] = -ClipDerivatives(der2->Data[0], TDerivativeConstants::MinSecondDer, TDerivativeConstants::MaxSecondDer);
+    }
+}
+
+
 void TCrossEntropyError::CalcFirstDerRange(
     int start,
     int count,
@@ -321,6 +417,134 @@ void CheckDerivativeOrderForObjectImportance(ui32 derivativeOrder, ELeavesEstima
             "Current error function doesn't support object importance calculation with Newton leaves"
             " estimation method");
     }
+}
+
+// TLambdaMartError definitions
+TLambdaMartError::TLambdaMartError(
+    ELossFunction targetMetric,
+    const TMap<TString, TString>& metricParams,
+    double sigma, bool norm)
+    : IDerCalcer(false, 1, EErrorType::QuerywiseError)
+    , TargetMetric(targetMetric)
+    , TopSize(NCatboostOptions::GetParamOrDefault(metricParams, "top", -1))
+    , NumeratorType(NCatboostOptions::GetParamOrDefault(metricParams, "type", ENdcgMetricType::Base))
+    , DenominatorType(NCatboostOptions::GetParamOrDefault(metricParams, "denominator", ENdcgDenominatorType::LogPosition))
+    , Sigma(sigma)
+    , Norm(norm)
+{
+    CB_ENSURE(EqualToOneOf(TargetMetric, ELossFunction::DCG, ELossFunction::NDCG),
+        "Only DCG and NDCG target metric supported for LambdaMART now");
+    CB_ENSURE(Sigma > 0, "Sigma should be positive");
+}
+
+void TLambdaMartError::CalcDersForQueries(
+    int queryStartIndex,
+    int queryEndIndex,
+    const TVector<double>& approxes,
+    const TVector<float>& target,
+    const TVector<float>& /*weights*/,
+    const TVector<TQueryInfo>& queriesInfo,
+    TArrayRef<TDers> ders,
+    ui64 /*randomSeed*/,
+    NPar::ILocalExecutor* localExecutor
+) const {
+    auto start = queriesInfo[queryStartIndex].Begin;
+    NPar::ParallelFor(*localExecutor, queryStartIndex, queryEndIndex, [&](int queryIndex) {
+        auto begin = queriesInfo[queryIndex].Begin;
+        auto end = queriesInfo[queryIndex].End;
+        auto count = end - begin;
+        TArrayRef<TDers> queryDers(ders.data() + begin - start, count);
+        TConstArrayRef<double> queryApproxes(approxes.data() + begin, count);
+        TConstArrayRef<float> queryTargets(target.data() + begin, count);
+        CalcDersForSingleQuery(queryApproxes, queryTargets, queryDers);
+    });
+}
+
+void TLambdaMartError::CalcDersForSingleQuery(
+    TConstArrayRef<double> approxes,
+    TConstArrayRef<float> targets,
+    TArrayRef<TDers> ders
+) const {
+    size_t count = approxes.size();
+    Y_ASSERT(targets.size() == count);
+    Y_ASSERT(ders.size() == count);
+
+    if (count <= 1) {
+        return;
+    }
+
+    const size_t queryTopSize = GetQueryTopSize(count);
+
+    Fill(ders.begin(), ders.end(), TDers{0.0, 0.0, 0.0});
+
+    double idealScore = IdealMetric(targets, queryTopSize);
+
+    TVector<size_t> order(count);
+    Iota(order.begin(), order.end(), 0);
+    Sort(order.begin(), order.end(), [&](int a, int b) {
+        return approxes[a] > approxes[b];
+    });
+
+    const double maxScore = approxes[order[0]];
+    const double minScore = approxes[order[count - 1]];
+
+    double sumDer1 = 0.0;
+
+    for (size_t firstId = 0; firstId < count; ++firstId) {
+        size_t boundForSecond = firstId < queryTopSize ? count : queryTopSize;
+        for (size_t secondId = 0; secondId < boundForSecond; ++secondId) {
+
+            double firstTarget = targets[order[firstId]];
+            double secondTarget = targets[order[secondId]];
+
+            if (firstTarget <= secondTarget) {
+                continue;
+            }
+
+            double approxDiff = approxes[order[firstId]] - approxes[order[secondId]];
+
+            double dcgNum = CalcNumerator(firstTarget) - CalcNumerator(secondTarget);
+            double dcgDen = std::abs(1.0 / CalcDenominator(firstId) -
+                                     1.0 / CalcDenominator(secondId));
+
+            double delta = dcgNum * dcgDen / idealScore;
+
+            if (Norm && maxScore != minScore) {
+                delta /= 0.01 + std::abs(approxDiff);
+            }
+
+            double coeff = 1.0 / (1.0 + std::exp(Sigma * approxDiff));
+            double hessian = coeff * (1 - coeff);
+            coeff *=  - Sigma * delta;
+            hessian *= Sigma * Sigma * delta;
+
+            ders[order[firstId]].Der1 += coeff;
+            ders[order[firstId]].Der2 += hessian;
+            ders[order[secondId]].Der1 -= coeff;
+            ders[order[secondId]].Der2 += hessian;
+
+            sumDer1 -= 2 * coeff;
+        }
+    }
+    if (Norm && sumDer1 > 0) {
+        double norma = std::log2(1 + sumDer1) / sumDer1;
+        for (auto& der : ders) {
+            der.Der1 *= norma;
+            der.Der2 *= norma;
+        }
+    }
+}
+
+double TLambdaMartError::IdealMetric(TConstArrayRef<float> target, size_t queryTopSize) const {
+    double score = 0;
+    TVector<float> sortedTargets(target.begin(), target.end());
+    Sort(sortedTargets, [](float a, float b) {
+        return a > b;
+    });
+    for (size_t id = 0; id < queryTopSize; ++id) {
+        score += CalcNumerator(sortedTargets[id])  / CalcDenominator(id);
+    }
+    return score;
 }
 
 // TStochasticRankError definitions

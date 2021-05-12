@@ -404,6 +404,71 @@ void TCtrFactorMetric::GetBestValue(EMetricBestValue* valueType, float* bestValu
     *bestValue = 1;
 }
 
+/* SurvivalAFT */
+namespace {
+    struct TSurvivalAftMetric final: public TAdditiveMultiRegressionMetric {
+        explicit TSurvivalAftMetric(const TLossParams& params)
+            : TAdditiveMultiRegressionMetric(ELossFunction::SurvivalAft, params) {
+            }
+
+        static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
+
+        TMetricHolder EvalSingleThread(
+            TConstArrayRef<TVector<double>> approx,
+            TConstArrayRef<TVector<double>> approxDelta,
+            TConstArrayRef<TConstArrayRef<float>> target,
+            TConstArrayRef<float> weight,
+            int begin,
+            int end
+        ) const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+        double GetFinalError(const TMetricHolder& error) const override;
+    };
+}
+
+
+
+TVector<THolder<IMetric>> TSurvivalAftMetric::Create(const TMetricConfig& config) {
+    config.ValidParams->insert("scale");
+    config.ValidParams->insert("dist");
+    return AsVector(MakeHolder<TSurvivalAftMetric>(config.Params));
+}
+
+TMetricHolder TSurvivalAftMetric::EvalSingleThread(
+    TConstArrayRef<TVector<double>> approx,
+    TConstArrayRef<TVector<double>> approxDelta,
+    TConstArrayRef<TConstArrayRef<float>> target,
+    TConstArrayRef<float> weight,
+    int begin,
+    int end
+) const {
+    const auto evalImpl = [=](bool useWeights, bool hasDelta) {
+        const auto realApprox = [=](int dim, int idx) { return fast_exp(approx[dim][idx] + (hasDelta ? approxDelta[dim][idx] : 0)); };
+        const auto realTarget = [=](int dim, int idx) { return target[dim][idx] == -1 ? std::numeric_limits<float>::infinity() : target[dim][idx]; };
+        const auto realWeight = [=](int idx) { return useWeights ? weight[idx] : 1; };
+
+        TMetricHolder error(2);
+        for (auto i : xrange(begin, end)) {
+            if ((realApprox(0, i) <= realTarget(0, i)) || (realApprox(0, i) >= realTarget(1, i))) {
+                double distanceFromInterval = Min(Abs(realApprox(0, i) - realTarget(0, i)), Abs(realApprox(0, i) - realTarget(1, i)));
+                error.Stats[0] += distanceFromInterval * realWeight(i);
+            }
+            error.Stats[1] += realWeight(i);
+        }
+        return error;
+    };
+
+    return DispatchGenericLambda(evalImpl, !weight.empty(), !approxDelta.empty());
+}
+
+double TSurvivalAftMetric::GetFinalError(const TMetricHolder& error) const {
+    return error.Stats[1] == 0 ? 0 : error.Stats[0] / error.Stats[1];
+}
+
+void TSurvivalAftMetric::GetBestValue(EMetricBestValue* valueType, float* /*bestValue*/) const {
+    *valueType = EMetricBestValue::Min;
+}
+
 /* MultiRMSE */
 namespace {
     struct TMultiRMSEMetric final: public TAdditiveMultiRegressionMetric {
@@ -514,8 +579,6 @@ TMetricHolder TMultiRMSEWithMissingValues::EvalSingleThread(
                 if (!std::isnan(target[dim][i])) {
                     sumErrors += realWeight(i) * Sqr(realApprox(dim, i) - target[dim][i]);
                     sumWeights += realWeight(i);
-                } else {
-                    continue;
                 }
             }
             error.Stats[dim*2] += sumErrors;
@@ -531,7 +594,9 @@ TMetricHolder TMultiRMSEWithMissingValues::EvalSingleThread(
 double TMultiRMSEWithMissingValues::GetFinalError(const TMetricHolder& error) const {
     double finalError = 0.0;
     for (size_t dim = 0; dim < error.Stats.size(); dim+=2) {
-        finalError += error.Stats[dim]/error.Stats[dim+1];
+	if (!FuzzyEquals(1+error.Stats[dim+1], 1+0.0, 1e-3)) {
+            finalError += error.Stats[dim]/error.Stats[dim+1];
+	}
     }
     return sqrt(finalError);
 }
@@ -582,7 +647,10 @@ TMetricHolder TRMSEWithUncertaintyMetric::EvalSingleThread(
     int begin,
     int end
 ) const {
-    Y_ASSERT(target.size() == 1);
+    CB_ENSURE(target.size() == 1, "Target dimension for RMSEWithUncertainty Metric should be 1, found " << target.size());
+    CB_ENSURE(approx.size() == 2,
+              "Approx dimension for RMSEWithUncertainty metric should be 2, found " << approx.size() <<
+              ", probably your model was trained not with RMSEWithUncertainty loss function");
     const auto evalImpl = [=](bool useWeights, bool hasDelta) {
         const auto realApprox = [=](int dim, int idx) { return approx[dim][idx] + (hasDelta ? approxDelta[dim][idx] : 0); };
         const auto realWeight = [=](int idx) { return useWeights ? weights[idx] : 1; };
@@ -2924,7 +2992,6 @@ namespace {
 
 TVector<THolder<IMetric>> TNormalizedGini::Create(const TMetricConfig& config) {
     if (config.ApproxDimension == 1) {
-        config.ValidParams->insert("border");
         return AsVector(MakeHolder<TNormalizedGini>(config.Params));
     }
     TVector<THolder<IMetric>> result;
@@ -3436,7 +3503,8 @@ void TPairAccuracyMetric::GetBestValue(EMetricBestValue* valueType, float*) cons
 namespace {
     struct TPrecisionAtKMetric final: public TAdditiveMetric {
         explicit TPrecisionAtKMetric(const TLossParams& params,
-                                     int topSize);
+                                     int topSize,
+                                     float targetBorder);
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
 
@@ -3454,22 +3522,24 @@ namespace {
         double GetFinalError(const TMetricHolder& error) const override;
         void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
     private:
-        static constexpr double TargetBorder = GetDefaultTargetBorder();
         const int TopSize;
+        const float TargetBorder;
     };
 }
 
 // static.
 TVector<THolder<IMetric>> TPrecisionAtKMetric::Create(const TMetricConfig& config) {
-    int topSize = NCatboostOptions::GetParamOrDefault(config.GetParamsMap(), "top", -1);
+    const int topSize = NCatboostOptions::GetParamOrDefault(config.GetParamsMap(), "top", -1);
+    const float targetBorder = NCatboostOptions::GetParamOrDefault(config.GetParamsMap(), "border", GetDefaultTargetBorder());
     config.ValidParams->insert("top");
     config.ValidParams->insert("border");
-    return AsVector(MakeHolder<TPrecisionAtKMetric>(config.Params, topSize));
+    return AsVector(MakeHolder<TPrecisionAtKMetric>(config.Params, topSize, targetBorder));
 }
 
-TPrecisionAtKMetric::TPrecisionAtKMetric(const TLossParams& params, int topSize)
+TPrecisionAtKMetric::TPrecisionAtKMetric(const TLossParams& params, int topSize, float targetBorder)
         : TAdditiveMetric(ELossFunction::PrecisionAt, params)
-        , TopSize(topSize) {
+        , TopSize(topSize)
+        , TargetBorder(targetBorder) {
     UseWeights.SetDefaultValue(true);
 }
 
@@ -3515,7 +3585,7 @@ void TPrecisionAtKMetric::GetBestValue(EMetricBestValue* valueType, float*) cons
 
 namespace {
     struct TRecallAtKMetric final: public TAdditiveMetric {
-        explicit TRecallAtKMetric(const TLossParams& params, int topSize);
+        explicit TRecallAtKMetric(const TLossParams& params, int topSize, float targetBorder);
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
         TMetricHolder EvalSingleThread(
                 const TConstArrayRef<TConstArrayRef<double>> approx,
@@ -3532,21 +3602,23 @@ namespace {
         void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 
     private:
-        static constexpr double TargetBorder = GetDefaultTargetBorder();
         const int TopSize;
+        const float TargetBorder;
     };
 }
 
 TVector<THolder<IMetric>> TRecallAtKMetric::Create(const TMetricConfig& config) {
-    int topSize = NCatboostOptions::GetParamOrDefault(config.GetParamsMap(), "top", -1);
+    const int topSize = NCatboostOptions::GetParamOrDefault(config.GetParamsMap(), "top", -1);
+    const float targetBorder = NCatboostOptions::GetParamOrDefault(config.GetParamsMap(), "border", GetDefaultTargetBorder());
     config.ValidParams->insert("top");
     config.ValidParams->insert("border");
-    return AsVector(MakeHolder<TRecallAtKMetric>(config.Params, topSize));
+    return AsVector(MakeHolder<TRecallAtKMetric>(config.Params, topSize, targetBorder));
 }
 
-TRecallAtKMetric::TRecallAtKMetric(const TLossParams& params, int topSize)
+TRecallAtKMetric::TRecallAtKMetric(const TLossParams& params, int topSize, float targetBorder)
         : TAdditiveMetric(ELossFunction::RecallAt, params)
-        , TopSize(topSize) {
+        , TopSize(topSize)
+        , TargetBorder(targetBorder) {
     UseWeights.SetDefaultValue(true);
 }
 
@@ -3592,7 +3664,7 @@ void TRecallAtKMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
 
 namespace {
     struct TMAPKMetric final: public TAdditiveMetric {
-        explicit TMAPKMetric(const TLossParams& params, int topSize);
+        explicit TMAPKMetric(const TLossParams& params, int topSize, float targetBorder);
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
         TMetricHolder EvalSingleThread(
                 const TConstArrayRef<TConstArrayRef<double>> approx,
@@ -3609,22 +3681,24 @@ namespace {
         void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 
     private:
-        static constexpr double TargetBorder = GetDefaultTargetBorder();
         const int TopSize;
+        const float TargetBorder;
     };
 }
 
 // static.
 TVector<THolder<IMetric>> TMAPKMetric::Create(const TMetricConfig& config) {
-    int topSize = NCatboostOptions::GetParamOrDefault(config.GetParamsMap(), "top", -1);
+    const int topSize = NCatboostOptions::GetParamOrDefault(config.GetParamsMap(), "top", -1);
+    const float targetBorder = NCatboostOptions::GetParamOrDefault(config.GetParamsMap(), "border", GetDefaultTargetBorder());
     config.ValidParams->insert("top");
     config.ValidParams->insert("border");
-    return AsVector(MakeHolder<TMAPKMetric>(config.Params, topSize));
+    return AsVector(MakeHolder<TMAPKMetric>(config.Params, topSize, targetBorder));
 }
 
-TMAPKMetric::TMAPKMetric(const TLossParams& params, int topSize)
+TMAPKMetric::TMAPKMetric(const TLossParams& params, int topSize, float targetBorder)
         : TAdditiveMetric(ELossFunction::MAP, params)
-        , TopSize(topSize) {
+        , TopSize(topSize)
+        , TargetBorder(targetBorder) {
     UseWeights.SetDefaultValue(true);
 }
 
@@ -4892,7 +4966,7 @@ void TQueryCrossEntropyMetric::GetBestValue(EMetricBestValue* valueType, float*)
 
 namespace {
     struct TMRRMetric final: public TAdditiveMetric {
-        explicit TMRRMetric(const TLossParams& params, int topSize);
+        explicit TMRRMetric(const TLossParams& params, int topSize, float targetBorder);
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
         TMetricHolder EvalSingleThread(
                 const TConstArrayRef<TConstArrayRef<double>> approx,
@@ -4908,23 +4982,33 @@ namespace {
         void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 
     private:
-        static inline double CalcQueryReciprocalRank(const double* approxes, const float* target, int querySize, int topSize);
+        static inline double CalcQueryReciprocalRank(const double* approxes, const float* target,
+                                                     int querySize, int topSize, float targetBorder);
 
         const int TopSize;
+        const float TargetBorder;
     };
 }
 
 TVector<THolder<IMetric>> TMRRMetric::Create(const TMetricConfig& config) {
     const int topSize = NCatboostOptions::GetParamOrDefault(config.GetParamsMap(), "top", -1);
+    const float targetBorder = NCatboostOptions::GetParamOrDefault(config.GetParamsMap(), "border", GetDefaultTargetBorder());
     config.ValidParams->insert("top");
-    return AsVector(MakeHolder<TMRRMetric>(config.Params, topSize));
+    config.ValidParams->insert("border");
+    return AsVector(MakeHolder<TMRRMetric>(config.Params, topSize, targetBorder));
 }
 
-double TMRRMetric::CalcQueryReciprocalRank(const double* approxes, const float* targets, int querySize, int topSize) {
+double TMRRMetric::CalcQueryReciprocalRank(
+    const double* approxes,
+    const float* targets,
+    int querySize,
+    int topSize,
+    float targetBorder
+) {
     bool foundRelevantApprox = false;
     double maxRelevantApprox = std::numeric_limits<double>::lowest();
     for (int i = 0; i < querySize; ++i) {
-        if (targets[i] > 0) {
+        if (targets[i] > targetBorder) {
             foundRelevantApprox = true;
             maxRelevantApprox = Max(maxRelevantApprox, approxes[i]);
         }
@@ -4936,7 +5020,7 @@ double TMRRMetric::CalcQueryReciprocalRank(const double* approxes, const float* 
     int pos = 1;
     const int maxPos = topSize == -1 ? querySize : Min(querySize, topSize);
     for (int i = 0; i < querySize && pos <= maxPos; ++i) {
-        pos += approxes[i] > maxRelevantApprox || approxes[i] == maxRelevantApprox && targets[i] <= 0;
+        pos += approxes[i] > maxRelevantApprox || approxes[i] == maxRelevantApprox && targets[i] <= targetBorder;
     }
     return pos <= maxPos ? 1.0 / pos : 0.0;
 }
@@ -4957,7 +5041,8 @@ TMetricHolder TMRRMetric::EvalSingleThread(const TConstArrayRef<TConstArrayRef<d
                 approx[0].data() + qidInfo.Begin,
                 target.data() + qidInfo.Begin,
                 qidInfo.End - qidInfo.Begin,
-                TopSize);
+                TopSize,
+                TargetBorder);
         const float queryWeight = UseWeights ? qidInfo.Weight : 1.f;
         result.Stats[0] += queryWeight * qrr;
         result.Stats[1] += queryWeight;
@@ -4969,9 +5054,10 @@ EErrorType TMRRMetric::GetErrorType() const {
     return EErrorType::QuerywiseError;
 }
 
-TMRRMetric::TMRRMetric(const TLossParams& params, int topSize)
+TMRRMetric::TMRRMetric(const TLossParams& params, int topSize, float targetBorder)
     : TAdditiveMetric(ELossFunction::MRR, params)
     , TopSize(topSize)
+    , TargetBorder(targetBorder)
 {
     UseWeights.SetDefaultValue(true);
 }
@@ -5121,6 +5207,9 @@ TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TLossParams& 
         case ELossFunction::MultiRMSEWithMissingValues:
             AppendTemporaryMetricsVector(TMultiRMSEWithMissingValues::Create(config), &result);
             break;
+	case ELossFunction::SurvivalAft:
+           AppendTemporaryMetricsVector(TSurvivalAftMetric::Create(config), &result);
+           break;
         case ELossFunction::RMSEWithUncertainty:
             AppendTemporaryMetricsVector(TRMSEWithUncertaintyMetric::Create(config), &result);
             break;

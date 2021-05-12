@@ -4,6 +4,7 @@
 #include "custom_objective_descriptor.h"
 #include "ders_holder.h"
 #include "hessian.h"
+#include "survival_aft_utils.h"
 
 #include <catboost/private/libs/data_types/pair.h>
 #include <catboost/libs/model/eval_processing.h>
@@ -22,6 +23,7 @@
 #include <util/system/yassert.h>
 
 #include <cmath>
+#include <memory>
 
 class IDerCalcer {
 public:
@@ -231,11 +233,13 @@ public:
     ) const override {
         const int dim = target.size();
         for (auto i : xrange(dim)) {
-            if (std::isnan((float)target[i])) {
-                (*der)[i] = 0.0;
-            } else {
-                (*der)[i] = weight * (target[i] - approx[i]);
-            }
+	    //const float realWeight = weight * std::isnan(target[i]); 
+            //(*der)[i] = realWeight * (target[i] - approx[i]);
+	    if(std::isnan(target[i])) {
+	        (*der)[i] = 0.0;
+	    } else {
+		(*der)[i] = weight * (target[i] - approx[i]);
+	    }
         }
 
         if (der2 != nullptr) {
@@ -243,14 +247,37 @@ public:
                      der2->ApproxDimension == dim);
 
             for (auto i : xrange(dim)) {
-                if (std::isnan((float)target[i])) {
-                    der2->Data[i] = 0.f;
+                if (std::isnan(target[i])) {
+                    der2->Data[i] = 0.0;
                 } else {
                     der2->Data[i] = -weight;
                 }
             }
         }
     }
+};
+
+class TSurvivalAftError final : public TMultiDerCalcer {
+public:
+    const double Scale;
+    std::unique_ptr<NCB::IDistribution> Distribution;
+
+public:
+    explicit TSurvivalAftError(std::unique_ptr<NCB::IDistribution> distribution, double scale)
+        : TMultiDerCalcer(EHessianType::Diagonal)
+        , Scale(scale)
+        , Distribution(std::move(distribution))
+    {
+        CB_ENSURE(Scale > 0, "Scale should be positive");
+    }
+
+    void CalcDers(
+        TConstArrayRef<double> approx,
+        TConstArrayRef<float> target,
+        float weight,
+        TVector<double>* der,
+        THessianInfo* der2
+    ) const override;
 };
 
 class TRMSEWithUncertaintyError final : public TMultiDerCalcer {
@@ -1042,6 +1069,58 @@ private:
         }
         return baselineValue;
     }
+};
+
+class TLambdaMartError final : public IDerCalcer{
+    ELossFunction TargetMetric;
+    int TopSize;
+    ENdcgMetricType NumeratorType;          // for (N)DCG
+    ENdcgDenominatorType DenominatorType;   // for (N)DCG
+    double Sigma;
+    bool Norm;
+
+public:
+    TLambdaMartError(
+        ELossFunction targetMetric,
+        const TMap<TString, TString>& metricParams,
+        double sigma,
+        bool norm);
+
+    void CalcDersForQueries(
+        int queryStartIndex,
+        int queryEndIndex,
+        const TVector<double>& approxes,
+        const TVector<float>& target,
+        const TVector<float>& /*weights*/,
+        const TVector<TQueryInfo>& queriesInfo,
+        TArrayRef<TDers> ders,
+        ui64 /*randomSeed*/,
+        NPar::ILocalExecutor* localExecutor
+    ) const override;
+
+private:
+    void CalcDersForSingleQuery(
+        TConstArrayRef<double> approxes,
+        TConstArrayRef<float> targets,
+        TArrayRef<TDers> ders
+    ) const;
+
+    inline double CalcNumerator(float target) const {
+        return NumeratorType == ENdcgMetricType::Exp ? (Exp2(target) - 1) : target;
+    }
+
+    inline double CalcDenominator(size_t pos) const {
+        return DenominatorType == ENdcgDenominatorType::LogPosition ? Log2(2.0 + pos) : (1.0 + pos);
+    }
+
+    inline size_t GetQueryTopSize(size_t docCount) const {
+        if (TopSize == -1 || TopSize > (int)docCount) {
+            return docCount;
+        }
+        return TopSize;
+    }
+
+    double IdealMetric(TConstArrayRef<float> target, size_t queryTopSize) const;
 };
 
 class TStochasticRankError final : public IDerCalcer {

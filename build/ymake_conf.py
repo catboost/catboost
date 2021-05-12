@@ -1647,15 +1647,11 @@ class GnuCompiler(Compiler):
         print 'macro _SRC_masm(SRC, SRCFLAGS...) {\n}'
 
         # fuzzing configuration
-        if self.tc.is_clang and self.tc.version_at_least(5, 0):
-            emit('LIBFUZZER_PATH',
-                 'contrib/libs/libfuzzer12' if self.tc.version_at_least(12) else
-                 'contrib/libs/libfuzzer11' if self.tc.version_at_least(11) else
-                 'contrib/libs/libfuzzer10' if self.tc.version_at_least(10) else
-                 'contrib/libs/libfuzzer8' if self.tc.version_at_least(8) else
-                 'contrib/libs/libfuzzer7' if self.tc.version_at_least(7) else
-                 'contrib/libs/libfuzzer6' if self.tc.version_at_least(6) else
-                 'contrib/libs/libfuzzer-5.0')
+        if self.tc.is_clang:
+            if self.tc.version_at_least(12):
+                emit('LIBFUZZER_PATH', 'contrib/libs/libfuzzer12')
+            elif self.tc.version_at_least(11):
+                emit('LIBFUZZER_PATH', 'contrib/libs/libfuzzer11')
 
 
 class SwiftCompiler(object):
@@ -2262,6 +2258,13 @@ class MSVCCompiler(MSVC, Compiler):
             '/DWIN32_LEAN_AND_MEAN',
         ]
 
+        cxx_defines = [
+            # Use builtin offsetof implementation
+            # instead of a crutcy macro defined in ucrt/stddef.h.
+            # The latter can not be used in constexpr statements.
+            '/D_CRT_USE_BUILTIN_OFFSETOF',
+        ]
+
         if target.is_x86_64:
             defines.extend(('/D_WIN64', '/DWIN64'))
 
@@ -2443,7 +2446,7 @@ class MSVCCompiler(MSVC, Compiler):
             emit('CFLAGS_PER_TYPE', '@[debug|$CFLAGS_DEBUG]@[release|$CFLAGS_RELEASE]')
 
         append('CFLAGS', flags, flags_msvs_only, '$CFLAGS_PER_TYPE', '$DEBUG_INFO_FLAGS', '$C_WARNING_OPTS', '$C_DEFINES', '$USER_CFLAGS', '$USER_CFLAGS_GLOBAL')
-        append('CXXFLAGS', '$CFLAGS', '/std:' + self.tc.cxx_std, '$CXX_WARNING_OPTS', '$USER_CXXFLAGS')
+        append('CXXFLAGS', '$CFLAGS', '/std:' + self.tc.cxx_std, cxx_defines, '$CXX_WARNING_OPTS', '$USER_CXXFLAGS')
         append('CONLYFLAGS', flags_c_only, '$USER_CONLYFLAGS')
 
         append('BC_CFLAGS', '$CFLAGS')

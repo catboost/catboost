@@ -7,6 +7,7 @@
 #include <catboost/libs/data/objects.h>
 #include <catboost/libs/helpers/restorable_rng.h>
 #include <catboost/private/libs/options/catboost_options.h>
+#include <catboost/libs/helpers/distribution_helpers.h>
 
 #include <library/cpp/threading/local_executor/local_executor.h>
 
@@ -145,6 +146,34 @@ THolder<IDerCalcer> BuildError(
 ) {
     const bool isStoreExpApprox = IsStoreExpApprox(params.LossFunctionDescription->GetLossFunction());
     switch (params.LossFunctionDescription->GetLossFunction()) {
+        case ELossFunction::SurvivalAft: {
+            const auto& lossParams = params.LossFunctionDescription->GetLossParamsMap();   
+            for (auto &param: lossParams) {
+            CB_ENSURE(
+                    param.first == "dist" || param.first == "scale",
+                    "Invalid loss description" << ToString(params.LossFunctionDescription.Get()));
+            }
+            std::unique_ptr<IDistribution> distribution;
+            if (lossParams.contains("dist")) {
+                switch (FromString<EDistributionType>(lossParams.at("dist"))) {
+                    case EDistributionType::Extreme:
+                        distribution = std::make_unique<TExtremeDistribution>();     
+                        break; 
+                    case EDistributionType::Logistic:
+                        distribution = std::make_unique<TLogisticDistribution>();     
+                        break; 
+                    case EDistributionType::Normal:
+                        distribution = std::make_unique<TNormalDistribution>();     
+                        break; 
+                    default:
+                        CB_ENSURE(false, "Unsupported distribution type " << lossParams.at("dist"));
+               }
+            } else {
+               distribution = std::make_unique<TNormalDistribution>();
+            } 
+            double scale = lossParams.contains("scale") ? FromString<double>(lossParams.at("scale")) : 1;
+            return MakeHolder<TSurvivalAftError>(std::move(distribution), scale);
+        }
         case ELossFunction::MultiRMSE:
             return MakeHolder<TMultiRMSEError>();
         case ELossFunction::MultiRMSEWithMissingValues:
@@ -232,6 +261,14 @@ THolder<IDerCalcer> BuildError(
             int numEstimations = NCatboostOptions::GetStochasticFilterNumEstimations(
                 params.LossFunctionDescription);
             return MakeHolder<TStochasticFilterError>(sigma, numEstimations, isStoreExpApprox);
+        }
+        case ELossFunction::LambdaMart: {
+            const auto& lossParams = params.LossFunctionDescription->GetLossParamsMap();
+            CB_ENSURE(lossParams.contains("metric"), "LambdaMart requires metric param");
+            const ELossFunction targetMetric = FromString<ELossFunction>(lossParams.at("metric"));
+            const double sigma = NCatboostOptions::GetParamOrDefault(lossParams, "sigma", 1.0);
+            const bool norm = NCatboostOptions::GetParamOrDefault(lossParams, "norm", false);
+            return MakeHolder<TLambdaMartError>(targetMetric, lossParams, sigma, norm);
         }
         case ELossFunction::StochasticRank: {
             const auto& lossParams = params.LossFunctionDescription->GetLossParamsMap();

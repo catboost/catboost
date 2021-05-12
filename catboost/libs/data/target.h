@@ -135,7 +135,7 @@ namespace NCB {
 
         ERawTargetType GetTargetType() const;
 
-        bool TargetsContainsNan() const;
+        bool IsTargetsContainsNan() const;
         
         // use external result buffers to allow to write result to external data structures like numpy.ndarray
         void GetNumericTarget(TArrayRef<TArrayRef<float>> dst) const;

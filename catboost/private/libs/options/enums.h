@@ -153,6 +153,7 @@ enum class ELossFunction {
     QuerySoftMax,
     QueryCrossEntropy,
     StochasticFilter,
+    LambdaMart,
     StochasticRank,
 
     /* user defined errors */
@@ -206,6 +207,9 @@ enum class ELossFunction {
     FilteredDCG,
     MRR,
     ERR,
+
+    /* survival-regression */
+    SurvivalAft,
 
     /* multi-regression */
     MultiRMSE,

@@ -23,8 +23,6 @@ namespace NCB {
                  if (!std::isnan(target[i])) {
                     targetSum += target[i];
                     summaryWeight += 1.0;
-                } else {
-                    continue;
                 }
             }
          } else {
@@ -33,8 +31,6 @@ namespace NCB {
                 if (!std::isnan(target[i])) {
                     targetSum += target[i] * weights[i];
                     summaryWeight += weights[i];
-                } else {
-                    continue;
                 }
              }
          }

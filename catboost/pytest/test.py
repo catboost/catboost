@@ -55,6 +55,8 @@ LOSS_FUNCTIONS = ['RMSE', 'RMSEWithUncertainty', 'Logloss', 'MAE', 'CrossEntropy
 
 LEAF_ESTIMATION_METHOD = ['Gradient', 'Newton']
 
+DISTRIBUTION_TYPE = ['Normal', 'Logistic', 'Extreme']
+
 # test both parallel in and non-parallel modes
 # default block size (5000000) is too big to run in parallel on these tests
 SCORE_CALC_OBJ_BLOCK_SIZES = ['60', '5000000']
@@ -237,6 +239,107 @@ def test_multiregression(boosting_type, grow_policy, n_trees):
         '--input-path', data_file('multiregression', 'test'),
         '-o', output_metric_path,
         '--metrics', 'MultiRMSE'
+    )
+    yatest.common.execute(cmd_metric)
+    return [
+        local_canonical_file(output_eval_path),
+        local_canonical_file(output_calc_path),
+        local_canonical_file(output_metric_path)
+    ]
+
+
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+def test_survival_aft(boosting_type):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    output_calc_path = yatest.common.test_output_path('test.calc')
+    output_metric_path = yatest.common.test_output_path('test.metric')
+
+    cmd_fit = (
+        '--loss-function', 'SurvivalAft',
+        '--boosting-type', boosting_type,
+        '-f', data_file('survival_aft', 'train'),
+        '-t', data_file('survival_aft', 'test'),
+        '--column-description', data_file('survival_aft', 'train.cd'),
+        '-i', '100',
+        '-T', '4',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+        '--use-best-model', 'false',
+    )
+    execute_catboost_fit('CPU', cmd_fit)
+
+    cmd_calc = (
+        CATBOOST_PATH,
+        'calc',
+        '--column-description', data_file('survival_aft', 'train.cd'),
+        '-T', '4',
+        '-m', output_model_path,
+        '--input-path', data_file('survival_aft', 'test'),
+        '-o', output_calc_path
+    )
+    yatest.common.execute(cmd_calc)
+
+    cmd_metric = (
+        CATBOOST_PATH,
+        'eval-metrics',
+        '--column-description', data_file('survival_aft', 'train.cd'),
+        '-T', '4',
+        '-m', output_model_path,
+        '--input-path', data_file('survival_aft', 'test'),
+        '-o', output_metric_path,
+        '--metrics', 'SurvivalAft'
+    )
+    yatest.common.execute(cmd_metric)
+    return [
+        local_canonical_file(output_eval_path),
+        local_canonical_file(output_calc_path),
+        local_canonical_file(output_metric_path)
+    ]
+
+
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+@pytest.mark.parametrize('distribution_type', DISTRIBUTION_TYPE)
+def test_survival_aft_with_nondefault_distributions(boosting_type, distribution_type):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    output_calc_path = yatest.common.test_output_path('test.calc')
+    output_metric_path = yatest.common.test_output_path('test.metric')
+
+    cmd_fit = (
+        '--loss-function', 'SurvivalAft:dist={}'.format(distribution_type),
+        '--boosting-type', boosting_type,
+        '-f', data_file('survival_aft', 'train'),
+        '-t', data_file('survival_aft', 'test'),
+        '--column-description', data_file('survival_aft', 'train.cd'),
+        '-i', '100',
+        '-T', '4',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+        '--use-best-model', 'false',
+    )
+    execute_catboost_fit('CPU', cmd_fit)
+
+    cmd_calc = (
+        CATBOOST_PATH,
+        'calc',
+        '--column-description', data_file('survival_aft', 'train.cd'),
+        '-T', '4',
+        '-m', output_model_path,
+        '--input-path', data_file('survival_aft', 'test'),
+        '-o', output_calc_path
+    )
+    yatest.common.execute(cmd_calc)
+
+    cmd_metric = (
+        CATBOOST_PATH,
+        'eval-metrics',
+        '--column-description', data_file('survival_aft', 'train.cd'),
+        '-T', '4',
+        '-m', output_model_path,
+        '--input-path', data_file('survival_aft', 'test'),
+        '-o', output_metric_path,
+        '--metrics', 'SurvivalAft'
     )
     yatest.common.execute(cmd_metric)
     return [

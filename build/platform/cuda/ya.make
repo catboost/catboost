@@ -123,13 +123,14 @@ IF (USE_ARCADIA_CUDA_HOST_COMPILER)
 
     ELSEIF (HOST_OS_WINDOWS AND HOST_ARCH_X86_64)
         IF (OS_WINDOWS AND ARCH_X86_64)
-            # Note: it must contain "VC/Auxiliary/Build/vcvarsall.bat"
+            # To create this toolchain, install MSVS on Windows and run:
+            # devtools/tools_build/pack_sdk.py msvc out.tar
+            # Note: it will contain patched "VC/Auxiliary/Build/vcvarsall.bat"
             # to prevent "nvcc fatal   : Host compiler targets unsupported OS."
-            # In recent versions "vcvarsall.bat" needs "Common7/Tools/vsdevcmd.bat".
             IF (CUDA_HOST_MSVC_VERSION == "14.13.26128")
                 DECLARE_EXTERNAL_RESOURCE(CUDA_HOST_TOOLCHAIN sbr:631304468)
             ELSEIF (CUDA_HOST_MSVC_VERSION == "14.28.29910")
-                DECLARE_EXTERNAL_RESOURCE(CUDA_HOST_TOOLCHAIN sbr:2094603813)
+                DECLARE_EXTERNAL_RESOURCE(CUDA_HOST_TOOLCHAIN sbr:2153212401)
             ELSE()
                 MESSAGE(FATAL_ERROR "Unexpected or unspecified Microsoft Visual C++ CUDA host compiler version")
             ENDIF()

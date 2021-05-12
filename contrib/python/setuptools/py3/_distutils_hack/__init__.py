@@ -9,7 +9,7 @@ is_pypy = '__pypy__' in sys.builtin_module_names
 
 
 warnings.filterwarnings('ignore',
-                        '.+ distutils .+ deprecated',
+                        r'.+ distutils\b.+ deprecated',
                         DeprecationWarning)
 
 

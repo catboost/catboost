@@ -196,7 +196,7 @@ void Message::PrintJSON(IOutputStream& out) const {
   out << "(Something went wrong: no PrintJSON() override provided - are you using a non-styleguided .pb.h?)";
 }
 
-bool Message::ParseFromStream(IInputStream* input) {
+bool Message::ParseFromArcadiaStream(IInputStream* input) {
   bool res = false;
   io::TInputStreamProxy proxy(input);
   {
@@ -206,7 +206,7 @@ bool Message::ParseFromStream(IInputStream* input) {
   return res && !proxy.HasError();
 }
 
-bool Message::ParsePartialFromStream(IInputStream* input) {
+bool Message::ParsePartialFromArcadiaStream(IInputStream* input) {
   bool res = false;
   io::TInputStreamProxy proxy(input);
   {
@@ -216,15 +216,7 @@ bool Message::ParsePartialFromStream(IInputStream* input) {
   return res && !proxy.HasError();
 }
 
-bool Message::ParseFromIstream(IInputStream* input) {
-  return ParseFromStream(input);
-}
-
-bool Message::ParsePartialFromIstream(IInputStream* input) {
-  return ParsePartialFromStream(input);
-}
-
-bool Message::SerializeToStream(IOutputStream* output) const {
+bool Message::SerializeToArcadiaStream(IOutputStream* output) const {
   bool res = false;
   io::TOutputStreamProxy proxy(output);
   {
@@ -234,7 +226,7 @@ bool Message::SerializeToStream(IOutputStream* output) const {
   return res && !proxy.HasError();
 }
 
-bool Message::SerializePartialToStream(IOutputStream* output) const {
+bool Message::SerializePartialToArcadiaStream(IOutputStream* output) const {
   bool res = false;
   io::TOutputStreamProxy proxy(output);
   {
@@ -243,16 +235,7 @@ bool Message::SerializePartialToStream(IOutputStream* output) const {
   }
   return res && !proxy.HasError();
 }
-
-bool Message::SerializeToOstream(IOutputStream* output) const {
-  return SerializeToStream(output);
-}
-
-bool Message::SerializePartialToOstream(IOutputStream* output) const {
-  return SerializePartialToStream(output);
-}
 // End of Yandex-specific
-
 
 // =============================================================================
 // Reflection and associated Template Specializations
