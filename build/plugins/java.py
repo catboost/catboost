@@ -275,7 +275,7 @@ def on_fill_jar_copy_resources_cmd(unit, *args):
         package = ''
     else:
         varname, srcdir, base_classes_dir, package, reslist = tuple(args)
-    dest_dir = os.path.join(base_classes_dir, *package.split('.'))
+    dest_dir = os.path.join(base_classes_dir, *package.split('.')) if package else base_classes_dir
     var = unit.get(varname)
     var += ' && ${{cwd:CURDIR}} $FS_TOOLS copy_files {} {} {}'.format(srcdir, dest_dir, reslist)
     unit.set([varname, var])
