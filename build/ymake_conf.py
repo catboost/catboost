@@ -1963,9 +1963,9 @@ class LD(Linker):
         exec_shared_flag = '-pie -fPIE -Wl,--unresolved-symbols=ignore-all -rdynamic' if self.target.is_linux else ''
         if self.whole_archive:
             srcs_globals = self.whole_archive + ' ${rootrel;ext=.a:SRCS_GLOBAL} ' + self.no_whole_archive \
-            + ' ${rootrel;ext=.o:SRCS_GLOBAL}' + ' ${rootrel;ext=.supp:SRCS_GLOBAL}'
+            + ' ${rootrel;ext=.o:SRCS_GLOBAL} ${rootrel;ext=.supp:SRCS_GLOBAL}'
         else:
-            srcs_globals = '${rootrel:SRCS_GLOBAL}'
+            srcs_globals = '--start-wa ${rootrel;ext=.a:SRCS_GLOBAL} --end-wa ${rootrel;ext=.o:SRCS_GLOBAL} ${rootrel;ext=.supp:SRCS_GLOBAL}'
 
         ld_env_style = '${cwd:ARCADIA_BUILD_ROOT} $TOOLCHAIN_ENV ${kv;hide:"p LD"} ${kv;hide:"pc light-blue"} ${kv;hide:"show_out"}'
 

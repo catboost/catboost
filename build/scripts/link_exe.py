@@ -2,6 +2,8 @@ import sys
 import subprocess
 import optparse
 
+import process_whole_archive_option as pwa
+
 
 def get_leaks_suppressions(cmd):
     supp, newcmd = [], []
@@ -54,6 +56,7 @@ def parse_args():
 if __name__ == '__main__':
     opts, args = parse_args()
     cmd = fix_cmd(opts.musl, args)
+    cmd = pwa.process_whole_archive_for_global_libs(cmd)
     supp, cmd = get_leaks_suppressions(cmd)
     if opts.custom_step:
         assert opts.python
