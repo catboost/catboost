@@ -1150,7 +1150,11 @@ cdef bool_t _CallbackIsContinueTraining(
         void* customData
     ) except * with gil:
     cdef callbackObject = <object>customData
-    info = types.SimpleNamespace()
+    if PY_MAJOR_VERSION >= 3:
+        info = types.SimpleNamespace()
+    else:
+        from argparse import Namespace
+        info = Namespace()
     info.iteration = history.LearnMetricsHistory.size()
     info.metrics = _get_metrics_evals_pydict(history)
     return callbackObject.is_continue_training(info)

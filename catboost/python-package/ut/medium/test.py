@@ -9674,6 +9674,8 @@ def test_eval_metric_with_weights(task_type, task, metric, use_weights):
     eval_metric_inverse = model.eval_metrics(pool, full_metric_name_inverse)[full_metric_name_inverse]
     assert not np.array_equal(eval_metric, eval_metric_inverse)
     assert np.array_equal(fit_metric, eval_metric)
+
+
 @pytest.mark.parametrize('problem', ['Classifier', 'Regressor'])
 def test_callbacks_early_stop(problem):
     np.random.seed(0)

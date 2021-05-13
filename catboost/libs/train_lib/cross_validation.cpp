@@ -319,8 +319,8 @@ void TrainBatch(
         skipMetricOnTrain,
         upToIteration,
         foldContext);
-    const auto defaultCustomCallbacks = MakeHolder<ICustomCallbacks>();
 
+    const auto defaultCustomCallbacks = MakeHolder<TCustomCallbacks>(Nothing());
     auto foldOutputOptions = foldContext->OutputOptions;
     auto trainDir = foldOutputOptions.GetTrainDir();
     if (foldContext->FullModel.Defined()) {
@@ -408,7 +408,7 @@ void Train(
         foldOutputOptions.ResultModelPath = NCatboostOptions::TOption<TString>("result_model_file", "model");
     }
     TMetricsAndTimeLeftHistory metricsAndTimeHistory;
-    const auto defaultCustomCallbacks = MakeHolder<ICustomCallbacks>();
+    const auto defaultCustomCallbacks = MakeHolder<TCustomCallbacks>(Nothing());
     modelTrainer->TrainModel(
         internalOptions,
         catboostOption,

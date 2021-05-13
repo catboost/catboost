@@ -311,7 +311,7 @@ namespace NCB {
         TVector<TEvalResult> evalResults(trainingData.Test.ysize());
         THolder<IModelTrainer> modelTrainerHolder(TTrainerFactory::Construct(catBoostOptions.GetTaskType()));
         TRestorableFastRng64 rnd(catBoostOptions.RandomSeed);
-        const auto defaultCustomCallbacks = MakeHolder<ICustomCallbacks>();
+        const auto defaultCustomCallbacks = MakeHolder<TCustomCallbacks>(Nothing());
         modelTrainerHolder->TrainModel(
             TTrainModelInternalOptions(),
             catBoostOptions,

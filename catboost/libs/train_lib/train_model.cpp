@@ -712,25 +712,15 @@ static void SaveModel(
     }
 }
 
-namespace {
-    class TCustomCallbacks : public ICustomCallbacks {
-    public:
-        explicit TCustomCallbacks(const TMaybe<TCustomCallbackDescriptor>& callbackDescriptor)
-        : CallbackDescriptor(callbackDescriptor)
-        {
-        }
-
-        bool IsContinueTraining(const TMetricsAndTimeLeftHistory& history) override {
-            if (!CallbackDescriptor.Empty()) {
-                return CallbackDescriptor->IsContinueTrainingFunc(history, CallbackDescriptor->CustomData);
-            }
-            return true;
-        }
-    private:
-        const TMaybe<TCustomCallbackDescriptor>& CallbackDescriptor;
-    };
+TCustomCallbacks::TCustomCallbacks(const TMaybe<TCustomCallbackDescriptor>& callbackDescriptor)
+        : CallbackDescriptor(callbackDescriptor) {
 }
-
+bool TCustomCallbacks::IsContinueTraining(const TMetricsAndTimeLeftHistory &history) {
+    if (!CallbackDescriptor.Empty()) {
+        return CallbackDescriptor->IsContinueTrainingFunc(history, CallbackDescriptor->CustomData);
+    }
+    return true;
+}
 
 namespace {
     class TCPUModelTrainer : public IModelTrainer {

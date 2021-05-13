@@ -82,11 +82,16 @@ public:
 
 class ICustomCallbacks {
 public:
-    virtual bool IsContinueTraining(const TMetricsAndTimeLeftHistory& /*history*/) {
-        return true;
-    }
-
+    virtual bool IsContinueTraining(const TMetricsAndTimeLeftHistory& /*history*/) = 0;
     virtual ~ICustomCallbacks() = default;
+};
+
+class TCustomCallbacks : public ICustomCallbacks {
+public:
+    explicit TCustomCallbacks(const TMaybe<TCustomCallbackDescriptor>& callbackDescriptor);
+    bool IsContinueTraining(const TMetricsAndTimeLeftHistory& history) override;
+private:
+    const TMaybe<TCustomCallbackDescriptor>& CallbackDescriptor;
 };
 
 class IModelTrainer {
