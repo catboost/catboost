@@ -425,7 +425,10 @@ def do_compile_asm(args):
     if args.asm_flags:
         cmd += args.asm_flags
     cmd += args.asm_srcs
-    call(cmd, args.build_root)
+    my_env = os.environ.copy()
+    my_env['GOARCH'] = args.targ_arch
+    my_env['GOOS'] = args.targ_os
+    call(cmd, args.build_root, my_env)
 
 
 def do_link_lib(args):
@@ -769,7 +772,7 @@ if __name__ == '__main__':
     parser.add_argument('++host-os', choices=['linux', 'darwin', 'windows'], required=True)
     parser.add_argument('++host-arch', choices=['amd64'], required=True)
     parser.add_argument('++targ-os', choices=['linux', 'darwin', 'windows'], required=True)
-    parser.add_argument('++targ-arch', choices=['amd64', 'x86'], required=True)
+    parser.add_argument('++targ-arch', choices=['amd64', 'x86', 'arm64'], required=True)
     parser.add_argument('++peers', nargs='*')
     parser.add_argument('++non-local-peers', nargs='*')
     parser.add_argument('++cgo-peers', nargs='*')
