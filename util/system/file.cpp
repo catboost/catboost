@@ -921,16 +921,22 @@ public:
         return Handle_.Read(bufferIn, numBytes);
     }
 
+    size_t ReadOrFail(void* buf, size_t toRead) {
+        const i32 reallyRead = RawRead(buf, toRead);
+
+        if (reallyRead < 0) {
+            ythrow TFileError() << "can not read data from " << FileName_.Quote();
+        }
+
+        return reallyRead;
+    }
+
     size_t Read(void* bufferIn, size_t numBytes) {
         ui8* buf = (ui8*)bufferIn;
 
         while (numBytes) {
-            const i32 toRead = (i32)Min(MaxPortion, numBytes);
-            const i32 reallyRead = RawRead(buf, toRead);
-
-            if (reallyRead < 0) {
-                ythrow TFileError() << "can not read data from " << FileName_.Quote();
-            }
+            const size_t toRead = Min(MaxPortion, numBytes);
+            const size_t reallyRead = ReadOrFail(buf, toRead);
 
             if (reallyRead == 0) {
                 // file exhausted
@@ -1138,6 +1144,10 @@ size_t TFile::Read(void* buf, size_t len) {
 
 i32 TFile::RawRead(void* buf, size_t len) {
     return Impl_->RawRead(buf, len);
+}
+
+size_t TFile::ReadOrFail(void* buf, size_t len) {
+    return Impl_->ReadOrFail(buf, len);
 }
 
 void TFile::Load(void* buf, size_t len) {
