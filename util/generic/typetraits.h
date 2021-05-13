@@ -287,9 +287,14 @@ struct TIsSpecializationOf<T, T<Ts...>> : std::true_type {};
 template <typename ... T>
 constexpr bool TDependentFalse = false;
 
-// FIXME: nvcc10 does not support using auto in this context
-template <size_t T>
+// FIXME: neither nvcc10 nor nvcc11 support using auto in this context
+#if defined(__NVCC__)
+template <size_t Value>
 constexpr bool TValueDependentFalse = false;
+#else
+template <auto ... Values>
+constexpr bool TValueDependentFalse = false;
+#endif
 
 /*
  * shortcut for std::enable_if_t<...> which checks that T is std::tuple or std::pair
