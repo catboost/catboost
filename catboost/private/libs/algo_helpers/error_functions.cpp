@@ -112,6 +112,144 @@ void IDerCalcer::CalcDersRange(
     useTDers, IsExpApprox, hasDelta);
 }
 
+TVector<size_t> ArgSort(
+    int start,
+    int count,
+    const float* targets
+) {
+    TVector<size_t> labelOrder(count);
+    std::iota(labelOrder.begin(), labelOrder.end(), start);
+    std::sort(labelOrder.begin(), labelOrder.end(), [&]
+        (size_t lhs, size_t rhs){
+            return std::abs(targets[lhs]) < std::abs(targets[rhs]);
+        }
+    );
+
+    return labelOrder;
+}
+
+double CalcCoxApproxSum(
+    int start,
+    int count,
+    const double* approxes,
+    const double* approxesDeltas
+) {
+    double expPSum = 0;
+    for (yssize_t i = 0; i < count; ++i) {
+        double updatedApprox = approxes[start + i];
+        if (approxesDeltas != nullptr) {
+            updatedApprox += approxesDeltas[start + i];
+        }
+        expPSum += std::exp(updatedApprox);
+    }
+
+    return expPSum;
+}
+
+void TCoxError::CalcDersRange(
+    int start,
+    int count,
+    bool /*calcThirdDer*/,
+    const double* approxes,
+    const double* approxesDeltas,
+    const float* targets,
+    const float* /*weights*/,
+    TDers* ders
+) const {
+
+    TVector<size_t> labelOrder = ArgSort(start, count, targets);
+
+    double expPSum = CalcCoxApproxSum(start, count, approxes, approxesDeltas);
+
+    double rk = 0;
+    double sk = 0;
+    double lastExpP = 0.0;
+    double lastAbsY = 0.0;
+    double accumulatedSum = 0;
+    for (yssize_t i = 0; i < count; ++i) {
+        const size_t ind = labelOrder[i];
+        const double p = approxes[ind] + (approxesDeltas == nullptr ? 0 : approxesDeltas[ind]);
+
+        const double expP = std::exp(p);
+        const double y = targets[ind];
+        const double absY = std::abs(y);
+        // only update the denominator after we move forward in time (labels are sorted)
+        // this is Breslow's method for ties
+        accumulatedSum += lastExpP;
+        if (lastAbsY < absY) {
+            expPSum -= accumulatedSum;
+            accumulatedSum = 0;
+        } else {
+            CB_ENSURE(lastAbsY <= absY);
+        }
+
+        if (y > 0) {
+            rk += 1.0 / expPSum;
+            sk += 1.0 / (expPSum * expPSum);
+        }
+
+        const double grad = expP * rk - static_cast<float>(y > 0);
+        const double hess = expP * rk - expP * expP * sk;
+        ders[ind].Der1 = - grad;
+        ders[ind].Der2 = - hess;
+
+        lastAbsY = absY;
+        lastExpP = expP;
+    }
+}
+
+
+void TCoxError::CalcFirstDerRange(
+        int start,
+        int count,
+        const double* approxes,
+        const double* approxesDeltas,
+        const float* targets,
+        const float* /*weights*/,
+        double* firstDers
+    ) const {
+
+    //CalcCoxDersRange(start, count, approxes, approxesDeltas, targets, );
+    // object weights are not supported yet
+
+    TVector<size_t> labelOrder = ArgSort(start, count, targets);
+
+    double expPSum = CalcCoxApproxSum(start, count, approxes, approxesDeltas);
+
+
+    double rk = 0;
+    double lastExpP = 0.0;
+    double lastAbsY = 0.0;
+    double accumulatedSum = 0;
+    for (yssize_t i = 0; i < count; ++i) {
+        const size_t ind = labelOrder[start + i];
+        const double p = approxes[ind] + (approxesDeltas == nullptr ? 0 : approxesDeltas[ind]);
+
+        const double expP = std::exp(p);
+        const double y = targets[ind];
+        const double absY = std::abs(y);
+        // only update the denominator after we move forward in time (labels are sorted)
+        // this is Breslow's method for ties
+        accumulatedSum += lastExpP;
+        if (lastAbsY < absY) {
+            expPSum -= accumulatedSum;
+            accumulatedSum = 0;
+        } else {
+            CB_ENSURE(lastAbsY <= absY);
+        }
+
+        if (y > 0) {
+            rk += 1.0 / expPSum;
+        }
+
+        const double grad = expP * rk - static_cast<float>(y > 0);
+        firstDers[ind] =  - grad; // GradientPair(grad * w, hess * w);
+
+        lastAbsY = absY;
+        lastExpP = expP;
+    }
+}
+
 namespace {
     template <int Capacity>
     class TExpForwardView {
