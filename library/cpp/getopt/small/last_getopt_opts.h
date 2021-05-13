@@ -43,6 +43,7 @@ namespace NLastGetopt {
 
         typedef TVector<TSimpleSharedPtr<TOpt>> TOptsVector;
         TOptsVector Opts_; // infomation about named (short and long) options
+        TVector<std::function<void(TStringBuf)>> ArgBindings_;
 
         EArgPermutation ArgPermutation_ = DEFAULT_ARG_PERMUTATION; // determines how to parse positions of named and free options. See information below.
         bool AllowSingleDashForLong_ = false;                      //
@@ -244,6 +245,22 @@ namespace NLastGetopt {
         TOpt& AddOption(const TOpt& option);
 
         /**
+         * Creates new free argument handling
+         * @param name   name of free arg to show in help
+         * @param target variable address to store parsing result into
+         * @param help   help string to show in help
+         */
+        template <typename T>
+        void AddFreeArgBinding(const TString& name, T& target, const TString& help = "") {
+            ArgBindings_.emplace_back([&target](TStringBuf value) {
+                target = FromString<T>(value);
+            });
+
+            FreeArgsMax_ = Max<ui32>(FreeArgsMax_, ArgBindings_.size());
+            SetFreeArgTitle(ArgBindings_.size() - 1, name, help);
+        }
+
+        /**
          * Creates options list from string as in getopt(3)
          *
          * @param optstring   source
@@ -443,10 +460,11 @@ namespace NLastGetopt {
         /**
          * Set maximal number of free args
          *
-         * @param min        new value
+         * @param max        new value
          */
         void SetFreeArgsMax(size_t max) {
             FreeArgsMax_ = ui32(max);
+            FreeArgsMax_ = Max<ui32>(FreeArgsMax_, ArgBindings_.size());
         }
 
         /**

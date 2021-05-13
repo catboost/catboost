@@ -173,6 +173,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\flatbuffers\contrib-libs-flatbuffers.vcxproj">
       <Project>{B88207AE-800B-A7B1-AE0B-F609E8684A5A}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\fmath\contrib-libs-fmath.vcxproj">
+      <Project>{90F91270-0728-ADD6-69B3-0B2735FE25FB}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libc_compat\contrib-libs-libc_compat.vcxproj">
       <Project>{116AA49B-0C0D-7CF7-45DB-A708FB126C84}</Project>
     </ProjectReference>
@@ -229,6 +232,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\enumbitset\library-cpp-enumbitset.vcxproj">
       <Project>{6440B812-5ED4-4365-7564-0F5EC4AEDBBC}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\fast_exp\library-cpp-fast_exp.vcxproj">
+      <Project>{619D2CC0-4F2C-17C8-8D5C-C873EAB19EA9}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\getopt\small\cpp-getopt-small.vcxproj">
       <Project>{58379026-CFDC-70D1-4FC0-7A73F77E31B5}</Project>

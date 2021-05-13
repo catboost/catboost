@@ -18,6 +18,26 @@ extern "C" {
 #define CATBOOST_API
 #endif
 
+typedef void DataWrapperHandle;
+
+typedef void DataProviderHandle;
+
+/**
+ * Create empty data wrapper
+ * @return
+ */
+CATBOOST_API DataWrapperHandle* DataWrapperCreate(size_t docsCount);
+
+CATBOOST_API void DataWrapperDelete(DataWrapperHandle* dataWrapperHandle);
+
+CATBOOST_API void AddFloatFeatures(DataWrapperHandle* dataWrapperHandle, const float** floatFeatures, size_t floatFeaturesSize);
+
+CATBOOST_API void AddCatFeatures(DataWrapperHandle* dataWrapperHandle, const char*** catFeatures, size_t catFeaturesSize);
+
+CATBOOST_API void AddTextFeatures(DataWrapperHandle* dataWrapperHandle, const char*** textFeatures, size_t textFeaturesSize);
+
+CATBOOST_API DataProviderHandle* BuildDataProvider(DataWrapperHandle* dataWrapperHandle);
+
 typedef void ModelCalcerHandle;
 
 /**

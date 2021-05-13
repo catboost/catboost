@@ -6656,9 +6656,7 @@
         },
         "ymake": {
             "formula": {
-                "sandbox_id": [
-                    961683895
-                ],
+                "sandbox_id": [967468603],
                 "match": "ymake"
             },
             "executable": {
@@ -8475,7 +8473,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 967063424,
+                "sandbox_id": 968734922,
                 "match": "horadric"
             },
             "executable": {
@@ -8618,7 +8616,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 966431448,
+                "sandbox_id": 968734676,
                 "match": "app_host_launcher"
             },
             "executable": {
@@ -9094,7 +9092,7 @@
         },
         "iceflame": {
             "formula": {
-                "sandbox_id": 957480323,
+                "sandbox_id": 968398653,
                 "match": "iceflame"
             },
             "executable": {
