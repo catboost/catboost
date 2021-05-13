@@ -9692,7 +9692,7 @@ def test_callbacks_early_stop(problem):
         def __init__(self, stop_iteration):
             self._stop_iteration = stop_iteration
 
-        def is_continue_training(self, info):
+        def after_iteration(self, info):
             return info.iteration != self._stop_iteration
 
     model.fit(train_data, train_labels, callbacks=[
@@ -9721,7 +9721,7 @@ def test_callbacks_metrics():
     model = CatBoostClassifier(iterations=10, custom_metric=metric_names)
 
     class MetricsCheckerCallback:
-        def is_continue_training(self, info):
+        def after_iteration(self, info):
             for dataset_name in ['learn', 'validation_0', 'validation_1']:
                 assert dataset_name in info.metrics
                 for metric_name in metric_names:

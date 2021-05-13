@@ -6413,8 +6413,8 @@ class _AllCallback(object):
     def __init__(self, callbacks):
         self._callbacks = callbacks
 
-    def is_continue_training(self, info):
+    def after_iteration(self, info):
         for cb in self._callbacks:
-            if not cb.is_continue_training(info):
+            if not cb.after_iteration(info):
                 return False
         return True

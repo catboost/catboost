@@ -706,7 +706,7 @@ cdef extern from "catboost/libs/train_lib/train_model.h":
     cdef cppclass TCustomCallbackDescriptor:
         void* CustomData
 
-        bool_t (*IsContinueTrainingFunc)(
+        bool_t (*AfterIterationFunc)(
             const TMetricsAndTimeLeftHistory& history, 
             void *customData
         ) except * with gil
@@ -1145,7 +1145,7 @@ cdef double _MetricGetFinalError(const TMetricHolder& error, void *customData) e
     cdef metricObject = <object>customData
     return metricObject.get_final_error(error.Stats[0], error.Stats[1])
 
-cdef bool_t _CallbackIsContinueTraining(
+cdef bool_t _CallbackAfterIteration(
         const TMetricsAndTimeLeftHistory& history, 
         void* customData
     ) except * with gil:
@@ -1157,7 +1157,7 @@ cdef bool_t _CallbackIsContinueTraining(
         info = Namespace()
     info.iteration = history.LearnMetricsHistory.size()
     info.metrics = _get_metrics_evals_pydict(history)
-    return callbackObject.is_continue_training(info)
+    return callbackObject.after_iteration(info)
 
 cdef _constarrayref_of_double_to_np_array(const TConstArrayRef[double] arr):
     result = np.empty(arr.size(), dtype=_npfloat64)
@@ -1564,7 +1564,7 @@ cdef TCustomMetricDescriptor _BuildCustomMetricDescriptor(object metricObject):
 cdef TCustomCallbackDescriptor _BuildCustomCallbackDescritor(object callbackObject):
     cdef TCustomCallbackDescriptor descriptor
     descriptor.CustomData = <void*>callbackObject
-    descriptor.IsContinueTrainingFunc = &_CallbackIsContinueTraining
+    descriptor.AfterIterationFunc = &_CallbackAfterIteration
     return descriptor
 
 cdef TCustomObjectiveDescriptor _BuildCustomObjectiveDescriptor(object objectiveObject):

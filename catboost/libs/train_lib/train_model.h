@@ -60,10 +60,10 @@ struct TTrainModelInternalOptions {
 };
 
 struct TCustomCallbackDescriptor {
-    using TIsContinueTraining = bool (*)(const TMetricsAndTimeLeftHistory& history, void* customData);
+    using TAfterIteration = bool (*)(const TMetricsAndTimeLeftHistory& history, void* customData);
 
     void* CustomData = nullptr;
-    TIsContinueTraining IsContinueTrainingFunc = nullptr;
+    TAfterIteration AfterIterationFunc = nullptr;
 };
 
 class ITrainingCallbacks {
@@ -82,14 +82,14 @@ public:
 
 class ICustomCallbacks {
 public:
-    virtual bool IsContinueTraining(const TMetricsAndTimeLeftHistory& /*history*/) = 0;
+    virtual bool AfterIteration(const TMetricsAndTimeLeftHistory& /*history*/) = 0;
     virtual ~ICustomCallbacks() = default;
 };
 
 class TCustomCallbacks : public ICustomCallbacks {
 public:
     explicit TCustomCallbacks(const TMaybe<TCustomCallbackDescriptor>& callbackDescriptor);
-    bool IsContinueTraining(const TMetricsAndTimeLeftHistory& history) override;
+    bool AfterIteration(const TMetricsAndTimeLeftHistory& history) override;
 private:
     const TMaybe<TCustomCallbackDescriptor>& CallbackDescriptor;
 };

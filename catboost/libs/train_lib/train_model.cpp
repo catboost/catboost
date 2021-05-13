@@ -457,7 +457,7 @@ static void Train(
         }
 
         continueTraining = trainingCallbacks->IsContinueTraining(ctx->LearnProgress->MetricsAndTimeHistory)
-                && customCallbacks->IsContinueTraining(ctx->LearnProgress->MetricsAndTimeHistory);
+                && customCallbacks->AfterIteration(ctx->LearnProgress->MetricsAndTimeHistory);
     }
 
     ctx->SaveProgress(onSaveSnapshotCallback);
@@ -715,9 +715,9 @@ static void SaveModel(
 TCustomCallbacks::TCustomCallbacks(const TMaybe<TCustomCallbackDescriptor>& callbackDescriptor)
         : CallbackDescriptor(callbackDescriptor) {
 }
-bool TCustomCallbacks::IsContinueTraining(const TMetricsAndTimeLeftHistory &history) {
+bool TCustomCallbacks::AfterIteration(const TMetricsAndTimeLeftHistory &history) {
     if (!CallbackDescriptor.Empty()) {
-        return CallbackDescriptor->IsContinueTrainingFunc(history, CallbackDescriptor->CustomData);
+        return CallbackDescriptor->AfterIterationFunc(history, CallbackDescriptor->CustomData);
     }
     return true;
 }
