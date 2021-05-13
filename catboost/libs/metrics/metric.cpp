@@ -844,8 +844,7 @@ namespace {
 }
 
 TVector<TParamSet> TLqMetric::ValidParamSets() {
-    TVector<TParamSet> paramSets;
-    paramSets.emplace_back(
+    return {
         TParamSet{
             {
                 TParamInfo{"use_weights", false, true},
@@ -853,8 +852,7 @@ TVector<TParamSet> TLqMetric::ValidParamSets() {
             },
             ""
         }
-    );
-    return paramSets;
+    };
 }
 
 // static
@@ -1042,8 +1040,7 @@ void TQuantileMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
 }
 
 TVector<TParamSet> TQuantileMetric::ValidParamSets() {
-    TVector<TParamSet> paramSets;
-    paramSets.emplace_back(
+    return {
         TParamSet{
             {
                 TParamInfo{"use_weights", false, true},
@@ -1052,8 +1049,7 @@ TVector<TParamSet> TQuantileMetric::ValidParamSets() {
             },
             ""
         }
-    );
-    return paramSets;
+    };
 }
 
 /* Expectile */
@@ -1144,8 +1140,7 @@ void TExpectileMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
 }
 
 TVector<TParamSet> TExpectileMetric::ValidParamSets() {
-    TVector<TParamSet> paramSets;
-    paramSets.emplace_back(
+    return {
         TParamSet{
             {
                 TParamInfo{"use_weights", false, true},
@@ -1153,8 +1148,7 @@ TVector<TParamSet> TExpectileMetric::ValidParamSets() {
             },
             ""
         }
-    );
-    return paramSets;
+    };
 };
 
 /* LogLinQuantile */
@@ -1260,8 +1254,7 @@ void TLogLinQuantileMetric::GetBestValue(EMetricBestValue* valueType, float*) co
 }
 
 TVector<TParamSet> TLogLinQuantileMetric::ValidParamSets() {
-    TVector<TParamSet> paramSets;
-    paramSets.emplace_back(
+    return {
         TParamSet{
             {
                 TParamInfo{"use_weights", false, true},
@@ -1269,8 +1262,7 @@ TVector<TParamSet> TLogLinQuantileMetric::ValidParamSets() {
             },
             ""
         }
-    );
-    return paramSets;
+    };
 }
 
 /* MAPE */
@@ -1416,8 +1408,7 @@ void TNumErrorsMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
 }
 
 TVector<TParamSet> TNumErrorsMetric::ValidParamSets() {
-    TVector<TParamSet> paramSets;
-    paramSets.emplace_back(
+    return {
         TParamSet{
             {
                 TParamInfo{"use_weights", false, true},
@@ -1425,8 +1416,7 @@ TVector<TParamSet> TNumErrorsMetric::ValidParamSets() {
             },
             ""
         }
-    );
-    return paramSets;
+    };
 };
 
 /* Poisson */
@@ -1609,8 +1599,7 @@ void TTweedieMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
 }
 
 TVector<TParamSet> TTweedieMetric::ValidParamSets() {
-    TVector<TParamSet> paramSets;
-    paramSets.emplace_back(
+    return {
         TParamSet{
             {
                 TParamInfo{"use_weights", false, true},
@@ -1618,8 +1607,7 @@ TVector<TParamSet> TTweedieMetric::ValidParamSets() {
             },
             ""
         }
-    );
-    return paramSets;
+    };
 }
 
 /* Mean squared logarithmic error */
@@ -2198,8 +2186,7 @@ void TPairLogitMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
 }
 
 TVector<TParamSet> TPairLogitMetric::ValidParamSets() {
-    TVector<TParamSet> paramSets;
-    paramSets.emplace_back(
+    return {
         TParamSet{
             {
                 TParamInfo{"use_weights", false, true},
@@ -2207,8 +2194,7 @@ TVector<TParamSet> TPairLogitMetric::ValidParamSets() {
             },
             ""
         }
-    );
-    return paramSets;
+    };
 }
 
 /* QueryRMSE */
@@ -2442,8 +2428,7 @@ void TPFoundMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
 }
 
 TVector<TParamSet> TPFoundMetric::ValidParamSets() {
-    TVector<TParamSet> paramSets;
-    paramSets.emplace_back(
+    return {
         TParamSet{
             {
                 TParamInfo{"use_weights", false, true},
@@ -2452,8 +2437,7 @@ TVector<TParamSet> TPFoundMetric::ValidParamSets() {
             },
             ""
         }
-    );
-    return paramSets;
+    };
 };
 
 /* NDCG@N */
@@ -2494,8 +2478,7 @@ namespace {
 }
 
 TVector<TParamSet> TDcgMetric::ValidParamSets() {
-    TVector<TParamSet> paramSets;
-    paramSets.emplace_back(
+    return {
         TParamSet{
             {
                 TParamInfo{"use_weights", false, true},
@@ -2506,8 +2489,7 @@ TVector<TParamSet> TDcgMetric::ValidParamSets() {
             },
             ""
         }
-    );
-    return paramSets;
+    };
 };
 
 // static
@@ -2766,8 +2748,7 @@ void TQuerySoftMaxMetric::GetBestValue(EMetricBestValue* valueType, float*) cons
 }
 
 TVector<TParamSet> TQuerySoftMaxMetric::ValidParamSets() {
-    TVector<TParamSet> paramSets;
-    paramSets.emplace_back(
+    return {
         TParamSet{
             {
                 TParamInfo{"use_weights", false, true},
@@ -2776,8 +2757,7 @@ TVector<TParamSet> TQuerySoftMaxMetric::ValidParamSets() {
             },
             ""
         }
-    );
-    return paramSets;
+    };
 };
 
 /* R2 */
@@ -3085,8 +3065,7 @@ TVector<THolder<IMetric>> TAUCMetric::Create(const TMetricConfig& config) {
 }
 
 TVector<TParamSet> TAUCMetric::ValidParamSets() {
-    TVector<TParamSet> paramSets;
-    paramSets.emplace_back(
+    return {
         TParamSet{
             {
                 TParamInfo{"use_weights", false, false},
@@ -3094,9 +3073,7 @@ TVector<TParamSet> TAUCMetric::ValidParamSets() {
                 TParamInfo{"hints", false, "skip_train~true"}
             },
             ""
-        }
-    );
-    paramSets.emplace_back(
+        },
         TParamSet{
             {
                 TParamInfo{"use_weights", false, false},
@@ -3106,8 +3083,7 @@ TVector<TParamSet> TAUCMetric::ValidParamSets() {
             },
             "Multiclass"
         }
-    );
-    return paramSets;
+    };
 };
 
 
@@ -3350,17 +3326,14 @@ void TNormalizedGini::GetBestValue(EMetricBestValue* valueType, float*) const {
 }
 
 TVector<TParamSet> TNormalizedGini::ValidParamSets() {
-    TVector<TParamSet> paramSets;
-    paramSets.emplace_back(
+    return {
         TParamSet{
             {
                 TParamInfo{"use_weights", false, true},
                 TParamInfo{"border", false, TargetBorder}
             },
             ""
-        }
-    );
-    paramSets.emplace_back(
+        },
         TParamSet{
             {
                 TParamInfo{"use_weights", false, true},
@@ -3368,8 +3341,7 @@ TVector<TParamSet> TNormalizedGini::ValidParamSets() {
             },
             "Multiclass"
         }
-    );
-    return paramSets;
+    };
 };
 
 /* Fair Loss metric */
@@ -3439,8 +3411,7 @@ void TFairLossMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
 }
 
 TVector<TParamSet> TFairLossMetric::ValidParamSets() {
-    TVector<TParamSet> paramSets;
-    paramSets.emplace_back(
+    return {
         TParamSet{
             {
                 TParamInfo{"use_weights", false, true},
@@ -3448,8 +3419,7 @@ TVector<TParamSet> TFairLossMetric::ValidParamSets() {
             },
             ""
         }
-    );
-    return paramSets;
+    };
 };
 
 /* Balanced Accuracy */
@@ -3518,8 +3488,7 @@ double TBalancedAccuracyMetric::GetFinalError(const TMetricHolder& error) const 
 }
 
 TVector<TParamSet> TBalancedAccuracyMetric::ValidParamSets() {
-    TVector<TParamSet> paramSets;
-    paramSets.emplace_back(
+    return {
         TParamSet{
             {
                 TParamInfo{"use_weights", false, true},
@@ -3527,8 +3496,7 @@ TVector<TParamSet> TBalancedAccuracyMetric::ValidParamSets() {
             },
             ""
         }
-    );
-    return paramSets;
+    };
 }
 
 /* Balanced Error Rate */
@@ -3597,8 +3565,7 @@ double TBalancedErrorRate::GetFinalError(const TMetricHolder& error) const {
 }
 
 TVector<TParamSet> TBalancedErrorRate::ValidParamSets() {
-    TVector<TParamSet> paramSets;
-    paramSets.emplace_back(
+    return {
         TParamSet{
             {
                 TParamInfo{"use_weights", false, true},
@@ -3606,8 +3573,7 @@ TVector<TParamSet> TBalancedErrorRate::ValidParamSets() {
             },
             ""
         }
-    );
-    return paramSets;
+    };
 }
 
 /* Brier Score */
@@ -3723,8 +3689,7 @@ double THingeLossMetric::GetFinalError(const TMetricHolder& error) const {
 }
 
 TVector<TParamSet> THingeLossMetric::ValidParamSets() {
-    TVector<TParamSet> paramSets;
-    paramSets.emplace_back(
+    return {
         TParamSet{
             {
                 TParamInfo{"use_weights", false, true},
@@ -3732,8 +3697,7 @@ TVector<TParamSet> THingeLossMetric::ValidParamSets() {
             },
             ""
         }
-    );
-    return paramSets;
+    };
 };
 
 /* Hamming loss */
@@ -3818,8 +3782,7 @@ double THammingLossMetric::GetFinalError(const TMetricHolder& error) const {
 }
 
 TVector<TParamSet> THammingLossMetric::ValidParamSets() {
-    TVector<TParamSet> paramSets;
-    paramSets.emplace_back(
+    return {
         TParamSet{
             {
                 TParamInfo{"use_weights", false, true},
@@ -3827,8 +3790,7 @@ TVector<TParamSet> THammingLossMetric::ValidParamSets() {
             },
             ""
         }
-    );
-    return paramSets;
+    };
 };
 
 /* PairAccuracy */
@@ -3990,8 +3952,7 @@ void TPrecisionAtKMetric::GetBestValue(EMetricBestValue* valueType, float*) cons
 }
 
 TVector<TParamSet> TPrecisionAtKMetric::ValidParamSets() {
-    TVector<TParamSet> paramSets;
-    paramSets.emplace_back(
+    return {
         TParamSet{
             {
                 TParamInfo{"use_weights", false, true},
@@ -4000,8 +3961,7 @@ TVector<TParamSet> TPrecisionAtKMetric::ValidParamSets() {
             },
             ""
         }
-    );
-    return paramSets;
+    };
 };
 
 /* RecallAtK */
@@ -4086,8 +4046,7 @@ void TRecallAtKMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
 }
 
 TVector<TParamSet> TRecallAtKMetric::ValidParamSets() {
-    TVector<TParamSet> paramSets;
-    paramSets.emplace_back(
+    return {
         TParamSet{
             {
                 TParamInfo{"use_weights", false, true},
@@ -4096,8 +4055,7 @@ TVector<TParamSet> TRecallAtKMetric::ValidParamSets() {
             },
             ""
         }
-    );
-    return paramSets;
+    };
 };
 
 /* Mean Average Precision at k */
@@ -4184,8 +4142,7 @@ void TMAPKMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
 }
 
 TVector<TParamSet> TMAPKMetric::ValidParamSets() {
-    TVector<TParamSet> paramSets;
-    paramSets.emplace_back(
+    return {
         TParamSet{
             {
                 TParamInfo{"use_weights", false, true},
@@ -4194,8 +4151,7 @@ TVector<TParamSet> TMAPKMetric::ValidParamSets() {
             },
             ""
         }
-    );
-    return paramSets;
+    };
 };
 
 /* Precision-Recall AUC */
@@ -4385,8 +4341,7 @@ void TPRAUCMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
 }
 
 TVector<TParamSet> TPRAUCMetric::ValidParamSets() {
-    TVector<TParamSet> paramSets;
-    paramSets.emplace_back(
+    return {
         TParamSet{
             {
                 TParamInfo{"use_weights", false, false},
@@ -4394,9 +4349,7 @@ TVector<TParamSet> TPRAUCMetric::ValidParamSets() {
                 TParamInfo{"hints", false, "skip_train~true"}
             },
             ""
-        }
-    );
-    paramSets.emplace_back(
+        },
         TParamSet{
             {
                 TParamInfo{"use_weights", false, false},
@@ -4405,8 +4358,7 @@ TVector<TParamSet> TPRAUCMetric::ValidParamSets() {
             },
             "Multiclass"
         }
-    );
-    return paramSets;
+    };
 };
 
 /* Custom */
@@ -4756,8 +4708,7 @@ void TUserDefinedQuerywiseMetric::GetBestValue(EMetricBestValue* valueType, floa
 }
 
 TVector<TParamSet> TUserDefinedQuerywiseMetric::ValidParamSets() {
-    TVector<TParamSet> paramSets;
-    paramSets.emplace_back(
+    return {
         TParamSet{
             {
                 TParamInfo{"use_weights", false, true},
@@ -4765,8 +4716,7 @@ TVector<TParamSet> TUserDefinedQuerywiseMetric::ValidParamSets() {
             },
             ""
         }
-    );
-    return paramSets;
+    };
 };
 
 /* Huber loss */
@@ -4847,8 +4797,7 @@ void THuberLossMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
 }
 
 TVector<TParamSet> THuberLossMetric::ValidParamSets() {
-    TVector<TParamSet> paramSets;
-    paramSets.emplace_back(
+    return {
         TParamSet{
             {
                 TParamInfo{"use_weights", false, true},
@@ -4856,8 +4805,7 @@ TVector<TParamSet> THuberLossMetric::ValidParamSets() {
             },
             ""
         }
-    );
-    return paramSets;
+    };
 };
 
 /* FilteredNdcg */
@@ -4955,8 +4903,7 @@ void TFilteredDcgMetric::GetBestValue(EMetricBestValue* valueType, float*) const
 }
 
 TVector<TParamSet> TFilteredDcgMetric::ValidParamSets() {
-    TVector<TParamSet> paramSets;
-    paramSets.emplace_back(
+    return {
         TParamSet{
             {
                 TParamInfo{"type", false, ToString(DefaultMetricType)},
@@ -4965,8 +4912,7 @@ TVector<TParamSet> TFilteredDcgMetric::ValidParamSets() {
             },
             ""
         }
-    );
-    return paramSets;
+    };
 };
 
 /* AverageGain */
@@ -5068,8 +5014,7 @@ void TAverageGain::GetBestValue(EMetricBestValue* valueType, float*) const {
 }
 
 TVector<TParamSet> TAverageGain::ValidParamSets() {
-    TVector<TParamSet> paramSets;
-    paramSets.emplace_back(
+    return {
         TParamSet{
             {
                 TParamInfo{"use_weights", false, true},
@@ -5077,8 +5022,7 @@ TVector<TParamSet> TAverageGain::ValidParamSets() {
             },
             ""
         }
-    );
-    return paramSets;
+    };
 }
 
 /* QueryAUC */
@@ -5272,8 +5216,7 @@ void TQueryAUCMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
 }
 
 TVector<TParamSet> TQueryAUCMetric::ValidParamSets() {
-    TVector<TParamSet> paramSets;
-    paramSets.emplace_back(
+    return {
         TParamSet{
             {
                 TParamInfo{"use_weights", false, false},
@@ -5281,9 +5224,7 @@ TVector<TParamSet> TQueryAUCMetric::ValidParamSets() {
                 TParamInfo{"hints", false, "skip_train~true"}
             },
             ""
-        }
-    );
-    paramSets.emplace_back(
+        },
         TParamSet{
             {
                 TParamInfo{"use_weights", false, false},
@@ -5292,8 +5233,7 @@ TVector<TParamSet> TQueryAUCMetric::ValidParamSets() {
             },
             "Multiclass"
         }
-    );
-    return paramSets;
+    };
 };
 
 /* CombinationLoss */
@@ -5541,8 +5481,7 @@ void TQueryCrossEntropyMetric::GetBestValue(EMetricBestValue* valueType, float*)
 }
 
 TVector<TParamSet> TQueryCrossEntropyMetric::ValidParamSets() {
-    TVector<TParamSet> paramSets;
-    paramSets.emplace_back(
+    return {
         TParamSet{
             {
                 TParamInfo{"use_weights", false, true},
@@ -5551,8 +5490,7 @@ TVector<TParamSet> TQueryCrossEntropyMetric::ValidParamSets() {
             },
             ""
         }
-    );
-    return paramSets;
+    };
 };
 
 namespace {
@@ -5591,18 +5529,16 @@ TVector<THolder<IMetric>> TMRRMetric::Create(const TMetricConfig& config) {
 }
 
 TVector<TParamSet> TMRRMetric::ValidParamSets() {
-    TVector<TParamSet> paramSets;
-    paramSets.emplace_back(
+    return {
         TParamSet{
             {
                 TParamInfo{"use_weights", false, true},
-	            TParamInfo{"top", false, DefaultTopSize},
-	            TParamInfo{"border", false, GetDefaultTargetBorder()}
+                TParamInfo{"top", false, DefaultTopSize},
+                TParamInfo{"border", false, GetDefaultTargetBorder()}
             },
             ""
         }
-    );
-    return paramSets;
+    };
 };
 
 double TMRRMetric::CalcQueryReciprocalRank(
@@ -5775,17 +5711,15 @@ void TERRMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
 }
 
 TVector<TParamSet> TERRMetric::ValidParamSets() {
-    TVector<TParamSet> paramSets;
-    paramSets.emplace_back(
+    return {
         TParamSet{
             {
                 TParamInfo{"use_weights", false, true},
-	            TParamInfo{"top", false, DefaultTopSize}
+                TParamInfo{"top", false, DefaultTopSize}
             },
             ""
         }
-    );
-    return paramSets;
+    };
 };
 
 /* Create */

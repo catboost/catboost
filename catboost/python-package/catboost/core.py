@@ -2453,9 +2453,9 @@ class CatBoost(_CatBoostBase):
         if data.is_empty_:
             raise CatBoostError("Data is empty.")
         if not isinstance(metrics, ARRAY_TYPES) and not isinstance(metrics, STRING_TYPES) and not isinstance(metrics, BuiltinMetric):
-            raise CatBoostError("Invalid metrics type={}, must be list(), str() or catboost.metrics.BuiltinMetric.".format(type(metrics)))
+            raise CatBoostError("Invalid metrics type={}, must be list(), str() or one of builtin catboost.metrics.* class instances.".format(type(metrics)))
         if not all(map(lambda metric: isinstance(metric, string_types) or isinstance(metric, BuiltinMetric), metrics)):
-            raise CatBoostError("Invalid metric type: must be string() or catboost.metrics.BuiltinMetric.")
+            raise CatBoostError("Invalid metric type: must be string() or one of builtin catboost.metrics.* class instances.")
         if tmp_dir is None:
             tmp_dir = tempfile.mkdtemp()
 

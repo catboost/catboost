@@ -153,7 +153,8 @@ namespace {
         explicit TMCCCachingMetric(const TLossParams& params,
                                    double predictionBorder)
             : TCachingMetric(ELossFunction::MCC, params)
-            , PredictionBorder(predictionBorder) {
+            , PredictionBorder(predictionBorder)
+        {
         }
         TMetricHolder Eval(
             const TConstArrayRef<TConstArrayRef<double>> approx,
