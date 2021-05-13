@@ -4283,7 +4283,6 @@ migrations:
     - sandbox/projects/websearch/tunneller/tasks
     - sandbox/projects/websearch/upper
     - sandbox/projects/woland/WolandAlerting
-    - sandbox/projects/yabs
     - sandbox/projects/yadi/FeedSnatch
     - sandbox/projects/yadi/PypiIndexer
     - sandbox/projects/yadrive/YaDriveFunctionalTest

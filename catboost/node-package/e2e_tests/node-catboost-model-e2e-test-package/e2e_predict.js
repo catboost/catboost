@@ -1,4 +1,4 @@
-catboost = require('catboost');
+catboost = require('catboost-model');
 
 model = new catboost.Model();
 model.loadModel('./test_data/adult.cbm');
