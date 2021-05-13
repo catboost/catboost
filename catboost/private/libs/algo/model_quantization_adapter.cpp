@@ -14,12 +14,11 @@ namespace {
 
     class TMakeQuantizedFeaturesVisitor final : public IFeaturesBlockIteratorVisitor {
     public:
-        TMakeQuantizedFeaturesVisitor(const TFullModel& model, size_t objectsStart, size_t objectsEnd,
-                                      EFormulaEvaluatorType formulaEvaluatorType = EFormulaEvaluatorType::CPU)
+        TMakeQuantizedFeaturesVisitor(const TFullModel& model, size_t objectsStart, size_t objectsEnd)
             : Model(model)
             , ObjectsStart(objectsStart)
             , ObjectsEnd(objectsEnd)
-            , FormulaEvaluatorType(formulaEvaluatorType)
+            , FormulaEvaluatorType(model.GetEvaluatorType())
         {
             if (FormulaEvaluatorType == EFormulaEvaluatorType::CPU) {
                 ResultCpu = MakeIntrusive<TCPUEvaluatorQuantizedData>();
@@ -129,10 +128,9 @@ namespace NCB {
         const TFullModel& model,
         const IFeaturesBlockIterator& featuresBlockIterator,
         size_t start,
-        size_t end,
-        EFormulaEvaluatorType formulaEvaluatorType) {
+        size_t end) {
 
-        TMakeQuantizedFeaturesVisitor visitor(model, start, end, formulaEvaluatorType);
+        TMakeQuantizedFeaturesVisitor visitor(model, start, end);
         featuresBlockIterator.Accept(&visitor);
         return visitor.GetResult();
     }
@@ -141,14 +139,13 @@ namespace NCB {
         const TFullModel& model,
         const TObjectsDataProvider& objectsData,
         size_t start,
-        size_t end,
-        EFormulaEvaluatorType formulaEvaluatorType) {
+        size_t end) {
 
         THolder<IFeaturesBlockIterator> featuresBlockIterator
             = CreateFeaturesBlockIterator(model, objectsData, start, end);
         featuresBlockIterator->NextBlock(end - start);
 
-        return MakeQuantizedFeaturesForEvaluator(model, *featuresBlockIterator, start, end, formulaEvaluatorType);
+        return MakeQuantizedFeaturesForEvaluator(model, *featuresBlockIterator, start, end);
     }
 
     TIntrusivePtr<NModelEvaluation::IQuantizedData> MakeQuantizedFeaturesForEvaluator(
