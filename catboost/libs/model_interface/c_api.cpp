@@ -1,6 +1,10 @@
 #include "c_api.h"
 
 #include <catboost/libs/cat_feature/cat_feature.h>
+#include <catboost/libs/data/data_provider.h>
+#include <catboost/libs/data/data_provider_builders.h>
+#include <catboost/libs/data/features_layout.h>
+#include <catboost/libs/helpers/polymorphic_type_containers.h>
 #include <catboost/libs/model/model.h>
 
 #include <util/generic/singleton.h>
@@ -8,13 +12,157 @@
 #include <util/string/builder.h>
 
 #define FULL_MODEL_PTR(x) ((TFullModel*)(x))
-
+#define DATA_WRAPPER_PTR(x) ((TFeaturesDataWrapper*)(x))
 
 struct TErrorMessageHolder {
     TString Message;
 };
 
+class TFeaturesDataWrapper {
+public:
+    TFeaturesDataWrapper(size_t docsCount)
+        : DocsCount(docsCount)
+    {
+    }
+
+    // dim : floatFeaturesSize x docsCount
+    void AddFloatFeatures(const float** floatFeatures, size_t floatFeaturesSize) {
+        FloatFeatures.emplace_back(floatFeatures, floatFeaturesSize);
+    }
+
+    void AddCatFeatures(const char*** catFeatures, size_t catFeaturesSize) {
+        CatFeatures.emplace_back(catFeatures, catFeaturesSize);
+    }
+
+    void AddTextFeatures(const char*** textFeatures, size_t textFeaturesSize) {
+        TextFeatures.emplace_back(textFeatures, textFeaturesSize);
+    }
+
+    NCB::TDataProviderPtr BuildDataProvider() {
+        size_t floatFeaturesCount = 0;
+        size_t catFeaturesCount = 0;
+        size_t textFeaturesCount = 0;
+        for (auto [_, count] : FloatFeatures) {
+            floatFeaturesCount += count;
+        }
+        for (auto [_, count] : CatFeatures) {
+            catFeaturesCount += count;
+        }
+        for (auto [_, count] : TextFeatures) {
+            textFeaturesCount += count;
+        }
+        TVector<ui32> catFeaturesIndices(catFeaturesCount);
+        std::iota(catFeaturesIndices.begin(), catFeaturesIndices.end(), static_cast<ui32>(floatFeaturesCount));
+        TVector<ui32> textFeaturesIndices(textFeaturesCount);
+        std::iota(textFeaturesIndices.begin(), textFeaturesIndices.end(), static_cast<ui32>(floatFeaturesCount + catFeaturesCount));
+
+        NCB::TDataMetaInfo metaInfo;
+        metaInfo.TargetType = NCB::ERawTargetType::Float;
+        metaInfo.TargetCount = 1;
+        metaInfo.FeaturesLayout = MakeIntrusive<NCB::TFeaturesLayout>(
+            (ui32)(floatFeaturesCount + catFeaturesCount + textFeaturesCount),
+            catFeaturesIndices,
+            textFeaturesIndices,
+            TVector<ui32>{},
+            TVector<TString>{}
+        );
+        NCB::TDataProviderClosure dataProviderClosure(
+            NCB::EDatasetVisitorType::RawFeaturesOrder,
+            NCB::TDataProviderBuilderOptions(),
+            &NPar::LocalExecutor()
+        );
+        auto* visitor = dataProviderClosure.GetVisitor<NCB::IRawFeaturesOrderDataVisitor>();
+        CB_ENSURE(visitor);
+        visitor->Start(metaInfo, DocsCount, NCB::EObjectsOrder::Undefined, {});
+        {
+            ui32 addedFloatFeaturesCount = 0;
+            for (auto [arr, count] : FloatFeatures) {
+                for (size_t i = 0; i < count; ++i, ++arr, ++addedFloatFeaturesCount) {
+                    const float* column = *arr;
+                    visitor->AddFloatFeature(
+                        addedFloatFeaturesCount,
+                        MakeIntrusive<NCB::TTypeCastArrayHolder<float, float>>(TVector<float>(column, column + DocsCount))
+                    );
+                }
+            }
+        }
+        {
+            CatFeaturesVec.assign(catFeaturesIndices.size(), TVector<TStringBuf>(DocsCount));
+            ui32 addedCatFeaturesCount = 0;
+            for (auto [arr, count] : CatFeatures) {
+                for (size_t i = 0; i < count; ++i, ++addedCatFeaturesCount) {
+                    for (size_t d = 0; d < DocsCount; ++d) {
+                        CatFeaturesVec[addedCatFeaturesCount][d] = arr[i][d];
+                    }
+                    visitor->AddCatFeature(
+                        catFeaturesIndices[addedCatFeaturesCount],
+                        CatFeaturesVec[addedCatFeaturesCount]
+                    );
+                }
+            }
+        }
+        {
+            TextFeaturesVec.assign(textFeaturesIndices.size(), TVector<TString>(DocsCount));
+            ui32 addedTextFeaturesCount = 0;
+            for (auto [arr, count] : TextFeatures) {
+                for (size_t i = 0; i < count; ++i, ++addedTextFeaturesCount) {
+                    for (size_t d = 0; d < DocsCount; ++d) {
+                        TextFeaturesVec[addedTextFeaturesCount][d] = arr[i][d];
+                    }
+                    visitor->AddTextFeature(
+                        textFeaturesIndices[addedTextFeaturesCount],
+                        TextFeaturesVec[addedTextFeaturesCount]
+                    );
+                }
+            }
+        }
+        visitor->Finish();
+        DataProvider = dataProviderClosure.GetResult();
+        return DataProvider;
+    }
+
+private:
+    TVector<std::pair<const float**, size_t>> FloatFeatures;
+    TVector<std::pair<const char***, size_t>> CatFeatures;
+    TVector<std::pair<const char***, size_t>> TextFeatures;
+    TVector<TVector<TStringBuf>> CatFeaturesVec;
+    TVector<TVector<TString>> TextFeaturesVec;
+    NCB::TDataProviderPtr DataProvider;
+    size_t DocsCount = 0;
+};
+
 extern "C" {
+CATBOOST_API DataWrapperHandle* DataWrapperCreate(size_t docsCount) {
+    try {
+        return new TFeaturesDataWrapper(docsCount);
+    } catch (...) {
+        Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
+    }
+    return nullptr;
+}
+
+CATBOOST_API void DataWrapperDelete(DataWrapperHandle* dataWrapperHandle) {
+    if (dataWrapperHandle != nullptr) {
+        delete DATA_WRAPPER_PTR(dataWrapperHandle);
+    }
+}
+
+CATBOOST_API void AddFloatFeatures(DataWrapperHandle* dataWrapperHandle, const float** floatFeatures, size_t floatFeaturesSize) {
+    DATA_WRAPPER_PTR(dataWrapperHandle)->AddFloatFeatures(floatFeatures, floatFeaturesSize);
+}
+
+CATBOOST_API void AddCatFeatures(DataWrapperHandle* dataWrapperHandle, const char*** catFeatures, size_t catFeaturesSize) {
+    DATA_WRAPPER_PTR(dataWrapperHandle)->AddCatFeatures(catFeatures, catFeaturesSize);
+}
+
+CATBOOST_API void AddTextFeatures(DataWrapperHandle* dataWrapperHandle, const char*** textFeatures, size_t textFeaturesSize) {
+    DATA_WRAPPER_PTR(dataWrapperHandle)->AddTextFeatures(textFeatures, textFeaturesSize);
+}
+
+CATBOOST_API DataProviderHandle* BuildDataProvider(DataWrapperHandle* dataWrapperHandle) {
+    return DATA_WRAPPER_PTR(dataWrapperHandle)->BuildDataProvider().Get();
+}
+
 CATBOOST_API ModelCalcerHandle* ModelCalcerCreate() {
     try {
         return new TFullModel;
