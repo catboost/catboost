@@ -2335,10 +2335,7 @@ def test_generated_regression_metrics_with_default_params():
         {
             'MAE': metrics.MAE(), 'MAPE': metrics.MAPE(), 'Poisson': metrics.Poisson(),
             # Metric description should be 'Quantile' instead of 'Quantile:alpha=0.5'
-            'Quantile:alpha=0.5': metrics.Quantile(),
-            'RMSE': metrics.RMSE(),
-            # BUG - see https://github.com/catboost/catboost/issues/1698
-            # 'RMSEWithUncertainty': metrics.RMSEWithUncertainty(),
+            'Quantile:alpha=0.5': metrics.Quantile(), 'RMSE': metrics.RMSE(),
             'LogLinQuantile': metrics.LogLinQuantile(), 'Expectile': metrics.Expectile(),
             'FairLoss': metrics.FairLoss(), 'SMAPE': metrics.SMAPE(),
             'R2': metrics.R2(), 'MSLE': metrics.MSLE(), 'MedianAbsoluteError': metrics.MedianAbsoluteError()
