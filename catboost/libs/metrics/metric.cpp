@@ -4669,7 +4669,7 @@ TVector<THolder<IMetric>> TUserDefinedPerObjectMetric::Create(const TMetricConfi
 
 TUserDefinedPerObjectMetric::TUserDefinedPerObjectMetric(const TLossParams& params)
         : TMetric(ELossFunction::UserPerObjMetric, params)
-        , Alpha(params.GetParamsMap().contains("alpha") ? FromString<float>(params.GetParamsMap().at("alpha")) : 0.0) {
+        , Alpha(params.GetParamsMap().contains("alpha") ? FromString<float>(params.GetParamsMap().at("alpha")) : DefaultAlpha) {
     UseWeights.MakeIgnored();
 }
 
@@ -4714,6 +4714,7 @@ namespace {
 
     private:
         const double Alpha;
+        static constexpr double DefaultAlpha = 0.0;
     };
 }
 
