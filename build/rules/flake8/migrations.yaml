@@ -131,7 +131,6 @@ migrations:
     - contrib/nginx/tests/tap
     - crypta/audience/lib/tasks
     - crypta/audience/lib/tasks/audience
-    - crypta/cm/services/quoter/bin/test
     - crypta/dit/mr_dit_process/lib
     - crypta/dmp/common/upload_to_audience
     - crypta/graph/fuzzy/lib
@@ -1174,7 +1173,6 @@ migrations:
     - cloud/netinfra/rknfilter/yc_rkn_common
     - cloud/netinfra/rknfilter/yc_rkn_config_node
     - cmnt/tools/regression/request_classes
-    - crypta/cm/services/quoter/bin/test
     - cv/imageproc/ocr/tools/database_extraction/nirvana/imgaug/src/augmenters
     - cv/short2long/training/yt_calc_factors
     - datacloud/log_reader/lib
@@ -1645,8 +1643,6 @@ migrations:
     - browser/infra/bitbucket/bitbucket
     - browser/infra/ci/backend
     - clickhouse/utils/github
-    - crypta/cm/services/common/test_utils
-    - crypta/cm/services/quoter/bin/test
     - crypta/lab/test/yt
     - cv/imageproc/ocr/tools/nirvana/captcha_renderer
     - cv/short2long/nirvana/lib
