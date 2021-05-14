@@ -2478,7 +2478,6 @@ class CatBoost(_CatBoostBase):
 
         metrics : list of strings or catboost.metrics.BuiltinMetric
             List of evaluated metrics.
-            TODO(kkorovina): accept a list of BuiltinMetric objects, and convert them to string in this method.
 
         ntree_start: int, optional (default=0)
             Model is applied on the interval [ntree_start, ntree_end) (zero-based indexing).
