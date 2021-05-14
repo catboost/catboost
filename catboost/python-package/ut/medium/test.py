@@ -186,20 +186,6 @@ model_diff_tool = binary_path("catboost/tools/model_comparator/model_comparator"
 np.set_printoptions(legacy='1.13')
 
 
-class LogStdout:
-    def __init__(self, file):
-        self.log_file = file
-
-    def __enter__(self):
-        self.saved_stdout = sys.stdout
-        sys.stdout = self.log_file
-        return self.saved_stdout
-
-    def __exit__(self, exc_type, exc_value, exc_traceback):
-        sys.stdout = self.saved_stdout
-        self.log_file.close()
-
-
 def compare_canonical_models(model, diff_limit=0):
     return local_canonical_file(model, diff_tool=[model_diff_tool, '--diff-limit', str(diff_limit)])
 
@@ -4048,16 +4034,18 @@ def test_verbose_int(verbose, task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     tmpfile = 'test_data_dumps'
 
-    with LogStdout(open(tmpfile, 'w')):
+    with open(tmpfile, 'w') as cout:
         cv(
             pool,
             {"iterations": 10, "learning_rate": 0.03, "loss_function": "Logloss", "task_type": task_type},
             verbose=verbose,
+            log_cout=cout,
         )
     assert(_count_lines(tmpfile) == expected_line_count[verbose])
 
-    with LogStdout(open(tmpfile, 'w')):
-        train(pool, {"iterations": 10, "learning_rate": 0.03, "loss_function": "Logloss", "task_type": task_type, "devices": '0'}, verbose=verbose)
+    with open(tmpfile, 'w') as cout:
+        train(pool, {"iterations": 10, "learning_rate": 0.03, "loss_function": "Logloss", "task_type": task_type, "devices": '0'},
+              verbose=verbose, log_cout=cout)
     assert(_count_lines(tmpfile) == expected_line_count[verbose])
 
     return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
@@ -4532,10 +4520,10 @@ def test_metric_period_redefinition(task_type):
     tmpfile2 = test_output_path('tmpfile2')
     model = CatBoost(dict(iterations=10, metric_period=3, task_type=task_type, devices='0'))
 
-    with LogStdout(open(tmpfile1, 'w')):
-        model.fit(pool)
-    with LogStdout(open(tmpfile2, 'w')):
-        model.fit(pool, metric_period=2)
+    with open(tmpfile1, 'w') as cout:
+        model.fit(pool, log_cout=cout)
+    with open(tmpfile2, 'w') as cout:
+        model.fit(pool, metric_period=2, log_cout=cout)
 
     assert(_count_lines(tmpfile1) == 5)
     assert(_count_lines(tmpfile2) == 7)
@@ -4547,10 +4535,10 @@ def test_verbose_redefinition(task_type):
     tmpfile2 = test_output_path('tmpfile2')
     model = CatBoost(dict(iterations=10, verbose=False, task_type=task_type, devices='0'))
 
-    with LogStdout(open(tmpfile1, 'w')):
-        model.fit(pool)
-    with LogStdout(open(tmpfile2, 'w')):
-        model.fit(pool, verbose=True)
+    with open(tmpfile1, 'w') as cout:
+        model.fit(pool, log_cout=cout)
+    with open(tmpfile2, 'w') as cout:
+        model.fit(pool, verbose=True, log_cout=cout)
 
     assert(_count_lines(tmpfile1) == 0)
     assert(_count_lines(tmpfile2) == 11)
@@ -4671,20 +4659,20 @@ def test_silent():
     tmpfile4 = test_output_path('tmpfile4')
     tmpfile5 = test_output_path('tmpfile5')
 
-    with LogStdout(open(tmpfile1, 'w')):
+    with open(tmpfile1, 'w') as cout:
         model = CatBoost(dict(iterations=10, silent=True))
-        model.fit(pool)
-    with LogStdout(open(tmpfile2, 'w')):
+        model.fit(pool, log_cout=cout)
+    with open(tmpfile2, 'w') as cout:
         model = CatBoost(dict(iterations=10, silent=True))
-        model.fit(pool, silent=False)
-    with LogStdout(open(tmpfile3, 'w')):
-        train(pool, {'silent': True})
-    with LogStdout(open(tmpfile4, 'w')):
+        model.fit(pool, silent=False, log_cout=cout)
+    with open(tmpfile3, 'w') as cout:
+        train(pool, {'silent': True}, log_cout=cout)
+    with open(tmpfile4, 'w') as cout:
         model = CatBoost(dict(iterations=10, silent=False))
-        model.fit(pool, silent=True)
-    with LogStdout(open(tmpfile5, 'w')):
+        model.fit(pool, silent=True, log_cout=cout)
+    with open(tmpfile5, 'w') as cout:
         model = CatBoost(dict(iterations=10, verbose=5))
-        model.fit(pool, silent=True)
+        model.fit(pool, silent=True, log_cout=cout)
 
     assert(_count_lines(tmpfile1) == 0)
     assert(_count_lines(tmpfile2) == 11)
@@ -4865,8 +4853,8 @@ def test_shap_verbose(calc_shap_mode):
     model.fit(pool)
 
     tmpfile = test_output_path('test_data_dumps')
-    with LogStdout(open(tmpfile, 'w')):
-        model.get_feature_importance(type=EFstrType.ShapValues, data=pool, verbose=12, reference_data=reference_data)
+    with open(tmpfile, 'w') as cout:
+        model.get_feature_importance(type=EFstrType.ShapValues, data=pool, verbose=12, reference_data=reference_data, log_cout=cout)
     if calc_shap_mode == "TreeSHAP":
         assert(_count_lines(tmpfile) == 5)
     else:
@@ -6141,8 +6129,8 @@ def test_best_iteration(task_type):
     model = CatBoostClassifier(**params)
     model.fit(train_pool, eval_set=test_pool)
     log_path = test_output_path('log.txt')
-    with LogStdout(open(log_path, 'w')):
-        model.fit(train_pool, eval_set=test_pool)
+    with open(log_path, 'w') as cout:
+        model.fit(train_pool, eval_set=test_pool, log_cout=cout)
     with open(log_path, 'r') as log_file:
         content = log_file.read()
         best_iteration_from_log = re.search(r'(?<=bestIteration = )\d+', content).group(0)
@@ -6704,8 +6692,8 @@ def test_metric_period_with_verbose_true():
     model = CatBoost(dict(iterations=16, metric_period=4))
 
     tmpfile = test_output_path('tmpfile')
-    with LogStdout(open(tmpfile, 'w')):
-        model.fit(pool, verbose=True)
+    with open(tmpfile, 'w') as cout:
+        model.fit(pool, verbose=True, log_cout=cout)
 
     assert(_count_lines(tmpfile) == 6)
 
