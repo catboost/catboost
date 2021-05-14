@@ -8454,19 +8454,19 @@ def test_binclass_probability_threshold():
     # binary classification
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
 
-    classifier = CatBoostClassifier(iterations=2, binclass_probability_threshold=0.7)
-    assert classifier.get_probability_threshold() == 0.7  # check initialization from __init__
-
     classifier = CatBoostClassifier(iterations=2)
-    assert classifier.get_probability_threshold() == 0.5
-
-    classifier.set_probability_threshold(0.6)  # check set before training
-    assert classifier.get_probability_threshold() == 0.6  # check it saved
+    with pytest.raises(CatBoostError):
+        classifier.set_probability_threshold(0.6)  # can't set before training
+    with pytest.raises(CatBoostError):
+        classifier.get_probability_threshold()  # can't get before training
 
     classifier.fit(pool)
-    assert classifier.get_probability_threshold() == 0.6  # check it saved after train
+    assert classifier.get_probability_threshold() == 0.5  # check default value
 
-    def check_threshold(classifier, threshold):
+    classifier.set_probability_threshold(0.6)  # check set
+    assert classifier.get_probability_threshold() == 0.6  # check get
+
+    def check_predictions_with_threshold(classifier, threshold):
         proba = classifier.predict_proba(pool)[:, 1]
         pred = classifier.predict(pool).astype(int)
         if threshold < 0.5:
@@ -8476,7 +8476,7 @@ def test_binclass_probability_threshold():
 
         assert np.all(pred == (proba > threshold).astype(int))  # check if threshold is working
 
-    check_threshold(classifier, 0.6)
+    check_predictions_with_threshold(classifier, 0.6)
 
     accuracy = classifier.score(pool)  # check if score function is working too
     pred = classifier.predict(pool).astype(int)
@@ -8485,12 +8485,12 @@ def test_binclass_probability_threshold():
     # change threshold
     classifier.set_probability_threshold(0.4)
     assert classifier.get_probability_threshold() == 0.4
-    check_threshold(classifier, 0.4)
+    check_predictions_with_threshold(classifier, 0.4)
 
     # nullify it
     classifier.set_probability_threshold(None)
     assert classifier.get_probability_threshold() == 0.5
-    check_threshold(classifier, 0.5)
+    check_predictions_with_threshold(classifier, 0.5)
 
 
 def test_exponent_prediction_type():

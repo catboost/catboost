@@ -4444,19 +4444,15 @@ class CatBoostClassifier(CatBoost):
         dictionaries=None,
         feature_calcers=None,
         text_processing=None,
-        embedding_features=None,
-        binclass_probability_threshold=None
+        embedding_features=None
     ):
         params = {}
-        not_params = ["not_params", "self", "params", "__class__", "binclass_probability_threshold"]
+        not_params = ["not_params", "self", "params", "__class__"]
         for key, value in iteritems(locals().copy()):
             if key not in not_params and value is not None:
                 params[key] = value
 
         super(CatBoostClassifier, self).__init__(params)
-
-        if binclass_probability_threshold is not None:
-            self.set_probability_threshold(binclass_probability_threshold)
 
     def fit(self, X, y=None, cat_features=None, text_features=None, embedding_features=None, sample_weight=None, baseline=None, use_best_model=None,
             eval_set=None, verbose=None, logging_level=None, plot=False, column_description=None,
@@ -4872,12 +4868,13 @@ class CatBoostClassifier(CatBoost):
                 raise CatBoostError('predicted classes have string type but specified y is boolean')
         return np.mean(np.array(predicted_classes) == np.array(y))
 
-
     def set_probability_threshold(self, binclass_probability_threshold=None):
         """
-        Set a threshold for classes separation in binary classification task.
+        Set a threshold for classes separation in binary classification task for a trained model.
         :param binclass_probability_threshold: float number in [0, 1] or None to discard it
         """
+        if not self.is_fitted():
+            raise CatBoostError("You can't set probability threshold for not fitted model.")
         metadata = self.get_metadata()
         if binclass_probability_threshold is None:
             if 'binclass_probability_threshold' in metadata.keys():
@@ -4889,13 +4886,13 @@ class CatBoostClassifier(CatBoost):
                 "Please provide correct probability for binclass_probability_threshold argument in [0, 1] range"
             self.get_metadata()['binclass_probability_threshold'] = str(binclass_probability_threshold)
 
-
     def get_probability_threshold(self):
         """
         Get a threshold for classes separation in binary classification task
         """
+        if not self.is_fitted():
+            raise CatBoostError("Not fitted models don't have a probability threshold.")
         return self._object._get_binclass_probability_threshold()
-
 
     @staticmethod
     def _check_is_compatible_loss(loss_function):
