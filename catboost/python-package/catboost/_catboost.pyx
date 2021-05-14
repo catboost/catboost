@@ -10,15 +10,18 @@ import atexit
 import six
 from six import iteritems, string_types
 from cpython.version cimport PY_MAJOR_VERSION
+import warnings
 
 from six.moves import range
 from json import dumps, loads, JSONEncoder
 from copy import deepcopy
 from collections import defaultdict
 import functools
-import traceback
+import inspect
 import numbers
 import os
+import traceback
+import types
 
 import sys
 if sys.version_info >= (3, 3):
@@ -108,6 +111,16 @@ numpy_num_dtype_list = [
     np.uint64,
     np.float32,
     np.float64
+]
+
+custom_objective_methods_to_optimize = [
+    'calc_ders_range',
+    'calc_ders_multi',
+]
+
+custom_metric_methods_to_optimize = [
+    'evaluate',
+    'get_final_error'
 ]
 
 from catboost.private.libs.cython cimport *
@@ -1228,6 +1241,15 @@ cdef np.ndarray _CreateNumpyDoubleArrayView(const double* array, int count):
     dims[0] = count
     return np.PyArray_SimpleNewFromData(1, dims, np.NPY_DOUBLE, <void*>array)
 
+cdef _ToPythonObjArrayOfArraysOfDoubles(const TVector[double]* values, int size, int begin, int end):
+    # https://numba.pydata.org/numba-doc/latest/reference/deprecation.html#deprecation-of-reflection-for-list-and-set-types
+    # numba doesn't like python lists, so using tuple instead
+    return tuple(_CreateNumpyDoubleArrayView(values[i].data() + begin, end - begin) for i in xrange(size))
+
+cdef _ToPythonObjArrayOfArraysOfFloats(const TConstArrayRef[float]* values, int size, int begin, int end):
+    # using tuple as in _ToPythonObjArrayOfArraysOfDoubles
+    return tuple(_CreateNumpyFloatArrayView(values[i].data() + begin, end - begin) for i in xrange(size))
+
 cdef TMetricHolder _MetricEval(
     const TVector[TVector[double]]& approx,
     TConstArrayRef[float] target,
@@ -1241,7 +1263,7 @@ cdef TMetricHolder _MetricEval(
     cdef TMetricHolder holder
     holder.Stats.resize(2)
 
-    approxes = [_CreateNumpyDoubleArrayView(approx[i].data() + begin, end - begin) for i in xrange(approx.size())]
+    approxes = _ToPythonObjArrayOfArraysOfDoubles(approx.data(), approx.size(), begin, end)
     targets = _CreateNumpyFloatArrayView(target.data() + begin, end - begin)
 
     if weight.size() == 0:
@@ -1273,8 +1295,8 @@ cdef TMetricHolder _MultiregressionMetricEval(
     cdef TMetricHolder holder
     holder.Stats.resize(2)
 
-    approxes = [_CreateNumpyDoubleArrayView(approx[i].data() + begin, end - begin) for i in xrange(approx.size())]
-    targets = [_CreateNumpyFloatArrayView(target[i].data() + begin, end - begin) for i in xrange(target.size())]
+    approxes = _ToPythonObjArrayOfArraysOfDoubles(approx.data(), approx.size(), begin, end)
+    targets = _ToPythonObjArrayOfArraysOfFloats(target.data(), target.size(), begin, end)
 
     if weight.size() == 0:
         weights = None
@@ -1417,6 +1439,82 @@ cdef void _ObjectiveCalcDersMultiRegression(
                 dereference(der2).Data[index] = num
                 index += 1
 
+def _is_self_unused_in_method(method):
+    args = inspect.getfullargspec(method)
+    if not args.args:
+        return False
+    self_arg_name = args.args[0]
+    return inspect.getsource(method).count(self_arg_name) == 1
+
+def _check_object_and_class_methods_match(object_method, class_method):
+    return inspect.getsource(object_method) == inspect.getsource(class_method)
+
+def _try_jit_method(obj, method_name):
+    import numba
+
+    object_method = getattr(obj, method_name, None)
+    class_method = getattr(obj.__class__, method_name, None)
+
+    if not object_method:
+        warnings.warn("Can't find method \"{}\" in the passed object".format(method_name))
+        return
+    if not class_method:
+        warnings.warn("Can't find method \"{}\" in the class of the passed object".format(method_name))
+        return
+    if type(object_method) != types.MethodType:
+        warnings.warn("Got unexpected type for method \"{}\" in the passed object: {}".format(method_name, type(object_method)))
+        return
+    if not _check_object_and_class_methods_match(object_method, class_method):
+        warnings.warn("Methods \"{}\" in the passed object and its class don't match".format(method_name))
+        return
+    if not _is_self_unused_in_method(object_method):
+        warnings.warn("Can't optimze method \"{}\" because self argument is used".format(method_name))
+        return
+
+    try:
+        optimized = numba.njit(class_method)
+    except numba.core.errors.NumbaError as err:
+        warnings.warn("Failed to optimize method \"{}\" in the passed object:\n{}".format(method_name, err))
+        return
+
+    def new_method(*args):
+        if not new_method.initialized:
+            try:
+                value = optimized(0, *args)
+                return value
+            except numba.core.errors.NumbaError as err:
+                warnings.warn("Failed to optimize method \"{}\" in the passed object:\n{}".format(method_name, err))
+                new_method.use_optimized = False
+                return object_method(*args)
+            finally:
+                new_method.initialized = True
+        elif new_method.use_optimized:
+            return optimized(0, *args)
+        else:
+            return object_method(*args)
+    setattr(new_method, "initialized", False)
+    setattr(new_method, "use_optimized", True)
+    setattr(obj, method_name, new_method)
+
+def _try_jit_methods(obj, method_names):
+    if hasattr(obj, "no_jit"):
+        return
+
+    if hasattr(obj, "_jited"): # everything already done
+        return
+
+    setattr(obj, "_jited", True)
+
+    try:
+        import numba
+    except:
+        #  warnings.warn('Failed to import numba for optimizing custom metrics and objectives')
+        return
+
+    for method_name in method_names:
+        if hasattr(obj, method_name):
+            _try_jit_method(obj, method_name)
+
 
 # customGenerator should have method rvs()
 cdef TCustomRandomDistributionGenerator _BuildCustomRandomDistributionGenerator(object customGenerator):
@@ -1427,6 +1525,7 @@ cdef TCustomRandomDistributionGenerator _BuildCustomRandomDistributionGenerator(
 
 cdef TCustomMetricDescriptor _BuildCustomMetricDescriptor(object metricObject):
     cdef TCustomMetricDescriptor descriptor
+    _try_jit_methods(metricObject, custom_metric_methods_to_optimize)
     descriptor.CustomData = <void*>metricObject
     if (issubclass(metricObject.__class__, MultiRegressionCustomMetric)):
         descriptor.EvalMultiregressionFunc = &_MultiregressionMetricEval
@@ -1439,6 +1538,7 @@ cdef TCustomMetricDescriptor _BuildCustomMetricDescriptor(object metricObject):
 
 cdef TCustomObjectiveDescriptor _BuildCustomObjectiveDescriptor(object objectiveObject):
     cdef TCustomObjectiveDescriptor descriptor
+    _try_jit_methods(objectiveObject, custom_objective_methods_to_optimize)
     descriptor.CustomData = <void*>objectiveObject
     descriptor.CalcDersRange = &_ObjectiveCalcDersRange
     descriptor.CalcDersMultiRegression = &_ObjectiveCalcDersMultiRegression
