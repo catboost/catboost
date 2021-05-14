@@ -893,8 +893,7 @@ void TTotalF1CachingMetric::GetBestValue(EMetricBestValue* valueType, float*) co
 }
 
 TVector<TParamSet> TTotalF1CachingMetric::ValidParamSets() {
-    TVector<TParamSet> paramSets;
-    paramSets.emplace_back(
+    return {
         TParamSet{
             {
                 TParamInfo{"use_weights", false, true},
@@ -902,8 +901,7 @@ TVector<TParamSet> TTotalF1CachingMetric::ValidParamSets() {
             },
             ""
         }
-    );
-    return paramSets;
+    };
 };
 
 /* Kappa */
