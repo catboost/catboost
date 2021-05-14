@@ -66,9 +66,6 @@
   - cxxabi.h
   - deque
   - exception
-  - experimental/string_view
-  - ext/hash_map
-  - ext/hash_set
   - filesystem
   - forward_list
   - fstream
@@ -90,7 +87,6 @@
   - new
   - numeric
   - optional
-  - experimental/optional
   - ostream
   - queue
   - random
