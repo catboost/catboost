@@ -4980,6 +4980,32 @@ class CatBoostClassifier(CatBoost):
                 raise CatBoostError('predicted classes have string type but specified y is boolean')
         return np.mean(np.array(predicted_classes) == np.array(y))
 
+    def set_probability_threshold(self, binclass_probability_threshold=None):
+        """
+        Set a threshold for classes separation in binary classification task for a trained model.
+        :param binclass_probability_threshold: float number in [0, 1] or None to discard it
+        """
+        if not self.is_fitted():
+            raise CatBoostError("You can't set probability threshold for not fitted model.")
+        metadata = self.get_metadata()
+        if binclass_probability_threshold is None:
+            if 'binclass_probability_threshold' in metadata.keys():
+                del metadata['binclass_probability_threshold']
+        else:
+            if not isinstance(binclass_probability_threshold, FLOAT_TYPES):
+                raise CatBoostError("binclass_probability_threshold must have float type")
+            assert 0. <= binclass_probability_threshold <= 1.,\
+                "Please provide correct probability for binclass_probability_threshold argument in [0, 1] range"
+            self.get_metadata()['binclass_probability_threshold'] = str(binclass_probability_threshold)
+
+    def get_probability_threshold(self):
+        """
+        Get a threshold for classes separation in binary classification task
+        """
+        if not self.is_fitted():
+            raise CatBoostError("Not fitted models don't have a probability threshold.")
+        return self._object._get_binclass_probability_threshold()
+
     @staticmethod
     def _check_is_compatible_loss(loss_function):
         if isinstance(loss_function, str) and not CatBoost._is_classification_objective(loss_function):

@@ -8798,6 +8798,49 @@ def test_log_proba():
     assert np.allclose(log_pred_1, log_pred_2)
 
 
+def test_binclass_probability_threshold():
+    # binary classification
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+
+    classifier = CatBoostClassifier(iterations=2)
+    with pytest.raises(CatBoostError):
+        classifier.set_probability_threshold(0.6)  # can't set before training
+    with pytest.raises(CatBoostError):
+        classifier.get_probability_threshold()  # can't get before training
+
+    classifier.fit(pool)
+    assert classifier.get_probability_threshold() == 0.5  # check default value
+
+    classifier.set_probability_threshold(0.6)  # check set
+    assert classifier.get_probability_threshold() == 0.6  # check get
+
+    def check_predictions_with_threshold(classifier, threshold):
+        proba = classifier.predict_proba(pool)[:, 1]
+        pred = classifier.predict(pool).astype(int)
+        if threshold < 0.5:
+            assert np.any((proba > threshold) & (proba < 0.5))  # check for non-dummy test case
+        elif threshold > 0.5:
+            assert np.any((proba > 0.5) & (proba < threshold))  # check for non-dummy test case
+
+        assert np.all(pred == (proba > threshold).astype(int))  # check if threshold is working
+
+    check_predictions_with_threshold(classifier, 0.6)
+
+    accuracy = classifier.score(pool)  # check if score function is working too
+    pred = classifier.predict(pool).astype(int)
+    assert np.allclose(accuracy, np.mean(pred == np.array(pool.get_label()).astype(int)))
+
+    # change threshold
+    classifier.set_probability_threshold(0.4)
+    assert classifier.get_probability_threshold() == 0.4
+    check_predictions_with_threshold(classifier, 0.4)
+
+    # nullify it
+    classifier.set_probability_threshold(None)
+    assert classifier.get_probability_threshold() == 0.5
+    check_predictions_with_threshold(classifier, 0.5)
+
+
 def test_exponent_prediction_type():
     # poisson regression
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)

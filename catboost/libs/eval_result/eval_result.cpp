@@ -181,7 +181,8 @@ namespace NCB {
         TIntrusivePtr<IPoolColumnsPrinter> poolColumnsPrinter,
         std::pair<int, int> testFileWhichOf,
         ui64 docIdOffset,
-        TMaybe<std::pair<size_t, size_t>> evalParameters) {
+        TMaybe<std::pair<size_t, size_t>> evalParameters,
+        double binClassLogitThreshold) {
 
         TFeatureIdToDesc featureIdToDesc = GetFeatureIdToDesc(pool);
 
@@ -201,7 +202,8 @@ namespace NCB {
                                      visibleLabelsHelper,
                                      evalParameters,
                                      &columnPrinter,
-                                     executor);
+                                     executor,
+                                     binClassLogitThreshold);
                 continue;
             }
             EColumn outputType;
@@ -348,7 +350,8 @@ namespace NCB {
         std::pair<int, int> testFileWhichOf,
         bool writeHeader,
         ui64 docIdOffset,
-        TMaybe<std::pair<size_t, size_t>> evalParameters) {
+        TMaybe<std::pair<size_t, size_t>> evalParameters,
+        double binClassLogitThreshold) {
 
         TVector<THolder<IColumnPrinter>> columnPrinter = InitializeColumnWriter(
             evalResult,
@@ -360,7 +363,8 @@ namespace NCB {
             poolColumnsPrinter,
             testFileWhichOf,
             docIdOffset,
-            evalParameters);
+            evalParameters,
+            binClassLogitThreshold);
 
         if (writeHeader) {
             TString delimiter = "";
@@ -394,7 +398,8 @@ namespace NCB {
         std::pair<int, int> testFileWhichOf,
         const TDsvFormatOptions& testSetFormat,
         bool writeHeader,
-        ui64 docIdOffset) {
+        ui64 docIdOffset,
+        double binClassLogitThreshold) {
 
         TIntrusivePtr<IPoolColumnsPrinter> poolColumnsPrinter = CreatePoolColumnPrinter(
             testSetPath,
@@ -412,7 +417,9 @@ namespace NCB {
             poolColumnsPrinter,
             testFileWhichOf,
             writeHeader,
-            docIdOffset);
+            docIdOffset,
+            {},
+            binClassLogitThreshold);
     }
 
 } // namespace NCB

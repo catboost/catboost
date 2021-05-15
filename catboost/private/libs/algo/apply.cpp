@@ -220,7 +220,7 @@ TVector<TVector<double>> ApplyModelMulti(
     int threadCount)
 {
     const auto baseline = data.RawTargetData.GetBaseline();
-    if(baseline) {
+    if (baseline) {
         CB_ENSURE(
             baseline->size() == model.GetDimensionsCount(),
             "Baseline should have the same dimension count as model: expected " << model.GetDimensionsCount()
