@@ -11,7 +11,15 @@
 #include <util/stream/file.h>
 #include <util/string/builder.h>
 
-#define FULL_MODEL_PTR(x) ((TFullModel*)(x))
+struct TModelHandleContent {
+    THolder<TFullModel> FullModel;
+    NCB::NModelEvaluation::TConstModelEvaluatorPtr Evaluator;
+};
+
+#define MODEL_HANDLE_CONTENT_PTR(x) ((TModelHandleContent*)(x))
+#define FULL_MODEL_PTR(x) (MODEL_HANDLE_CONTENT_PTR(x)->FullModel)
+#define EVALUATOR_PTR(x) (MODEL_HANDLE_CONTENT_PTR(x)->Evaluator)
+
 #define DATA_WRAPPER_PTR(x) ((TFeaturesDataWrapper*)(x))
 
 struct TErrorMessageHolder {
@@ -131,6 +139,14 @@ private:
     size_t DocsCount = 0;
 };
 
+namespace {
+    void GetSpecificClass(int classId, TArrayRef<double> predictions, size_t dim, TArrayRef<double> result) {
+        for (size_t docId = 0; docId < result.size(); ++docId) {
+            result[docId] = predictions[docId * dim + classId];
+        }
+    }
+}  // namespace
+
 extern "C" {
 CATBOOST_API DataWrapperHandle* DataWrapperCreate(size_t docsCount) {
     try {
@@ -165,7 +181,9 @@ CATBOOST_API DataProviderHandle* BuildDataProvider(DataWrapperHandle* dataWrappe
 
 CATBOOST_API ModelCalcerHandle* ModelCalcerCreate() {
     try {
-        return new TFullModel;
+        auto* fullModel = new TFullModel;
+        auto evaluator = fullModel->GetCurrentEvaluator();
+        return new TModelHandleContent{.FullModel = fullModel, .Evaluator = std::move(evaluator)};
     } catch (...) {
         Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
     }
@@ -179,7 +197,7 @@ CATBOOST_API const char* GetErrorString() {
 
 CATBOOST_API void ModelCalcerDelete(ModelCalcerHandle* modelHandle) {
     if (modelHandle != nullptr) {
-        delete FULL_MODEL_PTR(modelHandle);
+        delete MODEL_HANDLE_CONTENT_PTR(modelHandle);
     }
 }
 
@@ -210,10 +228,22 @@ CATBOOST_API bool EnableGPUEvaluation(ModelCalcerHandle* modelHandle, int device
         //TODO(kirillovs): fix this after adding set evaluator props interface
         CB_ENSURE(deviceId == 0, "FIXME: Only device 0 is supported for now");
         FULL_MODEL_PTR(modelHandle)->SetEvaluatorType(EFormulaEvaluatorType::GPU);
+        EVALUATOR_PTR(modelHandle) = FULL_MODEL_PTR(modelHandle)->GetCurrentEvaluator();
     } catch (...) {
         Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
         return false;
     }
+    return true;
+}
+
+CATBOOST_API bool SetPredictionType(ModelCalcerHandle* modelHandle, EApiPredictionType predictionType) {
+    try {
+        FULL_MODEL_PTR(modelHandle)->SetPredictionType(static_cast<NCB::NModelEvaluation::EPredictionType>(predictionType));
+    } catch (...) {
+        Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
+        return false;
+    }
+
     return true;
 }
 
@@ -342,6 +372,159 @@ CATBOOST_API bool CalcModelPredictionWithHashedCatAndTextFeatures(ModelCalcerHan
             }
         }
         FULL_MODEL_PTR(modelHandle)->CalcWithHashedCatAndText(floatFeaturesVec, catFeaturesVec, textFeaturesVec, TArrayRef<double>(result, resultSize));
+    } catch (...) {
+        Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
+        return false;
+    }
+    return true;
+}
+
+CATBOOST_API bool PredictSpecificClassFlat(
+        ModelCalcerHandle* modelHandle,
+        size_t docCount,
+        const float** floatFeatures, size_t floatFeaturesSize,
+        int classId,
+        double* result, size_t resultSize) {
+    try {
+        const size_t dim = FULL_MODEL_PTR(modelHandle)->GetDimensionsCount();
+        TVector<double> rawResult(docCount * dim);
+        if (!CalcModelPredictionFlat(modelHandle, docCount, floatFeatures, floatFeaturesSize, rawResult.data(), rawResult.size())) {
+            return false;
+        }
+        GetSpecificClass(classId, rawResult, dim, TArrayRef<double>(result, resultSize));
+    } catch (...) {
+        Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
+        return false;
+    }
+    return true;
+}
+
+CATBOOST_API bool PredictSpecificClass(
+        ModelCalcerHandle* modelHandle,
+        size_t docCount,
+        const float** floatFeatures, size_t floatFeaturesSize,
+        const char*** catFeatures, size_t catFeaturesSize,
+        int classId,
+        double* result, size_t resultSize) {
+    try {
+        const size_t dim = FULL_MODEL_PTR(modelHandle)->GetDimensionsCount();
+        TVector<double> rawResult(docCount * dim);
+        if (!CalcModelPrediction(
+                modelHandle, docCount,
+                floatFeatures, floatFeaturesSize,
+                catFeatures, catFeaturesSize,
+                rawResult.data(), rawResult.size()))
+        {
+            return false;
+        }
+        GetSpecificClass(classId, rawResult, dim, TArrayRef<double>(result, resultSize));
+    } catch (...) {
+        Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
+        return false;
+    }
+    return true;
+}
+
+CATBOOST_API bool PredictSpecificClassText(
+        ModelCalcerHandle* modelHandle,
+        size_t docCount,
+        const float** floatFeatures, size_t floatFeaturesSize,
+        const char*** catFeatures, size_t catFeaturesSize,
+        const char*** textFeatures, size_t textFeaturesSize,
+        int classId,
+        double* result, size_t resultSize) {
+    try {
+        const size_t dim = FULL_MODEL_PTR(modelHandle)->GetDimensionsCount();
+        TVector<double> rawResult(docCount * dim);
+        if (!CalcModelPredictionText(
+                modelHandle, docCount,
+                floatFeatures, floatFeaturesSize,
+                catFeatures, catFeaturesSize,
+                textFeatures, textFeaturesSize,
+                rawResult.data(), rawResult.size()))
+        {
+            return false;
+        }
+        GetSpecificClass(classId, rawResult, dim, TArrayRef<double>(result, resultSize));
+    } catch (...) {
+        Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
+        return false;
+    }
+    return true;
+}
+
+CATBOOST_API bool PredictSpecificClassSingle(
+        ModelCalcerHandle* modelHandle,
+        const float* floatFeatures, size_t floatFeaturesSize,
+        const char** catFeatures, size_t catFeaturesSize,
+        int classId,
+        double* result, size_t resultSize) {
+    try {
+        const size_t dim = FULL_MODEL_PTR(modelHandle)->GetDimensionsCount();
+        TVector<double> rawResult(dim);
+        if (!CalcModelPredictionSingle(
+                modelHandle,
+                floatFeatures, floatFeaturesSize,
+                catFeatures, catFeaturesSize,
+                rawResult.data(), rawResult.size()))
+        {
+            return false;
+        }
+        GetSpecificClass(classId, rawResult, dim, TArrayRef<double>(result, resultSize));
+    } catch (...) {
+        Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
+        return false;
+    }
+    return true;
+}
+
+CATBOOST_API bool PredictSpecificClassWithHashedCatFeatures(
+        ModelCalcerHandle* modelHandle,
+        size_t docCount,
+        const float** floatFeatures, size_t floatFeaturesSize,
+        const int** catFeatures, size_t catFeaturesSize,
+        int classId,
+        double* result, size_t resultSize) {
+    try {
+        const size_t dim = FULL_MODEL_PTR(modelHandle)->GetDimensionsCount();
+        TVector<double> rawResult(docCount * dim);
+        if (!CalcModelPredictionWithHashedCatFeatures(
+                modelHandle, docCount,
+                floatFeatures, floatFeaturesSize,
+                catFeatures, catFeaturesSize,
+                rawResult.data(), rawResult.size()))
+        {
+            return false;
+        }
+        GetSpecificClass(classId, rawResult, dim, TArrayRef<double>(result, resultSize));
+    } catch (...) {
+        Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
+        return false;
+    }
+    return true;
+}
+
+CATBOOST_API bool PredictSpecificClassWithHashedCatAndTextFeatures(
+        ModelCalcerHandle* modelHandle,
+        size_t docCount,
+        const float** floatFeatures, size_t floatFeaturesSize,
+        const int** catFeatures, size_t catFeaturesSize,
+        const char*** textFeatures, size_t textFeaturesSize,
+        int classId,
+        double* result, size_t resultSize) {
+    try {
+        const size_t dim = FULL_MODEL_PTR(modelHandle)->GetDimensionsCount();
+        TVector<double> rawResult(docCount * dim);
+        if (!CalcModelPredictionWithHashedCatAndTextFeatures(
+                modelHandle, docCount,
+                floatFeatures, floatFeaturesSize,
+                catFeatures, catFeaturesSize,
+                textFeatures, textFeaturesSize,
+                rawResult.data(), rawResult.size()))
+        {
+            return false;
+        }
+        GetSpecificClass(classId, rawResult, dim, TArrayRef<double>(result, resultSize));
     } catch (...) {
         Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
         return false;
