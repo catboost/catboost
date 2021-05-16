@@ -9711,8 +9711,7 @@ def test_callbacks_metrics():
     np.random.seed(0)
 
     def generate_dataset():
-        return np.random.randint(0, 100, size=(100, 5)), \
-               np.random.randint(0, 2, size=100)
+        return np.random.randint(0, 100, size=(100, 5)), np.random.randint(0, 2, size=100)
 
     train_data, train_labels = generate_dataset()
     validation_0 = generate_dataset()
