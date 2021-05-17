@@ -45,6 +45,10 @@ ext.androidArs = [
     {aars}
 ]
 
+ext.compileOnlyAndroidArs = [
+    {compile_only_aars}
+]
+
 def minVersion = 15
 def compileVersion = 28
 def targetVersion = 28
@@ -135,6 +139,8 @@ android {{
             compile(bundle) {{
                 transitive = true
             }}
+        for (bundle in compileOnlyAndroidArs)
+            compileOnly(bundle)
     }}
 
     android.libraryVariants.all {{ variant ->
@@ -300,6 +306,7 @@ def gen_build_script(args):
 
     return AAR_TEMPLATE.format(
         aars=wrap(args.aars),
+        compile_only_aars=wrap(args.compile_only_aars),
         aidl_dirs=wrap(args.aidl_dirs),
         assets_dirs=wrap(args.assets_dirs),
         bundles=wrap(bundles),
@@ -319,6 +326,7 @@ def gen_build_script(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--aars', nargs='*', default=[])
+    parser.add_argument('--compile-only-aars', nargs='*', default=[])
     parser.add_argument('--aidl-dirs', nargs='*', default=[])
     parser.add_argument('--assets-dirs', nargs='*', default=[])
     parser.add_argument('--bundle-name', nargs='?', default='default-bundle-name')
