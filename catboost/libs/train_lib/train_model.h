@@ -88,10 +88,10 @@ public:
 
 class TCustomCallbacks : public ICustomCallbacks {
 public:
-    explicit TCustomCallbacks(const TMaybe<TCustomCallbackDescriptor>& callbackDescriptor);
+    explicit TCustomCallbacks(TMaybe<TCustomCallbackDescriptor> callbackDescriptor);
     bool AfterIteration(const TMetricsAndTimeLeftHistory& history) override;
 private:
-    const TMaybe<TCustomCallbackDescriptor>& CallbackDescriptor;
+    const TMaybe<TCustomCallbackDescriptor> CallbackDescriptor;
 };
 
 class IModelTrainer {

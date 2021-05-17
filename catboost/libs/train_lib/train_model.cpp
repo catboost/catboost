@@ -712,8 +712,8 @@ static void SaveModel(
     }
 }
 
-TCustomCallbacks::TCustomCallbacks(const TMaybe<TCustomCallbackDescriptor>& callbackDescriptor)
-        : CallbackDescriptor(callbackDescriptor) {
+TCustomCallbacks::TCustomCallbacks(TMaybe<TCustomCallbackDescriptor> callbackDescriptor)
+        : CallbackDescriptor(std::move(callbackDescriptor)) {
 }
 bool TCustomCallbacks::AfterIteration(const TMetricsAndTimeLeftHistory &history) {
     if (!CallbackDescriptor.Empty()) {
