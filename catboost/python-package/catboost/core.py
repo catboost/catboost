@@ -6404,9 +6404,6 @@ def to_classifier(model):
 
 def to_ranker(model):
     return _to_subclass(model, CatBoostRanker)
-    for attr in model.__dict__:
-        setattr(classifier, attr, getattr(model, attr))
-    return classifier
 
 
 class _AllCallback(object):
