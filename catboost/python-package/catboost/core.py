@@ -1580,7 +1580,7 @@ class _CatBoostBase(object):
     @staticmethod
     def _is_multiregression_objective(loss_function):
         return isinstance(loss_function, str) and is_multiregression_objective(loss_function)
-    
+
     @staticmethod
     def _is_survivalregression_objective(loss_function):
         return isinstance(loss_function, str) and is_survivalregression_objective(loss_function)
@@ -1901,9 +1901,9 @@ class CatBoost(_CatBoostBase):
 
         if snapshot_interval is not None:
             params['snapshot_interval'] = snapshot_interval
-        
+
         if callbacks is not None:
-            params['callbacks'] = _AllCallback(callbacks)
+            params['callbacks'] = _TrainCallbacksWrapper(callbacks)
 
         _check_param_types(params)
         params = _params_type_cast(params)
@@ -2131,7 +2131,7 @@ class CatBoost(_CatBoostBase):
 
         callbacks : list, optional (default=None)
             List of callback objects that are applied at end of each iteration.
-        
+
         log_cout: output stream or callback for logging
 
         log_cerr: error stream or callback for logging
@@ -4655,7 +4655,7 @@ class CatBoostClassifier(CatBoost):
 
         callbacks : list, optional (default=None)
             List of callback objects that are applied at end of each iteration.
-        
+
         log_cout: output stream or callback for logging
 
         log_cerr: error stream or callback for logging
@@ -5238,7 +5238,7 @@ class CatBoostRegressor(CatBoost):
 
         callbacks : list, optional (default=None)
             List of callback objects that are applied at end of each iteration.
-        
+
         log_cout: output stream or callback for logging
 
         log_cerr: error stream or callback for logging
@@ -5542,7 +5542,8 @@ class CatBoostRanker(CatBoost):
             subgroup_id=None, pairs_weight=None, baseline=None, use_best_model=None,
             eval_set=None, verbose=None, logging_level=None, plot=False, column_description=None,
             verbose_eval=None, metric_period=None, silent=None, early_stopping_rounds=None,
-            save_snapshot=None, snapshot_file=None, snapshot_interval=None, init_model=None):
+            save_snapshot=None, snapshot_file=None, snapshot_interval=None, init_model=None, callbacks=None,
+            log_cout=sys.stdout, log_cerr=sys.stderr):
         """
         Fit the CatBoostRanker model.
         Parameters
@@ -5622,6 +5623,13 @@ class CatBoostRanker(CatBoost):
         init_model : CatBoost class or string or pathlib.Path, [default=None]
             Continue training starting from the existing model.
             If this parameter is a string or pathlib.Path, load initial model from the path specified by this string.
+        callbacks : list, optional (default=None)
+            List of callback objects that are applied at end of each iteration.
+
+        log_cout: output stream or callback for logging
+
+        log_cerr: error stream or callback for logging
+
         Returns
         -------
         model : CatBoost
@@ -5635,7 +5643,7 @@ class CatBoostRanker(CatBoost):
         self._fit(X, y, cat_features, text_features, embedding_features, pairs,
                   sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, use_best_model,
                   eval_set, verbose, logging_level, plot, column_description, verbose_eval, metric_period,
-                  silent, early_stopping_rounds, save_snapshot, snapshot_file, snapshot_interval, init_model)
+                  silent, early_stopping_rounds, save_snapshot, snapshot_file, snapshot_interval, init_model, callbacks, log_cout, log_cerr)
         return self
 
     def predict(self, X, ntree_start=0, ntree_end=0, thread_count=-1, verbose=None):
@@ -6406,7 +6414,7 @@ def to_ranker(model):
     return _to_subclass(model, CatBoostRanker)
 
 
-class _AllCallback(object):
+class _TrainCallbacksWrapper(object):
     def __init__(self, callbacks):
         self._callbacks = callbacks
 
