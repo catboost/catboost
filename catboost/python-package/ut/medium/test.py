@@ -9674,3 +9674,60 @@ def test_eval_metric_with_weights(task_type, task, metric, use_weights):
     eval_metric_inverse = model.eval_metrics(pool, full_metric_name_inverse)[full_metric_name_inverse]
     assert not np.array_equal(eval_metric, eval_metric_inverse)
     assert np.array_equal(fit_metric, eval_metric)
+
+
+@pytest.mark.parametrize('problem', ['Classifier', 'Regressor'])
+def test_callbacks_early_stop(problem):
+    np.random.seed(0)
+    train_data = np.random.randint(0, 100, size=(100, 5))
+    train_labels = np.random.randint(0, 2, size=100)
+    if problem == 'Classifier':
+        loss = 'Logloss'
+        model = CatBoostClassifier(iterations=10, loss_function=loss)
+    else:
+        loss = 'RMSE'
+        model = CatBoostRegressor(iterations=10, loss_function=loss)
+
+    class EarlyStopCallback:
+        def __init__(self, stop_iteration):
+            self._stop_iteration = stop_iteration
+
+        def after_iteration(self, info):
+            return info.iteration != self._stop_iteration
+
+    model.fit(train_data, train_labels, callbacks=[
+        EarlyStopCallback(7),
+        EarlyStopCallback(5),
+        EarlyStopCallback(6)
+    ])
+
+    evals_result = model.get_evals_result()
+    assert 'learn' in evals_result
+    assert loss in evals_result['learn']
+    assert len(evals_result['learn'][loss]) == 5
+
+
+def test_callbacks_metrics():
+    np.random.seed(0)
+
+    def generate_dataset():
+        return np.random.randint(0, 100, size=(100, 5)), np.random.randint(0, 2, size=100)
+
+    train_data, train_labels = generate_dataset()
+    validation_0 = generate_dataset()
+    validation_1 = generate_dataset()
+    metric_names = ['Logloss', 'CrossEntropy']
+    model = CatBoostClassifier(iterations=10, custom_metric=metric_names)
+
+    class MetricsCheckerCallback:
+        def after_iteration(self, info):
+            for dataset_name in ['learn', 'validation_0', 'validation_1']:
+                assert dataset_name in info.metrics
+                for metric_name in metric_names:
+                    assert metric_name in info.metrics[dataset_name]
+                    assert len(info.metrics[dataset_name][metric_name]) == info.iteration
+            return True
+
+    model.fit(train_data, train_labels,
+              callbacks=[MetricsCheckerCallback()],
+              eval_set=[validation_0, validation_1])
