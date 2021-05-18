@@ -6,26 +6,30 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "abort_message.h"
 #include "cxxabi.h"
 #include <__threading_support>
 #ifndef _LIBCXXABI_HAS_NO_THREADS
-#if defined(__unix__) && !defined(__ANDROID__) && defined(__ELF__) && defined(_LIBCXXABI_HAS_COMMENT_LIB_PRAGMA)
+#if defined(__ELF__) && defined(_LIBCXXABI_LINK_PTHREAD_LIB)
 #pragma comment(lib, "pthread")
 #endif
 #endif
 
-#include <cstdlib>
+#include <stdlib.h>
 
 namespace __cxxabiv1 {
 
   using Dtor = void(*)(void*);
 
   extern "C"
+#ifndef HAVE___CXA_THREAD_ATEXIT_IMPL
   // A weak symbol is used to detect this function's presence in the C library
   // at runtime, even if libc++ is built against an older libc
-  __attribute__((weak))
+  _LIBCXXABI_WEAK
+#endif
   int __cxa_thread_atexit_impl(Dtor, void*, void*);
 
+#ifndef HAVE___CXA_THREAD_ATEXIT_IMPL
 
 namespace {
   // This implementation is used if the C library does not provide
@@ -73,7 +77,7 @@ namespace {
     while (auto head = dtors) {
       dtors = head->next;
       head->dtor(head->obj);
-      std::free(head);
+      ::free(head);
     }
 
     dtors_alive = false;
@@ -85,7 +89,7 @@ namespace {
       // __cxa_thread_atexit() may be called arbitrarily late (for example, from
       // global destructors or atexit() handlers).
       if (std::__libcpp_tls_create(&dtors_key, run_dtors) != 0) {
-        abort();
+        abort_message("std::__libcpp_tls_create() failed in __cxa_thread_atexit()");
       }
     }
 
@@ -100,10 +104,14 @@ namespace {
   };
 } // namespace
 
+#endif // HAVE___CXA_THREAD_ATEXIT_IMPL
 
 extern "C" {
 
-  int __cxa_thread_atexit(Dtor dtor, void* obj, void* dso_symbol) throw() {
+  _LIBCXXABI_FUNC_VIS int __cxa_thread_atexit(Dtor dtor, void* obj, void* dso_symbol) throw() {
+#ifdef HAVE___CXA_THREAD_ATEXIT_IMPL
+    return __cxa_thread_atexit_impl(dtor, obj, dso_symbol);
+#else
     if (__cxa_thread_atexit_impl) {
       return __cxa_thread_atexit_impl(dtor, obj, dso_symbol);
     } else {
@@ -118,7 +126,7 @@ extern "C" {
         dtors_alive = true;
       }
 
-      auto head = static_cast<DtorList*>(std::malloc(sizeof(DtorList)));
+      auto head = static_cast<DtorList*>(::malloc(sizeof(DtorList)));
       if (!head) {
         return -1;
       }
@@ -130,6 +138,7 @@ extern "C" {
 
       return 0;
     }
+#endif // HAVE___CXA_THREAD_ATEXIT_IMPL
   }
 
 } // extern "C"
