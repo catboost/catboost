@@ -269,8 +269,8 @@ namespace NCB {  // split due to CUDA-compiler inability to parse nested namespa
             ) const = 0;
 
             virtual void Quantize(
-                    TConstArrayRef<TConstArrayRef<float>> features,
-                    IQuantizedData* quantizedData
+                TConstArrayRef<TConstArrayRef<float>> features,
+                IQuantizedData* quantizedData
             ) const = 0;
         };
 

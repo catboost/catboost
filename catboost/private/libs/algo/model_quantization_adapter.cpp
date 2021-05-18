@@ -3,7 +3,11 @@
 #include "features_data_helpers.h"
 
 #include <catboost/libs/model/cpu/quantization.h>
+
+#ifdef HAVE_CUDA
 #include <catboost/libs/model/cuda/evaluator.cuh>
+#endif
+
 #include <catboost/libs/model/enums.h>
 
 using namespace NCB;
@@ -23,12 +27,15 @@ namespace {
             if (FormulaEvaluatorType == EFormulaEvaluatorType::CPU) {
                 ResultCpu = MakeIntrusive<TCPUEvaluatorQuantizedData>();
                 ResultCpu->QuantizedData = TMaybeOwningArrayHolder<ui8>::CreateOwning(
-                        TVector<ui8>(
-                                Model.ModelTrees->GetEffectiveBinaryFeaturesBucketsCount()
-                                * (ObjectsEnd - ObjectsStart)));
+                    TVector<ui8>(Model.ModelTrees->GetEffectiveBinaryFeaturesBucketsCount() * (ObjectsEnd - ObjectsStart))
+                );
             } else {
+                #ifdef HAVE_CUDA
                 ResultGpu = MakeIntrusive<TCudaQuantizedData>();
                 ResultGpu->SetDimensions(Model.ModelTrees->GetFloatFeatures().size(), ObjectsEnd - ObjectsStart);
+                #else
+                CB_ENSURE(false, "Binary built without CUDA support, CUDA quantization impossible");
+                #endif
             }
         }
 
@@ -44,23 +51,25 @@ namespace {
 
             if (FormulaEvaluatorType == EFormulaEvaluatorType::CPU) {
                 BinarizeFeatures(
-                        *Model.ModelTrees,
-                        *applyData,
-                        Model.CtrProvider,
-                        Model.TextProcessingCollection,
-                        Model.EmbeddingProcessingCollection,
-                        rawFeatureAccessor.GetFloatAccessor(),
-                        rawFeatureAccessor.GetCatAccessor(),
-                        rawFeatureAccessor.GetTextAccessor(),
-                        rawFeatureAccessor.GetEmbeddingAccessor(),
-                        0,
-                        docCount,
-                        ResultCpu.Get(),
-                        transposedHash,
-                        ctrs,
-                        estimatedFeatures
+                    *Model.ModelTrees,
+                    *applyData,
+                    Model.CtrProvider,
+                    Model.TextProcessingCollection,
+                    Model.EmbeddingProcessingCollection,
+                    rawFeatureAccessor.GetFloatAccessor(),
+                    rawFeatureAccessor.GetCatAccessor(),
+                    rawFeatureAccessor.GetTextAccessor(),
+                    rawFeatureAccessor.GetEmbeddingAccessor(),
+                    0,
+                    docCount,
+                    ResultCpu.Get(),
+                    transposedHash,
+                    ctrs,
+                    estimatedFeatures
                 );
             } else {
+                #ifdef HAVE_CUDA
+
                 size_t featureCount = Model.ModelTrees->GetFloatFeatures().size();
                 TVector<TVector<float>> featuresVec(docCount, TVector<float>(featureCount));
 
@@ -75,6 +84,9 @@ namespace {
 
                 IQuantizedData* iQuantizedData = reinterpret_cast<IQuantizedData*>(ResultGpu.Get());
                 Model.GetCurrentEvaluator()->Quantize(featuresVecSecond, iQuantizedData);
+                #else
+                CB_ENSURE(false, "Binary built without CUDA support, CUDA quantization impossible");
+                #endif
             };
         }
 
@@ -89,16 +101,16 @@ namespace {
                 TVector<float> ctrs(applyData->UsedModelCtrs.size() * blockSize);
 
                 ComputeEvaluatorFeaturesFromPreQuantizedData(
-                        *Model.ModelTrees,
-                        *applyData,
-                        Model.CtrProvider,
-                        quantizedFeatureAccessor.GetFloatAccessor(),
-                        quantizedFeatureAccessor.GetCatAccessor(),
-                        0,
-                        docCount,
-                        ResultCpu.Get(),
-                        transposedHash,
-                        ctrs
+                    *Model.ModelTrees,
+                    *applyData,
+                    Model.CtrProvider,
+                    quantizedFeatureAccessor.GetFloatAccessor(),
+                    quantizedFeatureAccessor.GetCatAccessor(),
+                    0,
+                    docCount,
+                    ResultCpu.Get(),
+                    transposedHash,
+                    ctrs
                 );
             } else {
                 CB_ENSURE(false, "Cannot apply visitor to GPU quantized data, please contact catboost developers via GitHub issue or in support chat");
@@ -106,10 +118,14 @@ namespace {
         }
 
         TIntrusivePtr<IQuantizedData> GetResult() {
-            if (FormulaEvaluatorType == EFormulaEvaluatorType::CPU) {
-                return std::move(ResultCpu);
+            if (FormulaEvaluatorType == EFormulaEvaluatorType::GPU) {
+                #ifdef HAVE_CUDA
+                return std::move(ResultGpu);
+                #else
+                CB_ENSURE(false, "Binary built without CUDA support, CUDA quantization impossible");
+                #endif
             }
-            return std::move(ResultGpu);
+            return std::move(ResultCpu);
         }
 
     private:
@@ -117,7 +133,9 @@ namespace {
         size_t ObjectsStart;
         size_t ObjectsEnd;
         TIntrusivePtr<TCPUEvaluatorQuantizedData> ResultCpu;
+        #ifdef HAVE_CUDA
         TIntrusivePtr<TCudaQuantizedData> ResultGpu;
+        #endif
         EFormulaEvaluatorType FormulaEvaluatorType;
     };
 

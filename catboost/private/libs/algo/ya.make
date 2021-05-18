@@ -1,6 +1,12 @@
 LIBRARY()
 
-
+OWNER(
+    kirillovs
+    espetrov
+    g:matrixnet
+    alipov
+    gulin
+)
 
 SRCS(
     apply.cpp
@@ -61,7 +67,6 @@ PEERDIR(
     catboost/libs/logging
     catboost/libs/metrics
     catboost/libs/model
-    catboost/libs/model/cuda
     catboost/libs/overfitting_detector
     catboost/private/libs/algo/approx_calcer
     catboost/private/libs/algo_helpers
@@ -91,5 +96,13 @@ PEERDIR(
     library/cpp/svnversion
     library/cpp/threading/local_executor
 )
+
+IF(HAVE_CUDA)
+    CFLAGS(-DHAVE_CUDA)
+
+    PEERDIR(
+        catboost/libs/model/cuda
+    )
+ENDIF()
 
 END()

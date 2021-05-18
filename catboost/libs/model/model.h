@@ -671,7 +671,7 @@ public:
     }
 
     EFormulaEvaluatorType GetEvaluatorType() const {
-	return FormulaEvaluatorType;
+        return FormulaEvaluatorType;
     }
 
     void SetPredictionType(NCB::NModelEvaluation::EPredictionType predictionType) const {
