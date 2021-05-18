@@ -425,10 +425,7 @@ def do_compile_asm(args):
     if args.asm_flags:
         cmd += args.asm_flags
     cmd += args.asm_srcs
-    my_env = os.environ.copy()
-    my_env['GOARCH'] = args.targ_arch
-    my_env['GOOS'] = args.targ_os
-    call(cmd, args.build_root, my_env)
+    call(cmd, args.build_root)
 
 
 def do_link_lib(args):
