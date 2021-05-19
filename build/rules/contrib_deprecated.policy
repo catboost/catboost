@@ -1,0 +1,22 @@
+# == Rules for contrib/deprecated section ==
+#
+# NOTE: rules should be ordered from specific to generic (first matching rule is used)
+# See rule syntax docs: https://wiki.yandex-team.ru/devrules/overall/peerdirprohibition/
+
+ALLOW contrib/tools/lftp -> contrib/libs/lftp
+
+DENY .* -> contrib/libs/lftp
+
+ALLOW contrib/deprecated/libcds -> contrib/deprecated/libcds
+ALLOW mds/libs/blackhole -> contrib/deprecated/libcds
+DENY .* -> contrib/deprecated/libcds
+
+ALLOW contrib/deprecated/folly -> contrib/deprecated/folly
+ALLOW contrib/deprecated/wangle -> contrib/deprecated/folly
+ALLOW contrib/deprecated/wangle -> contrib/deprecated/wangle
+ALLOW mds -> contrib/deprecated/folly
+ALLOW mds -> contrib/deprecated/wangle
+ALLOW devtools/experimental/mds -> contrib/deprecated/folly
+ALLOW devtools/experimental/mds -> contrib/deprecated/wangle
+DENY .* -> contrib/deprecated/folly
+DENY .* -> contrib/deprecated/wangle

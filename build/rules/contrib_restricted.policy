@@ -149,12 +149,9 @@ ALLOW library/cpp/testing/gmock -> contrib/restricted/googletest/googlemock
 ALLOW .* -> contrib/restricted/librseq/headeronly
 
 # Default policies:
-
-# 1. Do not restrict contrib
+#
+# Do not restrict contrib
+# All peerdirs to contrib/restricted from outside are prohibited
+#
 ALLOW contrib -> contrib/restricted
-
-# 2. Allow junk for debug purposes
-ALLOW junk -> contrib/restricted
-
-# 3. All peerdirs to contrib/restricted from outside are prohibited
 DENY .* -> contrib/restricted
