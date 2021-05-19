@@ -4460,10 +4460,12 @@ cdef class _CatBoost:
         cdef TConstArrayRef[TFloatFeature] arrayView = self.__model.ModelTrees.Get().GetFloatFeatures()
         return dict([(feature.Position.FlatIndex, feature.Borders) for feature in arrayView])
 
-    cpdef _base_predict(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end, int thread_count, bool_t verbose):
+    cpdef _base_predict(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end, int thread_count, bool_t verbose, str task_type):
         cdef TVector[TVector[double]] pred
         cdef EPredictionType predictionType = string_to_prediction_type(prediction_type)
+        cdef EFormulaEvaluatorType formulaEvaluatorType = EFormulaEvaluatorType_GPU if task_type == 'GPU' else EFormulaEvaluatorType_CPU
         thread_count = UpdateThreadCount(thread_count);
+        dereference(self.__model).SetEvaluatorType(formulaEvaluatorType);
         with nogil:
             pred = ApplyModelMulti(
                 dereference(self.__model),
