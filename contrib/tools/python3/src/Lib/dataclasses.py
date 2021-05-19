@@ -696,7 +696,7 @@ def _get_field(cls, a_name, a_type):
     # In addition to checking for actual types here, also check for
     # string annotations.  get_type_hints() won't always work for us
     # (see https://github.com/python/typing/issues/508 for example),
-    # plus it's expensive and would require an eval for every stirng
+    # plus it's expensive and would require an eval for every string
     # annotation.  So, make a best effort to see if this is a ClassVar
     # or InitVar using regex's and checking that the thing referenced
     # is actually of the correct type.
@@ -836,7 +836,7 @@ def _process_class(cls, init, repr, eq, order, unsafe_hash, frozen):
         # Only process classes that have been processed by our
         # decorator.  That is, they have a _FIELDS attribute.
         base_fields = getattr(b, _FIELDS, None)
-        if base_fields:
+        if base_fields is not None:
             has_dataclass_bases = True
             for f in base_fields.values():
                 fields[f.name] = f
@@ -1271,7 +1271,7 @@ def replace(obj, /, **changes):
             continue
 
         if f.name not in changes:
-            if f._field_type is _FIELD_INITVAR:
+            if f._field_type is _FIELD_INITVAR and f.default is MISSING:
                 raise ValueError(f"InitVar {f.name!r} "
                                  'must be specified with replace()')
             changes[f.name] = getattr(obj, f.name)

@@ -112,6 +112,144 @@ void IDerCalcer::CalcDersRange(
     useTDers, IsExpApprox, hasDelta);
 }
 
+TVector<size_t> ArgSort(
+    int start,
+    int count,
+    const float* targets
+) {
+    TVector<size_t> labelOrder(count);
+    std::iota(labelOrder.begin(), labelOrder.end(), start);
+    std::sort(labelOrder.begin(), labelOrder.end(), [&]
+        (size_t lhs, size_t rhs){
+            return std::abs(targets[lhs]) < std::abs(targets[rhs]);
+        }
+    );
+
+    return labelOrder;
+}
+
+double CalcCoxApproxSum(
+    int start,
+    int count,
+    const double* approxes,
+    const double* approxesDeltas
+) {
+    double expPSum = 0;
+    for (yssize_t i = 0; i < count; ++i) {
+        double updatedApprox = approxes[start + i];
+        if (approxesDeltas != nullptr) {
+            updatedApprox += approxesDeltas[start + i];
+        }
+        expPSum += std::exp(updatedApprox);
+    }
+
+    return expPSum;
+}
+
+void TCoxError::CalcDersRange(
+    int start,
+    int count,
+    bool /*calcThirdDer*/,
+    const double* approxes,
+    const double* approxesDeltas,
+    const float* targets,
+    const float* /*weights*/,
+    TDers* ders
+) const {
+
+    TVector<size_t> labelOrder = ArgSort(start, count, targets);
+
+    double expPSum = CalcCoxApproxSum(start, count, approxes, approxesDeltas);
+
+    double rk = 0;
+    double sk = 0;
+    double lastExpP = 0.0;
+    double lastAbsY = 0.0;
+    double accumulatedSum = 0;
+    for (yssize_t i = 0; i < count; ++i) {
+        const size_t ind = labelOrder[i];
+        const double p = approxes[ind] + (approxesDeltas == nullptr ? 0 : approxesDeltas[ind]);
+
+        const double expP = std::exp(p);
+        const double y = targets[ind];
+        const double absY = std::abs(y);
+        // only update the denominator after we move forward in time (labels are sorted)
+        // this is Breslow's method for ties
+        accumulatedSum += lastExpP;
+        if (lastAbsY < absY) {
+            expPSum -= accumulatedSum;
+            accumulatedSum = 0;
+        } else {
+            CB_ENSURE(lastAbsY <= absY);
+        }
+
+        if (y > 0) {
+            rk += 1.0 / expPSum;
+            sk += 1.0 / (expPSum * expPSum);
+        }
+
+        const double grad = expP * rk - static_cast<float>(y > 0);
+        const double hess = expP * rk - expP * expP * sk;
+        ders[ind].Der1 = - grad;
+        ders[ind].Der2 = - hess;
+
+        lastAbsY = absY;
+        lastExpP = expP;
+    }
+}
+
+
+void TCoxError::CalcFirstDerRange(
+        int start,
+        int count,
+        const double* approxes,
+        const double* approxesDeltas,
+        const float* targets,
+        const float* /*weights*/,
+        double* firstDers
+    ) const {
+
+    //CalcCoxDersRange(start, count, approxes, approxesDeltas, targets, );
+    // object weights are not supported yet
+
+    TVector<size_t> labelOrder = ArgSort(start, count, targets);
+
+    double expPSum = CalcCoxApproxSum(start, count, approxes, approxesDeltas);
+
+
+    double rk = 0;
+    double lastExpP = 0.0;
+    double lastAbsY = 0.0;
+    double accumulatedSum = 0;
+    for (yssize_t i = 0; i < count; ++i) {
+        const size_t ind = labelOrder[start + i];
+        const double p = approxes[ind] + (approxesDeltas == nullptr ? 0 : approxesDeltas[ind]);
+
+        const double expP = std::exp(p);
+        const double y = targets[ind];
+        const double absY = std::abs(y);
+        // only update the denominator after we move forward in time (labels are sorted)
+        // this is Breslow's method for ties
+        accumulatedSum += lastExpP;
+        if (lastAbsY < absY) {
+            expPSum -= accumulatedSum;
+            accumulatedSum = 0;
+        } else {
+            CB_ENSURE(lastAbsY <= absY);
+        }
+
+        if (y > 0) {
+            rk += 1.0 / expPSum;
+        }
+
+        const double grad = expP * rk - static_cast<float>(y > 0);
+        firstDers[ind] =  - grad; // GradientPair(grad * w, hess * w);
+
+        lastAbsY = absY;
+        lastExpP = expP;
+    }
+}
+
 namespace {
     template <int Capacity>
     class TExpForwardView {
@@ -278,7 +416,7 @@ void TSurvivalAftError::CalcDers(
 
         firstDerNumerator = pdfDiff;
         firstDerDenominator = Scale * cdfDiff;
-        
+
         if (der2 != nullptr) {
             Y_ASSERT(der2->HessianType == EHessianType::Diagonal &&
                         der2->ApproxDimension == approx.ysize());
@@ -297,7 +435,7 @@ void TSurvivalAftError::CalcDers(
         (*der)[0] = target_sign ? minDer1 : maxDer1;
     }
     (*der)[0] = -ClipDerivatives((*der)[0], TDerivativeConstants::MinFirstDer, TDerivativeConstants::MaxFirstDer);
-        
+
     if (der2 != nullptr) {
         der2->Data[0] = secondDerNumerator / secondDerDenominator;
         if (secondDerDenominator < TDerivativeConstants::Epsilon && (IsNan(der2->Data[0]) || !IsFinite(der2->Data[0]))) {
@@ -469,15 +607,15 @@ void TLambdaMartError::CalcDersForSingleQuery(
     Y_ASSERT(targets.size() == count);
     Y_ASSERT(ders.size() == count);
 
+    Fill(ders.begin(), ders.end(), TDers{0.0, 0.0, 0.0});
+
     if (count <= 1) {
         return;
     }
 
     const size_t queryTopSize = GetQueryTopSize(count);
 
-    Fill(ders.begin(), ders.end(), TDers{0.0, 0.0, 0.0});
-
-    double idealScore = IdealMetric(targets, queryTopSize);
+    const double idealScore = CalcIdealMetric(targets, queryTopSize);
 
     TVector<size_t> order(count);
     Iota(order.begin(), order.end(), 0);
@@ -485,45 +623,44 @@ void TLambdaMartError::CalcDersForSingleQuery(
         return approxes[a] > approxes[b];
     });
 
-    const double maxScore = approxes[order[0]];
-    const double minScore = approxes[order[count - 1]];
+    const bool isApproxesSame = (approxes[order[0]] == approxes[order[count - 1]]);
 
     double sumDer1 = 0.0;
 
     for (size_t firstId = 0; firstId < count; ++firstId) {
-        size_t boundForSecond = firstId < queryTopSize ? count : queryTopSize;
-        for (size_t secondId = 0; secondId < boundForSecond; ++secondId) {
+        size_t boundForSecondId = firstId < queryTopSize ? count : queryTopSize;
+        for (size_t secondId = 0; secondId < boundForSecondId; ++secondId) {
 
-            double firstTarget = targets[order[firstId]];
-            double secondTarget = targets[order[secondId]];
+            const double firstTarget = targets[order[firstId]];
+            const double secondTarget = targets[order[secondId]];
 
             if (firstTarget <= secondTarget) {
                 continue;
             }
 
-            double approxDiff = approxes[order[firstId]] - approxes[order[secondId]];
+            const double approxDiff = approxes[order[firstId]] - approxes[order[secondId]];
 
-            double dcgNum = CalcNumerator(firstTarget) - CalcNumerator(secondTarget);
-            double dcgDen = std::abs(1.0 / CalcDenominator(firstId) -
+            const double dcgNum = CalcNumerator(firstTarget) - CalcNumerator(secondTarget);
+            const double dcgDen = std::abs(1.0 / CalcDenominator(firstId) -
                                      1.0 / CalcDenominator(secondId));
 
             double delta = dcgNum * dcgDen / idealScore;
 
-            if (Norm && maxScore != minScore) {
+            if (Norm && !isApproxesSame) {
                 delta /= 0.01 + std::abs(approxDiff);
             }
 
-            double coeff = 1.0 / (1.0 + std::exp(Sigma * approxDiff));
-            double hessian = coeff * (1 - coeff);
-            coeff *=  - Sigma * delta;
+            double antigrad = 1.0 / (1.0 + std::exp(Sigma * approxDiff));
+            double hessian = antigrad * (1 - antigrad);
+            antigrad *=  - Sigma * delta;
             hessian *= Sigma * Sigma * delta;
 
-            ders[order[firstId]].Der1 += coeff;
+            ders[order[firstId]].Der1 += antigrad;
             ders[order[firstId]].Der2 += hessian;
-            ders[order[secondId]].Der1 -= coeff;
+            ders[order[secondId]].Der1 -= antigrad;
             ders[order[secondId]].Der2 += hessian;
 
-            sumDer1 -= 2 * coeff;
+            sumDer1 -= 2 * antigrad;
         }
     }
     if (Norm && sumDer1 > 0) {
@@ -535,7 +672,7 @@ void TLambdaMartError::CalcDersForSingleQuery(
     }
 }
 
-double TLambdaMartError::IdealMetric(TConstArrayRef<float> target, size_t queryTopSize) const {
+double TLambdaMartError::CalcIdealMetric(TConstArrayRef<float> target, size_t queryTopSize) const {
     double score = 0;
     TVector<float> sortedTargets(target.begin(), target.end());
     Sort(sortedTargets, [](float a, float b) {

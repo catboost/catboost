@@ -73,10 +73,20 @@ IF (OS_DARWIN AND ARCH_ARM64)
     )
 ENDIF()
 
-IF (OS_WINDOWS AND ARCH_X86_64)
+IF (OS_WINDOWS)
+    IF (ARCH_X86_64)
+        CFLAGS(
+            -DENGINESDIR="\"C:\\\\Program\ Files\\\\OpenSSL\\\\lib\\\\engines-1_1\""
+            -DOPENSSLDIR="\"C:\\\\Program\ Files\\\\Common\ Files\\\\SSL\""
+        )
+    ELSEIF(ARCH_I386)
+        CFLAGS(
+            -DENGINESDIR="\"C:\\\\Program\ Files\ \(x86\)\\\\OpenSSL\\\\lib\\\\engines-1_1\""
+            -DOPENSSLDIR="\"C:\\\\Program\ Files\ \(x86\)\\\\Common\ Files\\\\SSL\""
+        )
+    ENDIF()
+
     CFLAGS(
-        -DENGINESDIR="\"C:\\\\Program\ Files\\\\OpenSSL\\\\lib\\\\engines-1_1\""
-        -DOPENSSLDIR="\"C:\\\\Program\ Files\\\\Common\ Files\\\\SSL\""
         -DOPENSSL_SYS_WIN32
         -DUNICODE
         -DWIN32_LEAN_AND_MEAN
@@ -143,7 +153,7 @@ SRCS(
     x509.c
 )
 
-IF (OS_WINDOWS AND ARCH_X86_64)
+IF (OS_WINDOWS)
     SRCS(
         win32_init.c
     )

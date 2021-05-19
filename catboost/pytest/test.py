@@ -104,7 +104,7 @@ def test_multiregression_with_missing_values(boosting_type, n_trees):
         '-f', data_file('multiregression_with_missing', 'train'),
         '-t', data_file('multiregression_with_missing', 'test'),
         '--column-description', data_file('multiregression_with_missing', 'train.cd'),
-        '-i', '{}'.format(n_trees),
+        '-i', '{}'.format(str(n_trees)),
         '-T', '4',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
@@ -139,6 +139,7 @@ def test_multiregression_with_missing_values(boosting_type, n_trees):
         local_canonical_file(output_calc_path),
         local_canonical_file(output_metric_path)
     ]
+
 
 @pytest.mark.parametrize('is_inverted', [False, True], ids=['', 'inverted'])
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
@@ -802,6 +803,52 @@ def test_stochastic_filter(sigma, num_estimations):
 
     compare_evals(learn_error_one_thread_path, learn_error_path)
     compare_evals(test_error_one_thread_path, test_error_path)
+
+    return [local_canonical_file(learn_error_path),
+            local_canonical_file(test_error_path)]
+
+
+def test_lambda_mart():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    cmd = (
+        '--loss-function', 'LambdaMart',
+        '-f', data_file('querywise', 'train'),
+        '-t', data_file('querywise', 'test'),
+        '--column-description', data_file('querywise', 'train.cd'),
+        '-i', '20',
+        '-T', '4',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+    )
+    execute_catboost_fit('CPU', cmd)
+
+    return [local_canonical_file(output_eval_path)]
+
+
+@pytest.mark.parametrize('metric', ['DCG', 'NDCG'])
+@pytest.mark.parametrize('top', [-1, 1, 10])
+@pytest.mark.parametrize('dcg_type', ['Base', 'Exp'])
+@pytest.mark.parametrize('denominator', ['Position', 'LogPosition'])
+@pytest.mark.parametrize('sigma', ['2.0', '0.5'])
+@pytest.mark.parametrize('norm', ['true', 'false'])
+def test_lambda_mart_with_params(metric, top, dcg_type, denominator, sigma, norm):
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+
+    loss = 'LambdaMart:metric={};top={};type={};denominator={};sigma={};norm={};hints=skip_train~false'.format(
+        metric, top, dcg_type, denominator, sigma, norm)
+
+    cmd = (
+        '--loss-function', loss,
+        '-f', data_file('querywise', 'train'),
+        '-t', data_file('querywise', 'test'),
+        '--cd', data_file('querywise', 'train.cd.query_id'),
+        '-i', '10',
+        '--learn-err-log', learn_error_path,
+        '--test-err-log', test_error_path
+    )
+    execute_catboost_fit('CPU', cmd)
 
     return [local_canonical_file(learn_error_path),
             local_canonical_file(test_error_path)]
@@ -5048,6 +5095,58 @@ def test_without_cat_features(boosting_type, dev_score_calc_obj_block_size):
     return [local_canonical_file(output_eval_path)]
 
 
+def test_cox_regression():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    output_calc_path = yatest.common.test_output_path('test.calc')
+    output_metric_path = yatest.common.test_output_path('test.metric')
+
+    cmd = (
+        '--use-best-model', 'false',
+        '--loss-function', 'Cox',
+        '-f', data_file('patients', 'train'),
+        '-t', data_file('patients', 'test'),
+        '--column-description', data_file('patients', 'train.cd'),
+        '--boosting-type', 'Plain',
+        '-i', '10',
+        '-T', '1',
+        '--bootstrap-type', 'No',
+        '--random-strength', '0',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+    )
+    execute_catboost_fit('CPU', cmd)
+
+    cmd_calc = (
+        CATBOOST_PATH,
+        'calc',
+        '--column-description', data_file('patients', 'train.cd'),
+        '-T', '4',
+        '-m', output_model_path,
+        '--input-path', data_file('patients', 'test'),
+        '-o', output_calc_path
+    )
+    yatest.common.execute(cmd_calc)
+
+    cmd_metric = (
+        CATBOOST_PATH,
+        'eval-metrics',
+        '--column-description', data_file('patients', 'train.cd'),
+        '-T', '4',
+        '-m', output_model_path,
+        '--input-path', data_file('patients', 'test'),
+        '-o', output_metric_path,
+        '--metrics', 'Cox'
+    )
+    yatest.common.execute(cmd_metric)
+
+    return [
+        local_canonical_file(output_eval_path),
+        local_canonical_file(output_calc_path),
+        local_canonical_file(output_metric_path)
+    ]
+
+
 def make_deterministic_train_cmd(loss_function, pool, train, test, cd, schema='', test_schema='', dev_score_calc_obj_block_size=None, other_options=()):
     pool_path = schema + data_file(pool, train)
     test_path = test_schema + data_file(pool, test)
@@ -8734,6 +8833,49 @@ def test_group_features():
     ]
     yatest.common.execute(calc_cmd)
     return [local_canonical_file(learn_error_path), local_canonical_file(test_predictions_path)]
+
+
+def test_binclass_probability_threshold():
+    test_predictions_path = yatest.common.test_output_path('test_predictions.tsv')
+    model_path = yatest.common.test_output_path('model.bin')
+    probability_threshold = '0.8'
+    fit_cmd = [
+        '--loss-function', 'Logloss',
+        '-f', data_file('adult', 'train_small'),
+        '--cd', data_file('adult', 'train.cd'),
+        '-i', '10',
+        '-m', model_path
+    ]
+    execute_catboost_fit('CPU', fit_cmd)
+
+    set_prob_cmd = [
+        CATBOOST_PATH, 'metadata', 'set',
+        '-m', model_path,
+        '--key', 'binclass_probability_threshold',
+        '--value', probability_threshold
+    ]
+    yatest.common.execute(set_prob_cmd)
+
+    calc_cmd = [
+        CATBOOST_PATH,
+        'calc',
+        '-m', model_path,
+        '--input-path', data_file('adult', 'test_small'),
+        '--cd', data_file('adult', 'train.cd'),
+        '--output-path', test_predictions_path,
+        '--output-columns', 'Probability,Class'
+    ]
+    yatest.common.execute(calc_cmd)
+
+    test_is_not_dummy = False
+    with open(test_predictions_path, 'r') as f:
+        f.readline()  # skip header
+        for row in f.readlines():
+            prob, cl = map(float, row.strip().split())
+            assert (cl == (1 if prob > float(probability_threshold) else 0))
+            if 0.5 < prob < 0.8:
+                test_is_not_dummy = True
+    assert test_is_not_dummy
 
 
 def test_model_sum():

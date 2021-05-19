@@ -10,15 +10,18 @@ import atexit
 import six
 from six import iteritems, string_types
 from cpython.version cimport PY_MAJOR_VERSION
+import warnings
 
 from six.moves import range
 from json import dumps, loads, JSONEncoder
 from copy import deepcopy
 from collections import defaultdict
 import functools
-import traceback
+import inspect
 import numbers
 import os
+import traceback
+import types
 
 import sys
 if sys.version_info >= (3, 3):
@@ -108,6 +111,16 @@ numpy_num_dtype_list = [
     np.uint64,
     np.float32,
     np.float64
+]
+
+custom_objective_methods_to_optimize = [
+    'calc_ders_range',
+    'calc_ders_multi',
+]
+
+custom_metric_methods_to_optimize = [
+    'evaluate',
+    'get_final_error'
 ]
 
 from catboost.private.libs.cython cimport *
@@ -214,7 +227,8 @@ cdef extern from "Python.h":
     char* PyUnicode_AsUTF8AndSize(object s, Py_ssize_t* l)
 
 cdef extern from "catboost/libs/logging/logging.h":
-    cdef void SetCustomLoggingFunction(void(*func)(const char*, size_t len) except * with gil, void(*func)(const char*, size_t len) except * with gil)
+    ctypedef void(*TCustomLoggingFunctionPtr)(const char *, size_t len, void *) except * with gil
+    cdef void SetCustomLoggingFunction(TCustomLoggingFunctionPtr, TCustomLoggingFunctionPtr, void*, void*)
     cdef void RestoreOriginalLogger()
     cdef void ResetTraceBackend(const TString&)
 
@@ -547,7 +561,10 @@ cdef extern from "catboost/libs/metrics/metric.h":
 
 cdef extern from "catboost/libs/metrics/metric.h":
     cdef bool_t IsMaxOptimal(const IMetric& metric) except +ProcessException
+    cdef TJsonValue ExportAllMetricsParamsToJson() except +ProcessException
 
+def AllMetricsParams():
+    return loads(to_native_str(WriteTJsonValue(ExportAllMetricsParamsToJson())))
 
 cdef extern from "catboost/private/libs/algo/tree_print.h":
     TVector[TString] GetTreeSplitsDescriptions(
@@ -675,6 +692,7 @@ cdef extern from "catboost/libs/train_lib/train_model.h":
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
         const TMaybe[TCustomObjectiveDescriptor]& objectiveDescriptor,
         const TMaybe[TCustomMetricDescriptor]& evalMetricDescriptor,
+        const TMaybe[TCustomCallbackDescriptor]& callbackDescriptor,
         TDataProviders pools,
         TMaybe[TFullModel*] initModel,
         THolder[TLearnProgress]* initLearnProgress,
@@ -684,6 +702,14 @@ cdef extern from "catboost/libs/train_lib/train_model.h":
         TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
         THolder[TLearnProgress]* dstLearnProgress
     ) nogil except +ProcessException
+    
+    cdef cppclass TCustomCallbackDescriptor:
+        void* CustomData
+
+        bool_t (*AfterIterationFunc)(
+            const TMetricsAndTimeLeftHistory& history, 
+            void *customData
+        ) except * with gil
 
 cdef extern from "catboost/libs/data/quantization.h"  namespace "NCB":
     cdef TQuantizedObjectsDataProviderPtr ConstructQuantizedPoolFromRawPool(
@@ -1119,6 +1145,19 @@ cdef double _MetricGetFinalError(const TMetricHolder& error, void *customData) e
     cdef metricObject = <object>customData
     return metricObject.get_final_error(error.Stats[0], error.Stats[1])
 
+cdef bool_t _CallbackAfterIteration(
+        const TMetricsAndTimeLeftHistory& history, 
+        void* customData
+    ) except * with gil:
+    cdef callbackObject = <object>customData
+    if PY_MAJOR_VERSION >= 3:
+        info = types.SimpleNamespace()
+    else:
+        from argparse import Namespace
+        info = Namespace()
+    info.iteration = history.LearnMetricsHistory.size()
+    info.metrics = _get_metrics_evals_pydict(history)
+    return callbackObject.after_iteration(info)
 
 cdef _constarrayref_of_double_to_np_array(const TConstArrayRef[double] arr):
     result = np.empty(arr.size(), dtype=_npfloat64)
@@ -1227,6 +1266,15 @@ cdef np.ndarray _CreateNumpyDoubleArrayView(const double* array, int count):
     dims[0] = count
     return np.PyArray_SimpleNewFromData(1, dims, np.NPY_DOUBLE, <void*>array)
 
+cdef _ToPythonObjArrayOfArraysOfDoubles(const TVector[double]* values, int size, int begin, int end):
+    # https://numba.pydata.org/numba-doc/latest/reference/deprecation.html#deprecation-of-reflection-for-list-and-set-types
+    # numba doesn't like python lists, so using tuple instead
+    return tuple(_CreateNumpyDoubleArrayView(values[i].data() + begin, end - begin) for i in xrange(size))
+
+cdef _ToPythonObjArrayOfArraysOfFloats(const TConstArrayRef[float]* values, int size, int begin, int end):
+    # using tuple as in _ToPythonObjArrayOfArraysOfDoubles
+    return tuple(_CreateNumpyFloatArrayView(values[i].data() + begin, end - begin) for i in xrange(size))
+
 cdef TMetricHolder _MetricEval(
     const TVector[TVector[double]]& approx,
     TConstArrayRef[float] target,
@@ -1240,7 +1288,7 @@ cdef TMetricHolder _MetricEval(
     cdef TMetricHolder holder
     holder.Stats.resize(2)
 
-    approxes = [_CreateNumpyDoubleArrayView(approx[i].data() + begin, end - begin) for i in xrange(approx.size())]
+    approxes = _ToPythonObjArrayOfArraysOfDoubles(approx.data(), approx.size(), begin, end)
     targets = _CreateNumpyFloatArrayView(target.data() + begin, end - begin)
 
     if weight.size() == 0:
@@ -1272,8 +1320,8 @@ cdef TMetricHolder _MultiregressionMetricEval(
     cdef TMetricHolder holder
     holder.Stats.resize(2)
 
-    approxes = [_CreateNumpyDoubleArrayView(approx[i].data() + begin, end - begin) for i in xrange(approx.size())]
-    targets = [_CreateNumpyFloatArrayView(target[i].data() + begin, end - begin) for i in xrange(target.size())]
+    approxes = _ToPythonObjArrayOfArraysOfDoubles(approx.data(), approx.size(), begin, end)
+    targets = _ToPythonObjArrayOfArraysOfFloats(target.data(), target.size(), begin, end)
 
     if weight.size() == 0:
         weights = None
@@ -1416,6 +1464,82 @@ cdef void _ObjectiveCalcDersMultiRegression(
                 dereference(der2).Data[index] = num
                 index += 1
 
+def _is_self_unused_in_method(method):
+    args = inspect.getfullargspec(method)
+    if not args.args:
+        return False
+    self_arg_name = args.args[0]
+    return inspect.getsource(method).count(self_arg_name) == 1
+
+def _check_object_and_class_methods_match(object_method, class_method):
+    return inspect.getsource(object_method) == inspect.getsource(class_method)
+
+def _try_jit_method(obj, method_name):
+    import numba
+
+    object_method = getattr(obj, method_name, None)
+    class_method = getattr(obj.__class__, method_name, None)
+
+    if not object_method:
+        warnings.warn("Can't find method \"{}\" in the passed object".format(method_name))
+        return
+    if not class_method:
+        warnings.warn("Can't find method \"{}\" in the class of the passed object".format(method_name))
+        return
+    if type(object_method) != types.MethodType:
+        warnings.warn("Got unexpected type for method \"{}\" in the passed object: {}".format(method_name, type(object_method)))
+        return
+    if not _check_object_and_class_methods_match(object_method, class_method):
+        warnings.warn("Methods \"{}\" in the passed object and its class don't match".format(method_name))
+        return
+    if not _is_self_unused_in_method(object_method):
+        warnings.warn("Can't optimze method \"{}\" because self argument is used".format(method_name))
+        return
+
+    try:
+        optimized = numba.njit(class_method)
+    except numba.core.errors.NumbaError as err:
+        warnings.warn("Failed to optimize method \"{}\" in the passed object:\n{}".format(method_name, err))
+        return
+
+    def new_method(*args):
+        if not new_method.initialized:
+            try:
+                value = optimized(0, *args)
+                return value
+            except numba.core.errors.NumbaError as err:
+                warnings.warn("Failed to optimize method \"{}\" in the passed object:\n{}".format(method_name, err))
+                new_method.use_optimized = False
+                return object_method(*args)
+            finally:
+                new_method.initialized = True
+        elif new_method.use_optimized:
+            return optimized(0, *args)
+        else:
+            return object_method(*args)
+    setattr(new_method, "initialized", False)
+    setattr(new_method, "use_optimized", True)
+    setattr(obj, method_name, new_method)
+
+def _try_jit_methods(obj, method_names):
+    if hasattr(obj, "no_jit"):
+        return
+
+    if hasattr(obj, "_jited"): # everything already done
+        return
+
+    setattr(obj, "_jited", True)
+
+    try:
+        import numba
+    except:
+        #  warnings.warn('Failed to import numba for optimizing custom metrics and objectives')
+        return
+
+    for method_name in method_names:
+        if hasattr(obj, method_name):
+            _try_jit_method(obj, method_name)
+
 
 # customGenerator should have method rvs()
 cdef TCustomRandomDistributionGenerator _BuildCustomRandomDistributionGenerator(object customGenerator):
@@ -1426,6 +1550,7 @@ cdef TCustomRandomDistributionGenerator _BuildCustomRandomDistributionGenerator(
 
 cdef TCustomMetricDescriptor _BuildCustomMetricDescriptor(object metricObject):
     cdef TCustomMetricDescriptor descriptor
+    _try_jit_methods(metricObject, custom_metric_methods_to_optimize)
     descriptor.CustomData = <void*>metricObject
     if (issubclass(metricObject.__class__, MultiRegressionCustomMetric)):
         descriptor.EvalMultiregressionFunc = &_MultiregressionMetricEval
@@ -1436,8 +1561,15 @@ cdef TCustomMetricDescriptor _BuildCustomMetricDescriptor(object metricObject):
     descriptor.GetFinalErrorFunc = &_MetricGetFinalError
     return descriptor
 
+cdef TCustomCallbackDescriptor _BuildCustomCallbackDescritor(object callbackObject):
+    cdef TCustomCallbackDescriptor descriptor
+    descriptor.CustomData = <void*>callbackObject
+    descriptor.AfterIterationFunc = &_CallbackAfterIteration
+    return descriptor
+
 cdef TCustomObjectiveDescriptor _BuildCustomObjectiveDescriptor(object objectiveObject):
     cdef TCustomObjectiveDescriptor descriptor
+    _try_jit_methods(objectiveObject, custom_objective_methods_to_optimize)
     descriptor.CustomData = <void*>objectiveObject
     descriptor.CalcDersRange = &_ObjectiveCalcDersRange
     descriptor.CalcDersMultiRegression = &_ObjectiveCalcDersMultiRegression
@@ -1506,12 +1638,15 @@ cdef class _PreprocessParams:
     cdef TJsonValue tree
     cdef TMaybe[TCustomObjectiveDescriptor] customObjectiveDescriptor
     cdef TMaybe[TCustomMetricDescriptor] customMetricDescriptor
+    cdef TMaybe[TCustomCallbackDescriptor] customCallbackDescriptor
     def __init__(self, dict params):
         eval_metric = params.get("eval_metric")
         objective = params.get("loss_function")
+        callback = params.get("callbacks")
 
         is_custom_eval_metric = eval_metric is not None and not isinstance(eval_metric, string_types)
         is_custom_objective = objective is not None and not isinstance(objective, string_types)
+        is_custom_callback = callback is not None
 
         devices = params.get('devices')
         if devices is not None and isinstance(devices, list):
@@ -1522,14 +1657,16 @@ cdef class _PreprocessParams:
 
         params_to_json = params
 
-        if is_custom_objective or is_custom_eval_metric:
+        if is_custom_objective or is_custom_eval_metric or is_custom_callback:
             if params.get("task_type") == "GPU":
-                raise CatBoostError("User defined loss functions and metrics are not supported for GPU")
+                raise CatBoostError("User defined loss functions, metrics and callbacks are not supported for GPU")
             keys_to_replace = set()
             if is_custom_objective:
                 keys_to_replace.add("loss_function")
             if is_custom_eval_metric:
                 keys_to_replace.add("eval_metric")
+            if is_custom_callback:
+                keys_to_replace.add("callbacks")
 
             params_to_json = {}
 
@@ -1550,6 +1687,9 @@ cdef class _PreprocessParams:
             self.customMetricDescriptor = _BuildCustomMetricDescriptor(params["eval_metric"])
             if (issubclass(params["eval_metric"].__class__, MultiRegressionCustomMetric)):
                 params_to_json["eval_metric"] = "PythonUserDefinedMultiRegression"
+
+        if params_to_json.get("callbacks") == "PythonUserDefinedPerObject":
+            self.customCallbackDescriptor = _BuildCustomCallbackDescritor(params["callbacks"])
 
         dumps_params = dumps(params_to_json, cls=_NumpyAwareEncoder)
 
@@ -4238,6 +4378,7 @@ cdef class _CatBoost:
                     quantizedFeaturesInfo,
                     prep_params.customObjectiveDescriptor,
                     prep_params.customMetricDescriptor,
+                    prep_params.customCallbackDescriptor,
                     dataProviders,
                     init_model_param,
                     init_learn_progress_param,
@@ -4273,24 +4414,7 @@ cdef class _CatBoost:
         return test_evals
 
     cpdef _get_metrics_evals(self):
-        metrics_evals = defaultdict(functools.partial(defaultdict, list))
-        iteration_count = self.__metrics_history.LearnMetricsHistory.size()
-        for iteration_num in range(iteration_count):
-            for metric, value in self.__metrics_history.LearnMetricsHistory[iteration_num]:
-                metrics_evals["learn"][to_native_str(metric)].append(value)
-
-        if not self.__metrics_history.TestMetricsHistory.empty():
-            test_count = 0
-            for i in range(iteration_count):
-                test_count = max(test_count, self.__metrics_history.TestMetricsHistory[i].size())
-            for iteration_num in range(iteration_count):
-                for test_index in range(self.__metrics_history.TestMetricsHistory[iteration_num].size()):
-                    eval_set_name = "validation"
-                    if test_count > 1:
-                        eval_set_name += "_" + str(test_index)
-                    for metric, value in self.__metrics_history.TestMetricsHistory[iteration_num][test_index]:
-                        metrics_evals[eval_set_name][to_native_str(metric)].append(value)
-        return {k: dict(v) for k, v in iteritems(metrics_evals)}
+        return _get_metrics_evals_pydict(self.__metrics_history)
 
     cpdef _get_best_score(self):
         if self.__metrics_history.LearnBestError.empty():
@@ -4926,6 +5050,9 @@ cdef class _CatBoost:
                 nanTreatments[pair.first] = 'AsTrue'
         return nanTreatments
 
+    cpdef _get_binclass_probability_threshold(self):
+        return self.__model.GetBinClassProbabilityThreshold()
+
 
 cdef class _MetadataHashProxy:
     cdef _CatBoost _catboost
@@ -5144,6 +5271,29 @@ cdef _convert_to_visible_labels(EPredictionType predictionType, TVector[TVector[
         return result
 
     return _2d_vector_of_double_to_np_array(raws)
+
+
+cdef _get_metrics_evals_pydict(TMetricsAndTimeLeftHistory history):
+    metrics_evals = defaultdict(functools.partial(defaultdict, list))
+  
+    iteration_count = history.LearnMetricsHistory.size()
+    for iteration_num in range(iteration_count):
+        for metric, value in history.LearnMetricsHistory[iteration_num]:
+            metrics_evals["learn"][to_native_str(metric)].append(value)
+
+    if not history.TestMetricsHistory.empty():
+        test_count = 0
+        for i in range(iteration_count):
+            test_count = max(test_count, history.TestMetricsHistory[i].size())
+        for iteration_num in range(iteration_count):
+            for test_index in range(history.TestMetricsHistory[iteration_num].size()):
+                eval_set_name = "validation"
+                if test_count > 1:
+                    eval_set_name += "_" + str(test_index)
+                for metric, value in history.TestMetricsHistory[iteration_num][test_index]:
+                    metrics_evals[eval_set_name][to_native_str(metric)].append(value)
+    return {k: dict(v) for k, v in iteritems(metrics_evals)}
+
 
 
 cdef class _StagedPredictIterator:
@@ -5467,26 +5617,14 @@ cpdef _select_threshold(model, data, curve, FPR, FNR, thread_count):
     return rocCurve.SelectDecisionBoundaryByIntersection()
 
 
-log_cout = None
-log_cerr = None
-
-
-cdef void _CoutLogPrinter(const char* str, size_t len) except * with gil:
+cdef void _WriteLog(const char* str, size_t len, void* targetObject) except * with gil:
+    cdef streamLikeObject = <object> targetObject
     cdef bytes bytes_str = str[:len]
-    log_cout.write(to_native_str(bytes_str))
-
-
-cdef void _CerrLogPrinter(const char* str, size_t len) except * with gil:
-    cdef bytes bytes_str = str[:len]
-    log_cerr.write(to_native_str(bytes_str))
+    streamLikeObject.write(to_native_str(bytes_str))
 
 
 cpdef _set_logger(cout, cerr):
-    global log_cout
-    global log_cerr
-    log_cout = cout
-    log_cerr = cerr
-    SetCustomLoggingFunction(&_CoutLogPrinter, &_CerrLogPrinter)
+    SetCustomLoggingFunction(&_WriteLog, &_WriteLog, <void*>cout, <void*>cerr)
 
 
 cpdef _reset_logger():

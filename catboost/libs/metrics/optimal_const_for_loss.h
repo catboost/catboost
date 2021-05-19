@@ -16,24 +16,38 @@
 
 namespace NCB {
     inline float CalculateWeightedTargetAverage(TConstArrayRef<float> target, TConstArrayRef<float> weights) {
-        double summaryWeight = 0.0;
+        const double summaryWeight = weights.empty() ? target.size() : Accumulate(weights, 0.0);
         double targetSum = 0.0;
-         if (weights.empty()) {
+        if (weights.empty()) {
+            targetSum = Accumulate(target, 0.0);
+        } else {
+            Y_ASSERT(target.size() == weights.size());
             for (size_t i = 0; i < target.size(); ++i) {
-                 if (!std::isnan(target[i])) {
+                targetSum += target[i] * weights[i];
+            }
+        }
+        return targetSum / summaryWeight;
+    }
+
+    inline float CalculateWeightedTargetAverageWithMissingValues(TConstArrayRef<float> target, TConstArrayRef<float> weights) {
+        double targetSum = 0.0;
+        double summaryWeight = 0.0;
+
+        if (weights.empty()) {
+            for (size_t i = 0; i < target.size(); ++i) {
+                if (!IsNan(target[i])) {
                     targetSum += target[i];
-                    summaryWeight += 1.0;
+                    summaryWeight += 1;
                 }
             }
-         } else {
-             Y_ASSERT(target.size() == weights.size());
-            for (size_t i = 0; i < target.size(); ++i){
-                if (!std::isnan(target[i])) {
+        } else {
+            for (size_t i = 0; i < target.size(); ++i) {
+                if (!IsNan(target[i])) {
                     targetSum += target[i] * weights[i];
                     summaryWeight += weights[i];
                 }
-             }
-         }
+            }
+        }
         return targetSum / summaryWeight;
     }
 
@@ -155,6 +169,14 @@ namespace NCB {
                 TVector<double> startPoint(target.size());
                 for (int dim : xrange(target.size())) {
                     startPoint[dim] = *CalcOneDimensionalOptimumConstApprox(singleRMSELoss, target[dim], weights);
+                }
+                return startPoint;
+            }
+            case ELossFunction::MultiRMSEWithMissingValues:
+            {
+                TVector<double> startPoint(target.size());
+                for (int dim : xrange(target.size())) {
+                    startPoint[dim] = CalculateWeightedTargetAverageWithMissingValues(target[dim], weights);
                 }
                 return startPoint;
             }

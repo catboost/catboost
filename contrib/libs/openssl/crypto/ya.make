@@ -51,6 +51,14 @@ IF (OS_ANDROID)
     ENDIF()
 ENDIF()
 
+IF (OS_WINDOWS)
+    IF (ARCH_X86_64)
+        SET(WINDOWS_X86_64 yes)
+    ELSEIF(ARCH_I686)
+        SET(WINDOWS_I686 yes)
+    ENDIF()
+ENDIF()
+
 NO_COMPILER_WARNINGS()
 
 NO_RUNTIME()
@@ -58,17 +66,22 @@ NO_RUNTIME()
 CFLAGS(
     -DDSO_NONE
     -DAESNI_ASM
-    -DECP_NISTZ256_ASM
     -DOPENSSL_BN_ASM_MONT
     -DOPENSSL_CPUID_OBJ
-    -DPOLY1305_ASM
     -DSHA1_ASM
     -DSHA256_ASM
     -DSHA512_ASM
     -DZLIB
 )
 
-IF (NOT IOS_I386 AND NOT ANDROID_I686)
+IF (NOT WINDOWS_I686)
+    CFLAGS(
+        -DECP_NISTZ256_ASM
+        -DPOLY1305_ASM
+    )
+ENDIF()
+
+IF (NOT IOS_I386 AND NOT ANDROID_I686 AND NOT WINDOWS_I686)
     CFLAGS(
         -DKECCAK1600_ASM
     )
@@ -440,7 +453,6 @@ SRCS(
     ec/ecp_nistp256.c
     ec/ecp_nistp521.c
     ec/ecp_nistputil.c
-    ec/ecp_nistz256.c
     ec/ecp_oct.c
     ec/ecp_smpl.c
     ec/ecx_meth.c
@@ -765,6 +777,12 @@ SRCS(
     x509v3/v3err.c
 )
 
+IF (NOT WINDOWS_I686)
+    SRCS(
+        ec/ecp_nistz256.c
+    )
+ENDIF()
+
 IF (NOT IOS_ARM64 AND NOT IOS_ARMV7)
     SRCS(
         engine/eng_all.c
@@ -796,7 +814,7 @@ IF (NOT IOS_ARMV7 AND NOT ANDROID_ARMV7 AND NOT LINUX_ARMV7)
         aes/aes_core.c
     )
 ENDIF()
-IF (NOT IOS_I386 AND NOT ANDROID_I686)
+IF (NOT IOS_I386 AND NOT ANDROID_I686 AND NOT WINDOWS_I686)
     SRCS(
         bf/bf_enc.c
         camellia/cmll_misc.c
@@ -1040,6 +1058,38 @@ IF (OS_WINDOWS AND ARCH_X86_64)
         ../asm/windows/crypto/whrlpool/wp-x86_64.masm
         ../asm/windows/crypto/uplink-x86_64.masm
         ../asm/windows/crypto/x86_64cpuid.masm
+    )
+ENDIF()
+
+
+IF (OS_WINDOWS AND ARCH_I386)
+    CFLAGS(
+        -DGHASH_ASM
+        -DOPENSSL_BN_ASM_GF2m
+        -DRC4_ASM
+        -DMD5_ASM
+    )
+
+    SRCS(
+        ../asm/windows/crypto/aes/aesni-x86.masm
+        ../asm/windows/crypto/aes/vpaes-x86.masm
+        ../asm/windows/crypto/bn/x86-gf2m.masm
+        ../asm/windows/crypto/bn/x86-mont.masm
+        ../asm/windows/crypto/camellia/cmll-x86.masm
+        ../asm/windows/crypto/chacha/chacha-x86.masm
+        ../asm/windows/crypto/md5/md5-586.masm
+        ../asm/windows/crypto/modes/ghash-x86.masm
+        ../asm/windows/crypto/rc4/rc4-586.masm
+        ../asm/windows/crypto/sha/sha1-586.masm
+        ../asm/windows/crypto/sha/sha256-586.masm
+        ../asm/windows/crypto/sha/sha512-586.masm
+        ../asm/windows/crypto/x86cpuid.masm
+        bf/bf_enc.c
+        bn/bn_asm.c
+        des/des_enc.c
+        des/fcrypt_b.c
+        sha/keccak1600.c
+        whrlpool/wp_block.c
     )
 ENDIF()
 

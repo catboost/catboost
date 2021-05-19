@@ -60,6 +60,12 @@ static std::tuple<ui32, ui32, ELeavesEstimation, double> GetEstimationMethodDefa
             defaultGradientIterations = 1;
             break;
         }
+        case ELossFunction::Cox: {
+            defaultEstimationMethod = ELeavesEstimation::Newton;
+            defaultNewtonIterations = 1;
+            defaultGradientIterations = 1;
+            break;
+        }
         case ELossFunction::RMSEWithUncertainty: {
             defaultEstimationMethod = ELeavesEstimation::Newton;
             defaultNewtonIterations = 1;
@@ -183,9 +189,10 @@ static std::tuple<ui32, ui32, ELeavesEstimation, double> GetEstimationMethodDefa
             break;
         }
         case ELossFunction::LambdaMart: {
-            defaultEstimationMethod = ELeavesEstimation::Gradient;
+            defaultL2Reg = 0;
+            defaultEstimationMethod = ELeavesEstimation::Newton;
             defaultGradientIterations = 1;
-            // doesn't have Newton
+            defaultNewtonIterations = 1;
             break;
         }
         case ELossFunction::StochasticRank: {
@@ -550,7 +557,6 @@ static void EnsureNewtonIsAvailable(ETaskType taskType, const NCatboostOptions::
     const auto lossFunction = lossDescription.GetLossFunction();
     CB_ENSURE(
         lossFunction != ELossFunction::StochasticFilter &&
-        lossFunction != ELossFunction::LambdaMart &&
         lossFunction != ELossFunction::StochasticRank &&
         lossFunction != ELossFunction::Quantile &&
         lossFunction != ELossFunction::MAE &&
@@ -669,7 +675,7 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
             ELossFunction::CrossEntropy, ELossFunction::Quantile, ELossFunction::MAE, ELossFunction::MAPE,
             ELossFunction::MultiRMSE, ELossFunction::MultiRMSEWithMissingValues),
             "You can use boost_from_average only for these loss functions now: " <<
-            "RMSE, Logloss, CrossEntropy, Quantile, MAE, MAPE or MultiRMSE.");
+            "RMSE, Logloss, CrossEntropy, Quantile, MAE, MAPE, MultiRMSE or MultiRMSEWithMissingValues.");
         CB_ENSURE(SystemOptions->IsSingleHost(), "You can use boost_from_average only on single host now.");
     }
 
@@ -825,8 +831,7 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
         case ELossFunction::LambdaMart: {
             NCatboostOptions::TLossDescription lossDescription;
             const auto& lossParams = LossFunctionDescription->GetLossParamsMap();
-            CB_ENSURE(lossParams.contains("metric"), "LambdaMart requires metric param");
-            ELossFunction targetMetric = FromString<ELossFunction>(lossParams.at("metric"));
+            ELossFunction targetMetric = lossParams.contains("metric") ? FromString<ELossFunction>(lossParams.at("metric")) : ELossFunction::NDCG;
             TVector<std::pair<TString, TString>> metricParams;
             TSet<TString> validParams;
             switch (targetMetric) {

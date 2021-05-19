@@ -841,6 +841,17 @@
             "uri": "file://test.test_counter_calc_Plain-SkipTest_/test.eval"
         }
     ],
+    "test.test_cox_regression": [
+        {
+            "uri": "file://test.test_cox_regression/test.eval"
+        },
+        {
+            "uri": "file://test.test_cox_regression/test.calc"
+        },
+        {
+            "uri": "file://test.test_cox_regression/test.metric"
+        }
+    ],
     "test.test_crossentropy[calc_block=5000000-Ordered]": [
         {
             "uri": "file://test.test_crossentropy_calc_block=5000000-Ordered_/test.eval"
@@ -1413,99 +1424,6 @@
     "test.test_cv_for_query[Plain]": [
         {
             "uri": "file://test.test_cv_for_query_Plain_/test.eval"
-        }
-    ],
-    "test.test_survival_aft[Ordered]": [
-        {
-            "uri": "file://test.test_survival_aft_Ordered_/test.eval"
-        },
-        {
-            "uri": "file://test.test_survival_aft_Ordered_/test.calc"
-        },
-        {
-            "uri": "file://test.test_survival_aft_Ordered_/test.metric"
-        }
-    ],
-    "test.test_survival_aft[Plain]": [
-        {
-            "uri": "file://test.test_survival_aft_Plain_/test.eval"
-        },
-        {
-            "uri": "file://test.test_survival_aft_Plain_/test.calc"
-        },
-        {
-            "uri": "file://test.test_survival_aft_Plain_/test.metric"
-        }
-    ],
-    "test.test_survival_aft_with_nondefault_distributions[Normal-Ordered]": [
-        {
-            "uri": "file://test.test_survival_aft_Ordered-Normal_/test.eval"
-        },
-        {
-            "uri": "file://test.test_survival_aft_Ordered-Normal_/test.calc"
-        },
-        {
-            "uri": "file://test.test_survival_aft_Ordered-Normal_/test.metric"
-        }
-    ],
-    "test.test_survival_aft_with_nondefault_distributions[Normal-Plain]": [
-        {
-            "uri": "file://test.test_survival_aft_Plain-Normal_/test.eval"
-        },
-        {
-            "uri": "file://test.test_survival_aft_Plain-Normal_/test.calc"
-        },
-        {
-            "uri": "file://test.test_survival_aft_Plain-Normal_/test.metric"
-        }
-    ],
-    "test.test_survival_aft_with_nondefault_distributions[Logistic-Ordered]": [
-        {
-            "uri": "file://test.test_survival_aft_Ordered-Logistic_/test.eval"
-        },
-        {
-            "uri": "file://test.test_survival_aft_Ordered-Logistic_/test.calc"
-        },
-        {
-            "uri": "file://test.test_survival_aft_Ordered-Logistic_/test.metric"
-        }
-    ],
-    "test.test_survival_aft_with_nondefault_distributions[Logistic-Plain]": [
-        {
-            "uri": "file://test.test_survival_aft_Plain-Logistic_/test.eval"
-        },
-        {
-            "uri": "file://test.test_survival_aft_Plain-Logistic_/test.calc"
-        },
-        {
-            "uri": "file://test.test_survival_aft_Plain-Logistic_/test.metric"
-        }
-    ],
-    "test.test_survival_aft_with_nondefault_distributions[Extreme-Ordered]": [
-        {
-            "uri": "file://test.test_survival_aft_Ordered-Extreme_/test.eval"
-        },
-        {
-            "uri": "file://test.test_survival_aft_Ordered-Extreme_/test.calc"
-        },
-        {
-            "uri": "file://test.test_survival_aft_Ordered-Extreme_/test.metric"
-        }
-    ],
-    "test.test_survival_aft_with_nondefault_distributions[Extreme-Plain]": [
-        {
-            "uri": "file://test.test_survival_aft_Plain-Extreme_/test.eval"
-        },
-        {
-            "uri": "file://test.test_survival_aft_Plain-Extreme_/test.calc"
-        },
-        {
-            "uri": "file://test.test_survival_aft_Plain-Extreme_/test.metric"
-        }
-    ],
-    "test.test_cv_multiregression[Ordered-inverted]": [
-        {
-            "uri": "file://test.test_cv_multiregression_Ordered-inverted_/test.eval"
         }
     ],
     "test.test_cv_multiregression[Ordered-inverted]": [
@@ -4231,6 +4149,779 @@
     "test.test_json_logging_metric_period": [
         {
             "uri": "file://test.test_json_logging_metric_period/catboost_training.json"
+        }
+    ],
+    "test.test_lambda_mart": [
+        {
+            "uri": "file://test.test_lambda_mart/test.eval"
+        }
+    ],
+    "test.test_lambda_mart_with_params[false-0.5-LogPosition-Base--1-DCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-0.5-LogPosition-Base--1-DCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-0.5-LogPosition-Base--1-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[false-0.5-LogPosition-Base--1-NDCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-0.5-LogPosition-Base--1-NDCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-0.5-LogPosition-Base--1-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[false-0.5-LogPosition-Base-1-DCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-0.5-LogPosition-Base-1-DCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-0.5-LogPosition-Base-1-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[false-0.5-LogPosition-Base-1-NDCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-0.5-LogPosition-Base-1-NDCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-0.5-LogPosition-Base-1-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[false-0.5-LogPosition-Base-10-DCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-0.5-LogPosition-Base-10-DCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-0.5-LogPosition-Base-10-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[false-0.5-LogPosition-Base-10-NDCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-0.5-LogPosition-Base-10-NDCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-0.5-LogPosition-Base-10-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[false-0.5-LogPosition-Exp--1-DCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-0.5-LogPosition-Exp--1-DCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-0.5-LogPosition-Exp--1-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[false-0.5-LogPosition-Exp--1-NDCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-0.5-LogPosition-Exp--1-NDCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-0.5-LogPosition-Exp--1-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[false-0.5-LogPosition-Exp-1-DCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-0.5-LogPosition-Exp-1-DCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-0.5-LogPosition-Exp-1-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[false-0.5-LogPosition-Exp-1-NDCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-0.5-LogPosition-Exp-1-NDCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-0.5-LogPosition-Exp-1-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[false-0.5-LogPosition-Exp-10-DCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-0.5-LogPosition-Exp-10-DCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-0.5-LogPosition-Exp-10-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[false-0.5-LogPosition-Exp-10-NDCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-0.5-LogPosition-Exp-10-NDCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-0.5-LogPosition-Exp-10-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[false-0.5-Position-Base--1-DCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-0.5-Position-Base--1-DCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-0.5-Position-Base--1-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[false-0.5-Position-Base--1-NDCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-0.5-Position-Base--1-NDCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-0.5-Position-Base--1-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[false-0.5-Position-Base-1-DCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-0.5-Position-Base-1-DCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-0.5-Position-Base-1-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[false-0.5-Position-Base-1-NDCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-0.5-Position-Base-1-NDCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-0.5-Position-Base-1-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[false-0.5-Position-Base-10-DCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-0.5-Position-Base-10-DCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-0.5-Position-Base-10-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[false-0.5-Position-Base-10-NDCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-0.5-Position-Base-10-NDCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-0.5-Position-Base-10-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[false-0.5-Position-Exp--1-DCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-0.5-Position-Exp--1-DCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-0.5-Position-Exp--1-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[false-0.5-Position-Exp--1-NDCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-0.5-Position-Exp--1-NDCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-0.5-Position-Exp--1-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[false-0.5-Position-Exp-1-DCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-0.5-Position-Exp-1-DCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-0.5-Position-Exp-1-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[false-0.5-Position-Exp-1-NDCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-0.5-Position-Exp-1-NDCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-0.5-Position-Exp-1-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[false-0.5-Position-Exp-10-DCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-0.5-Position-Exp-10-DCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-0.5-Position-Exp-10-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[false-0.5-Position-Exp-10-NDCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-0.5-Position-Exp-10-NDCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-0.5-Position-Exp-10-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[false-2.0-LogPosition-Base--1-DCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-2.0-LogPosition-Base--1-DCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-2.0-LogPosition-Base--1-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[false-2.0-LogPosition-Base--1-NDCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-2.0-LogPosition-Base--1-NDCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-2.0-LogPosition-Base--1-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[false-2.0-LogPosition-Base-1-DCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-2.0-LogPosition-Base-1-DCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-2.0-LogPosition-Base-1-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[false-2.0-LogPosition-Base-1-NDCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-2.0-LogPosition-Base-1-NDCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-2.0-LogPosition-Base-1-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[false-2.0-LogPosition-Base-10-DCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-2.0-LogPosition-Base-10-DCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-2.0-LogPosition-Base-10-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[false-2.0-LogPosition-Base-10-NDCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-2.0-LogPosition-Base-10-NDCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-2.0-LogPosition-Base-10-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[false-2.0-LogPosition-Exp--1-DCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-2.0-LogPosition-Exp--1-DCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-2.0-LogPosition-Exp--1-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[false-2.0-LogPosition-Exp--1-NDCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-2.0-LogPosition-Exp--1-NDCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-2.0-LogPosition-Exp--1-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[false-2.0-LogPosition-Exp-1-DCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-2.0-LogPosition-Exp-1-DCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-2.0-LogPosition-Exp-1-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[false-2.0-LogPosition-Exp-1-NDCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-2.0-LogPosition-Exp-1-NDCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-2.0-LogPosition-Exp-1-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[false-2.0-LogPosition-Exp-10-DCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-2.0-LogPosition-Exp-10-DCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-2.0-LogPosition-Exp-10-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[false-2.0-LogPosition-Exp-10-NDCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-2.0-LogPosition-Exp-10-NDCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-2.0-LogPosition-Exp-10-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[false-2.0-Position-Base--1-DCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-2.0-Position-Base--1-DCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-2.0-Position-Base--1-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[false-2.0-Position-Base--1-NDCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-2.0-Position-Base--1-NDCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-2.0-Position-Base--1-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[false-2.0-Position-Base-1-DCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-2.0-Position-Base-1-DCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-2.0-Position-Base-1-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[false-2.0-Position-Base-1-NDCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-2.0-Position-Base-1-NDCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-2.0-Position-Base-1-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[false-2.0-Position-Base-10-DCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-2.0-Position-Base-10-DCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-2.0-Position-Base-10-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[false-2.0-Position-Base-10-NDCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-2.0-Position-Base-10-NDCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-2.0-Position-Base-10-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[false-2.0-Position-Exp--1-DCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-2.0-Position-Exp--1-DCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-2.0-Position-Exp--1-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[false-2.0-Position-Exp--1-NDCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-2.0-Position-Exp--1-NDCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-2.0-Position-Exp--1-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[false-2.0-Position-Exp-1-DCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-2.0-Position-Exp-1-DCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-2.0-Position-Exp-1-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[false-2.0-Position-Exp-1-NDCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-2.0-Position-Exp-1-NDCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-2.0-Position-Exp-1-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[false-2.0-Position-Exp-10-DCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-2.0-Position-Exp-10-DCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-2.0-Position-Exp-10-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[false-2.0-Position-Exp-10-NDCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-2.0-Position-Exp-10-NDCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_false-2.0-Position-Exp-10-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[true-0.5-LogPosition-Base--1-DCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-0.5-LogPosition-Base--1-DCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-0.5-LogPosition-Base--1-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[true-0.5-LogPosition-Base--1-NDCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-0.5-LogPosition-Base--1-NDCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-0.5-LogPosition-Base--1-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[true-0.5-LogPosition-Base-1-DCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-0.5-LogPosition-Base-1-DCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-0.5-LogPosition-Base-1-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[true-0.5-LogPosition-Base-1-NDCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-0.5-LogPosition-Base-1-NDCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-0.5-LogPosition-Base-1-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[true-0.5-LogPosition-Base-10-DCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-0.5-LogPosition-Base-10-DCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-0.5-LogPosition-Base-10-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[true-0.5-LogPosition-Base-10-NDCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-0.5-LogPosition-Base-10-NDCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-0.5-LogPosition-Base-10-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[true-0.5-LogPosition-Exp--1-DCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-0.5-LogPosition-Exp--1-DCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-0.5-LogPosition-Exp--1-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[true-0.5-LogPosition-Exp--1-NDCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-0.5-LogPosition-Exp--1-NDCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-0.5-LogPosition-Exp--1-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[true-0.5-LogPosition-Exp-1-DCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-0.5-LogPosition-Exp-1-DCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-0.5-LogPosition-Exp-1-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[true-0.5-LogPosition-Exp-1-NDCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-0.5-LogPosition-Exp-1-NDCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-0.5-LogPosition-Exp-1-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[true-0.5-LogPosition-Exp-10-DCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-0.5-LogPosition-Exp-10-DCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-0.5-LogPosition-Exp-10-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[true-0.5-LogPosition-Exp-10-NDCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-0.5-LogPosition-Exp-10-NDCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-0.5-LogPosition-Exp-10-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[true-0.5-Position-Base--1-DCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-0.5-Position-Base--1-DCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-0.5-Position-Base--1-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[true-0.5-Position-Base--1-NDCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-0.5-Position-Base--1-NDCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-0.5-Position-Base--1-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[true-0.5-Position-Base-1-DCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-0.5-Position-Base-1-DCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-0.5-Position-Base-1-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[true-0.5-Position-Base-1-NDCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-0.5-Position-Base-1-NDCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-0.5-Position-Base-1-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[true-0.5-Position-Base-10-DCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-0.5-Position-Base-10-DCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-0.5-Position-Base-10-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[true-0.5-Position-Base-10-NDCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-0.5-Position-Base-10-NDCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-0.5-Position-Base-10-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[true-0.5-Position-Exp--1-DCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-0.5-Position-Exp--1-DCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-0.5-Position-Exp--1-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[true-0.5-Position-Exp--1-NDCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-0.5-Position-Exp--1-NDCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-0.5-Position-Exp--1-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[true-0.5-Position-Exp-1-DCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-0.5-Position-Exp-1-DCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-0.5-Position-Exp-1-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[true-0.5-Position-Exp-1-NDCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-0.5-Position-Exp-1-NDCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-0.5-Position-Exp-1-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[true-0.5-Position-Exp-10-DCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-0.5-Position-Exp-10-DCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-0.5-Position-Exp-10-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[true-0.5-Position-Exp-10-NDCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-0.5-Position-Exp-10-NDCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-0.5-Position-Exp-10-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[true-2.0-LogPosition-Base--1-DCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-2.0-LogPosition-Base--1-DCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-2.0-LogPosition-Base--1-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[true-2.0-LogPosition-Base--1-NDCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-2.0-LogPosition-Base--1-NDCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-2.0-LogPosition-Base--1-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[true-2.0-LogPosition-Base-1-DCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-2.0-LogPosition-Base-1-DCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-2.0-LogPosition-Base-1-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[true-2.0-LogPosition-Base-1-NDCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-2.0-LogPosition-Base-1-NDCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-2.0-LogPosition-Base-1-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[true-2.0-LogPosition-Base-10-DCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-2.0-LogPosition-Base-10-DCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-2.0-LogPosition-Base-10-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[true-2.0-LogPosition-Base-10-NDCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-2.0-LogPosition-Base-10-NDCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-2.0-LogPosition-Base-10-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[true-2.0-LogPosition-Exp--1-DCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-2.0-LogPosition-Exp--1-DCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-2.0-LogPosition-Exp--1-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[true-2.0-LogPosition-Exp--1-NDCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-2.0-LogPosition-Exp--1-NDCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-2.0-LogPosition-Exp--1-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[true-2.0-LogPosition-Exp-1-DCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-2.0-LogPosition-Exp-1-DCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-2.0-LogPosition-Exp-1-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[true-2.0-LogPosition-Exp-1-NDCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-2.0-LogPosition-Exp-1-NDCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-2.0-LogPosition-Exp-1-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[true-2.0-LogPosition-Exp-10-DCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-2.0-LogPosition-Exp-10-DCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-2.0-LogPosition-Exp-10-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[true-2.0-LogPosition-Exp-10-NDCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-2.0-LogPosition-Exp-10-NDCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-2.0-LogPosition-Exp-10-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[true-2.0-Position-Base--1-DCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-2.0-Position-Base--1-DCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-2.0-Position-Base--1-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[true-2.0-Position-Base--1-NDCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-2.0-Position-Base--1-NDCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-2.0-Position-Base--1-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[true-2.0-Position-Base-1-DCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-2.0-Position-Base-1-DCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-2.0-Position-Base-1-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[true-2.0-Position-Base-1-NDCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-2.0-Position-Base-1-NDCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-2.0-Position-Base-1-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[true-2.0-Position-Base-10-DCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-2.0-Position-Base-10-DCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-2.0-Position-Base-10-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[true-2.0-Position-Base-10-NDCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-2.0-Position-Base-10-NDCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-2.0-Position-Base-10-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[true-2.0-Position-Exp--1-DCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-2.0-Position-Exp--1-DCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-2.0-Position-Exp--1-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[true-2.0-Position-Exp--1-NDCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-2.0-Position-Exp--1-NDCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-2.0-Position-Exp--1-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[true-2.0-Position-Exp-1-DCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-2.0-Position-Exp-1-DCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-2.0-Position-Exp-1-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[true-2.0-Position-Exp-1-NDCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-2.0-Position-Exp-1-NDCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-2.0-Position-Exp-1-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[true-2.0-Position-Exp-10-DCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-2.0-Position-Exp-10-DCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-2.0-Position-Exp-10-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_with_params[true-2.0-Position-Exp-10-NDCG]": [
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-2.0-Position-Exp-10-NDCG_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_with_params_true-2.0-Position-Exp-10-NDCG_/test_error.tsv"
         }
     ],
     "test.test_learning_rate_auto_set[false-Ordered]": [
@@ -7813,6 +8504,94 @@
     "test.test_subsample_per_tree_level[calc_block=60-Plain-SymmetricTree]": {
         "uri": "file://test.test_subsample_per_tree_level_calc_block=60-Plain-SymmetricTree_/test.eval"
     },
+    "test.test_survival_aft[Ordered]": [
+        {
+            "uri": "file://test.test_survival_aft_Ordered_/test.eval"
+        },
+        {
+            "uri": "file://test.test_survival_aft_Ordered_/test.calc"
+        },
+        {
+            "uri": "file://test.test_survival_aft_Ordered_/test.metric"
+        }
+    ],
+    "test.test_survival_aft[Plain]": [
+        {
+            "uri": "file://test.test_survival_aft_Plain_/test.eval"
+        },
+        {
+            "uri": "file://test.test_survival_aft_Plain_/test.calc"
+        },
+        {
+            "uri": "file://test.test_survival_aft_Plain_/test.metric"
+        }
+    ],
+    "test.test_survival_aft_with_nondefault_distributions[Extreme-Ordered]": [
+        {
+            "uri": "file://test.test_survival_aft_with_nondefault_distributions_Extreme-Ordered_/test.eval"
+        },
+        {
+            "uri": "file://test.test_survival_aft_with_nondefault_distributions_Extreme-Ordered_/test.calc"
+        },
+        {
+            "uri": "file://test.test_survival_aft_with_nondefault_distributions_Extreme-Ordered_/test.metric"
+        }
+    ],
+    "test.test_survival_aft_with_nondefault_distributions[Extreme-Plain]": [
+        {
+            "uri": "file://test.test_survival_aft_with_nondefault_distributions_Extreme-Plain_/test.eval"
+        },
+        {
+            "uri": "file://test.test_survival_aft_with_nondefault_distributions_Extreme-Plain_/test.calc"
+        },
+        {
+            "uri": "file://test.test_survival_aft_with_nondefault_distributions_Extreme-Plain_/test.metric"
+        }
+    ],
+    "test.test_survival_aft_with_nondefault_distributions[Logistic-Ordered]": [
+        {
+            "uri": "file://test.test_survival_aft_with_nondefault_distributions_Logistic-Ordered_/test.eval"
+        },
+        {
+            "uri": "file://test.test_survival_aft_with_nondefault_distributions_Logistic-Ordered_/test.calc"
+        },
+        {
+            "uri": "file://test.test_survival_aft_with_nondefault_distributions_Logistic-Ordered_/test.metric"
+        }
+    ],
+    "test.test_survival_aft_with_nondefault_distributions[Logistic-Plain]": [
+        {
+            "uri": "file://test.test_survival_aft_with_nondefault_distributions_Logistic-Plain_/test.eval"
+        },
+        {
+            "uri": "file://test.test_survival_aft_with_nondefault_distributions_Logistic-Plain_/test.calc"
+        },
+        {
+            "uri": "file://test.test_survival_aft_with_nondefault_distributions_Logistic-Plain_/test.metric"
+        }
+    ],
+    "test.test_survival_aft_with_nondefault_distributions[Normal-Ordered]": [
+        {
+            "uri": "file://test.test_survival_aft_with_nondefault_distributions_Normal-Ordered_/test.eval"
+        },
+        {
+            "uri": "file://test.test_survival_aft_with_nondefault_distributions_Normal-Ordered_/test.calc"
+        },
+        {
+            "uri": "file://test.test_survival_aft_with_nondefault_distributions_Normal-Ordered_/test.metric"
+        }
+    ],
+    "test.test_survival_aft_with_nondefault_distributions[Normal-Plain]": [
+        {
+            "uri": "file://test.test_survival_aft_with_nondefault_distributions_Normal-Plain_/test.eval"
+        },
+        {
+            "uri": "file://test.test_survival_aft_with_nondefault_distributions_Normal-Plain_/test.calc"
+        },
+        {
+            "uri": "file://test.test_survival_aft_with_nondefault_distributions_Normal-Plain_/test.metric"
+        }
+    ],
     "test.test_target_border": [
         {
             "uri": "file://test.test_target_border/test.eval"

@@ -233,13 +233,11 @@ public:
     ) const override {
         const int dim = target.size();
         for (auto i : xrange(dim)) {
-	    //const float realWeight = weight * std::isnan(target[i]); 
-            //(*der)[i] = realWeight * (target[i] - approx[i]);
-	    if(std::isnan(target[i])) {
-	        (*der)[i] = 0.0;
-	    } else {
-		(*der)[i] = weight * (target[i] - approx[i]);
-	    }
+            if (IsNan(target[i])) {
+                (*der)[i] = 0.0;
+            } else {
+                (*der)[i] = weight * (target[i] - approx[i]);
+            }
         }
 
         if (der2 != nullptr) {
@@ -247,7 +245,7 @@ public:
                      der2->ApproxDimension == dim);
 
             for (auto i : xrange(dim)) {
-                if (std::isnan(target[i])) {
+                if (IsNan(target[i])) {
                     der2->Data[i] = 0.0;
                 } else {
                     der2->Data[i] = -weight;
@@ -365,6 +363,35 @@ private:
     double CalcDer3(double /*approx*/, float /*target*/) const override {
         return RMSE_DER3;
     }
+};
+
+class TCoxError final : public IDerCalcer {
+public:
+    explicit TCoxError(bool isExpApprox, ui32 maxDerivativeOrder = 3)
+        : IDerCalcer(isExpApprox, maxDerivativeOrder)
+    {
+    }
+
+    void CalcDersRange(
+        int start,
+        int count,
+        bool calcThirdDer,
+        const double* approxes,
+        const double* approxDeltas,
+        const float* targets,
+        const float* weights,
+        TDers* ders
+    ) const;
+
+    void CalcFirstDerRange(
+        int start,
+        int count,
+        const double* approxes,
+        const double* approxDeltas,
+        const float* targets,
+        const float* weights,
+        double* firstDers
+    ) const;
 };
 
 class TQuantileError final : public IDerCalcer {
@@ -1120,7 +1147,7 @@ private:
         return TopSize;
     }
 
-    double IdealMetric(TConstArrayRef<float> target, size_t queryTopSize) const;
+    double CalcIdealMetric(TConstArrayRef<float> target, size_t queryTopSize) const;
 };
 
 class TStochasticRankError final : public IDerCalcer {

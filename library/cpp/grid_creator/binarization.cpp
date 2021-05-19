@@ -86,7 +86,7 @@ namespace NSplitSelection {
                 throw (yexception() << "Unexpected Nan value.");
             }
         }
-        
+
         auto firstNanPos = std::remove_if(features.Values.begin(), features.Values.end(), IsNan);
         if (firstNanPos != features.Values.end()) {
             if (featureValuesMayContainNans) {

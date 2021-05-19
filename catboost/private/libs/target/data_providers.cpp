@@ -25,10 +25,9 @@
 
 namespace NCB {
 
-    inline bool IsSafeTarget(float value) {
-        return Abs(value) < 1e6f;
+    inline bool IsSafeTarget(float value, bool allowNan) {
+        return Abs(value) < 1e6f || (allowNan && IsNan(value));
     }
-
 
     // can be empty if target data is unavailable
     TVector<TSharedVector<float>> ConvertTarget(
@@ -86,6 +85,7 @@ namespace NCB {
         bool isNonEmptyAndNonConst,
         bool allowConstLabel,
         bool needCheckTarget,
+        bool allowNanTarget,
         TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions)
     {
         if (convertedTarget.empty() || convertedTarget[0].empty()) {
@@ -96,7 +96,7 @@ namespace NCB {
             for (auto targetIdx : xrange(convertedTarget.size())) {
                 for (auto objectIdx : xrange(convertedTarget[0].size())) {
                     const float value = convertedTarget[targetIdx][objectIdx];
-                    if (!IsSafeTarget(value)) {
+                    if (!IsSafeTarget(value, allowNanTarget)) {
                         CATBOOST_WARNING_LOG
                             << "Got unsafe target "
                             << LabeledOutput(value)
@@ -494,16 +494,11 @@ namespace NCB {
                 << " loss/metrics require target data"
             );
         }
-        bool needCheckTarget;
-        if(mainLossFunction->GetLossFunction() == ELossFunction::MultiRMSEWithMissingValues){
-            // We accept nan in MultiRMSEWithMissingValues and
-            // we skip them during the border calculation loss/error function calculation.
-            needCheckTarget = false;
-        }
-        else{
-            needCheckTarget = !mainLossFunction || !IsRegressionObjective(mainLossFunction->GetLossFunction());
-        }
         
+        const bool needCheckTarget = !mainLossFunction || !IsRegressionObjective(mainLossFunction->GetLossFunction());
+        //Accept nan in MultiRMSEWithMissingValues
+        const bool allowNanTarget = !mainLossFunction || (mainLossFunction->GetLossFunction() == ELossFunction::MultiRMSEWithMissingValues);
+
         // TODO(akhropov): Will be split by target type. MLTOOLS-2337.
         if (target) {
             CheckPreprocessedTarget(
@@ -512,6 +507,7 @@ namespace NCB {
                 isNonEmptyAndNonConst,
                 allowConstLabel,
                 needCheckTarget,
+                allowNanTarget,
                 metricDescriptions
             );
         }
@@ -540,11 +536,6 @@ namespace NCB {
                 "Currently only multi-regression and survival objectives work with multidimensional target"
             );
             
-            if(IsRegressionObjective(mainLossFunction->GetLossFunction()))
-                CB_ENSURE(!rawData.IsTargetsContainsNan(),
-                    "Single-dimensional regression do not work with missing values on target"
-                );
-
         }
 
         TMaybe<ui32> knownClassCount = inputClassificationInfo.KnownClassCount;

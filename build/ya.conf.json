@@ -6656,9 +6656,7 @@
         },
         "ymake": {
             "formula": {
-                "sandbox_id": [
-                    961683895
-                ],
+                "sandbox_id": [973014232],
                 "match": "ymake"
             },
             "executable": {
@@ -6705,8 +6703,8 @@
         "yo": {
             "formula": {
                 "sandbox_id": [
-                    944657673,
-                    944657594
+                    972161282,
+                    972161254
                 ],
                 "match": "yo"
             },
@@ -7369,7 +7367,8 @@
                 "sandbox_id": [
                     960130112,
                     960131377,
-                    960132357
+                    960132357,
+                    973087481
                 ],
                 "match": "CLANG"
             },
@@ -7874,7 +7873,7 @@
         },
         "sre": {
             "formula": {
-                "sandbox_id": "958523201",
+                "sandbox_id": "970060773",
                 "match": "infra/rtc/sretools/sretools.tar.gz"
             },
             "executable": {
@@ -8066,7 +8065,7 @@
         "yp-util": {
             "formula": {
                 "sandbox_id": [
-                    953344851
+                    968483593
                 ],
                 "match": "yp_util"
             },
@@ -8079,7 +8078,7 @@
         "yp": {
             "formula": {
                 "sandbox_id": [
-                    954169326
+                    968487875
                 ],
                 "match": "YP"
             },
@@ -8105,7 +8104,7 @@
         "dctl": {
             "formula": {
                 "sandbox_id": [
-                    956476308
+                    969355491
                 ],
                 "match": "dctl"
             },
@@ -8475,7 +8474,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 967895702,
+                "sandbox_id": 973398307,
                 "match": "horadric"
             },
             "executable": {
@@ -8618,7 +8617,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 967896002,
+                "sandbox_id": 973398065,
                 "match": "app_host_launcher"
             },
             "executable": {
@@ -9007,7 +9006,7 @@
         },
         "sedem": {
             "formula": {
-                "sandbox_id": 959470666,
+                "sandbox_id": 972989839,
                 "match": "SEDEM archive"
             },
             "executable": {
@@ -9094,7 +9093,7 @@
         },
         "iceflame": {
             "formula": {
-                "sandbox_id": 968398653,
+                "sandbox_id": 972996061,
                 "match": "iceflame"
             },
             "executable": {
