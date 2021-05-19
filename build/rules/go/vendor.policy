@@ -4,6 +4,12 @@
 
 ALLOW vendor/ -> .*
 
+# CONTRIB-2195
+ALLOW .* -> vendor/github.com/timakin/bodyclose
+
+# CONTRIB-2196
+ALLOW .* -> vendor/github.com/jingyugao/rowserrcheck
+
 # CONTRIB-2163
 ALLOW .* -> vendor/go.temporal.io/sdk
 ALLOW .* -> vendor/go.temporal.io/api
