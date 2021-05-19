@@ -83,6 +83,14 @@ cdef extern from "util/stream/input.h":
         size_t Read(void* buf, size_t len) except +ProcessException
 
 
+cdef extern from "catboost/libs/model/enums.h":
+    cdef cppclass EFormulaEvaluatorType:
+        bool_t operator==(EFormulaEvaluatorType)
+
+    cdef EFormulaEvaluatorType EFormulaEvaluatorType_CPU "EFormulaEvaluatorType::CPU"
+    cdef EFormulaEvaluatorType EFormulaEvaluatorType_GPU "EFormulaEvaluatorType::GPU"
+
+
 cdef extern from "catboost/libs/model/scale_and_bias.h":
     cdef cppclass TScaleAndBias:
         TScaleAndBias()
