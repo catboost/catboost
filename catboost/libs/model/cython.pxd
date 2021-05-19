@@ -129,6 +129,7 @@ cdef extern from "catboost/libs/model/model.h":
         TScaleAndBias GetScaleAndBias() except +ProcessException
         void SetScaleAndBias(const TScaleAndBias&) except +ProcessException
         void InitNonOwning(const void* binaryBuffer, size_t binarySize) except +ProcessException
+        void SetEvaluatorType(EFormulaEvaluatorType evaluatorType) except +ProcessException
 
     cdef cppclass EModelType:
         pass

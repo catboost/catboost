@@ -10,6 +10,7 @@
 
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/maybe_owning_array_holder.h>
+#include <catboost/libs/model/enums.h>
 
 #include <catboost/private/libs/options/enums.h>
 #include <catboost/private/libs/text_features/text_processing_collection.h>
@@ -673,6 +674,10 @@ public:
         with_lock(CurrentEvaluatorLock) {
             Evaluator->SetPredictionType(predictionType);
         }
+    }
+
+    EFormulaEvaluatorType GetEvaluatorType() const {
+        return FormulaEvaluatorType;
     }
 
     bool operator==(const TFullModel& other) const {
