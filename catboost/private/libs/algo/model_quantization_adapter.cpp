@@ -126,7 +126,7 @@ namespace {
                 CB_ENSURE(false, "Binary built without CUDA support, CUDA quantization failed");
                 #endif
             }
-            return std::move(ResultCpu);eturn std::move(Result);
+            return std::move(ResultCpu);
         }
 
     private:
