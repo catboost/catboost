@@ -6,6 +6,8 @@ ALLOW vendor/ -> .*
 
 # CONTRIB-2195
 ALLOW .* -> vendor/github.com/timakin/bodyclose
+# github.com/gostaticanalysis/comment tests depends on the unlicensed package https://github.com/tenntenn/text
+DENY .* -> vendor/github.com/gostaticanalysis/comment;test
 
 # CONTRIB-2196
 ALLOW .* -> vendor/github.com/jingyugao/rowserrcheck
