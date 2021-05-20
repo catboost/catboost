@@ -690,9 +690,9 @@ def check_glibc_version(binary_path):
 
 def backtrace_to_html(bt_filename, output):
     try:
-        from library.python.coredump_filter import core_proc
+        from library.python import coredump_filter
         with open(output, "wb") as afile:
-            core_proc.filter_stackdump(bt_filename, stream=afile)
+            coredump_filter.filter_stackdump(bt_filename, stream=afile)
     except ImportError as e:
         yatest_logger.debug("Failed to import coredump_filter: %s", e)
         with open(output, "wb") as afile:
