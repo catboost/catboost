@@ -801,11 +801,6 @@ migrations:
     - sandbox/projects/ofd/runtime/ofd_runtime_package_build
     - sandbox/projects/ofd/runtime/ofd_runtime_run_tests
     - sandbox/projects/ofd/tasks/ofd_tasks_package_build
-    - sandbox/projects/partner
-    - sandbox/projects/partner/tasks/build_frontend
-    - sandbox/projects/partner/tasks/e2e_tests/misc
-    - sandbox/projects/partner/tasks/misc
-    - sandbox/projects/partner/tasks/run_cron
     - sandbox/projects/porto/BuildPortoLayer
     - sandbox/projects/porto/BuildPortoLayerTmp
     - sandbox/projects/qafw
@@ -1208,7 +1203,6 @@ migrations:
     - keyboard/dict/synthetic_ngrams/synthetic_ngrams_builder
     - lbs/metrics/lbs_binbase_diff
     - library/python/bstr
-    - library/python/coredump_filter
     - logbroker/tools/manual/collect_capacity/base_2020
     - logbroker/tools/manual/collect_capacity/collect_pre
     - logbroker/tools/manual/collect_capacity/set_capacity_pre
@@ -1566,7 +1560,6 @@ migrations:
     - ads/sandbox_scripts/cpa_autobudget
     - ads/sandbox_scripts/truncate_hitfactors/lib
     - ads/sandbox_scripts/zc_corrector
-    - ads/sandbox_scripts/zc_regular
     - ads/tools/mx_feature_remapper/lib
     - ads/watchman/contrib/flask-marshmallow-patched
     - ads/watchman/contrib/flask-restplus-patched
@@ -2341,8 +2334,6 @@ migrations:
     - drive/qatool
     - drive/tests/functional
     - drive/tools/sox_audit
-    - education/lib/contrib/dataclasses-json
-    - education/lib/contrib/stringcase
     - entity/ontodb/robot/tools/send_daily_code_freshness_solomon_sensors/lib
     - entity/quality/ontodb/ontodb_cleaner/verdicts_creator/lib/ut
     - entity/recommender/nirvana/autodump
@@ -2545,7 +2536,6 @@ migrations:
     - library/python/bclclient
     - library/python/blackbox
     - library/python/clickhouse_client
-    - library/python/coredump_filter/minidump2core/src
     - library/python/dir-sync
     - library/python/django-idm-api
     - library/python/django-multic
@@ -2879,7 +2869,6 @@ migrations:
     - quality/short_beak/upload_trie
     - quality/short_beak/wui_new/context_lib
     - quality/tools/find_word
-    - quality/trailer/suggest/deploy/web
     - quality/user_sessions/createlib/qb3/tools/merge
     - quality/user_sessions/data_com/merge_details_to_dataset
     - quality/user_sessions/data_com/yt_configuration
