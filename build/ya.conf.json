@@ -2025,48 +2025,52 @@
             "name": "clang12",
             "tools": {
                 "c++": {
-                    "bottle": "clang12-windows",
+                    "bottle": "clang12",
                     "executable": "c++"
                 },
                 "c++filt": {
-                    "bottle": "clang12-windows",
+                    "bottle": "clang12",
                     "executable": "c++filt"
                 },
                 "cc": {
-                    "bottle": "clang12-windows",
+                    "bottle": "clang12",
                     "executable": "cc"
                 },
                 "clang-format": {
-                    "bottle": "clang12-windows",
+                    "bottle": "clang12",
                     "executable": "clang-format"
                 },
                 "clang-tidy": {
-                    "bottle": "clang12-windows",
+                    "bottle": "clang12",
                     "executable": "clang-tidy"
                 },
                 "gcov": {
-                    "bottle": "clang12-windows",
-                    "executable": "gcov"
+                    "bottle": "clang12",
+                    "executable": "llvm-gcov"
                 },
                 "llvm-cov": {
-                    "bottle": "clang12-windows",
+                    "bottle": "clang12",
                     "executable": "llvm-cov"
                 },
                 "llvm-profdata": {
-                    "bottle": "clang12-windows",
+                    "bottle": "clang12",
                     "executable": "llvm-profdata"
                 },
                 "llvm-symbolizer": {
-                    "bottle": "clang12-windows",
+                    "bottle": "clang12",
                     "executable": "llvm-symbolizer"
                 },
                 "nm": {
-                    "bottle": "clang12-windows",
-                    "executable": "nm"
+                    "bottle": "clang12",
+                    "executable": "llvm-nm"
                 },
                 "strip": {
-                    "bottle": "clang12-windows",
-                    "executable": "strip"
+                    "bottle": "clang12",
+                    "executable": "llvm-strip"
+                },
+                "objcopy": {
+                    "bottle": "clang12",
+                    "executable": "llvm-objcopy"
                 }
             },
             "platforms": [
@@ -7302,65 +7306,6 @@
                 ]
             }
         },
-        "clang12-windows": {
-            "formula": {
-                "sandbox_id": [
-                    960130112,
-                    975126494
-                ],
-                "match": "CLANG"
-            },
-            "executable": {
-                "c++": [
-                    "bin",
-                    "clang++"
-                ],
-                "c++filt": [
-                    "bin",
-                    "c++filt"
-                ],
-                "cc": [
-                    "bin",
-                    "clang"
-                ],
-                "clang-format": [
-                    "bin",
-                    "clang-format"
-                ],
-                "clang-tidy": [
-                    "bin",
-                    "clang-tidy"
-                ],
-                "gcov": [
-                    "bin",
-                    "llvm-gcov"
-                ],
-                "llvm-cov": [
-                    "bin",
-                    "llvm-cov"
-                ],
-                "llvm-profdata": [
-                    "bin",
-                    "llvm-profdata"
-                ],
-                "llvm-symbolizer": [
-                    "bin",
-                    "llvm-symbolizer"
-                ],
-                "llvm-nm": [
-                    "bin",
-                    "llvm-nm"
-                ],
-                "llvm-strip": [
-                    "bin",
-                    "llvm-strip"
-                ],
-                "llvm-objcopy": [
-                    "bin",
-                    "llvm-objcopy"
-                ]
-            }
-        },
         "clang8": {
             "formula": {
                 "sandbox_id": [
@@ -7532,7 +7477,8 @@
                     960130112,
                     960131377,
                     960132357,
-                    973087481
+                    973087481,
+                    975126494
                 ],
                 "match": "CLANG"
             },
