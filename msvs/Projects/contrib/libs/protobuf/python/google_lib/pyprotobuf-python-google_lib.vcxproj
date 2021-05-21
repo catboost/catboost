@@ -79,7 +79,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\internal\api_implementation.cc"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\internal\python_protobuf.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\pyext\descriptor.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\pyext\descriptor_containers.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\pyext\descriptor_database.cc"/>
@@ -722,9 +721,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\python\google_lib\protos_from_protoc\pypython-google_lib-protos_from_protoc.vcxproj">
       <Project>{2C4FBC77-A470-6FA9-FF50-0E8E3379D839}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\python\google_lib\protos_from_pyext\pypython-google_lib-protos_from_pyext.vcxproj">
-      <Project>{CF3E5EE8-A734-7D87-9491-0D302B89B839}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\python\Include\pylibs-python-Include.vcxproj">
       <Project>{8E24FF07-6DF8-0FC3-F441-862B08F7F40E}</Project>

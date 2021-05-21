@@ -279,7 +279,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\pyext\repeated_scalar_container.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\pyext\safe_numerics.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\pyext\scoped_pyobject_ptr.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\python_protobuf.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\any.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\any.pb.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\api.pb.h"/>
