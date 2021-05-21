@@ -38,9 +38,9 @@ namespace NPrivate {
             return false;
         }
 
-        bool Update(const Key& key, const TPtr& value) {
+        void Update(const Key& key, const TPtr& value) {
             TWriteGuard w(Mutex);
-            return Cache.Update(key, value);
+            Cache.Update(key, value);
         }
 
         const TPtr Get(TArgs... args) const {
