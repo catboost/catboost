@@ -24,7 +24,6 @@ PEERDIR(
 PEERDIR(
     contrib/libs/protobuf/python/google_lib/protos_from_protobuf
     contrib/libs/protobuf/python/google_lib/protos_from_protoc
-    contrib/libs/protobuf/python/google_lib/protos_from_pyext
 )
 
 ADDINCL(
@@ -75,7 +74,6 @@ PY_SRCS(
 
 SRCS(
     google/protobuf/internal/api_implementation.cc
-    google/protobuf/internal/python_protobuf.cc
     google/protobuf/pyext/descriptor.cc
     google/protobuf/pyext/descriptor_containers.cc
     google/protobuf/pyext/descriptor_database.cc
