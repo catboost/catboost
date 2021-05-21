@@ -1566,6 +1566,16 @@
             "uri": "file://test.test_dist_train_multiregression_single_calc_block=60_/test_1.eval"
         }
     ],
+    "test.test_dist_train_overfitting_detector[od_type=IncToDec]": [
+        {
+            "uri": "file://test.test_dist_train_overfitting_detector_od_type=IncToDec_/test_1.eval"
+        }
+    ],
+    "test.test_dist_train_overfitting_detector[od_type=Iter]": [
+        {
+            "uri": "file://test.test_dist_train_overfitting_detector_od_type=Iter_/test_1.eval"
+        }
+    ],
     "test.test_dist_train_pairlogit[calc_block=5000000]": [
         {
             "uri": "file://test.test_dist_train_pairlogit_calc_block=5000000_/test_1.eval"
