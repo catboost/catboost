@@ -451,6 +451,8 @@ ALLOW health/yamd/health_import -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW health/yamd/libs/data_layer -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW health/yamd/pills_postgresql_db/data_layer -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW infra/cores/app -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW intranet/watcher/alembic -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW intranet/watcher/src -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW intranet/domenator/migrations -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW intranet/trip/alembic -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW intranet/trip/src -> contrib/python/sqlalchemy/sqlalchemy-1.2
