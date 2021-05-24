@@ -192,7 +192,7 @@ def make_wheel(wheel_name, pkg_name, ver, arc_root, so_path, should_build_widget
     python_package_dir = os.path.join(arc_root, 'catboost/python-package')
     os.makedirs(os.path.join(dir_path, pkg_name))
     for file_name in ['__init__.py', 'version.py', 'core.py', 'datasets.py', 'utils.py', 'eval', 'widget/__init__.py',
-                      'widget/ipythonwidget.py', 'metrics.py', 'monoforest.py', 'plot_helpers.py', 'text_processing.py']:
+                      'widget/ipythonwidget.py', 'monoforest.py', 'plot_helpers.py', 'text_processing.py']:
         src = os.path.join(python_package_dir, 'catboost', file_name)
         dst = os.path.join(dir_path, pkg_name, file_name)
         if not os.path.exists(os.path.dirname(dst)):
@@ -263,6 +263,7 @@ def make_wheel(wheel_name, pkg_name, ver, arc_root, so_path, should_build_widget
 
 def build_widget(arc_root):
     js_dir = os.path.join(arc_root, 'catboost', 'python-package', 'catboost', 'widget', 'js')
+    subprocess.check_call([sys.executable, '-m', 'pip', 'install', '--user', 'jupyterlab'], cwd=js_dir)
     subprocess.check_call(['yarn', 'clean'], cwd=js_dir)
     subprocess.check_call(['yarn', 'install'], cwd=js_dir)
     subprocess.check_call(['yarn', 'build'], cwd=js_dir)
