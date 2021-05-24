@@ -95,7 +95,13 @@ DEFAULT(CXX_RT "default")
 DISABLE(NEED_GLIBCXX_CXX17_SHIMS)
 
 IF (CXX_RT == "libcxxrt")
-    PEERDIR(ADDINCL contrib/libs/cxxsupp/libcxxrt)
+    PEERDIR(
+        contrib/libs/cxxsupp/libcxxabi-parts
+        contrib/libs/cxxsupp/libcxxrt
+    )
+    ADDINCL(
+        contrib/libs/cxxsupp/libcxxrt
+    )
     CXXFLAGS(-DLIBCXXRT=1)
 
     # These builtins are equivalent to clang -rtlib=compiler_rt and
