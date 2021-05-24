@@ -5,7 +5,6 @@ import tempfile
 import time
 import yatest.common
 import yatest.common.network
-import yatest.yt
 from common_helpers import *  # noqa
 import zipfile
 
