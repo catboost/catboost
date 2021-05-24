@@ -82,35 +82,7 @@
     <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\sparsetools\csc.cxx"/>
     <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\sparsetools\csr.cxx"/>
     <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\sparsetools\other.cxx"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\sparsetools\scipy.sparse._sparsetools.reg.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\sparsetools\sparsetools.cxx"/>
-    <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_py_reg.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\sparsetools
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.sparse._sparsetools" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/sparsetools/scipy.sparse._sparsetools.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\sparsetools
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.sparse._sparsetools" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/sparsetools/scipy.sparse._sparsetools.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/scipy/scipy/sparse/sparsetools/scipy.sparse._sparsetools.reg.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_py_reg.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\sparsetools\scipy.sparse._sparsetools.reg.cpp;</Outputs>
-    </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\sparsetools\bool_ops.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\sparsetools\bsr.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\sparsetools\bsr_impl.h"/>

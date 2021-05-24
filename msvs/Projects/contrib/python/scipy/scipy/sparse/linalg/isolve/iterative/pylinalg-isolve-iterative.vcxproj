@@ -105,7 +105,6 @@
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\isolve\iterative\getbreak.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\isolve\iterative\scipy.sparse.linalg.isolve._iterative.reg.cpp"/>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\f2c.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\isolve\iterative
@@ -188,33 +187,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/scipy/scipy/sparse/linalg/isolve/iterative/BiCGREVCOM.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/isolve/iterative/BiCGSTABREVCOM.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/isolve/iterative/CGREVCOM.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/isolve/iterative/CGSREVCOM.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/isolve/iterative/GMRESREVCOM.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/isolve/iterative/QMRREVCOM.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/isolve/iterative/STOPTEST2.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/isolve/iterative/getbreak.f.c	</Message>
       <AdditionalInputs>$(SolutionDir)..\build\scripts\f2c.py;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\isolve\iterative\BiCGREVCOM.f;$(SolutionDir)$(Configuration)\contrib\tools\f2c\f2c.exe;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\isolve\iterative\BiCGSTABREVCOM.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\isolve\iterative\CGREVCOM.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\isolve\iterative\CGSREVCOM.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\isolve\iterative\GMRESREVCOM.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\isolve\iterative\QMRREVCOM.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\isolve\iterative\STOPTEST2.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\isolve\iterative\getbreak.f;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\isolve\iterative\BiCGREVCOM.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\isolve\iterative\BiCGSTABREVCOM.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\isolve\iterative\CGREVCOM.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\isolve\iterative\CGSREVCOM.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\isolve\iterative\GMRESREVCOM.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\isolve\iterative\QMRREVCOM.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\isolve\iterative\STOPTEST2.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\isolve\iterative\getbreak.f.c;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_py_reg.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\isolve\iterative
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.sparse.linalg.isolve._iterative" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/isolve/iterative/scipy.sparse.linalg.isolve._iterative.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\isolve\iterative
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.sparse.linalg.isolve._iterative" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/isolve/iterative/scipy.sparse.linalg.isolve._iterative.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/scipy/scipy/sparse/linalg/isolve/iterative/scipy.sparse.linalg.isolve._iterative.reg.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_py_reg.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\isolve\iterative\scipy.sparse.linalg.isolve._iterative.reg.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

@@ -189,8 +189,6 @@
     <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\multiarray\number.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\core\src\multiarray\numpy.core._multiarray_tests.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\core\src\multiarray\numpy.core._multiarray_umath.reg.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\multiarray\refcount.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
@@ -221,41 +219,6 @@
     <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\multiarray\vdot.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_py_reg.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\core\src\multiarray
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "numpy.core._multiarray_tests" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/core/src/multiarray/numpy.core._multiarray_tests.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\core\src\multiarray
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "numpy.core._multiarray_umath" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/core/src/multiarray/numpy.core._multiarray_umath.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\core\src\multiarray
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "numpy.core._multiarray_tests" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/core/src/multiarray/numpy.core._multiarray_tests.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\core\src\multiarray
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "numpy.core._multiarray_umath" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/core/src/multiarray/numpy.core._multiarray_umath.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/numpy/py2/numpy/core/src/multiarray/numpy.core._multiarray_tests.reg.cpp	$B/contrib/python/numpy/py2/numpy/core/src/multiarray/numpy.core._multiarray_umath.reg.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_py_reg.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\core\src\multiarray\numpy.core._multiarray_tests.reg.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\core\src\multiarray\numpy.core._multiarray_umath.reg.cpp;</Outputs>
-    </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\multiarray\_datetime.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\multiarray\alloc.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\multiarray\arrayfunction_override.h"/>
