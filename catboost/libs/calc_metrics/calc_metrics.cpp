@@ -142,7 +142,6 @@ namespace NCB {
         for (const auto& metric : metrics) {
             CB_ENSURE_INTERNAL(metric->IsAdditiveMetric(), "ConsumeCalcMetricsData function support only additional metric");
         }
-        Y_ASSERT(!dataProviderPtr->MetaInfo.HasGroupId);
 
         TCalcMetricDataProvider dataProvider(dataProviderPtr);
 
@@ -233,13 +232,13 @@ namespace NCB {
         size_t threadCount
     ) {
         auto inputPath = datasetReadingParams.PoolPath;
-        CB_ENSURE(inputPath.Scheme == "dsv" || inputPath.Scheme == "", // "" is "dsv"
-                  "Local metrics evaluation supports only \"dsv\" input file schemas.");
+        CB_ENSURE(inputPath.Scheme.Contains("dsv") || inputPath.Scheme == "", // "" is "dsv"
+                  "Local metrics evaluation supports \"dsv\" and \"yt-dsv\" input file schemas.");
 
         NPar::TLocalExecutor executor;
         executor.RunAdditionalThreads(threadCount - 1);
 
-        const int blockSize = 10000;
+        const int blockSize = 150000;
         TVector<TMetricHolder> stats;
 
         TNonAdditiveMetricData nonAdditiveMetricData;
