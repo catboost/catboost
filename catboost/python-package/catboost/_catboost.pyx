@@ -54,6 +54,7 @@ from cpython.ref cimport PyObject
 
 from util.generic.array_ref cimport TArrayRef, TConstArrayRef
 from util.generic.hash cimport THashMap
+from util.generic.hash_set cimport THashSet
 from util.generic.maybe cimport TMaybe
 from util.generic.ptr cimport THolder, TIntrusivePtr, MakeHolder
 from util.generic.string cimport TString, TStringBuf
@@ -702,12 +703,12 @@ cdef extern from "catboost/libs/train_lib/train_model.h":
         TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
         THolder[TLearnProgress]* dstLearnProgress
     ) nogil except +ProcessException
-    
+
     cdef cppclass TCustomCallbackDescriptor:
         void* CustomData
 
         bool_t (*AfterIterationFunc)(
-            const TMetricsAndTimeLeftHistory& history, 
+            const TMetricsAndTimeLeftHistory& history,
             void *customData
         ) except * with gil
 
@@ -1146,7 +1147,7 @@ cdef double _MetricGetFinalError(const TMetricHolder& error, void *customData) e
     return metricObject.get_final_error(error.Stats[0], error.Stats[1])
 
 cdef bool_t _CallbackAfterIteration(
-        const TMetricsAndTimeLeftHistory& history, 
+        const TMetricsAndTimeLeftHistory& history,
         void* customData
     ) except * with gil:
     cdef callbackObject = <object>customData
@@ -1224,17 +1225,20 @@ cdef _reorder_axes_for_python_4d_shap_values(TVector[TVector[TVector[TVector[dou
                     result[doc][dim][feature1][feature2] = vectors[feature1][feature2][dim][doc]
     return result
 
+
 cdef _vector_of_uints_to_np_array(const TVector[ui32]& vec):
     result = np.empty(vec.size(), dtype=np.uint32)
     for i in xrange(vec.size()):
         result[i] = vec[i]
     return result
 
+
 cdef _vector_of_ints_to_np_array(const TVector[int]& vec):
     result = np.empty(vec.size(), dtype=np.int)
     for i in xrange(vec.size()):
         result[i] = vec[i]
     return result
+
 
 cdef _vector_of_uints_to_2d_np_array(const TVector[ui32]& vec, int row_count, int column_count):
     assert vec.size() == row_count * column_count
@@ -1244,11 +1248,13 @@ cdef _vector_of_uints_to_2d_np_array(const TVector[ui32]& vec, int row_count, in
             result[row_num][col_num] = vec[row_num * column_count + col_num]
     return result
 
+
 cdef _vector_of_floats_to_np_array(const TVector[float]& vec):
     result = np.empty(vec.size(), dtype=_npfloat32)
     for i in xrange(vec.size()):
         result[i] = vec[i]
     return result
+
 
 cdef _vector_of_size_t_to_np_array(const TVector[size_t]& vec):
     result = np.empty(vec.size(), dtype=np.uint32)
@@ -1256,15 +1262,24 @@ cdef _vector_of_size_t_to_np_array(const TVector[size_t]& vec):
         result[i] = vec[i]
     return result
 
+
 cdef np.ndarray _CreateNumpyFloatArrayView(const float* array, int count):
     cdef np.npy_intp dims[1]
     dims[0] = count
     return np.PyArray_SimpleNewFromData(1, dims, np.NPY_FLOAT, <void*>array)
 
+
 cdef np.ndarray _CreateNumpyDoubleArrayView(const double* array, int count):
     cdef np.npy_intp dims[1]
     dims[0] = count
     return np.PyArray_SimpleNewFromData(1, dims, np.NPY_DOUBLE, <void*>array)
+
+
+cdef np.ndarray _CreateNumpyUI64ArrayView(const ui64* array, int count):
+    cdef np.npy_intp dims[1]
+    dims[0] = count
+    return np.PyArray_SimpleNewFromData(1, dims, np.NPY_UINT64, <void*>array)
+
 
 cdef _ToPythonObjArrayOfArraysOfDoubles(const TVector[double]* values, int size, int begin, int end):
     # https://numba.pydata.org/numba-doc/latest/reference/deprecation.html#deprecation-of-reflection-for-list-and-set-types
@@ -4120,11 +4135,15 @@ cdef class _PoolBase:
 
         Returns
         -------
-        group_id : list if group_id was defined or None otherwise.
+        group_id : np.array with dtype==np.uint64 if group_id was defined or None otherwise.
         """
         cdef TMaybeData[TConstArrayRef[TGroupId]] arr_group_ids = self.__pool.Get()[0].ObjectsData.Get()[0].GetGroupIds()
+        cdef const TGroupId* groupIdsPtr
         if arr_group_ids.Defined():
-            result_group_ids = [group_id for group_id in arr_group_ids.GetRef()]
+            result_group_ids = np.empty(arr_group_ids.GetRef().size(), dtype=np.uint64)
+            groupIdsPtr = arr_group_ids.GetRef().data()
+            for i in xrange(arr_group_ids.GetRef().size()):
+                result_group_ids[i] = groupIdsPtr[i]
             return result_group_ids
         return None
 
@@ -5116,11 +5135,11 @@ cdef TCustomTrainTestSubsets _make_train_test_subsets(_PoolBase pool, folds) exc
         raise AttributeError("folds should be a generator or iterator of (train_idx, test_idx) tuples "
                              "or scikit-learn splitter object with split method")
 
-    group_info = pool.get_group_id_hash()
+    cdef TMaybeData[TConstArrayRef[TGroupId]] arr_group_ids = pool.__pool.Get()[0].ObjectsData.Get()[0].GetGroupIds()
 
     if hasattr(folds, 'split'):
-        if group_info is not None:
-            flatted_group = group_info
+        if arr_group_ids.Defined():
+            flatted_group = _CreateNumpyUI64ArrayView(arr_group_ids.GetRef().data(), arr_group_ids.GetRef().size())
         else:
             flatted_group = np.zeros(num_data, dtype=int)
         folds = folds.split(X=np.zeros(num_data), y=pool.get_label(), groups=flatted_group)
@@ -5128,7 +5147,13 @@ cdef TCustomTrainTestSubsets _make_train_test_subsets(_PoolBase pool, folds) exc
     cdef TVector[TVector[ui32]] custom_train_subsets
     cdef TVector[TVector[ui32]] custom_test_subsets
 
-    if group_info is None:
+    cdef THashSet[ui64] train_group_ids
+    cdef THashMap[TGroupId, ui64] map_group_id_to_group_number
+    cdef ui64 current_num
+    cdef const TGroupId* group_id_ptr
+    cdef TGroupId current_group
+
+    if not arr_group_ids.Defined():
         for train_test in folds:
             train = train_test[0]
             test = train_test[1]
@@ -5141,36 +5166,35 @@ cdef TCustomTrainTestSubsets _make_train_test_subsets(_PoolBase pool, folds) exc
             for subset in test:
                 custom_test_subsets.back().push_back(subset)
     else:
-        map_group_id_to_group_number = {}
         current_num = 0
-        for idx in range(len(group_info)):
-            if idx == 0 or group_info[idx] != group_info[idx - 1]:
-                map_group_id_to_group_number[group_info[idx]] = current_num
+        group_id_ptr = arr_group_ids.GetRef().data()
+        for idx in range(arr_group_ids.GetRef().size()):
+            if idx == 0 or group_id_ptr[idx] != group_id_ptr[idx - 1]:
+                map_group_id_to_group_number[group_id_ptr[idx]] = current_num
                 current_num = current_num + 1
 
         for train_test in folds:
             train = train_test[0]
             test = train_test[1]
-
-            train_group = []
+            train_group_ids.clear()
 
             custom_train_subsets.emplace_back()
 
             for idx in range(len(train)):
-                current_group = group_info[train[idx]]
-                if idx == 0 or current_group != group_info[train[idx - 1]]:
+                current_group = group_id_ptr[train[idx]]
+                if idx == 0 or current_group != group_id_ptr[train[idx - 1]]:
                     custom_train_subsets.back().push_back(map_group_id_to_group_number[current_group])
-                    train_group.append(map_group_id_to_group_number[current_group])
+                    train_group_ids.insert(map_group_id_to_group_number[current_group])
 
             custom_test_subsets.emplace_back()
 
             for idx in range(len(test)):
-                current_group = group_info[test[idx]]
+                current_group = group_id_ptr[test[idx]]
 
-                if map_group_id_to_group_number[current_group] in train_group:
+                if train_group_ids.contains(map_group_id_to_group_number[current_group]):
                     raise CatBoostError('Objects with the same group id must be in the same fold.')
 
-                if idx == 0 or current_group != group_info[test[idx - 1]]:
+                if idx == 0 or current_group != group_id_ptr[test[idx - 1]]:
                     custom_test_subsets.back().push_back(map_group_id_to_group_number[current_group])
 
     cdef TCustomTrainTestSubsets result
@@ -5181,7 +5205,7 @@ cdef TCustomTrainTestSubsets _make_train_test_subsets(_PoolBase pool, folds) exc
 
 
 cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int partition_random_seed,
-          bool_t shuffle, bool_t stratified, float metric_update_interval, bool_t as_pandas, folds, 
+          bool_t shuffle, bool_t stratified, float metric_update_interval, bool_t as_pandas, folds,
           type, bool_t return_models):
     prep_params = _PreprocessParams(params)
     cdef TCrossValidationParams cvParams
@@ -5277,7 +5301,7 @@ cdef _convert_to_visible_labels(EPredictionType predictionType, TVector[TVector[
 
 cdef _get_metrics_evals_pydict(TMetricsAndTimeLeftHistory history):
     metrics_evals = defaultdict(functools.partial(defaultdict, list))
-  
+
     iteration_count = history.LearnMetricsHistory.size()
     for iteration_num in range(iteration_count):
         for metric, value in history.LearnMetricsHistory[iteration_num]:
