@@ -1,9 +1,11 @@
 #pragma once
 
-#include "string.h"
+#include <util/generic/string.h>
 
 #include <typeindex>
 #include <typeinfo>
+
+TString CppDemangle(const TString& name);
 
 // TypeName function family return human readable type name.
 

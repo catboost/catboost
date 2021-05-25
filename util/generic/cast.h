@@ -2,9 +2,9 @@
 
 #include "typetraits.h"
 #include "yexception.h"
-#include "type_name.h"
 
 #include <util/system/compat.h>
+#include <util/system/type_name.h>
 #include <util/system/unaligned_mem.h>
 #include <util/system/yassert.h>
 
