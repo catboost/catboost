@@ -503,9 +503,13 @@
     - gelf.h: contrib/restricted/libelf/include/libelf/gelf.h
     - libelf.h: contrib/restricted/libelf/include/libelf/libelf.h
 
-- source_filter: "^contrib/libs/dpdk"
+- source_filter: "^contrib/libs/dpdk/"
   includes:
     - process.h: contrib/libs/dpdk/drivers/bus/dpaa/include/process.h
+
+- source_filter: "^contrib/libs/dpdk_arm64/"
+  includes:
+    - process.h: contrib/libs/dpdk_arm64/drivers/bus/dpaa/include/process.h
 
 - source_filter: "^contrib/libs/usrsctp/"
   includes:
