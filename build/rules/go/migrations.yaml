@@ -74,8 +74,6 @@ migrations:
       - a.yandex-team.ru/alice/iot/bulbasaur/model_test
       - a.yandex-team.ru/cloud/compute/snapshot/snapshot/lib/tasks
       - a.yandex-team.ru/cloud/compute/snapshot/snapshot/lib/tasks_test
-      - a.yandex-team.ru/cloud/mdb/dataproc-agent/pkg/agent
-      - a.yandex-team.ru/cloud/mdb/dataproc-agent/pkg/agent_test
       - a.yandex-team.ru/cloud/mdb/mdb-health/pkg/core/types
       - a.yandex-team.ru/cloud/mdb/mdb-health/pkg/core/types_test
       - a.yandex-team.ru/cloud/mdb/mdb-health/pkg/datastore/redis
