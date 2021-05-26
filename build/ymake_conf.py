@@ -2654,8 +2654,8 @@ class MSVCLinker(MSVC, Linker):
 
         emit('SWIG_DLL_JAR_CMD', '$GENERATE_MF && $GENERATE_VCS_C_INFO_NODEP && $REAL_SWIG_DLL_JAR_CMD')
 
-        head_link_lib = '${TOOLCHAIN_ENV} ${cwd:ARCADIA_BUILD_ROOT} ${LIB_WRAPPER} ${LINK_LIB_CMD} --ya-start-command-file'
-        tail_link_lib = '${qe;rootrel:AUTO_INPUT} $LINK_LIB_FLAGS --ya-end-command-file ${hide;kv:"soe"} ${hide;kv:"p AR"} ${hide;kv:"pc light-red"}'
+        head_link_lib = '${TOOLCHAIN_ENV} ${cwd:ARCADIA_BUILD_ROOT} ${LIB_WRAPPER} ${LINK_LIB_CMD}'
+        tail_link_lib = '--ya-start-command-file ${qe;rootrel:AUTO_INPUT} $LINK_LIB_FLAGS --ya-end-command-file ${hide;kv:"soe"} ${hide;kv:"p AR"} ${hide;kv:"pc light-red"}'
         emit('LINK_LIB', '${GENERATE_MF} &&', head_link_lib, '/OUT:${qe;rootrel:TARGET}', tail_link_lib)
         emit('GLOBAL_LINK_LIB', head_link_lib, '/OUT:${qe;rootrel:GLOBAL_TARGET}', tail_link_lib)
 
