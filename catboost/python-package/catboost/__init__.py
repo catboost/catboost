@@ -1,8 +1,8 @@
 from .core import (
     FeaturesData, EFstrType, EShapCalcType, EFeaturesSelectionAlgorithm, Pool, CatBoost,
     CatBoostClassifier, CatBoostRegressor, CatBoostError, cv, train, sum_models, _have_equal_features,
-    to_regressor, to_classifier, MultiRegressionCustomMetric, MultiRegressionCustomObjective, EColumnType,
-    ColumnDescription
+    to_regressor, to_classifier, MultiRegressionCustomMetric, MultiRegressionCustomObjective,
+    EColumnType, ColumnDescription
 )  # noqa
 from .version import VERSION as __version__  # noqa
 __all__ = [
