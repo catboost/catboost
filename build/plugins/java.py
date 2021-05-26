@@ -135,6 +135,8 @@ def onjava_module(unit, *args):
             data['KOTLIN_JVM_TARGET'] = extract_macro_calls(unit, 'KOTLIN_JVM_TARGET', args_delim)
         if unit.get('KOTLINC_FLAGS_VALUE'):
             data['KOTLINC_FLAGS'] = extract_macro_calls(unit, 'KOTLINC_FLAGS_VALUE', args_delim)
+        if unit.get('KOTLINC_OPTS_VALUE'):
+            data['KOTLINC_OPTS'] = extract_macro_calls(unit, 'KOTLINC_OPTS_VALUE', args_delim)
 
     if unit.get('WITH_GROOVY_VALUE') == 'yes':
         if not common.strip_roots(unit.path()).startswith(('devtools/dummy_arcadia', 'junk')):
