@@ -4,8 +4,8 @@ import sys
 import platform
 import json
 
-URLS = ["https://storage.mds.yandex.net/get-devtools-opensource/233854/27a580aa5f49f109a838734c6d79f9b8"]
-MD5 = "27a580aa5f49f109a838734c6d79f9b8"
+URLS = ["https://storage.mds.yandex.net/get-devtools-opensource/233854/217caa67280bf790d57884f6517aeab9"]
+MD5 = "217caa67280bf790d57884f6517aeab9"
 
 RETRIES = 5
 HASH_PREFIX = 10
@@ -186,11 +186,14 @@ def main():
     with open(_get(URLS, MD5), 'r') as fp:
         meta = json.load(fp)['data']
     my_platform = platform.system().lower()
+    my_machine = platform.machine().lower()
     if my_platform == 'linux':
         my_platform = 'linux-ppc64le' if 'ppc64le' in platform.platform() else 'linux_musl'
+    if my_platform == 'darwin' and my_machine == 'arm64':
+        my_platform = 'darwin-arm64'
 
-    # match by max prefix length
-    best_key = max(meta.keys(), key=lambda x: len(os.path.commonprefix([my_platform, x])))
+    # match by max prefix length, prefer shortest
+    best_key = max(meta.keys(), key=lambda x: (len(os.path.commonprefix([my_platform, x])), -len(x)))
     value = meta[best_key]
 
     if len(sys.argv) == 2 and sys.argv[1].startswith('--print-sandbox-id='):
