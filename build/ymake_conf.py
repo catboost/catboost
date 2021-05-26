@@ -959,6 +959,8 @@ class ToolchainOptions(object):
 
         self._env = tc_json.get('env', {})
 
+        self.android_ndk_version = self.params.get('android_ndk_version', None)
+
         logger.debug('c_compiler=%s', self.c_compiler)
         logger.debug('cxx_compiler=%s', self.cxx_compiler)
 
@@ -1898,9 +1900,22 @@ class LD(Linker):
         if target.is_android:
             if target.is_armv7 and self.type != Linker.LLD:
                 self.sys_lib.append('-Wl,--fix-cortex-a8')
-            if target.is_armv7:
-                self.sys_lib.append('-lunwind')
-            self.sys_lib.append('-lgcc')
+
+            # NDK r23 onwards has stopped using libgcc:
+            # - https://github.com/android/ndk/wiki/Changelog-r23#changes
+            # - https://github.com/android/ndk/issues/1230
+            #   LLVM's libunwind is now used instead of libgcc for all architectures rather than just 32-bit Arm.
+            # - https://github.com/android/ndk/issues/1231
+            #   LLVM's libclang_rt.builtins is now used instead of libgcc.
+            if self.tc.android_ndk_version >= 23:
+                # Use toolchain defaults to link with libunwind/clang_rt.builtins
+                self.use_stdlib = '-nostdlib++'
+            else:
+                # Preserve old behaviour: specify runtime libs manually
+                self.use_stdlib = '-nodefaultlibs'
+                if target.is_armv7:
+                    self.sys_lib.append('-lunwind')
+                self.sys_lib.append('-lgcc')
 
         if self.tc.is_clang and not self.tc.version_at_least(4, 0) and target.is_linux_x86_64:
             self.sys_lib.append('-L/usr/lib/x86_64-linux-gnu')
