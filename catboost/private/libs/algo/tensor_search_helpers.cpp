@@ -266,7 +266,7 @@ THolder<IDerCalcer> BuildError(
             const auto& lossParams = params.LossFunctionDescription->GetLossParamsMap();
             const ELossFunction targetMetric = lossParams.contains("metric") ? FromString<ELossFunction>(lossParams.at("metric")) : ELossFunction::NDCG;
             const double sigma = NCatboostOptions::GetParamOrDefault(lossParams, "sigma", 1.0);
-            const bool norm = NCatboostOptions::GetParamOrDefault(lossParams, "norm", false);
+            const bool norm = NCatboostOptions::GetParamOrDefault(lossParams, "norm", true);
             return MakeHolder<TLambdaMartError>(targetMetric, lossParams, sigma, norm);
         }
         case ELossFunction::StochasticRank: {
