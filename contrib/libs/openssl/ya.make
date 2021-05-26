@@ -332,3 +332,10 @@ IF (OS_ANDROID AND ARCH_ARM64)
 ENDIF()
 
 END()
+
+IF (NOT DLL_FOR AND NOT OS_IOS)
+    RECURSE(
+    apps
+    dynamic
+)
+ENDIF()

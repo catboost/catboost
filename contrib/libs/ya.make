@@ -29,8 +29,6 @@ RECURSE(
     nayuki_md5
     onnx
     openssl
-    openssl/apps
-    openssl/dynamic
     protobuf
     protobuf/python
     pugixml
