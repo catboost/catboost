@@ -30,7 +30,8 @@ from catboost import (
     MultiRegressionCustomObjective,
     EColumnType)
 from catboost.eval.catboost_evaluation import CatboostEvaluation, EvalType
-from catboost.utils import eval_metric, create_cd, read_cd, get_roc_curve, select_threshold, quantize
+from catboost.core import read_cd
+from catboost.utils import eval_metric, create_cd, get_roc_curve, select_threshold, quantize
 from catboost.utils import DataMetaInfo, TargetStats, compute_training_options
 import os.path
 import os
@@ -284,77 +285,6 @@ def load_simple_dataset_as_lists(is_test):
 
 # Test cases begin here ########################################################
 
-
-def test_column_description_load_save():
-    column_count = 18
-
-    before_save = ColumnDescription(cd_file=CD_FILE,
-                                    column_count=column_count,
-                                    canonize_column_types=True)
-
-    fname = 'column_desciprion.cd'
-    column_description_path = test_output_path(fname)
-    before_save.save(column_description_path)
-
-    after_save = ColumnDescription(cd_file=CD_FILE,
-                                   column_count=column_count,
-                                   canonize_column_types=True)
-
-    before_save_str = str(before_save)
-
-    assert len(before_save_str) != 0
-    assert before_save_str.count('\n') == column_count
-    assert before_save_str == str(after_save)
-
-
-@pytest.mark.parametrize('niter', [1, 100, 500])
-def test_column_description_pool(niter):
-    train_file = data_file('multiregression', 'train')
-    cd_file = data_file('multiregression', 'train.cd')
-
-    pool_from_cd = Pool(train_file, column_description=ColumnDescription(cd_file=cd_file,
-                                                                         data_file=train_file,
-                                                                         canonize_column_types=True,
-                                                                         cd_config_file=CD_CONFIG_FILE))
-
-    pool_from_file = Pool(train_file, column_description=cd_file)
-
-    model = CatBoost(dict(loss_function='MultiRMSE', iterations=niter))
-    model.fit(pool_from_cd)
-
-    pred1 = model.predict(pool_from_cd)
-    pred2 = model.predict(pool_from_file)
-    assert _check_data(pred1, pred2)
-
-
-def test_column_description_create_pool():
-    n_features = 14
-    n_objects = 20
-
-    cd = ColumnDescription(column_count=n_features,
-                           canonize_column_types=True,
-                           cd_config_file=CD_CONFIG_FILE)
-
-    desc = [(0, EColumnType.Num, "synopsis"),
-            (1, EColumnType.Num, "mpaa_film_rating"),
-            (2, EColumnType.Num, "genre"),
-            (3, EColumnType.Num, "director"),
-            (4, EColumnType.Num, "writer"),
-            (5, EColumnType.Num, "theater_date"),
-            (6, EColumnType.Label, "dvd_date"),
-            (7, EColumnType.Num, "review"),
-            (8, EColumnType.Num, "rating"),
-            (9, EColumnType.Num, "feature"),
-            (10, EColumnType.Num, "critic"),
-            (11, EColumnType.Num, "top_critic"),
-            (12, EColumnType.Num, "publisher"),
-            (13, EColumnType.Num, "date")]
-
-    for column, (id, type, name) in zip(cd, desc):
-        column.type = type
-        column.name = name
-
-
 @pytest.mark.parametrize('niter', [100, 500])
 def test_multiregression_custom_eval(niter, n=10):
     class MultiRMSE(MultiRegressionCustomMetric):
@@ -404,8 +334,8 @@ def test_multiregression_custom_eval(niter, n=10):
     model2.fit(train_pool, eval_set=test_pool)
     pred2 = model2.predict(test_pool)
 
-    assert np.all(pred1 == pred2)
-    assert np.all(model1.evals_result_ == model2.evals_result_)
+    assert np.allclose(pred1, pred2)
+    assert np.allclose(model1.evals_result_['validation']['MultiRMSE'], model2.evals_result_['validation']['MultiRMSE'])
 
 
 @pytest.mark.parametrize('niter', [100, 500])
@@ -9158,3 +9088,77 @@ def test_same_params(params):
     params['loss_function'] = 'Logloss'
     CatBoost(params).fit(train_pool).save_model(model_path)
     assert CatBoost().load_model(model_path).get_params() == params
+
+
+def test_column_description_load_save():
+    column_count = 18
+
+    before_save = ColumnDescription(cd_file=CD_FILE,
+                                    column_count=column_count,
+                                    canonize_column_types=True)
+
+    fname = 'column_desciprion.cd'
+    column_description_path = test_output_path(fname)
+    before_save.save(column_description_path)
+
+    after_save = ColumnDescription(cd_file=CD_FILE,
+                                   column_count=column_count,
+                                   canonize_column_types=True)
+
+    before_save_str = str(before_save)
+
+    assert len(before_save_str) != 0
+    assert before_save_str.count('\n') == column_count
+    assert before_save_str == str(after_save)
+
+
+@pytest.mark.parametrize('niter', [1, 100, 500])
+def test_column_description_pool(niter):
+    train_file = data_file('multiregression', 'train')
+    cd_file = data_file('multiregression', 'train.cd')
+
+    pool_from_cd = Pool(train_file, column_description=ColumnDescription(cd_file=cd_file,
+                                                                         data_file=train_file,
+                                                                         canonize_column_types=True,
+                                                                         cd_config_file=CD_CONFIG_FILE))
+
+    pool_from_file = Pool(train_file, column_description=cd_file)
+
+    model = CatBoost(dict(loss_function='MultiRMSE', iterations=niter))
+    model.fit(pool_from_cd)
+
+    pred1 = model.predict(pool_from_cd)
+    pred2 = model.predict(pool_from_file)
+    assert _check_data(pred1, pred2)
+
+
+@pytest.mark.parametrize('niter', [1, 100, 500])
+def test_create_column_description_by_line(niter):
+    n_features = 5
+
+    train_file = data_file('multiregression', 'train')
+    cd_file = data_file('multiregression', 'train.cd')
+
+    cd = ColumnDescription(column_count=n_features,
+                           canonize_column_types=True,
+                           cd_config_file=CD_CONFIG_FILE)
+
+    desc = [(0, EColumnType.Label, "Target1"),
+            (1, EColumnType.Label, "Target2"),
+            (2, EColumnType.Num, "Categ2"),
+            (3, EColumnType.Num, "Categ3"),
+            (4, EColumnType.Num, "Categ4")]
+
+    for column, (id, type, name) in zip(cd, desc):
+        column.type = type
+        column.name = name
+
+    pool_from_cd = Pool(train_file, column_description=cd)
+    pool_from_file = Pool(train_file, column_description=cd_file)
+
+    model = CatBoost(dict(loss_function='MultiRMSE', iterations=niter))
+    model.fit(pool_from_cd)
+
+    pred1 = model.predict(pool_from_cd)
+    pred2 = model.predict(pool_from_file)
+    assert _check_data(pred1, pred2)
