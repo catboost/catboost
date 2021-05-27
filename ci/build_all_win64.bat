@@ -14,33 +14,40 @@ if %errorlevel% neq 0 exit /b %errorlevel%
 cd catboost\python-package
 if %errorlevel% neq 0 exit /b %errorlevel%
 
+set ORIG_PATH=%PATH%
 set PyV=27
 echo c:\Python%PyV%\python.exe
+set PATH=c:\Python%PyV%\Scripts;%ORIG_PATH%
 c:\Python%PyV%\python.exe mk_wheel.py --build-widget=no %WIN_COMMON_FLAGS% -DPYTHON_INCLUDE="/I c:/Python%PyV%/include/" -DPYTHON_LIBRARIES="c:/Python%PyV%/libs/python%PyV%.lib"
 if %errorlevel% neq 0 exit /b %errorlevel%
 
 set PyV=35
 echo c:\Python%PyV%\python.exe
+set PATH=c:\Python%PyV%\Scripts;%ORIG_PATH%
 c:\Python%PyV%\python.exe mk_wheel.py --build-widget=no %WIN_COMMON_FLAGS% -DPYTHON_INCLUDE="/I c:/Python%PyV%/include/" -DPYTHON_LIBRARIES="c:/Python%PyV%/libs/python%PyV%.lib"
 if %errorlevel% neq 0 exit /b %errorlevel%
 
 set PyV=36
 echo c:\Python%PyV%\python.exe
+set PATH=c:\Python%PyV%\Scripts;%ORIG_PATH%
 c:\Python%PyV%\python.exe mk_wheel.py %WIN_COMMON_FLAGS% -DPYTHON_INCLUDE="/I c:/Python%PyV%/include/" -DPYTHON_LIBRARIES="c:/Python%PyV%/libs/python%PyV%.lib"
 if %errorlevel% neq 0 exit /b %errorlevel%
 
 set PyV=37
 echo c:\Python%PyV%\python.exe
+set PATH=c:\Python%PyV%\Scripts;%ORIG_PATH%
 c:\Python%PyV%\python.exe mk_wheel.py %WIN_COMMON_FLAGS% -DPYTHON_INCLUDE="/I c:/Python%PyV%/include/" -DPYTHON_LIBRARIES="c:/Python%PyV%/libs/python%PyV%.lib"
 if %errorlevel% neq 0 exit /b %errorlevel%
 
 set PyV=38
 echo c:\Python%PyV%\python.exe
+set PATH=c:\Python%PyV%\Scripts;%ORIG_PATH%
 c:\Python%PyV%\python.exe mk_wheel.py %WIN_COMMON_FLAGS% -DPYTHON_INCLUDE="/I c:/Python%PyV%/include/" -DPYTHON_LIBRARIES="c:/Python%PyV%/libs/python%PyV%.lib"
 if %errorlevel% neq 0 exit /b %errorlevel%
 
 set PyV=39
 echo c:\Python%PyV%\python.exe
+set PATH=c:\Python%PyV%\Scripts;%ORIG_PATH%
 c:\Python%PyV%\python.exe mk_wheel.py %WIN_COMMON_FLAGS% -DPYTHON_INCLUDE="/I c:/Python%PyV%/include/" -DPYTHON_LIBRARIES="c:/Python%PyV%/libs/python%PyV%.lib"
 if %errorlevel% neq 0 exit /b %errorlevel%
 
