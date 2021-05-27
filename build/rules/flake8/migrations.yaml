@@ -1143,7 +1143,6 @@ migrations:
     - dict/bert/make/lib/tasks
     - dict/mt/analytics/sentence_breaking/translate_human_eval_comparison
     - dict/mt/g2p/asr/graph
-    - dict/mt/make/libs/typecheck/tests
     - dict/mt/make/tools/train_iterative_backtranslation
     - dict/ontodb/onto_lib/sources/wikidata
     - dict/ontodb/proto/direct/ut
@@ -1815,7 +1814,6 @@ migrations:
     - search/mon/wabbajack/libs/db
     - search/resonance/tester/core
     - search/scraper_over_yt/scripts/zombie_monitors
-    - smart_devices/packages/tests/ya_package
     - sprav/altay/tools/auto_close/ml_predictor
     - sprav/mining/bs/tools/extract_social_data
     - sprav/snezhana_v3/app
@@ -4172,7 +4170,6 @@ migrations:
     - yabs/vh/cms-pgaas/test/ft/admin_api
     - yabs/vh/cms-pgaas/test/ft/content_ksiva_api
     - yabs/vh/cms-pgaas/test/ft/self_service_api
-    - yabs/vh/cms-pgaas/test/ft/ugc_api
     - yabs/vh/cms-pgaas/test/ft/ugc_live_api
     - yabs/vh/frontend/test/ft/VH-3242
     - yql/library/embedded/python/test
