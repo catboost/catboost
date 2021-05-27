@@ -23,9 +23,21 @@ namespace NCudaLib {
         double Sum2;
         bool Active;
         EProfileMode ProfileMode;
+        ui32* Nestedness;
+        ui32 TabSize = 0;
+        TMaybe<std::chrono::high_resolution_clock::time_point> Timestamp;
+
+        void UpdateTabSize(ui32 tabSize) {
+            if (TabSize != tabSize) {
+                CATBOOST_WARNING_LOG
+                    << "Warning: found " << Label << " at different level in call stack"
+                    << " -- will show this label at highest level" << Endl;
+                TabSize = Min(TabSize, tabSize);
+            }
+        }
 
     public:
-        TLabeledInterval(const TString& label,
+        TLabeledInterval(const TString& label, ui32* nestedness,
                          EProfileMode profileMode = EProfileMode::LabelAsync)
             : Label(label)
             , Count(0)
@@ -34,7 +46,10 @@ namespace NCudaLib {
             , Sum2(0.0)
             , Active(false)
             , ProfileMode(profileMode)
+            , Nestedness(nestedness)
         {
+            CB_ENSURE(nestedness, "Need nestedness counter");
+            TabSize = *nestedness;
         }
 
         ~TLabeledInterval() {
@@ -48,14 +63,16 @@ namespace NCudaLib {
             Sum += other.Sum;
             Sum2 += other.Sum2;
             Count += other.Count;
+            UpdateTabSize(other.TabSize);
         }
 
-        void PrintInfo() {
+        void PrintInfo() const {
             if (Count == 0) {
                 return;
             }
 
             double mean = Sum / Count;
+            CATBOOST_INFO_LOG << TString(TabSize * 2, ' ');
             CATBOOST_INFO_LOG << Label
                               << " count " << Count
                               << " mean: " << mean
@@ -74,6 +91,10 @@ namespace NCudaLib {
                 GetCudaManager().WaitComplete();
             }
             Time = std::chrono::high_resolution_clock::now();
+            if (!Timestamp) {
+                Timestamp = Time;
+            }
+            ++*Nestedness;
         }
 
         void Release() {
@@ -94,6 +115,11 @@ namespace NCudaLib {
             Sum += val;
             Sum2 += val * val;
             Count++;
+            --*Nestedness;
+        }
+
+        inline bool operator<(const TLabeledInterval& right) const {
+            return Timestamp < right.Timestamp;
         }
     };
 
@@ -104,6 +130,7 @@ namespace NCudaLib {
         ui64 MinProfileLevel;
         TLabeledInterval EmptyLabel;
         bool PrintOnDelete = true;
+        ui32 Nestedness = 0;
 
     public:
         TCudaProfiler(EProfileMode profileMode = EProfileMode::LabelAsync,
@@ -111,7 +138,7 @@ namespace NCudaLib {
                       bool printOnDelete = true)
             : DefaultProfileMode(profileMode)
             , MinProfileLevel(level)
-            , EmptyLabel("fake", EProfileMode::NoProfile)
+            , EmptyLabel("fake", &Nestedness, EProfileMode::NoProfile)
             , PrintOnDelete(printOnDelete)
         {
         }
@@ -123,8 +150,14 @@ namespace NCudaLib {
         }
 
         void PrintInfo() {
-            for (auto& label : Labels) {
-                label.second->PrintInfo();
+            TVector<TLabeledInterval> intervals;
+            intervals.reserve(Labels.size());
+            for (const auto& [label, interval] : Labels) {
+                intervals.push_back(*interval);
+            }
+            Sort(intervals);
+            for (const auto& interval : intervals) {
+                interval.PrintInfo();
             }
         }
 
@@ -137,6 +170,7 @@ namespace NCudaLib {
                 const auto& label = entry.first;
                 if (Labels.count(label) == 0) {
                     Labels[entry.first] = MakeHolder<TLabeledInterval>(label,
+                                                                       &Nestedness,
                                                                        DefaultProfileMode);
                 }
                 Labels[entry.first]->Add(*entry.second);
@@ -159,6 +193,7 @@ namespace NCudaLib {
 
             if (!Labels.count(label)) {
                 Labels[label] = MakeHolder<TLabeledInterval>(label,
+                                                             &Nestedness,
                                                              DefaultProfileMode);
             }
             return Guard(*Labels[label]);

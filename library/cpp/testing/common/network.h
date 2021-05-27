@@ -14,9 +14,11 @@ namespace NTesting {
     };
 
     class TPortHolder : private THolder<IPort> {
+        using TBase = THolder<IPort>;
     public:
-        using THolder<IPort>::THolder;
-        using THolder<IPort>::Release;
+        using TBase::TBase;
+        using TBase::Release;
+        using TBase::Reset;
 
         operator ui16() const& {
             return (*this)->Get();
@@ -35,4 +37,16 @@ namespace NTesting {
         // Returns continuous sequence of the specified number of ports.
         [[nodiscard]] TVector<TPortHolder> GetFreePortsRange(size_t count);
     }
+
+    //@brief helper class for inheritance
+    struct TFreePortOwner {
+        TFreePortOwner() : Port_(GetFreePort()) {}
+
+        ui16 GetPort() const {
+            return Port_;
+        }
+
+    private:
+        TPortHolder Port_;
+    };
 }

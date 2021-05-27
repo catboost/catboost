@@ -15,6 +15,7 @@
 #include <util/generic/array_ref.h>
 #include <util/generic/cast.h>
 #include <util/generic/utility.h>
+#include <util/system/rwlock.h>
 
 #include <cmath>
 
@@ -124,6 +125,15 @@ namespace {
     };
 }
 
+static void PrepareObjectsDataProviderForEvaluation(const TObjectsDataProvider& objectsData) {
+    if (auto* quantizedObjectsData = dynamic_cast<const TQuantizedObjectsDataProvider*>(&objectsData)) {
+        auto quantizedFeaturesInfo = quantizedObjectsData->GetQuantizedFeaturesInfo();
+        TWriteGuard guard(quantizedFeaturesInfo->GetRWMutex());
+        quantizedFeaturesInfo->LoadCatFeaturePerfectHashToRam();
+    }
+}
+
+
 TVector<TVector<double>> ApplyModelMulti(
     const TFullModel& model,
     const TObjectsDataProvider& objectsData,
@@ -137,6 +147,8 @@ TVector<TVector<double>> ApplyModelMulti(
     TVector<double> approxesFlat(docCount * approxesDimension);
     if (docCount > 0) {
         FixupTreeEnd(model.GetTreeCount(), begin, &end);
+        PrepareObjectsDataProviderForEvaluation(objectsData);
+
         const int executorThreadCount = executor ? executor->GetThreadCount() : 0;
         auto blockParams = GetBlockParams(executorThreadCount, docCount, end - begin);
 
@@ -208,7 +220,7 @@ TVector<TVector<double>> ApplyModelMulti(
     int threadCount)
 {
     const auto baseline = data.RawTargetData.GetBaseline();
-    if(baseline) {
+    if (baseline) {
         CB_ENSURE(
             baseline->size() == model.GetDimensionsCount(),
             "Baseline should have the same dimension count as model: expected " << model.GetDimensionsCount()
@@ -243,6 +255,8 @@ TMinMax<double> ApplyModelForMinMax(
     TMutex result_guard;
 
     if (docCount > 0) {
+        PrepareObjectsDataProviderForEvaluation(objectsData);
+
         const int executorThreadCount = executor ? executor->GetThreadCount() : 0;
         auto blockParams = GetBlockParams(executorThreadCount, docCount, treeEnd - treeBegin);
 
@@ -335,6 +349,8 @@ TModelCalcerOnPool::TModelCalcerOnPool(
     if (BlockParams.FirstId == BlockParams.LastId) {
         return;
     }
+    PrepareObjectsDataProviderForEvaluation(*objectsData);
+
     const int threadCount = executor->GetThreadCount() + 1; // one for current thread
     BlockParams.SetBlockCount(threadCount);
     QuantizedDataForThreads.resize(BlockParams.GetBlockCount());
@@ -366,6 +382,7 @@ TLeafIndexCalcerOnPool::TLeafIndexCalcerOnPool(
     , CurrBatchSize(Min(DocCount, NModelEvaluation::FORMULA_EVALUATION_BLOCK_SIZE))
     , CurrDocIndex(0)
 {
+    PrepareObjectsDataProviderForEvaluation(*objectsData);
     FixupTreeEnd(model.GetTreeCount(), treeStart, &treeEnd);
     CB_ENSURE(TreeEnd == size_t(treeEnd));
 
@@ -457,6 +474,8 @@ TVector<ui32> CalcLeafIndexesMulti(
     NPar::ILocalExecutor* executor /* = nullptr */)
 {
     FixupTreeEnd(model.GetTreeCount(), treeStart, &treeEnd);
+    PrepareObjectsDataProviderForEvaluation(*objectsData);
+
     const size_t objCount = objectsData->GetObjectCount();
     TVector<ui32> result(objCount * (treeEnd - treeStart), 0);
 
@@ -601,5 +620,5 @@ TVector<TVector<double>> ApplyUncertaintyPredictions(
         virtualEnsemblesCount,
         &approxes,
         &executor);
-    return PrepareEval(predictionType, model.GetLossFunctionName(), approxes,  &executor);
+    return PrepareEval(predictionType, virtualEnsemblesCount, model.GetLossFunctionName(), approxes,  &executor);
 }

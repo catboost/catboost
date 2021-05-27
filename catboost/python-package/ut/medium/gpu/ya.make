@@ -1,4 +1,4 @@
-PYTEST()
+PY2TEST()
 
 
 
@@ -29,7 +29,7 @@ SIZE(LARGE)
 IF (SANITIZER_TYPE)
     TAG(ya:fat ya:not_autocheck)
 ELSE()
-    TAG(ya:fat ya:yt ya:ytexec ya:noretries)
+    TAG(ya:fat ya:yt ya:noretries)
 ENDIF()
 
 YT_SPEC(catboost/pytest/cuda_tests/yt_spec.yson)

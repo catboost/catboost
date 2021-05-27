@@ -169,9 +169,19 @@ struct IMetric {
     virtual void AddHint(const TString& key, const TString& value) = 0;
     virtual bool NeedTarget() const = 0;
     virtual ~IMetric() = default;
-
 public:
     TMetricParam<bool> UseWeights{"use_weights", true};
+};
+
+struct TParamInfo {
+    TString Name;
+    bool IsMandatory;
+    NJson::TJsonValue DefaultValue;
+};
+
+struct TParamSet {
+    TVector<TParamInfo> ValidParams;
+    TString NameSuffix;
 };
 
 struct TMetric: public IMetric {
@@ -322,6 +332,8 @@ void InitializeEvalMetricIfNotSet(
 
 TVector<TString> GetMetricsDescription(const TVector<const IMetric*>& metrics);
 TVector<TString> GetMetricsDescription(const TVector<THolder<IMetric>>& metrics);
+
+NJson::TJsonValue ExportAllMetricsParamsToJson();
 
 TVector<bool> GetSkipMetricOnTrain(const TVector<const IMetric*>& metrics);
 TVector<bool> GetSkipMetricOnTrain(const TVector<THolder<IMetric>>& metrics);

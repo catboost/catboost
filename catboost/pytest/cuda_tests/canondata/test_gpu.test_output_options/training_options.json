@@ -24,6 +24,9 @@
         "permutation_count" : 4,
         "learning_rate" : 0.5
     },
+    "pool_metainfo_options" : {
+        "tags" : { }
+    },
     "metrics" : {
         "objective_metric" : {
             "type" : "Logloss",
@@ -238,7 +241,9 @@
         "add_ridge_penalty_to_loss_function" : false,
         "score_function" : "Cosine",
         "leaf_estimation_method" : "Newton",
+        "meta_l2_exponent" : 1,
         "grow_policy" : "SymmetricTree",
+        "meta_l2_frequency" : 0,
         "min_data_in_leaf" : 1,
         "random_strength" : 1,
         "dev_efb_max_buckets" : 254,
@@ -252,8 +257,8 @@
         "observations_to_bootstrap" : "TestOnly",
         "depth" : 6,
         "max_leaves" : 64,
-        "leaf_estimation_backtracking" : "AnyImprovement",
         "rsm" : 1,
+        "leaf_estimation_backtracking" : "AnyImprovement",
         "leaf_estimation_iterations" : 1
     },
     "task_type" : "GPU",

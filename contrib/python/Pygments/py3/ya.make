@@ -4,9 +4,7 @@ LICENSE(BSD-3-Clause)
 
 
 
-VERSION(2.7.3)
-
-PROVIDES(Pygments)
+VERSION(2.9.0)
 
 PEERDIR(
     contrib/python/setuptools
@@ -35,6 +33,7 @@ PY_SRCS(
     pygments/formatters/irc.py
     pygments/formatters/latex.py
     pygments/formatters/other.py
+    pygments/formatters/pangomarkup.py
     pygments/formatters/rtf.py
     pygments/formatters/svg.py
     pygments/formatters/terminal.py
@@ -45,6 +44,7 @@ PY_SRCS(
     pygments/lexers/_cl_builtins.py
     pygments/lexers/_cocoa_builtins.py
     pygments/lexers/_csound_builtins.py
+    pygments/lexers/_julia_builtins.py
     pygments/lexers/_lasso_builtins.py
     pygments/lexers/_lua_builtins.py
     pygments/lexers/_mapping.py
@@ -65,7 +65,9 @@ PY_SRCS(
     pygments/lexers/agile.py
     pygments/lexers/algebra.py
     pygments/lexers/ambient.py
+    pygments/lexers/amdgpu.py
     pygments/lexers/ampl.py
+    pygments/lexers/apdlexer.py
     pygments/lexers/apl.py
     pygments/lexers/archetype.py
     pygments/lexers/arrow.py
@@ -79,6 +81,7 @@ PY_SRCS(
     pygments/lexers/c_cpp.py
     pygments/lexers/c_like.py
     pygments/lexers/capnproto.py
+    pygments/lexers/cddl.py
     pygments/lexers/chapel.py
     pygments/lexers/clean.py
     pygments/lexers/compiled.py
@@ -111,11 +114,14 @@ PY_SRCS(
     pygments/lexers/foxpro.py
     pygments/lexers/freefem.py
     pygments/lexers/functional.py
+    pygments/lexers/futhark.py
+    pygments/lexers/gcodelexer.py
     pygments/lexers/gdscript.py
     pygments/lexers/go.py
     pygments/lexers/grammar_notation.py
     pygments/lexers/graph.py
     pygments/lexers/graphics.py
+    pygments/lexers/graphviz.py
     pygments/lexers/haskell.py
     pygments/lexers/haxe.py
     pygments/lexers/hdl.py
@@ -131,6 +137,7 @@ PY_SRCS(
     pygments/lexers/javascript.py
     pygments/lexers/julia.py
     pygments/lexers/jvm.py
+    pygments/lexers/kuin.py
     pygments/lexers/lisp.py
     pygments/lexers/make.py
     pygments/lexers/markup.py
@@ -189,6 +196,7 @@ PY_SRCS(
     pygments/lexers/stata.py
     pygments/lexers/supercollider.py
     pygments/lexers/tcl.py
+    pygments/lexers/teal.py
     pygments/lexers/templates.py
     pygments/lexers/teraterm.py
     pygments/lexers/testing.py
@@ -196,6 +204,7 @@ PY_SRCS(
     pygments/lexers/textedit.py
     pygments/lexers/textfmts.py
     pygments/lexers/theorem.py
+    pygments/lexers/thingsdb.py
     pygments/lexers/tnt.py
     pygments/lexers/trafficscript.py
     pygments/lexers/typoscript.py
@@ -205,6 +214,7 @@ PY_SRCS(
     pygments/lexers/varnish.py
     pygments/lexers/verification.py
     pygments/lexers/web.py
+    pygments/lexers/webassembly.py
     pygments/lexers/webidl.py
     pygments/lexers/webmisc.py
     pygments/lexers/whiley.py
@@ -231,10 +241,12 @@ PY_SRCS(
     pygments/styles/emacs.py
     pygments/styles/friendly.py
     pygments/styles/fruity.py
+    pygments/styles/gruvbox.py
     pygments/styles/igor.py
     pygments/styles/inkpot.py
     pygments/styles/lovelace.py
     pygments/styles/manni.py
+    pygments/styles/material.py
     pygments/styles/monokai.py
     pygments/styles/murphy.py
     pygments/styles/native.py
@@ -253,6 +265,7 @@ PY_SRCS(
     pygments/styles/vim.py
     pygments/styles/vs.py
     pygments/styles/xcode.py
+    pygments/styles/zenburn.py
     pygments/token.py
     pygments/unistring.py
     pygments/util.py

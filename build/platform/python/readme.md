@@ -25,7 +25,7 @@
 6. `for path in $(ls packages); do ar -xf packages/$path; tar -xf data.tar.xz; done;`
 7. `mv usr python`
 8. `tar -czf python{PYTHON_VERSION}_linux.tar.gz python`
-9. `ya upload python{PYTHON_VERSION}_linux.tar.gz -d "Ubuntu {UBUNTU_VERSION} x86_64 python{PYTHON_VERSION} installation"`
+9. `ya upload python{PYTHON_VERSION}_linux.tar.gz -d "Ubuntu {UBUNTU_VERSION} x86_64 python{PYTHON_VERSION} installation" --do-not-remove`
 
 UBUNTU_VERSION - версия ubuntu, на которой майнился системный питон
 
@@ -40,7 +40,7 @@ UBUNTU_VERSION - версия ubuntu, на которой майнился си�
     3. `python/Python.framework/Python -> Versions/Current/Python`
     4. `python/Python.framework/Resources -> Versions/Current/Resources`
 6. `tar -czf python{PYTHON_VERSION}_darwin.tar.gz python`
-7. `ya upload python{PYTHON_VERSION}_darwin.tar.gz -d "Darwin x86_64 python{PYTHON_VERSION} installation"`
+7. `ya upload python{PYTHON_VERSION}_darwin.tar.gz -d "Darwin x86_64 python{PYTHON_VERSION} installation" --do-not-remove`
 
 Если нужного питона нет в системе, его нужно установить из `python.org`, его установку можно найти в стандартном месте.
 
@@ -52,7 +52,7 @@ UBUNTU_VERSION - версия ubuntu, на которой майнился си�
 2. Устанавливаем нужную версию питона из `python.org`
 3. Копируем содержимое установки питона в директорию `python`
 4. Пакуем директорию `python` в `python{PYTHON_VERSION}_windows.tar.gz`
-5. `ya upload python{PYTHON_VERSION}_windows.tar.gz -d "Windows x86_64 python{PYTHON_VERSION} installation"`
+5. `ya upload python{PYTHON_VERSION}_windows.tar.gz -d "Windows x86_64 python{PYTHON_VERSION} installation" --do-not-remove`
 
 ## Добавляем бандлы системного питона в сборку
 
@@ -60,8 +60,6 @@ UBUNTU_VERSION - версия ubuntu, на которой майнился си�
 2. Добавляем сендбокс ресурсы собранных бандлов в файл [resources.inc](https://a.yandex-team.ru/arc/trunk/arcadia/build/platform/python/resources.inc)
 
         SET(PYTHON38_LINUX sbr:1211259884)
-
-   И, к сожалению из-за проблем пробрасывания EXTERNAL_RESOURCE в систему тестирования, дублируем их здесь [devtools/ya/test/test_types/common.py](https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ya/test/test_types/common.py?rev=r7643092#L893)
 
 3. Добавляем служебные переменные `_SYSTEM_PYTHON*, PY_VERSION, PY_FRAMEWORK_VERSION` для системного питона, если их еще нет,
 в [ymake.core.conf](https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=7640792#L380) по аналогии.
@@ -77,7 +75,7 @@ UBUNTU_VERSION - версия ubuntu, на которой майнился си�
           DECLARE_EXTERNAL_RESOURCE(EXTERNAL_PYTHON ${PYTHON38_LINUX})
 
 ## Проверяем сборку
-1. Создаем тривиальный PYMODULE с использование `c api` положенного питона, или находим подходящий в репозитории
+1. Создаем тривиальный PY2MODULE с использование `c api` положенного питона, или находим подходящий в репозитории
 2. Собираем его:
     1. linux `ya make -DUSE_SYSTEM_PYTHON=3.8 --target-platform linux`
     2. darwin `ya make -DUSE_SYSTEM_PYTHON=3.8 --target-platform darwin`

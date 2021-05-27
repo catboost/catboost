@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
     pygments.lexers.supercollider
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -26,7 +25,7 @@ class SuperColliderLexer(RegexLexer):
     """
 
     name = 'SuperCollider'
-    aliases = ['sc', 'supercollider']
+    aliases = ['supercollider', 'sc']
     filenames = ['*.sc', '*.scd']
     mimetypes = ['application/supercollider', 'text/supercollider', ]
 

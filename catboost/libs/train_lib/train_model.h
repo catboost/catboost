@@ -59,6 +59,13 @@ struct TTrainModelInternalOptions {
     bool HaveLearnFeatureInMemory = true;
 };
 
+struct TCustomCallbackDescriptor {
+    using TAfterIteration = bool (*)(const TMetricsAndTimeLeftHistory& history, void* customData);
+
+    void* CustomData = nullptr;
+    TAfterIteration AfterIterationFunc = nullptr;
+};
+
 class ITrainingCallbacks {
 public:
     virtual bool IsContinueTraining(const TMetricsAndTimeLeftHistory& /*history*/) {
@@ -73,6 +80,19 @@ public:
     virtual ~ITrainingCallbacks() = default;
 };
 
+class ICustomCallbacks {
+public:
+    virtual bool AfterIteration(const TMetricsAndTimeLeftHistory& /*history*/) = 0;
+    virtual ~ICustomCallbacks() = default;
+};
+
+class TCustomCallbacks : public ICustomCallbacks {
+public:
+    explicit TCustomCallbacks(TMaybe<TCustomCallbackDescriptor> callbackDescriptor);
+    bool AfterIteration(const TMetricsAndTimeLeftHistory& history) override;
+private:
+    const TMaybe<TCustomCallbackDescriptor> CallbackDescriptor;
+};
 
 class IModelTrainer {
 public:
@@ -88,6 +108,7 @@ public:
         TMaybe<NCB::TPrecomputedOnlineCtrData> precomputedSingleOnlineCtrDataForSingleFold,
         const TLabelConverter& labelConverter,
         ITrainingCallbacks* trainingCallbacks,
+        ICustomCallbacks* customCallbacks,
         TMaybe<TFullModel*> initModel,
         THolder<TLearnProgress> initLearnProgress, // can be nullptr, can be modified if non-nullptr
 
@@ -132,6 +153,7 @@ void TrainModel(
     NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo, // can be nullptr
     const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+    const TMaybe<TCustomCallbackDescriptor>& callbackDescriptor,
     NCB::TDataProviders pools, // not rvalue reference because Cython does not support them
     TMaybe<TFullModel*> initModel,
 

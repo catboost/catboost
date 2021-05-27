@@ -9,6 +9,7 @@ RECURSE(
     crcutil
     cxxsupp/libcxx
     cxxsupp/libcxx-filesystem
+    cxxsupp/libcxxabi-parts
     expat
     fastlz
     flatbuffers
@@ -28,11 +29,8 @@ RECURSE(
     nayuki_md5
     onnx
     openssl
-    openssl/apps
-    openssl/dynamic
     protobuf
     protobuf/python
-    protobuf/python/test
     pugixml
     python
     python/ut
@@ -89,6 +87,12 @@ IF (OS_ANDROID)
 ENDIF()
 
 IF (OS_IOS AND ARCH_ARM64 OR OS_DARWIN)
+    RECURSE(
+    
+)
+ENDIF()
+
+IF (OS_LINUX AND ARCH_ARM64)
     RECURSE(
     
 )

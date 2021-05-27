@@ -13,7 +13,6 @@ RECURSE(
     blockcodecs/ut
     build_info
     cache
-    cache/ut
     cgiparam
     cgiparam/fuzz
     cgiparam/ut

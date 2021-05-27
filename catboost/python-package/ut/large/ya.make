@@ -1,6 +1,6 @@
 
 
-PYTEST()
+PY2TEST()
 
 SIZE(LARGE)
 TAG(ya:dirty ya:fat ya:force_sandbox ya:nofuse)
@@ -22,7 +22,7 @@ DATA(
 
 FORK_SUBTESTS()
 
-NO_LINT()
+
 NO_CHECK_IMPORTS()
 
 END()

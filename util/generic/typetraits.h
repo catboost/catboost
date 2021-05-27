@@ -274,18 +274,27 @@ template <template <class...> class T, class... Ts>
 struct TIsSpecializationOf<T, T<Ts...>> : std::true_type {};
 
 /*
- * Is dependent on a template parameter. Is used in static_assert in a false branch to produce a compile error.
+ * TDependentFalse is a constant dependent on a template parameter.
+ * Use it in static_assert in a false branch of if constexpr to produce a compile error.
  * See an example with dependent_false at https://en.cppreference.com/w/cpp/language/if
  *
  * if constexpr (std::is_same<T, someType1>) {
  * } else if constexpr (std::is_same<T, someType2>) {
  * } else {
- *     static_assert(TDependentFalse<T>::value, "unknown type");
+ *     static_assert(TDependentFalse<T>, "unknown type");
  * }
  */
-template <typename T>
-struct TDependentFalse : public std::false_type {};
+template <typename ... T>
+constexpr bool TDependentFalse = false;
 
+// FIXME: neither nvcc10 nor nvcc11 support using auto in this context
+#if defined(__NVCC__)
+template <size_t Value>
+constexpr bool TValueDependentFalse = false;
+#else
+template <auto ... Values>
+constexpr bool TValueDependentFalse = false;
+#endif
 
 /*
  * shortcut for std::enable_if_t<...> which checks that T is std::tuple or std::pair

@@ -39,6 +39,7 @@ inline void ReadAndProceedPoolInBlocks(
                 /*BaselineFilePath=*/TPathWithScheme(),
                 /*TimestampsFilePath*/TPathWithScheme(),
                 /*FeatureNamesPath*/TPathWithScheme(),
+                /*PoolMetaInfoPath*/TPathWithScheme(),
                 /* ClassLabels */{},
                 dsvFormatOptions,
                 MakeCdProviderFromFile(cdFilePath),

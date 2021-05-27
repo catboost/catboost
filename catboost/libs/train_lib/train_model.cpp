@@ -69,6 +69,7 @@ static THolder<NPar::ILocalExecutor> CreateLocalExecutor(const NCatboostOptions:
 
 static void ShrinkModel(int itCount, const TCtrHelper& ctrsHelper, TLearnProgress* progress) {
     itCount += SafeIntegerCast<int>(progress->InitTreesSize);
+    Y_ASSERT(SafeIntegerCast<int>(progress->TreeStruct.size()) >= itCount);
     progress->LeafValues.resize(itCount);
     progress->TreeStruct.resize(itCount);
     progress->TreeStats.resize(itCount);
@@ -348,6 +349,7 @@ static void Train(
     const TTrainModelInternalOptions& internalOptions,
     const TTrainingDataProviders& data,
     ITrainingCallbacks* trainingCallbacks,
+    ICustomCallbacks* customCallbacks,
     TLearnContext* ctx,
     TVector<TVector<TVector<double>>>* testMultiApprox // [test][dim][docIdx]
 ) {
@@ -402,6 +404,18 @@ static void Train(
 
         TrainOneIteration(data, ctx);
 
+        if (HasInvalidValues(ctx->LearnProgress->LeafValues.back())) {
+            ctx->LearnProgress->LeafValues.pop_back();
+            ctx->LearnProgress->TreeStruct.pop_back();
+            if (!ctx->LearnProgress->ModelShrinkHistory.empty()) {
+                ctx->LearnProgress->ModelShrinkHistory.pop_back();
+            }
+            CATBOOST_WARNING_LOG << "Training has stopped (degenerate solution on iteration "
+                << iter << ", probably too small l2-regularization, try to increase it)" << Endl;
+            profile.FinishIteration();
+            break;
+        }
+
         CalcErrors(data, metricsData, iter, ctx);
 
         profile.AddOperation("Calc errors");
@@ -444,18 +458,8 @@ static void Train(
             &loggingData.Logger
         );
 
-        if (HasInvalidValues(ctx->LearnProgress->LeafValues.back())) {
-            ctx->LearnProgress->LeafValues.pop_back();
-            ctx->LearnProgress->TreeStruct.pop_back();
-            if (!ctx->LearnProgress->ModelShrinkHistory.empty()) {
-                ctx->LearnProgress->ModelShrinkHistory.pop_back();
-            }
-            CATBOOST_WARNING_LOG << "Training has stopped (degenerate solution on iteration "
-                << iter << ", probably too small l2-regularization, try to increase it)" << Endl;
-            break;
-        }
-
-        continueTraining = trainingCallbacks->IsContinueTraining(ctx->LearnProgress->MetricsAndTimeHistory);
+        continueTraining = trainingCallbacks->IsContinueTraining(ctx->LearnProgress->MetricsAndTimeHistory)
+                && customCallbacks->AfterIteration(ctx->LearnProgress->MetricsAndTimeHistory);
     }
 
     ctx->SaveProgress(onSaveSnapshotCallback);
@@ -710,6 +714,15 @@ static void SaveModel(
     }
 }
 
+TCustomCallbacks::TCustomCallbacks(TMaybe<TCustomCallbackDescriptor> callbackDescriptor)
+        : CallbackDescriptor(std::move(callbackDescriptor)) {
+}
+bool TCustomCallbacks::AfterIteration(const TMetricsAndTimeLeftHistory &history) {
+    if (!CallbackDescriptor.Empty()) {
+        return CallbackDescriptor->AfterIterationFunc(history, CallbackDescriptor->CustomData);
+    }
+    return true;
+}
 
 namespace {
     class TCPUModelTrainer : public IModelTrainer {
@@ -724,6 +737,7 @@ namespace {
             TMaybe<TPrecomputedOnlineCtrData> precomputedSingleOnlineCtrDataForSingleFold,
             const TLabelConverter& labelConverter,
             ITrainingCallbacks* trainingCallbacks,
+            ICustomCallbacks* customCallbacks,
             TMaybe<TFullModel*> initModel,
             THolder<TLearnProgress> initLearnProgress,
             TDataProviders initModelApplyCompatiblePools,
@@ -837,7 +851,7 @@ namespace {
             TVector<TVector<double>> oneRawValues(ctx.LearnProgress->ApproxDimension);
             TVector<TVector<TVector<double>>> rawValues(trainingData.Test.size(), oneRawValues);
 
-            Train(internalOptions, trainingData, trainingCallbacks, &ctx, &rawValues);
+            Train(internalOptions, trainingData, trainingCallbacks, customCallbacks, &ctx, &rawValues);
 
             if (!dstLearnProgress) {
                 // Save memory as it is no longer needed
@@ -886,6 +900,7 @@ static void TrainModel(
     TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
     const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+    const TMaybe<TCustomCallbackDescriptor>& callbackDescriptor,
     TDataProviders pools,
 
     // can be non-empty only if there is single fold
@@ -1051,6 +1066,7 @@ static void TrainModel(
     }
 
     const auto defaultTrainingCallbacks = MakeHolder<ITrainingCallbacks>();
+    const auto customCallbacks = MakeHolder<TCustomCallbacks>(callbackDescriptor);
     TTrainModelInternalOptions trainModelInternalOptions;
     trainModelInternalOptions.HaveLearnFeatureInMemory = haveLearnFeaturesInMemory;
     modelTrainerHolder->TrainModel(
@@ -1063,6 +1079,7 @@ static void TrainModel(
         std::move(precomputedSingleOnlineCtrDataForSingleFold),
         labelConverter,
         defaultTrainingCallbacks.Get(),
+        customCallbacks.Get(),
         std::move(initModel),
         std::move(initLearnProgress),
         needInitModelApplyCompatiblePools ? std::move(pools) : TDataProviders(),
@@ -1221,6 +1238,7 @@ void TrainModel(
         quantizedFeaturesInfo,
         /*objectiveDescriptor*/ Nothing(),
         /*evalMetricDescriptor*/ Nothing(),
+        /*callbackDescriptor*/ Nothing(),
         needPoolAfterTrain ? pools : std::move(pools),
         std::move(precomputedSingleOnlineCtrDataForSingleFold),
         /*initModel*/ Nothing(),
@@ -1493,6 +1511,7 @@ void TrainModel(
     NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo, // can be nullptr
     const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+    const TMaybe<TCustomCallbackDescriptor>& callbackDescriptor,
     NCB::TDataProviders pools, // not rvalue reference because Cython does not support them
     TMaybe<TFullModel*> initModel,
     THolder<TLearnProgress>* initLearnProgress,
@@ -1519,6 +1538,7 @@ void TrainModel(
         quantizedFeaturesInfo,
         objectiveDescriptor,
         evalMetricDescriptor,
+        callbackDescriptor,
         std::move(pools),
         /*precomputedSingleOnlineCtrDataForSingleFold*/ Nothing(),
         std::move(initModel),

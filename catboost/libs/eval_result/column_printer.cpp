@@ -15,10 +15,12 @@ namespace NCB {
         const EPredictionType predictionType,
         const TString& lossFunctionName,
         bool isMultiTarget,
+        size_t ensemblesCount,
         const TExternalLabelsHelper& visibleLabelsHelper,
         TMaybe<std::pair<size_t, size_t>> evalParameters,
         TVector<THolder<IColumnPrinter>>* result,
-        NPar::ILocalExecutor* executor
+        NPar::ILocalExecutor* executor,
+        double binClassLogitThreshold
     ) {
         int begin = 0;
         const bool callMakeExternalApprox
@@ -27,14 +29,14 @@ namespace NCB {
               && !IsUncertaintyPredictionType(predictionType);
         for (const auto& raws : rawValues) {
             const auto& approx = callMakeExternalApprox ? MakeExternalApprox(raws, visibleLabelsHelper) : raws;
-            auto approxes = PrepareEval(predictionType, lossFunctionName, approx, executor);
-
+            auto approxes = PrepareEval(predictionType, ensemblesCount, lossFunctionName, approx, executor, binClassLogitThreshold);
             const auto& headers = CreatePredictionTypeHeader(
                 approx.size(),
                 isMultiTarget,
                 predictionType,
                 visibleLabelsHelper,
                 lossFunctionName,
+                ensemblesCount,
                 begin,
                 evalParameters.Get()
             );
@@ -58,12 +60,12 @@ namespace NCB {
         EPredictionType predictionType,
         const TExternalLabelsHelper& visibleLabelsHelper,
         const TString& lossFunctionName,
+        size_t ensemblesCount,
         ui32 startTreeIndex,
         std::pair<size_t, size_t>* evalParameters) {
 
         const ui32 classCount = (predictionType == EPredictionType::Class) ? 1 : approxDimension;
         TVector<TString> headers;
-        headers.reserve(classCount);
         bool isUncertainty = IsUncertaintyPredictionType(predictionType);
         TMaybe<ELossFunction> lossFunction = Nothing();
         if (!lossFunctionName.empty()) {
@@ -71,6 +73,7 @@ namespace NCB {
         }
         bool isRMSEWithUncertainty = lossFunction == ELossFunction::RMSEWithUncertainty;
         if (isUncertainty) {
+            ui32 predictionDim = isRMSEWithUncertainty ? 1 : approxDimension / ensemblesCount;
             TVector<TString> uncertaintyHeaders;
             if (predictionType == EPredictionType::VirtEnsembles) {
                 uncertaintyHeaders = {"ApproxRawFormulaVal"};
@@ -83,30 +86,35 @@ namespace NCB {
                     if (isRMSEWithUncertainty) {
                         uncertaintyHeaders.push_back("DataUnc"); // DataUncertainty
                     }
-                } else if (IsBinaryClassOnlyMetric(*lossFunction)) {
-                    uncertaintyHeaders = {"DataUnc", "TotalUnc"};
                 } else {
-                    CB_ENSURE(false, "unsupported loss function for uncertainty " << lossFunction);
+                    uncertaintyHeaders = {"DataUnc", "TotalUnc"};
                 }
-            }
-            size_t ensemblesCount = approxDimension / (isRMSEWithUncertainty ? 2 : 1);
-            if (predictionType == EPredictionType::TotalUncertainty) {
                 ensemblesCount = 1;
+                predictionDim = 1;
             }
-            for (ui32 classId = 0; classId < ensemblesCount; ++classId) {
-                for (const auto &name: uncertaintyHeaders) {
-                    TStringBuilder str;
-                    str << predictionType << ":" << name;
-                    if (ensemblesCount > 1) {
-                        str << ":vEnsemble=" << classId;
+            headers.reserve(ensemblesCount * predictionDim * uncertaintyHeaders.size());
+            // TODO(eermishkina): support multiRMSE
+            for (ui32 veId = 0; veId < ensemblesCount; ++veId) {
+                for (ui32 dimId  = 0; dimId  < predictionDim; ++dimId ) {
+                    for (const auto &name: uncertaintyHeaders) {
+                        TStringBuilder str;
+                        str << predictionType << ":" << name;
+                        if (predictionDim > 1) {
+                            str << (isMultiTarget ? ":Dim=" : ":Class=")
+                                << visibleLabelsHelper.GetVisibleClassNameFromClass(dimId );
+                        }
+                        if (ensemblesCount > 1) {
+                            str << ":vEnsemble=" << veId;
+                        }
+                        headers.push_back(str);
                     }
-                    headers.push_back(str);
                 }
 
             }
             return headers;
         }
 
+        headers.reserve(classCount);
         for (ui32 classId = 0; classId < classCount; ++classId) {
             TStringBuilder str;
             str << predictionType;

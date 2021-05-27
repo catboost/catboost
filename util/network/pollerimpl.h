@@ -15,7 +15,7 @@
 #define HAVE_KQUEUE_POLLER
 #endif
 
-#if defined(_linux_) && !defined(_bionic_)
+#if (defined(_linux_) && !defined(_bionic_)) || (__ANDROID_API__ >= 21)
 #define HAVE_EPOLL_POLLER
 #endif
 

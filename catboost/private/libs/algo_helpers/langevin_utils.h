@@ -2,6 +2,7 @@
 
 #include <util/generic/fwd.h>
 #include <util/system/types.h>
+#include <cmath>
 
 struct TSum;
 struct TSumMulti;
@@ -9,6 +10,16 @@ struct TSumMulti;
 namespace NPar {
     class ILocalExecutor;
 }
+
+double CalcLangevinNoiseRate(float diffusionTemperature, float learningRate);
+
+void AddLangevinNoiseToDerivatives(
+    float diffusionTemperature,
+    float learningRate,
+    ui64 randomSeed,
+    TVector<double>* derivatives,
+    NPar::ILocalExecutor* localExecutor
+);
 
 void AddLangevinNoiseToDerivatives(
     float diffusionTemperature,

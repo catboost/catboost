@@ -96,6 +96,15 @@ class CatBoostRegressorTest {
     val predictions = model.transform(pool.data)
 
     TestHelpers.assertEqualsWithPrecision(expectedPredictions, predictions)
+    
+    // check apply on quantized
+    val quantizedPool = pool.quantize()
+    val quantizedPredictions = model.transformPool(quantizedPool)
+    
+    TestHelpers.assertEqualsWithPrecision(
+      expectedPredictions.drop("features"),
+      quantizedPredictions.drop("features")
+    )
   }
 
   @Test
@@ -493,7 +502,142 @@ class CatBoostRegressorTest {
 
     TestHelpers.assertEqualsWithPrecision(expectedPredictions, predictions)
   }
+
+  @Test 
+  @throws(classOf[Exception])
+  def testOverfittingDetectorIncToDec() {
+    val spark = TestHelpers.getOrCreateSparkSession(TestHelpers.getCurrentMethodName)
+
+    val dataDir = Paths.get(System.getProperty("catboost.test.data.path"), "querywise")
+    val canonicalDataDir = Paths.get(System.getProperty("canonical.data.path"))
+
+    val trainPool = Pool.load(
+      spark,
+      dataPathWithScheme = dataDir.resolve("train").toString,
+      columnDescription = dataDir.resolve("train.cd")
+    )
+    val evalPool = Pool.load(
+      spark,
+      dataPathWithScheme = dataDir.resolve("test").toString,
+      columnDescription = dataDir.resolve("train.cd")
+    )
+
+    val expectedPredictionsFile = canonicalDataDir.resolve("regression_overfitting_detector.json")
+
+    val expectedPredictionsJson = parse(Source.fromFile(expectedPredictionsFile.toString).getLines.mkString)
+    val expectedPrediction = expectedPredictionsJson
+      .asInstanceOf[JObject].values("prediction_IncToDec")
+      .asInstanceOf[scala.collection.immutable.$colon$colon[Double]]
+      .toSeq
+      
+    val expectedPredictionsData = mutable.Seq.concat(evalPool.data.toLocalIterator.asScala.toTraversable)
+    for (i <- 0 until expectedPredictionsData.length) {
+      expectedPredictionsData(i) = TestHelpers.appendToRow(
+        expectedPredictionsData(i),
+        expectedPrediction(i)
+      )
+    }
+    val expectedPredictionsSchema = PoolTestHelpers.createSchema(
+      evalPool.data.schema.fields.map(f => (f.name, f.dataType)) :+ ("prediction", DoubleType),
+      evalPool.getFeatureNames,
+      /*addFeatureNamesMetadata*/ true,
+      /*nullableFields*/ evalPool.data.schema.fieldNames :+ ("prediction")
+    )
+    val expectedPredictions = spark.createDataFrame(
+      spark.sparkContext.parallelize(expectedPredictionsData),
+      StructType(expectedPredictionsSchema)
+    )
+
+    {
+      val regressor = new CatBoostRegressor()
+        .setIterations(200)
+        .setTrainDir(temporaryFolder.newFolder(TestHelpers.getCurrentMethodName).getPath)
+        .setOdPval(1.0e-2f)
+      val model = regressor.fit(trainPool, Array[Pool](evalPool))
+      val predictions = model.transform(evalPool.data)
   
+      TestHelpers.assertEqualsWithPrecision(expectedPredictions, predictions)
+    }
+    {
+      val regressor = new CatBoostRegressor()
+        .setIterations(200)
+        .setTrainDir(temporaryFolder.newFolder(TestHelpers.getCurrentMethodName + "2").getPath)
+        .setOdType(EOverfittingDetectorType.IncToDec)
+        .setOdPval(1.0e-2f)
+      val model = regressor.fit(trainPool, Array[Pool](evalPool))
+      val predictions = model.transform(evalPool.data)
+  
+      TestHelpers.assertEqualsWithPrecision(expectedPredictions, predictions)
+    }
+  }
+
+  @Test 
+  @throws(classOf[Exception])
+  def testOverfittingDetectorIter() {
+    val spark = TestHelpers.getOrCreateSparkSession(TestHelpers.getCurrentMethodName)
+
+    val dataDir = Paths.get(System.getProperty("catboost.test.data.path"), "querywise")
+    val canonicalDataDir = Paths.get(System.getProperty("canonical.data.path"))
+
+    val trainPool = Pool.load(
+      spark,
+      dataPathWithScheme = dataDir.resolve("train").toString,
+      columnDescription = dataDir.resolve("train.cd")
+    )
+    val evalPool = Pool.load(
+      spark,
+      dataPathWithScheme = dataDir.resolve("test").toString,
+      columnDescription = dataDir.resolve("train.cd")
+    )
+
+    val expectedPredictionsFile = canonicalDataDir.resolve("regression_overfitting_detector.json")
+
+    val expectedPredictionsJson = parse(Source.fromFile(expectedPredictionsFile.toString).getLines.mkString)
+    val expectedPrediction = expectedPredictionsJson
+      .asInstanceOf[JObject].values("prediction_Iter")
+      .asInstanceOf[scala.collection.immutable.$colon$colon[Double]]
+      .toSeq
+      
+    val expectedPredictionsData = mutable.Seq.concat(evalPool.data.toLocalIterator.asScala.toTraversable)
+    for (i <- 0 until expectedPredictionsData.length) {
+      expectedPredictionsData(i) = TestHelpers.appendToRow(
+        expectedPredictionsData(i),
+        expectedPrediction(i)
+      )
+    }
+    val expectedPredictionsSchema = PoolTestHelpers.createSchema(
+      evalPool.data.schema.fields.map(f => (f.name, f.dataType)) :+ ("prediction", DoubleType),
+      evalPool.getFeatureNames,
+      /*addFeatureNamesMetadata*/ true,
+      /*nullableFields*/ evalPool.data.schema.fieldNames :+ ("prediction")
+    )
+    val expectedPredictions = spark.createDataFrame(
+      spark.sparkContext.parallelize(expectedPredictionsData),
+      StructType(expectedPredictionsSchema)
+    )
+
+    {
+      val regressor = new CatBoostRegressor()
+        .setIterations(200)
+        .setTrainDir(temporaryFolder.newFolder(TestHelpers.getCurrentMethodName).getPath)
+        .setEarlyStoppingRounds(20)
+      val model = regressor.fit(trainPool, Array[Pool](evalPool))
+      val predictions = model.transform(evalPool.data)
+  
+      TestHelpers.assertEqualsWithPrecision(expectedPredictions, predictions)
+    }
+    {
+      val regressor = new CatBoostRegressor()
+        .setIterations(200)
+        .setTrainDir(temporaryFolder.newFolder(TestHelpers.getCurrentMethodName + "2").getPath)
+        .setOdType(EOverfittingDetectorType.Iter)
+      val model = regressor.fit(trainPool, Array[Pool](evalPool))
+      val predictions = model.transform(evalPool.data)
+  
+      TestHelpers.assertEqualsWithPrecision(expectedPredictions, predictions)
+    }
+  }
+
   @Test 
   @throws(classOf[Exception])
   def testParams() {
@@ -1064,7 +1208,7 @@ class CatBoostRegressorTest {
       pool.data.schema.fields.map(f => (f.name, f.dataType)) :+ ("prediction", DoubleType),
       pool.getFeatureNames,
       /*addFeatureNamesMetadata*/ true,
-      /*nullableFields*/ pool.data.schema.names :+ ("prediction")
+      /*nullableFields*/ pool.data.schema.fieldNames :+ ("prediction")
     )
     val expectedPredictions = spark.createDataFrame(
       spark.sparkContext.parallelize(expectedPredictionsData),
@@ -1123,7 +1267,7 @@ class CatBoostRegressorTest {
       evalPool.data.schema.fields.map(f => (f.name, f.dataType)) :+ ("prediction", DoubleType),
       evalPool.getFeatureNames,
       /*addFeatureNamesMetadata*/ true,
-      /*nullableFields*/ evalPool.data.schema.names :+ ("prediction")
+      /*nullableFields*/ evalPool.data.schema.fieldNames :+ ("prediction")
     )
     val expectedPredictions = spark.createDataFrame(
       spark.sparkContext.parallelize(expectedPredictionsData),

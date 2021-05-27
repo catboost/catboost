@@ -122,7 +122,7 @@
 #include <google/protobuf/descriptor.h>
 
 #include <google/protobuf/json_util.h>
-#include <google/protobuf/messagext_lite.h>
+#include <google/protobuf/messagext.h>
 
 #define GOOGLE_PROTOBUF_HAS_ONEOF
 #define GOOGLE_PROTOBUF_HAS_ARENAS
@@ -300,19 +300,10 @@ class LIBPROTOBUF_EXPORT Message : public MessageLite {
   bool SerializePartialToOstream(std::ostream* output) const;
 
   // Yandex-specific
-  // new functions overloaded for yandex-streams
-  bool ParseFromIstream(IInputStream* input);
-  bool ParsePartialFromIstream(IInputStream* input);
-  // old functions for backward compatibility
-  bool ParseFromStream(IInputStream* input);
-  bool ParsePartialFromStream(IInputStream* input);
-
-  // new functions overloaded for yandex-streams
-  bool SerializeToOstream(IOutputStream* output) const;
-  bool SerializePartialToOstream(IOutputStream* output) const;
-  // old functions for backward compatibility
-  bool SerializeToStream(IOutputStream* output) const;
-  bool SerializePartialToStream(IOutputStream* output) const;
+  bool ParseFromArcadiaStream(IInputStream* input);
+  bool ParsePartialFromArcadiaStream(IInputStream* input);
+  bool SerializeToArcadiaStream(IOutputStream* output) const;
+  bool SerializePartialToArcadiaStream(IOutputStream* output) const;
 
   virtual void PrintJSON(IOutputStream&) const;
 
@@ -320,12 +311,12 @@ class LIBPROTOBUF_EXPORT Message : public MessageLite {
     return io::TAsJSON<Message>(*this);
   }
 
-  NProtoBufInternal::TAsBinary AsBinary() const {
-    return NProtoBufInternal::TAsBinary{*this};
+  internal::TAsBinary AsBinary() const {
+    return internal::TAsBinary{*this};
   }
 
-  NProtoBufInternal::TAsStreamSeq AsStreamSeq() const {
-    return NProtoBufInternal::TAsStreamSeq{*this};
+  internal::TAsStreamSeq AsStreamSeq() const {
+    return internal::TAsStreamSeq{*this};
   }
   // End of Yandex-specific
 

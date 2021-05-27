@@ -3,6 +3,7 @@
 # cython: wraparound=False
 
 from catboost.base_defs cimport *
+from catboost.libs.column_description.cython cimport TTagDescription
 from catboost.libs.helpers.cython cimport *
 from catboost.libs.model.cython cimport TFullModel
 from catboost.libs.monoforest._monoforest cimport EFeatureType
@@ -50,6 +51,8 @@ from util.generic.vector cimport TVector
 from util.system.types cimport ui8, ui16, ui32, ui64, i32, i64
 from util.string.cast cimport StrToD, TryFromString, ToString
 
+from catboost.private.libs.data_util.cython cimport *
+
 
 cdef extern from "catboost/libs/data/features_layout.h" namespace "NCB":
     cdef cppclass TFeatureMetaInfo:
@@ -68,6 +71,7 @@ cdef extern from "catboost/libs/data/features_layout.h" namespace "NCB":
             const TVector[ui32]& textFeatureIndices,
             const TVector[ui32]& embeddingFeatureIndices,
             const TVector[TString]& featureId,
+            const THashMap[TString, TTagDescription]& featureTags,
             bool_t allFeaturesAreSparse
         ) except +ProcessException
 
@@ -369,7 +373,6 @@ cdef extern from "catboost/libs/data/data_provider_builders.h" namespace "NCB":
     ) except +ProcessException
 
 
-
 cdef extern from "catboost/libs/data/target.h" namespace "NCB":
     cdef cppclass TRawTargetDataProvider:
         ERawTargetType GetTargetType() except +ProcessException
@@ -391,3 +394,9 @@ cdef extern from "catboost/libs/data/target.h" namespace "NCB":
         pass
 
 
+cdef extern from "catboost/libs/data/feature_names_converter.h":
+    cdef void ConvertFeaturesFromStringToIndices(
+        const TPathWithScheme& cdFilePath,
+        const TPathWithScheme& poolMetaInfoPath,
+        TJsonValue* featuresArrayJson
+    ) except +ProcessException

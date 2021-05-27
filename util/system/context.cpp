@@ -114,6 +114,17 @@ namespace {
         return JmpBufReg(buf, FRAME_CNT);
     }
 
+#if defined(_x86_64_)
+    // not sure if Y_NO_SANITIZE is needed
+    Y_NO_SANITIZE("address")
+    Y_NO_SANITIZE("memory")
+    extern "C" void ContextTrampoLine(void*, void*, void*, void*, void*, void*, // register arguments, no defined value
+                                      /* first argument passed through the stack */ void* t1,
+                                      /* second argument passed through the stack */ void* t2) {
+        Y_ASSERT(t1 == t2);
+        Run(t1);
+    }
+#else
     Y_NO_SANITIZE("address")
     Y_NO_SANITIZE("memory")
     static void ContextTrampoLine() {
@@ -122,6 +133,7 @@ namespace {
 
         Run(*(argPtr - 1));
     }
+#endif
 }
 
 TContMachineContext::TSan::TSan() noexcept
@@ -158,16 +170,24 @@ TContMachineContext::TContMachineContext(const TContClosure& c)
     auto trampoline = c.TrampoLine;
 #endif
 
+#if defined(_x86_64_)
+    stack.ReAlign();
+    // push twice to preserve alignment by 16
+    stack.Push(trampoline); // second stack argument
+    stack.Push(trampoline); // first stack argument
+
+    stack.Push(nullptr); // fake return address
+#else
     stack.Push(trampoline);
     stack.Push(trampoline);
     stack.ReAlign();
-
     /*
      * fake return address
      */
     for (size_t i = 0; i < EXTRA_PUSH_ARGS; ++i) {
         stack.Push(nullptr);
     }
+#endif
 
     __mysetjmp(Buf_);
 
@@ -187,6 +207,10 @@ void TContMachineContext::SwitchTo(TContMachineContext* next) noexcept {
         San_.AfterSwitch();
 #endif
     }
+}
+#elif defined(_win_) && defined(_32_)
+void __stdcall ContextTrampoLine(void* arg) {
+    Run(arg);
 }
 #else
 void ContextTrampoLine(void* arg) {

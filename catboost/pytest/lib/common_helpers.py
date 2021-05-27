@@ -104,6 +104,29 @@ def generate_concatenated_random_labeled_dataset(nrows, nvals, labels, seed=2018
     return np.concatenate([label, feature], axis=1)
 
 
+def generate_patients_datasets(train_path, test_path):
+    samples = 237
+
+    for samples, path in zip([237, 154], [train_path, test_path]):
+        data = DataFrame()
+        data['age'] = np.random.randint(20, 71, size=samples)
+        data['gender'] = np.where(np.random.binomial(1, 0.7, samples) == 1, 'male', 'female')
+        data['diet'] = np.where(np.random.binomial(1, 0.1, samples) == 1, 'yes', 'no')
+        data['glucose'] = np.random.uniform(4, 12, size=samples)
+        data['platelets'] = np.random.randint(100, 500, size=samples)
+        data['cholesterol'] = np.random.uniform(4.5, 6.5, size=samples)
+        data['survival_in_days'] = np.random.randint(30, 500, size=samples)
+        data['outcome'] = np.where(np.random.binomial(1, 0.8, size=samples) == 1, 'dead', 'alive')
+        data['target'] = np.where(data['outcome'] == 'dead', data['survival_in_days'], - data['survival_in_days'])
+        data = data.drop(['outcome', 'survival_in_days'], axis=1)
+        data.to_csv(
+            path,
+            header=False,
+            index=False,
+            sep='\t'
+        )
+
+
 # returns (features : numpy.ndarray, labels : list) tuple
 def generate_random_labeled_dataset(
     n_samples,
@@ -182,6 +205,34 @@ def generate_dataset_with_num_and_cat_features(
     labels = [random.choice(labels) for i in range(n_samples)]
 
     return (DataFrame(feature_columns), labels)
+
+
+def generate_survival_dataset(seed=20201015):
+    np.random.seed(seed)
+
+    X = np.random.rand(200, 20)*10
+
+    mean_y = np.sin(X[:, 0])
+
+    y = np.random.randn(200, 10) * 0.3 + mean_y[:, None]
+
+    y_lower = np.min(y, axis=1)
+    y_upper = np.max(y, axis=1)
+    y_upper = np.where(y_upper >= 1.4, -1, y_upper+abs(np.min(y_lower)))
+    y_lower += abs(np.min(y_lower))
+
+    right_censored_ids = np.where(y_upper == -1)[0]
+    interval_censored_ids = np.where(y_upper != -1)[0]
+
+    train_ids = np.hstack(
+        [right_censored_ids[::2], interval_censored_ids[:140]])
+    test_ids = np.hstack(
+        [right_censored_ids[1::2], interval_censored_ids[140:]])
+
+    X_train, y_lower_train, y_upper_train = X[train_ids], y_lower[train_ids], y_upper[train_ids]
+    X_test, y_lower_test, y_upper_test = X[test_ids], y_lower[test_ids], y_upper[test_ids]
+
+    return [(X_train, y_lower_train, y_upper_train), (X_test, y_lower_test, y_upper_test)]
 
 
 BY_CLASS_METRICS = ['AUC', 'Precision', 'Recall', 'F1']

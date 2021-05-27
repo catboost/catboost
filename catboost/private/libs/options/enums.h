@@ -133,6 +133,7 @@ enum class ELossFunction {
     SMAPE,
     Huber,
     Tweedie,
+    Cox,
 
     RMSEWithUncertainty,
 
@@ -153,6 +154,7 @@ enum class ELossFunction {
     QuerySoftMax,
     QueryCrossEntropy,
     StochasticFilter,
+    LambdaMart,
     StochasticRank,
 
     /* user defined errors */
@@ -204,6 +206,11 @@ enum class ELossFunction {
     NDCG,
     DCG,
     FilteredDCG,
+    MRR,
+    ERR,
+
+    /* survival-regression */
+    SurvivalAft,
 
     /* multi-regression */
     MultiRMSE,

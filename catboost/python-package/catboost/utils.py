@@ -2,6 +2,7 @@ from . import _catboost
 from .core import Pool, CatBoostError, ARRAY_TYPES, PATH_TYPES, STRING_TYPES, fspath, _update_params_quantize_part, _process_synonyms
 from collections import defaultdict
 from contextlib import contextmanager
+import sys
 import numpy as np
 import warnings
 
@@ -532,6 +533,8 @@ def quantize(
     task_type=None,
     used_ram_limit=None,
     random_seed=None,
+    log_cout=sys.stdout,
+    log_cerr=sys.stderr,
     **kwargs
 ):
     """
@@ -662,10 +665,11 @@ def quantize(
         task_type,
         used_ram_limit,
         random_seed,
-        dev_max_subset_size_for_build_borders)
+        dev_max_subset_size_for_build_borders
+    )
 
     result = Pool(None)
-    result._read(data_path, column_description, pairs, feature_names, delimiter, has_header, ignore_csv_quoting, thread_count, params)
+    result._read(data_path, column_description, pairs, feature_names, delimiter, has_header, ignore_csv_quoting, thread_count, params, log_cout=log_cout, log_cerr=log_cerr)
 
     return result
 

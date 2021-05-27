@@ -7,6 +7,14 @@ MAVEN_REPO_TEMPLATE='maven {{ url "{repo}" }}\n'
 KEYSTORE_TEMLATE='signingConfigs {{ debug {{ storeFile file("{keystore}") }} }}\n'
 
 ENABLE_JAVADOC = 'tasks["bundle${suffix}Aar"].dependsOn packageJavadocTask'
+DO_NOT_STRIP = '''\
+    packagingOptions {
+        doNotStrip "*/arm64-v8a/*.so"
+        doNotStrip "*/armeabi-v7a/*.so"
+        doNotStrip "*/x86_64/*.so"
+        doNotStrip "*/x86/*.so"
+    }
+'''
 
 AAR_TEMPLATE = """\
 ext.jniLibsDirs = [
@@ -35,6 +43,10 @@ ext.bundles = [
 
 ext.androidArs = [
     {aars}
+]
+
+ext.compileOnlyAndroidArs = [
+    {compile_only_aars}
 ]
 
 def minVersion = 15
@@ -116,6 +128,8 @@ android {{
         androidTest.setRoot('bundle/tests')
     }}
 
+    {do_not_strip}
+
     dependencies {{
         for (bundle in bundles)
             compile("$bundle") {{
@@ -125,6 +139,8 @@ android {{
             compile(bundle) {{
                 transitive = true
             }}
+        for (bundle in compileOnlyAndroidArs)
+            compileOnly(bundle)
     }}
 
     android.libraryVariants.all {{ variant ->
@@ -283,41 +299,50 @@ def gen_build_script(args):
     else:
         enable_javadoc = ''
 
+    if args.do_not_strip:
+        do_not_strip = DO_NOT_STRIP
+    else:
+        do_not_strip = ''
+
     return AAR_TEMPLATE.format(
-        jni_libs_dirs=wrap(args.jni_libs_dirs),
-        res_dirs=wrap(args.res_dirs),
-        assets_dirs=wrap(args.assets_dirs),
-        java_dirs=wrap(args.java_dirs),
-        aidl_dirs=wrap(args.aidl_dirs),
         aars=wrap(args.aars),
-        proguard_rules=args.proguard_rules,
+        compile_only_aars=wrap(args.compile_only_aars),
+        aidl_dirs=wrap(args.aidl_dirs),
+        assets_dirs=wrap(args.assets_dirs),
+        bundles=wrap(bundles),
+        do_not_strip=do_not_strip,
+        enable_javadoc=enable_javadoc,
+        flat_dirs_repo=flat_dirs_repo,
+        java_dirs=wrap(args.java_dirs),
+        jni_libs_dirs=wrap(args.jni_libs_dirs),
+        keystore=keystore,
         manifest=args.manifest,
         maven_repos=maven_repos,
-        bundles=wrap(bundles),
-        flat_dirs_repo=flat_dirs_repo,
-        keystore=keystore,
-        enable_javadoc=enable_javadoc,
+        proguard_rules=args.proguard_rules,
+        res_dirs=wrap(args.res_dirs),
     )
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--aidl-dirs', nargs='*', default=[])
     parser.add_argument('--aars', nargs='*', default=[])
+    parser.add_argument('--compile-only-aars', nargs='*', default=[])
+    parser.add_argument('--aidl-dirs', nargs='*', default=[])
     parser.add_argument('--assets-dirs', nargs='*', default=[])
+    parser.add_argument('--bundle-name', nargs='?', default='default-bundle-name')
     parser.add_argument('--bundles', nargs='*', default=[])
+    parser.add_argument('--do-not-strip', action='store_true')
+    parser.add_argument('--flat-repos', nargs='*', default=[])
+    parser.add_argument('--generate-doc', action='store_true')
     parser.add_argument('--java-dirs', nargs='*', default=[])
     parser.add_argument('--jni-libs-dirs', nargs='*', default=[])
+    parser.add_argument('--keystore', default=None)
     parser.add_argument('--manifest', required=True)
-    parser.add_argument('--flat-repos', nargs='*', default=[])
     parser.add_argument('--maven-repos', nargs='*', default=[])
     parser.add_argument('--output-dir', required=True)
-    parser.add_argument('--proguard-rules', nargs='?', default=None)
-    parser.add_argument('--bundle-name', nargs='?', default='default-bundle-name')
-    parser.add_argument('--res-dirs', nargs='*', default=[])
     parser.add_argument('--peers', nargs='*', default=[])
-    parser.add_argument('--keystore', default=None)
-    parser.add_argument('--generate-doc', action='store_true')
+    parser.add_argument('--proguard-rules', nargs='?', default=None)
+    parser.add_argument('--res-dirs', nargs='*', default=[])
     args = parser.parse_args()
 
     if args.proguard_rules is None:

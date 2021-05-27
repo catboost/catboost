@@ -1,6 +1,7 @@
 #pragma once
 
 #include <catboost/private/libs/options/oblivious_tree_options.h>
+#include <catboost/private/libs/options/boosting_options.h>
 
 namespace NCatboostCuda {
     struct TLeavesEstimationConfig {
@@ -15,6 +16,9 @@ namespace NCatboostCuda {
         double NonDiagLambda = 0;
         bool ZeroLastDimHack = false;
         NCatboostOptions::TLossDescription LossDescription;
+        bool Langevin = false;
+        float DiffusionTemperature = 0;
+        float LearningRate = 0.03;
 
         TLeavesEstimationConfig(const ELeavesEstimation& leavesEstimationMethod,
                                 double lambda,
@@ -25,7 +29,10 @@ namespace NCatboostCuda {
                                 bool zeroAverage,
                                 ELeavesEstimationStepBacktracking backtracking,
                                 double bayesianLambda,
-                                const NCatboostOptions::TLossDescription& lossDescription)
+                                const NCatboostOptions::TLossDescription& lossDescription,
+                                bool shouldApplyLangevin,
+                                float diffusionTemperature,
+                                float learningRate)
             : LeavesEstimationMethod(leavesEstimationMethod)
             , Lambda(lambda)
             , Iterations(iterations)
@@ -36,13 +43,17 @@ namespace NCatboostCuda {
             , BacktrackingType(backtracking)
             , NonDiagLambda(bayesianLambda)
             , LossDescription(lossDescription)
+            , Langevin(shouldApplyLangevin)
+            , DiffusionTemperature(diffusionTemperature)
+            , LearningRate(learningRate)
         {
         }
     };
 
     inline TLeavesEstimationConfig CreateLeavesEstimationConfig(const NCatboostOptions::TObliviousTreeLearnerOptions& treeConfig,
                                                                 bool makeZeroAverage,
-                                                                const NCatboostOptions::TLossDescription& lossDescription) {
+                                                                const NCatboostOptions::TLossDescription& lossDescription,
+                                                                const NCatboostOptions::TBoostingOptions& boostingOptions) {
         return TLeavesEstimationConfig(treeConfig.LeavesEstimationMethod,
                                        treeConfig.L2Reg,
                                        treeConfig.LeavesEstimationIterations,
@@ -52,7 +63,10 @@ namespace NCatboostCuda {
                                        makeZeroAverage,
                                        treeConfig.LeavesEstimationBacktrackingType,
                                        treeConfig.PairwiseNonDiagReg,
-                                       lossDescription);
+                                       lossDescription,
+                                       boostingOptions.Langevin,
+                                       boostingOptions.DiffusionTemperature,
+                                       boostingOptions.LearningRate);
     }
 
 }

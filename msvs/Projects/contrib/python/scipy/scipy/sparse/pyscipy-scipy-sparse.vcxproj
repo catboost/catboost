@@ -23,7 +23,7 @@
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>Multibyte</CharacterSet>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props"/>
   <ImportGroup Label="ArcadiaProps"/>
@@ -57,8 +57,8 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DARCADIA_PYTHON_UNICODE_SIZE=2 /std:c++17  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DARCADIA_PYTHON_UNICODE_SIZE=2 /std:c++17  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DARCADIA_PYTHON_UNICODE_SIZE=2 /std:c++latest /D_CRT_USE_BUILTIN_OFFSETOF  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DARCADIA_PYTHON_UNICODE_SIZE=2 /std:c++latest /D_CRT_USE_BUILTIN_OFFSETOF  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
@@ -66,7 +66,7 @@
       <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)../contrib/libs/libc_compat/include/windows;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/libs/openssl/include;$(SolutionDir)../contrib/restricted/libffi/include;$(SolutionDir)../contrib/restricted/libffi/configs/x86_64-microsoft-windows/include;$(SolutionDir)../contrib/python/numpy/include/numpy/core/include;$(SolutionDir)../contrib/python/numpy/include/numpy/core/include/numpy;$(SolutionDir)../contrib/python/numpy/include/numpy/f2py/src;$(SolutionDir)../contrib/libs/libf2c;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;gdi32.lib;kernel32.lib;ole32.lib;oleaut32.lib;shell32.lib;user32.lib;uuid.lib;winspool.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;dnsapi.lib;gdi32.lib;iphlpapi.lib;kernel32.lib;mswsock.lib;ole32.lib;oleaut32.lib;psapi.lib;rpcrt4.lib;secur32.lib;shell32.lib;shlwapi.lib;user32.lib;userenv.lib;uuid.lib;version.lib;winmm.lib;winspool.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  crypt32.lib ws2_32.lib</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  crypt32.lib ws2_32.lib</AdditionalOptions>
       <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
@@ -81,8 +81,6 @@
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\_csparsetools.pyx.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\join_622b3cc4bddbce81b39f9fe49a.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\scipy.sparse._csparsetools.reg.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\dia.py.yapyc">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse
@@ -109,149 +107,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/scipy/scipy/sparse/_6cdd10a8a10aacd02b86f9ed87.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\dia.py.yapyc;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\construct.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\construct.py.yapyc;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\coo.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\coo.py.yapyc;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\csc.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csc.py.yapyc;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\_matrix_io.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\_matrix_io.py.yapyc;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\base.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\base.py.yapyc;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\bsr.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\bsr.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\_6cdd10a8a10aacd02b86f9ed87.yasm;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\_0209dd468c4a24895529f23a77.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\_2c732eae78c2c517a704535bf9.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\_e662e4bb11e868ab3b6bedb8f8.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\_151f048fc17d71b0c534ad9b4a.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\_c6bf22fbf59d5c6a0cff6cc4b6.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\_794da1899bd7fa1e7da567e10c.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\_82b1eb01ec75afa4c44a6e57c8.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\_47f889b124f5b3cd240170b762.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\_aa4fe18cc4f2d9a6d05aa2dae7.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\_526d269eb7b8ee2d627a33edf9.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\_86bda601151d47c1168b6a2922.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\_7a3a4911c3ba86364f885df650.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\_1892fa73499d5044647489ec5b.rodata;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\join_c82ee722b03096f1d2b07ae152.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/join_c82ee722b03096f1d2b07ae152.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/join_c82ee722b03096f1d2b07ae152.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/join_c82ee722b03096f1d2b07ae152.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/join_c82ee722b03096f1d2b07ae152.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/scipy/scipy/sparse/join_c82ee722b03096f1d2b07ae152.py2.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\join_c82ee722b03096f1d2b07ae152.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\join_c82ee722b03096f1d2b07ae152.py2.obj;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/6cdd10a8a10aacd02b86f9ed87.cpp" "_1ed9edb71de1d319d0d61a8c3a=resfs/src//py_modules/scipy.sparse.dia" "_0209dd468c4a24895529f23a77=/py_code/scipy.sparse.dia" "_2c732eae78c2c517a704535bf9=/py_modules/scipy.sparse.construct" "_f628a08303be404071b0a07710=resfs/src//py_modules/scipy.sparse.construct" "_e662e4bb11e868ab3b6bedb8f8=/py_code/scipy.sparse.construct" "_151f048fc17d71b0c534ad9b4a=/py_modules/scipy.sparse.coo" "_49087eb806befa8252460916c6=resfs/src//py_modules/scipy.sparse.coo" "_c6bf22fbf59d5c6a0cff6cc4b6=/py_code/scipy.sparse.coo" "_794da1899bd7fa1e7da567e10c=/py_modules/scipy.sparse.csc" "_b2a1979c88a5456c75e39dbf5c=resfs/src//py_modules/scipy.sparse.csc" "_82b1eb01ec75afa4c44a6e57c8=/py_code/scipy.sparse.csc" "_47f889b124f5b3cd240170b762=/py_modules/scipy.sparse._matrix_io" "_a67d55801a4558c09b78d1a70e=resfs/src//py_modules/scipy.sparse._matrix_io" "_aa4fe18cc4f2d9a6d05aa2dae7=/py_code/scipy.sparse._matrix_io" "_526d269eb7b8ee2d627a33edf9=/py_modules/scipy.sparse.base" "_d07458cd5ff1dc8e2ec8c2ae5b=resfs/src//py_modules/scipy.sparse.base" "_86bda601151d47c1168b6a2922=/py_code/scipy.sparse.base" "_7a3a4911c3ba86364f885df650=/py_modules/scipy.sparse.bsr" "_a4a64f8fffd5009be92cbbf0ef=resfs/src//py_modules/scipy.sparse.bsr" "_1892fa73499d5044647489ec5b=/py_code/scipy.sparse.bsr"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/736965de85d8aa4f6368964c96.cpp" "_5eb102435f247123a1c29807e1=/py_modules/scipy.sparse.__init__" "_5daa36bc2567e8d1495d415a0f=resfs/src//py_modules/scipy.sparse.__init__" "_d1ba672c98aff1f7ae94dfde54=/py_code/scipy.sparse.__init__" "_304479fac7fe3b16041fa91974=/py_modules/scipy.sparse.compressed" "_74257ee7f1d5c78c0d716aaaff=resfs/src//py_modules/scipy.sparse.compressed" "_fce8635ca69cab5d390769cb73=/py_code/scipy.sparse.compressed" "_e432fe1a418c659205766997f0=/py_modules/scipy.sparse.spfuncs" "_b943b6954b46c78de1fb2d0fa7=resfs/src//py_modules/scipy.sparse.spfuncs" "_70e118fa7a3dfdfd48daf8e4dc=/py_code/scipy.sparse.spfuncs" "_1ace8d8d66dd072bd9c056b422=/py_modules/scipy.sparse.sputils" "_54479c285f2cc85a9d6bb50ed6=resfs/src//py_modules/scipy.sparse.sputils" "_8b1c4865463e779b8d6a2256e8=/py_code/scipy.sparse.sputils" "_742de3cc24c42c2bc72d464fc2=/py_modules/scipy.sparse.lil" "_8c71edd32e41b06c7eff05d7e8=resfs/src//py_modules/scipy.sparse.lil" "_dabe98fa625b4dff76e762c8a4=/py_code/scipy.sparse.lil" "_1f33497e3e5a6b55e5c8e2e19e=/py_modules/scipy.sparse.csr" "_eb3759ebcc4aa32bba5d9a4e16=resfs/src//py_modules/scipy.sparse.csr" "_2451d93322cd0fc9037853971e=/py_code/scipy.sparse.csr" "_5605cc7a16d266e3ce578817a3=/py_modules/scipy.sparse.sparsetools" "_5beebe25eed0e6f7fd6005ce8b=resfs/src//py_modules/scipy.sparse.sparsetools" "_48eb8e48b18ddfd6e609f3fe16=/py_code/scipy.sparse.sparsetools" "_ae21f5553a147f518b6eedf3ef=/py_modules/scipy.sparse.dok" "_6d2c596a56a7c7d7bca9f4bf82=resfs/src//py_modules/scipy.sparse.dok" "_6ef59b653f97d0cf929021ec0b=/py_code/scipy.sparse.dok" "_b02ca073ab35ccaa269c608b3e=/py_modules/scipy.sparse.extract" "_334c96532825e3f72cbcb240e8=resfs/src//py_modules/scipy.sparse.extract" "_c66a3cdedc737ce840213de4ec=/py_code/scipy.sparse.extract" "_872104f0401dffd1d1be7496aa=/py_modules/scipy.sparse.data" "_eab67f35ab91f07b0307cb2f1b=resfs/src//py_modules/scipy.sparse.data" "_69f1b80bc6112a1cd41799da35=/py_code/scipy.sparse.data" "_f17f967c9add1087c8fa42be25=/py_modules/scipy.sparse.dia"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/6cdd10a8a10aacd02b86f9ed87.cpp" "_1ed9edb71de1d319d0d61a8c3a=resfs/src//py_modules/scipy.sparse.dia" "_0209dd468c4a24895529f23a77=/py_code/scipy.sparse.dia" "_2c732eae78c2c517a704535bf9=/py_modules/scipy.sparse.construct" "_f628a08303be404071b0a07710=resfs/src//py_modules/scipy.sparse.construct" "_e662e4bb11e868ab3b6bedb8f8=/py_code/scipy.sparse.construct" "_151f048fc17d71b0c534ad9b4a=/py_modules/scipy.sparse.coo" "_49087eb806befa8252460916c6=resfs/src//py_modules/scipy.sparse.coo" "_c6bf22fbf59d5c6a0cff6cc4b6=/py_code/scipy.sparse.coo" "_794da1899bd7fa1e7da567e10c=/py_modules/scipy.sparse.csc" "_b2a1979c88a5456c75e39dbf5c=resfs/src//py_modules/scipy.sparse.csc" "_82b1eb01ec75afa4c44a6e57c8=/py_code/scipy.sparse.csc" "_47f889b124f5b3cd240170b762=/py_modules/scipy.sparse._matrix_io" "_a67d55801a4558c09b78d1a70e=resfs/src//py_modules/scipy.sparse._matrix_io" "_aa4fe18cc4f2d9a6d05aa2dae7=/py_code/scipy.sparse._matrix_io" "_526d269eb7b8ee2d627a33edf9=/py_modules/scipy.sparse.base" "_d07458cd5ff1dc8e2ec8c2ae5b=resfs/src//py_modules/scipy.sparse.base" "_86bda601151d47c1168b6a2922=/py_code/scipy.sparse.base" "_7a3a4911c3ba86364f885df650=/py_modules/scipy.sparse.bsr" "_a4a64f8fffd5009be92cbbf0ef=resfs/src//py_modules/scipy.sparse.bsr" "_1892fa73499d5044647489ec5b=/py_code/scipy.sparse.bsr"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/736965de85d8aa4f6368964c96.cpp" "_5eb102435f247123a1c29807e1=/py_modules/scipy.sparse.__init__" "_5daa36bc2567e8d1495d415a0f=resfs/src//py_modules/scipy.sparse.__init__" "_d1ba672c98aff1f7ae94dfde54=/py_code/scipy.sparse.__init__" "_304479fac7fe3b16041fa91974=/py_modules/scipy.sparse.compressed" "_74257ee7f1d5c78c0d716aaaff=resfs/src//py_modules/scipy.sparse.compressed" "_fce8635ca69cab5d390769cb73=/py_code/scipy.sparse.compressed" "_e432fe1a418c659205766997f0=/py_modules/scipy.sparse.spfuncs" "_b943b6954b46c78de1fb2d0fa7=resfs/src//py_modules/scipy.sparse.spfuncs" "_70e118fa7a3dfdfd48daf8e4dc=/py_code/scipy.sparse.spfuncs" "_1ace8d8d66dd072bd9c056b422=/py_modules/scipy.sparse.sputils" "_54479c285f2cc85a9d6bb50ed6=resfs/src//py_modules/scipy.sparse.sputils" "_8b1c4865463e779b8d6a2256e8=/py_code/scipy.sparse.sputils" "_742de3cc24c42c2bc72d464fc2=/py_modules/scipy.sparse.lil" "_8c71edd32e41b06c7eff05d7e8=resfs/src//py_modules/scipy.sparse.lil" "_dabe98fa625b4dff76e762c8a4=/py_code/scipy.sparse.lil" "_1f33497e3e5a6b55e5c8e2e19e=/py_modules/scipy.sparse.csr" "_eb3759ebcc4aa32bba5d9a4e16=resfs/src//py_modules/scipy.sparse.csr" "_2451d93322cd0fc9037853971e=/py_code/scipy.sparse.csr" "_5605cc7a16d266e3ce578817a3=/py_modules/scipy.sparse.sparsetools" "_5beebe25eed0e6f7fd6005ce8b=resfs/src//py_modules/scipy.sparse.sparsetools" "_48eb8e48b18ddfd6e609f3fe16=/py_code/scipy.sparse.sparsetools" "_ae21f5553a147f518b6eedf3ef=/py_modules/scipy.sparse.dok" "_6d2c596a56a7c7d7bca9f4bf82=resfs/src//py_modules/scipy.sparse.dok" "_6ef59b653f97d0cf929021ec0b=/py_code/scipy.sparse.dok" "_b02ca073ab35ccaa269c608b3e=/py_modules/scipy.sparse.extract" "_334c96532825e3f72cbcb240e8=resfs/src//py_modules/scipy.sparse.extract" "_c66a3cdedc737ce840213de4ec=/py_code/scipy.sparse.extract" "_872104f0401dffd1d1be7496aa=/py_modules/scipy.sparse.data" "_eab67f35ab91f07b0307cb2f1b=resfs/src//py_modules/scipy.sparse.data" "_69f1b80bc6112a1cd41799da35=/py_code/scipy.sparse.data" "_f17f967c9add1087c8fa42be25=/py_modules/scipy.sparse.dia"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/scipy/scipy/sparse/6cdd10a8a10aacd02b86f9ed87.cpp	$B/contrib/python/scipy/scipy/sparse/736965de85d8aa4f6368964c96.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\6cdd10a8a10aacd02b86f9ed87.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\736965de85d8aa4f6368964c96.cpp;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\build\scripts\fs_tools.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/join_c82ee722b03096f1d2b07ae152.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/_736965de85d8aa4f6368964c96.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/_6cdd10a8a10aacd02b86f9ed87.yasm" "--ya-end-command-file"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/join_c82ee722b03096f1d2b07ae152.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/_736965de85d8aa4f6368964c96.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/_6cdd10a8a10aacd02b86f9ed87.yasm" "--ya-end-command-file"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/scipy/scipy/sparse/join_c82ee722b03096f1d2b07ae152.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\fs_tools.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\_736965de85d8aa4f6368964c96.yasm;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\_6cdd10a8a10aacd02b86f9ed87.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\join_c82ee722b03096f1d2b07ae152.yasm;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_join_srcs.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/join_622b3cc4bddbce81b39f9fe49a.cpp" "--ya-start-command-file" "contrib/python/scipy/scipy/sparse/736965de85d8aa4f6368964c96.cpp" "contrib/python/scipy/scipy/sparse/6cdd10a8a10aacd02b86f9ed87.cpp" "--ya-end-command-file"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/join_622b3cc4bddbce81b39f9fe49a.cpp" "--ya-start-command-file" "contrib/python/scipy/scipy/sparse/736965de85d8aa4f6368964c96.cpp" "contrib/python/scipy/scipy/sparse/6cdd10a8a10aacd02b86f9ed87.cpp" "--ya-end-command-file"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/scipy/scipy/sparse/join_622b3cc4bddbce81b39f9fe49a.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\736965de85d8aa4f6368964c96.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\6cdd10a8a10aacd02b86f9ed87.cpp;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\join_622b3cc4bddbce81b39f9fe49a.cpp;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_py_reg.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.sparse._csparsetools" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/scipy.sparse._csparsetools.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.sparse._csparsetools" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/scipy.sparse._csparsetools.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/scipy/scipy/sparse/scipy.sparse._csparsetools.reg.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_py_reg.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\scipy.sparse._csparsetools.reg.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

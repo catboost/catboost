@@ -34,7 +34,8 @@ void NCatboostOptions::TOverfittingDetectorOptions::Load(const NJson::TJsonValue
     CheckedLoad(options, &AutoStopPValue, &OverfittingDetectorType, &IterationsWait);
     CB_ENSURE(
             (OverfittingDetectorType.Get() != EOverfittingDetectorType::Iter)
-            || !options.Has("stop_pvalue"),
+            || !options.Has("stop_pvalue")
+            || (options["stop_pvalue"].GetDouble() == 0.0),  // this check is needed because the default value is serialized
             "Auto-stop PValue is not a valid parameter for Iter overfitting detector."
             );
     Validate();

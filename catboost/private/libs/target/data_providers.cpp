@@ -31,7 +31,7 @@ namespace NCB {
 
 
     // can be empty if target data is unavailable
-    static TVector<TSharedVector<float>> ConvertTarget(
+    TVector<TSharedVector<float>> ConvertTarget(
         TMaybeData<TConstArrayRef<TRawTarget>> maybeRawTarget,
         ERawTargetType targetType,
         bool isRealTarget,
@@ -526,8 +526,10 @@ namespace NCB {
 
         if (mainLossFunction) {
             CB_ENSURE(
-                IsMultiRegressionObjective(mainLossFunction->GetLossFunction()) || rawData.GetTargetDimension() <= 1,
-                "Currently only multi-regression objectives work with multidimensional target"
+                IsMultiRegressionObjective(mainLossFunction->GetLossFunction()) ||
+                IsSurvivalRegressionObjective(mainLossFunction->GetLossFunction()) ||
+                rawData.GetTargetDimension() <= 1,
+                "Currently only multi-regression and survival objectives work with multidimensional target"
             );
         }
 

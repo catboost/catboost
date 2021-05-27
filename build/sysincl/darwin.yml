@@ -30,6 +30,7 @@
   - CommonCrypto/CommonHMAC.h
   - CommonCrypto/CommonKeyDerivation.h
   - ConditionalMacros.h
+  - DiskArbitration/DiskArbitration.h
   - Endian.h
   - MacTypes.h
   - TargetConditionals.h
@@ -169,6 +170,7 @@
   - CFNetwork/CFNetwork.h
   - Cocoa/Cocoa.h
   - CoreFoundation/CFBase.h
+  - CoreFoundation/CFBundle.h
   - CoreFoundation/CFData.h
   - CoreFoundation/CFDictionary.h
   - CoreFoundation/CFLocale.h

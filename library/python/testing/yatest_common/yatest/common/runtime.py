@@ -231,6 +231,11 @@ def c_compiler_path():
     return os.environ.get("YA_CC")
 
 
+def get_yt_hdd_path(path=None):
+    if 'HDD_PATH' in os.environ:
+        return _join_path(os.environ['HDD_PATH'], path)
+
+
 def cxx_compiler_path():
     """
     Get path to the gdb

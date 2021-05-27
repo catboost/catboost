@@ -207,7 +207,7 @@ namespace flatbuffers {
       #define FLATBUFFERS_HAS_STRING_VIEW 1
     // Check for std::experimental::string_view (in c++14, compiler-dependent)
     #elif __has_include(<experimental/string_view>) && (__cplusplus >= 201411)
-      #include <experimental/string_view>
+      #error #include <experimental/string_view>
       namespace flatbuffers {
         typedef std::experimental::string_view string_view;
       }

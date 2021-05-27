@@ -69,7 +69,7 @@ static void CreateQuantizedObjectsDataProviderTestData(
     commonObjectsData.Timestamp = TVector<ui64>{10, 20, 10, 30, 50, 70};
 
 
-    TQuantizedForCPUObjectsData quantizedObjectsData;
+    TQuantizedObjectsData quantizedObjectsData;
 
     TVector<TVector<ui8>> quantizedFloatFeatures = {
         TVector<ui8>{1, 1, 0, 0, 3, 2, 4, 4, 2, 0, 3, 4, 1},
@@ -86,14 +86,14 @@ static void CreateQuantizedObjectsDataProviderTestData(
         quantizedFloatFeatures,
         commonObjectsData.SubsetIndexing.Get(),
         {0, 2, 4},
-        &quantizedObjectsData.Data.FloatFeatures
+        &quantizedObjectsData.FloatFeatures
     );
 
     InitQuantizedFeatures(
         quantizedCatFeatures,
         commonObjectsData.SubsetIndexing.Get(),
         {1, 3},
-        &quantizedObjectsData.Data.CatFeatures
+        &quantizedObjectsData.CatFeatures
     );
 
 
@@ -103,7 +103,7 @@ static void CreateQuantizedObjectsDataProviderTestData(
         ENanMode::Min
     );
 
-    quantizedObjectsData.Data.QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
+    quantizedObjectsData.QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
         *metaInfo->FeaturesLayout,
         TConstArrayRef<ui32>(),
         binarizationOptions
@@ -155,13 +155,13 @@ static void CreateQuantizedObjectsDataProviderTestData(
 
     for (auto i : xrange(3)) {
         auto floatFeatureIdx = TFloatFeatureIdx(i);
-        quantizedObjectsData.Data.QuantizedFeaturesInfo->SetBorders(floatFeatureIdx, std::move(borders[i]));
-        quantizedObjectsData.Data.QuantizedFeaturesInfo->SetNanMode(floatFeatureIdx, nanModes[i]);
+        quantizedObjectsData.QuantizedFeaturesInfo->SetBorders(floatFeatureIdx, std::move(borders[i]));
+        quantizedObjectsData.QuantizedFeaturesInfo->SetNanMode(floatFeatureIdx, nanModes[i]);
     }
 
     for (auto i : xrange(2)) {
         auto catFeatureIdx = TCatFeatureIdx(i);
-        quantizedObjectsData.Data.QuantizedFeaturesInfo->UpdateCategoricalFeaturesPerfectHash(
+        quantizedObjectsData.QuantizedFeaturesInfo->UpdateCategoricalFeaturesPerfectHash(
             catFeatureIdx,
             std::move(expectedPerfectHash[i])
         );
@@ -173,7 +173,7 @@ static void CreateQuantizedObjectsDataProviderTestData(
     );
     quantizedObjectsData.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
         *metaInfo->FeaturesLayout,
-        *quantizedObjectsData.Data.QuantizedFeaturesInfo,
+        *quantizedObjectsData.QuantizedFeaturesInfo,
         quantizedObjectsData.ExclusiveFeatureBundlesData,
         true
     );
@@ -182,7 +182,7 @@ static void CreateQuantizedObjectsDataProviderTestData(
         TVector<TFeaturesGroup>()
     );
 
-    *objectsData = MakeIntrusive<TQuantizedForCPUObjectsDataProvider>(
+    *objectsData = MakeIntrusive<TQuantizedObjectsDataProvider>(
         *objectsGrouping,
         std::move(commonObjectsData),
         std::move(quantizedObjectsData),
@@ -256,8 +256,8 @@ Y_UNIT_TEST_SUITE(TDataProviderTemplate) {
     }
 
     Y_UNIT_TEST(Equal) {
-        TestEqual<TQuantizedForCPUObjectsDataProvider>(CreateRawTargetData);
-        TestEqual<TQuantizedForCPUObjectsDataProvider>(CreateRawMultiTargetData);
+        TestEqual<TQuantizedObjectsDataProvider>(CreateRawTargetData);
+        TestEqual<TQuantizedObjectsDataProvider>(CreateRawMultiTargetData);
     }
 }
 
@@ -293,7 +293,7 @@ Y_UNIT_TEST_SUITE(TProcessedDataProviderTemplate) {
 
         {
             TBufferOutput out(buffer);
-            SerializeToStream(out, trainingDataProvider);
+            SerializeToArcadiaStream(out, trainingDataProvider);
         }
 
         TProcessedDataProviderTemplate<TTObjectsDataProvider> trainingDataProvider2;
@@ -462,11 +462,9 @@ Y_UNIT_TEST_SUITE(TProcessedDataProviderTemplate) {
 
     Y_UNIT_TEST(Serialization) {
         TestSerialization<TQuantizedObjectsDataProvider>();
-        TestSerialization<TQuantizedForCPUObjectsDataProvider>();
     }
 
     Y_UNIT_TEST(MultiTargetSerialization) {
         TestMultiTargetSerialization<TQuantizedObjectsDataProvider>();
-        TestMultiTargetSerialization<TQuantizedForCPUObjectsDataProvider>();
     }
 }

@@ -7,6 +7,7 @@
 #include <util/system/src_location.h>
 #include <util/stream/tempbuf.h>
 #include <util/generic/yexception.h>
+#include <atomic>
 
 class TCatboostLog;
 
@@ -69,6 +70,8 @@ private:
     ELogPriority LogPriority = TLOG_WARNING;
     class TImpl;
     THolder<TImpl> ImplHolder;
+
+    std::atomic<bool> IsCustomBackendSpecified;
 };
 
 class TCatBoostLogSettings {
@@ -79,7 +82,7 @@ public:
     using TSelf = TCatBoostLogSettings;
     TCatboostLog Log;
     inline static TSelf& GetRef() {
-        return *Singleton<TSelf>();
+       return *Singleton<TSelf>();
     }
 };
 
@@ -154,9 +157,16 @@ public:
 
 void ResetTraceBackend(const TString& string);
 
-using TCustomLoggingFunction = void(*)(const char*, size_t len);
+using TCustomLoggingObject = void*;
+using TCustomLoggingFunction = void(*)(const char*, size_t len, TCustomLoggingObject);
 
-void SetCustomLoggingFunction(TCustomLoggingFunction lowPriorityFunc, TCustomLoggingFunction highPriorityFunc);
+
+void SetCustomLoggingFunction(
+    TCustomLoggingFunction normalPriorityFunc,
+    TCustomLoggingFunction errorPriorityFunc,
+    TCustomLoggingObject normalPriorityObj = nullptr,
+    TCustomLoggingObject errorPriorityObj = nullptr
+);
 void RestoreOriginalLogger();
 
 namespace NPrivateCatboostLogger {

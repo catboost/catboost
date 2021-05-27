@@ -50,7 +50,7 @@ static TVector<TVector<double>> CalcSomeSoftmax(
     return probabilities;
 }
 
-static TVector<TVector<double>> CalcSoftmax(
+TVector<TVector<double>> CalcSoftmax(
     const TVector<TVector<double>>& approx,
     NPar::ILocalExecutor* executor)
 {
@@ -103,18 +103,19 @@ static TVector<int> SelectBestClass(
     return classApprox;
 }
 
-static void CalcClassificationUncertainty(
+
+// totalUncertainty = entropy of expected
+// dataUncertainty = entropy of expected - expected entropy
+static void CalcMulticlassUncertainty(
     const TVector<TVector<double>>& approx,
     TVector<double>* dataUncertaintyPtr,
     TVector<double>* totalUncertaintyPtr,
     size_t virtEnsemblesCount,
+    size_t classCount,
     NPar::ILocalExecutor* executor)
 {
     TVector<double>& dataUncertainty = *dataUncertaintyPtr;
     TVector<double>& totalUncertainty = *totalUncertaintyPtr;
-
-    dataUncertainty.resize(approx.front().size());
-    totalUncertainty.resize(approx.front().size());
 
     const int executorThreadCount = executor ? executor->GetThreadCount() : 0;
     const int threadCount = executorThreadCount + 1;
@@ -125,9 +126,65 @@ static void CalcClassificationUncertainty(
         if (firstLineId >= lastLineId) {
             return;
         }
-        for (size_t dimIdx = 0; dimIdx < virtEnsemblesCount; ++dimIdx) {
-            auto probability = CalcSigmoid(
-                TConstArrayRef<double>(approx[dimIdx].begin() + firstLineId, lastLineId - firstLineId));
+
+        TVector<double> line(classCount);
+        TVector<double> probs(classCount);
+        for (int lineInd = blockId * blockSize; lineInd < lastLineId; ++lineInd) {
+            TVector<double> meanProbs(classCount);
+            double meanEntropy = 0;
+            for (size_t idx = 0; idx < virtEnsemblesCount; ++idx) {
+                for (size_t dim = 0; dim < classCount; ++dim) {
+                    line[dim] = approx[idx * classCount + dim][lineInd];
+                }
+                CalcSoftmax(TConstArrayRef<double>(line), TArrayRef<double>(probs));
+                double entropy = 0;
+                for (size_t i = 0; i < classCount; ++i) {
+                    entropy -= probs[i] * std::log(probs[i]);
+                    meanProbs[i] += probs[i];
+                }
+                meanEntropy += entropy;
+            }
+            meanEntropy /= virtEnsemblesCount;
+            double entropyOfMeans = 0;
+            for (size_t i = 0; i < classCount; ++i) {
+                meanProbs[i] /= virtEnsemblesCount;
+                entropyOfMeans -= meanProbs[i] * std::log(meanProbs[i]);
+            }
+
+            dataUncertainty[lineInd] = meanEntropy;
+            totalUncertainty[lineInd] = entropyOfMeans;
+        }
+    };
+    if (executor) {
+        executor->ExecRange(calcUncertaitny, 0, threadCount, NPar::TLocalExecutor::WAIT_COMPLETE);
+    } else {
+        calcUncertaitny(0);
+    }
+}
+
+
+static void CalcClassificationUncertainty(
+    const TVector<TVector<double>>& approx,
+    TVector<double>* dataUncertaintyPtr,
+    TVector<double>* totalUncertaintyPtr,
+    size_t virtEnsemblesCount,
+    NPar::ILocalExecutor* executor)
+{
+    TVector<double>& dataUncertainty = *dataUncertaintyPtr;
+    TVector<double>& totalUncertainty = *totalUncertaintyPtr;
+
+    const int executorThreadCount = executor ? executor->GetThreadCount() : 0;
+    const int threadCount = executorThreadCount + 1;
+    const int blockSize = (approx[0].ysize() + threadCount - 1) / threadCount;
+    const auto calcUncertaitny = [&](const int blockId) {
+        int lastLineId = Min((blockId + 1) * blockSize, approx[0].ysize());
+        int firstLineId = blockId * blockSize;
+        if (firstLineId >= lastLineId) {
+            return;
+        }
+        for (size_t idx = 0; idx < approx.size(); ++idx) {
+            TConstArrayRef<double> arrayRef = TConstArrayRef<double>(approx[idx].begin() + firstLineId, lastLineId - firstLineId);
+            TVector<double> probability = CalcSigmoid(arrayRef);
             auto entropy = CalcEntropyFromProbabilities(probability);
             for (int lineInd = blockId * blockSize; lineInd < lastLineId; ++lineInd) {
                 dataUncertainty[lineInd] += entropy[lineInd - firstLineId];
@@ -258,24 +315,29 @@ TVector<TVector<double>> PrepareEvalForInternalApprox(
         = (externalLabelsHelper.IsInitialized() && (externalLabelsHelper.GetExternalApproxDimension() > 1)) ?
             MakeExternalApprox(approx, externalLabelsHelper)
             : approx;
-    return PrepareEval(predictionType, model.GetLossFunctionName(), externalApprox, localExecutor);
+    return PrepareEval(predictionType, /* ensemblesCount */ 1, model.GetLossFunctionName(),
+                       externalApprox, localExecutor, model.GetBinClassLogitThreshold());
 }
 
 TVector<TVector<double>> PrepareEval(const EPredictionType predictionType,
+                                     size_t ensemblesCount,
                                      const TString& lossFunctionName,
                                      const TVector<TVector<double>>& approx,
-                                     int threadCount) {
+                                     int threadCount,
+                                     double binClassLogitThreshold) {
     NPar::TLocalExecutor executor;
     executor.RunAdditionalThreads(threadCount - 1);
-    return PrepareEval(predictionType, lossFunctionName, approx, &executor);
+    return PrepareEval(predictionType, ensemblesCount, lossFunctionName, approx, &executor, binClassLogitThreshold);
 }
 
 
 void PrepareEval(const EPredictionType predictionType,
+                 size_t ensemblesCount,
                  const TString& lossFunctionName,
                  const TVector<TVector<double>>& approx,
                  NPar::ILocalExecutor* executor,
-                 TVector<TVector<double>>* result) {
+                 TVector<TVector<double>>* result,
+                 double binClassLogitThreshold) {
 
     switch (predictionType) {
         case EPredictionType::LogProbability:
@@ -319,7 +381,7 @@ void PrepareEval(const EPredictionType predictionType,
                 (*result)[0].assign(predictions.begin(), predictions.end());
             } else {
                 for (const double prediction : approx[0]) {
-                    (*result)[0].push_back(prediction > 0);
+                    (*result)[0].push_back(prediction > binClassLogitThreshold);
                 }
             }
             break;
@@ -343,7 +405,6 @@ void PrepareEval(const EPredictionType predictionType,
                 }
             }
             else if (IsClassificationMetric(lossFunction)) {
-                CB_ENSURE(IsBinaryClassOnlyMetric(lossFunction), "uncertainty for MultiClass is not supported");
                 *result = approx;
             } else {
                 CB_ENSURE(false, "uncertainty is not supported for " << lossFunction);
@@ -362,8 +423,13 @@ void PrepareEval(const EPredictionType predictionType,
             } else {
                 CB_ENSURE(IsClassificationMetric(lossFunction),
                           "unsupported loss function for uncertainty " << lossFunction);
-                result->resize(2);
-                CalcClassificationUncertainty(approx, &(result->at(0)), &(result->at(1)), approx.size(), executor);
+                const size_t classCount = approx.size() / ensemblesCount;
+                result->resize(2, TVector<double>(approx.front().size()));
+                if (classCount < 2) {
+                    CalcClassificationUncertainty(approx, &(result->at(0)), &(result->at(1)), ensemblesCount, executor);
+                } else {
+                    CalcMulticlassUncertainty(approx, &(result->at(0)), &(result->at(1)), ensemblesCount, classCount, executor);
+                }
             }
             break;
         }
@@ -376,11 +442,13 @@ void PrepareEval(const EPredictionType predictionType,
 }
 
 TVector<TVector<double>> PrepareEval(const EPredictionType predictionType,
+                                     size_t ensemblesCount,
                                      const TString& lossFunctionName,
                                      const TVector<TVector<double>>& approx,
-                                     NPar::ILocalExecutor* localExecutor) {
+                                     NPar::ILocalExecutor* localExecutor,
+                                     double binClassLogitThreshold) {
     TVector<TVector<double>> result;
-    PrepareEval(predictionType, lossFunctionName, approx, localExecutor, &result);
+    PrepareEval(predictionType, ensemblesCount, lossFunctionName, approx, localExecutor, &result, binClassLogitThreshold);
     return result;
 }
 }

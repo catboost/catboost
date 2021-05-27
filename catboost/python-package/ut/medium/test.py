@@ -6,6 +6,7 @@ import numpy as np
 import pprint
 import pytest
 import random
+import operator
 import re
 import subprocess
 import sys
@@ -15,17 +16,20 @@ from catboost import (
     CatBoost,
     CatBoostClassifier,
     CatBoostRegressor,
+    CatBoostRanker,
     CatBoostError,
     EFstrType,
     FeaturesData,
     Pool,
     cv,
     ColumnDescription,
+    metrics,
     sum_models,
     train,
     _have_equal_features,
     to_regressor,
     to_classifier,
+    to_ranker,
     MultiRegressionCustomMetric,
     MultiRegressionCustomObjective,
     EColumnType)
@@ -88,6 +92,10 @@ CLOUDNESS_TRAIN_FILE = data_file('cloudness_small', 'train_small')
 CLOUDNESS_TEST_FILE = data_file('cloudness_small', 'test_small')
 CLOUDNESS_CD_FILE = data_file('cloudness_small', 'train.cd')
 CLOUDNESS_ONLY_NUM_CD_FILE = data_file('cloudness_small', 'train_float.cd')
+
+MULTIREGRESSION_TRAIN_FILE = data_file('multiregression', 'train')
+MULTIREGRESSION_TEST_FILE = data_file('multiregression', 'test')
+MULTIREGRESSION_CD_FILE = data_file('multiregression', 'train.cd')
 
 QUERYWISE_TRAIN_FILE = data_file('querywise', 'train')
 QUERYWISE_TEST_FILE = data_file('querywise', 'test')
@@ -187,20 +195,6 @@ label_types = ['consecutive_integers', 'nonconsecutive_integers', 'string', 'flo
 model_diff_tool = binary_path("catboost/tools/model_comparator/model_comparator")
 
 np.set_printoptions(legacy='1.13')
-
-
-class LogStdout:
-    def __init__(self, file):
-        self.log_file = file
-
-    def __enter__(self):
-        self.saved_stdout = sys.stdout
-        sys.stdout = self.log_file
-        return self.saved_stdout
-
-    def __exit__(self, exc_type, exc_value, exc_traceback):
-        sys.stdout = self.saved_stdout
-        self.log_file.close()
 
 
 def compare_canonical_models(model, diff_limit=0):
@@ -360,8 +354,8 @@ def test_multiregression(niter, n=10):
 
 @pytest.mark.parametrize('niter', [1, 100, 500])
 def test_save_model_multiregression(niter):
-    train_file = data_file('multiregression', 'train')
-    cd_file = data_file('multiregression', 'train.cd')
+    train_file = MULTIREGRESSION_TRAIN_FILE
+    cd_file = MULTIREGRESSION_CD_FILE
     output_model_path = test_output_path(OUTPUT_MODEL_PATH)
 
     train_pool = Pool(train_file, column_description=cd_file)
@@ -501,8 +495,8 @@ def test_load_ndarray_vs_load_from_file(dataset, order):
 
 @pytest.mark.parametrize('order', ['C', 'F'], ids=['order=C', 'order=F'])
 def test_load_ndarray_vs_load_from_file_multitarget(order):
-    train_file = data_file('multiregression', 'train')
-    cd_file = data_file('multiregression', 'train.cd')
+    train_file = MULTIREGRESSION_TRAIN_FILE
+    cd_file = MULTIREGRESSION_CD_FILE
     dtypes = [np.float32, np.float64]
 
     n_objects = np.loadtxt(train_file, delimiter='\t').shape[0]
@@ -647,8 +641,8 @@ def test_load_df_vs_load_from_file(dataset):
 
 
 def test_load_df_vs_load_from_file_multitarget():
-    train_file = data_file('multiregression', 'train')
-    cd_file = data_file('multiregression', 'train.cd')
+    train_file = MULTIREGRESSION_TRAIN_FILE
+    cd_file = MULTIREGRESSION_CD_FILE
     target_idx = [0, 1]
 
     pool1 = Pool(train_file, column_description=cd_file)
@@ -1282,7 +1276,7 @@ def fit_from_df(params, learn_file, test_file, cd_file):
     text_feature_indices = columns_metadata['text_feature_indices']
 
     def get_split_on_features_and_label(df, label_idx):
-        y = df.loc[:, label_idx]
+        y = df[label_idx]
         X = df.drop(label_idx, axis=1)
         return X, y
 
@@ -1915,7 +1909,7 @@ def test_inconsistent_class_labels_count():
 def test_querywise(features_dtype, task_type):
     train_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
     test_pool = Pool(QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE)
-    model = CatBoost(params={'loss_function': 'QueryRMSE', 'iterations': 2, 'thread_count': 8, 'task_type': task_type, 'devices': '0'})
+    model = CatBoostRanker(loss_function='QueryRMSE', iterations=2, thread_count=8, task_type=task_type, devices='0')
     model.fit(train_pool)
     pred1 = model.predict(test_pool)
 
@@ -1935,7 +1929,7 @@ def test_querywise(features_dtype, task_type):
 def test_group_weight(task_type):
     train_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE_WITH_GROUP_WEIGHT)
     test_pool = Pool(QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE_WITH_GROUP_WEIGHT)
-    model = CatBoost(params={'loss_function': 'YetiRank', 'iterations': 10, 'thread_count': 8, 'task_type': task_type, 'devices': '0'})
+    model = CatBoostRanker(loss_function='YetiRank', iterations=10, thread_count=8, task_type=task_type, devices='0')
     model.fit(train_pool)
     pred1 = model.predict(test_pool)
 
@@ -2008,9 +2002,7 @@ def test_ones_weight_equal_to_nonspecified_weight(task_type):
 def test_py_data_group_id(task_type):
     train_pool_from_files = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE_WITH_GROUP_ID)
     test_pool_from_files = Pool(QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE_WITH_GROUP_ID)
-    model = CatBoost(
-        params={'loss_function': 'QueryRMSE', 'iterations': 2, 'thread_count': 4, 'task_type': task_type, 'devices': '0'}
-    )
+    model = CatBoostRanker(loss_function='QueryRMSE', iterations=2, thread_count=4, task_type=task_type, devices='0')
     model.fit(train_pool_from_files)
     predictions_from_files = model.predict(test_pool_from_files)
 
@@ -2032,9 +2024,7 @@ def test_py_data_group_id(task_type):
 def test_py_data_subgroup_id(task_type):
     train_pool_from_files = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE_WITH_SUBGROUP_ID)
     test_pool_from_files = Pool(QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE_WITH_SUBGROUP_ID)
-    model = CatBoost(
-        params={'loss_function': 'QueryRMSE', 'iterations': 2, 'thread_count': 4, 'task_type': task_type, 'devices': '0'}
-    )
+    model = CatBoostRanker(loss_function='QueryRMSE', iterations=2, thread_count=4, task_type=task_type, devices='0')
     model.fit(train_pool_from_files)
     predictions_from_files = model.predict(test_pool_from_files)
 
@@ -2175,6 +2165,13 @@ def test_invalid_loss_regressor(task_type):
         model.fit(pool)
 
 
+def test_invalid_loss_ranker(task_type):
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostRegressor(loss_function="MultiClass", task_type=task_type, devices='0')
+    with pytest.raises(CatBoostError):
+        model.fit(pool)
+
+
 def test_fit_no_label(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(task_type=task_type, devices='0')
@@ -2233,6 +2230,11 @@ def test_wrong_params_regressor():
         CatBoostRegressor(wrong_param=1)
 
 
+def test_wrong_params_ranker():
+    with pytest.raises(TypeError):
+        CatBoostRegressor(wrong_param=1)
+
+
 def test_wrong_kwargs_base():
     prng = np.random.RandomState(seed=20181219)
     data = prng.rand(100, 10)
@@ -2269,6 +2271,350 @@ def test_duplicate_params_regressor():
         model.fit(data, label)
 
 
+def test_generated_metrics_default_params():
+    metrics_without_default_params = (
+        metrics.TotalF1, metrics.AUC, metrics.NDCG, metrics.CtrFactor, metrics.RecallAt, metrics.QueryCrossEntropy,
+        metrics.Logloss, metrics.LogLikelihoodOfPrediction, metrics.MultiClassOneVsAll, metrics.R2, metrics.MAPE,
+        metrics.UserQuerywiseMetric, metrics.MSLE, metrics.Expectile, metrics.FilteredDCG, metrics.DCG, metrics.MCC,
+        metrics.PrecisionAt, metrics.CrossEntropy, metrics.ERR, metrics.SMAPE, metrics.PairAccuracy, metrics.FairLoss,
+        metrics.QuerySoftMax, metrics.PRAUC, metrics.MAP, metrics.MedianAbsoluteError, metrics.F1,
+        metrics.NormalizedGini, metrics.BrierScore, metrics.Precision, metrics.HingeLoss, metrics.ZeroOneLoss,
+        metrics.WKappa, metrics.Combination, metrics.MAE, metrics.PairLogit, metrics.Kappa, metrics.MRR, metrics.RMSE,
+        metrics.Poisson, metrics.BalancedAccuracy, metrics.Accuracy, metrics.MultiClass, metrics.HammingLoss,
+        metrics.QueryRMSE, metrics.RMSEWithUncertainty, metrics.QueryAUC, metrics.LogLinQuantile, metrics.Recall,
+        metrics.BalancedErrorRate, metrics.MultiRMSE, metrics.Quantile, metrics.PFound
+    )
+    for metric in metrics_without_default_params:
+        assert str(metric()) == metric.__name__
+    metrics_with_mandatory_params = (
+        metrics.NumErrors, metrics.Huber, metrics.AverageGain, metrics.QueryAverage, metrics.Lq, metrics.Tweedie
+    )
+    for metric in metrics_with_mandatory_params:
+        with pytest.raises(ValueError):
+            metric()
+
+
+def _test_generated_metrics(loss_function, train_pool, test_pool, metrics, task):
+    model = CatBoost({'loss_function': loss_function, 'iterations': 50})
+    model.fit(train_pool, eval_set=test_pool)
+
+    # text description metrics
+    td_results = model.eval_metrics(test_pool, list(metrics.keys()))
+    # instances of autogenerated metric classes
+    ag_results = model.eval_metrics(test_pool, list(metrics.values()))
+
+    for metric in metrics:
+        assert np.allclose(td_results[metric], ag_results[metric]), "Different results for {}".format(metric)
+
+    if task not in ("ranking", "multiclassification", "multiregression"):
+        preds = model.predict(test_pool, prediction_type='RawFormulaVal')
+        for metric, metric_obj in metrics.items():
+            score = metric_obj.eval(test_pool.get_label(), preds)[0]
+            assert np.abs(td_results[metric][-1] - score) < 1e-6, "Eval metric results differ for {}".format(metric)
+
+
+def test_generated_classification_metrics():
+    _test_generated_metrics(
+        'Logloss',
+        Pool(data=TRAIN_FILE, column_description=CD_FILE),
+        Pool(data=TEST_FILE, column_description=CD_FILE),
+        {
+            'Logloss': metrics.Logloss(), 'CrossEntropy': metrics.CrossEntropy(), 'Precision': metrics.Precision(),
+            'Recall': metrics.Recall(), 'F1': metrics.F1(), 'BalancedAccuracy': metrics.BalancedAccuracy(),
+            'BalancedErrorRate': metrics.BalancedErrorRate(), 'MCC': metrics.MCC(), 'Accuracy': metrics.Accuracy(),
+            'CtrFactor': metrics.CtrFactor(), 'AUC': metrics.AUC(), 'AUC:type=Ranking': metrics.AUC(type='Ranking'),
+            'NormalizedGini': metrics.NormalizedGini(), 'BrierScore': metrics.BrierScore(),
+            'HingeLoss': metrics.HingeLoss(), 'HammingLoss': metrics.HammingLoss(),
+            'ZeroOneLoss': metrics.ZeroOneLoss(), 'Kappa': metrics.Kappa(), 'WKappa': metrics.WKappa(),
+            'LogLikelihoodOfPrediction': metrics.LogLikelihoodOfPrediction()
+        },
+        "classification"
+    )
+
+
+def test_generated_regression_metrics_with_default_params():
+    _test_generated_metrics(
+        'RMSE',
+        Pool(data=TRAIN_FILE, column_description=CD_FILE),
+        Pool(data=TEST_FILE, column_description=CD_FILE),
+        {
+            'MAE': metrics.MAE(), 'MAPE': metrics.MAPE(), 'Poisson': metrics.Poisson(),
+            # Metric description should be 'Quantile' instead of 'Quantile:alpha=0.5'
+            'Quantile:alpha=0.5': metrics.Quantile(), 'RMSE': metrics.RMSE(),
+            'LogLinQuantile': metrics.LogLinQuantile(), 'Expectile': metrics.Expectile(),
+            'FairLoss': metrics.FairLoss(), 'SMAPE': metrics.SMAPE(),
+            'R2': metrics.R2(), 'MSLE': metrics.MSLE(), 'MedianAbsoluteError': metrics.MedianAbsoluteError()
+        },
+        "regression"
+    )
+
+
+def test_generated_regression_metrics_with_specified_params():
+    _test_generated_metrics(
+        'RMSE',
+        Pool(data=TRAIN_FILE, column_description=CD_FILE),
+        Pool(data=TEST_FILE, column_description=CD_FILE),
+        {
+            'Quantile:alpha=0.2': metrics.Quantile(alpha=0.2), 'Quantile:alpha=0.8': metrics.Quantile(alpha=0.8),
+            'LogLinQuantile:alpha=0.2': metrics.LogLinQuantile(alpha=0.2),
+            'LogLinQuantile:alpha=0.8': metrics.LogLinQuantile(alpha=0.8),
+            'Lq:q=1.0': metrics.Lq(q=1.0), 'Lq:q=2.0': metrics.Lq(q=2.0), 'Lq:q=10.0': metrics.Lq(q=10.0),
+            'Huber:delta=1.0': metrics.Huber(delta=1.0), 'Huber:delta=0.5': metrics.Huber(delta=0.5),
+            'Huber:delta=2.0': metrics.Huber(delta=2.0),
+            'Expectile:alpha=0.2': metrics.Expectile(alpha=0.2), 'Expectile:alpha=0.8': metrics.Expectile(alpha=0.8),
+            'Tweedie:variance_power=1.2': metrics.Tweedie(variance_power=1.2),
+            'Tweedie:variance_power=1.5': metrics.Tweedie(variance_power=1.5),
+            'Tweedie:variance_power=1.8': metrics.Tweedie(variance_power=1.8),
+            'FairLoss:smoothness=0.5': metrics.FairLoss(smoothness=0.5),
+            'FairLoss:smoothness=2.0': metrics.FairLoss(smoothness=2.0),
+            'NumErrors:greater_than=10': metrics.NumErrors(greater_than=10),
+            'NumErrors:greater_than=20': metrics.NumErrors(greater_than=20),
+        },
+        "regression"
+    )
+
+
+def test_generated_multiclassification_aggregate_metrics():
+    _test_generated_metrics(
+        'MultiClass',
+        Pool(data=CLOUDNESS_TRAIN_FILE, column_description=CLOUDNESS_CD_FILE),
+        Pool(data=CLOUDNESS_TEST_FILE, column_description=CLOUDNESS_CD_FILE),
+        {
+            'MultiClass': metrics.MultiClass(), 'MultiClassOneVsAll': metrics.MultiClassOneVsAll(),
+            'TotalF1': metrics.TotalF1(), 'TotalF1:average=Macro': metrics.TotalF1(average='Macro'),
+            'TotalF1:average=Micro': metrics.TotalF1(average='Micro'),
+            'MCC': metrics.MCC(),
+            'Accuracy': metrics.Accuracy(), 'HingeLoss': metrics.HingeLoss(), 'HammingLoss': metrics.HammingLoss(),
+            'ZeroOneLoss': metrics.ZeroOneLoss(), 'Kappa': metrics.Kappa(), 'WKappa': metrics.WKappa(),
+            'AUC:type=Mu': metrics.AUCMulticlass(),
+            'AUC:type=Mu;misclass_cost_matrix=0/0.5/2/1/0/1/0/0.5/0':
+                metrics.AUCMulticlass(misclass_cost_matrix=np.array([[0.0, 0.5, 2.0], [1.0, 0.0, 1.0], [0.0, 0.5, 0.0]]))
+        },
+        "multiclassification"
+    )
+
+
+def test_generated_multiclassification_class_metrics():
+    train_pool = Pool(data=CLOUDNESS_TRAIN_FILE, column_description=CLOUDNESS_CD_FILE)
+    test_pool = Pool(data=CLOUDNESS_TEST_FILE, column_description=CLOUDNESS_CD_FILE)
+    n_classes = len(set(train_pool.get_label()))
+
+    model = CatBoost({'loss_function': 'MultiClass', 'iterations': 50})
+    model.fit(train_pool, eval_set=test_pool)
+
+    class_metrics = (
+        {'name': 'Precision', 'text': 'Precision', 'instance': metrics.Precision()},
+        {'name': 'Recall', 'text': 'Recall', 'instance': metrics.Recall()},
+        {'name': 'F1', 'text': 'F1', 'instance': metrics.F1()},
+        {'name': 'AUC', 'text': 'AUC:type=OneVsAll', 'instance': metrics.AUC(type='OneVsAll')},
+    )
+
+    # text description metrics
+    td_results = model.eval_metrics(test_pool, list(map(operator.itemgetter('text'), class_metrics)))
+    # instances of autogenerated metric classes
+    ag_results = model.eval_metrics(test_pool, list(map(operator.itemgetter('instance'), class_metrics)))
+    for metric in class_metrics:
+        for i_class in range(n_classes):
+            metric_key = '{}:class={}'.format(metric['name'], i_class)
+            assert np.allclose(td_results[metric_key], ag_results[metric_key]),\
+                "Different results for {}".format(metric_key)
+
+
+def test_generated_ranking_pairwise_metric():
+    _test_generated_metrics(
+        'PairLogit',
+        Pool(data=QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE),
+        Pool(data=QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE),
+        {
+            'PairLogit': metrics.PairLogit(), 'PairAccuracy': metrics.PairAccuracy(),
+            'AUC': metrics.AUC(), 'AUC:type=Ranking': metrics.AUC(type='Ranking')
+        },
+        "ranking"
+    )
+
+
+def test_generated_ranking_groupwise_metric():
+    _test_generated_metrics(
+        'QueryRMSE',
+        Pool(data=QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE),
+        Pool(data=QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE),
+        {
+            'QueryRMSE': metrics.QueryRMSE(), 'PFound': metrics.PFound(),
+            # Metric descriptions should be 'NDCG' & 'DCG' instead of 'NDCG:type=Base' & 'DCG:type=Base' respectively
+            'NDCG:type=Base': metrics.NDCG(), 'DCG:type=Base': metrics.DCG(),
+            'FilteredDCG': metrics.FilteredDCG(), 'AverageGain:top=5': metrics.AverageGain(top=5),
+            'PrecisionAt': metrics.PrecisionAt(), 'RecallAt': metrics.RecallAt(), 'MAP': metrics.MAP(),
+            'AUC': metrics.AUC()
+        },
+        "ranking"
+    )
+
+
+def test_generated_multiregression_metric_and_loss():
+    _test_generated_metrics(
+        metrics.MultiRMSE(),
+        Pool(data=MULTIREGRESSION_TRAIN_FILE, column_description=MULTIREGRESSION_CD_FILE),
+        Pool(data=MULTIREGRESSION_TEST_FILE, column_description=MULTIREGRESSION_CD_FILE),
+        {
+            'MultiRMSE': metrics.MultiRMSE()
+        },
+        "multiregression"
+    )
+
+
+def _test_generated_losses(train_pool, test_pool, losses, result_dtype=float):
+    catboost_params = {'iterations': 50}
+    for loss_text, loss_instance in losses.items():
+        # text-description metric/loss
+        td_params = catboost_params.copy()
+        td_params['loss_function'] = loss_text
+        td_model = CatBoost(td_params)
+        td_model.fit(train_pool, eval_set=test_pool)
+        td_pred = td_model.predict(test_pool)
+        # instances of autogenerated metric/loss classes
+        ag_params = catboost_params.copy()
+        ag_params['loss_function'] = loss_instance
+        ag_model = CatBoost(ag_params)
+        ag_model.fit(train_pool, eval_set=test_pool)
+        ag_pred = ag_model.predict(test_pool)
+        np.allclose(td_pred.astype(result_dtype), ag_pred.astype(result_dtype)),\
+            "Different results for {}".format(loss_text)
+
+
+def test_generated_classification_losses():
+    _test_generated_losses(
+        Pool(data=TRAIN_FILE, column_description=CD_FILE),
+        Pool(data=TEST_FILE, column_description=CD_FILE),
+        {'Logloss': metrics.Logloss(), 'CrossEntropy': metrics.CrossEntropy()},
+        int
+    )
+
+
+def test_generated_regression_losses_with_default_params():
+    _test_generated_losses(
+        Pool(data=TRAIN_FILE, column_description=CD_FILE),
+        Pool(data=TEST_FILE, column_description=CD_FILE),
+        {
+            'MAE': metrics.MAE(), 'MAPE': metrics.MAPE(), 'Poisson': metrics.Poisson(),
+            'Quantile:alpha=0.5': metrics.Quantile(), 'RMSE': metrics.RMSE(),
+            'RMSEWithUncertainty': metrics.RMSEWithUncertainty(), 'LogLinQuantile': metrics.LogLinQuantile(),
+            # BUG: Expectile incorrectly expects alpha in catboost.core.Catboost({'loss_function': 'Expectile'})
+            # 'Expectile': metrics.Expectile()
+        }
+    )
+
+
+def test_generated_regression_losses_with_specified_params():
+    _test_generated_losses(
+        Pool(data=TRAIN_FILE, column_description=CD_FILE),
+        Pool(data=TEST_FILE, column_description=CD_FILE),
+        {
+            'Quantile:alpha=0.2': metrics.Quantile(alpha=0.2), 'Quantile:alpha=0.8': metrics.Quantile(alpha=0.8),
+            'LogLinQuantile:alpha=0.2': metrics.LogLinQuantile(alpha=0.2),
+            'LogLinQuantile:alpha=0.8': metrics.LogLinQuantile(alpha=0.8),
+            'Lq:q=1.0': metrics.Lq(q=1.0), 'Lq:q=2.0': metrics.Lq(q=2.0), 'Lq:q=10.0': metrics.Lq(q=10.0),
+            'Huber:delta=1.0': metrics.Huber(delta=1.0), 'Huber:delta=0.5': metrics.Huber(delta=0.5),
+            'Huber:delta=2.0': metrics.Huber(delta=2.0),
+            'Expectile:alpha=0.2': metrics.Expectile(alpha=0.2), 'Expectile:alpha=0.8': metrics.Expectile(alpha=0.8),
+            'Tweedie:variance_power=1.2': metrics.Tweedie(variance_power=1.2),
+            'Tweedie:variance_power=1.5': metrics.Tweedie(variance_power=1.5),
+            'Tweedie:variance_power=1.8': metrics.Tweedie(variance_power=1.8)
+        }
+    )
+
+
+def test_generated_multiclassification_losses():
+    _test_generated_losses(
+        Pool(data=CLOUDNESS_TRAIN_FILE, column_description=CLOUDNESS_CD_FILE),
+        Pool(data=CLOUDNESS_TEST_FILE, column_description=CLOUDNESS_CD_FILE),
+        {'MultiClass': metrics.MultiClass(), 'MultiClassOneVsAll': metrics.MultiClassOneVsAll()}
+    )
+
+
+def test_generated_pairwise_ranking_losses():
+    _test_generated_losses(
+        Pool(data=QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE),
+        Pool(data=QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE),
+        {
+            'PairLogit': metrics.PairLogit(), 'PairLogit:max_pairs=2': metrics.PairLogit(max_pairs=2),
+            'PairLogit:max_pairs=5': metrics.PairLogit(max_pairs=5)
+        }
+    )
+
+
+def test_generated_groupwise_ranking_losses():
+    _test_generated_losses(
+        Pool(data=QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE),
+        Pool(data=QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE),
+        {
+            'QueryRMSE': metrics.QueryRMSE(), 'QuerySoftMax': metrics.QuerySoftMax(),
+            'QuerySoftMax:beta=0.5': metrics.QuerySoftMax(beta=0.5),
+            'QuerySoftMax:beta=2.0': metrics.QuerySoftMax(beta=2.0)
+        }
+    )
+
+
+def _test_metric_with_default_params_description(loss_function, train_pool, test_pool, metric):
+    model = CatBoost({'loss_function': loss_function, 'iterations': 10})
+    model.fit(train_pool, eval_set=test_pool)
+    results = model.eval_metrics(test_pool, metric)
+    assert metric in results
+
+
+@pytest.mark.xfail
+def test_quantile_with_default_params_description():
+    _test_metric_with_default_params_description(
+        'RMSE',
+        Pool(data=TRAIN_FILE, column_description=CD_FILE),
+        Pool(data=TEST_FILE, column_description=CD_FILE),
+        'Quantile'
+    )
+
+
+@pytest.mark.xfail
+def test_dcg_with_default_params_description():
+    _test_metric_with_default_params_description(
+        'QueryRMSE',
+        Pool(data=TRAIN_FILE, column_description=CD_FILE),
+        Pool(data=TEST_FILE, column_description=CD_FILE),
+        'DCG'
+    )
+
+
+@pytest.mark.xfail
+def test_expectile_loss_with_default_params():
+    train_pool = Pool(data=TRAIN_FILE, column_description=CD_FILE)
+    test_pool = Pool(data=TEST_FILE, column_description=CD_FILE)
+    model = CatBoost({'iterations': 50, 'loss_function': 'Expectile'})
+    model.fit(train_pool, eval_set=test_pool)
+
+
+def test_generated_metrics():
+    # Test equivalence of the generated metric classes to string representations.
+    train_pool = Pool(data=TRAIN_FILE, column_description=CD_FILE)
+    test_pool = Pool(data=TEST_FILE, column_description=CD_FILE)
+
+    model = CatBoostRegressor()
+    model.fit(train_pool)
+    eval_metrics = [metrics.Lq(q=3)]
+    metrics_evals = model.eval_metrics(test_pool, eval_metrics)
+    for metric in eval_metrics:
+        assert str(metric) in metrics_evals
+
+    # Test setting hints and default values.
+    results = cv(
+        train_pool,
+        {
+            'iterations': 20,
+            'learning_rate': 0.03,
+            'loss_function': metrics.Logloss().set_hints(skip_train=True),
+            'eval_metric': metrics.AUC()
+        },
+    )
+    for non_existing_field in ('train-Logloss-mean', 'train-Logloss-std', 'train-AUC-mean', 'train-AUC-std'):
+        assert non_existing_field not in results
+
+
 def test_custom_eval():
     class LoglossMetric(object):
         def get_final_error(self, error, weight):
@@ -2300,44 +2646,63 @@ def test_custom_eval():
     model.fit(train_pool, eval_set=test_pool)
     pred1 = model.predict(test_pool)
 
-    model2 = CatBoostClassifier(iterations=5, use_best_model=True, eval_metric="Logloss")
+    model2 = CatBoostClassifier(iterations=5, use_best_model=True, eval_metric='Logloss')
     model2.fit(train_pool, eval_set=test_pool)
     pred2 = model2.predict(test_pool)
 
     assert np.all(pred1 == pred2)
 
 
-@fails_on_gpu(how='cuda/train_lib/train.cpp:283: Error: loss function is not supported for GPU learning Custom')
-def test_custom_objective(task_type):
-    class LoglossObjective(object):
-        def calc_ders_range(self, approxes, targets, weights):
-            assert len(approxes) == len(targets)
+class LoglossObjective(object):
+    def calc_ders_range(self, approxes, targets, weights):
+        assert len(approxes) == len(targets)
+        if weights is not None:
+            assert len(weights) == len(approxes)
+
+        exponents = []
+        for index in xrange(len(approxes)):
+            exponents.append(math.exp(approxes[index]))
+
+        result = []
+        for index in xrange(len(targets)):
+            p = exponents[index] / (1 + exponents[index])
+            der1 = (1 - p) if targets[index] > 0.0 else -p
+            der2 = -p * (1 - p)
+
             if weights is not None:
-                assert len(weights) == len(approxes)
+                der1 *= weights[index]
+                der2 *= weights[index]
 
-            exponents = []
-            for index in xrange(len(approxes)):
-                exponents.append(math.exp(approxes[index]))
+            result.append((der1, der2))
 
-            result = []
-            for index in xrange(len(targets)):
-                p = exponents[index] / (1 + exponents[index])
-                der1 = (1 - p) if targets[index] > 0.0 else -p
-                der2 = -p * (1 - p)
+        return result
 
-                if weights is not None:
-                    der1 *= weights[index]
-                    der2 *= weights[index]
 
-                result.append((der1, der2))
+class LoglossObjectiveNumpy(object):
+    def __init__(self):
+        self._objective = LoglossObjective()
 
-            return result
+    def calc_ders_range(self, approxes, targets, weights):
+        return np.array(self._objective.calc_ders_range(approxes, targets, weights))
+
+
+class LoglossObjectiveNumpy32(object):
+    def __init__(self):
+        self._objective = LoglossObjective()
+
+    def calc_ders_range(self, approxes, targets, weights):
+        return np.array(self._objective.calc_ders_range(approxes, targets, weights), dtype=np.float32)
+
+
+@pytest.mark.parametrize('loss_objective', [LoglossObjective, LoglossObjectiveNumpy, LoglossObjectiveNumpy32])
+@fails_on_gpu(how='cuda/train_lib/train.cpp:283: Error: loss function is not supported for GPU learning Custom')
+def test_custom_objective(task_type, loss_objective):
 
     train_pool = Pool(data=TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(data=TEST_FILE, column_description=CD_FILE)
 
     model = CatBoostClassifier(iterations=5, learning_rate=0.03, use_best_model=True,
-                               loss_function=LoglossObjective(), eval_metric="Logloss",
+                               loss_function=loss_objective(), eval_metric="Logloss",
                                # Leaf estimation method and gradient iteration are set to match
                                # defaults for Logloss.
                                leaf_estimation_method="Newton", leaf_estimation_iterations=1, task_type=task_type, devices='0')
@@ -2935,6 +3300,55 @@ def test_cv_with_save_snapshot(task_type):
         )
 
 
+@pytest.mark.parametrize("params", [
+    {"loss_function": "Logloss", "eval_metric": "AUC"},
+    {"loss_function": "RMSE", "eval_metric": "R2"},
+])
+def test_cv_return_models(params):
+    params.update({"iterations": 20, "learning_rate": 0.03})
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    test_pool = Pool(TEST_FILE, column_description=CD_FILE)
+    fold_count = 5
+    results, cv_models = cv(
+        train_pool,
+        params,
+        fold_count=fold_count,
+        return_models=True,
+    )
+
+    assert len(cv_models) == fold_count
+
+    single_model = CatBoost(params).fit(train_pool)
+    single_model_prediction = single_model.predict(test_pool, prediction_type="RawFormulaVal")
+    single_model_metric = eval_metric(test_pool.get_label(), single_model_prediction, params["eval_metric"])
+
+    for model in cv_models:
+        assert isinstance(model, CatBoost)
+        assert model.random_seed_ == single_model.random_seed_
+        assert model.tree_count_ == params["iterations"]
+
+        model_prediction = model.predict(test_pool, prediction_type="RawFormulaVal")
+        cv_model_metric = eval_metric(test_pool.get_label(), model_prediction, params["eval_metric"])
+        assert np.allclose(
+            cv_model_metric,
+            single_model_metric,
+            atol=results["test-{}-std".format(params["eval_metric"])][0]
+        )
+
+        # Other methods
+        model.calc_leaf_indexes(test_pool)
+        assert model.get_all_params().keys() == single_model.get_all_params().keys()
+        assert not np.isnan(model.get_feature_importance(test_pool)).any()
+        assert not np.isnan(model.get_scale_and_bias()).any()
+        model = model.copy()
+        try:
+            model.compare(single_model, test_pool, [params["eval_metric"]])
+        except ImportError as ie:
+            pytest.xfail(str(ie)) if str(ie) == "No module named widget" \
+                else pytest.fail(str(ie))
+        del model
+
+
 def test_cv_small_data():
     cv_data = [["France", 1924, 44],
                ["USA", 1932, 37],
@@ -3363,7 +3777,7 @@ def test_feature_importance(task_type):
     pool_querywise = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
     fimp_npy_path = test_output_path(FIMP_NPY_PATH)
 
-    model = CatBoost({"iterations": 5, "learning_rate": 0.03, "task_type": task_type, "devices": "0", "loss_function": "QueryRMSE"})
+    model = CatBoostRanker(iterations=5, learning_rate=0.03, task_type=task_type, devices="0", loss_function="QueryRMSE")
     model.fit(pool_querywise)
 
     assert len(model.feature_importances_.shape) == 0
@@ -3412,11 +3826,11 @@ def test_feature_importance_asymmetric_prediction_value_change(task_type, grow_p
         "loss_function": "QueryRMSE",
         "grow_policy": grow_policy
     }
-    model = CatBoost(params)
+    model = CatBoostRanker(**params)
     model.fit(pool_querywise)
     assert len(model.feature_importances_.shape) == 0
     params["loss_function"] = "RMSE"
-    model = CatBoost(params)
+    model = CatBoostRegressor(**params)
     model.fit(pool)
     assert (model.get_feature_importance() == model.get_feature_importance(type=EFstrType.PredictionValuesChange)).all()
     np.save(fimp_npy_path, np.array(model.feature_importances_))
@@ -3534,8 +3948,8 @@ def test_exact_shap_feature_importance_multiclass(task_type):
 
 @pytest.mark.parametrize('calc_shap_mode', ['TreeSHAP', 'IndependentTreeSHAP'])
 def test_shap_feature_importance_multirmse(task_type, calc_shap_mode):
-    train_file = data_file('multiregression', 'train')
-    cd_file = data_file('multiregression', 'train.cd')
+    train_file = MULTIREGRESSION_TRAIN_FILE
+    cd_file = MULTIREGRESSION_CD_FILE
     pool = Pool(train_file, column_description=cd_file)
     reference_data = make_reference_data(pool, calc_shap_mode)
     model = CatBoostRegressor(iterations=5, learning_rate=0.03, task_type=task_type, devices='0', loss_function='MultiRMSE')
@@ -3546,8 +3960,8 @@ def test_shap_feature_importance_multirmse(task_type, calc_shap_mode):
 
 
 def test_approximate_shap_feature_importance_multirmse(task_type):
-    train_file = data_file('multiregression', 'train')
-    cd_file = data_file('multiregression', 'train.cd')
+    train_file = MULTIREGRESSION_TRAIN_FILE
+    cd_file = MULTIREGRESSION_CD_FILE
     pool = Pool(train_file, column_description=cd_file)
     model = CatBoostRegressor(iterations=5, learning_rate=0.03, task_type=task_type, devices='0', loss_function='MultiRMSE')
     model.fit(pool)
@@ -3558,8 +3972,8 @@ def test_approximate_shap_feature_importance_multirmse(task_type):
 
 
 def test_exact_shap_feature_importance_multirmse(task_type):
-    train_file = data_file('multiregression', 'train')
-    cd_file = data_file('multiregression', 'train.cd')
+    train_file = MULTIREGRESSION_TRAIN_FILE
+    cd_file = MULTIREGRESSION_CD_FILE
     pool = Pool(train_file, column_description=cd_file)
     model = CatBoostRegressor(iterations=5, learning_rate=0.03, task_type=task_type, devices='0', loss_function='MultiRMSE')
     model.fit(pool)
@@ -3571,15 +3985,7 @@ def test_exact_shap_feature_importance_multirmse(task_type):
 
 def test_shap_feature_importance_ranking(task_type):
     pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE, pairs=QUERYWISE_TRAIN_PAIRS_FILE)
-    model = CatBoost(
-        {
-            "iterations": 20,
-            "learning_rate": 0.03,
-            "task_type": task_type,
-            "devices": "0",
-            "loss_function": "PairLogit"
-        }
-    )
+    model = CatBoostRanker(iterations=20, learning_rate=0.03, task_type=task_type, devices='0', loss_function='PairLogit')
     model.fit(pool)
     shaps = model.get_feature_importance(type=EFstrType.ShapValues, data=pool)
     assert np.allclose(model.predict(pool), np.sum(shaps, axis=1))
@@ -3594,15 +4000,7 @@ def test_shap_feature_importance_ranking(task_type):
 
 def test_approximate_shap_feature_importance_ranking(task_type):
     pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE, pairs=QUERYWISE_TRAIN_PAIRS_FILE)
-    model = CatBoost(
-        {
-            "iterations": 20,
-            "learning_rate": 0.03,
-            "task_type": task_type,
-            "devices": "0",
-            "loss_function": "PairLogit"
-        }
-    )
+    model = CatBoostRanker(iterations=20, learning_rate=0.03, task_type=task_type, devices='0', loss_function='PairLogit')
     model.fit(pool)
     shaps = model.get_feature_importance(type=EFstrType.ShapValues, data=pool, shap_calc_type="Approximate")
     assert np.allclose(model.predict(pool), np.sum(shaps, axis=1))
@@ -3617,15 +4015,7 @@ def test_approximate_shap_feature_importance_ranking(task_type):
 
 def test_exact_shap_feature_importance_ranking(task_type):
     pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE, pairs=QUERYWISE_TRAIN_PAIRS_FILE)
-    model = CatBoost(
-        {
-            "iterations": 20,
-            "learning_rate": 0.03,
-            "task_type": task_type,
-            "devices": "0",
-            "loss_function": "PairLogit"
-        }
-    )
+    model = CatBoostRanker(iterations=20, learning_rate=0.03, task_type=task_type, devices='0', loss_function='PairLogit')
     model.fit(pool)
     shaps = model.get_feature_importance(type=EFstrType.ShapValues, data=pool, shap_calc_type="Exact")
     assert np.allclose(model.predict(pool), np.sum(shaps, axis=1))
@@ -3999,16 +4389,18 @@ def test_verbose_int(verbose, task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     tmpfile = 'test_data_dumps'
 
-    with LogStdout(open(tmpfile, 'w')):
+    with open(tmpfile, 'w') as cout:
         cv(
             pool,
             {"iterations": 10, "learning_rate": 0.03, "loss_function": "Logloss", "task_type": task_type},
             verbose=verbose,
+            log_cout=cout,
         )
     assert(_count_lines(tmpfile) == expected_line_count[verbose])
 
-    with LogStdout(open(tmpfile, 'w')):
-        train(pool, {"iterations": 10, "learning_rate": 0.03, "loss_function": "Logloss", "task_type": task_type, "devices": '0'}, verbose=verbose)
+    with open(tmpfile, 'w') as cout:
+        train(pool, {"iterations": 10, "learning_rate": 0.03, "loss_function": "Logloss", "task_type": task_type, "devices": '0'},
+              verbose=verbose, log_cout=cout)
     assert(_count_lines(tmpfile) == expected_line_count[verbose])
 
     return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
@@ -4483,10 +4875,10 @@ def test_metric_period_redefinition(task_type):
     tmpfile2 = test_output_path('tmpfile2')
     model = CatBoost(dict(iterations=10, metric_period=3, task_type=task_type, devices='0'))
 
-    with LogStdout(open(tmpfile1, 'w')):
-        model.fit(pool)
-    with LogStdout(open(tmpfile2, 'w')):
-        model.fit(pool, metric_period=2)
+    with open(tmpfile1, 'w') as cout:
+        model.fit(pool, log_cout=cout)
+    with open(tmpfile2, 'w') as cout:
+        model.fit(pool, metric_period=2, log_cout=cout)
 
     assert(_count_lines(tmpfile1) == 5)
     assert(_count_lines(tmpfile2) == 7)
@@ -4498,10 +4890,10 @@ def test_verbose_redefinition(task_type):
     tmpfile2 = test_output_path('tmpfile2')
     model = CatBoost(dict(iterations=10, verbose=False, task_type=task_type, devices='0'))
 
-    with LogStdout(open(tmpfile1, 'w')):
-        model.fit(pool)
-    with LogStdout(open(tmpfile2, 'w')):
-        model.fit(pool, verbose=True)
+    with open(tmpfile1, 'w') as cout:
+        model.fit(pool, log_cout=cout)
+    with open(tmpfile2, 'w') as cout:
+        model.fit(pool, verbose=True, log_cout=cout)
 
     assert(_count_lines(tmpfile1) == 0)
     assert(_count_lines(tmpfile2) == 11)
@@ -4622,20 +5014,20 @@ def test_silent():
     tmpfile4 = test_output_path('tmpfile4')
     tmpfile5 = test_output_path('tmpfile5')
 
-    with LogStdout(open(tmpfile1, 'w')):
+    with open(tmpfile1, 'w') as cout:
         model = CatBoost(dict(iterations=10, silent=True))
-        model.fit(pool)
-    with LogStdout(open(tmpfile2, 'w')):
+        model.fit(pool, log_cout=cout)
+    with open(tmpfile2, 'w') as cout:
         model = CatBoost(dict(iterations=10, silent=True))
-        model.fit(pool, silent=False)
-    with LogStdout(open(tmpfile3, 'w')):
-        train(pool, {'silent': True})
-    with LogStdout(open(tmpfile4, 'w')):
+        model.fit(pool, silent=False, log_cout=cout)
+    with open(tmpfile3, 'w') as cout:
+        train(pool, {'silent': True}, log_cout=cout)
+    with open(tmpfile4, 'w') as cout:
         model = CatBoost(dict(iterations=10, silent=False))
-        model.fit(pool, silent=True)
-    with LogStdout(open(tmpfile5, 'w')):
+        model.fit(pool, silent=True, log_cout=cout)
+    with open(tmpfile5, 'w') as cout:
         model = CatBoost(dict(iterations=10, verbose=5))
-        model.fit(pool, silent=True)
+        model.fit(pool, silent=True, log_cout=cout)
 
     assert(_count_lines(tmpfile1) == 0)
     assert(_count_lines(tmpfile2) == 11)
@@ -4816,8 +5208,8 @@ def test_shap_verbose(calc_shap_mode):
     model.fit(pool)
 
     tmpfile = test_output_path('test_data_dumps')
-    with LogStdout(open(tmpfile, 'w')):
-        model.get_feature_importance(type=EFstrType.ShapValues, data=pool, verbose=12, reference_data=reference_data)
+    with open(tmpfile, 'w') as cout:
+        model.get_feature_importance(type=EFstrType.ShapValues, data=pool, verbose=12, reference_data=reference_data, log_cout=cout)
     if calc_shap_mode == "TreeSHAP":
         assert(_count_lines(tmpfile) == 5)
     else:
@@ -4960,6 +5352,27 @@ def test_loading_pool_with_lists():
     )
 
 
+def test_pool_group_id_hash():
+    def get_group_sizes(group_id):
+        assert group_id is not None and len(group_id) > 0
+        neighbors_diff = abs(np.diff(group_id))
+        group_end_ids = [-1] + list(np.where(neighbors_diff > 0)[0]) + [len(group_id) - 1]
+        return np.diff(group_end_ids)
+
+    np.random.seed(42)
+
+    num_rows = 10000
+    cnt_groups = 100
+    group_id = sorted(np.random.randint(0, cnt_groups, num_rows))
+    pool = Pool(data=np.random.randint(0, 1000, (num_rows, 2)),
+                label=np.random.choice([-1, 1], num_rows),
+                group_id=group_id
+                )
+    group_id_hash = pool.get_group_id_hash()
+    assert len(np.unique(group_id)) == len(np.unique(group_id_hash))
+    assert np.all(get_group_sizes(group_id) == get_group_sizes(group_id_hash))
+
+
 def test_pairs_generation(task_type):
     model = CatBoost({"loss_function": "PairLogit", "iterations": 2, "task_type": task_type})
     pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
@@ -4968,7 +5381,7 @@ def test_pairs_generation(task_type):
 
 
 def test_pairs_generation_generated(task_type):
-    model = CatBoost(params={'loss_function': 'PairLogit', 'iterations': 10, 'thread_count': 8, 'task_type': task_type, 'devices': '0'})
+    model = CatBoostRanker(loss_function='PairLogit', iterations=10, thread_count=8, task_type=task_type, devices='0')
 
     df = read_csv(QUERYWISE_TRAIN_FILE, delimiter='\t', header=None)
     df = df.loc[:10, :]
@@ -5638,7 +6051,9 @@ class Metrics(object):
             'QuerySoftMax',
             'PFound',
             'NDCG',
-            'AverageGain'
+            'AverageGain',
+            'MRR',
+            'ERR',
         }
         good = re.compile(r'^({})(\W|$)'.format('|'.join(supported_by)))
         return filter(lambda case: good.match(case), cases)
@@ -5704,6 +6119,8 @@ class Metrics(object):
             'YetiRankPairwise',
             'ZeroOneLoss',
             'LogLikelihoodOfPrediction',
+            'MRR',
+            'ERR',
         }
         for attr in query.split():
             if attr.startswith('-'):
@@ -5787,7 +6204,7 @@ class TestUseWeights(object):
         else:
             loss_function = 'PairLogit'
 
-        cb = CatBoost({"loss_function": loss_function, "iterations": 3, 'task_type': task_type, 'devices': '0'})
+        cb = CatBoostRanker(loss_function=loss_function, iterations=3, task_type=task_type, devices='0')
         cb.fit(train_pool)
         return (cb, test_pool)
 
@@ -5833,6 +6250,12 @@ class TestUseWeights(object):
             if use_weights_has_effect:
                 break
         assert use_weights_has_effect, "param `use_weights` has no effect\n\teval_metrics={}".format(eval_metrics)
+
+
+def test_lambda_mart():
+    pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
+    cb = CatBoostRanker(loss_function='LambdaMart', iterations=3, devices='0')
+    cb.fit(pool)
 
 
 @pytest.mark.parametrize('param_type', ['indices', 'strings'])
@@ -6067,8 +6490,8 @@ def test_best_iteration(task_type):
     model = CatBoostClassifier(**params)
     model.fit(train_pool, eval_set=test_pool)
     log_path = test_output_path('log.txt')
-    with LogStdout(open(log_path, 'w')):
-        model.fit(train_pool, eval_set=test_pool)
+    with open(log_path, 'w') as cout:
+        model.fit(train_pool, eval_set=test_pool, log_cout=cout)
     with open(log_path, 'r') as log_file:
         content = log_file.read()
         best_iteration_from_log = re.search(r'(?<=bestIteration = )\d+', content).group(0)
@@ -6291,6 +6714,39 @@ def test_output_border_file_regressor(task_type):
 
     model3 = CatBoostRegressor(**args)
     model4 = CatBoostRegressor(border_count=2, **args)
+
+    model1.fit(train_pool)
+    model2.fit(train_pool)
+    model3.fit(train_pool)
+    model4.fit(train_pool)
+    pred1 = model1.predict(test_pool)
+    pred2 = model2.predict(test_pool)
+    pred3 = model3.predict(test_pool)
+    pred4 = model4.predict(test_pool)
+    assert _check_data(pred1, pred2)
+    assert not _check_data(pred1, pred3)
+    assert not _check_data(pred1, pred4)
+
+
+def test_output_border_file_ranker(task_type):
+    OUTPUT_BORDERS_FILE = 'output_border_file.dat'
+
+    train_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
+    test_pool = Pool(QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE)
+    args = {
+        'iterations': 30,
+        'loss_function': 'YetiRank',
+        'use_best_model': False,
+        'learning_rate': 0.3
+    }
+    model1 = CatBoostRanker(border_count=32,
+                               output_borders=OUTPUT_BORDERS_FILE,
+                               **args)
+    model2 = CatBoostRanker(input_borders=os.path.join('catboost_info', OUTPUT_BORDERS_FILE),
+                               **args)
+
+    model3 = CatBoostRanker(**args)
+    model4 = CatBoostRanker(border_count=2, **args)
 
     model1.fit(train_pool)
     model2.fit(train_pool)
@@ -6597,8 +7053,8 @@ def test_metric_period_with_verbose_true():
     model = CatBoost(dict(iterations=16, metric_period=4))
 
     tmpfile = test_output_path('tmpfile')
-    with LogStdout(open(tmpfile, 'w')):
-        model.fit(pool, verbose=True)
+    with open(tmpfile, 'w') as cout:
+        model.fit(pool, verbose=True, log_cout=cout)
 
     assert(_count_lines(tmpfile) == 6)
 
@@ -6707,6 +7163,7 @@ def test_feature_statistics(combination):
         model = sum_models([model0, model1])
 
     feature_num = 0
+    model.calc_feature_statistics({'learn': X, 'test': X}, {'learn': y, 'test': y}, feature_num, plot=False)
     res = model.calc_feature_statistics(X, y, feature_num, plot=False)
 
     def mean_per_bin(res, feature_num, data):
@@ -7016,7 +7473,7 @@ def test_equal_feature_names():
 
 
 @pytest.mark.parametrize('variance_power', [1.001, 1.42, 1.8, 1.999])
-def test_tweedie_loss_on_gpu(variance_power):
+def test_tweedie_loss_on_gpu(task_type, variance_power):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
 
@@ -7024,7 +7481,25 @@ def test_tweedie_loss_on_gpu(variance_power):
         {
             'iterations': 10,
             'loss_function': 'Tweedie:variance_power=' + str(variance_power),
-            'task_type': 'GPU',
+            'task_type': task_type,
+            'devices': '0-7'
+        }
+    )
+
+    model.fit(train_pool)
+    model.predict(test_pool)
+
+
+@pytest.mark.parametrize('delta', [0.01, 0.5, 1, 1.5])
+def test_huber_loss_on_gpu(task_type, delta):
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    test_pool = Pool(TEST_FILE, column_description=CD_FILE)
+
+    model = CatBoost(
+        {
+            'iterations': 10,
+            'loss_function': 'Huber:delta=' + str(delta),
+            'task_type': task_type,
             'devices': '0-7'
         }
     )
@@ -7289,9 +7764,11 @@ def test_quantized_pool_with_all_features_ignored():
 
 
 @pytest.fixture(params=[
+    ('adult', TRAIN_FILE, TEST_FILE, CD_FILE, 'Logloss'),
     ('higgs', HIGGS_TRAIN_FILE, HIGGS_TEST_FILE, HIGGS_CD_FILE, 'Logloss'),
     ('querywise', QUERYWISE_TRAIN_FILE, QUERYWISE_TEST_FILE, QUERYWISE_CD_FILE, 'RMSE'),
 ], ids=[
+    'adult',
     'higgs',
     'querywise'
 ])
@@ -7317,6 +7794,7 @@ def train_on_raw_and_quantized_data_params_fixture(request):
     assert(test_quantized_pool.is_quantized())
 
     return {
+        'pool_name': pool_name,
         'train_pool': train_pool,
         'test_pool': test_pool,
         'train_quantized_pool': train_quantized_pool,
@@ -7342,6 +7820,7 @@ def models_trained_on_raw_and_quantized_data_fixture(train_on_raw_and_quantized_
     model_fitted_with_quantized_pool.fit(train_quantized_pool)
 
     return {
+        'pool_name': train_on_raw_and_quantized_data_params_fixture['pool_name'],
         'train_pool': train_pool,
         'test_pool': test_pool,
         'train_quantized_pool': train_quantized_pool,
@@ -7404,9 +7883,18 @@ def test_quantized_pool_calc_feature_statistics(models_trained_on_raw_and_quanti
     def serialize_feature_statistics(stats):
         return json.dumps(stats, cls=NumpyEncoder, sort_keys=True)
 
-    stats = model.calc_feature_statistics(pool, plot=False)
-    stats_with_quantized_pool = model_fitted_with_quantized_pool.calc_feature_statistics(quantized_pool, plot=False)
-    assert serialize_feature_statistics(stats) == serialize_feature_statistics(stats_with_quantized_pool)
+    if models_trained_on_raw_and_quantized_data_fixture['pool_name'] == 'adult':
+        # TODO(akhropov): calc_feature_statistics does not support CTR features
+        with pytest.raises(CatBoostError):
+            model.calc_feature_statistics(pool, plot=False)
+    else:
+        stats = model.calc_feature_statistics(pool, plot=False)
+        stats_with_quantized_pool = model_fitted_with_quantized_pool.calc_feature_statistics(
+            quantized_pool,
+            plot=False
+        )
+        assert serialize_feature_statistics(stats) == serialize_feature_statistics(stats_with_quantized_pool)
+        model.calc_feature_statistics({'learn': pool, 'test': pool}, plot=False)
 
 
 @pytest.mark.parametrize('pool_type', ['train', 'test'])
@@ -8315,6 +8803,49 @@ def test_log_proba():
     assert np.allclose(log_pred_1, log_pred_2)
 
 
+def test_binclass_probability_threshold():
+    # binary classification
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+
+    classifier = CatBoostClassifier(iterations=2)
+    with pytest.raises(CatBoostError):
+        classifier.set_probability_threshold(0.6)  # can't set before training
+    with pytest.raises(CatBoostError):
+        classifier.get_probability_threshold()  # can't get before training
+
+    classifier.fit(pool)
+    assert classifier.get_probability_threshold() == 0.5  # check default value
+
+    classifier.set_probability_threshold(0.6)  # check set
+    assert classifier.get_probability_threshold() == 0.6  # check get
+
+    def check_predictions_with_threshold(classifier, threshold):
+        proba = classifier.predict_proba(pool)[:, 1]
+        pred = classifier.predict(pool).astype(int)
+        if threshold < 0.5:
+            assert np.any((proba > threshold) & (proba < 0.5))  # check for non-dummy test case
+        elif threshold > 0.5:
+            assert np.any((proba > 0.5) & (proba < threshold))  # check for non-dummy test case
+
+        assert np.all(pred == (proba > threshold).astype(int))  # check if threshold is working
+
+    check_predictions_with_threshold(classifier, 0.6)
+
+    accuracy = classifier.score(pool)  # check if score function is working too
+    pred = classifier.predict(pool).astype(int)
+    assert np.allclose(accuracy, np.mean(pred == np.array(pool.get_label()).astype(int)))
+
+    # change threshold
+    classifier.set_probability_threshold(0.4)
+    assert classifier.get_probability_threshold() == 0.4
+    check_predictions_with_threshold(classifier, 0.4)
+
+    # nullify it
+    classifier.set_probability_threshold(None)
+    assert classifier.get_probability_threshold() == 0.5
+    check_predictions_with_threshold(classifier, 0.5)
+
+
 def test_exponent_prediction_type():
     # poisson regression
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
@@ -8349,7 +8880,7 @@ def test_bad_uncertainty_prediction_types_usage():
 
 @pytest.mark.parametrize('virtual_ensembles_count', [1, 5])
 @pytest.mark.parametrize('prediction_type', ['TotalUncertainty', 'VirtEnsembles'])
-@pytest.mark.parametrize('loss_function', ['RMSE', 'RMSEWithUncertainty', 'Logloss'])
+@pytest.mark.parametrize('loss_function', ['RMSE', 'RMSEWithUncertainty', 'Logloss', 'MultiClass'])
 def test_uncertainty_prediction_types(virtual_ensembles_count, prediction_type, loss_function):
     pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE) \
         if loss_function != 'Logloss' \
@@ -8370,7 +8901,7 @@ def test_uncertainty_prediction_types(virtual_ensembles_count, prediction_type, 
         shape = preds.shape
         assert len(shape) == 3 and shape[1] == virtual_ensembles_count
         preds = preds.reshape(shape[0], shape[1] * shape[2])
-    np.savetxt(preds_path, preds, fmt='%.15f', delimiter='\t')
+    np.savetxt(preds_path, preds, fmt='%.9f', delimiter='\t')
     return local_canonical_file(preds_path)
 
 
@@ -8525,6 +9056,33 @@ def test_to_regressor_wrong_type():
     model.fit(train_pool)
     with pytest.raises(CatBoostError):
         to_regressor(model)
+
+
+def test_to_ranker():
+    train_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
+    test_pool = Pool(QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE)
+
+    models = []
+    for learning_rate in [.03, .05]:
+        models.append(CatBoostRanker(iterations=2, learning_rate=learning_rate))
+        models[-1].fit(train_pool, eval_set=test_pool)
+
+    merged_model = sum_models(models)
+    prediction = merged_model.predict(test_pool)
+    assert type(merged_model) is CatBoost
+
+    merged_model = to_ranker(merged_model)
+
+    assert isinstance(merged_model, CatBoostRanker)
+    assert _check_data(merged_model.predict(test_pool), prediction)
+
+
+def test_to_ranker_wrong_type():
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(iterations=2, learning_rate=.05, objective='Logloss')
+    model.fit(train_pool)
+    with pytest.raises(CatBoostError):
+        to_ranker(model)
 
 
 def test_load_and_save_quantization_borders():
@@ -9090,7 +9648,96 @@ def test_same_params(params):
     assert CatBoost().load_model(model_path).get_params() == params
 
 
-def test_column_description_load_save():
+@pytest.mark.parametrize('task', ['binclass', 'multiclass'])
+@pytest.mark.parametrize('metric', ['TotalF1', 'MCC', 'F1', 'Precision', 'Recall'])
+@pytest.mark.parametrize('use_weights', [True, False])
+def test_eval_metric_with_weights(task_type, task, metric, use_weights):
+    X = np.random.random()
+    if task == 'multiclass' and metric in ('F1', 'Precision', 'Recall'):
+        pytest.skip('Metric with multiple values is not allowed to use as eval_metric')
+    np.random.seed(0)
+    X = np.random.random(size=(100, 10))
+    if task == 'binclass':
+        y = [0] * 30 + [1] * 70
+    else:
+        y = [0] * 20 + [1] * 30 + [2] * 50
+    np.random.shuffle(y)
+    weight = np.random.random(size=100)
+    pool = Pool(X, y, weight=weight)
+
+    full_metric_name = '{}:use_weights={}'.format(metric, str(use_weights).lower())
+    full_metric_name_inverse = '{}:use_weights={}'.format(metric, str(not use_weights).lower())
+    model = CatBoostClassifier(
+        loss_function='Logloss' if task == 'binclass' else 'MultiClass',
+        iterations=1,
+        eval_metric=full_metric_name,
+        task_type=task_type
+    )
+    model.fit(pool)
+    fit_metric = model.evals_result_['learn'][full_metric_name]
+    eval_metric = model.eval_metrics(pool, full_metric_name)[full_metric_name]
+    eval_metric_inverse = model.eval_metrics(pool, full_metric_name_inverse)[full_metric_name_inverse]
+    assert not np.array_equal(eval_metric, eval_metric_inverse)
+    assert np.array_equal(fit_metric, eval_metric)
+
+
+@pytest.mark.parametrize('problem', ['Classifier', 'Regressor'])
+def test_callbacks_early_stop(problem):
+    np.random.seed(0)
+    train_data = np.random.randint(0, 100, size=(100, 5))
+    train_labels = np.random.randint(0, 2, size=100)
+    if problem == 'Classifier':
+        loss = 'Logloss'
+        model = CatBoostClassifier(iterations=10, loss_function=loss)
+    else:
+        loss = 'RMSE'
+        model = CatBoostRegressor(iterations=10, loss_function=loss)
+
+    class EarlyStopCallback:
+        def __init__(self, stop_iteration):
+            self._stop_iteration = stop_iteration
+
+        def after_iteration(self, info):
+            return info.iteration != self._stop_iteration
+
+    model.fit(train_data, train_labels, callbacks=[
+        EarlyStopCallback(7),
+        EarlyStopCallback(5),
+        EarlyStopCallback(6)
+    ])
+
+    evals_result = model.get_evals_result()
+    assert 'learn' in evals_result
+    assert loss in evals_result['learn']
+    assert len(evals_result['learn'][loss]) == 5
+
+
+def test_callbacks_metrics():
+    np.random.seed(0)
+
+    def generate_dataset():
+        return np.random.randint(0, 100, size=(100, 5)), np.random.randint(0, 2, size=100)
+
+    train_data, train_labels = generate_dataset()
+    validation_0 = generate_dataset()
+    validation_1 = generate_dataset()
+    metric_names = ['Logloss', 'CrossEntropy']
+    model = CatBoostClassifier(iterations=10, custom_metric=metric_names)
+
+    class MetricsCheckerCallback:
+        def after_iteration(self, info):
+            for dataset_name in ['learn', 'validation_0', 'validation_1']:
+                assert dataset_name in info.metrics
+                for metric_name in metric_names:
+                    assert metric_name in info.metrics[dataset_name]
+                    assert len(info.metrics[dataset_name][metric_name]) == info.iteration
+            return True
+
+    model.fit(train_data, train_labels,
+              callbacks=[MetricsCheckerCallback()],
+              eval_set=[validation_0, validation_1])
+
+    def test_column_description_load_save():
     column_count = 18
 
     before_save = ColumnDescription(cd_file=CD_FILE,

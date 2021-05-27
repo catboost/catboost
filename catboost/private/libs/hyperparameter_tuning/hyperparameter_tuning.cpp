@@ -694,7 +694,8 @@ namespace {
         const NCB::TDataMetaInfo& metaInfo,
         const NJson::TJsonValue& modelParamsToBeTried,
         NCatboostOptions::TCatBoostOptions *catBoostOptions,
-        NCatboostOptions::TOutputFilesOptions *outputFileOptions) {
+        NCatboostOptions::TOutputFilesOptions *outputFileOptions,
+        TString* paramsErrorMessage) {
         try {
             NJson::TJsonValue jsonParams;
             NJson::TJsonValue outputJsonParams;
@@ -704,7 +705,8 @@ namespace {
             outputFileOptions->Load(outputJsonParams);
 
             return true;
-        } catch (const TCatBoostException&) {
+        } catch (const TCatBoostException& exception) {
+            *paramsErrorMessage = ToString(exception.what());
             return false;
         }
     }
@@ -753,6 +755,8 @@ namespace {
 
         TProfileInfo profile(gridIterator->GetTotalElementsCount());
         TConstArrayRef<NJson::TJsonValue> paramsSet;
+        TString paramsErrorString;
+        bool foundValidParams = false;
         while (gridIterator->Next(&paramsSet)) {
             profile.StartIterationBlock();
             // paramsSet: {border_count, feature_border_type, nan_mode, [others]}
@@ -777,11 +781,13 @@ namespace {
                 data.Get()->MetaInfo,
                 *modelParamsToBeTried,
                 &catBoostOptions,
-                &outputFileOptions
+                &outputFileOptions,
+                &paramsErrorString
             );
             if (!areParamsValid) {
                 continue;
             }
+            foundValidParams = true;
 
             TString tmpDir;
             if (outputFileOptions.AllowWriteFiles()) {
@@ -902,6 +908,9 @@ namespace {
             oneIterLogger.OutputProfile(profile.GetProfileResults());
             iterationIdx++;
         }
+        if (!foundValidParams) {
+            ythrow TCatBoostException() << "All params in grid were invalid, last error message: " << paramsErrorString;
+        }
         return bestParamsSetMetricValue;
     }
 
@@ -948,6 +957,8 @@ namespace {
         int bestIterationIdx = 0;
         TProfileInfo profile(gridIterator->GetTotalElementsCount());
         TConstArrayRef<NJson::TJsonValue> paramsSet;
+        bool foundValidParams = false;
+        TString paramsErrorString;
         while (gridIterator->Next(&paramsSet)) {
             profile.StartIterationBlock();
             // paramsSet: {border_count, feature_border_type, nan_mode, [others]}
@@ -972,11 +983,13 @@ namespace {
                 data.Get()->MetaInfo,
                 *modelParamsToBeTried,
                 &catBoostOptions,
-                &outputFileOptions
+                &outputFileOptions,
+                &paramsErrorString
             );
             if (!areParamsValid) {
                 continue;
             }
+            foundValidParams = true;
 
             static const bool allowWriteFiles = outputFileOptions.AllowWriteFiles();
             TString tmpDir;
@@ -1019,6 +1032,7 @@ namespace {
                 internalOptions.OffsetMetricPeriodByInitModelSize = true;
                 outputFileOptions.SetAllowWriteFiles(false);
                 const auto defaultTrainingCallbacks = MakeHolder<ITrainingCallbacks>();
+                const auto defaultCustomCallbacks = MakeHolder<TCustomCallbacks>(Nothing());
                 // Training model
                 modelTrainerHolder->TrainModel(
                     internalOptions,
@@ -1030,6 +1044,7 @@ namespace {
                     /*precomputedSingleOnlineCtrDataForSingleFold*/ Nothing(),
                     labelConverter,
                     defaultTrainingCallbacks.Get(), // TODO(ilikepugs): MLTOOLS-3540
+                    defaultCustomCallbacks.Get(),
                     /*initModel*/ Nothing(),
                     /*initLearnProgress*/ nullptr,
                     /*initModelApplyCompatiblePools*/ NCB::TDataProviders(),
@@ -1125,6 +1140,9 @@ namespace {
             profile.FinishIterationBlock(1);
             oneIterLogger.OutputProfile(profile.GetProfileResults());
             iterationIdx++;
+        }
+        if (!foundValidParams) {
+            ythrow TCatBoostException() << "All params in grid were invalid, last error message: " << paramsErrorString;
         }
         return bestParamsSetMetricValue;
     }

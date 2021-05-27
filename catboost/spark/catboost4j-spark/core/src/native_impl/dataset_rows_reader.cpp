@@ -364,6 +364,7 @@ TRawDatasetRowsReader::TRawDatasetRowsReader(
             /*baselineFilePath*/ TPathWithScheme(),
             /*timestampsFilePath*/ TPathWithScheme(),
             /*featureNamesPath*/ TPathWithScheme(),
+            /*poolMetaInfoPath*/ TPathWithScheme(),
             /*classLabels*/ TVector<NJson::TJsonValue>(),
             dsvFormatOptions,
             std::move(cdProvider),

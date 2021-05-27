@@ -91,4 +91,12 @@ PEERDIR(
     library/cpp/threading/local_executor
 )
 
+IF(HAVE_CUDA)
+    CFLAGS(-DHAVE_CUDA)
+
+    PEERDIR(
+        catboost/libs/model/cuda
+    )
+ENDIF()
+
 END()

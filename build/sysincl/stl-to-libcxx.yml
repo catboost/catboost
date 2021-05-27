@@ -30,8 +30,6 @@
 - includes:
   - atomic.h:
     - contrib/libs/cxxsupp/libcxxrt/atomic.h
-  - charconv:
-    - contrib/libs/cxxsupp/libcxx/include/charconv
   - cxxabi.h:
     - contrib/libs/cxxsupp/libcxx/include/cxxabi.h
     - contrib/libs/cxxsupp/libcxxrt/cxxabi.h
@@ -41,6 +39,10 @@
     - contrib/libs/cxxsupp/libcxx/include/unwind.h
     - contrib/libs/cxxsupp/libcxxrt/unwind.h
     - contrib/libs/libunwind/include/unwind.h
+
+- source_filter: "^contrib/libs/cxxsupp/libcxxabi-parts"
+  includes:
+    - cxxabi.h: contrib/libs/cxxsupp/libcxxabi-parts/include/cxxabi.h
 
 - includes:
   - __config:                  contrib/libs/cxxsupp/libcxx/include/__config
@@ -55,6 +57,7 @@
   - cerrno:                    contrib/libs/cxxsupp/libcxx/include/cerrno
   - cfenv:                     contrib/libs/cxxsupp/libcxx/include/cfenv
   - cfloat:                    contrib/libs/cxxsupp/libcxx/include/cfloat
+  - charconv:                  contrib/libs/cxxsupp/libcxx/include/charconv
   - chrono:                    contrib/libs/cxxsupp/libcxx/include/chrono
   - cinttypes:                 contrib/libs/cxxsupp/libcxx/include/cinttypes
   - ciso646:                   contrib/libs/cxxsupp/libcxx/include/ciso646

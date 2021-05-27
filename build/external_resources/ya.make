@@ -30,13 +30,9 @@ IF (OS_DARWIN OR OS_LINUX OR OS_WINDOWS)
     RECURSE(
     flake8_py2
     flake8_py3
-    flakes_py2
-    flakes_py3
     go_fake_xcrun
     go_tools
     goyndexer
-    pep8_py2
-    pep8_py3
     protoc-gen-javalite
     ymake
     yolint

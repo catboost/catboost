@@ -9,7 +9,7 @@ namespace protobuf {
 namespace compiler {
 namespace perlxs {
 
-void SetupDepthVars(std::map<string, string>& vars, int depth);
+void SetupDepthVars(std::map<TProtoStringType, TProtoStringType>& vars, int depth);
 
 }  // namespace perlxs
 }  // namespace compiler

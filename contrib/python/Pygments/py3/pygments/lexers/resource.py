@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
     pygments.lexers.resource
     ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -25,7 +24,7 @@ class ResourceLexer(RegexLexer):
     .. versionadded:: 2.0
     """
     name = 'ResourceBundle'
-    aliases = ['resource', 'resourcebundle']
+    aliases = ['resourcebundle', 'resource']
     filenames = []
 
     _types = (':table', ':array', ':string', ':bin', ':import', ':intvector',

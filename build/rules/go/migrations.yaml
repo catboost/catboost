@@ -53,7 +53,6 @@ migrations:
       - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/proto
       - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/qproxy/proto
       - a.yandex-team.ru/infra/diskmanager/proto
-      - a.yandex-team.ru/infra/hmserver/proto
       - a.yandex-team.ru/infra/maxwell/go/proto
       - a.yandex-team.ru/infra/nanny2/proto
       - a.yandex-team.ru/infra/ya_salt/proto
@@ -63,3 +62,38 @@ migrations:
       - a.yandex-team.ru/yabs/proto
       - a.yandex-team.ru/yweb/video/faas/proto
       - a.yandex-team.ru/zen/integration/proto
+  unusedwrite:
+    packages:
+      - a.yandex-team.ru/alice/gamma/sdk/golang
+      - a.yandex-team.ru/alice/gamma/sdk/golang_test
+      - a.yandex-team.ru/alice/iot/adapters/tuya_adapter/server
+      - a.yandex-team.ru/alice/iot/bulbasaur/db
+      - a.yandex-team.ru/alice/iot/bulbasaur/db/gotest/data
+      - a.yandex-team.ru/alice/iot/bulbasaur/db_test
+      - a.yandex-team.ru/alice/iot/bulbasaur/model
+      - a.yandex-team.ru/alice/iot/bulbasaur/model_test
+      - a.yandex-team.ru/cloud/compute/snapshot/snapshot/lib/tasks
+      - a.yandex-team.ru/cloud/compute/snapshot/snapshot/lib/tasks_test
+      - a.yandex-team.ru/cloud/mdb/mdb-health/pkg/core/types
+      - a.yandex-team.ru/cloud/mdb/mdb-health/pkg/core/types_test
+      - a.yandex-team.ru/cloud/mdb/mdb-health/pkg/datastore/redis
+      - a.yandex-team.ru/cloud/mdb/mdb-health/pkg/datastore/redis_test
+      - a.yandex-team.ru/cloud/mdb/mdb-health/pkg/dbspecific
+      - a.yandex-team.ru/cloud/mdb/mdb-health/pkg/dbspecific_test
+      - a.yandex-team.ru/cloud/mdb/mdb-internal-api/internal/logic/internal/compute/provider
+      - a.yandex-team.ru/cloud/mdb/mdb-internal-api/internal/logic/internal/compute/provider_test
+      - a.yandex-team.ru/cloud/mdb/mdb-internal-api/internal/logic/internal/sessions/provider
+      - a.yandex-team.ru/cloud/mdb/mdb-internal-api/internal/logic/internal/sessions/provider_test
+      - a.yandex-team.ru/cloud/ps/gore/internal/app/api
+      - a.yandex-team.ru/direct/infra/dt-db-manager/cmd/server
+      - a.yandex-team.ru/market/logistics/wms-load/api
+      - a.yandex-team.ru/market/logistics/wms-load/api_test
+      - a.yandex-team.ru/mds/s3/quota_controller/internal/yarl
+      - a.yandex-team.ru/strm/plgo/pkg/playlist/mpd
+      - a.yandex-team.ru/strm/plgo/pkg/playlist/mpd_test
+      - a.yandex-team.ru/travel/avia/shared_flights/api/internal/services/flightdata
+      - a.yandex-team.ru/travel/avia/shared_flights/api/internal/services/flightdata_test
+      - a.yandex-team.ru/travel/avia/shared_flights/api/internal/storage/flight
+      - a.yandex-team.ru/travel/avia/shared_flights/api/internal/storage/flight_test
+      - a.yandex-team.ru/travel/library/go/service_template/internal/schedule/service/schedule
+      - a.yandex-team.ru/zootopia/analytics/drive/operations/orders

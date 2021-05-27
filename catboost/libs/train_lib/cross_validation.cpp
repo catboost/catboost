@@ -303,7 +303,7 @@ void TrainBatch(
     );
 
     TTrainModelInternalOptions internalOptions;
-    internalOptions.CalcMetricsOnly = true;
+    internalOptions.CalcMetricsOnly = !foldContext->FullModel.Defined();
     internalOptions.ForceCalcEvalMetricOnEveryIteration = isErrorTrackerActive;
     internalOptions.OffsetMetricPeriodByInitModelSize = true;
 
@@ -320,6 +320,14 @@ void TrainBatch(
         upToIteration,
         foldContext);
 
+    const auto defaultCustomCallbacks = MakeHolder<TCustomCallbacks>(Nothing());
+    auto foldOutputOptions = foldContext->OutputOptions;
+    auto trainDir = foldOutputOptions.GetTrainDir();
+    if (foldContext->FullModel.Defined()) {
+        // TrainModel saves model either to memory pointed by dstModel, or to ResultModelPath
+        foldOutputOptions.ResultModelPath = NCatboostOptions::TOption<TString>("result_model_file", "model");
+    }
+
     modelTrainer->TrainModel(
         internalOptions,
         catboostOption,
@@ -330,17 +338,23 @@ void TrainBatch(
         /*precomputedSingleOnlineCtrDataForSingleFold*/ Nothing(),
         labelConverter,
         cvCallbacks.Get(),
+        defaultCustomCallbacks.Get(),
         /*initModel*/ Nothing(),
         std::move(foldContext->LearnProgress),
         /*initModelApplyCompatiblePools*/ TDataProviders(),
         localExecutor,
         /*rand*/ Nothing(),
-        /*model*/ nullptr,
+        foldContext->FullModel.Defined() ? foldContext->FullModel.Get() : nullptr,
         TVector<TEvalResult*>{&foldContext->LastUpdateEvalResult},
         /*metricsAndTimeHistory*/nullptr,
         (foldContext->TaskType == ETaskType::CPU) ? &dstLearnProgress : nullptr
     );
     foldContext->LearnProgress = std::move(dstLearnProgress);
+
+    if (foldContext->FullModel.Defined()) {
+        TFileOutput modelFile(JoinFsPaths(trainDir, foldContext->OutputOptions.ResultModelPath.Get()));
+        foldContext->FullModel->Save(&modelFile);
+    }
 }
 
 
@@ -394,6 +408,7 @@ void Train(
         foldOutputOptions.ResultModelPath = NCatboostOptions::TOption<TString>("result_model_file", "model");
     }
     TMetricsAndTimeLeftHistory metricsAndTimeHistory;
+    const auto defaultCustomCallbacks = MakeHolder<TCustomCallbacks>(Nothing());
     modelTrainer->TrainModel(
         internalOptions,
         catboostOption,
@@ -404,6 +419,7 @@ void Train(
         /*precomputedSingleOnlineCtrDataForSingleFold*/ Nothing(),
         labelConverter,
         trainingCallbacks,
+        defaultCustomCallbacks.Get(),
         /*initModel*/ Nothing(),
         THolder<TLearnProgress>(),
         /*initModelApplyCompatiblePools*/ TDataProviders(),
@@ -476,7 +492,7 @@ void UpdatePermutationBlockSize(
 
     const auto isConsecutiveLearnFeaturesData = [&] (const TTrainingDataProviders& foldData) {
         const auto& learnObjectsDataProvider
-            = dynamic_cast<const TQuantizedForCPUObjectsDataProvider&>(*foldData.Learn->ObjectsData);
+            = dynamic_cast<const TQuantizedObjectsDataProvider&>(*foldData.Learn->ObjectsData);
         return learnObjectsDataProvider.GetFeaturesArraySubsetIndexing().IsConsecutive();
     };
     if (!AllOf(foldsData, isConsecutiveLearnFeaturesData)) {
@@ -503,6 +519,13 @@ void CrossValidate(
     NCatboostOptions::PlainJsonToOptions(plainJsonParams, &jsonParams, &outputJsonParams);
     ConvertParamsToCanonicalFormat(trainingData.Get()->MetaInfo, &jsonParams);
     NCatboostOptions::TCatBoostOptions catBoostOptions(NCatboostOptions::LoadOptions(jsonParams));
+    if (catBoostOptions.DataProcessingOptions->ClassLabels->empty()) {
+        catBoostOptions.DataProcessingOptions->ClassLabels = trainingData->MetaInfo.ClassLabels;
+    } else {
+        CB_ENSURE(
+            catBoostOptions.DataProcessingOptions->ClassLabels.Get() == trainingData->MetaInfo.ClassLabels,
+            "ClassLabels in dataprocessing options and in training data must match");
+    }
     NCatboostOptions::TOutputFilesOptions outputFileOptions;
     outputFileOptions.Load(outputJsonParams);
 
@@ -614,7 +637,8 @@ void CrossValidate(
             taskType,
             outputFileOptions,
             std::move(foldsData[foldIdx]),
-            catBoostOptions.RandomSeed);
+            catBoostOptions.RandomSeed,
+            cvParams.ReturnModels);
     }
 
 
@@ -816,6 +840,12 @@ void CrossValidate(
                 (*results)[metricIdx].LastTrainEvalMetric.push_back(foldContext.MetricValuesOnTrain[lastIteration][metricIdx]);
                 (*results)[metricIdx].LastTestEvalMetric.push_back(foldContext.MetricValuesOnTest[lastIteration][metricIdx]);;
             }
+        }
+    }
+
+    if (cvParams.ReturnModels) {
+        for (const auto& foldContext : foldContexts) {
+            results->front().CVFullModels.push_back(*foldContext.FullModel.Get());
         }
     }
 

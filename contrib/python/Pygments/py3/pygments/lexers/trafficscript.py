@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
     pygments.lexers.trafficscript
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -24,7 +23,7 @@ class RtsLexer(RegexLexer):
     .. versionadded:: 2.1
     """
     name = 'TrafficScript'
-    aliases = ['rts','trafficscript']
+    aliases = ['trafficscript', 'rts']
     filenames = ['*.rts']
 
     tokens = {

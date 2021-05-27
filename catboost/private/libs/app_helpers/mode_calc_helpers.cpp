@@ -127,7 +127,7 @@ NCB::TEvalResult NCB::Apply(
     bool isUncertaintyPrediction,
     NPar::ILocalExecutor* executor) {
 
-    NCB::TEvalResult resultApprox;
+    NCB::TEvalResult resultApprox(virtualEnsemblesCount);
     TVector<TVector<TVector<double>>>& rawValues = resultApprox.GetRawValuesRef();
 
     auto maybeBaseline = dataset.RawTargetData.GetBaseline();
@@ -235,7 +235,8 @@ void NCB::CalcModelSingleHost(
                 /*testFileWhichOf*/ {0, 0},
                 IsFirstBlock,
                 docIdOffset,
-                std::make_pair(evalPeriod, iterationsLimit));
+                std::make_pair(evalPeriod, iterationsLimit),
+                model.GetBinClassLogitThreshold());
             docIdOffset += datasetPart->ObjectsGrouping->GetObjectCount();
             IsFirstBlock = false;
         },

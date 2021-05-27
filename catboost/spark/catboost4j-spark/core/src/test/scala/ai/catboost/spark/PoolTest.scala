@@ -5,11 +5,19 @@ import collection.mutable
 import collection.Set
 
 import org.apache.spark.sql._
+import org.apache.spark.storage.StorageLevel
 
-import org.junit.{Assert,Test}
+import org.junit.{Assert,Test,Rule}
+import org.junit.rules.TemporaryFolder
 
 
 class PoolTest {
+  val _temporaryFolder = new TemporaryFolder
+
+  @Rule
+  def temporaryFolder = _temporaryFolder
+
+  
   def getGroupedDatasetAsHashMap(data: DataFrame, groupIdCol: String) : mutable.HashMap[Long, Set[Row]] = {
     val groupIdIdx = data.schema.fieldIndex(groupIdCol)
     val result = new mutable.HashMap[Long, Set[Row]]
@@ -47,6 +55,64 @@ class PoolTest {
       val dataAsSet = data.data.toLocalIterator.asScala.toSet
       val subsetDataAsSet = subsetData.data.toLocalIterator.asScala.toSet
       Assert.assertTrue(subsetDataAsSet.subsetOf(dataAsSet))
+    }
+  }
+  
+  @Test
+  @throws(classOf[Exception])
+  def testCache() {
+    val spark = TestHelpers.getOrCreateSparkSession(TestHelpers.getCurrentMethodName)
+    val data = PoolTestHelpers.createRandomPool(
+      spark, 
+      floatFeatureCount=10,
+      catFeatureCount=0,
+      objectCount=100
+    )
+    val cachedData = data.cache()
+  }
+  
+  @Test
+  @throws(classOf[Exception])
+  def testCheckpoint() {
+    val spark = TestHelpers.getOrCreateSparkSession(TestHelpers.getCurrentMethodName)
+    spark.sparkContext.setCheckpointDir(temporaryFolder.newFolder(TestHelpers.getCurrentMethodName).getPath)
+    val data = PoolTestHelpers.createRandomPool(
+      spark, 
+      floatFeatureCount=10,
+      catFeatureCount=0,
+      objectCount=100
+    )
+    val eagerlyCheckpointedData = data.checkpoint()
+    val nonEagerlyCheckpointedData = data.checkpoint(eager = false)
+  }
+  
+  @Test
+  @throws(classOf[Exception])
+  def testLocalCheckpoint() {
+    val spark = TestHelpers.getOrCreateSparkSession(TestHelpers.getCurrentMethodName)
+    val data = PoolTestHelpers.createRandomPool(
+      spark, 
+      floatFeatureCount=10,
+      catFeatureCount=0,
+      objectCount=100
+    )
+    val eagerlyCheckpointedData = data.localCheckpoint()
+    val nonEagerlyCheckpointedData = data.localCheckpoint(eager = false)
+  }
+  
+  @Test
+  @throws(classOf[Exception])
+  def testPersist() {
+    val spark = TestHelpers.getOrCreateSparkSession(TestHelpers.getCurrentMethodName)
+    val data = PoolTestHelpers.createRandomPool(
+      spark, 
+      floatFeatureCount=10,
+      catFeatureCount=0,
+      objectCount=100
+    )
+    for (storageLevel <- Set(StorageLevel.MEMORY_ONLY, StorageLevel.MEMORY_AND_DISK, StorageLevel.DISK_ONLY)) {
+      val persistedData = data.persist(storageLevel)
+      val unpersistedData = persistedData.unpersist()
     }
   }
   

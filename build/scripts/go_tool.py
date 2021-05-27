@@ -87,7 +87,7 @@ def preprocess_args(args):
     assert args.output is None or args.output_root == os.path.dirname(args.output)
     assert args.output_root.startswith(args.build_root_dir)
     args.module_path = args.output_root[len(args.build_root_dir):]
-    args.source_module_dir = os.path.join(args.source_root, args.module_path) + os.path.sep
+    args.source_module_dir = os.path.join(args.source_root, args.test_import_path or args.module_path) + os.path.sep
     assert len(args.module_path) > 0
     args.import_path, args.is_std = get_import_path(args.module_path)
 
@@ -210,7 +210,7 @@ def create_embed_config(args):
         pattern = info[0]
         if pattern.endswith('/**/*'):
             pattern = pattern[:-3]
-        files = {os.path.relpath(f, args.source_module_dir): f for f in info[1:]}
+        files = {os.path.relpath(f, args.source_module_dir).replace('\\', '/'): f for f in info[1:]}
         data['Patterns'][pattern] = list(files.keys())
         data['Files'].update(files)
     # sys.stderr.write('{}\n'.format(json.dumps(data, indent=4)))
@@ -767,9 +767,9 @@ if __name__ == '__main__':
     parser.add_argument('++output-root', required=True)
     parser.add_argument('++toolchain-root', required=True)
     parser.add_argument('++host-os', choices=['linux', 'darwin', 'windows'], required=True)
-    parser.add_argument('++host-arch', choices=['amd64'], required=True)
+    parser.add_argument('++host-arch', choices=['amd64', 'arm64'], required=True)
     parser.add_argument('++targ-os', choices=['linux', 'darwin', 'windows'], required=True)
-    parser.add_argument('++targ-arch', choices=['amd64', 'x86'], required=True)
+    parser.add_argument('++targ-arch', choices=['amd64', 'x86', 'arm64'], required=True)
     parser.add_argument('++peers', nargs='*')
     parser.add_argument('++non-local-peers', nargs='*')
     parser.add_argument('++cgo-peers', nargs='*')

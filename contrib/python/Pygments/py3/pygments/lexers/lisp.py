@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
     pygments.lexers.lisp
     ~~~~~~~~~~~~~~~~~~~~
@@ -1537,7 +1536,7 @@ class EmacsLispLexer(RegexLexer):
     .. versionadded:: 2.1
     """
     name = 'EmacsLisp'
-    aliases = ['emacs', 'elisp', 'emacs-lisp']
+    aliases = ['emacs-lisp', 'elisp', 'emacs']
     filenames = ['*.el']
     mimetypes = ['text/x-elisp', 'application/x-elisp']
 

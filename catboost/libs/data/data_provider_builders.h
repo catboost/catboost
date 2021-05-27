@@ -34,7 +34,7 @@ namespace NCB {
     };
 
     using TRawBuilderDataHelper = TBuilderDataHelper<TRawObjectsDataProvider>;
-    using TQuantizedForCPUBuilderDataHelper = TBuilderDataHelper<TQuantizedForCPUObjectsDataProvider>;
+    using TQuantizedBuilderDataHelper = TBuilderDataHelper<TQuantizedObjectsDataProvider>;
 
     struct IDataProviderBuilder {
         virtual ~IDataProviderBuilder() = default;

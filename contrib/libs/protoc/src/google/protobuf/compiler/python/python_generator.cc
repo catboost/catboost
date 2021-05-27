@@ -102,12 +102,8 @@ string FixEv(const string& filename) {
 }
 
 // Returns the Python module name expected for a given .proto filename.
-string ModuleName(const FileDescriptor* file) {
-  string basename = StripProto(FixEv(file->name()));
-  if (file->options().has_python_package()) {
-    basename = file->options().python_package() + "." + Split(basename, "/").back();
-  }
-
+string ModuleName(const string& filename) {
+  string basename = StripProto(FixEv(filename));
   ReplaceCharacters(&basename, "-", '_');
   ReplaceCharacters(&basename, "/", '.');
   return basename + "_pb2";
@@ -118,8 +114,8 @@ string ModuleName(const FileDescriptor* file) {
 // when importing. See testPackageInitializationImport in
 // google/protobuf/python/reflection_test.py
 // to see why we need the alias.
-string ModuleAlias(const FileDescriptor* file) {
-  string module_name = ModuleName(file);
+string ModuleAlias(const string& filename) {
+  string module_name = ModuleName(filename);
   // We can't have dots in the module name, so we replace each with _dot_.
   // But that could lead to a collision between a.b and a_dot_b, so we also
   // duplicate each underscore.
@@ -338,24 +334,10 @@ bool Generator::Generate(const FileDescriptor* file,
   //   to have any mutable members.  Then it is implicitly thread-safe.
   MutexLock lock(&mutex_);
   file_ = file;
-  string module_name = ModuleName(file);
-  string filename = StripProto(FixEv(file->name()));
-  ReplaceCharacters(&filename, "-", '_');
-  filename += "_pb2.py";
-
-  // Yandex-specific: issue warning to console if Python module path is different from original source path
-  {
-    size_t dash_pos = file->name().find_first_of('-');
-#ifdef _win_
-    size_t slash_pos = file->name().find_last_of("/\\");
-#else
-    size_t slash_pos = file->name().find_last_of('/');
-#endif
-    if (dash_pos != string::npos && slash_pos != string::npos && dash_pos < slash_pos) {
-      GOOGLE_LOG(WARNING) << "Warning: Python module path will be different from source code path (\"-\" replaced with \"_\") : " << filename;
-    }
-  }
-  // End of Yandex-specific
+  string module_name = ModuleName(file->name());
+  string filename = module_name;
+  ReplaceCharacters(&filename, ".", '/');
+  filename += ".py";
 
   FileDescriptorProto fdp;
   file_->CopyTo(&fdp);
@@ -402,8 +384,8 @@ void Generator::PrintImports() const {
   for (int i = 0; i < file_->dependency_count(); ++i) {
     const string& filename = file_->dependency(i)->name();
 
-    string module_name = ModuleName(file_->dependency(i));
-    string module_alias = ModuleAlias(file_->dependency(i));
+    string module_name = ModuleName(filename);
+    string module_alias = ModuleAlias(filename);
     if (ContainsPythonKeyword(module_name)) {
       // If the module path contains a Python keyword, we have to quote the
       // module name and import it using importlib. Otherwise the usual kind of
@@ -433,7 +415,7 @@ void Generator::PrintImports() const {
 
   // Print public imports.
   for (int i = 0; i < file_->public_dependency_count(); ++i) {
-    string module_name = ModuleName(file_->public_dependency(i));
+    string module_name = ModuleName(file_->public_dependency(i)->name());
     printer_->Print("from $module$ import *\n", "module", module_name);
   }
   printer_->Print("\n");
@@ -460,7 +442,7 @@ void Generator::PrintFileDescriptor() const {
   if (file_->dependency_count() != 0) {
     printer_->Print(",\ndependencies=[");
     for (int i = 0; i < file_->dependency_count(); ++i) {
-      string module_alias = ModuleAlias(file_->dependency(i));
+      string module_alias = ModuleAlias(file_->dependency(i)->name());
       printer_->Print("$module_alias$.DESCRIPTOR,", "module_alias",
                       module_alias);
     }
@@ -469,7 +451,7 @@ void Generator::PrintFileDescriptor() const {
   if (file_->public_dependency_count() > 0) {
     printer_->Print(",\npublic_dependencies=[");
     for (int i = 0; i < file_->public_dependency_count(); ++i) {
-      string module_alias = ModuleAlias(file_->public_dependency(i));
+      string module_alias = ModuleAlias(file_->public_dependency(i)->name());
       printer_->Print("$module_alias$.DESCRIPTOR,", "module_alias",
                       module_alias);
     }
@@ -686,7 +668,7 @@ void Generator::PrintDescriptorKeyAndModuleName(
       "descriptor_name", ModuleLevelServiceDescriptorName(descriptor));
   printer_->Print(
       "__module__ = '$module_name$'\n",
-      "module_name", ModuleName(file_));
+      "module_name", ModuleName(file_->name()));
 }
 
 void Generator::PrintServiceClass(const ServiceDescriptor& descriptor) const {
@@ -860,7 +842,7 @@ void Generator::PrintMessage(const Descriptor& message_descriptor,
   m["descriptor_name"] = ModuleLevelDescriptorName(message_descriptor);
   printer_->Print(m, "$descriptor_key$ = $descriptor_name$,\n");
   printer_->Print("__module__ = '$module_name$'\n",
-                  "module_name", ModuleName(file_));
+                  "module_name", ModuleName(file_->name()));
   printer_->Print("# @@protoc_insertion_point(class_scope:$full_name$)\n",
                   "full_name", message_descriptor.full_name());
   printer_->Print("))\n");
@@ -1247,7 +1229,7 @@ string Generator::ModuleLevelDescriptorName(
   // We now have the name relative to its own module.  Also qualify with
   // the module name iff this descriptor is from a different .proto file.
   if (descriptor.file() != file_) {
-    name = ModuleAlias(descriptor.file()) + "." + name;
+    name = ModuleAlias(descriptor.file()->name()) + "." + name;
   }
   return name;
 }
@@ -1259,7 +1241,7 @@ string Generator::ModuleLevelDescriptorName(
 string Generator::ModuleLevelMessageName(const Descriptor& descriptor) const {
   string name = NamePrefixedWithNestedTypes(descriptor, ".");
   if (descriptor.file() != file_) {
-    name = ModuleAlias(descriptor.file()) + "." + name;
+    name = ModuleAlias(descriptor.file()->name()) + "." + name;
   }
   return name;
 }
@@ -1272,7 +1254,7 @@ string Generator::ModuleLevelServiceDescriptorName(
   UpperString(&name);
   name = "_" + name;
   if (descriptor.file() != file_) {
-    name = ModuleAlias(descriptor.file()) + "." + name;
+    name = ModuleAlias(descriptor.file()->name()) + "." + name;
   }
   return name;
 }
@@ -1440,8 +1422,8 @@ void Generator::FixOptionsForMessage(const Descriptor& descriptor) const {
 void Generator::CopyPublicDependenciesAliases(
     const string& copy_from, const FileDescriptor* file) const {
   for (int i = 0; i < file->public_dependency_count(); ++i) {
-    string module_name = ModuleName(file->public_dependency(i));
-    string module_alias = ModuleAlias(file->public_dependency(i));
+    string module_name = ModuleName(file->public_dependency(i)->name());
+    string module_alias = ModuleAlias(file->public_dependency(i)->name());
     // There's no module alias in the dependent file if it was generated by
     // an old protoc (less than 3.0.0-alpha-1). Use module name in this
     // situation.

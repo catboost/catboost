@@ -258,14 +258,14 @@ namespace {
 }
 
 
-static TIntrusivePtr<TQuantizedForCPUObjectsDataProvider> CreateObjectsDataProvider(
+static TIntrusivePtr<TQuantizedObjectsDataProvider> CreateObjectsDataProvider(
     TObjectsGroupingPtr objectsGrouping,
     TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
     TAtomicSharedPtr<TFeaturesArraySubsetIndexing> fullSubset,
     TConstArrayRef<TMaybe<TPackedBinaryIndex>> flatFeatureIndexToPackedBinaryIndex,
     TConstArrayRef<TFeatureIdxWithType> packedBinaryToSrcIndex,
     TVector<TCompressedArray>&& packedFeaturesData,
-    TQuantizedForCPUObjectsData&& data
+    TQuantizedObjectsData&& data
 ) {
     constexpr size_t BINARY_FEATURES_PER_PACK = sizeof(TBinaryFeaturesPack) * CHAR_BIT;
 
@@ -303,7 +303,7 @@ static TIntrusivePtr<TQuantizedForCPUObjectsDataProvider> CreateObjectsDataProvi
         );
         for (; binaryFeatureIdx < binaryFeatureIdxEnd; ++binaryFeatureIdx) {
             const ui32 featureIdx = packedBinaryToSrcIndex[binaryFeatureIdx].FeatureIdx;
-            data.Data.FloatFeatures[featureIdx] = MakeHolder<TQuantizedFloatPackedBinaryValuesHolder>(
+            data.FloatFeatures[featureIdx] = MakeHolder<TQuantizedFloatPackedBinaryValuesHolder>(
                 featureIdx,
                 data.PackedBinaryFeaturesData.SrcData[packIdx].Get(),
                 binaryFeatureIdx % BINARY_FEATURES_PER_PACK
@@ -311,9 +311,9 @@ static TIntrusivePtr<TQuantizedForCPUObjectsDataProvider> CreateObjectsDataProvi
         }
     }
 
-    data.Data.QuantizedFeaturesInfo = quantizedFeaturesInfo;
+    data.QuantizedFeaturesInfo = quantizedFeaturesInfo;
 
-    return MakeIntrusive<TQuantizedForCPUObjectsDataProvider>(
+    return MakeIntrusive<TQuantizedObjectsDataProvider>(
         std::move(objectsGrouping),
         std::move(commonData),
         std::move(data),
@@ -339,8 +339,8 @@ TEstimatedForCPUObjectsDataProviders NCB::CreateEstimatedFeaturesData(
     TEstimatedForCPUObjectsDataProviders result;
     result.QuantizedEstimatedFeaturesInfo.QuantizedFeaturesInfo = quantizedFeaturesInfo;
 
-    TQuantizedForCPUObjectsData learnData;
-    TVector<TQuantizedForCPUObjectsData> testData(testCount);
+    TQuantizedObjectsData learnData;
+    TVector<TQuantizedObjectsData> testData(testCount);
 
     // equal for both learn and test
     TVector<TMaybe<TPackedBinaryIndex>> flatFeatureIndexToPackedBinaryIndex; // [flatFeatureIdx]
@@ -392,7 +392,7 @@ TEstimatedForCPUObjectsDataProviders NCB::CreateEstimatedFeaturesData(
 
     auto createSingleFeatureWriter = [&] (
         const TFeaturesArraySubsetIndexing* fullSubsetIndexing,
-        TQuantizedForCPUObjectsData* data
+        TQuantizedObjectsData* data
     ) {
         return CreateSingleFeatureWriter(
             &currentFeatureCount,
@@ -400,7 +400,7 @@ TEstimatedForCPUObjectsDataProviders NCB::CreateEstimatedFeaturesData(
             quantizedFeaturesInfo,
             &learnCalcBordersSubset,
             localExecutor,
-            &(data->Data.FloatFeatures)
+            &(data->FloatFeatures)
         );
     };
 
@@ -420,7 +420,7 @@ TEstimatedForCPUObjectsDataProviders NCB::CreateEstimatedFeaturesData(
         = MakeAtomicShared<TFeaturesArraySubsetIndexing>(
             TFullSubset<ui32>(trainingDataProviders.Learn->GetObjectCount())
         );
-    learnData.Data.FloatFeatures.resize(featureCount);
+    learnData.FloatFeatures.resize(featureCount);
     singleVisitors.LearnVisitor.ConstructInPlace(
         createSingleFeatureWriter(learnFullSubset.Get(), &learnData)
     );
@@ -434,7 +434,7 @@ TEstimatedForCPUObjectsDataProviders NCB::CreateEstimatedFeaturesData(
                 TFullSubset<ui32>(trainingDataProviders.Test[testIdx]->GetObjectCount())
             )
         );
-        testData[testIdx].Data.FloatFeatures.resize(featureCount);
+        testData[testIdx].FloatFeatures.resize(featureCount);
         singleVisitors.TestVisitors.push_back(
             createSingleFeatureWriter(
                 testFullSubsets.back().Get(),
@@ -476,7 +476,7 @@ TEstimatedForCPUObjectsDataProviders NCB::CreateEstimatedFeaturesData(
         TObjectsGroupingPtr objectsGrouping,
         TAtomicSharedPtr<TFeaturesArraySubsetIndexing> fullSubset,
         TVector<TCompressedArray>&& packedFeaturesData,
-        TQuantizedForCPUObjectsData&& data
+        TQuantizedObjectsData&& data
     ) {
         return CreateObjectsDataProvider(
             std::move(objectsGrouping),

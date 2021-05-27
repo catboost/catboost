@@ -23,7 +23,7 @@
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>Multibyte</CharacterSet>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props"/>
   <ImportGroup Label="ArcadiaProps"/>
@@ -57,16 +57,16 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DARCADIA_PYTHON_UNICODE_SIZE=2 /std:c++17  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DARCADIA_PYTHON_UNICODE_SIZE=2 /std:c++17  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /std:c++latest /D_CRT_USE_BUILTIN_OFFSETOF  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /std:c++latest /D_CRT_USE_BUILTIN_OFFSETOF  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
-      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)../contrib/libs/libc_compat/include/windows;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/libs/openssl/include;$(SolutionDir)../contrib/restricted/libffi/include;$(SolutionDir)../contrib/restricted/libffi/configs/x86_64-microsoft-windows/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;gdi32.lib;kernel32.lib;ole32.lib;oleaut32.lib;shell32.lib;user32.lib;uuid.lib;winspool.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;dnsapi.lib;gdi32.lib;iphlpapi.lib;kernel32.lib;mswsock.lib;ole32.lib;oleaut32.lib;psapi.lib;rpcrt4.lib;secur32.lib;shell32.lib;shlwapi.lib;user32.lib;userenv.lib;uuid.lib;version.lib;winmm.lib;winspool.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  crypt32.lib ws2_32.lib</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  crypt32.lib ws2_32.lib</AdditionalOptions>
       <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
@@ -78,9 +78,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\919a62b664c1c21491ad3d22f3.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\fa9605cad4ab6b62449cc9ed55.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\join_0a51fcb7f875f2802e0c254d0d.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_919a62b664c1c21491ad3d22f3.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
@@ -162,33 +159,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\jinja2\runtime.py.halr.yapyc;$(SolutionDir)..\contrib\python\Jinja2\jinja2\sandbox.py;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\jinja2\sandbox.py.wuk5.yapyc;$(SolutionDir)..\contrib\python\Jinja2\jinja2\tests.py;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\jinja2\tests.py.xyxl.yapyc;$(SolutionDir)..\contrib\python\Jinja2\jinja2\utils.py;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\jinja2\utils.py.r53l.yapyc;$(SolutionDir)..\contrib\python\Jinja2\jinja2\visitor.py;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\jinja2\visitor.py.6nxw.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_ed02f6f44d278bd1d77bc2f841.yasm;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_0a48b910261104b5f0993e1cb4.rodata;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_984c082e3ede11f51e8178c330.rodata;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_fad9ddcff52dbfa255ada4c65d.rodata;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_0ab3b397ab4d022ee9ab2a24d5.rodata;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_fd640f6184aede219664a11c3b.rodata;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_f5c6ef43734a4120356491a98f.rodata;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_54034bc3525b5cfb715cac4b4f.rodata;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_da06987684ea6352eec8d84f3e.rodata;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_6c193eb9172fe18cc78e6aa9e9.rodata;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\join_72620ad1562164b66edcc4b4ca.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/join_72620ad1562164b66edcc4b4ca.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/join_72620ad1562164b66edcc4b4ca.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/join_72620ad1562164b66edcc4b4ca.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/join_72620ad1562164b66edcc4b4ca.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/Jinja2/join_72620ad1562164b66edcc4b4ca.py2.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\join_72620ad1562164b66edcc4b4ca.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\join_72620ad1562164b66edcc4b4ca.py2.obj;</Outputs>
-    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
@@ -215,119 +185,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/Jinja2/_fa9605cad4ab6b62449cc9ed55.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_fa9605cad4ab6b62449cc9ed55.yasm;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/0d8e08a1055d1a60cb70e787a3.cpp" "_297d4b9e96a83ff99910c98ace=/py_modules/jinja2.__init__" "_c3c327549c36c0463755517594=resfs/src//py_modules/jinja2.__init__" "_144226d322b39877e4ecfa8f0a=/py_code/jinja2.__init__" "_31cdea1a6f436cb645ff7dfa77=/py_modules/jinja2._compat" "_9f4c39f72af4116c587e08c0bb=resfs/src//py_modules/jinja2._compat" "_3cafa59e2dde136efb090ee5d0=/py_code/jinja2._compat" "_4981d8666cbf36c1e45ece9af4=/py_modules/jinja2._identifier" "_def83cf317bc84e0bf74dd9fb1=resfs/src//py_modules/jinja2._identifier" "_10623f8367ce0eb60c534e555d=/py_code/jinja2._identifier" "_febc771b0b15e9b8498f0296b9=/py_modules/jinja2.bccache" "_19e320bb2df8bf9ee106592fe1=resfs/src//py_modules/jinja2.bccache" "_e15f1b9099036ee07fa2de714c=/py_code/jinja2.bccache" "_b7f408c0e3cd5bf411a6cd8503=/py_modules/jinja2.compiler" "_cd915d957fdeeceb1c8ec65812=resfs/src//py_modules/jinja2.compiler" "_78d5c86bc32b65a82673b68c19=/py_code/jinja2.compiler" "_e7f9b0319f4e58cbb9c69713c9=/py_modules/jinja2.constants" "_d78e24d3768bbc7753ebd69022=resfs/src//py_modules/jinja2.constants" "_cdd9288118e8312e55ad2dd548=/py_code/jinja2.constants" "_7d2cb41f60a5f193f1cd75f981=/py_modules/jinja2.debug" "_202b8c303e660ce0c80166cc00=resfs/src//py_modules/jinja2.debug" "_8a7cf8364ab52361daa7e54722=/py_code/jinja2.debug" "_603ad7de3dcd1cd926eddcffff=/py_modules/jinja2.defaults" "_d3c496a184f93ad0c54b539e56=resfs/src//py_modules/jinja2.defaults" "_2a8a801d436d6576820feae465=/py_code/jinja2.defaults" "_8e1c06dcd3421f2f7951c35749=/py_modules/jinja2.environment" "_413c897dfc3b1e05a3ad242465=resfs/src//py_modules/jinja2.environment" "_cf69cbed7171f40ce6c7322c83=/py_code/jinja2.environment" "_478544985eff75eefacabe70ca=/py_modules/jinja2.exceptions" "_6050a8902c6b6164d564124282=resfs/src//py_modules/jinja2.exceptions" "_2eb759fbb7944d34977089a521=/py_code/jinja2.exceptions"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/8a8b800fa50d1b1054425fe1fa.cpp" "_a9a7eadeefe0d0fba93e18d186=/py_modules/jinja2.ext" "_9946836c784f7838c6fdadd654=resfs/src//py_modules/jinja2.ext" "_23c84f73c7e9f3ea7f94cd4b42=/py_code/jinja2.ext" "_1f1d7320e63c176fc983bfe1d9=/py_modules/jinja2.filters" "_44975cd44c01ac640bc65087a3=resfs/src//py_modules/jinja2.filters" "_f4d1c843397d0ca8b2d62c37f2=/py_code/jinja2.filters" "_4d215f5c723a5f2933059d48c2=/py_modules/jinja2.idtracking" "_b47873da1ca03aa479aad80bbf=resfs/src//py_modules/jinja2.idtracking" "_39808762f44a81bcd2ec1046e9=/py_code/jinja2.idtracking" "_de34f20714d01ce244333729c1=/py_modules/jinja2.lexer" "_c3034439f2d7e776ecc8480787=resfs/src//py_modules/jinja2.lexer" "_91aff73baa5df85241e646ef6a=/py_code/jinja2.lexer" "_e0dd9ae6f2bad1f9c6a54b00f6=/py_modules/jinja2.loaders" "_785519843651c6aaf029628fb5=resfs/src//py_modules/jinja2.loaders" "_10095b495d851d09a73c7939a5=/py_code/jinja2.loaders" "_336526b681dcd8d82ebf43931b=/py_modules/jinja2.meta" "_5445784d5ec43580964721dd52=resfs/src//py_modules/jinja2.meta" "_e78f3c75792bea18a5ae476c86=/py_code/jinja2.meta" "_119d89d0df73317f9e6bb30c60=/py_modules/jinja2.nativetypes" "_f78c3623e5bf33ec713c07423f=resfs/src//py_modules/jinja2.nativetypes" "_ad41fc250e5179defa55ae8f4d=/py_code/jinja2.nativetypes" "_6b3c7364524cb2673cbf244ac6=/py_modules/jinja2.nodes" "_977f7b67baa77f9b94156414f7=resfs/src//py_modules/jinja2.nodes" "_8ccaf894db8d2ef1f9d4517a00=/py_code/jinja2.nodes" "_330c28baf6f151debc95698aff=/py_modules/jinja2.optimizer" "_95a790e8b237fbeaa33e5c8e7c=resfs/src//py_modules/jinja2.optimizer" "_20d2f74a093f9fdc78b1064b23=/py_code/jinja2.optimizer" "_14a618df576560286071f4004d=/py_modules/jinja2.parser" "_7ab9e3f16d772bd3e283b74691=resfs/src//py_modules/jinja2.parser" "_6650a6c033ad2823ab356f8326=/py_code/jinja2.parser" "_d04aee46f3b8f099dd2a7d2bc2=/py_modules/jinja2.runtime"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/919a62b664c1c21491ad3d22f3.cpp" "_91ebc6b07d70f9433ccf5d2299=resfs/src/resfs/file/contrib/python/Jinja2/.dist-info/METADATA" "_1ef9b829778b120a64fc8c4d6f=resfs/file/contrib/python/Jinja2/.dist-info/METADATA" "_af8fbf2abdac15deaf41639321=resfs/src/resfs/file/contrib/python/Jinja2/.dist-info/entry_points.txt" "_4f884034afa370a97cb8a0d699=resfs/file/contrib/python/Jinja2/.dist-info/entry_points.txt" "_5d65ee4f528c493e8715b83290=resfs/src/resfs/file/contrib/python/Jinja2/.dist-info/top_level.txt" "_17140c17ff89177c11329257e5=resfs/file/contrib/python/Jinja2/.dist-info/top_level.txt"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/ed02f6f44d278bd1d77bc2f841.cpp" "_4867558ea75278e878f8ae47f6=resfs/src//py_modules/jinja2.runtime" "_0a48b910261104b5f0993e1cb4=/py_code/jinja2.runtime" "_984c082e3ede11f51e8178c330=/py_modules/jinja2.sandbox" "_12109263a6f8118dbbeba535f8=resfs/src//py_modules/jinja2.sandbox" "_fad9ddcff52dbfa255ada4c65d=/py_code/jinja2.sandbox" "_0ab3b397ab4d022ee9ab2a24d5=/py_modules/jinja2.tests" "_2f5f4724687444c2fe54e21d90=resfs/src//py_modules/jinja2.tests" "_fd640f6184aede219664a11c3b=/py_code/jinja2.tests" "_f5c6ef43734a4120356491a98f=/py_modules/jinja2.utils" "_f5502a2b06a2f506aa216b77d9=resfs/src//py_modules/jinja2.utils" "_54034bc3525b5cfb715cac4b4f=/py_code/jinja2.utils" "_da06987684ea6352eec8d84f3e=/py_modules/jinja2.visitor" "_d7173c9c0d890c369c8d660414=resfs/src//py_modules/jinja2.visitor" "_6c193eb9172fe18cc78e6aa9e9=/py_code/jinja2.visitor"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/fa9605cad4ab6b62449cc9ed55.cpp" "_7aebb9905b16c0dc093ecfdf89=py/no_check_imports/wa46wnunnku6vcrt6b2xe5fdsy"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/0d8e08a1055d1a60cb70e787a3.cpp" "_297d4b9e96a83ff99910c98ace=/py_modules/jinja2.__init__" "_c3c327549c36c0463755517594=resfs/src//py_modules/jinja2.__init__" "_144226d322b39877e4ecfa8f0a=/py_code/jinja2.__init__" "_31cdea1a6f436cb645ff7dfa77=/py_modules/jinja2._compat" "_9f4c39f72af4116c587e08c0bb=resfs/src//py_modules/jinja2._compat" "_3cafa59e2dde136efb090ee5d0=/py_code/jinja2._compat" "_4981d8666cbf36c1e45ece9af4=/py_modules/jinja2._identifier" "_def83cf317bc84e0bf74dd9fb1=resfs/src//py_modules/jinja2._identifier" "_10623f8367ce0eb60c534e555d=/py_code/jinja2._identifier" "_febc771b0b15e9b8498f0296b9=/py_modules/jinja2.bccache" "_19e320bb2df8bf9ee106592fe1=resfs/src//py_modules/jinja2.bccache" "_e15f1b9099036ee07fa2de714c=/py_code/jinja2.bccache" "_b7f408c0e3cd5bf411a6cd8503=/py_modules/jinja2.compiler" "_cd915d957fdeeceb1c8ec65812=resfs/src//py_modules/jinja2.compiler" "_78d5c86bc32b65a82673b68c19=/py_code/jinja2.compiler" "_e7f9b0319f4e58cbb9c69713c9=/py_modules/jinja2.constants" "_d78e24d3768bbc7753ebd69022=resfs/src//py_modules/jinja2.constants" "_cdd9288118e8312e55ad2dd548=/py_code/jinja2.constants" "_7d2cb41f60a5f193f1cd75f981=/py_modules/jinja2.debug" "_202b8c303e660ce0c80166cc00=resfs/src//py_modules/jinja2.debug" "_8a7cf8364ab52361daa7e54722=/py_code/jinja2.debug" "_603ad7de3dcd1cd926eddcffff=/py_modules/jinja2.defaults" "_d3c496a184f93ad0c54b539e56=resfs/src//py_modules/jinja2.defaults" "_2a8a801d436d6576820feae465=/py_code/jinja2.defaults" "_8e1c06dcd3421f2f7951c35749=/py_modules/jinja2.environment" "_413c897dfc3b1e05a3ad242465=resfs/src//py_modules/jinja2.environment" "_cf69cbed7171f40ce6c7322c83=/py_code/jinja2.environment" "_478544985eff75eefacabe70ca=/py_modules/jinja2.exceptions" "_6050a8902c6b6164d564124282=resfs/src//py_modules/jinja2.exceptions" "_2eb759fbb7944d34977089a521=/py_code/jinja2.exceptions"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/8a8b800fa50d1b1054425fe1fa.cpp" "_a9a7eadeefe0d0fba93e18d186=/py_modules/jinja2.ext" "_9946836c784f7838c6fdadd654=resfs/src//py_modules/jinja2.ext" "_23c84f73c7e9f3ea7f94cd4b42=/py_code/jinja2.ext" "_1f1d7320e63c176fc983bfe1d9=/py_modules/jinja2.filters" "_44975cd44c01ac640bc65087a3=resfs/src//py_modules/jinja2.filters" "_f4d1c843397d0ca8b2d62c37f2=/py_code/jinja2.filters" "_4d215f5c723a5f2933059d48c2=/py_modules/jinja2.idtracking" "_b47873da1ca03aa479aad80bbf=resfs/src//py_modules/jinja2.idtracking" "_39808762f44a81bcd2ec1046e9=/py_code/jinja2.idtracking" "_de34f20714d01ce244333729c1=/py_modules/jinja2.lexer" "_c3034439f2d7e776ecc8480787=resfs/src//py_modules/jinja2.lexer" "_91aff73baa5df85241e646ef6a=/py_code/jinja2.lexer" "_e0dd9ae6f2bad1f9c6a54b00f6=/py_modules/jinja2.loaders" "_785519843651c6aaf029628fb5=resfs/src//py_modules/jinja2.loaders" "_10095b495d851d09a73c7939a5=/py_code/jinja2.loaders" "_336526b681dcd8d82ebf43931b=/py_modules/jinja2.meta" "_5445784d5ec43580964721dd52=resfs/src//py_modules/jinja2.meta" "_e78f3c75792bea18a5ae476c86=/py_code/jinja2.meta" "_119d89d0df73317f9e6bb30c60=/py_modules/jinja2.nativetypes" "_f78c3623e5bf33ec713c07423f=resfs/src//py_modules/jinja2.nativetypes" "_ad41fc250e5179defa55ae8f4d=/py_code/jinja2.nativetypes" "_6b3c7364524cb2673cbf244ac6=/py_modules/jinja2.nodes" "_977f7b67baa77f9b94156414f7=resfs/src//py_modules/jinja2.nodes" "_8ccaf894db8d2ef1f9d4517a00=/py_code/jinja2.nodes" "_330c28baf6f151debc95698aff=/py_modules/jinja2.optimizer" "_95a790e8b237fbeaa33e5c8e7c=resfs/src//py_modules/jinja2.optimizer" "_20d2f74a093f9fdc78b1064b23=/py_code/jinja2.optimizer" "_14a618df576560286071f4004d=/py_modules/jinja2.parser" "_7ab9e3f16d772bd3e283b74691=resfs/src//py_modules/jinja2.parser" "_6650a6c033ad2823ab356f8326=/py_code/jinja2.parser" "_d04aee46f3b8f099dd2a7d2bc2=/py_modules/jinja2.runtime"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/919a62b664c1c21491ad3d22f3.cpp" "_91ebc6b07d70f9433ccf5d2299=resfs/src/resfs/file/contrib/python/Jinja2/.dist-info/METADATA" "_1ef9b829778b120a64fc8c4d6f=resfs/file/contrib/python/Jinja2/.dist-info/METADATA" "_af8fbf2abdac15deaf41639321=resfs/src/resfs/file/contrib/python/Jinja2/.dist-info/entry_points.txt" "_4f884034afa370a97cb8a0d699=resfs/file/contrib/python/Jinja2/.dist-info/entry_points.txt" "_5d65ee4f528c493e8715b83290=resfs/src/resfs/file/contrib/python/Jinja2/.dist-info/top_level.txt" "_17140c17ff89177c11329257e5=resfs/file/contrib/python/Jinja2/.dist-info/top_level.txt"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/ed02f6f44d278bd1d77bc2f841.cpp" "_4867558ea75278e878f8ae47f6=resfs/src//py_modules/jinja2.runtime" "_0a48b910261104b5f0993e1cb4=/py_code/jinja2.runtime" "_984c082e3ede11f51e8178c330=/py_modules/jinja2.sandbox" "_12109263a6f8118dbbeba535f8=resfs/src//py_modules/jinja2.sandbox" "_fad9ddcff52dbfa255ada4c65d=/py_code/jinja2.sandbox" "_0ab3b397ab4d022ee9ab2a24d5=/py_modules/jinja2.tests" "_2f5f4724687444c2fe54e21d90=resfs/src//py_modules/jinja2.tests" "_fd640f6184aede219664a11c3b=/py_code/jinja2.tests" "_f5c6ef43734a4120356491a98f=/py_modules/jinja2.utils" "_f5502a2b06a2f506aa216b77d9=resfs/src//py_modules/jinja2.utils" "_54034bc3525b5cfb715cac4b4f=/py_code/jinja2.utils" "_da06987684ea6352eec8d84f3e=/py_modules/jinja2.visitor" "_d7173c9c0d890c369c8d660414=resfs/src//py_modules/jinja2.visitor" "_6c193eb9172fe18cc78e6aa9e9=/py_code/jinja2.visitor"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/fa9605cad4ab6b62449cc9ed55.cpp" "_7aebb9905b16c0dc093ecfdf89=py/no_check_imports/wa46wnunnku6vcrt6b2xe5fdsy"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/Jinja2/0d8e08a1055d1a60cb70e787a3.cpp	$B/contrib/python/Jinja2/8a8b800fa50d1b1054425fe1fa.cpp	$B/contrib/python/Jinja2/919a62b664c1c21491ad3d22f3.cpp	$B/contrib/python/Jinja2/ed02f6f44d278bd1d77bc2f841.cpp	$B/contrib/python/Jinja2/fa9605cad4ab6b62449cc9ed55.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\0d8e08a1055d1a60cb70e787a3.cpp;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\8a8b800fa50d1b1054425fe1fa.cpp;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\919a62b664c1c21491ad3d22f3.cpp;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\ed02f6f44d278bd1d77bc2f841.cpp;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\fa9605cad4ab6b62449cc9ed55.cpp;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\build\scripts\fs_tools.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/join_72620ad1562164b66edcc4b4ca.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_0d8e08a1055d1a60cb70e787a3.yasm" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_8a8b800fa50d1b1054425fe1fa.yasm" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_ed02f6f44d278bd1d77bc2f841.yasm" "--ya-end-command-file"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/join_72620ad1562164b66edcc4b4ca.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_0d8e08a1055d1a60cb70e787a3.yasm" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_8a8b800fa50d1b1054425fe1fa.yasm" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_ed02f6f44d278bd1d77bc2f841.yasm" "--ya-end-command-file"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/Jinja2/join_72620ad1562164b66edcc4b4ca.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\fs_tools.py;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_0d8e08a1055d1a60cb70e787a3.yasm;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_8a8b800fa50d1b1054425fe1fa.yasm;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_ed02f6f44d278bd1d77bc2f841.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\join_72620ad1562164b66edcc4b4ca.yasm;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_join_srcs.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/join_0a51fcb7f875f2802e0c254d0d.cpp" "--ya-start-command-file" "contrib/python/Jinja2/0d8e08a1055d1a60cb70e787a3.cpp" "contrib/python/Jinja2/8a8b800fa50d1b1054425fe1fa.cpp" "contrib/python/Jinja2/ed02f6f44d278bd1d77bc2f841.cpp" "--ya-end-command-file"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/join_0a51fcb7f875f2802e0c254d0d.cpp" "--ya-start-command-file" "contrib/python/Jinja2/0d8e08a1055d1a60cb70e787a3.cpp" "contrib/python/Jinja2/8a8b800fa50d1b1054425fe1fa.cpp" "contrib/python/Jinja2/ed02f6f44d278bd1d77bc2f841.cpp" "--ya-end-command-file"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/Jinja2/join_0a51fcb7f875f2802e0c254d0d.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\0d8e08a1055d1a60cb70e787a3.cpp;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\8a8b800fa50d1b1054425fe1fa.cpp;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\ed02f6f44d278bd1d77bc2f841.cpp;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\join_0a51fcb7f875f2802e0c254d0d.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -677,6 +534,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\MarkupSafe\pycontrib-python-MarkupSafe.vcxproj">
       <Project>{FC1C3945-FBD5-32DC-1DC6-99EC399ECD60}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\setuptools\py2\pypython-setuptools-py2.vcxproj">
+      <Project>{C1D10CB8-B94C-C430-F3B3-494136748EA6}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\setuptools\pycontrib-python-setuptools.vcxproj">
       <Project>{8179ED86-9B97-876C-F62E-DE7CEB78CDDF}</Project>

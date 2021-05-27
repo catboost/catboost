@@ -112,7 +112,24 @@ def add_python_lint_checks(unit, py_ver, files):
                 resolved_files.append(resolved)
         return resolved_files
 
-    if files and unit.get('LINT_LEVEL_VALUE') != "none":
+    if unit.get('LINT_LEVEL_VALUE') == "none":
+
+        no_lint_allowed_paths = (
+            "contrib/",
+            "devtools/",
+            "junk/",
+            # temporary allowed, TODO: remove
+            "taxi/uservices/",
+            "travel/",
+            "market/report/lite/",  # MARKETOUT-38662, deadline: 2021-08-12
+        )
+
+        upath = unit.path()[3:]
+
+        if not upath.startswith(no_lint_allowed_paths):
+            ymake.report_configure_error("NO_LINT() is allowed only in " + ", ".join(no_lint_allowed_paths))
+
+    if files and unit.get('LINT_LEVEL_VALUE') not in ("none", "none_internal"):
         resolved_files = get_resolved_files()
         flake8_cfg = 'build/config/tests/flake8.conf'
         unit.onadd_check(["flake8.py{}".format(py_ver), flake8_cfg] + resolved_files)
@@ -152,7 +169,7 @@ def onpy_srcs(unit, *args):
         __init__.py never required, but if present (and specified in PY_SRCS), it will be imported when you import package modules with __init__.py Oh.
 
         Example of library declaration with PY_SRCS():
-        PY_LIBRARY(mymodule)
+        PY2_LIBRARY(mymodule)
         PY_SRCS(a.py sub/dir/b.py e.proto sub/dir/f.proto c.pyx sub/dir/d.pyx g.swg sub/dir/h.swg)
         END()
 
@@ -434,23 +451,8 @@ def onpy_srcs(unit, *args):
             for py_suf in unit.get("PY_PROTO_SUFFIXES").split()
         ])
 
-        if optimize_proto:
-            unit.onsrcs(proto_paths)
-
-            if need_gazetteer_peerdir:
-                unit.onpeerdir(['kernel/gazetteer/proto'])
-
-            pb_cc_outs = [
-                pb_cc_arg(cc_suf, path, unit)
-                for path in proto_paths
-                for cc_suf in unit.get("CPP_PROTO_SUFFIXES").split()
-            ]
-
-            for pb_cc_outs_chunk in generate_chunks(pb_cc_outs, 10):
-                if unit_needs_main:
-                    unit.onjoin_srcs(['join_' + listid(pb_cc_outs_chunk) + '.cpp'] + pb_cc_outs_chunk)
-                else:
-                    unit.onjoin_srcs_global(['join_' + listid(pb_cc_outs_chunk) + '.cpp'] + pb_cc_outs_chunk)
+        if optimize_proto and need_gazetteer_peerdir:
+            unit.onpeerdir(['kernel/gazetteer/proto'])
 
     if evs:
         if not upath.startswith('contrib/libs/protobuf/python/google_lib'):
@@ -458,16 +460,6 @@ def onpy_srcs(unit, *args):
 
         unit.on_generate_py_evs_internal([path for path, mod in evs])
         unit.onpy_srcs([ev_arg(path, mod, unit) for path, mod in evs])
-
-        if optimize_proto:
-            unit.onsrcs([path for path, mod in evs])
-
-            pb_cc_outs = [ev_cc_arg(path, unit) for path, _ in evs]
-            for pb_cc_outs_chunk in generate_chunks(pb_cc_outs, 10):
-                if unit_needs_main:
-                    unit.onjoin_srcs(['join_' + listid(pb_cc_outs_chunk) + '.cpp'] + pb_cc_outs_chunk)
-                else:
-                    unit.onjoin_srcs_global(['join_' + listid(pb_cc_outs_chunk) + '.cpp'] + pb_cc_outs_chunk)
 
 
 def _check_test_srcs(*args):

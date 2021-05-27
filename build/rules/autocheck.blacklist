@@ -1,5 +1,7 @@
 # Atocheck blacklist
-# The list of top level directories excluded from autocheck
+# The list of directories excluded from autocheck (with all subdirs)
 frontend
 junk
 mobile
+games/frontend
+direct/frontend

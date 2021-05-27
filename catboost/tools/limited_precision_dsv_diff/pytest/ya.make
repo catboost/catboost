@@ -1,6 +1,6 @@
 
 
-PYTEST()
+PY2TEST()
 
 TEST_SRCS(
     test.py

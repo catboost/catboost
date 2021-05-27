@@ -171,6 +171,7 @@ public:
     TFile Duplicate() const;
 
     size_t Read(void* buf, size_t len);
+    size_t ReadOrFail(void* buf, size_t len);
     i32 RawRead(void* buf, size_t len);
     void Load(void* buf, size_t len);
     void Write(const void* buf, size_t len);

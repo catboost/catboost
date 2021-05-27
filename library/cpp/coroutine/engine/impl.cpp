@@ -302,6 +302,7 @@ void TContExecutor::RunScheduler() noexcept {
             }
         }
     } catch (...) {
+        TBackTrace::FromCurrentException().PrintTo(Cerr);
         Y_FAIL("Uncaught exception in the scheduler: %s", CurrentExceptionMessage().c_str());
     }
 }

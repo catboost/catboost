@@ -82,6 +82,8 @@ IF(NOT OS_ANDROID OR PYTHON2)
         version.py
         core.py
         datasets.py
+        plot_helpers.py
+        metrics.py
         monoforest.py
         text_processing.py
         utils.py
@@ -102,7 +104,5 @@ IF(NOT OS_ANDROID OR PYTHON2)
         eval/utils.py
     )
 ENDIF()
-
-NO_LINT()
 
 END()

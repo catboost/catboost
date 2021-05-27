@@ -129,6 +129,7 @@ Y_UNIT_TEST_SUITE(TJsonReaderTest) {
         UNIT_ASSERT_VALUES_EQUAL(value["intkey"].GetInteger(), 10);
         UNIT_ASSERT_DOUBLES_EQUAL(value["double key"].GetDouble(), 11.11, 0.001);
         UNIT_ASSERT_VALUES_EQUAL(value["bool key"].GetBoolean(), true);
+        UNIT_ASSERT_VALUES_EQUAL(value["absent string key"].GetString(), TString(""));
         UNIT_ASSERT_VALUES_EQUAL(value["string key"].GetString(), TString("string"));
         UNIT_ASSERT_VALUES_EQUAL(value["array"][0].GetInteger(), 1);
         UNIT_ASSERT_VALUES_EQUAL(value["array"][1].GetInteger(), 2);

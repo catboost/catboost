@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
     pygments.lexers.forth
     ~~~~~~~~~~~~~~~~~~~~~
@@ -175,4 +174,4 @@ class ForthLexer(RegexLexer):
         """Forth uses : COMMAND ; quite a lot in a single line, so we're trying
         to find that."""
         if re.search('\n:[^\n]+;\n', text):
-            return 0.1
+            return 0.3

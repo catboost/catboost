@@ -265,6 +265,10 @@ void NCatboostOptions::PlainJsonToOptions(
         seenKeys.insert("eval_metric");
     }
 
+    if (plainOptions.Has("callbacks")) {
+        seenKeys.insert("callbacks");
+    }
+
     if (plainOptions.Has("custom_metric") || plainOptions.Has("custom_loss")) {
         const NJson::TJsonValue& metrics = plainOptions.Has("custom_metric") ? plainOptions["custom_metric"] : plainOptions["custom_loss"];
         if (metrics.IsArray()) {
@@ -346,6 +350,8 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOption(plainOptions, "leaf_estimation_backtracking", &treeOptions, &seenKeys);
     CopyOption(plainOptions, "depth", &treeOptions, &seenKeys);
     CopyOption(plainOptions, "l2_leaf_reg", &treeOptions, &seenKeys);
+    CopyOption(plainOptions, "meta_l2_exponent", &treeOptions, &seenKeys);
+    CopyOption(plainOptions, "meta_l2_frequency", &treeOptions, &seenKeys);
     CopyOption(plainOptions, "bayesian_matrix_reg", &treeOptions, &seenKeys);
     CopyOption(plainOptions, "model_size_reg", &treeOptions, &seenKeys);
     CopyOption(plainOptions, "dev_score_calc_obj_block_size", &treeOptions, &seenKeys);
@@ -466,6 +472,8 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOption(plainOptions, "node_port", &systemOptions, &seenKeys);
     CopyOption(plainOptions, "file_with_hosts", &systemOptions, &seenKeys);
 
+    //pool metainfo
+    CopyOption(plainOptions, "pool_metainfo_options", &trainOptions, &seenKeys);
 
     //rest
     CopyOption(plainOptions, "random_seed", &trainOptions, &seenKeys);
@@ -660,6 +668,12 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
 
         CopyOption(treeOptions, "l2_leaf_reg", &plainOptionsJson, &seenKeys);
         DeleteSeenOption(&optionsCopyTree, "l2_leaf_reg");
+
+        CopyOption(treeOptions, "meta_l2_exponent", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyTree, "meta_l2_exponent");
+
+        CopyOption(treeOptions, "meta_l2_frequency", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyTree, "meta_l2_frequency");
 
         CopyOption(treeOptions, "bayesian_matrix_reg", &plainOptionsJson, &seenKeys);
         DeleteSeenOption(&optionsCopyTree, "bayesian_matrix_reg");
@@ -940,6 +954,10 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
         CB_ENSURE(optionsCopySystemOptions.GetMapSafe().empty(), "system_options: key " + optionsCopySystemOptions.GetMapSafe().begin()->first + " wasn't added to plain options.");
         DeleteSeenOption(&optionsCopy, "system_options");
     }
+
+    // pool metainfo
+    CopyOption(options, "pool_metainfo_options", &plainOptionsJson, &seenKeys);
+    DeleteSeenOption(&optionsCopy, "pool_metainfo_options");
 
     // rest
     CopyOption(options, "random_seed", &plainOptionsJson, &seenKeys);

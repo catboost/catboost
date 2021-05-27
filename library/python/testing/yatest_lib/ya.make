@@ -20,8 +20,6 @@ IF(PYTHON2)
     )
 ENDIF()
 
-NO_LINT()
-
 END()
 
 RECURSE_FOR_TESTS(tests)

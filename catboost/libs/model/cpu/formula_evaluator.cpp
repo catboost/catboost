@@ -599,6 +599,15 @@ namespace NCB::NModelEvaluation {
                 }
             }
 
+            void Quantize(
+		    TConstArrayRef<TConstArrayRef<float>> features,
+		    IQuantizedData* quantizedData
+	    ) const override {
+	        Y_UNUSED(features);
+	        Y_UNUSED(quantizedData);
+	        CB_ENSURE(false, "Unimplemented method called, please contact catboost developers via GitHub issue or in support chat");
+	    }
+
         private:
             template <typename TCatFeatureContainer = TConstArrayRef<int>>
             void ValidateInputFeatures(

@@ -23,7 +23,7 @@
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>Multibyte</CharacterSet>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props"/>
   <ImportGroup Label="ArcadiaProps"/>
@@ -57,8 +57,8 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DUSE_PYTHON3 /std:c++17  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DUSE_PYTHON3 /std:c++17  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -DPyInit__odepack=PyInit_5scipy9integrate8_odepack -DPyInit__quadpack=PyInit_5scipy9integrate9_quadpack -DPyInit_vode=PyInit_5scipy9integrate4vode -DPyInit__dop=PyInit_5scipy9integrate4_dop -DPyInit_lsoda=PyInit_5scipy9integrate5lsoda -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DUSE_PYTHON3 /std:c++latest /D_CRT_USE_BUILTIN_OFFSETOF  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -DPyInit__odepack=PyInit_5scipy9integrate8_odepack -DPyInit__quadpack=PyInit_5scipy9integrate9_quadpack -DPyInit_vode=PyInit_5scipy9integrate4vode -DPyInit__dop=PyInit_5scipy9integrate4_dop -DPyInit_lsoda=PyInit_5scipy9integrate5lsoda -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DUSE_PYTHON3 /std:c++latest /D_CRT_USE_BUILTIN_OFFSETOF  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
@@ -66,7 +66,7 @@
       <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)../contrib/libs/libc_compat/include/windows;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/libs/openssl/include;$(SolutionDir)../contrib/restricted/libffi/include;$(SolutionDir)../contrib/restricted/libffi/configs/x86_64-microsoft-windows/include;$(SolutionDir)../contrib/python/numpy/include/numpy/core/include;$(SolutionDir)../contrib/python/numpy/include/numpy/core/include/numpy;$(SolutionDir)../contrib/python/numpy/include/numpy/f2py/src;$(SolutionDir)../contrib/libs/libf2c;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;gdi32.lib;kernel32.lib;ole32.lib;oleaut32.lib;shell32.lib;user32.lib;uuid.lib;winspool.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;dnsapi.lib;gdi32.lib;iphlpapi.lib;kernel32.lib;mswsock.lib;ole32.lib;oleaut32.lib;psapi.lib;rpcrt4.lib;secur32.lib;shell32.lib;shlwapi.lib;user32.lib;userenv.lib;uuid.lib;version.lib;winmm.lib;winspool.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  Mincore.lib Shlwapi.lib Winmm.lib</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  Mincore.lib Shlwapi.lib Winmm.lib</AdditionalOptions>
       <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
@@ -78,7 +78,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\23e7e8ef9844203f4eebaf790d.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\integrate\_dopmodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
@@ -91,11 +90,6 @@
     <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\integrate\lsodamodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\scipy.integrate._dop.reg3.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\scipy.integrate._odepack.reg3.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\scipy.integrate._quadpack.reg3.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\scipy.integrate.lsoda.reg3.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\scipy.integrate.vode.reg3.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\integrate\vodemodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
@@ -125,92 +119,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/scipy/scipy/integrate/_23e7e8ef9844203f4eebaf790d.py3.obj	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\_23e7e8ef9844203f4eebaf790d.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\_23e7e8ef9844203f4eebaf790d.py3.obj;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/23e7e8ef9844203f4eebaf790d.cpp" "_fa91d4655d24b08addfa91ca1a=resfs/src/resfs/file/py/scipy/integrate/__init__.py" "_a3cdf95a1911b7fdf7a4fe1a5b=resfs/file/py/scipy/integrate/__init__.py" "_1299c043d20e08c5b009511a01=resfs/src/resfs/file/py/scipy/integrate/__init__.py.yapyc3" "_10c217aa0f528b5174506fb63a=resfs/file/py/scipy/integrate/__init__.py.yapyc3" "_3fee2bcc61d9989f5369e0b8cd=resfs/src/resfs/file/py/scipy/integrate/quadpack.py" "_11ebd472f23d0ce0b50fa0ca70=resfs/file/py/scipy/integrate/quadpack.py" "_fdf170090feccd2c5bc1f65678=resfs/src/resfs/file/py/scipy/integrate/quadpack.py.yapyc3" "_47785e84243b323f14f53aa37f=resfs/file/py/scipy/integrate/quadpack.py.yapyc3" "_e6ceeb2bb2eb9592781027249f=resfs/src/resfs/file/py/scipy/integrate/quadrature.py" "_f884cd29f8fb147ac631d903f2=resfs/file/py/scipy/integrate/quadrature.py" "_e4ab3fcdb0cc50aab2da3ddf9b=resfs/src/resfs/file/py/scipy/integrate/quadrature.py.yapyc3" "_a52af0cb4ed9d95b41483e8b8e=resfs/file/py/scipy/integrate/quadrature.py.yapyc3" "_4ad8f206d01952c8b34f0260e9=resfs/src/resfs/file/py/scipy/integrate/_ode.py" "_2b8a0edd355a1c6e76ba3f38f4=resfs/file/py/scipy/integrate/_ode.py" "_1501330e02b939a15ec8ef0a4f=resfs/src/resfs/file/py/scipy/integrate/_ode.py.yapyc3" "_bce4eb216ab8d06537499113c5=resfs/file/py/scipy/integrate/_ode.py.yapyc3" "_20af4eae93cf2f2c3ff18187dc=resfs/src/resfs/file/py/scipy/integrate/odepack.py" "_ec1833bdfebd9216af316c4641=resfs/file/py/scipy/integrate/odepack.py" "_67048428318e4894dcdb300846=resfs/src/resfs/file/py/scipy/integrate/odepack.py.yapyc3" "_999e6c696a3cbd65da55ea5c1e=resfs/file/py/scipy/integrate/odepack.py.yapyc3" "_53e85ad75f73c0dbf31eb2358b=resfs/src/resfs/file/py/scipy/integrate/_bvp.py" "_f78df553cef1756718d56c3632=resfs/file/py/scipy/integrate/_bvp.py" "_6ad460d5e5282317320e2cb99d=resfs/src/resfs/file/py/scipy/integrate/_bvp.py.yapyc3" "_9fdbee3e07263737821f900880=resfs/file/py/scipy/integrate/_bvp.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/23e7e8ef9844203f4eebaf790d.cpp" "_fa91d4655d24b08addfa91ca1a=resfs/src/resfs/file/py/scipy/integrate/__init__.py" "_a3cdf95a1911b7fdf7a4fe1a5b=resfs/file/py/scipy/integrate/__init__.py" "_1299c043d20e08c5b009511a01=resfs/src/resfs/file/py/scipy/integrate/__init__.py.yapyc3" "_10c217aa0f528b5174506fb63a=resfs/file/py/scipy/integrate/__init__.py.yapyc3" "_3fee2bcc61d9989f5369e0b8cd=resfs/src/resfs/file/py/scipy/integrate/quadpack.py" "_11ebd472f23d0ce0b50fa0ca70=resfs/file/py/scipy/integrate/quadpack.py" "_fdf170090feccd2c5bc1f65678=resfs/src/resfs/file/py/scipy/integrate/quadpack.py.yapyc3" "_47785e84243b323f14f53aa37f=resfs/file/py/scipy/integrate/quadpack.py.yapyc3" "_e6ceeb2bb2eb9592781027249f=resfs/src/resfs/file/py/scipy/integrate/quadrature.py" "_f884cd29f8fb147ac631d903f2=resfs/file/py/scipy/integrate/quadrature.py" "_e4ab3fcdb0cc50aab2da3ddf9b=resfs/src/resfs/file/py/scipy/integrate/quadrature.py.yapyc3" "_a52af0cb4ed9d95b41483e8b8e=resfs/file/py/scipy/integrate/quadrature.py.yapyc3" "_4ad8f206d01952c8b34f0260e9=resfs/src/resfs/file/py/scipy/integrate/_ode.py" "_2b8a0edd355a1c6e76ba3f38f4=resfs/file/py/scipy/integrate/_ode.py" "_1501330e02b939a15ec8ef0a4f=resfs/src/resfs/file/py/scipy/integrate/_ode.py.yapyc3" "_bce4eb216ab8d06537499113c5=resfs/file/py/scipy/integrate/_ode.py.yapyc3" "_20af4eae93cf2f2c3ff18187dc=resfs/src/resfs/file/py/scipy/integrate/odepack.py" "_ec1833bdfebd9216af316c4641=resfs/file/py/scipy/integrate/odepack.py" "_67048428318e4894dcdb300846=resfs/src/resfs/file/py/scipy/integrate/odepack.py.yapyc3" "_999e6c696a3cbd65da55ea5c1e=resfs/file/py/scipy/integrate/odepack.py.yapyc3" "_53e85ad75f73c0dbf31eb2358b=resfs/src/resfs/file/py/scipy/integrate/_bvp.py" "_f78df553cef1756718d56c3632=resfs/file/py/scipy/integrate/_bvp.py" "_6ad460d5e5282317320e2cb99d=resfs/src/resfs/file/py/scipy/integrate/_bvp.py.yapyc3" "_9fdbee3e07263737821f900880=resfs/file/py/scipy/integrate/_bvp.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/scipy/scipy/integrate/23e7e8ef9844203f4eebaf790d.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\23e7e8ef9844203f4eebaf790d.cpp;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_py3_reg.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py3_reg.py" "scipy.integrate._dop" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/scipy.integrate._dop.reg3.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py3_reg.py" "scipy.integrate._odepack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/scipy.integrate._odepack.reg3.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py3_reg.py" "scipy.integrate._quadpack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/scipy.integrate._quadpack.reg3.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py3_reg.py" "scipy.integrate.lsoda" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/scipy.integrate.lsoda.reg3.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py3_reg.py" "scipy.integrate.vode" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/scipy.integrate.vode.reg3.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py3_reg.py" "scipy.integrate._dop" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/scipy.integrate._dop.reg3.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py3_reg.py" "scipy.integrate._odepack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/scipy.integrate._odepack.reg3.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py3_reg.py" "scipy.integrate._quadpack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/scipy.integrate._quadpack.reg3.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py3_reg.py" "scipy.integrate.lsoda" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/scipy.integrate.lsoda.reg3.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py3_reg.py" "scipy.integrate.vode" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/scipy.integrate.vode.reg3.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/scipy/scipy/integrate/scipy.integrate._dop.reg3.cpp	$B/contrib/python/scipy/scipy/integrate/scipy.integrate._odepack.reg3.cpp	$B/contrib/python/scipy/scipy/integrate/scipy.integrate._quadpack.reg3.cpp	$B/contrib/python/scipy/scipy/integrate/scipy.integrate.lsoda.reg3.cpp	$B/contrib/python/scipy/scipy/integrate/scipy.integrate.vode.reg3.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_py3_reg.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\scipy.integrate._dop.reg3.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\scipy.integrate._odepack.reg3.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\scipy.integrate._quadpack.reg3.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\scipy.integrate.lsoda.reg3.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\scipy.integrate.vode.reg3.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\scipy\scipy\integrate\__init__.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

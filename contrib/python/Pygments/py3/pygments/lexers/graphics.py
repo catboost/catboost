@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
     pygments.lexers.graphics
     ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -408,7 +407,7 @@ class AsymptoteLexer(RegexLexer):
     .. versionadded:: 1.2
     """
     name = 'Asymptote'
-    aliases = ['asy', 'asymptote']
+    aliases = ['asymptote', 'asy']
     filenames = ['*.asy']
     mimetypes = ['text/x-asymptote']
 
