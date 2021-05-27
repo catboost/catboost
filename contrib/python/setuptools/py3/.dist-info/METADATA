@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: setuptools
-Version: 56.2.0
+Version: 57.0.0
 Summary: Easily download, build, install, upgrade, and uninstall Python packages
 Home-page: https://github.com/pypa/setuptools
 Author: Python Packaging Authority
@@ -19,6 +19,7 @@ Classifier: Topic :: System :: Archiving :: Packaging
 Classifier: Topic :: System :: Systems Administration
 Classifier: Topic :: Utilities
 Requires-Python: >=3.6
+License-File: LICENSE
 Provides-Extra: certs
 Requires-Dist: certifi (==2016.9.26) ; extra == 'certs'
 Provides-Extra: docs
@@ -27,6 +28,7 @@ Requires-Dist: jaraco.packaging (>=8.2) ; extra == 'docs'
 Requires-Dist: rst.linker (>=1.9) ; extra == 'docs'
 Requires-Dist: pygments-github-lexers (==0.0.5) ; extra == 'docs'
 Requires-Dist: sphinx-inline-tabs ; extra == 'docs'
+Requires-Dist: sphinxcontrib-towncrier ; extra == 'docs'
 Provides-Extra: ssl
 Requires-Dist: wincertstore (==0.2) ; (sys_platform == "win32") and extra == 'ssl'
 Provides-Extra: testing

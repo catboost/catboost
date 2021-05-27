@@ -4,7 +4,7 @@ LICENSE(MIT)
 
 
 
-VERSION(56.2.0)
+VERSION(57.0.0)
 
 PEERDIR(
     library/python/resource
@@ -94,6 +94,9 @@ PY_SRCS(
     setuptools/_distutils/versionpredicate.py
     setuptools/_imp.py
     setuptools/_vendor/__init__.py
+    setuptools/_vendor/more_itertools/__init__.py
+    setuptools/_vendor/more_itertools/more.py
+    setuptools/_vendor/more_itertools/recipes.py
     setuptools/_vendor/ordered_set.py
     setuptools/_vendor/packaging/__about__.py
     setuptools/_vendor/packaging/__init__.py

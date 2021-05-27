@@ -8,6 +8,7 @@ import io
 import distutils.errors
 import itertools
 import stat
+from setuptools.extern.more_itertools import unique_everseen
 
 try:
     from setuptools.lib2to3_ex import Mixin2to3
@@ -214,7 +215,7 @@ class build_py(orig.build_py, Mixin2to3):
             if fn not in bad
         )
         # ditch dupes
-        return list(_unique_everseen(keepers))
+        return list(unique_everseen(keepers))
 
     @staticmethod
     def _get_platform_patterns(spec, package, src_dir):
@@ -233,25 +234,6 @@ class build_py(orig.build_py, Mixin2to3):
             os.path.join(src_dir, convert_path(pattern))
             for pattern in raw_patterns
         )
-
-
-# from Python docs
-def _unique_everseen(iterable, key=None):
-    "List unique elements, preserving order. Remember all elements ever seen."
-    # unique_everseen('AAAABBBCCDAABBB') --> A B C D
-    # unique_everseen('ABBCcAD', str.lower) --> A B C D
-    seen = set()
-    seen_add = seen.add
-    if key is None:
-        for element in itertools.filterfalse(seen.__contains__, iterable):
-            seen_add(element)
-            yield element
-    else:
-        for element in iterable:
-            k = key(element)
-            if k not in seen:
-                seen_add(k)
-                yield element
 
 
 def assert_relative(path):
