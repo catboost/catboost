@@ -1,8 +1,8 @@
 RECURSE(
     libs
-    tools
     python
     restricted
+    tools
 )
 
 
