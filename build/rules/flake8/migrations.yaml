@@ -467,7 +467,6 @@ migrations:
     - maps/infra/ecstatic/common/worker/lib
     - maps/infra/monitoring/sla_calculator/core/services
     - maps/jams/renderer2/common/ecstatic/lib
-    - maps/jams/tools/tie-xml-jams/tests/tie_upload_test
     - maps/mobile/server/tools/cache_deprecator
     - maps/mobile/tools/android-manifest
     - maps/pylibs/dataset_collector
@@ -498,7 +497,6 @@ migrations:
     - market/library/cms_promo/py_utils
     - market/mstat/ch-cache/lib
     - market/mstat/ch-cache/lib/database
-    - market/pinger-report/lib
     - market/reductor/configure/lib
     - market/reductor/www
     - market/sre/library/python/maaslib
@@ -705,8 +703,6 @@ migrations:
     - sandbox/projects/SOC/YtProxyAnalyzeCommandParams
     - sandbox/projects/SOC/YtRawMasterLogAnalysis
     - sandbox/projects/SpawnTestConfigGenerator
-    - sandbox/projects/Statbox
-    - sandbox/projects/Statbox/StatboxDebuilder
     - sandbox/projects/TaxiSecurity
     - sandbox/projects/TaxiSecurity/BadLogsAnalyzer
     - sandbox/projects/TaxiSecurity/YodaxAnalyzer
@@ -1640,7 +1636,6 @@ migrations:
     - mail/collectors/tests-system/src
     - mail/github/calendar-attach-processor
     - maps/analyzer/pylibs/train_catboost
-    - maps/analyzer/sandbox/jams_level_prediction/prepare_history_storage/lib
     - maps/analyzer/tools/qyp_quota
     - maps/automotive/carwashes/tests/fake-env
     - maps/automotive/carwashes/tests/src
@@ -1931,7 +1926,6 @@ migrations:
     - yweb/antispam/cid/library/geo
     - yweb/antispam/clean_web/router
     - yweb/antispam/mascot/monitorings/check_table_age
-    - yweb/antispam/ytgr/legal_loader/library
     - yweb/robot/limbo
     - yweb/robot/metrics/pmusca/graph/bin/extract_urls_from_serp
     - yweb/robot/metrics/pmusca/update_jupiter_urlinfo
@@ -2112,7 +2106,6 @@ migrations:
     - antiadblock/configs_api/lib
     - antirobot/scripts/access_log
     - antirobot/scripts/evlog_grep
-    - antirobot/scripts/gencfg
     - antirobot/scripts/learn/make_learn_data
     - antirobot/scripts/log_viewer/app
     - antirobot/scripts/log_viewer/precalc
@@ -2257,7 +2250,6 @@ migrations:
     - dict/mt/make/processes/gen_cleanup_graph
     - dict/mt/make/processes/gen_monitoring_graphs
     - dict/mt/make/tools/build_prob_dict
-    - dict/mt/make/tools/config_generator
     - dict/mt/make/tools/corpus_classifier
     - dict/mt/make/tools/filter_corpus_by_rules
     - dict/mt/make/tools/filter_mono
@@ -3935,8 +3927,6 @@ migrations:
     - quality/functionality/toloka_lib/tests
     - quality/functionality/turbo/rss/host_ban_job/tests
     - quality/logs/baobab/api/cpp/tests
-    - quality/logs/baobab/api/python_arc/ut
-    - quality/logs/baobab/api/python_arc/ut3
     - quality/logs/baobab/tamus/python/ut
     - quality/logs/baobab/tamus/tests/dump_test
     - quality/logs/baobab/tests/validation_lib
