@@ -78,6 +78,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\win_unicode_console\46f54dc271eecb3385811deb7c.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\win_unicode_console\join_c81496c12f25ea3c355550b799.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\win_unicode_console\join_cfc627e82f42dea4366bf028d5.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -114,6 +115,10 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\win_unicode_console
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/win_unicode_console/46f54dc271eecb3385811deb7c.cpp" "_844e1e63bc773f34c4a9c95d8a=py/no_check_imports/vgxakedociguse7pe4n35d65a4"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\win_unicode_console
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/win_unicode_console/f3cfa067d7f041e94027ef6994.cpp" "_593d6091fe2548bfc78e66de31=/py_modules/win_unicode_console.tokenize_open" "_88172cfc530b8422e9b6351bcc=resfs/src//py_modules/win_unicode_console.tokenize_open" "_77a24671fa4be00c630f655416=/py_code/win_unicode_console.tokenize_open" "_77cbab1dfd0dcd333ba24f0d9c=/py_modules/win_unicode_console.unicode_argv" "_3c8cc16ddeb13c3264d7d1b37c=resfs/src//py_modules/win_unicode_console.unicode_argv" "_61a024cbe70e40448163c6a902=/py_code/win_unicode_console.unicode_argv"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -129,6 +134,10 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\win_unicode_console
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/win_unicode_console/46f54dc271eecb3385811deb7c.cpp" "_844e1e63bc773f34c4a9c95d8a=py/no_check_imports/vgxakedociguse7pe4n35d65a4"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\win_unicode_console
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/win_unicode_console/f3cfa067d7f041e94027ef6994.cpp" "_593d6091fe2548bfc78e66de31=/py_modules/win_unicode_console.tokenize_open" "_88172cfc530b8422e9b6351bcc=resfs/src//py_modules/win_unicode_console.tokenize_open" "_77a24671fa4be00c630f655416=/py_code/win_unicode_console.tokenize_open" "_77cbab1dfd0dcd333ba24f0d9c=/py_modules/win_unicode_console.unicode_argv" "_3c8cc16ddeb13c3264d7d1b37c=resfs/src//py_modules/win_unicode_console.unicode_argv" "_61a024cbe70e40448163c6a902=/py_code/win_unicode_console.unicode_argv"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -137,9 +146,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/win_unicode_console/239b338fe1967b1b408ad40fda.cpp	$B/contrib/python/win_unicode_console/f3cfa067d7f041e94027ef6994.cpp	</Message>
+      <Message>$B/contrib/python/win_unicode_console/239b338fe1967b1b408ad40fda.cpp	$B/contrib/python/win_unicode_console/46f54dc271eecb3385811deb7c.cpp	$B/contrib/python/win_unicode_console/f3cfa067d7f041e94027ef6994.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\win_unicode_console\239b338fe1967b1b408ad40fda.cpp;$(SolutionDir)$(Configuration)\contrib\python\win_unicode_console\f3cfa067d7f041e94027ef6994.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\win_unicode_console\239b338fe1967b1b408ad40fda.cpp;$(SolutionDir)$(Configuration)\contrib\python\win_unicode_console\46f54dc271eecb3385811deb7c.cpp;$(SolutionDir)$(Configuration)\contrib\python\win_unicode_console\f3cfa067d7f041e94027ef6994.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\fs_tools.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
