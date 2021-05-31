@@ -27,4 +27,8 @@ PY_SRCS(
 
 NO_LINT()
 
+NO_CHECK_IMPORTS(
+    win_unicode_console.runner
+)
+
 END()

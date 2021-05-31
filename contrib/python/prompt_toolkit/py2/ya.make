@@ -15,9 +15,12 @@ NO_CHECK_IMPORTS(
     prompt_toolkit.clipboard.pyperclip
     prompt_toolkit.eventloop.asyncio_posix
     prompt_toolkit.eventloop.asyncio_win32
+    prompt_toolkit.eventloop.posix
     prompt_toolkit.eventloop.win32
     prompt_toolkit.terminal.conemu_output
     prompt_toolkit.win32_types
+    prompt_toolkit.terminal.vt100_input
+    prompt_toolkit.terminal.vt100_output
     prompt_toolkit.terminal.win32_input
     prompt_toolkit.terminal.win32_output
     prompt_toolkit.input.win32
@@ -25,6 +28,7 @@ NO_CHECK_IMPORTS(
     prompt_toolkit.output.conemu
     prompt_toolkit.output.win32
     prompt_toolkit.output.windows10
+    prompt_toolkit.contrib.telnet.*
 )
 
 NO_LINT()
