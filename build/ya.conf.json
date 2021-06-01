@@ -9270,7 +9270,7 @@
         "bpftool": {
             "formula": {
                 "sandbox_id": [
-                    708007910
+                    984392964
                 ],
                 "match": "infra/kernel/tools/bpftool/build/bpftool-static.tar.gz"
             },
