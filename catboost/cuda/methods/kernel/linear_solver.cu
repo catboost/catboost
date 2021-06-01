@@ -330,16 +330,18 @@ namespace NKernel {
 
         __syncthreads();
 
+        float averageDiag = pseudoRank > 0 ? trace / pseudoRank : 0;
+
         #pragma unroll 8
         for (int row = 0; row < rowSize; ++row) {
             //beta prior (uniform). Makes rank(lower) = rowSize - 1
             if (col <= row) {
                 float val = __ldg(lower + row * (row + 1) / 2 + col);
                 if (col == row && val <= 1e-7f) {
-                    val += trace / pseudoRank + 0.1f;
+                    val += averageDiag + 0.1f;
                 }
                 if (col == row) {
-                    val += 0.05f * trace / pseudoRank + 1e-20f;
+                    val += 0.05f * averageDiag + 1e-20f;
                 }
                 val += col < row ? -lambda0 * cellPrior : (lambda0 * (1 - cellPrior) + lambda1);
                 WriteThrough(lower + row * (row + 1) / 2 + col,  val);
