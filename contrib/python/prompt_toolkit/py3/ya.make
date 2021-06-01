@@ -16,13 +16,14 @@ NO_CHECK_IMPORTS(
     prompt_toolkit.eventloop.win32
     prompt_toolkit.terminal.conemu_output
     prompt_toolkit.win32_types
-    prompt_toolkit.terminal.win32_input
-    prompt_toolkit.terminal.win32_output
+    prompt_toolkit.input.posix_pipe
+    prompt_toolkit.input.vt100
     prompt_toolkit.input.win32
     prompt_toolkit.input.win32_pipe
     prompt_toolkit.output.conemu
     prompt_toolkit.output.win32
     prompt_toolkit.output.windows10
+    prompt_toolkit.contrib.telnet.*
 )
 
 NO_LINT()
