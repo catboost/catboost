@@ -128,7 +128,6 @@ migrations:
     - commerce/adv_backend/backend/management/commands/migrator
     - commerce/adv_backend/backend/validators
     - contrib/nginx/tests/tap
-    - crypta/dit/mr_dit_process/lib
     - cv/imageproc/ocr/tools/nirvana/blocks_dataset/extract_pdf_boxes
     - cv/imageproc/ocr/tools/nirvana/blocks_dataset/g_blocks
     - cv/imageproc/ocr/tools/nirvana/blocks_dataset/rotate_pdf
@@ -1554,7 +1553,6 @@ migrations:
     - browser/infra/bitbucket/bitbucket
     - browser/infra/ci/backend
     - clickhouse/utils/github
-    - crypta/lab/test/yt
     - cv/imageproc/ocr/tools/nirvana/captcha_renderer
     - cv/short2long/nirvana/lib
     - cv/short2long/training/yt_load_highlights
@@ -2188,7 +2186,6 @@ migrations:
     - contrib/python/semantic-version
     - crm/supskills/direct_skill/src
     - crowdsourcing/thirium-mitm-proxy
-    - crypta/contrib/nx_community
     - cv/cbir_search/onto_validation/grep_onto_state
     - cv/imageproc/faces/video_face_recognition/face_recognition_stream_viewer
     - cv/imgclassifiers/danet/scripts
@@ -3703,7 +3700,6 @@ migrations:
     - cloud/gauthling/yc_auth_tornado/test
     - cloud/mdb/dbaas-internal-api-image/dbaas_internal_api/utils/dataproc_joblog
     - cloud/mdb/salt/salt/components/datacloud/dist-sync/tests
-    - crypta/dit/mr_dit_process/test
     - cv/imageproc/ocr/ocr_runner/load_cfg
     - cv/imageproc/ocr/ocr_runner/tests
     - cv/library/imageparserlib/rawinterface/tests
@@ -4372,7 +4368,6 @@ migrations:
     - billing/agency_rewards/tests_platform
     - balancer/test/functional/instance
     - balancer/test/functional/aab_cookie_verify
-    - crypta/dit/mr_dit_process/bin/test/match_dit_to_segments_and_domains
     - dict/mystem/tests
     - infra/walle/server/tests
     - market/forecaster/lite
