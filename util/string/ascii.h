@@ -161,6 +161,9 @@ inline ::NPrivate::TDereferenced<T> AsciiToUpper(T c) noexcept {
  * ASCII case-insensitive string comparison (for proper UTF8 strings
  * case-insensitive comparison consider using @c library/cpp/charset).
  *
+ * BUGS: Currently will NOT work properly with strings that contain
+ * 0-terminator character inside. See IGNIETFERRO-1641 for details.
+ *
  * @return                              true iff @c s1 ans @c s2 are case-insensitively equal.
  */
 static inline bool AsciiEqualsIgnoreCase(const char* s1, const char* s2) noexcept {
@@ -171,6 +174,9 @@ static inline bool AsciiEqualsIgnoreCase(const char* s1, const char* s2) noexcep
  * ASCII case-insensitive string comparison (for proper UTF8 strings
  * case-insensitive comparison consider using @c library/cpp/charset).
  *
+ * BUGS: Currently will NOT work properly with strings that contain
+ * 0-terminator character inside. See IGNIETFERRO-1641 for details.
+ *
  * @return                              true iff @c s1 ans @c s2 are case-insensitively equal.
  */
 static inline bool AsciiEqualsIgnoreCase(const TStringBuf s1, const TStringBuf s2) noexcept {
@@ -180,6 +186,9 @@ static inline bool AsciiEqualsIgnoreCase(const TStringBuf s1, const TStringBuf s
 /**
  * ASCII case-insensitive string comparison (for proper UTF8 strings
  * case-insensitive comparison consider using @c library/cpp/charset).
+ *
+ * BUGS: Currently will NOT work properly with strings that contain
+ * 0-terminator character inside. See IGNIETFERRO-1641 for details.
  *
  * @return                              0 if strings are equal, negative if @c s1 < @c s2
  *                                      and positive otherwise.
@@ -193,24 +202,27 @@ static inline int AsciiCompareIgnoreCase(const char* s1, const char* s2) noexcep
  * ASCII case-insensitive string comparison (for proper UTF8 strings
  * case-insensitive comparison consider using @c library/cpp/charset).
  *
+ * BUGS: Currently will NOT work properly with strings that contain
+ * 0-terminator character inside. See IGNIETFERRO-1641 for details.
+ *
  * @return
  * - zero if strings are equal
  * - negative if @c s1 < @c s2
  * - positive otherwise,
  * similar to stricmp.
- *
- * BUGS: Currently will NOT work properly with strings that contain
- * 0-terminator character inside.
  */
 Y_PURE_FUNCTION
 int AsciiCompareIgnoreCase(const TStringBuf s1, const TStringBuf s2) noexcept;
 
 /**
-  * ASCII case-sensitive string comparison (for proper UTF8 strings
-  * case-sensitive comparison consider using @c library/cpp/charset).
-  *
-  * @return                              true iff @c s2 are case-sensitively prefix of @c s1.
-  */
+ * ASCII case-sensitive string comparison (for proper UTF8 strings
+ * case-sensitive comparison consider using @c library/cpp/charset).
+ *
+ * BUGS: Currently will NOT work properly with strings that contain
+ * 0-terminator character inside. See IGNIETFERRO-1641 for details.
+ *
+ * @return                              true iff @c s2 are case-sensitively prefix of @c s1.
+ */
 static inline bool AsciiHasPrefix(const TStringBuf s1, const TStringBuf s2) noexcept {
     return (s1.size() >= s2.size()) && memcmp(s1.data(), s2.data(), s2.size()) == 0;
 }
