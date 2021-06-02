@@ -1155,7 +1155,6 @@ migrations:
     - geosuggest/conveyors/learn_pool/lst_weights/lib
     - haas/cmis/hwr_preorders
     - haas/graphite_sync/get_report
-    - infra/awacs/awacslet/test
     - infra/deploy_queue_controller/lib
     - infra/dist/dmover/bin/dmover
     - infra/dist/dmover/lib
@@ -2013,7 +2012,6 @@ migrations:
     - adfox/rtd/core
     - adfox/rtd/reports
     - ads/bsyeti/libs/py_bt_profile
-    - ads/bsyeti/libs/py_experiments
     - ads/bsyeti/scripts/sample_catalogia_queries
     - ads/libs/py_categories
     - ads/libs/py_conf
@@ -2192,7 +2190,6 @@ migrations:
     - cv/imgclassifiers/framework/stat
     - datacloud/ml_utils/grid_search_wrapper/nirvana_cube
     - datacloud/stability
-    - datalens/backend/lib/lark-parser
     - dict/lm/ngrams/lib/build_ngrams
     - dict/misspell/python/metrics
     - dict/misspell/python/misspell
@@ -2546,8 +2543,6 @@ migrations:
     - maps/garden/libs/search_data_validation/geocoder_validator/lib
     - maps/goods/contrib/pylibs/xlrd
     - maps/infopoint/takeout/tests/ytrecipe
-    - maps/poi/personalized_poi/builder/lib/ut
-    - maps/poi/personalized_poi/builder/tools/future_click_pool
     - maps/pylibs/utils/lib
     - maps/pymod/yandex/maps/test_utils
     - maps/renderer/designs_config/libs/pymod
@@ -3689,8 +3684,6 @@ migrations:
     - billing/agency_rewards/tests
     - billing/contrib/py3solomon/tests
     - billing/contrib/pykish_spork/tests
-    - billing/dcsaap/backend/tests/medium
-    - billing/dcsaap/backend/tests/small
     - billing/yb_reports_monitorings/tests
     - bindings/java/abt/abt-native/android/tests
     - build/scripts
