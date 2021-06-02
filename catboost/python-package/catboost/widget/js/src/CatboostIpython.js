@@ -1,17 +1,26 @@
+require('./CatboostIpython.css');
+
+var widgets = require('@jupyter-widgets/base');
+var _ = require('lodash');
+var Plotly = require('plotly.js-dist-min');
+var $ = require('jquery');
+var widget_version = require('../package.json').version;
+
 /* global Highcharts, Plotly*/
+
 /* eslint-disable */
 function throttle(fn, timeout, invokeAsap, ctx) {
     var typeofInvokeAsap = typeof invokeAsap;
-    if(typeofInvokeAsap === 'undefined') {
+    if (typeofInvokeAsap === 'undefined') {
         invokeAsap = true;
-    } else if(arguments.length === 3 && typeofInvokeAsap !== 'boolean') {
+    } else if (arguments.length === 3 && typeofInvokeAsap !== 'boolean') {
         ctx = invokeAsap;
         invokeAsap = true;
     }
 
     var timer, args, needInvoke,
-        wrapper = function() {
-            if(needInvoke) {
+        wrapper = function () {
+            if (needInvoke) {
                 fn.apply(ctx, args);
                 needInvoke = false;
                 timer = setTimeout(wrapper, timeout);
@@ -20,13 +29,13 @@ function throttle(fn, timeout, invokeAsap, ctx) {
             }
         };
 
-    return function() {
+    return function () {
         args = arguments;
         ctx || (ctx = this);
         needInvoke = true;
 
-        if(!timer) {
-            invokeAsap?
+        if (!timer) {
+            invokeAsap ?
                 wrapper() :
                 timer = setTimeout(wrapper, timeout);
         }
@@ -35,10 +44,9 @@ function throttle(fn, timeout, invokeAsap, ctx) {
 
 /* eslint-enable */
 function CatboostIpython() {
-
 }
 
-CatboostIpython.prototype.init = function() {
+CatboostIpython.prototype.init = function () {
     this.charts = {};
     /*
         {
@@ -141,7 +149,7 @@ CatboostIpython.prototype.init = function() {
 };
 
 /* eslint-disable */
-CatboostIpython.prototype.loadStyles = function(path, fn, scope) {
+CatboostIpython.prototype.loadStyles = function (path, fn, scope) {
     $('link[catboost="1"]').remove();
 
     var head = document.getElementsByTagName('head')[0], // reference to document.head for appending/ removing link nodes
@@ -154,45 +162,49 @@ CatboostIpython.prototype.loadStyles = function(path, fn, scope) {
     var sheet, cssRules;
     // get the correct properties to check for depending on the browser
     if ('sheet' in link) {
-        sheet = 'sheet'; cssRules = 'cssRules';
+        sheet = 'sheet';
+        cssRules = 'cssRules';
     } else {
-        sheet = 'styleSheet'; cssRules = 'rules';
+        sheet = 'styleSheet';
+        cssRules = 'rules';
     }
 
-    var interval_id = setInterval(function() {                     // start checking whether the style sheet has successfully loaded
-        try {
-            if (link[sheet] && link[sheet][cssRules].length) { // SUCCESS! our style sheet has loaded
-                clearInterval(interval_id);                      // clear the counters
-                clearTimeout(timeout_id);
-                fn.call( scope || window, true, link);           // fire the callback with success == true
+    var interval_id = setInterval(function () {                     // start checking whether the style sheet has successfully loaded
+            try {
+                if (link[sheet] && link[sheet][cssRules].length) { // SUCCESS! our style sheet has loaded
+                    clearInterval(interval_id);                      // clear the counters
+                    clearTimeout(timeout_id);
+                    fn.call(scope || window, true, link);           // fire the callback with success == true
+                }
+            } catch (e) {
+            } finally {
             }
-        } catch(e) {} finally {}
-    }, 50 ),                                                   // how often to check if the stylesheet is loaded
-    timeout_id = setTimeout( function() {       // start counting down till fail
-        clearInterval( interval_id );             // clear the counters
-        clearTimeout( timeout_id );
-        head.removeChild( link );                // since the style sheet didn't load, remove the link node from the DOM
-        fn.call( scope || window, false, link ); // fire the callback with success == false
-    }, 15000 );                                 // how long to wait before failing
+        }, 50),                                                   // how often to check if the stylesheet is loaded
+        timeout_id = setTimeout(function () {       // start counting down till fail
+            clearInterval(interval_id);             // clear the counters
+            clearTimeout(timeout_id);
+            head.removeChild(link);                // since the style sheet didn't load, remove the link node from the DOM
+            fn.call(scope || window, false, link); // fire the callback with success == false
+        }, 15000);                                 // how long to wait before failing
 
-    head.appendChild( link );  // insert the link node into the DOM and start loading the style sheet
+    head.appendChild(link);  // insert the link node into the DOM and start loading the style sheet
 
     return link; // return the link node;
 };
 /* eslint-enable */
 
-CatboostIpython.prototype.resizeCharts = function() {
+CatboostIpython.prototype.resizeCharts = function () {
     // width fix for development
     $('.catboost-graph__charts', this.layout).css({width: $('.catboost-graph').width()});
 
     this.plotly.Plots.resize(this.traces[this.activeTab].parent);
 };
 
-CatboostIpython.prototype.addMeta = function(path, meta) {
+CatboostIpython.prototype.addMeta = function (path, meta) {
     this.meta[path] = meta;
 };
 
-CatboostIpython.prototype.addLayout = function(parent) {
+CatboostIpython.prototype.addLayout = function (parent) {
     if (this.layout) {
         return;
     }
@@ -200,51 +212,51 @@ CatboostIpython.prototype.addLayout = function(parent) {
     var cvAreaControls = '';
 
     if (this.hasCVMode) {
-        cvAreaControls =    '<div>' +
-                                '<input type="checkbox" class="catboost-panel__control_checkbox" id="catboost-control2-cvstddev' + this.index + '"' + (this.stddevEnabled ? ' checked="checked"' : '') + '></input>' +
-                                '<label for="catboost-control2-cvstddev' + this.index + '" class="catboost-panel__controls2_label catboost-panel__controls2_label-long">Standard Deviation</label>' +
-                            '</div>';
+        cvAreaControls = '<div>' +
+            '<input type="checkbox" class="catboost-panel__control_checkbox" id="catboost-control2-cvstddev' + this.index + '"' + (this.stddevEnabled ? ' checked="checked"' : '') + '></input>' +
+            '<label for="catboost-control2-cvstddev' + this.index + '" class="catboost-panel__controls2_label catboost-panel__controls2_label-long">Standard Deviation</label>' +
+            '</div>';
     }
 
     this.layout = $('<div class="catboost">' +
-                        '<div class="catboost-panel">' +
-                            '<div class="catboost-panel__controls">' +
-                                '<input type="checkbox" class="catboost-panel__controls_checkbox" id="catboost-control-learn' + this.index + '" ' + (!this.layoutDisabled.learn ? ' checked="checked"' : '') + '></input>' +
-                                '<label for="catboost-control-learn' + this.index + '" class="catboost-panel__controls_label"><div class="catboost-panel__serie_learn_pic" style="border-color:#999"></div>Learn</label>' +
-                                '<input type="checkbox" class="catboost-panel__controls_checkbox" id="catboost-control-test' + this.index + '" ' + (!this.layoutDisabled.test ? ' checked="checked"' : '') + '></input>' +
-                                '<label for="catboost-control-test' + this.index + '" class="catboost-panel__controls_label"><div class="catboost-panel__serie_test_pic" style="border-color:#999"></div>Eval</label>' +
-                            '</div>' +
-                            '<div class="catboost-panel__series ' + (this.layoutDisabled.learn ? ' catboost-panel__series_learn_disabled' : '') + '">' +
-                            '</div>' +
-                            '<div class="catboost-panel__controls2">' +
-                                '<input type="checkbox" class="catboost-panel__control_checkbox" id="catboost-control2-clickmode' + this.index + '"></input>' +
-                                '<label for="catboost-control2-clickmode' + this.index + '" class="catboost-panel__controls2_label">Click Mode</label>' +
-                                '<input type="checkbox" class="catboost-panel__control_checkbox" id="catboost-control2-log' + this.index + '"></input>' +
-                                '<label for="catboost-control2-log' + this.index + '" class="catboost-panel__controls2_label">Logarithm</label>' +
-                                '<div>' +
-                                    '<input type="checkbox" class="catboost-panel__control_checkbox" id="catboost-control2-smooth' + this.index + '"></input>' +
-                                    '<label for="catboost-control2-smooth' + this.index + '" class="catboost-panel__controls2_label">Smooth</label>' +
-                                    '<input id="catboost-control2-slider' + this.index + '" disabled="disabled" class="catboost-panel__control_slider" type ="range" value="0" min="0" max="1" step ="0.01" for="rangeInputValue" name="rangeInput"/>' +
-                                    '<input id="catboost-control2-slidervalue' + this.index + '" disabled="disabled" class="catboost-panel__control_slidervalue" value="0" min="0" max="1" for="rangeInput" name="rangeInputValue"/>' +
-                                '</div>' +
-                                cvAreaControls +
-                            '</div>' +
-                        '</div>' +
-                        '<div class="catboost-graph">' +
-                            '<div class="catboost-graph__tabs"></div>' +
-                            '<div class="catboost-graph__charts"></div>' +
-                        '</div>' +
-                    '</div>');
+        '<div class="catboost-panel">' +
+        '<div class="catboost-panel__controls">' +
+        '<input type="checkbox" class="catboost-panel__controls_checkbox" id="catboost-control-learn' + this.index + '" ' + (!this.layoutDisabled.learn ? ' checked="checked"' : '') + '></input>' +
+        '<label for="catboost-control-learn' + this.index + '" class="catboost-panel__controls_label"><div class="catboost-panel__serie_learn_pic" style="border-color:#999"></div>Learn</label>' +
+        '<input type="checkbox" class="catboost-panel__controls_checkbox" id="catboost-control-test' + this.index + '" ' + (!this.layoutDisabled.test ? ' checked="checked"' : '') + '></input>' +
+        '<label for="catboost-control-test' + this.index + '" class="catboost-panel__controls_label"><div class="catboost-panel__serie_test_pic" style="border-color:#999"></div>Eval</label>' +
+        '</div>' +
+        '<div class="catboost-panel__series ' + (this.layoutDisabled.learn ? ' catboost-panel__series_learn_disabled' : '') + '">' +
+        '</div>' +
+        '<div class="catboost-panel__controls2">' +
+        '<input type="checkbox" class="catboost-panel__control_checkbox" id="catboost-control2-clickmode' + this.index + '"></input>' +
+        '<label for="catboost-control2-clickmode' + this.index + '" class="catboost-panel__controls2_label">Click Mode</label>' +
+        '<input type="checkbox" class="catboost-panel__control_checkbox" id="catboost-control2-log' + this.index + '"></input>' +
+        '<label for="catboost-control2-log' + this.index + '" class="catboost-panel__controls2_label">Logarithm</label>' +
+        '<div>' +
+        '<input type="checkbox" class="catboost-panel__control_checkbox" id="catboost-control2-smooth' + this.index + '"></input>' +
+        '<label for="catboost-control2-smooth' + this.index + '" class="catboost-panel__controls2_label">Smooth</label>' +
+        '<input id="catboost-control2-slider' + this.index + '" disabled="disabled" class="catboost-panel__control_slider" type ="range" value="0" min="0" max="1" step ="0.01" for="rangeInputValue" name="rangeInput"/>' +
+        '<input id="catboost-control2-slidervalue' + this.index + '" disabled="disabled" class="catboost-panel__control_slidervalue" value="0" min="0" max="1" for="rangeInput" name="rangeInputValue"/>' +
+        '</div>' +
+        cvAreaControls +
+        '</div>' +
+        '</div>' +
+        '<div class="catboost-graph">' +
+        '<div class="catboost-graph__tabs"></div>' +
+        '<div class="catboost-graph__charts"></div>' +
+        '</div>' +
+        '</div>');
     $(parent).append(this.layout);
 
     this.addTabEvents();
     this.addControlEvents();
 };
 
-CatboostIpython.prototype.addTabEvents = function() {
+CatboostIpython.prototype.addTabEvents = function () {
     var self = this;
 
-    $('.catboost-graph__tabs', this.layout).click(function(e) {
+    $('.catboost-graph__tabs', this.layout).click(function (e) {
         if (!$(e.target).is('.catboost-graph__tab:not(.catboost-graph__tab_active)')) {
             return;
         }
@@ -266,10 +278,10 @@ CatboostIpython.prototype.addTabEvents = function() {
     });
 };
 
-CatboostIpython.prototype.addControlEvents = function() {
+CatboostIpython.prototype.addControlEvents = function () {
     var self = this;
 
-    $('#catboost-control-learn' + this.index, this.layout).click(function() {
+    $('#catboost-control-learn' + this.index, this.layout).click(function () {
         self.layoutDisabled.learn = !$(this)[0].checked;
 
         $('.catboost-panel__series', self.layout).toggleClass('catboost-panel__series_learn_disabled', self.layoutDisabled.learn);
@@ -277,7 +289,7 @@ CatboostIpython.prototype.addControlEvents = function() {
         self.redrawActiveChart();
     });
 
-    $('#catboost-control-test' + this.index, this.layout).click(function() {
+    $('#catboost-control-test' + this.index, this.layout).click(function () {
         self.layoutDisabled.test = !$(this)[0].checked;
 
         $('.catboost-panel__series', self.layout).toggleClass('catboost-panel__series_test_disabled', self.layoutDisabled.test);
@@ -285,14 +297,14 @@ CatboostIpython.prototype.addControlEvents = function() {
         self.redrawActiveChart();
     });
 
-    $('#catboost-control2-clickmode' + this.index, this.layout).click(function() {
+    $('#catboost-control2-clickmode' + this.index, this.layout).click(function () {
         self.clickMode = $(this)[0].checked;
     });
 
-    $('#catboost-control2-log' + this.index, this.layout).click(function() {
+    $('#catboost-control2-log' + this.index, this.layout).click(function () {
         self.logarithmMode = $(this)[0].checked ? 'log' : 'linear';
 
-        self.forEveryLayout(function(layout) {
+        self.forEveryLayout(function (layout) {
             layout.yaxis = {type: self.logarithmMode};
         });
 
@@ -302,7 +314,7 @@ CatboostIpython.prototype.addControlEvents = function() {
     var slider = $('#catboost-control2-slider' + this.index),
         sliderValue = $('#catboost-control2-slidervalue' + this.index);
 
-    $('#catboost-control2-smooth' + this.index, this.layout).click(function() {
+    $('#catboost-control2-smooth' + this.index, this.layout).click(function () {
         var enabled = $(this)[0].checked;
 
         self.setSmoothness(enabled ? self.lastSmooth : -1);
@@ -313,7 +325,7 @@ CatboostIpython.prototype.addControlEvents = function() {
         self.redrawActiveChart();
     });
 
-    $('#catboost-control2-cvstddev' + this.index, this.layout).click(function() {
+    $('#catboost-control2-cvstddev' + this.index, this.layout).click(function () {
         var enabled = $(this)[0].checked;
 
         self.setStddev(enabled);
@@ -321,7 +333,7 @@ CatboostIpython.prototype.addControlEvents = function() {
         self.redrawActiveChart();
     });
 
-    slider.on('input change', function() {
+    slider.on('input change', function () {
         var smooth = Number($(this).val());
 
         sliderValue.val(isNaN(smooth) ? 0 : smooth);
@@ -332,7 +344,7 @@ CatboostIpython.prototype.addControlEvents = function() {
         self.redrawActiveChart();
     });
 
-    sliderValue.on('input change', function() {
+    sliderValue.on('input change', function () {
         var smooth = Number($(this).val());
 
         slider.val(isNaN(smooth) ? 0 : smooth);
@@ -344,13 +356,13 @@ CatboostIpython.prototype.addControlEvents = function() {
     });
 };
 
-CatboostIpython.prototype.setTraceVisibility = function(trace, visibility) {
+CatboostIpython.prototype.setTraceVisibility = function (trace, visibility) {
     if (trace) {
         trace.visible = visibility;
     }
 };
 
-CatboostIpython.prototype.updateTracesVisibility = function() {
+CatboostIpython.prototype.updateTracesVisibility = function () {
     var tracesHash = this.groupTraces(),
         traces,
         smoothDisabled = this.getSmoothness() === -1,
@@ -361,89 +373,125 @@ CatboostIpython.prototype.updateTracesVisibility = function() {
             traces = tracesHash[train].traces;
 
             if (this.layoutDisabled.traces[train]) {
-                traces.forEach(function(trace) {
+                traces.forEach(function (trace) {
                     self.setTraceVisibility(trace, false);
                 });
             } else {
-                traces.forEach(function(trace) {
+                traces.forEach(function (trace) {
                     self.setTraceVisibility(trace, true);
                 });
 
                 if (this.hasCVMode) {
                     if (this.stddevEnabled) {
-                        self.filterTracesOne(traces, {type: 'learn'}).forEach(function(trace) {
+                        self.filterTracesOne(traces, {type: 'learn'}).forEach(function (trace) {
                             self.setTraceVisibility(trace, false);
                         });
-                        self.filterTracesOne(traces, {type: 'test'}).forEach(function(trace) {
+                        self.filterTracesOne(traces, {type: 'test'}).forEach(function (trace) {
                             self.setTraceVisibility(trace, false);
                         });
 
-                        self.filterTracesEvery(traces, this.getTraceDefParams({type: 'learn', cv_avg: true})).forEach(function(trace) {
+                        self.filterTracesEvery(traces, this.getTraceDefParams({
+                            type: 'learn',
+                            cv_avg: true
+                        })).forEach(function (trace) {
                             self.setTraceVisibility(trace, true);
                         });
-                        self.filterTracesEvery(traces, this.getTraceDefParams({type: 'test', cv_avg: true})).forEach(function(trace) {
-                            self.setTraceVisibility(trace, true);
-                        });
-
-                        self.filterTracesEvery(traces, this.getTraceDefParams({type: 'learn', cv_avg: true, smoothed: true})).forEach(function(trace) {
-                            self.setTraceVisibility(trace, true);
-                        });
-                        self.filterTracesEvery(traces, this.getTraceDefParams({type: 'test', cv_avg: true, smoothed: true})).forEach(function(trace) {
-                            self.setTraceVisibility(trace, true);
-                        });
-
-                        self.filterTracesEvery(traces, this.getTraceDefParams({type: 'test', cv_avg: true, best_point: true})).forEach(function(trace) {
+                        self.filterTracesEvery(traces, this.getTraceDefParams({
+                            type: 'test',
+                            cv_avg: true
+                        })).forEach(function (trace) {
                             self.setTraceVisibility(trace, true);
                         });
 
-                        self.filterTracesOne(traces, {cv_stddev_first: true}).forEach(function(trace) {
+                        self.filterTracesEvery(traces, this.getTraceDefParams({
+                            type: 'learn',
+                            cv_avg: true,
+                            smoothed: true
+                        })).forEach(function (trace) {
                             self.setTraceVisibility(trace, true);
                         });
-                        self.filterTracesOne(traces, {cv_stddev_last: true}).forEach(function(trace) {
+                        self.filterTracesEvery(traces, this.getTraceDefParams({
+                            type: 'test',
+                            cv_avg: true,
+                            smoothed: true
+                        })).forEach(function (trace) {
+                            self.setTraceVisibility(trace, true);
+                        });
+
+                        self.filterTracesEvery(traces, this.getTraceDefParams({
+                            type: 'test',
+                            cv_avg: true,
+                            best_point: true
+                        })).forEach(function (trace) {
+                            self.setTraceVisibility(trace, true);
+                        });
+
+                        self.filterTracesOne(traces, {cv_stddev_first: true}).forEach(function (trace) {
+                            self.setTraceVisibility(trace, true);
+                        });
+                        self.filterTracesOne(traces, {cv_stddev_last: true}).forEach(function (trace) {
                             self.setTraceVisibility(trace, true);
                         });
                     } else {
-                        self.filterTracesOne(traces, {cv_stddev_first: true}).forEach(function(trace) {
+                        self.filterTracesOne(traces, {cv_stddev_first: true}).forEach(function (trace) {
                             self.setTraceVisibility(trace, false);
                         });
-                        self.filterTracesOne(traces, {cv_stddev_last: true}).forEach(function(trace) {
-                            self.setTraceVisibility(trace, false);
-                        });
-
-                        self.filterTracesEvery(traces, this.getTraceDefParams({type: 'learn', cv_avg: true})).forEach(function(trace) {
-                            self.setTraceVisibility(trace, false);
-                        });
-                        self.filterTracesEvery(traces, this.getTraceDefParams({type: 'test', cv_avg: true})).forEach(function(trace) {
+                        self.filterTracesOne(traces, {cv_stddev_last: true}).forEach(function (trace) {
                             self.setTraceVisibility(trace, false);
                         });
 
-                        self.filterTracesEvery(traces, this.getTraceDefParams({type: 'learn', cv_avg: true, smoothed: true})).forEach(function(trace) {
+                        self.filterTracesEvery(traces, this.getTraceDefParams({
+                            type: 'learn',
+                            cv_avg: true
+                        })).forEach(function (trace) {
                             self.setTraceVisibility(trace, false);
                         });
-                        self.filterTracesEvery(traces, this.getTraceDefParams({type: 'test', cv_avg: true, smoothed: true})).forEach(function(trace) {
+                        self.filterTracesEvery(traces, this.getTraceDefParams({
+                            type: 'test',
+                            cv_avg: true
+                        })).forEach(function (trace) {
                             self.setTraceVisibility(trace, false);
                         });
 
-                        self.filterTracesEvery(traces, this.getTraceDefParams({type: 'test', cv_avg: true, best_point: true})).forEach(function(trace) {
+                        self.filterTracesEvery(traces, this.getTraceDefParams({
+                            type: 'learn',
+                            cv_avg: true,
+                            smoothed: true
+                        })).forEach(function (trace) {
+                            self.setTraceVisibility(trace, false);
+                        });
+                        self.filterTracesEvery(traces, this.getTraceDefParams({
+                            type: 'test',
+                            cv_avg: true,
+                            smoothed: true
+                        })).forEach(function (trace) {
+                            self.setTraceVisibility(trace, false);
+                        });
+
+                        self.filterTracesEvery(traces, this.getTraceDefParams({
+                            type: 'test',
+                            cv_avg: true,
+                            best_point: true
+                        })).forEach(function (trace) {
                             self.setTraceVisibility(trace, false);
                         });
                     }
                 }
 
                 if (smoothDisabled) {
-                    self.filterTracesOne(traces, {smoothed: true}).forEach(function(trace) {
+                    self.filterTracesOne(traces, {smoothed: true}).forEach(function (trace) {
                         self.setTraceVisibility(trace, false);
                     });
                 }
 
                 if (this.layoutDisabled['learn']) {
-                    self.filterTracesOne(traces, {type: 'learn'}).forEach(function(trace) {
+                    self.filterTracesOne(traces, {type: 'learn'}).forEach(function (trace) {
                         self.setTraceVisibility(trace, false);
                     });
                 }
 
                 if (this.layoutDisabled['test']) {
-                    self.filterTracesOne(traces, {type: 'test'}).forEach(function(trace) {
+                    self.filterTracesOne(traces, {type: 'test'}).forEach(function (trace) {
                         self.setTraceVisibility(trace, false);
                     });
                 }
@@ -452,11 +500,11 @@ CatboostIpython.prototype.updateTracesVisibility = function() {
     }
 };
 
-CatboostIpython.prototype.getSmoothness = function() {
+CatboostIpython.prototype.getSmoothness = function () {
     return this.smoothness && this.smoothness > -1 ? this.smoothness : -1;
 };
 
-CatboostIpython.prototype.setSmoothness = function(weight) {
+CatboostIpython.prototype.setSmoothness = function (weight) {
     if (weight < 0 && weight !== -1 || weight > 1) {
         return;
     }
@@ -464,17 +512,17 @@ CatboostIpython.prototype.setSmoothness = function(weight) {
     this.smoothness = weight;
 };
 
-CatboostIpython.prototype.setStddev = function(enabled) {
+CatboostIpython.prototype.setStddev = function (enabled) {
     this.stddevEnabled = enabled;
 };
 
-CatboostIpython.prototype.redrawActiveChart = function() {
+CatboostIpython.prototype.redrawActiveChart = function () {
     this.chartsToRedraw[this.activeTab] = true;
 
     this.redrawAll();
 };
 
-CatboostIpython.prototype.redraw = function() {
+CatboostIpython.prototype.redraw = function () {
     if (this.chartsToRedraw[this.activeTab]) {
         this.chartsToRedraw[this.activeTab] = false;
 
@@ -490,11 +538,11 @@ CatboostIpython.prototype.redraw = function() {
     this.drawTraces();
 };
 
-CatboostIpython.prototype.addRedrawFunc = function() {
+CatboostIpython.prototype.addRedrawFunc = function () {
     this.redrawFunc = throttle(this.redraw, 400, false, this);
 };
 
-CatboostIpython.prototype.redrawAll = function() {
+CatboostIpython.prototype.redrawAll = function () {
     if (!this.redrawFunc) {
         this.addRedrawFunc();
     }
@@ -502,10 +550,10 @@ CatboostIpython.prototype.redrawAll = function() {
     this.redrawFunc();
 };
 
-CatboostIpython.prototype.addPoints = function(parent, data) {
+CatboostIpython.prototype.addPoints = function (parent, data) {
     var self = this;
 
-    data.chunks.forEach(function(item) {
+    data.chunks.forEach(function (item) {
         if (typeof item.remaining_time !== 'undefined' && typeof item.passed_time !== 'undefined') {
             if (!self.timeLeft[data.path]) {
                 self.timeLeft[data.path] = [];
@@ -514,14 +562,14 @@ CatboostIpython.prototype.addPoints = function(parent, data) {
             self.timeLeft[data.path][item.iteration] = [item.remaining_time, item.passed_time];
         }
 
-        ['test', 'learn'].forEach(function(type) {
+        ['test', 'learn'].forEach(function (type) {
             var sets = self.meta[data.path][type + '_sets'],
                 metrics = self.meta[data.path][type + '_metrics'];
 
             for (var i = 0; i < metrics.length; i++) {
                 var nameOfMetric = metrics[i].name,
                     cvAdded = false;
-                    hovertextParametersAdded = false;
+                hovertextParametersAdded = false;
 
                 self.lossFuncs[nameOfMetric] = metrics[i].best_value;
 
@@ -543,7 +591,7 @@ CatboostIpython.prototype.addPoints = function(parent, data) {
                         self.activeTab = key.chartId;
                     }
 
-                    if (launchMode === 'CV' ) {
+                    if (launchMode === 'CV') {
                         // we need to set launch mode before first getTrace call
                         self.hasCVMode = true;
 
@@ -625,11 +673,11 @@ CatboostIpython.prototype.addPoints = function(parent, data) {
     });
 };
 
-CatboostIpython.prototype.getLaunchMode = function(path) {
+CatboostIpython.prototype.getLaunchMode = function (path) {
     return this.meta[path].launch_mode;
 };
 
-CatboostIpython.prototype.getChartNode = function(params, active) {
+CatboostIpython.prototype.getChartNode = function (params, active) {
     var node = $('<div class="catboost-graph__chart" tabid="' + params.id + '"></div>');
 
     if (active) {
@@ -639,7 +687,7 @@ CatboostIpython.prototype.getChartNode = function(params, active) {
     return node;
 };
 
-CatboostIpython.prototype.getChartTab = function(params, active) {
+CatboostIpython.prototype.getChartTab = function (params, active) {
     var node = $('<div class="catboost-graph__tab" tabid="' + params.id + '">' + params.name + '</div>');
 
     if (active) {
@@ -649,7 +697,7 @@ CatboostIpython.prototype.getChartTab = function(params, active) {
     return node;
 };
 
-CatboostIpython.prototype.forEveryChart = function(callback) {
+CatboostIpython.prototype.forEveryChart = function (callback) {
     for (var name in this.traces) {
         if (this.traces.hasOwnProperty(name)) {
             callback(this.traces[name]);
@@ -657,13 +705,13 @@ CatboostIpython.prototype.forEveryChart = function(callback) {
     }
 };
 
-CatboostIpython.prototype.forEveryLayout = function(callback) {
-    this.forEveryChart(function(chart) {
+CatboostIpython.prototype.forEveryLayout = function (callback) {
+    this.forEveryChart(function (chart) {
         callback(chart.layout);
     });
 };
 
-CatboostIpython.prototype.getChart = function(parent, params) {
+CatboostIpython.prototype.getChart = function (parent, params) {
     var id = params.id,
         self = this;
 
@@ -717,11 +765,11 @@ CatboostIpython.prototype.getChart = function(parent, params) {
 
     this.charts[id] = this.plotly.plot(chartNode[0], this.traces[id].traces, this.traces[id].layout, this.traces[id].options);
 
-    chartNode[0].on('plotly_hover', function(e) {
+    chartNode[0].on('plotly_hover', function (e) {
         self.updateTracesValues(e.points[0].x);
     });
 
-    chartNode[0].on('plotly_click', function(e) {
+    chartNode[0].on('plotly_click', function (e) {
         self.updateTracesValues(e.points[0].x, true);
     });
 
@@ -729,12 +777,12 @@ CatboostIpython.prototype.getChart = function(parent, params) {
 };
 
 
-CatboostIpython.prototype.getTrace = function(parent, params) {
+CatboostIpython.prototype.getTrace = function (parent, params) {
     var key = this.getKey(params),
         chartSeries = [];
 
     if (this.traces[key.chartId]) {
-        chartSeries = this.traces[key.chartId].traces.filter(function(trace) {
+        chartSeries = this.traces[key.chartId].traces.filter(function (trace) {
             return trace.name === key.traceName;
         });
     }
@@ -815,7 +863,7 @@ CatboostIpython.prototype.getTrace = function(parent, params) {
     }
 };
 
-CatboostIpython.prototype.getKey = function(params) {
+CatboostIpython.prototype.getKey = function (params) {
     var traceName = [
         params.train,
         params.type,
@@ -835,10 +883,10 @@ CatboostIpython.prototype.getKey = function(params) {
     };
 };
 
-CatboostIpython.prototype.filterTracesEvery = function(traces, filter) {
+CatboostIpython.prototype.filterTracesEvery = function (traces, filter) {
     traces = traces || this.traces[this.activeTab].traces;
 
-    return traces.filter(function(trace) {
+    return traces.filter(function (trace) {
         for (var prop in filter) {
             if (filter.hasOwnProperty(prop)) {
                 if (filter[prop] !== trace._params[prop]) {
@@ -851,10 +899,10 @@ CatboostIpython.prototype.filterTracesEvery = function(traces, filter) {
     });
 };
 
-CatboostIpython.prototype.filterTracesOne = function(traces, filter) {
+CatboostIpython.prototype.filterTracesOne = function (traces, filter) {
     traces = traces || this.traces[this.activeTab].traces;
 
-    return traces.filter(function(trace) {
+    return traces.filter(function (trace) {
         for (var prop in filter) {
             if (filter.hasOwnProperty(prop)) {
                 if (filter[prop] === trace._params[prop]) {
@@ -867,16 +915,16 @@ CatboostIpython.prototype.filterTracesOne = function(traces, filter) {
     });
 };
 
-CatboostIpython.prototype.cleanSeries = function() {
+CatboostIpython.prototype.cleanSeries = function () {
     $('.catboost-panel__series', this.layout).html('');
 };
 
-CatboostIpython.prototype.groupTraces = function() {
+CatboostIpython.prototype.groupTraces = function () {
     var traces = this.traces[this.activeTab].traces,
         index = 0,
         tracesHash = {};
 
-    traces.map(function(trace) {
+    traces.map(function (trace) {
         var train = trace._params.train;
 
         if (!tracesHash[train]) {
@@ -898,7 +946,7 @@ CatboostIpython.prototype.groupTraces = function() {
     return tracesHash;
 };
 
-CatboostIpython.prototype.drawTraces = function() {
+CatboostIpython.prototype.drawTraces = function () {
     var html = '',
         tracesHash = this.groupTraces();
 
@@ -921,8 +969,8 @@ CatboostIpython.prototype.drawTraces = function() {
     this.addTracesEvents();
 };
 
-CatboostIpython.prototype.getTraceDefParams = function(params) {
-    var defParams =  {
+CatboostIpython.prototype.getTraceDefParams = function (params) {
+    var defParams = {
         smoothed: undefined,
         best_point: undefined,
         best_value: undefined,
@@ -938,7 +986,7 @@ CatboostIpython.prototype.getTraceDefParams = function(params) {
     }
 };
 
-CatboostIpython.prototype.drawTrace = function(train, hash) {
+CatboostIpython.prototype.drawTrace = function (train, hash) {
     var info = hash.info,
         id = 'catboost-serie-' + this.index + '-' + hash.index,
         traces = {
@@ -957,52 +1005,52 @@ CatboostIpython.prototype.drawTrace = function(train, hash) {
         },
         tracesNames = '';
 
-    ['learn', 'test'].forEach(function(type) {
-        traces[type].forEach(function(trace) {
+    ['learn', 'test'].forEach(function (type) {
+        traces[type].forEach(function (trace) {
             items[type].middle += '<div class="catboost-panel__serie_' + type + '_pic" style="border-color:' + info.color + '"></div>' +
-                                  '<div data-index="' + trace._params.indexOfSet + '" class="catboost-panel__serie_' + type + '_value"></div>';
+                '<div data-index="' + trace._params.indexOfSet + '" class="catboost-panel__serie_' + type + '_value"></div>';
 
             items[type].bottom += '<div class="catboost-panel__serie_' + type + '_pic" style="border-color:transparent"></div>' +
-                                  '<div data-index="' + trace._params.indexOfSet + '" class="catboost-panel__serie_best_' + type + '_value"></div>';
+                '<div data-index="' + trace._params.indexOfSet + '" class="catboost-panel__serie_best_' + type + '_value"></div>';
 
             tracesNames += '<div class="catboost-panel__serie_' + type + '_pic" style="border-color:' + info.color + '"></div>' +
-                           '<div class="catboost-panel__serie_' + type + '_name">' + trace._params.nameOfSet + '</div>';
+                '<div class="catboost-panel__serie_' + type + '_name">' + trace._params.nameOfSet + '</div>';
         });
     });
 
     var timeSpendHtml = '<div class="catboost-panel__serie_time">' +
-                             '<div class="catboost-panel__serie_time_spend" title="Time spend"></div>' +
-                        '</div>';
+        '<div class="catboost-panel__serie_time_spend" title="Time spend"></div>' +
+        '</div>';
 
     var html = '<div id="' + id + '" class="catboost-panel__serie" style="color:' + info.color + '">' +
-                    '<div class="catboost-panel__serie_top">' +
-                        '<input type="checkbox" data-seriename="' + train + '" class="catboost-panel__serie_checkbox" id="' + id + '-box" ' + (!this.layoutDisabled.series[train] ? 'checked="checked"' : '') + '></input>' +
-                        '<label title=' + this.meta[info.path].name + ' for="' + id + '-box" class="catboost-panel__serie_label">' + train + '<div class="catboost-panel__serie_time_left" title="Estimate time"></div></label>' +
-                        (this.getLaunchMode(info.path) !== 'Eval' ? timeSpendHtml : '') +
-                    '</div>' +
-                    '<div class="catboost-panel__serie_hint catboost-panel__serie__learn_hint">curr</div>' +
-                    '<div class="catboost-panel__serie_hint catboost-panel__serie__test_hint">best</div>' +
-                    '<div class="catboost-panel__serie_iteration" title="curr iteration"></div>' +
-                    '<div class="catboost-panel__serie_best_iteration" title="best ' + (this.hasCVMode ? 'avg ' : '') + 'iteration"></div>' +
-                    '<div class="catboost-panel__serie_scroll">' +
-                        '<div class="catboost-panel__serie_names">' +
-                            tracesNames +
-                        '</div>' +
-                        '<div class="catboost-panel__serie_middle">' +
-                            items.learn.middle +
-                            items.test.middle +
-                        '</div>' +
-                        '<div class="catboost-panel__serie_bottom">' +
-                            items.learn.bottom +
-                            items.test.bottom +
-                        '</div>' +
-                    '</div>' +
-                '</div>';
+        '<div class="catboost-panel__serie_top">' +
+        '<input type="checkbox" data-seriename="' + train + '" class="catboost-panel__serie_checkbox" id="' + id + '-box" ' + (!this.layoutDisabled.series[train] ? 'checked="checked"' : '') + '></input>' +
+        '<label title=' + this.meta[info.path].name + ' for="' + id + '-box" class="catboost-panel__serie_label">' + train + '<div class="catboost-panel__serie_time_left" title="Estimate time"></div></label>' +
+        (this.getLaunchMode(info.path) !== 'Eval' ? timeSpendHtml : '') +
+        '</div>' +
+        '<div class="catboost-panel__serie_hint catboost-panel__serie__learn_hint">curr</div>' +
+        '<div class="catboost-panel__serie_hint catboost-panel__serie__test_hint">best</div>' +
+        '<div class="catboost-panel__serie_iteration" title="curr iteration"></div>' +
+        '<div class="catboost-panel__serie_best_iteration" title="best ' + (this.hasCVMode ? 'avg ' : '') + 'iteration"></div>' +
+        '<div class="catboost-panel__serie_scroll">' +
+        '<div class="catboost-panel__serie_names">' +
+        tracesNames +
+        '</div>' +
+        '<div class="catboost-panel__serie_middle">' +
+        items.learn.middle +
+        items.test.middle +
+        '</div>' +
+        '<div class="catboost-panel__serie_bottom">' +
+        items.learn.bottom +
+        items.test.bottom +
+        '</div>' +
+        '</div>' +
+        '</div>';
 
     return html;
 };
 
-CatboostIpython.prototype.updateTracesValues = function(iteration, click) {
+CatboostIpython.prototype.updateTracesValues = function (iteration, click) {
     var tracesHash = this.groupTraces();
 
     for (var train in tracesHash) {
@@ -1012,7 +1060,7 @@ CatboostIpython.prototype.updateTracesValues = function(iteration, click) {
     }
 };
 
-CatboostIpython.prototype.updateTracesBest = function() {
+CatboostIpython.prototype.updateTracesBest = function () {
     var tracesHash = this.groupTraces();
 
     for (var train in tracesHash) {
@@ -1022,7 +1070,7 @@ CatboostIpython.prototype.updateTracesBest = function() {
     }
 };
 
-CatboostIpython.prototype.getBestValue = function(data) {
+CatboostIpython.prototype.getBestValue = function (data) {
     if (!data.length) {
         return {
             best: undefined,
@@ -1060,7 +1108,7 @@ CatboostIpython.prototype.getBestValue = function(data) {
     };
 };
 
-CatboostIpython.prototype.updateTracesCV = function() {
+CatboostIpython.prototype.updateTracesCV = function () {
     this.updateTracesCVAvg();
 
     if (this.hasCVMode && this.stddevEnabled) {
@@ -1068,19 +1116,19 @@ CatboostIpython.prototype.updateTracesCV = function() {
     }
 };
 
-CatboostIpython.prototype.updateTracesCVAvg = function() {
+CatboostIpython.prototype.updateTracesCVAvg = function () {
     var tracesHash = this.groupTraces(),
         avgTraces = this.filterTracesEvery(tracesHash.traces, this.getTraceDefParams({
             cv_avg: true
         })),
         self = this;
 
-    avgTraces.forEach(function(trace) {
+    avgTraces.forEach(function (trace) {
         var origTraces = self.filterTracesEvery(tracesHash.traces, self.getTraceDefParams({
-                train: trace._params.train,
-                type: trace._params.type,
-                smoothed: trace._params.smoothed
-            }));
+            train: trace._params.train,
+            type: trace._params.type,
+            smoothed: trace._params.smoothed
+        }));
 
         if (origTraces.length) {
             self.cvAvgFunc(origTraces, trace);
@@ -1088,13 +1136,13 @@ CatboostIpython.prototype.updateTracesCVAvg = function() {
     });
 };
 
-CatboostIpython.prototype.cvAvgFunc = function(origTraces, avgTrace) {
+CatboostIpython.prototype.cvAvgFunc = function (origTraces, avgTrace) {
     var maxCount = origTraces.length,
         maxLength = -1,
         count,
         sum;
 
-    origTraces.forEach(function(origTrace) {
+    origTraces.forEach(function (origTrace) {
         if (origTrace.y.length > maxLength) {
             maxLength = origTrace.y.length;
         }
@@ -1118,12 +1166,12 @@ CatboostIpython.prototype.cvAvgFunc = function(origTraces, avgTrace) {
     }
 };
 
-CatboostIpython.prototype.updateTracesCVStdDev = function() {
+CatboostIpython.prototype.updateTracesCVStdDev = function () {
     var tracesHash = this.groupTraces(),
         firstTraces = this.filterTracesOne(tracesHash.traces, {cv_stddev_first: true}),
         self = this;
 
-    firstTraces.forEach(function(trace) {
+    firstTraces.forEach(function (trace) {
         var origTraces = self.filterTracesEvery(tracesHash.traces, self.getTraceDefParams({
                 train: trace._params.train,
                 type: trace._params.type,
@@ -1142,14 +1190,14 @@ CatboostIpython.prototype.updateTracesCVStdDev = function() {
     });
 };
 
-CatboostIpython.prototype.cvStdDevFunc = function(origTraces, firstTrace, lastTrace) {
+CatboostIpython.prototype.cvStdDevFunc = function (origTraces, firstTrace, lastTrace) {
     var maxCount = origTraces.length,
         maxLength = -1,
         count,
         sum,
         i, j;
 
-    origTraces.forEach(function(origTrace) {
+    origTraces.forEach(function (origTrace) {
         if (origTrace.y.length > maxLength) {
             maxLength = origTrace.y.length;
         }
@@ -1195,13 +1243,13 @@ CatboostIpython.prototype.cvStdDevFunc = function(origTraces, firstTrace, lastTr
     }
 };
 
-CatboostIpython.prototype.updateTracesSmoothness = function() {
+CatboostIpython.prototype.updateTracesSmoothness = function () {
     var tracesHash = this.groupTraces(),
         smoothedTraces = this.filterTracesOne(tracesHash.traces, {smoothed: true}),
         enabled = this.getSmoothness() > -1,
         self = this;
 
-    smoothedTraces.forEach(function(trace) {
+    smoothedTraces.forEach(function (trace) {
         var origTraces = self.filterTracesEvery(tracesHash.traces, self.getTraceDefParams({
                 train: trace._params.train,
                 type: trace._params.type,
@@ -1227,7 +1275,7 @@ CatboostIpython.prototype.updateTracesSmoothness = function() {
     });
 };
 
-CatboostIpython.prototype.highlightSmoothedTrace = function(trace, smoothedTrace, flag) {
+CatboostIpython.prototype.highlightSmoothedTrace = function (trace, smoothedTrace, flag) {
     if (flag) {
         smoothedTrace.line.color = trace._params.plotParams.color;
         trace.line.color = smoothedTrace._params.plotParams.color;
@@ -1246,7 +1294,7 @@ CatboostIpython.prototype.highlightSmoothedTrace = function(trace, smoothedTrace
     }
 };
 
-CatboostIpython.prototype.smoothFunc = function(origTrace, smoothedTrace) {
+CatboostIpython.prototype.smoothFunc = function (origTrace, smoothedTrace) {
     var data = origTrace.y,
         smoothedPoints = this.smooth(data, this.getSmoothness()),
         smoothedIndex = 0,
@@ -1274,7 +1322,7 @@ CatboostIpython.prototype.smoothFunc = function(origTrace, smoothedTrace) {
     }
 };
 
-CatboostIpython.prototype.formatItemValue = function(value, index, suffix) {
+CatboostIpython.prototype.formatItemValue = function (value, index, suffix) {
     if (typeof value === 'undefined') {
         return '';
     }
@@ -1284,16 +1332,16 @@ CatboostIpython.prototype.formatItemValue = function(value, index, suffix) {
     return '<span title="' + suffix + 'value ' + value + '">' + value + '</span>';
 };
 
-CatboostIpython.prototype.updateTraceBest = function(train, hash) {
+CatboostIpython.prototype.updateTraceBest = function (train, hash) {
     var traces = this.filterTracesOne(hash.traces, {best_point: true}),
         self = this;
 
-    traces.forEach(function(trace) {
+    traces.forEach(function (trace) {
         var testTrace = self.filterTracesEvery(hash.traces, self.getTraceDefParams({
-                train: trace._params.train,
-                type: 'test',
-                indexOfSet: trace._params.indexOfSet
-            }));
+            train: trace._params.train,
+            type: 'test',
+            indexOfSet: trace._params.indexOfSet
+        }));
 
         if (self.hasCVMode) {
             testTrace = self.filterTracesEvery(hash.traces, self.getTraceDefParams({
@@ -1313,7 +1361,7 @@ CatboostIpython.prototype.updateTraceBest = function(train, hash) {
     });
 };
 
-CatboostIpython.prototype.updateTraceValues = function(name, hash, iteration, click) {
+CatboostIpython.prototype.updateTraceValues = function (name, hash, iteration, click) {
     var id = 'catboost-serie-' + this.index + '-' + hash.index,
         traces = {
             learn: this.filterTracesEvery(hash.traces, this.getTraceDefParams({type: 'learn'})),
@@ -1322,8 +1370,8 @@ CatboostIpython.prototype.updateTraceValues = function(name, hash, iteration, cl
         path = hash.info.path,
         self = this;
 
-    ['learn', 'test'].forEach(function(type) {
-        traces[type].forEach(function(trace) {
+    ['learn', 'test'].forEach(function (type) {
+        traces[type].forEach(function (trace) {
             var data = trace.y || [],
                 index = typeof iteration !== 'undefined' && iteration < data.length - 1 ? iteration : data.length - 1,
                 value = data.length ? data[index] : undefined,
@@ -1365,7 +1413,7 @@ CatboostIpython.prototype.updateTraceValues = function(name, hash, iteration, cl
             })),
             bestValue = this.getBestValue(testTrace.length === 1 ? testTrace[0].y : []);
 
-            $('#' + id + ' .catboost-panel__serie_best_iteration', this.layout).html(bestValue.index > -1 ? bestValue.index : '');
+        $('#' + id + ' .catboost-panel__serie_best_iteration', this.layout).html(bestValue.index > -1 ? bestValue.index : '');
     }
 
     if (click) {
@@ -1375,10 +1423,10 @@ CatboostIpython.prototype.updateTraceValues = function(name, hash, iteration, cl
     }
 };
 
-CatboostIpython.prototype.addTracesEvents = function() {
+CatboostIpython.prototype.addTracesEvents = function () {
     var self = this;
 
-    $('.catboost-panel__serie_checkbox', this.layout).click(function() {
+    $('.catboost-panel__serie_checkbox', this.layout).click(function () {
         var name = $(this).data('seriename');
 
         self.layoutDisabled.traces[name] = !$(this)[0].checked;
@@ -1387,7 +1435,7 @@ CatboostIpython.prototype.addTracesEvents = function() {
     });
 };
 
-CatboostIpython.prototype.getNextColor = function(path, opacity) {
+CatboostIpython.prototype.getNextColor = function (path, opacity) {
     var color;
 
     if (this.colorsByPath[path]) {
@@ -1406,10 +1454,10 @@ CatboostIpython.prototype.getNextColor = function(path, opacity) {
     return this.hexToRgba(color, opacity);
 };
 
-CatboostIpython.prototype.hexToRgba = function(value, opacity) {
+CatboostIpython.prototype.hexToRgba = function (value, opacity) {
     if (value.length < 6) {
         var pattern = /^#?([a-f\d])([a-f\d])([a-f\d])/i;
-        value = value.replace(pattern, function(m, r, g, b) {
+        value = value.replace(pattern, function (m, r, g, b) {
             return '#' + r + r + g + g + b + b;
         });
     }
@@ -1424,7 +1472,7 @@ CatboostIpython.prototype.hexToRgba = function(value, opacity) {
     return 'rgba(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ',' + opacity + ')';
 };
 
-CatboostIpython.prototype.convertTime = function(time) {
+CatboostIpython.prototype.convertTime = function (time) {
     if (!time) {
         return '0s';
     }
@@ -1438,7 +1486,7 @@ CatboostIpython.prototype.convertTime = function(time) {
     var minutes = time % 60;
     time = parseInt(time / 60, 10);
     var hours = time % 24;
-    var out = "";
+    var out = '';
     if (hours && hours > 0) {
         out += hours + 'h ';
         seconds = 0;
@@ -1458,13 +1506,13 @@ CatboostIpython.prototype.convertTime = function(time) {
     return out.trim();
 };
 
-CatboostIpython.prototype.mean = function(values, valueof) {
+CatboostIpython.prototype.mean = function (values, valueof) {
     var n = values.length,
         m = n,
         i = -1,
         value,
         sum = 0,
-        number = function(x) {
+        number = function (x) {
             return x === null ? NaN : +x;
         };
 
@@ -1492,7 +1540,7 @@ CatboostIpython.prototype.mean = function(values, valueof) {
 };
 
 // from TensorBoard
-CatboostIpython.prototype.smooth = function(data, weight) {
+CatboostIpython.prototype.smooth = function (data, weight) {
     // When increasing the smoothing window, it smoothes a lot with the first
     // few points and then starts to gradually smooth slower, so using an
     // exponential function makes the slider more consistent. 1000^x has a
@@ -1514,11 +1562,147 @@ CatboostIpython.prototype.smooth = function(data, weight) {
         if (!isFinite(point)) {
             res.push(point);
         } else {
-            res.push(self.mean(data.slice(start, end).filter(function(d) {
+            res.push(self.mean(data.slice(start, end).filter(function (d) {
                 return isFinite(d);
             }), null));
         }
     });
 
     return res;
+};
+
+var getInstance = function (el) {
+        var id = $(el).attr('catboost-id');
+
+        if (!id) {
+            return null;
+        }
+
+        id = id.replace('catboost_', '');
+
+        if (!window.catboostIpythonInstances[id]) {
+            return null;
+        }
+
+        return window.catboostIpythonInstances[id];
+    },
+    addInstance = function (el) {
+        $(el).attr('catboost-id', 'catboost_' + window.catboostIpythonIndex);
+
+        var catboostIpython = new CatboostIpython();
+        catboostIpython.index = catboostIpythonIndex;
+        catboostIpython.plotly = Plotly;
+
+        window.catboostIpythonInstances[window.catboostIpythonIndex] = catboostIpython;
+
+        window.catboostIpythonIndex++;
+
+        return catboostIpython;
+    };
+
+var CatboostIpythonWidget = widgets.DOMWidgetView.extend({
+
+    initialize: function () {
+        CatboostIpythonWidget.__super__.initialize.apply(this, arguments);
+
+        if (!window.catboostIpythonInstances) {
+            window.catboostIpythonInstances = {};
+        }
+
+        if (typeof window.catboostIpythonIndex === 'undefined') {
+            window.catboostIpythonIndex = 0;
+        }
+
+        var catboostIpythonInstance = getInstance(this.el);
+
+        if (!catboostIpythonInstance) {
+            catboostIpythonInstance = addInstance(this.el);
+        }
+
+        catboostIpythonInstance.init();
+    },
+
+    render: function () {
+        this.value_changed();
+        this.model.on('change:value', this.value_changed, this);
+    },
+
+    update: function () {
+        this.value_changed();
+    },
+
+    value_changed: function () {
+        this.el.style['width'] = this.model.get('width');
+        this.el.style['height'] = this.model.get('height');
+        this.displayed.then(_.bind(this.render_charts, this));
+    },
+
+    process_all: function (parent, params) {
+        var data = params.data;
+
+        for (var path in data) {
+            if (data.hasOwnProperty(path)) {
+                this.process_row(parent, data[path]);
+            }
+        }
+    },
+
+    process_row: function (parent, data) {
+        var catboostIpython = getInstance(parent),
+            path = data.path,
+            content = data.content,
+            items = content.data.iterations,
+            firstIndex = 0,
+            chunks = [];
+
+        if (!items || !items.length) {
+            return;
+        }
+
+        if (!catboostIpython.lastIndex) {
+            catboostIpython.lastIndex = {};
+        }
+
+        if (catboostIpython.lastIndex[path]) {
+            firstIndex = catboostIpython.lastIndex[path] + 1;
+        }
+
+        catboostIpython.lastIndex[path] = items.length - 1;
+
+        for (var i = firstIndex; i < items.length; i++) {
+            chunks.push(items[i]);
+        }
+
+        catboostIpython.addMeta(data.path, content.data.meta);
+
+        catboostIpython.addPoints(parent, {
+            chunks: chunks,
+            train: data.name,
+            path: data.path
+        });
+    },
+
+    render_charts: function () {
+        this.process_all(this.el, {
+            data: this.model.get('data')
+        });
+
+        return this;
+    }
+});
+
+var CatboostWidgetModel = widgets.DOMWidgetModel.extend({
+    defaults: _.extend(widgets.DOMWidgetModel.prototype.defaults(), {
+        _model_name: 'CatboostWidgetModel',
+        _view_name: 'CatboostWidgetView',
+        _model_module: 'catboost-widget',
+        _view_module: 'catboost-widget',
+        _model_module_version: widget_version,
+        _view_module_version: widget_version,
+    })
+});
+
+module.exports = {
+    CatboostWidgetModel: CatboostWidgetModel,
+    CatboostWidgetView: CatboostIpythonWidget
 };
