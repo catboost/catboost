@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{C64D778F-7C73-8ADC-F7C7-0DBA579BB288}</ProjectGUID>
+    <ProjectGUID>{0E0E70FC-148C-4937-1103-230DC41150C2}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>pycontrib-python-testpath.global</ProjectName>
+    <ProjectName>py3contrib-python-colorama.global</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>pycontrib-python-testpath.global</TargetName>
+    <TargetName>py3contrib-python-colorama.global</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\testpath\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\C64D778F-7C73-8ADC-F7C7-0DBA579BB288\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\colorama\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\0E0E70FC-148C-4937-1103-230DC41150C2\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -57,8 +57,8 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DARCADIA_PYTHON_UNICODE_SIZE=2 /std:c++latest /D_CRT_USE_BUILTIN_OFFSETOF  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DARCADIA_PYTHON_UNICODE_SIZE=2 /std:c++latest /D_CRT_USE_BUILTIN_OFFSETOF  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DUSE_PYTHON3 /std:c++latest /D_CRT_USE_BUILTIN_OFFSETOF  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DUSE_PYTHON3 /std:c++latest /D_CRT_USE_BUILTIN_OFFSETOF  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
@@ -67,8 +67,8 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;dnsapi.lib;gdi32.lib;iphlpapi.lib;kernel32.lib;mswsock.lib;ole32.lib;oleaut32.lib;psapi.lib;rpcrt4.lib;secur32.lib;shell32.lib;shlwapi.lib;user32.lib;userenv.lib;uuid.lib;version.lib;winmm.lib;winspool.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  crypt32.lib ws2_32.lib</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  crypt32.lib ws2_32.lib</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  Mincore.lib Shlwapi.lib Winmm.lib</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  Mincore.lib Shlwapi.lib Winmm.lib</AdditionalOptions>
       <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
       <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">DebugFastLink</GenerateDebugInformation>
       <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</RandomizedBaseAddress>
@@ -78,17 +78,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\testpath\4e21f5d43285c4441c4cc25640.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\testpath\a81a113f8533a3a6f4e7bda31d.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\colorama\9d104b6275ac037af7796eae64.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\colorama\ad292e0dfca10f0e244a721f83.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath
+cd /d $(SolutionDir)$(Configuration)\contrib\python\colorama
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/testpath/4e21f5d43285c4441c4cc25640.cpp" "_617cca38b7caa22ffc38f2599b=resfs/src/resfs/file/contrib/python/testpath/.dist-info/METADATA" "_a60fbacf9464cf2c4d51f860d0=resfs/file/contrib/python/testpath/.dist-info/METADATA" "_d6f2c771c3bea0ea09fb88dc5a=resfs/src/resfs/file/contrib/python/testpath/.dist-info/top_level.txt" "_cd15af38f0409ac9a79b15fddd=resfs/file/contrib/python/testpath/.dist-info/top_level.txt"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/colorama/9d104b6275ac037af7796eae64.cpp" "_72061aa4afed5f742f3ba56b3e=resfs/src/resfs/file/contrib/python/colorama/.dist-info/METADATA" "_030de9490cbdbf6b158c8bab9b=resfs/file/contrib/python/colorama/.dist-info/METADATA" "_6f9d7e8ce80cddd30f97c11488=resfs/src/resfs/file/contrib/python/colorama/.dist-info/top_level.txt" "_8003bf47fd0066bf776a1e251a=resfs/file/contrib/python/colorama/.dist-info/top_level.txt"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath
+cd /d $(SolutionDir)$(Configuration)\contrib\python\colorama
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/testpath/a81a113f8533a3a6f4e7bda31d.cpp" "_9ab9bd1b60319b416ebc8fa418=/py_modules/testpath.__init__" "_76b598d96780b4ed8753dc94cf=resfs/src//py_modules/testpath.__init__" "_e4f04b86838b89692ae630dbf0=/py_code/testpath.__init__" "_2292b55b0b94fc74b95dce02ec=/py_modules/testpath.asserts" "_4f6d92e4c4e97cebabbb31ec48=resfs/src//py_modules/testpath.asserts" "_e8b35530bdd855491ec6c99c78=/py_code/testpath.asserts" "_cce0cd8daef366887c3736f934=/py_modules/testpath.commands" "_7634343ae79b2bec74039c5816=resfs/src//py_modules/testpath.commands" "_2ef2200305817a1835f790281a=/py_code/testpath.commands" "_ba5039a022e64ed1c9a83c85dd=/py_modules/testpath.env" "_07bc8a904f8032123b1b485209=resfs/src//py_modules/testpath.env" "_44a5861f051c6078eda932a312=/py_code/testpath.env" "_ebfa783a86e1030418cec85311=/py_modules/testpath.tempdir" "_43a7b16eb60f1c072eaec4860d=resfs/src//py_modules/testpath.tempdir" "_14a857dbc2f6136845822002d9=/py_code/testpath.tempdir"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/colorama/ad292e0dfca10f0e244a721f83.cpp" "_38388637e269de63fa0ffd6546=resfs/src/resfs/file/py/colorama/__init__.py" "_c4aa564e3dbde7bd126ee22de8=resfs/file/py/colorama/__init__.py" "_3e6cca657ebda1625340ad35cc=resfs/src/resfs/file/py/colorama/__init__.py.yapyc3" "_565db499fe54dac25384721b80=resfs/file/py/colorama/__init__.py.yapyc3" "_caee6a735bff31992a93d19a03=resfs/src/resfs/file/py/colorama/ansi.py" "_47fdfa5f2001da924a4223ce6f=resfs/file/py/colorama/ansi.py" "_44486b1dedf0371661883aada6=resfs/src/resfs/file/py/colorama/ansi.py.yapyc3" "_e6cb4106e2356c37905fccb533=resfs/file/py/colorama/ansi.py.yapyc3" "_096ca461c91f8b1bd88a1d3428=resfs/src/resfs/file/py/colorama/ansitowin32.py" "_fc9603863087f5e78bd43ea305=resfs/file/py/colorama/ansitowin32.py" "_94831d00c6e567ef7c8974f0db=resfs/src/resfs/file/py/colorama/ansitowin32.py.yapyc3" "_5a85ffef4a831688347f7cf1f5=resfs/file/py/colorama/ansitowin32.py.yapyc3" "_b2eb88e667b8bdef4ad1da1f43=resfs/src/resfs/file/py/colorama/initialise.py" "_eb17503386f3e2bdc59e4b4e40=resfs/file/py/colorama/initialise.py" "_bd2818fb14b54fecd1867bd438=resfs/src/resfs/file/py/colorama/initialise.py.yapyc3" "_c2cc7e0190827237c6497b0c93=resfs/file/py/colorama/initialise.py.yapyc3" "_28ab62767e7daaa4f30496c4c4=resfs/src/resfs/file/py/colorama/win32.py" "_4a04d8e1b0bf5775bb00d8bff9=resfs/file/py/colorama/win32.py" "_c3b3cf215dbcea685051acde67=resfs/src/resfs/file/py/colorama/win32.py.yapyc3" "_d0d2cae54b2941121e9ef9308a=resfs/file/py/colorama/win32.py.yapyc3" "_5e63cb60cd13c221c85725be7b=resfs/src/resfs/file/py/colorama/winterm.py" "_513e30df2eb46dc17957ed4c09=resfs/file/py/colorama/winterm.py" "_6ecc1502c6b6757f0bd87d6bbd=resfs/src/resfs/file/py/colorama/winterm.py.yapyc3" "_2bd75d2f9ccb561ce1950c7ab9=resfs/file/py/colorama/winterm.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -97,13 +97,13 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath
+cd /d $(SolutionDir)$(Configuration)\contrib\python\colorama
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/testpath/4e21f5d43285c4441c4cc25640.cpp" "_617cca38b7caa22ffc38f2599b=resfs/src/resfs/file/contrib/python/testpath/.dist-info/METADATA" "_a60fbacf9464cf2c4d51f860d0=resfs/file/contrib/python/testpath/.dist-info/METADATA" "_d6f2c771c3bea0ea09fb88dc5a=resfs/src/resfs/file/contrib/python/testpath/.dist-info/top_level.txt" "_cd15af38f0409ac9a79b15fddd=resfs/file/contrib/python/testpath/.dist-info/top_level.txt"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/colorama/9d104b6275ac037af7796eae64.cpp" "_72061aa4afed5f742f3ba56b3e=resfs/src/resfs/file/contrib/python/colorama/.dist-info/METADATA" "_030de9490cbdbf6b158c8bab9b=resfs/file/contrib/python/colorama/.dist-info/METADATA" "_6f9d7e8ce80cddd30f97c11488=resfs/src/resfs/file/contrib/python/colorama/.dist-info/top_level.txt" "_8003bf47fd0066bf776a1e251a=resfs/file/contrib/python/colorama/.dist-info/top_level.txt"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath
+cd /d $(SolutionDir)$(Configuration)\contrib\python\colorama
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/testpath/a81a113f8533a3a6f4e7bda31d.cpp" "_9ab9bd1b60319b416ebc8fa418=/py_modules/testpath.__init__" "_76b598d96780b4ed8753dc94cf=resfs/src//py_modules/testpath.__init__" "_e4f04b86838b89692ae630dbf0=/py_code/testpath.__init__" "_2292b55b0b94fc74b95dce02ec=/py_modules/testpath.asserts" "_4f6d92e4c4e97cebabbb31ec48=resfs/src//py_modules/testpath.asserts" "_e8b35530bdd855491ec6c99c78=/py_code/testpath.asserts" "_cce0cd8daef366887c3736f934=/py_modules/testpath.commands" "_7634343ae79b2bec74039c5816=resfs/src//py_modules/testpath.commands" "_2ef2200305817a1835f790281a=/py_code/testpath.commands" "_ba5039a022e64ed1c9a83c85dd=/py_modules/testpath.env" "_07bc8a904f8032123b1b485209=resfs/src//py_modules/testpath.env" "_44a5861f051c6078eda932a312=/py_code/testpath.env" "_ebfa783a86e1030418cec85311=/py_modules/testpath.tempdir" "_43a7b16eb60f1c072eaec4860d=resfs/src//py_modules/testpath.tempdir" "_14a857dbc2f6136845822002d9=/py_code/testpath.tempdir"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/colorama/ad292e0dfca10f0e244a721f83.cpp" "_38388637e269de63fa0ffd6546=resfs/src/resfs/file/py/colorama/__init__.py" "_c4aa564e3dbde7bd126ee22de8=resfs/file/py/colorama/__init__.py" "_3e6cca657ebda1625340ad35cc=resfs/src/resfs/file/py/colorama/__init__.py.yapyc3" "_565db499fe54dac25384721b80=resfs/file/py/colorama/__init__.py.yapyc3" "_caee6a735bff31992a93d19a03=resfs/src/resfs/file/py/colorama/ansi.py" "_47fdfa5f2001da924a4223ce6f=resfs/file/py/colorama/ansi.py" "_44486b1dedf0371661883aada6=resfs/src/resfs/file/py/colorama/ansi.py.yapyc3" "_e6cb4106e2356c37905fccb533=resfs/file/py/colorama/ansi.py.yapyc3" "_096ca461c91f8b1bd88a1d3428=resfs/src/resfs/file/py/colorama/ansitowin32.py" "_fc9603863087f5e78bd43ea305=resfs/file/py/colorama/ansitowin32.py" "_94831d00c6e567ef7c8974f0db=resfs/src/resfs/file/py/colorama/ansitowin32.py.yapyc3" "_5a85ffef4a831688347f7cf1f5=resfs/file/py/colorama/ansitowin32.py.yapyc3" "_b2eb88e667b8bdef4ad1da1f43=resfs/src/resfs/file/py/colorama/initialise.py" "_eb17503386f3e2bdc59e4b4e40=resfs/file/py/colorama/initialise.py" "_bd2818fb14b54fecd1867bd438=resfs/src/resfs/file/py/colorama/initialise.py.yapyc3" "_c2cc7e0190827237c6497b0c93=resfs/file/py/colorama/initialise.py.yapyc3" "_28ab62767e7daaa4f30496c4c4=resfs/src/resfs/file/py/colorama/win32.py" "_4a04d8e1b0bf5775bb00d8bff9=resfs/file/py/colorama/win32.py" "_c3b3cf215dbcea685051acde67=resfs/src/resfs/file/py/colorama/win32.py.yapyc3" "_d0d2cae54b2941121e9ef9308a=resfs/file/py/colorama/win32.py.yapyc3" "_5e63cb60cd13c221c85725be7b=resfs/src/resfs/file/py/colorama/winterm.py" "_513e30df2eb46dc17957ed4c09=resfs/file/py/colorama/winterm.py" "_6ecc1502c6b6757f0bd87d6bbd=resfs/src/resfs/file/py/colorama/winterm.py.yapyc3" "_2bd75d2f9ccb561ce1950c7ab9=resfs/file/py/colorama/winterm.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -111,9 +111,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/testpath/4e21f5d43285c4441c4cc25640.cpp	$B/contrib/python/testpath/a81a113f8533a3a6f4e7bda31d.cpp	</Message>
+      <Message>$B/contrib/python/colorama/9d104b6275ac037af7796eae64.cpp	$B/contrib/python/colorama/ad292e0dfca10f0e244a721f83.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\testpath\4e21f5d43285c4441c4cc25640.cpp;$(SolutionDir)$(Configuration)\contrib\python\testpath\a81a113f8533a3a6f4e7bda31d.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\colorama\9d104b6275ac037af7796eae64.cpp;$(SolutionDir)$(Configuration)\contrib\python\colorama\ad292e0dfca10f0e244a721f83.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
@@ -146,11 +146,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\crypto\libs-openssl-crypto.vcxproj">
       <Project>{0EED471E-D91D-9917-D1A8-550D2EBE46DB}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\python\Include\pylibs-python-Include.vcxproj">
-      <Project>{8E24FF07-6DF8-0FC3-F441-862B08F7F40E}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\python\Include\py3libs-python-Include.vcxproj">
+      <Project>{979D0A38-9505-F3B3-16F9-58B713DAE389}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\python\pycontrib-libs-python.vcxproj">
-      <Project>{FAF7DF94-9999-63CD-ABB9-ED295B68DFD7}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\python\py3contrib-libs-python.vcxproj">
+      <Project>{5B790388-FDEE-2F70-2F9B-EDB49D07DACF}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\xxhash\contrib-libs-xxhash.vcxproj">
       <Project>{93F9D338-B2A4-2DC4-8B30-A39701C2F9EE}</Project>
@@ -164,14 +164,23 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\libffi\contrib-restricted-libffi.vcxproj">
       <Project>{C4244186-1688-FFD7-FAB5-CB9E056577E2}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\base\tools-python-base.vcxproj">
-      <Project>{EFB6D29C-74E4-D7B6-6D91-5CD9197E0E62}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python3\lib\py\pypython3-lib-py.vcxproj">
+      <Project>{29D11B36-E190-930C-F04D-08E664A940A9}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\include\tools-python-include.vcxproj">
-      <Project>{1230701B-DB69-9B51-E24F-A059CB0400B3}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python3\lib\tools-python3-lib.vcxproj">
+      <Project>{CD9FC9E1-E55E-F0DF-E06C-5DF7C166141B}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\lib\tools-python-lib.vcxproj">
-      <Project>{F56D05C3-DCE3-DF03-B792-75B4F5F59907}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python3\pycc\pycc.vcxproj">
+      <Project>{480F44FB-05D5-35A4-D564-704F9C2920B7}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python3\src\Lib\pypython3-src-Lib.vcxproj">
+      <Project>{1F5842EA-E053-C6FC-4F42-BAAFD2F5B0EB}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python3\src\Modules\python3-src-Modules.vcxproj">
+      <Project>{D9DA0254-41B3-1659-443E-58F351ADA4FA}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python3\src\tools-python3-src.vcxproj">
+      <Project>{3853084F-52D5-B05E-2706-65BD06611610}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\yasm\yasm.vcxproj">
       <Project>{1959E211-4FF5-553B-2DD1-9BDC1CFDC107}</Project>
@@ -185,14 +194,14 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\resource\library-cpp-resource.vcxproj">
       <Project>{1E91F91B-DC98-C7C6-CD7E-C89F350D131A}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\python\runtime\pylibrary-python-runtime.vcxproj">
-      <Project>{FDE5A173-CB03-B2D7-3278-852097280EF4}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\runtime_py3\pylibrary-python-runtime_py3.vcxproj">
+      <Project>{1CDAABEA-CAFE-2098-5B65-A951B25498E4}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\libc\python-symbols-libc.vcxproj">
       <Project>{8E374D9B-CDBD-993F-45A3-F459C9A9C508}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\module\pypython-symbols-module.vcxproj">
-      <Project>{4AA4F15B-35C8-E419-38D7-A3EFCE482215}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\module\py3python-symbols-module.vcxproj">
+      <Project>{D01E799B-0965-1C31-0C5E-2F984B04A0B2}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\python\python-symbols-python.vcxproj">
       <Project>{652F51EE-85DE-3688-41FA-4C2CDAC4C75A}</Project>
