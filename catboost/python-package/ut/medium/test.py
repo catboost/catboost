@@ -36,9 +36,8 @@ from catboost.utils import eval_metric, create_cd, read_cd, get_roc_curve, selec
 from catboost.utils import DataMetaInfo, TargetStats, compute_training_options
 import os.path
 import os
-from pandas import read_csv, DataFrame, Series, Categorical, SparseArray
-from six import PY3
-from six.moves import xrange
+from pandas import read_csv, DataFrame, Series, Categorical
+from pandas.arrays import SparseArray
 import scipy.sparse
 import scipy.special
 
@@ -293,12 +292,12 @@ def test_multiregression_custom_eval(niter, n=10):
             error_sum = 0.0
             weight_sum = 0.0
 
-            for dim in xrange(len(target)):
-                for i in xrange(len(target[0])):
+            for dim in range(len(target)):
+                for i in range(len(target[0])):
                     w = 1.0 if weight is None else weight[i]
                     error_sum += w * (approxes[dim][i] - target[dim][i]) ** 2
 
-            for i in xrange(len(target[0])):
+            for i in range(len(target[0])):
                 weight_sum += 1.0 if weight is None else weight[i]
 
             return error_sum, weight_sum
@@ -857,10 +856,10 @@ def get_features_data_from_matrix(feature_matrix, cat_feature_indices, order='C'
     result_num = np.empty((object_count, num_feature_count), dtype=np.float32, order=order)
     result_cat = np.empty((object_count, cat_feature_count), dtype=object, order=order)
 
-    for object_idx in xrange(object_count):
+    for object_idx in range(object_count):
         num_feature_idx = 0
         cat_feature_idx = 0
-        for feature_idx in xrange(len(feature_matrix[object_idx])):
+        for feature_idx in range(len(feature_matrix[object_idx])):
             if (cat_feature_idx < cat_feature_count) and (cat_feature_indices[cat_feature_idx] == feature_idx):
                 # simplified handling of transformation to bytes for tests
                 result_cat[object_idx, cat_feature_idx] = (
@@ -1166,7 +1165,7 @@ def test_predict_and_predict_proba_on_single_object(problem):
         pred_probabilities = model.predict_proba(test_data)
 
     random.seed(0)
-    for i in xrange(3):  # just some indices
+    for i in range(3):  # just some indices
         test_object_idx = random.randrange(test_data.shape[0])
         assert pred[test_object_idx] == model.predict(test_data.values[test_object_idx])
 
@@ -2118,7 +2117,7 @@ def test_staged_predict_and_predict_proba_on_single_object(problem):
             pred_probabilities.append(pred_probabilities_for_iteration)
 
     random.seed(0)
-    for i in xrange(3):  # just some indices
+    for i in range(3):  # just some indices
         test_object_idx = random.randrange(test_data.shape[0])
 
         single_object_preds = []
@@ -2126,7 +2125,7 @@ def test_staged_predict_and_predict_proba_on_single_object(problem):
             single_object_preds.append(pred)
 
         assert len(preds) == len(single_object_preds)
-        for iteration in xrange(len(preds)):
+        for iteration in range(len(preds)):
             assert preds[iteration][test_object_idx] == single_object_preds[iteration]
 
         if problem == 'Classifier':
@@ -2135,7 +2134,7 @@ def test_staged_predict_and_predict_proba_on_single_object(problem):
                 single_object_pred_probabilities.append(pred_probabilities_for_iteration)
 
             assert len(pred_probabilities) == len(single_object_pred_probabilities)
-            for iteration in xrange(len(pred_probabilities)):
+            for iteration in range(len(pred_probabilities)):
                 assert np.array_equal(pred_probabilities[iteration][test_object_idx], single_object_pred_probabilities[iteration])
 
 
@@ -2627,7 +2626,7 @@ def test_custom_eval():
             error_sum = 0.0
             weight_sum = 0.0
 
-            for i in xrange(len(approx)):
+            for i in range(len(approx)):
                 w = 1.0 if weight is None else weight[i]
                 weight_sum += w
                 error_sum += w * (target[i] * approx[i] - math.log(1 + math.exp(approx[i])))
@@ -2655,11 +2654,11 @@ class LoglossObjective(object):
             assert len(weights) == len(approxes)
 
         exponents = []
-        for index in xrange(len(approxes)):
+        for index in range(len(approxes)):
             exponents.append(math.exp(approxes[index]))
 
         result = []
-        for index in xrange(len(targets)):
+        for index in range(len(targets)):
             p = exponents[index] / (1 + exponents[index])
             der1 = (1 - p) if targets[index] > 0.0 else -p
             der2 = -p * (1 - p)
@@ -2721,7 +2720,7 @@ def test_multilabel_custom_objective(task_type, n=10):
             grad = []
             hess = [[0 for j in range(len(targets))] for i in range(len(targets))]
 
-            for index in xrange(len(targets)):
+            for index in range(len(targets)):
                 der1 = (targets[index] - approxes[index]) * weight
                 der2 = -weight
 
@@ -2926,12 +2925,13 @@ def test_class_weights_dict_binclass(dict_type, label_type):
 
     features, labels = generate_random_labeled_dataset(100, 5, uniq_labels)
 
-    class_weights_dict = dict_type(zip(uniq_labels, [0.5, 2.0]))
+    weights = [0.5, 2.0]
+    class_weights_dict = dict_type(zip(uniq_labels, weights))
 
     model_with_class_weights_as_list = CatBoostClassifier(
         iterations=5,
-        class_names=class_weights_dict.keys(),
-        class_weights=class_weights_dict.values()
+        class_names=uniq_labels,
+        class_weights=weights
     )
     model_with_class_weights_as_list.fit(features, labels)
 
@@ -2982,13 +2982,14 @@ def test_class_weights_dict_multiclass(dict_type, label_type):
 
     features, labels = generate_random_labeled_dataset(100, 5, uniq_labels)
 
-    class_weights_dict = dict_type(zip(uniq_labels, [0.1, 2.0, 3.0, 0.4]))
+    weights = [0.1, 2.0, 3.0, 0.4]
+    class_weights_dict = dict_type(zip(uniq_labels, weights))
 
     model_with_class_weights_as_list = CatBoostClassifier(
         loss_function='MultiClass',
         iterations=5,
-        class_names=class_weights_dict.keys(),
-        class_weights=class_weights_dict.values()
+        class_names=uniq_labels,
+        class_weights=weights
     )
     model_with_class_weights_as_list.fit(features, labels)
 
@@ -3255,7 +3256,7 @@ def test_cv_with_cat_features_param(param_type):
         feature_names_param = None
     else:
         cat_features_param = ['feat1', 'feat2']
-        feature_names_param = ['feat' + str(i) for i in xrange(20)]
+        feature_names_param = ['feat' + str(i) for i in range(20)]
 
     prng = np.random.RandomState(seed=20181219)
     data = prng.randint(10, size=(20, 20))
@@ -3411,7 +3412,7 @@ def test_grid_search_aliases(task_type):
         grid,
         pool
     )
-    for key, value in results["params"].iteritems():
+    for key, value in results["params"].items():
         assert value in grid[key]
 
 
@@ -3511,7 +3512,7 @@ def test_grid_search_for_multiclass():
     }
 
     results = model.grid_search(grid, pool, shuffle=False, verbose=False)
-    for key, value in results["params"].iteritems():
+    for key, value in results["params"].items():
         assert value in grid[key]
 
 
@@ -3668,7 +3669,7 @@ def test_grid_search_with_class_weights_lists():
     }
 
     results = model.grid_search(grid, pool, shuffle=False, verbose=False)
-    for key, value in results["params"].iteritems():
+    for key, value in results["params"].items():
         assert value in grid[key]
 
 
@@ -3867,7 +3868,7 @@ def test_interaction_feature_importance(task_type):
 def make_reference_data(pool, calc_shap_mode):
     reference_data = None
     if calc_shap_mode == "IndependentTreeSHAP":
-        quarter_size = pool.num_row() / 4
+        quarter_size = pool.num_row() // 4
         reference_data = pool.slice(list(range(quarter_size)))
     return reference_data
 
@@ -4601,7 +4602,7 @@ def test_shap_interaction_value_between_pair_multi():
     )
     features_count = pool.num_col()
     doc_count = pool.num_row()
-    checked_doc_count = doc_count / 3
+    checked_doc_count = doc_count // 3
     classes_count = 3
 
     for feature_idx_1 in range(features_count):
@@ -4730,15 +4731,15 @@ def test_get_metadata_notrain():
     model.get_metadata()['1'] = '1'
     assert model.get_metadata().get('1', 'EMPTY') == '1'
     assert model.get_metadata().get('2', 'EMPTY') == 'EMPTY'
-    for i in xrange(100):
+    for i in range(100):
         model.get_metadata()[str(i)] = str(i)
     del model.get_metadata()['98']
     with pytest.raises(KeyError):
         i = model.get_metadata()['98']
-    for i in xrange(0, 98, 2):
+    for i in range(0, 98, 2):
         assert str(i) in model.get_metadata()
         del model.get_metadata()[str(i)]
-    for i in xrange(0, 98, 2):
+    for i in range(0, 98, 2):
         assert str(i) not in model.get_metadata()
         assert str(i + 1) in model.get_metadata()
 
@@ -4823,8 +4824,8 @@ def test_option_used_ram_limit():
 
 
 def get_values_that_json_dumps_breaks_on():
-    name_dtype = {name: np.__dict__[name] for name in dir(np) if (
-        isinstance(np.__dict__[name], type) and
+    name_dtype = {name: value for name, value in np.__dict__.items() if (
+        isinstance(value, type) and
         re.match('(int|uint|float|bool).*', name)
     )}
     name_value = {}
@@ -4937,8 +4938,6 @@ class TestInvalidCustomLossAndMetric(object):
             model.fit(pool)
 
     def test_loss_bad_metric_logloss(self):
-        if PY3:
-            return pytest.xfail(reason='Need fixing')
         with pytest.raises(Exception, match='BadCustomLoss calc_ders_range'):
             model = CatBoost({"loss_function": self.BadCustomLoss(), "eval_metric": "Logloss", "iterations": 2})
             prng = np.random.RandomState(seed=20181219)
@@ -4946,8 +4945,6 @@ class TestInvalidCustomLossAndMetric(object):
             model.fit(pool)
 
     def test_loss_bad_metric_multiclass(self):
-        if PY3:
-            return pytest.xfail(reason='Need fixing')
         with pytest.raises(Exception, match='BadCustomLoss calc_ders_multi'):
             model = CatBoost({"loss_function": self.BadCustomLoss(), "eval_metric": "MultiClass", "iterations": 2})
             prng = np.random.RandomState(seed=20181219)
@@ -4955,8 +4952,6 @@ class TestInvalidCustomLossAndMetric(object):
             model.fit(pool)
 
     def test_loss_incomplete_metric_logloss(self):
-        if PY3:
-            return pytest.xfail(reason='Need fixing')
         with pytest.raises(Exception, match='has no.*calc_ders_range'):
             model = CatBoost({"loss_function": self.IncompleteCustomLoss(), "eval_metric": "Logloss", "iterations": 2})
             prng = np.random.RandomState(seed=20181219)
@@ -4964,8 +4959,6 @@ class TestInvalidCustomLossAndMetric(object):
             model.fit(pool)
 
     def test_loss_incomplete_metric_multiclass(self):
-        if PY3:
-            return pytest.xfail(reason='Need fixing')
         with pytest.raises(Exception, match='has no.*calc_ders_multi'):
             model = CatBoost({"loss_function": self.IncompleteCustomLoss(), "eval_metric": "MultiClass", "iterations": 2})
             prng = np.random.RandomState(seed=20181219)
@@ -4986,7 +4979,7 @@ class TestInvalidCustomLossAndMetric(object):
         model.fit(pool)
 
     def test_loss_none_metric_incomplete(self):
-        with pytest.raises(CatBoostError, match='has no.*evaluate'):
+        with pytest.raises(CatBoostError, match='*evaluate()*incorrect*'):
             model = CatBoost({"eval_metric": self.IncompleteCustomMetric(), "iterations": 2})
             prng = np.random.RandomState(seed=20181219)
             pool = Pool(*random_xy(10, 5, prng=prng))
@@ -5610,7 +5603,7 @@ def test_permuted_columns_dataset():
 
 
 def non_decreasing(sequence):
-    for i in xrange(1, len(sequence)):
+    for i in range(1, len(sequence)):
         if sequence[i] < sequence[i - 1]:
             return False
     return True
@@ -6260,7 +6253,7 @@ def test_set_cat_features_in_init(param_type):
         feature_names_param = None
     else:
         cat_features_param = ['feat1', 'feat2']
-        feature_names_param = ['feat' + str(i) for i in xrange(20)]
+        feature_names_param = ['feat' + str(i) for i in range(20)]
 
     prng = np.random.RandomState(seed=20181219)
     data = prng.randint(10, size=(20, 20))
@@ -7447,7 +7440,7 @@ def test_continue_learning_with_changing_dataset(samples, features):
         local_params = train_params
         local_params['iterations'] = iterations
         model = CatBoost(local_params)
-        print ('cat_features', cat_features)
+        print('cat_features', cat_features)
         model.fit(X=train_features_df, y=train_labels, cat_features=cat_features, init_model=init_model)
         return model
 
@@ -8128,7 +8121,7 @@ def convert_cat_columns_to_hashed(src_features_dataframe):
     return DataFrame(new_columns_data)
 
 
-@pytest.mark.parametrize('dataset', get_dataset_specification_for_sparse_input_tests().keys())
+@pytest.mark.parametrize('dataset', list(get_dataset_specification_for_sparse_input_tests().keys()))
 def test_pools_equal_on_dense_and_scipy_sparse_input(dataset):
     metadata = get_dataset_specification_for_sparse_input_tests()[dataset]
 
@@ -8237,6 +8230,7 @@ def make_catboost_compatible_categorical_missing_values(src_features_dataframe):
     new_columns_data = OrderedDict()
     for column_name, column_data in src_features_dataframe.iteritems():
         if column_data.dtype.name == 'category':
+            column_data = column_data.cat.rename_categories([str(x) for x in column_data.cat.categories])
             column_data = column_data.cat.add_categories('').fillna('')
 
         new_columns_data[column_name] = column_data
@@ -8257,7 +8251,7 @@ def convert_to_sparse(src_features_dataframe, indexing_kind):
     return DataFrame(new_columns_data)
 
 
-@pytest.mark.parametrize('dataset', get_dataset_specification_for_sparse_input_tests().keys())
+@pytest.mark.parametrize('dataset', list(get_dataset_specification_for_sparse_input_tests().keys()))
 @pytest.mark.parametrize('indexing_kind', ['integer', 'block'])
 def test_pools_equal_on_pandas_dense_and_sparse_input(dataset, indexing_kind):
     metadata = get_dataset_specification_for_sparse_input_tests()[dataset]
@@ -8291,7 +8285,7 @@ def test_pools_equal_on_pandas_dense_and_sparse_input(dataset, indexing_kind):
     assert _have_equal_features(dense_pool, sparse_pool, True)
 
 
-@pytest.mark.parametrize('dataset', get_dataset_specification_for_sparse_input_tests().keys())
+@pytest.mark.parametrize('dataset', list(get_dataset_specification_for_sparse_input_tests().keys()))
 @pytest.mark.parametrize('indexing_kind', ['integer', 'block'])
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 def test_training_and_prediction_equal_on_pandas_dense_and_sparse_input(task_type, dataset, indexing_kind, boosting_type):
@@ -9554,7 +9548,7 @@ LOAD_AND_QUANTIZE_TEST_PARAMS = {
 
 @pytest.mark.parametrize(('pool_file', 'column_description', 'load_params', 'quantize_params',
                           'subset_quantization_differs'),
-                         argvalues=LOAD_AND_QUANTIZE_TEST_PARAMS.values(), ids=LOAD_AND_QUANTIZE_TEST_PARAMS.keys())
+                         argvalues=list(LOAD_AND_QUANTIZE_TEST_PARAMS.values()), ids=list(LOAD_AND_QUANTIZE_TEST_PARAMS.keys()))
 def test_pool_load_and_quantize(pool_file, column_description, load_params, quantize_params,
                                 subset_quantization_differs):
     SMALL_BLOCK_SIZE = 500

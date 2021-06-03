@@ -3,6 +3,7 @@
 RECURSE(
     atomicwrites
     attrs
+    backcall
     backports-shutil_get_terminal_size
     colorama
     configparser
@@ -17,11 +18,13 @@ RECURSE(
     ipdb
     ipython
     ipython_genutils
+    jedi
     Jinja2
     MarkupSafe
     more-itertools
     numpy
     pandas
+    parso
     path.py
     pathlib2
     pexpect

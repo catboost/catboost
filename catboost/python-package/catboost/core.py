@@ -3263,7 +3263,7 @@ class CatBoost(_CatBoostBase):
         all_predictions = np.array(self._object._calc_partial_dependence(data, features_idx, thread_count))
 
         if is_2d_plot:
-            all_predictions = all_predictions.reshape(map(lambda x: len(x) + 1, borders))
+            all_predictions = all_predictions.reshape([len(x) + 1 for x in borders])
             fig = plot2d(features_idx, borders,  all_predictions)
         else:
             fig = plot1d(features_idx[0], borders[0], all_predictions)

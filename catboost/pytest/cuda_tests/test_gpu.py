@@ -295,8 +295,9 @@ def test_bootstrap(boosting_type):
         fit_catboost_gpu(run_params)
         apply_catboost(model_path, test_file, cd_file, eval_path)
 
-    ref_eval_path = yatest.common.test_output_path('test_' + bootstrap_option.keys()[0] + '.eval')
-    for bootstrap in bootstrap_option.keys()[1:]:
+    bootstrap_options_keys = list(bootstrap_option.keys())
+    ref_eval_path = yatest.common.test_output_path('test_' + bootstrap_options_keys[0] + '.eval')
+    for bootstrap in bootstrap_options_keys[1:]:
         eval_path = yatest.common.test_output_path('test_' + bootstrap + '.eval')
         assert (filecmp.cmp(ref_eval_path, eval_path))
     return [local_canonical_file(ref_eval_path)]
