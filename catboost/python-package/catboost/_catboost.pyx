@@ -1548,7 +1548,7 @@ def _try_jit_methods(obj, method_names):
     try:
         import numba
     except:
-        #  warnings.warn('Failed to import numba for optimizing custom metrics and objectives')
+        warnings.warn('Failed to import numba for optimizing custom metrics and objectives')
         return
 
     for method_name in method_names:
