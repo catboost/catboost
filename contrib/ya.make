@@ -4,11 +4,3 @@ RECURSE(
     restricted
     tools
 )
-
-
-IF (YMAKE)
-    RECURSE(
-    
-)
-ENDIF ()
-
