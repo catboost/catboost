@@ -733,7 +733,6 @@ migrations:
     - sandbox/projects/avia/travel_avia_dump_resource/task
     - sandbox/projects/browser
     - sandbox/projects/browser/autotests
-    - sandbox/projects/browser/autotests/BrowserAutotestRunPr
     - sandbox/projects/browser/autotests/BrowserAutotestTestpalmExport
     - sandbox/projects/browser/autotests/classes/autoduty
     - sandbox/projects/browser/merge/BrowserMergeTurnStatesOn
@@ -790,9 +789,6 @@ migrations:
     - sandbox/projects/reconf
     - sandbox/projects/sandbox_ci/sandbox_ci_compare_load_test
     - sandbox/projects/sandbox_ci/task
-    - sandbox/projects/statinfra
-    - sandbox/projects/statinfra/statinfra_task
-    - sandbox/projects/statinfra/statinfra_task_beta
     - sandbox/projects/tests
     - sandbox/projects/turbo
     - sandbox/projects/turbo/CompareTurboResponses
@@ -1509,7 +1505,6 @@ migrations:
     - ads/logos/libs/cpp_client/ut/binding
     - ads/logos/tasks/build_stat_bmcategory_ancestor
     - ads/logos/tasks/build_stat_bmcategory_traffic
-    - ads/logos/tasks/map_joined_ef
     - ads/logos/tasks/prgg_stats_result
     - ads/logos/tools/mkdocs/plugin
     - ads/nirvana/automl/pipelines/offline_pytorch/full_example
@@ -1806,7 +1801,6 @@ migrations:
     - travel/avia/avia_statistics/median_prices_updater/lib
     - travel/avia/avia_statistics/popular_months_by_route_updater/lib
     - travel/avia/avia_statistics/route_infos_updater/lib
-    - travel/avia/flight_status_fetcher
     - travel/avia/library/python/iata_correction
     - travel/avia/shared_flights/admin/app/view
     - travel/avia/shared_flights/data_importer
@@ -1911,7 +1905,6 @@ migrations:
     - yweb/webscripts/video/duplicates/nirvana_scripts/knn/filter_knn_source
     - yweb/yasap/answers/answers
     - yweb/yasap/pdb/tools/add_card_owners
-    - yweb/yasap/pdb/tools/saas_snippets
     - zootopia/analytics/drive/source/drive/operations/support/registrations/reg_quality
     - zootopia/analytics/ml/features/geo_features/faster_surge_features
   F405:
@@ -2135,7 +2128,6 @@ migrations:
     - cloud/ai/datasphere/lib/stt/metrics/python_package/stt_metrics
     - cloud/ai/datasphere/lib/stt/deployment/python_package/stt_deployment
     - cloud/ai/speechkit/stt/bin/data_pipeline/import_data/yt_table
-    - cloud/ai/speechkit/stt/bin/data_pipeline/run_compare_meaning
     - cloud/ai/speechkit/stt/bin/data_pipeline/select_records_split_for_markup
     - cloud/ai/speechkit/stt/bin/data_scripts/migrations/ASREXP-378/missing_tags_and_records_fix
     - cloud/ai/speechkit/stt/bin/data_scripts/records/download_records
@@ -2535,9 +2527,6 @@ migrations:
     - mapreduce/yt/python
     - maps/contrib/pylibs/googlemaps
     - maps/contrib/pylibs/mox
-    - maps/garden/libs/search_data_validation/common/criteria
-    - maps/garden/libs/search_data_validation/common/test_utils
-    - maps/garden/libs/search_data_validation/geocoder_validator/lib
     - maps/goods/contrib/pylibs/xlrd
     - maps/infopoint/takeout/tests/ytrecipe
     - maps/pylibs/utils/lib
@@ -3748,7 +3737,6 @@ migrations:
     - extsearch/images/tools/cbircomparer/tests
     - extsearch/images/tools/query_filter/ut
     - extsearch/video/indexer/indexurlseq/create/tests
-    - extsearch/video/kernel/profile/tools/rtmr_user_actions/tests
     - extsearch/video/quality/deep_click/tests
     - extsearch/video/quality/delayed_view/trie_ops/tests
     - extsearch/video/quality/vuserdata2/tests
@@ -3817,7 +3805,6 @@ migrations:
     - mapreduce/library/native2streaming/tests/tests
     - mapreduce/yt/tests
     - maps/fastcgi/meta/bin/tests
-    - maps/garden/modules/geocoder_indexer/tests/test_module
     - maps/libs/tile/pymod-tests
     - maps/realty/jams_generator/tests/integration
     - maps/search/offline/indexer/business/tests/it
@@ -4395,7 +4382,6 @@ migrations:
     - balancer/test/functional/rendezvous_hashing
     - balancer/test/functional/consistent_hashing
     - balancer/test/functional/pingerprocess
-    - balancer/test/functional/balancer2
     - balancer/test/functional/unistat
     - billing/agency_rewards/tests_regression
     - yabs/autobudget/ml/flatten_visit_log/lib/mt
