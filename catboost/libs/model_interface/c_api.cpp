@@ -275,7 +275,9 @@ CATBOOST_API bool CalcModelPrediction(
         TVector<TConstArrayRef<float>> floatFeaturesVec(docCount);
         TVector<TVector<TStringBuf>> catFeaturesVec(docCount, TVector<TStringBuf>(catFeaturesSize));
         for (size_t i = 0; i < docCount; ++i) {
-            floatFeaturesVec[i] = TConstArrayRef<float>(floatFeatures[i], floatFeaturesSize);
+            if (floatFeaturesSize > 0) {
+                floatFeaturesVec[i] = TConstArrayRef<float>(floatFeatures[i], floatFeaturesSize);
+            }
             for (size_t catFeatureIdx = 0; catFeatureIdx < catFeaturesSize; ++catFeatureIdx) {
                 catFeaturesVec[i][catFeatureIdx] = catFeatures[i][catFeatureIdx];
             }
@@ -300,7 +302,9 @@ CATBOOST_API bool CalcModelPredictionText(
         TVector<TVector<TStringBuf>> catFeaturesVec(docCount, TVector<TStringBuf>(catFeaturesSize));
         TVector<TVector<TStringBuf>> textFeaturesVec(docCount, TVector<TStringBuf>(textFeaturesSize));
         for (size_t i = 0; i < docCount; ++i) {
-            floatFeaturesVec[i] = TConstArrayRef<float>(floatFeatures[i], floatFeaturesSize);
+            if (floatFeaturesSize > 0) {
+                floatFeaturesVec[i] = TConstArrayRef<float>(floatFeatures[i], floatFeaturesSize);
+            }
             for (size_t catFeatureIdx = 0; catFeatureIdx < catFeaturesSize; ++catFeatureIdx) {
                 catFeaturesVec[i][catFeatureIdx] = catFeatures[i][catFeatureIdx];
             }
@@ -324,7 +328,9 @@ CATBOOST_API bool CalcModelPredictionSingle(
     try {
         TVector<TConstArrayRef<float>> floatFeaturesVec(1);
         TVector<TVector<TStringBuf>> catFeaturesVec(1, TVector<TStringBuf>(catFeaturesSize));
-        floatFeaturesVec[0] = TConstArrayRef<float>(floatFeatures, floatFeaturesSize);
+        if (floatFeaturesSize > 0) {
+            floatFeaturesVec[0] = TConstArrayRef<float>(floatFeatures, floatFeaturesSize);
+        }
         for (size_t catFeatureIdx = 0; catFeatureIdx < catFeaturesSize; ++catFeatureIdx) {
             catFeaturesVec[0][catFeatureIdx] = catFeatures[catFeatureIdx];
         }
@@ -344,8 +350,12 @@ CATBOOST_API bool CalcModelPredictionWithHashedCatFeatures(ModelCalcerHandle* mo
         TVector<TConstArrayRef<float>> floatFeaturesVec(docCount);
         TVector<TConstArrayRef<int>> catFeaturesVec(docCount);
         for (size_t i = 0; i < docCount; ++i) {
-            floatFeaturesVec[i] = TConstArrayRef<float>(floatFeatures[i], floatFeaturesSize);
-            catFeaturesVec[i] = TConstArrayRef<int>(catFeatures[i], catFeaturesSize);
+            if (floatFeaturesSize > 0) {
+                floatFeaturesVec[i] = TConstArrayRef<float>(floatFeatures[i], floatFeaturesSize);
+            }
+            if (catFeaturesSize > 0) {
+                catFeaturesVec[i] = TConstArrayRef<int>(catFeatures[i], catFeaturesSize);
+            }
         }
         FULL_MODEL_PTR(modelHandle)->Calc(floatFeaturesVec, catFeaturesVec, TArrayRef<double>(result, resultSize));
     } catch (...) {
@@ -365,8 +375,12 @@ CATBOOST_API bool CalcModelPredictionWithHashedCatAndTextFeatures(ModelCalcerHan
         TVector<TConstArrayRef<int>> catFeaturesVec(docCount);
         TVector<TVector<TStringBuf>> textFeaturesVec(docCount, TVector<TStringBuf>(textFeaturesSize));
         for (size_t i = 0; i < docCount; ++i) {
-            floatFeaturesVec[i] = TConstArrayRef<float>(floatFeatures[i], floatFeaturesSize);
-            catFeaturesVec[i] = TConstArrayRef<int>(catFeatures[i], catFeaturesSize);
+            if (floatFeaturesSize > 0) {
+                floatFeaturesVec[i] = TConstArrayRef<float>(floatFeatures[i], floatFeaturesSize);
+            }
+            if (catFeaturesSize > 0) {
+                catFeaturesVec[i] = TConstArrayRef<int>(catFeatures[i], catFeaturesSize);
+            }
             for (size_t textFeatureIdx = 0; textFeatureIdx < textFeaturesSize; ++textFeatureIdx) {
                 textFeaturesVec[i][textFeatureIdx] = textFeatures[i][textFeatureIdx];
             }
