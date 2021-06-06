@@ -481,7 +481,6 @@ migrations:
     - maps/wikimap/mapspro/libs/python/pymod/yandex/maps/wiki
     - maps/wikimap/stat/libs/common/tests/lib
     - maps/wikimap/stat/libs/common/tests/lib/dates_ut
-    - maps/wikimap/stat/tasks_payment/dictionaries/public_holidays/tests
     - market/backctld/pyb
     - market/backctld/pyb/plugin/data_handlers
     - market/backctld/pyb/qpipe
@@ -1057,7 +1056,6 @@ migrations:
     - ads/quality/apc_check_py
     - ads/quality/embedding/tsar_tensor/ft_pool/lib
     - ads/quality/ltp/libs/build_pool
-    - ads/quality/simulate_auction_py/scripts/simulate_yt
     - ads/sandbox_scripts/ggmonitor
     - ads/tools/mr_select/lib
     - alice/analytics/wer/g2p
@@ -1352,8 +1350,6 @@ migrations:
     - travel/hotels/suggest/metrics_builder
     - travel/rasp/content/rzdParser
     - travel/rasp/infra/tools/devprocess_metrics/startrek
-    - travel/rasp/morda_backend
-    - travel/rasp/morda_backend/morda_backend/station/data_layer
     - travel/rasp/train_api
     - travel/rasp/train_api/middleware
     - vcs/manage_contrib
@@ -1544,7 +1540,6 @@ migrations:
     - antirobot/tools/prepare_requests_cbb
     - arc/backups/restore/tasklet
     - balancer/test/functional/rate_limiter
-    - browser/infra/bitbucket/bitbucket
     - browser/infra/ci/backend
     - clickhouse/utils/github
     - cv/imageproc/ocr/tools/nirvana/captcha_renderer
@@ -1890,7 +1885,6 @@ migrations:
     - yp/eviction_alerter/libs
     - yp/scheduler_simulator/analysis/library
     - yql/library/test_framework
-    - yt/admin/infra_cli/src/infra_cli
     - yt/idm-integration/integration
     - yweb/animals/admin_service/lib
     - yweb/antimalware/mitb/mitb_monitor/lib
@@ -2210,7 +2204,6 @@ migrations:
     - dict/mt/make/modules/util
     - dict/mt/make/modules/voc
     - dict/mt/make/processes/gen_cleanup_graph
-    - dict/mt/make/processes/gen_monitoring_graphs
     - dict/mt/make/tools/build_prob_dict
     - dict/mt/make/tools/corpus_classifier
     - dict/mt/make/tools/filter_corpus_by_rules
@@ -2404,19 +2397,16 @@ migrations:
     - infra/walle/server/contrib/sepelib/flask
     - infra/walle/server/contrib/sepelib/flask-test
     - infra/walle/server/contrib/sepelib/gevent
-    - infra/walle/server/contrib/sepelib/http
     - infra/walle/server/contrib/sepelib/metrics
     - infra/walle/server/contrib/sepelib/mongo
     - infra/walle/server/contrib/sepelib/mongo-test
     - infra/walle/server/contrib/sepelib/subprocess
     - infra/walle/server/contrib/sepelib/util
-    - infra/walle/server/contrib/sepelib/yandex
     - infra/walle/server/contrib/sepelib/zookeeper
     - infra/walle/server/contrib/sepelib/zookeeper-test
     - infra/walle/server/tests/api
     - infra/walle/server/tests/expert
     - infra/walle/server/tests/host_platforms
-    - infra/walle/server/tests/idm
     - infra/walle/server/tests/lib
     - infra/walle/server/tests/scenario
     - infra/walle/server/walle
@@ -2441,7 +2431,6 @@ migrations:
     - intranet/hidereferer/src
     - intranet/magiclinks/src
     - intranet/paste/src
-    - intranet/plan/src
     - intranet/table_flow/src/rules/migrations
     - intranet/table_flow/src/users/migrations
     - intranet/vconf/src
