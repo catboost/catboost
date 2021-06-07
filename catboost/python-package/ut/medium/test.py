@@ -7424,7 +7424,7 @@ def test_continue_learning_with_changing_dataset(samples, features):
 
     if features == 'more':
         features_df_1.drop(features_df_1.columns[-5:], axis=1, inplace=True)
-        cat_features_1 = filter(lambda i: i < len(features_df_1.columns), CAT_FEATURES)
+        cat_features_1 = list(filter(lambda i: i < len(features_df_1.columns), CAT_FEATURES))
     else:
         cat_features_1 = CAT_FEATURES
     cat_features_2 = CAT_FEATURES
@@ -7458,6 +7458,16 @@ def test_equal_feature_names():
     train_data = [[1, 2, 3, 4, 5, 6], [6, 5, 4, 3, 2, 1]]
     with pytest.raises(CatBoostError):
         Pool(train_data, feature_names=['first', 'second', 'third', 'fourth', 'second', 'sixth'])
+
+
+@pytest.mark.parametrize('feature_names', [0, 'text'])
+def test_not_sequence_feature_names(feature_names):
+    train_data = DataFrame({'text_f': ['у попа была собака',
+                                       'он ее любил',
+                                       'she ate a piece of meat',
+                                       'he killed her...']})
+    with pytest.raises(CatBoostError):
+        Pool(train_data, feature_names=feature_names)
 
 
 @pytest.mark.parametrize('variance_power', [1.001, 1.42, 1.8, 1.999])
