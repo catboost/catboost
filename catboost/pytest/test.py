@@ -3167,6 +3167,23 @@ def test_loss_change_fstr_on_different_pool_type():
     assert(np.allclose(fstr_dsv, train_fstr, rtol=1e-6))
 
 
+@pytest.mark.parametrize('grow_policy', ['Depthwise', 'Lossguide'])
+def test_zero_splits(grow_policy):
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-i', '50',
+        '--grow-policy', grow_policy,
+        '--min-data-in-leaf', '100',
+        '-T', '4',
+    )
+    yatest.common.execute(cmd)
+
+
 @pytest.mark.parametrize('loss_function', LOSS_FUNCTIONS)
 @pytest.mark.parametrize('grow_policy', GROW_POLICIES)
 @pytest.mark.parametrize(
