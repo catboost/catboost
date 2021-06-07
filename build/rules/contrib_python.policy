@@ -317,7 +317,7 @@ ALLOW adfox/infra/amacs_config/migrations -> contrib/python/sqlalchemy/sqlalchem
 ALLOW adfox/pdb3/discovery -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW adfox/rtd/reports -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW ads/emily/viewer/backend/app -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW ads/logos/viewy/yagraph/Backend -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW logos/viewy/yagraph/Backend -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW ads/ml_monitoring/api/lib -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW ads/quality/phf/phf_direct_loader/lib -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW ads/watchman/timeline/api/bin/timeline_db_manager -> contrib/python/sqlalchemy/sqlalchemy-1.2
