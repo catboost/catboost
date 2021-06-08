@@ -159,6 +159,9 @@
         "perf": {
             "description": "Run Perf"
         },
+        "cuda-check": {
+            "description": "Run cuda-check"
+        },
         "sre": {
             "description": "Run sretool"
         },
@@ -4630,6 +4633,22 @@
                 }
             ]
         },
+        "cuda-check": {
+            "tools": {
+                "cuda-check": {
+                    "bottle": "cuda-check",
+                    "executable": "cuda-check"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "sre": {
             "tools": {
                 "sre": {
@@ -8251,6 +8270,17 @@
             "executable": {
                 "perf": [
                     "perf"
+                ]
+            }
+        },
+        "cuda-check": {
+            "formula": {
+                "sandbox_id": "990074412",
+                "match": "infra/rsm/nvgpumanager/tools/cuda-check/cuda-check"
+            },
+            "executable": {
+                "cuda-check": [
+                    "cuda-check"
                 ]
             }
         },
