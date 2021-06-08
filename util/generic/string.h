@@ -410,7 +410,7 @@ public:
     {
     }
 
-    inline TBasicString(::NDetail::TReserveTag rt)
+    inline explicit TBasicString(::NDetail::TReserveTag rt)
 #ifndef TSTRING_IS_STD_STRING
         : Data_(TDataTraits::GetNull())
 #endif
