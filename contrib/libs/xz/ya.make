@@ -1,0 +1,6 @@
+
+
+RECURSE(
+    common
+    liblzma
+)

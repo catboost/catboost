@@ -41,6 +41,7 @@ RECURSE(
     tbb
     tensorboard
     xxhash
+    xz
     zlib
     zstd
     zstd06

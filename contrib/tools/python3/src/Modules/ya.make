@@ -9,6 +9,7 @@ PEERDIR(
     ADDINCL contrib/libs/libbz2
     ADDINCL contrib/libs/openssl
     ADDINCL contrib/libs/zlib
+    contrib/libs/xz/liblzma
     contrib/restricted/libffi
 )
 
@@ -68,6 +69,7 @@ SRCS(
     _json.c
     _localemodule.c
     _lsprof.c
+    _lzmamodule.c
     _math.c
     _multiprocessing/multiprocessing.c
     _multiprocessing/posixshmem.c
