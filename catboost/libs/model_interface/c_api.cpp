@@ -529,7 +529,7 @@ CATBOOST_API bool PredictSpecificClassWithHashedCatFeaturesAndTextFeatures(
     try {
         const size_t dim = FULL_MODEL_PTR(modelHandle)->GetDimensionsCount();
         TVector<double> rawResult(docCount * dim);
-        if (!CalcModelPredictionWithHashedCatAndTextFeatures(
+        if (!CalcModelPredictionWithHashedCatFeaturesAndTextFeatures(
                 modelHandle, docCount,
                 floatFeatures, floatFeaturesSize,
                 catFeatures, catFeaturesSize,
