@@ -101,6 +101,7 @@ PEERDIR(
     catboost/libs/loggers
     catboost/libs/metrics
     catboost/libs/overfitting_detector
+    contrib/libs/nvidia/cusolver
     library/cpp/threading/local_executor
 )
 

@@ -1,0 +1,7 @@
+
+
+RECURSE(
+    cublas
+    cusolver
+    cusparse
+)
