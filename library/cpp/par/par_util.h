@@ -22,7 +22,7 @@ namespace NPar {
             const IObjectBase* obj = ctx->GetContextData(envId, hostId);
             if (obj) {
                 if (Y_UNLIKELY(typeid(*obj) != typeid(T))) {
-                    const auto objTypeName = TypeName(obj);
+                    const auto objTypeName = BetterTypeName(*obj);
                     const auto expectedTypeName = TypeName<T>();
                     Y_FAIL("type mismatch: %s != %s", objTypeName.c_str(), expectedTypeName.c_str());
                 }

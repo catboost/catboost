@@ -19,7 +19,7 @@ namespace {
         }
 
         TString TypeId() const override {
-            return TypeName(this) + "-" + MyName;
+            return BetterTypeName(*this) + "-" + MyName;
         }
 
         TString Name() const noexcept override {
