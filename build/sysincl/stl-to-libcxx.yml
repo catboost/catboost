@@ -82,10 +82,6 @@
   - cwctype:                   contrib/libs/cxxsupp/libcxx/include/cwctype
   - deque:                     contrib/libs/cxxsupp/libcxx/include/deque
   - exception:                 contrib/libs/cxxsupp/libcxx/include/exception
-  - experimental/optional:     contrib/libs/cxxsupp/libcxx/include/experimental/optional
-  - experimental/string_view:  contrib/libs/cxxsupp/libcxx/include/experimental/string_view
-  - ext/hash_map:              contrib/libs/cxxsupp/libcxx/include/ext/hash_map
-  - ext/hash_set:              contrib/libs/cxxsupp/libcxx/include/ext/hash_set
   - filesystem:                contrib/libs/cxxsupp/libcxx/include/filesystem
   - forward_list:              contrib/libs/cxxsupp/libcxx/include/forward_list
   - fstream:                   contrib/libs/cxxsupp/libcxx/include/fstream
@@ -135,3 +131,14 @@
   - valarray:                  contrib/libs/cxxsupp/libcxx/include/valarray
   - variant:                   contrib/libs/cxxsupp/libcxx/include/variant
   - vector:                    contrib/libs/cxxsupp/libcxx/include/vector
+
+
+# Though these are headers provided by libcxx, we do not want to allow them to be included.
+# We are using non-existent filename to generate error instead, as there is no specific syntax for this case.
+- includes:
+  - ext/hash_map:              DO_NOT_INCLUDE_NON_STANDARD_EXT_HASH_MAP
+  - ext/hash_set:              DO_NOT_INCLUDE_NON_STANDARD_EXT_HASH_SET
+
+  # TODO: remove these includes after solving issues with the code which includes them
+  - experimental/optional:     contrib/libs/cxxsupp/libcxx/include/experimental/optional
+  - experimental/string_view:  contrib/libs/cxxsupp/libcxx/include/experimental/string_view
