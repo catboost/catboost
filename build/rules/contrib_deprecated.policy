@@ -10,6 +10,11 @@ ALLOW mds -> contrib/deprecated/wangle
 # Use newer version from contrib/libs/mongo-cxx-driver instead
 ALLOW mds/mastermind/ -> contrib/deprecated/mongo-cxx-driver
 
+# libpqtypes is not being developed since 2016 and is known to have bugs.
+# Consider using libpqxx / maps/libs/sql_chemistry instread.
+ALLOW mds/libs/postgres -> contrib/deprecated/libpqtypes
+ALLOW mds/libs/s3 -> contrib/deprecated/libpqtypes
+
 # Use library/cpp/json (a rapidjson proxy) instead
 ALLOW alice/cuttlefish/library/client_proto_converter -> contrib/deprecated/jsoncpp
 ALLOW mail/ -> contrib/deprecated/jsoncpp
@@ -26,6 +31,8 @@ ALLOW mail/so/spamstop/ -> contrib/deprecated/udns
 ALLOW .* -> contrib/deprecated/python
 
 ALLOW metrika/core/programs/mobile-redirect -> contrib/deprecated/libctpp
+
+
 
 # Default policies:
 #
