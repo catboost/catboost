@@ -3003,10 +3003,10 @@ class Cuda(object):
 
         env = {
             'Y_VC_Version': vc_version,
+            'Y_VC_Root': '$CUDA_HOST_TOOLCHAIN_RESOURCE_GLOBAL/VC/Tools/MSVC/{}'.format(vc_version),
             'Y_SDK_Version': self.build.tc.sdk_version,
             'Y_SDK_Root': '$WINDOWS_KITS_RESOURCE_GLOBAL',
         }
-        env['Y_VC_Root'] = '$CUDA_HOST_TOOLCHAIN_RESOURCE_GLOBAL/VC/Tools/MSVC/%(Y_VC_Version)s' % env
 
         if not self.build.tc.ide_msvs:
             self.peerdirs.append('build/platform/msvc')
