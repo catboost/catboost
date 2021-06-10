@@ -1,18 +1,32 @@
+C GetErrorString
+
 C ModelCalcerCreate
 C ModelCalcerDelete
 
-C GetErrorString
+C DataWrapperCreate
+C DataWrapperDelete
+C AddFloatFeatures
+C AddCatFeatures
+C AddTextFeatures
+C BuildDataProvider
 
 C LoadFullModelFromFile
 C LoadFullModelFromBuffer
 
 C EnableGPUEvaluation
+C SetPredictionType
 
 C CalcModelPrediction
 C CalcModelPredictionText
 C CalcModelPredictionSingle
 C CalcModelPredictionFlat
 C CalcModelPredictionWithHashedCatFeatures
+C CalcModelPredictionWithHashedCatFeaturesAndTextFeatures
+C PredictSpecificClass
+C PredictSpecificClassText
+C PredictSpecificClassSingle
+C PredictSpecificClassWithHashedCatFeatures
+C PredictSpecificClassWithHashedCatFeaturesAndTextFeatures
 
 C GetStringCatFeatureHash
 C GetIntegerCatFeatureHash
