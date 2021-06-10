@@ -917,7 +917,6 @@ migrations:
     - yabs/server/test/ft/BSSERVER-5249
     - yabs/server/test/ft/BSSERVER-5826
     - yabs/server/test/ft/BSSERVER-7730
-    - yabs/server/test/ft/BSSERVER-8163
     - yabs/server/test/ft/BSSERVER-8516
     - yabs/server/test/ft/BSSERVER-9233
     - yabs/server/test/ft/BSSERVER-9278
@@ -1533,11 +1532,9 @@ migrations:
     - cv/short2long/nirvana/lib
     - cv/short2long/training/yt_load_highlights
     - dict/mt/analytics/make/tools/toloka/simple_toloka
-    - dict/mt/make/modules/bpe/tests
     - dict/mt/make/modules/corpus_generation/aligner/tests
     - dict/mt/make/modules/corpus_generation/docs_to_parallel_sents/tests
     - dict/mt/make/modules/corpus_generation/post_filtering/tests
-    - dict/mt/make/modules/mixed_case_voc/tests
     - dict/mt/make/modules/prepare_corpus
     - dict/mt/make/pipeline/nmt
     - dict/mt/make/pipeline/phrase_lm/tests
@@ -2171,7 +2168,6 @@ migrations:
     - dict/mt/localization_proxy
     - dict/mt/logs/vh
     - dict/mt/make/db
-    - dict/mt/make/modules/build_vocs
     - dict/mt/make/modules/corpus
     - dict/mt/make/modules/fallback_classifier
     - dict/mt/make/modules/filter
@@ -2376,8 +2372,6 @@ migrations:
     - infra/wall-e/sdk
     - infra/walle/server/tests/expert
     - infra/walle/server/tests/lib
-    - infra/walle/server/tests/scenario
-    - infra/walle/server/walle
     - infra/ya_salt/vendor/salt
     - infra/yp/monitoring/pods_with_bad_ip
     - infra/yp/monitoring/tmp_account_monitoring
@@ -2468,7 +2462,6 @@ migrations:
     - logbroker/tools/lb-cm
     - logbroker/tools/manual/send_projections_to_solomon
     - logbroker/tools/manual/test_front
-    - logfeller/lib/log_parser/tests/samples/collect_samples
     - mail/contrib/aioconsole
     - mail/contrib/aiohttp-swagger
     - mail/contrib/asyncpgsa
@@ -3126,7 +3119,6 @@ migrations:
     - search/begemot/tools/apphost/graph_modifier
     - search/begemot/tools/spellchecker/framework_adapter
     - search/begemot/tools/spellchecker/framework_api
-    - search/ema/tools/test_ema
     - search/geo/tools/addrsnippet
     - search/geo/tools/base_pool_from_meta
     - search/geo/tools/comparer
@@ -3589,7 +3581,6 @@ migrations:
     - ads/quality/adv_machine/tsar/cm_robot/cmpy/transfer_manager
     - ads/quality/adv_machine/tsar/cm_robot/cmpy/turbo
     - ads/quality/bid_correction/lib/ut
-    - ads/quality/bid_correction/workflow_constructor/test_tasks/test_pipelines
     - ads/quality/metric_eval/tests/ut
     - ads/sandbox_scripts/logs_scheme/fat
     - ads/targeting/bsmr-scripts/ut
@@ -3667,7 +3658,6 @@ migrations:
     - dj/lib/shard2/yt_prepare/ut/run_test
     - dj/tools/rthub_profiles/profile_update_triggers/profile_update_trigger_rtmr/tests
     - dj/unity/projects/user_profiles/tests/config_tests/canon
-    - education/lib/contrib/pampy
     - entity/ontodb/robot/tests/integration
     - entity/ontodb/robot/tools/extdata_import/wiki_dumps/lib/ut
     - entity/ontodb/tasks/watson_converter/lib/ut
@@ -3720,7 +3710,6 @@ migrations:
     - infra/nanny/sepelib/tests
     - infra/qyp/vmctl/tests
     - infra/wall-e/checks/tests
-    - infra/walle/server/tests/db_sync
     - infra/yp_dns/tests
     - intranet/audit/tests
     - intranet/dogma/dogma_tests
@@ -3954,8 +3943,6 @@ migrations:
     - search/tools/idx_ops/converter/tests
     - search/tools/request_sampler/tests
     - search/web/personalization/test_features/tests
-    - search/web/rearrs_upper/tests/medium
-    - search/web/rearrs_upper/tests/small
     - search/wizard/entitysearch/tools/outentity/tests
     - search/wizard/entitysearch/tools/outnerobject/tests
     - search/wizard/entitysearch/tools/tests
