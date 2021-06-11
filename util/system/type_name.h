@@ -20,23 +20,6 @@ inline TString TypeName() {
     return TypeName(typeid(T));
 }
 
-// !!! NB deprecated, use BetterTypeName
-// Works for dynamic type, including complex class hierarchies
-// (note that values must be passed by pointer).
-template <class T>
-inline TString TypeName(T* t) {
-    return TypeName(typeid(*t));
-}
-
-// ISO C++ does not allow indirection on operand of type 'void *'
-inline TString TypeName(void*) {
-    return "void";
-}
-
-inline TString TypeName(const void*) {
-    return "const void";
-}
-
 // Works for dynamic type, including complex class hierarchies.
 // Also, distinguishes between T, T*, T const*, T volatile*, T const volatile*,
 // but not T and T const.
