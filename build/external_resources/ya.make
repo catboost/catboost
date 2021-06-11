@@ -5,6 +5,7 @@ RECURSE(
     antlr4
     gradle
     maven
+    swift-demangle
 )
 
 IF (OS_ANDROID)
