@@ -1,14 +1,14 @@
 {
   "name": "catboost-widget",
   "version": "1.0.0",
-  "description": "",
+  "description": "CatBoost widget for plots in Jupyter",
   "main": "src/index.js",
   "scripts": {
     "build": "webpack --mode=production && jupyter labextension build .",
     "clean": "rimraf dist && rimraf ../nbextension && rimraf ../labextension",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "gocd-catboost",
   "license": "ISC",
   "dependencies": {
     "@jupyter-widgets/base": "^2 || ^3 || ^4.0.0",
