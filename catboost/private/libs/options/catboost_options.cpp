@@ -744,8 +744,7 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
     if (bootstrapType.NotSet()) {
         if (!IsMultiClassOnlyMetric(lossFunction)
             && !IsMultiRegressionObjective(lossFunction)
-            && (TaskType == ETaskType::CPU ||
-                (IsRegressionMetric(lossFunction) && ObliviousTreeOptions->GrowPolicy == EGrowPolicy::SymmetricTree))
+            && TaskType == ETaskType::CPU
             && ObliviousTreeOptions->BootstrapConfig->GetSamplingUnit() == ESamplingUnit::Object)
         {
             bootstrapType.SetDefault(EBootstrapType::MVS);
