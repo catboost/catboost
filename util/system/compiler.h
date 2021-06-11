@@ -1,5 +1,9 @@
 #pragma once
 
+#if defined(_MSC_VER)
+#include <intrin.h>
+#endif
+
 // useful cross-platfrom definitions for compilers
 
 /**
@@ -617,4 +621,33 @@ Y_HIDDEN void _YandexAbort();
 #define Y_XRAY_CUSTOM_EVENT(__string, __length) \
     do {                                        \
     } while (0)
+#endif
+
+#ifdef __cplusplus
+    void UseCharPointerImpl(volatile const char*);
+
+    extern "C++"
+    template <typename T>
+    Y_FORCE_INLINE void DoNotOptimizeAway(T&& datum) {
+        (void)datum;
+
+#if defined(_MSC_VER)
+        UseCharPointerImpl(&reinterpret_cast<volatile const char&>(datum));
+        _ReadWriteBarrier();
+#endif
+
+#if defined(__GNUC__) && defined(_x86_)
+        asm volatile(""
+                     :
+                     : "X"(datum));
+#else
+        Y_FAKE_READ(datum);
+#endif
+    }
+
+/**
+ * Use this macro to prevent unused variables elimination.
+ */
+#define Y_DO_NOT_OPTIMIZE_AWAY(X) ::DoNotOptimizeAway(X)
+
 #endif
