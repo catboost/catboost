@@ -488,7 +488,12 @@ def execute(
             executable = command
         if os.path.isabs(executable):
             if not os.path.isfile(executable) and not os.path.isfile(executable + ".exe"):
-                raise InvalidCommandError("Target program is not a file: {}".format(executable))
+                exists = os.path.exists(executable)
+                if exists:
+                    stat = os.stat(executable)
+                else:
+                    stat = None
+                raise InvalidCommandError("Target program is not a file: {} (exists: {} stat: {})".format(executable, exists, stat))
             if not os.access(executable, os.X_OK) and not os.access(executable + ".exe", os.X_OK):
                 raise InvalidCommandError("Target program is not executable: {}".format(executable))
 
