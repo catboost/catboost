@@ -236,8 +236,8 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\Jinja2\py3Jinja2.global.vcxproj">
       <Project>{B31EC26D-8F94-2E35-265A-96C33BED2239}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\MarkupSafe\py3contrib-python-MarkupSafe.global.vcxproj">
-      <Project>{25ABDCE6-F315-0635-80FF-F750CA5C6D67}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\MarkupSafe\py3\pypython-MarkupSafe-py3.global.vcxproj">
+      <Project>{C724FA94-187F-BD78-BA1E-CB365E7E1818}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\Pygments\py2\pypython-Pygments-py2.global.vcxproj">
       <Project>{6426C752-DF10-D002-6A8F-980B7DA0EAA5}</Project>

@@ -141,6 +141,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\Jinja2\pyJinja2.vcxproj">
       <Project>{6637C870-CFE3-A8F1-C204-F8078DE53775}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\MarkupSafe\py2\pypython-MarkupSafe-py2.vcxproj">
+      <Project>{1078F817-B6DF-AAEB-FA06-BC5564E96701}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\MarkupSafe\pycontrib-python-MarkupSafe.vcxproj">
       <Project>{FC1C3945-FBD5-32DC-1DC6-99EC399ECD60}</Project>
     </ProjectReference>
