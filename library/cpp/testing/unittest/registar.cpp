@@ -299,7 +299,7 @@ NUnitTest::TTestBase::TTestBase() noexcept
 NUnitTest::TTestBase::~TTestBase() = default;
 
 TString NUnitTest::TTestBase::TypeId() const {
-    return BetterTypeName(*this);
+    return TypeName(*this);
 }
 
 void NUnitTest::TTestBase::SetUp() {

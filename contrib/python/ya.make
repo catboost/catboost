@@ -21,6 +21,7 @@ RECURSE(
     jedi
     Jinja2
     MarkupSafe
+    matplotlib-inline
     more-itertools
     numpy
     pandas

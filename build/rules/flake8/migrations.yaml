@@ -972,7 +972,6 @@ migrations:
     - yweb/antispam/clean_web/tools/run_cm_targets
     - yweb/antispam/mascot/features/test
     - yweb/antispam/mascot/scripts/tcinet
-    - yweb/antispam/python/metrics/test/medium
     - yweb/antispam/seo_masks/py/static_impl/ut
     - yweb/antispam/tmu/document_processor/http/server/lib
     - yweb/antispam/tools/yql

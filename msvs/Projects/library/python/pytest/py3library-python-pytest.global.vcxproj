@@ -206,6 +206,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\jedi\py3jedi.vcxproj">
       <Project>{AF98D35C-6213-F443-EAEA-248AA9199493}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\matplotlib-inline\pycontrib-python-matplotlib-inline.vcxproj">
+      <Project>{C0B1676E-76CB-BDA2-96F5-D8D4080FBEA3}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\more-itertools\py3contrib-python-more-itertools.vcxproj">
       <Project>{94265A2F-8C00-014C-3814-76F9E1A8BCD3}</Project>
     </ProjectReference>

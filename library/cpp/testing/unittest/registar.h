@@ -282,8 +282,8 @@ private:                                                   \
         this->AtStart();
 
 #ifndef UT_SKIP_EXCEPTIONS
-#define CATCH_REACTION(FN, e, context) this->AddError(("(" + BetterTypeName(e) + ") " + e.what()).data(), context)
-#define CATCH_REACTION_BT(FN, e, context) this->AddError(("(" + BetterTypeName(e) + ") " + e.what()).data(), (e.BackTrace() ? e.BackTrace()->PrintToString() : TString()), context)
+#define CATCH_REACTION(FN, e, context) this->AddError(("(" + TypeName(e) + ") " + e.what()).data(), context)
+#define CATCH_REACTION_BT(FN, e, context) this->AddError(("(" + TypeName(e) + ") " + e.what()).data(), (e.BackTrace() ? e.BackTrace()->PrintToString() : TString()), context)
 #else
 #define CATCH_REACTION(FN, e, context) throw
 #define CATCH_REACTION_BT(FN, e, context) throw
