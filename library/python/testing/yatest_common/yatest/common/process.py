@@ -400,7 +400,19 @@ class _Execution(object):
                 yatest_logger.debug("'%s' doesn't belong to '%s' - no check for sanitize errors", self.command[0], build_path)
 
 
-# Don't forget to sync changes in the interface and defaults with yatest.yt.process.execute
+def on_timeout_gen_coredump(exec_obj, _):
+    """
+    Function can be passed to the execute(..., timeout=X, on_timeout=on_timeout_gen_coredump)
+    to generate core dump file, backtrace ahd html-version of the backtrace in case of timeout.
+    All files will be available in the testing_out_stuff and via links.
+    """
+    try:
+        os.kill(exec_obj.process.pid, signal.SIGQUIT)
+    except OSError:
+        # process might be already terminated
+        pass
+
+
 def execute(
     command, check_exit_code=True,
     shell=False, timeout=None,
