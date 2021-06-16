@@ -689,6 +689,9 @@ ALLOW .* -> vendor/github.com/antlr/antlr4/runtime/Go/antlr
 # CONTRIB-2216: CGO-based library for fast ZSTD compression and decompression.
 ALLOW .* -> vendor/github.com/DataDog/zstd
 
+# CONTRIB-2234
+ALLOW .* -> vendor/github.com/google/gopacket
+
 #
 # Tools
 #
