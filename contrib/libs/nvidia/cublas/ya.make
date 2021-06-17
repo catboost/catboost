@@ -9,7 +9,7 @@ NO_PLATFORM()
 IF (HAVE_CUDA)
     PEERDIR(build/platform/cuda)
 
-    IF (CUDA_VERSION VERSION_GE 11.0)
+    IF (CUDA_VERSION VERSION_GE "11.0" OR CUDA_VERSION == "11")
         PEERDIR(contrib/libs/cxxsupp/libgcc)
     ENDIF()
 
@@ -19,7 +19,7 @@ IF (HAVE_CUDA)
         LDFLAGS(cublas.lib)
     ENDIF()
 
-    IF (CUDA_VERSION VERSION_GE 10.1)
+    IF (CUDA_VERSION VERSION_GE "10.1" OR CUDA_VERSION == "10" OR CUDA_VERSION == "11")
         IF (NOT OS_WINDOWS)
             LDFLAGS(-lcublasLt_static)
         ELSE()
