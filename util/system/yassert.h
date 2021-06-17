@@ -23,33 +23,36 @@
 #endif
 
 #if !defined(_MSC_VER)
+    #if defined(__has_builtin) && __has_builtin(__debugbreak)
+        // Do nothing, use __debugbreak builtin
+    #else
+        inline void __debugbreak() {
+            #if defined(__x86_64__) || defined(__i386__)
+                __asm__ volatile("int $3\n");
+            #else
+                assert(0);
+            #endif
+        }
+    #endif
 
-#if defined(__x86_64__) || defined(__i386__)
-#define __debugbreak ydebugbreak
-inline void ydebugbreak() {
-    __asm__ volatile("int $3\n");
-}
+    inline bool YaIsDebuggerPresent() {
+        return false;
+    }
 #else
-inline void __debugbreak() {
-    assert(0);
-}
+    // __debugbreak is intrinsic in MSVC
+
+    extern "C" {
+        __declspec(dllimport) int __stdcall IsDebuggerPresent();
+    }
+
+    inline bool YaIsDebuggerPresent() {
+        return IsDebuggerPresent() != 0;
+    }
 #endif
 
-inline bool YaIsDebuggerPresent() {
-    return false;
+inline void YaDebugBreak() {
+    __debugbreak();
 }
-
-#else
-// __debugbreak is intrinsic in MSVC
-
-extern "C" {
-__declspec(dllimport) int __stdcall IsDebuggerPresent();
-}
-
-inline bool YaIsDebuggerPresent() {
-    return IsDebuggerPresent() != 0;
-}
-#endif
 
 #undef Y_ASSERT
 
