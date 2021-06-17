@@ -4,6 +4,9 @@
 
 ALLOW vendor/ -> .*
 
+# CONTRIB-2225
+ALLOW .* -> vendor/github.com/sijms/go-ora
+
 # CONTRIB-2197
 ALLOW .* -> vendor/k8s.io/client-go/kubernetes
 ALLOW .* -> vendor/k8s.io/client-go/tools/auth
