@@ -361,7 +361,6 @@ ALLOW contrib/python/apscheduler/tests -> contrib/python/sqlalchemy/sqlalchemy-1
 ALLOW contrib/python/databases -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/fastapi-utils -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/flask_admin/flask_admin/tests -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW contrib/python/flask_admin -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/geoalchemy -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/gino -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/graphene_sqlalchemy/graphene_sqlalchemy/tests -> contrib/python/sqlalchemy/sqlalchemy-1.2
@@ -370,7 +369,6 @@ ALLOW contrib/python/marshmallow-sqlalchemy/py2 -> contrib/python/sqlalchemy/sql
 ALLOW contrib/python/sentry-sdk/sentry_sdk/integrations/sqlalchemy -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/SQLAlchemy-Continuum -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/sqlalchemy/sqlalchemy-1.2/sqlalchemy/testing -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW contrib/python/SQLAlchemy-Utils -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/sqltap -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW crypta/adhoc/smarts/backend -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW crypta/graph/toloka/lib -> contrib/python/sqlalchemy/sqlalchemy-1.2
@@ -477,6 +475,7 @@ ALLOW metrika/admin/brb/server/lib/controllers -> contrib/python/sqlalchemy/sqla
 ALLOW metrika/admin/brb/server/lib/models -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW metrika/admin/brb/server/lib/utils -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW metrika/admin/maas/lib/core/common -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW metrika/admin/python/cms/agent/lib -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW metrika/core/programs/mobile_yt_to_yc_export -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW ofd/admin/lib/controllers -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW ofd/admin/lib/models -> contrib/python/sqlalchemy/sqlalchemy-1.2
@@ -652,6 +651,7 @@ ALLOW weather/workers/imports/gfs_uv -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW weather/workers/imports/satellites -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW weather/workers/wrf/utils -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW yabs/indoor/tests -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW yaphone/localization_admin/src -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW yaphone/newpdater/src/common -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW yaphone/newpdater/src/core -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW yaphone/newpdater/src/health -> contrib/python/sqlalchemy/sqlalchemy-1.2
