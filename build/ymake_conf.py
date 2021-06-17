@@ -2953,6 +2953,8 @@ class Cuda(object):
         return False
 
     def auto_have_cuda(self):
+        if is_positive('MUSL'):
+            return False
         if self.build.is_sanitized:
             return False
         return self.cuda_root.from_user or self.use_arcadia_cuda.value and self.have_cuda_in_arcadia()
