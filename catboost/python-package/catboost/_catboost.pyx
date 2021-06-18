@@ -486,6 +486,62 @@ cdef extern from "catboost/libs/data/load_data.h" namespace "NCB":
     ) nogil except +ProcessException
 
 
+cdef extern from "catboost/libs/column_description/column.h" namespace "NCB":
+    cdef cppclass EColumn:
+        pass
+
+
+cdef extern from "catboost/libs/column_description/column.h" namespace "NCB":
+    cdef EColumn Num
+    cdef EColumn Categ
+    cdef EColumn Label
+    cdef EColumn Auxiliary
+    cdef EColumn Baseline
+    cdef EColumn Weight
+    cdef EColumn SampleId
+    cdef EColumn GroupId
+    cdef EColumn GroupWeight
+    cdef EColumn SubgroupId
+    cdef EColumn Timestamp
+    cdef EColumn Sparse
+    cdef EColumn Prediction
+    cdef EColumn Text
+    cdef EColumn NumVector
+
+
+cdef extern from "catboost/libs/column_description/column.h" namespace "NCB":
+    cdef cppclass TColumn:
+        EColumn Type
+        TString Id
+
+
+cdef extern from "catboost/private/libs/data_util/line_data_reader.h" namespace "NCB":
+    cdef cppclass ILineDataReader:
+        pass
+
+
+ctypedef TVector[TJsonValue] TVector_TJsonValue
+ctypedef TVector_TJsonValue* TVector_TJsonValue_ptr
+
+
+cdef extern from "catboost/libs/data/load_data.h" namespace "NCB":
+    cdef TDataProviderPtr ReadDataset(
+        THolder[ILineDataReader]&& poolReader,
+        const TPathWithScheme& pairsFilePath,
+        const TPathWithScheme& groupWeightsFilePath,
+        const TPathWithScheme& timestampsFilePath,
+        const TPathWithScheme& baselineFilePath,
+        const TPathWithScheme& featureNamesPath,
+        const TPathWithScheme& poolMetaInfoPath,
+        const TDsvFormatOptions& poolFormat,
+        const TVector[TColumn]& columnsDescription,
+        const TVector[ui32]& ignoredFeatures,
+        EObjectsOrder objectsOrder,
+        TMaybe[TVector_TJsonValue_ptr] classLabels,
+        ILocalExecutor* localExecutor
+    ) nogil except +ProcessException
+
+
 cdef extern from "catboost/libs/data/load_and_quantize_data.h" namespace "NCB":
     cdef TDataProviderPtr ReadAndQuantizeDataset(
         const TPathWithScheme& poolPath,

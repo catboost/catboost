@@ -22,6 +22,7 @@ from catboost import (
     FeaturesData,
     Pool,
     cv,
+    ColumnDescription,
     metrics,
     sum_models,
     train,
@@ -30,9 +31,11 @@ from catboost import (
     to_classifier,
     to_ranker,
     MultiRegressionCustomMetric,
-    MultiRegressionCustomObjective,)
+    MultiRegressionCustomObjective,
+    EColumnType)
 from catboost.eval.catboost_evaluation import CatboostEvaluation, EvalType
-from catboost.utils import eval_metric, create_cd, read_cd, get_roc_curve, select_threshold, quantize
+from catboost.core import read_cd
+from catboost.utils import eval_metric, create_cd, get_roc_curve, select_threshold, quantize
 from catboost.utils import DataMetaInfo, TargetStats, compute_training_options
 import os.path
 import os
@@ -75,6 +78,8 @@ NONSYMMETRIC = ['Lossguide', 'Depthwise']
 TRAIN_FILE = data_file('adult', 'train_small')
 TEST_FILE = data_file('adult', 'test_small')
 CD_FILE = data_file('adult', 'train.cd')
+CD_CONFIG_FILE = data_file('adult', 'config.cd')
+
 
 NAN_TRAIN_FILE = data_file('adult_nan', 'train_small')
 NAN_TEST_FILE = data_file('adult_nan', 'test_small')
@@ -9735,3 +9740,76 @@ def test_callbacks_metrics():
     model.fit(train_data, train_labels,
               callbacks=[MetricsCheckerCallback()],
               eval_set=[validation_0, validation_1])
+
+    def test_column_description_load_save():
+    column_count = 18
+
+    before_save = ColumnDescription(cd_file=CD_FILE,
+                                    column_count=column_count,
+                                    canonize_column_types=True)
+
+    fname = 'column_desciprion.cd'
+    column_description_path = test_output_path(fname)
+    before_save.save(column_description_path)
+
+    after_save = ColumnDescription(cd_file=CD_FILE,
+                                   column_count=column_count,
+                                   canonize_column_types=True)
+
+    before_save_str = str(before_save)
+
+    assert len(before_save_str) != 0
+    assert before_save_str.count('\n') == column_count
+    assert before_save_str == str(after_save)
+
+
+@pytest.mark.parametrize('niter', [1, 100, 500])
+def test_column_description_pool(niter):
+    train_file = data_file('multiregression', 'train')
+    cd_file = data_file('multiregression', 'train.cd')
+
+    pool_from_cd = Pool(train_file, column_description=ColumnDescription(cd_file=cd_file,
+                                                                         data_file=train_file,
+                                                                         canonize_column_types=True,
+                                                                         cd_config_file=CD_CONFIG_FILE))
+
+    pool_from_file = Pool(train_file, column_description=cd_file)
+
+    model = CatBoost(dict(loss_function='MultiRMSE', iterations=niter))
+    model.fit(pool_from_cd)
+
+    pred1 = model.predict(pool_from_cd)
+    pred2 = model.predict(pool_from_file)
+    assert _check_data(pred1, pred2)
+
+
+@pytest.mark.parametrize('niter', [1, 100, 500])
+def test_create_column_description_by_line(niter):
+    n_features = 5
+
+    train_file = data_file('multiregression', 'train')
+    cd_file = data_file('multiregression', 'train.cd')
+
+    cd = ColumnDescription(column_count=n_features,
+                           canonize_column_types=True,
+                           cd_config_file=CD_CONFIG_FILE)
+
+    desc = [(0, EColumnType.Label, "Target1"),
+            (1, EColumnType.Label, "Target2"),
+            (2, EColumnType.Num, "Categ2"),
+            (3, EColumnType.Num, "Categ3"),
+            (4, EColumnType.Num, "Categ4")]
+
+    for column, (id, type, name) in zip(cd, desc):
+        column.type = type
+        column.name = name
+
+    pool_from_cd = Pool(train_file, column_description=cd)
+    pool_from_file = Pool(train_file, column_description=cd_file)
+
+    model = CatBoost(dict(loss_function='MultiRMSE', iterations=niter))
+    model.fit(pool_from_cd)
+
+    pred1 = model.predict(pool_from_cd)
+    pred2 = model.predict(pool_from_file)
+    assert _check_data(pred1, pred2)

@@ -102,7 +102,7 @@ def create_cd(
         for index, (title, name) in sorted(_column_description.items()):
             f.write('{}\t{}\t{}\n'.format(index, title, name))
 
-
+'''
 def read_cd(cd_file, column_count=None, data_file=None, canonize_column_types=False):
     """
     Reads CatBoost column description file
@@ -243,6 +243,7 @@ def read_cd(cd_file, column_count=None, data_file=None, canonize_column_types=Fa
         'column_names' : column_names,
         'non_feature_column_indices' : non_feature_column_indices
     }
+'''
 
 
 def eval_metric(label, approx, metric, weight=None, group_id=None, group_weight=None, subgroup_id=None, pairs=None, thread_count=-1):
