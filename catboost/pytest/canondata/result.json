@@ -625,6 +625,21 @@
             "uri": "file://test.test_baseline_output/test.eval"
         }
     ],
+    "test.test_big_dataset[binclass-Logloss]": [
+        {
+            "uri": "file://test.test_big_dataset_binclass-Logloss_/test.eval"
+        }
+    ],
+    "test.test_big_dataset[multiclass-MultiClass]": [
+        {
+            "uri": "file://test.test_big_dataset_multiclass-MultiClass_/test.eval"
+        }
+    ],
+    "test.test_big_dataset[regression-RMSE]": [
+        {
+            "uri": "file://test.test_big_dataset_regression-RMSE_/test.eval"
+        }
+    ],
     "test.test_boost_from_average[CrossEntropy-Ordered-SymmetricTree]": [
         {
             "uri": "file://test.test_boost_from_average_CrossEntropy-Ordered-SymmetricTree_/test_avg.eval"

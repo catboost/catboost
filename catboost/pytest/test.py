@@ -1534,6 +1534,27 @@ def test_nan_mode_forbidden(boosting_type):
     return [local_canonical_file(output_eval_path)]
 
 
+@pytest.mark.parametrize('task,loss', [('binclass',   'Logloss'),
+                                       ('multiclass', 'MultiClass'),
+                                       ('regression', 'RMSE')])
+def test_big_dataset(task, loss):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    cmd = (
+        '--loss-function', loss,
+        '-f', data_file('big_labor', 'train'),
+        '-t', data_file('big_labor', 'test'),
+        '--column-description', data_file('big_labor', task + '_pool.cd'),
+        '-i', '20',
+        '-T', '4',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+    )
+    execute_catboost_fit('CPU', cmd)
+
+    return [local_canonical_file(output_eval_path)]
+
+
 @pytest.mark.parametrize('boosting_type, grow_policy', BOOSTING_TYPE_WITH_GROW_POLICIES)
 def test_overfit_detector_iter(boosting_type, grow_policy):
     output_model_path = yatest.common.test_output_path('model.bin')
