@@ -26,7 +26,14 @@ IF (USE_ARCADIA_CUDA)
             ELSE()
                 ENABLE(CUDA_NOT_FOUND)
             ENDIF()
-
+        ELSEIF(OS_LINUX AND ARCH_AARCH64)
+            IF (CUDA_VERSION == "11.3")
+                DECLARE_EXTERNAL_RESOURCE(CUDA sbr:2227720086) # CUDA Toolkit 11.3.20210513 (11.3.1) for Linux x86-64 with linux-aarch64 support
+                # host tools installer https://sandbox.yandex-team.ru/resource/2227828799/view
+                # cross compile parts installer https://sandbox.yandex-team.ru/resource/2227885870/view
+            ELSE()
+                ENABLE(CUDA_NOT_FOUND)
+            ENDIF()
         ELSE()
             ENABLE(CUDA_NOT_FOUND)
         ENDIF()
@@ -90,6 +97,8 @@ IF (USE_ARCADIA_CUDA_HOST_COMPILER)
                     CFLAGS(GLOBAL "-D__NV_NO_HOST_COMPILER_CHECK")
                 ENDIF()
             ENDIF()
+        ELSEIF(OS_LINUX AND ARCH_AARCH64)
+            DECLARE_EXTERNAL_RESOURCE(CUDA_HOST_TOOLCHAIN sbr:1886578148) # Clang 11.0.0 for linux-x86_64
 
         ELSE()
             ENABLE(CUDA_HOST_COMPILER_NOT_FOUND)
@@ -164,6 +173,8 @@ ENDIF()
 
 IF (HOST_OS_WINDOWS)
     SET_APPEND(LDFLAGS_GLOBAL "\"/LIBPATH:${CUDA_ROOT}/lib/x64\"")
+ELSEIF(HOST_OS_LINUX AND OS_LINUX AND ARCH_AARCH64)
+    LDFLAGS("-L${CUDA_ROOT}/targets/sbsa-linux/lib")
 ELSEIF(HOST_OS_LINUX)
     LDFLAGS("-L${CUDA_ROOT}/lib64")
 ELSE()
