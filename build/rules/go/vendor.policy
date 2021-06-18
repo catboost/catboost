@@ -448,7 +448,7 @@ ALLOW .* -> vendor/github.com/opentracing-contrib/go-stdlib
 ALLOW .* -> vendor/github.com/araddon/dateparse
 
 # Semantic versioning parsing and comparision library
-ALLOW .* -> vendor/github.com/blang/semver
+ALLOW .* -> vendor/github.com/blang/semver/v4
 
 # Go implementation of SipHash-2-4
 ALLOW .* -> vendor/github.com/dchest/siphash
