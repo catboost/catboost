@@ -53,6 +53,9 @@ def check_imports(no_check=(), extra=(), skip_func=None):
 
         try:
             print('TRY', module)
+            # XXX waiting for py3 to use print(..., flush=True)
+            sys.stdout.flush()
+
             s = time.time()
             if module == '__main__':
                 importer.load_module('__main__', '__main__py')
