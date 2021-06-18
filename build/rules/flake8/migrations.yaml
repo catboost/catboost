@@ -489,7 +489,6 @@ migrations:
     - market/reductor/www
     - market/sre/library/python/maaslib
     - market/sre/services/balancer_api/lib
-    - market/sre/tools/balancer_regenerate/lib
     - market/tools/corewatcher-rtc/src
     - market/tools/report_stats/lib
     - market/yamarec/log-parsers/bin
@@ -1235,8 +1234,6 @@ migrations:
     - quality/functionality/chats/common/utils
     - quality/functionality/chats/feedback/src/feedback/api
     - quality/functionality/chats/feedback/src/feedback/api/v1
-    - quality/functionality/chats/floyd/src/tests
-    - quality/functionality/chats/floyd/src/tests/core/platform
     - quality/functionality/rtx/server/plugin
     - quality/functionality/snippets/ecom_offers/gemini_test
     - quality/functionality/snippets/rkn_filter
@@ -1484,7 +1481,6 @@ migrations:
     - ads/quality/adv_machine/cm_robot/cmpy/fresh_stats
     - ads/quality/adv_machine/cm_robot/cmpy/search_query_recom_attempt
     - ads/quality/adv_machine/cm_robot/cmpy/stuff
-    - ads/quality/bid_correction/lm/pconv
     - ads/quality/embedding/join_banners
     - ads/quality/embedding/tsar_tensor/BSFACTOR-44/gram_eval
     - ads/quality/embedding/tsar_tensor/BSFACTOR-44/preprocess
@@ -2665,7 +2661,6 @@ migrations:
     - plus/oneyear/navi_music/migrations
     - quality/functionality/chats/floyd/src/floyd/common
     - quality/functionality/chats/loadtest
-    - quality/functionality/chats/platform/tests
     - quality/functionality/content_plugins/scripts/lib
     - quality/functionality/content_plugins/scripts/process_exports
     - quality/functionality/content_plugins/scripts/regular_updates
