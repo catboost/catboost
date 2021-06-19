@@ -1375,7 +1375,6 @@ migrations:
     - yabs/stat/dropstat2/api
     - yabs/vh/cms-pgaas/sport_api_importer/sport_api_importer_lib
     - yabs/vh/frontend/test/ft/HOME-43539
-    - ydo/libs/errorbooster/tests
     - ydo/server/extract_backend_request_source/lib
     - yt/cron/config/validation_tests
     - yt/cron/runner/cron_scheduler/tests
@@ -2490,7 +2489,6 @@ migrations:
     - market/dynamic_pricing/deprecated/utilities/lib
     - market/dynamic_pricing/price_collector/bin
     - market/dynamic_pricing/price_collector/lib
-    - market/dynamic_pricing/tools/blue_prices_collector/bin
     - market/dynamic_pricing/tools/delivery_checker/bin
     - market/dynamic_pricing/tools/delivery_checker/lib
     - market/dynamic_pricing/tools/hide_rules_exceptions/bin
@@ -3628,7 +3626,6 @@ migrations:
     - dj/lib/processing/yt/impl/ut/run_test
     - dj/lib/shard2/yt_prepare/ut/run_test
     - dj/tools/rthub_profiles/profile_update_triggers/profile_update_trigger_rtmr/tests
-    - dj/unity/projects/user_profiles/tests/config_tests/canon
     - entity/ontodb/robot/tests/integration
     - entity/ontodb/robot/tools/extdata_import/wiki_dumps/lib/ut
     - entity/ontodb/tasks/watson_converter/lib/ut
