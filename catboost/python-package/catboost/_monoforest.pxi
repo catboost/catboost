@@ -24,9 +24,9 @@ cdef extern from "catboost/python-package/catboost/monoforest_helpers.h" namespa
 
 
 cdef extern from "catboost/python-package/catboost/monoforest_helpers.h" namespace "NMonoForest":
-    TString ConvertFullModelToPolynomString(const TFullModel& fullModel)
-    TVector[THumanReadableMonom] ConvertFullModelToPolynom(const TFullModel& fullModel)
-    TVector[TFeatureExplanation] ExplainFeatures(const TFullModel& fullModel)
+    TString ConvertFullModelToPolynomString(const TFullModel& fullModel) except +ProcessException
+    TVector[THumanReadableMonom] ConvertFullModelToPolynom(const TFullModel& fullModel) except +ProcessException
+    TVector[TFeatureExplanation] ExplainFeatures(const TFullModel& fullModel) except +ProcessException
 
 
 class Split:
