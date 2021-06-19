@@ -498,7 +498,7 @@ class Build(object):
         emit("GENERATE_JAVA_MF",
              '$YMAKE_PYTHON', '${input:"build/scripts/generate_mf.py"}',
              '--build-root $ARCADIA_BUILD_ROOT --module-name $REALPRJNAME -o ${output;rootrel;pre=$MODULE_PREFIX;suf=$MODULE_SUFFIX.mf:REALPRJNAME}',
-             '-t $MODULE_TYPE $NO_GPL_FLAG -Ya,lics $LICENSE_NAMES -Ya,peers ${rootrel:MANAGED_PEERS_CLOSURE}'
+             '-t $MODULE_TYPE $NO_GPL_FLAG --ya-start-command-file -Ya,lics $LICENSE_NAMES -Ya,peers ${rootrel:MANAGED_PEERS_CLOSURE} --ya-end-command-file'
              )
 
         self._print_other_settings(compiler)
@@ -1971,7 +1971,7 @@ class LD(Linker):
         emit("GENERATE_MF",
              '$YMAKE_PYTHON', '${input:"build/scripts/generate_mf.py"}',
              '--build-root $ARCADIA_BUILD_ROOT --module-name $REALPRJNAME -o ${output;rootrel;pre=$MODULE_PREFIX;suf=$MODULE_SUFFIX.mf:REALPRJNAME}',
-             '-t $MODULE_TYPE $NO_GPL_FLAG -Ya,lics $LICENSE_NAMES -Ya,peers ${rootrel:PEERS}'
+             '-t $MODULE_TYPE $NO_GPL_FLAG --ya-start-command-file -Ya,lics $LICENSE_NAMES -Ya,peers ${rootrel:PEERS} --ya-end-command-file'
              )
 
         # Program
@@ -2639,7 +2639,7 @@ class MSVCLinker(MSVC, Linker):
 
         emit("GENERATE_MF", '$YMAKE_PYTHON ${input:"build/scripts/generate_mf.py"}',
              '--build-root $ARCADIA_BUILD_ROOT --module-name $REALPRJNAME -o ${output;rootrel;pre=$MODULE_PREFIX;suf=$MODULE_SUFFIX.mf:REALPRJNAME}',
-             '-t $MODULE_TYPE $NO_GPL_FLAG -Ya,lics $LICENSE_NAMES -Ya,peers ${rootrel:PEERS}',
+             '-t $MODULE_TYPE $NO_GPL_FLAG --ya-start-command-file -Ya,lics $LICENSE_NAMES -Ya,peers ${rootrel:PEERS} --ya-end-command-file',
              )
 
         # we split srcs_global into two groups: libs and objs

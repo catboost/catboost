@@ -4,6 +4,7 @@ import optparse
 import os
 import sys
 
+import process_command_files as pcf
 
 class BadMfError(Exception):
     pass
@@ -14,7 +15,7 @@ class GplNotAllowed(Exception):
 
 
 def parse_args():
-    args = sys.argv[1:]
+    args = pcf.get_args(sys.argv[1:])
     lics, peers, free_args = [], [], []
     current_list = free_args
     for a in args:
