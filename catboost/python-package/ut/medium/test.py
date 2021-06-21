@@ -9735,3 +9735,17 @@ def test_callbacks_metrics():
     model.fit(train_data, train_labels,
               callbacks=[MetricsCheckerCallback()],
               eval_set=[validation_0, validation_1])
+
+
+def test_fit_cat_features_type():
+    X = DataFrame(data=np.random.randint(0, 100, size=(100, 5)), columns=[f'feature{i}' for i in range(5)])
+    y = np.random.randint(0, 2, size=100)
+
+    model = CatBoostClassifier(iterations=2,
+                               depth=2,
+                               learning_rate=1,
+                               loss_function='CrossEntropy',
+                               logging_level='Silent')
+
+    model.fit(X, y, cat_features=np.arange(3))
+    model.fit(X, y, cat_features=[0, 1, 2])
