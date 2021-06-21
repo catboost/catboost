@@ -3,6 +3,7 @@
 from __future__ import print_function, absolute_import, division
 
 from util.generic.hash_ut import TestHash
+from util.generic.hash_set_ut import TestHashSet
 from util.generic.maybe_ut import TestMaybe
 from util.generic.ptr_ut import TestHolder
 from util.generic.string_ut import TestStroka
@@ -15,6 +16,7 @@ from util.string.cast_ut import TestFromString, TestToString
 
 __all__ = [
     'TestHash',
+    'TestHashSet',
     'TestMaybe',
     'TestHolder',
     'TestStroka',
