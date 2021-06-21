@@ -22,6 +22,9 @@ ALLOW clickhouse -> contrib/restricted/abseil-cpp
 # For HBase client: CONTRIB-1790
 ALLOW passport/cpp -> contrib/restricted/thrift
 
+# keyutils is LGPL: CONTRIB-2236
+ALLOW passport/cpp -> contrib/restricted/keyutils
+
 # For Apache Arrow: CONTRIB-1662
 ALLOW mds -> contrib/restricted/uriparser
 
