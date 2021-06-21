@@ -695,6 +695,9 @@ ALLOW .* -> vendor/github.com/DataDog/zstd
 # CONTRIB-2234
 ALLOW .* -> vendor/github.com/google/gopacket
 
+# CONTRIB-2235 library for building interactive prompts on terminals.
+ALLOW .* -> vendor/github.com/AlecAivazis/survey/v2
+
 #
 # Tools
 #
