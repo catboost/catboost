@@ -6,10 +6,12 @@ LICENSE(MIT)
 
 
 
-SRCS(
-    cxxabi.cpp
-    stdcxx_bits.cpp
-)
+IF (NOT OS_WINDOWS)
+    SRCS(
+        cxxabi.cpp
+        stdcxx_bits.cpp
+    )
+ENDIF()
 
 NO_UTIL()
 
