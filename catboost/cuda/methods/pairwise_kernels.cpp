@@ -68,15 +68,12 @@ void TZeroMeanKernel::Run(const TCudaStream& stream) const {
 
 THolder<TCholeskySolverKernel::TKernelContext> TCholeskySolverKernel::PrepareContext(IMemoryManager& manager) const {
     const ui32 rowSize = Solutions.ObjectSize();
-    if (!TKernelContext::IsCuSolverFast(rowSize, Matrices.ObjectCount())) {
+    if (!TKernelContext::UseCuSolver(rowSize, Matrices.ObjectCount())) {
         return MakeHolder<TKernelContext>();
     }
 
     auto context = MakeHolder<TKernelContext>(rowSize);
-    context->CuSolverBuffer = manager.Allocate<float>(context->CuSolverBufferSize);
-    context->CuSolverInfo = manager.Allocate<int>(context->BatchSize);
-    context->CuSolverLhs = manager.Allocate<float*>(context->BatchSize);
-    context->CuSolverRhs = manager.Allocate<float*>(context->BatchSize);
+    context->AllocateBuffers(manager);
 
     return context;
 }
