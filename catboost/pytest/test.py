@@ -1537,13 +1537,18 @@ def test_nan_mode_forbidden(boosting_type):
 @pytest.mark.parametrize('task,loss', [('binclass',   'Logloss'),
                                        ('multiclass', 'MultiClass'),
                                        ('regression', 'RMSE')])
-def test_big_dataset(task, loss):
+@pytest.mark.parametrize('big_test_file', [True, False])
+def test_big_dataset(task, loss, big_test_file):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
+    train_file = data_file('big_labor', 'train')
+    test_file = data_file('big_labor', 'test')
+    if big_test_file:
+        train_file, test_file = test_file, train_file
     cmd = (
         '--loss-function', loss,
-        '-f', data_file('big_labor', 'train'),
-        '-t', data_file('big_labor', 'test'),
+        '-f', train_file,
+        '-t', test_file,
         '--column-description', data_file('big_labor', task + '_pool.cd'),
         '-i', '20',
         '-T', '4',
