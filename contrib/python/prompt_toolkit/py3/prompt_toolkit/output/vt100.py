@@ -305,7 +305,7 @@ class _EscapeCodeCache(Dict[Attrs, str]):
         return result
 
     def _color_name_to_rgb(self, color: str) -> Tuple[int, int, int]:
-        " Turn 'ffffff', into (0xff, 0xff, 0xff). "
+        "Turn 'ffffff', into (0xff, 0xff, 0xff)."
         try:
             rgb = int(color, 16)
         except ValueError:
@@ -375,30 +375,14 @@ class _EscapeCodeCache(Dict[Attrs, str]):
 
 
 def _get_size(fileno: int) -> Tuple[int, int]:
-    # Thanks to fabric (fabfile.org), and
-    # http://sqizit.bartletts.id.au/2011/02/14/pseudo-terminals-in-python/
     """
     Get the size of this pseudo terminal.
 
     :param fileno: stdout.fileno()
     :returns: A (rows, cols) tuple.
     """
-    # Inline imports, because these modules are not available on Windows.
-    # (This file is used by ConEmuOutput, which is used on Windows.)
-    import fcntl
-    import termios
-
-    # Buffer for the C call
-    buf = array.array("h", [0, 0, 0, 0])
-
-    # Do TIOCGWINSZ (Get)
-    # Note: We should not pass 'True' as a fourth parameter to 'ioctl'. (True
-    #       is the default.) This causes segmentation faults on some systems.
-    #       See: https://github.com/jonathanslenders/python-prompt-toolkit/pull/364
-    fcntl.ioctl(fileno, termios.TIOCGWINSZ, buf)
-
-    # Return rows, cols
-    return buf[0], buf[1]
+    size = os.get_terminal_size(fileno)
+    return size.lines, size.columns
 
 
 class Vt100_Output(Output):
@@ -502,11 +486,11 @@ class Vt100_Output(Output):
         return self._get_size()
 
     def fileno(self) -> int:
-        " Return file descriptor. "
+        "Return file descriptor."
         return self.stdout.fileno()
 
     def encoding(self) -> str:
-        " Return encoding used for stdout. "
+        "Return encoding used for stdout."
         return self.stdout.encoding
 
     def write_raw(self, data: str) -> None:
@@ -669,6 +653,7 @@ class Vt100_Output(Output):
             return
 
         data = "".join(self._buffer)
+        self._buffer = []
 
         try:
             # Ensure that `self.stdout` is made blocking when writing into it.
@@ -709,8 +694,6 @@ class Vt100_Output(Output):
             else:
                 raise
 
-        self._buffer = []
-
     def ask_for_cpr(self) -> None:
         """
         Asks for a cursor position report (CPR).
@@ -733,7 +716,7 @@ class Vt100_Output(Output):
             return False  # ValueError: I/O operation on closed file
 
     def bell(self) -> None:
-        " Sound bell. "
+        "Sound bell."
         if self.enable_bell:
             self.write_raw("\a")
             self.flush()

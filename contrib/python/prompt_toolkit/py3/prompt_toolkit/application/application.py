@@ -504,7 +504,7 @@ class Application(Generic[_AppResult]):
 
     @property
     def invalidated(self) -> bool:
-        " True when a redraw operation has been scheduled. "
+        "True when a redraw operation has been scheduled."
         return self._invalidated
 
     def _redraw(self, render_as_done: bool = False) -> None:
@@ -556,9 +556,9 @@ class Application(Generic[_AppResult]):
         Start a while/true loop in the background for automatic invalidation of
         the UI.
         """
-        if self.refresh_interval not in (None, 0):
+        if self.refresh_interval is not None and self.refresh_interval != 0:
 
-            async def auto_refresh(refresh_interval) -> None:
+            async def auto_refresh(refresh_interval: float) -> None:
                 while True:
                     await sleep(refresh_interval)
                     self.invalidate()
@@ -651,7 +651,7 @@ class Application(Generic[_AppResult]):
         assert not self._is_running, "Application is already running."
 
         async def _run_async() -> _AppResult:
-            " Coroutine. "
+            "Coroutine."
             loop = get_event_loop()
             f = loop.create_future()
             self.future = f  # XXX: make sure to set this before calling '_redraw'.
@@ -839,7 +839,11 @@ class Application(Generic[_AppResult]):
             won't use the current event loop (asyncio does not support nested
             event loops). A new event loop will be created in this background
             thread, and that loop will also be closed when the background
-            thread terminates. This is used for instance in ptpython.
+            thread terminates. When this is used, it's especially important to
+            make sure that all asyncio background tasks are managed through
+            `get_appp().create_background_task()`, so that unfinished tasks are
+            properly cancelled before the event loop is closed. This is used
+            for instance in ptpython.
         """
         if in_thread:
             result: _AppResult
@@ -918,7 +922,10 @@ class Application(Generic[_AppResult]):
         self, coroutine: Awaitable[None]
     ) -> "asyncio.Task[None]":
         """
-        Start a background task (coroutine) for the running application.
+        Start a background task (coroutine) for the running application. When
+        the `Application` terminates, unfinished background tasks will be
+        cancelled.
+
         If asyncio had nurseries like Trio, we would create a nursery in
         `Application.run_async`, and run the given coroutine in that nursery.
 
@@ -985,17 +992,17 @@ class Application(Generic[_AppResult]):
 
     @overload
     def exit(self) -> None:
-        " Exit without arguments. "
+        "Exit without arguments."
 
     @overload
     def exit(self, *, result: _AppResult, style: str = "") -> None:
-        " Exit with `_AppResult`. "
+        "Exit with `_AppResult`."
 
     @overload
     def exit(
         self, *, exception: Union[BaseException, Type[BaseException]], style: str = ""
     ) -> None:
-        " Exit with exception. "
+        "Exit with exception."
 
     def exit(
         self,
@@ -1134,7 +1141,7 @@ class Application(Generic[_AppResult]):
 
     @property
     def is_running(self) -> bool:
-        " `True` when the application is currently active/running. "
+        "`True` when the application is currently active/running."
         return self._is_running
 
     @property
@@ -1273,7 +1280,7 @@ async def _do_wait_for_enter(wait_text: AnyFormattedText) -> None:
 
     @key_bindings.add(Keys.Any)
     def _ignore(event: E) -> None:
-        " Disallow typing. "
+        "Disallow typing."
         pass
 
     session: PromptSession[None] = PromptSession(

@@ -97,7 +97,7 @@ E = KeyPressEvent
 
 
 class Border:
-    " Box drawing characters. (Thin) "
+    "Box drawing characters. (Thin)"
     HORIZONTAL = "\u2500"
     VERTICAL = "\u2502"
     TOP_LEFT = "\u250c"
@@ -321,11 +321,19 @@ class Label:
     """
     Widget that displays the given text. It is not editable or focusable.
 
-    :param text: The text to be displayed. (This can be multiline. This can be
-        formatted text as well.)
+    :param text: Text to display. Can be multiline. All value types accepted by
+        :class:`prompt_toolkit.layout.FormattedTextControl` are allowed,
+        including a callable.
     :param style: A style string.
     :param width: When given, use this width, rather than calculating it from
         the text size.
+    :param dont_extend_width: When `True`, don't take up more width than
+                              preferred, i.e. the length of the longest line of
+                              the text, or value of `width` parameter, if
+                              given. `True` by default
+    :param dont_extend_height: When `True`, don't take up more width than the
+                               preferred height, i.e. the number of lines of
+                               the text. `False` by default.
     """
 
     def __init__(
@@ -440,7 +448,7 @@ class Button:
         ]
 
     def _get_key_bindings(self) -> KeyBindings:
-        " Key bindings for the Button. "
+        "Key bindings for the Button."
         kb = KeyBindings()
 
         @kb.add(" ")

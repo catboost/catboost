@@ -93,7 +93,7 @@ class KeyProcessor:
         self.before_key_press = Event(self)
         self.after_key_press = Event(self)
 
-        self._flush_wait_task: Optional[Task] = None
+        self._flush_wait_task: Optional[Task[None]] = None
 
         self.reset()
 
@@ -401,7 +401,7 @@ class KeyProcessor:
             return
 
         async def wait() -> None:
-            " Wait for timeout. "
+            "Wait for timeout."
             # This sleep can be cancelled. In that case we don't flush.
             await sleep(timeout)
 
@@ -410,7 +410,7 @@ class KeyProcessor:
                 flush_keys()
 
         def flush_keys() -> None:
-            " Flush keys. "
+            "Flush keys."
             self.feed(_Flush)
             self.process_keys()
 
@@ -525,6 +525,6 @@ class KeyPressEvent:
         self.key_processor.arg = result
 
     @property
-    def cli(self) -> "Application":
-        " For backward-compatibility. "
+    def cli(self) -> "Application[Any]":
+        "For backward-compatibility."
         return self.app
