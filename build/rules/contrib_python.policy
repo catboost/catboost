@@ -361,7 +361,6 @@ ALLOW contrib/python/apscheduler/tests -> contrib/python/sqlalchemy/sqlalchemy-1
 ALLOW contrib/python/databases -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/fastapi-utils -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/flask_admin/flask_admin/tests -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW contrib/python/geoalchemy -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/gino -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/graphene_sqlalchemy/graphene_sqlalchemy/tests -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/luigi -> contrib/python/sqlalchemy/sqlalchemy-1.2
