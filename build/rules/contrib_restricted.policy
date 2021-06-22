@@ -89,6 +89,11 @@ ALLOW yweb/robot/fetcher/fetcher/user/http -> contrib/restricted/http-parser
 # Prefer using skynet for data distribution
 ALLOW maps/infra/ecstatic -> contrib/restricted/libtorrent
 
+# Consider using util / library/cpp/digest versions instead of a raw murmurhash functions.
+#
+# strm/common/go/pkg/murmur3 is a CGO binding to murmurhash, thus dependency is allowed
+ALLOW strm/common/go/pkg/murmur3 -> contrib/restricted/murmurhash
+
 # Only allow boost in yandex projects listed below
 ALLOW adfox -> contrib/restricted/boost
 ALLOW ads -> contrib/restricted/boost
