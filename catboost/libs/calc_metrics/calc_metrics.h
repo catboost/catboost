@@ -15,7 +15,7 @@ namespace NCB {
             const TPathWithScheme& inputPath,
             const TVector<TString>& metricNamesList,
             const NCB::TDsvFormatOptions& dsvFormat,
-            const THashMap<int, EColumn>& nonApproxColumnsDescription,
+            const THashMap<int, EColumn>& nonAuxiliaryColumnsDescription,
             ui32 threadCount) const = 0;
         virtual ~ICalcMetricsImplementation() = default;
     };
@@ -69,7 +69,7 @@ namespace NCB {
             const TPathWithScheme& inputPath,
             const TVector<TString>& metricNamesList,
             const NCB::TDsvFormatOptions& dsvFormat,
-            const THashMap<int, EColumn>& nonApproxColumnsDescription,
+            const THashMap<int, EColumn>& nonAuxiliaryColumnsDescription,
             ui32 threadCount) const override;
     };
 }
