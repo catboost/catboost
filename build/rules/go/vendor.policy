@@ -702,6 +702,9 @@ ALLOW .* -> vendor/github.com/AlecAivazis/survey/v2
 # CONTRIB-2224
 ALLOW .* -> vendor/github.com/segmentio/kafka-go
 
+# CONTRIB-2240 utilities for efficiently performing Win32 IO operations in Go.
+ALLOW .* -> vendor/github.com/Microsoft/go-winio
+
 #
 # Tools
 #
