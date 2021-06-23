@@ -2949,10 +2949,10 @@ class Cuda(object):
             if self.cuda_version.value not in ('11.3',):
                 raise ConfigureError('Only CUDA 11.3 are available for cross compilation from linux-x86 to linux-aarch64.\nUse -DCUDA_VERSION=11.3 flag.')
 
-        if self.cuda_version.value in ('8.0', '9.0', '9.1', '9.2'):
-            raise ConfigureError('CUDA versions 8.x and 9.x are no longer supported.\nSee DEVTOOLS-7108.')
+        if self.cuda_version.value in ('8.0', '9.0', '9.1', '9.2', '10.0'):
+            raise ConfigureError('CUDA versions 8.x, 9.x and 10.0 are no longer supported.\nSee DEVTOOLS-7108.')
 
-        if self.cuda_version.value in ('10.0', '10.1', '11.0', '11.1', '11.2', '11.3'):
+        if self.cuda_version.value in ('10.1', '11.0', '11.1', '11.2', '11.3'):
             return True
 
         return False
@@ -3012,10 +3012,7 @@ class Cuda(object):
         ))
 
     def cuda_windows_host_compiler(self):
-        vc_version_latest = '14.28.29910'
-        vc_version = {
-            '10.0': '14.13.26128',  # (not latest)
-        }.get(self.cuda_version.value, vc_version_latest)
+        vc_version = '14.28.29910'
 
         env = {
             'Y_VC_Version': vc_version,
