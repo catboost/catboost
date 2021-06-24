@@ -283,8 +283,16 @@ TString TBackTrace::PrintToString() const {
     return ss.Str();
 }
 
+size_t TBackTrace::size() const {
+    return Size;
+}
+
+const void* const* TBackTrace::data() const {
+    return Data;
+}
+
 TBackTrace::operator TBackTraceView() const {
-    return TBackTraceView(Data);
+    return TBackTraceView(Data, Size);
 }
 
 TBackTrace TBackTrace::FromCurrentException() {
