@@ -908,7 +908,6 @@ migrations:
     - yabs/server/test/ft/BSSERVER-5156
     - yabs/server/test/ft/BSSERVER-5201
     - yabs/server/test/ft/BSSERVER-5249
-    - yabs/server/test/ft/BSSERVER-5826
     - yabs/server/test/ft/BSSERVER-7730
     - yabs/server/test/ft/BSSERVER-8516
     - yabs/server/test/ft/BSSERVER-9233
@@ -1024,7 +1023,6 @@ migrations:
     - addappter/web/libs/walrus
     - addappter/web/testing/fixtures
     - adfox/infra/amacs_config/lib
-    - adfox/xpd/tests/functional/tests/socdem_service
     - adfox/xpd/tests/functional/tests/tvm_mock
     - ads/autobudget/metrics/equivalency_monitoring
     - ads/autobudget/metrics/example_monitoring
@@ -3216,7 +3214,6 @@ migrations:
     - travel/hotels/tools/spyt_runner
     - travel/marketing/content/admin
     - travel/rasp/admin
-    - travel/rasp/bus/scripts/refund_checker/bin
     - travel/rasp/bus/toloka_matching/src
     - travel/rasp/library/common_recipe
     - travel/rasp/library/python/common
@@ -3669,7 +3666,6 @@ migrations:
     - infra/nanny/sepelib/tests
     - infra/qyp/vmctl/tests
     - infra/wall-e/checks/tests
-    - infra/yp_dns/tests
     - intranet/audit/tests
     - intranet/dogma/dogma_tests
     - intranet/hidereferer/tests
@@ -3859,7 +3855,6 @@ migrations:
     - rtmapreduce/mrtasks/create_market_requests/tests
     - rtmapreduce/mrtasks/create_proto_sessions/tests
     - rtmapreduce/mrtasks/create_scarab_sessions/tests
-    - rtmapreduce/mrtasks/fresh_intent/tests
     - rtmapreduce/mrtasks/images_freon_sample/tests
     - rtmapreduce/mrtasks/keyslist/tests
     - rtmapreduce/mrtasks/logfeller_create_logs/tests
