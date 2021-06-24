@@ -1190,6 +1190,10 @@ size_t TFile::Pread(void* buf, size_t len, i64 offset) const {
     return Impl_->Pread(buf, len, offset);
 }
 
+i32 TFile::RawPread(void* buf, ui32 len, i64 offset) const {
+    return Impl_->RawPread(buf, len, offset);
+}
+
 void TFile::Pload(void* buf, size_t len, i64 offset) const {
     Impl_->Pload(buf, len, offset);
 }

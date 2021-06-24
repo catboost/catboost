@@ -186,6 +186,8 @@ public:
 
     // Retries incomplete reads until EOF, throws on error
     size_t Pread(void* buf, size_t len, i64 offset) const;
+    // Single pread call
+    i32 RawPread(void* buf, ui32 len, i64 offset) const;
     // Reads exactly len bytes, throws on premature EOF or error
     void Pload(void* buf, size_t len, i64 offset) const;
 

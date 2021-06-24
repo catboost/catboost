@@ -22,6 +22,7 @@ class TFileTest: public TTestBase {
     UNIT_TEST(TestFlushSpecialFile);
     UNIT_TEST(TestRawRead);
     UNIT_TEST(TestRead);
+    UNIT_TEST(TestRawPread);
     UNIT_TEST(TestPread);
     UNIT_TEST(TestCache);
     UNIT_TEST_SUITE_END();
@@ -35,6 +36,7 @@ public:
     void TestFlushSpecialFile();
     void TestRawRead();
     void TestRead();
+    void TestRawPread();
     void TestPread();
     void TestCache();
 
@@ -277,6 +279,30 @@ void TFileTest::TestRead() {
         file.Seek(0, sSet);
         Y_ENSURE(file.Read(buf, 123) == 7);
         Y_ENSURE(TStringBuf(buf, 7) == "1234567");
+    }
+}
+
+void TFileTest::TestRawPread() {
+    TTempFile tmp("tmp");
+
+    {
+        TFile file(tmp.Name(), OpenAlways | WrOnly);
+        file.Write("1234567", 7);
+        file.Flush();
+        file.Close();
+    }
+
+    {
+        TFile file(tmp.Name(), OpenExisting | RdOnly);
+        char buf[7];
+        i32 reallyRead = file.RawPread(buf, 3, 1);
+        Y_ENSURE(0 <= reallyRead && reallyRead <= 3);
+        Y_ENSURE(TStringBuf(buf, reallyRead) == TStringBuf("234").Head(reallyRead));
+
+        memset(buf, 0, sizeof(buf));
+        reallyRead = file.RawPread(buf, 2, 5);
+        Y_ENSURE(0 <= reallyRead && reallyRead <= 2);
+        Y_ENSURE(TStringBuf(buf, reallyRead) == TStringBuf("67").Head(reallyRead));
     }
 }
 
