@@ -32,6 +32,7 @@ SRCS(
     generic/maybe_ut.cpp
     generic/mem_copy_ut.cpp
     generic/objects_counter_ut.cpp
+    generic/overloaded_ut.cpp
     generic/ptr_ut.cpp
     generic/queue_ut.cpp
     generic/serialized_enum_ut.cpp

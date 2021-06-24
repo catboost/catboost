@@ -97,8 +97,6 @@ RECURSE(
     on_disk
     online_hnsw
     openssl
-    overloaded
-    overloaded/ut
     packers
     packers/ut
     par
