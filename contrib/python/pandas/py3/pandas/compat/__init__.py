@@ -77,6 +77,18 @@ def is_platform_mac() -> bool:
     return sys.platform == "darwin"
 
 
+def is_platform_arm() -> bool:
+    """
+    Checking if he running platform use ARM architecture.
+
+    Returns
+    -------
+    bool
+        True if the running platform uses ARM architecture.
+    """
+    return platform.machine() in ("arm64", "aarch64")
+
+
 def import_lzma():
     """
     Importing the `lzma` module.
@@ -94,7 +106,7 @@ def import_lzma():
             "Could not import the lzma module. Your installed Python is incomplete. "
             "Attempting to use lzma compression will result in a RuntimeError."
         )
-        # warnings.warn(msg)
+        warnings.warn(msg)
 
 
 def get_lzma_file(lzma):

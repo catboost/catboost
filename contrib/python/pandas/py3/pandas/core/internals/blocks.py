@@ -391,7 +391,7 @@ class Block(PandasObject):
                 return []
             raise
 
-        if np.ndim(result) == 0:
+        if self.values.ndim == 1:
             # TODO(EA2D): special case not needed with 2D EAs
             res_values = np.array([[result]])
         else:
@@ -860,6 +860,15 @@ class Block(PandasObject):
         """
         See BlockManager._replace_list docstring.
         """
+
+        # https://github.com/pandas-dev/pandas/issues/40371
+        # the following pairs check code caused a regression so we catch that case here
+        # until the issue is fixed properly in can_hold_element
+
+        # error: "Iterable[Any]" has no attribute "tolist"
+        if hasattr(src_list, "tolist"):
+            src_list = src_list.tolist()  # type: ignore[attr-defined]
+
         # Exclude anything that we know we won't contain
         pairs = [
             (x, y) for x, y in zip(src_list, dest_list) if self._can_hold_element(x)
