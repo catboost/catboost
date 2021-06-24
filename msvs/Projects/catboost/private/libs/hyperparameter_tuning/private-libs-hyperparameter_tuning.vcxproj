@@ -537,9 +537,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\openssl\method\cpp-openssl-method.vcxproj">
       <Project>{6D02E5A5-8E5A-2F70-0A15-A0EAFD5875F2}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\overloaded\library-cpp-overloaded.vcxproj">
-      <Project>{8FA80072-6B06-87FC-6917-262EEFBEA5FB}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\par\library-cpp-par.vcxproj">
       <Project>{67D7246F-3DB6-3A4E-DA0A-2432DE8B35CE}</Project>
     </ProjectReference>
