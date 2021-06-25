@@ -796,9 +796,6 @@ ALLOW yabs/vh/cms-pgaas/dhdd/db -> vendor/github.com/jackc/pgx
 ALLOW yabs/vh/cms-pgaas/transcoded -> vendor/github.com/jackc/pgx
 
 
-# IGNIETFERRO-1848
-ALLOW strm -> vendor/github.com/go-chi/chi
-
 #
 # Permanent exceptions.
 #
