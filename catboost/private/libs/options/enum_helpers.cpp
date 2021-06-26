@@ -13,6 +13,7 @@
 #include <util/generic/ptr.h>
 #include <util/string/cast.h>
 
+
 namespace {
     enum class EMetricAttribute : ui32 {
         /* metric type */
@@ -138,6 +139,9 @@ MakeRegister(LossInfos,
         EMetricAttribute::IsBinaryClassCompatible
     ),
     Registree(MultiRMSE,
+        EMetricAttribute::IsMultiRegression
+    ),
+    Registree(MultiRMSEWithMissingValues,
         EMetricAttribute::IsMultiRegression
     ),
     Registree(SurvivalAft,
@@ -475,6 +479,7 @@ static const TVector<ELossFunction> RegressionObjectives = {
 
 static const TVector<ELossFunction> MultiRegressionObjectives = {
     ELossFunction::MultiRMSE,
+    ELossFunction::MultiRMSEWithMissingValues,
     ELossFunction::PythonUserDefinedMultiRegression
 };
 

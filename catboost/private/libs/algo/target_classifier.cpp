@@ -19,11 +19,12 @@ static TVector<float> SelectBorders(
     TConstArrayRef<float> target,
     int targetBorderCount,
     EBorderSelectionType targetBorderType,
-    bool allowConstLabel) {
+    bool allowConstLabel,
+    bool targetValuesMayContainNans = false) {
 
     TVector<float> learnTarget(target.begin(), target.end());
 
-    THashSet<float> borderSet = BestSplit(learnTarget, targetBorderCount, targetBorderType);
+    THashSet<float> borderSet = BestSplit(learnTarget, targetBorderCount, targetBorderType, targetValuesMayContainNans);
     TVector<float> borders(borderSet.begin(), borderSet.end());
     CB_ENSURE((borders.ysize() > 0) || allowConstLabel, "0 target borders");
     if (borders.empty()) {
@@ -62,6 +63,10 @@ TTargetClassifier BuildTargetClassifier(
         case ELossFunction::SurvivalAft:
             return TTargetClassifier(
                 SelectBorders(target, targetBorderCount, targetBorderType, allowConstLabel),
+                targetId);
+        case ELossFunction::MultiRMSEWithMissingValues:
+            return TTargetClassifier(
+                SelectBorders(target, targetBorderCount, targetBorderType, allowConstLabel, true),
                 targetId);
         case ELossFunction::RMSEWithUncertainty:
         case ELossFunction::Quantile:

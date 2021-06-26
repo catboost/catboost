@@ -526,6 +526,7 @@ TMetricHolder TMultiRMSEMetric::EvalSingleThread(
         for (auto i : xrange(begin, end)) {
             error.Stats[1] += realWeight(i);
         }
+        
         return error;
     };
 
@@ -541,6 +542,84 @@ void TMultiRMSEMetric::GetBestValue(EMetricBestValue* valueType, float* /*bestVa
 }
 
 TVector<TParamSet> TMultiRMSEMetric::ValidParamSets() {
+    return {TParamSet{{TParamInfo{"use_weights", false, true}}, ""}};
+};
+
+/* MultiRMSEWithMissingValues */
+namespace {
+    struct TMultiRMSEWithMissingValues final: public TAdditiveMultiRegressionMetric {
+        explicit TMultiRMSEWithMissingValues(const TLossParams& params)
+           : TAdditiveMultiRegressionMetric(ELossFunction::MultiRMSEWithMissingValues, params)
+        {}
+
+        static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
+        static TVector<TParamSet> ValidParamSets();
+        
+        TMetricHolder EvalSingleThread(
+            TConstArrayRef<TVector<double>> approx,
+            TConstArrayRef<TVector<double>> approxDelta,
+            TConstArrayRef<TConstArrayRef<float>> target,
+            TConstArrayRef<float> weight,
+            int begin,
+            int end
+        ) const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+        double GetFinalError(const TMetricHolder& error) const override;
+    };
+}
+
+// static
+TVector<THolder<IMetric>> TMultiRMSEWithMissingValues::Create(const TMetricConfig& config) {
+    return AsVector(MakeHolder<TMultiRMSEWithMissingValues>(config.Params));
+}
+
+TMetricHolder TMultiRMSEWithMissingValues::EvalSingleThread(
+    TConstArrayRef<TVector<double>> approx,
+    TConstArrayRef<TVector<double>> approxDelta,
+    TConstArrayRef<TConstArrayRef<float>> target,
+    TConstArrayRef<float> weight,
+    int begin,
+    int end
+) const {
+    const auto evalImpl = [=](bool useWeights, bool hasDelta) {
+        const auto realApprox = [=](int dim, int idx) { return approx[dim][idx] + (hasDelta ? approxDelta[dim][idx] : 0); };
+        const auto realWeight = [=](int idx) { return useWeights ? weight[idx] : 1; };
+        
+        TMetricHolder error(target.size() * 2);
+        for (auto dim : xrange(target.size())) {
+            double sumWeights = 0.0;
+            double sumErrors = 0.0;
+            for (auto i : xrange(begin, end)) {
+                if (!IsNan(target[dim][i])) {
+                    sumErrors += realWeight(i) * Sqr(realApprox(dim, i) - target[dim][i]);
+                    sumWeights += realWeight(i);
+                }
+            }
+            error.Stats[dim * 2] += sumErrors;
+            error.Stats[dim * 2 + 1] += sumWeights;
+        }
+        
+        return error;
+    };
+
+    return DispatchGenericLambda(evalImpl, !weight.empty(), !approxDelta.empty());
+}
+
+double TMultiRMSEWithMissingValues::GetFinalError(const TMetricHolder& error) const {
+    double finalError = 0.0;
+    for (size_t dim = 0; dim < error.Stats.size(); dim += 2) {
+        if (error.Stats[dim + 1] != 0) { 
+            finalError += error.Stats[dim] / error.Stats[dim+1];
+        }
+    }
+    return sqrt(finalError);
+}
+
+void TMultiRMSEWithMissingValues::GetBestValue(EMetricBestValue* valueType, float* /*bestValue*/) const {
+    *valueType = EMetricBestValue::Min;
+}
+
+TVector<TParamSet> TMultiRMSEWithMissingValues::ValidParamSets() {
     return {TParamSet{{TParamInfo{"use_weights", false, true}}, ""}};
 };
 
@@ -5761,9 +5840,12 @@ TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TLossParams& 
         case ELossFunction::MultiRMSE:
             AppendTemporaryMetricsVector(TMultiRMSEMetric::Create(config), &result);
             break;
+        case ELossFunction::MultiRMSEWithMissingValues:
+            AppendTemporaryMetricsVector(TMultiRMSEWithMissingValues::Create(config), &result);
+            break;
         case ELossFunction::SurvivalAft:
            AppendTemporaryMetricsVector(TSurvivalAftMetric::Create(config), &result);
-            break;
+           break;
         case ELossFunction::RMSEWithUncertainty:
             AppendTemporaryMetricsVector(TRMSEWithUncertaintyMetric::Create(config), &result);
             break;
@@ -6002,6 +6084,8 @@ TVector<TParamSet> ValidParamSets(ELossFunction metric) {
     switch (metric) {
         case ELossFunction::MultiRMSE:
             return TMultiRMSEMetric::ValidParamSets();
+        case ELossFunction::MultiRMSEWithMissingValues:
+            return TMultiRMSEWithMissingValues::ValidParamSets();
         case ELossFunction::RMSEWithUncertainty:
             return TRMSEWithUncertaintyMetric::ValidParamSets();
         case ELossFunction::Logloss:
@@ -6386,6 +6470,12 @@ void CheckPreprocessedTarget(
         CB_ENSURE(AllOf(target, [](float x) { return int(x) == x && x >= 0; }),
                   "metric/loss-function " << lossFunction << " is a Multiclassification metric, "
                   " each target label should be a nonnegative integer");
+    }
+
+    if (lossFunction != ELossFunction::MultiRMSEWithMissingValues) {
+        for (auto objectIdx : xrange(target.size())){
+            CB_ENSURE(!IsNan(target[objectIdx]), "metric/loss-function " << lossFunction << " do not allows nan value on target");
+        }
     }
 }
 

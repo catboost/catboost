@@ -176,6 +176,8 @@ THolder<IDerCalcer> BuildError(
         }
         case ELossFunction::MultiRMSE:
             return MakeHolder<TMultiRMSEError>();
+        case ELossFunction::MultiRMSEWithMissingValues:
+            return MakeHolder<TMultiRMSEErrorWithMissingValues>();
         case ELossFunction::RMSEWithUncertainty: {
             return MakeHolder<TRMSEWithUncertaintyError>();
         }
