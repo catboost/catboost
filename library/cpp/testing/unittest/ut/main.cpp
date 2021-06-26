@@ -36,6 +36,20 @@ namespace {
     struct TOtherFixture : public NUnitTest::TBaseFixture {
         size_t TheAnswer = 42;
     };
+
+    struct TSetUpTearDownFixture : public NUnitTest::TBaseFixture {
+        int Magic = 3;
+
+        void SetUp(NUnitTest::TTestContext&) override {
+            UNIT_ASSERT_VALUES_EQUAL(Magic, 3);
+            Magic = 17;
+        }
+
+        void TearDown(NUnitTest::TTestContext&) override {
+            UNIT_ASSERT_VALUES_EQUAL(Magic, 42);
+            Magic = 100;
+        }
+    };
 }
 
 TEST_F(TFixture, Test1) {
@@ -67,5 +81,13 @@ Y_UNIT_TEST_SUITE_F(TestSuiteFixture, TSimpleFixture)
 
     Y_UNIT_TEST_F(Test3, TOtherFixture) {
         UNIT_ASSERT_EQUAL(TheAnswer, 42);
+    }
+}
+
+Y_UNIT_TEST_SUITE(TestSetUpTearDownFixture)
+{
+    Y_UNIT_TEST_F(Test1, TSetUpTearDownFixture) {
+        UNIT_ASSERT_VALUES_EQUAL(Magic, 17);
+        Magic = 42;
     }
 }
