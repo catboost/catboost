@@ -1,11 +1,9 @@
-PY2_LIBRARY()
-
-LICENSE(BSD-3-Clause)
+PY2TEST()
 
 
 
 PEERDIR(
-    contrib/python/prompt_toolkit/py2
+    contrib/python/prompt_toolkit
 )
 
 TEST_SRCS(
@@ -28,7 +26,3 @@ TEST_SRCS(
 NO_LINT()
 
 END()
-
-RECURSE_FOR_TESTS(
-    py2
-)
