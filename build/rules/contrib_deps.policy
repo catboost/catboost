@@ -43,7 +43,7 @@ ALLOW contrib/python/certifi -> library/python/certifi
 ALLOW contrib/python/horovod/horovod/common/syms -> library/python/symbols/registry
 ALLOW contrib/python/opensfm -> library/cpp/vl_feat
 ALLOW contrib/python/pytest-mongodb -> devtools/swag/lib
-ALLOW contrib/python/wand/ImageMagick -> library/python/symbols/registry
+ALLOW contrib/python/Wand/ImageMagick -> library/python/symbols/registry
 ALLOW contrib/nginx/modules/nginx-rtmp-module -> library/cpp/json
 ALLOW contrib/python/gino -> library/python/pyscopg2
 ALLOW contrib/python/psycopg2/tests -> mail/devpack
