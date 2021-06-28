@@ -6,9 +6,9 @@ LICENSE(Not-Applicable)
 
 
 IF (PYTHON2)
-    PEERDIR(contrib/python/prompt_toolkit/py2)
+    PEERDIR(contrib/python/prompt-toolkit/py2)
 ELSE()
-    PEERDIR(contrib/python/prompt_toolkit/py3)
+    PEERDIR(contrib/python/prompt-toolkit/py3)
 ENDIF()
 
 NO_LINT()
