@@ -917,7 +917,7 @@ class ToolchainOptions(object):
             self.c_compiler = detector.c_compiler
             self.cxx_compiler = detector.cxx_compiler
             self.compiler_version_list = detector.version_list
-            self.compiler_version = '.'.join(map(str, self.compiler_version_list))
+            self.compiler_version = '.'.join(map(lambda part: six.ensure_str(str(part)), self.compiler_version_list))
 
         else:
             self.type = self.params['type']
@@ -928,7 +928,7 @@ class ToolchainOptions(object):
 
             # TODO(somov): Требовать номер версии всегда.
             self.compiler_version = self.params.get('gcc_version') or self.params.get('version') or '0'
-            self.compiler_version_list = map(int, self.compiler_version.split('.'))
+            self.compiler_version_list = list(map(int, self.compiler_version.split('.')))
 
         # TODO(somov): Посмотреть, можно ли спрятать это поле.
         self.name_marker = '$(%s)' % self.params.get('match_root', self._name.upper())
