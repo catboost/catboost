@@ -77,8 +77,8 @@ def resolve_java_srcs(srcdir, include_patterns, exclude_patterns, all_resources,
     return sorted(result['java']), sorted(result['not_java']), sorted(result['kotlin']), sorted(result['groovy'])
 
 
-def do_it(directory, sources_file, resources_file, kotlin_sources_file, groovy_sources_file, include_patterns, exclude_patterns, resolve_kotlin, resolve_groovy, append):
-    j, r, k, g = resolve_java_srcs(directory, include_patterns, exclude_patterns, False, resolve_kotlin, resolve_groovy)
+def do_it(directory, sources_file, resources_file, kotlin_sources_file, groovy_sources_file, include_patterns, exclude_patterns, resolve_kotlin, resolve_groovy, append, all_resources):
+    j, r, k, g = resolve_java_srcs(directory, include_patterns, exclude_patterns, all_resources, resolve_kotlin, resolve_groovy)
     mode = 'a' if append else 'w'
     open(sources_file, mode).writelines(i + '\n' for i in j)
     open(resources_file, mode).writelines(i + '\n' for i in r)
@@ -96,6 +96,7 @@ if __name__ == '__main__':
     parser.add_argument('-k', '--kotlin-sources-file', default=None)
     parser.add_argument('-g', '--groovy-sources-file', default=None)
     parser.add_argument('--append', action='store_true', default=False)
+    parser.add_argument('--all-resources',  action='store_true', default=False)
     parser.add_argument('--resolve-kotlin',  action='store_true', default=False)
     parser.add_argument('--resolve-groovy', action='store_true', default=False)
     parser.add_argument('--include-patterns', nargs='*', default=[])
