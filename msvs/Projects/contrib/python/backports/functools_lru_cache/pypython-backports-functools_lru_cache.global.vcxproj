@@ -78,17 +78,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\backports\functools_lru_cache\707223c437bb638f88c5f0d422.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\backports\functools_lru_cache\941ef4e8e588b0ac61dede9a6c.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\backports\functools_lru_cache\9474e720d4344d108d83686f91.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\backports\functools_lru_cache
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/backports/functools_lru_cache/941ef4e8e588b0ac61dede9a6c.cpp" "_14e10d0d6db509164081405e48=/py_modules/backports.functools_lru_cache" "_36597175bd35a08fdc8dd1fbe6=resfs/src//py_modules/backports.functools_lru_cache" "_fcaba9f8bc2ebb182716a83d52=/py_code/backports.functools_lru_cache"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/backports/functools_lru_cache/707223c437bb638f88c5f0d422.cpp" "_6b79eeebdf2d3f29f73c5c1817=resfs/src/resfs/file/contrib/python/backports/functools_lru_cache/.dist-info/METADATA" "_2e080af0f0c4314abed326c5a7=resfs/file/contrib/python/backports/functools_lru_cache/.dist-info/METADATA" "_30f7deb89b41e2b45da62c8773=resfs/src/resfs/file/contrib/python/backports/functools_lru_cache/.dist-info/top_level.txt" "_5f74bb8d9868f4fc2dd52f1a82=resfs/file/contrib/python/backports/functools_lru_cache/.dist-info/top_level.txt"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\backports\functools_lru_cache
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/backports/functools_lru_cache/9474e720d4344d108d83686f91.cpp" "_1db3be76d1cc9f9fdbeef9e0c2=resfs/src/resfs/file/contrib/python/backports/functools_lru_cache/.dist-info/LICENSE" "_7d5bd73cdf9ed2e16cb1be846d=resfs/file/contrib/python/backports/functools_lru_cache/.dist-info/LICENSE" "_6b79eeebdf2d3f29f73c5c1817=resfs/src/resfs/file/contrib/python/backports/functools_lru_cache/.dist-info/METADATA" "_2e080af0f0c4314abed326c5a7=resfs/file/contrib/python/backports/functools_lru_cache/.dist-info/METADATA" "_30f7deb89b41e2b45da62c8773=resfs/src/resfs/file/contrib/python/backports/functools_lru_cache/.dist-info/top_level.txt" "_5f74bb8d9868f4fc2dd52f1a82=resfs/file/contrib/python/backports/functools_lru_cache/.dist-info/top_level.txt"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/backports/functools_lru_cache/941ef4e8e588b0ac61dede9a6c.cpp" "_14e10d0d6db509164081405e48=/py_modules/backports.functools_lru_cache" "_36597175bd35a08fdc8dd1fbe6=resfs/src//py_modules/backports.functools_lru_cache" "_fcaba9f8bc2ebb182716a83d52=/py_code/backports.functools_lru_cache"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -99,11 +99,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\backports\functools_lru_cache
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/backports/functools_lru_cache/941ef4e8e588b0ac61dede9a6c.cpp" "_14e10d0d6db509164081405e48=/py_modules/backports.functools_lru_cache" "_36597175bd35a08fdc8dd1fbe6=resfs/src//py_modules/backports.functools_lru_cache" "_fcaba9f8bc2ebb182716a83d52=/py_code/backports.functools_lru_cache"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/backports/functools_lru_cache/707223c437bb638f88c5f0d422.cpp" "_6b79eeebdf2d3f29f73c5c1817=resfs/src/resfs/file/contrib/python/backports/functools_lru_cache/.dist-info/METADATA" "_2e080af0f0c4314abed326c5a7=resfs/file/contrib/python/backports/functools_lru_cache/.dist-info/METADATA" "_30f7deb89b41e2b45da62c8773=resfs/src/resfs/file/contrib/python/backports/functools_lru_cache/.dist-info/top_level.txt" "_5f74bb8d9868f4fc2dd52f1a82=resfs/file/contrib/python/backports/functools_lru_cache/.dist-info/top_level.txt"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\backports\functools_lru_cache
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/backports/functools_lru_cache/9474e720d4344d108d83686f91.cpp" "_1db3be76d1cc9f9fdbeef9e0c2=resfs/src/resfs/file/contrib/python/backports/functools_lru_cache/.dist-info/LICENSE" "_7d5bd73cdf9ed2e16cb1be846d=resfs/file/contrib/python/backports/functools_lru_cache/.dist-info/LICENSE" "_6b79eeebdf2d3f29f73c5c1817=resfs/src/resfs/file/contrib/python/backports/functools_lru_cache/.dist-info/METADATA" "_2e080af0f0c4314abed326c5a7=resfs/file/contrib/python/backports/functools_lru_cache/.dist-info/METADATA" "_30f7deb89b41e2b45da62c8773=resfs/src/resfs/file/contrib/python/backports/functools_lru_cache/.dist-info/top_level.txt" "_5f74bb8d9868f4fc2dd52f1a82=resfs/file/contrib/python/backports/functools_lru_cache/.dist-info/top_level.txt"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/backports/functools_lru_cache/941ef4e8e588b0ac61dede9a6c.cpp" "_14e10d0d6db509164081405e48=/py_modules/backports.functools_lru_cache" "_36597175bd35a08fdc8dd1fbe6=resfs/src//py_modules/backports.functools_lru_cache" "_fcaba9f8bc2ebb182716a83d52=/py_code/backports.functools_lru_cache"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -111,9 +111,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/backports/functools_lru_cache/941ef4e8e588b0ac61dede9a6c.cpp	$B/contrib/python/backports/functools_lru_cache/9474e720d4344d108d83686f91.cpp	</Message>
+      <Message>$B/contrib/python/backports/functools_lru_cache/707223c437bb638f88c5f0d422.cpp	$B/contrib/python/backports/functools_lru_cache/941ef4e8e588b0ac61dede9a6c.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\backports\functools_lru_cache\941ef4e8e588b0ac61dede9a6c.cpp;$(SolutionDir)$(Configuration)\contrib\python\backports\functools_lru_cache\9474e720d4344d108d83686f91.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\backports\functools_lru_cache\707223c437bb638f88c5f0d422.cpp;$(SolutionDir)$(Configuration)\contrib\python\backports\functools_lru_cache\941ef4e8e588b0ac61dede9a6c.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
