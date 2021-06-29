@@ -789,7 +789,6 @@
   - tr1/functional
   - time64.h
   - extern.h
-  - reentrant.h
   #if defined(__FreeBSD__)
   - _ctype.h
   - alias.h
