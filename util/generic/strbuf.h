@@ -7,6 +7,8 @@
 
 #include <string_view>
 
+using namespace std::string_view_literals;
+
 template <typename TCharType, typename TTraits>
 class TBasicStringBuf:
     public std::basic_string_view<TCharType>,
