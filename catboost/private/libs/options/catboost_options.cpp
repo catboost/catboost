@@ -755,6 +755,10 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
         {
             bootstrapType.SetDefault(EBootstrapType::MVS);
         }
+    } else {
+        if (TaskType == ETaskType::GPU && IsMultiClassOnlyMetric(lossFunction)) {
+            CB_ENSURE(bootstrapType != EBootstrapType::MVS, "MVS is not supported for multiclass models on GPU");
+        }
     }
     if (subsample.IsSet()) {
         CB_ENSURE(bootstrapType != EBootstrapType::Bayesian, "Error: default bootstrap type (bayesian) doesn't support taken fraction option");
