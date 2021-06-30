@@ -2,6 +2,8 @@ import argparse
 import subprocess
 import sys
 
+from process_whole_archive_option import ProcessWholeArchiveOption
+
 YA_ARG_PREFIX = '-Ya,'
 
 
@@ -50,6 +52,7 @@ def main():
     # Dependencies
     global_srcs = groups['global_srcs']
     global_srcs = strip_suppression_files(global_srcs)
+    global_srcs = ProcessWholeArchiveOption(args.arch).construct_cmd(global_srcs)
     peers = groups['peers']
 
     # Settings
@@ -59,12 +62,7 @@ def main():
     linker = groups['linker']
     archiver = groups['archiver']
 
-    if arch in ['DARWIN', 'IOS']:
-        load_all = '-Wl,-all_load'
-    else:
-        load_all = '-Wl,-whole-archive'
-
-    do_link = linker + ['-o', obj_output, '-Wl,-r', '-nodefaultlibs', '-nostartfiles', load_all] + global_srcs + auto_input
+    do_link = linker + ['-o', obj_output, '-Wl,-r', '-nodefaultlibs', '-nostartfiles'] + global_srcs + auto_input
     do_archive = archiver + [lib_output] + peers
     do_globals = None
     if args.globals_lib:
@@ -75,7 +73,6 @@ def main():
         do_archive += global_srcs
 
     def call(c):
-        print >> sys.stderr, ' '.join(c)
         proc = subprocess.Popen(c, shell=False, stderr=sys.stderr, stdout=sys.stdout, cwd=args.build_root)
         proc.communicate()
         return proc.returncode

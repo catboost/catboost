@@ -2053,8 +2053,8 @@ class LD(Linker):
             prefix = ['$GENERATE_MF && $GENERATE_VCS_C_INFO_NODEP &&',
                       '$YMAKE_PYTHON ${input:"build/scripts/link_fat_obj.py"} --build-root $ARCADIA_BUILD_ROOT']
             suffix = [arch_flag,
-                      '-Ya,input $AUTO_INPUT $VCS_C_OBJ -Ya,global_srcs ${rootrel:SRCS_GLOBAL} -Ya,peers $PEERS',
-                      '-Ya,linker $CXX_COMPILER $C_FLAGS_PLATFORM', self.ld_sdk, '-Ya,archiver', archiver,
+                      '-Ya,input $AUTO_INPUT $VCS_C_OBJ -Ya,global_srcs', srcs_globals, '-Ya,peers $PEERS',
+                      '-Ya,linker $CXX_COMPILER $LDFLAGS_GLOBAL $C_FLAGS_PLATFORM', self.ld_sdk, '-Ya,archiver', archiver,
                       '$TOOLCHAIN_ENV ${kv;hide:"p LD"} ${kv;hide:"pc light-blue"} ${kv;hide:"show_out"}']
             emit(cmd_name, *(prefix + list(extended_flags) + suffix))
 
