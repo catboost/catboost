@@ -495,12 +495,6 @@ class Build(object):
         compiler.print_compiler()
         linker.print_linker()
 
-        emit("GENERATE_JAVA_MF",
-             '$YMAKE_PYTHON', '${input:"build/scripts/generate_mf.py"}',
-             '--build-root $ARCADIA_BUILD_ROOT --module-name $REALPRJNAME -o ${output;rootrel;pre=$MODULE_PREFIX;suf=$MODULE_SUFFIX.mf:REALPRJNAME}',
-             '-t $MODULE_TYPE $NO_GPL_FLAG --ya-start-command-file -Ya,lics $LICENSE_NAMES -Ya,peers ${rootrel:MANAGED_PEERS_CLOSURE} --ya-end-command-file'
-             )
-
         self._print_other_settings(compiler)
 
     def _print_build_settings(self):
