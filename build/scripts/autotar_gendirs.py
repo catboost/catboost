@@ -28,7 +28,7 @@ def unpack_dir(tared_dir, dest_path):
         os.makedirs(dest_path)
     for tar_exe in ('/usr/bin/tar', '/bin/tar'):
         if is_exe(tar_exe):
-            subprocess.check_call([tar_exe, '-xf', tared_dir, '-C', dest_path])
+            subprocess.check_call([tar_exe, '-xf', tared_dir, '--no-overwrite-dir', '-C', dest_path])
             break
     else:
         with tarfile.open(tared_dir, 'r') as tar_file:
@@ -54,7 +54,7 @@ def main(args):
             if not tared_dir.endswith(args.ext):
                 print("Requested to unpack '{}' which do not have required extension '{}'".format(tared_dir, args.ext), file=sys.stderr)
                 return 1
-            dest = tared_dir[:-len(args.ext)]
+            dest = os.path.splitext(tared_dir[:-len(args.ext)])[0]
             unpack_dir(tared_dir, dest)
     else:
         print("Neither --pack nor --unpack specified. Don't know what to do.", file=sys.stderr)
