@@ -1673,7 +1673,6 @@ migrations:
     - robot/quality/robotrank/nirvana/compare_formulas
     - robot/selectionrank/sr_conduct_rules_experiment/graphs
     - rtmapreduce/config/user_tasks
-    - saas/rtyserver_test/local_saas
     - saas/tools/refresh/import_rtyserver
     - saas/tools/user_if/ssm-front/backend
     - sandbox/projects/EntitySearch/EntitySearchTrunkTest
@@ -2039,7 +2038,6 @@ migrations:
     - billing/agency_rewards/tests_platform/generators
     - billing/agency_rewards/tests_regression/common
     - billing/agency_rewards/tests_regression/generators
-    - billing/apikeys/console
     - billing/balance
     - billing/balance_utils
     - billing/bcl/src
@@ -3342,7 +3340,6 @@ migrations:
     - yql/tools/yqlflask
     - yql/tools/yqltornado
     - yt/admin/acl_dumper/src
-    - yt/admin/allotments_balancer/src
     - yt/admin/brahmagupta/src/brahmagupta_api
     - yt/admin/core
     - yt/admin/perf_scraper/src
