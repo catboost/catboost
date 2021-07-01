@@ -661,7 +661,7 @@ class YMake(object):
 
     def print_presets(self):
         presets = opts().presets
-        if presets and 'YMAKE_JAVA_MODULES' in presets:
+        if presets and 'YMAKE_JAVA_MODULES' in presets and presets['YMAKE_JAVA_MODULES'] == "yes":
             print('@import "${CONF_ROOT}/conf/java.ymake.conf"')
         else:
             print('@import "${CONF_ROOT}/conf/jbuild.ymake.conf"')
