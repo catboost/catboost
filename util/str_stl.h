@@ -7,8 +7,9 @@
 #include <util/generic/strbuf.h>
 #include <util/generic/typetraits.h>
 
-#include <utility>
 #include <functional>
+#include <typeindex>
+#include <utility>
 
 namespace std {
     template <>
@@ -101,6 +102,13 @@ struct THash<TUtf32StringBuf> : ::NHashPrivate::TStringHash<wchar32> {
 
 template <class C, class T, class A>
 struct hash<std::basic_string<C, T, A>> : ::NHashPrivate::TStringHash<C> {
+};
+
+template <>
+struct THash<std::type_index> {
+    inline size_t operator()(const std::type_index& index) const {
+        return index.hash_code();
+    }
 };
 
 namespace NHashPrivate {
