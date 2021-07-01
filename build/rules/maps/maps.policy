@@ -58,7 +58,7 @@ ALLOW .* -> maps/libs/tile
 ALLOW .* -> maps/pylibs/local_postgres
 
 # Fix current PEERDIRs and prevent any further growth
-ALLOW extsearch/geo/poi_service -> maps/renderer
+ALLOW extsearch/geo/kernel/localeutils -> maps/libs/locale
 ALLOW media/road-graph-tool -> maps/libs/road_graph
 ALLOW media/road-graph-tool -> maps/libs/snap
 ALLOW media/road-graph-tool -> maps/libs/succinct_rtree
