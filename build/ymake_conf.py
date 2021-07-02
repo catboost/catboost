@@ -1573,7 +1573,7 @@ class GnuCompiler(Compiler):
         append('C_DEFINES', '-D__LONG_LONG_SUPPORTED')
 
         emit('OBJECT_SUF', '$OBJ_SUF%s.o' % self.cross_suffix)
-        emit('GCC_COMPILE_FLAGS', '$EXTRA_C_FLAGS -c -o $_COMPILE_OUTPUTS', '${input:SRC} ${pre=-I:_C__INCLUDE}')
+        emit('GCC_COMPILE_FLAGS', '$EXTRA_C_FLAGS -c -o $_COMPILE_OUTPUTS', '${pre=-I:_C__INCLUDE}')
         emit('EXTRA_COVERAGE_OUTPUT', '${output;noauto;hide;suf=${OBJ_SUF}%s.gcno:SRC}' % self.cross_suffix)
         emit('CLANG_TIDY_OUTPUT_FILE', '${output;noauto;suf=${OBJ_SUF}%s.tidyjson:SRC}' % self.cross_suffix)
         emit('YNDEXER_OUTPUT_FILE', '${output;noauto;suf=${OBJ_SUF}%s.ydx.pb2:SRC}' % self.cross_suffix)  # should be the last output
@@ -1605,6 +1605,7 @@ class GnuCompiler(Compiler):
             '$CL_MACRO_INFO_DISABLE_CACHE__NO_UID__',
             '$EXTRA_OUTPUT',
             '$SRCFLAGS',
+            '${input:SRC}',
             '$TOOLCHAIN_ENV',
             '$YNDEXER_OUTPUT',
         ] + style
@@ -1621,12 +1622,23 @@ class GnuCompiler(Compiler):
             '$CONLYFLAGS',
             '$EXTRA_OUTPUT',
             '$SRCFLAGS',
+            '${input:SRC}',
             '$TOOLCHAIN_ENV',
             '$YNDEXER_OUTPUT',
         ] + style
 
-        ignore_c_args_no_deps = ['$SRCFLAGS', '$CLANG_TIDY_ARGS', '$CLANG_TIDY_OUTPUT_FILE', '$YNDEXER_ARGS', '$YNDEXER_OUTPUT', '$EXTRA_OUTPUT', '$EXTRA_COVERAGE_OUTPUT', '$CL_MACRO_INFO',
-                                 '$CL_MACRO_INFO_DISABLE_CACHE__NO_UID__']
+        ignore_c_args_no_deps = [
+            '${input:SRC}',
+            '$SRCFLAGS',
+            '$CLANG_TIDY_ARGS',
+            '$CLANG_TIDY_OUTPUT_FILE',
+            '$YNDEXER_ARGS',
+            '$YNDEXER_OUTPUT',
+            '$EXTRA_OUTPUT',
+            '$EXTRA_COVERAGE_OUTPUT',
+            '$CL_MACRO_INFO',
+            '$CL_MACRO_INFO_DISABLE_CACHE__NO_UID__'
+        ]
         c_args_nodeps = [c if c != '$GCC_COMPILE_FLAGS' else '$EXTRA_C_FLAGS -c -o ${OUTFILE} ${SRC} ${pre=-I:INC}' for c in c_args if c not in ignore_c_args_no_deps]
 
         print('macro _SRC_cpp(SRC, SRCFLAGS...) {\n .CMD=%s\n}' % ' '.join(cxx_args))
