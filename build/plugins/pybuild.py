@@ -186,6 +186,7 @@ def onpy_srcs(unit, *args):
     with_pyc = not unit.get('PYBUILD_NO_PYC')
     in_proto_library = unit.get('PY_PROTO') or unit.get('PY3_PROTO')
     need_gazetteer_peerdir = False
+    trim = 0
 
     if not upath.startswith('contrib/tools/python') and not upath.startswith('library/python/runtime') and unit.get('NO_PYTHON_INCLS') != 'yes':
         unit.onpeerdir(['contrib/libs/python'])
@@ -257,6 +258,10 @@ def onpy_srcs(unit, *args):
         # Unsupported but legal PROTO_LIBRARY arguments.
         elif arg == 'GLOBAL' or not in_proto_library and arg.endswith('.gztproto'):
             pass
+        elif arg == '_MR':
+            # GLOB support: convert arcadia-root-relative paths to module-relative
+            # srcs are assumed to start with ${ARCADIA_ROOT}
+            trim = len(unit.path()) + 14
         # Sources.
         else:
             main_mod = arg == 'MAIN'
@@ -267,6 +272,8 @@ def onpy_srcs(unit, *args):
                 main_py = False
                 path, mod = arg.split('=', 1)
             else:
+                if trim:
+                    arg = arg[trim:]
                 if arg.endswith('.gztproto'):
                     need_gazetteer_peerdir = True
                     path = '{}.proto'.format(arg[:-9])
