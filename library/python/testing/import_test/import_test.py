@@ -37,9 +37,9 @@ def check_imports(no_check=(), extra=(), skip_func=None, py_main=None):
     norm = lambda s: s[:-9] if s.endswith('.__init__') else s
 
     modules = sys.extra_modules | set(extra)
-    if py_main:
-        modules.add(py_main)
     modules = sorted(modules, key=norm)
+    if py_main:
+        modules = [py_main] + modules
 
     for module in modules:
         if module not in extra and (rx.search(module) or skip_func and skip_func(module)):
