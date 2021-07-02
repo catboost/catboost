@@ -224,12 +224,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.json4s</groupId>
-            <artifactId>json4s-jackson_${scala.compat.version}</artifactId>
-            <version>3.5.3</version>
-        </dependency>
-        
-        <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
         <version>2.6.7.3</version>
@@ -310,4 +304,55 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <profiles>
+      <profile>
+         <id>spark-2.3</id>
+         <activation>
+           <property>
+             <name>spark.compat.version</name>
+             <value>2.3</value>
+           </property>
+          </activation>
+          <dependencies>
+              <dependency>
+               <groupId>org.json4s</groupId>
+               <artifactId>json4s-jackson_${scala.compat.version}</artifactId>
+               <version>3.2.11</version>
+              </dependency>
+          </dependencies>
+      </profile>
+      <profile>
+         <id>spark-2.4</id>
+         <activation>
+           <property>
+             <name>spark.compat.version</name>
+             <value>2.4</value>
+           </property>
+          </activation>
+          <dependencies>
+              <dependency>
+               <groupId>org.json4s</groupId>
+               <artifactId>json4s-jackson_${scala.compat.version}</artifactId>
+               <version>3.5.3</version>
+              </dependency>
+          </dependencies>
+      </profile>
+      <profile>
+         <id>spark-3.0</id>
+         <activation>
+           <property>
+             <name>spark.compat.version</name>
+             <value>3.0</value>
+           </property>
+          </activation>
+          <dependencies>
+              <dependency>
+               <groupId>org.json4s</groupId>
+               <artifactId>json4s-jackson_${scala.compat.version}</artifactId>
+               <version>3.6.6</version>
+              </dependency>
+          </dependencies>
+      </profile>
+    </profiles>
 </project>
