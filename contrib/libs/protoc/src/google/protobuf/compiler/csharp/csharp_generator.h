@@ -37,6 +37,8 @@
 
 #include <google/protobuf/compiler/code_generator.h>
 
+#include <google/protobuf/port_def.inc>
+
 namespace google {
 namespace protobuf {
 namespace compiler {
@@ -46,19 +48,23 @@ namespace csharp {
 // header.  If you create your own protocol compiler binary and you want
 // it to support C# output, you can do so by registering an instance of this
 // CodeGenerator with the CommandLineInterface in your main() function.
-class LIBPROTOC_EXPORT Generator
-    : public google::protobuf::compiler::CodeGenerator {
-public:
-  virtual bool Generate(
-      const FileDescriptor* file,
-      const string& parameter,
-      GeneratorContext* generator_context,
-      string* error) const;
+class PROTOC_EXPORT Generator : public CodeGenerator {
+ public:
+  Generator();
+  ~Generator();
+  bool Generate(
+    const FileDescriptor* file,
+    const TProtoStringType& parameter,
+    GeneratorContext* generator_context,
+    TProtoStringType* error) const override;
+  uint64_t GetSupportedFeatures() const override;
 };
 
 }  // namespace csharp
 }  // namespace compiler
 }  // namespace protobuf
 }  // namespace google
+
+#include <google/protobuf/port_undef.inc>
 
 #endif  // GOOGLE_PROTOBUF_COMPILER_CSHARP_GENERATOR_H__

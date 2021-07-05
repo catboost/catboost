@@ -372,14 +372,15 @@ def MapSizer(field_descriptor, is_message_map):
 def _VarintEncoder():
   """Return an encoder for a basic varint value (does not include tag)."""
 
-  def EncodeVarint(write, value, unused_deterministic):
+  local_int2byte = six.int2byte
+  def EncodeVarint(write, value, unused_deterministic=None):
     bits = value & 0x7f
     value >>= 7
     while value:
-      write(six.int2byte(0x80|bits))
+      write(local_int2byte(0x80|bits))
       bits = value & 0x7f
       value >>= 7
-    return write(six.int2byte(bits))
+    return write(local_int2byte(bits))
 
   return EncodeVarint
 
@@ -388,16 +389,17 @@ def _SignedVarintEncoder():
   """Return an encoder for a basic signed varint value (does not include
   tag)."""
 
-  def EncodeSignedVarint(write, value, unused_deterministic):
+  local_int2byte = six.int2byte
+  def EncodeSignedVarint(write, value, unused_deterministic=None):
     if value < 0:
       value += (1 << 64)
     bits = value & 0x7f
     value >>= 7
     while value:
-      write(six.int2byte(0x80|bits))
+      write(local_int2byte(0x80|bits))
       bits = value & 0x7f
       value >>= 7
-    return write(six.int2byte(bits))
+    return write(local_int2byte(bits))
 
   return EncodeSignedVarint
 
@@ -418,7 +420,8 @@ def _VarintBytes(value):
 def TagBytes(field_number, wire_type):
   """Encode the given tag and return the bytes.  Only called at startup."""
 
-  return _VarintBytes(wire_format.PackTag(field_number, wire_type))
+  return six.binary_type(
+      _VarintBytes(wire_format.PackTag(field_number, wire_type)))
 
 # --------------------------------------------------------------------
 # As with sizers (see above), we have a number of common encoder
@@ -523,14 +526,14 @@ def _StructPackEncoder(wire_type, format):
       return EncodePackedField
     elif is_repeated:
       tag_bytes = TagBytes(field_number, wire_type)
-      def EncodeRepeatedField(write, value, unused_deterministic):
+      def EncodeRepeatedField(write, value, unused_deterministic=None):
         for element in value:
           write(tag_bytes)
           write(local_struct_pack(format, element))
       return EncodeRepeatedField
     else:
       tag_bytes = TagBytes(field_number, wire_type)
-      def EncodeField(write, value, unused_deterministic):
+      def EncodeField(write, value, unused_deterministic=None):
         write(tag_bytes)
         return write(local_struct_pack(format, value))
       return EncodeField
@@ -594,7 +597,7 @@ def _FloatingPointEncoder(wire_type, format):
       return EncodePackedField
     elif is_repeated:
       tag_bytes = TagBytes(field_number, wire_type)
-      def EncodeRepeatedField(write, value, unused_deterministic):
+      def EncodeRepeatedField(write, value, unused_deterministic=None):
         for element in value:
           write(tag_bytes)
           try:
@@ -604,7 +607,7 @@ def _FloatingPointEncoder(wire_type, format):
       return EncodeRepeatedField
     else:
       tag_bytes = TagBytes(field_number, wire_type)
-      def EncodeField(write, value, unused_deterministic):
+      def EncodeField(write, value, unused_deterministic=None):
         write(tag_bytes)
         try:
           write(local_struct_pack(format, value))
@@ -661,7 +664,7 @@ def BoolEncoder(field_number, is_repeated, is_packed):
     return EncodePackedField
   elif is_repeated:
     tag_bytes = TagBytes(field_number, wire_format.WIRETYPE_VARINT)
-    def EncodeRepeatedField(write, value, unused_deterministic):
+    def EncodeRepeatedField(write, value, unused_deterministic=None):
       for element in value:
         write(tag_bytes)
         if element:
@@ -671,7 +674,7 @@ def BoolEncoder(field_number, is_repeated, is_packed):
     return EncodeRepeatedField
   else:
     tag_bytes = TagBytes(field_number, wire_format.WIRETYPE_VARINT)
-    def EncodeField(write, value, unused_deterministic):
+    def EncodeField(write, value, unused_deterministic=None):
       write(tag_bytes)
       if value:
         return write(true_byte)
@@ -819,7 +822,7 @@ def MapEncoder(field_descriptor):
   encode_message = MessageEncoder(field_descriptor.number, False, False)
 
   def EncodeField(write, value, deterministic):
-    value_keys = sorted(value.keys()) if deterministic else value.keys()
+    value_keys = sorted(value.keys()) if deterministic else value
     for key in value_keys:
       entry_msg = message_type._concrete_class(key=key, value=value[key])
       encode_message(write, entry_msg, deterministic)

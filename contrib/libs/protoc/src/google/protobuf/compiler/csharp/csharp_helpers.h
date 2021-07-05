@@ -36,11 +36,14 @@
 #define GOOGLE_PROTOBUF_COMPILER_CSHARP_HELPERS_H__
 
 #include <string>
-#include <google/protobuf/stubs/port.h>
+#include <google/protobuf/port.h>
+#include <google/protobuf/stubs/common.h>
 #include <google/protobuf/descriptor.pb.h>
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/compiler/code_generator.h>
 #include <google/protobuf/io/printer.h>
+
+#include <google/protobuf/port_def.inc>
 
 namespace google {
 namespace protobuf {
@@ -73,6 +76,8 @@ TProtoStringType StripDotProto(const TProtoStringType& proto_file);
 
 // Gets unqualified name of the reflection class
 TProtoStringType GetReflectionClassUnqualifiedName(const FileDescriptor* descriptor);
+// Gets unqualified name of the extension class
+TProtoStringType GetExtensionClassUnqualifiedName(const FileDescriptor* descriptor);
 
 TProtoStringType GetClassName(const EnumDescriptor* descriptor);
 
@@ -96,7 +101,8 @@ TProtoStringType UnderscoresToPascalCase(const TProtoStringType& input);
 
 // Note that we wouldn't normally want to export this (we're not expecting
 // it to be used outside libprotoc itself) but this exposes it for testing.
-TProtoStringType LIBPROTOBUF_EXPORT GetEnumValueName(const TProtoStringType& enum_name, const TProtoStringType& enum_value_name);
+TProtoStringType PROTOC_EXPORT GetEnumValueName(const TProtoStringType& enum_name,
+                                           const TProtoStringType& enum_value_name);
 
 // TODO(jtattermusch): perhaps we could move this to strutil
 TProtoStringType StringToBase64(const TProtoStringType& input);
@@ -104,14 +110,21 @@ TProtoStringType StringToBase64(const TProtoStringType& input);
 TProtoStringType FileDescriptorToBase64(const FileDescriptor* descriptor);
 
 FieldGeneratorBase* CreateFieldGenerator(const FieldDescriptor* descriptor,
-                                         int fieldOrdinal,
+                                         int presenceIndex,
                                          const Options* options);
+
+TProtoStringType GetFullExtensionName(const FieldDescriptor* descriptor);
+
+bool IsNullable(const FieldDescriptor* descriptor);
 
 // Determines whether the given message is a map entry message,
 // i.e. one implicitly created by protoc due to a map<key, value> field.
 inline bool IsMapEntryMessage(const Descriptor* descriptor) {
   return descriptor->options().map_entry();
 }
+
+// Checks if this descriptor is for a group and gets its end tag or 0 if it's not a group
+uint GetGroupEndTag(const Descriptor* descriptor);
 
 // Determines whether we're generating code for the proto representation of
 // descriptors etc, for use in the runtime. This is the only type which is
@@ -125,7 +138,7 @@ inline bool IsDescriptorOptionMessage(const Descriptor* descriptor) {
   if (!IsDescriptorProto(descriptor->file())) {
     return false;
   }
-  const string name = descriptor->full_name();
+  const TProtoStringType name = descriptor->full_name();
   return name == "google.protobuf.FileOptions" ||
       name == "google.protobuf.MessageOptions" ||
       name == "google.protobuf.FieldOptions" ||
@@ -141,8 +154,42 @@ inline bool IsWrapperType(const FieldDescriptor* descriptor) {
       descriptor->message_type()->file()->name() == "google/protobuf/wrappers.proto";
 }
 
+inline bool IsProto2(const FileDescriptor* descriptor) {
+  return descriptor->syntax() == FileDescriptor::SYNTAX_PROTO2;
+}
+
+inline bool SupportsPresenceApi(const FieldDescriptor* descriptor) {
+  // Unlike most languages, we don't generate Has/Clear members for message
+  // types, because they can always be set to null in C#. They're not really
+  // needed for oneof fields in proto2 either, as everything can be done via
+  // oneof case, but we follow the convention from other languages. Proto3
+  // oneof fields never have Has/Clear members - but will also never have
+  // the explicit optional keyword either.
+  //
+  // None of the built-in helpers (descriptor->has_presence() etc) describe
+  // quite the behavior we want, so the rules are explicit below.
+
+  if (descriptor->is_repeated() ||
+      descriptor->type() == FieldDescriptor::TYPE_MESSAGE) {
+    return false;
+  }
+  // has_optional_keyword() has more complex rules for proto2, but that
+  // doesn't matter given the first part of this condition.
+  return IsProto2(descriptor->file()) || descriptor->has_optional_keyword();
+}
+
+inline bool RequiresPresenceBit(const FieldDescriptor* descriptor) {
+  return SupportsPresenceApi(descriptor) &&
+    !IsNullable(descriptor) &&
+    !descriptor->is_extension() &&
+    !descriptor->real_containing_oneof();
+}
+
 }  // namespace csharp
 }  // namespace compiler
 }  // namespace protobuf
 }  // namespace google
+
+#include <google/protobuf/port_undef.inc>
+
 #endif  // GOOGLE_PROTOBUF_COMPILER_CSHARP_HELPERS_H__

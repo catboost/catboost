@@ -90,6 +90,7 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\cpp\cpp_map_field.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\cpp\cpp_message.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\cpp\cpp_message_field.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\cpp\cpp_padding_optimizer.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\cpp\cpp_primitive_field.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\cpp\cpp_service.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\cpp\cpp_string_field.cc"/>
@@ -123,8 +124,6 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_generator.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_generator_factory.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_helpers.cc"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_lazy_message_field.cc"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_lazy_message_field_lite.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_map_field.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_map_field_lite.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_message.cc"/>
@@ -140,17 +139,6 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_shared_code_generator.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_string_field.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_string_field_lite.cc"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\javanano\javanano_enum.cc"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\javanano\javanano_enum_field.cc"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\javanano\javanano_extension.cc"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\javanano\javanano_field.cc"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\javanano\javanano_file.cc"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\javanano\javanano_generator.cc"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\javanano\javanano_helpers.cc"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\javanano\javanano_map_field.cc"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\javanano\javanano_message.cc"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\javanano\javanano_message_field.cc"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\javanano\javanano_primitive_field.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\js\js_generator.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\js\well_known_types_embed.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\objectivec\objectivec_enum.cc"/>
@@ -187,7 +175,10 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\cpp\cpp_map_field.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\cpp\cpp_message.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\cpp\cpp_message_field.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\cpp\cpp_message_layout_helper.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\cpp\cpp_names.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\cpp\cpp_options.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\cpp\cpp_padding_optimizer.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\cpp\cpp_primitive_field.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\cpp\cpp_service.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\cpp\cpp_string_field.h"/>
@@ -223,8 +214,6 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_generator.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_generator_factory.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_helpers.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_lazy_message_field.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_lazy_message_field_lite.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_map_field.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_map_field_lite.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_message.h"/>
@@ -234,6 +223,7 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_message_field_lite.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_message_lite.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_name_resolver.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_names.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_options.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_primitive_field.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_primitive_field_lite.h"/>
@@ -241,18 +231,6 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_shared_code_generator.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_string_field.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_string_field_lite.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\javanano\javanano_enum.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\javanano\javanano_enum_field.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\javanano\javanano_extension.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\javanano\javanano_field.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\javanano\javanano_file.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\javanano\javanano_generator.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\javanano\javanano_helpers.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\javanano\javanano_map_field.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\javanano\javanano_message.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\javanano\javanano_message_field.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\javanano\javanano_params.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\javanano\javanano_primitive_field.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\js\js_generator.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\js\well_known_types_embed.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\objectivec\objectivec_enum.h"/>
@@ -265,6 +243,7 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\objectivec\objectivec_map_field.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\objectivec\objectivec_message.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\objectivec\objectivec_message_field.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\objectivec\objectivec_nsobject_methods.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\objectivec\objectivec_oneof.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\objectivec\objectivec_primitive_field.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\parser.h"/>
@@ -275,6 +254,7 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\plugin.pb.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\python\python_generator.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\ruby\ruby_generator.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\scc.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\subprocess.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\zip_writer.h"/>
   </ItemGroup>

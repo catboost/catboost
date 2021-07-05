@@ -41,14 +41,12 @@ namespace NPlugins {
     }
 
     TProtoStringType HeaderFileName(const FileDescriptor* file) {
-        TProtoStringType basename = cpp::StripProto(file->name());
-
+        TProtoStringType basename = compiler::StripProto(file->name());
         return basename.append(".pb.h");
     }
 
     TProtoStringType SourceFileName(const FileDescriptor* file) {
-        TProtoStringType basename = cpp::StripProto(file->name());
-
+        TProtoStringType basename = compiler::StripProto(file->name());
         return basename.append(".pb.cc");
     }
 
@@ -116,7 +114,7 @@ namespace NPlugins {
             }
 
             void GenerateAccessorDeclarations(io::Printer* printer) {
-                Variables_["type"] = FieldMessageTypeName(Field_);
+                Variables_["type"] = QualifiedClassName(Field_->message_type());
 
                 printer->Print(Variables_,
                     "inline const $type$& Get$rname$() const { return $name$(); }\n"
@@ -143,7 +141,7 @@ namespace NPlugins {
 
                 switch (Val_->cpp_type()) {
                     case FieldDescriptor::CPPTYPE_MESSAGE:
-                        Variables_["val_cpp"] = FieldMessageTypeName(Val_);
+                        Variables_["val_cpp"] = QualifiedClassName(Val_->message_type());
                         break;
                     case FieldDescriptor::CPPTYPE_ENUM:
                         Variables_["val_cpp"] = ClassName(Val_->enum_type(), true);
@@ -216,7 +214,7 @@ namespace NPlugins {
             }
 
             void GenerateAccessorDeclarations(io::Printer* printer) {
-                Variables_["type"] = FieldMessageTypeName(Field_);
+                Variables_["type"] = QualifiedClassName(Field_->message_type());
 
                 printer->Print(Variables_,
                     "inline const $type$& Get$rname$(size_t _index) const {Y_ASSERT(_index < static_cast<size_t>(::Max<int>())); return $name$(int(_index)); }\n"

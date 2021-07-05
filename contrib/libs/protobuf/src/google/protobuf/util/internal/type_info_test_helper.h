@@ -32,9 +32,6 @@
 #define GOOGLE_PROTOBUF_UTIL_CONVERTER_TYPE_INFO_TEST_HELPER_H__
 
 #include <memory>
-#ifndef _SHARED_PTR_H
-#error #include <google/protobuf/stubs/shared_ptr.h>
-#endif
 #include <vector>
 
 #include <google/protobuf/io/coded_stream.h>
@@ -66,7 +63,7 @@ class TypeInfoTestHelper {
   // Creates a TypeInfo object for the given set of descriptors.
   void ResetTypeInfo(const std::vector<const Descriptor*>& descriptors);
 
-  // Convinent overloads.
+  // Convenient overloads.
   void ResetTypeInfo(const Descriptor* descriptor);
   void ResetTypeInfo(const Descriptor* descriptor1,
                      const Descriptor* descriptor2);
@@ -74,25 +71,26 @@ class TypeInfoTestHelper {
   // Returns the TypeInfo created after ResetTypeInfo.
   TypeInfo* GetTypeInfo();
 
-  ProtoStreamObjectSource* NewProtoSource(io::CodedInputStream* coded_input,
-                                          const string& type_url);
+  ProtoStreamObjectSource* NewProtoSource(
+      io::CodedInputStream* coded_input, const TProtoStringType& type_url,
+      ProtoStreamObjectSource::RenderOptions render_options = {});
 
   ProtoStreamObjectWriter* NewProtoWriter(
-      const string& type_url, strings::ByteSink* output,
+      const TProtoStringType& type_url, strings::ByteSink* output,
       ErrorListener* listener, const ProtoStreamObjectWriter::Options& options);
 
-  DefaultValueObjectWriter* NewDefaultValueWriter(const string& type_url,
+  DefaultValueObjectWriter* NewDefaultValueWriter(const TProtoStringType& type_url,
                                                   ObjectWriter* writer);
 
  private:
   TypeInfoSource type_;
-  google::protobuf::scoped_ptr<TypeInfo> typeinfo_;
-  google::protobuf::scoped_ptr<TypeResolver> type_resolver_;
+  std::unique_ptr<TypeInfo> typeinfo_;
+  std::unique_ptr<TypeResolver> type_resolver_;
 };
 }  // namespace testing
 }  // namespace converter
 }  // namespace util
 }  // namespace protobuf
-
 }  // namespace google
+
 #endif  // GOOGLE_PROTOBUF_UTIL_CONVERTER_TYPE_INFO_TEST_HELPER_H__
