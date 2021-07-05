@@ -278,7 +278,7 @@ NCatboostCuda::TComputePairwiseScoresHelper& NCatboostCuda::TComputePairwiseScor
                    streamId);
 
         if (result->SqrtMatrices) {
-            CopyReducedTempResult(sqrtMatrix,
+            CopyReducedTempResult(sqrtMatrix.AsConstBuf(),
                                   flatResultsSlice,
                                   *result->SqrtMatrices,
                                   streamId);
@@ -304,7 +304,7 @@ NCatboostCuda::TComputePairwiseScoresHelper& NCatboostCuda::TComputePairwiseScor
                       streamId);
 
         if (result->LinearSystems) {
-            CopyReducedTempResult(linearSystem,
+            CopyReducedTempResult(linearSystem.AsConstBuf(),
                                   flatResultsSlice,
                                   *result->LinearSystems,
                                   streamId);

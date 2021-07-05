@@ -102,7 +102,7 @@ namespace NCatboostCuda {
                         TSingleBuffer<ui64> compressedBits = TSingleBuffer<ui64>::Create(NCudaLib::TSingleMapping(dev, compressedSize));
                         TSingleBuffer<const ui32> indices;
                         if (readIndices) {
-                            indices = readIndices->DeviceView(dev);
+                            indices = readIndices->DeviceView(dev).AsConstBuf();
                         }
                         CreateCompressedSplit(ds, feature, split.BinIdx, compressedBits, readIndices ? &indices : nullptr);
                         Reshard(compressedBits, broadcastedBits);
