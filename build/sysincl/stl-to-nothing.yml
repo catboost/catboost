@@ -95,6 +95,7 @@
   - scoped_allocator
   - set
   - shared_mutex
+  - span
   - sstream
   - stack
   - stdexcept
@@ -117,3 +118,14 @@
   - vector
   - unwind.h:
     - contrib/libs/libunwind/include/unwind.h
+
+
+# Though these are headers provided by libcxx, we do not want to allow them to be included.
+# We are using non-existent filename to generate error instead, as there is no specific syntax for this case.
+- includes:
+  - ext/hash_map:              DO_NOT_INCLUDE_NON_STANDARD_EXT_HASH_MAP
+  - ext/hash_set:              DO_NOT_INCLUDE_NON_STANDARD_EXT_HASH_SET
+
+  # TODO: remove these includes after solving issues with the code which includes them
+  - experimental/optional:     contrib/libs/cxxsupp/libcxx/include/experimental/optional
+  - experimental/string_view:  contrib/libs/cxxsupp/libcxx/include/experimental/string_view
