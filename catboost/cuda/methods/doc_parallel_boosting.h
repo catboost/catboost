@@ -336,8 +336,10 @@ namespace NCatboostCuda {
 
                     const auto& taskDataSet = dataSet.GetDataSetForPermutation(learnPermutationId);
                     using TWeakTarget = typename TTargetAtPointTrait<TObjective>::Type;
-                    auto target = TTargetAtPointTrait<TObjective>::Create(*(learnTarget[learnPermutationId]),
-                                                                          (*learnCursors)[learnPermutationId]);
+                    auto target = TTargetAtPointTrait<TObjective>::Create(
+                        *(learnTarget[learnPermutationId]),
+                        (*learnCursors)[learnPermutationId].AsConstBuf()
+                    );
                     auto mult = CalcScoreModelLengthMult(dataSet.GetDataProvider().GetObjectCount(),
                                                          iteration * step);
                     auto optimizer = weak->template CreateStructureSearcher<TWeakTarget, TDocParallelDataSet>(
@@ -357,10 +359,12 @@ namespace NCatboostCuda {
 
                     for (ui32 permutation = 0; permutation < permutationCount; ++permutation) {
                         const auto& taskDataSet = dataSet.GetDataSetForPermutation(permutation);
-                        estimator.AddEstimationTask(*(learnTarget[permutation]),
-                                                    taskDataSet,
-                                                    (*learnCursors)[permutation],
-                                                    &iterationModels[permutation]);
+                        estimator.AddEstimationTask(
+                            *(learnTarget[permutation]),
+                            taskDataSet,
+                            (*learnCursors)[permutation].AsConstBuf(),
+                            &iterationModels[permutation]
+                        );
                     }
                     estimator.Estimate(LocalExecutor);
                 }

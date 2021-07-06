@@ -82,14 +82,14 @@ namespace NCatboostCuda {
                 }
                 {
                     if (featuresScoreCalcer) {
-                        featuresScoreCalcer->ComputeOptimalSplit(reducedPartStats,
-                                                                 featureWeights,
+                        featuresScoreCalcer->ComputeOptimalSplit(reducedPartStats.AsConstBuf(),
+                                                                 featureWeights.AsConstBuf(),
                                                                  scoreStdDevMult,
                                                                  random.NextUniformL());
                     }
                     if (simpleCtrScoreCalcer) {
-                        simpleCtrScoreCalcer->ComputeOptimalSplit(reducedPartStats,
-                                                                  featureWeights,
+                        simpleCtrScoreCalcer->ComputeOptimalSplit(reducedPartStats.AsConstBuf(),
+                                                                  featureWeights.AsConstBuf(),
                                                                   scoreStdDevMult,
                                                                   random.NextUniformL());
                     }

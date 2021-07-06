@@ -46,7 +46,7 @@ NCatboostCuda::TTreeCtrDataSetBuilder::TConstVec NCatboostCuda::TTreeCtrDataSetB
                           bordersVecSlice);
         TreeCtrDataSet.AreCtrBordersComputed[featureId] = true;
     }
-    return TreeCtrDataSet.CtrBorders.SliceView(bordersSlice);
+    return TreeCtrDataSet.CtrBorders.SliceView(bordersSlice).AsConstBuf();
 }
 
 void NCatboostCuda::TTreeCtrDataSetBuilder::ComputeCtrBorders(const NCatboostCuda::TTreeCtrDataSetBuilder::TVec& ctr,
@@ -191,7 +191,7 @@ void NCatboostCuda::TTreeCtrDataSetsHelper::AddNewDataSets(const NCatboostCuda::
 
     for (ui32 dev = 0; dev < devCount; ++dev) {
         AddDataSetPacks(tensor,
-                        TensorTrackers[tensor].GetIndices().DeviceView(dev),
+                        TensorTrackers[tensor].GetIndices().DeviceView(dev).AsConstBuf(),
                         dev,
                         DataSets[dev]);
     }
@@ -207,7 +207,7 @@ void NCatboostCuda::TTreeCtrDataSetsHelper::UpdatePureTreeCtrTensor(const NCatbo
 
     for (ui32 dev = 0; dev < devCount; ++dev) {
         AddDataSetPacks(PureTreeCtrTensorTracker.GetCurrentTensor(),
-                        PureTreeCtrTensorTracker.GetIndices().DeviceView(dev),
+                        PureTreeCtrTensorTracker.GetIndices().DeviceView(dev).AsConstBuf(),
                         dev,
                         PureTreeCtrDataSets[dev]);
     }
