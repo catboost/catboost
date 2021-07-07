@@ -83,6 +83,7 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\flatbuffers\grpc\src\compiler\java_generator.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\flatbuffers\grpc\src\compiler\python_generator.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\flatbuffers\grpc\src\compiler\swift_generator.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\flatbuffers\grpc\src\compiler\ts_generator.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\flatbuffers\src\code_generators.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\flatbuffers\src\flatc.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\flatbuffers\src\idl_gen_cpp.cpp"/>
@@ -93,7 +94,6 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\flatbuffers\src\idl_gen_go.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\flatbuffers\src\idl_gen_grpc.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\flatbuffers\src\idl_gen_java.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\flatbuffers\src\idl_gen_js_ts.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\flatbuffers\src\idl_gen_json_schema.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\flatbuffers\src\idl_gen_kotlin.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\flatbuffers\src\idl_gen_lobster.cpp"/>
@@ -102,6 +102,11 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\flatbuffers\src\idl_gen_python.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\flatbuffers\src\idl_gen_rust.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\flatbuffers\src\idl_gen_swift.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\flatbuffers\src\idl_gen_text.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\flatbuffers\src\idl_gen_ts.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\flatbuffers\src\idl_parser.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\flatbuffers\src\reflection.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\flatbuffers\src\util.cpp"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
@@ -111,9 +116,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\libcxx\libs-cxxsupp-libcxx.vcxproj">
       <Project>{671FE333-6D0D-E7E3-0E1D-D4CB43CF879D}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\flatbuffers\contrib-libs-flatbuffers.vcxproj">
-      <Project>{B88207AE-800B-A7B1-AE0B-F609E8684A5A}</Project>
     </ProjectReference>
   </ItemGroup>
 </Project>
