@@ -485,7 +485,7 @@ class CppIterGenerator : public BaseGenerator {
   void GenVerifyCall(const FieldDef &field, const char *prefix) {
     code_.SetValue("PRE", prefix);
     code_.SetValue("NAME", Name(field));
-    code_.SetValue("REQUIRED", field.required ? "Required" : "");
+    code_.SetValue("REQUIRED", field.IsRequired() ? "Required" : "");
     code_.SetValue("SIZE", GenTypeSize(field.value.type));
     code_.SetValue("OFFSET", GenFieldOffsetName(field));
     code_ += "{{PRE}}this->template VerifyField{{REQUIRED}}<{{SIZE}}>(verifier, {{OFFSET}})\\";
