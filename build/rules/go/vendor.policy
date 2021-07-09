@@ -4,6 +4,9 @@
 
 ALLOW vendor/ -> .*
 
+# CONTRIB-2166
+ALLOW .* -> vendor/github.com/openconfig/gnmi
+
 # CONTRIB-2225
 ALLOW .* -> vendor/github.com/sijms/go-ora
 
