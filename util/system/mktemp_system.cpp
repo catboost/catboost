@@ -55,7 +55,7 @@ static const unsigned char padchar[] =
 "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
 static int
-_gettemp(char *path, int *doopen, int domkdir, int slen)
+GetTemp(char *path, int *doopen, int domkdir, int slen)
 {
         char *start, *trv, *suffp;
         char *pad;
@@ -157,12 +157,12 @@ _gettemp(char *path, int *doopen, int domkdir, int slen)
 extern "C" int mkstemps(char *path, int slen) {
     int fd;
 
-    return (_gettemp(path, &fd, 0, slen) ? fd : -1);
+    return (GetTemp(path, &fd, 0, slen) ? fd : -1);
 }
 
 #if defined(_win_)
 char *
 mkdtemp(char *path) {
-    return (_gettemp(path, (int *)nullptr, 1, 0) ? path : (char *)nullptr);
+    return (GetTemp(path, (int *)nullptr, 1, 0) ? path : (char *)nullptr);
 }
 #endif
