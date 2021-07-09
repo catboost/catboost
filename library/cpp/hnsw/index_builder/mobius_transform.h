@@ -4,6 +4,10 @@
 #include <library/cpp/dot_product/dot_product.h>
 #include <util/generic/buffer.h>
 #include <util/memory/blob.h>
+#include <util/system/yassert.h>
+
+#include <type_traits>
+
 
 namespace NHnsw {
 
