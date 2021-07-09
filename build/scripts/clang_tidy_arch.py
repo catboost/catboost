@@ -12,11 +12,7 @@ def parse_args():
 
 def main():
     args, unknown_args = parse_args()
-    inputs = unknown_args[1:]
-
-    target = unknown_args[0]
-    open(target, 'w').close()
-
+    inputs = unknown_args
     result_json = {}
     for inp in inputs:
         if os.path.exists(inp) and inp.endswith("tidyjson"):

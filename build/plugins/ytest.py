@@ -404,6 +404,7 @@ def onadd_ytest(unit, *args):
         # TODO get rid of BUILD-FOLDER-PATH
         'BUILD-FOLDER-PATH': unit_path,
         'BINARY-PATH': "{}/{}".format(unit_path, unit.filename()),
+        'GLOBAL-LIBRARY-PATH': unit.global_filename(),
         'CUSTOM-DEPENDENCIES': ' '.join(spec_args.get('DEPENDS', []) + get_values_list(unit, 'TEST_DEPENDS_VALUE')),
         'TEST-RECIPES': prepare_recipes(unit.get("TEST_RECIPES_VALUE")),
         'TEST-ENV': prepare_env(unit.get("TEST_ENV_VALUE")),
