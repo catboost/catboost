@@ -744,7 +744,7 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
             auto pred = [](auto s) { return s.size() == 3; };
             UNIT_ASSERT_VALUES_EQUAL(AllOf(ts, pred), AllOf(ts, pred));
         }
-   }
+    }
 
     Y_UNIT_TEST(TestTupleAnyOf) {
         UNIT_ASSERT(!AnyOf(std::tuple<>{}, [](auto) { return true; }));

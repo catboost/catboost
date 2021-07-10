@@ -971,10 +971,12 @@ Y_UNIT_TEST_SUITE(TMaybeTest) {
             bool FromMaybeConstructorApplied;
 
             explicit TDst(TSrc)
-                : FromMaybeConstructorApplied(false) {}
+                : FromMaybeConstructorApplied(false) {
+            }
 
             explicit TDst(TMaybe<TSrc>)
-                : FromMaybeConstructorApplied(true) {}
+                : FromMaybeConstructorApplied(true) {
+            }
 
             TDst& operator=(TSrc) {
                 FromMaybeConstructorApplied = false;

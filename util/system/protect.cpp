@@ -7,11 +7,11 @@
 #include "yassert.h"
 
 #if defined(_unix_) || defined(_darwin_)
-#include <sys/mman.h>
+    #include <sys/mman.h>
 #endif
 
 #ifdef _win_
-#include <Windows.h>
+    #include <Windows.h>
 #endif
 
 static TString ModeToString(const EProtectMemory mode) {

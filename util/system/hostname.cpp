@@ -5,13 +5,13 @@
 #include <util/network/ip.h>
 
 #if defined(_unix_)
-#include <unistd.h>
-#include <ifaddrs.h>
-#include <netdb.h>
+    #include <unistd.h>
+    #include <ifaddrs.h>
+    #include <netdb.h>
 #endif
 
 #if defined(_win_)
-#include <WinSock2.h>
+    #include <WinSock2.h>
 #endif
 
 #include "defaults.h"

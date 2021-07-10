@@ -8,29 +8,29 @@
 #include <util/system/byteorder.h>
 
 #if defined(_unix_)
-#include <netdb.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <sys/un.h>
-#include <sys/ioctl.h>
-#include <netinet/in.h>
-#include <netinet/tcp.h>
-#include <arpa/inet.h>
+    #include <netdb.h>
+    #include <sys/types.h>
+    #include <sys/socket.h>
+    #include <sys/un.h>
+    #include <sys/ioctl.h>
+    #include <netinet/in.h>
+    #include <netinet/tcp.h>
+    #include <arpa/inet.h>
 #endif
 
 #if defined(_freebsd_)
-#include <sys/module.h>
-#define ACCEPT_FILTER_MOD
-#include <sys/socketvar.h>
+    #include <sys/module.h>
+    #define ACCEPT_FILTER_MOD
+    #include <sys/socketvar.h>
 #endif
 
 #if defined(_win_)
-#include <cerrno>
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#include <wspiapi.h>
+    #include <cerrno>
+    #include <winsock2.h>
+    #include <ws2tcpip.h>
+    #include <wspiapi.h>
 
-#include <util/system/compat.h>
+    #include <util/system/compat.h>
 #endif
 
 #include <util/generic/ylimits.h>
@@ -61,7 +61,7 @@ int inet_aton(const char* cp, struct in_addr* inp) {
     return 0;
 }
 
-#if (_WIN32_WINNT < 0x0600)
+    #if (_WIN32_WINNT < 0x0600)
 const char* inet_ntop(int af, const void* src, char* dst, socklen_t size) {
     if (af != AF_INET) {
         errno = EINVAL;
@@ -236,7 +236,7 @@ int poll(struct pollfd fds[], nfds_t nfds, int timeout) noexcept {
         return -1;
     }
 }
-#endif
+    #endif
 
 #endif
 
@@ -271,13 +271,13 @@ void SetSocketTimeout(SOCKET s, long timeout) {
 
 void SetSocketTimeout(SOCKET s, long sec, long msec) {
 #ifdef SO_SNDTIMEO
-#ifdef _darwin_
+    #ifdef _darwin_
     const timeval timeout = {sec, (__darwin_suseconds_t)msec * 1000};
-#elif defined(_unix_)
+    #elif defined(_unix_)
     const timeval timeout = {sec, msec * 1000};
-#else
+    #else
     const int timeout = sec * 1000 + msec;
-#endif
+    #endif
     CheckedSetSockOpt(s, SOL_SOCKET, SO_RCVTIMEO, timeout, "recv timeout");
     CheckedSetSockOpt(s, SOL_SOCKET, SO_SNDTIMEO, timeout, "send timeout");
 #endif
@@ -308,7 +308,7 @@ void SetInputBuffer(SOCKET s, unsigned value) {
 }
 
 #if defined(_linux_) && !defined(SO_REUSEPORT)
-#define SO_REUSEPORT 15
+    #define SO_REUSEPORT 15
 #endif
 
 void SetReusePort(SOCKET s, bool value) {
@@ -441,9 +441,9 @@ bool HasLocalAddress(SOCKET socket) {
 
 namespace {
 #if defined(_linux_)
-#if !defined(TCP_FASTOPEN)
-#define TCP_FASTOPEN 23
-#endif
+    #if !defined(TCP_FASTOPEN)
+        #define TCP_FASTOPEN 23
+    #endif
 #endif
 
 #if defined(TCP_FASTOPEN)
@@ -546,7 +546,7 @@ void TSocketHolder::Close() noexcept {
 #elif defined(_unix_)
             Y_VERIFY(errno != EBADF, "must not quietly close bad descriptor: fd=%d", int(Fd_));
 #else
-#error unsupported platform
+    #error unsupported platform
 #endif
         }
 
@@ -950,7 +950,8 @@ private:
     public:
         TAddrInfoDeleter(bool useFreeAddrInfo = true)
             : UseFreeAddrInfo_(useFreeAddrInfo)
-        {}
+        {
+        }
 
         void operator()(struct addrinfo* ai) noexcept {
             if (!UseFreeAddrInfo_ && ai != NULL) {
@@ -958,7 +959,7 @@ private:
                     delete ai->ai_addr;
                 }
 
-                struct addrinfo *p;
+                struct addrinfo* p;
                 while (ai != NULL) {
                     p = ai;
                     ai = ai->ai_next;
@@ -1157,20 +1158,20 @@ static inline bool IsNonBlockSocket(SOCKET fd) {
 
 void SetNonBlock(SOCKET fd, bool value) {
 #if defined(_unix_)
-#if defined(FIONBIO)
+    #if defined(FIONBIO)
     Y_UNUSED(SetFlag); // shut up clang about unused function
     int nb = value;
 
     if (ioctl(fd, FIONBIO, &nb) < 0) {
         ythrow TSystemError() << "ioctl failed";
     }
-#else
+    #else
     SetFlag(fd, O_NONBLOCK, value);
-#endif
+    #endif
 #elif defined(_win_)
     SetNonBlockSocket(fd, value);
 #else
-#error todo
+    #error todo
 #endif
 }
 
@@ -1180,7 +1181,7 @@ bool IsNonBlock(SOCKET fd) {
 #elif defined(_win_)
     return IsNonBlockSocket(fd);
 #else
-#error todo
+    #error todo
 #endif
 }
 

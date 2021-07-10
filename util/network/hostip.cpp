@@ -5,17 +5,17 @@
 #include <util/system/byteorder.h>
 
 #if defined(_unix_) || defined(_cygwin_)
-#include <netdb.h>
+    #include <netdb.h>
 #endif
 
 #if !defined(BIND_LIB)
-#if !defined(__FreeBSD__) && !defined(_win32_) && !defined(_cygwin_)
-#define AGENT_USE_GETADDRINFO
-#endif
+    #if !defined(__FreeBSD__) && !defined(_win32_) && !defined(_cygwin_)
+        #define AGENT_USE_GETADDRINFO
+    #endif
 
-#if defined(__FreeBSD__)
-#define AGENT_USE_GETADDRINFO
-#endif
+    #if defined(__FreeBSD__)
+        #define AGENT_USE_GETADDRINFO
+    #endif
 #endif
 
 int NResolver::GetHostIP(const char* hostname, ui32* ip, size_t* slots) {

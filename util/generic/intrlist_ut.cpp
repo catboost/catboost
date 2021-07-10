@@ -476,14 +476,15 @@ void TListTest::TestListWithAutoDeleteClear() {
     UNIT_ASSERT_EQUAL(counter, 0);
 }
 
-struct TSecondTag { };
+struct TSecondTag {};
 
 class TDoubleNode
-    : public TInt
-    , public TIntrusiveListItem<TDoubleNode, TSecondTag>
-{
+    : public TInt,
+      public TIntrusiveListItem<TDoubleNode, TSecondTag> {
 public:
-    TDoubleNode(int value) noexcept: TInt(value)  { }
+    TDoubleNode(int value) noexcept
+        : TInt(value) {
+    }
 };
 
 void TListTest::TestSecondTag() {

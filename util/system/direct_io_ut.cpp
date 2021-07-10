@@ -10,7 +10,6 @@
 static const char* FileName_("./test.file");
 
 Y_UNIT_TEST_SUITE(TDirectIoTestSuite) {
-
     Y_UNIT_TEST(TestDirectFile) {
         TDirectIOBufferedFile file(FileName_, RdWr | Direct | Seq | CreateAlways, 1 << 15);
         TVector<ui64> data((1 << 15) + 1);
@@ -76,12 +75,12 @@ Y_UNIT_TEST_SUITE(TDirectIoTestSuite) {
     }
 
     Y_UNIT_TEST(TestHugeFile1) {
-        if constexpr(sizeof(size_t) > 4) {
+        if constexpr (sizeof(size_t) > 4) {
             TestHugeFile(5 * 1024 * 1024 * 1024ULL);
         }
     }
     Y_UNIT_TEST(TestHugeFile2) {
-        if constexpr(sizeof(size_t) > 4) {
+        if constexpr (sizeof(size_t) > 4) {
             TestHugeFile(5 * 1024 * 1024 * 1024ULL + 1111);
         }
     }
@@ -90,7 +89,7 @@ Y_UNIT_TEST_SUITE(TDirectIoTestSuite) {
 Y_UNIT_TEST_SUITE(TDirectIoErrorHandling) {
     Y_UNIT_TEST(Constructor) {
         // A non-existent file should not be opened for reading
-        UNIT_ASSERT_EXCEPTION(TDirectIOBufferedFile (FileName_, RdOnly, 1 << 15), TFileError);
+        UNIT_ASSERT_EXCEPTION(TDirectIOBufferedFile(FileName_, RdOnly, 1 << 15), TFileError);
     }
 
     Y_UNIT_TEST(WritingReadOnlyFileBufferFlushed) {
@@ -111,5 +110,4 @@ Y_UNIT_TEST_SUITE(TDirectIoErrorHandling) {
         UNIT_ASSERT_EXCEPTION(file.Finish(), TFileError);
         NFs::Remove(FileName_);
     }
-
 }

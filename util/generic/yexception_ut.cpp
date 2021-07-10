@@ -20,7 +20,7 @@ static inline void Throw2DontMove() {
 #include "bt_exception.h"
 
 #if defined(_MSC_VER)
-#pragma warning(disable : 4702) /*unreachable code*/
+    #pragma warning(disable : 4702) /*unreachable code*/
 #endif
 
 static void CallbackFun(int i) {
@@ -114,7 +114,8 @@ private:
 
     inline void TestEnsureWithBackTrace2() {
         try {
-            Y_ENSURE_BT(4 > 6, "custom " << "message");
+            Y_ENSURE_BT(4 > 6, "custom "
+                                   << "message");
         } catch (...) {
             const TString msg = CurrentExceptionMessage();
             UNIT_ASSERT(!msg.Contains("4 > 6"));

@@ -2,15 +2,15 @@
 
 #ifndef _unix_
 
-#include <util/generic/utility.h>
+    #include <util/generic/utility.h>
 
-#include "winint.h"
-#include <io.h>
-#include <errno.h>
+    #include "winint.h"
+    #include <io.h>
+    #include <errno.h>
 
-#ifdef __cplusplus
+    #ifdef __cplusplus
 extern "C" {
-#endif
+    #endif
 
 int flock(int fd, int op) {
     return Flock((HANDLE)_get_osfhandle(fd), op);
@@ -64,8 +64,8 @@ int fsync(int fd) {
     return _commit(fd);
 }
 
-#ifdef __cplusplus
+    #ifdef __cplusplus
 }
-#endif
+    #endif
 
 #endif

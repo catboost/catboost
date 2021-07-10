@@ -5,7 +5,6 @@
 #include <util/generic/vector.h>
 
 Y_UNIT_TEST_SUITE(StorePolicy) {
-
     Y_UNIT_TEST(Compileability) {
         // construction
         TAutoEmbedOrPtrPolicy<THolder<int>>(MakeHolder<int>(1));
@@ -15,17 +14,16 @@ Y_UNIT_TEST_SUITE(StorePolicy) {
 
         // const
         (**TAutoEmbedOrPtrPolicy<THolder<int>>(MakeHolder<int>(1)).Ptr())++; // ok
-        (**TAutoEmbedOrPtrPolicy<THolder<int>&>(a).Ptr())++; // ok
+        (**TAutoEmbedOrPtrPolicy<THolder<int>&>(a).Ptr())++;                 // ok
 
         const TVector<int> b = {0};
         auto bValue = (*TAutoEmbedOrPtrPolicy<const TVector<int>&>(b).Ptr())[0]; // ok
         // (*TAutoEmbedOrPtrPolicy<const TVector<int>&>(b).Ptr())[0]++; // not ok
         Y_UNUSED(bValue);
-
     }
 
     template <typename T, typename TFunc>
-    void FunctionTakingRefDefaultIsObject(T&& a, TFunc func) {
+    void FunctionTakingRefDefaultIsObject(T && a, TFunc func) {
         TAutoEmbedOrPtrPolicy<T> refHolder(a);
         func(refHolder);
     }
@@ -51,12 +49,11 @@ Y_UNIT_TEST_SUITE(StorePolicy) {
                 static_assert(std::is_const<std::remove_reference_t<decltype(*holder.Ptr())>>::value);
                 UNIT_ASSERT_VALUES_EQUAL(holder.Ptr()->size(), 3);
             });
-
         }
     }
 
     template <typename T, typename TFunc>
-    void FunctionTakingObjectDefaultObject(T&& a, TFunc func) {
+    void FunctionTakingObjectDefaultObject(T && a, TFunc func) {
         TAutoEmbedOrPtrPolicy<T> objectHolder(std::forward<T>(a));
         func(objectHolder);
     }
@@ -87,5 +84,4 @@ Y_UNIT_TEST_SUITE(StorePolicy) {
             UNIT_ASSERT_VALUES_EQUAL(**secondHolder.Ptr(), 42);
         });
     }
-
 }

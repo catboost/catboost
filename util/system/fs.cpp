@@ -2,10 +2,10 @@
 #include "defaults.h"
 
 #if defined(_win_)
-#include "fs_win.h"
+    #include "fs_win.h"
 #else
-#include <unistd.h>
-#include <errno.h>
+    #include <unistd.h>
+    #include <errno.h>
 #endif
 
 #include <util/generic/yexception.h>

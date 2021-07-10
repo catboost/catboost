@@ -24,7 +24,9 @@ Y_DECLARE_OPERATORS_FOR_FLAGS(ETest2)
 
 namespace {
     // won't compile without Y_DECLARE_UNUSED
-    enum class ETestFlag3 { One = 1, Two = 2, Three = 3 };
+    enum class ETestFlag3 { One = 1,
+                            Two = 2,
+                            Three = 3 };
     Y_DECLARE_FLAGS(ETestFlags3, ETestFlag3)
     Y_DECLARE_OPERATORS_FOR_FLAGS(ETestFlags3)
 }

@@ -5,15 +5,15 @@
 #include <cstdlib>
 
 #if defined(_linux_) || defined(_cygwin_)
-#include <fcntl.h>
-#include <sys/sysinfo.h>
+    #include <fcntl.h>
+    #include <sys/sysinfo.h>
 #endif
 
 #if defined(_win_)
-#include "winint.h"
-#include <stdio.h>
+    #include "winint.h"
+    #include <stdio.h>
 #else
-#include <unistd.h>
+    #include <unistd.h>
 #endif
 
 #if defined(_bionic_)
@@ -27,16 +27,15 @@ static int getloadavg(double* loadavg, int nelem) {
     return nelem;
 }
 #elif defined(_unix_) || defined(_darwin_)
-#include <sys/types.h>
+    #include <sys/types.h>
 #endif
 
 #if defined(_freebsd_) || defined(_darwin_)
-#include <sys/sysctl.h>
+    #include <sys/sysctl.h>
 #endif
 
 #include <util/generic/yexception.h>
 #include <util/string/ascii.h>
-
 
 size_t NSystemInfo::NumberOfCpus() {
 #if defined(_win_)
@@ -110,7 +109,7 @@ size_t NSystemInfo::NumberOfCpus() {
 
     return ncpus;
 #else
-#error todo
+    #error todo
 #endif
 }
 
@@ -162,7 +161,7 @@ size_t NSystemInfo::TotalMemorySize() {
     struct sysinfo info;
     sysinfo(&info);
     return info.totalram;
-#elif defined (_darwin_)
+#elif defined(_darwin_)
     int mib[2];
     int64_t memSize;
     size_t length;
@@ -175,7 +174,7 @@ size_t NSystemInfo::TotalMemorySize() {
         ythrow yexception() << "sysctl failed: " << LastSystemErrorText();
     }
     return (size_t)memSize;
-#elif defined (_win_)
+#elif defined(_win_)
     MEMORYSTATUSEX memoryStatusEx;
     memoryStatusEx.dwLength = sizeof(memoryStatusEx);
     if (!GlobalMemoryStatusEx(&memoryStatusEx)) {

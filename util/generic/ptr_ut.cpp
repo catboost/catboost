@@ -207,7 +207,8 @@ void TPointerTest::TestMakeHolder() {
             TRec(int x, int y)
                 : X(x)
                 , Y(y)
-            {}
+            {
+            }
         };
         auto ptr = MakeHolder<TRec>(1, 2);
         UNIT_ASSERT_VALUES_EQUAL(ptr->X, 1);

@@ -8,11 +8,11 @@
 #include <cstring>
 
 #if defined(_unix_)
-#include <sys/unistd.h>
-#include <sys/mman.h>
-#if defined(_android_)
-#include <sys/syscall.h>
-#endif
+    #include <sys/unistd.h>
+    #include <sys/mman.h>
+    #if defined(_android_)
+        #include <sys/syscall.h>
+    #endif
 #endif
 
 void InCoreMemory(const void* addr, size_t len, unsigned char* vec, size_t vecLen) {

@@ -25,36 +25,36 @@
 #include <errno.h>
 
 #if defined(_unix_)
-#include <fcntl.h>
+    #include <fcntl.h>
 
-#if defined(_linux_) && (!defined(_android_) || __ANDROID_API__ >= 21) && !defined(FALLOC_FL_KEEP_SIZE)
-#include <linux/falloc.h>
-#endif
+    #if defined(_linux_) && (!defined(_android_) || __ANDROID_API__ >= 21) && !defined(FALLOC_FL_KEEP_SIZE)
+        #include <linux/falloc.h>
+    #endif
 
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/mman.h>
+    #include <stdlib.h>
+    #include <unistd.h>
+    #include <sys/mman.h>
 #elif defined(_win_)
-#include "winint.h"
-#include "fs_win.h"
-#include <io.h>
+    #include "winint.h"
+    #include "fs_win.h"
+    #include <io.h>
 #endif
 
 #if defined(_bionic_)
-#include <sys/sendfile.h>
-#define HAVE_POSIX_FADVISE 0
-#define HAVE_SYNC_FILE_RANGE 0
+    #include <sys/sendfile.h>
+    #define HAVE_POSIX_FADVISE 0
+    #define HAVE_SYNC_FILE_RANGE 0
 #elif defined(_linux_)
-#include <sys/sendfile.h>
-#define HAVE_POSIX_FADVISE 1
-#define HAVE_SYNC_FILE_RANGE 1
+    #include <sys/sendfile.h>
+    #define HAVE_POSIX_FADVISE 1
+    #define HAVE_SYNC_FILE_RANGE 1
 #elif defined(__FreeBSD__) && !defined(WITH_VALGRIND)
-#include <sys/param.h>
-#define HAVE_POSIX_FADVISE (__FreeBSD_version >= 900501)
-#define HAVE_SYNC_FILE_RANGE 0
+    #include <sys/param.h>
+    #define HAVE_POSIX_FADVISE (__FreeBSD_version >= 900501)
+    #define HAVE_SYNC_FILE_RANGE 0
 #else
-#define HAVE_POSIX_FADVISE 0
-#define HAVE_SYNC_FILE_RANGE 0
+    #define HAVE_POSIX_FADVISE 0
+    #define HAVE_SYNC_FILE_RANGE 0
 #endif
 
 static bool IsStupidFlagCombination(EOpenMode oMode) {
@@ -178,11 +178,11 @@ TFileHandle::TFileHandle(const TString& fName, EOpenMode oMode) noexcept {
         fcMode |= O_CLOEXEC;
     }
 
-/* I don't now about this for unix...
+    /* I don't now about this for unix...
     if (oMode & Temp) {
     }
     */
-#if defined(_freebsd_)
+    #if defined(_freebsd_)
     if (oMode & (Direct | DirectAligned)) {
         fcMode |= O_DIRECT;
     }
@@ -190,7 +190,7 @@ TFileHandle::TFileHandle(const TString& fName, EOpenMode oMode) noexcept {
     if (oMode & Sync) {
         fcMode |= O_SYNC;
     }
-#elif defined(_linux_)
+    #elif defined(_linux_)
     if (oMode & DirectAligned) {
         /*
          * O_DIRECT in Linux requires aligning request size and buffer address
@@ -202,11 +202,11 @@ TFileHandle::TFileHandle(const TString& fName, EOpenMode oMode) noexcept {
     if (oMode & Sync) {
         fcMode |= O_SYNC;
     }
-#endif
+    #endif
 
-#if defined(_linux_)
+    #if defined(_linux_)
     fcMode |= O_LARGEFILE;
-#endif
+    #endif
 
     ui32 permMode = 0;
     if (oMode & AXOther) {
@@ -241,7 +241,7 @@ TFileHandle::TFileHandle(const TString& fName, EOpenMode oMode) noexcept {
         Fd_ = ::open(fName.data(), fcMode, permMode);
     } while (Fd_ == -1 && errno == EINTR);
 
-#if HAVE_POSIX_FADVISE
+    #if HAVE_POSIX_FADVISE
     if (Fd_ >= 0) {
         if (oMode & NoReuse) {
             ::posix_fadvise(Fd_, 0, 0, POSIX_FADV_NOREUSE);
@@ -255,14 +255,14 @@ TFileHandle::TFileHandle(const TString& fName, EOpenMode oMode) noexcept {
             ::posix_fadvise(Fd_, 0, 0, POSIX_FADV_RANDOM);
         }
     }
-#endif
+    #endif
 
     //temp file
     if (Fd_ >= 0 && (oMode & Transient)) {
         unlink(fName.data());
     }
 #else
-#error unsupported platform
+    #error unsupported platform
 #endif
 }
 
@@ -287,7 +287,7 @@ bool TFileHandle::Close() noexcept {
         Y_VERIFY(errno != EBADF, "must not quietly close bad descriptor: fd=%d", int(Fd_));
     }
 #else
-#error unsupported platform
+    #error unsupported platform
 #endif
     Fd_ = INVALID_FHANDLE;
     return isOk;
@@ -308,13 +308,13 @@ static inline i64 DoSeek(FHANDLE h, i64 offset, SeekDir origin) noexcept {
     return pos.QuadPart;
 #elif defined(_unix_)
     static int dir[] = {SEEK_SET, SEEK_CUR, SEEK_END};
-#if defined(_sun_)
+    #if defined(_sun_)
     return ::llseek(h, (offset_t)offset, dir[origin]);
-#else
+    #else
     return ::lseek(h, (off_t)offset, dir[origin]);
-#endif
+    #endif
 #else
-#error unsupported platform
+    #error unsupported platform
 #endif
 }
 
@@ -358,7 +358,7 @@ bool TFileHandle::Resize(i64 length) noexcept {
 #elif defined(_unix_)
     return (0 == ftruncate(Fd_, (off_t)length));
 #else
-#error unsupported platform
+    #error unsupported platform
 #endif
 }
 
@@ -382,7 +382,7 @@ bool TFileHandle::Reserve(i64 length) noexcept {
 #elif defined(_unix_)
 // No way to implement this under FreeBSD. Just do nothing
 #else
-#error unsupported platform
+    #error unsupported platform
 #endif
     return true;
 }
@@ -405,9 +405,9 @@ bool TFileHandle::ShrinkToFit() noexcept {
         return false;
     }
 #if defined(_linux_) && (!defined(_android_) || __ANDROID_API__ >= 21)
-        return !ftruncate(Fd_, (off_t) GetLength());
+    return !ftruncate(Fd_, (off_t)GetLength());
 #else
-        return true;
+    return true;
 #endif
 }
 
@@ -432,13 +432,13 @@ bool TFileHandle::Flush() noexcept {
      * Fail in case of EIO, ENOSPC, EDQUOT - data might be lost.
      */
     return ret == 0 || errno == EROFS || errno == EINVAL
-#if defined(_darwin_)
+    #if defined(_darwin_)
            // ENOTSUP fd does not refer to a vnode
            || errno == ENOTSUP
-#endif
+    #endif
         ;
 #else
-#error unsupported platform
+    #error unsupported platform
 #endif
 }
 
@@ -475,7 +475,7 @@ i32 TFileHandle::Read(void* buffer, ui32 byteCount) noexcept {
     } while (ret == -1 && errno == EINTR);
     return ret;
 #else
-#error unsupported platform
+    #error unsupported platform
 #endif
 }
 
@@ -496,7 +496,7 @@ i32 TFileHandle::Write(const void* buffer, ui32 byteCount) noexcept {
     } while (ret == -1 && errno == EINTR);
     return ret;
 #else
-#error unsupported platform
+    #error unsupported platform
 #endif
 }
 
@@ -521,7 +521,7 @@ i32 TFileHandle::Pread(void* buffer, ui32 byteCount, i64 offset) const noexcept 
     } while (ret == -1 && errno == EINTR);
     return ret;
 #else
-#error unsupported platform
+    #error unsupported platform
 #endif
 }
 
@@ -543,7 +543,7 @@ i32 TFileHandle::Pwrite(const void* buffer, ui32 byteCount, i64 offset) const no
     } while (ret == -1 && errno == EINTR);
     return ret;
 #else
-#error unsupported platform
+    #error unsupported platform
 #endif
 }
 
@@ -560,7 +560,7 @@ FHANDLE TFileHandle::Duplicate() const noexcept {
 #elif defined(_unix_)
     return ::dup(Fd_);
 #else
-#error unsupported platform
+    #error unsupported platform
 #endif
 }
 
@@ -592,7 +592,7 @@ int TFileHandle::Duplicate2Posix(int dstHandle) const noexcept {
     }
     return dstHandle;
 #else
-#error unsupported platform
+    #error unsupported platform
 #endif
 }
 
@@ -616,7 +616,7 @@ bool TFileHandle::LinkTo(const TFileHandle& fh) const noexcept {
 
     return true;
 #else
-#error unsupported
+    #error unsupported
 #endif
 }
 
@@ -645,7 +645,7 @@ void TFileHandle::ResetDirect() {
 i64 TFileHandle::CountCache(i64 offset, i64 length) const noexcept {
 #ifdef _linux_
     const i64 pageSize = NSystemInfo::GetPageSize();
-    constexpr size_t vecSize = 512;  // Fetch up to 2MiB at once
+    constexpr size_t vecSize = 512; // Fetch up to 2MiB at once
     const i64 batchSize = vecSize * pageSize;
     std::array<ui8, vecSize> vec;
     void* ptr = nullptr;
@@ -722,10 +722,10 @@ i64 TFileHandle::CountCache(i64 offset, i64 length) const noexcept {
 
 void TFileHandle::PrefetchCache(i64 offset, i64 length, bool wait) const noexcept {
 #ifdef _linux_
-#if HAVE_POSIX_FADVISE
+    #if HAVE_POSIX_FADVISE
     // POSIX_FADV_WILLNEED starts reading upto read_ahead_kb in background
     ::posix_fadvise(Fd_, offset, length, POSIX_FADV_WILLNEED);
-#endif
+    #endif
 
     if (wait) {
         TFileHandle devnull("/dev/null", OpenExisting | WrOnly | CloseOnExec);
@@ -779,12 +779,12 @@ TString DecodeOpenMode(ui32 mode0) {
 
     TStringBuilder r;
 
-#define F(flag)                    \
-    if ((mode & flag) == flag) {   \
-        mode &= ~flag;             \
-        if (r) {                   \
+#define F(flag)                   \
+    if ((mode & flag) == flag) {  \
+        mode &= ~flag;            \
+        if (r) {                  \
             r << TStringBuf("|"); \
-        }                          \
+        }                         \
         r << TStringBuf(#flag);   \
     }
 
@@ -1278,7 +1278,7 @@ TFile Duplicate(int fd) {
 #elif defined(_unix_)
     return TFile(::dup(fd));
 #else
-#error unsupported platform
+    #error unsupported platform
 #endif
 }
 
@@ -1286,13 +1286,13 @@ bool PosixDisableReadAhead(FHANDLE fileHandle, void* addr) noexcept {
     int ret = -1;
 
 #if HAVE_POSIX_FADVISE
-#if defined(_linux_)
+    #if defined(_linux_)
     Y_UNUSED(fileHandle);
     ret = madvise(addr, 0, MADV_RANDOM); // according to klamm@ posix_fadvise does not work under linux, madvise does work
-#else
+    #else
     Y_UNUSED(addr);
     ret = ::posix_fadvise(fileHandle, 0, 0, POSIX_FADV_RANDOM);
-#endif
+    #endif
 #else
     Y_UNUSED(fileHandle);
     Y_UNUSED(addr);

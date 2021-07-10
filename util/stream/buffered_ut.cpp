@@ -74,7 +74,7 @@ Y_UNIT_TEST_SUITE(TestBufferedIO) {
     }
 
     template <class TOut>
-    inline void DoGenAndWrite(TOut&& output, TString& str) {
+    inline void DoGenAndWrite(TOut && output, TString & str) {
         TMersenne<ui64> r;
         for (size_t i = 0; i < 43210; ++i) {
             str.append('A' + (r.GenRand() % 10));

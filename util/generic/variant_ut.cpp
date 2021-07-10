@@ -66,13 +66,13 @@ namespace {
     int S::MoveCtorCalls;
 
     class TNonCopyable1
-       : private TNonCopyable {
+        : private TNonCopyable {
     public:
         TNonCopyable1() = default;
     };
 
     class TNonCopyable2
-       : private TNonCopyable {
+        : private TNonCopyable {
     public:
         TNonCopyable2() = default;
     };

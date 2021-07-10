@@ -1,7 +1,7 @@
 #include <util/system/defaults.h>
 
 #if defined(_freebsd_) && !defined(__LONG_LONG_SUPPORTED)
-#define __LONG_LONG_SUPPORTED
+    #define __LONG_LONG_SUPPORTED
 #endif
 
 #include <cstdio>

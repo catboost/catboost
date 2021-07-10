@@ -5,9 +5,9 @@
 #include <util/generic/ylimits.h>
 
 #ifdef _win_
-#include "winint.h"
+    #include "winint.h"
 #else
-#include <fcntl.h>
+    #include <fcntl.h>
 #endif
 
 class TSysErrorTest: public TTestBase {

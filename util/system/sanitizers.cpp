@@ -9,23 +9,30 @@ void __sanitizer_finish_switch_fiber(void* fake_stack_save, const void** old_bot
 #endif
 
 #if defined(_tsan_enabled_)
-#if defined(__clang_major__) && (__clang_major__ >= 9)
+    #if defined(__clang_major__) && (__clang_major__ >= 9)
 extern "C" {
-void *__tsan_get_current_fiber(void);
-void *__tsan_create_fiber(unsigned flags);
-void __tsan_destroy_fiber(void *fiber);
-void __tsan_switch_to_fiber(void *fiber, unsigned flags);
-void __tsan_set_fiber_name(void *fiber, const char *name);
+void* __tsan_get_current_fiber(void);
+void* __tsan_create_fiber(unsigned flags);
+void __tsan_destroy_fiber(void* fiber);
+void __tsan_switch_to_fiber(void* fiber, unsigned flags);
+void __tsan_set_fiber_name(void* fiber, const char* name);
 }
-#else
+    #else
 namespace {
-void* __tsan_get_current_fiber(void) { return nullptr; }
-void* __tsan_create_fiber(unsigned) { return nullptr; }
-void __tsan_destroy_fiber(void*) {}
-void __tsan_switch_to_fiber(void*, unsigned) {}
-void __tsan_set_fiber_name(void*, const char*) {}
+    void* __tsan_get_current_fiber(void) {
+        return nullptr;
+    }
+    void* __tsan_create_fiber(unsigned) {
+        return nullptr;
+    }
+    void __tsan_destroy_fiber(void*) {
+    }
+    void __tsan_switch_to_fiber(void*, unsigned) {
+    }
+    void __tsan_set_fiber_name(void*, const char*) {
+    }
 }
-#endif
+    #endif
 #endif
 
 using namespace NSan;
@@ -53,7 +60,7 @@ TFiberContext::TFiberContext(const void* stack, size_t len, const char* contName
     , Stack_(stack)
     , Len_(len)
 #if defined(_tsan_enabled_)
-    , CurrentTSanFiberContext_(__tsan_create_fiber(/*flags =*/ 0))
+    , CurrentTSanFiberContext_(__tsan_create_fiber(/*flags =*/0))
     , WasFiberCreated_(true)
 #endif
 {
@@ -87,7 +94,7 @@ void TFiberContext::BeforeSwitch() noexcept {
 #endif
 
 #if defined(_tsan_enabled_)
-    __tsan_switch_to_fiber(CurrentTSanFiberContext_, /*flags =*/ 0);
+    __tsan_switch_to_fiber(CurrentTSanFiberContext_, /*flags =*/0);
 #endif
 }
 

@@ -5,7 +5,7 @@
 #include <library/cpp/testing/unittest/registar.h>
 
 #ifdef _unix_
-#include <sys/resource.h>
+    #include <sys/resource.h>
 
 static int GetPriority() {
     return getpriority(PRIO_PROCESS, 0);

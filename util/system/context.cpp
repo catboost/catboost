@@ -6,13 +6,13 @@
 #include <cstdlib> //for abort()
 
 #if defined(_win_)
-#include "winint.h"
+    #include "winint.h"
 #endif
 
 #if defined(_unix_)
-#include <cxxabi.h>
+    #include <cxxabi.h>
 
-#if !defined(Y_CXA_EH_GLOBALS_COMPLETE)
+    #if !defined(Y_CXA_EH_GLOBALS_COMPLETE)
 namespace __cxxabiv1 {
     struct __cxa_eh_globals {
         void* caughtExceptions;
@@ -21,7 +21,7 @@ namespace __cxxabiv1 {
 
     extern "C" __cxa_eh_globals* __cxa_get_globals();
 }
-#endif
+    #endif
 #endif
 
 #include <util/stream/output.h>
@@ -55,11 +55,11 @@ namespace {
     class TStackType {
     public:
         inline TStackType(TArrayRef<char> range) noexcept
-#if defined(STACK_GROW_DOWN)
+    #if defined(STACK_GROW_DOWN)
             : Data_(range.data() + range.size())
-#else
+    #else
             : Data_(range.data() + STACK_ALIGN)
-#endif
+    #endif
         {
             ReAlign();
         }
@@ -72,13 +72,13 @@ namespace {
 
         template <class T>
         inline void Push(T t) noexcept {
-#if defined(STACK_GROW_DOWN)
+    #if defined(STACK_GROW_DOWN)
             Data_ -= sizeof(T);
             *((T*)Data_) = t;
-#else
+    #else
             *((T*)Data_) = t;
             Data_ += sizeof(T);
-#endif
+    #endif
         }
 
         inline char* StackPtr() noexcept {
@@ -87,11 +87,11 @@ namespace {
 
     private:
         static inline char* AlignStackPtr(char* ptr) noexcept {
-#if defined(STACK_GROW_DOWN)
+    #if defined(STACK_GROW_DOWN)
             return AlignDown(ptr, STACK_ALIGN);
-#else
+    #else
             return AlignUp(ptr, STACK_ALIGN);
-#endif
+    #endif
         }
 
     private:
@@ -114,7 +114,7 @@ namespace {
         return JmpBufReg(buf, FRAME_CNT);
     }
 
-#if defined(_x86_64_)
+    #if defined(_x86_64_)
     // not sure if Y_NO_SANITIZE is needed
     Y_NO_SANITIZE("address")
     Y_NO_SANITIZE("memory")
@@ -124,7 +124,7 @@ namespace {
         Y_ASSERT(t1 == t2);
         Run(t1);
     }
-#else
+    #else
     Y_NO_SANITIZE("address")
     Y_NO_SANITIZE("memory")
     static void ContextTrampoLine() {
@@ -133,7 +133,7 @@ namespace {
 
         Run(*(argPtr - 1));
     }
-#endif
+    #endif
 }
 
 TContMachineContext::TSan::TSan() noexcept
@@ -154,9 +154,9 @@ void TContMachineContext::TSan::DoRunNaked() {
 }
 
 TContMachineContext::TContMachineContext(const TContClosure& c)
-#if defined(_asan_enabled_) || defined(_tsan_enabled_)
+    #if defined(_asan_enabled_) || defined(_tsan_enabled_)
     : San_(c)
-#endif
+    #endif
 {
     TStackType stack(c.Stack);
 
@@ -164,20 +164,20 @@ TContMachineContext::TContMachineContext(const TContClosure& c)
      * arg, and align data
      */
 
-#if defined(_asan_enabled_)
+    #if defined(_asan_enabled_)
     auto trampoline = &San_;
-#else
+    #else
     auto trampoline = c.TrampoLine;
-#endif
+    #endif
 
-#if defined(_x86_64_)
+    #if defined(_x86_64_)
     stack.ReAlign();
     // push twice to preserve alignment by 16
     stack.Push(trampoline); // second stack argument
     stack.Push(trampoline); // first stack argument
 
     stack.Push(nullptr); // fake return address
-#else
+    #else
     stack.Push(trampoline);
     stack.Push(trampoline);
     stack.ReAlign();
@@ -187,7 +187,7 @@ TContMachineContext::TContMachineContext(const TContClosure& c)
     for (size_t i = 0; i < EXTRA_PUSH_ARGS; ++i) {
         stack.Push(nullptr);
     }
-#endif
+    #endif
 
     __mysetjmp(Buf_);
 
@@ -198,14 +198,14 @@ TContMachineContext::TContMachineContext(const TContClosure& c)
 
 void TContMachineContext::SwitchTo(TContMachineContext* next) noexcept {
     if (Y_LIKELY(__mysetjmp(Buf_) == 0)) {
-#if defined(_asan_enabled_) || defined(_tsan_enabled_)
+    #if defined(_asan_enabled_) || defined(_tsan_enabled_)
         next->San_.BeforeSwitch();
-#endif
+    #endif
         __mylongjmp(next->Buf_, 1);
     } else {
-#if defined(_asan_enabled_)
+    #if defined(_asan_enabled_)
         San_.AfterSwitch();
-#endif
+    #endif
     }
 }
 #elif defined(_win_) && defined(_32_)
@@ -247,7 +247,7 @@ void TContMachineContext::SwitchTo(TContMachineContext* next) noexcept {
 #endif
 
 #if defined(USE_GENERIC_CONT)
-#include <pthread.h>
+    #include <pthread.h>
 
 struct TContMachineContext::TImpl {
     inline TImpl()

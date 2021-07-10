@@ -19,34 +19,34 @@
 #include <errno.h>
 
 #if defined(_unix_)
-#include <unistd.h>
-#include <fcntl.h>
-#include <grp.h>
-#include <sys/wait.h>
+    #include <unistd.h>
+    #include <fcntl.h>
+    #include <grp.h>
+    #include <sys/wait.h>
 
 using TPid = pid_t;
 using TWaitResult = pid_t;
 using TExitStatus = int;
-#define WAIT_PROCEED 0
+    #define WAIT_PROCEED 0
 
-#if defined(_darwin_)
+    #if defined(_darwin_)
 using TGetGroupListGid = int;
-#else
+    #else
 using TGetGroupListGid = gid_t;
-#endif
+    #endif
 #elif defined(_win_)
-#include <string>
+    #include <string>
 
-#include "winint.h"
+    #include "winint.h"
 
 using TPid = HANDLE;
 using TWaitResult = DWORD;
 using TExitStatus = DWORD;
-#define WAIT_PROCEED WAIT_TIMEOUT
+    #define WAIT_PROCEED WAIT_TIMEOUT
 
-#pragma warning(disable : 4296) // 'wait_result >= WAIT_OBJECT_0' : expression is always tru
+    #pragma warning(disable : 4296) // 'wait_result >= WAIT_OBJECT_0' : expression is always tru
 #else
-#error("unknown os, shell command is not implemented")
+    #error("unknown os, shell command is not implemented")
 #endif
 
 #define DBG(stmt) \
@@ -110,10 +110,10 @@ namespace {
 // temporary measure to avoid rewriting all poll calls on win TPipeHandle
 #if defined(_win_)
 using REALPIPEHANDLE = HANDLE;
-#define INVALID_REALPIPEHANDLE INVALID_HANDLE_VALUE
+    #define INVALID_REALPIPEHANDLE INVALID_HANDLE_VALUE
 
 class TRealPipeHandle
-   : public TNonCopyable {
+    : public TNonCopyable {
 public:
     inline TRealPipeHandle() noexcept
         : Fd_(INVALID_REALPIPEHANDLE)
@@ -184,17 +184,17 @@ private:
 #else
 using TRealPipeHandle = TPipeHandle;
 using REALPIPEHANDLE = PIPEHANDLE;
-#define INVALID_REALPIPEHANDLE INVALID_PIPEHANDLE
+    #define INVALID_REALPIPEHANDLE INVALID_PIPEHANDLE
 #endif
 
 class TShellCommand::TImpl
-   : public TAtomicRefCount<TShellCommand::TImpl> {
+    : public TAtomicRefCount<TShellCommand::TImpl> {
 private:
     TPid Pid;
     TString Command;
     TList<TString> Arguments;
     TString WorkDir;
-    TAtomic ExecutionStatus;  // TShellCommand::ECommandStatus
+    TAtomic ExecutionStatus; // TShellCommand::ECommandStatus
     TMaybe<int> ExitCode;
     IInputStream* InputStream;
     IOutputStream* OutputStream;
@@ -573,10 +573,10 @@ void TShellCommand::TImpl::StartProcess(TShellCommand::TImpl::TPipes& pipes) {
         lpEnvironment = const_cast<char*>(env.data());
     }
 
-// disable messagebox (may be in debug too)
-#ifndef NDEBUG
+    // disable messagebox (may be in debug too)
+    #ifndef NDEBUG
     SetErrorMode(GetErrorMode() | SEM_NOGPFAULTERRORBOX);
-#endif
+    #endif
     BOOL res = 0;
     if (User.Name.empty() || GetUsername() == User.Name) {
         res = CreateProcessW(

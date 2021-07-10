@@ -17,11 +17,11 @@
 #include <util/string/strip.h>
 
 #if defined(_win_)
-#define NL "\r\n"
+    #define NL "\r\n"
 const char catCommand[] = "sort"; // not really cat but ok
 const size_t textSize = 1;
 #else
-#define NL "\n"
+    #define NL "\n"
 const char catCommand[] = "/bin/cat";
 const size_t textSize = 20000;
 #endif
@@ -87,7 +87,8 @@ Y_UNIT_TEST_SUITE(TShellCommandTest) {
         TShellCommandOptions options;
         options.SetQuoteArguments(true);
         TShellCommand cmd("echo");
-        cmd << "hey" << "hello&world";
+        cmd << "hey"
+            << "hello&world";
         cmd.Run();
         UNIT_ASSERT_VALUES_EQUAL(cmd.GetError(), "");
         UNIT_ASSERT_VALUES_EQUAL(cmd.GetOutput(), "hey hello&world" NL);

@@ -8,26 +8,26 @@
 #include <util/generic/singleton.h>
 
 #if defined(_win_)
-#include "winint.h"
+    #include "winint.h"
 #elif defined(_unix_)
-#include <sys/types.h>
-#include <sys/mman.h>
+    #include <sys/types.h>
+    #include <sys/mman.h>
 
-#if !defined(_linux_)
-#ifdef MAP_POPULATE
-#error unlisted platform supporting MAP_POPULATE
-#endif
-#define MAP_POPULATE 0
-#endif
+    #if !defined(_linux_)
+        #ifdef MAP_POPULATE
+            #error unlisted platform supporting MAP_POPULATE
+        #endif
+        #define MAP_POPULATE 0
+    #endif
 
-#if !defined(_freebsd_)
-#ifdef MAP_NOCORE
-#error unlisted platform supporting MAP_NOCORE
-#endif
-#define MAP_NOCORE 0
-#endif
+    #if !defined(_freebsd_)
+        #ifdef MAP_NOCORE
+            #error unlisted platform supporting MAP_NOCORE
+        #endif
+        #define MAP_NOCORE 0
+    #endif
 #else
-#error todo
+    #error todo
 #endif
 
 #include <util/generic/utility.h>
@@ -38,7 +38,7 @@
 #undef GRANULARITY
 
 #ifdef _win_
-#define MAP_FAILED ((void*)(LONG_PTR)-1)
+    #define MAP_FAILED ((void*)(LONG_PTR)-1)
 #endif
 
 namespace {
@@ -231,24 +231,23 @@ public:
 
 #if defined(_win_)
         result.Ptr = MapViewOfFile(Mapping_,
-                                   (Mode_ & oAccessMask) == oRdOnly ? FILE_MAP_READ :
-                                       (Mode_ & oAccessMask) == oCopyOnWr ? FILE_MAP_COPY :
-                                       FILE_MAP_WRITE,
+                                   (Mode_ & oAccessMask) == oRdOnly ? FILE_MAP_READ : (Mode_ & oAccessMask) == oCopyOnWr ? FILE_MAP_COPY
+                                                                                                                         : FILE_MAP_WRITE,
                                    Hi32(base), Lo32(base), size);
 #else
-#if defined(_unix_)
+    #if defined(_unix_)
         if (Mode_ & oNotGreedy) {
-#endif
+    #endif
             result.Ptr = mmap((caddr_t) nullptr, size, ModeToMmapProt(Mode_), ModeToMmapFlags(Mode_), File_.GetHandle(), base);
 
             if (result.Ptr == (char*)(-1)) {
                 result.Ptr = nullptr;
             }
-#if defined(_unix_)
+    #if defined(_unix_)
         } else {
             result.Ptr = PtrStart_ ? static_cast<caddr_t>(PtrStart_) + base : nullptr;
         }
-#endif
+    #endif
 #endif
         if (result.Ptr != nullptr || size == 0) { // allow map of size 0
             result.Size = size;
@@ -269,14 +268,14 @@ public:
     }
 #else
     inline bool Unmap(void* ptr, size_t size) {
-#if defined(_unix_)
+    #if defined(_unix_)
         if (Mode_ & oNotGreedy)
-#endif
+    #endif
             return size == 0 || ::munmap(static_cast<caddr_t>(ptr), size) == 0;
-#if defined(_unix_)
+    #if defined(_unix_)
         else
             return true;
-#endif
+    #endif
     }
 #endif
 

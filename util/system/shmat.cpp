@@ -3,23 +3,23 @@
 #include <util/generic/guid.h>
 
 #if defined(_win_)
-#include <stdio.h>
-#include "winint.h"
+    #include <stdio.h>
+    #include "winint.h"
 #elif defined(_bionic_)
-#include <sys/types.h>
-#include <sys/ipc.h>
-#include <sys/syscall.h>
+    #include <sys/types.h>
+    #include <sys/ipc.h>
+    #include <sys/syscall.h>
 #elif defined(_unix_)
-#include <sys/types.h>
-#include <sys/ipc.h>
-#include <sys/shm.h>
+    #include <sys/types.h>
+    #include <sys/ipc.h>
+    #include <sys/shm.h>
 #endif
 
 #if defined(_cygwin_)
-#define WINAPI __stdcall
-#define FILE_MAP_ALL_ACCESS ((long)983071)
-#define PAGE_READWRITE 4
-#define FALSE 0
+    #define WINAPI __stdcall
+    #define FILE_MAP_ALL_ACCESS ((long)983071)
+    #define PAGE_READWRITE 4
+    #define FALSE 0
 
 extern "C" {
 using HANDLE = OS_HANDLE;
@@ -41,7 +41,7 @@ DWORD WINAPI GetLastError(void);
 
 #if defined(_bionic_)
 namespace {
-#if !defined(__i386__)
+    #if !defined(__i386__)
     static int shmget(key_t key, size_t size, int flag) {
         if (size > PTRDIFF_MAX) {
             size = SIZE_MAX;
@@ -62,11 +62,11 @@ namespace {
         return syscall(__NR_shmdt, addr);
     }
 
-#else
-#define IPCOP_shmat 21
-#define IPCOP_shmdt 22
-#define IPCOP_shmget 23
-#define IPCOP_shmctl 24
+    #else
+        #define IPCOP_shmat 21
+        #define IPCOP_shmdt 22
+        #define IPCOP_shmget 23
+        #define IPCOP_shmctl 24
 
     static int shmget(key_t key, size_t size, int flag) {
         return syscall(__NR_ipc, IPCOP_shmget, key, size, flag, 0);
@@ -85,7 +85,7 @@ namespace {
     static int shmdt(const void* addr) {
         return syscall(__NR_ipc, IPCOP_shmdt, 0, 0, 0, addr);
     }
-#endif
+    #endif
 }
 #endif
 
