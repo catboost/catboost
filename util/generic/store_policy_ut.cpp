@@ -23,7 +23,7 @@ Y_UNIT_TEST_SUITE(StorePolicy) {
     }
 
     template <typename T, typename TFunc>
-    void FunctionTakingRefDefaultIsObject(T && a, TFunc func) {
+    void FunctionTakingRefDefaultIsObject(T&& a, TFunc func) {
         TAutoEmbedOrPtrPolicy<T> refHolder(a);
         func(refHolder);
     }
@@ -53,7 +53,7 @@ Y_UNIT_TEST_SUITE(StorePolicy) {
     }
 
     template <typename T, typename TFunc>
-    void FunctionTakingObjectDefaultObject(T && a, TFunc func) {
+    void FunctionTakingObjectDefaultObject(T&& a, TFunc func) {
         TAutoEmbedOrPtrPolicy<T> objectHolder(std::forward<T>(a));
         func(objectHolder);
     }

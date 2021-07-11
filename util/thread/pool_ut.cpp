@@ -179,7 +179,7 @@ Y_UNIT_TEST_SUITE(TThreadPoolTest) {
         queue.Stop();
     }
 
-    void TestFixedThreadName(IThreadPool & pool, const TString& expectedName) {
+    void TestFixedThreadName(IThreadPool& pool, const TString& expectedName) {
         pool.Start(1);
         TString name;
         pool.SafeAddFunc([&name]() {
@@ -204,7 +204,7 @@ Y_UNIT_TEST_SUITE(TThreadPoolTest) {
         }
     }
 
-    void TestEnumeratedThreadName(IThreadPool & pool, const THashSet<TString>& expectedNames) {
+    void TestEnumeratedThreadName(IThreadPool& pool, const THashSet<TString>& expectedNames) {
         pool.Start(expectedNames.size());
         TMutex lock;
         TCondVar allReady;

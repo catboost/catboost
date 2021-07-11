@@ -154,4 +154,4 @@ Y_UNIT_TEST_SUITE(TestFileStat) {
         UNIT_ASSERT(unlink(fileName.c_str()) == 0);
     }
 
-} // TestFileStat
+}
