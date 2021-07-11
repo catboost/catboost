@@ -18,9 +18,9 @@
 #include <time.h>
 
 #ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable : 4244) // conversion from 'time_t' to 'long', possible loss of data
-#endif                          // _MSC_VER
+    #pragma warning(push)
+    #pragma warning(disable : 4244) // conversion from 'time_t' to 'long', possible loss of data
+#endif                              // _MSC_VER
 
 // Microseconds since epoch
 class TInstant;
@@ -460,7 +460,7 @@ public:
     /// See #TryParseIso8601.
     static TInstant ParseIso8601(TStringBuf);
     /// See #TryParseRfc822.
-    static TInstant ParseRfc822( TStringBuf);
+    static TInstant ParseRfc822(TStringBuf);
     /// See #TryParseHttp.
     static TInstant ParseHttp(TStringBuf);
     /// See #TryParseX509.
@@ -665,5 +665,5 @@ static inline TInstant Now() noexcept {
 }
 
 #ifdef _MSC_VER
-#pragma warning(pop)
+    #pragma warning(pop)
 #endif // _MSC_VER

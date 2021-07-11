@@ -47,4 +47,3 @@ template <class T>
 static inline T Align(T t) noexcept {
     return AlignUp(t);
 }
-

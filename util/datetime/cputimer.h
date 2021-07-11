@@ -102,9 +102,9 @@ public:
 };
 
 #if defined(WITH_DEBUG)
-#define TDebugTimer TFuncTimer
+    #define TDebugTimer TFuncTimer
 #else
-#define TDebugTimer TFakeTimer
+    #define TDebugTimer TFakeTimer
 #endif
 
 class TTimeLogger {

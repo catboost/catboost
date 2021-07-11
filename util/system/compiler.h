@@ -1,7 +1,7 @@
 #pragma once
 
 #if defined(_MSC_VER)
-#include <intrin.h>
+    #include <intrin.h>
 #endif
 
 // useful cross-platfrom definitions for compilers
@@ -29,27 +29,27 @@
  * @endcode
  */
 #if defined(__GNUC__)
-#define Y_FUNC_SIGNATURE __PRETTY_FUNCTION__
+    #define Y_FUNC_SIGNATURE __PRETTY_FUNCTION__
 #elif defined(_MSC_VER)
-#define Y_FUNC_SIGNATURE __FUNCSIG__
+    #define Y_FUNC_SIGNATURE __FUNCSIG__
 #else
-#define Y_FUNC_SIGNATURE ""
+    #define Y_FUNC_SIGNATURE ""
 #endif
 
 #ifdef __GNUC__
-#define Y_PRINTF_FORMAT(n, m) __attribute__((__format__(__printf__, n, m)))
+    #define Y_PRINTF_FORMAT(n, m) __attribute__((__format__(__printf__, n, m)))
 #endif
 
 #ifndef Y_PRINTF_FORMAT
-#define Y_PRINTF_FORMAT(n, m)
+    #define Y_PRINTF_FORMAT(n, m)
 #endif
 
 #if defined(__clang__)
-#define Y_NO_SANITIZE(...) __attribute__((no_sanitize(__VA_ARGS__)))
+    #define Y_NO_SANITIZE(...) __attribute__((no_sanitize(__VA_ARGS__)))
 #endif
 
 #if !defined(Y_NO_SANITIZE)
-#define Y_NO_SANITIZE(...)
+    #define Y_NO_SANITIZE(...)
 #endif
 
 /**
@@ -69,18 +69,18 @@
  * @endcode
  */
 #ifdef __GNUC__
-#define Y_DECLARE_UNUSED __attribute__((unused))
+    #define Y_DECLARE_UNUSED __attribute__((unused))
 #endif
 
 #ifndef Y_DECLARE_UNUSED
-#define Y_DECLARE_UNUSED
+    #define Y_DECLARE_UNUSED
 #endif
 
 #if defined(__GNUC__)
-#define Y_LIKELY(Cond) __builtin_expect(!!(Cond), 1)
-#define Y_UNLIKELY(Cond) __builtin_expect(!!(Cond), 0)
-#define Y_PREFETCH_READ(Pointer, Priority) __builtin_prefetch((const void*)(Pointer), 0, Priority)
-#define Y_PREFETCH_WRITE(Pointer, Priority) __builtin_prefetch((const void*)(Pointer), 1, Priority)
+    #define Y_LIKELY(Cond) __builtin_expect(!!(Cond), 1)
+    #define Y_UNLIKELY(Cond) __builtin_expect(!!(Cond), 0)
+    #define Y_PREFETCH_READ(Pointer, Priority) __builtin_prefetch((const void*)(Pointer), 0, Priority)
+    #define Y_PREFETCH_WRITE(Pointer, Priority) __builtin_prefetch((const void*)(Pointer), 1, Priority)
 #endif
 
 /**
@@ -90,17 +90,17 @@
  * it to be inlined.
  */
 #if !defined(Y_FORCE_INLINE)
-#if defined(CLANG_COVERAGE)
-#/* excessive __always_inline__ might significantly slow down compilation of an instrumented unit */
-#define Y_FORCE_INLINE inline
-#elif defined(_MSC_VER)
-#define Y_FORCE_INLINE __forceinline
-#elif defined(__GNUC__)
-#/* Clang also defines __GNUC__ (as 4) */
-#define Y_FORCE_INLINE inline __attribute__((__always_inline__))
-#else
-#define Y_FORCE_INLINE inline
-#endif
+    #if defined(CLANG_COVERAGE)
+        #/* excessive __always_inline__ might significantly slow down compilation of an instrumented unit */
+        #define Y_FORCE_INLINE inline
+    #elif defined(_MSC_VER)
+        #define Y_FORCE_INLINE __forceinline
+    #elif defined(__GNUC__)
+        #/* Clang also defines __GNUC__ (as 4) */
+        #define Y_FORCE_INLINE inline __attribute__((__always_inline__))
+    #else
+        #define Y_FORCE_INLINE inline
+    #endif
 #endif
 
 /**
@@ -110,85 +110,85 @@
  * prevent it from being inlined.
  */
 #if !defined(Y_NO_INLINE)
-#if defined(_MSC_VER)
-#define Y_NO_INLINE __declspec(noinline)
-#elif defined(__GNUC__) || defined(__INTEL_COMPILER)
-#/* Clang also defines __GNUC__ (as 4) */
-#define Y_NO_INLINE __attribute__((__noinline__))
-#else
-#define Y_NO_INLINE
-#endif
+    #if defined(_MSC_VER)
+        #define Y_NO_INLINE __declspec(noinline)
+    #elif defined(__GNUC__) || defined(__INTEL_COMPILER)
+        #/* Clang also defines __GNUC__ (as 4) */
+        #define Y_NO_INLINE __attribute__((__noinline__))
+    #else
+        #define Y_NO_INLINE
+    #endif
 #endif
 
 //to cheat compiler about strict aliasing or similar problems
 #if defined(__GNUC__)
-#define Y_FAKE_READ(X)                  \
-    do {                                \
-        __asm__ __volatile__(""         \
-                             :          \
-                             : "m"(X)); \
-    } while (0)
+    #define Y_FAKE_READ(X)                  \
+        do {                                \
+            __asm__ __volatile__(""         \
+                                 :          \
+                                 : "m"(X)); \
+        } while (0)
 
-#define Y_FAKE_WRITE(X)                  \
-    do {                                 \
-        __asm__ __volatile__(""          \
-                             : "=m"(X)); \
-    } while (0)
+    #define Y_FAKE_WRITE(X)                  \
+        do {                                 \
+            __asm__ __volatile__(""          \
+                                 : "=m"(X)); \
+        } while (0)
 #endif
 
 #if !defined(Y_FAKE_READ)
-#define Y_FAKE_READ(X)
+    #define Y_FAKE_READ(X)
 #endif
 
 #if !defined(Y_FAKE_WRITE)
-#define Y_FAKE_WRITE(X)
+    #define Y_FAKE_WRITE(X)
 #endif
 
 #ifndef Y_PREFETCH_READ
-#define Y_PREFETCH_READ(Pointer, Priority) (void)(const void*)(Pointer), (void)Priority
+    #define Y_PREFETCH_READ(Pointer, Priority) (void)(const void*)(Pointer), (void)Priority
 #endif
 
 #ifndef Y_PREFETCH_WRITE
-#define Y_PREFETCH_WRITE(Pointer, Priority) (void)(const void*)(Pointer), (void)Priority
+    #define Y_PREFETCH_WRITE(Pointer, Priority) (void)(const void*)(Pointer), (void)Priority
 #endif
 
 #ifndef Y_LIKELY
-#define Y_LIKELY(Cond) (Cond)
-#define Y_UNLIKELY(Cond) (Cond)
+    #define Y_LIKELY(Cond) (Cond)
+    #define Y_UNLIKELY(Cond) (Cond)
 #endif
 
 #ifdef __GNUC__
-#define _packed __attribute__((packed))
+    #define _packed __attribute__((packed))
 #else
-#define _packed
+    #define _packed
 #endif
 
 #if defined(__GNUC__)
-#define Y_WARN_UNUSED_RESULT __attribute__((warn_unused_result))
+    #define Y_WARN_UNUSED_RESULT __attribute__((warn_unused_result))
 #endif
 
 #ifndef Y_WARN_UNUSED_RESULT
-#define Y_WARN_UNUSED_RESULT
+    #define Y_WARN_UNUSED_RESULT
 #endif
 
 #if defined(__GNUC__)
-#define Y_HIDDEN __attribute__((visibility("hidden")))
+    #define Y_HIDDEN __attribute__((visibility("hidden")))
 #endif
 
 #if !defined(Y_HIDDEN)
-#define Y_HIDDEN
+    #define Y_HIDDEN
 #endif
 
 #if defined(__GNUC__)
-#define Y_PUBLIC __attribute__((visibility("default")))
+    #define Y_PUBLIC __attribute__((visibility("default")))
 #endif
 
 #if !defined(Y_PUBLIC)
-#define Y_PUBLIC
+    #define Y_PUBLIC
 #endif
 
 #if !defined(Y_UNUSED) && !defined(__cplusplus)
-#define Y_UNUSED(var) (void)(var)
+    #define Y_UNUSED(var) (void)(var)
 #endif
 #if !defined(Y_UNUSED) && defined(__cplusplus)
 template <class... Types>
@@ -230,17 +230,18 @@ constexpr Y_FORCE_INLINE int Y_UNUSED(Types&&...) {
  * @endcode
  */
 #if defined(__GNUC__)
-#define Y_ASSUME(condition) ((condition) ? (void)0 : __builtin_unreachable())
+    #define Y_ASSUME(condition) ((condition) ? (void)0 : __builtin_unreachable())
 #elif defined(_MSC_VER)
-#define Y_ASSUME(condition) __assume(condition)
+    #define Y_ASSUME(condition) __assume(condition)
 #else
-#define Y_ASSUME(condition) Y_UNUSED(condition)
+    #define Y_ASSUME(condition) Y_UNUSED(condition)
 #endif
 
 #ifdef __cplusplus
 [[noreturn]]
 #endif
-Y_HIDDEN void _YandexAbort();
+Y_HIDDEN void
+_YandexAbort();
 
 /**
  * @def Y_UNREACHABLE
@@ -262,78 +263,78 @@ Y_HIDDEN void _YandexAbort();
  * @endcode
  */
 #if defined(__GNUC__)
-#define Y_UNREACHABLE() __builtin_unreachable()
-#elif defined (_MSC_VER)
-#define Y_UNREACHABLE() __assume(false)
+    #define Y_UNREACHABLE() __builtin_unreachable()
+#elif defined(_MSC_VER)
+    #define Y_UNREACHABLE() __assume(false)
 #else
-#define Y_UNREACHABLE() _YandexAbort()
+    #define Y_UNREACHABLE() _YandexAbort()
 #endif
 
 #if defined(undefined_sanitizer_enabled)
-#define _ubsan_enabled_
+    #define _ubsan_enabled_
 #endif
 
 #ifdef __clang__
 
-#if __has_feature(thread_sanitizer)
-#define _tsan_enabled_
-#endif
-#if __has_feature(memory_sanitizer)
-#define _msan_enabled_
-#endif
-#if __has_feature(address_sanitizer)
-#define _asan_enabled_
-#endif
+    #if __has_feature(thread_sanitizer)
+        #define _tsan_enabled_
+    #endif
+    #if __has_feature(memory_sanitizer)
+        #define _msan_enabled_
+    #endif
+    #if __has_feature(address_sanitizer)
+        #define _asan_enabled_
+    #endif
 
 #else
 
-#if defined(thread_sanitizer_enabled) || defined(__SANITIZE_THREAD__)
-#define _tsan_enabled_
-#endif
-#if defined(memory_sanitizer_enabled)
-#define _msan_enabled_
-#endif
-#if defined(address_sanitizer_enabled) || defined(__SANITIZE_ADDRESS__)
-#define _asan_enabled_
-#endif
+    #if defined(thread_sanitizer_enabled) || defined(__SANITIZE_THREAD__)
+        #define _tsan_enabled_
+    #endif
+    #if defined(memory_sanitizer_enabled)
+        #define _msan_enabled_
+    #endif
+    #if defined(address_sanitizer_enabled) || defined(__SANITIZE_ADDRESS__)
+        #define _asan_enabled_
+    #endif
 
 #endif
 
 #if defined(_asan_enabled_) || defined(_msan_enabled_) || defined(_tsan_enabled_) || defined(_ubsan_enabled_)
-#define _san_enabled_
+    #define _san_enabled_
 #endif
 
 #if defined(_MSC_VER)
-#define __PRETTY_FUNCTION__ __FUNCSIG__
+    #define __PRETTY_FUNCTION__ __FUNCSIG__
 #endif
 
 #if defined(__GNUC__)
-#define Y_WEAK __attribute__((weak))
+    #define Y_WEAK __attribute__((weak))
 #else
-#define Y_WEAK
+    #define Y_WEAK
 #endif
 
 #if defined(__CUDACC_VER_MAJOR__)
-#define Y_CUDA_AT_LEAST(x, y) (__CUDACC_VER_MAJOR__ > x || (__CUDACC_VER_MAJOR__ == x && __CUDACC_VER_MINOR__ >= y))
+    #define Y_CUDA_AT_LEAST(x, y) (__CUDACC_VER_MAJOR__ > x || (__CUDACC_VER_MAJOR__ == x && __CUDACC_VER_MINOR__ >= y))
 #else
-#define Y_CUDA_AT_LEAST(x, y) 0
+    #define Y_CUDA_AT_LEAST(x, y) 0
 #endif
 
 // NVidia CUDA C++ Compiler did not know about noexcept keyword until version 9.0
 #if !Y_CUDA_AT_LEAST(9, 0)
-#if defined(__CUDACC__) && !defined(noexcept)
-#define noexcept throw ()
-#endif
+    #if defined(__CUDACC__) && !defined(noexcept)
+        #define noexcept throw()
+    #endif
 #endif
 
 #if defined(__GNUC__)
-#define Y_COLD __attribute__((cold))
-#define Y_LEAF __attribute__((leaf))
-#define Y_WRAPPER __attribute__((artificial))
+    #define Y_COLD __attribute__((cold))
+    #define Y_LEAF __attribute__((leaf))
+    #define Y_WRAPPER __attribute__((artificial))
 #else
-#define Y_COLD
-#define Y_LEAF
-#define Y_WRAPPER
+    #define Y_COLD
+    #define Y_LEAF
+    #define Y_WRAPPER
 #endif
 
 /**
@@ -355,11 +356,11 @@ Y_HIDDEN void _YandexAbort();
  * @endcode
  */
 #if defined(__clang__) || defined(__GNUC__)
-#define Y_PRAGMA(x) _Pragma(x)
+    #define Y_PRAGMA(x) _Pragma(x)
 #elif defined(_MSC_VER)
-#define Y_PRAGMA(x) __pragma(x)
+    #define Y_PRAGMA(x) __pragma(x)
 #else
-#define Y_PRAGMA(x)
+    #define Y_PRAGMA(x)
 #endif
 
 /**
@@ -377,13 +378,13 @@ Y_HIDDEN void _YandexAbort();
  * @endcode
  */
 #if defined(__clang__) || defined(__GNUC__)
-#define Y_PRAGMA_DIAGNOSTIC_PUSH \
-    Y_PRAGMA("GCC diagnostic push")
+    #define Y_PRAGMA_DIAGNOSTIC_PUSH \
+        Y_PRAGMA("GCC diagnostic push")
 #elif defined(_MSC_VER)
-#define Y_PRAGMA_DIAGNOSTIC_PUSH \
-    Y_PRAGMA(warning(push))
+    #define Y_PRAGMA_DIAGNOSTIC_PUSH \
+        Y_PRAGMA(warning(push))
 #else
-#define Y_PRAGMA_DIAGNOSTIC_PUSH
+    #define Y_PRAGMA_DIAGNOSTIC_PUSH
 #endif
 
 /**
@@ -401,13 +402,13 @@ Y_HIDDEN void _YandexAbort();
  * @endcode
  */
 #if defined(__clang__) || defined(__GNUC__)
-#define Y_PRAGMA_DIAGNOSTIC_POP \
-    Y_PRAGMA("GCC diagnostic pop")
+    #define Y_PRAGMA_DIAGNOSTIC_POP \
+        Y_PRAGMA("GCC diagnostic pop")
 #elif defined(_MSC_VER)
-#define Y_PRAGMA_DIAGNOSTIC_POP \
-    Y_PRAGMA(warning(pop))
+    #define Y_PRAGMA_DIAGNOSTIC_POP \
+        Y_PRAGMA(warning(pop))
 #else
-#define Y_PRAGMA_DIAGNOSTIC_POP
+    #define Y_PRAGMA_DIAGNOSTIC_POP
 #endif
 
 /**
@@ -433,13 +434,13 @@ Y_HIDDEN void _YandexAbort();
  * @endcode
  */
 #if defined(__clang__) || defined(__GNUC__)
-#define Y_PRAGMA_NO_WSHADOW \
-    Y_PRAGMA("GCC diagnostic ignored \"-Wshadow\"")
+    #define Y_PRAGMA_NO_WSHADOW \
+        Y_PRAGMA("GCC diagnostic ignored \"-Wshadow\"")
 #elif defined(_MSC_VER)
-#define Y_PRAGMA_NO_WSHADOW \
-    Y_PRAGMA(warning(disable : 4456 4457))
+    #define Y_PRAGMA_NO_WSHADOW \
+        Y_PRAGMA(warning(disable : 4456 4457))
 #else
-#define Y_PRAGMA_NO_WSHADOW
+    #define Y_PRAGMA_NO_WSHADOW
 #endif
 
 /**
@@ -469,10 +470,10 @@ Y_HIDDEN void _YandexAbort();
  * @endcode
  */
 #if defined(__clang__) || defined(__GNUC__)
-#define Y_PRAGMA_NO_UNUSED_FUNCTION \
-    Y_PRAGMA("GCC diagnostic ignored \"-Wunused-function\"")
+    #define Y_PRAGMA_NO_UNUSED_FUNCTION \
+        Y_PRAGMA("GCC diagnostic ignored \"-Wunused-function\"")
 #else
-#define Y_PRAGMA_NO_UNUSED_FUNCTION
+    #define Y_PRAGMA_NO_UNUSED_FUNCTION
 #endif
 
 /**
@@ -504,13 +505,13 @@ Y_HIDDEN void _YandexAbort();
  * @endcode
  */
 #if defined(__clang__) || defined(__GNUC__)
-#define Y_PRAGMA_NO_UNUSED_PARAMETER \
-    Y_PRAGMA("GCC diagnostic ignored \"-Wunused-parameter\"")
+    #define Y_PRAGMA_NO_UNUSED_PARAMETER \
+        Y_PRAGMA("GCC diagnostic ignored \"-Wunused-parameter\"")
 #elif defined(_MSC_VER)
-#define Y_PRAGMA_NO_UNUSED_PARAMETER \
-    Y_PRAGMA(warning(disable : 4100))
+    #define Y_PRAGMA_NO_UNUSED_PARAMETER \
+        Y_PRAGMA(warning(disable : 4100))
 #else
-#define Y_PRAGMA_NO_UNUSED_PARAMETER
+    #define Y_PRAGMA_NO_UNUSED_PARAMETER
 #endif
 
 /**
@@ -540,18 +541,18 @@ Y_HIDDEN void _YandexAbort();
  * @endcode
  */
 #if defined(__clang__) || defined(__GNUC__)
-#define Y_PRAGMA_NO_DEPRECATED \
-    Y_PRAGMA("GCC diagnostic ignored \"-Wdeprecated\"")
+    #define Y_PRAGMA_NO_DEPRECATED \
+        Y_PRAGMA("GCC diagnostic ignored \"-Wdeprecated\"")
 #elif defined(_MSC_VER)
-#define Y_PRAGMA_NO_DEPRECATED \
-    Y_PRAGMA(warning(disable : 4996))
+    #define Y_PRAGMA_NO_DEPRECATED \
+        Y_PRAGMA(warning(disable : 4996))
 #else
-#define Y_PRAGMA_NO_DEPRECATED
+    #define Y_PRAGMA_NO_DEPRECATED
 #endif
 
 // Memory sanitizer sometimes doesn't correctly set parameter shadow of constant functions.
 #if (defined(__clang__) || defined(__GNUC__)) && !defined(_msan_enabled_)
-/**
+    /**
  * @def Y_CONST_FUNCTION
    methods and functions, marked with this method are promised to:
      1. do not have side effects
@@ -561,15 +562,15 @@ Y_HIDDEN void _YandexAbort();
    NOTE: in common case this attribute can't be set if method have pointer-arguments
    NOTE: as result there no any reason to discard result of such method
 */
-#define Y_CONST_FUNCTION [[gnu::const]]
+    #define Y_CONST_FUNCTION [[gnu::const]]
 #endif
 
 #if !defined(Y_CONST_FUNCTION)
-#define Y_CONST_FUNCTION
+    #define Y_CONST_FUNCTION
 #endif
 
 #if defined(__clang__) || defined(__GNUC__)
-/**
+    /**
  * @def Y_PURE_FUNCTION
    methods and functions, marked with this method are promised to:
      1. do not have side effects
@@ -577,11 +578,11 @@ Y_HIDDEN void _YandexAbort();
    this allow compilers to do hard optimization of that functions
    NOTE: as result there no any reason to discard result of such method
 */
-#define Y_PURE_FUNCTION [[gnu::pure]]
+    #define Y_PURE_FUNCTION [[gnu::pure]]
 #endif
 
 #if !defined(Y_PURE_FUNCTION)
-#define Y_PURE_FUNCTION
+    #define Y_PURE_FUNCTION
 #endif
 
 /**
@@ -598,7 +599,7 @@ Y_HIDDEN void _YandexAbort();
  * @endcode
  */
 #if defined(__SIZEOF_INT128__)
-#define Y_HAVE_INT128 1
+    #define Y_HAVE_INT128 1
 #endif
 
 /**
@@ -608,19 +609,19 @@ Y_HIDDEN void _YandexAbort();
  * for compilers that doesn't support XRay.
  */
 #if defined(XRAY) && defined(__cplusplus)
-#include <xray/xray_interface.h>
-#define Y_XRAY_ALWAYS_INSTRUMENT [[clang::xray_always_instrument]]
-#define Y_XRAY_NEVER_INSTRUMENT [[clang::xray_never_instrument]]
-#define Y_XRAY_CUSTOM_EVENT(__string, __length) \
-    do {                                        \
-        __xray_customevent(__string, __length); \
-    } while (0)
+    #include <xray/xray_interface.h>
+    #define Y_XRAY_ALWAYS_INSTRUMENT [[clang::xray_always_instrument]]
+    #define Y_XRAY_NEVER_INSTRUMENT [[clang::xray_never_instrument]]
+    #define Y_XRAY_CUSTOM_EVENT(__string, __length) \
+        do {                                        \
+            __xray_customevent(__string, __length); \
+        } while (0)
 #else
-#define Y_XRAY_ALWAYS_INSTRUMENT
-#define Y_XRAY_NEVER_INSTRUMENT
-#define Y_XRAY_CUSTOM_EVENT(__string, __length) \
-    do {                                        \
-    } while (0)
+    #define Y_XRAY_ALWAYS_INSTRUMENT
+    #define Y_XRAY_NEVER_INSTRUMENT
+    #define Y_XRAY_CUSTOM_EVENT(__string, __length) \
+        do {                                        \
+        } while (0)
 #endif
 
 #ifdef __cplusplus
@@ -629,21 +630,21 @@ void UseCharPointerImpl(volatile const char*);
 
 template <typename T>
 Y_FORCE_INLINE void DoNotOptimizeAway(T&& datum) {
-#if defined(_MSC_VER)
+    #if defined(_MSC_VER)
     UseCharPointerImpl(&reinterpret_cast<volatile const char&>(datum));
     _ReadWriteBarrier();
-#elif defined(__GNUC__) && defined(_x86_)
+    #elif defined(__GNUC__) && defined(_x86_)
     asm volatile(""
                  :
                  : "X"(datum));
-#else
+    #else
     Y_FAKE_READ(datum);
-#endif
+    #endif
 }
 
-/**
+    /**
  * Use this macro to prevent unused variables elimination.
  */
-#define Y_DO_NOT_OPTIMIZE_AWAY(X) ::DoNotOptimizeAway(X)
+    #define Y_DO_NOT_OPTIMIZE_AWAY(X) ::DoNotOptimizeAway(X)
 
 #endif

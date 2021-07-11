@@ -5,7 +5,7 @@
 #include <stlfwd>
 #include <stdexcept>
 #ifdef TSTRING_IS_STD_STRING
-#include <string>
+    #include <string>
 #endif
 #include <string_view>
 
@@ -21,7 +21,7 @@
 #include "string_hash.h"
 
 #if defined(address_sanitizer_enabled) || defined(thread_sanitizer_enabled)
-#include "hide_ptr.h"
+    #include "hide_ptr.h"
 #endif
 
 #ifndef TSTRING_IS_STD_STRING
@@ -91,11 +91,11 @@ public:
         return S_.at(Pos_);
     }
 
-    TChar* operator& () {
+    TChar* operator&() {
         return S_.begin() + Pos_;
     }
 
-    const TChar* operator& () const {
+    const TChar* operator&() const {
         return S_.cbegin() + Pos_;
     }
 
@@ -139,8 +139,8 @@ public:
     using iterator = TCharType*;
     using reverse_iterator = typename TBase::template TReverseIteratorBase<iterator>;
     using typename TBase::const_iterator;
-    using typename TBase::const_reverse_iterator;
     using typename TBase::const_reference;
+    using typename TBase::const_reverse_iterator;
 
     struct TUninitialized {
         explicit TUninitialized(size_t size)
@@ -315,7 +315,6 @@ public:
         Detach();
         return Data_ + length();
 #endif
-
     }
 
     reverse_iterator rbegin() {
@@ -656,7 +655,7 @@ public:
     template <typename... R>
     static inline TBasicString Join(const R&... r) {
 #ifdef TSTRING_IS_STD_STRING
-        TBasicString s{TUninitialized{SumLength(r...)}};
+        TBasicString s{TUninitialized { SumLength(r...) }};
 
         TBasicString::CopyAll(s.Storage_.data(), r...);
 #else
@@ -1022,7 +1021,7 @@ public:
         // NB(eeight) MSVC cannot compiler direct reference to TBase::operator std::basic_string<...>
         // so we are using static_cast to force the needed operator call.
         return static_cast<std::basic_string<TCharType, TCharTraits, Allocator>>(
-                static_cast<const TBase&>(*this));
+            static_cast<const TBase&>(*this));
     }
 
     /*
@@ -1082,7 +1081,7 @@ public:
         return std::move(s1);
     }
 
-    friend TBasicString operator+ (TExplicitType<TCharType> ch, const TBasicString& s) Y_WARN_UNUSED_RESULT {
+    friend TBasicString operator+(TExplicitType<TCharType> ch, const TBasicString& s) Y_WARN_UNUSED_RESULT {
         return Join(TCharType(ch), s);
     }
 
@@ -1539,21 +1538,21 @@ public:
 std::ostream& operator<<(std::ostream&, const TString&);
 std::istream& operator>>(std::istream&, TString&);
 
-template<typename TCharType, typename TTraits>
+template <typename TCharType, typename TTraits>
 TBasicString<TCharType> to_lower(const TBasicString<TCharType, TTraits>& s) {
     TBasicString<TCharType> ret(s);
     ret.to_lower();
     return ret;
 }
 
-template<typename TCharType, typename TTraits>
+template <typename TCharType, typename TTraits>
 TBasicString<TCharType> to_upper(const TBasicString<TCharType, TTraits>& s) {
     TBasicString<TCharType> ret(s);
     ret.to_upper();
     return ret;
 }
 
-template<typename TCharType, typename TTraits>
+template <typename TCharType, typename TTraits>
 TBasicString<TCharType> to_title(const TBasicString<TCharType, TTraits>& s) {
     TBasicString<TCharType> ret(s);
     ret.to_title();

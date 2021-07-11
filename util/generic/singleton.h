@@ -117,7 +117,7 @@ T* Singleton(TArgs&&... args) {
 
 template <class T, class... TArgs>
 T* HugeSingleton(TArgs&&... args) {
-    return Singleton< ::NPrivate::THeapStore<T>>(std::forward<TArgs>(args)...)->D;
+    return Singleton<::NPrivate::THeapStore<T>>(std::forward<TArgs>(args)...)->D;
 }
 
 template <class T, size_t P, class... TArgs>
@@ -127,7 +127,7 @@ T* SingletonWithPriority(TArgs&&... args) {
 
 template <class T, size_t P, class... TArgs>
 T* HugeSingletonWithPriority(TArgs&&... args) {
-    return SingletonWithPriority< ::NPrivate::THeapStore<T>, P>(std::forward<TArgs>(args)...)->D;
+    return SingletonWithPriority<::NPrivate::THeapStore<T>, P>(std::forward<TArgs>(args)...)->D;
 }
 
 template <class T>

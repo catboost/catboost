@@ -6,11 +6,11 @@
 
 #if defined(_i386_)
 
-#pragma intrinsic(_InterlockedIncrement)
-#pragma intrinsic(_InterlockedDecrement)
-#pragma intrinsic(_InterlockedExchangeAdd)
-#pragma intrinsic(_InterlockedExchange)
-#pragma intrinsic(_InterlockedCompareExchange)
+    #pragma intrinsic(_InterlockedIncrement)
+    #pragma intrinsic(_InterlockedDecrement)
+    #pragma intrinsic(_InterlockedExchangeAdd)
+    #pragma intrinsic(_InterlockedExchange)
+    #pragma intrinsic(_InterlockedCompareExchange)
 
 static inline intptr_t AtomicIncrement(TAtomic& a) {
     return _InterlockedIncrement((volatile long*)&a);
@@ -50,11 +50,11 @@ static inline intptr_t AtomicGetAndCas(TAtomic* a, intptr_t exchange, intptr_t c
 
 #else // _x86_64_
 
-#pragma intrinsic(_InterlockedIncrement64)
-#pragma intrinsic(_InterlockedDecrement64)
-#pragma intrinsic(_InterlockedExchangeAdd64)
-#pragma intrinsic(_InterlockedExchange64)
-#pragma intrinsic(_InterlockedCompareExchange64)
+    #pragma intrinsic(_InterlockedIncrement64)
+    #pragma intrinsic(_InterlockedDecrement64)
+    #pragma intrinsic(_InterlockedExchangeAdd64)
+    #pragma intrinsic(_InterlockedExchange64)
+    #pragma intrinsic(_InterlockedCompareExchange64)
 
 static inline intptr_t AtomicIncrement(TAtomic& a) {
     return _InterlockedIncrement64((volatile __int64*)&a);

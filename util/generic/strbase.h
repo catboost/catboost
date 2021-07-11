@@ -18,7 +18,6 @@
 #include <string>
 #include <string_view>
 
-
 namespace NStringPrivate {
     template <class TCharType>
     size_t GetStringLengthWithLimit(const TCharType* s, size_t maxlen) {
@@ -237,8 +236,7 @@ public:
     }
 
     static int compare(const TStringView s1, const TStringView s2) noexcept {
-        return TStringViewWithTraits(s1.data(), s1.size()).compare(
-                TStringViewWithTraits(s2.data(), s2.size()));
+        return TStringViewWithTraits(s1.data(), s1.size()).compare(TStringViewWithTraits(s2.data(), s2.size()));
     }
 
     template <class T>
@@ -344,7 +342,7 @@ public:
         return equal(*this, pc);
     }
 
-    #ifndef __cpp_impl_three_way_comparison
+#ifndef __cpp_impl_three_way_comparison
     friend bool operator==(const TCharType* pc, const TSelf& s) noexcept {
         return equal(pc, s);
     }
@@ -365,7 +363,7 @@ public:
     friend bool operator!=(const TCharType* pc, const TSelf& s) noexcept {
         return !(pc == s);
     }
-    #endif
+#endif
 
     template <typename TDerived2, typename TTraits2>
     friend bool operator<(const TSelf& s1, const TStringBase<TDerived2, TChar, TTraits2>& s2) noexcept {

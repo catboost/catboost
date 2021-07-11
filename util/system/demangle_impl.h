@@ -19,5 +19,3 @@ namespace NPrivate {
     };
 
 } //namespace NPrivate
-
-

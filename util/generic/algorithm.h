@@ -601,18 +601,18 @@ namespace NPrivate {
 template <class T, class TOp>
 constexpr ::TEnableIfTuple<T, bool> AllOf(T&& t, TOp&& op) {
     return ::NPrivate::AllOfImpl(
-            std::forward<T>(t),
-            std::forward<TOp>(op),
-            std::make_index_sequence<std::tuple_size<std::decay_t<T>>::value>{});
+        std::forward<T>(t),
+        std::forward<TOp>(op),
+        std::make_index_sequence<std::tuple_size<std::decay_t<T>>::value>{});
 }
 
 // check that TOp return true for at least one element from tuple T
 template <class T, class TOp>
 constexpr ::TEnableIfTuple<T, bool> AnyOf(T&& t, TOp&& op) {
     return ::NPrivate::AnyOfImpl(
-            std::forward<T>(t),
-            std::forward<TOp>(op),
-            std::make_index_sequence<std::tuple_size<std::decay_t<T>>::value>{});
+        std::forward<T>(t),
+        std::forward<TOp>(op),
+        std::make_index_sequence<std::tuple_size<std::decay_t<T>>::value>{});
 }
 
 template <class T, class TOp>

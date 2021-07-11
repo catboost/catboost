@@ -54,7 +54,7 @@ template <class... Bs>
 using TConjunction = std::conjunction<Bs...>;
 #else
 template <class... Bs>
-struct TConjunction : ::TBoolConstant< ::NPrivate::ConjunctionImpl<Bs...>()> {};
+struct TConjunction : ::TBoolConstant<::NPrivate::ConjunctionImpl<Bs...>()> {};
 #endif
 
 #if _LIBCPP_STD_VER >= 17 && !defined(_MSC_VER)
@@ -65,7 +65,7 @@ template <class... Bs>
 using TDisjunction = std::disjunction<Bs...>;
 #else
 template <class... Bs>
-struct TDisjunction : ::TBoolConstant< ::NPrivate::DisjunctionImpl<Bs...>()> {};
+struct TDisjunction : ::TBoolConstant<::NPrivate::DisjunctionImpl<Bs...>()> {};
 #endif
 
 #if _LIBCPP_STD_VER >= 17
@@ -86,10 +86,8 @@ struct TPodTraits {
 template <class T>
 class TTypeTraitsBase {
 public:
-    static constexpr bool IsPod = (
-        TPodTraits<std::remove_cv_t<T>>::IsPod || std::is_scalar<std::remove_all_extents_t<T>>::value ||
-        TPodTraits<std::remove_cv_t<std::remove_all_extents_t<T>>>::IsPod
-    );
+    static constexpr bool IsPod = (TPodTraits<std::remove_cv_t<T>>::IsPod || std::is_scalar<std::remove_all_extents_t<T>>::value ||
+                                   TPodTraits<std::remove_cv_t<std::remove_all_extents_t<T>>>::IsPod);
     static constexpr bool IsBitwiseCopyable = std::is_pod<std::remove_cv_t<T>>::value;
     static constexpr bool IsBitwiseSerializable = std::is_pod<std::remove_cv_t<T>>::value;
 };
@@ -284,7 +282,7 @@ struct TIsSpecializationOf<T, T<Ts...>> : std::true_type {};
  *     static_assert(TDependentFalse<T>, "unknown type");
  * }
  */
-template <typename ... T>
+template <typename... T>
 constexpr bool TDependentFalse = false;
 
 // FIXME: neither nvcc10 nor nvcc11 support using auto in this context
@@ -292,7 +290,7 @@ constexpr bool TDependentFalse = false;
 template <size_t Value>
 constexpr bool TValueDependentFalse = false;
 #else
-template <auto ... Values>
+template <auto... Values>
 constexpr bool TValueDependentFalse = false;
 #endif
 
@@ -301,8 +299,8 @@ constexpr bool TValueDependentFalse = false;
  */
 template <class T, class R = void>
 using TEnableIfTuple = std::enable_if_t<::TDisjunction<::TIsSpecializationOf<std::tuple, std::decay_t<T>>,
-                                                       ::TIsSpecializationOf<std::pair, std::decay_t<T>>>::value, R>;
-
+                                                       ::TIsSpecializationOf<std::pair, std::decay_t<T>>>::value,
+                                        R>;
 
 namespace NPrivate {
     // To allow ADL with custom begin/end
@@ -310,12 +308,11 @@ namespace NPrivate {
     using std::end;
 
     template <typename T>
-    auto IsIterableImpl(int) -> decltype (
-        begin(std::declval<T&>()) != end(std::declval<T&>()), // begin/end and operator !=
+    auto IsIterableImpl(int) -> decltype(
+        begin(std::declval<T&>()) != end(std::declval<T&>()),   // begin/end and operator !=
         ++std::declval<decltype(begin(std::declval<T&>()))&>(), // operator ++
-        *begin(std::declval<T&>()), // operator*
-        std::true_type {}
-    );
+        *begin(std::declval<T&>()),                             // operator*
+        std::true_type{});
 
     template <typename T>
     std::false_type IsIterableImpl(...);

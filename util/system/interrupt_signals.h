@@ -6,7 +6,7 @@
 
 #ifdef _win_
     #ifndef SIGHUP
-        #define SIGHUP      1   /* Hangup (POSIX).  */
+        #define SIGHUP 1 /* Hangup (POSIX).  */
     #endif
 #endif
 

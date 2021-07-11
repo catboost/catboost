@@ -94,7 +94,7 @@ struct TRefPolicy {
  * Look at `Reversed` in `adaptor.h` for real example.
  */
 template <class T, bool IsReference = std::is_reference<T>::value>
-struct TAutoEmbedOrPtrPolicy: TPtrPolicy<std::remove_reference_t<T>> {
+struct TAutoEmbedOrPtrPolicy : TPtrPolicy<std::remove_reference_t<T>> {
     using TBase = TPtrPolicy<std::remove_reference_t<T>>;
 
     TAutoEmbedOrPtrPolicy(T& reference)

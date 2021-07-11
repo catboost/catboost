@@ -21,8 +21,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #if defined(_MSC_VER) && defined(_DEBUG)
-#include <util/system/winint.h>
-#define CHECK_YPTR2
+    #include <util/system/winint.h>
+    #define CHECK_YPTR2
 #endif
 
 struct IBinSaver;

@@ -12,32 +12,32 @@
 #include <util/datetime/base.h>
 
 #if defined(_freebsd_) || defined(_darwin_)
-#define HAVE_KQUEUE_POLLER
+    #define HAVE_KQUEUE_POLLER
 #endif
 
 #if (defined(_linux_) && !defined(_bionic_)) || (__ANDROID_API__ >= 21)
-#define HAVE_EPOLL_POLLER
+    #define HAVE_EPOLL_POLLER
 #endif
 
 //now we always have it
 #define HAVE_SELECT_POLLER
 
 #if defined(HAVE_KQUEUE_POLLER)
-#include <sys/event.h>
+    #include <sys/event.h>
 #endif
 
 #if defined(HAVE_EPOLL_POLLER)
-#include <sys/epoll.h>
+    #include <sys/epoll.h>
 #endif
 
 enum EContPoll {
-    CONT_POLL_READ           = 1,
-    CONT_POLL_WRITE          = 2,
-    CONT_POLL_RDHUP          = 4,
-    CONT_POLL_ONE_SHOT       = 8,  // Disable after first event
-    CONT_POLL_MODIFY         = 16, // Modify already added event
+    CONT_POLL_READ = 1,
+    CONT_POLL_WRITE = 2,
+    CONT_POLL_RDHUP = 4,
+    CONT_POLL_ONE_SHOT = 8,        // Disable after first event
+    CONT_POLL_MODIFY = 16,         // Modify already added event
     CONT_POLL_EDGE_TRIGGERED = 32, // Notify only about new events
-    CONT_POLL_BACKLOG_EMPTY  = 64, // Backlog is empty (seen end of request, EAGAIN or truncated read)
+    CONT_POLL_BACKLOG_EMPTY = 64,  // Backlog is empty (seen end of request, EAGAIN or truncated read)
 };
 
 static inline bool IsSocket(SOCKET fd) noexcept {
@@ -297,7 +297,6 @@ public:
             ret |= CONT_POLL_WRITE;
         }
 
-
         if (event->events & EPOLLRDHUP) {
             ret |= CONT_POLL_RDHUP;
         }
@@ -311,10 +310,10 @@ private:
 #endif
 
 #if defined(HAVE_SELECT_POLLER)
-#include <util/memory/tempbuf.h>
-#include <util/generic/hash.h>
+    #include <util/memory/tempbuf.h>
+    #include <util/generic/hash.h>
 
-#include "pair.h"
+    #include "pair.h"
 
 static inline int ContSelect(int n, fd_set* r, fd_set* w, fd_set* e, struct timeval* t) noexcept {
     int ret;
@@ -495,11 +494,11 @@ public:
         SOCKET* keysToDeleteBegin = (SOCKET*)&in[3];
         SOCKET* keysToDeleteEnd = keysToDeleteBegin;
 
-#if defined(_msan_enabled_) // msan doesn't handle FD_ZERO and cause false positive BALANCER-1347
+    #if defined(_msan_enabled_) // msan doesn't handle FD_ZERO and cause false positive BALANCER-1347
         memset(in, 0, sizeof(*in));
         memset(out, 0, sizeof(*out));
         memset(errFds, 0, sizeof(*errFds));
-#endif
+    #endif
 
         FD_ZERO(in);
         FD_ZERO(out);
@@ -692,13 +691,13 @@ public:
 };
 
 #if defined(HAVE_KQUEUE_POLLER)
-#define TPollerImplBase TKqueuePoller
+    #define TPollerImplBase TKqueuePoller
 #elif defined(HAVE_EPOLL_POLLER)
-#define TPollerImplBase TEpollPoller
+    #define TPollerImplBase TEpollPoller
 #elif defined(HAVE_SELECT_POLLER)
-#define TPollerImplBase TSelectPoller
+    #define TPollerImplBase TSelectPoller
 #else
-#error "unsupported platform"
+    #error "unsupported platform"
 #endif
 
 template <class TLockPolicy>
