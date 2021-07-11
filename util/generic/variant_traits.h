@@ -58,7 +58,7 @@ namespace NVariant {
     struct TSize;
 
     template <class... Ts>
-    struct TSize<TVariant<Ts...>> : std::integral_constant<size_t, sizeof...(Ts)> {};
+    struct TSize<TVariant<Ts...>>: std::integral_constant<size_t, sizeof...(Ts)> {};
 
     struct TVariantAccessor {
         template <size_t I, class... Ts>
@@ -97,7 +97,7 @@ namespace NVariant {
     struct TAlternativeIndex;
 
     template <class X, class... Ts>
-    struct TAlternativeIndex<X, TVariant<Ts...>> : TIndexOf<X, Ts...> {};
+    struct TAlternativeIndex<X, TVariant<Ts...>>: TIndexOf<X, Ts...> {};
 
     template <class... Ts>
     struct TTypeTraits {

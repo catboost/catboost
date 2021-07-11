@@ -20,7 +20,7 @@ template <class T, class V>
 struct TVariantIndex;
 
 template <class T, class... Ts>
-struct TVariantIndex<T, TVariant<Ts...>> : ::NVariant::TIndexOf<T, Ts...> {};
+struct TVariantIndex<T, TVariant<Ts...>>: ::NVariant::TIndexOf<T, Ts...> {};
 
 // Since there is now standard metafunction for std::variant,
 // we need template specialization for it
@@ -28,7 +28,7 @@ struct TVariantIndex<T, TVariant<Ts...>> : ::NVariant::TIndexOf<T, Ts...> {};
     #include <variant>
 
 template <class T, class... Ts>
-struct TVariantIndex<T, std::variant<Ts...>> : ::NVariant::TIndexOf<T, Ts...> {};
+struct TVariantIndex<T, std::variant<Ts...>>: ::NVariant::TIndexOf<T, Ts...> {};
 #endif
 
 template <class T, class V>

@@ -26,7 +26,7 @@ namespace NFormatPrivate {
     struct TLog2: std::integral_constant<size_t, TLog2<Value / 2>::value + 1> {};
 
     template <>
-    struct TLog2<1> : std::integral_constant<size_t, 0> {};
+    struct TLog2<1>: std::integral_constant<size_t, 0> {};
 
     static inline void WriteChars(IOutputStream& os, char c, size_t count) {
         if (count == 0)

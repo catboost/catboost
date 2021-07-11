@@ -156,7 +156,7 @@ class TTypeTraits<void>: public TTypeTraitsBase<void> {};
             (sizeof(TYes) == sizeof(CheckMember((THelper*)nullptr)));                     \
     };                                                                                    \
     template <class T, bool isClassType>                                                  \
-    struct TBaseHas##name : std::false_type {};                                           \
+    struct TBaseHas##name: std::false_type {};                                            \
     template <class T>                                                                    \
     struct TBaseHas##name<T, true>                                                        \
         : std::integral_constant<bool, TClassHas##name<T>::value> {};                     \
@@ -197,9 +197,9 @@ class TTypeTraits<void>: public TTypeTraitsBase<void> {};
 
 #define Y_HAS_SUBTYPE_IMPL_2(subtype, name) \
     template <class T, class = void>        \
-    struct THas##name : std::false_type {}; \
+    struct THas##name: std::false_type {};  \
     template <class T>                      \
-    struct THas##name<T, ::TVoidT<typename T::subtype>> : std::true_type {};
+    struct THas##name<T, ::TVoidT<typename T::subtype>>: std::true_type {};
 
 #define Y_HAS_SUBTYPE_IMPL_1(name) Y_HAS_SUBTYPE_IMPL_2(name, name)
 
@@ -242,34 +242,34 @@ struct TIsPointerToConstMemberFunction: std::false_type {
 };
 
 template <class R, class T, class... Args>
-struct TIsPointerToConstMemberFunction<R (T::*)(Args...) const> : std::true_type {
+struct TIsPointerToConstMemberFunction<R (T::*)(Args...) const>: std::true_type {
 };
 
 template <class R, class T, class... Args>
-struct TIsPointerToConstMemberFunction<R (T::*)(Args...) const&> : std::true_type {
+struct TIsPointerToConstMemberFunction<R (T::*)(Args...) const&>: std::true_type {
 };
 
 template <class R, class T, class... Args>
-struct TIsPointerToConstMemberFunction<R (T::*)(Args...) const&&> : std::true_type {
+struct TIsPointerToConstMemberFunction<R (T::*)(Args...) const&&>: std::true_type {
 };
 
 template <class R, class T, class... Args>
-struct TIsPointerToConstMemberFunction<R (T::*)(Args..., ...) const> : std::true_type {
+struct TIsPointerToConstMemberFunction<R (T::*)(Args..., ...) const>: std::true_type {
 };
 
 template <class R, class T, class... Args>
-struct TIsPointerToConstMemberFunction<R (T::*)(Args..., ...) const&> : std::true_type {
+struct TIsPointerToConstMemberFunction<R (T::*)(Args..., ...) const&>: std::true_type {
 };
 
 template <class R, class T, class... Args>
-struct TIsPointerToConstMemberFunction<R (T::*)(Args..., ...) const&&> : std::true_type {
+struct TIsPointerToConstMemberFunction<R (T::*)(Args..., ...) const&&>: std::true_type {
 };
 
 template <template <class...> class T, class U>
 struct TIsSpecializationOf: std::false_type {};
 
 template <template <class...> class T, class... Ts>
-struct TIsSpecializationOf<T, T<Ts...>> : std::true_type {};
+struct TIsSpecializationOf<T, T<Ts...>>: std::true_type {};
 
 /*
  * TDependentFalse is a constant dependent on a template parameter.
