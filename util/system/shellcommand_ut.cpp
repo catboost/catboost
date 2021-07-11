@@ -33,7 +33,7 @@ public:
     }
 
     TString Str() const {
-        with_lock (Lock) {
+        with_lock(Lock) {
             return Stream.Str();
         }
         return TString(); // line for compiler
@@ -41,14 +41,14 @@ public:
 
 protected:
     size_t DoRead(void* buf, size_t len) override {
-        with_lock (Lock) {
+        with_lock(Lock) {
             return Stream.Read(buf, len);
         }
         return 0; // line for compiler
     }
 
     void DoWrite(const void* buf, size_t len) override {
-        with_lock (Lock) {
+        with_lock(Lock) {
             return Stream.Write(buf, len);
         }
     }

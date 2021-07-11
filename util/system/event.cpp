@@ -56,7 +56,7 @@ public:
             return; // shortcut
         }
 
-        with_lock (Mutex) {
+        with_lock(Mutex) {
             AtomicSet(Signaled, 1);
         }
 
@@ -78,7 +78,7 @@ public:
 
         bool resSignaled = true;
 
-        with_lock (Mutex) {
+        with_lock(Mutex) {
             while (!AtomicGet(Signaled)) {
                 if (!Cond.WaitD(Mutex, deadLine)) {
                     resSignaled = AtomicGet(Signaled); // timed out, but Signaled could have been set

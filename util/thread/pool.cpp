@@ -109,7 +109,7 @@ public:
             return true;
         }
 
-        with_lock (QueueMutex) {
+        with_lock(QueueMutex) {
             while (MaxQueueSize > 0 && Queue.Size() >= MaxQueueSize && !AtomicGet(ShouldTerminate)) {
                 if (!Blocking) {
                     return false;
@@ -176,7 +176,7 @@ private:
     inline void Stop() {
         AtomicSet(ShouldTerminate, 1);
 
-        with_lock (QueueMutex) {
+        with_lock(QueueMutex) {
             QueuePopCond.BroadCast();
         }
 
@@ -190,9 +190,9 @@ private:
     }
 
     inline void WaitForComplete() noexcept {
-        with_lock (StopMutex) {
+        with_lock(StopMutex) {
             while (ThreadCountReal) {
-                with_lock (QueueMutex) {
+                with_lock(QueueMutex) {
                     QueuePushCond.Signal();
                 }
 
@@ -211,7 +211,7 @@ private:
         while (true) {
             IObjectInQueue* job = nullptr;
 
-            with_lock (QueueMutex) {
+            with_lock(QueueMutex) {
                 while (Queue.Empty() && !AtomicGet(ShouldTerminate)) {
                     QueuePushCond.Wait(QueueMutex);
                 }
@@ -290,7 +290,7 @@ private:
 
     private:
         void ChildAction() {
-            with_lock (ActionMutex) {
+            with_lock(ActionMutex) {
                 for (auto it = RegisteredObjects.Begin(); it != RegisteredObjects.End(); ++it) {
                     it->AtforkAction();
                 }
@@ -444,7 +444,7 @@ public:
     }
 
     inline void Add(IObjectInQueue* obj) {
-        with_lock (Mutex_) {
+        with_lock(Mutex_) {
             while (Obj_ != nullptr) {
                 CondFree_.Wait(Mutex_);
             }
@@ -462,7 +462,7 @@ public:
     }
 
     inline void AddThreads(size_t n) {
-        with_lock (Mutex_) {
+        with_lock(Mutex_) {
             while (n) {
                 AddThreadNoLock();
 

@@ -92,7 +92,7 @@ struct TTestGuard: public TTestBase {
         TGuardChecker m;
         size_t n = 0;
 
-        with_lock (m) {
+        with_lock(m) {
             UNIT_ASSERT(m.guarded);
             ++n;
         }
@@ -154,7 +154,7 @@ struct TTestGuard: public TTestBase {
     }
 
     int WithLockIncrement(TGuardChecker& m, int n) {
-        with_lock (m) {
+        with_lock(m) {
             UNIT_ASSERT(m.guarded);
             return n + 1;
         }
@@ -171,7 +171,7 @@ struct TTestGuard: public TTestBase {
     void TestWithLockScope() {
         auto Guard = [](auto) { UNIT_FAIL("Non global Guard used"); return 0; };
         TGuardChecker m;
-        with_lock (m) {
+        with_lock(m) {
             Y_UNUSED(Guard);
         }
     }
