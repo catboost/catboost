@@ -198,7 +198,7 @@ namespace {
         }
 
         inline void Cleanup() noexcept {
-            with_lock(Lock_) {
+            with_lock (Lock_) {
                 Datas_.erase(TThread::CurrentThreadId());
             }
         }

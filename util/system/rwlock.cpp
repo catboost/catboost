@@ -46,7 +46,7 @@ TRWMutex::TImpl::~TImpl() {
 }
 
 void TRWMutex::TImpl::AcquireRead() noexcept {
-    with_lock(Lock_) {
+    with_lock (Lock_) {
         while (BlockedWriters_ || State_ < 0) {
             ReadCond_.Wait(Lock_);
         }
@@ -58,7 +58,7 @@ void TRWMutex::TImpl::AcquireRead() noexcept {
 }
 
 bool TRWMutex::TImpl::TryAcquireRead() noexcept {
-    with_lock(Lock_) {
+    with_lock (Lock_) {
         if (BlockedWriters_ || State_ < 0) {
             return false;
         }
@@ -83,7 +83,7 @@ void TRWMutex::TImpl::ReleaseRead() noexcept {
 }
 
 void TRWMutex::TImpl::AcquireWrite() noexcept {
-    with_lock(Lock_) {
+    with_lock (Lock_) {
         while (State_ != 0) {
             ++BlockedWriters_;
             WriteCond_.Wait(Lock_);
@@ -95,7 +95,7 @@ void TRWMutex::TImpl::AcquireWrite() noexcept {
 }
 
 bool TRWMutex::TImpl::TryAcquireWrite() noexcept {
-    with_lock(Lock_) {
+    with_lock (Lock_) {
         if (State_ != 0) {
             return false;
         }
