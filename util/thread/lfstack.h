@@ -6,7 +6,7 @@
 //////////////////////////////
 // lock free lifo stack
 template <class T>
-class TLockFreeStack : TNonCopyable {
+class TLockFreeStack: TNonCopyable {
     struct TNode {
         T Value;
         TNode* Next;

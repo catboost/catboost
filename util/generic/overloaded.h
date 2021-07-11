@@ -1,7 +1,7 @@
 #pragma once
 
 /**
- * Construct an ad-hoc object with an overloaded `operator()`. 
+ * Construct an ad-hoc object with an overloaded `operator()`.
  *
  * Typically used with lambdas to construct type-matching visitors for e.g. TVariant:
  * ```
@@ -48,7 +48,7 @@
  */
 
 template <class... Fs>
-struct TOverloaded : Fs... {
+struct TOverloaded: Fs... {
     using Fs::operator()...;
 };
 

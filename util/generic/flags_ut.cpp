@@ -2,7 +2,7 @@
 
 #include "flags.h"
 
-enum ETestFlag1 : ui16 {
+enum ETestFlag1: ui16 {
     Test1 = 1,
     Test2 = 2,
     Test4 = 4,

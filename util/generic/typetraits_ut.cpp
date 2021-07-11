@@ -149,7 +149,7 @@ Y_UNIT_TEST_SUITE(TTypeTraitsTest) {
         UNIT_ASSERT(!std::is_unsigned<T&&>::value);
         UNIT_ASSERT(!std::is_unsigned<T*>::value);
 
-        enum ETypedEnum : T {};
+        enum ETypedEnum: T {};
         UNIT_ASSERT(!std::is_unsigned<ETypedEnum>::value);
     }
 
@@ -164,7 +164,7 @@ Y_UNIT_TEST_SUITE(TTypeTraitsTest) {
         UNIT_ASSERT(!std::is_signed<T&&>::value);
         UNIT_ASSERT(!std::is_signed<T*>::value);
 
-        enum ETypedEnum : T {};
+        enum ETypedEnum: T {};
         UNIT_ASSERT(!std::is_signed<ETypedEnum>::value);
     }
 
@@ -454,11 +454,11 @@ enum E4 {
     X
 };
 
-enum class E64 : ui64 {
+enum class E64: ui64 {
     X
 };
 
-enum class E8 : ui8 {
+enum class E8: ui8 {
     X
 };
 

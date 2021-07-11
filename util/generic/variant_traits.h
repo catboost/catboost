@@ -23,7 +23,7 @@ namespace NVariant {
 
     template <std::size_t... Is, class... Ts>
     struct TIndexedTypesImpl<std::index_sequence<Is...>, Ts...> {
-        struct type : TIndexedType<Is, Ts>... {};
+        struct type: TIndexedType<Is, Ts>... {};
     };
 
     template <class... Ts>
@@ -91,7 +91,7 @@ namespace NVariant {
     }
 
     template <class X, class... Ts>
-    struct TIndexOf : std::integral_constant<size_t, IndexOfImpl<X, Ts...>()> {};
+    struct TIndexOf: std::integral_constant<size_t, IndexOfImpl<X, Ts...>()> {};
 
     template <class X, class V>
     struct TAlternativeIndex;

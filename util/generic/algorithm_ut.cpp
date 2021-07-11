@@ -56,7 +56,7 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
         UNIT_ASSERT(3 == Count(array, '1'));
     }
 
-    struct TStrokaNoCopy : TString {
+    struct TStrokaNoCopy: TString {
     public:
         TStrokaNoCopy(const char* p)
             : TString(p)
@@ -149,7 +149,7 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
         }
     }
 
-    struct TVectorNoCopy : std::vector<int> {
+    struct TVectorNoCopy: std::vector<int> {
     public:
         TVectorNoCopy() = default;
 

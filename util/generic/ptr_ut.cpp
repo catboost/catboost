@@ -746,13 +746,13 @@ void TPointerTest::TestRefCountedPtrsInHashSetImpl() {
     UNIT_ASSERT_VALUES_EQUAL(hashSet.size(), 2);
 }
 
-struct TCustomIntrusivePtrOps : TDefaultIntrusivePtrOps<A> {
+struct TCustomIntrusivePtrOps: TDefaultIntrusivePtrOps<A> {
 };
 
-struct TCustomDeleter : TDelete {
+struct TCustomDeleter: TDelete {
 };
 
-struct TCustomCounter : TSimpleCounter {
+struct TCustomCounter: TSimpleCounter {
     using TSimpleCounterTemplate::TSimpleCounterTemplate;
 };
 

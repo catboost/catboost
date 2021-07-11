@@ -24,7 +24,7 @@
 namespace NStringSplitPrivate {
 
     template <class T, class I, class = void>
-    struct TIsConsumer : std::false_type {};
+    struct TIsConsumer: std::false_type {};
 
     template <class T, class I>
     struct TIsConsumer<

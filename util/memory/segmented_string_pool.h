@@ -15,7 +15,7 @@
  * Non-reallocated storage for the objects of POD type
  */
 template <class T, class Alloc = std::allocator<T>>
-class segmented_pool : TNonCopyable {
+class segmented_pool: TNonCopyable {
 protected:
     Alloc seg_allocator;
     struct seg_inf {

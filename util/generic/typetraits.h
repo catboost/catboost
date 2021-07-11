@@ -13,7 +13,7 @@ template <bool B>
 using TBoolConstant = std::bool_constant<B>;
 #else
 template <bool B>
-struct TBoolConstant : std::integral_constant<bool, B> {};
+struct TBoolConstant: std::integral_constant<bool, B> {};
 #endif
 
 #if _LIBCPP_STD_VER >= 17
@@ -21,7 +21,7 @@ template <class B>
 using TNegation = std::negation<B>;
 #else
 template <class B>
-struct TNegation : ::TBoolConstant<!bool(B::value)> {};
+struct TNegation: ::TBoolConstant<!bool(B::value)> {};
 #endif
 
 namespace NPrivate {
@@ -54,7 +54,7 @@ template <class... Bs>
 using TConjunction = std::conjunction<Bs...>;
 #else
 template <class... Bs>
-struct TConjunction : ::TBoolConstant<::NPrivate::ConjunctionImpl<Bs...>()> {};
+struct TConjunction: ::TBoolConstant<::NPrivate::ConjunctionImpl<Bs...>()> {};
 #endif
 
 #if _LIBCPP_STD_VER >= 17 && !defined(_MSC_VER)
@@ -65,7 +65,7 @@ template <class... Bs>
 using TDisjunction = std::disjunction<Bs...>;
 #else
 template <class... Bs>
-struct TDisjunction : ::TBoolConstant<::NPrivate::DisjunctionImpl<Bs...>()> {};
+struct TDisjunction: ::TBoolConstant<::NPrivate::DisjunctionImpl<Bs...>()> {};
 #endif
 
 #if _LIBCPP_STD_VER >= 17
@@ -94,7 +94,7 @@ public:
 
 namespace NPrivate {
     template <class T>
-    struct TIsSmall : std::integral_constant<bool, (sizeof(T) <= sizeof(void*))> {};
+    struct TIsSmall: std::integral_constant<bool, (sizeof(T) <= sizeof(void*))> {};
 }
 
 template <class T>
@@ -238,7 +238,7 @@ struct TPodTraits<std::pair<T1, T2>> {
 };
 
 template <class T>
-struct TIsPointerToConstMemberFunction : std::false_type {
+struct TIsPointerToConstMemberFunction: std::false_type {
 };
 
 template <class R, class T, class... Args>
@@ -266,7 +266,7 @@ struct TIsPointerToConstMemberFunction<R (T::*)(Args..., ...) const&&> : std::tr
 };
 
 template <template <class...> class T, class U>
-struct TIsSpecializationOf : std::false_type {};
+struct TIsSpecializationOf: std::false_type {};
 
 template <template <class...> class T, class... Ts>
 struct TIsSpecializationOf<T, T<Ts...>> : std::true_type {};
