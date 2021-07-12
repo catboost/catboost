@@ -1,9 +1,10 @@
 # Atocheck blacklist
 # The list of directories excluded from autocheck (with all subdirs)
-frontend
-junk
-mobile
-games/frontend
+browser/frontend
+data-ui/arcanum
 direct/frontend
 drive/pyback
-data-ui/arcanum
+frontend
+games/frontend
+junk
+mobile
