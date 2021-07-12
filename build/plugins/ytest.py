@@ -446,6 +446,20 @@ def onadd_ytest(unit, *args):
         save_in_file(unit.get('TEST_DART_OUT_FILE'), data)
 
 
+def java_srcdirs_to_data(unit, var):
+    extra_data = []
+    for srcdir in (unit.get(var) or '').replace('$' + var, '').split():
+        if srcdir == '.':
+            srcdir = unit.get('MODDIR')
+        srcdir = unit.resolve_arc_path(srcdir)
+        if not srcdir.startswith('$'):
+            srcdir = os.path.join('$S', unit.get('MODDIR'), srcdir)
+        if not srcdir.startswith('$S'):
+            continue
+        extra_data.append(srcdir.replace('$S', 'arcadia'))
+    return serialize_list(extra_data)
+
+
 def onadd_check(unit, *args):
     flat_args, spec_args = _common.sort_by_keywords({"DEPENDS": -1, "TIMEOUT": 1, "DATA": -1, "TAG": -1, "REQUIREMENTS": -1, "FORK_MODE": 1,
                                                      "SPLIT_FACTOR": 1, "FORK_SUBTESTS": 0, "FORK_TESTS": 0, "SIZE": 1}, args)
@@ -454,11 +468,15 @@ def onadd_check(unit, *args):
 
     test_timeout = ''
     fork_mode = ''
+    extra_test_data = ''
+    ymake_java_test = unit.get('YMAKE_JAVA_TEST') == 'yes'
 
     if check_type in ["flake8.py2", "flake8.py3"]:
         script_rel_path = check_type
         fork_mode = unit.get('TEST_FORK_MODE') or ''
     elif check_type == "JAVA_STYLE":
+        if ymake_java_test and not unit.get('ALL_SRCDIRS') or '':
+            return
         if len(flat_args) < 2:
             raise Exception("Not enough arguments for JAVA_STYLE check")
         check_level = flat_args[1]
@@ -471,9 +489,13 @@ def onadd_check(unit, *args):
         if check_level not in allowed_levels:
             raise Exception('{} is not allowed in LINT(), use one of {}'.format(check_level, allowed_levels.keys()))
         flat_args[1] = allowed_levels[check_level]
+        if check_level == 'none':
+            return
         script_rel_path = "java.style"
         test_timeout = '120'
         fork_mode = unit.get('TEST_FORK_MODE') or ''
+        if ymake_java_test:
+            extra_test_data = java_srcdirs_to_data(unit, 'ALL_SRCDIRS')
     elif check_type == "gofmt":
         script_rel_path = check_type
         go_files = flat_args[1:]
@@ -491,7 +513,7 @@ def onadd_check(unit, *args):
         'TESTED-PROJECT-NAME': os.path.basename(test_dir),
         'SOURCE-FOLDER-PATH': test_dir,
         'CUSTOM-DEPENDENCIES': " ".join(spec_args.get('DEPENDS', [])),
-        'TEST-DATA': '',
+        'TEST-DATA': extra_test_data,
         'SPLIT-FACTOR': '',
         'TEST_PARTITION': 'SEQUENTIAL',
         'FORK-MODE': fork_mode,
@@ -505,6 +527,7 @@ def onadd_check(unit, *args):
         # TODO remove FILES, see DEVTOOLS-7052
         'FILES': test_files,
         'TEST-FILES': test_files,
+        'NO_JBUILD': 'yes' if ymake_java_test else 'no',
     }
 
     data = dump_test(unit, test_record)
