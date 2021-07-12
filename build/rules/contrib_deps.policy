@@ -1,5 +1,6 @@
 ALLOW contrib -> contrib
 ALLOW contrib -> build
+ALLOW contrib -> library/python/resource
 ALLOW contrib -> library/cpp/testing/unittest_main
 ALLOW contrib -> library/cpp/testing/unittest
 ALLOW contrib -> library/cpp/getopt
