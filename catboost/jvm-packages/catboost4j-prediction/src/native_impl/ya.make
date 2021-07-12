@@ -11,6 +11,7 @@ STRIP()
 PEERDIR(
     catboost/libs/helpers
     catboost/libs/model
+    catboost/libs/model/model_export
 )
 
 IF (USE_SYSTEM_JDK)
