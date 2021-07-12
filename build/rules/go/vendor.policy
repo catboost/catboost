@@ -4,6 +4,9 @@
 
 ALLOW vendor/ -> .*
 
+# CONTRIB-2078 provides functions to retrieve system, kernel and process metrics from the pseudo-filesystem proc.
+ALLOW .* -> vendor/github.com/prometheus/procfs
+
 # CONTRIB-2166
 ALLOW .* -> vendor/github.com/openconfig/gnmi
 
