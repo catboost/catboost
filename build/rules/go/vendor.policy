@@ -772,8 +772,6 @@ ALLOW market/sre/tools/ya-gde/src/pkg/hostinfo -> vendor/github.com/pkg/errors
 ALLOW market/sre/tools/ya-gde/src/pkg/util -> vendor/github.com/pkg/errors
 ALLOW transfer_manager/go/pkg/abstract -> vendor/github.com/pkg/errors
 ALLOW yabs/telephony/platform/inventory/api/http -> vendor/github.com/pkg/errors
-ALLOW yt/jaeger/plugin/cmd/agent -> vendor/github.com/pkg/errors
-ALLOW yt/jaeger/plugin/cmd/collector -> vendor/github.com/pkg/errors
 
 # IGNIETFERRO-1396
 
@@ -813,10 +811,23 @@ ALLOW yabs/vh/cms-pgaas/transcoded -> vendor/github.com/jackc/pgx
 ALLOW vendor/ -> vendor/github.com/opencontainers/go-digest
 
 # CONTRIB-865. Jaeger YT plugin. responsible: prime@
-ALLOW yt/jaeger/plugin -> vendor/github.com/jaegertracing/jaeger
-ALLOW yt/jaeger/plugin -> vendor/github.com/spf13/viper
-ALLOW yt/jaeger/plugin -> vendor/github.com/gorilla
-ALLOW yt/jaeger/plugin -> vendor/github.com/gogo
+ALLOW yt/jaeger/plugin -> vendor/github.com/jaegertracing/jaeger/plugin/storage/grpc
+ALLOW yt/jaeger/plugin -> vendor/github.com/jaegertracing/jaeger/storage/spanstore
+ALLOW yt/jaeger/plugin -> vendor/github.com/jaegertracing/jaeger/storage/dependencystore
+ALLOW yt/jaeger/plugin -> vendor/github.com/jaegertracing/jaeger/model
+ALLOW yt/jaeger/plugin -> vendor/github.com/gogo/protobuf
+
+ALLOW yt/jaeger/plugin/cmd/agent -> vendor/github.com/jaegertracing/jaeger/cmd/agent
+ALLOW yt/jaeger/plugin/cmd/agent -> vendor/github.com/jaegertracing/jaeger/cmd/docs
+ALLOW yt/jaeger/plugin/cmd/agent -> vendor/github.com/jaegertracing/jaeger/cmd/flags
+ALLOW yt/jaeger/plugin/cmd/agent -> vendor/github.com/jaegertracing/jaeger/model/converter/thrift/jaeger
+ALLOW yt/jaeger/plugin/cmd/agent -> vendor/github.com/jaegertracing/jaeger/pkg/config
+ALLOW yt/jaeger/plugin/cmd/agent -> vendor/github.com/jaegertracing/jaeger/pkg/version
+ALLOW yt/jaeger/plugin/cmd/agent -> vendor/github.com/jaegertracing/jaeger/thrift-gen/jaeger
+ALLOW yt/jaeger/plugin/cmd/agent -> vendor/github.com/jaegertracing/jaeger/ports
+ALLOW yt/jaeger/plugin/cmd/agent -> vendor/github.com/jaegertracing/jaeger/model/converter/thrift/jaeger
+ALLOW yt/jaeger/plugin/cmd/agent -> vendor/github.com/spf13/viper
+ALLOW yt/jaeger/plugin/cmd/agent -> vendor/github.com/gogo
 
 # CONTRIB-1518 client for monkey-patched Apache Pulsar by TuyaInc. responsible: jock@
 ALLOW alice/iot/adapters/tuya_adapter -> vendor/github.com/TuyaInc/tuya_pulsar_sdk_go
