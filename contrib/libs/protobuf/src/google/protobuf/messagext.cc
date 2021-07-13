@@ -9,7 +9,6 @@
 
 namespace {
     const int MaxSizeBytes = 1 << 27; // 128 MB limits the size of a protobuf message processed by TProtoSerializer
-    const int WarningSizeBytes = -1;  // Disabled warning message after a certain size threshold
 }
 
 namespace google::protobuf {
@@ -175,7 +174,7 @@ void TProtoSerializer::Load(IInputStream* input, Message& msg) {
     TTempBufHelper buf(size);
     ::LoadPodArray(input, buf.Data(), size);
     CodedInputStream decoder(buf.Data(), size);
-    decoder.SetTotalBytesLimit(MaxSizeBytes, WarningSizeBytes);
+    decoder.SetTotalBytesLimit(MaxSizeBytes);
     if (!msg.ParseFromCodedStream(&decoder))
         ythrow yexception() << "Cannot read protobuf::Message (" << msg.GetTypeName() << ") from input stream";
 
