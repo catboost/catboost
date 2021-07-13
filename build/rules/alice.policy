@@ -29,8 +29,6 @@ ALLOW alice/hollywood/library/scenarios/suggesters/movies/ut -> alice/megamind/l
 ALLOW alice/library/nlg -> alice/megamind/library/util
 ALLOW alice/library/video_common/ut -> alice/megamind/library/testing
 ALLOW alice/library/websearch -> alice/megamind/library/search/protos
-ALLOW alice/logs/wonderlogs/lib -> alice/megamind/library/context
-ALLOW alice/logs/wonderlogs/lib -> alice/megamind/library/handlers/utils
 ALLOW alice/tools/sessions_tool -> alice/megamind/library/session
 ALLOW alice/tools/print_megamind_session -> alice/megamind/library/session
 ALLOW alice/wonderlogs/daily/lib -> alice/megamind/library/context
