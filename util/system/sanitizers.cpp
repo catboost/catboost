@@ -102,7 +102,7 @@ void TFiberContext::BeforeFinish() noexcept {
 
 void TFiberContext::BeforeSwitch(TFiberContext* old) noexcept {
 #if defined(_asan_enabled_)
-    __sanitizer_start_switch_fiber(old ? &old->Token_: nullptr, (char*)Stack_, Len_);
+    __sanitizer_start_switch_fiber(old ? &old->Token_ : nullptr, (char*)Stack_, Len_);
 #else
     (void)old;
 #endif

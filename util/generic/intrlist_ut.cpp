@@ -483,7 +483,8 @@ class TDoubleNode
       public TIntrusiveListItem<TDoubleNode, TSecondTag> {
 public:
     TDoubleNode(int value) noexcept
-        : TInt(value) {
+        : TInt(value)
+    {
     }
 };
 

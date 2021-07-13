@@ -915,7 +915,8 @@ void THashTest::TestTryEmplace() {
 
     struct TCountConstruct {
         explicit TCountConstruct(int v)
-            : value(v) {
+            : value(v)
+        {
             ++counter;
         }
         TCountConstruct(const TCountConstruct&) = delete;
@@ -943,10 +944,12 @@ void THashTest::TestTryEmplaceCopyKey() {
 
     struct TCountCopy {
         explicit TCountCopy(int i)
-            : Value(i) {
+            : Value(i)
+        {
         }
         TCountCopy(const TCountCopy& other)
-            : Value(other.Value) {
+            : Value(other.Value)
+        {
             ++counter;
         }
 

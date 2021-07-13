@@ -78,7 +78,8 @@ public:
     template <typename Callable>
     TThread(Callable&& callable)
         : TThread(TPrivateCtor{},
-                  MakeHolder<TCallableParams<Callable>>(std::forward<Callable>(callable))) {
+                  MakeHolder<TCallableParams<Callable>>(std::forward<Callable>(callable)))
+    {
     }
 
     TThread(TParams&& params)

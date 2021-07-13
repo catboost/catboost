@@ -39,7 +39,8 @@ Y_UNIT_TEST_SUITE(TInputRangeAdaptor) {
     class TUrlPart: public TInputRangeAdaptor<TUrlPart> {
     public:
         TUrlPart(const TStringBuf& url)
-            : Url_(url) {
+            : Url_(url)
+        {
         }
 
         NStlIterator::TProxy<TStringBuf> Next() {

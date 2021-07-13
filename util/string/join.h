@@ -154,7 +154,8 @@ struct TRangeJoiner {
     constexpr TRangeJoiner(TStringBuf delim, TIterB&& b, TIterE&& e)
         : delim(delim)
         , b(std::forward<TIterB>(b))
-        , e(std::forward<TIterE>(e)) {
+        , e(std::forward<TIterE>(e))
+    {
     }
 
 private:
