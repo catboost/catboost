@@ -2,6 +2,7 @@
 # The list of directories excluded from autocheck (with all subdirs)
 browser/frontend
 data-ui/arcanum
+data-ui/unity
 direct/frontend
 drive/pyback
 frontend
