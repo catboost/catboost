@@ -1015,7 +1015,6 @@ migrations:
     - addappter/web/libs/walrus
     - addappter/web/testing/fixtures
     - adfox/infra/amacs_config/lib
-    - adfox/xpd/tests/functional/tests/tvm_mock
     - ads/autobudget/metrics/equivalency_monitoring
     - ads/autobudget/metrics/example_monitoring
     - ads/emily/mvp/backend_agnostik/backends/nirvana
@@ -1318,7 +1317,6 @@ migrations:
     - voicetech/asr/tools/run_normalizer/prepare_data_for_mt_normalizer
     - voicetech/infra/uniproxy/tests/session
     - voicetech/infra/voice_ext_mon/bin
-    - voicetech/spotter/ov_approval/lib/tests
     - voicetech/spotter/score/lib/test
     - voicetech/spotter/selection_for_annotation/bin
     - voicetech/spotter/train/lib
@@ -1356,7 +1354,6 @@ migrations:
     - yabs/vh/cms-pgaas/sport_api_importer/sport_api_importer_lib
     - yabs/vh/frontend/test/ft/HOME-43539
     - ydo/server/extract_backend_request_source/lib
-    - yt/skynet/test
     - yweb/antispam/cid/analytics/pushes/crypta_lal/args
     - yweb/antispam/cid/analytics/pushes/push_sender/args
     - yweb/antispam/cid/analytics/pushes/push_sender/cli
@@ -1759,7 +1756,6 @@ migrations:
     - voicetech/spotter/run/difftool
     - voicetech/spotter/score/prepare_for_online_validation/bin
     - voicetech/spotter/tools/filter_texts/bin
-    - weather/admin
     - weather/ml/experiments/neural_nowcasting/neural_nowcasting
     - weather/workers/warnings/general
     - weather/workers/warnings/nowcasting
