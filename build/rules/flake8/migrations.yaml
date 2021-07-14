@@ -1017,7 +1017,6 @@ migrations:
     - adfox/infra/amacs_config/lib
     - ads/autobudget/metrics/equivalency_monitoring
     - ads/autobudget/metrics/example_monitoring
-    - ads/emily/mvp/backend_agnostik/backends/nirvana
     - ads/libs/py_mapreduce/yabs-mapreduce-modules/py-modules/yabs/tabtools
     - ads/ml_engine/learn/result/local_extended_fstr/lib
     - ads/pytorch/lib/online_learning/production/processors/tsar_processor/lib
@@ -2087,7 +2086,6 @@ migrations:
     - comdep_analytics/telephony
     - contrib/python/ipython/py2
     - contrib/python/semantic-version
-    - crm/supskills/direct_skill/src
     - crowdsourcing/thirium-mitm-proxy
     - cv/cbir_search/onto_validation/grep_onto_state
     - cv/imageproc/faces/video_face_recognition/face_recognition_stream_viewer
