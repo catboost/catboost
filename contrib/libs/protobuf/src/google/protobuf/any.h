@@ -61,22 +61,18 @@ class PROTOBUF_EXPORT AnyMetadata {
  public:
   // AnyMetadata does not take ownership of "type_url" and "value".
   constexpr AnyMetadata(UrlType* type_url, ValueType* value)
-      : AnyMetadata(nullptr, type_url, value) {}
+      : type_url_(type_url), value_(value) {}
 
-  constexpr AnyMetadata(Arena* arena, UrlType* type_url, ValueType* value)
-      : arena_(arena)
-	  , type_url_(type_url)
-	  , value_(value) {}
   // Packs a message using the default type URL prefix: "type.googleapis.com".
   // The resulted type URL will be "type.googleapis.com/<message_full_name>".
   // Returns false if serializing the message failed.
   template <typename T>
-  bool PackFrom(const T& message) {
-    return InternalPackFrom(message, kTypeGoogleApisComPrefix,
+  bool PackFrom(Arena* arena, const T& message) {
+    return InternalPackFrom(arena, message, kTypeGoogleApisComPrefix,
                             T::FullMessageName());
   }
 
-  bool PackFrom(const Message& message);
+  bool PackFrom(Arena* arena, const Message& message);
 
   // Packs a message using the given type URL prefix. The type URL will be
   // constructed by concatenating the message type's full name to the prefix
@@ -86,11 +82,11 @@ class PROTOBUF_EXPORT AnyMetadata {
   // URL: "type.googleapis.com/<message_full_name>".
   // Returns false if serializing the message failed.
   template <typename T>
-  bool PackFrom(const T& message, StringPiece type_url_prefix) {
-    return InternalPackFrom(message, type_url_prefix, T::FullMessageName());
+  bool PackFrom(Arena* arena, const T& message, StringPiece type_url_prefix) {
+    return InternalPackFrom(arena, message, type_url_prefix, T::FullMessageName());
   }
 
-  bool PackFrom(const Message& message, StringPiece type_url_prefix);
+  bool PackFrom(Arena* arena, const Message& message, StringPiece type_url_prefix);
 
   // Unpacks the payload into the given message. Returns false if the message's
   // type doesn't match the type specified in the type URL (i.e., the full
@@ -112,15 +108,14 @@ class PROTOBUF_EXPORT AnyMetadata {
   }
 
  private:
-  Arena* GetArenaForAllocation() const { return arena_; }
-  bool InternalPackFrom(const MessageLite& message,
+  bool InternalPackFrom(Arena* arena,
+                        const MessageLite& message,
                         StringPiece type_url_prefix,
                         StringPiece type_name);
   bool InternalUnpackTo(StringPiece type_name,
                         MessageLite* message) const;
   bool InternalIs(StringPiece type_name) const;
 
-  Arena* arena_;
   UrlType* type_url_;
   ValueType* value_;
 

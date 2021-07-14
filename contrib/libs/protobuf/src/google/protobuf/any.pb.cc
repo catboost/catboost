@@ -100,7 +100,7 @@ class Any::_Internal {
 
 Any::Any(::PROTOBUF_NAMESPACE_ID::Arena* arena)
   : ::PROTOBUF_NAMESPACE_ID::Message(arena),
-  _any_metadata_(arena, &type_url_, &value_) {
+  _any_metadata_(&type_url_, &value_) {
   SharedCtor();
   RegisterArenaDtor(arena);
   // @@protoc_insertion_point(arena_constructor:google.protobuf.Any)
