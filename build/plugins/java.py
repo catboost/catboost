@@ -237,13 +237,17 @@ def onjava_module(unit, *args):
 
     unit.set_property(['JAVA_DART_DATA', dart])
     if unit.get('MODULE_TYPE') in ('JAVA_PROGRAM', 'JAVA_LIBRARY', 'JTEST', 'TESTNG', 'JUNIT5') and not unit.path().startswith('$S/contrib/java'):
-        jdeps_val = (unit.get('CHECK_JAVA_DEPS_VALUE') or '').lower()
-        if jdeps_val and jdeps_val not in ('yes', 'no', 'strict'):
-            ymake.report_configure_error('CHECK_JAVA_DEPS: "yes", "no" or "strict" required')
-        if jdeps_val and jdeps_val != 'no':
-            unit.onjava_test_deps(jdeps_val)
+        unit.on_add_classpath_clash_check()
         if unit.get('LINT_LEVEL_VALUE') != "none":
             unit.onadd_check(['JAVA_STYLE', unit.get('LINT_LEVEL_VALUE')])
+
+
+def on_add_classpath_clash_check(unit, *args):
+    jdeps_val = (unit.get('CHECK_JAVA_DEPS_VALUE') or '').lower()
+    if jdeps_val and jdeps_val not in ('yes', 'no', 'strict'):
+        ymake.report_configure_error('CHECK_JAVA_DEPS: "yes", "no" or "strict" required')
+    if jdeps_val and jdeps_val != 'no':
+        unit.onjava_test_deps(jdeps_val)
 
 
 # Ymake java modules related macroses
