@@ -2,22 +2,19 @@
 #include <google/protobuf/compiler/plugin.h>
 #include <google/protobuf/stubs/common.h>
 
-namespace NProtobuf {
-namespace NCompiler {
-namespace NPlugins {
+namespace NProtobuf::NCompiler::NPlugins {
 
 class TCppStyleGuideExtensionGenerator : public google::protobuf::compiler::CodeGenerator {
- public:
-  TCppStyleGuideExtensionGenerator() {}
-  ~TCppStyleGuideExtensionGenerator() {}
+public:
+    bool Generate(const google::protobuf::FileDescriptor* file,
+        const TProtoStringType& parameter,
+        google::protobuf::compiler::OutputDirectory* output_directory,
+        TProtoStringType* error
+    ) const override;
 
-  virtual bool Generate(const google::protobuf::FileDescriptor* file,
-      const TProtoStringType& parameter,
-      google::protobuf::compiler::OutputDirectory* output_directory,
-      TProtoStringType* error) const;
+    uint64_t GetSupportedFeatures() const override {
+        return FEATURE_PROTO3_OPTIONAL;
+    }
 };
 
-
-}
-}
-}
+} // namespace NProtobuf::NCompiler::NPlugins
