@@ -858,8 +858,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\MarkupSafe\pycontrib-python-MarkupSafe.vcxproj">
       <Project>{FC1C3945-FBD5-32DC-1DC6-99EC399ECD60}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\dateutil\pydateutil.vcxproj">
-      <Project>{751337F2-2FB8-B6C6-2106-D3D0FD4C4D66}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\dateutil\pycontrib-python-dateutil.vcxproj">
+      <Project>{93FEFA8F-C6D9-6274-11D6-7594A15DEF5F}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\enum34\pycontrib-python-enum34.vcxproj">
       <Project>{A4701379-95E5-BF2B-2E20-B71461B5CC55}</Project>
