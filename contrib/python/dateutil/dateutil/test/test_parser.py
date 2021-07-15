@@ -22,11 +22,12 @@ import pytest
 # Platform info
 IS_WIN = sys.platform.startswith('win')
 
+PLATFORM_HAS_DASH_D = False
 try:
-    datetime.now().strftime('%-d')
-    PLATFORM_HAS_DASH_D = True
+    if datetime.now().strftime('%-d'):
+        PLATFORM_HAS_DASH_D = True
 except ValueError:
-    PLATFORM_HAS_DASH_D = False
+    pass
 
 
 @pytest.fixture(params=[True, False])
@@ -743,6 +744,10 @@ class TestOutOfBounds(object):
         with pytest.raises(ParserError):
             parse("Feb 30, 2007")
 
+    def test_illegal_month_error(self):
+        with pytest.raises(ParserError):
+            parse("0-100")
+
     def test_day_sanity(self, fuzzy):
         dstr = "2014-15-25"
         with pytest.raises(ParserError):
@@ -871,6 +876,15 @@ class TestParseUnimplementedCases(object):
         expected = datetime(2017, 12, 1)
         assert res == expected
 
+    @pytest.mark.xfail
+    def test_extraneous_numerical_content(self):
+        # ref: https://github.com/dateutil/dateutil/issues/1029
+        # parser interprets price and percentage as parts of the date
+        dstr = "£14.99 (25% off, until April 20)"
+        res = parse(dstr, fuzzy=True, default=datetime(2000, 1, 1))
+        expected = datetime(2000, 4, 20)
+        assert res == expected
+
 
 @pytest.mark.skipif(IS_WIN, reason="Windows does not use TZ var")
 class TestTZVar(object):
@@ -939,3 +953,12 @@ def test_decimal_error(value):
     # when constructed with an invalid value
     with pytest.raises(ParserError):
         parse(value)
+
+def test_parsererror_repr():
+    # GH 991 — the __repr__ was not properly indented and so was never defined.
+    # This tests the current behavior of the ParserError __repr__, but the
+    # precise format is not guaranteed to be stable and may change even in
+    # minor versions. This test exists to avoid regressions.
+    s = repr(ParserError("Problem with string: %s", "2019-01-01"))
+
+    assert s == "ParserError('Problem with string: %s', '2019-01-01')"
