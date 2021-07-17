@@ -136,6 +136,10 @@ ALLOW .* -> vendor/github.com/davecgh/go-spew/spew
 ALLOW .* -> vendor/github.com/dgrijalva/jwt-go
 
 # Docker API client
+# docker tests depends on broken package: gotest.tools
+DENY .* -> vendor/github.com/docker/docker;test
+DENY .* -> vendor/github.com/docker/docker/api/server
+DENY .* -> vendor/github.com/docker/docker/api/types/backend
 ALLOW .* -> vendor/github.com/docker/docker/client
 ALLOW .* -> vendor/github.com/docker/docker/api
 ALLOW .* -> vendor/github.com/docker/go-connections
