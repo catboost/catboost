@@ -1469,7 +1469,7 @@ migrations:
     - antirobot/tools/prepare_requests_cbb
     - arc/backups/restore/tasklet
     - balancer/test/functional/rate_limiter
-    - browser/infra/ci/backend
+    - browser/infra/ci/backend/flakiness/migrations
     - clickhouse/utils/github
     - cv/imageproc/ocr/tools/nirvana/captcha_renderer
     - cv/short2long/nirvana/lib
