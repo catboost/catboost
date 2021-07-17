@@ -23,7 +23,6 @@ from pkg_resources import (
     Environment, find_distributions, safe_name, safe_version,
     to_filename, Requirement, DEVELOP_DIST, EGG_DIST,
 )
-from setuptools import ssl_support
 from distutils import log
 from distutils.errors import DistutilsError
 from fnmatch import translate
@@ -293,15 +292,7 @@ class PackageIndex(Environment):
         self.package_pages = {}
         self.allows = re.compile('|'.join(map(translate, hosts))).match
         self.to_scan = []
-        use_ssl = (
-            verify_ssl
-            and ssl_support.is_available
-            and (ca_bundle or ssl_support.find_ca_bundle())
-        )
-        if use_ssl:
-            self.opener = ssl_support.opener_for(ca_bundle)
-        else:
-            self.opener = urllib.request.urlopen
+        self.opener = urllib.request.urlopen
 
     # FIXME: 'PackageIndex.process_url' is too complex (14)
     def process_url(self, url, retrieve=False):  # noqa: C901

@@ -15,11 +15,6 @@ from distutils.debug import DEBUG
 from distutils import log
 
 
-if sys.platform == 'darwin':
-    _cfg_target = None
-    _cfg_target_split = None
-
-
 def spawn(cmd, search_path=1, verbose=0, dry_run=0, env=None):
     """Run another program, specified as a command list 'cmd', in a new process.
 
@@ -52,28 +47,10 @@ def spawn(cmd, search_path=1, verbose=0, dry_run=0, env=None):
     env = env if env is not None else dict(os.environ)
 
     if sys.platform == 'darwin':
-        global _cfg_target, _cfg_target_split
-        if _cfg_target is None:
-            from distutils import sysconfig
-            _cfg_target = sysconfig.get_config_var(
-                                  'MACOSX_DEPLOYMENT_TARGET') or ''
-            if _cfg_target:
-                _cfg_target_split = [int(x) for x in _cfg_target.split('.')]
-        if _cfg_target:
-            # Ensure that the deployment target of the build process is not
-            # less than 10.3 if the interpreter was built for 10.3 or later.
-            # This ensures extension modules are built with correct
-            # compatibility values, specifically LDSHARED which can use
-            # '-undefined dynamic_lookup' which only works on >= 10.3.
-            cur_target = os.environ.get('MACOSX_DEPLOYMENT_TARGET', _cfg_target)
-            cur_target_split = [int(x) for x in cur_target.split('.')]
-            if _cfg_target_split[:2] >= [10, 3] and cur_target_split[:2] < [10, 3]:
-                my_msg = ('$MACOSX_DEPLOYMENT_TARGET mismatch: '
-                          'now "%s" but "%s" during configure;'
-                          'must use 10.3 or later'
-                                % (cur_target, _cfg_target))
-                raise DistutilsPlatformError(my_msg)
-            env.update(MACOSX_DEPLOYMENT_TARGET=cur_target)
+        from distutils.util import MACOSX_VERSION_VAR, get_macosx_target_ver
+        macosx_target_ver = get_macosx_target_ver()
+        if macosx_target_ver:
+            env[MACOSX_VERSION_VAR] = macosx_target_ver
 
     try:
         proc = subprocess.Popen(cmd, env=env)

@@ -103,10 +103,65 @@ def get_platform():
             'x86' : 'win32',
             'x64' : 'win-amd64',
             'arm' : 'win-arm32',
+            'arm64': 'win-arm64',
         }
         return TARGET_TO_PLAT.get(os.environ.get('VSCMD_ARG_TGT_ARCH')) or get_host_platform()
     else:
         return get_host_platform()
+
+
+if sys.platform == 'darwin':
+    _syscfg_macosx_ver = None # cache the version pulled from sysconfig
+MACOSX_VERSION_VAR = 'MACOSX_DEPLOYMENT_TARGET'
+
+def _clear_cached_macosx_ver():
+    """For testing only. Do not call."""
+    global _syscfg_macosx_ver
+    _syscfg_macosx_ver = None
+
+def get_macosx_target_ver_from_syscfg():
+    """Get the version of macOS latched in the Python interpreter configuration.
+    Returns the version as a string or None if can't obtain one. Cached."""
+    global _syscfg_macosx_ver
+    if _syscfg_macosx_ver is None:
+        from distutils import sysconfig
+        ver = sysconfig.get_config_var(MACOSX_VERSION_VAR) or ''
+        if ver:
+            _syscfg_macosx_ver = ver
+    return _syscfg_macosx_ver
+
+def get_macosx_target_ver():
+    """Return the version of macOS for which we are building.
+
+    The target version defaults to the version in sysconfig latched at time
+    the Python interpreter was built, unless overriden by an environment
+    variable. If neither source has a value, then None is returned"""
+
+    syscfg_ver = get_macosx_target_ver_from_syscfg()
+    env_ver = os.environ.get(MACOSX_VERSION_VAR)
+
+    if env_ver:
+        # Validate overriden version against sysconfig version, if have both.
+        # Ensure that the deployment target of the build process is not less
+        # than 10.3 if the interpreter was built for 10.3 or later.  This
+        # ensures extension modules are built with correct compatibility
+        # values, specifically LDSHARED which can use
+        # '-undefined dynamic_lookup' which only works on >= 10.3.
+        if syscfg_ver and split_version(syscfg_ver) >= [10, 3] and \
+            split_version(env_ver) < [10, 3]:
+            my_msg = ('$' + MACOSX_VERSION_VAR + ' mismatch: '
+                      'now "%s" but "%s" during configure; '
+                      'must use 10.3 or later'
+                      % (env_ver, syscfg_ver))
+            raise DistutilsPlatformError(my_msg)
+        return env_ver
+    return syscfg_ver
+
+
+def split_version(s):
+    """Convert a dot-separated string into a list of numbers for comparisons"""
+    return [int(n) for n in s.split('.')]
+
 
 def convert_path (pathname):
     """Return 'pathname' as a name that will work on the native filesystem,
