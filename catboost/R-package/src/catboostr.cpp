@@ -175,9 +175,11 @@ EXPORT_FUNCTION CatBoostCreateFromFile_R(SEXP poolFileParam,
     return result;
 }
 
-EXPORT_FUNCTION CatBoostCreateFromMatrix_R(SEXP matrixParam,
+EXPORT_FUNCTION CatBoostCreateFromMatrix_R(SEXP floatAndCatMatrixParam,
                                 SEXP targetParam,
-                                SEXP catFeaturesParam,
+                                SEXP catFeaturesIndicesParam,
+                                SEXP textMatrixParam,
+                                SEXP textFeaturesIndicesParam,
                                 SEXP pairsParam,
                                 SEXP weightParam,
                                 SEXP groupIdParam,
@@ -188,9 +190,15 @@ EXPORT_FUNCTION CatBoostCreateFromMatrix_R(SEXP matrixParam,
                                 SEXP featureNamesParam) {
     SEXP result = NULL;
     R_API_BEGIN();
-    SEXP dataDim = getAttrib(matrixParam, R_DimSymbol);
+    SEXP dataDim = floatAndCatMatrixParam != R_NilValue ?
+                   getAttrib(floatAndCatMatrixParam, R_DimSymbol) :
+                   getAttrib(textMatrixParam, R_DimSymbol);
     ui32 dataRows = SafeIntegerCast<ui32>(INTEGER(dataDim)[0]);
-    ui32 dataColumns = SafeIntegerCast<ui32>(INTEGER(dataDim)[1]);
+    ui32 floatAndCatColumns = floatAndCatMatrixParam == R_NilValue ? 0 :
+                       SafeIntegerCast<ui32>(INTEGER(getAttrib(floatAndCatMatrixParam, R_DimSymbol))[1]);
+    ui32 textColumns = textMatrixParam == R_NilValue ? 0 :
+                       SafeIntegerCast<ui32>(INTEGER(getAttrib(textMatrixParam, R_DimSymbol))[1]);
+    ui32 dataColumns = floatAndCatColumns + textColumns;
     SEXP targetDim = getAttrib(targetParam, R_DimSymbol);
     ui32 targetRows = 0;
     ui32 targetColumns = 0;
@@ -218,8 +226,8 @@ EXPORT_FUNCTION CatBoostCreateFromMatrix_R(SEXP matrixParam,
 
         metaInfo.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(
             dataColumns,
-            ToUnsigned(GetVectorFromSEXP<int>(catFeaturesParam)),
-            TVector<ui32>{}, // TODO(d-kruchinin) support text features in R
+            ToUnsigned(GetVectorFromSEXP<int>(catFeaturesIndicesParam)),
+            ToUnsigned(GetVectorFromSEXP<int>(textFeaturesIndicesParam)),
             TVector<ui32>{}, // TODO(akhropov) support embedding features in R
             featureId);
 
@@ -284,23 +292,36 @@ EXPORT_FUNCTION CatBoostCreateFromMatrix_R(SEXP matrixParam,
             }
         }
 
-        double *ptr_matrixParam = Rf_isNull(matrixParam)? nullptr : REAL(matrixParam);
-        for (size_t j = 0; j < dataColumns; ++j) {
-            if (metaInfo.FeaturesLayout->GetExternalFeatureType(j) == EFeatureType::Categorical) {
-                TVector<ui32> catValues;
-                catValues.yresize(dataRows);
+        double *ptr_floatAndCatMatrixParam = Rf_isNull(floatAndCatMatrixParam)? nullptr : REAL(floatAndCatMatrixParam);
+        size_t indexTextMatrix = 0;
+        size_t indexFloatAndCatMatrix = 0;
+        for (size_t j = 0; j < dataColumns; ++j){
+            if (metaInfo.FeaturesLayout->GetExternalFeatureType(j) == EFeatureType::Text) {
+                TVector<TString> textValues;
+                textValues.yresize(dataRows);
                 for (ui32 i = 0; i < dataRows; ++i) {
-                    catValues[i] =
-                        ConvertFloatCatFeatureToIntHash(static_cast<float>(ptr_matrixParam[i + dataRows * j]));
+                    textValues[i] = CHAR(STRING_PTR(textMatrixParam)[i + dataRows * indexTextMatrix]);
                 }
-                visitor->AddCatFeature(j, TMaybeOwningConstArrayHolder<ui32>::CreateOwning(std::move(catValues)));
+                visitor->AddTextFeature(j, TMaybeOwningConstArrayHolder<TString>::CreateOwning(std::move(textValues)));
+                indexTextMatrix++;
             } else {
-                TVector<float> floatValues;
-                floatValues.yresize(dataRows);
-                for (ui32 i = 0; i < dataRows; ++i) {
-                    floatValues[i] = static_cast<float>(ptr_matrixParam[i + dataRows * j]);
+                if (metaInfo.FeaturesLayout->GetExternalFeatureType(j) == EFeatureType::Categorical) {
+                    TVector<ui32> catValues;
+                    catValues.yresize(dataRows);
+                    for (ui32 i = 0; i < dataRows; ++i) {
+                        catValues[i] =
+                            ConvertFloatCatFeatureToIntHash(static_cast<float>(ptr_floatAndCatMatrixParam[i + dataRows * indexFloatAndCatMatrix]));
+                    }
+                    visitor->AddCatFeature(j, TMaybeOwningConstArrayHolder<ui32>::CreateOwning(std::move(catValues)));
+                } else {
+                    TVector<float> floatValues;
+                    floatValues.yresize(dataRows);
+                    for (ui32 i = 0; i < dataRows; ++i) {
+                        floatValues[i] = static_cast<float>(ptr_floatAndCatMatrixParam[i + dataRows * indexFloatAndCatMatrix]);
+                    }
+                    visitor->AddFloatFeature(j, MakeTypeCastArrayHolderFromVector<float, float>(floatValues));
                 }
-                visitor->AddFloatFeature(j, MakeTypeCastArrayHolderFromVector<float, float>(floatValues));
+                indexFloatAndCatMatrix++;
             }
         }
 
@@ -404,7 +425,7 @@ EXPORT_FUNCTION CatBoostPoolSlice_R(SEXP poolParam, SEXP sizeParam, SEXP offsetP
 
     CB_ENSURE(
         featuresLayout.GetExternalFeatureCount() == featuresLayout.GetFloatFeatureCount(),
-        "Cannot slice non-numeric features data"
+        "Dataset slicing error: non-numeric features present, slicing datasets with categorical and text features is not supported"
     );
 
     result = PROTECT(allocVector(VECSXP, size));

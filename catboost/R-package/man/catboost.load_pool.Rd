@@ -93,6 +93,6 @@ print(pool)
 nonsense <- factor(c('A', 'B', 'C'))
 data_frame <- data.frame(value = runif(10), category = nonsense[(1:10) \%\% 3 + 1])
 label = (1:10) \%\% 2
-pool <- catboost.load_pool(data_frame, label = label, cat_features = c(2))
+pool <- catboost.load_pool(data_frame, label = label)
 print(pool)
 }
