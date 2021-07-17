@@ -13,6 +13,7 @@
 #include <util/system/defaults.h>
 #include <util/system/error.h>
 #include <util/system/src_location.h>
+#include <util/system/platform.h>
 
 #include <exception>
 
@@ -154,6 +155,7 @@ void fputs(const std::exception& e, FILE* f = stderr);
 
 TString CurrentExceptionMessage();
 bool UncaughtException() noexcept;
+std::string CurrentExceptionTypeName();
 
 TString FormatExc(const std::exception& exception);
 
