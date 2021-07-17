@@ -715,10 +715,6 @@ migrations:
     - sandbox/projects/avia/travel_avia_dump_resource/task
     - sandbox/projects/browser
     - sandbox/projects/browser/autotests
-    - sandbox/projects/browser/autotests/BrowserAutotestTestpalmExport
-    - sandbox/projects/browser/autotests/classes/autoduty
-    - sandbox/projects/browser/merge/BrowserMergeTurnStatesOn
-    - sandbox/projects/browser/merge/conflicts/BrowserAutoRevert
     - sandbox/projects/bsyeti
     - sandbox/projects/canvas
     - sandbox/projects/canvas/video_constructor_utils
@@ -1037,7 +1033,6 @@ migrations:
     - alice/uniproxy/bin/uniproxy-subway
     - alice/uniproxy/bin/uniproxy-unistat
     - alice/uniproxy/bin/yabio-storage
-    - alice/uniproxy/library/activation_storage
     - alice/uniproxy/library/backends_bio
     - alice/uniproxy/library/backends_bio/ut
     - alice/uniproxy/library/backends_common
@@ -1069,7 +1064,6 @@ migrations:
     - billing/apikeys/apikeys/mapper
     - billing/bcl/bcl
     - billing/refs/refs
-    - browser/infra/yaml_merger/tests
     - cloud/iam/token_agent/bin
     - cloud/marketplace/queue/yc_marketplace_queue
     - cloud/netinfra/rknfilter/yc_rkn_common
@@ -1385,8 +1379,6 @@ migrations:
     - ads/watchman/contrib/flask-restplus-patched/flask_restplus_patched
     - alice/analytics/utils/marty/run_nirvana_instance
     - arc/tables_creation/tests
-    - browser/infra/ci/backend
-    - browser/infra/ci/backend/ci/settings
     - cloud/ai/speechkit/stt/tests/data_pipeline/join
     - cv/short2long/nirvana/lib
     - devtools/signer/signer
@@ -1665,7 +1657,6 @@ migrations:
     - sandbox/projects/adv_machine/make_turboapp_dicts
     - sandbox/projects/avia/import_marker
     - sandbox/projects/avia/trigger_revise
-    - sandbox/projects/browser
     - sandbox/projects/cloud/billing/build_analytics_cube/source
     - sandbox/projects/cmnt/PumpkinSettings
     - sandbox/projects/dj/AutoDeploy
@@ -2842,7 +2833,6 @@ migrations:
     - sandbox/projects/autobudget/ml
     - sandbox/projects/balancer/BalancerYtLogs
     - sandbox/projects/balancer/UpdateYastaticWikiPanels
-    - sandbox/projects/billing
     - sandbox/projects/blender/commit_blender_model
     - sandbox/projects/blender/update_blender_online_models
     - sandbox/projects/blender/util
@@ -3495,9 +3485,6 @@ migrations:
     - april/mediaplan/mediaplan/forecaster/migrations
     - balancer/test/functional/balancer
     - billing/agency_rewards/tests
-    - billing/contrib/py3solomon/tests
-    - billing/contrib/pykish_spork/tests
-    - billing/yb_reports_monitorings/tests
     - bindings/java/abt/abt-native/android/tests
     - build/scripts
     - catboost/python-package/ut/large
@@ -3647,8 +3634,6 @@ migrations:
     - mds/lrc-tools/tests/test_defrag
     - mds/lrc-tools/tests/test_defrag_analyzer
     - mds/lrc-tools/tests/test_defrag_job
-    - mds/lrc-tools/tests/test_lepton
-    - mds/lrc-tools/tests/test_lepton_external
     - mds/lrc-tools/tests/test_listing
     - mds/lrc-tools/tests/test_mocked_restore
     - mds/lrc-tools/tests/test_read_records
