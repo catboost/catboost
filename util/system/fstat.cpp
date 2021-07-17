@@ -2,13 +2,10 @@
 #include "file.h"
 
 #include <sys/stat.h>
-#include <sys/types.h>
 
-#include <util/datetime/systime.h>
-#include <util/generic/string.h>
 #include <util/folder/path.h>
 
-#include <errno.h>
+#include <cerrno>
 
 #if defined(_win_)
     #include "fs_win.h"
@@ -96,8 +93,7 @@ static bool GetStatByName(TSystemFStat& fs, const char* fileName, bool nofollow)
 #endif
 }
 
-TFileStat::TFileStat() {
-}
+TFileStat::TFileStat() = default;
 
 TFileStat::TFileStat(const TFile& f) {
     *this = TFileStat(f.GetHandle());
