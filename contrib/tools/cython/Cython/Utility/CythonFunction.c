@@ -426,7 +426,8 @@ static PyObject *
 __Pyx_CyFunction_reduce(__pyx_CyFunctionObject *m, CYTHON_UNUSED PyObject *args)
 {
 #if PY_MAJOR_VERSION >= 3
-    return PyUnicode_FromString(m->func.m_ml->ml_name);
+    Py_INCREF(m->func_qualname);
+    return m->func_qualname;
 #else
     return PyString_FromString(m->func.m_ml->ml_name);
 #endif
@@ -1136,7 +1137,7 @@ __pyx_FusedFunction_call(PyObject *func, PyObject *args, PyObject *kw)
             PyErr_Format(PyExc_TypeError,
                          "First argument should be of type %.200s, got %.200s.",
                          ((PyTypeObject *) binding_func->type)->tp_name,
-                         self->ob_type->tp_name);
+                         Py_TYPE(self)->tp_name);
             goto bad;
         } else if (unlikely(is_instance == -1)) {
             goto bad;

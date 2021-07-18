@@ -2,6 +2,41 @@
 Cython Changelog
 ================
 
+0.29.24 (2021-07-14)
+====================
+
+Bugs fixed
+----------
+
+* Inline functions in pxd files that used memory views could lead to invalid
+  C code if the module that imported from them does not use memory views.
+  Patch by David Woods.  (Github issue #1415)
+
+* Several declarations in ``libcpp.string`` were added and corrected.
+  Patch by Janek Bevendorff.  (Github issue #4268)
+
+* Pickling unbound Cython compiled methods failed.
+  Patch by Pierre Glaser.  (Github issue #2972)
+
+* The tracing code was adapted to work with CPython 3.10.
+
+* The optimised ``in`` operator failed on unicode strings in Py3.9 and later
+  that were constructed from an external ``wchar_t`` source.
+  Also, related C compiler warnings about deprecated C-API usage were resolved.
+  (Github issue #3925)
+
+* Some compiler crashes were resolved.
+  Patch by David Woods.  (Github issues #4214, #2811)
+
+* An incorrect warning about 'unused' generator expressions was removed.
+  (GIthub issue #1699)
+
+* The attributes ``gen.gi_frame`` and ``coro.cr_frame`` of Cython compiled
+  generators and coroutines now return an actual frame object for introspection,
+  instead of ``None``.
+  (Github issue #2306)
+
+
 0.29.23 (2021-04-14)
 ====================
 
