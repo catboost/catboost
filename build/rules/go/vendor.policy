@@ -135,8 +135,8 @@ ALLOW .* -> vendor/github.com/DATA-DOG/godog
 # pretty printer for GO
 ALLOW .* -> vendor/github.com/davecgh/go-spew/spew
 
-# implementation of JSON Web Tokens (JWT)
-ALLOW .* -> vendor/github.com/dgrijalva/jwt-go
+# CONTRIB-425 implementation of JSON Web Tokens (JWT)
+ALLOW .* -> vendor/github.com/golang-jwt/jwt
 
 # Docker API client
 # docker tests depends on broken package: gotest.tools
