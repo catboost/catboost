@@ -616,14 +616,12 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
         const int array[] = {1, 2, 5, 3, 4, 5};
         UNIT_ASSERT_VALUES_EQUAL(*MaxElementBy(array, [](int x) {
             return x * x;
-        }),
-                                 5);
+        }), 5);
 
         const TVector<int> vec(array, array + Y_ARRAY_SIZE(array));
         UNIT_ASSERT_VALUES_EQUAL(*MaxElementBy(vec, [](int x) {
             return -1.0 * x;
-        }),
-                                 1);
+        }), 1);
 
         int arrayMutable[] = {1, 2, 5, 3, 4, 5};
         auto maxPtr = MaxElementBy(arrayMutable, [](int x) { return x; });
@@ -644,14 +642,12 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
         const int array[] = {2, 3, 4, 1, 5};
         UNIT_ASSERT_VALUES_EQUAL(*MinElementBy(array, [](int x) -> char {
             return 'a' + x;
-        }),
-                                 1);
+        }), 1);
 
         const TVector<int> vec(std::begin(array), std::end(array));
         UNIT_ASSERT_VALUES_EQUAL(*MinElementBy(vec, [](int x) {
             return -x;
-        }),
-                                 5);
+        }), 5);
 
         int arrayMutable[] = {1, 2, 5, 3, 4, 5};
         auto minPtr = MinElementBy(arrayMutable, [](int x) { return x; });

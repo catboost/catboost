@@ -649,8 +649,7 @@ struct TSerializer<TVariant<Args...>> {
         ::Save<ui8>(os, v.index());
         Visit([os](const auto& data) {
             ::Save(os, data);
-        },
-              v);
+        }, v);
     }
 
     static void Load(IInputStream* is, TVar& v) {

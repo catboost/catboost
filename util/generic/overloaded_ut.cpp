@@ -61,8 +61,7 @@ Y_UNIT_TEST_SUITE(TOverloadedTest) {
         auto matchAsInt = [](TTestVariant var) {
             return Visit(TOverloaded{
                              [](int val) { return val; },
-                         },
-                         var);
+                         }, var);
         };
 
         UNIT_ASSERT_VALUES_EQUAL(matchAsInt(TTestVariant{17.77}), 17);
@@ -73,8 +72,7 @@ Y_UNIT_TEST_SUITE(TOverloadedTest) {
         auto matchAsDouble = [](TTestVariant var) {
             return Visit(TOverloaded{
                              [](double val) { return val; },
-                         },
-                         var);
+                         }, var);
         };
 
         UNIT_ASSERT_VALUES_EQUAL(matchAsDouble(TTestVariant{17.77}), 17.77);
