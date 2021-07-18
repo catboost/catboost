@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{09920C23-4255-CDAF-1D82-DC74FFB98CF3}</ProjectGUID>
+    <ProjectGUID>{31C8A2E7-B2FF-3F6C-BF59-D463E86FAD5A}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>pycontrib-python-graphviz.global</ProjectName>
+    <ProjectName>pypython-graphviz-py2.global</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>pycontrib-python-graphviz.global</TargetName>
+    <TargetName>pypython-graphviz-py2.global</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\graphviz\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\09920C23-4255-CDAF-1D82-DC74FFB98CF3\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\graphviz\py2\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\31C8A2E7-B2FF-3F6C-BF59-D463E86FAD5A\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,17 +78,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\graphviz\177141d4f64fab3761c0dbd903.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\graphviz\84426baf7a7b6fa7d0489fa15b.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\graphviz\py2\347e5a4a32c019056cf1a50bae.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\graphviz\py2\65b28d69c8dbbed933ade811b0.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\graphviz
+cd /d $(SolutionDir)$(Configuration)\contrib\python\graphviz\py2
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/graphviz/177141d4f64fab3761c0dbd903.cpp" "_64f93986c5e779da4dde9839d0=/py_modules/graphviz.__init__" "_ed957436c6be80a7c8ed4a044f=resfs/src//py_modules/graphviz.__init__" "_5c60ffd464c9f14a68e3bc6edb=/py_code/graphviz.__init__" "_1094322336dcd5ec575aa25720=/py_modules/graphviz._compat" "_f602b6f07f8d6c205a4adb5daa=resfs/src//py_modules/graphviz._compat" "_1325b444ac2a51f7b38a1b5551=/py_code/graphviz._compat" "_e81a2d6d0dffd84e157a6cebb8=/py_modules/graphviz.backend" "_5bbaa61c3c5a2153100aaa222c=resfs/src//py_modules/graphviz.backend" "_da15b5c1e5e545e10e94ddd2f7=/py_code/graphviz.backend" "_4854140b9dfb5041e54496e295=/py_modules/graphviz.dot" "_18802683de04b0a2d8d5f0315d=resfs/src//py_modules/graphviz.dot" "_92740a123b2998eedb1122c376=/py_code/graphviz.dot" "_5dfd6658474214dd12f9f531ad=/py_modules/graphviz.files" "_c4dd95cc9aa989255a65662fec=resfs/src//py_modules/graphviz.files" "_9b808ce58d1d31e0262d8c3477=/py_code/graphviz.files" "_191f79a272297edd234bac83af=/py_modules/graphviz.lang" "_288dc2e2b5fd9b66be77eded11=resfs/src//py_modules/graphviz.lang" "_a0b779df8c39bcb319044cd67a=/py_code/graphviz.lang" "_29f1c7778fa67143476cb1cff8=/py_modules/graphviz.tools" "_4722515582e6e78caeb8af71ce=resfs/src//py_modules/graphviz.tools" "_e5333a39f32055cea5383ee2e6=/py_code/graphviz.tools"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/graphviz/py2/347e5a4a32c019056cf1a50bae.cpp" "_caf5eba26441faf8053a42a97c=resfs/src/resfs/file/contrib/python/graphviz/py2/.dist-info/METADATA" "_25acf415ab6af840cf349f7562=resfs/file/contrib/python/graphviz/py2/.dist-info/METADATA" "_6f130858d7d85f7cbcc0c05702=resfs/src/resfs/file/contrib/python/graphviz/py2/.dist-info/top_level.txt" "_581a99878281d513a0f9a38cbc=resfs/file/contrib/python/graphviz/py2/.dist-info/top_level.txt"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\graphviz
+cd /d $(SolutionDir)$(Configuration)\contrib\python\graphviz\py2
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/graphviz/84426baf7a7b6fa7d0489fa15b.cpp" "_8b2a9af2f0bf60451d1b2c052d=resfs/src/resfs/file/contrib/python/graphviz/.dist-info/METADATA" "_ad0c80ee63e44e22d29df10751=resfs/file/contrib/python/graphviz/.dist-info/METADATA" "_18f1205d1819c9c58cce56e3c9=resfs/src/resfs/file/contrib/python/graphviz/.dist-info/top_level.txt" "_66f138bf3826db71201f3460c7=resfs/file/contrib/python/graphviz/.dist-info/top_level.txt"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/graphviz/py2/65b28d69c8dbbed933ade811b0.cpp" "_7f41209b38f751ce0ea75321a5=/py_modules/graphviz.__init__" "_17e7807c087f9787a67641f43d=resfs/src//py_modules/graphviz.__init__" "_4a07fc4001411dc0efe7031a81=/py_code/graphviz.__init__" "_e257df8b722606563dbe89430c=/py_modules/graphviz._compat" "_3222a22252d8d63eac88242ab9=resfs/src//py_modules/graphviz._compat" "_3552658eff025bf8d09f5ce00e=/py_code/graphviz._compat" "_4cc0e942e1c68a34484d883e15=/py_modules/graphviz.backend" "_b454e785939018b11b28b8a002=resfs/src//py_modules/graphviz.backend" "_d6a58cf6a535fe3e328bc511be=/py_code/graphviz.backend" "_6faeba7dc263ce2cf0f9da5fc5=/py_modules/graphviz.dot" "_98d40e2b466cb04428e9f1ca7f=resfs/src//py_modules/graphviz.dot" "_0506b154dfcb9b5ccd9ed3bc3b=/py_code/graphviz.dot" "_f7b1530c73df7919e7247afbce=/py_modules/graphviz.files" "_d45eea06a6ebcb33f8d24efe69=resfs/src//py_modules/graphviz.files" "_3ec18d7785e80c30c5e5380df3=/py_code/graphviz.files" "_3dc2da4bfb6c02f9c2b6fbe13c=/py_modules/graphviz.lang" "_ec30efdeb4ffb4c70def72f433=resfs/src//py_modules/graphviz.lang" "_9978a56718f23e8d5e0e5b8ed8=/py_code/graphviz.lang" "_75ba77873b96cc43e247489c29=/py_modules/graphviz.tools" "_8ce88683653cf4a7e8ec94b881=resfs/src//py_modules/graphviz.tools" "_9ff1241366977c01fbc57fb457=/py_code/graphviz.tools"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -97,13 +97,13 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\graphviz
+cd /d $(SolutionDir)$(Configuration)\contrib\python\graphviz\py2
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/graphviz/177141d4f64fab3761c0dbd903.cpp" "_64f93986c5e779da4dde9839d0=/py_modules/graphviz.__init__" "_ed957436c6be80a7c8ed4a044f=resfs/src//py_modules/graphviz.__init__" "_5c60ffd464c9f14a68e3bc6edb=/py_code/graphviz.__init__" "_1094322336dcd5ec575aa25720=/py_modules/graphviz._compat" "_f602b6f07f8d6c205a4adb5daa=resfs/src//py_modules/graphviz._compat" "_1325b444ac2a51f7b38a1b5551=/py_code/graphviz._compat" "_e81a2d6d0dffd84e157a6cebb8=/py_modules/graphviz.backend" "_5bbaa61c3c5a2153100aaa222c=resfs/src//py_modules/graphviz.backend" "_da15b5c1e5e545e10e94ddd2f7=/py_code/graphviz.backend" "_4854140b9dfb5041e54496e295=/py_modules/graphviz.dot" "_18802683de04b0a2d8d5f0315d=resfs/src//py_modules/graphviz.dot" "_92740a123b2998eedb1122c376=/py_code/graphviz.dot" "_5dfd6658474214dd12f9f531ad=/py_modules/graphviz.files" "_c4dd95cc9aa989255a65662fec=resfs/src//py_modules/graphviz.files" "_9b808ce58d1d31e0262d8c3477=/py_code/graphviz.files" "_191f79a272297edd234bac83af=/py_modules/graphviz.lang" "_288dc2e2b5fd9b66be77eded11=resfs/src//py_modules/graphviz.lang" "_a0b779df8c39bcb319044cd67a=/py_code/graphviz.lang" "_29f1c7778fa67143476cb1cff8=/py_modules/graphviz.tools" "_4722515582e6e78caeb8af71ce=resfs/src//py_modules/graphviz.tools" "_e5333a39f32055cea5383ee2e6=/py_code/graphviz.tools"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/graphviz/py2/347e5a4a32c019056cf1a50bae.cpp" "_caf5eba26441faf8053a42a97c=resfs/src/resfs/file/contrib/python/graphviz/py2/.dist-info/METADATA" "_25acf415ab6af840cf349f7562=resfs/file/contrib/python/graphviz/py2/.dist-info/METADATA" "_6f130858d7d85f7cbcc0c05702=resfs/src/resfs/file/contrib/python/graphviz/py2/.dist-info/top_level.txt" "_581a99878281d513a0f9a38cbc=resfs/file/contrib/python/graphviz/py2/.dist-info/top_level.txt"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\graphviz
+cd /d $(SolutionDir)$(Configuration)\contrib\python\graphviz\py2
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/graphviz/84426baf7a7b6fa7d0489fa15b.cpp" "_8b2a9af2f0bf60451d1b2c052d=resfs/src/resfs/file/contrib/python/graphviz/.dist-info/METADATA" "_ad0c80ee63e44e22d29df10751=resfs/file/contrib/python/graphviz/.dist-info/METADATA" "_18f1205d1819c9c58cce56e3c9=resfs/src/resfs/file/contrib/python/graphviz/.dist-info/top_level.txt" "_66f138bf3826db71201f3460c7=resfs/file/contrib/python/graphviz/.dist-info/top_level.txt"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/graphviz/py2/65b28d69c8dbbed933ade811b0.cpp" "_7f41209b38f751ce0ea75321a5=/py_modules/graphviz.__init__" "_17e7807c087f9787a67641f43d=resfs/src//py_modules/graphviz.__init__" "_4a07fc4001411dc0efe7031a81=/py_code/graphviz.__init__" "_e257df8b722606563dbe89430c=/py_modules/graphviz._compat" "_3222a22252d8d63eac88242ab9=resfs/src//py_modules/graphviz._compat" "_3552658eff025bf8d09f5ce00e=/py_code/graphviz._compat" "_4cc0e942e1c68a34484d883e15=/py_modules/graphviz.backend" "_b454e785939018b11b28b8a002=resfs/src//py_modules/graphviz.backend" "_d6a58cf6a535fe3e328bc511be=/py_code/graphviz.backend" "_6faeba7dc263ce2cf0f9da5fc5=/py_modules/graphviz.dot" "_98d40e2b466cb04428e9f1ca7f=resfs/src//py_modules/graphviz.dot" "_0506b154dfcb9b5ccd9ed3bc3b=/py_code/graphviz.dot" "_f7b1530c73df7919e7247afbce=/py_modules/graphviz.files" "_d45eea06a6ebcb33f8d24efe69=resfs/src//py_modules/graphviz.files" "_3ec18d7785e80c30c5e5380df3=/py_code/graphviz.files" "_3dc2da4bfb6c02f9c2b6fbe13c=/py_modules/graphviz.lang" "_ec30efdeb4ffb4c70def72f433=resfs/src//py_modules/graphviz.lang" "_9978a56718f23e8d5e0e5b8ed8=/py_code/graphviz.lang" "_75ba77873b96cc43e247489c29=/py_modules/graphviz.tools" "_8ce88683653cf4a7e8ec94b881=resfs/src//py_modules/graphviz.tools" "_9ff1241366977c01fbc57fb457=/py_code/graphviz.tools"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -111,9 +111,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/graphviz/177141d4f64fab3761c0dbd903.cpp	$B/contrib/python/graphviz/84426baf7a7b6fa7d0489fa15b.cpp	</Message>
+      <Message>$B/contrib/python/graphviz/py2/347e5a4a32c019056cf1a50bae.cpp	$B/contrib/python/graphviz/py2/65b28d69c8dbbed933ade811b0.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\graphviz\177141d4f64fab3761c0dbd903.cpp;$(SolutionDir)$(Configuration)\contrib\python\graphviz\84426baf7a7b6fa7d0489fa15b.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\graphviz\py2\347e5a4a32c019056cf1a50bae.cpp;$(SolutionDir)$(Configuration)\contrib\python\graphviz\py2\65b28d69c8dbbed933ade811b0.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
