@@ -11,10 +11,11 @@ import subprocess
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--testing-src")
-    parser.add_argument("--clang-tidy-bin")
-    parser.add_argument("--tidy-json")
-    parser.add_argument("--source-root")
+    parser.add_argument("--testing-src", required=True)
+    parser.add_argument("--clang-tidy-bin", required=True)
+    parser.add_argument("--tidy-json", required=True)
+    parser.add_argument("--source-root", required=True)
+    parser.add_argument("--config-file", required=True)
     return parser.parse_known_args()
 
 
@@ -70,7 +71,7 @@ def main():
             "--warnings-as-errors",
             "*",
             "--config-file",
-            os.path.join(args.source_root, "build/config/tests/clang_tidy.yaml"),
+            args.config_file,
             "--header-filter",
             header_filter,
             "--use-color",
