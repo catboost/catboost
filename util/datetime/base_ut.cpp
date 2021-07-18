@@ -288,10 +288,12 @@ Y_UNIT_TEST_SUITE(TDateTimeTest) {
     }
 
     static bool TimeZoneEq(const char* zone0, const char* zone1) {
-        if (strcmp(zone0, "GMT") == 0)
+        if (strcmp(zone0, "GMT") == 0) {
             zone0 = "UTC";
-        if (strcmp(zone1, "GMT") == 0)
+        }
+        if (strcmp(zone1, "GMT") == 0) {
             zone1 = "UTC";
+        }
         return strcmp(zone0, zone1) == 0;
     }
 
@@ -325,8 +327,9 @@ Y_UNIT_TEST_SUITE(TDateTimeTest) {
 #endif
 
             ptm1 = gmtime_r(&t, &tms1);
-            if (!ptm1)
+            if (!ptm1) {
                 continue;
+            }
             UNIT_ASSERT_EQUAL(ptm1, &tms1);
             UNIT_ASSERT(CompareTMFull(ptm0, ptm1));
         }

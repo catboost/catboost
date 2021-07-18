@@ -79,8 +79,9 @@ protected:
     size_t DoRead(void* buf, size_t len) override {
         Y_ASSERT(len != 0);
 
-        if (String_.empty())
+        if (String_.empty()) {
             return 0;
+        }
 
         *static_cast<char*>(buf) = String_[0];
         String_.remove(0, 1);

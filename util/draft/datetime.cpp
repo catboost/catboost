@@ -128,8 +128,9 @@ namespace NDatetime {
     }
 
     TSimpleTM& TSimpleTM::Add(EField f, i32 amount) {
-        if (!amount)
+        if (!amount) {
             return *this;
+        }
 
         switch (f) {
             default:
@@ -151,8 +152,9 @@ namespace NDatetime {
                 y = ::Min<i32>(Max<i32>(y, 0), 255 /*max year*/);
 
                 // YDay may correspond to different MDay if it's March or greater and the years have different leap status
-                if (Mon > 1)
+                if (Mon > 1) {
                     YDay += (i32)LeapYearAD(RealYear()) - (i32)LeapYearAD(RealYear());
+                }
 
                 Year = y;
                 IsLeap = LeapYearAD(RealYear());

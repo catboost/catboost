@@ -739,18 +739,21 @@ void THashTest::TestInvariants() {
     UNIT_ASSERT_VALUES_EQUAL(set.size(), 1000);
 
     int count0 = 0;
-    for (int i = 0; i < 1000; i++)
+    for (int i = 0; i < 1000; i++) {
         count0 += (set.find(i) != set.end()) ? 1 : 0;
+    }
     UNIT_ASSERT_VALUES_EQUAL(count0, 1000);
 
     int count1 = 0;
-    for (auto pos = set.begin(); pos != set.end(); pos++)
+    for (auto pos = set.begin(); pos != set.end(); pos++) {
         ++count1;
+    }
     UNIT_ASSERT_VALUES_EQUAL(count1, 1000);
 
     int count2 = 0;
-    for (const int& value : set)
+    for (const int& value : set) {
         count2 += (reference_set.find(value) != reference_set.end()) ? 1 : 0;
+    }
     UNIT_ASSERT_VALUES_EQUAL(count2, 1000);
 }
 
@@ -765,8 +768,9 @@ struct TAllocatorCounters {
         std::allocator<char> allocator;
 
         /* Release whatever was (intentionally) leaked. */
-        for (const auto& chunk : Chunks)
+        for (const auto& chunk : Chunks) {
             allocator.deallocate(static_cast<char*>(chunk.first), chunk.second);
+        }
     }
 
     size_t Allocations;
@@ -849,8 +853,9 @@ void THashTest::TestAllocation() {
         int_set set3(set0);
         UNIT_ASSERT_VALUES_EQUAL(counters.Allocations, 2); /* Copying from an empty set with allocated buckets should not trigger allocations. */
 
-        for (int i = 0; i < 1000; i++)
+        for (int i = 0; i < 1000; i++) {
             set0.insert(i);
+        }
         size_t allocations = counters.Allocations;
         set0.clear();
         UNIT_ASSERT_VALUES_EQUAL(counters.Allocations, allocations); /* clear() should not trigger allocations. */
@@ -1083,16 +1088,18 @@ void THashTest::TestReleaseNodes() {
     using TIntSet = THashSet<int, THash<int>, TEqualTo<int>, TCountingAllocator<int>>;
 
     TIntSet set(&counters);
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < 3; i++) {
         set.insert(i);
+    }
     UNIT_ASSERT_VALUES_EQUAL(counters.Allocations, 4);
 
     set.release_nodes();
     UNIT_ASSERT_VALUES_EQUAL(counters.Allocations, 4);
     UNIT_ASSERT_VALUES_EQUAL(set.size(), 0);
 
-    for (int i = 10; i < 13; i++)
+    for (int i = 10; i < 13; i++) {
         set.insert(i);
+    }
     UNIT_ASSERT_VALUES_EQUAL(counters.Allocations, 7);
     UNIT_ASSERT(set.contains(10));
     UNIT_ASSERT(!set.contains(0));

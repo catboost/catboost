@@ -224,8 +224,9 @@ Y_UNIT_TEST_SUITE(TFileMapTest) {
             mappedArray.Init(FileName_);
             // actual test begin
             UNIT_ASSERT(mappedArray.Size() == sz);
-            for (size_t i = 0; i < sz; ++i)
+            for (size_t i = 0; i < sz; ++i) {
                 UNIT_ASSERT(mappedArray[i] == data[i]);
+            }
 
             UNIT_ASSERT(mappedArray.GetAt(mappedArray.Size()) == 0);
             UNIT_ASSERT(*mappedArray.Begin() == data[0]);
@@ -241,8 +242,9 @@ Y_UNIT_TEST_SUITE(TFileMapTest) {
 
             // actual test begin
             UNIT_ASSERT(mappedArray.Size() == sz);
-            for (size_t i = 0; i < sz; ++i)
+            for (size_t i = 0; i < sz; ++i) {
                 UNIT_ASSERT(mappedArray[i] == data[i]);
+            }
 
             UNIT_ASSERT(mappedArray.GetAt(mappedArray.Size()) == 0);
             UNIT_ASSERT(*mappedArray.Begin() == data[0]);

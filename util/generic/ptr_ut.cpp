@@ -583,30 +583,38 @@ void TPointerTest::TestOperatorBool() {
         THolder<TVec> a;
         UNIT_ASSERT(!a);
         UNIT_ASSERT(!bool(a));
-        if (a)
+        if (a) {
             UNIT_ASSERT(false);
-        if (!a)
+        }
+        if (!a) {
             UNIT_ASSERT(true);
+        }
 
         a.Reset(new TVec);
         UNIT_ASSERT(a);
         UNIT_ASSERT(bool(a));
-        if (a)
+        if (a) {
             UNIT_ASSERT(true);
-        if (!a)
+        }
+        if (!a) {
             UNIT_ASSERT(false);
+        }
 
         THolder<TVec> b(new TVec);
         UNIT_ASSERT(a.Get() != b.Get());
         UNIT_ASSERT(a != b);
-        if (a == b)
+        if (a == b) {
             UNIT_ASSERT(false);
-        if (a != b)
+        }
+        if (a != b) {
             UNIT_ASSERT(true);
-        if (!(a && b))
+        }
+        if (!(a && b)) {
             UNIT_ASSERT(false);
-        if (a && b)
+        }
+        if (a && b) {
             UNIT_ASSERT(true);
+        }
 
         // int i = a;          // does not compile
         // bool c = (a < b);   // does not compile
