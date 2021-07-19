@@ -220,6 +220,7 @@ def onpy_srcs(unit, *args):
     pys = []
     protos = []
     evs = []
+    fbss = []
 
     dump_dir = unit.get('PYTHON_BUILD_DUMP_DIR')
     dump_output = None
@@ -319,6 +320,8 @@ def onpy_srcs(unit, *args):
             # Allow pyi files in PY_SRCS for autocomplete in IDE, but skip it during building
             elif path.endswith('.pyi'):
                 pass
+            elif path.endswith('.fbs'):
+                fbss.append(pathmod)
             else:
                 ymake.report_configure_error('in PY_SRCS: unrecognized arg {!r}'.format(path))
 
@@ -467,6 +470,11 @@ def onpy_srcs(unit, *args):
 
         unit.on_generate_py_evs_internal([path for path, mod in evs])
         unit.onpy_srcs([ev_arg(path, mod, unit) for path, mod in evs])
+
+    if fbss:
+        unit.onpeerdir(unit.get('_PY_FBS_DEPS').split())
+        pysrc_base_name = listid(fbss)
+        unit.onfbs_to_pysrc([pysrc_base_name] + [path for path, _ in fbss])
 
 
 def _check_test_srcs(*args):
