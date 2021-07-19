@@ -888,6 +888,9 @@ ALLOW load/projects/pandora -> vendor/github.com/onsi/ginkgo
 # CONTRIB-2029
 ALLOW load/projects/pandora -> vendor/github.com/magiconair/properties/assert
 
+# CONTRIB-2255
+ALLOW transfer_manager/go/pkg/source/eventhub -> vendor/github.com/Azure/azure-event-hubs-go/v3
+
 #
 # This section is for EXCEPTIONS. Add new rule above, not here.
 #
