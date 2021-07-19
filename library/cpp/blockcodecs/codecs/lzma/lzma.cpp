@@ -70,5 +70,5 @@ namespace {
             RegisterAlias("lzma", "lzma-5");
         }
     };
-    static const TLzmaRegistrar Registrar{};
+    const TLzmaRegistrar Registrar{};
 }

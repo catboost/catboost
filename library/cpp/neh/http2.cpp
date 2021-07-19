@@ -175,7 +175,7 @@ namespace {
     std::atomic<size_t> TDebugStat::RequestFailed = 0;
 #endif
 
-    static inline void PrepareSocket(SOCKET s, const TRequestSettings& requestSettings = TRequestSettings()) {
+    inline void PrepareSocket(SOCKET s, const TRequestSettings& requestSettings = TRequestSettings()) {
         if (requestSettings.NoDelay) {
             SetNoDelay(s, true);
         }

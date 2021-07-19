@@ -27,15 +27,15 @@
         if (!stricmp((header).Name().data(), str))
 
 namespace {
-    static inline size_t SuggestBufferSize() {
+    inline size_t SuggestBufferSize() {
         return 8192;
     }
 
-    static inline TStringBuf Trim(const char* b, const char* e) noexcept {
+    inline TStringBuf Trim(const char* b, const char* e) noexcept {
         return StripString(TStringBuf(b, e));
     }
 
-    static inline TStringBuf RmSemiColon(const TStringBuf& s) {
+    inline TStringBuf RmSemiColon(const TStringBuf& s) {
         return s.Before(';');
     }
 

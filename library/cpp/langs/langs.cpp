@@ -26,7 +26,7 @@ namespace {
         const char* Synonyms;
     };
 
-    static const TLanguageNameAndEnum LanguageNameAndEnum[] = {
+    const TLanguageNameAndEnum LanguageNameAndEnum[] = {
         {LANG_UNK, SCRIPT_OTHER, "Unknown", "unk", "mis", nullptr},
         {LANG_RUS, SCRIPT_CYRILLIC, "Russian", "rus", "ru", "ru-RU"},
         {LANG_ENG, SCRIPT_LATIN, "English", "eng", "en", "en-US, en-GB, en-CA, en-NZ, en-AU"},
@@ -302,7 +302,7 @@ EScript ScriptByLanguage(ELanguage language) {
 }
 
 namespace {
-    static const size_t MAX_GLYPH = 0x10000;
+    const size_t MAX_GLYPH = 0x10000;
     class TScriptGlyphIndex {
     public:
         TScriptGlyphIndex() {
