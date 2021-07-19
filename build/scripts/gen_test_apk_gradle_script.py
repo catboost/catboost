@@ -107,7 +107,6 @@ def create_native_properties(output_dir, library_name):
     etree.ElementTree(resources).write(native_properties_file, xml_declaration=True, encoding='utf-8')
 
 
-
 def gen_build_script(args):
     def wrap(items):
         return ',\n    '.join('"{}"'.format(x) for x in items)
