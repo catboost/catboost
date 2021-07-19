@@ -3017,6 +3017,8 @@ cdef _set_objects_order_data_scipy_sparse_matrix(
             builder_visitor
         )
     elif isinstance(data, scipy.sparse.csr_matrix):
+        if not data.has_sorted_indices:
+            data = data.sorted_indices()
         _set_data_from_scipy_csr_sparse(
             data.data,
             data.indices,
