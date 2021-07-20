@@ -124,13 +124,15 @@ public:
             ythrow yexception() << "can not map(" << offset << ", " << len << ")";
         }
 
-        if (Mode_ == LockedMapping)
+        if (Mode_ == LockedMapping) {
             LockMemory(Data(), Length());
+        }
     }
 
     ~TMappedBlobBase() override {
-        if (Mode_ == LockedMapping && Length())
+        if (Mode_ == LockedMapping && Length()) {
             UnlockMemory(Data(), Length());
+        }
     }
 
     void Ref() noexcept override {

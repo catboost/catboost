@@ -46,20 +46,24 @@ static char* makeTempName(const char* wrkDir, const char* prefix) {
         buflen += sysTmp.size() + 1;
     }
 
-    if (prefix)
+    if (prefix) {
         buflen += strlen(prefix);
+    }
     buf = new char[buflen + 1];
 
-    if (wrkDir && *wrkDir)
+    if (wrkDir && *wrkDir) {
         strcpy(buf, wrkDir);
-    else
+    } else {
         strcpy(buf, sysTmp.data());
+    }
 
-    if (buf[strlen(buf) - 1] != '/')
+    if (buf[strlen(buf) - 1] != '/') {
         strcat(buf, "/");
+    }
 
-    if (prefix)
+    if (prefix) {
         strcat(buf, prefix);
+    }
 
     strcat(buf, "XXXXXX.tmp");
 

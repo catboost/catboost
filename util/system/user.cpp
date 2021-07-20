@@ -16,8 +16,9 @@
 TString GetUsername() {
     for (const auto& var : {"LOGNAME", "USER", "LNAME", "USERNAME"}) {
         TString val = GetEnv(var);
-        if (val)
+        if (val) {
             return val;
+        }
     }
 
     TTempBuf nameBuf;

@@ -32,8 +32,9 @@ void NFs::RemoveRecursive(const TString& path) {
     }
 
     if (!TFileStat(path).IsDir()) {
-        if (!NFs::Remove(path))
+        if (!NFs::Remove(path)) {
             ythrow TSystemError() << errStr << path << " with cwd (" << NFs::CurrentWorkingDirectory() << ")";
+        }
     }
 
     TDirIterator dir(path);
@@ -44,8 +45,9 @@ void NFs::RemoveRecursive(const TString& path) {
             case FTS_D:
                 break;
             default:
-                if (!NFs::Remove(it->fts_path))
+                if (!NFs::Remove(it->fts_path)) {
                     ythrow TSystemError() << errStr << it->fts_path << " with cwd (" << NFs::CurrentWorkingDirectory() << ")";
+                }
                 break;
         }
     }
@@ -119,10 +121,12 @@ TString NFs::ReadLink(const TString& path) {
     TTempBuf buf;
     while (true) {
         ssize_t r = readlink(path.data(), buf.Data(), buf.Size());
-        if (r < 0)
+        if (r < 0) {
             ythrow yexception() << "can't read link " << path << ", errno = " << errno;
-        if (r < (ssize_t)buf.Size())
+        }
+        if (r < (ssize_t)buf.Size()) {
             return TString(buf.Data(), r);
+        }
         buf = TTempBuf(buf.Size() * 2);
     }
 #endif
@@ -156,8 +160,9 @@ TString NFs::CurrentWorkingDirectory() {
 #elif defined(_unix_)
     TTempBuf result;
     char* r = getcwd(result.Data(), result.Size());
-    if (r == nullptr)
+    if (r == nullptr) {
         throw TIoSystemError() << "failed to getcwd";
+    }
     return result.Data();
 #endif
 }
@@ -168,6 +173,7 @@ void NFs::SetCurrentWorkingDirectory(TString path) {
 #else
     bool ok = !chdir(path.data());
 #endif
-    if (!ok)
+    if (!ok) {
         ythrow TSystemError() << "failed to change directory to " << path.Quote();
+    }
 }
