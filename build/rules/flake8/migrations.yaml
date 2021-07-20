@@ -1070,7 +1070,6 @@ migrations:
     - cv/imageproc/ocr/tools/database_extraction/nirvana/imgaug/src/augmenters
     - cv/short2long/training/yt_calc_factors
     - datacloud/log_reader/lib
-    - devtools/contrib/statistics/auto_import
     - devtools/local_cache/ac/tests/perfac
     - dict/bert/make/lib
     - dict/bert/make/lib/models
@@ -1311,8 +1310,6 @@ migrations:
     - voicetech/spotter/score/lib/test
     - voicetech/spotter/selection_for_annotation/bin
     - voicetech/spotter/train/lib
-    - weather/ml/experiments/neural_nowcasting/neural_nowcasting
-    - weather/ml/experiments/neural_nowcasting/neural_nowcasting/layers
     - weather/workers/warnings/push
     - yabs/analytics/anomaly_analyzer/src
     - yabs/analytics/new_traffic_generation/src
@@ -1741,7 +1738,6 @@ migrations:
     - voicetech/spotter/run/difftool
     - voicetech/spotter/score/prepare_for_online_validation/bin
     - voicetech/spotter/tools/filter_texts/bin
-    - weather/ml/experiments/neural_nowcasting/neural_nowcasting
     - weather/workers/warnings/general
     - weather/workers/warnings/nowcasting
     - yabs/analytics/anomaly_analyzer/src
@@ -2399,7 +2395,6 @@ migrations:
     - maps/pylibs/utils/lib
     - maps/pymod/yandex/maps/test_utils
     - maps/renderer/designs_config/libs/pymod
-    - maps/routing/matrix_router/data_preparation/pytests/test_clustering
     - maps/routing/router/regression/gen-stopwatch-ammo-mt
     - maps/streetview/backoffice/lib
     - maps/streetview/backoffice/tools/cut_images_yt
@@ -3927,7 +3922,6 @@ migrations:
     - yweb/freshness/rtmr_metrics/fresh_clicks/tests
     - yweb/freshness/rtmr_metrics/fresh_surplus/tests
     - yweb/news/bindings/python/url/test
-    - yweb/news/cluster/tests
     - yweb/news/mr_indexer/tests
     - yweb/news/rank/rtmr_visits_exporter/tests
     - yweb/news/rtmr/user_story_visits/tests
