@@ -54,6 +54,7 @@ PEERDIR(
     catboost/private/libs/data_util
     catboost/private/libs/index_range
     catboost/libs/logging
+    catboost/libs/helpers/flatbuffers
     contrib/libs/flatbuffers
     library/cpp/binsaver
     library/cpp/containers/2d_array

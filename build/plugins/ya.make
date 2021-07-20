@@ -4,7 +4,6 @@ PY2_LIBRARY()
 
 PY_SRCS(
     code_generator.py
-    flatc.py
     ssqls.py
     swig.py
 
