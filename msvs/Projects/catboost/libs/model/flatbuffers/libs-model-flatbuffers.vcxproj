@@ -78,11 +78,25 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <CustomBuild Include="$(SolutionDir)..\catboost\libs\model\flatbuffers\ctr_data.fbs">
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\cpp_flatc_wrapper.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\libs\model\flatbuffers
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/plugins/_unpickler.py" "--src-root" "$(SolutionDir).." "--build-root" "$(SolutionDir)$(Configuration)" "--data" "gAJjZmxhdGMKRmxhdGMKcQApgXEBfXECKFUKX2luY2xfZGlyc3EDXXEEKFUCJFNxBVUCJEJxBmVVEF91c2VyX2V4dHJhX2FyZ3NxB11xCFUFX3BhdGhxCVUvJFMvY2F0Ym9vc3QvbGlicy9tb2RlbC9mbGF0YnVmZmVycy9jdHJfZGF0YS5mYnNxCnWFcQtiLg==" "--tools" "1" "$(SolutionDir)$(Configuration)/contrib/tools/flatc/flatc.exe"
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/cpp_flatc_wrapper.py" "$(SolutionDir)$(Configuration)/contrib/tools/flatc/flatc.exe" "--cpp" "--keep-prefix" "--gen-mutable" "--schema" "-b" "--yandex-maps-iter" "--gen-object-api" "--filename-suffix" ".fbs" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)$(Configuration)" "-o" "$(SolutionDir)$(Configuration)/catboost/libs/model/flatbuffers/ctr_data.fbs.h" "$(SolutionDir)../catboost/libs/model/flatbuffers/ctr_data.fbs"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\catboost\libs\model\flatbuffers
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/cpp_flatc_wrapper.py" "$(SolutionDir)$(Configuration)/contrib/tools/flatc/flatc.exe" "--cpp" "--keep-prefix" "--gen-mutable" "--schema" "-b" "--yandex-maps-iter" "--gen-object-api" "--filename-suffix" ".fbs" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)$(Configuration)" "-o" "$(SolutionDir)$(Configuration)/catboost/libs/model/flatbuffers/features.fbs.h" "$(SolutionDir)../catboost/libs/model/flatbuffers/features.fbs"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\catboost\libs\model\flatbuffers
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/cpp_flatc_wrapper.py" "$(SolutionDir)$(Configuration)/contrib/tools/flatc/flatc.exe" "--cpp" "--keep-prefix" "--gen-mutable" "--schema" "-b" "--yandex-maps-iter" "--gen-object-api" "--filename-suffix" ".fbs" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)$(Configuration)" "-o" "$(SolutionDir)$(Configuration)/catboost/libs/model/flatbuffers/model.fbs.h" "$(SolutionDir)../catboost/libs/model/flatbuffers/model.fbs"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -93,34 +107,21 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\libs\model\flatbuffers
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/plugins/_unpickler.py" "--src-root" "$(SolutionDir).." "--build-root" "$(SolutionDir)$(Configuration)" "--data" "gAJjZmxhdGMKRmxhdGMKcQApgXEBfXECKFUKX2luY2xfZGlyc3EDXXEEKFUCJFNxBVUCJEJxBmVVEF91c2VyX2V4dHJhX2FyZ3NxB11xCFUFX3BhdGhxCVUvJFMvY2F0Ym9vc3QvbGlicy9tb2RlbC9mbGF0YnVmZmVycy9jdHJfZGF0YS5mYnNxCnWFcQtiLg==" "--tools" "1" "$(SolutionDir)$(Configuration)/contrib/tools/flatc/flatc.exe"
+cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/libs/model/flatbuffers/ctr_data.fbs.h	</Message>
-      <AdditionalInputs>$(SolutionDir)..\catboost\libs\model\flatbuffers\ctr_data.fbs;$(SolutionDir)..\build\scripts\stdout2stderr.py;$(SolutionDir)$(Configuration)\contrib\tools\flatc\flatc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\model\flatbuffers\ctr_data.fbs.h;$(SolutionDir)$(Configuration)\catboost\libs\model\flatbuffers\ctr_data.iter.fbs.h;$(SolutionDir)$(Configuration)\catboost\libs\model\flatbuffers\ctr_data.bfbs;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\catboost\libs\model\flatbuffers\features.fbs">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+"python" "$(SolutionDir)../build/scripts/cpp_flatc_wrapper.py" "$(SolutionDir)$(Configuration)/contrib/tools/flatc/flatc.exe" "--cpp" "--keep-prefix" "--gen-mutable" "--schema" "-b" "--yandex-maps-iter" "--gen-object-api" "--filename-suffix" ".fbs" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)$(Configuration)" "-o" "$(SolutionDir)$(Configuration)/catboost/libs/model/flatbuffers/ctr_data.fbs.h" "$(SolutionDir)../catboost/libs/model/flatbuffers/ctr_data.fbs"
+if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\libs\model\flatbuffers
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/plugins/_unpickler.py" "--src-root" "$(SolutionDir).." "--build-root" "$(SolutionDir)$(Configuration)" "--data" "gAJjZmxhdGMKRmxhdGMKcQApgXEBfXECKFUKX2luY2xfZGlyc3EDXXEEKFUCJFNxBVUCJEJxBmVVEF91c2VyX2V4dHJhX2FyZ3NxB11xCFUFX3BhdGhxCVUvJFMvY2F0Ym9vc3QvbGlicy9tb2RlbC9mbGF0YnVmZmVycy9mZWF0dXJlcy5mYnNxCnWFcQtiLg==" "--tools" "1" "$(SolutionDir)$(Configuration)/contrib/tools/flatc/flatc.exe"
+cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+"python" "$(SolutionDir)../build/scripts/cpp_flatc_wrapper.py" "$(SolutionDir)$(Configuration)/contrib/tools/flatc/flatc.exe" "--cpp" "--keep-prefix" "--gen-mutable" "--schema" "-b" "--yandex-maps-iter" "--gen-object-api" "--filename-suffix" ".fbs" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)$(Configuration)" "-o" "$(SolutionDir)$(Configuration)/catboost/libs/model/flatbuffers/features.fbs.h" "$(SolutionDir)../catboost/libs/model/flatbuffers/features.fbs"
+if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\libs\model\flatbuffers
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/plugins/_unpickler.py" "--src-root" "$(SolutionDir).." "--build-root" "$(SolutionDir)$(Configuration)" "--data" "gAJjZmxhdGMKRmxhdGMKcQApgXEBfXECKFUKX2luY2xfZGlyc3EDXXEEKFUCJFNxBVUCJEJxBmVVEF91c2VyX2V4dHJhX2FyZ3NxB11xCFUFX3BhdGhxCVUvJFMvY2F0Ym9vc3QvbGlicy9tb2RlbC9mbGF0YnVmZmVycy9mZWF0dXJlcy5mYnNxCnWFcQtiLg==" "--tools" "1" "$(SolutionDir)$(Configuration)/contrib/tools/flatc/flatc.exe"
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/cpp_flatc_wrapper.py" "$(SolutionDir)$(Configuration)/contrib/tools/flatc/flatc.exe" "--cpp" "--keep-prefix" "--gen-mutable" "--schema" "-b" "--yandex-maps-iter" "--gen-object-api" "--filename-suffix" ".fbs" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)$(Configuration)" "-o" "$(SolutionDir)$(Configuration)/catboost/libs/model/flatbuffers/model.fbs.h" "$(SolutionDir)../catboost/libs/model/flatbuffers/model.fbs"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -128,36 +129,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/libs/model/flatbuffers/features.fbs.h	</Message>
-      <AdditionalInputs>$(SolutionDir)..\catboost\libs\model\flatbuffers\features.fbs;$(SolutionDir)..\build\scripts\stdout2stderr.py;$(SolutionDir)$(Configuration)\contrib\tools\flatc\flatc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\model\flatbuffers\features.fbs.h;$(SolutionDir)$(Configuration)\catboost\libs\model\flatbuffers\features.iter.fbs.h;$(SolutionDir)$(Configuration)\catboost\libs\model\flatbuffers\features.bfbs;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\catboost\libs\model\flatbuffers\model.fbs">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\libs\model\flatbuffers
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/plugins/_unpickler.py" "--src-root" "$(SolutionDir).." "--build-root" "$(SolutionDir)$(Configuration)" "--data" "gAJjZmxhdGMKRmxhdGMKcQApgXEBfXECKFUKX2luY2xfZGlyc3EDXXEEKFUCJFNxBVUCJEJxBmVVEF91c2VyX2V4dHJhX2FyZ3NxB11xCFUFX3BhdGhxCVUsJFMvY2F0Ym9vc3QvbGlicy9tb2RlbC9mbGF0YnVmZmVycy9tb2RlbC5mYnNxCnWFcQtiLg==" "--tools" "1" "$(SolutionDir)$(Configuration)/contrib/tools/flatc/flatc.exe"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\libs\model\flatbuffers
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/plugins/_unpickler.py" "--src-root" "$(SolutionDir).." "--build-root" "$(SolutionDir)$(Configuration)" "--data" "gAJjZmxhdGMKRmxhdGMKcQApgXEBfXECKFUKX2luY2xfZGlyc3EDXXEEKFUCJFNxBVUCJEJxBmVVEF91c2VyX2V4dHJhX2FyZ3NxB11xCFUFX3BhdGhxCVUsJFMvY2F0Ym9vc3QvbGlicy9tb2RlbC9mbGF0YnVmZmVycy9tb2RlbC5mYnNxCnWFcQtiLg==" "--tools" "1" "$(SolutionDir)$(Configuration)/contrib/tools/flatc/flatc.exe"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/libs/model/flatbuffers/model.fbs.h	</Message>
-      <AdditionalInputs>$(SolutionDir)..\catboost\libs\model\flatbuffers\model.fbs;$(SolutionDir)..\build\scripts\stdout2stderr.py;$(SolutionDir)$(Configuration)\contrib\tools\flatc\flatc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\model\flatbuffers\model.fbs.h;$(SolutionDir)$(Configuration)\catboost\libs\model\flatbuffers\model.iter.fbs.h;$(SolutionDir)$(Configuration)\catboost\libs\model\flatbuffers\model.bfbs;</Outputs>
+      <Message>$B/catboost/libs/model/flatbuffers/ctr_data.fbs.h	$B/catboost/libs/model/flatbuffers/features.fbs.h	$B/catboost/libs/model/flatbuffers/model.fbs.h	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\cpp_flatc_wrapper.py;$(SolutionDir)..\catboost\libs\model\flatbuffers\ctr_data.fbs;$(SolutionDir)$(Configuration)\contrib\tools\flatc\flatc.exe;$(SolutionDir)..\catboost\libs\model\flatbuffers\features.fbs;$(SolutionDir)..\catboost\libs\model\flatbuffers\model.fbs;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\model\flatbuffers\ctr_data.fbs.h;$(SolutionDir)$(Configuration)\catboost\libs\model\flatbuffers\ctr_data.iter.fbs.h;$(SolutionDir)$(Configuration)\catboost\libs\model\flatbuffers\ctr_data.bfbs;$(SolutionDir)$(Configuration)\catboost\libs\model\flatbuffers\features.fbs.h;$(SolutionDir)$(Configuration)\catboost\libs\model\flatbuffers\features.iter.fbs.h;$(SolutionDir)$(Configuration)\catboost\libs\model\flatbuffers\features.bfbs;$(SolutionDir)$(Configuration)\catboost\libs\model\flatbuffers\model.fbs.h;$(SolutionDir)$(Configuration)\catboost\libs\model\flatbuffers\model.iter.fbs.h;$(SolutionDir)$(Configuration)\catboost\libs\model\flatbuffers\model.bfbs;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
