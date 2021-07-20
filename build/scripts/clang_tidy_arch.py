@@ -20,7 +20,7 @@ def main():
             with open(inp, 'r') as afile:
                 errors = json.load(afile)
             testing_src = errors["file"]
-            if os.path.exists(os.path.join(args.source_root, testing_src)):
+            if not os.path.isabs(testing_src) and os.path.exists(os.path.join(args.source_root, testing_src)):
                 result_json[testing_src] = errors
             elif "_/" not in testing_src:
                 result_json[os.path.basename(testing_src)] = errors
