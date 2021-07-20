@@ -1527,7 +1527,8 @@ catboost.train <- function(learn_pool, test_pool = NULL, params = list()) {
     class(model) <- "catboost.Model"
 
     if (catboost._is_oblivious(model)) {
-        model$feature_importances <- catboost.get_feature_importance(model, learn_pool)
+        model$feature_importances <- catboost.get_feature_importance(model)
+        rownames(model$feature_importances) <- colnames(learn_pool)
     }
 
     model$tree_count <- catboost.ntrees(model)
