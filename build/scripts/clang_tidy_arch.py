@@ -21,11 +21,9 @@ def main():
                 errors = json.load(afile)
             testing_src = errors["file"]
             if os.path.exists(os.path.join(args.source_root, testing_src)):
-                # TODO remove .tidyjson concatenation after ya-bin&tt release
-                result_json[testing_src + ".tidyjson"] = errors
+                result_json[testing_src] = errors
             elif "_/" not in testing_src:
-                # TODO remove .tidyjson concatenation after ya-bin&tt release
-                result_json[os.path.basename(testing_src + ".tidyjson")] = errors
+                result_json[os.path.basename(testing_src)] = errors
 
     with open(args.output_file, 'w') as afile:
         json.dump(result_json, afile, indent=4)  # TODO remove indent
