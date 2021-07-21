@@ -326,6 +326,7 @@
   - sys/mpctl.h
   - sys/mutex.h
   - sys/rwlock.h
+  - sys/semaphore.h
   - sys/smp.h
   - sys/stdint.h
   - sys/systm.h
