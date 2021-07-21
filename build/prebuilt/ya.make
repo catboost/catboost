@@ -2,6 +2,7 @@
 
 RECURSE(
     contrib/libs/libmysql_r/strings/uca9dump
+    contrib/python/mypy-protobuf
     contrib/tools/flatc64
     contrib/tools/flatc
     contrib/tools/protoc/plugins/cpp_styleguide
