@@ -5,13 +5,13 @@
 extern "C" { // sanitizers API
 
 #if defined(_asan_enabled_)
-void __lsan_ignore_object(const void* p);
+    void __lsan_ignore_object(const void* p);
 #endif
 
 #if defined(_msan_enabled_)
-void __msan_unpoison(const volatile void* a, size_t size);
-void __msan_poison(const volatile void* a, size_t size);
-void __msan_check_mem_is_initialized(const volatile void* x, size_t size);
+    void __msan_unpoison(const volatile void* a, size_t size);
+    void __msan_poison(const volatile void* a, size_t size);
+    void __msan_check_mem_is_initialized(const volatile void* x, size_t size);
 #endif
 
 }; // sanitizers API

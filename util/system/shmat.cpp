@@ -22,20 +22,20 @@
     #define FALSE 0
 
 extern "C" {
-using HANDLE = OS_HANDLE;
-using BOOL = int;
-using DWORD = ui32;
-using LPCTSTR = const char*;
-using LPVOID = void*;
-using LPCVOID = void const*;
-using SIZE_T = size_t;
+    using HANDLE = OS_HANDLE;
+    using BOOL = int;
+    using DWORD = ui32;
+    using LPCTSTR = const char*;
+    using LPVOID = void*;
+    using LPCVOID = void const*;
+    using SIZE_T = size_t;
 
-BOOL WINAPI CloseHandle(HANDLE hObject);
-HANDLE WINAPI OpenFileMappingA(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCTSTR lpName);
-LPVOID WINAPI MapViewOfFile(HANDLE hFileMappingObject, DWORD DesiredAccess, DWORD FileOffsetHigh, DWORD FileOffsetLow, SIZE_T NumberOfBytesToMap);
-HANDLE WINAPI CreateFileMappingA(HANDLE hFile, LPVOID lpAttributes, DWORD flProtect, DWORD MaximumSizeHigh, DWORD MaximumSizeLow, LPCTSTR lpName);
-BOOL WINAPI UnmapViewOfFile(LPCVOID lpBaseAddress);
-DWORD WINAPI GetLastError(void);
+    BOOL WINAPI CloseHandle(HANDLE hObject);
+    HANDLE WINAPI OpenFileMappingA(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCTSTR lpName);
+    LPVOID WINAPI MapViewOfFile(HANDLE hFileMappingObject, DWORD DesiredAccess, DWORD FileOffsetHigh, DWORD FileOffsetLow, SIZE_T NumberOfBytesToMap);
+    HANDLE WINAPI CreateFileMappingA(HANDLE hFile, LPVOID lpAttributes, DWORD flProtect, DWORD MaximumSizeHigh, DWORD MaximumSizeLow, LPCTSTR lpName);
+    BOOL WINAPI UnmapViewOfFile(LPCVOID lpBaseAddress);
+    DWORD WINAPI GetLastError(void);
 }
 #endif
 

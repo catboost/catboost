@@ -14,7 +14,8 @@ namespace {
 
         TExample(const TStringBuf expected, const TStringBuf source)
             : Expected{expected}
-            , Source{source} {
+            , Source{source}
+        {
         }
     };
 }
