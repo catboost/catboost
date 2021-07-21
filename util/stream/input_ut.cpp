@@ -13,11 +13,11 @@
 class TMockStdIn {
 public:
     TMockStdIn()
-        : StdInCopy(dup(0))
+        : StdInCopy_(dup(0))
     {
     }
     ~TMockStdIn() {
-        close(StdInCopy);
+        close(StdInCopy_);
     }
 
     template <typename FuncType>
@@ -33,12 +33,12 @@ public:
 
         func();
         Cin.ReadAll();
-        dup2(StdInCopy, 0);
+        dup2(StdInCopy_, 0);
         clearerr(stdin);
     }
 
 private:
-    int StdInCopy;
+    int StdInCopy_;
 };
 
 class TNoInput: public IInputStream {

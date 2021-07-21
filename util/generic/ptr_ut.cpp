@@ -110,7 +110,7 @@ public:
     }
 };
 
-static A* newA() {
+static A* MakeA() {
     return new A();
 }
 
@@ -118,18 +118,18 @@ static A* newA() {
  * test compileability
  */
 class B;
-static TSimpleIntrusivePtr<B> getB() {
+static TSimpleIntrusivePtr<B> GetB() {
     throw 1;
 }
 
-void func() {
-    TSimpleIntrusivePtr<B> b = getB();
+void Func() {
+    TSimpleIntrusivePtr<B> b = GetB();
 }
 
 void TPointerTest::TestSimpleIntrPtr() {
     {
-        TSimpleIntrusivePtr<A> a1(newA());
-        TSimpleIntrusivePtr<A> a2(newA());
+        TSimpleIntrusivePtr<A> a1(MakeA());
+        TSimpleIntrusivePtr<A> a2(MakeA());
         TSimpleIntrusivePtr<A> a3 = a2;
 
         a1 = a2;
@@ -141,7 +141,7 @@ void TPointerTest::TestSimpleIntrPtr() {
 
 void TPointerTest::TestHolderPtr() {
     {
-        THolder<A> a1(newA());
+        THolder<A> a1(MakeA());
         THolder<A> a2(a1.Release());
     }
 
@@ -217,20 +217,20 @@ void TPointerTest::TestMakeHolder() {
     {
         class TRec {
         private:
-            int X, Y;
+            int X_, Y_;
 
         public:
             TRec(int x, int y)
-                : X(x)
-                , Y(y)
+                : X_(x)
+                , Y_(y)
             {
             }
 
             int GetX() const {
-                return X;
+                return X_;
             }
             int GetY() const {
-                return Y;
+                return Y_;
             }
         };
         auto ptr = MakeHolder<TRec>(1, 2);
@@ -241,7 +241,7 @@ void TPointerTest::TestMakeHolder() {
 
 void TPointerTest::TestTrulePtr() {
     {
-        TAutoPtr<A> a1(newA());
+        TAutoPtr<A> a1(MakeA());
         TAutoPtr<A> a2(a1);
         a1 = a2;
     }
@@ -251,7 +251,7 @@ void TPointerTest::TestTrulePtr() {
 
 void TPointerTest::TestAutoToHolder() {
     {
-        TAutoPtr<A> a1(newA());
+        TAutoPtr<A> a1(MakeA());
         THolder<A> a2(a1);
 
         UNIT_ASSERT_EQUAL(a1.Get(), nullptr);
@@ -279,9 +279,9 @@ void TPointerTest::TestAutoToHolder() {
 }
 
 void TPointerTest::TestCopyPtr() {
-    TCopyPtr<A> a1(newA());
+    TCopyPtr<A> a1(MakeA());
     {
-        TCopyPtr<A> a2(newA());
+        TCopyPtr<A> a2(MakeA());
         TCopyPtr<A> a3 = a2;
         UNIT_ASSERT_VALUES_EQUAL(cnt, 3);
 
@@ -650,20 +650,20 @@ void TPointerTest::TestMakeShared() {
     {
         class TRec {
         private:
-            int X, Y;
+            int X_, Y_;
 
         public:
             TRec(int x, int y)
-                : X(x)
-                , Y(y)
+                : X_(x)
+                , Y_(y)
             {
             }
 
             int GetX() const {
-                return X;
+                return X_;
             }
             int GetY() const {
-                return Y;
+                return Y_;
             }
         };
         TSimpleSharedPtr<TRec> ptr = MakeSimpleShared<TRec>(1, 2);
