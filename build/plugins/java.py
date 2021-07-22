@@ -242,6 +242,11 @@ def onjava_module(unit, *args):
             unit.onadd_check(['JAVA_STYLE', unit.get('LINT_LEVEL_VALUE')])
 
 
+def on_add_java_style_checks(unit, *args):
+    if unit.get('LINT_LEVEL_VALUE') != "none":
+        unit.onadd_check(['JAVA_STYLE', unit.get('LINT_LEVEL_VALUE')] + list(args))
+
+
 def on_add_classpath_clash_check(unit, *args):
     jdeps_val = (unit.get('CHECK_JAVA_DEPS_VALUE') or '').lower()
     if jdeps_val and jdeps_val not in ('yes', 'no', 'strict'):
