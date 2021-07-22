@@ -30,6 +30,7 @@ ALLOW library/python/ylock -> yt/python/yt/wrapper
 ALLOW library/python/yt -> yt/python/client_lite
 ALLOW library/python/yt/example -> yt/python/client
 ALLOW library/python/statface_client -> statbox/libstatbox/python
+ALLOW library/python/pytest-mongodb -> devtools/swag/lib
 ALLOW library/cpp/minhash/tools/mr_hash -> mapreduce
 ALLOW library/cpp/token/ut -> kernel
 ALLOW library/cpp/infected_masks -> kernel
