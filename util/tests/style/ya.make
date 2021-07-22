@@ -452,7 +452,6 @@ charset/wide.cpp
 charset/wide_ut.cpp
 charset/wide_sse41.cpp
 charset/unicode_table.cpp
-charset/all_charset.cpp
 charset/benchmark/to_lower/main.cpp
 charset/benchmark/utf8_to_wide/main.cpp
 ysaveload_ut.cpp
