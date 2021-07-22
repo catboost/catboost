@@ -56,12 +56,14 @@ class Platform(object):
 
         self.is_armv7 = self.arch in ('armv7', 'armv7a', 'armv7a_neon', 'arm', 'armv7ahf_cortex_a35', 'armv7ahf_cortex_a53')
         self.is_armv8 = self.arch in ('armv8', 'armv8a', 'arm64', 'aarch64', 'armv8a_cortex_a35', 'armv8a_cortex_a53')
+        self.is_armv8m = self.arch in ('armv8m_cortex_m33')
         self.is_arm64 = self.arch in ('arm64',)
-        self.is_arm = self.is_armv7 or self.is_armv8
+        self.is_arm = self.is_armv7 or self.is_armv8 or self.is_armv8m
         self.is_armv7_neon = self.arch in ('armv7a_neon', 'armv7ahf_cortex_a35', 'armv7ahf_cortex_a53')
 
         self.is_cortex_a35 = self.arch in ('armv7ahf_cortex_a35', 'armv8a_cortex_a35')
         self.is_cortex_a53 = self.arch in ('armv7ahf_cortex_a53', 'armv8a_cortex_a53')
+        self.is_cortex_m33 = self.arch in ('armv8m_cortex_m33')
 
         self.is_armv7hf = self.arch in ('armv7ahf_cortex_a35', 'armv7ahf_cortex_a53')
 
@@ -69,7 +71,7 @@ class Platform(object):
         self.is_power9le = self.arch == 'power9le'
         self.is_powerpc = self.is_power8le or self.is_power9le
 
-        self.is_32_bit = self.is_x86 or self.is_armv7
+        self.is_32_bit = self.is_x86 or self.is_armv7 or self.is_armv8m
         self.is_64_bit = self.is_x86_64 or self.is_armv8 or self.is_powerpc
 
         assert self.is_32_bit or self.is_64_bit
@@ -102,6 +104,8 @@ class Platform(object):
 
         self.is_cygwin = self.os == 'cygwin'
         self.is_yocto = self.os == 'yocto'
+
+        self.is_none = self.os == 'none'
 
         self.is_posix = self.is_linux or self.is_apple or self.is_android or self.is_cygwin or self.is_yocto
 
@@ -136,6 +140,7 @@ class Platform(object):
             (self.is_armv7, 'ARCH_ARM7'),
             (self.is_armv7_neon, 'ARCH_ARM7_NEON'),
             (self.is_armv8, 'ARCH_ARM64'),
+            (self.is_armv8m, 'ARCH_ARM8M'),
             (self.is_arm, 'ARCH_ARM'),
             (self.is_linux_armv8 or self.is_macos_arm64, 'ARCH_AARCH64'),
             (self.is_powerpc, 'ARCH_PPC64LE'),
@@ -1137,10 +1142,13 @@ class GnuToolchain(Toolchain):
         elif target.is_cortex_a53:
             self.c_flags_platform.append('-mcpu=cortex-a53')
 
+        elif target.is_cortex_m33:
+            self.c_flags_platform.append('-mcpu=cortex-m33 -mfpu=fpv5-sp-d16 -mfloat-abi=hard')
+
         elif target.is_armv7_neon:
             self.c_flags_platform.append('-mfpu=neon')
 
-        if target.is_armv7 and build.is_size_optimized:
+        if (target.is_armv7 or target.is_armv8m) and build.is_size_optimized:
             # Enable ARM Thumb2 variable-length instruction encoding
             # to reduce code size
             self.c_flags_platform.append('-mthumb')
@@ -1858,7 +1866,7 @@ class LD(Linker):
             self.rdynamic = '-rdynamic'
             self.use_stdlib = '-nodefaultlibs'
 
-        if target.is_linux or target.is_android or target.is_cygwin:
+        if target.is_linux or target.is_android or target.is_cygwin or target.is_none:
             self.start_group = '-Wl,--start-group'
             self.end_group = '-Wl,--end-group'
             self.whole_archive = '-Wl,--whole-archive'

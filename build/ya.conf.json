@@ -7060,6 +7060,55 @@
                     "default": true
                 }
             ]
+        },
+        "gcc102-arm-none-eabi": {
+            "tools": {
+                "cc": {
+                    "bottle": "gcc102-arm-none-eabi",
+                    "executable": "cc"
+                },
+                "c++": {
+                    "bottle": "gcc102-arm-none-eabi",
+                    "executable": "c++"
+                },
+                "gcov": {
+                    "bottle": "gcc102-arm-none-eabi",
+                    "executable": "gcov"
+                },
+                "c++filt": {
+                    "bottle": "gcc102-arm-none-eabi",
+                    "executable": "c++filt"
+                },
+                "nm": {
+                    "bottle": "gcc102-arm-none-eabi",
+                    "executable": "nm"
+                },
+                "strip": {
+                    "bottle": "gcc102-arm-none-eabi",
+                    "executable": "strip"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "NONE",
+                        "arch": "armv8m_cortex_m33"
+                    },
+                    "default": true
+                }
+            ],
+            "params": {
+                "type": "gnu",
+                "match_root": "GCC",
+                "werror_mode": "compiler_specific",
+                "c_compiler": "$(GCC)/bin/arm-none-eabi-gcc",
+                "cxx_compiler": "$(GCC)/bin/arm-none-eabi-g++",
+                "ar": "$(GCC)/bin/arm-none-eabi-ar",
+                "gcc_version": "10.2.1"
+            }
         }
     },
     "bottles": {
@@ -9581,6 +9630,44 @@
             "executable": {
                 "wall-e": [
                     "wall-e"
+                ]
+            }
+        },
+        "gcc102-arm-none-eabi": {
+            "formula": {
+                "sandbox_id": 1020757602,
+                "match": "GNU ARM"
+            },
+            "executable": {
+                "c++": [
+                    "bin",
+                    "arm-none-eabi",
+                    "arm-none-eabi-g++"
+                ],
+                "cc": [
+                    "bin",
+                    "arm-none-eabi",
+                    "arm-none-eabi-gcc"
+                ],
+                "gcov": [
+                    "bin",
+                    "arm-none-eabi",
+                    "arm-none-eabi-gcov"
+                ],
+                "c++filt": [
+                    "bin",
+                    "arm-none-eabi",
+                    "arm-none-eabi-c++filt"
+                ],
+                "nm": [
+                    "bin",
+                    "arm-none-eabi",
+                    "arm-none-eabi-nm"
+                ],
+                "strip": [
+                    "bin",
+                    "arm-none-eabi",
+                    "arm-none-eabi-strip"
                 ]
             }
         }
