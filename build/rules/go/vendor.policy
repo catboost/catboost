@@ -741,6 +741,9 @@ ALLOW .* -> vendor/github.com/aymerick/raymond
 # CONTRIB-2176
 ALLOW .* -> vendor/github.com/masterzen/winrm
 
+# CONTRIB-2267
+ALLOW .* -> vendor/github.com/apparentlymart/go-cidr
+
 #
 # Tools
 #
