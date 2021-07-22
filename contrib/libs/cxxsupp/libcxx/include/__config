@@ -128,6 +128,9 @@
 #  define _LIBCPP_ABI_OPTIMIZED_FUNCTION
 // All the regex constants must be distinct and nonzero.
 #  define _LIBCPP_ABI_REGEX_CONSTANTS_NONZERO
+// Re-worked external template instantiations for std::string with a focus on
+// performance and fast-path inlining.
+#  define _LIBCPP_ABI_STRING_OPTIMIZED_EXTERNAL_INSTANTIATION
 #elif _LIBCPP_ABI_VERSION == 1
 #  if !defined(_LIBCPP_OBJECT_FORMAT_COFF)
 // Enable compiling copies of now inline methods into the dylib to support
@@ -1491,7 +1494,7 @@ _LIBCPP_FUNC_VIS extern "C" void __sanitizer_annotate_contiguous_container(
 #  define _LIBCPP_AVAILABILITY_TO_CHARS                                        \
      _LIBCPP_AVAILABILITY_FILESYSTEM
 #  define _LIBCPP_AVAILABILITY_SYNC                                            \
-     __attribute__((availability(unavailable, message="The C++20 Synchronization Library requires runtime support that hasn't been shipped on Apple platforms yet!")))
+     /*FIXME:mark this as unavailable on Apple platforms*/
 #else
 #  define _LIBCPP_AVAILABILITY_SHARED_MUTEX
 #  define _LIBCPP_AVAILABILITY_BAD_VARIANT_ACCESS
