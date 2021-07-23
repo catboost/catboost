@@ -744,6 +744,9 @@ ALLOW .* -> vendor/github.com/masterzen/winrm
 # CONTRIB-2267
 ALLOW .* -> vendor/github.com/apparentlymart/go-cidr
 
+# CONTRIB-2266
+ALLOW .* -> vendor/github.com/vertica/vertica-sql-go
+
 #
 # Tools
 #
