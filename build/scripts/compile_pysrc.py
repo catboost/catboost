@@ -11,7 +11,6 @@ LIMIT = 6000
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', required=True)
-    parser.add_argument('--mod-dir', required=True)
     parser.add_argument('--output', required=True)
     parser.add_argument('--rescompiler', required=True)
     subparsers = parser.add_subparsers(dest='mode')
@@ -67,7 +66,7 @@ def main():
         pycc_ext = '.yapyc'
         iterate_resource_params = iterate_py2_resource_params
 
-    py_files = sorted([x for x in names if x.startswith(args.mod_dir)])
+    py_files = sorted(names)
 
     for py in py_files:
         cmd = pycc_cmd + ['{}-'.format(os.path.basename(py)), py, '{}{}'.format(py, pycc_ext)]
