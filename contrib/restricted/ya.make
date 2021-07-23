@@ -3,6 +3,7 @@
 RECURSE(
     abseil-cpp
     libffi
+    murmurhash
 )
 
 IF(OS_LINUX OR OS_DARWIN)
