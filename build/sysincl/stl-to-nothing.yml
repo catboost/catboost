@@ -48,6 +48,7 @@
   - clocale
   - cmath
   - codecvt
+  - compare
   - complex
   - condition_variable
   - csetjmp

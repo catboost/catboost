@@ -65,6 +65,7 @@
   - clocale:                   contrib/libs/cxxsupp/libcxx/include/clocale
   - cmath:                     contrib/libs/cxxsupp/libcxx/include/cmath
   - codecvt:                   contrib/libs/cxxsupp/libcxx/include/codecvt
+  - compare:                   contrib/libs/cxxsupp/libcxx/include/compare
   - complex:                   contrib/libs/cxxsupp/libcxx/include/complex
   - condition_variable:        contrib/libs/cxxsupp/libcxx/include/condition_variable
   - csetjmp:                   contrib/libs/cxxsupp/libcxx/include/csetjmp
