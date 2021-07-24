@@ -622,8 +622,7 @@ public:
         return size_type(-1);
     }
 
-    Y_PURE_FUNCTION
-    bool empty() const noexcept {
+    Y_PURE_FUNCTION bool empty() const noexcept {
         return size() == 0;
     }
 
@@ -1532,8 +1531,7 @@ public:
         return rep.max_size();
     }
 
-    Y_PURE_FUNCTION
-    bool empty() const noexcept {
+    Y_PURE_FUNCTION bool empty() const noexcept {
         return rep.empty();
     }
     explicit operator bool() const noexcept {
@@ -1858,8 +1856,7 @@ public:
         return rep.max_size();
     }
 
-    Y_PURE_FUNCTION
-    bool empty() const {
+    Y_PURE_FUNCTION bool empty() const {
         return rep.empty();
     }
     explicit operator bool() const noexcept {

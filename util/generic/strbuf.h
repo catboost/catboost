@@ -157,8 +157,7 @@ public:
     {
     }
 
-    Y_PURE_FUNCTION
-    inline TBasicStringBuf SubString(size_t pos, size_t n) const noexcept {
+    Y_PURE_FUNCTION inline TBasicStringBuf SubString(size_t pos, size_t n) const noexcept {
         pos = Min(pos, size());
         n = Min(n, size() - pos);
         return TBasicStringBuf(data() + pos, n);
@@ -299,26 +298,22 @@ public:
 */
 
 public:
-    Y_PURE_FUNCTION
-    inline TdSelf After(TCharType c) const noexcept {
+    Y_PURE_FUNCTION inline TdSelf After(TCharType c) const noexcept {
         TdSelf l, r;
         return TrySplit(c, l, r) ? r : *this;
     }
 
-    Y_PURE_FUNCTION
-    inline TdSelf Before(TCharType c) const noexcept {
+    Y_PURE_FUNCTION inline TdSelf Before(TCharType c) const noexcept {
         TdSelf l, r;
         return TrySplit(c, l, r) ? l : *this;
     }
 
-    Y_PURE_FUNCTION
-    inline TdSelf RAfter(TCharType c) const noexcept {
+    Y_PURE_FUNCTION inline TdSelf RAfter(TCharType c) const noexcept {
         TdSelf l, r;
         return TryRSplit(c, l, r) ? r : *this;
     }
 
-    Y_PURE_FUNCTION
-    inline TdSelf RBefore(TCharType c) const noexcept {
+    Y_PURE_FUNCTION inline TdSelf RBefore(TCharType c) const noexcept {
         TdSelf l, r;
         return TryRSplit(c, l, r) ? l : *this;
     }
@@ -468,28 +463,23 @@ public: // string subsequences
         return *this;
     }
 
-    Y_PURE_FUNCTION
-    inline TdSelf SubStr(size_t beg) const noexcept {
+    Y_PURE_FUNCTION inline TdSelf SubStr(size_t beg) const noexcept {
         return TdSelf(*this).Skip(beg);
     }
 
-    Y_PURE_FUNCTION
-    inline TdSelf SubStr(size_t beg, size_t len) const noexcept {
+    Y_PURE_FUNCTION inline TdSelf SubStr(size_t beg, size_t len) const noexcept {
         return SubStr(beg).Trunc(len);
     }
 
-    Y_PURE_FUNCTION
-    inline TdSelf Head(size_t pos) const noexcept {
+    Y_PURE_FUNCTION inline TdSelf Head(size_t pos) const noexcept {
         return TdSelf(*this).Trunc(pos);
     }
 
-    Y_PURE_FUNCTION
-    inline TdSelf Tail(size_t pos) const noexcept {
+    Y_PURE_FUNCTION inline TdSelf Tail(size_t pos) const noexcept {
         return SubStr(pos);
     }
 
-    Y_PURE_FUNCTION
-    inline TdSelf Last(size_t len) const noexcept {
+    Y_PURE_FUNCTION inline TdSelf Last(size_t len) const noexcept {
         return TdSelf(*this).RSeek(len);
     }
 

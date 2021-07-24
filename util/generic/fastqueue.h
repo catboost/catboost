@@ -39,8 +39,7 @@ public:
         return Size_;
     }
 
-    Y_PURE_FUNCTION
-    inline bool Empty() const noexcept {
+    Y_PURE_FUNCTION inline bool Empty() const noexcept {
         return !this->Size();
     }
 

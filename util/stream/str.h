@@ -176,8 +176,7 @@ public:
      * @returns                         Whether the string that this stream
      *                                  operates on is empty.
      */
-    Y_PURE_FUNCTION
-    inline bool Empty() const noexcept {
+    Y_PURE_FUNCTION inline bool Empty() const noexcept {
         return Str().empty();
     }
 
@@ -194,8 +193,7 @@ public:
 
     // TODO: compatibility with existing code, remove
 
-    Y_PURE_FUNCTION
-    bool empty() const {
+    Y_PURE_FUNCTION bool empty() const {
         return Empty();
     }
 

@@ -190,8 +190,7 @@ public:
         return *Ptr() == 0;
     }
 
-    Y_PURE_FUNCTION
-    constexpr inline bool empty() const noexcept {
+    Y_PURE_FUNCTION constexpr inline bool empty() const noexcept {
         return Len() == 0;
     }
 
@@ -208,8 +207,7 @@ public: // style-guide compliant methods
         return Len();
     }
 
-    Y_PURE_FUNCTION
-    constexpr bool Empty() const noexcept {
+    Y_PURE_FUNCTION constexpr bool Empty() const noexcept {
         return 0 == Len();
     }
 

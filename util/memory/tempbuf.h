@@ -25,34 +25,26 @@ public:
     TTempBuf& operator=(const TTempBuf& b) noexcept;
     TTempBuf& operator=(TTempBuf&& b) noexcept;
 
-    Y_PURE_FUNCTION
-    char* Data() noexcept;
+    Y_PURE_FUNCTION char* Data() noexcept;
 
-    Y_PURE_FUNCTION
-    const char* Data() const noexcept;
+    Y_PURE_FUNCTION const char* Data() const noexcept;
 
-    Y_PURE_FUNCTION
-    char* Current() noexcept;
+    Y_PURE_FUNCTION char* Current() noexcept;
 
-    Y_PURE_FUNCTION
-    const char* Current() const noexcept;
+    Y_PURE_FUNCTION const char* Current() const noexcept;
 
-    Y_PURE_FUNCTION
-    size_t Size() const noexcept;
+    Y_PURE_FUNCTION size_t Size() const noexcept;
 
-    Y_PURE_FUNCTION
-    size_t Filled() const noexcept;
+    Y_PURE_FUNCTION size_t Filled() const noexcept;
 
-    Y_PURE_FUNCTION
-    size_t Left() const noexcept;
+    Y_PURE_FUNCTION size_t Left() const noexcept;
 
     void Reset() noexcept;
     void SetPos(size_t off);
     char* Proceed(size_t off);
     void Append(const void* data, size_t len);
 
-    Y_PURE_FUNCTION
-    bool IsNull() const noexcept;
+    Y_PURE_FUNCTION bool IsNull() const noexcept;
 
 private:
     TIntrusivePtr<TImpl> Impl_;

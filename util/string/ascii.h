@@ -211,8 +211,7 @@ static inline int AsciiCompareIgnoreCase(const char* s1, const char* s2) noexcep
  * - positive otherwise,
  * similar to stricmp.
  */
-Y_PURE_FUNCTION
-int AsciiCompareIgnoreCase(const TStringBuf s1, const TStringBuf s2) noexcept;
+Y_PURE_FUNCTION int AsciiCompareIgnoreCase(const TStringBuf s1, const TStringBuf s2) noexcept;
 
 /**
  * ASCII case-sensitive string comparison (for proper UTF8 strings
