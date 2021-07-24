@@ -881,7 +881,6 @@ migrations:
     - yabs/server/test/ft/BSSERVER-3731
     - yabs/server/test/ft/BSSERVER-3820
     - yabs/server/test/ft/BSSERVER-3895
-    - yabs/server/test/ft/BSSERVER-40
     - yabs/server/test/ft/BSSERVER-4338
     - yabs/server/test/ft/BSSERVER-4652
     - yabs/server/test/ft/BSSERVER-4812
@@ -1764,7 +1763,6 @@ migrations:
     - yabs/server/test/ft/BSSERVER-14309
     - yabs/server/test/ft/BSSERVER-14556
     - yabs/server/test/ft/BSSERVER-14610
-    - yabs/server/test/ft/BSSERVER-14790
     - yabs/server/test/ft/BSSERVER-14904
     - yabs/server/test/ft/BSSERVER-2495
     - yabs/server/test/ft/BSSERVER-8804
