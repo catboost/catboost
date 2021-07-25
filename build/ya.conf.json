@@ -447,6 +447,9 @@
         },
         "rtcdiag": {
             "description": "RTC hosts diag tool"
+        },
+        "skotty": {
+            "description": "Skotty (SSH-agent) launcher"
         }
     },
     "toolchain": {
@@ -7061,6 +7064,34 @@
                 }
             ]
         },
+        "skotty": {
+            "tools": {
+                "skotty": {
+                    "bottle": "skotty",
+                    "executable": "launcher"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "WIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "gcc102-arm-none-eabi": {
             "tools": {
                 "cc": {
@@ -9630,6 +9661,17 @@
             "executable": {
                 "wall-e": [
                     "wall-e"
+                ]
+            }
+        },
+        "skotty": {
+            "formula": {
+                "sandbox_id": 1028154041,
+                "match": "launcher"
+            },
+            "executable": {
+                "launcher": [
+                    "launcher"
                 ]
             }
         },
