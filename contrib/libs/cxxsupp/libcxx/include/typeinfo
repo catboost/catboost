@@ -327,6 +327,7 @@ public:
     }
 #else
     bad_cast() _NOEXCEPT;
+    bad_cast(const bad_cast&) _NOEXCEPT = default;
     virtual ~bad_cast() _NOEXCEPT;
     virtual const char* what() const _NOEXCEPT;
 #endif
