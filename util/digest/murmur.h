@@ -3,32 +3,37 @@
 #include <util/system/defaults.h>
 #include <util/generic/array_ref.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-    /*
- * MurmurHash was written by Austin Appleby.
- * Forward declared here to avoid inclusions of contrib/restricted
+/*
+ * murmur2 from http://murmurhash.googlepages.com/
+ *
  */
-    Y_PURE_FUNCTION uint32_t MurmurHash2(const void* key, size_t len, uint32_t seed) noexcept;
+namespace NMurmurPrivate {
+    Y_PURE_FUNCTION
+    ui32 MurmurHash32(const void* key, size_t len, ui32 seed) noexcept;
 
-    Y_PURE_FUNCTION uint64_t MurmurHash64A(const void* key, size_t len, uint64_t seed) noexcept;
+    Y_PURE_FUNCTION
+    ui64 MurmurHash64(const void* key, size_t len, ui64 seed) noexcept;
 
-#ifdef __cplusplus
+    template <unsigned N>
+    struct TMurHelper;
+
+#define DEF_MUR(t)                                                                         \
+    template <>                                                                            \
+    struct TMurHelper<t> {                                                                 \
+        static inline ui##t MurmurHash(const void* buf, size_t len, ui##t init) noexcept { \
+            return MurmurHash##t(buf, len, init);                                          \
+        }                                                                                  \
+    };
+
+    DEF_MUR(32)
+    DEF_MUR(64)
+
+#undef DEF_MUR
 }
-#endif
 
 template <class T>
-static inline std::enable_if_t<sizeof(T) == sizeof(uint32_t), T>
-MurmurHash(const void* buf, size_t len, T init) noexcept {
-    return MurmurHash2(buf, len, init);
-}
-
-template <class T>
-static inline std::enable_if_t<sizeof(T) == sizeof(uint64_t), T>
-MurmurHash(const void* buf, size_t len, T init) noexcept {
-    return MurmurHash64A(buf, len, init);
+static inline T MurmurHash(const void* buf, size_t len, T init) noexcept {
+    return (T)NMurmurPrivate::TMurHelper<8 * sizeof(T)>::MurmurHash(buf, len, init);
 }
 
 template <class T>
