@@ -37,7 +37,7 @@ namespace {
         {
         }
 
-        ~TPortGuard() {
+        ~TPortGuard() override {
             Y_VERIFY_SYSERROR(NFs::Remove(Lock_->GetName()));
         }
 

@@ -730,7 +730,7 @@ namespace NNeh {
             }
 
         public:
-            virtual ~TSslCtx() {
+            ~TSslCtx() override {
                 SSL_CTX_free(SslCtx_);
             }
 
@@ -1183,7 +1183,7 @@ namespace NNeh {
             {
             }
 
-            void Handshake() {
+            void Handshake() override {
                 Ssl_.Reset(SSL_new(SslCtx_));
                 if (THttpsOptions::EnableSslClientDebug) {
                     SSL_set_info_callback(Ssl_.Get(), InfoCB);
