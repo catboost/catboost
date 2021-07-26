@@ -3110,7 +3110,6 @@ migrations:
     - testenv/jobs
     - tools/pycron
     - tools/releaser/src/lib/deblibs
-    - tools/uc
     - transfer_manager/copy_yt_to_clickhouse/python/clickhouse
     - transfer_manager/copy_yt_to_clickhouse/python/cluster_client
     - transfer_manager/copy_yt_to_clickhouse/python/configs
