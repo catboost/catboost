@@ -512,3 +512,55 @@ test_that("model: catboost.eval_metrics", {
   expect_error( catboost.eval_metrics(model, pool_test, list(), eval_period = -1),
                 "eval_period should be greater than zero.", fixed = TRUE)
 })
+
+test_that("model: catboost.virtual_ensembles_predict", {
+  docs_count <- 100
+  virtual_ensembles_count <- 10
+  params <- list(iterations = 60,
+                 random_seed = 12345,
+                 logging_level = "Silent",
+                 allow_writing_files = FALSE)
+  target <- sample(c(1, -1), size = docs_count, replace = TRUE)
+  features <- data.frame(f1 = rnorm(docs_count, mean = 0, sd = 1),
+                         f2 = rnorm(docs_count, mean = 0, sd = 1))
+  train_pool <- catboost.load_pool(features, target)
+  test_pool <- train_pool
+
+
+  params[['loss_function']] <- 'Logloss'
+  model <- catboost.train(train_pool, params = params)
+  expect_error( catboost.virtual_ensembles_predict(model, test_pool, prediction_type = "Probability"),
+                "Unsupported virtual ensembles prediction type: 'VirtEnsembles' or 'TotalUncertainty' was expected", fixed = TRUE)
+
+  prediction <- catboost.virtual_ensembles_predict(model, test_pool, prediction_type = "TotalUncertainty",
+                                                   virtual_ensembles_count = virtual_ensembles_count)
+  expect_equal(dim(prediction), c(docs_count, 2))
+
+
+  params[['loss_function']] <- 'RMSE'
+  model <- catboost.train(train_pool, params = params)
+  prediction <- catboost.virtual_ensembles_predict(model, test_pool, prediction_type = "TotalUncertainty",
+                                                   virtual_ensembles_count = virtual_ensembles_count)
+  expect_equal(dim(prediction), c(docs_count, 2))
+
+
+  params[['loss_function']] <- 'RMSEWithUncertainty'
+  model <- catboost.train(train_pool, params = params)
+  prediction <- catboost.virtual_ensembles_predict(model, test_pool, prediction_type = "TotalUncertainty",
+                                                   virtual_ensembles_count = virtual_ensembles_count)
+  expect_equal(dim(prediction), c(docs_count, 3))
+
+
+  params[['loss_function']] <- 'RMSEWithUncertainty'
+  model <- catboost.train(train_pool, params = params)
+  prediction <- catboost.virtual_ensembles_predict(model, test_pool, prediction_type = "VirtEnsembles",
+                                                   virtual_ensembles_count = virtual_ensembles_count)
+  expect_equal(dim(prediction), c(virtual_ensembles_count, 2, docs_count))
+
+
+  params[['loss_function']] <- 'Logloss'
+  model <- catboost.train(train_pool, params = params)
+  prediction <- catboost.virtual_ensembles_predict(model, test_pool, prediction_type = "VirtEnsembles",
+                                                   virtual_ensembles_count = virtual_ensembles_count)
+  expect_equal(dim(prediction), c(virtual_ensembles_count, 1, docs_count))
+})

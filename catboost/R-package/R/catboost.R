@@ -1548,7 +1548,7 @@ process_synonyms <- function(params) {
     params <- process_synonyms_in_one_group(c('rsm', 'colsample_bylevel'), params)
     params <- process_synonyms_in_one_group(c('border_count', 'max_bin'), params)
     params <- process_synonyms_in_one_group(c('verbose', 'verbose_eval'), params)
-    
+
     return(params)
 }
 
@@ -1566,11 +1566,11 @@ process_synonyms_in_one_group <- function(synonyms, params) {
             params[[synonym]] <- NULL
         }
    }
-  
+
   if (!is.null(value)) {
       params[[synonyms[[1]]]] <- value
   }
-  
+
   return(params)
 }
 
@@ -1806,9 +1806,6 @@ catboost.save_model <- function(model, model_path,
 #'   \item 'RawFormulaVal'
 #'   \item 'Exponent'
 #'   \item 'RMSEWithUncertainty'
-#'   \item 'InternalRawFormulaVal'
-#'   \item 'VirtEnsembles'
-#'   \item 'TotalUncertainty'
 #' }
 #'
 #' Default value: 'RawFormulaVal'
@@ -1928,6 +1925,74 @@ catboost.staged_predict <- function(model, pool, verbose = FALSE, prediction_typ
     obj <- list(nextElem = preds)
     class(obj) <- c("catboost.staged_predict", "abstractiter", "iter")
     return(obj)
+}
+
+#' @name catboost.virtual_ensembles_predict
+#' @title Apply the model with several virtual ensembles
+#'
+#' @description Apply the model to the given dataset using several independent truncated models - virtual ensembles. Each tree in
+#'              ensemble predicts its own value for each document from pool.
+#'
+#'              Peculiarities: Return value varies on prediction_type: array for 'VirtEnsembles' and matrix for 'TotalUncertainty'
+#' @param model The model obtained as the result of training.
+#'
+#' Default value: Required argument
+#' @param pool The input dataset.
+#'
+#' Default value: Required argument
+#' @param verbose Verbose output to stdout.
+#'
+#' Default value: FALSE (not used)
+#' @param prediction_type The format for displaying approximated values in output data
+#' (see \url{https://catboost.ai/docs/concepts/python-reference_virtual_ensembles_predict.html#python-reference_catboostclassifier_predict__output-format}).
+#'
+#' Possible values:
+#' \itemize{
+#'   \item 'VirtEnsembles'
+#'   \item 'TotalUncertainty'
+#' }
+#'
+#' Default value: 'VirtEnsembles'
+#' @param ntree_end Index of the first tree not to be used when applying the model or calculating the metrics (zero-based indexing).
+#'
+#' Default value: 0 (the index of the last tree to use equals to the number of trees in the model minus one)
+#' @param virtual_ensembles_count Number of tree ensembles to use. Each virtual ensemble can be considered as truncated model.
+#'
+#' Default value: 10
+#' @param thread_count The number of threads to use when applying the model. If -1, then the number of threads is set to the number of CPU cores.
+#'
+#' Allows you to optimize the speed of execution. This parameter doesn't affect results.
+#'
+#' Default value: -1
+#' @return Matrix or Array of predictions (for 'TotalUncertainty' and 'VirtEnsembles' prediction_type correspondingly)
+#' @export
+#' @seealso \url{https://catboost.ai/docs/concepts/python-reference_virtual_ensembles_predict.html?lang=en}
+catboost.virtual_ensembles_predict <- function(model, pool, verbose = FALSE, prediction_type = "VirtEnsembles",
+                                    ntree_end = 0L, virtual_ensembles_count = 10, thread_count = -1) {
+    if (!inherits(model, "catboost.Model"))
+        stop("Expected catboost.Model, got: ", class(model))
+    if (!inherits(pool, "catboost.Pool"))
+        stop("Expected catboost.Pool, got: ", class(pool))
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+
+    if (is.null.handle(model$handle))
+        model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
+    prediction <- .Call("CatBoostPredictVirtualEnsembles_R", model$handle, pool,
+                        verbose, prediction_type, ntree_end, virtual_ensembles_count, thread_count)
+
+    objects_count <- nrow(pool)
+    if (prediction_type == "VirtEnsembles"){
+        document_predict_size <- length(prediction) / virtual_ensembles_count / objects_count
+        prediction <- aperm(
+                            array(prediction,
+                                    dim = c(document_predict_size, virtual_ensembles_count, objects_count)),
+                            perm = c(2, 1, 3))
+    } else {
+        # prediction_type == "TotalUncertainty"
+        prediction <- matrix(prediction, nrow = objects_count, byrow = TRUE)
+    }
+    return(prediction)
 }
 
 
