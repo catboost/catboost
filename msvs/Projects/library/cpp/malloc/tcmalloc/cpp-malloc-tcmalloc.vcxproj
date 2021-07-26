@@ -290,9 +290,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\contrib-restricted-abseil-cpp.vcxproj">
       <Project>{EF6CA6C0-39D9-9FBF-190B-A791E5522CEF}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\murmurhash\contrib-restricted-murmurhash.vcxproj">
-      <Project>{05C15EEF-0F2F-5608-F7FE-89C83D3261ED}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\malloc\api\cpp-malloc-api.vcxproj">
       <Project>{98AF9344-15D9-0539-93F4-0E901C36E301}</Project>
     </ProjectReference>
