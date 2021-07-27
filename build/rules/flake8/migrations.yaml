@@ -1637,7 +1637,6 @@ migrations:
     - robot/selectionrank/sr_conduct_rules_experiment/graphs
     - rtmapreduce/config/user_tasks
     - saas/tools/refresh/import_rtyserver
-    - saas/tools/user_if/ssm-front/backend
     - sandbox/projects/EntitySearch/EntitySearchTrunkTest
     - sandbox/projects/GetGeoMetasearchResponses
     - sandbox/projects/LandingConstructor
@@ -2360,7 +2359,6 @@ migrations:
     - logbroker/admin
     - logbroker/juggler/rtc_logbroker_juggler_bundle/src/logbroker_locked_bsgroups
     - logbroker/mops
-    - logbroker/public/client/bin
     - logbroker/tools/lb-cm
     - logbroker/tools/manual/send_projections_to_solomon
     - logbroker/tools/manual/test_front
@@ -3743,7 +3741,6 @@ migrations:
     - rtmapreduce/mrtasks/cocaine_log/tests
     - rtmapreduce/mrtasks/create_market_requests/tests
     - rtmapreduce/mrtasks/create_proto_sessions/tests
-    - rtmapreduce/mrtasks/create_scarab_sessions/tests
     - rtmapreduce/mrtasks/images_freon_sample/tests
     - rtmapreduce/mrtasks/keyslist/tests
     - rtmapreduce/mrtasks/logfeller_create_logs/tests
