@@ -17,12 +17,12 @@ CFLAGS(
 )
 
 ADDINCL(
-    contrib/python/numpy/py2/numpy/core/include
-    contrib/python/numpy/py2/numpy/core/include/numpy
-    contrib/python/numpy/py2/numpy/core/src/common
-    contrib/python/numpy/py2/numpy/core/src/multiarray
-    contrib/python/numpy/py2/numpy/core/src/npymath
-    contrib/python/numpy/py2/numpy/core/src/umath
+    contrib/python/numpy/include/numpy/core/include
+    contrib/python/numpy/include/numpy/core/include/numpy
+    contrib/python/numpy/include/numpy/core/src/common
+    contrib/python/numpy/include/numpy/core/src/multiarray
+    contrib/python/numpy/include/numpy/core/src/npymath
+    contrib/python/numpy/include/numpy/core/src/umath
 )
 
 SRCS(

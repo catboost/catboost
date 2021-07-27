@@ -7,9 +7,9 @@ LICENSE(BSD-3-Clause)
 NO_COMPILER_WARNINGS()
 
 ADDINCL(
-    contrib/python/numpy/py2/numpy/core/include
-    contrib/python/numpy/py2/numpy/core/include/numpy
-    contrib/python/numpy/py2/numpy/core/src/common
+    contrib/python/numpy/include/numpy/core/include
+    contrib/python/numpy/include/numpy/core/include/numpy
+    contrib/python/numpy/include/numpy/core/src/common
 )
 
 CFLAGS(

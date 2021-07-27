@@ -161,10 +161,6 @@
   includes:
     - atomic.h:      contrib/libs/nsync/platform/c++11/atomic.h
 
-- source_filter: "^contrib/python/numpy/py2"
-  includes:
-    - cpuid.h:       contrib/python/numpy/py2/numpy/core/src/umath/cpuid.h
-
 - source_filter: "^contrib/python/numpy/py3"
   includes:
     - numpy/random.pxd
