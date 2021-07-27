@@ -328,3 +328,58 @@ def onrun_jar_program(unit, *args):
 def on_check_run_java_prog_classpath(unit, *args):
     if len(args) != 1:
         ymake.report_configure_error('multiple CLASSPATH elements in RUN_JAVA_PROGRAM invocation no more supported. Use JAVA_RUNTIME_PEERDIR on the JAVA_PROGRAM module instead')
+
+
+def extract_words(words, keys):
+    kv = {}
+    k = None
+
+    for w in words:
+        if w in keys:
+            k = w
+        else:
+            if not k in kv:
+                kv[k] = []
+            kv[k].append(w)
+
+    return kv
+
+
+def parse_words(words):
+    kv = extract_words(words, {'OUT', 'TEMPLATE'})
+    ws = []
+    for item in ('OUT', 'TEMPLATE'):
+        for i, word in list(enumerate(kv[item])):
+            if word == 'CUSTOM_PROPERTY':
+                ws += kv[item][i:]
+                kv[item] = kv[item][:i]
+    tepmlates = kv['TEMPLATE']
+    outputs = kv['OUT']
+    if len(outputs) < len(tepmlates):
+        ymake.report_configure_error('To many arguments for TEMPLATE parameter')
+        return
+    if ws and ws[0] != 'CUSTOM_PROPERTY':
+        ymake.report_configure_error('''Can't parse {}'''.format(ws))
+    custom_props = []
+    for item in ws:
+        if item == 'CUSTOM_PROPERTY':
+            custom_props.append([])
+        else:
+            custom_props[-1].append(item)
+    props = []
+    for p in custom_props:
+        if not p:
+            ymake.report_configure_error('Empty CUSTOM_PROPERTY')
+            continue
+        props.append('-D')
+        if len(p) > 1:
+            props.append("'{}={}'".format(p[0], ' '.join(p[1:])))
+        else:
+            props.append("'{}'".format(p[0]))
+    for i, o in enumerate(outputs):
+        yield o, tepmlates[min(i, len(tepmlates) - 1)], props
+
+
+def on_ymake_generate_script(unit, *args):
+    for out, tmpl, props in parse_words(list(args)):
+        unit.on_add_gen_java_script([out, tmpl] + list(props))
