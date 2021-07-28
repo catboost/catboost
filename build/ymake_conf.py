@@ -666,11 +666,11 @@ class YMake(object):
 
     def print_presets(self):
         presets = opts().presets
-        if presets and 'YMAKE_JAVA_MODULES' not in presets:
-            if 'YA_IDE_IDEA' in presets:
-                presets['YMAKE_JAVA_MODULES'] = 'no'
-            elif 'JDK_VERSION' in presets and presets['JDK_VERSION'] in ['8', '15', '16']:
-                presets['YMAKE_JAVA_MODULES'] = 'yes'
+        # if presets and 'YMAKE_JAVA_MODULES' not in presets:
+        #     if 'YA_IDE_IDEA' in presets:
+        #         presets['YMAKE_JAVA_MODULES'] = 'no'
+        #     elif 'JDK_VERSION' in presets and presets['JDK_VERSION'] in ['8', '15', '16']:
+        #         presets['YMAKE_JAVA_MODULES'] = 'yes'
         if presets and 'YMAKE_JAVA_MODULES' in presets and presets['YMAKE_JAVA_MODULES'] == "yes":
             print('@import "${CONF_ROOT}/conf/java.ymake.conf"')
         else:
