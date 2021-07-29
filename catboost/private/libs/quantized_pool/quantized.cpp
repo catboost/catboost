@@ -118,7 +118,15 @@ NCB::TDataMetaInfo GetDataMetaInfo(
         featureNamesPath
     );
 
-    NCB::TDataMetaInfo metaInfo(std::move(dataColumnsMetaInfo), targetType, hasAdditionalGroupWeight, hasTimestamps, hasPairs, baselineCount, &featureNames);
+    NCB::TDataMetaInfo metaInfo(
+        std::move(dataColumnsMetaInfo),
+        targetType,
+        hasAdditionalGroupWeight,
+        hasTimestamps,
+        hasPairs,
+        baselineCount,
+        &featureNames
+    );
     metaInfo.Validate();
     return metaInfo;
 }
@@ -142,7 +150,8 @@ TVector<ui32> GetIgnoredFlatIndices(const NCB::TQuantizedPool& pool) {
             const auto it = pool.QuantizationSchema.GetFeatureIndexToSchema().find(featureIndex);
 
             if (it == pool.QuantizationSchema.GetFeatureIndexToSchema().end() ||
-                    it->second.GetBorders().empty()) {
+                it->second.GetBorders().empty())
+            {
                 indices.push_back(SafeIntegerCast<ui32>(featureIndex));
                 continue;
             }
@@ -151,7 +160,8 @@ TVector<ui32> GetIgnoredFlatIndices(const NCB::TQuantizedPool& pool) {
             const auto it = pool.QuantizationSchema.GetCatFeatureIndexToSchema().find(featureIndex);
 
             if (it == pool.QuantizationSchema.GetCatFeatureIndexToSchema().end() ||
-                    (it->second.GetPerfectHashes().size() < 2)) {
+                (it->second.GetPerfectHashes().size() < 2))
+            {
                 indices.push_back(SafeIntegerCast<ui32>(featureIndex));
                 continue;
             }
