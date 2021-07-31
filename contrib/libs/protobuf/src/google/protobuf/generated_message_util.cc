@@ -718,8 +718,12 @@ void GenericSwap(MessageLite* m1, MessageLite* m2) {
 MessageLite* GetOwnedMessageInternal(Arena* message_arena,
                                      MessageLite* submessage,
                                      Arena* submessage_arena) {
-  GOOGLE_DCHECK(submessage->GetArena() == submessage_arena);
+  GOOGLE_DCHECK(Arena::InternalHelper<MessageLite>::GetOwningArena(submessage) ==
+         submessage_arena);
   GOOGLE_DCHECK(message_arena != submessage_arena);
+#ifdef PROTOBUF_INTERNAL_USE_MUST_USE_RESULT
+  GOOGLE_DCHECK_EQ(submessage_arena, nullptr);
+#endif  // PROTOBUF_INTERNAL_USE_MUST_USE_RESULT
   if (message_arena != NULL && submessage_arena == NULL) {
     message_arena->Own(submessage);
     return submessage;

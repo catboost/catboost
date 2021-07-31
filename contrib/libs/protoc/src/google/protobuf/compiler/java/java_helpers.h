@@ -35,7 +35,9 @@
 #ifndef GOOGLE_PROTOBUF_COMPILER_JAVA_HELPERS_H__
 #define GOOGLE_PROTOBUF_COMPILER_JAVA_HELPERS_H__
 
+#include <cstdint>
 #include <string>
+
 #include <google/protobuf/compiler/java/java_context.h>
 #include <google/protobuf/descriptor.pb.h>
 #include <google/protobuf/io/printer.h>
@@ -51,6 +53,7 @@ namespace java {
 extern const char kThickSeparator[];
 extern const char kThinSeparator[];
 
+bool IsForbiddenKotlin(const TProtoStringType& field_name);
 
 // If annotation_file is non-empty, prints a javax.annotation.Generated
 // annotation to the given Printer. annotation_file will be referenced in the
@@ -70,6 +73,13 @@ void PrintEnumVerifierLogic(io::Printer* printer,
                             const std::map<TProtoStringType, TProtoStringType>& variables,
                             const char* var_name,
                             const char* terminating_string, bool enforce_lite);
+
+// Converts a name to camel-case. If cap_first_letter is true, capitalize the
+// first letter.
+TProtoStringType ToCamelCase(const TProtoStringType& input, bool lower_first);
+
+char ToUpperCh(char ch);
+char ToLowerCh(char ch);
 
 // Converts a name to camel-case. If cap_first_letter is true, capitalize the
 // first letter.
@@ -144,7 +154,8 @@ TProtoStringType GetOneofStoredType(const FieldDescriptor* field);
 
 // Whether we should generate multiple java files for messages.
 inline bool MultipleJavaFiles(const FileDescriptor* descriptor,
-                              bool /* immutable */) {
+                              bool immutable) {
+  (void) immutable;
   return descriptor->options().java_multiple_files();
 }
 
@@ -214,6 +225,9 @@ const char* PrimitiveTypeName(JavaType type);
 // types.
 const char* BoxedPrimitiveTypeName(JavaType type);
 
+// Kotlin source does not distinguish between primitives and non-primitives,
+// but does use Kotlin-specific qualified types for them.
+const char* KotlinTypeName(JavaType type);
 
 // Get the name of the java enum constant representing this type. E.g.,
 // "INT32" for FieldDescriptor::TYPE_INT32. The enum constant's full
@@ -412,15 +426,16 @@ inline TProtoStringType GeneratedCodeVersionSuffix() {
   return "V3";
 }
 
-void WriteUInt32ToUtf16CharSequence(uint32 number, std::vector<uint16>* output);
+void WriteUInt32ToUtf16CharSequence(uint32_t number,
+                                    std::vector<uint16_t>* output);
 
 inline void WriteIntToUtf16CharSequence(int value,
-                                        std::vector<uint16>* output) {
-  WriteUInt32ToUtf16CharSequence(static_cast<uint32>(value), output);
+                                        std::vector<uint16_t>* output) {
+  WriteUInt32ToUtf16CharSequence(static_cast<uint32_t>(value), output);
 }
 
 // Escape a UTF-16 character so it can be embedded in a Java string literal.
-void EscapeUtf16ToString(uint16 code, TProtoStringType* output);
+void EscapeUtf16ToString(uint16_t code, TProtoStringType* output);
 
 // Only the lowest two bytes of the return value are used. The lowest byte
 // is the integer value of a j/c/g/protobuf/FieldType enum. For the other

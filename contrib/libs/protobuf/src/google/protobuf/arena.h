@@ -84,6 +84,10 @@ void EnableArenaMetrics(ArenaOptions* options);
 
 }  // namespace arena_metrics
 
+namespace TestUtil {
+class ReflectionTester;  // defined in test_util.h
+}  // namespace TestUtil
+
 namespace internal {
 
 struct ArenaStringPtr;  // defined in arenastring.h
@@ -93,8 +97,8 @@ class EpsCopyInputStream;  // defined in parse_context.h
 template <typename Type>
 class GenericTypeHandler;  // defined in repeated_field.h
 
-PROTOBUF_ALWAYS_INLINE
-inline void* AlignTo(void* ptr, size_t align) {
+inline PROTOBUF_ALWAYS_INLINE
+void* AlignTo(void* ptr, size_t align) {
   return reinterpret_cast<void*>(
       (reinterpret_cast<uintptr_t>(ptr) + align - 1) & (~align + 1));
 }
@@ -399,6 +403,49 @@ class PROTOBUF_EXPORT PROTOBUF_ALIGNAS(8) Arena {
 
   template <typename T>
   class InternalHelper {
+   public:
+    // Provides access to protected GetOwningArena to generated messages.
+    static Arena* GetOwningArena(const T* p) { return p->GetOwningArena(); }
+
+    // Provides access to protected GetArenaForAllocation to generated messages.
+    static Arena* GetArenaForAllocation(const T* p) {
+      return GetArenaForAllocationInternal(
+          p, std::is_convertible<T*, MessageLite*>());
+    }
+
+   private:
+    static Arena* GetArenaForAllocationInternal(
+        const T* p, std::true_type /*is_derived_from<MessageLite>*/) {
+      return p->GetArenaForAllocation();
+    }
+
+    static Arena* GetArenaForAllocationInternal(
+        const T* p, std::false_type /*is_derived_from<MessageLite>*/) {
+      return GetArenaForAllocationForNonMessage(
+          p, typename is_arena_constructable::type());
+    }
+
+    static Arena* GetArenaForAllocationForNonMessage(
+        const T* p, std::true_type /*is_arena_constructible*/) {
+      return p->GetArena();
+    }
+
+    static Arena* GetArenaForAllocationForNonMessage(
+        const T* p, std::false_type /*is_arena_constructible*/) {
+      return GetArenaForAllocationForNonMessageNonArenaConstructible(
+          p, typename has_get_arena::type());
+    }
+
+    static Arena* GetArenaForAllocationForNonMessageNonArenaConstructible(
+        const T* p, std::true_type /*has_get_arena*/) {
+      return p->GetArena();
+    }
+
+    static Arena* GetArenaForAllocationForNonMessageNonArenaConstructible(
+        const T* /* p */, std::false_type /*has_get_arena*/) {
+      return nullptr;
+    }
+
     template <typename U>
     static char DestructorSkippable(const typename U::DestructorSkippable_*);
     template <typename U>
@@ -439,9 +486,14 @@ class PROTOBUF_EXPORT PROTOBUF_ALIGNAS(8) Arena {
       return new (ptr) T(std::forward<Args>(args)...);
     }
 
+    static T* New() {
+      return new T(nullptr);
+    }
+
     static Arena* GetArena(const T* p) { return p->GetArena(); }
 
     friend class Arena;
+    friend class TestUtil::ReflectionTester;
   };
 
   // Helper typetraits that indicates support for arenas in a type T at compile
@@ -490,7 +542,9 @@ class PROTOBUF_EXPORT PROTOBUF_ALIGNAS(8) Arena {
         InternalHelper<T>::is_arena_constructable::value,
         "CreateMessage can only construct types that are ArenaConstructable");
     if (arena == NULL) {
-      return new T();
+      // Generated arena constructor T(Arena*) is protected. Call via
+      // InternalHelper.
+      return InternalHelper<T>::New();
     } else {
       return arena->DoCreateMessage<T>();
     }
@@ -618,7 +672,6 @@ class PROTOBUF_EXPORT PROTOBUF_ALIGNAS(8) Arena {
           new (arena->AllocateInternal(sizeof(T), alignof(T), destructor,
                                        RTTI_TYPE_ID(T)))
           T(std::forward<Args>(args)...);
-      result->SetOwningArena(arena);
       return result;
     }
   }
@@ -646,7 +699,6 @@ class PROTOBUF_EXPORT PROTOBUF_ALIGNAS(8) Arena {
   PROTOBUF_ALWAYS_INLINE void OwnInternal(T* object, std::true_type) {
     if (object != NULL) {
       impl_.AddCleanup(object, &internal::arena_delete_object<MessageLite>);
-      object->SetOwningArena(this);
     }
   }
   template <typename T>
@@ -677,6 +729,25 @@ class PROTOBUF_EXPORT PROTOBUF_ALIGNAS(8) Arena {
                                     int>::type = 0>
   PROTOBUF_ALWAYS_INLINE static Arena* GetArenaInternal(const T* value) {
     (void)value;
+    return nullptr;
+  }
+
+  template <typename T>
+  PROTOBUF_ALWAYS_INLINE static Arena* GetOwningArena(const T* value) {
+    return GetOwningArenaInternal(
+        value, std::is_convertible<T*, MessageLite*>());
+  }
+
+  // Implementation for GetOwningArena(). All and only message objects have
+  // GetOwningArena() method.
+  template <typename T>
+  PROTOBUF_ALWAYS_INLINE static Arena* GetOwningArenaInternal(
+      const T* value, std::true_type) {
+    return InternalHelper<T>::GetOwningArena(value);
+  }
+  template <typename T>
+  PROTOBUF_ALWAYS_INLINE static Arena* GetOwningArenaInternal(
+      const T* /* value */, std::false_type) {
     return nullptr;
   }
 

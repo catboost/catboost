@@ -78,6 +78,11 @@ class FileGenerator {
 
   void Generate(io::Printer* printer);
 
+  TProtoStringType GetKotlinClassname();
+  void GenerateKotlinSiblings(const TProtoStringType& package_dir,
+                              GeneratorContext* generator_context,
+                              std::vector<TProtoStringType>* file_list,
+                              std::vector<TProtoStringType>* annotation_list);
 
   // If we aren't putting everything into one file, this will write all the
   // files other than the outer file (i.e. one for each message, enum, and

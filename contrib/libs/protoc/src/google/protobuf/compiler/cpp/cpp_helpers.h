@@ -36,11 +36,13 @@
 #define GOOGLE_PROTOBUF_COMPILER_CPP_HELPERS_H__
 
 #include <algorithm>
+#include <cstdint>
 #include <iterator>
 #include <map>
 #include <string>
 
 #include <google/protobuf/compiler/cpp/cpp_options.h>
+#include <google/protobuf/compiler/cpp/cpp_names.h>
 #include <google/protobuf/compiler/scc.h>
 #include <google/protobuf/compiler/code_generator.h>
 #include <google/protobuf/descriptor.pb.h>
@@ -83,9 +85,9 @@ extern const char kThinSeparator[];
 void SetCommonVars(const Options& options,
                    std::map<TProtoStringType, TProtoStringType>* variables);
 
-void SetUnknkownFieldsVariable(const Descriptor* descriptor,
-                               const Options& options,
-                               std::map<TProtoStringType, TProtoStringType>* variables);
+void SetUnknownFieldsVariable(const Descriptor* descriptor,
+                              const Options& options,
+                              std::map<TProtoStringType, TProtoStringType>* variables);
 
 bool GetBootstrapBasename(const Options& options, const TProtoStringType& basename,
                           TProtoStringType* bootstrap_basename);
@@ -184,9 +186,6 @@ TProtoStringType ResolveKeyword(const TProtoStringType& name);
 // anyway, so normally this just returns field->name().
 TProtoStringType FieldName(const FieldDescriptor* field);
 
-// Get the sanitized name that should be used for the given enum in C++ code.
-TProtoStringType EnumValueName(const EnumValueDescriptor* enum_value);
-
 // Returns an estimate of the compiler's alignment for the field.  This
 // can't guarantee to be correct because the generated code could be compiled on
 // different systems with different alignment rules.  The estimates below assume
@@ -220,9 +219,6 @@ const char* DeclaredTypeMethodName(FieldDescriptor::Type type);
 
 // Return the code that evaluates to the number when compiled.
 TProtoStringType Int32ToString(int number);
-
-// Return the code that evaluates to the number when compiled.
-TProtoStringType Int64ToString(const Options& options, int64 number);
 
 // Get code that evaluates to the field's default value.
 TProtoStringType DefaultValue(const Options& options, const FieldDescriptor* field);
@@ -335,18 +331,32 @@ inline bool IsStringPiece(const FieldDescriptor* field,
          EffectiveStringCType(field, options) == FieldOptions::STRING_PIECE;
 }
 
+class MessageSCCAnalyzer;
+
 // Does the given FileDescriptor use lazy fields?
-bool HasLazyFields(const FileDescriptor* file, const Options& options);
+bool HasLazyFields(const FileDescriptor* file, const Options& options,
+                   MessageSCCAnalyzer* scc_analyzer);
 
 // Is the given field a supported lazy field?
-inline bool IsLazy(const FieldDescriptor* field, const Options& options) {
+bool IsLazy(const FieldDescriptor* field, const Options& options,
+            MessageSCCAnalyzer* scc_analyzer);
+
+inline bool IsLazilyVerifiedLazy(const FieldDescriptor* field,
+                                 const Options& options) {
   return field->options().lazy() && !field->is_repeated() &&
          field->type() == FieldDescriptor::TYPE_MESSAGE &&
          GetOptimizeFor(field->file(), options) != FileOptions::LITE_RUNTIME &&
          !options.opensource_runtime;
 }
 
-inline bool IsFieldUsed(const FieldDescriptor* /* field */, const Options& /* options */) {
+inline bool IsEagerlyVerifiedLazy(const FieldDescriptor* field,
+                                  const Options& options,
+                                  MessageSCCAnalyzer* scc_analyzer) {
+  return IsLazy(field, options, scc_analyzer) && !field->options().lazy();
+}
+
+inline bool IsFieldUsed(const FieldDescriptor* /* field */,
+                        const Options& /* options */) {
   return true;
 }
 
@@ -419,8 +429,8 @@ bool IsStringOrMessage(const FieldDescriptor* field);
 TProtoStringType UnderscoresToCamelCase(const TProtoStringType& input,
                                    bool cap_next_letter);
 
-inline bool HasFieldPresence(const FileDescriptor* file) {
-  return file->syntax() != FileDescriptor::SYNTAX_PROTO3;
+inline bool IsProto3(const FileDescriptor* file) {
+  return file->syntax() == FileDescriptor::SYNTAX_PROTO3;
 }
 
 inline bool HasHasbit(const FieldDescriptor* field) {
@@ -530,8 +540,8 @@ bool HasWeakFields(const FileDescriptor* desc, const Options& options);
 // given field.
 inline static bool ShouldIgnoreRequiredFieldCheck(const FieldDescriptor* field,
                                                   const Options& options) {
-  // Do not check "required" for lazy fields.
-  return IsLazy(field, options);
+  // Do not check "required" for lazily verified lazy fields.
+  return IsLazilyVerifiedLazy(field, options);
 }
 
 struct MessageAnalysis {
@@ -539,6 +549,7 @@ struct MessageAnalysis {
   bool contains_cord;
   bool contains_extension;
   bool contains_required;
+  bool contains_weak;  // Implicit weak as well.
 };
 
 // This class is used in FileGenerator, to ensure linear instead of
@@ -554,6 +565,10 @@ class PROTOC_EXPORT MessageSCCAnalyzer {
   bool HasRequiredFields(const Descriptor* descriptor) {
     MessageAnalysis result = GetSCCAnalysis(GetSCC(descriptor));
     return result.contains_required || result.contains_extension;
+  }
+  bool HasWeakField(const Descriptor* descriptor) {
+    MessageAnalysis result = GetSCCAnalysis(GetSCC(descriptor));
+    return result.contains_weak;
   }
   const SCC* GetSCC(const Descriptor* descriptor) {
     return analyzer_.GetSCC(descriptor);
@@ -714,7 +729,7 @@ class PROTOC_EXPORT Formatter {
     std::vector<int> path;
     descriptor->GetLocationPath(&path);
     GeneratedCodeInfo::Annotation annotation;
-    for (int index: path) {
+    for (int index : path) {
       annotation.add_path(index);
     }
     annotation.set_source_file(descriptor->file()->name());
@@ -753,7 +768,8 @@ class PROTOC_EXPORT NamespaceOpener {
       if (name_stack_[common_idx] != new_stack_[common_idx]) break;
       common_idx++;
     }
-    for (auto it = name_stack_.crbegin(); it != name_stack_.crend() - common_idx; ++it) {
+    for (auto it = name_stack_.crbegin();
+         it != name_stack_.crend() - common_idx; ++it) {
       if (*it == "PROTOBUF_NAMESPACE_ID") {
         printer_->Print("PROTOBUF_NAMESPACE_CLOSE\n");
       } else {
@@ -775,10 +791,10 @@ class PROTOC_EXPORT NamespaceOpener {
   std::vector<TProtoStringType> name_stack_;
 };
 
-enum Utf8CheckMode {
-  STRICT = 0,  // Parsing will fail if non UTF-8 data is in string fields.
-  VERIFY = 1,  // Only log an error but parsing will succeed.
-  NONE = 2,    // No UTF-8 check.
+enum class Utf8CheckMode {
+  kStrict = 0,  // Parsing will fail if non UTF-8 data is in string fields.
+  kVerify = 1,  // Only log an error but parsing will succeed.
+  kNone = 2,    // No UTF-8 check.
 };
 
 Utf8CheckMode GetUtf8CheckMode(const FieldDescriptor* field,
@@ -866,11 +882,9 @@ struct OneOfRangeImpl {
 
 inline OneOfRangeImpl OneOfRange(const Descriptor* desc) { return {desc}; }
 
-void GenerateParserLoop(const Descriptor* descriptor, int num_hasbits,
-                        const Options& options,
-                        MessageSCCAnalyzer* scc_analyzer, io::Printer* printer);
-
 PROTOC_EXPORT TProtoStringType StripProto(const TProtoStringType& filename);
+
+inline bool EnableMessageOwnedArena(const Descriptor* /* desc */ ) { return false; }
 
 }  // namespace cpp
 }  // namespace compiler

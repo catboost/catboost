@@ -69,6 +69,16 @@ TProtoStringType ClassNameWithoutPackage(const Descriptor* descriptor,
   return StripPackageName(descriptor->full_name(), descriptor->file());
 }
 
+TProtoStringType ClassNameWithoutPackageKotlin(const Descriptor* descriptor) {
+  TProtoStringType result = descriptor->name();
+  const Descriptor* temp = descriptor->containing_type();
+
+  while (temp) {
+    result = temp->name() + "Kt." + result;
+    temp = temp->containing_type();
+  }
+  return result;
+}
 
 // Get the name of an enum's Java class without package name prefix.
 TProtoStringType ClassNameWithoutPackage(const EnumDescriptor* descriptor,
@@ -316,6 +326,12 @@ TProtoStringType ClassNameResolver::GetExtensionIdentifierName(
          descriptor->name();
 }
 
+TProtoStringType ClassNameResolver::GetKotlinFactoryName(
+    const Descriptor* descriptor) {
+  TProtoStringType name = ToCamelCase(descriptor->name(), /* lower_first = */ true);
+  return IsForbiddenKotlin(name) ? name + "_" : name;
+}
+
 TProtoStringType ClassNameResolver::GetJavaImmutableClassName(
     const Descriptor* descriptor) {
   return GetJavaClassFullName(ClassNameWithoutPackage(descriptor, true),
@@ -328,6 +344,35 @@ TProtoStringType ClassNameResolver::GetJavaImmutableClassName(
                               descriptor->file(), true);
 }
 
+TProtoStringType ClassNameResolver::GetKotlinExtensionsClassName(
+    const Descriptor* descriptor) {
+  return GetClassFullName(ClassNameWithoutPackageKotlin(descriptor),
+                          descriptor->file(), true, true, true);
+}
+
+TProtoStringType ClassNameResolver::GetJavaMutableClassName(
+    const Descriptor* descriptor) {
+  return GetJavaClassFullName(ClassNameWithoutPackage(descriptor, false),
+                              descriptor->file(), false);
+}
+
+TProtoStringType ClassNameResolver::GetJavaMutableClassName(
+    const EnumDescriptor* descriptor) {
+  return GetJavaClassFullName(ClassNameWithoutPackage(descriptor, false),
+                              descriptor->file(), false);
+}
+
+TProtoStringType ClassNameResolver::GetDowngradedFileClassName(
+    const FileDescriptor* file) {
+  return "Downgraded" + GetFileClassName(file, false);
+}
+
+TProtoStringType ClassNameResolver::GetDowngradedClassName(
+    const Descriptor* descriptor) {
+  return FileJavaPackage(descriptor->file()) + "." +
+         GetDowngradedFileClassName(descriptor->file()) + "." +
+         ClassNameWithoutPackage(descriptor, false);
+}
 
 }  // namespace java
 }  // namespace compiler

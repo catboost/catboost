@@ -6,7 +6,7 @@ PROVIDES(protobuf)
 
 
 
-VERSION(3.15.8)
+VERSION(3.17.3)
 
 LICENSE(BSD-3-Clause)
 
@@ -46,6 +46,7 @@ SRCS(
     src/google/protobuf/empty.pb.cc
     src/google/protobuf/extension_set.cc
     src/google/protobuf/extension_set_heavy.cc
+    src/google/protobuf/field_access_listener.cc
     src/google/protobuf/field_mask.pb.cc
     src/google/protobuf/generated_enum_util.cc
     src/google/protobuf/generated_message_reflection.cc

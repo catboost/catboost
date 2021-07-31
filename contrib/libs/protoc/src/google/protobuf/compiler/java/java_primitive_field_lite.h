@@ -35,8 +35,10 @@
 #ifndef GOOGLE_PROTOBUF_COMPILER_JAVA_PRIMITIVE_FIELD_LITE_H__
 #define GOOGLE_PROTOBUF_COMPILER_JAVA_PRIMITIVE_FIELD_LITE_H__
 
+#include <cstdint>
 #include <map>
 #include <string>
+
 #include <google/protobuf/compiler/java/java_field.h>
 
 namespace google {
@@ -60,19 +62,20 @@ class ImmutablePrimitiveFieldLiteGenerator
  public:
   explicit ImmutablePrimitiveFieldLiteGenerator(
       const FieldDescriptor* descriptor, int messageBitIndex, Context* context);
-  ~ImmutablePrimitiveFieldLiteGenerator();
+  ~ImmutablePrimitiveFieldLiteGenerator() override;
 
   // implements ImmutableFieldLiteGenerator
   // ------------------------------------
-  int GetNumBitsForMessage() const;
-  void GenerateInterfaceMembers(io::Printer* printer) const;
-  void GenerateMembers(io::Printer* printer) const;
-  void GenerateBuilderMembers(io::Printer* printer) const;
-  void GenerateInitializationCode(io::Printer* printer) const;
+  int GetNumBitsForMessage() const override;
+  void GenerateInterfaceMembers(io::Printer* printer) const override;
+  void GenerateMembers(io::Printer* printer) const override;
+  void GenerateBuilderMembers(io::Printer* printer) const override;
+  void GenerateInitializationCode(io::Printer* printer) const override;
   void GenerateFieldInfo(io::Printer* printer,
-                         std::vector<uint16>* output) const;
+                         std::vector<uint16_t>* output) const override;
+  void GenerateKotlinDslMembers(io::Printer* printer) const override;
 
-  TProtoStringType GetBoxedType() const;
+  TProtoStringType GetBoxedType() const override;
 
  protected:
   const FieldDescriptor* descriptor_;
@@ -96,7 +99,7 @@ class ImmutablePrimitiveOneofFieldLiteGenerator
   void GenerateBuilderMembers(io::Printer* printer) const;
 
   void GenerateFieldInfo(io::Printer* printer,
-                         std::vector<uint16>* output) const;
+                         std::vector<uint16_t>* output) const;
 
  private:
   GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(ImmutablePrimitiveOneofFieldLiteGenerator);
@@ -107,18 +110,19 @@ class RepeatedImmutablePrimitiveFieldLiteGenerator
  public:
   explicit RepeatedImmutablePrimitiveFieldLiteGenerator(
       const FieldDescriptor* descriptor, int messageBitIndex, Context* context);
-  virtual ~RepeatedImmutablePrimitiveFieldLiteGenerator();
+  ~RepeatedImmutablePrimitiveFieldLiteGenerator() override;
 
   // implements ImmutableFieldLiteGenerator ------------------------------------
-  int GetNumBitsForMessage() const;
-  void GenerateInterfaceMembers(io::Printer* printer) const;
-  void GenerateMembers(io::Printer* printer) const;
-  void GenerateBuilderMembers(io::Printer* printer) const;
-  void GenerateInitializationCode(io::Printer* printer) const;
+  int GetNumBitsForMessage() const override;
+  void GenerateInterfaceMembers(io::Printer* printer) const override;
+  void GenerateMembers(io::Printer* printer) const override;
+  void GenerateBuilderMembers(io::Printer* printer) const override;
+  void GenerateInitializationCode(io::Printer* printer) const override;
   void GenerateFieldInfo(io::Printer* printer,
-                         std::vector<uint16>* output) const;
+                         std::vector<uint16_t>* output) const override;
+  void GenerateKotlinDslMembers(io::Printer* printer) const override;
 
-  TProtoStringType GetBoxedType() const;
+  TProtoStringType GetBoxedType() const override;
 
  private:
   const FieldDescriptor* descriptor_;

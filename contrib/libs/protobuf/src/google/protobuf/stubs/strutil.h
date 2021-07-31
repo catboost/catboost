@@ -41,6 +41,8 @@
 #include <google/protobuf/port_def.inc>
 #include <vector>
 
+#include <util/system/platform.h>
+
 namespace google {
 namespace protobuf {
 
@@ -369,14 +371,14 @@ inline uint32 strtou32(const char *nptr, char **endptr, int base) {
 // For now, long long is 64-bit on all the platforms we care about, so these
 // functions can simply pass the call to strto[u]ll.
 inline int64 strto64(const char *nptr, char **endptr, int base) {
-  GOOGLE_COMPILE_ASSERT(sizeof(int64) == sizeof(long long),
-                        sizeof_int64_is_not_sizeof_long_long);
+  static_assert(sizeof(int64) == sizeof(long long),
+                "sizeof_int64_is_not_sizeof_long_long");
   return strtoll(nptr, endptr, base);
 }
 
 inline uint64 strtou64(const char *nptr, char **endptr, int base) {
-  GOOGLE_COMPILE_ASSERT(sizeof(uint64) == sizeof(unsigned long long),
-                        sizeof_uint64_is_not_sizeof_long_long);
+  static_assert(sizeof(uint64) == sizeof(unsigned long long),
+                "sizeof_uint64_is_not_sizeof_long_long");
   return strtoull(nptr, endptr, base);
 }
 
@@ -414,12 +416,33 @@ inline bool safe_strto64(const char* str, int64* value) {
 inline bool safe_strto64(StringPiece str, int64* value) {
   return safe_strto64(str.ToString(), value);
 }
+#if defined(_64_) && (defined(_darwin_) || defined(_ios_))
+inline bool safe_strto64(StringPiece str, int64_t* value) {
+  int64 otherValue;
+  bool ok = safe_strto64(str.ToString(), &otherValue);
+  if (ok) {
+  	*value = otherValue;
+  }
+  return ok;
+}
+#endif
+
 inline bool safe_strtou64(const char* str, uint64* value) {
   return safe_strtou64(TProtoStringType(str), value);
 }
 inline bool safe_strtou64(StringPiece str, uint64* value) {
   return safe_strtou64(str.ToString(), value);
 }
+#if defined(_64_) && (defined(_darwin_) || defined(_ios_))
+inline bool safe_strtou64(StringPiece str, uint64_t* value) {
+  uint64 otherValue;
+  bool ok = safe_strtou64(str.ToString(), &otherValue);
+  if (ok) {
+  	*value = otherValue;
+  }
+  return ok;
+}
+#endif
 
 PROTOBUF_EXPORT bool safe_strtof(const char* str, float* value);
 PROTOBUF_EXPORT bool safe_strtod(const char* str, double* value);
@@ -654,9 +677,6 @@ struct PROTOBUF_EXPORT AlphaNum {
       : piece_data_(str.data()), piece_size_(str.size()) {}
 
   AlphaNum(StringPiece str)
-      : piece_data_(str.data()), piece_size_(str.size()) {}
-
-  AlphaNum(internal::StringPiecePod str)
       : piece_data_(str.data()), piece_size_(str.size()) {}
 
   size_t size() const { return piece_size_; }

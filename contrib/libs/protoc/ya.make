@@ -6,7 +6,7 @@ PROVIDES(protoc)
 
 
 
-VERSION(3.15.8)
+VERSION(3.17.3)
 
 LICENSE(BSD-3-Clause)
 
@@ -42,6 +42,7 @@ SRCS(
     src/google/protobuf/compiler/cpp/cpp_message.cc
     src/google/protobuf/compiler/cpp/cpp_message_field.cc
     src/google/protobuf/compiler/cpp/cpp_padding_optimizer.cc
+    src/google/protobuf/compiler/cpp/cpp_parse_function_generator.cc
     src/google/protobuf/compiler/cpp/cpp_primitive_field.cc
     src/google/protobuf/compiler/cpp/cpp_service.cc
     src/google/protobuf/compiler/cpp/cpp_string_field.cc
@@ -76,6 +77,7 @@ SRCS(
     src/google/protobuf/compiler/java/java_generator.cc
     src/google/protobuf/compiler/java/java_generator_factory.cc
     src/google/protobuf/compiler/java/java_helpers.cc
+    src/google/protobuf/compiler/java/java_kotlin_generator.cc
     src/google/protobuf/compiler/java/java_map_field.cc
     src/google/protobuf/compiler/java/java_map_field_lite.cc
     src/google/protobuf/compiler/java/java_message.cc
