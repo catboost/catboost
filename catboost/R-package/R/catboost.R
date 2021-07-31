@@ -87,10 +87,14 @@ catboost.load_pool <- function(data, label = NULL, cat_features = NULL, column_d
         pool <- catboost.from_matrix(data, label, cat_features, NULL, NULL, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight,
                                      baseline, feature_names)
     } else if (is.data.frame(data)) {
-        for (arg in list("cat_features", "column_description")) {
-            if (!is.null(get(arg))){
+        for (arg in list("column_description")) {
+            if (!is.null(get(arg))) {
                 stop("Parameter '", arg, "' should be NULL when the pool is constructed from data.frame")
             }
+        }
+        if (!is.null(get("cat_features"))) {
+            cat("Parameter 'cat_features' is meaningless because column types are taken from data.frame.",
+                "Please, convert categorical columns to factors manually.", sep = "\n")
         }
         pool <- catboost.from_data_frame(data, label, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight,
                                          baseline, feature_names)

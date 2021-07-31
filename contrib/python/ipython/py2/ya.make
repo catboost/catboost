@@ -21,12 +21,8 @@ PEERDIR(
 IF (OS_WINDOWS)
     PEERDIR(
         contrib/python/colorama
+        contrib/python/win_unicode_console
     )
-    IF (PYTHON2)
-        PEERDIR(
-            contrib/python/win_unicode_console
-        )
-    ENDIF()
 ELSE ()
     PEERDIR(
         contrib/python/pexpect

@@ -23,6 +23,7 @@ RECURSE(
     MarkupSafe
     matplotlib-inline
     more-itertools
+    mypy-protobuf
     numpy
     pandas
     parso

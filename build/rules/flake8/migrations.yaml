@@ -940,7 +940,6 @@ migrations:
     - yweb/antiporno/top_queries_cleanup/yql/test
     - yweb/antispam/adblock/viewer
     - yweb/antispam/cid/backend/miner
-    - yweb/antispam/clean_web/router/lib/tests/small
     - yweb/antispam/clean_web/tools/run_cm_targets
     - yweb/antispam/mascot/features/test
     - yweb/antispam/mascot/scripts/tcinet
@@ -1194,8 +1193,6 @@ migrations:
     - quality/ab_testing/cofe/projects/uslugi/competition
     - quality/ab_testing/cofe/projects/zalogin
     - quality/ab_testing/cofe/python/backends/nile
-    - quality/ab_testing/scripts/ems
-    - quality/ab_testing/scripts/ems/modules/metric
     - quality/functionality/chats/common/utils
     - quality/functionality/chats/feedback/src/feedback/api
     - quality/functionality/chats/feedback/src/feedback/api/v1
@@ -1458,7 +1455,7 @@ migrations:
     - antirobot/tools/prepare_requests_cbb
     - arc/backups/restore/tasklet
     - balancer/test/functional/rate_limiter
-    - browser/infra/ci/backend/flakiness/migrations
+    - browser/infra/services/ci/backend/flakiness/migrations
     - clickhouse/utils/github
     - cv/imageproc/ocr/tools/nirvana/captcha_renderer
     - cv/short2long/nirvana/lib
@@ -2011,7 +2008,6 @@ migrations:
     - cloud/ai/dataforge/lib
     - cloud/ai/datasphere/lib/stt/metrics/python_package/stt_metrics
     - cloud/ai/datasphere/lib/stt/deployment/python_package/stt_deployment
-    - cloud/ai/speechkit/stt/bin/data_pipeline/import_data/yt_table
     - cloud/ai/speechkit/stt/bin/data_pipeline/select_records_split_for_markup
     - cloud/ai/speechkit/stt/bin/data_scripts/migrations/ASREXP-378/missing_tags_and_records_fix
     - cloud/ai/speechkit/stt/bin/data_scripts/records/download_records
@@ -3130,7 +3126,6 @@ migrations:
     - travel/hotels/tools/catroom_stat
     - travel/hotels/tools/cli
     - travel/hotels/tools/expedia_property_pansions_builder
-    - travel/hotels/tools/marketing_feed_builder
     - travel/hotels/tools/sitemap_builder
     - travel/hotels/tools/slug_builder
     - travel/hotels/tools/spyt_runner
@@ -3740,7 +3735,6 @@ migrations:
     - rtmapreduce/mrtasks/bs_fast_stat/tests
     - rtmapreduce/mrtasks/cocaine_log/tests
     - rtmapreduce/mrtasks/create_market_requests/tests
-    - rtmapreduce/mrtasks/create_proto_sessions/tests
     - rtmapreduce/mrtasks/images_freon_sample/tests
     - rtmapreduce/mrtasks/keyslist/tests
     - rtmapreduce/mrtasks/logfeller_create_logs/tests
@@ -4033,7 +4027,6 @@ migrations:
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/langdetect
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/likes
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/metrics
-    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/notifiers
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/object_answers
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/object_tags
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/organizations
@@ -4048,7 +4041,6 @@ migrations:
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/ugcdb
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/underside
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/user/resources
-    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/videohost
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/yauth
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/ydb
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/zen
@@ -4060,7 +4052,6 @@ migrations:
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/contents
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/e2e
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/idm
-    - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/notifiers
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/object_answers
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/recipes
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/resources
@@ -4074,7 +4065,6 @@ migrations:
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb_ext/mongoengine
     - yweb/yasap/pdb/pdb-backend/tests/lib/saas
     - yweb/yasap/pdb/pdb-backend/tests/lib/sb
-    - yweb/yasap/pdb/pdb-backend/tests/lib/tanker
     - yweb/yasap/pdb/pdb-backend/tests/lib/videosearch
     - yweb/yasap/pdb/pdb-backend/tests/lib/ydb
     - yweb/yasap/pdb/pdb-backend/tests/lib/zen
@@ -4100,7 +4090,6 @@ migrations:
     - ofd/notifier/tests/test_unit
     - saas/rtyserver_test/tests
     - search/lingboost/saas/codecs/test_bundle_codecs/tests
-    - statbox/qb2_core/tests/common
     - transfer_manager/server/tests
     - yql/tests/s-expressions
     - yql/tests/sql

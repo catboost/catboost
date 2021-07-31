@@ -4,6 +4,8 @@ LICENSE(BSD-3-Clause)
 
 
 
+NO_MYPY()
+
 PY_NAMESPACE(.)
 PROTO_NAMESPACE(contrib/libs/protobuf/src)
 SRCDIR(contrib/libs/protobuf/src)

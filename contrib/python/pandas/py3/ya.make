@@ -2,7 +2,7 @@ PY3_LIBRARY()
 
 LICENSE(BSD-3-Clause)
 
-VERSION(1.2.5)
+VERSION(1.3.1)
 
 
 
@@ -65,6 +65,7 @@ PY_SRCS(
 
     CYTHON_C
     pandas/_libs/algos.pyx
+    pandas/_libs/arrays.pyx
     pandas/_libs/groupby.pyx
     pandas/_libs/hashing.pyx
     pandas/_libs/hashtable.pyx
@@ -116,7 +117,13 @@ PY_SRCS(
     pandas/_libs/__init__.py
     pandas/_libs/tslibs/__init__.py
     pandas/_libs/window/__init__.py
-    pandas/_testing.py
+    pandas/_testing/__init__.py
+    pandas/_testing/_io.py
+    pandas/_testing/_random.py
+    pandas/_testing/_warnings.py
+    pandas/_testing/asserters.py
+    pandas/_testing/compat.py
+    pandas/_testing/contexts.py
     pandas/_typing.py
     pandas/_version.py
     pandas/api/__init__.py
@@ -130,6 +137,7 @@ PY_SRCS(
     pandas/compat/numpy/__init__.py
     pandas/compat/numpy/function.py
     pandas/compat/pickle_compat.py
+    pandas/compat/pyarrow.py
     pandas/core/__init__.py
     pandas/core/accessor.py
     pandas/core/aggregation.py
@@ -138,7 +146,10 @@ PY_SRCS(
     pandas/core/apply.py
     pandas/core/array_algos/__init__.py
     pandas/core/array_algos/masked_reductions.py
+    pandas/core/array_algos/putmask.py
+    pandas/core/array_algos/quantile.py
     pandas/core/array_algos/replace.py
+    pandas/core/array_algos/take.py
     pandas/core/array_algos/transforms.py
     pandas/core/arraylike.py
     pandas/core/arrays/__init__.py
@@ -182,6 +193,7 @@ PY_SRCS(
     pandas/core/computation/scope.py
     pandas/core/config_init.py
     pandas/core/construction.py
+    pandas/core/describe.py
     pandas/core/dtypes/__init__.py
     pandas/core/dtypes/api.py
     pandas/core/dtypes/base.py
@@ -222,6 +234,9 @@ PY_SRCS(
     pandas/core/indexes/timedeltas.py
     pandas/core/indexing.py
     pandas/core/internals/__init__.py
+    pandas/core/internals/api.py
+    pandas/core/internals/array_manager.py
+    pandas/core/internals/base.py
     pandas/core/internals/blocks.py
     pandas/core/internals/concat.py
     pandas/core/internals/construction.py
@@ -238,7 +253,6 @@ PY_SRCS(
     pandas/core/ops/mask_ops.py
     pandas/core/ops/methods.py
     pandas/core/ops/missing.py
-    pandas/core/ops/roperator.py
     pandas/core/resample.py
     pandas/core/reshape/__init__.py
     pandas/core/reshape/api.py
@@ -249,6 +263,7 @@ PY_SRCS(
     pandas/core/reshape/reshape.py
     pandas/core/reshape/tile.py
     pandas/core/reshape/util.py
+    pandas/core/roperator.py
     pandas/core/series.py
     pandas/core/shared_docs.py
     pandas/core/sorting.py
@@ -268,10 +283,12 @@ PY_SRCS(
     pandas/core/util/numba_.py
     pandas/core/window/__init__.py
     pandas/core/window/common.py
+    pandas/core/window/doc.py
     pandas/core/window/ewm.py
     pandas/core/window/expanding.py
     pandas/core/window/indexers.py
     pandas/core/window/numba_.py
+    pandas/core/window/online.py
     pandas/core/window/rolling.py
     pandas/errors/__init__.py
     pandas/io/__init__.py
@@ -304,6 +321,8 @@ PY_SRCS(
     pandas/io/formats/printing.py
     pandas/io/formats/string.py
     pandas/io/formats/style.py
+    pandas/io/formats/style_render.py
+    pandas/io/formats/xml.py
     pandas/io/gbq.py
     pandas/io/html.py
     pandas/io/json/__init__.py
@@ -312,7 +331,11 @@ PY_SRCS(
     pandas/io/json/_table_schema.py
     pandas/io/orc.py
     pandas/io/parquet.py
-    pandas/io/parsers.py
+    pandas/io/parsers/__init__.py
+    pandas/io/parsers/base_parser.py
+    pandas/io/parsers/c_parser_wrapper.py
+    pandas/io/parsers/python_parser.py
+    pandas/io/parsers/readers.py
     pandas/io/pickle.py
     pandas/io/pytables.py
     pandas/io/sas/__init__.py
@@ -323,6 +346,7 @@ PY_SRCS(
     pandas/io/spss.py
     pandas/io/sql.py
     pandas/io/stata.py
+    pandas/io/xml.py
     pandas/plotting/__init__.py
     pandas/plotting/_core.py
     pandas/plotting/_matplotlib/__init__.py
@@ -352,6 +376,39 @@ PY_SRCS(
     pandas/util/_tester.py
     pandas/util/_validators.py
     pandas/util/testing.py
+    pandas/util/version/__init__.py
+
+    pandas/_libs/algos.pyi
+    pandas/_libs/arrays.pyi
+    pandas/_libs/groupby.pyi
+    pandas/_libs/hashing.pyi
+    pandas/_libs/hashtable.pyi
+    pandas/_libs/index.pyi
+    pandas/_libs/internals.pyi
+    pandas/_libs/join.pyi
+    pandas/_libs/lib.pyi
+    pandas/_libs/ops.pyi
+    pandas/_libs/ops_dispatch.pyi
+    pandas/_libs/parsers.pyi
+    pandas/_libs/reshape.pyi
+    pandas/_libs/testing.pyi
+    pandas/_libs/tslib.pyi
+    pandas/_libs/tslibs/ccalendar.pyi
+    pandas/_libs/tslibs/conversion.pyi
+    pandas/_libs/tslibs/dtypes.pyi
+    pandas/_libs/tslibs/fields.pyi
+    pandas/_libs/tslibs/nattype.pyi
+    pandas/_libs/tslibs/parsing.pyi
+    pandas/_libs/tslibs/period.pyi
+    pandas/_libs/tslibs/strptime.pyi
+    pandas/_libs/tslibs/timedeltas.pyi
+    pandas/_libs/tslibs/timestamps.pyi
+    pandas/_libs/tslibs/timezones.pyi
+    pandas/_libs/tslibs/tzconversion.pyi
+    pandas/_libs/tslibs/vectorized.pyi
+    pandas/_libs/window/aggregations.pyi
+    pandas/_libs/window/indexers.pyi
+    pandas/_libs/writers.pyi
 )
 
 RESOURCE_FILES(
@@ -360,6 +417,9 @@ RESOURCE_FILES(
     .dist-info/entry_points.txt
     .dist-info/top_level.txt
     pandas/io/formats/templates/html.tpl
+    pandas/io/formats/templates/html_style.tpl
+    pandas/io/formats/templates/html_table.tpl
+    pandas/io/formats/templates/latex.tpl
 )
 
 END()

@@ -30,7 +30,7 @@ function python_version {
 function os_sdk {
     python_version=`python_version python`
     case `uname -s` in
-        Linux) echo "-DOS_SDK=ubuntu-10 -DUSE_SYSTEM_PYTHON=$python_version" ;;
+        Linux) echo "-DOS_SDK=ubuntu-12 -DUSE_SYSTEM_PYTHON=$python_version" ;;
         *) echo "-DOS_SDK=local" ;;
     esac
 }

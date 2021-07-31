@@ -126,7 +126,7 @@ TVector<double> EvalMetricsForUtils(
             metric->UseWeights.SetDefaultValue(true);
         }
     }
-    NCB::TObjectsGrouping objectGrouping = NCB::CreateObjectsGroupingFromGroupIds(
+    NCB::TObjectsGrouping objectGrouping = NCB::CreateObjectsGroupingFromGroupIds<TGroupId>(
         label[0].size(),
         groupId.empty() ? Nothing() : NCB::TMaybeData<TConstArrayRef<TGroupId>>(groupId)
     );

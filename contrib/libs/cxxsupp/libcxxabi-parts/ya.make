@@ -25,6 +25,7 @@ SRCDIR(
 
 SRCS(
     src/abort_message.cpp
+    src/cxa_demangle.cpp
 )
 
 SRC_CPP_PIC(

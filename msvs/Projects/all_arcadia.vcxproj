@@ -891,6 +891,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\more-itertools\pycontrib-python-more-itertools.vcxproj">
       <Project>BC62290A-1F8B-7962-8C00-63BFE8DAE2A0</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\mypy-protobuf\protoc-gen-mypy.vcxproj">
+      <Project>51542B63-AFFD-5EA3-79AB-9ACCECAC57CA</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\include\python-numpy-include.vcxproj">
       <Project>09FC0446-04FA-A4E9-2AB6-23078034F2BC</Project>
     </ProjectReference>

@@ -1,0 +1,6 @@
+service: cppcommittee
+title: Yandex CXX util base library
+ci:
+  autocheck:
+    fast-targets:
+      - util

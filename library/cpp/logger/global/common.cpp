@@ -15,19 +15,12 @@ namespace NLoggingImpl {
             TString newPath = Sprintf("%s_%s_%" PRIu64, logType.data(), NLoggingImpl::GetLocalTimeSSimple().data(), static_cast<ui64>(Now().MicroSeconds()));
             TFsPath(logType).RenameTo(newPath);
         }
-        if (startAsDaemon && (logType == "console" || logType == "cout" || logType == "cerr")) {
+        if (startAsDaemon && (logType == "console"sv || logType == "cout"sv || logType == "cerr"sv)) {
             logType = "null";
         }
 
         return logType;
     }
-}
-
-TLogRecordContext::TLogRecordContext(const TSourceLocation& sourceLocation, const char* customMessage, ELogPriority priority)
-    : SourceLocation(sourceLocation)
-    , CustomMessage(customMessage)
-    , Priority(priority)
-{
 }
 
 bool TLogFilter::CheckLoggingContext(TLog& log, const TLogRecordContext& context) {

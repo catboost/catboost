@@ -7160,7 +7160,7 @@
         "ymake": {
             "formula": {
                 "sandbox_id": [
-                    1024950067
+                    1030839580
                 ],
                 "match": "ymake"
             },
@@ -7172,7 +7172,7 @@
         },
         "maven_import_sandbox_uploader": {
             "formula": {
-                "sandbox_id": 989220262,
+                "sandbox_id": 1031028343,
                 "match": "uploader"
             },
             "executable": {
@@ -7207,7 +7207,7 @@
         },
         "yo": {
             "formula": {
-                "sandbox_id": 999930595,
+                "sandbox_id": 1032761090,
                 "match": "yo"
             },
             "executable": {
@@ -7247,7 +7247,7 @@
         "delve": {
             "formula": {
                 "sandbox_id": [
-                    1021472152
+                    1033182544
                 ],
                 "match": "delve"
             },
@@ -8265,7 +8265,7 @@
         "scriptgen": {
             "formula": {
                 "sandbox_id": [
-                    981578539
+                    1032598734
                 ],
                 "match": "SCRIPTGEN"
             }
@@ -9012,7 +9012,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 1031517691,
+                "sandbox_id": 1032476547,
                 "match": "horadric"
             },
             "executable": {
@@ -9155,7 +9155,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 1031517871,
+                "sandbox_id": 1032476637,
                 "match": "app_host_launcher"
             },
             "executable": {

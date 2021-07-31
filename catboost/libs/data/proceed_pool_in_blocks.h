@@ -38,6 +38,7 @@ inline void ReadAndProceedPoolInBlocks(const NCatboostOptions::TDatasetReadingPa
                 NCB::EObjectsOrder::Undefined,
                 blockSize,
                 NCB::TDatasetSubset::MakeColumns(),
+                /*LoadColumnsAsString*/ false,
                 localExecutor
             }
         }
