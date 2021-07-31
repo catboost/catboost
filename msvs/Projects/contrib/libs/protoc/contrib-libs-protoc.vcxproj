@@ -91,6 +91,7 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\cpp\cpp_message.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\cpp\cpp_message_field.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\cpp\cpp_padding_optimizer.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\cpp\cpp_parse_function_generator.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\cpp\cpp_primitive_field.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\cpp\cpp_service.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\cpp\cpp_string_field.cc"/>
@@ -124,6 +125,7 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_generator.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_generator_factory.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_helpers.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_kotlin_generator.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_map_field.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_map_field_lite.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_message.cc"/>
@@ -179,6 +181,7 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\cpp\cpp_names.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\cpp\cpp_options.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\cpp\cpp_padding_optimizer.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\cpp\cpp_parse_function_generator.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\cpp\cpp_primitive_field.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\cpp\cpp_service.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\cpp\cpp_string_field.h"/>
@@ -214,6 +217,7 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_generator.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_generator_factory.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_helpers.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_kotlin_generator.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_map_field.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_map_field_lite.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_message.h"/>
