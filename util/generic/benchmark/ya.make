@@ -1,4 +1,5 @@
 
+
 SUBSCRIBER(g:util-subscribers)
 
 RECURSE(
@@ -14,4 +15,5 @@ RECURSE(
     string
     vector_count_ctor
     vector_count_ctor/metrics
+    cont_speed
 )
