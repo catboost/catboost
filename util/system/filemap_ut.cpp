@@ -302,7 +302,7 @@ Y_UNIT_TEST_SUITE(TFileMapTest) {
             UNIT_ASSERT(0);                                                  // should not go here
         } catch (yexception& exc) {
             TString text = exc.what(); // exception should contain failed file name
-            UNIT_ASSERT(text.find(TMemoryMapCommon::UnknownFileName) != TString::npos);
+            UNIT_ASSERT(text.find(TMemoryMapCommon::UnknownFileName()) != TString::npos);
             fclose(f);
         }
 
