@@ -1,8 +1,12 @@
 import os
 import collections
+from hashlib import md5
 
 import ymake
 from _common import stripext, rootrel_arc_src, tobuilddir, listid, resolve_to_ymake_path, generate_chunks, pathid
+
+
+PY_NAMESPACE_PREFIX = 'py/namespace'
 
 
 def is_arc_src(src, unit):
@@ -221,6 +225,7 @@ def onpy_srcs(unit, *args):
     protos = []
     evs = []
     fbss = []
+    py_namespaces = {}
 
     dump_dir = unit.get('PYTHON_BUILD_DUMP_DIR')
     dump_output = None
@@ -289,7 +294,13 @@ def onpy_srcs(unit, *args):
                     if arg.startswith('/'):
                         ymake.report_configure_error('PY_SRCS item starts with "/": {!r}'.format(arg))
                         continue
-                    mod = ns + stripext(arg).replace('/', '.')
+                    mod_name = stripext(arg).replace('/', '.')
+                    if py3 and path.endswith('.py') and is_arc_src(path, unit):
+                        # Dig out real path from the file path. Unit.path is not enough because of SRCDIR and ADDINCL
+                        root_rel_path = rootrel_arc_src(path, unit)
+                        mod_root_path = root_rel_path[:-(len(path) + 1)]
+                        py_namespaces.setdefault(mod_root_path, set()).add(ns if ns else '.')
+                    mod = ns + mod_name
 
             if py3 and mod == '__main__':
                 ymake.report_configure_error('TOP_LEVEL __main__.py is not allowed in PY3_PROGRAM')
@@ -417,7 +428,9 @@ def onpy_srcs(unit, *args):
         res = []
 
         if py3:
+            mod_list_md5 = md5()
             for path, mod in pys:
+                mod_list_md5.update(mod)
                 dest = 'py/' + mod.replace('.', '/') + '.py'
                 if with_py:
                     res += ['DEST', dest, path]
@@ -426,6 +439,15 @@ def onpy_srcs(unit, *args):
                     dst = path + uniq_suffix(path, unit)
                     unit.on_py3_compile_bytecode([root_rel_path + '-', path, dst])
                     res += ['DEST', dest + '.yapyc3', dst + '.yapyc3']
+
+            if py_namespaces:
+                # Note: Add md5 to key to prevent key collision if two or more PY_SRCS() used in the same ya.make
+                ns_res = []
+                for path, ns in sorted(py_namespaces.items()):
+                    key = '{}/{}/{}'.format(PY_NAMESPACE_PREFIX, mod_list_md5.hexdigest(), path)
+                    namespaces = ':'.join(sorted(ns))
+                    ns_res += ['-', '{}="{}"'.format(key, namespaces)]
+                unit.onresource(ns_res)
 
             unit.onresource_files(res)
             add_python_lint_checks(unit, 3, [path for path, mod in pys] + unit.get(['_PY_EXTRA_LINT_FILES_VALUE']).split())
