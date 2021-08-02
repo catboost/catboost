@@ -15,6 +15,7 @@ def parse_args():
     parser.add_argument("--clang-tidy-bin", required=True)
     parser.add_argument("--tidy-json", required=True)
     parser.add_argument("--source-root", required=True)
+    parser.add_argument("--build-root", required=True)
     parser.add_argument("--config-file", required=True)
     return parser.parse_known_args()
 
@@ -55,12 +56,24 @@ def load_profile(path):
     }
 
 
+def is_generated(testing_src, build_root):
+    return testing_src.startswith(build_root)
+
+
+def generate_outputs(output_json):
+    output_obj = os.path.splitext(output_json)[0] + ".o"
+    open(output_obj, "w").close()
+    open(output_json, "w").close()
+
+
 def main():
     args, clang_cmd = parse_args()
     clang_tidy_bin = args.clang_tidy_bin
     output_json = args.tidy_json
+    generate_outputs(output_json)
+    if is_generated(args.testing_src, args.build_root):
+        return
     header_filter = r"^(" + r"|".join(map(re.escape, [os.path.dirname(args.testing_src)])) + r").*(?<!\.pb\.h)$"
-
     with gen_tmpdir() as profile_tmpdir, gen_tmpdir() as db_tmpdir:
         compile_command_path = generate_compilation_database(clang_cmd, args.source_root, args.testing_src, db_tmpdir)
         cmd = [
@@ -82,10 +95,7 @@ def main():
         out, err = res.communicate()
         exit_code = res.returncode
         profile = load_profile(profile_tmpdir)
-    if args.testing_src.startswith(args.source_root):
         testing_src = os.path.relpath(args.testing_src, args.source_root)
-    else:
-        testing_src = args.testing_src
 
     with open(output_json, "wb") as afile:
         json.dump(
