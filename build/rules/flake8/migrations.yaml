@@ -2892,7 +2892,6 @@ migrations:
     - sandbox/projects/market/contentApi
     - sandbox/projects/market/dynamic_pricing
     - sandbox/projects/market/ff
-    - sandbox/projects/market/ff_wf_api
     - sandbox/projects/market/front
     - sandbox/projects/market/idx
     - sandbox/projects/market/infra
