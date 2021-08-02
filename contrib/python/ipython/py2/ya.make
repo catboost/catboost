@@ -261,6 +261,8 @@ PY_SRCS(
 
 RESOURCE_FILES(
     PREFIX contrib/python/ipython/py2/
+    .dist-info/METADATA
+    .dist-info/top_level.txt
     IPython/core/profile/README_STARTUP
 )
 
