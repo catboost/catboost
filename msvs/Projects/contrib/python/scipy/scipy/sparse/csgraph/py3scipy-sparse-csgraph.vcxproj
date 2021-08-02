@@ -83,6 +83,33 @@
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph\_shortest_path.pyx.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph\_tools.pyx.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph\_traversal.pyx.cpp"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph\_80c36e923c446b471ebad98b36.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/csgraph/_80c36e923c446b471ebad98b36.py3.obj" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/csgraph/_80c36e923c446b471ebad98b36.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/csgraph/_80c36e923c446b471ebad98b36.py3.obj" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/csgraph/_80c36e923c446b471ebad98b36.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/scipy/scipy/sparse/csgraph/_80c36e923c446b471ebad98b36.py3.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph\_80c36e923c446b471ebad98b36.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph\_80c36e923c446b471ebad98b36.py3.obj;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph\_de35e5bc804cc624db73ba8283.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph
@@ -109,6 +136,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/scipy/scipy/sparse/csgraph/_de35e5bc804cc624db73ba8283.py3.obj	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph\_de35e5bc804cc624db73ba8283.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph\_de35e5bc804cc624db73ba8283.py3.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/csgraph/_80c36e923c446b471ebad98b36.yasm" "-" "scipy.sparse.csgraph." "_c70962beeaf0d85a5d5d32e991.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/csgraph/_80c36e923c446b471ebad98b36.yasm" "-" "scipy.sparse.csgraph." "_c70962beeaf0d85a5d5d32e991.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/scipy/scipy/sparse/csgraph/_80c36e923c446b471ebad98b36.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph\_80c36e923c446b471ebad98b36.yasm;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\csgraph\__init__.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

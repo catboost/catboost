@@ -132,6 +132,60 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_919a62b664c1c21491ad3d22f3.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_919a62b664c1c21491ad3d22f3.py3.obj;</Outputs>
     </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_9461e0c5184018e35bf21d245a.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_9461e0c5184018e35bf21d245a.py3.obj" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_9461e0c5184018e35bf21d245a.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_9461e0c5184018e35bf21d245a.py3.obj" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_9461e0c5184018e35bf21d245a.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/Jinja2/_9461e0c5184018e35bf21d245a.py3.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_9461e0c5184018e35bf21d245a.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_9461e0c5184018e35bf21d245a.py3.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_bbb5dfe54e947bbc4f28da422b.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_bbb5dfe54e947bbc4f28da422b.py3.obj" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_bbb5dfe54e947bbc4f28da422b.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_bbb5dfe54e947bbc4f28da422b.py3.obj" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_bbb5dfe54e947bbc4f28da422b.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/Jinja2/_bbb5dfe54e947bbc4f28da422b.py3.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_bbb5dfe54e947bbc4f28da422b.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_bbb5dfe54e947bbc4f28da422b.py3.obj;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_fa9605cad4ab6b62449cc9ed55.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
@@ -217,6 +271,14 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_9461e0c5184018e35bf21d245a.yasm" "-" "." "_da4a838381812fc99f8fb76d05.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_bbb5dfe54e947bbc4f28da422b.yasm" "-" "." "_77334a64844ef73d0492393900.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_fa9605cad4ab6b62449cc9ed55.yasm" "-" "jinja2.asyncfilters" "_7aebb9905b16c0dc093ecfdf89.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -228,6 +290,14 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_9461e0c5184018e35bf21d245a.yasm" "-" "." "_da4a838381812fc99f8fb76d05.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_bbb5dfe54e947bbc4f28da422b.yasm" "-" "." "_77334a64844ef73d0492393900.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_fa9605cad4ab6b62449cc9ed55.yasm" "-" "jinja2.asyncfilters" "_7aebb9905b16c0dc093ecfdf89.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -236,9 +306,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/Jinja2/_fa9605cad4ab6b62449cc9ed55.yasm	</Message>
+      <Message>$B/contrib/python/Jinja2/_9461e0c5184018e35bf21d245a.yasm	$B/contrib/python/Jinja2/_bbb5dfe54e947bbc4f28da422b.yasm	$B/contrib/python/Jinja2/_fa9605cad4ab6b62449cc9ed55.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_fa9605cad4ab6b62449cc9ed55.yasm;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_9461e0c5184018e35bf21d245a.yasm;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_bbb5dfe54e947bbc4f28da422b.yasm;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_fa9605cad4ab6b62449cc9ed55.yasm;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\Jinja2\.dist-info\METADATA">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

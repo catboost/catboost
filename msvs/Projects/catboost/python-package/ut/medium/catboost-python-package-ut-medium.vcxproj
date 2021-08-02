@@ -80,6 +80,7 @@
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\1204c9a5db0a366fa0204390af.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\235d70343c49ec4e2e66ac54b7.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\efb03a3d28003f3417326a79b2.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\_1204c9a5db0a366fa0204390af.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\ut\medium
@@ -134,11 +135,42 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\_235d70343c49ec4e2e66ac54b7.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\_235d70343c49ec4e2e66ac54b7.obj;</Outputs>
     </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\_efb03a3d28003f3417326a79b2.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\ut\medium
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/catboost/python-package/ut/medium/_efb03a3d28003f3417326a79b2.obj" "$(SolutionDir)$(Configuration)/catboost/python-package/ut/medium/_efb03a3d28003f3417326a79b2.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\ut\medium
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/catboost/python-package/ut/medium/_efb03a3d28003f3417326a79b2.obj" "$(SolutionDir)$(Configuration)/catboost/python-package/ut/medium/_efb03a3d28003f3417326a79b2.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/catboost/python-package/ut/medium/_efb03a3d28003f3417326a79b2.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\_efb03a3d28003f3417326a79b2.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\_efb03a3d28003f3417326a79b2.obj;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\ut\medium
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/ut/medium/_1204c9a5db0a366fa0204390af.yasm" "-" "library.python.pytest.main:main" "_3cf3d1ee6e3082101e902f8fc5.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\ut\medium
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/ut/medium/_efb03a3d28003f3417326a79b2.yasm" "-" "__tests__." "_c8727db6939820686432e3bbde.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -151,15 +183,19 @@ cd /d $(SolutionDir)$(Configuration)\catboost\python-package\ut\medium
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/ut/medium/_1204c9a5db0a366fa0204390af.yasm" "-" "library.python.pytest.main:main" "_3cf3d1ee6e3082101e902f8fc5.rodata"
 if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\ut\medium
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/ut/medium/_efb03a3d28003f3417326a79b2.yasm" "-" "__tests__." "_c8727db6939820686432e3bbde.rodata"
+if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/python-package/ut/medium/_1204c9a5db0a366fa0204390af.yasm	</Message>
+      <Message>$B/catboost/python-package/ut/medium/_1204c9a5db0a366fa0204390af.yasm	$B/catboost/python-package/ut/medium/_efb03a3d28003f3417326a79b2.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\_1204c9a5db0a366fa0204390af.yasm;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\_1204c9a5db0a366fa0204390af.yasm;$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\_efb03a3d28003f3417326a79b2.yasm;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -171,6 +207,10 @@ cd /d $(SolutionDir)$(Configuration)\catboost\python-package\ut\medium
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/ut/medium/235d70343c49ec4e2e66ac54b7.cpp" "_929910d7e32e200f102acb6971=resfs/src/resfs/file/py/__tests__/conftest.py" "_ba1fb3db5c0b65abf9d742572b=resfs/file/py/__tests__/conftest.py" "_1a1a58e3b5469c57479fef9e14=resfs/src/resfs/file/py/__tests__/conftest.py.yapyc3" "_622db2ef18392cba6623b51208=resfs/file/py/__tests__/conftest.py.yapyc3" "_47daf9926a8299dcf72ffeaac2=resfs/src/resfs/file/py/__tests__/test.py" "_d036c9c30548f4399af9f1fd14=resfs/file/py/__tests__/test.py" "_a64f0823ca77d942b86321865e=resfs/src/resfs/file/py/__tests__/test.py.yapyc3" "_01763e9d4c176cee25d22942b5=resfs/file/py/__tests__/test.py.yapyc3" "_169ba8773375699f8831172d48=resfs/src/resfs/file/py/__tests__/test_whl.py" "_f38a6c193d240ac4a1002d3eaf=resfs/file/py/__tests__/test_whl.py" "_f4a1f523d2223d8da4c1853053=resfs/src/resfs/file/py/__tests__/test_whl.py.yapyc3" "_0c0eb411c9fadd2e3293cebd6b=resfs/file/py/__tests__/test_whl.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\ut\medium
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/ut/medium/efb03a3d28003f3417326a79b2.cpp" "_c8727db6939820686432e3bbde=py/namespace/ce1bfe8492131fd8e956af847863ab53/catboost/python-package/ut/medium"
+if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
@@ -186,15 +226,19 @@ cd /d $(SolutionDir)$(Configuration)\catboost\python-package\ut\medium
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/ut/medium/235d70343c49ec4e2e66ac54b7.cpp" "_929910d7e32e200f102acb6971=resfs/src/resfs/file/py/__tests__/conftest.py" "_ba1fb3db5c0b65abf9d742572b=resfs/file/py/__tests__/conftest.py" "_1a1a58e3b5469c57479fef9e14=resfs/src/resfs/file/py/__tests__/conftest.py.yapyc3" "_622db2ef18392cba6623b51208=resfs/file/py/__tests__/conftest.py.yapyc3" "_47daf9926a8299dcf72ffeaac2=resfs/src/resfs/file/py/__tests__/test.py" "_d036c9c30548f4399af9f1fd14=resfs/file/py/__tests__/test.py" "_a64f0823ca77d942b86321865e=resfs/src/resfs/file/py/__tests__/test.py.yapyc3" "_01763e9d4c176cee25d22942b5=resfs/file/py/__tests__/test.py.yapyc3" "_169ba8773375699f8831172d48=resfs/src/resfs/file/py/__tests__/test_whl.py" "_f38a6c193d240ac4a1002d3eaf=resfs/file/py/__tests__/test_whl.py" "_f4a1f523d2223d8da4c1853053=resfs/src/resfs/file/py/__tests__/test_whl.py.yapyc3" "_0c0eb411c9fadd2e3293cebd6b=resfs/file/py/__tests__/test_whl.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\ut\medium
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/ut/medium/efb03a3d28003f3417326a79b2.cpp" "_c8727db6939820686432e3bbde=py/namespace/ce1bfe8492131fd8e956af847863ab53/catboost/python-package/ut/medium"
+if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/python-package/ut/medium/1204c9a5db0a366fa0204390af.cpp	$B/catboost/python-package/ut/medium/235d70343c49ec4e2e66ac54b7.cpp	</Message>
+      <Message>$B/catboost/python-package/ut/medium/1204c9a5db0a366fa0204390af.cpp	$B/catboost/python-package/ut/medium/235d70343c49ec4e2e66ac54b7.cpp	$B/catboost/python-package/ut/medium/efb03a3d28003f3417326a79b2.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\1204c9a5db0a366fa0204390af.cpp;$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\235d70343c49ec4e2e66ac54b7.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\1204c9a5db0a366fa0204390af.cpp;$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\235d70343c49ec4e2e66ac54b7.cpp;$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\efb03a3d28003f3417326a79b2.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\catboost\python-package\ut\medium\conftest.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

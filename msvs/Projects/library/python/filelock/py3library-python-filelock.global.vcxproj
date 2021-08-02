@@ -79,11 +79,16 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\filelock\90bcdb6264339a2e9beb61e66c.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\filelock\b42cceb1e9435011837782b7fe.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\filelock
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/filelock/90bcdb6264339a2e9beb61e66c.cpp" "_6ec84595eb8adba7bcbaac52e1=resfs/src/resfs/file/py/library/python/filelock/__init__.py" "_023d609451f82940b1977a9077=resfs/file/py/library/python/filelock/__init__.py" "_4923c3dcbd3c3fdaae69b29444=resfs/src/resfs/file/py/library/python/filelock/__init__.py.yapyc3" "_3d04181fe360a4b6ddf34f5fee=resfs/file/py/library/python/filelock/__init__.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\library\python\filelock
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/filelock/b42cceb1e9435011837782b7fe.cpp" "_457caa13900f50dabc1cc3e9a6=py/namespace/6bcf2e27bbc4280449bcb80a70945fcb/library/python/filelock"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -96,15 +101,19 @@ cd /d $(SolutionDir)$(Configuration)\library\python\filelock
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/filelock/90bcdb6264339a2e9beb61e66c.cpp" "_6ec84595eb8adba7bcbaac52e1=resfs/src/resfs/file/py/library/python/filelock/__init__.py" "_023d609451f82940b1977a9077=resfs/file/py/library/python/filelock/__init__.py" "_4923c3dcbd3c3fdaae69b29444=resfs/src/resfs/file/py/library/python/filelock/__init__.py.yapyc3" "_3d04181fe360a4b6ddf34f5fee=resfs/file/py/library/python/filelock/__init__.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\library\python\filelock
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/filelock/b42cceb1e9435011837782b7fe.cpp" "_457caa13900f50dabc1cc3e9a6=py/namespace/6bcf2e27bbc4280449bcb80a70945fcb/library/python/filelock"
+if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/filelock/90bcdb6264339a2e9beb61e66c.cpp	</Message>
+      <Message>$B/library/python/filelock/90bcdb6264339a2e9beb61e66c.cpp	$B/library/python/filelock/b42cceb1e9435011837782b7fe.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\filelock\90bcdb6264339a2e9beb61e66c.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\filelock\90bcdb6264339a2e9beb61e66c.cpp;$(SolutionDir)$(Configuration)\library\python\filelock\b42cceb1e9435011837782b7fe.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

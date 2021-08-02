@@ -79,6 +79,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\gpu\1204c9a5db0a366fa0204390af.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\gpu\8046661c9bb2c30d6c5404a0cc.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\gpu\9d32ae25159839ee2daef34987.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\gpu\_1204c9a5db0a366fa0204390af.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -106,6 +107,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/catboost/python-package/ut/medium/gpu/_1204c9a5db0a366fa0204390af.obj	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\gpu\_1204c9a5db0a366fa0204390af.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\gpu\_1204c9a5db0a366fa0204390af.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\gpu\_8046661c9bb2c30d6c5404a0cc.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\gpu
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/catboost/python-package/ut/medium/gpu/_8046661c9bb2c30d6c5404a0cc.obj" "$(SolutionDir)$(Configuration)/catboost/python-package/ut/medium/gpu/_8046661c9bb2c30d6c5404a0cc.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\gpu
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/catboost/python-package/ut/medium/gpu/_8046661c9bb2c30d6c5404a0cc.obj" "$(SolutionDir)$(Configuration)/catboost/python-package/ut/medium/gpu/_8046661c9bb2c30d6c5404a0cc.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/catboost/python-package/ut/medium/gpu/_8046661c9bb2c30d6c5404a0cc.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\gpu\_8046661c9bb2c30d6c5404a0cc.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\gpu\_8046661c9bb2c30d6c5404a0cc.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\gpu\_9d32ae25159839ee2daef34987.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -140,6 +168,10 @@ cd /d $(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\gpu
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/ut/medium/gpu/_1204c9a5db0a366fa0204390af.yasm" "-" "library.python.pytest.main:main" "_fc7c445f86f3380edb40388b7b.rodata"
 if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\gpu
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/ut/medium/gpu/_8046661c9bb2c30d6c5404a0cc.yasm" "-" "__tests__." "_1628dade261f1c2a4e277c41a0.rodata"
+if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
@@ -151,21 +183,29 @@ cd /d $(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\gpu
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/ut/medium/gpu/_1204c9a5db0a366fa0204390af.yasm" "-" "library.python.pytest.main:main" "_fc7c445f86f3380edb40388b7b.rodata"
 if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\gpu
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/ut/medium/gpu/_8046661c9bb2c30d6c5404a0cc.yasm" "-" "__tests__." "_1628dade261f1c2a4e277c41a0.rodata"
+if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/python-package/ut/medium/gpu/_1204c9a5db0a366fa0204390af.yasm	</Message>
+      <Message>$B/catboost/python-package/ut/medium/gpu/_1204c9a5db0a366fa0204390af.yasm	$B/catboost/python-package/ut/medium/gpu/_8046661c9bb2c30d6c5404a0cc.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\gpu\_1204c9a5db0a366fa0204390af.yasm;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\gpu\_1204c9a5db0a366fa0204390af.yasm;$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\gpu\_8046661c9bb2c30d6c5404a0cc.yasm;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\gpu
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/ut/medium/gpu/1204c9a5db0a366fa0204390af.cpp" "_fc7c445f86f3380edb40388b7b=PY_MAIN"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\gpu
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/ut/medium/gpu/8046661c9bb2c30d6c5404a0cc.cpp" "_1628dade261f1c2a4e277c41a0=py/namespace/e8c7043df50c5e947318dd677ee037e0/catboost/python-package/ut/medium"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\gpu
 if %errorlevel% neq 0 goto :cmEnd
@@ -184,6 +224,10 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\gpu
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/ut/medium/gpu/8046661c9bb2c30d6c5404a0cc.cpp" "_1628dade261f1c2a4e277c41a0=py/namespace/e8c7043df50c5e947318dd677ee037e0/catboost/python-package/ut/medium"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\gpu
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/ut/medium/gpu/9d32ae25159839ee2daef34987.cpp" "_ddb0cc51f58bb7cf3fbca03623=resfs/src/resfs/file/py/__tests__/gpu/conftest.py" "_43c5011907133c9f0ce7f09333=resfs/file/py/__tests__/gpu/conftest.py" "_4b00fbbc4c26b8d2136b1e94fb=resfs/src/resfs/file/py/__tests__/gpu/conftest.py.yapyc3" "_c59aba357b6e897ccf6d29db56=resfs/file/py/__tests__/gpu/conftest.py.yapyc3" "_01fa1e483312cdda85109871a1=resfs/src/resfs/file/py/__tests__/test.py" "_f48dea5cba708955cb60a6d317=resfs/file/py/__tests__/test.py" "_39a291c4a9084b4755d4a42217=resfs/src/resfs/file/py/__tests__/test.py.yapyc3" "_63ba6171d159a6ae81283433ef=resfs/file/py/__tests__/test.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -192,9 +236,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/python-package/ut/medium/gpu/1204c9a5db0a366fa0204390af.cpp	$B/catboost/python-package/ut/medium/gpu/9d32ae25159839ee2daef34987.cpp	</Message>
+      <Message>$B/catboost/python-package/ut/medium/gpu/1204c9a5db0a366fa0204390af.cpp	$B/catboost/python-package/ut/medium/gpu/8046661c9bb2c30d6c5404a0cc.cpp	$B/catboost/python-package/ut/medium/gpu/9d32ae25159839ee2daef34987.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\gpu\1204c9a5db0a366fa0204390af.cpp;$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\gpu\9d32ae25159839ee2daef34987.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\gpu\1204c9a5db0a366fa0204390af.cpp;$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\gpu\8046661c9bb2c30d6c5404a0cc.cpp;$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\gpu\9d32ae25159839ee2daef34987.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\catboost\python-package\ut\medium\gpu\conftest.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

@@ -79,12 +79,17 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\more-itertools\04c5608b992131f3e1d865c4a3.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\more-itertools\0eb6393ba73390c3fa39854ad4.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\more-itertools\fb04df209a857fd08b3f1fc5cb.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\more-itertools
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/more-itertools/04c5608b992131f3e1d865c4a3.cpp" "_29fed9caaa4adbbeab16bc87f2=resfs/src/resfs/file/contrib/python/more-itertools/.dist-info/METADATA" "_dc20081126a6e72b3c763c0140=resfs/file/contrib/python/more-itertools/.dist-info/METADATA" "_6aeb81b9ca7eda3bab4fd4daca=resfs/src/resfs/file/contrib/python/more-itertools/.dist-info/top_level.txt" "_63d821fccf1b9cd579c91dccc1=resfs/file/contrib/python/more-itertools/.dist-info/top_level.txt"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\more-itertools
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/more-itertools/0eb6393ba73390c3fa39854ad4.cpp" "_85ac730253c04682cf018894a3=py/namespace/bec0028d395b3ea63a3fff45b6f2f6ff/contrib/python/more-itertools"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\more-itertools
 if %errorlevel% neq 0 goto :cmEnd
@@ -103,6 +108,10 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\more-itertools
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/more-itertools/0eb6393ba73390c3fa39854ad4.cpp" "_85ac730253c04682cf018894a3=py/namespace/bec0028d395b3ea63a3fff45b6f2f6ff/contrib/python/more-itertools"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\more-itertools
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/more-itertools/fb04df209a857fd08b3f1fc5cb.cpp" "_86b42b261e477b8988ab93093e=resfs/src/resfs/file/py/more_itertools/__init__.py" "_259ffe53ab5271f5b53e11e6d5=resfs/file/py/more_itertools/__init__.py" "_721cc27427b0539a6c2a6db575=resfs/src/resfs/file/py/more_itertools/__init__.py.yapyc3" "_d9aa76d4e2dfa1f4249c8e0079=resfs/file/py/more_itertools/__init__.py.yapyc3" "_6885d5a85b84fa515fbce99e82=resfs/src/resfs/file/py/more_itertools/more.py" "_0544bd110e8776ddc8399371d6=resfs/file/py/more_itertools/more.py" "_062847aa9af0d1b98c9ae9cc6f=resfs/src/resfs/file/py/more_itertools/more.py.yapyc3" "_cf15a8b0deb55a8d333727de05=resfs/file/py/more_itertools/more.py.yapyc3" "_2c7da0c98fe1fb7709509a3be7=resfs/src/resfs/file/py/more_itertools/recipes.py" "_df18e934078478d7a4c4d72315=resfs/file/py/more_itertools/recipes.py" "_426a401cc2df79070670fd7790=resfs/src/resfs/file/py/more_itertools/recipes.py.yapyc3" "_fe57b19aadaa0029d98b726f2b=resfs/file/py/more_itertools/recipes.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -111,9 +120,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/more-itertools/04c5608b992131f3e1d865c4a3.cpp	$B/contrib/python/more-itertools/fb04df209a857fd08b3f1fc5cb.cpp	</Message>
+      <Message>$B/contrib/python/more-itertools/04c5608b992131f3e1d865c4a3.cpp	$B/contrib/python/more-itertools/0eb6393ba73390c3fa39854ad4.cpp	$B/contrib/python/more-itertools/fb04df209a857fd08b3f1fc5cb.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\more-itertools\04c5608b992131f3e1d865c4a3.cpp;$(SolutionDir)$(Configuration)\contrib\python\more-itertools\fb04df209a857fd08b3f1fc5cb.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\more-itertools\04c5608b992131f3e1d865c4a3.cpp;$(SolutionDir)$(Configuration)\contrib\python\more-itertools\0eb6393ba73390c3fa39854ad4.cpp;$(SolutionDir)$(Configuration)\contrib\python\more-itertools\fb04df209a857fd08b3f1fc5cb.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

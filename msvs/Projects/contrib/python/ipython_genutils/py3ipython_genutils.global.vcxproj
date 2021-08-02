@@ -78,6 +78,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\ipython_genutils\149e5b077c8ec832c87e91093f.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\ipython_genutils\join_3fbbd31896154103334e4e7ea7.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\ipython_genutils\ipython_genutils\py3compat.py.4m4r.yapyc3">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -137,6 +138,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\ipython_genutils
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/ipython_genutils/149e5b077c8ec832c87e91093f.cpp" "_1b2bba74b2f6e15aac8ae832e6=py/namespace/a1e1e81e4a7c820789e5faef25af5b1a/contrib/python/ipython_genutils"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\ipython_genutils
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/ipython_genutils/8f4e705e1da4c75db201a5fe55.cpp" "_432396042b42fbe295e99cf895=resfs/file/py/ipython_genutils/py3compat.py.yapyc3" "_ee44fad7490f28ef5a804d7acb=resfs/src/resfs/file/py/ipython_genutils/tempdir.py" "_5a5548cb622d433c5c72c3e66c=resfs/file/py/ipython_genutils/tempdir.py" "_2cfea8bfd9cbfe21450c324270=resfs/src/resfs/file/py/ipython_genutils/tempdir.py.yapyc3" "_88362686261b19b23346f7c9b0=resfs/file/py/ipython_genutils/tempdir.py.yapyc3" "_428db99348751a5a1ea5726d86=resfs/src/resfs/file/py/ipython_genutils/testing/__init__.py" "_df87fdabf3d545f457d61a9401=resfs/file/py/ipython_genutils/testing/__init__.py" "_df6c94e46fd53f8360ad79d110=resfs/src/resfs/file/py/ipython_genutils/testing/__init__.py.yapyc3" "_8735a2b2ff7a54c079f8794c9d=resfs/file/py/ipython_genutils/testing/__init__.py.yapyc3" "_04e1034177bb561912491f73e6=resfs/src/resfs/file/py/ipython_genutils/testing/decorators.py" "_e4a2d0547f6fb7e5603d1dad88=resfs/file/py/ipython_genutils/testing/decorators.py" "_e71b0a70d1b94f095dccfccbb7=resfs/src/resfs/file/py/ipython_genutils/testing/decorators.py.yapyc3" "_5eaf3d326cf830c2f3358d8fbd=resfs/file/py/ipython_genutils/testing/decorators.py.yapyc3" "_58a2de1616296190b97c74309d=resfs/src/resfs/file/py/ipython_genutils/text.py" "_e6b9f42fb37b0980490128d3da=resfs/file/py/ipython_genutils/text.py" "_da88fde6697e1b4d628857179d=resfs/src/resfs/file/py/ipython_genutils/text.py.yapyc3" "_26943f386ebf6142cfeb993b8e=resfs/file/py/ipython_genutils/text.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\ipython_genutils
@@ -152,6 +157,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\ipython_genutils
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/ipython_genutils/149e5b077c8ec832c87e91093f.cpp" "_1b2bba74b2f6e15aac8ae832e6=py/namespace/a1e1e81e4a7c820789e5faef25af5b1a/contrib/python/ipython_genutils"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\ipython_genutils
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/ipython_genutils/8f4e705e1da4c75db201a5fe55.cpp" "_432396042b42fbe295e99cf895=resfs/file/py/ipython_genutils/py3compat.py.yapyc3" "_ee44fad7490f28ef5a804d7acb=resfs/src/resfs/file/py/ipython_genutils/tempdir.py" "_5a5548cb622d433c5c72c3e66c=resfs/file/py/ipython_genutils/tempdir.py" "_2cfea8bfd9cbfe21450c324270=resfs/src/resfs/file/py/ipython_genutils/tempdir.py.yapyc3" "_88362686261b19b23346f7c9b0=resfs/file/py/ipython_genutils/tempdir.py.yapyc3" "_428db99348751a5a1ea5726d86=resfs/src/resfs/file/py/ipython_genutils/testing/__init__.py" "_df87fdabf3d545f457d61a9401=resfs/file/py/ipython_genutils/testing/__init__.py" "_df6c94e46fd53f8360ad79d110=resfs/src/resfs/file/py/ipython_genutils/testing/__init__.py.yapyc3" "_8735a2b2ff7a54c079f8794c9d=resfs/file/py/ipython_genutils/testing/__init__.py.yapyc3" "_04e1034177bb561912491f73e6=resfs/src/resfs/file/py/ipython_genutils/testing/decorators.py" "_e4a2d0547f6fb7e5603d1dad88=resfs/file/py/ipython_genutils/testing/decorators.py" "_e71b0a70d1b94f095dccfccbb7=resfs/src/resfs/file/py/ipython_genutils/testing/decorators.py.yapyc3" "_5eaf3d326cf830c2f3358d8fbd=resfs/file/py/ipython_genutils/testing/decorators.py.yapyc3" "_58a2de1616296190b97c74309d=resfs/src/resfs/file/py/ipython_genutils/text.py" "_e6b9f42fb37b0980490128d3da=resfs/file/py/ipython_genutils/text.py" "_da88fde6697e1b4d628857179d=resfs/src/resfs/file/py/ipython_genutils/text.py.yapyc3" "_26943f386ebf6142cfeb993b8e=resfs/file/py/ipython_genutils/text.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\ipython_genutils
@@ -164,9 +173,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/ipython_genutils/8f4e705e1da4c75db201a5fe55.cpp	$B/contrib/python/ipython_genutils/d08ff58004c470de8325dc4d88.cpp	</Message>
+      <Message>$B/contrib/python/ipython_genutils/149e5b077c8ec832c87e91093f.cpp	$B/contrib/python/ipython_genutils/8f4e705e1da4c75db201a5fe55.cpp	$B/contrib/python/ipython_genutils/d08ff58004c470de8325dc4d88.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\ipython_genutils\8f4e705e1da4c75db201a5fe55.cpp;$(SolutionDir)$(Configuration)\contrib\python\ipython_genutils\d08ff58004c470de8325dc4d88.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\ipython_genutils\149e5b077c8ec832c87e91093f.cpp;$(SolutionDir)$(Configuration)\contrib\python\ipython_genutils\8f4e705e1da4c75db201a5fe55.cpp;$(SolutionDir)$(Configuration)\contrib\python\ipython_genutils\d08ff58004c470de8325dc4d88.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\fs_tools.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

@@ -20,7 +20,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.default.props"/>
   <PropertyGroup Label="Configuration">
-    <ConfigurationType>EmptyStaticLibrary</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>Multibyte</CharacterSet>
     <PlatformToolset>v142</PlatformToolset>
@@ -78,6 +78,33 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\tools\python3\src\Lib\_2018d6e4672ccf0316c1c4a5de.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\tools\python3\src\Lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/tools/python3/src/Lib/_2018d6e4672ccf0316c1c4a5de.obj" "$(SolutionDir)$(Configuration)/contrib/tools/python3/src/Lib/_2018d6e4672ccf0316c1c4a5de.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\tools\python3\src\Lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/tools/python3/src/Lib/_2018d6e4672ccf0316c1c4a5de.obj" "$(SolutionDir)$(Configuration)/contrib/tools/python3/src/Lib/_2018d6e4672ccf0316c1c4a5de.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/tools/python3/src/Lib/_2018d6e4672ccf0316c1c4a5de.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\tools\python3\src\Lib\_2018d6e4672ccf0316c1c4a5de.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\tools\python3\src\Lib\_2018d6e4672ccf0316c1c4a5de.obj;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\tools\python3\src\Lib\__future__.py.yapyc3">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\tools\python3\src\Lib
@@ -1103,6 +1130,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/tools/python3/src/Lib/_6a90d98277cd54ec2b245fec23.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\tools\python3\src\Lib\xmlrpc\server.py.fbqi.yapyc3;$(SolutionDir)$(Configuration)\contrib\tools\python3\src\Lib\zipapp.py.yapyc3;$(SolutionDir)$(Configuration)\contrib\tools\python3\src\Lib\zipfile.py.yapyc3;$(SolutionDir)$(Configuration)\contrib\tools\python3\src\Lib\zipimport.py.yapyc3;$(SolutionDir)$(Configuration)\contrib\tools\python3\src\Lib\zoneinfo\__init__.py.y2w7.yapyc3;$(SolutionDir)$(Configuration)\contrib\tools\python3\src\Lib\zoneinfo\_common.py.aqjg.yapyc3;$(SolutionDir)$(Configuration)\contrib\tools\python3\src\Lib\zoneinfo\_tzpath.py.5zf6.yapyc3;$(SolutionDir)$(Configuration)\contrib\tools\python3\src\Lib\zoneinfo\_zoneinfo.py.ursz.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\tools\python3\src\Lib\_6a90d98277cd54ec2b245fec23.yasm;$(SolutionDir)$(Configuration)\contrib\tools\python3\src\Lib\_173b717ac5c18d049638bf9cfc.rodata;$(SolutionDir)$(Configuration)\contrib\tools\python3\src\Lib\_27dc4bce2a722a2374cc7eae3b.rodata;$(SolutionDir)$(Configuration)\contrib\tools\python3\src\Lib\_8f90f141bca72974f8ac532d73.rodata;$(SolutionDir)$(Configuration)\contrib\tools\python3\src\Lib\_72479b79dd67cf5a877837bfc8.rodata;$(SolutionDir)$(Configuration)\contrib\tools\python3\src\Lib\_43e1eb72286038d918629070f4.rodata;$(SolutionDir)$(Configuration)\contrib\tools\python3\src\Lib\_ca9f2c742a204664042c13a742.rodata;$(SolutionDir)$(Configuration)\contrib\tools\python3\src\Lib\_f1aac1dcc28f1e9fb99efd705f.rodata;$(SolutionDir)$(Configuration)\contrib\tools\python3\src\Lib\_686de9a2af7fc01e672b0b9f1e.rodata;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\tools\python3\src\Lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/tools/python3/src/Lib/_2018d6e4672ccf0316c1c4a5de.yasm" "-" "." "_ada7b6a795b9adcfb75f5a9e34.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\tools\python3\src\Lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/tools/python3/src/Lib/_2018d6e4672ccf0316c1c4a5de.yasm" "-" "." "_ada7b6a795b9adcfb75f5a9e34.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/tools/python3/src/Lib/_2018d6e4672ccf0316c1c4a5de.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\tools\python3\src\Lib\_2018d6e4672ccf0316c1c4a5de.yasm;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\tools\python3\src\Lib\__future__.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

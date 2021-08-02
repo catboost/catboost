@@ -78,9 +78,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\_precompute\249ee01001714c80fdb3405625.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\_precompute\508c9cdf6c4be318f496897d40.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\_precompute
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/_precompute/249ee01001714c80fdb3405625.cpp" "_3dabd6df6d3e7481831c80162f=py/namespace/a091f2f63c10e5c76e6967301bb615b4/contrib/python/scipy/scipy/special/_precompute"
+if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\_precompute
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/_precompute/508c9cdf6c4be318f496897d40.cpp" "_1275fb0e5216c39b69edafd095=resfs/src/resfs/file/py/scipy/special/_precompute/__init__.py" "_617580d75913066761cf4f5039=resfs/file/py/scipy/special/_precompute/__init__.py" "_d1c35f0bf487aa3fde059d968c=resfs/src/resfs/file/py/scipy/special/_precompute/__init__.py.yapyc3" "_0fc7df45b3889c04305fa10c46=resfs/file/py/scipy/special/_precompute/__init__.py.yapyc3" "_d26a6ca330202ef8c67deebc8d=resfs/src/resfs/file/py/scipy/special/_precompute/expn_asy.py" "_c02e427d960e9eb51448de3811=resfs/file/py/scipy/special/_precompute/expn_asy.py" "_b4fd1a05b939ae5c4979b1a0b3=resfs/src/resfs/file/py/scipy/special/_precompute/expn_asy.py.yapyc3" "_82ca1930a3a42d3bc5ff3d44c3=resfs/file/py/scipy/special/_precompute/expn_asy.py.yapyc3" "_6cb7260670e06b1d57e57d3d44=resfs/src/resfs/file/py/scipy/special/_precompute/gammainc_asy.py" "_f1e78a5794f58d11cad399cc64=resfs/file/py/scipy/special/_precompute/gammainc_asy.py" "_d5c38998c597d9a34806961285=resfs/src/resfs/file/py/scipy/special/_precompute/gammainc_asy.py.yapyc3" "_a4d8150cf185f2dda15fb30b51=resfs/file/py/scipy/special/_precompute/gammainc_asy.py.yapyc3" "_d3c72b6a8bdf9c0c74f56aa605=resfs/src/resfs/file/py/scipy/special/_precompute/utils.py" "_134a28052243cddc6d19dc5a6c=resfs/file/py/scipy/special/_precompute/utils.py" "_adab5fd5ccf3e2a1e81a024661=resfs/src/resfs/file/py/scipy/special/_precompute/utils.py.yapyc3" "_21a3e442e21f54394a589565c5=resfs/file/py/scipy/special/_precompute/utils.py.yapyc3"
@@ -94,6 +99,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\_precompute
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/_precompute/249ee01001714c80fdb3405625.cpp" "_3dabd6df6d3e7481831c80162f=py/namespace/a091f2f63c10e5c76e6967301bb615b4/contrib/python/scipy/scipy/special/_precompute"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\_precompute
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/_precompute/508c9cdf6c4be318f496897d40.cpp" "_1275fb0e5216c39b69edafd095=resfs/src/resfs/file/py/scipy/special/_precompute/__init__.py" "_617580d75913066761cf4f5039=resfs/file/py/scipy/special/_precompute/__init__.py" "_d1c35f0bf487aa3fde059d968c=resfs/src/resfs/file/py/scipy/special/_precompute/__init__.py.yapyc3" "_0fc7df45b3889c04305fa10c46=resfs/file/py/scipy/special/_precompute/__init__.py.yapyc3" "_d26a6ca330202ef8c67deebc8d=resfs/src/resfs/file/py/scipy/special/_precompute/expn_asy.py" "_c02e427d960e9eb51448de3811=resfs/file/py/scipy/special/_precompute/expn_asy.py" "_b4fd1a05b939ae5c4979b1a0b3=resfs/src/resfs/file/py/scipy/special/_precompute/expn_asy.py.yapyc3" "_82ca1930a3a42d3bc5ff3d44c3=resfs/file/py/scipy/special/_precompute/expn_asy.py.yapyc3" "_6cb7260670e06b1d57e57d3d44=resfs/src/resfs/file/py/scipy/special/_precompute/gammainc_asy.py" "_f1e78a5794f58d11cad399cc64=resfs/file/py/scipy/special/_precompute/gammainc_asy.py" "_d5c38998c597d9a34806961285=resfs/src/resfs/file/py/scipy/special/_precompute/gammainc_asy.py.yapyc3" "_a4d8150cf185f2dda15fb30b51=resfs/file/py/scipy/special/_precompute/gammainc_asy.py.yapyc3" "_d3c72b6a8bdf9c0c74f56aa605=resfs/src/resfs/file/py/scipy/special/_precompute/utils.py" "_134a28052243cddc6d19dc5a6c=resfs/file/py/scipy/special/_precompute/utils.py" "_adab5fd5ccf3e2a1e81a024661=resfs/src/resfs/file/py/scipy/special/_precompute/utils.py.yapyc3" "_21a3e442e21f54394a589565c5=resfs/file/py/scipy/special/_precompute/utils.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -102,9 +111,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/scipy/scipy/special/_precompute/508c9cdf6c4be318f496897d40.cpp	</Message>
+      <Message>$B/contrib/python/scipy/scipy/special/_precompute/249ee01001714c80fdb3405625.cpp	$B/contrib/python/scipy/scipy/special/_precompute/508c9cdf6c4be318f496897d40.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\_precompute\508c9cdf6c4be318f496897d40.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\_precompute\249ee01001714c80fdb3405625.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\_precompute\508c9cdf6c4be318f496897d40.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

@@ -78,9 +78,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\find_root\ac060b1774370be963eb027400.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\find_root\ef9b91ff5a293dd6598616203b.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\library\python\find_root
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/find_root/ac060b1774370be963eb027400.cpp" "_2e9ce487097759091272e70bfc=py/namespace/6cf4653064b70ffd179ed998e7426fe1/library/python/find_root"
+if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\find_root
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/find_root/ef9b91ff5a293dd6598616203b.cpp" "_283e42a2adaef7f780d0f85c0a=resfs/src/resfs/file/py/library/python/find_root/__init__.py" "_10068da681c2e5b626cd875694=resfs/file/py/library/python/find_root/__init__.py" "_6eb4ee5feb296f4e8e31df6b91=resfs/src/resfs/file/py/library/python/find_root/__init__.py.yapyc3" "_8b22b9f3543e224421652cd616=resfs/file/py/library/python/find_root/__init__.py.yapyc3"
@@ -94,6 +99,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\find_root
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/find_root/ac060b1774370be963eb027400.cpp" "_2e9ce487097759091272e70bfc=py/namespace/6cf4653064b70ffd179ed998e7426fe1/library/python/find_root"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\library\python\find_root
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/find_root/ef9b91ff5a293dd6598616203b.cpp" "_283e42a2adaef7f780d0f85c0a=resfs/src/resfs/file/py/library/python/find_root/__init__.py" "_10068da681c2e5b626cd875694=resfs/file/py/library/python/find_root/__init__.py" "_6eb4ee5feb296f4e8e31df6b91=resfs/src/resfs/file/py/library/python/find_root/__init__.py.yapyc3" "_8b22b9f3543e224421652cd616=resfs/file/py/library/python/find_root/__init__.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -102,9 +111,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/find_root/ef9b91ff5a293dd6598616203b.cpp	</Message>
+      <Message>$B/library/python/find_root/ac060b1774370be963eb027400.cpp	$B/library/python/find_root/ef9b91ff5a293dd6598616203b.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\find_root\ef9b91ff5a293dd6598616203b.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\find_root\ac060b1774370be963eb027400.cpp;$(SolutionDir)$(Configuration)\library\python\find_root\ef9b91ff5a293dd6598616203b.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

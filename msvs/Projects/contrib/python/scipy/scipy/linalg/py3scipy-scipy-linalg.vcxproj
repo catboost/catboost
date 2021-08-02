@@ -117,6 +117,33 @@
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg\cython_lapack.pyx.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg\_c0379100affc12514a0b00be62.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/_c0379100affc12514a0b00be62.py3.obj" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/_c0379100affc12514a0b00be62.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/_c0379100affc12514a0b00be62.py3.obj" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/_c0379100affc12514a0b00be62.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/scipy/scipy/linalg/_c0379100affc12514a0b00be62.py3.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg\_c0379100affc12514a0b00be62.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg\_c0379100affc12514a0b00be62.py3.obj;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg\_interpolative_backend.py.yapyc3">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
@@ -170,6 +197,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/scipy/scipy/linalg/_858e3555f0213a095350d094f0.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg\misc.py.yapyc3;$(SolutionDir)..\contrib\python\scipy\scipy\linalg\_procrustes.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg\_procrustes.py.yapyc3;$(SolutionDir)..\contrib\python\scipy\scipy\linalg\_solvers.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg\_solvers.py.yapyc3;$(SolutionDir)..\contrib\python\scipy\scipy\linalg\special_matrices.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg\special_matrices.py.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg\_858e3555f0213a095350d094f0.yasm;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg\_1d6f7ae246f335c96cc46c68be.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg\_a19ab62881bda19bcf7172d78f.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg\_41f081448790ddf8d5f963b12a.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg\_c96c1205d3ee081505017b9f70.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg\_eb4b70dc91c0ef2dcdef8e81d8.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg\_488f18c9d555eedc99c6dd5ae6.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg\_93cb6afa554d06829f78056605.rodata;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/_c0379100affc12514a0b00be62.yasm" "-" "scipy.linalg." "_3e69ceaf213e9cb5440cafc783.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/linalg/_c0379100affc12514a0b00be62.yasm" "-" "scipy.linalg." "_3e69ceaf213e9cb5440cafc783.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/scipy/scipy/linalg/_c0379100affc12514a0b00be62.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\linalg\_c0379100affc12514a0b00be62.yasm;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\f2c.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

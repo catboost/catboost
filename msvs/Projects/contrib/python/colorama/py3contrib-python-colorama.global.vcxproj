@@ -78,10 +78,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\colorama\597c339725c96dfb4c50a2d901.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\colorama\9d104b6275ac037af7796eae64.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\colorama\ad292e0dfca10f0e244a721f83.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\colorama
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/colorama/597c339725c96dfb4c50a2d901.cpp" "_e445994bcb8c08266f39507eed=py/namespace/c12c63c956828c641b16ebd62d17c24a/contrib/python/colorama"
+if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\colorama
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/colorama/9d104b6275ac037af7796eae64.cpp" "_72061aa4afed5f742f3ba56b3e=resfs/src/resfs/file/contrib/python/colorama/.dist-info/METADATA" "_030de9490cbdbf6b158c8bab9b=resfs/file/contrib/python/colorama/.dist-info/METADATA" "_6f9d7e8ce80cddd30f97c11488=resfs/src/resfs/file/contrib/python/colorama/.dist-info/top_level.txt" "_8003bf47fd0066bf776a1e251a=resfs/file/contrib/python/colorama/.dist-info/top_level.txt"
@@ -99,6 +104,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\colorama
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/colorama/597c339725c96dfb4c50a2d901.cpp" "_e445994bcb8c08266f39507eed=py/namespace/c12c63c956828c641b16ebd62d17c24a/contrib/python/colorama"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\colorama
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/colorama/9d104b6275ac037af7796eae64.cpp" "_72061aa4afed5f742f3ba56b3e=resfs/src/resfs/file/contrib/python/colorama/.dist-info/METADATA" "_030de9490cbdbf6b158c8bab9b=resfs/file/contrib/python/colorama/.dist-info/METADATA" "_6f9d7e8ce80cddd30f97c11488=resfs/src/resfs/file/contrib/python/colorama/.dist-info/top_level.txt" "_8003bf47fd0066bf776a1e251a=resfs/file/contrib/python/colorama/.dist-info/top_level.txt"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\colorama
@@ -111,9 +120,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/colorama/9d104b6275ac037af7796eae64.cpp	$B/contrib/python/colorama/ad292e0dfca10f0e244a721f83.cpp	</Message>
+      <Message>$B/contrib/python/colorama/597c339725c96dfb4c50a2d901.cpp	$B/contrib/python/colorama/9d104b6275ac037af7796eae64.cpp	$B/contrib/python/colorama/ad292e0dfca10f0e244a721f83.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\colorama\9d104b6275ac037af7796eae64.cpp;$(SolutionDir)$(Configuration)\contrib\python\colorama\ad292e0dfca10f0e244a721f83.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\colorama\597c339725c96dfb4c50a2d901.cpp;$(SolutionDir)$(Configuration)\contrib\python\colorama\9d104b6275ac037af7796eae64.cpp;$(SolutionDir)$(Configuration)\contrib\python\colorama\ad292e0dfca10f0e244a721f83.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

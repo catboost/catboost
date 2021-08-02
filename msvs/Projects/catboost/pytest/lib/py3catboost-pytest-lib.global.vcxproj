@@ -78,9 +78,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\pytest\lib\5198bb0d23295b7c07e035ce32.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\pytest\lib\eb8e7d48525eb42d84dc5c565e.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\pytest\lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/5198bb0d23295b7c07e035ce32.cpp" "_41eb2b1b14a0a9e85daaa0ac44=py/namespace/79dfeb3b41eaeefeb50b84b68293b9e9/catboost/pytest/lib"
+if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\pytest\lib
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/eb8e7d48525eb42d84dc5c565e.cpp" "_810d4f24f4faeec1cf0ba37edc=resfs/src/resfs/file/py/catboost_pytest_lib/__init__.py" "_78084837bc1b68b6ca5ace0256=resfs/file/py/catboost_pytest_lib/__init__.py" "_bef879bf060f8f8ba4b380695b=resfs/src/resfs/file/py/catboost_pytest_lib/__init__.py.yapyc3" "_ef74edd14bd06353261fe2bbfb=resfs/file/py/catboost_pytest_lib/__init__.py.yapyc3" "_0185ba3a74560aabe599f4a91d=resfs/src/resfs/file/py/catboost_pytest_lib/common_helpers.py" "_ee433380351b7f351b31668280=resfs/file/py/catboost_pytest_lib/common_helpers.py" "_b0a922c701dd4205de56703a93=resfs/src/resfs/file/py/catboost_pytest_lib/common_helpers.py.yapyc3" "_ee9e9d6cf302af1613521eb207=resfs/file/py/catboost_pytest_lib/common_helpers.py.yapyc3"
@@ -94,6 +99,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\pytest\lib
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/5198bb0d23295b7c07e035ce32.cpp" "_41eb2b1b14a0a9e85daaa0ac44=py/namespace/79dfeb3b41eaeefeb50b84b68293b9e9/catboost/pytest/lib"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\catboost\pytest\lib
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/eb8e7d48525eb42d84dc5c565e.cpp" "_810d4f24f4faeec1cf0ba37edc=resfs/src/resfs/file/py/catboost_pytest_lib/__init__.py" "_78084837bc1b68b6ca5ace0256=resfs/file/py/catboost_pytest_lib/__init__.py" "_bef879bf060f8f8ba4b380695b=resfs/src/resfs/file/py/catboost_pytest_lib/__init__.py.yapyc3" "_ef74edd14bd06353261fe2bbfb=resfs/file/py/catboost_pytest_lib/__init__.py.yapyc3" "_0185ba3a74560aabe599f4a91d=resfs/src/resfs/file/py/catboost_pytest_lib/common_helpers.py" "_ee433380351b7f351b31668280=resfs/file/py/catboost_pytest_lib/common_helpers.py" "_b0a922c701dd4205de56703a93=resfs/src/resfs/file/py/catboost_pytest_lib/common_helpers.py.yapyc3" "_ee9e9d6cf302af1613521eb207=resfs/file/py/catboost_pytest_lib/common_helpers.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -102,9 +111,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/pytest/lib/eb8e7d48525eb42d84dc5c565e.cpp	</Message>
+      <Message>$B/catboost/pytest/lib/5198bb0d23295b7c07e035ce32.cpp	$B/catboost/pytest/lib/eb8e7d48525eb42d84dc5c565e.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\pytest\lib\eb8e7d48525eb42d84dc5c565e.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\pytest\lib\5198bb0d23295b7c07e035ce32.cpp;$(SolutionDir)$(Configuration)\catboost\pytest\lib\eb8e7d48525eb42d84dc5c565e.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

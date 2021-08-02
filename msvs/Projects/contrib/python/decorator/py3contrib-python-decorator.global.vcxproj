@@ -78,10 +78,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\decorator\704b78455da7a274a1f9a8a56d.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\decorator\c912cdda9da2ff71912f458bf7.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\decorator\e03b3ef04155a2bc377d0c36e6.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\decorator
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/decorator/704b78455da7a274a1f9a8a56d.cpp" "_665164e2169c22db23ee9423a8=py/namespace/4a33adf57479081c24c125a580d9ee2a/contrib/python/decorator"
+if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\decorator
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/decorator/c912cdda9da2ff71912f458bf7.cpp" "_f865b3e8051fae744748cacda1=resfs/src/resfs/file/py/decorator.py" "_7b1bc137f9e52f33d9b57cc09a=resfs/file/py/decorator.py" "_6c3be03910f21378d055e9ef4a=resfs/src/resfs/file/py/decorator.py.yapyc3" "_8690dccdf21db8068340eb8c0a=resfs/file/py/decorator.py.yapyc3"
@@ -99,6 +104,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\decorator
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/decorator/704b78455da7a274a1f9a8a56d.cpp" "_665164e2169c22db23ee9423a8=py/namespace/4a33adf57479081c24c125a580d9ee2a/contrib/python/decorator"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\decorator
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/decorator/c912cdda9da2ff71912f458bf7.cpp" "_f865b3e8051fae744748cacda1=resfs/src/resfs/file/py/decorator.py" "_7b1bc137f9e52f33d9b57cc09a=resfs/file/py/decorator.py" "_6c3be03910f21378d055e9ef4a=resfs/src/resfs/file/py/decorator.py.yapyc3" "_8690dccdf21db8068340eb8c0a=resfs/file/py/decorator.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\decorator
@@ -111,9 +120,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/decorator/c912cdda9da2ff71912f458bf7.cpp	$B/contrib/python/decorator/e03b3ef04155a2bc377d0c36e6.cpp	</Message>
+      <Message>$B/contrib/python/decorator/704b78455da7a274a1f9a8a56d.cpp	$B/contrib/python/decorator/c912cdda9da2ff71912f458bf7.cpp	$B/contrib/python/decorator/e03b3ef04155a2bc377d0c36e6.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\decorator\c912cdda9da2ff71912f458bf7.cpp;$(SolutionDir)$(Configuration)\contrib\python\decorator\e03b3ef04155a2bc377d0c36e6.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\decorator\704b78455da7a274a1f9a8a56d.cpp;$(SolutionDir)$(Configuration)\contrib\python\decorator\c912cdda9da2ff71912f458bf7.cpp;$(SolutionDir)$(Configuration)\contrib\python\decorator\e03b3ef04155a2bc377d0c36e6.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

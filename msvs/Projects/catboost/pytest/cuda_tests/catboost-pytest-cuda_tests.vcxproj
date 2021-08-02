@@ -80,6 +80,7 @@
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\pytest\cuda_tests\1204c9a5db0a366fa0204390af.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\pytest\cuda_tests\bf22328fecc5a97c8749758f59.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\pytest\cuda_tests\c4e5b1dc030d0096dd17e23d6d.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\pytest\cuda_tests\_1204c9a5db0a366fa0204390af.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\pytest\cuda_tests
@@ -134,11 +135,42 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\pytest\cuda_tests\_bf22328fecc5a97c8749758f59.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\pytest\cuda_tests\_bf22328fecc5a97c8749758f59.obj;</Outputs>
     </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\pytest\cuda_tests\_c4e5b1dc030d0096dd17e23d6d.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\pytest\cuda_tests
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/catboost/pytest/cuda_tests/_c4e5b1dc030d0096dd17e23d6d.obj" "$(SolutionDir)$(Configuration)/catboost/pytest/cuda_tests/_c4e5b1dc030d0096dd17e23d6d.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\pytest\cuda_tests
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/catboost/pytest/cuda_tests/_c4e5b1dc030d0096dd17e23d6d.obj" "$(SolutionDir)$(Configuration)/catboost/pytest/cuda_tests/_c4e5b1dc030d0096dd17e23d6d.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/catboost/pytest/cuda_tests/_c4e5b1dc030d0096dd17e23d6d.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\pytest\cuda_tests\_c4e5b1dc030d0096dd17e23d6d.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\pytest\cuda_tests\_c4e5b1dc030d0096dd17e23d6d.obj;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\pytest\cuda_tests
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/pytest/cuda_tests/_1204c9a5db0a366fa0204390af.yasm" "-" "library.python.pytest.main:main" "_6164ca864ac298eb1e7f991bba.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\catboost\pytest\cuda_tests
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/pytest/cuda_tests/_c4e5b1dc030d0096dd17e23d6d.yasm" "-" "__tests__." "_2aa025ddcaa34d4d23cf3e648e.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -151,15 +183,19 @@ cd /d $(SolutionDir)$(Configuration)\catboost\pytest\cuda_tests
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/pytest/cuda_tests/_1204c9a5db0a366fa0204390af.yasm" "-" "library.python.pytest.main:main" "_6164ca864ac298eb1e7f991bba.rodata"
 if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\catboost\pytest\cuda_tests
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/pytest/cuda_tests/_c4e5b1dc030d0096dd17e23d6d.yasm" "-" "__tests__." "_2aa025ddcaa34d4d23cf3e648e.rodata"
+if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/pytest/cuda_tests/_1204c9a5db0a366fa0204390af.yasm	</Message>
+      <Message>$B/catboost/pytest/cuda_tests/_1204c9a5db0a366fa0204390af.yasm	$B/catboost/pytest/cuda_tests/_c4e5b1dc030d0096dd17e23d6d.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\pytest\cuda_tests\_1204c9a5db0a366fa0204390af.yasm;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\pytest\cuda_tests\_1204c9a5db0a366fa0204390af.yasm;$(SolutionDir)$(Configuration)\catboost\pytest\cuda_tests\_c4e5b1dc030d0096dd17e23d6d.yasm;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -171,6 +207,10 @@ cd /d $(SolutionDir)$(Configuration)\catboost\pytest\cuda_tests
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/pytest/cuda_tests/bf22328fecc5a97c8749758f59.cpp" "_7be54588748e15da0690f2a1cd=resfs/src/resfs/file/py/__tests__/conftest.py" "_614a507b2356e46b0d846b6ab3=resfs/file/py/__tests__/conftest.py" "_157f01015796fe87c8cc12518a=resfs/src/resfs/file/py/__tests__/conftest.py.yapyc3" "_ed903152a2e299e1733cf4f11a=resfs/file/py/__tests__/conftest.py.yapyc3" "_cdd5147032c7d95938c62b77fa=resfs/src/resfs/file/py/__tests__/test_gpu.py" "_d7409a1ff2956937cc5eb8e838=resfs/file/py/__tests__/test_gpu.py" "_05f5ac9810fab6ee30e1f4916d=resfs/src/resfs/file/py/__tests__/test_gpu.py.yapyc3" "_0a9abb096eaea89d07756cab56=resfs/file/py/__tests__/test_gpu.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\catboost\pytest\cuda_tests
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/pytest/cuda_tests/c4e5b1dc030d0096dd17e23d6d.cpp" "_2aa025ddcaa34d4d23cf3e648e=py/namespace/5383ac9eceabce6d35a88a986dee1189/catboost/pytest/cuda_tests"
+if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
@@ -186,15 +226,19 @@ cd /d $(SolutionDir)$(Configuration)\catboost\pytest\cuda_tests
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/pytest/cuda_tests/bf22328fecc5a97c8749758f59.cpp" "_7be54588748e15da0690f2a1cd=resfs/src/resfs/file/py/__tests__/conftest.py" "_614a507b2356e46b0d846b6ab3=resfs/file/py/__tests__/conftest.py" "_157f01015796fe87c8cc12518a=resfs/src/resfs/file/py/__tests__/conftest.py.yapyc3" "_ed903152a2e299e1733cf4f11a=resfs/file/py/__tests__/conftest.py.yapyc3" "_cdd5147032c7d95938c62b77fa=resfs/src/resfs/file/py/__tests__/test_gpu.py" "_d7409a1ff2956937cc5eb8e838=resfs/file/py/__tests__/test_gpu.py" "_05f5ac9810fab6ee30e1f4916d=resfs/src/resfs/file/py/__tests__/test_gpu.py.yapyc3" "_0a9abb096eaea89d07756cab56=resfs/file/py/__tests__/test_gpu.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\catboost\pytest\cuda_tests
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/pytest/cuda_tests/c4e5b1dc030d0096dd17e23d6d.cpp" "_2aa025ddcaa34d4d23cf3e648e=py/namespace/5383ac9eceabce6d35a88a986dee1189/catboost/pytest/cuda_tests"
+if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/pytest/cuda_tests/1204c9a5db0a366fa0204390af.cpp	$B/catboost/pytest/cuda_tests/bf22328fecc5a97c8749758f59.cpp	</Message>
+      <Message>$B/catboost/pytest/cuda_tests/1204c9a5db0a366fa0204390af.cpp	$B/catboost/pytest/cuda_tests/bf22328fecc5a97c8749758f59.cpp	$B/catboost/pytest/cuda_tests/c4e5b1dc030d0096dd17e23d6d.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\pytest\cuda_tests\1204c9a5db0a366fa0204390af.cpp;$(SolutionDir)$(Configuration)\catboost\pytest\cuda_tests\bf22328fecc5a97c8749758f59.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\pytest\cuda_tests\1204c9a5db0a366fa0204390af.cpp;$(SolutionDir)$(Configuration)\catboost\pytest\cuda_tests\bf22328fecc5a97c8749758f59.cpp;$(SolutionDir)$(Configuration)\catboost\pytest\cuda_tests\c4e5b1dc030d0096dd17e23d6d.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\catboost\pytest\cuda_tests\conftest.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

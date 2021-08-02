@@ -80,6 +80,7 @@
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pluggy\2ef87a6139c9ca267781d51419.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pluggy\713ca11b454e885de39892a09d.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pluggy\b8c0a2e93f904f8d609058c9e3.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy
@@ -89,6 +90,10 @@ if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/713ca11b454e885de39892a09d.cpp" "_2603e2ff7fa4ce6fbade5188a6=resfs/src/resfs/file/py/pluggy/__init__.py" "_02b934139c587d49a2e0fcf076=resfs/file/py/pluggy/__init__.py" "_7f341c4095e9116522a9012055=resfs/src/resfs/file/py/pluggy/__init__.py.yapyc3" "_75412787e3290e54c01ce7a80d=resfs/file/py/pluggy/__init__.py.yapyc3" "_4bde71ae052a3a00e13733e4ee=resfs/src/resfs/file/py/pluggy/_tracing.py" "_901fcb4ce064f718cd61d22ced=resfs/file/py/pluggy/_tracing.py" "_1c1f95b1c1e834860db1f55aa1=resfs/src/resfs/file/py/pluggy/_tracing.py.yapyc3" "_ed3c097c726aefb635098e346e=resfs/file/py/pluggy/_tracing.py.yapyc3" "_7c3e3a8cd735ffbbe118ef75f6=resfs/src/resfs/file/py/pluggy/_version.py" "_8a1808bde757fa47f75b537f70=resfs/file/py/pluggy/_version.py" "_59d4edb0aaf33b7864ed31274a=resfs/src/resfs/file/py/pluggy/_version.py.yapyc3" "_acea409b79a7adee835a947e11=resfs/file/py/pluggy/_version.py.yapyc3" "_d156e3da36a5781f2fd3eb2061=resfs/src/resfs/file/py/pluggy/callers.py" "_49e776b043a4bc8b1c93130bde=resfs/file/py/pluggy/callers.py" "_781e9caf2d9b8677f029528f4c=resfs/src/resfs/file/py/pluggy/callers.py.yapyc3" "_8c48aace3bc1ba7b05e4a8b70b=resfs/file/py/pluggy/callers.py.yapyc3" "_c97da10da1a32e7933e47ca6e2=resfs/src/resfs/file/py/pluggy/hooks.py" "_8b28e908f4375b9ad967bb5b0d=resfs/file/py/pluggy/hooks.py" "_c48bb383b90720c060a41710b5=resfs/src/resfs/file/py/pluggy/hooks.py.yapyc3" "_1096bdfbb104484e02ff9996ae=resfs/file/py/pluggy/hooks.py.yapyc3" "_716cf6b2707937ee0f613c6e60=resfs/src/resfs/file/py/pluggy/manager.py" "_cb829f13a54fe3634733a9ac2b=resfs/file/py/pluggy/manager.py" "_10b3f8f52f3928195fafb7c2ba=resfs/src/resfs/file/py/pluggy/manager.py.yapyc3" "_590d260410f29df9496cdad821=resfs/file/py/pluggy/manager.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/b8c0a2e93f904f8d609058c9e3.cpp" "_c7a2e5953b68fcdf4a79e62a99=py/namespace/c217baae008953c0335dac25f334275d/contrib/python/pluggy"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -105,15 +110,19 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/713ca11b454e885de39892a09d.cpp" "_2603e2ff7fa4ce6fbade5188a6=resfs/src/resfs/file/py/pluggy/__init__.py" "_02b934139c587d49a2e0fcf076=resfs/file/py/pluggy/__init__.py" "_7f341c4095e9116522a9012055=resfs/src/resfs/file/py/pluggy/__init__.py.yapyc3" "_75412787e3290e54c01ce7a80d=resfs/file/py/pluggy/__init__.py.yapyc3" "_4bde71ae052a3a00e13733e4ee=resfs/src/resfs/file/py/pluggy/_tracing.py" "_901fcb4ce064f718cd61d22ced=resfs/file/py/pluggy/_tracing.py" "_1c1f95b1c1e834860db1f55aa1=resfs/src/resfs/file/py/pluggy/_tracing.py.yapyc3" "_ed3c097c726aefb635098e346e=resfs/file/py/pluggy/_tracing.py.yapyc3" "_7c3e3a8cd735ffbbe118ef75f6=resfs/src/resfs/file/py/pluggy/_version.py" "_8a1808bde757fa47f75b537f70=resfs/file/py/pluggy/_version.py" "_59d4edb0aaf33b7864ed31274a=resfs/src/resfs/file/py/pluggy/_version.py.yapyc3" "_acea409b79a7adee835a947e11=resfs/file/py/pluggy/_version.py.yapyc3" "_d156e3da36a5781f2fd3eb2061=resfs/src/resfs/file/py/pluggy/callers.py" "_49e776b043a4bc8b1c93130bde=resfs/file/py/pluggy/callers.py" "_781e9caf2d9b8677f029528f4c=resfs/src/resfs/file/py/pluggy/callers.py.yapyc3" "_8c48aace3bc1ba7b05e4a8b70b=resfs/file/py/pluggy/callers.py.yapyc3" "_c97da10da1a32e7933e47ca6e2=resfs/src/resfs/file/py/pluggy/hooks.py" "_8b28e908f4375b9ad967bb5b0d=resfs/file/py/pluggy/hooks.py" "_c48bb383b90720c060a41710b5=resfs/src/resfs/file/py/pluggy/hooks.py.yapyc3" "_1096bdfbb104484e02ff9996ae=resfs/file/py/pluggy/hooks.py.yapyc3" "_716cf6b2707937ee0f613c6e60=resfs/src/resfs/file/py/pluggy/manager.py" "_cb829f13a54fe3634733a9ac2b=resfs/file/py/pluggy/manager.py" "_10b3f8f52f3928195fafb7c2ba=resfs/src/resfs/file/py/pluggy/manager.py.yapyc3" "_590d260410f29df9496cdad821=resfs/file/py/pluggy/manager.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/b8c0a2e93f904f8d609058c9e3.cpp" "_c7a2e5953b68fcdf4a79e62a99=py/namespace/c217baae008953c0335dac25f334275d/contrib/python/pluggy"
+if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pluggy/2ef87a6139c9ca267781d51419.cpp	$B/contrib/python/pluggy/713ca11b454e885de39892a09d.cpp	</Message>
+      <Message>$B/contrib/python/pluggy/2ef87a6139c9ca267781d51419.cpp	$B/contrib/python/pluggy/713ca11b454e885de39892a09d.cpp	$B/contrib/python/pluggy/b8c0a2e93f904f8d609058c9e3.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pluggy\2ef87a6139c9ca267781d51419.cpp;$(SolutionDir)$(Configuration)\contrib\python\pluggy\713ca11b454e885de39892a09d.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pluggy\2ef87a6139c9ca267781d51419.cpp;$(SolutionDir)$(Configuration)\contrib\python\pluggy\713ca11b454e885de39892a09d.cpp;$(SolutionDir)$(Configuration)\contrib\python\pluggy\b8c0a2e93f904f8d609058c9e3.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

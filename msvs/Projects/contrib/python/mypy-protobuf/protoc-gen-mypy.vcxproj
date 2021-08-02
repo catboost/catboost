@@ -78,8 +78,36 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\mypy-protobuf\60f601bd6ea5de90d8547872e4.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\mypy-protobuf\7cc3982b53efbc0af759555f32.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\mypy-protobuf\9a9368e5b05684b61246ff59af.cpp"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\mypy-protobuf\_60f601bd6ea5de90d8547872e4.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\mypy-protobuf
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/mypy-protobuf/_60f601bd6ea5de90d8547872e4.obj" "$(SolutionDir)$(Configuration)/contrib/python/mypy-protobuf/_60f601bd6ea5de90d8547872e4.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\mypy-protobuf
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/mypy-protobuf/_60f601bd6ea5de90d8547872e4.obj" "$(SolutionDir)$(Configuration)/contrib/python/mypy-protobuf/_60f601bd6ea5de90d8547872e4.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/mypy-protobuf/_60f601bd6ea5de90d8547872e4.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\mypy-protobuf\_60f601bd6ea5de90d8547872e4.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\mypy-protobuf\_60f601bd6ea5de90d8547872e4.obj;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\mypy-protobuf\_7cc3982b53efbc0af759555f32.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\mypy-protobuf
@@ -138,6 +166,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\mypy-protobuf
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/mypy-protobuf/_60f601bd6ea5de90d8547872e4.yasm" "-" "contrib.python.mypy-protobuf." "_6f61119dff0669245fa5e7fe5e.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\mypy-protobuf
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/mypy-protobuf/_9a9368e5b05684b61246ff59af.yasm" "-" "contrib.python.mypy-protobuf.__main__" "_83fe20c1ba496be750bddbf87d.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -149,6 +181,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\mypy-protobuf
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/mypy-protobuf/_60f601bd6ea5de90d8547872e4.yasm" "-" "contrib.python.mypy-protobuf." "_6f61119dff0669245fa5e7fe5e.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\mypy-protobuf
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/mypy-protobuf/_9a9368e5b05684b61246ff59af.yasm" "-" "contrib.python.mypy-protobuf.__main__" "_83fe20c1ba496be750bddbf87d.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -157,14 +193,18 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/mypy-protobuf/_9a9368e5b05684b61246ff59af.yasm	</Message>
+      <Message>$B/contrib/python/mypy-protobuf/_60f601bd6ea5de90d8547872e4.yasm	$B/contrib/python/mypy-protobuf/_9a9368e5b05684b61246ff59af.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\mypy-protobuf\_9a9368e5b05684b61246ff59af.yasm;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\mypy-protobuf\_60f601bd6ea5de90d8547872e4.yasm;$(SolutionDir)$(Configuration)\contrib\python\mypy-protobuf\_9a9368e5b05684b61246ff59af.yasm;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\mypy-protobuf
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/mypy-protobuf/60f601bd6ea5de90d8547872e4.cpp" "_6f61119dff0669245fa5e7fe5e=py/namespace/f059e8c368ef7a346a269a2711be4617/contrib/python/mypy-protobuf"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\mypy-protobuf
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/mypy-protobuf/7cc3982b53efbc0af759555f32.cpp" "_4a6aacbc72df39590107391739=resfs/src/resfs/file/py/contrib/python/mypy-protobuf/__main__.py" "_fd8e61e1f624d309ab6d708522=resfs/file/py/contrib/python/mypy-protobuf/__main__.py" "_2f7a83ca427cb78dffff3830bb=resfs/src/resfs/file/py/contrib/python/mypy-protobuf/__main__.py.yapyc3" "_c225ee51140952d599bfabadeb=resfs/file/py/contrib/python/mypy-protobuf/__main__.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\mypy-protobuf
@@ -180,6 +220,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\mypy-protobuf
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/mypy-protobuf/60f601bd6ea5de90d8547872e4.cpp" "_6f61119dff0669245fa5e7fe5e=py/namespace/f059e8c368ef7a346a269a2711be4617/contrib/python/mypy-protobuf"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\mypy-protobuf
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/mypy-protobuf/7cc3982b53efbc0af759555f32.cpp" "_4a6aacbc72df39590107391739=resfs/src/resfs/file/py/contrib/python/mypy-protobuf/__main__.py" "_fd8e61e1f624d309ab6d708522=resfs/file/py/contrib/python/mypy-protobuf/__main__.py" "_2f7a83ca427cb78dffff3830bb=resfs/src/resfs/file/py/contrib/python/mypy-protobuf/__main__.py.yapyc3" "_c225ee51140952d599bfabadeb=resfs/file/py/contrib/python/mypy-protobuf/__main__.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\mypy-protobuf
@@ -192,9 +236,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/mypy-protobuf/7cc3982b53efbc0af759555f32.cpp	$B/contrib/python/mypy-protobuf/9a9368e5b05684b61246ff59af.cpp	</Message>
+      <Message>$B/contrib/python/mypy-protobuf/60f601bd6ea5de90d8547872e4.cpp	$B/contrib/python/mypy-protobuf/7cc3982b53efbc0af759555f32.cpp	$B/contrib/python/mypy-protobuf/9a9368e5b05684b61246ff59af.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\mypy-protobuf\7cc3982b53efbc0af759555f32.cpp;$(SolutionDir)$(Configuration)\contrib\python\mypy-protobuf\9a9368e5b05684b61246ff59af.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\mypy-protobuf\60f601bd6ea5de90d8547872e4.cpp;$(SolutionDir)$(Configuration)\contrib\python\mypy-protobuf\7cc3982b53efbc0af759555f32.cpp;$(SolutionDir)$(Configuration)\contrib\python\mypy-protobuf\9a9368e5b05684b61246ff59af.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\mypy-protobuf\__main__.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

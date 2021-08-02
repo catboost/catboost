@@ -78,6 +78,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random\994a2dac8c06064a0ad07fca77.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random\9e809bb56fbdcede5be0ea37f0.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random\numpy.random._bounded_integers.reg3.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random\numpy.random._common.reg3.cpp"/>
@@ -92,6 +93,10 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/994a2dac8c06064a0ad07fca77.cpp" "_acfeae3f8027a1e6739038535a=py/namespace/6559436e309aa33503fd554e1ebb7843/contrib/python/numpy/py3/numpy/random"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/9e809bb56fbdcede5be0ea37f0.cpp" "_680210d38f8d5e8298dc4ff56c=resfs/src/resfs/file/py/numpy/random/__init__.py" "_6efb7e8e0145ebe74eb6238822=resfs/file/py/numpy/random/__init__.py" "_9b648ba4f66950d1534dd42595=resfs/src/resfs/file/py/numpy/random/__init__.py.yapyc3" "_8772b3e3ebd502bb6fb551454b=resfs/file/py/numpy/random/__init__.py.yapyc3" "_3504c15ee6c1ea4b296100cf9a=resfs/src/resfs/file/py/numpy/random/_pickle.py" "_de4eaec36769ab98459d8401b2=resfs/file/py/numpy/random/_pickle.py" "_a6f5dea9b0acc35bd84bdbaa16=resfs/src/resfs/file/py/numpy/random/_pickle.py.yapyc3" "_23e8fba020caea7799fa096a3d=resfs/file/py/numpy/random/_pickle.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -103,6 +108,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/994a2dac8c06064a0ad07fca77.cpp" "_acfeae3f8027a1e6739038535a=py/namespace/6559436e309aa33503fd554e1ebb7843/contrib/python/numpy/py3/numpy/random"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/9e809bb56fbdcede5be0ea37f0.cpp" "_680210d38f8d5e8298dc4ff56c=resfs/src/resfs/file/py/numpy/random/__init__.py" "_6efb7e8e0145ebe74eb6238822=resfs/file/py/numpy/random/__init__.py" "_9b648ba4f66950d1534dd42595=resfs/src/resfs/file/py/numpy/random/__init__.py.yapyc3" "_8772b3e3ebd502bb6fb551454b=resfs/file/py/numpy/random/__init__.py.yapyc3" "_3504c15ee6c1ea4b296100cf9a=resfs/src/resfs/file/py/numpy/random/_pickle.py" "_de4eaec36769ab98459d8401b2=resfs/file/py/numpy/random/_pickle.py" "_a6f5dea9b0acc35bd84bdbaa16=resfs/src/resfs/file/py/numpy/random/_pickle.py.yapyc3" "_23e8fba020caea7799fa096a3d=resfs/file/py/numpy/random/_pickle.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -111,9 +120,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/numpy/py3/numpy/random/9e809bb56fbdcede5be0ea37f0.cpp	</Message>
+      <Message>$B/contrib/python/numpy/py3/numpy/random/994a2dac8c06064a0ad07fca77.cpp	$B/contrib/python/numpy/py3/numpy/random/9e809bb56fbdcede5be0ea37f0.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random\9e809bb56fbdcede5be0ea37f0.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random\994a2dac8c06064a0ad07fca77.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random\9e809bb56fbdcede5be0ea37f0.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_py3_reg.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

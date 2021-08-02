@@ -78,6 +78,33 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\tools\python3\lib\py\_2018d6e4672ccf0316c1c4a5de.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\tools\python3\lib\py
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/tools/python3/lib/py/_2018d6e4672ccf0316c1c4a5de.obj" "$(SolutionDir)$(Configuration)/contrib/tools/python3/lib/py/_2018d6e4672ccf0316c1c4a5de.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\tools\python3\lib\py
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/tools/python3/lib/py/_2018d6e4672ccf0316c1c4a5de.obj" "$(SolutionDir)$(Configuration)/contrib/tools/python3/lib/py/_2018d6e4672ccf0316c1c4a5de.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/tools/python3/lib/py/_2018d6e4672ccf0316c1c4a5de.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\tools\python3\lib\py\_2018d6e4672ccf0316c1c4a5de.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\tools\python3\lib\py\_2018d6e4672ccf0316c1c4a5de.obj;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\tools\python3\lib\py\_9403cb2ee6a58815c6b03cd5ec.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\tools\python3\lib\py
@@ -109,6 +136,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\tools\python3\lib\py
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/tools/python3/lib/py/_2018d6e4672ccf0316c1c4a5de.yasm" "-" "." "_e303bf6b518755730d68c74bbd.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\tools\python3\lib\py
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/tools/python3/lib/py/_9403cb2ee6a58815c6b03cd5ec.yasm" "-" "antigravity asyncio.unix_events asyncio.windows_events asyncio.windows_utils crypt ctypes.wintypes curses.* dbm.gnu dbm.ndbm distutils._msvccompiler distutils.command.bdist_msi distutils.msvc9compiler encodings.cp65001 encodings.mbcs encodings.oem lzma msilib.* multiprocessing.popen_fork multiprocessing.popen_forkserver multiprocessing.popen_spawn_posix multiprocessing.popen_spawn_win32 sqlite3.* turtle pty tty" "_9108930414cf177137fb88cd0d.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -120,6 +151,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\tools\python3\lib\py
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/tools/python3/lib/py/_2018d6e4672ccf0316c1c4a5de.yasm" "-" "." "_e303bf6b518755730d68c74bbd.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\tools\python3\lib\py
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/tools/python3/lib/py/_9403cb2ee6a58815c6b03cd5ec.yasm" "-" "antigravity asyncio.unix_events asyncio.windows_events asyncio.windows_utils crypt ctypes.wintypes curses.* dbm.gnu dbm.ndbm distutils._msvccompiler distutils.command.bdist_msi distutils.msvc9compiler encodings.cp65001 encodings.mbcs encodings.oem lzma msilib.* multiprocessing.popen_fork multiprocessing.popen_forkserver multiprocessing.popen_spawn_posix multiprocessing.popen_spawn_win32 sqlite3.* turtle pty tty" "_9108930414cf177137fb88cd0d.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -128,9 +163,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/tools/python3/lib/py/_9403cb2ee6a58815c6b03cd5ec.yasm	</Message>
+      <Message>$B/contrib/tools/python3/lib/py/_2018d6e4672ccf0316c1c4a5de.yasm	$B/contrib/tools/python3/lib/py/_9403cb2ee6a58815c6b03cd5ec.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\tools\python3\lib\py\_9403cb2ee6a58815c6b03cd5ec.yasm;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\tools\python3\lib\py\_2018d6e4672ccf0316c1c4a5de.yasm;$(SolutionDir)$(Configuration)\contrib\tools\python3\lib\py\_9403cb2ee6a58815c6b03cd5ec.yasm;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\tools\python3\src\Lib\__future__.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

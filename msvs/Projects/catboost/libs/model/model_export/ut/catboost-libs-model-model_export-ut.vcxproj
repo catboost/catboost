@@ -80,6 +80,7 @@
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\1204c9a5db0a366fa0204390af.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\2ddc361d0464819a0ce5a16feb.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\ec0de4b8c283a5e0cff7d68820.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\_1204c9a5db0a366fa0204390af.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut
@@ -134,11 +135,42 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\_2ddc361d0464819a0ce5a16feb.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\_2ddc361d0464819a0ce5a16feb.obj;</Outputs>
     </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\_ec0de4b8c283a5e0cff7d68820.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/ut/_ec0de4b8c283a5e0cff7d68820.obj" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/ut/_ec0de4b8c283a5e0cff7d68820.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/ut/_ec0de4b8c283a5e0cff7d68820.obj" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/ut/_ec0de4b8c283a5e0cff7d68820.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/catboost/libs/model/model_export/ut/_ec0de4b8c283a5e0cff7d68820.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\_ec0de4b8c283a5e0cff7d68820.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\_ec0de4b8c283a5e0cff7d68820.obj;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/ut/_1204c9a5db0a366fa0204390af.yasm" "-" "library.python.pytest.main:main" "_486110ad9f97aea84864a10418.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/ut/_ec0de4b8c283a5e0cff7d68820.yasm" "-" "__tests__." "_b1cd9b70d63f6b7f94f95cab91.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -151,15 +183,19 @@ cd /d $(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/ut/_1204c9a5db0a366fa0204390af.yasm" "-" "library.python.pytest.main:main" "_486110ad9f97aea84864a10418.rodata"
 if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/ut/_ec0de4b8c283a5e0cff7d68820.yasm" "-" "__tests__." "_b1cd9b70d63f6b7f94f95cab91.rodata"
+if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/libs/model/model_export/ut/_1204c9a5db0a366fa0204390af.yasm	</Message>
+      <Message>$B/catboost/libs/model/model_export/ut/_1204c9a5db0a366fa0204390af.yasm	$B/catboost/libs/model/model_export/ut/_ec0de4b8c283a5e0cff7d68820.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\_1204c9a5db0a366fa0204390af.yasm;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\_1204c9a5db0a366fa0204390af.yasm;$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\_ec0de4b8c283a5e0cff7d68820.yasm;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -171,6 +207,10 @@ cd /d $(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/ut/2ddc361d0464819a0ce5a16feb.cpp" "_96e9c3e045f1bcb2a657546bef=resfs/src/resfs/file/py/__tests__/test.py" "_a920a0d0d6606fcd3066ab715c=resfs/file/py/__tests__/test.py" "_1ba87430977befe4db9831b176=resfs/src/resfs/file/py/__tests__/test.py.yapyc3" "_52dfa9dcb1b24961225139ee7a=resfs/file/py/__tests__/test.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/ut/ec0de4b8c283a5e0cff7d68820.cpp" "_b1cd9b70d63f6b7f94f95cab91=py/namespace/18e6690be8cc11f59552ab9d4ce2578b/catboost/libs/model/model_export/ut"
+if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
@@ -186,15 +226,19 @@ cd /d $(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/ut/2ddc361d0464819a0ce5a16feb.cpp" "_96e9c3e045f1bcb2a657546bef=resfs/src/resfs/file/py/__tests__/test.py" "_a920a0d0d6606fcd3066ab715c=resfs/file/py/__tests__/test.py" "_1ba87430977befe4db9831b176=resfs/src/resfs/file/py/__tests__/test.py.yapyc3" "_52dfa9dcb1b24961225139ee7a=resfs/file/py/__tests__/test.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/ut/ec0de4b8c283a5e0cff7d68820.cpp" "_b1cd9b70d63f6b7f94f95cab91=py/namespace/18e6690be8cc11f59552ab9d4ce2578b/catboost/libs/model/model_export/ut"
+if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/libs/model/model_export/ut/1204c9a5db0a366fa0204390af.cpp	$B/catboost/libs/model/model_export/ut/2ddc361d0464819a0ce5a16feb.cpp	</Message>
+      <Message>$B/catboost/libs/model/model_export/ut/1204c9a5db0a366fa0204390af.cpp	$B/catboost/libs/model/model_export/ut/2ddc361d0464819a0ce5a16feb.cpp	$B/catboost/libs/model/model_export/ut/ec0de4b8c283a5e0cff7d68820.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\1204c9a5db0a366fa0204390af.cpp;$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\2ddc361d0464819a0ce5a16feb.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\1204c9a5db0a366fa0204390af.cpp;$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\2ddc361d0464819a0ce5a16feb.cpp;$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\ec0de4b8c283a5e0cff7d68820.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\catboost\libs\model\model_export\ut\test.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

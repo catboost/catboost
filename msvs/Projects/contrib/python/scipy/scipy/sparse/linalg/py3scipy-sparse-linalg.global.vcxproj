@@ -79,11 +79,16 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\6cf663dd23bd71718cd3ac0ac2.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\ebd1e7da0619a5a0b9666f5dc1.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/6cf663dd23bd71718cd3ac0ac2.cpp" "_f3e3e4da5e3cc7eee57d00584f=resfs/src/resfs/file/py/scipy/sparse/linalg/__init__.py" "_3b5a2e5e098b62e8cfe72b0984=resfs/file/py/scipy/sparse/linalg/__init__.py" "_e121c921bebf9a0aef08f544d6=resfs/src/resfs/file/py/scipy/sparse/linalg/__init__.py.yapyc3" "_33af8aedda318a9b9f13406f3e=resfs/file/py/scipy/sparse/linalg/__init__.py.yapyc3" "_18e347f618289842e0f7b62aab=resfs/src/resfs/file/py/scipy/sparse/linalg/interface.py" "_bc6006127cd3f9cbcbe8b13f31=resfs/file/py/scipy/sparse/linalg/interface.py" "_977321d990e2498bfbaaf38ab1=resfs/src/resfs/file/py/scipy/sparse/linalg/interface.py.yapyc3" "_879d1742ad83cfa626ddde6723=resfs/file/py/scipy/sparse/linalg/interface.py.yapyc3" "_5a9233833cd3e17c983ec93751=resfs/src/resfs/file/py/scipy/sparse/linalg/_onenormest.py" "_2675edd42fd30a3aede6771916=resfs/file/py/scipy/sparse/linalg/_onenormest.py" "_8083fc4558158c291f3c3d7259=resfs/src/resfs/file/py/scipy/sparse/linalg/_onenormest.py.yapyc3" "_775fb87d0700e1460ba6e96f1c=resfs/file/py/scipy/sparse/linalg/_onenormest.py.yapyc3" "_5bf150defd5d1308ddef3ec014=resfs/src/resfs/file/py/scipy/sparse/linalg/matfuncs.py" "_151bd7e2f9098a7763b310de98=resfs/file/py/scipy/sparse/linalg/matfuncs.py" "_42a89fc3be137c3aaef02be617=resfs/src/resfs/file/py/scipy/sparse/linalg/matfuncs.py.yapyc3" "_e1643e96952ce05cca1c3a001f=resfs/file/py/scipy/sparse/linalg/matfuncs.py.yapyc3" "_600ec542161efac641bb232149=resfs/src/resfs/file/py/scipy/sparse/linalg/_norm.py" "_a745679f1e9d8c062ed5132cd9=resfs/file/py/scipy/sparse/linalg/_norm.py" "_3a4a5eae8846a27b2f34551c89=resfs/src/resfs/file/py/scipy/sparse/linalg/_norm.py.yapyc3" "_bca02085f3de1183badc55a681=resfs/file/py/scipy/sparse/linalg/_norm.py.yapyc3" "_5ef7de44036a503ac0d1411c9d=resfs/src/resfs/file/py/scipy/sparse/linalg/_expm_multiply.py" "_fc466b13b7b9e2baaac399c3dc=resfs/file/py/scipy/sparse/linalg/_expm_multiply.py" "_1770b3968d80abb97e96cc07de=resfs/src/resfs/file/py/scipy/sparse/linalg/_expm_multiply.py.yapyc3" "_a08ef0c78e5d1a192ec52a478c=resfs/file/py/scipy/sparse/linalg/_expm_multiply.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/ebd1e7da0619a5a0b9666f5dc1.cpp" "_65bd944a1e5e70a78c29f374dc=py/namespace/6cdccbd3f5ac8333763da96f110238f6/contrib/python/scipy/scipy/sparse/linalg"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -96,15 +101,19 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/6cf663dd23bd71718cd3ac0ac2.cpp" "_f3e3e4da5e3cc7eee57d00584f=resfs/src/resfs/file/py/scipy/sparse/linalg/__init__.py" "_3b5a2e5e098b62e8cfe72b0984=resfs/file/py/scipy/sparse/linalg/__init__.py" "_e121c921bebf9a0aef08f544d6=resfs/src/resfs/file/py/scipy/sparse/linalg/__init__.py.yapyc3" "_33af8aedda318a9b9f13406f3e=resfs/file/py/scipy/sparse/linalg/__init__.py.yapyc3" "_18e347f618289842e0f7b62aab=resfs/src/resfs/file/py/scipy/sparse/linalg/interface.py" "_bc6006127cd3f9cbcbe8b13f31=resfs/file/py/scipy/sparse/linalg/interface.py" "_977321d990e2498bfbaaf38ab1=resfs/src/resfs/file/py/scipy/sparse/linalg/interface.py.yapyc3" "_879d1742ad83cfa626ddde6723=resfs/file/py/scipy/sparse/linalg/interface.py.yapyc3" "_5a9233833cd3e17c983ec93751=resfs/src/resfs/file/py/scipy/sparse/linalg/_onenormest.py" "_2675edd42fd30a3aede6771916=resfs/file/py/scipy/sparse/linalg/_onenormest.py" "_8083fc4558158c291f3c3d7259=resfs/src/resfs/file/py/scipy/sparse/linalg/_onenormest.py.yapyc3" "_775fb87d0700e1460ba6e96f1c=resfs/file/py/scipy/sparse/linalg/_onenormest.py.yapyc3" "_5bf150defd5d1308ddef3ec014=resfs/src/resfs/file/py/scipy/sparse/linalg/matfuncs.py" "_151bd7e2f9098a7763b310de98=resfs/file/py/scipy/sparse/linalg/matfuncs.py" "_42a89fc3be137c3aaef02be617=resfs/src/resfs/file/py/scipy/sparse/linalg/matfuncs.py.yapyc3" "_e1643e96952ce05cca1c3a001f=resfs/file/py/scipy/sparse/linalg/matfuncs.py.yapyc3" "_600ec542161efac641bb232149=resfs/src/resfs/file/py/scipy/sparse/linalg/_norm.py" "_a745679f1e9d8c062ed5132cd9=resfs/file/py/scipy/sparse/linalg/_norm.py" "_3a4a5eae8846a27b2f34551c89=resfs/src/resfs/file/py/scipy/sparse/linalg/_norm.py.yapyc3" "_bca02085f3de1183badc55a681=resfs/file/py/scipy/sparse/linalg/_norm.py.yapyc3" "_5ef7de44036a503ac0d1411c9d=resfs/src/resfs/file/py/scipy/sparse/linalg/_expm_multiply.py" "_fc466b13b7b9e2baaac399c3dc=resfs/file/py/scipy/sparse/linalg/_expm_multiply.py" "_1770b3968d80abb97e96cc07de=resfs/src/resfs/file/py/scipy/sparse/linalg/_expm_multiply.py.yapyc3" "_a08ef0c78e5d1a192ec52a478c=resfs/file/py/scipy/sparse/linalg/_expm_multiply.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/ebd1e7da0619a5a0b9666f5dc1.cpp" "_65bd944a1e5e70a78c29f374dc=py/namespace/6cdccbd3f5ac8333763da96f110238f6/contrib/python/scipy/scipy/sparse/linalg"
+if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/scipy/scipy/sparse/linalg/6cf663dd23bd71718cd3ac0ac2.cpp	</Message>
+      <Message>$B/contrib/python/scipy/scipy/sparse/linalg/6cf663dd23bd71718cd3ac0ac2.cpp	$B/contrib/python/scipy/scipy/sparse/linalg/ebd1e7da0619a5a0b9666f5dc1.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\6cf663dd23bd71718cd3ac0ac2.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\6cf663dd23bd71718cd3ac0ac2.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\ebd1e7da0619a5a0b9666f5dc1.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

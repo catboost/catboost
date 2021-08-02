@@ -79,6 +79,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\23e7e8ef9844203f4eebaf790d.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\a7eb31a80235c90bb8b0c1c8de.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\scipy.integrate._dop.reg3.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\scipy.integrate._odepack.reg3.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\scipy.integrate._quadpack.reg3.cpp"/>
@@ -89,6 +90,10 @@
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/23e7e8ef9844203f4eebaf790d.cpp" "_fa91d4655d24b08addfa91ca1a=resfs/src/resfs/file/py/scipy/integrate/__init__.py" "_a3cdf95a1911b7fdf7a4fe1a5b=resfs/file/py/scipy/integrate/__init__.py" "_1299c043d20e08c5b009511a01=resfs/src/resfs/file/py/scipy/integrate/__init__.py.yapyc3" "_10c217aa0f528b5174506fb63a=resfs/file/py/scipy/integrate/__init__.py.yapyc3" "_3fee2bcc61d9989f5369e0b8cd=resfs/src/resfs/file/py/scipy/integrate/quadpack.py" "_11ebd472f23d0ce0b50fa0ca70=resfs/file/py/scipy/integrate/quadpack.py" "_fdf170090feccd2c5bc1f65678=resfs/src/resfs/file/py/scipy/integrate/quadpack.py.yapyc3" "_47785e84243b323f14f53aa37f=resfs/file/py/scipy/integrate/quadpack.py.yapyc3" "_e6ceeb2bb2eb9592781027249f=resfs/src/resfs/file/py/scipy/integrate/quadrature.py" "_f884cd29f8fb147ac631d903f2=resfs/file/py/scipy/integrate/quadrature.py" "_e4ab3fcdb0cc50aab2da3ddf9b=resfs/src/resfs/file/py/scipy/integrate/quadrature.py.yapyc3" "_a52af0cb4ed9d95b41483e8b8e=resfs/file/py/scipy/integrate/quadrature.py.yapyc3" "_4ad8f206d01952c8b34f0260e9=resfs/src/resfs/file/py/scipy/integrate/_ode.py" "_2b8a0edd355a1c6e76ba3f38f4=resfs/file/py/scipy/integrate/_ode.py" "_1501330e02b939a15ec8ef0a4f=resfs/src/resfs/file/py/scipy/integrate/_ode.py.yapyc3" "_bce4eb216ab8d06537499113c5=resfs/file/py/scipy/integrate/_ode.py.yapyc3" "_20af4eae93cf2f2c3ff18187dc=resfs/src/resfs/file/py/scipy/integrate/odepack.py" "_ec1833bdfebd9216af316c4641=resfs/file/py/scipy/integrate/odepack.py" "_67048428318e4894dcdb300846=resfs/src/resfs/file/py/scipy/integrate/odepack.py.yapyc3" "_999e6c696a3cbd65da55ea5c1e=resfs/file/py/scipy/integrate/odepack.py.yapyc3" "_53e85ad75f73c0dbf31eb2358b=resfs/src/resfs/file/py/scipy/integrate/_bvp.py" "_f78df553cef1756718d56c3632=resfs/file/py/scipy/integrate/_bvp.py" "_6ad460d5e5282317320e2cb99d=resfs/src/resfs/file/py/scipy/integrate/_bvp.py.yapyc3" "_9fdbee3e07263737821f900880=resfs/file/py/scipy/integrate/_bvp.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/a7eb31a80235c90bb8b0c1c8de.cpp" "_ea909b21157f116bc6d9824d78=py/namespace/55d52f23784be1ebbe82f3599b8ee1e1/contrib/python/scipy/scipy/integrate"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -101,15 +106,19 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/23e7e8ef9844203f4eebaf790d.cpp" "_fa91d4655d24b08addfa91ca1a=resfs/src/resfs/file/py/scipy/integrate/__init__.py" "_a3cdf95a1911b7fdf7a4fe1a5b=resfs/file/py/scipy/integrate/__init__.py" "_1299c043d20e08c5b009511a01=resfs/src/resfs/file/py/scipy/integrate/__init__.py.yapyc3" "_10c217aa0f528b5174506fb63a=resfs/file/py/scipy/integrate/__init__.py.yapyc3" "_3fee2bcc61d9989f5369e0b8cd=resfs/src/resfs/file/py/scipy/integrate/quadpack.py" "_11ebd472f23d0ce0b50fa0ca70=resfs/file/py/scipy/integrate/quadpack.py" "_fdf170090feccd2c5bc1f65678=resfs/src/resfs/file/py/scipy/integrate/quadpack.py.yapyc3" "_47785e84243b323f14f53aa37f=resfs/file/py/scipy/integrate/quadpack.py.yapyc3" "_e6ceeb2bb2eb9592781027249f=resfs/src/resfs/file/py/scipy/integrate/quadrature.py" "_f884cd29f8fb147ac631d903f2=resfs/file/py/scipy/integrate/quadrature.py" "_e4ab3fcdb0cc50aab2da3ddf9b=resfs/src/resfs/file/py/scipy/integrate/quadrature.py.yapyc3" "_a52af0cb4ed9d95b41483e8b8e=resfs/file/py/scipy/integrate/quadrature.py.yapyc3" "_4ad8f206d01952c8b34f0260e9=resfs/src/resfs/file/py/scipy/integrate/_ode.py" "_2b8a0edd355a1c6e76ba3f38f4=resfs/file/py/scipy/integrate/_ode.py" "_1501330e02b939a15ec8ef0a4f=resfs/src/resfs/file/py/scipy/integrate/_ode.py.yapyc3" "_bce4eb216ab8d06537499113c5=resfs/file/py/scipy/integrate/_ode.py.yapyc3" "_20af4eae93cf2f2c3ff18187dc=resfs/src/resfs/file/py/scipy/integrate/odepack.py" "_ec1833bdfebd9216af316c4641=resfs/file/py/scipy/integrate/odepack.py" "_67048428318e4894dcdb300846=resfs/src/resfs/file/py/scipy/integrate/odepack.py.yapyc3" "_999e6c696a3cbd65da55ea5c1e=resfs/file/py/scipy/integrate/odepack.py.yapyc3" "_53e85ad75f73c0dbf31eb2358b=resfs/src/resfs/file/py/scipy/integrate/_bvp.py" "_f78df553cef1756718d56c3632=resfs/file/py/scipy/integrate/_bvp.py" "_6ad460d5e5282317320e2cb99d=resfs/src/resfs/file/py/scipy/integrate/_bvp.py.yapyc3" "_9fdbee3e07263737821f900880=resfs/file/py/scipy/integrate/_bvp.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/a7eb31a80235c90bb8b0c1c8de.cpp" "_ea909b21157f116bc6d9824d78=py/namespace/55d52f23784be1ebbe82f3599b8ee1e1/contrib/python/scipy/scipy/integrate"
+if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/scipy/scipy/integrate/23e7e8ef9844203f4eebaf790d.cpp	</Message>
+      <Message>$B/contrib/python/scipy/scipy/integrate/23e7e8ef9844203f4eebaf790d.cpp	$B/contrib/python/scipy/scipy/integrate/a7eb31a80235c90bb8b0c1c8de.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\23e7e8ef9844203f4eebaf790d.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\23e7e8ef9844203f4eebaf790d.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\a7eb31a80235c90bb8b0c1c8de.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_py3_reg.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

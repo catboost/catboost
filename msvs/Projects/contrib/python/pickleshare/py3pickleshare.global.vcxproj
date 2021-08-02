@@ -79,11 +79,16 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pickleshare\762ef103d4c6d89afd916e3eb1.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pickleshare\c0b1f3b3f7540a1fd31ef2173f.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pickleshare
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pickleshare/762ef103d4c6d89afd916e3eb1.cpp" "_91c302af298ea7aa91316f7868=resfs/src/resfs/file/py/pickleshare.py" "_aa3dc677dc58466920465fe33a=resfs/file/py/pickleshare.py" "_126f1e4851d5fb73ff40a95ede=resfs/src/resfs/file/py/pickleshare.py.yapyc3" "_b3d85c1c915fbd5bee9c7d7c3d=resfs/file/py/pickleshare.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pickleshare
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pickleshare/c0b1f3b3f7540a1fd31ef2173f.cpp" "_ee3f8f9245efe7b211aee6d488=py/namespace/6b4fbaba54a9d869de64ca903ee51c4f/contrib/python/pickleshare"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -96,15 +101,19 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\pickleshare
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pickleshare/762ef103d4c6d89afd916e3eb1.cpp" "_91c302af298ea7aa91316f7868=resfs/src/resfs/file/py/pickleshare.py" "_aa3dc677dc58466920465fe33a=resfs/file/py/pickleshare.py" "_126f1e4851d5fb73ff40a95ede=resfs/src/resfs/file/py/pickleshare.py.yapyc3" "_b3d85c1c915fbd5bee9c7d7c3d=resfs/file/py/pickleshare.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pickleshare
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pickleshare/c0b1f3b3f7540a1fd31ef2173f.cpp" "_ee3f8f9245efe7b211aee6d488=py/namespace/6b4fbaba54a9d869de64ca903ee51c4f/contrib/python/pickleshare"
+if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pickleshare/762ef103d4c6d89afd916e3eb1.cpp	</Message>
+      <Message>$B/contrib/python/pickleshare/762ef103d4c6d89afd916e3eb1.cpp	$B/contrib/python/pickleshare/c0b1f3b3f7540a1fd31ef2173f.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pickleshare\762ef103d4c6d89afd916e3eb1.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pickleshare\762ef103d4c6d89afd916e3eb1.cpp;$(SolutionDir)$(Configuration)\contrib\python\pickleshare\c0b1f3b3f7540a1fd31ef2173f.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

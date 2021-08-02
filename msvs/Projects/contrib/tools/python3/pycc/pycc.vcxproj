@@ -78,8 +78,36 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\6f80c922eec33639a2ab66ede9.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\dbfa6851acd522be261f09ed86.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\e3d4c9743fe95c93c5114b5114.cpp"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\_6f80c922eec33639a2ab66ede9.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\tools\python3\pycc
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/_6f80c922eec33639a2ab66ede9.obj" "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/_6f80c922eec33639a2ab66ede9.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\tools\python3\pycc
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/_6f80c922eec33639a2ab66ede9.obj" "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/_6f80c922eec33639a2ab66ede9.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/tools/python3/pycc/_6f80c922eec33639a2ab66ede9.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\_6f80c922eec33639a2ab66ede9.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\_6f80c922eec33639a2ab66ede9.obj;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\_dbfa6851acd522be261f09ed86.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\tools\python3\pycc
@@ -138,6 +166,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\tools\python3\pycc
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/_6f80c922eec33639a2ab66ede9.yasm" "-" "contrib.tools.python3.pycc." "_be7288c001bf9b5ef38ea2d2f9.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\tools\python3\pycc
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/_e3d4c9743fe95c93c5114b5114.yasm" "-" "contrib.tools.python3.pycc.main:main" "_1f33377a7b6800f84c6e5486b8.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -149,6 +181,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\tools\python3\pycc
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/_6f80c922eec33639a2ab66ede9.yasm" "-" "contrib.tools.python3.pycc." "_be7288c001bf9b5ef38ea2d2f9.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\tools\python3\pycc
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/_e3d4c9743fe95c93c5114b5114.yasm" "-" "contrib.tools.python3.pycc.main:main" "_1f33377a7b6800f84c6e5486b8.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -157,14 +193,18 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/tools/python3/pycc/_e3d4c9743fe95c93c5114b5114.yasm	</Message>
+      <Message>$B/contrib/tools/python3/pycc/_6f80c922eec33639a2ab66ede9.yasm	$B/contrib/tools/python3/pycc/_e3d4c9743fe95c93c5114b5114.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\_e3d4c9743fe95c93c5114b5114.yasm;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\_6f80c922eec33639a2ab66ede9.yasm;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\_e3d4c9743fe95c93c5114b5114.yasm;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\tools\python3\pycc
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/6f80c922eec33639a2ab66ede9.cpp" "_be7288c001bf9b5ef38ea2d2f9=py/namespace/2aaff0c63b5177a20ab0deba7e0ce4eb/contrib/tools/python3/pycc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\tools\python3\pycc
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/dbfa6851acd522be261f09ed86.cpp" "_0472c974c1adee3f5b5b35f3d5=resfs/src/resfs/file/py/contrib/tools/python3/pycc/main.py" "_dbf250e52bd7b755c099f41c82=resfs/file/py/contrib/tools/python3/pycc/main.py"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\tools\python3\pycc
@@ -180,6 +220,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\tools\python3\pycc
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/6f80c922eec33639a2ab66ede9.cpp" "_be7288c001bf9b5ef38ea2d2f9=py/namespace/2aaff0c63b5177a20ab0deba7e0ce4eb/contrib/tools/python3/pycc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\tools\python3\pycc
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/dbfa6851acd522be261f09ed86.cpp" "_0472c974c1adee3f5b5b35f3d5=resfs/src/resfs/file/py/contrib/tools/python3/pycc/main.py" "_dbf250e52bd7b755c099f41c82=resfs/file/py/contrib/tools/python3/pycc/main.py"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\tools\python3\pycc
@@ -192,9 +236,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/tools/python3/pycc/dbfa6851acd522be261f09ed86.cpp	$B/contrib/tools/python3/pycc/e3d4c9743fe95c93c5114b5114.cpp	</Message>
+      <Message>$B/contrib/tools/python3/pycc/6f80c922eec33639a2ab66ede9.cpp	$B/contrib/tools/python3/pycc/dbfa6851acd522be261f09ed86.cpp	$B/contrib/tools/python3/pycc/e3d4c9743fe95c93c5114b5114.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\dbfa6851acd522be261f09ed86.cpp;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\e3d4c9743fe95c93c5114b5114.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\6f80c922eec33639a2ab66ede9.cpp;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\dbfa6851acd522be261f09ed86.cpp;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\e3d4c9743fe95c93c5114b5114.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\tools\python3\pycc\main.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
