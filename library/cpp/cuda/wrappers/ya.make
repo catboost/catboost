@@ -4,7 +4,6 @@ LIBRARY()
 
 SRCS(
     base.cpp
-    exception.cpp
     run_gpu_program.cpp
     cuda_event.cpp
     kernel.cu
@@ -23,6 +22,7 @@ ENDIF()
 
 PEERDIR(
     contrib/libs/cub
+    library/cpp/cuda/exception
     library/cpp/threading/future
 )
 
