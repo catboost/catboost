@@ -277,14 +277,14 @@ bool Parser::ConsumeSignedInteger(int* output, const char* error) {
 bool Parser::ConsumeInteger64(uint64_t max_value, uint64_t* output,
                               const char* error) {
   if (LookingAtType(io::Tokenizer::TYPE_INTEGER)) {
-  	uint64 parsed;
+    uint64 parsed;
     if (!io::Tokenizer::ParseInteger(input_->current().text, max_value,
                                      &parsed)) {
       AddError("Integer out of range.");
       // We still return true because we did, in fact, parse an integer.
-      *output = 0;
+      parsed = 0;
     }
-	*output = parsed;
+    *output = parsed;
     input_->Next();
     return true;
   } else {

@@ -421,7 +421,7 @@ inline bool safe_strto64(StringPiece str, int64_t* value) {
   int64 otherValue;
   bool ok = safe_strto64(str.ToString(), &otherValue);
   if (ok) {
-  	*value = otherValue;
+      *value = otherValue;
   }
   return ok;
 }
@@ -438,7 +438,7 @@ inline bool safe_strtou64(StringPiece str, uint64_t* value) {
   uint64 otherValue;
   bool ok = safe_strtou64(str.ToString(), &otherValue);
   if (ok) {
-  	*value = otherValue;
+      *value = otherValue;
   }
   return ok;
 }
