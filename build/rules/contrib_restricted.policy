@@ -113,6 +113,7 @@ ALLOW juggler/pongerd -> contrib/restricted/boost
 ALLOW lbs/locator -> contrib/restricted/boost
 ALLOW library/cpp/testing/boost_test$ -> contrib/restricted/boost/libs/test
 ALLOW library/cpp/testing/boost_test_main$ -> contrib/restricted/boost/libs/test
+ALLOW library/cpp/testing/gtest_boost_extensions -> contrib/restricted/boost
 ALLOW logbroker/pipe-parser -> contrib/restricted/boost
 ALLOW mail -> contrib/restricted/boost
 ALLOW maps -> contrib/restricted/boost
@@ -145,6 +146,7 @@ ALLOW sdg/ros_msg_parser -> contrib/restricted/boost
 ALLOW contrib -> contrib/restricted/googletest
 ALLOW library/cpp/testing/gmock_in_unittest -> contrib/restricted/googletest
 ALLOW library/cpp/testing/gtest -> contrib/restricted/googletest
+ALLOW library/cpp/testing/gtest_boost_extensions -> contrib/restricted/googletest
 ALLOW library/cpp/testing/gtest_extensions -> contrib/restricted/googletest
 ALLOW library/cpp/testing/gtest_main -> contrib/restricted/googletest
 ALLOW library/cpp/testing/gtest_protobuf -> contrib/restricted/googletest
