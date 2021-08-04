@@ -752,6 +752,9 @@ ALLOW .* -> vendor/github.com/miekg/pkcs11
 # CONTRIB-2278
 ALLOW .* -> vendor/github.com/ThalesIgnite/crypto11
 
+# CONTRIB-2232: graphql client library
+ALLOW .* -> vendor/github.com/shurcooL/graphql
+
 #
 # Tools
 #
