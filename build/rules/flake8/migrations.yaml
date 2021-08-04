@@ -1105,7 +1105,6 @@ migrations:
     - infra/dist/dmover/lib
     - infra/dist/dmover/lib/internal
     - infra/dist/dmover/tests
-    - infra/environments/builder
     - infra/host-cpu-metrics
     - infra/host-cpu-metrics/host_metrics
     - infra/porto/api_py
@@ -3013,8 +3012,6 @@ migrations:
     - search/mon/workplace/src/sqla/workplace
     - search/resonance/pylib
     - search/resonance/tester/tools/viewer
-    - search/rpslimiter/storage/services
-    - search/rpslimiter/storage/sqla/rpslimiter
     - search/sawmill/services
     - search/sawmill/sqla/sawmill
     - search/stoker/services
@@ -3798,8 +3795,6 @@ migrations:
     - yabs/indoor/tests
     - yabs/nanpu/tests
     - yabs/rmp/backend/tests/lib/zora
-    - yabs/server/libs/internal_ver/advmachine_export_banners/test
-    - yabs/server/libs/internal_ver/advmachine_export_phrase_info/test
     - yabs/server/libs/py_decrypt_predictions/test
     - yabs/server/libs/py_pibf/test
     - yabs/server/test/ft/BSSERVER-2185
@@ -4055,7 +4050,6 @@ migrations:
     - yweb/yasap/pdb/quality/profile/fresh_profiles/event_log_converter_rtmr/tests
     - yweb/yasap/pdb/quality/profile/redir_actions/rtmr_redir_actions/tests
     - zen/rtmr/push_processing/tests
-    - zen/rtmr/tasks/tests
     - quality/mapreduce/tests/common
     - ads/factor_check/features/tests
     - ads/libs/py_ml_factors/mt/baseline_model
