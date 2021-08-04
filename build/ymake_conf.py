@@ -1382,6 +1382,11 @@ class GnuCompiler(Compiler):
             self.c_foptions.append('-fno-delete-null-pointer-checks')
             self.c_foptions.append('-fabi-version=8')
 
+        # Split all functions and data into separate sections for DCE and ICF linker passes
+        # NOTE: iOS build uses -fembed-bitcode which conflicts with -ffunction-sections (only relevant for ELF targets)
+        if not self.target.is_ios:
+            self.c_foptions.extend(['-ffunction-sections', '-fdata-sections'])
+
     def configure_build_type(self):
         if self.build.is_valgrind:
             self.c_defines.append('-DWITH_VALGRIND=1')
@@ -1402,9 +1407,6 @@ class GnuCompiler(Compiler):
                     self.optimize = '-Oz'
                 else:
                     self.optimize = '-Os'
-
-                # Split all functions and data into separate sections for DCE and ICF linker passes
-                self.c_foptions.extend(['-ffunction-sections', '-fdata-sections'])
 
                 # Generate sections with address significance tables for ICF linker pass
                 if self.tc.is_clang:
@@ -1817,19 +1819,23 @@ class LD(Linker):
 
         self.ld_flags = []
 
+        # Enable section-level DCE (dead code elimination):
+        # remove whole unused code and data sections
+        # (needs `-ffunction-sections` and `-fdata-sections` to be useful)
+        #
+        # NOTE: CGO linker doesn't seem to support DCE, but shares common LDFLAGS
+        if target.is_macos:
+            self.ld_dce_flag = '-Wl,-dead_strip'
+        elif target.is_linux or target.is_android:
+            self.ld_dce_flag = '-Wl,--gc-sections'
+        else:
+            self.ld_dce_flag = ''
+
         if self.build.is_size_optimized:
             # Enable ICF (identical code folding pass) in safe mode
             # https://research.google/pubs/pub36912/
             if self.type == Linker.LLD:
                 self.ld_flags.append('-Wl,-icf=safe')
-
-            # Enable section-level DCE (dead code elimination):
-            # remove whole unused code and data sections
-            # (needs `-ffunction-sections` and `-fdata-sections` to be useful)
-            if target.is_macos:
-                self.ld_flags.append('-Wl,-dead_strip')
-            elif target.is_linux or target.is_android:
-                self.ld_flags.append('-Wl,--gc-sections')
 
         if self.musl.value:
             self.ld_flags.extend(['-Wl,--no-as-needed'])
@@ -1947,6 +1953,9 @@ class LD(Linker):
         emit('LD_STRIP_FLAG', self.ld_stripflag)
         emit('STRIP_FLAG')
 
+        emit('LD_DCE_FLAG', self.ld_dce_flag)
+        emit('DCE_FLAG')
+
         emit('C_LIBRARY_PATH')
         emit('C_SYSTEM_LIBRARIES_INTERCEPT')
         if self.musl.value:
@@ -1981,7 +1990,7 @@ class LD(Linker):
         exe_flags = [
             '$C_FLAGS_PLATFORM', '$BEFORE_PEERS', self.start_group, '${rootrel:PEERS}', self.end_group, '$AFTER_PEERS',
             '$EXPORTS_VALUE $LDFLAGS $LDFLAGS_GLOBAL $OBJADDE $OBJADDE_LIB',
-            '$C_LIBRARY_PATH $C_SYSTEM_LIBRARIES_INTERCEPT $C_SYSTEM_LIBRARIES $STRIP_FLAG']
+            '$C_LIBRARY_PATH $C_SYSTEM_LIBRARIES_INTERCEPT $C_SYSTEM_LIBRARIES $STRIP_FLAG $DCE_FLAG']
 
         arch_flag = '--arch={arch}'.format(arch=self.target.os_compat)
         soname_flag = '-Wl,{option},$SONAME'.format(option=self.soname_option)
