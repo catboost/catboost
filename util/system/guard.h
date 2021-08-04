@@ -174,4 +174,3 @@ private:
 private:
     T* T_;
 };
-
