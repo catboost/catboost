@@ -228,8 +228,9 @@ ALLOW .* -> vendor/github.com/jackc/pgproto3/v2
 # database/sql wrapper with a lot of helper functions
 ALLOW .* -> vendor/github.com/jmoiron/sqlx
 
-# gorm and PostgreSQL driver
+# gorm and drivers
 ALLOW .* -> vendor/gorm.io/gorm
+ALLOW .* -> vendor/gorm.io/driver/sqlite
 ALLOW .* -> vendor/gorm.io/driver/postgres
 
 # clock mock for tests
