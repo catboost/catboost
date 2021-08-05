@@ -64,7 +64,7 @@ class lazy_classproperty(object):
         return getattr(owner, attr_name)
 
 
-def memoize(thread_safe=False, limit=0):
+def memoize(thread_safe=False, limit=0, thread_local=False):
     assert limit >= 0
 
     def decorator(func):
@@ -72,29 +72,52 @@ def memoize(thread_safe=False, limit=0):
         def wrapper_with_memory(memory, lock, keys):
             # remove branching for options
             if limit:
+
                 def get(args):
                     if args not in memory:
-                        memory[args] = func(*args)
+                        fargs = args[-1]
+                        memory[args] = func(*fargs)
                         keys.append(args)
                         if len(keys) > limit:
                             del memory[keys.popleft()]
                     return memory[args]
+
             else:
+
                 def get(args):
                     if args not in memory:
-                        memory[args] = func(*args)
+                        fargs = args[-1]
+                        memory[args] = func(*fargs)
                     return memory[args]
 
+            if thread_local:
+
+                def getter(args):
+                    th = threading.current_thread()
+                    return get((th.ident, th.name, args))
+
+            else:
+
+                def getter(args):
+                    return get(('', '', args))
+
             if thread_safe:
+
                 def wrapper(*args):
                     with lock:
-                        return get(args)
+                        return getter(args)
+
             else:
+
                 def wrapper(*args):
-                    return get(args)
+                    return getter(args)
 
             return wrapper
-        return wrapper_with_memory({}, threading.Lock() if thread_safe else None, collections.deque() if limit else None)
+
+        return wrapper_with_memory(
+            {}, threading.Lock() if thread_safe else None, collections.deque() if limit else None
+        )
+
     return decorator
 
 
@@ -102,6 +125,7 @@ def memoize(thread_safe=False, limit=0):
 def compose(*functions):
     def compose2(f, g):
         return lambda x: f(g(x))
+
     return functools.reduce(compose2, functions, lambda x: x)
 
 
@@ -141,8 +165,12 @@ def split(data, func):
 
 
 def flatten_dict(dd, separator='.', prefix=''):
-    return {
-        prefix + separator + k if prefix else k: v
-        for kk, vv in dd.items()
-        for k, v in flatten_dict(vv, separator, kk).items()
-    } if isinstance(dd, dict) else {prefix: dd}
+    return (
+        {
+            prefix + separator + k if prefix else k: v
+            for kk, vv in dd.items()
+            for k, v in flatten_dict(vv, separator, kk).items()
+        }
+        if isinstance(dd, dict)
+        else {prefix: dd}
+    )
