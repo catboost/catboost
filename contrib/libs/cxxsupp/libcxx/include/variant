@@ -227,7 +227,10 @@ public:
 
 _LIBCPP_BEGIN_NAMESPACE_STD
 
-#if _LIBCPP_STD_VER > 14
+// TODO: GCC 5 lies about its support for C++17 (it says it supports it but it
+//       really doesn't). That breaks variant, which uses some C++17 features.
+//       Remove this once we drop support for GCC 5.
+#if _LIBCPP_STD_VER > 14 && !(defined(_LIBCPP_COMPILER_GCC) && _GNUC_VER_NEW < 6000)
 
 _LIBCPP_NORETURN
 inline _LIBCPP_INLINE_VISIBILITY
@@ -1069,8 +1072,7 @@ public:
       }
       __impl __tmp(_VSTD::move(*__rhs));
 #ifndef _LIBCPP_NO_EXCEPTIONS
-      if constexpr (__all<(is_nothrow_move_constructible_v<_Types> &&
-                           is_nothrow_swappable_v<_Types>)...>::value) {
+      if constexpr (__all<is_nothrow_move_constructible_v<_Types>...>::value) {
         this->__generic_construct(*__rhs, _VSTD::move(*__lhs));
       } else {
       // EXTENSION: When the move construction of `__lhs` into `__rhs` throws

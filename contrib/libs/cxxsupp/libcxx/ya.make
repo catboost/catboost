@@ -162,6 +162,7 @@ SRCS(
     src/mutex_destructor.cpp
     src/optional.cpp
     src/random.cpp
+    src/random_shuffle.cpp
     src/regex.cpp
     src/shared_mutex.cpp
     src/stdexcept.cpp
