@@ -80,6 +80,7 @@
   <ItemGroup>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\python\Include\Python.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\python\Include\abstract.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\python\Include\cStringIO.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\python\Include\compile.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\python\Include\datetime.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\python\Include\descrobject.h"/>
