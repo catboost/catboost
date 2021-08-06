@@ -279,6 +279,9 @@
         "apphost": {
             "description": "Run local apphost instance"
         },
+        "renderer": {
+            "description": "Run local renderer instance"
+        },
         "news": {
             "description": "Run news team tools"
         },
@@ -6276,6 +6279,28 @@
                 }
             ]
         },
+        "renderer": {
+            "tools": {
+                "renderer": {
+                    "bottle": "renderer",
+                    "executable": "renderer"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "news": {
             "tools": {
                 "news": {
@@ -9174,6 +9199,20 @@
             "executable": {
                 "app_host_launcher": [
                     "app_host_launcher"
+                ]
+            }
+        },
+        "renderer": {
+            "formula": {
+                "sandbox_id": [
+                    1002479028,
+                    1038207256
+                ],
+                "match": ""
+            },
+            "executable": {
+                "renderer": [
+                    "report-renderer/bin/run"
                 ]
             }
         },
