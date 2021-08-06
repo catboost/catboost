@@ -100,6 +100,7 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\src\mutex_destructor.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\src\optional.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\src\random.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\src\random_shuffle.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\src\regex.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\src\shared_mutex.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\src\stdexcept.cpp"/>
