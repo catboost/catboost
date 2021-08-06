@@ -1031,7 +1031,6 @@ migrations:
     - alice/uniproxy/library/backends_ctxs
     - alice/uniproxy/library/backends_ctxs/ut
     - alice/uniproxy/library/backends_laas
-    - alice/uniproxy/library/backends_tts
     - alice/uniproxy/library/delivery
     - alice/uniproxy/library/extlog
     - alice/uniproxy/library/messenger
@@ -2334,7 +2333,6 @@ migrations:
     - library/recipes/tvmapi
     - library/recipes/tvmtool
     - logbroker/admin
-    - logbroker/juggler/rtc_logbroker_juggler_bundle/src/logbroker_locked_bsgroups
     - logbroker/mops
     - logbroker/tools/lb-cm
     - logbroker/tools/manual/send_projections_to_solomon
@@ -2870,7 +2868,6 @@ migrations:
     - sandbox/projects/images/tags/ImagesTagsReleaseAliceBans
     - sandbox/projects/images/upbase/ImagesBuildUpbaseResources
     - sandbox/projects/images/upbase/ImagesBuildUpbaseViewerResources
-    - sandbox/projects/impulse/BuildCodeQLQueries
     - sandbox/projects/impulse/SastWorkflow
     - sandbox/projects/inventori
     - sandbox/projects/juggler
@@ -3549,7 +3546,6 @@ migrations:
     - library/cpp/file_checker/test/tests
     - library/cpp/pybind/example/ut
     - library/python/cyson/ut
-    - library/python/func/ut/lib
     - library/python/vault_client/ut/tests
     - logbroker/push-client/ft
     - logbroker/unified_agent/tests/integration/python_client_tests
