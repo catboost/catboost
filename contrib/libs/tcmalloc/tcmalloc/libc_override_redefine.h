@@ -47,11 +47,12 @@ void operator delete[](void* ptr, const std::nothrow_t& nt) noexcept {
   return TCMallocInternalDeleteArrayNothrow(ptr, nt);
 }
 extern "C" {
-void* malloc(size_t s) noexcept { return TCMallocInternalMalloc(s); }
-void free(void* p) noexcept { TCMallocInternalFree(p); }
-void sdallocx(void* p, size_t s, int flags) {
+void sdallocx(void* p, size_t s, int flags) noexcept {
   TCMallocInternalSdallocx(p, s, flags);
 }
+#define noexcept __THROW
+void* malloc(size_t s) noexcept { return TCMallocInternalMalloc(s); }
+void free(void* p) noexcept { TCMallocInternalFree(p); }
 void* realloc(void* p, size_t s) noexcept {
   return TCMallocInternalRealloc(p, s);
 }
@@ -78,6 +79,7 @@ size_t malloc_size(void* p) noexcept { return TCMallocInternalMallocSize(p); }
 size_t malloc_usable_size(void* p) noexcept {
   return TCMallocInternalMallocSize(p);
 }
+#undef noexcept
 }  // extern "C"
 
 #endif  // TCMALLOC_LIBC_OVERRIDE_REDEFINE_H_
