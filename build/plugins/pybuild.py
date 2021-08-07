@@ -575,6 +575,9 @@ def onpy_main(unit, arg):
 
         Documentation: https://wiki.yandex-team.ru/arcadia/python/pysrcs/#modulipyprogrampy3programimakrospymain
     """
+
+    arg = arg.replace('/', '.')
+
     if ':' not in arg:
         arg += ':main'
 
