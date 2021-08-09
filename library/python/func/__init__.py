@@ -64,59 +64,53 @@ class lazy_classproperty(object):
         return getattr(owner, attr_name)
 
 
-def memoize(thread_safe=False, limit=0, thread_local=False):
+def memoize(limit=0, thread_local=False):
     assert limit >= 0
 
     def decorator(func):
-        @functools.wraps(func)
-        def wrapper_with_memory(memory, lock, keys):
-            # remove branching for options
-            if limit:
+        memory = {}
+        lock = threading.Lock()
 
-                def get(args):
-                    if args not in memory:
-                        fargs = args[-1]
-                        memory[args] = func(*fargs)
-                        keys.append(args)
-                        if len(keys) > limit:
-                            del memory[keys.popleft()]
+        if limit:
+            keys = collections.deque()
+
+            def get(args):
+                try:
                     return memory[args]
-
-            else:
-
-                def get(args):
-                    if args not in memory:
-                        fargs = args[-1]
-                        memory[args] = func(*fargs)
-                    return memory[args]
-
-            if thread_local:
-
-                def getter(args):
-                    th = threading.current_thread()
-                    return get((th.ident, th.name, args))
-
-            else:
-
-                def getter(args):
-                    return get(('', '', args))
-
-            if thread_safe:
-
-                def wrapper(*args):
+                except KeyError:
                     with lock:
-                        return getter(args)
+                        if args not in memory:
+                            fargs = args[-1]
+                            memory[args] = func(*fargs)
+                            keys.append(args)
+                            if len(keys) > limit:
+                                del memory[keys.popleft()]
+                        return memory[args]
 
-            else:
+        else:
 
-                def wrapper(*args):
-                    return getter(args)
+            def get(args):
+                if args not in memory:
+                    with lock:
+                        if args not in memory:
+                            fargs = args[-1]
+                            memory[args] = func(*fargs)
+                return memory[args]
 
-            return wrapper
+        if thread_local:
 
-        return wrapper_with_memory(
-            {}, threading.Lock() if thread_safe else None, collections.deque() if limit else None
-        )
+            @functools.wraps(func)
+            def wrapper(*args):
+                th = threading.current_thread()
+                return get((th.ident, th.name, args))
+
+        else:
+
+            @functools.wraps(func)
+            def wrapper(*args):
+                return get(('', '', args))
+
+        return wrapper
 
     return decorator
 
