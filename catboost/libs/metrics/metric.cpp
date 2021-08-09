@@ -1781,8 +1781,8 @@ TMetricHolder TFocalMetric::EvalSingleThread(
             //y = 2 * target - 1
             y = 2 * target[k] - 1;
             //der = at * y * (1 - pt) ** FocalGamma * (FocalGamma * pt * np.log(pt) + pt - 1)
-            double margin = std::pow(at * y * (1 - pt), FocalGamma);
-            margin = margin * (FocalGamma * pt * std::log2(pt) + pt - 1);
+            double margin = at * y * pow((1 - pt), FocalGamma);
+            margin = margin * (FocalGamma * pt * log(pt) + pt - 1);
 
             // second derivative
             double u;
@@ -1791,13 +1791,13 @@ TMetricHolder TFocalMetric::EvalSingleThread(
             double dv;
             double der2;
             //u = at * y * (1 - pt) ** gamma
-            u = std::pow(at * y * (1 - pt), FocalGamma);
+            u = at * y * pow((1 - pt), FocalGamma);
             //du = -at * y * gamma * (1 - pt) ** (gamma - 1)
-            du = std::pow(-at * y * FocalGamma * (1 - pt), FocalGamma - 1);
+            du = -at * y * pow(FocalGamma * (1 - pt), FocalGamma - 1);
             //v = gamma * pt * np.log(pt) + pt - 1
-            v = FocalGamma * pt * std::log2(pt) + pt - 1;
+            v = FocalGamma * pt * log(pt) + pt - 1;
             //dv = gamma * np.log(pt) + gamma + 1
-            dv = FocalGamma * std::log2(pt) + FocalGamma + 1;
+            dv = FocalGamma * log(pt) + FocalGamma + 1;
             //der2 = (du * v + u * dv) * y * (pt * (1 - pt))
             der2 = (du * v + u * dv) * y * (pt * (1 - pt));
 

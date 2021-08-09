@@ -1389,7 +1389,8 @@ private:
         double pt;
         double y;
         double der;
-        approx_exp = 1 / (1 + std::exp(-approx));
+        //approxes = 1 / (1 + np.exp(-approxes))
+        approx_exp = 1 / (1 + exp(-approx));
         //at = np.where(target, FocalAlpha, 1 - FocalAlpha)
         if (target == 1) {
             at = FocalAlpha; 
@@ -1415,8 +1416,8 @@ private:
         //y = 2 * target - 1
         y = 2 * target - 1;
         //der = at * y * (1 - pt) ** FocalGamma * (FocalGamma * pt * np.log(pt) + pt - 1)
-        der = std::pow(at * y * (1 - pt), FocalGamma);
-        der = der * (FocalGamma * pt * std::log2(pt) + pt - 1);
+        der = at * y * pow((1 - pt), FocalGamma);
+        der = der * (FocalGamma * pt * log(pt) + pt - 1);
         return der;
     }
 
@@ -1435,7 +1436,8 @@ private:
         double v;
         double dv;
         double der2;
-        approx_exp = 1 / (1 + std::exp(-approx));
+        //approxes = 1 / (1 + np.exp(-approxes))
+        approx_exp = 1 / (1 + exp(-approx));
         //at = np.where(target, FocalAlpha, 1 - FocalAlpha)
         if (target == 1) {
             at = FocalAlpha; 
@@ -1461,13 +1463,13 @@ private:
         //y = 2 * target - 1
         y = 2 * target - 1;
         //u = at * y * (1 - pt) ** gamma
-        u = std::pow(at * y * (1 - pt), FocalGamma);
+        u = at * y * pow((1 - pt), FocalGamma);
         //du = -at * y * gamma * (1 - pt) ** (gamma - 1)
-        du = std::pow(-at * y * FocalGamma * (1 - pt), FocalGamma - 1);
+        du = -at * y * FocalGamma * pow((1 - pt), FocalGamma - 1);
         //v = gamma * pt * np.log(pt) + pt - 1
-        v = FocalGamma * pt * std::log2(pt) + pt - 1;
+        v = FocalGamma * pt * log(pt) + pt - 1;
         //dv = gamma * np.log(pt) + gamma + 1
-        dv = FocalGamma * std::log2(pt) + FocalGamma + 1;
+        dv = FocalGamma * log(pt) + FocalGamma + 1;
         //der2 = (du * v + u * dv) * y * (pt * (1 - pt))
         der2 = (du * v + u * dv) * y * (pt * (1 - pt));
         return der2;
