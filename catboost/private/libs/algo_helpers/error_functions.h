@@ -1366,27 +1366,110 @@ void CheckDerivativeOrderForObjectImportance(ui32 derivativeOrder, ELeavesEstima
 class TFocalError final : public IDerCalcer {
 public:
     const double FocalAlpha;
-    /*const double Gamma;*/
+    const double FocalGamma = 2;
 
 public:
     TFocalError(double alpha, /*double gamma, */bool isExpApprox)
         : IDerCalcer(isExpApprox, /*maxDerivativeOrder*/ 2)
         , FocalAlpha(alpha)/*, Gamma(gamma)*/
     {
-        Y_ASSERT(FocalAlpha > 0 && FocalAlpha < 1/*&& Gamma < 0*/);
+        Y_ASSERT(FocalAlpha > 0 && FocalAlpha < 1 && FocalGamma > 0);
         CB_ENSURE(isExpApprox == false, "Approx format does not match");
     }
 
 private:
     double CalcDer(double approx, float target) const override {
+        /*
         double der = target * std::exp((1 - FocalAlpha) * approx);
         der -= std::exp((2 - FocalAlpha) * approx);
+        */
+        double approx_exp;
+        double at;
+        double p;
+        double pt;
+        double y;
+        double der;
+        approx_exp = 1 / (1 + std::exp(-approx));
+        //at = np.where(target, FocalAlpha, 1 - FocalAlpha)
+        if (target == 1) {
+            at = FocalAlpha; 
+        } else {
+            at = 1 - FocalAlpha;
+        };
+        //p = np.where(approx > (1 - 1e-15), 1 - 1e-15, approx)
+        if (approx_exp > 0.99999999999999999) {
+            p = 0.99999999999999999; 
+        } else {
+            p = approx_exp; 
+        };
+        //p = np.where(p < 1e-15, 1e-15, p)
+        if (p < 0.00000000000000001) {
+            p = 0.00000000000000001; 
+        };
+        //pt = np.where(target, p, 1 - p)
+        if (target == 1) {
+            pt = p; 
+        } else {
+            pt = 1 - p;
+        };
+        //y = 2 * target - 1
+        y = 2 * target - 1;
+        //der = at * y * (1 - pt) ** FocalGamma * (FocalGamma * pt * np.log(pt) + pt - 1)
+        der = std::pow(at * y * (1 - pt), FocalGamma);
+        der = der * (FocalGamma * pt * std::log2(pt) + pt - 1);
         return der;
     }
 
     double CalcDer2(double approx, float target) const override {
+        /*
         double der2 = target * std::exp((1 - FocalAlpha) * approx) * (1 - FocalAlpha);
         der2 -= std::exp((2 - FocalAlpha) * approx) * (2 - FocalAlpha);
+        */
+        double approx_exp;
+        double at;
+        double p;
+        double pt;
+        double y;
+        double u;
+        double du;
+        double v;
+        double dv;
+        double der2;
+        approx_exp = 1 / (1 + std::exp(-approx));
+        //at = np.where(target, FocalAlpha, 1 - FocalAlpha)
+        if (target == 1) {
+            at = FocalAlpha; 
+        } else {
+            at = 1 - FocalAlpha;
+        };
+        //p = np.where(approx > (1 - 1e-15), 1 - 1e-15, approx)
+        if (approx_exp > 0.99999999999999999) {
+            p = 0.99999999999999999; 
+        } else {
+            p = approx_exp; 
+        };
+        //p = np.where(p < 1e-15, 1e-15, p)
+        if (p < 0.00000000000000001) {
+            p = 0.00000000000000001; 
+        };
+        //pt = np.where(target, p, 1 - p)
+        if (target == 1) {
+            pt = p; 
+        } else {
+            pt = 1 - p;
+        };
+        //y = 2 * target - 1
+        y = 2 * target - 1;
+        //u = at * y * (1 - pt) ** gamma
+        u = std::pow(at * y * (1 - pt), FocalGamma);
+        //du = -at * y * gamma * (1 - pt) ** (gamma - 1)
+        du = std::pow(-at * y * FocalGamma * (1 - pt), FocalGamma - 1);
+        //v = gamma * pt * np.log(pt) + pt - 1
+        v = FocalGamma * pt * std::log2(pt) + pt - 1;
+        //dv = gamma * np.log(pt) + gamma + 1
+        dv = FocalGamma * std::log2(pt) + FocalGamma + 1;
+        //der2 = (du * v + u * dv) * y * (pt * (1 - pt))
+        der2 = (du * v + u * dv) * y * (pt * (1 - pt));
         return der2;
     }
 

@@ -1747,12 +1747,65 @@ TMetricHolder TFocalMetric::EvalSingleThread(
                 curApprox += approxDelta[k];
             }
             const float w = hasWeight ? weight[k] : 1;
-            double margin = -target[k] * std::exp((1 - FocalAlpha) * curApprox) / (1 - FocalAlpha);
-            margin += std::exp((2 - FocalAlpha) * curApprox) / (2 - FocalAlpha);
+            //double margin = -target[k] * std::exp((1 - FocalAlpha) * curApprox) / (1 - FocalAlpha);
+            //margin += std::exp((2 - FocalAlpha) * curApprox) / (2 - FocalAlpha);
+            double FocalAlpha = 0.2;
+            double FocalGamma = 2;
+            double at;
+            double p;
+            double pt;
+            double y;
+            curApprox = 1 / (1 + std::exp(-curApprox));
+            //at = np.where(target, FocalAlpha, 1 - FocalAlpha)
+            if (target[k] == 1) {
+                at = FocalAlpha; 
+            } else {
+                at = 1 - FocalAlpha;
+            };
+            //p = np.where(approx > (1 - 1e-15), 1 - 1e-15, approx)
+            if (curApprox > 0.99999999999999999) {
+                p = 0.99999999999999999; 
+            } else {
+                p = curApprox; 
+            };
+            //p = np.where(p < 1e-15, 1e-15, p)
+            if (p < 0.00000000000000001) {
+                p = 0.00000000000000001; 
+            };
+            //pt = np.where(target, p, 1 - p)
+            if (target[k] == 1) {
+                pt = p; 
+            } else {
+                pt = 1 - p;
+            };
+            //y = 2 * target - 1
+            y = 2 * target[k] - 1;
+            //der = at * y * (1 - pt) ** FocalGamma * (FocalGamma * pt * np.log(pt) + pt - 1)
+            double margin = std::pow(at * y * (1 - pt), FocalGamma);
+            margin = margin * (FocalGamma * pt * std::log2(pt) + pt - 1);
+
+            // second derivative
+            double u;
+            double du;
+            double v;
+            double dv;
+            double der2;
+            //u = at * y * (1 - pt) ** gamma
+            u = std::pow(at * y * (1 - pt), FocalGamma);
+            //du = -at * y * gamma * (1 - pt) ** (gamma - 1)
+            du = std::pow(-at * y * FocalGamma * (1 - pt), FocalGamma - 1);
+            //v = gamma * pt * np.log(pt) + pt - 1
+            v = FocalGamma * pt * std::log2(pt) + pt - 1;
+            //dv = gamma * np.log(pt) + gamma + 1
+            dv = FocalGamma * std::log2(pt) + FocalGamma + 1;
+            //der2 = (du * v + u * dv) * y * (pt * (1 - pt))
+            der2 = (du * v + u * dv) * y * (pt * (1 - pt));
+
+            margin = margin + der2;
             error.Stats[0] += w * margin;
             error.Stats[1] += w;
-        }
-        return error;
+            }
+            return error;
     };
     switch (EncodeFlags(!approxDelta.empty(), !weight.empty())) {
         case EncodeFlags(false, false):
