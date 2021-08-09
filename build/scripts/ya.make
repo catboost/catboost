@@ -62,6 +62,7 @@ TEST_SRCS(
     pack_ios.py
     pack_jcoverage_resources.py
     perl_wrapper.py
+    postprocess_go_fbs.py
     preprocess.py
     py_compile.py
     run_ios_simulator.py
