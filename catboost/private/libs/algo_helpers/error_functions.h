@@ -1365,8 +1365,8 @@ void CheckDerivativeOrderForObjectImportance(ui32 derivativeOrder, ELeavesEstima
 
 class TFocalError final : public IDerCalcer {
 public:
-    const double alpha;
-    /*const double gamma;*/
+    const double Alpha;
+    /*const double Gamma;*/
 
 public:
     TFocalError(double alpha, /*double gamma, */bool isExpApprox)
@@ -1385,8 +1385,8 @@ private:
     }
 
     double CalcDer2(double approx, float target) const override {
-        double der2 = target * std::exp((1 - Alpha) * approx) * (1 - Aplha);
-        der2 -= std::exp((2 - Aplha) * approx) * (2 - Alpha);
+        double der2 = target * std::exp((1 - Alpha) * approx) * (1 - Alpha);
+        der2 -= std::exp((2 - Alpha) * approx) * (2 - Alpha);
         return der2;
     }
 

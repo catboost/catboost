@@ -382,7 +382,11 @@ MakeRegister(LossInfos,
     ),
     Registree(Tweedie,
         EMetricAttribute::IsRegression
+    ),
+    Registree(Focal,
+        EMetricAttribute::IsBinaryClassCompatible
     )
+
 )
 
 const IMetricInfo *GetInfo(ELossFunction loss) {

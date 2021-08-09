@@ -244,9 +244,9 @@ double NCatboostOptions::GetFocalParam(const TLossDescription& lossFunctionConfi
     Y_ASSERT(lossFunctionConfig.GetLossFunction() == ELossFunction::Focal);
     const auto& lossParams = lossFunctionConfig.GetLossParamsMap();
     CB_ENSURE(
-        lossParams.contains("variance_power"),
-        "For " << ELossFunction::Tweedie << " variance_power parameter is mandatory");
-    return FromString<double>(lossParams.at("variance_power"));
+        lossParams.contains("focal_alpha"),
+        "For " << ELossFunction::Focal << " focal_alpha parameter is mandatory");
+    return FromString<double>(lossParams.at("focal_alpha"));
 }
 
 double NCatboostOptions::GetPredictionBorderOrDefault(const TMap<TString, TString>& params, double defaultValue) {
