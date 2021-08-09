@@ -240,6 +240,15 @@ double NCatboostOptions::GetTweedieParam(const TLossDescription& lossFunctionCon
     return FromString<double>(lossParams.at("variance_power"));
 }
 
+double NCatboostOptions::GetFocalParam(const TLossDescription& lossFunctionConfig) {
+    Y_ASSERT(lossFunctionConfig.GetLossFunction() == ELossFunction::Focal);
+    const auto& lossParams = lossFunctionConfig.GetLossParamsMap();
+    CB_ENSURE(
+        lossParams.contains("variance_power"),
+        "For " << ELossFunction::Tweedie << " variance_power parameter is mandatory");
+    return FromString<double>(lossParams.at("variance_power"));
+}
+
 double NCatboostOptions::GetPredictionBorderOrDefault(const TMap<TString, TString>& params, double defaultValue) {
     auto it = params.find(TMetricOptions::PREDICTION_BORDER_PARAM);
     if (it == params.end()) {

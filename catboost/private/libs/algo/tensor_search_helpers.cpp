@@ -300,6 +300,10 @@ THolder<IDerCalcer> BuildError(
             return MakeHolder<TTweedieError>(
                 NCatboostOptions::GetTweedieParam(params.LossFunctionDescription),
                 isStoreExpApprox);
+        case ELossFunction::Focal:
+            return MakeHolder<TFocalError>(
+                NCatboostOptions::GetFocalParam(params.LossFunctionDescription),
+                isStoreExpApprox);
         default:
             CB_ENSURE(false, "provided error function is not supported");
     }

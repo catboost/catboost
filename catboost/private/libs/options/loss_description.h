@@ -141,6 +141,8 @@ namespace NCatboostOptions {
 
     double GetTweedieParam(const TLossDescription& lossFunctionConfig);
 
+    double GetFocalParam(const TLossDescription& lossFunctionConfig);
+
     // Tries to find the target probability border for the binary metrics among params (see |PREDICTION_BORDER_PARAM|
     // key). Returns default value if the key isn't present in the map and throws an exception if the border target is not
     // a valid floating point number.

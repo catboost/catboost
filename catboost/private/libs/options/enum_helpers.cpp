@@ -491,7 +491,8 @@ static const TVector<ELossFunction> ClassificationObjectives = {
     ELossFunction::Logloss,
     ELossFunction::CrossEntropy,
     ELossFunction::MultiClass,
-    ELossFunction::MultiClassOneVsAll
+    ELossFunction::MultiClassOneVsAll,
+    ELossFunction::Focal
 };
 
 static const TVector<ELossFunction> RankingObjectives = {
