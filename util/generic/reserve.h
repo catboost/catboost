@@ -6,6 +6,6 @@ namespace NDetail {
     };
 }
 
-inline ::NDetail::TReserveTag Reserve(size_t capacity) {
+inline constexpr ::NDetail::TReserveTag Reserve(size_t capacity) {
     return ::NDetail::TReserveTag{capacity};
 }
