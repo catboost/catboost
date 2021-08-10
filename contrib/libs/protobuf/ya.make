@@ -116,10 +116,6 @@ SRCS(
     src/google/protobuf/wrappers.pb.cc
 )
 
-SUPPRESSIONS(
-    tsan.supp
-)
-
 FILES(
     src/google/protobuf/any.proto
     src/google/protobuf/api.proto
