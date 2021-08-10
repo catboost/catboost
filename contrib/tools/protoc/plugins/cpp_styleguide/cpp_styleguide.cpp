@@ -779,12 +779,12 @@ namespace NPlugins {
                 vars["class"] = ClassName(Descriptor_, false);
                 if (!IsLiteRuntimeMessage(Descriptor_)) {
                     printer.Print("TProtoStringType ShortUtf8DebugString() const;\n");
-                }
-                printer.Print("void PrintJSON(IOutputStream&) const;\n");
-                printer.Print(vars, "::google::protobuf::io::TAsJSON<$class$> AsJSON() const {\n");
-                printer.Print(vars, "    return ::google::protobuf::io::TAsJSON<$class$>(*this);\n");
-                printer.Print("}\n");
-                if (!IsLiteRuntimeMessage(Descriptor_)) {
+
+                    printer.Print("void PrintJSON(IOutputStream&) const override;\n");
+                    printer.Print(vars, "::google::protobuf::io::TAsJSON<$class$> AsJSON() const {\n");
+                    printer.Print(vars, "    return ::google::protobuf::io::TAsJSON<$class$>(*this);\n");
+                    printer.Print("}\n");
+
                     printer.Print("void Save(IOutputStream* output) const;\n");
                     printer.Print("void Load(IInputStream* input);\n");
                 }
@@ -831,6 +831,10 @@ namespace NPlugins {
             }
 
             void GenerateJSONImplementation() {
+                if (IsLiteRuntimeMessage(Descriptor_)) {
+                    return;
+                }
+
                 TProtoStringType fileName = SourceFileName(Descriptor_->file());
                 TProtoStringType scope = "namespace_scope";
                 std::unique_ptr<io::ZeroCopyOutputStream> output(
