@@ -453,6 +453,9 @@
         },
         "skotty": {
             "description": "Skotty (SSH-agent) launcher"
+        },
+        "devtools_license_analyzer": {
+            "description": "Run devtools license analyzer"
         }
     },
     "toolchain": {
@@ -6915,6 +6918,22 @@
                 }
             ]
         },
+        "devtools_license_analyzer_bundle": {
+            "tools": {
+                "devtools_license_analyzer": {
+                    "bottle": "devtools_license_analyzer_bundle",
+                    "executable": "devtools_license_analyzer"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "ya_sed": {
             "tools": {
                 "ya_sed": {
@@ -9636,6 +9655,19 @@
             "executable": {
                 "ktlint": [
                     "run.bat"
+                ]
+            }
+        },
+        "devtools_license_analyzer_bundle": {
+            "formula": {
+                "sandbox_id": [
+                    1041989594
+                ],
+                "match": "license_analyzer"
+            },
+            "executable": {
+                "devtools_license_analyzer": [
+                    "license_analyzer"
                 ]
             }
         },
