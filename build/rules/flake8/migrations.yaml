@@ -871,7 +871,6 @@ migrations:
     - yabs/server/test/ft/BSSERVER-1332
     - yabs/server/test/ft/BSSERVER-13621
     - yabs/server/test/ft/BSSERVER-14195
-    - yabs/server/test/ft/BSSERVER-14390
     - yabs/server/test/ft/BSSERVER-2122
     - yabs/server/test/ft/BSSERVER-2158
     - yabs/server/test/ft/BSSERVER-2293
@@ -1321,7 +1320,6 @@ migrations:
     - yabs/server/test/ft/BSSERVER-13708
     - yabs/server/test/ft/BSSERVER-14014
     - yabs/server/test/ft/BSSERVER-14049
-    - yabs/server/test/ft/BSSERVER-14390
     - yabs/server/test/ft/BSSERVER-15684
     - yabs/stat/dropstat2/api
     - yabs/vh/cms-pgaas/sport_api_importer/sport_api_importer_lib
@@ -1542,7 +1540,6 @@ migrations:
     - metrika/admin/python/cms/frontend/cms
     - metrika/core/monitoring/clickhouse-table-structure-check
     - metrika/core/programs/mobile_yt_to_yc_export
-    - metrika/core/recipes/mysql
     - metrika/pylib/log/tests
     - metrika/tasklets/build/impl
     - metrika/tasklets/deploy/impl
@@ -3795,12 +3792,10 @@ migrations:
     - yabs/server/test/ft/lua/page_162514
     - yabs/server/test/ft/lua/page_164717
     - yabs/server/test/ft/lua/page_168577
-    - yabs/server/test/ft/lua/page_172351
     - yabs/server/test/ft/lua/page_180897
     - yabs/server/test/ft/lua/page_185459
     - yabs/server/test/ft/lua/page_186549
     - yabs/server/test/ft/lua/page_2
-    - yabs/server/test/ft/lua/page_231
     - yabs/server/test/ft/lua/page_242
     - yabs/server/test/ft/lua/page_243449
     - yabs/server/test/ft/lua/page_244345
@@ -3812,9 +3807,7 @@ migrations:
     - yabs/server/test/ft/lua/page_285318
     - yabs/server/test/ft/lua/page_2_on_trafarets
     - yabs/server/test/ft/lua/page_323453
-    - yabs/server/test/ft/lua/page_330437
     - yabs/server/test/ft/lua/page_338535
-    - yabs/server/test/ft/lua/page_338774
     - yabs/server/test/ft/lua/page_341469
     - yabs/server/test/ft/lua/page_342532
     - yabs/server/test/ft/lua/page_355611
