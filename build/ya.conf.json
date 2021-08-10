@@ -9050,7 +9050,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 1041236744,
+                "sandbox_id": 1042201967,
                 "match": "horadric"
             },
             "executable": {
@@ -9234,7 +9234,6 @@
                     1020058919,
                     1020059935,
                     1020061947
-
                 ],
                 "match": "GOLANG"
             },
