@@ -93,7 +93,8 @@ test_that("pool: load_pool from matrix", {
 
   iterations <- 10
   params <- list(iterations = iterations,
-                 loss_function = "Logloss")
+                 loss_function = "Logloss",
+                 allow_writing_files = FALSE)
 
   prediction <- train_and_predict(pool_train, pool_test, iterations, params)
   accuracy <- calc_accuracy(prediction, target[-split])
@@ -118,7 +119,8 @@ test_that("pool: load_pool from data.frame", {
 
   iterations <- 10
   params <- list(iterations = iterations,
-                 loss_function = "Logloss")
+                 loss_function = "Logloss",
+                 allow_writing_files = FALSE)
 
   prediction <- train_and_predict(pool, pool, iterations, params)
   accuracy <- calc_accuracy(prediction, target)
@@ -142,7 +144,8 @@ test_that("pool: catboost.save_pool", {
   pool <- catboost.load_pool(data, target)
 
   params <- list(iterations = 10,
-                 loss_function = "MultiClass")
+                 loss_function = "MultiClass",
+                 allow_writing_files = FALSE)
 
   model <- catboost.train(pool, NULL, params)
   prediction <- catboost.predict(model, pool)
@@ -156,6 +159,9 @@ test_that("pool: catboost.save_pool", {
   loaded_pool_prediction <- catboost.predict(model, loaded_pool)
 
   expect_equal(prediction, loaded_pool_prediction)
+
+  unlink(pool_path)
+  unlink(column_description_path)
 })
 
 test_that("pool: data.frame weights", {
@@ -169,7 +175,8 @@ test_that("pool: data.frame weights", {
   data$f_character <- as.factor(data$f_character)
 
   params <- list(iterations = 10,
-                 loss_function = "Logloss")
+                 loss_function = "Logloss",
+                 allow_writing_files = FALSE)
 
   count <- table(target)
   weights <- ifelse(target == -1, 1 / count[1], 1 / count[2])
@@ -202,7 +209,7 @@ test_that("pool: nan", {
                         matrix(unlist(head(second_pool, nrow(second_pool))), nrow = nrow(second_pool), byrow = TRUE)))
 })
 
-test_that("pool: data.frame vs dplyr::tbl_df vs pool", {
+test_that("pool: data.frame vs tibble::tbl_df vs pool", {
   pool_path <- system.file("extdata", "adult_train.1000", package = "catboost")
   column_description_path <- system.file("extdata", "adult.cd", package = "catboost")
 
@@ -211,12 +218,12 @@ test_that("pool: data.frame vs dplyr::tbl_df vs pool", {
                                                                                       as.double(data_frame$Label))
   data_frame_test_pool <- catboost.load_pool(data_frame[, -which(names(data_frame) == "Label")])
 
-  tbl_df_pool <- catboost.load_pool(dplyr::tbl_df(data_frame[, -which(names(data_frame) == "Label")]),
+  tbl_df_pool <- catboost.load_pool(tibble::as_tibble(data_frame[, -which(names(data_frame) == "Label")]),
                                                                                   as.double(data_frame$Label))
-  tbl_df_test_pool <- catboost.load_pool(dplyr::tbl_df(data_frame[, -which(names(data_frame) == "Label")]))
+  tbl_df_test_pool <- catboost.load_pool(tibble::as_tibble(data_frame[, -which(names(data_frame) == "Label")]))
 
   params <- list(iterations = 10,
-                                  loss_function = "Logloss")
+                                  loss_function = "Logloss", allow_writing_files = FALSE)
 
   model <- catboost.train(data_frame_pool, NULL, params)
   model_tbl_df <- catboost.train(tbl_df_pool, NULL, params)
@@ -265,7 +272,8 @@ test_that("pool: text features in data.frame", {
 
   iterations <- 10
   params <- list(iterations = iterations,
-                 loss_function = "Logloss")
+                 loss_function = "Logloss",
+                 allow_writing_files = FALSE)
 
   prediction <- train_and_predict(train_pool, train_pool, iterations, params)
   accuracy <- calc_accuracy(prediction, target)
