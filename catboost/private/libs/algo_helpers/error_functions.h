@@ -1366,7 +1366,7 @@ void CheckDerivativeOrderForObjectImportance(ui32 derivativeOrder, ELeavesEstima
 class TFocalError final : public IDerCalcer {
 public:
     const double FocalAlpha;
-    const double FocalGamma = 2;
+    const double FocalGamma = 2.0;
 
 public:
     TFocalError(double alpha, /*double gamma, */bool isExpApprox)
@@ -1379,40 +1379,16 @@ public:
 
 private:
     double CalcDer(double approx, float target) const override {
-        /*
-        double der = target * std::exp((1 - FocalAlpha) * approx);
-        der -= std::exp((2 - FocalAlpha) * approx);
-        */
-        double approx_exp;
-        double at;
-        double p;
-        double pt;
-        double y;
-        double der;
+        double approx_exp, at, p, pt, y, der;
         //approxes = 1 / (1 + np.exp(-approxes))
         approx_exp = 1 / (1 + exp(-approx));
         //at = np.where(target, FocalAlpha, 1 - FocalAlpha)
-        if (target == 1) {
-            at = FocalAlpha; 
-        } else {
-            at = 1 - FocalAlpha;
-        };
+        at = target == 1 ? FocalAlpha : 1 - FocalAlpha;
         //p = np.where(approx > (1 - 1e-15), 1 - 1e-15, approx)
-        if (approx_exp > 0.99999999999999999) {
-            p = 0.99999999999999999; 
-        } else {
-            p = approx_exp; 
-        };
         //p = np.where(p < 1e-15, 1e-15, p)
-        if (p < 0.00000000000000001) {
-            p = 0.00000000000000001; 
-        };
+        p = std::clamp(approx_exp, 0.0000000000001, 0.9999999999999);
         //pt = np.where(target, p, 1 - p)
-        if (target == 1) {
-            pt = p; 
-        } else {
-            pt = 1 - p;
-        };
+        pt = target == 1 ? p : 1 - p;
         //y = 2 * target - 1
         y = 2 * target - 1;
         //der = at * y * (1 - pt) ** FocalGamma * (FocalGamma * pt * np.log(pt) + pt - 1)
@@ -1422,44 +1398,16 @@ private:
     }
 
     double CalcDer2(double approx, float target) const override {
-        /*
-        double der2 = target * std::exp((1 - FocalAlpha) * approx) * (1 - FocalAlpha);
-        der2 -= std::exp((2 - FocalAlpha) * approx) * (2 - FocalAlpha);
-        */
-        double approx_exp;
-        double at;
-        double p;
-        double pt;
-        double y;
-        double u;
-        double du;
-        double v;
-        double dv;
-        double der2;
+        double approx_exp, at, p, pt, y, u, du, v, dv, der2;
         //approxes = 1 / (1 + np.exp(-approxes))
         approx_exp = 1 / (1 + exp(-approx));
         //at = np.where(target, FocalAlpha, 1 - FocalAlpha)
-        if (target == 1) {
-            at = FocalAlpha; 
-        } else {
-            at = 1 - FocalAlpha;
-        };
+        at = target == 1 ? FocalAlpha : 1 - FocalAlpha;
         //p = np.where(approx > (1 - 1e-15), 1 - 1e-15, approx)
-        if (approx_exp > 0.99999999999999999) {
-            p = 0.99999999999999999; 
-        } else {
-            p = approx_exp; 
-        };
         //p = np.where(p < 1e-15, 1e-15, p)
-        if (p < 0.00000000000000001) {
-            p = 0.00000000000000001; 
-        };
+        p = std::clamp(approx_exp, 0.0000000000001, 0.9999999999999);
         //pt = np.where(target, p, 1 - p)
-        if (target == 1) {
-            pt = p; 
-        } else {
-            pt = 1 - p;
-        };
+        pt = target == 1 ? p : 1 - p;
         //y = 2 * target - 1
         y = 2 * target - 1;
         //u = at * y * (1 - pt) ** gamma
