@@ -258,7 +258,6 @@ JOIN_SRCS(
     system/direct_io.cpp
     system/dynlib.cpp
     system/env.cpp
-    system/err.cpp
     system/error.cpp
     system/event.cpp
     system/execpath.cpp
@@ -275,6 +274,10 @@ JOIN_SRCS(
     system/hp_timer.cpp
     system/info.cpp
 )
+
+IF (OS_WINDOWS)
+    SRCS(system/err.cpp)
+ENDIF()
 
 JOIN_SRCS(
     all_system_2.cpp
