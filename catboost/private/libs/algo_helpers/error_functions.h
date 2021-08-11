@@ -1366,12 +1366,12 @@ void CheckDerivativeOrderForObjectImportance(ui32 derivativeOrder, ELeavesEstima
 class TFocalError final : public IDerCalcer {
 public:
     const double FocalAlpha;
-    const double FocalGamma = 2.0;
+    const double FocalGamma;
 
 public:
-    TFocalError(double alpha, /*double gamma, */bool isExpApprox)
+    TFocalError(double alpha, double gamma, bool isExpApprox)
         : IDerCalcer(isExpApprox, /*maxDerivativeOrder*/ 2)
-        , FocalAlpha(alpha)/*, Gamma(gamma)*/
+        , FocalAlpha(alpha), FocalGamma(gamma)
     {
         Y_ASSERT(FocalAlpha > 0 && FocalAlpha < 1 && FocalGamma > 0);
         CB_ENSURE(isExpApprox == false, "Approx format does not match");

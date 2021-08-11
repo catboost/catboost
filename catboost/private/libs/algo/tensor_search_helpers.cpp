@@ -302,7 +302,8 @@ THolder<IDerCalcer> BuildError(
                 isStoreExpApprox);
         case ELossFunction::Focal:
             return MakeHolder<TFocalError>(
-                NCatboostOptions::GetFocalParam(params.LossFunctionDescription),
+                NCatboostOptions::GetFocalParamA(params.LossFunctionDescription),
+                NCatboostOptions::GetFocalParamG(params.LossFunctionDescription),
                 isStoreExpApprox);
         default:
             CB_ENSURE(false, "provided error function is not supported");

@@ -1693,10 +1693,11 @@ TVector<TParamSet> TTweedieMetric::ValidParamSets() {
 
 namespace {
     struct TFocalMetric final: public TAdditiveMetric {
-        explicit TFocalMetric(const TLossParams& params, double focal_alpha)
+        explicit TFocalMetric(const TLossParams& params, double focal_alpha, double focal_gamma)
             : TAdditiveMetric(ELossFunction::Focal, params)
-            , FocalAlpha(focal_alpha) {
+            , FocalAlpha(focal_alpha), FocalGamma(focal_gamma) {
             CB_ENSURE(FocalAlpha > 0 && FocalAlpha < 1, "Focal metric is defined for 0 < focal_alpha < 1, got " << focal_alpha);
+            CB_ENSURE(FocalGamma > 0, "Focal metric is defined for 0 < focal_gamma, got " << focal_gamma);
         }
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
@@ -1716,15 +1717,21 @@ namespace {
 
     private:
         const double FocalAlpha;
+        const double FocalGamma;
     };
 }
 
 // static
 TVector<THolder<IMetric>> TFocalMetric::Create(const TMetricConfig& config) {
     CB_ENSURE(config.GetParamsMap().contains("focal_alpha"), "Metric " << ELossFunction::Focal << " requires focal_alpha as parameter");
+    CB_ENSURE(config.GetParamsMap().contains("focal_gamma"), "Metric " << ELossFunction::Focal << " requires focal_gamma as parameter");
     config.ValidParams->insert("focal_alpha");
+    config.ValidParams->insert("focal_gamma");
     return AsVector(MakeHolder<TFocalMetric>(config.Params,
-                                               FromString<float>(config.GetParamsMap().at("focal_alpha"))));
+                                               FromString<float>(config.GetParamsMap().at("focal_alpha")),
+                                               FromString<float>(config.GetParamsMap().at("focal_gamma"))
+                                            )
+                    );
 }
 
 TMetricHolder TFocalMetric::EvalSingleThread(
@@ -1796,7 +1803,8 @@ TVector<TParamSet> TFocalMetric::ValidParamSets() {
         TParamSet{
             {
                 TParamInfo{"use_weights", false, true},
-                TParamInfo{"focal_alpha", true, {}}
+                TParamInfo{"focal_alpha", true, {}},
+                TParamInfo{"focal_gamma", true, {}}
             },
             ""
         }

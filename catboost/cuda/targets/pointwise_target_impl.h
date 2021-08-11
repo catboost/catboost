@@ -276,7 +276,8 @@ namespace NCatboostCuda {
                     break;
                 }
                 case ELossFunction::Focal: {
-                    Alpha = NCatboostOptions::GetFocalParam(targetOptions);
+                    Alpha = NCatboostOptions::GetFocalParamA(targetOptions);
+                    Gamma = NCatboostOptions::GetFocalParamG(targetOptions);
                     break;
                 }
                 case ELossFunction::Huber: {

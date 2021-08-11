@@ -240,13 +240,22 @@ double NCatboostOptions::GetTweedieParam(const TLossDescription& lossFunctionCon
     return FromString<double>(lossParams.at("variance_power"));
 }
 
-double NCatboostOptions::GetFocalParam(const TLossDescription& lossFunctionConfig) {
+double NCatboostOptions::GetFocalParamA(const TLossDescription& lossFunctionConfig) {
     Y_ASSERT(lossFunctionConfig.GetLossFunction() == ELossFunction::Focal);
     const auto& lossParams = lossFunctionConfig.GetLossParamsMap();
     CB_ENSURE(
         lossParams.contains("focal_alpha"),
         "For " << ELossFunction::Focal << " focal_alpha parameter is mandatory");
     return FromString<double>(lossParams.at("focal_alpha"));
+}
+
+double NCatboostOptions::GetFocalParamG(const TLossDescription& lossFunctionConfig) {
+    Y_ASSERT(lossFunctionConfig.GetLossFunction() == ELossFunction::Focal);
+    const auto& lossParams = lossFunctionConfig.GetLossParamsMap();
+    CB_ENSURE(
+        lossParams.contains("focal_gamma"),
+        "For " << ELossFunction::Focal << " focal_gamma parameter is mandatory");
+    return FromString<double>(lossParams.at("focal_gamma"));
 }
 
 double NCatboostOptions::GetPredictionBorderOrDefault(const TMap<TString, TString>& params, double defaultValue) {
