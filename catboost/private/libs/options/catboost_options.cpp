@@ -60,6 +60,12 @@ static std::tuple<ui32, ui32, ELeavesEstimation, double> GetEstimationMethodDefa
             defaultGradientIterations = 1;
             break;
         }
+        case ELossFunction::LogCosh: {
+            defaultEstimationMethod = ELeavesEstimation::Exact;
+            defaultNewtonIterations = 1;
+            defaultGradientIterations = 1;
+            break;
+        }
         case ELossFunction::Cox: {
             defaultEstimationMethod = ELeavesEstimation::Newton;
             defaultNewtonIterations = 1;
@@ -318,8 +324,8 @@ void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
 
     if (treeConfig.LeavesEstimationMethod == ELeavesEstimation::Exact) {
         auto loss = lossFunctionConfig.GetLossFunction();
-        CB_ENSURE(EqualToOneOf(loss, ELossFunction::Quantile, ELossFunction::MAE, ELossFunction::MAPE),
-            "Exact method is only available for Quantile, MAE and MAPE loss functions.");
+        CB_ENSURE(EqualToOneOf(loss, ELossFunction::Quantile, ELossFunction::MAE, ELossFunction::MAPE, ELossFunction::LogCosh),
+            "Exact method is only available for Quantile, MAE, MAPE and LogCosh loss functions.");
         CB_ENSURE(TaskType == ETaskType::GPU || !BoostingOptions->ApproxOnFullHistory, "ApproxOnFullHistory option is not available within Exact method on CPU.");
     }
 
@@ -451,7 +457,8 @@ static void ValidateCtrTargetBinarization(
     ELossFunction lossFunction)
 {
     if (ctrTargetBinarization->BorderCount > 1) {
-        CB_ENSURE(lossFunction == ELossFunction::RMSE || lossFunction == ELossFunction::Quantile ||
+        CB_ENSURE(lossFunction == ELossFunction::RMSE || lossFunction == ELossFunction::LogCosh ||
+                      lossFunction == ELossFunction::Quantile ||
                       lossFunction == ELossFunction::LogLinQuantile || lossFunction == ELossFunction::Poisson ||
                       lossFunction == ELossFunction::MAPE || lossFunction == ELossFunction::MAE || lossFunction == ELossFunction::MultiClass ||
                       lossFunction == ELossFunction::MultiRMSE || lossFunction == ELossFunction::MultiRMSEWithMissingValues || lossFunction == ELossFunction::SurvivalAft,

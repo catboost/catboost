@@ -285,6 +285,8 @@ THolder<IDerCalcer> BuildError(
             return MakeHolder<TTweedieError>(
                 NCatboostOptions::GetTweedieParam(params.LossFunctionDescription),
                 isStoreExpApprox);
+        case ELossFunction::LogCosh:
+            return MakeHolder<TLogCoshError>(isStoreExpApprox);
         default:
             CB_ENSURE(false, "provided error function is not supported");
     }
