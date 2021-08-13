@@ -1271,12 +1271,20 @@ class GnuCompiler(Compiler):
                 '-Wno-dynamic-exception-spec',  # IGNIETFERRO-282 some problems with lucid
                 '-Wno-register',  # IGNIETFERRO-722 needed for contrib
             ])
-        self.c_defines = [
-            '-DFAKEID=$CPP_FAKEID', '-DARCADIA_ROOT=${ARCADIA_ROOT}', '-DARCADIA_BUILD_ROOT=${ARCADIA_BUILD_ROOT}',
+
+        self.c_defines = ['-DFAKEID=$CPP_FAKEID']
+        if self.target.is_android:
+            self.c_defines.append('-DANDROID_FAKEID=$ANDROID_FAKEID')
+
+        self.c_defines.extend([
+            '-DARCADIA_ROOT=${ARCADIA_ROOT}',
+            '-DARCADIA_BUILD_ROOT=${ARCADIA_BUILD_ROOT}',
+        ])
+
+        self.c_defines.extend([
             '-D_THREAD_SAFE', '-D_PTHREADS', '-D_REENTRANT', '-D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES',
             '-D_LARGEFILE_SOURCE', '-D__STDC_CONSTANT_MACROS', '-D__STDC_FORMAT_MACROS',
-        ]
-        self.c_flags = ['$CL_DEBUG_INFO', '$CL_DEBUG_INFO_DISABLE_CACHE__NO_UID__']
+        ])
 
         if not self.target.is_android:
             # There is no usable _FILE_OFFSET_BITS=64 support in Androids until API 21. And it's incomplete until at least API 24.
@@ -1301,6 +1309,7 @@ class GnuCompiler(Compiler):
 
         self.extra_compile_opts = []
 
+        self.c_flags = ['$CL_DEBUG_INFO', '$CL_DEBUG_INFO_DISABLE_CACHE__NO_UID__']
         self.c_flags += self.tc.arch_opt + ['-pipe']
 
         self.sfdl_flags = ['-E', '-C', '-x', 'c++']
