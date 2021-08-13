@@ -379,6 +379,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\more-itertools\pycontrib-python-more-itertools.global.vcxproj">
       <Project>{8E1F0917-C9D4-7ECC-1F33-AE465ADA7B94}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\mypy-protobuf\pycontrib-python-mypy-protobuf.global.vcxproj">
+      <Project>{15127EAF-6A59-636D-6354-64791D7806E0}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\py2\numpy\core\src\multiarray\pycore-src-multiarray.global.vcxproj">
       <Project>{D4CC2AAD-6EC9-22F4-C0D6-D3851367558E}</Project>
     </ProjectReference>
