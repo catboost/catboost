@@ -541,9 +541,9 @@ namespace NCB {
         return newTrainingData;
     }
 
-    bool HaveLearnFeaturesInMemory(
-        const NCatboostOptions::TPoolLoadParams* loadOptions,
-        const NCatboostOptions::TCatBoostOptions& catBoostOptions
+    bool HaveFeaturesInMemory(
+        const NCatboostOptions::TCatBoostOptions& catBoostOptions,
+        const TMaybe<TPathWithScheme>& maybePathWithScheme
     ) {
         #if defined(USE_MPI)
         const bool isGpuDistributed = catBoostOptions.GetTaskType() == ETaskType::GPU;
@@ -554,12 +554,12 @@ namespace NCB {
         if (!isCpuDistributed && !isGpuDistributed) {
             return true;
         }
-        if (loadOptions == nullptr) {
+        if (const auto* pathWithScheme = maybePathWithScheme.Get()) {
+            const bool isQuantized = pathWithScheme->Scheme.find("quantized") != std::string::npos;
+            return !IsSharedFs(*pathWithScheme) || !isQuantized;
+        } else {
             return true;
         }
-        const auto& learnSetPath = loadOptions->LearnSetPath;
-        const bool isQuantized = learnSetPath.Scheme.find("quantized") != std::string::npos;
-        return !IsSharedFs(learnSetPath) || !isQuantized;
     }
 
 }

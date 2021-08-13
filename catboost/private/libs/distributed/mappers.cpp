@@ -6,6 +6,7 @@
 #include <catboost/private/libs/algo/approx_delta_calcer_multi.h>
 #include <catboost/private/libs/algo/approx_updater_helpers.h>
 #include <catboost/private/libs/algo/data.h>
+#include <catboost/private/libs/algo/helpers.h>
 #include <catboost/private/libs/algo/learn_context.h>
 #include <catboost/private/libs/algo/online_ctr.h>
 #include <catboost/private/libs/algo/preprocess.h>
@@ -92,7 +93,18 @@ namespace NCatboostDistributed {
         return result;
     }
 
-    void TDatasetLoader::DoMap(
+    static NCB::TDatasetSubset GetSubsetForWorker(
+       int workerCount,
+       int hostId,
+       const NCB::TObjectsGrouping& objectsGrouping
+    ) {
+        const auto workerParts = WorkaroundSplit(objectsGrouping, workerCount);
+        const ui32 loadStart = workerParts[hostId].Begin;
+        const ui32 loadEnd = workerParts[hostId].End;
+        return NCB::TDatasetSubset::MakeRange(loadStart, loadEnd);
+    }
+
+    void TDatasetsLoader::DoMap(
         NPar::IUserContext* ctx,
         int hostId,
         TInput* params,
@@ -105,9 +117,11 @@ namespace NCatboostDistributed {
 
         const int workerCount = ctx->GetHostIdCount();
         CATBOOST_DEBUG_LOG << "Worker count " << workerCount << Endl;
-        const auto workerParts = WorkaroundSplit(params->ObjectsGrouping, workerCount);
-        const ui32 loadStart = workerParts[hostId].Begin;
-        const ui32 loadEnd = workerParts[hostId].End;
+
+        TVector<NCB::TDatasetSubset> testDatasetSubsets;
+        for (const auto& testObjectsGrouping : params->TestObjectsGroupings) {
+            testDatasetSubsets.push_back(GetSubsetForWorker(workerCount, hostId, testObjectsGrouping));
+        }
 
         const auto poolLoadOptions = params->PoolLoadOptions;
         TProfileInfo profile;
@@ -117,7 +131,8 @@ namespace NCatboostDistributed {
             poolLoadOptions,
             params->ObjectsOrder,
             /*readTest*/false,
-            NCB::TDatasetSubset::MakeRange(loadStart, loadEnd),
+            GetSubsetForWorker(workerCount, hostId, params->LearnObjectsGrouping),
+            testDatasetSubsets,
             &localData.ClassLabelsFromDataset,
             &NPar::LocalExecutor(),
             &profile
@@ -159,7 +174,7 @@ namespace NCatboostDistributed {
     ) const {
         NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
         auto& localData = TLocalTensorSearchData::GetRef();
-        if (localData.Rand == nullptr) { // may be set by TDatasetLoader
+        if (localData.Rand == nullptr) { // may be set by TDatasetsLoader
             localData.Rand = MakeHolder<TRestorableFastRng64>(params->RandomSeed + hostId);
         }
 
@@ -235,7 +250,7 @@ namespace NCatboostDistributed {
                     trainParams.CatFeatureParams->OneHotMaxSize.Get()),
                 trainParams.ObliviousTreeOptions->MaxDepth);
         }
-        localData.Indices.yresize(plainFold.GetLearnSampleCount());
+        localData.Indices.yresize(plainFold.GetLearnSampleCount() + trainingDataProviders.GetTestSampleCount());
         localData.AllDocCount = params->AllDocCount;
         localData.SumAllWeights = params->SumAllWeights;
     }
@@ -243,7 +258,7 @@ namespace NCatboostDistributed {
     void TApproxReconstructor::DoMap(
         NPar::IUserContext* ctx,
         int hostId,
-        TInput* valuedForest,
+        TInput* params,
         TOutput* /*unused*/
     ) const {
         NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
@@ -251,13 +266,21 @@ namespace NCatboostDistributed {
         auto& localData = TLocalTensorSearchData::GetRef();
         Y_ASSERT(IsPlainMode(localData.Params.BoostingOptions->BoostingType));
 
-        const auto& forest = valuedForest->first;
-        const auto& leafValues = valuedForest->second;
+        const auto& forest = params->TreeStruct;
+        const auto& leafValues = params->LeafValues;
         Y_ASSERT(forest.size() == leafValues.size());
 
-        auto maybeBaseline = GetTrainData(trainData).Learn->TargetData->GetBaseline();
+        const auto& trainingDataProviders = GetTrainData(trainData);
+
+        auto maybeBaseline = trainingDataProviders.Learn->TargetData->GetBaseline();
         if (maybeBaseline) {
             AssignRank2<float>(*maybeBaseline, &localData.Progress->AvrgApprox);
+        }
+        for (auto testIdx : xrange(trainingDataProviders.Test.size())) {
+            auto maybeBaseline = trainingDataProviders.Test[testIdx]->TargetData->GetBaseline();
+            if (maybeBaseline) {
+                AssignRank2<float>(*maybeBaseline, &localData.Progress->TestApprox[testIdx]);
+            }
         }
 
         const ui32 learnSampleCount = GetTrainData(trainData).Learn->GetObjectCount();
@@ -269,16 +292,19 @@ namespace NCatboostDistributed {
                 avrgFold,
                 forest[treeIdx],
                 GetTrainData(trainData),
-                EBuildIndicesDataParts::LearnOnly,
+                EBuildIndicesDataParts::All,
                 &NPar::LocalExecutor());
             UpdateAvrgApprox(
                 storeExpApprox,
                 learnSampleCount,
                 leafIndices,
-                leafValues[treeIdx], /*testData*/
-                { },
+                leafValues[treeIdx],
+                GetTrainData(trainData).Test,
                 localData.Progress.Get(),
                 &NPar::LocalExecutor());
+            if (params->BestIteration && (treeIdx == SafeIntegerCast<size_t>(*params->BestIteration))) {
+                localData.Progress->BestTestApprox = localData.Progress->TestApprox.back();
+            }
         }
     }
 
@@ -297,16 +323,21 @@ namespace NCatboostDistributed {
     }
 
     void TBootstrapMaker::DoMap(
-        NPar::IUserContext* /*ctx*/,
-        int /*hostId*/,
+        NPar::IUserContext* ctx,
+        int hostId,
         TInput* /*unused*/,
         TOutput* /*unused*/
     ) const {
         auto& localData = TLocalTensorSearchData::GetRef();
+
+        NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
+
         Bootstrap(
             localData.Params,
             !localData.Progress->EstimatedFeaturesContext.OfflineEstimatedFeaturesLayout.empty(),
-            localData.Indices,
+            TConstArrayRef<TIndexType>(
+                localData.Indices.data(),
+                GetTrainData(trainData).Learn->GetObjectCount()),
             localData.Progress->LeafValues,
             &localData.Progress->AveragingFold,
             &localData.SampledDocs,
@@ -560,15 +591,20 @@ namespace NCatboostDistributed {
     ) const {
         auto& localData = TLocalTensorSearchData::GetRef();
         NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
+
+        TArrayRef<TIndexType> learnIndices(
+            localData.Indices.data(),
+            GetTrainData(trainData).Learn->GetObjectCount());
+
         SetPermutedIndices(
             *bestSplit,
             GetTrainData(trainData),
             localData.Depth + 1,
             localData.Progress->AveragingFold,
-            &localData.Indices,
+            learnIndices,
             &NPar::LocalExecutor());
         if (IsSamplingPerTree(localData.Params.ObliviousTreeOptions)) {
-            localData.SampledDocs.UpdateIndices(localData.Indices, &NPar::LocalExecutor());
+            localData.SampledDocs.UpdateIndices(learnIndices, &NPar::LocalExecutor());
             if (localData.UseTreeLevelCaching) {
                 localData.SmallestSplitSideDocs.SelectSmallestSplitSide(
                     localData.Depth + 1,
@@ -579,13 +615,19 @@ namespace NCatboostDistributed {
     }
 
     void TEmptyLeafFinder::DoMap(
-        NPar::IUserContext* /*ctx*/,
-        int /*hostId*/,
+        NPar::IUserContext* ctx,
+        int hostId,
         TInput* /*unused*/,
         TOutput* isLeafEmpty
     ) const {
         auto& localData = TLocalTensorSearchData::GetRef();
-        *isLeafEmpty = GetIsLeafEmpty(localData.Depth + 1, localData.Indices, &NPar::LocalExecutor());
+        NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
+
+        TArrayRef<TIndexType> learnIndices(
+            localData.Indices.data(),
+            GetTrainData(trainData).Learn->GetObjectCount());
+
+        *isLeafEmpty = GetIsLeafEmpty(localData.Depth + 1, learnIndices, &NPar::LocalExecutor());
         ++localData.Depth; // tree level completed
     }
 
@@ -641,7 +683,7 @@ namespace NCatboostDistributed {
             localData.Progress->AveragingFold,
             *splitTree,
             GetTrainData(trainData),
-            EBuildIndicesDataParts::LearnOnly,
+            EBuildIndicesDataParts::All,
             &NPar::LocalExecutor());
         const int approxDimension = localData.Progress->ApproxDimension;
         if (localData.ApproxDeltas.empty()) {
@@ -683,36 +725,72 @@ namespace NCatboostDistributed {
     }
 
     void TApproxUpdater::DoMap(
-        NPar::IUserContext* /*unused*/,
-        int /*unused*/,
+        NPar::IUserContext* ctx,
+        int hostId,
         TInput* averageLeafValues,
         TOutput* /*unused*/
     ) const {
         auto& localData = TLocalTensorSearchData::GetRef();
-        if (localData.StoreExpApprox) {
-            UpdateBodyTailApprox</*StoreExpApprox*/true>(
-                { localData.ApproxDeltas },
-                localData.Params.BoostingOptions->LearningRate,
-                &NPar::LocalExecutor(),
-                &localData.Progress->AveragingFold);
-        } else {
-            UpdateBodyTailApprox</*StoreExpApprox*/false>(
-                { localData.ApproxDeltas },
-                localData.Params.BoostingOptions->LearningRate,
-                &NPar::LocalExecutor(),
-                &localData.Progress->AveragingFold);
-        }
-        TConstArrayRef<ui32> learnPermutationRef(localData.Progress->AveragingFold.GetLearnPermutationArray());
-        TConstArrayRef<TIndexType> indicesRef(localData.Indices);
-        const auto updateAvrgApprox =
-            [=](TConstArrayRef<double> delta, TArrayRef<double> approx, size_t idx) {
-                approx[learnPermutationRef[idx]] += delta[indicesRef[idx]];
-            };
-        UpdateApprox(
-            updateAvrgApprox,
-            *averageLeafValues,
-            &localData.Progress->AvrgApprox,
-            &NPar::LocalExecutor());
+
+        NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
+
+        TConstArrayRef<NCB::TTrainingDataProviderPtr> testData = GetTrainData(trainData).Test;
+
+        const TVector<size_t> testOffsets = CalcTestOffsets(
+            GetTrainData(trainData).Learn->GetObjectCount(),
+            testData);
+
+        NPar::LocalExecutor().ExecRange(
+            [&](int setIdx) {
+                if (setIdx == 0) { // learn data set
+                    if (localData.StoreExpApprox) {
+                        UpdateBodyTailApprox</*StoreExpApprox*/true>(
+                            { localData.ApproxDeltas },
+                            localData.Params.BoostingOptions->LearningRate,
+                            &NPar::LocalExecutor(),
+                            &localData.Progress->AveragingFold);
+                    } else {
+                        UpdateBodyTailApprox</*StoreExpApprox*/false>(
+                            { localData.ApproxDeltas },
+                            localData.Params.BoostingOptions->LearningRate,
+                            &NPar::LocalExecutor(),
+                            &localData.Progress->AveragingFold);
+                    }
+                    TConstArrayRef<ui32> learnPermutationRef(localData.Progress->AveragingFold.GetLearnPermutationArray());
+                    TConstArrayRef<TIndexType> indicesRef(localData.Indices);
+                    const auto updateAvrgApprox =
+                        [=](TConstArrayRef<double> delta, TArrayRef<double> approx, size_t idx) {
+                            approx[learnPermutationRef[idx]] += delta[indicesRef[idx]];
+                        };
+                    UpdateApprox(
+                        updateAvrgApprox,
+                        *averageLeafValues,
+                        &localData.Progress->AvrgApprox,
+                        &NPar::LocalExecutor());
+                } else { // test data set
+                    const int testIdx = setIdx - 1;
+                    const size_t testSampleCount = testData[testIdx]->GetObjectCount();
+                    TConstArrayRef<TIndexType> indicesRef(
+                        localData.Indices.data() + testOffsets[testIdx],
+                        testSampleCount);
+                    const auto updateTestApprox = [=](
+                        TConstArrayRef<double> delta,
+                        TArrayRef<double> approx,
+                        size_t idx
+                    ) {
+                        approx[idx] += delta[indicesRef[idx]];
+                    };
+                    Y_ASSERT(localData.Progress->TestApprox[testIdx][0].size() == testSampleCount);
+                    UpdateApprox(
+                        updateTestApprox,
+                        *averageLeafValues,
+                        &localData.Progress->TestApprox[testIdx],
+                        &NPar::LocalExecutor());
+                }
+            },
+            0,
+            1 + SafeIntegerCast<int>(testData.size()),
+            NPar::TLocalExecutor::WAIT_COMPLETE);
     }
 
     void TDerivativeSetter::DoMap(
@@ -731,6 +809,34 @@ namespace NCatboostDistributed {
             localData.Progress->Rand.GenRand(),
             &localData.Progress->AveragingFold,
             &NPar::LocalExecutor());
+    }
+
+    void TBestApproxSetter::DoMap(
+        NPar::IUserContext* /*ctx*/,
+        int /*hostId*/,
+        TInput* /*unused*/,
+        TOutput* /*unused*/
+    ) const {
+        auto& localData = TLocalTensorSearchData::GetRef();
+        localData.Progress->BestTestApprox = localData.Progress->TestApprox.back();
+    }
+
+    void TApproxGetter::DoMap(
+        NPar::IUserContext* /*ctx*/,
+        int /*hostId*/,
+        TInput* approxGetterParams,
+        TOutput* approxesResult
+    ) const {
+        auto& localData = TLocalTensorSearchData::GetRef();
+        if (approxGetterParams->ReturnLearnApprox) {
+            approxesResult->LearnApprox = localData.Progress->AvrgApprox;
+        }
+        if (approxGetterParams->ReturnTestApprox) {
+            approxesResult->TestApprox = localData.Progress->TestApprox;
+        }
+        if (approxGetterParams->ReturnBestTestApprox) {
+            approxesResult->BestTestApprox = localData.Progress->BestTestApprox;
+        }
     }
 
     void TBucketMultiUpdater::DoMap(
@@ -777,40 +883,104 @@ namespace NCatboostDistributed {
     void TErrorCalcer::DoMap(
         NPar::IUserContext* ctx,
         int hostId,
-        TInput* useAveragingFold,
+        TInput* errorCalcerParams,
         TOutput* additiveStats
     ) const {
         const auto& localData = TLocalTensorSearchData::GetRef();
         NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
-        const NCB::TTrainingDataProvider& learnData = *(GetTrainData(trainData).Learn);
 
-        const auto errors = CreateMetrics(
-            localData.Params.MetricOptions,
-            /*evalMetricDescriptor*/Nothing(),
-            localData.Progress->ApproxDimension,
-            learnData.MetaInfo.HasWeights);
-        const auto skipMetricOnTrain = GetSkipMetricOnTrain(errors);
-        TVector<IMetric*> selectedMetrics;
-        for (auto i : xrange(errors.size())) {
-            if (!skipMetricOnTrain[i] && errors[i]->IsAdditiveMetric()) {
-                selectedMetrics.push_back(errors[i].Get());
-            }
-        }
+        const auto& trainingDataProviders = GetTrainData(trainData);
+        const NCB::TTrainingDataProvider& learnData = *(trainingDataProviders.Learn);
+        const TVector<NCB::TTrainingDataProviderPtr>& testData = trainingDataProviders.Test;
 
-        auto calculatedErrors = EvalErrorsWithCaching(
-            *useAveragingFold ? localData.Progress->AveragingFold.BodyTailArr[0].Approx : localData.Progress->AvrgApprox,
-            *useAveragingFold ? localData.ApproxDeltas : /*approxDelta*/TVector<TVector<double>>{},
-            *useAveragingFold ? localData.StoreExpApprox : /*isExpApprox*/false,
-            learnData.TargetData->GetTarget().GetOrElse(TConstArrayRef<TConstArrayRef<float>>()),
-            GetWeights(*learnData.TargetData),
-            learnData.TargetData->GetGroupInfo().GetOrElse(TConstArrayRef<TQueryInfo>()),
-            selectedMetrics,
-            &NPar::LocalExecutor()
-        );
+        if (errorCalcerParams->CalcOnlyBacktrackingObjective) {
+            TVector<THolder<IMetric>> metrics;
+            bool haveBacktrackingObjective;
+            double minimizationSign;
+            CreateBacktrackingObjective(
+                localData.Params.MetricOptions->ObjectiveMetric,
+                localData.Params.ObliviousTreeOptions,
+                localData.Progress->ApproxDimension,
+                &haveBacktrackingObjective,
+                &minimizationSign,
+                &metrics);
 
-        for (auto i : xrange(selectedMetrics.size())) {
-            const TString metricDescription = selectedMetrics[i]->GetDescription();
-            (*additiveStats)[metricDescription] = calculatedErrors[i];
+            Y_ASSERT(metrics.size() == 1);
+            const IMetric* metric = metrics[0].Get();
+            auto calculatedErrors = EvalErrorsWithCaching(
+                localData.Progress->AveragingFold.BodyTailArr[0].Approx,
+                localData.ApproxDeltas,
+                localData.StoreExpApprox,
+                learnData.TargetData->GetTarget().GetOrElse(TConstArrayRef<TConstArrayRef<float>>()),
+                GetWeights(*learnData.TargetData),
+                learnData.TargetData->GetGroupInfo().GetOrElse(TConstArrayRef<TQueryInfo>()),
+                MakeArrayRef(&metric, 1),
+                &NPar::LocalExecutor());
+
+            additiveStats->resize(1);
+            (*additiveStats)[0][metrics[0]->GetDescription()] = calculatedErrors[0];
+        } else {
+            additiveStats->resize(1 + testData.size());
+
+            const auto metrics = CreateMetrics(
+                localData.Params.MetricOptions,
+                /*evalMetricDescriptor*/Nothing(),
+                localData.Progress->ApproxDimension,
+                learnData.MetaInfo.HasWeights);
+
+            auto onLearn = [&] (TConstArrayRef<const IMetric*> trainMetrics) {
+                auto calculatedErrors = EvalErrorsWithCaching(
+                    localData.Progress->AvrgApprox,
+                    /*approxDelta*/TVector<TVector<double>>{},
+                    /*isExpApprox*/false,
+                    learnData.TargetData->GetTarget().GetOrElse(TConstArrayRef<TConstArrayRef<float>>()),
+                    GetWeights(*learnData.TargetData),
+                    learnData.TargetData->GetGroupInfo().GetOrElse(TConstArrayRef<TQueryInfo>()),
+                    trainMetrics,
+                    &NPar::LocalExecutor());
+
+                for (auto i : xrange(trainMetrics.size())) {
+                    const TString metricDescription = trainMetrics[i]->GetDescription();
+                    (*additiveStats)[0][metricDescription] = calculatedErrors[i];
+                }
+            };
+            auto onTest = [&] (
+                size_t testIdx,
+                TConstArrayRef<const IMetric*> testMetrics,
+                TMaybe<int> /*filteredTrackerIdx*/
+            ) {
+                const auto &targetData = testData[testIdx]->TargetData;
+
+                auto maybeTarget = targetData->GetTarget();
+                auto weights = GetWeights(*targetData);
+                auto groupInfo = targetData->GetGroupInfo().GetOrElse(TConstArrayRef<TQueryInfo>());
+
+                auto calculatedErrors = EvalErrorsWithCaching(
+                    localData.Progress->TestApprox[testIdx],
+                    /*approxDelta*/TVector<TVector<double>>{},
+                    /*isExpApprox*/false,
+                    maybeTarget.GetOrElse(TConstArrayRef<TConstArrayRef<float>>()),
+                    weights,
+                    groupInfo,
+                    testMetrics,
+                    &NPar::LocalExecutor());
+
+                for (auto i : xrange(testMetrics.size())) {
+                    const TString metricDescription = testMetrics[i]->GetDescription();
+                    (*additiveStats)[1 + testIdx][metricDescription] = calculatedErrors[i];
+                }
+            };
+
+            IterateOverMetrics(
+                trainingDataProviders,
+                metrics,
+                errorCalcerParams->CalcAllMetrics,
+                errorCalcerParams->CalcErrorTrackerMetric,
+                /*calcAdditiveMetrics*/ true,
+                /*calcNonAdditiveMetrics*/ false,
+                onLearn,
+                onTest
+            );
         }
     }
 
@@ -1054,6 +1224,9 @@ REGISTER_SAVELOAD_NM_CLASS(0xd66d4af, NCatboostDistributed, TDerivativeSetter);
 REGISTER_SAVELOAD_NM_CLASS(0xd66d4b2, NCatboostDistributed, TDeltaMultiUpdater);
 REGISTER_SAVELOAD_NM_CLASS(0xd66d4c1, NCatboostDistributed, TBucketMultiUpdater);
 
+REGISTER_SAVELOAD_NM_CLASS(0xd66d4c2, NCatboostDistributed, TBestApproxSetter);
+REGISTER_SAVELOAD_NM_CLASS(0xd66d4c3, NCatboostDistributed, TApproxGetter);
+
 REGISTER_SAVELOAD_NM_CLASS(0xd66d4d1, NCatboostDistributed, TPairwiseScoreCalcer);
 REGISTER_SAVELOAD_NM_CLASS(0xd66d4d2, NCatboostDistributed, TRemotePairwiseBinCalcer);
 REGISTER_SAVELOAD_NM_CLASS(0xd66d4d3, NCatboostDistributed, TRemotePairwiseScoreCalcer);
@@ -1062,7 +1235,7 @@ REGISTER_SAVELOAD_NM_CLASS(0xd66d4d4, NCatboostDistributed, TErrorCalcer);
 REGISTER_SAVELOAD_NM_CLASS(0xd66d4d6, NCatboostDistributed, TApproxReconstructor);
 REGISTER_SAVELOAD_NM_CLASS(0xd66d4e0, NCatboostDistributed, TLeafWeightsGetter);
 
-REGISTER_SAVELOAD_NM_CLASS(0xd66d4e1, NCatboostDistributed, TDatasetLoader);
+REGISTER_SAVELOAD_NM_CLASS(0xd66d4e1, NCatboostDistributed, TDatasetsLoader);
 REGISTER_SAVELOAD_NM_CLASS(0xd66d4e3, NCatboostDistributed, TQuantileExactApproxStarter);
 REGISTER_SAVELOAD_NM_CLASS(0xd66d4e4, NCatboostDistributed, TQuantileArraySplitter);
 REGISTER_SAVELOAD_NM_CLASS(0xd66d4e5, NCatboostDistributed, TQuantileEqualWeightsCalcer);

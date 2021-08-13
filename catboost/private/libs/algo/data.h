@@ -21,6 +21,7 @@ namespace NPar {
 
 
 namespace NCB {
+    struct TPathWithScheme;
 
     TTrainingDataProviderPtr GetTrainingData(
         TDataProviderPtr srcData,
@@ -56,9 +57,9 @@ namespace NCB {
         const NCB::TTrainingDataProviders& trainingData
     );
 
-    bool HaveLearnFeaturesInMemory(
-        const NCatboostOptions::TPoolLoadParams* loadOptions,
-        const NCatboostOptions::TCatBoostOptions& catBoostOptions
+    bool HaveFeaturesInMemory(
+        const NCatboostOptions::TCatBoostOptions& catBoostOptions,
+        const TMaybe<TPathWithScheme>& maybePathWithScheme
     );
 
 }

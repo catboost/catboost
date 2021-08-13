@@ -45,7 +45,7 @@ void SetPermutedIndices(
     const NCB::TTrainingDataProviders& trainingData,
     int curDepth,
     const TFold& fold,
-    TVector<TIndexType>* indices,
+    TArrayRef<TIndexType> indices,
     NPar::ILocalExecutor* localExecutor);
 
 TVector<bool> GetIsLeafEmpty(int curDepth, TConstArrayRef<TIndexType> indices, NPar::ILocalExecutor* localExecutor);

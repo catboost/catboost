@@ -97,7 +97,10 @@ namespace NCB {
             NCB::NPrivate::CreateTrainDirWithTmpDirIfNotExist(outputFileOptions.GetTrainDir(), &tmpDir);
         }
 
-        const bool haveLearnFeaturesInMemory = HaveLearnFeaturesInMemory(poolLoadParams, *catBoostOptions);
+        const bool haveLearnFeaturesInMemory = HaveFeaturesInMemory(
+            *catBoostOptions,
+            poolLoadParams ? MakeMaybe(poolLoadParams->LearnSetPath) : Nothing()
+        );
 
         TTrainingDataProviders trainingData = GetTrainingData(
             pools,
@@ -147,7 +150,10 @@ namespace NCB {
             executor
         );
 
-        const bool haveLearnFeaturesInMemory = HaveLearnFeaturesInMemory(poolLoadParams, catBoostOptions);
+        const bool haveLearnFeaturesInMemory = HaveFeaturesInMemory(
+            catBoostOptions,
+            poolLoadParams ? MakeMaybe(poolLoadParams->LearnSetPath) : Nothing()
+        );
         // TODO(ilyzhin) support distributed training with quantized pool
         CB_ENSURE(haveLearnFeaturesInMemory, "Features selection doesn't support distributed training with quantized pool yet.");
 
@@ -156,10 +162,15 @@ namespace NCB {
         if (catBoostOptions.SystemOptions->IsMaster()) {
             masterContext.Reset(new TMasterContext(catBoostOptions.SystemOptions));
             if (!haveLearnFeaturesInMemory) {
-                SetTrainDataFromQuantizedPool(
+                TVector<TObjectsGrouping> testObjectsGroupings;
+                for (const auto& testDataset : trainingData.Test) {
+                    testObjectsGroupings.push_back(*(testDataset->ObjectsGrouping));
+                }
+                SetTrainDataFromQuantizedPools(
                     *poolLoadParams,
                     catBoostOptions,
-                    *trainingData.Learn->ObjectsGrouping,
+                    TObjectsGrouping(*trainingData.Learn->ObjectsGrouping),
+                    std::move(testObjectsGroupings),
                     *trainingData.Learn->MetaInfo.FeaturesLayout,
                     &rand
                 );

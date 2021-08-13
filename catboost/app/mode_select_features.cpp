@@ -82,6 +82,7 @@ static TDataProviders LoadPools(
         objectsOrder,
         /*readTestData*/true,
         TDatasetSubset::MakeColumns(),
+        TVector<TDatasetSubset>(poolLoadParams.TestSetPaths.size(), TDatasetSubset::MakeColumns()),
         &classLabels,
         executor,
         /*profile*/nullptr
