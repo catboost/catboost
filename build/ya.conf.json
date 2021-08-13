@@ -9140,7 +9140,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 1044147298,
+                "sandbox_id": 1045123804,
                 "match": "app_host_launcher"
             },
             "executable": {
