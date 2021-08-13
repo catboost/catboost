@@ -6096,13 +6096,10 @@ TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TLossParams& 
         case ELossFunction::Tweedie:
             AppendTemporaryMetricsVector(TTweedieMetric::Create(config), &result);
             break;
-<<<<<<< HEAD
         case ELossFunction::Focal:
             AppendTemporaryMetricsVector(TFocalMetric::Create(config), &result);
-=======
         case ELossFunction::LogCosh:
             AppendTemporaryMetricsVector(TLogCoshMetric::Create(config), &result);
->>>>>>> master
             break;
         case ELossFunction::MedianAbsoluteError:
             AppendTemporaryMetricsVector(TMedianAbsoluteErrorMetric::Create(config), &result);
