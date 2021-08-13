@@ -1402,18 +1402,11 @@ public:
 private:
     double CalcDer(double approx, float target) const override {
         double approx_exp, at, p, pt, y, der;
-        //approxes = 1 / (1 + np.exp(-approxes))
         approx_exp = 1 / (1 + exp(-approx));
-        //at = np.where(target, FocalAlpha, 1 - FocalAlpha)
         at = target == 1 ? FocalAlpha : 1 - FocalAlpha;
-        //p = np.where(approx > (1 - 1e-15), 1 - 1e-15, approx)
-        //p = np.where(p < 1e-15, 1e-15, p)
         p = std::clamp(approx_exp, 0.0000000000001, 0.9999999999999);
-        //pt = np.where(target, p, 1 - p)
         pt = target == 1 ? p : 1 - p;
-        //y = 2 * target - 1
         y = 2 * target - 1;
-        //der = at * y * (1 - pt) ** FocalGamma * (FocalGamma * pt * np.log(pt) + pt - 1)
         der = at * y * pow((1 - pt), FocalGamma);
         der = der * (FocalGamma * pt * log(pt) + pt - 1);
         return der;
@@ -1421,26 +1414,15 @@ private:
 
     double CalcDer2(double approx, float target) const override {
         double approx_exp, at, p, pt, y, u, du, v, dv, der2;
-        //approxes = 1 / (1 + np.exp(-approxes))
         approx_exp = 1 / (1 + exp(-approx));
-        //at = np.where(target, FocalAlpha, 1 - FocalAlpha)
         at = target == 1 ? FocalAlpha : 1 - FocalAlpha;
-        //p = np.where(approx > (1 - 1e-15), 1 - 1e-15, approx)
-        //p = np.where(p < 1e-15, 1e-15, p)
         p = std::clamp(approx_exp, 0.0000000000001, 0.9999999999999);
-        //pt = np.where(target, p, 1 - p)
         pt = target == 1 ? p : 1 - p;
-        //y = 2 * target - 1
         y = 2 * target - 1;
-        //u = at * y * (1 - pt) ** gamma
         u = at * y * pow((1 - pt), FocalGamma);
-        //du = -at * y * gamma * (1 - pt) ** (gamma - 1)
         du = -at * y * FocalGamma * pow((1 - pt), FocalGamma - 1);
-        //v = gamma * pt * np.log(pt) + pt - 1
         v = FocalGamma * pt * log(pt) + pt - 1;
-        //dv = gamma * np.log(pt) + gamma + 1
         dv = FocalGamma * log(pt) + FocalGamma + 1;
-        //der2 = (du * v + u * dv) * y * (pt * (1 - pt))
         der2 = (du * v + u * dv) * y * (pt * (1 - pt));
         return der2;
     }
