@@ -698,3 +698,12 @@ static inline void LoadMany(S* s, Ts&... t) {
     inline void Load(IInputStream* s) {        \
         ::LoadMany(s, __VA_ARGS__);            \
     }
+
+#define Y_SAVELOAD_DEFINE_OVERRIDE(...)          \
+    void Save(IOutputStream* s) const override { \
+        ::SaveMany(s, __VA_ARGS__);              \
+    }                                            \
+                                                 \
+    void Load(IInputStream* s) override {        \
+        ::LoadMany(s, __VA_ARGS__);              \
+    }
