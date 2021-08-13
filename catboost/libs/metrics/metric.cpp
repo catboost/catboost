@@ -6098,6 +6098,7 @@ TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TLossParams& 
             break;
         case ELossFunction::Focal:
             AppendTemporaryMetricsVector(TFocalMetric::Create(config), &result);
+            break;
         case ELossFunction::LogCosh:
             AppendTemporaryMetricsVector(TLogCoshMetric::Create(config), &result);
             break;
