@@ -9111,6 +9111,22 @@ def test_tweedie():
     return [local_canonical_file(learn_error_path)]
 
 
+def test_logcosh():
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+
+    cmd = (
+        '--loss-function', 'LogCosh',
+        '-f', data_file('adult', 'train_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-i', '100',
+        '--learning-rate', '0.5',
+        '--learn-err-log', learn_error_path
+    )
+    execute_catboost_fit('CPU', cmd)
+
+    return [local_canonical_file(learn_error_path)]
+
+
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 @pytest.mark.parametrize('separator_type', SEPARATOR_TYPES)
 @pytest.mark.parametrize('feature_estimators', TEXT_FEATURE_ESTIMATORS)

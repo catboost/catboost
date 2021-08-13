@@ -77,6 +77,7 @@ catboost.Pool
 Create a dataset from the given file, matrix or data.frame.
 }
 \examples{
+\dontrun{
 # From file
 pool_path <- system.file("extdata", "adult_train.1000", package = "catboost")
 cd_path <- system.file("extdata", "adult.cd", package = "catboost")
@@ -95,4 +96,5 @@ data_frame <- data.frame(value = runif(10), category = nonsense[(1:10) \%\% 3 + 
 label = (1:10) \%\% 2
 pool <- catboost.load_pool(data_frame, label = label)
 print(pool)
+}
 }

@@ -92,6 +92,7 @@ TTargetClassifier BuildTargetClassifier(
         case ELossFunction::UserQuerywiseMetric:
         case ELossFunction::Tweedie:
         case ELossFunction::Focal:
+        case ELossFunction::LogCosh:
             return TTargetClassifier(
                 SelectBorders(target, targetBorderCount, targetBorderType, allowConstLabel),
                 targetId);

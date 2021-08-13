@@ -1,3 +1,6 @@
 ALLOW yt -> yt/yt/server
 
 DENY .* -> yt/yt/server
+
+ALLOW mapreduce/yt/experiments -> mapreduce/yt/experiments
+DENY .* -> mapreduce/yt/experiments

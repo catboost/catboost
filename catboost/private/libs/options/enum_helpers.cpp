@@ -153,6 +153,8 @@ MakeRegister(LossInfos,
     Registree(RMSE,
         EMetricAttribute::IsRegression
     ),
+    Registree(LogCosh,
+        EMetricAttribute::IsRegression),
     Registree(Cox, 
         EMetricAttribute::IsRegression
     ),
@@ -468,6 +470,7 @@ bool IsCvStratifiedObjective(ELossFunction loss) {
 
 static const TVector<ELossFunction> RegressionObjectives = {
     ELossFunction::RMSE,
+    ELossFunction::LogCosh,
     ELossFunction::RMSEWithUncertainty,
     ELossFunction::MAE,
     ELossFunction::Quantile,

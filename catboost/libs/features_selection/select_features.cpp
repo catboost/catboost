@@ -150,8 +150,11 @@ namespace NCB {
         const bool haveLearnFeaturesInMemory = HaveLearnFeaturesInMemory(poolLoadParams, catBoostOptions);
         // TODO(ilyzhin) support distributed training with quantized pool
         CB_ENSURE(haveLearnFeaturesInMemory, "Features selection doesn't support distributed training with quantized pool yet.");
+
+        THolder<TMasterContext> masterContext;
+
         if (catBoostOptions.SystemOptions->IsMaster()) {
-            InitializeMaster(catBoostOptions.SystemOptions);
+            masterContext.Reset(new TMasterContext(catBoostOptions.SystemOptions));
             if (!haveLearnFeaturesInMemory) {
                 SetTrainDataFromQuantizedPool(
                     *poolLoadParams,
@@ -200,10 +203,6 @@ namespace NCB {
         }
         for (auto featureIdx : summary.EliminatedFeatures) {
             summary.EliminatedFeaturesNames.push_back(featuresNames[featureIdx]);
-        }
-
-        if (catBoostOptions.SystemOptions->IsMaster()) {
-            FinalizeMaster(catBoostOptions.SystemOptions);
         }
 
         return summary;

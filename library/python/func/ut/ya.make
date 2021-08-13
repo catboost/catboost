@@ -1,7 +1,11 @@
 
 
-RECURSE(
-    lib
-    py2
-    py3
+PY23_TEST()
+
+TEST_SRCS(test_func.py)
+
+PEERDIR(
+    library/python/func
 )
+
+END()

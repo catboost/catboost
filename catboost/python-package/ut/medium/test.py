@@ -2041,12 +2041,12 @@ def test_py_data_subgroup_id(task_type):
 def test_fit_data(task_type):
     pool = Pool(CLOUDNESS_TRAIN_FILE, column_description=CLOUDNESS_CD_FILE)
     eval_pool = Pool(CLOUDNESS_TEST_FILE, column_description=CLOUDNESS_CD_FILE)
-    base_model = CatBoostClassifier(iterations=2, learning_rate=0.03, loss_function="MultiClass", task_type=task_type, devices='0')
+    base_model = CatBoostClassifier(iterations=10, learning_rate=0.05, loss_function="MultiClass", task_type=task_type, devices='0')
     base_model.fit(pool)
     baseline = np.array(base_model.predict(pool, prediction_type='RawFormulaVal'))
     eval_baseline = np.array(base_model.predict(eval_pool, prediction_type='RawFormulaVal'))
     eval_pool.set_baseline(eval_baseline)
-    model = CatBoostClassifier(iterations=2, learning_rate=0.03, loss_function="MultiClass")
+    model = CatBoostClassifier(iterations=90, learning_rate=0.05, loss_function="MultiClass")
     data = get_features_data_from_file(
         CLOUDNESS_TRAIN_FILE,
         drop_columns=[0],
@@ -2055,6 +2055,23 @@ def test_fit_data(task_type):
     model.fit(data, pool.get_label(), sample_weight=np.arange(1, pool.num_row() + 1), baseline=baseline, use_best_model=True, eval_set=eval_pool)
     pred = model.predict_proba(eval_pool)
     preds_path = test_output_path(PREDS_PATH)
+    np.save(preds_path, np.array(pred))
+    return local_canonical_file(preds_path)
+
+
+def test_fit_predict_baseline(task_type):
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    train_pool.set_baseline(np.arange(1, train_pool.num_row() + 1))
+    test_pool = Pool(TEST_FILE, column_description=CD_FILE)
+    test_baseline = np.arange(0, test_pool.num_row())
+    test_pool.set_baseline(test_baseline)
+    test_pool_without_baseline = Pool(TEST_FILE, column_description=CD_FILE)
+    model = CatBoostRegressor(iterations=100, learning_rate=0.03, task_type=task_type, devices='0')
+    model.fit(train_pool)
+    pred = model.predict(test_pool)
+    pred_no_baseline = model.predict(test_pool_without_baseline)
+    preds_path = test_output_path(PREDS_PATH)
+    assert np.all(np.isclose(pred, pred_no_baseline + test_baseline))
     np.save(preds_path, np.array(pred))
     return local_canonical_file(preds_path)
 
@@ -6265,6 +6282,7 @@ def test_set_cat_features_in_init(param_type):
         'logging_level': 'Silent',
         'loss_function': 'Logloss',
         'iterations': 10,
+        'thread_count': -1,
         'random_seed': 20
     }
 
@@ -9749,3 +9767,16 @@ def test_fit_cat_features_type():
 
     model.fit(X, y, cat_features=np.arange(3))
     model.fit(X, y, cat_features=[0, 1, 2])
+
+
+def test_sklearn_meta_algo():
+    from sklearn.calibration import CalibratedClassifierCV
+
+    X_train = [[1, 2, 3, 4], [2, 3, 4, 5]]
+    y_train = [1, 0]
+
+    model = CatBoostClassifier()
+    model.fit(X_train, y_train)
+
+    cc_model = CalibratedClassifierCV(model, cv='prefit', method='isotonic')
+    model = cc_model.fit(X_train, y_train)

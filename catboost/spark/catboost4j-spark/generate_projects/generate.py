@@ -21,7 +21,7 @@ def generate_project(src_dir, substitution_dict, dst_dir):
 
 
 global_substitition_dict = {
-    'catboost_version_placeholder': '0.26',
+    'catboost_version_placeholder': '0.26.1',
     'relative_global_project_root_placeholder': '../..'
 }
 

@@ -140,7 +140,7 @@ namespace NCB {
         NPar::TLocalExecutor* localExecutor
     ) {
         for (const auto& metric : metrics) {
-            CB_ENSURE_INTERNAL(metric->IsAdditiveMetric(), "ConsumeCalcMetricsData function support only additional metric");
+            CB_ENSURE_INTERNAL(metric->IsAdditiveMetric(), "ConsumeCalcMetricsData function supports only additive metrics");
         }
 
         TCalcMetricDataProvider dataProvider(dataProviderPtr);

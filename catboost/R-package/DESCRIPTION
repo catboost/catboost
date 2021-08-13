@@ -1,6 +1,6 @@
 Package: catboost
 Title: Gradient Boosting on Decision Trees
-Version: 0.26
+Version: 0.26.1
 RoxygenNote: 7.1.1
 Imports: jsonlite
 License: Apache License (== 2.0)
@@ -51,6 +51,6 @@ Author: CatBoost DevTeam [aut, cre]
 Maintainer: Stanislav Kirillov <staskirillov@gmail.com>
 URL: https://catboost.ai/, https://github.com/catboost/catboost
 BugReports: https://github.com/catboost/catboost/issues
-Suggests: caret, testthat, dplyr, e1071
+Suggests: caret, testthat, tibble, e1071
 Biarch: FALSE
 Encoding: UTF-8

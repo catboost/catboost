@@ -365,6 +365,28 @@ private:
     }
 };
 
+class TLogCoshError final : public IDerCalcer {
+public:
+    explicit TLogCoshError(bool isExpApprox)
+        : IDerCalcer(isExpApprox)
+    {
+        CB_ENSURE(isExpApprox == false, "Approx format does not match");
+    }
+
+private:
+    double CalcDer(double approx, float target) const override {
+        return -tanh(approx - target);
+    }
+
+    double CalcDer2(double approx, float target) const override {
+        return -1 / (cosh(approx - target) * cosh(approx - target));
+    }
+
+    double CalcDer3(double approx, float target) const override {
+        return 2 * tanh(approx - target) / (cosh(approx - target) * cosh(approx - target));
+    }
+};
+
 class TCoxError final : public IDerCalcer {
 public:
     explicit TCoxError(bool isExpApprox, ui32 maxDerivativeOrder = 3)

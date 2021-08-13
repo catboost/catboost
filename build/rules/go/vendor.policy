@@ -52,6 +52,9 @@ ALLOW .* -> vendor/k8s.io/apimachinery/pkg/util/runtime
 ALLOW .* -> vendor/k8s.io/apimachinery/pkg/util/wait
 ALLOW .* -> vendor/k8s.io/apimachinery/pkg/watch
 
+# CONTRIB-2279
+ALLOW .* -> vendor/sigs.k8s.io/controller-runtime
+
 # CONTRIB-2195
 ALLOW .* -> vendor/github.com/timakin/bodyclose
 # github.com/gostaticanalysis/comment tests depends on the unlicensed package https://github.com/tenntenn/text
@@ -228,8 +231,9 @@ ALLOW .* -> vendor/github.com/jackc/pgproto3/v2
 # database/sql wrapper with a lot of helper functions
 ALLOW .* -> vendor/github.com/jmoiron/sqlx
 
-# gorm and PostgreSQL driver
+# gorm and drivers
 ALLOW .* -> vendor/gorm.io/gorm
+ALLOW .* -> vendor/gorm.io/driver/sqlite
 ALLOW .* -> vendor/gorm.io/driver/postgres
 
 # clock mock for tests
@@ -745,6 +749,15 @@ ALLOW .* -> vendor/github.com/apparentlymart/go-cidr
 
 # CONTRIB-2266
 ALLOW .* -> vendor/github.com/vertica/vertica-sql-go
+
+# CONTRIB-2277
+ALLOW .* -> vendor/github.com/miekg/pkcs11
+
+# CONTRIB-2278
+ALLOW .* -> vendor/github.com/ThalesIgnite/crypto11
+
+# CONTRIB-2232: graphql client library
+ALLOW .* -> vendor/github.com/shurcooL/graphql
 
 #
 # Tools

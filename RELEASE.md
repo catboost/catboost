@@ -1,5 +1,25 @@
-# Release 0.26
+# Release 0.26.1
 
+## R package
+* Supported text features in R package, thanks to
+* Supported virtual Ensembles in R
+
+## New features
+* Thank @gmrandazzo for adding multiregression with missing values on targets - `MultiRMSEWithMissingValues` loss function
+* Supported multiclass prediction in C++ wrapper for model inference C API
+
+## Bugfixes
+* Renamed keyword parameter in `predict_proba` function from `X` to `data`, fixes #1785
+* R feature importances: remove pool argument, fix #1438 and #1772
+* Fix CUDA training on Windows, multiple issues. main issue with details #1735
+* Issue #1728: don't dereference pointers when there is no features
+* Fixed empty tree processing in feature strength calculation
+* Fixed missing loss graph points in select_features, #1775
+* Sort csr matrix indices, fixes #1749
+* Fix error "active CatBoost worker is already present in the current process" after previous training interruption or failure. #1795.
+* Fixed erroneous warnings from models validation after training with custom loss or custom error function. Fixes #873 Fixes #1169
+
+# Release 0.26
 
 ## New features
 * #972. Add model evaluation on GPU. Thanks to @rakalexandra.

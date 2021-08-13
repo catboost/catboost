@@ -781,6 +781,100 @@ void TRMSEMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
     *valueType = EMetricBestValue::Min;
 }
 
+TVector<TParamSet> TRMSEMetric::ValidParamSets() {
+    return {TParamSet{{TParamInfo{"use_weights", false, true}}, ""}};
+};
+
+/* Log Cosh loss */
+
+namespace {
+    struct TLogCoshMetric final: public TAdditiveMetric {
+        explicit TLogCoshMetric(const TLossParams& params)
+            : TAdditiveMetric(ELossFunction::LogCosh, params)
+        {}
+
+        static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
+        static TVector<TParamSet> ValidParamSets();
+        TMetricHolder EvalSingleThread(
+            const TConstArrayRef<TConstArrayRef<double>> approx,
+            const TConstArrayRef<TConstArrayRef<double>> approxDelta,
+            bool isExpApprox,
+            TConstArrayRef<float> target,
+            TConstArrayRef<float> weight,
+            TConstArrayRef<TQueryInfo> queriesInfo,
+            int begin,
+            int end
+        ) const override;
+        double GetFinalError(const TMetricHolder& error) const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+    };
+}
+
+TVector<THolder<IMetric>> TLogCoshMetric::Create(const TMetricConfig& config) {
+    return AsVector(MakeHolder<TLogCoshMetric>(config.Params));
+}
+
+TMetricHolder TLogCoshMetric::EvalSingleThread(
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
+    bool isExpApprox,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> weight,
+    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
+    int begin,
+    int end
+) const {
+    CB_ENSURE(approx.size() == 1, "Metric LogCosh supports only single-dimensional data");
+    Y_ASSERT(!isExpApprox);
+    const double METRIC_APPROXIMATION_THRESHOLD = 12; 
+
+    const auto impl = [=] (auto hasDelta, auto hasWeight, TConstArrayRef<double> approx, TConstArrayRef<double> approxDelta) {
+        TMetricHolder error(2);
+        for (int k : xrange(begin, end)) {
+            double targetMismatch = approx[k] - target[k];
+            if (hasDelta) {
+                targetMismatch += approxDelta[k];
+            }
+            const float w = hasWeight ? weight[k] : 1;
+            if (abs(targetMismatch) >= METRIC_APPROXIMATION_THRESHOLD)
+                error.Stats[0] += (abs(targetMismatch) - FastLogf(2)) * w;
+            else
+                error.Stats[0] += FastLogf(cosh(targetMismatch)) * w;
+            error.Stats[1] += w;
+        }
+        return error;
+    };
+    switch (EncodeFlags(!approxDelta.empty(), !weight.empty())) {
+        case EncodeFlags(false, false):
+            return impl(std::false_type(), std::false_type(), approx[0], GetRowRef(approxDelta, /*rowIdx*/0));
+        case EncodeFlags(false, true):
+            return impl(std::false_type(), std::true_type(), approx[0], GetRowRef(approxDelta, /*rowIdx*/0));
+        case EncodeFlags(true, false):
+            return impl(std::true_type(), std::false_type(), approx[0], GetRowRef(approxDelta, /*rowIdx*/0));
+        case EncodeFlags(true, true):
+            return impl(std::true_type(), std::true_type(), approx[0], GetRowRef(approxDelta, /*rowIdx*/0));
+        default:
+            Y_VERIFY(false);
+    }
+}
+
+double TLogCoshMetric::GetFinalError(const TMetricHolder& error) const {
+    return error.Stats[0] / (error.Stats[1] + 1e-38);
+}
+
+void TLogCoshMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Min;
+}
+
+TVector<TParamSet> TLogCoshMetric::ValidParamSets() {
+    return {
+        TParamSet{
+            {TParamInfo{"use_weights", false, true}},
+            ""
+        }
+    };
+};
+
 /* Cox partial loss */
 
 namespace {
@@ -887,10 +981,6 @@ double TCoxMetric::GetFinalError(const TMetricHolder& error) const {
 void TCoxMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
     *valueType = EMetricBestValue::Min;
 }
-
-TVector<TParamSet> TRMSEMetric::ValidParamSets() {
-    return {TParamSet{{TParamInfo{"use_weights", false, true}}, ""}};
-};
 
 /* Lq */
 
@@ -6006,8 +6096,13 @@ TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TLossParams& 
         case ELossFunction::Tweedie:
             AppendTemporaryMetricsVector(TTweedieMetric::Create(config), &result);
             break;
+<<<<<<< HEAD
         case ELossFunction::Focal:
             AppendTemporaryMetricsVector(TFocalMetric::Create(config), &result);
+=======
+        case ELossFunction::LogCosh:
+            AppendTemporaryMetricsVector(TLogCoshMetric::Create(config), &result);
+>>>>>>> master
             break;
         case ELossFunction::MedianAbsoluteError:
             AppendTemporaryMetricsVector(TMedianAbsoluteErrorMetric::Create(config), &result);
@@ -6238,6 +6333,8 @@ TVector<TParamSet> ValidParamSets(ELossFunction metric) {
             return TTweedieMetric::ValidParamSets();
         case ELossFunction::Focal:
             return TFocalMetric::ValidParamSets();
+        case ELossFunction::LogCosh:
+            return TLogCoshMetric::ValidParamSets();
         case ELossFunction::MedianAbsoluteError:
             return TMedianAbsoluteErrorMetric::ValidParamSets();
         case ELossFunction::SMAPE:

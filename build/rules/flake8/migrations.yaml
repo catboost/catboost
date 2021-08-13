@@ -107,7 +107,6 @@ migrations:
     - aurora/xpath/api/utils
     - aurora/xpath/applier
     - balancer/test/functional/admin/admin
-    - balancer/test/functional/proxy
     - balancer/test/functional/regexp_host
     - balancer/test/util
     - balancer/test/util/dnsfake
@@ -871,7 +870,6 @@ migrations:
     - yabs/server/test/ft/BSSERVER-1332
     - yabs/server/test/ft/BSSERVER-13621
     - yabs/server/test/ft/BSSERVER-14195
-    - yabs/server/test/ft/BSSERVER-14390
     - yabs/server/test/ft/BSSERVER-2122
     - yabs/server/test/ft/BSSERVER-2158
     - yabs/server/test/ft/BSSERVER-2293
@@ -939,7 +937,6 @@ migrations:
     - yweb/antiporno/site_reachability/lib/reachability_common
     - yweb/antiporno/top_queries_cleanup/yql/test
     - yweb/antispam/adblock/viewer
-    - yweb/antispam/cid/backend/miner
     - yweb/antispam/clean_web/tools/run_cm_targets
     - yweb/antispam/mascot/features/test
     - yweb/antispam/mascot/scripts/tcinet
@@ -1031,7 +1028,6 @@ migrations:
     - alice/uniproxy/library/backends_ctxs
     - alice/uniproxy/library/backends_ctxs/ut
     - alice/uniproxy/library/backends_laas
-    - alice/uniproxy/library/backends_tts
     - alice/uniproxy/library/delivery
     - alice/uniproxy/library/extlog
     - alice/uniproxy/library/messenger
@@ -1144,7 +1140,6 @@ migrations:
     - maps/tools/matcher_quality/routes_to_geoms
     - maps_adv/common/shared_mock/tests
     - market/forecast/feature_factory/graph_generator
-    - market/library/shiny/external/s3/beam
     - market/mobile_validator/mt/env
     - market/mstat/ch-cache/tests
     - market/sre/services/cema-proxy/lib
@@ -1190,7 +1185,6 @@ migrations:
     - quality/ab_testing/cofe/projects/geo/suggest/byak
     - quality/ab_testing/cofe/projects/uslugi/competition
     - quality/ab_testing/cofe/projects/zalogin
-    - quality/ab_testing/cofe/python/backends/nile
     - quality/functionality/chats/common/utils
     - quality/functionality/chats/feedback/src/feedback/api
     - quality/functionality/chats/feedback/src/feedback/api/v1
@@ -1226,7 +1220,6 @@ migrations:
     - saas/tools/refresh/import_rtyserver
     - sandbox/common/upload
     - sandbox/projects/alice_evo
-    - sandbox/projects/alice_evo/common/nirvana
     - sandbox/projects/avia/mysql_sync_testing_with_prod
     - sandbox/projects/balancer/load/BalancerLoadCompare
     - sandbox/projects/bitbucket/GBGAdaptor
@@ -1269,7 +1262,6 @@ migrations:
     - search/scraper_over_yt/scripts
     - skynet/kernel
     - skynet/kernel/util/tests
-    - smart_devices/packages/generate_packages
     - smart_devices/tools/launcher2/tests/restarts
     - statbox/statkey/jam/jobs
     - statbox/statkey/jam/jobs/cubes/superapp/autofill/v2
@@ -1325,7 +1317,6 @@ migrations:
     - yabs/server/test/ft/BSSERVER-13708
     - yabs/server/test/ft/BSSERVER-14014
     - yabs/server/test/ft/BSSERVER-14049
-    - yabs/server/test/ft/BSSERVER-14390
     - yabs/server/test/ft/BSSERVER-15684
     - yabs/stat/dropstat2/api
     - yabs/vh/cms-pgaas/sport_api_importer/sport_api_importer_lib
@@ -1459,7 +1450,6 @@ migrations:
     - cv/short2long/nirvana/lib
     - cv/short2long/training/yt_load_highlights
     - dict/mt/analytics/make/tools/toloka/simple_toloka
-    - dict/mt/make/modules/corpus_generation/aligner/tests
     - dict/mt/make/modules/corpus_generation/post_filtering/tests
     - dict/mt/make/modules/prepare_corpus
     - dict/mt/make/pipeline/nmt
@@ -1546,7 +1536,6 @@ migrations:
     - metrika/admin/python/cms/frontend/cms
     - metrika/core/monitoring/clickhouse-table-structure-check
     - metrika/core/programs/mobile_yt_to_yc_export
-    - metrika/core/recipes/mysql
     - metrika/pylib/log/tests
     - metrika/tasklets/build/impl
     - metrika/tasklets/deploy/impl
@@ -1744,7 +1733,6 @@ migrations:
     - yabs/server/cs/test/cs_import/yt_banner_with_history
     - yabs/server/infra/yt_tables_freshness/solo
     - yabs/server/libs/py_db_cluster
-    - yabs/server/test/ft/BSDEV-77232
     - yabs/server/test/ft/BSDEV-79055
     - yabs/server/test/ft/BSDEV-80203
     - yabs/server/test/ft/BSSERVER-12201
@@ -1982,8 +1970,6 @@ migrations:
     - balancer/production/x/yasm_errors_collector
     - billing/agency_rewards/tests_platform/common
     - billing/agency_rewards/tests_platform/generators
-    - billing/agency_rewards/tests_regression/common
-    - billing/agency_rewards/tests_regression/generators
     - billing/balance
     - billing/balance_utils
     - billing/bcl/src
@@ -2337,7 +2323,6 @@ migrations:
     - library/recipes/tvmapi
     - library/recipes/tvmtool
     - logbroker/admin
-    - logbroker/juggler/rtc_logbroker_juggler_bundle/src/logbroker_locked_bsgroups
     - logbroker/mops
     - logbroker/tools/lb-cm
     - logbroker/tools/manual/send_projections_to_solomon
@@ -2429,9 +2414,7 @@ migrations:
     - mds/mastermind/resizer/lib
     - mds/mastermind/scheduler
     - mds/mastermind/stat_reporter/lib
-    - mds/mastermind/state_builder
     - mds/nscfg/lib
-    - metrika/admin/python/clickhouse_backups/frontend/base
     - metrika/admin/python/cms/frontend/base
     - metrika/admin/python/duty/frontend/base
     - metrika/core/programs/mobile_startup_admin/base
@@ -2873,7 +2856,6 @@ migrations:
     - sandbox/projects/images/tags/ImagesTagsReleaseAliceBans
     - sandbox/projects/images/upbase/ImagesBuildUpbaseResources
     - sandbox/projects/images/upbase/ImagesBuildUpbaseViewerResources
-    - sandbox/projects/impulse/BuildCodeQLQueries
     - sandbox/projects/impulse/SastWorkflow
     - sandbox/projects/inventori
     - sandbox/projects/juggler
@@ -3153,7 +3135,6 @@ migrations:
     - voicetech/asr/pipeline/language_models/special_lm_build
     - voicetech/asr/pipeline/language_models/tools/run_lm_pipeline
     - voicetech/asr/pipeline/train_pytorch/lib
-    - voicetech/asr/pipeline/utils
     - voicetech/asr/tools/ctc_visualize
     - voicetech/asr/tools/decoder_sweeper/lib
     - voicetech/asr/tools/decoding_result_viewer
@@ -3196,7 +3177,7 @@ migrations:
     - weather/ml/quality/stand/misc/wrappers
     - weather/workers/warnings
     - weather/yasm/workerstats
-    - web/app_host/daemons/horizon/contrib
+    - apphost/daemons/horizon/contrib
     - apphost/tools/event_log_filter/tests/lib
     - web/daemons/begemot/scripts/yt_priemka
     - wmconsole/backend/packaging-tools
@@ -3535,7 +3516,6 @@ migrations:
     - infra/nanny/sepelib/tests
     - infra/qyp/vmctl/tests
     - infra/wall-e/checks/tests
-    - intranet/audit/tests
     - intranet/dogma/dogma_tests
     - intranet/hidereferer/tests
     - intranet/magiclinks/tests
@@ -3552,7 +3532,6 @@ migrations:
     - library/cpp/file_checker/test/tests
     - library/cpp/pybind/example/ut
     - library/python/cyson/ut
-    - library/python/func/ut/lib
     - library/python/vault_client/ut/tests
     - logbroker/push-client/ft
     - logbroker/unified_agent/tests/integration/python_client_tests
@@ -3797,7 +3776,6 @@ migrations:
     - yabs/rmp/backend/tests/lib/zora
     - yabs/server/libs/py_decrypt_predictions/test
     - yabs/server/libs/py_pibf/test
-    - yabs/server/test/ft/BSSERVER-2185
     - yabs/server/test/ft/BSSERVER-2656
     - yabs/server/test/ft/lua/page_1
     - yabs/server/test/ft/lua/page_1037
@@ -3806,12 +3784,10 @@ migrations:
     - yabs/server/test/ft/lua/page_162514
     - yabs/server/test/ft/lua/page_164717
     - yabs/server/test/ft/lua/page_168577
-    - yabs/server/test/ft/lua/page_172351
     - yabs/server/test/ft/lua/page_180897
     - yabs/server/test/ft/lua/page_185459
     - yabs/server/test/ft/lua/page_186549
     - yabs/server/test/ft/lua/page_2
-    - yabs/server/test/ft/lua/page_231
     - yabs/server/test/ft/lua/page_242
     - yabs/server/test/ft/lua/page_243449
     - yabs/server/test/ft/lua/page_244345
@@ -3823,9 +3799,7 @@ migrations:
     - yabs/server/test/ft/lua/page_285318
     - yabs/server/test/ft/lua/page_2_on_trafarets
     - yabs/server/test/ft/lua/page_323453
-    - yabs/server/test/ft/lua/page_330437
     - yabs/server/test/ft/lua/page_338535
-    - yabs/server/test/ft/lua/page_338774
     - yabs/server/test/ft/lua/page_341469
     - yabs/server/test/ft/lua/page_342532
     - yabs/server/test/ft/lua/page_355611
@@ -4099,8 +4073,6 @@ migrations:
     - balancer/test/functional/consistent_hashing
     - balancer/test/functional/pingerprocess
     - balancer/test/functional/unistat
-    - billing/agency_rewards/tests_regression
-    - yabs/autobudget/ml/flatten_visit_log/lib/mt
     - ads/sandbox_scripts/visibility_stats/fat
     - ads/sandbox_scripts/truncate_hitfactors/tests
     - ads/pytorch/lib/preprocess/medium_ut

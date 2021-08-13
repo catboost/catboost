@@ -4984,6 +4984,11 @@
             "uri": "file://test.test_learning_rate_auto_set_true-Plain_/test.eval"
         }
     ],
+    "test.test_logcosh": [
+        {
+            "uri": "file://test.test_logcosh/learn_error.tsv"
+        }
+    ],
     "test.test_loglikelihood_of_prediction[Ordered]": [
         {
             "uri": "file://test.test_loglikelihood_of_prediction_Ordered_/learn_error.tsv"
@@ -6034,50 +6039,6 @@
             "uri": "file://test.test_multiple_eval_sets_err_log/json.log"
         }
     ],
-    "test.test_multiregression_with_missing_values[100-Ordered]": [
-        {
-            "uri": "file://test.test_multiregression_with_missing_values_100-Ordered_/test.eval"
-        },
-        {
-            "uri": "file://test.test_multiregression_with_missing_values_100-Ordered_/test.calc"
-        },
-        {
-            "uri": "file://test.test_multiregression_with_missing_values_100-Ordered_/test.metric"
-        }
-    ],
-    "test.test_multiregression_with_missing_values[100-Plain]": [
-        {
-            "uri": "file://test.test_multiregression_with_missing_values_100-Plain_/test.eval"
-        },
-        {
-            "uri": "file://test.test_multiregression_with_missing_values_100-Plain_/test.calc"
-        },
-        {
-            "uri": "file://test.test_multiregression_with_missing_values_100-Plain_/test.metric"
-        }
-    ],
-    "test.test_multiregression_with_missing_values[500-Ordered]": [
-        {
-            "uri": "file://test.test_multiregression_with_missing_values_500-Ordered_/test.eval"
-        },
-        {
-            "uri": "file://test.test_multiregression_with_missing_values_500-Ordered_/test.calc"
-        },
-        {
-            "uri": "file://test.test_multiregression_with_missing_values_500-Ordered_/test.metric"
-        }
-    ],
-    "test.test_multiregression_with_missing_values[500-Plain]": [
-        {
-            "uri": "file://test.test_multiregression_with_missing_values_500-Plain_/test.eval"
-        },
-        {
-            "uri": "file://test.test_multiregression_with_missing_values_500-Plain_/test.calc"
-        },
-        {
-            "uri": "file://test.test_multiregression_with_missing_values_500-Plain_/test.metric"
-        }
-    ],
     "test.test_multiregression[100-Ordered-SymmetricTree]": [
         {
             "uri": "file://test.test_multiregression_100-Ordered-SymmetricTree_/test.eval"
@@ -6208,6 +6169,50 @@
         },
         {
             "uri": "file://test.test_multiregression_single_500-Plain_/test.metric"
+        }
+    ],
+    "test.test_multiregression_with_missing_values[100-Ordered]": [
+        {
+            "uri": "file://test.test_multiregression_with_missing_values_100-Ordered_/test.eval"
+        },
+        {
+            "uri": "file://test.test_multiregression_with_missing_values_100-Ordered_/test.calc"
+        },
+        {
+            "uri": "file://test.test_multiregression_with_missing_values_100-Ordered_/test.metric"
+        }
+    ],
+    "test.test_multiregression_with_missing_values[100-Plain]": [
+        {
+            "uri": "file://test.test_multiregression_with_missing_values_100-Plain_/test.eval"
+        },
+        {
+            "uri": "file://test.test_multiregression_with_missing_values_100-Plain_/test.calc"
+        },
+        {
+            "uri": "file://test.test_multiregression_with_missing_values_100-Plain_/test.metric"
+        }
+    ],
+    "test.test_multiregression_with_missing_values[500-Ordered]": [
+        {
+            "uri": "file://test.test_multiregression_with_missing_values_500-Ordered_/test.eval"
+        },
+        {
+            "uri": "file://test.test_multiregression_with_missing_values_500-Ordered_/test.calc"
+        },
+        {
+            "uri": "file://test.test_multiregression_with_missing_values_500-Ordered_/test.metric"
+        }
+    ],
+    "test.test_multiregression_with_missing_values[500-Plain]": [
+        {
+            "uri": "file://test.test_multiregression_with_missing_values_500-Plain_/test.eval"
+        },
+        {
+            "uri": "file://test.test_multiregression_with_missing_values_500-Plain_/test.calc"
+        },
+        {
+            "uri": "file://test.test_multiregression_with_missing_values_500-Plain_/test.metric"
         }
     ],
     "test.test_mvs_bootstrap[Ordered]": [

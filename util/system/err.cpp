@@ -1,92 +1,79 @@
 #include "defaults.h"
+#include "progname.h"
+#include "compat.h"
+#include "error.h"
 
-#if defined(_MSC_VER) || defined(_sun_)
-/* err.c --- 4.4BSD utility functions for error messages.
-   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
-   This file is part of the GNU C Library.
+#include <util/generic/scope.h>
 
-   The GNU C Library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public License as
-   published by the Free Software Foundation; either version 2 of the
-   License, or (at your option) any later version.
+#include <util/stream/printf.h>
+#include <util/stream/output.h>
 
-   The GNU C Library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Library General Public License for more details.
+void vwarnx(const char* fmt, va_list args) {
+    Cerr << GetProgramName() << ": ";
 
-   You should have received a copy of the GNU Library General Public
-   License along with the GNU C Library; see the file COPYING.LIB.  If not,
-   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-   Boston, MA 02111-1307, USA.  */
-//Modified for MSVC
-
-    #include <cstdarg>
-    //#include <err.h> -> compat.h
-    #include <cstdlib>
-    #include <cerrno>
-    #include <cstring>
-    #include <cstdio>
-
-    #include "compat.h"
-
-    #define VA(call)              \
-        {                         \
-            va_list ap;           \
-            va_start(ap, format); \
-            call;                 \
-            va_end(ap);           \
-        }
-
-    #define __set_errno(error) \
-        { errno = error; }
-
-void vwarnx(const char* format, va_list ap) {
-    const char* progname = getprogname();
-    if (progname)
-        fprintf(stderr, "%s: ", progname);
-    if (format)
-        vfprintf(stderr, format, ap);
-    putc('\n', stderr);
-}
-
-void vwarn(const char* format, va_list ap) {
-    int error = errno;
-
-    const char* progname = getprogname();
-    if (progname)
-        fprintf(stderr, "%s: ", progname);
-    if (format) {
-        vfprintf(stderr, format, ap);
-        fputs(": ", stderr);
+    if (fmt) {
+        Printf(Cerr, fmt, args);
     }
-    __set_errno(error);
-    perror("");
+
+    Cerr << '\n';
 }
 
-void warn(const char* format, ...) {
-    VA(vwarn(format, ap))
+void vwarn(const char* fmt, va_list args) {
+    int curErrNo = errno;
+    auto curErrText = LastSystemErrorText();
+
+    Y_DEFER {
+        errno = curErrNo;
+    };
+
+    Cerr << GetProgramName() << ": ";
+
+    if (fmt) {
+        Printf(Cerr, fmt, args);
+        Cerr << ": ";
+    }
+
+    Cerr << curErrText << '\n';
 }
 
-void warnx(const char* format, ...) {
-    VA(vwarnx(format, ap))
+void warn(const char* fmt, ...) {
+    va_list args;
+
+    va_start(args, fmt);
+    vwarn(fmt, args);
+    va_end(args);
 }
 
-void verr(int status, const char* format, va_list ap) {
-    vwarn(format, ap);
+void warnx(const char* fmt, ...) {
+    va_list args;
+
+    va_start(args, fmt);
+    vwarnx(fmt, args);
+    va_end(args);
+}
+
+void verr(int status, const char* fmt, va_list args) {
+    vwarn(fmt, args);
     exit(status);
 }
 
-void verrx(int status, const char* format, va_list ap) {
-    vwarnx(format, ap);
+void err(int status, const char* fmt, ...) {
+    va_list args;
+
+    va_start(args, fmt);
+    verr(status, fmt, args);
+    va_end(args);
+}
+
+void verrx(int status, const char* fmt, va_list args) {
+    vwarnx(fmt, args);
     exit(status);
 }
 
-void err(int status, const char* format, ...) {
-    VA(verr(status, format, ap))
-}
+void errx(int status, const char* fmt, ...) {
+    va_list args;
 
-void errx(int status, const char* format, ...) {
-    VA(verrx(status, format, ap))
+    va_start(args, fmt);
+    verrx(status, fmt, args);
+    va_end(args);
 }
-#endif

@@ -666,11 +666,11 @@ class YMake(object):
 
     def print_presets(self):
         presets = opts().presets
-        # if presets and 'YMAKE_JAVA_MODULES' not in presets:
-        #     if 'YA_IDE_IDEA' in presets:
-        #         presets['YMAKE_JAVA_MODULES'] = 'no'
-        #     elif 'JDK_VERSION' in presets and presets['JDK_VERSION'] in ['8', '15', '16']:
-        #         presets['YMAKE_JAVA_MODULES'] = 'yes'
+        if presets and 'YMAKE_JAVA_MODULES' not in presets:
+            if 'YA_IDE_IDEA' in presets or 'MAVEN_EXPORT' in presets:
+                presets['YMAKE_JAVA_MODULES'] = 'no'
+            elif 'JDK_VERSION' in presets and presets['JDK_VERSION'] in ['8']:
+                presets['YMAKE_JAVA_MODULES'] = 'yes'
         if presets and 'YMAKE_JAVA_MODULES' in presets and presets['YMAKE_JAVA_MODULES'] == "yes":
             print('@import "${CONF_ROOT}/conf/java.ymake.conf"')
         else:
@@ -1271,12 +1271,20 @@ class GnuCompiler(Compiler):
                 '-Wno-dynamic-exception-spec',  # IGNIETFERRO-282 some problems with lucid
                 '-Wno-register',  # IGNIETFERRO-722 needed for contrib
             ])
-        self.c_defines = [
-            '-DFAKEID=$CPP_FAKEID', '-DARCADIA_ROOT=${ARCADIA_ROOT}', '-DARCADIA_BUILD_ROOT=${ARCADIA_BUILD_ROOT}',
+
+        self.c_defines = ['-DFAKEID=$CPP_FAKEID']
+        if self.target.is_android:
+            self.c_defines.append('-DANDROID_FAKEID=$ANDROID_FAKEID')
+
+        self.c_defines.extend([
+            '-DARCADIA_ROOT=${ARCADIA_ROOT}',
+            '-DARCADIA_BUILD_ROOT=${ARCADIA_BUILD_ROOT}',
+        ])
+
+        self.c_defines.extend([
             '-D_THREAD_SAFE', '-D_PTHREADS', '-D_REENTRANT', '-D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES',
             '-D_LARGEFILE_SOURCE', '-D__STDC_CONSTANT_MACROS', '-D__STDC_FORMAT_MACROS',
-        ]
-        self.c_flags = ['$CL_DEBUG_INFO', '$CL_DEBUG_INFO_DISABLE_CACHE__NO_UID__']
+        ])
 
         if not self.target.is_android:
             # There is no usable _FILE_OFFSET_BITS=64 support in Androids until API 21. And it's incomplete until at least API 24.
@@ -1301,6 +1309,7 @@ class GnuCompiler(Compiler):
 
         self.extra_compile_opts = []
 
+        self.c_flags = ['$CL_DEBUG_INFO', '$CL_DEBUG_INFO_DISABLE_CACHE__NO_UID__']
         self.c_flags += self.tc.arch_opt + ['-pipe']
 
         self.sfdl_flags = ['-E', '-C', '-x', 'c++']
@@ -2354,6 +2363,11 @@ class MSVCCompiler(MSVC, Compiler):
         flags_release = ['/Ox', '/Ob2', '/Oi', '/DNDEBUG']
 
         flags_c_only = []
+        cxx_flags = [
+            # Provide proper __cplusplus value
+            # https://devblogs.microsoft.com/cppblog/msvc-now-correctly-reports-__cplusplus/
+            "/Zc:__cplusplus"
+        ]
 
         if self.tc.use_clang:
             flags.append('-fcase-insensitive-paths')
@@ -2502,7 +2516,7 @@ class MSVCCompiler(MSVC, Compiler):
             emit('CFLAGS_PER_TYPE', '@[debug|$CFLAGS_DEBUG]@[release|$CFLAGS_RELEASE]')
 
         append('CFLAGS', flags, flags_msvs_only, '$CFLAGS_PER_TYPE', '$DEBUG_INFO_FLAGS', '$C_WARNING_OPTS', '$C_DEFINES', '$USER_CFLAGS', '$USER_CFLAGS_GLOBAL')
-        append('CXXFLAGS', '$CFLAGS', '/std:' + self.tc.cxx_std, cxx_defines, '$CXX_WARNING_OPTS', '$USER_CXXFLAGS')
+        append('CXXFLAGS', '$CFLAGS', '/std:' + self.tc.cxx_std, cxx_flags, cxx_defines, '$CXX_WARNING_OPTS', '$USER_CXXFLAGS')
         append('CONLYFLAGS', flags_c_only, '$USER_CONLYFLAGS')
 
         append('BC_CFLAGS', '$CFLAGS')

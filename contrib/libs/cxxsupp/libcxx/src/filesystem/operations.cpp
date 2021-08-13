@@ -9,8 +9,6 @@
 #include "filesystem"
 #include "array"
 #include "iterator"
-#include "fstream"
-#include "random" /* for unique_path */
 #include "string_view"
 #include "type_traits"
 #include "vector"
@@ -25,33 +23,23 @@
 #include <time.h>
 #include <fcntl.h> /* values for fchmodat */
 
-#if defined(__linux__)
-#include <linux/version.h>
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 33)
+#if __has_include(<sys/sendfile.h>)
 #include <sys/sendfile.h>
-#define _LIBCPP_USE_SENDFILE
-#endif
+# define _LIBCPP_FILESYSTEM_USE_SENDFILE
 #elif defined(__APPLE__) || __has_include(<copyfile.h>)
 #include <copyfile.h>
-#define _LIBCPP_USE_COPYFILE
+# define _LIBCPP_FILESYSTEM_USE_COPYFILE
+#else
+# include "fstream"
+# define _LIBCPP_FILESYSTEM_USE_FSTREAM
 #endif
 
-#if !defined(__APPLE__) && _POSIX_TIMERS > 0
-#define _LIBCPP_USE_CLOCK_GETTIME
-#endif
-
-#if !defined(CLOCK_REALTIME) || !defined(_LIBCPP_USE_CLOCK_GETTIME)
+#if !defined(CLOCK_REALTIME)
 #include <sys/time.h> // for gettimeofday and timeval
-#endif                // !defined(CLOCK_REALTIME)
+#endif
 
 #if defined(__ELF__) && defined(_LIBCPP_LINK_RT_LIB)
 #pragma comment(lib, "rt")
-#endif
-
-#if defined(_LIBCPP_COMPILER_GCC)
-#if _GNUC_VER < 500
-#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
-#endif
 #endif
 
 _LIBCPP_BEGIN_NAMESPACE_FILESYSTEM
@@ -490,7 +478,7 @@ const bool _FilesystemClock::is_steady;
 
 _FilesystemClock::time_point _FilesystemClock::now() noexcept {
   typedef chrono::duration<rep> __secs;
-#if defined(_LIBCPP_USE_CLOCK_GETTIME) && defined(CLOCK_REALTIME)
+#if defined(CLOCK_REALTIME)
   typedef chrono::duration<rep, nano> __nsecs;
   struct timespec tp;
   if (0 != clock_gettime(CLOCK_REALTIME, &tp))
@@ -502,7 +490,7 @@ _FilesystemClock::time_point _FilesystemClock::now() noexcept {
   timeval tv;
   gettimeofday(&tv, 0);
   return time_point(__secs(tv.tv_sec) + __microsecs(tv.tv_usec));
-#endif // _LIBCPP_USE_CLOCK_GETTIME && CLOCK_REALTIME
+#endif // CLOCK_REALTIME
 }
 
 filesystem_error::~filesystem_error() {}
@@ -546,7 +534,7 @@ path __canonical(path const& orig_p, error_code* ec) {
   ErrorHandler<path> err("canonical", ec, &orig_p, &cwd);
 
   path p = __do_absolute(orig_p, &cwd, ec);
-#if _POSIX_VERSION >= 200112
+#if defined(_POSIX_VERSION) && _POSIX_VERSION >= 200112
   std::unique_ptr<char, decltype(&::free)>
     hold(::realpath(p.c_str(), nullptr), &::free);
   if (hold.get() == nullptr)
@@ -650,10 +638,8 @@ void __copy(const path& from, const path& to, copy_options options,
 namespace detail {
 namespace {
 
-#ifdef _LIBCPP_USE_SENDFILE
-bool copy_file_impl_sendfile(FileDescriptor& read_fd, FileDescriptor& write_fd,
-                             error_code& ec) {
-
+#if defined(_LIBCPP_FILESYSTEM_USE_SENDFILE)
+  bool copy_file_impl(FileDescriptor& read_fd, FileDescriptor& write_fd, error_code& ec) {
   size_t count = read_fd.get_stat().st_size;
   do {
     ssize_t res;
@@ -668,9 +654,8 @@ bool copy_file_impl_sendfile(FileDescriptor& read_fd, FileDescriptor& write_fd,
 
   return true;
 }
-#elif defined(_LIBCPP_USE_COPYFILE)
-bool copy_file_impl_copyfile(FileDescriptor& read_fd, FileDescriptor& write_fd,
-                             error_code& ec) {
+#elif defined(_LIBCPP_FILESYSTEM_USE_COPYFILE)
+  bool copy_file_impl(FileDescriptor& read_fd, FileDescriptor& write_fd, error_code& ec) {
   struct CopyFileState {
     copyfile_state_t state;
     CopyFileState() { state = copyfile_state_alloc(); }
@@ -690,13 +675,8 @@ bool copy_file_impl_copyfile(FileDescriptor& read_fd, FileDescriptor& write_fd,
   ec.clear();
   return true;
 }
-#endif
-
-// Note: This function isn't guarded by ifdef's even though it may be unused
-// in order to assure it still compiles.
-__attribute__((unused)) bool copy_file_impl_default(FileDescriptor& read_fd,
-                                                    FileDescriptor& write_fd,
-                                                    error_code& ec) {
+#elif defined(_LIBCPP_FILESYSTEM_USE_FSTREAM)
+  bool copy_file_impl(FileDescriptor& read_fd, FileDescriptor& write_fd, error_code& ec) {
   ifstream in;
   in.__open(read_fd.fd, ios::binary);
   if (!in.is_open()) {
@@ -727,19 +707,12 @@ __attribute__((unused)) bool copy_file_impl_default(FileDescriptor& read_fd,
   ec.clear();
   return true;
 }
-
-bool copy_file_impl(FileDescriptor& from, FileDescriptor& to, error_code& ec) {
-#if defined(_LIBCPP_USE_SENDFILE)
-  return copy_file_impl_sendfile(from, to, ec);
-#elif defined(_LIBCPP_USE_COPYFILE)
-  return copy_file_impl_copyfile(from, to, ec);
 #else
-  return copy_file_impl_default(from, to, ec);
-#endif
-}
+# error "Unknown implementation for copy_file_impl"
+#endif // copy_file_impl implementation
 
-} // namespace
-} // namespace detail
+} // end anonymous namespace
+} // end namespace detail
 
 bool __copy_file(const path& from, const path& to, copy_options options,
                  error_code* ec) {

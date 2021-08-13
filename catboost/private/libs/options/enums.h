@@ -121,6 +121,7 @@ enum class ELossFunction {
     /* regression errors */
 
     RMSE,
+    LogCosh,
     Lq,
     MAE,
     Quantile,

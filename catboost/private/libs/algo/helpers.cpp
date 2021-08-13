@@ -47,8 +47,8 @@ static TVector<TFeature> CreateFeatures(
 
 TVector<TFloatFeature> CreateFloatFeatures(
     const NCB::TFeaturesLayout& featuresLayout,
-    const NCB::TQuantizedFeaturesInfo& quantizedFeaturesInfo) {
-
+    const NCB::TQuantizedFeaturesInfo& quantizedFeaturesInfo
+) {
     return CreateFeatures<TFloatFeature, EFeatureType::Float>(
         featuresLayout,
         [&] (TFloatFeature& floatFeature) {
@@ -93,9 +93,7 @@ TVector<TEmbeddingFeature> CreateEmbeddingFeatures(const NCB::TFeaturesLayout& f
 
 void ConfigureMalloc() {
 #if !(defined(__APPLE__) && defined(__MACH__)) // there is no LF for MacOS
-    if (!NMalloc::MallocInfo().SetParam("LB_LIMIT_TOTAL_SIZE", "1000000")) {
-        CATBOOST_DEBUG_LOG << "link with lfalloc for better performance" << Endl;
-    }
+    NMalloc::MallocInfo().SetParam("LB_LIMIT_TOTAL_SIZE", "1000000");
 #endif
 }
 
@@ -137,8 +135,11 @@ static TVector<const IMetric*> FilterTrainMetrics(const TVector<THolder<IMetric>
 }
 
 static TVector<const IMetric*> FilterTestMetrics(
-    const TVector<THolder<IMetric>>& metrics, bool calcAllMetrics, bool hasTarget,
-    TMaybe<int> trackerIdx, TMaybe<int>* filteredTrackerIdx
+    const TVector<THolder<IMetric>>& metrics,
+    bool calcAllMetrics,
+    bool hasTarget,
+    TMaybe<int> trackerIdx,
+    TMaybe<int>* filteredTrackerIdx
 ) {
     *filteredTrackerIdx = Nothing();
     TVector<const IMetric*> filtered;
@@ -203,7 +204,10 @@ void CalcErrors(
 
                 for (auto i : xrange(trainMetrics.size())) {
                     auto metric = trainMetrics[i];
-                    ctx->LearnProgress->MetricsAndTimeHistory.AddLearnError(*metric, metric->GetFinalError(errors[i]));
+                    ctx->LearnProgress->MetricsAndTimeHistory.AddLearnError(
+                        *metric,
+                        metric->GetFinalError(errors[i])
+                    );
                 }
             } else {
                 MapCalcErrors(ctx);
@@ -218,11 +222,17 @@ void CalcErrors(
 
             auto maybeTarget = targetData->GetTarget();
             auto weights = GetWeights(*targetData);
-            auto queryInfo = targetData->GetGroupInfo().GetOrElse(TConstArrayRef<TQueryInfo>());;
+            auto queryInfo = targetData->GetGroupInfo().GetOrElse(TConstArrayRef<TQueryInfo>());
 
             TMaybe<int> trackerIdx = calcErrorTrackerMetric ? TMaybe<int>(0) : Nothing();
             TMaybe<int> filteredTrackerIdx;
-            auto testMetrics = FilterTestMetrics(errors, calcAllMetrics, maybeTarget.Defined(), trackerIdx, &filteredTrackerIdx);
+            auto testMetrics = FilterTestMetrics(
+                errors,
+                calcAllMetrics,
+                maybeTarget.Defined(),
+                trackerIdx,
+                &filteredTrackerIdx
+            );
 
             auto errors = EvalErrorsWithCaching(
                 ctx->LearnProgress->TestApprox[testIdx],
