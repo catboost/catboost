@@ -7191,6 +7191,7 @@
                 "c_compiler": "$(GCC)/bin/arm-none-eabi-gcc",
                 "cxx_compiler": "$(GCC)/bin/arm-none-eabi-g++",
                 "ar": "$(GCC)/bin/arm-none-eabi-ar",
+                "objcopy": "$(GCC)/bin/arm-none-eabi-objcopy",
                 "gcc_version": "10.2.1"
             }
         },
