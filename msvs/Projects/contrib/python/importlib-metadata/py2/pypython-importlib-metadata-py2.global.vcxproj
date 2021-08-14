@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{4F8714BF-E4F1-08CA-ACDA-A2CFAB9C6033}</ProjectGUID>
+    <ProjectGUID>{77241000-E28E-793C-88B4-56C641DEE900}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>pycontrib-python-importlib-metadata.global</ProjectName>
+    <ProjectName>pypython-importlib-metadata-py2.global</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>pycontrib-python-importlib-metadata.global</TargetName>
+    <TargetName>pypython-importlib-metadata-py2.global</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\importlib-metadata\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\4F8714BF-E4F1-08CA-ACDA-A2CFAB9C6033\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\importlib-metadata\py2\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\77241000-E28E-793C-88B4-56C641DEE900\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,17 +78,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\importlib-metadata\117a218bd6e9a6b8d03aaade09.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\importlib-metadata\b6bd88ea46915a98b67e7c464b.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\importlib-metadata\py2\49730971c7c162a54271d6e1f6.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\importlib-metadata\py2\e8020487e800a6cb1544a28c08.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\importlib-metadata
+cd /d $(SolutionDir)$(Configuration)\contrib\python\importlib-metadata\py2
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/importlib-metadata/117a218bd6e9a6b8d03aaade09.cpp" "_62cb065aff6d6aeaf9d6ace95d=/py_modules/importlib_metadata.__init__" "_71fcc77594abf52d1dee9d111a=resfs/src//py_modules/importlib_metadata.__init__" "_05a140fe80a4a1f8a050343461=/py_code/importlib_metadata.__init__" "_aef8ee50f0606aedd5e5ab2402=/py_modules/importlib_metadata._compat" "_546f1f567720f35054cfffd9ca=resfs/src//py_modules/importlib_metadata._compat" "_5e86830b6276c931f255fa2fac=/py_code/importlib_metadata._compat"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/importlib-metadata/py2/49730971c7c162a54271d6e1f6.cpp" "_853c37dd88172b5fa40b9902df=/py_modules/importlib_metadata.__init__" "_f0766393677f40b14ac30a030b=resfs/src//py_modules/importlib_metadata.__init__" "_bf33a954854372551ea320de64=/py_code/importlib_metadata.__init__" "_2938d3549dbb66cfe0c3f4650c=/py_modules/importlib_metadata._compat" "_fdf16f9312d17d29f29edeed2c=resfs/src//py_modules/importlib_metadata._compat" "_df7d5cead3d41f16ee24d32810=/py_code/importlib_metadata._compat"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\importlib-metadata
+cd /d $(SolutionDir)$(Configuration)\contrib\python\importlib-metadata\py2
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/importlib-metadata/b6bd88ea46915a98b67e7c464b.cpp" "_f7544e7f25eba5e127207a1494=resfs/src/resfs/file/contrib/python/importlib-metadata/.dist-info/METADATA" "_b17c6cc0202b81c53ff1fdb4fb=resfs/file/contrib/python/importlib-metadata/.dist-info/METADATA" "_163442610c70a9a68c9678c43e=resfs/src/resfs/file/contrib/python/importlib-metadata/.dist-info/top_level.txt" "_66374c72c0591bf4fcc012f4d5=resfs/file/contrib/python/importlib-metadata/.dist-info/top_level.txt"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/importlib-metadata/py2/e8020487e800a6cb1544a28c08.cpp" "_72bcae1bbed57f75313db6ce36=resfs/src/resfs/file/contrib/python/importlib-metadata/py2/.dist-info/METADATA" "_586c8819de1fcefde1e4174da2=resfs/file/contrib/python/importlib-metadata/py2/.dist-info/METADATA" "_c18075969d3e5de9dea490740e=resfs/src/resfs/file/contrib/python/importlib-metadata/py2/.dist-info/top_level.txt" "_bdf51dcfe5e45a0f8b31efeb71=resfs/file/contrib/python/importlib-metadata/py2/.dist-info/top_level.txt"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -97,13 +97,13 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\importlib-metadata
+cd /d $(SolutionDir)$(Configuration)\contrib\python\importlib-metadata\py2
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/importlib-metadata/117a218bd6e9a6b8d03aaade09.cpp" "_62cb065aff6d6aeaf9d6ace95d=/py_modules/importlib_metadata.__init__" "_71fcc77594abf52d1dee9d111a=resfs/src//py_modules/importlib_metadata.__init__" "_05a140fe80a4a1f8a050343461=/py_code/importlib_metadata.__init__" "_aef8ee50f0606aedd5e5ab2402=/py_modules/importlib_metadata._compat" "_546f1f567720f35054cfffd9ca=resfs/src//py_modules/importlib_metadata._compat" "_5e86830b6276c931f255fa2fac=/py_code/importlib_metadata._compat"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/importlib-metadata/py2/49730971c7c162a54271d6e1f6.cpp" "_853c37dd88172b5fa40b9902df=/py_modules/importlib_metadata.__init__" "_f0766393677f40b14ac30a030b=resfs/src//py_modules/importlib_metadata.__init__" "_bf33a954854372551ea320de64=/py_code/importlib_metadata.__init__" "_2938d3549dbb66cfe0c3f4650c=/py_modules/importlib_metadata._compat" "_fdf16f9312d17d29f29edeed2c=resfs/src//py_modules/importlib_metadata._compat" "_df7d5cead3d41f16ee24d32810=/py_code/importlib_metadata._compat"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\importlib-metadata
+cd /d $(SolutionDir)$(Configuration)\contrib\python\importlib-metadata\py2
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/importlib-metadata/b6bd88ea46915a98b67e7c464b.cpp" "_f7544e7f25eba5e127207a1494=resfs/src/resfs/file/contrib/python/importlib-metadata/.dist-info/METADATA" "_b17c6cc0202b81c53ff1fdb4fb=resfs/file/contrib/python/importlib-metadata/.dist-info/METADATA" "_163442610c70a9a68c9678c43e=resfs/src/resfs/file/contrib/python/importlib-metadata/.dist-info/top_level.txt" "_66374c72c0591bf4fcc012f4d5=resfs/file/contrib/python/importlib-metadata/.dist-info/top_level.txt"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/importlib-metadata/py2/e8020487e800a6cb1544a28c08.cpp" "_72bcae1bbed57f75313db6ce36=resfs/src/resfs/file/contrib/python/importlib-metadata/py2/.dist-info/METADATA" "_586c8819de1fcefde1e4174da2=resfs/file/contrib/python/importlib-metadata/py2/.dist-info/METADATA" "_c18075969d3e5de9dea490740e=resfs/src/resfs/file/contrib/python/importlib-metadata/py2/.dist-info/top_level.txt" "_bdf51dcfe5e45a0f8b31efeb71=resfs/file/contrib/python/importlib-metadata/py2/.dist-info/top_level.txt"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -111,9 +111,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/importlib-metadata/117a218bd6e9a6b8d03aaade09.cpp	$B/contrib/python/importlib-metadata/b6bd88ea46915a98b67e7c464b.cpp	</Message>
+      <Message>$B/contrib/python/importlib-metadata/py2/49730971c7c162a54271d6e1f6.cpp	$B/contrib/python/importlib-metadata/py2/e8020487e800a6cb1544a28c08.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\importlib-metadata\117a218bd6e9a6b8d03aaade09.cpp;$(SolutionDir)$(Configuration)\contrib\python\importlib-metadata\b6bd88ea46915a98b67e7c464b.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\importlib-metadata\py2\49730971c7c162a54271d6e1f6.cpp;$(SolutionDir)$(Configuration)\contrib\python\importlib-metadata\py2\e8020487e800a6cb1544a28c08.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
