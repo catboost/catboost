@@ -37,7 +37,7 @@ class ThingsDBLexer(RegexLexer):
 
             # numbers
             (r'[-+]?0b[01]+', Number.Bin),
-            (r'[-+]?0o[0-8]+', Number.Octal),
+            (r'[-+]?0o[0-8]+', Number.Oct),
             (r'([-+]?0x[0-9a-fA-F]+)', Number.Hex),
             (r'[-+]?[0-9]+', Number.Integer),
             (r'[-+]?((inf|nan)([^0-9A-Za-z_]|$)|[0-9]*\.[0-9]+(e[+-][0-9]+)?)',

@@ -727,13 +727,22 @@ class PythonTracebackLexer(RegexLexer):
             (r'^(  File )("[^"]+")(, line )(\d+)(\n)',
              bygroups(Text, Name.Builtin, Text, Number, Text)),
             (r'^(    )(.+)(\n)',
-             bygroups(Text, using(PythonLexer), Text)),
+             bygroups(Text, using(PythonLexer), Text), 'markers'),
             (r'^([ \t]*)(\.\.\.)(\n)',
              bygroups(Text, Comment, Text)),  # for doctests...
             (r'^([^:]+)(: )(.+)(\n)',
              bygroups(Generic.Error, Text, Name, Text), '#pop'),
             (r'^([a-zA-Z_][\w.]*)(:?\n)',
              bygroups(Generic.Error, Text), '#pop')
+        ],
+        'markers': [
+            # Either `PEP 657 <https://www.python.org/dev/peps/pep-0657/>`
+            # error locations in Python 3.11+, or single-caret markers
+            # for syntax errors before that.
+            (r'^( {4,})(\^+)(\n)',
+             bygroups(Text, Punctuation.Marker, Text),
+             '#pop'),
+            default('#pop'),
         ],
     }
 
@@ -773,13 +782,18 @@ class Python2TracebackLexer(RegexLexer):
             (r'^(  File )("[^"]+")(, line )(\d+)(\n)',
              bygroups(Text, Name.Builtin, Text, Number, Text)),
             (r'^(    )(.+)(\n)',
-             bygroups(Text, using(Python2Lexer), Text)),
+             bygroups(Text, using(Python2Lexer), Text), 'marker'),
             (r'^([ \t]*)(\.\.\.)(\n)',
              bygroups(Text, Comment, Text)),  # for doctests...
             (r'^([^:]+)(: )(.+)(\n)',
              bygroups(Generic.Error, Text, Name, Text), '#pop'),
             (r'^([a-zA-Z_]\w*)(:?\n)',
              bygroups(Generic.Error, Text), '#pop')
+        ],
+        'marker': [
+            # For syntax errors.
+            (r'( {4,})(\^)', bygroups(Text, Punctuation.Marker), '#pop'),
+            default('#pop'),
         ],
     }
 

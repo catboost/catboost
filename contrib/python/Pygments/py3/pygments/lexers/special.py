@@ -12,11 +12,11 @@ import ast
 import re
 
 from pygments.lexer import Lexer
-from pygments.token import Token, Error, Text
+from pygments.token import Token, Error, Text, Generic
 from pygments.util import get_choice_opt
 
 
-__all__ = ['TextLexer', 'RawTokenLexer']
+__all__ = ['TextLexer', 'OutputLexer', 'RawTokenLexer']
 
 
 class TextLexer(Lexer):
@@ -34,6 +34,19 @@ class TextLexer(Lexer):
 
     def analyse_text(text):
         return TextLexer.priority
+
+
+class OutputLexer(Lexer):
+    """
+    Simple lexer that highlights everything as ``Token.Generic.Output``.
+
+    .. versionadded:: 2.10
+    """
+    name = 'Text output'
+    aliases = ['output']
+
+    def get_tokens_unprocessed(self, text):
+        yield 0, Generic.Output, text
 
 
 _ttype_cache = {}
