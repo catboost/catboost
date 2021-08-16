@@ -34,6 +34,7 @@
 #pragma once
 
 #include <iterator>
+#include <iostream>
 
 #include "../thread/thread_load.cuh"
 #include "../thread/thread_store.cuh"
@@ -44,8 +45,8 @@
 #if (CUDA_VERSION >= 5050) || defined(DOXYGEN_ACTIVE)  // This iterator is compatible with CUDA 5.5 and newer
 
 #if (THRUST_VERSION >= 100700)    // This iterator is compatible with Thrust API 1.7 and newer
-//    #include <thrust/iterator/iterator_facade.h>
-//    #include <thrust/iterator/iterator_traits.h>
+    #include <thrust/iterator/iterator_facade.h>
+    #include <thrust/iterator/iterator_traits.h>
 #endif // THRUST_VERSION
 
 
@@ -354,6 +355,13 @@ public:
     {
         return ((ptr != rhs.ptr) || (tex_offset != rhs.tex_offset));
     }
+
+    /// ostream operator
+    friend std::ostream& operator<<(std::ostream& os, const self_type& itr)
+    {
+        return os;
+    }
+
 };
 
 
