@@ -2,6 +2,11 @@
 - includes:
   - cooperative_groups.h
   - cuComplex.h
+  # Though cub is provided as a part of CUDA HPC SDK,
+  # we would like to be updatable independently.
+  # Hence we are using cub directly from Arcadia.
+  # This sysincl enforces such usage.
+  - cub/cub.cuh: contrib/libs/nvidia/cub/cub/cub.cuh
   - cublas.h
   - cublasLt.h
   - cublas_v2.h
