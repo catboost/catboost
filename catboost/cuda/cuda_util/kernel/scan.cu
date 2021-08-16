@@ -1,7 +1,7 @@
 #include "scan.cuh"
 #include "segmented_scan_helpers.cuh"
 #include "fill.cuh"
-#include <contrib/libs/cub/cub/device/device_scan.cuh>
+#include <contrib/libs/nvidia/cub/cub/device/device_scan.cuh>
 
 namespace NKernel {
 

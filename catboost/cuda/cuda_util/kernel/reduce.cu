@@ -1,9 +1,9 @@
 #include "reduce.cuh"
 #include "fill.cuh"
 #include "kernel_helpers.cuh"
-#include <contrib/libs/cub/cub/device/device_reduce.cuh>
+#include <contrib/libs/nvidia/cub/cub/device/device_reduce.cuh>
 #include <library/cpp/cuda/wrappers/arch.cuh>
-#include <contrib/libs/cub/cub/device/device_segmented_reduce.cuh>
+#include <contrib/libs/nvidia/cub/cub/device/device_segmented_reduce.cuh>
 
 
 namespace NKernel {

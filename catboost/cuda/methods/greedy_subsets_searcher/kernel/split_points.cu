@@ -2,7 +2,7 @@
 
 #include <catboost/cuda/cuda_lib/cuda_base.h>
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
-#include <contrib/libs/cub/cub/device/device_radix_sort.cuh>
+#include <contrib/libs/nvidia/cub/cub/device/device_radix_sort.cuh>
 #include <catboost/cuda/cuda_util/gpu_data/partitions.h>
 #include <catboost/cuda/cuda_util/kernel/update_part_props.cuh>
 #include <catboost/cuda/cuda_util/kernel/reorder_one_bit.cuh>
