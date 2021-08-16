@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{E6D0934F-A141-5DB0-60FA-6BD719540061}</ProjectGUID>
+    <ProjectGUID>{B1B146A3-CFD6-0035-F05E-D7DACD90FFAF}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>contrib-libs-cub</ProjectName>
+    <ProjectName>libs-nvidia-cub</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>contrib-libs-cub</TargetName>
+    <TargetName>libs-nvidia-cub</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\contrib\libs\cub\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\E6D0934F-A141-5DB0-60FA-6BD719540061\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\libs\nvidia\cub\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\B1B146A3-CFD6-0035-F05E-D7DACD90FFAF\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
