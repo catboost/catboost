@@ -33,6 +33,8 @@
 
 #pragma once
 
+#include "version.cuh"
+
 // For example:
 //#define CUB_NS_PREFIX namespace thrust{ namespace detail {
 //#define CUB_NS_POSTFIX } }
@@ -44,3 +46,17 @@
 #ifndef CUB_NS_POSTFIX
 #define CUB_NS_POSTFIX
 #endif
+
+// Declare these namespaces here for the purpose of Doxygenating them
+CUB_NS_PREFIX
+
+/*! \namespace cub
+ *  \brief \p cub is the top-level namespace which contains all CUB
+ *         functions and types.
+ */
+namespace cub
+{
+
+}
+
+CUB_NS_POSTFIX

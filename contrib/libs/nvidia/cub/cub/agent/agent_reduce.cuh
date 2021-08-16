@@ -39,9 +39,9 @@
 #include "../block/block_reduce.cuh"
 #include "../grid/grid_mapping.cuh"
 #include "../grid/grid_even_share.cuh"
+#include "../config.cuh"
 #include "../util_type.cuh"
 #include "../iterator/cache_modified_input_iterator.cuh"
-#include "../util_namespace.cuh"
 
 
 /// Optional outer namespace(s)
@@ -59,17 +59,18 @@ namespace cub {
  * Parameterizable tuning policy type for AgentReduce
  */
 template <
-    int                     _BLOCK_THREADS,         ///< Threads per thread block
-    int                     _ITEMS_PER_THREAD,      ///< Items per thread (per tile of input)
-    int                     _VECTOR_LOAD_LENGTH,    ///< Number of items per vectorized load
-    BlockReduceAlgorithm    _BLOCK_ALGORITHM,       ///< Cooperative block-wide reduction algorithm to use
-    CacheLoadModifier       _LOAD_MODIFIER>         ///< Cache load modifier for reading input elements
-struct AgentReducePolicy
+    int                     NOMINAL_BLOCK_THREADS_4B,       ///< Threads per thread block
+    int                     NOMINAL_ITEMS_PER_THREAD_4B,    ///< Items per thread (per tile of input)
+    typename                ComputeT,                       ///< Dominant compute type
+    int                     _VECTOR_LOAD_LENGTH,            ///< Number of items per vectorized load
+    BlockReduceAlgorithm    _BLOCK_ALGORITHM,               ///< Cooperative block-wide reduction algorithm to use
+    CacheLoadModifier       _LOAD_MODIFIER,                 ///< Cache load modifier for reading input elements
+    typename                ScalingType =  MemBoundScaling<NOMINAL_BLOCK_THREADS_4B, NOMINAL_ITEMS_PER_THREAD_4B, ComputeT> >
+struct AgentReducePolicy :
+    ScalingType
 {
     enum
     {
-        BLOCK_THREADS       = _BLOCK_THREADS,       ///< Threads per thread block
-        ITEMS_PER_THREAD    = _ITEMS_PER_THREAD,    ///< Items per thread (per tile of input)
         VECTOR_LOAD_LENGTH  = _VECTOR_LOAD_LENGTH,  ///< Number of items per vectorized load
     };
 
@@ -125,7 +126,7 @@ struct AgentReduce
     {
         BLOCK_THREADS       = AgentReducePolicy::BLOCK_THREADS,
         ITEMS_PER_THREAD    = AgentReducePolicy::ITEMS_PER_THREAD,
-        VECTOR_LOAD_LENGTH  = CUB_MIN(ITEMS_PER_THREAD, AgentReducePolicy::VECTOR_LOAD_LENGTH),
+        VECTOR_LOAD_LENGTH  = CUB_MIN(int(ITEMS_PER_THREAD), int(AgentReducePolicy::VECTOR_LOAD_LENGTH)),
         TILE_ITEMS          = BLOCK_THREADS * ITEMS_PER_THREAD,
 
         // Can vectorize according to the policy if the input iterator is a native pointer to a primitive type
@@ -294,7 +295,7 @@ struct AgentReduce
         // Continue reading items (block-striped)
         while (thread_offset < valid_items)
         {
-            OutputT item        = d_wrapped_in[block_offset + thread_offset];
+            OutputT item        (d_wrapped_in[block_offset + thread_offset]);
             thread_aggregate    = reduction_op(thread_aggregate, item);
             thread_offset       += BLOCK_THREADS;
         }

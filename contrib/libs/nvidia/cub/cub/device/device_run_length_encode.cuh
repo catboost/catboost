@@ -37,9 +37,9 @@
 #include <stdio.h>
 #include <iterator>
 
+#include "../config.cuh"
 #include "dispatch/dispatch_rle.cuh"
 #include "dispatch/dispatch_reduce_by_key.cuh"
-#include "../util_namespace.cuh"
 
 /// Optional outer namespace(s)
 CUB_NS_PREFIX

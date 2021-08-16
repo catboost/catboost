@@ -35,8 +35,8 @@
 
 #include "../../block/block_radix_sort.cuh"
 #include "../../block/block_discontinuity.cuh"
+#include "../../config.cuh"
 #include "../../util_ptx.cuh"
-#include "../../util_namespace.cuh"
 
 /// Optional outer namespace(s)
 CUB_NS_PREFIX
@@ -96,7 +96,7 @@ struct BlockHistogramSort
         // Storage for sorting bin values
         typename BlockRadixSortT::TempStorage sort;
 
-        struct
+        struct Discontinuities
         {
             // Storage for detecting discontinuities in the tile of sorted bin values
             typename BlockDiscontinuityT::TempStorage flag;
@@ -104,7 +104,7 @@ struct BlockHistogramSort
             // Storage for noting begin/end offsets of bin runs in the tile of sorted bin values
             unsigned int run_begin[BINS];
             unsigned int run_end[BINS];
-        };
+        } discontinuities;
     };
 
 
@@ -143,8 +143,8 @@ struct BlockHistogramSort
             if (a != b)
             {
                 // Note the begin/end offsets in shared storage
-                temp_storage.run_begin[b] = b_index;
-                temp_storage.run_end[a] = b_index;
+                temp_storage.discontinuities.run_begin[b] = b_index;
+                temp_storage.discontinuities.run_end[a] = b_index;
 
                 return true;
             }
@@ -176,14 +176,14 @@ struct BlockHistogramSort
         #pragma unroll
         for(; histo_offset + BLOCK_THREADS <= BINS; histo_offset += BLOCK_THREADS)
         {
-            temp_storage.run_begin[histo_offset + linear_tid] = TILE_SIZE;
-            temp_storage.run_end[histo_offset + linear_tid] = TILE_SIZE;
+            temp_storage.discontinuities.run_begin[histo_offset + linear_tid] = TILE_SIZE;
+            temp_storage.discontinuities.run_end[histo_offset + linear_tid] = TILE_SIZE;
         }
         // Finish up with guarded initialization if necessary
         if ((BINS % BLOCK_THREADS != 0) && (histo_offset + linear_tid < BINS))
         {
-            temp_storage.run_begin[histo_offset + linear_tid] = TILE_SIZE;
-            temp_storage.run_end[histo_offset + linear_tid] = TILE_SIZE;
+            temp_storage.discontinuities.run_begin[histo_offset + linear_tid] = TILE_SIZE;
+            temp_storage.discontinuities.run_end[histo_offset + linear_tid] = TILE_SIZE;
         }
 
         CTA_SYNC();
@@ -192,10 +192,10 @@ struct BlockHistogramSort
 
         // Compute head flags to demarcate contiguous runs of the same bin in the sorted tile
         DiscontinuityOp flag_op(temp_storage);
-        BlockDiscontinuityT(temp_storage.flag).FlagHeads(flags, items, flag_op);
+        BlockDiscontinuityT(temp_storage.discontinuities.flag).FlagHeads(flags, items, flag_op);
 
         // Update begin for first item
-        if (linear_tid == 0) temp_storage.run_begin[items[0]] = 0;
+        if (linear_tid == 0) temp_storage.discontinuities.run_begin[items[0]] = 0;
 
         CTA_SYNC();
 
@@ -206,7 +206,7 @@ struct BlockHistogramSort
         for(; histo_offset + BLOCK_THREADS <= BINS; histo_offset += BLOCK_THREADS)
         {
             int thread_offset = histo_offset + linear_tid;
-            CounterT      count = temp_storage.run_end[thread_offset] - temp_storage.run_begin[thread_offset];
+            CounterT      count = temp_storage.discontinuities.run_end[thread_offset] - temp_storage.discontinuities.run_begin[thread_offset];
             histogram[thread_offset] += count;
         }
 
@@ -214,7 +214,7 @@ struct BlockHistogramSort
         if ((BINS % BLOCK_THREADS != 0) && (histo_offset + linear_tid < BINS))
         {
             int thread_offset = histo_offset + linear_tid;
-            CounterT      count = temp_storage.run_end[thread_offset] - temp_storage.run_begin[thread_offset];
+            CounterT      count = temp_storage.discontinuities.run_end[thread_offset] - temp_storage.discontinuities.run_begin[thread_offset];
             histogram[thread_offset] += count;
         }
     }

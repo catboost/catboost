@@ -36,10 +36,10 @@
 #include <iterator>
 #include <iostream>
 
+#include "../config.cuh"
 #include "../thread/thread_load.cuh"
 #include "../thread/thread_store.cuh"
 #include "../util_device.cuh"
-#include "../util_namespace.cuh"
 
 #include <thrust/version.h>
 

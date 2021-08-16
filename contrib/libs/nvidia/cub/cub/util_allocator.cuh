@@ -330,15 +330,14 @@ struct CachingDeviceAllocator
      * Changing the ceiling of cached bytes does not cause any allocations (in-use or
      * cached-in-reserve) to be freed.  See \p FreeAllCached().
      */
-    cudaError_t SetMaxCachedBytes(
-        size_t max_cached_bytes)
+    cudaError_t SetMaxCachedBytes(size_t max_cached_bytes_)
     {
         // Lock
         mutex.Lock();
 
-        if (debug) _CubLog("Changing max_cached_bytes (%lld -> %lld)\n", (long long) this->max_cached_bytes, (long long) max_cached_bytes);
+        if (debug) _CubLog("Changing max_cached_bytes (%lld -> %lld)\n", (long long) this->max_cached_bytes, (long long) max_cached_bytes_);
 
-        this->max_cached_bytes = max_cached_bytes;
+        this->max_cached_bytes = max_cached_bytes_;
 
         // Unlock
         mutex.Unlock();
@@ -405,8 +404,22 @@ struct CachingDeviceAllocator
                 // To prevent races with reusing blocks returned by the host but still
                 // in use by the device, only consider cached blocks that are
                 // either (from the active stream) or (from an idle stream)
-                if ((active_stream == block_itr->associated_stream) ||
-                    (cudaEventQuery(block_itr->ready_event) != cudaErrorNotReady))
+                bool is_reusable = false;
+                if (active_stream == block_itr->associated_stream)
+                {
+                    is_reusable = true;
+                }
+                else
+                {
+                    const cudaError_t event_status = cudaEventQuery(block_itr->ready_event);
+                    if(event_status != cudaErrorNotReady)
+                    {
+                        CubDebug(event_status);
+                        is_reusable = true;
+                    }
+                }
+
+                if(is_reusable)
                 {
                     // Reuse existing cache block.  Insert into live blocks.
                     found = true;
@@ -585,9 +598,6 @@ struct CachingDeviceAllocator
             }
         }
 
-        // Unlock
-        mutex.Unlock();
-
         // First set to specified device (entrypoint may not be set)
         if (device != entrypoint_device)
         {
@@ -600,7 +610,11 @@ struct CachingDeviceAllocator
             // Insert the ready event in the associated stream (must have current device set properly)
             if (CubDebug(error = cudaEventRecord(search_key.ready_event, search_key.associated_stream))) return error;
         }
-        else
+
+        // Unlock
+        mutex.Unlock();
+
+        if (!recached)
         {
             // Free the allocation from the runtime and cleanup the event.
             if (CubDebug(error = cudaFree(d_ptr))) return error;

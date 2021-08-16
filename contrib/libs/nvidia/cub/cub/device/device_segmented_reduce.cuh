@@ -40,8 +40,8 @@
 #include "../iterator/arg_index_input_iterator.cuh"
 #include "dispatch/dispatch_reduce.cuh"
 #include "dispatch/dispatch_reduce_by_key.cuh"
+#include "../config.cuh"
 #include "../util_type.cuh"
-#include "../util_namespace.cuh"
 
 /// Optional outer namespace(s)
 CUB_NS_PREFIX
@@ -69,6 +69,11 @@ struct DeviceSegmentedReduce
      *
      * \par
      * - Does not support binary reduction operators that are non-commutative.
+     * - Provides "run-to-run" determinism for pseudo-associative reduction
+     *   (e.g., addition of floating point types) on the same GPU device.
+     *   However, results for pseudo-associative reduction may be inconsistent
+     *   from one device to a another device of a different compute-capability
+     *   because CUB can employ different tile-sizing for different architectures.
      * - When input a contiguous sequence of segments, a single sequence
      *   \p segment_offsets (of length <tt>num_segments+1</tt>) can be aliased
      *   for both the \p d_begin_offsets and \p d_end_offsets parameters (where
@@ -119,34 +124,36 @@ struct DeviceSegmentedReduce
      *
      * \tparam InputIteratorT       <b>[inferred]</b> Random-access input iterator type for reading input items \iterator
      * \tparam OutputIteratorT      <b>[inferred]</b> Output iterator type for recording the reduced aggregate \iterator
-     * \tparam OffsetIteratorT      <b>[inferred]</b> Random-access input iterator type for reading segment offsets \iterator
+     * \tparam BeginOffsetIteratorT <b>[inferred]</b> Random-access input iterator type for reading segment beginning offsets \iterator
+     * \tparam EndOffsetIteratorT   <b>[inferred]</b> Random-access input iterator type for reading segment ending offsets \iterator
      * \tparam ReductionOp          <b>[inferred]</b> Binary reduction functor type having member <tt>T operator()(const T &a, const T &b)</tt>
      * \tparam T                    <b>[inferred]</b> Data element type that is convertible to the \p value type of \p InputIteratorT
      */
     template <
         typename            InputIteratorT,
         typename            OutputIteratorT,
-        typename            OffsetIteratorT,
+        typename            BeginOffsetIteratorT,
+        typename            EndOffsetIteratorT,
         typename            ReductionOp,
         typename            T>
     CUB_RUNTIME_FUNCTION
     static cudaError_t Reduce(
-        void                *d_temp_storage,                    ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
-        size_t              &temp_storage_bytes,                ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
-        InputIteratorT      d_in,                               ///< [in] Pointer to the input sequence of data items
-        OutputIteratorT     d_out,                              ///< [out] Pointer to the output aggregate
-        int                 num_segments,                       ///< [in] The number of segments that comprise the sorting data
-        OffsetIteratorT     d_begin_offsets,                    ///< [in] Pointer to the sequence of beginning offsets of length \p num_segments, such that <tt>d_begin_offsets[i]</tt> is the first element of the <em>i</em><sup>th</sup> data segment in <tt>d_keys_*</tt> and <tt>d_values_*</tt>
-        OffsetIteratorT     d_end_offsets,                      ///< [in] Pointer to the sequence of ending offsets of length \p num_segments, such that <tt>d_end_offsets[i]-1</tt> is the last element of the <em>i</em><sup>th</sup> data segment in <tt>d_keys_*</tt> and <tt>d_values_*</tt>.  If <tt>d_end_offsets[i]-1</tt> <= <tt>d_begin_offsets[i]</tt>, the <em>i</em><sup>th</sup> is considered empty.
-        ReductionOp         reduction_op,                       ///< [in] Binary reduction functor 
-        T                   initial_value,                      ///< [in] Initial value of the reduction for each segment
-        cudaStream_t        stream              = 0,            ///< [in] <b>[optional]</b> CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
-        bool                debug_synchronous   = false)        ///< [in] <b>[optional]</b> Whether or not to synchronize the stream after every kernel launch to check for errors.  Also causes launch configurations to be printed to the console.  Default is \p false.
+        void                 *d_temp_storage,                    ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        size_t               &temp_storage_bytes,                ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
+        InputIteratorT       d_in,                               ///< [in] Pointer to the input sequence of data items
+        OutputIteratorT      d_out,                              ///< [out] Pointer to the output aggregate
+        int                  num_segments,                       ///< [in] The number of segments that comprise the sorting data
+        BeginOffsetIteratorT d_begin_offsets,                    ///< [in] Random-access input iterator to the sequence of beginning offsets of length \p num_segments, such that <tt>d_begin_offsets[i]</tt> is the first element of the <em>i</em><sup>th</sup> data segment in <tt>d_keys_*</tt> and <tt>d_values_*</tt>
+        EndOffsetIteratorT   d_end_offsets,                      ///< [in] Random-access input iterator to the sequence of ending offsets of length \p num_segments, such that <tt>d_end_offsets[i]-1</tt> is the last element of the <em>i</em><sup>th</sup> data segment in <tt>d_keys_*</tt> and <tt>d_values_*</tt>.  If <tt>d_end_offsets[i]-1</tt> <= <tt>d_begin_offsets[i]</tt>, the <em>i</em><sup>th</sup> is considered empty.
+        ReductionOp          reduction_op,                       ///< [in] Binary reduction functor 
+        T                    initial_value,                      ///< [in] Initial value of the reduction for each segment
+        cudaStream_t         stream              = 0,            ///< [in] <b>[optional]</b> CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
+        bool                 debug_synchronous   = false)        ///< [in] <b>[optional]</b> Whether or not to synchronize the stream after every kernel launch to check for errors.  Also causes launch configurations to be printed to the console.  Default is \p false.
     {
         // Signed integer type for global offsets
         typedef int OffsetT;
 
-        return DispatchSegmentedReduce<InputIteratorT, OutputIteratorT, OffsetIteratorT, OffsetT, ReductionOp>::Dispatch(
+        return DispatchSegmentedReduce<InputIteratorT, OutputIteratorT, BeginOffsetIteratorT, EndOffsetIteratorT, OffsetT, ReductionOp>::Dispatch(
             d_temp_storage,
             temp_storage_bytes,
             d_in,
@@ -203,25 +210,27 @@ struct DeviceSegmentedReduce
      *
      * \endcode
      *
-     * \tparam InputIteratorT     <b>[inferred]</b> Random-access input iterator type for reading input items \iterator
-     * \tparam OutputIteratorT    <b>[inferred]</b> Output iterator type for recording the reduced aggregate \iterator
-     * \tparam OffsetIteratorT      <b>[inferred]</b> Random-access input iterator type for reading segment offsets \iterator
+     * \tparam InputIteratorT       <b>[inferred]</b> Random-access input iterator type for reading input items \iterator
+     * \tparam OutputIteratorT      <b>[inferred]</b> Output iterator type for recording the reduced aggregate \iterator
+     * \tparam BeginOffsetIteratorT <b>[inferred]</b> Random-access input iterator type for reading segment beginning offsets \iterator
+     * \tparam EndOffsetIteratorT   <b>[inferred]</b> Random-access input iterator type for reading segment ending offsets \iterator
      */
     template <
         typename            InputIteratorT,
         typename            OutputIteratorT,
-        typename            OffsetIteratorT>
+        typename            BeginOffsetIteratorT,
+        typename            EndOffsetIteratorT>
     CUB_RUNTIME_FUNCTION
     static cudaError_t Sum(
-        void                *d_temp_storage,                    ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
-        size_t              &temp_storage_bytes,                ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
-        InputIteratorT      d_in,                               ///< [in] Pointer to the input sequence of data items
-        OutputIteratorT     d_out,                              ///< [out] Pointer to the output aggregate
-        int                 num_segments,                       ///< [in] The number of segments that comprise the sorting data
-        OffsetIteratorT     d_begin_offsets,                    ///< [in] Pointer to the sequence of beginning offsets of length \p num_segments, such that <tt>d_begin_offsets[i]</tt> is the first element of the <em>i</em><sup>th</sup> data segment in <tt>d_keys_*</tt> and <tt>d_values_*</tt>
-        OffsetIteratorT     d_end_offsets,                      ///< [in] Pointer to the sequence of ending offsets of length \p num_segments, such that <tt>d_end_offsets[i]-1</tt> is the last element of the <em>i</em><sup>th</sup> data segment in <tt>d_keys_*</tt> and <tt>d_values_*</tt>.  If <tt>d_end_offsets[i]-1</tt> <= <tt>d_begin_offsets[i]</tt>, the <em>i</em><sup>th</sup> is considered empty.
-        cudaStream_t        stream              = 0,            ///< [in] <b>[optional]</b> CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
-        bool                debug_synchronous   = false)        ///< [in] <b>[optional]</b> Whether or not to synchronize the stream after every kernel launch to check for errors.  Also causes launch configurations to be printed to the console.  Default is \p false.
+        void                  *d_temp_storage,                    ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        size_t                &temp_storage_bytes,                ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
+        InputIteratorT        d_in,                               ///< [in] Pointer to the input sequence of data items
+        OutputIteratorT       d_out,                              ///< [out] Pointer to the output aggregate
+        int                   num_segments,                       ///< [in] The number of segments that comprise the sorting data
+        BeginOffsetIteratorT  d_begin_offsets,                    ///< [in] Random-access input iterator to the sequence of beginning offsets of length \p num_segments, such that <tt>d_begin_offsets[i]</tt> is the first element of the <em>i</em><sup>th</sup> data segment in <tt>d_keys_*</tt> and <tt>d_values_*</tt>
+        EndOffsetIteratorT    d_end_offsets,                      ///< [in] Random-access input iterator to the sequence of ending offsets of length \p num_segments, such that <tt>d_end_offsets[i]-1</tt> is the last element of the <em>i</em><sup>th</sup> data segment in <tt>d_keys_*</tt> and <tt>d_values_*</tt>.  If <tt>d_end_offsets[i]-1</tt> <= <tt>d_begin_offsets[i]</tt>, the <em>i</em><sup>th</sup> is considered empty.
+        cudaStream_t          stream              = 0,            ///< [in] <b>[optional]</b> CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
+        bool                  debug_synchronous   = false)        ///< [in] <b>[optional]</b> Whether or not to synchronize the stream after every kernel launch to check for errors.  Also causes launch configurations to be printed to the console.  Default is \p false.
     {
         // Signed integer type for global offsets
         typedef int OffsetT;
@@ -231,7 +240,7 @@ struct DeviceSegmentedReduce
             typename std::iterator_traits<InputIteratorT>::value_type,                                          // ... then the input iterator's value type,
             typename std::iterator_traits<OutputIteratorT>::value_type>::Type OutputT;                          // ... else the output iterator's value type
 
-        return DispatchSegmentedReduce<InputIteratorT,  OutputIteratorT, OffsetIteratorT, OffsetT, cub::Sum>::Dispatch(
+        return DispatchSegmentedReduce<InputIteratorT,  OutputIteratorT, BeginOffsetIteratorT, EndOffsetIteratorT, OffsetT, cub::Sum>::Dispatch(
             d_temp_storage,
             temp_storage_bytes,
             d_in,
@@ -288,25 +297,27 @@ struct DeviceSegmentedReduce
      *
      * \endcode
      *
-     * \tparam InputIteratorT     <b>[inferred]</b> Random-access input iterator type for reading input items \iterator
-     * \tparam OutputIteratorT    <b>[inferred]</b> Output iterator type for recording the reduced aggregate \iterator
-     * \tparam OffsetIteratorT      <b>[inferred]</b> Random-access input iterator type for reading segment offsets \iterator
+     * \tparam InputIteratorT       <b>[inferred]</b> Random-access input iterator type for reading input items \iterator
+     * \tparam OutputIteratorT      <b>[inferred]</b> Output iterator type for recording the reduced aggregate \iterator
+     * \tparam BeginOffsetIteratorT <b>[inferred]</b> Random-access input iterator type for reading segment beginning offsets \iterator
+     * \tparam EndOffsetIteratorT   <b>[inferred]</b> Random-access input iterator type for reading segment ending offsets \iterator
      */
     template <
         typename            InputIteratorT,
         typename            OutputIteratorT,
-        typename            OffsetIteratorT>
+        typename            BeginOffsetIteratorT,
+        typename            EndOffsetIteratorT>
     CUB_RUNTIME_FUNCTION
     static cudaError_t Min(
-        void                *d_temp_storage,                    ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
-        size_t              &temp_storage_bytes,                ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
-        InputIteratorT      d_in,                               ///< [in] Pointer to the input sequence of data items
-        OutputIteratorT     d_out,                              ///< [out] Pointer to the output aggregate
-        int                 num_segments,                       ///< [in] The number of segments that comprise the sorting data
-        OffsetIteratorT     d_begin_offsets,                    ///< [in] Pointer to the sequence of beginning offsets of length \p num_segments, such that <tt>d_begin_offsets[i]</tt> is the first element of the <em>i</em><sup>th</sup> data segment in <tt>d_keys_*</tt> and <tt>d_values_*</tt>
-        OffsetIteratorT     d_end_offsets,                      ///< [in] Pointer to the sequence of ending offsets of length \p num_segments, such that <tt>d_end_offsets[i]-1</tt> is the last element of the <em>i</em><sup>th</sup> data segment in <tt>d_keys_*</tt> and <tt>d_values_*</tt>.  If <tt>d_end_offsets[i]-1</tt> <= <tt>d_begin_offsets[i]</tt>, the <em>i</em><sup>th</sup> is considered empty.
-        cudaStream_t        stream              = 0,            ///< [in] <b>[optional]</b> CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
-        bool                debug_synchronous   = false)        ///< [in] <b>[optional]</b> Whether or not to synchronize the stream after every kernel launch to check for errors.  Also causes launch configurations to be printed to the console.  Default is \p false.
+        void                  *d_temp_storage,                    ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        size_t                &temp_storage_bytes,                ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
+        InputIteratorT        d_in,                               ///< [in] Pointer to the input sequence of data items
+        OutputIteratorT       d_out,                              ///< [out] Pointer to the output aggregate
+        int                   num_segments,                       ///< [in] The number of segments that comprise the sorting data
+        BeginOffsetIteratorT  d_begin_offsets,                    ///< [in] Random-access input iterator to the sequence of beginning offsets of length \p num_segments, such that <tt>d_begin_offsets[i]</tt> is the first element of the <em>i</em><sup>th</sup> data segment in <tt>d_keys_*</tt> and <tt>d_values_*</tt>
+        EndOffsetIteratorT    d_end_offsets,                      ///< [in] Random-access input iterator to the sequence of ending offsets of length \p num_segments, such that <tt>d_end_offsets[i]-1</tt> is the last element of the <em>i</em><sup>th</sup> data segment in <tt>d_keys_*</tt> and <tt>d_values_*</tt>.  If <tt>d_end_offsets[i]-1</tt> <= <tt>d_begin_offsets[i]</tt>, the <em>i</em><sup>th</sup> is considered empty.
+        cudaStream_t          stream              = 0,            ///< [in] <b>[optional]</b> CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
+        bool                  debug_synchronous   = false)        ///< [in] <b>[optional]</b> Whether or not to synchronize the stream after every kernel launch to check for errors.  Also causes launch configurations to be printed to the console.  Default is \p false.
     {
         // Signed integer type for global offsets
         typedef int OffsetT;
@@ -314,7 +325,7 @@ struct DeviceSegmentedReduce
         // The input value type
         typedef typename std::iterator_traits<InputIteratorT>::value_type InputT;
 
-        return DispatchSegmentedReduce<InputIteratorT,  OutputIteratorT, OffsetIteratorT, OffsetT, cub::Min>::Dispatch(
+        return DispatchSegmentedReduce<InputIteratorT,  OutputIteratorT, BeginOffsetIteratorT, EndOffsetIteratorT, OffsetT, cub::Min>::Dispatch(
             d_temp_storage,
             temp_storage_bytes,
             d_in,
@@ -373,25 +384,27 @@ struct DeviceSegmentedReduce
      *
      * \endcode
      *
-     * \tparam InputIteratorT     <b>[inferred]</b> Random-access input iterator type for reading input items (of some type \p T) \iterator
-     * \tparam OutputIteratorT    <b>[inferred]</b> Output iterator type for recording the reduced aggregate (having value type <tt>KeyValuePair<int, T></tt>) \iterator
-     * \tparam OffsetIteratorT      <b>[inferred]</b> Random-access input iterator type for reading segment offsets \iterator
+     * \tparam InputIteratorT       <b>[inferred]</b> Random-access input iterator type for reading input items (of some type \p T) \iterator
+     * \tparam OutputIteratorT      <b>[inferred]</b> Output iterator type for recording the reduced aggregate (having value type <tt>KeyValuePair<int, T></tt>) \iterator
+     * \tparam BeginOffsetIteratorT <b>[inferred]</b> Random-access input iterator type for reading segment beginning offsets \iterator
+     * \tparam EndOffsetIteratorT   <b>[inferred]</b> Random-access input iterator type for reading segment ending offsets \iterator
      */
     template <
         typename            InputIteratorT,
         typename            OutputIteratorT,
-        typename            OffsetIteratorT>
+        typename            BeginOffsetIteratorT,
+        typename            EndOffsetIteratorT>
     CUB_RUNTIME_FUNCTION
     static cudaError_t ArgMin(
-        void                *d_temp_storage,                    ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
-        size_t              &temp_storage_bytes,                ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
-        InputIteratorT      d_in,                               ///< [in] Pointer to the input sequence of data items
-        OutputIteratorT     d_out,                              ///< [out] Pointer to the output aggregate
-        int                 num_segments,                       ///< [in] The number of segments that comprise the sorting data
-        OffsetIteratorT     d_begin_offsets,                    ///< [in] Pointer to the sequence of beginning offsets of length \p num_segments, such that <tt>d_begin_offsets[i]</tt> is the first element of the <em>i</em><sup>th</sup> data segment in <tt>d_keys_*</tt> and <tt>d_values_*</tt>
-        OffsetIteratorT     d_end_offsets,                      ///< [in] Pointer to the sequence of ending offsets of length \p num_segments, such that <tt>d_end_offsets[i]-1</tt> is the last element of the <em>i</em><sup>th</sup> data segment in <tt>d_keys_*</tt> and <tt>d_values_*</tt>.  If <tt>d_end_offsets[i]-1</tt> <= <tt>d_begin_offsets[i]</tt>, the <em>i</em><sup>th</sup> is considered empty.
-        cudaStream_t        stream              = 0,            ///< [in] <b>[optional]</b> CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
-        bool                debug_synchronous   = false)        ///< [in] <b>[optional]</b> Whether or not to synchronize the stream after every kernel launch to check for errors.  Also causes launch configurations to be printed to the console.  Default is \p false.
+        void                 *d_temp_storage,                    ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        size_t               &temp_storage_bytes,                ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
+        InputIteratorT       d_in,                               ///< [in] Pointer to the input sequence of data items
+        OutputIteratorT      d_out,                              ///< [out] Pointer to the output aggregate
+        int                  num_segments,                       ///< [in] The number of segments that comprise the sorting data
+        BeginOffsetIteratorT d_begin_offsets,                    ///< [in] Random-access input iterator to the sequence of beginning offsets of length \p num_segments, such that <tt>d_begin_offsets[i]</tt> is the first element of the <em>i</em><sup>th</sup> data segment in <tt>d_keys_*</tt> and <tt>d_values_*</tt>
+        EndOffsetIteratorT   d_end_offsets,                      ///< [in] Random-access input iterator to the sequence of ending offsets of length \p num_segments, such that <tt>d_end_offsets[i]-1</tt> is the last element of the <em>i</em><sup>th</sup> data segment in <tt>d_keys_*</tt> and <tt>d_values_*</tt>.  If <tt>d_end_offsets[i]-1</tt> <= <tt>d_begin_offsets[i]</tt>, the <em>i</em><sup>th</sup> is considered empty.
+        cudaStream_t         stream              = 0,            ///< [in] <b>[optional]</b> CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
+        bool                 debug_synchronous   = false)        ///< [in] <b>[optional]</b> Whether or not to synchronize the stream after every kernel launch to check for errors.  Also causes launch configurations to be printed to the console.  Default is \p false.
     {
         // Signed integer type for global offsets
         typedef int OffsetT;
@@ -414,7 +427,7 @@ struct DeviceSegmentedReduce
         // Initial value
         OutputTupleT initial_value(1, Traits<InputValueT>::Max());   // replace with std::numeric_limits<T>::max() when C++11 support is more prevalent
 
-        return DispatchSegmentedReduce<ArgIndexInputIteratorT,  OutputIteratorT, OffsetIteratorT, OffsetT, cub::ArgMin>::Dispatch(
+        return DispatchSegmentedReduce<ArgIndexInputIteratorT,  OutputIteratorT, BeginOffsetIteratorT, EndOffsetIteratorT, OffsetT, cub::ArgMin>::Dispatch(
             d_temp_storage,
             temp_storage_bytes,
             d_indexed_in,
@@ -471,25 +484,27 @@ struct DeviceSegmentedReduce
      *
      * \endcode
      *
-     * \tparam InputIteratorT     <b>[inferred]</b> Random-access input iterator type for reading input items \iterator
-     * \tparam OutputIteratorT    <b>[inferred]</b> Output iterator type for recording the reduced aggregate \iterator
-     * \tparam OffsetIteratorT      <b>[inferred]</b> Random-access input iterator type for reading segment offsets \iterator
+     * \tparam InputIteratorT       <b>[inferred]</b> Random-access input iterator type for reading input items \iterator
+     * \tparam OutputIteratorT      <b>[inferred]</b> Output iterator type for recording the reduced aggregate \iterator
+     * \tparam BeginOffsetIteratorT <b>[inferred]</b> Random-access input iterator type for reading segment beginning offsets \iterator
+     * \tparam EndOffsetIteratorT <b>[inferred]</b> Random-access input iterator type for reading segment ending offsets \iterator
      */
     template <
         typename            InputIteratorT,
         typename            OutputIteratorT,
-        typename            OffsetIteratorT>
+        typename            BeginOffsetIteratorT,
+        typename            EndOffsetIteratorT>
     CUB_RUNTIME_FUNCTION
     static cudaError_t Max(
-        void                *d_temp_storage,                    ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
-        size_t              &temp_storage_bytes,                ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
-        InputIteratorT      d_in,                               ///< [in] Pointer to the input sequence of data items
-        OutputIteratorT     d_out,                              ///< [out] Pointer to the output aggregate
-        int                 num_segments,                       ///< [in] The number of segments that comprise the sorting data
-        OffsetIteratorT     d_begin_offsets,                    ///< [in] Pointer to the sequence of beginning offsets of length \p num_segments, such that <tt>d_begin_offsets[i]</tt> is the first element of the <em>i</em><sup>th</sup> data segment in <tt>d_keys_*</tt> and <tt>d_values_*</tt>
-        OffsetIteratorT     d_end_offsets,                      ///< [in] Pointer to the sequence of ending offsets of length \p num_segments, such that <tt>d_end_offsets[i]-1</tt> is the last element of the <em>i</em><sup>th</sup> data segment in <tt>d_keys_*</tt> and <tt>d_values_*</tt>.  If <tt>d_end_offsets[i]-1</tt> <= <tt>d_begin_offsets[i]</tt>, the <em>i</em><sup>th</sup> is considered empty.
-        cudaStream_t        stream              = 0,            ///< [in] <b>[optional]</b> CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
-        bool                debug_synchronous   = false)        ///< [in] <b>[optional]</b> Whether or not to synchronize the stream after every kernel launch to check for errors.  Also causes launch configurations to be printed to the console.  Default is \p false.
+        void                 *d_temp_storage,                    ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        size_t               &temp_storage_bytes,                ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
+        InputIteratorT       d_in,                               ///< [in] Pointer to the input sequence of data items
+        OutputIteratorT      d_out,                              ///< [out] Pointer to the output aggregate
+        int                  num_segments,                       ///< [in] The number of segments that comprise the sorting data
+        BeginOffsetIteratorT d_begin_offsets,                    ///< [in] Random-access input iterator to the sequence of beginning offsets of length \p num_segments, such that <tt>d_begin_offsets[i]</tt> is the first element of the <em>i</em><sup>th</sup> data segment in <tt>d_keys_*</tt> and <tt>d_values_*</tt>
+        EndOffsetIteratorT   d_end_offsets,                      ///< [in] Random-access input iterator to the sequence of ending offsets of length \p num_segments, such that <tt>d_end_offsets[i]-1</tt> is the last element of the <em>i</em><sup>th</sup> data segment in <tt>d_keys_*</tt> and <tt>d_values_*</tt>.  If <tt>d_end_offsets[i]-1</tt> <= <tt>d_begin_offsets[i]</tt>, the <em>i</em><sup>th</sup> is considered empty.
+        cudaStream_t         stream              = 0,            ///< [in] <b>[optional]</b> CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
+        bool                 debug_synchronous   = false)        ///< [in] <b>[optional]</b> Whether or not to synchronize the stream after every kernel launch to check for errors.  Also causes launch configurations to be printed to the console.  Default is \p false.
     {
         // Signed integer type for global offsets
         typedef int OffsetT;
@@ -497,7 +512,7 @@ struct DeviceSegmentedReduce
         // The input value type
         typedef typename std::iterator_traits<InputIteratorT>::value_type InputT;
 
-        return DispatchSegmentedReduce<InputIteratorT,  OutputIteratorT, OffsetIteratorT, OffsetT, cub::Max>::Dispatch(
+        return DispatchSegmentedReduce<InputIteratorT,  OutputIteratorT, BeginOffsetIteratorT, EndOffsetIteratorT, OffsetT, cub::Max>::Dispatch(
             d_temp_storage,
             temp_storage_bytes,
             d_in,
@@ -556,25 +571,27 @@ struct DeviceSegmentedReduce
      *
      * \endcode
      *
-     * \tparam InputIteratorT     <b>[inferred]</b> Random-access input iterator type for reading input items (of some type \p T) \iterator
-     * \tparam OutputIteratorT    <b>[inferred]</b> Output iterator type for recording the reduced aggregate (having value type <tt>KeyValuePair<int, T></tt>) \iterator
-     * \tparam OffsetIteratorT    <b>[inferred]</b> Random-access input iterator type for reading segment offsets \iterator
+     * \tparam InputIteratorT       <b>[inferred]</b> Random-access input iterator type for reading input items (of some type \p T) \iterator
+     * \tparam OutputIteratorT      <b>[inferred]</b> Output iterator type for recording the reduced aggregate (having value type <tt>KeyValuePair<int, T></tt>) \iterator
+     * \tparam BeginOffsetIteratorT <b>[inferred]</b> Random-access input iterator type for reading segment beginning offsets \iterator
+     * \tparam EndOffsetIteratorT   <b>[inferred]</b> Random-access input iterator type for reading segment ending offsets \iterator
      */
     template <
         typename            InputIteratorT,
         typename            OutputIteratorT,
-        typename            OffsetIteratorT>
+        typename            BeginOffsetIteratorT,
+        typename            EndOffsetIteratorT>
     CUB_RUNTIME_FUNCTION
     static cudaError_t ArgMax(
-        void                *d_temp_storage,                    ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
-        size_t              &temp_storage_bytes,                ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
-        InputIteratorT      d_in,                               ///< [in] Pointer to the input sequence of data items
-        OutputIteratorT     d_out,                              ///< [out] Pointer to the output aggregate
-        int                 num_segments,                       ///< [in] The number of segments that comprise the sorting data
-        OffsetIteratorT     d_begin_offsets,                    ///< [in] Pointer to the sequence of beginning offsets of length \p num_segments, such that <tt>d_begin_offsets[i]</tt> is the first element of the <em>i</em><sup>th</sup> data segment in <tt>d_keys_*</tt> and <tt>d_values_*</tt>
-        OffsetIteratorT     d_end_offsets,                      ///< [in] Pointer to the sequence of ending offsets of length \p num_segments, such that <tt>d_end_offsets[i]-1</tt> is the last element of the <em>i</em><sup>th</sup> data segment in <tt>d_keys_*</tt> and <tt>d_values_*</tt>.  If <tt>d_end_offsets[i]-1</tt> <= <tt>d_begin_offsets[i]</tt>, the <em>i</em><sup>th</sup> is considered empty.
-        cudaStream_t        stream              = 0,            ///< [in] <b>[optional]</b> CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
-        bool                debug_synchronous   = false)        ///< [in] <b>[optional]</b> Whether or not to synchronize the stream after every kernel launch to check for errors.  Also causes launch configurations to be printed to the console.  Default is \p false.
+        void                 *d_temp_storage,                    ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        size_t               &temp_storage_bytes,                ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
+        InputIteratorT       d_in,                               ///< [in] Pointer to the input sequence of data items
+        OutputIteratorT      d_out,                              ///< [out] Pointer to the output aggregate
+        int                  num_segments,                       ///< [in] The number of segments that comprise the sorting data
+        BeginOffsetIteratorT d_begin_offsets,                    ///< [in] Random-access input iterator to the sequence of beginning offsets of length \p num_segments, such that <tt>d_begin_offsets[i]</tt> is the first element of the <em>i</em><sup>th</sup> data segment in <tt>d_keys_*</tt> and <tt>d_values_*</tt>
+        EndOffsetIteratorT   d_end_offsets,                      ///< [in] Random-access input iterator to the sequence of ending offsets of length \p num_segments, such that <tt>d_end_offsets[i]-1</tt> is the last element of the <em>i</em><sup>th</sup> data segment in <tt>d_keys_*</tt> and <tt>d_values_*</tt>.  If <tt>d_end_offsets[i]-1</tt> <= <tt>d_begin_offsets[i]</tt>, the <em>i</em><sup>th</sup> is considered empty.
+        cudaStream_t         stream              = 0,            ///< [in] <b>[optional]</b> CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
+        bool                 debug_synchronous   = false)        ///< [in] <b>[optional]</b> Whether or not to synchronize the stream after every kernel launch to check for errors.  Also causes launch configurations to be printed to the console.  Default is \p false.
     {
         // Signed integer type for global offsets
         typedef int OffsetT;
@@ -597,7 +614,7 @@ struct DeviceSegmentedReduce
         // Initial value
         OutputTupleT initial_value(1, Traits<InputValueT>::Lowest());     // replace with std::numeric_limits<T>::lowest() when C++11 support is more prevalent
 
-        return DispatchSegmentedReduce<ArgIndexInputIteratorT, OutputIteratorT, OffsetIteratorT, OffsetT, cub::ArgMax>::Dispatch(
+        return DispatchSegmentedReduce<ArgIndexInputIteratorT, OutputIteratorT, BeginOffsetIteratorT, EndOffsetIteratorT, OffsetT, cub::ArgMax>::Dispatch(
             d_temp_storage,
             temp_storage_bytes,
             d_indexed_in,

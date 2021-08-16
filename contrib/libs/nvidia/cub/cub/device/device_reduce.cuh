@@ -41,7 +41,7 @@
 #include "../iterator/arg_index_input_iterator.cuh"
 #include "dispatch/dispatch_reduce.cuh"
 #include "dispatch/dispatch_reduce_by_key.cuh"
-#include "../util_namespace.cuh"
+#include "../config.cuh"
 
 /// Optional outer namespace(s)
 CUB_NS_PREFIX

@@ -39,7 +39,7 @@
 #include <limits>
 
 #include "dispatch/dispatch_histogram.cuh"
-#include "../util_namespace.cuh"
+#include "../config.cuh"
 
 /// Optional outer namespace(s)
 CUB_NS_PREFIX
@@ -150,7 +150,7 @@ struct DeviceHistogram
             lower_level1,
             upper_level1,
             num_samples,
-            1,
+            static_cast<OffsetT>(1),
             sizeof(SampleT) * num_samples,
             stream,
             debug_synchronous);
@@ -346,7 +346,7 @@ struct DeviceHistogram
             lower_level,
             upper_level,
             num_pixels,
-            1,
+            static_cast<OffsetT>(1),
             sizeof(SampleT) * NUM_CHANNELS * num_pixels,
             stream,
             debug_synchronous);
@@ -448,18 +448,18 @@ struct DeviceHistogram
         Int2Type<sizeof(SampleT) == 1> is_byte_sample;
 
         if ((sizeof(OffsetT) > sizeof(int)) &&
-            ((unsigned long long) (num_rows * row_stride_bytes) < (unsigned long long) std::numeric_limits<int>::max()))
+            ((unsigned long long) (num_rows * row_stride_bytes) < (unsigned long long) INT_MAX))
         {
             // Down-convert OffsetT data type
 
 
-            return DipatchHistogram<NUM_CHANNELS, NUM_ACTIVE_CHANNELS, SampleIteratorT, CounterT, LevelT, int>::DispatchEven(
+            return DispatchHistogram<NUM_CHANNELS, NUM_ACTIVE_CHANNELS, SampleIteratorT, CounterT, LevelT, int>::DispatchEven(
                 d_temp_storage, temp_storage_bytes, d_samples, d_histogram, num_levels, lower_level, upper_level,
                 (int) num_row_pixels, (int) num_rows, (int) (row_stride_bytes / sizeof(SampleT)),
                 stream, debug_synchronous, is_byte_sample);
         }
 
-        return DipatchHistogram<NUM_CHANNELS, NUM_ACTIVE_CHANNELS, SampleIteratorT, CounterT, LevelT, OffsetT>::DispatchEven(
+        return DispatchHistogram<NUM_CHANNELS, NUM_ACTIVE_CHANNELS, SampleIteratorT, CounterT, LevelT, OffsetT>::DispatchEven(
             d_temp_storage, temp_storage_bytes, d_samples, d_histogram, num_levels, lower_level, upper_level,
             num_row_pixels, num_rows, (OffsetT) (row_stride_bytes / sizeof(SampleT)),
             stream, debug_synchronous, is_byte_sample);
@@ -551,8 +551,8 @@ struct DeviceHistogram
             num_levels1,
             d_levels1,
             num_samples,
-            1,
-            sizeof(SampleT) * num_samples,
+            (OffsetT)1,
+            (size_t)(sizeof(SampleT) * num_samples),
             stream,
             debug_synchronous);
     }
@@ -741,8 +741,8 @@ struct DeviceHistogram
             num_levels,
             d_levels,
             num_pixels,
-            1,
-            sizeof(SampleT) * NUM_CHANNELS * num_pixels,
+            (OffsetT)1,
+            (size_t)(sizeof(SampleT) * NUM_CHANNELS * num_pixels),
             stream,
             debug_synchronous);
     }
@@ -840,16 +840,16 @@ struct DeviceHistogram
         Int2Type<sizeof(SampleT) == 1> is_byte_sample;
 
         if ((sizeof(OffsetT) > sizeof(int)) &&
-            ((unsigned long long) (num_rows * row_stride_bytes) < (unsigned long long) std::numeric_limits<int>::max()))
+            ((unsigned long long) (num_rows * row_stride_bytes) < (unsigned long long) INT_MAX))
         {
             // Down-convert OffsetT data type
-            return DipatchHistogram<NUM_CHANNELS, NUM_ACTIVE_CHANNELS, SampleIteratorT, CounterT, LevelT, int>::DispatchRange(
+            return DispatchHistogram<NUM_CHANNELS, NUM_ACTIVE_CHANNELS, SampleIteratorT, CounterT, LevelT, int>::DispatchRange(
                 d_temp_storage, temp_storage_bytes, d_samples, d_histogram, num_levels, d_levels,
                 (int) num_row_pixels, (int) num_rows, (int) (row_stride_bytes / sizeof(SampleT)),
                 stream, debug_synchronous, is_byte_sample);
         }
 
-        return DipatchHistogram<NUM_CHANNELS, NUM_ACTIVE_CHANNELS, SampleIteratorT, CounterT, LevelT, OffsetT>::DispatchRange(
+        return DispatchHistogram<NUM_CHANNELS, NUM_ACTIVE_CHANNELS, SampleIteratorT, CounterT, LevelT, OffsetT>::DispatchRange(
             d_temp_storage, temp_storage_bytes, d_samples, d_histogram, num_levels, d_levels,
             num_row_pixels, num_rows, (OffsetT) (row_stride_bytes / sizeof(SampleT)),
             stream, debug_synchronous, is_byte_sample);

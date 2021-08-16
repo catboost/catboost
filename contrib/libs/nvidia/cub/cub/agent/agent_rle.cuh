@@ -41,10 +41,10 @@
 #include "../block/block_scan.cuh"
 #include "../block/block_exchange.cuh"
 #include "../block/block_discontinuity.cuh"
+#include "../config.cuh"
 #include "../grid/grid_queue.cuh"
 #include "../iterator/cache_modified_input_iterator.cuh"
 #include "../iterator/constant_input_iterator.cuh"
-#include "../util_namespace.cuh"
 
 /// Optional outer namespace(s)
 CUB_NS_PREFIX
@@ -214,13 +214,13 @@ struct AgentRle
         // Aliasable storage layout
         union Aliasable
         {
-            struct
+            struct ScanStorage
             {
                 typename BlockDiscontinuityT::TempStorage       discontinuity;              // Smem needed for discontinuity detection
                 typename WarpScanPairs::TempStorage             warp_scan[WARPS];           // Smem needed for warp-synchronous scans
                 Uninitialized<LengthOffsetPair[WARPS]>          warp_aggregates;            // Smem needed for sharing warp-wide aggregates
                 typename TilePrefixCallbackOpT::TempStorage     prefix;                     // Smem needed for cooperative prefix callback
-            };
+            } scan_storage;
 
             // Smem needed for input loading
             typename BlockLoadT::TempStorage                    load;
@@ -305,7 +305,7 @@ struct AgentRle
         {
             // First-and-last-tile always head-flags the first item and tail-flags the last item
 
-            BlockDiscontinuityT(temp_storage.aliasable.discontinuity).FlagHeadsAndTails(
+            BlockDiscontinuityT(temp_storage.aliasable.scan_storage.discontinuity).FlagHeadsAndTails(
                 head_flags, tail_flags, items, inequality_op);
         }
         else if (FIRST_TILE)
@@ -317,7 +317,7 @@ struct AgentRle
             if (threadIdx.x == BLOCK_THREADS - 1)
                 tile_successor_item = d_in[tile_offset + TILE_ITEMS];
 
-            BlockDiscontinuityT(temp_storage.aliasable.discontinuity).FlagHeadsAndTails(
+            BlockDiscontinuityT(temp_storage.aliasable.scan_storage.discontinuity).FlagHeadsAndTails(
                 head_flags, tail_flags, tile_successor_item, items, inequality_op);
         }
         else if (LAST_TILE)
@@ -329,7 +329,7 @@ struct AgentRle
             if (threadIdx.x == 0)
                 tile_predecessor_item = d_in[tile_offset - 1];
 
-            BlockDiscontinuityT(temp_storage.aliasable.discontinuity).FlagHeadsAndTails(
+            BlockDiscontinuityT(temp_storage.aliasable.scan_storage.discontinuity).FlagHeadsAndTails(
                 head_flags, tile_predecessor_item, tail_flags, items, inequality_op);
         }
         else
@@ -344,7 +344,7 @@ struct AgentRle
             if (threadIdx.x == 0)
                 tile_predecessor_item = d_in[tile_offset - 1];
 
-            BlockDiscontinuityT(temp_storage.aliasable.discontinuity).FlagHeadsAndTails(
+            BlockDiscontinuityT(temp_storage.aliasable.scan_storage.discontinuity).FlagHeadsAndTails(
                 head_flags, tile_predecessor_item, tail_flags, tile_successor_item, items, inequality_op);
         }
 
@@ -381,7 +381,7 @@ struct AgentRle
 
         LengthOffsetPair thread_inclusive;
         LengthOffsetPair thread_aggregate = internal::ThreadReduce(lengths_and_num_runs, scan_op);
-        WarpScanPairs(temp_storage.aliasable.warp_scan[warp_id]).Scan(
+        WarpScanPairs(temp_storage.aliasable.scan_storage.warp_scan[warp_id]).Scan(
             thread_aggregate,
             thread_inclusive,
             thread_exclusive_in_warp,
@@ -390,14 +390,14 @@ struct AgentRle
 
         // Last lane in each warp shares its warp-aggregate
         if (lane_id == WARP_THREADS - 1)
-            temp_storage.aliasable.warp_aggregates.Alias()[warp_id] = thread_inclusive;
+            temp_storage.aliasable.scan_storage.warp_aggregates.Alias()[warp_id] = thread_inclusive;
 
         CTA_SYNC();
 
         // Accumulate total selected and the warp-wide prefix
         warp_exclusive_in_tile          = identity;
-        warp_aggregate                  = temp_storage.aliasable.warp_aggregates.Alias()[warp_id];
-        tile_aggregate                  = temp_storage.aliasable.warp_aggregates.Alias()[0];
+        warp_aggregate                  = temp_storage.aliasable.scan_storage.warp_aggregates.Alias()[warp_id];
+        tile_aggregate                  = temp_storage.aliasable.scan_storage.warp_aggregates.Alias()[0];
 
         #pragma unroll
         for (int WARP = 1; WARP < WARPS; ++WARP)
@@ -405,7 +405,7 @@ struct AgentRle
             if (warp_id == WARP)
                 warp_exclusive_in_tile = tile_aggregate;
 
-            tile_aggregate = scan_op(tile_aggregate, temp_storage.aliasable.warp_aggregates.Alias()[WARP]);
+            tile_aggregate = scan_op(tile_aggregate, temp_storage.aliasable.scan_storage.warp_aggregates.Alias()[WARP]);
         }
     }
 
@@ -738,7 +738,7 @@ struct AgentRle
                 lengths_and_num_runs);
 
             // First warp computes tile prefix in lane 0
-            TilePrefixCallbackOpT prefix_op(tile_status, temp_storage.aliasable.prefix, Sum(), tile_idx);
+            TilePrefixCallbackOpT prefix_op(tile_status, temp_storage.aliasable.scan_storage.prefix, Sum(), tile_idx);
             unsigned int warp_id = ((WARPS == 1) ? 0 : threadIdx.x / WARP_THREADS);
             if (warp_id == 0)
             {

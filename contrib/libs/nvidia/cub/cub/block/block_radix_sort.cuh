@@ -36,10 +36,10 @@
 
 #include "block_exchange.cuh"
 #include "block_radix_rank.cuh"
+#include "radix_rank_sort_operations.cuh"
+#include "../config.cuh"
 #include "../util_ptx.cuh"
-#include "../util_arch.cuh"
 #include "../util_type.cuh"
-#include "../util_namespace.cuh"
 
 /// Optional outer namespace(s)
 CUB_NS_PREFIX
@@ -64,21 +64,60 @@ namespace cub {
  * \tparam PTX_ARCH             <b>[optional]</b> \ptxversion
  *
  * \par Overview
- * - The [<em>radix sorting method</em>](http://en.wikipedia.org/wiki/Radix_sort) arranges
- *   items into ascending order.  It relies upon a positional representation for
- *   keys, i.e., each key is comprised of an ordered sequence of symbols (e.g., digits,
- *   characters, etc.) specified from least-significant to most-significant.  For a
- *   given input sequence of keys and a set of rules specifying a total ordering
- *   of the symbolic alphabet, the radix sorting method produces a lexicographic
- *   ordering of those keys.
- * - BlockRadixSort can sort all of the built-in C++ numeric primitive types
- *   (<tt>unsigned char</tt>, \p int, \p double, etc.) as well as CUDA's \p __half
- *   half-precision floating-point type. Within each key, the implementation treats fixed-length
- *   bit-sequences of \p RADIX_BITS as radix digit places.  Although the direct radix sorting
- *   method can only be applied to unsigned integral types, BlockRadixSort
- *   is able to sort signed and floating-point types via simple bit-wise transformations
- *   that ensure lexicographic key ordering.
- * - \rowmajor
+ * The [<em>radix sorting method</em>](http://en.wikipedia.org/wiki/Radix_sort) arranges
+ * items into ascending order.  It relies upon a positional representation for
+ * keys, i.e., each key is comprised of an ordered sequence of symbols (e.g., digits,
+ * characters, etc.) specified from least-significant to most-significant.  For a
+ * given input sequence of keys and a set of rules specifying a total ordering
+ * of the symbolic alphabet, the radix sorting method produces a lexicographic
+ * ordering of those keys.
+ *
+ * \rowmajor
+ *
+ * \par Supported Types
+ * BlockRadixSort can sort all of the built-in C++ numeric primitive types
+ * (<tt>unsigned char</tt>, \p int, \p double, etc.) as well as CUDA's \p __half
+ * half-precision floating-point type.
+ *
+ * \par Floating-Point Special Cases
+ *
+ * - Positive and negative zeros are considered equivalent, and will be treated
+ *   as such in the output.
+ * - No special handling is implemented for NaN values; these are sorted
+ *   according to their bit representations after any transformations.
+ *
+ * \par Bitwise Key Transformations
+ * Although the direct radix sorting method can only be applied to unsigned
+ * integral types, BlockRadixSort is able to sort signed and floating-point
+ * types via simple bit-wise transformations that ensure lexicographic key
+ * ordering.
+ *
+ * These transformations must be considered when restricting the
+ * `[begin_bit, end_bit)` range, as the bitwise transformations will occur
+ * before the bit-range truncation.
+ *
+ * Any transformations applied to the keys prior to sorting are reversed
+ * while writing to the final output buffer.
+ *
+ * \par Type Specific Bitwise Transformations
+ * To convert the input values into a radix-sortable bitwise representation,
+ * the following transformations take place prior to sorting:
+ *
+ * - For unsigned integral values, the keys are used directly.
+ * - For signed integral values, the sign bit is inverted.
+ * - For positive floating point values, the sign bit is inverted.
+ * - For negative floating point values, the full key is inverted.
+ *
+ * \par No Descending Sort Transformations
+ * Unlike `DeviceRadixSort`, `BlockRadixSort` does not invert the input key bits
+ * when performing a descending sort. Instead, it has special logic to reverse
+ * the order of the keys while sorting.
+ *
+ * \par Stability
+ * BlockRadixSort is stable. For floating-point types -0.0 and +0.0
+ * are considered equal and appear in the result in the same order as they
+ * appear in the input.
+ *
  *
  * \par Performance Considerations
  * - \granularity
@@ -176,6 +215,9 @@ private:
             PTX_ARCH>
         DescendingBlockRadixRank;
 
+    /// Digit extractor type
+    typedef BFEDigitExtractor<KeyT> DigitExtractorT;
+
     /// BlockExchange utility type for keys
     typedef BlockExchange<KeyT, BLOCK_DIM_X, ITEMS_PER_THREAD, false, BLOCK_DIM_Y, BLOCK_DIM_Z, PTX_ARCH> BlockExchangeKeys;
 
@@ -217,30 +259,26 @@ private:
     __device__ __forceinline__ void RankKeys(
         UnsignedBits    (&unsigned_keys)[ITEMS_PER_THREAD],
         int             (&ranks)[ITEMS_PER_THREAD],
-        int             begin_bit,
-        int             pass_bits,
+        DigitExtractorT digit_extractor,
         Int2Type<false> /*is_descending*/)
     {
         AscendingBlockRadixRank(temp_storage.asending_ranking_storage).RankKeys(
-            unsigned_keys,
-            ranks,
-            begin_bit,
-            pass_bits);
+                unsigned_keys,
+                ranks,
+                digit_extractor);
     }
 
     /// Rank keys (specialized for descending sort)
     __device__ __forceinline__ void RankKeys(
         UnsignedBits    (&unsigned_keys)[ITEMS_PER_THREAD],
         int             (&ranks)[ITEMS_PER_THREAD],
-        int             begin_bit,
-        int             pass_bits,
+        DigitExtractorT digit_extractor,
         Int2Type<true>  /*is_descending*/)
     {
         DescendingBlockRadixRank(temp_storage.descending_ranking_storage).RankKeys(
-            unsigned_keys,
-            ranks,
-            begin_bit,
-            pass_bits);
+                unsigned_keys,
+                ranks,
+                digit_extractor);
     }
 
     /// ExchangeValues (specialized for key-value sort, to-blocked arrangement)
@@ -302,10 +340,11 @@ private:
         while (true)
         {
             int pass_bits = CUB_MIN(RADIX_BITS, end_bit - begin_bit);
+            DigitExtractorT digit_extractor(begin_bit, pass_bits);
 
             // Rank the blocked keys
             int ranks[ITEMS_PER_THREAD];
-            RankKeys(unsigned_keys, ranks, begin_bit, pass_bits, is_descending);
+            RankKeys(unsigned_keys, ranks, digit_extractor, is_descending);
             begin_bit += RADIX_BITS;
 
             CTA_SYNC();
@@ -358,10 +397,11 @@ public:
         while (true)
         {
             int pass_bits = CUB_MIN(RADIX_BITS, end_bit - begin_bit);
+            DigitExtractorT digit_extractor(begin_bit, pass_bits);
 
             // Rank the blocked keys
             int ranks[ITEMS_PER_THREAD];
-            RankKeys(unsigned_keys, ranks, begin_bit, pass_bits, is_descending);
+            RankKeys(unsigned_keys, ranks, digit_extractor, is_descending);
             begin_bit += RADIX_BITS;
 
             CTA_SYNC();

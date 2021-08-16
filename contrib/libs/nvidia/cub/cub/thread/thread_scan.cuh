@@ -33,8 +33,8 @@
 
 #pragma once
 
+#include "../config.cuh"
 #include "../thread/thread_operators.cuh"
-#include "../util_namespace.cuh"
 
 /// Optional outer namespace(s)
 CUB_NS_PREFIX

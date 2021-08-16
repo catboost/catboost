@@ -33,10 +33,9 @@
 
 #pragma once
 
-#include "../../util_arch.cuh"
+#include "../../config.cuh"
 #include "../../util_ptx.cuh"
 #include "../../warp/warp_scan.cuh"
-#include "../../util_namespace.cuh"
 
 /// Optional outer namespace(s)
 CUB_NS_PREFIX

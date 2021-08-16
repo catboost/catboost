@@ -34,7 +34,7 @@
 #pragma once
 
 #include "../util_debug.cuh"
-#include "../util_namespace.cuh"
+#include "../config.cuh"
 #include "../thread/thread_load.cuh"
 
 /// Optional outer namespace(s)

@@ -1,7 +1,7 @@
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
  * Copyright (c) 2011-2018, NVIDIA CORPORATION.  All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -12,7 +12,7 @@
  *     * Neither the name of the NVIDIA CORPORATION nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -33,7 +33,7 @@
 
 #pragma once
 
-#include "../util_namespace.cuh"
+#include "../config.cuh"
 #include "../util_debug.cuh"
 
 /// Optional outer namespace(s)
@@ -123,43 +123,61 @@ public:
         OffsetT fill_size,
         cudaStream_t stream = 0)
     {
-#if (CUB_PTX_ARCH > 0)
-        (void)stream;
-        d_counters[FILL] = fill_size;
-        d_counters[DRAIN] = 0;
-        return cudaSuccess;
-#else
-        OffsetT counters[2];
-        counters[FILL] = fill_size;
-        counters[DRAIN] = 0;
-        return CubDebug(cudaMemcpyAsync(d_counters, counters, sizeof(OffsetT) * 2, cudaMemcpyHostToDevice, stream));
-#endif
+        cudaError_t result = cudaErrorUnknown;
+        if (CUB_IS_DEVICE_CODE) {
+            #if CUB_INCLUDE_DEVICE_CODE
+                (void)stream;
+                d_counters[FILL] = fill_size;
+                d_counters[DRAIN] = 0;
+                result = cudaSuccess;
+            #endif
+        } else {
+            #if CUB_INCLUDE_HOST_CODE
+                OffsetT counters[2];
+                counters[FILL] = fill_size;
+                counters[DRAIN] = 0;
+                result = CubDebug(cudaMemcpyAsync(d_counters, counters, sizeof(OffsetT) * 2, cudaMemcpyHostToDevice, stream));
+            #endif
+        }
+        return result;
     }
 
 
     /// This operation resets the drain so that it may advance to meet the existing fill-size.  To be called by the host or by a kernel prior to that which will be draining.
     __host__ __device__ __forceinline__ cudaError_t ResetDrain(cudaStream_t stream = 0)
     {
-#if (CUB_PTX_ARCH > 0)
-        (void)stream;
-        d_counters[DRAIN] = 0;
-        return cudaSuccess;
-#else
-        return CubDebug(cudaMemsetAsync(d_counters + DRAIN, 0, sizeof(OffsetT), stream));
-#endif
+        cudaError_t result = cudaErrorUnknown;
+        if (CUB_IS_DEVICE_CODE) {
+            #if CUB_INCLUDE_DEVICE_CODE
+                (void)stream;
+                d_counters[DRAIN] = 0;
+                result = cudaSuccess;
+            #endif
+        } else {
+            #if CUB_INCLUDE_HOST_CODE
+                result = CubDebug(cudaMemsetAsync(d_counters + DRAIN, 0, sizeof(OffsetT), stream));
+            #endif
+        }
+        return result;
     }
 
 
     /// This operation resets the fill counter.  To be called by the host or by a kernel prior to that which will be filling.
     __host__ __device__ __forceinline__ cudaError_t ResetFill(cudaStream_t stream = 0)
     {
-#if (CUB_PTX_ARCH > 0)
-        (void)stream;
-        d_counters[FILL] = 0;
-        return cudaSuccess;
-#else
-        return CubDebug(cudaMemsetAsync(d_counters + FILL, 0, sizeof(OffsetT), stream));
-#endif
+        cudaError_t result = cudaErrorUnknown;
+        if (CUB_IS_DEVICE_CODE) {
+            #if CUB_INCLUDE_DEVICE_CODE
+                (void)stream;
+                d_counters[FILL] = 0;
+                result = cudaSuccess;
+            #endif
+        } else {
+            #if CUB_INCLUDE_HOST_CODE
+                result = CubDebug(cudaMemsetAsync(d_counters + FILL, 0, sizeof(OffsetT), stream));
+            #endif
+        }
+        return result;
     }
 
 
@@ -168,13 +186,19 @@ public:
         OffsetT &fill_size,
         cudaStream_t stream = 0)
     {
-#if (CUB_PTX_ARCH > 0)
-        (void)stream;
-        fill_size = d_counters[FILL];
-        return cudaSuccess;
-#else
-        return CubDebug(cudaMemcpyAsync(&fill_size, d_counters + FILL, sizeof(OffsetT), cudaMemcpyDeviceToHost, stream));
-#endif
+        cudaError_t result = cudaErrorUnknown;
+        if (CUB_IS_DEVICE_CODE) {
+            #if CUB_INCLUDE_DEVICE_CODE
+                (void)stream;
+                fill_size = d_counters[FILL];
+                result = cudaSuccess;
+            #endif
+        } else {
+            #if CUB_INCLUDE_HOST_CODE
+                result = CubDebug(cudaMemcpyAsync(&fill_size, d_counters + FILL, sizeof(OffsetT), cudaMemcpyDeviceToHost, stream));
+            #endif
+        }
+        return result;
     }
 
 

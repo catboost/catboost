@@ -38,11 +38,14 @@
 #include <iterator>
 
 #include "dispatch_scan.cuh"
+#include "../../config.cuh"
 #include "../../agent/agent_reduce_by_key.cuh"
 #include "../../thread/thread_operators.cuh"
 #include "../../grid/grid_queue.cuh"
 #include "../../util_device.cuh"
-#include "../../util_namespace.cuh"
+#include "../../util_math.cuh"
+
+#include <thrust/system/cuda/detail/core/triple_chevron_launch.h>
 
 /// Optional outer namespace(s)
 CUB_NS_PREFIX
@@ -177,95 +180,11 @@ struct DispatchReduceByKey
             ReduceByKeyPolicyT;
     };
 
-    /// SM30
-    struct Policy300
-    {
-        enum {
-            NOMINAL_4B_ITEMS_PER_THREAD = 6,
-            ITEMS_PER_THREAD            = CUB_MIN(NOMINAL_4B_ITEMS_PER_THREAD, CUB_MAX(1, ((NOMINAL_4B_ITEMS_PER_THREAD * 8) + COMBINED_INPUT_BYTES - 1) / COMBINED_INPUT_BYTES)),
-        };
-
-        typedef AgentReduceByKeyPolicy<
-                128,
-                ITEMS_PER_THREAD,
-                BLOCK_LOAD_WARP_TRANSPOSE,
-                LOAD_DEFAULT,
-                BLOCK_SCAN_WARP_SCANS>
-            ReduceByKeyPolicyT;
-    };
-
-    /// SM20
-    struct Policy200
-    {
-        enum {
-            NOMINAL_4B_ITEMS_PER_THREAD = 11,
-            ITEMS_PER_THREAD            = CUB_MIN(NOMINAL_4B_ITEMS_PER_THREAD, CUB_MAX(1, ((NOMINAL_4B_ITEMS_PER_THREAD * 8) + COMBINED_INPUT_BYTES - 1) / COMBINED_INPUT_BYTES)),
-        };
-
-        typedef AgentReduceByKeyPolicy<
-                128,
-                ITEMS_PER_THREAD,
-                BLOCK_LOAD_WARP_TRANSPOSE,
-                LOAD_DEFAULT,
-                BLOCK_SCAN_WARP_SCANS>
-            ReduceByKeyPolicyT;
-    };
-
-    /// SM13
-    struct Policy130
-    {
-        enum {
-            NOMINAL_4B_ITEMS_PER_THREAD = 7,
-            ITEMS_PER_THREAD            = CUB_MIN(NOMINAL_4B_ITEMS_PER_THREAD, CUB_MAX(1, ((NOMINAL_4B_ITEMS_PER_THREAD * 8) + COMBINED_INPUT_BYTES - 1) / COMBINED_INPUT_BYTES)),
-        };
-
-        typedef AgentReduceByKeyPolicy<
-                128,
-                ITEMS_PER_THREAD,
-                BLOCK_LOAD_WARP_TRANSPOSE,
-                LOAD_DEFAULT,
-                BLOCK_SCAN_WARP_SCANS>
-            ReduceByKeyPolicyT;
-    };
-
-    /// SM11
-    struct Policy110
-    {
-        enum {
-            NOMINAL_4B_ITEMS_PER_THREAD = 5,
-            ITEMS_PER_THREAD            = CUB_MIN(NOMINAL_4B_ITEMS_PER_THREAD, CUB_MAX(1, (NOMINAL_4B_ITEMS_PER_THREAD * 8) / COMBINED_INPUT_BYTES)),
-        };
-
-        typedef AgentReduceByKeyPolicy<
-                64,
-                ITEMS_PER_THREAD,
-                BLOCK_LOAD_WARP_TRANSPOSE,
-                LOAD_DEFAULT,
-                BLOCK_SCAN_RAKING>
-            ReduceByKeyPolicyT;
-    };
-
-
     /******************************************************************************
      * Tuning policies of current PTX compiler pass
      ******************************************************************************/
 
-#if (CUB_PTX_ARCH >= 350)
     typedef Policy350 PtxPolicy;
-
-#elif (CUB_PTX_ARCH >= 300)
-    typedef Policy300 PtxPolicy;
-
-#elif (CUB_PTX_ARCH >= 200)
-    typedef Policy200 PtxPolicy;
-
-#elif (CUB_PTX_ARCH >= 130)
-    typedef Policy130 PtxPolicy;
-
-#else
-    typedef Policy110 PtxPolicy;
-
-#endif
 
     // "Opaque" policies (whose parameterizations aren't reflected in the type signature)
     struct PtxReduceByKeyPolicy : PtxPolicy::ReduceByKeyPolicyT {};
@@ -284,37 +203,24 @@ struct DispatchReduceByKey
         int             ptx_version,
         KernelConfig    &reduce_by_key_config)
     {
-    #if (CUB_PTX_ARCH > 0)
-        (void)ptx_version;
-
-        // We're on the device, so initialize the kernel dispatch configurations with the current PTX policy
-        reduce_by_key_config.template Init<PtxReduceByKeyPolicy>();
-
-    #else
-
-        // We're on the host, so lookup and initialize the kernel dispatch configurations with the policies that match the device's PTX version
-        if (ptx_version >= 350)
+        if (CUB_IS_DEVICE_CODE)
         {
-            reduce_by_key_config.template Init<typename Policy350::ReduceByKeyPolicyT>();
-        }
-        else if (ptx_version >= 300)
-        {
-            reduce_by_key_config.template Init<typename Policy300::ReduceByKeyPolicyT>();
-        }
-        else if (ptx_version >= 200)
-        {
-            reduce_by_key_config.template Init<typename Policy200::ReduceByKeyPolicyT>();
-        }
-        else if (ptx_version >= 130)
-        {
-            reduce_by_key_config.template Init<typename Policy130::ReduceByKeyPolicyT>();
+            #if CUB_INCLUDE_DEVICE_CODE
+                (void)ptx_version;
+                // We're on the device, so initialize the kernel dispatch configurations with the current PTX policy
+                reduce_by_key_config.template Init<PtxReduceByKeyPolicy>();
+            #endif
         }
         else
         {
-            reduce_by_key_config.template Init<typename Policy110::ReduceByKeyPolicyT>();
-        }
+            #if CUB_INCLUDE_HOST_CODE
+                // We're on the host, so lookup and initialize the kernel dispatch configurations with the policies that match the device's PTX version
 
-    #endif
+                // (There's only one policy right now)
+                (void)ptx_version;
+                reduce_by_key_config.template Init<typename Policy350::ReduceByKeyPolicyT>();
+            #endif
+        }
     }
 
 
@@ -404,14 +310,14 @@ struct DispatchReduceByKey
 
             // Number of input tiles
             int tile_size = reduce_by_key_config.block_threads * reduce_by_key_config.items_per_thread;
-            int num_tiles = (num_items + tile_size - 1) / tile_size;
+            int num_tiles = static_cast<int>(cub::DivideAndRoundUp(num_items, tile_size));
 
             // Specify temporary storage allocation requirements
             size_t  allocation_sizes[1];
             if (CubDebug(error = ScanTileStateT::AllocationSize(num_tiles, allocation_sizes[0]))) break;    // bytes needed for tile status descriptors
 
             // Compute allocation pointers into the single storage blob (or compute the necessary size of the blob)
-            void* allocations[1];
+            void* allocations[1] = {};
             if (CubDebug(error = AliasTemporaries(d_temp_storage, temp_storage_bytes, allocations, allocation_sizes))) break;
             if (d_temp_storage == NULL)
             {
@@ -424,11 +330,13 @@ struct DispatchReduceByKey
             if (CubDebug(error = tile_state.Init(num_tiles, allocations[0], allocation_sizes[0]))) break;
 
             // Log init_kernel configuration
-            int init_grid_size = CUB_MAX(1, (num_tiles + INIT_KERNEL_THREADS - 1) / INIT_KERNEL_THREADS);
+            int init_grid_size = CUB_MAX(1, cub::DivideAndRoundUp(num_tiles, INIT_KERNEL_THREADS));
             if (debug_synchronous) _CubLog("Invoking init_kernel<<<%d, %d, 0, %lld>>>()\n", init_grid_size, INIT_KERNEL_THREADS, (long long) stream);
 
             // Invoke init_kernel to initialize tile descriptors
-            init_kernel<<<init_grid_size, INIT_KERNEL_THREADS, 0, stream>>>(
+            thrust::cuda_cub::launcher::triple_chevron(
+                init_grid_size, INIT_KERNEL_THREADS, 0, stream
+            ).doit(init_kernel,
                 tile_state,
                 num_tiles,
                 d_num_runs_out);
@@ -463,7 +371,10 @@ struct DispatchReduceByKey
                     start_tile, scan_grid_size, reduce_by_key_config.block_threads, (long long) stream, reduce_by_key_config.items_per_thread, reduce_by_key_sm_occupancy);
 
                 // Invoke reduce_by_key_kernel
-                reduce_by_key_kernel<<<scan_grid_size, reduce_by_key_config.block_threads, 0, stream>>>(
+                thrust::cuda_cub::launcher::triple_chevron(
+                    scan_grid_size, reduce_by_key_config.block_threads, 0,
+                    stream
+                ).doit(reduce_by_key_kernel,
                     d_keys_in,
                     d_unique_out,
                     d_values_in,
@@ -512,12 +423,8 @@ struct DispatchReduceByKey
         do
         {
             // Get PTX version
-            int ptx_version;
-    #if (CUB_PTX_ARCH == 0)
+            int ptx_version = 0;
             if (CubDebug(error = PtxVersion(ptx_version))) break;
-    #else
-            ptx_version = CUB_PTX_ARCH;
-    #endif
 
             // Get kernel kernel dispatch configurations
             KernelConfig reduce_by_key_config;

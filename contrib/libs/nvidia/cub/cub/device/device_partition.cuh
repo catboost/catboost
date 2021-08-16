@@ -38,7 +38,7 @@
 #include <iterator>
 
 #include "dispatch/dispatch_select_if.cuh"
-#include "../util_namespace.cuh"
+#include "../config.cuh"
 
 /// Optional outer namespace(s)
 CUB_NS_PREFIX
@@ -207,13 +207,13 @@ struct DevicePartition
      * // Determine temporary device storage requirements
      * void     *d_temp_storage = NULL;
      * size_t   temp_storage_bytes = 0;
-     * cub::DeviceSelect::If(d_temp_storage, temp_storage_bytes, d_in, d_out, d_num_selected_out, num_items, select_op);
+     * cub::DevicePartition::If(d_temp_storage, temp_storage_bytes, d_in, d_out, d_num_selected_out, num_items, select_op);
      *
      * // Allocate temporary storage
      * cudaMalloc(&d_temp_storage, temp_storage_bytes);
      *
      * // Run selection
-     * cub::DeviceSelect::If(d_temp_storage, temp_storage_bytes, d_in, d_out, d_num_selected_out, num_items, select_op);
+     * cub::DevicePartition::If(d_temp_storage, temp_storage_bytes, d_in, d_out, d_num_selected_out, num_items, select_op);
      *
      * // d_out                 <-- [0, 2, 3, 5, 2, 8, 81, 9]
      * // d_num_selected_out    <-- [5]
