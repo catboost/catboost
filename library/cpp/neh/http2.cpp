@@ -1611,7 +1611,7 @@ namespace {
                     THttpResponseFormatter(TData& theData, const TString& contentEncoding, const THttpVersion& theVer, const TString& theHeaders, int theHttpCode, bool closeConnection) {
                         Header.Reserve(128 + contentEncoding.size() + theHeaders.size());
                         PrintHttpVersion(Header, theVer);
-                        Header << TStringBuf(" ") << HttpCodeStrEx(theHttpCode);
+                        Header << TStringBuf(" ") << theHttpCode << ' ' << HttpCodeStr(theHttpCode);
                         if (Compress(theData, contentEncoding)) {
                             Header << TStringBuf("\r\nContent-Encoding: ") << contentEncoding;
                         }
