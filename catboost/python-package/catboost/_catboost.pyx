@@ -1776,10 +1776,16 @@ cdef all_string_types_plus_bytes = string_types + (bytes,)
 
 cdef _npbytes_ = np.bytes_
 cdef _npunicode_ = np.unicode_
+cdef _npint8 = np.int8
+cdef _npint16 = np.int16
+cdef _npuint8 = np.uint8
+cdef _npuint16 = np.uint16
+
 cdef _npint32 = np.int32
 cdef _npint64 = np.int64
 cdef _npuint32 = np.uint32
 cdef _npuint64 = np.uint64
+cdef _npfloat16 = np.float16
 cdef _npfloat32 = np.float32
 cdef _npfloat64 = np.float64
 
@@ -1805,6 +1811,15 @@ cpdef _prepare_cv_result(metric_name, const TVector[ui32]& iterations,
             result["train-" + metric_name + "-std"].append(std_dev_train[it])
     return result
 
+
+cdef inline bool_t is_np_int_type(type obj_type):
+    return obj_type is _npint32 or obj_type is _npint64 or obj_type is _npint8 or obj_type is _npint16
+
+
+cdef inline bool_t is_np_uint_type(type obj_type):
+    return obj_type is _npuint32 or obj_type is _npuint64 or obj_type is _npuint8 or obj_type is _npuint16
+
+
 cdef inline get_id_object_bytes_string_representation(
     object id_object,
     TString* bytes_string_buf_representation
@@ -1823,11 +1838,11 @@ cdef inline get_id_object_bytes_string_representation(
     # Here we have shortcuts for most of base types
     if obj_type is str or obj_type is unicode or obj_type is bytes or obj_type is _npbytes_ or obj_type is _npunicode_:
         bytes_string_buf_representation[0] = to_arcadia_string(id_object)
-    elif obj_type is int or obj_type is long or obj_type is _npint32 or obj_type is _npint64:
+    elif obj_type is int or obj_type is long or is_np_int_type(obj_type):
         bytes_string_buf_representation[0] = ToString[i64](<i64>id_object)
-    elif obj_type is _npuint32 or obj_type is _npuint64:
+    elif is_np_uint_type(obj_type):
         bytes_string_buf_representation[0] = ToString[ui64](<ui64>id_object)
-    elif obj_type is float or obj_type is _npfloat32 or obj_type is _npfloat64:
+    elif obj_type is float or obj_type is _npfloat32 or obj_type is _npfloat64 or obj_type is _npfloat16:
         raise CatBoostError("bad object for id: {}".format(id_object))
     else:
         # this part is really heavy as it uses lot's of python internal magic, so put it down
@@ -3253,10 +3268,12 @@ cdef TString obj_to_arcadia_string(obj) except *:
     INT64_MAX =  9223372036854775807
     cdef type obj_type = type(obj)
 
-    if obj_type is float or obj_type is _npfloat32 or obj_type is _npfloat64:
+    if obj_type is float or obj_type is _npfloat32 or obj_type is _npfloat64 or obj_type is _npfloat16:
         return ToString[double](<double>obj)
-    elif ((obj_type is int or obj_type is long) and (INT64_MIN <= obj <= INT64_MAX)) or obj_type is _npint32 or obj_type is _npint64:
+    elif ((obj_type is int or obj_type is long) and (INT64_MIN <= obj <= INT64_MAX)) or is_np_int_type(obj_type):
         return ToString[i64](<i64>obj)
+    elif is_np_uint_type(obj_type):
+        return ToString[ui64](<ui64>obj)
     elif obj_type is str or obj_type is unicode or obj_type is bytes or obj_type is _npbytes_ or obj_type is _npunicode_:
         return to_arcadia_string(obj)
     else:
