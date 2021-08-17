@@ -53,7 +53,7 @@ namespace NCatboostDistributed {
         {
         }
 
-        SAVELOAD(TrainData);
+        SAVELOAD_OVERRIDE_WITHOUT_BASE(TrainData);
 
         OBJECT_NOCOPY_METHODS(TTrainData);
     };
