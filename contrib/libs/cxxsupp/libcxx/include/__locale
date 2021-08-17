@@ -491,33 +491,6 @@ public:
 # define _LIBCPP_CTYPE_MASK_IS_COMPOSITE_PRINT
 # define _LIBCPP_CTYPE_MASK_IS_COMPOSITE_ALPHA
 # define _LIBCPP_CTYPE_MASK_IS_COMPOSITE_XDIGIT
-#elif defined(__ANDROID__)
-    # if !defined(_U)
-    #   if !defined(_CTYPE_U)
-    #    error Bionic header ctype.h does not define either _U nor _CTYPE_U
-    #   endif
-    #   define _U _CTYPE_U
-    #   define _L _CTYPE_L
-    #   define _N _CTYPE_N
-    #   define _S _CTYPE_S
-    #   define _P _CTYPE_P
-    #   define _C _CTYPE_C
-    #   define _X _CTYPE_X
-    #   define _B _CTYPE_B
-    # endif
-     typedef unsigned short mask;
-     static const mask space  = _S;
-     static const mask print  = _P | _U | _L | _N | _B;
-     static const mask cntrl  = _C;
-     static const mask upper  = _U;
-     static const mask lower  = _L;
-     static const mask alpha  = _U | _L;
-     static const mask digit  = _N;
-     static const mask punct  = _P;
-     static const mask xdigit = _N | _X;
-     // See src/support/android/locale_android.cpp for details!
-     static const mask blank  = 0x100;
-     static const mask __regex_word = 0x8000;
 #else
     typedef unsigned long mask;
     static const mask space  = 1<<0;
