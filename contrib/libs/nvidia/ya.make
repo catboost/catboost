@@ -2,4 +2,5 @@
 
 RECURSE(
     cub
+    thrust
 )
