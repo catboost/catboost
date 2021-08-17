@@ -860,7 +860,6 @@ migrations:
     - yabs/server/libs/internal_ver/depgrapher/lib
     - yabs/server/libs/py_markdown_strings
     - yabs/server/test/ft/BSDEV-73064
-    - yabs/server/test/ft/BSSERVER-10514
     - yabs/server/test/ft/BSSERVER-11503
     - yabs/server/test/ft/BSSERVER-12167
     - yabs/server/test/ft/BSSERVER-1332
@@ -871,8 +870,6 @@ migrations:
     - yabs/server/test/ft/BSSERVER-2293
     - yabs/server/test/ft/BSSERVER-2454
     - yabs/server/test/ft/BSSERVER-2976
-    - yabs/server/test/ft/BSSERVER-3090
-    - yabs/server/test/ft/BSSERVER-3731
     - yabs/server/test/ft/BSSERVER-3820
     - yabs/server/test/ft/BSSERVER-3895
     - yabs/server/test/ft/BSSERVER-4338
@@ -883,7 +880,6 @@ migrations:
     - yabs/server/test/ft/BSSERVER-5156
     - yabs/server/test/ft/BSSERVER-5201
     - yabs/server/test/ft/BSSERVER-5249
-    - yabs/server/test/ft/BSSERVER-7730
     - yabs/server/test/ft/BSSERVER-8516
     - yabs/server/test/ft/BSSERVER-9233
     - yabs/server/test/ft/BSSERVER-9278
@@ -1500,7 +1496,6 @@ migrations:
     - mail/collectors/tests-system/src
     - mail/github/calendar-attach-processor
     - maps/analyzer/pylibs/train_catboost
-    - maps/analyzer/tools/qyp_quota
     - maps/automotive/carwashes/tests/fake-env
     - maps/automotive/carwashes/tests/src
     - maps/automotive/proxy/config_generator
@@ -1703,7 +1698,6 @@ migrations:
     - voicetech/spotter/online_metrics/lib
     - voicetech/spotter/run/difftool
     - voicetech/spotter/score/prepare_for_online_validation/bin
-    - voicetech/spotter/tools/filter_texts/bin
     - weather/workers/warnings/general
     - weather/workers/warnings/nowcasting
     - yabs/analytics/anomaly_analyzer/src
