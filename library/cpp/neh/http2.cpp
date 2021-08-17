@@ -382,12 +382,12 @@ namespace {
         }
 
     private:
-        THttpRequest(THandleRef& h, const TMessage& msg, TRequestBuilder f, const TRequestSettings& s)
+        THttpRequest(THandleRef& h, TMessage msg, TRequestBuilder f, const TRequestSettings& s)
             : Hndl_(h)
             , RequestBuilder_(f)
             , RequestSettings_(s)
-            , Msg_(msg)
-            , Loc_(msg.Addr)
+            , Msg_(std::move(msg))
+            , Loc_(Msg_.Addr)
             , Addr_(Resolve(Loc_.Host, Loc_.GetPort(), RequestSettings_.ResolverType))
             , AddrIter_(Addr_->Addr.Begin())
             , Canceled_(false)

@@ -1280,10 +1280,10 @@ namespace NNeh {
         template <class TRequestType>
         class THttpsRequest: public IJob {
         public:
-            inline THttpsRequest(TSimpleHandleRef hndl, const TMessage& msg)
+            inline THttpsRequest(TSimpleHandleRef hndl, TMessage msg)
                 : Hndl_(hndl)
-                , Msg_(msg)
-                , Loc_(msg.Addr)
+                , Msg_(std::move(msg))
+                , Loc_(Msg_.Addr)
                 , Addr_(CachedThrResolve(TResolveInfo(Loc_.Host, Loc_.GetPort())))
             {
             }
