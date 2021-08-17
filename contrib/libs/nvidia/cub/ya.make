@@ -8,6 +8,10 @@ VERSION(1.13.0)
 
 LICENSE(BSD-3-Clause)
 
+ADDINCL(
+    GLOBAL contrib/libs/nvidia/cub
+)
+
 NO_COMPILER_WARNINGS()
 
 NO_RUNTIME()
