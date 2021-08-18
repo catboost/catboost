@@ -514,8 +514,18 @@ static int MsgPeek(SOCKET s) {
 }
 
 bool IsNotSocketClosedByOtherSide(SOCKET s) {
+    return HasSocketDataToRead(s) != ESocketReadStatus::SocketClosed;
+}
+
+ESocketReadStatus HasSocketDataToRead(SOCKET s) {
     const int r = MsgPeek(s);
-    return r > 0 || (r == -1 && IsBlocked(LastSystemError()));
+    if (r == -1 && IsBlocked(LastSystemError())) {
+        return ESocketReadStatus::NoData;
+    }
+    if (r > 0) {
+        return ESocketReadStatus::HasData;
+    }
+    return ESocketReadStatus::SocketClosed;
 }
 
 #if defined(_win_)
