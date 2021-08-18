@@ -31,7 +31,7 @@
 #include "atomic"
 #if defined(_LIBCPP_MSVCRT) || defined(__MINGW32__)
 #include "support/win32/locale_win32.h"
-#elif !defined(__BIONIC__)
+#elif !defined(__BIONIC__) && !defined(__NuttX__)
 #include <langinfo.h>
 #endif
 #include <stdlib.h>
@@ -5143,7 +5143,7 @@ __time_get_storage<wchar_t>::init(const ctype<wchar_t>& ct)
         mb = mbstate_t();
         const char* bb = buf;
         size_t j = __libcpp_mbsrtowcs_l(wbuf, &bb, countof(wbuf), &mb, __loc_);
-        if (j == size_t(-1))
+        if (j == size_t(-1) || j == 0)
             __throw_runtime_error("locale not supported");
         wbe = wbuf + j;
         __weeks_[i].assign(wbuf, wbe);
@@ -5151,7 +5151,7 @@ __time_get_storage<wchar_t>::init(const ctype<wchar_t>& ct)
         mb = mbstate_t();
         bb = buf;
         j = __libcpp_mbsrtowcs_l(wbuf, &bb, countof(wbuf), &mb, __loc_);
-        if (j == size_t(-1))
+        if (j == size_t(-1) || j == 0)
             __throw_runtime_error("locale not supported");
         wbe = wbuf + j;
         __weeks_[i+7].assign(wbuf, wbe);
@@ -5164,7 +5164,7 @@ __time_get_storage<wchar_t>::init(const ctype<wchar_t>& ct)
         mb = mbstate_t();
         const char* bb = buf;
         size_t j = __libcpp_mbsrtowcs_l(wbuf, &bb, countof(wbuf), &mb, __loc_);
-        if (j == size_t(-1))
+        if (j == size_t(-1) || j == 0)
             __throw_runtime_error("locale not supported");
         wbe = wbuf + j;
         __months_[i].assign(wbuf, wbe);
@@ -5172,7 +5172,7 @@ __time_get_storage<wchar_t>::init(const ctype<wchar_t>& ct)
         mb = mbstate_t();
         bb = buf;
         j = __libcpp_mbsrtowcs_l(wbuf, &bb, countof(wbuf), &mb, __loc_);
-        if (j == size_t(-1))
+        if (j == size_t(-1) || j == 0)
             __throw_runtime_error("locale not supported");
         wbe = wbuf + j;
         __months_[i+12].assign(wbuf, wbe);

@@ -534,7 +534,7 @@ public:
 #if _LIBCPP_STD_VER >= 14
         _NOEXCEPT;
 #else
-        _NOEXCEPT_(!__node_traits::propagate_on_container_move_assignment::value || 
+        _NOEXCEPT_(!__node_traits::propagate_on_container_move_assignment::value ||
                     __is_nothrow_swappable<__node_allocator>::value);
 #endif
 protected:
@@ -599,11 +599,11 @@ __forward_list_base<_Tp, _Alloc>::swap(__forward_list_base& __x)
 #if _LIBCPP_STD_VER >= 14
         _NOEXCEPT
 #else
-        _NOEXCEPT_(!__node_traits::propagate_on_container_move_assignment::value || 
+        _NOEXCEPT_(!__node_traits::propagate_on_container_move_assignment::value ||
                     __is_nothrow_swappable<__node_allocator>::value)
 #endif
 {
-    __swap_allocator(__alloc(), __x.__alloc(), 
+    _VSTD::__swap_allocator(__alloc(), __x.__alloc(), 
             integral_constant<bool, __node_traits::propagate_on_container_swap::value>());
     using _VSTD::swap;
     swap(__before_begin()->__next_, __x.__before_begin()->__next_);
@@ -1527,7 +1527,7 @@ forward_list<_Tp, _Alloc>::remove(const value_type& __v)
         else
             ++__i;
     }
-    
+
     return (__remove_return_type) __count_removed;
 }
 
@@ -1555,7 +1555,7 @@ forward_list<_Tp, _Alloc>::remove_if(_Predicate __pred)
         else
             ++__i;
     }
-    
+
     return (__remove_return_type) __count_removed;
 }
 
@@ -1575,7 +1575,7 @@ forward_list<_Tp, _Alloc>::unique(_BinaryPredicate __binary_pred)
             __deleted_nodes.splice_after(__deleted_nodes.before_begin(), *this, __i, __j);
         __i = __j;
     }
-    
+
     return (__remove_return_type) __count_removed;
 }
 

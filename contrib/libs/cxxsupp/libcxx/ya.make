@@ -152,6 +152,7 @@ SRCS(
     src/future.cpp
     src/hash.cpp
     src/ios.cpp
+    src/ios.instantiations.cpp
     src/iostream.cpp
     src/locale.cpp
     src/memory.cpp
