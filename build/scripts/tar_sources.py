@@ -6,6 +6,7 @@ import tarfile
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--exts', nargs='*', default=None)
+    parser.add_argument('--flat', action='store_true')
     parser.add_argument('--input', required=True)
     parser.add_argument('--output', required=True)
 
@@ -23,7 +24,8 @@ def main():
 
     with tarfile.open(args.output, 'w') as out:
         for f in py_srcs:
-            out.add(f, arcname=os.path.relpath(f, args.input))
+            arcname = os.path.basename(f) if args.flat else os.path.relpath(f, args.input)
+            out.add(f, arcname=arcname)
 
 
 if __name__ == '__main__':
