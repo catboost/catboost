@@ -430,7 +430,7 @@ namespace {
                 /*datasetName*/ TStringBuf(),
                 /*bordersFile*/ Nothing(),  // Already at quantizedFeaturesInfo
                 /*unloadCatFeaturePerfectHashFromRam*/ allowWriteFiles,
-                /*ensureConsecutiveLearnFeaturesDataForCpu*/ true,
+                /*ensureConsecutiveLearnFeaturesDataForCpu*/ false, // data will be split afterwards anyway
                 tmpDir,
                 quantizedFeaturesInfo,
                 catBoostOptions,
