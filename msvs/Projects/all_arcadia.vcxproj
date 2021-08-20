@@ -432,6 +432,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\tools\limited_precision_json_diff\pytest\catboost-tools-limited_precision_json_diff-pytest.vcxproj">
       <Project>E2A18523-2E86-AE22-92F3-B4AB2474F789</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\tools\limited_precision_numpy_diff\limited_precision_numpy_diff.vcxproj">
+      <Project>A4ECB26B-C2EC-AF0B-D186-6A9ACFACD517</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\tools\model_comparator\model_comparator.vcxproj">
       <Project>F2890E3D-C0D6-F694-F586-9591CDA361D1</Project>
     </ProjectReference>
