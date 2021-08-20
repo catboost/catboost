@@ -748,9 +748,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\string_utils\ztstrbuf\cpp-string_utils-ztstrbuf.vcxproj">
       <Project>{688172E5-10D8-86DE-424B-EACBFC9BE1DA}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\svnversion\library-cpp-svnversion.vcxproj">
-      <Project>{C3083C9F-6349-B5A2-3DD0-2098D66566DB}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\text_processing\dictionary\cpp-text_processing-dictionary.vcxproj">
       <Project>{73E0C414-7306-5CAF-23A6-CCF99172A94D}</Project>
     </ProjectReference>

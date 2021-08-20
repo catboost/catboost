@@ -354,9 +354,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\string_utils\relaxed_escaper\cpp-string_utils-relaxed_escaper.vcxproj">
       <Project>{81697B25-44BA-8BC7-5E66-2708E5669C60}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\svnversion\library-cpp-svnversion.vcxproj">
-      <Project>{C3083C9F-6349-B5A2-3DD0-2098D66566DB}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\testing\common\cpp-testing-common.vcxproj">
       <Project>{68BC6E30-C1B2-55F8-2F66-99AE7F9777EC}</Project>
     </ProjectReference>
