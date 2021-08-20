@@ -82,6 +82,7 @@ RECURSE(
     nodeiter_test
     nodeiter_test/tests
     normalize_requests
+    nots
     oauth_token
     pgmigrate
     pire

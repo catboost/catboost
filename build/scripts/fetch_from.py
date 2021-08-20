@@ -205,7 +205,7 @@ def size_printer(display_name, size):
     return printer
 
 
-def fetch_url(url, unpack, resource_file_name, expected_md5=None, expected_sha1=None, tries=10):
+def fetch_url(url, unpack, resource_file_name, expected_md5=None, expected_sha1=None, tries=10, writers=None):
     logging.info('Downloading from url %s name %s and expected md5 %s', url, resource_file_name, expected_md5)
     tmp_file_name = uniq_string_generator()
 
@@ -217,7 +217,14 @@ def fetch_url(url, unpack, resource_file_name, expected_md5=None, expected_sha1=
     real_sha1 = hashlib.sha1()
 
     with open(tmp_file_name, 'wb') as fp:
-        copy_stream(req.read, fp.write, real_md5.update, real_sha1.update, size_printer(resource_file_name, expected_file_size))
+        copy_stream(
+            req.read,
+            fp.write,
+            real_md5.update,
+            real_sha1.update,
+            size_printer(resource_file_name, expected_file_size),
+            *([] if writers is None else writers)
+        )
 
     real_md5 = real_md5.hexdigest()
     real_file_size = os.path.getsize(tmp_file_name)
