@@ -203,10 +203,11 @@ protected:
             str_vect.push_back(short_str2);
             str_vect.push_back(long_str2);
 
-            UNIT_ASSERT(str_vect[0] == ref_short_str1);
-            UNIT_ASSERT(str_vect[1] == ref_long_str1);
-            UNIT_ASSERT(str_vect[2] == ref_short_str2);
-            UNIT_ASSERT(str_vect[3] == ref_long_str2);
+            UNIT_ASSERT(
+                (str_vect[0] == ref_short_str1) &&
+                (str_vect[1] == ref_long_str1) &&
+                (str_vect[2] == ref_short_str2) &&
+                (str_vect[3] == ref_long_str2));
         }
     }
 
@@ -773,7 +774,7 @@ public:
         ss << '\n'
            << data << std::endl;
 
-        TString read = "xxx";
+        TString read;
         ss >> read;
         UNIT_ASSERT_VALUES_EQUAL(read, data);
     }
@@ -1201,34 +1202,3 @@ Y_UNIT_TEST_SUITE(HashFunctorTests) {
         UNIT_ASSERT_VALUES_EQUAL(h(ptr), h(stdStr));
     }
 }
-
-#if !defined(TSTRING_IS_STD_STRING)
-Y_UNIT_TEST_SUITE(StdNonConformant) {
-    Y_UNIT_TEST(TestEraseNoThrow) {
-        TString x;
-
-        x.erase(10);
-    }
-
-    Y_UNIT_TEST(TestReplaceNoThrow) {
-        TString x;
-
-        x.replace(0, 0, "1");
-
-        UNIT_ASSERT_VALUES_EQUAL(x, "1");
-
-        x.replace(10, 0, "1");
-
-        UNIT_ASSERT_VALUES_EQUAL(x, "1");
-    }
-
-    Y_UNIT_TEST(TestNoAlias) {
-        TString s = "x";
-
-        s.AppendNoAlias("abc", 3);
-
-        UNIT_ASSERT_VALUES_EQUAL(s, "xabc");
-        UNIT_ASSERT_VALUES_EQUAL(TString(s.c_str()), "xabc");
-    }
-}
-#endif

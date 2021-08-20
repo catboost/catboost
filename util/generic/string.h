@@ -12,7 +12,6 @@
 #include <util/system/yassert.h>
 #include <util/system/atomic.h>
 
-#include "ptr.h"
 #include "utility.h"
 #include "bitops.h"
 #include "explicit_type.h"
@@ -25,57 +24,57 @@
     #include "hide_ptr.h"
 #endif
 
-#define Y_NOEXCEPT
-
 #ifndef TSTRING_IS_STD_STRING
-template <class T>
-class TStringPtrOps {
-public:
-    static inline void Ref(T* t) noexcept {
-        if (t != T::NullStr()) {
-            t->Ref();
+namespace NDetail {
+    extern void const* STRING_DATA_NULL;
+
+    /** Represents string data shared between instances of string objects. */
+    struct TStringData {
+        TAtomic Refs;
+        size_t BufLen; /**< Maximum number of characters that this data can fit. */
+        size_t Length; /**< Actual string data length. */
+    };
+
+    template <typename TCharType>
+    struct TStringDataTraits {
+        using TData = TStringData;
+
+        enum : size_t {
+            Overhead = sizeof(TData) + sizeof(TCharType), // + null terminated symbol
+            MaxSize = (std::numeric_limits<size_t>::max() / 2 + 1 - Overhead) / sizeof(TCharType)
+        };
+
+        static constexpr size_t CalcAllocationSizeAndCapacity(size_t& len) noexcept {
+            // buffer should be multiple to 2^n to fit allocator's memory block size
+            size_t alignedSize = FastClp2(len * sizeof(TCharType) + Overhead);
+            // calc capacity
+            len = (alignedSize - Overhead) / sizeof(TCharType);
+            return alignedSize;
         }
-    }
 
-    static inline void UnRef(T* t) noexcept {
-        if (t != T::NullStr()) {
-            t->UnRef();
-        }
-    }
-
-    static inline void DecRef(T* t) noexcept {
-        if (t != T::NullStr()) {
-            t->DecRef();
-        }
-    }
-
-    static inline long RefCount(const T* t) noexcept {
-        if (t == T::NullStr()) {
-            return -1;
+        static TData* GetData(TCharType* p) {
+            return ((TData*)(void*)p) - 1;
         }
 
-        return t->RefCount();
-    }
-};
+        static TCharType* GetChars(TData* data) {
+            return (TCharType*)(void*)(data + 1);
+        }
 
-alignas(32) extern const char NULL_STRING_REPR[128];
+        static TCharType* GetNull() {
+            return (TCharType*)STRING_DATA_NULL;
+        }
+    };
 
-template <class B>
-struct TStdString: public TAtomicRefCount<TStdString<B>>, public B {
-    template <typename... Args>
-    inline TStdString(Args&&... args)
-        : B(std::forward<Args>(args)...)
-    {
-    }
+    /**
+     * Allocates new string data that fits at least @c newLen of characters.
+     *
+     * @throw std::length_error
+     */
+    template <typename TCharType>
+    TCharType* Allocate(size_t oldLen, size_t newLen, TStringData* oldData = nullptr);
 
-    inline bool IsNull() const noexcept {
-        return this == NullStr();
-    }
-
-    static TStdString* NullStr() noexcept {
-        return (TStdString*)NULL_STRING_REPR;
-    }
-};
+    void Deallocate(void* data);
+}
 
 template <class TStringType>
 class TBasicCharRef {
@@ -103,7 +102,8 @@ public:
     TBasicCharRef& operator=(TChar c) {
         Y_ASSERT(Pos_ < S_.size() || (Pos_ == S_.size() && !c));
 
-        S_.Detach()[Pos_] = c;
+        TChar* p = S_.Detach();
+        p[Pos_] = c;
 
         return *this;
     }
@@ -123,13 +123,13 @@ class TBasicString: public TStringBase<TBasicString<TCharType, TTraits>, TCharTy
 public:
     // TODO: Move to private section
     using TBase = TStringBase<TBasicString, TCharType, TTraits>;
-    using TStringType = std::basic_string<TCharType, TTraits>;
 #ifdef TSTRING_IS_STD_STRING
-    using TStorage = TStringType;
+    using TStorage = std::basic_string<TCharType>;
     using reference = typename TStorage::reference;
 #else
-    using TStdStr = TStdString<TStringType>;
-    using TStorage = TIntrusivePtr<TStdStr, TStringPtrOps<TStdStr>>;
+    using TDataTraits = ::NDetail::TStringDataTraits<TCharType>;
+    using TData = typename TDataTraits::TData;
+
     using reference = TBasicCharRef<TBasicString>;
 #endif
     using char_type = TCharType; // TODO: DROP
@@ -152,32 +152,58 @@ public:
     };
 
     static size_t max_size() noexcept {
-        static size_t res = TStringType().max_size();
-
-        return res;
+#ifdef TSTRING_IS_STD_STRING
+        static size_t result = TStorage{}.max_size();
+        return result;
+#else
+        return ::NDetail::TStringDataTraits<TCharType>::MaxSize;
+#endif
     }
 
 protected:
 #ifdef TSTRING_IS_STD_STRING
     TStorage Storage_;
 #else
-    TStorage S_;
-
-    template <typename... A>
-    static TStorage Construct(A&&... a) {
-        return new TStdStr(std::forward<A>(a)...);
+    /**
+     * Allocates new string data that fits at least the specified number of characters.
+     *
+     * @param len                       Number of characters.
+     * @throw std::length_error
+     */
+    static TCharType* Allocate(size_t len, TData* oldData = nullptr) {
+        return Allocate(len, len, oldData);
     }
 
-    static TStorage Construct() {
-        return TStdStr::NullStr();
+    static TCharType* Allocate(size_t oldLen, size_t newLen, TData* oldData) {
+        return ::NDetail::Allocate<TCharType>(oldLen, newLen, oldData);
     }
 
-    TStdStr& StdStr() noexcept {
-        return *S_;
+    // ~~~ Data member ~~~
+    TCharType* Data_;
+
+    // ~~~ Core functions ~~~
+    inline void Ref() noexcept {
+        if (Data_ != TDataTraits::GetNull()) {
+            AtomicIncrement(GetData()->Refs);
+        }
     }
 
-    const TStdStr& StdStr() const noexcept {
-        return *S_;
+    inline void UnRef() noexcept {
+        if (Data_ != TDataTraits::GetNull()) {
+            // IsDetached() check is a common case optimization
+            if (IsDetached() || AtomicDecrement(GetData()->Refs) == 0) {
+                ::NDetail::Deallocate(GetData());
+            }
+        }
+    }
+
+    inline TData* GetData() const noexcept {
+        return TDataTraits::GetData(Data_);
+    }
+
+    void Relink(TCharType* tmp) {
+        UnRef();
+        Data_ = tmp;
     }
 
     /**
@@ -186,33 +212,26 @@ protected:
      * @throw std::length_error
      */
     void Clone() {
-        Construct(StdStr()).Swap(S_);
+        const size_t len = length();
+
+        Relink(TTraits::copy(Allocate(len), Data_, len));
     }
 
-    size_t RefCount() const noexcept {
-        return S_->RefCount();
+    void TruncNonShared(size_t n) {
+        GetData()->Length = n;
+        Data_[n] = 0;
+    }
+
+    void ResizeNonShared(size_t n) {
+        if (capacity() < n) {
+            Data_ = Allocate(n, GetData());
+        } else {
+            TruncNonShared(n);
+        }
     }
 #endif
 
 public:
-    inline const TStringType& ConstRef() const {
-#ifdef TSTRING_IS_STD_STRING
-        return Storage_;
-#else
-        return StdStr();
-#endif
-    }
-
-    inline TStringType& MutRef() {
-#ifdef TSTRING_IS_STD_STRING
-        return Storage_;
-#else
-        Detach();
-
-        return StdStr();
-#endif
-    }
-
     inline const_reference operator[](size_t pos) const noexcept {
         Y_ASSERT(pos <= length());
 
@@ -240,7 +259,6 @@ public:
         if (Y_UNLIKELY(this->empty())) {
             return reference(*this, 0);
         }
-
         return reference(*this, length() - 1);
 #endif
     }
@@ -249,7 +267,6 @@ public:
 
     inline reference front() noexcept {
         Y_ASSERT(!this->empty());
-
 #ifdef TSTRING_IS_STD_STRING
         return Storage_.front();
 #else
@@ -258,32 +275,64 @@ public:
     }
 
     inline size_t length() const noexcept {
-        return ConstRef().length();
+#ifdef TSTRING_IS_STD_STRING
+        return Storage_.length();
+#else
+        return GetData()->Length;
+#endif
     }
 
     inline const TCharType* data() const noexcept {
-        return ConstRef().data();
+#ifdef TSTRING_IS_STD_STRING
+        return Storage_.data();
+#else
+        return Data_;
+#endif
     }
 
     inline const TCharType* c_str() const noexcept {
-        return ConstRef().c_str();
+#ifdef TSTRING_IS_STD_STRING
+        return Storage_.c_str();
+#else
+        return Data_;
+#endif
     }
 
     // ~~~ STL compatible method to obtain data pointer ~~~
     iterator begin() {
-        return &*MutRef().begin();
+#ifdef TSTRING_IS_STD_STRING
+        return Storage_.data();
+#else
+        Detach();
+        return Data_;
+#endif
     }
 
     iterator vend() {
-        return &*MutRef().end();
+#ifdef TSTRING_IS_STD_STRING
+        return Storage_.data() + length();
+#else
+        Detach();
+        return Data_ + length();
+#endif
     }
 
     reverse_iterator rbegin() {
-        return reverse_iterator(vend());
+#ifdef TSTRING_IS_STD_STRING
+        return reverse_iterator(Storage_.data() + length());
+#else
+        Detach();
+        return reverse_iterator(Data_ + length());
+#endif
     }
 
     reverse_iterator rend() {
-        return reverse_iterator(begin());
+#ifdef TSTRING_IS_STD_STRING
+        return reverse_iterator(Storage_.data());
+#else
+        Detach();
+        return reverse_iterator(Data_);
+#endif
     }
 
     using TBase::begin;   //!< const_iterator TStringBase::begin() const
@@ -299,27 +348,28 @@ public:
 #ifdef TSTRING_IS_STD_STRING
         return Storage_.capacity();
 #else
-        if (S_->IsNull()) {
-            return 0;
-        }
-
-        return S_->capacity();
+        return GetData()->BufLen;
 #endif
     }
 
     inline size_t capacity() const noexcept {
+#ifdef TSTRING_IS_STD_STRING
+        return Storage_.capacity();
+#else
         return reserve();
+#endif
     }
 
     TCharType* Detach() {
 #ifdef TSTRING_IS_STD_STRING
         return Storage_.data();
 #else
-        if (Y_UNLIKELY(!IsDetached())) {
-            Clone();
+        if (IsDetached()) {
+            return Data_;
         }
 
-        return (TCharType*)S_->data();
+        Clone();
+        return Data_;
 #endif
     }
 
@@ -327,28 +377,41 @@ public:
 #ifdef TSTRING_IS_STD_STRING
         return true;
 #else
-        return 1 == RefCount();
+        return 1 == AtomicGet(GetData()->Refs);
 #endif
     }
 
     // ~~~ Size and capacity ~~~
     TBasicString& resize(size_t n, TCharType c = ' ') { // remove or append
-        MutRef().resize(n, c);
+#ifdef TSTRING_IS_STD_STRING
+        Storage_.resize(n, c);
 
         return *this;
+#else
+        const size_t len = length();
+
+        if (n > len) {
+            ReserveAndResize(n);
+            TTraits::assign(Data_ + len, n - len, c);
+
+            return *this;
+        }
+
+        return remove(n);
+#endif
     }
 
     // ~~~ Constructor ~~~ : FAMILY0(,TBasicString)
     TBasicString()
 #ifndef TSTRING_IS_STD_STRING
-        : S_(Construct())
+        : Data_(TDataTraits::GetNull())
 #endif
     {
     }
 
     inline explicit TBasicString(::NDetail::TReserveTag rt)
 #ifndef TSTRING_IS_STD_STRING
-        : S_(Construct())
+        : Data_(TDataTraits::GetNull())
 #endif
     {
         reserve(rt.Capacity);
@@ -358,21 +421,23 @@ public:
 #ifdef TSTRING_IS_STD_STRING
         : Storage_(s.Storage_)
 #else
-        : S_(s.S_)
+        : Data_(s.Data_)
 #endif
     {
+#ifndef TSTRING_IS_STD_STRING
+        Ref();
+#endif
     }
 
     inline TBasicString(TBasicString&& s) noexcept
 #ifdef TSTRING_IS_STD_STRING
         : Storage_(std::move(s.Storage_))
 #else
-        : S_(Construct())
+        : Data_(TDataTraits::GetNull())
 #endif
     {
-#ifdef TSTRING_IS_STD_STRING
-#else
-        s.swap(*this);
+#ifndef TSTRING_IS_STD_STRING
+        swap(s);
 #endif
     }
 
@@ -381,9 +446,12 @@ public:
 #ifdef TSTRING_IS_STD_STRING
         : Storage_(s)
 #else
-        : S_(Construct(s))
+        : Data_(TDataTraits::GetNull())
 #endif
     {
+#ifndef TSTRING_IS_STD_STRING
+        AssignNoAlias(s.data(), s.length());
+#endif
     }
 
     TBasicString(const TBasicString& s, size_t pos, size_t n)
@@ -391,32 +459,48 @@ public:
         : Storage_(s.Storage_, pos, n)
 #endif
     {
-#ifdef TSTRING_IS_STD_STRING
-#else
+#ifndef TSTRING_IS_STD_STRING
         size_t len = s.length();
         pos = Min(pos, len);
         n = Min(n, len - pos);
-        S_ = Construct(*s.S_, pos, n);
+        Data_ = Allocate(n);
+        TTraits::copy(Data_, s.Data_ + pos, n);
 #endif
     }
 
     TBasicString(const TCharType* pc)
-        : TBasicString(pc, TBase::StrLen(pc))
+#ifdef TSTRING_IS_STD_STRING
+        : Storage_(pc, TBase::StrLen(pc))
+#endif
     {
+#ifndef TSTRING_IS_STD_STRING
+        const size_t len = TBase::StrLen(pc);
+
+        Data_ = Allocate(len);
+        TTraits::copy(Data_, pc, len);
+#endif
     }
 
     TBasicString(const TCharType* pc, size_t n)
 #ifdef TSTRING_IS_STD_STRING
         : Storage_(pc, n)
-#else
-        : S_(Construct(pc, n))
 #endif
     {
+#ifndef TSTRING_IS_STD_STRING
+        Data_ = Allocate(n);
+        TTraits::copy(Data_, pc, n);
+#endif
     }
 
     TBasicString(const TCharType* pc, size_t pos, size_t n)
-        : TBasicString(pc + pos, n)
+#ifdef TSTRING_IS_STD_STRING
+        : Storage_(pc + pos, n)
+#endif
     {
+#ifndef TSTRING_IS_STD_STRING
+        Data_ = Allocate(n);
+        TTraits::copy(Data_, pc + pos, n);
+#endif
     }
 
 #ifdef TSTRING_IS_STD_STRING
@@ -424,23 +508,25 @@ public:
         Storage_.push_back(c);
     }
 #else
-    explicit TBasicString(TExplicitType<TCharType> c)
-        : TBasicString(&c.Value(), 1)
-    {
+    explicit TBasicString(TExplicitType<TCharType> c) {
+        Data_ = Allocate(1);
+        Data_[0] = c;
     }
-    explicit TBasicString(const reference& c)
-        : TBasicString(&c, 1)
-    {
+    explicit TBasicString(const reference& c) {
+        Data_ = Allocate(1);
+        Data_[0] = c;
     }
 #endif
 
     TBasicString(size_t n, TCharType c)
 #ifdef TSTRING_IS_STD_STRING
         : Storage_(n, c)
-#else
-        : S_(Construct(n, c))
 #endif
     {
+#ifndef TSTRING_IS_STD_STRING
+        Data_ = Allocate(n);
+        TTraits::assign(Data_, n, c);
+#endif
     }
 
     /**
@@ -450,26 +536,48 @@ public:
      * @throw std::length_error
      */
     TBasicString(TUninitialized uninitialized) {
-#if !defined(TSTRING_IS_STD_STRING)
-        S_ = Construct();
+#ifdef TSTRING_IS_STD_STRING
+        Storage_.resize_uninitialized(uninitialized.Size);
+#else
+        Data_ = Allocate(uninitialized.Size);
 #endif
-        ReserveAndResize(uninitialized.Size);
     }
 
     TBasicString(const TCharType* b, const TCharType* e)
-        : TBasicString(b, e - b)
+#ifdef TSTRING_IS_STD_STRING
+        : Storage_(b, e - b)
+#endif
     {
+#ifndef TSTRING_IS_STD_STRING
+        Data_ = Allocate(e - b);
+        TTraits::copy(Data_, b, e - b);
+#endif
     }
 
     explicit TBasicString(const TBasicStringBuf<TCharType, TTraits> s)
-        : TBasicString(s.data(), s.size())
+#ifdef TSTRING_IS_STD_STRING
+        : Storage_(s.data(), s.size())
+#else
+        : Data_(Allocate(s.size()))
+#endif
     {
+#ifndef TSTRING_IS_STD_STRING
+        if (0 != s.size()) {
+            TTraits::copy(Data_, s.data(), s.size());
+        }
+#endif
     }
 
     template <typename Traits>
     explicit inline TBasicString(const std::basic_string_view<TCharType, Traits>& s)
-        : TBasicString(s.data(), s.size())
+#ifdef TSTRING_IS_STD_STRING
+        : Storage_(s)
+#endif
     {
+#ifndef TSTRING_IS_STD_STRING
+        Data_ = Allocate(s.size());
+        TTraits::copy(Data_, s.data(), s.size());
+#endif
     }
 
     /**
@@ -524,28 +632,37 @@ private:
     }
 
 public:
+#ifndef TSTRING_IS_STD_STRING
+    // ~~~ Destructor ~~~
+    inline ~TBasicString() {
+        UnRef();
+    }
+#endif
+
     inline void clear() noexcept {
 #ifdef TSTRING_IS_STD_STRING
         Storage_.clear();
 #else
         if (IsDetached()) {
-            S_->clear();
-
+            TruncNonShared(0);
             return;
         }
 
-        Construct().Swap(S_);
+        Relink(TDataTraits::GetNull());
 #endif
     }
 
     template <typename... R>
     static inline TBasicString Join(const R&... r) {
-        TBasicString s{TUninitialized{SumLength(r...)}};
-
 #ifdef TSTRING_IS_STD_STRING
+        TBasicString s{TUninitialized { SumLength(r...) }};
+
         TBasicString::CopyAll(s.Storage_.data(), r...);
 #else
-        TBasicString::CopyAll(s.S_->data(), r...);
+        TBasicString s;
+
+        s.Data_ = Allocate(SumLength(r...));
+        CopyAll(s.Data_, r...);
 #endif
 
         return s;
@@ -580,7 +697,19 @@ public:
 #if defined(address_sanitizer_enabled) || defined(thread_sanitizer_enabled)
         pc = (const TCharType*)HidePointerOrigin((void*)pc);
 #endif
-        MutRef().assign(pc, len);
+#ifdef TSTRING_IS_STD_STRING
+        Storage_.assign(pc, len);
+#else
+
+        if (Y_LIKELY(IsDetached() && (pc + len <= TBase::begin() || pc >= TBase::end()))) {
+            ResizeNonShared(len);
+            TTraits::copy(Data_, pc, len);
+        } else if (IsDetached() && pc == data() && capacity() >= len) {
+            TruncNonShared(len);
+        } else {
+            Relink(TTraits::copy(Allocate(len), pc, len));
+        }
+#endif
 
         return *this;
     }
@@ -593,6 +722,30 @@ public:
         return assign(pc + pos, n);
     }
 
+    inline TBasicString& AssignNoAlias(const TCharType* pc, size_t len) {
+#ifdef TSTRING_IS_STD_STRING
+        assign(pc, len);
+#else
+        if (IsDetached()) {
+            ResizeNonShared(len);
+        } else {
+            Relink(Allocate(len));
+        }
+
+        TTraits::copy(Data_, pc, len);
+#endif
+
+        return *this;
+    }
+
+    inline TBasicString& AssignNoAlias(const TCharType* b, const TCharType* e) {
+#ifdef TSTRING_IS_STD_STRING
+        return assign(b, e - b);
+#else
+        return AssignNoAlias(b, e - b);
+#endif
+    }
+
     TBasicString& assign(const TBasicStringBuf<TCharType, TTraits> s) {
         return assign(s.data(), s.size());
     }
@@ -601,20 +754,20 @@ public:
         return assign(s.SubString(spos, sn));
     }
 
-    inline TBasicString& AssignNoAlias(const TCharType* pc, size_t len) {
-        return assign(pc, len);
-    }
-
-    inline TBasicString& AssignNoAlias(const TCharType* b, const TCharType* e) {
-        return AssignNoAlias(b, e - b);
-    }
-
     TBasicString& AssignNoAlias(const TBasicStringBuf<TCharType, TTraits> s) {
+#ifdef TSTRING_IS_STD_STRING
+        return assign(s.data(), s.size());
+#else
         return AssignNoAlias(s.data(), s.size());
+#endif
     }
 
     TBasicString& AssignNoAlias(const TBasicStringBuf<TCharType, TTraits> s, size_t spos, size_t sn = TBase::npos) {
+#ifdef TSTRING_IS_STD_STRING
+        return assign(s.SubString(spos, sn));
+#else
         return AssignNoAlias(s.SubString(spos, sn));
+#endif
     }
 
     /**
@@ -666,31 +819,52 @@ public:
 #ifdef TSTRING_IS_STD_STRING
         Storage_.reserve(len);
 #else
-        Detach();
-
-        if (len > capacity()) {
-            S_->reserve(len);
+        if (IsDetached()) {
+            if (capacity() < len) {
+                Data_ = Allocate(length(), len, GetData());
+            }
+        } else {
+            const size_t sufficientLen = Max(length(), len);
+            Relink(TTraits::copy(Allocate(length(), sufficientLen, nullptr), Data_, length()));
         }
 #endif
     }
 
     // ~~~ Appending ~~~ : FAMILY0(TBasicString&, append);
     inline TBasicString& append(size_t count, TCharType ch) {
-        MutRef().append(count, ch);
+#ifdef TSTRING_IS_STD_STRING
+        Storage_.append(count, ch);
+#else
+        while (count--) {
+            append(ch);
+        }
+#endif
 
         return *this;
     }
 
     inline TBasicString& append(const TBasicString& s) {
-        MutRef().append(s.ConstRef());
+#ifdef TSTRING_IS_STD_STRING
+        Storage_.append(s.Storage_);
 
         return *this;
+#else
+        if (&s != this) {
+            return AppendNoAlias(s.data(), s.size());
+        }
+
+        return append(s.data(), s.size());
+#endif
     }
 
     inline TBasicString& append(const TBasicString& s, size_t pos, size_t n) {
-        MutRef().append(s.ConstRef(), pos, n);
+#ifdef TSTRING_IS_STD_STRING
+        Storage_.append(s.Storage_, pos, n);
 
         return *this;
+#else
+        return append(s.data(), pos, n, s.size());
+#endif
     }
 
     inline TBasicString& append(const TCharType* pc) {
@@ -704,46 +878,82 @@ public:
     }
 
     inline TBasicString& append(TCharType c) {
-        MutRef().push_back(c);
+#ifdef TSTRING_IS_STD_STRING
+        Storage_.push_back(c);
+#else
+        const size_t olen = length();
+
+        ReserveAndResize(olen + 1);
+        *(Data_ + olen) = c;
+#endif
 
         return *this;
     }
 
     inline TBasicString& append(const TCharType* first, const TCharType* last) {
-        MutRef().append(first, last);
+#ifdef TSTRING_IS_STD_STRING
+        Storage_.append(first, last);
 
         return *this;
-    }
-
-    inline TBasicString& append(const TCharType* pc, size_t len) {
-        MutRef().append(pc, len);
-
-        return *this;
-    }
-
-    inline void ReserveAndResize(size_t len) {
-#if defined(_YNDX_LIBCXX_ENABLE_STRING_RESIZE_UNINITIALIZED)
-        MutRef().resize_uninitialized(len);
 #else
-        resize(len);
+        return append(first, last - first);
 #endif
     }
 
-    TBasicString& AppendNoAlias(const TCharType* pc, size_t len) {
-        auto s = this->size();
+    inline TBasicString& append(const TCharType* pc, size_t len) {
+#ifdef TSTRING_IS_STD_STRING
+        Storage_.append(pc, len);
 
-        ReserveAndResize(s + len);
-        memcpy(&*(begin() + s), pc, len * sizeof(*pc));
+        return *this;
+#else
+        if (pc + len <= TBase::begin() || pc >= TBase::end()) {
+            return AppendNoAlias(pc, len);
+        }
+
+        return append(pc, 0, len, len);
+#endif
+    }
+
+    inline void ReserveAndResize(size_t len) {
+#ifdef TSTRING_IS_STD_STRING
+        Storage_.resize_uninitialized(len);
+#else
+        if (IsDetached()) {
+            ResizeNonShared(len);
+        } else {
+            Relink(TTraits::copy(Allocate(len), Data_, Min(len, length())));
+        }
+#endif
+    }
+
+    inline TBasicString& AppendNoAlias(const TCharType* pc, size_t len) {
+#ifdef TSTRING_IS_STD_STRING
+        return append(pc, len);
+#else
+        const size_t olen = length();
+        const size_t nlen = olen + len;
+
+        ReserveAndResize(nlen);
+        TTraits::copy(Data_ + olen, pc, len);
+#endif
 
         return *this;
     }
 
     TBasicString& AppendNoAlias(const TBasicStringBuf<TCharType, TTraits> s) {
+#ifdef TSTRING_IS_STD_STRING
+        return append(s.data(), s.size());
+#else
         return AppendNoAlias(s.data(), s.size());
+#endif
     }
 
     TBasicString& AppendNoAlias(const TBasicStringBuf<TCharType, TTraits> s, size_t spos, size_t sn = TBase::npos) {
+#ifdef TSTRING_IS_STD_STRING
+        return append(s.SubString(spos, sn));
+#else
         return AppendNoAlias(s.SubString(spos, sn));
+#endif
     }
 
     TBasicString& append(const TBasicStringBuf<TCharType, TTraits> s) {
@@ -754,8 +964,12 @@ public:
         return append(s.SubString(spos, sn));
     }
 
-    TBasicString& append(const TCharType* pc, size_t pos, size_t n, size_t pc_len = TBase::npos) {
+    inline TBasicString& append(const TCharType* pc, size_t pos, size_t n, size_t pc_len = TBase::npos) {
+#ifdef TSTRING_IS_STD_STRING
         return append(pc + pos, Min(n, pc_len - pos));
+#else
+        return replace(length(), 0, pc, pos, n, pc_len);
+#endif
     }
 
     /**
@@ -770,7 +984,6 @@ public:
     TBasicString& AppendUtf16(const ::TWtringBuf& s);
 
     inline void push_back(TCharType c) {
-        // TODO
         append(c);
     }
 
@@ -807,7 +1020,8 @@ public:
     /* implicit */ operator std::basic_string<TCharType, TCharTraits, Allocator>() const {
         // NB(eeight) MSVC cannot compiler direct reference to TBase::operator std::basic_string<...>
         // so we are using static_cast to force the needed operator call.
-        return static_cast<std::basic_string<TCharType, TCharTraits, Allocator>>(static_cast<const TBase&>(*this));
+        return static_cast<std::basic_string<TCharType, TCharTraits, Allocator>>(
+            static_cast<const TBase&>(*this));
     }
 
     /*
@@ -842,7 +1056,7 @@ public:
     }
 
     friend TBasicString operator+(TBasicString&& s1, TBasicString&& s2) Y_WARN_UNUSED_RESULT {
-#if 0 && !defined(TSTRING_IS_STD_STRING)
+#ifndef TSTRING_IS_STD_STRING
         if (!s1.IsDetached() && s2.IsDetached()) {
             s2.prepend(s1);
             return std::move(s2);
@@ -907,62 +1121,104 @@ public:
 
     // ~~~ Prepending ~~~ : FAMILY0(TBasicString&, prepend);
     TBasicString& prepend(const TBasicString& s) {
-        MutRef().insert(0, s.ConstRef());
+#ifdef TSTRING_IS_STD_STRING
+        Storage_.insert(0, s.Storage_);
 
         return *this;
+#else
+        return replace(0, 0, s.Data_, 0, TBase::npos, s.length());
+#endif
     }
 
     TBasicString& prepend(const TBasicString& s, size_t pos, size_t n) {
-        MutRef().insert(0, s.ConstRef(), pos, n);
+#ifdef TSTRING_IS_STD_STRING
+        Storage_.insert(0, s.Storage_, pos, n);
 
         return *this;
+#else
+        return replace(0, 0, s.Data_, pos, n, s.length());
+#endif
     }
 
     TBasicString& prepend(const TCharType* pc) {
-        MutRef().insert(0, pc);
+#ifdef TSTRING_IS_STD_STRING
+        Storage_.insert(0, pc);
 
         return *this;
+#else
+        return replace(0, 0, pc);
+#endif
     }
 
     TBasicString& prepend(size_t n, TCharType c) {
-        MutRef().insert(size_t(0), n, c);
+#ifdef TSTRING_IS_STD_STRING
+        Storage_.insert(size_t(0), n, c);
 
         return *this;
+#else
+        return insert(size_t(0), n, c);
+#endif
     }
 
     TBasicString& prepend(TCharType c) {
-        MutRef().insert(size_t(0), 1, c);
+#ifdef TSTRING_IS_STD_STRING
+        Storage_.insert(size_t(0), 1, c);
 
         return *this;
+#else
+        return replace(0, 0, &c, 0, 1, 1);
+#endif
     }
 
     TBasicString& prepend(const TBasicStringBuf<TCharType, TTraits> s, size_t spos = 0, size_t sn = TBase::npos) {
+#ifdef TSTRING_IS_STD_STRING
+        Storage_.insert(0, s, spos, sn);
+
+        return *this;
+#else
         return insert(0, s, spos, sn);
+#endif
     }
 
     // ~~~ Insertion ~~~ : FAMILY1(TBasicString&, insert, size_t pos);
     TBasicString& insert(size_t pos, const TBasicString& s) {
-        MutRef().insert(pos, s.ConstRef());
+#ifdef TSTRING_IS_STD_STRING
+        Storage_.insert(pos, s.Storage_);
 
         return *this;
+#else
+        return replace(pos, 0, s.Data_, 0, TBase::npos, s.length());
+#endif
     }
 
     TBasicString& insert(size_t pos, const TBasicString& s, size_t pos1, size_t n1) {
-        MutRef().insert(pos, s.ConstRef(), pos1, n1);
+#ifdef TSTRING_IS_STD_STRING
+        Storage_.insert(pos, s.Storage_, pos1, n1);
 
         return *this;
+#else
+        return replace(pos, 0, s.Data_, pos1, n1, s.length());
+#endif
     }
 
     TBasicString& insert(size_t pos, const TCharType* pc) {
-        MutRef().insert(pos, pc);
+#ifdef TSTRING_IS_STD_STRING
+        Storage_.insert(pos, pc);
 
         return *this;
+#else
+        return replace(pos, 0, pc);
+#endif
     }
 
     TBasicString& insert(size_t pos, const TCharType* pc, size_t len) {
-        MutRef().insert(pos, pc, len);
+#ifdef TSTRING_IS_STD_STRING
+        Storage_.insert(pos, pc, len);
 
         return *this;
+#else
+        return insert(pos, TBasicStringBuf<TCharType, TTraits>(pc, len));
+#endif
     }
 
     TBasicString& insert(const_iterator pos, const_iterator b, const_iterator e) {
@@ -976,43 +1232,74 @@ public:
     }
 
     TBasicString& insert(size_t pos, size_t n, TCharType c) {
-        MutRef().insert(pos, n, c);
+#ifdef TSTRING_IS_STD_STRING
+        Storage_.insert(pos, n, c);
 
         return *this;
+#else
+        if (n == 1) {
+            return replace(pos, 0, &c, 0, 1, 1);
+        } else {
+            return insert(pos, TBasicString(n, c));
+        }
+#endif
     }
 
     TBasicString& insert(const_iterator pos, size_t len, TCharType ch) {
+#ifdef TSTRING_IS_STD_STRING
+        Storage_.insert(this->off(pos), len, ch);
+
+        return *this;
+#else
         return this->insert(this->off(pos), len, ch);
+#endif
     }
 
     TBasicString& insert(const_iterator pos, TCharType ch) {
+#ifdef TSTRING_IS_STD_STRING
+        Storage_.insert(this->off(pos), 1, ch);
+
+        return *this;
+#else
         return this->insert(pos, 1, ch);
+#endif
     }
 
     TBasicString& insert(size_t pos, const TBasicStringBuf<TCharType, TTraits> s, size_t spos = 0, size_t sn = TBase::npos) {
-        MutRef().insert(pos, s, spos, sn);
+#ifdef TSTRING_IS_STD_STRING
+        Storage_.insert(pos, s, spos, sn);
 
         return *this;
+#else
+        return replace(pos, 0, s, spos, sn);
+#endif
     }
 
     // ~~~ Removing ~~~
-    TBasicString& remove(size_t pos, size_t n) Y_NOEXCEPT {
+    TBasicString& remove(size_t pos, size_t n) {
+#ifdef TSTRING_IS_STD_STRING
+        Storage_.erase(pos, n);
+
+        return *this;
+#else
+        return replace(pos, n, TDataTraits::GetNull(), 0, 0, 0);
+#endif
+    }
+
+    TBasicString& remove(size_t pos = 0) {
         if (pos < length()) {
-            MutRef().erase(pos, n);
+#ifdef TSTRING_IS_STD_STRING
+            Storage_.erase(pos);
+#else
+            Detach();
+            TruncNonShared(pos);
+#endif
         }
 
         return *this;
     }
 
-    TBasicString& remove(size_t pos = 0) Y_NOEXCEPT {
-        if (pos < length()) {
-            MutRef().erase(pos);
-        }
-
-        return *this;
-    }
-
-    TBasicString& erase(size_t pos = 0, size_t n = TBase::npos) Y_NOEXCEPT {
+    TBasicString& erase(size_t pos = 0, size_t n = TBase::npos) {
 #ifdef TSTRING_IS_STD_STRING
         Storage_.erase(pos, n);
 
@@ -1022,112 +1309,163 @@ public:
 #endif
     }
 
-    TBasicString& erase(const_iterator b, const_iterator e) Y_NOEXCEPT {
+    TBasicString& erase(const_iterator b, const_iterator e) {
         return erase(this->off(b), e - b);
     }
 
-    TBasicString& erase(const_iterator i) Y_NOEXCEPT {
+    TBasicString& erase(const_iterator i) {
         return erase(i, i + 1);
     }
 
-    TBasicString& pop_back() Y_NOEXCEPT {
+    TBasicString& pop_back() {
         Y_ASSERT(!this->empty());
-
-        MutRef().pop_back();
+#ifdef TSTRING_IS_STD_STRING
+        Storage_.pop_back();
 
         return *this;
+#else
+        return erase(this->length() - 1, 1);
+#endif
     }
 
     // ~~~ replacement ~~~ : FAMILY2(TBasicString&, replace, size_t pos, size_t n);
-    TBasicString& replace(size_t pos, size_t n, const TBasicString& s) Y_NOEXCEPT {
+    TBasicString& replace(size_t pos, size_t n, const TBasicString& s) {
 #ifdef TSTRING_IS_STD_STRING
         Storage_.replace(pos, n, s.Storage_);
-#else
-        if (pos <= length()) {
-            MutRef().replace(pos, n, s.ConstRef());
-        }
-#endif
 
         return *this;
+#else
+        return replace(pos, n, s.Data_, 0, TBase::npos, s.length());
+#endif
     }
 
-    TBasicString& replace(size_t pos, size_t n, const TBasicString& s, size_t pos1, size_t n1) Y_NOEXCEPT {
+    TBasicString& replace(size_t pos, size_t n, const TBasicString& s, size_t pos1, size_t n1) {
 #ifdef TSTRING_IS_STD_STRING
         Storage_.replace(pos, n, s.Storage_, pos1, n1);
-#else
-        if (pos <= length()) {
-            MutRef().replace(pos, n, s.ConstRef(), pos1, n1);
-        }
-#endif
 
         return *this;
+#else
+        return replace(pos, n, s.Data_, pos1, n1, s.length());
+#endif
     }
 
-    TBasicString& replace(size_t pos, size_t n, const TCharType* pc) Y_NOEXCEPT {
+    TBasicString& replace(size_t pos, size_t n, const TCharType* pc) {
 #ifdef TSTRING_IS_STD_STRING
         Storage_.replace(pos, n, pc);
-#else
-        if (pos <= length()) {
-            MutRef().replace(pos, n, pc);
-        }
-#endif
 
         return *this;
+#else
+        return replace(pos, n, TBasicStringBuf<TCharType, TTraits>(pc));
+#endif
     }
 
-    TBasicString& replace(size_t pos, size_t n, const TCharType* s, size_t len) Y_NOEXCEPT {
+    TBasicString& replace(size_t pos, size_t n, const TCharType* s, size_t len) {
 #ifdef TSTRING_IS_STD_STRING
         Storage_.replace(pos, n, s, len);
-#else
-        if (pos <= length()) {
-            MutRef().replace(pos, n, s, len);
-        }
-#endif
 
         return *this;
+#else
+        return replace(pos, n, s, 0, len, len);
+#endif
     }
 
-    TBasicString& replace(size_t pos, size_t n, const TCharType* s, size_t spos, size_t sn) Y_NOEXCEPT {
+    TBasicString& replace(size_t pos, size_t n, const TCharType* s, size_t spos, size_t sn) {
 #ifdef TSTRING_IS_STD_STRING
         Storage_.replace(pos, n, s + spos, sn - spos);
-#else
-        if (pos <= length()) {
-            MutRef().replace(pos, n, s + spos, sn - spos);
-        }
-#endif
 
         return *this;
+#else
+        return replace(pos, n, s, spos, sn, sn);
+#endif
     }
 
-    TBasicString& replace(size_t pos, size_t n1, size_t n2, TCharType c) Y_NOEXCEPT {
+    TBasicString& replace(size_t pos, size_t n1, size_t n2, TCharType c) {
 #ifdef TSTRING_IS_STD_STRING
         Storage_.replace(pos, n1, n2, c);
-#else
-        if (pos <= length()) {
-            MutRef().replace(pos, n1, n2, c);
-        }
-#endif
 
         return *this;
+#else
+        if (n2 == 1) {
+            return replace(pos, n1, &c, 0, 1, 1);
+        } else {
+            return replace(pos, n1, TBasicString(n2, c));
+        }
+#endif
     }
 
-    TBasicString& replace(size_t pos, size_t n, const TBasicStringBuf<TCharType, TTraits> s, size_t spos = 0, size_t sn = TBase::npos) Y_NOEXCEPT {
+    TBasicString& replace(size_t pos, size_t n, const TBasicStringBuf<TCharType, TTraits> s, size_t spos = 0, size_t sn = TBase::npos) {
 #ifdef TSTRING_IS_STD_STRING
         Storage_.replace(pos, n, s, spos, sn);
+
+        return *this;
 #else
-        if (pos <= length()) {
-            MutRef().replace(pos, n, s, spos, sn);
-        }
+        return replace(pos, n, s.data(), spos, sn, s.size());
 #endif
+    }
+
+#ifndef TSTRING_IS_STD_STRING
+private:
+    // ~~~ main driver
+    TBasicString& replace(size_t pos, size_t del, const TCharType* pc, size_t pos1, size_t ins, size_t len1) {
+        size_t len = length();
+        // 'pc' can point to a single character that is not null terminated, so in this case TTraits::length must not be called
+        len1 = pc ? (len1 == TBase::npos ? (ins == TBase::npos ? TTraits::length(pc) : NStringPrivate::GetStringLengthWithLimit(pc, ins + pos1)) : len1) : 0;
+
+        pos = Min(pos, len);
+        pos1 = Min(pos1, len1);
+
+        del = Min(del, len - pos);
+        ins = Min(ins, len1 - pos1);
+
+        if (len - del > this->max_size() - ins) { // len-del+ins -- overflow
+            throw std::length_error("TBasicString::replace");
+        }
+
+        size_t total = len - del + ins;
+
+        if (!total) {
+            clear();
+            return *this;
+        }
+
+        size_t rem = len - del - pos;
+
+        if (!IsDetached() || (pc && (pc >= Data_ && pc < Data_ + len))) {
+            // malloc
+            // 1. alias
+            // 2. overlapped
+            TCharType* temp = Allocate(total);
+            TTraits::copy(temp, Data_, pos);
+            TTraits::copy(temp + pos, pc + pos1, ins);
+            TTraits::copy(temp + pos + ins, Data_ + pos + del, rem);
+            Relink(temp);
+        } else if (reserve() < total) {
+            // realloc (increasing)
+            // 3. not enough room
+            Data_ = Allocate(total, GetData());
+            TTraits::move(Data_ + pos + ins, Data_ + pos + del, rem);
+            TTraits::copy(Data_ + pos, pc + pos1, ins);
+        } else {
+            // 1. not alias
+            // 2. not overlapped
+            // 3. enough room
+            // 4. not too much room
+            TTraits::move(Data_ + pos + ins, Data_ + pos + del, rem);
+            TTraits::copy(Data_ + pos, pc + pos1, ins);
+            //GetData()->SetLength(total);
+            TruncNonShared(total);
+        }
 
         return *this;
     }
+#endif
 
+public:
     void swap(TBasicString& s) noexcept {
 #ifdef TSTRING_IS_STD_STRING
         std::swap(Storage_, s.Storage_);
 #else
-        S_.Swap(s.S_);
+        DoSwap(Data_, s.Data_);
 #endif
     }
 
@@ -1181,14 +1519,14 @@ public:
                 Storage_[i] = c;
             }
 #else
-            auto c = f(i, data()[i]);
-            if (c != data()[i]) {
+            auto c = f(i, Data_[i]);
+            if (c != Data_[i]) {
                 if (!changed) {
                     Detach();
                     changed = true;
                 }
 
-                begin()[i] = c;
+                Data_[i] = c;
             }
 #endif
         }
@@ -1231,5 +1569,3 @@ namespace std {
         }
     };
 }
-
-#undef Y_NOEXCEPT
