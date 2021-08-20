@@ -354,10 +354,12 @@ def _do_compile_go(args):
         'go{}'.format(args.goversion)
     ]
     cmd.extend(get_trimpath_args(args))
+    compiling_runtime = False
     if is_std_module:
         cmd.append('-std')
-        if import_path == 'runtime' or import_path.startswith('runtime/internal/'):
+        if import_path in ('runtime', 'internal/abi', 'internal/bytealg', 'internal/cpu') or import_path.startswith('runtime/internal/'):
             cmd.append('-+')
+            compiling_runtime = True
     import_config_name = create_import_config(args.peers, True, args.import_map, args.module_map)
     if import_config_name:
         cmd += ['-importcfg', import_config_name]
@@ -382,7 +384,7 @@ def _do_compile_go(args):
     #     cmd.append('-allabis')
     compile_workers = '4'
     if args.compile_flags:
-        if import_path == 'runtime' or import_path.startswith('runtime/'):
+        if compiling_runtime:
             cmd.extend(x for x in args.compile_flags if x not in COMPILE_OPTIMIZATION_FLAGS)
         else:
             cmd.extend(args.compile_flags)
