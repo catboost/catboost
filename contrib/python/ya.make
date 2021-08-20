@@ -5,6 +5,7 @@ RECURSE(
     attrs
     backcall
     backports-shutil_get_terminal_size
+    certifi
     colorama
     configparser
     contextlib2
@@ -47,6 +48,7 @@ RECURSE(
     six
     subprocess32
     testpath
+    tornado
     traitlets
     wcwidth
 )

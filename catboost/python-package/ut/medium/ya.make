@@ -14,6 +14,7 @@ FORK_SUBTESTS()
 SPLIT_FACTOR(40)
 
 PEERDIR(
+    contrib/python/tornado/tornado-6
     contrib/python/graphviz
     contrib/python/pandas
     contrib/python/numpy

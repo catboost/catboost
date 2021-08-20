@@ -1,6 +1,7 @@
 
 
 RECURSE(
+    certifi
     cores
     filelock
     filelock/ut
