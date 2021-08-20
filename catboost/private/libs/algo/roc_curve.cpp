@@ -191,7 +191,8 @@ TRocCurve::TRocCurve(const TFullModel& model, const TVector<TDataProviderPtr>& d
                 EPredictionType::RawFormulaVal,
                 0,
                 0,
-                &localExecutor
+                &localExecutor,
+                processedData.TargetData->GetBaseline()
             )[0];
 
             targetDataParts[i] = std::move(processedData.TargetData);

@@ -358,7 +358,8 @@ TVector<TMetricHolder> CalcFeatureEffectLossChangeMetricStats(
         EPredictionType::RawFormulaVal,
         /*begin*/ 0,
         /*end*/ 0,
-        localExecutor
+        localExecutor,
+        dataset->RawTargetData.GetBaseline()
     );
     TVector<TQueryInfo> queriesInfo(targetQueriesInfo.begin(), targetQueriesInfo.end());
 

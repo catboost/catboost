@@ -46,8 +46,8 @@ Y_UNIT_TEST_SUITE(TShrinkModel) {
             {&evalResult});
 
         model.Truncate(0, 5);
-        auto result = ApplyModelMulti(model, *(pool->ObjectsData))[0];
-        auto result2 = ApplyModelMulti(model2, *(pool->ObjectsData))[0];
+        auto result = ApplyModelMulti(model, *pool)[0];
+        auto result2 = ApplyModelMulti(model2, *pool)[0];
         UNIT_ASSERT_EQUAL(result.ysize(), result2.ysize());
         for (int idx = 0; idx < result.ysize(); ++idx) {
             UNIT_ASSERT_DOUBLES_EQUAL(result[idx], result2[idx], 1e-6);

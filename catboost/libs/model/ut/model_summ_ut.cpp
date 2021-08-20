@@ -41,7 +41,7 @@ static void AssertModelSumEqualSliced(TDataProviderPtr dataProvider, bool change
     if (changeBias) {
         bigModel.SetScaleAndBias({bigModel.GetScaleAndBias().Scale, {0.125}});
     }
-    auto bigResult = ApplyModelMulti(bigModel, *(dataProvider->ObjectsData));
+    auto bigResult = ApplyModelMulti(bigModel, *dataProvider);
     bigModel.ModelTrees.GetMutable()->DropUnusedFeatures();
     TVector<TFullModel> partModels;
     TVector<const TFullModel*> modelPtrs;
@@ -59,7 +59,7 @@ static void AssertModelSumEqualSliced(TDataProviderPtr dataProvider, bool change
         UNIT_ASSERT_EQUAL(*mergedModel.ModelTrees, *bigModel.ModelTrees);
     }
 
-    auto mergedResult = ApplyModelMulti(mergedModel, *dataProvider->ObjectsData);
+    auto mergedResult = ApplyModelMulti(mergedModel, *dataProvider);
     UNIT_ASSERT_VALUES_EQUAL(bigResult.ysize(), mergedResult.ysize());
     for (int idx = 0; idx < bigResult.ysize(); ++idx) {
         if (!changeScale && !changeBias) {

@@ -199,7 +199,7 @@ namespace NCB {
                 executor
             );
 
-            auto pred = ApplyModelMulti(model, *(dataProviderPtr->ObjectsData), false, predictionType, 0, 0, threadCount)[0];
+            auto pred = ApplyModelMulti(model, *(dataProviderPtr->ObjectsData), false, predictionType, 0, 0, threadCount, dataProviderPtr->RawTargetData.GetBaseline())[0];
             (*predictions)[numVal] = std::accumulate(pred.begin(), pred.end(), 0.) / static_cast<double>(pred.size());
             data = TBuilderDataHelper<TTObjectsDataProvider>::Extract(std::move(*dataProviderPtr));
             ++numVal;

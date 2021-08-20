@@ -643,14 +643,15 @@ void TLearnProgress::SetSeparateInitModel(
 
     // Calc approxes
 
-    auto calcApproxFunction = [&] (const TObjectsDataProvider& objectsData) -> TVector<TVector<double>> {
+    auto calcApproxFunction = [&] (const TDataProvider& data) -> TVector<TVector<double>> {
         return ApplyModelMulti(
             initModel,
-            objectsData,
+            *data.ObjectsData,
             EPredictionType::RawFormulaVal,
             0,
             SafeIntegerCast<int>(initModel.GetTreeCount()),
-            localExecutor
+            localExecutor,
+            data.RawTargetData.GetBaseline()
         );
     };
 
@@ -660,7 +661,7 @@ void TLearnProgress::SetSeparateInitModel(
         [&] () {
             const ui32 learnObjectCount = initModelApplyCompatiblePools.Learn->GetObjectCount();
 
-            AvrgApprox = calcApproxFunction(*initModelApplyCompatiblePools.Learn->ObjectsData);
+            AvrgApprox = calcApproxFunction(*initModelApplyCompatiblePools.Learn);
 
             TVector<TConstArrayRef<double>> approxRef(AvrgApprox.begin(), AvrgApprox.end());
 
@@ -698,7 +699,7 @@ void TLearnProgress::SetSeparateInitModel(
         tasks.push_back(
             [&, testIdx] () {
                 TestApprox[testIdx] = calcApproxFunction(
-                    *initModelApplyCompatiblePools.Test[testIdx]->ObjectsData);
+                    *initModelApplyCompatiblePools.Test[testIdx]);
             }
         );
     }

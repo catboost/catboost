@@ -5368,6 +5368,13 @@ cdef class _StagedPredictIterator:
             pool.__pool.Get()[0].ObjectsData,
             <ILocalExecutor*>&self.__executor
         )
+        cdef TMaybeData[TBaselineArrayRef] maybe_baseline = pool.__pool.Get()[0].RawTargetData.GetBaseline()
+        cdef TBaselineArrayRef baseline
+        if maybe_baseline.Defined():
+            baseline = maybe_baseline.GetRef()
+            for baseline_idx in range(baseline.size()):
+                for object_idx in range(pool.num_row()):
+                    self.__approx[object_idx][baseline_idx] = baseline[baseline_idx][object_idx]
 
     def __dealloc__(self):
         del self.__modelCalcerOnPool

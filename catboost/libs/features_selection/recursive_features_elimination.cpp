@@ -428,7 +428,8 @@ namespace NCB {
                 EPredictionType::RawFormulaVal,
                 0,
                 0,
-                executor
+                executor,
+                testPool->RawTargetData.GetBaseline()
             );
         };
 
