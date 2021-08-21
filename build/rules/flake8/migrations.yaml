@@ -1356,7 +1356,6 @@ migrations:
     - maps/tools/naviguide/tools/extract_uuid_info
     - market/seo/offer_base
     - mediapers/feature_machine/nirvana/script_runner
-    - metrika/core/test_framework/steps/clients
     - mlp/mail/aspam/nirvana_operations/conveyor/build_prod_graph/inbound
     - mlp/mail/aspam/nirvana_operations/conveyor/build_prod_graph/outbound
     - mlp/mail/aspam/nirvana_operations/conveyor/calc_dsats
@@ -1791,7 +1790,6 @@ migrations:
     - maps/tools/naviguide/tools/extract_uuid_info
     - market/seo/offer_base
     - mediapers/feature_machine/nirvana/script_runner
-    - metrika/core/test_framework/steps/clients
     - mlp/mail/aspam/nirvana_operations/conveyor/build_prod_graph/inbound
     - mlp/mail/aspam/nirvana_operations/conveyor/build_prod_graph/outbound
     - mlp/mail/aspam/nirvana_operations/conveyor/calc_dsats
@@ -2237,8 +2235,6 @@ migrations:
     - intranet/paste/src
     - intranet/table_flow/src/rules/migrations
     - intranet/table_flow/src/users/migrations
-    - intranet/vconf/src
-    - intranet/vconf/tests
     - intranet/webauth/lib
     - intranet/webauth/tests
     - intranet/wiki/tests
