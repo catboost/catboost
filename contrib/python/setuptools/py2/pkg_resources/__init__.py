@@ -3298,7 +3298,7 @@ class ResDistribution(DistInfoDistribution):
             metadata=ResProvider(prefix),
             precedence=BINARY_DIST,
         )
-        self.project_name = self._parsed_pkg_info['Name']
+        self.project_name = self._parsed_pkg_info.get('Name', self.project_name)
 
 
 def find_in_res(importer, path_item, only=False):
