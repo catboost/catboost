@@ -2000,9 +2000,11 @@ class LD(Linker):
                 EXPORTS_VALUE=
             }''')
 
+        emit('LINKER_SCRIPT_VALUE', '${ext=.ld;pre=-T:SRCS_GLOBAL}')
+
         exe_flags = [
             '$C_FLAGS_PLATFORM', '$BEFORE_PEERS', self.start_group, '${rootrel:PEERS}', self.end_group, '$AFTER_PEERS',
-            '$EXPORTS_VALUE $LDFLAGS $LDFLAGS_GLOBAL $OBJADDE $OBJADDE_LIB',
+            '$EXPORTS_VALUE $LINKER_SCRIPT_VALUE $LDFLAGS $LDFLAGS_GLOBAL $OBJADDE $OBJADDE_LIB',
             '$C_LIBRARY_PATH $C_SYSTEM_LIBRARIES_INTERCEPT $C_SYSTEM_LIBRARIES $STRIP_FLAG $DCE_FLAG']
 
         arch_flag = '--arch={arch}'.format(arch=self.target.os_compat)
@@ -2097,7 +2099,7 @@ class LD(Linker):
         def emit_link_fat_obj(cmd_name, need_wa_option, *extended_flags):
             prefix = ['$GENERATE_MF && $GENERATE_VCS_C_INFO_NODEP &&',
                       '$YMAKE_PYTHON ${input:"build/scripts/link_fat_obj.py"} --build-root $ARCADIA_BUILD_ROOT']
-            globals_libs = srcs_globals if need_wa_option else '${rootrel:SRCS_GLOBAL}'
+            globals_libs = srcs_globals if need_wa_option else '${rootrel;ext=.a:SRCS_GLOBAL} ${rootrel;ext=.o:SRCS_GLOBAL}'
             suffix = [arch_flag,
                       '-Ya,input $AUTO_INPUT $VCS_C_OBJ -Ya,global_srcs', globals_libs, '-Ya,peers $PEERS',
                       '-Ya,linker $CXX_COMPILER $LDFLAGS_GLOBAL $C_FLAGS_PLATFORM', self.ld_sdk, '-Ya,archiver', archiver,
@@ -2753,7 +2755,7 @@ class MSVCLinker(MSVC, Linker):
              $LINK_EXE_FLAGS $LINK_STDLIBS $LDFLAGS $LDFLAGS_GLOBAL $OBJADDE --ya-end-command-file ${hide;kv:"soe"} ${hide;kv:"p LD"} ${hide;kv:"pc blue"}')
 
         emit('LINK_GLOBAL_FAT_OBJECT', '${TOOLCHAIN_ENV} ${cwd:ARCADIA_BUILD_ROOT} ${LIB_WRAPPER} ${LINK_LIB_CMD} /OUT:${qe;rootrel:TARGET} \
-            --ya-start-command-file ${qe;rootrel:SRCS_GLOBAL} ${qe;rootrel:AUTO_INPUT} $LINK_LIB_FLAGS --ya-end-command-file')
+            --ya-start-command-file ${qe;rootrel;ext=.lib:SRCS_GLOBAL} ${qe;rootrel;ext=.obj:SRCS_GLOBAL} ${qe;rootrel:AUTO_INPUT} $LINK_LIB_FLAGS --ya-end-command-file')
         emit('LINK_PEERS_FAT_OBJECT', '${TOOLCHAIN_ENV} ${cwd:ARCADIA_BUILD_ROOT} ${LIB_WRAPPER} ${LINK_LIB_CMD} /OUT:${qe;rootrel;output:REALPRJNAME.lib} \
             --ya-start-command-file ${qe;rootrel:PEERS} $LINK_LIB_FLAGS --ya-end-command-file')
         emit('LINK_FAT_OBJECT', '${GENERATE_MF} && $GENERATE_VCS_C_INFO_NODEP && $LINK_GLOBAL_FAT_OBJECT && $LINK_PEERS_FAT_OBJECT ${kv;hide:"p LD"} ${kv;hide:"pc light-blue"} ${kv;hide:"show_out"}')  # noqa E501
