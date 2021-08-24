@@ -37,18 +37,5 @@ namespace NCB {
         const TEmbeddingArrayReferencesColumn Embedding;
     };
 
-    struct TEmbeddingClassificationTarget : public TThrRefBase {
-    public:
-        TEmbeddingClassificationTarget(TVector<ui32>&& classes, ui32 numClasses)
-        : Classes(std::move(classes))
-        , NumClasses(numClasses)
-        {}
-
-    public:
-        TVector<ui32> Classes;
-        ui32 NumClasses;
-    };
-
     using TEmbeddingDataSetPtr = TIntrusivePtr<TEmbeddingDataSet>;
-    using TEmbeddingClassificationTargetPtr = TIntrusivePtr<TEmbeddingClassificationTarget>;
 };

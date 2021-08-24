@@ -10,7 +10,7 @@ namespace NCB {
     class TLDAEstimator final : public TEmbeddingBaseEstimator<TLinearDACalcer, TLinearDACalcerVisitor>{
     public:
         TLDAEstimator(
-            TEmbeddingClassificationTargetPtr target,
+            TClassificationTargetPtr target,
             TEmbeddingDataSetPtr learnEmbeddings,
             TArrayRef<TEmbeddingDataSetPtr> testEmbedding,
             const NJson::TJsonValue& options)
@@ -75,7 +75,7 @@ namespace NCB {
     class TKNNEstimator final : public TEmbeddingBaseEstimator<TKNNCalcer, TKNNCalcerVisitor>{
     public:
         TKNNEstimator(
-            TEmbeddingClassificationTargetPtr target,
+            TClassificationTargetPtr target,
             TEmbeddingDataSetPtr learnEmbeddings,
             TArrayRef<TEmbeddingDataSetPtr> testEmbedding,
             const NJson::TJsonValue& options)
@@ -111,7 +111,7 @@ namespace NCB {
 
     TVector<TOnlineFeatureEstimatorPtr> CreateEmbeddingEstimators(
         TConstArrayRef<NCatboostOptions::TFeatureCalcerDescription> featureCalcerDescription,
-        TEmbeddingClassificationTargetPtr target,
+        TClassificationTargetPtr target,
         TEmbeddingDataSetPtr learnEmbeddings,
         TArrayRef<TEmbeddingDataSetPtr> testEmbedding
     ) {

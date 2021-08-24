@@ -5,6 +5,7 @@
 
 #include <catboost/libs/data/borders_io.h>
 #include <catboost/libs/data/quantization.h>
+#include <catboost/libs/helpers/dispatch_generic_lambda.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/restorable_rng.h>
 #include <catboost/libs/metrics/metric.h>
@@ -14,6 +15,7 @@
 #include <catboost/private/libs/options/load_options.h>
 #include <catboost/private/libs/options/system_options.h>
 #include <catboost/private/libs/target/data_providers.h>
+#include <catboost/private/libs/feature_estimator/classification_target.h>
 #include <catboost/private/libs/feature_estimator/text_feature_estimators.h>
 #include <catboost/private/libs/feature_estimator/embedding_feature_estimators.h>
 
@@ -295,27 +297,22 @@ namespace NCB {
         return MakeIntrusive<TEmbeddingDataSet>(std::move(constEmbeddingData));
     }
 
-    static TTextClassificationTargetPtr CreateTextClassificationTarget(const TTargetDataProvider& targetDataProvider) {
+    static TClassificationTargetPtr CreateClassificationTarget(const TTargetDataProvider& targetDataProvider) {
         const ui32 numClasses = *targetDataProvider.GetTargetClassCount();
-        TConstArrayRef<float> target = *targetDataProvider.GetOneDimensionalTarget();
-        TVector<ui32> classes;
-        classes.resize(target.size());
+        const auto extractClasses = [&](auto isBinClass) {
+            TConstArrayRef<float> target = *targetDataProvider.GetOneDimensionalTarget();
+            TVector<ui32> classes;
+            classes.yresize(target.size());
 
-        for (ui32 i = 0; i < target.size(); i++) {
-            classes[i] = static_cast<ui32>(target[i]);
-        }
-        return MakeIntrusive<TTextClassificationTarget>(std::move(classes), numClasses);
-    }
-
-    static TEmbeddingClassificationTargetPtr CreateEmbeddingClassificationTarget(const TTargetDataProvider& targetDataProvider) {
-        const ui32 numClasses = *targetDataProvider.GetTargetClassCount();
-        TConstArrayRef<float> target = *targetDataProvider.GetOneDimensionalTarget();
-        TVector<ui32> classes(target.size());
-
-        for (ui32 i = 0; i < target.size(); i++) {
-            classes[i] = static_cast<ui32>(target[i]);
-        }
-        return MakeIntrusive<TEmbeddingClassificationTarget>(std::move(classes), numClasses);
+            for (ui32 i = 0; i < target.size(); i++) {
+                classes[i] = static_cast<ui32>(isBinClass ? target[i] > 0.5f : target[i]);
+            }
+            return classes;
+        };
+        return MakeIntrusive<TClassificationTarget>(
+            DispatchGenericLambda(extractClasses, numClasses == 2),
+            numClasses
+        );
     }
 
     static TFeatureEstimatorsPtr CreateEstimators(
@@ -328,7 +325,7 @@ namespace NCB {
         TFeatureEstimatorsBuilder estimatorsBuilder;
 
         const TQuantizedObjectsDataProvider& learnDataProvider = *pools.Learn->ObjectsData;
-        auto learnTextTarget = CreateTextClassificationTarget(*pools.Learn->TargetData);
+        auto learnTextTarget = CreateClassificationTarget(*pools.Learn->TargetData);
 
         pools.Learn->MetaInfo.FeaturesLayout->IterateOverAvailableFeatures<EFeatureType::Text>(
             [&](TTextFeatureIdx tokenizedTextFeatureIdx) {
@@ -372,7 +369,7 @@ namespace NCB {
         );
 
         auto embeddingFeaturesDescription = quantizedFeaturesInfo->GetEmbeddingProcessingOptions().GetFeatureDescriptions();
-        auto learnEmbeddingTarget = CreateEmbeddingClassificationTarget(*pools.Learn->TargetData);
+        auto learnEmbeddingTarget = CreateClassificationTarget(*pools.Learn->TargetData);
 
         pools.Learn->MetaInfo.FeaturesLayout->IterateOverAvailableFeatures<EFeatureType::Embedding>(
             [&](TEmbeddingFeatureIdx embeddingFeature) {
