@@ -6,7 +6,7 @@
         "fold_len_multiplier": 2,
         "fold_permutation_block": 0,
         "iterations": 1000,
-        "learning_rate": 0.11002399772405624,
+        "learning_rate": 0.10492900013923645,
         "model_shrink_mode": "Constant",
         "model_shrink_rate": 0,
         "od_config": {

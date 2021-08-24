@@ -121,12 +121,12 @@
     ],
     "test_gpu.test_bootstrap[Ordered]": [
         {
-            "uri": "file://test_gpu.test_bootstrap_Ordered_/test_bernoulli.eval"
+            "uri": "file://test_gpu.test_bootstrap_Ordered_/test_bayes.eval"
         }
     ],
     "test_gpu.test_bootstrap[Plain]": [
         {
-            "uri": "file://test_gpu.test_bootstrap_Plain_/test_bernoulli.eval"
+            "uri": "file://test_gpu.test_bootstrap_Plain_/test_bayes.eval"
         }
     ],
     "test_gpu.test_class_names_multiclass[MultiClassOneVsAll]": [
