@@ -11,11 +11,11 @@ public:
         return Priority;
     }
 
-    bool SupportsLayout(EPerftestModuleDataLayout ) const override final {
+    bool SupportsLayout(EPerftestModuleDataLayout ) const final {
         return true;
     }
 
-    double Do(EPerftestModuleDataLayout layout, TConstArrayRef<TConstArrayRef<float>> features) override final {
+    double Do(EPerftestModuleDataLayout layout, TConstArrayRef<TConstArrayRef<float>> features) final {
         if (layout == EPerftestModuleDataLayout::ObjectsFirst) {
             ResultsHolder.resize(features.size());
             Timer.Reset();
@@ -28,7 +28,7 @@ public:
             return Timer.Passed();
         }
     }
-    TString GetName(TMaybe<EPerftestModuleDataLayout> layout) const override final {
+    TString GetName(TMaybe<EPerftestModuleDataLayout> layout) const final {
         if (!layout.Defined()) {
             return BaseName;
         } else if (*layout == EPerftestModuleDataLayout::ObjectsFirst) {

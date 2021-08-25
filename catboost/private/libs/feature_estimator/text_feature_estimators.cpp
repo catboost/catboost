@@ -108,7 +108,7 @@ namespace {
             Calc(*executor, MakeConstArrayRef(TestTexts), testVisitors);
         }
 
-        virtual EFeatureType GetSourceType() const override {
+        EFeatureType GetSourceType() const override {
             return EFeatureType::Text;
         }
 

@@ -42,7 +42,7 @@ Y_UNIT_TEST_SUITE(TestFeatureEstimators) {
 
         class TIdentityVisitor final : public ITextCalcerVisitor {
         public:
-            void Update(ui32 classIdx, const TText& text, TTextFeatureCalcer* calcer) {
+            void Update(ui32 classIdx, const TText& text, TTextFeatureCalcer* calcer) override {
                 auto identityCalcer = dynamic_cast<TIdentityCalcer*>(calcer);
                 Y_ASSERT(identityCalcer);
 

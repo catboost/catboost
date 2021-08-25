@@ -124,7 +124,7 @@ namespace {
             int end
         ) const = 0;
 
-        bool IsAdditiveMetric() const override final {
+        bool IsAdditiveMetric() const final {
             return true;
         }
     };
