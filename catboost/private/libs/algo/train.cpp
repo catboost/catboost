@@ -303,24 +303,6 @@ void TrainOneIteration(const NCB::TTrainingDataProviders& data, TLearnContext* c
 
         if (ctx->Params.SystemOptions->IsSingleHost()) {
             const TVector<ui64> randomSeeds = GenRandUI64Vector(foldCount, ctx->LearnProgress->Rand.GenRand());
-            ctx->LocalExecutor->ExecRangeWithThrow(
-                [&](int foldId) {
-                    UpdateLearningFold(
-                        data,
-                        *error,
-                        bestTree,
-                        randomSeeds[foldId],
-                        trainFolds[foldId],
-                        ctx
-                    );
-                },
-                0,
-                foldCount,
-                NPar::TLocalExecutor::WAIT_COMPLETE
-            );
-
-            profile.AddOperation("CalcApprox tree struct and update tree structure approx");
-            CheckInterrupted(); // check after long-lasting operation
 
             TVector<TIndexType> indices;
 
@@ -364,13 +346,22 @@ void TrainOneIteration(const NCB::TTrainingDataProviders& data, TLearnContext* c
                 GetWeights(*data.Learn->TargetData),
                 ctx->LocalExecutor
             );
+            const auto lossFunction = ctx->Params.LossFunctionDescription->GetLossFunction();
+            const bool usePairs = UsesPairsForCalculation(lossFunction);
             NormalizeLeafValues(
-                UsesPairsForCalculation(ctx->Params.LossFunctionDescription->GetLossFunction()),
+                usePairs,
                 ctx->Params.BoostingOptions->LearningRate,
                 sumLeafWeights,
                 &treeValues
             );
 
+            TVector<TVector<double>>* foldZeroApprox = nullptr;
+            const bool isPlainBoosting = ctx->Params.BoostingOptions->BoostingType == EBoostingType::Plain;
+            const bool useAveragingFoldAsFoldZero = isPlainBoosting &&
+                !ctx->LearnProgress->IsAveragingFoldPermuted && !usePairs;
+            if (useAveragingFoldAsFoldZero) {
+                foldZeroApprox = &trainFolds[0]->BodyTailArr[0].Approx;
+            }
             UpdateAvrgApprox(
                 error->GetIsExpApprox(),
                 data.Learn->GetObjectCount(),
@@ -378,8 +369,24 @@ void TrainOneIteration(const NCB::TTrainingDataProviders& data, TLearnContext* c
                 treeValues,
                 data.Test,
                 ctx->LearnProgress.Get(),
-                ctx->LocalExecutor
-            );
+                ctx->LocalExecutor,
+                foldZeroApprox);
+            ctx->LocalExecutor->ExecRangeWithThrow(
+                [&](int foldId)
+                {
+                    UpdateLearningFold(
+                        data,
+                        *error,
+                        bestTree,
+                        randomSeeds[foldId],
+                        trainFolds[foldId],
+                        ctx);
+                },
+                /*firstId=*/static_cast<int>(foldZeroApprox != nullptr),
+                foldCount,
+                NPar::TLocalExecutor::WAIT_COMPLETE);
+            profile.AddOperation("CalcApprox tree struct and update tree structure approx");
+            CheckInterrupted(); // check after long-lasting operation
         } else {
             const bool isMultiRegression = dynamic_cast<const TMultiDerCalcer*>(error.Get()) != nullptr;
 

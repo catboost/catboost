@@ -448,6 +448,7 @@ TLearnProgress::TLearnProgress(
     NCB::TDataProviders initModelApplyCompatiblePools,
     NPar::ILocalExecutor* localExecutor)
     : StartingApprox(foldsCreationParams.StartingApprox)
+    , IsAveragingFoldPermuted(foldsCreationParams.IsAverageFoldPermuted)
     , FoldCreationParamsCheckSum(foldCreationParamsCheckSum)
     , CatFeatures(CreateCatFeatures(*data.Learn->ObjectsData->GetFeaturesLayout()))
     , FloatFeatures(
