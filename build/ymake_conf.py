@@ -1231,6 +1231,7 @@ class GnuToolchain(Toolchain):
         emit('SWIFT_FLAGS_PLATFORM', self.swift_flags_platform)
         emit('SWIFT_LD_FLAGS', '-L{}'.format(self.swift_lib_path) if self.swift_lib_path else '')
 
+        emit('PERL_SDK', preset('OS_SDK') or self.tc.os_sdk)
         if preset('OS_SDK') is None:
             emit('OS_SDK', self.tc.os_sdk)
         emit('OS_SDK_ROOT', None if self.tc.os_sdk_local else self.default_os_sdk_root)
