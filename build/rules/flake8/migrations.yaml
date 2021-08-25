@@ -928,7 +928,6 @@ migrations:
     - yweb/antispam/webspam/collections/vw_model_applier/bin
     - yweb/antispam/webspam/export/tries/tools/upper_tries
     - yweb/antispam/ytgr/viewer
-    - yweb/blender/find_similar_queries/processes_manager
     - yweb/blender/newsletter/unused_formulas
     - yweb/blender/scripts/blender_viewer/conveyor_experiments/utils
     - yweb/blender/scripts/nirvana/jobs/calc_workflow_num_with_filters
