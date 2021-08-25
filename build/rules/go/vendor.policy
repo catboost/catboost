@@ -661,7 +661,7 @@ ALLOW .* -> vendor/github.com/coredns/coredns/plugin/loadbalance
 ALLOW .* -> vendor/github.com/shopspring/decimal
 
 # CONTRIB-2050
-ALLOW .* -> vendor/github.com/brianvoe/gofakeit
+ALLOW .* -> vendor/github.com/brianvoe/gofakeit/v6
 
 # CONTRIB-2051
 ALLOW .* -> vendor/github.com/envoyproxy/go-control-plane
