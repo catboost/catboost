@@ -53,6 +53,7 @@ ELSEIF (OS_WINDOWS)
         src/support/win32/atomic_win32.cpp
         src/support/win32/new_win32.cpp
         src/support/win32/thread_win32.cpp
+        src/filesystem/stub_win32.cpp
     )
     CFLAGS(
         GLOBAL -D_LIBCPP_VASPRINTF_DEFINED
