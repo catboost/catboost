@@ -18,6 +18,7 @@ def parse_args():
     parser.add_argument("--build-root", required=True)
     parser.add_argument("--config-file", required=True)
     parser.add_argument("--export-fixes", required=True)
+    parser.add_argument("--checks", required=False, default="")
     return parser.parse_known_args()
 
 
@@ -109,6 +110,9 @@ def main():
         ]
         if args.export_fixes == "yes":
             cmd += ["--export-fixes", fixes_file]
+
+        if args.checks:
+            cmd += ["--checks", args.checks]
         res = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = res.communicate()
         exit_code = res.returncode
