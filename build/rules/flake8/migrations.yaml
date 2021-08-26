@@ -1086,7 +1086,6 @@ migrations:
     - infra/host-cpu-metrics
     - infra/host-cpu-metrics/host_metrics
     - infra/porto/api_py
-    - infra/qemu/vmexec
     - infra/qyp/vmproxy/tests
     - infra/shawshank/tests
     - infra/skybit
@@ -3227,7 +3226,6 @@ migrations:
     - yweb/antimalware/threats_db/core
     - yweb/antimalware/visual_html_parser/yandex-search-antivirus-discovery
     - yweb/antiporno/bert/development/python/lib/google_bert
-    - yweb/antiporno/nirvana/operations/query_prepare_clues_v2/src
     - yweb/antiporno/queries_active_learning/work_with_markup_cache
     - yweb/antiporno/site_reachability/lib/retraversal_sites
     - yweb/antiporno/site_reachability/lib/spy_handling
@@ -3790,7 +3788,6 @@ migrations:
     - yt/admin/shiva/tests/unit
     - yt/odin/tests/suites
     - yweb/antimalware/libs/yttools/py/tests
-    - yweb/antiporno/nirvana/operations/query_prepare_clues_v2/test
     - yweb/antiporno/pyutil/draft/simple_yt/tests
     - yweb/antiporno/pyutil/tests
     - yweb/antiporno/site_reachability/lib/botanik/tests/small
