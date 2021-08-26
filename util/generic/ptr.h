@@ -483,11 +483,20 @@ class TIntrusivePtr: public TPointerBase<TIntrusivePtr<T, Ops>, T> {
     friend class TIntrusiveConstPtr<T, Ops>;
 
 public:
+    struct TNoIncrement {
+    };
+
     inline TIntrusivePtr(T* t = nullptr) noexcept
         : T_(t)
     {
         Ops();
         Ref();
+    }
+
+    inline TIntrusivePtr(T* t, TNoIncrement) noexcept
+        : T_(t)
+    {
+        Ops();
     }
 
     inline ~TIntrusivePtr() {
