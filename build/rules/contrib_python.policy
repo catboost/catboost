@@ -64,6 +64,7 @@ ALLOW smarttv/droideka -> contrib/python/django/django-1.11
 ALLOW travel/avia/.* -> contrib/python/django/django-1.11
 ALLOW travel/rasp/admin -> contrib/python/django/django-1.11
 ALLOW travel/rasp/library/python/common -> contrib/python/django/django-1.11
+ALLOW travel/rasp/library/python/sitemap -> contrib/python/django/django-1.11
 ALLOW travel/library/python/entrypoint -> contrib/python/django/django-1.11
 ALLOW yaphone/advisor/advisor -> contrib/python/django/django-1.11
 ALLOW yaphone/advisor/common/tests -> contrib/python/django/django-1.11
