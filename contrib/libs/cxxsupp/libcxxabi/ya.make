@@ -6,7 +6,14 @@ LIBRARY()
 
 VERSION(2021-06-07-87039c048c0cbc3d8cbba86187269b006bf2f373)
 
-LICENSE(Apache-2.0 WITH LLVM-exception)
+LICENSE(
+    Apache-2.0 WITH LLVM-exception
+    MIT
+    NCSA
+    NCSA AND MIT
+)
+
+LICENSE_TEXTS(yandex_meta/licenses.list.txt)
 
 ADDINCL(
     contrib/libs/cxxsupp/libcxxabi/include
@@ -20,9 +27,7 @@ NO_RUNTIME()
 
 NO_UTIL()
 
-CFLAGS(
-    -D_LIBCXXABI_BUILDING_LIBRARY
-)
+CFLAGS(-D_LIBCXXABI_BUILDING_LIBRARY)
 
 SRCS(
     src/abort_message.cpp
@@ -44,9 +49,9 @@ SRCS(
     src/stdlib_typeinfo.cpp
 )
 
-
 SRC_CPP_PIC(
-    src/cxa_thread_atexit.cpp -fno-lto
+    src/cxa_thread_atexit.cpp
+    -fno-lto
 )
 
 END()
