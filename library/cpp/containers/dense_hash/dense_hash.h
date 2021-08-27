@@ -317,6 +317,20 @@ public:
         return true;
     }
 
+    // Grow to size with which GrowThreshold will be higher then passed value
+    //
+    // (to) = (desired_num_filled + 2) * (100.f / MaxLoadFactor) + 2 after conversion to size_type 
+    // is not less than x := (desired_num_filled + 2) * (100.f / MaxLoadFactor) + 1 and FastClp2(to) is not less that (to)
+    // (to) * (MaxLoadFactor / 100.f) >= x * (MaxLoadFactor / 100.f) = (desired_num_filled + 2) + (MaxLoadFactor / 100.f).
+    // This require calculations with two or more significand decimal places
+    // to have no less than (desired_num_filled + 2) after second conversion to size_type.
+    // In that case after substracting 1 we got GrowThreshold >= desired_num_filled + 1
+    // 
+    bool ReserveSpace(size_type desired_num_filled, bool force = false) {
+        size_type to = Max<size_type>(1, (desired_num_filled + 2) * (100.f / MaxLoadFactor) + 2);
+        return Grow(to, force);
+    }
+
     // We need this overload because we want to optimize insertion when somebody inserts value_type.
     // So we don't need to extract the key.
     // This overload also allows brace enclosed initializer to be inserted.
