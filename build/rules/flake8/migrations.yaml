@@ -3780,9 +3780,6 @@ migrations:
     - yql/tests/dq/misc
     - yql/tests/jdbc
     - yql/tests/multi_process
-    - yql/tests/sql/kikimr_yt
-    - yql/tests/sql/rtmr
-    - yql/tests/sql/rtmr_kikimr
     - yt/admin/drive_monitor/tests/unit
     - yt/admin/perf_scraper/tests
     - yt/admin/shiva/tests/unit
@@ -4000,7 +3997,6 @@ migrations:
     - search/lingboost/saas/codecs/test_bundle_codecs/tests
     - transfer_manager/server/tests
     - yql/tests/s-expressions
-    - yql/tests/sql
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/boards
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cards
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/events
