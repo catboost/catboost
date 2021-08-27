@@ -356,10 +356,7 @@ void TrainOneIteration(const NCB::TTrainingDataProviders& data, TLearnContext* c
             );
 
             TVector<TVector<double>>* foldZeroApprox = nullptr;
-            const bool isPlainBoosting = ctx->Params.BoostingOptions->BoostingType == EBoostingType::Plain;
-            const bool useAveragingFoldAsFoldZero = isPlainBoosting &&
-                !ctx->LearnProgress->IsAveragingFoldPermuted && !usePairs;
-            if (useAveragingFoldAsFoldZero) {
+            if (UseAveragingFoldAsFoldZero(*ctx)) {
                 foldZeroApprox = &trainFolds[0]->BodyTailArr[0].Approx;
             }
             UpdateAvrgApprox(

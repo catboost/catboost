@@ -242,3 +242,5 @@ bool NeedToUseTreeLevelCaching(
     const NCatboostOptions::TCatBoostOptions& params,
     ui32 maxBodyTailCount,
     ui32 approxDimension);
+
+bool UseAveragingFoldAsFoldZero(const TLearnContext& ctx);

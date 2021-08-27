@@ -5833,7 +5833,7 @@ def test_eval_metrics_with_boost_from_average_and_model_shrinkage(config):
     learn_first_metrics = np.round(np.loadtxt(learn_error_path, skiprows=1)[:, 1:], 8)
     learn_second_metrics = np.round(np.loadtxt(learn_eval_path, skiprows=1)[:, 1:], 8)
     assert test_first_metrics[-1] == test_second_metrics[-1]
-    assert learn_first_metrics[-1] == learn_second_metrics[-1]
+    assert np.allclose(learn_first_metrics[-1], learn_second_metrics[-1], atol=1e-4)
 
 
 @pytest.mark.parametrize('metrics', ['AUC', 'AUC,Precision'])
