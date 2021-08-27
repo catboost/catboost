@@ -4453,6 +4453,15 @@ def test_object_importances(task_type):
     return local_canonical_file(oimp_path)
 
 
+def test_positive_object_importance_per_object():
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    pool = Pool(TEST_FILE, column_description=CD_FILE)
+
+    model = CatBoost({'loss_function': 'RMSE', 'iterations': 10})
+    model.fit(train_pool)
+    indices, scores = model.get_object_importance(pool, train_pool, type='PerObject', importance_values_sign='Positive')
+
+
 def test_shap(task_type):
     train_pool = Pool([[0, 0], [0, 1], [1, 0], [1, 1]], [0, 1, 5, 8], cat_features=[])
     test_pool = Pool([[0, 0], [0, 1], [1, 0], [1, 1]])
