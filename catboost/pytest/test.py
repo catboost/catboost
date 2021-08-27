@@ -2491,6 +2491,47 @@ def test_bad_fold_cv_spec(is_inverted, error_type):
         execute_catboost_fit('CPU', cmd)
 
 
+@pytest.mark.parametrize('is_inverted', [False, True], ids=['', 'inverted'])
+@pytest.mark.parametrize('boosting_type, grow_policy', BOOSTING_TYPE_WITH_GROW_POLICIES)
+def test_cv_on_quantized(is_inverted, boosting_type, grow_policy):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    borders_path = yatest.common.test_output_path('borders')
+
+    def run_cmd(learn_set_path, eval_path, additional_params):
+        cmd = (
+            '--dev-efb-max-buckets', '0',
+            '--use-best-model', 'false',
+            '--loss-function', 'Logloss',
+            '--learn-set', learn_set_path,
+            '--column-description', data_file('higgs', 'train.cd'),
+            '--boosting-type', boosting_type,
+            '--grow-policy', grow_policy,
+            '-i', '10',
+            '-w', '0.03',
+            '-T', '4',
+            '-m', output_model_path,
+            '--cv', format_crossvalidation(is_inverted, 2, 10),
+            '--eval-file', eval_path,
+        ) + additional_params
+        execute_catboost_fit('CPU', cmd)
+
+    quantized_eval_path = yatest.common.test_output_path('quantized.eval')
+    run_cmd(
+        'quantized://' + data_file('higgs', 'train_small_x128_greedylogsum.bin'),
+        quantized_eval_path,
+        ('--output-borders-file', borders_path)
+    )
+
+    tsv_eval_path = yatest.common.test_output_path('tsv.eval')
+    run_cmd(
+        data_file('higgs', 'train_small'),
+        tsv_eval_path,
+        ('--input-borders-file', borders_path)
+    )
+
+    assert filecmp.cmp(quantized_eval_path, tsv_eval_path)
+
+
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 def test_empty_eval(boosting_type):
     output_model_path = yatest.common.test_output_path('model.bin')

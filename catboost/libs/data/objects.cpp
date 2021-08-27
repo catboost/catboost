@@ -420,6 +420,21 @@ TIntrusivePtr<TObjectsDataProvider> NCB::TObjectsDataProvider::GetFeaturesSubset
     );
 }
 
+TIntrusivePtr<TObjectsDataProvider> NCB::TObjectsDataProvider::Clone(
+    NPar::ILocalExecutor* localExecutor
+) const {
+    return GetSubsetImpl(
+        ::GetGroupingSubsetFromObjectsSubset(
+            ObjectsGrouping,
+            TArraySubsetIndexing(TFullSubset<ui32>(GetObjectCount())),
+            EObjectsOrder::Ordered),
+        /*ignoredFeatures*/ Nothing(),
+        GetMonopolisticFreeCpuRam(),
+        localExecutor
+    );
+}
+
+
 template <class TColumn>
 static bool AreFeaturesValuesEqual(
     const TColumn& lhs,
