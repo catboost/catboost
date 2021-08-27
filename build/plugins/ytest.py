@@ -695,6 +695,10 @@ def extract_java_system_properties(unit, args):
 
 
 def onjava_test(unit, *args):
+    if unit.get("TIDY") == "yes":
+        # graph changed for clang_tidy tests
+        return
+
     assert unit.get('MODULE_TYPE') is not None
 
     if unit.get('MODULE_TYPE') == 'JTEST_FOR':
@@ -780,6 +784,10 @@ def onjava_test(unit, *args):
 
 
 def onjava_test_deps(unit, *args):
+    if unit.get("TIDY") == "yes":
+        # graph changed for clang_tidy tests
+        return
+
     assert unit.get('MODULE_TYPE') is not None
     assert len(args) == 1
     mode = args[0]
