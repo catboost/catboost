@@ -765,6 +765,9 @@ ALLOW .* -> vendor/github.com/aler9/gortsplib
 # CONTRIB-2305: graph algorithms
 ALLOW .* -> vendor/github.com/yourbasic/graph
 
+# CONTRIB-2309: automatically set GOMAXPROCS to match Linux container CPU quota
+ALLOW library/go/maxprocs -> vendor/go.uber.org/automaxprocs
+
 #
 # Tools
 #
