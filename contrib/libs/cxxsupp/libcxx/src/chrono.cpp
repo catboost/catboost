@@ -143,9 +143,9 @@ static steady_clock::time_point __libcpp_steady_clock_now() {
 static LARGE_INTEGER
 __QueryPerformanceFrequency()
 {
-	LARGE_INTEGER val;
-	(void) QueryPerformanceFrequency(&val);
-	return val;
+    LARGE_INTEGER val;
+    (void) QueryPerformanceFrequency(&val);
+    return val;
 }
 
 static steady_clock::time_point __libcpp_steady_clock_now() {

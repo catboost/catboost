@@ -518,7 +518,7 @@ typedef __char32_t char32_t;
 // Literal operators ""d and ""y are supported starting with LLVM Clang 8 and AppleClang 10.0.1
 #if (defined(_LIBCPP_CLANG_VER) && _LIBCPP_CLANG_VER < 800) || \
     (defined(__apple_build_version__) && __apple_build_version__ < 10010000)
-#define	_LIBCPP_HAS_NO_CXX20_CHRONO_LITERALS
+#define    _LIBCPP_HAS_NO_CXX20_CHRONO_LITERALS
 #endif
 
 #define _LIBCPP_DISABLE_EXTENSION_WARNING __extension__

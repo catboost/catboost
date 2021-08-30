@@ -1884,7 +1884,7 @@ public:
               class = typename enable_if
               <
                   !is_same<
-                      typename __uncvref<_Fp>::type, 
+                      typename __uncvref<_Fp>::type,
                       packaged_task
                       >::value
                   >::type
@@ -1895,7 +1895,7 @@ public:
               class = typename enable_if
               <
                   !is_same<
-                      typename __uncvref<_Fp>::type, 
+                      typename __uncvref<_Fp>::type,
                       packaged_task
                       >::value
                   >::type
@@ -2013,7 +2013,7 @@ public:
               class = typename enable_if
               <
                   !is_same<
-                      typename __uncvref<_Fp>::type, 
+                      typename __uncvref<_Fp>::type,
                       packaged_task
                       >::value
                   >::type
@@ -2024,11 +2024,11 @@ public:
               class = typename enable_if
               <
                   !is_same<
-                      typename __uncvref<_Fp>::type, 
+                      typename __uncvref<_Fp>::type,
                       packaged_task
                       >::value
                   >::type
-              >    
+              >
         _LIBCPP_INLINE_VISIBILITY
         packaged_task(allocator_arg_t, const _Allocator& __a, _Fp&& __f)
              : __f_(allocator_arg, __a, _VSTD::forward<_Fp>(__f)),
