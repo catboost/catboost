@@ -243,43 +243,4 @@
 #undef SIZEOF_SIZE_T // in case we include <Python.h> which defines it, too
 #define SIZEOF_SIZE_T SIZEOF_PTR
 
-#if defined(__INTEL_COMPILER)
-    #pragma warning(disable 1292)
-    #pragma warning(disable 1469)
-    #pragma warning(disable 193)
-    #pragma warning(disable 271)
-    #pragma warning(disable 383)
-    #pragma warning(disable 424)
-    #pragma warning(disable 444)
-    #pragma warning(disable 584)
-    #pragma warning(disable 593)
-    #pragma warning(disable 981)
-    #pragma warning(disable 1418)
-    #pragma warning(disable 304)
-    #pragma warning(disable 810)
-    #pragma warning(disable 1029)
-    #pragma warning(disable 1419)
-    #pragma warning(disable 177)
-    #pragma warning(disable 522)
-    #pragma warning(disable 858)
-    #pragma warning(disable 111)
-    #pragma warning(disable 1599)
-    #pragma warning(disable 411)
-    #pragma warning(disable 304)
-    #pragma warning(disable 858)
-    #pragma warning(disable 444)
-    #pragma warning(disable 913)
-    #pragma warning(disable 310)
-    #pragma warning(disable 167)
-    #pragma warning(disable 180)
-    #pragma warning(disable 1572)
-#endif
-
-#if defined(_MSC_VER)
-    #undef _WINSOCKAPI_
-    #define _WINSOCKAPI_
-    #undef NOMINMAX
-    #define NOMINMAX
-#endif
-
 // clang-format on

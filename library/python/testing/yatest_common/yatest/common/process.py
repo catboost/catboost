@@ -85,6 +85,10 @@ class SignalInterruptionError(Exception):
         self.res = None
 
 
+class InvalidCommandError(Exception):
+    pass
+
+
 class _Execution(object):
 
     def __init__(self, command, process, out_file, err_file, process_progress_listener=None, cwd=None, collect_cores=True, check_sanitizer=True, started=0, user_stdout=False, user_stderr=False):
@@ -396,7 +400,19 @@ class _Execution(object):
                 yatest_logger.debug("'%s' doesn't belong to '%s' - no check for sanitize errors", self.command[0], build_path)
 
 
-# Don't forget to sync changes in the interface and defaults with yatest.yt.process.execute
+def on_timeout_gen_coredump(exec_obj, _):
+    """
+    Function can be passed to the execute(..., timeout=X, on_timeout=on_timeout_gen_coredump)
+    to generate core dump file, backtrace ahd html-version of the backtrace in case of timeout.
+    All files will be available in the testing_out_stuff and via links.
+    """
+    try:
+        os.kill(exec_obj.process.pid, signal.SIGQUIT)
+    except OSError:
+        # process might be already terminated
+        pass
+
+
 def execute(
     command, check_exit_code=True,
     shell=False, timeout=None,
@@ -477,6 +493,21 @@ def execute(
     if shell:
         collect_cores = False
         check_sanitizer = False
+    else:
+        if isinstance(command, (list, tuple)):
+            executable = command[0]
+        else:
+            executable = command
+        if os.path.isabs(executable):
+            if not os.path.isfile(executable) and not os.path.isfile(executable + ".exe"):
+                exists = os.path.exists(executable)
+                if exists:
+                    stat = os.stat(executable)
+                else:
+                    stat = None
+                raise InvalidCommandError("Target program is not a file: {} (exists: {} stat: {})".format(executable, exists, stat))
+            if not os.access(executable, os.X_OK) and not os.access(executable + ".exe", os.X_OK):
+                raise InvalidCommandError("Target program is not executable: {}".format(executable))
 
     if check_sanitizer:
         env["LSAN_OPTIONS"] = environment.extend_env_var(os.environ, "LSAN_OPTIONS", "exitcode=100")
@@ -676,9 +707,9 @@ def check_glibc_version(binary_path):
 
 def backtrace_to_html(bt_filename, output):
     try:
-        from library.python.coredump_filter import core_proc
+        from library.python import coredump_filter
         with open(output, "wb") as afile:
-            core_proc.filter_stackdump(bt_filename, stream=afile)
+            coredump_filter.filter_stackdump(bt_filename, stream=afile)
     except ImportError as e:
         yatest_logger.debug("Failed to import coredump_filter: %s", e)
         with open(output, "wb") as afile:

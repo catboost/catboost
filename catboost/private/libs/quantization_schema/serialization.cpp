@@ -112,7 +112,7 @@ static NCB::TPoolQuantizationSchema LoadInMatrixnetFormat(IInputStream* const in
 
 static NCB::TPoolQuantizationSchema LoadInProtobufFormat(IInputStream* const input) {
     NCB::NIdl::TPoolQuantizationSchema proto;
-    const auto parsed = proto.ParseFromIstream(input);
+    const auto parsed = proto.ParseFromArcadiaStream(input);
     CB_ENSURE(parsed, "failed to parse serialization schema from stream");
 
     return NCB::QuantizationSchemaFromProto(proto);

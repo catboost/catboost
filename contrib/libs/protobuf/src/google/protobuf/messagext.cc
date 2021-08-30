@@ -1,6 +1,7 @@
 #include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
-#include "messagext.h"
+#include <google/protobuf/messagext.h>
+#include <google/protobuf/text_format.h>
 
 #include <util/ysaveload.h>
 #include <util/generic/yexception.h>
@@ -8,16 +9,34 @@
 
 namespace {
     const int MaxSizeBytes = 1 << 27; // 128 MB limits the size of a protobuf message processed by TProtoSerializer
-    const int WarningSizeBytes = -1;  // Disabled warning message after a certain size threshold
 }
 
-namespace google {
-namespace protobuf {
+namespace google::protobuf {
 
 //defined in message_lite.cc
-string InitializationErrorMessage(const char* action, const MessageLite& message);
+TProtoStringType InitializationErrorMessage(const char* action, const MessageLite& message);
 
-namespace io {
+} // namespace google::protobuf
+
+namespace google::protobuf::internal {
+
+    IOutputStream& operator <<(IOutputStream& output, const internal::TAsBinary& wrappedMessage) {
+        bool success = wrappedMessage.Message_.SerializeToArcadiaStream(&output);
+        if (Y_UNLIKELY(!success)) {
+            ythrow yexception() << "Cannot serialize a protobuf with AsBinary() (required fields missing?)";
+        }
+        return output;
+    }
+
+
+    IOutputStream& operator <<(IOutputStream& output, const internal::TAsStreamSeq& wrappedMessage) {
+        ::Save(&output, wrappedMessage.Message_);
+        return output;
+    }
+
+} // namespace google::protobuf::internal
+
+namespace google::protobuf::io {
 
 bool ParseFromCodedStreamSeq(Message* msg, io::CodedInputStream* input) {
     msg->Clear();
@@ -155,7 +174,7 @@ void TProtoSerializer::Load(IInputStream* input, Message& msg) {
     TTempBufHelper buf(size);
     ::LoadPodArray(input, buf.Data(), size);
     CodedInputStream decoder(buf.Data(), size);
-    decoder.SetTotalBytesLimit(MaxSizeBytes, WarningSizeBytes);
+    decoder.SetTotalBytesLimit(MaxSizeBytes);
     if (!msg.ParseFromCodedStream(&decoder))
         ythrow yexception() << "Cannot read protobuf::Message (" << msg.GetTypeName() << ") from input stream";
 
@@ -183,6 +202,21 @@ bool TProtoReader::Load(Message& msg) {
     return true;
 }
 
-}
-}
+} // namespace google::protobuf::io
+
+TProtoStringType ShortUtf8DebugString(const google::protobuf::Message& msg) {
+    google::protobuf::TextFormat::Printer printer;
+    printer.SetSingleLineMode(true);
+    printer.SetUseUtf8StringEscaping(true);
+
+    TProtoStringType string;
+    printer.PrintToString(msg, &string);
+
+    // Copied from text_format.h
+    // Single line mode currently might have an extra space at the end.
+    if (string.size() > 0 && string[string.size() - 1] == ' ') {
+        string.resize(string.size() - 1);
+    }
+
+    return string;
 }

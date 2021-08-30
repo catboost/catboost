@@ -22,6 +22,9 @@ public:
     // Calculate prediction for matrices of numeric and categorial features.
     Napi::Value CalcPrediction(const Napi::CallbackInfo& info);
 
+    // Enable GPU evaluation on the specified deivce.
+    void EvaluateOnGPU(const Napi::CallbackInfo& info);
+
     // Model parameter getters.
     Napi::Value GetModelFloatFeaturesCount(const Napi::CallbackInfo& info);
     Napi::Value GetModelCatFeaturesCount(const Napi::CallbackInfo& info);
@@ -30,6 +33,7 @@ public:
 
 private:
     ModelCalcerHandle* Handle = nullptr;
+    bool ModelLoaded = false;
 
     Napi::Array CalcPredictionHash(Napi::Env env,
                                    const TVector<float>& floatFeatures,

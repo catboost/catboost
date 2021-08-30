@@ -104,6 +104,29 @@ def generate_concatenated_random_labeled_dataset(nrows, nvals, labels, seed=2018
     return np.concatenate([label, feature], axis=1)
 
 
+def generate_patients_datasets(train_path, test_path):
+    samples = 237
+
+    for samples, path in zip([237, 154], [train_path, test_path]):
+        data = DataFrame()
+        data['age'] = np.random.randint(20, 71, size=samples)
+        data['gender'] = np.where(np.random.binomial(1, 0.7, samples) == 1, 'male', 'female')
+        data['diet'] = np.where(np.random.binomial(1, 0.1, samples) == 1, 'yes', 'no')
+        data['glucose'] = np.random.uniform(4, 12, size=samples)
+        data['platelets'] = np.random.randint(100, 500, size=samples)
+        data['cholesterol'] = np.random.uniform(4.5, 6.5, size=samples)
+        data['survival_in_days'] = np.random.randint(30, 500, size=samples)
+        data['outcome'] = np.where(np.random.binomial(1, 0.8, size=samples) == 1, 'dead', 'alive')
+        data['target'] = np.where(data['outcome'] == 'dead', data['survival_in_days'], - data['survival_in_days'])
+        data = data.drop(['outcome', 'survival_in_days'], axis=1)
+        data.to_csv(
+            path,
+            header=False,
+            index=False,
+            sep='\t'
+        )
+
+
 # returns (features : numpy.ndarray, labels : list) tuple
 def generate_random_labeled_dataset(
     n_samples,
@@ -129,7 +152,7 @@ def generate_random_labeled_dataset(
                 value = features_range[0] + (features_range[1] - features_range[0]) * (v1 / features_density)
             features[sample_idx, feature_idx] = features_dtype(value)
 
-    labels = [random.choice(labels) for i in range(n_samples)]
+    labels = [random.choice(labels) for _ in range(n_samples)]
 
     return (features, labels)
 
@@ -184,6 +207,34 @@ def generate_dataset_with_num_and_cat_features(
     return (DataFrame(feature_columns), labels)
 
 
+def generate_survival_dataset(seed=20201015):
+    np.random.seed(seed)
+
+    X = np.random.rand(200, 20)*10
+
+    mean_y = np.sin(X[:, 0])
+
+    y = np.random.randn(200, 10) * 0.3 + mean_y[:, None]
+
+    y_lower = np.min(y, axis=1)
+    y_upper = np.max(y, axis=1)
+    y_upper = np.where(y_upper >= 1.4, -1, y_upper+abs(np.min(y_lower)))
+    y_lower += abs(np.min(y_lower))
+
+    right_censored_ids = np.where(y_upper == -1)[0]
+    interval_censored_ids = np.where(y_upper != -1)[0]
+
+    train_ids = np.hstack(
+        [right_censored_ids[::2], interval_censored_ids[:140]])
+    test_ids = np.hstack(
+        [right_censored_ids[1::2], interval_censored_ids[140:]])
+
+    X_train, y_lower_train, y_upper_train = X[train_ids], y_lower[train_ids], y_upper[train_ids]
+    X_test, y_lower_test, y_upper_test = X[test_ids], y_lower[test_ids], y_upper[test_ids]
+
+    return [(X_train, y_lower_train, y_upper_train), (X_test, y_lower_test, y_upper_test)]
+
+
 BY_CLASS_METRICS = ['AUC', 'Precision', 'Recall', 'F1']
 
 
@@ -194,7 +245,7 @@ def compare_metrics_with_diff(custom_metric, fit_eval, calc_eval, eps=1e-7):
     head_fit = next(csv_fit)
     head_calc = next(csv_calc)
 
-    if isinstance(custom_metric, basestring):
+    if isinstance(custom_metric, str):
         custom_metric = [custom_metric]
 
     for metric_name in deepcopy(custom_metric):
@@ -284,10 +335,11 @@ def load_dataset_as_dataframe(data_file, columns_metadata, has_header=False):
     df = read_csv(
         data_file,
         sep='\t',
-        names=columns_metadata['column_names'],
-        dtype=columns_metadata['column_dtypes'],
-        skiprows=1 if has_header else 0
+        header=1 if has_header else None
     )
+
+    df.columns = columns_metadata['column_names']
+    df = df.astype(columns_metadata['column_dtypes'])
 
     result = {}
     result['target'] = df.iloc[:, columns_metadata['column_type_to_indices']['Label'][0]].values

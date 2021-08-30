@@ -13,6 +13,7 @@
 #include <util/system/defaults.h>
 #include <util/system/error.h>
 #include <util/system/src_location.h>
+#include <util/system/platform.h>
 
 #include <exception>
 
@@ -65,7 +66,8 @@ namespace NPrivateException {
     };
 
     template <class E, class T>
-    static inline E&& operator<<(E&& e, const T& t) {
+    static inline std::enable_if_t<std::is_base_of<yexception, std::decay_t<E>>::value, E&&>
+    operator<<(E&& e, const T& t) {
         e.Append(t);
 
         return std::forward<E>(e);
@@ -94,7 +96,8 @@ public:
 
     TSystemError()
         : TSystemError(LastSystemError())
-    {}
+    {
+    }
 
     int Status() const noexcept {
         return Status_;
@@ -153,6 +156,7 @@ void fputs(const std::exception& e, FILE* f = stderr);
 
 TString CurrentExceptionMessage();
 bool UncaughtException() noexcept;
+std::string CurrentExceptionTypeName();
 
 TString FormatExc(const std::exception& exception);
 

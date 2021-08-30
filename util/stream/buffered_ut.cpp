@@ -7,7 +7,7 @@
 
 Y_UNIT_TEST_SUITE(TestBufferedIO) {
     template <class TOut>
-    inline void Run(TOut && out) {
+    inline void Run(TOut&& out) {
         TMersenne<ui64> r;
 
         for (size_t i = 0; i < 1000; ++i) {

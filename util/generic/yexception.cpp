@@ -1,15 +1,17 @@
 #include "bt_exception.h"
-#include "type_name.h"
 #include "yexception.h"
 
 #include <util/system/backtrace.h>
+#include <util/system/type_name.h>
+
+#include <cxxabi.h>
 
 #include <stdexcept>
 
 #include <cstdio>
 
-TString FormatExc(const std::exception &exception) {
-    return TString::Join(TStringBuf("("), TypeName(&exception), TStringBuf(") "), exception.what());
+TString FormatExc(const std::exception& exception) {
+    return TString::Join(TStringBuf("("), TypeName(exception), TStringBuf(") "), exception.what());
 }
 
 TString CurrentExceptionMessage() {
@@ -38,6 +40,26 @@ TString CurrentExceptionMessage() {
 
 bool UncaughtException() noexcept {
     return std::uncaught_exception();
+}
+
+std::string CurrentExceptionTypeName() {
+#if defined(_linux_) || defined(_darwin_)
+    std::type_info* currentExceptionTypePtr = abi::__cxa_current_exception_type();
+    if (currentExceptionTypePtr) {
+        return TypeName(*currentExceptionTypePtr);
+    }
+#endif
+    //There is no abi::__cxa_current_exception_type() on Windows.
+    //Emulated it with rethrow - catch construction.
+    std::exception_ptr currentException = std::current_exception();
+    Y_ASSERT(currentException != nullptr);
+    try {
+        std::rethrow_exception(currentException);
+    } catch (const std::exception& e) {
+        return TypeName(typeid(e));
+    } catch (...) {
+        return "unknown type";
+    }
 }
 
 void TSystemError::Init() {

@@ -59,7 +59,7 @@ namespace {
 
     class TNonStdLayoutClass2 {
     public:
-        virtual void func() {
+        virtual void Func() {
         }
     };
 
@@ -149,7 +149,7 @@ Y_UNIT_TEST_SUITE(TTypeTraitsTest) {
         UNIT_ASSERT(!std::is_unsigned<T&&>::value);
         UNIT_ASSERT(!std::is_unsigned<T*>::value);
 
-        enum ETypedEnum : T {};
+        enum ETypedEnum: T {};
         UNIT_ASSERT(!std::is_unsigned<ETypedEnum>::value);
     }
 
@@ -164,7 +164,7 @@ Y_UNIT_TEST_SUITE(TTypeTraitsTest) {
         UNIT_ASSERT(!std::is_signed<T&&>::value);
         UNIT_ASSERT(!std::is_signed<T*>::value);
 
-        enum ETypedEnum : T {};
+        enum ETypedEnum: T {};
         UNIT_ASSERT(!std::is_signed<ETypedEnum>::value);
     }
 
@@ -237,7 +237,7 @@ Y_UNIT_TEST_SUITE(TTypeTraitsTest) {
         UNIT_ASSERT(std::is_pod<long>::value);
     }
 
-	template <typename T>
+    template <typename T>
     void TestAllTypeTraitFlagsSet() {
         UNIT_ASSERT(TTypeTraits<T>::IsBitwiseCopyable);
         UNIT_ASSERT(TTypeTraits<T>::IsBitwiseSerializable);
@@ -454,11 +454,11 @@ enum E4 {
     X
 };
 
-enum class E64 : ui64 {
+enum class E64: ui64 {
     X
 };
 
-enum class E8 : ui8 {
+enum class E8: ui8 {
     X
 };
 
@@ -489,3 +489,8 @@ static_assert(!TIsSpecializationOf<std::pair, std::vector<int>>::value, "");
 static_assert(TIsIterable<std::vector<int>>::value, "");
 static_assert(!TIsIterable<int>::value, "");
 static_assert(TIsIterable<int[42]>::value, "");
+
+// test for TDependentFalse
+static_assert(TDependentFalse<int> == false);
+static_assert(TDependentFalse<TNonPodClass> == false);
+static_assert(TValueDependentFalse<0x1000> == false);

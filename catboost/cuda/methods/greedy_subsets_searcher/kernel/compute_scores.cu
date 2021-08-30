@@ -1,12 +1,15 @@
 #include "compute_scores.cuh"
 
-#include <catboost/cuda/methods/kernel/score_calcers.cuh>
+#include <library/cpp/cuda/wrappers/arch.cuh>
+
 #include <catboost/cuda/cuda_util/kernel/instructions.cuh>
 #include <catboost/cuda/cuda_util/kernel/random_gen.cuh>
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
 #include <catboost/cuda/cuda_util/kernel/fill.cuh>
-#include <library/cpp/cuda/wrappers/arch.cuh>
-#include <contrib/libs/cub/cub/block/block_reduce.cuh>
+#include <library/cpp/cuda/wrappers/cub_include.h>
+#include <catboost/cuda/methods/kernel/score_calcers.cuh>
+
+#include _CUB_INCLUDE(cub/block/block_reduce.cuh)
 
 #include <cmath>
 #include <exception>

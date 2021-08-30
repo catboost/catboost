@@ -6,7 +6,7 @@ ELSE()
     EXPORTS_SCRIPT(catboost.exports)
 ENDIF()
 
-PYTHON_ADDINCL()
+PYTHON2_ADDINCL()
 
 PEERDIR(
     catboost/libs/cat_feature
@@ -51,10 +51,10 @@ BUILDWITH_CYTHON_CPP(
     --module-name _catboost
 )
 
-IF (ARCH_AARCH64 OR OS_WINDOWS)
-    ALLOCATOR(J)
+IF (OS_LINUX AND NOT ARCH_AARCH64)
+    ALLOCATOR(TCMALLOC)
 ELSE()
-    ALLOCATOR(LF)
+    ALLOCATOR(J)
 ENDIF()
 
 IF (OS_DARWIN)

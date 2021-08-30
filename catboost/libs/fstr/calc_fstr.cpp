@@ -149,7 +149,12 @@ static THashMap<TFeature, int, TFeatureHash> GetFeatureToIdxMap(
 {
     THashMap<TFeature, int, TFeatureHash> featureToIdx;
     const auto& modelBinFeatures = model.ModelTrees->GetBinFeatures();
+    int binFeaturesNum = modelBinFeatures.size();
+
     for (auto binSplit : model.ModelTrees->GetModelTreeData()->GetTreeSplits()) {
+        if (binSplit >= binFeaturesNum) {
+            continue;
+        }
         TFeature feature = GetFeature(model, modelBinFeatures[binSplit]);
         if (featureToIdx.contains(feature)) {
             continue;
@@ -353,7 +358,8 @@ TVector<TMetricHolder> CalcFeatureEffectLossChangeMetricStats(
         EPredictionType::RawFormulaVal,
         /*begin*/ 0,
         /*end*/ 0,
-        localExecutor
+        localExecutor,
+        dataset->RawTargetData.GetBaseline()
     );
     TVector<TQueryInfo> queriesInfo(targetQueriesInfo.begin(), targetQueriesInfo.end());
 

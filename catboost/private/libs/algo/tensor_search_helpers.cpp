@@ -7,29 +7,16 @@
 #include <catboost/libs/data/objects.h>
 #include <catboost/libs/helpers/restorable_rng.h>
 #include <catboost/private/libs/options/catboost_options.h>
+#include <catboost/libs/helpers/distribution_helpers.h>
 
 #include <library/cpp/threading/local_executor/local_executor.h>
 
+#include <util/generic/cast.h>
 #include <util/generic/maybe.h>
 #include <util/generic/xrange.h>
 
 
 using namespace NCB;
-
-
-const TQuantizedObjectsDataProvider& GetLearnObjectsData(
-    const TSplitCandidate& splitCandidate,
-    const TTrainingDataProviders& data,
-    const TFold& fold
-) {
-    if (splitCandidate.Type == ESplitType::EstimatedFeature) {
-        if (splitCandidate.IsOnlineEstimatedFeature) {
-            return *(fold.GetOnlineEstimatedFeatures().Learn);
-        }
-        return *(data.EstimatedObjectsData.Learn);
-    }
-    return *(data.Learn->ObjectsData);
-}
 
 
 TSplit TCandidateInfo::GetBestSplit(
@@ -145,8 +132,38 @@ THolder<IDerCalcer> BuildError(
 ) {
     const bool isStoreExpApprox = IsStoreExpApprox(params.LossFunctionDescription->GetLossFunction());
     switch (params.LossFunctionDescription->GetLossFunction()) {
+        case ELossFunction::SurvivalAft: {
+            const auto& lossParams = params.LossFunctionDescription->GetLossParamsMap();
+            for (auto &param: lossParams) {
+            CB_ENSURE(
+                    param.first == "dist" || param.first == "scale",
+                    "Invalid loss description" << ToString(params.LossFunctionDescription.Get()));
+            }
+            std::unique_ptr<IDistribution> distribution;
+            if (lossParams.contains("dist")) {
+                switch (FromString<EDistributionType>(lossParams.at("dist"))) {
+                    case EDistributionType::Extreme:
+                        distribution = std::make_unique<TExtremeDistribution>();
+                        break;
+                    case EDistributionType::Logistic:
+                        distribution = std::make_unique<TLogisticDistribution>();
+                        break;
+                    case EDistributionType::Normal:
+                        distribution = std::make_unique<TNormalDistribution>();
+                        break;
+                    default:
+                        CB_ENSURE(false, "Unsupported distribution type " << lossParams.at("dist"));
+               }
+            } else {
+               distribution = std::make_unique<TNormalDistribution>();
+            }
+            double scale = lossParams.contains("scale") ? FromString<double>(lossParams.at("scale")) : 1;
+            return MakeHolder<TSurvivalAftError>(std::move(distribution), scale);
+        }
         case ELossFunction::MultiRMSE:
             return MakeHolder<TMultiRMSEError>();
+        case ELossFunction::MultiRMSEWithMissingValues:
+            return MakeHolder<TMultiRMSEErrorWithMissingValues>();
         case ELossFunction::RMSEWithUncertainty: {
             return MakeHolder<TRMSEWithUncertaintyError>();
         }
@@ -155,6 +172,8 @@ THolder<IDerCalcer> BuildError(
             return MakeHolder<TCrossEntropyError>(isStoreExpApprox);
         case ELossFunction::RMSE:
             return MakeHolder<TRMSEError>(isStoreExpApprox);
+        case ELossFunction::Cox:
+            return MakeHolder<TCoxError>(isStoreExpApprox);
         case ELossFunction::MAE:
         case ELossFunction::Quantile: {
             const auto& lossParams = params.LossFunctionDescription->GetLossParamsMap();
@@ -231,6 +250,13 @@ THolder<IDerCalcer> BuildError(
                 params.LossFunctionDescription);
             return MakeHolder<TStochasticFilterError>(sigma, numEstimations, isStoreExpApprox);
         }
+        case ELossFunction::LambdaMart: {
+            const auto& lossParams = params.LossFunctionDescription->GetLossParamsMap();
+            const ELossFunction targetMetric = lossParams.contains("metric") ? FromString<ELossFunction>(lossParams.at("metric")) : ELossFunction::NDCG;
+            const double sigma = NCatboostOptions::GetParamOrDefault(lossParams, "sigma", 1.0);
+            const bool norm = NCatboostOptions::GetParamOrDefault(lossParams, "norm", true);
+            return MakeHolder<TLambdaMartError>(targetMetric, lossParams, sigma, norm);
+        }
         case ELossFunction::StochasticRank: {
             const auto& lossParams = params.LossFunctionDescription->GetLossParamsMap();
             CB_ENSURE(lossParams.contains("metric"), "StochasticRank requires metric param");
@@ -260,6 +286,8 @@ THolder<IDerCalcer> BuildError(
             return MakeHolder<TTweedieError>(
                 NCatboostOptions::GetTweedieParam(params.LossFunctionDescription),
                 isStoreExpApprox);
+        case ELossFunction::LogCosh:
+            return MakeHolder<TLogCoshError>(isStoreExpApprox);
         default:
             CB_ENSURE(false, "provided error function is not supported");
     }
@@ -433,7 +461,7 @@ static void CalcWeightedData(
 void Bootstrap(
     const NCatboostOptions::TCatBoostOptions& params,
     bool hasOfflineEstimatedFeatures,
-    const TVector<TIndexType>& indices,
+    TConstArrayRef<TIndexType> indices,
     const TVector<TVector<TVector<double>>>& leafValues,
     TFold* fold,
     TCalcScoreFold* sampledDocs,
@@ -442,7 +470,7 @@ void Bootstrap(
     bool shouldSortByLeaf,
     ui32 leavesCount
 ) {
-    const int learnSampleCount = indices.ysize();
+    const int learnSampleCount = SafeIntegerCast<int>(indices.size());
     const EBootstrapType bootstrapType = params.ObliviousTreeOptions->BootstrapConfig->GetBootstrapType();
     const EBoostingType boostingType = params.BoostingOptions->BoostingType;
     const ESamplingUnit samplingUnit = params.ObliviousTreeOptions->BootstrapConfig->GetSamplingUnit();
@@ -604,21 +632,32 @@ void CalcWeightedDerivatives(
                 blockParams.GetBlockCount(),
                 NPar::TLocalExecutor::WAIT_COMPLETE);
         } else if (approxDimension == 1) {
-            localExecutor->ExecRangeWithThrow(
-                [&](int blockId) {
-                    const int blockOffset = blockId * blockParams.GetBlockSize();
-                    error.CalcFirstDerRange(
-                        blockOffset,
-                        Min<int>(blockParams.GetBlockSize(), tailFinish - blockOffset),
-                        approx[0].data(),
-                        nullptr, // no approx deltas
-                        target.data(),
-                        weight.data(),
-                        (*weightedDerivatives)[0].data());
-                },
-                0,
-                blockParams.GetBlockCount(),
-                NPar::TLocalExecutor::WAIT_COMPLETE);
+            if (dynamic_cast<const TCoxError*>(&error) == nullptr) {
+                localExecutor->ExecRangeWithThrow(
+                    [&](int blockId) {
+                        const int blockOffset = blockId * blockParams.GetBlockSize();
+                        error.CalcFirstDerRange(
+                            blockOffset,
+                            Min<int>(blockParams.GetBlockSize(), tailFinish - blockOffset),
+                            approx[0].data(),
+                            nullptr, // no approx deltas
+                            target.data(),
+                            weight.data(),
+                            (*weightedDerivatives)[0].data());
+                    },
+                    0,
+                    blockParams.GetBlockCount(),
+                    NPar::TLocalExecutor::WAIT_COMPLETE);
+            } else {
+                error.CalcFirstDerRange(
+                    /*start*/ 0,
+                    /*count*/ target.size(),
+                    /*approx*/ approx[0].data(),
+                    /*approx deltas*/ nullptr,
+                    /*targets*/ target.data(),
+                    /*weights*/ weight.data(),
+                    /*first ders*/ (*weightedDerivatives)[0].data());
+            }
         } else {
             localExecutor->ExecRangeWithThrow(
                 [&](int blockId) {

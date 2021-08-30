@@ -17,6 +17,10 @@ extern int winerror_to_errno(int);
 #include <sys/ioctl.h>
 #endif
 
+#ifdef HAVE_NON_UNICODE_WCHAR_T_REPRESENTATION
+#include <iconv.h>
+#endif
+
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif /* HAVE_FCNTL_H */
@@ -32,6 +36,13 @@ extern int winerror_to_errno(int);
    and os.open(). */
 int _Py_open_cloexec_works = -1;
 #endif
+
+// The value must be the same in unicodeobject.c.
+#define MAX_UNICODE 0x10ffff
+
+// mbstowcs() and mbrtowc() errors
+static const size_t DECODE_ERROR = ((size_t)-1);
+static const size_t INCOMPLETE_CHARACTER = (size_t)-2;
 
 
 static int
@@ -84,6 +95,63 @@ _Py_device_encoding(int fd)
 #endif
     Py_RETURN_NONE;
 }
+
+
+static size_t
+is_valid_wide_char(wchar_t ch)
+{
+#ifdef HAVE_NON_UNICODE_WCHAR_T_REPRESENTATION
+    /* Oracle Solaris doesn't use Unicode code points as wchar_t encoding
+       for non-Unicode locales, which makes values higher than MAX_UNICODE
+       possibly valid. */
+    return 1;
+#endif
+    if (Py_UNICODE_IS_SURROGATE(ch)) {
+        // Reject lone surrogate characters
+        return 0;
+    }
+    if (ch > MAX_UNICODE) {
+        // bpo-35883: Reject characters outside [U+0000; U+10ffff] range.
+        // The glibc mbstowcs() UTF-8 decoder does not respect the RFC 3629,
+        // it creates characters outside the [U+0000; U+10ffff] range:
+        // https://sourceware.org/bugzilla/show_bug.cgi?id=2373
+        return 0;
+    }
+    return 1;
+}
+
+
+static size_t
+_Py_mbstowcs(wchar_t *dest, const char *src, size_t n)
+{
+    size_t count = mbstowcs(dest, src, n);
+    if (dest != NULL && count != DECODE_ERROR) {
+        for (size_t i=0; i < count; i++) {
+            wchar_t ch = dest[i];
+            if (!is_valid_wide_char(ch)) {
+                return DECODE_ERROR;
+            }
+        }
+    }
+    return count;
+}
+
+
+#ifdef HAVE_MBRTOWC
+static size_t
+_Py_mbrtowc(wchar_t *pwc, const char *str, size_t len, mbstate_t *pmbs)
+{
+    assert(pwc != NULL);
+    size_t count = mbrtowc(pwc, str, len, pmbs);
+    if (count != 0 && count != DECODE_ERROR && count != INCOMPLETE_CHARACTER) {
+        if (!is_valid_wide_char(*pwc)) {
+            return DECODE_ERROR;
+        }
+    }
+    return count;
+}
+#endif
+
 
 #if !defined(_Py_FORCE_UTF8_FS_ENCODING) && !defined(MS_WINDOWS)
 
@@ -151,8 +219,8 @@ check_force_ascii(void)
         size_t res;
 
         ch = (unsigned char)0xA7;
-        res = mbstowcs(&wch, (char*)&ch, 1);
-        if (res != (size_t)-1 && wch == L'\xA7') {
+        res = _Py_mbstowcs(&wch, (char*)&ch, 1);
+        if (res != DECODE_ERROR && wch == L'\xA7') {
             /* On HP-UX withe C locale or the POSIX locale,
                nl_langinfo(CODESET) announces "roman8", whereas mbstowcs() uses
                Latin1 encoding in practice. Force ASCII in this case.
@@ -199,8 +267,8 @@ check_force_ascii(void)
 
         unsigned uch = (unsigned char)i;
         ch[0] = (char)uch;
-        res = mbstowcs(wch, ch, 1);
-        if (res != (size_t)-1) {
+        res = _Py_mbstowcs(wch, ch, 1);
+        if (res != DECODE_ERROR) {
             /* decoding a non-ASCII character from the locale encoding succeed:
                the locale encoding is not ASCII, force ASCII */
             return 1;
@@ -390,9 +458,9 @@ decode_current_locale(const char* arg, wchar_t **wstr, size_t *wlen,
      */
     argsize = strlen(arg);
 #else
-    argsize = mbstowcs(NULL, arg, 0);
+    argsize = _Py_mbstowcs(NULL, arg, 0);
 #endif
-    if (argsize != (size_t)-1) {
+    if (argsize != DECODE_ERROR) {
         if (argsize > PY_SSIZE_T_MAX / sizeof(wchar_t) - 1) {
             return -1;
         }
@@ -401,21 +469,13 @@ decode_current_locale(const char* arg, wchar_t **wstr, size_t *wlen,
             return -1;
         }
 
-        count = mbstowcs(res, arg, argsize + 1);
-        if (count != (size_t)-1) {
-            wchar_t *tmp;
-            /* Only use the result if it contains no
-               surrogate characters. */
-            for (tmp = res; *tmp != 0 &&
-                         !Py_UNICODE_IS_SURROGATE(*tmp); tmp++)
-                ;
-            if (*tmp == 0) {
-                if (wlen != NULL) {
-                    *wlen = count;
-                }
-                *wstr = res;
-                return 0;
+        count = _Py_mbstowcs(res, arg, argsize + 1);
+        if (count != DECODE_ERROR) {
+            *wstr = res;
+            if (wlen != NULL) {
+                *wlen = count;
             }
+            return 0;
         }
         PyMem_RawFree(res);
     }
@@ -439,13 +499,13 @@ decode_current_locale(const char* arg, wchar_t **wstr, size_t *wlen,
     out = res;
     memset(&mbs, 0, sizeof mbs);
     while (argsize) {
-        size_t converted = mbrtowc(out, (char*)in, argsize, &mbs);
+        size_t converted = _Py_mbrtowc(out, (char*)in, argsize, &mbs);
         if (converted == 0) {
             /* Reached end of string; null char stored. */
             break;
         }
 
-        if (converted == (size_t)-2) {
+        if (converted == INCOMPLETE_CHARACTER) {
             /* Incomplete character. This should never happen,
                since we provide everything that we have -
                unless there is a bug in the C library, or I
@@ -453,32 +513,22 @@ decode_current_locale(const char* arg, wchar_t **wstr, size_t *wlen,
             goto decode_error;
         }
 
-        if (converted == (size_t)-1) {
+        if (converted == DECODE_ERROR) {
             if (!surrogateescape) {
                 goto decode_error;
             }
 
-            /* Conversion error. Escape as UTF-8b, and start over
-               in the initial shift state. */
+            /* Decoding error. Escape as UTF-8b, and start over in the initial
+               shift state. */
             *out++ = 0xdc00 + *in++;
             argsize--;
             memset(&mbs, 0, sizeof mbs);
             continue;
         }
 
-        if (Py_UNICODE_IS_SURROGATE(*out)) {
-            if (!surrogateescape) {
-                goto decode_error;
-            }
+        // _Py_mbrtowc() reject lone surrogate characters
+        assert(!Py_UNICODE_IS_SURROGATE(*out));
 
-            /* Surrogate character.  Escape the original
-               byte sequence with surrogateescape. */
-            argsize -= converted;
-            while (converted--) {
-                *out++ = 0xdc00 + *in++;
-            }
-            continue;
-        }
         /* successfully converted some bytes */
         in += converted;
         argsize -= converted;
@@ -655,7 +705,7 @@ encode_current_locale(const wchar_t *text, char **str,
                 else {
                     converted = wcstombs(NULL, buf, 0);
                 }
-                if (converted == (size_t)-1) {
+                if (converted == DECODE_ERROR) {
                     goto encode_error;
                 }
                 if (bytes != NULL) {
@@ -819,6 +869,102 @@ _Py_EncodeLocaleEx(const wchar_t *text, char **str,
                             current_locale, errors);
 }
 
+#ifdef HAVE_NON_UNICODE_WCHAR_T_REPRESENTATION
+
+/* Check whether current locale uses Unicode as internal wchar_t form. */
+int
+_Py_LocaleUsesNonUnicodeWchar(void)
+{
+    /* Oracle Solaris uses non-Unicode internal wchar_t form for
+       non-Unicode locales and hence needs conversion to UTF first. */
+    char* codeset = nl_langinfo(CODESET);
+    if (!codeset) {
+        return 0;
+    }
+    /* 646 refers to ISO/IEC 646 standard that corresponds to ASCII encoding */
+    return (strcmp(codeset, "UTF-8") != 0 && strcmp(codeset, "646") != 0);
+}
+
+static wchar_t *
+_Py_ConvertWCharForm(const wchar_t *source, Py_ssize_t size,
+                     const char *tocode, const char *fromcode)
+{
+    Py_BUILD_ASSERT(sizeof(wchar_t) == 4);
+
+    /* Ensure we won't overflow the size. */
+    if (size > (PY_SSIZE_T_MAX / (Py_ssize_t)sizeof(wchar_t))) {
+        PyErr_NoMemory();
+        return NULL;
+    }
+
+    /* the string doesn't have to be NULL terminated */
+    wchar_t* target = PyMem_Malloc(size * sizeof(wchar_t));
+    if (target == NULL) {
+        PyErr_NoMemory();
+        return NULL;
+    }
+
+    iconv_t cd = iconv_open(tocode, fromcode);
+    if (cd == (iconv_t)-1) {
+        PyErr_Format(PyExc_ValueError, "iconv_open() failed");
+        PyMem_Free(target);
+        return NULL;
+    }
+
+    char *inbuf = (char *) source;
+    char *outbuf = (char *) target;
+    size_t inbytesleft = sizeof(wchar_t) * size;
+    size_t outbytesleft = inbytesleft;
+
+    size_t ret = iconv(cd, &inbuf, &inbytesleft, &outbuf, &outbytesleft);
+    if (ret == DECODE_ERROR) {
+        PyErr_Format(PyExc_ValueError, "iconv() failed");
+        PyMem_Free(target);
+        iconv_close(cd);
+        return NULL;
+    }
+
+    iconv_close(cd);
+    return target;
+}
+
+/* Convert a wide character string to the UCS-4 encoded string. This
+   is necessary on systems where internal form of wchar_t are not Unicode
+   code points (e.g. Oracle Solaris).
+
+   Return a pointer to a newly allocated string, use PyMem_Free() to free
+   the memory. Return NULL and raise exception on conversion or memory
+   allocation error. */
+wchar_t *
+_Py_DecodeNonUnicodeWchar(const wchar_t *native, Py_ssize_t size)
+{
+    return _Py_ConvertWCharForm(native, size, "UCS-4-INTERNAL", "wchar_t");
+}
+
+/* Convert a UCS-4 encoded string to native wide character string. This
+   is necessary on systems where internal form of wchar_t are not Unicode
+   code points (e.g. Oracle Solaris).
+
+   The conversion is done in place. This can be done because both wchar_t
+   and UCS-4 use 4-byte encoding, and one wchar_t symbol always correspond
+   to a single UCS-4 symbol and vice versa. (This is true for Oracle Solaris,
+   which is currently the only system using these functions; it doesn't have
+   to be for other systems).
+
+   Return 0 on success. Return -1 and raise exception on conversion
+   or memory allocation error. */
+int
+_Py_EncodeNonUnicodeWchar_InPlace(wchar_t *unicode, Py_ssize_t size)
+{
+    wchar_t* result = _Py_ConvertWCharForm(unicode, size, "wchar_t", "UCS-4-INTERNAL");
+    if (!result) {
+        return -1;
+    }
+    memcpy(unicode, result, size * sizeof(wchar_t));
+    PyMem_Free(result);
+    return 0;
+}
+#endif /* HAVE_NON_UNICODE_WCHAR_T_REPRESENTATION */
 
 #ifdef MS_WINDOWS
 static __int64 secs_between_epochs = 11644473600; /* Seconds between 1.1.1601 and 1.1.1970 */
@@ -1010,7 +1156,10 @@ _Py_stat(PyObject *path, struct stat *statbuf)
     struct _stat wstatbuf;
     const wchar_t *wpath;
 
+_Py_COMP_DIAG_PUSH
+_Py_COMP_DIAG_IGNORE_DEPR_DECLS
     wpath = _PyUnicode_AsUnicode(path);
+_Py_COMP_DIAG_POP
     if (wpath == NULL)
         return -2;
 
@@ -1371,7 +1520,7 @@ _Py_wfopen(const wchar_t *path, const wchar_t *mode)
     char cmode[10];
     size_t r;
     r = wcstombs(cmode, mode, 10);
-    if (r == (size_t)-1 || r >= 10) {
+    if (r == DECODE_ERROR || r >= 10) {
         errno = EINVAL;
         return NULL;
     }
@@ -1455,7 +1604,10 @@ _Py_fopen_obj(PyObject *path, const char *mode)
                      Py_TYPE(path));
         return NULL;
     }
+_Py_COMP_DIAG_PUSH
+_Py_COMP_DIAG_IGNORE_DEPR_DECLS
     wpath = _PyUnicode_AsUnicode(path);
+_Py_COMP_DIAG_POP
     if (wpath == NULL)
         return NULL;
 

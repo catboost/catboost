@@ -4,7 +4,7 @@ LIBRARY()
 
 
 
-VERSION(2020-11-01)
+VERSION(2021-08-01)
 
 LICENSE(BSD-3-Clause)
 
@@ -14,6 +14,12 @@ ADDINCL(
 )
 
 NO_COMPILER_WARNINGS()
+
+IF (WITH_VALGRIND)
+    CFLAGS(
+        GLOBAL -DRE2_ON_VALGRIND
+    )
+ENDIF()
 
 SRCS(
     re2/bitstate.cc

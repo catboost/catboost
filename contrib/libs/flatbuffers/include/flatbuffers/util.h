@@ -20,6 +20,7 @@
 #include <errno.h>
 
 #include "base.h"
+#include "stl_emulation.h"
 
 #ifndef FLATBUFFERS_PREFER_PRINTF
 #  include <sstream>
@@ -50,6 +51,9 @@ inline bool is_alpha(char c) {
   return check_ascii_range(c & 0xDF, 'a' & 0xDF, 'z' & 0xDF);
 }
 
+// Check for uppercase alpha
+inline bool is_alpha_upper(char c) { return check_ascii_range(c, 'A', 'Z'); }
+
 // Check (case-insensitive) that `c` is equal to alpha.
 inline bool is_alpha_char(char c, char alpha) {
   FLATBUFFERS_ASSERT(is_alpha(alpha));
@@ -71,6 +75,14 @@ inline bool is_xdigit(char c) {
 
 // Case-insensitive isalnum
 inline bool is_alnum(char c) { return is_alpha(c) || is_digit(c); }
+
+inline char CharToUpper(char c) {
+  return static_cast<char>(::toupper(static_cast<unsigned char>(c)));
+}
+
+inline char CharToLower(char c) {
+  return static_cast<char>(::tolower(static_cast<unsigned char>(c)));
+}
 
 // @end-locale-independent functions for ASCII character set
 
@@ -323,6 +335,9 @@ inline bool StringToFloatImpl(T *val, const char *const str) {
 // - If the converted value falls out of range of corresponding return type, a
 // range error occurs. In this case value MAX(T)/MIN(T) is returned.
 template<typename T> inline bool StringToNumber(const char *s, T *val) {
+  // Assert on `unsigned long` and `signed long` on LP64.
+  // If it is necessary, it could be solved with flatbuffers::enable_if<B,T>.
+  static_assert(sizeof(T) < sizeof(int64_t), "unexpected type T");
   FLATBUFFERS_ASSERT(s && val);
   int64_t i64;
   // The errno check isn't needed, will return MAX/MIN on overflow.
@@ -446,7 +461,7 @@ std::string StripPath(const std::string &filepath);
 // Strip the last component of the path + separator.
 std::string StripFileName(const std::string &filepath);
 
-// Concatenates a path with a filename, regardless of wether the path
+// Concatenates a path with a filename, regardless of whether the path
 // ends in a separator or not.
 std::string ConCatPathFileName(const std::string &path,
                                const std::string &filename);

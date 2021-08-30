@@ -2,6 +2,8 @@ LIBRARY()
 
 LICENSE(MIT)
 
+VERSION(0.1.0)
+
 
 
 NO_UTIL()

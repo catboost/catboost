@@ -27,8 +27,8 @@ dateutil - powerful extensions to datetime
     :target: https://dev.azure.com/pythondateutilazure/dateutil/_build/latest?definitionId=1&branchName=master
     :alt: azure pipelines build status
 
-.. |coverage| image:: https://codecov.io/github/dateutil/dateutil/coverage.svg?branch=master
-    :target: https://codecov.io/github/dateutil/dateutil?branch=master
+.. |coverage| image:: https://codecov.io/gh/dateutil/dateutil/branch/master/graphs/badge.svg?branch=master
+    :target: https://codecov.io/gh/dateutil/dateutil?branch=master
     :alt: Code coverage
 
 .. |gitter| image:: https://badges.gitter.im/dateutil/dateutil.svg
@@ -139,21 +139,24 @@ It is maintained by:
 * Yaron de Leeuw <me@jarondl.net> 2014-2016
 * Paul Ganssle <paul@ganssle.io> 2015-
 
-Starting with version 2.4.1, all source and binary distributions will be signed
-by a PGP key that has, at the very least, been signed by the key which made the
-previous release. A table of release signing keys can be found below:
+Starting with version 2.4.1 and running until 2.8.2, all source and binary
+distributions will be signed by a PGP key that has, at the very least, been
+signed by the key which made the previous release. A table of release signing
+keys can be found below:
 
 ===========  ============================
 Releases     Signing key fingerprint
 ===========  ============================
-2.4.1-       `6B49 ACBA DCF6 BD1C A206 67AB CD54 FCE3 D964 BEFB`_ (|pgp_mirror|_)
+2.4.1-2.8.2  `6B49 ACBA DCF6 BD1C A206 67AB CD54 FCE3 D964 BEFB`_ 
 ===========  ============================
 
+New releases *may* have signed tags, but binary and source distributions
+uploaded to PyPI will no longer have GPG signatures attached.
 
 Contact
 =======
 Our mailing list is available at `dateutil@python.org <https://mail.python.org/mailman/listinfo/dateutil>`_. As it is hosted by the PSF, it is subject to the `PSF code of
-conduct <https://www.python.org/psf/codeofconduct/>`_.
+conduct <https://www.python.org/psf/conduct/>`_.
 
 License
 =======
@@ -163,6 +166,3 @@ All contributions after December 1, 2017 released under dual license - either `A
 
 .. _6B49 ACBA DCF6 BD1C A206 67AB CD54 FCE3 D964 BEFB:
    https://pgp.mit.edu/pks/lookup?op=vindex&search=0xCD54FCE3D964BEFB
-
-.. |pgp_mirror| replace:: mirror
-.. _pgp_mirror: https://sks-keyservers.net/pks/lookup?op=vindex&search=0xCD54FCE3D964BEFB

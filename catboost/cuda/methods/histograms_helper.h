@@ -186,6 +186,8 @@ namespace NCatboostCuda {
                               ui32 maxDepth,
                               EScoreFunction score = EScoreFunction::Cosine,
                               double l2 = 1.0,
+                              double metaL2Exponent = 1.0,
+                              double metaL2Frequency = 0.0,
                               bool normalize = false,
                               ui32 stream = 0)
             : Policy(policy)
@@ -195,6 +197,8 @@ namespace NCatboostCuda {
             , MaxDepth(maxDepth)
             , ScoreFunction(score)
             , L2(l2)
+            , MetaL2Exponent(metaL2Exponent)
+            , MetaL2Frequency(metaL2Frequency)
             , Normalize(normalize)
         {
             if (DataSet->GetGridSize(Policy)) {
@@ -226,6 +230,8 @@ namespace NCatboostCuda {
                                  BestScores,
                                  ScoreFunction,
                                  L2,
+                                 MetaL2Exponent,
+                                 MetaL2Frequency,
                                  Normalize,
                                  scoreStdDev,
                                  seed,
@@ -252,6 +258,8 @@ namespace NCatboostCuda {
         ui32 MaxDepth;
         EScoreFunction ScoreFunction;
         double L2 = 1.0;
+        double MetaL2Exponent = 1.0;
+        double MetaL2Frequency = 0.0;
         bool Normalize = false;
         TCudaBuffer<TBestSplitProperties, TFeaturesMapping> BestScores;
     };
@@ -270,6 +278,8 @@ namespace NCatboostCuda {
                               ui32 maxDepth,
                               EScoreFunction score = EScoreFunction::Cosine,
                               double l2 = 1.0,
+                              double metaL2Exponent = 1.0,
+                              double metaL2Frequency = 0.0,
                               bool normalize = false,
                               ui32 stream = 0)
             : Policy(policy)
@@ -278,6 +288,8 @@ namespace NCatboostCuda {
             , FoldCount(foldCount)
             , ScoreFunction(score)
             , L2(l2)
+            , MetaL2Exponent(metaL2Exponent)
+            , MetaL2Frequency(metaL2Frequency)
             , Normalize(normalize)
         {
             const ui64 blockCount = 32;
@@ -319,6 +331,8 @@ namespace NCatboostCuda {
         ui32 FoldCount = 0;
         EScoreFunction ScoreFunction;
         double L2 = 1.0;
+        double MetaL2Exponent = 1.0;
+        double MetaL2Frequency = 0.0;
         bool Normalize = false;
         TCudaBuffer<TBestSplitProperties, TFeaturesMapping> BestScores;
         TCudaBuffer<float, TFeaturesMapping> ReducedHistograms;
@@ -343,13 +357,15 @@ namespace NCatboostCuda {
                      ui32 maxDepth,
                      EScoreFunction score = EScoreFunction::Cosine,
                      double l2 = 1.0,
+                     double metaL2Exponent = 1.0,
+                     double metaL2Frequency = 0.0,
                      bool normalize = false,
                      bool requestStream = true)
             : Policy(policy)
             , Stream(requestStream ? NCudaLib::GetCudaManager().RequestStream()
                                    : NCudaLib::GetCudaManager().DefaultStream())
             , ComputeHistogramsHelper(Policy, dataSet, foldCount, maxDepth, Stream)
-            , FindBestSplitsHelper(Policy, dataSet, foldCount, maxDepth, score, l2, normalize, Stream.GetId())
+            , FindBestSplitsHelper(Policy, dataSet, foldCount, maxDepth, score, l2, metaL2Exponent, metaL2Frequency, normalize, Stream.GetId())
         {
         }
 

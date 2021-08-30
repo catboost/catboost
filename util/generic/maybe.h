@@ -35,7 +35,7 @@ constexpr bool operator==(TNothing, TNothing) noexcept {
 }
 
 template <class T, class Policy /*= ::NMaybe::TPolicyUndefinedExcept*/>
-class TMaybe : private TMaybeBase<T> {
+class TMaybe: private TMaybeBase<T> {
 public:
     using TInPlace = NMaybe::TInPlace;
 
@@ -115,9 +115,9 @@ private:
     template <class U>
     struct TMoveAssignable {
     public:
-         static constexpr bool value = std::is_constructible<T, U&&>::value &&
-                                       std::is_assignable<T&, U&&>::value &&
-                                       !TAssignableFromMaybeSomehow<U>::value;
+        static constexpr bool value = std::is_constructible<T, U&&>::value &&
+                                      std::is_assignable<T&, U&&>::value &&
+                                      !TAssignableFromMaybeSomehow<U>::value;
     };
 
     template <class U>
@@ -164,13 +164,18 @@ public:
 
     template <class... Args>
     constexpr explicit TMaybe(TInPlace, Args&&... args)
-        : TBase(TInPlace{}, std::forward<Args>(args)...) {}
+        : TBase(TInPlace{}, std::forward<Args>(args)...)
+    {
+    }
 
     template <class U, class... TArgs>
     constexpr explicit TMaybe(TInPlace, std::initializer_list<U> il, TArgs&&... args)
-        : TBase(TInPlace{}, il, std::forward<TArgs>(args)...) {}
+        : TBase(TInPlace{}, il, std::forward<TArgs>(args)...)
+    {
+    }
 
-    constexpr TMaybe(TNothing) noexcept {}
+    constexpr TMaybe(TNothing) noexcept {
+    }
 
     template <class U, class = std::enable_if_t<TImplicitCopyCtor<U>::value>>
     TMaybe(const TMaybe<U, Policy>& right) {
@@ -206,11 +211,15 @@ public:
 
     template <class U = T, class = std::enable_if_t<TImplicitAnyCtor<U>::value>>
     constexpr TMaybe(U&& right)
-        : TBase(TInPlace{}, std::forward<U>(right)) {}
+        : TBase(TInPlace{}, std::forward<U>(right))
+    {
+    }
 
     template <class U = T, std::enable_if_t<TExplicitAnyCtor<U>::value, bool> = false>
     constexpr explicit TMaybe(U&& right)
-        : TBase(TInPlace{}, std::forward<U>(right)) {}
+        : TBase(TInPlace{}, std::forward<U>(right))
+    {
+    }
 
     ~TMaybe() = default;
 
@@ -234,7 +243,8 @@ public:
 
     template <class U>
     std::enable_if_t<TCopyAssignable<U>::value,
-    TMaybe&> operator=(const TMaybe<U, Policy>& right) {
+                     TMaybe&>
+    operator=(const TMaybe<U, Policy>& right) {
         if (right.Defined()) {
             if (Defined()) {
                 *Data() = right.GetRef();
@@ -250,9 +260,9 @@ public:
 
     template <class U>
     std::enable_if_t<TMoveAssignable<U>::value,
-    TMaybe&> operator=(TMaybe<U, Policy>&& right) noexcept(
-        std::is_nothrow_assignable<T&, U&&>::value
-        && std::is_nothrow_constructible<T, U&&>::value)
+                     TMaybe&>
+    operator=(TMaybe<U, Policy>&& right) noexcept(
+        std::is_nothrow_assignable<T&, U&&>::value&& std::is_nothrow_constructible<T, U&&>::value)
     {
         if (right.Defined()) {
             if (Defined()) {
@@ -285,8 +295,7 @@ public:
         return this->Defined_;
     }
 
-    Y_PURE_FUNCTION
-    constexpr bool Empty() const noexcept {
+    Y_PURE_FUNCTION constexpr bool Empty() const noexcept {
         return !Defined();
     }
 

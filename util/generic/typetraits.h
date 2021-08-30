@@ -13,7 +13,7 @@ template <bool B>
 using TBoolConstant = std::bool_constant<B>;
 #else
 template <bool B>
-struct TBoolConstant : std::integral_constant<bool, B> {};
+struct TBoolConstant: std::integral_constant<bool, B> {};
 #endif
 
 #if _LIBCPP_STD_VER >= 17
@@ -21,7 +21,7 @@ template <class B>
 using TNegation = std::negation<B>;
 #else
 template <class B>
-struct TNegation : ::TBoolConstant<!bool(B::value)> {};
+struct TNegation: ::TBoolConstant<!bool(B::value)> {};
 #endif
 
 namespace NPrivate {
@@ -54,7 +54,7 @@ template <class... Bs>
 using TConjunction = std::conjunction<Bs...>;
 #else
 template <class... Bs>
-struct TConjunction : ::TBoolConstant< ::NPrivate::ConjunctionImpl<Bs...>()> {};
+struct TConjunction: ::TBoolConstant<::NPrivate::ConjunctionImpl<Bs...>()> {};
 #endif
 
 #if _LIBCPP_STD_VER >= 17 && !defined(_MSC_VER)
@@ -65,7 +65,7 @@ template <class... Bs>
 using TDisjunction = std::disjunction<Bs...>;
 #else
 template <class... Bs>
-struct TDisjunction : ::TBoolConstant< ::NPrivate::DisjunctionImpl<Bs...>()> {};
+struct TDisjunction: ::TBoolConstant<::NPrivate::DisjunctionImpl<Bs...>()> {};
 #endif
 
 #if _LIBCPP_STD_VER >= 17
@@ -86,17 +86,15 @@ struct TPodTraits {
 template <class T>
 class TTypeTraitsBase {
 public:
-    static constexpr bool IsPod = (
-        TPodTraits<std::remove_cv_t<T>>::IsPod || std::is_scalar<std::remove_all_extents_t<T>>::value ||
-        TPodTraits<std::remove_cv_t<std::remove_all_extents_t<T>>>::IsPod
-    );
+    static constexpr bool IsPod = (TPodTraits<std::remove_cv_t<T>>::IsPod || std::is_scalar<std::remove_all_extents_t<T>>::value ||
+                                   TPodTraits<std::remove_cv_t<std::remove_all_extents_t<T>>>::IsPod);
     static constexpr bool IsBitwiseCopyable = std::is_pod<std::remove_cv_t<T>>::value;
     static constexpr bool IsBitwiseSerializable = std::is_pod<std::remove_cv_t<T>>::value;
 };
 
 namespace NPrivate {
     template <class T>
-    struct TIsSmall : std::integral_constant<bool, (sizeof(T) <= sizeof(void*))> {};
+    struct TIsSmall: std::integral_constant<bool, (sizeof(T) <= sizeof(void*))> {};
 }
 
 template <class T>
@@ -158,7 +156,7 @@ class TTypeTraits<void>: public TTypeTraitsBase<void> {};
             (sizeof(TYes) == sizeof(CheckMember((THelper*)nullptr)));                     \
     };                                                                                    \
     template <class T, bool isClassType>                                                  \
-    struct TBaseHas##name : std::false_type {};                                           \
+    struct TBaseHas##name: std::false_type {};                                            \
     template <class T>                                                                    \
     struct TBaseHas##name<T, true>                                                        \
         : std::integral_constant<bool, TClassHas##name<T>::value> {};                     \
@@ -199,9 +197,9 @@ class TTypeTraits<void>: public TTypeTraitsBase<void> {};
 
 #define Y_HAS_SUBTYPE_IMPL_2(subtype, name) \
     template <class T, class = void>        \
-    struct THas##name : std::false_type {}; \
+    struct THas##name: std::false_type {};  \
     template <class T>                      \
-    struct THas##name<T, ::TVoidT<typename T::subtype>> : std::true_type {};
+    struct THas##name<T, ::TVoidT<typename T::subtype>>: std::true_type {};
 
 #define Y_HAS_SUBTYPE_IMPL_1(name) Y_HAS_SUBTYPE_IMPL_2(name, name)
 
@@ -240,60 +238,69 @@ struct TPodTraits<std::pair<T1, T2>> {
 };
 
 template <class T>
-struct TIsPointerToConstMemberFunction : std::false_type {
+struct TIsPointerToConstMemberFunction: std::false_type {
 };
 
 template <class R, class T, class... Args>
-struct TIsPointerToConstMemberFunction<R (T::*)(Args...) const> : std::true_type {
+struct TIsPointerToConstMemberFunction<R (T::*)(Args...) const>: std::true_type {
 };
 
 template <class R, class T, class... Args>
-struct TIsPointerToConstMemberFunction<R (T::*)(Args...) const&> : std::true_type {
+struct TIsPointerToConstMemberFunction<R (T::*)(Args...) const&>: std::true_type {
 };
 
 template <class R, class T, class... Args>
-struct TIsPointerToConstMemberFunction<R (T::*)(Args...) const&&> : std::true_type {
+struct TIsPointerToConstMemberFunction<R (T::*)(Args...) const&&>: std::true_type {
 };
 
 template <class R, class T, class... Args>
-struct TIsPointerToConstMemberFunction<R (T::*)(Args..., ...) const> : std::true_type {
+struct TIsPointerToConstMemberFunction<R (T::*)(Args..., ...) const>: std::true_type {
 };
 
 template <class R, class T, class... Args>
-struct TIsPointerToConstMemberFunction<R (T::*)(Args..., ...) const&> : std::true_type {
+struct TIsPointerToConstMemberFunction<R (T::*)(Args..., ...) const&>: std::true_type {
 };
 
 template <class R, class T, class... Args>
-struct TIsPointerToConstMemberFunction<R (T::*)(Args..., ...) const&&> : std::true_type {
+struct TIsPointerToConstMemberFunction<R (T::*)(Args..., ...) const&&>: std::true_type {
 };
 
 template <template <class...> class T, class U>
-struct TIsSpecializationOf : std::false_type {};
+struct TIsSpecializationOf: std::false_type {};
 
 template <template <class...> class T, class... Ts>
-struct TIsSpecializationOf<T, T<Ts...>> : std::true_type {};
+struct TIsSpecializationOf<T, T<Ts...>>: std::true_type {};
 
 /*
- * Is dependent on a template parameter. Is used in static_assert in a false branch to produce a compile error.
+ * TDependentFalse is a constant dependent on a template parameter.
+ * Use it in static_assert in a false branch of if constexpr to produce a compile error.
  * See an example with dependent_false at https://en.cppreference.com/w/cpp/language/if
  *
  * if constexpr (std::is_same<T, someType1>) {
  * } else if constexpr (std::is_same<T, someType2>) {
  * } else {
- *     static_assert(TDependentFalse<T>::value, "unknown type");
+ *     static_assert(TDependentFalse<T>, "unknown type");
  * }
  */
-template <typename T>
-struct TDependentFalse : public std::false_type {};
+template <typename... T>
+constexpr bool TDependentFalse = false;
 
+// FIXME: neither nvcc10 nor nvcc11 support using auto in this context
+#if defined(__NVCC__)
+template <size_t Value>
+constexpr bool TValueDependentFalse = false;
+#else
+template <auto... Values>
+constexpr bool TValueDependentFalse = false;
+#endif
 
 /*
  * shortcut for std::enable_if_t<...> which checks that T is std::tuple or std::pair
  */
 template <class T, class R = void>
 using TEnableIfTuple = std::enable_if_t<::TDisjunction<::TIsSpecializationOf<std::tuple, std::decay_t<T>>,
-                                                       ::TIsSpecializationOf<std::pair, std::decay_t<T>>>::value, R>;
-
+                                                       ::TIsSpecializationOf<std::pair, std::decay_t<T>>>::value,
+                                        R>;
 
 namespace NPrivate {
     // To allow ADL with custom begin/end
@@ -301,12 +308,11 @@ namespace NPrivate {
     using std::end;
 
     template <typename T>
-    auto IsIterableImpl(int) -> decltype (
-        begin(std::declval<T&>()) != end(std::declval<T&>()), // begin/end and operator !=
+    auto IsIterableImpl(int) -> decltype(
+        begin(std::declval<T&>()) != end(std::declval<T&>()),   // begin/end and operator !=
         ++std::declval<decltype(begin(std::declval<T&>()))&>(), // operator ++
-        *begin(std::declval<T&>()), // operator*
-        std::true_type {}
-    );
+        *begin(std::declval<T&>()),                             // operator*
+        std::true_type{});
 
     template <typename T>
     std::false_type IsIterableImpl(...);

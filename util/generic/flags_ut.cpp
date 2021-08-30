@@ -2,7 +2,7 @@
 
 #include "flags.h"
 
-enum ETestFlag1 : ui16 {
+enum ETestFlag1: ui16 {
     Test1 = 1,
     Test2 = 2,
     Test4 = 4,
@@ -24,7 +24,9 @@ Y_DECLARE_OPERATORS_FOR_FLAGS(ETest2)
 
 namespace {
     // won't compile without Y_DECLARE_UNUSED
-    enum class ETestFlag3 { One = 1, Two = 2, Three = 3 };
+    enum class ETestFlag3 { One = 1,
+                            Two = 2,
+                            Three = 3 };
     Y_DECLARE_FLAGS(ETestFlags3, ETestFlag3)
     Y_DECLARE_OPERATORS_FOR_FLAGS(ETestFlags3)
 }
@@ -102,9 +104,9 @@ Y_UNIT_TEST_SUITE(TFlagsTest) {
     Y_UNIT_TEST(TestBaseType) {
         ui16 goodValue = 7;
         auto goodFlags = ETest1::FromBaseType(goodValue);
-        UNIT_ASSERT(goodFlags & ETestFlag1::Test1);
-        UNIT_ASSERT(goodFlags & ETestFlag1::Test2);
-        UNIT_ASSERT(goodFlags & ETestFlag1::Test4);
+        UNIT_ASSERT(goodFlags& ETestFlag1::Test1);
+        UNIT_ASSERT(goodFlags& ETestFlag1::Test2);
+        UNIT_ASSERT(goodFlags& ETestFlag1::Test4);
         UNIT_ASSERT_VALUES_EQUAL(goodValue, goodFlags.ToBaseType());
 
         // Passed value is not checked, but preserved as is

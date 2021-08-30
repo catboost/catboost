@@ -47,7 +47,7 @@ namespace NCatboostCuda {
             void SplitByExternalComputedFeature(const TBinarySplit& split,
                                                 const TSingleBuffer<const ui64>& compressedBits,
                                                 TMirrorBuffer<ui32>& dst,
-                                                ui32 depth) {
+                                                ui32 depth) override {
                 CB_ENSURE(FeaturesManager.IsTreeCtr(split.FeatureId), "Feature id should be combinations ctr");
 
                 const auto& ctr = FeaturesManager.GetCtr(split.FeatureId);
@@ -102,7 +102,7 @@ namespace NCatboostCuda {
                         TSingleBuffer<ui64> compressedBits = TSingleBuffer<ui64>::Create(NCudaLib::TSingleMapping(dev, compressedSize));
                         TSingleBuffer<const ui32> indices;
                         if (readIndices) {
-                            indices = readIndices->DeviceView(dev);
+                            indices = readIndices->DeviceView(dev).AsConstBuf();
                         }
                         CreateCompressedSplit(ds, feature, split.BinIdx, compressedBits, readIndices ? &indices : nullptr);
                         Reshard(compressedBits, broadcastedBits);

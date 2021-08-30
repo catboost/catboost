@@ -12,11 +12,11 @@ namespace NDetail {
 
 #else
 
-#include <util/system/compiler.h>
+    #include <util/system/compiler.h>
 
-#include <cstring>
-#include <emmintrin.h>
-#include <smmintrin.h>
+    #include <cstring>
+    #include <emmintrin.h>
+    #include <smmintrin.h>
 
 //processes to the first error, or until less then 16 bytes left
 //most code taken from https://woboq.com/blog/utf-8-processing-using-simd.html
@@ -168,7 +168,8 @@ static Y_FORCE_INLINE ui32 Unpack16BytesIntoUtf16IfNoSurrogats(const unsigned ch
                                                mask3));
 
         int c = _mm_extract_epi16(counts, 7);
-        sourceAdvance = !(c & 0x0200) ? 16 : !(c & 0x02) ? 15 : 14;
+        sourceAdvance = !(c & 0x0200) ? 16 : !(c & 0x02) ? 15
+                                                         : 14;
     }
 
     shifts = _mm_blendv_epi8(shifts, _mm_srli_si128(shifts, 8),

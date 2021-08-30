@@ -1,7 +1,9 @@
 #include "scan.cuh"
 #include "segmented_scan.cuh"
 #include "segmented_scan_helpers.cuh"
-#include <contrib/libs/cub/cub/device/device_scan.cuh>
+
+#include <library/cpp/cuda/wrappers/cub_include.h>
+#include _CUB_INCLUDE(cub/device/device_scan.cuh)
 
 namespace NKernel
 {

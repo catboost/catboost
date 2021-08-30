@@ -5,6 +5,7 @@
 #include <util/generic/maybe.h>
 #include <util/generic/strbuf.h>
 #include <util/generic/string.h>
+#include <util/system/types.h>
 
 
 class TLabelConverter;
@@ -21,6 +22,7 @@ namespace NPar {
 
 
 namespace NCB {
+    struct TPathWithScheme;
 
     TTrainingDataProviderPtr GetTrainingData(
         TDataProviderPtr srcData,
@@ -56,9 +58,14 @@ namespace NCB {
         const NCB::TTrainingDataProviders& trainingData
     );
 
-    bool HaveLearnFeaturesInMemory(
-        const NCatboostOptions::TPoolLoadParams* loadOptions,
-        const NCatboostOptions::TCatBoostOptions& catBoostOptions
+    bool HaveFeaturesInMemory(
+        const NCatboostOptions::TCatBoostOptions& catBoostOptions,
+        const TMaybe<TPathWithScheme>& maybePathWithScheme
     );
 
+    void EnsureObjectsDataIsConsecutiveIfQuantized(
+        ui64 cpuUsedRamLimit,
+        NPar::ILocalExecutor* localExecutor,
+        TDataProviderPtr* dataProvider
+    );
 }

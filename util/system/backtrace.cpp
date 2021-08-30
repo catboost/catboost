@@ -5,52 +5,53 @@
 
 #include <util/stream/output.h>
 #include <util/stream/format.h>
+#include <util/generic/array_ref.h>
 #include <util/generic/singleton.h>
 #include <util/generic/string.h>
 
 #ifdef _win_
-#include "mutex.h"
+    #include "mutex.h"
 
-#ifndef OPTIONAL
-#define OPTIONAL
-#endif
-#include <dbghelp.h>
+    #ifndef OPTIONAL
+        #define OPTIONAL
+    #endif
+    #include <dbghelp.h>
 #endif
 
 #if defined(_bionic_)
 //TODO
 #else
-#if !defined(HAVE_BACKTRACE) && defined(_cygwin_)
-#define CaptureStackBackTrace RtlCaptureStackBackTrace
+    #if !defined(HAVE_BACKTRACE) && defined(_cygwin_)
+        #define CaptureStackBackTrace RtlCaptureStackBackTrace
 extern "C" __stdcall unsigned short CaptureStackBackTrace(unsigned long FramesToSkip, unsigned long FramesToCapture, void** BackTrace, unsigned long* BackTraceHash);
 
-#define USE_WIN_BACKTRACE
-#define HAVE_BACKTRACE
-#endif
+        #define USE_WIN_BACKTRACE
+        #define HAVE_BACKTRACE
+    #endif
 
-#if !defined(HAVE_BACKTRACE) && defined(__IOS__)
-#define USE_GLIBC_BACKTRACE
-#define HAVE_BACKTRACE
-#endif
+    #if !defined(HAVE_BACKTRACE) && defined(__IOS__)
+        #define USE_GLIBC_BACKTRACE
+        #define HAVE_BACKTRACE
+    #endif
 
-#if !defined(HAVE_BACKTRACE) && defined(__GNUC__)
-#define USE_GCC_BACKTRACE
-#define HAVE_BACKTRACE
-#endif
+    #if !defined(HAVE_BACKTRACE) && defined(__GNUC__)
+        #define USE_GCC_BACKTRACE
+        #define HAVE_BACKTRACE
+    #endif
 
-#if !defined(HAVE_BACKTRACE) && defined(_win_)
-#define USE_WIN_BACKTRACE
-#define HAVE_BACKTRACE
-#endif
+    #if !defined(HAVE_BACKTRACE) && defined(_win_)
+        #define USE_WIN_BACKTRACE
+        #define HAVE_BACKTRACE
+    #endif
 
-#if !defined(HAVE_BACKTRACE) && defined(_glibc_)
-#define USE_GLIBC_BACKTRACE
-#define HAVE_BACKTRACE
-#endif
+    #if !defined(HAVE_BACKTRACE) && defined(_glibc_)
+        #define USE_GLIBC_BACKTRACE
+        #define HAVE_BACKTRACE
+    #endif
 #endif
 
 #if defined(USE_GLIBC_BACKTRACE)
-#include <execinfo.h>
+    #include <execinfo.h>
 
 size_t BackTrace(void** p, size_t len) {
     return (size_t)backtrace(p, len);
@@ -58,8 +59,8 @@ size_t BackTrace(void** p, size_t len) {
 #endif
 
 #if defined(USE_GCC_BACKTRACE)
-#include <cxxabi.h>
-#include <unwind.h>
+    #include <cxxabi.h>
+    #include <unwind.h>
 
 namespace {
     namespace NGCCBacktrace {
@@ -117,13 +118,13 @@ size_t BackTrace(void**, size_t) {
 #endif
 
 #if defined(_unix_) && !defined(_cygwin_)
-#include <util/generic/strfcpy.h>
+    #include <util/generic/strfcpy.h>
 
-#include <dlfcn.h>
+    #include <dlfcn.h>
 
-#if defined(_darwin_)
-#include <execinfo.h>
-#endif
+    #if defined(_darwin_)
+        #include <execinfo.h>
+    #endif
 
 static inline const char* CopyTo(const char* from, char* buf, size_t len) {
     strfcpy(buf, from, len);
@@ -280,6 +281,18 @@ TString TBackTrace::PrintToString() const {
     TStringStream ss;
     PrintTo(ss);
     return ss.Str();
+}
+
+size_t TBackTrace::size() const {
+    return Size;
+}
+
+const void* const* TBackTrace::data() const {
+    return Data;
+}
+
+TBackTrace::operator TBackTraceView() const {
+    return TBackTraceView(Data, Size);
 }
 
 TBackTrace TBackTrace::FromCurrentException() {

@@ -446,7 +446,7 @@ void SetPermutedIndices(
     const TTrainingDataProviders& trainingData,
     int curDepth,
     const TFold& fold,
-    TVector<TIndexType>* indices,
+    TArrayRef<TIndexType> indices,
     NPar::ILocalExecutor* localExecutor) {
 
     CB_ENSURE(curDepth > 0);
@@ -465,7 +465,7 @@ void SetPermutedIndices(
         fold,
         0, // learn
         localExecutor,
-        *indices);
+        indices);
 }
 
 static TVector<bool> GetIsLeafEmptyOpt(ui64 leafCount, TConstArrayRef<TIndexType> indices, NPar::ILocalExecutor* localExecutor) {

@@ -81,8 +81,9 @@ private:
         UNIT_ASSERT_EQUAL(10, (v.data())[0]);
         UNIT_ASSERT_EQUAL(20, (v.data())[1]);
 
-        for (int i = 0; i < 10000; ++i)
+        for (int i = 0; i < 10000; ++i) {
             v.push_back(99);
+        }
 
         UNIT_ASSERT_EQUAL(10, (v.data())[0]);
         UNIT_ASSERT_EQUAL(20, (v.data())[1]);
@@ -522,7 +523,10 @@ private:
 
     struct TNoDefaultConstructor {
         TNoDefaultConstructor() = delete;
-        explicit TNoDefaultConstructor(int val): Val(val) {}
+        explicit TNoDefaultConstructor(int val)
+            : Val(val)
+        {
+        }
 
         int Val;
     };

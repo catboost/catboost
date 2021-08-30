@@ -200,7 +200,7 @@ Y_UNIT_TEST_SUITE(TSysThreadTest) {
     Y_UNIT_TEST(TestCallable) {
         std::atomic_bool flag = {false};
 
-        struct TCallable : TMoveOnly {
+        struct TCallable: TMoveOnly {
             std::atomic_bool* Flag_;
 
             TCallable(std::atomic_bool* flag)

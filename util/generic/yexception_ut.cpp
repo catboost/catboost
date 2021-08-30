@@ -20,7 +20,7 @@ static inline void Throw2DontMove() {
 #include "bt_exception.h"
 
 #if defined(_MSC_VER)
-#pragma warning(disable : 4702) /*unreachable code*/
+    #pragma warning(disable : 4702) /*unreachable code*/
 #endif
 
 static void CallbackFun(int i) {
@@ -52,6 +52,7 @@ class TExceptionTest: public TTestBase {
     UNIT_TEST(TestMacroOverload)
     UNIT_TEST(TestMessageCrop)
     UNIT_TEST(TestTIoSystemErrorSpecialMethods)
+    UNIT_TEST(TestCurrentExceptionTypeNameMethod)
     UNIT_TEST_SUITE_END();
 
 private:
@@ -114,7 +115,8 @@ private:
 
     inline void TestEnsureWithBackTrace2() {
         try {
-            Y_ENSURE_BT(4 > 6, "custom " << "message");
+            Y_ENSURE_BT(4 > 6, "custom "
+                                   << "message");
         } catch (...) {
             const TString msg = CurrentExceptionMessage();
             UNIT_ASSERT(!msg.Contains("4 > 6"));
@@ -316,6 +318,74 @@ private:
         TIoSystemError errMoveAssign;
         errMoveAssign = std::move(errMove);
         UNIT_ASSERT(errMoveAssign.AsStrBuf().Contains(testStr));
+    }
+    inline void TestCurrentExceptionTypeNameMethod() {
+        //Basic test of getting the correct exception type name.
+        try {
+            throw std::runtime_error("Test Runtime Error Exception");
+        } catch (...) {
+            UNIT_ASSERT_STRING_CONTAINS(CurrentExceptionTypeName(), "std::runtime_error");
+        }
+        //Test when exception has an unusual type. Under Linux it should return "int" and under other OSs "unknown type".
+        try {
+            throw int(1);
+        } catch (...) {
+#if defined(_linux_) || defined(_darwin_)
+            UNIT_ASSERT_VALUES_EQUAL(CurrentExceptionTypeName(), "int");
+#else
+            UNIT_ASSERT_VALUES_EQUAL(CurrentExceptionTypeName(), "unknown type");
+#endif
+        }
+        //Test when the caught exception is rethrown with std::rethrow_exception.
+        try {
+            throw std::logic_error("Test Logic Error Exception");
+        } catch (...) {
+            try {
+                std::rethrow_exception(std::current_exception());
+            } catch (...) {
+                UNIT_ASSERT_STRING_CONTAINS(CurrentExceptionTypeName(), "std::logic_error");
+            }
+        }
+        //Test when the caught exception is rethrown with throw; .
+        //This test is different from the previous one because of the interaction with cxxabi specifics.
+        try {
+            throw std::bad_alloc();
+        } catch (...) {
+            try {
+                throw;
+            } catch (...) {
+                UNIT_ASSERT_STRING_CONTAINS(CurrentExceptionTypeName(), "std::bad_alloc");
+            }
+        }
+        // For exceptions thrown by std::rethrow_exception() a nullptr will be returned by __cxa_current_exception_type().
+        // Adding an explicit test for the case.
+        try {
+            throw int(1);
+        } catch (...) {
+            try {
+                std::rethrow_exception(std::current_exception());
+            } catch (...) {
+#if (defined(_linux_) || defined(_darwin_)) && !defined(__clang__)
+                UNIT_ASSERT_VALUES_EQUAL(CurrentExceptionTypeName(), "int");
+#else
+                UNIT_ASSERT_VALUES_EQUAL(CurrentExceptionTypeName(), "unknown type");
+#endif
+            }
+        }
+        //Test when int is rethrown with throw; .
+        try {
+            throw int(1);
+        } catch (...) {
+            try {
+                throw;
+            } catch (...) {
+#if defined(_linux_) || defined(_darwin_)
+                UNIT_ASSERT_VALUES_EQUAL(CurrentExceptionTypeName(), "int");
+#else
+                UNIT_ASSERT_VALUES_EQUAL(CurrentExceptionTypeName(), "unknown type");
+#endif
+            }
+        }
     }
 };
 

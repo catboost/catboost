@@ -1,14 +1,6 @@
 RECURSE(
     libs
-    tools
     python
     restricted
+    tools
 )
-
-
-IF (YMAKE)
-    RECURSE(
-    
-)
-ENDIF ()
-

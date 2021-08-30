@@ -4,12 +4,12 @@
 #include "mapfindptr.h"
 
 #include <util/memory/alloc.h>
+#include <util/system/type_name.h>
 #include <util/system/yassert.h>
 #include <util/str_stl.h>
 #include "yexception.h"
 #include "typetraits.h"
 #include "utility.h"
-#include "type_name.h"
 
 #include <algorithm>
 #include <initializer_list>
@@ -622,8 +622,7 @@ public:
         return size_type(-1);
     }
 
-    Y_PURE_FUNCTION
-    bool empty() const noexcept {
+    Y_PURE_FUNCTION bool empty() const noexcept {
         return size() == 0;
     }
 
@@ -1532,8 +1531,7 @@ public:
         return rep.max_size();
     }
 
-    Y_PURE_FUNCTION
-    bool empty() const noexcept {
+    Y_PURE_FUNCTION bool empty() const noexcept {
         return rep.empty();
     }
     explicit operator bool() const noexcept {
@@ -1602,8 +1600,8 @@ public:
         iterator it = find(key, ctx);
         if (it == end()) {
             it = rep.emplace_direct(ctx, std::piecewise_construct,
-                    std::forward_as_tuple(std::forward<TKey>(key)),
-                    std::forward_as_tuple(std::forward<Args>(args)...));
+                                    std::forward_as_tuple(std::forward<TKey>(key)),
+                                    std::forward_as_tuple(std::forward<Args>(args)...));
             return {it, true};
         }
         return {it, false};
@@ -1858,8 +1856,7 @@ public:
         return rep.max_size();
     }
 
-    Y_PURE_FUNCTION
-    bool empty() const {
+    Y_PURE_FUNCTION bool empty() const {
         return rep.empty();
     }
     explicit operator bool() const noexcept {

@@ -67,15 +67,17 @@ time_t TimeGM(const struct tm* t) {
         {0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335}};
 
     // Only handles years after 1970
-    if (t->tm_year < 70)
+    if (t->tm_year < 70) {
         return (time_t)-1;
+    }
 
     int days = 365 * (t->tm_year - 70);
     // Take into account the leap days between 1970 and YEAR-1
     days += (t->tm_year - 1 - 68) / 4 - ((t->tm_year - 1) / 100) + ((t->tm_year - 1 + 300) / 400);
 
-    if (t->tm_mon < 0 || t->tm_mon >= 12)
+    if (t->tm_mon < 0 || t->tm_mon >= 12) {
         return (time_t)-1;
+    }
     days += month_to_days[LEAPYEAR(1900 + t->tm_year)][t->tm_mon];
     days += t->tm_mday - 1;
 

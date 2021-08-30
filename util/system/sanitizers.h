@@ -5,13 +5,13 @@
 extern "C" { // sanitizers API
 
 #if defined(_asan_enabled_)
-void __lsan_ignore_object(const void* p);
+    void __lsan_ignore_object(const void* p);
 #endif
 
 #if defined(_msan_enabled_)
-void __msan_unpoison(const volatile void* a, size_t size);
-void __msan_poison(const volatile void* a, size_t size);
-void __msan_check_mem_is_initialized(const volatile void* x, size_t size);
+    void __msan_unpoison(const volatile void* a, size_t size);
+    void __msan_poison(const volatile void* a, size_t size);
+    void __msan_check_mem_is_initialized(const volatile void* x, size_t size);
 #endif
 
 }; // sanitizers API
@@ -25,7 +25,7 @@ namespace NSan {
         ~TFiberContext() noexcept;
 
         void BeforeFinish() noexcept;
-        void BeforeSwitch() noexcept;
+        void BeforeSwitch(TFiberContext* old) noexcept;
         void AfterSwitch() noexcept;
 
         static void AfterStart() noexcept;
@@ -35,9 +35,9 @@ namespace NSan {
         const void* Stack_;
         size_t Len_;
 
+        const bool IsMainFiber_;
 #if defined(_tsan_enabled_)
         void* const CurrentTSanFiberContext_;
-        const bool WasFiberCreated_;
 #endif
     };
 
@@ -119,4 +119,23 @@ namespace NSan {
         Y_UNUSED(ptr);
 #endif
     }
+
+#if defined(_tsan_enabled_)
+    // defined in .cpp to avoid exposing problematic C-linkage version of AnnotateBenignRaceSized(...)
+    void AnnotateBenignRaceSized(const char* file, int line,
+                                 const volatile void* address,
+                                 size_t size,
+                                 const char* description) noexcept;
+#else
+    inline static void AnnotateBenignRaceSized(const char* file, int line,
+                                               const volatile void* address,
+                                               size_t size,
+                                               const char* description) noexcept {
+        Y_UNUSED(file);
+        Y_UNUSED(line);
+        Y_UNUSED(address);
+        Y_UNUSED(size);
+        Y_UNUSED(description);
+    }
+#endif
 }

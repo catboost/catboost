@@ -14,7 +14,8 @@ namespace {
 
         TExample(const TStringBuf expected, const TStringBuf source)
             : Expected{expected}
-            , Source{source} {
+            , Source{source}
+        {
         }
     };
 }
@@ -26,11 +27,15 @@ static const TExample CommonTestData[] = {
 
     {"http://ya.ru/\\0", "http://ya.ru/\0"sv},
     {"http://ya.ru/\\0\\0", "http://ya.ru/\0\0"sv},
-    {"http://ya.ru/\\0\\0000", "http://ya.ru/\0\0" "0"sv},
-    {"http://ya.ru/\\0\\0001", "http://ya.ru/\0\x00" "1"sv},
+    {"http://ya.ru/\\0\\0000", "http://ya.ru/\0\0"
+                               "0"sv},
+    {"http://ya.ru/\\0\\0001", "http://ya.ru/\0\x00"
+                               "1"sv},
 
-    {R"(\2\4\00678)", "\2\4\6" "78"sv}, // \6 -> \006 because next char '7' is "octal"
-    {R"(\2\4\689)", "\2\4\6" "89"sv}, // \6 -> \6 because next char '8' is not "octal"
+    {R"(\2\4\00678)", "\2\4\6"
+                      "78"sv}, // \6 -> \006 because next char '7' is "octal"
+    {R"(\2\4\689)", "\2\4\6"
+                    "89"sv}, // \6 -> \6 because next char '8' is not "octal"
 
     {R"(\"Hello\", Alice said.)", "\"Hello\", Alice said."},
     {"Slash\\\\dash!", "Slash\\dash!"},

@@ -989,7 +989,7 @@ class Popen(object):
     def __repr__(self):
         obj_repr = (
             f"<{self.__class__.__name__}: "
-            f"returncode: {self.returncode} args: {list(self.args)!r}>"
+            f"returncode: {self.returncode} args: {self.args!r}>"
         )
         if len(obj_repr) > 80:
             obj_repr = obj_repr[:76] + "...>"
@@ -1525,10 +1525,8 @@ class Popen(object):
                 self.stderr.close()
 
             # All data exchanged.  Translate lists into strings.
-            if stdout is not None:
-                stdout = stdout[0]
-            if stderr is not None:
-                stderr = stderr[0]
+            stdout = stdout[0] if stdout else None
+            stderr = stderr[0] if stderr else None
 
             return (stdout, stderr)
 

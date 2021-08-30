@@ -14,7 +14,8 @@ template <class TConsumer>
 inline void ReadAndProceedPoolInBlocks(const NCatboostOptions::TDatasetReadingParams& params,
                                        ui32 blockSize,
                                        TConsumer&& poolConsumer,
-                                       NPar::ILocalExecutor* localExecutor) {
+                                       NPar::ILocalExecutor* localExecutor,
+                                       THolder<ICdProvider> cdProvider=nullptr) {
 
     auto datasetLoader = NCB::GetProcessor<NCB::IDatasetLoader>(
         params.PoolPath, // for choosing processor
@@ -32,11 +33,12 @@ inline void ReadAndProceedPoolInBlocks(const NCatboostOptions::TDatasetReadingPa
                 params.PoolMetaInfoPath,
                 params.ClassLabels,
                 params.ColumnarPoolFormatParams.DsvFormat,
-                MakeCdProviderFromFile(params.ColumnarPoolFormatParams.CdFilePath),
+                cdProvider ? std::move(cdProvider) : MakeCdProviderFromFile(params.ColumnarPoolFormatParams.CdFilePath),
                 params.IgnoredFeatures,
                 NCB::EObjectsOrder::Undefined,
                 blockSize,
                 NCB::TDatasetSubset::MakeColumns(),
+                /*LoadColumnsAsString*/ false,
                 localExecutor
             }
         }

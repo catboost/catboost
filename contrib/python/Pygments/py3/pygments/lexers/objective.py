@@ -412,7 +412,7 @@ class SwiftLexer(RegexLexer):
         ],
         'keywords': [
             (words((
-                'as', 'break', 'case', 'catch', 'continue', 'default', 'defer',
+                'as', 'async', 'await', 'break', 'case', 'catch', 'continue', 'default', 'defer',
                 'do', 'else', 'fallthrough', 'for', 'guard', 'if', 'in', 'is',
                 'repeat', 'return', '#selector', 'switch', 'throw', 'try',
                 'where', 'while'), suffix=r'\b'),
@@ -440,8 +440,8 @@ class SwiftLexer(RegexLexer):
             (r'(var|let)(\s+)([a-zA-Z_]\w*)', bygroups(Keyword.Declaration,
              Text, Name.Variable)),
             (words((
-                'class', 'deinit', 'enum', 'extension', 'func', 'import', 'init',
-                'internal', 'let', 'operator', 'private', 'protocol', 'public',
+                'actor', 'associatedtype', 'class', 'deinit', 'enum', 'extension', 'func', 'import',
+                'init', 'internal', 'let', 'operator', 'private', 'protocol', 'public',
                 'static', 'struct', 'subscript', 'typealias', 'var'), suffix=r'\b'),
              Keyword.Declaration)
         ],

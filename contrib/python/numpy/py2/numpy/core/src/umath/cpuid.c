@@ -6,7 +6,7 @@
 
 #include "npy_config.h"
 
-#include "cpuid.h"
+#include <contrib/python/numpy/py2/numpy/core/src/umath/cpuid.h>
 
 #define XCR_XFEATURE_ENABLED_MASK 0x0
 #define XSTATE_SSE 0x2

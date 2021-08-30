@@ -5,95 +5,53 @@
 //#define USE_GENERIC_ENDIAN_CVT
 
 #if defined(_linux_) && !defined(USE_GENERIC_ENDIAN_CVT)
-#include <byteswap.h>
+    #include <byteswap.h>
 #elif defined(_darwin_)
-#if defined(_arm_) || defined(__IOS__)
-#include <architecture/byte_order.h>
+    #if defined(_arm_) || defined(__IOS__)
+        #include <architecture/byte_order.h>
+    #else
+        #include <machine/byte_order.h>
+    #endif
 #else
-#include <machine/byte_order.h>
-#endif
-#else
-#include <util/generic/utility.h>
+    #include <util/generic/utility.h>
 #endif
 
 #if defined(_linux_) && !defined(USE_GENERIC_ENDIAN_CVT)
-#define SwapBytes16 bswap_16
-#define SwapBytes32 bswap_32
-#define SwapBytes64 bswap_64
+    #define SwapBytes16 bswap_16
+    #define SwapBytes32 bswap_32
+    #define SwapBytes64 bswap_64
 #elif defined(_darwin_)
-#ifdef _arm_
-#define SwapBytes16 _OSSwapInt16
-#define SwapBytes32 _OSSwapInt32
-#define SwapBytes64 _OSSwapInt64
-#else
-#define SwapBytes16 OSSwapInt16
-#define SwapBytes32 OSSwapInt32
-#define SwapBytes64 OSSwapInt64
-#endif
-#else
-#if defined(_x86_) && defined(__GNUC__)
-#undef asm
-#define asm __asm__
-
-inline ui16 SwapBytes16(ui16 x) noexcept {
-    ui16 val;
-
-    asm(
-        "rorw $8, %w0"
-        : "=r"(val)
-        : "0"(x)
-        : "cc");
-
-    return val;
-}
-
-inline ui32 SwapBytes32(ui32 x) noexcept {
-    ui32 val;
-
-    asm(
-        "bswap %0"
-        : "=r"(val)
-        : "0"(x));
-
-    return val;
-}
-
-#if defined(_x86_64_)
-#define HAVE_SWAP_BYTES_64
-
-inline ui64 SwapBytes64(ui64 x) noexcept {
-    ui64 val;
-
-    asm(
-        "bswapq %0"
-        : "=r"(val)
-        : "0"(x));
-
-    return val;
-}
+    #ifdef _arm_
+        #define SwapBytes16 _OSSwapInt16
+        #define SwapBytes32 _OSSwapInt32
+        #define SwapBytes64 _OSSwapInt64
+    #else
+        #define SwapBytes16 OSSwapInt16
+        #define SwapBytes32 OSSwapInt32
+        #define SwapBytes64 OSSwapInt64
+    #endif
 #endif
 
-#undef asm
-#else
-#define byte_n(__val, __n) ((((unsigned char*)(&__val))[__n]))
-
+#ifndef SwapBytes16
 inline ui16 SwapBytes16(ui16 val) noexcept {
+    #define byte_n(__val, __n) ((((unsigned char*)(&__val))[__n]))
     DoSwap(byte_n(val, 0), byte_n(val, 1));
-
     return val;
+    #undef byte_n
 }
+#endif
 
+#ifndef SwapBytes32
 inline ui32 SwapBytes32(ui32 val) noexcept {
+    #define byte_n(__val, __n) ((((unsigned char*)(&__val))[__n]))
     DoSwap(byte_n(val, 0), byte_n(val, 3));
     DoSwap(byte_n(val, 1), byte_n(val, 2));
-
     return val;
+    #undef byte_n
 }
-
-#undef byte_n
 #endif
 
-#if !defined(HAVE_SWAP_BYTES_64)
+#ifndef SwapBytes64
 inline ui64 SwapBytes64(ui64 val) noexcept {
     union {
         ui64 val;
@@ -106,9 +64,6 @@ inline ui64 SwapBytes64(ui64 val) noexcept {
 
     return ret.val;
 }
-#endif
-
-#undef HAVE_SWAP_BYTES_64
 #endif
 
 //for convenience
@@ -160,7 +115,7 @@ inline T HostToInet(T val) noexcept {
 #elif defined(_little_endian_)
     return LittleToBig(val);
 #else
-#error todo
+    #error todo
 #endif
 }
 
@@ -176,7 +131,7 @@ inline T HostToLittle(T val) noexcept {
 #elif defined(_little_endian_)
     return val;
 #else
-#error todo
+    #error todo
 #endif
 }
 

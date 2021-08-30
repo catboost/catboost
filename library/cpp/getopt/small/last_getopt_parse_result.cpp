@@ -126,6 +126,16 @@ namespace NLastGetopt {
                 TOptParseResult& r = OptParseResult();
                 r.AddValue(Parser_->CurValOrOpt().data());
             }
+
+            Y_ENSURE(options);
+            const auto freeArgs = GetFreeArgs();
+            for (size_t i = 0; i < freeArgs.size(); ++i) {
+                if (i >= options->ArgBindings_.size()) {
+                    break;
+                }
+
+                options->ArgBindings_[i](freeArgs[i]);
+            }
         } catch (...) {
             HandleError();
         }

@@ -91,7 +91,7 @@ Y_UNIT_TEST_SUITE(TestCpuId) {
 }
 
 #if defined(_x86_64_)
-#if defined(__GNUC__)
+    #if defined(__GNUC__)
 void ExecuteSSEInstruction() {
     __asm__ __volatile__("xorps %%xmm0, %%xmm0\n"
                          :
@@ -257,7 +257,7 @@ void ExecuteCLFLUSHOPTInstruction() {
 void ExecuteCLWBInstruction() {
 }
 
-#elif defined(_MSC_VER)
+    #elif defined(_MSC_VER)
 void ExecuteSSEInstruction() {
 }
 
@@ -351,9 +351,9 @@ void ExecuteCLFLUSHOPTInstruction() {
 void ExecuteCLWBInstruction() {
 }
 
-#else
-#error "unknown compiler"
-#endif
+    #else
+        #error "unknown compiler"
+    #endif
 #else
 void ExecuteSSEInstruction() {
 }

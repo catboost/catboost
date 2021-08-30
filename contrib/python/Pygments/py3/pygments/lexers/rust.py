@@ -109,7 +109,7 @@ class RustLexer(RegexLexer):
             # Types in positions.
             (r'(?::|->)', Text, 'typename'),
             # Labels
-            (r'(break|continue)(\s*)(\'[A-Za-z_]\w*)?',
+            (r'(break|continue)(\b\s*)(\'[A-Za-z_]\w*)?',
              bygroups(Keyword, Text.Whitespace, Name.Label)),
 
             # Character literals
@@ -135,7 +135,7 @@ class RustLexer(RegexLexer):
             # String literals
             (r'b"', String, 'bytestring'),
             (r'"', String, 'string'),
-            (r'b?r(#*)".*?"\1', String),
+            (r'(?s)b?r(#*)".*?"\1', String),
 
             # Lifetime names
             (r"'", Operator, 'lifetime'),
@@ -152,6 +152,11 @@ class RustLexer(RegexLexer):
 
             # Attributes
             (r'#!?\[', Comment.Preproc, 'attribute['),
+
+            # Misc
+            # Lone hashes: not used in Rust syntax, but allowed in macro
+            # arguments, most famously for quote::quote!()
+            (r'#', Text),
         ],
         'comment': [
             (r'[^*/]+', Comment.Multiline),
@@ -208,16 +213,10 @@ class RustLexer(RegexLexer):
         'attribute_common': [
             (r'"', String, 'string'),
             (r'\[', Comment.Preproc, 'attribute['),
-            (r'\(', Comment.Preproc, 'attribute('),
         ],
         'attribute[': [
             include('attribute_common'),
-            (r'\];?', Comment.Preproc, '#pop'),
-            (r'[^"\]]+', Comment.Preproc),
-        ],
-        'attribute(': [
-            include('attribute_common'),
-            (r'\);?', Comment.Preproc, '#pop'),
-            (r'[^")]+', Comment.Preproc),
+            (r'\]', Comment.Preproc, '#pop'),
+            (r'[^"\]\[]+', Comment.Preproc),
         ],
     }

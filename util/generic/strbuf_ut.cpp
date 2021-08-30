@@ -4,8 +4,6 @@
 
 #include <string_view>
 
-using namespace std::string_view_literals;
-
 Y_UNIT_TEST_SUITE(TStrBufTest) {
     Y_UNIT_TEST(TestConstructorsAndOperators) {
         TStringBuf str("qwerty");

@@ -1,6 +1,7 @@
 
+SUBSCRIBER(g:util-subscribers)
 
-PYTEST()
+PY2TEST()
 
 SIZE(LARGE)
 

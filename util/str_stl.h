@@ -7,8 +7,9 @@
 #include <util/generic/strbuf.h>
 #include <util/generic/typetraits.h>
 
-#include <utility>
 #include <functional>
+#include <typeindex>
+#include <utility>
 
 namespace std {
     template <>
@@ -72,35 +73,42 @@ struct hash<T*>: public ::hash<const T*> {
 };
 
 template <>
-struct hash<const char*> : ::NHashPrivate::TStringHash<char> {
+struct hash<const char*>: ::NHashPrivate::TStringHash<char> {
 };
 
 template <>
-struct THash<TStringBuf> : ::NHashPrivate::TStringHash<char> {
+struct THash<TStringBuf>: ::NHashPrivate::TStringHash<char> {
 };
 
 template <>
-struct hash<TString> : ::NHashPrivate::TStringHash<char> {
+struct hash<TString>: ::NHashPrivate::TStringHash<char> {
 };
 
 template <>
-struct hash<TUtf16String> : ::NHashPrivate::TStringHash<wchar16> {
+struct hash<TUtf16String>: ::NHashPrivate::TStringHash<wchar16> {
 };
 
 template <>
-struct THash<TWtringBuf> : ::NHashPrivate::TStringHash<wchar16> {
+struct THash<TWtringBuf>: ::NHashPrivate::TStringHash<wchar16> {
 };
 
 template <>
-struct hash<TUtf32String> : ::NHashPrivate::TStringHash<wchar32> {
+struct hash<TUtf32String>: ::NHashPrivate::TStringHash<wchar32> {
 };
 
 template <>
-struct THash<TUtf32StringBuf> : ::NHashPrivate::TStringHash<wchar32> {
+struct THash<TUtf32StringBuf>: ::NHashPrivate::TStringHash<wchar32> {
 };
 
 template <class C, class T, class A>
-struct hash<std::basic_string<C, T, A>> : ::NHashPrivate::TStringHash<C> {
+struct hash<std::basic_string<C, T, A>>: ::NHashPrivate::TStringHash<C> {
+};
+
+template <>
+struct THash<std::type_index> {
+    inline size_t operator()(const std::type_index& index) const {
+        return index.hash_code();
+    }
 };
 
 namespace NHashPrivate {
@@ -172,8 +180,6 @@ template <class TFirst, class TSecond>
 struct hash<std::pair<TFirst, TSecond>>: public NHashPrivate::TPairHash<TFirst, TSecond> {
 };
 
-
-
 template <class T>
 struct TEqualTo: public std::equal_to<T> {
 };
@@ -189,7 +195,7 @@ struct TEqualTo<TUtf16String>: public TEqualTo<TWtringBuf> {
 };
 
 template <>
-struct TEqualTo<TUtf32String> : public TEqualTo<TUtf32StringBuf> {
+struct TEqualTo<TUtf32String>: public TEqualTo<TUtf32StringBuf> {
     using is_transparent = void;
 };
 
@@ -242,7 +248,7 @@ struct TLess<TUtf16String>: public TLess<TWtringBuf> {
 };
 
 template <>
-struct TLess<TUtf32String> : public TLess<TUtf32StringBuf> {
+struct TLess<TUtf32String>: public TLess<TUtf32StringBuf> {
     using is_transparent = void;
 };
 
@@ -261,6 +267,6 @@ struct TGreater<TUtf16String>: public TGreater<TWtringBuf> {
 };
 
 template <>
-struct TGreater<TUtf32String> : public TGreater<TUtf32StringBuf> {
+struct TGreater<TUtf32String>: public TGreater<TUtf32StringBuf> {
     using is_transparent = void;
 };

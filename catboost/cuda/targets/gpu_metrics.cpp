@@ -149,7 +149,7 @@ namespace NCatboostCuda {
         {
         }
 
-        virtual TMetricHolder Eval(const TStripeBuffer<const float>& target,
+        TMetricHolder Eval(const TStripeBuffer<const float>& target,
                                    const TStripeBuffer<const float>& weights,
                                    const TStripeBuffer<const float>& cursor,
                                    TScopedCacheHolder* cache) const final {
@@ -157,7 +157,7 @@ namespace NCatboostCuda {
             return EvalOnGpu<NCudaLib::TStripeMapping>(target, weights, cursor, cache);
         }
 
-        virtual TMetricHolder Eval(const TMirrorBuffer<const float>& target,
+        TMetricHolder Eval(const TMirrorBuffer<const float>& target,
                                    const TMirrorBuffer<const float>& weights,
                                    const TMirrorBuffer<const float>& cursor,
                                    TScopedCacheHolder* cache) const final {
@@ -344,17 +344,17 @@ namespace NCatboostCuda {
         {
         }
 
-        virtual TMetricHolder Eval(const TStripeBuffer<const float>& target,
+        TMetricHolder Eval(const TStripeBuffer<const float>& target,
                                    const TStripeBuffer<const float>& weights,
                                    const TGpuSamplesGrouping<NCudaLib::TStripeMapping>& samplesGrouping,
-                                   const TStripeBuffer<const float>& cursor) const {
+                                   const TStripeBuffer<const float>& cursor) const override {
             return EvalOnGpu<NCudaLib::TStripeMapping>(target, weights, samplesGrouping, cursor);
         }
 
-        virtual TMetricHolder Eval(const TMirrorBuffer<const float>& target,
+        TMetricHolder Eval(const TMirrorBuffer<const float>& target,
                                    const TMirrorBuffer<const float>& weights,
                                    const TGpuSamplesGrouping<NCudaLib::TMirrorMapping>& samplesGrouping,
-                                   const TMirrorBuffer<const float>& cursor) const {
+                                   const TMirrorBuffer<const float>& cursor) const override {
             return EvalOnGpu<NCudaLib::TMirrorMapping>(target,
                                                        weights,
                                                        samplesGrouping,
@@ -519,6 +519,8 @@ namespace NCatboostCuda {
             case ELossFunction::Accuracy:
             case ELossFunction::ZeroOneLoss:
             case ELossFunction::NumErrors:
+            case ELossFunction::TotalF1:
+            case ELossFunction::MCC:
             case ELossFunction::Poisson:
             case ELossFunction::Expectile:
             case ELossFunction::Tweedie:
@@ -526,26 +528,12 @@ namespace NCatboostCuda {
                 result.emplace_back(new TGpuPointwiseMetric(metricDescription, approxDim));
                 break;
             }
-            case ELossFunction::TotalF1: {
-                EF1AverageType averageType = EF1AverageType::Weighted;
-                if (params.GetParamsMap().contains("average")) {
-                    averageType = FromString<EF1AverageType>(params.GetParamsMap().at("average"));
-                }
-                result.emplace_back(new TGpuPointwiseMetric(MakeTotalF1Metric(params, numClasses, averageType), 0, numClasses, isMulticlass, metricDescription));
-                break;
-            }
-            case ELossFunction::MCC: {
-                result.emplace_back(new TGpuPointwiseMetric(MakeMCCMetric(params, numClasses), 0, numClasses, isMulticlass, metricDescription));
-                break;
-            }
+            case ELossFunction::Precision:
+            case ELossFunction::Recall:
             case ELossFunction::F1: {
-                if (approxDim == 1) {
-                    result.emplace_back(new TGpuPointwiseMetric(MakeBinClassF1Metric(params), 1, 2, isMulticlass, metricDescription));
-                } else {
-                    for (ui32 i = 0; i < approxDim; ++i) {
-                        result.emplace_back(new TGpuPointwiseMetric(MakeMultiClassF1Metric(params, approxDim, i),
-                                                                    i, approxDim, isMulticlass, metricDescription));
-                    }
+                auto cpuMetrics = CreateMetricFromDescription(metricDescription, approxDim);
+                for (ui32 i = 0; i < approxDim; ++i) {
+                    result.emplace_back(new TGpuPointwiseMetric(std::move(cpuMetrics[i]), i, numClasses, isMulticlass, metricDescription));
                 }
                 break;
             }
@@ -591,29 +579,6 @@ namespace NCatboostCuda {
 
             case ELossFunction::HingeLoss: {
                 result.emplace_back(new TCpuFallbackMetric(CreateSingleMetric(metricType, params, approxDim), metricDescription));
-                break;
-            }
-
-            case ELossFunction::Precision: {
-                if (approxDim == 1) {
-                    result.emplace_back(new TGpuPointwiseMetric(MakeBinClassPrecisionMetric(params), 1, 2, isMulticlass, metricDescription));
-                } else {
-                    for (ui32 i = 0; i < approxDim; ++i) {
-                        result.emplace_back(new TGpuPointwiseMetric(MakeMultiClassPrecisionMetric(params, approxDim, i), i, approxDim, isMulticlass, metricDescription));
-                    }
-                }
-                break;
-            }
-            case ELossFunction::Recall: {
-                if (approxDim == 1) {
-                    result.emplace_back(new TGpuPointwiseMetric(MakeBinClassRecallMetric(params),
-                                        1, 2, isMulticlass, metricDescription));
-                } else {
-                    for (ui32 i = 0; i < approxDim; ++i) {
-                        result.emplace_back(new TGpuPointwiseMetric(MakeMultiClassRecallMetric(params, approxDim, i),
-                                            i, approxDim, isMulticlass, metricDescription));
-                    }
-                }
                 break;
             }
             case ELossFunction::QueryRMSE:

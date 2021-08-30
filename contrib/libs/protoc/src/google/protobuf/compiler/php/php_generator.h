@@ -32,26 +32,61 @@
 #define GOOGLE_PROTOBUF_COMPILER_PHP_GENERATOR_H__
 
 #include <google/protobuf/compiler/code_generator.h>
+#include <google/protobuf/descriptor.h>
 
 #include <string>
+
+#include <google/protobuf/port_def.inc>
 
 namespace google {
 namespace protobuf {
 namespace compiler {
 namespace php {
 
-class LIBPROTOC_EXPORT Generator
-    : public google::protobuf::compiler::CodeGenerator {
+struct Options;
+
+class PROTOC_EXPORT Generator : public CodeGenerator {
+ public:
   virtual bool Generate(
       const FileDescriptor* file,
-      const string& parameter,
+      const TProtoStringType& parameter,
       GeneratorContext* generator_context,
-      string* error) const;
+      TProtoStringType* error) const override;
+
+  bool GenerateAll(const std::vector<const FileDescriptor*>& files,
+                   const TProtoStringType& parameter,
+                   GeneratorContext* generator_context,
+                   TProtoStringType* error) const override;
+
+  uint64_t GetSupportedFeatures() const override {
+    return FEATURE_PROTO3_OPTIONAL;
+  }
+
+ private:
+  bool Generate(
+      const FileDescriptor* file,
+      const Options& options,
+      GeneratorContext* generator_context,
+      TProtoStringType* error) const;
 };
+
+// To skip reserved keywords in php, some generated classname are prefixed.
+// Other code generators may need following API to figure out the actual
+// classname.
+PROTOC_EXPORT TProtoStringType GeneratedClassName(const Descriptor* desc);
+PROTOC_EXPORT TProtoStringType GeneratedClassName(const EnumDescriptor* desc);
+PROTOC_EXPORT TProtoStringType GeneratedClassName(const ServiceDescriptor* desc);
+
+inline bool IsWrapperType(const FieldDescriptor* descriptor) {
+  return descriptor->cpp_type() == FieldDescriptor::CPPTYPE_MESSAGE &&
+      descriptor->message_type()->file()->name() == "google/protobuf/wrappers.proto";
+}
 
 }  // namespace php
 }  // namespace compiler
 }  // namespace protobuf
 }  // namespace google
+
+#include <google/protobuf/port_undef.inc>
 
 #endif  // GOOGLE_PROTOBUF_COMPILER_PHP_GENERATOR_H__

@@ -1,6 +1,9 @@
 #include "model_import_interface.h"
 
 #include <catboost/libs/logging/logging.h>
+#include <catboost/private/libs/algo_helpers/custom_objective_descriptor.h>
+#include <catboost/private/libs/options/json_helper.h>
+#include <catboost/libs/metrics/metric.h>
 #include <catboost/private/libs/options/check_train_options.h>
 #include <catboost/private/libs/options/json_helper.h>
 #include <catboost/libs/model/model_export/json_model_helpers.h>
@@ -38,8 +41,11 @@ namespace NCB {
 
 #ifndef CATBOOST_NO_PARAMS_CHECK_ON_LOAD
     static NJson::TJsonValue RemoveInvalidParams(const NJson::TJsonValue& params) {
+        // We are defining those stubs only for deserialized model params checks, so it should be safe
+        TCustomObjectiveDescriptor objectiveDescriptorStub;
+        TCustomMetricDescriptor metricDescriptorStub;
         try {
-            CheckFitParams(params);
+            CheckFitParams(params, &objectiveDescriptorStub, &metricDescriptorStub);
             return params;
         } catch (...) {
             CATBOOST_WARNING_LOG << "There are invalid params and some of them will be ignored." << Endl;
@@ -50,7 +56,7 @@ namespace NCB {
             result[param.first] = param.second;
 
             try {
-                CheckFitParams(result);
+                CheckFitParams(result, &objectiveDescriptorStub, &metricDescriptorStub);
             } catch (...) {
                 result.EraseValue(param.first);
 

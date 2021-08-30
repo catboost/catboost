@@ -42,6 +42,16 @@ IF (ARCH_ARM64 AND OS_ANDROID)
         src/aarch64/ffi.c
         src/aarch64/sysv.S
     )
+ELSEIF (ARCH_ARM64 AND OS_DARWIN)
+    ADDINCL(
+        contrib/restricted/libffi/configs/aarch64-apple-macos
+        GLOBAL contrib/restricted/libffi/configs/aarch64-apple-macos/include
+    )
+
+    SRCS(
+        src/aarch64/ffi.c
+        src/aarch64/sysv.S
+    )
 ELSEIF (ARCH_ARM64 AND OS_IOS)
     ADDINCL(
         contrib/restricted/libffi/configs/aarch64-apple-iphoneos

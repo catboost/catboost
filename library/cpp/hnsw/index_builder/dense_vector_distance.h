@@ -1,6 +1,6 @@
 #pragma once
 
-#include <util/generic/fwd.h>
+#include <stddef.h>
 
 namespace NHnsw {
     template <class T, class TDistance>

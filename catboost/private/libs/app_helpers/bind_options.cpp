@@ -794,6 +794,18 @@ static void BindTreeParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* pla
             (*plainJsonPtr)["l2_leaf_reg"] = reg;
         });
 
+    parser.AddLongOption("meta-l2-leaf-exponent", "GPU only. Exponent value for meta L2 score function.")
+        .RequiredArgument("float")
+        .Handler1T<float>([plainJsonPtr](float exponent) {
+            (*plainJsonPtr)["meta_l2_exponent"] = exponent;
+        });
+
+    parser.AddLongOption("meta-l2-leaf-frequency", "GPU only. Frequency value for meta L2 score function.")
+        .RequiredArgument("float")
+        .Handler1T<float>([plainJsonPtr](float frequency) {
+            (*plainJsonPtr)["meta_l2_frequency"] = frequency;
+        });
+
     parser.AddLongOption("bayesian-matrix-reg", "Regularization value. Should be >= 0")
             .RequiredArgument("float")
             .Handler1T<float>([plainJsonPtr](float reg) {
@@ -1311,8 +1323,8 @@ static void BindSystemParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* p
 
     parser
             .AddLongOption("pinned-memory-size")
-            .RequiredArgument("int")
-            .Help("GPU only. Minimum CPU pinned memory to use")
+            .RequiredArgument("String")
+            .Help("GPU only. Minimum CPU pinned memory to use, e.g. 8gb, 100000, etc. Valid suffixes are tb, gb, mb, kb, b")
             .Handler1T<TString>([plainJsonPtr](const TString& param) {
                 (*plainJsonPtr)["pinned_memory_size"] = param;
             });

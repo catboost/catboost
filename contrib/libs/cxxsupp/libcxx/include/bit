@@ -15,22 +15,23 @@
 
 namespace std {
 
+  // [bit.pow.two], integral powers of 2
   template <class T>
-    constexpr bool ispow2(T x) noexcept; // C++20
+    constexpr bool has_single_bit(T x) noexcept; // C++20
   template <class T>
-    constexpr T ceil2(T x);              // C++20
+    constexpr T bit_ceil(T x);                   // C++20
   template <class T>
-    constexpr T floor2(T x) noexcept;    // C++20
+    constexpr T bit_floor(T x) noexcept;         // C++20
   template <class T>
-    constexpr T log2p1(T x) noexcept;    // C++20
+    constexpr T bit_width(T x) noexcept;         // C++20
 
-  // 23.20.2, rotating
+  // [bit.rotate], rotating
   template<class T>
     constexpr T rotl(T x, unsigned int s) noexcept; // C++20
   template<class T>
     constexpr T rotr(T x, unsigned int s) noexcept; // C++20
 
-  // 23.20.3, counting
+  // [bit.count], counting
   template<class T>
     constexpr int countl_zero(T x) noexcept;  // C++20
   template<class T>
@@ -42,7 +43,7 @@ namespace std {
   template<class T>
     constexpr int popcount(T x) noexcept;     // C++20
 
-  // 20.15.9, endian 
+  // [bit.endian], endian
   enum class endian {
     little = see below,        // C++20
     big = see below,           // C++20
@@ -346,15 +347,15 @@ _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX11
 unsigned __bit_log2(_Tp __t) _NOEXCEPT
 {
     static_assert(__bitop_unsigned_integer<_Tp>::value, "__bit_log2 requires unsigned");
-    return std::numeric_limits<_Tp>::digits - 1 - __countl_zero(__t);
+    return numeric_limits<_Tp>::digits - 1 - __countl_zero(__t);
 }
 
 template <class _Tp>
 _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR
-bool __ispow2(_Tp __t) _NOEXCEPT
+bool __has_single_bit(_Tp __t) _NOEXCEPT
 {
-    static_assert(__bitop_unsigned_integer<_Tp>::value, "__ispow2 requires unsigned");
-	return __t != 0 && (((__t & (__t - 1)) == 0));
+    static_assert(__bitop_unsigned_integer<_Tp>::value, "__has_single_bit requires unsigned");
+    return __t != 0 && (((__t & (__t - 1)) == 0));
 }
 
 
@@ -402,7 +403,7 @@ _LIBCPP_INLINE_VISIBILITY constexpr
 enable_if_t<__bitop_unsigned_integer<_Tp>::value, int>
 countr_zero(_Tp __t) noexcept
 {
-	return __countr_zero(__t);
+    return __countr_zero(__t);
 }
 
 
@@ -427,15 +428,15 @@ popcount(_Tp __t) noexcept
 template <class _Tp>
 _LIBCPP_INLINE_VISIBILITY constexpr
 enable_if_t<__bitop_unsigned_integer<_Tp>::value, bool>
-ispow2(_Tp __t) noexcept
+has_single_bit(_Tp __t) noexcept
 {
-    return __ispow2(__t);
+    return __has_single_bit(__t);
 }
 
 template <class _Tp>
 _LIBCPP_INLINE_VISIBILITY constexpr
 enable_if_t<__bitop_unsigned_integer<_Tp>::value, _Tp>
-floor2(_Tp __t) noexcept
+bit_floor(_Tp __t) noexcept
 {
     return __t == 0 ? 0 : _Tp{1} << __bit_log2(__t);
 }
@@ -443,11 +444,11 @@ floor2(_Tp __t) noexcept
 template <class _Tp>
 _LIBCPP_INLINE_VISIBILITY constexpr
 enable_if_t<__bitop_unsigned_integer<_Tp>::value, _Tp>
-ceil2(_Tp __t) noexcept
+bit_ceil(_Tp __t) noexcept
 {
     if (__t < 2) return 1;
     const unsigned __n = numeric_limits<_Tp>::digits - countl_zero((_Tp)(__t - 1u));
-    _LIBCPP_DEBUG_ASSERT(__libcpp_is_constant_evaluated() || __n != numeric_limits<_Tp>::digits, "Bad input to ceil2");
+    _LIBCPP_DEBUG_ASSERT(__libcpp_is_constant_evaluated() || __n != numeric_limits<_Tp>::digits, "Bad input to bit_ceil");
 
     if constexpr (sizeof(_Tp) >= sizeof(unsigned))
         return _Tp{1} << __n;
@@ -462,11 +463,10 @@ ceil2(_Tp __t) noexcept
 template <class _Tp>
 _LIBCPP_INLINE_VISIBILITY constexpr
 enable_if_t<__bitop_unsigned_integer<_Tp>::value, _Tp>
-log2p1(_Tp __t) noexcept
+bit_width(_Tp __t) noexcept
 {
     return __t == 0 ? 0 : __bit_log2(__t) + 1;
 }
-
 
 enum class endian
 {

@@ -369,7 +369,7 @@ namespace {
 }
 
 namespace {
-    static inline double ArgMinPrecise(std::function<double(double)> func, double left, double right) {
+    inline double ArgMinPrecise(std::function<double(double)> func, double left, double right) {
         const size_t intervalsCount = 20;
         double points[intervalsCount + 1];
         double values[intervalsCount + 1];

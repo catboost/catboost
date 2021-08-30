@@ -29,11 +29,12 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <google/protobuf/compiler/cpp/cpp_map_field.h>
+
 #include <google/protobuf/compiler/cpp/cpp_helpers.h>
 #include <google/protobuf/io/printer.h>
 #include <google/protobuf/wire_format.h>
-
 #include <google/protobuf/stubs/strutil.h>
+
 
 namespace google {
 namespace protobuf {
@@ -46,317 +47,162 @@ bool IsProto3Field(const FieldDescriptor* field_descriptor) {
 }
 
 void SetMessageVariables(const FieldDescriptor* descriptor,
-                         std::map<string, string>* variables,
+                         std::map<TProtoStringType, TProtoStringType>* variables,
                          const Options& options) {
   SetCommonFieldVariables(descriptor, variables, options);
   (*variables)["type"] = ClassName(descriptor->message_type(), false);
-  (*variables)["file_namespace"] =
-      FileLevelNamespace(descriptor->file()->name());
-  (*variables)["stream_writer"] =
-      (*variables)["declared_type"] +
-      (HasFastArraySerialization(descriptor->message_type()->file(), options)
-           ? "MaybeToArray"
-           : "");
   (*variables)["full_name"] = descriptor->full_name();
 
   const FieldDescriptor* key =
       descriptor->message_type()->FindFieldByName("key");
   const FieldDescriptor* val =
       descriptor->message_type()->FindFieldByName("value");
-  (*variables)["key_cpp"] = PrimitiveTypeName(key->cpp_type());
+  (*variables)["key_cpp"] = PrimitiveTypeName(options, key->cpp_type());
   switch (val->cpp_type()) {
     case FieldDescriptor::CPPTYPE_MESSAGE:
-      (*variables)["val_cpp"] = FieldMessageTypeName(val);
-      (*variables)["wrapper"] = "EntryWrapper";
+      (*variables)["val_cpp"] = FieldMessageTypeName(val, options);
       break;
     case FieldDescriptor::CPPTYPE_ENUM:
       (*variables)["val_cpp"] = ClassName(val->enum_type(), true);
-      (*variables)["wrapper"] = "EnumEntryWrapper";
       break;
     default:
-      (*variables)["val_cpp"] = PrimitiveTypeName(val->cpp_type());
-      (*variables)["wrapper"] = "EntryWrapper";
+      (*variables)["val_cpp"] = PrimitiveTypeName(options, val->cpp_type());
   }
   (*variables)["key_wire_type"] =
-      "::google::protobuf::internal::WireFormatLite::TYPE_" +
-      ToUpper(DeclaredTypeMethodName(key->type()));
+      "TYPE_" + ToUpper(DeclaredTypeMethodName(key->type()));
   (*variables)["val_wire_type"] =
-      "::google::protobuf::internal::WireFormatLite::TYPE_" +
-      ToUpper(DeclaredTypeMethodName(val->type()));
+      "TYPE_" + ToUpper(DeclaredTypeMethodName(val->type()));
   (*variables)["map_classname"] = ClassName(descriptor->message_type(), false);
-  (*variables)["number"] = SimpleItoa(descriptor->number());
-  (*variables)["tag"] = SimpleItoa(internal::WireFormat::MakeTag(descriptor));
+  (*variables)["number"] = StrCat(descriptor->number());
+  (*variables)["tag"] = StrCat(internal::WireFormat::MakeTag(descriptor));
 
   if (HasDescriptorMethods(descriptor->file(), options)) {
     (*variables)["lite"] = "";
   } else {
     (*variables)["lite"] = "Lite";
   }
-
-  if (!IsProto3Field(descriptor) &&
-      val->type() == FieldDescriptor::TYPE_ENUM) {
-    const EnumValueDescriptor* default_value = val->default_value_enum();
-    (*variables)["default_enum_value"] = Int32ToString(default_value->number());
-  } else {
-    (*variables)["default_enum_value"] = "0";
-  }
 }
 
 MapFieldGenerator::MapFieldGenerator(const FieldDescriptor* descriptor,
                                      const Options& options)
-    : FieldGenerator(options),
-      descriptor_(descriptor),
-      dependent_field_(options.proto_h && IsFieldDependent(descriptor)) {
+    : FieldGenerator(descriptor, options) {
   SetMessageVariables(descriptor, &variables_, options);
 }
 
 MapFieldGenerator::~MapFieldGenerator() {}
 
-void MapFieldGenerator::
-GeneratePrivateMembers(io::Printer* printer) const {
-  if (HasDescriptorMethods(descriptor_->file(), options_)) {
-    printer->Print(
-        variables_,
-        "public:\n"
-        "class $map_classname$ : public "
-        "::google::protobuf::internal::MapEntry<$map_classname$, \n"
-        "    $key_cpp$, $val_cpp$,\n"
-        "    $key_wire_type$,\n"
-        "    $val_wire_type$,\n"
-        "    $default_enum_value$ > {\n"
-        "public:\n"
-        "  typedef ::google::protobuf::internal::MapEntry<$map_classname$, \n"
-        "    $key_cpp$, $val_cpp$,\n"
-        "    $key_wire_type$,\n"
-        "    $val_wire_type$,\n"
-        "    $default_enum_value$ > SuperType;\n"
-        "  $map_classname$();\n"
-        "  $map_classname$(::google::protobuf::Arena* arena);\n"
-        "  void MergeFrom(const ::google::protobuf::Message& other) PROTOBUF_FINAL;\n"
-        "  void MergeFrom(const $map_classname$& other);\n"
-        "  static const Message* internal_default_instance() { return "
-        "reinterpret_cast<const "
-        "Message*>(&_$map_classname$_default_instance_); }\n"
-        "  ::google::protobuf::Metadata GetMetadata() const;\n"
-        "};\n");
-  } else {
-    printer->Print(variables_,
-                   "public:\n"
-                   "typedef ::google::protobuf::internal::MapEntryLite<\n"
-                   "    $key_cpp$, $val_cpp$,\n"
-                   "    $key_wire_type$,\n"
-                   "    $val_wire_type$,\n"
-                   "    $default_enum_value$ >\n"
-                   "    $map_classname$;\n");
-  }
-  printer->Print(variables_,
-                 "private:\n"
-                 "::google::protobuf::internal::MapField$lite$<\n"
-                 "    $map_classname$,\n"
-                 "    $key_cpp$, $val_cpp$,\n"
-                 "    $key_wire_type$,\n"
-                 "    $val_wire_type$,\n"
-                 "    $default_enum_value$ > $name$_;\n"
-                 "private:\n");
+void MapFieldGenerator::GeneratePrivateMembers(io::Printer* printer) const {
+  Formatter format(printer, variables_);
+  format(
+      "::$proto_ns$::internal::MapField$lite$<\n"
+      "    $map_classname$,\n"
+      "    $key_cpp$, $val_cpp$,\n"
+      "    ::$proto_ns$::internal::WireFormatLite::$key_wire_type$,\n"
+      "    ::$proto_ns$::internal::WireFormatLite::$val_wire_type$> "
+      "$name$_;\n");
 }
 
-void MapFieldGenerator::
-GenerateAccessorDeclarations(io::Printer* printer) const {
-  printer->Print(
-      variables_,
-      "$deprecated_attr$const ::google::protobuf::Map< $key_cpp$, $val_cpp$ >&\n"
-      "    $name$() const;\n");
-  printer->Annotate("name", descriptor_);
-  printer->Print(variables_,
-                 "$deprecated_attr$::google::protobuf::Map< $key_cpp$, $val_cpp$ >*\n"
-                 "    ${$mutable_$name$$}$();\n");
-  printer->Annotate("{", "}", descriptor_);
+void MapFieldGenerator::GenerateAccessorDeclarations(
+    io::Printer* printer) const {
+  Formatter format(printer, variables_);
+  format(
+      "private:\n"
+      "const ::$proto_ns$::Map< $key_cpp$, $val_cpp$ >&\n"
+      "    ${1$_internal_$name$$}$() const;\n"
+      "::$proto_ns$::Map< $key_cpp$, $val_cpp$ >*\n"
+      "    ${1$_internal_mutable_$name$$}$();\n"
+      "public:\n"
+      "$deprecated_attr$const ::$proto_ns$::Map< $key_cpp$, $val_cpp$ >&\n"
+      "    ${1$$name$$}$() const;\n"
+      "$deprecated_attr$::$proto_ns$::Map< $key_cpp$, $val_cpp$ >*\n"
+      "    ${1$mutable_$name$$}$();\n",
+      descriptor_);
 }
 
-void MapFieldGenerator::
-GenerateInlineAccessorDefinitions(io::Printer* printer,
-                                  bool is_inline) const {
-  std::map<string, string> variables(variables_);
-  variables["inline"] = is_inline ? "inline" : "";
-  printer->Print(variables,
-      "$inline$ const ::google::protobuf::Map< $key_cpp$, $val_cpp$ >&\n"
-      "$classname$::$name$() const {\n"
-      "  // @@protoc_insertion_point(field_map:$full_name$)\n"
+void MapFieldGenerator::GenerateInlineAccessorDefinitions(
+    io::Printer* printer) const {
+  Formatter format(printer, variables_);
+  format(
+      "inline const ::$proto_ns$::Map< $key_cpp$, $val_cpp$ >&\n"
+      "$classname$::_internal_$name$() const {\n"
       "  return $name$_.GetMap();\n"
       "}\n"
-      "$inline$ ::google::protobuf::Map< $key_cpp$, $val_cpp$ >*\n"
-      "$classname$::mutable_$name$() {\n"
-      "  // @@protoc_insertion_point(field_mutable_map:$full_name$)\n"
+      "inline const ::$proto_ns$::Map< $key_cpp$, $val_cpp$ >&\n"
+      "$classname$::$name$() const {\n"
+      "$annotate_get$"
+      "  // @@protoc_insertion_point(field_map:$full_name$)\n"
+      "  return _internal_$name$();\n"
+      "}\n"
+      "inline ::$proto_ns$::Map< $key_cpp$, $val_cpp$ >*\n"
+      "$classname$::_internal_mutable_$name$() {\n"
       "  return $name$_.MutableMap();\n"
+      "}\n"
+      "inline ::$proto_ns$::Map< $key_cpp$, $val_cpp$ >*\n"
+      "$classname$::mutable_$name$() {\n"
+      "$annotate_mutable$"
+      "  // @@protoc_insertion_point(field_mutable_map:$full_name$)\n"
+      "  return _internal_mutable_$name$();\n"
       "}\n");
 }
 
-void MapFieldGenerator::
-GenerateClearingCode(io::Printer* printer) const {
-  std::map<string, string> variables(variables_);
-  variables["this_message"] = dependent_field_ ? DependentBaseDownCast() : "";
-  printer->Print(variables, "$this_message$$name$_.Clear();\n");
+void MapFieldGenerator::GenerateClearingCode(io::Printer* printer) const {
+  Formatter format(printer, variables_);
+  format("$name$_.Clear();\n");
 }
 
-void MapFieldGenerator::
-GenerateMergingCode(io::Printer* printer) const {
-  printer->Print(variables_, "$name$_.MergeFrom(from.$name$_);\n");
+void MapFieldGenerator::GenerateMergingCode(io::Printer* printer) const {
+  Formatter format(printer, variables_);
+  format("$name$_.MergeFrom(from.$name$_);\n");
 }
 
-void MapFieldGenerator::
-GenerateSwappingCode(io::Printer* printer) const {
-  printer->Print(variables_, "$name$_.Swap(&other->$name$_);\n");
+void MapFieldGenerator::GenerateSwappingCode(io::Printer* printer) const {
+  Formatter format(printer, variables_);
+  format("$name$_.InternalSwap(&other->$name$_);\n");
 }
 
-void MapFieldGenerator::
-GenerateCopyConstructorCode(io::Printer* printer) const {
+void MapFieldGenerator::GenerateCopyConstructorCode(
+    io::Printer* printer) const {
   GenerateConstructorCode(printer);
   GenerateMergingCode(printer);
 }
 
-void MapFieldGenerator::
-GenerateMergeFromCodedStream(io::Printer* printer) const {
-    const FieldDescriptor* key_field =
-        descriptor_->message_type()->FindFieldByName("key");
-  const FieldDescriptor* value_field =
-      descriptor_->message_type()->FindFieldByName("value");
-  bool using_entry = false;
-  string key;
-  string value;
-  if (IsProto3Field(descriptor_) ||
-      value_field->type() != FieldDescriptor::TYPE_ENUM) {
-    printer->Print(
-        variables_,
-        "$map_classname$::Parser< ::google::protobuf::internal::MapField$lite$<\n"
-        "    $map_classname$,\n"
-        "    $key_cpp$, $val_cpp$,\n"
-        "    $key_wire_type$,\n"
-        "    $val_wire_type$,\n"
-        "    $default_enum_value$ >,\n"
-        "  ::google::protobuf::Map< $key_cpp$, $val_cpp$ > >"
-        " parser(&$name$_);\n"
-        "DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(\n"
-        "    input, &parser));\n");
-    key = "parser.key()";
-    value = "parser.value()";
+static void GenerateSerializationLoop(const Formatter& format, bool string_key,
+                                      bool string_value,
+                                      bool is_deterministic) {
+  TProtoStringType ptr;
+  if (is_deterministic) {
+    format("for (size_type i = 0; i < n; i++) {\n");
+    ptr = string_key ? "items[static_cast<ptrdiff_t>(i)]"
+                     : "items[static_cast<ptrdiff_t>(i)].second";
   } else {
-    using_entry = true;
-    key = "entry->key()";
-    value = "entry->value()";
-    printer->Print(variables_,
-        "::google::protobuf::scoped_ptr<$map_classname$> entry($name$_.NewEntry());\n");
-    printer->Print(variables_,
-        "{\n"
-        "  TProtoStringType data;\n"
-        "  DO_(::google::protobuf::internal::WireFormatLite::ReadString(input, &data));\n"
-        "  DO_(entry->ParseFromString(data));\n"
-        "  if ($val_cpp$_IsValid(*entry->mutable_value())) {\n"
-        "    (*mutable_$name$())[entry->key()] =\n"
-        "        static_cast< $val_cpp$ >(*entry->mutable_value());\n"
-        "  } else {\n");
-    if (HasDescriptorMethods(descriptor_->file(), options_)) {
-      printer->Print(variables_,
-          "    mutable_unknown_fields()"
-          "->AddLengthDelimited($number$, data);\n");
-    } else {
-      printer->Print(variables_,
-          "    unknown_fields_stream.WriteVarint32($tag$u);\n"
-          "    unknown_fields_stream.WriteVarint32(\n"
-          "        static_cast<google::protobuf::uint32>(data.size()));\n"
-          "    unknown_fields_stream.WriteString(data);\n");
-    }
+    format(
+        "for (::$proto_ns$::Map< $key_cpp$, $val_cpp$ >::const_iterator\n"
+        "    it = this->_internal_$name$().begin();\n"
+        "    it != this->_internal_$name$().end(); ++it) {\n");
+    ptr = "it";
+  }
+  format.Indent();
 
-    printer->Print(variables_,
-        "  }\n"
-        "}\n");
+  format(
+      "target = $map_classname$::Funcs::InternalSerialize($number$, "
+      "$1$->first, $1$->second, target, stream);\n",
+      ptr);
+
+  if (string_key || string_value) {
+    // ptr is either an actual pointer or an iterator, either way we can
+    // create a pointer by taking the address after de-referencing it.
+    format("Utf8Check::Check(&(*$1$));\n", ptr);
   }
 
-  if (key_field->type() == FieldDescriptor::TYPE_STRING) {
-    GenerateUtf8CheckCodeForString(
-        key_field, options_, true, variables_,
-        StrCat(key, ".data(), static_cast<int>(", key, ".length()),\n").data(),
-        printer);
-  }
-  if (value_field->type() == FieldDescriptor::TYPE_STRING) {
-    GenerateUtf8CheckCodeForString(
-        value_field, options_, true, variables_,
-        StrCat(value, ".data(), static_cast<int>(", value, ".length()),\n")
-            .data(),
-        printer);
-  }
-
-  // If entry is allocated by arena, its desctructor should be avoided.
-  if (using_entry && SupportsArenas(descriptor_)) {
-    printer->Print(variables_,
-        "if (entry->GetArena() != NULL) entry.release();\n");
-  }
+  format.Outdent();
+  format("}\n");
 }
 
-static void GenerateSerializationLoop(io::Printer* printer,
-                                      const std::map<string, string>& variables,
-                                      bool supports_arenas,
-                                      const string& utf8_check,
-                                      const string& loop_header,
-                                      const string& ptr,
-                                      bool loop_via_iterators) {
-  printer->Print(variables,
-      StrCat("::google::protobuf::scoped_ptr<$map_classname$> entry;\n",
-             loop_header, " {\n").c_str());
-  printer->Indent();
-
-  printer->Print(variables, StrCat(
-      "entry.reset($name$_.New$wrapper$(\n"
-      "    ", ptr, "->first, ", ptr, "->second));\n"
-      "$write_entry$;\n").c_str());
-
-  // If entry is allocated by arena, its desctructor should be avoided.
-  if (supports_arenas) {
-    printer->Print(
-        "if (entry->GetArena() != NULL) {\n"
-        "  entry.release();\n"
-        "}\n");
-  }
-
-  if (!utf8_check.empty()) {
-    // If loop_via_iterators is true then ptr is actually an iterator, and we
-    // create a pointer by prefixing it with "&*".
-    printer->Print(
-        StrCat(utf8_check, "(", (loop_via_iterators ? "&*" : ""), ptr, ");\n")
-            .c_str());
-  }
-
-  printer->Outdent();
-  printer->Print(
-      "}\n");
-}
-
-void MapFieldGenerator::
-GenerateSerializeWithCachedSizes(io::Printer* printer) const {
-  std::map<string, string> variables(variables_);
-  variables["write_entry"] = "::google::protobuf::internal::WireFormatLite::Write" +
-                             variables["stream_writer"] + "(\n            " +
-                             variables["number"] + ", *entry, output)";
-  variables["deterministic"] = "output->IsSerializationDeterministic()";
-  GenerateSerializeWithCachedSizes(printer, variables);
-}
-
-void MapFieldGenerator::
-GenerateSerializeWithCachedSizesToArray(io::Printer* printer) const {
-  std::map<string, string> variables(variables_);
-  variables["write_entry"] =
-      "target = ::google::protobuf::internal::WireFormatLite::\n"
-      "                   InternalWrite" + variables["declared_type"] +
-      "NoVirtualToArray(\n                       " + variables["number"] +
-      ", *entry, deterministic, target);\n";
-  variables["deterministic"] = "deterministic";
-  GenerateSerializeWithCachedSizes(printer, variables);
-}
-
-void MapFieldGenerator::GenerateSerializeWithCachedSizes(
-    io::Printer* printer, const std::map<string, string>& variables) const {
-  printer->Print(variables,
-      "if (!this->$name$().empty()) {\n");
-  printer->Indent();
+void MapFieldGenerator::GenerateSerializeWithCachedSizesToArray(
+    io::Printer* printer) const {
+  Formatter format(printer, variables_);
+  format("if (!this->_internal_$name$().empty()) {\n");
+  format.Indent();
   const FieldDescriptor* key_field =
       descriptor_->message_type()->FindFieldByName("key");
   const FieldDescriptor* value_field =
@@ -364,114 +210,110 @@ void MapFieldGenerator::GenerateSerializeWithCachedSizes(
   const bool string_key = key_field->type() == FieldDescriptor::TYPE_STRING;
   const bool string_value = value_field->type() == FieldDescriptor::TYPE_STRING;
 
-  printer->Print(variables,
-      "typedef ::google::protobuf::Map< $key_cpp$, $val_cpp$ >::const_pointer\n"
+  format(
+      "typedef ::$proto_ns$::Map< $key_cpp$, $val_cpp$ >::const_pointer\n"
       "    ConstPtr;\n");
   if (string_key) {
-    printer->Print(variables,
+    format(
         "typedef ConstPtr SortItem;\n"
-        "typedef ::google::protobuf::internal::"
+        "typedef ::$proto_ns$::internal::"
         "CompareByDerefFirst<SortItem> Less;\n");
   } else {
-    printer->Print(variables,
-        "typedef ::google::protobuf::internal::SortItem< $key_cpp$, ConstPtr > "
+    format(
+        "typedef ::$proto_ns$::internal::SortItem< $key_cpp$, ConstPtr > "
         "SortItem;\n"
-        "typedef ::google::protobuf::internal::CompareByFirstField<SortItem> Less;\n");
+        "typedef ::$proto_ns$::internal::CompareByFirstField<SortItem> "
+        "Less;\n");
   }
-  string utf8_check;
-  if (string_key || string_value) {
-    printer->Print(
+  bool utf8_check = string_key || string_value;
+  if (utf8_check) {
+    format(
         "struct Utf8Check {\n"
-        "  static void Check(ConstPtr p) {\n");
-    printer->Indent();
-    printer->Indent();
+        "  static void Check(ConstPtr p) {\n"
+        // p may be unused when GetUtf8CheckMode evaluates to kNone,
+        // thus disabling the validation.
+        "    (void)p;\n");
+    format.Indent();
+    format.Indent();
     if (string_key) {
       GenerateUtf8CheckCodeForString(
-          key_field, options_, false, variables,
-          "p->first.data(), static_cast<int>(p->first.length()),\n", printer);
+          key_field, options_, false,
+          "p->first.data(), static_cast<int>(p->first.length()),\n", format);
     }
     if (string_value) {
       GenerateUtf8CheckCodeForString(
-          value_field, options_, false, variables,
-          "p->second.data(), static_cast<int>(p->second.length()),\n", printer);
+          value_field, options_, false,
+          "p->second.data(), static_cast<int>(p->second.length()),\n", format);
     }
-    printer->Outdent();
-    printer->Outdent();
-    printer->Print(
+    format.Outdent();
+    format.Outdent();
+    format(
         "  }\n"
         "};\n");
-    utf8_check = "Utf8Check::Check";
   }
 
-  printer->Print(variables,
+  format(
       "\n"
-      "if ($deterministic$ &&\n"
-      "    this->$name$().size() > 1) {\n"
-      "  ::google::protobuf::scoped_array<SortItem> items(\n"
-      "      new SortItem[this->$name$().size()]);\n"
-      "  typedef ::google::protobuf::Map< $key_cpp$, $val_cpp$ >::size_type size_type;\n"
+      "if (stream->IsSerializationDeterministic() &&\n"
+      "    this->_internal_$name$().size() > 1) {\n"
+      "  ::std::unique_ptr<SortItem[]> items(\n"
+      "      new SortItem[this->_internal_$name$().size()]);\n"
+      "  typedef ::$proto_ns$::Map< $key_cpp$, $val_cpp$ >::size_type "
+      "size_type;\n"
       "  size_type n = 0;\n"
-      "  for (::google::protobuf::Map< $key_cpp$, $val_cpp$ >::const_iterator\n"
-      "      it = this->$name$().begin();\n"
-      "      it != this->$name$().end(); ++it, ++n) {\n"
+      "  for (::$proto_ns$::Map< $key_cpp$, $val_cpp$ >::const_iterator\n"
+      "      it = this->_internal_$name$().begin();\n"
+      "      it != this->_internal_$name$().end(); ++it, ++n) {\n"
       "    items[static_cast<ptrdiff_t>(n)] = SortItem(&*it);\n"
       "  }\n"
       "  ::std::sort(&items[0], &items[static_cast<ptrdiff_t>(n)], Less());\n");
-  printer->Indent();
-  GenerateSerializationLoop(printer, variables, SupportsArenas(descriptor_),
-      utf8_check, "for (size_type i = 0; i < n; i++)",
-      string_key ? "items[static_cast<ptrdiff_t>(i)]" :
-                   "items[static_cast<ptrdiff_t>(i)].second", false);
-  printer->Outdent();
-  printer->Print(
-      "} else {\n");
-  printer->Indent();
-  GenerateSerializationLoop(
-      printer, variables, SupportsArenas(descriptor_), utf8_check,
-      "for (::google::protobuf::Map< $key_cpp$, $val_cpp$ >::const_iterator\n"
-      "    it = this->$name$().begin();\n"
-      "    it != this->$name$().end(); ++it)",
-      "it", true);
-  printer->Outdent();
-  printer->Print("}\n");
-  printer->Outdent();
-  printer->Print("}\n");
+  format.Indent();
+  GenerateSerializationLoop(format, string_key, string_value, true);
+  format.Outdent();
+  format("} else {\n");
+  format.Indent();
+  GenerateSerializationLoop(format, string_key, string_value, false);
+  format.Outdent();
+  format("}\n");
+  format.Outdent();
+  format("}\n");
 }
 
-void MapFieldGenerator::
-GenerateByteSize(io::Printer* printer) const {
-  printer->Print(variables_,
+void MapFieldGenerator::GenerateByteSize(io::Printer* printer) const {
+  Formatter format(printer, variables_);
+  format(
       "total_size += $tag_size$ *\n"
-      "    ::google::protobuf::internal::FromIntSize(this->$name$_size());\n"
-      "{\n"
-      "  ::google::protobuf::scoped_ptr<$map_classname$> entry;\n"
-      "  for (::google::protobuf::Map< $key_cpp$, $val_cpp$ >::const_iterator\n"
-      "      it = this->$name$().begin();\n"
-      "      it != this->$name$().end(); ++it) {\n");
+      "    "
+      "::$proto_ns$::internal::FromIntSize(this->_internal_$name$_size());\n"
+      "for (::$proto_ns$::Map< $key_cpp$, $val_cpp$ >::const_iterator\n"
+      "    it = this->_internal_$name$().begin();\n"
+      "    it != this->_internal_$name$().end(); ++it) {\n"
+      "  total_size += $map_classname$::Funcs::ByteSizeLong(it->first, "
+      "it->second);\n"
+      "}\n");
+}
 
-  // If entry is allocated by arena, its desctructor should be avoided.
-  if (SupportsArenas(descriptor_)) {
-    printer->Print(variables_,
-        "    if (entry.get() != NULL && entry->GetArena() != NULL) {\n"
-        "      entry.release();\n"
-        "    }\n");
+void MapFieldGenerator::GenerateConstinitInitializer(
+    io::Printer* printer) const {
+  Formatter format(printer, variables_);
+  if (HasDescriptorMethods(descriptor_->file(), options_)) {
+    format("$name$_(::$proto_ns$::internal::ConstantInitialized{})");
+  } else {
+    format("$name$_()");
   }
+}
 
-  printer->Print(variables_,
-      "    entry.reset($name$_.New$wrapper$(it->first, it->second));\n"
-      "    total_size += ::google::protobuf::internal::WireFormatLite::\n"
-      "        $declared_type$SizeNoVirtual(*entry);\n"
-      "  }\n");
-
-  // If entry is allocated by arena, its desctructor should be avoided.
-  if (SupportsArenas(descriptor_)) {
-    printer->Print(variables_,
-        "  if (entry.get() != NULL && entry->GetArena() != NULL) {\n"
-        "    entry.release();\n"
-        "  }\n");
+bool MapFieldGenerator::GenerateArenaDestructorCode(
+    io::Printer* printer) const {
+  Formatter format(printer, variables_);
+  if (HasDescriptorMethods(descriptor_->file(), options_)) {
+    // _this is the object being destructed (we are inside a static method
+    // here).
+    format("_this->$name$_. ~MapField();\n");
+    return true;
+  } else {
+    return false;
   }
-
-  printer->Print("}\n");
 }
 
 }  // namespace cpp

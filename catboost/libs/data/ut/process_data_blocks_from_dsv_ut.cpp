@@ -47,6 +47,7 @@ inline void ReadAndProceedPoolInBlocks(
                 EObjectsOrder::Undefined,
                 blockSize,
                 loadSubset,
+                /*LoadColumnsAsString*/ false,
                 localExecutor
             }
         }

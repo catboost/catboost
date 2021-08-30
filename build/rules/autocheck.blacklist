@@ -1,5 +1,15 @@
 # Atocheck blacklist
-# The list of top level directories excluded from autocheck
+# The list of directories excluded from autocheck (with all subdirs)
+browser/frontend
+data-ui/arcanum
+data-ui/unity
+data-ui/sandbox
+direct/frontend
+direct/yfa
+drive/pyback
 frontend
+games/frontend
 junk
+kinopoisk/frontend
+maps/front
 mobile

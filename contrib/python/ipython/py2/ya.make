@@ -1,4 +1,4 @@
-PY_LIBRARY()
+PY2_LIBRARY()
 
 LICENSE(BSD-3-Clause)
 
@@ -14,19 +14,15 @@ PEERDIR(
     contrib/python/traitlets
     contrib/python/path.py
     contrib/python/pathlib2
-    contrib/python/prompt_toolkit
+    contrib/python/prompt-toolkit
     contrib/python/Pygments
 )
 
 IF (OS_WINDOWS)
     PEERDIR(
         contrib/python/colorama
+        contrib/python/win_unicode_console
     )
-    IF (PYTHON2)
-        PEERDIR(
-            contrib/python/win_unicode_console
-        )
-    ENDIF()
 ELSE ()
     PEERDIR(
         contrib/python/pexpect
@@ -265,6 +261,8 @@ PY_SRCS(
 
 RESOURCE_FILES(
     PREFIX contrib/python/ipython/py2/
+    .dist-info/METADATA
+    .dist-info/top_level.txt
     IPython/core/profile/README_STARTUP
 )
 

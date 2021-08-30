@@ -575,7 +575,7 @@ class LiterateHaskellLexer(LiterateLexer):
     .. versionadded:: 0.9
     """
     name = 'Literate Haskell'
-    aliases = ['lhs', 'literate-haskell', 'lhaskell']
+    aliases = ['literate-haskell', 'lhaskell', 'lhs']
     filenames = ['*.lhs']
     mimetypes = ['text/x-literate-haskell']
 
@@ -598,7 +598,7 @@ class LiterateIdrisLexer(LiterateLexer):
     .. versionadded:: 2.0
     """
     name = 'Literate Idris'
-    aliases = ['lidr', 'literate-idris', 'lidris']
+    aliases = ['literate-idris', 'lidris', 'lidr']
     filenames = ['*.lidr']
     mimetypes = ['text/x-literate-idris']
 
@@ -621,7 +621,7 @@ class LiterateAgdaLexer(LiterateLexer):
     .. versionadded:: 2.0
     """
     name = 'Literate Agda'
-    aliases = ['lagda', 'literate-agda']
+    aliases = ['literate-agda', 'lagda']
     filenames = ['*.lagda']
     mimetypes = ['text/x-literate-agda']
 
@@ -644,7 +644,7 @@ class LiterateCryptolLexer(LiterateLexer):
     .. versionadded:: 2.0
     """
     name = 'Literate Cryptol'
-    aliases = ['lcry', 'literate-cryptol', 'lcryptol']
+    aliases = ['literate-cryptol', 'lcryptol', 'lcry']
     filenames = ['*.lcry']
     mimetypes = ['text/x-literate-cryptol']
 

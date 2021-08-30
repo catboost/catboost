@@ -5,6 +5,7 @@ RECURSE(
     antlr4
     gradle
     maven
+    swift-demangle
 )
 
 IF (OS_ANDROID)
@@ -33,7 +34,8 @@ IF (OS_DARWIN OR OS_LINUX OR OS_WINDOWS)
     go_fake_xcrun
     go_tools
     goyndexer
-    protoc-gen-javalite
+    pnpm
+    typescript
     ymake
     yolint
 )

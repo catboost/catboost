@@ -29,7 +29,7 @@
 # since they do not peerdir contrib/libs/jdk.
 # Resolve Python.h from swig/Lib/python/pyruntime.swg when building non-python .swg
 # since they do not peerdir contrib/libs/python.
-- source_filter: "[.]swg$"
+- source_filter: "[.]swg([.](h|c(c|pp|xx)?))?$"
   includes:
   - jni.h:           contrib/libs/jdk/include/jni.h
   - Python.h:        contrib/libs/python/Include/Python.h
@@ -108,13 +108,13 @@
   includes:
     - error.h:       contrib/libs/cppkafka/include/cppkafka/error.h
 
-- source_filter: "^contrib/libs/clang10-rt"
-  includes:
-    - xray/xray_interface.h: contrib/libs/clang10-rt/include/xray/xray_interface.h
-
 - source_filter: "^contrib/libs/clang11-rt"
   includes:
     - xray/xray_interface.h: contrib/libs/clang11-rt/include/xray/xray_interface.h
+
+- source_filter: "^contrib/libs/clang12-rt"
+  includes:
+    - xray/xray_interface.h: contrib/libs/clang12-rt/include/xray/xray_interface.h
 
 - source_filter: "^contrib/libs/llvm"
   includes:
@@ -160,10 +160,6 @@
 - source_filter: "^contrib/libs/nsync"
   includes:
     - atomic.h:      contrib/libs/nsync/platform/c++11/atomic.h
-
-- source_filter: "^contrib/python/numpy/py2"
-  includes:
-    - cpuid.h:       contrib/python/numpy/py2/numpy/core/src/umath/cpuid.h
 
 - source_filter: "^contrib/python/numpy/py3"
   includes:
@@ -503,9 +499,13 @@
     - gelf.h: contrib/restricted/libelf/include/libelf/gelf.h
     - libelf.h: contrib/restricted/libelf/include/libelf/libelf.h
 
-- source_filter: "^contrib/libs/dpdk"
+- source_filter: "^contrib/libs/dpdk/"
   includes:
     - process.h: contrib/libs/dpdk/drivers/bus/dpaa/include/process.h
+
+- source_filter: "^contrib/libs/dpdk_arm64/"
+  includes:
+    - process.h: contrib/libs/dpdk_arm64/drivers/bus/dpaa/include/process.h
 
 - source_filter: "^contrib/libs/usrsctp/"
   includes:
@@ -528,3 +528,7 @@
     - cmqxc.h
     - cmqcfc.h
     - cmqbc.h
+
+- source_filter: "^contrib/libs/h3"
+  includes:
+    - alloc.h: contrib/libs/h3/h3lib/include/alloc.h

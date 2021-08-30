@@ -36,6 +36,8 @@
 
 #include <google/protobuf/compiler/code_generator.h>
 #include <google/protobuf/compiler/csharp/csharp_source_generator_base.h>
+#include <google/protobuf/descriptor.h>
+#include <google/protobuf/io/printer.h>
 
 namespace google {
 namespace protobuf {
@@ -45,17 +47,23 @@ namespace csharp {
 class FieldGeneratorBase : public SourceGeneratorBase {
  public:
   FieldGeneratorBase(const FieldDescriptor* descriptor,
-                     int fieldOrdinal,
+                     int presenceIndex,
                      const Options* options);
   ~FieldGeneratorBase();
+
+  FieldGeneratorBase(const FieldGeneratorBase&) = delete;
+  FieldGeneratorBase& operator=(const FieldGeneratorBase&) = delete;
 
   virtual void GenerateCloningCode(io::Printer* printer) = 0;
   virtual void GenerateFreezingCode(io::Printer* printer);
   virtual void GenerateCodecCode(io::Printer* printer);
+  virtual void GenerateExtensionCode(io::Printer* printer);
   virtual void GenerateMembers(io::Printer* printer) = 0;
   virtual void GenerateMergingCode(io::Printer* printer) = 0;
   virtual void GenerateParsingCode(io::Printer* printer) = 0;
+  virtual void GenerateParsingCode(io::Printer* printer, bool use_parse_context);
   virtual void GenerateSerializationCode(io::Printer* printer) = 0;
+  virtual void GenerateSerializationCode(io::Printer* printer, bool use_write_context);
   virtual void GenerateSerializedSizeCode(io::Printer* printer) = 0;
 
   virtual void WriteHash(io::Printer* printer) = 0;
@@ -65,15 +73,16 @@ class FieldGeneratorBase : public SourceGeneratorBase {
 
  protected:
   const FieldDescriptor* descriptor_;
-  const int fieldOrdinal_;
-  std::map<string, string> variables_;
+  const int presenceIndex_;
+  std::map<TProtoStringType, TProtoStringType> variables_;
 
   void AddDeprecatedFlag(io::Printer* printer);
   void AddNullCheck(io::Printer* printer);
   void AddNullCheck(io::Printer* printer, const TProtoStringType& name);
 
   void AddPublicMemberAttributes(io::Printer* printer);
-  void SetCommonOneofFieldVariables(std::map<string, string>* variables);
+  void SetCommonOneofFieldVariables(
+      std::map<TProtoStringType, TProtoStringType>* variables);
 
   TProtoStringType oneof_property_name();
   TProtoStringType oneof_name();
@@ -82,18 +91,15 @@ class FieldGeneratorBase : public SourceGeneratorBase {
   TProtoStringType type_name();
   TProtoStringType type_name(const FieldDescriptor* descriptor);
   bool has_default_value();
-  bool is_nullable_type();
   TProtoStringType default_value();
   TProtoStringType default_value(const FieldDescriptor* descriptor);
   TProtoStringType number();
   TProtoStringType capitalized_type_name();
 
  private:
-  void SetCommonFieldVariables(std::map<string, string>* variables);
-  TProtoStringType GetStringDefaultValueInternal();
-  TProtoStringType GetBytesDefaultValueInternal();
-
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(FieldGeneratorBase);
+  void SetCommonFieldVariables(std::map<TProtoStringType, TProtoStringType>* variables);
+  TProtoStringType GetStringDefaultValueInternal(const FieldDescriptor* descriptor);
+  TProtoStringType GetBytesDefaultValueInternal(const FieldDescriptor* descriptor);
 };
 
 }  // namespace csharp

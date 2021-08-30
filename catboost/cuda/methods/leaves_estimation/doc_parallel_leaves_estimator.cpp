@@ -50,5 +50,6 @@ THolder<NCatboostCuda::ILeavesEstimationOracle> NCatboostCuda::TDocParallelLeave
     return task.DerCalcerFactory->Create(LeavesEstimationConfig,
                                          task.Cursor.ConstCopyView(),
                                          std::move(bins),
-                                         binCount);
+                                         binCount,
+                                         Random);
 }

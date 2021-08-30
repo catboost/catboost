@@ -11,6 +11,7 @@
 template <class T, class A>
 class TDeque: public std::deque<T, TReboundAllocator<A, T>> {
     using TBase = std::deque<T, TReboundAllocator<A, T>>;
+
 public:
     using TBase::TBase;
 

@@ -31,7 +31,6 @@
 #include <sstream>
 
 #include <google/protobuf/compiler/code_generator.h>
-#include <google/protobuf/compiler/plugin.h>
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/descriptor.pb.h>
 #include <google/protobuf/io/printer.h>
@@ -44,34 +43,30 @@
 #include <google/protobuf/compiler/csharp/csharp_options.h>
 #include <google/protobuf/compiler/csharp/csharp_reflection_class.h>
 
-using google::protobuf::internal::scoped_ptr;
-
 namespace google {
 namespace protobuf {
 namespace compiler {
 namespace csharp {
 
-void GenerateFile(const google::protobuf::FileDescriptor* file,
-                  io::Printer* printer,
+Generator::Generator() {}
+Generator::~Generator() {}
+
+uint64_t Generator::GetSupportedFeatures() const {
+  return CodeGenerator::Feature::FEATURE_PROTO3_OPTIONAL;
+}
+
+void GenerateFile(const FileDescriptor* file, io::Printer* printer,
                   const Options* options) {
   ReflectionClassGenerator reflectionClassGenerator(file, options);
   reflectionClassGenerator.Generate(printer);
 }
 
-bool Generator::Generate(
-    const FileDescriptor* file,
-    const string& parameter,
-    GeneratorContext* generator_context,
-    string* error) const {
-
-  vector<pair<string, string> > options;
+bool Generator::Generate(const FileDescriptor* file,
+                         const TProtoStringType& parameter,
+                         GeneratorContext* generator_context,
+                         TProtoStringType* error) const {
+  std::vector<std::pair<TProtoStringType, TProtoStringType> > options;
   ParseGeneratorParameter(parameter, &options);
-
-  // We only support proto3 - but we make an exception for descriptor.proto.
-  if (file->syntax() != FileDescriptor::SYNTAX_PROTO3 && !IsDescriptorProto(file)) {
-    *error = "C# code generation only supports proto3 syntax";
-    return false;
-  }
 
   struct Options cli_options;
 
@@ -83,13 +78,15 @@ bool Generator::Generate(
       cli_options.base_namespace_specified = true;
     } else if (options[i].first == "internal_access") {
       cli_options.internal_access = true;
+    } else if (options[i].first == "serializable") {
+      cli_options.serializable = true;
     } else {
       *error = "Unknown generator option: " + options[i].first;
       return false;
     }
   }
 
-  string filename_error = "";
+  TProtoStringType filename_error = "";
   TProtoStringType filename = GetOutputFile(file,
       cli_options.file_extension,
       cli_options.base_namespace_specified,
@@ -100,7 +97,7 @@ bool Generator::Generate(
     *error = filename_error;
     return false;
   }
-  scoped_ptr<io::ZeroCopyOutputStream> output(
+  std::unique_ptr<io::ZeroCopyOutputStream> output(
       generator_context->Open(filename));
   io::Printer printer(output.get(), '$');
 

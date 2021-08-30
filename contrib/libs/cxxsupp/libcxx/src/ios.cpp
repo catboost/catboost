@@ -15,29 +15,13 @@
 #include "__locale"
 #include "algorithm"
 #include "include/config_elast.h"
-#include "istream"
 #include "limits"
 #include "memory"
 #include "new"
-#include "streambuf"
 #include "string"
 #include "__undef_macros"
 
 _LIBCPP_BEGIN_NAMESPACE_STD
-
-template class _LIBCPP_CLASS_TEMPLATE_INSTANTIATION_VIS basic_ios<char>;
-template class _LIBCPP_CLASS_TEMPLATE_INSTANTIATION_VIS basic_ios<wchar_t>;
-
-template class _LIBCPP_CLASS_TEMPLATE_INSTANTIATION_VIS basic_streambuf<char>;
-template class _LIBCPP_CLASS_TEMPLATE_INSTANTIATION_VIS basic_streambuf<wchar_t>;
-
-template class _LIBCPP_CLASS_TEMPLATE_INSTANTIATION_VIS basic_istream<char>;
-template class _LIBCPP_CLASS_TEMPLATE_INSTANTIATION_VIS basic_istream<wchar_t>;
-
-template class _LIBCPP_CLASS_TEMPLATE_INSTANTIATION_VIS basic_ostream<char>;
-template class _LIBCPP_CLASS_TEMPLATE_INSTANTIATION_VIS basic_ostream<wchar_t>;
-
-template class _LIBCPP_CLASS_TEMPLATE_INSTANTIATION_VIS basic_iostream<char>;
 
 class _LIBCPP_HIDDEN __iostream_category
     : public __do_message
@@ -161,11 +145,11 @@ int ios_base::__xindex_ = 0;
 template <typename _Tp>
 static size_t __ios_new_cap(size_t __req_size, size_t __current_cap)
 { // Precondition: __req_size > __current_cap
-	const size_t mx = std::numeric_limits<size_t>::max() / sizeof(_Tp);
-	if (__req_size < mx/2)
-		return _VSTD::max(2 * __current_cap, __req_size);
-	else
-		return mx;
+    const size_t mx = std::numeric_limits<size_t>::max() / sizeof(_Tp);
+    if (__req_size < mx/2)
+        return _VSTD::max(2 * __current_cap, __req_size);
+    else
+        return mx;
 }
 
 int

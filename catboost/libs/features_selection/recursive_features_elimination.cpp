@@ -311,6 +311,7 @@ namespace NCB {
         TVector<TEvalResult> evalResults(trainingData.Test.ysize());
         THolder<IModelTrainer> modelTrainerHolder(TTrainerFactory::Construct(catBoostOptions.GetTaskType()));
         TRestorableFastRng64 rnd(catBoostOptions.RandomSeed);
+        const auto defaultCustomCallbacks = MakeHolder<TCustomCallbacks>(Nothing());
         modelTrainerHolder->TrainModel(
             TTrainModelInternalOptions(),
             catBoostOptions,
@@ -321,6 +322,7 @@ namespace NCB {
             /*precomputedSingleOnlineCtrDataForSingleFold*/ Nothing(),
             labelConverter,
             callbacks,
+            defaultCustomCallbacks.Get(),
             /*initModel*/ Nothing(),
             /*initLearnProgress*/ nullptr,
             TDataProviders(),
@@ -426,7 +428,8 @@ namespace NCB {
                 EPredictionType::RawFormulaVal,
                 0,
                 0,
-                executor
+                executor,
+                testPool->RawTargetData.GetBaseline()
             );
         };
 

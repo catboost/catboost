@@ -246,14 +246,14 @@ public:
         const TFold& fold,
         ESamplingUnit samplingUnit,
         bool hasOfflineEstimatedFeatures,
-        const TVector<TIndexType>& indices,
+        TConstArrayRef<TIndexType> indices,
         TRestorableFastRng64* rand,
         NPar::ILocalExecutor* localExecutor,
         bool performRandomChoice = true,
         bool shouldSortByLeaf = false,
         ui32 leavesCount = 0
     );
-    void UpdateIndices(const TVector<TIndexType>& indices, NPar::ILocalExecutor* localExecutor);
+    void UpdateIndices(TConstArrayRef<TIndexType> indices, NPar::ILocalExecutor* localExecutor);
     // for lossguide
     void UpdateIndicesInLeafwiseSortedFoldForSingleLeaf(
         TIndexType leaf,

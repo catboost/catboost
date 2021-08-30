@@ -305,6 +305,7 @@ namespace NCatboostCuda {
             TMaybe<NCB::TPrecomputedOnlineCtrData> precomputedSingleOnlineCtrDataForSingleFold,
             const TLabelConverter& labelConverter,
             ITrainingCallbacks* trainingCallbacks,
+            ICustomCallbacks* /*customCallbacks*/,
             TMaybe<TFullModel*> initModel,
             THolder<TLearnProgress> initLearnProgress,
             NCB::TDataProviders initModelApplyCompatiblePools,
@@ -321,7 +322,7 @@ namespace NCatboostCuda {
             CB_ENSURE(trainingData.Test.size() <= 1, "Multiple eval sets not supported for GPU");
             CB_ENSURE(!precomputedSingleOnlineCtrDataForSingleFold,
                       "Precomputed online CTR data for GPU is not yet supported");
-            Y_VERIFY(evalResultPtrs.size() == trainingData.Test.size());
+            Y_VERIFY(evalResultPtrs.empty() || (evalResultPtrs.size() == trainingData.Test.size()));
             CB_ENSURE(!initModel && !initLearnProgress, "Training continuation for GPU is not yet supported");
             Y_UNUSED(initModelApplyCompatiblePools);
             CB_ENSURE_INTERNAL(!dstLearnProgress, "Returning learn progress for GPU is not yet supported");

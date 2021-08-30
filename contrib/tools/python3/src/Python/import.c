@@ -296,6 +296,9 @@ _PyImport_Fini2(void)
     PyMemAllocatorEx old_alloc;
     _PyMem_SetDefaultAllocator(PYMEM_DOMAIN_RAW, &old_alloc);
 
+    // Reset PyImport_Inittab
+    PyImport_Inittab = _PyImport_Inittab;
+
     /* Free memory allocated by PyImport_ExtendInittab() */
     PyMem_RawFree(inittab_copy);
     inittab_copy = NULL;
@@ -1865,7 +1868,7 @@ PyImport_ImportModuleLevelObject(PyObject *name, PyObject *globals,
     }
 
     if (mod != NULL && mod != Py_None) {
-        if (import_ensure_initialized(tstate, mod, name) < 0) {
+        if (import_ensure_initialized(tstate, mod, abs_name) < 0) {
             goto error;
         }
     }

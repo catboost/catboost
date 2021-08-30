@@ -5,20 +5,20 @@
 #include <util/generic/yexception.h>
 
 #if defined(_win_)
-#include <util/system/winint.h>
+    #include <util/system/winint.h>
 #else
-#include <sys/types.h>
-#include <sys/mman.h>
+    #include <sys/types.h>
+    #include <sys/mman.h>
 #endif
 
-#ifndef MADV_DONTDUMP    /* This flag is defined in sys/mman.h since Linux 3.4, but currently old libc header is in use \
-                            for capability with Ubuntu 12.04, so we need to define it here manually */
-#define MADV_DONTDUMP 16 /* Explicity exclude from the core dump, overrides the coredump filter bits */
+#ifndef MADV_DONTDUMP        /* This flag is defined in sys/mman.h since Linux 3.4, but currently old libc header is in use \
+                                for capability with Ubuntu 12.04, so we need to define it here manually */
+    #define MADV_DONTDUMP 16 /* Explicity exclude from the core dump, overrides the coredump filter bits */
 #endif
 
-#ifndef MADV_DODUMP    /* This flag is defined in sys/mman.h since Linux 3.4, but currently old libc header is in use \
-                            for capability with Ubuntu 12.04, so we need to define it here manually */
-#define MADV_DODUMP 17 /* Undo the effect of an earlier MADV_DONTDUMP */
+#ifndef MADV_DODUMP        /* This flag is defined in sys/mman.h since Linux 3.4, but currently old libc header is in use \
+                                for capability with Ubuntu 12.04, so we need to define it here manually */
+    #define MADV_DODUMP 17 /* Undo the effect of an earlier MADV_DONTDUMP */
 #endif
 
 namespace {

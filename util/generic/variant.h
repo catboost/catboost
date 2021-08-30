@@ -20,15 +20,15 @@ template <class T, class V>
 struct TVariantIndex;
 
 template <class T, class... Ts>
-struct TVariantIndex<T, TVariant<Ts...>> : ::NVariant::TIndexOf<T, Ts...> {};
+struct TVariantIndex<T, TVariant<Ts...>>: ::NVariant::TIndexOf<T, Ts...> {};
 
 // Since there is now standard metafunction for std::variant,
 // we need template specialization for it
 #if _LIBCPP_STD_VER >= 17
-#include <variant>
+    #include <variant>
 
 template <class T, class... Ts>
-struct TVariantIndex<T, std::variant<Ts...>> : ::NVariant::TIndexOf<T, Ts...> {};
+struct TVariantIndex<T, std::variant<Ts...>>: ::NVariant::TIndexOf<T, Ts...> {};
 #endif
 
 template <class T, class V>
@@ -38,7 +38,6 @@ template <class V>
 using TVariantSize = ::NVariant::TSize<V>;
 
 constexpr size_t TVARIANT_NPOS = ::NVariant::T_NPOS;
-
 
 template <class F, class... Ts>
 decltype(auto) Visit(F&& f, TVariant<Ts...>& v);
@@ -52,11 +51,9 @@ decltype(auto) Visit(F&& f, TVariant<Ts...>&& v);
 template <class F, class... Ts>
 decltype(auto) Visit(F&& f, const TVariant<Ts...>&& v);
 
-
 template <class T, class... Ts>
 constexpr bool HoldsAlternative(const TVariant<Ts...>& v) noexcept;
 
-
 template <size_t I, class... Ts>
 decltype(auto) Get(TVariant<Ts...>& v);
 
@@ -69,7 +66,6 @@ decltype(auto) Get(TVariant<Ts...>&& v);
 template <size_t I, class... Ts>
 decltype(auto) Get(const TVariant<Ts...>&& v);
 
-
 template <class T, class... Ts>
 decltype(auto) Get(TVariant<Ts...>& v);
 
@@ -81,7 +77,6 @@ decltype(auto) Get(TVariant<Ts...>&& v);
 
 template <class T, class... Ts>
 decltype(auto) Get(const TVariant<Ts...>&& v);
-
 
 template <size_t I, class... Ts>
 auto* GetIf(TVariant<Ts...>* v) noexcept;
@@ -324,12 +319,12 @@ bool operator==(const TVariant<Ts...>& a, const TVariant<Ts...>& b) {
         return false;
     }
     return a.valueless_by_exception() || ::Visit([&](const auto& aVal) -> bool {
-        return ::Visit([&](const auto& bVal) -> bool {
-            return ::NVariant::CallIfSame<bool>([](const auto& x, const auto& y) {
-                return x == y;
-            }, aVal, bVal);
-        }, b);
-    }, a);
+               return ::Visit([&](const auto& bVal) -> bool {
+                   return ::NVariant::CallIfSame<bool>([](const auto& x, const auto& y) {
+                       return x == y;
+                   }, aVal, bVal);
+               }, b);
+           }, a);
 }
 
 template <class... Ts>
@@ -434,7 +429,6 @@ bool operator>=(const TVariant<Ts...>& a, const TVariant<Ts...>& b) {
     return a.index() > b.index();
 }
 
-
 namespace NVariant {
     template <class F, class V>
     decltype(auto) VisitImpl(F&& f, V&& v) {
@@ -469,13 +463,11 @@ decltype(auto) Visit(F&& f, const TVariant<Ts...>&& v) {
     return ::NVariant::VisitImpl(std::forward<F>(f), std::move(v));
 }
 
-
 template <class T, class... Ts>
 constexpr bool HoldsAlternative(const TVariant<Ts...>& v) noexcept {
     static_assert(::NVariant::TIndexOf<T, Ts...>::value != TVARIANT_NPOS, "T not in types");
     return ::NVariant::TIndexOf<T, Ts...>::value == v.index();
 }
-
 
 namespace NVariant {
     template <size_t I, class V>
@@ -505,11 +497,10 @@ decltype(auto) Get(const TVariant<Ts...>&& v) {
     return ::NVariant::GetImpl<I>(std::move(v));
 }
 
-
 namespace NVariant {
     template <class T, class V>
     decltype(auto) GetImpl(V&& v) {
-        return ::Get< ::NVariant::TAlternativeIndex<T, std::decay_t<V>>::value>(std::forward<V>(v));
+        return ::Get<::NVariant::TAlternativeIndex<T, std::decay_t<V>>::value>(std::forward<V>(v));
     }
 }
 
@@ -533,7 +524,6 @@ decltype(auto) Get(const TVariant<Ts...>&& v) {
     return ::NVariant::GetImpl<T>(std::move(v));
 }
 
-
 template <size_t I, class... Ts>
 auto* GetIf(TVariant<Ts...>* v) noexcept {
     return v != nullptr && I == v->index() ? &::NVariant::TVariantAccessor::Get<I>(*v) : nullptr;
@@ -546,12 +536,12 @@ const auto* GetIf(const TVariant<Ts...>* v) noexcept {
 
 template <class T, class... Ts>
 T* GetIf(TVariant<Ts...>* v) noexcept {
-    return ::GetIf< ::NVariant::TIndexOf<T, Ts...>::value>(v);
+    return ::GetIf<::NVariant::TIndexOf<T, Ts...>::value>(v);
 }
 
 template <class T, class... Ts>
 const T* GetIf(const TVariant<Ts...>* v) noexcept {
-    return ::GetIf< ::NVariant::TIndexOf<T, Ts...>::value>(v);
+    return ::GetIf<::NVariant::TIndexOf<T, Ts...>::value>(v);
 }
 
 template <class... Ts>
@@ -559,11 +549,10 @@ struct THash<TVariant<Ts...>> {
 public:
     inline size_t operator()(const TVariant<Ts...>& v) const {
         const size_t tagHash = IntHash(v.index());
-        const size_t valueHash = v.valueless_by_exception() ? 0 : Visit(
-            [](const auto& value) {
-                using T = std::decay_t<decltype(value)>;
-                return ::THash<T>{}(value);
-            }, v);
+        const size_t valueHash = v.valueless_by_exception() ? 0 : Visit([](const auto& value) {
+            using T = std::decay_t<decltype(value)>;
+            return ::THash<T>{}(value);
+        }, v);
         return CombineHashes(tagHash, valueHash);
     }
 };

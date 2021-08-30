@@ -19,6 +19,7 @@ from __future__ import print_function
 # Stdlib imports
 import glob
 import inspect
+import itertools
 import os
 import re
 import sys
@@ -44,7 +45,7 @@ from IPython.utils.py3compat import string_types
 # FIXME: this should be pulled in with the right call via the component system
 from IPython import get_ipython
 
-from __res import iter_py_modules
+from __res import importer
 
 #-----------------------------------------------------------------------------
 # Globals and constants
@@ -69,6 +70,51 @@ magic_run_re = re.compile(r'.*(\.ipy|\.ipynb|\.py[w]?)$')
 #-----------------------------------------------------------------------------
 # Local utilities
 #-----------------------------------------------------------------------------
+
+arcadia_rootmodules_cache = None
+arcadia_modules_cache = None
+
+
+def arcadia_init_cache():
+    global arcadia_rootmodules_cache, arcadia_modules_cache
+    arcadia_rootmodules_cache = set()
+    arcadia_modules_cache = {}
+
+    all_modules = itertools.chain(
+        sys.builtin_module_names,
+        importer.memory
+    )
+
+    for name in all_modules:
+        path = name.split('.')
+        arcadia_rootmodules_cache.add(path[0])
+
+        prefix = path[0]
+        for element in path[1:]:
+            if element == '__init__':
+                continue
+
+            arcadia_modules_cache.setdefault(prefix, set()).add(element)
+            prefix += '.' + element
+
+    arcadia_rootmodules_cache = sorted(arcadia_rootmodules_cache)
+    arcadia_modules_cache = {k: sorted(v) for k, v in arcadia_modules_cache.items()}
+
+
+def arcadia_module_list(mod):
+    if arcadia_modules_cache is None:
+        arcadia_init_cache()
+
+    return arcadia_modules_cache.get(mod, ())
+
+
+def arcadia_get_root_modules():
+    if arcadia_rootmodules_cache is None:
+        arcadia_init_cache()
+
+    return arcadia_rootmodules_cache
+
+
 
 def module_list(path):
     """
@@ -150,8 +196,7 @@ def get_root_modules():
         rootmodules.extend(modules)
     if store:
         ip.db['rootmodules_cache'] = rootmodules_cache
-    arcadia_rootmodules = {module.split('.', 1)[0] for  module in iter_py_modules()}
-    rootmodules = list(set(rootmodules) | arcadia_rootmodules)
+    rootmodules = list(set(rootmodules))
     return rootmodules
 
 
@@ -171,7 +216,8 @@ def try_import(mod, only_modules=False):
     for module in mods[1:]:
         m = getattr(m, module)
 
-    m_is_init = hasattr(m, '__file__') and '__init__' in m.__file__
+    filename = getattr(m, '__file__', '')
+    m_is_init = '__init__' in (filename or '') or filename == mod
 
     completions = []
     if (not hasattr(m, '__file__')) or (not only_modules) or m_is_init:
@@ -180,10 +226,10 @@ def try_import(mod, only_modules=False):
 
     completions.extend(getattr(m, '__all__', []))
     if m_is_init:
-        completions.extend(module_list(os.path.dirname(m.__file__)))
+        completions.extend(arcadia_module_list(mod))
     completions = {c for c in completions if isinstance(c, string_types)}
     completions.discard('__init__')
-    return list(completions)
+    return sorted(completions)
 
 
 #-----------------------------------------------------------------------------
@@ -232,10 +278,10 @@ def module_completion(line):
     # 'from xy<tab>' or 'import xy<tab>'
     if nwords < 3 and (words[0] in {'%aimport', 'import', 'from'}) :
         if nwords == 1:
-            return get_root_modules()
+            return arcadia_get_root_modules()
         mod = words[1].split('.')
         if len(mod) < 2:
-            return get_root_modules()
+            return arcadia_get_root_modules()
         completion_list = try_import('.'.join(mod[:-1]), True)
         return ['.'.join(mod[:-1] + [el]) for el in completion_list]
 

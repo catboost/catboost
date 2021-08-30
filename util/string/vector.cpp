@@ -47,7 +47,7 @@ static inline void DoSplit0(C* res, const TBasicStringBuf<TChr> str, TDelim& d, 
 
 template <typename TChr>
 static void SplitStringImplT(TVector<std::conditional_t<std::is_same<TChr, wchar16>::value, TUtf16String, TString>>* res,
-                        const TBasicStringBuf<TChr> str, const TChr* delim, size_t maxFields, int options) {
+                             const TBasicStringBuf<TChr> str, const TChr* delim, size_t maxFields, int options) {
     if (!*delim) {
         return;
     }

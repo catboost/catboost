@@ -246,7 +246,7 @@ namespace NCudaLib {
             return buffer;
         }
 
-        operator TCudaBuffer<const T, TMapping, Type>() const {
+        TCudaBuffer<const T, TMapping, Type> AsConstBuf() const {
             TCudaBuffer<const T, TMapping, Type> buffer;
 
             for (ui64 i = 0; i < Buffers.size(); ++i) {

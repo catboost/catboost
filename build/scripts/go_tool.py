@@ -7,12 +7,14 @@ import re
 import shutil
 import subprocess
 import sys
+import tarfile
 import tempfile
 import threading
 import six
 from functools import reduce
 
 import process_command_files as pcf
+import process_whole_archive_option as pwa
 
 arc_project_prefix = 'a.yandex-team.ru/'
 std_lib_prefix = 'contrib/go/_std/src/'
@@ -74,6 +76,16 @@ def preprocess_args(args):
     if args.cgo_peers:
         args.cgo_peers = [x for x in args.cgo_peers if not x.endswith('.fake.pkg')]
 
+    srcs = []
+    for f in args.srcs:
+        if f.endswith('.gosrc'):
+            with tarfile.open(f, 'r') as tar:
+                srcs.extend(os.path.join(args.output_root, src) for src in tar.getnames())
+                tar.extractall(path=args.output_root)
+        else:
+            srcs.append(f)
+    args.srcs = srcs
+
     assert args.mode == 'test' or args.test_srcs is None and args.xtest_srcs is None
     # add lexical oreder by basename for go sources
     args.srcs.sort(key=lambda x: os.path.basename(x))
@@ -87,7 +99,7 @@ def preprocess_args(args):
     assert args.output is None or args.output_root == os.path.dirname(args.output)
     assert args.output_root.startswith(args.build_root_dir)
     args.module_path = args.output_root[len(args.build_root_dir):]
-    args.source_module_dir = os.path.join(args.source_root, args.module_path) + os.path.sep
+    args.source_module_dir = os.path.join(args.source_root, args.test_import_path or args.module_path) + os.path.sep
     assert len(args.module_path) > 0
     args.import_path, args.is_std = get_import_path(args.module_path)
 
@@ -102,6 +114,9 @@ def preprocess_args(args):
         else:
             srcs.append(f)
     args.srcs = srcs
+
+    if args.extldflags:
+        args.extldflags = pwa.ProcessWholeArchiveOption(args.targ_os).construct_cmd(args.extldflags)
 
     classify_srcs(args.srcs, args)
 
@@ -280,9 +295,9 @@ def decode_vet_report(json_report):
             messages = []
             for _, module_diags in six.iteritems(full_diags):
                 for _, type_diags in six.iteritems(module_diags):
-                     for diag in type_diags:
-                         messages.append(u'{}: {}'.format(diag['posn'], diag['message']))
-            report = '\n'.join(sorted(messages)).encode('UTF-8')
+                    for diag in type_diags:
+                        messages.append(u'{}: {}'.format(diag['posn'], diag['message']))
+            report = '\n'.join(messages).encode('UTF-8')
 
     return report
 
@@ -339,10 +354,12 @@ def _do_compile_go(args):
         'go{}'.format(args.goversion)
     ]
     cmd.extend(get_trimpath_args(args))
+    compiling_runtime = False
     if is_std_module:
         cmd.append('-std')
-        if import_path == 'runtime' or import_path.startswith('runtime/internal/'):
+        if import_path in ('runtime', 'internal/abi', 'internal/bytealg', 'internal/cpu') or import_path.startswith('runtime/internal/'):
             cmd.append('-+')
+            compiling_runtime = True
     import_config_name = create_import_config(args.peers, True, args.import_map, args.module_map)
     if import_config_name:
         cmd += ['-importcfg', import_config_name]
@@ -351,7 +368,8 @@ def _do_compile_go(args):
             pass
         else:
             cmd.append('-complete')
-    if args.embed and compare_versions('1.16', args.goversion) >= 0:
+    # if compare_versions('1.16', args.goversion) >= 0:
+    if args.embed:
         embed_config_name = create_embed_config(args)
         cmd.extend(['-embedcfg', embed_config_name])
     if args.asmhdr:
@@ -366,7 +384,7 @@ def _do_compile_go(args):
     #     cmd.append('-allabis')
     compile_workers = '4'
     if args.compile_flags:
-        if import_path == 'runtime' or import_path.startswith('runtime/'):
+        if compiling_runtime:
             cmd.extend(x for x in args.compile_flags if x not in COMPILE_OPTIMIZATION_FLAGS)
         else:
             cmd.extend(args.compile_flags)
@@ -410,18 +428,21 @@ def do_compile_go(args):
 
 def do_compile_asm(args):
     def need_compiling_runtime(import_path):
-        return import_path in ('runtime', 'reflect', 'syscall') or import_path.startswith('runtime/internal/')
+        return import_path in ('runtime', 'reflect', 'syscall') or \
+            import_path.startswith('runtime/internal/') or \
+            compare_versions('1.17', args.goversion) >= 0 and import_path == 'internal/bytealg'
 
     assert(len(args.srcs) == 1 and len(args.asm_srcs) == 1)
     cmd = [args.go_asm]
     cmd += get_trimpath_args(args)
     cmd += ['-I', args.output_root, '-I', os.path.join(args.pkg_root, 'include')]
     cmd += ['-D', 'GOOS_' + args.targ_os, '-D', 'GOARCH_' + args.targ_arch, '-o', args.output]
-    # TODO: This is just a quick fix to start work on 1.16 support
-    if compare_versions('1.16', args.goversion) >= 0:
-        cmd += ['-p', args.import_path]
-        if need_compiling_runtime(args.import_path):
-            cmd += ['-compiling-runtime']
+
+    # if compare_versions('1.16', args.goversion) >= 0:
+    cmd += ['-p', args.import_path]
+    if need_compiling_runtime(args.import_path):
+        cmd += ['-compiling-runtime']
+
     if args.asm_flags:
         cmd += args.asm_flags
     cmd += args.asm_srcs
@@ -481,7 +502,7 @@ def do_link_exe(args):
         if args.musl:
             cmd.append('-linkmode=external')
             extldflags.append('-static')
-            filter_musl = lambda x: not x in ('-lc', '-ldl', '-lm', '-lpthread', '-lrt')
+            filter_musl = lambda x: x not in ('-lc', '-ldl', '-lm', '-lpthread', '-lrt')
         extldflags += [x for x in args.extldflags if filter_musl(x)]
     cgo_peers = []
     if args.cgo_peers is not None and len(args.cgo_peers) > 0:
@@ -767,9 +788,9 @@ if __name__ == '__main__':
     parser.add_argument('++output-root', required=True)
     parser.add_argument('++toolchain-root', required=True)
     parser.add_argument('++host-os', choices=['linux', 'darwin', 'windows'], required=True)
-    parser.add_argument('++host-arch', choices=['amd64'], required=True)
+    parser.add_argument('++host-arch', choices=['amd64', 'arm64'], required=True)
     parser.add_argument('++targ-os', choices=['linux', 'darwin', 'windows'], required=True)
-    parser.add_argument('++targ-arch', choices=['amd64', 'x86'], required=True)
+    parser.add_argument('++targ-arch', choices=['amd64', 'x86', 'arm64'], required=True)
     parser.add_argument('++peers', nargs='*')
     parser.add_argument('++non-local-peers', nargs='*')
     parser.add_argument('++cgo-peers', nargs='*')

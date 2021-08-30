@@ -303,15 +303,15 @@ namespace {
 #include <linux/futex.h>
 
 namespace {
-    static inline int sys_futex(int* uaddr, int op, int val, const struct timespec* timeout, int* uaddr2, int val3) {
+    inline int sys_futex(int* uaddr, int op, int val, const struct timespec* timeout, int* uaddr2, int val3) {
         return syscall(SYS_futex, uaddr, op, val, timeout, uaddr2, val3);
     }
 
-    static inline int FutexWake(int* addr, int nthr) {
+    inline int FutexWake(int* addr, int nthr) {
         return sys_futex(addr, FUTEX_WAKE, nthr, nullptr, nullptr, 0);
     }
 
-    static inline void FutexWait(int* addr, int val) {
+    inline void FutexWait(int* addr, int val) {
         sys_futex(addr, FUTEX_WAIT, val, nullptr, nullptr, 0);
     }
 

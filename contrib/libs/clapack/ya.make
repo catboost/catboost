@@ -2,6 +2,8 @@ LIBRARY()
 
 LICENSE(BSD-3-Clause)
 
+VERSION(3.2.1)
+
 
 
 NO_JOIN_SRC()

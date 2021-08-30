@@ -20,7 +20,7 @@ TUnbufferedFileInput::TUnbufferedFileInput(const TFile& file)
 }
 
 size_t TUnbufferedFileInput::DoRead(void* buf, size_t len) {
-    return File_.Read(buf, len);
+    return File_.ReadOrFail(buf, len);
 }
 
 size_t TUnbufferedFileInput::DoSkip(size_t len) {

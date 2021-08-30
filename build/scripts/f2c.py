@@ -50,7 +50,7 @@ if __name__ == '__main__':
         sys.exit(ret)
 
     if 'Error' in stderr:
-            print >>sys.stderr, stderr
+        print >>sys.stderr, stderr
 
     with open(args.output, 'w') as f:
         f.write(header)

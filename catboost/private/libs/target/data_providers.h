@@ -113,4 +113,16 @@ namespace NCB {
         const TWeights<float>& groupWeights,
         TMaybe<TRawPairsDataRef> pairs);
 
+    TVector<TSharedVector<float>> ConvertTarget(
+        TMaybeData<TConstArrayRef<TRawTarget>> maybeRawTarget,
+        ERawTargetType targetType,
+        bool isRealTarget,
+        bool isClass,
+        bool isMultiClass,
+        TMaybe<float> targetBorder,
+        bool classCountUnknown,
+        const TVector<NJson::TJsonValue> inputClassLabels,
+        TVector<NJson::TJsonValue>* outputClassLabels,
+        NPar::ILocalExecutor* localExecutor,
+        ui32* classCount);
 }

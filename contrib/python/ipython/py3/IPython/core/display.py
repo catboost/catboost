@@ -57,7 +57,7 @@ def _display_mimetype(mimetype, objs, raw=False, metadata=None):
     ----------
     mimetype : str
         The mimetype to be published (e.g. 'image/png')
-    objs : tuple of objects
+    *objs : object
         The Python objects to display, or if raw=True raw text data to
         display.
     raw : bool
@@ -139,7 +139,7 @@ def display(*objs, include=None, exclude=None, metadata=None, transient=None, di
 
     Parameters
     ----------
-    objs : tuple of objects
+    *objs : object
         The Python objects to display.
     raw : bool, optional
         Are the objects to be displayed already mimetype-keyed dicts of raw display data,
@@ -163,6 +163,9 @@ def display(*objs, include=None, exclude=None, metadata=None, transient=None, di
         Set an id for the display.
         This id can be used for updating this display area later via update_display.
         If given as `True`, generate a new `display_id`
+    clear : bool, optional
+        Should the output area be cleared before displaying anything? If True,
+        this will wait for additional output before clearing. [default: False]
     kwargs: additional keyword-args, optional
         Additional keyword-arguments are passed through to the display publisher.
 
@@ -281,8 +284,9 @@ def display(*objs, include=None, exclude=None, metadata=None, transient=None, di
         # Directly print objects.
         print(*objs)
         return
-    
-    raw = kwargs.pop('raw', False)
+
+    raw = kwargs.pop("raw", False)
+    clear = kwargs.pop("clear", False)
     if transient is None:
         transient = {}
     if metadata is None:
@@ -305,6 +309,9 @@ def display(*objs, include=None, exclude=None, metadata=None, transient=None, di
 
     if not raw:
         format = InteractiveShell.instance().display_formatter.format
+
+    if clear:
+        clear_output(wait=True)
 
     for obj in objs:
         if raw:
@@ -398,7 +405,7 @@ def display_pretty(*objs, **kwargs):
 
     Parameters
     ----------
-    objs : tuple of objects
+    *objs : object
         The Python objects to display, or if raw=True raw text data to
         display.
     raw : bool
@@ -418,7 +425,7 @@ def display_html(*objs, **kwargs):
 
     Parameters
     ----------
-    objs : tuple of objects
+    *objs : object
         The Python objects to display, or if raw=True raw HTML data to
         display.
     raw : bool
@@ -435,7 +442,7 @@ def display_markdown(*objs, **kwargs):
 
     Parameters
     ----------
-    objs : tuple of objects
+    *objs : object
         The Python objects to display, or if raw=True raw markdown data to
         display.
     raw : bool
@@ -453,7 +460,7 @@ def display_svg(*objs, **kwargs):
 
     Parameters
     ----------
-    objs : tuple of objects
+    *objs : object
         The Python objects to display, or if raw=True raw svg data to
         display.
     raw : bool
@@ -470,7 +477,7 @@ def display_png(*objs, **kwargs):
 
     Parameters
     ----------
-    objs : tuple of objects
+    *objs : object
         The Python objects to display, or if raw=True raw png data to
         display.
     raw : bool
@@ -487,7 +494,7 @@ def display_jpeg(*objs, **kwargs):
 
     Parameters
     ----------
-    objs : tuple of objects
+    *objs : object
         The Python objects to display, or if raw=True raw JPEG data to
         display.
     raw : bool
@@ -504,7 +511,7 @@ def display_latex(*objs, **kwargs):
 
     Parameters
     ----------
-    objs : tuple of objects
+    *objs : object
         The Python objects to display, or if raw=True raw latex data to
         display.
     raw : bool
@@ -523,7 +530,7 @@ def display_json(*objs, **kwargs):
 
     Parameters
     ----------
-    objs : tuple of objects
+    *objs : object
         The Python objects to display, or if raw=True raw json data to
         display.
     raw : bool
@@ -540,7 +547,7 @@ def display_javascript(*objs, **kwargs):
 
     Parameters
     ----------
-    objs : tuple of objects
+    *objs : object
         The Python objects to display, or if raw=True raw javascript data to
         display.
     raw : bool
@@ -557,7 +564,7 @@ def display_pdf(*objs, **kwargs):
 
     Parameters
     ----------
-    objs : tuple of objects
+    *objs : object
         The Python objects to display, or if raw=True raw javascript data to
         display.
     raw : bool
@@ -675,7 +682,7 @@ class DisplayObject(object):
                     with gzip.open(BytesIO(data), 'rt', encoding=encoding) as fp:
                         encoding = None
                         data = fp.read()
-                    
+
             # decode data, if an encoding was specified
             # We only touch self.data once since
             # subclasses such as SVG have @data.setter methods
@@ -1471,7 +1478,12 @@ def clear_output(wait=False):
 
 @skip_doctest
 def set_matplotlib_formats(*formats, **kwargs):
-    """Select figure formats for the inline backend. Optionally pass quality for JPEG.
+    """
+    .. deprecated:: 7.23
+
+       use `matplotlib_inline.backend_inline.set_matplotlib_formats()`
+
+    Select figure formats for the inline backend. Optionally pass quality for JPEG.
 
     For example, this enables PNG and JPEG output with a JPEG quality of 90%::
 
@@ -1489,20 +1501,28 @@ def set_matplotlib_formats(*formats, **kwargs):
     **kwargs :
         Keyword args will be relayed to ``figure.canvas.print_figure``.
     """
-    from IPython.core.interactiveshell import InteractiveShell
-    from IPython.core.pylabtools import select_figure_formats
-    # build kwargs, starting with InlineBackend config
-    kw = {}
-    from ipykernel.pylab.config import InlineBackend
-    cfg = InlineBackend.instance()
-    kw.update(cfg.print_figure_kwargs)
-    kw.update(**kwargs)
-    shell = InteractiveShell.instance()
-    select_figure_formats(shell, formats, **kw)
+    warnings.warn(
+        "`set_matplotlib_formats` is deprecated since IPython 7.23, directly "
+        "use `matplotlib_inline.backend_inline.set_matplotlib_formats()`",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
+    from matplotlib_inline.backend_inline import (
+        set_matplotlib_formats as set_matplotlib_formats_orig,
+    )
+
+    set_matplotlib_formats_orig(*formats, **kwargs)
 
 @skip_doctest
 def set_matplotlib_close(close=True):
-    """Set whether the inline backend closes all figures automatically or not.
+    """
+    .. deprecated:: 7.23
+
+        use `matplotlib_inline.backend_inline.set_matplotlib_close()`
+
+
+    Set whether the inline backend closes all figures automatically or not.
 
     By default, the inline backend used in the IPython Notebook will close all
     matplotlib figures automatically after each cell is run. This means that
@@ -1522,6 +1542,15 @@ def set_matplotlib_close(close=True):
         Should all matplotlib figures be automatically closed after each cell is
         run?
     """
-    from ipykernel.pylab.config import InlineBackend
-    cfg = InlineBackend.instance()
-    cfg.close_figures = close
+    warnings.warn(
+        "`set_matplotlib_close` is deprecated since IPython 7.23, directly "
+        "use `matplotlib_inline.backend_inline.set_matplotlib_close()`",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
+    from matplotlib_inline.backend_inline import (
+        set_matplotlib_close as set_matplotlib_close_orig,
+    )
+
+    set_matplotlib_close_orig(close)

@@ -227,6 +227,43 @@ def with_eval_sets():
         os.remove(cd_path)
 
 
+def overfitting_detector():
+    data_path = os.path.join(CATBOOST_TEST_DATA_DIR, "querywise")
+    learn_set_path = os.path.join(data_path, "train")
+    eval_set_path = os.path.join(data_path, "test")
+    cd_path = os.path.join(data_path, "train.cd")
+
+    eval_pool = cb.Pool(eval_set_path, column_description=cd_path)
+
+    result = {}
+
+    for od_type in ['IncToDec', 'Iter']:
+        if od_type == 'Iter':
+            od_params = ['--od-wait', '20']
+        else:
+            od_params = ['--od-pval', '1.0e-2']
+
+        model = utils.run_dist_train(
+            ['--iterations', '200',
+             '--od-type', od_type,
+             '--loss-function', 'RMSE',
+             '--learn-set', learn_set_path,
+             '--test-set', eval_set_path,
+             '--cd', cd_path
+            ] + od_params,
+            model_class=cb.CatBoostRegressor
+        )
+
+        result[f'prediction_{od_type}'] = model.predict(eval_pool).tolist()
+
+    json.dump(
+        result,
+        fp=open(os.path.join(OUTPUT_DIR, 'regression_overfitting_detector.json'), 'w'),
+        allow_nan=True,
+        indent=2
+    )
+
+
 def params():
     learn_set_path = tempfile.mkstemp(prefix='catboost_learn_set_')[1]
     cd_path = tempfile.mkstemp(prefix='catboost_cd_')[1]
@@ -548,6 +585,7 @@ def main():
     simple_on_dataframe()
     with_eval_set()
     with_eval_sets()
+    overfitting_detector()
     params()
     one_hot_cat_features()
     num_and_one_hot_cat_features()

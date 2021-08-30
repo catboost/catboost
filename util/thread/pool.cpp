@@ -3,7 +3,7 @@
 #include <util/system/defaults.h>
 
 #if defined(_unix_)
-#include <pthread.h>
+    #include <pthread.h>
 #endif
 
 #include <util/generic/vector.h>
@@ -36,7 +36,7 @@ namespace {
         {
         }
 
-        explicit operator bool () const {
+        explicit operator bool() const {
             return !ThreadName.empty();
         }
 
@@ -554,10 +554,10 @@ TThreadPoolBase::TThreadPoolBase(const TParams& params)
 }
 
 #define DEFINE_THREAD_POOL_CTORS(type) \
-    type::type(const TParams& params) \
-        : TThreadPoolBase(params) \
-    { \
-    } \
+    type::type(const TParams& params)  \
+        : TThreadPoolBase(params)      \
+    {                                  \
+    }
 
 DEFINE_THREAD_POOL_CTORS(TThreadPool)
 DEFINE_THREAD_POOL_CTORS(TAdaptiveThreadPool)

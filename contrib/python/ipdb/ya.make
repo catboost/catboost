@@ -4,9 +4,10 @@ LICENSE(BSD-3-Clause)
 
 
 
-VERSION(0.13.7)
+VERSION(0.13.9)
 
 PEERDIR(
+    contrib/python/decorator
     contrib/python/ipython
 )
 

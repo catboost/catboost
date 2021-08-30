@@ -19,49 +19,49 @@ namespace {
         {
         }
 
-        virtual bool OnNull() {
+        bool OnNull() override {
             B.Null();
 
             return true;
         }
 
-        virtual bool OnBoolean(bool v) {
+        bool OnBoolean(bool v) override {
             B.Bool(v);
 
             return true;
         }
 
-        virtual bool OnInteger(long long v) {
+        bool OnInteger(long long v) override {
             B.Int(v);
 
             return true;
         }
 
-        virtual bool OnUInteger(unsigned long long v) {
+        bool OnUInteger(unsigned long long v) override {
             B.UInt(v);
 
             return true;
         }
 
-        virtual bool OnDouble(double v) {
+        bool OnDouble(double v) override {
             B.Double(v);
 
             return true;
         }
 
-        virtual bool OnString(const TStringBuf& v) {
+        bool OnString(const TStringBuf& v) override {
             B.String(v.data(), v.size());
 
             return true;
         }
 
-        virtual bool OnOpenMap() {
+        bool OnOpenMap() override {
             S.push_back(B.StartMap());
 
             return true;
         }
 
-        virtual bool OnMapKey(const TStringBuf& v) {
+        bool OnMapKey(const TStringBuf& v) override {
             auto iv = P.AppendCString(v);
 
             B.Key(iv.data(), iv.size());
@@ -69,33 +69,33 @@ namespace {
             return true;
         }
 
-        virtual bool OnCloseMap() {
+        bool OnCloseMap() override {
             B.EndMap(PopOffset());
 
             return true;
         }
 
-        virtual bool OnOpenArray() {
+        bool OnOpenArray() override {
             S.push_back(B.StartVector());
 
             return true;
         }
 
-        virtual bool OnCloseArray() {
+        bool OnCloseArray() override {
             B.EndVector(PopOffset(), false, false);
 
             return true;
         }
 
-        virtual bool OnStringNoCopy(const TStringBuf& s) {
+        bool OnStringNoCopy(const TStringBuf& s) override {
             return OnString(s);
         }
 
-        virtual bool OnMapKeyNoCopy(const TStringBuf& s) {
+        bool OnMapKeyNoCopy(const TStringBuf& s) override {
             return OnMapKey(s);
         }
 
-        virtual bool OnEnd() {
+        bool OnEnd() override {
             B.Finish();
 
             Y_ENSURE(S.empty());
@@ -103,7 +103,7 @@ namespace {
             return true;
         }
 
-        virtual void OnError(size_t, TStringBuf reason) {
+        void OnError(size_t, TStringBuf reason) override {
             ythrow yexception() << reason;
         }
 

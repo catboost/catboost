@@ -133,4 +133,25 @@ Y_UNIT_TEST_SUITE(TestFileStat) {
         UNIT_ASSERT_VALUES_EQUAL_C(false, statFollow.IsDir(), ToString(statFollow.Mode));
     }
 
-} // TestFileStat
+    Y_UNIT_TEST(ChmodTest) {
+        const TString fileName = "m.txt";
+        TFile file(fileName.c_str(), OpenAlways | WrOnly);
+        file.Write("1", 1);
+        file.Close();
+
+        const TFileStat statDefault(fileName);
+        UNIT_ASSERT(Chmod(fileName.c_str(), statDefault.Mode) == 0);
+        const TFileStat statUnchanged(fileName);
+        UNIT_ASSERT_VALUES_EQUAL(statDefault.Mode, statUnchanged.Mode);
+
+        UNIT_ASSERT(Chmod(fileName.c_str(), S_IRUSR | S_IRGRP | S_IROTH) == 0);
+        const TFileStat statReadOnly(fileName);
+        UNIT_ASSERT_VALUES_UNEQUAL(statDefault.Mode, statReadOnly.Mode);
+        UNIT_ASSERT(Chmod(fileName.c_str(), statReadOnly.Mode) == 0);
+        UNIT_ASSERT_VALUES_EQUAL(statReadOnly.Mode, TFileStat(fileName).Mode);
+
+        UNIT_ASSERT(Chmod(fileName.c_str(), statDefault.Mode) == 0);
+        UNIT_ASSERT(unlink(fileName.c_str()) == 0);
+    }
+
+}

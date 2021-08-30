@@ -119,5 +119,5 @@ namespace {
             RegisterAlias("lz4hc", "lz4-hc-safe");
         }
     };
-    static const TLz4Registrar Registrar{};
+    const TLz4Registrar Registrar{};
 }

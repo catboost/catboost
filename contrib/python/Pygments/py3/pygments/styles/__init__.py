@@ -52,6 +52,8 @@ STYLE_MAP = {
     'stata-dark':  'stata_dark::StataDarkStyle',
     'inkpot':      'inkpot::InkPotStyle',
     'zenburn': 'zenburn::ZenburnStyle',
+    'gruvbox-dark': 'gruvbox::GruvboxDarkStyle',
+    'gruvbox-light': 'gruvbox::GruvboxLightStyle',
 }
 
 

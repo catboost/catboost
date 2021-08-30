@@ -1,6 +1,6 @@
 IF (${TARGET_PLATFORM} == ${HOST_PLATFORM})
 
-    PYTEST()
+    PY3TEST()
 
     
 

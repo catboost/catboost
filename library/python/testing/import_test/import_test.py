@@ -10,7 +10,7 @@ import __res
 from __res import importer
 
 
-def check_imports(no_check=(), extra=(), skip_func=None):
+def check_imports(no_check=(), extra=(), skip_func=None, py_main=None):
     """
     tests all bundled modules are importable
     just add
@@ -35,7 +35,13 @@ def check_imports(no_check=(), extra=(), skip_func=None):
     import_times = {}
 
     norm = lambda s: s[:-9] if s.endswith('.__init__') else s
-    for module in sorted(sys.extra_modules | set(extra), key=norm):
+
+    modules = sys.extra_modules | set(extra)
+    modules = sorted(modules, key=norm)
+    if py_main:
+        modules = [py_main] + modules
+
+    for module in modules:
         if module not in extra and (rx.search(module) or skip_func and skip_func(module)):
             print('SKIP', module)
             continue
@@ -53,6 +59,9 @@ def check_imports(no_check=(), extra=(), skip_func=None):
 
         try:
             print('TRY', module)
+            # XXX waiting for py3 to use print(..., flush=True)
+            sys.stdout.flush()
+
             s = time.time()
             if module == '__main__':
                 importer.load_module('__main__', '__main__py')
@@ -102,7 +111,14 @@ def main():
         else:
             django.setup()
 
+    py_main = __res.find('PY_MAIN')
+
+    if py_main:
+        py_main_module = py_main.split(b':', 1)[0].decode('UTF-8')
+    else:
+        py_main_module = None
+
     try:
-        check_imports(no_check=skip_names)
+        check_imports(no_check=skip_names, py_main=py_main_module)
     except:
         sys.exit(1)

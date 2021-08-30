@@ -10,12 +10,19 @@
 #include <catboost/libs/data/loader.h>
 #include <catboost/private/libs/options/load_options.h>
 
-void InitializeMaster(const NCatboostOptions::TSystemOptions& systemOptions);
-void FinalizeMaster(const NCatboostOptions::TSystemOptions& systemOptions);
-void SetTrainDataFromQuantizedPool(
+#include <util/generic/maybe.h>
+
+class TMasterContext {
+public:
+    TMasterContext(const NCatboostOptions::TSystemOptions& systemOptions);
+    ~TMasterContext();
+};
+
+void SetTrainDataFromQuantizedPools(
     const NCatboostOptions::TPoolLoadParams& poolLoadOptions,
     const NCatboostOptions::TCatBoostOptions& catBoostOptions,
-    const NCB::TObjectsGrouping& objectsGrouping,
+    NCB::TObjectsGrouping&& learnObjectsGrouping,
+    TVector<NCB::TObjectsGrouping>&& testObjectsGroupings,
     const NCB::TFeaturesLayout& featuresLayout,
     TRestorableFastRng64* rand
 );
@@ -24,7 +31,7 @@ void SetTrainDataFromMaster(
     ui64 cpuUsedRamLimit,
     NPar::ILocalExecutor* localExecutor);
 void MapBuildPlainFold(TLearnContext* ctx);
-void MapRestoreApproxFromTreeStruct(TLearnContext* ctx);
+void MapRestoreApproxFromTreeStruct(TMaybe<int> bestIteration, TLearnContext* ctx);
 void MapTensorSearchStart(TLearnContext* ctx);
 void MapBootstrap(TLearnContext* ctx);
 double MapCalcDerivativesStDevFromZero(ui32 learnSampleCount, TLearnContext* ctx);
@@ -43,7 +50,12 @@ void MapRemotePairwiseCalcScore(
     TLearnContext* ctx);
 void MapSetIndices(const TSplit& bestSplit, TLearnContext* ctx);
 int MapGetRedundantSplitIdx(TLearnContext* ctx);
-void MapCalcErrors(TLearnContext* ctx);
+void CalcErrorsDistributed(
+    const NCB::TTrainingDataProviders& trainData,
+    const TVector<THolder<IMetric>>& metrics,
+    bool calcAllMetrics,
+    bool calcErrorTrackerMetric,
+    TLearnContext* ctx);
 
 template <typename TMapper>
 TVector<typename TMapper::TOutput> ApplyMapper(
@@ -65,7 +77,6 @@ TVector<typename TMapper::TOutput> ApplyMapper(
 void MapSetApproxesSimple(
     const IDerCalcer& error,
     const TVariant<TSplitTree, TNonSymmetricTreeStructure>& splitTree,
-    const NCB::TTrainingDataProviders data, // only test part is used
     TVector<TVector<double>>* averageLeafValues,
     TVector<double>* sumLeafWeights,
     TLearnContext* ctx);
@@ -73,9 +84,16 @@ void MapSetApproxesSimple(
 void MapSetApproxesMulti(
     const IDerCalcer& error,
     const TVariant<TSplitTree, TNonSymmetricTreeStructure>& splitTree,
-    const NCB::TTrainingDataProviders data, // only test part is used
     TVector<TVector<double>>* averageLeafValues,
     TVector<double>* sumLeafWeights,
     TLearnContext* ctx);
 
 void MapSetDerivatives(TLearnContext* ctx);
+
+void MapSetBestTestApprox(TLearnContext* ctx);
+void MapGetApprox(
+    const NCB::TTrainingDataProviders& data,
+    const TLearnContext& ctx,
+    bool useBestModel,
+    TVector<TVector<double>>* learnApprox,  // [dim][docIdx], can be nullptr
+    TVector<TVector<TVector<double>>>* testApprox); // [test][dim][docIdx], can be nullptr

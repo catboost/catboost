@@ -2,6 +2,7 @@
 
 #include <util/generic/yexception.h>
 #include <util/system/fs.h>
+#include <util/system/tempfile.h>
 #include <util/random/random.h>
 
 #include "direct_io.h"
@@ -9,13 +10,13 @@
 static const char* FileName_("./test.file");
 
 Y_UNIT_TEST_SUITE(TDirectIoTestSuite) {
-
     Y_UNIT_TEST(TestDirectFile) {
         TDirectIOBufferedFile file(FileName_, RdWr | Direct | Seq | CreateAlways, 1 << 15);
         TVector<ui64> data((1 << 15) + 1);
         TVector<ui64> readed(data.size());
-        for (auto& i : data)
+        for (auto& i : data) {
             i = RandomNumber<ui64>();
+        }
         for (size_t writePos = 0; writePos < data.size();) {
             size_t writeCount = Min<size_t>(1 + RandomNumber<size_t>(1 << 10), data.ysize() - writePos);
             file.Write(&data[writePos], sizeof(ui64) * writeCount);
@@ -37,8 +38,9 @@ Y_UNIT_TEST_SUITE(TDirectIoTestSuite) {
             UNIT_ASSERT_VALUES_EQUAL(
                 fileNew.Pread(&readed[0], readCount * sizeof(ui64), readPos * sizeof(ui64)),
                 readCount * sizeof(ui64));
-            for (size_t j = 0; j < readCount; ++j)
+            for (size_t j = 0; j < readCount; ++j) {
                 UNIT_ASSERT_VALUES_EQUAL(readed[j], data[j + readPos]);
+            }
         }
         size_t readCount = data.size();
         UNIT_ASSERT_VALUES_EQUAL(
@@ -50,12 +52,46 @@ Y_UNIT_TEST_SUITE(TDirectIoTestSuite) {
         NFs::Remove(FileName_);
     }
 
+    void TestHugeFile(size_t size) {
+        TTempFile tmpFile("test.file");
+
+        {
+            TDirectIOBufferedFile directIOFile(tmpFile.Name(), WrOnly | CreateAlways | Direct);
+            TVector<ui8> data(size, 'x');
+            directIOFile.Write(&data[0], data.size());
+        }
+
+        {
+            TDirectIOBufferedFile directIOFile(tmpFile.Name(), RdOnly | Direct);
+            TVector<ui8> data(size + 1, 'y');
+
+            const size_t readResult = directIOFile.Read(&data[0], data.size());
+
+            UNIT_ASSERT_VALUES_EQUAL(readResult, size);
+
+            UNIT_ASSERT_VALUES_EQUAL(data[0], 'x');
+            UNIT_ASSERT_VALUES_EQUAL(data[size / 2], 'x');
+            UNIT_ASSERT_VALUES_EQUAL(data[size - 1], 'x');
+            UNIT_ASSERT_VALUES_EQUAL(data[size], 'y');
+        }
+    }
+
+    Y_UNIT_TEST(TestHugeFile1) {
+        if constexpr (sizeof(size_t) > 4) {
+            TestHugeFile(5 * 1024 * 1024 * 1024ULL);
+        }
+    }
+    Y_UNIT_TEST(TestHugeFile2) {
+        if constexpr (sizeof(size_t) > 4) {
+            TestHugeFile(5 * 1024 * 1024 * 1024ULL + 1111);
+        }
+    }
 }
 
 Y_UNIT_TEST_SUITE(TDirectIoErrorHandling) {
     Y_UNIT_TEST(Constructor) {
         // A non-existent file should not be opened for reading
-        UNIT_ASSERT_EXCEPTION(TDirectIOBufferedFile (FileName_, RdOnly, 1 << 15), TFileError);
+        UNIT_ASSERT_EXCEPTION(TDirectIOBufferedFile(FileName_, RdOnly, 1 << 15), TFileError);
     }
 
     Y_UNIT_TEST(WritingReadOnlyFileBufferFlushed) {
@@ -76,5 +112,4 @@ Y_UNIT_TEST_SUITE(TDirectIoErrorHandling) {
         UNIT_ASSERT_EXCEPTION(file.Finish(), TFileError);
         NFs::Remove(FileName_);
     }
-
 }

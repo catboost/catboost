@@ -10,15 +10,14 @@
     #include <windows.h>
 #endif
 
-
-Y_UNIT_TEST_SUITE(TTestInterruptSignals){
+Y_UNIT_TEST_SUITE(TTestInterruptSignals) {
     static TAtomic HandledSigNum = 0;
 
     static void Handler(int signum) {
         AtomicSet(HandledSigNum, signum);
     }
 
-    Y_UNIT_TEST(Test1){
+    Y_UNIT_TEST(Test1) {
         SetInterruptSignalsHandler(Handler);
 #ifdef _win_
         // TODO: unfortunately GenerateConsoleCtrlEvent fails under Wine

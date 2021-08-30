@@ -15,7 +15,7 @@ namespace {
     class TNaiveBayesEstimator final: public TTextBaseEstimator<TMultinomialNaiveBayes, TNaiveBayesVisitor> {
     public:
         TNaiveBayesEstimator(
-            TTextClassificationTargetPtr target,
+            TClassificationTargetPtr target,
             TTextDataSetPtr learnTexts,
             TArrayRef<TTextDataSetPtr> testText)
             : TTextBaseEstimator(std::move(target), std::move(learnTexts), testText)
@@ -41,7 +41,7 @@ namespace {
     class TBM25Estimator final: public TTextBaseEstimator<TBM25, TBM25Visitor> {
     public:
         TBM25Estimator(
-            TTextClassificationTargetPtr target,
+            TClassificationTargetPtr target,
             TTextDataSetPtr learnTexts,
             TArrayRef<TTextDataSetPtr> testText)
             : TTextBaseEstimator(std::move(target), std::move(learnTexts), testText)
@@ -108,7 +108,7 @@ namespace {
             Calc(*executor, MakeConstArrayRef(TestTexts), testVisitors);
         }
 
-        virtual EFeatureType GetSourceType() const override {
+        EFeatureType GetSourceType() const override {
             return EFeatureType::Text;
         }
 
@@ -208,7 +208,7 @@ namespace {
 
 TVector<TOnlineFeatureEstimatorPtr> NCB::CreateTextEstimators(
     TConstArrayRef<NCatboostOptions::TFeatureCalcerDescription> featureCalcerDescription,
-    TTextClassificationTargetPtr target,
+    TClassificationTargetPtr target,
     TTextDataSetPtr learnTexts,
     TArrayRef<TTextDataSetPtr> testText) {
 

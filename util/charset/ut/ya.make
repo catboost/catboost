@@ -1,6 +1,7 @@
 UNITTEST_FOR(util/charset)
 
 
+SUBSCRIBER(g:util-subscribers)
 
 DATA(arcadia/util/charset/ut/utf8)
 

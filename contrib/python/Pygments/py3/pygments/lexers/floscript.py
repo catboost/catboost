@@ -59,7 +59,7 @@ class FloScriptLexer(RegexLexer):
 
             include('name'),
             include('numbers'),
-            (r'#.+$', Comment.Singleline),
+            (r'#.+$', Comment.Single),
         ],
         'string': [
             ('[^"]+', String),

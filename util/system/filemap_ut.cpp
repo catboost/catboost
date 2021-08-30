@@ -1,7 +1,7 @@
 #include <library/cpp/testing/unittest/registar.h>
 
 #ifdef _unix_
-#include <sys/resource.h>
+    #include <sys/resource.h>
 #endif
 
 #include "filemap.h"
@@ -134,7 +134,7 @@ Y_UNIT_TEST_SUITE(TFileMapTest) {
     Y_UNIT_TEST(TestNotGreedy) {
         unsigned page[4096 / sizeof(unsigned)];
 
-#if defined(_unix_)
+    #if defined(_unix_)
         // Temporary limit allowed virtual memory size to 1Gb
         struct rlimit rlim;
 
@@ -151,7 +151,7 @@ Y_UNIT_TEST_SUITE(TFileMapTest) {
                 throw TSystemError() << "Cannot set rlimit for virtual memory to 1Gb";
             }
         }
-#endif
+    #endif
         // Make a 128M test file
         try {
             TFile file(FileName_, CreateAlways | WrOnly);
@@ -185,25 +185,25 @@ Y_UNIT_TEST_SUITE(TFileMapTest) {
                 }
             }
 
-#if defined(_unix_)
+    #if defined(_unix_)
             // Restore limits and cleanup
             rlim.rlim_cur = rlim.rlim_max;
 
             if (setrlimit(RLIMIT_AS, &rlim)) {
                 throw TSystemError() << "Cannot restore rlimit for virtual memory";
             }
-#endif
+    #endif
             maps.clear();
             NFs::Remove(FileName_);
         } catch (...) {
-// TODO: RAII'ize all this stuff
-#if defined(_unix_)
+    // TODO: RAII'ize all this stuff
+    #if defined(_unix_)
             rlim.rlim_cur = rlim.rlim_max;
 
             if (setrlimit(RLIMIT_AS, &rlim)) {
                 throw TSystemError() << "Cannot restore rlimit for virtual memory";
             }
-#endif
+    #endif
             NFs::Remove(FileName_);
 
             throw;
@@ -224,8 +224,9 @@ Y_UNIT_TEST_SUITE(TFileMapTest) {
             mappedArray.Init(FileName_);
             // actual test begin
             UNIT_ASSERT(mappedArray.Size() == sz);
-            for (size_t i = 0; i < sz; ++i)
+            for (size_t i = 0; i < sz; ++i) {
                 UNIT_ASSERT(mappedArray[i] == data[i]);
+            }
 
             UNIT_ASSERT(mappedArray.GetAt(mappedArray.Size()) == 0);
             UNIT_ASSERT(*mappedArray.Begin() == data[0]);
@@ -241,8 +242,9 @@ Y_UNIT_TEST_SUITE(TFileMapTest) {
 
             // actual test begin
             UNIT_ASSERT(mappedArray.Size() == sz);
-            for (size_t i = 0; i < sz; ++i)
+            for (size_t i = 0; i < sz; ++i) {
                 UNIT_ASSERT(mappedArray[i] == data[i]);
+            }
 
             UNIT_ASSERT(mappedArray.GetAt(mappedArray.Size()) == 0);
             UNIT_ASSERT(*mappedArray.Begin() == data[0]);
@@ -300,7 +302,7 @@ Y_UNIT_TEST_SUITE(TFileMapTest) {
             UNIT_ASSERT(0);                                                  // should not go here
         } catch (yexception& exc) {
             TString text = exc.what(); // exception should contain failed file name
-            UNIT_ASSERT(text.find(TMemoryMapCommon::UnknownFileName) != TString::npos);
+            UNIT_ASSERT(text.find(TMemoryMapCommon::UnknownFileName()) != TString::npos);
             fclose(f);
         }
 

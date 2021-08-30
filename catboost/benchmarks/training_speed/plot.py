@@ -294,7 +294,7 @@ def main():
 
     tracks = read_results(args.results_file)
 
-    for experiment_name in tracks.iterkeys():
+    for experiment_name in tracks:
         plot_experiment(tracks[experiment_name], experiment_name, args)
 
 

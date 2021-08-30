@@ -2,7 +2,7 @@ PY3_LIBRARY()
 
 LICENSE(BSD-3-Clause)
 
-VERSION(7.22.0)
+VERSION(7.26.0)
 
 
 
@@ -12,9 +12,10 @@ PEERDIR(
     contrib/python/jedi
     contrib/python/pickleshare
     contrib/python/traitlets
-    contrib/python/prompt_toolkit
+    contrib/python/prompt-toolkit
     contrib/python/Pygments
     contrib/python/setuptools
+    contrib/python/matplotlib-inline
 )
 
 IF (OS_WINDOWS)

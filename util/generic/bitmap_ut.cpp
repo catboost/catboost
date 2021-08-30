@@ -53,8 +53,9 @@ Y_UNIT_TEST_SUITE(TBitMapTest) {
         size_t setBits[] = {0, 50, 100};
         CHECK_BITMAP(bitmap, setBits);
 
-        for (size_t i = 0; i < bitmap.Size(); ++i)
+        for (size_t i = 0; i < bitmap.Size(); ++i) {
             UNIT_ASSERT_EQUAL(bitmap.Get(i), bitmap.Test(i));
+        }
 
         UNIT_ASSERT_EQUAL(bitmap.Count(), 3);
 
@@ -85,8 +86,9 @@ Y_UNIT_TEST_SUITE(TBitMapTest) {
         size_t setBits[] = {0, 50, 100};
         CHECK_BITMAP(bitmap, setBits);
 
-        for (size_t i = 0; i < bitmap.Size(); ++i)
+        for (size_t i = 0; i < bitmap.Size(); ++i) {
             UNIT_ASSERT_EQUAL(bitmap.Get(i), bitmap.Test(i));
+        }
 
         UNIT_ASSERT_EQUAL(bitmap.Count(), 3);
 

@@ -3,7 +3,7 @@
 #include <library/cpp/blockcodecs/core/register.h>
 
 #define ZSTD_STATIC_LINKING_ONLY
-#include <contrib/libs/zstd/zstd.h>
+#include <contrib/libs/zstd/include/zstd.h>
 
 using namespace NBlockCodecs;
 
@@ -55,5 +55,5 @@ namespace {
             }
         }
     };
-    static const TZStd08Registrar Registrar{};
+    const TZStd08Registrar Registrar{};
 }

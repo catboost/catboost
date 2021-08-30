@@ -3,7 +3,9 @@
 RECURSE(
     atomicwrites
     attrs
+    backcall
     backports-shutil_get_terminal_size
+    certifi
     colorama
     configparser
     contextlib2
@@ -17,29 +19,36 @@ RECURSE(
     ipdb
     ipython
     ipython_genutils
+    jedi
     Jinja2
+    joblib
     MarkupSafe
+    matplotlib-inline
     more-itertools
+    mypy-protobuf
     numpy
     pandas
+    parso
     path.py
     pathlib2
     pexpect
     pickleshare
     pluggy
-    prompt_toolkit
+    prompt-toolkit
     ptyprocess
     py
     Pygments
     pytest
     pytz
     scandir
+    scikit-learn
     scipy
     setuptools
     simplegeneric
     six
     subprocess32
     testpath
+    tornado
     traitlets
     wcwidth
 )

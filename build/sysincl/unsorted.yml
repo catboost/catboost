@@ -1,4 +1,4 @@
-- source_filter: "^contrib"
+- source_filter: "^contrib(?!/restricted/gstreamer/gst/parse)"
   includes:
     - port.h
     - types.h
@@ -248,6 +248,10 @@
   - BaseTsd.h
   - iphlpapi.h
 
+- source_filter: "^(?!contrib/python/line_profiler/)"
+  includes:
+  - timers.h
+
 - includes:
   - cpu-features.h
   - cuda/include/cuComplex.h
@@ -322,6 +326,7 @@
   - sys/mpctl.h
   - sys/mutex.h
   - sys/rwlock.h
+  - sys/semaphore.h
   - sys/smp.h
   - sys/stdint.h
   - sys/systm.h
@@ -329,7 +334,6 @@
   - sys/timespec.h
   - sys/umtx.h
   - sys/uuid.h
-  - timers.h
   - ucred.h
   - varargs.h
   - vm/vm_param.h
@@ -786,7 +790,6 @@
   - tr1/functional
   - time64.h
   - extern.h
-  - reentrant.h
   #if defined(__FreeBSD__)
   - _ctype.h
   - alias.h

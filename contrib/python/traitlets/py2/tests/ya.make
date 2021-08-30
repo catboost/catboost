@@ -1,4 +1,4 @@
-PYTEST()
+PY2TEST()
 
 
 
@@ -6,11 +6,11 @@ PEERDIR(
     contrib/python/traitlets
 )
 
-SRCDIR(contrib/python/traitlets/py2)
+SRCDIR(contrib/python/traitlets/py2/traitlets/tests)
 
 TEST_SRCS(
-    traitlets/tests/test_traitlets.py
-    traitlets/tests/test_traitlets_enum.py
+    test_traitlets.py
+    test_traitlets_enum.py
 )
 
 NO_LINT()

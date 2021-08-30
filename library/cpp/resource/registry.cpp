@@ -12,7 +12,7 @@ using namespace NResource;
 using namespace NBlockCodecs;
 
 namespace {
-    static inline const ICodec* GetCodec() noexcept {
+    inline const ICodec* GetCodec() noexcept {
         static const ICodec* ret = Codec("zstd08_5");
 
         return ret;

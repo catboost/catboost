@@ -13,7 +13,6 @@ RECURSE(
     blockcodecs/ut
     build_info
     cache
-    cache/ut
     cgiparam
     cgiparam/fuzz
     cgiparam/ut
@@ -98,8 +97,6 @@ RECURSE(
     on_disk
     online_hnsw
     openssl
-    overloaded
-    overloaded/ut
     packers
     packers/ut
     par
@@ -120,12 +117,12 @@ RECURSE(
     text_processing
     threading
     token
-    tokenizer
-    tokenizer/ut
     token/lite
     token/serialization
     token/serialization/ut
     token/ut
+    tokenizer
+    tokenizer/ut
     yson
     yson/node
     yson/node/pybind

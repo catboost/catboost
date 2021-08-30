@@ -18,6 +18,7 @@ SRCS(
     kernel/pairwise_hist_half_byte.cu
 
     kernel/exact_estimation.cu
+    kernel/langevin_utils.cu
 
     kernel/pairwise_hist_one_byte_5bit.cu
     kernel/pairwise_hist_one_byte_6bit.cu
@@ -54,6 +55,7 @@ SRCS(
     GLOBAL pointwise_kernels.cpp
     GLOBAL pairwise_kernels.cpp
     GLOBAL exact_estimation.cpp
+    langevin_utils.cpp
     feature_parallel_pointwise_oblivious_tree.cpp
     oblivious_tree_structure_searcher.cpp
     oblivious_tree_doc_parallel_structure_searcher.cpp
@@ -101,6 +103,14 @@ PEERDIR(
     catboost/libs/overfitting_detector
     library/cpp/threading/local_executor
 )
+
+IF (NOT CATBOOST_OPENSOURCE)
+    CFLAGS(GLOBAL -DUSE_CUSOLVER)
+    SRC(kernel/linear_cusolver.cu)
+    PEERDIR(contrib/libs/nvidia/cusolver)
+ELSE()
+    SRC(kernel/linear_cusolver_stub.cu)
+ENDIF()
 
 INCLUDE(${ARCADIA_ROOT}/catboost/cuda/cuda_lib/default_nvcc_flags.make.inc)
 

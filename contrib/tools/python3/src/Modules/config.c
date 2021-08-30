@@ -52,6 +52,7 @@ extern PyObject* PyInit__io(void); // _io
 extern PyObject* PyInit__json(void); // _json
 extern PyObject* PyInit__locale(void); // _locale
 extern PyObject* PyInit__lsprof(void); // _lsprof
+extern PyObject* PyInit__lzma(void); // _lzma
 extern PyObject* PyInit__md5(void); // _md5
 extern PyObject* PyInit__multibytecodec(void); // _multibytecodec
 extern PyObject* PyInit__multiprocessing(void); // _multiprocessing
@@ -185,6 +186,7 @@ struct _inittab _PyImport_Inittab[] = {
     {"_json", PyInit__json},
     {"_locale", PyInit__locale},
     {"_lsprof", PyInit__lsprof},
+    {"_lzma", PyInit__lzma},
     {"_md5", PyInit__md5},
     {"_multibytecodec", PyInit__multibytecodec},
     {"_multiprocessing", PyInit__multiprocessing},

@@ -15,22 +15,26 @@ namespace NCatboostCuda {
     class TTarget {
     public:
         explicit TTarget(NCudaLib::TCudaBuffer<const float, TSamplesMapping>&& targets,
-                         NCudaLib::TCudaBuffer<const float, TSamplesMapping>&& weights)
+                         NCudaLib::TCudaBuffer<const float, TSamplesMapping>&& weights,
+                         bool isPairWeights)
             : Targets(std::move(targets))
             , Weights(std::move(weights))
             , HasIndicesFlag(false)
             , IndicesOffsets(CreateDistributedObject<ui32>(0))
+            , StorePairWeights(isPairWeights)
         {
         }
 
         explicit TTarget(NCudaLib::TCudaBuffer<const float, TSamplesMapping>&& targets,
                          NCudaLib::TCudaBuffer<const float, TSamplesMapping>&& weights,
-                         NCudaLib::TCudaBuffer<const ui32, TSamplesMapping>&& indices)
+                         NCudaLib::TCudaBuffer<const ui32, TSamplesMapping>&& indices,
+                         bool isPairWeights)
             : Targets(std::move(targets))
             , Weights(std::move(weights))
             , Indices(std::move(indices))
             , HasIndicesFlag(true)
             , IndicesOffsets(CreateDistributedObject<ui32>(0))
+            , StorePairWeights(isPairWeights)
         {
         }
 
@@ -38,6 +42,7 @@ namespace NCatboostCuda {
             : Targets(other.Targets.ConstCopyView())
             , Weights(other.Weights.ConstCopyView())
             , IndicesOffsets(CreateDistributedObject<ui32>(0))
+            , StorePairWeights(other.StorePairWeights)
         {
             if (other.HasIndicesFlag) {
                 HasIndicesFlag = true;
@@ -75,6 +80,10 @@ namespace NCatboostCuda {
             return Weights;
         };
 
+        bool HasPairWeights() const {
+            return StorePairWeights;
+        }
+
         const TCudaBuffer<const ui32, TSamplesMapping>& GetIndices() const {
             CB_ENSURE(HasIndicesFlag);
             return Indices;
@@ -98,6 +107,7 @@ namespace NCatboostCuda {
 
         bool HasIndicesFlag = false;
         NCudaLib::TDistributedObject<ui32> IndicesOffsets;
+        bool StorePairWeights;
     };
 
     template <class TMapping>
@@ -122,10 +132,12 @@ namespace NCatboostCuda {
             if (target.HasIndicesFlag) {
                 return TTarget<NCudaLib::TMirrorMapping>(target.Targets.SliceView(slice),
                                                          target.Weights.SliceView(slice),
-                                                         target.Indices.SliceView(slice));
+                                                         target.Indices.SliceView(slice),
+                                                         target.StorePairWeights);
             } else {
                 auto result = TTarget<NCudaLib::TMirrorMapping>(target.Targets.SliceView(slice),
-                                                                target.Weights.SliceView(slice));
+                                                                target.Weights.SliceView(slice),
+                                                                target.StorePairWeights);
 
                 auto offsets = CreateDistributedObject<ui32>(0u);
                 for (ui32 dev = 0; dev < target.IndicesOffsets.DeviceCount(); ++dev) {
@@ -142,10 +154,12 @@ namespace NCatboostCuda {
             if (target.HasIndicesFlag) {
                 return TTarget<NCudaLib::TStripeMapping>(NCudaLib::StripeView(target.Targets, stripeMapping),
                                                          NCudaLib::StripeView(target.Weights, stripeMapping),
-                                                         NCudaLib::StripeView(target.Indices, stripeMapping));
+                                                         NCudaLib::StripeView(target.Indices, stripeMapping),
+                                                         target.StorePairWeights);
             } else {
                 auto result = TTarget<NCudaLib::TStripeMapping>(NCudaLib::StripeView(target.Targets, stripeMapping),
-                                                                NCudaLib::StripeView(target.Weights, stripeMapping));
+                                                                NCudaLib::StripeView(target.Weights, stripeMapping),
+                                                                target.StorePairWeights);
 
                 auto offsets = CreateDistributedObject<ui32>(0u);
                 for (ui32 dev = 0; dev < target.IndicesOffsets.DeviceCount(); ++dev) {

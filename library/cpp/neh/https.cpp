@@ -93,7 +93,7 @@ namespace NNeh {
     namespace NHttps {
         namespace {
             // force ssl_write/ssl_read functions to return this value via BIO_method_read/write that means request is canceled
-            static constexpr int SSL_RVAL_TIMEOUT = -42;
+            constexpr int SSL_RVAL_TIMEOUT = -42;
 
             struct TInputConnections {
                 TInputConnections()
@@ -272,10 +272,10 @@ namespace NNeh {
                 NO_EXTENSION,
                 ERROR
             };
-            static bool EqualNoCase(TStringBuf a, TStringBuf b) {
+            bool EqualNoCase(TStringBuf a, TStringBuf b) {
                 return (a.size() == b.size()) && ToString(a).to_lower() == ToString(b).to_lower();
             }
-            static bool MatchDomainName(TStringBuf tmpl, TStringBuf name) {
+            bool MatchDomainName(TStringBuf tmpl, TStringBuf name) {
                 // match wildcards only in the left-most part
                 // do not support (optional according to RFC) partial wildcards (ww*.yandex.ru)
                 // see RFC-6125
@@ -288,7 +288,7 @@ namespace NNeh {
                 return EqualNoCase(tmpl, name);
             }
 
-            static EMatchResult MatchCertAltNames(X509* cert, TStringBuf hostname) {
+            EMatchResult MatchCertAltNames(X509* cert, TStringBuf hostname) {
                 EMatchResult result = NO_MATCH;
                 STACK_OF(GENERAL_NAME)* names = (STACK_OF(GENERAL_NAME)*)X509_get_ext_d2i(cert, NID_subject_alt_name, nullptr, NULL);
                 if (!names) {
@@ -311,7 +311,7 @@ namespace NNeh {
                 return result;
             }
 
-            static EMatchResult MatchCertCommonName(X509* cert, TStringBuf hostname) {
+            EMatchResult MatchCertCommonName(X509* cert, TStringBuf hostname) {
                 int commonNameLoc = X509_NAME_get_index_by_NID(X509_get_subject_name(cert), NID_commonName, -1);
                 if (commonNameLoc < 0) {
                     return ERROR;
@@ -334,7 +334,7 @@ namespace NNeh {
                            : NO_MATCH;
             }
 
-            static bool CheckCertHostname(X509* cert, TStringBuf hostname) {
+            bool CheckCertHostname(X509* cert, TStringBuf hostname) {
                 switch (MatchCertAltNames(cert, hostname)) {
                     case MATCH_FOUND:
                         return true;
@@ -347,7 +347,7 @@ namespace NNeh {
                 }
             }
 
-            static void ParseUserInfo(const TParsedLocation& loc, TString& cert, TString& pvtKey) {
+            void ParseUserInfo(const TParsedLocation& loc, TString& cert, TString& pvtKey) {
                 if (!loc.UserInfo) {
                     return;
                 }
@@ -730,7 +730,7 @@ namespace NNeh {
             }
 
         public:
-            virtual ~TSslCtx() {
+            ~TSslCtx() override {
                 SSL_CTX_free(SslCtx_);
             }
 
@@ -1183,7 +1183,7 @@ namespace NNeh {
             {
             }
 
-            void Handshake() {
+            void Handshake() override {
                 Ssl_.Reset(SSL_new(SslCtx_));
                 if (THttpsOptions::EnableSslClientDebug) {
                     SSL_set_info_callback(Ssl_.Get(), InfoCB);
@@ -1280,10 +1280,10 @@ namespace NNeh {
         template <class TRequestType>
         class THttpsRequest: public IJob {
         public:
-            inline THttpsRequest(TSimpleHandleRef hndl, const TMessage& msg)
+            inline THttpsRequest(TSimpleHandleRef hndl, TMessage msg)
                 : Hndl_(hndl)
-                , Msg_(msg)
-                , Loc_(msg.Addr)
+                , Msg_(std::move(msg))
+                , Loc_(Msg_.Addr)
                 , Addr_(CachedThrResolve(TResolveInfo(Loc_.Host, Loc_.GetPort())))
             {
             }
@@ -1603,9 +1603,9 @@ namespace NNeh {
                     Y_UNUSED(IO_.Release());
                 }
 
-                void SendError(TResponseError error, const TString&) override {
+                void SendError(TResponseError error, const THttpErrorDetails& details) override {
                     TData data;
-                    Server_->Enqueue(new TWrite(data, TString(), IO_, Server_, error, TString()));
+                    Server_->Enqueue(new TWrite(data, TString(), IO_, Server_, error, details.Headers));
                     Y_UNUSED(IO_.Release());
                 }
 

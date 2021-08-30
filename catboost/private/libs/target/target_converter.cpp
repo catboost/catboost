@@ -25,17 +25,16 @@
 
 namespace NCB {
     static float ConvertToFloatTarget(const TString& stringLabel) {
-        CB_ENSURE(
-            !IsMissingValue(stringLabel),
-            "Missing values like \"" << EscapeC(stringLabel)
-                << "\" are not supported for target"
-        );
-        float floatLabel;
-        CB_ENSURE(
-            TryFromString(stringLabel, floatLabel),
-            "Target value \"" << EscapeC(stringLabel) << "\" cannot be parsed as float"
-        );
-        return floatLabel;
+        if (IsMissingValue(stringLabel)) {
+            return std::nan(""); 
+        } else {
+            float floatLabel;
+            CB_ENSURE(
+                TryFromString(stringLabel, floatLabel),
+                "Target value \"" << EscapeC(stringLabel) << "\" cannot be parsed as float"
+            );
+            return floatLabel;
+        }
     }
 
     static TVector<float> ConvertRawToFloatTarget(
@@ -50,7 +49,6 @@ namespace NCB {
             size_t i = 0;
             (*floatSequence)->ForEach(
                 [resultRef, &i] (float value) {
-                    CB_ENSURE(!std::isnan(value), "NaN values are not supported for target");
                     resultRef[i++] = value;
                 }
             );

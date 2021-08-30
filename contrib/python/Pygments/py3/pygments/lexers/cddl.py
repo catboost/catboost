@@ -119,7 +119,7 @@ class CddlLexer(RegexLexer):
         "root": [
             include("commentsandwhitespace"),
             # tag types
-            (r"#(\d\.{uint})?".format(uint=_re_uint), Keyword.Type), # type or any
+            (r"#(\d\.{uint})?".format(uint=_re_uint), Keyword.Type),  # type or any
             # occurence
             (
                 r"({uint})?(\*)({uint})?".format(uint=_re_uint),
@@ -164,7 +164,7 @@ class CddlLexer(RegexLexer):
                 Number.Float,
             ),
             # Int
-            (_re_int, Number.Int),
+            (_re_int, Number.Integer),
             (r'"(\\\\|\\"|[^"])*"', String.Double),
         ],
         "bstrb64url": [

@@ -10,6 +10,7 @@
 
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/maybe_owning_array_holder.h>
+#include <catboost/libs/model/enums.h>
 
 #include <catboost/private/libs/options/enums.h>
 #include <catboost/private/libs/text_features/text_processing_collection.h>
@@ -69,6 +70,9 @@ struct TRepackedBin {
 };
 
 constexpr ui32 MAX_VALUES_PER_BIN = 254;
+
+constexpr double DEFAULT_BINCLASS_PROBABILITY_THRESHOLD = 0.5;
+constexpr double DEFAULT_BINCLASS_LOGIT_THRESHOLD = 0;
 
 // If selected diff is 0 we are in the last node in path
 struct TNonSymmetricTreeStepNode {
@@ -666,6 +670,19 @@ public:
         }
     }
 
+    void SetPredictionType(NCB::NModelEvaluation::EPredictionType predictionType) const {
+        with_lock(CurrentEvaluatorLock) {
+            if (!Evaluator) {
+                Evaluator = NCB::NModelEvaluation::CreateEvaluator(FormulaEvaluatorType, *this);
+            }
+            Evaluator->SetPredictionType(predictionType);
+        }
+    }
+
+    EFormulaEvaluatorType GetEvaluatorType() const {
+        return FormulaEvaluatorType;
+    }
+
     bool operator==(const TFullModel& other) const {
         return *ModelTrees == *other.ModelTrees;
     }
@@ -1200,6 +1217,18 @@ public:
      * @return the name, or empty string if the model does not have this information
      */
     TString GetLossFunctionName() const;
+
+    /**
+     * Get the probability threshold for binary classification to separate classes.
+     * @return the value is stored in `binclass_probability_threshold` metadata or 0.5 as default value.
+     */
+    double GetBinClassProbabilityThreshold() const;
+
+    /**
+     * Get the logit threshold for binary classification to separate classes.
+     * @return Logit(GetBinClassProbabilityThreshold())
+     */
+    double GetBinClassLogitThreshold() const;
 
     /**
      * Get typed class labels than can be predicted.
