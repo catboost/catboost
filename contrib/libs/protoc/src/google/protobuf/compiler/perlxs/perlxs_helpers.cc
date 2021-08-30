@@ -1,20 +1,20 @@
 #include <sstream>
 #include <vector>
-#include "compiler/perlxs/perlxs_helpers.h"
+#include <google/protobuf/compiler/perlxs/perlxs_helpers.h>
 #include "google/protobuf/descriptor.pb.h"
-#include "io/printer.h"
+#include <google/protobuf/io/printer.h>
 
 namespace google {
 namespace protobuf {
 
-extern string StringReplace(const string& s, const string& oldsub,
-			    const string& newsub, bool replace_all);
+extern TProtoStringType StringReplace(const TProtoStringType& s, const TProtoStringType& oldsub,
+			    const TProtoStringType& newsub, bool replace_all);
 
 namespace compiler {
 namespace perlxs {
 
 void
-SetupDepthVars(std::map<string, string>& vars, int depth)
+SetupDepthVars(std::map<TProtoStringType, TProtoStringType>& vars, int depth)
 {
   std::ostringstream ost_pdepth;
   std::ostringstream ost_depth;

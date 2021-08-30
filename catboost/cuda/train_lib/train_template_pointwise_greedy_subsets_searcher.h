@@ -25,7 +25,7 @@ namespace NCatboostCuda {
                                                                             TGpuAwareRandom& random,
                                                                             ui32 approxDimension,
                                                                             ITrainingCallbacks* trainingCallbacks,
-                                                                            NPar::TLocalExecutor* localExecutor,
+                                                                            NPar::ILocalExecutor* localExecutor,
                                                                             TVector<TVector<double>>* testMultiApprox, // [dim][objectIdx]
                                                                             TMetricsAndTimeLeftHistory* metricsAndTimeHistory) const {
                 CB_ENSURE(catBoostOptions.BoostingOptions->BoostingType == EBoostingType::Plain, "Only plain boosting is supported in current mode");
@@ -58,7 +58,7 @@ namespace NCatboostCuda {
                                         const NCB::TTrainingDataProvider& test,
                                         TGpuAwareRandom& random,
                                         ui32 approxDimension,
-                                        NPar::TLocalExecutor* localExecutor) const {
+                                        NPar::ILocalExecutor* localExecutor) const {
                 CB_ENSURE(catBoostOptions.BoostingOptions->BoostingType == EBoostingType::Plain, "Only plain boosting is supported in current mode");
                 using TWeakLearner = TGreedySubsetsSearcher<TModel>;
                 using TBoostingImpl = TBoosting<TTargetTemplate, TWeakLearner>;

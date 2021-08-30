@@ -53,7 +53,7 @@ def is_coroutine(val):
         return False
     else:
         import asyncio
-        return asyncio.iscoroutinefunction(val)
+        return asyncio.iscoroutinefunction(val) or asyncio.iscoroutine(val)
 
 
 def serialize(value):
@@ -76,7 +76,7 @@ def serialize(value):
         if isinstance(val, (date, datetime)):
             return repr(val)
         if is_coroutine(val):
-            return repr(val)
+            return None
         raise ValueError("Cannot serialize value '{}' of type {}".format(val, type(val)))
     return apply(_serialize, value, apply_to_keys=True)
 

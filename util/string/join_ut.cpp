@@ -19,7 +19,7 @@ Y_UNIT_TEST_SUITE(JoinStringTest) {
         UNIT_ASSERT_EQUAL(Join(", ", 10, 11.1, "foobar"), "10, 11.1, foobar");
         UNIT_ASSERT_EQUAL(Join(", ", 10, 11.1, TString("foobar")), "10, 11.1, foobar");
 
-        UNIT_ASSERT_EQUAL(Join('#', 0, "a", "foobar", -1.4, AsStringBuf("aaa")), "0#a#foobar#-1.4#aaa");
+        UNIT_ASSERT_EQUAL(Join('#', 0, "a", "foobar", -1.4, TStringBuf("aaa")), "0#a#foobar#-1.4#aaa");
         UNIT_ASSERT_EQUAL(Join("", "", ""), "");
         UNIT_ASSERT_EQUAL(Join("", "a", "b", "c"), "abc");
         UNIT_ASSERT_EQUAL(Join("", "a", "b", "", "c"), "abc");

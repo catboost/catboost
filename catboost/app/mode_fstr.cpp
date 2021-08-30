@@ -20,4 +20,4 @@ namespace {
     };
 }
 
-NCB::TModeFstrImplementationFactory::TRegistrator<TOpenSourceModeFstrImplementation> YandexSpecificModeFstrImplementationRegistrator(NCB::EImplementationType::OpenSource);
+NCB::TModeFstrImplementationFactory::TRegistrator<TOpenSourceModeFstrImplementation> OpenSourceModeFstrImplementationRegistrator(NCB::EImplementationType::OpenSource);

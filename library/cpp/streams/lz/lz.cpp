@@ -179,7 +179,7 @@ class TDecompressorBaseImpl: public TDecompressor, public TCommonData {
 public:
     static inline ui32 CheckVer(ui32 v) {
         if (v != 1) {
-            ythrow yexception() << AsStringBuf("incorrect stream version: ") << v;
+            ythrow yexception() << TStringBuf("incorrect stream version: ") << v;
         }
 
         return v;

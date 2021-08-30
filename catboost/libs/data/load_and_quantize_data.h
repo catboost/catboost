@@ -16,7 +16,7 @@ namespace NCatboostOptions {
 }
 
 namespace NPar {
-    class TLocalExecutor;
+    class ILocalExecutor;
 }
 
 namespace NCB {
@@ -30,6 +30,7 @@ namespace NCB {
         const TPathWithScheme& timestampsFilePath, // can be uninited
         const TPathWithScheme& baselineFilePath, // can be uninited
         const TPathWithScheme& featureNamesPath, // can be uninited
+        const TPathWithScheme& poolMetaInfoPath, // can be uninited
         const TPathWithScheme& inputBordersPath, // can be uninited
         const NCatboostOptions::TColumnarPoolFormatParams& columnarPoolFormatParams,
         const TVector<ui32>& ignoredFeatures,
@@ -39,7 +40,7 @@ namespace NCB {
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
         TDatasetSubset loadSubset,
         TMaybe<TVector<NJson::TJsonValue>*> classLabels,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
     );
 
     // for use from context where there's no localExecutor and proper logging handling is unimplemented
@@ -50,6 +51,7 @@ namespace NCB {
         const TPathWithScheme& timestampsFilePath, // can be uninited
         const TPathWithScheme& baselineFilePath, // can be uninited
         const TPathWithScheme& featureNamesPath, // can be uninited
+        const TPathWithScheme& poolMetaInfoPath, // can be uninited
         const TPathWithScheme& inputBordersPath, // can be uninited
         const NCatboostOptions::TColumnarPoolFormatParams& columnarPoolFormatParams,
         const TVector<ui32>& ignoredFeatures,

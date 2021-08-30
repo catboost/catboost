@@ -2,8 +2,8 @@
 
 #ifdef _win_
 
-#include "winint.h"
-#include <errno.h>
+    #include "winint.h"
+    #include <errno.h>
 
 int Chmod(const char* fname, int mode) {
     if (!fname) {

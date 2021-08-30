@@ -164,7 +164,7 @@
 #include <util/system/datetime.h>
 #include <util/system/utime.h>
 #include <util/system/mlock.h>
-#include <util/system/demangle.h>
+#include <util/system/type_name.h>
 #include <util/system/file.h>
 #include <util/system/atexit.h>
 #include <util/system/context_x86.h>
@@ -191,7 +191,6 @@
 #include <util/generic/object_counter.h>
 #include <util/draft/datetime.h>
 #include <library/cpp/deprecated/estimators/estimators.h>
-#include <util/network/netloss.h>
 #include <library/cpp/deprecated/enum_codegen/enum_codegen.h>
 #include <util/generic/array_size.h>
 #include <util/generic/bitmap.h>
@@ -201,7 +200,6 @@
 #include <util/generic/yexception_ut.h>
 #include <util/generic/singleton.h>
 #include <util/generic/set.h>
-#include <util/generic/variant_impl.h>
 #include <util/generic/iterator.h>
 #include <util/generic/ptr.h>
 #include <util/generic/mapfindptr.h>
@@ -227,7 +225,6 @@
 #include <util/generic/bitops.h>
 #include <util/generic/typetraits.h>
 #include <util/generic/variant_traits.h>
-#include <util/generic/type_name.h>
 #include <util/generic/algorithm.h>
 #include <util/generic/hash_set.h>
 #include <util/generic/cast.h>
@@ -241,7 +238,6 @@
 #include <util/generic/function.h>
 #include <util/generic/flags.h>
 #include <util/generic/strfcpy.h>
-#include <util/generic/chartraits.h>
 #include <util/generic/string.h>
 #include <util/generic/fastqueue.h>
 #include <util/generic/explicit_type.h>

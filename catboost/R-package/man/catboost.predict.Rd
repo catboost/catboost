@@ -4,9 +4,15 @@
 \alias{catboost.predict}
 \title{Apply the model}
 \usage{
-catboost.predict(model, pool, verbose = FALSE,
-  prediction_type = "RawFormulaVal", ntree_start = 0, ntree_end = 0,
-  thread_count = -1)
+catboost.predict(
+  model,
+  pool,
+  verbose = FALSE,
+  prediction_type = "RawFormulaVal",
+  ntree_start = 0,
+  ntree_end = 0,
+  thread_count = -1
+)
 }
 \arguments{
 \item{model}{The model obtained as the result of training.
@@ -27,8 +33,11 @@ Default value: FALSE (not used)}
 Possible values:
 \itemize{
   \item 'Probability'
+  \item 'LogProbability'
   \item 'Class'
   \item 'RawFormulaVal'
+  \item 'Exponent'
+  \item 'RMSEWithUncertainty'
 }
 
 Default value: 'RawFormulaVal'}
@@ -47,12 +56,14 @@ Allows you to optimize the speed of execution. This parameter doesn't affect res
 
 Default value: 1}
 }
+\value{
+Vector of predictions (matrix for multi-class classification).
+}
 \description{
 Apply the model to the given dataset.
-}
-\details{
-Peculiarities: In case of multiclassification the prediction is returned in the form of a matrix.
-Each line of this matrix contains the predictions for one object of the input dataset.
+
+             Peculiarities: In case of multiclassification the prediction is returned in the form of a matrix.
+             Each line of this matrix contains the predictions for one object of the input dataset.
 }
 \seealso{
 \url{https://catboost.ai/docs/concepts/r-reference_catboost-predict.html}

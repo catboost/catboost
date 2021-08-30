@@ -34,7 +34,7 @@ namespace NCB {
             , Frequencies(numClasses)
         {}
 
-        virtual bool IsSerializable() const {
+        bool IsSerializable() const override {
             return true;
         }
 

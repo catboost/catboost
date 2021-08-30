@@ -7,18 +7,18 @@ PY_SRCS(
     main.py
     rewrite.py
     yatest_tools.py
+    context.py
 )
 
 PEERDIR(
+    contrib/python/dateutil
+    contrib/python/ipdb
+    contrib/python/py
+    contrib/python/pytest
     library/python/pytest/plugins
     library/python/testing/yatest_common
     library/python/testing/yatest_lib
-    contrib/python/py
-    contrib/python/pytest
-    contrib/python/dateutil
 )
-
-NO_LINT()
 
 RESOURCE_FILES(
     PREFIX library/python/pytest/

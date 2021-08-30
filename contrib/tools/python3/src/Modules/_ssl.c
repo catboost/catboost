@@ -14,11 +14,16 @@
        http://bugs.python.org/issue8108#msg102867 ?
 */
 
+/* Don't warn about deprecated functions, */
+#ifndef OPENSSL_API_COMPAT
+  // 0x10101000L == 1.1.1, 30000 == 3.0.0
+  #define OPENSSL_API_COMPAT 0x10101000L
+#endif
+#define OPENSSL_NO_DEPRECATED 1
+
 #define PY_SSIZE_T_CLEAN
 
 #include "Python.h"
-
-#include "pythread.h"
 
 /* Redefined below for Windows debug builds after important #includes */
 #define _PySSL_FIX_ERRNO
@@ -43,14 +48,6 @@ static PySocketModule_APIObject PySocketModule;
 #include <poll.h>
 #elif defined(HAVE_SYS_POLL_H)
 #include <sys/poll.h>
-#endif
-
-/* Don't warn about deprecated functions */
-#ifdef __GNUC__
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
-#ifdef __clang__
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
 #ifdef _MSC_VER
@@ -141,30 +138,32 @@ static void _PySSLFixErrno(void) {
 #endif
 
 /* Include generated data (error codes) */
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
+#include "_ssl_data_300.h"
+#elif (OPENSSL_VERSION_NUMBER >= 0x10101000L) && !defined(LIBRESSL_VERSION_NUMBER)
+#include "_ssl_data_111.h"
+#else
 #include "_ssl_data.h"
+#endif
 
 #if (OPENSSL_VERSION_NUMBER >= 0x10100000L) && !defined(LIBRESSL_VERSION_NUMBER)
 #  define OPENSSL_VERSION_1_1 1
 #  define PY_OPENSSL_1_1_API 1
 #endif
 
-/* OpenSSL API compat */
-#ifdef OPENSSL_API_COMPAT
-#if OPENSSL_API_COMPAT >= 0x10100000L
-
-/* OpenSSL API 1.1.0+ does not include version methods */
+/* OpenSSL API 1.1.0+ does not include version methods. Define the methods
+ * unless OpenSSL is compiled without the methods. It's the easiest way to
+ * make 1.0.2, 1.1.0, 1.1.1, and 3.0.0 happy without deprecation warnings.
+ */
 #ifndef OPENSSL_NO_TLS1_METHOD
-#define OPENSSL_NO_TLS1_METHOD 1
+extern const SSL_METHOD *TLSv1_method(void);
 #endif
 #ifndef OPENSSL_NO_TLS1_1_METHOD
-#define OPENSSL_NO_TLS1_1_METHOD 1
+extern const SSL_METHOD *TLSv1_1_method(void);
 #endif
 #ifndef OPENSSL_NO_TLS1_2_METHOD
-#define OPENSSL_NO_TLS1_2_METHOD 1
+extern const SSL_METHOD *TLSv1_2_method(void);
 #endif
-
-#endif /* >= 1.1.0 compcat */
-#endif /* OPENSSL_API_COMPAT */
 
 /* LibreSSL 2.7.0 provides necessary OpenSSL 1.1.0 APIs */
 #if defined(LIBRESSL_VERSION_NUMBER) && LIBRESSL_VERSION_NUMBER >= 0x2070000fL
@@ -527,9 +526,9 @@ static int PySSL_select(PySocketSockObject *s, int writing, _PyTime_t timeout);
 
 static int PySSL_set_owner(PySSLSocket *, PyObject *, void *);
 static int PySSL_set_session(PySSLSocket *, PyObject *, void *);
-#define PySSLSocket_Check(v)    (Py_TYPE(v) == &PySSLSocket_Type)
-#define PySSLMemoryBIO_Check(v)    (Py_TYPE(v) == &PySSLMemoryBIO_Type)
-#define PySSLSession_Check(v)   (Py_TYPE(v) == &PySSLSession_Type)
+#define PySSLSocket_Check(v)    Py_IS_TYPE(v, &PySSLSocket_Type)
+#define PySSLMemoryBIO_Check(v)    Py_IS_TYPE(v, &PySSLMemoryBIO_Type)
+#define PySSLSession_Check(v)   Py_IS_TYPE(v, &PySSLSession_Type)
 
 typedef enum {
     SOCKET_IS_NONBLOCKING,
@@ -811,10 +810,11 @@ PySSL_SetError(PySSLSocket *sslsock, int ret, const char *filename, int lineno)
                         errno = err.c;
                         return PyErr_SetFromErrno(PyExc_OSError);
                     }
-                    Py_INCREF(s);
-                    s->errorhandler();
-                    Py_DECREF(s);
-                    return NULL;
+                    else {
+                        p = PY_SSL_ERROR_EOF;
+                        type = PySSLEOFErrorObject;
+                        errstr = "EOF occurred in violation of protocol";
+                    }
                 } else { /* possible? */
                     p = PY_SSL_ERROR_SYSCALL;
                     type = PySSLSyscallErrorObject;
@@ -904,6 +904,7 @@ _ssl_configure_hostname(PySSLSocket *self, const char* server_hostname)
     if (ip == NULL) {
         if (!SSL_set_tlsext_host_name(self->ssl, server_hostname)) {
             _setSSLError(NULL, 0, __FILE__, __LINE__);
+            goto error;
         }
     }
     if (self->ctx->check_hostname) {
@@ -968,6 +969,11 @@ newPySSLSocket(PySSLContext *sslctx, PySocketSockObject *sock,
         _setSSLError(NULL, 0, __FILE__, __LINE__);
         return NULL;
     }
+    /* bpo43522 and OpenSSL < 1.1.1l: copy hostflags manually */
+#if !defined(LIBRESSL_VERSION_NUMBER) && OPENSSL_VERSION < 0x101010cf
+    X509_VERIFY_PARAM *ssl_params = SSL_get0_param(self->ssl);
+    X509_VERIFY_PARAM_set_hostflags(ssl_params, sslctx->hostflags);
+#endif
     SSL_set_app_data(self->ssl, self);
     if (sock) {
         SSL_set_fd(self->ssl, Py_SAFE_DOWNCAST(sock->sock_fd, SOCKET_T, int));
@@ -2207,6 +2213,11 @@ static int PySSL_set_context(PySSLSocket *self, PyObject *value,
         Py_INCREF(value);
         Py_SETREF(self->ctx, (PySSLContext *)value);
         SSL_set_SSL_CTX(self->ssl, self->ctx->ctx);
+        /* Set SSL* internal msg_callback to state of new context's state */
+        SSL_set_msg_callback(
+            self->ssl,
+            self->ctx->msg_cb ? _PySSL_msg_callback : NULL
+        );
 #endif
     } else {
         PyErr_SetString(PyExc_TypeError, "The value must be a SSLContext");
@@ -3212,6 +3223,10 @@ _ssl__SSLContext_impl(PyTypeObject *type, int proto_version)
 #ifdef SSL_OP_SINGLE_ECDH_USE
     options |= SSL_OP_SINGLE_ECDH_USE;
 #endif
+#ifdef SSL_OP_IGNORE_UNEXPECTED_EOF
+    /* Make OpenSSL 3.0.0 behave like 1.1.1 */
+    options |= SSL_OP_IGNORE_UNEXPECTED_EOF;
+#endif
     SSL_CTX_set_options(self->ctx, options);
 
     /* A bare minimum cipher list without completely broken cipher suites.
@@ -3930,6 +3945,13 @@ _password_callback(char *buf, int size, int rwflag, void *userdata)
 
     PySSL_END_ALLOW_THREADS_S(pw_info->thread_state);
 
+    if (pw_info->error) {
+        /* already failed previously. OpenSSL 3.0.0-alpha14 invokes the
+         * callback multiple times which can lead to fatal Python error in
+         * exception check. */
+        goto error;
+    }
+
     if (pw_info->callable) {
         fn_ret = _PyObject_CallNoArg(pw_info->callable);
         if (!fn_ret) {
@@ -4072,12 +4094,12 @@ error:
 /* internal helper function, returns -1 on error
  */
 static int
-_add_ca_certs(PySSLContext *self, void *data, Py_ssize_t len,
+_add_ca_certs(PySSLContext *self, const void *data, Py_ssize_t len,
               int filetype)
 {
     BIO *biobuf = NULL;
     X509_STORE *store;
-    int retval = 0, err, loaded = 0;
+    int retval = -1, err, loaded = 0;
 
     assert(filetype == SSL_FILETYPE_ASN1 || filetype == SSL_FILETYPE_PEM);
 
@@ -4131,23 +4153,32 @@ _add_ca_certs(PySSLContext *self, void *data, Py_ssize_t len,
     }
 
     err = ERR_peek_last_error();
-    if ((filetype == SSL_FILETYPE_ASN1) &&
-            (loaded > 0) &&
-            (ERR_GET_LIB(err) == ERR_LIB_ASN1) &&
-            (ERR_GET_REASON(err) == ASN1_R_HEADER_TOO_LONG)) {
+    if (loaded == 0) {
+        const char *msg = NULL;
+        if (filetype == SSL_FILETYPE_PEM) {
+            msg = "no start line: cadata does not contain a certificate";
+        } else {
+            msg = "not enough data: cadata does not contain a certificate";
+        }
+        _setSSLError(msg, 0, __FILE__, __LINE__);
+        retval = -1;
+    } else if ((filetype == SSL_FILETYPE_ASN1) &&
+                    (ERR_GET_LIB(err) == ERR_LIB_ASN1) &&
+                    (ERR_GET_REASON(err) == ASN1_R_HEADER_TOO_LONG)) {
         /* EOF ASN1 file, not an error */
         ERR_clear_error();
         retval = 0;
     } else if ((filetype == SSL_FILETYPE_PEM) &&
-                   (loaded > 0) &&
                    (ERR_GET_LIB(err) == ERR_LIB_PEM) &&
                    (ERR_GET_REASON(err) == PEM_R_NO_START_LINE)) {
         /* EOF PEM file, not an error */
         ERR_clear_error();
         retval = 0;
-    } else {
+    } else if (err != 0) {
         _setSSLError(NULL, 0, __FILE__, __LINE__);
         retval = -1;
+    } else {
+        retval = 0;
     }
 
     BIO_free(biobuf);
@@ -4258,7 +4289,6 @@ _ssl__SSLContext_load_verify_locations_impl(PySSLContext *self,
         r = SSL_CTX_load_verify_locations(self->ctx, cafile_buf, capath_buf);
         PySSL_END_ALLOW_THREADS
         if (r != 1) {
-            ok = 0;
             if (errno != 0) {
                 ERR_clear_error();
                 PyErr_SetFromErrno(PyExc_OSError);
@@ -6262,6 +6292,10 @@ PyInit__ssl(void)
 #ifdef SSL_OP_NO_RENEGOTIATION
     PyModule_AddIntConstant(m, "OP_NO_RENEGOTIATION",
                             SSL_OP_NO_RENEGOTIATION);
+#endif
+#ifdef SSL_OP_IGNORE_UNEXPECTED_EOF
+    PyModule_AddIntConstant(m, "OP_IGNORE_UNEXPECTED_EOF",
+                            SSL_OP_IGNORE_UNEXPECTED_EOF);
 #endif
 
 #ifdef X509_CHECK_FLAG_ALWAYS_CHECK_SUBJECT

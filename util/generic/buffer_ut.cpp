@@ -202,4 +202,4 @@ Y_UNIT_TEST(TestSpeed) {
         UNIT_ASSERT(buf2 == buf1);
     }
 
-} // TBufferTest
+}

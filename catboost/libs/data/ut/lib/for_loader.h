@@ -30,6 +30,7 @@ namespace NCB {
         TStringBuf CdFileData;
         TStringBuf DatasetFileData;
         bool DsvFileHasHeader = false;
+        TStringBuf PairsScheme = "dsv-flat";
         TStringBuf PairsFileData;
         TStringBuf GroupWeightsFileData;
         TStringBuf BaselineFileData;

@@ -30,11 +30,11 @@
 #define CHROMIUM_TRACE_SET_IN_FLOW(bind_id__) CHROMIUM_TRACE_GUARD_NAME.SetInFlow(bind_id__)
 #define CHROMIUM_TRACE_SET_OUT_FLOW(bind_id__) CHROMIUM_TRACE_GUARD_NAME.SetOutFlow(bind_id__)
 
-#define CHROMIUM_TRACE_FUNCTION_STR(name_str__) CHROMIUM_TRACE_COMPLETE_IMPL(name_str__, AsStringBuf("func"))
+#define CHROMIUM_TRACE_FUNCTION_STR(name_str__) CHROMIUM_TRACE_COMPLETE_IMPL(name_str__, TStringBuf("func"))
 #define CHROMIUM_TRACE_FUNCTION_NAME(name__) CHROMIUM_TRACE_FUNCTION_STR(AsStringBuf(name__))
 #define CHROMIUM_TRACE_FUNCTION() CHROMIUM_TRACE_FUNCTION_NAME(Y_FUNC_SIGNATURE)
 
-#define CHROMIUM_TRACE_SCOPE_STR(name_str__) CHROMIUM_TRACE_COMPLETE_IMPL(name_str__, AsStringBuf("scope"))
+#define CHROMIUM_TRACE_SCOPE_STR(name_str__) CHROMIUM_TRACE_COMPLETE_IMPL(name_str__, TStringBuf("scope"))
 #define CHROMIUM_TRACE_SCOPE(name__) CHROMIUM_TRACE_SCOPE_STR(AsStringBuf(name__))
 
 #define CHROMIUM_TRACE_THREAD_NAME_STR(name__) ::NChromiumTrace::GetGlobalTracer()->AddCurrentThreadName(name__)

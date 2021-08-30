@@ -12,7 +12,7 @@
 #include <library/cpp/svnversion/svnversion.h>
 
 #include <contrib/libs/onnx/onnx/common/constants.h>
-#include <contrib/libs/protobuf/repeated_field.h>
+#include <google/protobuf/repeated_field.h>
 
 #include <util/generic/array_ref.h>
 #include <util/generic/mapfindptr.h>
@@ -424,7 +424,8 @@ static void AddTree(
     }
 
     // Process leafs
-    const double* leafValue = trees.GetModelTreeData()->GetLeafValues().begin() + trees.GetFirstLeafOffsets()[treeIdx];
+    auto applyData = trees.GetApplyData();
+    const double* leafValue = trees.GetModelTreeData()->GetLeafValues().begin() + applyData->TreeFirstLeafOffsets[treeIdx];
 
     for (i64 endNodeIdx = 2*nodeIdx + 1; nodeIdx < endNodeIdx; ++nodeIdx) {
         treesAttributes->nodes_treeids->add_ints(treeIdx);
@@ -745,7 +746,7 @@ static void ConfigureSymmetricTrees(const onnx::GraphProto& onnxGraph, TFullMode
     int approxDimension = 1;
     PrepareTrees(treesAttributes, isClassifierModel, &trees, &approxDimension, &floatFeatures);
 
-    TNonSymmetricTreeModelBuilder treeBuilder(floatFeatures, TVector<TCatFeature>(0), {}, approxDimension);
+    TNonSymmetricTreeModelBuilder treeBuilder(floatFeatures, TVector<TCatFeature>(0), {}, {}, approxDimension);
 
     for (const auto& tree : trees) {
         treeBuilder.AddTree(BuildNonSymmetricTree(tree, 0));

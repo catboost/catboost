@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-#include "util/test.h"
+#include "library/cpp/testing/gtest/gtest.h"
 #include "re2/prog.h"
 #include "re2/regexp.h"
 #include "re2/testing/tester.h"
@@ -35,7 +35,6 @@ RegexpTest simple_tests[] = {
   { "a", "aaaaaaa" },
   { "a*", "aaaaaaa" },
   { "a*", "" },
-  { "a*", NULL },
   { "ab|cd", "xabcdx" },
   { "a", "cab" },
   { "a*b", "cab" },
@@ -308,11 +307,14 @@ RegexpTest simple_tests[] = {
 
   // Former bugs.
   { "a\\C*|ba\\C", "baba" },
+  { "\\w*I\\w*", "Inc." },
+  { "(?:|a)*", "aaa" },
+  { "(?:|a)+", "aaa" },
 };
 
 TEST(Regexp, SearchTests) {
   int failures = 0;
-  for (int i = 0; i < arraysize(simple_tests); i++) {
+  for (size_t i = 0; i < arraysize(simple_tests); i++) {
     const RegexpTest& t = simple_tests[i];
     if (!TestRegexpOnText(t.regexp, t.text))
       failures++;
@@ -320,9 +322,9 @@ TEST(Regexp, SearchTests) {
     if (LOGGING) {
       // Build a dummy ExhaustiveTest call that will trigger just
       // this one test, so that we log the test case.
-      std::vector<string> atom, alpha, ops;
-      atom.push_back(StringPiece(t.regexp).ToString());
-      alpha.push_back(StringPiece(t.text).ToString());
+      std::vector<std::string> atom, alpha, ops;
+      atom.push_back(t.regexp);
+      alpha.push_back(t.text);
       ExhaustiveTest(1, 0, atom, ops, 1, alpha, "", "");
     }
   }

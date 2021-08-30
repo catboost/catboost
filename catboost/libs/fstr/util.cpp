@@ -17,7 +17,7 @@ using namespace NCB;
 TVector<double> CollectLeavesStatistics(
     const TDataProvider& dataset,
     const TFullModel& model,
-    NPar::TLocalExecutor* localExecutor) {
+    NPar::ILocalExecutor* localExecutor) {
 
     TConstArrayRef<float> weights;
 
@@ -34,7 +34,9 @@ TVector<double> CollectLeavesStatistics(
                 model,
                 GetMonopolisticFreeCpuRam(),
                 &rand,
-                localExecutor).TargetData;
+                localExecutor,
+                /*metricsThatRequireTargetCanBeSkipped*/true
+            ).TargetData;
 
             weights = GetWeights(*targetData);
         }
@@ -57,9 +59,10 @@ TVector<double> CollectLeavesStatistics(
     auto binFeatures = MakeQuantizedFeaturesForEvaluator(model, *dataset.ObjectsData.Get());
 
     const auto documentsCount = dataset.GetObjectCount();
+    auto applyData = model.ModelTrees->GetApplyData();
     for (size_t treeIdx = 0; treeIdx < treeCount; ++treeIdx) {
         TVector<TIndexType> indices = BuildIndicesForBinTree(model, binFeatures.Get(), treeIdx);
-        const int offset = model.ModelTrees->GetFirstLeafOffsets()[treeIdx] / approxDimension;
+        const int offset = applyData->TreeFirstLeafOffsets[treeIdx] / approxDimension;
         if (indices.empty()) {
             continue;
         }
@@ -102,7 +105,7 @@ bool TryGetObjectiveMetric(const TFullModel& model, NCatboostOptions::TLossDescr
     return TryGetLossDescription(model, lossDescription);
 }
 
-void CheckNonZeroApproxForZeroWeightLeaf(const TFullModel& model) {
+bool HasNonZeroApproxForZeroWeightLeaf(const TFullModel& model) {
     for (size_t leafIdx = 0; leafIdx < model.ModelTrees->GetModelTreeData()->GetLeafWeights().size(); ++leafIdx) {
         size_t approxDimension = model.GetDimensionsCount();
         if (model.ModelTrees->GetModelTreeData()->GetLeafWeights()[leafIdx] == 0) {
@@ -110,9 +113,12 @@ void CheckNonZeroApproxForZeroWeightLeaf(const TFullModel& model) {
             for (size_t approxIdx = 0; approxIdx < approxDimension; ++approxIdx) {
                 leafSumApprox += abs(model.ModelTrees->GetModelTreeData()->GetLeafValues()[leafIdx * approxDimension + approxIdx]);
             }
-            CB_ENSURE(leafSumApprox < 1e-9, "Cannot calc shap values, model contains non zero approx for zero-weight leaf");
+            if (leafSumApprox >= 1e-9) {
+                return true;
+            }
         }
     }
+    return false;
 }
 
 TVector<int> GetBinFeatureCombinationClassByDepth(
@@ -123,7 +129,7 @@ TVector<int> GetBinFeatureCombinationClassByDepth(
     const size_t depthOfTree = forest.GetModelTreeData()->GetTreeSizes()[treeIdx];
     TVector<int> binFeatureCombinationClassByDepth(depthOfTree);
     for (size_t depth = 0; depth < depthOfTree; ++depth) {
-		const size_t remainingDepth = depthOfTree - depth - 1;
+        const size_t remainingDepth = depthOfTree - depth - 1;
         const int combinationClass = binFeatureCombinationClass[
             forest.GetModelTreeData()->GetTreeSplits()[forest.GetModelTreeData()->GetTreeStartOffsets()[treeIdx] + remainingDepth]
         ];

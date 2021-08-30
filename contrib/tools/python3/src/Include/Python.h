@@ -63,12 +63,21 @@
 #include "pyport.h"
 #include "pymacro.h"
 
-/* A convenient way for code to know if clang's memory sanitizer is enabled. */
+/* A convenient way for code to know if sanitizers are enabled. */
 #if defined(__has_feature)
 #  if __has_feature(memory_sanitizer)
 #    if !defined(_Py_MEMORY_SANITIZER)
 #      define _Py_MEMORY_SANITIZER
 #    endif
+#  endif
+#  if __has_feature(address_sanitizer)
+#    if !defined(_Py_ADDRESS_SANITIZER)
+#      define _Py_ADDRESS_SANITIZER
+#    endif
+#  endif
+#elif defined(__GNUC__)
+#  if defined(__SANITIZE_ADDRESS__)
+#    define _Py_ADDRESS_SANITIZER
 #  endif
 #endif
 
@@ -114,12 +123,15 @@
 #include "classobject.h"
 #include "fileobject.h"
 #include "pycapsule.h"
+#include "code.h"
+#include "pyframe.h"
 #include "traceback.h"
 #include "sliceobject.h"
 #include "cellobject.h"
 #include "iterobject.h"
 #include "genobject.h"
 #include "descrobject.h"
+#include "genericaliasobject.h"
 #include "warnings.h"
 #include "weakrefobject.h"
 #include "structseq.h"
@@ -130,6 +142,7 @@
 #include "pyerrors.h"
 
 #include <contrib/tools/python3/src/Include/cpython/initconfig.h>
+#include "pythread.h"
 #include "pystate.h"
 #include "context.h"
 
@@ -152,7 +165,6 @@
 #include "pyctype.h"
 #include "pystrtod.h"
 #include "pystrcmp.h"
-#include "dtoa.h"
 #include "fileutils.h"
 #include "pyfpe.h"
 #include "tracemalloc.h"

@@ -500,7 +500,6 @@ class TracebackException:
                 _seen=_seen)
         else:
             context = None
-        self.exc_traceback = exc_traceback
         self.__cause__ = cause
         self.__context__ = context
         self.__suppress_context__ = \
@@ -516,7 +515,8 @@ class TracebackException:
         if exc_type and issubclass(exc_type, SyntaxError):
             # Handle SyntaxError's specially
             self.filename = exc_value.filename
-            self.lineno = str(exc_value.lineno)
+            lno = exc_value.lineno
+            self.lineno = str(lno) if lno is not None else None
             self.text = exc_value.text
             self.offset = exc_value.offset
             self.msg = exc_value.msg
@@ -538,7 +538,9 @@ class TracebackException:
             self.__cause__._load_lines()
 
     def __eq__(self, other):
-        return self.__dict__ == other.__dict__
+        if isinstance(other, TracebackException):
+            return self.__dict__ == other.__dict__
+        return NotImplemented
 
     def __str__(self):
         return self._str
@@ -567,26 +569,36 @@ class TracebackException:
 
         if not issubclass(self.exc_type, SyntaxError):
             yield _format_final_exc_line(stype, self._str)
-            return
+        else:
+            yield from self._format_syntax_error(stype)
 
-        # It was a syntax error; show exactly where the problem was found.
-        filename = self.filename or "<string>"
-        lineno = str(self.lineno) or '?'
-        yield '  File "{}", line {}\n'.format(filename, lineno)
+    def _format_syntax_error(self, stype):
+        """Format SyntaxError exceptions (internal helper)."""
+        # Show exactly where the problem was found.
+        filename_suffix = ''
+        if self.lineno is not None:
+            yield '  File "{}", line {}\n'.format(
+                self.filename or "<string>", self.lineno)
+        elif self.filename is not None:
+            filename_suffix = ' ({})'.format(self.filename)
 
-        badline = self.text
-        offset = self.offset
-        if badline is not None:
-            yield '    {}\n'.format(badline.strip())
-            if offset is not None:
-                caretspace = badline.rstrip('\n')
-                offset = min(len(caretspace), offset) - 1
-                caretspace = caretspace[:offset].lstrip()
+        text = self.text
+        if text is not None:
+            # text  = "   foo\n"
+            # rtext = "   foo"
+            # ltext =    "foo"
+            rtext = text.rstrip('\n')
+            ltext = rtext.lstrip(' \n\f')
+            spaces = len(rtext) - len(ltext)
+            yield '    {}\n'.format(ltext)
+            # Convert 1-based column offset to 0-based index into stripped text
+            caret = (self.offset or 0) - 1 - spaces
+            if caret >= 0:
                 # non-space whitespace (likes tabs) must be kept for alignment
-                caretspace = ((c.isspace() and c or ' ') for c in caretspace)
+                caretspace = ((c if c.isspace() else ' ') for c in ltext[:caret])
                 yield '    {}^\n'.format(''.join(caretspace))
         msg = self.msg or "<no detail available>"
-        yield "{}: {}\n".format(stype, msg)
+        yield "{}: {}{}\n".format(stype, msg, filename_suffix)
 
     def format(self, *, chain=True):
         """Format the exception.
@@ -608,7 +620,7 @@ class TracebackException:
                 not self.__suppress_context__):
                 yield from self.__context__.format(chain=chain)
                 yield _context_message
-        if self.exc_traceback is not None:
+        if self.stack:
             yield 'Traceback (most recent call last):\n'
-        yield from self.stack.format()
+            yield from self.stack.format()
         yield from self.format_exception_only()

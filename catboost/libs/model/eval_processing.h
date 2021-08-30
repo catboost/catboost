@@ -32,6 +32,22 @@ inline TVector<double> CalcExponent(TVector<double> approx) {
     return approx;
 }
 
+inline void CalcSquaredExponentInplace(TArrayRef<double> approx) {
+    constexpr size_t blockSize = 4096;
+    for (size_t i = 0; i < approx.size(); i += blockSize) {
+        size_t currBlockSize = Min<size_t>(blockSize, approx.size() - i);
+        double* blockStartPtr = approx.data() + i;
+        for (size_t j = 0; j < currBlockSize; ++j) {
+            blockStartPtr[j] *= 2.0f;
+        }
+        FastExpInplace(blockStartPtr, currBlockSize);
+    }
+}
+
+inline TVector<double> CalcSquaredExponent(TVector<double> approx) {
+    CalcSquaredExponentInplace(approx);
+    return approx;
+}
 
 inline void CalcSoftmax(const TConstArrayRef<double> approx, TVector<double>* softmax) {
     CalcSoftmax(approx, *softmax);
@@ -92,6 +108,15 @@ inline TVector<double> CalcSigmoid(const TConstArrayRef<double> approx) {
         probabilities[i] = 1. / (1. + exp(-approx[i]));
     }
     return probabilities;
+}
+
+inline TVector<double> CalcEntropyFromProbabilities(const TConstArrayRef<double> probabilities) {
+    TVector<double> entropy;
+    entropy.yresize(probabilities.size());
+    for (size_t i = 0; i < probabilities.size(); ++i) {
+        entropy[i] = - probabilities[i] * std::log(probabilities[i]) - (1 - probabilities[i]) * std::log(1 - probabilities[i]);
+    }
+    return entropy;
 }
 
 //approx and target could overlap
@@ -161,31 +186,50 @@ namespace NCB::NModelEvaluation {
             }
             if (ApproxDimension == 1) {
                 auto blockView = GetResultBlockView(blockId, 1);
-                if (PredictionType == EPredictionType::Probability) {
-                    CalcSigmoid(blockView, blockView);
-                }
-                if (PredictionType == EPredictionType::Exponent) {
-                    FastExpInplace(blockView.data(), blockView.ysize());;
-                }
-                if (PredictionType == EPredictionType::Class) {
-                    for (auto &val : blockView) {
-                        val = val > BinclassRawValueBorder;
-                    }
+                switch (PredictionType) {
+                    case EPredictionType::Probability:
+                        CalcSigmoid(blockView, blockView);
+                        break;
+                    case EPredictionType::Exponent:
+                        FastExpInplace(blockView.data(), blockView.ysize());
+                        break;
+                    case EPredictionType::Class:
+                        for (auto &val : blockView) {
+                            val = val > BinclassRawValueBorder;
+                        }
+                        break;
+                    default:
+                        Y_ENSURE(false, "unsupported prediction type");
                 }
             } else {
-                if (PredictionType == EPredictionType::Probability) {
-                    auto blockView = GetResultBlockView(blockId, ApproxDimension);
-                    for (size_t i = 0; i < blockView.size(); i += ApproxDimension) {
-                        auto docView = blockView.Slice(i, ApproxDimension);
-                        CalcSoftmax(docView, docView);
+                switch (PredictionType) {
+                    case EPredictionType::RMSEWithUncertainty: {
+                        auto blockView = GetResultBlockView(blockId, ApproxDimension);
+                        for (size_t i = 1; i < blockView.size(); i += ApproxDimension) {
+                            auto docView = blockView.Slice(i, 1);
+                            CalcSquaredExponentInplace(MakeArrayRef<double>(docView.data(), 1));
+                        }
+                        break;
                     }
-                } else {
-                    Y_ASSERT(PredictionType == EPredictionType::Class);
-                    auto resultView = GetResultBlockView(blockId, 1);
-                    for (size_t objId = 0; objId < resultView.size(); ++objId) {
-                        auto objRawIterator = IntermediateBlockResults.begin() + objId * ApproxDimension;
-                        resultView[objId] = MaxElement(objRawIterator, objRawIterator + ApproxDimension) - objRawIterator;
+                    case EPredictionType::Probability: {
+                        auto blockView = GetResultBlockView(blockId, ApproxDimension);
+                        for (size_t i = 0; i < blockView.size(); i += ApproxDimension) {
+                            auto docView = blockView.Slice(i, ApproxDimension);
+                            CalcSoftmax(docView, docView);
+                        }
+                        break;
                     }
+                    case EPredictionType::Class: {
+                        auto resultView = GetResultBlockView(blockId, 1);
+                        for (size_t objId = 0; objId < resultView.size(); ++objId) {
+                            auto objRawIterator = IntermediateBlockResults.begin() + objId * ApproxDimension;
+                            resultView[objId] =
+                                MaxElement(objRawIterator, objRawIterator + ApproxDimension) - objRawIterator;
+                        }
+                        break;
+                    }
+                    default:
+                        Y_ASSERT(false);
                 }
             }
         }

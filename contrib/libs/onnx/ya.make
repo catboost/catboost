@@ -1,8 +1,8 @@
 LIBRARY()
 
-
-
 LICENSE(MIT)
+
+
 
 CFLAGS(-DONNX_ML=1 -DONNX_NAMESPACE=onnx)
 

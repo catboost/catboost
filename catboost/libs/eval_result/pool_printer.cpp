@@ -1,5 +1,7 @@
 #include "pool_printer.h"
 
+#include "eval_helpers.h"
+
 #include <catboost/idl/pool/flat/quantized_chunk_t.fbs.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/private/libs/data_util/exists_checker.h>
@@ -13,18 +15,28 @@
 
 
 namespace NCB {
+    TDSVPoolColumnsPrinter::TDSVPoolColumnsPrinter(
+        TPoolColumnsPrinterPushArgs&& args
+    )
+        : LineDataReader(std::move(args.Reader))
+        , Delimiter(args.Format.Delimiter)
+        , DocId(-1)
+        , ColumnsMetaInfo(args.ColumnsMetaInfo)
+    {
+        UpdateColumnTypeInfo(args.ColumnsMetaInfo);
+    }
 
     TDSVPoolColumnsPrinter::TDSVPoolColumnsPrinter(
         const TPathWithScheme& testSetPath,
         const TDsvFormatOptions& format,
         const TMaybe<TDataColumnsMetaInfo>& columnsMetaInfo
     )
-        : LineDataReader(GetLineDataReader(testSetPath, format))
-        , Delimiter(format.Delimiter)
-        , DocId(-1)
-    {
-        UpdateColumnTypeInfo(columnsMetaInfo);
-    }
+        : TDSVPoolColumnsPrinter(TPoolColumnsPrinterPushArgs{
+            GetLineDataReader(testSetPath, format),
+            format,
+            columnsMetaInfo})
+    {}
+
 
     void TDSVPoolColumnsPrinter::OutputColumnByType(IOutputStream* outStream, ui64 docId, EColumn columnType) {
         CB_ENSURE(FromColumnTypeToColumnId.contains(columnType),
@@ -32,8 +44,8 @@ namespace NCB {
         *outStream << GetCell(docId, FromColumnTypeToColumnId[columnType]);
     }
 
-    void TDSVPoolColumnsPrinter::OutputColumnByIndex(IOutputStream* outStream, ui64 docId, ui32 columnId) {
-        *outStream << GetCell(docId, columnId);
+    void TDSVPoolColumnsPrinter::OutputFeatureColumnByIndex(IOutputStream* outStream, ui64 docId, ui32 featureId) {
+        *outStream << GetCell(docId, FromExternalIdToColumnId[featureId]);
     }
 
     void TDSVPoolColumnsPrinter::UpdateColumnTypeInfo(const TMaybe<TDataColumnsMetaInfo>& columnsMetaInfo) {
@@ -44,8 +56,19 @@ namespace NCB {
                 if (columnType == EColumn::SampleId) {
                     HasDocIdColumn = true;
                 }
+                if (IsFactorColumn(columnType)) {
+                    FromExternalIdToColumnId.push_back(columnId);
+                }
             }
         }
+    }
+
+    size_t TDSVPoolColumnsPrinter::GetOutputFeatureType(ui32 featureId) {
+        const auto columnType = ColumnsMetaInfo->Columns[FromExternalIdToColumnId[featureId]].Type;
+        if (columnType == EColumn::Num) {
+            return GetOutputTypeIndex<double>();
+        }
+        return GetOutputTypeIndex<TString>();
     }
 
     const TString& TDSVPoolColumnsPrinter::GetCell(ui64 docId, ui32 colId) {
@@ -118,7 +141,11 @@ namespace NCB {
         *outStream << token;
     }
 
-    void TQuantizedPoolColumnsPrinter::OutputColumnByIndex(IOutputStream* /*outStream*/, ui64 /*docId*/, ui32 /*columnId*/) {
+    void TQuantizedPoolColumnsPrinter::OutputFeatureColumnByIndex(IOutputStream* /*outStream*/, ui64 /*docId*/, ui32 /*columnId*/) {
+        CB_ENSURE(false, "Not Implemented for Quantized Pools");
+    }
+
+    size_t TQuantizedPoolColumnsPrinter::GetOutputFeatureType(ui32 /*featureId*/) {
         CB_ENSURE(false, "Not Implemented for Quantized Pools");
     }
 
@@ -178,5 +205,8 @@ namespace NCB {
         }
         return columnInfo.CurrentToken;
     }
+
+    TPoolColumnsPrinterLoaderFactory::TRegistrator<TDSVPoolColumnsPrinter> DefPoolColumnsPrinter("");
+    TPoolColumnsPrinterLoaderFactory::TRegistrator<TDSVPoolColumnsPrinter> DsvPoolColumnsPrinter("dsv");
 
 } // namespace NCB

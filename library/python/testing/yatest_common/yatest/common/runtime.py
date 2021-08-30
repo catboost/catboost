@@ -79,7 +79,7 @@ def java_path():
     [DEPRECATED] Get path to java
     :return: absolute path to java
     """
-    import runtime_java
+    from . import runtime_java
     return runtime_java.get_java_path(binary_path(os.path.join('contrib', 'tools', 'jdk')))
 
 
@@ -87,7 +87,7 @@ def java_home():
     """
     Get jdk directory path
     """
-    import runtime_java
+    from . import runtime_java
     jdk_dir = runtime_java.get_build_java_dir(binary_path('jdk'))
     if not jdk_dir:
         raise Exception("Cannot find jdk - make sure 'jdk' is added to the DEPENDS section and exists for the current platform")
@@ -162,7 +162,12 @@ def work_path(path=None):
 
 def python_path():
     """
-    Get path to the arcadia python
+    Get path to the arcadia python.
+
+    Warn: if you are using build with system python (-DUSE_SYSTEM_PYTHON=X) beware that some python bundles
+    are built in a stripped-down form that is needed for building, not running tests.
+    See comments in the file below to find out which version of python is compatible with tests.
+    https://a.yandex-team.ru/arc/trunk/arcadia/build/platform/python/resources.inc
     :return: absolute path to python
     """
     return _get_ya_plugin_instance().python_path
@@ -229,6 +234,11 @@ def c_compiler_path():
     Get path to the gdb
     """
     return os.environ.get("YA_CC")
+
+
+def get_yt_hdd_path(path=None):
+    if 'HDD_PATH' in os.environ:
+        return _join_path(os.environ['HDD_PATH'], path)
 
 
 def cxx_compiler_path():

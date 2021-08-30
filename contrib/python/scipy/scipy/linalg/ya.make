@@ -1,5 +1,7 @@
 PY23_LIBRARY()
 
+LICENSE(BSD-3-Clause)
+
 
 
 NO_COMPILER_WARNINGS()
@@ -7,12 +9,11 @@ NO_COMPILER_WARNINGS()
 ADDINCLSELF()
 
 ADDINCL(
-    contrib/python/scipy
+    FOR cython contrib/python/scipy
 )
 
 PEERDIR(
     contrib/python/numpy
-    contrib/python/numpy/numpy/f2py/src
 
     contrib/python/scipy/scipy/_build_utils/src
     contrib/python/scipy/scipy/_lib

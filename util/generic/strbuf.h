@@ -7,11 +7,11 @@
 
 #include <string_view>
 
+using namespace std::string_view_literals;
+
 template <typename TCharType, typename TTraits>
-class TBasicStringBuf:
-    public std::basic_string_view<TCharType>,
-    public TStringBase<TBasicStringBuf<TCharType, TTraits>, TCharType, TTraits>
-{
+class TBasicStringBuf: public std::basic_string_view<TCharType>,
+                       public TStringBase<TBasicStringBuf<TCharType, TTraits>, TCharType, TTraits> {
 private:
     using TdSelf = TBasicStringBuf;
     using TBase = TStringBase<TdSelf, TCharType, TTraits>;
@@ -23,41 +23,42 @@ public:
 
     //Resolving some ambiguity between TStringBase and std::basic_string_view
     //for typenames
+    using typename TStringView::const_iterator;
+    using typename TStringView::const_reference;
+    using typename TStringView::const_reverse_iterator;
+    using typename TStringView::iterator;
+    using typename TStringView::reference;
+    using typename TStringView::reverse_iterator;
     using typename TStringView::size_type;
     using typename TStringView::value_type;
-    using typename TStringView::iterator;
-    using typename TStringView::const_iterator;
-    using typename TStringView::reverse_iterator;
-    using typename TStringView::const_reverse_iterator;
-    using typename TStringView::reference;
-    using typename TStringView::const_reference;
 
     //for constants
     using TStringView::npos;
 
     //for methods and operators
     using TStringView::begin;
-    using TStringView::end;
     using TStringView::cbegin;
     using TStringView::cend;
-    using TStringView::rbegin;
-    using TStringView::rend;
     using TStringView::crbegin;
     using TStringView::crend;
+    using TStringView::end;
+    using TStringView::rbegin;
+    using TStringView::rend;
 
-    using TStringView::size;
-    using TStringView::empty;
     using TStringView::data;
+    using TStringView::empty;
+    using TStringView::size;
 
     using TStringView::operator[];
+
     /*
      * WARN:
      * TBase::at silently return 0 in case of range error,
      * while std::string_view throws std::out_of_range.
      */
     using TBase::at;
-    using TStringView::front;
     using TStringView::back;
+    using TStringView::front;
 
     using TStringView::find;
     /*
@@ -65,11 +66,11 @@ public:
      *      TBase::*find* methods take into account TCharTraits,
      *      while TTStringView::*find* would use default std::char_traits.
      */
-    using TBase::rfind;
-    using TBase::find_first_of;
     using TBase::find_first_not_of;
-    using TBase::find_last_of;
+    using TBase::find_first_of;
     using TBase::find_last_not_of;
+    using TBase::find_last_of;
+    using TBase::rfind;
 
     using TStringView::copy;
     /*
@@ -101,6 +102,7 @@ public:
     {
     }
 
+    _LIBCPP_CONSTEXPR_AFTER_CXX14
     inline TBasicStringBuf(const TCharType* data) noexcept
         /*
          * WARN: TBase::StrLen properly handles nullptr,
@@ -133,8 +135,7 @@ public:
     {
     }
 
-    constexpr inline TBasicStringBuf() noexcept
-    {
+    constexpr inline TBasicStringBuf() noexcept {
         /*
          * WARN:
          *  This ctor can not be defaulted due to the following feature of default initialization:
@@ -156,8 +157,7 @@ public:
     {
     }
 
-    Y_PURE_FUNCTION
-    inline TBasicStringBuf SubString(size_t pos, size_t n) const noexcept {
+    Y_PURE_FUNCTION inline TBasicStringBuf SubString(size_t pos, size_t n) const noexcept {
         pos = Min(pos, size());
         n = Min(n, size() - pos);
         return TBasicStringBuf(data() + pos, n);
@@ -298,26 +298,22 @@ public:
 */
 
 public:
-    Y_PURE_FUNCTION
-    inline TdSelf After(TCharType c) const noexcept {
+    Y_PURE_FUNCTION inline TdSelf After(TCharType c) const noexcept {
         TdSelf l, r;
         return TrySplit(c, l, r) ? r : *this;
     }
 
-    Y_PURE_FUNCTION
-    inline TdSelf Before(TCharType c) const noexcept {
+    Y_PURE_FUNCTION inline TdSelf Before(TCharType c) const noexcept {
         TdSelf l, r;
         return TrySplit(c, l, r) ? l : *this;
     }
 
-    Y_PURE_FUNCTION
-    inline TdSelf RAfter(TCharType c) const noexcept {
+    Y_PURE_FUNCTION inline TdSelf RAfter(TCharType c) const noexcept {
         TdSelf l, r;
         return TryRSplit(c, l, r) ? r : *this;
     }
 
-    Y_PURE_FUNCTION
-    inline TdSelf RBefore(TCharType c) const noexcept {
+    Y_PURE_FUNCTION inline TdSelf RBefore(TCharType c) const noexcept {
         TdSelf l, r;
         return TryRSplit(c, l, r) ? l : *this;
     }
@@ -339,10 +335,12 @@ public:
         return false;
     }
 
+    // returns true if string started with `prefix`, false otherwise
     inline bool SkipPrefix(const TdSelf& prefix) noexcept {
         return AfterPrefix(prefix, *this);
     }
 
+    // returns true if string ended with `suffix`, false otherwise
     inline bool ChopSuffix(const TdSelf& suffix) noexcept {
         return BeforeSuffix(suffix, *this);
     }
@@ -465,28 +463,23 @@ public: // string subsequences
         return *this;
     }
 
-    Y_PURE_FUNCTION
-    inline TdSelf SubStr(size_t beg) const noexcept {
+    Y_PURE_FUNCTION inline TdSelf SubStr(size_t beg) const noexcept {
         return TdSelf(*this).Skip(beg);
     }
 
-    Y_PURE_FUNCTION
-    inline TdSelf SubStr(size_t beg, size_t len) const noexcept {
+    Y_PURE_FUNCTION inline TdSelf SubStr(size_t beg, size_t len) const noexcept {
         return SubStr(beg).Trunc(len);
     }
 
-    Y_PURE_FUNCTION
-    inline TdSelf Head(size_t pos) const noexcept {
+    Y_PURE_FUNCTION inline TdSelf Head(size_t pos) const noexcept {
         return TdSelf(*this).Trunc(pos);
     }
 
-    Y_PURE_FUNCTION
-    inline TdSelf Tail(size_t pos) const noexcept {
+    Y_PURE_FUNCTION inline TdSelf Tail(size_t pos) const noexcept {
         return SubStr(pos);
     }
 
-    Y_PURE_FUNCTION
-    inline TdSelf Last(size_t len) const noexcept {
+    Y_PURE_FUNCTION inline TdSelf Last(size_t len) const noexcept {
         return TdSelf(*this).RSeek(len);
     }
 
@@ -540,7 +533,7 @@ private:
     }
 };
 
-std::ostream& operator<< (std::ostream& os, TStringBuf buf);
+std::ostream& operator<<(std::ostream& os, TStringBuf buf);
 
 template <typename TCharType, size_t size>
 constexpr inline TBasicStringBuf<TCharType> AsStringBuf(const TCharType (&str)[size]) noexcept {

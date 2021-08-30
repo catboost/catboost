@@ -78,15 +78,17 @@ namespace NCB {
         //especially on GPU
         virtual void ComputeFeatures(TCalculatedFeatureVisitor learnVisitor,
                                      TConstArrayRef<TCalculatedFeatureVisitor> testVisitors,
-                                     NPar::TLocalExecutor* executor) const = 0;
+                                     NPar::ILocalExecutor* executor) const = 0;
 
 
         virtual THolder<IFeatureCalcer> MakeFinalFeatureCalcer(TConstArrayRef<ui32> featureIndices,
-                                                               NPar::TLocalExecutor* executor) const {
+                                                               NPar::ILocalExecutor* executor) const {
             Y_UNUSED(featureIndices);
             Y_UNUSED(executor);
             CB_ENSURE(false, "Final feature calcer is unimplemented yet");
         }
+
+        virtual EFeatureType GetSourceType() const = 0;
 
         virtual TGuid Id() const = 0;
     };
@@ -100,7 +102,7 @@ namespace NCB {
         virtual void ComputeOnlineFeatures(TConstArrayRef<ui32> learnPermutation,
                                            TCalculatedFeatureVisitor learnVisitor,
                                            TConstArrayRef<TCalculatedFeatureVisitor> testVisitors,
-                                           NPar::TLocalExecutor* executor) const = 0;
+                                           NPar::ILocalExecutor* executor) const = 0;
 
 
     };

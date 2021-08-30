@@ -5,6 +5,8 @@
 #include "tokenizer.h"
 #include "nlpparser.h"
 
+using namespace std::string_view_literals;
+
 static TString ReplaceControlCharacters(const char* p);
 
 class TTokenizerTest: public TTestBase {
@@ -53,7 +55,7 @@ public:
 
 private:
     void TestCase(const wchar16* s1, const char* s2, bool backwardCompatible = true, bool spacePreserve = false, bool urlDecode = true, const TString* origLensStr = nullptr) {
-        TestCase(s1, TCharTraits<wchar16>::GetLength(s1), s2, backwardCompatible, spacePreserve, urlDecode, origLensStr);
+        TestCase(s1, std::char_traits<wchar16>::length(s1), s2, backwardCompatible, spacePreserve, urlDecode, origLensStr);
     }
     void TestCase(const wchar16* s1, size_t n1, const char* s2, bool backwardCompatible = true, bool spacePreserve = false, bool urlDecode = true, const TString* origLensStr = nullptr);
 };
@@ -75,7 +77,7 @@ namespace {
             //            Cout << "TOK: '" << TUtf16String(token.Token, token.Leng) << "'" << Endl;
             OrigLensStr += ToString(origleng) + " ";
             if (type == NLP_WORD || type == NLP_INTEGER || type == NLP_MARK || type == NLP_FLOAT) {
-                UNIT_ASSERT(TCharTraits<wchar16>::Find(token.Token, 0, token.Leng) == nullptr);
+                UNIT_ASSERT(!TWtringBuf(token.Token, token.Leng).Contains(wchar16(0)));
                 const size_t n = token.SubTokens.size();
                 if (n > 1)
                     OutputStream << '[';
@@ -125,7 +127,7 @@ namespace {
                 if (type == NLP_SENTBREAK)
                     OutputStream << "<S>";
             } else if (type == NLP_PARABREAK) {
-                UNIT_ASSERT(TCharTraits<wchar16>::Find(token.Token, 0, token.Leng) == nullptr);
+                UNIT_ASSERT(!TWtringBuf(token.Token, token.Leng).Contains(wchar16(0)));
                 OutputStream << TUtf16String(token.Token, token.Leng) << "<P>";
             } else if (type == NLP_END) {
                 UNIT_ASSERT(token.Leng == 1 && *token.Token == 0);
@@ -630,7 +632,7 @@ void TTokenizerTest::TestEmptyString() {
 }
 
 void TTokenizerTest::TestWordBreaks() {
-    const TStringBuf text1 = AsStringBuf("These\0words\0are\0separated\0with\0zeros.\0 The next sentence.\0The last sentence.");
+    constexpr TStringBuf text1 = "These\0words\0are\0separated\0with\0zeros.\0 The next sentence.\0The last sentence."sv;
     const TUtf16String s1(UTF8ToWide(text1));
     TestCase(s1.c_str(), s1.size(), "[These]W [words]W [are]W [separated]W [with]W [zeros]W.  <S>[The]W [next]W [sentence]W. <S>[The]W [last]W [sentence]W.");
 }

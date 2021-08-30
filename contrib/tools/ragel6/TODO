@@ -1,0 +1,102 @@
+Guard against including a ragel file more than once (newsgroup).
+
+Line numbers in included files refer to the master file. This needs to be
+fixed -- from Manoj.
+
+Remove old action embedding and condition setting syntax.
+
+fbreak should advance the current char. Depreciate fbreak and add
+    fctl_break;
+    fctl_return <expr>;
+    fctl_goto <label>;
+This is needed for better support of pull scanners.
+
+Eliminate tokend, replace it with the marker variable and add ftokend/ftoklen.
+
+Add the accept action embedding operator: like eof but only for states that end
+up final. Add the combined pending/accept action. This becomes a good idea when
+eof action execution is moved into the main loop.
+
+Add a prefix operator which sets every state final.
+
+Minimization should remove a condition when the character allows both
+the positive and negative sense of the condition. This happens in:
+test_every_10_chars = ( ( c when test_len ) c{0,9} )**;
+In this example there is non-determinsm that is killed by the priorities, but
+since conditions are expanded before priorities are tested, many transitions
+end up with test_len || !test_len.
+
+Should be possible to include scanner definitions in another scanner.
+
+Need an "entry name;" feature, causing name to get written out with the other
+entry points in the data.
+
+Possibly bring back the old semantics of > in a new operator, or allow it to be
+defined somehow.
+
+When priorities are embedded without a name, the name of the current machine is
+used. Perhaps a unique name for each instance of the current machine should be
+used instead. This idea could work well if applied to user-defined embeddings. 
+
+User defined embeddings <-name(a1,a2,...).
+User defined operators expr1 <name> expr2.
+
+Doesn't make make sense for [] to be the lambda (zero-length) machine. This
+should be the empty set (the empty machine). But then would it be invalid in a
+regular expression?
+
+The |> guarded operator and the <| guarded operator need to be added.
+
+An option to turn off the removal of duplicate actions might be useful for
+analyzing unintentional nondeterminism.
+
+Might be a good idea to add in some protection against using up all of a
+system's memory. This protection could then be removed by people when someone
+is sure they want to use a lot of memory.
+
+
+If a scanner can be optimized into a pure state machine, maybe permit it to be
+referenced as a machine definition. Alternately: inline scanners with an
+explicit exit pattern.
+
+The split codegen needs a profiler connected to a graph partitioning algorithm.
+
+Die a graceful death when rlcodegen -F receives large alphabets.
+
+It's not currently possible to have more than one machine in a single function
+because of label conflicts. Labels should have a unique prefix.
+
+Emit a warning when a subtraction has no effect.
+
+Emit a warning when unnamed priorities are used in longest match machines.
+These priorities may unexpectedly interact across longest-match items. Changing
+the language such that unwated interaction cannot happen would require naming
+longest-match items.
+
+Testing facilities: Quick easy way to query which strings are accepted.
+Enumerate all accepted strings. From Nicholas Maxwell Lester.
+
+Add more examples, add more tests and write more documentation.
+
+A debugger would be nice. Ragel could emit a special debug version that
+prompted for debug commands that allowed the user to step through the machine
+and get details about where they are in their RL.
+
+A quick and easy alternative would be a trace code generation option. This
+would open a trace file and list all the active machines at each step of the
+input.
+
+Frontend should allow the redefinition of fsm section delimiters.
+
+Do more to obscure ragel's private variables. Just a leading underscore is not
+enough. Maybe something more like __ri__.
+
+Some talk about capturing data:
+
+Separate tokstart/tokend from the backtracking.  One var for preservation,
+called preserve.  Write delcarations;  produces the necessary variables used by
+ragel.  Move pattern start pattern end concepts into the general?  The
+variables which may need to influence the preserve is dependent on the state.
+States have a concept of which variables are in use.  Can be used for length
+restrictions.  If there is an exit pattern, it is the explicit way out,
+otherwise the start state and all final states are a way out.

@@ -4,6 +4,7 @@
    for any kind of float exception without losing portability. */
 
 #include "Python.h"
+#include "pycore_dtoa.h"
 
 #include <ctype.h>
 #include <float.h>
@@ -221,7 +222,7 @@ float_dealloc(PyFloatObject *op)
             return;
         }
         numfree++;
-        Py_TYPE(op) = (struct _typeobject *)free_list;
+        Py_SET_TYPE(op, (PyTypeObject *)free_list);
         free_list = op;
     }
     else
@@ -256,7 +257,7 @@ PyFloat_AsDouble(PyObject *op)
             return val;
         }
         PyErr_Format(PyExc_TypeError, "must be real number, not %.50s",
-                     op->ob_type->tp_name);
+                     Py_TYPE(op)->tp_name);
         return -1;
     }
 
@@ -268,7 +269,7 @@ PyFloat_AsDouble(PyObject *op)
         if (!PyFloat_Check(res)) {
             PyErr_Format(PyExc_TypeError,
                          "%.50s.__float__ returned non-float (type %.50s)",
-                         op->ob_type->tp_name, res->ob_type->tp_name);
+                         Py_TYPE(op)->tp_name, Py_TYPE(res)->tp_name);
             Py_DECREF(res);
             return -1;
         }
@@ -276,7 +277,7 @@ PyFloat_AsDouble(PyObject *op)
                 "%.50s.__float__ returned non-float (type %.50s).  "
                 "The ability to return an instance of a strict subclass of float "
                 "is deprecated, and may be removed in a future version of Python.",
-                op->ob_type->tp_name, res->ob_type->tp_name)) {
+                Py_TYPE(op)->tp_name, Py_TYPE(res)->tp_name)) {
             Py_DECREF(res);
             return -1;
         }
@@ -506,7 +507,6 @@ float_richcompare(PyObject *v, PyObject *w, int op)
         goto Unimplemented;
 
  Compare:
-    PyFPE_START_PROTECT("richcompare", return NULL)
     switch (op) {
     case Py_EQ:
         r = i == j;
@@ -527,7 +527,6 @@ float_richcompare(PyObject *v, PyObject *w, int op)
         r = i > j;
         break;
     }
-    PyFPE_END_PROTECT(r)
     return PyBool_FromLong(r);
 
  Unimplemented:
@@ -546,9 +545,7 @@ float_add(PyObject *v, PyObject *w)
     double a,b;
     CONVERT_TO_DOUBLE(v, a);
     CONVERT_TO_DOUBLE(w, b);
-    PyFPE_START_PROTECT("add", return 0)
     a = a + b;
-    PyFPE_END_PROTECT(a)
     return PyFloat_FromDouble(a);
 }
 
@@ -558,9 +555,7 @@ float_sub(PyObject *v, PyObject *w)
     double a,b;
     CONVERT_TO_DOUBLE(v, a);
     CONVERT_TO_DOUBLE(w, b);
-    PyFPE_START_PROTECT("subtract", return 0)
     a = a - b;
-    PyFPE_END_PROTECT(a)
     return PyFloat_FromDouble(a);
 }
 
@@ -570,9 +565,7 @@ float_mul(PyObject *v, PyObject *w)
     double a,b;
     CONVERT_TO_DOUBLE(v, a);
     CONVERT_TO_DOUBLE(w, b);
-    PyFPE_START_PROTECT("multiply", return 0)
     a = a * b;
-    PyFPE_END_PROTECT(a)
     return PyFloat_FromDouble(a);
 }
 
@@ -587,9 +580,7 @@ float_div(PyObject *v, PyObject *w)
                         "float division by zero");
         return NULL;
     }
-    PyFPE_START_PROTECT("divide", return 0)
     a = a / b;
-    PyFPE_END_PROTECT(a)
     return PyFloat_FromDouble(a);
 }
 
@@ -605,7 +596,6 @@ float_rem(PyObject *v, PyObject *w)
                         "float modulo");
         return NULL;
     }
-    PyFPE_START_PROTECT("modulo", return 0)
     mod = fmod(vx, wx);
     if (mod) {
         /* ensure the remainder has the same sign as the denominator */
@@ -619,34 +609,25 @@ float_rem(PyObject *v, PyObject *w)
            it has the same sign as the denominator. */
         mod = copysign(0.0, wx);
     }
-    PyFPE_END_PROTECT(mod)
     return PyFloat_FromDouble(mod);
 }
 
-static PyObject *
-float_divmod(PyObject *v, PyObject *w)
+static void
+_float_div_mod(double vx, double wx, double *floordiv, double *mod)
 {
-    double vx, wx;
-    double div, mod, floordiv;
-    CONVERT_TO_DOUBLE(v, vx);
-    CONVERT_TO_DOUBLE(w, wx);
-    if (wx == 0.0) {
-        PyErr_SetString(PyExc_ZeroDivisionError, "float divmod()");
-        return NULL;
-    }
-    PyFPE_START_PROTECT("divmod", return 0)
-    mod = fmod(vx, wx);
+    double div;
+    *mod = fmod(vx, wx);
     /* fmod is typically exact, so vx-mod is *mathematically* an
        exact multiple of wx.  But this is fp arithmetic, and fp
        vx - mod is an approximation; the result is that div may
        not be an exact integral value after the division, although
        it will always be very close to one.
     */
-    div = (vx - mod) / wx;
-    if (mod) {
+    div = (vx - *mod) / wx;
+    if (*mod) {
         /* ensure the remainder has the same sign as the denominator */
-        if ((wx < 0) != (mod < 0)) {
-            mod += wx;
+        if ((wx < 0) != (*mod < 0)) {
+            *mod += wx;
             div -= 1.0;
         }
     }
@@ -654,35 +635,49 @@ float_divmod(PyObject *v, PyObject *w)
         /* the remainder is zero, and in the presence of signed zeroes
            fmod returns different results across platforms; ensure
            it has the same sign as the denominator. */
-        mod = copysign(0.0, wx);
+        *mod = copysign(0.0, wx);
     }
     /* snap quotient to nearest integral value */
     if (div) {
-        floordiv = floor(div);
-        if (div - floordiv > 0.5)
-            floordiv += 1.0;
+        *floordiv = floor(div);
+        if (div - *floordiv > 0.5) {
+            *floordiv += 1.0;
+        }
     }
     else {
         /* div is zero - get the same sign as the true quotient */
-        floordiv = copysign(0.0, vx / wx); /* zero w/ sign of vx/wx */
+        *floordiv = copysign(0.0, vx / wx); /* zero w/ sign of vx/wx */
     }
-    PyFPE_END_PROTECT(floordiv)
+}
+
+static PyObject *
+float_divmod(PyObject *v, PyObject *w)
+{
+    double vx, wx;
+    double mod, floordiv;
+    CONVERT_TO_DOUBLE(v, vx);
+    CONVERT_TO_DOUBLE(w, wx);
+    if (wx == 0.0) {
+        PyErr_SetString(PyExc_ZeroDivisionError, "float divmod()");
+        return NULL;
+    }
+    _float_div_mod(vx, wx, &floordiv, &mod);
     return Py_BuildValue("(dd)", floordiv, mod);
 }
 
 static PyObject *
 float_floor_div(PyObject *v, PyObject *w)
 {
-    PyObject *t, *r;
-
-    t = float_divmod(v, w);
-    if (t == NULL || t == Py_NotImplemented)
-        return t;
-    assert(PyTuple_CheckExact(t));
-    r = PyTuple_GET_ITEM(t, 0);
-    Py_INCREF(r);
-    Py_DECREF(t);
-    return r;
+    double vx, wx;
+    double mod, floordiv;
+    CONVERT_TO_DOUBLE(v, vx);
+    CONVERT_TO_DOUBLE(w, wx);
+    if (wx == 0.0) {
+        PyErr_SetString(PyExc_ZeroDivisionError, "float floor division by zero");
+        return NULL;
+    }
+    _float_div_mod(vx, wx, &floordiv, &mod);
+    return PyFloat_FromDouble(floordiv);
 }
 
 /* determine whether x is an odd integer or not;  assumes that
@@ -793,9 +788,7 @@ float_pow(PyObject *v, PyObject *w, PyObject *z)
      * the platform pow to step in and do the rest.
      */
     errno = 0;
-    PyFPE_START_PROTECT("pow", return NULL)
     ix = pow(iv, iw);
-    PyFPE_END_PROTECT(ix)
     Py_ADJUST_ERANGE1(ix);
     if (negate_result)
         ix = -ix;
@@ -849,9 +842,7 @@ float_is_integer_impl(PyObject *self)
     if (!Py_IS_FINITE(x))
         Py_RETURN_FALSE;
     errno = 0;
-    PyFPE_START_PROTECT("is_integer", return NULL)
     o = (floor(x) == x) ? Py_True : Py_False;
-    PyFPE_END_PROTECT(x)
     if (errno != 0) {
         PyErr_SetFromErrno(errno == ERANGE ? PyExc_OverflowError :
                              PyExc_ValueError);
@@ -871,27 +862,35 @@ static PyObject *
 float___trunc___impl(PyObject *self)
 /*[clinic end generated code: output=dd3e289dd4c6b538 input=591b9ba0d650fdff]*/
 {
-    double x = PyFloat_AsDouble(self);
-    double wholepart;           /* integral portion of x, rounded toward 0 */
+    return PyLong_FromDouble(PyFloat_AS_DOUBLE(self));
+}
 
-    (void)modf(x, &wholepart);
-    /* Try to get out cheap if this fits in a Python int.  The attempt
-     * to cast to long must be protected, as C doesn't define what
-     * happens if the double is too big to fit in a long.  Some rare
-     * systems raise an exception then (RISCOS was mentioned as one,
-     * and someone using a non-default option on Sun also bumped into
-     * that).  Note that checking for >= and <= LONG_{MIN,MAX} would
-     * still be vulnerable:  if a long has more bits of precision than
-     * a double, casting MIN/MAX to double may yield an approximation,
-     * and if that's rounded up, then, e.g., wholepart=LONG_MAX+1 would
-     * yield true from the C expression wholepart<=LONG_MAX, despite
-     * that wholepart is actually greater than LONG_MAX.
-     */
-    if (LONG_MIN < wholepart && wholepart < LONG_MAX) {
-        const long aslong = (long)wholepart;
-        return PyLong_FromLong(aslong);
-    }
-    return PyLong_FromDouble(wholepart);
+/*[clinic input]
+float.__floor__
+
+Return the floor as an Integral.
+[clinic start generated code]*/
+
+static PyObject *
+float___floor___impl(PyObject *self)
+/*[clinic end generated code: output=e0551dbaea8c01d1 input=77bb13eb12e268df]*/
+{
+    double x = PyFloat_AS_DOUBLE(self);
+    return PyLong_FromDouble(floor(x));
+}
+
+/*[clinic input]
+float.__ceil__
+
+Return the ceiling as an Integral.
+[clinic start generated code]*/
+
+static PyObject *
+float___ceil___impl(PyObject *self)
+/*[clinic end generated code: output=a2fd8858f73736f9 input=79e41ae94aa0a516]*/
+{
+    double x = PyFloat_AS_DOUBLE(self);
+    return PyLong_FromDouble(ceil(x));
 }
 
 /* double_round: rounds a finite double to the closest multiple of
@@ -1472,7 +1471,7 @@ float_fromhex(PyTypeObject *type, PyObject *string)
         goto parse_error;
     result = PyFloat_FromDouble(negate ? -x : x);
     if (type != &PyFloat_Type && result != NULL) {
-        Py_SETREF(result, PyObject_CallFunctionObjArgs((PyObject *)type, result, NULL));
+        Py_SETREF(result, PyObject_CallOneArg((PyObject *)type, result));
     }
     return result;
 
@@ -1538,9 +1537,7 @@ float_as_integer_ratio_impl(PyObject *self)
         return NULL;
     }
 
-    PyFPE_START_PROTECT("as_integer_ratio", goto error);
     float_part = frexp(self_double, &exponent);        /* self_double == float_part * 2**exponent exactly */
-    PyFPE_END_PROTECT(float_part);
 
     for (i=0; i<300 && float_part != floor(float_part) ; i++) {
         float_part *= 2.0;
@@ -1697,7 +1694,8 @@ float___getformat___impl(PyTypeObject *type, const char *typestr)
     case ieee_big_endian_format:
         return PyUnicode_FromString("IEEE, big-endian");
     default:
-        Py_FatalError("insane float_format or double_format");
+        PyErr_SetString(PyExc_RuntimeError,
+                        "insane float_format or double_format");
         return NULL;
     }
 }
@@ -1818,6 +1816,8 @@ float___format___impl(PyObject *self, PyObject *format_spec)
 static PyMethodDef float_methods[] = {
     FLOAT_CONJUGATE_METHODDEF
     FLOAT___TRUNC___METHODDEF
+    FLOAT___FLOOR___METHODDEF
+    FLOAT___CEIL___METHODDEF
     FLOAT___ROUND___METHODDEF
     FLOAT_AS_INTEGER_RATIO_METHODDEF
     FLOAT_FROMHEX_METHODDEF
@@ -1978,25 +1978,22 @@ _PyFloat_Init(void)
     return 1;
 }
 
-int
-PyFloat_ClearFreeList(void)
+void
+_PyFloat_ClearFreeList(void)
 {
     PyFloatObject *f = free_list, *next;
-    int i = numfree;
-    while (f) {
+    for (; f; f = next) {
         next = (PyFloatObject*) Py_TYPE(f);
         PyObject_FREE(f);
-        f = next;
     }
     free_list = NULL;
     numfree = 0;
-    return i;
 }
 
 void
-PyFloat_Fini(void)
+_PyFloat_Fini(void)
 {
-    (void)PyFloat_ClearFreeList();
+    _PyFloat_ClearFreeList();
 }
 
 /* Print summary info about the state of the optimized allocator */

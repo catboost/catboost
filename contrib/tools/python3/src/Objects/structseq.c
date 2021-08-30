@@ -10,7 +10,7 @@
 #include "Python.h"
 #include "pycore_tupleobject.h"
 #include "pycore_object.h"
-#include "structmember.h"
+#include "structmember.h"         // PyMemberDef
 
 static const char visible_length_key[] = "n_sequence_fields";
 static const char real_length_key[] = "n_fields";
@@ -18,7 +18,7 @@ static const char unnamed_fields_key[] = "n_unnamed_fields";
 
 /* Fields with this name have only a field index, not a field name.
    They are only allowed for indices < n_visible_fields. */
-char *PyStructSequence_UnnamedField = "unnamed field";
+const char * const PyStructSequence_UnnamedField = "unnamed field";
 _Py_IDENTIFIER(n_sequence_fields);
 _Py_IDENTIFIER(n_fields);
 _Py_IDENTIFIER(n_unnamed_fields);
@@ -47,7 +47,7 @@ PyStructSequence_New(PyTypeObject *type)
         return NULL;
     /* Hack the size of the variable object, so invisible fields don't appear
      to Python code. */
-    Py_SIZE(obj) = VISIBLE_SIZE_TP(type);
+    Py_SET_SIZE(obj, VISIBLE_SIZE_TP(type));
     for (i = 0; i < size; i++)
         obj->ob_item[i] = NULL;
 
@@ -70,6 +70,9 @@ PyStructSequence_GetItem(PyObject* op, Py_ssize_t i)
 static int
 structseq_traverse(PyStructSequence *obj, visitproc visit, void *arg)
 {
+    if (Py_TYPE(obj)->tp_flags & Py_TPFLAGS_HEAPTYPE) {
+        Py_VISIT(Py_TYPE(obj));
+    }
     Py_ssize_t i, size;
     size = REAL_SIZE(obj);
     for (i = 0; i < size; ++i) {
@@ -464,12 +467,17 @@ PyStructSequence_NewType(PyStructSequence_Desc *desc)
     /* Initialize Slots */
     slots[0] = (PyType_Slot){Py_tp_dealloc, (destructor)structseq_dealloc};
     slots[1] = (PyType_Slot){Py_tp_repr, (reprfunc)structseq_repr};
-    slots[2] = (PyType_Slot){Py_tp_doc, (void *)desc->doc};
-    slots[3] = (PyType_Slot){Py_tp_methods, structseq_methods};
-    slots[4] = (PyType_Slot){Py_tp_new, structseq_new};
-    slots[5] = (PyType_Slot){Py_tp_members, members};
-    slots[6] = (PyType_Slot){Py_tp_traverse, (traverseproc)structseq_traverse};
-    slots[7] = (PyType_Slot){0, 0};
+    slots[2] = (PyType_Slot){Py_tp_methods, structseq_methods};
+    slots[3] = (PyType_Slot){Py_tp_new, structseq_new};
+    slots[4] = (PyType_Slot){Py_tp_members, members};
+    slots[5] = (PyType_Slot){Py_tp_traverse, (traverseproc)structseq_traverse};
+    if (desc->doc) {
+        slots[6] = (PyType_Slot){Py_tp_doc, (void *)desc->doc};
+        slots[7] = (PyType_Slot){0, 0};
+    }
+    else {
+        slots[6] = (PyType_Slot){0, 0};
+    }
 
     /* Initialize Spec */
     /* The name in this PyType_Spec is statically allocated so it is */

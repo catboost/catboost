@@ -80,8 +80,7 @@ public:
         return Pos_;
     }
 
-    Y_PURE_FUNCTION
-    inline bool Empty() const noexcept {
+    Y_PURE_FUNCTION inline bool Empty() const noexcept {
         return !Size();
     }
 

@@ -230,6 +230,9 @@ namespace NCB {
         TEstimatorSourceId GetEstimatorSourceFeatureIdx(const TGuid& guid) const;
         TEstimatorSourceId GetEstimatorSourceFeatureIdx(TEstimatorId estimatorId) const;
 
+        EFeatureType GetEstimatorSourceType(const TGuid& guid) const;
+        EFeatureType GetEstimatorSourceType(TEstimatorId estimatorId) const;
+
     private:
         void RebuildInnerData();
 

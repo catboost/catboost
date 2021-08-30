@@ -1,8 +1,8 @@
 LIBRARY()
 
-LICENSE(
-    BSD3
-)
+LICENSE(BSD-3-Clause)
+
+VERSION(3.2.1)
 
 
 

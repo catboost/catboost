@@ -14,6 +14,7 @@ INCLUDE(../srcs.cmake)
 
 NO_CHECK_IMPORTS(
     antigravity
+    asyncio.unix_events
     asyncio.windows_events
     asyncio.windows_utils
     crypt
@@ -29,9 +30,14 @@ NO_CHECK_IMPORTS(
     encodings.oem
     lzma
     msilib.*
+    multiprocessing.popen_fork
+    multiprocessing.popen_forkserver
+    multiprocessing.popen_spawn_posix
     multiprocessing.popen_spawn_win32
     sqlite3.*
     turtle
+    pty
+    tty
 )
 
 PY_SRCS(

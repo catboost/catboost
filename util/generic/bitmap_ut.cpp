@@ -53,8 +53,9 @@ Y_UNIT_TEST_SUITE(TBitMapTest) {
         size_t setBits[] = {0, 50, 100};
         CHECK_BITMAP(bitmap, setBits);
 
-        for (size_t i = 0; i < bitmap.Size(); ++i)
+        for (size_t i = 0; i < bitmap.Size(); ++i) {
             UNIT_ASSERT_EQUAL(bitmap.Get(i), bitmap.Test(i));
+        }
 
         UNIT_ASSERT_EQUAL(bitmap.Count(), 3);
 
@@ -85,8 +86,9 @@ Y_UNIT_TEST_SUITE(TBitMapTest) {
         size_t setBits[] = {0, 50, 100};
         CHECK_BITMAP(bitmap, setBits);
 
-        for (size_t i = 0; i < bitmap.Size(); ++i)
+        for (size_t i = 0; i < bitmap.Size(); ++i) {
             UNIT_ASSERT_EQUAL(bitmap.Get(i), bitmap.Test(i));
+        }
 
         UNIT_ASSERT_EQUAL(bitmap.Count(), 3);
 
@@ -580,6 +582,16 @@ Y_UNIT_TEST_SUITE(TBitMapTest) {
                     UNIT_ASSERT_VALUES_EQUAL(bm.Get(k), k >= start && k < end ? 1 : 0);
                 }
             }
+        }
+    }
+
+    Y_UNIT_TEST(TestResetLargeRangeDyn) {
+        TDynBitMap bm;
+        bm.Set(0);
+        bm.Reset(1, 2048);
+        bm.Set(2048);
+        for (size_t k = 0; k <= 2048; ++k) {
+            UNIT_ASSERT_VALUES_EQUAL(bm.Get(k), k >= 1 && k < 2048 ? 0 : 1);
         }
     }
 }

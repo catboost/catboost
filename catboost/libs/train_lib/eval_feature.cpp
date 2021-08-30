@@ -10,6 +10,7 @@
 #include <catboost/private/libs/algo/helpers.h>
 #include <catboost/private/libs/algo/preprocess.h>
 #include <catboost/private/libs/algo/train.h>
+#include <catboost/libs/data/features_layout_helpers.h>
 #include <catboost/libs/data/feature_names_converter.h>
 #include <catboost/libs/fstr/output_fstr.h>
 #include <catboost/libs/helpers/exception.h>
@@ -32,6 +33,7 @@
 
 #include <util/generic/algorithm.h>
 #include <util/generic/array_ref.h>
+#include <util/generic/hash_set.h>
 #include <util/generic/scope.h>
 #include <util/generic/xrange.h>
 #include <util/generic/ymath.h>
@@ -143,6 +145,40 @@ void TFeatureEvaluationSummary::AppendFeatureSetMetrics(
 }
 
 
+NJson::TJsonValue TFeatureEvaluationSummary::CalcProcessorsSummary() const {
+    const auto& history = ProcessorsUsage;
+    CB_ENSURE_INTERNAL(!history.empty(), "Need some processors usage info");
+    THashMap<TString, float> totalTime; // [processor name]
+    THashMap<TString, ui32> totalIterations; // [processor name]
+    ui32 previousIteration = history[0].Iteration;
+    for (const auto& event : history) {
+        const auto time = event.Time;
+        const auto iteration = event.Iteration;
+        const auto& processors = event.Processors;
+        CB_ENSURE_INTERNAL(processors.IsArray(), "Processors should be json array");
+        const auto& processorsArray = processors.GetArray();
+        for (auto& processor : processorsArray) {
+            const auto& processorString = processor.GetString();
+            totalTime[processorString] += time;
+            if (previousIteration >= iteration) {
+                totalIterations[processorString] += iteration; // first snapshot in this training
+            } else {
+                totalIterations[processorString] += (iteration - previousIteration);
+            }
+        }
+        previousIteration = iteration;
+    }
+    NJson::TJsonValue summary;
+    auto& timeJson = summary.InsertValue("time", NJson::TJsonMap());
+    auto& iterationsJson = summary.InsertValue("iterations", NJson::TJsonMap());
+    for (const auto& [processor, time] : totalTime) {
+        timeJson.InsertValue(processor, NJson::TJsonValue{time});
+        iterationsJson.InsertValue(processor, NJson::TJsonValue{totalIterations.at(processor)});
+    }
+    return summary;
+}
+
+
 void TFeatureEvaluationSummary::CalcWxTestAndAverageDelta() {
     const auto featureSetCount = GetFeatureSetCount();
     const auto metricCount = MetricTypes.size();
@@ -235,6 +271,7 @@ void TFeatureEvaluationSummary::CreateLogs(
     const auto& metricsHistory = MetricsHistory[isTest];
     const auto& featureStrengths = FeatureStrengths[isTest];
     const auto& regularFeatureStrengths = RegularFeatureStrengths[isTest];
+    const auto& models = Models[isTest];
     const auto& metricsMetaJson = GetJsonMeta(
         iterationCount,
         outputFileOptions.GetName(),
@@ -281,6 +318,11 @@ void TFeatureEvaluationSummary::CreateLogs(
                     regularFeatureStrengths[useSetZeroAlways ? 0 : setIdx][absoluteFoldIdx - absoluteOffset],
                     regularFstrPath);
             }
+            const auto outputModelPath = options.CreateResultModelFullPath();
+            if (!outputModelPath.empty()) {
+                TFileOutput modelFile(outputModelPath);
+                models[useSetZeroAlways ? 0 : setIdx][absoluteFoldIdx - absoluteOffset].Save(&modelFile);
+            }
         }
     }
 }
@@ -305,6 +347,7 @@ void TFeatureEvaluationSummary::SetHeaderInfo(
     ResizeRank2(2, featureSetCount, MetricsHistory);
     ResizeRank2(2, featureSetCount, FeatureStrengths);
     ResizeRank2(2, featureSetCount, RegularFeatureStrengths);
+    ResizeRank2(2, featureSetCount, Models);
     ResizeRank2(2, featureSetCount, BestMetrics);
     BestBaselineIterations.resize(featureSetCount);
 }
@@ -339,7 +382,7 @@ static void CreateFoldData(
     const TVector<NCB::TArraySubsetIndexing<ui32>>& testSubsets,
     TVector<TTrainingDataProviders>* foldsData,
     TVector<TTrainingDataProviders>* testFoldsData,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) {
     CB_ENSURE_INTERNAL(trainSubsets.size() == testSubsets.size(), "Number of train and test subsets do not match");
     const NCB::EObjectsOrder objectsOrder = NCB::EObjectsOrder::Ordered;
@@ -396,7 +439,7 @@ static void PrepareTimeSplitFolds(
     ui64 cpuUsedRamLimit,
     TVector<TTrainingDataProviders>* foldsData,
     TVector<TTrainingDataProviders>* testFoldsData,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) {
     CB_ENSURE(srcData->ObjectsData->GetGroupIds(), "Timesplit feature evaluation requires dataset with groups");
     CB_ENSURE(srcData->ObjectsData->GetTimestamp(), "Timesplit feature evaluation requires dataset with timestamps");
@@ -460,7 +503,7 @@ static void PrepareFolds(
     ui64 cpuUsedRamLimit,
     TVector<TTrainingDataProviders>* foldsData,
     TVector<TTrainingDataProviders>* testFoldsData,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) {
     const int foldCount = cvParams.Initialized() ? cvParams.FoldCount : featureEvalOptions.FoldCount.Get();
     CB_ENSURE(foldCount > 0, "Fold count must be positive integer");
@@ -517,42 +560,6 @@ enum class ETrainingKind {
     Baseline,
     Testing
 };
-
-
-TIntrusivePtr<TTrainingDataProvider> MakeFeatureSubsetDataProvider(
-    const TVector<ui32>& ignoredFeatures,
-    NCB::TTrainingDataProviderPtr trainingDataProvider
-) {
-    TQuantizedObjectsDataProviderPtr newObjects = dynamic_cast<TQuantizedForCPUObjectsDataProvider*>(
-        trainingDataProvider->ObjectsData->GetFeaturesSubset(ignoredFeatures, &NPar::LocalExecutor()).Get());
-    CB_ENSURE(
-        newObjects,
-        "Objects data provider must be TQuantizedForCPUObjectsDataProvider or TQuantizedObjectsDataProvider");
-    TDataMetaInfo newMetaInfo = trainingDataProvider->MetaInfo;
-    newMetaInfo.FeaturesLayout = newObjects->GetFeaturesLayout();
-    return MakeIntrusive<TTrainingDataProvider>(
-        trainingDataProvider->OriginalFeaturesLayout,
-        TDataMetaInfo(newMetaInfo),
-        trainingDataProvider->ObjectsGrouping,
-        newObjects,
-        trainingDataProvider->TargetData);
-}
-
-TTrainingDataProviders MakeFeatureSubsetTrainingData(
-    const TVector<ui32>& ignoredFeatures,
-    const NCB::TTrainingDataProviders& trainingData
-) {
-    TTrainingDataProviders newTrainingData;
-    newTrainingData.Learn = MakeFeatureSubsetDataProvider(ignoredFeatures, trainingData.Learn);
-    newTrainingData.Test.push_back(MakeFeatureSubsetDataProvider(ignoredFeatures, trainingData.Test[0]));
-
-    newTrainingData.FeatureEstimators = trainingData.FeatureEstimators;
-
-    // TODO(akhropov): correctly support ignoring indices based on source data
-    newTrainingData.EstimatedObjectsData = trainingData.EstimatedObjectsData;
-
-    return newTrainingData;
-}
 
 
 static TVector<TTrainingDataProviders> UpdateIgnoredFeaturesInLearn(
@@ -671,6 +678,11 @@ static void CalcMetricsForTest(
         foldContext->FullModel.GetRef(),
         testData->ObjectsData,
         &NPar::LocalExecutor());
+
+    const auto baseline = *testData->TargetData->GetBaseline();
+    if (baseline){
+        AssignRank2(baseline, &approx);
+    }
     for (auto treeIdx : xrange(treeCount)) {
         // TODO(kirillovs):
         //     apply (1) all models to the entire dataset on CPU or (2) GPU,
@@ -724,7 +736,10 @@ public:
         return /*continue training*/true;
     }
 
-    void OnSaveSnapshot(IOutputStream* snapshot) override {
+    void OnSaveSnapshot(const NJson::TJsonValue& processors, IOutputStream* snapshot) override {
+        if (processors.IsArray()) {
+            Summary->ProcessorsUsage.push_back({float(SnapshotTimer.PassedReset()), IterationIdx, processors});
+        }
         Summary->Save(snapshot);
         NJson::TJsonValue options;
         EvalFeatureOptions.Save(&options);
@@ -784,6 +799,7 @@ public:
 
 private:
     THPTimer TrainTimer;
+    THPTimer SnapshotTimer;
     ui32 IterationIdx = 0;
     const ui32 IterationCount;
     NCatboostOptions::TFeatureEvalOptions EvalFeatureOptions;
@@ -993,26 +1009,21 @@ static void EvaluateFeaturesImpl(
 
             results->MetricsHistory[isTest][featureSetIdx].emplace_back(foldContext.MetricValuesOnTest);
             results->AppendFeatureSetMetrics(isTest, featureSetIdx, foldContext.MetricValuesOnTest);
+            results->Models[isTest][featureSetIdx].emplace_back(foldContext.FullModel.GetRef());
 
             CATBOOST_INFO_LOG << "Fold " << foldContext.FoldIdx << ": model built in " <<
                 FloatToString(timer.Passed(), PREC_NDIGITS, 2) << " sec" << Endl;
 
             if (isCalcFstr || isCalcRegularFstr) {
                 const auto& model = foldContext.FullModel.GetRef();
-                const auto& floatFeatures = model.ModelTrees->GetFloatFeatures();
-                const auto& catFeatures = model.ModelTrees->GetCatFeatures();
-                const NCB::TFeaturesLayout layout(
-                    TVector<TFloatFeature>(floatFeatures.begin(), floatFeatures.end()),
-                    TVector<TCatFeature>(catFeatures.begin(), catFeatures.end())
-                );
+                const NCB::TFeaturesLayout layout = MakeFeaturesLayout(model);
                 const auto fstrType = outputFileOptions.GetFstrType();
                 const auto effect = CalcFeatureEffect(model, /*dataset*/nullptr, fstrType, &NPar::LocalExecutor());
                 results->FeatureStrengths[isTest][featureSetIdx].emplace_back(ExpandFeatureDescriptions(layout, effect));
                 if (isCalcRegularFstr) {
                     const auto regularEffect = CalcRegularFeatureEffect(
                         effect,
-                        model.GetNumCatFeatures(),
-                        model.GetNumFloatFeatures());
+                        model);
                     results->RegularFeatureStrengths[isTest][featureSetIdx].emplace_back(
                         ExpandFeatureDescriptions(layout, regularEffect));
                 }
@@ -1066,6 +1077,7 @@ static void EvaluateFeaturesImpl(
             results->MetricsHistory[/*isTest*/1][featureSetIdx] = results->MetricsHistory[/*isTest*/0][baselineIdx];
             results->FeatureStrengths[/*isTest*/1][featureSetIdx] = results->FeatureStrengths[/*isTest*/0][baselineIdx];
             results->RegularFeatureStrengths[/*isTest*/1][featureSetIdx] = results->RegularFeatureStrengths[/*isTest*/0][baselineIdx];
+            results->Models[/*isTest*/1][featureSetIdx] = results->Models[/*isTest*/0][baselineIdx];
             results->BestMetrics[/*isTest*/1][featureSetIdx] = results->BestMetrics[/*isTest*/0][baselineIdx];
         }
     }

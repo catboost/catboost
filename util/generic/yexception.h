@@ -13,6 +13,7 @@
 #include <util/system/defaults.h>
 #include <util/system/error.h>
 #include <util/system/src_location.h>
+#include <util/system/platform.h>
 
 #include <exception>
 
@@ -65,7 +66,8 @@ namespace NPrivateException {
     };
 
     template <class E, class T>
-    static inline E&& operator<<(E&& e, const T& t) {
+    static inline std::enable_if_t<std::is_base_of<yexception, std::decay_t<E>>::value, E&&>
+    operator<<(E&& e, const T& t) {
         e.Append(t);
 
         return std::forward<E>(e);
@@ -73,7 +75,7 @@ namespace NPrivateException {
 
     template <class T>
     static inline T&& operator+(const TSourceLocation& sl, T&& t) {
-        return std::forward<T>(t << sl << AsStringBuf(": "));
+        return std::forward<T>(t << sl << TStringBuf(": "));
     }
 }
 
@@ -94,7 +96,8 @@ public:
 
     TSystemError()
         : TSystemError(LastSystemError())
-    {}
+    {
+    }
 
     int Status() const noexcept {
         return Status_;
@@ -153,6 +156,7 @@ void fputs(const std::exception& e, FILE* f = stderr);
 
 TString CurrentExceptionMessage();
 bool UncaughtException() noexcept;
+std::string CurrentExceptionTypeName();
 
 TString FormatExc(const std::exception& exception);
 
@@ -175,10 +179,10 @@ TString FormatExc(const std::exception& exception);
         }                                                                                                                   \
     } while (false)
 
-#define Y_ENSURE_IMPL_1(CONDITION) Y_ENSURE_SIMPLE(CONDITION, ::AsStringBuf("Condition violated: `" Y_STRINGIZE(CONDITION) "'"), ::NPrivate::ThrowYException)
+#define Y_ENSURE_IMPL_1(CONDITION) Y_ENSURE_SIMPLE(CONDITION, ::TStringBuf("Condition violated: `" Y_STRINGIZE(CONDITION) "'"), ::NPrivate::ThrowYException)
 #define Y_ENSURE_IMPL_2(CONDITION, MESSAGE) Y_ENSURE_EX(CONDITION, yexception() << MESSAGE)
 
-#define Y_ENSURE_BT_IMPL_1(CONDITION) Y_ENSURE_SIMPLE(CONDITION, ::AsStringBuf("Condition violated: `" Y_STRINGIZE(CONDITION) "'"), ::NPrivate::ThrowYExceptionWithBacktrace)
+#define Y_ENSURE_BT_IMPL_1(CONDITION) Y_ENSURE_SIMPLE(CONDITION, ::TStringBuf("Condition violated: `" Y_STRINGIZE(CONDITION) "'"), ::NPrivate::ThrowYExceptionWithBacktrace)
 #define Y_ENSURE_BT_IMPL_2(CONDITION, MESSAGE) Y_ENSURE_EX(CONDITION, TWithBackTrace<yexception>() << MESSAGE)
 
 /**

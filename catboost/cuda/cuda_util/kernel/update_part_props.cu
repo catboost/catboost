@@ -58,10 +58,26 @@ namespace NKernel {
         const int iterCount = (size - localIdx + stripeSize - 1)  / stripeSize;
 
         stat += localIdx;
-
+        double accumResult = 0;
+        const int M = 8;
         if (size > 0) {
+            int i = 0;
+            for (; i <= iterCount - N * M; i += N * M) {
+                #pragma unroll 4
+                for (int j = 0; j < N * M; ++j) {
+                    const float4* stat4 = (const float4*) stat;
+                    float4 val = Ldg(stat4);
+                    sum.x += val.x;
+                    sum.y += val.y;
+                    sum.z += val.z;
+                    sum.w += val.w;
+                    stat += stripeSize;
+                }
+                accumResult += (double)sum.x + (double)sum.y + (double)sum.z + (double)sum.w;
+                sum = {0};
+            }
             #pragma unroll N
-            for (int i = 0; i < iterCount; ++i) {
+            for (; i < iterCount; ++i) {
                 const float4* stat4 = (const float4*) stat;
                 float4 val = Ldg(stat4);
                 sum.x += val.x;
@@ -72,7 +88,7 @@ namespace NKernel {
             }
         }
 
-        return (double)sum.x + (double)sum.y + (double)sum.z + (double)sum.w;
+        return accumResult + (double)sum.x + (double)sum.y + (double)sum.z + (double)sum.w;
     };
 
 

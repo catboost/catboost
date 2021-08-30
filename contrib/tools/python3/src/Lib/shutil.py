@@ -53,6 +53,9 @@ COPY_BUFSIZE = 1024 * 1024 if _WINDOWS else 64 * 1024
 _USE_CP_SENDFILE = hasattr(os, "sendfile") and sys.platform.startswith("linux")
 _HAS_FCOPYFILE = posix and hasattr(posix, "_fcopyfile")  # macOS
 
+# CMD defaults in Windows 10
+_WIN_DEFAULT_PATHEXT = ".COM;.EXE;.BAT;.CMD;.VBS;.JS;.WS;.MSC"
+
 __all__ = ["copyfileobj", "copyfile", "copymode", "copystat", "copy", "copy2",
            "copytree", "move", "rmtree", "Error", "SpecialFileError",
            "ExecError", "make_archive", "get_archive_formats",
@@ -708,7 +711,7 @@ def rmtree(path, ignore_errors=False, onerror=None):
         try:
             fd = os.open(path, os.O_RDONLY)
         except Exception:
-            onerror(os.lstat, path, sys.exc_info())
+            onerror(os.open, path, sys.exc_info())
             return
         try:
             if os.path.samestat(orig_st, os.fstat(fd)):
@@ -741,8 +744,20 @@ def rmtree(path, ignore_errors=False, onerror=None):
 rmtree.avoids_symlink_attacks = _use_fd_functions
 
 def _basename(path):
-    # A basename() variant which first strips the trailing slash, if present.
-    # Thus we always get the last component of the path, even for directories.
+    """A basename() variant which first strips the trailing slash, if present.
+    Thus we always get the last component of the path, even for directories.
+
+    path: Union[PathLike, str]
+
+    e.g.
+    >>> os.path.basename('/bar/foo')
+    'foo'
+    >>> os.path.basename('/bar/foo/')
+    ''
+    >>> _basename('/bar/foo/')
+    'foo'
+    """
+    path = os.fspath(path)
     sep = os.path.sep + (os.path.altsep or '')
     return os.path.basename(path.rstrip(sep))
 
@@ -781,7 +796,10 @@ def move(src, dst, copy_function=copy2):
             os.rename(src, dst)
             return
 
+        # Using _basename instead of os.path.basename is important, as we must
+        # ignore any trailing slash to avoid the basename returning ''
         real_dst = os.path.join(dst, _basename(src))
+
         if os.path.exists(real_dst):
             raise Error("Destination path '%s' already exists" % real_dst)
     try:
@@ -795,6 +813,12 @@ def move(src, dst, copy_function=copy2):
             if _destinsrc(src, dst):
                 raise Error("Cannot move a directory '%s' into itself"
                             " '%s'." % (src, dst))
+            if (_is_immutable(src)
+                    or (not os.access(src, os.W_OK) and os.listdir(src)
+                        and sys.platform == 'darwin')):
+                raise PermissionError("Cannot move the non-empty directory "
+                                      "'%s': Lacking write permission to '%s'."
+                                      % (src, src))
             copytree(src, real_dst, copy_function=copy_function,
                      symlinks=True)
             rmtree(src)
@@ -811,6 +835,11 @@ def _destinsrc(src, dst):
     if not dst.endswith(os.path.sep):
         dst += os.path.sep
     return dst.startswith(src)
+
+def _is_immutable(src):
+    st = _stat(src)
+    immutable_states = [stat.UF_IMMUTABLE, stat.SF_IMMUTABLE]
+    return hasattr(st, 'st_flags') and st.st_flags in immutable_states
 
 def _get_gid(name):
     """Returns a gid, given a group name."""
@@ -1130,20 +1159,16 @@ def _unpack_zipfile(filename, extract_dir):
             if name.startswith('/') or '..' in name:
                 continue
 
-            target = os.path.join(extract_dir, *name.split('/'))
-            if not target:
+            targetpath = os.path.join(extract_dir, *name.split('/'))
+            if not targetpath:
                 continue
 
-            _ensure_directory(target)
+            _ensure_directory(targetpath)
             if not name.endswith('/'):
                 # file
-                data = zip.read(info.filename)
-                f = open(target, 'wb')
-                try:
-                    f.write(data)
-                finally:
-                    f.close()
-                    del data
+                with zip.open(name, 'r') as source, \
+                        open(targetpath, 'wb') as target:
+                    copyfileobj(source, target)
     finally:
         zip.close()
 
@@ -1400,7 +1425,9 @@ def which(cmd, mode=os.F_OK | os.X_OK, path=None):
             path.insert(0, curdir)
 
         # PATHEXT is necessary to check on Windows.
-        pathext = os.environ.get("PATHEXT", "").split(os.pathsep)
+        pathext_source = os.getenv("PATHEXT") or _WIN_DEFAULT_PATHEXT
+        pathext = [ext for ext in pathext_source.split(os.pathsep) if ext]
+
         if use_bytes:
             pathext = [os.fsencode(ext) for ext in pathext]
         # See if the given file matches any of the expected path extensions.

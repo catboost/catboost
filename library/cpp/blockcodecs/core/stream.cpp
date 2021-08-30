@@ -12,7 +12,7 @@
 using namespace NBlockCodecs;
 
 namespace {
-    static constexpr size_t MAX_BUF_LEN = 128 * 1024 * 1024;
+    constexpr size_t MAX_BUF_LEN = 128 * 1024 * 1024;
 
     typedef ui16 TCodecID;
     typedef ui64 TBlockLen;
@@ -55,11 +55,11 @@ namespace {
         TByID ByID;
     };
 
-    static TCodecID CodecID(const ICodec* c) {
+    TCodecID CodecID(const ICodec* c) {
         return TIds::CodecID(c);
     }
 
-    static const ICodec* CodecByID(TCodecID id) {
+    const ICodec* CodecByID(TCodecID id) {
         return Singleton<TIds>()->Find(id);
     }
 }
@@ -70,7 +70,7 @@ TCodedOutput::TCodedOutput(IOutputStream* out, const ICodec* c, size_t bufLen)
     , S_(out)
 {
     if (bufLen > MAX_BUF_LEN) {
-        ythrow yexception() << AsStringBuf("too big buffer size: ") << bufLen;
+        ythrow yexception() << TStringBuf("too big buffer size: ") << bufLen;
     }
 }
 
@@ -198,7 +198,7 @@ size_t TDecodedInput::DoUnboundedNext(const void** ptr) {
     auto codec = CodecByID(codecId);
 
     if (C_) {
-        Y_ENSURE(C_->Name() == codec->Name(), AsStringBuf("incorrect stream codec"));
+        Y_ENSURE(C_->Name() == codec->Name(), TStringBuf("incorrect stream codec"));
     }
 
     if (codec->DecompressedLength(block) > MAX_BUF_LEN) {

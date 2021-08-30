@@ -187,6 +187,13 @@ Y_UNIT_TEST_SUITE(THttpParser) {
         /// parse request with encoded content
         TString testLine = "test line";
         {
+            // test identity
+            THttpParser p(THttpParser::Request);
+            TString msg = MakeEncodedRequest("identity", testLine);
+            UNIT_ASSERT(p.Parse(msg.data(), msg.size()));
+            UNIT_ASSERT_VALUES_EQUAL(p.DecodedContent(), testLine);
+        }
+        {
             // test deflate
             THttpParser p(THttpParser::Request);
             TString zlibTestLine = "\x78\x9C\x2B\x49\x2D\x2E\x51\xC8\xC9\xCC\x4B\x05\x00\x11\xEE\x03\x89";
@@ -233,7 +240,7 @@ Y_UNIT_TEST_SUITE(THttpParser) {
         {
             // test broken deflate
             THttpParser p(THttpParser::Request);
-            TString content(AsStringBuf("some trash ....................."));
+            TString content(TStringBuf("some trash ....................."));
             TString msg = MakeEncodedRequest("deflate", content);
             UNIT_ASSERT_EXCEPTION(p.Parse(msg.data(), msg.size()), yexception);
         }
@@ -288,7 +295,7 @@ Y_UNIT_TEST_SUITE(THttpParser) {
     }
 
     Y_UNIT_TEST(THttpIoStreamInteroperability) {
-        TStringBuf content = AsStringBuf("very very very long content");
+        TStringBuf content = "very very very long content";
 
         TMemoryInput request("GET / HTTP/1.1\r\nAccept-Encoding: z-snappy\r\n\r\n");
         THttpInput i(&request);

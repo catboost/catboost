@@ -2,6 +2,7 @@
 
 #include "meta_info.h"
 #include "objects_grouping.h"
+#include "pairs.h"
 #include "util.h"
 #include "weights.h"
 
@@ -74,7 +75,7 @@ namespace NCB {
         // weights in each group must be equal, it's checked
         TWeights<float> GroupWeights; // [objectIdx]
 
-        TVector<TPair> Pairs; // can be empty
+        TMaybeData<TRawPairsData> Pairs;
     public:
         bool operator==(const TRawTargetData& rhs) const;
 
@@ -83,7 +84,7 @@ namespace NCB {
             GroupWeights = TWeights<float>(objectCount);
         }
 
-        void Check(const TObjectsGrouping& objectsGrouping, NPar::TLocalExecutor* localExecutor) const;
+        void Check(const TObjectsGrouping& objectsGrouping, NPar::ILocalExecutor* localExecutor) const;
 
         void PrepareForInitialization(const TDataMetaInfo& metaInfo, ui32 objectCount, ui32 prevTailSize);
     };
@@ -101,7 +102,7 @@ namespace NCB {
             bool skipCheck,
 
             // used only if skipCheck == false, it's ok to pass nullptr if skipCheck is true
-            TMaybe<NPar::TLocalExecutor*> localExecutor
+            TMaybe<NPar::ILocalExecutor*> localExecutor
         ) {
             if (!skipCheck) {
                 data.Check(*objectsGrouping, *localExecutor);
@@ -167,7 +168,7 @@ namespace NCB {
             return Data.GroupWeights;
         }
 
-        TConstArrayRef<TPair> GetPairs() const { // can return empty array
+        const TMaybeData<TRawPairsData>& GetPairs() const {
             return Data.Pairs;
         }
 
@@ -191,12 +192,12 @@ namespace NCB {
 
         void SetPairs(TConstArrayRef<TPair> pairs) {
             CheckPairs(pairs, *ObjectsGrouping);
-            Assign(pairs, &Data.Pairs);
+            Data.Pairs = TFlatPairsInfo(pairs.begin(), pairs.end());
         }
 
         TRawTargetDataProvider GetSubset(
             const TObjectsGroupingSubset& objectsGroupingSubset,
-            NPar::TLocalExecutor* localExecutor
+            NPar::ILocalExecutor* localExecutor
         ) const;
 
     private:
@@ -271,7 +272,7 @@ namespace NCB {
 
         TIntrusivePtr<TTargetDataProvider> GetSubset(
             const TObjectsGroupingSubset& objectsGroupingSubset,
-            NPar::TLocalExecutor* localExecutor
+            NPar::ILocalExecutor* localExecutor
         ) const;
 
 
@@ -368,7 +369,7 @@ namespace NCB {
     void GetGroupInfosSubset(
         TConstArrayRef<TQueryInfo> src,
         const TObjectsGroupingSubset& objectsGroupingSubset,
-        NPar::TLocalExecutor* localExecutor,
+        NPar::ILocalExecutor* localExecutor,
         TVector<TQueryInfo>* dstSubset
     );
 

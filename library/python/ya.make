@@ -1,8 +1,7 @@
 
 
 RECURSE(
-    coredump_filter
-    coredump_filter/ut
+    certifi
     cores
     filelock
     filelock/ut

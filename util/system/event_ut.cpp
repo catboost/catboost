@@ -50,19 +50,16 @@ namespace {
 
     class TSignalTask: public IObjectInQueue {
     private:
-        TManualEvent& Barrier;
-        TManualEvent& Ev;
+        TManualEvent& Ev_;
 
     public:
-        TSignalTask(TManualEvent& barrier, TManualEvent& ev)
-            : Barrier(barrier)
-            , Ev(ev)
+        TSignalTask(TManualEvent& ev)
+            : Ev_(ev)
         {
         }
 
         void Process(void*) override {
-            Y_UNUSED(Barrier);
-            Ev.Signal();
+            Ev_.Signal();
         }
     };
 
@@ -102,12 +99,11 @@ Y_UNIT_TEST_SUITE(EventTest) {
         // test for problem detected by thread-sanitizer (signal/wait race) SEARCH-2113
         const size_t limit = 200;
         TManualEvent event[limit];
-        TManualEvent barrier;
         TThreadPool queue;
         queue.Start(limit);
         TVector<THolder<IObjectInQueue>> tasks;
         for (size_t i = 0; i < limit; ++i) {
-            tasks.emplace_back(MakeHolder<TSignalTask>(barrier, event[i]));
+            tasks.emplace_back(MakeHolder<TSignalTask>(event[i]));
             UNIT_ASSERT(queue.Add(tasks.back().Get()));
         }
         for (size_t i = limit; i != 0; --i) {
@@ -122,7 +118,7 @@ Y_UNIT_TEST_SUITE(EventTest) {
         TVector<THolder<IObjectInQueue>> tasks;
         for (size_t i = 0; i < 1000; ++i) {
             auto owner = MakeHolder<TOwnerTask>();
-            tasks.emplace_back(MakeHolder<TSignalTask>(owner->Barrier, *owner->Ev));
+            tasks.emplace_back(MakeHolder<TSignalTask>(*owner->Ev));
             tasks.emplace_back(std::move(owner));
         }
 

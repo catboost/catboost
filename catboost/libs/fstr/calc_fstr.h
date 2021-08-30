@@ -4,6 +4,7 @@
 
 #include <catboost/private/libs/algo/split.h>
 #include <catboost/libs/data/data_provider.h>
+#include <catboost/libs/metrics/metric_holder.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/private/libs/options/enums.h>
 #include <catboost/private/libs/options/enum_helpers.h>
@@ -12,9 +13,14 @@
 #include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/digest/multi.h>
+#include <util/system/types.h>
 #include <util/system/yassert.h>
 
 #include <utility>
+
+
+struct TShapPreparedTrees;
+struct IMetric;
 
 
 struct TRegularFeature {
@@ -48,8 +54,12 @@ struct TFeatureInteraction {
 public:
     TFeatureInteraction() = default;
 
-    TFeatureInteraction(double score, EFeatureType firstFeatureType, int firstFeatureIndex,
-                   EFeatureType secondFeatureType, int secondFeatureIndex)
+    TFeatureInteraction(
+        double score,
+        EFeatureType firstFeatureType,
+        int firstFeatureIndex,
+        EFeatureType secondFeatureType,
+        int secondFeatureIndex)
         : Score(score)
         , FirstFeature{firstFeatureType, firstFeatureIndex}
         , SecondFeature{secondFeatureType, secondFeatureIndex}
@@ -68,31 +78,76 @@ public:
     {}
 };
 
+
+struct TCombinationClassFeatures : public TVector<TFeature> {};
+
+TCombinationClassFeatures GetCombinationClassFeatures(const TFullModel& model);
+
+
+const NCB::TDataProviderPtr GetSubsetForFstrCalc(
+    const NCB::TDataProviderPtr dataset,
+    NPar::ILocalExecutor* localExecutor
+);
+
+void CreateMetricAndLossDescriptionForLossChange(
+    const TFullModel& model,
+    NCatboostOptions::TLossDescription* metricDescription,
+    NCatboostOptions::TLossDescription* lossDescription,
+    bool* needYetiRankPairs,
+    THolder<IMetric>* metric
+);
+
+TVector<TMetricHolder> CalcFeatureEffectLossChangeMetricStats(
+    const TFullModel& model,
+    const int featuresCount,
+    const TShapPreparedTrees& preparedTrees,
+    const NCB::TDataProviderPtr dataset,
+    ECalcTypeShapValues calcType,
+    NPar::ILocalExecutor* localExecutor
+);
+
+TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChangeFromScores(
+    const TCombinationClassFeatures& combinationClassFeatures,
+    const IMetric& metric,
+    const TVector<TMetricHolder>& scores
+);
+
+TVector<std::pair<double, TFeature>> CalcFeatureEffectAverageChange(
+    const TFullModel& model,
+    TConstArrayRef<double> weights
+);
+
 TVector<std::pair<double, TFeature>> CalcFeatureEffect(
     const TFullModel& model,
     const NCB::TDataProviderPtr dataset, // can be nullptr
     EFstrType type,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     ECalcTypeShapValues calcType = ECalcTypeShapValues::Regular
 );
 
 TVector<TFeatureEffect> CalcRegularFeatureEffect(
     const TVector<std::pair<double, TFeature>>& effect,
-    int catFeaturesCount,
-    int floatFeaturesCount);
+    const TFullModel& model
+);
+
+TVector<double> GetFeatureEffectForLinearIndices(
+    const TVector<std::pair<double, TFeature>>& featureEffect,
+    const TFullModel& model
+);
 
 TVector<double> CalcRegularFeatureEffect(
     const TFullModel& model,
     const NCB::TDataProviderPtr dataset, // can be nullptr
     EFstrType type,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     ECalcTypeShapValues calcType = ECalcTypeShapValues::Regular
 );
 
 TVector<TInternalFeatureInteraction> CalcInternalFeatureInteraction(const TFullModel& model);
 TVector<TFeatureInteraction> CalcFeatureInteraction(
     const TVector<TInternalFeatureInteraction>& internalFeatureInteraction,
-    const NCB::TFeaturesLayout& layout);
+    const NCB::TFeaturesLayout& layout
+);
 
 TVector<TVector<double>> CalcInteraction(const TFullModel& model);
 TVector<TVector<double>> GetFeatureImportances(
@@ -132,11 +187,18 @@ TVector<TVector<TVector<TVector<double>>>> CalcShapFeatureInteractionMulti(
 
 /*
  * model is the primary source of featureIds,
- * if model does not contain featureIds data then try to get this data from pool (if provided (non nullptr))
+ * if model does not contain featureIds data then try to get this data from dataset (if provided (non nullptr))
  * for all remaining features without id generated featureIds will be just their external indices
  * (indices in original training dataset)
  */
 TVector<TString> GetMaybeGeneratedModelFeatureIds(
     const TFullModel& model,
-    const NCB::TDataProviderPtr dataset); // can be nullptr
+    const NCB::TFeaturesLayoutPtr datasetFeaturesLayout // can be nullptr
+);
 
+TVector<TString> GetMaybeGeneratedModelFeatureIds(
+    const TFullModel& model,
+    const NCB::TDataProviderPtr dataset // can be nullptr
+);
+
+i64 GetMaxObjectCountForFstrCalc(i64 objectCount, i32 featureCount);

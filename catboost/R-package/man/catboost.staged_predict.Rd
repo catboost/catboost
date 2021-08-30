@@ -4,9 +4,16 @@
 \alias{catboost.staged_predict}
 \title{Apply the model for each tree}
 \usage{
-catboost.staged_predict(model, pool, verbose = FALSE,
-  prediction_type = "RawFormulaVal", ntree_start = 0, ntree_end = 0,
-  eval_period = 1, thread_count = -1)
+catboost.staged_predict(
+  model,
+  pool,
+  verbose = FALSE,
+  prediction_type = "RawFormulaVal",
+  ntree_start = 0L,
+  ntree_end = 0L,
+  eval_period = 1,
+  thread_count = -1
+)
 }
 \arguments{
 \item{model}{The model obtained as the result of training.
@@ -51,12 +58,15 @@ Allows you to optimize the speed of execution. This parameter doesn't affect res
 
 Default value: 1}
 }
-\description{
-Apply the model to the given dataset and calculate the results for each i-th tree of the model taking into consideration only the trees in the range [1;i].
+\value{
+List object with predictions from one iteration.
 }
-\details{
-Peculiarities: In case of multiclassification the prediction is returned in the form of a matrix.
-Each line of this matrix contains the predictions for one object of the input dataset.
+\description{
+Apply the model to the given dataset and calculate the results for each i-th tree of the model
+             taking into consideration only the trees in the range [1;i].
+
+             Peculiarities: In case of multiclassification the prediction is returned in the form of a matrix.
+             Each line of this matrix contains the predictions for one object of the input dataset.
 }
 \seealso{
 \url{https://catboost.ai/docs/concepts/r-reference_catboost-staged_predict.html}

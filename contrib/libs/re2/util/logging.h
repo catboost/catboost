@@ -62,7 +62,7 @@ class LogMessage {
   }
   void Flush() {
     stream() << "\n";
-    string s = str_.str();
+    std::string s = str_.str();
     size_t n = s.size();
     if (fwrite(s.data(), 1, n, stderr) < n) {}  // shut up gcc
     flushed_ = true;
@@ -93,7 +93,7 @@ class LogMessageFatal : public LogMessage {
  public:
   LogMessageFatal(const char* file, int line)
       : LogMessage(file, line) {}
-  ~LogMessageFatal() {
+  ATTRIBUTE_NORETURN ~LogMessageFatal() {
     Flush();
     abort();
   }

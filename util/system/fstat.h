@@ -11,9 +11,10 @@ struct TFileStat {
     ui32 Uid = 0;  /* user ID of owner */
     ui32 Gid = 0;  /* group ID of owner */
 
-    ui64 NLinks = 0; /* number of hard links */
-    ui64 Size = 0;   /* total size, in bytes */
-    ui64 INode = 0;  /* inode number */
+    ui64 NLinks = 0;         /* number of hard links */
+    ui64 Size = 0;           /* total size, in bytes */
+    ui64 INode = 0;          /* inode number */
+    ui64 AllocationSize = 0; /* number of bytes allocated on the disk */
 
     time_t ATime = 0; /* time of last access */
     time_t MTime = 0; /* time of last modification */

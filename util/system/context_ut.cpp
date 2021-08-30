@@ -6,7 +6,7 @@
 
 Y_UNIT_TEST_SUITE(TestContext) {
     template <class F>
-    static TContClosure Wrap(F & f) {
+    static TContClosure Wrap(F& f) {
         struct TW: public ITrampoLine {
             inline TW(F* ff) noexcept
                 : F_(ff)

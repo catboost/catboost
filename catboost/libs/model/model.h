@@ -9,8 +9,12 @@
 #include "split.h"
 
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/maybe_owning_array_holder.h>
+#include <catboost/libs/model/enums.h>
+
 #include <catboost/private/libs/options/enums.h>
 #include <catboost/private/libs/text_features/text_processing_collection.h>
+#include <catboost/private/libs/embedding_features/embedding_processing_collection.h>
 
 #include <library/cpp/json/json_value.h>
 
@@ -61,9 +65,14 @@ struct TRepackedBin {
     ui16 FeatureIndex = 0;
     ui8 XorMask = 0;
     ui8 SplitIdx = 0;
+
+    TRepackedBin& operator=(const NCatBoostFbs::TRepackedBin*);
 };
 
 constexpr ui32 MAX_VALUES_PER_BIN = 254;
+
+constexpr double DEFAULT_BINCLASS_PROBABILITY_THRESHOLD = 0.5;
+constexpr double DEFAULT_BINCLASS_LOGIT_THRESHOLD = 0;
 
 // If selected diff is 0 we are in the last node in path
 struct TNonSymmetricTreeStepNode {
@@ -137,39 +146,44 @@ public:
      * This structure stores model runtime data. Should be kept up to date
      */
     struct TRuntimeData {
-        size_t UsedFloatFeaturesCount = 0;
-        size_t UsedCatFeaturesCount = 0;
-        size_t UsedTextFeaturesCount = 0;
-        size_t UsedEstimatedFeaturesCount = 0;
-        size_t MinimalSufficientFloatFeaturesVectorSize = 0;
-        size_t MinimalSufficientCatFeaturesVectorSize = 0;
-        size_t MinimalSufficientTextFeaturesVectorSize = 0;
-        /**
-         * List of all TModelCTR used in model
-         */
-        TVector<TModelCtr> UsedModelCtrs;
         /**
          * List of all binary with indexes corresponding to TreeSplits values
          */
         TVector<TModelSplit> BinFeatures;
-
-        /**
-        * This vector contains ui32 that contains such information:
-        * |     ui16     |   ui8   |   ui8  |
-        * | featureIndex | xorMask |splitIdx| (e.g. featureIndex << 16 + xorMask << 8 + splitIdx )
-        *
-        * We use this layout to speed up model apply - we only need to store one byte for each float, ctr or
-        *  one hot feature.
-        */
-
-        static_assert(sizeof(TRepackedBin) == 4, "");
-
-        TVector<TRepackedBin> RepackedBins;
-
         ui32 EffectiveBinFeaturesBucketCount = 0;
+    };
+
+    struct TForApplyData {
+        size_t UsedFloatFeaturesCount = 0;
+        size_t UsedCatFeaturesCount = 0;
+        size_t UsedTextFeaturesCount = 0;
+        size_t UsedEmbeddingFeaturesCount = 0;
+        size_t UsedEstimatedFeaturesCount = 0;
+        size_t MinimalSufficientFloatFeaturesVectorSize = 0;
+        size_t MinimalSufficientCatFeaturesVectorSize = 0;
+        size_t MinimalSufficientTextFeaturesVectorSize = 0;
+        size_t MinimalSufficientEmbeddingFeaturesVectorSize = 0;
+        /**
+         * List of all TModelCTR used in model
+         */
+        TVector<TModelCtr> UsedModelCtrs;
 
         //! Offset of first tree leaf in flat tree leafs array
         TVector<size_t> TreeFirstLeafOffsets;
+
+        /**
+         * List all unique CTR bases (feature combination + ctr type) in model
+         * @return
+         */
+        TVector<TModelCtrBase> GetUsedModelCtrBases() const {
+            THashSet<TModelCtrBase> ctrsSet;
+            for (const auto& usedCtr : UsedModelCtrs) {
+                ctrsSet.insert(usedCtr.Base);
+            }
+            TVector<TModelCtrBase> sortedBases(ctrsSet.begin(), ctrsSet.end());
+            Sort(sortedBases.begin(), sortedBases.end());
+            return sortedBases;
+        }
     };
 
 public:
@@ -179,30 +193,39 @@ public:
     }
 
     TModelTrees& operator=(const TModelTrees& other) {
+        if (this == &other) {
+            return *this;
+        }
+
         std::tie(
             ApproxDimension,
             CatFeatures,
             FloatFeatures,
             TextFeatures,
+            EmbeddingFeatures,
             OneHotFeatures,
             CtrFeatures,
             EstimatedFeatures,
             ScaleAndBias,
-            ModelTreeData,
-            RuntimeData
+            ModelTreeData
         )
         = std::forward_as_tuple(
             other.ApproxDimension,
             other.CatFeatures,
             other.FloatFeatures,
             other.TextFeatures,
+            other.EmbeddingFeatures,
             other.OneHotFeatures,
             other.CtrFeatures,
             other.EstimatedFeatures,
             other.ScaleAndBias,
-            other.ModelTreeData->Clone(IModelTreeData::ECloningPolicy::Default),
-            other.RuntimeData
+            other.ModelTreeData->Clone(IModelTreeData::ECloningPolicy::Default)
         );
+
+        RepackedBins = other.RepackedBins;
+        RuntimeData = other.RuntimeData;
+        ApplyData = other.ApplyData;
+
         return *this;
     }
 
@@ -218,6 +241,7 @@ public:
             CatFeatures,
             FloatFeatures,
             TextFeatures,
+            EmbeddingFeatures,
             OneHotFeatures,
             CtrFeatures,
             EstimatedFeatures,
@@ -233,6 +257,7 @@ public:
             other.CatFeatures,
             other.FloatFeatures,
             other.TextFeatures,
+            other.EmbeddingFeatures,
             other.OneHotFeatures,
             other.CtrFeatures,
             other.EstimatedFeatures,
@@ -333,12 +358,17 @@ public:
         return TConstArrayRef<TTextFeature>(TextFeatures.begin(), TextFeatures.end());
     }
 
+    TConstArrayRef<TEmbeddingFeature> GetEmbeddingFeatures() const {
+        return TConstArrayRef<TEmbeddingFeature>(EmbeddingFeatures.begin(), EmbeddingFeatures.end());
+    }
+
     TConstArrayRef<TEstimatedFeature> GetEstimatedFeatures() const {
         return TConstArrayRef<TEstimatedFeature>(EstimatedFeatures.begin(), EstimatedFeatures.end());
     }
 
     void SetApproxDimension(int approxDimension) {
         ApproxDimension = approxDimension;
+        SetScaleAndBias({ScaleAndBias.Scale, TVector<double>(ApproxDimension, 0)});
     }
 
     void ClearLeafWeights();
@@ -355,6 +385,10 @@ public:
         TextFeatures = textFeatures;
     }
 
+    void SetEmbeddingFeatures(const TVector<TEmbeddingFeature>& embeddingFeatures) {
+        EmbeddingFeatures = embeddingFeatures;
+    }
+
     void SetEstimatedFeatures(const TVector<TEstimatedFeature>& estimatedFeatures) {
         EstimatedFeatures = estimatedFeatures;
     }
@@ -363,7 +397,8 @@ public:
         const TSet<TModelSplit>& modelSplitSet,
         const TVector<size_t>& floatFeaturesInternalIndexesMap,
         const TVector<size_t>& catFeaturesInternalIndexesMap,
-        const TVector<size_t>& textFeaturesInternalIndexesMap
+        const TVector<size_t>& textFeaturesInternalIndexesMap,
+        const TVector<size_t>& embeddingFeaturesInternalIndexesMap
     );
 
     void ApplyFeatureNames(const TVector<TString>& featureNames) {
@@ -417,48 +452,27 @@ public:
      *  features currently used in model.
      * Should be called after any modifications.
      */
-    void UpdateRuntimeData() const;
-    /**
-     * List of all CTRs in model
-     * @return
-     */
-    TConstArrayRef<TModelCtr> GetUsedModelCtrs() const {
-        CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
-        return RuntimeData->UsedModelCtrs;
+    void UpdateRuntimeData();
+
+    TAtomicSharedPtr<TForApplyData> GetApplyData() const {
+        return ApplyData;
     }
+
     /**
      * List all binary features corresponding to binary feature indexes in trees
      * @return
      */
     TConstArrayRef<TModelSplit> GetBinFeatures() const {
-        CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
         return RuntimeData->BinFeatures;
     }
 
     TConstArrayRef<TRepackedBin> GetRepackedBins() const {
-        CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
-        return RuntimeData->RepackedBins;
-    }
-
-    TConstArrayRef<size_t> GetFirstLeafOffsets() const {
-        CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
-        return RuntimeData->TreeFirstLeafOffsets;
+        return *RepackedBins;
     }
 
     const double* GetFirstLeafPtrForTree(size_t treeIdx) const {
-        CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
-        return &GetModelTreeData()->GetLeafValues()[RuntimeData->TreeFirstLeafOffsets[treeIdx]];
-    }
-    /**
-     * List all unique CTR bases (feature combination + ctr type) in model
-     * @return
-     */
-    TVector<TModelCtrBase> GetUsedModelCtrBases() const {
-        THashSet<TModelCtrBase> ctrsSet; // return sorted bases
-        for (const auto& usedCtr : GetUsedModelCtrs()) {
-            ctrsSet.insert(usedCtr.Base);
-        }
-        return TVector<TModelCtrBase>(ctrsSet.begin(), ctrsSet.end());
+        auto applyData = GetApplyData();
+        return &ModelTreeData->GetLeafValues()[applyData->TreeFirstLeafOffsets[treeIdx]];
     }
 
     size_t GetNumFloatFeatures() const {
@@ -469,16 +483,6 @@ public:
         }
     }
 
-    size_t GetMinimalSufficientFloatFeaturesVectorSize() const {
-        CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
-        return RuntimeData->MinimalSufficientFloatFeaturesVectorSize;
-    }
-
-    size_t GetUsedFloatFeaturesCount() const {
-        CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
-        return RuntimeData->UsedFloatFeaturesCount;
-    }
-
     size_t GetNumCatFeatures() const {
         if (CatFeatures.empty()) {
             return 0;
@@ -487,29 +491,20 @@ public:
         }
     }
 
-    size_t GetMinimalSufficientCatFeaturesVectorSize() const {
-        CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
-        return RuntimeData->MinimalSufficientCatFeaturesVectorSize;
+    size_t GetNumTextFeatures() const {
+        if (TextFeatures.empty()) {
+            return 0;
+        } else {
+            return static_cast<size_t>(TextFeatures.back().Position.Index) + 1;
+        }
     }
 
-    size_t GetUsedCatFeaturesCount() const {
-        CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
-        return RuntimeData->UsedCatFeaturesCount;
-    }
-
-    size_t GetUsedTextFeaturesCount() const {
-        CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
-        return RuntimeData->UsedTextFeaturesCount;
-    }
-
-    size_t GetMinimalSufficientTextFeaturesVectorSize() const {
-        CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
-        return RuntimeData->MinimalSufficientTextFeaturesVectorSize;
-    }
-
-    size_t GetUsedEstimatedFeaturesCount() const {
-        CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
-        return RuntimeData->UsedEstimatedFeaturesCount;
+    size_t GetNumEmbeddingFeatures() const {
+        if (EmbeddingFeatures.empty()) {
+            return 0;
+        } else {
+            return static_cast<size_t>(EmbeddingFeatures.back().Position.Index) + 1;
+        }
     }
 
     size_t GetBinaryFeaturesFullCount() const {
@@ -517,7 +512,6 @@ public:
     }
 
     ui32 GetEffectiveBinaryFeaturesBucketsCount() const {
-        CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
         return RuntimeData->EffectiveBinFeaturesBucketCount;
     }
 
@@ -525,7 +519,8 @@ public:
         return (size_t)Max(
             CatFeatures.empty() ? 0 : CatFeatures.back().Position.FlatIndex + 1,
             FloatFeatures.empty() ? 0 : FloatFeatures.back().Position.FlatIndex + 1,
-            TextFeatures.empty() ? 0 : TextFeatures.back().Position.FlatIndex + 1
+            TextFeatures.empty() ? 0 : TextFeatures.back().Position.FlatIndex + 1,
+            EmbeddingFeatures.empty() ? 0 : EmbeddingFeatures.back().Position.FlatIndex + 1
         );
     }
 
@@ -542,7 +537,24 @@ private:
 
     void SetScaleAndBias(const NCatBoostFbs::TModelTrees* fbObj);
 
-
+    void CalcBinFeatures();
+    void CalcForApplyData() {
+        ApplyData = MakeAtomicShared<TForApplyData>();
+        ProcessFloatFeatures();
+        ProcessCatFeatures();
+        ProcessTextFeatures();
+        ProcessEmbeddingFeatures();
+        ProcessEstimatedFeatures();
+        CalcUsedModelCtrs();
+        CalcFirstLeafOffsets();
+    }
+    void CalcUsedModelCtrs();
+    void CalcFirstLeafOffsets();
+    void ProcessFloatFeatures();
+    void ProcessCatFeatures();
+    void ProcessTextFeatures();
+    void ProcessEstimatedFeatures();
+    void ProcessEmbeddingFeatures();
 private:
     //! Number of classes in model, in most cases equals to 1.
     int ApproxDimension = 1;
@@ -565,13 +577,31 @@ private:
 
     //! Text features used in model
     TVector<TTextFeature> TextFeatures;
-    //! Computed on text features used in model
+
+    //! Embedding features used in model
+    TVector<TEmbeddingFeature> EmbeddingFeatures;
+
+    //! Computed on text and embedding features used in model
     TVector<TEstimatedFeature> EstimatedFeatures;
 
     //! For computing final formula result as `Scale * sumTrees + Bias`
     TScaleAndBias ScaleAndBias;
 
-    mutable TMaybe<TRuntimeData> RuntimeData;
+    TAtomicSharedPtr<TRuntimeData> RuntimeData;
+    TAtomicSharedPtr<TForApplyData> ApplyData;
+
+    /**
+    * This vector contains ui32 that contains such information:
+    * |     ui16     |   ui8   |   ui8  |
+    * | featureIndex | xorMask |splitIdx| (e.g. featureIndex << 16 + xorMask << 8 + splitIdx )
+    *
+    * We use this layout to speed up model apply - we only need to store one byte for each float, ctr or
+    *  one hot feature.
+    */
+
+    static_assert(sizeof(TRepackedBin) == 4, "");
+
+    mutable NCB::TMaybeOwningConstArrayHolder<TRepackedBin> RepackedBins;
 };
 
 class TCOWTreeWrapper {
@@ -614,6 +644,7 @@ public:
     THashMap<TString, TString> ModelInfo;
     TIntrusivePtr<ICtrProvider> CtrProvider;
     TIntrusivePtr<NCB::TTextProcessingCollection> TextProcessingCollection;
+    TIntrusivePtr<NCB::TEmbeddingProcessingCollection> EmbeddingProcessingCollection;
 private:
     EFormulaEvaluatorType FormulaEvaluatorType = EFormulaEvaluatorType::CPU;
     TAdaptiveLock CurrentEvaluatorLock;
@@ -639,6 +670,19 @@ public:
         }
     }
 
+    void SetPredictionType(NCB::NModelEvaluation::EPredictionType predictionType) const {
+        with_lock(CurrentEvaluatorLock) {
+            if (!Evaluator) {
+                Evaluator = NCB::NModelEvaluation::CreateEvaluator(FormulaEvaluatorType, *this);
+            }
+            Evaluator->SetPredictionType(predictionType);
+        }
+    }
+
+    EFormulaEvaluatorType GetEvaluatorType() const {
+        return FormulaEvaluatorType;
+    }
+
     bool operator==(const TFullModel& other) const {
         return *ModelTrees == *other.ModelTrees;
     }
@@ -659,6 +703,7 @@ public:
             }
         }
         DoSwap(TextProcessingCollection, other.TextProcessingCollection);
+        DoSwap(EmbeddingProcessingCollection, other.EmbeddingProcessingCollection);
     }
 
     /**
@@ -673,6 +718,10 @@ public:
      */
     bool HasTextFeatures() const {
         return GetUsedTextFeaturesCount() != 0;
+    }
+
+    bool HasEmbeddingFeatures() const {
+        return GetUsedEmbeddingFeaturesCount() != 0;
     }
 
     /**
@@ -695,9 +744,10 @@ public:
      * @param end
      */
     void Truncate(size_t begin, size_t end) {
+        auto applyData = ModelTrees->GetApplyData();
         ModelTrees.GetMutable()->TruncateTrees(begin, end);
         if (CtrProvider) {
-            CtrProvider->DropUnusedTables(ModelTrees->GetUsedModelCtrBases());
+            CtrProvider->DropUnusedTables(applyData->GetUsedModelCtrBases());
         }
         if (begin > 0) {
             SetScaleAndBias({GetScaleAndBias().Scale, {}});
@@ -709,20 +759,27 @@ public:
      * @return Minimal float features vector length sufficient for this model
      */
     size_t GetMinimalSufficientFloatFeaturesVectorSize() const {
-        return ModelTrees->GetMinimalSufficientFloatFeaturesVectorSize();
+        auto applyData = ModelTrees->GetApplyData();
+        return applyData->MinimalSufficientFloatFeaturesVectorSize;
     }
     /**
      * @return Number of float features that are really used in trees
      */
     size_t GetUsedFloatFeaturesCount() const {
-        return ModelTrees->GetUsedFloatFeaturesCount();
+        auto applyData = ModelTrees->GetApplyData();
+        return applyData->UsedFloatFeaturesCount;
     }
 
     /**
      * @return Number of text features that are really used in trees
      */
     size_t GetUsedTextFeaturesCount() const {
-        return ModelTrees->GetUsedTextFeaturesCount();
+        auto applyData = ModelTrees->GetApplyData();
+        return applyData->UsedTextFeaturesCount;
+    }
+
+    size_t GetUsedEmbeddingFeaturesCount() const {
+        return ModelTrees->GetApplyData()->UsedEmbeddingFeaturesCount;
     }
 
     /**
@@ -736,13 +793,15 @@ public:
      * @return Expected categorical features vector length for this model
      */
     size_t GetMinimalSufficientCatFeaturesVectorSize() const {
-        return ModelTrees->GetMinimalSufficientCatFeaturesVectorSize();
+        auto applyData = ModelTrees->GetApplyData();
+        return applyData->MinimalSufficientCatFeaturesVectorSize;
     }
     /**
     * @return Number of float features that are really used in trees
     */
     size_t GetUsedCatFeaturesCount() const {
-        return ModelTrees->GetUsedCatFeaturesCount();
+        auto applyData = ModelTrees->GetApplyData();
+        return applyData->UsedCatFeaturesCount;
     }
 
     /**
@@ -750,6 +809,20 @@ public:
      */
     size_t GetNumCatFeatures() const {
         return ModelTrees->GetNumCatFeatures();
+    }
+
+    /**
+    * @return Expected text features vector length for this model
+    */
+    size_t GetNumTextFeatures() const {
+        return ModelTrees->GetNumTextFeatures();
+    }
+
+    /**
+    * @return Expected embeddings features vector length for this model
+    */
+    size_t GetNumEmbeddingFeatures() const {
+        return ModelTrees->GetNumEmbeddingFeatures();
     }
 
     /**
@@ -774,15 +847,20 @@ public:
     //! Check if TFullModel instance has valid CTR provider.
     // If no ctr features present it will return true
     bool HasValidCtrProvider() const {
+        auto applyData = ModelTrees->GetApplyData();
         if (!CtrProvider) {
-            return ModelTrees->GetUsedModelCtrs().empty();
+            return applyData->UsedModelCtrs.empty();
         }
-        return CtrProvider->HasNeededCtrs(ModelTrees->GetUsedModelCtrs());
+        return CtrProvider->HasNeededCtrs(applyData->UsedModelCtrs);
     }
 
     //! Check if TFullModel instance has valid Text processing collection
     bool HasValidTextProcessingCollection() const {
         return (bool) TextProcessingCollection;
+    }
+
+    bool HasValidEmbeddingProcessingCollection() const {
+        return (bool) EmbeddingProcessingCollection;
     }
 
     //! Get normalization parameters used to compute final formula from sum of trees
@@ -933,6 +1011,41 @@ public:
         const TFeatureLayout* featureInfo = nullptr
     ) const {
         Calc(floatFeatures, catFeatures, 0, GetTreeCount(), results, featureInfo);
+    }
+
+    /**
+     * Evaluate raw formula predictions on user data. Uses model trees for interval [treeStart, treeEnd)
+     * @param[in] floatFeatures
+     * @param[in] catFeatures hashed cat feature values
+     * @param[in] textFeatures
+     * @param[in] treeStart
+     * @param[in] treeEnd
+     * @param[out] results results indexation is [objectIndex * ApproxDimension + classId]
+     */
+    void CalcWithHashedCatAndText(
+        TConstArrayRef<TConstArrayRef<float>> floatFeatures,
+        TConstArrayRef<TConstArrayRef<int>> catFeatures,
+        TConstArrayRef<TVector<TStringBuf>> textFeatures,
+        size_t treeStart,
+        size_t treeEnd,
+        TArrayRef<double> results,
+        const TFeatureLayout* featureInfo = nullptr) const;
+
+    /**
+     * Evaluate raw formula predictions on user data. Uses all model trees
+     * @param floatFeatures
+     * @param catFeatures hashed cat feature values
+     * @param textFeatures
+     * @param results results indexation is [objectIndex * ApproxDimension + classId]
+     */
+    void CalcWithHashedCatAndText(
+        TConstArrayRef<TConstArrayRef<float>> floatFeatures,
+        TConstArrayRef<TConstArrayRef<int>> catFeatures,
+        TConstArrayRef<TVector<TStringBuf>> textFeatures,
+        TArrayRef<double> results,
+        const TFeatureLayout* featureInfo = nullptr
+    ) const {
+        CalcWithHashedCatAndText(floatFeatures, catFeatures, textFeatures, 0, GetTreeCount(), results, featureInfo);
     }
 
     /**
@@ -1106,6 +1219,18 @@ public:
     TString GetLossFunctionName() const;
 
     /**
+     * Get the probability threshold for binary classification to separate classes.
+     * @return the value is stored in `binclass_probability_threshold` metadata or 0.5 as default value.
+     */
+    double GetBinClassProbabilityThreshold() const;
+
+    /**
+     * Get the logit threshold for binary classification to separate classes.
+     * @return Logit(GetBinClassProbabilityThreshold())
+     */
+    double GetBinClassLogitThreshold() const;
+
+    /**
      * Get typed class labels than can be predicted.
      *
      * @return Vector of typed class labels corresponding to approx dimension if the model can be used for
@@ -1126,6 +1251,10 @@ public:
      * Update indexes between TextProcessingCollection and Estimated features in ModelTrees
      */
     void UpdateEstimatedFeaturesIndices(TVector<TEstimatedFeature>&& newEstimatedFeatures);
+
+    bool IsPosteriorSamplingModel() const;
+
+    float GetActualShrinkCoef() const;
 
 private:
     void DefaultFullModelInit(const NCatBoostFbs::TModelCore* fbModelCore);
@@ -1176,3 +1305,5 @@ TFullModel SumModels(
 void SaveModelBorders(
     const TString& file,
     const TFullModel& model);
+
+THashMap<int, TFloatFeature::ENanValueTreatment> GetNanTreatments(const TFullModel& model);

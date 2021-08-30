@@ -19,6 +19,11 @@ from distutils.util import strtobool
 import zipfile
 
 try:
+    from collections.abc import Iterable
+except ImportError:
+    from collections import Iterable
+
+try:
     import gzip
     gzip_open = gzip.open
     gzip_ext = '.gz'
@@ -749,7 +754,7 @@ def create_extension_list(patterns, exclude=None, ctx=None, aliases=None, quiet=
         exclude = []
     if patterns is None:
         return [], {}
-    elif isinstance(patterns, basestring) or not isinstance(patterns, collections.Iterable):
+    elif isinstance(patterns, basestring) or not isinstance(patterns, Iterable):
         patterns = [patterns]
     explicit_modules = set([m.name for m in patterns if isinstance(m, Extension)])
     seen = set()
@@ -905,7 +910,8 @@ def cythonize(module_list, exclude=None, nthreads=0, aliases=None, quiet=False, 
                     variable called ``foo`` as a string, and then call
                     ``cythonize(..., aliases={'MY_HEADERS': foo})``.
 
-    :param quiet: If True, Cython won't print error and warning messages during the compilation.
+    :param quiet: If True, Cython won't print error, warning, or status messages during the
+                  compilation.
 
     :param force: Forces the recompilation of the Cython modules, even if the timestamps
                   don't indicate that a recompilation is necessary.

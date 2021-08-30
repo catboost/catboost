@@ -1,5 +1,7 @@
 PY23_LIBRARY()
 
+LICENSE(YandexOpen)
+
 
 
 NO_PYTHON_INCLUDES()

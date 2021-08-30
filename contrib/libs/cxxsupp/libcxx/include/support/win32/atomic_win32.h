@@ -64,9 +64,9 @@ static inline void __c11_atomic_init(_Atomic(_Tp)* __a,  _Tp __val) {
 }
 
 static inline void __c11_atomic_thread_fence(int __order) {
-    if (__order != memory_order_relaxed) {
+    if (__order != static_cast<int>(memory_order_relaxed)) {
 #if defined(_M_IX86) || defined(_M_X64)
-        if (__order == memory_order_seq_cst) {
+        if (__order == static_cast<int>(memory_order_seq_cst)) {
             _MemoryBarrier;
         } else {
             _ReadWriteBarrier();
@@ -1147,16 +1147,17 @@ static constexpr bool __atomic_always_lock_free(size_t __size, void*) {
     return __size <= 8;
 }
 
-#define __GCC_ATOMIC_BOOL_LOCK_FREE 1
-#define __GCC_ATOMIC_CHAR_LOCK_FREE 1
-#define __GCC_ATOMIC_CHAR16_T_LOCK_FREE 1
-#define __GCC_ATOMIC_CHAR32_T_LOCK_FREE 1
-#define __GCC_ATOMIC_WCHAR_T_LOCK_FREE 1
-#define __GCC_ATOMIC_SHORT_LOCK_FREE 1
-#define __GCC_ATOMIC_INT_LOCK_FREE 1
-#define __GCC_ATOMIC_LONG_LOCK_FREE 1
-#define __GCC_ATOMIC_LLONG_LOCK_FREE 1
-#define __GCC_ATOMIC_POINTER_LOCK_FREE 1
+#define __CLANG_ATOMIC_BOOL_LOCK_FREE 2
+#define __CLANG_ATOMIC_CHAR_LOCK_FREE 2
+#define __CLANG_ATOMIC_CHAR8_T_LOCK_FREE 2
+#define __CLANG_ATOMIC_CHAR16_T_LOCK_FREE 2
+#define __CLANG_ATOMIC_CHAR32_T_LOCK_FREE 2
+#define __CLANG_ATOMIC_WCHAR_T_LOCK_FREE 2
+#define __CLANG_ATOMIC_SHORT_LOCK_FREE 2
+#define __CLANG_ATOMIC_INT_LOCK_FREE 2
+#define __CLANG_ATOMIC_LONG_LOCK_FREE 2
+#define __CLANG_ATOMIC_LLONG_LOCK_FREE 2
+#define __CLANG_ATOMIC_POINTER_LOCK_FREE 2
 
 _LIBCPP_END_NAMESPACE_STD
 

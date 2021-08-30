@@ -2,12 +2,9 @@
 
 #include "rapidjson_helpers.h"
 
-#include <contrib/libs/rapidjson/include/rapidjson/document.h>
 #include <contrib/libs/rapidjson/include/rapidjson/error/en.h>
 #include <contrib/libs/rapidjson/include/rapidjson/error/error.h>
 #include <contrib/libs/rapidjson/include/rapidjson/reader.h>
-#include <contrib/libs/rapidjson/include/rapidjson/stringbuffer.h>
-#include <contrib/libs/rapidjson/include/rapidjson/writer.h>
 
 #include <util/generic/stack.h>
 #include <util/string/cast.h>
@@ -17,9 +14,9 @@
 namespace NJson {
     namespace {
         TString PrintError(const rapidjson::ParseResult& result) {
-            return TStringBuilder() << AsStringBuf("Offset: ") << result.Offset()
-                                    << AsStringBuf(", Code: ") << (int)result.Code()
-                                    << AsStringBuf(", Error: ") << GetParseError_En(result.Code());
+            return TStringBuilder() << TStringBuf("Offset: ") << result.Offset()
+                                    << TStringBuf(", Code: ") << (int)result.Code()
+                                    << TStringBuf(", Error: ") << GetParseError_En(result.Code());
         }
     }
 

@@ -56,7 +56,7 @@ namespace {
                 const size_t seplen = srctok->Pos - srcpos; // srcpos - the beginning of source delimiter
 
                 // copy suffix with delimiter
-                TCharTraits<wchar16>::Copy(buffer + destpos, entry + srcpos, seplen);
+                std::char_traits<wchar16>::copy(buffer + destpos, entry + srcpos, seplen);
                 destpos += seplen;
 
                 srcpos = srctok->Pos; // keep it before CopyToken()
@@ -67,7 +67,7 @@ namespace {
 
     //! @param len    length of text to be copied (it can include suffix length)
     inline void CopyTokenText(wchar16* buffer, const wchar16* entry, size_t len, size_t& destpos, size_t& srcpos) {
-        TCharTraits<wchar16>::Copy(buffer + destpos, entry + srcpos, len); // srcpos - the beginning of source token
+        std::char_traits<wchar16>::copy(buffer + destpos, entry + srcpos, len); // srcpos - the beginning of source token
         srcpos += len;
         destpos += len;
     }
@@ -154,7 +154,7 @@ NLP_TYPE PrepareMultitoken(TTokenStructure& subtokens, wchar16* buffer, size_t b
         subtokens[0].Len = srcpos - subtokens[0].Pos;
     }
     size_t destpos = srcpos;
-    TCharTraits<wchar16>::Copy(buffer, entry, srcpos);
+    std::char_traits<wchar16>::copy(buffer, entry, srcpos);
 
     TCharSpan* const firsttok = &subtokens[0];
     TCharSpan* const lasttok = firsttok + subtokens.size();

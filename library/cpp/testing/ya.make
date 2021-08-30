@@ -4,8 +4,7 @@ RECURSE(
     benchmark/examples
     benchmark/examples/metrics
     benchmark/main
+    hook
     unittest
     unittest_main
-    unittest/fat
-    unittest/ut
 )

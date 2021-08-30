@@ -42,6 +42,7 @@ namespace NCB {
         readDatasetMainParams->ColumnarPoolFormatParams.DsvFormat.NumVectorDelimiter
             = srcData.NumVectorDelimiter;
         SaveDataToTempFile(srcData.PairsFileData, &(readDatasetMainParams->PairsFilePath), srcDataFiles);
+        readDatasetMainParams->PairsFilePath.Scheme = srcData.PairsScheme;
         SaveDataToTempFile(
             srcData.GroupWeightsFileData,
             &(readDatasetMainParams->GroupWeightsFilePath),
@@ -79,6 +80,7 @@ namespace NCB {
                 /*timestampsFilePath*/TPathWithScheme(),
                 readDatasetMainParams.BaselineFilePath, // can be uninited
                 readDatasetMainParams.FeatureNamesFilePath, // can be uninited
+                /*poolMetaInfoFilePath*/TPathWithScheme(),
                 readDatasetMainParams.ColumnarPoolFormatParams,
                 testCase.SrcData.IgnoredFeatures,
                 testCase.SrcData.ObjectsOrder,

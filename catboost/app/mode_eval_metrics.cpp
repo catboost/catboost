@@ -79,7 +79,7 @@ static void ReadDatasetParts(
     TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions,
     const TFullModel& model,
     TRestorableFastRng64* rand,
-    NPar::TLocalExecutor* executor,
+    NPar::ILocalExecutor* executor,
     TVector<TProcessedDataProvider>* processedDatasetParts) {
 
     processedDatasetParts->clear();

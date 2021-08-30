@@ -59,13 +59,13 @@ public:
         const CodePage* cp = CodePageByCharset(CODES_ASCII);
         char tmp[100];
 
-        TStringBuf s = AsStringBuf("abcde");
+        TStringBuf s = "abcde";
 
         TStringBuf upper(tmp, cp->ToUpper(s.begin(), s.end(), tmp));
-        UNIT_ASSERT_VALUES_EQUAL(upper, AsStringBuf("ABCDE"));
+        UNIT_ASSERT_VALUES_EQUAL(upper, TStringBuf("ABCDE"));
 
         TStringBuf lower(tmp, cp->ToLower(upper.begin(), upper.end(), tmp));
-        UNIT_ASSERT_VALUES_EQUAL(lower, AsStringBuf("abcde"));
+        UNIT_ASSERT_VALUES_EQUAL(lower, TStringBuf("abcde"));
     }
 
     void TestBrokenRune() {

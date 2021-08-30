@@ -8,7 +8,6 @@
 #include <util/generic/map.h>
 #include <util/generic/ptr.h>
 #include <util/generic/set.h>
-#include <util/generic/type_name.h>
 #include <util/generic/typetraits.h>
 #include <util/generic/vector.h>
 #include <util/generic/yexception.h>
@@ -18,6 +17,7 @@
 #include <util/string/printf.h>
 
 #include <util/system/defaults.h>
+#include <util/system/type_name.h>
 #include <util/system/spinlock.h>
 #include <util/system/src_location.h>
 
@@ -72,8 +72,6 @@ namespace NUnitTest {
             : Processor(processor)
         {
         }
-
-        const TString& GetParam(const TString& key, const TString& def) const;
 
         using TMetrics = THashMap<TString, double>;
         TMetrics Metrics;
@@ -144,10 +142,6 @@ namespace NUnitTest {
 
         // --fork-tests is set (warning: this may be false, but never the less test will be forked if called inside UNIT_FORKED_TEST)
         virtual bool GetForkTests() const;
-
-        virtual void SetParam(const TString& /*key*/, const TString& /*value*/);
-
-        virtual const TString& GetParam(const TString& /*key*/, const TString& /*def*/) const;
 
     private:
         virtual void OnStart();
@@ -276,7 +270,7 @@ private:                                             \
                                                            \
 public:                                                    \
     static TString StaticName() noexcept {                 \
-        return TCppDemangler().Demangle(typeid(N).name()); \
+        return TypeName<N>(); \
     }                                                      \
                                                            \
 private:                                                   \
@@ -288,8 +282,8 @@ private:                                                   \
         this->AtStart();
 
 #ifndef UT_SKIP_EXCEPTIONS
-#define CATCH_REACTION(FN, e, context) this->AddError(("(" + TypeName(&e) + ") " + e.what()).data(), context)
-#define CATCH_REACTION_BT(FN, e, context) this->AddError(("(" + TypeName(&e) + ") " + e.what()).data(), (e.BackTrace() ? e.BackTrace()->PrintToString() : TString()), context)
+#define CATCH_REACTION(FN, e, context) this->AddError(("(" + TypeName(e) + ") " + e.what()).data(), context)
+#define CATCH_REACTION_BT(FN, e, context) this->AddError(("(" + TypeName(e) + ") " + e.what()).data(), (e.BackTrace() ? e.BackTrace()->PrintToString() : TString()), context)
 #else
 #define CATCH_REACTION(FN, e, context) throw
 #define CATCH_REACTION_BT(FN, e, context) throw
@@ -389,7 +383,9 @@ public:                       \
     } while (false)
 
 //doubles
-#define UNIT_ASSERT_DOUBLES_EQUAL_C(E, A, D, C)                                                                \
+// UNIT_ASSERT_DOUBLES_EQUAL_DEPRECATED* macros do not handle NaNs correctly (see IGNIETFERRO-1419) and are for backward compatibility
+// only. Consider switching to regular UNIT_ASSERT_DOUBLES_EQUAL* macros if you're still using the deprecated version.
+#define UNIT_ASSERT_DOUBLES_EQUAL_DEPRECATED_C(E, A, D, C)                                                     \
     do {                                                                                                       \
         if (std::abs((E) - (A)) > (D)) {                                                                       \
             const auto _es = ToString((long double)(E));                                                       \
@@ -398,6 +394,32 @@ public:                       \
             auto&& failMsg = Sprintf("std::abs(%s - %s) > %s %s", _es.data(), _as.data(), _ds.data(), (TStringBuilder() << C).data()); \
             UNIT_FAIL_IMPL("assertion failure", failMsg);                                                      \
         }                                                                                                      \
+    } while (false)
+
+#define UNIT_ASSERT_DOUBLES_EQUAL_DEPRECATED(E, A, D) UNIT_ASSERT_DOUBLES_EQUAL_DEPRECATED_C(E, A, D, "")
+
+#define UNIT_ASSERT_DOUBLES_EQUAL_C(E, A, D, C)                                                                                        \
+    do {                                                                                                                               \
+        const auto _ed = (E);                                                                                                          \
+        const auto _ad = (A);                                                                                                          \
+        const auto _dd = (D);                                                                                                          \
+        if (std::isnan((long double)_ed) && !std::isnan((long double)_ad)) {                                                           \
+            const auto _as = ToString((long double)_ad);                                                                               \
+            auto&& failMsg = Sprintf("expected NaN, got %s %s", _as.data(), (TStringBuilder() << C).data());                           \
+            UNIT_FAIL_IMPL("assertion failure", failMsg);                                                                              \
+        }                                                                                                                              \
+        if (!std::isnan((long double)_ed) && std::isnan((long double)_ad)) {                                                           \
+            const auto _es = ToString((long double)_ed);                                                                               \
+            auto&& failMsg = Sprintf("expected %s, got NaN %s", _es.data(), (TStringBuilder() << C).data());                           \
+            UNIT_FAIL_IMPL("assertion failure", failMsg);                                                                              \
+        }                                                                                                                              \
+        if (std::abs((_ed) - (_ad)) > (_dd)) {                                                                                         \
+            const auto _es = ToString((long double)_ed);                                                                               \
+            const auto _as = ToString((long double)_ad);                                                                               \
+            const auto _ds = ToString((long double)_dd);                                                                               \
+            auto&& failMsg = Sprintf("std::abs(%s - %s) > %s %s", _es.data(), _as.data(), _ds.data(), (TStringBuilder() << C).data()); \
+            UNIT_FAIL_IMPL("assertion failure", failMsg);                                                                              \
+        }                                                                                                                              \
     } while (false)
 
 #define UNIT_ASSERT_DOUBLES_EQUAL(E, A, D) UNIT_ASSERT_DOUBLES_EQUAL_C(E, A, D, "")
@@ -539,7 +561,7 @@ public:                       \
         }                                                                                        \
     } while (false)
 
-#define UNIT_CHECK_GENERATED_NO_EXCEPTION(A, E) UNIT_CHECK_GENERATED_NO_EXCEPTION_C(A, E, "")
+#define UNIT_CHECK_GENERATED_NO_EXCEPTION(A, E) UNIT_CHECK_GENERATED_NO_EXCEPTION_C(A, E, "and exception message is:\n" << CurrentExceptionMessage())
 
 // Same as UNIT_ASSERT_EXCEPTION_SATISFIES but prints additional string C when nothing was thrown
 #define UNIT_ASSERT_EXCEPTION_SATISFIES_C(A, E, pred, C)   \
@@ -715,8 +737,6 @@ public:                       \
 
 #define UNIT_ADD_METRIC(name, value) ut_context.Metrics[name] = value
 
-#define UNIT_GET_PARAM(key, def) ut_context.Processor->GetParam(key, def)
-
     class TTestFactory {
         friend class TTestBase;
         friend class ITestBaseFactory;
@@ -758,6 +778,11 @@ public:                       \
     };
 
     struct TBaseTestCase {
+        // NOTE: since EACH test case is instantiated for listing tests, its
+        // ctor/dtor are not the best place to do heavy preparations in test fixtures.
+        //
+        // Consider using SetUp()/TearDown() methods instead
+
         inline TBaseTestCase()
             : TBaseTestCase(nullptr, nullptr, false)
         {
@@ -771,6 +796,21 @@ public:                       \
         }
 
         virtual ~TBaseTestCase() = default;
+        
+        // Each test case is executed in 3 steps:
+        //
+        // 1. SetUp() (from fixture)
+        // 2. Execute_() (test body from Y_UNIT_TEST macro)
+        // 3. TearDown() (from fixture)
+        //
+        // Both SetUp() and TearDown() may use UNIT_* check macros and are only
+        // called when the test is executed.
+
+        virtual void SetUp(TTestContext& /* context */) {
+        }
+
+        virtual void TearDown(TTestContext& /* context */) {
+        }
 
         virtual void Execute_(TTestContext& context) {
             Body_(context);
@@ -899,7 +939,12 @@ public:                       \
                         this->BeforeTest(i->Name_);                                                                     \
                         {                                                                                               \
                             TCleanUp cleaner(this);                                                                     \
-                            this->T::Run([&i, &context]() { i->Execute_(context); }, StaticName(), i->Name_, i->ForceFork_);\
+                            auto testCase = [&i, &context] {                                                            \
+                                i->SetUp(context);                                                                      \
+                                i->Execute_(context);                                                                   \
+                                i->TearDown(context);                                                                   \
+                            };                                                                                          \
+                            this->T::Run(testCase, StaticName(), i->Name_, i->ForceFork_);                              \
                         }                                                                                               \
                     } catch (const ::NUnitTest::TAssertException&) {                                                    \
                     } catch (const yexception& e) {                                                                     \

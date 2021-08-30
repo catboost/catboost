@@ -1,39 +1,35 @@
 LIBRARY()
 
 LICENSE(
-    BSD
+    BSD-2-Clause
+    BSD-2-Clause-Views
+    BSD-3-Clause
+    MIT
 )
 
+LICENSE_TEXTS(yandex_meta/licenses.list.txt)
 
 
-PEERDIR(contrib/libs/cppdemangle)
 
-IF (CXX_UNWIND STREQUAL "glibcxx_dynamic" OR ARCH_PPC64LE)
+IF (CXX_UNWIND == "glibcxx_dynamic" OR ARCH_PPC64LE)
     LDFLAGS(-lgcc_s)
 ELSE()
-    PEERDIR(contrib/libs/libunwind)
+    PEERDIR(
+        contrib/libs/libunwind
+    )
 ENDIF()
 
-ADDINCL(
-    GLOBAL contrib/libs/cxxsupp/libcxxrt
-)
-
-IF (CLANG OR USE_LTO)
-    PEERDIR(
-        contrib/libs/cxxsupp/builtins
-    )
-ENDIF ()
+ADDINCL(GLOBAL contrib/libs/cxxsupp/libcxxrt)
 
 NO_RUNTIME()
+
 NO_COMPILER_WARNINGS()
 
-IF (SANITIZER_TYPE STREQUAL undefined)
+IF (SANITIZER_TYPE == undefined)
     NO_SANITIZE()
-ENDIF ()
+ENDIF()
 
-CXXFLAGS(
-    -nostdinc++
-)
+CXXFLAGS(-nostdinc++)
 
 SRCS(
     memory.cc

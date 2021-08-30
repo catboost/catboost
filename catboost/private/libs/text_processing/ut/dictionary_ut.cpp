@@ -23,9 +23,9 @@ Y_UNIT_TEST_SUITE(TestDictionary) {
             tokenizer
         );
 
-        UNIT_ASSERT_EQUAL(0, dictionary->Apply("a"));
-        UNIT_ASSERT_EQUAL(1, dictionary->Apply("c"));
-        UNIT_ASSERT_EQUAL(2, dictionary->Apply("b"));
+        UNIT_ASSERT_EQUAL(0u, dictionary->Apply("a"));
+        UNIT_ASSERT_EQUAL(1u, dictionary->Apply("c"));
+        UNIT_ASSERT_EQUAL(2u, dictionary->Apply("b"));
         UNIT_ASSERT_EQUAL(dictionary->GetUnknownTokenId(), dictionary->Apply("d"));
 
         TText textExample = TText(/* tokenIds */{
@@ -39,9 +39,9 @@ Y_UNIT_TEST_SUITE(TestDictionary) {
         );
 
         TVector<TTokenId> topTokens = dictionary->GetTopTokens(10);
-        UNIT_ASSERT_EQUAL(3, topTokens.size());
-        UNIT_ASSERT_EQUAL(0, topTokens[0]);
-        UNIT_ASSERT_EQUAL(1, topTokens[1]);
-        UNIT_ASSERT_EQUAL(2, topTokens[2]);
+        UNIT_ASSERT_EQUAL(3u, topTokens.size());
+        UNIT_ASSERT_EQUAL(0u, topTokens[0]);
+        UNIT_ASSERT_EQUAL(1u, topTokens[1]);
+        UNIT_ASSERT_EQUAL(2u, topTokens[2]);
     }
 }

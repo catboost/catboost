@@ -197,6 +197,7 @@ struct __cxa_dependent_exception
 	_Unwind_Exception unwindHeader;
 };
 
+static_assert(sizeof(__cxa_dependent_exception) == sizeof(__cxa_exception));
 
 namespace std
 {
@@ -218,12 +219,20 @@ namespace std
  * various checks may test for equality of the class, which is incorrect.
  */
 static const uint64_t exception_class =
-	EXCEPTION_CLASS('G', 'N', 'U', 'C', 'C', '+', '+', '\0');
+#ifdef _YNDX_LIBUNWIND_ENABLE_EXCEPTION_BACKTRACE
+    _YNDX_LIBUNWIND_EXCEPTION_BACKTRACE_PRIMARY_CLASS;
+#else
+	EXCEPTION_CLASS('G', 'N', 'U', 'C', 'C', '+', '+', '\x0');
+#endif
 /**
  * Class used for dependent exceptions.
  */
 static const uint64_t dependent_exception_class =
+#ifdef _YNDX_LIBUNWIND_ENABLE_EXCEPTION_BACKTRACE
+    _YNDX_LIBUNWIND_EXCEPTION_BACKTRACE_DEPENDENT_CLASS;
+#else
 	EXCEPTION_CLASS('G', 'N', 'U', 'C', 'C', '+', '+', '\x01');
+#endif
 /**
  * The low four bytes of the exception class, indicating that we conform to the
  * Itanium C++ ABI.  This is currently unused, but should be used in the future
@@ -645,6 +654,18 @@ static_assert(align_to(15, 16) == 16);
 static_assert(align_to(16, 16) == 16);
 static_assert(align_to(17, 16) == 32);
 
+static constexpr size_t exception_size = align_to(sizeof(__cxa_exception), 16);
+static constexpr size_t dependent_exception_size = align_to(sizeof(__cxa_dependent_exception), 16);
+#ifdef _YNDX_LIBUNWIND_ENABLE_EXCEPTION_BACKTRACE
+static constexpr size_t backtrace_buffer_size = align_to(sizeof(_Unwind_Backtrace_Buffer), 16);
+
+static_assert(
+    _YNDX_LIBUNWIND_EXCEPTION_BACKTRACE_MAGIC_OFFSET ==
+    offsetof(__cxa_exception, unwindHeader) + backtrace_buffer_size - sizeof(_Unwind_Backtrace_Buffer));
+#else
+static constexpr size_t backtrace_buffer_size = 0;
+#endif
+
 /**
  * Allocates an exception structure.  Returns a pointer to the space that can
  * be used to store an object of thrown_size bytes.  This function will use an
@@ -653,16 +674,19 @@ static_assert(align_to(17, 16) == 32);
  */
 extern "C" void *__cxa_allocate_exception(size_t thrown_size)
 {
-	size_t size = thrown_size + align_to(sizeof(__cxa_exception), 16);
+	size_t size = thrown_size + exception_size + backtrace_buffer_size;
 	char *buffer = alloc_or_die(size);
-	return buffer+align_to(sizeof(__cxa_exception), 16);
+#ifdef _YNDX_LIBUNWIND_ENABLE_EXCEPTION_BACKTRACE
+	((_Unwind_Backtrace_Buffer *)buffer)->size = 0;
+#endif
+	return buffer + exception_size + backtrace_buffer_size;
 }
 
 extern "C" void *__cxa_allocate_dependent_exception(void)
 {
-	size_t size = align_to(sizeof(__cxa_dependent_exception), 16);
+	size_t size = dependent_exception_size + backtrace_buffer_size;
 	char *buffer = alloc_or_die(size);
-	return buffer+align_to(sizeof(__cxa_dependent_exception), 16);
+	return buffer + dependent_exception_size + backtrace_buffer_size;
 }
 
 /**
@@ -690,7 +714,8 @@ extern "C" void __cxa_free_exception(void *thrown_exception)
 		}
 	}
 
-	free_exception(reinterpret_cast<char*>(thrown_exception) - align_to(sizeof(__cxa_exception), 16));
+	free_exception(
+		reinterpret_cast<char*>(thrown_exception) - exception_size - backtrace_buffer_size);
 }
 
 static void releaseException(__cxa_exception *exception)
@@ -717,7 +742,7 @@ void __cxa_free_dependent_exception(void *thrown_exception)
 	{
 		releaseException(realExceptionFromException(reinterpret_cast<__cxa_exception*>(ex)));
 	}
-	free_exception(reinterpret_cast<char*>(thrown_exception) - align_to(sizeof(__cxa_dependent_exception), 16));
+	free_exception(reinterpret_cast<char*>(thrown_exception) - dependent_exception_size - backtrace_buffer_size);
 }
 
 /**
@@ -848,6 +873,32 @@ extern "C" void __cxa_decrement_exception_refcount(void* thrown_exception)
 	__cxa_exception *ex = static_cast<__cxa_exception*>(thrown_exception) - 1;
 	releaseException(ex);
 }
+
+#ifdef _YNDX_LIBUNWIND_ENABLE_EXCEPTION_BACKTRACE
+static size_t __cxa_collect_backtrace(__cxa_exception* ex, void** dest, size_t size) {
+    if (!ex) {
+        return 0;
+    }
+    if (!isCXXException(ex->unwindHeader.exception_class)) {
+        return 0;
+    }
+    size_t i = 0;
+    if (isDependentException(ex->unwindHeader.exception_class)) {
+        i = __cxa_collect_backtrace(
+                (__cxa_exception *)((__cxa_dependent_exception *)ex)->primaryException - 1, dest, size);
+    }
+    _Unwind_Backtrace_Buffer* backtraceBuffer = (_Unwind_Backtrace_Buffer*)(
+            (char *)(ex + 1) - exception_size - backtrace_buffer_size);
+    for (size_t j = 0; i != size && j != backtraceBuffer->size; ++i, ++j) {
+        dest[i] = backtraceBuffer->backtrace[j];
+    }
+    return i;
+}
+
+extern "C" size_t __cxa_collect_current_exception_backtrace(void** dest, size_t size) {
+    return __cxa_collect_backtrace(__cxa_get_globals()->caughtExceptions, dest, size);
+}
+#endif
 
 /**
  * ABI function.  Rethrows the current exception.  Does not remove the

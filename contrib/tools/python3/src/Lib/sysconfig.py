@@ -18,12 +18,17 @@ __all__ = [
     'parse_config_h',
 ]
 
+# Keys for get_config_var() that are never converted to Python integers.
+_ALWAYS_STR = {
+    'MACOSX_DEPLOYMENT_TARGET',
+}
+
 _INSTALL_SCHEMES = {
     'posix_prefix': {
-        'stdlib': '{installed_base}/lib/python{py_version_short}',
-        'platstdlib': '{platbase}/lib/python{py_version_short}',
+        'stdlib': '{installed_base}/{platlibdir}/python{py_version_short}',
+        'platstdlib': '{platbase}/{platlibdir}/python{py_version_short}',
         'purelib': '{base}/lib/python{py_version_short}/site-packages',
-        'platlib': '{platbase}/lib/python{py_version_short}/site-packages',
+        'platlib': '{platbase}/{platlibdir}/python{py_version_short}/site-packages',
         'include':
             '{installed_base}/include/python{py_version_short}{abiflags}',
         'platinclude':
@@ -62,10 +67,10 @@ _INSTALL_SCHEMES = {
         'data': '{userbase}',
         },
     'posix_user': {
-        'stdlib': '{userbase}/lib/python{py_version_short}',
-        'platstdlib': '{userbase}/lib/python{py_version_short}',
+        'stdlib': '{userbase}/{platlibdir}/python{py_version_short}',
+        'platstdlib': '{userbase}/{platlibdir}/python{py_version_short}',
         'purelib': '{userbase}/lib/python{py_version_short}/site-packages',
-        'platlib': '{userbase}/lib/python{py_version_short}/site-packages',
+        'platlib': '{userbase}/{platlibdir}/python{py_version_short}/site-packages',
         'include': '{userbase}/include/python{py_version_short}',
         'scripts': '{userbase}/bin',
         'data': '{userbase}',
@@ -84,8 +89,6 @@ _INSTALL_SCHEMES = {
 _SCHEME_KEYS = ('stdlib', 'platstdlib', 'purelib', 'platlib', 'include',
                 'scripts', 'data')
 
- # FIXME don't rely on sys.version here, its format is an implementation detail
- # of CPython, use sys.version_info or sys.hexversion
 _PY_VERSION = sys.version.split()[0]
 _PY_VERSION_SHORT = '%d.%d' % sys.version_info[:2]
 _PY_VERSION_SHORT_NO_DOT = '%d%d' % sys.version_info[:2]
@@ -242,6 +245,9 @@ def _parse_makefile(filename, vars=None):
                 notdone[n] = v
             else:
                 try:
+                    if n in _ALWAYS_STR:
+                        raise ValueError
+
                     v = int(v)
                 except ValueError:
                     # insert literal `$'
@@ -300,6 +306,8 @@ def _parse_makefile(filename, vars=None):
                         notdone[name] = value
                     else:
                         try:
+                            if name in _ALWAYS_STR:
+                                raise ValueError
                             value = int(value)
                         except ValueError:
                             done[name] = value.strip()
@@ -427,10 +435,11 @@ def _init_posix(vars):
 def _init_non_posix(vars):
     """Initialize the module as appropriate for NT"""
     # set basic install directories
+    import _imp
     vars['LIBDEST'] = get_path('stdlib')
     vars['BINLIBDEST'] = get_path('platstdlib')
     vars['INCLUDEPY'] = get_path('include')
-    vars['EXT_SUFFIX'] = '.pyd'
+    vars['EXT_SUFFIX'] = _imp.extension_suffixes()[0]
     vars['EXE'] = '.exe'
     vars['VERSION'] = _PY_VERSION_SHORT_NO_DOT
     vars['BINDIR'] = os.path.dirname(_safe_realpath(sys.executable))
@@ -461,6 +470,8 @@ def parse_config_h(fp, vars=None):
         if m:
             n, v = m.group(1, 2)
             try:
+                if n in _ALWAYS_STR:
+                    raise ValueError
                 v = int(v)
             except ValueError:
                 pass
@@ -540,6 +551,7 @@ def get_config_vars(*args):
         _CONFIG_VARS['installed_platbase'] = _BASE_EXEC_PREFIX
         _CONFIG_VARS['platbase'] = _EXEC_PREFIX
         _CONFIG_VARS['projectbase'] = _PROJECT_BASE
+        _CONFIG_VARS['platlibdir'] = sys.platlibdir
         try:
             _CONFIG_VARS['abiflags'] = sys.abiflags
         except AttributeError:
@@ -548,6 +560,7 @@ def get_config_vars(*args):
 
         if os.name == 'nt':
             _init_non_posix(_CONFIG_VARS)
+            _CONFIG_VARS['TZPATH'] = ''
         if os.name == 'posix':
             _init_posix(_CONFIG_VARS)
         # For backward compatibility, see issue19555
@@ -666,7 +679,8 @@ def get_platform():
             machine += ".%s" % bitness[sys.maxsize]
         # fall through to standard osname-release-machine representation
     elif osname[:3] == "aix":
-        return "%s-%s.%s" % (osname, version, release)
+        from _aix_support import aix_platform
+        return aix_platform()
     elif osname[:6] == "cygwin":
         osname = "cygwin"
         import re

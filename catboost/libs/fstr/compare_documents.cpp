@@ -83,8 +83,9 @@ static void CalcNonSymmetricIndicatorCoefficients(
     const auto& stepNodes = model.ModelTrees->GetModelTreeData()->GetNonSymmetricStepNodes();
     const auto& binFeatures = model.ModelTrees->GetBinFeatures();
 
+    auto applyData = model.ModelTrees->GetApplyData();
     for (size_t treeId = 0; treeId < model.ModelTrees->GetTreeCount(); ++treeId) {
-        size_t leafOffset = model.ModelTrees->GetFirstLeafOffsets()[treeId];
+        size_t leafOffset = applyData->TreeFirstLeafOffsets[treeId];
         double leafValue = model.ModelTrees->GetModelTreeData()->GetLeafValues()[leafOffset + treeLeafIdxes[treeId]];
         size_t splitIdx = model.ModelTrees->GetModelTreeData()->GetTreeStartOffsets()[treeId];
         int nextSplitStep = 0;
@@ -161,27 +162,27 @@ static TVector<double> GetPredictionDiffSingle(
     return impact;
 }
 
-TVector<TVector<double>> GetPredictionDiff(
+TVector<double> GetPredictionDiff(
     const TFullModel& model,
-    const TDataProvider& dataProvider,
-    NPar::TLocalExecutor* localExecutor
+    const TObjectsDataProviderPtr objectsDataProvider,
+    NPar::ILocalExecutor* localExecutor
 ) {
     CB_ENSURE(model.ModelTrees->GetDimensionsCount() == 1,  "Is not supported for multiclass");
-    CB_ENSURE(dataProvider.GetObjectCount() == 2, "PredictionDiff requires 2 documents for compare");
+    CB_ENSURE(objectsDataProvider->GetObjectCount() == 2, "PredictionDiff requires 2 documents for compare");
     CB_ENSURE(model.GetNumCatFeatures() == 0, "Models with categorical features are not supported");
 
-    TVector<ui32> leafIdxes = CalcLeafIndexesMulti(model, dataProvider.ObjectsData, 0, 0);
+    TVector<ui32> leafIdxes = CalcLeafIndexesMulti(model, objectsDataProvider, 0, 0);
 
-    const auto* const rawObjectsData = dynamic_cast<const TRawObjectsDataProvider*>(dataProvider.ObjectsData.Get());
+    const auto* const rawObjectsData = dynamic_cast<const TRawObjectsDataProvider*>(objectsDataProvider.Get());
 
     const auto& binSplits = model.ModelTrees->GetBinFeatures();
 
-    TVector<TVector<double>> floatFeatureValues(dataProvider.GetObjectCount());
-    for (size_t idx = 0; idx < dataProvider.GetObjectCount(); ++idx) {
+    TVector<TVector<double>> floatFeatureValues(objectsDataProvider->GetObjectCount());
+    for (size_t idx = 0; idx < objectsDataProvider->GetObjectCount(); ++idx) {
         floatFeatureValues[idx].resize(model.GetNumFloatFeatures());
     }
 
-    TVector<TVector<ui32>> docBorders(dataProvider.GetObjectCount());
+    TVector<TVector<ui32>> docBorders(objectsDataProvider->GetObjectCount());
     TVector<ui32> borderIdxForSplit(binSplits.size(), std::numeric_limits<ui32>::infinity());
     ui32 splitIdx = 0;
     for (const auto& feature : model.ModelTrees->GetFloatFeatures()) {
@@ -219,18 +220,19 @@ TVector<TVector<double>> GetPredictionDiff(
         }
     }
 
+    // TODO : Support baselines
     TVector<double> predict = ApplyModelMulti(
         model,
-        *dataProvider.ObjectsData,
+        *objectsDataProvider,
         EPredictionType::RawFormulaVal,
         0,
         0,
         localExecutor)[0];
 
-    TVector<TVector<double>> impact(dataProvider.GetObjectCount());
-    for (size_t idx = 0; idx < dataProvider.GetObjectCount(); ++idx) {
+    TVector<TVector<double>> impact(objectsDataProvider->GetObjectCount());
+    for (size_t idx = 0; idx < objectsDataProvider->GetObjectCount(); ++idx) {
         impact[idx] = GetPredictionDiffSingle(
-            *dataProvider.ObjectsData.Get()->GetFeaturesLayout(),
+            *objectsDataProvider->GetFeaturesLayout(),
             floatFeatureValues[idx],
             model,
             borderIdxForSplit,
@@ -239,9 +241,22 @@ TVector<TVector<double>> GetPredictionDiff(
             predict[idx] - predict[idx ^ 1] < 0
         );
     }
-    TVector<TVector<double>> result(impact[0].size());
+    TVector<double> result;
     for (size_t featureIdx = 0; featureIdx < impact[0].size(); ++ featureIdx) {
-        result[featureIdx].push_back({std::abs(impact[0][featureIdx] + impact[1][featureIdx])});
+        result.push_back(std::abs(impact[0][featureIdx] + impact[1][featureIdx]));
+    }
+    return result;
+}
+
+TVector<TVector<double>> GetPredictionDiff(
+    const TFullModel& model,
+    const TDataProvider& dataProvider,
+    NPar::ILocalExecutor* localExecutor
+) {
+    TVector<double> result1d = GetPredictionDiff(model, dataProvider.ObjectsData, localExecutor);
+    TVector<TVector<double>> result(result1d.size());
+    for (size_t featureIdx = 0; featureIdx < result1d.size(); ++ featureIdx) {
+        result[featureIdx].push_back({result1d[featureIdx]});
     }
     return result;
 }
@@ -250,7 +265,7 @@ void CalcAndOutputPredictionDiff(
     const TFullModel& model,
     const NCB::TDataProvider& dataProvider,
     const TString& outputPath,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) {
     auto factorImpact = GetPredictionDiff(model, dataProvider, localExecutor);
     TVector<std::pair<double, int>> impacts;

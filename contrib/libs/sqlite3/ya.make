@@ -2,11 +2,11 @@
 
 LIBRARY()
 
+LICENSE(PD)
 
 
-VERSION(3.29.0)
 
-LICENSE(publicDomain)
+VERSION(3.34.0)
 
 ADDINCL(
     contrib/libs/sqlite3
@@ -15,8 +15,6 @@ ADDINCL(
 NO_COMPILER_WARNINGS()
 
 NO_RUNTIME()
-
-NO_UTIL()
 
 CFLAGS(
     -DBUILD_sqlite

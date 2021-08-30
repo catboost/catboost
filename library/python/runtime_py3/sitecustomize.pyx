@@ -1,11 +1,14 @@
+import re
 import sys
 
 import __res
 
 from importlib.abc import ResourceReader
-from importlib.metadata import Distribution, DistributionFinder
+from importlib.metadata import Distribution, DistributionFinder, PackageNotFoundError, Prepared
 
 ResourceReader.register(__res._ResfsResourceReader)
+
+METADATA_NAME = re.compile('^Name: (.*)$', re.MULTILINE)
 
 
 class ArcadiaDistribution(Distribution):
@@ -17,6 +20,7 @@ class ArcadiaDistribution(Distribution):
         data = __res.resfs_read(f'{self.prefix}{filename}')
         if data:
             return data.decode('utf-8')
+    read_text.__doc__ = Distribution.read_text.__doc__
 
     def locate_file(self, path):
         return f'{self.prefix}{path}'
@@ -26,22 +30,24 @@ class ArcadiaMetadataFinder(DistributionFinder):
 
     prefixes = {}
 
-    def find_distributions(self, context=DistributionFinder.Context()):
-        found = self._search_prefixes(context.name)
+    @classmethod
+    def find_distributions(cls, context=DistributionFinder.Context()):
+        found = cls._search_prefixes(context.name)
         return map(ArcadiaDistribution, found)
 
     @classmethod
     def _init_prefixes(cls):
-        cls.prefixes = {}
+        cls.prefixes.clear()
 
         for resource in __res.resfs_files():
             resource = resource.decode('utf-8')
-            if not resource.endswith('top_level.txt'):
+            if not resource.endswith('METADATA'):
                 continue
             data = __res.resfs_read(resource).decode('utf-8')
-            for top_level in data.split('\n'):
-                if top_level:
-                    cls.prefixes[top_level] = resource[:-len('top_level.txt')]
+            metadata_name = METADATA_NAME.search(data)
+            if metadata_name:
+                metadata_name = Prepared(metadata_name.group(1))
+                cls.prefixes[metadata_name.normalized] = resource[:-len('METADATA')]
 
     @classmethod
     def _search_prefixes(cls, name):
@@ -49,10 +55,15 @@ class ArcadiaMetadataFinder(DistributionFinder):
             cls._init_prefixes()
 
         if name:
-            yield cls.prefixes[name]
+            try:
+                yield cls.prefixes[Prepared(name).normalized]
+            except KeyError:
+                raise PackageNotFoundError(name)
         else:
-            for prefix in sorted(set(cls.prefixes.values())):
+            for prefix in sorted(cls.prefixes.values()):
                 yield prefix
 
 
-sys.meta_path.append(ArcadiaMetadataFinder())
+# monkeypatch standart library
+import importlib.metadata
+importlib.metadata.MetadataPathFinder = ArcadiaMetadataFinder

@@ -85,3 +85,25 @@ inline static TFloatFeature::ENanValueTreatment NanModeFromFbsEnumValue(NCatBoos
             ythrow TCatBoostException() <<  "Unknown NCatBoostFbs::ENanValueTreatment value " << (int)nanTreatment;
     }
 }
+
+inline static NCatBoostFbs::ESourceFeatureType SourceFeatureTypeToFbsEnumValue(EEstimatedSourceFeatureType sourceFeatureType) {
+    switch (sourceFeatureType) {
+        case EEstimatedSourceFeatureType::Text:
+            return NCatBoostFbs::ESourceFeatureType_Text;
+        case EEstimatedSourceFeatureType::Embedding:
+            return NCatBoostFbs::ESourceFeatureType_Embedding;
+        default:
+            ythrow TCatBoostException() <<  "Unknown EEstimatedSourceFeatureType value " << (int)sourceFeatureType;
+    }
+}
+
+inline static EEstimatedSourceFeatureType SourceFeatureTypeFromFbsEnumValue(NCatBoostFbs::ESourceFeatureType sourceFeatureType) {
+    switch (sourceFeatureType) {
+        case NCatBoostFbs::ESourceFeatureType_Text:
+            return EEstimatedSourceFeatureType::Text;
+        case NCatBoostFbs::ESourceFeatureType_Embedding:
+            return EEstimatedSourceFeatureType::Embedding;
+        default:
+            ythrow TCatBoostException() <<  "Unknown NCatBoostFbs::ESourceFeatureType value " << (int)sourceFeatureType;
+    }
+}

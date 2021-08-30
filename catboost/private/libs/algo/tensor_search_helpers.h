@@ -31,7 +31,7 @@ namespace NCatboostOptions {
 }
 
 namespace NPar {
-    class TLocalExecutor;
+    class ILocalExecutor;
 }
 
 
@@ -52,7 +52,7 @@ public:
     // objectsData must be from the corresponding source data for this split
     TSplit GetSplit(
         int binId,
-        const NCB::TQuantizedForCPUObjectsDataProvider& objectsData,
+        const NCB::TQuantizedObjectsDataProvider& objectsData,
         ui32 oneHotMaxSize
     ) const;
 };
@@ -93,11 +93,11 @@ struct TCandidatesContext {
 void Bootstrap(
     const NCatboostOptions::TCatBoostOptions& params,
     bool hasOfflineEstimatedFeatures,
-    const TVector<TIndexType>& indices,
+    TConstArrayRef<TIndexType> indices,
     const TVector<TVector<TVector<double>>>& leafValues,
     TFold* fold,
     TCalcScoreFold* sampledDocs,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TRestorableFastRng64* rand,
     bool shouldSortByLeaf = false,
     ui32 leavesCount = 0
@@ -114,7 +114,7 @@ void CalcWeightedDerivatives(
     const NCatboostOptions::TCatBoostOptions& params,
     ui64 randomSeed,
     TFold* takenFold,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 );
 
 void SetBestScore(

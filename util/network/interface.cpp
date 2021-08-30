@@ -1,12 +1,12 @@
 #include "interface.h"
 
 #if defined(_unix_)
-#include <ifaddrs.h>
+    #include <ifaddrs.h>
 #endif
 
 #ifdef _win_
-#include <iphlpapi.h>
-#pragma comment(lib, "Iphlpapi.lib")
+    #include <iphlpapi.h>
+    #pragma comment(lib, "Iphlpapi.lib")
 #endif
 
 namespace NAddr {

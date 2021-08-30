@@ -1,5 +1,6 @@
 #include <catboost/private/libs/algo/full_model_saver.h>
 
+#include <catboost/private/libs/feature_estimator/classification_target.h>
 #include <catboost/private/libs/feature_estimator/text_feature_estimators.h>
 #include <catboost/private/libs/options/text_processing_options.h>
 #include <catboost/private/libs/text_features/ut/lib/text_features_data.h>
@@ -19,7 +20,7 @@ static void CreateTextEstimators(
     TFeatureEstimatorsPtr* featureEstimators
 ) {
     const ui32 numClasses = 2;
-    auto textTarget = MakeIntrusive<TTextClassificationTarget>(std::move(target), numClasses);
+    auto textTarget = MakeIntrusive<TClassificationTarget>(std::move(target), numClasses);
     const ui32 numTokenizedFeatures = static_cast<ui32>(tokenizedFeatures.size());
 
     TFeatureEstimatorsBuilder estimatorsBuilder;
@@ -109,7 +110,8 @@ static void CreateDataForTest(
                     TEstimatedFeature{
                         SafeIntegerCast<int>((*estimators)->GetEstimatorSourceFeatureIdx(guid).TextFeatureId),
                         guid,
-                        SafeIntegerCast<int>(localId)
+                        SafeIntegerCast<int>(localId),
+                        FeatureTypeToEstimatedSourceFeatureType((*estimators)->GetEstimatorSourceType(guid))
                     }
                 );
             }
@@ -176,12 +178,12 @@ static void AssertEqualCollections(
     TVector<float> result = ApplyCollection(actualCollection, textFeatures);
 
     if (partEstimatedFeatures.Defined()) {
-        TGuid lastGuid = partEstimatedFeatures->at(0).CalcerId;
+        TGuid lastGuid = partEstimatedFeatures->at(0).ModelEstimatedFeature.CalcerId;
         ui32 localId = 0;
         for (ui32 i: xrange(partEstimatedFeatures->size())) {
-            TEstimatedFeature& feature = partEstimatedFeatures->at(i);
+            TModelEstimatedFeature& feature = partEstimatedFeatures->at(i).ModelEstimatedFeature;
             const TGuid calcerId = feature.CalcerId;
-            const ui32 originalLocalId = feature.LocalIndex;
+            const ui32 originalLocalId = feature.LocalId;
             if (calcerId != lastGuid) {
                 lastGuid = calcerId;
                 localId = 0;
@@ -207,6 +209,7 @@ Y_UNIT_TEST_SUITE(TextCollectionBuilderTest) {
     Y_UNIT_TEST(DifferentCreationTest) {
         TVector<NCBTest::TTextFeature> textFeatures;
         TTextProcessingCollection fromTrainTextProcessingCollection;
+        TEmbeddingProcessingCollection embeddingProcessingCollection;
 
         {
             TFeatureEstimatorsPtr estimators;
@@ -223,11 +226,12 @@ Y_UNIT_TEST_SUITE(TextCollectionBuilderTest) {
 
             TVector<TEstimatedFeature> reorderedEstimatedFeatures;
 
-            CreateTextProcessingCollection(
+            CreateProcessingCollections(
                 *estimators,
                 textDigitizers,
                 estimatedFeatures,
                 &fromTrainTextProcessingCollection,
+                &embeddingProcessingCollection,
                 &reorderedEstimatedFeatures,
                 &localExecutor
             );
@@ -258,14 +262,16 @@ Y_UNIT_TEST_SUITE(TextCollectionBuilderTest) {
         );
 
         TTextProcessingCollection textProcessingCollection;
+        TEmbeddingProcessingCollection embeddingProcessingCollection;
 
         {
             TVector<TEstimatedFeature> textCollectionEstimatedFeatures;
-            CreateTextProcessingCollection(
+            CreateProcessingCollections(
                 *estimators,
                 textDigitizers,
                 fullEstimatedFeatures,
                 &textProcessingCollection,
+                &embeddingProcessingCollection,
                 &textCollectionEstimatedFeatures,
                 &localExecutor
             );
@@ -290,11 +296,12 @@ Y_UNIT_TEST_SUITE(TextCollectionBuilderTest) {
 
                 {
                     TVector<TEstimatedFeature> reorderedEstimatedFeatures;
-                    CreateTextProcessingCollection(
+                    CreateProcessingCollections(
                         *estimators,
                         textDigitizers,
                         partEstimatedFeatures,
                         &partialTextCollection,
+                        &embeddingProcessingCollection,
                         &reorderedEstimatedFeatures,
                         &localExecutor
                     );

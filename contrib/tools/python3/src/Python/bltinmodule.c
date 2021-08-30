@@ -4,7 +4,9 @@
 #include <ctype.h>
 #include "ast.h"
 #undef Yield   /* undefine macro conflicting with <winbase.h> */
-#include "pycore_pystate.h"
+#include "pycore_object.h"
+#include "pycore_pyerrors.h"
+#include "pycore_pystate.h"      // _PyThreadState_GET()
 #include "pycore_tupleobject.h"
 
 _Py_IDENTIFIER(__builtins__);
@@ -29,7 +31,6 @@ update_bases(PyObject *bases, PyObject *const *args, Py_ssize_t nargs)
 {
     Py_ssize_t i, j;
     PyObject *base, *meth, *new_base, *result, *new_bases = NULL;
-    PyObject *stack[1] = {bases};
     assert(PyTuple_Check(bases));
 
     for (i = 0; i < nargs; i++) {
@@ -55,7 +56,7 @@ update_bases(PyObject *bases, PyObject *const *args, Py_ssize_t nargs)
             }
             continue;
         }
-        new_base = _PyObject_FastCall(meth, stack, 1);
+        new_base = PyObject_CallOneArg(meth, bases);
         Py_DECREF(meth);
         if (!new_base) {
             goto error;
@@ -169,7 +170,7 @@ builtin___build_class__(PyObject *self, PyObject *const *args, Py_ssize_t nargs,
         /* else get the type of the first base */
         else {
             PyObject *base0 = PyTuple_GET_ITEM(bases, 0);
-            meta = (PyObject *) (base0->ob_type);
+            meta = (PyObject *)Py_TYPE(base0);
         }
         Py_INCREF(meta);
         isclass = 1;  /* meta is really a class */
@@ -202,7 +203,7 @@ builtin___build_class__(PyObject *self, PyObject *const *args, Py_ssize_t nargs,
     }
     else {
         PyObject *pargs[2] = {name, bases};
-        ns = _PyObject_FastCallDict(prep, pargs, 2, mkw);
+        ns = PyObject_VectorcallDict(prep, pargs, 2, mkw);
         Py_DECREF(prep);
     }
     if (ns == NULL) {
@@ -228,7 +229,7 @@ builtin___build_class__(PyObject *self, PyObject *const *args, Py_ssize_t nargs,
             }
         }
         PyObject *margs[3] = {name, bases, ns};
-        cls = _PyObject_FastCallDict(meta, margs, 3, mkw);
+        cls = PyObject_VectorcallDict(meta, margs, 3, mkw);
         if (cls != NULL && PyType_Check(cls) && PyCell_Check(cell)) {
             PyObject *cell_cls = PyCell_GET(cell);
             if (cell_cls != cls) {
@@ -488,7 +489,7 @@ builtin_breakpoint(PyObject *self, PyObject *const *args, Py_ssize_t nargs, PyOb
     }
 
     Py_INCREF(hook);
-    PyObject *retval = _PyObject_Vectorcall(hook, args, nargs, keywords);
+    PyObject *retval = PyObject_Vectorcall(hook, args, nargs, keywords);
     Py_DECREF(hook);
     return retval;
 }
@@ -574,7 +575,7 @@ filter_next(filterobject *lz)
             ok = PyObject_IsTrue(item);
         } else {
             PyObject *good;
-            good = PyObject_CallFunctionObjArgs(lz->func, item, NULL);
+            good = PyObject_CallOneArg(lz->func, item);
             if (good == NULL) {
                 Py_DECREF(item);
                 return NULL;
@@ -816,6 +817,7 @@ builtin_compile_impl(PyObject *module, PyObject *source, PyObject *filename,
         goto error;
 
     result = Py_CompileStringObject(str, filename, start[compile_mode], &cf, optimize);
+
     Py_XDECREF(source_copy);
     goto finally;
 
@@ -1001,13 +1003,13 @@ builtin_exec_impl(PyObject *module, PyObject *source, PyObject *globals,
 
     if (!PyDict_Check(globals)) {
         PyErr_Format(PyExc_TypeError, "exec() globals must be a dict, not %.100s",
-                     globals->ob_type->tp_name);
+                     Py_TYPE(globals)->tp_name);
         return NULL;
     }
     if (!PyMapping_Check(locals)) {
         PyErr_Format(PyExc_TypeError,
             "locals must be a mapping or None, not %.100s",
-            locals->ob_type->tp_name);
+            Py_TYPE(locals)->tp_name);
         return NULL;
     }
     if (_PyDict_GetItemIdWithError(globals, &PyId___builtins__) == NULL) {
@@ -1255,23 +1257,23 @@ map_next(mapobject *lz)
 {
     PyObject *small_stack[_PY_FASTCALL_SMALL_STACK];
     PyObject **stack;
-    Py_ssize_t niters, nargs, i;
     PyObject *result = NULL;
+    PyThreadState *tstate = _PyThreadState_GET();
 
-    niters = PyTuple_GET_SIZE(lz->iters);
+    const Py_ssize_t niters = PyTuple_GET_SIZE(lz->iters);
     if (niters <= (Py_ssize_t)Py_ARRAY_LENGTH(small_stack)) {
         stack = small_stack;
     }
     else {
         stack = PyMem_Malloc(niters * sizeof(stack[0]));
         if (stack == NULL) {
-            PyErr_NoMemory();
+            _PyErr_NoMemory(tstate);
             return NULL;
         }
     }
 
-    nargs = 0;
-    for (i=0; i < niters; i++) {
+    Py_ssize_t nargs = 0;
+    for (Py_ssize_t i=0; i < niters; i++) {
         PyObject *it = PyTuple_GET_ITEM(lz->iters, i);
         PyObject *val = Py_TYPE(it)->tp_iternext(it);
         if (val == NULL) {
@@ -1281,10 +1283,10 @@ map_next(mapobject *lz)
         nargs++;
     }
 
-    result = _PyObject_FastCall(lz->func, stack, nargs);
+    result = _PyObject_VectorcallTstate(tstate, lz->func, stack, nargs, NULL);
 
 exit:
-    for (i=0; i < nargs; i++) {
+    for (Py_ssize_t i=0; i < nargs; i++) {
         Py_DECREF(stack[i]);
     }
     if (stack != small_stack) {
@@ -1382,11 +1384,11 @@ builtin_next(PyObject *self, PyObject *const *args, Py_ssize_t nargs)
     if (!PyIter_Check(it)) {
         PyErr_Format(PyExc_TypeError,
             "'%.200s' object is not an iterator",
-            it->ob_type->tp_name);
+            Py_TYPE(it)->tp_name);
         return NULL;
     }
 
-    res = (*it->ob_type->tp_iternext)(it);
+    res = (*Py_TYPE(it)->tp_iternext)(it);
     if (res != NULL) {
         return res;
     } else if (nargs > 1) {
@@ -1589,10 +1591,15 @@ min_max(PyObject *args, PyObject *kwds, int op)
     const int positional = PyTuple_Size(args) > 1;
     int ret;
 
-    if (positional)
+    if (positional) {
         v = args;
-    else if (!PyArg_UnpackTuple(args, name, 1, 1, &v))
+    }
+    else if (!PyArg_UnpackTuple(args, name, 1, 1, &v)) {
+        if (PyExceptionClass_Check(PyExc_TypeError)) {
+            PyErr_Format(PyExc_TypeError, "%s expected at least 1 argument, got 0", name);
+        }
         return NULL;
+    }
 
     emptytuple = PyTuple_New(0);
     if (emptytuple == NULL)
@@ -1625,7 +1632,7 @@ min_max(PyObject *args, PyObject *kwds, int op)
     while (( item = PyIter_Next(it) )) {
         /* get the value from the key function */
         if (keyfunc != NULL) {
-            val = PyObject_CallFunctionObjArgs(keyfunc, item, NULL);
+            val = PyObject_CallOneArg(keyfunc, item);
             if (val == NULL)
                 goto Fail_it_item;
         }
@@ -1782,7 +1789,7 @@ builtin_ord(PyObject *module, PyObject *c)
     else {
         PyErr_Format(PyExc_TypeError,
                      "ord() expected string of length 1, but " \
-                     "%.200s found", c->ob_type->tp_name);
+                     "%.200s found", Py_TYPE(c)->tp_name);
         return NULL;
     }
 
@@ -1821,8 +1828,9 @@ static PyObject *
 builtin_print(PyObject *self, PyObject *const *args, Py_ssize_t nargs, PyObject *kwnames)
 {
     static const char * const _keywords[] = {"sep", "end", "file", "flush", 0};
-    static struct _PyArg_Parser _parser = {"|OOOO:print", _keywords, 0};
-    PyObject *sep = NULL, *end = NULL, *file = NULL, *flush = NULL;
+    static struct _PyArg_Parser _parser = {"|OOOp:print", _keywords, 0};
+    PyObject *sep = NULL, *end = NULL, *file = NULL;
+    int flush = 0;
     int i, err;
 
     if (kwnames != NULL &&
@@ -1849,7 +1857,7 @@ builtin_print(PyObject *self, PyObject *const *args, Py_ssize_t nargs, PyObject 
     else if (sep && !PyUnicode_Check(sep)) {
         PyErr_Format(PyExc_TypeError,
                      "sep must be None or a string, not %.200s",
-                     sep->ob_type->tp_name);
+                     Py_TYPE(sep)->tp_name);
         return NULL;
     }
     if (end == Py_None) {
@@ -1858,7 +1866,7 @@ builtin_print(PyObject *self, PyObject *const *args, Py_ssize_t nargs, PyObject 
     else if (end && !PyUnicode_Check(end)) {
         PyErr_Format(PyExc_TypeError,
                      "end must be None or a string, not %.200s",
-                     end->ob_type->tp_name);
+                     Py_TYPE(end)->tp_name);
         return NULL;
     }
 
@@ -1884,18 +1892,11 @@ builtin_print(PyObject *self, PyObject *const *args, Py_ssize_t nargs, PyObject 
     if (err)
         return NULL;
 
-    if (flush != NULL) {
-        PyObject *tmp;
-        int do_flush = PyObject_IsTrue(flush);
-        if (do_flush == -1)
+    if (flush) {
+        PyObject *tmp = _PyObject_CallMethodIdNoArgs(file, &PyId_flush);
+        if (tmp == NULL)
             return NULL;
-        else if (do_flush) {
-            tmp = _PyObject_CallMethodId(file, &PyId_flush, NULL);
-            if (tmp == NULL)
-                return NULL;
-            else
-                Py_DECREF(tmp);
-        }
+        Py_DECREF(tmp);
     }
 
     Py_RETURN_NONE;
@@ -1960,7 +1961,7 @@ builtin_input_impl(PyObject *module, PyObject *prompt)
     }
 
     /* First of all, flush stderr */
-    tmp = _PyObject_CallMethodId(ferr, &PyId_flush, NULL);
+    tmp = _PyObject_CallMethodIdNoArgs(ferr, &PyId_flush);
     if (tmp == NULL)
         PyErr_Clear();
     else
@@ -1969,7 +1970,7 @@ builtin_input_impl(PyObject *module, PyObject *prompt)
     /* We should only use (GNU) readline if Python's sys.stdin and
        sys.stdout are the same as C's stdin and stdout, because we
        need to pass it those. */
-    tmp = _PyObject_CallMethodId(fin, &PyId_fileno, NULL);
+    tmp = _PyObject_CallMethodIdNoArgs(fin, &PyId_fileno);
     if (tmp == NULL) {
         PyErr_Clear();
         tty = 0;
@@ -1982,7 +1983,7 @@ builtin_input_impl(PyObject *module, PyObject *prompt)
         tty = fd == fileno(stdin) && isatty(fd);
     }
     if (tty) {
-        tmp = _PyObject_CallMethodId(fout, &PyId_fileno, NULL);
+        tmp = _PyObject_CallMethodIdNoArgs(fout, &PyId_fileno);
         if (tmp == NULL) {
             PyErr_Clear();
             tty = 0;
@@ -2020,7 +2021,7 @@ builtin_input_impl(PyObject *module, PyObject *prompt)
         stdin_errors_str = PyUnicode_AsUTF8(stdin_errors);
         if (!stdin_encoding_str || !stdin_errors_str)
             goto _readline_errors;
-        tmp = _PyObject_CallMethodId(fout, &PyId_flush, NULL);
+        tmp = _PyObject_CallMethodIdNoArgs(fout, &PyId_flush);
         if (tmp == NULL)
             PyErr_Clear();
         else
@@ -2115,7 +2116,7 @@ builtin_input_impl(PyObject *module, PyObject *prompt)
         if (PyFile_WriteObject(prompt, fout, Py_PRINT_RAW) != 0)
             return NULL;
     }
-    tmp = _PyObject_CallMethodId(fout, &PyId_flush, NULL);
+    tmp = _PyObject_CallMethodIdNoArgs(fout, &PyId_flush);
     if (tmp == NULL)
         PyErr_Clear();
     else
@@ -2178,7 +2179,7 @@ builtin_round_impl(PyObject *module, PyObject *number, PyObject *ndigits)
     if (ndigits == Py_None)
         result = _PyObject_CallNoArg(round);
     else
-        result = PyObject_CallFunctionObjArgs(round, ndigits, NULL);
+        result = PyObject_CallOneArg(round, ndigits);
     Py_DECREF(round);
     return result;
 }
@@ -2234,7 +2235,7 @@ builtin_sorted(PyObject *self, PyObject *const *args, Py_ssize_t nargs, PyObject
     }
 
     assert(nargs >= 1);
-    v = _PyObject_Vectorcall(callable, args + 1, nargs - 1, kwnames);
+    v = PyObject_Vectorcall(callable, args + 1, nargs - 1, kwnames);
     Py_DECREF(callable);
     if (v == NULL) {
         Py_DECREF(newlist);
@@ -2349,7 +2350,7 @@ builtin_sum_impl(PyObject *module, PyObject *iterable, PyObject *start)
                     return NULL;
                 return PyLong_FromLong(i_result);
             }
-            if (PyLong_CheckExact(item)) {
+            if (PyLong_CheckExact(item) || PyBool_Check(item)) {
                 long b = PyLong_AsLongAndOverflow(item, &overflow);
                 if (overflow == 0 &&
                     (i_result >= 0 ? (b <= LONG_MAX - i_result)
@@ -2391,20 +2392,16 @@ builtin_sum_impl(PyObject *module, PyObject *iterable, PyObject *start)
                 return PyFloat_FromDouble(f_result);
             }
             if (PyFloat_CheckExact(item)) {
-                PyFPE_START_PROTECT("add", Py_DECREF(item); Py_DECREF(iter); return 0)
                 f_result += PyFloat_AS_DOUBLE(item);
-                PyFPE_END_PROTECT(f_result)
                 Py_DECREF(item);
                 continue;
             }
-            if (PyLong_CheckExact(item)) {
+            if (PyLong_Check(item)) {
                 long value;
                 int overflow;
                 value = PyLong_AsLongAndOverflow(item, &overflow);
                 if (!overflow) {
-                    PyFPE_START_PROTECT("add", Py_DECREF(item); Py_DECREF(iter); return 0)
                     f_result += (double)value;
-                    PyFPE_END_PROTECT(f_result)
                     Py_DECREF(item);
                     continue;
                 }
@@ -2445,7 +2442,11 @@ builtin_sum_impl(PyObject *module, PyObject *iterable, PyObject *start)
              empty = []
              sum([[x] for x in range(10)], empty)
 
-           would change the value of empty. */
+           would change the value of empty. In fact, using
+           in-place addition rather that binary addition for
+           any of the steps introduces subtle behavior changes:
+
+           https://bugs.python.org/issue18305 */
         temp = PyNumber_Add(result, item);
         Py_DECREF(result);
         Py_DECREF(item);
@@ -2618,6 +2619,11 @@ zip_next(zipobject *lz)
             PyTuple_SET_ITEM(result, i, item);
             Py_DECREF(olditem);
         }
+        // bpo-42536: The GC may have untracked this result tuple. Since we're
+        // recycling it, make sure it's tracked again:
+        if (!_PyObject_GC_IS_TRACKED(result)) {
+            _PyObject_GC_TRACK(result);
+        }
     } else {
         result = PyTuple_New(tuplesize);
         if (result == NULL)
@@ -2769,11 +2775,11 @@ static struct PyModuleDef builtinsmodule = {
 
 
 PyObject *
-_PyBuiltin_Init(void)
+_PyBuiltin_Init(PyThreadState *tstate)
 {
     PyObject *mod, *dict, *debug;
 
-    const PyConfig *config = &_PyInterpreterState_GET_UNSAFE()->config;
+    const PyConfig *config = _PyInterpreterState_GetConfig(tstate->interp);
 
     if (PyType_Ready(&PyFilter_Type) < 0 ||
         PyType_Ready(&PyMap_Type) < 0 ||

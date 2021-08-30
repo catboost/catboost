@@ -1,7 +1,8 @@
 from . import _catboost
-from .core import Pool, CatBoostError, ARRAY_TYPES, STRING_TYPES, _update_params_quantize_part, _process_synonyms
+from .core import Pool, CatBoostError, ARRAY_TYPES, PATH_TYPES, STRING_TYPES, fspath, _update_params_quantize_part, _process_synonyms
 from collections import defaultdict
 from contextlib import contextmanager
+import sys
 import numpy as np
 import warnings
 
@@ -97,7 +98,7 @@ def create_cd(
                 if title not in ('Num', 'Categ'):
                     real_feature_index += 1
             _column_description[real_feature_index][1] = name
-    with open(output_path, 'w') as f:
+    with open(fspath(output_path), 'w') as f:
         for index, (title, name) in sorted(_column_description.items()):
             f.write('{}\t{}\t{}\n'.format(index, title, name))
 
@@ -109,8 +110,14 @@ def read_cd(cd_file, column_count=None, data_file=None, canonize_column_types=Fa
 
     Parameters
     ----------
+    cd_file : str or pathlib.Path
+        path to column description file
+
     column_count : integer
-    data_file : path to dataset file in CatBoost format
+        total number of columns
+
+    data_file : str or pathlib.Path
+        path to dataset file in CatBoost format
         specify either column_count directly or data_file to detect it
 
     canonize_column_types : bool
@@ -153,7 +160,7 @@ def read_cd(cd_file, column_count=None, data_file=None, canonize_column_types=Fa
                 'Cannot obtain column count: either specify column_count parameter or specify data_file '
                 + 'parameter to get it'
             )
-        with open(data_file) as f:
+        with open(fspath(data_file)) as f:
             column_count = len(f.readline()[:-1].split('\t'))
 
     column_type_to_indices = {}
@@ -173,13 +180,15 @@ def read_cd(cd_file, column_count=None, data_file=None, canonize_column_types=Fa
             column_dtypes[column_name] = np.float32
 
     last_column_idx = -1
-    with open(cd_file) as f:
+    with open(fspath(cd_file)) as f:
         for line_idx, line in enumerate(f):
+            line = line.strip()
+
             # some cd files in the wild contain empty lines
-            if len(line.strip()) == 0:
+            if len(line) == 0:
                 continue
 
-            line_columns = line[:-1].split('\t')
+            line_columns = line.split('\t')
             if len(line_columns) not in [2, 3]:
                 raise Exception('Wrong number of columns in cd file')
 
@@ -236,7 +245,7 @@ def read_cd(cd_file, column_count=None, data_file=None, canonize_column_types=Fa
     }
 
 
-def eval_metric(label, approx, metric, weight=None, group_id=None, subgroup_id=None, pairs=None, thread_count=-1):
+def eval_metric(label, approx, metric, weight=None, group_id=None, group_weight=None, subgroup_id=None, pairs=None, thread_count=-1):
     """
     Evaluate metrics with raw approxes and labels.
 
@@ -257,17 +266,20 @@ def eval_metric(label, approx, metric, weight=None, group_id=None, subgroup_id=N
     group_id : list or numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
         Object group ids.
 
+    group_weight : list or numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
+        Group weights.
+
     subgroup_id : list or numpy.ndarray, optional (default=None)
         subgroup id for each instance.
         If not None, giving 1 dimensional array like data.
 
-    pairs : list or numpy.ndarray or pandas.DataFrame or string
+    pairs : list or numpy.ndarray or pandas.DataFrame or string or pathlib.Path
         The pairs description.
         If list or numpy.ndarrays or pandas.DataFrame, giving 2 dimensional.
         The shape should be Nx2, where N is the pairs' count. The first element of the pair is
         the index of winner object in the training set. The second element of the pair is
         the index of loser object in the training set.
-        If string, giving the path to the file with pairs description.
+        If string or pathlib.Path, giving the path to the file with pairs description.
 
     thread_count : int, optional (default=-1)
         Number of threads to work with.
@@ -283,7 +295,7 @@ def eval_metric(label, approx, metric, weight=None, group_id=None, subgroup_id=N
         approx = [[]]
     if not isinstance(approx[0], ARRAY_TYPES):
         approx = [approx]
-    return _eval_metric_util(label, approx, metric, weight, group_id, subgroup_id, pairs, thread_count)
+    return _eval_metric_util(label, approx, metric, weight, group_id, group_weight, subgroup_id, pairs, thread_count)
 
 
 def get_gpu_device_count():
@@ -520,6 +532,8 @@ def quantize(
     task_type=None,
     used_ram_limit=None,
     random_seed=None,
+    log_cout=sys.stdout,
+    log_cerr=sys.stderr,
     **kwargs
 ):
     """
@@ -529,7 +543,7 @@ def quantize(
 
     Parameters
     ----------
-    data_path : string
+    data_path : string or pathlib.Path
         Path (with optional scheme) to non-quantized dataset.
 
     column_description : string, [default=None]
@@ -538,9 +552,9 @@ def quantize(
         All columns are Num as default, it's not necessary to specify
         this type of columns. Default Label column index is 0 (zero).
         If None, Label column is 0 (zero) as default, all data columns are Num as default.
-        If string, giving the path to the file with ColumnsDescription in column_description format.
+        If string or pathlib.Path, giving the path to the file with ColumnsDescription in column_description format.
 
-    pairs : string, [default=None]
+    pairs : string or pathlib.Path, [default=None]
         Path to the file with pairs description.
 
     has_header : bool, [default=False]
@@ -549,7 +563,7 @@ def quantize(
     ignore_csv_quoting : bool optional (default=False)
         If True ignore quoting '"'.
 
-    feature_names : string, [default=None]
+    feature_names : string or pathlib.Path, [default=None]
         Path with scheme for feature names data to load.
 
     thread_count : int, [default=-1]
@@ -591,7 +605,7 @@ def quantize(
             - 'Max' - each missing value will be processed as the maximum numerical value.
         If None, then nan_mode=Min.
 
-    input_borders : string, [default=None]
+    input_borders : string or pathlib.Path, [default=None]
         input file with borders used in numeric features binarization.
 
     task_type : string, [default=None]
@@ -613,15 +627,15 @@ def quantize(
     """
     if not data_path:
         raise CatBoostError("Data filename is empty.")
-    if not isinstance(data_path, STRING_TYPES):
-        raise CatBoostError("Data filename should be string type.")
+    if not isinstance(data_path, PATH_TYPES):
+        raise CatBoostError("Data filename should be string or pathlib.Path type.")
 
-    if pairs is not None and not isinstance(pairs, STRING_TYPES):
-        raise CatBoostError("pairs should have None or string type when the pool is read from the file.")
-    if column_description is not None and not isinstance(column_description, STRING_TYPES):
-        raise CatBoostError("column_description should have None or string type when the pool is read from the file.")
-    if feature_names is not None and not isinstance(feature_names, STRING_TYPES):
-        raise CatBoostError("feature_names should have None or string type when the pool is read from the file.")
+    if pairs is not None and not isinstance(pairs, PATH_TYPES):
+        raise CatBoostError("pairs should have None or string or pathlib.Path type when the pool is read from the file.")
+    if column_description is not None and not isinstance(column_description, PATH_TYPES):
+        raise CatBoostError("column_description should have None or string or pathlib.Path type when the pool is read from the file.")
+    if feature_names is not None and not isinstance(feature_names, PATH_TYPES):
+        raise CatBoostError("feature_names should have None or string or pathlib.Path type when the pool is read from the file.")
 
     params = {}
     _process_synonyms(params)
@@ -650,10 +664,11 @@ def quantize(
         task_type,
         used_ram_limit,
         random_seed,
-        dev_max_subset_size_for_build_borders)
+        dev_max_subset_size_for_build_borders
+    )
 
     result = Pool(None)
-    result._read(data_path, column_description, pairs, feature_names, delimiter, has_header, ignore_csv_quoting, thread_count, params)
+    result._read(data_path, column_description, pairs, feature_names, delimiter, has_header, ignore_csv_quoting, thread_count, params, log_cout=log_cout, log_cerr=log_cerr)
 
     return result
 

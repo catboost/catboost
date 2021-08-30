@@ -16,10 +16,10 @@ public:
 
     void FlushData();
     void Finish();
-    ui32 Read(void* buffer, ui32 byteCount);
-    void Write(const void* buffer, ui32 byteCount);
-    ui32 Pread(void* buffer, ui32 byteCount, ui64 offset);
-    void Pwrite(const void* buffer, ui32 byteCount, ui64 offset);
+    size_t Read(void* buffer, size_t byteCount);
+    void Write(const void* buffer, size_t byteCount);
+    size_t Pread(void* buffer, size_t byteCount, ui64 offset);
+    void Pwrite(const void* buffer, size_t byteCount, ui64 offset);
 
     inline bool IsOpen() const {
         return true;
@@ -37,6 +37,14 @@ public:
         return File.GetHandle();
     }
 
+    inline void FallocateNoResize(ui64 length) {
+        File.FallocateNoResize(length);
+    }
+
+    inline void ShrinkToFit() {
+        File.ShrinkToFit();
+    }
+
 private:
     inline bool IsAligned(i64 value) {
         return Alignment ? value == AlignDown<i64>(value, Alignment) : true;
@@ -46,8 +54,8 @@ private:
         return Alignment ? value == AlignDown(value, Alignment) : true;
     }
 
-    ui32 PreadSafe(void* buffer, ui32 byteCount, ui64 offset);
-    ui32 ReadFromFile(void* buffer, ui32 byteCount, ui64 offset);
+    size_t PreadSafe(void* buffer, size_t byteCount, ui64 offset);
+    size_t ReadFromFile(void* buffer, size_t byteCount, ui64 offset);
     void WriteToFile(const void* buf, size_t len, ui64 position);
     void WriteToBuffer(const void* buf, size_t len, ui64 position);
     void SetDirectIO(bool value);

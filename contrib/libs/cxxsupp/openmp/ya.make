@@ -1,39 +1,34 @@
 LIBRARY()
 
-LICENSE(
-    MIT
-    BSD
-)
+LICENSE(NCSA AND MIT)
+
+LICENSE_TEXTS(yandex_meta/licenses.list.txt)
 
 
 
 NO_UTIL()
+
 NO_PLATFORM()
+
 NO_COMPILER_WARNINGS()
 
-IF (SANITIZER_TYPE STREQUAL thread)
+IF (SANITIZER_TYPE == thread)
     NO_SANITIZE()
-
     CFLAGS(-fPIC)
-ENDIF ()
+ENDIF()
 
-IF (SANITIZER_TYPE STREQUAL memory)
+IF (SANITIZER_TYPE == memory)
     NO_SANITIZE()
-
     CFLAGS(-fPIC)
-ENDIF ()
+ENDIF()
 
 COMPILE_C_AS_CXX()
 
-CXXFLAGS(
-    -fno-exceptions
-)
+CXXFLAGS(-fno-exceptions)
 
 SET_APPEND(CFLAGS -fno-lto)
 
-ADDINCL(
-    GLOBAL contrib/libs/cxxsupp/openmp
-)
+ADDINCL(GLOBAL contrib/libs/cxxsupp/openmp)
 
 ADDINCL(
     contrib/libs/cxxsupp/openmp/i18n
@@ -59,19 +54,10 @@ SRCS(
     kmp_taskq.c
     kmp_threadprivate.c
     kmp_utility.c
-)
-
-SRCS(
     z_Linux_util.c
     kmp_gsupport.c
     asm.S
-)
-
-SRCS(
     thirdparty/ittnotify/ittnotify_static.c
-)
-
-SRCS(
     kmp_barrier.cpp
     kmp_wait_release.cpp
     kmp_affinity.cpp
@@ -80,9 +66,6 @@ SRCS(
     kmp_sched.cpp
     kmp_taskdeps.cpp
     kmp_cancel.cpp
-)
-
-SRCS(
     kmp_ftn_cdecl.c
     kmp_ftn_extra.c
     kmp_version.c

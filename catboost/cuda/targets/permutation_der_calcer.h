@@ -29,6 +29,11 @@ namespace NCatboostCuda {
                                                TVec* der,
                                                ui32 stream = 0) const = 0;
 
+        virtual void ComputeExactValue(const TConstVec& approx,
+                                       TVec* value,
+                                       TVec* weights,
+                                       ui32 stream = 0) const = 0;
+
         //        virtual ui32 HessianBlockCount() const = 0;
         //        virtual ui32 HessianBlockSize() const = 0;
 
@@ -77,28 +82,64 @@ namespace NCatboostCuda {
                            ui32 stream = 0) const final {
             CB_ENSURE(point.GetColumnCount() == 1, "Unimplemented for loss with multiple columns");
 
-            Parent->Approximate(Target,
-                                Weights,
-                                point,
-                                value,
-                                der,
-                                0,
-                                der2,
-                                stream);
+            Parent->Approximate(
+                Target.AsConstBuf(),
+                Weights.AsConstBuf(),
+                point.AsConstBuf(),
+                value,
+                der,
+                0,
+                der2,
+                stream
+            );
+        }
+
+        void ComputeExactValue(const TConstVec& approx,
+                               TVec* value,
+                               TVec* weights,
+                               ui32 stream = 0) const final {
+            auto targetScratch = TVec::CopyMapping(Target);
+            FillBuffer(targetScratch, 0.0f, stream);
+            AddVector(targetScratch, Target, stream);
+
+            FillBuffer(*value, 0.0f, stream);
+            SubtractVector(targetScratch, approx, stream);
+            AddVector(*value, targetScratch, stream);
+
+            FillBuffer(*weights, 0.0f, stream);
+            AddVector(*weights, Weights, stream);
         }
 
         void ComputeValueAndDerivative(const TVec& point,
                                        TVec* value,
                                        TVec* der,
                                        ui32 stream = 0) const final {
-            Parent->Approximate(Target, Weights, point, value, der, 0, nullptr, stream);
+            Parent->Approximate(
+                Target.AsConstBuf(),
+                Weights.AsConstBuf(),
+                point.AsConstBuf(),
+                value,
+                der,
+                0,
+                nullptr,
+                stream
+            );
         }
 
         void ComputeSecondDerRowLowerTriangleForAllBlocks(const TVec& point,
                                                           ui32 row,
                                                           TVec* der2,
                                                           ui32 stream = 0) const final {
-            Parent->Approximate(Target, Weights, point, nullptr, nullptr, row, der2, stream);
+            Parent->Approximate(
+                Target.AsConstBuf(),
+                Weights.AsConstBuf(),
+                point.AsConstBuf(),
+                nullptr,
+                nullptr,
+                row,
+                der2,
+                stream
+            );
         }
 
         TConstVec GetWeights(ui32 streamId) const final {
@@ -151,20 +192,42 @@ namespace NCatboostCuda {
                            TVec* der2,
                            ui32 stream = 0) const final {
             CB_ENSURE(point.GetColumnCount() == 1, "Unimplemented for loss with multiple columns");
-            Parent->ApproximateForPermutation(point,
-                                              &InverseIndices, /* inverse leaves indices */
-                                              value,
-                                              der,
-                                              0, /* der2 row */
-                                              der2,
-                                              stream);
+            Parent->ApproximateForPermutation(
+                point.AsConstBuf(),
+                &InverseIndices, /* inverse leaves indices */
+                value,
+                der,
+                0, /* der2 row */
+                der2,
+                stream
+            );
+        }
+
+        void ComputeExactValue(const TConstVec& approx,
+                               TVec* value,
+                               TVec* weights,
+                               ui32 stream = 0) const final {
+            Y_UNUSED(approx);
+            Y_UNUSED(value);
+            Y_UNUSED(weights);
+            Y_UNUSED(stream);
+
+            CB_ENSURE(false, "Exact leaves estimation method on GPU is not supported for non-pointwise target");
         }
 
         void ComputeValueAndDerivative(const TVec& point,
                                        TVec* value,
                                        TVec* der,
                                        ui32 stream = 0) const final {
-            Parent->ApproximateForPermutation(point, &InverseIndices, value, der, 0, nullptr, stream);
+            Parent->ApproximateForPermutation(
+                point.AsConstBuf(),
+                &InverseIndices,
+                value,
+                der,
+                0,
+                nullptr,
+                stream
+            );
         }
 
         void ComputeSecondDerRowLowerTriangleForAllBlocks(const TVec& point,
@@ -172,7 +235,15 @@ namespace NCatboostCuda {
                                                           TVec* der2,
                                                           ui32 stream = 0) const final {
             CB_ENSURE(row < point.GetColumnCount(), "Error: der2 row is out of bound " << row << ", total " << point.GetColumnCount() << " rows");
-            Parent->ApproximateForPermutation(point, &InverseIndices, nullptr, nullptr, row, der2, stream);
+            Parent->ApproximateForPermutation(
+                point.AsConstBuf(),
+                &InverseIndices,
+                nullptr,
+                nullptr,
+                row,
+                der2,
+                stream
+            );
         }
 
         TConstVec GetWeights(ui32 streamId) const final {

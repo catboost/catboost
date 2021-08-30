@@ -37,9 +37,8 @@
 #include <Python.h>
 
 #include <memory>
-#ifndef _SHARED_PTR_H
-#include <google/protobuf/stubs/shared_ptr.h>
-#endif
+
+#include <google/protobuf/pyext/message.h>
 
 namespace google {
 namespace protobuf {
@@ -47,39 +46,17 @@ namespace protobuf {
 class Message;
 class FieldDescriptor;
 
-#ifdef _SHARED_PTR_H
-using std::shared_ptr;
-#else
-using internal::shared_ptr;
-#endif
-
 namespace python {
-
-struct CMessage;
 
 typedef struct ExtensionDict {
   PyObject_HEAD;
 
-  // This is the top-level C++ Message object that owns the whole
-  // proto tree.  Every Python container class holds a
-  // reference to it in order to keep it alive as long as there's a
-  // Python object that references any part of the tree.
-  shared_ptr<Message> owner;
-
-  // Weak reference to parent message. Used to make sure
-  // the parent is writable when an extension field is modified.
+  // Strong, owned reference to the parent message. Never NULL.
   CMessage* parent;
-
-  // Pointer to the C++ Message that this ExtensionDict extends.
-  // Not owned by us.
-  Message* message;
-
-  // A dict of child messages, indexed by Extension descriptors.
-  // Similar to CMessage::composite_fields.
-  PyObject* values;
 } ExtensionDict;
 
 extern PyTypeObject ExtensionDict_Type;
+extern PyTypeObject ExtensionIterator_Type;
 
 namespace extension_dict {
 
@@ -89,6 +66,6 @@ ExtensionDict* NewExtensionDict(CMessage *parent);
 }  // namespace extension_dict
 }  // namespace python
 }  // namespace protobuf
-
 }  // namespace google
+
 #endif  // GOOGLE_PROTOBUF_PYTHON_CPP_EXTENSION_DICT_H__

@@ -26,7 +26,7 @@ namespace NCB {
      */
     template <class TOutput, class TMapFunc, class TMergeFunc>
     void MapMerge(
-        NPar::TLocalExecutor* localExecutor,
+        NPar::ILocalExecutor* localExecutor,
         const IIndexRangesGenerator<int>& indexRangesGenerator,
         TMapFunc&& mapFunc, // void(NCB::TIndexRange, TOutput*)
         TMergeFunc&& mergeFunc, // void(TOutput*, TVector<TOutput>&&)

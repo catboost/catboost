@@ -1,5 +1,5 @@
 #include "modes.h"
-#include "bind_options.h"
+#include <catboost/private/libs/app_helpers/bind_options.h>
 
 #include <catboost/private/libs/algo/helpers.h>
 #include <catboost/libs/data/load_data.h>
@@ -7,6 +7,7 @@
 #include <catboost/private/libs/options/catboost_options.h>
 #include <catboost/private/libs/options/feature_eval_options.h>
 #include <catboost/private/libs/options/plain_options_helper.h>
+#include <catboost/private/libs/options/pool_metainfo_options.h>
 #include <catboost/libs/train_lib/eval_feature.h>
 #include <catboost/libs/data/feature_names_converter.h>
 
@@ -39,8 +40,10 @@ int mode_eval_feature(int argc, const char* argv[]) {
     NJson::TJsonValue catBoostJsonOptions;
     NJson::TJsonValue outputOptionsJson;
     InitOptions(paramsFile, &catBoostJsonOptions, &outputOptionsJson);
+    NCatboostOptions::LoadPoolMetaInfoOptions(poolLoadParams.PoolMetaInfoPath, &catBoostJsonOptions);
 
     ConvertIgnoredFeaturesFromStringToIndices(poolLoadParams, &catBoostFlatJsonOptions);
+    ConvertFeaturesToEvaluateFromStringToIndices(poolLoadParams, &featureEvalJsonOptions);
     NCatboostOptions::PlainJsonToOptions(catBoostFlatJsonOptions, &catBoostJsonOptions, &outputOptionsJson);
     ConvertParamsToCanonicalFormat(poolLoadParams, &catBoostJsonOptions);
     CopyIgnoredFeaturesToPoolParams(catBoostJsonOptions, &poolLoadParams);
@@ -60,7 +63,8 @@ int mode_eval_feature(int argc, const char* argv[]) {
         poolLoadParams,
         objectsOrder,
         /*readTestData*/false,
-        TDatasetSubset::MakeColumns(),
+        /*learnDatasetSubset*/ TDatasetSubset::MakeColumns(),
+        /*testDatasetSubsets*/ {},
         &classLabels,
         &NPar::LocalExecutor(),
         /*profile*/nullptr
@@ -90,6 +94,16 @@ int mode_eval_feature(int argc, const char* argv[]) {
         featureEvalFile << ToString(featureEvalSummary);
     } else {
         CATBOOST_DEBUG_LOG << ToString(featureEvalSummary);
+    }
+
+    if (!featureEvalSummary.ProcessorsUsage.empty()) {
+        const auto processorsSummary = featureEvalSummary.CalcProcessorsSummary();
+        if (featureEvalOptions.ProcessorsUsageFileName->length() > 0) {
+            TFileOutput ProcessorsUsageFile(featureEvalOptions.ProcessorsUsageFileName.Get());
+            ProcessorsUsageFile << ToString(processorsSummary);
+        } else {
+            CATBOOST_DEBUG_LOG << ToString(processorsSummary);
+        }
     }
 
     return 0;

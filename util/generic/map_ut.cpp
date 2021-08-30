@@ -6,10 +6,10 @@
 
 Y_UNIT_TEST_SUITE(TYMapTest) {
     template <typename TAlloc>
-    void DoTestMap1(TMap<char, int, TLess<char>, TAlloc> & m);
+    void DoTestMap1(TMap<char, int, TLess<char>, TAlloc>& m);
 
     template <typename TAlloc>
-    void DoTestMMap1(TMultiMap<char, int, TLess<char>, TAlloc> & mm);
+    void DoTestMMap1(TMultiMap<char, int, TLess<char>, TAlloc>& mm);
 
     Y_UNIT_TEST(TestMap1) {
         {
@@ -36,7 +36,7 @@ Y_UNIT_TEST_SUITE(TYMapTest) {
     }
 
     template <typename TAlloc>
-    void DoTestMap1(TMap<char, int, TLess<char>, TAlloc> & m) {
+    void DoTestMap1(TMap<char, int, TLess<char>, TAlloc>& m) {
         using maptype = TMap<char, int, TLess<char>, TAlloc>;
         // Store mappings between roman numerals and decimals.
         m['l'] = 50;
@@ -67,7 +67,7 @@ Y_UNIT_TEST_SUITE(TYMapTest) {
     }
 
     template <typename TAlloc>
-    void DoTestMMap1(TMultiMap<char, int, TLess<char>, TAlloc> & m) {
+    void DoTestMMap1(TMultiMap<char, int, TLess<char>, TAlloc>& m) {
         using mmap = TMultiMap<char, int, TLess<char>, TAlloc>;
 
         UNIT_ASSERT(m.count('X') == 0);

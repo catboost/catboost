@@ -1,15 +1,13 @@
-#include "string.h"
 #include "deque.h"
+#include "strbuf.h"
+#include "string_ut.h"
 #include "vector.h"
 #include "yexception.h"
-#include "strbuf.h"
 
-#include <library/cpp/testing/unittest/registar.h>
-
-#include <util/string/subst.h>
-#include <util/stream/output.h>
 #include <util/charset/wide.h>
 #include <util/str_stl.h>
+#include <util/stream/output.h>
+#include <util/string/subst.h>
 
 #include <string>
 #include <sstream>
@@ -21,662 +19,6 @@ static_assert(sizeof(TString) == sizeof(std::string), "expect sizeof(TString) ==
 #else
 static_assert(sizeof(TString) == sizeof(const char*), "expect sizeof(TString) == sizeof(const char*)");
 #endif
-
-template <class TStringType, typename TTestData>
-class TStringTestImpl {
-protected:
-    using char_type = typename TStringType::char_type;
-    using traits_type = typename TStringType::traits_type;
-
-    TTestData Data;
-
-public:
-    void TestMaxSize() {
-#ifdef TSTRING_IS_STD_STRING
-        const size_t badMaxVal = TStringType{}.max_size() + 1;
-#else
-        size_t l = TStringType::TDataTraits::MaxSize;
-        UNIT_ASSERT(TStringType::TDataTraits::CalcAllocationSizeAndCapacity(l) >= TStringType::TDataTraits::MaxSize * sizeof(char_type));
-        UNIT_ASSERT(l >= TStringType::TDataTraits::MaxSize);
-
-        const size_t badMaxVal = TStringType::TDataTraits::MaxSize + 1;
-        l = badMaxVal;
-        UNIT_ASSERT(TStringType::TDataTraits::CalcAllocationSizeAndCapacity(l) < badMaxVal * sizeof(char_type));
-#endif
-
-        TStringType s;
-        UNIT_CHECK_GENERATED_EXCEPTION(s.reserve(badMaxVal), std::length_error);
-    }
-
-    void TestConstructors() {
-        TStringType s0(nullptr);
-        UNIT_ASSERT(s0.size() == 0);
-        UNIT_ASSERT_EQUAL(s0, TStringType());
-
-        TStringType s;
-        TStringType s1(*Data._0());
-        TStringType s2(Data._0());
-        UNIT_ASSERT(s1 == s2);
-
-#ifndef TSTRING_IS_STD_STRING
-        TStringType s3 = TStringType::Uninitialized(10);
-        UNIT_ASSERT(s3.size() == 10);
-#endif
-
-        TStringType s4(Data._0123456(), 1, 3);
-        UNIT_ASSERT(s4 == Data._123());
-
-        TStringType s5(5, *Data._0());
-        UNIT_ASSERT(s5 == Data._00000());
-
-        TStringType s6(Data._0123456());
-        UNIT_ASSERT(s6 == Data._0123456());
-        TStringType s7(s6);
-        UNIT_ASSERT(s7 == s6);
-#ifndef TSTRING_IS_STD_STRING
-        UNIT_ASSERT(s7.c_str() == s6.c_str());
-#endif
-
-        TStringType s8(s7, 1, 3);
-        UNIT_ASSERT(s8 == Data._123());
-
-        TStringType s9(*Data._1());
-        UNIT_ASSERT(s9 == Data._1());
-
-        TStringType s10(Reserve(100));
-        UNIT_ASSERT(s10.empty());
-#ifdef TSTRING_IS_STD_STRING
-        UNIT_ASSERT(s10.capacity() >= 100);
-#else
-        UNIT_ASSERT(s10.capacity() > 100);
-#endif
-    }
-
-    void TestReplace() {
-        TStringType s(Data._0123456());
-        UNIT_ASSERT(s.copy() == Data._0123456());
-
-        // append family
-        s.append(Data.x());
-        UNIT_ASSERT(s == Data._0123456x());
-
-#ifdef TSTRING_IS_STD_STRING
-        s.append(Data.xyz() + 1, 1);
-#else
-        s.append(Data.xyz(), 1, 1);
-#endif
-        UNIT_ASSERT(s == Data._0123456xy());
-
-        s.append(TStringType(Data.z()));
-        UNIT_ASSERT(s == Data._0123456xyz());
-
-        s.append(TStringType(Data.XYZ()), 2, 1);
-        UNIT_ASSERT(s == Data._0123456xyzZ());
-
-        s.append(*Data._0());
-        UNIT_ASSERT(s == Data._0123456xyzZ0());
-
-        // prepend family
-        s = Data._0123456xyz();
-        s.prepend(TStringType(Data.abc()));
-        UNIT_ASSERT(s == Data.abc0123456xyz());
-
-        s.prepend(TStringType(Data.ABC()), 1, 2);
-        UNIT_ASSERT(s == Data.BCabc0123456xyz());
-
-        s.prepend(Data.qwe());
-        UNIT_ASSERT(s == Data.qweBCabc0123456xyz());
-
-        s.prepend(*Data._1());
-        UNIT_ASSERT(s == Data._1qweBCabc0123456xyz());
-
-        // substr
-        s = Data.abc0123456xyz();
-        s = s.substr(3, 7);
-        UNIT_ASSERT(s == Data._0123456());
-
-        // insert family
-        s.insert(2, Data.abc());
-        UNIT_ASSERT(s == Data._01abc23456());
-
-        s.insert(2, TStringType(Data.ABC()));
-        UNIT_ASSERT(s == Data._01ABCabc23456());
-
-        s.insert(0, TStringType(Data.QWE()), 1, 1);
-        UNIT_ASSERT(s == Data.W01ABCabc23456());
-
-        // replace family
-        s = Data._01abc23456();
-        s.replace(0, 7, Data.abcd());
-        UNIT_ASSERT(s == Data.abcd456());
-
-        s.replace(4, 3, TStringType(Data.ABCD()));
-        UNIT_ASSERT(s == Data.abcdABCD());
-
-        s.replace(7, 10, TStringType(Data._01234()), 1, 3);
-        UNIT_ASSERT(s == Data.abcdABC123());
-        UNIT_ASSERT(Data.abcdABC123() == s);
-
-        // remove, erase
-        s.remove(4);
-        UNIT_ASSERT(s == Data.abcd());
-        s.erase(3);
-        UNIT_ASSERT(s == Data.abc());
-
-        // Read access
-        s = Data._012345();
-        UNIT_ASSERT(s.at(1) == *Data._1());
-        UNIT_ASSERT(s[1] == *Data._1());
-        UNIT_ASSERT(s.at(s.size()) == 0);
-        UNIT_ASSERT(s[s.size()] == 0);
-    }
-
-#ifndef TSTRING_IS_STD_STRING
-    void TestRefCount() {
-        // access protected member
-        class TestStroka: public TStringType {
-        public:
-            TestStroka(const char_type* s)
-                : TStringType(s)
-            {
-            }
-            intptr_t RefCount() const {
-                return TStringType::GetData()->Refs;
-            }
-        };
-
-        TestStroka s1(Data.orig());
-        UNIT_ASSERT_EQUAL(s1.RefCount() == 1, true);
-        TestStroka s2(s1);
-        UNIT_ASSERT_EQUAL(s1.RefCount() == 2, true);
-        UNIT_ASSERT_EQUAL(s2.RefCount() == 2, true);
-        UNIT_ASSERT_EQUAL(s1.c_str() == s2.c_str(), true); // the same pointer
-        char_type* beg = s2.begin();
-        UNIT_ASSERT_EQUAL(s1 == beg, true);
-        UNIT_ASSERT_EQUAL(s1.RefCount() == 1, true);
-        UNIT_ASSERT_EQUAL(s2.RefCount() == 1, true);
-        UNIT_ASSERT_EQUAL(s1.c_str() == s2.c_str(), false);
-    }
-#endif
-
-    //  Find family
-
-    void TestFind() {
-        const TStringType s(Data._0123456_12345());
-        const TStringType s2(Data._0123());
-
-        UNIT_ASSERT(s.find(Data._345()) == 3);
-        UNIT_ASSERT(s.find(Data._345(), 5) == 10);
-
-        UNIT_ASSERT(s.find(Data._345(), 20) == TStringType::npos);
-        UNIT_ASSERT(s.find(*Data._3()) == 3);
-        UNIT_ASSERT(s.find(TStringType(Data._345())) == 3);
-        UNIT_ASSERT(s.find(TStringType(Data._345()), 2) == 3);
-
-        UNIT_ASSERT(s.find_first_of(TStringType(Data._389())) == 3);
-        UNIT_ASSERT(s.find_first_of(Data._389()) == 3);
-        UNIT_ASSERT(s.find_first_of(Data._389(), s.size()) == TStringType::npos);
-        UNIT_ASSERT(s.find_first_not_of(Data._123()) == 0);
-        UNIT_ASSERT(s.find_first_of('6') == 6);
-        UNIT_ASSERT(s.find_first_of('1', 2) == 8);
-        UNIT_ASSERT(s.find_first_not_of('0') == 1);
-        UNIT_ASSERT(s.find_first_not_of('1', 1) == 2);
-
-        const TStringType rs = Data._0123401234();
-        UNIT_ASSERT(rs.rfind(*Data._3()) == 8);
-
-        const TStringType empty;
-        UNIT_ASSERT(empty.find(empty) == 0);
-        UNIT_ASSERT(s.find(empty, 0) == 0);
-        UNIT_ASSERT(s.find(empty, 1) == 1);
-        UNIT_ASSERT(s.find(empty, s.length()) == s.length());
-        UNIT_ASSERT(s.find(empty, s.length() + 1) == TStringType::npos);
-
-        UNIT_ASSERT(s.rfind(empty) == s.length());
-        UNIT_ASSERT(empty.rfind(empty) == 0);
-        UNIT_ASSERT(empty.rfind(s) == TStringType::npos);
-
-        UNIT_ASSERT(s2.rfind(s) == TStringType::npos);
-        UNIT_ASSERT(s.rfind(s2) == 0);
-        UNIT_ASSERT(s.rfind(TStringType(Data._345())) == 10);
-        UNIT_ASSERT(s.rfind(TStringType(Data._345()), 13) == 10);
-        UNIT_ASSERT(s.rfind(TStringType(Data._345()), 10) == 10);
-        UNIT_ASSERT(s.rfind(TStringType(Data._345()), 9) == 3);
-        UNIT_ASSERT(s.rfind(TStringType(Data._345()), 6) == 3);
-        UNIT_ASSERT(s.rfind(TStringType(Data._345()), 3) == 3);
-        UNIT_ASSERT(s.rfind(TStringType(Data._345()), 2) == TStringType::npos);
-    }
-
-    void TestContains() {
-        const TStringType s(Data._0123456_12345());
-        const TStringType s2(Data._0123());
-
-        UNIT_ASSERT(s.Contains(Data._345()));
-        UNIT_ASSERT(!s2.Contains(Data._345()));
-
-        UNIT_ASSERT(s.Contains('1'));
-        UNIT_ASSERT(!s.Contains('*'));
-
-        TStringType empty;
-        UNIT_ASSERT(s.Contains(empty));
-        UNIT_ASSERT(!empty.Contains(s));
-        UNIT_ASSERT(empty.Contains(empty));
-        UNIT_ASSERT(s.Contains(empty, s.length()));
-    }
-
-    // Operators
-
-    void TestOperators() {
-        TStringType s(Data._0123456());
-
-        // operator +=
-        s += TStringType(Data.x());
-        UNIT_ASSERT(s == Data._0123456x());
-
-        s += Data.y();
-        UNIT_ASSERT(s == Data._0123456xy());
-
-        s += *Data.z();
-        UNIT_ASSERT(s == Data._0123456xyz());
-
-        // operator +
-        s = Data._0123456();
-        s = s + TStringType(Data.x());
-        UNIT_ASSERT(s == Data._0123456x());
-
-        s = s + Data.y();
-        UNIT_ASSERT(s == Data._0123456xy());
-
-        s = s + *Data.z();
-        UNIT_ASSERT(s == Data._0123456xyz());
-
-        // operator !=
-        s = Data._012345();
-        UNIT_ASSERT(s != TStringType(Data.xyz()));
-        UNIT_ASSERT(s != Data.xyz());
-        UNIT_ASSERT(Data.xyz() != s);
-
-        // operator <
-        UNIT_ASSERT_EQUAL(s < TStringType(Data.xyz()), true);
-        UNIT_ASSERT_EQUAL(s < Data.xyz(), true);
-        UNIT_ASSERT_EQUAL(Data.xyz() < s, false);
-
-        // operator <=
-        UNIT_ASSERT_EQUAL(s <= TStringType(Data.xyz()), true);
-        UNIT_ASSERT_EQUAL(s <= Data.xyz(), true);
-        UNIT_ASSERT_EQUAL(Data.xyz() <= s, false);
-
-        // operator >
-        UNIT_ASSERT_EQUAL(s > TStringType(Data.xyz()), false);
-        UNIT_ASSERT_EQUAL(s > Data.xyz(), false);
-        UNIT_ASSERT_EQUAL(Data.xyz() > s, true);
-
-        // operator >=
-        UNIT_ASSERT_EQUAL(s >= TStringType(Data.xyz()), false);
-        UNIT_ASSERT_EQUAL(s >= Data.xyz(), false);
-        UNIT_ASSERT_EQUAL(Data.xyz() >= s, true);
-    }
-
-    void TestOperatorsCI() {
-        TStringType s(Data.ABCD());
-        UNIT_ASSERT(s > Data.abc0123456xyz());
-        UNIT_ASSERT(s == Data.abcd());
-
-        UNIT_ASSERT(s > TBasicStringBuf<char_type>(Data.abc0123456xyz()));
-        UNIT_ASSERT(TBasicStringBuf<char_type>(Data.abc0123456xyz()) < s);
-        UNIT_ASSERT(s == TBasicStringBuf<char_type>(Data.abcd()));
-    }
-
-    void TestMulOperators() {
-        {
-            TStringType s(Data._0());
-            s *= 10;
-            UNIT_ASSERT_EQUAL(s, TStringType(Data._0000000000()));
-        }
-        {
-            TStringType s = TStringType(Data._0()) * 2;
-            UNIT_ASSERT_EQUAL(s, TStringType(Data._00()));
-        }
-    }
-
-    // Test any other functions
-
-    void TestFuncs() {
-        TStringType s(Data._0123456());
-        UNIT_ASSERT(s.c_str() == s.data());
-
-        // length()
-        UNIT_ASSERT(s.length() == s.size());
-        UNIT_ASSERT(s.length() == traits_type::GetLength(s.data()));
-
-        // is_null()
-        TStringType s1(Data.Empty());
-        UNIT_ASSERT(s1.is_null() == true);
-        UNIT_ASSERT(s1.is_null() == s1.empty());
-        UNIT_ASSERT(s1.is_null() == !s1);
-
-        TStringType s2(s);
-        UNIT_ASSERT(s2 == s);
-
-        // reverse()
-        s2.reverse();
-        UNIT_ASSERT(s2 == Data._6543210());
-
-        // to_upper()
-        s2 = Data.asdf1234qwer();
-        s2.to_upper();
-        UNIT_ASSERT(s2 == Data.ASDF1234QWER());
-
-        // to_lower()
-        s2.to_lower();
-        UNIT_ASSERT(s2 == Data.asdf1234qwer());
-
-        // to_title()
-        s2 = Data.asDF1234qWEr();
-        s2.to_title();
-        UNIT_ASSERT(s2 == Data.Asdf1234qwer());
-
-        s2 = Data.AsDF1234qWEr();
-        s2.to_title();
-        UNIT_ASSERT(s2 == Data.Asdf1234qwer());
-
-        // Friend functions
-        s2 = Data.asdf1234qwer();
-        TStringType s3 = to_upper(s2);
-        UNIT_ASSERT(s3 == Data.ASDF1234QWER());
-        s3 = to_lower(s2);
-        UNIT_ASSERT(s3 == Data.asdf1234qwer());
-        s3 = to_title(s2);
-        UNIT_ASSERT(s3 == Data.Asdf1234qwer());
-        s2 = s3;
-
-        // resize family
-        s2.resize(s2.size()); // without length change
-        UNIT_ASSERT(s2 == Data.Asdf1234qwer());
-
-        s2.resize(s2.size() + 4, *Data.W());
-        UNIT_ASSERT(s2 == Data.Asdf1234qwerWWWW());
-
-        s2.resize(4);
-        UNIT_ASSERT(s2 == Data.Asdf());
-
-        // assign family
-        s2 = Data.asdf1234qwer();
-        s2.assign(s, 1, 3);
-        UNIT_ASSERT(s2 == Data._123());
-
-        s2.assign(Data._0123456(), 4);
-        UNIT_ASSERT(s2 == Data._0123());
-
-        s2.assign('1');
-        UNIT_ASSERT(s2 == Data._1());
-
-        s2.assign(Data._0123456());
-        UNIT_ASSERT(s2 == Data._0123456());
-
-        // hash()
-        TStringType sS = s2; // type 'TStringType' is used as is
-
-        sS.hash(); /*size_t hash_val = sS.hash();
-
-        try {
-            //UNIT_ASSERT(hash_val == Data.HashOf_0123456());
-        } catch (...) {
-            Cerr << hash_val << Endl;
-            throw;
-        }*/
-
-        s2.assign(Data._0123456(), 2, 2);
-        UNIT_ASSERT(s2 == Data._23());
-
-        //s2.reserve();
-
-        TStringType s5(Data.abcde());
-        s5 = nullptr;
-        UNIT_ASSERT(s5 == Data.Empty());
-    }
-
-    void TestUtils() {
-        TStringType s;
-        s = Data._01230123();
-        TStringType from = Data._0();
-        TStringType to = Data.z();
-
-        SubstGlobal(s, from, to);
-        UNIT_ASSERT(s == Data.z123z123());
-    }
-
-    void TestEmpty() {
-        TStringType s;
-        s = Data._2();
-        s = TStringType(Data.fdfdsfds(), (size_t)0, (size_t)0);
-        UNIT_ASSERT(s.empty());
-    }
-
-    void TestJoin() {
-        UNIT_ASSERT_EQUAL(TStringType::Join(Data._12(), Data._3456()), Data._123456());
-        UNIT_ASSERT_EQUAL(TStringType::Join(Data._12(), TStringType(Data._3456())), Data._123456());
-        UNIT_ASSERT_EQUAL(TStringType::Join(TStringType(Data._12()), Data._3456()), Data._123456());
-        UNIT_ASSERT_EQUAL(TStringType::Join(Data._12(), Data._345(), Data._6()), Data._123456());
-        UNIT_ASSERT_EQUAL(TStringType::Join(Data._12(), TStringType(Data._345()), Data._6()), Data._123456());
-        UNIT_ASSERT_EQUAL(TStringType::Join(TStringType(Data._12()), TStringType(Data._345()), Data._6()), Data._123456());
-        UNIT_ASSERT_EQUAL(TStringType::Join(TStringType(Data.a()), Data.b(), TStringType(Data.cd()), TStringType(Data.e()), Data.fg(), TStringType(Data.h())), Data.abcdefgh());
-        UNIT_ASSERT_EQUAL(TStringType::Join(TStringType(Data.a()), static_cast<typename TStringType::char_type>('b'), TStringType(Data.cd()), TStringType(Data.e()), Data.fg(), TStringType(Data.h())), Data.abcdefgh());
-    }
-
-    void TestCopy() {
-        TStringType s(Data.abcd());
-        TStringType c = s.copy();
-
-        UNIT_ASSERT_EQUAL(s, c);
-        UNIT_ASSERT(s.end() != c.end());
-    }
-
-    void TestStrCpy() {
-        {
-            TStringType s(Data.abcd());
-            char_type data[5];
-
-            data[4] = 1;
-
-            s.strcpy(data, 4);
-
-            UNIT_ASSERT_EQUAL(data[0], *Data.a());
-            UNIT_ASSERT_EQUAL(data[1], *Data.b());
-            UNIT_ASSERT_EQUAL(data[2], *Data.c());
-            UNIT_ASSERT_EQUAL(data[3], 0);
-            UNIT_ASSERT_EQUAL(data[4], 1);
-        }
-
-        {
-            TStringType s(Data.abcd());
-            char_type data[5];
-
-            s.strcpy(data, 5);
-
-            UNIT_ASSERT_EQUAL(data[0], *Data.a());
-            UNIT_ASSERT_EQUAL(data[1], *Data.b());
-            UNIT_ASSERT_EQUAL(data[2], *Data.c());
-            UNIT_ASSERT_EQUAL(data[3], *Data.d());
-            UNIT_ASSERT_EQUAL(data[4], 0);
-        }
-    }
-
-    void TestPrefixSuffix() {
-        const TStringType emptyStr;
-        UNIT_ASSERT_EQUAL(emptyStr.StartsWith('x'), false);
-        UNIT_ASSERT_EQUAL(emptyStr.EndsWith('x'), false);
-        UNIT_ASSERT_EQUAL(emptyStr.StartsWith(0), false);
-        UNIT_ASSERT_EQUAL(emptyStr.EndsWith(0), false);
-        UNIT_ASSERT_EQUAL(emptyStr.StartsWith(emptyStr), true);
-        UNIT_ASSERT_EQUAL(emptyStr.EndsWith(emptyStr), true);
-
-        const char_type chars[] = {'h', 'e', 'l', 'l', 'o', 0};
-        const TStringType str(chars);
-        UNIT_ASSERT_EQUAL(str.StartsWith('h'), true);
-        UNIT_ASSERT_EQUAL(str.StartsWith('o'), false);
-        UNIT_ASSERT_EQUAL(str.EndsWith('o'), true);
-        UNIT_ASSERT_EQUAL(str.EndsWith('h'), false);
-        UNIT_ASSERT_EQUAL(str.StartsWith(emptyStr), true);
-        UNIT_ASSERT_EQUAL(str.EndsWith(emptyStr), true);
-    }
-
-#ifndef TSTRING_IS_STD_STRING
-    void TestCharRef() {
-        const char_type abc[] = {'a', 'b', 'c', 0};
-        const char_type bbc[] = {'b', 'b', 'c', 0};
-        const char_type cbc[] = {'c', 'b', 'c', 0};
-
-        TStringType s0 = abc;
-        TStringType s1 = s0;
-
-        UNIT_ASSERT(!s0.IsDetached());
-        UNIT_ASSERT(!s1.IsDetached());
-
-        /* Read access shouldn't detach. */
-        UNIT_ASSERT_VALUES_EQUAL(s0[0], (ui8)'a');
-        UNIT_ASSERT(!s0.IsDetached());
-        UNIT_ASSERT(!s1.IsDetached());
-
-        /* Writing should detach. */
-        s1[0] = (ui8)'b';
-        TStringType s2 = s0;
-        s0[0] = (ui8)'c';
-
-        UNIT_ASSERT_VALUES_EQUAL(s0, cbc);
-        UNIT_ASSERT_VALUES_EQUAL(s1, bbc);
-        UNIT_ASSERT_VALUES_EQUAL(s2, abc);
-        UNIT_ASSERT(s0.IsDetached());
-        UNIT_ASSERT(s1.IsDetached());
-        UNIT_ASSERT(s2.IsDetached());
-
-        /* Accessing null terminator is OK. Note that writing into it is UB. */
-        UNIT_ASSERT_VALUES_EQUAL(s0[3], (ui8)'\0');
-        UNIT_ASSERT_VALUES_EQUAL(s1[3], (ui8)'\0');
-        UNIT_ASSERT_VALUES_EQUAL(s2[3], (ui8)'\0');
-
-        /* Assignment one char reference to another results in modification of underlying character */
-        {
-            const char_type dark_eyed[] = {'d', 'a', 'r', 'k', '-', 'e', 'y', 'e', 'd', 0};
-            const char_type red_eared[] = {'r', 'e', 'd', '-', 'e', 'a', 'r', 'e', 'd', 0};
-            TStringType s0 = dark_eyed;
-            TStringType s1 = TStringType::Uninitialized(s0.size());
-            for (size_t i = 0; i < s1.size(); ++i) {
-                const size_t j = (3u * (i + 1u) ^ 1u) % s0.size();
-                s1[i] = s0[j];
-            }
-            UNIT_ASSERT_VALUES_EQUAL(s1, red_eared);
-        }
-    }
-#endif
-
-    void TestBack() {
-        const char_type chars[] = {'f', 'o', 'o', 0};
-
-        TStringType str = chars;
-        const TStringType constStr = str;
-
-        UNIT_ASSERT_VALUES_EQUAL(constStr.back(), (ui8)'o');
-        UNIT_ASSERT_VALUES_EQUAL(str.back(), (ui8)'o');
-
-        str.back() = 'r';
-        UNIT_ASSERT_VALUES_EQUAL(constStr.back(), (ui8)'o');
-        UNIT_ASSERT_VALUES_EQUAL(str.back(), (ui8)'r');
-    }
-
-    void TestFront() {
-        const char_type chars[] = {'f', 'o', 'o', 0};
-
-        TStringType str = chars;
-        const TStringType constStr = str;
-
-        UNIT_ASSERT_VALUES_EQUAL(constStr.front(), (ui8)'f');
-        UNIT_ASSERT_VALUES_EQUAL(str.front(), (ui8)'f');
-
-        str.front() = 'r';
-        UNIT_ASSERT_VALUES_EQUAL(constStr.front(), (ui8)'f');
-        UNIT_ASSERT_VALUES_EQUAL(str.front(), (ui8)'r');
-    }
-
-    void TestIterators() {
-        const char_type chars[] = {'f', 'o', 0};
-
-        TStringType str = chars;
-        const TStringType constStr = str;
-
-        typename TStringType::const_iterator itBegin = str.begin();
-        typename TStringType::const_iterator itEnd = str.end();
-        typename TStringType::const_iterator citBegin = constStr.begin();
-        typename TStringType::const_iterator citEnd = constStr.end();
-
-        UNIT_ASSERT_VALUES_EQUAL(*itBegin, (ui8)'f');
-        UNIT_ASSERT_VALUES_EQUAL(*citBegin, (ui8)'f');
-
-        str.front() = 'r';
-        UNIT_ASSERT_VALUES_EQUAL(*itBegin, (ui8)'r');
-        UNIT_ASSERT_VALUES_EQUAL(*citBegin, (ui8)'f');
-
-        UNIT_ASSERT_VALUES_EQUAL(2, itEnd - itBegin);
-        UNIT_ASSERT_VALUES_EQUAL(2, citEnd - citBegin);
-
-        UNIT_ASSERT_VALUES_EQUAL(*(++itBegin), (ui8)'o');
-        UNIT_ASSERT_VALUES_EQUAL(*(++citBegin), (ui8)'o');
-
-        UNIT_ASSERT_VALUES_EQUAL(*(--itBegin), (ui8)'r');
-        UNIT_ASSERT_VALUES_EQUAL(*(--citBegin), (ui8)'f');
-
-        UNIT_ASSERT_VALUES_EQUAL(*(itBegin++), (ui8)'r');
-        UNIT_ASSERT_VALUES_EQUAL(*(citBegin++), (ui8)'f');
-        UNIT_ASSERT_VALUES_EQUAL(*itBegin, (ui8)'o');
-        UNIT_ASSERT_VALUES_EQUAL(*citBegin, (ui8)'o');
-
-        UNIT_ASSERT_VALUES_EQUAL(*(itBegin--), (ui8)'o');
-        UNIT_ASSERT_VALUES_EQUAL(*(citBegin--), (ui8)'o');
-        UNIT_ASSERT_VALUES_EQUAL(*itBegin, (ui8)'r');
-        UNIT_ASSERT_VALUES_EQUAL(*citBegin, (ui8)'f');
-    }
-
-    void TestReverseIterators() {
-        const char_type chars[] = {'f', 'o', 0};
-
-        TStringType str = chars;
-        const TStringType constStr = str;
-
-        typename TStringType::reverse_iterator ritBegin = str.rbegin();
-        typename TStringType::reverse_iterator ritEnd = str.rend();
-        typename TStringType::const_reverse_iterator critBegin = constStr.rbegin();
-        typename TStringType::const_reverse_iterator critEnd = constStr.rend();
-
-        UNIT_ASSERT_VALUES_EQUAL(*ritBegin, (ui8)'o');
-        UNIT_ASSERT_VALUES_EQUAL(*critBegin, (ui8)'o');
-
-        str.back() = (ui8)'r';
-        UNIT_ASSERT_VALUES_EQUAL(*ritBegin, (ui8)'r');
-        UNIT_ASSERT_VALUES_EQUAL(*critBegin, (ui8)'o');
-
-        UNIT_ASSERT_VALUES_EQUAL(2, ritEnd - ritBegin);
-        UNIT_ASSERT_VALUES_EQUAL(2, critEnd - critBegin);
-
-        UNIT_ASSERT_VALUES_EQUAL(*(++ritBegin), (ui8)'f');
-        UNIT_ASSERT_VALUES_EQUAL(*(++critBegin), (ui8)'f');
-
-        UNIT_ASSERT_VALUES_EQUAL(*(--ritBegin), (ui8)'r');
-        UNIT_ASSERT_VALUES_EQUAL(*(--critBegin), (ui8)'o');
-
-        UNIT_ASSERT_VALUES_EQUAL(*(ritBegin++), (ui8)'r');
-        UNIT_ASSERT_VALUES_EQUAL(*(critBegin++), (ui8)'o');
-        UNIT_ASSERT_VALUES_EQUAL(*ritBegin, (ui8)'f');
-        UNIT_ASSERT_VALUES_EQUAL(*critBegin, (ui8)'f');
-
-        UNIT_ASSERT_VALUES_EQUAL(*(ritBegin--), (ui8)'f');
-        UNIT_ASSERT_VALUES_EQUAL(*(critBegin--), (ui8)'f');
-        UNIT_ASSERT_VALUES_EQUAL(*ritBegin, (ui8)'r');
-        UNIT_ASSERT_VALUES_EQUAL(*critBegin, (ui8)'o');
-
-        *ritBegin = (ui8)'e';
-        UNIT_ASSERT_VALUES_EQUAL(*ritBegin, (ui8)'e');
-    }
-};
 
 class TStringTestZero: public TTestBase {
     UNIT_TEST_SUITE(TStringTestZero);
@@ -728,16 +70,17 @@ UNIT_TEST_SUITE_REGISTRATION(TStringTestZero);
 
 template <typename TStringType, typename TTestData>
 class TStringStdTestImpl {
-    using char_type = typename TStringType::char_type;
-    using traits_type = typename TStringType::traits_type;
+    using TChar = typename TStringType::char_type;
+    using TTraits = typename TStringType::traits_type;
+    using TView = std::basic_string_view<TChar, TTraits>;
 
-    TTestData Data;
+    TTestData Data_;
 
 protected:
-    void constructor() {
+    void Constructor() {
         // @todo use UNIT_TEST_EXCEPTION
         try {
-            TStringType s((size_t)-1, *Data.a());
+            TStringType s((size_t)-1, *Data_.a());
             UNIT_ASSERT(false);
         } catch (const std::length_error&) {
             UNIT_ASSERT(true);
@@ -806,10 +149,10 @@ protected:
     }
 
     void short_string() {
-        TStringType const ref_short_str1(Data.str1()), ref_short_str2(Data.str2());
+        TStringType const ref_short_str1(Data_.str1()), ref_short_str2(Data_.str2());
         TStringType short_str1(ref_short_str1), short_str2(ref_short_str2);
-        TStringType const ref_long_str1(Data.str__________________________________________________1());
-        TStringType const ref_long_str2(Data.str__________________________________________________2());
+        TStringType const ref_long_str1(Data_.str__________________________________________________1());
+        TStringType const ref_long_str2(Data_.str__________________________________________________2());
         TStringType long_str1(ref_long_str1), long_str2(ref_long_str2);
 
         UNIT_ASSERT(short_str1 == ref_short_str1);
@@ -860,16 +203,15 @@ protected:
             str_vect.push_back(short_str2);
             str_vect.push_back(long_str2);
 
-            UNIT_ASSERT(
-                (str_vect[0] == ref_short_str1) &&
-                (str_vect[1] == ref_long_str1) &&
-                (str_vect[2] == ref_short_str2) &&
-                (str_vect[3] == ref_long_str2));
+            UNIT_ASSERT(str_vect[0] == ref_short_str1);
+            UNIT_ASSERT(str_vect[1] == ref_long_str1);
+            UNIT_ASSERT(str_vect[2] == ref_short_str2);
+            UNIT_ASSERT(str_vect[3] == ref_long_str2);
         }
     }
 
     void erase() {
-        char_type const* c_str = Data.Hello_World();
+        TChar const* c_str = Data_.Hello_World();
         TStringType str(c_str);
         UNIT_ASSERT(str == c_str);
 
@@ -879,11 +221,11 @@ protected:
         for (i = 0; i < str.size(); ++i) {
             switch (i) {
                 case 0:
-                    UNIT_ASSERT(str[i] == *Data.H());
+                    UNIT_ASSERT(str[i] == *Data_.H());
                     break;
 
                 case 1:
-                    UNIT_ASSERT(str[i] == *Data.d());
+                    UNIT_ASSERT(str[i] == *Data_.d());
                     break;
 
                 default:
@@ -905,11 +247,11 @@ protected:
         for (i = 0; i < str.size(); i++) {
             switch (i) {
                 case 0:
-                    UNIT_ASSERT(str[i] == *Data.H());
+                    UNIT_ASSERT(str[i] == *Data_.H());
                     break;
 
                 case 1:
-                    UNIT_ASSERT(str[i] == *Data.d());
+                    UNIT_ASSERT(str[i] == *Data_.d());
                     break;
 
                 default:
@@ -918,7 +260,7 @@ protected:
         }
 
         str.erase(1);
-        UNIT_ASSERT(str == Data.H());
+        UNIT_ASSERT(str == Data_.H());
     }
 
     void data() {
@@ -929,7 +271,7 @@ protected:
     }
 
     void c_str() {
-        TStringType low(Data._2004_01_01());
+        TStringType low(Data_._2004_01_01());
         TStringType xx;
         TStringType yy;
 
@@ -938,39 +280,81 @@ protected:
 
         // Blocks A and B should follow each other.
         // Block A:
-        xx = Data._123456();
+        xx = Data_._123456();
         xx += low;
-        UNIT_ASSERT(traits_type::Compare(xx.c_str(), Data._1234562004_01_01()) == 0);
+        UNIT_ASSERT(xx.c_str() == TView(Data_._1234562004_01_01()));
         // End of block A
 
         // Block B:
-        xx = Data._1234();
-        xx += Data._5();
-        UNIT_ASSERT(traits_type::Compare(xx.c_str(), Data._12345()) == 0);
+        xx = Data_._1234();
+        xx += Data_._5();
+        UNIT_ASSERT(xx.c_str() == TView(Data_._12345()));
         // End of block B
+    }
+
+    void null_char_of_empty() {
+        const TStringType s;
+
+        UNIT_ASSERT(s[s.size()] == 0);
     }
 
     void null_char() {
         // ISO/IEC 14882:1998(E), ISO/IEC 14882:2003(E), 21.3.4 ('... the const version')
-        const TStringType s(Data._123456());
+        const TStringType s(Data_._123456());
 
         UNIT_ASSERT(s[s.size()] == 0);
-
-#if 0
-        try {
-            //Check is only here to avoid warning about value of expression not used
-            UNIT_ASSERT(s.at(s.size()) == 0);
-            UNIT_ASSERT(false);
-        } catch (const std::out_of_range&) {
-            UNIT_ASSERT(true);
-        } catch (...) {
-            UNIT_ASSERT(false);
-        }
-#endif
     }
 
+    // Allowed since C++17, see http://www.open-std.org/jtc1/sc22/wg21/docs/lwg-defects.html#2475
+    void null_char_assignment_to_subscript_of_empty() {
+        TStringType s;
+
+#ifdef TSTRING_IS_STD_STRING
+        using reference = volatile typename TStringType::value_type&;
+#else
+        using reference = typename TStringType::reference;
+#endif
+        reference trailing_zero = s[s.size()];
+        trailing_zero = 0;
+        UNIT_ASSERT(trailing_zero == 0);
+    }
+
+    // Allowed since C++17, see http://www.open-std.org/jtc1/sc22/wg21/docs/lwg-defects.html#2475
+    void null_char_assignment_to_subscript_of_nonempty() {
+        TStringType s(Data_._123456());
+
+#ifdef TSTRING_IS_STD_STRING
+        using reference = volatile typename TStringType::value_type&;
+#else
+        using reference = typename TStringType::reference;
+#endif
+        reference trailing_zero = s[s.size()];
+        trailing_zero = 0;
+        UNIT_ASSERT(trailing_zero == 0);
+    }
+
+#ifndef TSTRING_IS_STD_STRING
+    // Dereferencing string end() is not allowed by C++ standard as of C++20, avoid using in real code.
+    void null_char_assignment_to_end_of_empty() {
+        TStringType s;
+
+        volatile auto& trailing_zero = *(s.begin() + s.size());
+        trailing_zero = 0;
+        UNIT_ASSERT(trailing_zero == 0);
+    }
+
+    // Dereferencing string end() is not allowed by C++ standard as of C++20, avoid using in real code.
+    void null_char_assignment_to_end_of_nonempty() {
+        TStringType s(Data_._123456());
+
+        volatile auto& trailing_zero = *(s.begin() + s.size());
+        trailing_zero = 0;
+        UNIT_ASSERT(trailing_zero == 0);
+    }
+#endif
+
     void insert() {
-        TStringType strorg = Data.This_is_test_string_for_string_calls();
+        TStringType strorg = Data_.This_is_test_string_for_string_calls();
         TStringType str;
 
         // In case of reallocation there is no auto reference problem
@@ -982,26 +366,26 @@ protected:
 
         //test self insertion:
         str.insert(10, str.c_str() + 5, 15);
-        UNIT_ASSERT(str == Data.This_is_teis_test_string_st_string_for_string_calls());
+        UNIT_ASSERT(str == Data_.This_is_teis_test_string_st_string_for_string_calls());
 
         str = strorg;
         str.insert(15, str.c_str() + 5, 25);
-        UNIT_ASSERT(str == Data.This_is_test_stis_test_string_for_stringring_for_string_calls());
+        UNIT_ASSERT(str == Data_.This_is_test_stis_test_string_for_stringring_for_string_calls());
 
         str = strorg;
         str.insert(0, str.c_str() + str.size() - 4, 4);
-        UNIT_ASSERT(str == Data.allsThis_is_test_string_for_string_calls());
+        UNIT_ASSERT(str == Data_.allsThis_is_test_string_for_string_calls());
 
         str = strorg;
         str.insert(0, str.c_str() + str.size() / 2 - 1, str.size() / 2 + 1);
-        UNIT_ASSERT(str == Data.ng_for_string_callsThis_is_test_string_for_string_calls());
+        UNIT_ASSERT(str == Data_.ng_for_string_callsThis_is_test_string_for_string_calls());
 
         str = strorg;
         typename TStringType::iterator b = str.begin();
         typename TStringType::const_iterator s = str.begin() + str.size() / 2 - 1;
         typename TStringType::const_iterator e = str.end();
         str.insert(b, s, e);
-        UNIT_ASSERT(str == Data.ng_for_string_callsThis_is_test_string_for_string_calls());
+        UNIT_ASSERT(str == Data_.ng_for_string_callsThis_is_test_string_for_string_calls());
 
 #if 0
         // AV
@@ -1011,34 +395,34 @@ protected:
 #endif
 
         TStringType str0;
-        str0.insert(str0.begin(), 5, *Data._0());
-        UNIT_ASSERT(str0 == Data._00000());
+        str0.insert(str0.begin(), 5, *Data_._0());
+        UNIT_ASSERT(str0 == Data_._00000());
 
         TStringType str1;
         {
             typename TStringType::size_type pos = 0, nb = 2;
-            str1.insert(pos, nb, *Data._1());
+            str1.insert(pos, nb, *Data_._1());
         }
-        UNIT_ASSERT(str1 == Data._11());
+        UNIT_ASSERT(str1 == Data_._11());
 
         str0.insert(0, str1);
-        UNIT_ASSERT(str0 == Data._1100000());
+        UNIT_ASSERT(str0 == Data_._1100000());
 
-        TStringType str2(Data._2345());
+        TStringType str2(Data_._2345());
         str0.insert(str0.size(), str2, 1, 2);
-        UNIT_ASSERT(str0 == Data._110000034());
+        UNIT_ASSERT(str0 == Data_._110000034());
 
-        str1.insert(str1.begin() + 1, 2, *Data._2());
-        UNIT_ASSERT(str1 == Data._1221());
+        str1.insert(str1.begin() + 1, 2, *Data_._2());
+        UNIT_ASSERT(str1 == Data_._1221());
 
-        str1.insert(2, Data._333333(), 3);
-        UNIT_ASSERT(str1 == Data._1233321());
+        str1.insert(2, Data_._333333(), 3);
+        UNIT_ASSERT(str1 == Data_._1233321());
 
-        str1.insert(4, Data._4444());
-        UNIT_ASSERT(str1 == Data._12334444321());
+        str1.insert(4, Data_._4444());
+        UNIT_ASSERT(str1 == Data_._12334444321());
 
-        str1.insert(str1.begin() + 6, *Data._5());
-        UNIT_ASSERT(str1 == Data._123344544321());
+        str1.insert(str1.begin() + 6, *Data_._5());
+        UNIT_ASSERT(str1 == Data_._123344544321());
     }
 
     void resize() {
@@ -1048,41 +432,41 @@ protected:
 
         UNIT_ASSERT(*s.c_str() == 0);
 
-        s = Data._1234567();
+        s = Data_._1234567();
 
         s.resize(0);
         UNIT_ASSERT(*s.c_str() == 0);
 
-        s = Data._1234567();
+        s = Data_._1234567();
         s.resize(1);
         UNIT_ASSERT(s.size() == 1);
-        UNIT_ASSERT(*s.c_str() == *Data._1());
+        UNIT_ASSERT(*s.c_str() == *Data_._1());
         UNIT_ASSERT(*(s.c_str() + 1) == 0);
 
-        s = Data._1234567();
+        s = Data_._1234567();
 #if 0
         s.resize(10);
 #else
         s.resize(10, 0);
 #endif
         UNIT_ASSERT(s.size() == 10);
-        UNIT_ASSERT(s[6] == *Data._7());
+        UNIT_ASSERT(s[6] == *Data_._7());
         UNIT_ASSERT(s[7] == 0);
         UNIT_ASSERT(s[8] == 0);
         UNIT_ASSERT(s[9] == 0);
     }
 
     void find() {
-        TStringType s(Data.one_two_three_one_two_three());
+        TStringType s(Data_.one_two_three_one_two_three());
 
-        UNIT_ASSERT(s.find(Data.one()) == 0);
-        UNIT_ASSERT(s.find(*Data.t()) == 4);
-        UNIT_ASSERT(s.find(*Data.t(), 5) == 8);
+        UNIT_ASSERT(s.find(Data_.one()) == 0);
+        UNIT_ASSERT(s.find(*Data_.t()) == 4);
+        UNIT_ASSERT(s.find(*Data_.t(), 5) == 8);
 
-        UNIT_ASSERT(s.find(Data.four()) == TStringType::npos);
-        UNIT_ASSERT(s.find(Data.one(), TStringType::npos) == TStringType::npos);
-        UNIT_ASSERT(s.find_first_of(Data.abcde()) == 2);
-        UNIT_ASSERT(s.find_first_not_of(Data.enotw_()) == 9);
+        UNIT_ASSERT(s.find(Data_.four()) == TStringType::npos);
+        UNIT_ASSERT(s.find(Data_.one(), TStringType::npos) == TStringType::npos);
+        UNIT_ASSERT(s.find_first_of(Data_.abcde()) == 2);
+        UNIT_ASSERT(s.find_first_not_of(Data_.enotw_()) == 9);
     }
 
     void capacity() {
@@ -1102,12 +486,12 @@ protected:
 
     void assign() {
         TStringType s;
-        char_type const* cstr = Data.test_string_for_assign();
+        TChar const* cstr = Data_.test_string_for_assign();
 
         s.assign(cstr, cstr + 22);
-        UNIT_ASSERT(s == Data.test_string_for_assign());
+        UNIT_ASSERT(s == Data_.test_string_for_assign());
 
-        TStringType s2(Data.other_test_string());
+        TStringType s2(Data_.other_test_string());
         s.assign(s2);
         UNIT_ASSERT(s == s2);
 
@@ -1115,29 +499,29 @@ protected:
         static TStringType str2;
 
         // short TStringType optim:
-        str1 = Data._123456();
+        str1 = Data_._123456();
         // longer than short TStringType:
-        str2 = Data._1234567890123456789012345678901234567890();
+        str2 = Data_._1234567890123456789012345678901234567890();
 
-        UNIT_ASSERT(str1[5] == *Data._6());
-        UNIT_ASSERT(str2[29] == *Data._0());
+        UNIT_ASSERT(str1[5] == *Data_._6());
+        UNIT_ASSERT(str2[29] == *Data_._0());
     }
 
     void copy() {
-        TStringType s(Data.foo());
-        char_type dest[4];
+        TStringType s(Data_.foo());
+        TChar dest[4];
         dest[0] = dest[1] = dest[2] = dest[3] = 1;
         s.copy(dest, 4);
         int pos = 0;
-        UNIT_ASSERT(dest[pos++] == *Data.f());
-        UNIT_ASSERT(dest[pos++] == *Data.o());
-        UNIT_ASSERT(dest[pos++] == *Data.o());
+        UNIT_ASSERT(dest[pos++] == *Data_.f());
+        UNIT_ASSERT(dest[pos++] == *Data_.o());
+        UNIT_ASSERT(dest[pos++] == *Data_.o());
         UNIT_ASSERT(dest[pos++] == 1);
 
         dest[0] = dest[1] = dest[2] = dest[3] = 1;
         s.copy(dest, 4, 2);
         pos = 0;
-        UNIT_ASSERT(dest[pos++] == *Data.o());
+        UNIT_ASSERT(dest[pos++] == *Data_.o());
         UNIT_ASSERT(dest[pos++] == 1);
 
         // @todo use UNIT_TEST_EXCEPTION
@@ -1161,56 +545,56 @@ protected:
     }
 
     void compare() {
-        TStringType str1(Data.abcdef());
+        TStringType str1(Data_.abcdef());
         TStringType str2;
 
-        str2 = Data.abcdef();
+        str2 = Data_.abcdef();
         UNIT_ASSERT(str1.compare(str2) == 0);
         UNIT_ASSERT(str1.compare(str2.data(), str2.size()) == 0);
-        str2 = Data.abcde();
+        str2 = Data_.abcde();
         UNIT_ASSERT(str1.compare(str2) > 0);
         UNIT_ASSERT(str1.compare(str2.data(), str2.size()) > 0);
-        str2 = Data.abcdefg();
+        str2 = Data_.abcdefg();
         UNIT_ASSERT(str1.compare(str2) < 0);
         UNIT_ASSERT(str1.compare(str2.data(), str2.size()) < 0);
 
-        UNIT_ASSERT(str1.compare(Data.abcdef()) == 0);
-        UNIT_ASSERT(str1.compare(Data.abcde()) > 0);
-        UNIT_ASSERT(str1.compare(Data.abcdefg()) < 0);
+        UNIT_ASSERT(str1.compare(Data_.abcdef()) == 0);
+        UNIT_ASSERT(str1.compare(Data_.abcde()) > 0);
+        UNIT_ASSERT(str1.compare(Data_.abcdefg()) < 0);
 
-        str2 = Data.cde();
+        str2 = Data_.cde();
         UNIT_ASSERT(str1.compare(2, 3, str2) == 0);
-        str2 = Data.cd();
+        str2 = Data_.cd();
         UNIT_ASSERT(str1.compare(2, 3, str2) > 0);
-        str2 = Data.cdef();
+        str2 = Data_.cdef();
         UNIT_ASSERT(str1.compare(2, 3, str2) < 0);
 
-        str2 = Data.abcdef();
+        str2 = Data_.abcdef();
         UNIT_ASSERT(str1.compare(2, 3, str2, 2, 3) == 0);
         UNIT_ASSERT(str1.compare(2, 3, str2, 2, 2) > 0);
         UNIT_ASSERT(str1.compare(2, 3, str2, 2, 4) < 0);
 
-        UNIT_ASSERT(str1.compare(2, 3, Data.cdefgh(), 3) == 0);
-        UNIT_ASSERT(str1.compare(2, 3, Data.cdefgh(), 2) > 0);
-        UNIT_ASSERT(str1.compare(2, 3, Data.cdefgh(), 4) < 0);
+        UNIT_ASSERT(str1.compare(2, 3, Data_.cdefgh(), 3) == 0);
+        UNIT_ASSERT(str1.compare(2, 3, Data_.cdefgh(), 2) > 0);
+        UNIT_ASSERT(str1.compare(2, 3, Data_.cdefgh(), 4) < 0);
     }
 
     void find_last_of() {
         // 21.3.6.4
-        TStringType s(Data.one_two_three_one_two_three());
+        TStringType s(Data_.one_two_three_one_two_three());
 
-        UNIT_ASSERT(s.find_last_of(Data.abcde()) == 26);
-        UNIT_ASSERT(s.find_last_of(TStringType(Data.abcde())) == 26);
+        UNIT_ASSERT(s.find_last_of(Data_.abcde()) == 26);
+        UNIT_ASSERT(s.find_last_of(TStringType(Data_.abcde())) == 26);
 
-        TStringType test(Data.aba());
+        TStringType test(Data_.aba());
 
-        UNIT_ASSERT(test.find_last_of(Data.a(), 2, 1) == 2);
-        UNIT_ASSERT(test.find_last_of(Data.a(), 1, 1) == 0);
-        UNIT_ASSERT(test.find_last_of(Data.a(), 0, 1) == 0);
+        UNIT_ASSERT(test.find_last_of(Data_.a(), 2, 1) == 2);
+        UNIT_ASSERT(test.find_last_of(Data_.a(), 1, 1) == 0);
+        UNIT_ASSERT(test.find_last_of(Data_.a(), 0, 1) == 0);
 
-        UNIT_ASSERT(test.find_last_of(*Data.a(), 2) == 2);
-        UNIT_ASSERT(test.find_last_of(*Data.a(), 1) == 0);
-        UNIT_ASSERT(test.find_last_of(*Data.a(), 0) == 0);
+        UNIT_ASSERT(test.find_last_of(*Data_.a(), 2) == 2);
+        UNIT_ASSERT(test.find_last_of(*Data_.a(), 1) == 0);
+        UNIT_ASSERT(test.find_last_of(*Data_.a(), 0) == 0);
     }
 #if 0
     void rfind() {
@@ -1235,25 +619,25 @@ protected:
 #endif
     void find_last_not_of() {
         // 21.3.6.6
-        TStringType s(Data.one_two_three_one_two_three());
+        TStringType s(Data_.one_two_three_one_two_three());
 
-        UNIT_ASSERT(s.find_last_not_of(Data.ehortw_()) == 15);
+        UNIT_ASSERT(s.find_last_not_of(Data_.ehortw_()) == 15);
 
-        TStringType test(Data.aba());
+        TStringType test(Data_.aba());
 
-        UNIT_ASSERT(test.find_last_not_of(Data.a(), 2, 1) == 1);
-        UNIT_ASSERT(test.find_last_not_of(Data.b(), 2, 1) == 2);
-        UNIT_ASSERT(test.find_last_not_of(Data.a(), 1, 1) == 1);
-        UNIT_ASSERT(test.find_last_not_of(Data.b(), 1, 1) == 0);
-        UNIT_ASSERT(test.find_last_not_of(Data.a(), 0, 1) == TStringType::npos);
-        UNIT_ASSERT(test.find_last_not_of(Data.b(), 0, 1) == 0);
+        UNIT_ASSERT(test.find_last_not_of(Data_.a(), 2, 1) == 1);
+        UNIT_ASSERT(test.find_last_not_of(Data_.b(), 2, 1) == 2);
+        UNIT_ASSERT(test.find_last_not_of(Data_.a(), 1, 1) == 1);
+        UNIT_ASSERT(test.find_last_not_of(Data_.b(), 1, 1) == 0);
+        UNIT_ASSERT(test.find_last_not_of(Data_.a(), 0, 1) == TStringType::npos);
+        UNIT_ASSERT(test.find_last_not_of(Data_.b(), 0, 1) == 0);
 
-        UNIT_ASSERT(test.find_last_not_of(*Data.a(), 2) == 1);
-        UNIT_ASSERT(test.find_last_not_of(*Data.b(), 2) == 2);
-        UNIT_ASSERT(test.find_last_not_of(*Data.a(), 1) == 1);
-        UNIT_ASSERT(test.find_last_not_of(*Data.b(), 1) == 0);
-        UNIT_ASSERT(test.find_last_not_of(*Data.a(), 0) == TStringType::npos);
-        UNIT_ASSERT(test.find_last_not_of(*Data.b(), 0) == 0);
+        UNIT_ASSERT(test.find_last_not_of(*Data_.a(), 2) == 1);
+        UNIT_ASSERT(test.find_last_not_of(*Data_.b(), 2) == 2);
+        UNIT_ASSERT(test.find_last_not_of(*Data_.a(), 1) == 1);
+        UNIT_ASSERT(test.find_last_not_of(*Data_.b(), 1) == 0);
+        UNIT_ASSERT(test.find_last_not_of(*Data_.a(), 0) == TStringType::npos);
+        UNIT_ASSERT(test.find_last_not_of(*Data_.b(), 0) == 0);
     }
 #if 0
     void replace() {
@@ -1325,517 +709,15 @@ protected:
         str.replace(5, 5, str.c_str(), 10);
         UNIT_ASSERT(str == Data.This_This_is_test_StringT_for_StringT_calls());
 
-#if !defined(STLPORT) || defined(_STLP_MEMBER_TEMPLATES)
-        deque<char_type> cdeque;
+    #if !defined(STLPORT) || defined(_STLP_MEMBER_TEMPLATES)
+        deque<TChar> cdeque;
         cdeque.push_back(*Data.I());
         str.replace(str.begin(), str.begin() + 11, cdeque.begin(), cdeque.end());
         UNIT_ASSERT(str == Data.Is_test_StringT_for_StringT_calls());
-#endif
+    #endif
     }
 #endif
 }; // TStringStdTestImpl
-
-template <typename CharT, size_t N>
-struct TCharBuffer {
-    CharT Data[N];
-    //! copies characters from string to the internal buffer without any conversion
-    //! @param s    a string that must contain only characters less than 0x7F
-    explicit TCharBuffer(const char* s) {
-        // copy all symbols including null terminated symbol
-        for (size_t i = 0; i < N; ++i) {
-            Data[i] = s[i];
-        }
-    }
-    const CharT* GetData() const {
-        return Data;
-    }
-};
-
-template <>
-struct TCharBuffer<char, 0> {
-    const char* Data;
-    //! stores pointer to string
-    explicit TCharBuffer(const char* s)
-        : Data(s)
-    {
-    }
-    const char* GetData() const {
-        return Data;
-    }
-};
-
-#define DECLARE_AND_RETURN_BUFFER(s)             \
-    static TCharBuffer<CharT, sizeof(s)> buf(s); \
-    return buf.GetData();
-
-//! @attention this class can process characters less than 0x7F only (the low half of ASCII table)
-template <typename CharT>
-struct TTestData {
-    // words
-    const CharT* str1() {
-        DECLARE_AND_RETURN_BUFFER("str1");
-    }
-    const CharT* str2() {
-        DECLARE_AND_RETURN_BUFFER("str2");
-    }
-    const CharT* str__________________________________________________1() {
-        DECLARE_AND_RETURN_BUFFER("str                                                  1");
-    }
-    const CharT* str__________________________________________________2() {
-        DECLARE_AND_RETURN_BUFFER("str                                                  2");
-    }
-    const CharT* one() {
-        DECLARE_AND_RETURN_BUFFER("one");
-    }
-    const CharT* two() {
-        DECLARE_AND_RETURN_BUFFER("two");
-    }
-    const CharT* three() {
-        DECLARE_AND_RETURN_BUFFER("three");
-    }
-    const CharT* thrii() {
-        DECLARE_AND_RETURN_BUFFER("thrii");
-    }
-    const CharT* four() {
-        DECLARE_AND_RETURN_BUFFER("four");
-    }
-    const CharT* enotw_() {
-        DECLARE_AND_RETURN_BUFFER("enotw ");
-    }
-    const CharT* foo() {
-        DECLARE_AND_RETURN_BUFFER("foo");
-    }
-    const CharT* abcdef() {
-        DECLARE_AND_RETURN_BUFFER("abcdef");
-    }
-    const CharT* abcdefg() {
-        DECLARE_AND_RETURN_BUFFER("abcdefg");
-    }
-    const CharT* aba() {
-        DECLARE_AND_RETURN_BUFFER("aba");
-    }
-    const CharT* hr() {
-        DECLARE_AND_RETURN_BUFFER("hr");
-    }
-    const CharT* hrt() {
-        DECLARE_AND_RETURN_BUFFER("hrt");
-    }
-    const CharT* thr() {
-        DECLARE_AND_RETURN_BUFFER("thr");
-    }
-    const CharT* tw() {
-        DECLARE_AND_RETURN_BUFFER("tw");
-    }
-    const CharT* ow() {
-        DECLARE_AND_RETURN_BUFFER("ow");
-    }
-    const CharT* opq() {
-        DECLARE_AND_RETURN_BUFFER("opq");
-    }
-    const CharT* xyz() {
-        DECLARE_AND_RETURN_BUFFER("xyz");
-    }
-    const CharT* abc() {
-        DECLARE_AND_RETURN_BUFFER("abc");
-    }
-    const CharT* abcd() {
-        DECLARE_AND_RETURN_BUFFER("abcd");
-    }
-    const CharT* abcde() {
-        DECLARE_AND_RETURN_BUFFER("abcde");
-    }
-    const CharT* abcc() {
-        DECLARE_AND_RETURN_BUFFER("abcc");
-    }
-    const CharT* abce() {
-        DECLARE_AND_RETURN_BUFFER("abce");
-    }
-    const CharT* qwe() {
-        DECLARE_AND_RETURN_BUFFER("qwe");
-    }
-    const CharT* cd() {
-        DECLARE_AND_RETURN_BUFFER("cd");
-    }
-    const CharT* cde() {
-        DECLARE_AND_RETURN_BUFFER("cde");
-    }
-    const CharT* cdef() {
-        DECLARE_AND_RETURN_BUFFER("cdef");
-    }
-    const CharT* cdefgh() {
-        DECLARE_AND_RETURN_BUFFER("cdefgh");
-    }
-    const CharT* ehortw_() {
-        DECLARE_AND_RETURN_BUFFER("ehortw ");
-    }
-    const CharT* fg() {
-        DECLARE_AND_RETURN_BUFFER("fg");
-    }
-    const CharT* abcdefgh() {
-        DECLARE_AND_RETURN_BUFFER("abcdefgh");
-    }
-
-    // phrases
-    const CharT* Hello_World() {
-        DECLARE_AND_RETURN_BUFFER("Hello World");
-    }
-    const CharT* This_is_test_string_for_string_calls() {
-        DECLARE_AND_RETURN_BUFFER("This is test string for string calls");
-    }
-    const CharT* This_is_teis_test_string_st_string_for_string_calls() {
-        DECLARE_AND_RETURN_BUFFER("This is teis test string st string for string calls");
-    }
-    const CharT* This_is_test_stis_test_string_for_stringring_for_string_calls() {
-        DECLARE_AND_RETURN_BUFFER("This is test stis test string for stringring for string calls");
-    }
-    const CharT* allsThis_is_test_string_for_string_calls() {
-        DECLARE_AND_RETURN_BUFFER("allsThis is test string for string calls");
-    }
-    const CharT* ng_for_string_callsThis_is_test_string_for_string_calls() {
-        DECLARE_AND_RETURN_BUFFER("ng for string callsThis is test string for string calls");
-    }
-    const CharT* one_two_three_one_two_three() {
-        DECLARE_AND_RETURN_BUFFER("one two three one two three");
-    }
-    const CharT* test_string_for_assign() {
-        DECLARE_AND_RETURN_BUFFER("test string for assign");
-    }
-    const CharT* other_test_string() {
-        DECLARE_AND_RETURN_BUFFER("other test string");
-    }
-    const CharT* This_This_is_tefor_string_calls() {
-        DECLARE_AND_RETURN_BUFFER("This This is tefor string calls");
-    }
-    const CharT* This_This_is_test_string_for_string_calls() {
-        DECLARE_AND_RETURN_BUFFER("This This is test string for string calls");
-    }
-
-    const CharT* _0123456x() {
-        DECLARE_AND_RETURN_BUFFER("0123456x");
-    }
-    const CharT* _0123456xy() {
-        DECLARE_AND_RETURN_BUFFER("0123456xy");
-    }
-    const CharT* _0123456xyz() {
-        DECLARE_AND_RETURN_BUFFER("0123456xyz");
-    }
-    const CharT* _0123456xyzZ() {
-        DECLARE_AND_RETURN_BUFFER("0123456xyzZ");
-    }
-    const CharT* _0123456xyzZ0() {
-        DECLARE_AND_RETURN_BUFFER("0123456xyzZ0");
-    }
-    const CharT* abc0123456xyz() {
-        DECLARE_AND_RETURN_BUFFER("abc0123456xyz");
-    }
-    const CharT* BCabc0123456xyz() {
-        DECLARE_AND_RETURN_BUFFER("BCabc0123456xyz");
-    }
-    const CharT* qweBCabc0123456xyz() {
-        DECLARE_AND_RETURN_BUFFER("qweBCabc0123456xyz");
-    }
-    const CharT* _1qweBCabc0123456xyz() {
-        DECLARE_AND_RETURN_BUFFER("1qweBCabc0123456xyz");
-    }
-    const CharT* _01abc23456() {
-        DECLARE_AND_RETURN_BUFFER("01abc23456");
-    }
-    const CharT* _01ABCabc23456() {
-        DECLARE_AND_RETURN_BUFFER("01ABCabc23456");
-    }
-    const CharT* ABC() {
-        DECLARE_AND_RETURN_BUFFER("ABC");
-    }
-    const CharT* ABCD() {
-        DECLARE_AND_RETURN_BUFFER("ABCD");
-    }
-    const CharT* QWE() {
-        DECLARE_AND_RETURN_BUFFER("QWE");
-    }
-    const CharT* XYZ() {
-        DECLARE_AND_RETURN_BUFFER("XYZ");
-    }
-    const CharT* W01ABCabc23456() {
-        DECLARE_AND_RETURN_BUFFER("W01ABCabc23456");
-    }
-    const CharT* abcd456() {
-        DECLARE_AND_RETURN_BUFFER("abcd456");
-    }
-    const CharT* abcdABCD() {
-        DECLARE_AND_RETURN_BUFFER("abcdABCD");
-    }
-    const CharT* abcdABC123() {
-        DECLARE_AND_RETURN_BUFFER("abcdABC123");
-    }
-    const CharT* z123z123() {
-        DECLARE_AND_RETURN_BUFFER("z123z123");
-    }
-    const CharT* ASDF1234QWER() {
-        DECLARE_AND_RETURN_BUFFER("ASDF1234QWER");
-    }
-    const CharT* asdf1234qwer() {
-        DECLARE_AND_RETURN_BUFFER("asdf1234qwer");
-    }
-    const CharT* asDF1234qWEr() {
-        DECLARE_AND_RETURN_BUFFER("asDF1234qWEr");
-    }
-    const CharT* AsDF1234qWEr() {
-        DECLARE_AND_RETURN_BUFFER("AsDF1234qWEr");
-    }
-    const CharT* Asdf1234qwer() {
-        DECLARE_AND_RETURN_BUFFER("Asdf1234qwer");
-    }
-    const CharT* Asdf1234qwerWWWW() {
-        DECLARE_AND_RETURN_BUFFER("Asdf1234qwerWWWW");
-    }
-    const CharT* Asdf() {
-        DECLARE_AND_RETURN_BUFFER("Asdf");
-    }
-    const CharT* orig() {
-        DECLARE_AND_RETURN_BUFFER("orig");
-    }
-    const CharT* fdfdsfds() {
-        DECLARE_AND_RETURN_BUFFER("fdfdsfds");
-    }
-
-    // numbers
-    const CharT* _0() {
-        DECLARE_AND_RETURN_BUFFER("0");
-    }
-    const CharT* _00() {
-        DECLARE_AND_RETURN_BUFFER("00");
-    }
-    const CharT* _0000000000() {
-        DECLARE_AND_RETURN_BUFFER("0000000000");
-    }
-    const CharT* _00000() {
-        DECLARE_AND_RETURN_BUFFER("00000");
-    }
-    const CharT* _0123() {
-        DECLARE_AND_RETURN_BUFFER("0123");
-    }
-    const CharT* _01230123() {
-        DECLARE_AND_RETURN_BUFFER("01230123");
-    }
-    const CharT* _01234() {
-        DECLARE_AND_RETURN_BUFFER("01234");
-    }
-    const CharT* _0123401234() {
-        DECLARE_AND_RETURN_BUFFER("0123401234");
-    }
-    const CharT* _012345() {
-        DECLARE_AND_RETURN_BUFFER("012345");
-    }
-    const CharT* _0123456() {
-        DECLARE_AND_RETURN_BUFFER("0123456");
-    }
-    const CharT* _1() {
-        DECLARE_AND_RETURN_BUFFER("1");
-    }
-    const CharT* _11() {
-        DECLARE_AND_RETURN_BUFFER("11");
-    }
-    const CharT* _1100000() {
-        DECLARE_AND_RETURN_BUFFER("1100000");
-    }
-    const CharT* _110000034() {
-        DECLARE_AND_RETURN_BUFFER("110000034");
-    }
-    const CharT* _12() {
-        DECLARE_AND_RETURN_BUFFER("12");
-    }
-    const CharT* _123() {
-        DECLARE_AND_RETURN_BUFFER("123");
-    }
-    const CharT* _1233321() {
-        DECLARE_AND_RETURN_BUFFER("1233321");
-    }
-    const CharT* _1221() {
-        DECLARE_AND_RETURN_BUFFER("1221");
-    }
-    const CharT* _1234123456() {
-        DECLARE_AND_RETURN_BUFFER("1234123456");
-    }
-    const CharT* _12334444321() {
-        DECLARE_AND_RETURN_BUFFER("12334444321");
-    }
-    const CharT* _123344544321() {
-        DECLARE_AND_RETURN_BUFFER("123344544321");
-    }
-    const CharT* _1234567890123456789012345678901234567890() {
-        DECLARE_AND_RETURN_BUFFER("1234567890123456789012345678901234567890");
-    }
-    const CharT* _1234() {
-        DECLARE_AND_RETURN_BUFFER("1234");
-    }
-    const CharT* _12345() {
-        DECLARE_AND_RETURN_BUFFER("12345");
-    }
-    const CharT* _123456() {
-        DECLARE_AND_RETURN_BUFFER("123456");
-    }
-    const CharT* _1234567() {
-        DECLARE_AND_RETURN_BUFFER("1234567");
-    }
-    const CharT* _1234561234() {
-        DECLARE_AND_RETURN_BUFFER("1234561234");
-    }
-    const CharT* _12356() {
-        DECLARE_AND_RETURN_BUFFER("12356");
-    }
-    const CharT* _1345656() {
-        DECLARE_AND_RETURN_BUFFER("1345656");
-    }
-    const CharT* _15656() {
-        DECLARE_AND_RETURN_BUFFER("15656");
-    }
-    const CharT* _17856() {
-        DECLARE_AND_RETURN_BUFFER("17856");
-    }
-    const CharT* _1783456() {
-        DECLARE_AND_RETURN_BUFFER("1783456");
-    }
-    const CharT* _2() {
-        DECLARE_AND_RETURN_BUFFER("2");
-    }
-    const CharT* _2123456() {
-        DECLARE_AND_RETURN_BUFFER("2123456");
-    }
-    const CharT* _23() {
-        DECLARE_AND_RETURN_BUFFER("23");
-    }
-    const CharT* _2345() {
-        DECLARE_AND_RETURN_BUFFER("2345");
-    }
-    const CharT* _3() {
-        DECLARE_AND_RETURN_BUFFER("3");
-    }
-    const CharT* _345() {
-        DECLARE_AND_RETURN_BUFFER("345");
-    }
-    const CharT* _3456() {
-        DECLARE_AND_RETURN_BUFFER("3456");
-    }
-    const CharT* _333333() {
-        DECLARE_AND_RETURN_BUFFER("333333");
-    }
-    const CharT* _389() {
-        DECLARE_AND_RETURN_BUFFER("389");
-    }
-    const CharT* _4294967295() {
-        DECLARE_AND_RETURN_BUFFER("4294967295");
-    }
-    const CharT* _4444() {
-        DECLARE_AND_RETURN_BUFFER("4444");
-    }
-    const CharT* _5() {
-        DECLARE_AND_RETURN_BUFFER("5");
-    }
-    const CharT* _6() {
-        DECLARE_AND_RETURN_BUFFER("6");
-    }
-    const CharT* _6543210() {
-        DECLARE_AND_RETURN_BUFFER("6543210");
-    }
-    const CharT* _7() {
-        DECLARE_AND_RETURN_BUFFER("7");
-    }
-    const CharT* _78() {
-        DECLARE_AND_RETURN_BUFFER("78");
-    }
-    const CharT* _2004_01_01() {
-        DECLARE_AND_RETURN_BUFFER("2004-01-01");
-    }
-    const CharT* _1234562004_01_01() {
-        DECLARE_AND_RETURN_BUFFER("1234562004-01-01");
-    }
-    const CharT* _0123456_12345() {
-        DECLARE_AND_RETURN_BUFFER("0123456_12345");
-    }
-
-    // letters
-    const CharT* a() {
-        DECLARE_AND_RETURN_BUFFER("a");
-    }
-    const CharT* b() {
-        DECLARE_AND_RETURN_BUFFER("b");
-    }
-    const CharT* c() {
-        DECLARE_AND_RETURN_BUFFER("c");
-    }
-    const CharT* d() {
-        DECLARE_AND_RETURN_BUFFER("d");
-    }
-    const CharT* e() {
-        DECLARE_AND_RETURN_BUFFER("e");
-    }
-    const CharT* f() {
-        DECLARE_AND_RETURN_BUFFER("f");
-    }
-    const CharT* h() {
-        DECLARE_AND_RETURN_BUFFER("h");
-    }
-    const CharT* o() {
-        DECLARE_AND_RETURN_BUFFER("o");
-    }
-    const CharT* p() {
-        DECLARE_AND_RETURN_BUFFER("p");
-    }
-    const CharT* q() {
-        DECLARE_AND_RETURN_BUFFER("q");
-    }
-    const CharT* r() {
-        DECLARE_AND_RETURN_BUFFER("r");
-    }
-    const CharT* s() {
-        DECLARE_AND_RETURN_BUFFER("s");
-    }
-    const CharT* t() {
-        DECLARE_AND_RETURN_BUFFER("t");
-    }
-    const CharT* w() {
-        DECLARE_AND_RETURN_BUFFER("w");
-    }
-    const CharT* x() {
-        DECLARE_AND_RETURN_BUFFER("x");
-    }
-    const CharT* y() {
-        DECLARE_AND_RETURN_BUFFER("y");
-    }
-    const CharT* z() {
-        DECLARE_AND_RETURN_BUFFER("z");
-    }
-    const CharT* H() {
-        DECLARE_AND_RETURN_BUFFER("H");
-    }
-    const CharT* I() {
-        DECLARE_AND_RETURN_BUFFER("I");
-    }
-    const CharT* W() {
-        DECLARE_AND_RETURN_BUFFER("W");
-    }
-
-    const CharT* Space() {
-        DECLARE_AND_RETURN_BUFFER(" ");
-    }
-    const CharT* Empty() {
-        DECLARE_AND_RETURN_BUFFER("");
-    }
-
-    size_t HashOf_0123456() {
-        return 0;
-    }
-};
-
-template <>
-size_t TTestData<char>::HashOf_0123456() {
-    return 1229863857ul;
-}
-
-template <>
-size_t TTestData<wchar16>::HashOf_0123456() {
-    return 2775195331ul;
-}
 
 class TStringTest: public TTestBase, private TStringTestImpl<TString, TTestData<char>> {
 public:
@@ -1865,12 +747,35 @@ public:
     UNIT_TEST(TestIterators);
     UNIT_TEST(TestReverseIterators);
     UNIT_TEST(TestAppendUtf16)
+    UNIT_TEST(TestFillingAssign)
+    UNIT_TEST(TestStdStreamApi)
     //UNIT_TEST(TestOperatorsCI); must fail
     UNIT_TEST_SUITE_END();
 
     void TestAppendUtf16() {
-        TString appended = TString(u8"А роза упала").AppendUtf16(u" на лапу Азора");
-        UNIT_ASSERT(appended == u8"А роза упала на лапу Азора");
+        TString appended = TString("А роза упала").AppendUtf16(u" на лапу Азора");
+        UNIT_ASSERT(appended == "А роза упала на лапу Азора");
+    }
+
+    void TestFillingAssign() {
+        TString s("abc");
+        s.assign(5, 'a');
+        UNIT_ASSERT_VALUES_EQUAL(s, "aaaaa");
+    }
+
+    void TestStdStreamApi() {
+        const TString data = "abracadabra";
+        std::stringstream ss;
+        ss << data;
+
+        UNIT_ASSERT_VALUES_EQUAL(data, ss.str());
+
+        ss << '\n'
+           << data << std::endl;
+
+        TString read = "xxx";
+        ss >> read;
+        UNIT_ASSERT_VALUES_EQUAL(read, data);
     }
 };
 
@@ -2132,6 +1037,8 @@ private:
 
         UNIT_ASSERT(strWide == TUtf32String::FromUtf8(strUtf8.c_str()));
         UNIT_ASSERT(strWide == TUtf32String::FromUtf8(strUtf8));
+        UNIT_ASSERT(strWide == UTF8ToUTF32<true>(strUtf8));
+        UNIT_ASSERT(strWide == UTF8ToUTF32<false>(strUtf8));
         UNIT_ASSERT(strWide == TUtf32String::FromUtf8(TStringBuf(strUtf8)));
 
         // assign
@@ -2199,13 +1106,20 @@ UNIT_TEST_SUITE_REGISTRATION(TUtf32StringTest);
 class TStringStdTest: public TTestBase, private TStringStdTestImpl<TString, TTestData<char>> {
 public:
     UNIT_TEST_SUITE(TStringStdTest);
-    UNIT_TEST(constructor);
+    UNIT_TEST(Constructor);
     UNIT_TEST(reserve);
     UNIT_TEST(short_string);
     UNIT_TEST(erase);
     UNIT_TEST(data);
     UNIT_TEST(c_str);
+    UNIT_TEST(null_char_of_empty);
     UNIT_TEST(null_char);
+    UNIT_TEST(null_char_assignment_to_subscript_of_empty);
+    UNIT_TEST(null_char_assignment_to_subscript_of_nonempty);
+#ifndef TSTRING_IS_STD_STRING
+    UNIT_TEST(null_char_assignment_to_end_of_empty);
+    UNIT_TEST(null_char_assignment_to_end_of_nonempty);
+#endif
     UNIT_TEST(insert);
     UNIT_TEST(resize);
     UNIT_TEST(find);
@@ -2228,13 +1142,20 @@ UNIT_TEST_SUITE_REGISTRATION(TStringStdTest);
 class TWideStringStdTest: public TTestBase, private TStringStdTestImpl<TUtf16String, TTestData<wchar16>> {
 public:
     UNIT_TEST_SUITE(TWideStringStdTest);
-    UNIT_TEST(constructor);
+    UNIT_TEST(Constructor);
     UNIT_TEST(reserve);
     UNIT_TEST(short_string);
     UNIT_TEST(erase);
     UNIT_TEST(data);
     UNIT_TEST(c_str);
+    UNIT_TEST(null_char_of_empty);
     UNIT_TEST(null_char);
+    UNIT_TEST(null_char_assignment_to_subscript_of_empty);
+    UNIT_TEST(null_char_assignment_to_subscript_of_nonempty);
+#ifndef TSTRING_IS_STD_STRING
+    UNIT_TEST(null_char_assignment_to_end_of_empty);
+    UNIT_TEST(null_char_assignment_to_end_of_nonempty);
+#endif
     UNIT_TEST(insert);
     UNIT_TEST(resize);
     UNIT_TEST(find);
@@ -2280,3 +1201,34 @@ Y_UNIT_TEST_SUITE(HashFunctorTests) {
         UNIT_ASSERT_VALUES_EQUAL(h(ptr), h(stdStr));
     }
 }
+
+#if !defined(TSTRING_IS_STD_STRING)
+Y_UNIT_TEST_SUITE(StdNonConformant) {
+    Y_UNIT_TEST(TestEraseNoThrow) {
+        TString x;
+
+        x.erase(10);
+    }
+
+    Y_UNIT_TEST(TestReplaceNoThrow) {
+        TString x;
+
+        x.replace(0, 0, "1");
+
+        UNIT_ASSERT_VALUES_EQUAL(x, "1");
+
+        x.replace(10, 0, "1");
+
+        UNIT_ASSERT_VALUES_EQUAL(x, "1");
+    }
+
+    Y_UNIT_TEST(TestNoAlias) {
+        TString s = "x";
+
+        s.AppendNoAlias("abc", 3);
+
+        UNIT_ASSERT_VALUES_EQUAL(s, "xabc");
+        UNIT_ASSERT_VALUES_EQUAL(TString(s.c_str()), "xabc");
+    }
+}
+#endif

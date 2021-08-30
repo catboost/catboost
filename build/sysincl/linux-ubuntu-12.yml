@@ -1,0 +1,3 @@
+- source_filter: "^contrib/libs/systemd"
+  includes:
+    - uchar.h: contrib/libs/libc_compat/include/uchar/uchar.h

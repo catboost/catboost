@@ -1,6 +1,6 @@
 
 
-PYTEST()
+PY2TEST()
 
 TEST_SRCS(
     build_dll_and_java.py
@@ -11,22 +11,26 @@ TEST_SRCS(
     build_mn.py
     build_pln_header.py
     cat.py
-    check_config_h.py
     cgo1_wrapper.py
+    check_config_h.py
+    collect_java_srcs.py
     compile_cuda.py
     compile_java.py
     compile_jsrc.py
+    compile_pysrc.py
     configure_file.py
     copy_to_dir.py
     coverage-info.py
+    cpp_flatc_wrapper.py
     create_jcoverage_report.py
     extract_asrc.py
     extract_jacoco_report.py
     f2c.py
     fail_module_cmd.py
-    fetch_from_external.py
     fetch_from.py
+    fetch_from_external.py
     fetch_from_mds.py
+    fetch_from_npm.py
     fetch_from_sandbox.py
     fetch_resource.py
     filter_zip.py
@@ -37,8 +41,8 @@ TEST_SRCS(
     gen_java_codenav_entry.py
     gen_java_codenav_protobuf.py
     gen_mx_table.py
-    gen_py_reg.py
     gen_py3_reg.py
+    gen_py_reg.py
     gen_test_apk_gradle_script.py
     gen_ub.py
     generate_pom.py
@@ -59,31 +63,33 @@ TEST_SRCS(
     pack_ios.py
     pack_jcoverage_resources.py
     perl_wrapper.py
+    postprocess_go_fbs.py
     preprocess.py
     py_compile.py
     run_ios_simulator.py
     run_javac.py
+    run_junit.py
     run_llvm_dsymutil.py
     run_msvc_wine.py
     run_tool.py
+    sky.py
     stdout2stderr.py
     symlink.py
-    tared_protoc.py
     tar_directory.py
+    tar_sources.py
+    tared_protoc.py
     touch.py
     unpacking_jtest_runner.py
     vcs_info.py
     with_coverage.py
     with_crash_on_timeout.py
     with_pathsep_resolve.py
+    wrap_groovyc.py
     wrapper.py
-    collect_java_srcs.py
     writer.py
     xargs.py
     yield_line.py
     yndexer.py
 )
-
-NO_LINT()
 
 END()

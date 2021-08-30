@@ -30,6 +30,8 @@
   - CommonCrypto/CommonHMAC.h
   - CommonCrypto/CommonKeyDerivation.h
   - ConditionalMacros.h
+  - DiskArbitration/DiskArbitration.h
+  - Endian.h
   - MacTypes.h
   - TargetConditionals.h
   - architecture/byte_order.h
@@ -57,6 +59,7 @@
   - mach-o/loader.h
   - mach/clock.h
   - mach/clock_types.h
+  - mach/error.h
   - mach/host_info.h
   - mach/kern_return.h
   - mach/mach.h
@@ -106,6 +109,7 @@
   - netinet/udp_var.h
   - netinet6/in6.h
   - nlist.h
+  - objc/objc-sync.h
   - objc/runtime.h
   - os/lock.h
   - os/trace.h
@@ -115,11 +119,13 @@
   - readline/readline.h
   - readpassphrase.h
   - runetype.h
+  - simd/simd.h
   - strhash.h
   - sys/_types.h
   - sys/acl.h
   - sys/aio.h
   - sys/attr.h
+  - sys/clonefile.h
   - sys/dirent.h
   - sys/disk.h
   - sys/domain.h
@@ -152,7 +158,7 @@
   - tzfile.h
   - util.h
   - vis.h
-  - simd/simd.h
+  - xpc/xpc.h
 
   # OSX frameworks
   - Accelerate/Accelerate.h
@@ -160,8 +166,11 @@
   - AppKit/NSView.h
   - ApplicationServices/ApplicationServices.h
   - AudioToolbox/AudioToolbox.h
+  - AVFoundation/AVFoundation.h
+  - CFNetwork/CFNetwork.h
   - Cocoa/Cocoa.h
   - CoreFoundation/CFBase.h
+  - CoreFoundation/CFBundle.h
   - CoreFoundation/CFData.h
   - CoreFoundation/CFDictionary.h
   - CoreFoundation/CFLocale.h
@@ -204,6 +213,7 @@
   - OpenCL/cl_gl.h
   - OpenCL/opencl.h
   - OpenGLES/ES2/gl.h
+  - Speech/Speech.h
   - QuartzCore/QuartzCore.h
   - QuartzCore/CAEAGLLayer.h
   - QuartzCore/CAMetalLayer.h

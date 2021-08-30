@@ -16,6 +16,7 @@
 #include <catboost/cuda/methods/greedy_subsets_searcher/structure_searcher_template.h>
 #include <catboost/cuda/methods/leaves_estimation/doc_parallel_leaves_estimator.h>
 #include <catboost/private/libs/options/catboost_options.h>
+#include <catboost/private/libs/options/boosting_options.h>
 
 namespace NCatboostCuda {
     inline TTreeStructureSearcherOptions MakeStructureSearcherOptions(const NCatboostOptions::TObliviousTreeLearnerOptions& config) {
@@ -43,13 +44,18 @@ namespace NCatboostCuda {
         using TDataSet = TDocParallelDataSet;
 
         TGreedySubsetsSearcher(const TBinarizedFeaturesManager& featuresManager,
+                               const NCatboostOptions::TBoostingOptions& boostingOptions,
                                const NCatboostOptions::TCatBoostOptions& config,
+                               TGpuAwareRandom& random,
                                bool makeZeroAverage = false)
             : FeaturesManager(featuresManager)
+            , BoostingOptions(boostingOptions)
             , TreeConfig(config.ObliviousTreeOptions)
+            , LossDescription(config.LossFunctionDescription.Get())
             , StructureSearcherOptions(MakeStructureSearcherOptions(config.ObliviousTreeOptions))
             , MakeZeroAverage(makeZeroAverage)
             , ZeroLastBinInMulticlassHack(config.LossFunctionDescription->GetLossFunction() == ELossFunction::MultiClass)
+            , Random(random)
         {
         }
 
@@ -68,7 +74,11 @@ namespace NCatboostCuda {
 
         TDocParallelLeavesEstimator CreateEstimator() {
             CB_ENSURE(NeedEstimation());
-            return TDocParallelLeavesEstimator(CreateLeavesEstimationConfig(TreeConfig, MakeZeroAverage));
+            return TDocParallelLeavesEstimator(CreateLeavesEstimationConfig(TreeConfig,
+                                                                            MakeZeroAverage,
+                                                                            LossDescription,
+                                                                            BoostingOptions),
+                                               Random);
         }
 
         template <class TDataSet>
@@ -78,9 +88,12 @@ namespace NCatboostCuda {
 
     private:
         const TBinarizedFeaturesManager& FeaturesManager;
+        const NCatboostOptions::TBoostingOptions& BoostingOptions;
         const NCatboostOptions::TObliviousTreeLearnerOptions& TreeConfig;
+        const NCatboostOptions::TLossDescription& LossDescription;
         TTreeStructureSearcherOptions StructureSearcherOptions;
         bool MakeZeroAverage = false;
         bool ZeroLastBinInMulticlassHack = false;
+        TGpuAwareRandom& Random;
     };
 }

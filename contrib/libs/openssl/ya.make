@@ -1,32 +1,18 @@
 LIBRARY()
 
-VERSION(1.1.1d)
-
-LICENSE(
-    OpenSSL
-    SSLeay
-)
+LICENSE(OpenSSL SSLeay)
 
 
 
-NO_COMPILER_WARNINGS()
-
-NO_UTIL()
+VERSION(1.1.1g)
 
 PEERDIR(
     contrib/libs/openssl/crypto
-    contrib/libs/zlib
 )
 
 ADDINCL(
-    contrib/libs/openssl
-    contrib/libs/openssl/crypto
-    contrib/libs/openssl/crypto/ec/curve448
-    contrib/libs/openssl/crypto/ec/curve448/arch_32
-    contrib/libs/openssl/crypto/include
-    contrib/libs/openssl/crypto/modes
-    contrib/libs/openssl/include
     GLOBAL contrib/libs/openssl/include
+    contrib/libs/openssl
 )
 
 IF (OS_LINUX)
@@ -63,17 +49,35 @@ IF (OS_ANDROID)
     ENDIF()
 ENDIF()
 
+IF (OS_WINDOWS)
+    IF (ARCH_X86_64)
+        SET(WINDOWS_X86_64 yes)
+    ELSEIF(ARCH_I686)
+        SET(WINDOWS_I686 yes)
+    ENDIF()
+ENDIF()
+
+NO_COMPILER_WARNINGS()
+
+NO_RUNTIME()
+
 CFLAGS(
-    -DECP_NISTZ256_ASM
+    -DAESNI_ASM
     -DOPENSSL_BN_ASM_MONT
     -DOPENSSL_CPUID_OBJ
-    -DPOLY1305_ASM
     -DSHA1_ASM
     -DSHA256_ASM
     -DSHA512_ASM
 )
 
-IF (NOT ANDROID_I686)
+IF (NOT WINDOWS_I686)
+    CFLAGS(
+        -DECP_NISTZ256_ASM
+        -DPOLY1305_ASM
+    )
+ENDIF()
+
+IF (NOT ANDROID_I686 AND NOT WINDOWS_I686)
     CFLAGS(
         -DKECCAK1600_ASM
     )
@@ -110,10 +114,28 @@ IF (OS_DARWIN AND ARCH_X86_64)
     )
 ENDIF()
 
-IF (OS_WINDOWS AND ARCH_X86_64)
+IF (OS_DARWIN AND ARCH_ARM64)
     CFLAGS(
-        -DENGINESDIR="\"C:\\\\Program\ Files\\\\OpenSSL\\\\lib\\\\engines-1_1\""
-        -DOPENSSLDIR="\"C:\\\\Program\ Files\\\\Common\ Files\\\\SSL\""
+        -DL_ENDIAN
+        -DOPENSSL_PIC
+        -D_REENTRANT
+    )
+ENDIF()
+
+IF (OS_WINDOWS)
+    IF (ARCH_X86_64)
+        CFLAGS(
+            -DENGINESDIR="\"C:\\\\Program\ Files\\\\OpenSSL\\\\lib\\\\engines-1_1\""
+            -DOPENSSLDIR="\"C:\\\\Program\ Files\\\\Common\ Files\\\\SSL\""
+        )
+    ELSEIF(ARCH_I386)
+        CFLAGS(
+            -DENGINESDIR="\"C:\\\\Program\ Files\ \(x86\)\\\\OpenSSL\\\\lib\\\\engines-1_1\""
+            -DOPENSSLDIR="\"C:\\\\Program\ Files\ \(x86\)\\\\Common\ Files\\\\SSL\""
+        )
+    ENDIF()
+
+    CFLAGS(
         -DOPENSSL_SYS_WIN32
         -DUNICODE
         -DWIN32_LEAN_AND_MEAN
@@ -124,7 +146,7 @@ IF (OS_WINDOWS AND ARCH_X86_64)
     )
 ENDIF()
 
-IF (SANITIZER_TYPE STREQUAL memory)
+IF (SANITIZER_TYPE == memory)
     CFLAGS(-DPURIFY)
 ENDIF()
 
@@ -216,7 +238,18 @@ ENDIF()
 
 IF (OS_WINDOWS AND ARCH_X86_64)
     SRCS(
-        asm/windows/engines/e_padlock-x86_64.asm
+        asm/windows/engines/e_padlock-x86_64.masm
+    )
+ENDIF()
+
+
+IF (OS_WINDOWS AND ARCH_I386)
+    CFLAGS(
+        -DPADLOCK_ASM
+    )
+
+    SRCS(
+        asm/windows/engines/e_padlock-x86.masm
     )
 ENDIF()
 
@@ -299,3 +332,10 @@ IF (OS_ANDROID AND ARCH_ARM64)
 ENDIF()
 
 END()
+
+IF (NOT DLL_FOR AND NOT OS_IOS)
+    RECURSE(
+    apps
+    dynamic
+)
+ENDIF()

@@ -59,7 +59,7 @@ static inline void LoadPodType(IInputStream* rh, T& t) {
     const size_t res = rh->Load(&t, sizeof(T));
 
     if (Y_UNLIKELY(res != sizeof(T))) {
-        ::NPrivate::ThrowLoadEOFException(sizeof(T), res, AsStringBuf("pod type"));
+        ::NPrivate::ThrowLoadEOFException(sizeof(T), res, TStringBuf("pod type"));
     }
 }
 
@@ -74,7 +74,7 @@ static inline void LoadPodArray(IInputStream* rh, T* arr, size_t count) {
     const size_t res = rh->Load(arr, len);
 
     if (Y_UNLIKELY(res != len)) {
-        ::NPrivate::ThrowLoadEOFException(len, res, AsStringBuf("pod array"));
+        ::NPrivate::ThrowLoadEOFException(len, res, TStringBuf("pod array"));
     }
 }
 
@@ -434,7 +434,7 @@ struct TTupleSerializer {
 };
 
 template <typename... TArgs>
-struct TSerializer<std::tuple<TArgs...>> : TTupleSerializer<std::tuple<TArgs...>> {
+struct TSerializer<std::tuple<TArgs...>>: TTupleSerializer<std::tuple<TArgs...>> {
 };
 
 template <>
@@ -482,11 +482,11 @@ public:
         : TBase(s)
     {
         Y_UNUSED(cnt);
-        P_ = TBase::S_.begin();
+        P_ = this->S_.begin();
     }
 
     inline void Insert(const TValue& v) {
-        P_ = TBase::S_.insert(P_, v);
+        P_ = this->S_.insert(P_, v);
     }
 
 private:
@@ -664,7 +664,7 @@ struct TSerializer<TVariant<Args...>> {
 private:
     template <size_t... Is>
     static void LoadImpl(IInputStream* is, TVar& v, ui8 index, std::index_sequence<Is...>) {
-        using TLoader = void(*)(IInputStream*, TVar& v);
+        using TLoader = void (*)(IInputStream*, TVar & v);
         constexpr TLoader loaders[] = {::NPrivate::LoadVariantAlternative<TVar, Args, Is>...};
         loaders[index](is, v);
     }
@@ -697,4 +697,13 @@ static inline void LoadMany(S* s, Ts&... t) {
                                                \
     inline void Load(IInputStream* s) {        \
         ::LoadMany(s, __VA_ARGS__);            \
+    }
+
+#define Y_SAVELOAD_DEFINE_OVERRIDE(...)          \
+    void Save(IOutputStream* s) const override { \
+        ::SaveMany(s, __VA_ARGS__);              \
+    }                                            \
+                                                 \
+    void Load(IInputStream* s) override {        \
+        ::LoadMany(s, __VA_ARGS__);              \
     }

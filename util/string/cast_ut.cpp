@@ -400,6 +400,9 @@ Y_UNIT_TEST_SUITE(TCastTest) {
         UNIT_ASSERT_VALUES_EQUAL(TryFromStringWithDefault("100q500", res), false);
         UNIT_ASSERT_VALUES_EQUAL(res, size_t());
 
+        UNIT_ASSERT_VALUES_EQUAL(TryFromStringWithDefault("100 500", res), false);
+        UNIT_ASSERT_VALUES_EQUAL(res, size_t());
+
         UNIT_CHECK_GENERATED_NO_EXCEPTION(FromStringWithDefault(s2, def1), yexception);
         UNIT_CHECK_GENERATED_NO_EXCEPTION(FromStringWithDefault("100q500", def1), yexception);
         UNIT_ASSERT_VALUES_EQUAL(FromStringWithDefault(s2, def1), def1);
@@ -449,7 +452,7 @@ Y_UNIT_TEST_SUITE(TCastTest) {
     Y_UNIT_TEST(TestAutoDetectType) {
         UNIT_ASSERT_DOUBLES_EQUAL((float)FromString("0.0001"), 0.0001, EPS);
         UNIT_ASSERT_DOUBLES_EQUAL((double)FromString("0.0015", sizeof("0.0015") - 2), 0.001, EPS);
-        UNIT_ASSERT_DOUBLES_EQUAL((long double)FromString(AsStringBuf("0.0001")), 0.0001, EPS);
+        UNIT_ASSERT_DOUBLES_EQUAL((long double)FromString(TStringBuf("0.0001")), 0.0001, EPS);
         UNIT_ASSERT_DOUBLES_EQUAL((float)FromString(TString("10E-5")), 10E-5, EPS);
         UNIT_ASSERT_VALUES_EQUAL((bool)FromString("da"), true);
         UNIT_ASSERT_VALUES_EQUAL((bool)FromString("no"), false);
@@ -461,7 +464,7 @@ Y_UNIT_TEST_SUITE(TCastTest) {
         UNIT_ASSERT_VALUES_EQUAL(integer, wideCharacterCode);
     }
 
-    static void CheckMessage(TFromStringException & exc, const TString& phrase) {
+    static void CheckMessage(TFromStringException& exc, const TString& phrase) {
         TString message = exc.what();
         if (!message.Contains(phrase)) {
             Cerr << message << Endl;
@@ -509,13 +512,13 @@ Y_UNIT_TEST_SUITE(TCastTest) {
 
     Y_UNIT_TEST(TryStringBuf) {
         {
-            constexpr TStringBuf hello = AsStringBuf("hello");
+            constexpr TStringBuf hello = "hello";
             TStringBuf out;
             UNIT_ASSERT(TryFromString(hello, out));
             UNIT_ASSERT_VALUES_EQUAL(hello, out);
         }
         {
-            constexpr TStringBuf empty = AsStringBuf("");
+            constexpr TStringBuf empty = "";
             TStringBuf out;
             UNIT_ASSERT(TryFromString(empty, out));
             UNIT_ASSERT_VALUES_EQUAL(empty, out);

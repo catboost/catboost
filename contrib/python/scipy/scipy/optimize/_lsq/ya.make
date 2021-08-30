@@ -1,9 +1,11 @@
 PY23_LIBRARY()
 
+LICENSE(BSD-3-Clause)
+
 
 
 ADDINCL(
-    contrib/python/scipy
+    FOR cython contrib/python/scipy
 )
 
 NO_LINT()

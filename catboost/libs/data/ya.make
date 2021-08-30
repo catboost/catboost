@@ -11,6 +11,7 @@ SRCS(
     GLOBAL cb_dsv_loader.cpp
     columns.cpp
     composite_columns.cpp
+    ctrs.cpp
     data_provider.cpp
     data_provider_builders.cpp
     exclusive_feature_bundling.cpp
@@ -19,6 +20,7 @@ SRCS(
     feature_grouping.cpp
     feature_index.cpp
     features_layout.cpp
+    features_layout_helpers.cpp
     feature_names_converter.cpp
     lazy_columns.cpp
     GLOBAL libsvm_loader.cpp
@@ -31,6 +33,8 @@ SRCS(
     objects_grouping.cpp
     order.cpp
     packed_binary_features.cpp
+    pairs.cpp
+    GLOBAL pairs_data_loaders.cpp
     proceed_pool_in_blocks.cpp
     quantization.cpp
     quantized_features_info.cpp
@@ -53,6 +57,7 @@ PEERDIR(
 
     catboost/libs/cat_feature
     catboost/libs/column_description
+    catboost/private/libs/ctr_description
     catboost/private/libs/data_types
     catboost/private/libs/data_util
     catboost/private/libs/feature_estimator

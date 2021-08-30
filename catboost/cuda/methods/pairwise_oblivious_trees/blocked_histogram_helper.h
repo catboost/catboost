@@ -30,7 +30,7 @@ namespace NCatboostCuda {
         //-------stripe, before reduce-------
         template <class T, NCudaLib::EPtrType Type>
         NCudaLib::TCudaBuffer<const TCFeature, NCudaLib::TStripeMapping, Type> GetFeatures(const NCudaLib::TCudaBuffer<T, NCudaLib::TStripeMapping, Type>& features, ui32 block) const {
-            return NCudaLib::ParallelStripeView(features, FeatureSlices[block]);
+            return NCudaLib::ParallelStripeView(features, FeatureSlices[block]).AsConstBuf();
         }
 
         TFoldsHistogram ComputeFoldsHistogram(ui32 block) const {

@@ -7,16 +7,25 @@ import subprocess
 def fix_tmpdir(cmd):
     if not cmd:
         return cmd
-    java = cmd[0]
-    if not java.endswith('java') and not java.endswith('java.exe'):
+    java_id, option_name = None, None
+    for i, java in enumerate(cmd):
+        if java.endswith('java') or java.endswith('java.exe'):
+            java_id = i
+            option_name = '-Djava.io.tmpdir='
+            break
+        if java.endswith('javac') or java.endswith('javac.exe'):
+            java_id = i
+            option_name = '-J-Djava.io.tmpdir='
+            break
+    if java_id is None:
         return cmd
-    for arg in cmd:
-        if arg.startswith('-Djava.io.tmpdir'):
+    for arg in cmd[java_id:]:
+        if arg.startswith(option_name):
             return cmd
     tmpdir = os.environ.get('TMPDIR') or os.environ.get('TEMPDIR')
     if not tmpdir:
         return cmd
-    return cmd[0:1] + ['-Djava.io.tmpdir={}'.format(tmpdir)] + cmd[1:]
+    return cmd[:java_id + 1] + ['{}{}'.format(option_name, tmpdir)] + cmd[java_id + 1:]
 
 
 def just_do_it():

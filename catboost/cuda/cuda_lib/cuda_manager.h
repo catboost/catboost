@@ -188,7 +188,7 @@ namespace NCudaLib {
         void DisablePeers();
 
     public:
-        ~TCudaManager();
+        ~TCudaManager() noexcept(false);
 
         template <class TKernel>
         inline void LaunchKernel(TKernel&& kernel,
@@ -391,7 +391,7 @@ namespace NCudaLib {
         {
         }
 
-        ~TStopChildCudaManagerCallback() {
+        ~TStopChildCudaManagerCallback() noexcept(false) {
             auto& manager = NCudaLib::GetCudaManager();
             CB_ENSURE(&manager == Owner);
             manager.StopChild();

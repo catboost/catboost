@@ -31,6 +31,8 @@ namespace NCatboostCuda {
         TStripeBuffer<float> TmpValue;
         TStripeBuffer<float> TmpDer2;
 
+        ui32 BinCount;
+
         TEstimationTaskHelper() = default;
 
         void MoveToPoint(const TMirrorBuffer<float>& point, ui32 stream = 0);
@@ -42,6 +44,16 @@ namespace NCatboostCuda {
                      TCudaBuffer<double, NCudaLib::TStripeMapping>* der,
                      TCudaBuffer<double, NCudaLib::TStripeMapping>* der2,
                      ui32 stream = 0);
+
+        void ComputeExact(TVector<float>& point,
+                          const NCatboostOptions::TLossDescription& lossDescription,
+                          ui32 stream = 0) {
+            auto values = TStripeBuffer<float>::CopyMapping(Bins);
+            auto weights = TStripeBuffer<float>::CopyMapping(Bins);
+
+            DerCalcer->ComputeExactValue(Baseline.AsConstBuf(), &values, &weights, stream);
+            ComputeExactApprox(Bins, values, weights, BinCount, point, lossDescription);
+        }
     };
 
     /*
@@ -63,6 +75,7 @@ namespace NCatboostCuda {
 
         TVector<float> CurrentPoint;
         THolder<TVector<double>> CurrentPointInfo;
+        TGpuAwareRandom& Random;
 
     private:
         const TVector<double>& GetCurrentPointInfo();
@@ -80,11 +93,15 @@ namespace NCatboostCuda {
 
         TEstimationTaskHelper& NextTask(TObliviousTreeModel& model);
 
+        TVector<float> EstimateExact() final;
+
     public:
         TObliviousTreeLeavesEstimator(const TBinarizedFeaturesManager& featuresManager,
-                                      const TLeavesEstimationConfig& config)
+                                      const TLeavesEstimationConfig& config,
+                                      TGpuAwareRandom& random)
             : FeaturesManager(featuresManager)
             , LeavesEstimationConfig(config)
+            , Random(random)
         {
         }
 
@@ -148,7 +165,8 @@ namespace NCatboostCuda {
             task.Offsets = TCudaBuffer<ui32, NCudaLib::TStripeMapping>::Create(offsetsMapping);
             UpdatePartitionOffsets(task.Bins, task.Offsets);
 
-            task.DerCalcer = CreatePermutationDerCalcer(std::move(strippedTarget), std::move(indices));
+            task.DerCalcer = CreatePermutationDerCalcer(std::move(strippedTarget), indices.AsConstBuf());
+            task.BinCount = binCount;
 
             return *this;
         }
@@ -183,11 +201,15 @@ namespace NCatboostCuda {
                                    task.Offsets);
 
             task.DerCalcer = CreatePermutationDerCalcer(TTarget(target),
-                                                        std::move(indices));
+                                                        indices.AsConstBuf());
+            task.BinCount = binCount;
 
             return *this;
         }
 
-        void Estimate(NPar::TLocalExecutor* localExecutor);
+        void Estimate(NPar::ILocalExecutor* localExecutor);
+
+        void AddLangevinNoiseToDerivatives(TVector<double>* derivatives,
+                                           NPar::ILocalExecutor* localExecutor) override;
     };
 }

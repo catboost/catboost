@@ -1,0 +1,6 @@
+INDUCED_DEPS(cpp
+    ${ARCADIA_ROOT}/contrib/libs/protobuf/src/google/protobuf/messagext.h
+)
+INDUCED_DEPS(h+cpp
+    ${ARCADIA_ROOT}/contrib/libs/protobuf/src/google/protobuf/json_util.h
+)

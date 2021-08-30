@@ -93,7 +93,7 @@ namespace NNeh {
     namespace NHttps {
         namespace {
             // force ssl_write/ssl_read functions to return this value via BIO_method_read/write that means request is canceled
-            static constexpr int SSL_RVAL_TIMEOUT = -42;
+            constexpr int SSL_RVAL_TIMEOUT = -42;
 
             struct TInputConnections {
                 TInputConnections()
@@ -226,32 +226,32 @@ namespace NNeh {
             }
 
             TSslException(TStringBuf f, const SSL* ssl, int ret) {
-                *this << f << AsStringBuf(" error type: ");
+                *this << f << TStringBuf(" error type: ");
                 const int etype = SSL_get_error(ssl, ret);
                 switch (etype) {
                     case SSL_ERROR_ZERO_RETURN:
-                        *this << AsStringBuf("SSL_ERROR_ZERO_RETURN");
+                        *this << TStringBuf("SSL_ERROR_ZERO_RETURN");
                         break;
                     case SSL_ERROR_WANT_READ:
-                        *this << AsStringBuf("SSL_ERROR_WANT_READ");
+                        *this << TStringBuf("SSL_ERROR_WANT_READ");
                         break;
                     case SSL_ERROR_WANT_WRITE:
-                        *this << AsStringBuf("SSL_ERROR_WANT_WRITE");
+                        *this << TStringBuf("SSL_ERROR_WANT_WRITE");
                         break;
                     case SSL_ERROR_WANT_CONNECT:
-                        *this << AsStringBuf("SSL_ERROR_WANT_CONNECT");
+                        *this << TStringBuf("SSL_ERROR_WANT_CONNECT");
                         break;
                     case SSL_ERROR_WANT_ACCEPT:
-                        *this << AsStringBuf("SSL_ERROR_WANT_ACCEPT");
+                        *this << TStringBuf("SSL_ERROR_WANT_ACCEPT");
                         break;
                     case SSL_ERROR_WANT_X509_LOOKUP:
-                        *this << AsStringBuf("SSL_ERROR_WANT_X509_LOOKUP");
+                        *this << TStringBuf("SSL_ERROR_WANT_X509_LOOKUP");
                         break;
                     case SSL_ERROR_SYSCALL:
-                        *this << AsStringBuf("SSL_ERROR_SYSCALL ret: ") << ret << AsStringBuf(", errno: ") << errno;
+                        *this << TStringBuf("SSL_ERROR_SYSCALL ret: ") << ret << TStringBuf(", errno: ") << errno;
                         break;
                     case SSL_ERROR_SSL:
-                        *this << AsStringBuf("SSL_ERROR_SSL");
+                        *this << TStringBuf("SSL_ERROR_SSL");
                         break;
                 }
                 *this << ' ';
@@ -272,10 +272,10 @@ namespace NNeh {
                 NO_EXTENSION,
                 ERROR
             };
-            static bool EqualNoCase(TStringBuf a, TStringBuf b) {
+            bool EqualNoCase(TStringBuf a, TStringBuf b) {
                 return (a.size() == b.size()) && ToString(a).to_lower() == ToString(b).to_lower();
             }
-            static bool MatchDomainName(TStringBuf tmpl, TStringBuf name) {
+            bool MatchDomainName(TStringBuf tmpl, TStringBuf name) {
                 // match wildcards only in the left-most part
                 // do not support (optional according to RFC) partial wildcards (ww*.yandex.ru)
                 // see RFC-6125
@@ -288,7 +288,7 @@ namespace NNeh {
                 return EqualNoCase(tmpl, name);
             }
 
-            static EMatchResult MatchCertAltNames(X509* cert, TStringBuf hostname) {
+            EMatchResult MatchCertAltNames(X509* cert, TStringBuf hostname) {
                 EMatchResult result = NO_MATCH;
                 STACK_OF(GENERAL_NAME)* names = (STACK_OF(GENERAL_NAME)*)X509_get_ext_d2i(cert, NID_subject_alt_name, nullptr, NULL);
                 if (!names) {
@@ -311,7 +311,7 @@ namespace NNeh {
                 return result;
             }
 
-            static EMatchResult MatchCertCommonName(X509* cert, TStringBuf hostname) {
+            EMatchResult MatchCertCommonName(X509* cert, TStringBuf hostname) {
                 int commonNameLoc = X509_NAME_get_index_by_NID(X509_get_subject_name(cert), NID_commonName, -1);
                 if (commonNameLoc < 0) {
                     return ERROR;
@@ -334,7 +334,7 @@ namespace NNeh {
                            : NO_MATCH;
             }
 
-            static bool CheckCertHostname(X509* cert, TStringBuf hostname) {
+            bool CheckCertHostname(X509* cert, TStringBuf hostname) {
                 switch (MatchCertAltNames(cert, hostname)) {
                     case MATCH_FOUND:
                         return true;
@@ -347,7 +347,7 @@ namespace NNeh {
                 }
             }
 
-            static void ParseUserInfo(const TParsedLocation& loc, TString& cert, TString& pvtKey) {
+            void ParseUserInfo(const TParsedLocation& loc, TString& cert, TString& pvtKey) {
                 if (!loc.UserInfo) {
                     return;
                 }
@@ -356,9 +356,9 @@ namespace NNeh {
                 while (kws) {
                     TStringBuf name = kws.NextTok('=');
                     TStringBuf value = kws.NextTok(';');
-                    if (AsStringBuf("cert") == name) {
+                    if (TStringBuf("cert") == name) {
                         cert = value;
-                    } else if (AsStringBuf("key") == name) {
+                    } else if (TStringBuf("key") == name) {
                         pvtKey = value;
                     }
                 }
@@ -565,7 +565,7 @@ namespace NNeh {
                             }
                         } else {
                             if (error) {
-                                *error = new TError(TStringBuilder() << AsStringBuf("can not connect to ") << msgAddr);
+                                *error = new TError(TStringBuilder() << TStringBuf("can not connect to ") << msgAddr);
                             }
                             return nullptr;
                         }
@@ -730,7 +730,7 @@ namespace NNeh {
             }
 
         public:
-            virtual ~TSslCtx() {
+            ~TSslCtx() override {
                 SSL_CTX_free(SslCtx_);
             }
 
@@ -768,12 +768,12 @@ namespace NNeh {
             TSslCtxServer(const TParsedLocation& loc) {
                 const SSL_METHOD* method = SSLv23_server_method();
                 if (Y_UNLIKELY(!method)) {
-                    ythrow TSslException(AsStringBuf("SSLv23_server_method"));
+                    ythrow TSslException(TStringBuf("SSLv23_server_method"));
                 }
 
                 SslCtx_ = SSL_CTX_new(method);
                 if (Y_UNLIKELY(!SslCtx_)) {
-                    ythrow TSslException(AsStringBuf("SSL_CTX_new(server)"));
+                    ythrow TSslException(TStringBuf("SSL_CTX_new(server)"));
                 }
 
                 TString cert, key;
@@ -800,19 +800,19 @@ namespace NNeh {
                 });
 
                 if (!cert || !key) {
-                    ythrow TSslException() << AsStringBuf("no certificate or private key is specified for server");
+                    ythrow TSslException() << TStringBuf("no certificate or private key is specified for server");
                 }
 
                 if (1 != SSL_CTX_use_certificate_chain_file(SslCtx_, cert.data())) {
-                    ythrow TSslException(AsStringBuf("SSL_CTX_use_certificate_chain_file (server)"));
+                    ythrow TSslException(TStringBuf("SSL_CTX_use_certificate_chain_file (server)"));
                 }
 
                 if (1 != SSL_CTX_use_PrivateKey_file(SslCtx_, key.data(), SSL_FILETYPE_PEM)) {
-                    ythrow TSslException(AsStringBuf("SSL_CTX_use_PrivateKey_file (server)"));
+                    ythrow TSslException(TStringBuf("SSL_CTX_use_PrivateKey_file (server)"));
                 }
 
                 if (1 != SSL_CTX_check_private_key(SslCtx_)) {
-                    ythrow TSslException(AsStringBuf("SSL_CTX_check_private_key (server)"));
+                    ythrow TSslException(TStringBuf("SSL_CTX_check_private_key (server)"));
                 }
             }
         };
@@ -822,19 +822,19 @@ namespace NNeh {
             TSslCtxClient() {
                 const SSL_METHOD* method = SSLv23_client_method();
                 if (Y_UNLIKELY(!method)) {
-                    ythrow TSslException(AsStringBuf("SSLv23_client_method"));
+                    ythrow TSslException(TStringBuf("SSLv23_client_method"));
                 }
 
                 SslCtx_ = SSL_CTX_new(method);
                 if (Y_UNLIKELY(!SslCtx_)) {
-                    ythrow TSslException(AsStringBuf("SSL_CTX_new(client)"));
+                    ythrow TSslException(TStringBuf("SSL_CTX_new(client)"));
                 }
 
                 const TString& caFile = THttpsOptions::CAFile;
                 const TString& caPath = THttpsOptions::CAPath;
                 if (caFile || caPath) {
                     if (!SSL_CTX_load_verify_locations(SslCtx_, caFile ? caFile.data() : nullptr, caPath ? caPath.data() : nullptr)) {
-                        ythrow TSslException(AsStringBuf("SSL_CTX_load_verify_locations(client)"));
+                        ythrow TSslException(TStringBuf("SSL_CTX_load_verify_locations(client)"));
                     }
                 }
 
@@ -863,16 +863,16 @@ namespace NNeh {
                         return clientPrivateKeyPwd.copy(buf, size, 0);
                     });
                     if (1 != SSL_CTX_use_certificate_chain_file(SslCtx_, clientCertificate.c_str())) {
-                        ythrow TSslException(AsStringBuf("SSL_CTX_use_certificate_chain_file (client)"));
+                        ythrow TSslException(TStringBuf("SSL_CTX_use_certificate_chain_file (client)"));
                     }
                     if (1 != SSL_CTX_use_PrivateKey_file(SslCtx_, clientPrivateKey.c_str(), SSL_FILETYPE_PEM)) {
-                        ythrow TSslException(AsStringBuf("SSL_CTX_use_PrivateKey_file (client)"));
+                        ythrow TSslException(TStringBuf("SSL_CTX_use_PrivateKey_file (client)"));
                     }
                     if (1 != SSL_CTX_check_private_key(SslCtx_)) {
-                        ythrow TSslException(AsStringBuf("SSL_CTX_check_private_key (client)"));
+                        ythrow TSslException(TStringBuf("SSL_CTX_check_private_key (client)"));
                     }
                 } else if (clientCertificate || clientPrivateKey) {
-                    ythrow TSslException() << AsStringBuf("both certificate and private key must be specified for client");
+                    ythrow TSslException() << TStringBuf("both certificate and private key must be specified for client");
                 }
             }
 
@@ -915,17 +915,17 @@ namespace NNeh {
                         }
 
                         if (err != ETIMEDOUT) {
-                            ythrow TSystemError(err) << AsStringBuf("request failed");
+                            ythrow TSystemError(err) << TStringBuf("request failed");
                         }
 
                         tout = tout * 2;
                     }
 
                     if (err) {
-                        ythrow TSystemError() << AsStringBuf("ioctl() failed");
+                        ythrow TSystemError() << TStringBuf("ioctl() failed");
                     }
                 } else {
-                    ythrow TSslException() << AsStringBuf("No cont available");
+                    ythrow TSslException() << TStringBuf("No cont available");
                 }
 #endif
             }
@@ -1063,7 +1063,7 @@ namespace NNeh {
 
             inline void AcquireCont(TCont* c) {
                 if (Y_UNLIKELY(!Connection_)) {
-                    ythrow TSslException() << AsStringBuf("no connection provided");
+                    ythrow TSslException() << TStringBuf("no connection provided");
                 }
 
                 Connection_->AcquireCont(c);
@@ -1084,7 +1084,7 @@ namespace NNeh {
 
             SOCKET Socket() {
                 if (Y_UNLIKELY(!Connection_)) {
-                    ythrow TSslException() << AsStringBuf("no connection provided");
+                    ythrow TSslException() << TStringBuf("no connection provided");
                 }
 
                 return Connection_->Socket();
@@ -1093,33 +1093,33 @@ namespace NNeh {
         private:
             void DoWrite(const void* buf, size_t len) override {
                 if (Y_UNLIKELY(!Connection_)) {
-                    ythrow TSslException() << AsStringBuf("DoWrite() no connection provided");
+                    ythrow TSslException() << TStringBuf("DoWrite() no connection provided");
                 }
 
                 const int rval = SSL_write(Ssl_.Get(), buf, len);
                 if (rval <= 0) {
-                    ythrow TSslException(AsStringBuf("SSL_write"), Ssl_.Get(), rval);
+                    ythrow TSslException(TStringBuf("SSL_write"), Ssl_.Get(), rval);
                 }
             }
 
             size_t DoRead(void* buf, size_t len) override {
                 if (Y_UNLIKELY(!Connection_)) {
-                    ythrow TSslException() << AsStringBuf("DoRead() no connection provided");
+                    ythrow TSslException() << TStringBuf("DoRead() no connection provided");
                 }
 
                 const int rval = SSL_read(Ssl_.Get(), buf, len);
                 if (rval < 0) {
                     if (SSL_RVAL_TIMEOUT == rval) {
-                        ythrow TSystemError(ECANCELED) << AsStringBuf(" http request canceled");
+                        ythrow TSystemError(ECANCELED) << TStringBuf(" http request canceled");
                     }
-                    ythrow TSslException(AsStringBuf("SSL_read"), Ssl_.Get(), rval);
+                    ythrow TSslException(TStringBuf("SSL_read"), Ssl_.Get(), rval);
                 } else if (0 == rval) {
                     if ((SSL_get_shutdown(Ssl_.Get()) & SSL_RECEIVED_SHUTDOWN) != 0) {
                         return rval;
                     } else {
                         const int err = SSL_get_error(Ssl_.Get(), rval);
                         if (SSL_ERROR_ZERO_RETURN != err) {
-                            ythrow TSslException(AsStringBuf("SSL_read"), Ssl_.Get(), rval);
+                            ythrow TSslException(TStringBuf("SSL_read"), Ssl_.Get(), rval);
                         }
                     }
                 }
@@ -1133,22 +1133,22 @@ namespace NNeh {
                 TStringBuf str;
                 const int w = where & ~SSL_ST_MASK;
                 if (w & SSL_ST_CONNECT) {
-                    str = AsStringBuf("SSL_connect");
+                    str = TStringBuf("SSL_connect");
                 } else if (w & SSL_ST_ACCEPT) {
-                    str = AsStringBuf("SSL_accept");
+                    str = TStringBuf("SSL_accept");
                 } else {
-                    str = AsStringBuf("undefined");
+                    str = TStringBuf("undefined");
                 }
 
                 if (where & SSL_CB_LOOP) {
                     Cerr << str << ':' << SSL_state_string_long(s) << Endl;
                 } else if (where & SSL_CB_ALERT) {
-                    Cerr << AsStringBuf("SSL3 alert ") << ((where & SSL_CB_READ) ? AsStringBuf("read") : AsStringBuf("write")) << ' ' << SSL_alert_type_string_long(ret) << ':' << SSL_alert_desc_string_long(ret) << Endl;
+                    Cerr << TStringBuf("SSL3 alert ") << ((where & SSL_CB_READ) ? TStringBuf("read") : TStringBuf("write")) << ' ' << SSL_alert_type_string_long(ret) << ':' << SSL_alert_desc_string_long(ret) << Endl;
                 } else if (where & SSL_CB_EXIT) {
                     if (ret == 0) {
-                        Cerr << str << AsStringBuf(":failed in ") << SSL_state_string_long(s) << Endl;
+                        Cerr << str << TStringBuf(":failed in ") << SSL_state_string_long(s) << Endl;
                     } else if (ret < 0) {
-                        Cerr << str << AsStringBuf(":error in ") << SSL_state_string_long(s) << Endl;
+                        Cerr << str << TStringBuf(":error in ") << SSL_state_string_long(s) << Endl;
                     }
                 }
             }
@@ -1183,7 +1183,7 @@ namespace NNeh {
             {
             }
 
-            void Handshake() {
+            void Handshake() override {
                 Ssl_.Reset(SSL_new(SslCtx_));
                 if (THttpsOptions::EnableSslClientDebug) {
                     SSL_set_info_callback(Ssl_.Get(), InfoCB);
@@ -1195,23 +1195,23 @@ namespace NNeh {
                 const TString hostname(Location_.Host);
                 const int rev = SSL_set_tlsext_host_name(Ssl_.Get(), hostname.data());
                 if (Y_UNLIKELY(1 != rev)) {
-                    ythrow TSslException(AsStringBuf("SSL_set_tlsext_host_name(client)"), Ssl_.Get(), rev);
+                    ythrow TSslException(TStringBuf("SSL_set_tlsext_host_name(client)"), Ssl_.Get(), rev);
                 }
 
                 TString cert, pvtKey;
                 ParseUserInfo(Location_, cert, pvtKey);
 
                 if (cert && (1 != SSL_use_certificate_file(Ssl_.Get(), cert.data(), SSL_FILETYPE_PEM))) {
-                    ythrow TSslException(AsStringBuf("SSL_use_certificate_file(client)"));
+                    ythrow TSslException(TStringBuf("SSL_use_certificate_file(client)"));
                 }
 
                 if (pvtKey) {
                     if (1 != SSL_use_PrivateKey_file(Ssl_.Get(), pvtKey.data(), SSL_FILETYPE_PEM)) {
-                        ythrow TSslException(AsStringBuf("SSL_use_PrivateKey_file(client)"));
+                        ythrow TSslException(TStringBuf("SSL_use_PrivateKey_file(client)"));
                     }
 
                     if (1 != SSL_check_private_key(Ssl_.Get())) {
-                        ythrow TSslException(AsStringBuf("SSL_check_private_key(client)"));
+                        ythrow TSslException(TStringBuf("SSL_check_private_key(client)"));
                     }
                 }
 
@@ -1221,20 +1221,20 @@ namespace NNeh {
                 const int rval = SSL_do_handshake(Ssl_.Get());
                 if (1 != rval) {
                     if (rval == SSL_RVAL_TIMEOUT) {
-                        ythrow TSystemError(ECANCELED) << AsStringBuf("canceled");
+                        ythrow TSystemError(ECANCELED) << TStringBuf("canceled");
                     } else {
-                        ythrow TSslException(AsStringBuf("BIO_do_handshake(client)"), Ssl_.Get(), rval);
+                        ythrow TSslException(TStringBuf("BIO_do_handshake(client)"), Ssl_.Get(), rval);
                     }
                 }
 
                 if (THttpsOptions::CheckCertificateHostname) {
                     TX509Holder peerCert(SSL_get_peer_certificate(Ssl_.Get()));
                     if (!peerCert) {
-                        ythrow TSslException(AsStringBuf("SSL_get_peer_certificate(client)"));
+                        ythrow TSslException(TStringBuf("SSL_get_peer_certificate(client)"));
                     }
 
                     if (!CheckCertHostname(peerCert.Get(), Location_.Host)) {
-                        ythrow TSslException(AsStringBuf("CheckCertHostname(client)"));
+                        ythrow TSslException(TStringBuf("CheckCertHostname(client)"));
                     }
                 }
             }
@@ -1264,9 +1264,9 @@ namespace NNeh {
                 ret.ReserveAndResize(cl);
                 size_t sz = in.Load(ret.begin(), cl);
                 if (sz != cl) {
-                    throw yexception() << AsStringBuf("not full content: ") << sz << AsStringBuf(" bytes from ") << cl;
+                    throw yexception() << TStringBuf("not full content: ") << sz << TStringBuf(" bytes from ") << cl;
                 }
-            } else {
+            } else if (in.HasContent()) {
                 TVector<char> buff(9500); //common jumbo frame size
 
                 while (size_t len = in.Read(buff.data(), buff.size())) {
@@ -1280,10 +1280,10 @@ namespace NNeh {
         template <class TRequestType>
         class THttpsRequest: public IJob {
         public:
-            inline THttpsRequest(TSimpleHandleRef hndl, const TMessage& msg)
+            inline THttpsRequest(TSimpleHandleRef hndl, TMessage msg)
                 : Hndl_(hndl)
-                , Msg_(msg)
-                , Loc_(msg.Addr)
+                , Msg_(std::move(msg))
+                , Loc_(Msg_.Addr)
                 , Addr_(CachedThrResolve(TResolveInfo(Loc_.Host, Loc_.GetPort())))
             {
             }
@@ -1349,7 +1349,7 @@ namespace NNeh {
 
                 i32 code = ParseHttpRetCode(in.FirstLine());
                 if (code < 200 || code > (!THttpsOptions::RedirectionNotError ? 299 : 399)) {
-                    return new TError(TStringBuilder() << AsStringBuf("request failed(") << in.FirstLine() << ')', TError::TType::ProtocolSpecific, code);
+                    return new TError(TStringBuilder() << TStringBuf("request failed(") << in.FirstLine() << ')', TError::TType::ProtocolSpecific, code);
                 }
 
                 return nullptr;
@@ -1398,14 +1398,14 @@ namespace NNeh {
 
                         const int rc = SSL_accept(Ssl_.Get());
                         if (1 != rc) {
-                            ythrow TSslException(AsStringBuf("SSL_accept"), Ssl_.Get(), rc);
+                            ythrow TSslException(TStringBuf("SSL_accept"), Ssl_.Get(), rc);
                         }
                     }
 
                     if (!SSL_is_init_finished(Ssl_.Get())) {
                         const int rc = SSL_do_handshake(Ssl_.Get());
                         if (rc != 1) {
-                            ythrow TSslException(AsStringBuf("SSL_do_handshake"), Ssl_.Get(), rc);
+                            ythrow TSslException(TStringBuf("SSL_do_handshake"), Ssl_.Get(), rc);
                         }
                     }
                 }
@@ -1423,7 +1423,7 @@ namespace NNeh {
             private:
                 template <class T>
                 static void WriteHeader(IOutputStream& os, TStringBuf name, T value) {
-                    os << name << AsStringBuf(": ") << value << AsStringBuf("\r\n");
+                    os << name << TStringBuf(": ") << value << TStringBuf("\r\n");
                 }
 
                 static void WriteHttpCode(IOutputStream& os, TMaybe<IRequest::TResponseError> error) {
@@ -1461,7 +1461,7 @@ namespace NNeh {
                             os << HttpCodeStrEx(HttpCodes::HTTP_BANDWIDTH_LIMIT_EXCEEDED);
                             break;
                         case IRequest::TResponseError::MaxResponseError:
-                            ythrow yexception() << AsStringBuf("unknow type of error");
+                            ythrow yexception() << TStringBuf("unknow type of error");
                     }
                 }
 
@@ -1499,23 +1499,23 @@ namespace NNeh {
                         char buf[128];
                         TMemoryOutput mo(buf, sizeof(buf));
 
-                        mo << AsStringBuf("HTTP/1.1 ");
+                        mo << TStringBuf("HTTP/1.1 ");
                         if (HttpCode_) {
                             mo << HttpCodeStrEx(HttpCode_);
                         } else {
                             WriteHttpCode(mo, Error_);
                         }
-                        mo << AsStringBuf("\r\n");
+                        mo << TStringBuf("\r\n");
 
                         if (!CompressionScheme_.empty()) {
-                            WriteHeader(mo, AsStringBuf("Content-Encoding"), TStringBuf(CompressionScheme_));
+                            WriteHeader(mo, TStringBuf("Content-Encoding"), TStringBuf(CompressionScheme_));
                         }
-                        WriteHeader(mo, AsStringBuf("Connection"), AsStringBuf("Keep-Alive"));
-                        WriteHeader(mo, AsStringBuf("Content-Length"), size());
+                        WriteHeader(mo, TStringBuf("Connection"), TStringBuf("Keep-Alive"));
+                        WriteHeader(mo, TStringBuf("Content-Length"), size());
 
                         mo << Headers_;
 
-                        mo << AsStringBuf("\r\n");
+                        mo << TStringBuf("\r\n");
 
                         IO_->Write(buf, mo.Buf() - buf);
                         if (size()) {
@@ -1559,7 +1559,7 @@ namespace NNeh {
                 }
 
                 TStringBuf Scheme() const override {
-                    return AsStringBuf("https");
+                    return TStringBuf("https");
                 }
 
                 TString RemoteHost() const override {
@@ -1603,15 +1603,15 @@ namespace NNeh {
                     Y_UNUSED(IO_.Release());
                 }
 
-                void SendError(TResponseError error, const TString&) override {
+                void SendError(TResponseError error, const THttpErrorDetails& details) override {
                     TData data;
-                    Server_->Enqueue(new TWrite(data, TString(), IO_, Server_, error, TString()));
+                    Server_->Enqueue(new TWrite(data, TString(), IO_, Server_, error, details.Headers));
                     Y_UNUSED(IO_.Release());
                 }
 
             private:
                 bool Compress(TData& data) const {
-                    if (CompressionScheme_ == AsStringBuf("gzip")) {
+                    if (CompressionScheme_ == TStringBuf("gzip")) {
                         try {
                             TData gzipped(data.size());
                             TMemoryOutput out(gzipped.data(), gzipped.size());
@@ -1876,19 +1876,19 @@ namespace NNeh {
 
         struct TRequestGet: public NHttp::TRequestGet {
             static inline TStringBuf Name() noexcept {
-                return AsStringBuf("https");
+                return TStringBuf("https");
             }
         };
 
         struct TRequestFull: public NHttp::TRequestFull {
             static inline TStringBuf Name() noexcept {
-                return AsStringBuf("fulls");
+                return TStringBuf("fulls");
             }
         };
 
         struct TRequestPost: public NHttp::TRequestPost {
             static inline TStringBuf Name() noexcept {
-                return AsStringBuf("posts");
+                return TStringBuf("posts");
             }
         };
 

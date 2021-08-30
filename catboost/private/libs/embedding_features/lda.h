@@ -4,6 +4,12 @@
 
 namespace NCB {
 
+    float CalculateGaussianLikehood(const TEmbeddingsArray& embed,
+                                                  const TVector<float>& mean,
+                                                  const TVector<float>& scatter);
+
+    void InverseMatrix(TVector<float>* matrix, int dim);
+
     class IncrementalCloud {
     public:
         IncrementalCloud(int dim)
@@ -14,6 +20,10 @@ namespace NCB {
         {}
         void AddVector(const TEmbeddingsArray& embed);
         void Update();
+
+        float TotalSize() {
+            return BaseSize + AdditionalSize;
+        }
     public:
         int Dimension;
         int BaseSize = 0;
@@ -27,27 +37,32 @@ namespace NCB {
     class TLinearDACalcer final : public TEmbeddingFeatureCalcer {
     public:
         explicit TLinearDACalcer(
-            int numClasses,
-            int totalDimension,
-            int projectionDimension,
+            int totalDimension = 2,
+            int numClasses = 2,
+            int projectionDimension = 1,
             float regularization = 0.01,
+            bool computeProb = false,
             const TGuid& calcerId = CreateGuid()
         )
             : TEmbeddingFeatureCalcer(projectionDimension, calcerId)
-            , NumClasses(numClasses)
             , TotalDimension(totalDimension)
+            , NumClasses(numClasses)
             , ProjectionDimension(projectionDimension)
             , RegParam(regularization)
-            , ClassesDist(totalDimension, numClasses)
-            , TotalDist(totalDimension)
+            , ComputeProbabilities(computeProb)
+            , ClassesDist(numClasses, totalDimension)
             , ProjectionMatrix(totalDimension * projectionDimension)
-            , EigenValues(projectionDimension)
+            , BetweenMatrix(totalDimension * totalDimension)
+            , EigenValues(TotalDimension)
             , ProjectionCalculationCache(totalDimension * (totalDimension + 2))
         {}
 
         void Compute(const TEmbeddingsArray& embed, TOutputFloatIterator outputFeaturesIterator) const override;
 
         ui32 FeatureCount() const override {
+            if (ComputeProbabilities) {
+                return ProjectionDimension + NumClasses;
+            }
             return ProjectionDimension;
         }
 
@@ -55,14 +70,26 @@ namespace NCB {
             return EFeatureCalcerType::LDA;
         }
 
+    protected:
+        TEmbeddingFeatureCalcer::TEmbeddingCalcerFbs SaveParametersToFB(flatbuffers::FlatBufferBuilder& builder) const override;
+        void LoadParametersFromFB(const NCatBoostFbs::NEmbeddings::TEmbeddingCalcer* calcerFbs) override;
+
+        void SaveLargeParameters(IOutputStream*) const override;
+        void LoadLargeParameters(IInputStream*) override;
+
     private:
-        int NumClasses;
+        void TotalScatterCalculation(TVector<float>* result);
+
+    private:
         int TotalDimension;
+        int NumClasses;
         int ProjectionDimension;
         float RegParam;
+        bool ComputeProbabilities;
+        int Size = 0;
         TVector<IncrementalCloud> ClassesDist;
-        IncrementalCloud TotalDist;
         TVector<float> ProjectionMatrix;
+        TVector<float> BetweenMatrix;
         TVector<float> EigenValues;
         TVector<float> ProjectionCalculationCache;
 
@@ -74,5 +101,7 @@ namespace NCB {
     public:
         void Update(ui32 classId, const TEmbeddingsArray& embed, TEmbeddingFeatureCalcer* featureCalcer) override;
         void Flush(TEmbeddingFeatureCalcer* featureCalcer);
+    private:
+        int LastFlush = 0;
     };
 };

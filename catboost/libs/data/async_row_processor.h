@@ -19,7 +19,7 @@ namespace NCB {
     template <class TData>
     class TAsyncRowProcessor {
     public:
-        TAsyncRowProcessor(NPar::TLocalExecutor* localExecutor, size_t blockSize)
+        TAsyncRowProcessor(NPar::ILocalExecutor* localExecutor, size_t blockSize)
             : LocalExecutor(localExecutor)
             , BlockSize(blockSize)
             , FirstLineInReadBuffer(false)
@@ -95,7 +95,7 @@ namespace NCB {
         void ProcessBlock(TProcessDataFunc processFunc) {
             const int threadCount = LocalExecutor->GetThreadCount() + 1;
 
-            NPar::TLocalExecutor::TExecRangeParams blockParams(0, ParseBuffer.ysize());
+            NPar::ILocalExecutor::TExecRangeParams blockParams(0, ParseBuffer.ysize());
             blockParams.SetBlockCount(threadCount);
             LocalExecutor->ExecRangeWithThrow([this, blockParams, processFunc = std::move(processFunc)](int blockIdx) {
                 const int blockOffset = blockIdx * blockParams.GetBlockSize();
@@ -129,7 +129,7 @@ namespace NCB {
         }
 
     private:
-        NPar::TLocalExecutor* LocalExecutor;
+        NPar::ILocalExecutor* LocalExecutor;
         size_t BlockSize;
 
         TVector<TData> ParseBuffer;

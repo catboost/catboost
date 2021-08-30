@@ -74,9 +74,9 @@ int SocketPair(SOCKET socks[2], bool overlapped, bool cloexec) {
 #else
     (void)overlapped;
 
-#if defined(_linux_)
+    #if defined(_linux_)
     return socketpair(AF_LOCAL, SOCK_STREAM | (cloexec ? SOCK_CLOEXEC : 0), 0, socks);
-#else
+    #else
     int r = socketpair(AF_LOCAL, SOCK_STREAM, 0, socks);
     // Non-atomic wrt exec
     if (r == 0 && cloexec) {
@@ -92,6 +92,6 @@ int SocketPair(SOCKET socks[2], bool overlapped, bool cloexec) {
         }
     }
     return r;
-#endif
+    #endif
 #endif
 }

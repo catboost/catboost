@@ -5,6 +5,7 @@
 #include <catboost/libs/helpers/exception.h>
 
 #include <catboost/private/libs/options/enums.h>
+#include <catboost/private/libs/options/pool_metainfo_options.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/cast.h>
@@ -80,7 +81,8 @@ NCB::TDataMetaInfo GetDataMetaInfo(
     bool hasTimestamps,
     bool hasPairs,
     TMaybe<ui32> baselineCount,
-    const NCB::TPathWithScheme& featureNamesPath
+    const NCB::TPathWithScheme& featureNamesPath,
+    const NCB::TPathWithScheme& poolMetaInfoPath
 ) {
     const size_t columnsCount = pool.ColumnIndexToLocalIndex.size();
     NCB::TDataColumnsMetaInfo dataColumnsMetaInfo;
@@ -118,7 +120,18 @@ NCB::TDataMetaInfo GetDataMetaInfo(
         featureNamesPath
     );
 
-    NCB::TDataMetaInfo metaInfo(std::move(dataColumnsMetaInfo), targetType, hasAdditionalGroupWeight, hasTimestamps, hasPairs, baselineCount, &featureNames);
+    const auto poolMetaInfoOptions = NCatboostOptions::LoadPoolMetaInfoOptions(poolMetaInfoPath);
+
+    NCB::TDataMetaInfo metaInfo(
+        std::move(dataColumnsMetaInfo),
+        targetType,
+        hasAdditionalGroupWeight,
+        hasTimestamps,
+        hasPairs,
+        baselineCount,
+        &featureNames,
+        &poolMetaInfoOptions.Tags.Get()
+    );
     metaInfo.Validate();
     return metaInfo;
 }
@@ -142,7 +155,8 @@ TVector<ui32> GetIgnoredFlatIndices(const NCB::TQuantizedPool& pool) {
             const auto it = pool.QuantizationSchema.GetFeatureIndexToSchema().find(featureIndex);
 
             if (it == pool.QuantizationSchema.GetFeatureIndexToSchema().end() ||
-                    it->second.GetBorders().empty()) {
+                it->second.GetBorders().empty())
+            {
                 indices.push_back(SafeIntegerCast<ui32>(featureIndex));
                 continue;
             }
@@ -151,7 +165,8 @@ TVector<ui32> GetIgnoredFlatIndices(const NCB::TQuantizedPool& pool) {
             const auto it = pool.QuantizationSchema.GetCatFeatureIndexToSchema().find(featureIndex);
 
             if (it == pool.QuantizationSchema.GetCatFeatureIndexToSchema().end() ||
-                    it->second.GetPerfectHashes().empty()) {
+                (it->second.GetPerfectHashes().size() < 2))
+            {
                 indices.push_back(SafeIntegerCast<ui32>(featureIndex));
                 continue;
             }

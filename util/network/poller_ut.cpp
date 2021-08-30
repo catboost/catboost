@@ -3,6 +3,7 @@
 
 #include "pair.h"
 #include "poller.h"
+#include "pollerimpl.h"
 
 Y_UNIT_TEST_SUITE(TSocketPollerTest) {
     Y_UNIT_TEST(TestSimple) {
@@ -137,7 +138,7 @@ Y_UNIT_TEST_SUITE(TSocketPollerTest) {
 
             // after restart read and write might generate separate events
             {
-                void *events[3];
+                void* events[3];
                 size_t count = poller.WaitT(events, 3, TDuration::Zero());
                 UNIT_ASSERT_GE(count, 1);
                 UNIT_ASSERT_LE(count, 2);
@@ -208,4 +209,28 @@ Y_UNIT_TEST_SUITE(TSocketPollerTest) {
             poller.Unwait(sockets[1]);
         }
     }
+
+#if defined(HAVE_EPOLL_POLLER)
+    Y_UNIT_TEST(TestRdhup) {
+        SOCKET sockets[2];
+        UNIT_ASSERT(SocketPair(sockets) == 0);
+
+        TSocketHolder s1(sockets[0]);
+        TSocketHolder s2(sockets[1]);
+
+        char buf[1] = {0};
+        UNIT_ASSERT_VALUES_EQUAL(1, send(s1, buf, 1, 0));
+        shutdown(s1, SHUT_WR);
+
+        using TPoller = TGenericPoller<TEpollPoller<TWithoutLocking>>;
+        TPoller poller;
+        poller.Set((void*)17, s2, CONT_POLL_RDHUP);
+
+        TPoller::TEvent e;
+        UNIT_ASSERT_VALUES_EQUAL(poller.WaitD(&e, 1, TDuration::Zero().ToDeadLine()), 1);
+        UNIT_ASSERT_EQUAL(TPoller::ExtractStatus(&e), 0);
+        UNIT_ASSERT_EQUAL(TPoller::ExtractFilter(&e), CONT_POLL_RDHUP);
+        UNIT_ASSERT_EQUAL(TPoller::ExtractEvent(&e), (void*)17);
+    }
+#endif
 }

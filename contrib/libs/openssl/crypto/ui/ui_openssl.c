@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2019 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 2001-2020 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the OpenSSL license (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -53,7 +53,7 @@
 #  endif
 # endif
 
-# include "ui_locl.h"
+# include "ui_local.h"
 # include "internal/cryptlib.h"
 
 # ifdef OPENSSL_SYS_VMS          /* prototypes for sys$whatever */
@@ -436,6 +436,16 @@ static int open_console(UI *ui)
              * This should be ok
              */
         if (errno == EIO)
+            is_a_tty = 0;
+        else
+#  endif
+#  ifdef EPERM
+            /*
+             * Linux can return EPERM (Operation not permitted),
+             * e.g. if a daemon executes openssl via fork()+execve()
+             * This should be ok
+             */
+        if (errno == EPERM)
             is_a_tty = 0;
         else
 #  endif

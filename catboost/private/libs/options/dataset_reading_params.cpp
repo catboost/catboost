@@ -18,11 +18,15 @@ void NCatboostOptions::TDatasetReadingParams::BindParserOpts(NLastGetopt::TOpts*
         });
     parser->AddLongOption("input-pairs", "PATH")
         .Handler1T<TStringBuf>([&](const TStringBuf& pathWithScheme) {
-            PairsFilePath = TPathWithScheme(pathWithScheme, "dsv");
+            PairsFilePath = TPathWithScheme(pathWithScheme, "dsv-flat");
         });
     parser->AddLongOption("feature-names-path", "PATH")
         .Handler1T<TStringBuf>([&](const TStringBuf& pathWithScheme) {
             FeatureNamesPath = TPathWithScheme(pathWithScheme, "dsv");
+        });
+    parser->AddLongOption("pool-metainfo-path", "PATH")
+        .Handler1T<TStringBuf>([&](const TStringBuf& pathWithScheme) {
+            PoolMetaInfoPath = TPathWithScheme(pathWithScheme);
         });
 }
 

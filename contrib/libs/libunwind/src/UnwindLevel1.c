@@ -38,9 +38,17 @@ static _Unwind_Reason_Code
 unwind_phase1(unw_context_t *uc, unw_cursor_t *cursor, _Unwind_Exception *exception_object) {
   __unw_init_local(cursor, uc);
 
+#ifdef _YNDX_LIBUNWIND_ENABLE_EXCEPTION_BACKTRACE
+  _Unwind_Backtrace_Buffer* backtrace_buffer =
+      exception_object->exception_class == _YNDX_LIBUNWIND_EXCEPTION_BACKTRACE_PRIMARY_CLASS ||
+          exception_object->exception_class == _YNDX_LIBUNWIND_EXCEPTION_BACKTRACE_DEPENDENT_CLASS ?
+      (_Unwind_Backtrace_Buffer *)(
+          (char*)exception_object - _YNDX_LIBUNWIND_EXCEPTION_BACKTRACE_MAGIC_OFFSET) - 1
+      : NULL;
+#endif
+
   // Walk each frame looking for a place to stop.
-  bool handlerNotFound = true;
-  while (handlerNotFound) {
+  while (true) {
     // Ask libunwind to get next frame (skip over first which is
     // _Unwind_RaiseException).
     int stepResult = __unw_step(cursor);
@@ -57,6 +65,14 @@ unwind_phase1(unw_context_t *uc, unw_cursor_t *cursor, _Unwind_Exception *except
           (void *)exception_object);
       return _URC_FATAL_PHASE1_ERROR;
     }
+
+#ifdef _YNDX_LIBUNWIND_ENABLE_EXCEPTION_BACKTRACE
+    if (backtrace_buffer && backtrace_buffer->size < _YNDX_LIBUNWIND_EXCEPTION_BACKTRACE_SIZE) {
+        unw_word_t pc;
+        __unw_get_reg(cursor, UNW_REG_IP, &pc);
+        backtrace_buffer->backtrace[backtrace_buffer->size++] = (void *)pc;
+    }
+#endif
 
     // See if frame has code to run (has personality routine).
     unw_proc_info_t frameInfo;
@@ -90,8 +106,8 @@ unwind_phase1(unw_context_t *uc, unw_cursor_t *cursor, _Unwind_Exception *except
     // If there is a personality routine, ask it if it will want to stop at
     // this frame.
     if (frameInfo.handler != 0) {
-      __personality_routine p =
-          (__personality_routine)(uintptr_t)(frameInfo.handler);
+      _Unwind_Personality_Fn p =
+          (_Unwind_Personality_Fn)(uintptr_t)(frameInfo.handler);
       _LIBUNWIND_TRACE_UNWINDING(
           "unwind_phase1(ex_ojb=%p): calling personality function %p",
           (void *)exception_object, (void *)(uintptr_t)p);
@@ -102,7 +118,6 @@ unwind_phase1(unw_context_t *uc, unw_cursor_t *cursor, _Unwind_Exception *except
       case _URC_HANDLER_FOUND:
         // found a catch clause or locals that need destructing in this frame
         // stop search and remember stack pointer at the frame
-        handlerNotFound = false;
         __unw_get_reg(cursor, UNW_REG_SP, &sp);
         exception_object->private_2 = (uintptr_t)sp;
         _LIBUNWIND_TRACE_UNWINDING(
@@ -188,8 +203,8 @@ unwind_phase2(unw_context_t *uc, unw_cursor_t *cursor, _Unwind_Exception *except
 
     // If there is a personality routine, tell it we are unwinding.
     if (frameInfo.handler != 0) {
-      __personality_routine p =
-          (__personality_routine)(uintptr_t)(frameInfo.handler);
+      _Unwind_Personality_Fn p =
+          (_Unwind_Personality_Fn)(uintptr_t)(frameInfo.handler);
       _Unwind_Action action = _UA_CLEANUP_PHASE;
       if (sp == exception_object->private_2) {
         // Tell personality this was the frame it marked in phase 1.
@@ -294,8 +309,8 @@ unwind_phase2_forced(unw_context_t *uc, unw_cursor_t *cursor,
 
     // If there is a personality routine, tell it we are unwinding.
     if (frameInfo.handler != 0) {
-      __personality_routine p =
-          (__personality_routine)(intptr_t)(frameInfo.handler);
+      _Unwind_Personality_Fn p =
+          (_Unwind_Personality_Fn)(intptr_t)(frameInfo.handler);
       _LIBUNWIND_TRACE_UNWINDING(
           "unwind_phase2_forced(ex_ojb=%p): calling personality function %p",
           (void *)exception_object, (void *)(uintptr_t)p);

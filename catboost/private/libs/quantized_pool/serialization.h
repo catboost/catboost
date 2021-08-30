@@ -12,10 +12,32 @@ namespace NCB {
     struct TQuantizedPool;
     struct TQuantizedPoolDigest;
 
-    template <class T>
-    struct TSrcColumn {
+    class TSrcColumnBase {
+    public:
         EColumn Type;
+
+    public:
+        explicit TSrcColumnBase(EColumn type)
+            : Type(type)
+        {}
+
+        virtual ~TSrcColumnBase() = default;
+    };
+
+    template <class T>
+    class TSrcColumn : public TSrcColumnBase {
+    public:
         TVector<TVector<T>> Data;
+
+    public:
+        explicit TSrcColumn(EColumn type)
+            : TSrcColumnBase(type)
+        {}
+
+        TSrcColumn(EColumn type, TVector<TVector<T>>&& data)
+            : TSrcColumnBase(type)
+            , Data(std::move(data))
+        {}
     };
 
     struct TSrcData {
@@ -32,10 +54,9 @@ namespace NCB {
         // TODO(akhropov): not yet supported by quantized pools format. MLTOOLS-2412.
         // TMaybe<TSrcColumn<ui64>> Timestamp;
 
-        TVector<TMaybe<TSrcColumn<ui8>>> FloatFeatures;
+        TVector<THolder<TSrcColumnBase>> FloatFeatures;
 
-        // TODO(akhropov): not yet supported by quantized pools format. MLTOOLS-1957.
-        // TVector<TMaybe<TSrcColumn<TStringBuf>>> CatFeatures;
+        TVector<THolder<TSrcColumnBase>> CatFeatures;
 
         // Target data
         TMaybe<TSrcColumn<float>> Target;
@@ -44,6 +65,8 @@ namespace NCB {
         TMaybe<TSrcColumn<float>> GroupWeights;
 
         TStringBuf PairsFileData;
+        TString PairsFilePathScheme = "dsv-flat";
+
         TStringBuf GroupWeightsFileData;
         TStringBuf BaselineFileData;
 
@@ -61,14 +84,26 @@ namespace NCB {
 }
 
 namespace NCB {
-    //only for used C++
     void SaveQuantizedPool(const TQuantizedPool& pool, IOutputStream* output);
     void SaveQuantizedPool(const TSrcData& srcData, TString fileName);
-    //only for python
     void SaveQuantizedPool(const TDataProviderPtr& dataProvider, TString fileName);
 
+    static constexpr size_t QUANTIZED_POOL_COLUMN_DEFAULT_SLICE_COUNT = 512 * 1024;
+
     template<class T>
-    TSrcColumn<T> GenerateSrcColumn(TConstArrayRef<T> data, EColumn columnType);
+    TSrcColumn<T> GenerateSrcColumn(TConstArrayRef<T> data, EColumn columnType) {
+        TSrcColumn<T> dst(columnType);
+
+        for (size_t idx = 0; idx < data.size(); ) {
+            size_t chunkSize = Min(
+                data.size() - idx,
+                QUANTIZED_POOL_COLUMN_DEFAULT_SLICE_COUNT
+            );
+            dst.Data.push_back(TVector<T>(data.begin() + idx, data.begin() + idx + chunkSize));
+            idx += chunkSize;
+        }
+        return dst;
+    }
 
     struct TLoadQuantizedPoolParameters {
         bool LockMemory = true;
@@ -86,5 +121,6 @@ namespace NCB {
         const NIdl::TPoolMetainfo& poolMetainfo,
         const NIdl::TPoolQuantizationSchema& quantizationSchema
     );
+    size_t EstimateIdsLength(const TStringBuf path);
     void AddPoolMetainfo(const NIdl::TPoolMetainfo& metainfo, TQuantizedPool* const pool);
 }

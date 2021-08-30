@@ -163,18 +163,10 @@ def urlopen(url, data=None, timeout=socket._GLOBAL_DEFAULT_TIMEOUT,
 
     The *cadefault* parameter is ignored.
 
-    This function always returns an object which can work as a context
-    manager and has methods such as
 
-    * geturl() - return the URL of the resource retrieved, commonly used to
-      determine if a redirect was followed
-
-    * info() - return the meta-information of the page, such as headers, in the
-      form of an email.message_from_string() instance (see Quick Reference to
-      HTTP Headers)
-
-    * getcode() - return the HTTP status code of the response.  Raises URLError
-      on errors.
+    This function always returns an object which can work as a
+    context manager and has the properties url, headers, and status.
+    See urllib.response.addinfourl for more detail on these properties.
 
     For HTTP and HTTPS URLs, this function returns a http.client.HTTPResponse
     object slightly modified. In addition to the three new methods above, the
@@ -779,7 +771,11 @@ def _parse_proxy(proxy):
             raise ValueError("proxy URL with no authority: %r" % proxy)
         # We have an authority, so for RFC 3986-compliant URLs (by ss 3.
         # and 3.3.), path is empty or starts with '/'
-        end = r_scheme.find("/", 2)
+        if '@' in r_scheme:
+            host_separator = r_scheme.find('@')
+            end = r_scheme.find("/", host_separator)
+        else:
+            end = r_scheme.find("/", 2)
         if end == -1:
             end = None
         authority = r_scheme[2:end]
@@ -947,7 +943,7 @@ class AbstractBasicAuthHandler:
     # (single quotes are a violation of the RFC, but appear in the wild)
     rx = re.compile('(?:^|,)'   # start of the string or ','
                     '[ \t]*'    # optional whitespaces
-                    '([^ \t]+)' # scheme like "Basic"
+                    '([^ \t,]+)' # scheme like "Basic"
                     '[ \t]+'    # mandatory whitespaces
                     # realm=xxx
                     # realm='xxx'
@@ -1819,7 +1815,7 @@ class URLopener:
                 hdrs = fp.info()
                 fp.close()
                 return url2pathname(_splithost(url1)[1]), hdrs
-            except OSError as msg:
+            except OSError:
                 pass
         fp = self.open(url, data)
         try:
@@ -2604,6 +2600,11 @@ def _proxy_bypass_macosx_sysconf(host, proxy_settings):
                 mask = 8 * (m.group(1).count('.') + 1)
             else:
                 mask = int(mask[1:])
+
+            if mask < 0 or mask > 32:
+                # System libraries ignore invalid prefix lengths
+                continue
+
             mask = 32 - mask
 
             if (hostIP >> mask) == (base >> mask):

@@ -60,7 +60,7 @@ namespace NPrivate {
 
     template <>
     inline size_t GetLength(const char* const& s) {
-        return (s ? TCharTraits<char>::GetLength(s) : 0);
+        return (s ? std::char_traits<char>::length(s) : 0);
     }
 
     inline size_t GetAppendLength(const TStringBuf /*delim*/) {
@@ -139,34 +139,43 @@ TString JoinSeq(const TStringBuf delim, const TContainer& data) {
  *         Difference from JoinSeq, JoinRange, Join is the lack of TString object - all depends on operator<< for the type and
  *         realization of IOutputStream
  */
-template<class TIterB, class TIterE>
-struct TRangeJoiner{
+template <class TIterB, class TIterE>
+struct TRangeJoiner {
     friend constexpr IOutputStream& operator<<(IOutputStream& stream, const TRangeJoiner<TIterB, TIterE>& rangeJoiner) {
-        if(rangeJoiner.b != rangeJoiner.e) {
+        if (rangeJoiner.b != rangeJoiner.e) {
             stream << *rangeJoiner.b;
 
-            for(auto it = std::next(rangeJoiner.b); it != rangeJoiner.e; ++it)
+            for (auto it = std::next(rangeJoiner.b); it != rangeJoiner.e; ++it)
                 stream << rangeJoiner.delim << *it;
         }
         return stream;
     }
 
-    constexpr TRangeJoiner(TStringBuf delim, TIterB && b, TIterE && e) : delim(delim), b(std::forward<TIterB>(b)), e(std::forward<TIterE>(e)) {}
+    constexpr TRangeJoiner(TStringBuf delim, TIterB&& b, TIterE&& e)
+        : delim(delim)
+        , b(std::forward<TIterB>(b))
+        , e(std::forward<TIterE>(e))
+    {
+    }
+
 private:
     const TStringBuf delim;
     const TIterB b;
     const TIterE e;
 };
 
-template<class TIterB, class TIterE = TIterB> constexpr auto MakeRangeJoiner(TStringBuf delim, TIterB && b, TIterE && e) {
+template <class TIterB, class TIterE = TIterB>
+constexpr auto MakeRangeJoiner(TStringBuf delim, TIterB&& b, TIterE&& e) {
     return TRangeJoiner<TIterB, TIterE>(delim, std::forward<TIterB>(b), std::forward<TIterE>(e));
 }
 
-template<class TContainer> constexpr auto MakeRangeJoiner(TStringBuf delim, const TContainer& data) {
+template <class TContainer>
+constexpr auto MakeRangeJoiner(TStringBuf delim, const TContainer& data) {
     return MakeRangeJoiner(delim, std::cbegin(data), std::cend(data));
 }
 
-template<class TVal> constexpr auto MakeRangeJoiner(TStringBuf delim, const std::initializer_list<TVal>& data) {
+template <class TVal>
+constexpr auto MakeRangeJoiner(TStringBuf delim, const std::initializer_list<TVal>& data) {
     return MakeRangeJoiner(delim, std::cbegin(data), std::cend(data));
 }
 

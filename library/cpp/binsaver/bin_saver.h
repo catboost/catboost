@@ -625,11 +625,17 @@ struct TRegisterSaveLoadType {
         return 0;                 \
     }
 
-#define SAVELOAD_OVERRIDE(base, ...)      \
-    int operator&(IBinSaver& f)override { \
-        base::operator&(f);               \
-        f.AddMulti(__VA_ARGS__);          \
-        return 0;                         \
+#define SAVELOAD_OVERRIDE_WITHOUT_BASE(...) \
+    int operator&(IBinSaver& f) override {  \
+        f.AddMulti(__VA_ARGS__);            \
+        return 0;                           \
+    }
+
+#define SAVELOAD_OVERRIDE(base, ...)       \
+    int operator&(IBinSaver& f) override { \
+        base::operator&(f);                \
+        f.AddMulti(__VA_ARGS__);           \
+        return 0;                          \
     }
 
 #define SAVELOAD_BASE(...)        \

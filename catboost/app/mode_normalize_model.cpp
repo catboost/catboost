@@ -154,7 +154,7 @@ namespace {
             const TFullModel& model,
             const TPathWithScheme& poolPath,
             const TModeParams& modeParams,
-            NPar::TLocalExecutor* localExecutor
+            NPar::ILocalExecutor* localExecutor
         ) const {
             TMinMax<double> result{+DBL_MAX, -DBL_MAX};
             TMutex result_guard;
@@ -165,6 +165,7 @@ namespace {
                     TVector<NJson::TJsonValue>(),  // ClassLabels
                     TPathWithScheme(),  // PairsFilePath
                     TPathWithScheme(),  // FeatureNamesPath
+                    TPathWithScheme(),  // PoolMetaInfoPath
                     TVector<ui32>(),  // IgnoredFeatures
                 },
                 10000,  // blockSize

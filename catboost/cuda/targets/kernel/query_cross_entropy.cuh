@@ -18,6 +18,10 @@ namespace NKernel {
                            const ui32* qids,
                            const bool* isSingleClassQueries,
                            const ui32* qOffsets,
+                           const float* approxScale,
+                           const float defaultScale,
+                           const ui32 approxScaleSize,
+                           const ui32* trueClassCount,
                            const int docCount,
                            float* functionValue,
                            float* ders,
@@ -46,6 +50,7 @@ namespace NKernel {
                                 ui32 queryCount,
                                 double meanQuerySize,
                                 bool* isSingleClassQuery,
+                                ui32* trueClassCount,
                                 TCudaStream stream);
 
 

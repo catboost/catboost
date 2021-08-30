@@ -13,7 +13,6 @@
 #include <util/generic/ymath.h>
 #include <util/string/cast.h>
 
-
 namespace NCB {
     inline float CalculateWeightedTargetAverage(TConstArrayRef<float> target, TConstArrayRef<float> weights) {
         const double summaryWeight = weights.empty() ? target.size() : Accumulate(weights, 0.0);
@@ -24,6 +23,44 @@ namespace NCB {
             Y_ASSERT(target.size() == weights.size());
             for (size_t i = 0; i < target.size(); ++i) {
                 targetSum += target[i] * weights[i];
+            }
+        }
+        return targetSum / summaryWeight;
+    }
+
+    inline float CalculateWeightedTargetAverageWithMissingValues(TConstArrayRef<float> target, TConstArrayRef<float> weights) {
+        double targetSum = 0.0;
+        double summaryWeight = 0.0;
+
+        if (weights.empty()) {
+            for (size_t i = 0; i < target.size(); ++i) {
+                if (!IsNan(target[i])) {
+                    targetSum += target[i];
+                    summaryWeight += 1;
+                }
+            }
+        } else {
+            for (size_t i = 0; i < target.size(); ++i) {
+                if (!IsNan(target[i])) {
+                    targetSum += target[i] * weights[i];
+                    summaryWeight += weights[i];
+                }
+            }
+        }
+        return targetSum / summaryWeight;
+    }
+
+    inline float CalculateWeightedTargetVariance(TConstArrayRef<float> target, TConstArrayRef<float> weights, float mean) {
+        const double summaryWeight = weights.empty() ? target.size() : Accumulate(weights, 0.0);
+        double targetSum = 0.0;
+        if (weights.empty()) {
+            for (size_t i = 0; i < target.size(); ++i) {
+                targetSum += Sqr(target[i] - mean);
+            }
+        } else {
+            Y_ASSERT(target.size() == weights.size());
+            for (size_t i = 0; i < target.size(); ++i) {
+                targetSum += Sqr(target[i] - mean) * weights[i];
             }
         }
         return targetSum / summaryWeight;
@@ -78,6 +115,44 @@ namespace NCB {
         return CalcSampleQuantile(target, weightsWithTarget, 0.5);
     }
 
+    inline float CalculateOptimalConstApproxForLogCosh(
+        TConstArrayRef<float> target,
+        TConstArrayRef<float> weights
+    ) {
+        const int BINSEARCH_ITERATIONS = 100;
+        const double APPROX_PRECISION = 1e-9;
+
+        if (target.empty()) {
+            return 0;
+        }
+        
+        auto func = [&] (double approx, auto hasWeights) {
+            double res = 0;
+            for (auto idx: xrange(target.size())) {
+                res += tanh(approx - target[idx]) * (hasWeights ? weights[idx]: 1.);
+            }
+            return res;
+        };
+
+        auto res = std::minmax_element(target.begin(), target.end());
+        double left = *res.first;
+        double right = *res.second;
+
+        for (auto id = 0; id < BINSEARCH_ITERATIONS && (right - left) > APPROX_PRECISION; id++) {
+            Y_UNUSED(id);
+            double m = (left + right) / 2;
+            double value = weights.empty() ? func(m, std::false_type()) : func(m, std::true_type());
+            if (value > 0) {
+                right = m;
+            }
+            else {
+                left = m;
+            }
+        }
+
+        return left;
+    }
+
     //TODO(isaf27): add baseline to CalcOptimumConstApprox
     inline TMaybe<double> CalcOneDimensionalOptimumConstApprox(
         const NCatboostOptions::TLossDescription& lossDescription,
@@ -106,6 +181,9 @@ namespace NCB {
             }
             case ELossFunction::MAPE:
                 return CalculateOptimalConstApproxForMAPE(target, weights);
+            case ELossFunction::LogCosh: {
+                return CalculateOptimalConstApproxForLogCosh(target, weights);
+            }
             default:
                 return Nothing();
         }
@@ -113,14 +191,44 @@ namespace NCB {
 
     inline TMaybe<TVector<double>> CalcOptimumConstApprox(
         const NCatboostOptions::TLossDescription& lossDescription,
-        TConstArrayRef<float> target,
+        TConstArrayRef<TConstArrayRef<float>> target,
         TConstArrayRef<float> weights
     ) {
-        TMaybe<double> optimum = CalcOneDimensionalOptimumConstApprox(lossDescription, target, weights);
-        if (optimum.Defined()) {
-            return TVector<double>(1, *optimum.Get());
-        } else {
-            return Nothing();
+        auto lossFunction = lossDescription.GetLossFunction();
+        switch (lossFunction) {
+            case ELossFunction::RMSEWithUncertainty:
+            {
+                double mean = CalculateWeightedTargetAverage(target[0], weights);
+                double var = CalculateWeightedTargetVariance(target[0], weights, mean);
+                return TVector<double>({mean, 0.5 * log(var)});
+            }
+            case ELossFunction::MultiRMSE:
+            {
+                NCatboostOptions::TLossDescription singleRMSELoss;
+                singleRMSELoss.LossFunction = ELossFunction::RMSE;
+                TVector<double> startPoint(target.size());
+                for (int dim : xrange(target.size())) {
+                    startPoint[dim] = *CalcOneDimensionalOptimumConstApprox(singleRMSELoss, target[dim], weights);
+                }
+                return startPoint;
+            }
+            case ELossFunction::MultiRMSEWithMissingValues:
+            {
+                TVector<double> startPoint(target.size());
+                for (int dim : xrange(target.size())) {
+                    startPoint[dim] = CalculateWeightedTargetAverageWithMissingValues(target[dim], weights);
+                }
+                return startPoint;
+            }
+            default:
+            {
+                TMaybe<double> optimum = CalcOneDimensionalOptimumConstApprox(lossDescription, target[0], weights);
+                if (optimum.Defined()) {
+                    return TVector<double>(1, *optimum.Get());
+                } else {
+                    return Nothing();
+                }
+            }
         }
     }
 }

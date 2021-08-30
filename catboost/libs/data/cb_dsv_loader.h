@@ -1,5 +1,6 @@
 #pragma once
 
+#include "baseline.h"
 #include "loader.h"
 
 #include <catboost/libs/column_description/column.h>
@@ -79,5 +80,11 @@ namespace NCB {
         TMutex ObjectCountMutex;
         TMaybe<ui32> ObjectCount;
     };
+
+    int GetDsvColumnCount(
+        const TPathWithScheme& pathWithScheme,
+        const TDsvFormatOptions& format = TDsvFormatOptions(),
+        bool ignoreCsvQuoting = false
+    );
 
 }

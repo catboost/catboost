@@ -33,6 +33,7 @@ namespace NCatBoostFbs {
     struct TFloatFeature;
     struct TCatFeature;
     struct TTextFeature;
+    struct TEmbeddingFeature;
     struct TOneHotFeature;
     struct TEstimatedFeature;
     struct TFloatSplit;
@@ -48,6 +49,7 @@ namespace NCatBoostFbs {
     //model.fbs
     struct TKeyValue;
     struct TNonSymmetricTreeStepNode;
+    struct TRepackedBin;
     struct TModelTrees;
     struct TModelCore;
 }

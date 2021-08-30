@@ -41,8 +41,9 @@ void TPipeHandle::Pipe(TPipeHandle& reader, TPipeHandle& writer, EOpenMode mode)
 #else
     int r = pipe(fds);
 #endif
-    if (r < 0)
+    if (r < 0) {
         ythrow TFileError() << "failed to create a pipe";
+    }
 
 #if !defined(_win_) && !defined(_linux_)
     // Non-atomic wrt exec
@@ -85,10 +86,12 @@ public:
     }
 
     inline void Close() {
-        if (!Handle_.IsOpen())
+        if (!Handle_.IsOpen()) {
             return;
-        if (!Handle_.Close())
+        }
+        if (!Handle_.Close()) {
             ythrow TFileError() << "failed to close pipe";
+        }
     }
 
     TPipeHandle& GetHandle() noexcept {
@@ -97,15 +100,17 @@ public:
 
     size_t Read(void* buffer, size_t count) const {
         ssize_t r = Handle_.Read(buffer, count);
-        if (r < 0)
+        if (r < 0) {
             ythrow TFileError() << "failed to read from pipe";
+        }
         return r;
     }
 
     size_t Write(const void* buffer, size_t count) const {
         ssize_t r = Handle_.Write(buffer, count);
-        if (r < 0)
+        if (r < 0) {
             ythrow TFileError() << "failed to write to pipe";
+        }
         return r;
     }
 

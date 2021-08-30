@@ -80,6 +80,12 @@ class InvalidExecutionStateError(Exception):
 
 
 class SignalInterruptionError(Exception):
+    def __init__(self, message=None):
+        super(SignalInterruptionError, self).__init__(message)
+        self.res = None
+
+
+class InvalidCommandError(Exception):
     pass
 
 
@@ -224,8 +230,19 @@ class _Execution(object):
         if self._metrics:
             for key, value in six.iteritems(self._metrics):
                 yatest_logger.debug("Command (pid %s) %s: %s", self._process.pid, key, value)
-        yatest_logger.debug("Command (pid %s) output:\n%s", self._process.pid, truncate(self._std_out, MAX_OUT_LEN))
-        yatest_logger.debug("Command (pid %s) errors:\n%s", self._process.pid, truncate(self._std_err, MAX_OUT_LEN))
+
+        # Since this code is Python2/3 compatible, we don't know is _std_out/_std_err is real bytes or bytes-str.
+        printable_std_out, err = _try_convert_bytes_to_string(self._std_out)
+        if err:
+            yatest_logger.debug("Got error during parse process stdout: %s", err)
+            yatest_logger.debug("stdout will be displayed as raw bytes.")
+        printable_std_err, err = _try_convert_bytes_to_string(self._std_err)
+        if err:
+            yatest_logger.debug("Got error during parse process stderr: %s", err)
+            yatest_logger.debug("stderr will be displayed as raw bytes.")
+
+        yatest_logger.debug("Command (pid %s) output:\n%s", self._process.pid, truncate(printable_std_out, MAX_OUT_LEN))
+        yatest_logger.debug("Command (pid %s) errors:\n%s", self._process.pid, truncate(printable_std_err, MAX_OUT_LEN))
 
     def _clean_files(self):
         if self._err_file and not self._user_stderr and self._err_file != subprocess.PIPE:
@@ -383,7 +400,19 @@ class _Execution(object):
                 yatest_logger.debug("'%s' doesn't belong to '%s' - no check for sanitize errors", self.command[0], build_path)
 
 
-# Don't forget to sync changes in the interface and defaults with yatest.yt.process.execute
+def on_timeout_gen_coredump(exec_obj, _):
+    """
+    Function can be passed to the execute(..., timeout=X, on_timeout=on_timeout_gen_coredump)
+    to generate core dump file, backtrace ahd html-version of the backtrace in case of timeout.
+    All files will be available in the testing_out_stuff and via links.
+    """
+    try:
+        os.kill(exec_obj.process.pid, signal.SIGQUIT)
+    except OSError:
+        # process might be already terminated
+        pass
+
+
 def execute(
     command, check_exit_code=True,
     shell=False, timeout=None,
@@ -419,7 +448,16 @@ def execute(
     if env is None:
         env = os.environ.copy()
     else:
-        mandatory_system_vars = ["TMPDIR"]
+        # Certain environment variables must be present for programs to work properly.
+        # For more info see DEVTOOLSSUPPORT-4907
+        mandatory_env_name = 'YA_MANDATORY_ENV_VARS'
+        mandatory_vars = env.get(mandatory_env_name, os.environ.get(mandatory_env_name)) or ''
+        if mandatory_vars:
+            env[mandatory_env_name] = mandatory_vars
+            mandatory_system_vars = filter(None, mandatory_vars.split(':'))
+        else:
+            mandatory_system_vars = ['TMPDIR']
+
         for var in mandatory_system_vars:
             if var not in env and var in os.environ:
                 env[var] = os.environ[var]
@@ -455,6 +493,21 @@ def execute(
     if shell:
         collect_cores = False
         check_sanitizer = False
+    else:
+        if isinstance(command, (list, tuple)):
+            executable = command[0]
+        else:
+            executable = command
+        if os.path.isabs(executable):
+            if not os.path.isfile(executable) and not os.path.isfile(executable + ".exe"):
+                exists = os.path.exists(executable)
+                if exists:
+                    stat = os.stat(executable)
+                else:
+                    stat = None
+                raise InvalidCommandError("Target program is not a file: {} (exists: {} stat: {})".format(executable, exists, stat))
+            if not os.access(executable, os.X_OK) and not os.access(executable + ".exe", os.X_OK):
+                raise InvalidCommandError("Target program is not executable: {}".format(executable))
 
     if check_sanitizer:
         env["LSAN_OPTIONS"] = environment.extend_env_var(os.environ, "LSAN_OPTIONS", "exitcode=100")
@@ -484,7 +537,7 @@ def _get_command_output_file(cmd, ext):
     parts = [get_command_name(cmd)]
     if 'YA_RETRY_INDEX' in os.environ:
         parts.append('retry{}'.format(os.environ.get('YA_RETRY_INDEX')))
-    if int(os.environ.get('YA_SPLIT_COUNT', '0')):
+    if int(os.environ.get('YA_SPLIT_COUNT', '0')) > 1:
         parts.append('chunk{}'.format(os.environ.get('YA_SPLIT_INDEX', '0')))
 
     filename = '.'.join(parts + [ext])
@@ -654,15 +707,27 @@ def check_glibc_version(binary_path):
 
 def backtrace_to_html(bt_filename, output):
     try:
-        from library.python.coredump_filter import core_proc
+        from library.python import coredump_filter
         with open(output, "wb") as afile:
-            core_proc.filter_stackdump(bt_filename, stream=afile)
+            coredump_filter.filter_stackdump(bt_filename, stream=afile)
     except ImportError as e:
         yatest_logger.debug("Failed to import coredump_filter: %s", e)
-
         with open(output, "wb") as afile:
-            res = execute([runtime.python_path(), runtime.source_path("library/python/coredump_filter/core_proc.py"), bt_filename], check_exit_code=False, check_sanitizer=False, stdout=afile)
-        if res.exit_code != 0:
-            with open(output, "ab") as afile:
-                afile.write("\n")
-                afile.write(res.std_err)
+            afile.write("<html>Failed to import coredump_filter in USE_ARCADIA_PYTHON=no mode</html>")
+
+
+def _try_convert_bytes_to_string(source):
+    """ Function is necessary while this code Python2/3 compatible, because bytes in Python3 is a real bytes and in Python2 is not """
+    # Bit ugly typecheck, because in Python2 isinstance(str(), bytes) and "type(str()) is bytes" working as True as well
+    if 'bytes' not in str(type(source)):
+        # We already got not bytes. Nothing to do here.
+        return source, False
+
+    result = source
+    error = False
+    try:
+        result = source.decode(encoding='utf-8')
+    except ValueError as e:
+        error = e
+
+    return result, error

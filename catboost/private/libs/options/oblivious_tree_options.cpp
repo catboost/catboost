@@ -31,9 +31,12 @@ NCatboostOptions::TObliviousTreeLearnerOptions::TObliviousTreeLearnerOptions(ETa
       , FoldSizeLossNormalization("fold_size_loss_normalization", false, taskType)
       , AddRidgeToTargetFunctionFlag("add_ridge_penalty_to_loss_function", false, taskType)
       , MaxCtrComplexityForBordersCaching("dev_max_ctr_complexity_for_borders_cache", 1, taskType)
+      , MetaL2Exponent("meta_l2_exponent", 1.0, taskType)
+      , MetaL2Frequency("meta_l2_frequency", 0.0, taskType)
       , MonotoneConstraints("monotone_constraints", {}, taskType)
       , DevLeafwiseApproxes("dev_leafwise_approxes", false, taskType)
       , FeaturePenalties("penalties", TFeaturePenaltiesOptions(), taskType)
+      , TaskType("task_type", taskType)
 {
     SamplingFrequency.ChangeLoadUnimplementedPolicy(ELoadUnimplementedPolicy::ExceptionOnChange);
 
@@ -45,7 +48,7 @@ NCatboostOptions::TObliviousTreeLearnerOptions::TObliviousTreeLearnerOptions(ETa
 
 void NCatboostOptions::TObliviousTreeLearnerOptions::Load(const NJson::TJsonValue& options) {
     CheckedLoad(options,
-            &MaxDepth, &LeavesEstimationIterations, &LeavesEstimationMethod, &L2Reg, &ModelSizeReg,
+            &MaxDepth, &LeavesEstimationIterations, &LeavesEstimationMethod, &L2Reg, &MetaL2Exponent, &MetaL2Frequency, &ModelSizeReg,
             &RandomStrength,
             &BootstrapConfig, &FoldSizeLossNormalization, &AddRidgeToTargetFunctionFlag,
             &ScoreFunction,
@@ -70,7 +73,7 @@ void NCatboostOptions::TObliviousTreeLearnerOptions::Load(const NJson::TJsonValu
 }
 
 void NCatboostOptions::TObliviousTreeLearnerOptions::Save(NJson::TJsonValue* options) const {
-    SaveFields(options, MaxDepth, LeavesEstimationIterations, LeavesEstimationMethod, L2Reg, ModelSizeReg,
+    SaveFields(options, MaxDepth, LeavesEstimationIterations, LeavesEstimationMethod, L2Reg, MetaL2Exponent, MetaL2Frequency, ModelSizeReg,
             RandomStrength,
             BootstrapConfig, FoldSizeLossNormalization, AddRidgeToTargetFunctionFlag,
             ScoreFunction,
@@ -90,14 +93,14 @@ void NCatboostOptions::TObliviousTreeLearnerOptions::Save(NJson::TJsonValue* opt
 }
 
 bool NCatboostOptions::TObliviousTreeLearnerOptions::operator==(const TObliviousTreeLearnerOptions& rhs) const {
-    return std::tie(MaxDepth, LeavesEstimationIterations, LeavesEstimationMethod, L2Reg, ModelSizeReg, RandomStrength,
+    return std::tie(MaxDepth, LeavesEstimationIterations, LeavesEstimationMethod, L2Reg, MetaL2Exponent, MetaL2Frequency, ModelSizeReg, RandomStrength,
             BootstrapConfig, Rsm, SamplingFrequency, ObservationsToBootstrap, FoldSizeLossNormalization,
             AddRidgeToTargetFunctionFlag, ScoreFunction, GrowPolicy, MaxLeaves, MinDataInLeaf, MaxCtrComplexityForBordersCaching,
             PairwiseNonDiagReg, LeavesEstimationBacktrackingType, DevScoreCalcObjBlockSize,
             DevExclusiveFeaturesBundleMaxBuckets, SparseFeaturesConflictFraction,
             MonotoneConstraints, DevLeafwiseApproxes, FeaturePenalties
             ) ==
-        std::tie(rhs.MaxDepth, rhs.LeavesEstimationIterations, rhs.LeavesEstimationMethod, rhs.L2Reg, rhs.ModelSizeReg,
+        std::tie(rhs.MaxDepth, rhs.LeavesEstimationIterations, rhs.LeavesEstimationMethod, rhs.L2Reg, rhs.MetaL2Exponent, rhs.MetaL2Frequency, rhs.ModelSizeReg,
                 rhs.RandomStrength, rhs.BootstrapConfig, rhs.Rsm, rhs.SamplingFrequency,
                 rhs.ObservationsToBootstrap, rhs.FoldSizeLossNormalization, rhs.AddRidgeToTargetFunctionFlag,
                 rhs.ScoreFunction, rhs.GrowPolicy, rhs.MaxLeaves, rhs.MinDataInLeaf, rhs.MaxCtrComplexityForBordersCaching,
@@ -131,4 +134,8 @@ void NCatboostOptions::TObliviousTreeLearnerOptions::Validate() const {
     CB_ENSURE(LeavesEstimationIterations.Get() > 0, "Leaves estimation iterations should be positive");
     CB_ENSURE(L2Reg.Get() >= 0, "L2LeafRegularizer should be >= 0, current value: " << L2Reg.Get());
     CB_ENSURE(PairwiseNonDiagReg.Get() >= 0, "PairwiseNonDiagReg should be >= 0, current value: " << PairwiseNonDiagReg.Get());
+    CB_ENSURE(
+        TaskType.Get() == ETaskType::GPU || EqualToOneOf(ScoreFunction, EScoreFunction::Cosine, EScoreFunction::L2),
+        "Only Cosine and L2 score functions are supported for CPU."
+    );
 }

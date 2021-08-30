@@ -29,7 +29,7 @@ from .log import logger
 __all__ = (
     'SelectorEventLoop',
     'AbstractChildWatcher', 'SafeChildWatcher',
-    'FastChildWatcher',
+    'FastChildWatcher', 'PidfdChildWatcher',
     'MultiLoopChildWatcher', 'ThreadedChildWatcher',
     'DefaultEventLoopPolicy',
 )
@@ -330,7 +330,7 @@ class _UnixSelectorEventLoop(selector_events.BaseSelectorEventLoop):
     async def _sock_sendfile_native(self, sock, file, offset, count):
         try:
             os.sendfile
-        except AttributeError as exc:
+        except AttributeError:
             raise exceptions.SendfileNotAvailableError(
                 "os.sendfile() is not available")
         try:
@@ -339,7 +339,7 @@ class _UnixSelectorEventLoop(selector_events.BaseSelectorEventLoop):
             raise exceptions.SendfileNotAvailableError("not a regular file")
         try:
             fsize = os.fstat(fileno).st_size
-        except OSError as err:
+        except OSError:
             raise exceptions.SendfileNotAvailableError("not a regular file")
         blocksize = count if count else fsize
         if not blocksize:
@@ -878,6 +878,84 @@ class AbstractChildWatcher:
         raise NotImplementedError()
 
 
+class PidfdChildWatcher(AbstractChildWatcher):
+    """Child watcher implementation using Linux's pid file descriptors.
+
+    This child watcher polls process file descriptors (pidfds) to await child
+    process termination. In some respects, PidfdChildWatcher is a "Goldilocks"
+    child watcher implementation. It doesn't require signals or threads, doesn't
+    interfere with any processes launched outside the event loop, and scales
+    linearly with the number of subprocesses launched by the event loop. The
+    main disadvantage is that pidfds are specific to Linux, and only work on
+    recent (5.3+) kernels.
+    """
+
+    def __init__(self):
+        self._loop = None
+        self._callbacks = {}
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        pass
+
+    def is_active(self):
+        return self._loop is not None and self._loop.is_running()
+
+    def close(self):
+        self.attach_loop(None)
+
+    def attach_loop(self, loop):
+        if self._loop is not None and loop is None and self._callbacks:
+            warnings.warn(
+                'A loop is being detached '
+                'from a child watcher with pending handlers',
+                RuntimeWarning)
+        for pidfd, _, _ in self._callbacks.values():
+            self._loop._remove_reader(pidfd)
+            os.close(pidfd)
+        self._callbacks.clear()
+        self._loop = loop
+
+    def add_child_handler(self, pid, callback, *args):
+        existing = self._callbacks.get(pid)
+        if existing is not None:
+            self._callbacks[pid] = existing[0], callback, args
+        else:
+            pidfd = os.pidfd_open(pid)
+            self._loop._add_reader(pidfd, self._do_wait, pid)
+            self._callbacks[pid] = pidfd, callback, args
+
+    def _do_wait(self, pid):
+        pidfd, callback, args = self._callbacks.pop(pid)
+        self._loop._remove_reader(pidfd)
+        try:
+            _, status = os.waitpid(pid, 0)
+        except ChildProcessError:
+            # The child process is already reaped
+            # (may happen if waitpid() is called elsewhere).
+            returncode = 255
+            logger.warning(
+                "child process pid %d exit status already read: "
+                " will report returncode 255",
+                pid)
+        else:
+            returncode = _compute_returncode(status)
+
+        os.close(pidfd)
+        callback(pid, returncode, *args)
+
+    def remove_child_handler(self, pid):
+        try:
+            pidfd, _, _ = self._callbacks.pop(pid)
+        except KeyError:
+            return False
+        self._loop._remove_reader(pidfd)
+        os.close(pidfd)
+        return True
+
+
 def _compute_returncode(status):
     if os.WIFSIGNALED(status):
         # The child process died because of a signal.
@@ -1152,13 +1230,15 @@ class MultiLoopChildWatcher(AbstractChildWatcher):
 
     def close(self):
         self._callbacks.clear()
-        if self._saved_sighandler is not None:
-            handler = signal.getsignal(signal.SIGCHLD)
-            if handler != self._sig_chld:
-                logger.warning("SIGCHLD handler was changed by outside code")
-            else:
-                signal.signal(signal.SIGCHLD, self._saved_sighandler)
-            self._saved_sighandler = None
+        if self._saved_sighandler is None:
+            return
+
+        handler = signal.getsignal(signal.SIGCHLD)
+        if handler != self._sig_chld:
+            logger.warning("SIGCHLD handler was changed by outside code")
+        else:
+            signal.signal(signal.SIGCHLD, self._saved_sighandler)
+        self._saved_sighandler = None
 
     def __enter__(self):
         return self
@@ -1185,15 +1265,17 @@ class MultiLoopChildWatcher(AbstractChildWatcher):
         # The reason to do it here is that attach_loop() is called from
         # unix policy only for the main thread.
         # Main thread is required for subscription on SIGCHLD signal
-        if self._saved_sighandler is None:
-            self._saved_sighandler = signal.signal(signal.SIGCHLD, self._sig_chld)
-            if self._saved_sighandler is None:
-                logger.warning("Previous SIGCHLD handler was set by non-Python code, "
-                               "restore to default handler on watcher close.")
-                self._saved_sighandler = signal.SIG_DFL
+        if self._saved_sighandler is not None:
+            return
 
-            # Set SA_RESTART to limit EINTR occurrences.
-            signal.siginterrupt(signal.SIGCHLD, False)
+        self._saved_sighandler = signal.signal(signal.SIGCHLD, self._sig_chld)
+        if self._saved_sighandler is None:
+            logger.warning("Previous SIGCHLD handler was set by non-Python code, "
+                           "restore to default handler on watcher close.")
+            self._saved_sighandler = signal.SIG_DFL
+
+        # Set SA_RESTART to limit EINTR occurrences.
+        signal.siginterrupt(signal.SIGCHLD, False)
 
     def _do_waitpid_all(self):
         for pid in list(self._callbacks):
@@ -1346,8 +1428,7 @@ class _UnixDefaultEventLoopPolicy(events.BaseDefaultEventLoopPolicy):
         with events._lock:
             if self._watcher is None:  # pragma: no branch
                 self._watcher = ThreadedChildWatcher()
-                if isinstance(threading.current_thread(),
-                              threading._MainThread):
+                if threading.current_thread() is threading.main_thread():
                     self._watcher.attach_loop(self._local._loop)
 
     def set_event_loop(self, loop):
@@ -1361,7 +1442,7 @@ class _UnixDefaultEventLoopPolicy(events.BaseDefaultEventLoopPolicy):
         super().set_event_loop(loop)
 
         if (self._watcher is not None and
-                isinstance(threading.current_thread(), threading._MainThread)):
+                threading.current_thread() is threading.main_thread()):
             self._watcher.attach_loop(loop)
 
     def get_child_watcher(self):

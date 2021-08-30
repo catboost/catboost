@@ -59,13 +59,14 @@ TVector<TVector<TFloatFeatureBucketRange>> CalculateBucketRangesAndWeightsOblivi
         const TVector<ui32>& borderIdxForSplit,
         const TVector<double>& leafWeights,
         TVector<double>* leafWeightsNew,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
 ) {
     CB_ENSURE_INTERNAL(model.IsOblivious(), "Partial dependence is supported only for symmetric trees");
 
     const auto& binSplits = model.ModelTrees->GetBinFeatures();
     const auto& treeSplitOffsets = model.ModelTrees->GetModelTreeData()->GetTreeStartOffsets();
-    const auto& leafOffsets = model.ModelTrees->GetFirstLeafOffsets();
+    auto applyData = model.ModelTrees->GetApplyData();
+    const auto& leafOffsets = applyData->TreeFirstLeafOffsets;
     const auto& treeSizes = model.ModelTrees->GetModelTreeData()->GetTreeSizes();
     const auto& treeSplits = model.ModelTrees->GetModelTreeData()->GetTreeSplits();
     size_t leafNum = model.ModelTrees->GetModelTreeData()->GetLeafValues().size();
@@ -74,7 +75,7 @@ TVector<TVector<TFloatFeatureBucketRange>> CalculateBucketRangesAndWeightsOblivi
     TVector<TVector<TFloatFeatureBucketRange>> leafBucketRanges(leafNum, defaultRanges);
 
     int treeCount = model.ModelTrees->GetTreeCount();
-    NPar::TLocalExecutor::TExecRangeParams blockParams(0, treeCount);
+    NPar::ILocalExecutor::TExecRangeParams blockParams(0, treeCount);
     localExecutor->ExecRange([&] (size_t treeId) {
         size_t offset = leafOffsets[treeId];
         size_t treeDepth = treeSizes[treeId];
@@ -166,7 +167,7 @@ TVector<double> CalculatePartialDependence(
         const TDataProvider& dataProvider,
         const TVector<ui32>& borderIdxForSplit,
         const TVector<double> leafWeights,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
 ) {
     TVector<double> leafWeightsNew(leafWeights.size(), 0.0);
     const auto& leafBucketRanges = CalculateBucketRangesAndWeightsOblivious(

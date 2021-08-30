@@ -36,6 +36,7 @@ TFeaturesLayout::TFeaturesLayout(
     const TVector<ui32>& textFeatureIndices,
     const TVector<ui32>& embeddingFeatureIndices,
     const TVector<TString>& featureId,
+    const THashMap<TString, TTagDescription>& featureTags,
     bool allFeaturesAreSparse)
 {
     CheckDataSize(featureId.size(), (size_t)featureCount, "feature Ids", true, "feature count");
@@ -109,53 +110,88 @@ TFeaturesLayout::TFeaturesLayout(
             featureNames.insert(name);
         }
     }
+
+    for (const auto& [tag, description] : featureTags) {
+        for (auto featureIdx : description.Features) {
+            CB_ENSURE(
+                featureIdx < featureCount,
+                "Feature index (" << featureIdx << ") from tag #" << tag
+                << " is out of valid range [0," << featureCount << ")"
+            );
+        }
+        TagToExternalIndices[tag] = description.Features;
+    }
 }
 
 TFeaturesLayout::TFeaturesLayout(
     const TVector<TFloatFeature>& floatFeatures,
     const TVector<TCatFeature>& catFeatures)
 {
-    TFeatureMetaInfo defaultIgnoredMetaInfo(EFeatureType::Float, TString(), true);
-    const ui32 internalOrExternalIndexPlaceholder = Max<ui32>();
-    for (const TFloatFeature& floatFeature : floatFeatures) {
-        CB_ENSURE(floatFeature.Position.FlatIndex >= 0, "floatFeature.Position.FlatIndex is negative");
-        CB_ENSURE(floatFeature.Position.Index >= 0, "floatFeature.Position.Index is negative");
-        if ((size_t)floatFeature.Position.FlatIndex >= ExternalIdxToMetaInfo.size()) {
-            CB_ENSURE(
-                (size_t)floatFeature.Position.FlatIndex < (size_t)Max<ui32>(),
-                "floatFeature.Position.FlatIndex is greater than maximum allowed index: " << (Max<ui32>() - 1)
-            );
-            ExternalIdxToMetaInfo.resize(floatFeature.Position.FlatIndex + 1, defaultIgnoredMetaInfo);
-            FeatureExternalIdxToInternalIdx.resize(floatFeature.Position.FlatIndex + 1, internalOrExternalIndexPlaceholder);
-        }
-        ExternalIdxToMetaInfo[floatFeature.Position.FlatIndex] =
-            TFeatureMetaInfo(EFeatureType::Float, floatFeature.FeatureId);
-        FeatureExternalIdxToInternalIdx[floatFeature.Position.FlatIndex] = floatFeature.Position.Index;
-        if ((size_t)floatFeature.Position.Index >= FloatFeatureInternalIdxToExternalIdx.size()) {
-            FloatFeatureInternalIdxToExternalIdx.resize((size_t)floatFeature.Position.Index + 1, internalOrExternalIndexPlaceholder);
-        }
-        FloatFeatureInternalIdxToExternalIdx[floatFeature.Position.Index] = floatFeature.Position.FlatIndex;
-    }
+    UpdateFeaturesMetaInfo(MakeConstArrayRef(floatFeatures), EFeatureType::Float);
+    UpdateFeaturesMetaInfo(MakeConstArrayRef(catFeatures), EFeatureType::Categorical);
+}
 
-    for (const TCatFeature& catFeature : catFeatures) {
-        CB_ENSURE(catFeature.Position.FlatIndex >= 0, "catFeature.Position.FlatIndex is negative");
-        CB_ENSURE(catFeature.Position.Index >= 0, "catFeature.Position.Index is negative");
-        if ((size_t)catFeature.Position.FlatIndex >= ExternalIdxToMetaInfo.size()) {
-            CB_ENSURE(
-                (size_t)catFeature.Position.FlatIndex < (size_t)Max<ui32>(),
-                "catFeature.Position.FlatIndex is greater than maximum allowed index: " << (Max<ui32>() - 1)
-            );
-            ExternalIdxToMetaInfo.resize(catFeature.Position.FlatIndex + 1, defaultIgnoredMetaInfo);
-            FeatureExternalIdxToInternalIdx.resize(catFeature.Position.FlatIndex + 1, internalOrExternalIndexPlaceholder);
-        }
-        ExternalIdxToMetaInfo[catFeature.Position.FlatIndex] =
-            TFeatureMetaInfo(EFeatureType::Categorical, catFeature.FeatureId);
-        FeatureExternalIdxToInternalIdx[catFeature.Position.FlatIndex] = catFeature.Position.Index;
-        if ((size_t)catFeature.Position.Index >= CatFeatureInternalIdxToExternalIdx.size()) {
-            CatFeatureInternalIdxToExternalIdx.resize((size_t)catFeature.Position.Index + 1, internalOrExternalIndexPlaceholder);
-        }
-        CatFeatureInternalIdxToExternalIdx[catFeature.Position.Index] = catFeature.Position.FlatIndex;
+TFeaturesLayout::TFeaturesLayout(
+    TConstArrayRef<TFloatFeature> floatFeatures,
+    TConstArrayRef<TCatFeature> catFeatures,
+    TConstArrayRef<TTextFeature> textFeatures,
+    TConstArrayRef<TEmbeddingFeature> embeddingFeatures)
+{
+    UpdateFeaturesMetaInfo(floatFeatures, EFeatureType::Float);
+    UpdateFeaturesMetaInfo(catFeatures, EFeatureType::Categorical);
+    UpdateFeaturesMetaInfo(textFeatures, EFeatureType::Text);
+    UpdateFeaturesMetaInfo(embeddingFeatures, EFeatureType::Embedding);
+}
+
+TFeaturesLayoutPtr TFeaturesLayout::CreateFeaturesLayout(
+    TConstArrayRef<TColumn> columns,
+    TMaybe<const TVector<TString>*> featureNames,
+    TMaybe<const THashMap<TString, TTagDescription>*> featureTags
+) {
+    TVector<TString> finalFeatureNames;
+    if (featureNames) {
+        finalFeatureNames = **featureNames;
     }
+    TVector<ui32> catFeatureIndices;
+    TVector<ui32> textFeatureIndices;
+    TVector<ui32> embeddingFeatureIndices;
+
+    ui32 featureIdx = 0;
+    for (const auto& column : columns) {
+        if (IsFactorColumn(column.Type)) {
+            if (!featureNames) {
+                finalFeatureNames.push_back(column.Id);
+            }
+            if (column.Type == EColumn::Categ) {
+                catFeatureIndices.push_back(featureIdx);
+            } else if (column.Type == EColumn::Text) {
+                textFeatureIndices.push_back(featureIdx);
+            } else if (column.Type == EColumn::NumVector) {
+                embeddingFeatureIndices.push_back(featureIdx);
+            }
+            ++featureIdx;
+        }
+    }
+    return MakeIntrusive<TFeaturesLayout>(
+        featureIdx,
+        catFeatureIndices,
+        textFeatureIndices,
+        embeddingFeatureIndices,
+        finalFeatureNames,
+        featureTags.Defined()
+            ? **featureTags
+            : THashMap<TString, TTagDescription>{});
+}
+
+TFeaturesLayout::TFeaturesLayout(TVector<TFeatureMetaInfo>* data) { // 'data' is moved into
+    Init(data);
+}
+
+void TFeaturesLayout::Init(TVector<TFeatureMetaInfo>* data) { // 'data' is moved into
+    for (auto& featureMetaInfo : *data) {
+        AddFeature(std::move(featureMetaInfo));
+    }
+    data->clear();
 }
 
 
@@ -291,6 +327,11 @@ TConstArrayRef<ui32> TFeaturesLayout::GetTextFeatureInternalIdxToExternalIdx() c
 
 TConstArrayRef<ui32> TFeaturesLayout::GetEmbeddingFeatureInternalIdxToExternalIdx() const {
     return EmbeddingFeatureInternalIdxToExternalIdx;
+}
+
+
+const THashMap<TString, TVector<ui32>>& TFeaturesLayout::GetTagToExternalIndices() const {
+    return TagToExternalIndices;
 }
 
 

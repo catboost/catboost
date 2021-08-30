@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2019 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 2008-2020 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the OpenSSL license (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -13,8 +13,8 @@
 #include <openssl/x509v3.h>
 #include <openssl/err.h>
 #include <openssl/cms.h>
-#include "cms_lcl.h"
-#include "internal/asn1_int.h"
+#include "cms_local.h"
+#include "crypto/asn1.h"
 
 static BIO *cms_get_text_bio(BIO *out, unsigned int flags)
 {
@@ -341,7 +341,7 @@ int CMS_verify(CMS_ContentInfo *cms, STACK_OF(X509) *certs,
         char *ptr;
         long len;
         len = BIO_get_mem_data(dcont, &ptr);
-        tmpin = BIO_new_mem_buf(ptr, len);
+        tmpin = (len == 0) ? dcont : BIO_new_mem_buf(ptr, len);
         if (tmpin == NULL) {
             CMSerr(CMS_F_CMS_VERIFY, ERR_R_MALLOC_FAILURE);
             goto err2;

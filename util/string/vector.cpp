@@ -47,13 +47,13 @@ static inline void DoSplit0(C* res, const TBasicStringBuf<TChr> str, TDelim& d, 
 
 template <typename TChr>
 static void SplitStringImplT(TVector<std::conditional_t<std::is_same<TChr, wchar16>::value, TUtf16String, TString>>* res,
-                        const TBasicStringBuf<TChr> str, const TChr* delim, size_t maxFields, int options) {
+                             const TBasicStringBuf<TChr> str, const TChr* delim, size_t maxFields, int options) {
     if (!*delim) {
         return;
     }
 
     if (*(delim + 1)) {
-        TStringDelimiter<const TChr> d(delim, TCharTraits<TChr>::GetLength(delim));
+        TStringDelimiter<const TChr> d(delim, std::char_traits<TChr>::length(delim));
 
         DoSplit0(res, str, d, maxFields, options);
     } else {

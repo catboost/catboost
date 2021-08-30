@@ -2,13 +2,15 @@
 
 PY23_LIBRARY()
 
-PY_SRCS(__init__.py)
+PY_SRCS(
+    __init__.py
+    CYTHONIZE_PY
+    strings.py
+)
 
 PEERDIR(
     library/python/func
     contrib/python/six
 )
-
-NO_LINT()
 
 END()

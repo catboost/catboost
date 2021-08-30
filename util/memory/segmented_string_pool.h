@@ -15,12 +15,11 @@
  * Non-reallocated storage for the objects of POD type
  */
 template <class T, class Alloc = std::allocator<T>>
-class segmented_pool : TNonCopyable {
+class segmented_pool: TNonCopyable {
 protected:
-    using pointer = typename Alloc::pointer;
     Alloc seg_allocator;
     struct seg_inf {
-        pointer data;   // allocated chunk
+        T* data;        // allocated chunk
         size_t _size;   // size of allocated chunk in sizeof(T)-units
         size_t freepos; // offset to free chunk's memory in bytes
         seg_inf()
@@ -29,7 +28,7 @@ protected:
             , freepos(0)
         {
         }
-        seg_inf(pointer d, size_t sz)
+        seg_inf(T* d, size_t sz)
             : data(d)
             , _size(sz)
             , freepos(0)

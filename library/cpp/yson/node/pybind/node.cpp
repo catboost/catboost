@@ -49,10 +49,21 @@ namespace NPyBind {
             res = 0.0;
             return FromPyObject(obj, res.As<double>());
         }
+#if PY_MAJOR_VERSION < 3
         if (PyString_Check(obj)) {
             res = TString();
             return FromPyObject(obj, res.As<TString>());
         }
+#else
+        if (PyUnicode_Check(obj)) {
+            res = TString();
+            return FromPyObject(obj, res.As<TString>());
+        }
+        if (PyBytes_Check(obj)) {
+            res = TString();
+            return FromPyObject(obj, res.As<TString>());
+        }
+#endif
         if (PyList_Check(obj)) {
             res = NYT::TNode::CreateList();
             return FromPyObject(obj, res.AsList());
@@ -61,6 +72,7 @@ namespace NPyBind {
             res = NYT::TNode::CreateMap();
             return FromPyObject(obj, res.AsMap());
         }
+#if PY_MAJOR_VERSION < 3
         if (PyInt_Check(obj)) {
             auto valAsLong = PyInt_AsLong(obj);
             if (valAsLong == -1 && PyErr_Occurred()) {
@@ -69,6 +81,7 @@ namespace NPyBind {
             res = valAsLong;
             return true;
         }
+#endif
         if (PyLong_Check(obj)) {
             int overflow = 0;
             auto valAsLong = PyLong_AsLongAndOverflow(obj, &overflow);

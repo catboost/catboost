@@ -52,6 +52,10 @@ def main(source, output, java, prefix_filter, exclude_filter, jars_list, output_
         if jar.endswith('devtools-jacoco-agent.jar'):
             agent_disposition = jar
 
+        # Skip java contrib - it's irrelevant coverage
+        if jar.startswith('contrib/java'):
+            continue
+
         with zipfile.ZipFile(jar) as jf:
             for entry in jf.infolist():
                 if entry.filename.endswith('.java'):

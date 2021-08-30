@@ -4,7 +4,6 @@
 
 #include <util/charset/wide.h>
 #include <util/memory/tempbuf.h>
-#include <util/generic/chartraits.h>
 
 #include "sentbreakfilter.h"
 #include "nlpparser.h"

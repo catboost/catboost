@@ -6,6 +6,7 @@
 
 #include <stddef.h>
 #include <string>
+#include <utility>
 
 #include "util/util.h"
 #include "util/logging.h"
@@ -27,7 +28,22 @@ FilteredRE2::FilteredRE2(int min_atom_len)
 FilteredRE2::~FilteredRE2() {
   for (size_t i = 0; i < re2_vec_.size(); i++)
     delete re2_vec_[i];
-  delete prefilter_tree_;
+}
+
+FilteredRE2::FilteredRE2(FilteredRE2&& other)
+    : re2_vec_(std::move(other.re2_vec_)),
+      compiled_(other.compiled_),
+      prefilter_tree_(std::move(other.prefilter_tree_)) {
+  other.re2_vec_.clear();
+  other.re2_vec_.shrink_to_fit();
+  other.compiled_ = false;
+  other.prefilter_tree_.reset(new PrefilterTree());
+}
+
+FilteredRE2& FilteredRE2::operator=(FilteredRE2&& other) {
+  this->~FilteredRE2();
+  (void) new (this) FilteredRE2(std::move(other));
+  return *this;
 }
 
 RE2::ErrorCode FilteredRE2::Add(const StringPiece& pattern,
@@ -38,7 +54,7 @@ RE2::ErrorCode FilteredRE2::Add(const StringPiece& pattern,
   if (!re->ok()) {
     if (options.log_errors()) {
       LOG(ERROR) << "Couldn't compile regular expression, skipping: "
-                 << re << " due to error " << re->error();
+                 << pattern << " due to error " << re->error();
     }
     delete re;
   } else {
@@ -49,7 +65,7 @@ RE2::ErrorCode FilteredRE2::Add(const StringPiece& pattern,
   return code;
 }
 
-void FilteredRE2::Compile(std::vector<string>* atoms) {
+void FilteredRE2::Compile(std::vector<std::string>* atoms) {
   if (compiled_) {
     LOG(ERROR) << "Compile called already.";
     return;

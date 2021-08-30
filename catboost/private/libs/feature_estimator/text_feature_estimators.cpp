@@ -15,7 +15,7 @@ namespace {
     class TNaiveBayesEstimator final: public TTextBaseEstimator<TMultinomialNaiveBayes, TNaiveBayesVisitor> {
     public:
         TNaiveBayesEstimator(
-            TTextClassificationTargetPtr target,
+            TClassificationTargetPtr target,
             TTextDataSetPtr learnTexts,
             TArrayRef<TTextDataSetPtr> testText)
             : TTextBaseEstimator(std::move(target), std::move(learnTexts), testText)
@@ -41,7 +41,7 @@ namespace {
     class TBM25Estimator final: public TTextBaseEstimator<TBM25, TBM25Visitor> {
     public:
         TBM25Estimator(
-            TTextClassificationTargetPtr target,
+            TClassificationTargetPtr target,
             TTextDataSetPtr learnTexts,
             TArrayRef<TTextDataSetPtr> testText)
             : TTextBaseEstimator(std::move(target), std::move(learnTexts), testText)
@@ -103,9 +103,13 @@ namespace {
 
         void ComputeFeatures(TCalculatedFeatureVisitor learnVisitor,
                              TConstArrayRef<TCalculatedFeatureVisitor> testVisitors,
-                             NPar::TLocalExecutor* executor) const override {
+                             NPar::ILocalExecutor* executor) const override {
             Calc(*executor, MakeConstArrayRef(LearnTexts), {learnVisitor});
             Calc(*executor, MakeConstArrayRef(TestTexts), testVisitors);
+        }
+
+        EFeatureType GetSourceType() const override {
+            return EFeatureType::Text;
         }
 
         TGuid Id() const override {
@@ -114,7 +118,7 @@ namespace {
 
         THolder<IFeatureCalcer> MakeFinalFeatureCalcer(
             TConstArrayRef<ui32> featureIndices,
-            NPar::TLocalExecutor* executor) const override {
+            NPar::ILocalExecutor* executor) const override {
 
             Y_UNUSED(executor);
 
@@ -135,7 +139,7 @@ namespace {
 
     protected:
 
-        void Calc(NPar::TLocalExecutor& executor,
+        void Calc(NPar::ILocalExecutor& executor,
                   TConstArrayRef<TTextDataSetPtr> dataSets,
                   TConstArrayRef<TCalculatedFeatureVisitor> visitors) const {
 
@@ -204,7 +208,7 @@ namespace {
 
 TVector<TOnlineFeatureEstimatorPtr> NCB::CreateTextEstimators(
     TConstArrayRef<NCatboostOptions::TFeatureCalcerDescription> featureCalcerDescription,
-    TTextClassificationTargetPtr target,
+    TClassificationTargetPtr target,
     TTextDataSetPtr learnTexts,
     TArrayRef<TTextDataSetPtr> testText) {
 

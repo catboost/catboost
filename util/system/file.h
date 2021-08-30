@@ -108,6 +108,8 @@ public:
     i64 Seek(i64 offset, SeekDir origin) noexcept;
     bool Resize(i64 length) noexcept;
     bool Reserve(i64 length) noexcept;
+    bool FallocateNoResize(i64 length) noexcept;
+    bool ShrinkToFit() noexcept;
     bool Flush() noexcept;
     //flush data only, without file metadata
     bool FlushData() noexcept;
@@ -162,20 +164,36 @@ public:
     i64 Seek(i64 offset, SeekDir origin);
     void Resize(i64 length);
     void Reserve(i64 length);
+    void FallocateNoResize(i64 length);
+    void ShrinkToFit();
     void Flush();
     void FlushData();
 
     void LinkTo(const TFile& f) const;
     TFile Duplicate() const;
 
-    size_t Read(void* buf, size_t len);
+    // Reads up to 1 GB without retrying, returns -1 on error
     i32 RawRead(void* buf, size_t len);
+    // Reads up to 1 GB without retrying, throws on error
+    size_t ReadOrFail(void* buf, size_t len);
+    // Retries incomplete reads until EOF, throws on error
+    size_t Read(void* buf, size_t len);
+    // Reads exactly len bytes, throws on premature EOF or error
     void Load(void* buf, size_t len);
+
+    // Retries incomplete writes, will either write len bytes or throw
     void Write(const void* buf, size_t len);
+
+    // Retries incomplete reads until EOF, throws on error
     size_t Pread(void* buf, size_t len, i64 offset) const;
+    // Single pread call
     i32 RawPread(void* buf, ui32 len, i64 offset) const;
+    // Reads exactly len bytes, throws on premature EOF or error
     void Pload(void* buf, size_t len, i64 offset) const;
+
+    // Retries incomplete writes, will either write len bytes or throw
     void Pwrite(const void* buf, size_t len, i64 offset) const;
+
     void Flock(int op);
 
     //do not use, their meaning very platform-dependant

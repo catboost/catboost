@@ -531,7 +531,7 @@ namespace NJson {
             case JSON_NULL:
             case JSON_UNDEFINED:
             default:
-                return 0;
+                return false;
             case JSON_BOOLEAN:
                 return Value.Boolean;
         }

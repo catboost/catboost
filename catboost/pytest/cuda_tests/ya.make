@@ -1,6 +1,6 @@
 
 
-PYTEST()
+PY3TEST()
 
 TEST_SRCS(
     conftest.py
@@ -19,7 +19,7 @@ SIZE(MEDIUM)
 
 TAG(ya:yt)
 
-YT_SPEC(catboost/pytest/cuda_tests/yt_spec.json)
+YT_SPEC(catboost/pytest/cuda_tests/yt_spec.yson)
 
 IF(AUTOCHECK)
     FORK_SUBTESTS()

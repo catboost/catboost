@@ -1,6 +1,5 @@
 #include <util/generic/yexception.h>
 
-#include "../../terminate_handler.h"
 
 void Bar() {
     ythrow yexception() << "from Foo()";
@@ -16,7 +15,6 @@ void Foo() {
 }
 
 int main() {
-    SetFancyTerminateHandler();
     Foo();
     return 0;
 }

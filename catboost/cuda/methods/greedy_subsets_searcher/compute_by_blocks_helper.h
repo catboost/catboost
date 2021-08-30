@@ -43,7 +43,7 @@ namespace NCatboostCuda {
         TStripeBuffer<const TFeatureInBlock> GetBlockFeatures(ui32 blockId) const {
             Y_VERIFY(blockId < BlockSlices.size());
             TSlice blockSlice = BlockSlices[blockId];
-            return NCudaLib::ParallelStripeView(Features, blockSlice);
+            return NCudaLib::ParallelStripeView(Features, blockSlice).AsConstBuf();
         }
 
         ui32 GetIntsPerSample(ui32 blockId) const {

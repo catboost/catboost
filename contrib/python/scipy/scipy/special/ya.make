@@ -1,5 +1,7 @@
 PY23_LIBRARY()
 
+LICENSE(BSD-3-Clause)
+
 
 
 NO_COMPILER_WARNINGS()
@@ -9,14 +11,13 @@ IF (OS_WINDOWS)
 ENDIF()
 
 ADDINCL(
-    contrib/python/scipy
+    FOR cython contrib/python/scipy
     contrib/python/scipy/scipy/special
     contrib/python/scipy/scipy/special/c_misc
 )
 
 PEERDIR(
     contrib/python/numpy
-    contrib/python/numpy/numpy/f2py/src
 
     contrib/python/scipy/scipy/_lib
     contrib/python/scipy/scipy/linalg

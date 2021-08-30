@@ -18,11 +18,11 @@ Y_UNIT_TEST_SUITE(TMD5Test) {
         TString s(r.End(rs));
         s.to_lower();
 
-        UNIT_ASSERT_EQUAL(s, AsStringBuf("3ac00dd696b966fd74deee3c35a59d8f"));
+        UNIT_ASSERT_EQUAL(s, TStringBuf("3ac00dd696b966fd74deee3c35a59d8f"));
 
         TString result = r.Calc(AsStringBuf(b));
         result.to_lower();
-        UNIT_ASSERT_EQUAL(result, AsStringBuf("3ac00dd696b966fd74deee3c35a59d8f"));
+        UNIT_ASSERT_EQUAL(result, TStringBuf("3ac00dd696b966fd74deee3c35a59d8f"));
     }
 
     Y_UNIT_TEST(TestFile) {
@@ -51,12 +51,12 @@ Y_UNIT_TEST_SUITE(TMD5Test) {
 
     Y_UNIT_TEST(TestIsMD5) {
         UNIT_ASSERT_EQUAL(false, MD5::IsMD5(TStringBuf()));
-        UNIT_ASSERT_EQUAL(false, MD5::IsMD5(AsStringBuf("4136ebb0e4c45d21e2b09294c75cfa0")));   // length 31
-        UNIT_ASSERT_EQUAL(false, MD5::IsMD5(AsStringBuf("4136ebb0e4c45d21e2b09294c75cfa000"))); // length 33
-        UNIT_ASSERT_EQUAL(false, MD5::IsMD5(AsStringBuf("4136ebb0e4c45d21e2b09294c75cfa0g")));  // wrong character 'g'
-        UNIT_ASSERT_EQUAL(true, MD5::IsMD5(AsStringBuf("4136EBB0E4C45D21E2B09294C75CFA08")));
-        UNIT_ASSERT_EQUAL(true, MD5::IsMD5(AsStringBuf("4136ebb0E4C45D21e2b09294C75CfA08")));
-        UNIT_ASSERT_EQUAL(true, MD5::IsMD5(AsStringBuf("4136ebb0e4c45d21e2b09294c75cfa08")));
+        UNIT_ASSERT_EQUAL(false, MD5::IsMD5(TStringBuf("4136ebb0e4c45d21e2b09294c75cfa0")));   // length 31
+        UNIT_ASSERT_EQUAL(false, MD5::IsMD5(TStringBuf("4136ebb0e4c45d21e2b09294c75cfa000"))); // length 33
+        UNIT_ASSERT_EQUAL(false, MD5::IsMD5(TStringBuf("4136ebb0e4c45d21e2b09294c75cfa0g")));  // wrong character 'g'
+        UNIT_ASSERT_EQUAL(true, MD5::IsMD5(TStringBuf("4136EBB0E4C45D21E2B09294C75CFA08")));
+        UNIT_ASSERT_EQUAL(true, MD5::IsMD5(TStringBuf("4136ebb0E4C45D21e2b09294C75CfA08")));
+        UNIT_ASSERT_EQUAL(true, MD5::IsMD5(TStringBuf("4136ebb0e4c45d21e2b09294c75cfa08")));
     }
 
     Y_UNIT_TEST(TestMd5HalfMix) {

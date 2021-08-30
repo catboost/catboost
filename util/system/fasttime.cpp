@@ -13,16 +13,16 @@ ui64 InterpolatedMicroSeconds() {
 }
 #else
 
-#include <dlfcn.h>
-#include <sys/time.h>
+    #include <dlfcn.h>
+    #include <sys/time.h>
 
-#if defined(_musl_)
-#include <util/generic/hash.h>
-#include <util/generic/vector.h>
-#include <util/generic/string.h>
+    #if defined(_musl_)
+        #include <util/generic/hash.h>
+        #include <util/generic/vector.h>
+        #include <util/generic/string.h>
 
-#include <contrib/libs/linuxvdso/interface.h>
-#endif
+        #include <contrib/libs/linuxvdso/interface.h>
+    #endif
 
 namespace {
     using TTime = ui64;
@@ -36,11 +36,11 @@ namespace {
             // not DEFAULT, cause library/cpp/gettimeofday
             Func = reinterpret_cast<TFunc>(dlsym(RTLD_NEXT, "gettimeofday"));
 
-#if defined(_musl_)
+    #if defined(_musl_)
             if (!Func) {
                 Func = reinterpret_cast<TFunc>(NVdso::Function("__vdso_gettimeofday", "LINUX_2.6"));
             }
-#endif
+    #endif
 
             if (!Func) {
                 Func = reinterpret_cast<TFunc>(Libc()->Sym("gettimeofday"));

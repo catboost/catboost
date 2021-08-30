@@ -472,7 +472,7 @@ int RemoveTempDir(const char* dirName) {
     Y_PRAGMA_DIAGNOSTIC_PUSH
     Y_PRAGMA_NO_DEPRECATED
     while ((ret = readdir_r(dir, &ent, &pent)) == 0 && pent == &ent) {
-    Y_PRAGMA_DIAGNOSTIC_POP
+        Y_PRAGMA_DIAGNOSTIC_POP
         if (!strcmp(ent.d_name, ".") || !strcmp(ent.d_name, ".."))
             continue;
 #ifdef DT_DIR
@@ -604,7 +604,7 @@ TString GetBaseName(const TString& path) {
 }
 
 static bool IsAbsolutePath(const char* str) {
-    return str && TPathSplitTraitsLocal::IsAbsolutePath(TStringBuf(str, TCharTraits<char>::GetLength(str, 3)));
+    return str && TPathSplitTraitsLocal::IsAbsolutePath(TStringBuf(str, NStringPrivate::GetStringLengthWithLimit(str, 3)));
 }
 
 int ResolvePath(const char* rel, const char* abs, char res[/*MAXPATHLEN*/], bool isdir) {

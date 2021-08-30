@@ -67,12 +67,12 @@
     - contrib/libs/musl/src/include/wchar.h
 
   - inttypes.h:             contrib/libs/musl/include/inttypes.h
+  - stddef.h:               contrib/libs/musl/include/stddef.h
   - stdint.h:               contrib/libs/musl/include/stdint.h
 
 
 # We want musl to resolve itself without these sysincls, but its test must have them
-# Also we disable this headers for some libraries, that want to build withoud libc at all
-- source_filter: "^(?!(contrib/libs/musl|contrib/libs/cxxsupp/builtins)).*|^contrib/libs/musl/tests"
+- source_filter: "^(?!contrib/libs/musl)|^contrib/libs/musl/tests"
   includes:
   # libc & stl common headers
   - complex.h:              contrib/libs/musl/include/complex.h

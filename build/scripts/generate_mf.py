@@ -4,6 +4,7 @@ import optparse
 import os
 import sys
 
+import process_command_files as pcf
 
 class BadMfError(Exception):
     pass
@@ -14,7 +15,7 @@ class GplNotAllowed(Exception):
 
 
 def parse_args():
-    args = sys.argv[1:]
+    args = pcf.get_args(sys.argv[1:])
     lics, peers, free_args = [], [], []
     current_list = free_args
     for a in args:
@@ -30,6 +31,7 @@ def parse_args():
 
     parser = optparse.OptionParser()
     parser.add_option('--no-gpl', action='store_true')
+    parser.add_option('--allow-lgpl', action='store_true')
     parser.add_option('--build-root')
     parser.add_option('--module-name')
     parser.add_option('-o', '--output')
@@ -52,19 +54,20 @@ def validate_mf(mf, module_type):
         if bad_mfs:
             raise BadMfError("Can't validate licenses for {}: no 'licenses' info for dependency(es) {}".format(path,', '.join(bad_mfs)))
 
-        bad_lics = ["[[imp]]{}[[rst]] licensed with {}".format(dep['path'], lic) for dep in mf['dependencies'] for lic in dep['licenses'] if 'gpl' in lic.lower()]
+        lgpl_ok = mf.get('allow_lgpl', False)
+        bad_lics = ["[[imp]]{}[[rst]] licensed with {}".format(dep['path'], lic) for dep in mf['dependencies'] for lic in dep['licenses'] if 'gpl' in lic.lower() and (not lgpl_ok or 'lgpl' not in lic.lower())]
         if bad_lics:
             raise GplNotAllowed('[[bad]]License check failed:[[rst]]\n{}'.format('\n'.join(bad_lics)))
 
         bad_contribs = [dep['path'] + '/ya.make' for dep in mf['dependencies'] if dep['path'].startswith('contrib/') and not dep['licenses']]
         if bad_contribs:
-            logging.warn("[[warn]]Can't check NO_GPL properly[[rst]] because the following project(s) has no [[imp]]LICENSE[[rst]] macro:\n%s", '\n'.join(bad_contribs))
+            logging.warning("[[warn]]Can't check NO_GPL properly[[rst]] because the following project(s) has no [[imp]]LICENSE[[rst]] macro:\n%s", '\n'.join(bad_contribs))
 
 
 def generate_mf():
     lics, peers, options = parse_args()
 
-    meta = {'module_name': options.module_name, 'path': os.path.dirname(options.output), 'licenses': lics, 'dependencies': [], 'no_gpl': options.no_gpl}
+    meta = {'module_name': options.module_name, 'path': os.path.dirname(options.output), 'licenses': lics, 'dependencies': [], 'no_gpl': options.no_gpl, 'allow_lgpl': options.allow_lgpl}
 
     build_root = options.build_root
     file_name = os.path.join(build_root, options.output)

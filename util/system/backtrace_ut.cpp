@@ -1,5 +1,6 @@
 #include "backtrace.h"
 
+#include <util/generic/array_ref.h>
 #include <library/cpp/testing/unittest/registar.h>
 
 #include <util/stream/output.h>
@@ -16,7 +17,7 @@ int Dbg2(void** buf, size_t len) {
     return ret;
 }
 
-void FormatBackTraceReplacement(IOutputStream* out) {
+void FormatBackTraceReplacement(IOutputStream* out, void* const*, size_t) {
     *out << "WorksLikeACharm" << Endl;
 }
 
@@ -36,6 +37,7 @@ void SomeMethod() {
 class TBackTraceTest: public TTestBase {
     UNIT_TEST_SUITE(TBackTraceTest);
     UNIT_TEST(TestBackTrace)
+    UNIT_TEST(TestBackTraceView)
     UNIT_TEST(TestPrintBackTrace)
     UNIT_TEST(TestSetFormatBackTraceFn)
     UNIT_TEST_SUITE_END();
@@ -67,6 +69,16 @@ class TBackTraceTest: public TTestBase {
         ret2 = (*func)(buf2, 100);
 
         UNIT_ASSERT_EQUAL(ret1, ret2);
+    }
+
+    void TestBackTraceView() {
+        try {
+            throw TWithBackTrace<yexception>();
+        } catch (const yexception& e) {
+            const TBackTrace bt = *e.BackTrace();
+            const TBackTraceView btView = bt;
+            UNIT_ASSERT_VALUES_EQUAL(btView.size(), bt.size());
+        }
     }
 };
 

@@ -28,13 +28,13 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "compiler/java/java_extension_lite.h"
+#include <google/protobuf/compiler/java/java_extension_lite.h>
 
-#include "compiler/java/java_context.h"
-#include "compiler/java/java_doc_comment.h"
-#include "compiler/java/java_helpers.h"
-#include "compiler/java/java_name_resolver.h"
-#include "io/printer.h"
+#include <google/protobuf/compiler/java/java_context.h>
+#include <google/protobuf/compiler/java/java_doc_comment.h>
+#include <google/protobuf/compiler/java/java_helpers.h>
+#include <google/protobuf/compiler/java/java_name_resolver.h>
+#include <google/protobuf/io/printer.h>
 #include <google/protobuf/stubs/strutil.h>
 
 namespace google {
@@ -44,11 +44,10 @@ namespace java {
 
 ImmutableExtensionLiteGenerator::ImmutableExtensionLiteGenerator(
     const FieldDescriptor* descriptor, Context* context)
-  : descriptor_(descriptor), context_(context),
-    name_resolver_(context->GetNameResolver()) {
+    : descriptor_(descriptor), name_resolver_(context->GetNameResolver()) {
   if (descriptor_->extension_scope() != NULL) {
-    scope_ = name_resolver_->GetImmutableClassName(
-        descriptor_->extension_scope());
+    scope_ =
+        name_resolver_->GetImmutableClassName(descriptor_->extension_scope());
   } else {
     scope_ = name_resolver_->GetImmutableClassName(descriptor_->file());
   }
@@ -57,12 +56,11 @@ ImmutableExtensionLiteGenerator::ImmutableExtensionLiteGenerator(
 ImmutableExtensionLiteGenerator::~ImmutableExtensionLiteGenerator() {}
 
 void ImmutableExtensionLiteGenerator::Generate(io::Printer* printer) {
-  std::map<string, string> vars;
+  std::map<TProtoStringType, TProtoStringType> vars;
   const bool kUseImmutableNames = true;
   InitTemplateVars(descriptor_, scope_, kUseImmutableNames, name_resolver_,
                    &vars);
-  printer->Print(vars,
-      "public static final int $constant_name$ = $number$;\n");
+  printer->Print(vars, "public static final int $constant_name$ = $number$;\n");
 
   WriteFieldDocComment(printer, descriptor_);
   if (descriptor_->is_repeated()) {
@@ -96,6 +94,7 @@ void ImmutableExtensionLiteGenerator::Generate(io::Printer* printer) {
         "      com.google.protobuf.WireFormat.FieldType.$type_constant$,\n"
         "      $singular_type$.class);\n");
   }
+  printer->Annotate("name", descriptor_);
 }
 
 int ImmutableExtensionLiteGenerator::GenerateNonNestedInitializationCode(
@@ -105,10 +104,8 @@ int ImmutableExtensionLiteGenerator::GenerateNonNestedInitializationCode(
 
 int ImmutableExtensionLiteGenerator::GenerateRegistrationCode(
     io::Printer* printer) {
-  printer->Print(
-    "registry.add($scope$.$name$);\n",
-    "scope", scope_,
-    "name", UnderscoresToCamelCase(descriptor_));
+  printer->Print("registry.add($scope$.$name$);\n", "scope", scope_, "name",
+                 UnderscoresToCamelCaseCheckReserved(descriptor_));
   return 7;
 }
 

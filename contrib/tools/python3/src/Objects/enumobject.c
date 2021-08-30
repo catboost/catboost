@@ -1,6 +1,7 @@
 /* enumerate object */
 
 #include "Python.h"
+#include "pycore_object.h"        // _PyObject_GC_TRACK()
 
 #include "clinic/enumobject.c.h"
 
@@ -122,7 +123,7 @@ enum_next_long(enumobject *en, PyObject* next_item)
     }
     en->en_longindex = stepped_up;
 
-    if (result->ob_refcnt == 1) {
+    if (Py_REFCNT(result) == 1) {
         Py_INCREF(result);
         old_index = PyTuple_GET_ITEM(result, 0);
         old_item = PyTuple_GET_ITEM(result, 1);
@@ -130,6 +131,11 @@ enum_next_long(enumobject *en, PyObject* next_item)
         PyTuple_SET_ITEM(result, 1, next_item);
         Py_DECREF(old_index);
         Py_DECREF(old_item);
+        // bpo-42536: The GC may have untracked this result tuple. Since we're
+        // recycling it, make sure it's tracked again:
+        if (!_PyObject_GC_IS_TRACKED(result)) {
+            _PyObject_GC_TRACK(result);
+        }
         return result;
     }
     result = PyTuple_New(2);
@@ -167,7 +173,7 @@ enum_next(enumobject *en)
     }
     en->en_index++;
 
-    if (result->ob_refcnt == 1) {
+    if (Py_REFCNT(result) == 1) {
         Py_INCREF(result);
         old_index = PyTuple_GET_ITEM(result, 0);
         old_item = PyTuple_GET_ITEM(result, 1);
@@ -175,6 +181,11 @@ enum_next(enumobject *en)
         PyTuple_SET_ITEM(result, 1, next_item);
         Py_DECREF(old_index);
         Py_DECREF(old_item);
+        // bpo-42536: The GC may have untracked this result tuple. Since we're
+        // recycling it, make sure it's tracked again:
+        if (!_PyObject_GC_IS_TRACKED(result)) {
+            _PyObject_GC_TRACK(result);
+        }
         return result;
     }
     result = PyTuple_New(2);
@@ -201,6 +212,8 @@ PyDoc_STRVAR(reduce_doc, "Return state information for pickling.");
 
 static PyMethodDef enum_methods[] = {
     {"__reduce__", (PyCFunction)enum_reduce, METH_NOARGS, reduce_doc},
+    {"__class_getitem__",    (PyCFunction)Py_GenericAlias,
+    METH_O|METH_CLASS,       PyDoc_STR("See PEP 585")},
     {NULL,              NULL}           /* sentinel */
 };
 

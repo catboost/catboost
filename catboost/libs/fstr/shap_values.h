@@ -74,20 +74,31 @@ void CalcShapValuesByLeaf(
     const TMaybe<TFixedFeatureParams>& fixedFeatureParams,
     int logPeriod,
     bool calcInternalValues,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TShapPreparedTrees* preparedTrees,
     ECalcTypeShapValues calcType = ECalcTypeShapValues::Regular
+);
+
+// returned: ShapValues[documentIdx][dimension][feature]
+TVector<TVector<TVector<double>>> CalcShapValuesWithPreparedTrees(
+    const TFullModel& model,
+    const NCB::TDataProvider& dataset,
+    const TMaybe<TFixedFeatureParams>& fixedFeatureParams,
+    int logPeriod,
+    const TShapPreparedTrees& preparedTrees,
+    NPar::ILocalExecutor* localExecutor,
+    ECalcTypeShapValues calcType
 );
 
 // returned: ShapValues[documentIdx][dimension][feature]
 TVector<TVector<TVector<double>>> CalcShapValuesMulti(
     const TFullModel& model,
     const NCB::TDataProvider& dataset,
-    const NCB::TDataProviderPtr referenceDataset, // can be nullptr if using Independent Tree SHAP algorithm
+    const NCB::TDataProviderPtr referenceDataset, // can be nullptr, required only for Independent Tree SHAP algorithm
     const TMaybe<TFixedFeatureParams>& fixedFeatureParams,
     int logPeriod,
     EPreCalcShapValues mode,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     ECalcTypeShapValues calcType = ECalcTypeShapValues::Regular,
     EExplainableModelOutput modelOutputType = EExplainableModelOutput::Raw
 );
@@ -96,11 +107,11 @@ TVector<TVector<TVector<double>>> CalcShapValuesMulti(
 TVector<TVector<double>> CalcShapValues(
     const TFullModel& model,
     const NCB::TDataProvider& dataset,
-    const NCB::TDataProviderPtr referenceDataset, // can be nullptr if using Independent Tree SHAP algorithm
+    const NCB::TDataProviderPtr referenceDataset, // can be nullptr, required only for Independent Tree SHAP algorithm
     const TMaybe<TFixedFeatureParams>& fixedFeatureParams,
     int logPeriod,
     EPreCalcShapValues mode,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     ECalcTypeShapValues calcType = ECalcTypeShapValues::Regular,
     EExplainableModelOutput modelOutputType = EExplainableModelOutput::Raw
 );
@@ -114,7 +125,7 @@ TVector<TVector<TVector<double>>> CalcShapValueWithQuantizedData(
     const size_t documentCount,
     int logPeriod,
     TShapPreparedTrees* preparedTrees,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     ECalcTypeShapValues calcType = ECalcTypeShapValues::Regular
 );
 
@@ -125,7 +136,7 @@ void CalcAndOutputShapValues(
     const TString& outputPath,
     int logPeriod,
     EPreCalcShapValues mode,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     ECalcTypeShapValues calcType = ECalcTypeShapValues::Regular
 );
 
@@ -138,7 +149,7 @@ void CalcShapValuesInternalForFeature(
     ui32 featuresCount,
     const NCB::TObjectsDataProvider& objectsData,
     TVector<TVector<TVector<double>>>* shapValues, // [docIdx][featureIdx][dim]
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     ECalcTypeShapValues calcType = ECalcTypeShapValues::Regular
 );
 

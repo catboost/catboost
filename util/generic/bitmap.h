@@ -546,7 +546,7 @@ public:
     TThis& Reset(size_t start, size_t end) {
         Y_ASSERT(start <= end);
         if (start < end && (start >> DivCount) < Mask.GetChunkCapacity()) {
-            UpdateRange<TResetOp>(start, end);
+            UpdateRange<TResetOp>(start, Min(end, Mask.GetBitCapacity()));
         }
         return *this;
     }
@@ -628,8 +628,7 @@ public:
                    : 0;
     }
 
-    Y_PURE_FUNCTION Y_FORCE_INLINE
-    bool Empty() const {
+    Y_PURE_FUNCTION Y_FORCE_INLINE bool Empty() const {
         for (size_t i = 0; i < Mask.GetChunkCapacity(); ++i)
             if (Mask.Data[i])
                 return false;

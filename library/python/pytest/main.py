@@ -1,9 +1,16 @@
+import os
 import sys
+import time
 
 import __res
 
+FORCE_EXIT_TESTSFAILED_ENV = 'FORCE_EXIT_TESTSFAILED'
+
 
 def main():
+    import library.python.pytest.context as context
+    context.Ctx["YA_PYTEST_START_TIMESTAMP"] = time.time()
+
     profile = None
     if '--profile-pytest' in sys.argv:
         sys.argv.remove('--profile-pytest')
@@ -12,6 +19,14 @@ def main():
         import cProfile
         profile = cProfile.Profile()
         profile.enable()
+
+    # Reset influencing env. vars
+    # For more info see library/python/testing/yatest_common/yatest/common/errors.py
+    if FORCE_EXIT_TESTSFAILED_ENV in os.environ:
+        del os.environ[FORCE_EXIT_TESTSFAILED_ENV]
+
+    listing_mode = '--collect-only' in sys.argv
+    yatest_runner = os.environ.get('YA_TEST_RUNNER') == '1'
 
     import pytest
 
@@ -36,7 +51,7 @@ def main():
 
     def is_doctest_module(name):
         for package in doctest_packages:
-            if name == package or name.startswith(package + "."):
+            if name == package or name.startswith(str(package) + "."):
                 return True
         return False
 
@@ -70,6 +85,15 @@ def main():
 
     if rc == 5:
         # don't care about EXIT_NOTESTSCOLLECTED
+        rc = 0
+
+    if rc == 1 and yatest_runner and not listing_mode and not os.environ.get(FORCE_EXIT_TESTSFAILED_ENV) == '1':
+        # XXX it's place for future improvements
+        # Test wrapper should terminate with 0 exit code if there are common test failures
+        # and report it with trace-file machinery.
+        # However, there are several case when we don't want to suppress exit_code:
+        #  - listing machinery doesn't use trace-file currently and rely on stdout and exit_code
+        #  - RestartTestException and InfrastructureException required non-zero exit_code to be processes correctly
         rc = 0
 
     if profile:

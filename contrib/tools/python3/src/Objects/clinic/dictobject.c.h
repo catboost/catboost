@@ -116,6 +116,42 @@ exit:
     return return_value;
 }
 
+PyDoc_STRVAR(dict_pop__doc__,
+"pop($self, key, default=<unrepresentable>, /)\n"
+"--\n"
+"\n"
+"D.pop(k[,d]) -> v, remove specified key and return the corresponding value.\n"
+"\n"
+"If key is not found, default is returned if given, otherwise KeyError is raised");
+
+#define DICT_POP_METHODDEF    \
+    {"pop", (PyCFunction)(void(*)(void))dict_pop, METH_FASTCALL, dict_pop__doc__},
+
+static PyObject *
+dict_pop_impl(PyDictObject *self, PyObject *key, PyObject *default_value);
+
+static PyObject *
+dict_pop(PyDictObject *self, PyObject *const *args, Py_ssize_t nargs)
+{
+    PyObject *return_value = NULL;
+    PyObject *key;
+    PyObject *default_value = NULL;
+
+    if (!_PyArg_CheckPositional("pop", nargs, 1, 2)) {
+        goto exit;
+    }
+    key = args[0];
+    if (nargs < 2) {
+        goto skip_optional;
+    }
+    default_value = args[1];
+skip_optional:
+    return_value = dict_pop_impl(self, key, default_value);
+
+exit:
+    return return_value;
+}
+
 PyDoc_STRVAR(dict_popitem__doc__,
 "popitem($self, /)\n"
 "--\n"
@@ -154,4 +190,4 @@ dict___reversed__(PyDictObject *self, PyObject *Py_UNUSED(ignored))
 {
     return dict___reversed___impl(self);
 }
-/*[clinic end generated code: output=676532dcc941d399 input=a9049054013a1b77]*/
+/*[clinic end generated code: output=4d98145508da8fa3 input=a9049054013a1b77]*/

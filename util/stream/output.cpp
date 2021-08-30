@@ -9,10 +9,10 @@
 #include <util/charset/wide.h>
 
 #if defined(_android_)
-#include <util/system/dynlib.h>
-#include <util/system/guard.h>
-#include <util/system/mutex.h>
-#include <android/log.h>
+    #include <util/system/dynlib.h>
+    #include <util/system/guard.h>
+    #include <util/system/mutex.h>
+    #include <android/log.h>
 #endif
 
 #include <cerrno>
@@ -21,7 +21,7 @@
 #include <cstdio>
 
 #if defined(_win_)
-#include <io.h>
+    #include <io.h>
 #endif
 
 constexpr size_t MAX_UTF8_BYTES = 4; // UTF-8-encoded code point takes between 1 and 4 bytes
@@ -132,7 +132,7 @@ void Out<TUtf32StringBuf>(IOutputStream& o, const TUtf32StringBuf& p) {
 template <>
 void Out<const wchar16*>(IOutputStream& o, const wchar16* w) {
     if (w) {
-        WriteString(o, w, TCharTraits<wchar16>::GetLength(w));
+        WriteString(o, w, std::char_traits<wchar16>::length(w));
     } else {
         o.Write("(null)");
     }
@@ -141,7 +141,7 @@ void Out<const wchar16*>(IOutputStream& o, const wchar16* w) {
 template <>
 void Out<const wchar32*>(IOutputStream& o, const wchar32* w) {
     if (w) {
-        WriteString(o, w, TCharTraits<wchar32>::GetLength(w));
+        WriteString(o, w, std::char_traits<wchar32>::length(w));
     } else {
         o.Write("(null)");
     }
@@ -232,7 +232,7 @@ using TNullPtr = decltype(nullptr);
 
 template <>
 void Out<TNullPtr>(IOutputStream& o, TTypeTraits<TNullPtr>::TFuncParam) {
-    o << AsStringBuf("nullptr");
+    o << TStringBuf("nullptr");
 }
 
 #if defined(_android_)

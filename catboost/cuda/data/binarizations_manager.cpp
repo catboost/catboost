@@ -16,8 +16,10 @@ namespace NCatboostCuda {
         TFeatureEstimatorsPtr estimators,
         const TFeaturesLayout& featuresLayout,
         const TVector<NCB::TExclusiveFeaturesBundle>& learnExclusiveFeatureBundles,
-        TQuantizedFeaturesInfoPtr quantizedFeaturesInfo)
+        TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
+        bool enableShuffling)
         : CatFeatureOptions(catFeatureOptions)
+        , EnableShuffling(enableShuffling)
         , QuantizedFeaturesInfo(quantizedFeaturesInfo)
         , FeatureEstimators(estimators)
         , LearnExclusiveFeatureBundles(learnExclusiveFeatureBundles)

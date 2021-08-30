@@ -10,26 +10,28 @@
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/model/cpu/evaluator.h>
 #include <catboost/libs/model/scale_and_bias.h>
+#include <catboost/private/libs/options/enum_helpers.h>
 
 #include <util/generic/array_ref.h>
 #include <util/generic/cast.h>
 #include <util/generic/utility.h>
+#include <util/system/rwlock.h>
 
 #include <cmath>
 
 
 using namespace NCB;
-using NPar::TLocalExecutor;
+using NPar::ILocalExecutor;
 
 
-static TLocalExecutor::TExecRangeParams GetBlockParams(int executorThreadCount, int docCount, int treeCount) {
+static ILocalExecutor::TExecRangeParams GetBlockParams(int executorThreadCount, int docCount, int treeCount) {
     const int threadCount = executorThreadCount + 1; // one for current thread
 
     // for 1 iteration it will be 7k docs, for 10k iterations it will be 100 docs.
     const int minBlockSize = ceil(10000.0 / sqrt(treeCount + 1));
     const int effectiveBlockCount = Min(threadCount, (docCount + minBlockSize - 1) / minBlockSize);
 
-    TLocalExecutor::TExecRangeParams blockParams(0, docCount);
+    ILocalExecutor::TExecRangeParams blockParams(0, docCount);
     blockParams.SetBlockCount(effectiveBlockCount);
     return blockParams;
 };
@@ -123,19 +125,40 @@ namespace {
     };
 }
 
+static void PrepareObjectsDataProviderForEvaluation(const TObjectsDataProvider& objectsData) {
+    if (auto* quantizedObjectsData = dynamic_cast<const TQuantizedObjectsDataProvider*>(&objectsData)) {
+        auto quantizedFeaturesInfo = quantizedObjectsData->GetQuantizedFeaturesInfo();
+        TWriteGuard guard(quantizedFeaturesInfo->GetRWMutex());
+        quantizedFeaturesInfo->LoadCatFeaturePerfectHashToRam();
+    }
+}
+
+
 TVector<TVector<double>> ApplyModelMulti(
     const TFullModel& model,
     const TObjectsDataProvider& objectsData,
     const EPredictionType predictionType,
     int begin, /*= 0*/
     int end,   /*= 0*/
-    TLocalExecutor* executor)
+    ILocalExecutor* executor,
+    const NCB::TMaybeData<TConstArrayRef<TConstArrayRef<float>>>& baseline)
 {
+    if (baseline) {
+        // TODO: only one dimension of baseline is checked, what about others?
+        CB_ENSURE(
+            baseline->size() == model.GetDimensionsCount(),
+            "Baseline should have the same dimension count as model: expected " << model.GetDimensionsCount()
+                                                                                << " got " << baseline->size()
+        );
+    }
+
     const int docCount = SafeIntegerCast<int>(objectsData.GetObjectCount());
     const int approxesDimension = model.GetDimensionsCount();
     TVector<double> approxesFlat(docCount * approxesDimension);
     if (docCount > 0) {
         FixupTreeEnd(model.GetTreeCount(), begin, &end);
+        PrepareObjectsDataProviderForEvaluation(objectsData);
+
         const int executorThreadCount = executor ? executor->GetThreadCount() : 0;
         auto blockParams = GetBlockParams(executorThreadCount, docCount, end - begin);
 
@@ -150,7 +173,7 @@ TVector<TVector<double>> ApplyModelMulti(
             BlockedEvaluation(model, objectsData, (ui32)blockFirstIdx, (ui32)blockLastIdx, subBlockSize, &visitor);
         };
         if (executor) {
-            executor->ExecRangeWithThrow(applyOnBlock, 0, blockParams.GetBlockCount(), TLocalExecutor::WAIT_COMPLETE);
+            executor->ExecRangeWithThrow(applyOnBlock, 0, blockParams.GetBlockCount(), ILocalExecutor::WAIT_COMPLETE);
         } else {
             applyOnBlock(0);
         }
@@ -167,7 +190,13 @@ TVector<TVector<double>> ApplyModelMulti(
             };
         }
     }
-
+    if (baseline) {
+        for (int i = 0; i < approxesDimension; ++i) {
+            for (int j = 0; j < docCount; ++j) {
+                approxes[i][j] += (*baseline)[i][j];
+            }
+        }
+    }
     if (predictionType == EPredictionType::InternalRawFormulaVal) {
         //shortcut
         return approxes;
@@ -183,7 +212,8 @@ TVector<TVector<double>> ApplyModelMulti(
     const EPredictionType predictionType,
     int begin,
     int end,
-    int threadCount)
+    int threadCount,
+    const NCB::TMaybeData<TConstArrayRef<TConstArrayRef<float>>>& baseline)
 {
     TSetLoggingVerboseOrSilent inThisScope(verbose);
 
@@ -193,7 +223,7 @@ TVector<TVector<double>> ApplyModelMulti(
 
     NPar::TLocalExecutor executor;
     executor.RunAdditionalThreads(Min<int>(threadCount, blockParams.GetBlockCount()) - 1);
-    const auto& result = ApplyModelMulti(model, objectsData, predictionType, begin, end, &executor);
+    const auto& result = ApplyModelMulti(model, objectsData, predictionType, begin, end, &executor, baseline);
     return result;
 }
 
@@ -206,14 +236,7 @@ TVector<TVector<double>> ApplyModelMulti(
     int end,
     int threadCount)
 {
-    auto approxes = ApplyModelMulti(model, *data.ObjectsData, verbose, predictionType, begin, end, threadCount);
-    if (const auto& baseline = data.RawTargetData.GetBaseline()) {
-        for (size_t i = 0; i < approxes.size(); ++i) {
-            for (size_t j = 0; j < approxes[0].size(); ++j) {
-                approxes[i][j] += (*baseline)[i][j];
-            }
-        }
-    }
+    auto approxes = ApplyModelMulti(model, *data.ObjectsData, verbose, predictionType, begin, end, threadCount, data.RawTargetData.GetBaseline());
     return approxes;
 }
 
@@ -222,7 +245,7 @@ TMinMax<double> ApplyModelForMinMax(
     const NCB::TObjectsDataProvider& objectsData,
     int treeBegin,
     int treeEnd,
-    NPar::TLocalExecutor* executor)
+    NPar::ILocalExecutor* executor)
 {
     CB_ENSURE(model.GetTreeCount(), "Bad usage: empty model");
     CB_ENSURE(model.GetDimensionsCount() == 1, "Bad usage: multiclass/multiregression model, dim=" << model.GetDimensionsCount());
@@ -234,6 +257,8 @@ TMinMax<double> ApplyModelForMinMax(
     TMutex result_guard;
 
     if (docCount > 0) {
+        PrepareObjectsDataProviderForEvaluation(objectsData);
+
         const int executorThreadCount = executor ? executor->GetThreadCount() : 0;
         auto blockParams = GetBlockParams(executorThreadCount, docCount, treeEnd - treeBegin);
 
@@ -316,7 +341,7 @@ void TModelCalcerOnPool::ApplyModelMulti(
 TModelCalcerOnPool::TModelCalcerOnPool(
     const TFullModel& model,
     TObjectsDataProviderPtr objectsData,
-    NPar::TLocalExecutor* executor)
+    NPar::ILocalExecutor* executor)
     : Model(&model)
     , ModelEvaluator(model.GetCurrentEvaluator())
     , ObjectsData(objectsData)
@@ -326,6 +351,8 @@ TModelCalcerOnPool::TModelCalcerOnPool(
     if (BlockParams.FirstId == BlockParams.LastId) {
         return;
     }
+    PrepareObjectsDataProviderForEvaluation(*objectsData);
+
     const int threadCount = executor->GetThreadCount() + 1; // one for current thread
     BlockParams.SetBlockCount(threadCount);
     QuantizedDataForThreads.resize(BlockParams.GetBlockCount());
@@ -357,6 +384,7 @@ TLeafIndexCalcerOnPool::TLeafIndexCalcerOnPool(
     , CurrBatchSize(Min(DocCount, NModelEvaluation::FORMULA_EVALUATION_BLOCK_SIZE))
     , CurrDocIndex(0)
 {
+    PrepareObjectsDataProviderForEvaluation(*objectsData);
     FixupTreeEnd(model.GetTreeCount(), treeStart, &treeEnd);
     CB_ENSURE(TreeEnd == size_t(treeEnd));
 
@@ -445,9 +473,11 @@ TVector<ui32> CalcLeafIndexesMulti(
     NCB::TObjectsDataProviderPtr objectsData,
     int treeStart,
     int treeEnd,
-    NPar::TLocalExecutor* executor /* = nullptr */)
+    NPar::ILocalExecutor* executor /* = nullptr */)
 {
     FixupTreeEnd(model.GetTreeCount(), treeStart, &treeEnd);
+    PrepareObjectsDataProviderForEvaluation(*objectsData);
+
     const size_t objCount = objectsData->GetObjectCount();
     TVector<ui32> result(objCount * (treeEnd - treeStart), 0);
 
@@ -466,7 +496,7 @@ TVector<ui32> CalcLeafIndexesMulti(
             BlockedEvaluation(model, *objectsData, (ui32)blockFirstIdx, (ui32)blockLastIdx, subBlockSize, &visitor);
         };
         if (executor) {
-            executor->ExecRangeWithThrow(applyOnBlock, 0, blockParams.GetBlockCount(), TLocalExecutor::WAIT_COMPLETE);
+            executor->ExecRangeWithThrow(applyOnBlock, 0, blockParams.GetBlockCount(), ILocalExecutor::WAIT_COMPLETE);
         } else {
             applyOnBlock(0);
         }
@@ -488,4 +518,109 @@ TVector<ui32> CalcLeafIndexesMulti(
     NPar::TLocalExecutor executor;
     executor.RunAdditionalThreads(threadCount - 1);
     return CalcLeafIndexesMulti(model, objectsData, treeStart, treeEnd, &executor);
+}
+
+void ApplyVirtualEnsembles(
+    const TFullModel& model,
+    const NCB::TDataProvider& dataset,
+    size_t end,
+    size_t virtualEnsemblesCount,
+    TVector<TVector<double>>* rawValuesPtr,
+    NPar::ILocalExecutor* executor
+) {
+    auto& rawValues = *rawValuesPtr;
+    TModelCalcerOnPool modelCalcerOnPool(model, dataset.ObjectsData, executor);
+    TVector<double> flatApprox;
+    TVector<TVector<double>> approx;
+    TVector<TVector<double>> baseApprox;
+    const auto approxDimension = model.GetDimensionsCount();
+    const size_t evalPeriod = end / (2 * virtualEnsemblesCount);
+    CB_ENSURE(evalPeriod > 0 && evalPeriod * virtualEnsemblesCount < end,
+              "Not enough trees in model for " << virtualEnsemblesCount << " virtual Ensembles");
+    size_t begin = end - evalPeriod * virtualEnsemblesCount;
+    modelCalcerOnPool.ApplyModelMulti(
+        EPredictionType::InternalRawFormulaVal,
+        0,
+        begin,
+        &flatApprox,
+        &baseApprox);
+    const auto objectCount = baseApprox[0].size();
+    Y_ASSERT(rawValues.empty());
+    // init first virtual ensemble predictions by prediction on trees [0; end / 2)
+    rawValues.insert(rawValues.end(), baseApprox.begin(), baseApprox.end());
+    rawValues.resize(virtualEnsemblesCount * approxDimension);
+    for (auto i : xrange(approxDimension, approxDimension * virtualEnsemblesCount)) {
+        rawValues[i].resize(objectCount);
+    }
+
+    const float actualShrinkCoef = model.GetActualShrinkCoef();
+    CB_ENSURE(actualShrinkCoef >= 0.0f && actualShrinkCoef < 1.0f,
+              "For Constant shrink mode: (model_shrink_rate * learning_rate) should be in [0, 1).");
+
+    auto copyerLambda = [approxDimension, objectCount] (
+            const auto copyToNextEnsemble,
+            const TVector<TVector<double>>& approx,
+            const float unshrinkCoef,
+            TVector<TVector<double>>& rawValues,
+            size_t vEnsembleIdx
+        ) {
+        const size_t shift = vEnsembleIdx * approxDimension;
+        for (size_t i = 0; i < approxDimension; ++i) {
+            const auto srcPtr = approx[i].data();
+            auto dstPtr = rawValues[shift + i].data();
+            auto nextDstPtr = rawValues[Min(shift + approxDimension + i, rawValues.size() - 1)].data(); // failsafe ptr !
+            for (size_t j = 0; j < objectCount; ++j) {
+                dstPtr[j] += srcPtr[j];
+                if constexpr (copyToNextEnsemble) {
+                    nextDstPtr[j] = dstPtr[j];
+                }
+                dstPtr[j] *= unshrinkCoef;
+            }
+        }
+    };
+
+    for (size_t vEnsembleIdx = 0; begin < end; begin += evalPeriod, vEnsembleIdx++) {
+        const auto lastTreeIdx = Min(begin + evalPeriod, end);
+        modelCalcerOnPool.ApplyModelMulti(
+            EPredictionType::InternalRawFormulaVal,
+            begin,
+            lastTreeIdx,
+            &flatApprox,
+            &approx);
+        const float unshrinkCoef = pow(1. - actualShrinkCoef, float(lastTreeIdx) - float(end));
+        if (vEnsembleIdx != virtualEnsemblesCount - 1) {
+            copyerLambda(std::true_type(), approx, unshrinkCoef, rawValues, vEnsembleIdx);
+        } else {
+            copyerLambda(std::false_type(), approx, 1.0f, rawValues, vEnsembleIdx);
+        }
+    }
+}
+
+TVector<TVector<double>> ApplyUncertaintyPredictions(
+    const TFullModel& model,
+    const NCB::TDataProvider& data,
+    bool verbose,
+    const EPredictionType predictionType,
+    int end,
+    int virtualEnsemblesCount,
+    int threadCount)
+{
+    TSetLoggingVerboseOrSilent inThisScope(verbose);
+
+    CB_ENSURE_INTERNAL(IsUncertaintyPredictionType(predictionType), "Unsupported prediction type " << predictionType);
+
+    int lastTreeIdx = end;
+    FixupTreeEnd(model.GetTreeCount(), 0, &lastTreeIdx);
+    TVector<TVector<double>> approxes;
+
+    NPar::TLocalExecutor executor;
+    executor.RunAdditionalThreads(threadCount - 1);
+    ApplyVirtualEnsembles(
+        model,
+        data,
+        lastTreeIdx,
+        virtualEnsemblesCount,
+        &approxes,
+        &executor);
+    return PrepareEval(predictionType, virtualEnsemblesCount, model.GetLossFunctionName(), approxes,  &executor);
 }

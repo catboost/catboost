@@ -9,7 +9,7 @@ double CalcMuAuc(
     const TVector<TVector<double>>& approx,
     const TConstArrayRef<float>& target,
     const TConstArrayRef<float>& weight,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     const TMaybe<TVector<TVector<double>>>& misclassCostMatrix = Nothing()
 );
 

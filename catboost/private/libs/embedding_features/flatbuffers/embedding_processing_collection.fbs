@@ -1,0 +1,24 @@
+include "catboost/libs/helpers/flatbuffers/guid.fbs";
+
+namespace NCatBoostFbs.NEmbeddings;
+
+table AdjacencyList {
+    Ids: [uint32];
+}
+
+table TCollectionHeader {
+    CalcerId: [TGuid];
+    PerEmbeddingFeatureCalcers: [AdjacencyList];
+}
+
+enum EPartType : ubyte {
+    EmbeddingCalcer
+}
+
+table TCollectionPart {
+    PartType: EPartType;
+    Id: TGuid;
+}
+
+root_type TCollectionPart;
+root_type TCollectionHeader;

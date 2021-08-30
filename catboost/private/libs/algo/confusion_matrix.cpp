@@ -24,7 +24,7 @@ static constexpr int BinaryClassesCount = 2;
 TVector<double> MakeConfusionMatrix(
     TConstArrayRef<TVector<double>> approxes,
     TConstArrayRef<float> labels,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) {
     const bool isMultiClass = approxes.size() > 1;
     const int classesCount = isMultiClass ? approxes.size() : BinaryClassesCount;
@@ -75,7 +75,8 @@ TVector<double> MakeConfusionMatrix(const TFullModel& model, const TDataProvider
         EPredictionType::RawFormulaVal,
         0,
         SafeIntegerCast<int>(model.GetTreeCount()),
-        &localExecutor
+        &localExecutor,
+        processedData.TargetData->GetBaseline()
     );
 
     return MakeConfusionMatrix(approxes, *processedData.TargetData->GetOneDimensionalTarget(), &localExecutor);

@@ -4,12 +4,12 @@
 #include "platform.h"
 
 #if defined(_win_)
-#include <intrin.h>
-#pragma intrinsic(__rdtsc)
+    #include <intrin.h>
+    #pragma intrinsic(__rdtsc)
 #endif // _win_
 
 #if defined(_darwin_) && !defined(_x86_)
-#include <mach/mach_time.h>
+    #include <mach/mach_time.h>
 #endif
 
 /// util/system/datetime.h contains only system time providers
@@ -93,6 +93,6 @@ Y_FORCE_INLINE ui64 GetCycleCount() noexcept {
 
     return x;
 #else
-#error "unsupported arch"
+    #error "unsupported arch"
 #endif
 }

@@ -32,14 +32,18 @@ namespace NCB::NModelEvaluation {
             if (NeedXorMask) {
                 Y_PREFETCH_READ(binFeaturePtr, 3);
                 Y_PREFETCH_WRITE(indexesVec, 3);
+                #ifndef _ubsan_enabled_
                 #pragma clang loop vectorize_width(16)
+                #endif
                 for (size_t docId = START_BLOCK * SSE_BLOCK_SIZE; docId < docCountInBlock; ++docId) {
                     indexesVec[docId] |= ((binFeaturePtr[docId] ^ xorMask) >= borderVal) << depth;
                 }
             } else {
                 Y_PREFETCH_READ(binFeaturePtr, 3);
                 Y_PREFETCH_WRITE(indexesVec, 3);
+                #ifndef _ubsan_enabled_
                 #pragma clang loop vectorize_width(16)
+                #endif
                 for (size_t docId = START_BLOCK * SSE_BLOCK_SIZE; docId < docCountInBlock; ++docId) {
                     indexesVec[docId] |= ((binFeaturePtr[docId]) >= borderVal) << depth;
                 }
@@ -253,6 +257,7 @@ namespace NCB::NModelEvaluation {
     template <bool IsSingleClassModel, bool NeedXorMask, int SSEBlockCount, bool CalcLeafIndexesOnly = false>
     Y_FORCE_INLINE void CalcTreesBlockedImpl(
         const TModelTrees& trees,
+        const TModelTrees::TForApplyData& applyData,
         const ui8* __restrict binFeatures,
         const size_t docCountInBlock,
         TCalcerIndexType* __restrict indexesVecUI32,
@@ -264,7 +269,7 @@ namespace NCB::NModelEvaluation {
 
         ui8* __restrict indexesVec = (ui8*)indexesVecUI32;
         const auto treeLeafPtr = trees.GetModelTreeData()->GetLeafValues().data();
-        auto firstLeafOffsetsPtr = trees.GetFirstLeafOffsets().data();
+        auto firstLeafOffsetsPtr = applyData.TreeFirstLeafOffsets.data();
     #ifdef _sse3_
         bool allTreesAreShallow = AllOf(
             trees.GetModelTreeData()->GetTreeSizes().begin() + treeStart,
@@ -358,6 +363,7 @@ namespace NCB::NModelEvaluation {
     template <bool IsSingleClassModel, bool NeedXorMask, bool CalcLeafIndexesOnly = false>
     Y_FORCE_INLINE void CalcTreesBlocked(
         const TModelTrees& trees,
+        const TModelTrees::TForApplyData& applyData,
         const TCPUEvaluatorQuantizedData* quantizedData,
         size_t docCountInBlock,
         TCalcerIndexType* __restrict indexesVec,
@@ -368,39 +374,39 @@ namespace NCB::NModelEvaluation {
         switch (docCountInBlock / SSE_BLOCK_SIZE) {
             case 0:
                 CalcTreesBlockedImpl<IsSingleClassModel, NeedXorMask, 0, CalcLeafIndexesOnly>(
-                    trees, binFeatures, docCountInBlock, indexesVec, treeStart, treeEnd, resultsPtr);
+                    trees, applyData, binFeatures, docCountInBlock, indexesVec, treeStart, treeEnd, resultsPtr);
                 break;
             case 1:
                 CalcTreesBlockedImpl<IsSingleClassModel, NeedXorMask, 1, CalcLeafIndexesOnly>(
-                    trees, binFeatures, docCountInBlock, indexesVec, treeStart, treeEnd, resultsPtr);
+                    trees, applyData, binFeatures, docCountInBlock, indexesVec, treeStart, treeEnd, resultsPtr);
                 break;
             case 2:
                 CalcTreesBlockedImpl<IsSingleClassModel, NeedXorMask, 2, CalcLeafIndexesOnly>(
-                    trees, binFeatures, docCountInBlock, indexesVec, treeStart, treeEnd, resultsPtr);
+                    trees, applyData, binFeatures, docCountInBlock, indexesVec, treeStart, treeEnd, resultsPtr);
                 break;
             case 3:
                 CalcTreesBlockedImpl<IsSingleClassModel, NeedXorMask, 3, CalcLeafIndexesOnly>(
-                    trees, binFeatures, docCountInBlock, indexesVec, treeStart, treeEnd, resultsPtr);
+                    trees, applyData, binFeatures, docCountInBlock, indexesVec, treeStart, treeEnd, resultsPtr);
                 break;
             case 4:
                 CalcTreesBlockedImpl<IsSingleClassModel, NeedXorMask, 4, CalcLeafIndexesOnly>(
-                    trees, binFeatures, docCountInBlock, indexesVec, treeStart, treeEnd, resultsPtr);
+                    trees, applyData, binFeatures, docCountInBlock, indexesVec, treeStart, treeEnd, resultsPtr);
                 break;
             case 5:
                 CalcTreesBlockedImpl<IsSingleClassModel, NeedXorMask, 5, CalcLeafIndexesOnly>(
-                    trees, binFeatures, docCountInBlock, indexesVec, treeStart, treeEnd, resultsPtr);
+                    trees, applyData, binFeatures, docCountInBlock, indexesVec, treeStart, treeEnd, resultsPtr);
                 break;
             case 6:
                 CalcTreesBlockedImpl<IsSingleClassModel, NeedXorMask, 6, CalcLeafIndexesOnly>(
-                    trees, binFeatures, docCountInBlock, indexesVec, treeStart, treeEnd, resultsPtr);
+                    trees, applyData, binFeatures, docCountInBlock, indexesVec, treeStart, treeEnd, resultsPtr);
                 break;
             case 7:
                 CalcTreesBlockedImpl<IsSingleClassModel, NeedXorMask, 7, CalcLeafIndexesOnly>(
-                    trees, binFeatures, docCountInBlock, indexesVec, treeStart, treeEnd, resultsPtr);
+                    trees, applyData, binFeatures, docCountInBlock, indexesVec, treeStart, treeEnd, resultsPtr);
                 break;
             case 8:
                 CalcTreesBlockedImpl<IsSingleClassModel, NeedXorMask, 8, CalcLeafIndexesOnly>(
-                    trees, binFeatures, docCountInBlock, indexesVec, treeStart, treeEnd, resultsPtr);
+                    trees, applyData, binFeatures, docCountInBlock, indexesVec, treeStart, treeEnd, resultsPtr);
                 break;
             default:
                 Y_UNREACHABLE();
@@ -410,6 +416,7 @@ namespace NCB::NModelEvaluation {
     template <bool IsSingleClassModel, bool NeedXorMask, bool calcIndexesOnly = false>
     inline void CalcTreesSingleDocImpl(
         const TModelTrees& trees,
+        const TModelTrees::TForApplyData& ,
         const TCPUEvaluatorQuantizedData* quantizedData,
         size_t,
         TCalcerIndexType* __restrict indexesVec,
@@ -464,6 +471,9 @@ namespace NCB::NModelEvaluation {
         const TRepackedBin* treeSplitsPtr = trees.GetRepackedBins().data();
         const TNonSymmetricTreeStepNode* treeStepNodes = trees.GetModelTreeData()->GetNonSymmetricStepNodes().data();
         std::fill(indexesVec + firstDocId, indexesVec + docCountInBlock, trees.GetModelTreeData()->GetTreeStartOffsets()[treeId]);
+        if (binFeatures == nullptr) {
+            return;
+        }
         size_t countStopped = 0;
         while (countStopped != docCountInBlock - firstDocId) {
             countStopped = 0;
@@ -485,6 +495,7 @@ namespace NCB::NModelEvaluation {
     template <bool IsSingleClassModel, bool NeedXorMask, bool CalcLeafIndexesOnly = false>
     inline void CalcNonSymmetricTrees(
         const TModelTrees& trees,
+        const TModelTrees::TForApplyData& applyData,
         const TCPUEvaluatorQuantizedData* quantizedData,
         size_t docCountInBlock,
         TCalcerIndexType* __restrict indexes,
@@ -501,7 +512,8 @@ namespace NCB::NModelEvaluation {
             const ui32 treeStartIndex = trees.GetModelTreeData()->GetTreeStartOffsets()[treeId];
             __m128i* indexesVec = reinterpret_cast<__m128i*>(indexes);
             size_t docId = 0;
-            for (; docId + 8 <= docCountInBlock; docId += 8, indexesVec+=2) {
+            // handle special case of model containing only empty splits
+            for (; binFeaturesI != nullptr && docId + 8 <= docCountInBlock; docId += 8, indexesVec+=2) {
                 const ui8* __restrict binFeatures = binFeaturesI + docId;
                 __m128i index0 = _mm_set1_epi32(treeStartIndex);
                 __m128i index1 = _mm_set1_epi32(treeStartIndex);
@@ -612,11 +624,11 @@ namespace NCB::NModelEvaluation {
                 CalcIndexesNonSymmetric<NeedXorMask>(trees, binFeaturesI, docId, docCountInBlock, treeId, indexes);
             }
             if constexpr (CalcLeafIndexesOnly) {
-                const auto firstLeafOffsets = trees.GetFirstLeafOffsets();
+                const auto firstLeafOffsetsPtr = applyData.TreeFirstLeafOffsets.data();
                 const auto approxDimension = trees.GetDimensionsCount();
                 for (docId = 0; docId < docCountInBlock; ++docId) {
-                    Y_ASSERT((nonSymmetricNodeIdToLeafIdPtr[indexes[docId]] - firstLeafOffsets[treeId]) % approxDimension == 0);
-                    indexes[docId] = ((nonSymmetricNodeIdToLeafIdPtr[indexes[docId]] - firstLeafOffsets[treeId]) / approxDimension);
+                    Y_ASSERT((nonSymmetricNodeIdToLeafIdPtr[indexes[docId]] - firstLeafOffsetsPtr[treeId]) % approxDimension == 0);
+                    indexes[docId] = ((nonSymmetricNodeIdToLeafIdPtr[indexes[docId]] - firstLeafOffsetsPtr[treeId]) / approxDimension);
                 }
                 indexes += docCountInBlock;
             } else if constexpr (IsSingleClassModel) {
@@ -650,6 +662,7 @@ namespace NCB::NModelEvaluation {
     template <bool IsSingleClassModel, bool NeedXorMask, bool CalcLeafIndexesOnly = false>
     inline void CalcNonSymmetricTrees(
         const TModelTrees& trees,
+        const TModelTrees::TForApplyData& applyData,
         const TCPUEvaluatorQuantizedData* quantizedData,
         size_t docCountInBlock,
         TCalcerIndexType* __restrict indexesVec,
@@ -664,11 +677,11 @@ namespace NCB::NModelEvaluation {
                 indexesVec[docId] = trees.GetModelTreeData()->GetNonSymmetricNodeIdToLeafId()[indexesVec[docId]];
             }
             if constexpr (CalcLeafIndexesOnly) {
-                const auto firstLeafOffsets = trees.GetFirstLeafOffsets();
+                const auto firstLeafOffsetsPtr = applyData.TreeFirstLeafOffsets.data();
                 const auto approxDimension = trees.GetDimensionsCount();
                 for (size_t docId = 0; docId < docCountInBlock; ++docId) {
-                    Y_ASSERT((indexesVec[docId] - firstLeafOffsets[treeId]) % approxDimension == 0);
-                    indexesVec[docId] = ((indexesVec[docId] - firstLeafOffsets[treeId]) / approxDimension);
+                    Y_ASSERT((indexesVec[docId] - firstLeafOffsetsPtr[treeId]) % approxDimension == 0);
+                    indexesVec[docId] = ((indexesVec[docId] - firstLeafOffsetsPtr[treeId]) / approxDimension);
                 }
                 indexesVec += docCountInBlock;
             } else {
@@ -695,6 +708,7 @@ namespace NCB::NModelEvaluation {
     template <bool IsSingleClassModel, bool NeedXorMask, bool CalcIndexesOnly>
     inline void CalcNonSymmetricTreesSingle(
         const TModelTrees& trees,
+        const TModelTrees::TForApplyData& applyData,
         const TCPUEvaluatorQuantizedData* quantizedData,
         size_t,
         TCalcerIndexType* __restrict indexesVec,
@@ -706,10 +720,12 @@ namespace NCB::NModelEvaluation {
         TCalcerIndexType index;
         const TRepackedBin* treeSplitsPtr = trees.GetRepackedBins().data();
         const TNonSymmetricTreeStepNode* treeStepNodes = trees.GetModelTreeData()->GetNonSymmetricStepNodes().data();
-        const auto firstLeafOffsets = trees.GetFirstLeafOffsets();
+        const auto firstLeafOffsetsPtr = applyData.TreeFirstLeafOffsets.data();
+        // handle special empty-model case when there is no any splits at all
+        const bool skipWork = quantizedData->QuantizedData.GetSize() == 0;
         for (size_t treeId = treeStart; treeId < treeEnd; ++treeId) {
             index = trees.GetModelTreeData()->GetTreeStartOffsets()[treeId];
-            while (true) {
+            while (!skipWork) {
                 const auto* stepNode = treeStepNodes + index;
                 const TRepackedBin split = treeSplitsPtr[index];
                 ui8 featureValue = binFeatures[split.FeatureIndex];
@@ -725,8 +741,8 @@ namespace NCB::NModelEvaluation {
             }
             const ui32 firstValueIdx = trees.GetModelTreeData()->GetNonSymmetricNodeIdToLeafId()[index];
             if constexpr (CalcIndexesOnly) {
-                Y_ASSERT((firstValueIdx - firstLeafOffsets[treeId]) % trees.GetDimensionsCount() == 0);
-                *indexesVec++ = ((firstValueIdx - firstLeafOffsets[treeId]) / trees.GetDimensionsCount());
+                Y_ASSERT((firstValueIdx - firstLeafOffsetsPtr[treeId]) % trees.GetDimensionsCount() == 0);
+                *indexesVec++ = ((firstValueIdx - firstLeafOffsetsPtr[treeId]) / trees.GetDimensionsCount());
             } else {
                 if constexpr (IsSingleClassModel) {
                     *resultsPtr += trees.GetModelTreeData()->GetLeafValues()[firstValueIdx];

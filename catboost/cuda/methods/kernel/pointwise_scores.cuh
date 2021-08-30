@@ -29,7 +29,7 @@ namespace NKernel {
                           const float* binFeaturesWeights, ui32 binaryFeatureWeightsCount,
                           const float* splits, const TPartitionStatistics* parts, ui32 pCount, ui32 foldCount,
                           TBestSplitProperties* result, ui32 resultSize,
-                          EScoreFunction scoreFunction, double l2, bool normalize,
+                          EScoreFunction scoreFunction, double l2, double metaL2Exponent, double metaL2Frequency, bool normalize,
                           double scoreStdDev, ui64 seed, bool gatheredByLeaves,
                           TCudaStream stream);
 

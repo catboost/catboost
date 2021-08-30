@@ -147,7 +147,7 @@ inline T FromString(const TChar* data, size_t len) {
 
 template <typename T, typename TChar>
 inline T FromString(const TChar* data) {
-    return ::FromString<T>(data, TCharTraits<TChar>::GetLength(data));
+    return ::FromString<T>(data, std::char_traits<TChar>::length(data));
 }
 
 template <class T>
@@ -202,7 +202,7 @@ inline ::NPrivate::TFromString<TChar> FromString(const TChar* data, size_t len) 
 
 template <typename TChar>
 inline ::NPrivate::TFromString<TChar> FromString(const TChar* data) {
-    return ::NPrivate::TFromString<TChar>(data, TCharTraits<TChar>::GetLength(data));
+    return ::NPrivate::TFromString<TChar>(data, std::char_traits<TChar>::length(data));
 }
 
 template <typename T>
@@ -228,7 +228,7 @@ inline bool TryFromString(const TChar* data, size_t len, T& result) {
 
 template <typename T, typename TChar>
 inline bool TryFromString(const TChar* data, T& result) {
-    return TryFromString<T>(data, TCharTraits<TChar>::GetLength(data), result);
+    return TryFromString<T>(data, std::char_traits<TChar>::length(data), result);
 }
 
 template <class T, class TChar>
@@ -326,7 +326,7 @@ TInt IntFromString(const TChar* str, size_t len);
 
 template <class TInt, int base, class TChar>
 inline TInt IntFromString(const TChar* str) {
-    return IntFromString<TInt, base>(str, TCharTraits<TChar>::GetLength(str));
+    return IntFromString<TInt, base>(str, std::char_traits<TChar>::length(str));
 }
 
 template <class TInt, int base, class TStringType>

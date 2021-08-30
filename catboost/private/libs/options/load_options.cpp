@@ -24,6 +24,13 @@ void NCatboostOptions::TPoolLoadParams::Validate(TMaybe<ETaskType> taskType) con
         CB_ENSURE(CheckExists(testSetPath), "Error: test file '" << testSetPath << "' doesn't exist");
         ValidatePoolParams(testSetPath, ColumnarPoolFormatParams);
     }
+    for (const auto& testPrecomputedSetPath : TestPrecomputedSetPaths) {
+        CB_ENSURE(CheckExists(testPrecomputedSetPath),
+                  "Error: test precomputed file '" << testPrecomputedSetPath << "' doesn't exist");
+        ValidatePoolParams(testPrecomputedSetPath, ColumnarPoolFormatParams);
+    }
+    CB_ENSURE(TestPrecomputedSetPaths.empty() || (TestSetPaths.size() == TestPrecomputedSetPaths.size()),
+              "Error: Number of precomputed test set paths must be equal to the number of main test set paths");
 
     if (TestPairsFilePath.Inited()) {
         CB_ENSURE(CheckExists(TestPairsFilePath), "Error: test pairs file '" << TestPairsFilePath << "' doesn't exist");
@@ -42,6 +49,11 @@ void NCatboostOptions::TPoolLoadParams::Validate(TMaybe<ETaskType> taskType) con
     if (TestBaselineFilePath.Inited()) {
         CB_ENSURE(CheckExists(TestBaselineFilePath),
                   "Error: test baseline file '" << TestBaselineFilePath << "' doesn't exist");
+    }
+
+    if (!PrecomputedMetadataFile.empty()) {
+        CB_ENSURE(CheckExists(NCB::TPathWithScheme(PrecomputedMetadataFile)),
+                  "Error: precomputed metadata file '" << PrecomputedMetadataFile << "' doesn't exist");
     }
 }
 
@@ -71,10 +83,17 @@ void NCatboostOptions::TPoolLoadParams::ValidateLearn() const {
 
 void NCatboostOptions::ValidatePoolParams(
     const NCB::TPathWithScheme& poolPath,
-    const TColumnarPoolFormatParams& poolFormatParams
+    const NCB::TDsvFormatOptions& dsvFormat
 ) {
     CB_ENSURE(
-        poolPath.Scheme == "dsv" || !poolFormatParams.DsvFormat.HasHeader,
+        poolPath.Scheme == "dsv" || !dsvFormat.HasHeader,
         "HasHeader parameter supported for \"dsv\" pools only."
     );
+}
+
+void NCatboostOptions::ValidatePoolParams(
+    const NCB::TPathWithScheme& poolPath,
+    const TColumnarPoolFormatParams& poolFormatParams
+) {
+    NCatboostOptions::ValidatePoolParams(poolPath, poolFormatParams.DsvFormat);
 }

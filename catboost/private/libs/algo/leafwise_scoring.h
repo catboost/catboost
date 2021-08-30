@@ -8,6 +8,62 @@
 #include <catboost/private/libs/algo_helpers/scoring_helpers.h>
 #include <catboost/private/libs/data_types/pair.h>
 
+class TStatsForSubtractionTrick {
+public:
+    TStatsForSubtractionTrick(
+        TArrayRef<TBucketStats> statsRef,
+        TArrayRef<TBucketStats> parentStatsRef,
+        TArrayRef<TBucketStats> siblingStatsRef,
+        int maxBucketCount,
+        int maxSplitEnsamples)
+        : StatsRef(statsRef)
+        , ParentStatsRef(parentStatsRef)
+        , SiblingStatsRef(siblingStatsRef)
+        , MaxBucketCount(maxBucketCount)
+        , MaxSplitEnsembles(maxSplitEnsamples)
+    {
+    }
+    TStatsForSubtractionTrick()
+        : StatsRef(nullptr, (size_t)0)
+        , ParentStatsRef(nullptr, (size_t)0)
+        , SiblingStatsRef(nullptr, (size_t)0)
+        , MaxBucketCount(0)
+        , MaxSplitEnsembles(0)
+    {
+    }
+    TStatsForSubtractionTrick MakeSlice(int idx, size_t statsSize) const {
+        TArrayRef<TBucketStats> statsRefSlice(StatsRef.data() + idx * statsSize, statsSize);
+        TArrayRef<TBucketStats> parentStatsRefSlice(ParentStatsRef.data() + idx * statsSize, statsSize);
+        TArrayRef<TBucketStats> siblingStatsRefSlice(SiblingStatsRef.data() + idx * statsSize, statsSize);
+        TArrayRef<TBucketStats> emptyRef;
+        TStatsForSubtractionTrick statsForSubtractionTrickSlice(StatsRef.data() != nullptr ? statsRefSlice : emptyRef,
+                                                                ParentStatsRef.data() != nullptr ? parentStatsRefSlice : emptyRef,
+                                                                SiblingStatsRef.data() != nullptr ? siblingStatsRefSlice : emptyRef,
+                                                                MaxBucketCount, MaxSplitEnsembles);
+        return statsForSubtractionTrickSlice;
+    }
+    TArrayRef<TBucketStats> GetStatsRef() const {
+        return StatsRef;
+    }
+    TArrayRef<TBucketStats> GetParentStatsRef() const {
+        return ParentStatsRef;
+    }
+    TArrayRef<TBucketStats> GetSiblingStatsRef() const {
+        return SiblingStatsRef;
+    }
+    int GetMaxBucketCount() const {
+        return MaxBucketCount;
+    }
+    int GetMaxSplitEnsembles() const {
+        return MaxSplitEnsembles;
+    }
+private:
+    TArrayRef<TBucketStats> StatsRef;
+    TArrayRef<TBucketStats> ParentStatsRef;
+    TArrayRef<TBucketStats> SiblingStatsRef;
+    int MaxBucketCount = 0;
+    int MaxSplitEnsembles = 0;
+};
 
 class TCalcScoreFold;
 class TFold;
@@ -17,17 +73,18 @@ namespace NCatboostOptions {
 }
 
 namespace NCB {
-    class TQuantizedForCPUObjectsDataProvider;
+    class TQuantizedObjectsDataProvider;
 }
 
 bool IsLeafwiseScoringApplicable(const NCatboostOptions::TCatBoostOptions& params);
 
 TVector<TVector<double>> CalcScoresForOneCandidate(
-    const NCB::TQuantizedForCPUObjectsDataProvider& data,
+    const NCB::TQuantizedObjectsDataProvider& data,
     const TCandidatesInfoList& candidate,
     const TCalcScoreFold& fold,
     const TFold& initialFold,
     const TVector<TIndexType>& leafs,
+    const TStatsForSubtractionTrick& statsForSubtractionTrick,
     TLearnContext* ctx
 );
 

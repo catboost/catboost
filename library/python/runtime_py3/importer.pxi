@@ -2,7 +2,7 @@ import marshal
 import sys
 from _codecs import utf_8_decode, utf_8_encode
 from _frozen_importlib import _call_with_frames_removed, spec_from_loader, BuiltinImporter
-from _frozen_importlib_external import _os, _path_isfile, path_sep
+from _frozen_importlib_external import _os, _path_isfile, _path_isdir, path_sep, _path_join
 from _io import FileIO
 
 import __res as __resource
@@ -11,6 +11,7 @@ _b = lambda x: x if isinstance(x, bytes) else utf_8_encode(x)[0]
 _s = lambda x: x if isinstance(x, str) else utf_8_decode(x)[0]
 env_entry_point = b'Y_PYTHON_ENTRY_POINT'
 env_source_root = b'Y_PYTHON_SOURCE_ROOT'
+env_extended_source_search = b'Y_PYTHON_EXTENDED_SOURCE_SEARCH'
 executable = sys.executable or 'Y_PYTHON'
 sys.modules['run_import_hook'] = __resource
 
@@ -19,6 +20,7 @@ py_prefix = b'py/'
 py_prefix_len = len(py_prefix)
 
 Y_PYTHON_SOURCE_ROOT = _os.environ.get(env_source_root)
+Y_PYTHON_EXTENDED_SOURCE_SEARCH = _os.environ.get(env_extended_source_search)
 
 
 def _print(*xs):
@@ -128,6 +130,10 @@ class ResourceImporter(object):
         self.source_map = {}                  # Map from file names to module names.
         self._source_name = {}                # Map from original to altered module names.
         self._package_prefix = ''
+        if Y_PYTHON_SOURCE_ROOT and Y_PYTHON_EXTENDED_SOURCE_SEARCH:
+            self.arcadia_source_finder = ArcadiaSourceFinder(_s(Y_PYTHON_SOURCE_ROOT))
+        else:
+            self.arcadia_source_finder = None
 
         for p in list(self.memory) + list(sys.builtin_module_names):
             for pp in iter_prefixes(p):
@@ -140,6 +146,13 @@ class ResourceImporter(object):
         importer = copy.copy(self)
         importer._package_prefix = name + '.'
         return importer
+
+    def _find_mod_path(self, fullname):
+        """Find arcadia relative path by module name"""
+        relpath = resfs_src(mod_path(fullname), resfs_file=True)
+        if relpath or not self.arcadia_source_finder:
+            return relpath
+        return self.arcadia_source_finder.get_module_path(fullname)
 
     def find_spec(self, fullname, path=None, target=None):
         try:
@@ -181,7 +194,7 @@ class ResourceImporter(object):
         modname = fullname
         if self.is_package(fullname):
             fullname += '.__init__'
-        relpath = resfs_src(mod_path(fullname), resfs_file=True)
+        relpath = self._find_mod_path(fullname)
         if isinstance(relpath, bytes):
             relpath = _s(relpath)
         return relpath or modname
@@ -208,7 +221,7 @@ class ResourceImporter(object):
             fullname += '.__init__'
 
         path = mod_path(fullname)
-        relpath = resfs_src(path, resfs_file=True)
+        relpath = self._find_mod_path(fullname)
         if relpath:
             abspath = resfs_resolve(relpath)
             if abspath:
@@ -233,6 +246,9 @@ class ResourceImporter(object):
 
         if fullname + '.__init__' in self.memory:
             return True
+
+        if self.arcadia_source_finder:
+            return self.arcadia_source_finder.is_package(fullname)
 
         raise ImportError(fullname)
 
@@ -262,6 +278,9 @@ class ResourceImporter(object):
             m = rx.match(p)
             if m:
                 yield prefix + m.group(1), m.group(2) is not None
+        if self.arcadia_source_finder:
+            for m in self.arcadia_source_finder.iter_modules(self._package_prefix, prefix):
+                yield m
 
     def get_resource_reader(self, fullname):
         try:
@@ -322,6 +341,107 @@ class BuiltinSubmoduleImporter(BuiltinImporter):
             return super().find_spec(fullname, None, target)
         else:
             return None
+
+
+class ArcadiaSourceFinder:
+    NAMESPACE_PREFIX = b'py/namespace/'
+    PY_EXT = '.py'
+
+    def __init__(self, source_root):
+        self.source_root = source_root
+        # key: module_name:
+        # value:
+        #   list of relative package paths - for a package
+        #   relative module path - for a module
+        #   None - module or package is not found
+        self.module_path_cache = {}
+        self.namespace_paths = {}
+        for key, dirty_path in iter_keys(self.NAMESPACE_PREFIX):
+            # dirty_path contains unique prefix to prevent repeatable keys in the resource storage
+            path = dirty_path.split(b'/', 1)[1]
+            namespaces = __resource.find(key).split(b':')
+            for n in namespaces:
+                self.namespace_paths.setdefault(_s(n.rstrip(b'.')), set()).add(_s(path))
+
+        # Populate module cache by namespace packages
+        self.module_path_cache[''] = self.namespace_paths.get('', set())
+        for package_name in self.namespace_paths:
+            self._cache_module_path(package_name, find_package_only=True, force_package_exists=True)
+
+    def get_module_path(self, fullname):
+        """
+            Find file path for module 'fullname'.
+            For packages caller pass fullname as 'package.__init__'.
+            Return None if nothing is found.
+        """
+        try:
+            if not self.is_package(fullname):
+                return _b(self._cache_module_path(fullname))
+        except ImportError:
+            pass
+
+    def is_package(self, fullname):
+        """Check if fullname is a package. Raise ImportError if fullname is not found"""
+        path = self._cache_module_path(fullname)
+        if isinstance(path, set):
+            return True
+        if isinstance(path, str):
+            return False
+        raise ImportError(fullname)
+
+    def iter_modules(self, package_prefix, prefix):
+        paths = self._cache_module_path(package_prefix.rstrip('.'))
+        if paths is not None:
+            # Note: it's ok to yield duplicates because pkgutil discards them
+
+            # Yield from cache
+            import re
+            rx = re.compile(re.escape(package_prefix) + r'([^.]+)$')
+            for p in self.module_path_cache.keys():
+                m = rx.match(p)
+                if m:
+                    yield prefix + m.group(1), self.is_package(p)
+
+            # Yield from file system
+            for path in paths:
+                abs_path = _path_join(self.source_root, path)
+                for dir_item in _os.listdir(abs_path):
+                    if _path_isdir(_path_join(abs_path, dir_item)):
+                        yield prefix  +  dir_item, True
+                    elif dir_item.endswith(self.PY_EXT) and _path_isfile(_path_join(abs_path, dir_item)):
+                        yield prefix + dir_item[:-len(self.PY_EXT)], False
+
+    def _cache_module_path(self, fullname, find_package_only=False, force_package_exists=False):
+        """ 
+            Find module path or package directory paths and save result in the cache
+
+            find_package_only=True - don't try to find module
+            force_package_exists=True - create 'virtual' packages for the namespace even if there is no underlying directory for fullname
+        """
+        if force_package_exists and not find_package_only:
+            raise ValueError("find_package_only must be True if force_package_exists is True")
+        if fullname in self.module_path_cache:
+            return self.module_path_cache[fullname]
+        package_paths = self.namespace_paths.get(fullname, set())
+        parent, _, tail = fullname.rpartition('.')
+        parent_paths = self._cache_module_path(parent, find_package_only=True, force_package_exists=force_package_exists)
+        result = None
+        if parent_paths:
+            for path in parent_paths:
+                file_path = _path_join(path, tail)
+                if not find_package_only:
+                    # Check if file_path is a module
+                    module_path = file_path + self.PY_EXT
+                    if _path_isfile(_path_join(self.source_root, module_path)):
+                        result = module_path
+                        break
+                # Check if file_path is a package
+                if _path_isdir(_path_join(self.source_root, file_path)):
+                    package_paths.add(file_path)
+        if not result and (package_paths or force_package_exists):
+            result = package_paths
+        self.module_path_cache[fullname] = result
+        return result
 
 
 def excepthook(*args, **kws):

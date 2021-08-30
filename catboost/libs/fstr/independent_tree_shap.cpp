@@ -59,17 +59,17 @@ namespace {
             size_t treeIdx,
             TVector<TVector<double>>* shapValuesInternalByDepth
         )
-            : BinFeatureCombinationClassByDepth(binFeatureCombinationClassByDepth) 
-            , Weights(weights) 
-            , ListOfFeaturesDocumentLeaf(classCount) 
-            , ListOfFeaturesDocumentLeafReference(classCount) 
-            , DocumentLeafIdx(documentLeafIdx) 
-            , DocumentLeafIdxReference(documentLeafIdxReference) 
+            : BinFeatureCombinationClassByDepth(binFeatureCombinationClassByDepth)
+            , Weights(weights)
+            , ListOfFeaturesDocumentLeaf(classCount)
+            , ListOfFeaturesDocumentLeafReference(classCount)
+            , DocumentLeafIdx(documentLeafIdx)
+            , DocumentLeafIdxReference(documentLeafIdxReference)
             , DepthOfTree(forest.GetModelTreeData()->GetTreeSizes()[treeIdx])
-            , ApproxDimension(forest.GetDimensionsCount()) 
-            , LeafValuesPtr(forest.GetFirstLeafPtrForTree(treeIdx)) 
-            , ShapValuesInternalByDepth(*shapValuesInternalByDepth) 
-        { 
+            , ApproxDimension(forest.GetDimensionsCount())
+            , LeafValuesPtr(forest.GetFirstLeafPtrForTree(treeIdx))
+            , ShapValuesInternalByDepth(*shapValuesInternalByDepth)
+        {
         }
 
         TContribution Calc(
@@ -87,7 +87,7 @@ static TContribution SumContributions(
     const TContribution& rhs
 ) {
     CB_ENSURE_INTERNAL(
-        lhs.PositiveContribution.size() == rhs.PositiveContribution.size(), 
+        lhs.PositiveContribution.size() == rhs.PositiveContribution.size(),
         "Contributions have different sizes");
     TContribution result{lhs.PositiveContribution.size()};
     const auto approxDimension = result.PositiveContribution.size();
@@ -117,7 +117,7 @@ TContribution TInternalIndependentTreeShapCalcer::Calc(
             if (featureMatchedDatasetSampleCount != 0) {
                 double weight = Weights[featureMatchedDatasetSampleCount - 1][uniqueFeaturesCount];
                 for (size_t dimension = 0; dimension < ApproxDimension; ++dimension) {
-                    contribution.PositiveContribution[dimension] = weight * LeafValuesPtr[nodeIdx * ApproxDimension + dimension]; 
+                    contribution.PositiveContribution[dimension] = weight * LeafValuesPtr[nodeIdx * ApproxDimension + dimension];
                 }
             }
             if (featureMatchedDatasetSampleCount != uniqueFeaturesCount) {
@@ -138,7 +138,7 @@ TContribution TInternalIndependentTreeShapCalcer::Calc(
     const size_t goNodeIdx = nodeIdx * 2 + isGoRight;
     // for current reference object, who fall down to leadIdx [documentLeafIdx]
     const bool isGoRightReference = (DocumentLeafIdxReference >> remainingDepth) & 1;
-    const size_t goNodeIdxReference = nodeIdx * 2 + isGoRightReference;             
+    const size_t goNodeIdxReference = nodeIdx * 2 + isGoRightReference;
     if (ListOfFeaturesDocumentLeaf[combinationClass] > 0) {
         nextNodeIdx = goNodeIdx;
     } else {
@@ -147,7 +147,7 @@ TContribution TInternalIndependentTreeShapCalcer::Calc(
         } else {
             if (goNodeIdx == goNodeIdxReference) {
                 nextNodeIdx = goNodeIdx;
-            } 
+            }
         }
     }
     if (nextNodeIdx != None) {
@@ -219,16 +219,16 @@ void AddValuesToShapValuesByAllReferences(
     }
 }
 
-static inline ui64 GetBinomialCoeffient(ui64 n, ui64 k) { 
-    ui64 binomialCoefficient = 1; 
+static inline ui64 GetBinomialCoeffient(ui64 n, ui64 k) {
+    ui64 binomialCoefficient = 1;
     if (k > n - k) {
-        k = n - k; 
+        k = n - k;
     }
-    for (ui64 i = 0; i < k; ++i) { 
+    for (ui64 i = 0; i < k; ++i) {
         binomialCoefficient *= (n - i);
-        binomialCoefficient /= (i + 1); 
-    } 
-    return binomialCoefficient; 
+        binomialCoefficient /= (i + 1);
+    }
+    return binomialCoefficient;
 }
 
 static TVector<TVector<double>> SwapFeatureAndDimensionAxes(const TVector<TVector<double>>& shapValues) {
@@ -260,7 +260,7 @@ void CalcObliviousShapValuesByDepthForLeaf(
     const size_t depthOfTree = forest.GetModelTreeData()->GetTreeSizes()[treeIdx];
     const size_t approxDimension = forest.GetDimensionsCount();
     const size_t leafCountInTree = (size_t(1) << forest.GetModelTreeData()->GetTreeSizes()[treeIdx]);
-    const size_t leafCount = isCalcForAllLeafes ? leafCountInTree : referenceLeafIndices.size(); 
+    const size_t leafCount = isCalcForAllLeafes ? leafCountInTree : referenceLeafIndices.size();
     const size_t classCount = combinationClassFeatures.size();
     for (size_t idx = 0; idx < leafCount; ++idx) {
         const size_t leafIdx = isCalcForAllLeafes ? idx : referenceLeafIndices[idx];
@@ -383,7 +383,7 @@ static TVector<double> GetUnpackedShapValues(
 
 static TVector<TVector<double>> GetProbabilityMeanValues(
     const TVector<TVector<TVector<double>>>& shapValues, // [refIdx][dim][feature]
-    double bias
+    const TVector<double>& bias
 ) {
     TVector<TVector<double>> probabilityMeanValues(shapValues[0].size(), TVector<double>(shapValues.size(), 0.0));
     for (auto referenceIdx : xrange(shapValues.size())) {
@@ -391,7 +391,7 @@ static TVector<TVector<double>> GetProbabilityMeanValues(
         const size_t approxDimension = shapValuesForReference.size();
         TVector<double> meanValuesForReference(approxDimension);
         for (auto dimension : xrange(approxDimension)) {
-            meanValuesForReference[dimension] = shapValuesForReference[dimension].back() + bias;
+            meanValuesForReference[dimension] = shapValuesForReference[dimension].back() + bias[dimension];
         }
         TVector<double> probabilityMeanValuesForReference(approxDimension);
         CalcSoftmax(meanValuesForReference, &probabilityMeanValuesForReference);
@@ -410,8 +410,8 @@ void PostProcessingIndependent(
     size_t flatFeatureCount,
     size_t documentIdx,
     bool calcInternalValues,
-    double bias,
-    TVector<TVector<double>>* shapValues  
+    const TVector<double>& bias,
+    TVector<TVector<double>>* shapValues
 ) {
     const size_t featureCount = calcInternalValues ? combinationClassFeatures.size() : flatFeatureCount;
     const size_t referenceCount = independentTreeShapParams.ReferenceLeafIndicesForAllTrees[0].size();
@@ -464,7 +464,7 @@ void PostProcessingIndependent(
                 modelOutputType,
                 targetOfDocument,
                 isNotRawOutputType,
-                bias
+                bias[dimension]
             );
         const auto& shapValuesForAllReferencesOneDimensional = shapValuesForAllReferences[dimension];
         TArrayRef<double> shapValuesRef = MakeArrayRef((*shapValues)[dimension]);
@@ -519,7 +519,7 @@ static TVector<TVector<double>> GetTransformedTarget(
         TConstArrayRef<double> approxRef = MakeConstArrayRef(approx[dimension]);
         TArrayRef<double> transformedTargetRef = MakeArrayRef(transformedTarget[dimension]);
 
-        for (auto documentIdx : xrange(approxRef.size())) {        
+        for (auto documentIdx : xrange(approxRef.size())) {
             transformedTargetRef[documentIdx] = TransformDocument(
                 metric,
                 targetDataRef[documentIdx],
@@ -534,12 +534,13 @@ void TIndependentTreeShapParams::InitTransformedData(
     const TFullModel& model,
     const TDataProvider& dataset,
     const NCatboostOptions::TLossDescription& metricDescription,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) {
     switch (ModelOutputType)
     {
         case EExplainableModelOutput::Probability: {
-            TransformedTargetOfDataset = ApplyModelMulti(model, *dataset.ObjectsData, EPredictionType::Probability, 0, 0, localExecutor);
+            TransformedTargetOfDataset =
+                ApplyModelMulti(model, *dataset.ObjectsData, EPredictionType::Probability, 0, 0, localExecutor, dataset.RawTargetData.GetBaseline());
             break;
         }
         case EExplainableModelOutput::LossFunction : {
@@ -561,7 +562,7 @@ TIndependentTreeShapParams::TIndependentTreeShapParams(
     const TDataProvider& dataset,
     const TDataProvider& referenceDataset,
     EExplainableModelOutput modelOutputType,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) {
     ModelOutputType = modelOutputType;
     Weights = CalcWeightsForIndependentTreeShap(model);
@@ -597,7 +598,7 @@ TIndependentTreeShapParams::TIndependentTreeShapParams(
     FlatFeatureCount = SafeIntegerCast<int>(dataset.MetaInfo.GetFeatureCount());
     ApproxOfDataset = ApplyModelMulti(model, *dataset.ObjectsData, EPredictionType::RawFormulaVal, 0, 0, localExecutor);
     ApproxOfReferenceDataset = ApplyModelMulti(model, *referenceDataset.ObjectsData, EPredictionType::RawFormulaVal, 0, 0, localExecutor);
-    const bool isMultiClass = (model.GetDimensionsCount() > 1); 
+    const bool isMultiClass = (model.GetDimensionsCount() > 1);
     if (isMultiClass && EExplainableModelOutput::Probability == modelOutputType) {
         ProbabilitiesOfReferenceDataset = ApplyModelMulti(model, *referenceDataset.ObjectsData, EPredictionType::Probability, 0, 0, localExecutor);
     }

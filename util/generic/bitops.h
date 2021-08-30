@@ -7,7 +7,7 @@
 #include <util/system/yassert.h>
 
 #ifdef _MSC_VER
-#include <intrin.h>
+    #include <intrin.h>
 #endif
 
 namespace NBitOps {
@@ -181,7 +181,7 @@ namespace NBitOps {
             return value;
         }
 
-#if defined(_x86_64_)
+    #if defined(_x86_64_)
         Y_FORCE_INLINE ui64 RotateBitsRightImpl(ui64 value, ui8 shift) noexcept {
             __asm__("rorq   %%cl, %0"
                     : "=r"(value)
@@ -195,7 +195,7 @@ namespace NBitOps {
                     : "0"(value), "c"(shift));
             return value;
         }
-#endif
+    #endif
 #endif
     }
 }

@@ -28,12 +28,12 @@ static TVector<float> CalculateSummaryClassWeight(
     TConstArrayRef<float> targetClasses,
     const NCB::TWeights<float>& itemWeights,
     ui32 classCount,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) {
     const int numThreads = localExecutor->GetThreadCount() + 1;
     TVector<TVector<double>> summaryClassWeightsPerBlock(numThreads, TVector<double>(classCount, 0.));
 
-    NPar::TLocalExecutor::TExecRangeParams params{0, targetClasses.ysize()};
+    NPar::ILocalExecutor::TExecRangeParams params{0, targetClasses.ysize()};
     params.SetBlockCount(numThreads);
     localExecutor->ExecRange(
         [&](int i) {
@@ -58,7 +58,7 @@ namespace NCB {
         const TWeights<float>& itemWeights,
         ui32 classCount,
         EAutoClassWeightsType autoClassWeightsType,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
     ) {
         Y_VERIFY(classCount > 0);
         TVector<float> summaryClassWeights = CalculateSummaryClassWeight(

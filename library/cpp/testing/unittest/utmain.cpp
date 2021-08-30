@@ -6,6 +6,8 @@
 
 #include <library/cpp/json/writer/json.h>
 #include <library/cpp/json/writer/json_value.h>
+#include <library/cpp/testing/common/env.h>
+#include <library/cpp/testing/hook/hook.h>
 
 #include <util/datetime/base.h>
 
@@ -149,12 +151,12 @@ private:
             TStringBuilder msgs;
             for (const TString& m : ErrorMessages) {
                 if (msgs) {
-                    msgs << AsStringBuf("\n");
+                    msgs << TStringBuf("\n");
                 }
                 msgs << m;
             }
             if (msgs) {
-                msgs << AsStringBuf("\n");
+                msgs << TStringBuf("\n");
             }
             TraceSubtestFinished(descr->test->unit->name.data(), descr->test->name, "fail", msgs, descr->Context);
             ErrorMessages.clear();
@@ -291,17 +293,6 @@ public:
 
     inline void SetTraceProcessor(TAutoPtr<ITestSuiteProcessor> traceProcessor) {
         TraceProcessor = traceProcessor;
-    }
-
-    inline void SetParam(const TString& key, const TString& value) override {
-        TestParams_[key] = value;
-    }
-
-    inline const TString& GetParam(const TString& key, const TString& def) const override {
-        if (!TestParams_.contains(key))
-            return def;
-
-        return TestParams_.at(key);
     }
 
 private:
@@ -542,7 +533,6 @@ private:
     static const char* const ForkCorrectExitMsg;
     bool ForkExitedCorrectly;
     TAutoPtr<ITestSuiteProcessor> TraceProcessor;
-    THashMap<TString, TString> TestParams_;
 };
 
 const char* const TColoredProcessor::ForkCorrectExitMsg = "--END--";
@@ -622,7 +612,7 @@ static int DoUsage(const char* progname) {
          << "Options:\n"
          << "  -h, --help            print this help message\n"
          << "  -l, --list            print a list of available tests\n"
-         << "  --list-verbose        print a list of available subtests\n"
+         << "  -A --list-verbose        print a list of available subtests\n"
          << "  --print-before-test   print each test name before running it\n"
          << "  --print-before-suite  print each test suite name before running it\n"
          << "  --show-fails          print a list of all failed tests at the end\n"
@@ -657,6 +647,7 @@ int NUnitTest::RunMain(int argc, char** argv) {
         Y_VERIFY(!sigaction(SIGUSR2, &sa, nullptr));
     }
 #endif
+    NTesting::THook::CallBeforeInit();
     InitNetworkSubSystem();
 
     try {
@@ -667,6 +658,9 @@ int NUnitTest::RunMain(int argc, char** argv) {
 #ifndef UT_SKIP_EXCEPTIONS
     try {
 #endif
+        NTesting::THook::CallBeforeRun();
+        Y_DEFER { NTesting::THook::CallAfterRun(); };
+
         NPlugin::OnStartMain(argc, argv);
         Y_DEFER { NPlugin::OnStopMain(argc, argv); };
 
@@ -689,7 +683,7 @@ int NUnitTest::RunMain(int argc, char** argv) {
                     return DoUsage(argv[0]);
                 } else if (strcmp(name, "--list") == 0 || strcmp(name, "-l") == 0) {
                     listTests = LIST;
-                } else if (strcmp(name, "--list-verbose") == 0) {
+                } else if (strcmp(name, "--list-verbose") == 0 || strcmp(name, "-A") == 0) {
                     listTests = LIST_VERBOSE;
                 } else if (strcmp(name, "--print-before-suite=false") == 0) {
                     processor.SetPrintBeforeSuite(false);
@@ -737,7 +731,7 @@ int NUnitTest::RunMain(int argc, char** argv) {
                     ++i;
                     TString param(argv[i]);
                     size_t assign = param.find('=');
-                    processor.SetParam(param.substr(0, assign), param.substr(assign + 1));
+                    Singleton<::NPrivate::TTestEnv>()->AddTestParam(param.substr(0, assign), param.substr(assign + 1));
                 } else if (TString(name).StartsWith("--")) {
                     return DoUsage(argv[0]), 1;
                 } else if (*name == '-') {

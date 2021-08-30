@@ -29,7 +29,7 @@ Y_UNIT_TEST_SUITE(TWaitAllTest) {
         auto w = NWait::WaitAll(p1.GetFuture(), p2.GetFuture());
         UNIT_ASSERT(!w.HasValue() && !w.HasException());
 
-        constexpr auto message = AsStringBuf("Test exception");
+        constexpr TStringBuf message = "Test exception";
         p1.SetException(std::make_exception_ptr(yexception() << message));
         UNIT_ASSERT(!w.HasValue() && !w.HasException());
 
@@ -55,7 +55,7 @@ Y_UNIT_TEST_SUITE(TWaitAllTest) {
         auto w = NWait::WaitAll(f, p.GetFuture());
         UNIT_ASSERT(!w.HasValue() && !w.HasException());
 
-        constexpr auto message = AsStringBuf("Test exception 2");
+        constexpr TStringBuf message = "Test exception 2";
         p.SetException(std::make_exception_ptr(yexception() << message));
         UNIT_ASSERT_EXCEPTION_SATISFIES(w.TryRethrow(), yexception, [message](auto const& e) {
             return message == e.what();
@@ -86,7 +86,7 @@ Y_UNIT_TEST_SUITE(TWaitAllTest) {
         auto w = NWait::WaitAll(TVector<TFuture<void>>{ p.GetFuture() });
         UNIT_ASSERT(!w.HasValue() && !w.HasException());
 
-        constexpr auto message = AsStringBuf("Test exception 3");
+        constexpr TStringBuf message = "Test exception 3";
         p.SetException(std::make_exception_ptr(yexception() << message));
         UNIT_ASSERT_EXCEPTION_SATISFIES(w.TryRethrow(), yexception, [message](auto const& e) {
             return message == e.what();
@@ -113,7 +113,7 @@ Y_UNIT_TEST_SUITE(TWaitAllTest) {
         auto w = NWait::WaitAll(TVector<TFuture<int>>{ p1.GetFuture(), f, p2.GetFuture() });
         UNIT_ASSERT(!w.HasValue() && !w.HasException());
 
-        constexpr auto message = AsStringBuf("Test exception 4");
+        constexpr TStringBuf message = "Test exception 4";
         p1.SetException(std::make_exception_ptr(yexception() << message));
         UNIT_ASSERT(!w.HasValue() && !w.HasException());
 

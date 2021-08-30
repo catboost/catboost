@@ -11,35 +11,56 @@ import zipfile
 
 class _Formatting(object):
     @staticmethod
+    def is_str(strval):
+        if sys.version_info >= (3, 0, 0):
+            return isinstance(strval, (bytes,str))
+        else:
+            return isinstance(strval, basestring)
+
+    @staticmethod
+    def encoding_needed(strval):
+        if sys.version_info >= (3, 0, 0):
+            return isinstance(strval, str)
+        else:
+            return isinstance(strval, unicode)
+
+    @staticmethod
     def escape_special_symbols(strval):
-        c_str = strval.encode('utf-8') if isinstance(strval, unicode) else strval
-        retval = ""
+        encoding_needed = _Formatting.encoding_needed(strval)
+        c_str = strval.encode('utf-8') if encoding_needed else strval
+        retval = b""
         for c in c_str:
+            if sys.version_info >= (3, 0, 0):
+                c = bytes([c])
             if c in ("\\", "\""):
                 retval += "\\" + c
             elif ord(c) < ord(' '):
-                retval += c.encode("string_escape")
+                retval += c.decode('latin-1').encode('unicode_escape')
             else:
                 retval += c
-        return retval.decode('utf-8') if isinstance(strval, unicode) else retval
+        return retval.decode('utf-8') if encoding_needed else retval
 
     @staticmethod
     def escape_line_feed(strval, indent='    '):
         return strval.replace(r'\n', '\\n"\\\n' + indent + '"')
 
     @staticmethod
+    def escape_trigraphs(strval):
+        return strval.replace(r'?', '\\?')
+
+    @staticmethod
     def escaped_define(strkey, val):
         name = "#define " + strkey + " "
-        if isinstance(val, basestring):
+        if _Formatting.is_str(val):
             define = "\"" + _Formatting.escape_line_feed(
-                _Formatting.escape_special_symbols(val)) + "\""
+                _Formatting.escape_trigraphs(_Formatting.escape_special_symbols(val))) + "\""
         else:
             define = str(val)
         return name + define
 
     @staticmethod
     def escaped_go_map_key(strkey, strval):
-        if isinstance(strval, basestring):
+        if _Formatting.is_str(strval):
             return '    ' + '"' + strkey + '": "' + _Formatting.escape_special_symbols(strval) + '",'
         else:
             return '    ' + '"' + strkey + '": "' + str(strval) + '",'
@@ -47,8 +68,8 @@ class _Formatting(object):
 
 def get_default_json():
     return json.loads('''{
-    "ARCADIA_SOURCE_HG_HASH": "0577215664901532860606512090082402431042",
-    "ARCADIA_SOURCE_LAST_AUTHOR": "ordinal",
+    "ARCADIA_SOURCE_HG_HASH": "0000000000000000000000000000000000000000",
+    "ARCADIA_SOURCE_LAST_AUTHOR": "<UNKNOWN>",
     "ARCADIA_SOURCE_LAST_CHANGE": -1,
     "ARCADIA_SOURCE_PATH": "/",
     "ARCADIA_SOURCE_REVISION": -1,
@@ -58,8 +79,8 @@ def get_default_json():
     "BUILD_TIMESTAMP": 0,
     "BUILD_HOST": "localhost",
     "BUILD_USER": "nobody",
-    "PROGRAM_VERSION": "Arc info:\\n    Branch: math\\n    Commit: 0577215664901532860606512090082402431042\\n    Author: ordinal\\n    Summary: No VCS\\n\\n",
-    "SCM_DATA": "Arc info:\\n    Branch: math\\n    Commit: 0577215664901532860606512090082402431042\\n    Author: ordinal\\n    Summary: No VCS\\n",
+    "PROGRAM_VERSION": "Arc info:\\n    Branch: unknown-vcs-branch\\n    Commit: 0000000000000000000000000000000000000000\\n    Author: <UNKNOWN>\\n    Summary: No VCS\\n\\n",
+    "SCM_DATA": "Arc info:\\n    Branch: unknown-vcs-branch\\n    Commit: 0000000000000000000000000000000000000000\\n    Author: <UNKNOWN>\\n    Summary: No VCS\\n",
     "VCS": "arc",
     "ARCADIA_PATCH_NUMBER": 0,
     "ARCADIA_TAG": ""
@@ -73,7 +94,7 @@ def get_json(file_name):
 
         # TODO: check 'tar+svn' parsing
         for i in ['ARCADIA_SOURCE_REVISION', 'ARCADIA_SOURCE_LAST_CHANGE', 'SVN_REVISION']:
-            if i in out and isinstance(out[i], basestring):
+            if i in out and _Formatting.is_str(out[i]):
                 try:
                     out[i] = int(out[i])
                 except:
@@ -99,7 +120,10 @@ def print_c(json_file, output_file, argv):
     with open(interface) as c:
         c_file = c.read()
     with open(output_file, 'w') as f:
-        f.write('\n'.join(gen_header(json_file)).encode('utf-8') + '\n' + c_file)
+        header = '\n'.join(gen_header(json_file))
+        if sys.version_info < (3, 0, 0):
+            header = header.encode('utf-8')
+        f.write(header + '\n' + c_file)
 
 
 def merge_java_content(old_content, json_file):

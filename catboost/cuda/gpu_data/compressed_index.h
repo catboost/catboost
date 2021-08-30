@@ -240,7 +240,6 @@ namespace NCatboostCuda {
 
     extern template class TSharedCompressedIndex<TFeatureParallelLayout>;
     extern template class TSharedCompressedIndex<TDocParallelLayout>;
-    extern template class TSharedCompressedIndex<TSingleDevLayout>;
 
     template <class TLayoutPolicy = TFeatureParallelLayout>
     using TCompressedDataSet = typename TSharedCompressedIndex<TLayoutPolicy>::TCompressedDataSet;

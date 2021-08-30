@@ -10,7 +10,7 @@ ELSE()
     TAG(ya:yt)
 ENDIF()
 
-YT_SPEC(catboost/pytest/cuda_tests/yt_spec.json)
+YT_SPEC(catboost/pytest/cuda_tests/yt_spec.yson)
 
 SRCS(
     test_auc.cpp
@@ -18,6 +18,8 @@ SRCS(
     test_multi_logit.cpp
     test_query_cross_entropy.cpp
     test_combination.cpp
+    test_tweedie.cpp
+    test_huber.cpp
 )
 
 PEERDIR(

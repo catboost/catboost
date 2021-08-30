@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ctrs.h"
 #include "data_provider.h"
 #include "loader.h"
 #include "objects.h"
@@ -12,6 +13,7 @@
 
 #include <library/cpp/threading/local_executor/local_executor.h>
 
+#include <util/generic/array_ref.h>
 #include <util/generic/maybe.h>
 #include <util/generic/vector.h>
 #include <util/system/types.h>
@@ -32,12 +34,13 @@ namespace NCB {
         const TPathWithScheme& timestampsFilePath, // can be uninited
         const TPathWithScheme& baselineFilePath, // can be uninited
         const TPathWithScheme& featureNamesPath, // can be uninited
+        const TPathWithScheme& poolMetaInfoPath, // can be uninited
         const NCatboostOptions::TColumnarPoolFormatParams& columnarPoolFormatParams,
         const TVector<ui32>& ignoredFeatures,
         EObjectsOrder objectsOrder,
         TDatasetSubset loadSubset,
         TMaybe<TVector<NJson::TJsonValue>*> classLabels,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
     );
 
     // for use from context where there's no localExecutor and proper logging handling is unimplemented
@@ -49,6 +52,7 @@ namespace NCB {
         const TPathWithScheme& timestampsFilePath, // can be uninited
         const TPathWithScheme& baselineFilePath, // can be uninited
         const TPathWithScheme& featureNamesPath, // can be uninited
+        const TPathWithScheme& poolMetaInfoPath, // can be uninited
         const NCatboostOptions::TColumnarPoolFormatParams& columnarPoolFormatParams,
         const TVector<ui32>& ignoredFeatures,
         EObjectsOrder objectsOrder,
@@ -59,18 +63,19 @@ namespace NCB {
 
     // version with explicitly specified lineReader. Only supports CatBoost dsv format
     TDataProviderPtr ReadDataset(
-        THolder<ILineDataReader> lineReader,
+        THolder<ILineDataReader>&& lineReader,
         const TPathWithScheme& pairsFilePath, // can be uninited
         const TPathWithScheme& groupWeightsFilePath, // can be uninited
         const TPathWithScheme& timestampsFilePath, // can be uninited
         const TPathWithScheme& baselineFilePath, // can be uninited
         const TPathWithScheme& featureNamesPath, // can be uninited
+        const TPathWithScheme& poolMetaInfoPath, // can be uninited
         const NCB::TDsvFormatOptions& poolFormat,
         const TVector<TColumn>& columnsDescription, // TODO(smirnovpavel): TVector<EColumn>
         const TVector<ui32>& ignoredFeatures,
         EObjectsOrder objectsOrder,
         TMaybe<TVector<NJson::TJsonValue>*> classLabels,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
     );
 
     TDataProviders ReadTrainDatasets(
@@ -78,9 +83,17 @@ namespace NCB {
         const NCatboostOptions::TPoolLoadParams& loadOptions,
         EObjectsOrder objectsOrder,
         bool readTestData,
-        TDatasetSubset trainDatasetSubset,
+        TDatasetSubset learnDatasetSubset,
+        TConstArrayRef<TDatasetSubset> testDatasetSubsets,
         TMaybe<TVector<NJson::TJsonValue>*> classLabels,
-        NPar::TLocalExecutor* executor,
+        NPar::ILocalExecutor* executor,
+        TProfileInfo* profile
+    );
+
+    TPrecomputedOnlineCtrData ReadPrecomputedOnlineCtrData(
+        TMaybe<ETaskType> taskType,
+        const NCatboostOptions::TPoolLoadParams& loadOptions,
+        NPar::ILocalExecutor* executor,
         TProfileInfo* profile
     );
 

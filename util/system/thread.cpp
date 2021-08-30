@@ -2,7 +2,6 @@
 #include "thread.h"
 #include "thread.i"
 
-#include <util/generic/map.h>
 #include <util/generic/ptr.h>
 #include <util/generic/ymath.h>
 #include <util/generic/ylimits.h>
@@ -10,15 +9,12 @@
 #include "yassert.h"
 #include <utility>
 
-#include <cstdio>
-#include <cstdlib>
-
 #if !defined(_win_)
-#include <pthread.h>
+    #include <pthread.h>
 #else
-#include "dynlib.h"
-#include <util/charset/wide.h>
-#include <util/generic/scope.h>
+    #include "dynlib.h"
+    #include <util/charset/wide.h>
+    #include <util/generic/scope.h>
 #endif
 
 bool SetHighestThreadPriority() {
@@ -72,9 +68,9 @@ namespace {
         inline TWinThread(const TParams& params)
             : P_(new TMyParams(params))
             , Handle(0)
-#if _WIN32_WINNT < 0x0502
+    #if _WIN32_WINNT < 0x0502
             , ThreadId(0)
-#endif
+    #endif
         {
         }
 
@@ -83,11 +79,11 @@ namespace {
         }
 
         inline TId SystemThreadId() const noexcept {
-#if _WIN32_WINNT < 0x0502
+    #if _WIN32_WINNT < 0x0502
             return (TId)ThreadId;
-#else
+    #else
             return (TId)GetThreadId(Handle);
-#endif
+    #endif
         }
 
         inline void* Join() {
@@ -120,37 +116,39 @@ namespace {
         }
 
         inline void Start() {
-#if _WIN32_WINNT < 0x0502
-            Handle = reinterpret_cast<HANDLE>(::_beginthreadex(nullptr, (unsigned)StackSize(*P_), Proxy, (void*)P_.Get(), 0, &ThreadId));
-#else
-            Handle = reinterpret_cast<HANDLE>(::_beginthreadex(nullptr, (unsigned)StackSize(*P_), Proxy, (void*)P_.Get(), 0, nullptr));
-#endif
-
-            Y_ENSURE(Handle, AsStringBuf("failed to create a thread"));
-
             //do not do this, kids, at home
             P_->Ref();
+    #if _WIN32_WINNT < 0x0502
+            Handle = reinterpret_cast<HANDLE>(::_beginthreadex(nullptr, (unsigned)StackSize(*P_), Proxy, (void*)P_.Get(), 0, &ThreadId));
+    #else
+            Handle = reinterpret_cast<HANDLE>(::_beginthreadex(nullptr, (unsigned)StackSize(*P_), Proxy, (void*)P_.Get(), 0, nullptr));
+    #endif
+
+            if (!Handle) {
+                P_->UnRef();
+                ythrow yexception() << "failed to create a thread";
+            }
         }
 
     private:
         TParamsRef P_;
         HANDLE Handle;
-#if _WIN32_WINNT < 0x0502
+    #if _WIN32_WINNT < 0x0502
         ui32 ThreadId;
-#endif
+    #endif
     };
 
     using TThreadBase = TWinThread;
 #else
     //unix
 
-#define PCHECK(x, y)                                     \
-    {                                                    \
-        const int err_ = x;                              \
-        if (err_) {                                      \
-            ythrow TSystemError(err_) << AsStringBuf(y); \
-        }                                                \
-    }
+    #define PCHECK(x, y)                                    \
+        {                                                   \
+            const int err_ = x;                             \
+            if (err_) {                                     \
+                ythrow TSystemError(err_) << TStringBuf(y); \
+            }                                               \
+        }
 
     class TPosixThread {
     public:
@@ -221,7 +219,7 @@ namespace {
         pthread_t H_;
     };
 
-#undef PCHECK
+    #undef PCHECK
 
     using TThreadBase = TPosixThread;
 #endif
@@ -338,25 +336,25 @@ ISimpleThread::ISimpleThread(size_t stackSize)
 }
 
 #if defined(_MSC_VER)
-// This beautiful piece of code is borrowed from
-// http://msdn.microsoft.com/en-us/library/xcb2z8hs.aspx
+    // This beautiful piece of code is borrowed from
+    // http://msdn.microsoft.com/en-us/library/xcb2z8hs.aspx
 
-//
-// Usage: WindowsCurrentSetThreadName (-1, "MainThread");
-//
-#include <windows.h>
-#include <processthreadsapi.h>
+    //
+    // Usage: WindowsCurrentSetThreadName (-1, "MainThread");
+    //
+    #include <windows.h>
+    #include <processthreadsapi.h>
 
 const DWORD MS_VC_EXCEPTION = 0x406D1388;
 
-#pragma pack(push, 8)
+    #pragma pack(push, 8)
 typedef struct tagTHREADNAME_INFO {
     DWORD dwType;     // Must be 0x1000.
     LPCSTR szName;    // Pointer to name (in user addr space).
     DWORD dwThreadID; // Thread ID (-1=caller thread).
     DWORD dwFlags;    // Reserved for future use, must be zero.
 } THREADNAME_INFO;
-#pragma pack(pop)
+    #pragma pack(pop)
 
 static void WindowsCurrentSetThreadName(DWORD dwThreadID, const char* threadName) {
     THREADNAME_INFO info;
@@ -376,7 +374,7 @@ static void WindowsCurrentSetThreadName(DWORD dwThreadID, const char* threadName
 namespace {
     struct TWinThreadDescrAPI {
         TWinThreadDescrAPI()
-            :  Kernel32Dll("kernel32.dll")
+            : Kernel32Dll("kernel32.dll")
             , SetThreadDescription((TSetThreadDescription)Kernel32Dll.SymOptional("SetThreadDescription"))
             , GetThreadDescription((TGetThreadDescription)Kernel32Dll.SymOptional("GetThreadDescription"))
         {
@@ -404,8 +402,8 @@ namespace {
             return WideToUTF8((const wchar16*)wideName);
         }
 
-        typedef HRESULT (__cdecl* TSetThreadDescription)(HANDLE hThread, PCWSTR lpThreadDescription);
-        typedef HRESULT (__cdecl* TGetThreadDescription)(HANDLE hThread, PWSTR *ppszThreadDescription);
+        typedef HRESULT(__cdecl* TSetThreadDescription)(HANDLE hThread, PCWSTR lpThreadDescription);
+        typedef HRESULT(__cdecl* TGetThreadDescription)(HANDLE hThread, PWSTR* ppszThreadDescription);
 
         TDynamicLibrary Kernel32Dll;
         TSetThreadDescription SetThreadDescription;
@@ -421,17 +419,17 @@ void TThread::SetCurrentThreadName(const char* name) {
     pthread_t thread = pthread_self();
     pthread_set_name_np(thread, name);
 #elif defined(_linux_)
-    Y_VERIFY(prctl(PR_SET_NAME, name, 0, 0, 0) == 0, "pctl failed: %s", strerror(errno));
+    prctl(PR_SET_NAME, name, 0, 0, 0);
 #elif defined(_darwin_)
-    Y_VERIFY(pthread_setname_np(name) == 0, "pthread_setname_np failed: %s", strerror(errno));
+    pthread_setname_np(name);
 #elif defined(_win_)
     auto api = Singleton<TWinThreadDescrAPI>();
     if (api->HasAPI()) {
         api->SetDescr(name);
     } else {
-#if defined(_MSC_VER)
+    #if defined(_MSC_VER)
         WindowsCurrentSetThreadName(DWORD(-1), name);
-#endif
+    #endif
     }
 #else
 // no idea
@@ -479,7 +477,6 @@ bool TThread::CanGetCurrentThreadName() {
 #endif // OS
 }
 
-
 TCurrentThreadLimits::TCurrentThreadLimits() noexcept
     : StackBegin(nullptr)
     , StackLength(0)
@@ -488,11 +485,11 @@ TCurrentThreadLimits::TCurrentThreadLimits() noexcept
     pthread_attr_t attr;
     pthread_attr_init(&attr);
 
-#if defined(_linux_) || defined(_cygwin_)
+    #if defined(_linux_) || defined(_cygwin_)
     Y_VERIFY(pthread_getattr_np(pthread_self(), &attr) == 0, "pthread_getattr failed");
-#else
+    #else
     Y_VERIFY(pthread_attr_get_np(pthread_self(), &attr) == 0, "pthread_attr_get_np failed");
-#endif
+    #endif
     pthread_attr_getstack(&attr, (void**)&StackBegin, &StackLength);
     pthread_attr_destroy(&attr);
 
@@ -501,7 +498,7 @@ TCurrentThreadLimits::TCurrentThreadLimits() noexcept
     StackLength = pthread_get_stacksize_np(pthread_self());
 #elif defined(_MSC_VER)
 
-#if _WIN32_WINNT >= _WIN32_WINNT_WIN8
+    #if _WIN32_WINNT >= _WIN32_WINNT_WIN8
     ULONG_PTR b = 0;
     ULONG_PTR e = 0;
 
@@ -510,7 +507,7 @@ TCurrentThreadLimits::TCurrentThreadLimits() noexcept
     StackBegin = (const void*)b;
     StackLength = e - b;
 
-#else
+    #else
     // Copied from https://github.com/llvm-mirror/compiler-rt/blob/release_40/lib/sanitizer_common/sanitizer_win.cc#L91
     void* place_on_stack = alloca(16);
     MEMORY_BASIC_INFORMATION memory_info;
@@ -519,9 +516,9 @@ TCurrentThreadLimits::TCurrentThreadLimits() noexcept
     StackBegin = memory_info.AllocationBase;
     StackLength = static_cast<const char*>(memory_info.BaseAddress) + memory_info.RegionSize - static_cast<const char*>(StackBegin);
 
-#endif
+    #endif
 
 #else
-#error port me
+    #error port me
 #endif
 }

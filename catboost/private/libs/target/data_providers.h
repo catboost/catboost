@@ -1,6 +1,7 @@
 #pragma once
 
 #include <catboost/libs/data/data_provider.h>
+#include <catboost/libs/data/pairs.h>
 #include <catboost/libs/data/util.h>
 #include <catboost/private/libs/data_types/groupid.h>
 #include <catboost/libs/helpers/restorable_rng.h>
@@ -83,7 +84,7 @@ namespace NCB {
         const TInputClassificationInfo& inputClassificationInfo,
         TOutputClassificationInfo* outputClassificationInfo,
         TRestorableFastRng64* rand, // for possible pairs generation
-        NPar::TLocalExecutor* localExecutor,
+        NPar::ILocalExecutor* localExecutor,
         TOutputPairsInfo* outputPairsInfo);
 
 
@@ -95,20 +96,33 @@ namespace NCB {
         const TFullModel& model,
         ui64 cpuRamLimit,
         TRestorableFastRng64* rand, // for possible pairs generation
-        NPar::TLocalExecutor* localExecutor);
+        NPar::ILocalExecutor* localExecutor,
+        bool metricsThatRequireTargetCanBeSkipped=false);
 
     TProcessedDataProvider CreateClassificationCompatibleDataProvider(
         const TDataProvider& srcData,
         const TFullModel& model,
         ui64 cpuRamLimit,
         TRestorableFastRng64* rand, // for possible pairs generation
-        NPar::TLocalExecutor* localExecutor);
+        NPar::ILocalExecutor* localExecutor);
 
 
     TSharedVector<TQueryInfo> MakeGroupInfos(
         const TObjectsGrouping& objectsGrouping,
         TMaybeData<TConstArrayRef<TSubgroupId>> subgroupIds,
         const TWeights<float>& groupWeights,
-        TConstArrayRef<TPair> pairs);
+        TMaybe<TRawPairsDataRef> pairs);
 
+    TVector<TSharedVector<float>> ConvertTarget(
+        TMaybeData<TConstArrayRef<TRawTarget>> maybeRawTarget,
+        ERawTargetType targetType,
+        bool isRealTarget,
+        bool isClass,
+        bool isMultiClass,
+        TMaybe<float> targetBorder,
+        bool classCountUnknown,
+        const TVector<NJson::TJsonValue> inputClassLabels,
+        TVector<NJson::TJsonValue>* outputClassLabels,
+        NPar::ILocalExecutor* localExecutor,
+        ui32* classCount);
 }

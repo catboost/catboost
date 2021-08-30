@@ -8,13 +8,16 @@
 #include <util/system/pipe.h>
 #include <util/system/env.h>
 #include <util/system/info.h>
+#include <util/system/thread.h>
 #include <util/generic/xrange.h>
+#include <util/generic/serialized_enum.h>
 
 // TODO (velavokr): BALANCER-1345 add more tests on pollers
 
 class TCoroTest: public TTestBase {
     UNIT_TEST_SUITE(TCoroTest);
     UNIT_TEST(TestSimpleX1);
+    UNIT_TEST(TestSimpleX1MultiThread);
     UNIT_TEST(TestSimpleX2);
     UNIT_TEST(TestSimpleX3);
     UNIT_TEST(TestMemFun);
@@ -36,15 +39,17 @@ class TCoroTest: public TTestBase {
     UNIT_TEST(TestFastPathWakeSelect)
     UNIT_TEST(TestLegacyCancelYieldRaceBug)
     UNIT_TEST(TestJoinRescheduleBug);
-    UNIT_TEST(TestStackAlignmentLogic);
-    UNIT_TEST(TestStackCanaries);
-    UNIT_TEST(TestStackPages);
     UNIT_TEST(TestEventQueue)
+    UNIT_TEST(TestNestedExecutor)
+    UNIT_TEST(TestComputeCoroutineYield)
+    UNIT_TEST(TestPollEngines);
+    UNIT_TEST(TestUserEvent);
     UNIT_TEST_SUITE_END();
 
 public:
     void TestException();
     void TestSimpleX1();
+    void TestSimpleX1MultiThread();
     void TestSimpleX2();
     void TestSimpleX3();
     void TestMemFun();
@@ -64,10 +69,11 @@ public:
     void TestFastPathWakeSelect();
     void TestLegacyCancelYieldRaceBug();
     void TestJoinRescheduleBug();
-    void TestStackAlignmentLogic();
-    void TestStackCanaries();
-    void TestStackPages();
     void TestEventQueue();
+    void TestNestedExecutor();
+    void TestComputeCoroutineYield();
+    void TestPollEngines();
+    void TestUserEvent();
 };
 
 void TCoroTest::TestException() {
@@ -120,21 +126,52 @@ static int i0;
 static void CoRun(TCont* c, void* /*run*/) {
     while (i0 < 100000) {
         ++i0;
+        UNIT_ASSERT(RunningCont() == c);
         c->Yield();
+        UNIT_ASSERT(RunningCont() == c);
     }
 }
 
 static void CoMain(TCont* c, void* /*arg*/) {
     for (volatile size_t i2 = 0; i2 < 10; ++i2) {
+        UNIT_ASSERT(RunningCont() == c);
         c->Executor()->Create(CoRun, nullptr, "run");
+        UNIT_ASSERT(RunningCont() == c);
     }
 }
 
 void TCoroTest::TestSimpleX1() {
     i0 = 0;
     TContExecutor e(32000);
+
+    UNIT_ASSERT(RunningCont() == nullptr);
+
     e.Execute(CoMain);
     UNIT_ASSERT_VALUES_EQUAL(i0, 100000);
+
+    UNIT_ASSERT(RunningCont() == nullptr);
+}
+
+void TCoroTest::TestSimpleX1MultiThread() {
+    TVector<THolder<TThread>> threads;
+    const size_t nThreads = 0;
+    TAtomic c = 0;
+    for (size_t i = 0; i < nThreads; ++i) {
+        threads.push_back(MakeHolder<TThread>([&]() {
+            TestSimpleX1();
+            AtomicIncrement(c);
+        }));
+    }
+
+    for (auto& t : threads) {
+        t->Start();
+    }
+
+    for (auto& t: threads) {
+        t->Join();
+    }
+
+    UNIT_ASSERT_EQUAL(c, nThreads);
 }
 
 struct TTestObject {
@@ -326,7 +363,6 @@ namespace NCoroTestJoin {
 
         TPipe in, out;
         TPipe::Pipe(in, out);
-
         SetNonBlock(in.GetHandle());
 
         {
@@ -803,65 +839,6 @@ void TCoroTest::TestJoinRescheduleBug() {
     UNIT_ASSERT_EQUAL(state.SubCState, EState::Finished);
 }
 
-void TCoroTest::TestStackAlignmentLogic() {
-    char mem[4096 * 8] = {};
-
-    for (ui32 guardAlign : {32, 4096}) {
-        for (ui32 sz = 0; sz < 2 * guardAlign; sz += guardAlign / 32) {
-            UNIT_ASSERT_GE(NCoro::NPrivate::RawStackSize(sz, guardAlign), sz + 4 * guardAlign);
-        }
-
-        for (ui32 off = 0; off < 2 * guardAlign; off += guardAlign / 32) {
-            for (ui32 sz = 0; sz < 2 * guardAlign; sz += guardAlign / 32) {
-                const auto beg = mem + off;
-                const auto rawSz = NCoro::NPrivate::RawStackSize(sz, guardAlign);
-                const auto range = NCoro::NPrivate::AlignedRange(beg, rawSz, guardAlign);
-
-                // The range beginning is properly aligned
-                UNIT_ASSERT_EQUAL(range.data(), AlignUp(beg, guardAlign));
-                // The range end is also propery aligned
-                UNIT_ASSERT_VALUES_EQUAL(range.end(), AlignDown(range.end(), guardAlign));
-                // The range capacity is enough to accomodate 2 guard entities at the ends
-                UNIT_ASSERT_GE(range.size(), sz + 2 * guardAlign);
-            }
-        }
-    }
-}
-
-void TCoroTest::TestStackCanaries() {
-    {
-        NCoro::TStack s(1, NCoro::TStack::EGuard::Canary);
-        UNIT_ASSERT_GE(s.Get().size(), 32);
-        UNIT_ASSERT_VALUES_EQUAL(((size_t)s.Get().data()) & 31, 0);
-        memset(s.Get().data(), 0, s.Get().size());
-        UNIT_ASSERT(s.LowerCanaryOk());
-        UNIT_ASSERT(s.UpperCanaryOk());
-    }
-    {
-        NCoro::TStack s(1, NCoro::TStack::EGuard::Canary);
-        UNIT_ASSERT_GE(s.Get().size(), 32);
-        UNIT_ASSERT_VALUES_EQUAL(((size_t)s.Get().data()) & 31, 0);
-        memset(s.Get().data() - 1, 0, s.Get().size() + 1);
-        UNIT_ASSERT(!s.LowerCanaryOk());
-        UNIT_ASSERT(s.UpperCanaryOk());
-    }
-    {
-        NCoro::TStack s(1, NCoro::TStack::EGuard::Canary);
-        UNIT_ASSERT_GE(s.Get().size(), 32);
-        UNIT_ASSERT_VALUES_EQUAL(((size_t)s.Get().data()) & 31, 0);
-        memset(s.Get().data(), 0, s.Get().size() + 1);
-        UNIT_ASSERT(s.LowerCanaryOk());
-        UNIT_ASSERT(!s.UpperCanaryOk());
-    }
-}
-
-void TCoroTest::TestStackPages() {
-    NCoro::TStack s(1, NCoro::TStack::EGuard::Page);
-    UNIT_ASSERT_GE(s.Get().size(), NSystemInfo::GetPageSize());
-    UNIT_ASSERT_VALUES_EQUAL(((ptrdiff_t)s.Get().data()) & (NSystemInfo::GetPageSize() - 1), 0);
-    memset(s.Get().data(), 0, s.Get().size());
-}
-
 void TCoroTest::TestEventQueue() {
     NCoro::TEventWaitQueue queue;
     UNIT_ASSERT(queue.Empty());
@@ -882,4 +859,105 @@ void TCoroTest::TestEventQueue() {
     }, &queue);
 }
 
+void TCoroTest::TestNestedExecutor() {
+#ifndef _win_
+    //nested executors actually don't work correctly, but anyway shouldn't break RunningCont() ptr
+    TContExecutor exec(32000);
+    UNIT_ASSERT(!RunningCont());
+
+    exec.Execute([](TCont* cont, void*) {
+        UNIT_ASSERT_VALUES_EQUAL(RunningCont(), cont);
+
+        TContExecutor exec2(32000);
+        exec2.Execute([](TCont* cont2, void*) {
+            UNIT_ASSERT_VALUES_EQUAL(RunningCont(), cont2);
+            TContExecutor exec3(32000);
+            exec3.Execute([](TCont* cont3, void*) {
+                UNIT_ASSERT_VALUES_EQUAL(RunningCont(), cont3);
+            });
+
+            UNIT_ASSERT_VALUES_EQUAL(RunningCont(), cont2);
+        });
+
+        UNIT_ASSERT_VALUES_EQUAL(RunningCont(), cont);
+    });
+
+    UNIT_ASSERT(!RunningCont());
+#endif
+}
+
+void TCoroTest::TestComputeCoroutineYield() {
+//if we have busy (e.g., on cpu) coroutine, when it yields, io must flow
+    TContExecutor exec(32000);
+    exec.SetFailOnError(true);
+
+    TPipe in, out;
+    TPipe::Pipe(in, out);
+    SetNonBlock(in.GetHandle());
+    size_t lastRead = 42;
+
+    auto compute = [&](TCont* cont) {
+        for (size_t i = 0; i < 10; ++i) {
+            write(out.GetHandle(), &i, sizeof i);
+            Sleep(TDuration::MilliSeconds(10));
+            cont->Yield();
+            UNIT_ASSERT(lastRead == i);
+        }
+    };
+
+    auto io = [&](TCont* cont) {
+        for (size_t i = 0; i < 10; ++i) {
+            NCoro::ReadI(cont, in.GetHandle(), &lastRead, sizeof lastRead);
+        }
+    };
+
+    exec.Create(compute, "compute");
+    exec.Create(io, "io");
+
+    exec.Execute();
+}
+
+void TCoroTest::TestPollEngines() {
+    bool defaultChecked = false;
+    for (auto engine : GetEnumAllValues<EContPoller>()) {
+        auto poller = IPollerFace::Construct(engine);
+        if (!poller) {
+            continue;
+        }
+
+        TContExecutor exec(32000, IPollerFace::Construct(engine));
+
+        if (engine == EContPoller::Default) {
+            defaultChecked = true;
+            UNIT_ASSERT_VALUES_EQUAL(exec.Poller()->PollEngine(), EContPoller::Combined);
+        } else {
+            UNIT_ASSERT_VALUES_EQUAL(exec.Poller()->PollEngine(), engine);
+        }
+    }
+
+    UNIT_ASSERT(defaultChecked);
+}
+
+void TCoroTest::TestUserEvent() {
+    TContExecutor exec(32000);
+
+    struct TUserEvent : public IUserEvent {
+        bool Called = false;
+        void Execute() override {
+            Called = true;
+        }
+    } event;
+
+    auto f = [&](TCont* cont) {
+        UNIT_ASSERT(!event.Called);
+        exec.ScheduleUserEvent(&event);
+        UNIT_ASSERT(!event.Called);
+        cont->Yield();
+        UNIT_ASSERT(event.Called);
+    };
+
+    exec.Execute(f);
+
+    UNIT_ASSERT(event.Called);
+}
 UNIT_TEST_SUITE_REGISTRATION(TCoroTest);

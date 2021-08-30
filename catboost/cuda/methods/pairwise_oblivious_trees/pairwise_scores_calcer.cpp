@@ -14,18 +14,23 @@ static void ValidateSplits(
 
     for (size_t policyIdx = 0; policyIdx < policies.size(); ++policyIdx) {
         const auto policy = policies[policyIdx];
+        bool policyHasSplits = false;
         for (ui32 deviceIdx = 0; deviceIdx < deviceCount; ++deviceIdx) {
             const auto split = splits[policyIdx * deviceCount + deviceIdx];
-            const auto message = TStringBuilder()
-                                 << "got invalid split ("
-                                 << LabeledOutput(policy, policyIdx, deviceIdx, split.Index, split.FeatureId, split.BinId, split.Score)
-                                 << "), this may be caused by anomalies in your data (e.g. your target absolute value is too big)"
-                                 << " that cause numeric errors during training";
-            CB_ENSURE(split.Index != std::numeric_limits<ui32>::max(), message);
-            CB_ENSURE(split.FeatureId != std::numeric_limits<ui32>::max(), message);
-            CB_ENSURE(split.BinId != std::numeric_limits<ui32>::max(), message);
-            CB_ENSURE(IsValidFloat(split.Score), message);
+            bool haveSplit = split.Index != std::numeric_limits<ui32>::max();
+            if (haveSplit) {
+                policyHasSplits = true;
+                const auto message = TStringBuilder()
+                    << "got invalid split ("
+                    << LabeledOutput(policy, policyIdx, deviceIdx, split.Index, split.FeatureId, split.BinId, split.Score)
+                    << "), this may be caused by anomalies in your data (e.g. your target absolute value is too big)"
+                    << " that cause numeric errors during training";
+                CB_ENSURE(
+                    split.FeatureId != std::numeric_limits<ui32>::max() && split.BinId != std::numeric_limits<ui32>::max() && IsValidFloat(split.Score),
+                    message);
+            }
         }
+        CB_ENSURE_INTERNAL(policyHasSplits, "No splits for " << LabeledOutput(policy, policyIdx));
     }
 }
 

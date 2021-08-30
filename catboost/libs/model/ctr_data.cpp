@@ -3,6 +3,7 @@
 #include <catboost/libs/helpers/exception.h>
 
 #include <util/generic/set.h>
+#include <util/stream/mem.h>
 
 
 void TCtrData::Save(IOutputStream* s) const {
@@ -28,5 +29,16 @@ void TCtrData::Load(IInputStream* s) {
         table.Load(s);
         TModelCtrBase ctrBase = table.ModelCtrBase;
         LearnCtrs[ctrBase] = std::move(table);
+    }
+}
+
+void TCtrData::LoadNonOwning(TMemoryInput *in) {
+    const size_t cnt = ::LoadSize(in);
+    LearnCtrs.reserve(cnt);
+
+    for (size_t i = 0; i != cnt; ++i) {
+        TCtrValueTable table;
+        table.LoadThin(in);
+        LearnCtrs[table.ModelCtrBase] = std::move(table);
     }
 }

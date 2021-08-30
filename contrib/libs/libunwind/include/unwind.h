@@ -115,10 +115,9 @@ typedef _Unwind_Reason_Code (*_Unwind_Stop_Fn)
        _Unwind_Exception* exceptionObject,
        struct _Unwind_Context* context);
 
-typedef _Unwind_Reason_Code (*__personality_routine)
-      (_Unwind_State state,
-       _Unwind_Exception* exceptionObject,
-       struct _Unwind_Context* context);
+typedef _Unwind_Reason_Code (*_Unwind_Personality_Fn)(
+    _Unwind_State state, _Unwind_Exception *exceptionObject,
+    struct _Unwind_Context *context);
 #else
 struct _Unwind_Context;   // opaque
 struct _Unwind_Exception; // forward declaration
@@ -158,12 +157,9 @@ typedef _Unwind_Reason_Code (*_Unwind_Stop_Fn)
      struct _Unwind_Context* context,
      void* stop_parameter );
 
-typedef _Unwind_Reason_Code (*__personality_routine)
-      (int version,
-       _Unwind_Action actions,
-       uint64_t exceptionClass,
-       _Unwind_Exception* exceptionObject,
-       struct _Unwind_Context* context);
+typedef _Unwind_Reason_Code (*_Unwind_Personality_Fn)(
+    int version, _Unwind_Action actions, uint64_t exceptionClass,
+    _Unwind_Exception *exceptionObject, struct _Unwind_Context *context);
 #endif
 
 #ifdef __cplusplus
@@ -395,12 +391,26 @@ typedef struct _DISPATCHER_CONTEXT DISPATCHER_CONTEXT;
 #endif
 // This is the common wrapper for GCC-style personality functions with SEH.
 extern EXCEPTION_DISPOSITION _GCC_specific_handler(EXCEPTION_RECORD *exc,
-                                                   void *frame,
-                                                   CONTEXT *ctx,
+                                                   void *frame, CONTEXT *ctx,
                                                    DISPATCHER_CONTEXT *disp,
-                                                   __personality_routine pers);
+                                                   _Unwind_Personality_Fn pers);
 #endif
 
+#ifdef _YNDX_LIBUNWIND_ENABLE_EXCEPTION_BACKTRACE
+
+#define _YNDX_LIBUNWIND_EXCEPTION_BACKTRACE_SIZE 128
+// NB. How to compute:
+// offsetof(__cxa_exception, unwindHeader) + (sizeof(_Unwind_Backtrace_Buffer) + 15) / 16 * 16 - sizeof(_Unwind_Backtrace_Buffer)
+// Correctness of this value is static_assert'd in contrib/libs/cxxsupp/libcxxrta/exception.cc
+#define _YNDX_LIBUNWIND_EXCEPTION_BACKTRACE_MAGIC_OFFSET 104
+#define _YNDX_LIBUNWIND_EXCEPTION_BACKTRACE_PRIMARY_CLASS 0xacadacadull
+#define _YNDX_LIBUNWIND_EXCEPTION_BACKTRACE_DEPENDENT_CLASS 0xddddacadull
+
+typedef struct _Unwind_Backtrace_Buffer {
+    size_t size;
+    void* backtrace[_YNDX_LIBUNWIND_EXCEPTION_BACKTRACE_SIZE];
+} _Unwind_Backtrace_Buffer;
+#endif
 #ifdef __cplusplus
 }
 #endif

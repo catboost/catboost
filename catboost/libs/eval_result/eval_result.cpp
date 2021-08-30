@@ -1,6 +1,7 @@
 #include "eval_result.h"
 
 #include "eval_helpers.h"
+#include "pool_printer.h"
 
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/logging/logging.h>
@@ -21,9 +22,11 @@ namespace {
         size_t Index;
         bool IsCategorical;
 
-    public:
-        // no sane default-initialization
-        TFeatureDesc() = delete;
+        TFeatureDesc(size_t Index_, bool IsCategorical_)
+            : Index(Index_)
+            , IsCategorical(IsCategorical_)
+        {
+        }
     };
 
     using TFeatureIdToDesc = THashMap<TString, TFeatureDesc>;
@@ -54,6 +57,10 @@ namespace NCB {
         return RawValues;
     }
 
+    size_t TEvalResult::GetEnsemblesCount() const {
+        return EnsemblesCount;
+    }
+
     void TEvalResult::ClearRawValues() {
         RawValues.clear();
         RawValues.resize(1);
@@ -77,6 +84,8 @@ namespace NCB {
 
         bool hasPrediction = false;
 
+        bool notQuantizedPool = bool(dynamic_cast<TRawObjectsDataProvider*>(pool.ObjectsData.Get()));
+
         for (const auto& name : outputColumns) {
             EPredictionType predictionType;
             if (TryFromString<EPredictionType>(name, predictionType)) {
@@ -97,11 +106,9 @@ namespace NCB {
                         CB_ENSURE(pool.MetaInfo.HasWeights, "bad output column name " << name << " (No WeightId info in pool)");
                         break;
                     case (EColumn::GroupId):
-                        CB_ENSURE(pool.MetaInfo.ColumnsInfo.Defined(), "GroupId output is currently supported only for columnar pools");
                         CB_ENSURE(pool.MetaInfo.HasGroupId, "bad output column name " << name << " (No GroupId info in pool)");
                         break;
                     case (EColumn::SubgroupId):
-                        CB_ENSURE(pool.MetaInfo.ColumnsInfo.Defined(), "SubgroupId output is currently supported only for columnar pools");
                         CB_ENSURE(pool.MetaInfo.HasSubgroupIds, "bad output column name " << name << " (No SubgroupIds info in pool)");
                         break;
                     case (EColumn::Timestamp):
@@ -121,19 +128,16 @@ namespace NCB {
             }
 
             if (name[0] == '#') {
-                CB_ENSURE(pool.MetaInfo.ColumnsInfo.Defined(),
-                          "Non-columnar pool, can't specify column index");
+                CB_ENSURE(notQuantizedPool, "Quantized pool, can't specify column index");
                 ui32 columnNumber;
                 TString columnName;
                 ParseOutputColumnByIndex(name, &columnNumber, &columnName);
-                CB_ENSURE(columnNumber < pool.MetaInfo.ColumnsInfo->Columns.size(),
-                          "column number " << columnNumber << " is out of range");
+                CB_ENSURE(columnNumber < pool.MetaInfo.FeaturesLayout->GetExternalFeatureCount(),
+                        "column number " << columnNumber << " is out of range");
             } else {
-                CB_ENSURE(featureIds.contains(name), "bad output column name " << name);
-                CB_ENSURE(
-                    dynamic_cast<TRawObjectsDataProvider*>(pool.ObjectsData.Get()),
-                    "Raw feature values are not available for quantized pools"
-                );
+                CB_ENSURE(featureIds.contains(name), "Pool doesn't has column with name `" << name << "`.");
+                CB_ENSURE(notQuantizedPool,
+                          "Raw feature values are not available for quantized pools");
             }
             CB_ENSURE(!CV_mode, "can't output pool column in cross validation mode");
         }
@@ -151,41 +155,61 @@ namespace NCB {
                 poolColumnsPrinter = TIntrusivePtr<IPoolColumnsPrinter>(new TQuantizedPoolColumnsPrinter(testSetPath));
             } else if (testSetPath.Scheme.Contains("dsv")) {
                 poolColumnsPrinter = TIntrusivePtr<IPoolColumnsPrinter>(new TDSVPoolColumnsPrinter(testSetPath, testSetFormat, columnsMetaInfo));
+            } else if (testSetPath.Scheme.Contains("proto")) {
+                poolColumnsPrinter = TIntrusivePtr<IPoolColumnsPrinter>(GetProcessor<IPoolColumnsPrinter>(
+                    testSetPath,
+                    TPoolColumnsPrinterPushArgs{
+                        GetProcessor<ILineDataReader>(
+                            testSetPath,
+                            TLineDataReaderArgs{testSetPath, testSetFormat}
+                        ),
+                        testSetFormat,
+                        columnsMetaInfo
+                    }).Release());
             }
         }
         return poolColumnsPrinter;
     }
 
-    void OutputEvalResultToFile(
+    TVector<THolder<IColumnPrinter>> InitializeColumnWriter(
         const TEvalResult& evalResult,
-        NPar::TLocalExecutor* executor,
+        NPar::ILocalExecutor* executor,
         const TVector<TString>& outputColumns,
         const TString& lossFunctionName,
         const TExternalLabelsHelper& visibleLabelsHelper,
         const TDataProvider& pool,
-        IOutputStream* outputStream,
         TIntrusivePtr<IPoolColumnsPrinter> poolColumnsPrinter,
         std::pair<int, int> testFileWhichOf,
-        bool writeHeader,
         ui64 docIdOffset,
-        TMaybe<std::pair<size_t, size_t>> evalParameters) {
+        TMaybe<std::pair<size_t, size_t>> evalParameters,
+        double binClassLogitThreshold) {
 
         TFeatureIdToDesc featureIdToDesc = GetFeatureIdToDesc(pool);
 
         TVector<THolder<IColumnPrinter>> columnPrinter;
 
+        const auto targetDim = pool.RawTargetData.GetTargetDimension();
+        const bool isMultiTarget = targetDim > 1;
+
         for (const auto& outputColumn : outputColumns) {
             EPredictionType type;
             if (TryFromString<EPredictionType>(outputColumn, type)) {
-                columnPrinter.push_back(MakeHolder<TEvalPrinter>(executor, evalResult.GetRawValuesConstRef(), type, lossFunctionName,
-                                                                 pool.RawTargetData.GetTargetDimension(), visibleLabelsHelper, evalParameters));
+                PushBackEvalPrinters(evalResult.GetRawValuesConstRef(),
+                                     type,
+                                     lossFunctionName,
+                                     isMultiTarget,
+                                     evalResult.GetEnsemblesCount(),
+                                     visibleLabelsHelper,
+                                     evalParameters,
+                                     &columnPrinter,
+                                     executor,
+                                     binClassLogitThreshold);
                 continue;
             }
             EColumn outputType;
             if (TryFromString<EColumn>(ToCanonicalColumnName(outputColumn), outputType)) {
                 if (outputType == EColumn::Label) {
                     const auto target = pool.RawTargetData.GetTarget().GetRef();
-                    const auto targetDim = target.size();
                     for (auto targetIdx : xrange(targetDim)) {
                         TStringBuilder header;
                         header << outputColumn;
@@ -249,7 +273,7 @@ namespace NCB {
                     continue;
                 }
                 if (outputType == EColumn::Baseline) {
-                    auto baseline = *pool.RawTargetData.GetBaseline();
+                    auto baseline = pool.RawTargetData.GetBaseline().GetRef();
                     for (size_t idx = 0; idx < baseline.size(); ++idx) {
                         TStringBuilder header;
                         header << "Baseline";
@@ -263,6 +287,7 @@ namespace NCB {
             }
             if (!outputColumn.compare(0, BaselinePrefix.length(), BaselinePrefix)) {
                 int idx = FromString<int>(outputColumn.substr(BaselinePrefix.length()));
+                // NonOwning
                 columnPrinter.push_back(MakeHolder<TArrayPrinter<float>>((*pool.RawTargetData.GetBaseline())[idx], outputColumn));
                 continue;
             }
@@ -272,7 +297,7 @@ namespace NCB {
                 ParseOutputColumnByIndex(outputColumn, &columnNumber, &columnName);
 
                 columnPrinter.push_back(
-                    MakeHolder<TNumColumnPrinter>(
+                    MakeHolder<TFeatureColumnPrinter>(
                         poolColumnsPrinter,
                         columnNumber,
                         columnName,
@@ -310,6 +335,37 @@ namespace NCB {
                 }
             }
         }
+        return columnPrinter;
+    }
+
+    void OutputEvalResultToFile(
+        const TEvalResult& evalResult,
+        NPar::ILocalExecutor* executor,
+        const TVector<TString>& outputColumns,
+        const TString& lossFunctionName,
+        const TExternalLabelsHelper& visibleLabelsHelper,
+        const TDataProvider& pool,
+        IOutputStream* outputStream,
+        TIntrusivePtr<IPoolColumnsPrinter> poolColumnsPrinter,
+        std::pair<int, int> testFileWhichOf,
+        bool writeHeader,
+        ui64 docIdOffset,
+        TMaybe<std::pair<size_t, size_t>> evalParameters,
+        double binClassLogitThreshold) {
+
+        TVector<THolder<IColumnPrinter>> columnPrinter = InitializeColumnWriter(
+            evalResult,
+            executor,
+            outputColumns,
+            lossFunctionName,
+            visibleLabelsHelper,
+            pool,
+            poolColumnsPrinter,
+            testFileWhichOf,
+            docIdOffset,
+            evalParameters,
+            binClassLogitThreshold);
+
         if (writeHeader) {
             TString delimiter = "";
             for (auto& printer : columnPrinter) {
@@ -332,7 +388,7 @@ namespace NCB {
 
     void OutputEvalResultToFile(
         const TEvalResult& evalResult,
-        NPar::TLocalExecutor* const executor,
+        NPar::ILocalExecutor* const executor,
         const TVector<TString>& outputColumns,
         const TString& lossFunctionName,
         const TExternalLabelsHelper& visibleLabelsHelper,
@@ -342,7 +398,8 @@ namespace NCB {
         std::pair<int, int> testFileWhichOf,
         const TDsvFormatOptions& testSetFormat,
         bool writeHeader,
-        ui64 docIdOffset) {
+        ui64 docIdOffset,
+        double binClassLogitThreshold) {
 
         TIntrusivePtr<IPoolColumnsPrinter> poolColumnsPrinter = CreatePoolColumnPrinter(
             testSetPath,
@@ -360,7 +417,9 @@ namespace NCB {
             poolColumnsPrinter,
             testFileWhichOf,
             writeHeader,
-            docIdOffset);
+            docIdOffset,
+            {},
+            binClassLogitThreshold);
     }
 
 } // namespace NCB

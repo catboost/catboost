@@ -97,7 +97,7 @@ void UpdateUndefinedClassLabels(
     if (classLabels.empty()) {
         return;
     }
-    (*updatedJsonParams)["data_processing_options"] = {};
+    (*updatedJsonParams)["data_processing_options"]["class_names"] = {};
     for (const auto& classLabel : classLabels) {
         (*updatedJsonParams)["data_processing_options"]["class_names"].AppendValue(classLabel);
     }
@@ -120,7 +120,7 @@ static void CheckTimestampsInEachGroup(
 TDataProviderPtr ReorderByTimestampLearnDataIfNeeded(
     const NCatboostOptions::TCatBoostOptions& catBoostOptions,
     TDataProviderPtr learnData,
-    NPar::TLocalExecutor* localExecutor) {
+    NPar::ILocalExecutor* localExecutor) {
 
     if (catBoostOptions.DataProcessingOptions->HasTimeFlag &&
         learnData->MetaInfo.HasTimestamp &&
@@ -171,7 +171,7 @@ static bool NeedShuffle(
 TDataProviderPtr ShuffleLearnDataIfNeeded(
     const NCatboostOptions::TCatBoostOptions& catBoostOptions,
     TDataProviderPtr learnData,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TRestorableFastRng64* rand) {
 
     if (NeedShuffle(

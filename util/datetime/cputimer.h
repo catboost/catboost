@@ -12,7 +12,7 @@ private:
     TStringStream Message_;
 
 public:
-    TTimer(const TStringBuf message = AsStringBuf(" took: "));
+    TTimer(const TStringBuf message = TStringBuf(" took: "));
     ~TTimer();
 };
 
@@ -64,12 +64,12 @@ ui64 DurationToCycles(TDuration duration);
 
 class TPrecisionTimer {
 private:
-    ui64 Start;
-    const char* Message;
+    ui64 Start = 0;
 
 public:
-    TPrecisionTimer(const char* message = "took ");
-    ~TPrecisionTimer();
+    TPrecisionTimer();
+
+    ui64 GetCycleCount() const;
 };
 
 TString FormatCycles(ui64 cycles);
@@ -102,9 +102,9 @@ public:
 };
 
 #if defined(WITH_DEBUG)
-#define TDebugTimer TFuncTimer
+    #define TDebugTimer TFuncTimer
 #else
-#define TDebugTimer TFakeTimer
+    #define TDebugTimer TFakeTimer
 #endif
 
 class TTimeLogger {

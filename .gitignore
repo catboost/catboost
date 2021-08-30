@@ -40,3 +40,13 @@ catboost/tools/limited_precision_dsv_diff/
 
 catboost/tutorials/apply_model/rust/target/
 catboost/tools/limited_precision_json_diff/limited_precision_json_diff
+
+# R build artifacts
+catboost*.tar.gz
+catboost.Rcheck/
+
+# widget build artefacts
+node_modules/
+**/widget/js/dist/
+**/widget/labextension
+**/widget/nbextension

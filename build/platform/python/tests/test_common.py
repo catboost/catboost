@@ -4,7 +4,7 @@ import pytest
 
 from build.platform.python.tests import testlib
 
-PYTHON_VERSIONS = ["2.7", "3.4", "3.5", "3.6", "3.7", "3.8"]
+PYTHON_VERSIONS = ["2.7", "3.4", "3.5", "3.6"]  # 3.7, 3.8 are not runnable
 
 
 @pytest.mark.parametrize("pyver", PYTHON_VERSIONS)
@@ -21,16 +21,11 @@ def test_python_max_unicode_bytes(pyver):
 
 @pytest.mark.parametrize("pyver", PYTHON_VERSIONS)
 def test_python_imports(pyver):
-    restrictions = {
-        "2.7": ['lzma'],
+    imports = {
+        "2.7": ['pkg_resources'],
         "3.4": [],
-        "3.5": [],
+        "3.5": ['pkg_resources'],
         "3.6": [],
-        "3.7": ['ssl'],  # ubuntu 12.04
-        "3.8": ['ssl']  # ubuntu 12.04
     }
-    imports = ['pkg_resources', 'pip', 'setuptools', 'sqlite3', 'ssl', 'bz2', 'lzma', 'zlib', 'curses', 'readline']  # see DEVTOOLS-7297
-    for imp in imports:
-        if imp in restrictions[pyver]:
-            continue
+    for imp in imports[pyver]:
         subprocess.check_call([testlib.get_python_bin(pyver), '-c', 'import ' + imp])

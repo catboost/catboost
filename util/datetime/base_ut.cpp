@@ -12,6 +12,8 @@
 
 #include <limits.h>
 
+using namespace std::chrono_literals;
+
 struct TTestTime {
     const time_t T_ = 987654321;
     const char* Date_ = "Thu Apr 19 04:25:21 2001\n";
@@ -288,10 +290,12 @@ Y_UNIT_TEST_SUITE(TDateTimeTest) {
     }
 
     static bool TimeZoneEq(const char* zone0, const char* zone1) {
-        if (strcmp(zone0, "GMT") == 0)
+        if (strcmp(zone0, "GMT") == 0) {
             zone0 = "UTC";
-        if (strcmp(zone1, "GMT") == 0)
+        }
+        if (strcmp(zone1, "GMT") == 0) {
             zone1 = "UTC";
+        }
         return strcmp(zone0, zone1) == 0;
     }
 
@@ -325,8 +329,9 @@ Y_UNIT_TEST_SUITE(TDateTimeTest) {
 #endif
 
             ptm1 = gmtime_r(&t, &tms1);
-            if (!ptm1)
+            if (!ptm1) {
                 continue;
+            }
             UNIT_ASSERT_EQUAL(ptm1, &tms1);
             UNIT_ASSERT(CompareTMFull(ptm0, ptm1));
         }
@@ -488,8 +493,8 @@ Y_UNIT_TEST_SUITE(DateTimeTest) {
     }
 
     Y_UNIT_TEST(TestNoexceptConstruction) {
-        UNIT_ASSERT_EXCEPTION(TDuration::MilliSeconds(FromString(AsStringBuf("not a number"))), yexception);
-        UNIT_ASSERT_EXCEPTION(TDuration::Seconds(FromString(AsStringBuf("not a number"))), yexception);
+        UNIT_ASSERT_EXCEPTION(TDuration::MilliSeconds(FromString(TStringBuf("not a number"))), yexception);
+        UNIT_ASSERT_EXCEPTION(TDuration::Seconds(FromString(TStringBuf("not a number"))), yexception);
     }
 
     Y_UNIT_TEST(TestFromValueForTDuration) {
@@ -520,10 +525,128 @@ Y_UNIT_TEST_SUITE(DateTimeTest) {
             time_t newTimestamp = TimeGM(&time);
 
             UNIT_ASSERT_VALUES_EQUAL_C(
-                    newTimestamp,
-                    timestamp,
-                    "incorrect date " << (1900 + time.tm_year) << "-" << (time.tm_mon + 1) << "-" << time.tm_mday
-            );
+                newTimestamp,
+                timestamp,
+                "incorrect date " << (1900 + time.tm_year) << "-" << (time.tm_mon + 1) << "-" << time.tm_mday);
         }
+    }
+
+    Y_UNIT_TEST(TestTDurationConstructorFromStdChronoDuration) {
+
+        UNIT_ASSERT_VALUES_EQUAL(TDuration::Zero(), TDuration(0ms));
+        UNIT_ASSERT_VALUES_EQUAL(TDuration::MicroSeconds(42), TDuration(42us));
+        UNIT_ASSERT_VALUES_EQUAL(TDuration::MicroSeconds(42000000000000L), TDuration(42000000000000us));
+        UNIT_ASSERT_VALUES_EQUAL(TDuration::MilliSeconds(42), TDuration(42ms));
+        UNIT_ASSERT_VALUES_EQUAL(TDuration::MilliSeconds(42.75), TDuration(42.75ms));
+        UNIT_ASSERT_VALUES_EQUAL(TDuration::Seconds(42), TDuration(42s));
+        UNIT_ASSERT_VALUES_EQUAL(TDuration::Seconds(42.25), TDuration(42.25s));
+        UNIT_ASSERT_VALUES_EQUAL(TDuration::Minutes(42), TDuration(42min));
+        UNIT_ASSERT_VALUES_EQUAL(TDuration::Hours(42), TDuration(42h));
+
+        // TDuration doesn't support negative durations
+        UNIT_ASSERT_VALUES_EQUAL(TDuration::Zero(), TDuration(-5min));
+
+        UNIT_ASSERT_VALUES_EQUAL(TDuration::MilliSeconds(5), TDuration(std::chrono::duration<i8, std::milli>{5ms}));
+
+#if defined(__clang__)
+        UNIT_ASSERT_VALUES_EQUAL(TDuration::Days(1), TDuration(std::chrono::days{1}));
+#endif
+
+        // clump
+        UNIT_ASSERT_VALUES_EQUAL(TDuration::Zero(), TDuration(std::chrono::duration<i64>{-1}));
+        UNIT_ASSERT_VALUES_EQUAL(TDuration::Zero(), TDuration(std::chrono::duration<double>{-1}));
+        UNIT_ASSERT_VALUES_EQUAL(TDuration::Max(),
+                                 TDuration(std::chrono::duration<ui64, std::ratio<3600>>{static_cast<ui64>(1e18)}));
+        UNIT_ASSERT_VALUES_EQUAL(TDuration::Max(),
+                                 TDuration(std::chrono::duration<i64, std::milli>{static_cast<i64>(::Max<ui64>() / 1000)}));
+        UNIT_ASSERT_VALUES_EQUAL(TDuration::Max(),
+                                 TDuration(std::chrono::duration<double, std::ratio<3600>>{1e18}));
+        UNIT_ASSERT_VALUES_EQUAL(TDuration::Max(),
+                                 TDuration(std::chrono::duration<double, std::milli>{::Max<ui64>() / 1000}));
+        UNIT_ASSERT_VALUES_EQUAL(TDuration::Max(), TDuration(std::chrono::duration<double, std::milli>{
+                                                       static_cast<double>(::Max<ui64>()) / 1000 + 0.1}));
+        UNIT_ASSERT_VALUES_EQUAL(TDuration::Max(), TDuration(std::chrono::duration<float, std::milli>{
+                                                       static_cast<float>(::Max<ui64>()) / 1000 + 0.1}));
+    }
+
+    Y_UNIT_TEST(TestTDurationCompareWithStdChronoDuration) {
+        UNIT_ASSERT(TDuration::Zero() == 0ms);
+        UNIT_ASSERT(TDuration::Seconds(42) == 42s);
+
+        UNIT_ASSERT(0ms == TDuration::Zero());
+
+        UNIT_ASSERT(TDuration::Zero() != 1ms);
+        UNIT_ASSERT(TDuration::Zero() != -1ms);
+        UNIT_ASSERT(TDuration::MilliSeconds(1) != -1ms);
+        UNIT_ASSERT(TDuration::MilliSeconds(1) != -1ms);
+
+        UNIT_ASSERT(1ms != TDuration::Zero());
+
+        UNIT_ASSERT(TDuration::Seconds(2) < 3s);
+        UNIT_ASSERT(3s > TDuration::Seconds(2));
+        UNIT_ASSERT(!(TDuration::Seconds(2) < 1s));
+        UNIT_ASSERT(!(TDuration::Seconds(2) < -3s));
+        UNIT_ASSERT(!(TDuration::Seconds(2) < 2s));
+
+        UNIT_ASSERT(2s < TDuration::Seconds(3));
+
+        UNIT_ASSERT(TDuration::Seconds(2) <= 3s);
+        UNIT_ASSERT(!(TDuration::Seconds(2) <= 1s));
+        UNIT_ASSERT(!(TDuration::Seconds(2) <= -3s));
+        UNIT_ASSERT(TDuration::Seconds(2) <= 2s);
+
+        UNIT_ASSERT(2s <= TDuration::Seconds(2));
+
+        UNIT_ASSERT(TDuration::Seconds(2) > -2s);
+        UNIT_ASSERT(TDuration::Seconds(2) > 1s);
+        UNIT_ASSERT(TDuration::Seconds(2) > 0s);
+        UNIT_ASSERT(!(TDuration::Seconds(2) > 3s));
+        UNIT_ASSERT(!(TDuration::Seconds(2) > 2s));
+
+        UNIT_ASSERT(2s > TDuration::Seconds(1));
+
+        UNIT_ASSERT(TDuration::Seconds(2) >= -2s);
+        UNIT_ASSERT(TDuration::Seconds(2) >= 1s);
+        UNIT_ASSERT(TDuration::Seconds(2) >= 0s);
+        UNIT_ASSERT(!(TDuration::Seconds(2) >= 3s));
+        UNIT_ASSERT(TDuration::Seconds(2) >= 2s);
+
+        UNIT_ASSERT(2s >= TDuration::Seconds(2));
+
+        static_assert(TDuration::Zero() == 0ms);
+        static_assert(TDuration::Zero() < 1ms);
+    }
+
+    Y_UNIT_TEST(TestAdditionOfStdChronoDuration) {
+        UNIT_ASSERT_VALUES_EQUAL(TDuration::Seconds(1) + 2s, TDuration::Seconds(3));
+        UNIT_ASSERT_VALUES_EQUAL(2s + TDuration::Seconds(1), TDuration::Seconds(3));
+        UNIT_ASSERT_VALUES_EQUAL(-2s + TDuration::Seconds(3), TDuration::Seconds(1));
+        UNIT_ASSERT_VALUES_EQUAL(TDuration::Seconds(3) + (-2s), TDuration::Seconds(1));
+        UNIT_ASSERT_VALUES_EQUAL(TDuration::Seconds(3) - 2s, TDuration::Seconds(1));
+        UNIT_ASSERT_VALUES_EQUAL(TDuration::Seconds(1) - (-2s), TDuration::Seconds(3));
+        UNIT_ASSERT_VALUES_EQUAL(3s - TDuration::Seconds(2), TDuration::Seconds(1));
+        UNIT_ASSERT_VALUES_EQUAL(3s - TDuration::Seconds(4), TDuration::Zero());
+
+        UNIT_ASSERT_VALUES_EQUAL(TInstant::Seconds(1) + 2s, TInstant::Seconds(3));
+        UNIT_ASSERT_VALUES_EQUAL(TInstant::Seconds(3) + (-2s), TInstant::Seconds(1));
+        UNIT_ASSERT_VALUES_EQUAL(TInstant::Seconds(3) - 2s, TInstant::Seconds(1));
+        UNIT_ASSERT_VALUES_EQUAL(TInstant::Seconds(1) - (-2s), TInstant::Seconds(3));
+
+        // Operations between TDuration/TInstant and std::chrono::duration are performed
+        // with saturation according to the rules of TDuration/TInstant
+        UNIT_ASSERT_VALUES_EQUAL(TDuration::Max() + 1h, TDuration::Max());
+        UNIT_ASSERT_VALUES_EQUAL(TInstant::Max() + 1h, TInstant::Max());
+        UNIT_ASSERT_VALUES_EQUAL(1h + TDuration::Max(), TDuration::Max());
+        UNIT_ASSERT_VALUES_EQUAL(TInstant::Max() + 1h, TInstant::Max());
+
+        UNIT_ASSERT_VALUES_EQUAL(TDuration::Max() - (-1h), TDuration::Max());
+        UNIT_ASSERT_VALUES_EQUAL(TInstant::Max() - (-1h), TInstant::Max());
+        UNIT_ASSERT_VALUES_EQUAL(TInstant::Max() - (-1h), TInstant::Max());
+
+        UNIT_ASSERT_VALUES_EQUAL(-1h - TDuration::Max(), TDuration::Zero());
+        UNIT_ASSERT_VALUES_EQUAL(1h - TDuration::Max(), TDuration::Zero());
+
+        static_assert(TDuration::Zero() + 1s == 1s);
+        static_assert(TInstant::Seconds(1) + 1s == TInstant::Seconds(2));
     }
 }

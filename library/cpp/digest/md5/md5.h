@@ -2,6 +2,7 @@
 
 #include <util/system/defaults.h>
 #include <util/generic/string.h>
+#include <util/generic/array_ref.h>
 #include <util/generic/strbuf.h>
 
 class IInputStream;
@@ -47,10 +48,17 @@ public:
 
     MD5& Update(IInputStream* in);
 
-    // return hex-encoded data
+    /*
+     * Return hex-encoded md5 checksum for given file.
+     *
+     * Return nullptr / empty string if the file does not exist.
+     */
     static char* File(const char* filename, char* buf);
     static TString File(const TString& filename);
+
     static char* Data(const void* data, size_t len, char* buf);
+    static TString Data(TArrayRef<ui8> data);
+    static TString Data(TStringBuf data);
     static char* Stream(IInputStream* in, char* buf);
 
     static TString Calc(const TStringBuf& data);    // 32-byte hex-encoded

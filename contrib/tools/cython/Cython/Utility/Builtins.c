@@ -128,6 +128,9 @@ static PyObject* __Pyx_PyExec3(PyObject* o, PyObject* globals, PyObject* locals)
     } else {
         PyCompilerFlags cf;
         cf.cf_flags = 0;
+#if PY_VERSION_HEX >= 0x030800A3
+        cf.cf_feature_version = PY_MINOR_VERSION;
+#endif
         if (PyUnicode_Check(o)) {
             cf.cf_flags = PyCF_SOURCE_IS_UTF8;
             s = PyUnicode_AsUTF8String(o);
@@ -279,7 +282,8 @@ static PyObject *__Pyx_PyLong_AbsNeg(PyObject *n) {
     {
         PyObject *copy = _PyLong_Copy((PyLongObject*)n);
         if (likely(copy)) {
-            Py_SIZE(copy) = -(Py_SIZE(copy));
+            // negate the size to swap the sign
+            __Pyx_SET_SIZE(copy, -Py_SIZE(copy));
         }
         return copy;
     }
@@ -329,7 +333,7 @@ static long __Pyx__PyObject_Ord(PyObject* c) {
     } else {
         // FIXME: support character buffers - but CPython doesn't support them either
         PyErr_Format(PyExc_TypeError,
-            "ord() expected string of length 1, but %.200s found", c->ob_type->tp_name);
+            "ord() expected string of length 1, but %.200s found", Py_TYPE(c)->tp_name);
         return (long)(Py_UCS4)-1;
     }
     PyErr_Format(PyExc_TypeError,
@@ -492,9 +496,9 @@ static CYTHON_INLINE PyObject* __Pyx_PyFrozenSet_New(PyObject* it) {
         result = PyFrozenSet_New(it);
         if (unlikely(!result))
             return NULL;
-        if (likely(PySet_GET_SIZE(result)))
+        if ((PY_VERSION_HEX >= 0x031000A1) || likely(PySet_GET_SIZE(result)))
             return result;
-        // empty frozenset is a singleton
+        // empty frozenset is a singleton (on Python <3.10)
         // seems wasteful, but CPython does the same
         Py_DECREF(result);
 #endif

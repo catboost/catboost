@@ -1,5 +1,7 @@
 LIBRARY()
 
+PROVIDES(test_framework)
+
 
 
 PEERDIR(
@@ -8,6 +10,7 @@ PEERDIR(
     library/cpp/diff
     library/cpp/json/writer
     library/cpp/testing/common
+    library/cpp/testing/hook
 )
 
 SRCS(
@@ -20,3 +23,8 @@ SRCS(
 )
 
 END()
+
+RECURSE_FOR_TESTS(
+    fat
+    ut
+)

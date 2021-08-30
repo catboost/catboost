@@ -1,18 +1,12 @@
 PROGRAM(openssl)
 
-LICENSE(
-    OpenSSL
-    SSLeay
-)
 
 
-
-NO_COMPILER_WARNINGS()
-
-NO_UTIL()
+LICENSE(OpenSSL SSLeay)
 
 PEERDIR(
     contrib/libs/openssl
+    contrib/libs/openssl/crypto
 )
 
 ADDINCL(
@@ -21,16 +15,23 @@ ADDINCL(
     contrib/libs/openssl/include
 )
 
+NO_COMPILER_WARNINGS()
+
+NO_RUNTIME()
+
 CFLAGS(
+    -DAESNI_ASM
     -DECP_NISTZ256_ASM
     -DKECCAK1600_ASM
     -DOPENSSL_BN_ASM_MONT
     -DOPENSSL_CPUID_OBJ
+    -DOPENSSL_PIC
     -DPOLY1305_ASM
     -DSHA1_ASM
     -DSHA256_ASM
     -DSHA512_ASM
     -DVPAES_ASM
+    -DZLIB
 )
 
 IF (OS_DARWIN AND ARCH_X86_64 OR OS_LINUX AND ARCH_AARCH64 OR OS_LINUX AND ARCH_X86_64)
@@ -64,10 +65,28 @@ IF (OS_DARWIN AND ARCH_X86_64)
     )
 ENDIF()
 
-IF (OS_WINDOWS AND ARCH_X86_64)
+IF (OS_DARWIN AND ARCH_ARM64)
     CFLAGS(
-        -DENGINESDIR="\"C:\\\\Program\ Files\\\\OpenSSL\\\\lib\\\\engines-1_1\""
-        -DOPENSSLDIR="\"C:\\\\Program\ Files\\\\Common\ Files\\\\SSL\""
+        -DL_ENDIAN
+        -DOPENSSL_PIC
+        -D_REENTRANT
+    )
+ENDIF()
+
+IF (OS_WINDOWS)
+    IF (ARCH_X86_64)
+        CFLAGS(
+            -DENGINESDIR="\"C:\\\\Program\ Files\\\\OpenSSL\\\\lib\\\\engines-1_1\""
+            -DOPENSSLDIR="\"C:\\\\Program\ Files\\\\Common\ Files\\\\SSL\""
+        )
+    ELSEIF(ARCH_I386)
+        CFLAGS(
+            -DENGINESDIR="\"C:\\\\Program\ Files\ \(x86\)\\\\OpenSSL\\\\lib\\\\engines-1_1\""
+            -DOPENSSLDIR="\"C:\\\\Program\ Files\ \(x86\)\\\\Common\ Files\\\\SSL\""
+        )
+    ENDIF()
+
+    CFLAGS(
         -DOPENSSL_SYS_WIN32
         -DUNICODE
         -DWIN32_LEAN_AND_MEAN
@@ -75,17 +94,6 @@ IF (OS_WINDOWS AND ARCH_X86_64)
         -D_UNICODE
         -D_WINSOCK_DEPRECATED_NO_WARNINGS
         /GF
-    )
-ENDIF()
-
-IF (OS_WINDOWS AND ARCH_X86_64)
-    LDFLAGS(
-        advapi32.lib
-        crypt32.lib
-        gdi32.lib
-        setargv.obj
-        user32.lib
-        ws2_32.lib
     )
 ENDIF()
 
@@ -145,7 +153,7 @@ SRCS(
     x509.c
 )
 
-IF (OS_WINDOWS AND ARCH_X86_64)
+IF (OS_WINDOWS)
     SRCS(
         win32_init.c
     )

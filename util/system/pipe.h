@@ -1,8 +1,8 @@
 #pragma once
 
 #ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Warray-bounds" //need because of bug in gcc4.9.2
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Warray-bounds" //need because of bug in gcc4.9.2
 #endif
 
 #include "defaults.h"
@@ -86,5 +86,5 @@ private:
 };
 
 #ifdef __GNUC__
-#pragma GCC diagnostic pop
+    #pragma GCC diagnostic pop
 #endif

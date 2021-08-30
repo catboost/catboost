@@ -19,6 +19,7 @@ namespace NAddr {
     using IRemoteAddrRef = TAtomicSharedPtr<NAddr::IRemoteAddr>;
 
     IRemoteAddrPtr GetSockAddr(SOCKET s);
+    IRemoteAddrPtr GetPeerAddr(SOCKET s);
     void PrintHost(IOutputStream& out, const IRemoteAddr& addr);
 
     TString PrintHost(const IRemoteAddr& addr);

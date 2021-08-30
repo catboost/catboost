@@ -1,21 +1,13 @@
 
 
 IF (USE_PREBUILT_TOOLS)
-    INCLUDE(${ARCADIA_ROOT}/build/prebuilt/rorescompiler/ya.make.prebuilt)
+    INCLUDE(${ARCADIA_ROOT}/build/prebuilt/tools/rorescompiler/ya.make.prebuilt)
 ENDIF()
 
 IF (NOT PREBUILT)
-    PROGRAM()
-
-    PEERDIR(
-        library/cpp/resource
-    )
-
-    SRCS(
-        main.cpp
-    )
-
-    INCLUDE(${ARCADIA_ROOT}/build/prebuilt/rorescompiler/ya.make.induced_deps)
-
-    END()
+    INCLUDE(${ARCADIA_ROOT}/tools/rorescompiler/bin/ya.make)
 ENDIF()
+
+RECURSE(
+    bin
+)

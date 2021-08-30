@@ -1,8 +1,8 @@
 LIBRARY()
 
-LICENSE(
-    MIT
-)
+LICENSE(MIT)
+
+VERSION(0.1.0)
 
 
 

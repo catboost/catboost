@@ -2,7 +2,7 @@
 
 #include <catboost/private/libs/data_types/pair.h>
 #include <catboost/libs/helpers/exception.h>
-#include <catboost/libs/helpers/maybe_data.h>
+#include <catboost/libs/helpers/maybe.h>
 
 #include <util/generic/array_ref.h>
 #include <util/generic/mapfindptr.h>
@@ -23,7 +23,7 @@ namespace NCB {
         T expectedSize,
         const TStringBuf dataName,
         bool dataCanBeEmpty = false,
-        const TStringBuf expectedSizeName = AsStringBuf("object count"),
+        const TStringBuf expectedSizeName = "object count",
         bool internalCheck = false
     ) {
         CB_ENSURE(
@@ -32,9 +32,6 @@ namespace NCB {
             << dataSize << ") is not equal to " << expectedSizeName << " (" << expectedSize << ')'
         );
     }
-
-    // pairs are a special case because there's no guaranteed order for now, so compare them as multisets
-    bool EqualAsMultiSets(TConstArrayRef<TPair> lhs, TConstArrayRef<TPair> rhs);
 
     template <class T>
     void PrepareForInitialization(

@@ -1,4 +1,4 @@
-PYTEST()
+PY3TEST()
 
 
 
@@ -32,7 +32,7 @@ ELSE()
     TAG(ya:fat ya:yt ya:noretries)
 ENDIF()
 
-YT_SPEC(catboost/pytest/cuda_tests/yt_spec.json)
+YT_SPEC(catboost/pytest/cuda_tests/yt_spec.yson)
 
 DATA(
     arcadia/catboost/pytest/data
@@ -46,10 +46,10 @@ DEPENDS(
     catboost/python-package/ut/medium/python_binary
 )
 
-IF (ARCH_AARCH64 OR OS_WINDOWS)
-    ALLOCATOR(J)
+IF (OS_LINUX AND NOT ARCH_AARCH64)
+    ALLOCATOR(TCMALLOC)
 ELSE()
-    ALLOCATOR(LF)
+    ALLOCATOR(J)
 ENDIF()
 
 END()

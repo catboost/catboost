@@ -29,7 +29,7 @@
 # since they do not peerdir contrib/libs/jdk.
 # Resolve Python.h from swig/Lib/python/pyruntime.swg when building non-python .swg
 # since they do not peerdir contrib/libs/python.
-- source_filter: "[.]swg$"
+- source_filter: "[.]swg([.](h|c(c|pp|xx)?))?$"
   includes:
   - jni.h:           contrib/libs/jdk/include/jni.h
   - Python.h:        contrib/libs/python/Include/Python.h
@@ -57,17 +57,6 @@
     - unistd.h:      contrib/libs/libunistring/unistd.h
     - wchar.h:       contrib/libs/libunistring/wchar.h
     - wctype.h:      contrib/libs/libunistring/wctype.h
-
-- source_filter: "^contrib/libs/gsasl"
-  includes:
-    - stdlib.h:      contrib/libs/gsasl/gl/stdlib.h
-    - stdio.h:       contrib/libs/gsasl/gl/stdio.h
-    - unistd.h:      contrib/libs/gsasl/gl/unistd.h
-    - string.h:      contrib/libs/gsasl/gl/string.h
-    - minmax.h:      contrib/libs/gsasl/gl/minmax.h
-    - sys/types.h:   contrib/libs/gsasl/gl/sys/types.h
-    - wchar.h:       contrib/libs/gsasl/gl/wchar.h
-    - alloca.h:      contrib/libs/gsasl/gl/alloca.h
 
 - source_filter: "^contrib/libs/libidn2/"
   includes:
@@ -119,9 +108,13 @@
   includes:
     - error.h:       contrib/libs/cppkafka/include/cppkafka/error.h
 
-- source_filter: "^contrib/libs/clang10-rt"
+- source_filter: "^contrib/libs/clang11-rt"
   includes:
-    - xray/xray_interface.h: contrib/libs/clang10-rt/include/xray/xray_interface.h
+    - xray/xray_interface.h: contrib/libs/clang11-rt/include/xray/xray_interface.h
+
+- source_filter: "^contrib/libs/clang12-rt"
+  includes:
+    - xray/xray_interface.h: contrib/libs/clang12-rt/include/xray/xray_interface.h
 
 - source_filter: "^contrib/libs/llvm"
   includes:
@@ -152,34 +145,25 @@
     - fontconfig/fontconfig.h
     - fribidi.h
     - stdatomic.h:   contrib/libs/ffmpeg-3.4.1/compat/atomics/win32/stdatomic.h
-    - nppi.h:        contrib/libs/ffmpeg-3/libavfilter/vf_scale_npp.c
-
-- source_filter: "^contrib/libs/v8-profiler"
-  includes:
-    - nan.h:         contrib/libs/node_nan/nan.h
 
 - source_filter: "^contrib/libs/glog"
   includes:
     - port.h:        contrib/libs/glog/missing_includes/port.h
 
-- source_filter: "^contrib/libs/intel"
-  includes:
-    - CL/cl.h:       contrib/libs/intel/FPGA_pro/hld/host/include/CL/cl.h
-    - CL/opencl.h:   contrib/libs/intel/FPGA_pro/hld/host/include/CL/opencl.h
-
-- source_filter: "^contrib/libs/intel/mkldnn"
+- source_filter: "^contrib/libs/intel/onednn"
   includes:
     - mkl_cblas.h: contrib/libs/intel/mkl/include/mkl_cblas.h
     - mkl_version.h: contrib/libs/intel/mkl/include/mkl_version.h
+    - mkl_vml_defines.h: contrib/libs/intel/mkl/include/mkl_vml_defines.h
     - mkl_vml_functions.h: contrib/libs/intel/mkl/include/mkl_vml_functions.h
 
 - source_filter: "^contrib/libs/nsync"
   includes:
     - atomic.h:      contrib/libs/nsync/platform/c++11/atomic.h
 
-- source_filter: "^contrib/python/numpy"
+- source_filter: "^contrib/python/numpy/py3"
   includes:
-    - cpuid.h:       contrib/python/numpy/numpy/core/src/umath/cpuid.h
+    - numpy/random.pxd
 
 - source_filter: "^contrib/tools/python/src/Objects/exceptions.c"
   includes:
@@ -213,9 +197,9 @@
   includes:
     - util.h:        contrib/libs/libgit2/src/util.h
 
-- source_filter: "^contrib/libs/nodejs_8"
+- source_filter: "^contrib/libs/nodejs_12"
   includes:
-    - util.h:        contrib/libs/nodejs_8/src/util.h
+    - util.h:        contrib/libs/nodejs_12/src/util.h
 
 - source_filter: "^contrib/libs/numa"
   includes:
@@ -240,13 +224,9 @@
     - fstream.h
     - ../include/fenv.h
 
-# libc++ internal implementation details
-- source_filter: "^contrib/restricted/boost/boost/asio/detail"
+- source_filter: "^contrib/restricted/boost/boost/stacktrace/detail"
   includes:
-  - __config
-- source_filter: "yandex_io/external_libs/(boost/include/boost|websocketpp/include)/asio/detail"
-  includes:
-  - __config
+    - backtrace.h: contrib/libs/backtrace/backtrace.h
 
 # windows sdk includes that we do not want to apply for whole arcadia
 - source_filter: "^contrib"
@@ -378,15 +358,15 @@
   includes:
     - lzma.h
 
-- source_filter: "^(contrib/libs/(kyotocabinet|minilzo)|logbroker/contrib/tokyocabinet)"
+- source_filter: "^contrib/libs/(kyotocabinet|minilzo)"
   includes:
     - lzo/lzo1x.h
 
-- source_filter: "^(contrib/libs/(gtest|libpng|opencv)|maps/contrib/freeimage)"
+- source_filter: "^contrib/libs/(gtest|libpng|opencv)"
   includes:
     - mem.h
 
-- source_filter: "^contrib/libs/(authparser|libcoro-perl|libev-perl|libevent-perl|perl-JavaScript-V8|uatraits)"
+- source_filter: "^contrib/libs/(authparser|libcoro-perl|libev-perl|libevent-perl|uatraits)"
   includes:
     - patchlevel.h
 
@@ -398,7 +378,7 @@
   includes:
     - png.h
 
-- source_filter: "^(contrib/restricted/boost/boost/mpi|catboost/cuda/cuda_lib/mpi|cv/imgclassifiers/danet/distributed/network)"
+- source_filter: "^(contrib/restricted/boost/boost/mpi|catboost/cuda/cuda_lib/mpi)"
   includes:
     - mpi.h
 
@@ -519,9 +499,13 @@
     - gelf.h: contrib/restricted/libelf/include/libelf/gelf.h
     - libelf.h: contrib/restricted/libelf/include/libelf/libelf.h
 
-- source_filter: "^contrib/libs/dpdk"
+- source_filter: "^contrib/libs/dpdk/"
   includes:
     - process.h: contrib/libs/dpdk/drivers/bus/dpaa/include/process.h
+
+- source_filter: "^contrib/libs/dpdk_arm64/"
+  includes:
+    - process.h: contrib/libs/dpdk_arm64/drivers/bus/dpaa/include/process.h
 
 - source_filter: "^contrib/libs/usrsctp/"
   includes:
@@ -533,18 +517,18 @@
   - err.h: contrib/libs/libsrtp/crypto/include/err.h
   - stat.h: contrib/libs/libsrtp/crypto/include/stat.h
 
-- source_filter: "^infra/contrib/unbound/unbound"
-  includes:
-    - validator/validator.h: infra/contrib/unbound/unbound/validator/validator.h
-
 - source_filter: "^contrib/restricted/openal-soft"
   includes:
     - threads.h: contrib/restricted/openal-soft/common/threads.h
 
-- source_filter: "^devtools/experimental/umbrella/embedded"
+- source_filter: "^contrib/python/pymqi"
   includes:
-    - threads.h: devtools/experimental/umbrella/include/c11/threads.h
+    # IBM MQ
+    - cmqc.h
+    - cmqxc.h
+    - cmqcfc.h
+    - cmqbc.h
 
-- source_filter: "^voicetech/spotter/embedded"
+- source_filter: "^contrib/libs/h3"
   includes:
-    - threads.h: voicetech/spotter/embedded/contrib/c11-threads/threads.h
+    - alloc.h: contrib/libs/h3/h3lib/include/alloc.h

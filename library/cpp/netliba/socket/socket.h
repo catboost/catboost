@@ -9,13 +9,13 @@
 #include "udp_recv_packet.h"
 #include "protocols.h"
 
+#include <sys/uio.h>
+
 namespace NNetlibaSocket {
+    typedef iovec TIoVec;
+
 #ifdef _win32_
-    struct TIoVec {
-        char* iov_base;
-        size_t iov_len;
-    };
-    struct TMsgHdr {
+   struct TMsgHdr {
         void* msg_name;  /* optional address */
         int msg_namelen; /* size of address */
         TIoVec* msg_iov; /* scatter/gather array */
@@ -25,8 +25,6 @@ namespace NNetlibaSocket {
     };
 #else
 #include <sys/socket.h>
-#include <sys/uio.h>
-    typedef iovec TIoVec;
     typedef msghdr TMsgHdr;
 #endif
 

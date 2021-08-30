@@ -7,6 +7,8 @@
   - adhoc.h
   - apiset.h
   - apisetcconv.h
+  - atltime.h
+  - audioclient.h
   - authz.h
   - basetyps.h
   - bcrypt.h
@@ -14,6 +16,7 @@
   - capi.h
   - cet.h
   - cfg.h
+  - comdef.h
   - commctrl.h
   - commdlg.h
   - common.ver
@@ -47,6 +50,7 @@
   - downloadmgr.h
   - driverspecs.h
   - dshow.h
+  - dsound.h
   - dsparse.h
   - dv.h
   - dvdmedia.h
@@ -121,6 +125,7 @@
   - minwinbase.h
   - minwindef.h
   - mlang.h
+  - mmdeviceapi.h
   - mmsystem.h
   - mq.h
   - mshtmdid.h
@@ -140,6 +145,7 @@
   - new.h
   - npapi.h
   - ntdddisk.h
+  - ntddk.h
   - ntddndis.h
   - ntdef.h
   - ntsecapi.h
@@ -160,6 +166,7 @@
   - olectl.h
   - packon.h
   - packoff.h
+  - pathcch.h
   - p2p.h
   - pdh.h
   - pdhmsg.h
@@ -183,6 +190,7 @@
   - realtimeapiset.h
   - reason.h
   - richedit.h
+  - roapi.h
   - robuffer.h
   - rpc.h
   - rpcdce.h
@@ -279,6 +287,7 @@
   - winsdkver.h
   - winsock.h
   - winsock2.h
+  - winstring.h
   - winsvc.h
   - winternl.h
   - winuser.h
@@ -293,6 +302,7 @@
   - wrl/ftm.h
   - wrl/implements.h
   - wrl/wrappers/corewrappers.h
+  - ws2bth.h
   - ws2def.h
   - ws2ipdef.h
   - ws2spi.h
@@ -303,3 +313,4 @@
   - wtypes.h
   - xa.h
   - xaudio2.h
+  - xmllite.h

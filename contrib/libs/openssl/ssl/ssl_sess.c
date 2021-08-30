@@ -1,5 +1,5 @@
 /*
- * Copyright 1995-2019 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 1995-2020 The OpenSSL Project Authors. All Rights Reserved.
  * Copyright 2005 Nokia. All rights reserved.
  *
  * Licensed under the OpenSSL license (the "License").  You may not use
@@ -13,8 +13,8 @@
 #include <openssl/engine.h>
 #include "internal/refcount.h"
 #include "internal/cryptlib.h"
-#include "ssl_locl.h"
-#include "statem/statem_locl.h"
+#include "ssl_local.h"
+#include "statem/statem_local.h"
 
 static void SSL_SESSION_list_remove(SSL_CTX *ctx, SSL_SESSION *s);
 static void SSL_SESSION_list_add(SSL_CTX *ctx, SSL_SESSION *s);
@@ -107,7 +107,7 @@ SSL_SESSION *ssl_session_dup(SSL_SESSION *src, int ticket)
 {
     SSL_SESSION *dest;
 
-    dest = OPENSSL_malloc(sizeof(*src));
+    dest = OPENSSL_malloc(sizeof(*dest));
     if (dest == NULL) {
         goto err;
     }

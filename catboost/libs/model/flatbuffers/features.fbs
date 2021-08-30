@@ -31,11 +31,25 @@ table TTextFeature {
     UsedInModel:bool = true;
 }
 
+table TEmbeddingFeature {
+    Index:int = -1;
+    FlatIndex:int = -1;
+    FeatureId:string;
+    Dimension:int;
+    UsedInModel:bool = true;
+}
+
+enum ESourceFeatureType : byte {
+    Text,
+    Embedding
+}
+
 table TEstimatedFeature {
     SourceFeatureIndex:int = -1;
     CalcerId:TGuid;
     LocalIndex:int = -1;
     Borders:[float];
+    SourceFeatureType:ESourceFeatureType = Text;
 }
 
 table TOneHotFeature {

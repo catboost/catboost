@@ -40,13 +40,15 @@ Y_UNIT_TEST_SUITE(TModelSerialization) {
     }
 
     Y_UNIT_TEST(TestSerializeDeserializeFullModelNonOwning) {
-        TFullModel model = TrainFloatCatboostModel();
-
-        TStringStream strStream;
-        model.Save(&strStream);
-        TFullModel deserializedModel;
-        deserializedModel.InitNonOwning(strStream.Data(), strStream.Size());
-        UNIT_ASSERT_EQUAL(model, deserializedModel);
+        auto check = [&](const TFullModel& model) {
+            TStringStream strStream;
+            model.Save(&strStream);
+            TFullModel deserializedModel;
+            deserializedModel.InitNonOwning(strStream.Data(), strStream.Size());
+            UNIT_ASSERT_EQUAL(model, deserializedModel);
+        };
+        check(TrainFloatCatboostModel());
+        check(TrainCatOnlyNoOneHotModel());
     }
 
     Y_UNIT_TEST(TestSerializeDeserializeCoreML) {
@@ -78,6 +80,7 @@ Y_UNIT_TEST_SUITE(TModelSerialization) {
             nullptr,
             Nothing(),
             Nothing(),
+            Nothing(),
             dataProviders,
             Nothing(),
             &learnProgress,
@@ -91,8 +94,8 @@ Y_UNIT_TEST_SUITE(TModelSerialization) {
 
         TFullModel obliviousModel = ReadModel("oblivious_model.json", EModelType::Json);
         TFullModel nonSymmetricModel = ReadModel("nonsymmetric_model.json", EModelType::Json);
-        auto result1 = ApplyModelMulti(obliviousModel, *pool->ObjectsData);
-        auto result2 = ApplyModelMulti(nonSymmetricModel, *pool->ObjectsData);
+        auto result1 = ApplyModelMulti(obliviousModel, *pool);
+        auto result2 = ApplyModelMulti(nonSymmetricModel, *pool);
         UNIT_ASSERT_EQUAL(result1, result2);
     }
 
@@ -112,7 +115,7 @@ Y_UNIT_TEST_SUITE(TModelSerialization) {
         TFloatFeature f0(false, 0, 0, {0.5, 1.5, 2.5});
         TFloatFeature f1(false, 1, 1, {5, 10, 20});
         TFloatFeature f2(false, 2, 2, {5, 15, 25, 35});
-        TNonSymmetricTreeModelBuilder builder({f0, f1, f2}, {}, {}, 1);
+        TNonSymmetricTreeModelBuilder builder({f0, f1, f2}, {}, {}, {}, 1);
         {
             auto head = MakeHolder<TNonSymmetricTreeNode>();
             head->SplitCondition = TModelSplit(TFloatSplit(0, 0.5));
@@ -224,7 +227,7 @@ Y_UNIT_TEST_SUITE(TModelSerialization) {
         TFullModel model;
         model.UpdateDynamicData();
         TFloatFeature f0(false, 0, 0, {0.5, 1.5, 2.5});
-        TNonSymmetricTreeModelBuilder builder({f0}, {}, {}, 2);
+        TNonSymmetricTreeModelBuilder builder({f0}, {}, {}, {}, 2);
         {
             auto head = MakeHolder<TNonSymmetricTreeNode>();
             head->SplitCondition = TModelSplit(TFloatSplit(0, 0.5));

@@ -48,14 +48,24 @@ def get_classpath(cmd):
     return None
 
 
+def parse_args(argv):
+    parsed = []
+    for i in range(len(argv)):
+        if not argv[i].startswith('-'):
+            parsed.append(argv[i])
+            if len(parsed) >= 3:
+                break
+    return parsed + [argv[i + 1:]]
+
+
 def just_do_it(argv):
-    java, javac, error_prone_tool, javac_cmd = argv[0], argv[1], argv[2], argv[3:]
+    java, javac, error_prone_tool, javac_cmd = parse_args(argv)
     ver = get_java_version(java)
     if not ver:
         raise Exception("Can't determine java version")
     if int(ver) >= 10:
         for f in javac_cmd:
-            if f.startswith('-Xep:'):
+            if f.startswith('-Xep'):
                 ERROR_PRONE_FLAGS.append(f)
         for f in ERROR_PRONE_FLAGS:
             if f in javac_cmd:

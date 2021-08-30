@@ -2,7 +2,11 @@
 
 NEED_CHECK()
 
-PACKAGE()
+PY2_LIBRARY()
+
+PY_SRCS(
+    ymake_conf.py
+)
 
 PEERDIR(
     library/cpp/deprecated/enum_codegen
@@ -12,16 +16,6 @@ PEERDIR(
 
 END()
 
-ADD_TEST(
-    PEP8
-        ymake_conf.py
-)
-
-ADD_TEST(
-    PY_FLAKES
-        ymake_conf.py
-)
-
 RECURSE(
     conf_fatal_error
     config
@@ -29,7 +23,6 @@ RECURSE(
     external_resources
     platform/java
     platform/perl
-    platform/perl/5.14.4
     platform/python
     platform/python/ldflags
     plugins

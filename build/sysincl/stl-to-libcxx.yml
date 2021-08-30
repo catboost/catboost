@@ -30,8 +30,6 @@
 - includes:
   - atomic.h:
     - contrib/libs/cxxsupp/libcxxrt/atomic.h
-  - charconv:
-    - contrib/libs/cxxsupp/libcxx/include/charconv
   - cxxabi.h:
     - contrib/libs/cxxsupp/libcxx/include/cxxabi.h
     - contrib/libs/cxxsupp/libcxxrt/cxxabi.h
@@ -42,19 +40,12 @@
     - contrib/libs/cxxsupp/libcxxrt/unwind.h
     - contrib/libs/libunwind/include/unwind.h
 
-- source_filter: "^contrib/libs/cxxsupp/libcxx/include"
+- source_filter: "^contrib/libs/cxxsupp/libcxxabi/"
   includes:
-  - __config:   contrib/libs/cxxsupp/libcxx/include/__config
-
-- source_filter: "^contrib/restricted/boost/boost/asio/detail"
-  includes:
-  - __config:   contrib/libs/cxxsupp/libcxx/include/__config
-
-- source_filter: "yandex_io/external_libs/(boost/include/boost|websocketpp/include)/asio/detail"
-  includes:
-  - __config:   contrib/libs/cxxsupp/libcxx/include/__config
+    - cxxabi.h: contrib/libs/cxxsupp/libcxxabi/include/cxxabi.h
 
 - includes:
+  - __config:                  contrib/libs/cxxsupp/libcxx/include/__config
   - algorithm:                 contrib/libs/cxxsupp/libcxx/include/algorithm
   - any:                       contrib/libs/cxxsupp/libcxx/include/any
   - array:                     contrib/libs/cxxsupp/libcxx/include/array
@@ -66,6 +57,7 @@
   - cerrno:                    contrib/libs/cxxsupp/libcxx/include/cerrno
   - cfenv:                     contrib/libs/cxxsupp/libcxx/include/cfenv
   - cfloat:                    contrib/libs/cxxsupp/libcxx/include/cfloat
+  - charconv:                  contrib/libs/cxxsupp/libcxx/include/charconv
   - chrono:                    contrib/libs/cxxsupp/libcxx/include/chrono
   - cinttypes:                 contrib/libs/cxxsupp/libcxx/include/cinttypes
   - ciso646:                   contrib/libs/cxxsupp/libcxx/include/ciso646
@@ -73,6 +65,7 @@
   - clocale:                   contrib/libs/cxxsupp/libcxx/include/clocale
   - cmath:                     contrib/libs/cxxsupp/libcxx/include/cmath
   - codecvt:                   contrib/libs/cxxsupp/libcxx/include/codecvt
+  - compare:                   contrib/libs/cxxsupp/libcxx/include/compare
   - complex:                   contrib/libs/cxxsupp/libcxx/include/complex
   - condition_variable:        contrib/libs/cxxsupp/libcxx/include/condition_variable
   - csetjmp:                   contrib/libs/cxxsupp/libcxx/include/csetjmp
@@ -90,10 +83,6 @@
   - cwctype:                   contrib/libs/cxxsupp/libcxx/include/cwctype
   - deque:                     contrib/libs/cxxsupp/libcxx/include/deque
   - exception:                 contrib/libs/cxxsupp/libcxx/include/exception
-  - experimental/optional:     contrib/libs/cxxsupp/libcxx/include/experimental/optional
-  - experimental/string_view:  contrib/libs/cxxsupp/libcxx/include/experimental/string_view
-  - ext/hash_map:              contrib/libs/cxxsupp/libcxx/include/ext/hash_map
-  - ext/hash_set:              contrib/libs/cxxsupp/libcxx/include/ext/hash_set
   - filesystem:                contrib/libs/cxxsupp/libcxx/include/filesystem
   - forward_list:              contrib/libs/cxxsupp/libcxx/include/forward_list
   - fstream:                   contrib/libs/cxxsupp/libcxx/include/fstream
@@ -122,6 +111,8 @@
   - regex:                     contrib/libs/cxxsupp/libcxx/include/regex
   - scoped_allocator:          contrib/libs/cxxsupp/libcxx/include/scoped_allocator
   - set:                       contrib/libs/cxxsupp/libcxx/include/set
+  - shared_mutex:              contrib/libs/cxxsupp/libcxx/include/shared_mutex
+  - span:                      contrib/libs/cxxsupp/libcxx/include/span
   - sstream:                   contrib/libs/cxxsupp/libcxx/include/sstream
   - stack:                     contrib/libs/cxxsupp/libcxx/include/stack
   - stdexcept:                 contrib/libs/cxxsupp/libcxx/include/stdexcept
@@ -142,3 +133,18 @@
   - valarray:                  contrib/libs/cxxsupp/libcxx/include/valarray
   - variant:                   contrib/libs/cxxsupp/libcxx/include/variant
   - vector:                    contrib/libs/cxxsupp/libcxx/include/vector
+
+
+# Though these are headers provided by libcxx, we do not want to allow them to be included.
+# We are using non-existent filename to generate error instead, as there is no specific syntax for this case.
+- includes:
+  - ext/hash_map:                       DO_NOT_INCLUDE_NON_STANDARD_EXT_HASH_MAP
+  - ext/hash_set:                       DO_NOT_INCLUDE_NON_STANDARD_EXT_HASH_SET
+  - experimental/source_location:       DO_NOT_INCLUDE_NON_STANDARD_EXPERIMENTAL_SOURCE_LOCATION
+
+  # TODO: there is no <corouine> in libc++. Disable this include upon its appearance
+  - experimental/coroutine:    contrib/libs/cxxsupp/libcxx/include/experimental/coroutine
+
+  # TODO: remove these includes after solving issues with the code which includes them
+  - experimental/optional:     contrib/libs/cxxsupp/libcxx/include/experimental/optional
+  - experimental/string_view:  contrib/libs/cxxsupp/libcxx/include/experimental/string_view

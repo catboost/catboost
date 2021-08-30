@@ -53,7 +53,7 @@ namespace {
         }
 
         static inline TStringBuf DPrefix() {
-            return AsStringBuf("fast");
+            return TStringBuf("fast");
         }
     };
 
@@ -66,7 +66,7 @@ namespace {
         }
 
         static inline TStringBuf DPrefix() {
-            return AsStringBuf("safe");
+            return TStringBuf("safe");
         }
     };
 
@@ -119,5 +119,5 @@ namespace {
             RegisterAlias("lz4hc", "lz4-hc-safe");
         }
     };
-    static const TLz4Registrar Registrar{};
+    const TLz4Registrar Registrar{};
 }

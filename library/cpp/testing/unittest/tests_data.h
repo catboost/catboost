@@ -4,7 +4,6 @@
 
 #include <util/generic/noncopyable.h>
 #include <util/generic/ptr.h>
-#include <util/folder/path.h>
 #include <util/generic/string.h>
 #include <util/network/sock.h>
 
@@ -30,7 +29,7 @@ void SetReuseAddressAndPort(const TSocketType& sock) {
 
 class TPortManager: public TNonCopyable {
 public:
-    TPortManager(const TString& syncDir = TString(), bool reservePortsForCurrentTest = true);
+    TPortManager(bool reservePortsForCurrentTest = true);
     ~TPortManager();
 
     // Gets free TCP port

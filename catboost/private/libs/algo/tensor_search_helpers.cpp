@@ -7,29 +7,16 @@
 #include <catboost/libs/data/objects.h>
 #include <catboost/libs/helpers/restorable_rng.h>
 #include <catboost/private/libs/options/catboost_options.h>
+#include <catboost/libs/helpers/distribution_helpers.h>
 
 #include <library/cpp/threading/local_executor/local_executor.h>
 
+#include <util/generic/cast.h>
 #include <util/generic/maybe.h>
 #include <util/generic/xrange.h>
 
 
 using namespace NCB;
-
-
-const TQuantizedForCPUObjectsDataProvider& GetLearnObjectsData(
-    const TSplitCandidate& splitCandidate,
-    const TTrainingDataProviders& data,
-    const TFold& fold
-) {
-    if (splitCandidate.Type == ESplitType::EstimatedFeature) {
-        if (splitCandidate.IsOnlineEstimatedFeature) {
-            return *(fold.GetOnlineEstimatedFeatures().Learn);
-        }
-        return *(data.EstimatedObjectsData.Learn);
-    }
-    return *(data.Learn->ObjectsData);
-}
 
 
 TSplit TCandidateInfo::GetBestSplit(
@@ -52,7 +39,7 @@ TSplit TCandidateInfo::GetBestSplit(
 
 TSplit TCandidateInfo::GetSplit(
     int binId,
-    const TQuantizedForCPUObjectsDataProvider& objectsData,
+    const TQuantizedObjectsDataProvider& objectsData,
     ui32 oneHotMaxSize
 ) const {
     auto getCandidateType = [&] (EFeatureType featureType) {
@@ -145,13 +132,48 @@ THolder<IDerCalcer> BuildError(
 ) {
     const bool isStoreExpApprox = IsStoreExpApprox(params.LossFunctionDescription->GetLossFunction());
     switch (params.LossFunctionDescription->GetLossFunction()) {
+        case ELossFunction::SurvivalAft: {
+            const auto& lossParams = params.LossFunctionDescription->GetLossParamsMap();
+            for (auto &param: lossParams) {
+            CB_ENSURE(
+                    param.first == "dist" || param.first == "scale",
+                    "Invalid loss description" << ToString(params.LossFunctionDescription.Get()));
+            }
+            std::unique_ptr<IDistribution> distribution;
+            if (lossParams.contains("dist")) {
+                switch (FromString<EDistributionType>(lossParams.at("dist"))) {
+                    case EDistributionType::Extreme:
+                        distribution = std::make_unique<TExtremeDistribution>();
+                        break;
+                    case EDistributionType::Logistic:
+                        distribution = std::make_unique<TLogisticDistribution>();
+                        break;
+                    case EDistributionType::Normal:
+                        distribution = std::make_unique<TNormalDistribution>();
+                        break;
+                    default:
+                        CB_ENSURE(false, "Unsupported distribution type " << lossParams.at("dist"));
+               }
+            } else {
+               distribution = std::make_unique<TNormalDistribution>();
+            }
+            double scale = lossParams.contains("scale") ? FromString<double>(lossParams.at("scale")) : 1;
+            return MakeHolder<TSurvivalAftError>(std::move(distribution), scale);
+        }
         case ELossFunction::MultiRMSE:
             return MakeHolder<TMultiRMSEError>();
+        case ELossFunction::MultiRMSEWithMissingValues:
+            return MakeHolder<TMultiRMSEErrorWithMissingValues>();
+        case ELossFunction::RMSEWithUncertainty: {
+            return MakeHolder<TRMSEWithUncertaintyError>();
+        }
         case ELossFunction::Logloss:
         case ELossFunction::CrossEntropy:
             return MakeHolder<TCrossEntropyError>(isStoreExpApprox);
         case ELossFunction::RMSE:
             return MakeHolder<TRMSEError>(isStoreExpApprox);
+        case ELossFunction::Cox:
+            return MakeHolder<TCoxError>(isStoreExpApprox);
         case ELossFunction::MAE:
         case ELossFunction::Quantile: {
             const auto& lossParams = params.LossFunctionDescription->GetLossParamsMap();
@@ -228,6 +250,13 @@ THolder<IDerCalcer> BuildError(
                 params.LossFunctionDescription);
             return MakeHolder<TStochasticFilterError>(sigma, numEstimations, isStoreExpApprox);
         }
+        case ELossFunction::LambdaMart: {
+            const auto& lossParams = params.LossFunctionDescription->GetLossParamsMap();
+            const ELossFunction targetMetric = lossParams.contains("metric") ? FromString<ELossFunction>(lossParams.at("metric")) : ELossFunction::NDCG;
+            const double sigma = NCatboostOptions::GetParamOrDefault(lossParams, "sigma", 1.0);
+            const bool norm = NCatboostOptions::GetParamOrDefault(lossParams, "norm", true);
+            return MakeHolder<TLambdaMartError>(targetMetric, lossParams, sigma, norm);
+        }
         case ELossFunction::StochasticRank: {
             const auto& lossParams = params.LossFunctionDescription->GetLossParamsMap();
             CB_ENSURE(lossParams.contains("metric"), "StochasticRank requires metric param");
@@ -257,6 +286,8 @@ THolder<IDerCalcer> BuildError(
             return MakeHolder<TTweedieError>(
                 NCatboostOptions::GetTweedieParam(params.LossFunctionDescription),
                 isStoreExpApprox);
+        case ELossFunction::LogCosh:
+            return MakeHolder<TLogCoshError>(isStoreExpApprox);
         default:
             CB_ENSURE(false, "provided error function is not supported");
     }
@@ -271,7 +302,7 @@ static void GenerateRandomWeights(
     int learnSampleCount,
     float baggingTemperature,
     ESamplingUnit samplingUnit,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TRestorableFastRng64* rand,
     TFold* fold
 ) {
@@ -284,7 +315,7 @@ static void GenerateRandomWeights(
     const ui64 randSeed = rand->GenRand();
     const int sampleCount = (samplingUnit == ESamplingUnit::Group) ? groupCount : learnSampleCount;
 
-    NPar::TLocalExecutor::TExecRangeParams blockParams(0, sampleCount);
+    NPar::ILocalExecutor::TExecRangeParams blockParams(0, sampleCount);
     blockParams.SetBlockSize(1000);
     localExecutor->ExecRange(
         [&](int blockIdx) {
@@ -312,7 +343,7 @@ static void GenerateRandomWeights(
 static void GenerateBayesianWeightsForPairs(
     float baggingTemperature,
     ESamplingUnit samplingUnit,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TRestorableFastRng64* rand,
     TFold* fold
 ) {
@@ -320,7 +351,7 @@ static void GenerateBayesianWeightsForPairs(
         return;
     }
     const ui64 randSeed = rand->GenRand();
-    NPar::TLocalExecutor::TExecRangeParams blockParams(0, fold->LearnQueriesInfo.ysize());
+    NPar::ILocalExecutor::TExecRangeParams blockParams(0, fold->LearnQueriesInfo.ysize());
     blockParams.SetBlockSize(1000);
     localExecutor->ExecRange(
         [&](int blockIdx) {
@@ -347,7 +378,7 @@ static void GenerateBayesianWeightsForPairs(
 static void GenerateBernoulliWeightsForPairs(
     float takenFraction,
     ESamplingUnit samplingUnit,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TRestorableFastRng64* rand,
     TFold* fold
 ) {
@@ -355,7 +386,7 @@ static void GenerateBernoulliWeightsForPairs(
         return;
     }
     const ui64 randSeed = rand->GenRand();
-    NPar::TLocalExecutor::TExecRangeParams blockParams(0, fold->LearnQueriesInfo.ysize());
+    NPar::ILocalExecutor::TExecRangeParams blockParams(0, fold->LearnQueriesInfo.ysize());
     blockParams.SetBlockSize(1000);
     localExecutor->ExecRange(
         [&](int blockIdx) {
@@ -385,7 +416,7 @@ static void GenerateBernoulliWeightsForPairs(
 static void CalcWeightedData(
     int learnSampleCount,
     EBoostingType boostingType,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TFold* fold
 ) {
     TFold& ff = *fold;
@@ -404,7 +435,7 @@ static void CalcWeightedData(
                 [=](int z) {
                     samplePairwiseWeightsData[z] = pairwiseWeightsData[z] * sampleWeightsData[z];
                 },
-                NPar::TLocalExecutor::TExecRangeParams(begin, bt.TailFinish).SetBlockSize(4000),
+                NPar::ILocalExecutor::TExecRangeParams(begin, bt.TailFinish).SetBlockSize(4000),
                 NPar::TLocalExecutor::WAIT_COMPLETE);
         }
         for (int dim = 0; dim < approxDimension; ++dim) {
@@ -414,7 +445,7 @@ static void CalcWeightedData(
                 [=](int z) {
                     sampleWeightedDerivativesData[z] = weightedDerivativesData[z] * sampleWeightsData[z];
                 },
-                NPar::TLocalExecutor::TExecRangeParams(begin, bt.TailFinish).SetBlockSize(4000),
+                NPar::ILocalExecutor::TExecRangeParams(begin, bt.TailFinish).SetBlockSize(4000),
                 NPar::TLocalExecutor::WAIT_COMPLETE);
         }
     }
@@ -430,16 +461,16 @@ static void CalcWeightedData(
 void Bootstrap(
     const NCatboostOptions::TCatBoostOptions& params,
     bool hasOfflineEstimatedFeatures,
-    const TVector<TIndexType>& indices,
+    TConstArrayRef<TIndexType> indices,
     const TVector<TVector<TVector<double>>>& leafValues,
     TFold* fold,
     TCalcScoreFold* sampledDocs,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TRestorableFastRng64* rand,
     bool shouldSortByLeaf,
     ui32 leavesCount
 ) {
-    const int learnSampleCount = indices.ysize();
+    const int learnSampleCount = SafeIntegerCast<int>(indices.size());
     const EBootstrapType bootstrapType = params.ObliviousTreeOptions->BootstrapConfig->GetBootstrapType();
     const EBoostingType boostingType = params.BoostingOptions->BoostingType;
     const ESamplingUnit samplingUnit = params.ObliviousTreeOptions->BootstrapConfig->GetSamplingUnit();
@@ -514,7 +545,7 @@ void CalcWeightedDerivatives(
     const NCatboostOptions::TCatBoostOptions& params,
     ui64 randomSeed,
     TFold* takenFold,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) {
     TFold::TBodyTail& bt = takenFold->BodyTailArr[bodyTailIdx];
     const TVector<TVector<double>>& approx = bt.Approx;
@@ -565,7 +596,7 @@ void CalcWeightedDerivatives(
     } else {
         const int tailFinish = bt.TailFinish;
         const int approxDimension = approx.ysize();
-        NPar::TLocalExecutor::TExecRangeParams blockParams(0, tailFinish);
+        NPar::ILocalExecutor::TExecRangeParams blockParams(0, tailFinish);
         blockParams.SetBlockSize(1000);
 
         Y_ASSERT(error.GetErrorType() == EErrorType::PerObjectError);
@@ -601,21 +632,32 @@ void CalcWeightedDerivatives(
                 blockParams.GetBlockCount(),
                 NPar::TLocalExecutor::WAIT_COMPLETE);
         } else if (approxDimension == 1) {
-            localExecutor->ExecRangeWithThrow(
-                [&](int blockId) {
-                    const int blockOffset = blockId * blockParams.GetBlockSize();
-                    error.CalcFirstDerRange(
-                        blockOffset,
-                        Min<int>(blockParams.GetBlockSize(), tailFinish - blockOffset),
-                        approx[0].data(),
-                        nullptr, // no approx deltas
-                        target.data(),
-                        weight.data(),
-                        (*weightedDerivatives)[0].data());
-                },
-                0,
-                blockParams.GetBlockCount(),
-                NPar::TLocalExecutor::WAIT_COMPLETE);
+            if (dynamic_cast<const TCoxError*>(&error) == nullptr) {
+                localExecutor->ExecRangeWithThrow(
+                    [&](int blockId) {
+                        const int blockOffset = blockId * blockParams.GetBlockSize();
+                        error.CalcFirstDerRange(
+                            blockOffset,
+                            Min<int>(blockParams.GetBlockSize(), tailFinish - blockOffset),
+                            approx[0].data(),
+                            nullptr, // no approx deltas
+                            target.data(),
+                            weight.data(),
+                            (*weightedDerivatives)[0].data());
+                    },
+                    0,
+                    blockParams.GetBlockCount(),
+                    NPar::TLocalExecutor::WAIT_COMPLETE);
+            } else {
+                error.CalcFirstDerRange(
+                    /*start*/ 0,
+                    /*count*/ target.size(),
+                    /*approx*/ approx[0].data(),
+                    /*approx deltas*/ nullptr,
+                    /*targets*/ target.data(),
+                    /*weights*/ weight.data(),
+                    /*first ders*/ (*weightedDerivatives)[0].data());
+            }
         } else {
             localExecutor->ExecRangeWithThrow(
                 [&](int blockId) {

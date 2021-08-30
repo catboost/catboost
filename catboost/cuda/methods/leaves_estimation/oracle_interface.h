@@ -3,6 +3,8 @@
 #include "leaves_estimation_config.h"
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
 #include <catboost/cuda/targets/oracle_type.h>
+#include <catboost/private/libs/algo_helpers/langevin_utils.h>
+#include <catboost/cuda/cuda_util/gpu_random.h>
 
 namespace NCatboostCuda {
     class ILeavesEstimationOracle {
@@ -21,6 +23,9 @@ namespace NCatboostCuda {
         //TODO(noxoomo): make this interface fill only lower-triangle of second der
         virtual void WriteSecondDerivatives(TVector<double>* secondDer) = 0;
         virtual void WriteWeights(TVector<double>* dst) = 0;
+        virtual TVector<float> EstimateExact() = 0;
+        virtual void AddLangevinNoiseToDerivatives(TVector<double>* derivatives,
+                                                   NPar::ILocalExecutor* localExecutor) = 0;
     };
 
     class ILeavesEstimationOracleFactory {
@@ -31,7 +36,8 @@ namespace NCatboostCuda {
         virtual THolder<ILeavesEstimationOracle> Create(const TLeavesEstimationConfig& config,
                                                         TStripeBuffer<const float>&& baseline,
                                                         TStripeBuffer<ui32>&& bins,
-                                                        ui32 binCount) const = 0;
+                                                        ui32 binCount,
+                                                        TGpuAwareRandom& random) const = 0;
     };
 
     inline void RegularizeImpl(const TLeavesEstimationConfig& config, const TConstArrayRef<double> binWeights, TVector<float>* point, ui32 approxDim = 1) {
@@ -44,6 +50,17 @@ namespace NCatboostCuda {
                 }
             }
         }
+    }
+
+    inline void AddLangevinNoise(const TLeavesEstimationConfig& config,
+                                 TVector<double>* derivatives,
+                                 NPar::ILocalExecutor* localExecutor,
+                                 ui64 randomSeed) {
+        AddLangevinNoiseToDerivatives(config.DiffusionTemperature,
+                                      config.LearningRate,
+                                      randomSeed,
+                                      derivatives,
+                                      localExecutor);
     }
 
     inline void AddRigdeRegulaizationIfNecessary(const TLeavesEstimationConfig& config, const TVector<float>& point, double* value, TVector<double>* gradient) {

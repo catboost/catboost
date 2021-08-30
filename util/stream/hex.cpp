@@ -16,7 +16,7 @@ void HexEncode(const void* in, size_t len, IOutputStream& out) {
 }
 
 void HexDecode(const void* in, size_t len, IOutputStream& out) {
-    Y_ENSURE(!(len & 1), AsStringBuf("Odd buffer length passed to HexDecode"));
+    Y_ENSURE(!(len & 1), TStringBuf("Odd buffer length passed to HexDecode"));
 
     static const size_t NUM_OF_BYTES = 32;
     char buffer[NUM_OF_BYTES];

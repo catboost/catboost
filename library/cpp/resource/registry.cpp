@@ -12,7 +12,7 @@ using namespace NResource;
 using namespace NBlockCodecs;
 
 namespace {
-    static inline const ICodec* GetCodec() noexcept {
+    inline const ICodec* GetCodec() noexcept {
         static const ICodec* ret = Codec("zstd08_5");
 
         return ret;
@@ -36,8 +36,8 @@ namespace {
                                  Decompress(data).Quote().c_str());
                     } else {
                         Y_VERIFY(false, "Redefinition of key %s,"
-                                 " old size: %lu,"
-                                 " new size: %lu.",
+                                 " old size: %zu,"
+                                 " new size: %zu.",
                                  TString{key}.Quote().c_str(), vsize, dsize);
                     }
                 }

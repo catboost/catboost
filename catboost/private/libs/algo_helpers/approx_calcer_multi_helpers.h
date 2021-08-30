@@ -11,7 +11,7 @@ void UpdateApproxDeltasMulti(
     int docCount,
     TConstArrayRef<TVector<double>> leafDeltas, //leafDeltas[dimension][leafId]
     TVector<TVector<double>>* approxDeltas,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 );
 
 void UpdateApproxDeltasMulti(
@@ -19,7 +19,7 @@ void UpdateApproxDeltasMulti(
     int docCount,
     TConstArrayRef<double> leafDeltas, //leafDeltas[dimension]
     TVector<TVector<double>>* approxDeltas,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 );
 
 inline void AddDersRangeMulti(
@@ -45,7 +45,7 @@ void CalcLeafDersMulti(
     int sampleCount,
     bool isUpdateWeight,
     ELeavesEstimation estimationMethod,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TVector<TSumMulti>* leafDers
 );
 

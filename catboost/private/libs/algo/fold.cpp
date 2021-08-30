@@ -9,6 +9,7 @@
 #include <catboost/libs/helpers/permutation.h>
 #include <catboost/libs/helpers/query_info_helper.h>
 #include <catboost/libs/helpers/restorable_rng.h>
+#include <catboost/libs/logging/logging.h>
 
 #include <library/cpp/threading/local_executor/local_executor.h>
 
@@ -108,7 +109,7 @@ TFold TFold::BuildDynamicFold(
     const NCatboostOptions::TBinarizationOptions& onlineEstimatedFeaturesQuantizationOptions,
     TQuantizedFeaturesInfoPtr onlineEstimatedFeaturesQuantizedInfo,
     TRestorableFastRng64* rand,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) {
     const NCB::TTrainingDataProvider& learnData = *data.Learn;
 
@@ -204,6 +205,8 @@ TFold TFold::BuildDynamicFold(
         rand
     );
 
+    ff.InitOnlineCtrs(data);
+
     return ff;
 }
 
@@ -227,8 +230,9 @@ TFold TFold::BuildPlainFold(
     const TMaybe<TVector<double>>& startingApprox,
     const NCatboostOptions::TBinarizationOptions& onlineEstimatedFeaturesQuantizationOptions,
     TQuantizedFeaturesInfoPtr onlineEstimatedFeaturesQuantizedInfo,
+    TIntrusivePtr<TPrecomputedOnlineCtr> precomputedSingleOnlineCtrs,
     TRestorableFastRng64* rand,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) {
     const NCB::TTrainingDataProvider& learnData = *data.Learn;
 
@@ -296,31 +300,26 @@ TFold TFold::BuildPlainFold(
         rand
     );
 
+    ff.InitOnlineCtrs(data, precomputedSingleOnlineCtrs);
+
     return ff;
 }
 
 
 void TFold::DropEmptyCTRs() {
     TVector<TProjection> emptyProjections;
-    for (auto& projCtr : OnlineSingleCtrs) {
-        if (projCtr.second.Feature.empty()) {
-            emptyProjections.emplace_back(projCtr.first);
-        }
+    if (OwnedOnlineSingleCtrs) {
+        OwnedOnlineSingleCtrs->DropEmptyData();
     }
-    for (auto& projCtr : OnlineCTR) {
-        if (projCtr.second.Feature.empty()) {
-            emptyProjections.emplace_back(projCtr.first);
-        }
-    }
-    for (const auto& proj : emptyProjections) {
-        GetCtrs(proj).erase(proj);
+    if (OwnedOnlineCtrs) {
+        OwnedOnlineCtrs->DropEmptyData();
     }
 }
 
 void TFold::AssignTarget(
     TMaybeData<TConstArrayRef<TConstArrayRef<float>>> target,
     const TVector<TTargetClassifier>& targetClassifiers,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) {
     ui32 learnSampleCount = GetLearnSampleCount();
     if (target && target->size() > 0) {
@@ -347,7 +346,8 @@ void TFold::AssignTarget(
             0,
             learnSampleCount,
             [&] (ui32 z) {
-                LearnTargetClass[ctrIdx][z] = targetClassifiers[ctrIdx].GetTargetClass(LearnTarget[0][z]);
+                auto targetId = targetClassifiers[ctrIdx].GetTargetId();
+                LearnTargetClass[ctrIdx][z] = targetClassifiers[ctrIdx].GetTargetClass(LearnTarget[targetId][z]);
             }
         );
         TargetClassesCount[ctrIdx] = targetClassifiers[ctrIdx].GetClassesCount();
@@ -375,7 +375,7 @@ void TFold::InitOnlineEstimatedFeatures(
     const NCatboostOptions::TBinarizationOptions& quantizationOptions,
     TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
     const NCB::TTrainingDataProviders& data,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TRestorableFastRng64* rand
 ) {
     OnlineEstimatedFeatures = CreateEstimatedFeaturesData(
@@ -388,4 +388,36 @@ void TFold::InitOnlineEstimatedFeatures(
         localExecutor,
         rand
     );
+}
+
+void TFold::InitOnlineCtrs(
+    const NCB::TTrainingDataProviders& data,
+    TIntrusivePtr<TPrecomputedOnlineCtr> precomputedSingleOnlineCtrs
+) {
+    TVector<TIndexRange<size_t>> datasetsObjectRanges;
+    size_t offset = 0;
+    datasetsObjectRanges.push_back(TIndexRange<size_t>(0, data.Learn->GetObjectCount()));
+    offset += data.Learn->GetObjectCount();
+    for (const auto& test : data.Test) {
+        size_t size = test->GetObjectCount();
+        datasetsObjectRanges.push_back(TIndexRange<size_t>(offset, offset + size));
+        offset += size;
+    }
+
+    if (precomputedSingleOnlineCtrs) {
+        CATBOOST_DEBUG_LOG << "Fold: Use precomputed online single ctrs\n";
+
+        OnlineSingleCtrs = std::move(precomputedSingleOnlineCtrs);
+        OwnedOnlineSingleCtrs = nullptr;
+    } else {
+        CATBOOST_DEBUG_LOG << "Fold: Use owned online single ctrs\n";
+
+        OwnedOnlineSingleCtrs = new TOwnedOnlineCtr();
+        OnlineSingleCtrs.Reset(OwnedOnlineSingleCtrs);
+        OwnedOnlineSingleCtrs->DatasetsObjectRanges = datasetsObjectRanges;
+    }
+
+    OwnedOnlineCtrs = new TOwnedOnlineCtr();
+    OnlineCtrs.Reset(OwnedOnlineCtrs);
+    OwnedOnlineCtrs->DatasetsObjectRanges = std::move(datasetsObjectRanges);
 }

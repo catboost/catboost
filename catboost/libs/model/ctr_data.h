@@ -27,6 +27,7 @@ public:
     void Save(IOutputStream* s) const;
 
     void Load(IInputStream* s);
+    void LoadNonOwning(TMemoryInput* in);
 };
 
 class TCtrDataStreamWriter {

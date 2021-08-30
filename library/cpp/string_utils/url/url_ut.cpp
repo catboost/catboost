@@ -22,6 +22,9 @@ Y_UNIT_TEST_SUITE(TUtilUrlTest) {
         // irl RFC3986 sometimes gets ignored
         UNIT_ASSERT_VALUES_EQUAL("pravda-kmv.ru", GetHost("pravda-kmv.ru?page=news&id=6973"));
         UNIT_ASSERT_VALUES_EQUAL("pravda-kmv.ru", GetHostAndPort("pravda-kmv.ru?page=news&id=6973"));
+        // check simple string
+        UNIT_ASSERT_VALUES_EQUAL("some_blender_url", GetHost("some_blender_url"));
+        UNIT_ASSERT_VALUES_EQUAL("", GetHost(""));
     }
 
     Y_UNIT_TEST(TestGetPathAndQuery) {
@@ -142,6 +145,10 @@ Y_UNIT_TEST_SUITE(TUtilUrlTest) {
         SplitUrlToHostAndPath("invalid url /", host, path);
         UNIT_ASSERT_STRINGS_EQUAL(host, "invalid url ");
         UNIT_ASSERT_STRINGS_EQUAL(path, "/");
+
+        SplitUrlToHostAndPath("some_blender_url", host, path);
+        UNIT_ASSERT_STRINGS_EQUAL(host, "some_blender_url");
+        UNIT_ASSERT_STRINGS_EQUAL(path, "");
     }
 
     Y_UNIT_TEST(TestSeparateUrlFromQueryAndFragment) {
@@ -264,6 +271,7 @@ Y_UNIT_TEST_SUITE(TUtilUrlTest) {
         UNIT_ASSERT_VALUES_EQUAL(true, DoesUrlPathStartWithToken("http://ya.ru/bebe/", "bebe"));
         UNIT_ASSERT_VALUES_EQUAL(true, DoesUrlPathStartWithToken("http://ya.ru/bebe?", "bebe"));
         UNIT_ASSERT_VALUES_EQUAL(true, DoesUrlPathStartWithToken("https://ya.ru/bebe", "bebe"));
+        UNIT_ASSERT_VALUES_EQUAL(false, DoesUrlPathStartWithToken("http://ya.ru/bebezzz", "bebe"));
         UNIT_ASSERT_VALUES_EQUAL(false, DoesUrlPathStartWithToken("http://ya.ru/bebe.zzz", "bebe"));
         UNIT_ASSERT_VALUES_EQUAL(false, DoesUrlPathStartWithToken("http://ya.ru/", "bebe"));
         UNIT_ASSERT_VALUES_EQUAL(false, DoesUrlPathStartWithToken("http://ya.ru", "bebe"));

@@ -107,12 +107,6 @@ namespace NCB {
         bool catFeaturesHashCanContainExtraData = false
     );
 
-    void CompareObjectsData(
-        const TQuantizedForCPUObjectsDataProvider& objectsData,
-        const TExpectedQuantizedData& expectedData,
-        bool catFeaturesHashCanContainExtraData = false
-    );
-
     void CompareTargetData(
         const TRawTargetDataProvider& targetData,
         const TObjectsGrouping& expectedObjectsGrouping,

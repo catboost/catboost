@@ -80,11 +80,17 @@ namespace NNeh {
         //consider responses with 3xx code as successful
         static bool RedirectionNotError;
 
+        //consider response with any code as successful
+        static bool AnyResponseIsNotError;
+
         //enable tcp keepalive for outgoing requests sockets
         static bool TcpKeepAlive;
 
         //enable limit requests per keep alive connection
         static i32 LimitRequestsPerConnection;
+
+        //enable TCP_QUICKACK
+        static bool QuickAck;
 
         //set option, - return false, if option name not recognized
         static bool Set(TStringBuf name, TStringBuf value);
@@ -107,6 +113,4 @@ namespace NNeh {
     ///   - min, if reached hard limit
     ///   - approx. linear changed[max..min], while conn. count in range [soft..hard]
     void SetHttp2InputConnectionsTimeouts(unsigned minSeconds, unsigned maxSeconds);
-
-    const NDns::TResolvedHost* Resolve(const TString& host, ui16 port, NHttp::EResolverType resolverType);
 }

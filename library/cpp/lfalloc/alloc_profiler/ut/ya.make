@@ -16,6 +16,7 @@ ENDIF()
 
 SRCS(
     profiler_ut.cpp
+    align_ut.cpp
 )
 
 END()

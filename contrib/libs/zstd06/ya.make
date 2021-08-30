@@ -1,8 +1,6 @@
 LIBRARY()
 
-LICENSE(
-    BSD
-)
+LICENSE(BSD-2-Clause)
 
 
 

@@ -1,9 +1,10 @@
-PY23_LIBRARY(dateutil)
+PY23_LIBRARY()
+
+LICENSE(BSD-3-Clause)
 
 
 
-LICENSE(Apache-2.0)
-VERSION(2.8.1)
+VERSION(2.8.2)
 
 PEERDIR(
     contrib/python/six

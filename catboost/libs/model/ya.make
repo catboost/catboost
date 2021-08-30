@@ -3,6 +3,10 @@ LIBRARY()
 
 
 SRCS(
+    GLOBAL cpu/formula_evaluator.cpp
+    GLOBAL model_import_interface.cpp
+    cpu/evaluator_impl.cpp
+    cpu/quantization.cpp
     ctr_data.cpp
     ctr_helpers.cpp
     ctr_provider.cpp
@@ -10,20 +14,19 @@ SRCS(
     eval_processing.cpp
     evaluation_interface.cpp
     features.cpp
-    GLOBAL model_import_interface.cpp
     model.cpp
+    model_build_helper.cpp
     online_ctr.cpp
     scale_and_bias.cpp
     static_ctr_provider.cpp
-    model_build_helper.cpp
-    cpu/evaluator_impl.cpp
-    GLOBAL cpu/formula_evaluator.cpp
-    cpu/quantization.cpp
+    utils.cpp
 )
 
 PEERDIR(
     catboost/libs/cat_feature
     catboost/private/libs/ctr_description
+    catboost/private/libs/embedding_features
+    catboost/private/libs/options
     catboost/private/libs/text_features
     catboost/libs/helpers
     catboost/libs/logging
@@ -36,7 +39,6 @@ PEERDIR(
     library/cpp/fast_exp
     library/cpp/json
     library/cpp/object_factory
-    library/cpp/svnversion
 )
 
 GENERATE_ENUM_SERIALIZATION(ctr_provider.h)

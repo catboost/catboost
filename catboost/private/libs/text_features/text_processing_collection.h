@@ -13,16 +13,16 @@ namespace NCB {
     struct TEvaluatedFeature {
     public:
         TEvaluatedFeature(
-            ui32 textFeatureId,
+            ui32 featureId,
             TGuid calcerId,
             ui32 localId)
-            : TextFeatureId(textFeatureId)
+            : FeatureId(featureId)
             , CalcerId(std::move(calcerId))
             , LocalId(localId)
         {}
 
     public:
-        ui32 TextFeatureId;
+        ui32 FeatureId;
         TGuid CalcerId;
         ui32 LocalId;
     };
@@ -103,16 +103,26 @@ namespace NCB {
             return FeatureCalcers[calcerId];
         }
 
+        TTextFeatureCalcerPtr GetCalcer(const TGuid& calcerGuid) const {
+            return FeatureCalcers[CalcerGuidToFlatIdx.at(calcerGuid)];
+        }
+
         ui32 NumberOfOutputFeatures(ui32 textFeatureId) const;
         ui32 TotalNumberOfOutputFeatures() const;
 
         TVector<TEvaluatedFeature> GetProducedFeatures() const;
 
         void Save(IOutputStream* s) const;
-        void Load(IInputStream* s);
+        void Load(IInputStream* stream);
+        void LoadNonOwning(TMemoryInput* in);
+        void DefaultInit(TCountingInput s);
 
         bool operator==(const TTextProcessingCollection& rhs);
         bool operator!=(const TTextProcessingCollection& rhs);
+
+        bool Empty() {
+            return FeatureCalcers.empty();
+        }
 
     private:
         ui32 GetFirstTextFeatureCalcer(ui32 textFeatureIdx) const;
@@ -123,6 +133,8 @@ namespace NCB {
 
         void SaveHeader(IOutputStream* stream) const;
         void LoadHeader(IInputStream* stream);
+        THashMap<TGuid, ui32> CreateComponentGuidsMapping() const;
+        void CheckForMissingParts() const;
 
         void CalcRuntimeData();
         void CheckPerFeatureIdx() const;

@@ -31,10 +31,6 @@ namespace NCB {
 
     using TRawBuilderData = TBuilderData<TRawObjectsData>;
     using TQuantizedBuilderData = TBuilderData<TQuantizedObjectsData>;
-    using TQuantizedForCPUBuilderData = TBuilderData<TQuantizedForCPUObjectsData>;
-    
-    TQuantizedBuilderData CastToBase(TQuantizedForCPUBuilderData&& builderData);
-
 
     template <class TTObjectsDataProvider>
     class TDataProviderTemplate : public TThrRefBase {
@@ -94,7 +90,7 @@ namespace NCB {
         TIntrusivePtr<TDataProviderTemplate> GetSubset(
             const TObjectsGroupingSubset& objectsGroupingSubset,
             ui64 cpuUsedRamLimit,
-            NPar::TLocalExecutor* localExecutor
+            NPar::ILocalExecutor* localExecutor
         ) const {
             TVector<std::function<void()>> tasks;
 
@@ -148,6 +144,20 @@ namespace NCB {
             return GetSubset(objectsGroupingSubset, cpuUsedRamLimit, &localExecutor);
         }
 
+        TIntrusivePtr<TDataProviderTemplate> Clone(
+            ui64 cpuUsedRamLimit,
+            NPar::ILocalExecutor* localExecutor
+        ) const {
+            return GetSubset(
+                GetGroupingSubsetFromObjectsSubset(
+                    ObjectsGrouping,
+                    TArraySubsetIndexing(TFullSubset<ui32>(GetObjectCount())),
+                    EObjectsOrder::Ordered),
+                cpuUsedRamLimit,
+                localExecutor
+            );
+        }
+
         // ObjectsGrouping->GetObjectCount() used a lot, so make it a member here
         ui32 GetObjectCount() const {
             return ObjectsGrouping->GetObjectCount();
@@ -196,12 +206,12 @@ namespace NCB {
     using TRawDataProviderPtr = TIntrusivePtr<TRawDataProvider>;
     using TConstRawDataProviderPtr = TIntrusivePtr<const TRawDataProvider>;
 
-    using TQuantizedDataProvider = TDataProviderTemplate<TQuantizedForCPUObjectsDataProvider>;
+    using TQuantizedDataProvider = TDataProviderTemplate<TQuantizedObjectsDataProvider>;
     using TQuantizedDataProviderPtr = TIntrusivePtr<TQuantizedDataProvider>;
-    using TConstQuantizedDataProviderPtr = TIntrusivePtr<const TQuantizedForCPUObjectsDataProvider>;
+    using TConstQuantizedDataProviderPtr = TIntrusivePtr<const TQuantizedObjectsDataProvider>;
 
     /*
-     * TDataProviderTemplate can be either TRawObjectsDataProvider or TQuantized(ForCPU)ObjectsDataProvider
+     * TDataProviderTemplate can be either TRawObjectsDataProvider or TQuantizedObjectsDataProvider
      *  had to make this method instead of TDataProviderTemplate constructor because it
      *  won't work for TDataProviderTemplate=TTObjectsDataProvider (kind of base class)
      */
@@ -210,7 +220,7 @@ namespace NCB {
         TMaybe<TObjectsGroupingPtr> objectsGrouping, // if undefined ObjectsGrouping created from data
         TBuilderData<typename TTObjectsDataProvider::TData>&& builderData,
         bool skipCheck,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
     ) {
         if (!skipCheck) {
             /* most likely have been already checked, but call it here for consistency with
@@ -280,7 +290,7 @@ namespace NCB {
 
     using TDataProviders = TDataProvidersTemplate<TObjectsDataProvider>;
     using TRawDataProviders = TDataProvidersTemplate<TRawObjectsDataProvider>;
-    using TQuantizedDataProviders = TDataProvidersTemplate<TQuantizedForCPUObjectsDataProvider>;
+    using TQuantizedDataProviders = TDataProvidersTemplate<TQuantizedObjectsDataProvider>;
 
 
     template <class TTObjectsDataProvider>
@@ -330,7 +340,7 @@ namespace NCB {
         TIntrusivePtr<TProcessedDataProviderTemplate> GetSubset(
             const TObjectsGroupingSubset& objectsGroupingSubset,
             ui64 cpuUsedRamLimit,
-            NPar::TLocalExecutor* localExecutor
+            NPar::ILocalExecutor* localExecutor
         ) const {
             TVector<std::function<void()>> tasks;
 
@@ -409,7 +419,7 @@ namespace NCB {
     using TProcessedDataProvider = TProcessedDataProviderTemplate<TObjectsDataProvider>;
     using TProcessedDataProviderPtr = TIntrusivePtr<TProcessedDataProvider>;
 
-    using TTrainingDataProvider = TProcessedDataProviderTemplate<TQuantizedForCPUObjectsDataProvider>;
+    using TTrainingDataProvider = TProcessedDataProviderTemplate<TQuantizedObjectsDataProvider>;
     using TTrainingDataProviderPtr = TIntrusivePtr<TTrainingDataProvider>;
 
     template <class TTObjectsDataProvider>
@@ -442,7 +452,7 @@ namespace NCB {
         NCB::TArraySubsetIndexing<ui32>&& trainIndices,
         NCB::TArraySubsetIndexing<ui32>&& testIndices,
         ui64 cpuUsedRamLimit,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
     ) {
         const ui64 perTaskCpuUsedRamLimit = cpuUsedRamLimit / 2;
 
@@ -533,7 +543,7 @@ namespace NCB {
 
     class TEstimatedForCPUObjectsDataProviders {
     public:
-        using TTObjectsDataProvider = TQuantizedForCPUObjectsDataProvider;
+        using TTObjectsDataProvider = TQuantizedObjectsDataProvider;
         using TTObjectsDataProviderPtr = TIntrusivePtr<TTObjectsDataProvider>;
 
         TTObjectsDataProviderPtr Learn; // can be nullptr
@@ -570,7 +580,7 @@ namespace NCB {
             return QuantizedEstimatedFeaturesInfo.QuantizedFeaturesInfo;
         }
 
-        ui32 CalcFeaturesCheckSum(NPar::TLocalExecutor* localExecutor) const {
+        ui32 CalcFeaturesCheckSum(NPar::ILocalExecutor* localExecutor) const {
             ui32 checkSum = 0;
             if (Learn) {
                 checkSum += Learn->CalcFeaturesCheckSum(localExecutor);
@@ -584,7 +594,7 @@ namespace NCB {
 
     class TTrainingDataProviders {
     public:
-        using TTObjectsDataProvider = TQuantizedForCPUObjectsDataProvider;
+        using TTObjectsDataProvider = TQuantizedObjectsDataProvider;
         using TTrainingDataProviderTemplatePtr =
             TIntrusivePtr<TProcessedDataProviderTemplate<TTObjectsDataProvider>>;
         using TDataPtr = TTrainingDataProviderTemplatePtr;
@@ -617,7 +627,7 @@ namespace NCB {
             return Learn->MetaInfo.FeaturesLayout;
         }
 
-        ui32 CalcFeaturesCheckSum(NPar::TLocalExecutor* localExecutor) const {
+        ui32 CalcFeaturesCheckSum(NPar::ILocalExecutor* localExecutor) const {
             ui32 checkSum = Learn->ObjectsData->CalcFeaturesCheckSum(localExecutor);
             for (const auto& testData : Test) {
                 checkSum += testData->ObjectsData->CalcFeaturesCheckSum(localExecutor);

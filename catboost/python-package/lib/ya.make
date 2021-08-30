@@ -7,6 +7,7 @@ SRCDIR(catboost/python-package/catboost)
 PEERDIR(
     catboost/libs/cat_feature
     catboost/libs/data
+    catboost/libs/features_selection
     catboost/libs/fstr
     catboost/libs/gpu_config/maybe_have_cuda
     catboost/libs/eval_result
@@ -81,6 +82,8 @@ IF(NOT OS_ANDROID OR PYTHON2)
         version.py
         core.py
         datasets.py
+        plot_helpers.py
+        metrics.py
         monoforest.py
         text_processing.py
         utils.py
@@ -101,7 +104,5 @@ IF(NOT OS_ANDROID OR PYTHON2)
         eval/utils.py
     )
 ENDIF()
-
-NO_LINT()
 
 END()

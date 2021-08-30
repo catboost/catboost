@@ -39,14 +39,6 @@ struct TDumper<TSharedPtr<T, C, D>> {
     }
 };
 
-template <class T, class D>
-struct TDumper<TLinkedPtr<T, D>> {
-    template <class S>
-    static inline void Dump(S& s, const TLinkedPtr<T, D>& v) {
-        s << DumpRaw("TLinkedPtr(") << v.Get() << DumpRaw(")");
-    }
-};
-
 template <class T, class C, class D>
 struct TDumper<TCopyPtr<T, C, D>> {
     template <class S>
@@ -104,6 +96,10 @@ struct TDumper<TVector<T, A>>: public TSeqDumper {
 
 template <class T, class A>
 struct TDumper<std::vector<T, A>>: public TSeqDumper {
+};
+
+template <class T>
+struct TDumper<TArrayRef<T>>: public TSeqDumper {
 };
 
 template <class T, size_t N>

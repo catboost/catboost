@@ -258,17 +258,90 @@ namespace NCB::NModelEvaluation {
 
 #endif
 
+
+    // TCatFeatureAccessor must return hashed cat feature values
+    template <typename TCatFeatureAccessor>
+    inline void ComputeOneHotAndCtrFeaturesForBlock(
+        const TModelTrees& trees,
+        const TModelTrees::TForApplyData& applyData,
+        const TIntrusivePtr<ICtrProvider>& ctrProvider,
+        TCatFeatureAccessor catFeatureAccessor,
+        size_t start,
+        size_t docCount,
+        ui8* resultPtrForBlockStart,
+        TArrayRef<ui32> transposedHash,
+        TArrayRef<float> ctrs,
+        ui8** resultPtr,
+        const TFeatureLayout* featureInfo = nullptr
+    ) {
+        if (applyData.UsedCatFeaturesCount != 0) {
+            THashMap<int, int> catFeaturePackedIndexes;
+            int usedFeatureIdx = 0;
+            for (const auto& catFeature : trees.GetCatFeatures()) {
+                if (!catFeature.UsedInModel()) {
+                    continue;
+                }
+                catFeaturePackedIndexes[catFeature.Position.Index] = usedFeatureIdx;
+                TFeaturePosition position = catFeature.Position;
+                if (featureInfo) {
+                    position = featureInfo->GetRemappedPosition(catFeature);
+                }
+                for (size_t docId = 0, writeIdx = usedFeatureIdx * docCount;
+                     docId < docCount;
+                     ++docId, ++writeIdx) {
+                    transposedHash[writeIdx] = catFeatureAccessor(position, start + docId);
+                }
+                ++usedFeatureIdx;
+            }
+            Y_ASSERT(applyData.UsedCatFeaturesCount == (size_t)usedFeatureIdx);
+            OneHotBinsFromTransposedCatFeatures(
+                trees.GetOneHotFeatures(),
+                catFeaturePackedIndexes,
+                docCount,
+                transposedHash,
+                *resultPtr
+            );
+            if (!applyData.UsedModelCtrs.empty()) {
+                ctrProvider->CalcCtrs(
+                    applyData.UsedModelCtrs,
+                    TConstArrayRef<ui8>(resultPtrForBlockStart, docCount * trees.GetEffectiveBinaryFeaturesBucketsCount()),
+                    transposedHash,
+                    docCount,
+                    ctrs
+                );
+            }
+            size_t ctrFloatsPosition = 0;
+            for (const auto& ctr : trees.GetCtrFeatures()) {
+                auto ctrFloatsPtr = &ctrs[ctrFloatsPosition];
+                ctrFloatsPosition += docCount;
+                BinarizeFloats<false>(
+                    TFeaturePosition(),
+                    docCount,
+                    [ctrFloatsPtr](TFeaturePosition, size_t index) { return ctrFloatsPtr[index]; },
+                    ctr.Borders,
+                    0,
+                    *resultPtr
+                );
+            }
+        }
+    }
+
+
 /**
 * This function binarizes
 */
-    template <typename TFloatFeatureAccessor, typename TCatFeatureAccessor, typename TTextFeatureAccessor>
+    template <typename TFloatFeatureAccessor, typename TCatFeatureAccessor,
+              typename TTextFeatureAccessor, typename TEmbeddingFeatureAccessor>
     inline void BinarizeFeatures(
         const TModelTrees& trees,
+        const TModelTrees::TForApplyData& applyData,
         const TIntrusivePtr<ICtrProvider>& ctrProvider,
         const TIntrusivePtr<TTextProcessingCollection>& textProcessingCollection,
+        const TIntrusivePtr<TEmbeddingProcessingCollection>& embeddingProcessingCollection,
         TFloatFeatureAccessor floatAccessor,
         TCatFeatureAccessor catFeatureAccessor,
         TTextFeatureAccessor textFeatureAccessor,
+        TEmbeddingFeatureAccessor embeddingFeatureAccessor,
         size_t start,
         size_t end,
         TCPUEvaluatorQuantizedData* cpuEvaluatorQuantizedData,
@@ -335,8 +408,7 @@ namespace NCB::NModelEvaluation {
                     }
                 }
             }
-            if (trees.GetUsedTextFeaturesCount() > 0 &&
-                trees.GetUsedEstimatedFeaturesCount() > 0) {
+            if (applyData.UsedTextFeaturesCount > 0 && applyData.UsedEstimatedFeaturesCount > 0) {
 
                 CB_ENSURE(
                     textProcessingCollection,
@@ -379,9 +451,12 @@ namespace NCB::NModelEvaluation {
                 }
 
                 for (const auto& estimatedFeature : trees.GetEstimatedFeatures()) {
+                    if (estimatedFeature.ModelEstimatedFeature.SourceFeatureType != EEstimatedSourceFeatureType::Text) {
+                        continue;
+                    }
                     const ui32 featureOffset =
-                        textProcessingCollection->GetAbsoluteCalcerOffset(estimatedFeature.CalcerId)
-                        + estimatedFeature.LocalIndex;
+                        textProcessingCollection->GetAbsoluteCalcerOffset(estimatedFeature.ModelEstimatedFeature.CalcerId)
+                        + estimatedFeature.ModelEstimatedFeature.LocalId;
 
                     auto estimatedFeaturePtr = &estimatedFeatures[featureOffset * docCount];
 
@@ -397,56 +472,83 @@ namespace NCB::NModelEvaluation {
                     );
                 }
             }
-            if (trees.GetUsedCatFeaturesCount() != 0) {
-                THashMap<int, int> catFeaturePackedIndexes;
-                int usedFeatureIdx = 0;
-                for (const auto& catFeature : trees.GetCatFeatures()) {
-                    if (!catFeature.UsedInModel()) {
-                        continue;
-                    }
-                    catFeaturePackedIndexes[catFeature.Position.Index] = usedFeatureIdx;
-                    TFeaturePosition position = catFeature.Position;
-                    if (featureInfo) {
-                        position = featureInfo->GetRemappedPosition(catFeature);
-                    }
-                    for (size_t docId = 0, writeIdx = usedFeatureIdx * docCount;
-                         docId < docCount;
-                         ++docId, ++writeIdx) {
-                        transposedHash[writeIdx] = catFeatureAccessor(position, start + docId);
-                    }
-                    ++usedFeatureIdx;
-                }
-                Y_ASSERT(trees.GetUsedCatFeaturesCount() == (size_t)usedFeatureIdx);
-                OneHotBinsFromTransposedCatFeatures(
-                    trees.GetOneHotFeatures(),
-                    catFeaturePackedIndexes,
-                    docCount,
-                    transposedHash,
-                    resultPtr
+            if (applyData.UsedEmbeddingFeaturesCount > 0 && applyData.UsedEstimatedFeaturesCount > 0) {
+                CB_ENSURE(
+                    embeddingProcessingCollection,
+                    "Fail to apply with embedding features: EmbeddingProcessingCollection must present in FullModel"
                 );
-                if (!trees.GetUsedModelCtrs().empty()) {
-                    ctrProvider->CalcCtrs(
-                        trees.GetUsedModelCtrs(),
-                        TConstArrayRef<ui8>(resultPtrForBlockStart, docCount * trees.GetEffectiveBinaryFeaturesBucketsCount()),
-                        transposedHash,
+
+                TVector<TEmbeddingsArray> embeddings;
+                embeddings.yresize(docCount);
+
+                {
+                    TVector<ui32> embeddingFeatureIds;
+                    THashMap<ui32, ui32> embeddingFeatureIdToFlatIndex;
+                    for (const auto& embeddingFeature : trees.GetEmbeddingFeatures()) {
+                        if (!embeddingFeature.UsedInModel()) {
+                            continue;
+                        }
+                        TFeaturePosition position = embeddingFeature.Position;
+                        if (featureInfo) {
+                            position = featureInfo->GetRemappedPosition(embeddingFeature);
+                        }
+                        embeddingFeatureIds.push_back(position.Index);
+                        embeddingFeatureIdToFlatIndex[position.Index] = position.FlatIndex;
+                    }
+
+                    embeddingProcessingCollection->CalcFeatures(
+                        [start, &embeddingFeatureAccessor, &embeddingFeatureIdToFlatIndex](ui32 embeddingFeatureId,
+                                                                                           ui32 docId) {
+                            return embeddingFeatureAccessor(
+                                TFeaturePosition{
+                                    SafeIntegerCast<int>(embeddingFeatureId),
+                                    SafeIntegerCast<int>(embeddingFeatureIdToFlatIndex[embeddingFeatureId])
+                                },
+                                start + docId
+                            );
+                        },
+                        MakeConstArrayRef(embeddingFeatureIds),
                         docCount,
-                        ctrs
+                        estimatedFeatures
                     );
                 }
-                size_t ctrFloatsPosition = 0;
-                for (const auto& ctr : trees.GetCtrFeatures()) {
-                    auto ctrFloatsPtr = &ctrs[ctrFloatsPosition];
-                    ctrFloatsPosition += docCount;
+
+                for (const auto& estimatedFeature : trees.GetEstimatedFeatures()) {
+                    if (estimatedFeature.ModelEstimatedFeature.SourceFeatureType != EEstimatedSourceFeatureType::Embedding) {
+                        continue;
+                    }
+                    const ui32 featureOffset =
+                        embeddingProcessingCollection->GetAbsoluteCalcerOffset(estimatedFeature.ModelEstimatedFeature.CalcerId)
+                        + estimatedFeature.ModelEstimatedFeature.LocalId;
+
+                    auto estimatedFeaturePtr = &estimatedFeatures[featureOffset * docCount];
+
                     BinarizeFloats<false>(
                         TFeaturePosition(),
                         docCount,
-                        [ctrFloatsPtr](TFeaturePosition, size_t index) { return ctrFloatsPtr[index]; },
-                        ctr.Borders,
+                        [estimatedFeaturePtr](TFeaturePosition, size_t index) {
+                            return estimatedFeaturePtr[index];
+                        },
+                        MakeConstArrayRef(estimatedFeature.Borders),
                         0,
                         resultPtr
                     );
                 }
+
             }
+            ComputeOneHotAndCtrFeaturesForBlock(
+                trees,
+                applyData,
+                ctrProvider,
+                catFeatureAccessor,
+                start,
+                docCount,
+                resultPtrForBlockStart,
+                transposedHash,
+                ctrs,
+                &resultPtr,
+                featureInfo
+            );
         }
     }
 
@@ -454,16 +556,18 @@ namespace NCB::NModelEvaluation {
 * This function is for quantized pool
 */
     template <typename TFloatFeatureAccessor, typename TCatFeatureAccessor>
-    inline void AssignFeatureBins(
+    inline void ComputeEvaluatorFeaturesFromPreQuantizedData(
         const TModelTrees& trees,
+        const TModelTrees::TForApplyData& applyData,
+        const TIntrusivePtr<ICtrProvider>& ctrProvider,
         TFloatFeatureAccessor floatAccessor,
-        TCatFeatureAccessor /*catAccessor*/,
+        TCatFeatureAccessor catFeatureAccessor,
         size_t start,
         size_t end,
-        TCPUEvaluatorQuantizedData* cpuEvaluatorQuantizedData
+        TCPUEvaluatorQuantizedData* cpuEvaluatorQuantizedData,
+        TArrayRef<ui32> transposedHash,
+        TArrayRef<float> ctrs
     ) {
-        CB_ENSURE(trees.GetUsedCatFeaturesCount() == 0,
-                  "Quantized datasets with categorical features are not currently supported");
         ui8* resultPtr = cpuEvaluatorQuantizedData->QuantizedData.data();
         size_t requiredSize = trees.GetEffectiveBinaryFeaturesBucketsCount() * (end - start);
         CB_ENSURE(
@@ -475,6 +579,8 @@ namespace NCB::NModelEvaluation {
         cpuEvaluatorQuantizedData->BlocksCount = 0;
         cpuEvaluatorQuantizedData->ObjectsCount = end - start;
         for (; start < end; start += FORMULA_EVALUATION_BLOCK_SIZE) {
+            ui8* resultPtrForBlockStart = resultPtr;
+
             size_t blockEnd = Min(start + FORMULA_EVALUATION_BLOCK_SIZE, end);
             for (const auto& floatFeature : trees.GetFloatFeatures()) {
                 if (!floatFeature.UsedInModel()) {
@@ -485,6 +591,20 @@ namespace NCB::NModelEvaluation {
                     resultPtr++;
                 }
             }
+
+            ComputeOneHotAndCtrFeaturesForBlock(
+                trees,
+                applyData,
+                ctrProvider,
+                catFeatureAccessor,
+                start,
+                /*docCount*/ blockEnd - start,
+                resultPtrForBlockStart,
+                transposedHash,
+                ctrs,
+                &resultPtr
+            );
+
             ++cpuEvaluatorQuantizedData->BlocksCount;
         }
     }

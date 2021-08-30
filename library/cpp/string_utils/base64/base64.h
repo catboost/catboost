@@ -32,6 +32,7 @@ inline void Base64Decode(const TStringBuf src, TString& dst) {
     dst.resize(Base64Decode(src, dst.begin()).size());
 }
 
+//WARNING: can process not whole input silently, use Base64StrictDecode instead of this function
 inline TString Base64Decode(const TStringBuf s) {
     TString ret;
     Base64Decode(s, ret);

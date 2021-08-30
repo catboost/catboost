@@ -22,7 +22,7 @@ namespace NCatboostCuda {
         {
         }
 
-        TVector<float> Estimate(TVector<float> startPoint, NPar::TLocalExecutor* localExecutor);
+        TVector<float> Estimate(TVector<float> startPoint, NPar::ILocalExecutor* localExecutor);
     };
 
 }

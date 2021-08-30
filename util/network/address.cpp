@@ -3,8 +3,8 @@
 #include "address.h"
 
 #if defined(_unix_)
-#include <sys/types.h>
-#include <sys/un.h>
+    #include <sys/types.h>
+    #include <sys/un.h>
 #endif
 
 using namespace NAddr;
@@ -135,6 +135,16 @@ IRemoteAddrPtr NAddr::GetSockAddr(SOCKET s) {
 
     if (getsockname(s, addr->MutableAddr(), addr->LenPtr()) < 0) {
         ythrow TSystemError() << "getsockname() failed";
+    }
+
+    return addr;
+}
+
+IRemoteAddrPtr NAddr::GetPeerAddr(SOCKET s) {
+    auto addr = MakeHolder<TOpaqueAddr>();
+
+    if (getpeername(s, addr->MutableAddr(), addr->LenPtr()) < 0) {
+        ythrow TSystemError() << "getpeername() failed";
     }
 
     return addr;

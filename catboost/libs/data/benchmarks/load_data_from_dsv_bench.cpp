@@ -63,6 +63,7 @@ Y_CPU_BENCHMARK(DsvLoaderNumFeatures, iface) {
             /*timestampsFilePath*/TPathWithScheme(),
             readDatasetMainParams.BaselineFilePath,     // can be uninited
             /*featureNamesFilePath*/TPathWithScheme(),
+            /*poolMetaInfoFilePath*/TPathWithScheme(),
             readDatasetMainParams.ColumnarPoolFormatParams,
             TVector<ui32>{},
             EObjectsOrder::Undefined,
@@ -99,6 +100,7 @@ Y_CPU_BENCHMARK(DsvLoaderCatFeatures, iface) {
             /*timestampsFilePath*/TPathWithScheme(),
             readDatasetMainParams.BaselineFilePath,     // can be uninited
             /*featureNamesFilePath*/TPathWithScheme(),
+            /*poolMetaInfoFilePath*/TPathWithScheme(),
             readDatasetMainParams.ColumnarPoolFormatParams,
             TVector<ui32>{},
             EObjectsOrder::Undefined,
@@ -135,6 +137,7 @@ Y_CPU_BENCHMARK(DsvLoaderQuotedCatFeatures, iface) {
             /*timestampsFilePath*/TPathWithScheme(),
             readDatasetMainParams.BaselineFilePath,     // can be uninited
             /*featureNamesFilePath*/TPathWithScheme(),
+            /*poolMetaInfoFilePath*/TPathWithScheme(),
             readDatasetMainParams.ColumnarPoolFormatParams,
             TVector<ui32>{},
             EObjectsOrder::Undefined,

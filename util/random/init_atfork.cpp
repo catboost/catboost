@@ -5,7 +5,7 @@
 #include <util/generic/singleton.h>
 
 #if defined(_unix_)
-#include <pthread.h>
+    #include <pthread.h>
 #endif
 
 namespace {

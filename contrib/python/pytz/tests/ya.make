@@ -1,9 +1,13 @@
-PY23_LIBRARY()
+PY23_TEST()
 
 
 
 PEERDIR(
     contrib/python/pytz
+)
+
+SRCDIR(
+    contrib/python/pytz/pytz/tests
 )
 
 TEST_SRCS(
@@ -15,8 +19,3 @@ TEST_SRCS(
 NO_LINT()
 
 END()
-
-RECURSE_FOR_TESTS(
-    py2
-    py3
-)

@@ -1,4 +1,4 @@
-- source_filter: "^(contrib/libs/(ImageMagick|ffmpeg-3|libraw|pthreads_win32|zookeeper))|^contrib/restricted/boost|^logbroker|^market|^rtline|^strm"
+- source_filter: "^(contrib/libs/(ImageMagick|ffmpeg-3|libraw|pthreads_win32|zookeeper))|^contrib/restricted/boost"
   includes:
   - pthread.h:     contrib/libs/pthreads_win32/include/pthread.h
   - sched.h:       contrib/libs/pthreads_win32/include/sched.h
@@ -52,10 +52,6 @@
   - spawn.h:       contrib/tools/watchman/winbuild/spawn.h
   - sys/time.h:    contrib/tools/watchman/winbuild/sys/time.h
 
-- source_filter: "^logbroker/push-client"
-  includes:
-  - dirent.h:      logbroker/push-client/src/win32/dirent.h
-
 - source_filter: "^contrib/libs/libpq"
   includes:
   - dirent.h:      contrib/libs/libpq/src/include/port/win32_msvc/dirent.h
@@ -68,4 +64,5 @@
 
 - includes:
     - sys/queue.h:   contrib/libs/libc_compat/include/windows/sys/queue.h
+    - sys/uio.h:     contrib/libs/libc_compat/include/windows/sys/uio.h
 

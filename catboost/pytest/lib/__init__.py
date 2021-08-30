@@ -5,8 +5,7 @@ import tempfile
 import time
 import yatest.common
 import yatest.common.network
-import yatest.yt
-from common_helpers import *  # noqa
+from .common_helpers import *  # noqa
 import zipfile
 
 from testpath.tempdir import TemporaryDirectory
@@ -143,6 +142,17 @@ def get_limited_precision_json_diff_tool(diff_limit):
     ]
     if diff_limit is not None:
         diff_tool += ['--diff-limit', str(diff_limit)]
+    return diff_tool
+
+
+def get_limited_precision_numpy_diff_tool(rtol=None, atol=None):
+    diff_tool = [
+        yatest.common.binary_path("catboost/tools/limited_precision_numpy_diff/limited_precision_numpy_diff"),
+    ]
+    if rtol is not None:
+        diff_tool += ['--rtol', str(rtol)]
+    if atol is not None:
+        diff_tool += ['--atol', str(atol)]
     return diff_tool
 
 

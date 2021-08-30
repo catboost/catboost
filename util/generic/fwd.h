@@ -4,18 +4,14 @@
 
 #include <stlfwd>
 
-//strings
-template <class TCharType>
-class TCharTraits;
-
-template <typename TCharType, typename TTraits = TCharTraits<TCharType>>
+template <typename TCharType, typename TTraits = std::char_traits<TCharType>>
 class TBasicString;
 
 using TString = TBasicString<char>;
 using TUtf16String = TBasicString<wchar16>;
 using TUtf32String = TBasicString<wchar32>;
 
-template <typename TCharType, typename TTraits = TCharTraits<TCharType>>
+template <typename TCharType, typename TTraits = std::char_traits<TCharType>>
 class TBasicStringBuf;
 
 using TStringBuf = TBasicStringBuf<char>;
@@ -39,13 +35,14 @@ template <class T>
 struct THash;
 
 //intrusive containers
-template <class T>
+struct TIntrusiveListDefaultTag;
+template <class T, class Tag = TIntrusiveListDefaultTag>
 class TIntrusiveList;
 
-template <class T, class D>
+template <class T, class D, class Tag = TIntrusiveListDefaultTag>
 class TIntrusiveListWithAutoDelete;
 
-template <class T>
+template <class T, class Tag = TIntrusiveListDefaultTag>
 class TIntrusiveSList;
 
 template <class T, class C>
@@ -132,9 +129,6 @@ using TSimpleIntrusivePtr = TIntrusivePtr<T, TSimpleIntrusiveOps<T, Ops>>;
 
 template <class T, class C, class D = TDelete>
 class TSharedPtr;
-
-template <class T, class D = TDelete>
-class TLinkedPtr;
 
 template <class T, class C = TCopyNew, class D = TDelete>
 class TCopyPtr;

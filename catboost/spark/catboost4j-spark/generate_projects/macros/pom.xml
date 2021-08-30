@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>catboost-spark-macros_${scala_compat_version_placeholder}</artifactId>
+  <packaging>jar</packaging>
+  <name>CatBoost for Apache Spark Scala macros</name>
+  <description>CatBoost for Apache Spark Scala macros library</description>
+
+  <parent>
+    <groupId>ai.catboost</groupId>
+    <artifactId>catboost-spark-aggregate_${scala_compat_version_placeholder}</artifactId>
+    <version>${catboost_version_placeholder}</version>
+    <relativePath>..</relativePath>
+  </parent>
+  
+  <build>
+    <sourceDirectory>${project.basedir}/../${relative_global_project_root_placeholder}/macros/src/main/scala</sourceDirectory>
+  </build>
+</project>

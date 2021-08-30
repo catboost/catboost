@@ -9,6 +9,8 @@
 #include <util/stream/mem.h>
 #include <util/stream/zlib.h>
 #include <util/stream/buffer.h>
+
+#include <util/system/fs.h>
 #include <util/system/info.h>
 #include <util/system/spinlock.h>
 #include <util/system/thread.h>
@@ -18,18 +20,20 @@
 #include <util/system/getpid.h>
 #include <util/system/mem_info.h>
 #include <util/system/rusage.h>
-#include <util/system/user.h>
 #include <util/system/cpu_id.h>
 #include <util/system/unaligned_mem.h>
+
 #include <util/generic/buffer.h>
 #include <util/generic/singleton.h>
+
 #include <util/digest/murmur.h>
-#include <util/datetime/cputimer.h>
+#include <util/digest/city.h>
+
 #include <util/ysaveload.h>
 
 namespace {
-    static inline void Permute(char* buf, size_t len) noexcept {
-        Shuffle(buf, buf + len, TReallyFastRng32(*buf + len));
+    inline void Permute(char* buf, size_t len, ui32 seed) noexcept {
+        Shuffle(buf, buf + len, TReallyFastRng32(seed));
     }
 
     struct THostEntropy: public TBuffer {
@@ -75,27 +79,25 @@ namespace {
                     out.Write(&ru, sizeof(ru));
                 }
 
-                try {
-                    Save(&out, GetUsername());
-                } catch (...) {
-                    // May fail e.g. when sssd_be crashes.
-                }
-
                 {
                     ui32 store[12];
 
                     out << TStringBuf(CpuBrand(store));
                 }
+
+                out << NFs::CurrentWorkingDirectory();
+
+                out.Finish();
             }
 
             {
                 TMemoryOutput out(Data(), Size());
 
                 //replace zlib header with hash
-                Save(&out, MurmurHash<ui64>(Data(), Size()));
+                Save(&out, CityHash64(Data(), Size()));
             }
 
-            Permute(Data(), Size());
+            Permute(Data(), Size(), MurmurHash<ui32>(Data(), Size()));
         }
     };
 
@@ -105,7 +107,7 @@ namespace {
         using TRnd = TMersenne<TKey>;
 
     public:
-        inline TMersenneInput(const TBuffer& rnd)
+        inline explicit TMersenneInput(const TBuffer& rnd)
             : Rnd_((const TKey*)rnd.Data(), rnd.Size() / sizeof(TKey))
         {
         }
@@ -134,7 +136,7 @@ namespace {
 
     class TEntropyPoolStream: public IInputStream {
     public:
-        inline TEntropyPoolStream(const TBuffer& buffer)
+        inline explicit TEntropyPoolStream(const TBuffer& buffer)
             : Mi_(buffer)
             , Bi_(&Mi_, 8192)
         {
@@ -156,11 +158,11 @@ namespace {
         size_t DoRead(void* inbuf, size_t len) override {
             char* buf = (char*)inbuf;
 
-#define DO_STEP(type)                              \
-    while (len >= sizeof(type)) {                  \
+#define DO_STEP(type)                                    \
+    while (len >= sizeof(type)) {                        \
         WriteUnaligned<type>(buf, RandomNumber<type>()); \
-        buf += sizeof(type);                       \
-        len -= sizeof(type);                       \
+        buf += sizeof(type);                             \
+        len -= sizeof(type);                             \
     }
 
             DO_STEP(ui64);

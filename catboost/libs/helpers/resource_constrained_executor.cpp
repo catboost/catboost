@@ -18,7 +18,7 @@ namespace NCB {
         const TString& resourceName,
         TResourceUnit resourceQuota,
         bool lenientMode,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
     )
         : LocalExecutor(*localExecutor)
         , ResourceName(resourceName)

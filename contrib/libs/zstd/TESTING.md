@@ -27,7 +27,7 @@ They consist of the following tests:
 
 Long Tests
 ----------
-Long tests run on all commits to `master` branch,
+Long tests run on all commits to `release` branch,
 and once a day on the current version of `dev` branch,
 on TravisCI.
 They consist of the following tests:
@@ -40,5 +40,4 @@ They consist of the following tests:
 - Versions test (ensuring `zstd` can decode files from all previous versions)
 - `pzstd` with asan and tsan, as well as in 32-bits mode
 - Testing `zstd` with legacy mode off
-- Testing `zbuff` (old streaming API)
 - Entire test suite and make install on macOS

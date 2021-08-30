@@ -2,6 +2,7 @@
 
 #include <catboost/private/libs/algo/learn_context.h>
 #include <catboost/private/libs/algo_helpers/custom_objective_descriptor.h>
+#include <catboost/libs/data/ctrs.h>
 #include <catboost/libs/data/data_provider.h>
 #include <catboost/libs/eval_result/eval_result.h>
 #include <catboost/libs/loggers/catboost_logger_helpers.h>
@@ -50,6 +51,19 @@ struct TTrainModelInternalOptions {
      * Used in Cross-Validation
      */
     bool OffsetMetricPeriodByInitModelSize = false;
+
+    /*
+     * True means that all of training dataset is loaded into RAM on host where training is started
+     * Maybe false only in multi-host training with quantized dataset
+     */
+    bool HaveLearnFeatureInMemory = true;
+};
+
+struct TCustomCallbackDescriptor {
+    using TAfterIteration = bool (*)(const TMetricsAndTimeLeftHistory& history, void* customData);
+
+    void* CustomData = nullptr;
+    TAfterIteration AfterIterationFunc = nullptr;
 };
 
 class ITrainingCallbacks {
@@ -57,7 +71,7 @@ public:
     virtual bool IsContinueTraining(const TMetricsAndTimeLeftHistory& /*history*/) {
         return true;
     }
-    virtual void OnSaveSnapshot(IOutputStream* /*snapshot*/) {
+    virtual void OnSaveSnapshot(const NJson::TJsonValue& /*processors*/, IOutputStream* /*snapshot*/) {
     }
     virtual bool OnLoadSnapshot(IInputStream* /*snapshot*/) {
         return true;
@@ -66,6 +80,19 @@ public:
     virtual ~ITrainingCallbacks() = default;
 };
 
+class ICustomCallbacks {
+public:
+    virtual bool AfterIteration(const TMetricsAndTimeLeftHistory& /*history*/) = 0;
+    virtual ~ICustomCallbacks() = default;
+};
+
+class TCustomCallbacks : public ICustomCallbacks {
+public:
+    explicit TCustomCallbacks(TMaybe<TCustomCallbackDescriptor> callbackDescriptor);
+    bool AfterIteration(const TMetricsAndTimeLeftHistory& history) override;
+private:
+    const TMaybe<TCustomCallbackDescriptor> CallbackDescriptor;
+};
 
 class IModelTrainer {
 public:
@@ -76,8 +103,12 @@ public:
         const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
         NCB::TTrainingDataProviders trainingData,
+
+        // can be non-empty only if there is single fold
+        TMaybe<NCB::TPrecomputedOnlineCtrData> precomputedSingleOnlineCtrDataForSingleFold,
         const TLabelConverter& labelConverter,
         ITrainingCallbacks* trainingCallbacks,
+        ICustomCallbacks* customCallbacks,
         TMaybe<TFullModel*> initModel,
         THolder<TLearnProgress> initLearnProgress, // can be nullptr, can be modified if non-nullptr
 
@@ -87,10 +118,12 @@ public:
          * that's why this additional parameter is necessary
          */
         NCB::TDataProviders initModelApplyCompatiblePools,
-        NPar::TLocalExecutor* localExecutor,
+        NPar::ILocalExecutor* localExecutor,
         const TMaybe<TRestorableFastRng64*> rand,
         TFullModel* dstModel,
-        const TVector<TEvalResult*>& evalResultPtrs,
+
+        // can be empty if eval results are not needed
+        const TVector<TEvalResult*>& evalResultPtrs, // [testIdx]
         TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
         THolder<TLearnProgress>* dstLearnProgress
     ) const = 0;
@@ -100,7 +133,7 @@ public:
         const NCatboostOptions::TOutputFilesOptions& outputOptions,
         NCB::TTrainingDataProviders trainingData,
         const TLabelConverter& labelConverter,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
     ) const = 0;
 
     virtual ~IModelTrainer() = default;
@@ -122,6 +155,7 @@ void TrainModel(
     NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo, // can be nullptr
     const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+    const TMaybe<TCustomCallbackDescriptor>& callbackDescriptor,
     NCB::TDataProviders pools, // not rvalue reference because Cython does not support them
     TMaybe<TFullModel*> initModel,
 

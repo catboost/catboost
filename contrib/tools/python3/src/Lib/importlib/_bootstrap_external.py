@@ -19,6 +19,34 @@ work. One should use importlib as the public-facing version of this module.
 # reference any injected objects! This includes not only global code but also
 # anything specified at the class level.
 
+# Import builtin modules
+import _imp
+import _io
+import sys
+import _warnings
+import marshal
+
+
+_MS_WINDOWS = (sys.platform == 'win32')
+if _MS_WINDOWS:
+    import nt as _os
+    import winreg
+else:
+    import posix as _os
+
+
+if _MS_WINDOWS:
+    path_separators = ['\\', '/']
+else:
+    path_separators = ['/']
+# Assumption made in _path_join()
+assert all(len(sep) == 1 for sep in path_separators)
+path_sep = path_separators[0]
+path_sep_tuple = tuple(path_separators)
+path_separators = ''.join(path_separators)
+_pathseps_with_colon = {f':{s}' for s in path_separators}
+
+
 # Bootstrap-related code ######################################################
 _CASE_INSENSITIVE_PLATFORMS_STR_KEY = 'win',
 _CASE_INSENSITIVE_PLATFORMS_BYTES_KEY = 'cygwin', 'darwin'
@@ -34,8 +62,8 @@ def _make_relax_case():
             key = b'PYTHONCASEOK'
 
         def _relax_case():
-            """True if filenames must be checked case-insensitively."""
-            return key in _os.environ
+            """True if filenames must be checked case-insensitively and ignore environment flags are not set."""
+            return not sys.flags.ignore_environment and key in _os.environ
     else:
         def _relax_case():
             """True if filenames must be checked case-insensitively."""
@@ -59,22 +87,49 @@ def _unpack_uint16(data):
     return int.from_bytes(data, 'little')
 
 
-def _path_join(*path_parts):
-    """Replacement for os.path.join()."""
-    return path_sep.join([part.rstrip(path_separators)
-                          for part in path_parts if part])
+if _MS_WINDOWS:
+    def _path_join(*path_parts):
+        """Replacement for os.path.join()."""
+        if not path_parts:
+            return ""
+        if len(path_parts) == 1:
+            return path_parts[0]
+        root = ""
+        path = []
+        for new_root, tail in map(_os._path_splitroot, path_parts):
+            if new_root.startswith(path_sep_tuple) or new_root.endswith(path_sep_tuple):
+                root = new_root.rstrip(path_separators) or root
+                path = [path_sep + tail]
+            elif new_root.endswith(':'):
+                if root.casefold() != new_root.casefold():
+                    # Drive relative paths have to be resolved by the OS, so we reset the
+                    # tail but do not add a path_sep prefix.
+                    root = new_root
+                    path = [tail]
+                else:
+                    path.append(tail)
+            else:
+                root = new_root or root
+                path.append(tail)
+        path = [p.rstrip(path_separators) for p in path if p]
+        if len(path) == 1 and not path[0]:
+            # Avoid losing the root's trailing separator when joining with nothing
+            return root + path_sep
+        return root + path_sep.join(path)
+
+else:
+    def _path_join(*path_parts):
+        """Replacement for os.path.join()."""
+        return path_sep.join([part.rstrip(path_separators)
+                              for part in path_parts if part])
 
 
 def _path_split(path):
     """Replacement for os.path.split()."""
-    if len(path_separators) == 1:
-        front, _, tail = path.rpartition(path_sep)
-        return front, tail
-    for x in reversed(path):
-        if x in path_separators:
-            front, tail = path.rsplit(x, maxsplit=1)
-            return front, tail
-    return '', path
+    i = max(path.rfind(p) for p in path_separators)
+    if i < 0:
+        return '', path
+    return path[:i], path[i + 1:]
 
 
 def _path_stat(path):
@@ -108,13 +163,18 @@ def _path_isdir(path):
     return _path_is_mode_type(path, 0o040000)
 
 
-def _path_isabs(path):
-    """Replacement for os.path.isabs.
+if _MS_WINDOWS:
+    def _path_isabs(path):
+        """Replacement for os.path.isabs."""
+        if not path:
+            return False
+        root = _os._path_splitroot(path)[0].replace('/', '\\')
+        return len(root) > 1 and (root.startswith('\\\\') or root.endswith('\\'))
 
-    Considers a Windows drive-relative path (no drive, but starts with slash) to
-    still be "absolute".
-    """
-    return path.startswith(path_separators) or path[1:3] in _pathseps_with_colon
+else:
+    def _path_isabs(path):
+        """Replacement for os.path.isabs."""
+        return path.startswith(path_separators)
 
 
 def _write_atomic(path, data, mode=0o666):
@@ -271,6 +331,13 @@ _code_type = type(_write_atomic.__code__)
 #     Python 3.8b2  3412 (Swap the position of positional args and positional
 #                         only args in ast.arguments #37593)
 #     Python 3.8b4  3413 (Fix "break" and "continue" in "finally" #37830)
+#     Python 3.9a0  3420 (add LOAD_ASSERTION_ERROR #34880)
+#     Python 3.9a0  3421 (simplified bytecode for with blocks #32949)
+#     Python 3.9a0  3422 (remove BEGIN_FINALLY, END_FINALLY, CALL_FINALLY, POP_FINALLY bytecodes #33387)
+#     Python 3.9a2  3423 (add IS_OP, CONTAINS_OP and JUMP_IF_NOT_EXC_MATCH bytecodes #39156)
+#     Python 3.9a2  3424 (simplify bytecodes for *value unpacking)
+#     Python 3.9a2  3425 (simplify bytecodes for **value unpacking)
+
 #
 # MAGIC must change whenever the bytecode emitted by the compiler may no
 # longer be understood by older implementations of the eval loop (usually
@@ -279,7 +346,7 @@ _code_type = type(_write_atomic.__code__)
 # Whenever MAGIC_NUMBER is changed, the ranges in the magic_values array
 # in PC/launcher.c must also be updated.
 
-MAGIC_NUMBER = (3413).to_bytes(2, 'little') + b'\r\n'
+MAGIC_NUMBER = (3425).to_bytes(2, 'little') + b'\r\n'
 _RAW_MAGIC_NUMBER = int.from_bytes(MAGIC_NUMBER, 'little')  # For import.c
 
 _PYCACHE = '__pycache__'
@@ -709,9 +776,9 @@ class WindowsRegistryFinder:
     @classmethod
     def _open_registry(cls, key):
         try:
-            return _winreg.OpenKey(_winreg.HKEY_CURRENT_USER, key)
+            return winreg.OpenKey(winreg.HKEY_CURRENT_USER, key)
         except OSError:
-            return _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, key)
+            return winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, key)
 
     @classmethod
     def _search_registry(cls, fullname):
@@ -723,7 +790,7 @@ class WindowsRegistryFinder:
                                   sys_version='%d.%d' % sys.version_info[:2])
         try:
             with cls._open_registry(key) as hkey:
-                filepath = _winreg.QueryValue(hkey, '')
+                filepath = winreg.QueryValue(hkey, '')
         except OSError:
             return None
         return filepath
@@ -1087,6 +1154,11 @@ class ExtensionFileLoader(FileLoader, _LoaderBasics):
 
     def __init__(self, name, path):
         self.name = name
+        if not _path_isabs(path):
+            try:
+                path = _path_join(_os.getcwd(), path)
+            except OSError:
+                pass
         self.path = path
 
     def __eq__(self, other):
@@ -1368,6 +1440,19 @@ class PathFinder:
             return None
         return spec.loader
 
+    @classmethod
+    def find_distributions(cls, *args, **kwargs):
+        """
+        Find distributions.
+
+        Return an iterable of all Distribution instances capable of
+        loading the metadata for packages matching ``context.name``
+        (or all names if ``None`` indicated) along the paths in the list
+        of directories ``context.path``.
+        """
+        from importlib.metadata import MetadataPathFinder
+        return MetadataPathFinder.find_distributions(*args, **kwargs)
+
 
 class FileFinder:
 
@@ -1388,6 +1473,8 @@ class FileFinder:
         self._loaders = loaders
         # Base (directory) path
         self.path = path or '.'
+        if not _path_isabs(self.path):
+            self.path = _path_join(_os.getcwd(), self.path)
         self._path_mtime = -1
         self._path_cache = set()
         self._relaxed_path_cache = set()
@@ -1450,7 +1537,10 @@ class FileFinder:
                 is_namespace = _path_isdir(base_path)
         # Check for a file w/ a proper suffix exists.
         for suffix, loader_class in self._loaders:
-            full_path = _path_join(self.path, tail_module + suffix)
+            try:
+                full_path = _path_join(self.path, tail_module + suffix)
+            except ValueError:
+                return None
             _bootstrap._verbose_message('trying {}', full_path, verbosity=2)
             if cache_module + suffix in cache:
                 if _path_isfile(full_path):
@@ -1564,14 +1654,7 @@ def _setup(_bootstrap_module):
     sys = _bootstrap.sys
     _imp = _bootstrap._imp
 
-    # Directly load built-in modules needed during bootstrap.
     self_module = sys.modules[__name__]
-    for builtin_name in ('_io', '_warnings', 'builtins', 'marshal'):
-        if builtin_name not in sys.modules:
-            builtin_module = _bootstrap._builtin_from_name(builtin_name)
-        else:
-            builtin_module = sys.modules[builtin_name]
-        setattr(self_module, builtin_name, builtin_module)
 
     # Directly load the os module (needed during bootstrap).
     os_details = ('posix', ['/']), ('nt', ['\\', '/'])
@@ -1590,23 +1673,22 @@ def _setup(_bootstrap_module):
                 continue
     else:
         raise ImportError('importlib requires posix or nt')
+
     setattr(self_module, '_os', os_module)
     setattr(self_module, 'path_sep', path_sep)
     setattr(self_module, 'path_separators', ''.join(path_separators))
     setattr(self_module, '_pathseps_with_colon', {f':{s}' for s in path_separators})
 
-    # Directly load the _thread module (needed during bootstrap).
-    thread_module = _bootstrap._builtin_from_name('_thread')
-    setattr(self_module, '_thread', thread_module)
-
-    # Directly load the _weakref module (needed during bootstrap).
-    weakref_module = _bootstrap._builtin_from_name('_weakref')
-    setattr(self_module, '_weakref', weakref_module)
-
-    # Directly load the winreg module (needed during bootstrap).
+    # Directly load built-in modules needed during bootstrap.
+    builtin_names = ['_io', '_warnings', 'marshal']
     if builtin_os == 'nt':
-        winreg_module = _bootstrap._builtin_from_name('winreg')
-        setattr(self_module, '_winreg', winreg_module)
+        builtin_names.append('winreg')
+    for builtin_name in builtin_names:
+        if builtin_name not in sys.modules:
+            builtin_module = _bootstrap._builtin_from_name(builtin_name)
+        else:
+            builtin_module = sys.modules[builtin_name]
+        setattr(self_module, builtin_name, builtin_module)
 
     # Constants
     setattr(self_module, '_relax_case', _make_relax_case())

@@ -55,7 +55,7 @@ namespace NPrivate {
 }
 
 template <class C>
-using TFunctionSignature = typename ::NPrivate::TFuncInfo< ::NPrivate::TRemoveClass<std::remove_reference_t<std::remove_pointer_t<C>>>>::TSignature;
+using TFunctionSignature = typename ::NPrivate::TFuncInfo<::NPrivate::TRemoveClass<std::remove_reference_t<std::remove_pointer_t<C>>>>::TSignature;
 
 template <typename F>
 struct TCallableTraits: public TCallableTraits<TFunctionSignature<F>> {

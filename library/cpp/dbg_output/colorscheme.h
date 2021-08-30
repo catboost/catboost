@@ -71,17 +71,17 @@ namespace NDbgDump {
             // TODO: support backgrounds in library/cpp/colorizer
             DBG_OUTPUT_COLOR_HANDLER(Key) {
                 if (Depth++ == 0 && Colors.IsTTY()) {
-                    stream << DumpRaw(AsStringBuf("\033[42m"));
+                    stream << DumpRaw(TStringBuf("\033[42m"));
                 }
             }
             DBG_OUTPUT_COLOR_HANDLER(Value) {
                 if (Depth++ == 0 && Colors.IsTTY()) {
-                    stream << DumpRaw(AsStringBuf("\033[44m"));
+                    stream << DumpRaw(TStringBuf("\033[44m"));
                 }
             }
             DBG_OUTPUT_COLOR_HANDLER(ResetRole) {
                 if (--Depth == 0 && Colors.IsTTY()) {
-                    stream << DumpRaw(AsStringBuf("\033[49m"));
+                    stream << DumpRaw(TStringBuf("\033[49m"));
                 }
             }
 

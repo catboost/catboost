@@ -134,6 +134,12 @@ namespace NObjectFactory {
             return Singleton<TObjectFactory<TProduct, TKey>>()->GetKeys(keys);
         }
 
+        static TSet<TKey> GetRegisteredKeys() {
+            TSet<TKey> keys;
+            Singleton<TObjectFactory<TProduct, TKey>>()->GetKeys(keys);
+            return keys;
+        }
+
         template <class Product>
         class TRegistrator {
         public:
@@ -170,6 +176,12 @@ namespace NObjectFactory {
 
         static void GetRegisteredKeys(TSet<TKey>& keys) {
             return Singleton<TParametrizedObjectFactory<TProduct, TKey, TArgs...>>()->GetKeys(keys);
+        }
+
+        static TSet<TKey> GetRegisteredKeys() {
+            TSet<TKey> keys;
+            Singleton<TParametrizedObjectFactory<TProduct, TKey, TArgs...>>()->GetKeys(keys);
+            return keys;
         }
 
         template <class Product>

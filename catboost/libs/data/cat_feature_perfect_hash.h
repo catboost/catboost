@@ -111,6 +111,14 @@ namespace NCB {
             const auto it = Map.find(key);
             return (it != Map.end()) ? MakeMaybe(it->second) : Nothing();
         }
+
+        TMap<ui32, TValueWithCount> ToMap() const {
+            TMap<ui32, TValueWithCount> result = Map;
+            if (DefaultMap.Defined()) {
+                result.emplace(DefaultMap->SrcValue, DefaultMap->DstValueWithCount);
+            }
+            return result;
+        }
     };
 
     inline ui32 UpdateCheckSumImpl(ui32 init, const TCatFeaturePerfectHash& data) {
@@ -175,7 +183,11 @@ namespace NCB {
             , FeaturesPerfectHash(catFeatureCount)
         {}
 
+        TCatFeaturesPerfectHash(TCatFeaturesPerfectHash&& rhs) = default;
+
         ~TCatFeaturesPerfectHash() = default;
+
+        TCatFeaturesPerfectHash& operator=(TCatFeaturesPerfectHash&& rhs) = default;
 
         bool operator==(const TCatFeaturesPerfectHash& rhs) const;
 
@@ -242,7 +254,7 @@ namespace NCB {
         void CheckHasFeature(const TCatFeatureIdx catFeatureIdx) const {
             CB_ENSURE_INTERNAL(
                 HasFeature(catFeatureIdx),
-                "Error: unknown categorical feature #" << catFeatureIdx
+                "Error: unknown " << catFeatureIdx
             );
         }
 

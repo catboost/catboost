@@ -33,10 +33,10 @@
 
 namespace snappy {
 
-void Varint::Append32(string* s, uint32 value) {
+void Varint::Append32(std::string* s, uint32 value) {
   char buf[Varint::kMax32];
   const char* p = Varint::Encode32(buf, value);
-  s->AppendNoAlias(buf, p - buf);
+  s->append(buf, p - buf);
 }
 
 }  // namespace snappy

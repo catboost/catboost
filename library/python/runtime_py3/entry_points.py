@@ -19,7 +19,7 @@ def repl():
 
         if func_name and '__main__' not in user_ns:
             def run(args):
-                if isinstance(args, basestring):
+                if isinstance(args, str):
                     import shlex
                     args = shlex.split(args)
 

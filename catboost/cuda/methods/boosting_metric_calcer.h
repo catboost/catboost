@@ -21,7 +21,7 @@ namespace NCatboostCuda {
         using TTargetMapping = typename TTarget::TMapping;
         using TConstVec = typename TTarget::TConstVec;
 
-        TMetricCalcer(const TTarget& target, NPar::TLocalExecutor* localExecutor)
+        TMetricCalcer(const TTarget& target, NPar::ILocalExecutor* localExecutor)
             : Target(target)
             , LocalExecutor(localExecutor)
         {
@@ -37,7 +37,9 @@ namespace NCatboostCuda {
             CB_ENSURE(Point.GetObjectsSlice().Size(), "Set point first");
             auto targets = Target.GetTarget().GetTargets().ConstCopyView();
             TConstVec weights;
-            if (metric->GetCpuMetric().UseWeights.IsIgnored() || metric->GetCpuMetric().UseWeights) {
+            if ((metric->GetCpuMetric().UseWeights.IsIgnored() || metric->GetCpuMetric().UseWeights) &&
+                !Target.GetTarget().HasPairWeights()
+            ) {
                 weights = Target.GetTarget().GetWeights().ConstCopyView();
             } else {
                 using TVec = typename TTarget::TVec;
@@ -92,7 +94,11 @@ namespace NCatboostCuda {
                 Target.GetTarget().GetTargets().Read(CpuTarget);
             }
             if (CpuWeights.size() == 0) {
-                Target.GetTarget().GetWeights().Read(CpuWeights);
+                if (!Target.GetTarget().HasPairWeights()) {
+                    Target.GetTarget().GetWeights().Read(CpuWeights);
+                } else {
+                    CpuWeights.resize(CpuTarget.size(), 1);
+                }
             }
         }
 
@@ -137,7 +143,7 @@ namespace NCatboostCuda {
         TVector<float> CpuWeights;
         TVector<TQueryInfo> QueryInfo;
 
-        NPar::TLocalExecutor* LocalExecutor;
+        NPar::ILocalExecutor* LocalExecutor;
     };
 
 }

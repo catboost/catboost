@@ -147,7 +147,8 @@ CATBOOST_API bool CopyTree(
                 leaves[idx] = (float) srcLeafValues[idx];
             }
 
-            const size_t weightOffset = modelTrees->GetFirstLeafOffsets()[treeIndex] / modelTrees->GetDimensionsCount();
+            auto applyData = modelTrees->GetApplyData();
+            const size_t weightOffset = applyData->TreeFirstLeafOffsets[treeIndex] / modelTrees->GetDimensionsCount();
             for (size_t idx = 0; idx < (1uLL << modelTrees->GetModelTreeData()->GetTreeSizes()[treeIndex]); ++idx) {
                 weights[idx] = (float) srcWeights[idx + weightOffset];
             }
@@ -209,6 +210,7 @@ CATBOOST_API bool TrainCatBoost(const TDataSet* trainPtr,
                    quantizedFeaturesInfo,
                    objectiveDescriptor,
                    evalMetricDescriptor,
+                   Nothing(),
                    std::move(dataProviders),
                    /*initModel*/ Nothing(),
                    /*initLearnProgress*/ nullptr,

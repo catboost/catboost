@@ -20,7 +20,7 @@ template <bool StoreExpApprox>
 inline void UpdateBodyTailApprox(
     const TVector<TVector<TVector<double>>>& approxDelta,
     double learningRate,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TFold* fold
 ) {
     const auto applyLearningRate = [=](TConstArrayRef<double> delta, TArrayRef<double> approx, size_t idx) {
@@ -42,5 +42,6 @@ void UpdateAvrgApprox(
     const TVector<TVector<double>>& treeDelta,
     TConstArrayRef<NCB::TTrainingDataProviderPtr> testData, // can be empty
     TLearnProgress* learnProgress,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor,
+    TVector<TVector<double>>* trainFoldApprox = nullptr
 );

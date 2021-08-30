@@ -112,6 +112,11 @@ namespace NCatboostOptions {
 
     double GetAlphaQueryCrossEntropy(const TMap<TString, TString>& lossParams);
     double GetAlphaQueryCrossEntropy(const TLossDescription& lossFunctionConfig);
+    void GetApproxScaleQueryCrossEntropy(
+        const TLossDescription& lossFunctionConfig,
+        TVector<float>* approxScale,
+        ui32* approxScaleSize,
+        float* defaultScale);
 
     int GetYetiRankPermutations(const TLossDescription& lossFunctionConfig);
 

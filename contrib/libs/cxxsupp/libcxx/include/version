@@ -21,16 +21,23 @@ __cpp_lib_allocator_traits_is_always_equal              201411L <memory> <scoped
                                                                 <unordered_map> <unordered_set>
 __cpp_lib_any                                           201606L <any>
 __cpp_lib_apply                                         201603L <tuple>
-__cpp_lib_array_constexpr                               201603L <iterator> <array>
+__cpp_lib_array_constexpr                               201811L <iterator> <array>
+                                                        201603L // C++17
 __cpp_lib_as_const                                      201510L <utility>
+__cpp_lib_atomic_flag_test                              201907L <atomic>
+__cpp_lib_atomic_float                                  201711L <atomic>
 __cpp_lib_atomic_is_always_lock_free                    201603L <atomic>
+__cpp_lib_atomic_lock_free_type_aliases                 201907L <atomic>
 __cpp_lib_atomic_ref                                    201806L <atomic>
+__cpp_lib_atomic_shared_ptr                             201711L <atomic>
+__cpp_lib_atomic_value_initialization                   201911L <atomic> <memory>
+__cpp_lib_atomic_wait                                   201907L <atomic>
 __cpp_lib_bind_front                                    201811L <functional>
 __cpp_lib_bit_cast                                      201806L <bit>
 __cpp_lib_bool_constant                                 201505L <type_traits>
 __cpp_lib_boyer_moore_searcher                          201603L <functional>
 __cpp_lib_byte                                          201603L <cstddef>
-__cpp_lib_char8_t                                       201811L <atomic> <filesystem> <istream>
+__cpp_lib_char8_t                                       201907L <atomic> <filesystem> <istream>
                                                                 <limits> <locale> <ostream>
                                                                 <string> <string_view>
 __cpp_lib_chrono                                        201611L <chrono>
@@ -38,13 +45,15 @@ __cpp_lib_chrono_udls                                   201304L <chrono>
 __cpp_lib_clamp                                         201603L <algorithm>
 __cpp_lib_complex_udls                                  201309L <complex>
 __cpp_lib_concepts                                      201806L <concepts>
-__cpp_lib_constexpr_misc                                201811L <array> <functional> <iterator>
-                                                                <string_view> <tuple> <utility>
+__cpp_lib_constexpr_dynamic_alloc                       201907L <memory>
+__cpp_lib_constexpr_functional                          201907L <functional>
+__cpp_lib_constexpr_numeric                             201911L <numeric>
 __cpp_lib_constexpr_swap_algorithms                     201806L <algorithm>
+__cpp_lib_constexpr_utility                             201811L <utility>
 __cpp_lib_destroying_delete                             201806L <new>
 __cpp_lib_enable_shared_from_this                       201603L <memory>
 __cpp_lib_endian                                        201907L <bit>
-__cpp_lib_erase_if                                      201811L <string> <deque> <forward_list>
+__cpp_lib_erase_if                                      202002L <string> <deque> <forward_list>
                                                                 <list> <vector> <map>
                                                                 <set> <unordered_map> <unordered_set>
 __cpp_lib_exchange_function                             201304L <utility>
@@ -57,6 +66,7 @@ __cpp_lib_hardware_interference_size                    201703L <new>
 __cpp_lib_has_unique_object_representations             201606L <type_traits>
 __cpp_lib_hypot                                         201603L <cmath>
 __cpp_lib_incomplete_container_elements                 201505L <forward_list> <list> <vector>
+__cpp_lib_int_pow2                                      202002L <bit>
 __cpp_lib_integer_sequence                              201304L <utility>
 __cpp_lib_integral_constant_callable                    201304L <type_traits>
 __cpp_lib_interpolate                                   201902L <numeric>
@@ -74,6 +84,7 @@ __cpp_lib_make_from_tuple                               201606L <tuple>
 __cpp_lib_make_reverse_iterator                         201402L <iterator>
 __cpp_lib_make_unique                                   201304L <memory>
 __cpp_lib_map_try_emplace                               201411L <map>
+__cpp_lib_math_constants                                201907L <numbers>
 __cpp_lib_math_special_functions                        201603L <cmath>
 __cpp_lib_memory_resource                               201603L <memory_resource>
 __cpp_lib_node_extract                                  201606L <map> <set> <unordered_map>
@@ -98,6 +109,7 @@ __cpp_lib_shared_mutex                                  201505L <shared_mutex>
 __cpp_lib_shared_ptr_arrays                             201611L <memory>
 __cpp_lib_shared_ptr_weak_type                          201606L <memory>
 __cpp_lib_shared_timed_mutex                            201402L <shared_mutex>
+__cpp_lib_span                                          202002L <span>
 __cpp_lib_string_udls                                   201304L <string>
 __cpp_lib_string_view                                   201606L <string> <string_view>
 __cpp_lib_three_way_comparison                          201711L <compare>
@@ -154,7 +166,11 @@ __cpp_lib_void_t                                        201411L <type_traits>
 # define __cpp_lib_allocator_traits_is_always_equal     201411L
 # define __cpp_lib_any                                  201606L
 # define __cpp_lib_apply                                201603L
-# define __cpp_lib_array_constexpr                      201603L
+# if defined(_MSC_VER) && _MSC_VER >= 1926
+#   define __cpp_lib_array_constexpr                    201803L
+# else
+#   define __cpp_lib_array_constexpr                    201603L
+# endif
 # define __cpp_lib_as_const                             201510L
 # if !defined(_LIBCPP_HAS_NO_THREADS)
 #   define __cpp_lib_atomic_is_always_lock_free         201603L
@@ -168,7 +184,7 @@ __cpp_lib_void_t                                        201411L <type_traits>
 // # define __cpp_lib_execution                            201603L
 # define __cpp_lib_filesystem                           201703L
 # define __cpp_lib_gcd_lcm                              201606L
-# define __cpp_lib_hardware_interference_size           201703L
+// # define __cpp_lib_hardware_interference_size           201703L
 # if defined(_LIBCPP_HAS_UNIQUE_OBJECT_REPRESENTATIONS)
 #   define __cpp_lib_has_unique_object_representations  201606L
 # endif
@@ -197,9 +213,13 @@ __cpp_lib_void_t                                        201411L <type_traits>
 # if !defined(_LIBCPP_HAS_NO_THREADS)
 #   define __cpp_lib_shared_mutex                       201505L
 # endif
-// # define __cpp_lib_shared_ptr_arrays                    201611L
+# define __cpp_lib_shared_ptr_arrays                    201611L
 # define __cpp_lib_shared_ptr_weak_type                 201606L
-# define __cpp_lib_string_view                          201606L
+# if defined(_MSC_VER) && _MSC_VER >= 1926
+#   define __cpp_lib_string_view                        201803L
+# else
+#   define __cpp_lib_string_view                        201606L
+# endif
 // # define __cpp_lib_to_chars                             201611L
 # undef  __cpp_lib_transparent_operators
 # define __cpp_lib_transparent_operators                201510L
@@ -211,31 +231,59 @@ __cpp_lib_void_t                                        201411L <type_traits>
 #endif
 
 #if _LIBCPP_STD_VER > 17
+# undef  __cpp_lib_array_constexpr
+# define __cpp_lib_array_constexpr                      201811L
+# if !defined(_LIBCPP_HAS_NO_THREADS)
+#   define __cpp_lib_atomic_flag_test                   201907L
+# endif
+# if !defined(_LIBCPP_HAS_NO_THREADS)
+// #   define __cpp_lib_atomic_float                       201711L
+# endif
+# if !defined(_LIBCPP_HAS_NO_THREADS)
+#   define __cpp_lib_atomic_lock_free_type_aliases      201907L
+# endif
 # if !defined(_LIBCPP_HAS_NO_THREADS)
 // #   define __cpp_lib_atomic_ref                         201806L
+# endif
+# if !defined(_LIBCPP_HAS_NO_THREADS)
+// #   define __cpp_lib_atomic_shared_ptr                  201711L
+# endif
+# if !defined(_LIBCPP_HAS_NO_THREADS)
+// #   define __cpp_lib_atomic_value_initialization        201911L
+# endif
+# if !defined(_LIBCPP_HAS_NO_THREADS)
+#   define __cpp_lib_atomic_wait                        201907L
 # endif
 // # define __cpp_lib_bind_front                           201811L
 // # define __cpp_lib_bit_cast                             201806L
 # if !defined(_LIBCPP_NO_HAS_CHAR8_T)
-#   define __cpp_lib_char8_t                            201811L
+#   define __cpp_lib_char8_t                            201907L
 # endif
 // # define __cpp_lib_concepts                             201806L
-// # define __cpp_lib_constexpr_misc                       201811L
+# define __cpp_lib_constexpr_dynamic_alloc              201907L
+# define __cpp_lib_constexpr_functional                 201907L
+# define __cpp_lib_constexpr_numeric                    201911L
 // # define __cpp_lib_constexpr_swap_algorithms            201806L
+# define __cpp_lib_constexpr_utility                    201811L
 # if _LIBCPP_STD_VER > 17 && defined(__cpp_impl_destroying_delete) && __cpp_impl_destroying_delete >= 201806L
 #   define __cpp_lib_destroying_delete                  201806L
 # endif
 # define __cpp_lib_endian                               201907L
-# define __cpp_lib_erase_if                             201811L
-// # define __cpp_lib_generic_unordered_lookup             201811L
+# define __cpp_lib_erase_if                             202002L
+# define __cpp_lib_generic_unordered_lookup             201811L
+# define __cpp_lib_int_pow2                             202002L
 # define __cpp_lib_interpolate                          201902L
 # if !defined(_LIBCPP_HAS_NO_BUILTIN_IS_CONSTANT_EVALUATED)
 #   define __cpp_lib_is_constant_evaluated              201811L
 # endif
-// # define __cpp_lib_list_remove_return_type              201806L
+# define __cpp_lib_list_remove_return_type              201806L
+# if defined(__cpp_concepts) && __cpp_concepts >= 201811L
+#   define __cpp_lib_math_constants                     201907L
+# endif
 // # define __cpp_lib_ranges                               201811L
-# define __cpp_lib_to_array                                201907L
+# define __cpp_lib_span                                 202002L
 // # define __cpp_lib_three_way_comparison                 201711L
+# define __cpp_lib_to_array                             201907L
 #endif
 
 #endif // _LIBCPP_VERSIONH

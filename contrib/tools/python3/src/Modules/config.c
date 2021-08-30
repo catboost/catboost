@@ -52,11 +52,13 @@ extern PyObject* PyInit__io(void); // _io
 extern PyObject* PyInit__json(void); // _json
 extern PyObject* PyInit__locale(void); // _locale
 extern PyObject* PyInit__lsprof(void); // _lsprof
+extern PyObject* PyInit__lzma(void); // _lzma
 extern PyObject* PyInit__md5(void); // _md5
 extern PyObject* PyInit__multibytecodec(void); // _multibytecodec
 extern PyObject* PyInit__multiprocessing(void); // _multiprocessing
 extern PyObject* PyInit__opcode(void); // _opcode
 extern PyObject* PyInit__operator(void); // _operator
+extern PyObject* PyInit__peg_parser(void); // _peg_parser
 extern PyObject* PyInit__pickle(void); // _pickle
 extern PyObject* PyInit__posixshmem(void); // _posixshmem
 #if !defined(_MSC_VER)
@@ -82,6 +84,7 @@ extern PyObject* PyInit__tracemalloc(void); // _tracemalloc
 extern PyObject* PyInit__weakref(void); // _weakref
 extern PyObject* PyInit__xxsubinterpreters(void); // _xxsubinterpreters
 extern PyObject* PyInit__xxtestfuzz(void); // _xxtestfuzz
+extern PyObject* PyInit__zoneinfo(void); // _zoneinfo
 extern PyObject* PyInit_array(void); // array
 extern PyObject* PyInit_atexit(void); // atexit
 extern PyObject* PyInit_audioop(void); // audioop
@@ -183,11 +186,13 @@ struct _inittab _PyImport_Inittab[] = {
     {"_json", PyInit__json},
     {"_locale", PyInit__locale},
     {"_lsprof", PyInit__lsprof},
+    {"_lzma", PyInit__lzma},
     {"_md5", PyInit__md5},
     {"_multibytecodec", PyInit__multibytecodec},
     {"_multiprocessing", PyInit__multiprocessing},
     {"_opcode", PyInit__opcode},
     {"_operator", PyInit__operator},
+    {"_peg_parser", PyInit__peg_parser},
     {"_pickle", PyInit__pickle},
     {"_posixshmem", PyInit__posixshmem},
 #if !defined(_MSC_VER)
@@ -213,6 +218,7 @@ struct _inittab _PyImport_Inittab[] = {
     {"_weakref", PyInit__weakref},
     {"_xxsubinterpreters", PyInit__xxsubinterpreters},
     {"_xxtestfuzz", PyInit__xxtestfuzz},
+    {"_zoneinfo", PyInit__zoneinfo},
     {"array", PyInit_array},
     {"atexit", PyInit_atexit},
     {"audioop", PyInit_audioop},

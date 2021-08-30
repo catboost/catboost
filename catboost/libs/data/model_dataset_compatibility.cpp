@@ -21,6 +21,8 @@ static constexpr const char* FeatureTypeName() {
         return "Categorical";
     } else if constexpr (std::is_same<TFeature, TTextFeature>::value) {
         return "Text";
+    } else if constexpr (std::is_same<TFeature, TEmbeddingFeature>::value) {
+        return "Embedding";
     } else {
         CB_ENSURE(false, "FeatureTypeName: Unknown feature type");
         return "Unknown";
@@ -103,6 +105,7 @@ namespace NCB {
         const THashSet<ui32>& datasetFloatFeatureFlatIndexes,
         const THashSet<ui32>& datasetCatFeatureFlatIndexes,
         const THashSet<ui32>& datasetTextFeatureFlatIndexes,
+        const THashSet<ui32>& datasetEmbeddingFeatureFlatIndexes,
         THashMap<ui32, ui32>* columnIndexesReorderMap)
     {
         columnIndexesReorderMap->clear();
@@ -119,6 +122,16 @@ namespace NCB {
             model.ModelTrees->GetTextFeatures(),
             &modelFeatureIdSet
         );
+        AddUsedFeatureIdsToSet(
+            model.ModelTrees->GetEmbeddingFeatures(),
+            &modelFeatureIdSet
+        );
+        // we can't remap unnamed features
+        for (const auto& featureId : modelFeatureIdSet) {
+            if (featureId.empty()) {
+                return false;
+            }
+        }
         size_t featureNameIntersection = 0;
         THashMap<TString, ui32> datasetFeatureNamesMap;
 
@@ -155,19 +168,20 @@ namespace NCB {
             datasetTextFeatureFlatIndexes,
             columnIndexesReorderMap
         );
+        CheckFeatureTypes(
+            model.ModelTrees->GetEmbeddingFeatures(),
+            datasetFeatureNamesMap,
+            datasetEmbeddingFeatureFlatIndexes,
+            columnIndexesReorderMap
+        );
         return true;
     }
 
     void CheckModelAndDatasetCompatibility(
         const TFullModel& model,
-        const TObjectsDataProvider& objectsData,
+        const TFeaturesLayout& datasetFeaturesLayout,
         THashMap<ui32, ui32>* columnIndexesReorderMap)
     {
-        if (dynamic_cast<const TQuantizedForCPUObjectsDataProvider*>(&objectsData)) {
-            CB_ENSURE(model.GetUsedCatFeaturesCount() == 0, "Quantized datasets with categorical features are not currently supported");
-        }
-        const auto& datasetFeaturesLayout = *objectsData.GetFeaturesLayout();
-
         const auto datasetFloatFeatureInternalIdxToExternalIdx =
             datasetFeaturesLayout.GetFloatFeatureInternalIdxToExternalIdx();
 
@@ -185,9 +199,16 @@ namespace NCB {
         const auto datasetTextFeatureInternalIdxToExternalIdx =
             datasetFeaturesLayout.GetTextFeatureInternalIdxToExternalIdx();
 
+        const auto datasetEmbeddingFeatureInternalIdxToExternalIdx =
+            datasetFeaturesLayout.GetEmbeddingFeatureInternalIdxToExternalIdx();
+
         THashSet<ui32> datasetTextFeatures(
             datasetTextFeatureInternalIdxToExternalIdx.begin(),
             datasetTextFeatureInternalIdxToExternalIdx.end());
+
+        THashSet<ui32> datasetEmbeddingFeatures(
+            datasetEmbeddingFeatureInternalIdxToExternalIdx.begin(),
+            datasetEmbeddingFeatureInternalIdxToExternalIdx.end());
 
         if (CheckColumnRemappingPossible(
             model,
@@ -195,6 +216,7 @@ namespace NCB {
             datasetFloatFeatures,
             datasetCatFeatures,
             datasetTextFeatures,
+            datasetEmbeddingFeatures,
             columnIndexesReorderMap))
         {
             return;
@@ -224,6 +246,21 @@ namespace NCB {
             datasetFeaturesMetaInfo,
             columnIndexesReorderMap
         );
+
+        CheckFeatureTypesAndNames(
+            model.ModelTrees->GetEmbeddingFeatures(),
+            datasetEmbeddingFeatures,
+            datasetFeaturesMetaInfo,
+            columnIndexesReorderMap
+        );
+    }
+
+    void CheckModelAndDatasetCompatibility(
+        const TFullModel& model,
+        const TObjectsDataProvider& objectsData,
+        THashMap<ui32, ui32>* columnIndexesReorderMap)
+    {
+        CheckModelAndDatasetCompatibility(model, *objectsData.GetFeaturesLayout(), columnIndexesReorderMap);
     }
 
     void CheckModelAndDatasetCompatibility(
@@ -236,18 +273,23 @@ namespace NCB {
 
     TVector<ui8> GetFloatFeatureBordersRemap(
         const TFloatFeature& feature,
+        ui32 datasetFlatFeatureIdx,
         const TQuantizedFeaturesInfo& quantizedFeaturesInfo) {
         CB_ENSURE(
             !feature.Borders.empty(),
             "Feature " << feature.Position.FlatIndex <<  ": model does not have border information for it"
         );
+        const auto& featuresLayout = *(quantizedFeaturesInfo.GetFeaturesLayout());
+        NCB::TFloatFeatureIdx floatFeatureIdx
+            = featuresLayout.GetInternalFeatureIdx<EFeatureType::Float>(datasetFlatFeatureIdx);
+
         CB_ENSURE(
-            quantizedFeaturesInfo.HasBorders(NCB::TFloatFeatureIdx(feature.Position.FlatIndex)),
+            quantizedFeaturesInfo.HasBorders(floatFeatureIdx),
             "Feature " << feature.Position.FlatIndex <<  ": dataset does not have border information for it"
         );
 
         TVector<ui8> floatBinsRemap;
-        auto& quantizedBorders = quantizedFeaturesInfo.GetBorders(NCB::TFloatFeatureIdx(feature.Position.FlatIndex));
+        auto& quantizedBorders = quantizedFeaturesInfo.GetBorders(floatFeatureIdx);
         ui32 poolBucketIdx = 0;
         auto addRemapBinIdx = [&] (ui8 bucketIdx) {
             floatBinsRemap.push_back(bucketIdx);
@@ -278,16 +320,63 @@ namespace NCB {
 
     TVector<TVector<ui8>> GetFloatFeaturesBordersRemap(
         const TFullModel& model,
+        const THashMap<ui32, ui32>& columnIndexesReorderMap,
         const TQuantizedFeaturesInfo& quantizedFeaturesInfo)
     {
-        TVector<TVector<ui8>> floatBinsRemap(model.ModelTrees->GetFloatFeatures().size());
+        TVector<TVector<ui8>> floatBinsRemap(model.ModelTrees->GetFlatFeatureVectorExpectedSize());
         for (const auto& feature: model.ModelTrees->GetFloatFeatures()) {
             if (feature.Borders.empty()) {
                 continue;
             }
-            floatBinsRemap[feature.Position.FlatIndex] =
-                GetFloatFeatureBordersRemap(feature, quantizedFeaturesInfo);
+            floatBinsRemap[feature.Position.FlatIndex] = GetFloatFeatureBordersRemap(
+                feature,
+                columnIndexesReorderMap.at(feature.Position.FlatIndex),
+                quantizedFeaturesInfo
+            );
         }
         return floatBinsRemap;
+    }
+
+    TVector<ui32> GetCatFeatureBinToHashedValueRemap(
+        ui32 datasetFlatFeatureIdx,
+        const NCB::TQuantizedFeaturesInfo& quantizedFeaturesInfo)
+    {
+        const auto& featuresLayout = *(quantizedFeaturesInfo.GetFeaturesLayout());
+        NCB::TCatFeatureIdx catFeatureIdx
+            = featuresLayout.GetInternalFeatureIdx<EFeatureType::Categorical>(datasetFlatFeatureIdx);
+
+        const NCB::TCatFeaturePerfectHash& catFeaturePerfectHash
+            = quantizedFeaturesInfo.GetCategoricalFeaturesPerfectHash(catFeatureIdx);
+
+        TVector<ui32> result;
+        result.yresize(quantizedFeaturesInfo.GetUniqueValuesCounts(catFeatureIdx).OnAll);
+
+        if (catFeaturePerfectHash.DefaultMap) {
+            result[catFeaturePerfectHash.DefaultMap->DstValueWithCount.Value]
+                = catFeaturePerfectHash.DefaultMap->SrcValue;
+        }
+        for (const auto& [srcValue, dstValueWithCount] : catFeaturePerfectHash.Map) {
+            result[dstValueWithCount.Value] = srcValue;
+        }
+
+        return result;
+    }
+
+    TVector<TVector<ui32>> GetCatFeaturesBinToHashedValueRemap(
+        const TFullModel& model,
+        const THashMap<ui32, ui32>& columnIndexesReorderMap,
+        const TQuantizedFeaturesInfo& quantizedFeaturesInfo)
+    {
+        TVector<TVector<ui32>> result(model.ModelTrees->GetFlatFeatureVectorExpectedSize());
+        for (const auto& feature: model.ModelTrees->GetCatFeatures()) {
+            if (!feature.UsedInModel()) {
+                continue;
+            }
+            result[feature.Position.FlatIndex] = GetCatFeatureBinToHashedValueRemap(
+                columnIndexesReorderMap.at(feature.Position.FlatIndex),
+                quantizedFeaturesInfo
+            );
+        }
+        return result;
     }
 }

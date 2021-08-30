@@ -3,9 +3,7 @@
 #include "asio.h"
 #include "io_service_impl.h"
 
-#if defined(_win_)
-#   define IOV_MAX 16
-#endif
+#include <sys/uio.h>
 
 #if defined(_bionic_)
 #   define IOV_MAX 1024
@@ -199,7 +197,7 @@ namespace NAsio {
             TSocketHolder s(socket(ep.SockAddr()->sa_family, SOCK_STREAM, 0));
 
             if (Y_UNLIKELY(s == INVALID_SOCKET || Srv_.HasAbort())) {
-                throw TSystemError() << AsStringBuf("can't create socket");
+                throw TSystemError() << TStringBuf("can't create socket");
             }
 
             SetNonBlock(s);

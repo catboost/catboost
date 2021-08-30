@@ -475,3 +475,12 @@ float DotProductSlow(const float* lhs, const float* rhs, ui32 length) noexcept {
 double DotProductSlow(const double* lhs, const double* rhs, ui32 length) noexcept {
     return DotProductSlowImpl<double, double>(lhs, rhs, length);
 }
+
+ui32 DotProductUI4Slow(const ui8* lhs, const ui8* rhs, ui32 lengtInBytes) noexcept {
+    ui32 res = 0;
+    for (size_t i = 0; i < lengtInBytes; ++i) {
+        res += static_cast<ui32>(lhs[i] & 0x0f) * static_cast<ui32>(rhs[i] & 0x0f);
+        res += static_cast<ui32>(lhs[i] & 0xf0) * static_cast<ui32>(rhs[i] & 0xf0) >> 8;
+    }
+    return res;
+}

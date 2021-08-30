@@ -20,7 +20,8 @@
 namespace NCB::NModelEvaluation {
 
     using TTreeCalcFunction = std::function<void(
-        const TModelTrees& ModelTrees,
+        const TModelTrees& modelTrees,
+        const TModelTrees::TForApplyData& applyData,
         const TCPUEvaluatorQuantizedData*,
         size_t docCountInBlock,
         TCalcerIndexType* __restrict indexesVec,
@@ -60,6 +61,7 @@ namespace NCB::NModelEvaluation {
             trees,
             ctrProvider,
             TIntrusivePtr<TTextProcessingCollection>(),
+            TIntrusivePtr<TEmbeddingProcessingCollection>(),
             floatFeatureAccessor,
             catFeaturesAccessor,
             [](TFeaturePosition, size_t) -> TStringBuf {
@@ -68,6 +70,13 @@ namespace NCB::NModelEvaluation {
                     "Trying to access text data from model.Calc() interface which has no text features"
                 );
                 return "Undefined";
+            },
+            [](TFeaturePosition, size_t) -> TConstArrayRef<float> {
+                CB_ENSURE_INTERNAL(
+                    false,
+                    "Trying to access embedding data from model.Calc() interface which has no embedding features"
+                );
+                return {};
             },
             docCount,
             blockSize,
@@ -80,15 +89,18 @@ namespace NCB::NModelEvaluation {
         typename TFloatFeatureAccessor,
         typename TCatFeatureAccessor,
         typename TTextFeatureAccessor,
+        typename TEmbeddingFeatureAccessor,
         typename TFunctor
     >
     inline void ProcessDocsInBlocks(
         const TModelTrees& trees,
         const TIntrusivePtr<ICtrProvider>& ctrProvider,
         const TIntrusivePtr<TTextProcessingCollection>& textProcessingCollection,
+        const TIntrusivePtr<TEmbeddingProcessingCollection>& embeddingProcessingCollection,
         TFloatFeatureAccessor floatFeatureAccessor,
         TCatFeatureAccessor catFeaturesAccessor,
         TTextFeatureAccessor textFeatureAccessor,
+        TEmbeddingFeatureAccessor embeddingFeatureAccessor,
         size_t docCount,
         size_t blockSize,
         TFunctor callback,
@@ -106,23 +118,30 @@ namespace NCB::NModelEvaluation {
             quantizedData.QuantizedData = NCB::TMaybeOwningArrayHolder<ui8>::CreateOwning(std::move(binFeaturesHolder));
         }
 
-        TVector<ui32> transposedHash(blockSize * trees.GetUsedCatFeaturesCount());
-        TVector<float> ctrs(trees.GetUsedModelCtrs().size() * blockSize);
-        TVector<float> estimatedFeatures;
+        auto applyData = trees.GetApplyData();
+        TVector<ui32> transposedHash(blockSize * applyData->UsedCatFeaturesCount);
+        TVector<float> ctrs(applyData->UsedModelCtrs.size() * blockSize);
+        ui32 estimatedFeaturesNum = 0;
         if (textProcessingCollection) {
-            // TODO(d-kruchinin): replace to GetUsedEstimatedFeatures.size() after creation TrimFeatures
-            estimatedFeatures = TVector<float>(textProcessingCollection->TotalNumberOfOutputFeatures() * blockSize);
+            estimatedFeaturesNum += textProcessingCollection->TotalNumberOfOutputFeatures();
         }
+        if (embeddingProcessingCollection) {
+            estimatedFeaturesNum += embeddingProcessingCollection->TotalNumberOfOutputFeatures();
+        }
+        TVector<float> estimatedFeatures(estimatedFeaturesNum * blockSize);
 
         for (size_t blockStart = 0; blockStart < docCount; blockStart += blockSize) {
             const auto docCountInBlock = Min(blockSize, docCount - blockStart);
             BinarizeFeatures(
                 trees,
+                *applyData,
                 ctrProvider,
                 textProcessingCollection,
+                embeddingProcessingCollection,
                 floatFeatureAccessor,
                 catFeaturesAccessor,
                 textFeatureAccessor,
+                embeddingFeatureAccessor,
                 blockStart,
                 blockStart + docCountInBlock,
                 &quantizedData,
@@ -166,7 +185,8 @@ namespace NCB::NModelEvaluation {
     ) {
         Y_ASSERT(treeEnd >= treeStart);
         const size_t treeCount = treeEnd - treeStart;
-        Y_ASSERT(trees.GetFirstLeafOffsets().size() >= treeEnd);
+        auto applyData = trees.GetApplyData();
+        Y_ASSERT(applyData->TreeFirstLeafOffsets.size() >= treeEnd);
         CB_ENSURE(treeLeafIndexes.size() == docCount * treeCount,
                   "`treeLeafIndexes` size is insufficient: "
                       LabeledOutput(treeLeafIndexes.size(), docCount * treeCount));
@@ -186,6 +206,7 @@ namespace NCB::NModelEvaluation {
                 [&](size_t docCountInBlock, const TCPUEvaluatorQuantizedData* quantizedData) {
                     calcTrees(
                         trees,
+                        *applyData,
                         quantizedData,
                         docCountInBlock,
                         indexesWritePtr,
@@ -210,6 +231,7 @@ namespace NCB::NModelEvaluation {
             [&](size_t docCountInBlock, const TCPUEvaluatorQuantizedData* quantizedData) {
                 calcTrees(
                     trees,
+                    *applyData,
                     quantizedData,
                     docCountInBlock,
                     transposedLeafIndexesPtr,

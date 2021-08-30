@@ -3,6 +3,7 @@
 import os as _os
 import sys as _sys
 import _thread
+import functools
 
 from time import monotonic as _time
 from _weakrefset import WeakSet
@@ -120,6 +121,11 @@ class _RLock:
             self._count,
             hex(id(self))
         )
+
+    def _at_fork_reinit(self):
+        self._block._at_fork_reinit()
+        self._owner = None
+        self._count = 0
 
     def acquire(self, blocking=True, timeout=-1):
         """Acquire a lock, blocking or non-blocking.
@@ -243,6 +249,10 @@ class Condition:
             pass
         self._waiters = _deque()
 
+    def _at_fork_reinit(self):
+        self._lock._at_fork_reinit()
+        self._waiters.clear()
+
     def __enter__(self):
         return self._lock.__enter__()
 
@@ -261,7 +271,7 @@ class Condition:
     def _is_owned(self):
         # Return True if lock is owned by current_thread.
         # This method is called only if _lock doesn't have _is_owned().
-        if self._lock.acquire(0):
+        if self._lock.acquire(False):
             self._lock.release()
             return False
         else:
@@ -438,16 +448,19 @@ class Semaphore:
 
     __enter__ = acquire
 
-    def release(self):
-        """Release a semaphore, incrementing the internal counter by one.
+    def release(self, n=1):
+        """Release a semaphore, incrementing the internal counter by one or more.
 
         When the counter is zero on entry and another thread is waiting for it
         to become larger than zero again, wake up that thread.
 
         """
+        if n < 1:
+            raise ValueError('n must be one or more')
         with self._cond:
-            self._value += 1
-            self._cond.notify()
+            self._value += n
+            for i in range(n):
+                self._cond.notify()
 
     def __exit__(self, t, v, tb):
         self.release()
@@ -474,8 +487,8 @@ class BoundedSemaphore(Semaphore):
         Semaphore.__init__(self, value)
         self._initial_value = value
 
-    def release(self):
-        """Release a semaphore, incrementing the internal counter by one.
+    def release(self, n=1):
+        """Release a semaphore, incrementing the internal counter by one or more.
 
         When the counter is zero on entry and another thread is waiting for it
         to become larger than zero again, wake up that thread.
@@ -484,11 +497,14 @@ class BoundedSemaphore(Semaphore):
         raise a ValueError.
 
         """
+        if n < 1:
+            raise ValueError('n must be one or more')
         with self._cond:
-            if self._value >= self._initial_value:
+            if self._value + n > self._initial_value:
                 raise ValueError("Semaphore released too many times")
-            self._value += 1
-            self._cond.notify()
+            self._value += n
+            for i in range(n):
+                self._cond.notify()
 
 
 class Event:
@@ -506,9 +522,9 @@ class Event:
         self._cond = Condition(Lock())
         self._flag = False
 
-    def _reset_internal_locks(self):
-        # private!  called by Thread._reset_internal_locks by _after_fork()
-        self._cond.__init__(Lock())
+    def _at_fork_reinit(self):
+        # Private method called by Thread._reset_internal_locks()
+        self._cond._at_fork_reinit()
 
     def is_set(self):
         """Return true if and only if the internal flag is true."""
@@ -734,16 +750,34 @@ _counter() # Consume 0 so first non-main thread has id 1.
 def _newname(template="Thread-%d"):
     return template % _counter()
 
-# Active thread administration
-_active_limbo_lock = _allocate_lock()
+# Active thread administration.
+#
+# bpo-44422: Use a reentrant lock to allow reentrant calls to functions like
+# threading.enumerate().
+_active_limbo_lock = RLock()
 _active = {}    # maps thread id to Thread object
 _limbo = {}
 _dangling = WeakSet()
+
 # Set of Thread._tstate_lock locks of non-daemon threads used by _shutdown()
 # to wait until all Python thread states get deleted:
 # see Thread._set_tstate_lock().
 _shutdown_locks_lock = _allocate_lock()
 _shutdown_locks = set()
+
+def _maintain_shutdown_locks():
+    """
+    Drop any shutdown locks that don't correspond to running threads anymore.
+
+    Calling this from time to time avoids an ever-growing _shutdown_locks
+    set when Thread objects are not joined explicitly. See bpo-37788.
+
+    This must be called with _shutdown_locks_lock acquired.
+    """
+    # If a lock was released, the corresponding thread has exited
+    to_remove = [lock for lock in _shutdown_locks if not lock.locked()]
+    _shutdown_locks.difference_update(to_remove)
+
 
 # Main class for threads
 
@@ -808,9 +842,14 @@ class Thread:
     def _reset_internal_locks(self, is_alive):
         # private!  Called by _after_fork() to reset our internal locks as
         # they may be in an invalid state leading to a deadlock or crash.
-        self._started._reset_internal_locks()
+        self._started._at_fork_reinit()
         if is_alive:
-            self._set_tstate_lock()
+            # bpo-42350: If the fork happens when the thread is already stopped
+            # (ex: after threading._shutdown() has been called), _tstate_lock
+            # is None. Do nothing in this case.
+            if self._tstate_lock is not None:
+                self._tstate_lock._at_fork_reinit()
+                self._tstate_lock.acquire()
         else:
             # The thread isn't alive after fork: it doesn't have a tstate
             # anymore.
@@ -846,6 +885,7 @@ class Thread:
 
         if self._started.is_set():
             raise RuntimeError("threads can only be started once")
+
         with _active_limbo_lock:
             _limbo[self] = self
         try:
@@ -910,6 +950,7 @@ class Thread:
 
         if not self.daemon:
             with _shutdown_locks_lock:
+                _maintain_shutdown_locks()
                 _shutdown_locks.add(self._tstate_lock)
 
     def _bootstrap_inner(self):
@@ -965,7 +1006,8 @@ class Thread:
         self._tstate_lock = None
         if not self.daemon:
             with _shutdown_locks_lock:
-                _shutdown_locks.discard(lock)
+                # Remove our lock and other released locks from _shutdown_locks
+                _maintain_shutdown_locks()
 
     def _delete(self):
         "Remove current thread from the dict of currently running threads."
@@ -1072,8 +1114,8 @@ class Thread:
         """Return whether the thread is alive.
 
         This method returns True just before the run() method starts until just
-        after the run() method terminates. The module function enumerate()
-        returns a list of all alive threads.
+        after the run() method terminates. See also the module function
+        enumerate().
 
         """
         assert self._initialized, "Thread.__init__() not called"
@@ -1081,16 +1123,6 @@ class Thread:
             return False
         self._wait_for_tstate_lock(False)
         return not self._is_stopped
-
-    def isAlive(self):
-        """Return whether the thread is alive.
-
-        This method is deprecated, use is_alive() instead.
-        """
-        import warnings
-        warnings.warn('isAlive() is deprecated, use is_alive() instead',
-                      DeprecationWarning, stacklevel=2)
-        return self.is_alive()
 
     @property
     def daemon(self):
@@ -1344,6 +1376,27 @@ def enumerate():
     with _active_limbo_lock:
         return list(_active.values()) + list(_limbo.values())
 
+
+_threading_atexits = []
+_SHUTTING_DOWN = False
+
+def _register_atexit(func, *arg, **kwargs):
+    """CPython internal: register *func* to be called before joining threads.
+
+    The registered *func* is called with its arguments just before all
+    non-daemon threads are joined in `_shutdown()`. It provides a similar
+    purpose to `atexit.register()`, but its functions are called prior to
+    threading shutdown instead of interpreter shutdown.
+
+    For similarity to atexit, the registered functions are called in reverse.
+    """
+    if _SHUTTING_DOWN:
+        raise RuntimeError("can't register atexit after shutdown")
+
+    call = functools.partial(func, *arg, **kwargs)
+    _threading_atexits.append(call)
+
+
 from _thread import stack_size
 
 # Create the main thread object,
@@ -1365,6 +1418,8 @@ def _shutdown():
         # _shutdown() was already called
         return
 
+    global _SHUTTING_DOWN
+    _SHUTTING_DOWN = True
     # Main thread
     tlock = _main_thread._tstate_lock
     # The main thread isn't finished yet, so its thread state lock can't have
@@ -1373,6 +1428,11 @@ def _shutdown():
     assert tlock.locked()
     tlock.release()
     _main_thread._stop()
+
+    # Call registered threading atexit functions before threads are joined.
+    # Order is reversed, similar to atexit.
+    for atexit_call in reversed(_threading_atexits):
+        atexit_call()
 
     # Join all non-deamon threads
     while True:
@@ -1417,7 +1477,7 @@ def _after_fork():
     # by another (non-forked) thread.  http://bugs.python.org/issue874900
     global _active_limbo_lock, _main_thread
     global _shutdown_locks_lock, _shutdown_locks
-    _active_limbo_lock = _allocate_lock()
+    _active_limbo_lock = RLock()
 
     # fork() only copied the current thread; clear references to others.
     new_active = {}

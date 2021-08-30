@@ -177,6 +177,7 @@ class GzipFile(_compression.BaseStream):
                 filename = ''
         else:
             filename = os.fspath(filename)
+        origmode = mode
         if mode is None:
             mode = getattr(fileobj, 'mode', 'rb')
 
@@ -187,6 +188,13 @@ class GzipFile(_compression.BaseStream):
             self.name = filename
 
         elif mode.startswith(('w', 'a', 'x')):
+            if origmode is None:
+                import warnings
+                warnings.warn(
+                    "GzipFile was opened for writing, but this will "
+                    "change in future Python releases.  "
+                    "Specify the mode argument for opening it for writing.",
+                    FutureWarning, 2)
             self.mode = WRITE
             self._init_write(filename)
             self.compress = zlib.compressobj(compresslevel,
@@ -508,7 +516,7 @@ class _GzipReader(_compression.DecompressReader):
 
     def _read_eof(self):
         # We've read to the end of the file
-        # We check the that the computed CRC and size of the
+        # We check that the computed CRC and size of the
         # uncompressed data matches the stored values.  Note that the size
         # stored is the true file size mod 2**32.
         crc32, isize = struct.unpack("<II", self._read_exact(8))
@@ -575,8 +583,7 @@ def main():
                 g = sys.stdout.buffer
             else:
                 if arg[-3:] != ".gz":
-                    print("filename doesn't end in .gz:", repr(arg))
-                    continue
+                    sys.exit(f"filename doesn't end in .gz: {arg!r}")
                 f = open(arg, "rb")
                 g = builtins.open(arg[:-3], "wb")
         else:

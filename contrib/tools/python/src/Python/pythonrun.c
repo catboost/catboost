@@ -720,7 +720,7 @@ Py_EndInterpreter(PyThreadState *tstate)
 static char *progname = "python";
 
 void
-Py_SetProgramName(char *pn)
+Py_SetProgramName(const char *pn)
 {
     if (pn && *pn)
         progname = pn;

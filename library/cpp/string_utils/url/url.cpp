@@ -7,13 +7,9 @@
 #include <util/string/strip.h>
 
 #include <util/charset/unidata.h> // for ToLower
-#include <util/system/maxlen.h>
 #include <util/system/defaults.h>
-#include <util/memory/tempbuf.h>
-#include <util/generic/chartraits.h>
 #include <util/generic/algorithm.h>
 #include <util/generic/hash_set.h>
-#include <util/generic/ptr.h>
 #include <util/generic/yexception.h>
 #include <util/generic/singleton.h>
 
@@ -21,14 +17,14 @@
 
 namespace {
     struct TUncheckedSize {
-        bool Has(size_t) const {
+        static bool Has(size_t) {
             return true;
         }
     };
 
     struct TKnownSize {
         size_t MySize;
-        TKnownSize(size_t sz)
+        explicit TKnownSize(size_t sz)
             : MySize(sz)
         {
         }
@@ -40,8 +36,8 @@ namespace {
     template <typename TChar1, typename TChar2>
     int Compare1Case2(const TChar1* s1, const TChar2* s2, size_t n) {
         for (size_t i = 0; i < n; ++i) {
-            if (TCharTraits<TChar1>::ToLower(s1[i]) != s2[i])
-                return TCharTraits<TChar1>::ToLower(s1[i]) < s2[i] ? -1 : 1;
+            if ((TChar1)ToLower(s1[i]) != s2[i])
+                return (TChar1)ToLower(s1[i]) < s2[i] ? -1 : 1;
         }
         return 0;
     }
@@ -162,17 +158,17 @@ TStringBuf GetSchemeHostAndPort(const TStringBuf url, bool trimHttp, bool trimDe
     const size_t schemeSize = GetSchemePrefixSize(url);
     const TStringBuf scheme = url.Head(schemeSize);
 
-    const bool isHttp = (schemeSize == 0 || scheme == AsStringBuf("http://"));
+    const bool isHttp = (schemeSize == 0 || scheme == TStringBuf("http://"));
 
     TStringBuf hostAndPort = GetHostAndPort(url.Tail(schemeSize));
 
     if (trimDefaultPort) {
         const size_t pos = hostAndPort.find(':');
         if (pos != TStringBuf::npos) {
-            const bool isHttps = (scheme == AsStringBuf("https://"));
+            const bool isHttps = (scheme == TStringBuf("https://"));
 
             const TStringBuf port = hostAndPort.Tail(pos + 1);
-            if ((isHttp && port == AsStringBuf("80")) || (isHttps && port == AsStringBuf("443"))) {
+            if ((isHttp && port == TStringBuf("80")) || (isHttps && port == TStringBuf("443"))) {
                 // trimming default port
                 hostAndPort = hostAndPort.Head(pos);
             }
@@ -225,9 +221,9 @@ bool TryGetSchemeHostAndPort(const TStringBuf url, TStringBuf& scheme, TStringBu
         }
     } else {
         host = hostAndPort;
-        if (scheme == AsStringBuf("https://")) {
+        if (scheme == TStringBuf("https://")) {
             port = 443;
-        } else if (scheme == AsStringBuf("http://")) {
+        } else if (scheme == TStringBuf("http://")) {
             port = 80;
         }
     }
@@ -320,14 +316,14 @@ static inline bool IsSchemeChar(char c) noexcept {
 
 static bool HasPrefix(const TStringBuf url) noexcept {
     TStringBuf scheme, unused;
-    if (!url.TrySplit("://", scheme, unused))
+    if (!url.TrySplit(TStringBuf("://"), scheme, unused))
         return false;
 
     return AllOf(scheme, IsSchemeChar);
 }
 
 TString AddSchemePrefix(const TString& url) {
-    return AddSchemePrefix(url, "http");
+    return AddSchemePrefix(url, TStringBuf("http"));
 }
 
 TString AddSchemePrefix(const TString& url, TStringBuf scheme) {
@@ -335,7 +331,7 @@ TString AddSchemePrefix(const TString& url, TStringBuf scheme) {
         return url;
     }
 
-    return TString::Join(scheme, "://", url);
+    return TString::Join(scheme, TStringBuf("://"), url);
 }
 
 #define X(c) (c >= 'A' ? ((c & 0xdf) - 'A') + 10 : (c - '0'))

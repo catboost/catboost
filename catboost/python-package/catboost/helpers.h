@@ -4,6 +4,9 @@
 
 #include <catboost/private/libs/algo/plot.h>
 #include <catboost/private/libs/data_types/groupid.h>
+#include <catboost/private/libs/data_types/pair.h>
+#include <catboost/libs/data/data_provider.h>
+#include <catboost/libs/data/visitor.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/mem_usage.h>
 #include <catboost/libs/metrics/metric.h>
@@ -14,7 +17,11 @@
 
 #include <library/cpp/json/json_value.h>
 
+#include <util/generic/array_ref.h>
+#include <util/generic/fwd.h>
 #include <util/generic/noncopyable.h>
+
+#include <type_traits>
 
 
 class TGilGuard : public TNonCopyable {
@@ -55,6 +62,7 @@ TVector<double> EvalMetricsForUtils(
     const TString& metricName,
     const TVector<float>& weight,
     const TVector<TGroupId>& groupId,
+    const TVector<float>& groupWeight,
     const TVector<TSubgroupId>& subgroupId,
     const TVector<TPair>& pairs,
     int threadCount
@@ -72,6 +80,12 @@ inline TVector<NCatboostOptions::TLossDescription> CreateMetricLossDescriptions(
 
     return result;
 }
+
+#if PY_MAJOR_VERSION < 3
+inline const char* PyUnicode_AsUTF8AndSize(PyObject *unicode, Py_ssize_t *size) {
+    return nullptr;
+}
+#endif
 
 
 class TMetricsPlotCalcerPythonWrapper {
@@ -152,28 +166,84 @@ NJson::TJsonValue GetTrainingOptions(
     const TMaybe<NCB::TDataMetaInfo>& testDataMetaInfo
 );
 
-NJson::TJsonValue GetPlainJsonWithAllOptions(
-    const TFullModel& model,
-    bool hasCatFeatures,
-    bool hasTextFeatures
-);
-
 class TPythonStreamWrapper : public IInputStream {
 
 public:
-    using TReadFunction = std::function<size_t(char*, size_t)>;
-    TPythonStreamWrapper() = default;
-    TPythonStreamWrapper& operator=(const TPythonStreamWrapper& other) {
-        ReadFunc = other.ReadFunc;
-        return *this;
-    }
-    TPythonStreamWrapper(TReadFunction func): ReadFunc(func) {}
+    using TReadFunction = std::function<size_t(char*, size_t, PyObject*, TString*)>;
+
+    TPythonStreamWrapper(TReadFunction func, PyObject* stream): ReadFunc(func), Stream(stream) {}
 
 protected:
     size_t DoRead(void *buf, size_t len) override {
-        return ReadFunc(static_cast<char*>(buf), len);
+        TString errStr;
+        size_t result = ReadFunc(static_cast<char*>(buf), len, Stream, &errStr);
+
+        CB_ENSURE(result != static_cast<size_t>(-1), errStr);
+        return result;
     }
 
 private:
     TReadFunction ReadFunc;
+    PyObject* Stream;
 };
+
+template <typename TFloatOrInteger>
+void SetDataFromScipyCsrSparse(
+    TConstArrayRef<ui32> indptr,
+    TConstArrayRef<TFloatOrInteger> data,
+    TConstArrayRef<ui32> indices,
+    TConstArrayRef<bool> isCatFeature,
+    NCB::IRawObjectsOrderDataVisitor* builderVisitor,
+    NPar::ILocalExecutor* localExecutor
+) {
+    CB_ENSURE_INTERNAL(indptr.size() > 1, "Empty sparse arrays should be processed in Python for speed");
+    const auto objCount = indptr.size() - 1;
+
+    const auto catFeatureCount = Accumulate(isCatFeature, 0);
+    if (catFeatureCount == 0) {
+        const ui32 featureCount = isCatFeature.size();
+        NPar::ParallelFor(
+            *localExecutor,
+            0,
+            objCount,
+            [=] (ui32 objIdx) {
+                const auto nonzeroBegin = indptr[objIdx];
+                const auto nonzeroEnd = indptr[objIdx + 1];
+                const auto features = MakeConstPolymorphicValuesSparseArrayWithArrayIndex(
+                    featureCount,
+                    NCB::TMaybeOwningConstArrayHolder<ui32>::CreateOwning(TVector<ui32>{indices.data() + nonzeroBegin, indices.data() + nonzeroEnd}),
+                    NCB::TMaybeOwningConstArrayHolder<TFloatOrInteger>::CreateOwning(TVector<TFloatOrInteger>{data.data() + nonzeroBegin, data.data() + nonzeroEnd}),
+                    /*ordered*/ true,
+                    /*defaultValue*/ 0.0f);
+                builderVisitor->AddAllFloatFeatures(objIdx, features);
+        });
+        return;
+    }
+    NPar::ParallelFor(
+        *localExecutor,
+        0,
+        objCount,
+        [=] (ui32 objIdx) {
+            const auto nonzeroBegin = indptr[objIdx];
+            const auto nonzeroEnd = indptr[objIdx + 1];
+            for (auto nonzeroIdx : xrange(nonzeroBegin, nonzeroEnd, 1)) {
+                const auto featureIdx = indices[nonzeroIdx];
+                const auto value = data[nonzeroIdx];
+                if (isCatFeature[featureIdx]) {
+                    const auto isFloat = std::is_same<TFloatOrInteger, float>::value || std::is_same<TFloatOrInteger, double>::value;
+                    CB_ENSURE(
+                        !isFloat,
+                        "Invalid value for cat_feature[" << objIdx << "," << featureIdx << "]=" << value <<
+                        " cat_features must be integer or string. Real numbers and NaNs should be converted to strings.");
+                    const auto catValue = ToString(value);
+                    builderVisitor->AddCatFeature(objIdx, featureIdx, catValue);
+                } else {
+                    builderVisitor->AddFloatFeature(objIdx, featureIdx, value);
+                }
+            }
+        }
+    );
+}
+
+size_t GetNumPairs(const NCB::TDataProvider& dataProvider);
+TConstArrayRef<TPair> GetUngroupedPairs(const NCB::TDataProvider& dataProvider);

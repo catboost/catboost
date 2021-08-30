@@ -46,7 +46,8 @@ static PyObject *__Pyx_Import(PyObject *name, PyObject *from_list, int level) {
     {
         #if PY_MAJOR_VERSION >= 3
         if (level == -1) {
-            if (strchr(__Pyx_MODULE_NAME, '.')) {
+            // Avoid C compiler warning if strchr() evaluates to false at compile time.
+            if ((1) && (strchr(__Pyx_MODULE_NAME, '.'))) {
                 /* try package relative import first */
                 module = PyImport_ImportModuleLevelObject(
                     name, global_dict, empty_dict, list, 1);
@@ -151,11 +152,12 @@ __Pyx_import_all_from(PyObject *locals, PyObject *v)
         }
         if (skip_leading_underscores &&
 #if PY_MAJOR_VERSION < 3
-            PyString_Check(name) &&
+            likely(PyString_Check(name)) &&
             PyString_AS_STRING(name)[0] == '_')
 #else
-            PyUnicode_Check(name) &&
-            PyUnicode_AS_UNICODE(name)[0] == '_')
+            likely(PyUnicode_Check(name)) &&
+            likely(__Pyx_PyUnicode_GET_LENGTH(name)) &&
+            __Pyx_PyUnicode_READ_CHAR(name, 0) == '_')
 #endif
         {
             Py_DECREF(name);

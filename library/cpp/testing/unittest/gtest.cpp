@@ -3,7 +3,7 @@
 
 #include <util/generic/map.h>
 #include <util/generic/vector.h>
-#include <util/generic/type_name.h>
+#include <util/system/type_name.h>
 
 using namespace NUnitTest;
 using namespace NUnitTest::NPrivate;
@@ -19,7 +19,7 @@ namespace {
         }
 
         TString TypeId() const override {
-            return TypeName(this) + "-" + MyName;
+            return TypeName(*this) + "-" + MyName;
         }
 
         TString Name() const noexcept override {

@@ -42,11 +42,16 @@ using NCB::TUnalignedArrayBuf;
 
 NCB::TCBQuantizedDataLoader::TCBQuantizedDataLoader(TDatasetLoaderPullArgs&& args)
     : ObjectCount(0) // inited later
-    , QuantizedPool(std::forward<TQuantizedPool>(LoadQuantizedPool(args.PoolPath, GetLoadParameters(args.CommonArgs.DatasetSubset))))
+    , QuantizedPool(
+        std::forward<TQuantizedPool>(
+            LoadQuantizedPool(args.PoolPath, GetLoadParameters(args.CommonArgs.DatasetSubset))
+        )
+      )
     , PairsPath(args.CommonArgs.PairsFilePath)
     , GroupWeightsPath(args.CommonArgs.GroupWeightsFilePath)
     , BaselinePath(args.CommonArgs.BaselineFilePath)
     , TimestampsPath(args.CommonArgs.TimestampsFilePath)
+    , PoolMetaInfoPath(args.CommonArgs.PoolMetaInfoPath)
     , ObjectsOrder(args.CommonArgs.ObjectsOrder)
     , DatasetSubset(args.CommonArgs.DatasetSubset)
 {
@@ -58,18 +63,35 @@ NCB::TCBQuantizedDataLoader::TCBQuantizedDataLoader(TDatasetLoaderPullArgs&& arg
     // validity of cast checked above
     ObjectCount = Min<ui32>(QuantizedPool.DocumentCount, DatasetSubset.Range.End) - DatasetSubset.Range.Begin;
 
-    CB_ENSURE(!PairsPath.Inited() || CheckExists(PairsPath),
+    CB_ENSURE(
+        !PairsPath.Inited() || CheckExists(PairsPath),
         "TCBQuantizedDataLoader:PairsFilePath does not exist");
-    CB_ENSURE(!GroupWeightsPath.Inited() || CheckExists(GroupWeightsPath),
+    CB_ENSURE(
+        !GroupWeightsPath.Inited() || CheckExists(GroupWeightsPath),
         "TCBQuantizedDataLoader:GroupWeightsFilePath does not exist");
-    CB_ENSURE(!BaselinePath.Inited() || CheckExists(BaselinePath),
+    CB_ENSURE(
+        !BaselinePath.Inited() || CheckExists(BaselinePath),
         "TCBQuantizedDataLoader:BaselineFilePath does not exist");
-    CB_ENSURE(!TimestampsPath.Inited() || CheckExists(TimestampsPath),
+    CB_ENSURE(
+        !TimestampsPath.Inited() || CheckExists(TimestampsPath),
         "TCBQuantizedDataLoader:TimestampsPath does not exist");
-    CB_ENSURE(!FeatureNamesPath.Inited() || CheckExists(FeatureNamesPath),
+    CB_ENSURE(
+        !FeatureNamesPath.Inited() || CheckExists(FeatureNamesPath),
         "TCBQuantizedDataLoader:FeatureNamesPath does not exist");
-    const NCB::TBaselineReader baselineReader(BaselinePath, NCB::ClassLabelsToStrings(args.CommonArgs.ClassLabels));
-    DataMetaInfo = GetDataMetaInfo(QuantizedPool, GroupWeightsPath.Inited(), TimestampsPath.Inited(), PairsPath.Inited(), baselineReader.GetBaselineCount(), args.CommonArgs.FeatureNamesPath);
+    CB_ENSURE(
+        !PoolMetaInfoPath.Inited() || CheckExists(PoolMetaInfoPath),
+        "TCBQuantizedDataLoader:PoolMetaInfoPath does not exist");
+    const NCB::TBaselineReader baselineReader(
+        BaselinePath,
+        NCB::ClassLabelsToStrings(args.CommonArgs.ClassLabels));
+    DataMetaInfo = GetDataMetaInfo(
+        QuantizedPool,
+        GroupWeightsPath.Inited(),
+        TimestampsPath.Inited(),
+        PairsPath.Inited(),
+        baselineReader.GetBaselineCount(),
+        args.CommonArgs.FeatureNamesPath,
+        PoolMetaInfoPath);
 
     CB_ENSURE(DataMetaInfo.GetFeatureCount() > 0, "Pool should have at least one factor");
 
@@ -169,7 +191,8 @@ static TDeque<TChunkRef> GatherAndSortChunks(const TQuantizedPool& pool) {
     const ui32 fakeIndices[] = {
         pool.StringDocIdLocalIndex,
         pool.StringGroupIdLocalIndex,
-        pool.StringSubgroupIdLocalIndex};
+        pool.StringSubgroupIdLocalIndex
+    };
     for (const auto fakeIdx : fakeIndices) {
         if (fakeIdx == static_cast<ui32>(-1)) {
             continue;
@@ -183,9 +206,11 @@ static TDeque<TChunkRef> GatherAndSortChunks(const TQuantizedPool& pool) {
     // Sort chunks in ascending order based on the address of the chunks. We'll use it later to
     // process chunks in the same order as if we were reading them from file one by one
     // sequentially.
-    Sort(chunks, [](const auto lhs, const auto rhs) {
-        return lhs.Description->Chunk->Quants()->data() < rhs.Description->Chunk->Quants()->data();
-    });
+    Sort(
+        chunks,
+        [](const auto lhs, const auto rhs) {
+            return lhs.Description->Chunk->Quants()->data() < rhs.Description->Chunk->Quants()->data();
+        });
 
     return chunks;
 }
@@ -264,7 +289,10 @@ void NCB::TCBQuantizedDataLoader::AddChunk(
             CB_ENSURE(baselineIdx != nullptr, "Baseline not found in index");
             TVector<float> tmp;
             AssignUnaligned<double>(quants, &tmp);
-            visitor->AddBaselinePart(GetDatasetOffset(chunk), *baselineIdx, TUnalignedArrayBuf<float>(tmp.data(), tmp.size() * sizeof(float)));
+            visitor->AddBaselinePart(
+                GetDatasetOffset(chunk),
+                *baselineIdx,
+                TUnalignedArrayBuf<float>(tmp.data(), tmp.size() * sizeof(float)));
             break;
         } case EColumn::Weight: {
             visitor->AddWeightPart(GetDatasetOffset(chunk), TUnalignedArrayBuf<float>(quants));
@@ -301,7 +329,9 @@ void NCB::TCBQuantizedDataLoader::AddChunk(
     }
 }
 
-TConstArrayRef<ui8> NCB::TCBQuantizedDataLoader::ClipByDatasetSubset(const TQuantizedPool::TChunkDescription& chunk) const {
+TConstArrayRef<ui8> NCB::TCBQuantizedDataLoader::ClipByDatasetSubset(
+    const TQuantizedPool::TChunkDescription& chunk) const
+{
     const auto valueBytes = static_cast<size_t>(chunk.Chunk->BitsPerDocument() / CHAR_BIT);
     CB_ENSURE(valueBytes > 0, "Cannot read quantized pool with less than " << CHAR_BIT << " bits per value");
     const auto documentCount = chunk.Chunk->Quants()->size() / valueBytes;
@@ -311,10 +341,12 @@ TConstArrayRef<ui8> NCB::TCBQuantizedDataLoader::ClipByDatasetSubset(const TQuan
     const auto loadEnd = DatasetSubset.Range.End;
     if (loadStart <= chunkStart && chunkStart < loadEnd) {
         const auto* clippedStart = reinterpret_cast<const ui8*>(chunk.Chunk->Quants()->data());
-        const auto clippedSize = Min(chunkEnd - chunkStart, loadEnd - chunkStart) * valueBytes;
+        const auto clippedSize = Min<ui64>(chunkEnd - chunkStart, loadEnd - chunkStart) * valueBytes;
         return MakeArrayRef(clippedStart, clippedSize);
     } else if (chunkStart < loadStart && loadStart < chunkEnd) {
-        const auto* clippedStart = reinterpret_cast<const ui8*>(chunk.Chunk->Quants()->data()) + (loadStart - chunkStart) * valueBytes;
+        const auto* clippedStart
+            = reinterpret_cast<const ui8*>(chunk.Chunk->Quants()->data())
+                + (loadStart - chunkStart) * valueBytes;
         const auto clippedSize = Min<ui64>(chunkEnd - loadStart, loadEnd - loadStart) * valueBytes;
         return MakeArrayRef(clippedStart, clippedSize);
     } else {
@@ -336,7 +368,10 @@ ui32 NCB::TCBQuantizedDataLoader::GetDatasetOffset(const TQuantizedPool::TChunkD
     } else if (chunkStart < loadStart && loadStart < chunkEnd) {
         return 0;
     } else {
-        CB_ENSURE(false, "All documents in chunk [" << chunkStart << ", " << chunkEnd << ") are outside load region [" << loadStart << ", " << loadEnd << ")");
+        CB_ENSURE(
+            false,
+            "All documents in chunk [" << chunkStart << ", " << chunkEnd << ") are outside load region ["
+            << loadStart << ", " << loadEnd << ")");
     }
 }
 
@@ -346,7 +381,8 @@ void NCB::TCBQuantizedDataLoader::Do(IQuantizedFeaturesDataVisitor* visitor) {
         ObjectCount,
         ObjectsOrder,
         {},
-        QuantizationSchemaFromProto(QuantizedPool.QuantizationSchema));
+        QuantizationSchemaFromProto(QuantizedPool.QuantizationSchema),
+        /*wholeColumns*/ false);
 
     const auto columnIdxToTargetIdx = GetColumnIndexToTargetIndexMap(QuantizedPool);
     const auto columnIdxToFlatIdx = GetColumnIndexToFlatIndexMap(QuantizedPool);
@@ -386,7 +422,9 @@ void NCB::TCBQuantizedDataLoader::Do(IQuantizedFeaturesDataVisitor* visitor) {
             "Expected Num, Baseline, Label, Categ, Weight, GroupWeight, GroupId, Subgroupid, or Timestamp; got "
             LabeledOutput(columnType, columnIdx));
         if (!DatasetSubset.HasFeatures) {
-            CB_ENSURE(columnType != EColumn::Num && columnType != EColumn::Categ, "CollectChunks collected a feature chunk despite HasFeatures = false");
+            CB_ENSURE(
+                columnType != EColumn::Num && columnType != EColumn::Categ,
+                "CollectChunks collected a feature chunk despite HasFeatures = false");
         }
 
         const auto* const flatFeatureIdx = columnIdxToFlatIdx.FindPtr(columnIdx);
@@ -403,8 +441,13 @@ void NCB::TCBQuantizedDataLoader::Do(IQuantizedFeaturesDataVisitor* visitor) {
 
     QuantizedPool = TQuantizedPool(); // release memory
     SetGroupWeights(GroupWeightsPath, ObjectCount, DatasetSubset, visitor);
-    SetPairs(PairsPath, ObjectCount, DatasetSubset, visitor);
-    SetBaseline(BaselinePath, ObjectCount, DatasetSubset, NCB::ClassLabelsToStrings(DataMetaInfo.ClassLabels), visitor);
+    SetPairs(PairsPath, DatasetSubset, visitor->GetGroupIds(), visitor);
+    SetBaseline(
+        BaselinePath,
+        ObjectCount,
+        DatasetSubset,
+        NCB::ClassLabelsToStrings(DataMetaInfo.ClassLabels),
+        visitor);
     SetTimestamps(TimestampsPath, ObjectCount, DatasetSubset, visitor);
     visitor->Finish();
 }
@@ -414,3 +457,45 @@ namespace {
     TDatasetLoaderFactory::TRegistrator<NCB::TCBQuantizedDataLoader> CBQuantizedDataLoaderReg("quantized");
 }
 
+TAtomicSharedPtr<NCB::IQuantizedPoolLoader> NCB::TQuantizedPoolLoadersCache::GetLoader(
+    const TPathWithScheme& pathWithScheme)
+{
+    auto& loadersCache = GetRef();
+    TAtomicSharedPtr<IQuantizedPoolLoader> loader = nullptr;
+    with_lock(loadersCache.Lock) {
+        if (!loadersCache.Cache.contains(pathWithScheme)) {
+            loadersCache.Cache[pathWithScheme] = GetProcessor<IQuantizedPoolLoader, const TPathWithScheme&>(
+                pathWithScheme,
+                pathWithScheme).Release();
+        }
+        loader = loadersCache.Cache.at(pathWithScheme);
+    }
+    return loader;
+}
+
+bool NCB::TQuantizedPoolLoadersCache::HaveLoader(const TPathWithScheme& pathWithScheme) {
+    auto& loadersCache = GetRef();
+    with_lock(loadersCache.Lock) {
+        return loadersCache.Cache.contains(pathWithScheme);
+    }
+}
+
+bool NCB::TQuantizedPoolLoadersCache::IsEmpty() {
+    auto& loadersCache = GetRef();
+    with_lock(loadersCache.Lock) {
+        return loadersCache.Cache.empty();
+    }
+}
+
+void NCB::TQuantizedPoolLoadersCache::DropAllLoaders() {
+    auto& loadersCache = GetRef();
+    with_lock(loadersCache.Lock) {
+        for (auto& keyValue : loadersCache.Cache) {
+            CB_ENSURE(
+                keyValue.second.RefCount() <= 1,
+                "Loader for " << keyValue.first.Scheme << "://" << keyValue.first.Path
+                << " is still referenced");
+        }
+        loadersCache.Cache.clear();
+    }
+}

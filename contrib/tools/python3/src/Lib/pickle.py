@@ -13,7 +13,7 @@ Functions:
     dump(object, file)
     dumps(object) -> string
     load(file) -> object
-    loads(string) -> object
+    loads(bytes) -> object
 
 Misc variables:
 
@@ -340,7 +340,9 @@ def whichmodule(obj, name):
     # Protect the iteration by using a list copy of sys.modules against dynamic
     # modules that trigger imports of other modules upon calls to getattr.
     for module_name, module in sys.modules.copy().items():
-        if module_name == '__main__' or module is None:
+        if (module_name == '__main__'
+            or module_name == '__mp_main__'  # bpo-42406
+            or module is None):
             continue
         try:
             if _getattribute(module, name)[0] is obj:
@@ -1604,17 +1606,29 @@ class _Unpickler:
 
     def load_get(self):
         i = int(self.readline()[:-1])
-        self.append(self.memo[i])
+        try:
+            self.append(self.memo[i])
+        except KeyError:
+            msg = f'Memo value not found at index {i}'
+            raise UnpicklingError(msg) from None
     dispatch[GET[0]] = load_get
 
     def load_binget(self):
         i = self.read(1)[0]
-        self.append(self.memo[i])
+        try:
+            self.append(self.memo[i])
+        except KeyError as exc:
+            msg = f'Memo value not found at index {i}'
+            raise UnpicklingError(msg) from None
     dispatch[BINGET[0]] = load_binget
 
     def load_long_binget(self):
         i, = unpack('<I', self.read(4))
-        self.append(self.memo[i])
+        try:
+            self.append(self.memo[i])
+        except KeyError as exc:
+            msg = f'Memo value not found at index {i}'
+            raise UnpicklingError(msg) from None
     dispatch[LONG_BINGET[0]] = load_long_binget
 
     def load_put(self):
@@ -1749,7 +1763,7 @@ def _load(file, *, fix_imports=True, encoding="ASCII", errors="strict",
     return _Unpickler(file, fix_imports=fix_imports, buffers=buffers,
                      encoding=encoding, errors=errors).load()
 
-def _loads(s, *, fix_imports=True, encoding="ASCII", errors="strict",
+def _loads(s, /, *, fix_imports=True, encoding="ASCII", errors="strict",
            buffers=None):
     if isinstance(s, str):
         raise TypeError("Can't load pickle from unicode string")

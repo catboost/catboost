@@ -4,11 +4,23 @@
 \alias{catboost.load_pool}
 \title{Create a dataset}
 \usage{
-catboost.load_pool(data, label = NULL, cat_features = NULL,
-  column_description = NULL, pairs = NULL, delimiter = "\\t",
-  has_header = FALSE, weight = NULL, group_id = NULL,
-  group_weight = NULL, subgroup_id = NULL, pairs_weight = NULL,
-  baseline = NULL, feature_names = NULL, thread_count = -1)
+catboost.load_pool(
+  data,
+  label = NULL,
+  cat_features = NULL,
+  column_description = NULL,
+  pairs = NULL,
+  delimiter = "\\t",
+  has_header = FALSE,
+  weight = NULL,
+  group_id = NULL,
+  group_weight = NULL,
+  subgroup_id = NULL,
+  pairs_weight = NULL,
+  baseline = NULL,
+  feature_names = NULL,
+  thread_count = -1
+)
 }
 \arguments{
 \item{data}{A file path, matrix or data.frame with features.
@@ -65,23 +77,24 @@ catboost.Pool
 Create a dataset from the given file, matrix or data.frame.
 }
 \examples{
+\dontrun{
 # From file
 pool_path <- system.file("extdata", "adult_train.1000", package = "catboost")
 cd_path <- system.file("extdata", "adult.cd", package = "catboost")
 pool <- catboost.load_pool(pool_path, column_description = cd_path)
-head(pool)
+print(pool)
 
 # From matrix
 target <- 1
 data_matrix <-matrix(runif(18), 6, 3)
 pool <- catboost.load_pool(data_matrix[, -target], label = data_matrix[, target])
-head(pool)
+print(pool)
 
 # From data.frame
-nonsense <- c('A', 'B', 'C')
+nonsense <- factor(c('A', 'B', 'C'))
 data_frame <- data.frame(value = runif(10), category = nonsense[(1:10) \%\% 3 + 1])
 label = (1:10) \%\% 2
-pool <- catboost.load_pool(data_frame, label = label, cat_features = c(2))
-head(pool)
-
+pool <- catboost.load_pool(data_frame, label = label)
+print(pool)
+}
 }

@@ -1,4 +1,5 @@
 import os
+import posixpath
 import re
 
 import _import_wrapper as iw
@@ -11,6 +12,10 @@ def init():
 
 class Swig(iw.CustomCommand):
     def __init__(self, path, unit):
+        self._tool = unit.get('SWIG_TOOL')
+        self._library_dir = unit.get('SWIG_LIBRARY') or 'contrib/tools/swig/Lib'
+        self._local_swig = unit.get('USE_LOCAL_SWIG') == "yes"
+
         self._path = path
         self._flags = ['-cpperraswarn']
 
@@ -18,28 +23,38 @@ class Swig(iw.CustomCommand):
         self._input_name = common.stripext(os.path.basename(self._path))
 
         relpath = os.path.relpath(os.path.dirname(self._path), unit.path())
-        self._main_out = os.path.join(
-            self._bindir,
-            '' if relpath == '.' else relpath.replace('..', '__'),
-            self._input_name + '_wrap.c')
-
-        if not path.endswith('.c.swg'):
-            self._flags += ['-c++']
-            self._main_out += 'pp'
 
         self._swig_lang = unit.get('SWIG_LANG')
 
-        lang_specific_incl_dir = 'perl5' if self._swig_lang == 'perl' else self._swig_lang
+        if self._swig_lang != 'jni_java':
+            self._main_out = os.path.join(
+                self._bindir,
+                '' if relpath == '.' else relpath.replace('..', '__'),
+                self._input_name + '_wrap.swg.c')
+
+            if not path.endswith('.c.swg'):
+                self._flags += ['-c++']
+                self._main_out += 'pp'
+
+        # lang_specific_incl_dir = 'perl5' if self._swig_lang == 'perl' else self._swig_lang
+        lang_specific_incl_dir = self._swig_lang
+        if self._swig_lang == 'perl':
+            lang_specific_incl_dir = 'perl5'
+        elif self._swig_lang in ['jni_cpp', 'jni_java']:
+            lang_specific_incl_dir = 'java'
         incl_dirs = [
-            'contrib/tools/swig/Lib/' + lang_specific_incl_dir,
-            'contrib/tools/swig/Lib',
+            "FOR", "swig",
+            posixpath.join(self._library_dir, lang_specific_incl_dir),
+            "FOR", "swig",
+            self._library_dir
         ]
-        self._incl_dirs = ['$S', '$B'] + ['$S/{}'.format(d) for d in incl_dirs]
+        self._incl_dirs = ['$S', '$B'] + [posixpath.join('$S', d) for d in incl_dirs]
 
         modname = unit.get('REALPRJNAME')
         self._flags.extend(['-module', modname])
 
-        unit.onaddincl(incl_dirs)
+        if not self._local_swig:
+            unit.onaddincl(incl_dirs)
 
         if self._swig_lang == 'python':
             self._out_name = modname + '.py'
@@ -50,14 +65,16 @@ class Swig(iw.CustomCommand):
             self._flags.append('-shadow')
             unit.onpeerdir(['build/platform/perl'])
 
-        if self._swig_lang == 'java':
-            self._out_name = os.path.splitext(os.path.basename(self._path))[0] + '.jsrc'
+        if self._swig_lang in ['jni_cpp', 'java']:
             self._out_header = os.path.splitext(self._main_out)[0] + '.h'
-            self._package = 'ru.yandex.' + os.path.dirname(self._path).replace('$S/', '').replace('$B/', '').replace('/', '.').replace('-', '_')
-            if unit.get('OS_ANDROID') != "yes":
+            if (not unit.get('USE_SYSTEM_JDK')) and (unit.get('OS_ANDROID') != "yes"):
                 unit.onpeerdir(['contrib/libs/jdk'])
 
-        self._flags.append('-' + self._swig_lang)
+        if self._swig_lang in ['jni_java', 'java']:
+            self._out_name = os.path.splitext(os.path.basename(self._path))[0] + '.jsrc'
+            self._package = 'ru.yandex.' + os.path.dirname(self._path).replace('$S/', '').replace('$B/', '').replace('/', '.').replace('-', '_')
+        elif self._swig_lang != 'jni_cpp':
+            self._flags.append('-' + self._swig_lang)
 
     def descr(self):
         return 'SW', self._path, 'yellow'
@@ -66,7 +83,7 @@ class Swig(iw.CustomCommand):
         return self._flags
 
     def tools(self):
-        return ['contrib/tools/swig']
+        return ['contrib/tools/swig'] if not self._tool else []
 
     def input(self):
         return [
@@ -74,16 +91,23 @@ class Swig(iw.CustomCommand):
         ]
 
     def output(self):
+        if self._swig_lang == 'jni_java':
+            return [(common.join_intl_paths(self._bindir, self._out_name), [])]
+        elif self._swig_lang == 'jni_cpp':
+            return [(self._main_out, []), (self._out_header, [])]
+
         return [
             (self._main_out, []),
             (common.join_intl_paths(self._bindir, self._out_name), (['noauto', 'add_to_outs'] if self._swig_lang != 'java' else [])),
         ] + ([(self._out_header, [])] if self._swig_lang == 'java' else [])
 
     def output_includes(self):
-        return [(self._out_header, [])] if self._swig_lang == 'java' else []
+        return [(self._out_header, [])] if self._swig_lang in ['java', 'jni_cpp'] else []
 
     def run(self, extra_args, binary):
-        return self.do_run(binary, self._path) if self._swig_lang != 'java' else self.do_run_java(binary, self._path)
+        if self._local_swig:
+            binary = self._tool
+        return self.do_run_java(binary, self._path) if self._swig_lang in ['java', 'jni_cpp', 'jni_java'] else self.do_run(binary, self._path)
 
     def _incl_flags(self):
         return ['-I' + self.resolve_path(x) for x in self._incl_dirs]
@@ -98,9 +122,10 @@ class Swig(iw.CustomCommand):
         import tarfile
 
         outdir = self.resolve_path(self._bindir)
-        java_srcs_dir = os.path.join(outdir, self._package.replace('.', '/'))
-        if not os.path.exists(java_srcs_dir):
-            os.makedirs(java_srcs_dir)
+        if self._swig_lang != 'jni_cpp':
+            java_srcs_dir = os.path.join(outdir, self._package.replace('.', '/'))
+            if not os.path.exists(java_srcs_dir):
+                os.makedirs(java_srcs_dir)
 
         flags = self._incl_flags()
         src = self.resolve_path(path)
@@ -108,14 +133,32 @@ class Swig(iw.CustomCommand):
             if not re.search(r'(?m)^%module\b', f.read()):
                 flags += ['-module', os.path.splitext(os.path.basename(src))[0]]
 
-        self.call([
-            binary, '-c++', '-o', self._main_out, '-outdir', java_srcs_dir,
-            '-java', '-package', self._package,
-        ] + flags + [src])
+        if self._swig_lang == 'jni_cpp':
+            self.call([binary, '-c++', '-o', self._main_out, '-java'] + flags + [src])
+        elif self._swig_lang == 'jni_java':
+            self.call([binary, '-c++', '-o', os.path.join(outdir, 'unused.cpp'), '-outdir', java_srcs_dir, '-java', '-package', self._package] + flags + [src])
+        elif self._swig_lang == 'java':
+            self.call([
+                binary, '-c++', '-o', self._main_out, '-outdir', java_srcs_dir,
+                '-java', '-package', self._package,
+            ] + flags + [src])
 
-        with tarfile.open(os.path.join(outdir, self._out_name), 'a') as tf:
-            tf.add(java_srcs_dir, arcname=self._package.replace('.', '/'))
+        if self._swig_lang in ['jni_java', 'java']:
+            with tarfile.open(os.path.join(outdir, self._out_name), 'a') as tf:
+                tf.add(java_srcs_dir, arcname=self._package.replace('.', '/'))
 
-        header = os.path.splitext(self.resolve_path(self._main_out))[0] + '.h'
-        if not os.path.exists(header):
-            open(header, 'w').close()
+        if self._swig_lang in ['jni_cpp', 'java']:
+            header = os.path.splitext(self.resolve_path(self._main_out))[0] + '.h'
+            if not os.path.exists(header):
+                open(header, 'w').close()
+
+
+def on_swig_lang_filtered_srcs(unit, *args):
+    swig_lang = unit.get('SWIG_LANG')
+    allowed_exts = set()
+    if swig_lang == 'jni_cpp':
+        allowed_exts = set(['.cpp', '.swg'])
+    if swig_lang == 'jni_java':
+        allowed_exts = set(['.java', '.swg'])
+    args = [arg for arg in iter(args) if allowed_exts and os.path.splitext(arg)[1] in allowed_exts]
+    unit.onsrcs(args)

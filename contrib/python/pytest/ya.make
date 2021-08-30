@@ -1,8 +1,6 @@
 PY23_LIBRARY()
 
-LICENSE(
-    MIT
-)
+LICENSE(MIT)
 
 VERSION(4.0.1)
 

@@ -14,7 +14,7 @@ double CalcMuAuc(
     const TVector<TVector<double>>& approx,
     const TConstArrayRef<float>& target,
     const TConstArrayRef<float>& weight,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     const TMaybe<TVector<TVector<double>>>& misclassCostMatrix
 ) {
     ui32 threadCount = Min((ui32)localExecutor->GetThreadCount() + 1, (ui32)target.size());

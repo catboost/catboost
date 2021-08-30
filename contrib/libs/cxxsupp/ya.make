@@ -1,5 +1,8 @@
 LIBRARY()
 
+# Proxy library
+LICENSE(Not-Applicable)
+
 
 
 NO_PLATFORM()
@@ -15,3 +18,7 @@ ELSE()
 ENDIF()
 
 END()
+
+RECURSE(
+    libcxxabi
+)

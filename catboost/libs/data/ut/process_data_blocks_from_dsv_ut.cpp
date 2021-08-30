@@ -23,7 +23,7 @@ inline void ReadAndProceedPoolInBlocks(
     const TPathWithScheme& cdFilePath,
     ui32 blockSize,
     TConsumer&& poolConsumer,
-    NPar::TLocalExecutor* localExecutor) {
+    NPar::ILocalExecutor* localExecutor) {
 
     const auto loadSubset = TDatasetSubset::MakeColumns();
     auto datasetLoader = GetProcessor<IDatasetLoader>(
@@ -39,6 +39,7 @@ inline void ReadAndProceedPoolInBlocks(
                 /*BaselineFilePath=*/TPathWithScheme(),
                 /*TimestampsFilePath*/TPathWithScheme(),
                 /*FeatureNamesPath*/TPathWithScheme(),
+                /*PoolMetaInfoPath*/TPathWithScheme(),
                 /* ClassLabels */{},
                 dsvFormatOptions,
                 MakeCdProviderFromFile(cdFilePath),
@@ -46,6 +47,7 @@ inline void ReadAndProceedPoolInBlocks(
                 EObjectsOrder::Undefined,
                 blockSize,
                 loadSubset,
+                /*LoadColumnsAsString*/ false,
                 localExecutor
             }
         }

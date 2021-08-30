@@ -172,12 +172,6 @@ static size_t CountTests(const TMap<TString, size_t>& testErrors, bool succeeded
     return cnt;
 }
 
-const TString& NUnitTest::TTestContext::GetParam(const TString& key, const TString& def) const {
-    if (Processor == nullptr)
-        return def;
-    return Processor->GetParam(key, def);
-}
-
 NUnitTest::ITestSuiteProcessor::ITestSuiteProcessor() = default;
 
 NUnitTest::ITestSuiteProcessor::~ITestSuiteProcessor() = default;
@@ -252,13 +246,6 @@ bool NUnitTest::ITestSuiteProcessor::GetForkTests() const {
     return false;
 }
 
-void NUnitTest::ITestSuiteProcessor::SetParam(const TString& /*key*/, const TString& /*value*/) {
-}
-
-const TString& NUnitTest::ITestSuiteProcessor::GetParam(const TString& /*key*/, const TString& def) const {
-    return def;
-}
-
 void NUnitTest::ITestSuiteProcessor::OnStart() {
 }
 
@@ -312,7 +299,7 @@ NUnitTest::TTestBase::TTestBase() noexcept
 NUnitTest::TTestBase::~TTestBase() = default;
 
 TString NUnitTest::TTestBase::TypeId() const {
-    return TypeName(this);
+    return TypeName(*this);
 }
 
 void NUnitTest::TTestBase::SetUp() {
@@ -491,7 +478,7 @@ unsigned NUnitTest::TTestFactory::Execute() {
 #ifdef _unix_ // on Windows RTTI causes memory leaks
         TString type = test->TypeId();
         if (types.insert(type).second == false) {
-            warnx("Duplicate test found: %s", type.c_str());
+            warnx("Duplicate suite found: %s (%s). Probably you have copy-pasted suite without changing it name", factory->Name().c_str(), type.c_str());
             return 1;
         }
 #endif // _unix_

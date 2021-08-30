@@ -133,6 +133,7 @@ namespace NJsonWriter {
         void WriteBareString(const TStringBuf s, EHtmlEscapeMode hem);
         void WriteComma();
         void PrintIndentation(bool closing);
+        void PrintWhitespaces(size_t count, bool prependWithNewLine);
         void WriteHexEscape(unsigned char c);
 
         void StackPush(EJsonEntity e);
@@ -162,43 +163,19 @@ namespace NJsonWriter {
     template <typename TOutContext>
     class TValueWriter {
     public:
-        TOutContext WriteString(const TStringBuf& s, EHtmlEscapeMode hem) {
-            Buf.WriteString(s, hem);
-            return TOutContext(Buf);
-        }
-        TOutContext WriteNull() {
-            Buf.WriteNull();
-            return TOutContext(Buf);
-        }
-        TOutContext WriteJsonValue(const NJson::TJsonValue* value, bool sortKeys = false) {
-            Buf.WriteJsonValue(value, sortKeys);
-            return TOutContext(Buf);
-        }
-#define JSON_VALUE_WRITER_WRAP(function, type) \
-    TOutContext function(type arg) {           \
-        Buf.function(arg);                     \
-        return TOutContext(Buf);               \
-    }
-        JSON_VALUE_WRITER_WRAP(WriteString, const TStringBuf&)
-        JSON_VALUE_WRITER_WRAP(WriteInt, int)
-        JSON_VALUE_WRITER_WRAP(WriteLongLong, long long)
-        JSON_VALUE_WRITER_WRAP(WriteULongLong, unsigned long long)
-        JSON_VALUE_WRITER_WRAP(WriteBool, bool)
-        JSON_VALUE_WRITER_WRAP(UnsafeWriteValue, const TStringBuf&)
-#undef JSON_VALUE_WRITER_WRAP
-
-#define JSON_FLOAT_VALUE_WRITER_WRAP(function, type)                       \
-    TOutContext function(type arg) {                                       \
-        Buf.function(arg);                                                 \
-        return TOutContext(Buf);                                           \
-    }                                                                      \
-    TOutContext function(type arg, EFloatToStringMode mode, int ndigits) { \
-        Buf.function(arg, mode, ndigits);                                  \
-        return TOutContext(Buf);                                           \
-    }
-        JSON_FLOAT_VALUE_WRITER_WRAP(WriteFloat, float)
-        JSON_FLOAT_VALUE_WRITER_WRAP(WriteDouble, double)
-#undef JSON_FLOAT_VALUE_WRITER_WRAP
+        TOutContext WriteNull();
+        TOutContext WriteString(const TStringBuf&);
+        TOutContext WriteString(const TStringBuf& s, EHtmlEscapeMode hem);
+        TOutContext WriteInt(int);
+        TOutContext WriteLongLong(long long);
+        TOutContext WriteULongLong(unsigned long long);
+        TOutContext WriteBool(bool);
+        TOutContext WriteFloat(float);
+        TOutContext WriteFloat(float, EFloatToStringMode, int ndigits);
+        TOutContext WriteDouble(double);
+        TOutContext WriteDouble(double, EFloatToStringMode, int ndigits);
+        TOutContext WriteJsonValue(const NJson::TJsonValue* value, bool sortKeys = false);
+        TOutContext UnsafeWriteValue(const TStringBuf&);
 
         TValueContext BeginList();
         TPairContext BeginObject();
@@ -275,6 +252,28 @@ namespace NJsonWriter {
     private:
         TBuf& Buf;
     };
+
+#define JSON_VALUE_WRITER_WRAP(function, params, args)       \
+    template <typename TOutContext>                          \
+    TOutContext TValueWriter<TOutContext>::function params { \
+        Buf.function args;                                   \
+        return TOutContext(Buf);                             \
+    }
+
+    JSON_VALUE_WRITER_WRAP(WriteNull, (), ())
+    JSON_VALUE_WRITER_WRAP(WriteString, (const TStringBuf& arg), (arg))
+    JSON_VALUE_WRITER_WRAP(WriteString, (const TStringBuf& s, EHtmlEscapeMode hem), (s, hem))
+    JSON_VALUE_WRITER_WRAP(WriteInt, (int arg), (arg))
+    JSON_VALUE_WRITER_WRAP(WriteLongLong, (long long arg), (arg))
+    JSON_VALUE_WRITER_WRAP(WriteULongLong, (unsigned long long arg), (arg))
+    JSON_VALUE_WRITER_WRAP(WriteBool, (bool arg), (arg))
+    JSON_VALUE_WRITER_WRAP(WriteFloat, (float arg), (arg))
+    JSON_VALUE_WRITER_WRAP(WriteFloat, (float arg, EFloatToStringMode mode, int ndigits), (arg, mode, ndigits))
+    JSON_VALUE_WRITER_WRAP(WriteDouble, (double arg), (arg))
+    JSON_VALUE_WRITER_WRAP(WriteDouble, (double arg, EFloatToStringMode mode, int ndigits), (arg, mode, ndigits))
+    JSON_VALUE_WRITER_WRAP(WriteJsonValue, (const NJson::TJsonValue* value, bool sortKeys), (value, sortKeys))
+    JSON_VALUE_WRITER_WRAP(UnsafeWriteValue, (const TStringBuf& arg), (arg))
+#undef JSON_VALUE_WRITER_WRAP
 
     template <typename TOutContext>
     TValueContext TValueWriter<TOutContext>::BeginList() {

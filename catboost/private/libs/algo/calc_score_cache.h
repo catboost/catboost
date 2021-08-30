@@ -123,6 +123,7 @@ inline static int CountNonCtrBuckets(
 class TBucketStatsCache {
 public:
     inline void Create(const TVector<TFold>& folds, int bucketCount, int depth) {
+        Stats.clear();
         ApproxDimension = folds[0].GetApproxDimension();
         MaxBodyTailCount = GetMaxBodyTailCount(folds);
         InitialSize = sizeof(TBucketStats) * bucketCount * (1ULL << depth) * ApproxDimension * MaxBodyTailCount;
@@ -208,22 +209,22 @@ public:
         TUnsizedVector<TSlice> Slices;
 
     public:
-        void Create(const NPar::TLocalExecutor::TExecRangeParams& docBlockParams);
+        void Create(const NPar::ILocalExecutor::TExecRangeParams& docBlockParams);
         void CreateByControl(
-            const NPar::TLocalExecutor::TExecRangeParams& docBlockParams,
+            const NPar::ILocalExecutor::TExecRangeParams& docBlockParams,
             const TUnsizedVector<bool>& control,
-            NPar::TLocalExecutor* localExecutor
+            NPar::ILocalExecutor* localExecutor
         );
         void CreateByQueriesInfo(
             const TVector<TQueryInfo>& srcQueriesInfo,
-            const NPar::TLocalExecutor::TExecRangeParams& queryBlockParams
+            const NPar::ILocalExecutor::TExecRangeParams& queryBlockParams
         );
         void CreateByQueriesInfoAndControl(
             const TVector<TQueryInfo>& srcQueriesInfo,
-            const NPar::TLocalExecutor::TExecRangeParams& queryBlockParams,
+            const NPar::ILocalExecutor::TExecRangeParams& queryBlockParams,
             const TUnsizedVector<bool>& control,
             bool isPairwiseScoring,
-            NPar::TLocalExecutor* localExecutor,
+            NPar::ILocalExecutor* localExecutor,
             TVector<TQueryInfo>* dstQueriesInfo
         );
     };
@@ -239,35 +240,35 @@ public:
     void SelectSmallestSplitSide(
         int curDepth,
         const TCalcScoreFold& fold,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
     );
     void Sample(
         const TFold& fold,
         ESamplingUnit samplingUnit,
         bool hasOfflineEstimatedFeatures,
-        const TVector<TIndexType>& indices,
+        TConstArrayRef<TIndexType> indices,
         TRestorableFastRng64* rand,
-        NPar::TLocalExecutor* localExecutor,
+        NPar::ILocalExecutor* localExecutor,
         bool performRandomChoice = true,
         bool shouldSortByLeaf = false,
         ui32 leavesCount = 0
     );
-    void UpdateIndices(const TVector<TIndexType>& indices, NPar::TLocalExecutor* localExecutor);
+    void UpdateIndices(TConstArrayRef<TIndexType> indices, NPar::ILocalExecutor* localExecutor);
     // for lossguide
     void UpdateIndicesInLeafwiseSortedFoldForSingleLeaf(
         TIndexType leaf,
         TIndexType leftChildIdx,
         TIndexType rightChildIdx,
         const TVector<TIndexType>& indices,
-        NPar::TLocalExecutor* localExecutor);
+        NPar::ILocalExecutor* localExecutor);
     // for depthwise
     void UpdateIndicesInLeafwiseSortedFold(
         const TVector<TIndexType>& leafs,
         const TVector<TIndexType>& childs,
         const TVector<TIndexType>& indices,
-        NPar::TLocalExecutor* localExecutor);
+        NPar::ILocalExecutor* localExecutor);
     // for symmetric
-    void UpdateIndicesInLeafwiseSortedFold(const TVector<TIndexType>& indices, NPar::TLocalExecutor* localExecutor);
+    void UpdateIndicesInLeafwiseSortedFold(const TVector<TIndexType>& indices, NPar::ILocalExecutor* localExecutor);
 
     int GetDocCount() const;
     int GetBodyTailCount() const;
@@ -299,7 +300,7 @@ private:
         int curDepth,
         int docCount,
         const TUnsizedVector<TIndexType>& indices,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
     );
     void SetSampledControl(
         int docCount,
@@ -310,7 +311,7 @@ private:
     void SetControlNoZeroWeighted(int docCount, const float* sampleWeights);
 
     void CreateBlocksAndUpdateQueriesInfoByControl(
-        NPar::TLocalExecutor* localExecutor,
+        NPar::ILocalExecutor* localExecutor,
         int srcDocCount,
         const TVector<TQueryInfo>& srcQueriesInfo,
         int* blockCount,
@@ -324,7 +325,7 @@ private:
         int onlineDataPermutationBlockSize
     );
 
-    void SortFoldByLeafIndex(ui32 leafCount, NPar::TLocalExecutor* localExecutor);
+    void SortFoldByLeafIndex(ui32 leafCount, NPar::ILocalExecutor* localExecutor);
 
     struct TFoldPartitionOutput {
         void Create(int size, int dimension, bool hasOfflineEstimatedFeatures);
@@ -357,7 +358,7 @@ private:
         TIndexType leftChildIdx,
         TIndexType rightChildIdx,
         const TVector<TIndexType>& indices,
-        NPar::TLocalExecutor* localExecutor,
+        NPar::ILocalExecutor* localExecutor,
         TFoldPartitionOutput::TSlice* out = nullptr);
 
 public:

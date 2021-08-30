@@ -3,16 +3,13 @@ from libcpp cimport bool as bool_t
 from util.generic.ptr cimport TIntrusivePtr
 from util.generic.vector cimport TVector
 from util.generic.string cimport TString, TStringBuf
+from util.stream.output cimport IOutputStream
 from util.system.types cimport i32, ui32, ui64
 
 
 # TODO(kirillovs): move to proper util pxd definitions place
 cdef extern from "util/stream/input.h" nogil:
     cdef cppclass IInputStream:
-        pass
-
-cdef extern from "util/stream/output.h" nogil:
-    cdef cppclass IOutputStream:
         pass
 
 cdef extern from "util/stream/file.h" nogil:

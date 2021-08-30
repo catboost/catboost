@@ -12,6 +12,7 @@ RECURSE(
     blockcodecs/fuzz
     blockcodecs/ut
     build_info
+    cache
     cgiparam
     cgiparam/fuzz
     cgiparam/ut
@@ -50,6 +51,7 @@ RECURSE(
     grid_creator
     grid_creator/fuzz
     grid_creator/ut
+    hnsw
     http
     json
     json/fast_sax
@@ -60,6 +62,12 @@ RECURSE(
     json/writer/ut
     json/yson
     json/yson/ut
+    l1_distance
+    l1_distance/bench
+    l1_distance/ut
+    l2_distance
+    l2_distance/bench
+    l2_distance/ut
     langmask
     langmask/proto
     langmask/serialization
@@ -87,9 +95,8 @@ RECURSE(
     object_factory
     object_factory/ut
     on_disk
+    online_hnsw
     openssl
-    overloaded
-    overloaded/ut
     packers
     packers/ut
     par
@@ -110,12 +117,12 @@ RECURSE(
     text_processing
     threading
     token
-    tokenizer
-    tokenizer/ut
+    token/lite
     token/serialization
     token/serialization/ut
     token/ut
-    unicode
+    tokenizer
+    tokenizer/ut
     yson
     yson/node
     yson/node/pybind

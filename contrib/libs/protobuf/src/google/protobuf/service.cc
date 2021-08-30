@@ -32,7 +32,7 @@
 //  Based on original Protocol Buffers design by
 //  Sanjay Ghemawat, Jeff Dean, and others.
 
-#include "service.h"
+#include <google/protobuf/service.h>
 
 namespace google {
 namespace protobuf {
@@ -42,5 +42,4 @@ RpcChannel::~RpcChannel() {}
 RpcController::~RpcController() {}
 
 }  // namespace protobuf
-
 }  // namespace google

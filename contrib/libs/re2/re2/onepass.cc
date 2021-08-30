@@ -59,10 +59,11 @@
 
 #include "util/util.h"
 #include "util/logging.h"
-#include "util/sparse_set.h"
 #include "util/strutil.h"
 #include "util/utf.h"
+#include "re2/pod_array.h"
 #include "re2/prog.h"
+#include "re2/sparse_set.h"
 #include "re2/stringpiece.h"
 
 // Silence "zero-sized array in struct/union" warning for OneState::action.
@@ -234,7 +235,7 @@ bool Prog::SearchOnePass(const StringPiece& text,
     matchcap[i] = NULL;
 
   StringPiece context = const_context;
-  if (context.begin() == NULL)
+  if (context.data() == NULL)
     context = text;
   if (anchor_start() && context.begin() != text.begin())
     return false;
@@ -243,13 +244,13 @@ bool Prog::SearchOnePass(const StringPiece& text,
   if (anchor_end())
     kind = kFullMatch;
 
-  uint8_t* nodes = onepass_nodes_;
+  uint8_t* nodes = onepass_nodes_.data();
   int statesize = sizeof(OneState) + bytemap_range()*sizeof(uint32_t);
   // start() is always mapped to the zeroth OneState.
   OneState* state = IndexToNode(nodes, statesize, 0);
   uint8_t* bytemap = bytemap_;
-  const char* bp = text.begin();
-  const char* ep = text.end();
+  const char* bp = text.data();
+  const char* ep = text.data() + text.size();
   const char* p;
   bool matched = false;
   matchcap[0] = bp;
@@ -382,7 +383,7 @@ struct InstCond {
 // Constructs and saves corresponding one-pass NFA on success.
 bool Prog::IsOnePass() {
   if (did_onepass_)
-    return onepass_nodes_ != NULL;
+    return onepass_nodes_.data() != NULL;
   did_onepass_ = true;
 
   if (start() == 0)  // no match
@@ -403,11 +404,11 @@ bool Prog::IsOnePass() {
   int stacksize = inst_count(kInstCapture) +
                   inst_count(kInstEmptyWidth) +
                   inst_count(kInstNop) + 1;  // + 1 for start inst
-  InstCond* stack = new InstCond[stacksize];
+  PODArray<InstCond> stack(stacksize);
 
   int size = this->size();
-  int* nodebyid = new int[size];  // indexed by ip
-  memset(nodebyid, 0xFF, size*sizeof nodebyid[0]);
+  PODArray<int> nodebyid(size);  // indexed by ip
+  memset(nodebyid.data(), 0xFF, size*sizeof nodebyid[0]);
 
   // Originally, nodes was a uint8_t[maxnodes*statesize], but that was
   // unnecessarily optimistic: why allocate a large amount of memory
@@ -549,7 +550,7 @@ bool Prog::IsOnePass() {
           if (!AddQ(&workq, ip->out())) {
             if (ExtraDebug)
               LOG(ERROR) << StringPrintf(
-                  "Not OnePass: multiple paths %d -> %d\n", *it, ip->out());
+                  "Not OnePass: multiple paths %d -> %d", *it, ip->out());
             goto fail;
           }
           id = ip->out();
@@ -560,7 +561,7 @@ bool Prog::IsOnePass() {
             // (3) is violated
             if (ExtraDebug)
               LOG(ERROR) << StringPrintf(
-                  "Not OnePass: multiple matches from %d\n", *it);
+                  "Not OnePass: multiple matches from %d", *it);
             goto fail;
           }
           matched = true;
@@ -589,38 +590,33 @@ bool Prog::IsOnePass() {
       if (nodebyid[i] != -1)
         idmap[nodebyid[i]] = i;
 
-    string dump;
+    std::string dump;
     for (Instq::iterator it = tovisit.begin(); it != tovisit.end(); ++it) {
       int id = *it;
       int nodeindex = nodebyid[id];
       if (nodeindex == -1)
         continue;
       OneState* node = IndexToNode(nodes.data(), statesize, nodeindex);
-      StringAppendF(&dump, "node %d id=%d: matchcond=%#x\n",
-                    nodeindex, id, node->matchcond);
+      dump += StringPrintf("node %d id=%d: matchcond=%#x\n",
+                           nodeindex, id, node->matchcond);
       for (int i = 0; i < bytemap_range_; i++) {
         if ((node->action[i] & kImpossible) == kImpossible)
           continue;
-        StringAppendF(&dump, "  %d cond %#x -> %d id=%d\n",
-                      i, node->action[i] & 0xFFFF,
-                      node->action[i] >> kIndexShift,
-                      idmap[node->action[i] >> kIndexShift]);
+        dump += StringPrintf("  %d cond %#x -> %d id=%d\n",
+                             i, node->action[i] & 0xFFFF,
+                             node->action[i] >> kIndexShift,
+                             idmap[node->action[i] >> kIndexShift]);
       }
     }
     LOG(ERROR) << "nodes:\n" << dump;
   }
 
   dfa_mem_ -= nalloc*statesize;
-  onepass_nodes_ = new uint8_t[nalloc*statesize];
-  memmove(onepass_nodes_, nodes.data(), nalloc*statesize);
-
-  delete[] stack;
-  delete[] nodebyid;
+  onepass_nodes_ = PODArray<uint8_t>(nalloc*statesize);
+  memmove(onepass_nodes_.data(), nodes.data(), nalloc*statesize);
   return true;
 
 fail:
-  delete[] stack;
-  delete[] nodebyid;
   return false;
 }
 

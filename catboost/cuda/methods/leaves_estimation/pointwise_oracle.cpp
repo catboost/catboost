@@ -1,7 +1,9 @@
+#include "leaves_estimation_helper.h"
 #include "pointwise_oracle.h"
 #include <catboost/cuda/models/add_bin_values.h>
 #include <catboost/cuda/cuda_util/partitions_reduce.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer_helpers/all_reduce.h>
+#include <catboost/libs/metrics/optimal_const_for_loss.h>
 
 namespace NCatboostCuda {
     void TBinOptimizedOracle::WriteWeights(TVector<double>* dst) {
@@ -117,7 +119,8 @@ namespace NCatboostCuda {
             CB_ENSURE(DerAtPoint.Defined(), "Error: write der first");
         }
 
-        if (LeavesEstimationConfig.UseNewton) {
+        CB_ENSURE(LeavesEstimationConfig.LeavesEstimationMethod != ELeavesEstimation::Exact);
+        if (LeavesEstimationConfig.LeavesEstimationMethod == ELeavesEstimation::Newton) {
             if (Der2AtPoint) {
                 (*secondDer) = *Der2AtPoint;
             } else {
@@ -189,18 +192,39 @@ namespace NCatboostCuda {
         }
     }
 
+    void TBinOptimizedOracle::AddLangevinNoiseToDerivatives(TVector<double>* derivatives,
+                                                            NPar::ILocalExecutor* localExecutor) {
+        if (LeavesEstimationConfig.Langevin) {
+            AddLangevinNoise(LeavesEstimationConfig, derivatives, localExecutor, Random.NextUniformL());
+        }
+    }
+
+    TVector<float> TBinOptimizedOracle::EstimateExact() {
+        auto values = TStripeBuffer<float>::CopyMapping(Bins);
+        auto weights = TStripeBuffer<float>::CopyMapping(Bins);
+        DerCalcer->ComputeExactValue(Cursor.AsConstBuf(), &values, &weights);
+
+        TVector<float> point(BinCount * SingleBinDim());
+        ComputeExactApprox(Bins, values, weights, BinCount, point, LeavesEstimationConfig.LossDescription);
+
+        MoveTo(point);
+        return MakeEstimationResult(point);
+    }
+
     TBinOptimizedOracle::TBinOptimizedOracle(const TLeavesEstimationConfig& leavesEstimationConfig,
                                              THolder<IPermutationDerCalcer>&& derCalcer,
                                              TStripeBuffer<ui32>&& bins,
                                              TStripeBuffer<ui32>&& partOffsets,
                                              TStripeBuffer<float>&& cursor,
-                                             ui32 binCount)
+                                             ui32 binCount,
+                                             TGpuAwareRandom& random)
         : LeavesEstimationConfig(leavesEstimationConfig)
         , DerCalcer(std::move(derCalcer))
         , Bins(std::move(bins))
         , Offsets(std::move(partOffsets))
         , Cursor(std::move(cursor))
         , BinCount(binCount)
+        , Random(random)
     {
         ui32 devCount = NCudaLib::GetCudaManager().GetDeviceCount();
         for (ui32 dev = 0; dev < devCount; ++dev) {

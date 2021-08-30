@@ -110,10 +110,7 @@ inline bool DivisibleOrLastIteration(int currentIteration, int iterationsCount, 
 
 
 /*
- * For CPU foldContexts contain LearnProgress that allows quick learning resume when switching
- *  between folds, so use one iteration batches.
- *
- * For GPU where fold context switch is relatively expensive init batch size based on profile data
+ * Init batch size based on profile data and metric update interval
  */
 static ui32 CalcBatchSize(
     ETaskType taskType,
@@ -121,16 +118,11 @@ static ui32 CalcBatchSize(
     ui32 batchStartIteration,
     double batchIterationsTime, // in sec
     double batchIterationsPlusTrainInitializationTime, // in sec
-    double maxTimeSpentOnFixedCostRatio,
+    double metricUpdateInterval, // in sec
     ui32 maxIterationsBatchSize,
     ui32 globalMaxIteration
 ) {
     CATBOOST_DEBUG_LOG << "CalcBatchSize:\n\t" << LabeledOutput(taskType) << "\n\t";
-
-    if (taskType == ETaskType::CPU) {
-        CATBOOST_DEBUG_LOG << "set batch size to 1\n";
-        return 1;
-    }
 
     CB_ENSURE_INTERNAL(batchIterationsTime > 0.0, "batchIterationTime <= 0.0");
     CB_ENSURE_INTERNAL(
@@ -142,9 +134,7 @@ static ui32 CalcBatchSize(
     double averageIterationTime = batchIterationsTime / double(lastIteration - batchStartIteration + 1);
 
     // estimated to be under fixed cost limit
-    double estimatedBatchSize =
-        std::ceil((1.0 - maxTimeSpentOnFixedCostRatio)*timeSpentOnFixedCost
-           / (maxTimeSpentOnFixedCostRatio*averageIterationTime));
+    double estimatedBatchSize = Max<double>(1.0, (metricUpdateInterval - timeSpentOnFixedCost) / averageIterationTime);
 
     CATBOOST_DEBUG_LOG
         << LabeledOutput(
@@ -152,7 +142,7 @@ static ui32 CalcBatchSize(
             batchIterationsTime,
             batchIterationsPlusTrainInitializationTime,
             averageIterationTime) << Endl
-        << '\t' << LabeledOutput(timeSpentOnFixedCost, maxTimeSpentOnFixedCostRatio, globalMaxIteration)
+        << '\t' << LabeledOutput(timeSpentOnFixedCost, metricUpdateInterval, globalMaxIteration)
         << "\n\testimated batch size to be under fixed cost ratio limit: "
         << estimatedBatchSize << Endl;
 
@@ -196,7 +186,7 @@ class TCrossValidationCallbacks : public ITrainingCallbacks {
 public:
     TCrossValidationCallbacks(
         ELoggingLevel loggingLevel,
-        double maxTimeSpentOnFixedCostRatio,
+        double metricUpdateInterval,
         ui32 maxIterationsBatchSize,
         size_t globalMaxIteration,
         bool isErrorTrackerActive,
@@ -206,7 +196,7 @@ public:
         TFoldContext* foldContext)
     : BatchStartIteration(foldContext->MetricValuesOnTest.size())
     , LoggingLevel(loggingLevel)
-    , MaxTimeSpentOnFixedCostRatio(maxTimeSpentOnFixedCostRatio)
+    , MetricUpdateInterval(metricUpdateInterval)
     , MaxIterationsBatchSize(maxIterationsBatchSize)
     , GlobalMaxIteration(globalMaxIteration)
     , IsErrorTrackerActive(isErrorTrackerActive)
@@ -242,7 +232,7 @@ public:
                     BatchStartIteration,
                     BatchIterationsTime,
                     TrainTimer.Passed(),
-                    MaxTimeSpentOnFixedCostRatio,
+                    MetricUpdateInterval,
                     MaxIterationsBatchSize,
                     GlobalMaxIteration);
 
@@ -273,7 +263,7 @@ public:
 private:
     size_t BatchStartIteration;
     ELoggingLevel LoggingLevel;
-    double MaxTimeSpentOnFixedCostRatio;
+    double MetricUpdateInterval;
     ui32 MaxIterationsBatchSize;
     size_t GlobalMaxIteration;
     bool IsErrorTrackerActive;
@@ -292,14 +282,14 @@ void TrainBatch(
     const TLabelConverter& labelConverter,
     TConstArrayRef<THolder<IMetric>> metrics,
     TConstArrayRef<bool> skipMetricOnTrain,
-    double maxTimeSpentOnFixedCostRatio,
+    double metricUpdateInterval,
     ui32 maxIterationsBatchSize,
     size_t globalMaxIteration,
     bool isErrorTrackerActive,
     ELoggingLevel loggingLevel,
     TFoldContext* foldContext,
     IModelTrainer* modelTrainer,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TMaybe<ui32>* upToIteration) { // exclusive bound, if not inited - init from profile data
 
     // don't output data from folds training
@@ -313,7 +303,7 @@ void TrainBatch(
     );
 
     TTrainModelInternalOptions internalOptions;
-    internalOptions.CalcMetricsOnly = true;
+    internalOptions.CalcMetricsOnly = !foldContext->FullModel.Defined();
     internalOptions.ForceCalcEvalMetricOnEveryIteration = isErrorTrackerActive;
     internalOptions.OffsetMetricPeriodByInitModelSize = true;
 
@@ -321,7 +311,7 @@ void TrainBatch(
 
     const THolder<ITrainingCallbacks> cvCallbacks = MakeHolder<TCrossValidationCallbacks>(
         loggingLevel,
-        maxTimeSpentOnFixedCostRatio,
+        metricUpdateInterval,
         maxIterationsBatchSize,
         globalMaxIteration,
         isErrorTrackerActive,
@@ -330,6 +320,14 @@ void TrainBatch(
         upToIteration,
         foldContext);
 
+    const auto defaultCustomCallbacks = MakeHolder<TCustomCallbacks>(Nothing());
+    auto foldOutputOptions = foldContext->OutputOptions;
+    auto trainDir = foldOutputOptions.GetTrainDir();
+    if (foldContext->FullModel.Defined()) {
+        // TrainModel saves model either to memory pointed by dstModel, or to ResultModelPath
+        foldOutputOptions.ResultModelPath = NCatboostOptions::TOption<TString>("result_model_file", "model");
+    }
+
     modelTrainer->TrainModel(
         internalOptions,
         catboostOption,
@@ -337,19 +335,26 @@ void TrainBatch(
         objectiveDescriptor,
         evalMetricDescriptor,
         foldContext->TrainingData,
+        /*precomputedSingleOnlineCtrDataForSingleFold*/ Nothing(),
         labelConverter,
         cvCallbacks.Get(),
+        defaultCustomCallbacks.Get(),
         /*initModel*/ Nothing(),
         std::move(foldContext->LearnProgress),
         /*initModelApplyCompatiblePools*/ TDataProviders(),
         localExecutor,
         /*rand*/ Nothing(),
-        /*model*/ nullptr,
+        foldContext->FullModel.Defined() ? foldContext->FullModel.Get() : nullptr,
         TVector<TEvalResult*>{&foldContext->LastUpdateEvalResult},
         /*metricsAndTimeHistory*/nullptr,
         (foldContext->TaskType == ETaskType::CPU) ? &dstLearnProgress : nullptr
     );
     foldContext->LearnProgress = std::move(dstLearnProgress);
+
+    if (foldContext->FullModel.Defined()) {
+        TFileOutput modelFile(JoinFsPaths(trainDir, foldContext->OutputOptions.ResultModelPath.Get()));
+        foldContext->FullModel->Save(&modelFile);
+    }
 }
 
 
@@ -387,7 +392,7 @@ void Train(
     ITrainingCallbacks* trainingCallbacks,
     TFoldContext* foldContext,
     IModelTrainer* modelTrainer,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) {
     // don't output data from folds training
     TSetLoggingSilent silentMode;
@@ -403,6 +408,7 @@ void Train(
         foldOutputOptions.ResultModelPath = NCatboostOptions::TOption<TString>("result_model_file", "model");
     }
     TMetricsAndTimeLeftHistory metricsAndTimeHistory;
+    const auto defaultCustomCallbacks = MakeHolder<TCustomCallbacks>(Nothing());
     modelTrainer->TrainModel(
         internalOptions,
         catboostOption,
@@ -410,8 +416,10 @@ void Train(
         objectiveDescriptor,
         evalMetricDescriptor,
         foldContext->TrainingData,
+        /*precomputedSingleOnlineCtrDataForSingleFold*/ Nothing(),
         labelConverter,
         trainingCallbacks,
+        defaultCustomCallbacks.Get(),
         /*initModel*/ Nothing(),
         THolder<TLearnProgress>(),
         /*initModelApplyCompatiblePools*/ TDataProviders(),
@@ -484,7 +492,7 @@ void UpdatePermutationBlockSize(
 
     const auto isConsecutiveLearnFeaturesData = [&] (const TTrainingDataProviders& foldData) {
         const auto& learnObjectsDataProvider
-            = dynamic_cast<const TQuantizedForCPUObjectsDataProvider&>(*foldData.Learn->ObjectsData);
+            = dynamic_cast<const TQuantizedObjectsDataProvider&>(*foldData.Learn->ObjectsData);
         return learnObjectsDataProvider.GetFeaturesArraySubsetIndexing().IsConsecutive();
     };
     if (!AllOf(foldsData, isConsecutiveLearnFeaturesData)) {
@@ -499,7 +507,7 @@ void CrossValidate(
     const TLabelConverter& labelConverter,
     NCB::TTrainingDataProviderPtr trainingData,
     const TCrossValidationParams& cvParams,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TVector<TCVResult>* results,
     bool isAlreadyShuffled) {
 
@@ -511,6 +519,13 @@ void CrossValidate(
     NCatboostOptions::PlainJsonToOptions(plainJsonParams, &jsonParams, &outputJsonParams);
     ConvertParamsToCanonicalFormat(trainingData.Get()->MetaInfo, &jsonParams);
     NCatboostOptions::TCatBoostOptions catBoostOptions(NCatboostOptions::LoadOptions(jsonParams));
+    if (catBoostOptions.DataProcessingOptions->ClassLabels->empty()) {
+        catBoostOptions.DataProcessingOptions->ClassLabels = trainingData->MetaInfo.ClassLabels;
+    } else {
+        CB_ENSURE(
+            catBoostOptions.DataProcessingOptions->ClassLabels.Get() == trainingData->MetaInfo.ClassLabels,
+            "ClassLabels in dataprocessing options and in training data must match");
+    }
     NCatboostOptions::TOutputFilesOptions outputFileOptions;
     outputFileOptions.Load(outputJsonParams);
 
@@ -622,7 +637,8 @@ void CrossValidate(
             taskType,
             outputFileOptions,
             std::move(foldsData[foldIdx]),
-            catBoostOptions.RandomSeed);
+            catBoostOptions.RandomSeed,
+            cvParams.ReturnModels);
     }
 
 
@@ -717,7 +733,7 @@ void CrossValidate(
                 labelConverter,
                 metrics,
                 skipMetricOnTrain,
-                cvParams.MaxTimeSpentOnFixedCostRatio,
+                cvParams.MetricUpdateInterval,
                 cvParams.DevMaxIterationsBatchSize,
                 globalMaxIteration,
                 errorTracker.IsActive(),
@@ -824,6 +840,12 @@ void CrossValidate(
                 (*results)[metricIdx].LastTrainEvalMetric.push_back(foldContext.MetricValuesOnTrain[lastIteration][metricIdx]);
                 (*results)[metricIdx].LastTestEvalMetric.push_back(foldContext.MetricValuesOnTest[lastIteration][metricIdx]);;
             }
+        }
+    }
+
+    if (cvParams.ReturnModels) {
+        for (const auto& foldContext : foldContexts) {
+            results->front().CVFullModels.push_back(*foldContext.FullModel.Get());
         }
     }
 

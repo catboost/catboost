@@ -15,7 +15,7 @@ namespace NYT {
 
     // Copied from <util/string/escape.cpp>
     namespace {
-        static inline char HexDigit(char value) {
+        inline char HexDigit(char value) {
             Y_ASSERT(value < 16);
             if (value < 10)
                 return '0' + value;
@@ -23,26 +23,26 @@ namespace NYT {
                 return 'A' + value - 10;
         }
 
-        static inline char OctDigit(char value) {
+        inline char OctDigit(char value) {
             Y_ASSERT(value < 8);
             return '0' + value;
         }
 
-        static inline bool IsPrintable(char c) {
+        inline bool IsPrintable(char c) {
             return c >= 32 && c <= 126;
         }
 
-        static inline bool IsHexDigit(char c) {
+        inline bool IsHexDigit(char c) {
             return (c >= '0' && c <= '9') || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f');
         }
 
-        static inline bool IsOctDigit(char c) {
+        inline bool IsOctDigit(char c) {
             return c >= '0' && c <= '7';
         }
 
-        static const size_t ESCAPE_C_BUFFER_SIZE = 4;
+        const size_t ESCAPE_C_BUFFER_SIZE = 4;
 
-        static inline size_t EscapeC(unsigned char c, char next, char r[ESCAPE_C_BUFFER_SIZE]) {
+        inline size_t EscapeC(unsigned char c, char next, char r[ESCAPE_C_BUFFER_SIZE]) {
             // (1) Printable characters go as-is, except backslash and double quote.
             // (2) Characters \r, \n, \t and \0 ... \7 replaced by their simple escape characters (if possible).
             // (3) Otherwise, character is encoded using hexadecimal escape sequence (if possible), or octal.
@@ -114,9 +114,9 @@ namespace NYT {
                 return ::ToString(value);
             }
 
-            static const auto nanLiteral = AsStringBuf("%nan");
-            static const auto infLiteral = AsStringBuf("%inf");
-            static const auto negativeInfLiteral = AsStringBuf("%-inf");
+            static const TStringBuf nanLiteral = "%nan";
+            static const TStringBuf infLiteral = "%inf";
+            static const TStringBuf negativeInfLiteral = "%-inf";
 
             TStringBuf str;
             if (std::isnan(value)) {

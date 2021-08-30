@@ -25,6 +25,7 @@ BOOSTING_TYPE = ['Ordered', 'Plain']
 MULTICLASS_LOSSES = ['MultiClass', 'MultiClassOneVsAll']
 NONSYMMETRIC = ['Lossguide', 'Depthwise']
 GROW_POLICIES = ['SymmetricTree'] + NONSYMMETRIC
+LEAF_ESTIMATION_METHODS = ['Newton', 'Gradient']
 SCORE_FUNCTIONS = [
     'L2', 'Cosine',
     'NewtonL2', 'NewtonCosine',
@@ -187,6 +188,50 @@ def test_rsm_with_default_value(boosting_type):
     fit_catboost_gpu(params)
 
 
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+@pytest.mark.parametrize('leaf_estimation_method', LEAF_ESTIMATION_METHODS)
+def test_tweedie_with_fixed_variance_power(boosting_type, leaf_estimation_method):
+    output_model_path = yatest.common.test_output_path('model.bin')
+
+    params = {
+        '--use-best-model': 'false',
+        '--loss-function': 'Tweedie:variance_power=1.9',
+        '-f': data_file('adult', 'train_small'),
+        '-t': data_file('adult', 'test_small'),
+        '--column-description': data_file('adult', 'train.cd'),
+        '--boosting-type': boosting_type,
+        '--leaf-estimation-method': leaf_estimation_method,
+        '-i': '10',
+        '-w': '0.001',
+        '-T': '4',
+        '--rsm': 1,
+        '-m': output_model_path,
+    }
+    fit_catboost_gpu(params)
+
+
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+@pytest.mark.parametrize('leaf_estimation_method', LEAF_ESTIMATION_METHODS)
+def test_huber_with_fixed_delta(boosting_type, leaf_estimation_method):
+    output_model_path = yatest.common.test_output_path('model.bin')
+
+    params = {
+        '--use-best-model': 'false',
+        '--loss-function': 'Huber:delta=1.0',
+        '-f': data_file('adult', 'train_small'),
+        '-t': data_file('adult', 'test_small'),
+        '--column-description': data_file('adult', 'train.cd'),
+        '--boosting-type': boosting_type,
+        '--leaf-estimation-method': leaf_estimation_method,
+        '-i': '10',
+        '-w': '0.001',
+        '-T': '4',
+        '--rsm': 1,
+        '-m': output_model_path,
+    }
+    fit_catboost_gpu(params)
+
+
 @pytest.mark.xfail(reason='Need fixing')
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 def test_rsm_with_pairwise(boosting_type):
@@ -250,8 +295,9 @@ def test_bootstrap(boosting_type):
         fit_catboost_gpu(run_params)
         apply_catboost(model_path, test_file, cd_file, eval_path)
 
-    ref_eval_path = yatest.common.test_output_path('test_' + bootstrap_option.keys()[0] + '.eval')
-    for bootstrap in bootstrap_option.keys()[1:]:
+    bootstrap_options_keys = list(bootstrap_option.keys())
+    ref_eval_path = yatest.common.test_output_path('test_' + bootstrap_options_keys[0] + '.eval')
+    for bootstrap in bootstrap_options_keys[1:]:
         eval_path = yatest.common.test_output_path('test_' + bootstrap + '.eval')
         assert (filecmp.cmp(ref_eval_path, eval_path))
     return [local_canonical_file(ref_eval_path)]
@@ -2337,28 +2383,29 @@ def test_pairwise(loss_function):
 
 @pytest.mark.use_fixtures('compressed_data')
 @pytest.mark.parametrize(
-    'loss_function,eval_metric,boosting_type',
+    'loss_function,eval_metric_name,boosting_type',
     [
-        ('QueryRMSE', 'NDCG', 'Plain'),
-        ('QueryRMSE', 'NDCG', 'Ordered'),
+        ('QueryRMSE', 'NDCG:type=Base', 'Plain'),
+        ('QueryRMSE', 'NDCG:type=Base', 'Ordered'),
         # Boosting type 'Ordered' is not supported for YetiRankPairwise and PairLogitPairwise
-        ('YetiRankPairwise', 'NDCG', 'Plain'),
+        ('YetiRankPairwise', 'NDCG:type=Base', 'Plain'),
         ('PairLogit', 'PairAccuracy', 'Plain'),
-        ('PairLogitPairwise', 'NDCG', 'Plain'),
+        ('PairLogitPairwise', 'NDCG:type=Base', 'Plain'),
         ('PairLogitPairwise', 'PairAccuracy', 'Plain'),
     ],
     ids=[
-        'loss_function=QueryRMSE,eval_metric=NDCG,boosting_type=Plain',
-        'loss_function=QueryRMSE,eval_metric=NDCG,boosting_type=Ordered',
-        'loss_function=YetiRankPairwise,eval_metric=NDCG,boosting_type=Plain',
-        'loss_function=PairLogit,eval_metric=PairAccuracy,boosting_type=Plain',
-        'loss_function=PairLogitPairwise,eval_metric=NDCG,boosting_type=Plain',
-        'loss_function=PairLogitPairwise,eval_metric=PairAccuracy,boosting_type=Plain'
+        'loss_function=QueryRMSE,eval_metric_name=NDCG,boosting_type=Plain',
+        'loss_function=QueryRMSE,eval_metric_name=NDCG,boosting_type=Ordered',
+        'loss_function=YetiRankPairwise,eval_metric_name=NDCG,boosting_type=Plain',
+        'loss_function=PairLogit,eval_metric_name=PairAccuracy,boosting_type=Plain',
+        'loss_function=PairLogitPairwise,eval_metric_name=NDCG,boosting_type=Plain',
+        'loss_function=PairLogitPairwise,eval_metric_name=PairAccuracy,boosting_type=Plain'
     ]
 )
-def test_groupwise_with_cat_features(compressed_data, loss_function, eval_metric, boosting_type):
+def test_groupwise_with_cat_features(compressed_data, loss_function, eval_metric_name, boosting_type):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_test_error_path = yatest.common.test_output_path('test_error.tsv')
+    output_eval_error_path = yatest.common.test_output_path('eval_file.tsv')
 
     train_file = os.path.join(compressed_data.name, 'mslr_web1k', 'train')
     test_file = os.path.join(compressed_data.name, 'mslr_web1k', 'test')
@@ -2373,7 +2420,7 @@ def test_groupwise_with_cat_features(compressed_data, loss_function, eval_metric
         '-i', '250',
         '-T', '4',
         '--ctr-history-unit', 'Sample',
-        '--eval-metric', eval_metric,
+        '--eval-metric', eval_metric_name,
         '--metric-period', '250',
         '--use-best-model', 'false',
         '-m', output_model_path,
@@ -2381,6 +2428,8 @@ def test_groupwise_with_cat_features(compressed_data, loss_function, eval_metric
     ]
 
     fit_catboost_gpu(params)
+    eval_metric(output_model_path, eval_metric_name, test_file, cd_file, output_eval_error_path, '250')
+    compare_metrics_with_diff(eval_metric_name, output_test_error_path, output_eval_error_path, 1e-5)
 
     return [local_canonical_file(output_test_error_path, diff_tool=diff_tool(1e-2))]
 

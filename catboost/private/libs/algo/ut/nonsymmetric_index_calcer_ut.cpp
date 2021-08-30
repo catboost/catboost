@@ -51,7 +51,7 @@ Y_UNIT_TEST_SUITE(NonSymmetricIndexCalcerTest) {
 
                 TPoolQuantizationSchema schema;
                 for (auto featureIdx : xrange(floatFeatureCount)) {
-                    schema.FeatureIndices.push_back(featureIdx);
+                    schema.FloatFeatureIndices.push_back(featureIdx);
                     ui8 borderCount = *MaxElement(quantizedFloatFeatures[featureIdx].begin(), quantizedFloatFeatures[featureIdx].end());
                     schema.Borders.emplace_back();
                     schema.Borders[featureIdx].yresize(borderCount);
@@ -66,10 +66,9 @@ Y_UNIT_TEST_SUITE(NonSymmetricIndexCalcerTest) {
                     for (auto bucketIdx : xrange(bucketCount)) {
                         schema.FeaturesPerfectHash[featureIdx][bucketIdx] = {bucketIdx, 1};
                     }
-                    schema.NanModes.push_back(ENanMode::Forbidden);
                 }
 
-                visitor->Start(metaInfo, objectCount, EObjectsOrder::Undefined, {}, schema);
+                visitor->Start(metaInfo, objectCount, EObjectsOrder::Undefined, {}, schema, /*wholeColumns*/ true);
 
                 for (auto featureIdx : xrange(floatFeatureCount)) {
                     auto holder = TMaybeOwningArrayHolder<const ui8>::CreateNonOwning(quantizedFloatFeatures[featureIdx]);

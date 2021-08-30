@@ -1,8 +1,8 @@
 LIBRARY()
 
-LICENSE(
-    RAPIDJSON
-)
+LICENSE(MIT)
+
+VERSION(1.1.0)
 
 
 

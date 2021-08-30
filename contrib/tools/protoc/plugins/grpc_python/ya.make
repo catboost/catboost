@@ -4,40 +4,13 @@
 
 
 IF (USE_PREBUILT_TOOLS)
-    INCLUDE(${ARCADIA_ROOT}/build/prebuilt/grpc_python/ya.make.prebuilt)
+    INCLUDE(${ARCADIA_ROOT}/build/prebuilt/contrib/tools/protoc/plugins/grpc_python/ya.make.prebuilt)
 ENDIF()
 
 IF (NOT PREBUILT)
-    PROGRAM()
-
-    LICENSE(Apache-2.0)
-
-    PEERDIR(
-        contrib/libs/grpc/src/compiler/grpc_plugin_support
-    )
-
-    ADDINCL(
-        contrib/libs/grpc
-        contrib/libs/grpc/include
-    )
-
-    NO_COMPILER_WARNINGS()
-
-    CFLAGS(
-        -DGRPC_USE_ABSL=0
-    )
-
-    SRCDIR(contrib/libs/grpc/src/compiler)
-
-    IF (OS_LINUX AND NOT MUSL)
-        CFLAGS(
-            -DGPR_BACKWARDS_COMPATIBILITY_MODE=1
-        )
-    ENDIF()
-
-    SRCS(
-        python_plugin.cc
-    )
-
-    END()
+    INCLUDE(${ARCADIA_ROOT}/contrib/tools/protoc/plugins/grpc_python/bin/ya.make)
 ENDIF()
+
+RECURSE(
+    bin
+)

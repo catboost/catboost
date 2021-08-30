@@ -1,7 +1,6 @@
 #include "base.h"
 
 #include <util/string/cast.h>
-#include <util/string/util.h>
 #include <util/stream/output.h>
 #include <util/stream/mem.h>
 #include <util/system/compat.h>
@@ -15,8 +14,9 @@ TString Strftime(const char* format, const struct tm* tm) {
     for (;;) {
         TTempBuf buf(size);
         int r = strftime(buf.Data(), buf.Size(), format, tm);
-        if (r != 0)
+        if (r != 0) {
             return TString(buf.Data(), r);
+        }
         size *= 2;
     }
 }
@@ -146,7 +146,7 @@ void Out<TInstant>(IOutputStream& os, TTypeTraits<TInstant>::TFuncParam instant)
     auto len = FormatDate8601(buf, sizeof(buf), instant.TimeT());
 
     // shouldn't happen due to current implementation of FormatDate8601() and GmTimeR()
-    Y_ENSURE(len, AsStringBuf("Out<TInstant>: year does not fit into an integer"));
+    Y_ENSURE(len, TStringBuf("Out<TInstant>: year does not fit into an integer"));
 
     os.Write(buf, len - 1 /* 'Z' */);
     WriteMicroSecondsToStream(os, instant.MicroSecondsOfSecond());
@@ -154,22 +154,22 @@ void Out<TInstant>(IOutputStream& os, TTypeTraits<TInstant>::TFuncParam instant)
 }
 
 template <>
-void Out< ::NPrivate::TPrintableLocalTime<false, false>>(IOutputStream& os, TTypeTraits< ::NPrivate::TPrintableLocalTime<false, false>>::TFuncParam localTime) {
+void Out<::NPrivate::TPrintableLocalTime<false, false>>(IOutputStream& os, TTypeTraits<::NPrivate::TPrintableLocalTime<false, false>>::TFuncParam localTime) {
     WritePrintableLocalTimeToStream(os, localTime);
 }
 
 template <>
-void Out< ::NPrivate::TPrintableLocalTime<false, true>>(IOutputStream& os, TTypeTraits< ::NPrivate::TPrintableLocalTime<false, true>>::TFuncParam localTime) {
+void Out<::NPrivate::TPrintableLocalTime<false, true>>(IOutputStream& os, TTypeTraits<::NPrivate::TPrintableLocalTime<false, true>>::TFuncParam localTime) {
     WritePrintableLocalTimeToStream(os, localTime);
 }
 
 template <>
-void Out< ::NPrivate::TPrintableLocalTime<true, false>>(IOutputStream& os, TTypeTraits< ::NPrivate::TPrintableLocalTime<true, false>>::TFuncParam localTime) {
+void Out<::NPrivate::TPrintableLocalTime<true, false>>(IOutputStream& os, TTypeTraits<::NPrivate::TPrintableLocalTime<true, false>>::TFuncParam localTime) {
     WritePrintableLocalTimeToStream(os, localTime);
 }
 
 template <>
-void Out< ::NPrivate::TPrintableLocalTime<true, true>>(IOutputStream& os, TTypeTraits< ::NPrivate::TPrintableLocalTime<true, true>>::TFuncParam localTime) {
+void Out<::NPrivate::TPrintableLocalTime<true, true>>(IOutputStream& os, TTypeTraits<::NPrivate::TPrintableLocalTime<true, true>>::TFuncParam localTime) {
     WritePrintableLocalTimeToStream(os, localTime);
 }
 
@@ -188,8 +188,9 @@ TString TInstant::ToRfc822String() const {
 TString TInstant::ToStringUpToSeconds() const {
     char buf[64];
     auto len = FormatDate8601(buf, sizeof(buf), TimeT());
-    if (!len)
+    if (!len) {
         ythrow yexception() << "TInstant::ToStringUpToSeconds: year does not fit into an integer";
+    }
     return TString(buf, len);
 }
 
@@ -250,8 +251,9 @@ void sprint_gm_date(char* buf, time_t when, long* sec) {
     ::Zero(theTm);
     GmTimeR(&when, &theTm);
     DateToString(buf, theTm);
-    if (sec)
+    if (sec) {
         *sec = seconds(theTm);
+    }
 }
 
 void DateToString(char* buf, const struct tm& theTm) {
@@ -299,8 +301,9 @@ TString YearToString(time_t when) {
 
 bool sscan_date(const char* date, struct tm& theTm) {
     int year, mon, mday;
-    if (sscanf(date, "%4d%2d%2d", &year, &mon, &mday) != 3)
+    if (sscanf(date, "%4d%2d%2d", &year, &mon, &mday) != 3) {
         return false;
+    }
     theTm.tm_year = year - 1900;
     theTm.tm_mon = mon - 1;
     theTm.tm_mday = mday;
@@ -325,8 +328,9 @@ size_t FormatDate8601(char* buf, size_t len, time_t when) {
 
 void SleepUntil(TInstant instant) {
     TInstant now = TInstant::Now();
-    if (instant <= now)
+    if (instant <= now) {
         return;
+    }
     TDuration duration = instant - now;
     Sleep(duration);
 }

@@ -116,7 +116,7 @@ namespace NCatboostCuda {
                            const TVector<float>& target,
                            const TVector<float>& weight,
                            const TVector<TQueryInfo>& queriesInfo,
-                           NPar::TLocalExecutor* localExecutor) const;
+                           NPar::ILocalExecutor* localExecutor) const;
     };
 
     TVector<THolder<IGpuMetric>> CreateGpuMetrics(const NCatboostOptions::TOption<NCatboostOptions::TMetricOptions>& evalMetricOptions,

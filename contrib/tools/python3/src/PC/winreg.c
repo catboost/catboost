@@ -14,8 +14,8 @@
 
 #define PY_SSIZE_T_CLEAN
 #include "Python.h"
-#include "structmember.h"
-#include "windows.h"
+#include "structmember.h"         // PyMemberDef
+#include <windows.h>
 
 static BOOL PyHKEY_AsHKEY(PyObject *ob, HKEY *pRes, BOOL bNoneOK);
 static BOOL clinic_HKEY_converter(PyObject *ob, void *p);
@@ -390,7 +390,7 @@ PyTypeObject PyHKEY_Type =
 PyObject *
 PyHKEY_New(HKEY hInit)
 {
-    PyHKEYObject *key = PyObject_NEW(PyHKEYObject, &PyHKEY_Type);
+    PyHKEYObject *key = PyObject_New(PyHKEYObject, &PyHKEY_Type);
     if (key)
         key->hkey = hInit;
     return (PyObject *)key;
@@ -646,7 +646,10 @@ Py2Reg(PyObject *value, DWORD typ, BYTE **retDataBuf, DWORD *retDataSize)
                     t = PyList_GET_ITEM(value, j);
                     if (!PyUnicode_Check(t))
                         return FALSE;
+_Py_COMP_DIAG_PUSH
+_Py_COMP_DIAG_IGNORE_DEPR_DECLS
                     wstr = PyUnicode_AsUnicodeAndSize(t, &len);
+_Py_COMP_DIAG_POP
                     if (wstr == NULL)
                         return FALSE;
                     size += Py_SAFE_DOWNCAST((len + 1) * sizeof(wchar_t),
@@ -669,7 +672,10 @@ Py2Reg(PyObject *value, DWORD typ, BYTE **retDataBuf, DWORD *retDataSize)
                     Py_ssize_t len;
 
                     t = PyList_GET_ITEM(value, j);
+_Py_COMP_DIAG_PUSH
+_Py_COMP_DIAG_IGNORE_DEPR_DECLS
                     wstr = PyUnicode_AsUnicodeAndSize(t, &len);
+_Py_COMP_DIAG_POP
                     assert(wstr);
                     wcscpy(P, wstr);
                     P += (len + 1);
@@ -1782,6 +1788,7 @@ winreg_SetValueEx_impl(PyObject *module, HKEY key,
     if (PySys_Audit("winreg.SetValue", "nunO",
                     (Py_ssize_t)key, value_name, (Py_ssize_t)type,
                     value) < 0) {
+        PyMem_Free(data);
         return NULL;
     }
     Py_BEGIN_ALLOW_THREADS

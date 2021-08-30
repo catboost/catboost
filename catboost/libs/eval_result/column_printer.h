@@ -1,5 +1,6 @@
 #pragma once
 
+#include "eval_helpers.h"
 #include "pool_printer.h"
 
 #include <catboost/libs/column_description/column.h>
@@ -30,9 +31,11 @@ namespace NCB {
     public:
         virtual void OutputValue(IOutputStream* outstream, size_t docIndex) = 0;
         virtual void OutputHeader(IOutputStream* outstream) = 0;
+        virtual void GetValue(size_t docIndex, TColumnPrinterOuputType* result) = 0;
         virtual TString GetAfterColumnDelimiter() const {
             return "\t";
         }
+        virtual size_t GetOutputType() = 0;
         virtual ~IColumnPrinter() = default;
     };
 
@@ -62,8 +65,16 @@ namespace NCB {
             *outStream << (*Array)[docIndex];
         }
 
+        void GetValue(size_t docIndex, TColumnPrinterOuputType* result) override {
+            *result = (*Array)[docIndex];
+        }
+
         void OutputHeader(IOutputStream* outStream) override {
             *outStream << Header;
+        }
+
+        size_t GetOutputType() override {
+            return GetOutputTypeIndex<T>();
         }
 
     private:
@@ -81,6 +92,14 @@ namespace NCB {
 
         void OutputValue(IOutputStream* outStream, size_t docIndex) override {
             *outStream << Weights[docIndex];
+        }
+
+        void GetValue(size_t docIndex, TColumnPrinterOuputType* result) override {
+            *result = Weights[docIndex];
+        }
+
+        size_t GetOutputType() override {
+            return GetOutputTypeIndex<float>();
         }
 
         void OutputHeader(IOutputStream* outStream) override {
@@ -108,8 +127,17 @@ namespace NCB {
             *outStream << Prefix;
         }
 
+        void GetValue(size_t docIndex, TColumnPrinterOuputType* result) override {
+            Y_UNUSED(docIndex);
+            *result = Prefix;
+        }
+
         void OutputHeader(IOutputStream* outStream) override {
             *outStream << Header;
+        }
+
+        size_t GetOutputType() override {
+            return GetOutputTypeIndex<T>();
         }
 
         TString GetAfterColumnDelimiter() const override {
@@ -124,27 +152,41 @@ namespace NCB {
 
 
 
-    class TNumColumnPrinter: public IColumnPrinter {
+    class TFeatureColumnPrinter: public IColumnPrinter {
     public:
-        TNumColumnPrinter(TIntrusivePtr<IPoolColumnsPrinter> printerPtr, int columnId, TString columnName, ui64 docIdOffset)
+        TFeatureColumnPrinter(TIntrusivePtr<IPoolColumnsPrinter> printerPtr, int featureId, TString columnName, ui64 docIdOffset)
             : PrinterPtr(printerPtr)
-            , ColumnId(columnId)
+            , FeatureId(featureId)
             , ColumnName(std::move(columnName))
             , DocIdOffset(docIdOffset)
         {
         }
 
         void OutputValue(IOutputStream* outStream, size_t docIndex) override  {
-            PrinterPtr->OutputColumnByIndex(outStream, DocIdOffset + docIndex, ColumnId);
+            PrinterPtr->OutputFeatureColumnByIndex(outStream, DocIdOffset + docIndex, FeatureId);
+        }
+
+        void GetValue(size_t docIndex, TColumnPrinterOuputType* result) override {
+            TStringStream value;
+            PrinterPtr->OutputFeatureColumnByIndex(&value, DocIdOffset + docIndex, FeatureId);
+            if (GetOutputType() == GetOutputTypeIndex<double>()) {
+                *result = FromString<double>(value.Str());
+            } else {
+                *result = value.Str();
+            }
         }
 
         void OutputHeader(IOutputStream* outStream) override {
             *outStream << ColumnName;
         }
 
+        size_t GetOutputType() override {
+            return PrinterPtr->GetOutputFeatureType(FeatureId);
+        }
+
     private:
         TIntrusivePtr<IPoolColumnsPrinter> PrinterPtr;
-        int ColumnId;
+        int FeatureId;
         TString ColumnName;
         ui64 DocIdOffset;
     };
@@ -166,8 +208,16 @@ namespace NCB {
             *outStream << HashToString.at(HashedValues[docIndex]);
         }
 
+        void GetValue(size_t docIndex, TColumnPrinterOuputType* result) override {
+            *result = HashToString.at(HashedValues[docIndex]);
+        }
+
         void OutputHeader(IOutputStream* outStream) override {
             *outStream << Header;
+        }
+
+        size_t GetOutputType() override {
+            return GetOutputTypeIndex<TString>();
         }
 
     private:
@@ -181,23 +231,62 @@ namespace NCB {
     class TEvalPrinter: public IColumnPrinter {
     public:
         TEvalPrinter(
-            NPar::TLocalExecutor* executor,
-            const TVector<TVector<TVector<double>>>& rawValues,
             const EPredictionType predictionType,
-            const TString& lossFunctionName,
-            ui32 targetDimension,
-            const TExternalLabelsHelper& visibleLabelsHelper,
-            TMaybe<std::pair<size_t, size_t>> evalParameters = TMaybe<std::pair<size_t, size_t>>());
-        void OutputValue(IOutputStream* outStream, size_t docIndex) override;
-        void OutputHeader(IOutputStream* outStream) override;
+            const TString& header,
+            const TVector<double>& approx,
+            const TExternalLabelsHelper& visibleLabelsHelper)
+            : PredictionType(predictionType)
+            , Header(header)
+            , Approx(approx)
+            , VisibleLabelsHelper(visibleLabelsHelper)
+        {}
+
+        void OutputValue(IOutputStream* outStream, size_t docIndex) override {
+            if (PredictionType == EPredictionType::Class) {
+                *outStream << VisibleLabelsHelper.GetVisibleClassNameFromClass(static_cast<int>(Approx[docIndex]));
+            } else {
+                *outStream << Approx[docIndex];
+            }
+        }
+
+        void GetValue(size_t docIndex, TColumnPrinterOuputType* result) override {
+            if (PredictionType == EPredictionType::Class) {
+                *result = VisibleLabelsHelper.GetVisibleClassNameFromClass(static_cast<int>(Approx[docIndex]));
+            } else {
+                *result =  Approx[docIndex];
+            }
+        }
+
+        void OutputHeader(IOutputStream* outStream) override {
+            *outStream << Header;
+        }
+        size_t GetOutputType() override {
+            if (PredictionType == EPredictionType::Class) {
+                return GetOutputTypeIndex<TString>();
+            } else {
+                return GetOutputTypeIndex<double>();
+            }
+        }
 
     private:
         EPredictionType PredictionType;
-        TVector<TString> Header;
-        TVector<TVector<TVector<double>>> Approxes;
+        TString Header;
+        TVector<double> Approx;
         const TExternalLabelsHelper& VisibleLabelsHelper;
     };
 
+    void PushBackEvalPrinters(
+        const TVector<TVector<TVector<double>>>& rawValues,
+        const EPredictionType predictionType,
+        const TString& lossFunctionName,
+        bool isMultiTarget,
+        size_t ensemblesCount,
+        const TExternalLabelsHelper& visibleLabelsHelper,
+        TMaybe<std::pair<size_t, size_t>> evalParameters,
+        TVector<THolder<IColumnPrinter>>* result,
+        NPar::ILocalExecutor* executor,
+        double binClassLogitThreshold
+    );
 
 
     class TColumnPrinter: public IColumnPrinter {
@@ -222,6 +311,31 @@ namespace NCB {
         void OutputValue(IOutputStream* outStream, size_t docIndex) override {
             CB_ENSURE(PrinterPtr, "It is imposible to output column without Pool.");
             PrinterPtr->OutputColumnByType(outStream, DocIdOffset + docIndex, ColumnType);
+        }
+
+        void GetValue(size_t docIndex, TColumnPrinterOuputType* result) override {
+            TStringStream value;
+            OutputValue(&value, docIndex);
+            if (GetOutputType() == GetOutputTypeIndex<double>()) {
+                *result = FromString<double>(value.Str());
+            } else {
+                *result = value.Str();
+            }
+        }
+
+        size_t GetOutputType() override {
+            switch (ColumnType) {
+                case EColumn::Label:
+                case EColumn::Weight:
+                case EColumn::GroupWeight:
+                    return GetOutputTypeIndex<double>();
+                case EColumn::SampleId:
+                case EColumn::GroupId:
+                case EColumn::SubgroupId:
+                    return GetOutputTypeIndex<TString>();
+                default:
+                    CB_ENSURE(false, "Unknown output columnType");
+            }
         }
 
     private:
@@ -255,6 +369,20 @@ namespace NCB {
             }
         }
 
+        void GetValue(size_t docIndex, TColumnPrinterOuputType* result) override {
+            if (NeedToGenerate) {
+                *result = DocIdOffset + docIndex;
+            } else {
+                TStringStream value;
+                OutputValue(&value, docIndex);
+                *result = value.Str();
+            }
+        }
+
+        size_t GetOutputType() override {
+            return NeedToGenerate ? GetOutputTypeIndex<ui64>() : GetOutputTypeIndex<TString>();
+        }
+
     private:
         TIntrusivePtr<IPoolColumnsPrinter> PrinterPtr;
         bool NeedToGenerate;
@@ -267,6 +395,8 @@ namespace NCB {
         bool isMultiTarget,
         EPredictionType predictionType,
         const TExternalLabelsHelper& visibleLabelsHelper,
+        const TString& lossFunctionName,
+        size_t ensemblesCount,
         ui32 startTreeIndex = 0,
         std::pair<size_t, size_t>* evalParameters = nullptr);
 } // namespace NCB

@@ -1,10 +1,9 @@
 #include <library/cpp/testing/unittest/registar.h>
+#include <util/system/type_name.h>
 
 #include "typelist.h"
 #include "vector.h"
 #include "map.h"
-
-#include "type_name.h"
 
 class TTypeListTest: public TTestBase {
     UNIT_TEST_SUITE(TTypeListTest);
@@ -46,19 +45,19 @@ public:
     class TT {};
 
     template <class T>
-    struct TIs1ArgTemplate : std::false_type {};
+    struct TIs1ArgTemplate: std::false_type {};
 
     template <class T, template <class> class TT>
-    struct TIs1ArgTemplate<TT<T>> : std::true_type {};
+    struct TIs1ArgTemplate<TT<T>>: std::true_type {};
 
     template <class T>
-    struct TIsNArgTemplate : std::false_type {};
+    struct TIsNArgTemplate: std::false_type {};
 
     template <template <class...> class TT, class... R>
-    struct TIsNArgTemplate<TT<R...>> : std::true_type {};
+    struct TIsNArgTemplate<TT<R...>>: std::true_type {};
 
     template <class>
-    struct TAnyType : std::true_type {};
+    struct TAnyType: std::true_type {};
 
     template <class T>
     struct TMyVector {};

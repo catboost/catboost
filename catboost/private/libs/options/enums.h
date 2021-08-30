@@ -29,6 +29,11 @@ enum class EFeatureType {
     Embedding
 };
 
+enum class EEstimatedSourceFeatureType {
+    Text,
+    Embedding
+};
+
 enum EErrorType {
     PerObjectError,
     PairwiseError,
@@ -116,6 +121,7 @@ enum class ELossFunction {
     /* regression errors */
 
     RMSE,
+    LogCosh,
     Lq,
     MAE,
     Quantile,
@@ -128,6 +134,9 @@ enum class ELossFunction {
     SMAPE,
     Huber,
     Tweedie,
+    Cox,
+
+    RMSEWithUncertainty,
 
     /* multiclassification errors */
 
@@ -146,6 +155,7 @@ enum class ELossFunction {
     QuerySoftMax,
     QueryCrossEntropy,
     StochasticFilter,
+    LambdaMart,
     StochasticRank,
 
     /* user defined errors */
@@ -189,6 +199,7 @@ enum class ELossFunction {
     /* ranking metrics */
     AverageGain,
     QueryAverage,
+    QueryAUC,
     PFound,
     PrecisionAt,
     RecallAt,
@@ -196,9 +207,15 @@ enum class ELossFunction {
     NDCG,
     DCG,
     FilteredDCG,
+    MRR,
+    ERR,
+
+    /* survival-regression */
+    SurvivalAft,
 
     /* multi-regression */
     MultiRMSE,
+    MultiRMSEWithMissingValues,
 
     Combination
 };
@@ -225,7 +242,10 @@ enum class EPredictionType {
     Class,
     RawFormulaVal,
     Exponent,
-    InternalRawFormulaVal
+    RMSEWithUncertainty,
+    InternalRawFormulaVal,
+    VirtEnsembles,
+    TotalUncertainty
 };
 
 enum class EFstrType {
@@ -343,7 +363,8 @@ enum class EFeatureCalcerType : ui32 {
     BoW,
     NaiveBayes,
     BM25,
-    LDA
+    LDA,
+    KNN
 };
 
 enum class EAutoClassWeightsType {
@@ -378,5 +399,11 @@ namespace NCB {
         Float,
         String,
         None
+    };
+
+    enum class EFeaturesSelectionAlgorithm {
+        RecursiveByPredictionValuesChange,
+        RecursiveByLossFunctionChange,
+        RecursiveByShapValues
     };
 }

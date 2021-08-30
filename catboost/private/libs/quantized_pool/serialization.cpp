@@ -1,4 +1,5 @@
 #include "serialization.h"
+#include "detail.h"
 #include "pool.h"
 #include "loader.h"
 
@@ -25,6 +26,7 @@
 #include <util/generic/string.h>
 #include <util/generic/utility.h>
 #include <util/generic/vector.h>
+#include <util/generic/ylimits.h>
 #include <util/memory/blob.h>
 #include <util/stream/file.h>
 #include <util/stream/input.h>
@@ -41,6 +43,7 @@ using NCB::NIdl::TPoolQuantizationSchema;
 using NCB::NQuantizationDetail::GetFakeDocIdColumnIndex;
 using NCB::NQuantizationDetail::GetFakeGroupIdColumnIndex;
 using NCB::NQuantizationDetail::GetFakeSubgroupIdColumnIndex;
+using NCB::NQuantizationDetail::IdlColumnTypeToEColumn;
 
 static const char Magic[] = "CatboostQuantizedPool";
 static const size_t MagicSize = Y_ARRAY_SIZE(Magic);  // yes, with terminating zero
@@ -264,13 +267,13 @@ static void WriteAsOneFile(const NCB::TQuantizedPool& pool, IOutputStream* slave
             pool.IgnoredColumnIndices);
         const ui32 poolMetainfoSize = poolMetainfo.ByteSizeLong();
         WriteLittleEndian(poolMetainfoSize, &output);
-        poolMetainfo.SerializeToStream(&output);
+        poolMetainfo.SerializeToArcadiaStream(&output);
     }
 
     const ui64 quantizationSchemaSizeOffset = output.Counter();
     const ui32 quantizationSchemaSize = pool.QuantizationSchema.ByteSizeLong();
     WriteLittleEndian(quantizationSchemaSize, &output);
-    pool.QuantizationSchema.SerializeToStream(&output);
+    pool.QuantizationSchema.SerializeToArcadiaStream(&output);
 
     const ui64 featureCountOffset = output.Counter();
     const ui32 featureCount = sortedTrueFeatureIndices.size();
@@ -300,7 +303,7 @@ void NCB::SaveQuantizedPool(const TQuantizedPool& pool, IOutputStream* const out
     WriteAsOneFile(pool, output);
 }
 
-static void ValidatePoolPart(const TConstArrayRef<char> blob) {
+static void ValidatePoolPart(const TConstArrayRef<ui8> blob) {
     // TODO(yazevnul)
     (void)blob;
 }
@@ -380,52 +383,7 @@ void NCB::AddPoolMetainfo(const TPoolMetainfo& metainfo, NCB::TQuantizedPool* co
 
     for (const auto [columnIndex, localIndex] : pool->ColumnIndexToLocalIndex) {
         const auto pbType = metainfo.GetColumnIndexToType().at(columnIndex);
-        EColumn type;
-        switch (pbType) {
-            case NCB::NIdl::CT_UNKNOWN:
-                ythrow TCatBoostException() << "unknown column type in quantized pool";
-            case NCB::NIdl::CT_NUMERIC:
-                type = EColumn::Num;
-                break;
-            case NCB::NIdl::CT_LABEL:
-                type = EColumn::Label;
-                break;
-            case NCB::NIdl::CT_WEIGHT:
-                type = EColumn::Weight;
-                break;
-            case NCB::NIdl::CT_GROUP_WEIGHT:
-                type = EColumn::GroupWeight;
-                break;
-            case NCB::NIdl::CT_BASELINE:
-                type = EColumn::Baseline;
-                break;
-            case NCB::NIdl::CT_SUBGROUP_ID:
-                type = EColumn::SubgroupId;
-                break;
-            case NCB::NIdl::CT_DOCUMENT_ID:
-                type = EColumn::SampleId;
-                break;
-            case NCB::NIdl::CT_GROUP_ID:
-                type = EColumn::GroupId;
-                break;
-            case NCB::NIdl::CT_CATEGORICAL:
-                type = EColumn::Categ;
-                break;
-            case NCB::NIdl::CT_SPARSE:
-                type = EColumn::Sparse;
-                break;
-            case NCB::NIdl::CT_TIMESTAMP:
-                type = EColumn::Timestamp;
-                break;
-            case NCB::NIdl::CT_PREDICTION:
-                type = EColumn::Prediction;
-                break;
-            case NCB::NIdl::CT_AUXILIARY:
-                type = EColumn::Auxiliary;
-                break;
-        }
-
-        pool->ColumnTypes[localIndex] = type;
+        pool->ColumnTypes[localIndex] = NCB::NQuantizationDetail::IdlColumnTypeToEColumn(pbType);
 
         const auto it = metainfo.GetColumnIndexToName().find(columnIndex);
         if (it != metainfo.GetColumnIndexToName().end()) {
@@ -443,7 +401,7 @@ namespace {
     };
 }
 
-static TEpilogOffsets ReadEpilogOffsets(const TConstArrayRef<char> blob) {
+static TEpilogOffsets ReadEpilogOffsets(const TConstArrayRef<ui8> blob) {
     TEpilogOffsets offsets;
 
     CB_ENSURE(!std::memcmp(MagicEnd, blob.data() + blob.size() - MagicEndSize, MagicEndSize));
@@ -469,40 +427,13 @@ static TEpilogOffsets ReadEpilogOffsets(const TConstArrayRef<char> blob) {
     return offsets;
 }
 
-namespace {
-    class TFileQuantizedPoolLoader : public NCB::IQuantizedPoolLoader {
-    public:
-        explicit TFileQuantizedPoolLoader(const NCB::TPathWithScheme& pathWithScheme)
-            : PathWithScheme(pathWithScheme)
-        {}
-        NCB::TQuantizedPool LoadQuantizedPool(NCB::TLoadQuantizedPoolParameters params) override;
-        TVector<ui8> LoadQuantizedColumn(ui32 columnIdx) override;
-    private:
-        NCB::TPathWithScheme PathWithScheme;
-    };
-}
-
-NCB::TQuantizedPool TFileQuantizedPoolLoader::LoadQuantizedPool(NCB::TLoadQuantizedPoolParameters params) {
-    CB_ENSURE_INTERNAL(
-        params.DatasetSubset.Range == NCB::TDatasetSubset().Range &&
-        params.DatasetSubset.HasFeatures == NCB::TDatasetSubset().HasFeatures,
-        "Scheme quantized supports only default load subset"
-    );
-
-    NCB::TQuantizedPool pool;
-
-    pool.Blobs.push_back(params.LockMemory
-        ? TBlob::LockedFromFile(TString(PathWithScheme.Path))
-        : TBlob::FromFile(TString(PathWithScheme.Path)));
-
-    // TODO(yazevnul): optionally precharge pool
-
-    const TConstArrayRef<char> blob{
-        pool.Blobs.back().AsCharPtr(),
-        pool.Blobs.back().Size()};
-
-    ValidatePoolPart(blob);
-
+static void ParseQuantizedPool(
+    const TMaybe<std::function<void(TConstArrayRef<ui8>)>>& onMetainfo,
+    const TMaybe<std::function<void(TConstArrayRef<ui8>)>>& onBorders,
+    const TMaybe<std::function<bool(ui32)>>& onColumn, // ignore column chunks if returns false
+    const TMaybe<std::function<void(TConstArrayRef<ui8>, ui32, ui32)>>& onChunk,
+    TConstArrayRef<ui8> blob
+) {
     const auto chunksOffsetByReading = [blob] {
         TMemoryInput slave(blob.data(), blob.size());
         TCountingInput input(&slave);
@@ -512,27 +443,21 @@ NCB::TQuantizedPool TFileQuantizedPoolLoader::LoadQuantizedPool(NCB::TLoadQuanti
     const auto epilogOffsets = ReadEpilogOffsets(blob);
     CB_ENSURE(chunksOffsetByReading == epilogOffsets.ChunksOffset);
 
-    TPoolMetainfo poolMetainfo;
     const auto poolMetainfoSize = LittleToHost(ReadUnaligned<ui32>(
         blob.data() + epilogOffsets.PoolMetainfoSizeOffset));
-    const auto poolMetainfoParsed = poolMetainfo.ParseFromArray(
-        blob.data() + epilogOffsets.PoolMetainfoSizeOffset + sizeof(ui32),
-        poolMetainfoSize);
-    CB_ENSURE(poolMetainfoParsed);
+    if (onMetainfo) {
+        (*onMetainfo)(MakeArrayRef(blob.data() + epilogOffsets.PoolMetainfoSizeOffset + sizeof(ui32), poolMetainfoSize));
+    }
 
     const auto quantizationSchemaSize = LittleToHost(ReadUnaligned<ui32>(
         blob.data() + epilogOffsets.QuantizationSchemaSizeOffset));
-    const auto quantizationSchemaParsed = pool.QuantizationSchema.ParseFromArray(
-        blob.data() + epilogOffsets.QuantizationSchemaSizeOffset + sizeof(ui32),
-        quantizationSchemaSize);
-    CB_ENSURE(quantizationSchemaParsed);
+    if (onBorders) {
+        (*onBorders)(MakeArrayRef(blob.data() + epilogOffsets.QuantizationSchemaSizeOffset + sizeof(ui32), quantizationSchemaSize));
+    }
 
     TMemoryInput epilog(
         blob.data() + epilogOffsets.FeatureCountOffset,
         blob.size() - epilogOffsets.FeatureCountOffset - MagicEndSize - sizeof(ui64) + 4);
-
-    TVector<TVector<NCB::TQuantizedPool::TChunkDescription>> stringColumnChunks;
-    THashMap<ui32, EColumn> stringColumnIndexToColumnType;
 
     ui32 featureCount;
     ReadLittleEndian(&featureCount, &epilog);
@@ -540,31 +465,10 @@ NCB::TQuantizedPool TFileQuantizedPoolLoader::LoadQuantizedPool(NCB::TLoadQuanti
         ui32 featureIndex;
         ReadLittleEndian(&featureIndex, &epilog);
 
-        CB_ENSURE(!pool.ColumnIndexToLocalIndex.contains(featureIndex),
-            "Quantized pool should have unique feature indices, but " <<
-            LabeledOutput(featureIndex) << " is repeated.");
-
-        ui32 localFeatureIndex;
-        const bool isFakeColumn = NCB::NQuantizationSchemaDetail::IsFakeIndex(featureIndex, poolMetainfo);
-        if (!isFakeColumn) {
-            localFeatureIndex = pool.Chunks.size();
-            pool.ColumnIndexToLocalIndex.emplace(featureIndex, localFeatureIndex);
-            pool.Chunks.push_back({});
-        } else {
-            EColumn columnType;
-            if (featureIndex == poolMetainfo.GetStringDocIdFakeColumnIndex()) {
-                columnType = EColumn::SampleId;
-            } else if (featureIndex == poolMetainfo.GetStringGroupIdFakeColumnIndex()) {
-                columnType = EColumn::GroupId;
-            } else if (featureIndex == poolMetainfo.GetStringSubgroupIdFakeColumnIndex()){
-                columnType = EColumn::SubgroupId;
-            } else {
-                CB_ENSURE(false, "Bad column type. Should be one of: DocId, GroupId, SubgroupId.");
-            }
-            stringColumnIndexToColumnType[stringColumnChunks.size()] = columnType;
-            stringColumnChunks.push_back({});
+        bool ignoreColumnChucks = false;
+        if (onColumn) {
+            ignoreColumnChucks = !(*onColumn)(featureIndex);
         }
-        auto& chunks = isFakeColumn ? stringColumnChunks.back() : pool.Chunks[localFeatureIndex];
 
         ui32 chunkCount;
         ReadLittleEndian(&chunkCount, &epilog);
@@ -576,6 +480,9 @@ NCB::TQuantizedPool TFileQuantizedPoolLoader::LoadQuantizedPool(NCB::TLoadQuanti
         TVector<ui8> featureEpilog(featureEpilogBytes);
         CB_ENSURE(featureEpilogBytes == epilog.Load(featureEpilog.data(), featureEpilogBytes));
         const auto* featureEpilogPtr = featureEpilog.data();
+        if (ignoreColumnChucks || !onChunk) {
+            continue;
+        }
         for (ui32 chunkIndex = 0; chunkIndex < chunkCount; ++chunkIndex) {
             ReadLittleEndian(&chunkSize, &featureEpilogPtr);
 
@@ -587,13 +494,105 @@ NCB::TQuantizedPool TFileQuantizedPoolLoader::LoadQuantizedPool(NCB::TLoadQuanti
 
             ReadLittleEndian(&docsInChunkCount, &featureEpilogPtr);
 
-            const TConstArrayRef<char> chunkBlob{blob.data() + chunkOffset, chunkSize};
-            // TODO(yazevnul): validate flatbuffer, including document count
-            const auto* const chunk = flatbuffers::GetRoot<NCB::NIdl::TQuantizedFeatureChunk>(chunkBlob.data());
-
-            chunks.emplace_back(docOffset, docsInChunkCount, chunk);
+            (*onChunk)(MakeArrayRef(blob.data() + chunkOffset, chunkSize), docOffset, docsInChunkCount);
         }
     }
+}
+
+namespace {
+    class TFileQuantizedPoolLoader : public NCB::IQuantizedPoolLoader {
+    public:
+        explicit TFileQuantizedPoolLoader(const NCB::TPathWithScheme& pathWithScheme)
+            : PathWithScheme(pathWithScheme)
+        {}
+        NCB::TQuantizedPool LoadQuantizedPool(NCB::TLoadQuantizedPoolParameters params) override;
+        TVector<ui8> LoadQuantizedColumn(ui32 columnIdx) override;
+        TVector<ui8> LoadQuantizedColumn(ui32 columnIdx, ui64 offset, ui64 count) override;
+        NCB::TPathWithScheme GetPoolPathWithScheme() const override;
+    private:
+        NCB::TPathWithScheme PathWithScheme;
+    };
+}
+
+NCB::TQuantizedPool TFileQuantizedPoolLoader::LoadQuantizedPool(NCB::TLoadQuantizedPoolParameters params) {
+    CB_ENSURE_INTERNAL(
+        params.DatasetSubset.Range == NCB::TDatasetSubset().Range,
+        "Scheme quantized supports only default load subset range"
+    );
+
+    NCB::TQuantizedPool pool;
+
+    pool.Blobs.push_back(params.LockMemory
+        ? TBlob::LockedFromFile(TString(PathWithScheme.Path))
+        : TBlob::FromFile(TString(PathWithScheme.Path)));
+
+    // TODO(yazevnul): optionally precharge pool
+
+    const TConstArrayRef<ui8> blob{
+        pool.Blobs.back().AsUnsignedCharPtr(),
+        pool.Blobs.back().Size()};
+
+    ValidatePoolPart(blob);
+
+    TPoolMetainfo poolMetainfo;
+    auto parseMetainfo = [&] (TConstArrayRef<ui8> bytes) {
+        const auto poolMetainfoParsed = poolMetainfo.ParseFromArray(bytes.data(), bytes.size());
+        CB_ENSURE(poolMetainfoParsed);
+    };
+    auto parseSchema = [&] (TConstArrayRef<ui8> bytes) {
+        const auto quantizationSchemaParsed = pool.QuantizationSchema.ParseFromArray(bytes.data(), bytes.size());
+        CB_ENSURE(quantizationSchemaParsed);
+    };
+
+    TVector<TVector<NCB::TQuantizedPool::TChunkDescription>> stringColumnChunks;
+    THashMap<ui32, EColumn> stringColumnIndexToColumnType;
+
+    TVector<NCB::TQuantizedPool::TChunkDescription>* currentChunksPointer = nullptr;
+    auto parseColumn = [&] (ui32 columnIndex) -> bool {
+        CB_ENSURE(!pool.ColumnIndexToLocalIndex.contains(columnIndex),
+            "Quantized pool should have unique column indices, but " <<
+            LabeledOutput(columnIndex) << " is repeated.");
+
+        const bool isFakeColumn = NCB::NQuantizationSchemaDetail::IsFakeIndex(columnIndex, poolMetainfo);
+        if (!isFakeColumn) {
+            if (!params.DatasetSubset.HasFeatures) {
+                auto pbColumnType = poolMetainfo.columnindextotype().at(columnIndex);
+                if (IsFactorColumn(IdlColumnTypeToEColumn(pbColumnType))) {
+                    return false;
+                }
+            }
+
+            const auto localFeatureIndex = pool.Chunks.size();
+            pool.ColumnIndexToLocalIndex.emplace(columnIndex, localFeatureIndex);
+            pool.Chunks.push_back({});
+            currentChunksPointer = &pool.Chunks.back();
+        } else {
+            EColumn columnType;
+            if (columnIndex == poolMetainfo.GetStringDocIdFakeColumnIndex()) {
+                columnType = EColumn::SampleId;
+            } else if (columnIndex == poolMetainfo.GetStringGroupIdFakeColumnIndex()) {
+                columnType = EColumn::GroupId;
+            } else if (columnIndex == poolMetainfo.GetStringSubgroupIdFakeColumnIndex()){
+                columnType = EColumn::SubgroupId;
+            } else {
+                CB_ENSURE(false, "Bad column type. Should be one of: DocId, GroupId, SubgroupId.");
+            }
+            stringColumnIndexToColumnType[stringColumnChunks.size()] = columnType;
+            stringColumnChunks.push_back({});
+            currentChunksPointer = &stringColumnChunks.back();
+        }
+        return true;
+    };
+    auto parseChunk = [&] (TConstArrayRef<ui8> bytes, ui32 docOffset, ui32 docsInChunkCount) {
+        const auto* const chunk = flatbuffers::GetRoot<NCB::NIdl::TQuantizedFeatureChunk>(bytes.data());
+        currentChunksPointer->emplace_back(docOffset, docsInChunkCount, chunk);
+    };
+    ParseQuantizedPool(
+        parseMetainfo,
+        parseSchema,
+        parseColumn,
+        parseChunk,
+        blob);
 
     AddPoolMetainfo(poolMetainfo, &pool);
 
@@ -624,6 +623,13 @@ TVector<ui8> TFileQuantizedPoolLoader::LoadQuantizedColumn(ui32 /*columnIdx*/) {
     CB_ENSURE_INTERNAL(false, "Schema quantized does not support columnwise loading");
 }
 
+TVector<ui8> TFileQuantizedPoolLoader::LoadQuantizedColumn(ui32 /*columnIdx*/, ui64 /*offset*/, ui64 /*count*/) {
+    CB_ENSURE_INTERNAL(false, "Schema quantized does not support columnwise loading");
+}
+
+NCB::TPathWithScheme TFileQuantizedPoolLoader::GetPoolPathWithScheme() const {
+    return PathWithScheme;
+}
 
 NCB::TQuantizedPoolLoaderFactory::TRegistrator<TFileQuantizedPoolLoader> FileQuantizedPoolLoaderReg("quantized");
 
@@ -721,77 +727,89 @@ NCB::TQuantizedPoolDigest NCB::GetQuantizedPoolDigest(
 
 NCB::TQuantizedPoolDigest NCB::CalculateQuantizedPoolDigest(const TStringBuf path) {
     const auto file = TBlob::FromFile(TString(path));
-    const TConstArrayRef<char> blob(file.AsCharPtr(), file.Size());
-    const auto chunksOffsetByReading = [blob] {
-        TMemoryInput slave(blob.data(), blob.size());
-        TCountingInput input(&slave);
-        ReadHeader(&input);
-        return input.Counter();
-    }();
-    const auto epilogOffsets = ReadEpilogOffsets(blob);
-    CB_ENSURE(chunksOffsetByReading == epilogOffsets.ChunksOffset);
-
-    const auto columnsInfoSize = LittleToHost(ReadUnaligned<ui32>(
-        blob.data() + epilogOffsets.PoolMetainfoSizeOffset));
+    const TConstArrayRef<ui8> blob(file.AsUnsignedCharPtr(), file.Size());
     TPoolMetainfo poolMetainfo;
-    const auto poolMetainfoParsed = poolMetainfo.ParseFromArray(
-        blob.data() + epilogOffsets.PoolMetainfoSizeOffset + sizeof(ui32),
-        columnsInfoSize);
-    CB_ENSURE(poolMetainfoParsed);
-
-    const auto quantizationSchemaSize = LittleToHost(ReadUnaligned<ui32>(
-        blob.data() + epilogOffsets.QuantizationSchemaSizeOffset));
+    auto parseMetainfo = [&] (TConstArrayRef<ui8> bytes) {
+        const auto poolMetainfoParsed = poolMetainfo.ParseFromArray(bytes.data(), bytes.size());
+        CB_ENSURE(poolMetainfoParsed);
+    };
     NCB::NIdl::TPoolQuantizationSchema quantizationSchema;
-    quantizationSchema.ParseFromArray(
-        blob.data() + epilogOffsets.QuantizationSchemaSizeOffset + sizeof(ui32),
-        quantizationSchemaSize);
+    auto parseSchema = [&] (TConstArrayRef<ui8> bytes) {
+        const auto quantizationSchemaParsed = quantizationSchema.ParseFromArray(bytes.data(), bytes.size());
+        CB_ENSURE(quantizationSchemaParsed);
+    };
+    ParseQuantizedPool(
+        parseMetainfo,
+        parseSchema,
+        /*parseColumn*/ Nothing(),
+        /*parseChunk*/ Nothing(),
+        blob);
 
     return GetQuantizedPoolDigest(poolMetainfo, quantizationSchema);
 }
 
 NCB::NIdl::TPoolQuantizationSchema NCB::LoadQuantizationSchemaFromPool(const TStringBuf path) {
     const auto file = TBlob::FromFile(TString(path));
-    const TConstArrayRef<char> blob(file.AsCharPtr(), file.Size());
-    const auto chunksOffsetByReading = [blob] {
-        TMemoryInput slave(blob.data(), blob.size());
-        TCountingInput input(&slave);
-        ReadHeader(&input);
-        return input.Counter();
-    }();
-    const auto epilogOffsets = ReadEpilogOffsets(blob);
-    CB_ENSURE(chunksOffsetByReading == epilogOffsets.ChunksOffset);
-
+    const TConstArrayRef<ui8> blob(file.AsUnsignedCharPtr(), file.Size());
     NCB::NIdl::TPoolQuantizationSchema quantizationSchema;
-    const auto quantizationSchemaSize = LittleToHost(ReadUnaligned<ui32>(
-        blob.data() + epilogOffsets.QuantizationSchemaSizeOffset));
-    const auto quantizationSchemaParsed = quantizationSchema.ParseFromArray(
-        blob.data() + epilogOffsets.QuantizationSchemaSizeOffset + sizeof(ui32),
-        quantizationSchemaSize);
-    CB_ENSURE(quantizationSchemaParsed);
+    auto parseSchema = [&] (TConstArrayRef<ui8> bytes) {
+        const auto quantizationSchemaParsed = quantizationSchema.ParseFromArray(bytes.data(), bytes.size());
+        CB_ENSURE(quantizationSchemaParsed);
+    };
+    ParseQuantizedPool(
+        /*parseMetainfo*/ Nothing(),
+        parseSchema,
+        /*parseColumn*/ Nothing(),
+        /*parseChunk*/ Nothing(),
+        blob);
 
     return quantizationSchema;
 }
 
+size_t NCB::EstimateIdsLength(const TStringBuf path) {
+    const auto file = TBlob::FromFile(TString(path));
+    const TConstArrayRef<ui8> blob(file.AsUnsignedCharPtr(), file.Size());
+
+    TPoolMetainfo poolMetainfo;
+    auto parseMetainfo = [&] (TConstArrayRef<ui8> bytes) {
+        const auto poolMetainfoParsed = poolMetainfo.ParseFromArray(bytes.data(), bytes.size());
+        CB_ENSURE(poolMetainfoParsed);
+    };
+    TVector<TVector<NCB::TQuantizedPool::TChunkDescription>> stringColumnChunks;
+    bool isFakeColumn = false;
+    auto parseColumn = [&] (ui32 columnIndex) -> bool {
+        isFakeColumn = NCB::NQuantizationSchemaDetail::IsFakeIndex(columnIndex, poolMetainfo);
+        return true;
+    };
+    size_t estimatedIdsLength = 0;
+    auto parseChunk = [&] (TConstArrayRef<ui8> bytes, ui32 docOffset, ui32 docsInChunkCount) {
+        if (isFakeColumn && docOffset == 0) {
+            estimatedIdsLength += 1 + bytes.size() / (docsInChunkCount + 1);
+        }
+    };
+    ParseQuantizedPool(
+        parseMetainfo,
+        /*parseSchema*/ Nothing(),
+        parseColumn,
+        parseChunk,
+        blob);
+    return estimatedIdsLength;
+}
+
 NCB::NIdl::TPoolMetainfo NCB::LoadPoolMetainfo(const TStringBuf path) {
     const auto file = TBlob::FromFile(TString(path));
-    const TConstArrayRef<char> blob(file.AsCharPtr(), file.Size());
-    const auto chunksOffsetByReading = [blob] {
-        TMemoryInput slave(blob.data(), blob.size());
-        TCountingInput input(&slave);
-        ReadHeader(&input);
-        return input.Counter();
-    }();
-    const auto epilogOffsets = ReadEpilogOffsets(blob);
-    CB_ENSURE(chunksOffsetByReading == epilogOffsets.ChunksOffset);
-
-    NCB::NIdl::TPoolMetainfo poolMetainfo;
-    const auto poolMetainfoSize = LittleToHost(ReadUnaligned<ui32>(
-        blob.data() + epilogOffsets.PoolMetainfoSizeOffset));
-    const auto poolMetainfoParsed = poolMetainfo.ParseFromArray(
-        blob.data() + epilogOffsets.PoolMetainfoSizeOffset + sizeof(ui32),
-        poolMetainfoSize);
-    CB_ENSURE(poolMetainfoParsed);
-
+    const TConstArrayRef<ui8> blob(file.AsUnsignedCharPtr(), file.Size());
+    TPoolMetainfo poolMetainfo;
+    auto parseMetainfo = [&] (TConstArrayRef<ui8> bytes) {
+        const auto poolMetainfoParsed = poolMetainfo.ParseFromArray(bytes.data(), bytes.size());
+        CB_ENSURE(poolMetainfoParsed);
+    };
+    ParseQuantizedPool(
+        parseMetainfo,
+        /*parseSchema*/ Nothing(),
+        /*parseColumn*/ Nothing(),
+        /*parseChunk*/ Nothing(),
+        blob);
     return poolMetainfo;
 }
 
@@ -838,6 +856,26 @@ namespace NCB {
         }
     }
 
+    static void AddFeatureDataToPool(
+        const THolder<TSrcColumnBase>& srcColumn,
+        EColumn columnType,
+        TQuantizedPool* quantizedPool
+    ) {
+        if (srcColumn) {
+            if (auto* column = dynamic_cast<TSrcColumn<ui8>*>(srcColumn.Get())) {
+                AddToPool(*column, quantizedPool);
+            } else if (auto* column = dynamic_cast<TSrcColumn<ui16>*>(srcColumn.Get())) {
+                AddToPool(*column, quantizedPool);
+            } else if (auto* column = dynamic_cast<TSrcColumn<ui32>*>(srcColumn.Get())) {
+                AddToPool(*column, quantizedPool);
+            } else {
+                Y_FAIL("Unexpected srcColumn type for feature data");
+            }
+        } else {
+            AddToPool(TSrcColumn<ui8>(columnType), quantizedPool);
+        }
+    }
+
 
     void SaveQuantizedPool(
         const TSrcData& srcData,
@@ -852,16 +890,15 @@ namespace NCB {
         pool.ColumnNames = srcData.ColumnNames;
         pool.IgnoredColumnIndices = srcData.IgnoredColumnIndices;
 
+        for (const auto& floatFeature : srcData.FloatFeatures) {
+            AddFeatureDataToPool(floatFeature, EColumn::Num, &pool);
+        }
+        for (const auto& catFeature : srcData.CatFeatures) {
+            AddFeatureDataToPool(catFeature, EColumn::Categ, &pool);
+        }
+
         AddToPool(srcData.GroupIds, &pool);
         AddToPool(srcData.SubgroupIds, &pool);
-
-        for (const auto& floatFeature : srcData.FloatFeatures) {
-            if (floatFeature) {
-                AddToPool(*floatFeature, &pool);
-            } else {
-                AddToPool(TSrcColumn<ui8>{EColumn::Num, {{}}}, &pool);
-            }
-        }
 
         AddToPool(srcData.Target, &pool);
 
@@ -878,61 +915,68 @@ namespace NCB {
     }
 
 
-    static constexpr size_t SLICE_COUNT = 512 * 1024;
-
-
-    template <class T>
-    TSrcColumn<T> GenerateSrcColumn(TConstArrayRef<T> data, EColumn columnType) {
-        TSrcColumn<T> dst;
-        dst.Type = columnType;
-
-        for (size_t idx = 0; idx < data.size(); ) {
-            size_t chunkSize = Min(
-                data.size() - idx,
-                SLICE_COUNT
-            );
-            dst.Data.push_back(TVector<T>(data.begin() + idx, data.begin() + idx + chunkSize));
-            idx += chunkSize;
+    template <class TDst, class T, EFeatureValuesType ValuesType>
+    THolder<TSrcColumnBase> GenerateSrcColumn(
+        const IQuantizedFeatureValuesHolder<T, ValuesType>& featureColumn
+    ) {
+        EColumn columnType;
+        switch (featureColumn.GetFeatureType()) {
+            case EFeatureType::Float:
+                columnType = EColumn::Num;
+                break;
+            case EFeatureType::Categorical:
+                columnType = EColumn::Categ;
+                break;
+            default:
+                CB_ENSURE_INTERNAL(false, "Unsupported feature type" << featureColumn.GetFeatureType());
         }
+        THolder<TSrcColumn<TDst>> dst(new TSrcColumn<TDst>(columnType));
+
+        featureColumn.ForEachBlock(
+            [&dst] (auto blockStartIdx, auto block) {
+                Y_UNUSED(blockStartIdx);
+                dst->Data.push_back(TVector<TDst>(block.begin(), block.end()));
+            },
+            QUANTIZED_POOL_COLUMN_DEFAULT_SLICE_COUNT
+        );
+
         return dst;
     }
 
 
-    static void BuildSrcDataFromDataProvider(
+    static TSrcData BuildSrcDataFromDataProvider(
         TDataProviderPtr dataProvider,
-        NPar::TLocalExecutor* localExecutor,
-        TSrcData* srcData
+        NPar::ILocalExecutor* localExecutor
     ) {
+        TSrcData srcData;
+
         const auto* const quantizedObjectsData =
             dynamic_cast<const TQuantizedObjectsDataProvider*>(dataProvider->ObjectsData.Get());
         CB_ENSURE(quantizedObjectsData, "Pool is not quantized");
 
-        srcData->DocumentCount = dataProvider->GetObjectCount();
-        srcData->ObjectsOrder = quantizedObjectsData->GetOrder();
-
-        TVector<TString> columnNames;
-
-        //groupIds
-        const auto& groupIds = quantizedObjectsData->GetGroupIds();
-        if (groupIds) {
-            srcData->GroupIds = GenerateSrcColumn<TGroupId>(groupIds.GetRef(), EColumn::GroupId);
-            columnNames.push_back("GroupId");
-        }
-
-        //subGroupIds
-        const auto& subGroupIds = quantizedObjectsData->GetSubgroupIds();
-        if (subGroupIds) {
-            srcData->SubgroupIds = GenerateSrcColumn<TSubgroupId>(subGroupIds.GetRef(), EColumn::SubgroupId);
-            columnNames.push_back("SubgroupId");
-        }
-
-        //floatFeatures and quantizationSchema
         const auto& quantizedFeaturesInfo = quantizedObjectsData->GetQuantizedFeaturesInfo();
         const auto& featuresLayout = quantizedFeaturesInfo->GetFeaturesLayout();
 
-        TVector<TVector<float>> borders;
-        TVector<ENanMode> nanModes;
-        TVector<size_t> featureIndices;
+        CB_ENSURE(
+            !featuresLayout->GetEmbeddingFeatureCount(),
+            "Quantized pool file format does not support embedding features yet");
+
+        CB_ENSURE(
+            !featuresLayout->GetTextFeatureCount(),
+            "Quantized pool file format does not support text features yet");
+
+
+        srcData.DocumentCount = dataProvider->GetObjectCount();
+        srcData.ObjectsOrder = quantizedObjectsData->GetOrder();
+
+
+        TVector<TString> columnNames;
+
+        srcData.PoolQuantizationSchema.ClassLabels = dataProvider->MetaInfo.ClassLabels;
+
+        //features
+        TVector<TString> floatFeatureNames;
+        TVector<TString> catFeatureNames;
 
         for (auto externalFeatureIdx : xrange(featuresLayout->GetExternalFeatureCount())) {
             const auto featureMetaInfo = featuresLayout->GetExternalFeatureMetaInfo(externalFeatureIdx);
@@ -948,15 +992,12 @@ namespace NCB {
                 const auto featureNanMode = quantizedFeaturesInfo->HasNanMode(floatFeatureIdx)
                     ? quantizedFeaturesInfo->GetNanMode(floatFeatureIdx)
                     : ENanMode::Forbidden;
-                borders.push_back(featureBorders);
-                nanModes.push_back(featureNanMode);
-                featureIndices.push_back(featureIndices.size());
 
                 //for floatFeatures
                 TMaybeData<const IQuantizedFloatValuesHolder*> feature =
                     quantizedObjectsData->GetFloatFeature(*floatFeatureIdx);
 
-                TMaybe<TSrcColumn<ui8>> maybeFeatureColumn;
+                THolder<TSrcColumnBase> maybeFeatureColumn;
                 if (feature) {
                     CB_ENSURE(quantizedFeaturesInfo->HasBorders(floatFeatureIdx) &&
                         quantizedFeaturesInfo->HasNanMode(floatFeatureIdx),
@@ -966,21 +1007,92 @@ namespace NCB {
                         "GetFloatFeature returned nullptr for feature " << externalFeatureIdx << " which is not ignored");
 
                     //init feature
-                    auto bins = feature.GetRef()->ExtractValues<ui8>(localExecutor);
-                    maybeFeatureColumn = GenerateSrcColumn<ui8>(
-                        MakeArrayRef(bins),
-                        EColumn::Num
-                    );
+                    if (featureBorders.size() > Max<ui8>()) {
+                        maybeFeatureColumn = GenerateSrcColumn<ui16>(**feature);
+                    } else {
+                        maybeFeatureColumn = GenerateSrcColumn<ui8>(**feature);
+                    }
                 } else {
-                    CB_ENSURE_INTERNAL(featureMetaInfo.IsIgnored, "If GetFloatFeature returns Nothing(), feature must be ignored");
+                    /* TODO(akhropov): This should be a valid check but we currently require possibility so save
+                     * data without features data but with IsAvailable == true.
+                     * Uncomment after fixing MLTOOLS-3604
+                     */
+                    //CB_ENSURE_INTERNAL(!featureMetaInfo.IsAvailable, "If GetFloatFeature returns Nothing(), feature must be unavailable");
                 }
 
-                srcData->FloatFeatures.emplace_back(maybeFeatureColumn);
-                columnNames.push_back(featureMetaInfo.Name);
+                srcData.PoolQuantizationSchema.Borders.push_back(std::move(featureBorders));
+                srcData.PoolQuantizationSchema.NanModes.push_back(featureNanMode);
+                srcData.PoolQuantizationSchema.FloatFeatureIndices.push_back(externalFeatureIdx);
+                srcData.FloatFeatures.push_back(std::move(maybeFeatureColumn));
+                floatFeatureNames.push_back(featureMetaInfo.Name);
             } else {
-                CB_ENSURE(false, "Saving quantization results is supported only for numerical features");
+                Y_ASSERT(featureMetaInfo.Type == EFeatureType::Categorical);
+
+                const auto catFeatureIdx =
+                    featuresLayout->GetInternalFeatureIdx<EFeatureType::Categorical>(externalFeatureIdx);
+
+                TMaybeData<const IQuantizedCatValuesHolder*> feature =
+                    quantizedObjectsData->GetCatFeature(*catFeatureIdx);
+
+                TMap<ui32, TValueWithCount> dstCatFeaturePerfectHash
+                    = quantizedFeaturesInfo->GetCategoricalFeaturesPerfectHash(catFeatureIdx).ToMap();
+
+                THolder<TSrcColumnBase> maybeFeatureColumn;
+                if (feature) {
+                    if (dstCatFeaturePerfectHash.size() > ((size_t)Max<ui16>() + 1)) {
+                        maybeFeatureColumn = GenerateSrcColumn<ui32>(**feature);
+                    } else if (dstCatFeaturePerfectHash.size() > ((size_t)Max<ui8>() + 1)) {
+                        maybeFeatureColumn = GenerateSrcColumn<ui16>(**feature);
+                    } else {
+                        maybeFeatureColumn = GenerateSrcColumn<ui8>(**feature);
+                    }
+                } else {
+                    /* TODO(akhropov): This should be a valid check but we currently require possibility so save
+                     * data without features data but with IsAvailable == true.
+                     * Uncomment after fixing MLTOOLS-3604
+                     */
+                    //CB_ENSURE_INTERNAL(!featureMetaInfo.IsAvailable, "If GetCatFeature returns Nothing(), feature must be unavailable");
+                }
+
+                srcData.PoolQuantizationSchema.CatFeatureIndices.push_back(externalFeatureIdx);
+                srcData.PoolQuantizationSchema.FeaturesPerfectHash.push_back(
+                    std::move(dstCatFeaturePerfectHash)
+                );
+                srcData.CatFeatures.push_back(std::move(maybeFeatureColumn));
+                catFeatureNames.push_back(featureMetaInfo.Name);
             }
         }
+
+        // TODO(akhropov): keep column indices from src raw pool columns metadata
+        TVector<size_t> localIndexToColumnIndex;
+        localIndexToColumnIndex.insert(
+            localIndexToColumnIndex.end(),
+            srcData.PoolQuantizationSchema.FloatFeatureIndices.begin(),
+            srcData.PoolQuantizationSchema.FloatFeatureIndices.end()
+        );
+        localIndexToColumnIndex.insert(
+            localIndexToColumnIndex.end(),
+            srcData.PoolQuantizationSchema.CatFeatureIndices.begin(),
+            srcData.PoolQuantizationSchema.CatFeatureIndices.end()
+        );
+
+        columnNames.insert(columnNames.end(), floatFeatureNames.begin(), floatFeatureNames.end());
+        columnNames.insert(columnNames.end(), catFeatureNames.begin(), catFeatureNames.end());
+
+        //groupIds
+        const auto& groupIds = quantizedObjectsData->GetGroupIds();
+        if (groupIds) {
+            srcData.GroupIds = GenerateSrcColumn<TGroupId>(groupIds.GetRef(), EColumn::GroupId);
+            columnNames.push_back("GroupId");
+        }
+
+        //subGroupIds
+        const auto& subGroupIds = quantizedObjectsData->GetSubgroupIds();
+        if (subGroupIds) {
+            srcData.SubgroupIds = GenerateSrcColumn<TSubgroupId>(subGroupIds.GetRef(), EColumn::SubgroupId);
+            columnNames.push_back("SubgroupId");
+        }
+
         //target
         const ERawTargetType rawTargetType = dataProvider->RawTargetData.GetTargetType();
         switch (rawTargetType) {
@@ -998,7 +1110,7 @@ namespace NCB {
                         TArrayRef<TArrayRef<float>>(&targetNumericRef, 1)
                     );
 
-                    srcData->Target = GenerateSrcColumn<float>(
+                    srcData.Target = GenerateSrcColumn<float>(
                         TConstArrayRef<float>(targetNumeric),
                         EColumn::Label
                     );
@@ -1036,7 +1148,7 @@ namespace NCB {
                         NPar::TLocalExecutor::WAIT_COMPLETE
                     );
 
-                    srcData->Target = GenerateSrcColumn<float>(
+                    srcData.Target = GenerateSrcColumn<float>(
                         TConstArrayRef<float>(targetFloat),
                         EColumn::Label
                     );
@@ -1051,7 +1163,7 @@ namespace NCB {
         if (baseline) {
             for (size_t baselineIdx : xrange(baseline.GetRef().size())) {
                 TSrcColumn<float> currentBaseline = GenerateSrcColumn<float>(baseline.GetRef()[baselineIdx], EColumn::Baseline);
-                srcData->Baseline.emplace_back(currentBaseline);
+                srcData.Baseline.emplace_back(currentBaseline);
                 columnNames.push_back("Baseline " + ToString(baselineIdx));
             }
         }
@@ -1059,35 +1171,30 @@ namespace NCB {
         //weights
         const auto& weights = dataProvider->RawTargetData.GetWeights();
         if (!weights.IsTrivial()) {
-            srcData->Weights = GenerateSrcColumn<float>(weights.GetNonTrivialData(), EColumn::Weight);
+            srcData.Weights = GenerateSrcColumn<float>(weights.GetNonTrivialData(), EColumn::Weight);
             columnNames.push_back("Weight");
         }
 
         //groupWeights
         const auto& groupWeights = dataProvider->RawTargetData.GetGroupWeights();
         if (!groupWeights.IsTrivial()) {
-            srcData->GroupWeights = GenerateSrcColumn<float>(groupWeights.GetNonTrivialData(), EColumn::GroupWeight);
+            srcData.GroupWeights = GenerateSrcColumn<float>(groupWeights.GetNonTrivialData(), EColumn::GroupWeight);
             columnNames.push_back("GroupWeight");
         }
 
-        //constuct quantizationSchema
-        TPoolQuantizationSchema quantizationSchema{
-            std::move(featureIndices),
-            std::move(borders),
-            std::move(nanModes),
-            dataProvider->MetaInfo.ClassLabels,
-            TVector<size_t>(),//TODO
-            TVector<TMap<ui32, TValueWithCount>>()//TODO
-        };
-
-        //localIndexToColumnIndex
-        TVector<size_t> localIndexToColumnIndex(columnNames.size());
-        std::iota(localIndexToColumnIndex.begin(), localIndexToColumnIndex.end(), 0);
+        // Sequential order after features
+        // TODO(akhropov): keep column indices from src raw pool columns metadata
+        localIndexToColumnIndex.resize(columnNames.size());
+        std::iota(
+            localIndexToColumnIndex.begin() + featuresLayout->GetExternalFeatureCount(),
+            localIndexToColumnIndex.end(),
+            featuresLayout->GetExternalFeatureCount());
 
         //fill other attributes
-        srcData->PoolQuantizationSchema = quantizationSchema;
-        srcData->ColumnNames = columnNames;
-        srcData->LocalIndexToColumnIndex = localIndexToColumnIndex;
+        srcData.ColumnNames = columnNames;
+        srcData.LocalIndexToColumnIndex = localIndexToColumnIndex;
+
+        return srcData;
     }
 
 
@@ -1096,8 +1203,7 @@ namespace NCB {
         NPar::TLocalExecutor localExecutor;
         localExecutor.RunAdditionalThreads(threadCount);
 
-        TSrcData srcData;
-        BuildSrcDataFromDataProvider(dataProvider, &localExecutor, &srcData);
+        TSrcData srcData = BuildSrcDataFromDataProvider(dataProvider, &localExecutor);
 
         SaveQuantizedPool(srcData, fileName);
     }

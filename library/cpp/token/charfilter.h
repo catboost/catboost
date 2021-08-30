@@ -48,7 +48,7 @@ class TCharFilter {
 private:
     //! copies already verified data - characters and subtokens
     wchar16* CopyData(const TWideToken& token, size_t n, size_t t, wchar16* const data) {
-        TCharTraits<wchar16>::Copy(data, token.Token, n); // without current character
+        std::char_traits<wchar16>::copy(data, token.Token, n); // without current character
 
         Token.SubTokens.clear();
         for (size_t i = 0; i < t; ++i) {
@@ -175,7 +175,7 @@ private:
             } else {
                 // copy the remainder of characters
                 const size_t n = token.Leng - i;
-                TCharTraits<wchar16>::Copy(d, &s[i], n);
+                std::char_traits<wchar16>::copy(d, &s[i], n);
                 d += n;
                 break;
             }
@@ -203,7 +203,7 @@ private:
     const TWideToken& FilterTokenNoSubtokens(
         const wchar16* const token, const wchar16* s, const wchar16* const e, wchar16* const buffer) {
         const size_t n = s - token;
-        TCharTraits<wchar16>::Copy(buffer, token, n);
+        std::char_traits<wchar16>::copy(buffer, token, n);
         wchar16* d = buffer + n;
 
         for (; s != e; ++s) {
@@ -218,14 +218,7 @@ private:
     }
 };
 
-#ifndef USE_NEW_DECOMPOSITION_TABLE
 const wchar32* LemmerDecomposition(wchar32 ch, bool advancedGermanUmlauts = true, bool extTable = false);
 size_t NormalizeUnicode(const wchar16* word, size_t length, wchar16* converted, size_t bufLen, bool advancedGermanUmlauts = true, bool extTable = false);
 TUtf16String NormalizeUnicode(const TUtf16String& w, bool advancedGermanUmlauts = true, bool extTable = false);
 TUtf16String NormalizeUnicode(const TWtringBuf& wbuf, bool advancedGermanUmlauts = true, bool extTable = false);
-#else
-const wchar32* LemmerDecomposition(wchar32 ch, bool advancedGermanUmlauts = false, bool extTable = true);
-size_t NormalizeUnicode(const wchar16* word, size_t length, wchar16* converted, size_t bufLen, bool advancedGermanUmlauts = false, bool extTable = true);
-TUtf16String NormalizeUnicode(const TUtf16String& w, bool advancedGermanUmlauts = false, bool extTable = true);
-TUtf16String NormalizeUnicode(const TWtringBuf& wbuf, bool advancedGermanUmlauts = false, bool extTable = true);
-#endif //USE_NEW_DECOMPOSITION_TABLE

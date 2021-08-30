@@ -23,7 +23,7 @@
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>Multibyte</CharacterSet>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props"/>
   <ImportGroup Label="ArcadiaProps"/>
@@ -57,18 +57,18 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOGDI /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DARCADIA_PYTHON_UNICODE_SIZE=2 /std:c++17  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOGDI /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DARCADIA_PYTHON_UNICODE_SIZE=2 /std:c++17  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DFAKEID=8533330 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DFAKEID=8533330 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
-      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/libc_compat/include/windows;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/libs/openssl/include;$(SolutionDir)../contrib/restricted/libffi/include;$(SolutionDir)../contrib/restricted/libffi/configs/x86_64-microsoft-windows/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  ws2_32.lib crypt32.lib ws2_32.lib</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  ws2_32.lib crypt32.lib ws2_32.lib</AdditionalOptions>
+      <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;dnsapi.lib;gdi32.lib;iphlpapi.lib;kernel32.lib;mswsock.lib;ole32.lib;oleaut32.lib;psapi.lib;rpcrt4.lib;secur32.lib;shell32.lib;shlwapi.lib;user32.lib;userenv.lib;uuid.lib;version.lib;winmm.lib;winspool.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  crypt32.lib ws2_32.lib</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  crypt32.lib ws2_32.lib</AdditionalOptions>
       <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
       <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">DebugFastLink</GenerateDebugInformation>
       <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</RandomizedBaseAddress>
@@ -78,13 +78,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\pytest\e73c4c1526ad5a05543e12a11e.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\pytest\fd0244c7318d5d25d33eaf2070.cpp"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\pytest\_e73c4c1526ad5a05543e12a11e.yasm">
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\pytest\_0a431e73edcb95df3af4f8b07a.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libc_compat/include/windows" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/restricted/libffi/include" "-I" "$(SolutionDir)../contrib/restricted/libffi/configs/x86_64-microsoft-windows/include" "-o" "$(SolutionDir)$(Configuration)/library/python/pytest/_e73c4c1526ad5a05543e12a11e.py2.obj" "$(SolutionDir)$(Configuration)/library/python/pytest/_e73c4c1526ad5a05543e12a11e.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/library/python/pytest/_0a431e73edcb95df3af4f8b07a.py2.obj" "$(SolutionDir)$(Configuration)/library/python/pytest/_0a431e73edcb95df3af4f8b07a.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -95,7 +93,34 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libc_compat/include/windows" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/restricted/libffi/include" "-I" "$(SolutionDir)../contrib/restricted/libffi/configs/x86_64-microsoft-windows/include" "-o" "$(SolutionDir)$(Configuration)/library/python/pytest/_e73c4c1526ad5a05543e12a11e.py2.obj" "$(SolutionDir)$(Configuration)/library/python/pytest/_e73c4c1526ad5a05543e12a11e.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/library/python/pytest/_0a431e73edcb95df3af4f8b07a.py2.obj" "$(SolutionDir)$(Configuration)/library/python/pytest/_0a431e73edcb95df3af4f8b07a.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/library/python/pytest/_0a431e73edcb95df3af4f8b07a.py2.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\library\python\pytest\_0a431e73edcb95df3af4f8b07a.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\pytest\_0a431e73edcb95df3af4f8b07a.py2.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\pytest\_e73c4c1526ad5a05543e12a11e.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\library\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/library/python/pytest/_e73c4c1526ad5a05543e12a11e.py2.obj" "$(SolutionDir)$(Configuration)/library/python/pytest/_e73c4c1526ad5a05543e12a11e.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\library\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/library/python/pytest/_e73c4c1526ad5a05543e12a11e.py2.obj" "$(SolutionDir)$(Configuration)/library/python/pytest/_e73c4c1526ad5a05543e12a11e.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -107,68 +132,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\library\python\pytest\_e73c4c1526ad5a05543e12a11e.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\library\python\pytest\_e73c4c1526ad5a05543e12a11e.py2.obj;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\pytest\_fd0244c7318d5d25d33eaf2070.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\python\pytest
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libc_compat/include/windows" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/restricted/libffi/include" "-I" "$(SolutionDir)../contrib/restricted/libffi/configs/x86_64-microsoft-windows/include" "-o" "$(SolutionDir)$(Configuration)/library/python/pytest/_fd0244c7318d5d25d33eaf2070.py2.obj" "$(SolutionDir)$(Configuration)/library/python/pytest/_fd0244c7318d5d25d33eaf2070.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\python\pytest
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libc_compat/include/windows" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/restricted/libffi/include" "-I" "$(SolutionDir)../contrib/restricted/libffi/configs/x86_64-microsoft-windows/include" "-o" "$(SolutionDir)$(Configuration)/library/python/pytest/_fd0244c7318d5d25d33eaf2070.py2.obj" "$(SolutionDir)$(Configuration)/library/python/pytest/_fd0244c7318d5d25d33eaf2070.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/pytest/_fd0244c7318d5d25d33eaf2070.py2.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\library\python\pytest\_fd0244c7318d5d25d33eaf2070.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\pytest\_fd0244c7318d5d25d33eaf2070.py2.obj;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\python\pytest
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/pytest/e73c4c1526ad5a05543e12a11e.cpp" "_d8141884d486acbb6f835b4940=resfs/src/resfs/file/library/python/pytest/pytest.yatest.ini" "_0ba07b4850cb1c73d24dd1ae2f=resfs/file/library/python/pytest/pytest.yatest.ini"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\library\python\pytest
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/pytest/fd0244c7318d5d25d33eaf2070.cpp" "_05973bb626e0d4e5fb14156e26=/py_modules/library.python.pytest.__init__" "_53225955ed5024f7e47d2ea7fd=resfs/src//py_modules/library.python.pytest.__init__" "_72ba9d4ce2a492b4521c1fbde6=/py_code/library.python.pytest.__init__" "_732bcd53ef841a03b0c511ab10=/py_modules/library.python.pytest.main" "_0603f4ce736dab2f84dc4f1d1f=resfs/src//py_modules/library.python.pytest.main" "_b2ebbd393c2b2506f63809ef15=/py_code/library.python.pytest.main" "_6472a1e8998f0dc8fa37060b99=/py_modules/library.python.pytest.rewrite" "_8cb46f4aebbdb3a03f023c4cdb=resfs/src//py_modules/library.python.pytest.rewrite" "_6964ae8d068d4e9e4e85986c2e=/py_code/library.python.pytest.rewrite" "_9156e12bd3e475c88b85368306=/py_modules/library.python.pytest.yatest_tools" "_2b778d7c1f59fd979e45758b8e=resfs/src//py_modules/library.python.pytest.yatest_tools" "_0792a32b898f8e1c318da46ebd=/py_code/library.python.pytest.yatest_tools"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\python\pytest
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/pytest/e73c4c1526ad5a05543e12a11e.cpp" "_d8141884d486acbb6f835b4940=resfs/src/resfs/file/library/python/pytest/pytest.yatest.ini" "_0ba07b4850cb1c73d24dd1ae2f=resfs/file/library/python/pytest/pytest.yatest.ini"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\library\python\pytest
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/pytest/fd0244c7318d5d25d33eaf2070.cpp" "_05973bb626e0d4e5fb14156e26=/py_modules/library.python.pytest.__init__" "_53225955ed5024f7e47d2ea7fd=resfs/src//py_modules/library.python.pytest.__init__" "_72ba9d4ce2a492b4521c1fbde6=/py_code/library.python.pytest.__init__" "_732bcd53ef841a03b0c511ab10=/py_modules/library.python.pytest.main" "_0603f4ce736dab2f84dc4f1d1f=resfs/src//py_modules/library.python.pytest.main" "_b2ebbd393c2b2506f63809ef15=/py_code/library.python.pytest.main" "_6472a1e8998f0dc8fa37060b99=/py_modules/library.python.pytest.rewrite" "_8cb46f4aebbdb3a03f023c4cdb=resfs/src//py_modules/library.python.pytest.rewrite" "_6964ae8d068d4e9e4e85986c2e=/py_code/library.python.pytest.rewrite" "_9156e12bd3e475c88b85368306=/py_modules/library.python.pytest.yatest_tools" "_2b778d7c1f59fd979e45758b8e=resfs/src//py_modules/library.python.pytest.yatest_tools" "_0792a32b898f8e1c318da46ebd=/py_code/library.python.pytest.yatest_tools"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/pytest/e73c4c1526ad5a05543e12a11e.cpp	$B/library/python/pytest/fd0244c7318d5d25d33eaf2070.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\pytest\e73c4c1526ad5a05543e12a11e.cpp;$(SolutionDir)$(Configuration)\library\python\pytest\fd0244c7318d5d25d33eaf2070.cpp;</Outputs>
-    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest
@@ -177,6 +140,10 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/context.py-" "$(SolutionDir)../library/python/pytest/context.py" "$(SolutionDir)$(Configuration)/library/python/pytest/context.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\library\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
 "python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/main.py-" "$(SolutionDir)../library/python/pytest/main.py" "$(SolutionDir)$(Configuration)/library/python/pytest/main.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest
@@ -200,6 +167,10 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/context.py-" "$(SolutionDir)../library/python/pytest/context.py" "$(SolutionDir)$(Configuration)/library/python/pytest/context.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\library\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
 "python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/main.py-" "$(SolutionDir)../library/python/pytest/main.py" "$(SolutionDir)$(Configuration)/library/python/pytest/main.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest
@@ -216,15 +187,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/pytest/__init__.py.yapyc	$B/library/python/pytest/main.py.yapyc	$B/library/python/pytest/rewrite.py.yapyc	$B/library/python/pytest/yatest_tools.py.yapyc	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\library\python\pytest\__init__.py;$(SolutionDir)..\library\python\pytest\main.py;$(SolutionDir)..\library\python\pytest\rewrite.py;$(SolutionDir)..\library\python\pytest\yatest_tools.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\pytest\__init__.py.yapyc;$(SolutionDir)$(Configuration)\library\python\pytest\main.py.yapyc;$(SolutionDir)$(Configuration)\library\python\pytest\rewrite.py.yapyc;$(SolutionDir)$(Configuration)\library\python\pytest\yatest_tools.py.yapyc;</Outputs>
+      <Message>$B/library/python/pytest/__init__.py.yapyc	$B/library/python/pytest/context.py.yapyc	$B/library/python/pytest/main.py.yapyc	$B/library/python/pytest/rewrite.py.yapyc	$B/library/python/pytest/yatest_tools.py.yapyc	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\library\python\pytest\__init__.py;$(SolutionDir)..\library\python\pytest\context.py;$(SolutionDir)..\library\python\pytest\main.py;$(SolutionDir)..\library\python\pytest\rewrite.py;$(SolutionDir)..\library\python\pytest\yatest_tools.py;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\pytest\__init__.py.yapyc;$(SolutionDir)$(Configuration)\library\python\pytest\context.py.yapyc;$(SolutionDir)$(Configuration)\library\python\pytest\main.py.yapyc;$(SolutionDir)$(Configuration)\library\python\pytest\rewrite.py.yapyc;$(SolutionDir)$(Configuration)\library\python\pytest\yatest_tools.py.yapyc;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\library\python\pytest\__init__.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/pytest/_fd0244c7318d5d25d33eaf2070.yasm" "$(SolutionDir)../library/python/pytest/__init__.py" "$(SolutionDir)$(Configuration)/library/python/pytest/_05973bb626e0d4e5fb14156e26.rodata" "-" "library/python/pytest/__init__.py" "_53225955ed5024f7e47d2ea7fd.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/_72ba9d4ce2a492b4521c1fbde6.rodata" "$(SolutionDir)../library/python/pytest/main.py" "$(SolutionDir)$(Configuration)/library/python/pytest/_732bcd53ef841a03b0c511ab10.rodata" "-" "library/python/pytest/main.py" "_0603f4ce736dab2f84dc4f1d1f.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/main.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/_b2ebbd393c2b2506f63809ef15.rodata" "$(SolutionDir)../library/python/pytest/rewrite.py" "$(SolutionDir)$(Configuration)/library/python/pytest/_6472a1e8998f0dc8fa37060b99.rodata" "-" "library/python/pytest/rewrite.py" "_8cb46f4aebbdb3a03f023c4cdb.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/rewrite.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/_6964ae8d068d4e9e4e85986c2e.rodata" "$(SolutionDir)../library/python/pytest/yatest_tools.py" "$(SolutionDir)$(Configuration)/library/python/pytest/_9156e12bd3e475c88b85368306.rodata" "-" "library/python/pytest/yatest_tools.py" "_2b778d7c1f59fd979e45758b8e.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/yatest_tools.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/_0792a32b898f8e1c318da46ebd.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/pytest/_0a431e73edcb95df3af4f8b07a.yasm" "$(SolutionDir)../library/python/pytest/__init__.py" "$(SolutionDir)$(Configuration)/library/python/pytest/_05973bb626e0d4e5fb14156e26.rodata" "-" "library/python/pytest/__init__.py" "_53225955ed5024f7e47d2ea7fd.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/_72ba9d4ce2a492b4521c1fbde6.rodata" "$(SolutionDir)../library/python/pytest/main.py" "$(SolutionDir)$(Configuration)/library/python/pytest/_732bcd53ef841a03b0c511ab10.rodata" "-" "library/python/pytest/main.py" "_0603f4ce736dab2f84dc4f1d1f.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/main.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/_b2ebbd393c2b2506f63809ef15.rodata" "$(SolutionDir)../library/python/pytest/rewrite.py" "$(SolutionDir)$(Configuration)/library/python/pytest/_6472a1e8998f0dc8fa37060b99.rodata" "-" "library/python/pytest/rewrite.py" "_8cb46f4aebbdb3a03f023c4cdb.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/rewrite.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/_6964ae8d068d4e9e4e85986c2e.rodata" "$(SolutionDir)../library/python/pytest/yatest_tools.py" "$(SolutionDir)$(Configuration)/library/python/pytest/_9156e12bd3e475c88b85368306.rodata" "-" "library/python/pytest/yatest_tools.py" "_2b778d7c1f59fd979e45758b8e.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/yatest_tools.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/_0792a32b898f8e1c318da46ebd.rodata" "$(SolutionDir)../library/python/pytest/context.py" "$(SolutionDir)$(Configuration)/library/python/pytest/_7bd8374be834c0e4f83b929da5.rodata" "-" "library/python/pytest/context.py" "_6b7f4f87a69d9af6e5c222bf83.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/context.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/_1f14f10adc03798a9f1dbae14c.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -235,7 +206,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/pytest/_fd0244c7318d5d25d33eaf2070.yasm" "$(SolutionDir)../library/python/pytest/__init__.py" "$(SolutionDir)$(Configuration)/library/python/pytest/_05973bb626e0d4e5fb14156e26.rodata" "-" "library/python/pytest/__init__.py" "_53225955ed5024f7e47d2ea7fd.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/_72ba9d4ce2a492b4521c1fbde6.rodata" "$(SolutionDir)../library/python/pytest/main.py" "$(SolutionDir)$(Configuration)/library/python/pytest/_732bcd53ef841a03b0c511ab10.rodata" "-" "library/python/pytest/main.py" "_0603f4ce736dab2f84dc4f1d1f.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/main.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/_b2ebbd393c2b2506f63809ef15.rodata" "$(SolutionDir)../library/python/pytest/rewrite.py" "$(SolutionDir)$(Configuration)/library/python/pytest/_6472a1e8998f0dc8fa37060b99.rodata" "-" "library/python/pytest/rewrite.py" "_8cb46f4aebbdb3a03f023c4cdb.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/rewrite.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/_6964ae8d068d4e9e4e85986c2e.rodata" "$(SolutionDir)../library/python/pytest/yatest_tools.py" "$(SolutionDir)$(Configuration)/library/python/pytest/_9156e12bd3e475c88b85368306.rodata" "-" "library/python/pytest/yatest_tools.py" "_2b778d7c1f59fd979e45758b8e.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/yatest_tools.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/_0792a32b898f8e1c318da46ebd.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/pytest/_0a431e73edcb95df3af4f8b07a.yasm" "$(SolutionDir)../library/python/pytest/__init__.py" "$(SolutionDir)$(Configuration)/library/python/pytest/_05973bb626e0d4e5fb14156e26.rodata" "-" "library/python/pytest/__init__.py" "_53225955ed5024f7e47d2ea7fd.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/_72ba9d4ce2a492b4521c1fbde6.rodata" "$(SolutionDir)../library/python/pytest/main.py" "$(SolutionDir)$(Configuration)/library/python/pytest/_732bcd53ef841a03b0c511ab10.rodata" "-" "library/python/pytest/main.py" "_0603f4ce736dab2f84dc4f1d1f.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/main.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/_b2ebbd393c2b2506f63809ef15.rodata" "$(SolutionDir)../library/python/pytest/rewrite.py" "$(SolutionDir)$(Configuration)/library/python/pytest/_6472a1e8998f0dc8fa37060b99.rodata" "-" "library/python/pytest/rewrite.py" "_8cb46f4aebbdb3a03f023c4cdb.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/rewrite.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/_6964ae8d068d4e9e4e85986c2e.rodata" "$(SolutionDir)../library/python/pytest/yatest_tools.py" "$(SolutionDir)$(Configuration)/library/python/pytest/_9156e12bd3e475c88b85368306.rodata" "-" "library/python/pytest/yatest_tools.py" "_2b778d7c1f59fd979e45758b8e.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/yatest_tools.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/_0792a32b898f8e1c318da46ebd.rodata" "$(SolutionDir)../library/python/pytest/context.py" "$(SolutionDir)$(Configuration)/library/python/pytest/_7bd8374be834c0e4f83b929da5.rodata" "-" "library/python/pytest/context.py" "_6b7f4f87a69d9af6e5c222bf83.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/context.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/_1f14f10adc03798a9f1dbae14c.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -243,9 +214,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/pytest/_fd0244c7318d5d25d33eaf2070.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\library\python\pytest\__init__.py;$(SolutionDir)$(Configuration)\library\python\pytest\__init__.py.yapyc;$(SolutionDir)..\library\python\pytest\main.py;$(SolutionDir)$(Configuration)\library\python\pytest\main.py.yapyc;$(SolutionDir)..\library\python\pytest\rewrite.py;$(SolutionDir)$(Configuration)\library\python\pytest\rewrite.py.yapyc;$(SolutionDir)..\library\python\pytest\yatest_tools.py;$(SolutionDir)$(Configuration)\library\python\pytest\yatest_tools.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\pytest\_fd0244c7318d5d25d33eaf2070.yasm;$(SolutionDir)$(Configuration)\library\python\pytest\_05973bb626e0d4e5fb14156e26.rodata;$(SolutionDir)$(Configuration)\library\python\pytest\_72ba9d4ce2a492b4521c1fbde6.rodata;$(SolutionDir)$(Configuration)\library\python\pytest\_732bcd53ef841a03b0c511ab10.rodata;$(SolutionDir)$(Configuration)\library\python\pytest\_b2ebbd393c2b2506f63809ef15.rodata;$(SolutionDir)$(Configuration)\library\python\pytest\_6472a1e8998f0dc8fa37060b99.rodata;$(SolutionDir)$(Configuration)\library\python\pytest\_6964ae8d068d4e9e4e85986c2e.rodata;$(SolutionDir)$(Configuration)\library\python\pytest\_9156e12bd3e475c88b85368306.rodata;$(SolutionDir)$(Configuration)\library\python\pytest\_0792a32b898f8e1c318da46ebd.rodata;</Outputs>
+      <Message>$B/library/python/pytest/_0a431e73edcb95df3af4f8b07a.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\library\python\pytest\__init__.py;$(SolutionDir)$(Configuration)\library\python\pytest\__init__.py.yapyc;$(SolutionDir)..\library\python\pytest\main.py;$(SolutionDir)$(Configuration)\library\python\pytest\main.py.yapyc;$(SolutionDir)..\library\python\pytest\rewrite.py;$(SolutionDir)$(Configuration)\library\python\pytest\rewrite.py.yapyc;$(SolutionDir)..\library\python\pytest\yatest_tools.py;$(SolutionDir)$(Configuration)\library\python\pytest\yatest_tools.py.yapyc;$(SolutionDir)..\library\python\pytest\context.py;$(SolutionDir)$(Configuration)\library\python\pytest\context.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\pytest\_0a431e73edcb95df3af4f8b07a.yasm;$(SolutionDir)$(Configuration)\library\python\pytest\_05973bb626e0d4e5fb14156e26.rodata;$(SolutionDir)$(Configuration)\library\python\pytest\_72ba9d4ce2a492b4521c1fbde6.rodata;$(SolutionDir)$(Configuration)\library\python\pytest\_732bcd53ef841a03b0c511ab10.rodata;$(SolutionDir)$(Configuration)\library\python\pytest\_b2ebbd393c2b2506f63809ef15.rodata;$(SolutionDir)$(Configuration)\library\python\pytest\_6472a1e8998f0dc8fa37060b99.rodata;$(SolutionDir)$(Configuration)\library\python\pytest\_6964ae8d068d4e9e4e85986c2e.rodata;$(SolutionDir)$(Configuration)\library\python\pytest\_9156e12bd3e475c88b85368306.rodata;$(SolutionDir)$(Configuration)\library\python\pytest\_0792a32b898f8e1c318da46ebd.rodata;$(SolutionDir)$(Configuration)\library\python\pytest\_7bd8374be834c0e4f83b929da5.rodata;$(SolutionDir)$(Configuration)\library\python\pytest\_1f14f10adc03798a9f1dbae14c.rodata;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\library\python\pytest\pytest.yatest.ini">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -293,9 +264,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\expat\contrib-libs-expat.vcxproj">
       <Project>{BF794ED3-B687-CE38-5FC3-A9AC59EC392B}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\jquery\contrib-libs-jquery.vcxproj">
-      <Project>{912CB8E0-911C-D43E-4D7A-730FD6B8DB60}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libbz2\contrib-libs-libbz2.vcxproj">
       <Project>{22D13723-C5D2-BCB5-73F8-368EA5B1CBE5}</Project>
     </ProjectReference>
@@ -323,14 +291,38 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd\contrib-libs-zstd.vcxproj">
       <Project>{0F7ECE1F-EE4E-A88C-12F5-7D1C49F1BC75}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\Pygments\py2\pypython-Pygments-py2.vcxproj">
+      <Project>{96EAF5F3-D2AE-8E4D-1359-29CB5B4C311A}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\Pygments\pycontrib-python-Pygments.vcxproj">
+      <Project>{7EDE6894-1D47-C37C-76A4-6A58521F895C}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\atomicwrites\pycontrib-python-atomicwrites.vcxproj">
       <Project>{2A505A08-73FD-9F97-DBC1-5BC70FFD9C70}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\attrs\pycontrib-python-attrs.vcxproj">
       <Project>{B19D597D-A363-F744-6165-C68C1835DD61}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\dateutil\pydateutil.vcxproj">
-      <Project>{751337F2-2FB8-B6C6-2106-D3D0FD4C4D66}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\backports-shutil_get_terminal_size\pycontrib-python-backports-shutil_get_terminal_size.vcxproj">
+      <Project>{1C1BE43D-FE75-D006-9839-1B851BF67411}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\backports\functools_lru_cache\pypython-backports-functools_lru_cache.vcxproj">
+      <Project>{F2327B60-48D4-156E-8EF9-CC75082589DF}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\colorama\pycontrib-python-colorama.vcxproj">
+      <Project>{A57B9434-ED18-2180-9A04-9087641653EF}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\configparser\pycontrib-python-configparser.vcxproj">
+      <Project>{6DF26701-68E9-E05A-808F-1840FF373955}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\contextlib2\pycontrib-python-contextlib2.vcxproj">
+      <Project>{76AD5AB3-EDE1-7BAC-90B7-9BA08DC851AD}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\dateutil\pycontrib-python-dateutil.vcxproj">
+      <Project>{93FEFA8F-C6D9-6274-11D6-7594A15DEF5F}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\decorator\pycontrib-python-decorator.vcxproj">
+      <Project>{6EA24443-979F-2752-E4D4-FAB10E178335}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\enum34\pycontrib-python-enum34.vcxproj">
       <Project>{A4701379-95E5-BF2B-2E20-B71461B5CC55}</Project>
@@ -341,14 +333,44 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\funcsigs\pycontrib-python-funcsigs.vcxproj">
       <Project>{7E6B0B75-8CFD-8357-FA3A-F2B353EDA5DF}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\importlib-metadata\py2\pypython-importlib-metadata-py2.vcxproj">
+      <Project>{7CA8D33B-5425-5BF9-E98C-202C0225D987}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\importlib-metadata\pycontrib-python-importlib-metadata.vcxproj">
+      <Project>{7F463C70-BAD7-7EF0-2E4C-848242C99C7E}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\ipdb\pycontrib-python-ipdb.vcxproj">
+      <Project>{8A8B9475-F218-7D6B-2EEC-6969E7478235}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\ipython\py2\pypython-ipython-py2.vcxproj">
+      <Project>{2C2EB937-C925-5BAC-08C0-2793AABB6C61}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\ipython\pycontrib-python-ipython.vcxproj">
+      <Project>{9FAEC26D-0991-B9F6-A63C-ABE29C2D36E8}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\ipython_genutils\pyipython_genutils.vcxproj">
+      <Project>{F3D8796F-FB25-69B7-B508-C57691C7426F}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\more-itertools\pycontrib-python-more-itertools.vcxproj">
       <Project>{BC62290A-1F8B-7962-8C00-63BFE8DAE2A0}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\path.py\pycontrib-python-path.py.vcxproj">
+      <Project>{BE6EB16E-CE0A-AC79-ED12-5AB18F5C3EB8}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pathlib2\pycontrib-python-pathlib2.vcxproj">
       <Project>{09B94D29-C8D9-195E-BE7A-2CF5517C1312}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pickleshare\pypickleshare.vcxproj">
+      <Project>{81A5063F-36BD-685C-C2AD-836B04477F09}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pluggy\pycontrib-python-pluggy.vcxproj">
       <Project>{655F3AA8-7E17-5AF6-E453-0AD94235E99C}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\prompt-toolkit\py2\pypython-prompt-toolkit-py2.vcxproj">
+      <Project>{44F46013-3EC8-EF76-35CB-8F6A62BF2F33}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\prompt-toolkit\pycontrib-python-prompt-toolkit.vcxproj">
+      <Project>{047EB5F9-148B-0639-CD34-387A52108769}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\py\pycontrib-python-py.vcxproj">
       <Project>{965E6429-AE78-1C06-E2DA-1B781FCDB7AA}</Project>
@@ -359,11 +381,29 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scandir\pycontrib-python-scandir.vcxproj">
       <Project>{659BFF29-3F80-CC93-FD3E-1AB88F02D68C}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\setuptools\py2\pypython-setuptools-py2.vcxproj">
+      <Project>{C1D10CB8-B94C-C430-F3B3-494136748EA6}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\setuptools\pycontrib-python-setuptools.vcxproj">
       <Project>{8179ED86-9B97-876C-F62E-DE7CEB78CDDF}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\simplegeneric\pysimplegeneric.vcxproj">
+      <Project>{01FD5E68-79F6-2242-91C6-544071D4E371}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\six\pycontrib-python-six.vcxproj">
       <Project>{045AAA08-9E22-8E9E-4CC3-999EEA7560DE}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\traitlets\py2\pypython-traitlets-py2.vcxproj">
+      <Project>{7BBB0F36-76C1-B54C-7DDB-4AACF35E219C}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\traitlets\pycontrib-python-traitlets.vcxproj">
+      <Project>{1DBCB73E-225F-19E4-30C7-41861F222A71}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\wcwidth\pycontrib-python-wcwidth.vcxproj">
+      <Project>{F338AB33-66DB-B461-4311-08AAD87EAE63}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\win_unicode_console\pycontrib-python-win_unicode_console.vcxproj">
+      <Project>{061E9694-0B95-09A8-3808-7FE0533E7E96}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\libffi\contrib-restricted-libffi.vcxproj">
       <Project>{C4244186-1688-FFD7-FAB5-CB9E056577E2}</Project>
@@ -388,9 +428,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\resource\library-cpp-resource.vcxproj">
       <Project>{1E91F91B-DC98-C7C6-CD7E-C89F350D131A}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\python\coredump_filter\pylibrary-python-coredump_filter.vcxproj">
-      <Project>{F460E0E3-3DEA-2CD7-67E0-EA55FF40B2B0}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\cores\pylibrary-python-cores.vcxproj">
       <Project>{F7BF95C4-FA90-1985-8730-2F198D6D9964}</Project>
@@ -433,6 +470,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\registry\python-symbols-registry.vcxproj">
       <Project>{BD115620-103F-AECF-8093-05A7D89F72D6}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\win_unicode_console\python-symbols-win_unicode_console.vcxproj">
+      <Project>{19A0C8A5-35FB-EAF6-49AD-2103AE839D74}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\testing\filter\pypython-testing-filter.vcxproj">
       <Project>{742B4BC9-2804-CD28-E985-1186B54E41E1}</Project>

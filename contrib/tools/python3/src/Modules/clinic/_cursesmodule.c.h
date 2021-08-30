@@ -2028,7 +2028,7 @@ PyDoc_STRVAR(_curses_color_content__doc__,
 "Return the red, green, and blue (RGB) components of the specified color.\n"
 "\n"
 "  color_number\n"
-"    The number of the color (0 - COLORS).\n"
+"    The number of the color (0 - (COLORS-1)).\n"
 "\n"
 "A 3-tuple is returned, containing the R, G, B values for the given color,\n"
 "which will be between 0 (no component) and 1000 (maximum amount of component).");
@@ -2076,13 +2076,13 @@ exit:
 }
 
 PyDoc_STRVAR(_curses_color_pair__doc__,
-"color_pair($module, color_number, /)\n"
+"color_pair($module, pair_number, /)\n"
 "--\n"
 "\n"
 "Return the attribute value for displaying text in the specified color.\n"
 "\n"
-"  color_number\n"
-"    The number of the color (0 - COLORS).\n"
+"  pair_number\n"
+"    The number of the color pair.\n"
 "\n"
 "This attribute value can be combined with A_STANDOUT, A_REVERSE, and the\n"
 "other A_* attributes.  pair_number() is the counterpart to this function.");
@@ -2091,13 +2091,13 @@ PyDoc_STRVAR(_curses_color_pair__doc__,
     {"color_pair", (PyCFunction)_curses_color_pair, METH_O, _curses_color_pair__doc__},
 
 static PyObject *
-_curses_color_pair_impl(PyObject *module, short color_number);
+_curses_color_pair_impl(PyObject *module, short pair_number);
 
 static PyObject *
 _curses_color_pair(PyObject *module, PyObject *arg)
 {
     PyObject *return_value = NULL;
-    short color_number;
+    short pair_number;
 
     if (PyFloat_Check(arg)) {
         PyErr_SetString(PyExc_TypeError,
@@ -2120,10 +2120,10 @@ _curses_color_pair(PyObject *module, PyObject *arg)
             goto exit;
         }
         else {
-            color_number = (short) ival;
+            pair_number = (short) ival;
         }
     }
-    return_value = _curses_color_pair_impl(module, color_number);
+    return_value = _curses_color_pair_impl(module, pair_number);
 
 exit:
     return return_value;
@@ -2699,7 +2699,7 @@ PyDoc_STRVAR(_curses_init_color__doc__,
 "Change the definition of a color.\n"
 "\n"
 "  color_number\n"
-"    The number of the color to be changed (0 - COLORS).\n"
+"    The number of the color to be changed (0 - (COLORS-1)).\n"
 "  r\n"
 "    Red component (0 - 1000).\n"
 "  g\n"
@@ -2709,7 +2709,7 @@ PyDoc_STRVAR(_curses_init_color__doc__,
 "\n"
 "When init_color() is used, all occurrences of that color on the screen\n"
 "immediately change to the new definition.  This function is a no-op on\n"
-"most terminals; it is active only if can_change_color() returns 1.");
+"most terminals; it is active only if can_change_color() returns true.");
 
 #define _CURSES_INIT_COLOR_METHODDEF    \
     {"init_color", (PyCFunction)(void(*)(void))_curses_init_color, METH_FASTCALL, _curses_init_color__doc__},
@@ -2841,9 +2841,9 @@ PyDoc_STRVAR(_curses_init_pair__doc__,
 "  pair_number\n"
 "    The number of the color-pair to be changed (1 - (COLOR_PAIRS-1)).\n"
 "  fg\n"
-"    Foreground color number (0 - COLORS).\n"
+"    Foreground color number (-1 - (COLORS-1)).\n"
 "  bg\n"
-"    Background color number (0 - COLORS).\n"
+"    Background color number (-1 - (COLORS-1)).\n"
 "\n"
 "If the color-pair was previously initialized, the screen is refreshed and\n"
 "all occurrences of that color-pair are changed to the new definition.");
@@ -3039,6 +3039,144 @@ skip_optional_pos:
 exit:
     return return_value;
 }
+
+#if (defined(NCURSES_EXT_FUNCS) && NCURSES_EXT_FUNCS >= 20081102)
+
+PyDoc_STRVAR(_curses_get_escdelay__doc__,
+"get_escdelay($module, /)\n"
+"--\n"
+"\n"
+"Gets the curses ESCDELAY setting.\n"
+"\n"
+"Gets the number of milliseconds to wait after reading an escape character,\n"
+"to distinguish between an individual escape character entered on the\n"
+"keyboard from escape sequences sent by cursor and function keys.");
+
+#define _CURSES_GET_ESCDELAY_METHODDEF    \
+    {"get_escdelay", (PyCFunction)_curses_get_escdelay, METH_NOARGS, _curses_get_escdelay__doc__},
+
+static PyObject *
+_curses_get_escdelay_impl(PyObject *module);
+
+static PyObject *
+_curses_get_escdelay(PyObject *module, PyObject *Py_UNUSED(ignored))
+{
+    return _curses_get_escdelay_impl(module);
+}
+
+#endif /* (defined(NCURSES_EXT_FUNCS) && NCURSES_EXT_FUNCS >= 20081102) */
+
+#if (defined(NCURSES_EXT_FUNCS) && NCURSES_EXT_FUNCS >= 20081102)
+
+PyDoc_STRVAR(_curses_set_escdelay__doc__,
+"set_escdelay($module, ms, /)\n"
+"--\n"
+"\n"
+"Sets the curses ESCDELAY setting.\n"
+"\n"
+"  ms\n"
+"    length of the delay in milliseconds.\n"
+"\n"
+"Sets the number of milliseconds to wait after reading an escape character,\n"
+"to distinguish between an individual escape character entered on the\n"
+"keyboard from escape sequences sent by cursor and function keys.");
+
+#define _CURSES_SET_ESCDELAY_METHODDEF    \
+    {"set_escdelay", (PyCFunction)_curses_set_escdelay, METH_O, _curses_set_escdelay__doc__},
+
+static PyObject *
+_curses_set_escdelay_impl(PyObject *module, int ms);
+
+static PyObject *
+_curses_set_escdelay(PyObject *module, PyObject *arg)
+{
+    PyObject *return_value = NULL;
+    int ms;
+
+    if (PyFloat_Check(arg)) {
+        PyErr_SetString(PyExc_TypeError,
+                        "integer argument expected, got float" );
+        goto exit;
+    }
+    ms = _PyLong_AsInt(arg);
+    if (ms == -1 && PyErr_Occurred()) {
+        goto exit;
+    }
+    return_value = _curses_set_escdelay_impl(module, ms);
+
+exit:
+    return return_value;
+}
+
+#endif /* (defined(NCURSES_EXT_FUNCS) && NCURSES_EXT_FUNCS >= 20081102) */
+
+#if (defined(NCURSES_EXT_FUNCS) && NCURSES_EXT_FUNCS >= 20081102)
+
+PyDoc_STRVAR(_curses_get_tabsize__doc__,
+"get_tabsize($module, /)\n"
+"--\n"
+"\n"
+"Gets the curses TABSIZE setting.\n"
+"\n"
+"Gets the number of columns used by the curses library when converting a tab\n"
+"character to spaces as it adds the tab to a window.");
+
+#define _CURSES_GET_TABSIZE_METHODDEF    \
+    {"get_tabsize", (PyCFunction)_curses_get_tabsize, METH_NOARGS, _curses_get_tabsize__doc__},
+
+static PyObject *
+_curses_get_tabsize_impl(PyObject *module);
+
+static PyObject *
+_curses_get_tabsize(PyObject *module, PyObject *Py_UNUSED(ignored))
+{
+    return _curses_get_tabsize_impl(module);
+}
+
+#endif /* (defined(NCURSES_EXT_FUNCS) && NCURSES_EXT_FUNCS >= 20081102) */
+
+#if (defined(NCURSES_EXT_FUNCS) && NCURSES_EXT_FUNCS >= 20081102)
+
+PyDoc_STRVAR(_curses_set_tabsize__doc__,
+"set_tabsize($module, size, /)\n"
+"--\n"
+"\n"
+"Sets the curses TABSIZE setting.\n"
+"\n"
+"  size\n"
+"    rendered cell width of a tab character.\n"
+"\n"
+"Sets the number of columns used by the curses library when converting a tab\n"
+"character to spaces as it adds the tab to a window.");
+
+#define _CURSES_SET_TABSIZE_METHODDEF    \
+    {"set_tabsize", (PyCFunction)_curses_set_tabsize, METH_O, _curses_set_tabsize__doc__},
+
+static PyObject *
+_curses_set_tabsize_impl(PyObject *module, int size);
+
+static PyObject *
+_curses_set_tabsize(PyObject *module, PyObject *arg)
+{
+    PyObject *return_value = NULL;
+    int size;
+
+    if (PyFloat_Check(arg)) {
+        PyErr_SetString(PyExc_TypeError,
+                        "integer argument expected, got float" );
+        goto exit;
+    }
+    size = _PyLong_AsInt(arg);
+    if (size == -1 && PyErr_Occurred()) {
+        goto exit;
+    }
+    return_value = _curses_set_tabsize_impl(module, size);
+
+exit:
+    return return_value;
+}
+
+#endif /* (defined(NCURSES_EXT_FUNCS) && NCURSES_EXT_FUNCS >= 20081102) */
 
 PyDoc_STRVAR(_curses_intrflush__doc__,
 "intrflush($module, flag, /)\n"
@@ -3799,23 +3937,13 @@ PyDoc_STRVAR(_curses_update_lines_cols__doc__,
 #define _CURSES_UPDATE_LINES_COLS_METHODDEF    \
     {"update_lines_cols", (PyCFunction)_curses_update_lines_cols, METH_NOARGS, _curses_update_lines_cols__doc__},
 
-static int
+static PyObject *
 _curses_update_lines_cols_impl(PyObject *module);
 
 static PyObject *
 _curses_update_lines_cols(PyObject *module, PyObject *Py_UNUSED(ignored))
 {
-    PyObject *return_value = NULL;
-    int _return_value;
-
-    _return_value = _curses_update_lines_cols_impl(module);
-    if ((_return_value == -1) && PyErr_Occurred()) {
-        goto exit;
-    }
-    return_value = PyLong_FromLong((long)_return_value);
-
-exit:
-    return return_value;
+    return _curses_update_lines_cols_impl(module);
 }
 
 #endif /* (defined(HAVE_CURSES_RESIZETERM) || defined(HAVE_CURSES_RESIZE_TERM)) */
@@ -4526,6 +4654,22 @@ _curses_use_default_colors(PyObject *module, PyObject *Py_UNUSED(ignored))
     #define _CURSES_HAS_KEY_METHODDEF
 #endif /* !defined(_CURSES_HAS_KEY_METHODDEF) */
 
+#ifndef _CURSES_GET_ESCDELAY_METHODDEF
+    #define _CURSES_GET_ESCDELAY_METHODDEF
+#endif /* !defined(_CURSES_GET_ESCDELAY_METHODDEF) */
+
+#ifndef _CURSES_SET_ESCDELAY_METHODDEF
+    #define _CURSES_SET_ESCDELAY_METHODDEF
+#endif /* !defined(_CURSES_SET_ESCDELAY_METHODDEF) */
+
+#ifndef _CURSES_GET_TABSIZE_METHODDEF
+    #define _CURSES_GET_TABSIZE_METHODDEF
+#endif /* !defined(_CURSES_GET_TABSIZE_METHODDEF) */
+
+#ifndef _CURSES_SET_TABSIZE_METHODDEF
+    #define _CURSES_SET_TABSIZE_METHODDEF
+#endif /* !defined(_CURSES_SET_TABSIZE_METHODDEF) */
+
 #ifndef _CURSES_IS_TERM_RESIZED_METHODDEF
     #define _CURSES_IS_TERM_RESIZED_METHODDEF
 #endif /* !defined(_CURSES_IS_TERM_RESIZED_METHODDEF) */
@@ -4569,4 +4713,4 @@ _curses_use_default_colors(PyObject *module, PyObject *Py_UNUSED(ignored))
 #ifndef _CURSES_USE_DEFAULT_COLORS_METHODDEF
     #define _CURSES_USE_DEFAULT_COLORS_METHODDEF
 #endif /* !defined(_CURSES_USE_DEFAULT_COLORS_METHODDEF) */
-/*[clinic end generated code: output=e5b3502f1d38dff0 input=a9049054013a1b77]*/
+/*[clinic end generated code: output=5e739120041df368 input=a9049054013a1b77]*/

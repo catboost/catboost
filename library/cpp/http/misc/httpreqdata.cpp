@@ -79,14 +79,14 @@ TString TBaseServerRequestData::HeaderByIndex(size_t n) const noexcept {
         return nullptr;
     }
 
-    HeaderInHash::const_iterator i = HeadersIn_.begin();
+    THttpHeadersContainer::const_iterator i = HeadersIn_.begin();
 
     while (n) {
         ++i;
         --n;
     }
 
-    return TString(i->first) + AsStringBuf(": ") + i->second;
+    return TString(i->first) + TStringBuf(": ") + i->second;
 }
 
 const char* TBaseServerRequestData::Environment(const char* key) const {

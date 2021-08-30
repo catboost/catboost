@@ -11,6 +11,7 @@ public:
         const TVector<TFloatFeature>& allFloatFeatures,
         const TVector<TCatFeature>& allCategoricalFeatures,
         const TVector<TTextFeature>& allTextFeatures,
+        const TVector<TEmbeddingFeature>& allEmbeddingFeatures,
         int approxDimension);
     void ProcessSplitsSet(const TSet<TModelSplit>& modelSplitSet, TModelTrees* tree);
 public:
@@ -21,6 +22,8 @@ public:
     TVector<size_t> CatFeaturesInternalIndexesMap;
     TVector<TTextFeature> TextFeatures;
     TVector<size_t> TextFeaturesInternalIndexesMap;
+    TVector<TEmbeddingFeature> EmbeddingFeatures;
+    TVector<size_t> EmbeddingFeaturesInternalIndexesMap;
     THashMap<TModelSplit, int> BinFeatureIndexes;
 };
 
@@ -30,6 +33,7 @@ public:
         const TVector<TFloatFeature>& allFloatFeatures,
         const TVector<TCatFeature>& allCategoricalFeatures,
         const TVector<TTextFeature>& allTextFeatures,
+        const TVector<TEmbeddingFeature>& allEmbeddingFeatures,
         int approxDimension
     );
     void AddTree(
@@ -83,6 +87,7 @@ public:
         const TVector<TFloatFeature>& allFloatFeatures,
         const TVector<TCatFeature>& allCategoricalFeatures,
         const TVector<TTextFeature>& allTextFeatures,
+        const TVector<TEmbeddingFeature>& allEmbeddingFeatures,
         int approxDimension
     );
     void AddTree(THolder<TNonSymmetricTreeNode> head);

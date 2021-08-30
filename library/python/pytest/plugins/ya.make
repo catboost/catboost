@@ -10,6 +10,7 @@ PY_SRCS(
 )
 
 PEERDIR(
+    library/python/filelock
     library/python/find_root
     library/python/testing/filter
 )

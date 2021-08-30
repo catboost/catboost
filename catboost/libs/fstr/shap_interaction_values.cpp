@@ -56,7 +56,7 @@ void AllocateStorage(
     const TVector<size_t>& secondIndices,
     const size_t dim1,
     const size_t dim2,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TStorageType* shapInteractionValuesInternal
 );
 
@@ -86,7 +86,7 @@ void AllocateStorage(
     const TVector<size_t>& secondIndices,
     const size_t dim1,
     const size_t dim2,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TInteractionValuesSubset* map
 ) {
     for (auto idx1 : firstIndices) {
@@ -108,7 +108,7 @@ static inline void Allocate4DimensionalVector(
     const size_t dim2,
     const size_t dim3,
     const size_t dim4,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TInteractionValuesFull* newVector
 ) {
     newVector->resize(dim1);
@@ -132,7 +132,7 @@ void AllocateStorage(
     const TVector<size_t>& secondIndices,
     const size_t dim1,
     const size_t dim2,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TInteractionValuesFull* vector
 ) {
     Allocate4DimensionalVector(firstIndices.size(), secondIndices.size(), dim1, dim2, localExecutor, vector);
@@ -288,7 +288,7 @@ static void CalcInternalShapInteractionValuesMulti(
     const TVector<size_t>& classIndicesFirst,
     const TVector<size_t>& classIndicesSecond,
     int logPeriod,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TShapPreparedTrees* preparedTrees,
     TStorageType* shapInteractionValuesInternal,
     ECalcTypeShapValues calcType
@@ -440,7 +440,7 @@ static void CalcLeafIndices(
     const TModelTrees& forest = *model.ModelTrees;
     const size_t documentBlockSize = CB_THREAD_LIMIT;
     for (ui32 startIdx = 0; startIdx < documentCount; startIdx += documentBlockSize) {
-        NPar::TLocalExecutor::TExecRangeParams blockParams(startIdx, startIdx + Min(documentBlockSize, documentCount - startIdx));
+        NPar::ILocalExecutor::TExecRangeParams blockParams(startIdx, startIdx + Min(documentBlockSize, documentCount - startIdx));
         featuresBlockIterator->NextBlock(blockParams.LastId - blockParams.FirstId);
         binarizedFeatures->emplace_back();
         indexes->emplace_back();
@@ -463,12 +463,11 @@ static void CalcShapInteraction(
     const TDataProvider& dataset,
     const TMaybe<std::pair<int, int>>& pairOfFeatures,
     int logPeriod,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TShapPreparedTrees* preparedTrees,
     TInteractionValuesFull* shapInteractionValues,
     ECalcTypeShapValues calcType
 ) {
-    CheckNonZeroApproxForZeroWeightLeaf(model);
     TVector<TIntrusivePtr<NModelEvaluation::IQuantizedData>> binarizedFeatures;
     TVector<TVector<NModelEvaluation::TCalcerIndexType>> indexes;
     CalcLeafIndices(
@@ -555,24 +554,15 @@ static inline void SetSymmetricValues(TInteractionValuesFull* shapInteractionVal
     }
 }
 
-TInteractionValuesFull CalcShapInteractionValuesMulti(
+TInteractionValuesFull CalcShapInteractionValuesWithPreparedTrees(
     const TFullModel& model,
     const TDataProvider& dataset,
     const TMaybe<std::pair<int, int>>& pairOfFeatures,
     int logPeriod,
-    EPreCalcShapValues mode,
-    NPar::TLocalExecutor* localExecutor,
-    ECalcTypeShapValues calcType
+    ECalcTypeShapValues calcType,
+    NPar::ILocalExecutor* localExecutor,
+    TShapPreparedTrees* preparedTrees
 ) {
-    TShapPreparedTrees preparedTrees = PrepareTrees(
-        model,
-        &dataset,
-        /*referenceDataset*/ nullptr,
-        mode,
-        localExecutor,
-        /*calcInternalValues*/ true,
-        calcType
-    );
     TInteractionValuesFull shapInteractionValues;
     if (pairOfFeatures.Defined()) {
         CalcShapInteraction<TInteractionValuesSubset>(
@@ -581,7 +571,7 @@ TInteractionValuesFull CalcShapInteractionValuesMulti(
             pairOfFeatures,
             logPeriod,
             localExecutor,
-            &preparedTrees,
+            preparedTrees,
             &shapInteractionValues,
             calcType
         );
@@ -595,10 +585,39 @@ TInteractionValuesFull CalcShapInteractionValuesMulti(
             pairOfFeatures,
             logPeriod,
             localExecutor,
-            &preparedTrees,
+            preparedTrees,
             &shapInteractionValues,
             calcType
         );
     }
     return shapInteractionValues;
+}
+
+TInteractionValuesFull CalcShapInteractionValuesMulti(
+    const TFullModel& model,
+    const TDataProvider& dataset,
+    const TMaybe<std::pair<int, int>>& pairOfFeatures,
+    int logPeriod,
+    EPreCalcShapValues mode,
+    NPar::ILocalExecutor* localExecutor,
+    ECalcTypeShapValues calcType
+) {
+    TShapPreparedTrees preparedTrees = PrepareTrees(
+        model,
+        &dataset,
+        /*referenceDataset*/ nullptr,
+        mode,
+        localExecutor,
+        /*calcInternalValues*/ true,
+        calcType
+    );
+    return CalcShapInteractionValuesWithPreparedTrees(
+        model,
+        dataset,
+        pairOfFeatures,
+        logPeriod,
+        calcType,
+        localExecutor,
+        &preparedTrees
+    );
 }

@@ -1,33 +1,34 @@
-#include <stdlib.h>
+#include <cstdlib>
 #include <exception>
-#include <typeinfo>
 
 #include <util/stream/output.h>
 #include <util/system/backtrace.h>
-#include <util/system/tls.h>
 #include <util/generic/yexception.h>
 
-#include "terminate_handler.h"
+namespace {
+    // Avoid infinite recursion if std::terminate is triggered anew by the
+    // FancyTerminateHandler.
+    thread_local int TerminateCount = 0;
 
-Y_POD_STATIC_THREAD(bool)
-Terminating(false);
+    void FancyTerminateHandler() {
+        switch (++TerminateCount) {
+            case 1:
+                break;
+            case 2:
+                Cerr << "FancyTerminateHandler called recursively" << Endl;
+            default:
+                abort();
+        }
 
-void FancyTerminateHandler() {
-    if (Terminating) {
-        Cerr << "FancyTerminateHandler called recursively\n";
+        if (std::current_exception()) {
+            Cerr << "Uncaught exception: " << CurrentExceptionMessage() << '\n';
+        } else {
+            Cerr << "Terminate for unknown reason (no current exception)\n";
+        }
+        PrintBackTrace();
+        Cerr.Flush();
         abort();
     }
-    Terminating = true;
 
-    if (std::current_exception()) {
-        Cerr << "Uncaught exception: " << CurrentExceptionMessage() << Endl;
-    } else {
-        Cerr << "Terminate for unknown reason\n";
-    }
-    PrintBackTrace();
-    abort();
-}
-
-void SetFancyTerminateHandler() {
-    std::set_terminate(&FancyTerminateHandler);
+    [[maybe_unused]] auto _ = std::set_terminate(&FancyTerminateHandler);
 }

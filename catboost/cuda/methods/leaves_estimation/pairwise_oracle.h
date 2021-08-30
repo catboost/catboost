@@ -39,7 +39,7 @@ namespace NCatboostCuda {
             auto& cursor = TParent::Cursor;
             auto der = TStripeBuffer<float>::CopyMapping(cursor);
 
-            Target->ApproximateAt(cursor,
+            Target->ApproximateAt(cursor.AsConstBuf(),
                                   SupportPairs,
                                   PairWeights,
                                   ScatterDersOrder,
@@ -57,9 +57,11 @@ namespace NCatboostCuda {
 
         static THolder<ILeavesEstimationOracle> Create(const TPairwiseTarget& target,
                                                        TStripeBuffer<const float>&& baseline,
-                                                       TStripeBuffer<const ui32>&& bins,
+                                                       TStripeBuffer<ui32>&& binsBuf,
                                                        ui32 binCount,
-                                                       const TLeavesEstimationConfig& estimationConfig) {
+                                                       const TLeavesEstimationConfig& estimationConfig,
+                                                       TGpuAwareRandom& random) {
+            auto bins = binsBuf.AsConstBuf();
             TStripeBuffer<uint2> pairs;
             TStripeBuffer<float> pairWeights;
 
@@ -88,9 +90,9 @@ namespace NCatboostCuda {
                                       &pointLeafOffsets,
                                       &leafWeights);
 
-            return new TOracle(target,
+            return THolder<ILeavesEstimationOracle>(new TOracle(target,
                                std::move(baseline),
-                               std::move(bins),
+                               bins.AsConstBuf(),
                                leafWeights,
                                pairPartsLeafWeights,
                                estimationConfig,
@@ -98,7 +100,19 @@ namespace NCatboostCuda {
                                std::move(pairWeights),
                                std::move(pairLeafOffsets),
                                std::move(pointLeafOffsets),
-                               std::move(pointLeafIndices));
+                               std::move(pointLeafIndices),
+                               random));
+        }
+
+        TVector<float> EstimateExact() {
+            CB_ENSURE(false, "Exact leaves estimation method on GPU is not supported for pairwise oracle");
+        }
+
+        void AddLangevinNoiseToDerivatives(TVector<double>* derivatives,
+                                           NPar::ILocalExecutor* localExecutor) {
+            Y_UNUSED(derivatives);
+            Y_UNUSED(localExecutor);
+            CB_ENSURE(!this->LeavesEstimationConfig.Langevin, "Langevin on GPU is not supported for pairwise oracle");
         }
 
     private:
@@ -112,12 +126,14 @@ namespace NCatboostCuda {
                 TStripeBuffer<float>&& pairWeights,
                 TStripeBuffer<ui32>&& pairLeafOffset,
                 TStripeBuffer<ui32>&& pointLeafOffsets,
-                TStripeBuffer<ui32>&& pointLeafIndices)
+                TStripeBuffer<ui32>&& pointLeafIndices,
+                TGpuAwareRandom& random)
             : TParent(std::move(baseline),
                       std::move(bins),
                       leafWeights,
                       pairLeafWeights,
-                      estimationConfig)
+                      estimationConfig,
+                      random)
             , Target(&target)
             , SupportPairs(std::move(pairs))
             , PairWeights(std::move(pairWeights))

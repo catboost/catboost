@@ -1,5 +1,7 @@
 #include "segmented_sort.cuh"
-#include <contrib/libs/cub/cub/device/device_segmented_radix_sort.cuh>
+
+#include <library/cpp/cuda/wrappers/cub_include.h>
+#include _CUB_INCLUDE(cub/device/device_segmented_radix_sort.cuh)
 
 namespace NKernel {
 
@@ -72,13 +74,12 @@ namespace NKernel {
     }
 
 
-
-    template cudaError_t SegmentedRadixSort(ui32* keys, ui32* values,
-                                            ui32* tmpKeys, ui32* tmpValues, int size,
-                                            const ui32* segmentStarts, const ui32* segmentEnds, int segmentsCount,
+    #define SEGMENTED_RADIX_SORT(Type) \
+    template cudaError_t SegmentedRadixSort(Type* keys, Type* values, Type* tmpKeys, Type* tmpValues, int size, \
+                                            const ui32* segmentStarts, const ui32* segmentEnds, int segmentsCount, \
                                             TSegmentedRadixSortContext& context, TCudaStream stream);
 
-
-
+    SEGMENTED_RADIX_SORT(float)
+    SEGMENTED_RADIX_SORT(ui32)
 
 }

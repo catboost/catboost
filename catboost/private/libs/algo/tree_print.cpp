@@ -151,7 +151,7 @@ TString BuildDescription(const NCB::TFeaturesLayout& layout, const TModelSplit& 
     } else if (feature.Type == ESplitType::FloatFeature) {
         result << BuildFeatureDescription(layout, feature.FloatFeature.FloatFeature, EFeatureType::Float);
     } else if (feature.Type == ESplitType::EstimatedFeature) {
-        const TEstimatedFeatureSplit& split = feature.EstimatedFeature;
+        const TModelEstimatedFeature& split = feature.EstimatedFeature.ModelEstimatedFeature;
         result << " src_feature_id=" << split.SourceFeatureId;
         result << " calcer_id=" << split.CalcerId;
         result << " local_id=" << split.LocalId;
@@ -164,6 +164,8 @@ TString BuildDescription(const NCB::TFeaturesLayout& layout, const TModelSplit& 
         result << ", border=" << feature.OnlineCtr.Border;
     } else if (feature.Type == ESplitType::FloatFeature) {
         result << ", bin=" << feature.FloatFeature.Split;
+    } else if (feature.Type == ESplitType::EstimatedFeature) {
+        result << ", bin=" << feature.EstimatedFeature.Split;
     } else {
         Y_ASSERT(feature.Type == ESplitType::OneHotFeature);
         result << ", value=";
@@ -221,9 +223,10 @@ TVector<TString> GetTreeSplitsDescriptions(const TFullModel& model, size_t treeI
 TVector<TString> GetTreeLeafValuesDescriptions(const TFullModel& model, size_t treeIdx) {
     CB_ENSURE(treeIdx < model.GetTreeCount(),
         "Requested tree leaf values for tree " << treeIdx << ", but model has " << model.GetTreeCount());
-    size_t leafOffset = model.ModelTrees->GetFirstLeafOffsets()[treeIdx];
+    auto applyData = model.ModelTrees->GetApplyData();
+    size_t leafOffset = applyData->TreeFirstLeafOffsets[treeIdx];
     size_t nextTreeLeafOffset = (treeIdx + 1 < model.GetTreeCount())
-        ? model.ModelTrees->GetFirstLeafOffsets()[treeIdx + 1]
+        ? applyData->TreeFirstLeafOffsets[treeIdx + 1]
         : model.ModelTrees->GetModelTreeData()->GetLeafValues().size();
 
     TVector<double> leafValues(
@@ -262,7 +265,8 @@ TVector<ui32> GetTreeNodeToLeaf(const TFullModel& model, size_t treeIdx) {
     const size_t offset = model.ModelTrees->GetModelTreeData()->GetTreeStartOffsets()[treeIdx];
     const auto start = model.ModelTrees->GetModelTreeData()->GetNonSymmetricNodeIdToLeafId().begin() + offset;
     const auto end = start + model.ModelTrees->GetModelTreeData()->GetTreeSizes()[treeIdx];
-    const size_t firstLeafOffset = model.ModelTrees->GetFirstLeafOffsets()[treeIdx];
+    auto applyData = model.ModelTrees->GetApplyData();
+    const size_t firstLeafOffset = applyData->TreeFirstLeafOffsets[treeIdx];
     TVector<ui32> nodeToLeaf(start, end);
     for (auto& value : nodeToLeaf) {
         value -= firstLeafOffset;

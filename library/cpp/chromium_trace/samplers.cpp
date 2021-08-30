@@ -44,14 +44,14 @@ void TProxySampler::Publish(TTracer& tracer) const {
 
 void TMemInfoSampler::Publish(TTracer& tracer) const {
     TCounter("Memory.RSS")
-        .Sample(AsStringBuf("RSS"), RSS.Value)
+        .Sample(TStringBuf("RSS"), RSS.Value)
         .Publish(tracer);
     TCounter("Memory.DeltaRSS")
-        .Sample(AsStringBuf("+"), RSS.PositiveDerivative)
-        .Sample(AsStringBuf("-"), RSS.NegativeDerivative)
+        .Sample(TStringBuf("+"), RSS.PositiveDerivative)
+        .Sample(TStringBuf("-"), RSS.NegativeDerivative)
         .Publish(tracer);
     TCounter("Memory.VMS")
-        .Sample(AsStringBuf("VMS"), VMS)
+        .Sample(TStringBuf("VMS"), VMS)
         .Publish(tracer);
 }
 
@@ -72,12 +72,12 @@ void TRUsageSampler::Update() {
 
 void TRUsageSampler::Publish(TTracer& tracer) const {
     TCounter("RUsage.CPU")
-        .Sample(AsStringBuf("system"), SystemTime)
-        .Sample(AsStringBuf("user"), UserTime)
+        .Sample(TStringBuf("system"), SystemTime)
+        .Sample(TStringBuf("user"), UserTime)
         .Publish(tracer);
     TCounter("RUsage.PageFaults")
-        .Sample(AsStringBuf("minor"), MinorFaults)
-        .Sample(AsStringBuf("major"), MajorFaults)
+        .Sample(TStringBuf("minor"), MinorFaults)
+        .Sample(TStringBuf("major"), MajorFaults)
         .Publish(tracer);
     /*
     // FIXME: seems quite useless
@@ -88,8 +88,8 @@ void TRUsageSampler::Publish(TTracer& tracer) const {
 
     */
     TCounter("RUsage.ContextSwitch")
-        .Sample(AsStringBuf("wait"), VoluntarySwitches)
-        .Sample(AsStringBuf("preempt"), InvoluntarySwitches)
+        .Sample(TStringBuf("wait"), VoluntarySwitches)
+        .Sample(TStringBuf("preempt"), InvoluntarySwitches)
         .Publish(tracer);
 }
 
@@ -155,8 +155,8 @@ void TNetStatSampler::UpdateFromData(const TString& data) {
 
 void TNetStatSampler::Publish(TTracer& tracer) const {
     for (const auto& item : Values) {
-        TCounter(item.first, AsStringBuf("sample"))
-            .Sample(AsStringBuf("value"), item.second)
+        TCounter(item.first, TStringBuf("sample"))
+            .Sample(TStringBuf("value"), item.second)
             .Publish(tracer);
     }
 }

@@ -9,6 +9,7 @@ PEERDIR(
     ADDINCL contrib/libs/libbz2
     ADDINCL contrib/libs/openssl
     ADDINCL contrib/libs/zlib
+    contrib/libs/xz/liblzma
     contrib/restricted/libffi
 )
 
@@ -57,7 +58,7 @@ SRCS(
     _decimal/libmpdec/fnt.c
     _decimal/libmpdec/fourstep.c
     _decimal/libmpdec/io.c
-    _decimal/libmpdec/memory.c
+    _decimal/libmpdec/mpalloc.c
     _decimal/libmpdec/mpdecimal.c
     _decimal/libmpdec/numbertheory.c
     _decimal/libmpdec/sixstep.c
@@ -68,12 +69,14 @@ SRCS(
     _json.c
     _localemodule.c
     _lsprof.c
+    _lzmamodule.c
     _math.c
     _multiprocessing/multiprocessing.c
     _multiprocessing/posixshmem.c
     _multiprocessing/semaphore.c
     _opcode.c
     _operator.c
+    _peg_parser.c
     _pickle.c
     _queuemodule.c
     _randommodule.c
@@ -88,6 +91,7 @@ SRCS(
     _xxsubinterpretersmodule.c
     _xxtestfuzz/_xxtestfuzz.c
     _xxtestfuzz/fuzzer.c
+    _zoneinfo.c
     arraymodule.c
     atexitmodule.c
     audioop.c
@@ -103,7 +107,6 @@ SRCS(
     errnomodule.c
     faulthandler.c
     getbuildinfo.c
-    hashtable.c
     itertoolsmodule.c
     mathmodule.c
     md5module.c

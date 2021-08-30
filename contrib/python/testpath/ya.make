@@ -1,10 +1,10 @@
 PY23_LIBRARY()
 
+LICENSE(BSD-3-Clause)
 
 
-VERSION(0.4.2)
 
-LICENSE(UNKNOWN)
+VERSION(0.5.0)
 
 NO_LINT()
 
@@ -20,8 +20,7 @@ PY_SRCS(
 RESOURCE_FILES(
     PREFIX contrib/python/testpath/
     .dist-info/METADATA
-    # testpath/cli-32.exe
-    # testpath/cli-64.exe
+    .dist-info/top_level.txt
 )
 
 END()
