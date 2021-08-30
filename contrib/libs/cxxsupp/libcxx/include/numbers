@@ -102,19 +102,19 @@ template <class T> inline constexpr T phi_v =        __illformed<T>{};
 template <class T>
 concept __floating_point = is_floating_point_v<T>;
 
-template <__floating_point T> inline constexpr T e_v<T>          = 2.718281828459045235360287471352662;
-template <__floating_point T> inline constexpr T log2e_v<T>      = 1.442695040888963407359924681001892;
-template <__floating_point T> inline constexpr T log10e_v<T>     = 0.434294481903251827651128918916605;
-template <__floating_point T> inline constexpr T pi_v<T>         = 3.141592653589793238462643383279502;
-template <__floating_point T> inline constexpr T inv_pi_v<T>     = 0.318309886183790671537767526745028;
-template <__floating_point T> inline constexpr T inv_sqrtpi_v<T> = 0.564189583547756286948079451560772;
-template <__floating_point T> inline constexpr T ln2_v<T>        = 0.693147180559945309417232121458176;
-template <__floating_point T> inline constexpr T ln10_v<T>       = 2.302585092994045684017991454684364;
-template <__floating_point T> inline constexpr T sqrt2_v<T>      = 1.414213562373095048801688724209698;
-template <__floating_point T> inline constexpr T sqrt3_v<T>      = 1.732050807568877293527446341505872;
-template <__floating_point T> inline constexpr T inv_sqrt3_v<T>  = 0.577350269189625764509148780501957;
-template <__floating_point T> inline constexpr T egamma_v<T>     = 0.577215664901532860606512090082402;
-template <__floating_point T> inline constexpr T phi_v<T>        = 1.618033988749894848204586834365638;
+template <__floating_point T> inline constexpr T e_v<T>          = 2.718281828459045235360287471352662L;
+template <__floating_point T> inline constexpr T log2e_v<T>      = 1.442695040888963407359924681001892L;
+template <__floating_point T> inline constexpr T log10e_v<T>     = 0.434294481903251827651128918916605L;
+template <__floating_point T> inline constexpr T pi_v<T>         = 3.141592653589793238462643383279502L;
+template <__floating_point T> inline constexpr T inv_pi_v<T>     = 0.318309886183790671537767526745028L;
+template <__floating_point T> inline constexpr T inv_sqrtpi_v<T> = 0.564189583547756286948079451560772L;
+template <__floating_point T> inline constexpr T ln2_v<T>        = 0.693147180559945309417232121458176L;
+template <__floating_point T> inline constexpr T ln10_v<T>       = 2.302585092994045684017991454684364L;
+template <__floating_point T> inline constexpr T sqrt2_v<T>      = 1.414213562373095048801688724209698L;
+template <__floating_point T> inline constexpr T sqrt3_v<T>      = 1.732050807568877293527446341505872L;
+template <__floating_point T> inline constexpr T inv_sqrt3_v<T>  = 0.577350269189625764509148780501957L;
+template <__floating_point T> inline constexpr T egamma_v<T>     = 0.577215664901532860606512090082402L;
+template <__floating_point T> inline constexpr T phi_v<T>        = 1.618033988749894848204586834365638L;
 
 inline constexpr double e          = e_v<double>;
 inline constexpr double log2e      = log2e_v<double>;
