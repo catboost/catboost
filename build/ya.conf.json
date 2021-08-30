@@ -459,6 +459,9 @@
         },
         "eductl": {
             "description": "eductl is a toolchain of Yandex Education"
+        },
+        "bb_requester": {
+            "description": "utility to get user info"
         }
     },
     "toolchain": {
@@ -7326,6 +7329,28 @@
                     "default": true
                 }
             ]
+        },
+        "bb_requester": {
+            "tools": {
+                "bb_requester": {
+                    "bottle": "bb_requester",
+                    "executable": "bb_requester"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
         }
     },
     "bottles": {
@@ -9950,6 +9975,19 @@
             "executable": {
                 "eductl": [
                     "eductl"
+                ]
+            }
+        },
+        "bb_requester": {
+            "formula": {
+                "sandbox_id": [
+                    1060379091
+                ],
+                "match": "bb_requester"
+            },
+            "executable": {
+                "bb_requester": [
+                    "bb_requester"
                 ]
             }
         }
