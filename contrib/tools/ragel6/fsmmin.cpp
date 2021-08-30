@@ -474,7 +474,7 @@ bool FsmAp::minimizeRound()
  *
  * Repeatedly tries to find states with transitions out to the same set of
  * states on the same set of keys until no more identical states can be found.
- * Does not produce the most minimal FSM possible.
+ * Does not produce the most minimial FSM possible.
  */
 void FsmAp::minimizeApproximate()
 {

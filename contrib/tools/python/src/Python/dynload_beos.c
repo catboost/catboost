@@ -33,7 +33,7 @@ static PyObject *beos_dyn_images = NULL;
  * Python Dictionary object to store the images_ids so we can be very
  * nice and unload them when we exit.
  *
- * Note that this is thread-safe.  Probably irrelevant, because of losing
+ * Note that this is thread-safe.  Probably irrelevent, because of losing
  * systems... Python probably disables threads while loading modules.
  * Note the use of "probably"!  Better to be safe than sorry. [chrish]
  *
