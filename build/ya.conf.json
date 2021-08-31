@@ -8898,7 +8898,10 @@
         },
         "tmux": {
             "formula": {
-                "sandbox_id": 38325457,
+                "sandbox_id": [
+                    1060645774,
+                    38325494
+                ],
                 "match": "tmux"
             },
             "executable": {
