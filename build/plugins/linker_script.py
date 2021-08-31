@@ -9,4 +9,4 @@ def onlinker_script(unit, *args):
             unit.message(['error', "Invalid linker script extension: {}".format(arg)])
             return
 
-    unit.onsrcs(["GLOBAL"] + list(args))
+    unit.onglobal_srcs(list(args))
