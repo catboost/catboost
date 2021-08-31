@@ -1126,7 +1126,6 @@ migrations:
     - market/sre/services/cema-proxy/lib
     - market/sre/services/cema/lib
     - market/sre/services/cema/lib/classes
-    - market/sre/services/tablo-idm-licenser/lib
     - market/yamarec/yamarec/yamarec1
     - market/yamarec/yamarec/yamarec1/tasks
     - metrika/admin/brb/server/lib
