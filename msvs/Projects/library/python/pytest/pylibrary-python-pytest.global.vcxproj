@@ -218,8 +218,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\ipython\pycontrib-python-ipython.vcxproj">
       <Project>{9FAEC26D-0991-B9F6-A63C-ABE29C2D36E8}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\ipython_genutils\pyipython_genutils.vcxproj">
-      <Project>{F3D8796F-FB25-69B7-B508-C57691C7426F}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\ipython_genutils\pycontrib-python-ipython_genutils.vcxproj">
+      <Project>{2F9C4135-F22C-1226-4790-CC523EDFFDE1}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\more-itertools\pycontrib-python-more-itertools.vcxproj">
       <Project>{BC62290A-1F8B-7962-8C00-63BFE8DAE2A0}</Project>

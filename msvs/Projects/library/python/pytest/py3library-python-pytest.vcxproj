@@ -461,8 +461,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\ipython\py3contrib-python-ipython.vcxproj">
       <Project>{8DB7528B-B674-3B01-4DC6-B2FA0C3DD939}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\ipython_genutils\py3ipython_genutils.vcxproj">
-      <Project>{EF519C27-3D77-67EB-3821-7EF82C4DDB03}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\ipython_genutils\py3contrib-python-ipython_genutils.vcxproj">
+      <Project>{D90F8E56-A3A2-F22B-7C63-64841F4D85E1}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\jedi\py3jedi.vcxproj">
       <Project>{AF98D35C-6213-F443-EAEA-248AA9199493}</Project>
