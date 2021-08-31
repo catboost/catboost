@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{BC4D91C9-C19B-2A0E-DFF1-208C7DAF8DF8}</ProjectGUID>
+    <ProjectGUID>{C9DF8E9E-176D-7B05-AB85-AD3474E5F630}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>py3contrib-python-path.py.global</ProjectName>
+    <ProjectName>py3contrib-python-pickleshare.global</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>py3contrib-python-path.py.global</TargetName>
+    <TargetName>py3contrib-python-pickleshare.global</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\path.py\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\BC4D91C9-C19B-2A0E-DFF1-208C7DAF8DF8\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\pickleshare\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\C9DF8E9E-176D-7B05-AB85-AD3474E5F630\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,22 +78,22 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\path.py\222c2c81f94ef0ff45efaec000.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\path.py\32d626ac2d5600934483b73c35.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\path.py\c6f9c4f6d3227727980b7c6289.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pickleshare\762ef103d4c6d89afd916e3eb1.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pickleshare\c0b1f3b3f7540a1fd31ef2173f.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pickleshare\e2b669bf1757d7b9423d2d74e8.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\path.py
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pickleshare
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/path.py/222c2c81f94ef0ff45efaec000.cpp" "_5044d484bcb4218a583d8b561c=resfs/src/resfs/file/py/path.py" "_f15111bd88df4d9c24d2daac86=resfs/file/py/path.py" "_09a9ffff22a2c28bd37ced2c87=resfs/src/resfs/file/py/path.py.yapyc3" "_65e30c7d1b22c289dce518e295=resfs/file/py/path.py.yapyc3"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pickleshare/762ef103d4c6d89afd916e3eb1.cpp" "_91c302af298ea7aa91316f7868=resfs/src/resfs/file/py/pickleshare.py" "_aa3dc677dc58466920465fe33a=resfs/file/py/pickleshare.py" "_126f1e4851d5fb73ff40a95ede=resfs/src/resfs/file/py/pickleshare.py.yapyc3" "_b3d85c1c915fbd5bee9c7d7c3d=resfs/file/py/pickleshare.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\path.py
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pickleshare
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/path.py/32d626ac2d5600934483b73c35.cpp" "_88733aa3330b87b5f72333d8d6=py/namespace/d6fe1d0be6347b8ef2427fa629c04485/contrib/python/path.py"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pickleshare/c0b1f3b3f7540a1fd31ef2173f.cpp" "_ee3f8f9245efe7b211aee6d488=py/namespace/6b4fbaba54a9d869de64ca903ee51c4f/contrib/python/pickleshare"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\path.py
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pickleshare
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/path.py/c6f9c4f6d3227727980b7c6289.cpp" "_5e81ebc8fdcf1523aefde8121a=resfs/src/resfs/file/contrib/python/path.py/.dist-info/METADATA" "_71973475a96daa6f69a3283bd4=resfs/file/contrib/python/path.py/.dist-info/METADATA" "_cd8e3abb5097d3b666d33e3f5b=resfs/src/resfs/file/contrib/python/path.py/.dist-info/top_level.txt" "_892cdfe377fbef58baff66c4af=resfs/file/contrib/python/path.py/.dist-info/top_level.txt"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pickleshare/e2b669bf1757d7b9423d2d74e8.cpp" "_c018f70e304717d481c21667a7=resfs/src/resfs/file/contrib/python/pickleshare/.dist-info/METADATA" "_e20945809dad1f46d6e334b86b=resfs/file/contrib/python/pickleshare/.dist-info/METADATA" "_7b9a8b8e0d1c6ada76cb4234ec=resfs/src/resfs/file/contrib/python/pickleshare/.dist-info/top_level.txt" "_8a1275052b32037dc2c62c5927=resfs/file/contrib/python/pickleshare/.dist-info/top_level.txt"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -102,17 +102,17 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\path.py
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pickleshare
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/path.py/222c2c81f94ef0ff45efaec000.cpp" "_5044d484bcb4218a583d8b561c=resfs/src/resfs/file/py/path.py" "_f15111bd88df4d9c24d2daac86=resfs/file/py/path.py" "_09a9ffff22a2c28bd37ced2c87=resfs/src/resfs/file/py/path.py.yapyc3" "_65e30c7d1b22c289dce518e295=resfs/file/py/path.py.yapyc3"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pickleshare/762ef103d4c6d89afd916e3eb1.cpp" "_91c302af298ea7aa91316f7868=resfs/src/resfs/file/py/pickleshare.py" "_aa3dc677dc58466920465fe33a=resfs/file/py/pickleshare.py" "_126f1e4851d5fb73ff40a95ede=resfs/src/resfs/file/py/pickleshare.py.yapyc3" "_b3d85c1c915fbd5bee9c7d7c3d=resfs/file/py/pickleshare.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\path.py
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pickleshare
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/path.py/32d626ac2d5600934483b73c35.cpp" "_88733aa3330b87b5f72333d8d6=py/namespace/d6fe1d0be6347b8ef2427fa629c04485/contrib/python/path.py"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pickleshare/c0b1f3b3f7540a1fd31ef2173f.cpp" "_ee3f8f9245efe7b211aee6d488=py/namespace/6b4fbaba54a9d869de64ca903ee51c4f/contrib/python/pickleshare"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\path.py
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pickleshare
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/path.py/c6f9c4f6d3227727980b7c6289.cpp" "_5e81ebc8fdcf1523aefde8121a=resfs/src/resfs/file/contrib/python/path.py/.dist-info/METADATA" "_71973475a96daa6f69a3283bd4=resfs/file/contrib/python/path.py/.dist-info/METADATA" "_cd8e3abb5097d3b666d33e3f5b=resfs/src/resfs/file/contrib/python/path.py/.dist-info/top_level.txt" "_892cdfe377fbef58baff66c4af=resfs/file/contrib/python/path.py/.dist-info/top_level.txt"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pickleshare/e2b669bf1757d7b9423d2d74e8.cpp" "_c018f70e304717d481c21667a7=resfs/src/resfs/file/contrib/python/pickleshare/.dist-info/METADATA" "_e20945809dad1f46d6e334b86b=resfs/file/contrib/python/pickleshare/.dist-info/METADATA" "_7b9a8b8e0d1c6ada76cb4234ec=resfs/src/resfs/file/contrib/python/pickleshare/.dist-info/top_level.txt" "_8a1275052b32037dc2c62c5927=resfs/file/contrib/python/pickleshare/.dist-info/top_level.txt"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -120,9 +120,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/path.py/222c2c81f94ef0ff45efaec000.cpp	$B/contrib/python/path.py/32d626ac2d5600934483b73c35.cpp	$B/contrib/python/path.py/c6f9c4f6d3227727980b7c6289.cpp	</Message>
+      <Message>$B/contrib/python/pickleshare/762ef103d4c6d89afd916e3eb1.cpp	$B/contrib/python/pickleshare/c0b1f3b3f7540a1fd31ef2173f.cpp	$B/contrib/python/pickleshare/e2b669bf1757d7b9423d2d74e8.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\path.py\222c2c81f94ef0ff45efaec000.cpp;$(SolutionDir)$(Configuration)\contrib\python\path.py\32d626ac2d5600934483b73c35.cpp;$(SolutionDir)$(Configuration)\contrib\python\path.py\c6f9c4f6d3227727980b7c6289.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pickleshare\762ef103d4c6d89afd916e3eb1.cpp;$(SolutionDir)$(Configuration)\contrib\python\pickleshare\c0b1f3b3f7540a1fd31ef2173f.cpp;$(SolutionDir)$(Configuration)\contrib\python\pickleshare\e2b669bf1757d7b9423d2d74e8.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

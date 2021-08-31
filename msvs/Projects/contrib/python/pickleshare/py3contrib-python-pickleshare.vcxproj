@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{758A6619-BD09-841D-84C9-9F13BA30F974}</ProjectGUID>
+    <ProjectGUID>{5135ADBD-B3FA-8F19-B851-2EE2D4BDDCFB}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>py3contrib-python-path.py</ProjectName>
+    <ProjectName>py3contrib-python-pickleshare</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>py3contrib-python-path.py</TargetName>
+    <TargetName>py3contrib-python-pickleshare</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\path.py\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\758A6619-BD09-841D-84C9-9F13BA30F974\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\pickleshare\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\5135ADBD-B3FA-8F19-B851-2EE2D4BDDCFB\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,11 +78,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\path.py\_222c2c81f94ef0ff45efaec000.yasm">
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pickleshare\_762ef103d4c6d89afd916e3eb1.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\path.py
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pickleshare
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/path.py/_222c2c81f94ef0ff45efaec000.py3.obj" "$(SolutionDir)$(Configuration)/contrib/python/path.py/_222c2c81f94ef0ff45efaec000.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/pickleshare/_762ef103d4c6d89afd916e3eb1.py3.obj" "$(SolutionDir)$(Configuration)/contrib/python/pickleshare/_762ef103d4c6d89afd916e3eb1.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -91,9 +91,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\path.py
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pickleshare
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/path.py/_222c2c81f94ef0ff45efaec000.py3.obj" "$(SolutionDir)$(Configuration)/contrib/python/path.py/_222c2c81f94ef0ff45efaec000.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/pickleshare/_762ef103d4c6d89afd916e3eb1.py3.obj" "$(SolutionDir)$(Configuration)/contrib/python/pickleshare/_762ef103d4c6d89afd916e3eb1.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -101,15 +101,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/path.py/_222c2c81f94ef0ff45efaec000.py3.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\path.py\_222c2c81f94ef0ff45efaec000.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\path.py\_222c2c81f94ef0ff45efaec000.py3.obj;</Outputs>
+      <Message>$B/contrib/python/pickleshare/_762ef103d4c6d89afd916e3eb1.py3.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pickleshare\_762ef103d4c6d89afd916e3eb1.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pickleshare\_762ef103d4c6d89afd916e3eb1.py3.obj;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\path.py\_32d626ac2d5600934483b73c35.yasm">
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pickleshare\_c0b1f3b3f7540a1fd31ef2173f.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\path.py
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pickleshare
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/path.py/_32d626ac2d5600934483b73c35.py3.obj" "$(SolutionDir)$(Configuration)/contrib/python/path.py/_32d626ac2d5600934483b73c35.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/pickleshare/_c0b1f3b3f7540a1fd31ef2173f.py3.obj" "$(SolutionDir)$(Configuration)/contrib/python/pickleshare/_c0b1f3b3f7540a1fd31ef2173f.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -118,9 +118,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\path.py
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pickleshare
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/path.py/_32d626ac2d5600934483b73c35.py3.obj" "$(SolutionDir)$(Configuration)/contrib/python/path.py/_32d626ac2d5600934483b73c35.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/pickleshare/_c0b1f3b3f7540a1fd31ef2173f.py3.obj" "$(SolutionDir)$(Configuration)/contrib/python/pickleshare/_c0b1f3b3f7540a1fd31ef2173f.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -128,15 +128,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/path.py/_32d626ac2d5600934483b73c35.py3.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\path.py\_32d626ac2d5600934483b73c35.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\path.py\_32d626ac2d5600934483b73c35.py3.obj;</Outputs>
+      <Message>$B/contrib/python/pickleshare/_c0b1f3b3f7540a1fd31ef2173f.py3.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pickleshare\_c0b1f3b3f7540a1fd31ef2173f.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pickleshare\_c0b1f3b3f7540a1fd31ef2173f.py3.obj;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\path.py\_c6f9c4f6d3227727980b7c6289.yasm">
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pickleshare\_e2b669bf1757d7b9423d2d74e8.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\path.py
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pickleshare
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/path.py/_c6f9c4f6d3227727980b7c6289.py3.obj" "$(SolutionDir)$(Configuration)/contrib/python/path.py/_c6f9c4f6d3227727980b7c6289.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/pickleshare/_e2b669bf1757d7b9423d2d74e8.py3.obj" "$(SolutionDir)$(Configuration)/contrib/python/pickleshare/_e2b669bf1757d7b9423d2d74e8.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -145,9 +145,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\path.py
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pickleshare
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/path.py/_c6f9c4f6d3227727980b7c6289.py3.obj" "$(SolutionDir)$(Configuration)/contrib/python/path.py/_c6f9c4f6d3227727980b7c6289.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/pickleshare/_e2b669bf1757d7b9423d2d74e8.py3.obj" "$(SolutionDir)$(Configuration)/contrib/python/pickleshare/_e2b669bf1757d7b9423d2d74e8.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -155,15 +155,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/path.py/_c6f9c4f6d3227727980b7c6289.py3.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\path.py\_c6f9c4f6d3227727980b7c6289.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\path.py\_c6f9c4f6d3227727980b7c6289.py3.obj;</Outputs>
+      <Message>$B/contrib/python/pickleshare/_e2b669bf1757d7b9423d2d74e8.py3.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pickleshare\_e2b669bf1757d7b9423d2d74e8.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pickleshare\_e2b669bf1757d7b9423d2d74e8.py3.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\path.py
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pickleshare
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/path.py/_32d626ac2d5600934483b73c35.yasm" "-" "." "_88733aa3330b87b5f72333d8d6.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pickleshare/_c0b1f3b3f7540a1fd31ef2173f.yasm" "-" "." "_ee3f8f9245efe7b211aee6d488.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -172,9 +172,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\path.py
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pickleshare
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/path.py/_32d626ac2d5600934483b73c35.yasm" "-" "." "_88733aa3330b87b5f72333d8d6.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pickleshare/_c0b1f3b3f7540a1fd31ef2173f.yasm" "-" "." "_ee3f8f9245efe7b211aee6d488.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -182,15 +182,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/path.py/_32d626ac2d5600934483b73c35.yasm	</Message>
+      <Message>$B/contrib/python/pickleshare/_c0b1f3b3f7540a1fd31ef2173f.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\path.py\_32d626ac2d5600934483b73c35.yasm;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pickleshare\_c0b1f3b3f7540a1fd31ef2173f.yasm;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\path.py\.dist-info\METADATA">
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\pickleshare\.dist-info\METADATA">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\path.py
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pickleshare
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/path.py/_c6f9c4f6d3227727980b7c6289.yasm" "-" "contrib/python/path.py/.dist-info/METADATA" "_5e81ebc8fdcf1523aefde8121a.rodata" "$(SolutionDir)../contrib/python/path.py/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/path.py/_71973475a96daa6f69a3283bd4.rodata" "-" "contrib/python/path.py/.dist-info/top_level.txt" "_cd8e3abb5097d3b666d33e3f5b.rodata" "$(SolutionDir)../contrib/python/path.py/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/path.py/_892cdfe377fbef58baff66c4af.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pickleshare/_e2b669bf1757d7b9423d2d74e8.yasm" "-" "contrib/python/pickleshare/.dist-info/METADATA" "_c018f70e304717d481c21667a7.rodata" "$(SolutionDir)../contrib/python/pickleshare/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/pickleshare/_e20945809dad1f46d6e334b86b.rodata" "-" "contrib/python/pickleshare/.dist-info/top_level.txt" "_7b9a8b8e0d1c6ada76cb4234ec.rodata" "$(SolutionDir)../contrib/python/pickleshare/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/pickleshare/_8a1275052b32037dc2c62c5927.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -199,9 +199,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\path.py
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pickleshare
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/path.py/_c6f9c4f6d3227727980b7c6289.yasm" "-" "contrib/python/path.py/.dist-info/METADATA" "_5e81ebc8fdcf1523aefde8121a.rodata" "$(SolutionDir)../contrib/python/path.py/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/path.py/_71973475a96daa6f69a3283bd4.rodata" "-" "contrib/python/path.py/.dist-info/top_level.txt" "_cd8e3abb5097d3b666d33e3f5b.rodata" "$(SolutionDir)../contrib/python/path.py/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/path.py/_892cdfe377fbef58baff66c4af.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pickleshare/_e2b669bf1757d7b9423d2d74e8.yasm" "-" "contrib/python/pickleshare/.dist-info/METADATA" "_c018f70e304717d481c21667a7.rodata" "$(SolutionDir)../contrib/python/pickleshare/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/pickleshare/_e20945809dad1f46d6e334b86b.rodata" "-" "contrib/python/pickleshare/.dist-info/top_level.txt" "_7b9a8b8e0d1c6ada76cb4234ec.rodata" "$(SolutionDir)../contrib/python/pickleshare/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/pickleshare/_8a1275052b32037dc2c62c5927.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -209,21 +209,21 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/path.py/_c6f9c4f6d3227727980b7c6289.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\path.py\.dist-info\METADATA;$(SolutionDir)..\contrib\python\path.py\.dist-info\top_level.txt;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\path.py\_c6f9c4f6d3227727980b7c6289.yasm;$(SolutionDir)$(Configuration)\contrib\python\path.py\_71973475a96daa6f69a3283bd4.rodata;$(SolutionDir)$(Configuration)\contrib\python\path.py\_892cdfe377fbef58baff66c4af.rodata;</Outputs>
+      <Message>$B/contrib/python/pickleshare/_e2b669bf1757d7b9423d2d74e8.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\pickleshare\.dist-info\METADATA;$(SolutionDir)..\contrib\python\pickleshare\.dist-info\top_level.txt;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pickleshare\_e2b669bf1757d7b9423d2d74e8.yasm;$(SolutionDir)$(Configuration)\contrib\python\pickleshare\_e20945809dad1f46d6e334b86b.rodata;$(SolutionDir)$(Configuration)\contrib\python\pickleshare\_8a1275052b32037dc2c62c5927.rodata;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\path.py\path.py">
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\pickleshare\pickleshare.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\path.py
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pickleshare
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/path.py/_222c2c81f94ef0ff45efaec000.yasm" "-" "contrib/python/path.py/path.py" "_5044d484bcb4218a583d8b561c.rodata" "$(SolutionDir)../contrib/python/path.py/path.py" "$(SolutionDir)$(Configuration)/contrib/python/path.py/_f15111bd88df4d9c24d2daac86.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/path.py/path.py.yapyc3" "_09a9ffff22a2c28bd37ced2c87.rodata" "$(SolutionDir)$(Configuration)/contrib/python/path.py/path.py.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/path.py/_65e30c7d1b22c289dce518e295.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pickleshare/_762ef103d4c6d89afd916e3eb1.yasm" "-" "contrib/python/pickleshare/pickleshare.py" "_91c302af298ea7aa91316f7868.rodata" "$(SolutionDir)../contrib/python/pickleshare/pickleshare.py" "$(SolutionDir)$(Configuration)/contrib/python/pickleshare/_aa3dc677dc58466920465fe33a.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/pickleshare/pickleshare.py.yapyc3" "_126f1e4851d5fb73ff40a95ede.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pickleshare/pickleshare.py.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/pickleshare/_b3d85c1c915fbd5bee9c7d7c3d.rodata"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\path.py
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pickleshare
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/path.py/path.py-" "$(SolutionDir)../contrib/python/path.py/path.py" "$(SolutionDir)$(Configuration)/contrib/python/path.py/path.py.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/pickleshare/pickleshare.py-" "$(SolutionDir)../contrib/python/pickleshare/pickleshare.py" "$(SolutionDir)$(Configuration)/contrib/python/pickleshare/pickleshare.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -232,15 +232,15 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\path.py
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pickleshare
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/path.py/_222c2c81f94ef0ff45efaec000.yasm" "-" "contrib/python/path.py/path.py" "_5044d484bcb4218a583d8b561c.rodata" "$(SolutionDir)../contrib/python/path.py/path.py" "$(SolutionDir)$(Configuration)/contrib/python/path.py/_f15111bd88df4d9c24d2daac86.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/path.py/path.py.yapyc3" "_09a9ffff22a2c28bd37ced2c87.rodata" "$(SolutionDir)$(Configuration)/contrib/python/path.py/path.py.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/path.py/_65e30c7d1b22c289dce518e295.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pickleshare/_762ef103d4c6d89afd916e3eb1.yasm" "-" "contrib/python/pickleshare/pickleshare.py" "_91c302af298ea7aa91316f7868.rodata" "$(SolutionDir)../contrib/python/pickleshare/pickleshare.py" "$(SolutionDir)$(Configuration)/contrib/python/pickleshare/_aa3dc677dc58466920465fe33a.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/pickleshare/pickleshare.py.yapyc3" "_126f1e4851d5fb73ff40a95ede.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pickleshare/pickleshare.py.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/pickleshare/_b3d85c1c915fbd5bee9c7d7c3d.rodata"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\path.py
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pickleshare
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/path.py/path.py-" "$(SolutionDir)../contrib/python/path.py/path.py" "$(SolutionDir)$(Configuration)/contrib/python/path.py/path.py.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/pickleshare/pickleshare.py-" "$(SolutionDir)../contrib/python/pickleshare/pickleshare.py" "$(SolutionDir)$(Configuration)/contrib/python/pickleshare/pickleshare.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -248,9 +248,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/path.py/_222c2c81f94ef0ff45efaec000.yasm	$B/contrib/python/path.py/path.py.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\path.py\path.py;$(SolutionDir)$(Configuration)\contrib\python\path.py\path.py.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\path.py\_222c2c81f94ef0ff45efaec000.yasm;$(SolutionDir)$(Configuration)\contrib\python\path.py\_f15111bd88df4d9c24d2daac86.rodata;$(SolutionDir)$(Configuration)\contrib\python\path.py\_65e30c7d1b22c289dce518e295.rodata;$(SolutionDir)$(Configuration)\contrib\python\path.py\path.py.yapyc3;</Outputs>
+      <Message>$B/contrib/python/pickleshare/_762ef103d4c6d89afd916e3eb1.yasm	$B/contrib/python/pickleshare/pickleshare.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\pickleshare\pickleshare.py;$(SolutionDir)$(Configuration)\contrib\python\pickleshare\pickleshare.py.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pickleshare\_762ef103d4c6d89afd916e3eb1.yasm;$(SolutionDir)$(Configuration)\contrib\python\pickleshare\_aa3dc677dc58466920465fe33a.rodata;$(SolutionDir)$(Configuration)\contrib\python\pickleshare\_b3d85c1c915fbd5bee9c7d7c3d.rodata;$(SolutionDir)$(Configuration)\contrib\python\pickleshare\pickleshare.py.yapyc3;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
