@@ -460,11 +460,184 @@
         "eductl": {
             "description": "eductl is a toolchain of Yandex Education"
         },
-        "bb_requester": {
+        "bigb-request": {
             "description": "utility to get user info"
+        },
+        "bigb-hitlog_analyser": {
+            "description": "bigb utility"
+        },
+        "bigb-bsyeti_experiments": {
+            "description": "bigb utility"
+        },
+        "bigb-buzzard_cluster_analyzer": {
+            "description": "bigb utility"
+        },
+        "bigb-yt_profiles_dumper": {
+            "description": "bigb utility"
+        },
+        "bigb-ab": {
+            "description": "bigb utility"
         }
     },
     "toolchain": {
+        "bigb": {
+            "tools": {
+                "bb_requester": {
+                    "bottle": "bb_requester",
+                    "executable": "bb_requester"
+                },
+                "hitlog_analyser": {
+                    "bottle": "",
+                    "executable": ""
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
+        "bigb-request": {
+            "tools": {
+                "bb_requester": {
+                    "bottle": "bb_requester",
+                    "executable": "bb_requester"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
+        "bigb-hitlog_analyser": {
+            "tools": {
+                "hitlog_analyser": {
+                    "bottle": "hitlog_analyser",
+                    "executable": "hitlog_analyser"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
+        "bigb-bsyeti_experiments": {
+            "tools": {
+                "bb_requester": {
+                    "bottle": "bsyeti_experiments",
+                    "executable": "bsyeti_experiments"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
+        "bigb-buzzard_cluster_analyzer": {
+            "tools": {
+                "bb_requester": {
+                    "bottle": "buzzard_cluster_analyzer",
+                    "executable": "buzzard_cluster_analyzer"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
+        "bigb-yt_profiles_dumper": {
+            "tools": {
+                "bb_requester": {
+                    "bottle": "yt_profiles_dumper",
+                    "executable": "yt_profiles_dumper"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
+        "bigb-ab": {
+            "tools": {
+                "bb_requester": {
+                    "bottle": "ab",
+                    "executable": "ab"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "msvc2019-i686": {
             "name": "msvc2019",
             "tools": {
@@ -7329,28 +7502,6 @@
                     "default": true
                 }
             ]
-        },
-        "bb_requester": {
-            "tools": {
-                "bb_requester": {
-                    "bottle": "bb_requester",
-                    "executable": "bb_requester"
-                }
-            },
-            "platforms": [
-                {
-                    "host": {
-                        "os": "LINUX"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
-                        "os": "DARWIN"
-                    },
-                    "default": true
-                }
-            ]
         }
     },
     "bottles": {
@@ -7370,7 +7521,9 @@
         },
         "ymake": {
             "formula": {
-                "sandbox_id": [1060814888],
+                "sandbox_id": [
+                    1060814888
+                ],
                 "match": "ymake"
             },
             "executable": {
@@ -9989,6 +10142,71 @@
             "executable": {
                 "bb_requester": [
                     "bb_requester"
+                ]
+            }
+        },
+        "hitlog_analyser": {
+            "formula": {
+                "sandbox_id": [
+                    1062207871
+                ],
+                "match": "bb_requester"
+            },
+            "executable": {
+                "hitlog_analyser": [
+                    "hitlog_analyser"
+                ]
+            }
+        },
+        "bsyeti_experiments": {
+            "formula": {
+                "sandbox_id": [
+                    1062269140
+                ],
+                "match": "bb_requester"
+            },
+            "executable": {
+                "bsyeti_experiments": [
+                    "bsyeti_experiments"
+                ]
+            }
+        },
+        "buzzard_cluster_analyzer": {
+            "formula": {
+                "sandbox_id": [
+                    1062269123
+                ],
+                "match": "buzzard_cluster_analyzer"
+            },
+            "executable": {
+                "buzzard_cluster_analyzer": [
+                    "buzzard_cluster_analyzer"
+                ]
+            }
+        },
+        "yt_profiles_dumper": {
+            "formula": {
+                "sandbox_id": [
+                    1062269098
+                ],
+                "match": "yt_profiles_dumper"
+            },
+            "executable": {
+                "yt_profiles_dumper": [
+                    "yt_profiles_dumper"
+                ]
+            }
+        },
+        "ab": {
+            "formula": {
+                "sandbox_id": [
+                    1062269065
+                ],
+                "match": "ab"
+            },
+            "executable": {
+                "ab": [
+                    "ab"
                 ]
             }
         }
