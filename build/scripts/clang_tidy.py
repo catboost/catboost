@@ -26,7 +26,7 @@ def generate_compilation_database(clang_cmd, source_root, filename, path):
     compile_database = [
         {
             "file": filename,
-            "command": " ".join(clang_cmd),
+            "command": subprocess.list2cmdline(clang_cmd),
             "directory": source_root,
         }
     ]
