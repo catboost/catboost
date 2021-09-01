@@ -33,9 +33,11 @@ The generated rST syntax looks like this::
     Cross reference like this: :configtrait:`Application.log_datefmt`.
 """
 from traitlets import Undefined
+from traitlets.utils.text import indent
 from collections import defaultdict
 
-from ipython_genutils.text import indent, dedent
+from textwrap import indent as _indent, dedent
+
 
 def setup(app):
     """Registers the Sphinx extension.
@@ -76,16 +78,17 @@ def class_config_rst_doc(cls, trait_aliases):
                   ''
                  ]
 
-        help = trait.help.rstrip() or 'No description'
-        lines.append(indent(dedent(help), 4) + '\n')
+        help = trait.help.rstrip() or "No description"
+        lines.append(indent(dedent(help)) + "\n")
 
         # Choices or type
         if 'Enum' in ttype:
             # include Enum choices
-            lines.append(indent(
-                ':options: ' + ', '.join('``%r``' % x for x in trait.values), 4))
+            lines.append(
+                indent(":options: " + ", ".join("``%r``" % x for x in trait.values))
+            )
         else:
-            lines.append(indent(':trait type: ' + ttype, 4))
+            lines.append(indent(":trait type: " + ttype))
 
         # Default value
         # Ignore boring default values like None, [] or ''
@@ -98,13 +101,13 @@ def class_config_rst_doc(cls, trait_aliases):
                 if len(dvr) > 64:
                     dvr = dvr[:61] + '...'
                 # Double up backslashes, so they get to the rendered docs
-                dvr = dvr.replace('\\n', '\\\\n')
-                lines.append(indent(':default: ``%s``' % dvr, 4))
+                dvr = dvr.replace("\\n", "\\\\n")
+                lines.append(indent(":default: ``%s``" % dvr))
 
         # Command line aliases
         if trait_aliases[fullname]:
             fmt_aliases = format_aliases(trait_aliases[fullname])
-            lines.append(indent(':CLI option: ' + fmt_aliases, 4))
+            lines.append(indent(":CLI option: " + fmt_aliases))
 
         # Blank line
         lines.append('')

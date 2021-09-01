@@ -10,7 +10,7 @@
 import pickle
 import re
 import sys
-from traitlets.tests._warnings import expected_warnings
+from ._warnings import expected_warnings
 
 from unittest import TestCase
 import pytest

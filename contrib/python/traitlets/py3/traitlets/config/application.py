@@ -25,7 +25,8 @@ from traitlets.traitlets import (
 
 from ..utils.importstring import import_item
 from ..utils import cast_unicode
-from ipython_genutils.text import indent, wrap_paragraphs, dedent
+from traitlets.utils.text import indent, wrap_paragraphs
+from textwrap import dedent
 
 
 #-----------------------------------------------------------------------------
