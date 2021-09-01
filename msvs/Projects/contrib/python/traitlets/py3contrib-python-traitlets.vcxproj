@@ -129,9 +129,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd\contrib-libs-zstd.vcxproj">
       <Project>{0F7ECE1F-EE4E-A88C-12F5-7D1C49F1BC75}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\ipython_genutils\py3contrib-python-ipython_genutils.vcxproj">
-      <Project>{D90F8E56-A3A2-F22B-7C63-64841F4D85E1}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\traitlets\py3\pypython-traitlets-py3.vcxproj">
       <Project>{AAEB5EF2-D4CB-869A-7795-5C71A91644E8}</Project>
     </ProjectReference>
