@@ -398,18 +398,13 @@ public:
     {
     }
 
-    TBasicString(const TBasicString& s, size_t pos, size_t n)
+    TBasicString(const TBasicString& s, size_t pos, size_t n) Y_NOEXCEPT
 #ifdef TSTRING_IS_STD_STRING
         : Storage_(s.Storage_, pos, n)
+#else
+        : S_(Construct(s, pos, n))
 #endif
     {
-#ifdef TSTRING_IS_STD_STRING
-#else
-        size_t len = s.length();
-        pos = Min(pos, len);
-        n = Min(n, len - pos);
-        S_ = Construct(*s.S_, pos, n);
-#endif
     }
 
     TBasicString(const TCharType* pc)
@@ -1245,3 +1240,13 @@ namespace std {
 }
 
 #undef Y_NOEXCEPT
+
+template <class S>
+inline S LegacySubstr(const S& s, size_t pos, size_t n = S::npos) {
+    size_t len = s.length();
+
+    pos = Min(pos, len);
+    n = Min(n, len - pos);
+
+    return S(s, pos, n);
+}
