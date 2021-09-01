@@ -1735,7 +1735,6 @@ migrations:
     - ydo/server/apphost_source/lib/endpoints
     - ydo/tools/direct/make_ya_clients_export
     - yp/eviction_alerter/bin
-    - yp/eviction_alerter/libs
     - yp/scheduler_simulator/analysis/library
     - yql/library/test_framework
     - yweb/animals/admin_service/lib
@@ -3419,7 +3418,6 @@ migrations:
     - dict/tools/unicode_test/tests
     - dict/tools/untransliter/tests
     - dict/word2vec/tools/convert_model/tests
-    - dj/lib/processing/yt/impl/ut/run_test
     - dj/lib/shard2/yt_prepare/ut/run_test
     - dj/tools/rthub_profiles/profile_update_triggers/profile_update_trigger_rtmr/tests
     - entity/ontodb/robot/tests/integration
