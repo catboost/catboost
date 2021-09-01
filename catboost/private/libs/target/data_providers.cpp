@@ -494,7 +494,7 @@ namespace NCB {
                 << " loss/metrics require target data"
             );
         }
-        
+
         const bool needCheckTarget = !mainLossFunction || !IsRegressionObjective(mainLossFunction->GetLossFunction());
         //Accept nan in MultiRMSEWithMissingValues
         const bool allowNanTarget = !mainLossFunction || (mainLossFunction->GetLossFunction() == ELossFunction::MultiRMSEWithMissingValues);
@@ -535,7 +535,6 @@ namespace NCB {
                 rawData.GetTargetDimension() <= 1,
                 "Currently only multi-regression and survival objectives work with multidimensional target"
             );
-            
         }
 
         TMaybe<ui32> knownClassCount = inputClassificationInfo.KnownClassCount;
@@ -614,9 +613,9 @@ namespace NCB {
                     classCount
                 );
             }
-            PrepareTargetCompressed(**outputClassificationInfo->LabelConverter, &*maybeConvertedTarget[0]);
 
             if (!maybeConvertedTarget.empty()) {
+                PrepareTargetCompressed(**outputClassificationInfo->LabelConverter, &*maybeConvertedTarget[0]);
                 processedTargetData.TargetsClassCount.emplace("", (**outputClassificationInfo->LabelConverter).GetApproxDimension());
             }
         }
