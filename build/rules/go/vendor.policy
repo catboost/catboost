@@ -4,6 +4,9 @@
 
 ALLOW vendor/ -> .*
 
+# CONTRIB-2311 gossip discovery protocol implementation
+ALLOW .* -> vendor/github.com/hashicorp/memberlist
+
 # CONTRIB-2177 testing helpers for terraform
 ALLOW .* -> vendor/github.com/gruntwork-io/terratest/modules/terraform
 
