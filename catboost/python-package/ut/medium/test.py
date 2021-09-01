@@ -153,6 +153,7 @@ OUTPUT_ONNX_MODEL_PATH = 'model.onnx'
 OUTPUT_PMML_MODEL_PATH = 'model.pmml'
 PREDS_PATH = 'predictions.npy'
 PREDS_TXT_PATH = 'predictions.txt'
+CV_CSV_PATH = 'result.csv'
 FIMP_NPY_PATH = 'feature_importance.npy'
 FIMP_TXT_PATH = 'feature_importance.txt'
 OIMP_PATH = 'object_importances.txt'
@@ -3296,6 +3297,27 @@ def test_cv_with_cat_features_param(param_type):
     params_with_wrong_cat_features['cat_features'] = [0, 2] if param_type == 'indices' else ['feat0', 'feat2']
     with pytest.raises(CatBoostError):
         cv(pool, params_with_wrong_cat_features)
+
+
+def test_cv_with_text():
+    cats_words = ['Meow', 'Kitten', 'Paw', 'Tail', 'Purring', 'Crouch', 'Whisker']
+    dogs_words = ['Puppy', 'Whelp', 'Woof', 'Tail', 'Paw', 'Snarl', 'Barking']
+    words = [cats_words, dogs_words]
+    np.random.seed(1)
+    labels = np.random.choice(2, 1000)
+    texts = [[' '.join(np.random.choice(words[label], 3, replace=False))] for label in labels]
+    data_pool = Pool(data=texts, label=labels, text_features=[0])
+    params = {
+        'loss_function': 'Logloss',
+        'iterations': 10,
+        'random_seed': 42,
+        'learning_rate': 0.5
+    }
+    result = cv(iterations=10, pool=data_pool, params=params, fold_count=3).round(decimals=3)
+
+    preds_path = test_output_path(CV_CSV_PATH)
+    result.to_csv(preds_path)
+    return local_canonical_file(preds_path)
 
 
 def test_cv_with_save_snapshot(task_type):
@@ -7863,13 +7885,12 @@ def models_trained_on_raw_and_quantized_data_fixture(train_on_raw_and_quantized_
 
 
 def test_quantized_pool_cv(train_on_raw_and_quantized_data_params_fixture):
-    train_pool = train_on_raw_and_quantized_data_params_fixture['train_pool']
     train_quantized_pool = train_on_raw_and_quantized_data_params_fixture['train_quantized_pool']
     params = train_on_raw_and_quantized_data_params_fixture['params']
-
-    results = cv(train_pool, params)
-    results_with_quantized_pool = cv(train_quantized_pool, params)
-    assert results.equals(results_with_quantized_pool)
+    results_with_quantized_pool = cv(train_quantized_pool, params).round(decimals=4)
+    preds_path = test_output_path(CV_CSV_PATH)
+    results_with_quantized_pool.to_csv(preds_path)
+    return local_canonical_file(preds_path)
 
 
 def test_quantized_pool_train_predict(train_on_raw_and_quantized_data_params_fixture):

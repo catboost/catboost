@@ -747,7 +747,6 @@ namespace {
         );
         double bestParamsSetMetricValue = 0;
         // Other parameters
-        NCB::TTrainingDataProviderPtr quantizedData;
         TQuantizationParamsInfo lastQuantizationParamsSet;
         TLabelConverter labelConverter;
         int iterationIdx = 0;
@@ -801,28 +800,14 @@ namespace {
             TVector<TCVResult> cvResult;
             {
                 TSetLogging inThisScope(catBoostOptions.LoggingLevel);
-                QuantizeDataIfNeeded(
-                    outputFileOptions.AllowWriteFiles(),
-                    tmpDir,
-                    featuresLayout,
-                    quantizedFeaturesInfo,
-                    data,
-                    lastQuantizationParamsSet,
-                    quantizationParamsSet,
-                    &labelConverter,
-                    localExecutor,
-                    &rand,
-                    &catBoostOptions,
-                    &quantizedData
-                );
-
                 lastQuantizationParamsSet = quantizationParamsSet;
                 CrossValidate(
                     *modelParamsToBeTried,
+                    quantizedFeaturesInfo,
                     objectiveDescriptor,
                     evalMetricDescriptor,
                     labelConverter,
-                    quantizedData,
+                    data,
                     cvParams,
                     localExecutor,
                     &cvResult);
@@ -832,7 +817,7 @@ namespace {
                 catBoostOptions.MetricOptions,
                 evalMetricDescriptor,
                 approxDimension,
-                quantizedData->MetaInfo.HasWeights
+                data->MetaInfo.HasWeights
             );
             double bestMetricValue = cvResult[0].AverageTest.back(); //[testId][lossDescription]
             if (iterationIdx == 0) {
