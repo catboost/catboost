@@ -298,7 +298,7 @@ def on_fill_jar_copy_resources_cmd(unit, *args):
 def on_fill_jar_gen_srcs(unit, *args):
     varname, jar_type, srcdir, base_classes_dir, java_list, kt_list, groovy_list, res_list = tuple(args[0:8])
     resolved_srcdir = unit.resolve_arc_path(srcdir)
-    if resolved_srcdir.startswith('$S'):
+    if not resolved_srcdir.startswith('$') or resolved_srcdir.startswith('$S'):
         return
 
     exclude_pos = args.index('EXCLUDE')
