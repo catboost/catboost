@@ -1213,11 +1213,11 @@ Y_UNIT_TEST_SUITE(StdNonConformant) {
     Y_UNIT_TEST(TestReplaceNoThrow) {
         TString x;
 
-        x.replace(0, 0, "1");
+        LegacyReplace(x, 0, 0, "1");
 
         UNIT_ASSERT_VALUES_EQUAL(x, "1");
 
-        x.replace(10, 0, "1");
+        LegacyReplace(x, 10, 0, "1");
 
         UNIT_ASSERT_VALUES_EQUAL(x, "1");
     }
