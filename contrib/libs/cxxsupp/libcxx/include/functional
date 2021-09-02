@@ -2013,14 +2013,14 @@ struct __policy
     template <typename _Fun>
     _LIBCPP_INLINE_VISIBILITY static const __policy*
     __choose_policy(/* is_small = */ false_type) {
-        static const _LIBCPP_CONSTEXPR __policy __policy_ = {
-            &__large_clone<_Fun>, &__large_destroy<_Fun>, false,
+      static const _LIBCPP_CONSTEXPR __policy __policy_ = {
+          &__large_clone<_Fun>, &__large_destroy<_Fun>, false,
 #ifndef _LIBCPP_NO_RTTI
-            &typeid(typename _Fun::_Target)
+          &typeid(typename _Fun::_Target)
 #else
-            nullptr
+          nullptr
 #endif
-        };
+      };
         return &__policy_;
     }
 
@@ -2365,7 +2365,7 @@ class _LIBCPP_TEMPLATE_VIS function<_Rp(_ArgTypes...)>
             static const bool value = false;
         };
 
-  template<class _Fp>
+  template <class _Fp>
   using _EnableIfLValueCallable = typename enable_if<__callable<_Fp&>::value>::type;
 public:
     typedef _Rp result_type;
@@ -3206,11 +3206,11 @@ __libcpp_erase_if_container(_Container& __c, _Predicate __pred) {
 
   const typename _Container::iterator __last = __c.end();
   for (typename _Container::iterator __iter = __c.begin(); __iter != __last;) {
-        if (__pred(*__iter))
-            __iter = __c.erase(__iter);
-        else
-            ++__iter;
-    }
+    if (__pred(*__iter))
+      __iter = __c.erase(__iter);
+    else
+      ++__iter;
+  }
 
   return __old_size - __c.size();
 }

@@ -399,7 +399,7 @@ template <class C> constexpr auto size(const C& c) -> decltype(c.size());       
 template <class T, size_t N> constexpr size_t size(const T (&array)[N]) noexcept; // C++17
 
 template <class C> constexpr auto ssize(const C& c)
-    -> common_type_t<ptrdiff_t, make_signed_t<decltype(c.size())>>;                       // C++20
+    -> common_type_t<ptrdiff_t, make_signed_t<decltype(c.size())>>;				       // C++20
 template <class T, ptrdiff_t> constexpr ptrdiff_t ssize(const T (&array)[N]) noexcept; // C++20
 
 template <class C> constexpr auto empty(const C& c) -> decltype(c.empty());       // C++17
@@ -593,6 +593,7 @@ struct __is_cpp17_contiguous_iterator : public __has_iterator_category_convertib
 template <class _Tp>
 struct __is_cpp17_contiguous_iterator : public false_type {};
 #endif
+
 
 template <class _Tp>
 struct __is_exactly_cpp17_input_iterator
@@ -1057,9 +1058,9 @@ public:
 #endif
     typedef void                            pointer;
     typedef void                            reference;
-    typedef _CharT char_type;
-    typedef _Traits traits_type;
-    typedef basic_ostream<_CharT,_Traits> ostream_type;
+    typedef _CharT                          char_type;
+    typedef _Traits                         traits_type;
+    typedef basic_ostream<_CharT, _Traits>  ostream_type;
 
 private:
     ostream_type* __out_stream_;
@@ -1166,10 +1167,10 @@ public:
 #endif
     typedef void                                pointer;
     typedef void                                reference;
-    typedef _CharT                          char_type;
-    typedef _Traits                         traits_type;
-    typedef basic_streambuf<_CharT,_Traits> streambuf_type;
-    typedef basic_ostream<_CharT,_Traits>   ostream_type;
+    typedef _CharT                              char_type;
+    typedef _Traits                             traits_type;
+    typedef basic_streambuf<_CharT, _Traits>    streambuf_type;
+    typedef basic_ostream<_CharT, _Traits>      ostream_type;
 
 private:
     streambuf_type* __sbuf_;

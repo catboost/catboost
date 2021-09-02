@@ -553,10 +553,10 @@ template<class T, class Compare>
     min(initializer_list<T> t, Compare comp);
 
 template<class T>
-    constexpr const T& clamp( const T& v, const T& lo, const T& hi );               // C++17
+    constexpr const T& clamp(const T& v, const T& lo, const T& hi);               // C++17
 
 template<class T, class Compare>
-    constexpr const T& clamp( const T& v, const T& lo, const T& hi, Compare comp ); // C++17
+    constexpr const T& clamp(const T& v, const T& lo, const T& hi, Compare comp); // C++17
 
 template <class ForwardIterator>
     constexpr ForwardIterator        // constexpr in C++14
@@ -820,7 +820,7 @@ struct __debug_less
     void __do_compare_assert(long, _LHS &, _RHS &) {}
 };
 
-#endif  // _LIBCPP_DEBUG
+#endif // _LIBCPP_DEBUG
 
 template <class _Comp>
 struct __comp_ref_type {
@@ -2101,7 +2101,7 @@ generate(_ForwardIterator __first, _ForwardIterator __last, _Generator __gen)
 // generate_n
 
 template <class _OutputIterator, class _Size, class _Generator>
-inline _LIBCPP_INLINE_VISIBILITY  _LIBCPP_CONSTEXPR_AFTER_CXX17
+inline _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX17
 _OutputIterator
 generate_n(_OutputIterator __first, _Size __orig_n, _Generator __gen)
 {
@@ -3169,10 +3169,10 @@ _SampleIterator __sample(_PopulationIterator __first,
                          input_iterator_tag) {
 
   _Distance __k = 0;
-  for (; __first != __last && __k < __n; ++__first, (void)++__k)
+  for (; __first != __last && __k < __n; ++__first, (void) ++__k)
     __output_iter[__k] = *__first;
   _Distance __sz = __k;
-  for (; __first != __last; ++__first, (void)++__k) {
+  for (; __first != __last; ++__first, (void) ++__k) {
     _Distance __r = _VSTD::uniform_int_distribution<_Distance>(0, __k)(__g);
     if (__r < __sz)
       __output_iter[__r] = *__first;
@@ -4493,7 +4493,7 @@ __buffered_inplace_merge(_BidirectionalIterator __first, _BidirectionalIterator 
         typedef reverse_iterator<_BidirectionalIterator> _RBi;
         typedef reverse_iterator<value_type*> _Rv;
         _VSTD::__half_inplace_merge(_Rv(__p), _Rv(__buff),
-                             _RBi(__middle), _RBi(__first),
+                                    _RBi(__middle), _RBi(__first),
                                     _RBi(__last), _VSTD::__invert<_Compare>(__comp));
     }
 }
@@ -4777,10 +4777,10 @@ __stable_sort(_RandomAccessIterator __first, _RandomAccessIterator __last, _Comp
         __d.__set(__len, (value_type*)nullptr);
         _VSTD::__merge_move_assign<_Compare>(__buff, __buff + __l2, __buff + __l2, __buff + __len, __first, __comp);
 //         _VSTD::__merge<_Compare>(move_iterator<value_type*>(__buff),
-//                           move_iterator<value_type*>(__buff + __l2),
-//                           move_iterator<_RandomAccessIterator>(__buff + __l2),
-//                           move_iterator<_RandomAccessIterator>(__buff + __len),
-//                           __first, __comp);
+//                                  move_iterator<value_type*>(__buff + __l2),
+//                                  move_iterator<_RandomAccessIterator>(__buff + __l2),
+//                                  move_iterator<_RandomAccessIterator>(__buff + __len),
+//                                  __first, __comp);
         return;
     }
     _VSTD::__stable_sort<_Compare>(__first, __m, __comp, __l2, __buff, __buff_size);

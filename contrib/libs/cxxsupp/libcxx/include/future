@@ -625,10 +625,10 @@ protected:
 public:
 
     template <class _Arg>
-        void set_value(_Arg&& __arg);
+    void set_value(_Arg&& __arg);
 
     template <class _Arg>
-        void set_value_at_thread_exit(_Arg&& __arg);
+    void set_value_at_thread_exit(_Arg&& __arg);
 
     _Rp move();
     typename add_lvalue_reference<_Rp>::type copy();

@@ -49,7 +49,7 @@ size_t std::type_info::hash_code() const _NOEXCEPT {
 #if (!defined(LIBCXX_BUILDING_LIBCXXABI) &&               \
      !defined(LIBCXXRT) &&                                \
      !defined(__GLIBCXX__) &&                             \
-     !defined(_LIBCPP_ABI_VCRUNTIME)) ||   \
+     !defined(_LIBCPP_ABI_VCRUNTIME)) ||                  \
     defined(_LIBCPP_BUILDING_HAS_NO_ABI_LIBRARY)
 std::type_info::~type_info()
 {

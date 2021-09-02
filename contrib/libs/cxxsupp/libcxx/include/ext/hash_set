@@ -607,7 +607,7 @@ template <class _InputIterator>
 inline
 void
 hash_multiset<_Value, _Hash, _Pred, _Alloc>::insert(_InputIterator __first,
-                                                         _InputIterator __last)
+                                                    _InputIterator __last)
 {
     for (; __first != __last; ++__first)
         __table_.__insert_multi(*__first);

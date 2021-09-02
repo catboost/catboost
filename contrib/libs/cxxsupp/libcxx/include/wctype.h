@@ -54,7 +54,7 @@ wctrans_t wctrans(const char* property);
 #include _LIBCPP_UCRT_INCLUDE(wctype.h)
 #else
 #if __has_include_next(<wctype.h>)
-#include_next <wctype.h>
+#   include_next <wctype.h>
 #endif
 #endif
 

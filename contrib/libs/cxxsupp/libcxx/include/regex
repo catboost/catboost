@@ -171,14 +171,14 @@ public:
     // assign:
     basic_regex& assign(const basic_regex& that);
     basic_regex& assign(basic_regex&& that) noexcept;
-    basic_regex& assign(const charT* ptr, flag_type f = regex_constants::ECMAScript);
+    basic_regex& assign(const charT* ptr,           flag_type f = regex_constants::ECMAScript);
     basic_regex& assign(const charT* p, size_t len, flag_type f = regex_constants::ECMAScript);
     template <class string_traits, class A>
         basic_regex& assign(const basic_string<charT, string_traits, A>& s,
-                            flag_type f = regex_constants::ECMAScript);
+                                                    flag_type f = regex_constants::ECMAScript);
     template <class InputIterator>
         basic_regex& assign(InputIterator first, InputIterator last,
-                            flag_type f = regex_constants::ECMAScript);
+                                                    flag_type f = regex_constants::ECMAScript);
     basic_regex& assign(initializer_list<charT>,    flag_type f = regex_constants::ECMAScript);
 
     // const operations:
@@ -700,7 +700,7 @@ typedef regex_iterator<string::const_iterator>  sregex_iterator;
 typedef regex_iterator<wstring::const_iterator> wsregex_iterator;
 
 template <class BidirectionalIterator,
-          class charT = typename iterator_traits< BidirectionalIterator>::value_type,
+          class charT = typename iterator_traits<BidirectionalIterator>::value_type,
           class traits = regex_traits<charT>>
 class regex_token_iterator
 {

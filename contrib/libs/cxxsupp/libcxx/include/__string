@@ -648,7 +648,7 @@ struct _LIBCPP_TEMPLATE_VIS char_traits<char8_t>
             return __libcpp_is_constant_evaluated()
                        ? _VSTD::__copy_constexpr(__s1, __s2, __n)
                        : __n == 0 ? __s1 : (char_type*)_VSTD::memcpy(__s1, __s2, __n);
-       }
+        }
 
     static _LIBCPP_CONSTEXPR_AFTER_CXX17
     char_type*       assign(char_type* __s, size_t __n, char_type __a) _NOEXCEPT

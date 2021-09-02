@@ -273,7 +273,7 @@ struct __type_info_implementations {
     static bool __is_type_name_unique(__type_name_t __lhs, __type_name_t __rhs) _NOEXCEPT {
       return !((__lhs & __rhs) & __non_unique_rtti_bit::value);
     }
-};
+  };
 
   typedef
 #if _LIBCPP_TYPEINFO_COMPARISON_IMPLEMENTATION == 1
@@ -290,10 +290,10 @@ struct __type_info_implementations {
 
 class _LIBCPP_EXCEPTION_ABI type_info
 {
-    type_info& operator=(const type_info&);
-    type_info(const type_info&);
+  type_info& operator=(const type_info&);
+  type_info(const type_info&);
 
-protected:
+ protected:
     typedef __type_info_implementations::__impl __impl;
 
     __impl::__type_name_t __type_name;
@@ -348,10 +348,10 @@ public:
       return "std::bad_cast";
     }
 #else
-    bad_cast() _NOEXCEPT;
-    bad_cast(const bad_cast&) _NOEXCEPT = default;
-    virtual ~bad_cast() _NOEXCEPT;
-    virtual const char* what() const _NOEXCEPT;
+  bad_cast() _NOEXCEPT;
+  bad_cast(const bad_cast&) _NOEXCEPT = default;
+  virtual ~bad_cast() _NOEXCEPT;
+  virtual const char* what() const _NOEXCEPT;
 #endif
 };
 
@@ -367,9 +367,9 @@ public:
       return "std::bad_typeid";
     }
 #else
-    bad_typeid() _NOEXCEPT;
-    virtual ~bad_typeid() _NOEXCEPT;
-    virtual const char* what() const _NOEXCEPT;
+  bad_typeid() _NOEXCEPT;
+  virtual ~bad_typeid() _NOEXCEPT;
+  virtual const char* what() const _NOEXCEPT;
 #endif
 };
 

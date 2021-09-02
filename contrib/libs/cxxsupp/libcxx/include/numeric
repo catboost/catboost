@@ -367,7 +367,7 @@ _OutputIterator inclusive_scan(_InputIterator __first, _InputIterator __last,
     for (; __first != __last; ++__first, (void) ++__result) {
         __init = __b(__init, *__first);
         *__result = __init;
-        }
+    }
     return __result;
 }
 
@@ -381,7 +381,7 @@ _OutputIterator inclusive_scan(_InputIterator __first, _InputIterator __last,
         *__result++ = __init;
         if (++__first != __last)
             return _VSTD::inclusive_scan(__first, __last, __result, __b, __init);
-        }
+    }
 
     return __result;
 }
@@ -441,7 +441,7 @@ transform_inclusive_scan(_InputIterator __first, _InputIterator __last,
         *__result++ = __init;
         if (++__first != __last)
             return _VSTD::transform_inclusive_scan(__first, __last, __result, __b, __u, __init);
-        }
+    }
 
     return __result;
 }
@@ -512,9 +512,9 @@ struct __ct_abs<_Result, _Source, true> {
     _LIBCPP_CONSTEXPR _LIBCPP_INLINE_VISIBILITY
     _Result operator()(_Source __t) const noexcept
     {
-    if (__t >= 0) return __t;
-    if (__t == numeric_limits<_Source>::min()) return -static_cast<_Result>(__t);
-    return -__t;
+        if (__t >= 0) return __t;
+        if (__t == numeric_limits<_Source>::min()) return -static_cast<_Result>(__t);
+        return -__t;
     }
 };
 
@@ -613,8 +613,8 @@ _LIBCPP_INLINE_VISIBILITY constexpr
 enable_if_t<is_floating_point_v<_Fp>, _Fp>
 midpoint(_Fp __a, _Fp __b) noexcept
 {
-    constexpr _Fp __lo = numeric_limits<_Fp>::min()*2;
-    constexpr _Fp __hi = numeric_limits<_Fp>::max()/2;
+	constexpr _Fp __lo = numeric_limits<_Fp>::min()*2;
+	constexpr _Fp __hi = numeric_limits<_Fp>::max()/2;
     return __fp_abs(__a) <= __hi && __fp_abs(__b) <= __hi ?  // typical case: overflow is impossible
       (__a + __b)/2 :                                        // always correctly rounded
       __fp_abs(__a) < __lo ? __a + __b/2 :                   // not safe to halve a

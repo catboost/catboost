@@ -159,7 +159,7 @@ namespace std
     template <size_t Len, size_t Align = most_stringent_alignment_requirement>
         struct aligned_storage;
     template <size_t Len, class... Types> struct aligned_union;
-    template <class T> struct remove_cvref; // C++20, enabled for C++17 in Arcadia
+    template <class T> struct remove_cvref; // C++20
 
     template <class T> struct decay;
     template <class... T> struct common_type;
@@ -2954,7 +2954,7 @@ struct __is_constructible_helper
 template <class _Tp, bool = is_void<_Tp>::value>
 struct __is_default_constructible
     : decltype(__is_constructible_helper::__test_nary<_Tp>(0))
-    {};
+{};
 
 template <class _Tp>
 struct __is_default_constructible<_Tp, true> : false_type {};
@@ -2980,19 +2980,19 @@ struct __libcpp_is_constructible<_Tp> : __is_default_constructible<_Tp> {};
 template <class _Tp, class _A0>
 struct __libcpp_is_constructible<_Tp, _A0>
     : public decltype(__is_constructible_helper::__test_unary<_Tp, _A0>(0))
-    {};
+{};
 
 template <class _Tp, class _A0>
 struct __libcpp_is_constructible<_Tp&, _A0>
     : public decltype(__is_constructible_helper::
     __test_cast<_Tp&, _A0>(0))
-    {};
+{};
 
 template <class _Tp, class _A0>
 struct __libcpp_is_constructible<_Tp&&, _A0>
     : public decltype(__is_constructible_helper::
     __test_cast<_Tp&&, _A0>(0))
-    {};
+{};
 
 #endif
 
@@ -4278,7 +4278,7 @@ struct __can_extract_key
                   __extract_key_fail_tag>::type {};
 
 template <class _Pair, class _Key, class _First, class _Second>
-struct __can_extract_key<_Pair, _Key, pair<_First, _Second>>
+struct __can_extract_key<_Pair, _Key, pair<_First, _Second> >
     : conditional<_IsSame<typename remove_const<_First>::type, _Key>::value,
                   __extract_key_first_tag, __extract_key_fail_tag>::type {};
 

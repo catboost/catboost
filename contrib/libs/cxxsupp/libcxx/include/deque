@@ -2908,7 +2908,7 @@ deque<_Tp, _Allocator>::erase(const_iterator __f, const_iterator __l)
                 __alloc_traits::destroy(__a, _VSTD::addressof(*__b));
             __base::size() -= __n;
             __base::__start_ += __n;
-            while(__maybe_remove_front_spare()) {
+            while (__maybe_remove_front_spare()) {
             }
         }
         else
@@ -2917,7 +2917,7 @@ deque<_Tp, _Allocator>::erase(const_iterator __f, const_iterator __l)
             for (iterator __e = __base::end(); __i != __e; ++__i)
                 __alloc_traits::destroy(__a, _VSTD::addressof(*__i));
             __base::size() -= __n;
-            while(__maybe_remove_back_spare()) {
+            while (__maybe_remove_back_spare()) {
             }
         }
     }
@@ -2938,7 +2938,7 @@ deque<_Tp, _Allocator>::__erase_to_end(const_iterator __f)
         for (iterator __p = __b + __pos; __p != __e; ++__p)
             __alloc_traits::destroy(__a, _VSTD::addressof(*__p));
         __base::size() -= __n;
-        while(__maybe_remove_back_spare()) {
+        while (__maybe_remove_back_spare()) {
         }
     }
 }

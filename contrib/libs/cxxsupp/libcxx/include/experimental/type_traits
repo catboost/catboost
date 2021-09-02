@@ -106,9 +106,9 @@ using raw_invocation_type_t = typename raw_invocation_type<_Tp>::type;
 template <class...> using void_t = void;
 
 struct nonesuch : private _VSTD::__nat { // make nonesuch "not an aggregate"
-    ~nonesuch() = delete;
-    nonesuch      (nonesuch const&) = delete;
-    void operator=(nonesuch const&) = delete;
+  ~nonesuch() = delete;
+  nonesuch      (nonesuch const&) = delete;
+  void operator=(nonesuch const&) = delete;
   };
 
 template <class _Default, class _AlwaysVoid, template <class...> class _Op, class... _Args>

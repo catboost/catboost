@@ -34,8 +34,8 @@
 #if defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) || \
     defined(__ENVIRONMENT_IPHONE_OS_VERSION_MIN_REQUIRED__)
 #   define _LIBCPP_CHECK_FOR_GCC_EMPTY_STRING_STORAGE
-#include <dlfcn.h>
-#include <mach-o/dyld.h>
+#   include <dlfcn.h>
+#   include <mach-o/dyld.h>
 #endif
 
 _LIBCPP_BEGIN_NAMESPACE_STD
