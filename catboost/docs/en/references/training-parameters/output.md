@@ -123,26 +123,6 @@ Do not use this parameter with the `--logging-level` parameter.
 
 {{ cpu-gpu }}
 
-### train_final_model {#train_final_model}
-
-Only for Python.
-
-#### Description
-
-If specified, then the model with selected features will be trained after features selection.
-
-**Type**
-
- bool
-
-**Default value**
-
-True
-
-**Supported processing units**
-
-{{ cpu-gpu }}
-
 ### train_dir {#train_dir}
 
 Command line: `--train-dir`

@@ -351,7 +351,24 @@ private:
 
 template <typename T, typename... Args>
 [[nodiscard]] THolder<T> MakeHolder(Args&&... args) {
-    return new T(std::forward<Args>(args)...);
+    return THolder<T>(new T(std::forward<Args>(args)...));
+}
+
+template <class T>
+struct THolderPlaceholder {
+    T* Ptr;
+
+    template <class TBase, class TDeleter>
+    operator THolder<TBase, TDeleter>() {
+        return THolder<TBase, TDeleter>(Ptr);
+    }
+};
+
+// This exists only to facilitate transition to explicit ctor of THolder from a pointer.
+// See IGNIETFERRO-1337
+template <typename T>
+[[nodiscard]] THolderPlaceholder<T> StealToHolder(T* ptr) {
+    return THolderPlaceholder<T>{ptr};
 }
 
 /*

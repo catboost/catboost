@@ -20,5 +20,6 @@ ENDIF()
 END()
 
 RECURSE(
+    libcxx
     libcxxabi
 )

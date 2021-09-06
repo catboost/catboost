@@ -126,11 +126,15 @@
 - includes:
   - ext/hash_map:                       DO_NOT_INCLUDE_NON_STANDARD_EXT_HASH_MAP
   - ext/hash_set:                       DO_NOT_INCLUDE_NON_STANDARD_EXT_HASH_SET
+  - experimental/any:                   DO_NOT_INCLUDE_NON_STANDARD_EXPERIMENTAL_ANY
+  - experimental/chrono:                DO_NOT_INCLUDE_NON_STANDARD_EXPERIMENTAL_CHRONO
+  - experimental/numeric:               DO_NOT_INCLUDE_NON_STANDARD_EXPERIMENTAL_NUMERIC
+  - experimental/optional:              DO_NOT_INCLUDE_NON_STANDARD_EXPERIMENTAL_OPTIONAL
+  - experimental/ratio:                 DO_NOT_INCLUDE_NON_STANDARD_EXPERIMENTAL_RATIO
   - experimental/source_location:       DO_NOT_INCLUDE_NON_STANDARD_EXPERIMENTAL_SOURCE_LOCATION
+  - experimental/string_view:           DO_NOT_INCLUDE_NON_STANDARD_EXPERIMENTAL_STRING_VIEW
+  - experimental/system_error:          DO_NOT_INCLUDE_NON_STANDARD_EXPERIMENTAL_SYSTEM_ERROR
+  - experimental/tuple:                 DO_NOT_INCLUDE_NON_STANDARD_EXPERIMENTAL_TUPLE
 
   # TODO: there is no <corouine> in system stl. Disable this include upon its appearance
   - experimental/coroutine
-
-  # TODO: remove these includes after solving issues with the code which includes them
-  - experimental/optional:     contrib/libs/cxxsupp/libcxx/include/experimental/optional
-  - experimental/string_view:  contrib/libs/cxxsupp/libcxx/include/experimental/string_view

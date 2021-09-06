@@ -180,7 +180,7 @@ protected:
         return {new TStdStr(std::forward<A>(a)...), typename TStorage::TNoIncrement()};
     }
 
-    static TStorage Construct() {
+    static TStorage Construct() noexcept {
         return TStdStr::NullStr();
     }
 
@@ -351,7 +351,7 @@ public:
     }
 
     // ~~~ Constructor ~~~ : FAMILY0(,TBasicString)
-    TBasicString()
+    TBasicString() noexcept
 #ifndef TSTRING_IS_STD_STRING
         : S_(Construct())
 #endif
@@ -549,11 +549,7 @@ public:
     static inline TBasicString Join(const R&... r) {
         TBasicString s{TUninitialized{SumLength(r...)}};
 
-#ifdef TSTRING_IS_STD_STRING
-        TBasicString::CopyAll(s.Storage_.data(), r...);
-#else
-        TBasicString::CopyAll(s.S_->data(), r...);
-#endif
+        TBasicString::CopyAll((TCharType*)s.data(), r...);
 
         return s;
     }
@@ -670,15 +666,7 @@ public:
     }
 
     inline void reserve(size_t len) {
-#ifdef TSTRING_IS_STD_STRING
-        Storage_.reserve(len);
-#else
-        Detach();
-
-        if (len > capacity()) {
-            S_->reserve(len);
-        }
-#endif
+        MutRef().reserve(len);
     }
 
     // ~~~ Appending ~~~ : FAMILY0(TBasicString&, append);
@@ -700,14 +688,10 @@ public:
         return *this;
     }
 
-    inline TBasicString& append(const TCharType* pc) {
-#ifdef TSTRING_IS_STD_STRING
-        Storage_.append(pc);
+    inline TBasicString& append(const TCharType* pc) Y_NOEXCEPT {
+        MutRef().append(pc);
 
         return *this;
-#else
-        return append(pc, TBase::StrLen(pc));
-#endif
     }
 
     inline TBasicString& append(TCharType c) {
@@ -1020,13 +1004,9 @@ public:
     }
 
     TBasicString& erase(size_t pos = 0, size_t n = TBase::npos) Y_NOEXCEPT {
-#ifdef TSTRING_IS_STD_STRING
-        Storage_.erase(pos, n);
+        MutRef().erase(pos, n);
 
         return *this;
-#else
-        return remove(pos, n);
-#endif
     }
 
     TBasicString& erase(const_iterator b, const_iterator e) Y_NOEXCEPT {
@@ -1216,4 +1196,17 @@ inline S&& LegacyReplace(S&& s, size_t pos, Args&&... args) {
     }
 
     return s;
+}
+
+template <typename S, typename... Args>
+inline S&& LegacyErase(S&& s, size_t pos, Args&&... args) {
+    if (pos <= s.length()) {
+        s.erase(pos, std::forward<Args>(args)...);
+    }
+
+    return s;
+}
+
+inline const char* LegacyStr(const char* s) noexcept {
+    return s ? s : "";
 }

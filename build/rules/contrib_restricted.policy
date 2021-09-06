@@ -3,6 +3,9 @@
 # NOTE: rules should be ordered from specific to generic (first matching rule is used)
 # See rule syntax docs: https://wiki.yandex-team.ru/devrules/overall/peerdirprohibition/
 
+# scale_ipp filter for ffmpeg use Intel IPP hence it is nonfree
+ALLOW strm/cv/ffmpeg_adcv/toshik_filters -> contrib/restricted/ffmpeg-3-scale-ipp
+
 # CityHash-1.0.2 is a specific version hardwired into ClickHouse public interface
 ALLOW clickhouse -> contrib/restricted/cityhash-1.0.2
 

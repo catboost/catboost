@@ -477,6 +477,18 @@
         },
         "bigb-ab": {
             "description": "bigb utility"
+        },
+        "bigrt-cli": {
+            "description": "bigrt utility"
+        },
+        "caesar-yt_sync" : {
+            "description": "caesar utility"
+        },
+        "caesar-lookup_profile" : {
+            "description": "caesar utility"
+        },
+        "caesar-profile_size_analyzer" : {
+            "description": "caesar utility"
         }
     },
     "toolchain": {
@@ -612,6 +624,95 @@
                 }
             ]
         },
+        "bigrt-cli": {
+            "tools": {
+                "bigrt-cli": {
+                    "bottle": "bigrt-cli",
+                    "executable": "big_rt_cli"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
+        "caesar-lookup_profile": {
+            "tools": {
+                "caesar-lookup_profile": {
+                    "bottle": "caesar-lookup_profile",
+                    "executable": "lookup_profile"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
+        "caesar-profile_size_analyzer": {
+            "tools": {
+                "caesar-profile_size_analyzer": {
+                    "bottle": "caesar-profile_size_analyzer",
+                    "executable": "profile_size_analyzer"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
+        "caesar-yt_sync": {
+            "tools": {
+                "caesar-yt_sync": {
+                    "bottle": "caesar-yt_sync",
+                    "executable": "yt_sync"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
+
         "msvc2019-i686": {
             "name": "msvc2019",
             "tools": {
@@ -845,6 +946,38 @@
                     "host": {
                         "os": "DARWIN",
                         "arch": "arm64"
+                    },
+                    "default": true
+                }
+            ]
+        },
+        "clang-tidy": {
+            "tools": {
+                "clang-tidy": {
+                    "bottle": "clang-tidy",
+                    "executable": "clang-tidy"
+                },
+                "clang-apply-replacements": {
+                    "bottle": "clang-tidy",
+                    "executable": "clang-apply-replacements"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "WIN"
                     },
                     "default": true
                 }
@@ -1709,10 +1842,6 @@
                     "bottle": "clang7",
                     "executable": "cc"
                 },
-                "clang-tidy": {
-                    "bottle": "clang7",
-                    "executable": "clang-tidy"
-                },
                 "gcov": {
                     "bottle": "clang7",
                     "executable": "gcov"
@@ -2024,10 +2153,6 @@
                     "bottle": "clang7-windows",
                     "executable": "cc"
                 },
-                "clang-tidy": {
-                    "bottle": "clang7-windows",
-                    "executable": "clang-tidy"
-                },
                 "gcov": {
                     "bottle": "clang7-windows",
                     "executable": "gcov"
@@ -2102,10 +2227,6 @@
                 "cc": {
                     "bottle": "clang11",
                     "executable": "cc"
-                },
-                "clang-tidy": {
-                    "bottle": "clang11",
-                    "executable": "clang-tidy"
                 },
                 "gcov": {
                     "bottle": "clang11",
@@ -2206,10 +2327,6 @@
                     "bottle": "clang12",
                     "executable": "cc"
                 },
-                "clang-tidy": {
-                    "bottle": "clang12",
-                    "executable": "clang-tidy"
-                },
                 "gcov": {
                     "bottle": "clang12",
                     "executable": "llvm-gcov"
@@ -2307,10 +2424,6 @@
                 "cc": {
                     "bottle": "clang8",
                     "executable": "cc"
-                },
-                "clang-tidy": {
-                    "bottle": "clang8",
-                    "executable": "clang-tidy"
                 },
                 "gcov": {
                     "bottle": "clang8",
@@ -2806,17 +2919,9 @@
                     "bottle": "clang11",
                     "executable": "cc"
                 },
-                "clang-apply-replacements": {
-                    "bottle": "clang11",
-                    "executable": "clang-apply-replacements"
-                },
                 "clang-rename": {
                     "bottle": "clang11",
                     "executable": "clang-rename"
-                },
-                "clang-tidy": {
-                    "bottle": "clang11",
-                    "executable": "clang-tidy"
                 },
                 "gcov": {
                     "bottle": "clang11",
@@ -3257,17 +3362,9 @@
                     "bottle": "clang12",
                     "executable": "cc"
                 },
-                "clang-apply-replacements": {
-                    "bottle": "clang12",
-                    "executable": "clang-apply-replacements"
-                },
                 "clang-rename": {
                     "bottle": "clang12",
                     "executable": "clang-rename"
-                },
-                "clang-tidy": {
-                    "bottle": "clang12",
-                    "executable": "clang-tidy"
                 },
                 "gcov": {
                     "bottle": "clang12",
@@ -3616,6 +3713,16 @@
                     "target": {
                         "os": "IOS",
                         "arch": "arm64"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "LINUX",
+                        "arch": "armv7a_cortex_a9"
                     },
                     "default": true
                 },
@@ -4002,10 +4109,6 @@
                     "bottle": "android-ndk-r21b",
                     "executable": "nm"
                 },
-                "clang-tidy": {
-                    "bottle": "android-ndk-r21b",
-                    "executable": "clang-tidy"
-                },
                 "llvm-cov": {
                     "bottle": "android-ndk-r21b",
                     "executable": "llvm-cov"
@@ -4165,10 +4268,6 @@
                     "bottle": "android-ndk-r22",
                     "executable": "nm"
                 },
-                "clang-tidy": {
-                    "bottle": "android-ndk-r22",
-                    "executable": "clang-tidy"
-                },
                 "llvm-cov": {
                     "bottle": "android-ndk-r22",
                     "executable": "llvm-cov"
@@ -4313,10 +4412,6 @@
                 "nm": {
                     "bottle": "android-ndk-r23",
                     "executable": "nm"
-                },
-                "clang-tidy": {
-                    "bottle": "android-ndk-r23",
-                    "executable": "clang-tidy"
                 },
                 "llvm-cov": {
                     "bottle": "android-ndk-r23",
@@ -7496,7 +7591,7 @@
         "ymake": {
             "formula": {
                 "sandbox_id": [
-                    1053585499
+                    1064928847
                 ],
                 "match": "ymake"
             },
@@ -7516,6 +7611,26 @@
             "executable": {
                 "clang-format": [
                     "clang-format"
+                ]
+            }
+        },
+        "clang-tidy": {
+            "formula": {
+                "sandbox_id": [
+                    1064092176,
+                    1064103099,
+                    1064106978
+                ],
+                "match": "CLANG_TIDY"
+            },
+            "executable": {
+                "clang-tidy": [
+                    "bin",
+                    "clang-tidy"
+                ],
+                "clang-apply-replacements": [
+                    "bin",
+                    "clang-apply-replacements"
                 ]
             }
         },
@@ -7875,10 +7990,6 @@
                     "bin",
                     "clang"
                 ],
-                "clang-tidy": [
-                    "bin",
-                    "clang-tidy"
-                ],
                 "gcov": [
                     "bin",
                     "llvm-gcov"
@@ -7930,10 +8041,6 @@
                     "bin",
                     "clang"
                 ],
-                "clang-tidy": [
-                    "bin",
-                    "clang-tidy"
-                ],
                 "gcov": [
                     "bin",
                     "llvm-gcov"
@@ -7984,10 +8091,6 @@
                 "cc": [
                     "bin",
                     "clang"
-                ],
-                "clang-tidy": [
-                    "bin",
-                    "clang-tidy"
                 ],
                 "gcov": [
                     "bin",
@@ -8081,17 +8184,9 @@
                     "bin",
                     "clang"
                 ],
-                "clang-apply-replacements": [
-                    "bin",
-                    "clang-apply-replacements"
-                ],
                 "clang-rename": [
                     "bin",
                     "clang-rename"
-                ],
-                "clang-tidy": [
-                    "bin",
-                    "clang-tidy"
                 ],
                 "llvm-gcov": [
                     "bin",
@@ -8147,17 +8242,9 @@
                     "bin",
                     "clang"
                 ],
-                "clang-apply-replacements": [
-                    "bin",
-                    "clang-apply-replacements"
-                ],
                 "clang-rename": [
                     "bin",
                     "clang-rename"
-                ],
-                "clang-tidy": [
-                    "bin",
-                    "clang-tidy"
                 ],
                 "llvm-gcov": [
                     "bin",
@@ -8338,11 +8425,6 @@
                     "bin",
                     "i686-linux-android-c++filt"
                 ],
-                "clang-tidy": [
-                    "llvm-toolchain",
-                    "bin",
-                    "clang-tidy"
-                ],
                 "llvm-cov": [
                     "llvm-toolchain",
                     "bin",
@@ -8399,11 +8481,6 @@
                     "bin",
                     "i686-linux-android-c++filt"
                 ],
-                "clang-tidy": [
-                    "llvm-toolchain",
-                    "bin",
-                    "clang-tidy"
-                ],
                 "llvm-cov": [
                     "llvm-toolchain",
                     "bin",
@@ -8459,11 +8536,6 @@
                     "llvm-toolchain",
                     "bin",
                     "i686-linux-android-c++filt"
-                ],
-                "clang-tidy": [
-                    "llvm-toolchain",
-                    "bin",
-                    "clang-tidy"
                 ],
                 "llvm-cov": [
                     "llvm-toolchain",
@@ -8939,7 +9011,7 @@
         "yp-util": {
             "formula": {
                 "sandbox_id": [
-                    1050972855
+                    1066245075
                 ],
                 "match": "yp_util"
             },
@@ -8952,7 +9024,7 @@
         "yp": {
             "formula": {
                 "sandbox_id": [
-                    1050973260
+                    1066245390
                 ],
                 "match": "YP"
             },
@@ -9024,7 +9096,7 @@
         "tmux": {
             "formula": {
                 "sandbox_id": [
-                    1060645774,
+                    1065126677,
                     38325494
                 ],
                 "match": "tmux"
@@ -9351,7 +9423,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 1062901794,
+                "sandbox_id": 1066059786,
                 "match": "horadric"
             },
             "executable": {
@@ -9494,7 +9566,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 1062901506,
+                "sandbox_id": 1066059868,
                 "match": "app_host_launcher"
             },
             "executable": {
@@ -9899,7 +9971,7 @@
         },
         "sedem": {
             "formula": {
-                "sandbox_id": 1057356046,
+                "sandbox_id": 1064106647,
                 "match": "SEDEM archive"
             },
             "executable": {
@@ -10037,7 +10109,7 @@
         },
         "wall-e": {
             "formula": {
-                "sandbox_id": 1041496492,
+                "sandbox_id": 1064002522,
                 "match": "wall-e"
             },
             "executable": {
@@ -10124,7 +10196,7 @@
                 "sandbox_id": [
                     1062207871
                 ],
-                "match": "bb_requester"
+                "match": "hitlog_analyser"
             },
             "executable": {
                 "hitlog_analyser": [
@@ -10137,7 +10209,7 @@
                 "sandbox_id": [
                     1062269140
                 ],
-                "match": "bb_requester"
+                "match": "bsyeti_experiments"
             },
             "executable": {
                 "bsyeti_experiments": [
@@ -10181,6 +10253,58 @@
             "executable": {
                 "ab": [
                     "ab"
+                ]
+            }
+        },
+        "bigrt-cli": {
+            "formula": {
+                "sandbox_id": [
+                    1063136697
+                ],
+                "match": "big_rt_cli"
+            },
+            "executable": {
+                "big_rt_cli": [
+                    "big_rt_cli"
+                ]
+            }
+        },
+        "caesar-yt_sync" : {
+            "formula": {
+                "sandbox_id": [
+                    1062506261
+                ],
+                "match": "yt_sync"
+            },
+            "executable": {
+                "yt_sync": [
+                    "yt_sync"
+                ]
+            }
+        },
+        "caesar-lookup_profile" : {
+            "formula": {
+                "sandbox_id": [
+                    1062506392
+                ],
+                "match": "lookup_profile"
+            },
+            "executable": {
+                "lookup_profile": [
+                    "lookup_profile"
+                ]
+            }
+        },
+        "caesar-profile_size_analyzer" : {
+            "formula": {
+                "sandbox_id": [
+                    1062506496
+                ],
+                "match": "profile_size_analyzer"
+            },
+            "executable": {
+                "profile_size_analyzer": [
+                    "profile_size_analyzer"
                 ]
             }
         }

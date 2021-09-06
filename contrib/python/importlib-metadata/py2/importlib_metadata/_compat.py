@@ -56,7 +56,7 @@ __all__ = [
     ]
 
 
-def install(cls):
+def install(flag):
     """
     Class decorator for installation on sys.meta_path.
 
@@ -64,9 +64,12 @@ def install(cls):
     attempts to disable the finder functionality of the stdlib
     DistributionFinder.
     """
-    sys.meta_path.append(cls())
-    disable_stdlib_finder()
-    return cls
+    def dec_install(cls):
+        if flag:
+            sys.meta_path.append(cls())
+            disable_stdlib_finder()
+        return cls
+    return dec_install
 
 
 def disable_stdlib_finder():
