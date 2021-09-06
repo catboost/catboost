@@ -7,6 +7,7 @@
 
 ```python
 get_feature_importance(data=None,
+                       reference_data=None,
                        type=EFstrType.FeatureImportance,
                        prettified=False,
                        thread_count=-1,
@@ -34,6 +35,21 @@ The required dataset depends on the selected feature importance calculation type
 **Default value** 
 
 {{ python--required }} for the {{ title__regular-feature-importance-LossFunctionChange }} and {{ title__ShapValues }} type of feature importances and in case the model does not contain information regarding the weight of leaves.
+
+### reference_data
+
+#### Description
+
+Reference data for Independent Tree SHAP values from [Explainable AI for Trees: From Local Explanations to Global Understanding](https://arxiv.org/abs/1905.04610v1). If `type` is [`ShapValues`](shap-values.md) and `reference_data` is not `None`, then Independent Tree SHAP values are calculated.
+
+**Possible types** 
+
+{{ python-type--pool }}
+
+**Default value** 
+
+ None
+
 
 ### type
 _Alias:_ `fstr_type` (deprecated, use type instead)
