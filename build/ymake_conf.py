@@ -1352,6 +1352,7 @@ class GnuCompiler(Compiler):
             self.cxx_warnings += [
                 '-Wimport-preprocessor-directive-pedantic',
                 '-Wno-exceptions',
+                '-Wno-inconsistent-missing-override',
                 '-Wno-undefined-var-template',
             ]
 
