@@ -6,6 +6,7 @@
 #include "schedule_callback.h"
 #include "stack/stack_common.h"
 #include "trampoline.h"
+#include "custom_time.h"
 
 #include <library/cpp/containers/intrusive_rb_tree/rb_tree.h>
 
@@ -154,7 +155,8 @@ public:
         THolder<IPollerFace> poller = IPollerFace::Default(),
         NCoro::IScheduleCallback* = nullptr,
         NCoro::NStack::EGuard stackGuard = NCoro::NStack::EGuard::Canary,
-        TMaybe<NCoro::NStack::TPoolAllocatorSettings> poolSettings = Nothing()
+        TMaybe<NCoro::NStack::TPoolAllocatorSettings> poolSettings = Nothing(),
+        NCoro::ITime* time = nullptr
     );
 
     ~TContExecutor();
@@ -262,6 +264,7 @@ public:
     }
 
     void Pause();
+    TInstant Now();
 private:
     void Release(TCont* cont) noexcept;
 
@@ -302,4 +305,5 @@ private:
     TCont* Current_ = nullptr;
     bool FailOnError_ = false;
     bool Paused_ = false;
+    NCoro::ITime* Time_ = nullptr;
 };

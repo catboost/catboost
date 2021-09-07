@@ -121,11 +121,13 @@ TContExecutor::TContExecutor(
     THolder<IPollerFace> poller,
     NCoro::IScheduleCallback* callback,
     NCoro::NStack::EGuard defaultGuard,
-    TMaybe<NCoro::NStack::TPoolAllocatorSettings> poolSettings
+    TMaybe<NCoro::NStack::TPoolAllocatorSettings> poolSettings,
+    NCoro::ITime* time
 )
     : CallbackPtr_(callback)
     , DefaultStackSize_(defaultStackSize)
     , Poller_(std::move(poller))
+    , Time_(time)
 {
     if (poolSettings) {
         poolSettings->Executor = this;
@@ -151,7 +153,7 @@ void TContExecutor::Execute(TContFunc func, void* arg) noexcept {
 
 void TContExecutor::WaitForIO() {
     while (Ready_.Empty() && !WaitQueue_.Empty()) {
-        const auto now = TInstant::Now();
+        const auto now = Now();
 
         // Waking a coroutine puts it into ReadyNext_ list
         const auto next = WaitQueue_.WakeTimedout(now);
@@ -345,6 +347,10 @@ void TContExecutor::Exit(TCont* cont) noexcept {
     ScheduleToDelete(cont);
     cont->SwitchTo(&SchedContext_);
     Y_FAIL("can not return from exit");
+}
+
+TInstant TContExecutor::Now() {
+    return Y_LIKELY(Time_ == nullptr) ? TInstant::Now() : Time_->Now();
 }
 
 template <>
