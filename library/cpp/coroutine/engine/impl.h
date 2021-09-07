@@ -260,6 +260,8 @@ public:
     void ScheduleUserEvent(IUserEvent* event) {
         UserEvents_.PushBack(event);
     }
+
+    void Pause();
 private:
     void Release(TCont* cont) noexcept;
 
@@ -299,4 +301,5 @@ private:
     size_t Allocated_ = 0;
     TCont* Current_ = nullptr;
     bool FailOnError_ = false;
+    bool Paused_ = false;
 };

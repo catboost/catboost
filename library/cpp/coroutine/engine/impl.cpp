@@ -318,6 +318,11 @@ void TContExecutor::RunScheduler() noexcept {
                 break;
             }
             context->SwitchTo(cont->Trampoline_.Context());
+            if (Paused_) {
+                Paused_ = false;
+                Current_ = nullptr;
+                break;
+            }
             if (caller) {
                 break;
             }
@@ -325,6 +330,14 @@ void TContExecutor::RunScheduler() noexcept {
     } catch (...) {
         TBackTrace::FromCurrentException().PrintTo(Cerr);
         Y_FAIL("Uncaught exception in the scheduler: %s", CurrentExceptionMessage().c_str());
+    }
+}
+
+void TContExecutor::Pause() {
+    if (auto cont = Running()) {
+        Paused_ = true;
+        ScheduleExecutionNow(cont);
+        cont->SwitchTo(&SchedContext_);
     }
 }
 
