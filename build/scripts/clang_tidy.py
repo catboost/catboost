@@ -92,7 +92,7 @@ def main():
     if is_generated(args.testing_src, args.build_root):
         return
     if args.header_filter is None:
-        header_filter = r"^(" + r"|".join(map(re.escape, [os.path.dirname(args.testing_src)])) + r").*(?<!\.pb\.h)$"
+        header_filter = r"^" + re.escape(os.path.dirname(args.testing_src)) + r".*"  # .pb.h files will be excluded because they are not in source_root
     else:
         header_filter = r"^(" + args.header_filter + r").*"
     with gen_tmpdir() as profile_tmpdir, gen_tmpdir() as db_tmpdir, gen_tmpfile() as fixes_file:
