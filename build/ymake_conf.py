@@ -1624,9 +1624,6 @@ class GnuCompiler(Compiler):
         elif is_positive('DUMP_COMPILER_DEPS_FAST'):
             emit('DUMP_DEPS', '-E', '-M', '-MF', '${output;noauto;suf=${OBJ_SUF}.o.d:SRC}')
 
-        if self.tc.is_clang and is_positive('TIDY'):
-            emit('CLANG_TIDY_BIN', os.path.dirname(self.tc.cxx_compiler) + "/clang-tidy")
-
         if not self.build.is_coverage:
             emit('EXTRA_OUTPUT')
         else:
