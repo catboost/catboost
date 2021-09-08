@@ -1,6 +1,6 @@
 #pragma once
 
-#include "consumer.h"
+#include <library/cpp/yson/consumer.h>
 
 #include <library/cpp/json/json_reader.h>
 

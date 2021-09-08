@@ -3,10 +3,10 @@
 #include "node_builder.h"
 #include "node_visitor.h"
 
-#include <library/cpp/yson/json_writer.h>
+#include <library/cpp/yson/json/json_writer.h>
 #include <library/cpp/yson/parser.h>
 #include <library/cpp/yson/writer.h>
-#include <library/cpp/yson/yson2json_adapter.h>
+#include <library/cpp/yson/json/yson2json_adapter.h>
 
 #include <library/cpp/json/json_reader.h>
 #include <library/cpp/json/json_value.h>

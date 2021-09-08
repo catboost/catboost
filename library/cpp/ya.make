@@ -124,6 +124,7 @@ RECURSE(
     tokenizer
     tokenizer/ut
     yson
+    yson/json
     yson/node
     yson/node/pybind
 )
