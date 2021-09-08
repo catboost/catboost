@@ -118,7 +118,7 @@ Y_UNIT_TEST_SUITE(TThreadPoolTest) {
         q.Start(2);
         bool processed = false;
         bool destructed = false;
-        q.SafeAddAndOwn(new TThreadPoolTest::TOwnedTask(processed, destructed));
+        q.SafeAddAndOwn(MakeHolder<TThreadPoolTest::TOwnedTask>(processed, destructed));
         q.Stop();
 
         UNIT_ASSERT_C(processed, "Not processed");

@@ -28,7 +28,7 @@ struct TAtExitParams {
 };
 
 void MyAtExitFunc(void* ptr) {
-    THolder<TAtExitParams> params = static_cast<TAtExitParams*>(ptr);
+    THolder<TAtExitParams> params{static_cast<TAtExitParams*>(ptr)};
     if (write(params->fd, params->str, strlen(params->str)) < 0) {
         abort();
     }
