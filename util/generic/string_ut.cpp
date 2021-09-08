@@ -1234,3 +1234,37 @@ Y_UNIT_TEST_SUITE(StdNonConformant) {
     }
 }
 #endif
+
+Y_UNIT_TEST_SUITE(Interop) {
+    static void Mutate(std::string& s) {
+        s += "y";
+    }
+
+    static void Mutate(TString& s) {
+        Mutate(MutRef(s));
+    }
+
+    Y_UNIT_TEST(TestMutate) {
+        TString x = "x";
+
+        Mutate(x);
+
+        UNIT_ASSERT_VALUES_EQUAL(x, "xy");
+    }
+
+    static std::string Transform(const std::string& s) {
+        return s + "y";
+    }
+
+    static TString Transform(const TString& s) {
+        return Transform(ConstRef(s));
+    }
+
+    Y_UNIT_TEST(TestTransform) {
+        UNIT_ASSERT_VALUES_EQUAL(Transform(TString("x")), "xy");
+    }
+
+    Y_UNIT_TEST(TestTemp) {
+        UNIT_ASSERT_VALUES_EQUAL("x" + ConstRef(TString("y")), "xy");
+    }
+}

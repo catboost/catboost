@@ -8,6 +8,7 @@
 #include <iostream>
 #include <cctype>
 
+
 alignas(32) const char NULL_STRING_REPR[128] = {0};
 
 std::ostream& operator<<(std::ostream& os, const TString& s) {
