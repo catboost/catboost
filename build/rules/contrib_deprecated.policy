@@ -32,6 +32,11 @@ ALLOW .* -> contrib/deprecated/python
 
 ALLOW metrika/core/programs/mobile-redirect -> contrib/deprecated/libctpp
 
+# argon2 is not maintained since 20190702 and can not be build for ARMv8.
+# consider using library/cpp/digest/argonish instead
+#
+# Remove this exception after KIKIMR-13008
+ALLOW kikimr/library/login -> contrib/deprecated/argon2
 
 
 # Default policies:
