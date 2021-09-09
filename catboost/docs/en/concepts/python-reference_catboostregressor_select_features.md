@@ -20,7 +20,9 @@ model.select_features(
                 train_final_model=False,
                 verbose=None,
                 logging_level=None,
-                plot=False)
+                plot=False,
+                log_cout=sys.stdout,
+                log_cerr=sys.stderr)
 ```
 
 ## {{ dl--parameters }} {#parameters}
@@ -321,7 +323,7 @@ This [option can be used](../features/visualization_jupyter-notebook.md) if tra
 
 {{ calcer_type__cpu }}
 
-
+{% include [python__log-params](../_includes/work_src/reusage-python/python__log-params.md) %}
 
 ## {{ dl__return-value }} {#output-format}
 

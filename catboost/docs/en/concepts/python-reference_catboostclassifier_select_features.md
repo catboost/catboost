@@ -20,7 +20,9 @@ model.select_features(
                 train_final_model=False,
                 verbose=None,
                 logging_level=None,
-                plot=False)
+                plot=False,
+                log_cout=sys.stdout,
+                log_cerr=sys.stderr)
 ```
 
 ## {{ dl--parameters }} {#parameters}
@@ -113,11 +115,11 @@ The validation dataset or datasets used for the following processes:
 - {{ python-type--tuple }} (x, y)
 - {{ python-type--string }} (path to the dataset file)
 
-**Default value** 
+**Default value**
 
 None
 
-**Supported processing units**  
+**Supported processing units**
 
 {{ cpu-gpu }}
 
@@ -136,11 +138,11 @@ Features which participate in the selection. The following formats are supported
 - list
 - string
 
-**Default value** 
+**Default value**
 
 {{ python--required }}
 
-**Supported processing units** 
+**Supported processing units**
 
 {{ cpu-gpu }}
 
@@ -151,15 +153,15 @@ Features which participate in the selection. The following formats are supported
 
 The number of features to select from `features_for_select`.
 
-**Possible types** 
+**Possible types**
 
 int
 
-**Default value** 
+**Default value**
 
 {{ python--required }}
 
-**Supported processing units** 
+**Supported processing units**
 
 {{ cpu-gpu }}
 
@@ -171,16 +173,16 @@ int
 
 The number of times for training the model. Use more steps for more accurate selection.
 
-**Possible types** 
+**Possible types**
 
 int
 
-**Default value** 
+**Default value**
 
 1
 
 
-**Supported processing units** 
+**Supported processing units**
 
 {{ cpu-gpu }}
 
@@ -196,16 +198,16 @@ The main algorithm is [Recursive Feature Elimination](https://scikit-learn.org/s
 - `RecursiveByLossFunctionChange` — the optimal option according to accuracy/speed balance.
 - `RecursiveByShapValues` — the most accurate method.
 
-**Possible types** 
+**Possible types**
 
 EFeaturesSelectionAlgorithm
 
-**Default value** 
+**Default value**
 
 RecursiveByShapValues
 
 
-**Supported processing units** 
+**Supported processing units**
 
 {{ cpu-gpu }}
 
@@ -221,15 +223,15 @@ The method of the SHAP values calculations ordered by accuracy:
 
 Used in RecursiveByLossFunctionChange and RecursiveByShapValues.
 
-**Possible types** 
+**Possible types**
 
 EShapCalcType
 
-**Default value** 
+**Default value**
 
 Regular
 
-**Supported processing units** 
+**Supported processing units**
 
 {{ cpu-gpu }}
 
@@ -240,15 +242,15 @@ Regular
 
 If specified, then the model with selected features will be trained after features selection.
 
-**Possible types**  
+**Possible types**
 
 bool
 
-**Default value** 
+**Default value**
 
 True
 
-**Supported processing units** 
+**Supported processing units**
 
 {{ cpu-gpu }}
 
@@ -274,16 +276,16 @@ Do not use this parameter with the `logging_level` parameter.
 
 {% endnote %}
 
-**Possible types** 
+**Possible types**
 
 - {{ python-type--bool }}
 - {{ python-type--int }}
 
-**Default value** 
+**Default value**
 
 {{ train_verbose_fr-of-iterations-to-output__default }}
 
-**Supported processing units** 
+**Supported processing units**
 
 {{ cpu-gpu }}
 
@@ -307,15 +309,15 @@ Possible values:
 
 - Debug — Output debugging information.
 
-**Possible types** 
+**Possible types**
 
 {{ python-type--string }}
 
-**Default value** 
+**Default value**
 
 None (corresponds to the {{ fit--verbose }} logging level)
 
-**Supported processing units** 
+**Supported processing units**
 
 {{ cpu-gpu }}
 
@@ -332,17 +334,19 @@ Plot the following information during training:
 - the remaining time until the end of training.
 This [option can be used](../features/visualization_jupyter-notebook.md) if training is performed in Jupyter notebook.
 
-**Possible types** 
+**Possible types**
 
 {{ python-type--bool }}
 
-**Default value** 
+**Default value**
 
 {{ fit--plot }}
 
-**Supported processing units** 
+**Supported processing units**
 
 {{ calcer_type__cpu }}
+
+{% include [python__log-params](../_includes/work_src/reusage-python/python__log-params.md) %}
 
 
 ## {{ dl__return-value }} {#output-format}

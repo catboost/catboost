@@ -33,7 +33,9 @@ fit(X,
     save_snapshot=None,
     snapshot_file=None,
     snapshot_interval=None,
-    init_model=None)
+    init_model=None,
+    log_cout=sys.stdout,
+    log_cerr=sys.stderr)
 ```
 
 ## {{ dl--parameters }} {#parameters}
@@ -720,3 +722,5 @@ None (incremental learning is not used)
 **Supported processing units**
 
 {{ calcer_type__cpu }}
+
+{% include [python__log-params](../_includes/work_src/reusage-python/python__log-params.md) %}

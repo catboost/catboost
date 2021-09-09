@@ -4,11 +4,11 @@
 
 The data for calculating object importances.
 
-**Possible types** 
+**Possible types**
 
 {{ python-type--pool }}
 
-**Default value** 
+**Default value**
 
 {{ python--required }}
 
@@ -19,11 +19,11 @@ The data for calculating object importances.
 
 The dataset used for training.
 
-**Possible types** 
+**Possible types**
 
 {{ python-type--pool }}
 
-**Default value** 
+**Default value**
 
 {{ python--required }}
 
@@ -35,11 +35,11 @@ The dataset used for training.
 Defines the number of most important objects from the training dataset. The number of returned objects is limited to this number.
 
 
-**Possible types** 
+**Possible types**
 
 {{ python-type--int }}
 
-**Default value** 
+**Default value**
 
 {{ fit__ostr__top_size }}
 
@@ -54,11 +54,11 @@ Possible values:
 - {{ fit__ostr__ostr_type__PerPool }} — The average of scores of objects from the training dataset for every object from the input dataset.
 - {{ fit__ostr__ostr_type__PerObject }} — The scores of each object from the training dataset for each object from the input dataset.
 
-**Possible types** 
+**Possible types**
 
 {{ python-type--int }}
 
-**Default value** 
+**Default value**
 
 {{ fit__ostr__ostr_type }}
 
@@ -80,11 +80,11 @@ For example, the following value sets the method to {{ ostr__update-method__Top
 ```
 TopKLeaves:top=3
 ```
-**Possible types** 
+**Possible types**
 
 {{ python-type--string }}
 
-**Default value** 
+**Default value**
 
 {{ ostr__update-method__default }}
 
@@ -99,11 +99,11 @@ Possible values:
 - {{ fit__ostr__importance_values_sign__Negative }}
 - {{ fit__ostr__importance_values_sign__All }}
 
-**Possible types** 
+**Possible types**
 
 {{ python-type--string }}
 
-**Default value** 
+**Default value**
 
 {{ fit__ostr__importance_values_sign }}
 
@@ -117,10 +117,12 @@ Possible values:
 
 {% include [reusage-thread_count__cpu_cores__optimizes-the-speed-of-execution](thread_count__cpu_cores__optimizes-the-speed-of-execution.md) %}
 
-**Possible types** 
+**Possible types**
 
 {{ python-type--int }}
 
-**Default value** 
+**Default value**
 
 {{ fit__thread_count__wrappers }}
+
+{% include [python__log-params](../../../_includes/work_src/reusage-python/python__log-params.md) %}

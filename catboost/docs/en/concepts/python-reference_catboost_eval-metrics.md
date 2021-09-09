@@ -11,7 +11,9 @@
              ntree_start=0,
              ntree_end=0,
              eval_period=1,
-             thread_count=-1)
+             thread_count=-1,
+             log_cout=sys.stdout,
+             log_cerr=sys.stderr)
 ```
 
 ## {{ dl--parameters }} {#parameters}
