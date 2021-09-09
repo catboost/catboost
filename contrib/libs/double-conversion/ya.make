@@ -1,5 +1,7 @@
 LIBRARY()
 
+VERSION(3.1.0)
+
 LICENSE(BSD-3-Clause)
 
 
