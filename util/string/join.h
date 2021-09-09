@@ -111,26 +111,26 @@ inline TString Join(char cdelim, const TValues&... v) {
 }
 
 namespace NPrivate {
-template <typename TCharType, typename TIter>
-inline TBasicString<TCharType> JoinRange(TBasicStringBuf<TCharType> delim, const TIter beg, const TIter end) {
-    TBasicString<TCharType> out;
-    if (beg != end) {
-        size_t total = ::NPrivate::GetLength(*beg);
-        for (TIter pos = beg; ++pos != end;) {
-            total += delim.length() + ::NPrivate::GetLength(*pos);
-        }
-        if (total > 0) {
-            out.reserve(total);
+    template <typename TCharType, typename TIter>
+    inline TBasicString<TCharType> JoinRange(TBasicStringBuf<TCharType> delim, const TIter beg, const TIter end) {
+        TBasicString<TCharType> out;
+        if (beg != end) {
+            size_t total = ::NPrivate::GetLength(*beg);
+            for (TIter pos = beg; ++pos != end;) {
+                total += delim.length() + ::NPrivate::GetLength(*pos);
+            }
+            if (total > 0) {
+                out.reserve(total);
+            }
+
+            AppendToString(out, *beg);
+            for (TIter pos = beg; ++pos != end;) {
+                AppendJoinNoReserve(out, delim, *pos);
+            }
         }
 
-        AppendToString(out, *beg);
-        for (TIter pos = beg; ++pos != end;) {
-            AppendJoinNoReserve(out, delim, *pos);
-        }
+        return out;
     }
-
-    return out;
-}
 
 } // namespace NPrivate
 
@@ -187,13 +187,11 @@ inline TBasicString<TCharType> JoinSeq(const TBasicString<TCharType>& delim, con
 }
 
 template <typename TCharType, typename TContainer>
-inline
-std::enable_if_t<
+inline std::enable_if_t<
     std::is_same_v<TCharType, char> ||
-    std::is_same_v<TCharType, char16_t> ||
-    std::is_same_v<TCharType, char32_t>,
-    TBasicString<TCharType>
->
+        std::is_same_v<TCharType, char16_t> ||
+        std::is_same_v<TCharType, char32_t>,
+    TBasicString<TCharType>>
 JoinSeq(TCharType delim, const TContainer& data) {
     TBasicStringBuf<TCharType> delimBuf(&delim, 1);
     return JoinSeq(delimBuf, data);
