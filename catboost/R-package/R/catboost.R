@@ -449,7 +449,7 @@ print.catboost.Model <- function(x, ...) {
     cat(sprintf("CatBoost model (%d trees)\n", x$tree_count))
     cat(sprintf("Loss function: %s\n", catboost.get_plain_params(x)$loss_function))
     cat(sprintf("Fit to %d features\n", NROW(x$feature_importances)))
-    if (is.null.handle(x$handle))
+    if (is.null.handle(x$cpp_obj$handle))
         cat("(Handle is incomplete)\n")
     return(invisible(x))
 }
@@ -1531,8 +1531,7 @@ catboost.train <- function(learn_pool, test_pool = NULL, params = list()) {
     json_params <- prepare_train_export_parameters(params)
     handle <- .Call("CatBoostFit_R", learn_pool, test_pool, json_params)
     raw <- .Call("CatBoostSerializeModel_R", handle)
-    model <- list(handle = handle, raw = raw)
-    class(model) <- "catboost.Model"
+    model <- create.model.base(handle, raw)
 
     if (catboost._is_oblivious(model)) {
         model$feature_importances <- catboost.get_feature_importance(model)
@@ -1683,22 +1682,17 @@ catboost.sum_models <- function(models, weights = NULL, ctr_merge_policy = 'Inte
     i <- 1L
     modelsVector <- list()
     for (model in models) {
-        if (!inherits(model, "catboost.Model"))
-            stop("Expected catboost.Model, got: ", class(model))
-        if (is.null.handle(model$handle))
-            model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
-
-        modelsVector[[i]] <- model$handle
+        catboost.restore_handle(model)
+        modelsVector[[i]] <- model$cpp_obj$handle
         i <- i + 1L
     }
     handle <- .Call("CatBoostSumModels_R", modelsVector, weights, ctr_merge_policy)
     raw <- .Call("CatBoostSerializeModel_R", handle)
-    model <- list(handle = handle, raw = raw)
+    model <- create.model.base(handle, raw)
 
     model$random_seed <- 0
     model$learning_rate <- 0
 
-    class(model) <- "catboost.Model"
     return(model)
 }
 
@@ -1722,8 +1716,7 @@ catboost.load_model <- function(model_path, file_format = "cbm") {
     model_path <- path.expand(model_path)
     handle <- .Call("CatBoostReadModel_R", model_path, file_format)
     raw <- .Call("CatBoostSerializeModel_R", handle)
-    model <- list(handle = handle, raw = raw)
-    class(model) <- "catboost.Model"
+    model <- create.model.base(handle, raw)
     model$tree_count <- catboost.ntrees(model)
     model$learning_rate <- catboost.get_plain_params(model)[['learning_rate']]
     return(model)
@@ -1779,10 +1772,9 @@ catboost.save_model <- function(model, model_path,
     if (!is.null(export_parameters))
         params_string <- jsonlite::toJSON(export_parameters, auto_unbox = TRUE)
 
-    if (is.null.handle(model$handle))
-        model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
+    catboost.restore_handle(model)
     model_path <- path.expand(model_path)
-    status <- .Call("CatBoostOutputModel_R", model$handle, model_path, file_format, params_string, pool)
+    status <- .Call("CatBoostOutputModel_R", model$cpp_obj$handle, model_path, file_format, params_string, pool)
     return(status)
 }
 
@@ -1834,16 +1826,13 @@ catboost.save_model <- function(model, model_path,
 catboost.predict <- function(model, pool,
                              verbose = FALSE, prediction_type = "RawFormulaVal",
                              ntree_start = 0, ntree_end = 0, thread_count = -1) {
-    if (!inherits(model, "catboost.Model"))
-        stop("Expected catboost.Model, got: ", class(model))
     if (!inherits(pool, "catboost.Pool"))
         stop("Expected catboost.Pool, got: ", class(pool))
     if (is.null.handle(pool))
         stop("Pool object is invalid.")
 
-    if (is.null.handle(model$handle))
-        model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
-    prediction <- .Call("CatBoostPredictMulti_R", model$handle, pool,
+    catboost.restore_handle(model)
+    prediction <- .Call("CatBoostPredictMulti_R", model$cpp_obj$handle, pool,
                         verbose, prediction_type, ntree_start, ntree_end, thread_count)
     if (length(prediction) != nrow(pool)) {
         prediction <- matrix(prediction, nrow = nrow(pool), byrow = TRUE)
@@ -1914,9 +1903,8 @@ catboost.staged_predict <- function(model, pool, verbose = FALSE, prediction_typ
         current_tree_count <<- current_tree_count + eval_period
         if (current_tree_count - eval_period >= ntree_end)
             stop("StopIteration")
-        if (is.null.handle(model$handle))
-            model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
-        current_approx <- as.array(.Call("CatBoostPredictMulti_R", model$handle, pool,
+        catboost.restore_handle(model)
+        current_approx <- as.array(.Call("CatBoostPredictMulti_R", model$cpp_obj$handle, pool,
                                          verbose, "RawFormulaVal",
                                          current_tree_count - eval_period,
                                          min(current_tree_count, ntree_end), thread_count))
@@ -2069,9 +2057,8 @@ catboost.get_feature_importance <- function(model, pool = NULL, type = "FeatureI
     if ( (type == "PredictionValuesChange" || type == "FeatureImportance") && is.null(pool) && !is.null(model$feature_importances))
         return(model$feature_importances)
 
-    if (is.null.handle(model$handle))
-        model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
-    importances <- .Call("CatBoostCalcRegularFeatureEffect_R", model$handle, pool, type, thread_count)
+    catboost.restore_handle(model)
+    importances <- .Call("CatBoostCalcRegularFeatureEffect_R", model$cpp_obj$handle, pool, type, thread_count)
 
     if (type == "Interaction") {
         colnames(importances) <- c("feature1_index", "feature2_index", "score")
@@ -2153,8 +2140,6 @@ catboost.get_object_importance <- function(
     thread_count = -1,
     ostr_type = NULL
 ) {
-    if (!inherits(model, "catboost.Model"))
-        stop("Expected catboost.Model, got: ", class(model))
     if (!inherits(pool, "catboost.Pool"))
         stop("Expected catboost.Pool, got: ", class(pool))
     if (!inherits(train_pool, "catboost.Pool"))
@@ -2165,13 +2150,13 @@ catboost.get_object_importance <- function(
         stop("'train_pool' object is invalid.")
     if (top_size < 0 && top_size != -1)
         stop("top_size should be positive integer or -1.")
-    if (is.null.handle(model$handle))
-        model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
+    catboost.restore_handle(model)
     if (!is.null(ostr_type)) {
         type <- ostr_type
         warning("ostr_type option is deprecated, use type instead")
     }
-    importances <- .Call("CatBoostEvaluateObjectImportances_R", model$handle, pool, train_pool, top_size, type, update_method, thread_count)
+    importances <- .Call("CatBoostEvaluateObjectImportances_R", model$cpp_obj$handle,
+                         pool, train_pool, top_size, type, update_method, thread_count)
     indices <- head(importances, length(importances) / 2)
     scores <- tail(importances, length(importances) / 2)
     column_count <- nrow(train_pool)
@@ -2196,15 +2181,12 @@ catboost.get_object_importance <- function(
 #' @export
 #' @seealso \url{https://catboost.ai/docs/concepts/r-reference_catboost-shrink.html}
 catboost.shrink <- function(model, ntree_end, ntree_start = 0) {
-    if (!inherits(model, "catboost.Model"))
-        stop("Expected catboost.Model, got: ", class(model))
     if (ntree_start > ntree_end)
         stop("ntree_start should be less than ntree_end.")
 
-    if (is.null.handle(model$handle))
-        model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
-    status <- .Call("CatBoostShrinkModel_R", model$handle, ntree_start, ntree_end)
-    model$raw <- .Call("CatBoostSerializeModel_R", model$handle)
+    catboost.restore_handle(model)
+    status <- .Call("CatBoostShrinkModel_R", model$cpp_obj$handle, ntree_start, ntree_end)
+    model$cpp_obj$raw <- .Call("CatBoostSerializeModel_R", model$cpp_obj$handle)
     return(status)
 }
 
@@ -2219,33 +2201,23 @@ catboost.shrink <- function(model, ntree_end, ntree_start = 0) {
 #' @return Status, the result of dropping feature. TRUE if this succeeded, FALSE otherwise.
 #' @export
 catboost.drop_unused_features <- function(model, ntree_end, ntree_start = 0) {
-    if (!inherits(model, "catboost.Model"))
-        stop("Expected catboost.Model, got: ", class(model))
-
-    if (is.null.handle(model$handle))
-        model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
-    status <- .Call("CatBoostDropUnusedFeaturesFromModel_R", model$handle)
-    model$raw <- .Call("CatBoostSerializeModel_R", model$handle)
+    catboost.restore_handle(model)
+    status <- .Call("CatBoostDropUnusedFeaturesFromModel_R", model$cpp_obj$handle)
+    model$cpp_obj$raw <- .Call("CatBoostSerializeModel_R", model$cpp_obj$handle)
     return(status)
 }
 
 
 catboost.ntrees <- function(model) {
-    if (!inherits(model, "catboost.Model"))
-        stop("Expected catboost.Model, got: ", class(model))
-    if (is.null.handle(model$handle))
-        model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
-    num_trees <- .Call("CatBoostGetNumTrees_R", model$handle)
+    catboost.restore_handle(model)
+    num_trees <- .Call("CatBoostGetNumTrees_R", model$cpp_obj$handle)
     return(num_trees)
 }
 
 
 catboost._is_oblivious <- function(model) {
-    if (!inherits(model, "catboost.Model"))
-        stop("Expected catboost.Model, got: ", class(model))
-    if (is.null.handle(model$handle))
-        model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
-    is_oblivious <- .Call("CatBoostIsOblivious_R", model$handle)
+    catboost.restore_handle(model)
+    is_oblivious <- .Call("CatBoostIsOblivious_R", model$cpp_obj$handle)
     return(is_oblivious)
 }
 
@@ -2261,11 +2233,8 @@ catboost._is_oblivious <- function(model) {
 #' @export
 #' @seealso \url{https://catboost.ai/docs/concepts/r-reference_catboost-get_model_params.html}
 catboost.get_model_params <- function(model) {
-    if (!inherits(model, "catboost.Model"))
-        stop("Expected catboost.Model, got: ", class(model))
-    if (is.null.handle(model$handle))
-        model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
-    params <- .Call("CatBoostGetModelParams_R", model$handle)
+    catboost.restore_handle(model)
+    params <- .Call("CatBoostGetModelParams_R", model$cpp_obj$handle)
     params <- jsonlite::fromJSON(params)
     return(params)
 }
@@ -2279,11 +2248,8 @@ catboost.get_model_params <- function(model) {
 #' @return A list object with model parameters.
 #' @export
 catboost.get_plain_params <- function(model) {
-    if (!inherits(model, "catboost.Model"))
-        stop("Expected catboost.Model, got: ", class(model))
-    if (is.null.handle(model$handle))
-        model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
-    params <- .Call("CatBoostGetPlainParams_R", model$handle)
+    catboost.restore_handle(model)
+    params <- .Call("CatBoostGetPlainParams_R", model$cpp_obj$handle)
     params <- jsonlite::fromJSON(params)
     return(params)
 }
@@ -2393,12 +2359,18 @@ catboost.eval_metrics <- function(model, pool, metrics, ntree_start = 0L, ntree_
 catboost.restore_handle <- function(model) {
     if (!inherits(model, "catboost.Model"))
         stop("Expected catboost.Model, got: ", class(model))
-    if (is.null.handle(model$handle))
-        model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
+    if (is.null.handle(model$cpp_obj$handle))
+        model$cpp_obj$handle <- .Call("CatBoostDeserializeModel_R", model$cpp_obj$raw)
     return(model)
 }
 
 is.null.handle <- function(handle) {
   stopifnot(typeof(handle) == "externalptr")
   .Call("CatBoostIsNullHandle_R", handle)
+}
+
+create.model.base <- function(handle, raw) {
+    model <- list(cpp_obj = as.environment(list(handle = handle, raw = raw)))
+    class(model) <- "catboost.Model"
+    return(model)
 }
