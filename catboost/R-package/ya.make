@@ -12,6 +12,7 @@ TAG(
     ya:noretries
     ya:fat
     ya:force_sandbox
+    ya:nofuse
 )
 
 TEST_SRCS(
