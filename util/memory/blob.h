@@ -116,6 +116,11 @@ public:
         return !Length();
     }
 
+    /// Checks if the blob owns data
+    Y_PURE_FUNCTION inline bool OwnsData() const noexcept {
+        return S_.Base != nullptr;
+    }
+
     /// Checks if the object has a data array.
     inline bool IsNull() const noexcept {
         return !Data();
