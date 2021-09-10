@@ -1,6 +1,6 @@
 
 
-PY3_PROGRAM(protoc-gen-mypy)
+PY3_PROGRAM_BIN(protoc-gen-mypy)
 
 PEERDIR(
     contrib/python/mypy-protobuf
