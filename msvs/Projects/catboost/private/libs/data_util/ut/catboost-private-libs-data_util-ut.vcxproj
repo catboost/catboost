@@ -107,6 +107,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\python-package\lib\pycatboost-python-package-lib.global.vcxproj">
       <Project>{D30B0BD7-8F25-3A3D-8BE9-EB81B2C8BEFD}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\tools\limited_precision_numpy_diff\pycatboost-tools-limited_precision_numpy_diff.global.vcxproj">
+      <Project>{6B2E7839-18CF-55A7-E31E-32B96B99C284}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\contrib-libs-cxxsupp.vcxproj">
       <Project>{8D7C41B0-2344-C558-29D8-570B39498A2F}</Project>
     </ProjectReference>

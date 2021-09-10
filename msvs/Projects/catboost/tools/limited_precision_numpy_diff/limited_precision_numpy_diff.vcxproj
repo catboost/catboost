@@ -63,10 +63,10 @@
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
-      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)../contrib/libs/libc_compat/include/windows;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/libs/openssl/include;$(SolutionDir)../contrib/libs/xz/liblzma/api;$(SolutionDir)../contrib/restricted/libffi/include;$(SolutionDir)../contrib/restricted/libffi/configs/x86_64-microsoft-windows/include;$(SolutionDir)../contrib/python/numpy/include/numpy/core/include;$(SolutionDir)../contrib/python/numpy/include/numpy/core/include/numpy;$(SolutionDir)../contrib/python/numpy/include/numpy/f2py/src;$(SolutionDir)../contrib/libs/libf2c;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)../contrib/libs/libc_compat/include/windows;$(SolutionDir)../contrib/libs/openssl/include;$(SolutionDir)../contrib/libs/xz/liblzma/api;$(SolutionDir)../contrib/restricted/libffi/include;$(SolutionDir)../contrib/restricted/libffi/configs/x86_64-microsoft-windows/include;$(SolutionDir)../contrib/python/numpy/include/numpy/core/include;$(SolutionDir)../contrib/python/numpy/include/numpy/core/include/numpy;$(SolutionDir)../contrib/python/numpy/include/numpy/f2py/src;$(SolutionDir)../contrib/libs/libf2c;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;dnsapi.lib;gdi32.lib;iphlpapi.lib;kernel32.lib;mswsock.lib;ole32.lib;oleaut32.lib;psapi.lib;rpcrt4.lib;secur32.lib;shell32.lib;shlwapi.lib;user32.lib;userenv.lib;uuid.lib;version.lib;winmm.lib;winspool.lib;ws2_32.lib;$(SolutionDir)$(Configuration)\MSVS\C092F5EB-6E3B-CBC5-C723-B1E4327CB1A8\507932c176c51682bda6445e3b.obj;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random\pypy3-numpy-random.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\numpy\py3\pypython-numpy-py3.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\tools\python3\lib\py\pypython3-lib-py.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\tools\python3\src\Lib\pypython3-src-Lib.global.lib;$(SolutionDir)$(Configuration)\MSVS\792075FE-4B44-7067-1903-46389DB92BE8\_sqlite3.reg3.obj;$(SolutionDir)$(Configuration)\MSVS\99480F9B-8814-368A-8A11-C9595B291CEC\zstd.obj;$(SolutionDir)$(Configuration)\MSVS\A945C0FD-E868-BBA0-1189-19BBB2296292\cpu_id_check.obj;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\library\python\runtime_py3\pylibrary-python-runtime_py3.global.lib;$(SolutionDir)$(Configuration)\MSVS\8E374D9B-CDBD-993F-45A3-F459C9A9C508\syms.obj;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\library\python\symbols\module\py3python-symbols-module.global.lib;$(SolutionDir)$(Configuration)\MSVS\652F51EE-85DE-3688-41FA-4C2CDAC4C75A\syms.obj;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\library\python\testing\import_test\py3python-testing-import_test.global.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;dnsapi.lib;gdi32.lib;iphlpapi.lib;kernel32.lib;mswsock.lib;ole32.lib;oleaut32.lib;psapi.lib;rpcrt4.lib;secur32.lib;shell32.lib;shlwapi.lib;user32.lib;userenv.lib;uuid.lib;version.lib;winmm.lib;winspool.lib;ws2_32.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\catboost\tools\limited_precision_numpy_diff\pycatboost-tools-limited_precision_numpy_diff.global.lib;$(SolutionDir)$(Configuration)\MSVS\C092F5EB-6E3B-CBC5-C723-B1E4327CB1A8\507932c176c51682bda6445e3b.obj;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random\pypy3-numpy-random.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\numpy\py3\pypython-numpy-py3.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\tools\python3\lib\py\pypython3-lib-py.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\tools\python3\src\Lib\pypython3-src-Lib.global.lib;$(SolutionDir)$(Configuration)\MSVS\792075FE-4B44-7067-1903-46389DB92BE8\_sqlite3.reg3.obj;$(SolutionDir)$(Configuration)\MSVS\99480F9B-8814-368A-8A11-C9595B291CEC\zstd.obj;$(SolutionDir)$(Configuration)\MSVS\A945C0FD-E868-BBA0-1189-19BBB2296292\cpu_id_check.obj;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\library\python\runtime_py3\pylibrary-python-runtime_py3.global.lib;$(SolutionDir)$(Configuration)\MSVS\8E374D9B-CDBD-993F-45A3-F459C9A9C508\syms.obj;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\library\python\symbols\module\py3python-symbols-module.global.lib;$(SolutionDir)$(Configuration)\MSVS\652F51EE-85DE-3688-41FA-4C2CDAC4C75A\syms.obj;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\library\python\testing\import_test\py3python-testing-import_test.global.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  Mincore.lib Shlwapi.lib Winmm.lib</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  Mincore.lib Shlwapi.lib Winmm.lib</AdditionalOptions>
       <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
@@ -78,36 +78,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\tools\limited_precision_numpy_diff\3962de8c5d98d5d0364635cb84.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\tools\limited_precision_numpy_diff\b76a6e7d96ccf5aa5106f39b71.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\tools\limited_precision_numpy_diff\fe52d1596ccab437cc4e1f0131.cpp"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\tools\limited_precision_numpy_diff\_3962de8c5d98d5d0364635cb84.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\tools\limited_precision_numpy_diff
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/catboost/tools/limited_precision_numpy_diff/_3962de8c5d98d5d0364635cb84.obj" "$(SolutionDir)$(Configuration)/catboost/tools/limited_precision_numpy_diff/_3962de8c5d98d5d0364635cb84.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\tools\limited_precision_numpy_diff
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/catboost/tools/limited_precision_numpy_diff/_3962de8c5d98d5d0364635cb84.obj" "$(SolutionDir)$(Configuration)/catboost/tools/limited_precision_numpy_diff/_3962de8c5d98d5d0364635cb84.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/tools/limited_precision_numpy_diff/_3962de8c5d98d5d0364635cb84.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\tools\limited_precision_numpy_diff\_3962de8c5d98d5d0364635cb84.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\tools\limited_precision_numpy_diff\_3962de8c5d98d5d0364635cb84.obj;</Outputs>
-    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\tools\limited_precision_numpy_diff\_b76a6e7d96ccf5aa5106f39b71.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\tools\limited_precision_numpy_diff
@@ -135,43 +106,12 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\tools\limited_precision_numpy_diff\_b76a6e7d96ccf5aa5106f39b71.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\tools\limited_precision_numpy_diff\_b76a6e7d96ccf5aa5106f39b71.obj;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\tools\limited_precision_numpy_diff\_fe52d1596ccab437cc4e1f0131.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\tools\limited_precision_numpy_diff
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/catboost/tools/limited_precision_numpy_diff/_fe52d1596ccab437cc4e1f0131.obj" "$(SolutionDir)$(Configuration)/catboost/tools/limited_precision_numpy_diff/_fe52d1596ccab437cc4e1f0131.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\tools\limited_precision_numpy_diff
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/catboost/tools/limited_precision_numpy_diff/_fe52d1596ccab437cc4e1f0131.obj" "$(SolutionDir)$(Configuration)/catboost/tools/limited_precision_numpy_diff/_fe52d1596ccab437cc4e1f0131.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/tools/limited_precision_numpy_diff/_fe52d1596ccab437cc4e1f0131.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\tools\limited_precision_numpy_diff\_fe52d1596ccab437cc4e1f0131.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\tools\limited_precision_numpy_diff\_fe52d1596ccab437cc4e1f0131.obj;</Outputs>
-    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\tools\limited_precision_numpy_diff
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/tools/limited_precision_numpy_diff/_b76a6e7d96ccf5aa5106f39b71.yasm" "-" "catboost.tools.limited_precision_numpy_diff.main:main" "_105f6e8ca93be1e85da00ff3ca.rodata"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\catboost\tools\limited_precision_numpy_diff
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/tools/limited_precision_numpy_diff/_fe52d1596ccab437cc4e1f0131.yasm" "-" "catboost.tools.limited_precision_numpy_diff." "_178726c218a543101238c1d6e0.rodata"
-if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
@@ -183,33 +123,21 @@ cd /d $(SolutionDir)$(Configuration)\catboost\tools\limited_precision_numpy_diff
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/tools/limited_precision_numpy_diff/_b76a6e7d96ccf5aa5106f39b71.yasm" "-" "catboost.tools.limited_precision_numpy_diff.main:main" "_105f6e8ca93be1e85da00ff3ca.rodata"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\catboost\tools\limited_precision_numpy_diff
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/tools/limited_precision_numpy_diff/_fe52d1596ccab437cc4e1f0131.yasm" "-" "catboost.tools.limited_precision_numpy_diff." "_178726c218a543101238c1d6e0.rodata"
-if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/tools/limited_precision_numpy_diff/_b76a6e7d96ccf5aa5106f39b71.yasm	$B/catboost/tools/limited_precision_numpy_diff/_fe52d1596ccab437cc4e1f0131.yasm	</Message>
+      <Message>$B/catboost/tools/limited_precision_numpy_diff/_b76a6e7d96ccf5aa5106f39b71.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\tools\limited_precision_numpy_diff\_b76a6e7d96ccf5aa5106f39b71.yasm;$(SolutionDir)$(Configuration)\catboost\tools\limited_precision_numpy_diff\_fe52d1596ccab437cc4e1f0131.yasm;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\tools\limited_precision_numpy_diff\_b76a6e7d96ccf5aa5106f39b71.yasm;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\tools\limited_precision_numpy_diff
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/tools/limited_precision_numpy_diff/3962de8c5d98d5d0364635cb84.cpp" "_5e6562bc05abafe805da2ed655=resfs/src/resfs/file/py/catboost/tools/limited_precision_numpy_diff/main.py" "_37353a9f39e9f6dd81d2f353ed=resfs/file/py/catboost/tools/limited_precision_numpy_diff/main.py" "_6b6595454e16e70b69f0b65c48=resfs/src/resfs/file/py/catboost/tools/limited_precision_numpy_diff/main.py.yapyc3" "_322780a4409ea26e92cb41731c=resfs/file/py/catboost/tools/limited_precision_numpy_diff/main.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\catboost\tools\limited_precision_numpy_diff
-if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/tools/limited_precision_numpy_diff/b76a6e7d96ccf5aa5106f39b71.cpp" "_105f6e8ca93be1e85da00ff3ca=PY_MAIN"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\catboost\tools\limited_precision_numpy_diff
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/tools/limited_precision_numpy_diff/fe52d1596ccab437cc4e1f0131.cpp" "_178726c218a543101238c1d6e0=py/namespace/15f80f424721a255ee90e380ee0c74f6/catboost/tools/limited_precision_numpy_diff"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -220,15 +148,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\tools\limited_precision_numpy_diff
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/tools/limited_precision_numpy_diff/3962de8c5d98d5d0364635cb84.cpp" "_5e6562bc05abafe805da2ed655=resfs/src/resfs/file/py/catboost/tools/limited_precision_numpy_diff/main.py" "_37353a9f39e9f6dd81d2f353ed=resfs/file/py/catboost/tools/limited_precision_numpy_diff/main.py" "_6b6595454e16e70b69f0b65c48=resfs/src/resfs/file/py/catboost/tools/limited_precision_numpy_diff/main.py.yapyc3" "_322780a4409ea26e92cb41731c=resfs/file/py/catboost/tools/limited_precision_numpy_diff/main.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\catboost\tools\limited_precision_numpy_diff
-if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/tools/limited_precision_numpy_diff/b76a6e7d96ccf5aa5106f39b71.cpp" "_105f6e8ca93be1e85da00ff3ca=PY_MAIN"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\catboost\tools\limited_precision_numpy_diff
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/tools/limited_precision_numpy_diff/fe52d1596ccab437cc4e1f0131.cpp" "_178726c218a543101238c1d6e0=py/namespace/15f80f424721a255ee90e380ee0c74f6/catboost/tools/limited_precision_numpy_diff"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -236,48 +156,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/tools/limited_precision_numpy_diff/3962de8c5d98d5d0364635cb84.cpp	$B/catboost/tools/limited_precision_numpy_diff/b76a6e7d96ccf5aa5106f39b71.cpp	$B/catboost/tools/limited_precision_numpy_diff/fe52d1596ccab437cc4e1f0131.cpp	</Message>
+      <Message>$B/catboost/tools/limited_precision_numpy_diff/b76a6e7d96ccf5aa5106f39b71.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\tools\limited_precision_numpy_diff\3962de8c5d98d5d0364635cb84.cpp;$(SolutionDir)$(Configuration)\catboost\tools\limited_precision_numpy_diff\b76a6e7d96ccf5aa5106f39b71.cpp;$(SolutionDir)$(Configuration)\catboost\tools\limited_precision_numpy_diff\fe52d1596ccab437cc4e1f0131.cpp;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\catboost\tools\limited_precision_numpy_diff\main.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\tools\limited_precision_numpy_diff
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/tools/limited_precision_numpy_diff/_3962de8c5d98d5d0364635cb84.yasm" "-" "catboost/tools/limited_precision_numpy_diff/main.py" "_5e6562bc05abafe805da2ed655.rodata" "$(SolutionDir)../catboost/tools/limited_precision_numpy_diff/main.py" "$(SolutionDir)$(Configuration)/catboost/tools/limited_precision_numpy_diff/_37353a9f39e9f6dd81d2f353ed.rodata" "-" "$(SolutionDir)$(Configuration)/catboost/tools/limited_precision_numpy_diff/main.py.yapyc3" "_6b6595454e16e70b69f0b65c48.rodata" "$(SolutionDir)$(Configuration)/catboost/tools/limited_precision_numpy_diff/main.py.yapyc3" "$(SolutionDir)$(Configuration)/catboost/tools/limited_precision_numpy_diff/_322780a4409ea26e92cb41731c.rodata"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\catboost\tools\limited_precision_numpy_diff
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/tools/limited_precision_numpy_diff/main.py-" "$(SolutionDir)../catboost/tools/limited_precision_numpy_diff/main.py" "$(SolutionDir)$(Configuration)/catboost/tools/limited_precision_numpy_diff/main.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\tools\limited_precision_numpy_diff
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/tools/limited_precision_numpy_diff/_3962de8c5d98d5d0364635cb84.yasm" "-" "catboost/tools/limited_precision_numpy_diff/main.py" "_5e6562bc05abafe805da2ed655.rodata" "$(SolutionDir)../catboost/tools/limited_precision_numpy_diff/main.py" "$(SolutionDir)$(Configuration)/catboost/tools/limited_precision_numpy_diff/_37353a9f39e9f6dd81d2f353ed.rodata" "-" "$(SolutionDir)$(Configuration)/catboost/tools/limited_precision_numpy_diff/main.py.yapyc3" "_6b6595454e16e70b69f0b65c48.rodata" "$(SolutionDir)$(Configuration)/catboost/tools/limited_precision_numpy_diff/main.py.yapyc3" "$(SolutionDir)$(Configuration)/catboost/tools/limited_precision_numpy_diff/_322780a4409ea26e92cb41731c.rodata"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\catboost\tools\limited_precision_numpy_diff
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/tools/limited_precision_numpy_diff/main.py-" "$(SolutionDir)../catboost/tools/limited_precision_numpy_diff/main.py" "$(SolutionDir)$(Configuration)/catboost/tools/limited_precision_numpy_diff/main.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/tools/limited_precision_numpy_diff/_3962de8c5d98d5d0364635cb84.yasm	$B/catboost/tools/limited_precision_numpy_diff/main.py.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\catboost\tools\limited_precision_numpy_diff\main.py;$(SolutionDir)$(Configuration)\catboost\tools\limited_precision_numpy_diff\main.py.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\tools\limited_precision_numpy_diff\_3962de8c5d98d5d0364635cb84.yasm;$(SolutionDir)$(Configuration)\catboost\tools\limited_precision_numpy_diff\_37353a9f39e9f6dd81d2f353ed.rodata;$(SolutionDir)$(Configuration)\catboost\tools\limited_precision_numpy_diff\_322780a4409ea26e92cb41731c.rodata;$(SolutionDir)$(Configuration)\catboost\tools\limited_precision_numpy_diff\main.py.yapyc3;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\tools\limited_precision_numpy_diff\b76a6e7d96ccf5aa5106f39b71.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
@@ -294,6 +175,12 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\python-package\lib\pycatboost-python-package-lib.global.vcxproj">
       <Project>{D30B0BD7-8F25-3A3D-8BE9-EB81B2C8BEFD}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\tools\limited_precision_numpy_diff\pycatboost-tools-limited_precision_numpy_diff.global.vcxproj">
+      <Project>{6B2E7839-18CF-55A7-E31E-32B96B99C284}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\tools\limited_precision_numpy_diff\pycatboost-tools-limited_precision_numpy_diff.vcxproj">
+      <Project>{1EB5F002-38A7-F1BA-1792-1A25043DC96D}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\certs\certs.vcxproj">
       <Project>{C092F5EB-6E3B-CBC5-C723-B1E4327CB1A8}</Project>
@@ -747,9 +634,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python3\lib\tools-python3-lib.vcxproj">
       <Project>{CD9FC9E1-E55E-F0DF-E06C-5DF7C166141B}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python3\pycc\pycc.vcxproj">
-      <Project>{480F44FB-05D5-35A4-D564-704F9C2920B7}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python3\src\Lib\pypython3-src-Lib.global.vcxproj">
       <Project>{C4A4C8A2-5483-70F3-E39F-E1BD30E1673D}</Project>
