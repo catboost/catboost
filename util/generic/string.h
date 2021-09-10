@@ -23,6 +23,15 @@
     #include "hide_ptr.h"
 #endif
 
+template <class TCharType, class TCharTraits, class TAllocator>
+void ResizeUninitialized(std::basic_string<TCharType, TCharTraits, TAllocator>& s, size_t len) {
+#if defined(_YNDX_LIBCXX_ENABLE_STRING_RESIZE_UNINITIALIZED)
+    s.resize_uninitialized(len);
+#else
+    s.resize(len);
+#endif
+}
+
 #define Y_NOEXCEPT
 
 #ifndef TSTRING_IS_STD_STRING
@@ -724,11 +733,7 @@ public:
     }
 
     inline void ReserveAndResize(size_t len) {
-#if defined(_YNDX_LIBCXX_ENABLE_STRING_RESIZE_UNINITIALIZED)
-        MutRef().resize_uninitialized(len);
-#else
-        resize(len);
-#endif
+        ::ResizeUninitialized(MutRef(), len);
     }
 
     TBasicString& AppendNoAlias(const TCharType* pc, size_t len) {
@@ -1251,4 +1256,9 @@ auto& MutRef(std::basic_string<TCharType, TCharTraits, TAllocator>& s) noexcept 
 template <class TCharType, class TCharTraits, class TAllocator>
 const auto& ConstRef(const std::basic_string<TCharType, TCharTraits, TAllocator>& s) noexcept {
     return s;
+}
+
+template <class TCharType, class TTraits>
+void ResizeUninitialized(TBasicString<TCharType, TTraits>& s, size_t len) {
+    s.ReserveAndResize(len);
 }
