@@ -630,6 +630,10 @@ public:
     }
 };
 
+#if _LIBCPP_STD_VER >= 17
+
+    #include <variant>
+
 namespace NPrivate {
     template <class Variant, class T, size_t I>
     void LoadVariantAlternative(IInputStream* is, Variant& v) {
@@ -640,8 +644,8 @@ namespace NPrivate {
 }
 
 template <typename... Args>
-struct TSerializer<TVariant<Args...>> {
-    using TVar = TVariant<Args...>;
+struct TSerializer<std::variant<Args...>> {
+    using TVar = std::variant<Args...>;
 
     static_assert(sizeof...(Args) < 256, "We use ui8 to store tag");
 
@@ -669,6 +673,8 @@ private:
         loaders[index](is, v);
     }
 };
+
+#endif
 
 template <class T>
 static inline void SaveLoad(IOutputStream* out, const T& t) {

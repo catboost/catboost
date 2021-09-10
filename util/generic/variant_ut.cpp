@@ -386,10 +386,10 @@ Y_UNIT_TEST_SUITE(TVariantTest) {
             UNIT_ASSERT_EQUAL(123, Get<S>(v2).Value);
             UNIT_ASSERT_EQUAL(123, s.Value);
         }
-        UNIT_ASSERT_EQUAL(1, S::CtorCalls);
-        UNIT_ASSERT_EQUAL(4, S::DtorCalls);
-        UNIT_ASSERT_EQUAL(2, S::CopyCtorCalls);
-        UNIT_ASSERT_EQUAL(1, S::MoveCtorCalls);
+        UNIT_ASSERT_VALUES_EQUAL(1, S::CtorCalls);
+        UNIT_ASSERT_VALUES_EQUAL(3, S::DtorCalls);
+        UNIT_ASSERT_VALUES_EQUAL(2, S::CopyCtorCalls);
+        UNIT_ASSERT_VALUES_EQUAL(0, S::MoveCtorCalls);
     }
 
     Y_UNIT_TEST(TestMoveAssign) {
@@ -426,12 +426,12 @@ Y_UNIT_TEST_SUITE(TVariantTest) {
         UNIT_ASSERT(HoldsAlternative<TNonCopyable2>(v2));
 
         TVar v3{TVariantIndexTag<0>()};
-        UNIT_ASSERT(HoldsAlternative<TNonCopyable1>(v1));
-        UNIT_ASSERT(!HoldsAlternative<TNonCopyable2>(v1));
+        UNIT_ASSERT(HoldsAlternative<TNonCopyable1>(v3));
+        UNIT_ASSERT(!HoldsAlternative<TNonCopyable2>(v3));
 
         TVar v4{TVariantIndexTag<1>()};
-        UNIT_ASSERT(!HoldsAlternative<TNonCopyable1>(v2));
-        UNIT_ASSERT(HoldsAlternative<TNonCopyable2>(v2));
+        UNIT_ASSERT(!HoldsAlternative<TNonCopyable1>(v4));
+        UNIT_ASSERT(HoldsAlternative<TNonCopyable2>(v4));
     }
 
     Y_UNIT_TEST(TestEmplace) {
@@ -491,8 +491,6 @@ Y_UNIT_TEST_SUITE(TVariantTest) {
         const TVariant<int, TString> varInt1(10);
         const TVariant<int, TString> varInt2(10);
         const TVariant<int, TString> varInt3(20);
-        UNIT_ASSERT_EQUAL(varInt1, 10);
-        UNIT_ASSERT_UNEQUAL(varInt1, 20);
         UNIT_ASSERT_EQUAL(varInt1, varInt1);
         UNIT_ASSERT_EQUAL(varInt1, varInt2);
         UNIT_ASSERT_UNEQUAL(varInt1, varInt3);
@@ -500,16 +498,12 @@ Y_UNIT_TEST_SUITE(TVariantTest) {
         const TVariant<int, TString> varStr1(TString("hello"));
         const TVariant<int, TString> varStr2(TString("hello"));
         const TVariant<int, TString> varStr3(TString("world"));
-        UNIT_ASSERT_EQUAL(varStr1, TString("hello"));
-        UNIT_ASSERT_UNEQUAL(varStr1, TString("world"));
         UNIT_ASSERT_EQUAL(varStr1, varStr1);
         UNIT_ASSERT_EQUAL(varStr1, varStr2);
         UNIT_ASSERT_UNEQUAL(varStr1, varStr3);
 
         UNIT_ASSERT_UNEQUAL(varInt1, varStr1);
-        UNIT_ASSERT_UNEQUAL(varInt1, TString("hello"));
         UNIT_ASSERT_UNEQUAL(varStr1, varInt1);
-        UNIT_ASSERT_UNEQUAL(varStr1, 10);
     }
 
     Y_UNIT_TEST(TestComparisons) {
@@ -565,9 +559,9 @@ Y_UNIT_TEST_SUITE(TVariantTest) {
         UNIT_ASSERT_EQUAL(Visit(TVisitorToString(), varStr), "hello");
 
         Visit(TVisitorIncrement(), varInt);
-        UNIT_ASSERT_EQUAL(varInt, 11);
+        UNIT_ASSERT_EQUAL(varInt, (TVariant<int, TString>(11)));
         Visit(TVisitorIncrement(), varStr);
-        UNIT_ASSERT_EQUAL(varStr, TString("hello1"));
+        UNIT_ASSERT_EQUAL(varStr, (TVariant<int, TString>(TString("hello1"))));
     }
 
     Y_UNIT_TEST(TestHash) {
@@ -599,9 +593,9 @@ Y_UNIT_TEST_SUITE(TVariantTest) {
 
     Y_UNIT_TEST(TestVisitorWithoutDefaultConstructor) {
         TVariant<int, TString> varInt(10);
-        UNIT_ASSERT_EQUAL(Visit(TVisitorDouble(), varInt), 20);
+        UNIT_ASSERT_EQUAL(Visit(TVisitorDouble(), varInt), (TVariant<int, TString>(20)));
         TVariant<int, TString> varStr(TString("hello"));
-        UNIT_ASSERT_EQUAL(Visit(TVisitorDouble(), varStr), TString("hellohello"));
+        UNIT_ASSERT_EQUAL(Visit(TVisitorDouble(), varStr), (TVariant<int, TString>(TString("hellohello"))));
     }
 
     Y_UNIT_TEST(TestSwapSameAlternative) {
@@ -685,11 +679,11 @@ Y_UNIT_TEST_SUITE(TVariantTest) {
         AssertValuelessByException(v);
     }
 
-    Y_UNIT_TEST(TestNotValuelessAfterCopyAssign) {
+    Y_UNIT_TEST(TestValuelessAfterCopyAssign) {
         TVariant<int, TThrowOnCopy, TString> v;
         TVariant<int, TThrowOnCopy, TString> v2{TVariantIndexTag<1>{}};
         UNIT_ASSERT_EXCEPTION(v = v2, int);
-        UNIT_ASSERT_UNEQUAL(v.index(), TVARIANT_NPOS);
-        UNIT_ASSERT(!v.valueless_by_exception());
+        UNIT_ASSERT_EQUAL(v.index(), TVARIANT_NPOS);
+        UNIT_ASSERT(v.valueless_by_exception());
     }
 }
