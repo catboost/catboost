@@ -6,7 +6,13 @@ LIBRARY()
 
 VERSION(2.4.1)
 
-LICENSE(MIT)
+LICENSE(
+    CC0-1.0
+    Json
+    MIT
+)
+
+LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 ADDINCL(
     contrib/libs/expat
@@ -18,13 +24,9 @@ NO_COMPILER_WARNINGS()
 NO_RUNTIME()
 
 IF (OS_WINDOWS)
-    CFLAGS(
-        GLOBAL -DXML_STATIC
-    )
+    CFLAGS(GLOBAL -DXML_STATIC)
 ELSE()
-    CFLAGS(
-        -DHAVE_EXPAT_CONFIG_H
-    )
+    CFLAGS(-DHAVE_EXPAT_CONFIG_H)
 ENDIF()
 
 SRCS(
