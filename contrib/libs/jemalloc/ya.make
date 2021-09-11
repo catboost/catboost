@@ -6,7 +6,12 @@ LIBRARY()
 
 VERSION(5.2.1)
 
-LICENSE(BSD-2-Clause)
+LICENSE(
+    BSD-2-Clause
+    Public-Domain
+)
+
+LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 ADDINCL(
     contrib/libs/jemalloc/include
@@ -14,14 +19,9 @@ ADDINCL(
 )
 
 IF (OS_WINDOWS)
-    ADDINCL(
-        contrib/libs/jemalloc/include/msvc_compat
-    )
+    ADDINCL(contrib/libs/jemalloc/include/msvc_compat)
 ELSE()
-    CFLAGS(
-        -funroll-loops
-    )
-
+    CFLAGS(-funroll-loops)
     IF (OS_DARWIN OR OS_IOS)
         SRCS(
             GLOBAL reg_zone.cpp
@@ -31,10 +31,7 @@ ELSE()
         PEERDIR(
             contrib/libs/libunwind
         )
-
-        CFLAGS(
-            -fvisibility=hidden
-        )
+        CFLAGS(-fvisibility=hidden)
     ENDIF()
 ENDIF()
 
