@@ -289,6 +289,13 @@ def assert_bool(dist, attr, value):
         raise DistutilsSetupError(tmpl.format(attr=attr, value=value))
 
 
+def invalid_unless_false(dist, attr, value):
+    if not value:
+        warnings.warn(f"{attr} is ignored.", DistDeprecationWarning)
+        return
+    raise DistutilsSetupError(f"{attr} is invalid.")
+
+
 def check_requirements(dist, attr, value):
     """Verify that install_requires is a valid requirements list"""
     try:
@@ -817,9 +824,25 @@ class Distribution(_Distribution):
         def by_order(hook):
             return getattr(hook, 'order', 0)
 
-        eps = map(lambda e: e.load(), pkg_resources.iter_entry_points(group))
-        for ep in sorted(eps, key=by_order):
+        defined = pkg_resources.iter_entry_points(group)
+        filtered = itertools.filterfalse(self._removed, defined)
+        loaded = map(lambda e: e.load(), filtered)
+        for ep in sorted(loaded, key=by_order):
             ep(self)
+
+    @staticmethod
+    def _removed(ep):
+        """
+        When removing an entry point, if metadata is loaded
+        from an older version of Setuptools, that removed
+        entry point will attempt to be loaded and will fail.
+        See #2765 for more details.
+        """
+        removed = {
+            # removed 2021-09-05
+            '2to3_doctests',
+        }
+        return ep.name in removed
 
     def _finalize_setup_keywords(self):
         for ep in pkg_resources.iter_entry_points('distutils.setup_keywords'):
