@@ -8,9 +8,9 @@ VERSION(1.13.0)
 
 LICENSE(BSD-3-Clause)
 
-ADDINCL(
-    GLOBAL contrib/libs/nvidia/cub
-)
+LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
+
+ADDINCL(GLOBAL contrib/libs/nvidia/cub)
 
 NO_COMPILER_WARNINGS()
 
