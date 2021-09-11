@@ -1,8 +1,11 @@
 LIBRARY()
 
-LICENSE(NCSA AND MIT)
+LICENSE(
+    MIT
+    NCSA
+)
 
-LICENSE_TEXTS(yandex_meta/licenses.list.txt)
+LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 
 
