@@ -692,6 +692,7 @@ class
     basic_string
     : private __basic_string_common<true>
 {
+	static_assert(sizeof(_CharT) <= 4, "libc++ implementation of std::basic_string does not support extra-wide character types");
 public:
     typedef basic_string                                 __self;
     typedef basic_string_view<_CharT, _Traits>           __self_view;
