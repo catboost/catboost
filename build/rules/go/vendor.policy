@@ -23,6 +23,11 @@ ALLOW .* -> vendor/github.com/sijms/go-ora
 ALLOW .* -> vendor/k8s.io/client-go/discovery
 ALLOW .* -> vendor/k8s.io/client-go/discovery/fake
 ALLOW .* -> vendor/k8s.io/client-go/kubernetes
+ALLOW .* -> vendor/k8s.io/client-go/plugin/pkg/client
+ALLOW .* -> vendor/k8s.io/client-go/plugin/pkg/client/auth/azure
+ALLOW .* -> vendor/k8s.io/client-go/plugin/pkg/client/auth/exec
+ALLOW .* -> vendor/k8s.io/client-go/plugin/pkg/client/auth/gcp
+ALLOW .* -> vendor/k8s.io/client-go/plugin/pkg/client/auth/oidc
 ALLOW .* -> vendor/k8s.io/client-go/rest
 ALLOW .* -> vendor/k8s.io/client-go/testing
 ALLOW .* -> vendor/k8s.io/client-go/tools/auth
