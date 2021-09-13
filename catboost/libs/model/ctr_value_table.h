@@ -105,5 +105,5 @@ public:
     int CounterDenominator = 0;
     int TargetClassesCount = 0;
 private:
-    TVariant<TSolidTable, TThinTable> Impl;
+    std::variant<TSolidTable, TThinTable> Impl;
 };

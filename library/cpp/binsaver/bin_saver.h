@@ -471,13 +471,13 @@ public:
     };
 
     template <class... TVariantTypes>
-    int Add(const chunk_id, TVariant<TVariantTypes...>* pData) {
-        static_assert(::TVariantSize<TVariant<TVariantTypes...>>::value < Max<ui32>());
+    int Add(const chunk_id, std::variant<TVariantTypes...>* pData) {
+        static_assert(::TVariantSize<std::variant<TVariantTypes...>>::value < Max<ui32>());
 
         ui32 index;
         if (IsReading()) {
             Add(1, &index);
-            TLoadFromTypeFromListHelper<TVariant<TVariantTypes...>>::template Do<TVariantTypes...>(
+            TLoadFromTypeFromListHelper<std::variant<TVariantTypes...>>::template Do<TVariantTypes...>(
                 *this,
                 index,
                 pData

@@ -215,7 +215,7 @@ enum class ESplitEnsembleType {
 };
 
 
-// could have been a TVariant but SAVELOAD is easier this way
+// could have been a std::variant but SAVELOAD is easier this way
 struct TSplitEnsemble {
     bool IsEstimated;  // either online or offline
     bool IsOnlineEstimated;
@@ -651,7 +651,7 @@ public:
     }
 };
 
-inline TVector<TCtr> GetUsedCtrs(const TVariant<TSplitTree, TNonSymmetricTreeStructure>& tree) {
+inline TVector<TCtr> GetUsedCtrs(const std::variant<TSplitTree, TNonSymmetricTreeStructure>& tree) {
     if (HoldsAlternative<TSplitTree>(tree)) {
         return Get<TSplitTree>(tree).GetUsedCtrs();
     } else {
@@ -659,7 +659,7 @@ inline TVector<TCtr> GetUsedCtrs(const TVariant<TSplitTree, TNonSymmetricTreeStr
     }
 }
 
-inline int GetLeafCount(const TVariant<TSplitTree, TNonSymmetricTreeStructure>& tree) {
+inline int GetLeafCount(const std::variant<TSplitTree, TNonSymmetricTreeStructure>& tree) {
     if (HoldsAlternative<TSplitTree>(tree)) {
         return Get<TSplitTree>(tree).GetLeafCount();
     } else {

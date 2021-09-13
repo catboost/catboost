@@ -100,7 +100,7 @@ namespace NCatboostDistributed {
 
     struct TApproxReconstructorParams {
         TMaybe<int> BestIteration;
-        TVector<TVariant<TSplitTree, TNonSymmetricTreeStructure>> TreeStruct;
+        TVector<std::variant<TSplitTree, TNonSymmetricTreeStructure>> TreeStruct;
         TVector<TVector<TVector<double>>> LeafValues;
 
     public:

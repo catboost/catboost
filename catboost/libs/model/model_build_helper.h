@@ -63,7 +63,7 @@ public:
     TMaybe<TModelSplit> SplitCondition;
     THolder<TNonSymmetricTreeNode> Left;
     THolder<TNonSymmetricTreeNode> Right;
-    TVariant<TEmptyValue, double, TVector<double>> Value;
+    std::variant<TEmptyValue, double, TVector<double>> Value;
     TMaybe<double> NodeWeight;
 
     bool IsSplitNode() const {

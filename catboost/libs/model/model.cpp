@@ -1466,7 +1466,7 @@ namespace {
 
     struct TFlatFeature {
 
-        TVariant<TUnknownFeature, TFloatFeature, TCatFeature> FeatureVariant;
+        std::variant<TUnknownFeature, TFloatFeature, TCatFeature> FeatureVariant;
 
     public:
         TFlatFeature() = default;

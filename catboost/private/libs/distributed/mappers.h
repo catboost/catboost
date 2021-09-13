@@ -113,7 +113,7 @@ namespace NCatboostDistributed {
         OBJECT_NOCOPY_METHODS(TBucketSimpleUpdater);
         void DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const final;
     };
-    class TCalcApproxStarter: public NPar::TMapReduceCmd<TVariant<TSplitTree, TNonSymmetricTreeStructure>, TUnusedInitializedParam> {
+    class TCalcApproxStarter: public NPar::TMapReduceCmd<std::variant<TSplitTree, TNonSymmetricTreeStructure>, TUnusedInitializedParam> {
         OBJECT_NOCOPY_METHODS(TCalcApproxStarter);
         void DoMap(NPar::IUserContext* ctx, int hostId, TInput* splitTree, TOutput* /*unused*/) const final;
     };

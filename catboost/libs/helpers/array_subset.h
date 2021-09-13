@@ -193,10 +193,10 @@ namespace NCB {
 
     template <class TSize>
     class TArraySubsetIndexing
-        : public TVariant<TFullSubset<TSize>, TRangesSubset<TSize>, TIndexedSubset<TSize>>
+        : public std::variant<TFullSubset<TSize>, TRangesSubset<TSize>, TIndexedSubset<TSize>>
     {
     public:
-        using TBase = TVariant<TFullSubset<TSize>, TRangesSubset<TSize>, TIndexedSubset<TSize>>;
+        using TBase = std::variant<TFullSubset<TSize>, TRangesSubset<TSize>, TIndexedSubset<TSize>>;
 
     public:
         // default constructor is necessary for BinSaver serialization & Cython
@@ -257,7 +257,7 @@ namespace NCB {
             return 0; // just to silence compiler warnings
         }
 
-        // Had to redefine Get because automatic resolution does not work with current TVariant implementation
+        // Had to redefine Get because automatic resolution does not work with current std::variant implementation
         template <class T>
         decltype(auto) Get() {
             return ::Get<T>((TBase&)*this);
@@ -1199,10 +1199,10 @@ namespace NCB {
 
     template <class TSize>
     class TArraySubsetInvertedIndexing
-        : public TVariant<TFullSubset<TSize>, TInvertedIndexedSubset<TSize>>
+        : public std::variant<TFullSubset<TSize>, TInvertedIndexedSubset<TSize>>
     {
     public:
-        using TBase = TVariant<TFullSubset<TSize>, TInvertedIndexedSubset<TSize>>;
+        using TBase = std::variant<TFullSubset<TSize>, TInvertedIndexedSubset<TSize>>;
 
     public:
         explicit TArraySubsetInvertedIndexing(TFullSubset<TSize>&& subset)

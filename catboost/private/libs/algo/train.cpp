@@ -36,7 +36,7 @@ TErrorTracker BuildErrorTracker(
 static void UpdateLearningFold(
     const NCB::TTrainingDataProviders& data,
     const IDerCalcer& error,
-    const TVariant<TSplitTree, TNonSymmetricTreeStructure>& bestTree,
+    const std::variant<TSplitTree, TNonSymmetricTreeStructure>& bestTree,
     ui64 randomSeed,
     TFold* fold,
     TLearnContext* ctx
@@ -121,7 +121,7 @@ static void ScaleAllApproxes(
 void CalcApproxesLeafwise(
     const NCB::TTrainingDataProviders& data,
     const IDerCalcer& error,
-    const TVariant<TSplitTree, TNonSymmetricTreeStructure>& tree,
+    const std::variant<TSplitTree, TNonSymmetricTreeStructure>& tree,
     TLearnContext* ctx,
     TVector<TVector<double>>* treeValues,
     TVector<TIndexType>* indices
@@ -205,7 +205,7 @@ void TrainOneIteration(const NCB::TTrainingDataProviders& data, TLearnContext* c
         }
     }
 
-    TVariant<TSplitTree, TNonSymmetricTreeStructure> bestTree;
+    std::variant<TSplitTree, TNonSymmetricTreeStructure> bestTree;
     {
         TFold* takenFold = &ctx->LearnProgress->Folds[ctx->LearnProgress->Rand.GenRand() % foldCount];
         const TVector<ui64> randomSeeds = GenRandUI64Vector(

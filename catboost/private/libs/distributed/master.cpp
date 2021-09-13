@@ -627,7 +627,7 @@ static void UpdateLeavesExact(
 template <typename TApproxDefs>
 void MapSetApproxes(
     const IDerCalcer& error,
-    const TVariant<TSplitTree, TNonSymmetricTreeStructure>& splitTree,
+    const std::variant<TSplitTree, TNonSymmetricTreeStructure>& splitTree,
     TVector<TVector<double>>* averageLeafValues,
     TVector<double>* sumLeafWeights,
     TLearnContext* ctx) {
@@ -811,7 +811,7 @@ public:
 
 void MapSetApproxesSimple(
     const IDerCalcer& error,
-    const TVariant<TSplitTree, TNonSymmetricTreeStructure>& splitTree,
+    const std::variant<TSplitTree, TNonSymmetricTreeStructure>& splitTree,
     TVector<TVector<double>>* averageLeafValues,
     TVector<double>* sumLeafWeights,
     TLearnContext* ctx) {
@@ -821,7 +821,7 @@ void MapSetApproxesSimple(
 
 void MapSetApproxesMulti(
     const IDerCalcer& error,
-    const TVariant<TSplitTree, TNonSymmetricTreeStructure>& splitTree,
+    const std::variant<TSplitTree, TNonSymmetricTreeStructure>& splitTree,
     TVector<TVector<double>>* averageLeafValues,
     TVector<double>* sumLeafWeights,
     TLearnContext* ctx) {

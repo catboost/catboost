@@ -76,14 +76,14 @@ TVector<typename TMapper::TOutput> ApplyMapper(
 
 void MapSetApproxesSimple(
     const IDerCalcer& error,
-    const TVariant<TSplitTree, TNonSymmetricTreeStructure>& splitTree,
+    const std::variant<TSplitTree, TNonSymmetricTreeStructure>& splitTree,
     TVector<TVector<double>>* averageLeafValues,
     TVector<double>* sumLeafWeights,
     TLearnContext* ctx);
 
 void MapSetApproxesMulti(
     const IDerCalcer& error,
-    const TVariant<TSplitTree, TNonSymmetricTreeStructure>& splitTree,
+    const std::variant<TSplitTree, TNonSymmetricTreeStructure>& splitTree,
     TVector<TVector<double>>* averageLeafValues,
     TVector<double>* sumLeafWeights,
     TLearnContext* ctx);
