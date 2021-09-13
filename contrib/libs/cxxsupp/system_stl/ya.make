@@ -23,6 +23,9 @@ ELSEIF (OS_ANDROID)
         )
     ENDIF()
 ELSE()
+    CFLAGS(
+        GLOBAL -DLIBCXX_BUILDING_LIBGCC
+    )
     LDFLAGS(
         -lgcc_s
     )
