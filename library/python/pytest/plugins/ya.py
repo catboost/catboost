@@ -812,7 +812,7 @@ class TraceReportGenerator(object):
             with open(self._wreckage_filename, 'a') as afile:
                 self._file = afile
 
-                self._dump_trace('suite_event', {"errors": [('fail', '[[bad]]' + msg)]})
+                self._dump_trace('chunk_event', {"errors": [('fail', '[[bad]]' + msg)]})
 
             raise Exception(msg)
         else:
@@ -882,7 +882,7 @@ class TraceReportGenerator(object):
         self.trace("suite-event", message)
 
     def on_error(self, test_item):
-        self.trace('suite_event', {"errors": [(test_item.status, self._get_comment(test_item))]})
+        self.trace('chunk_event', {"errors": [(test_item.status, self._get_comment(test_item))]})
 
     def on_log_report(self, test_item):
         if test_item.nodeid in self._test_duration:
@@ -955,7 +955,7 @@ class TraceReportGenerator(object):
                     # overwrite original status
                     self._dump_trace('subtest-finished', data)
                 else:
-                    self._dump_trace('suite_event', {"errors": [('fail', msg)]})
+                    self._dump_trace('chunk_event', {"errors": [('fail', msg)]})
         except Exception as e:
             yatest_logger.exception(e)
         finally:
