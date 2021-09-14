@@ -568,11 +568,7 @@ public:
 
         TStringType s10(Reserve(100));
         UNIT_ASSERT(s10.empty());
-#ifdef TSTRING_IS_STD_STRING
         UNIT_ASSERT(s10.capacity() >= 100);
-#else
-        UNIT_ASSERT(s10.capacity() > 100);
-#endif
     }
 
     void TestReplace() {

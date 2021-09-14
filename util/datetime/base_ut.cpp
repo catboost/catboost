@@ -548,7 +548,9 @@ Y_UNIT_TEST_SUITE(DateTimeTest) {
 
         UNIT_ASSERT_VALUES_EQUAL(TDuration::MilliSeconds(5), TDuration(std::chrono::duration<i8, std::milli>{5ms}));
 
-#if defined(__clang__)
+#if defined(_LIBCPP_STD_VER) && _LIBCPP_STD_VER > 17
+        // libstdc++ does not provide std::chrono::days at the time
+        // Consider removing this code upon OS_SDK update
         UNIT_ASSERT_VALUES_EQUAL(TDuration::Days(1), TDuration(std::chrono::days{1}));
 #endif
 
