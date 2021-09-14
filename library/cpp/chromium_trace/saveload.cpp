@@ -84,14 +84,14 @@ namespace {
 }
 
 #define CHECK_EVENT_TAG_I8(type) static_assert( \
-    TVariantIndexV<type, TAnyEvent> <= 127 && TVariantIndexV<type, TAnyEvent> != TVARIANT_NPOS && \
+    TVariantIndexV<type, TAnyEvent> <= 127 && TVariantIndexV<type, TAnyEvent> != std::variant_npos && \
     TVariantIndexV<const type*, TConstAnyEventPtr> <= 127 && \
-    TVariantIndexV<const type*, TConstAnyEventPtr> != TVARIANT_NPOS, \
+    TVariantIndexV<const type*, TConstAnyEventPtr> != std::variant_npos, \
     "tag of " #type " is too big")
 
 #define CHECK_ARG_TAG_I8(type) static_assert( \
     TVariantIndexV<type, TEventArgs::TArg::TValue> <= 127 && \
-    TVariantIndexV<type, TEventArgs::TArg::TValue> != TVARIANT_NPOS, \
+    TVariantIndexV<type, TEventArgs::TArg::TValue> != std::variant_npos, \
     "tag of " #type " is too big")
 
 CHECK_EVENT_TAG_I8(TDurationBeginEvent);
