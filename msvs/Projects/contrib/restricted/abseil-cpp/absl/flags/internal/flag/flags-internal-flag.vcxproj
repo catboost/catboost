@@ -119,6 +119,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\demangle\abseil-cpp-absl-demangle.vcxproj">
       <Project>{0C7FCEF6-C6D4-5453-F293-DFF90FE3B912}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\flags\commandlineflag\absl-flags-commandlineflag.vcxproj">
+      <Project>{2AB57FBF-73D6-5EF7-2C8E-F21589270EF7}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\flags\internal\commandlineflag\flags-internal-commandlineflag.vcxproj">
       <Project>{9979D488-7B0C-E874-99FB-23BE60D007A5}</Project>
     </ProjectReference>
@@ -157,6 +160,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\time\time_zone\absl-time-time_zone.vcxproj">
       <Project>{C90415E2-11A6-7C43-3BAE-276EBF6D81E3}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\types\bad_optional_access\absl-types-bad_optional_access.vcxproj">
+      <Project>{753BBE3B-79AD-E56C-7D2C-82F512858168}</Project>
     </ProjectReference>
   </ItemGroup>
 </Project>

@@ -90,7 +90,6 @@
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\base\const_init.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\base\dynamic_annotations.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\base\internal\atomic_hook.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\base\internal\bits.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\base\internal\cycleclock.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\base\internal\direct_mmap.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\base\internal\dynamic_annotations.h"/>
