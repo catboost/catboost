@@ -10,10 +10,9 @@ LICENSE(
     Apache-2.0 WITH LLVM-exception
     MIT
     NCSA
-    NCSA AND MIT
 )
 
-LICENSE_TEXTS(yandex_meta/licenses.list.txt)
+LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 ADDINCL(
     contrib/libs/cxxsupp/libcxxabi/include
