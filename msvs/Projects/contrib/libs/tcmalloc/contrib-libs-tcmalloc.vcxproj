@@ -84,16 +84,19 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\tcmalloc\tcmalloc\common.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\tcmalloc\tcmalloc\cpu_cache.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\tcmalloc\tcmalloc\experiment.cc"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\tcmalloc\tcmalloc\experimental_56_size_class.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\tcmalloc\tcmalloc\experimental_pow2_below64_size_class.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\tcmalloc\tcmalloc\experimental_pow2_size_class.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\tcmalloc\tcmalloc\guarded_page_allocator.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\tcmalloc\tcmalloc\huge_address_map.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\tcmalloc\tcmalloc\huge_allocator.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\tcmalloc\tcmalloc\huge_cache.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\tcmalloc\tcmalloc\huge_page_aware_allocator.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\tcmalloc\tcmalloc\internal\cache_topology.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\tcmalloc\tcmalloc\internal\environment.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\tcmalloc\tcmalloc\internal\logging.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\tcmalloc\tcmalloc\internal\memory_stats.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\tcmalloc\tcmalloc\internal\mincore.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\tcmalloc\tcmalloc\internal\numa.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\tcmalloc\tcmalloc\internal\percpu.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\tcmalloc\tcmalloc\internal\percpu_rseq_asm.S"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\tcmalloc\tcmalloc\internal\percpu_rseq_unsupported.cc"/>
@@ -116,6 +119,7 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\tcmalloc\tcmalloc\tcmalloc.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\tcmalloc\tcmalloc\thread_cache.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\tcmalloc\tcmalloc\transfer_cache.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\tcmalloc\tcmalloc\want_hpaa.cc"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tcmalloc\tcmalloc\arena.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tcmalloc\tcmalloc\central_freelist.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tcmalloc\tcmalloc\common.h"/>
@@ -132,7 +136,7 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tcmalloc\tcmalloc\huge_region.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tcmalloc\tcmalloc\internal\atomic_danger.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tcmalloc\tcmalloc\internal\atomic_stats_counter.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\tcmalloc\tcmalloc\internal\bits.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tcmalloc\tcmalloc\internal\cache_topology.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tcmalloc\tcmalloc\internal\config.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tcmalloc\tcmalloc\internal\declarations.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tcmalloc\tcmalloc\internal\environment.h"/>
@@ -141,6 +145,7 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tcmalloc\tcmalloc\internal\logging.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tcmalloc\tcmalloc\internal\memory_stats.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tcmalloc\tcmalloc\internal\mincore.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tcmalloc\tcmalloc\internal\numa.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tcmalloc\tcmalloc\internal\optimization.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tcmalloc\tcmalloc\internal\parameter_accessors.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tcmalloc\tcmalloc\internal\percpu.h"/>
