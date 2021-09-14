@@ -458,12 +458,12 @@ Duration Hours(T n) {
 //
 //   absl::Duration d = absl::Milliseconds(1500);
 //   int64_t isec = absl::ToInt64Seconds(d);  // isec == 1
-int64_t ToInt64Nanoseconds(Duration d);
-int64_t ToInt64Microseconds(Duration d);
-int64_t ToInt64Milliseconds(Duration d);
-int64_t ToInt64Seconds(Duration d);
-int64_t ToInt64Minutes(Duration d);
-int64_t ToInt64Hours(Duration d);
+ABSL_ATTRIBUTE_PURE_FUNCTION int64_t ToInt64Nanoseconds(Duration d);
+ABSL_ATTRIBUTE_PURE_FUNCTION int64_t ToInt64Microseconds(Duration d);
+ABSL_ATTRIBUTE_PURE_FUNCTION int64_t ToInt64Milliseconds(Duration d);
+ABSL_ATTRIBUTE_PURE_FUNCTION int64_t ToInt64Seconds(Duration d);
+ABSL_ATTRIBUTE_PURE_FUNCTION int64_t ToInt64Minutes(Duration d);
+ABSL_ATTRIBUTE_PURE_FUNCTION int64_t ToInt64Hours(Duration d);
 
 // ToDoubleNanoSeconds()
 // ToDoubleMicroseconds()
@@ -480,12 +480,12 @@ int64_t ToInt64Hours(Duration d);
 //
 //   absl::Duration d = absl::Milliseconds(1500);
 //   double dsec = absl::ToDoubleSeconds(d);  // dsec == 1.5
-double ToDoubleNanoseconds(Duration d);
-double ToDoubleMicroseconds(Duration d);
-double ToDoubleMilliseconds(Duration d);
-double ToDoubleSeconds(Duration d);
-double ToDoubleMinutes(Duration d);
-double ToDoubleHours(Duration d);
+ABSL_ATTRIBUTE_PURE_FUNCTION double ToDoubleNanoseconds(Duration d);
+ABSL_ATTRIBUTE_PURE_FUNCTION double ToDoubleMicroseconds(Duration d);
+ABSL_ATTRIBUTE_PURE_FUNCTION double ToDoubleMilliseconds(Duration d);
+ABSL_ATTRIBUTE_PURE_FUNCTION double ToDoubleSeconds(Duration d);
+ABSL_ATTRIBUTE_PURE_FUNCTION double ToDoubleMinutes(Duration d);
+ABSL_ATTRIBUTE_PURE_FUNCTION double ToDoubleHours(Duration d);
 
 // FromChrono()
 //
@@ -1180,11 +1180,15 @@ inline Time FromDateTime(int64_t year, int mon, int day, int hour,
 //
 // Converts the `tm_year`, `tm_mon`, `tm_mday`, `tm_hour`, `tm_min`, and
 // `tm_sec` fields to an `absl::Time` using the given time zone. See ctime(3)
-// for a description of the expected values of the tm fields. If the indicated
-// time instant is not unique (see `absl::TimeZone::At(absl::CivilSecond)`
-// above), the `tm_isdst` field is consulted to select the desired instant
-// (`tm_isdst` > 0 means DST, `tm_isdst` == 0 means no DST, `tm_isdst` < 0
-// means use the post-transition offset).
+// for a description of the expected values of the tm fields. If the civil time
+// is unique (see `absl::TimeZone::At(absl::CivilSecond)` above), the matching
+// time instant is returned.  Otherwise, the `tm_isdst` field is consulted to
+// choose between the possible results.  For a repeated civil time, `tm_isdst !=
+// 0` returns the matching DST instant, while `tm_isdst == 0` returns the
+// matching non-DST instant.  For a skipped civil time there is no matching
+// instant, so `tm_isdst != 0` returns the DST instant, and `tm_isdst == 0`
+// returns the non-DST instant, that would have matched if the transition never
+// happened.
 Time FromTM(const struct tm& tm, TimeZone tz);
 
 // ToTM()
