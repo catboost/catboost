@@ -1,7 +1,6 @@
 #include "stack_storage.h"
 
 #include "stack.h"
-#include "stack_guards.h"
 #include "stack_utils.h"
 
 #include <library/cpp/coroutine/engine/impl.h>

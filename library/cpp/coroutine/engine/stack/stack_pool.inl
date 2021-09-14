@@ -63,6 +63,7 @@ namespace NCoro::NStack {
         if (!Storage_->IsEmpty()) {
             return Storage_->GetStack(Guard_, name);
         } else {
+            ++NumOfAllocated_;
             return AllocNewStack(name);
         }
     }
@@ -73,6 +74,15 @@ namespace NCoro::NStack {
         Y_ASSERT(IsStackFromThisPool(stack));
 
         Storage_->ReturnStack(stack);
+    }
+
+    template<typename TGuard>
+    uint64_t TPool<TGuard>::GetReleasedSize() const noexcept {
+        return Storage_->GetReleasedSize();
+    }
+    template<typename TGuard>
+    uint64_t TPool<TGuard>::GetFullSize() const noexcept {
+        return Storage_->GetFullSize();
     }
 
     template<typename TGuard>

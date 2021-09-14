@@ -26,4 +26,10 @@ namespace NCoro::NStack {
         uint64_t StacksPerChunk = 2;
 #endif
     };
+
+    struct TAllocatorStats {
+        uint64_t ReleasedSize = 0;
+        uint64_t NotReleasedSize = 0;
+        uint64_t NumOfAllocated = 0;
+    };
 }

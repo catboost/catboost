@@ -20,6 +20,9 @@ namespace NCoro::NStack {
         bool IsEmpty() const noexcept;
         uint64_t Size() const noexcept;
 
+        uint64_t GetReleasedSize() const noexcept { return Released_.size(); }
+        uint64_t GetFullSize() const noexcept { return Full_.size(); }
+
         template<typename TGuard>
         NDetails::TStack GetStack(const TGuard& guard, const char* name);
         void ReturnStack(NDetails::TStack& stack);
