@@ -1,8 +1,33 @@
 #pragma once
 
-#include "variant_traits.h"
+#include "typetraits.h"
+#include "yexception.h"
+#include "hash.h"
 
-#include <util/generic/hash.h>
+#include <utility>
+#include <type_traits>
+#include <variant>
+
+namespace NVariant {
+    template <class X, class... Ts>
+    constexpr size_t IndexOfImpl() {
+        bool bs[] = {std::is_same<X, Ts>::value...};
+        for (size_t i = 0; i < sizeof...(Ts); ++i) {
+            if (bs[i]) {
+                return i;
+            }
+        }
+        return std::variant_npos;
+    }
+
+    template <class X, class... Ts>
+    struct TIndexOf: std::integral_constant<size_t, IndexOfImpl<X, Ts...>()> {};
+}
+
+template <class... Ts>
+using TVariant = std::variant<Ts...>;
+
+using TWrongVariantError = std::bad_variant_access;
 
 template <class T>
 using TVariantTypeTag = std::in_place_type_t<T>;

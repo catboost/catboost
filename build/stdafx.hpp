@@ -224,7 +224,6 @@
 #include <util/generic/utility.h>
 #include <util/generic/bitops.h>
 #include <util/generic/typetraits.h>
-#include <util/generic/variant_traits.h>
 #include <util/generic/algorithm.h>
 #include <util/generic/hash_set.h>
 #include <util/generic/cast.h>
