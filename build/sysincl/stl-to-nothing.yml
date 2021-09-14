@@ -33,6 +33,7 @@
   - any
   - array
   - atomic
+  - bit
   - bitset
   - cassert
   - ccomplex
