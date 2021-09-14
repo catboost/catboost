@@ -28,7 +28,6 @@
 #include <utility>
 #include <vector>
 
-#include "benchmark/benchmark.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "absl/algorithm/container.h"
@@ -46,18 +45,21 @@
 #include "absl/synchronization/mutex.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
+#include "benchmark/benchmark.h"
 #include "tcmalloc/common.h"
 #include "tcmalloc/huge_pages.h"
 #include "tcmalloc/internal/logging.h"
 #include "tcmalloc/pages.h"
 #include "tcmalloc/stats.h"
 
-ABSL_FLAG(tcmalloc::Length, page_tracker_defrag_lim, tcmalloc::Length(32),
+using tcmalloc::tcmalloc_internal::Length;
+
+ABSL_FLAG(Length, page_tracker_defrag_lim, Length(32),
           "Max allocation size for defrag test");
 
-ABSL_FLAG(tcmalloc::Length, frag_req_limit, tcmalloc::Length(32),
+ABSL_FLAG(Length, frag_req_limit, Length(32),
           "request size limit for frag test");
-ABSL_FLAG(tcmalloc::Length, frag_size, tcmalloc::Length(512 * 1024),
+ABSL_FLAG(Length, frag_size, Length(512 * 1024),
           "target number of pages for frag test");
 ABSL_FLAG(uint64_t, frag_iters, 10 * 1000 * 1000, "iterations for frag test");
 
@@ -67,6 +69,7 @@ ABSL_FLAG(uint64_t, bytes, 1024 * 1024 * 1024, "baseline usage");
 ABSL_FLAG(double, growth_factor, 2.0, "growth over baseline");
 
 namespace tcmalloc {
+namespace tcmalloc_internal {
 namespace {
 
 // This is an arbitrary distribution taken from page requests from
@@ -716,13 +719,15 @@ class FillerTest : public testing::TestWithParam<FillerPartialRerelease> {
     EXPECT_LT(n, kPagesPerHugePage);
     PAlloc ret;
     ret.n = n;
+    ret.pt = nullptr;
     ret.mark = ++next_mark_;
-    bool success = false;
     if (!donated) {  // Donated means always create a new hugepage
       absl::base_internal::SpinLockHolder l(&pageheap_lock);
-      success = filler_.TryGet(n, &ret.pt, &ret.p);
+      auto [pt, page] = filler_.TryGet(n);
+      ret.pt = pt;
+      ret.p = page;
     }
-    if (!success) {
+    if (ret.pt == nullptr) {
       ret.pt =
           new FakeTracker(GetBacking(), absl::base_internal::CycleClock::Now());
       {
@@ -935,7 +940,7 @@ TEST_P(FillerTest, PrintFreeRatio) {
 
   std::string buffer(1024 * 1024, '\0');
   {
-    TCMalloc_Printer printer(&*buffer.begin(), buffer.size());
+    Printer printer(&*buffer.begin(), buffer.size());
     filler_.Print(&printer, /*everything=*/true);
     buffer.erase(printer.SpaceRequired());
   }
@@ -1424,7 +1429,7 @@ TEST_P(FillerTest, SkipSubrelease) {
 
   std::string buffer(1024 * 1024, '\0');
   {
-    TCMalloc_Printer printer(&*buffer.begin(), buffer.size());
+    Printer printer(&*buffer.begin(), buffer.size());
     filler_.Print(&printer, true);
   }
   buffer.resize(strlen(buffer.c_str()));
@@ -1446,7 +1451,7 @@ class FillerStatsTrackerTest : public testing::Test {
  protected:
   static constexpr absl::Duration kWindow = absl::Minutes(10);
 
-  using StatsTrackerType = tcmalloc::FillerStatsTracker<16>;
+  using StatsTrackerType = FillerStatsTracker<16>;
   StatsTrackerType tracker_{
       Clock{.now = FakeClock, .freq = GetFakeClockFrequency}, kWindow,
       absl::Minutes(5)};
@@ -1523,7 +1528,7 @@ TEST_F(FillerStatsTrackerTest, Works) {
   // Test text output (time series summary).
   {
     std::string buffer(1024 * 1024, '\0');
-    TCMalloc_Printer printer(&*buffer.begin(), buffer.size());
+    Printer printer(&*buffer.begin(), buffer.size());
     {
       tracker_.Print(&printer);
       buffer.erase(printer.SpaceRequired());
@@ -1531,6 +1536,7 @@ TEST_F(FillerStatsTrackerTest, Works) {
 
     EXPECT_THAT(buffer, StrEq(R"(HugePageFiller: time series over 5 min interval
 
+HugePageFiller: realized fragmentation: 0.8 MiB
 HugePageFiller: minimum free pages: 110 (100 backed)
 HugePageFiller: at peak demand: 208 pages (and 111 free, 10 unmapped)
 HugePageFiller: at peak demand: 26 hps (14 regular, 10 donated, 1 partial, 1 released)
@@ -1546,7 +1552,7 @@ HugePageFiller: Subrelease stats last 10 min: total 0 pages subreleased, 0 hugep
   // Test pbtxt output (full time series).
   {
     std::string buffer(1024 * 1024, '\0');
-    TCMalloc_Printer printer(&*buffer.begin(), buffer.size());
+    Printer printer(&*buffer.begin(), buffer.size());
     {
       PbtxtRegion region(&printer, kTop, /*indent=*/0);
       tracker_.PrintInPbtxt(&region);
@@ -1864,7 +1870,7 @@ TEST_P(FillerTest, Print) {
 
   std::string buffer(1024 * 1024, '\0');
   {
-    TCMalloc_Printer printer(&*buffer.begin(), buffer.size());
+    Printer printer(&*buffer.begin(), buffer.size());
     filler_.Print(&printer, /*everything=*/true);
     buffer.erase(printer.SpaceRequired());
   }
@@ -1944,6 +1950,7 @@ HugePageFiller: <225<=     0 <241<=     0 <253<=     0 <254<=     0 <255<=     0
 
 HugePageFiller: time series over 5 min interval
 
+HugePageFiller: realized fragmentation: 0.0 MiB
 HugePageFiller: minimum free pages: 0 (0 backed)
 HugePageFiller: at peak demand: 1774 pages (and 261 free, 13 unmapped)
 HugePageFiller: at peak demand: 8 hps (5 regular, 1 donated, 0 partial, 2 released)
@@ -1970,7 +1977,7 @@ TEST_P(FillerTest, PrintInPbtxt) {
   auto allocs = GenerateInterestingAllocs();
 
   std::string buffer(1024 * 1024, '\0');
-  TCMalloc_Printer printer(&*buffer.begin(), buffer.size());
+  Printer printer(&*buffer.begin(), buffer.size());
   {
     PbtxtRegion region(&printer, kTop, /*indent=*/0);
     filler_.PrintInPbtxt(&region);
@@ -3570,7 +3577,7 @@ TEST_P(FillerTest, CheckSubreleaseStats) {
 
   std::string buffer(1024 * 1024, '\0');
   {
-    TCMalloc_Printer printer(&*buffer.begin(), buffer.size());
+    Printer printer(&*buffer.begin(), buffer.size());
     filler_.Print(&printer, /*everything=*/true);
     buffer.erase(printer.SpaceRequired());
   }
@@ -3622,7 +3629,7 @@ TEST_P(FillerTest, ConstantBrokenHugePages) {
 
     std::string buffer(1024 * 1024, '\0');
     {
-      TCMalloc_Printer printer(&*buffer.begin(), buffer.size());
+      Printer printer(&*buffer.begin(), buffer.size());
       filler_.Print(&printer, /*everything=*/false);
       buffer.erase(printer.SpaceRequired());
     }
@@ -3670,7 +3677,7 @@ TEST_P(FillerTest, CheckBufferSize) {
   Delete(big);
 
   std::string buffer(1024 * 1024, '\0');
-  TCMalloc_Printer printer(&*buffer.begin(), buffer.size());
+  Printer printer(&*buffer.begin(), buffer.size());
   {
     PbtxtRegion region(&printer, kTop, /*indent=*/0);
     filler_.PrintInPbtxt(&region);
@@ -3788,4 +3795,5 @@ INSTANTIATE_TEST_SUITE_P(All, FillerTest,
                                          FillerPartialRerelease::Retain));
 
 }  // namespace
+}  // namespace tcmalloc_internal
 }  // namespace tcmalloc

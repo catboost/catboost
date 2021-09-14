@@ -32,7 +32,9 @@
 #include "tcmalloc/static_vars.h"
 #include "tcmalloc/tracking.h"
 
+GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
+namespace tcmalloc_internal {
 
 //-------------------------------------------------------------------
 // Data kept per thread
@@ -336,6 +338,8 @@ inline ThreadCache* ThreadCache::GetCache() {
   return (ABSL_PREDICT_TRUE(tc != nullptr)) ? tc : CreateCacheIfNecessary();
 }
 
+}  // namespace tcmalloc_internal
 }  // namespace tcmalloc
+GOOGLE_MALLOC_SECTION_END
 
 #endif  // TCMALLOC_THREAD_CACHE_H_

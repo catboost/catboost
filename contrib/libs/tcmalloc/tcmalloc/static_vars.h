@@ -27,10 +27,12 @@
 #include "absl/base/optimization.h"
 #include "absl/base/thread_annotations.h"
 #include "tcmalloc/arena.h"
+#include "tcmalloc/central_freelist.h"
 #include "tcmalloc/common.h"
 #include "tcmalloc/guarded_page_allocator.h"
 #include "tcmalloc/internal/atomic_stats_counter.h"
 #include "tcmalloc/internal/logging.h"
+#include "tcmalloc/internal/numa.h"
 #include "tcmalloc/internal/percpu.h"
 #include "tcmalloc/page_allocator.h"
 #include "tcmalloc/page_heap.h"
@@ -40,7 +42,9 @@
 #include "tcmalloc/stack_trace_table.h"
 #include "tcmalloc/transfer_cache.h"
 
+GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
+namespace tcmalloc_internal {
 
 class CPUCache;
 class PageMap;
@@ -54,15 +58,28 @@ class Static {
   // Safe to call multiple times.
   static void InitIfNecessary();
 
+  // Central cache.
+  static const CentralFreeList& central_freelist(int size_class) {
+    return transfer_cache().central_freelist(size_class);
+  }
   // Central cache -- an array of free-lists, one per size-class.
   // We have a separate lock per free-list to reduce contention.
   static TransferCacheManager& transfer_cache() { return transfer_cache_; }
+
+  // A per-cache domain TransferCache.
+  static ShardedTransferCacheManager& sharded_transfer_cache() {
+    return sharded_transfer_cache_;
+  }
 
   static SizeMap& sizemap() { return sizemap_; }
 
   static CPUCache& cpu_cache() { return cpu_cache_; }
 
   static PeakHeapTracker& peak_heap_tracker() { return peak_heap_tracker_; }
+
+  static NumaTopology<kNumaPartitions, kNumBaseClasses>& numa_topology() {
+    return numa_topology_;
+  }
 
   //////////////////////////////////////////////////////////////////////
   // In addition to the explicit initialization comment, the variables below
@@ -96,6 +113,7 @@ class Static {
   // LossyAdd and reads do not require locking.
   static SpanList sampled_objects_ ABSL_GUARDED_BY(pageheap_lock);
   ABSL_CONST_INIT static tcmalloc_internal::StatsCounter sampled_objects_size_;
+
   static PageHeapAllocator<StackTraceTable::Bucket>& bucket_allocator() {
     return bucket_allocator_;
   }
@@ -142,6 +160,7 @@ class Static {
   ABSL_CONST_INIT static Arena arena_;
   static SizeMap sizemap_;
   ABSL_CONST_INIT static TransferCacheManager transfer_cache_;
+  ABSL_CONST_INIT static ShardedTransferCacheManager sharded_transfer_cache_;
   static CPUCache cpu_cache_;
   ABSL_CONST_INIT static GuardedPageAllocator guardedpage_allocator_;
   static PageHeapAllocator<Span> span_allocator_;
@@ -151,11 +170,15 @@ class Static {
   ABSL_CONST_INIT static std::atomic<bool> inited_;
   static bool cpu_cache_active_;
   ABSL_CONST_INIT static PeakHeapTracker peak_heap_tracker_;
+  ABSL_CONST_INIT static NumaTopology<kNumaPartitions, kNumBaseClasses>
+      numa_topology_;
 
   // PageHeap uses a constructor for initialization.  Like the members above,
   // we can't depend on initialization order, so pageheap is new'd
   // into this buffer.
   union PageAllocatorStorage {
+    constexpr PageAllocatorStorage() : extra(0) {}
+
     char memory[sizeof(PageAllocator)];
     uintptr_t extra;  // To force alignment
   };
@@ -194,6 +217,8 @@ inline void Span::Delete(Span* span) {
   Static::span_allocator().Delete(span);
 }
 
+}  // namespace tcmalloc_internal
 }  // namespace tcmalloc
+GOOGLE_MALLOC_SECTION_END
 
 #endif  // TCMALLOC_STATIC_VARS_H_

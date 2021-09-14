@@ -20,11 +20,10 @@
 #include "tcmalloc/internal/environment.h"
 #include "tcmalloc/internal/logging.h"
 
-using tcmalloc::kLog;
-
+GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
-
-namespace internal {
+namespace tcmalloc_internal {
+namespace runtime_size_classes_internal {
 
 int ParseSizeClasses(absl::string_view env, int max_size, int max_classes,
                      SizeClassInfo* parsed) {
@@ -64,17 +63,19 @@ int ParseSizeClasses(absl::string_view env, int max_size, int max_classes,
   return c + 1;
 }
 
-}  // namespace internal
+}  // namespace runtime_size_classes_internal
 
 int ABSL_ATTRIBUTE_NOINLINE MaybeSizeClassesFromEnv(int max_size,
                                                     int max_classes,
                                                     SizeClassInfo* parsed) {
-  const char* e =
-      tcmalloc::tcmalloc_internal::thread_safe_getenv("TCMALLOC_SIZE_CLASSES");
+  const char* e = thread_safe_getenv("TCMALLOC_SIZE_CLASSES");
   if (!e) {
     return 0;
   }
-  return internal::ParseSizeClasses(e, max_size, max_classes, parsed);
+  return runtime_size_classes_internal::ParseSizeClasses(e, max_size,
+                                                         max_classes, parsed);
 }
 
+}  // namespace tcmalloc_internal
 }  // namespace tcmalloc
+GOOGLE_MALLOC_SECTION_END

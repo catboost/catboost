@@ -26,13 +26,16 @@
 #include "tcmalloc/cpu_cache.h"
 #include "tcmalloc/internal/logging.h"
 #include "tcmalloc/internal/mincore.h"
+#include "tcmalloc/internal/numa.h"
 #include "tcmalloc/malloc_extension.h"
 #include "tcmalloc/pagemap.h"
 #include "tcmalloc/sampler.h"
 #include "tcmalloc/thread_cache.h"
 #include "tcmalloc/tracking.h"
 
+GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
+namespace tcmalloc_internal {
 
 // Cacheline-align our SizeMap and CPUCache.  They both have very hot arrays as
 // their first member variables, and aligning them reduces the number of cache
@@ -44,7 +47,8 @@ ABSL_CONST_INIT absl::base_internal::SpinLock pageheap_lock(
 ABSL_CONST_INIT Arena Static::arena_;
 ABSL_CONST_INIT SizeMap ABSL_CACHELINE_ALIGNED Static::sizemap_;
 ABSL_CONST_INIT TransferCacheManager Static::transfer_cache_;
-CPUCache ABSL_CACHELINE_ALIGNED Static::cpu_cache_;
+ABSL_CONST_INIT ShardedTransferCacheManager Static::sharded_transfer_cache_;
+ABSL_CONST_INIT CPUCache ABSL_CACHELINE_ALIGNED Static::cpu_cache_;
 ABSL_CONST_INIT PageHeapAllocator<Span> Static::span_allocator_;
 ABSL_CONST_INIT PageHeapAllocator<StackTrace> Static::stacktrace_allocator_;
 ABSL_CONST_INIT PageHeapAllocator<ThreadCache> Static::threadcache_allocator_;
@@ -54,12 +58,14 @@ ABSL_CONST_INIT PeakHeapTracker Static::peak_heap_tracker_;
 ABSL_CONST_INIT PageHeapAllocator<StackTraceTable::Bucket>
     Static::bucket_allocator_;
 ABSL_CONST_INIT std::atomic<bool> Static::inited_{false};
-bool Static::cpu_cache_active_;
-Static::PageAllocatorStorage Static::page_allocator_;
-PageMap Static::pagemap_;
+ABSL_CONST_INIT bool Static::cpu_cache_active_ = false;
+ABSL_CONST_INIT Static::PageAllocatorStorage Static::page_allocator_;
+ABSL_CONST_INIT PageMap Static::pagemap_;
 ABSL_CONST_INIT absl::base_internal::SpinLock guarded_page_lock(
     absl::kConstInit, absl::base_internal::SCHEDULE_KERNEL_ONLY);
 ABSL_CONST_INIT GuardedPageAllocator Static::guardedpage_allocator_;
+ABSL_CONST_INIT NumaTopology<kNumaPartitions, kNumBaseClasses>
+    Static::numa_topology_;
 
 size_t Static::metadata_bytes() {
   // This is ugly and doesn't nicely account for e.g. alignment losses
@@ -67,13 +73,14 @@ size_t Static::metadata_bytes() {
   // struct's size.  But we can't due to linking issues.
   const size_t static_var_size =
       sizeof(pageheap_lock) + sizeof(arena_) + sizeof(sizemap_) +
-      sizeof(transfer_cache_) + sizeof(cpu_cache_) + sizeof(span_allocator_) +
+      sizeof(sharded_transfer_cache_) + sizeof(transfer_cache_) +
+      sizeof(cpu_cache_) + sizeof(span_allocator_) +
       sizeof(stacktrace_allocator_) + sizeof(threadcache_allocator_) +
       sizeof(sampled_objects_) + sizeof(bucket_allocator_) +
       sizeof(inited_) + sizeof(cpu_cache_active_) + sizeof(page_allocator_) +
       sizeof(pagemap_) + sizeof(sampled_objects_size_) +
       sizeof(peak_heap_tracker_) + sizeof(guarded_page_lock) +
-      sizeof(guardedpage_allocator_);
+      sizeof(guardedpage_allocator_) + sizeof(numa_topology_);
 
   const size_t allocated = arena().bytes_allocated() +
                            AddressRegionFactory::InternalBytesAllocated();
@@ -93,6 +100,7 @@ ABSL_ATTRIBUTE_COLD ABSL_ATTRIBUTE_NOINLINE void Static::SlowInitIfNecessary() {
   if (!inited_.load(std::memory_order_acquire)) {
     tracking::Init();
     sizemap_.Init();
+    numa_topology_.Init();
     span_allocator_.Init(&arena_);
     span_allocator_.New();  // Reduce cache conflicts
     span_allocator_.New();  // Reduce cache conflicts
@@ -101,6 +109,7 @@ ABSL_ATTRIBUTE_COLD ABSL_ATTRIBUTE_NOINLINE void Static::SlowInitIfNecessary() {
     // Do a bit of sanitizing: make sure central_cache is aligned properly
     CHECK_CONDITION((sizeof(transfer_cache_) % ABSL_CACHELINE_SIZE) == 0);
     transfer_cache_.Init();
+    sharded_transfer_cache_.Init();
     new (page_allocator_.memory) PageAllocator;
     threadcache_allocator_.Init(&arena_);
     cpu_cache_active_ = false;
@@ -110,4 +119,6 @@ ABSL_ATTRIBUTE_COLD ABSL_ATTRIBUTE_NOINLINE void Static::SlowInitIfNecessary() {
   }
 }
 
+}  // namespace tcmalloc_internal
 }  // namespace tcmalloc
+GOOGLE_MALLOC_SECTION_END

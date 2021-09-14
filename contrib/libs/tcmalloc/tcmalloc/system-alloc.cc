@@ -14,10 +14,12 @@
 
 #include "tcmalloc/system-alloc.h"
 
+#include <asm/unistd.h>
 #include <errno.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <sys/mman.h>
+#include <sys/syscall.h>
 #include <unistd.h>
 
 #include <algorithm>
@@ -32,6 +34,7 @@
 #include "absl/base/internal/spinlock.h"
 #include "absl/base/macros.h"
 #include "absl/base/optimization.h"
+#include "absl/types/optional.h"
 #include "tcmalloc/common.h"
 #include "tcmalloc/internal/logging.h"
 #include "tcmalloc/internal/optimization.h"
@@ -51,7 +54,13 @@
 extern "C" int madvise(caddr_t, size_t, int);
 #endif
 
+#ifdef __linux__
+#include <linux/mempolicy.h>
+#endif
+
+GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
+namespace tcmalloc_internal {
 
 namespace {
 
@@ -91,7 +100,7 @@ AddressRegionFactory* region_factory = nullptr;
 // Rounds size down to a multiple of alignment.
 size_t RoundDown(const size_t size, const size_t alignment) {
   // Checks that the alignment has only one bit set.
-  ASSERT(tcmalloc_internal::Bits::IsPow2(alignment));
+  ASSERT(absl::has_single_bit(alignment));
   return (size) & ~(alignment - 1);
 }
 
@@ -105,6 +114,7 @@ class MmapRegion final : public AddressRegion {
   MmapRegion(uintptr_t start, size_t size, AddressRegionFactory::UsageHint hint)
       : start_(start), free_size_(size), hint_(hint) {}
   std::pair<void*, size_t> Alloc(size_t size, size_t alignment) override;
+  ~MmapRegion() override = default;
 
  private:
   const uintptr_t start_;
@@ -117,6 +127,7 @@ class MmapRegionFactory final : public AddressRegionFactory {
   AddressRegion* Create(void* start, size_t size, UsageHint hint) override;
   size_t GetStats(absl::Span<char> buffer) override;
   size_t GetStatsInPbtxt(absl::Span<char> buffer) override;
+  ~MmapRegionFactory() override = default;
 
  private:
   std::atomic<size_t> bytes_reserved_{0};
@@ -129,7 +140,7 @@ class RegionManager {
   std::pair<void*, size_t> Alloc(size_t size, size_t alignment, MemoryTag tag);
 
   void DiscardMappedRegions() {
-    normal_region_ = nullptr;
+    std::fill(normal_region_.begin(), normal_region_.end(), nullptr);
     sampled_region_ = nullptr;
   }
 
@@ -140,7 +151,7 @@ class RegionManager {
   std::pair<void*, size_t> Allocate(size_t size, size_t alignment,
                                     MemoryTag tag);
 
-  AddressRegion* normal_region_{nullptr};
+  std::array<AddressRegion*, kNumaPartitions> normal_region_{{nullptr}};
   AddressRegion* sampled_region_{nullptr};
 };
 std::aligned_storage<sizeof(RegionManager), alignof(RegionManager)>::type
@@ -187,7 +198,7 @@ AddressRegion* MmapRegionFactory::Create(void* start, size_t size,
 }
 
 size_t MmapRegionFactory::GetStats(absl::Span<char> buffer) {
-  TCMalloc_Printer printer(buffer.data(), buffer.size());
+  Printer printer(buffer.data(), buffer.size());
   size_t allocated = bytes_reserved_.load(std::memory_order_relaxed);
   constexpr double MiB = 1048576.0;
   printer.printf("MmapSysAllocator: %zu bytes (%.1f MiB) reserved\n", allocated,
@@ -197,7 +208,7 @@ size_t MmapRegionFactory::GetStats(absl::Span<char> buffer) {
 }
 
 size_t MmapRegionFactory::GetStatsInPbtxt(absl::Span<char> buffer) {
-  TCMalloc_Printer printer(buffer.data(), buffer.size());
+  Printer printer(buffer.data(), buffer.size());
   size_t allocated = bytes_reserved_.load(std::memory_order_relaxed);
   printer.printf("mmap_sys_allocator: %lld\n", allocated);
 
@@ -208,6 +219,7 @@ static AddressRegionFactory::UsageHint TagToHint(MemoryTag tag) {
   using UsageHint = AddressRegionFactory::UsageHint;
   switch (tag) {
     case MemoryTag::kNormal:
+    case MemoryTag::kNormalP1:
       return UsageHint::kNormal;
       break;
     case MemoryTag::kSampled:
@@ -263,7 +275,9 @@ std::pair<void*, size_t> RegionManager::Allocate(size_t size, size_t alignment,
   AddressRegion*& region = *[&]() {
     switch (tag) {
       case MemoryTag::kNormal:
-        return &normal_region_;
+        return &normal_region_[0];
+      case MemoryTag::kNormalP1:
+        return &normal_region_[1];
       case MemoryTag::kSampled:
         return &sampled_region_;
       default:
@@ -304,6 +318,38 @@ void InitSystemAllocatorIfNecessary() {
   region_factory = new (&mmap_space) MmapRegionFactory();
 }
 
+// Bind the memory region spanning `size` bytes starting from `base` to NUMA
+// nodes assigned to `partition`. Returns zero upon success, or a standard
+// error code upon failure.
+void BindMemory(void* const base, const size_t size, const size_t partition) {
+  auto& topology = Static::numa_topology();
+
+  // If NUMA awareness is unavailable or disabled, or the user requested that
+  // we don't bind memory then do nothing.
+  const NumaBindMode bind_mode = topology.bind_mode();
+  if (!topology.numa_aware() || bind_mode == NumaBindMode::kNone) {
+    return;
+  }
+
+  const uint64_t nodemask = topology.GetPartitionNodes(partition);
+  int err =
+      syscall(__NR_mbind, base, size, MPOL_BIND | MPOL_F_STATIC_NODES,
+              &nodemask, sizeof(nodemask) * 8, MPOL_MF_STRICT | MPOL_MF_MOVE);
+  if (err == 0) {
+    return;
+  }
+
+  if (bind_mode == NumaBindMode::kAdvisory) {
+    Log(kLogWithStack, __FILE__, __LINE__, "Warning: Unable to mbind memory",
+        err, base, nodemask);
+    return;
+  }
+
+  ASSERT(bind_mode == NumaBindMode::kStrict);
+  Crash(kCrash, __FILE__, __LINE__, "Unable to mbind memory", err, base,
+        nodemask);
+}
+
 ABSL_CONST_INIT std::atomic<int> system_release_errors = ATOMIC_VAR_INIT(0);
 
 }  // namespace
@@ -332,7 +378,7 @@ void* SystemAlloc(size_t bytes, size_t* actual_bytes, size_t alignment,
   if (result != nullptr) {
     CheckAddressBits<kAddressBits>(reinterpret_cast<uintptr_t>(result) +
                                    *actual_bytes - 1);
-    ASSERT(tcmalloc::GetMemoryTag(result) == tag);
+    ASSERT(GetMemoryTag(result) == tag);
   }
   return result;
 }
@@ -487,7 +533,7 @@ static uintptr_t RandomMmapHint(size_t size, size_t alignment,
 
   // Ensure alignment >= size so we're guaranteed the full mapping has the same
   // tag.
-  alignment = tcmalloc_internal::Bits::RoundUpToPow2(std::max(alignment, size));
+  alignment = absl::bit_ceil(std::max(alignment, size));
 
   rnd = Sampler::NextRandom(rnd);
   uintptr_t addr = rnd & kAddrMask & ~(alignment - 1) & ~kTagMask;
@@ -501,14 +547,19 @@ void* MmapAligned(size_t size, size_t alignment, const MemoryTag tag) {
   ASSERT(alignment <= kTagMask);
 
   static uintptr_t next_sampled_addr = 0;
-  static uintptr_t next_normal_addr = 0;
+  static std::array<uintptr_t, kNumaPartitions> next_normal_addr = {0};
 
+  absl::optional<int> numa_partition;
   uintptr_t& next_addr = *[&]() {
     switch (tag) {
       case MemoryTag::kSampled:
         return &next_sampled_addr;
-      case MemoryTag::kNormal:
-        return &next_normal_addr;
+      case MemoryTag::kNormalP0:
+        numa_partition = 0;
+        return &next_normal_addr[0];
+      case MemoryTag::kNormalP1:
+        numa_partition = 1;
+        return &next_normal_addr[1];
       default:
         ASSUME(false);
         __builtin_unreachable();
@@ -520,13 +571,17 @@ void* MmapAligned(size_t size, size_t alignment, const MemoryTag tag) {
       GetMemoryTag(reinterpret_cast<void*>(next_addr + size - 1)) != tag) {
     next_addr = RandomMmapHint(size, alignment, tag);
   }
+  void* hint;
   for (int i = 0; i < 1000; ++i) {
-    void* hint = reinterpret_cast<void*>(next_addr);
+    hint = reinterpret_cast<void*>(next_addr);
     ASSERT(GetMemoryTag(hint) == tag);
     // TODO(b/140190055): Use MAP_FIXED_NOREPLACE once available.
     void* result =
         mmap(hint, size, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     if (result == hint) {
+      if (numa_partition.has_value()) {
+        BindMemory(result, size, *numa_partition);
+      }
       // Attempt to keep the next mmap contiguous in the common case.
       next_addr += size;
       CHECK_CONDITION(kAddressBits == std::numeric_limits<uintptr_t>::digits ||
@@ -549,8 +604,12 @@ void* MmapAligned(size_t size, size_t alignment, const MemoryTag tag) {
   }
 
   Log(kLogWithStack, __FILE__, __LINE__,
-      "MmapAligned() failed (size, alignment)", size, alignment);
+      "MmapAligned() failed - unable to allocate with tag (hint, size, "
+      "alignment) - is something limiting address placement?",
+      hint, size, alignment);
   return nullptr;
 }
 
+}  // namespace tcmalloc_internal
 }  // namespace tcmalloc
+GOOGLE_MALLOC_SECTION_END

@@ -20,7 +20,9 @@
 
 #include "tcmalloc/internal/logging.h"
 
+GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
+namespace tcmalloc_internal {
 
 // The number of members in SizeClassInfo
 static constexpr int kSizeClassInfoMembers = 3;
@@ -70,6 +72,8 @@ struct SizeClassInfo {
   size_t num_to_move;
 };
 
+}  // namespace tcmalloc_internal
 }  // namespace tcmalloc
+GOOGLE_MALLOC_SECTION_END
 
 #endif  // TCMALLOC_size_class_info_H_

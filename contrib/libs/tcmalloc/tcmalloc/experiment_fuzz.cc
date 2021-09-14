@@ -22,7 +22,7 @@
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* d, size_t size) {
   const char* data = reinterpret_cast<const char*>(d);
 
-  bool buffer[tcmalloc::internal::kNumExperiments];
+  bool buffer[tcmalloc::tcmalloc_internal::kNumExperiments];
   absl::string_view active, disabled;
 
   const char* split = static_cast<const char*>(memchr(data, ';', size));
@@ -33,6 +33,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* d, size_t size) {
     disabled = absl::string_view(split + 1, size - (split - data + 1));
   }
 
-  tcmalloc::internal::SelectExperiments(buffer, active, disabled);
+  tcmalloc::tcmalloc_internal::SelectExperiments(buffer, active, disabled);
   return 0;
 }

@@ -29,7 +29,6 @@
 #include <utility>
 #include <vector>
 
-#include "benchmark/benchmark.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "absl/base/attributes.h"
@@ -45,6 +44,7 @@
 #include "absl/synchronization/barrier.h"
 #include "absl/synchronization/mutex.h"
 #include "absl/time/time.h"
+#include "benchmark/benchmark.h"
 #include "tcmalloc/common.h"
 #include "tcmalloc/huge_pages.h"
 #include "tcmalloc/internal/logging.h"
@@ -62,6 +62,7 @@ ABSL_FLAG(uint64_t, limit, 0, "");
 ABSL_FLAG(bool, always_check_usage, false, "enable expensive memory checks");
 
 namespace tcmalloc {
+namespace tcmalloc_internal {
 namespace {
 
 using testing::HasSubstr;
@@ -102,12 +103,6 @@ class HugePageAwareAllocatorTest : public ::testing::Test {
     MallocExtension::SetRegionFactory(before_);
     delete extra_;
   }
-
-  struct Mark {
-    int64_t pad;
-    int64_t mark;
-    int64_t padding[62];
-  };
 
   void CheckStats() {
     size_t actual_used_bytes = total_.in_bytes();
@@ -186,7 +181,7 @@ class HugePageAwareAllocatorTest : public ::testing::Test {
     std::string ret;
     const size_t kSize = 1 << 20;
     ret.resize(kSize);
-    TCMalloc_Printer p(&ret[0], kSize);
+    Printer p(&ret[0], kSize);
     allocator_->Print(&p);
     ret.erase(p.SpaceRequired());
     return ret;
@@ -196,7 +191,7 @@ class HugePageAwareAllocatorTest : public ::testing::Test {
     std::string ret;
     const size_t kSize = 1 << 20;
     ret.resize(kSize);
-    TCMalloc_Printer p(&ret[0], kSize);
+    Printer p(&ret[0], kSize);
     {
       PbtxtRegion region(&p, kNested, 0);
       allocator_->PrintInPbtxt(&region);
@@ -448,8 +443,6 @@ TEST_F(HugePageAwareAllocatorTest, PageMapInterference) {
   }
 }
 
-static double BytesToMiB(size_t bytes) { return bytes / (1024.0 * 1024.0); }
-
 TEST_F(HugePageAwareAllocatorTest, LargeSmall) {
   const int kIters = 2000;
   const Length kSmallPages = Length(1);
@@ -480,7 +473,7 @@ TEST_F(HugePageAwareAllocatorTest, LargeSmall) {
 
   constexpr size_t kBufferSize = 1024 * 1024;
   char buffer[kBufferSize];
-  TCMalloc_Printer printer(buffer, kBufferSize);
+  Printer printer(buffer, kBufferSize);
   allocator_->Print(&printer);
   // Verify that we have less free memory than we allocated in total. We have
   // to account for bytes tied up in the cache.
@@ -580,10 +573,6 @@ struct MemoryBytes {
   uint64_t phys;
 };
 
-MemoryBytes operator-(MemoryBytes lhs, MemoryBytes rhs) {
-  return {lhs.virt - rhs.virt, lhs.phys - rhs.phys};
-}
-
 int64_t pagesize = getpagesize();
 
 static size_t BytesInCore(void* p, size_t len) {
@@ -632,12 +621,6 @@ void Touch(HugePage hp) {
   while (p < lim) {
     Touch(p);
     ++p;
-  }
-}
-
-void Touch(Span* s) {
-  for (PageId p = s->first_page(); p <= s->last_page(); ++p) {
-    Touch(p);
   }
 }
 
@@ -970,4 +953,5 @@ TEST_F(HugePageAwareAllocatorTest, ParallelRelease) {
 }
 
 }  // namespace
+}  // namespace tcmalloc_internal
 }  // namespace tcmalloc

@@ -18,6 +18,8 @@
 
 #include <algorithm>
 
+#include "absl/base/optimization.h"  // ABSL_INTERNAL_ASSUME
+#include "absl/numeric/bits.h"
 #include "tcmalloc/common.h"
 #include "tcmalloc/internal/atomic_stats_counter.h"
 #include "tcmalloc/internal/logging.h"
@@ -27,18 +29,22 @@
 #include "tcmalloc/sampler.h"
 #include "tcmalloc/static_vars.h"
 
+GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
+namespace tcmalloc_internal {
 
 void Span::Sample(StackTrace* stack) {
   ASSERT(!sampled_ && stack);
   sampled_ = 1;
   sampled_stack_ = stack;
   Static::sampled_objects_.prepend(this);
-  // LossyAdd is ok: writes to sampled_objects_size_ guarded by pageheap_lock.
+
   // The cast to value matches Unsample.
-  Static::sampled_objects_size_.LossyAdd(
+  tcmalloc_internal::StatsCounter::Value allocated_bytes =
       static_cast<tcmalloc_internal::StatsCounter::Value>(
-          AllocatedBytes(*stack, true)));
+          AllocatedBytes(*stack, true));
+  // LossyAdd is ok: writes to sampled_objects_size_ guarded by pageheap_lock.
+  Static::sampled_objects_size_.LossyAdd(allocated_bytes);
 }
 
 StackTrace* Span::Unsample() {
@@ -49,12 +55,13 @@ StackTrace* Span::Unsample() {
   StackTrace* stack = sampled_stack_;
   sampled_stack_ = nullptr;
   RemoveFromList();  // from Static::sampled_objects_
-  // LossyAdd is ok: writes to sampled_objects_size_ guarded by pageheap_lock.
   // The cast to Value ensures no funny business happens during the negation if
   // sizeof(size_t) != sizeof(Value).
-  Static::sampled_objects_size_.LossyAdd(
+  tcmalloc_internal::StatsCounter::Value neg_allocated_bytes =
       -static_cast<tcmalloc_internal::StatsCounter::Value>(
-          AllocatedBytes(*stack, true)));
+          AllocatedBytes(*stack, true));
+  // LossyAdd is ok: writes to sampled_objects_size_ guarded by pageheap_lock.
+  Static::sampled_objects_size_.LossyAdd(neg_allocated_bytes);
   return stack;
 }
 
@@ -169,64 +176,109 @@ Span::ObjIdx* Span::IdxToPtr(ObjIdx idx, size_t size) const {
   return ptr;
 }
 
-bool Span::FreelistPush(void* ptr, size_t size) {
-  ASSERT(allocated_ > 0);
-  if (allocated_ == 1) {
-    return false;
-  }
-  allocated_--;
+Span::ObjIdx* Span::BitmapIdxToPtr(ObjIdx idx, size_t size) const {
+  uintptr_t off =
+      first_page_.start_uintptr() + (static_cast<uintptr_t>(idx) * size);
+  ObjIdx* ptr = reinterpret_cast<ObjIdx*>(off);
+  return ptr;
+}
 
-  ObjIdx idx = PtrToIdx(ptr, size);
-  if (cache_size_ != kCacheSize) {
-    // Have empty space in the cache, push there.
-    cache_[cache_size_] = idx;
-    cache_size_++;
-  } else if (freelist_ != kListEnd &&
-             // -1 because the first slot is used by freelist link.
-             embed_count_ != size / sizeof(ObjIdx) - 1) {
-    // Push onto the first object on freelist.
-    ObjIdx* host;
-    if (size <= SizeMap::kMultiPageSize) {
-      // Avoid loading first_page_ in this case (see the comment in PtrToIdx).
-      ASSERT(num_pages_ == Length(1));
-      host = reinterpret_cast<ObjIdx*>(
-          (reinterpret_cast<uintptr_t>(ptr) & ~(kPageSize - 1)) +
-          static_cast<uintptr_t>(freelist_) * kAlignment);
-      ASSERT(PtrToIdx(host, size) == freelist_);
-    } else {
-      host = IdxToPtr(freelist_, size);
-    }
-    embed_count_++;
-    host[embed_count_] = idx;
-  } else {
-    // Push onto freelist.
-    *reinterpret_cast<ObjIdx*>(ptr) = freelist_;
-    freelist_ = idx;
-    embed_count_ = 0;
+size_t Span::BitmapFreelistPopBatch(void** __restrict batch, size_t N,
+                                    size_t size) {
+#ifndef NDEBUG
+  size_t before = bitmap_.CountBits(0, 64);
+#endif  // NDEBUG
+
+  size_t count = 0;
+  // Want to fill the batch either with N objects, or the number of objects
+  // remaining in the span.
+  while (!bitmap_.IsZero() && count < N) {
+    size_t offset = bitmap_.FindSet(0);
+    ASSERT(offset < 64);
+    batch[count] = BitmapIdxToPtr(offset, size);
+    bitmap_.ClearLowestBit();
+    count++;
   }
-  return true;
+
+#ifndef NDEBUG
+  size_t after = bitmap_.CountBits(0, 64);
+  ASSERT(after + count == before);
+  ASSERT(allocated_ + count == embed_count_ - after);
+#endif  // NDEBUG
+  allocated_ += count;
+  return count;
 }
 
 size_t Span::FreelistPopBatch(void** __restrict batch, size_t N, size_t size) {
-  if (size <= SizeMap::kMultiPageSize) {
+  // Handle spans with 64 or fewer objects using a bitmap. We expect spans
+  // to frequently hold smaller objects.
+  if (ABSL_PREDICT_FALSE(size >= kBitmapMinObjectSize)) {
+    return BitmapFreelistPopBatch(batch, N, size);
+  }
+  if (ABSL_PREDICT_TRUE(size <= SizeMap::kMultiPageSize)) {
     return FreelistPopBatchSized<Align::SMALL>(batch, N, size);
   } else {
     return FreelistPopBatchSized<Align::LARGE>(batch, N, size);
   }
 }
 
-void Span::BuildFreelist(size_t size, size_t count) {
+uint16_t Span::CalcReciprocal(size_t size) {
+  // Calculate scaling factor. We want to avoid dividing by the size of the
+  // object. Instead we'll multiply by a scaled version of the reciprocal.
+  // We divide kBitmapScalingDenominator by the object size, so later we can
+  // multiply by this reciprocal, and then divide this scaling factor out.
+  // TODO(djgove) These divides can be computed once at start up.
+  size_t reciprocal = 0;
+  // The spans hold objects up to kMaxSize, so it's safe to assume.
+  ABSL_INTERNAL_ASSUME(size <= kMaxSize);
+  if (size <= SizeMap::kMultiPageSize) {
+    reciprocal = kBitmapScalingDenominator / (size >> kAlignmentShift);
+  } else {
+    reciprocal =
+        kBitmapScalingDenominator / (size >> SizeMap::kMultiPageAlignmentShift);
+  }
+  ASSERT(reciprocal < 65536);
+  return static_cast<uint16_t>(reciprocal);
+}
+
+void Span::BitmapBuildFreelist(size_t size, size_t count) {
+  // We are using a bitmap to indicate whether objects are used or not. The
+  // maximum capacity for the bitmap is 64 objects.
+  ASSERT(count <= 64);
+#ifndef NDEBUG
+  // For bitmap_ use embed_count_ to record objects per span.
+  embed_count_ = count;
+#endif  // NDEBUG
+  reciprocal_ = CalcReciprocal(size);
   allocated_ = 0;
-  cache_size_ = 0;
-  embed_count_ = 0;
+  bitmap_.Clear();  // bitmap_ can be non-zero from a previous use.
+  bitmap_.SetRange(0, count);
+  ASSERT(bitmap_.CountBits(0, 64) == count);
+}
+
+int Span::BuildFreelist(size_t size, size_t count, void** batch, int N) {
   freelist_ = kListEnd;
 
-  ObjIdx idx = 0;
+  if (size >= kBitmapMinObjectSize) {
+    BitmapBuildFreelist(size, count);
+    return BitmapFreelistPopBatch(batch, N, size);
+  }
+
+  // First, push as much as we can into the batch.
+  char* ptr = static_cast<char*>(start_address());
+  int result = N <= count ? N : count;
+  for (int i = 0; i < result; ++i) {
+    batch[i] = ptr;
+    ptr += size;
+  }
+  allocated_ = result;
+
   ObjIdx idxStep = size / kAlignment;
   // Valid objects are {0, idxStep, idxStep * 2, ..., idxStep * (count - 1)}.
   if (size > SizeMap::kMultiPageSize) {
     idxStep = size / SizeMap::kMultiPageAlignment;
   }
+  ObjIdx idx = idxStep * result;
 
   // Verify that the end of the useful portion of the span (and the beginning of
   // the span waste) has an index that doesn't overflow or risk confusion with
@@ -238,34 +290,43 @@ void Span::BuildFreelist(size_t size, size_t count) {
 
   // The index of the end of the useful portion of the span.
   ObjIdx idxEnd = count * idxStep;
-  // First, push as much as we can into the cache_.
-  for (; idx < idxEnd && cache_size_ < kCacheSize; idx += idxStep) {
-    cache_[cache_size_] = idx;
-    cache_size_++;
+
+  // Then, push as much as we can into the cache_.
+  int cache_size = 0;
+  for (; idx < idxEnd && cache_size < kCacheSize; idx += idxStep) {
+    cache_[cache_size] = idx;
+    cache_size++;
   }
+  cache_size_ = cache_size;
+
   // Now, build freelist and stack other objects onto freelist objects.
   // Note: we take freelist objects from the beginning and stacked objects
   // from the end. This has a nice property of not paging in whole span at once
   // and not draining whole cache.
   ObjIdx* host = nullptr;  // cached first object on freelist
   const size_t max_embed = size / sizeof(ObjIdx) - 1;
+  int embed_count = 0;
   while (idx < idxEnd) {
     // Check the no idx can be confused with kListEnd.
     ASSERT(idx != kListEnd);
-    if (host && embed_count_ != max_embed) {
+    if (host && embed_count != max_embed) {
       // Push onto first object on the freelist.
-      embed_count_++;
+      embed_count++;
       idxEnd -= idxStep;
-      host[embed_count_] = idxEnd;
+      host[embed_count] = idxEnd;
     } else {
       // The first object is full, push new object onto freelist.
       host = IdxToPtr(idx, size);
       host[0] = freelist_;
       freelist_ = idx;
-      embed_count_ = 0;
+      embed_count = 0;
       idx += idxStep;
     }
   }
+  embed_count_ = embed_count;
+  return result;
 }
 
+}  // namespace tcmalloc_internal
 }  // namespace tcmalloc
+GOOGLE_MALLOC_SECTION_END

@@ -23,7 +23,6 @@
 #include <thread>  // NOLINT(build/c++11)
 #include <vector>
 
-#include "benchmark/benchmark.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "absl/base/internal/sysinfo.h"
@@ -37,18 +36,19 @@
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "absl/types/span.h"
+#include "benchmark/benchmark.h"
 #include "tcmalloc/internal/config.h"
 #include "tcmalloc/internal/logging.h"
 #include "tcmalloc/internal/util.h"
 #include "tcmalloc/malloc_extension.h"
+#include "tcmalloc/testing/testutil.h"
 
 namespace tcmalloc {
+namespace tcmalloc_internal {
 namespace subtle {
 namespace percpu {
 namespace {
 
-using tcmalloc::tcmalloc_internal::AllowedCpus;
-using tcmalloc::tcmalloc_internal::ScopedAffinityMask;
 using testing::Each;
 using testing::UnorderedElementsAreArray;
 
@@ -93,42 +93,11 @@ void RunOnSingleCpu(std::function<bool(int)> test) {
   RunOnSingleCpuWithRemoteCpu(wrapper);
 }
 
-// ScopedUnregisterRseq unregisters the current thread from rseq.  On
-// destruction, it reregisters it with IsFast().
-class ScopedUnregisterRseq {
- public:
-  ScopedUnregisterRseq() {
-    // Since we expect that we will be able to register the thread for rseq in
-    // the destructor, verify that we can do so now.
-    CHECK_CONDITION(IsFast());
-
-    syscall(__NR_rseq, &__rseq_abi, sizeof(__rseq_abi), kRseqUnregister,
-            TCMALLOC_PERCPU_RSEQ_SIGNATURE);
-
-    // Clear __rseq_refcount.  Otherwise, when we reinitialize the TLS, we
-    // will believe that the thread is already registered.
-    //
-    // IsFast -> InitThreadPerCpu() inspects __rseq_refcount and does not
-    // attempt to register __rseq_abi if __rseq_refcount > 0--indiating another
-    // library has already registered this thread's data with the kernel.
-    __rseq_refcount = 0;
-
-    // Unregistering stores kCpuIdUninitialized to the cpu_id field.
-    CHECK_CONDITION(__rseq_abi.cpu_id == kCpuIdUninitialized);
-  }
-
-  ~ScopedUnregisterRseq() {
-    // Since we have manipulated __rseq_abi.cpu_id, restore the value to
-    // uninitialized so that we will successfully re-register.
-    __rseq_abi.cpu_id = kCpuIdUninitialized;
-    CHECK_CONDITION(IsFast());
-  }
-};
-
 constexpr size_t kStressSlabs = 4;
 constexpr size_t kStressCapacity = 4;
 
-typedef class TcmallocSlab<18ul, kStressSlabs> TcmallocSlab;
+constexpr size_t kShift = 18;
+typedef class TcmallocSlab<kStressSlabs> TcmallocSlab;
 
 enum class SlabInit {
   kEager,
@@ -143,7 +112,7 @@ class TcmallocSlabTest : public testing::TestWithParam<SlabInit> {
 
     slab_.Init(
         &ByteCountingMalloc, [](size_t cl) { return kCapacity; },
-        GetParam() == SlabInit::kLazy);
+        GetParam() == SlabInit::kLazy, kShift);
 
     for (int i = 0; i < kCapacity; ++i) {
       object_ptrs_[i] = &objects_[i];
@@ -287,12 +256,6 @@ TEST_P(TcmallocSlabTest, Unit) {
     return;
   }
 
-#ifndef __ppc__
-  // On platforms other than PPC, we use __rseq_abi.cpu_id to retrieve the CPU.
-  // On PPC, we use a special purpose register, so we cannot fake the CPU.
-  ScopedUnregisterRseq rseq;
-#endif
-
   // Decide if we should expect a push or pop to be the first action on the CPU
   // slab to trigger initialization.
   absl::FixedArray<bool, 0> initialized(absl::base_internal::NumCPUs(),
@@ -300,11 +263,11 @@ TEST_P(TcmallocSlabTest, Unit) {
 
   for (auto cpu : AllowedCpus()) {
     SCOPED_TRACE(cpu);
-#ifdef __ppc__
-    ScopedAffinityMask aff(cpu);
-#else
-    __rseq_abi.cpu_id = cpu;
 
+    // Temporarily fake being on the given CPU.
+    ScopedFakeCpuId fake_cpu_id(cpu);
+
+#if !defined(__ppc__)
     if (UsingFlatVirtualCpus()) {
       __rseq_abi.vcpu_id = cpu ^ 1;
       cpu = cpu ^ 1;
@@ -320,7 +283,7 @@ TEST_P(TcmallocSlabTest, Unit) {
       // This is imperfect but the window between operations below is small.  We
       // can make this more precise around individual operations if we see
       // measurable flakiness as a result.
-      if (aff.Tampered()) break;
+      if (fake_cpu_id.Tampered()) break;
 #endif
 
       // Check new slab state.
@@ -537,7 +500,7 @@ static void StressThread(size_t thread_id, TcmallocSlab* slab,
   absl::BitGen rnd(absl::SeedSeq({thread_id}));
   while (!*stop) {
     size_t cl = absl::Uniform<int32_t>(rnd, 0, kStressSlabs);
-    const int what = absl::Uniform<int32_t>(rnd, 0, 81);
+    const int what = absl::Uniform<int32_t>(rnd, 0, 91);
     if (what < 10) {
       if (!block->empty()) {
         if (slab->Push(cl, block->back(), &Handler::Overflow)) {
@@ -585,14 +548,14 @@ static void StressThread(size_t thread_id, TcmallocSlab* slab,
         }
       }
       if (n != 0) {
-        size_t res =
-            slab->Grow(GetCurrentVirtualCpuUnsafe(), cl, n, kStressCapacity);
+        size_t res = slab->Grow(slab->GetCurrentVirtualCpuUnsafe(), cl, n,
+                                kStressCapacity);
         EXPECT_LE(res, n);
         capacity->fetch_add(n - res);
       }
     } else if (what < 60) {
       size_t n =
-          slab->Shrink(GetCurrentVirtualCpuUnsafe(), cl,
+          slab->Shrink(slab->GetCurrentVirtualCpuUnsafe(), cl,
                        absl::Uniform<int32_t>(rnd, 0, kStressCapacity) + 1);
       capacity->fetch_add(n);
     } else if (what < 70) {
@@ -603,13 +566,37 @@ static void StressThread(size_t thread_id, TcmallocSlab* slab,
       size_t cap = slab->Capacity(
           absl::Uniform<int32_t>(rnd, 0, absl::base_internal::NumCPUs()), cl);
       EXPECT_LE(cap, kStressCapacity);
-    } else {
+    } else if (what < 90) {
       struct Context {
-        TcmallocSlab* slab;
         std::vector<void*>* block;
         std::atomic<size_t>* capacity;
       };
-      Context ctx = {slab, block, capacity};
+      Context ctx = {block, capacity};
+      int cpu = absl::Uniform<int32_t>(rnd, 0, absl::base_internal::NumCPUs());
+      if (mutexes->at(cpu).TryLock()) {
+        size_t to_shrink = absl::Uniform<int32_t>(rnd, 0, kStressCapacity) + 1;
+        size_t total_shrunk = slab->ShrinkOtherCache(
+            cpu, cl, to_shrink, &ctx,
+            [](void* arg, size_t cl, void** batch, size_t n) {
+              Context* ctx = static_cast<Context*>(arg);
+              EXPECT_LT(cl, kStressSlabs);
+              EXPECT_LE(n, kStressCapacity);
+              for (size_t i = 0; i < n; ++i) {
+                EXPECT_NE(batch[i], nullptr);
+                ctx->block->push_back(batch[i]);
+              }
+            });
+        EXPECT_LE(total_shrunk, to_shrink);
+        EXPECT_LE(0, total_shrunk);
+        capacity->fetch_add(total_shrunk);
+        mutexes->at(cpu).Unlock();
+      }
+    } else {
+      struct Context {
+        std::vector<void*>* block;
+        std::atomic<size_t>* capacity;
+      };
+      Context ctx = {block, capacity};
       int cpu = absl::Uniform<int32_t>(rnd, 0, absl::base_internal::NumCPUs());
       if (mutexes->at(cpu).TryLock()) {
         slab->Drain(
@@ -653,7 +640,8 @@ TEST(TcmallocSlab, Stress) {
   TcmallocSlab slab;
   slab.Init(
       allocator,
-      [](size_t cl) { return cl < kStressSlabs ? kStressCapacity : 0; }, false);
+      [](size_t cl) { return cl < kStressSlabs ? kStressCapacity : 0; }, false,
+      kShift);
   std::vector<std::thread> threads;
   const int n_threads = 2 * absl::base_internal::NumCPUs();
 
@@ -806,7 +794,8 @@ static void BM_PushPop(benchmark::State& state) {
     const int kBatchSize = 32;
     TcmallocSlab slab;
     slab.Init(
-        allocator, [](size_t cl) -> size_t { return kBatchSize; }, false);
+        allocator, [](size_t cl) -> size_t { return kBatchSize; }, false,
+        kShift);
     CHECK_CONDITION(slab.Grow(this_cpu, 0, kBatchSize, kBatchSize) ==
                     kBatchSize);
     void* batch[kBatchSize];
@@ -833,7 +822,8 @@ static void BM_PushPopBatch(benchmark::State& state) {
     const int kBatchSize = 32;
     TcmallocSlab slab;
     slab.Init(
-        allocator, [](size_t cl) -> size_t { return kBatchSize; }, false);
+        allocator, [](size_t cl) -> size_t { return kBatchSize; }, false,
+        kShift);
     CHECK_CONDITION(slab.Grow(this_cpu, 0, kBatchSize, kBatchSize) ==
                     kBatchSize);
     void* batch[kBatchSize];
@@ -852,4 +842,5 @@ BENCHMARK(BM_PushPopBatch);
 }  // namespace
 }  // namespace percpu
 }  // namespace subtle
+}  // namespace tcmalloc_internal
 }  // namespace tcmalloc

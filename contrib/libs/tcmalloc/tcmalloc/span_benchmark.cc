@@ -25,7 +25,9 @@
 #include "tcmalloc/span.h"
 #include "tcmalloc/static_vars.h"
 
+GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
+namespace tcmalloc_internal {
 namespace {
 
 class RawSpan {
@@ -40,7 +42,7 @@ class RawSpan {
     CHECK_CONDITION(res == 0);
     span_.set_first_page(PageIdContaining(mem));
     span_.set_num_pages(npages);
-    span_.BuildFreelist(size, objects_per_span);
+    span_.BuildFreelist(size, objects_per_span, nullptr, 0);
   }
 
   ~RawSpan() { free(span_.start_address()); }
@@ -205,4 +207,6 @@ BENCHMARK(BM_multiple_spans)
     ->Arg(kNumClasses - 1);
 
 }  // namespace
+}  // namespace tcmalloc_internal
 }  // namespace tcmalloc
+GOOGLE_MALLOC_SECTION_END

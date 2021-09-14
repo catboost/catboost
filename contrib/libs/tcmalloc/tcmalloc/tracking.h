@@ -47,7 +47,9 @@
 #ifndef TCMALLOC_TRACK_ALLOCS
 // #define TCMALLOC_TRACK_ALLOCS
 #endif
+GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
+namespace tcmalloc_internal {
 
 #if 1
 #define TCMALLOC_HAVE_TRACKING 0
@@ -70,7 +72,8 @@ enum TrackingStat {
   kTCInsertMiss = 7,  // # of times the object list misses the transfer cache.
   kTCRemoveHit = 8,   // # of times object list fetching hits transfer cache.
   kTCRemoveMiss = 9,  // # of times object list fetching misses transfer cache.
-  kNumTrackingStats = 10,
+  kTCElementsPlunder = 10,  // # of elements plundered from the transfer cache.
+  kNumTrackingStats = 11,
 };
 
 namespace tracking {
@@ -80,11 +83,7 @@ void Report(TrackingStat stat, size_t cl, ssize_t count);
 
 // Dump all tracking data to <out>.  We could support various other
 // mechanisms for data delivery without too much trouble...
-void Print(TCMalloc_Printer* out);
-
-// Call before a thread will die (ideally after its last malloc call!)
-// so we don't lose its statistics.
-void ReportThreadDeath();
+void Print(Printer* out);
 
 // Call on startup during tcmalloc initialization.
 void Init();
@@ -96,15 +95,15 @@ void GetProperties(std::map<std::string, MallocExtension::Property>* result);
 #if !TCMALLOC_HAVE_TRACKING
 // no tracking, these are all no-ops
 inline void Report(TrackingStat stat, size_t cl, ssize_t count) {}
-inline void RegisterNewThreadIfNecessary() {}
-inline void Print(TCMalloc_Printer* out) {}
-inline void ReportThreadDeath() {}
+inline void Print(Printer* out) {}
 inline void Init() {}
 inline void GetProperties(
     std::map<std::string, MallocExtension::Property>* result) {}
 #endif
 
 }  // namespace tracking
+}  // namespace tcmalloc_internal
 }  // namespace tcmalloc
+GOOGLE_MALLOC_SECTION_END
 
 #endif  // TCMALLOC_TRACKING_H_
