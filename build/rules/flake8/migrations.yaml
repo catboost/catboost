@@ -449,7 +449,6 @@ migrations:
     - market/backctld/pyb/qpipe
     - market/contrib/python/yaconf_v0.1.2
     - market/contrib/python/yaconf_v0.1.2/yaconf
-    - market/idx/marketindexer/miconfig
     - market/idx/streams/yatf
     - market/library/cms_promo/py_utils
     - market/mstat/ch-cache/lib
@@ -1253,7 +1252,6 @@ migrations:
     - yabs/server/cs/pylibs/gantt_chart/lib
     - yabs/server/cs/pylibs/import_actions
     - yabs/server/cs/pylibs/settings
-    - yabs/server/test/ft/BSDEV-80203
     - yabs/server/test/ft/BSSERVER-13708
     - yabs/server/test/ft/BSSERVER-14014
     - yabs/server/test/ft/BSSERVER-14049
@@ -1485,14 +1483,6 @@ migrations:
     - orgvisits/user/features/run/tests
     - plus/oneyear/oneyear_by
     - quality/ab_testing/cofe/projects/alice
-    - quality/ab_testing/cofe/projects/mapkit/false_route_lost
-    - quality/ab_testing/cofe/projects/mapkit/guidance
-    - quality/ab_testing/cofe/projects/mapkit/location
-    - quality/ab_testing/cofe/projects/mapkit/rerouting
-    - quality/ab_testing/cofe/projects/mapkit/standing
-    - quality/ab_testing/cofe/projects/mapkit/trip_funnels
-    - quality/ab_testing/cofe/projects/mapkit/user_count_and_spu
-    - quality/ab_testing/cofe/projects/mapkit/via_points_and_alternatives
     - quality/ab_testing/cofe/projects/router
     - quality/ab_testing/cofe/projects/zalogin
     - quality/ab_testing/cofe/python/metrics
@@ -1654,7 +1644,6 @@ migrations:
     - yabs/server/cs/test/cs_import/yt_banner_with_history
     - yabs/server/infra/yt_tables_freshness/solo
     - yabs/server/libs/py_db_cluster
-    - yabs/server/test/ft/BSDEV-80203
     - yabs/server/test/ft/BSSERVER-12201
     - yabs/server/test/ft/BSSERVER-13708
     - yabs/server/test/ft/BSSERVER-13878
@@ -1923,7 +1912,6 @@ migrations:
     - cloud/ai/speechkit/stt/lib/data_pipeline/markup_cost
     - cloud/ai/speechkit/stt/lib/data_pipeline/markup_params
     - cloud/ai/speechkit/stt/lib/data_pipeline/markup_quality
-    - cloud/ai/speechkit/stt/lib/data_pipeline/markup_statistics
     - cloud/ai/speechkit/stt/lib/data_pipeline/obfuscate
     - cloud/ai/speechkit/stt/lib/data_pipeline/records_splitting
     - cloud/ai/speechkit/stt/lib/data_pipeline/select_records_joins
@@ -3666,7 +3654,6 @@ migrations:
     - yabs/rmp/backend/tests/lib/zora
     - yabs/server/libs/py_decrypt_predictions/test
     - yabs/server/libs/py_pibf/test
-    - yabs/server/test/ft/BSSERVER-2656
     - yabs/server/test/ft/lua/page_1
     - yabs/server/test/ft/lua/page_1037
     - yabs/server/test/ft/lua/page_14
@@ -3804,7 +3791,6 @@ migrations:
     - yweb/structhtml/richsnippets/videoobject/tool/tests
     - yweb/structhtml/schemaorg/tool/tests
     - yweb/tellurium/test/integration
-    - yweb/tellurium/test/medium
     - yweb/tellurium/test/unit
     - yweb/video/index/vtriebuilder/tests
     - yweb/video/mr_scripts/calcstaticfactors/tests
