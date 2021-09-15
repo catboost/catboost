@@ -102,8 +102,7 @@ public:
     {
     }
 
-    _LIBCPP_CONSTEXPR_AFTER_CXX14
-    inline TBasicStringBuf(const TCharType* data) noexcept
+    constexpr TBasicStringBuf(const TCharType* data) noexcept
         /*
          * WARN: TBase::StrLen properly handles nullptr,
          * while std::string_view (using std::char_traits) will abort in such case
