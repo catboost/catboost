@@ -16,7 +16,7 @@ void TCtrValueTable::Save(IOutputStream* s) const {
     using namespace flatbuffers;
     using namespace NCatBoostFbs;
     TModelPartsCachingSerializer serializer;
-    if (HoldsAlternative<TSolidTable>(Impl)) {
+    if (std::holds_alternative<TSolidTable>(Impl)) {
         auto& solid = Get<TSolidTable>(Impl);
         auto indexHashOffset = serializer.FlatbufBuilder.CreateVector((const ui8*) solid.IndexBuckets.data(),
                                                 sizeof(NCatboost::TBucket) * solid.IndexBuckets.size());

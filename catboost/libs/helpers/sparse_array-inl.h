@@ -1167,7 +1167,7 @@ namespace NCB {
         const TArraySubsetInvertedIndexing<TSize>& subsetInvertedIndexing,
         ESparseArrayIndexingType sparseArrayIndexingType) const {
 
-        if (HoldsAlternative<TFullSubset<TSize>>(subsetInvertedIndexing)) {
+        if (std::holds_alternative<TFullSubset<TSize>>(subsetInvertedIndexing)) {
             return 0;
         }
 
@@ -1212,7 +1212,7 @@ namespace NCB {
         const TArraySubsetInvertedIndexing<TSize>& subsetInvertedIndexing,
         ESparseArrayIndexingType sparseArrayIndexingType) const {
 
-        if (HoldsAlternative<TFullSubset<TSize>>(subsetInvertedIndexing)) {
+        if (std::holds_alternative<TFullSubset<TSize>>(subsetInvertedIndexing)) {
             return *this;
         }
 

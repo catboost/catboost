@@ -602,7 +602,7 @@ static void GetPairsSubset(
     const TObjectsGroupingSubset& objectsGroupingSubset,
     TRawPairsData* result
 ) {
-    if (HoldsAlternative<TFullSubset<ui32>>(objectsGroupingSubset.GetObjectsIndexing())) {
+    if (std::holds_alternative<TFullSubset<ui32>>(objectsGroupingSubset.GetObjectsIndexing())) {
         *result = pairs;
         return;
     }
@@ -1072,7 +1072,7 @@ void NCB::GetGroupInfosSubset(
 
         TConstArrayRef<ui32> indexedSubset;
         TVector<ui32> indexedSubsetStorage;
-        if (HoldsAlternative<TIndexedSubset<ui32>>(subsetObjectsIndexing)) {
+        if (std::holds_alternative<TIndexedSubset<ui32>>(subsetObjectsIndexing)) {
             indexedSubset = subsetObjectsIndexing.Get<TIndexedSubset<ui32>>();
         } else {
             indexedSubsetStorage.yresize(subsetObjectsIndexing.Size());

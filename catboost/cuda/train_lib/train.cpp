@@ -432,7 +432,7 @@ namespace NCatboostCuda {
             }
 
             THashMap<TFeatureCombination, TProjection> featureCombinationToProjection;
-            if (HoldsAlternative<THolder<TAdditiveModel<TObliviousTreeModel>>>(gpuFormatModel)) {
+            if (std::holds_alternative<THolder<TAdditiveModel<TObliviousTreeModel>>>(gpuFormatModel)) {
                 auto& modelHolderRef = Get<THolder<TAdditiveModel<TObliviousTreeModel>>>(gpuFormatModel);
                 *modelPtr = ConvertToCoreModel(featuresManager,
                                                quantizedFeaturesInfo,

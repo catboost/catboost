@@ -1473,10 +1473,10 @@ namespace {
 
         template <class TFeatureType>
         void SetOrCheck(const TFeatureType& other) {
-            if (HoldsAlternative<TUnknownFeature>(FeatureVariant)) {
+            if (std::holds_alternative<TUnknownFeature>(FeatureVariant)) {
                 FeatureVariant = other;
             }
-            CB_ENSURE(HoldsAlternative<TFeatureType>(FeatureVariant),
+            CB_ENSURE(std::holds_alternative<TFeatureType>(FeatureVariant),
                 "Feature type mismatch: Categorical != Float for flat feature index: " <<
                 other.Position.FlatIndex
             );

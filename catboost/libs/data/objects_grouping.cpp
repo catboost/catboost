@@ -32,7 +32,7 @@ TObjectsGroupingSubset NCB::GetSubset(
 
     if (objectsGrouping->IsTrivial()) {
         return TObjectsGroupingSubset(
-            ::HoldsAlternative<TFullSubset<ui32>>(groupsSubset) ?
+            ::std::holds_alternative<TFullSubset<ui32>>(groupsSubset) ?
                 objectsGrouping : MakeIntrusive<TObjectsGrouping>(groupsSubset.Size()),
             std::move(groupsSubset),
             groupSubsetOrder
