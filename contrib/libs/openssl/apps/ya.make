@@ -2,7 +2,12 @@ PROGRAM(openssl)
 
 
 
-LICENSE(OpenSSL SSLeay)
+LICENSE(
+    OpenSSL
+    Public-Domain
+)
+
+LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 PEERDIR(
     contrib/libs/openssl
@@ -60,9 +65,7 @@ IF (OS_LINUX AND ARCH_AARCH64 OR OS_LINUX AND ARCH_X86_64)
 ENDIF()
 
 IF (OS_DARWIN AND ARCH_X86_64)
-    CFLAGS(
-        -D_REENTRANT
-    )
+    CFLAGS(-D_REENTRANT)
 ENDIF()
 
 IF (OS_DARWIN AND ARCH_ARM64)
@@ -79,13 +82,12 @@ IF (OS_WINDOWS)
             -DENGINESDIR="\"C:\\\\Program\ Files\\\\OpenSSL\\\\lib\\\\engines-1_1\""
             -DOPENSSLDIR="\"C:\\\\Program\ Files\\\\Common\ Files\\\\SSL\""
         )
-    ELSEIF(ARCH_I386)
+    ELSEIF (ARCH_I386)
         CFLAGS(
             -DENGINESDIR="\"C:\\\\Program\ Files\ \(x86\)\\\\OpenSSL\\\\lib\\\\engines-1_1\""
             -DOPENSSLDIR="\"C:\\\\Program\ Files\ \(x86\)\\\\Common\ Files\\\\SSL\""
         )
     ENDIF()
-
     CFLAGS(
         -DOPENSSL_SYS_WIN32
         -DUNICODE
