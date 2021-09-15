@@ -44,23 +44,23 @@ The native {{ product }} model file ({{ yandex-specific__model_ops__EConvertMode
 
   {% cut "save_snapshot" %}
 
-     `save_snapshot`
+    `save_snapshot`
 
-    {% include [python-save-snapshot__python-desc__short-desc](../_includes/work_src/reusage/save-snapshot__python-desc__short-desc.md) %}
+   {% include [python-save-snapshot__python-desc__short-desc](../_includes/work_src/reusage/save-snapshot__python-desc__short-desc.md) %}
 
-    Set this parameter to "True".
+   Set this parameter to "True".
 
   {% endcut %}
 
   {% cut "save_snapshot" %}
 
-    `save_snapshot`
+   `save_snapshot`
 
-    The name of the file to save the training progress information in. This file is used for [recovering training after an interruption](../features/snapshots.md).
+   The name of the file to save the training progress information in. This file is used for [recovering training after an interruption](../features/snapshots.md).
 
-    {% include [reusage-snapshot-filename-desc](../_includes/work_src/reusage/snapshot-filename-desc.md) %}
+   {% include [reusage-snapshot-filename-desc](../_includes/work_src/reusage/snapshot-filename-desc.md) %}
 
-    {% include [reusage-common-phrases-snapshot-not-working-for-cv](../_includes/work_src/reusage-common-phrases/snapshot-not-working-for-cv.md) %}
+   {% include [reusage-common-phrases-snapshot-not-working-for-cv](../_includes/work_src/reusage-common-phrases/snapshot-not-working-for-cv.md) %}
 
   {% endcut %}
 
@@ -68,7 +68,7 @@ The native {{ product }} model file ({{ yandex-specific__model_ops__EConvertMode
 
    `snapshot_interval`
 
-    {% include [python-python__snapshot_interval__desc__div](../_includes/work_src/reusage/python__snapshot_interval__desc__div.md) %}
+   {% include [python-python__snapshot_interval__desc__div](../_includes/work_src/reusage/python__snapshot_interval__desc__div.md) %}
 
   {% endcut %}
 
@@ -94,7 +94,7 @@ The native {{ product }} model file ({{ yandex-specific__model_ops__EConvertMode
 
     The name of the file to save the training progress information in. This file is used for [recovering training after an interruption](../features/snapshots.md).
 
-     {% include [reusage-snapshot-filename-desc](../_includes/work_src/reusage/snapshot-filename-desc.md) %}
+    {% include [reusage-snapshot-filename-desc](../_includes/work_src/reusage/snapshot-filename-desc.md) %}
 
      {% include [reusage-common-phrases-snapshot-not-working-for-cv](../_includes/work_src/reusage-common-phrases/snapshot-not-working-for-cv.md) %}
 

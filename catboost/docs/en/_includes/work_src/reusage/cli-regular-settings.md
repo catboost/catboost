@@ -1300,16 +1300,7 @@ Supported formats for setting the value of this parameter (all feature indices a
 
     The values should be passed as a parenthesized string of comma-separated values. Zero constraints for features at the end of the list may be dropped.
 
-    In
-    {% cut "this example" %}
-
-    ```
-    --monotone-constraints "(1,0,-1)"
-    ```
-
-    {% endcut %}
-
-    an increasing constraint is set on the first feature and a decreasing one on the third. Constraints are disabled for all other features.
+    In this example `--monotone-constraints "(1,0,-1)"` an increasing constraint is set on the first feature and a decreasing one on the third. Constraints are disabled for all other features.
 
 - Set constraints individually for each explicitly specified feature as a string (the number of features is n).
 
