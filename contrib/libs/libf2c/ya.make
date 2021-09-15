@@ -1,14 +1,14 @@
 LIBRARY()
 
-LICENSE(PIL)
+LICENSE(SMLNJ)
+
+LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 
 
 NO_COMPILER_WARNINGS()
 
-ADDINCL(
-    GLOBAL contrib/libs/libf2c
-)
+ADDINCL(GLOBAL contrib/libs/libf2c)
 
 CFLAGS(
     -DNO_FPINIT
@@ -118,7 +118,7 @@ SRCS(
     lbitshft.c
     lread.c
     lwrite.c
-#main.c
+    #main.c
     open.c
     pow_ci.c
     pow_dd.c

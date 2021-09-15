@@ -6,7 +6,12 @@ LIBRARY()
 
 VERSION(1.0.8)
 
-LICENSE(BSD-4-Clause)
+LICENSE(
+    BSD-3-Clause
+    bzip2-1.0.6
+)
+
+LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 NO_COMPILER_WARNINGS()
 

@@ -6,15 +6,18 @@ LIBRARY()
 
 VERSION(1.9.3)
 
-LICENSE(BSD-2-Clause)
+LICENSE(
+    BSD-2-Clause
+    BSD-3-Clause
+)
+
+LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 PEERDIR(
     contrib/libs/xxhash
 )
 
-ADDINCL(
-    contrib/libs/xxhash
-)
+ADDINCL(contrib/libs/xxhash)
 
 NO_RUNTIME()
 
