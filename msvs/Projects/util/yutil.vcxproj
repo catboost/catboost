@@ -467,7 +467,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\util\system\maxlen.h"/>
     <ClInclude Include="$(SolutionDir)..\util\system\mem_info.h"/>
     <ClInclude Include="$(SolutionDir)..\util\system\mincore.h"/>
-    <ClInclude Include="$(SolutionDir)..\util\system\mktemp.h"/>
     <ClInclude Include="$(SolutionDir)..\util\system\mlock.h"/>
     <ClInclude Include="$(SolutionDir)..\util\system\mutex.h"/>
     <ClInclude Include="$(SolutionDir)..\util\system\nice.h"/>
