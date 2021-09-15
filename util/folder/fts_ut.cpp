@@ -5,7 +5,7 @@
 #include <library/cpp/testing/unittest/registar.h>
 
 #include <util/system/file.h>
-#include <util/system/mktemp.h>
+#include <util/system/tempfile.h>
 #include <util/generic/string.h>
 
 class TFtsTest: public TTestBase {

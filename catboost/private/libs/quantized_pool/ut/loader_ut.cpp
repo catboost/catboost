@@ -18,7 +18,7 @@
 #include <util/random/random.h>
 #include <util/stream/file.h>
 #include <util/string/printf.h>
-#include <util/system/mktemp.h>
+#include <util/system/tempfile.h>
 
 #include <library/cpp/testing/unittest/registar.h>
 
