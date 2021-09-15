@@ -167,10 +167,10 @@ void ConvertFeaturesToEvaluateFromStringToIndices(const NCatboostOptions::TPoolL
 
 
 static const TStringBuf FEATURE_NAMES_DEPENDENT_KEYS[] = {
-    AsStringBuf("features_to_evaluate"),
-    AsStringBuf("ignored_features"),
-    AsStringBuf("monotone_constraints"),
-    AsStringBuf("penalties")
+    TStringBuf("features_to_evaluate"),
+    TStringBuf("ignored_features"),
+    TStringBuf("monotone_constraints"),
+    TStringBuf("penalties")
 };
 
 

@@ -428,14 +428,14 @@ namespace NCB {
                 if (Data.MetaInfo.HasWeights) {
                     Data.TargetData.Weights = TWeights<float>(
                         TVector<float>(WeightsBuffer),
-                        AsStringBuf("Weights"),
+                        TStringBuf("Weights"),
                         /*allWeightsCanBeZero*/ true
                     );
                 }
                 if (Data.MetaInfo.HasGroupWeight) {
                     Data.TargetData.GroupWeights = TWeights<float>(
                         TVector<float>(GroupWeightsBuffer),
-                        AsStringBuf("GroupWeights"),
+                        TStringBuf("GroupWeights"),
                         /*allWeightsCanBeZero*/ true
                     );
                 }
@@ -455,14 +455,14 @@ namespace NCB {
                 if (Data.MetaInfo.HasWeights) {
                     Data.TargetData.Weights = TWeights<float>(
                         std::move(WeightsBuffer),
-                        AsStringBuf("Weights"),
+                        TStringBuf("Weights"),
                         /*allWeightsCanBeZero*/ InBlock
                     );
                 }
                 if (Data.MetaInfo.HasGroupWeight) {
                     Data.TargetData.GroupWeights = TWeights<float>(
                         std::move(GroupWeightsBuffer),
-                        AsStringBuf("GroupWeights"),
+                        TStringBuf("GroupWeights"),
                         /*allWeightsCanBeZero*/ InBlock
                     );
                 }
