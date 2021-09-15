@@ -2063,6 +2063,29 @@ def test_ignored_features_not_read_names():
     execute_catboost_fit('CPU', cmd)
 
 
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+def test_text_ignored_features(boosting_type):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+
+    cmd = (
+        '--loss-function', 'Logloss',
+        '-f', data_file('rotten_tomatoes', 'train'),
+        '-t', data_file('rotten_tomatoes', 'test'),
+        '--column-description', data_file('rotten_tomatoes', 'cd_binclass'),
+        '--boosting-type', boosting_type,
+        '-i', '10',
+        '-w', '0.03',
+        '-T', '4',
+        '-m', output_model_path,
+        '-I', '2-4:6',
+        '--eval-file', output_eval_path,
+        '--use-best-model', 'false',
+    )
+    execute_catboost_fit('CPU', cmd)
+    return [local_canonical_file(output_eval_path)]
+
+
 @pytest.mark.parametrize('boosting_type, grow_policy', BOOSTING_TYPE_WITH_GROW_POLICIES)
 def test_baseline(boosting_type, grow_policy):
     output_model_path = yatest.common.test_output_path('model.bin')

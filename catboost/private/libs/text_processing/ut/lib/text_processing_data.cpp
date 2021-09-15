@@ -20,7 +20,7 @@ namespace {
 
 void NCBTest::CreateTextDataForTest(
     TVector<TTextFeature>* features,
-    TVector<TTokenizedTextFeature>* tokenizedFeatures,
+    TMap<ui32, TTokenizedTextFeature>* tokenizedFeatures,
     TVector<ui32>* target,
     TTextDigitizers* textDigitizers,
     TTextProcessingOptions* textProcessingOptions
@@ -115,7 +115,7 @@ void NCBTest::CreateTextDataForTest(
         TMap<TString, TVector<TTextFeatureProcessing>> textFeatureProcessings;
 
         {
-            ui32 tokenizedFeatureIdx = 0;
+            ui32 tokenizedFeatureIdx = features->size();
             for (const auto& textProcessingDescription: textProcessingDescriptions) {
                 const TString& dictionaryName = textProcessingDescription.DictionaryName;
                 const ui32 textFeatureId = textProcessingDescription.TextFeatureIdx;
@@ -154,7 +154,6 @@ void NCBTest::CreateTextDataForTest(
                     textFeatureProcessings.at(stringFeatureId).push_back(featureProcessing);
                 }
             }
-            tokenizedFeatures->resize(tokenizedFeatureIdx);
         }
 
         NPar::TLocalExecutor localExecutor;
@@ -163,7 +162,7 @@ void NCBTest::CreateTextDataForTest(
                 return TIterableTextFeature(features->at(textFeatureIdx));
             },
             [&](ui32 tokenizedFeatureIdx, const TVector<TText>& tokenizedFeature) {
-                tokenizedFeatures->at(tokenizedFeatureIdx) = tokenizedFeature;
+                tokenizedFeatures->operator[](tokenizedFeatureIdx) = tokenizedFeature;
             },
             &localExecutor
         );

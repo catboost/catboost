@@ -8642,6 +8642,16 @@
             "uri": "file://test.test_target_border/test.eval"
         }
     ],
+    "test.test_text_ignored_features[Ordered]": [
+        {
+            "uri": "file://test.test_text_ignored_features_Ordered_/test.eval"
+        }
+    ],
+    "test.test_text_ignored_features[Plain]": [
+        {
+            "uri": "file://test.test_text_ignored_features_Plain_/test.eval"
+        }
+    ],
     "test.test_text_processing_options[MultiClass-dictionaries0]": [
         {
             "uri": "file://test.test_text_processing_options_MultiClass-dictionaries0_/learn.tsv"

@@ -320,6 +320,7 @@ namespace NCB {
 
         const TQuantizedObjectsDataProvider& learnDataProvider = *pools.Learn->ObjectsData;
         auto learnTextTarget = CreateClassificationTarget(*pools.Learn->TargetData);
+        ui32 sourceTextsCount = learnDataProvider.GetQuantizedFeaturesInfo()->GetTextDigitizers().GetSourceTextsCount();
 
         pools.Learn->MetaInfo.FeaturesLayout->IterateOverAvailableFeatures<EFeatureType::Text>(
             [&](TTextFeatureIdx tokenizedTextFeatureIdx) {
@@ -337,14 +338,14 @@ namespace NCB {
                         ));
                 }
 
-                const auto& featureDescription = tokenizedFeaturesDescription[tokenizedFeatureIdx];
+                const auto& featureDescription = tokenizedFeaturesDescription[tokenizedFeatureIdx - sourceTextsCount];
                 auto offlineEstimators = CreateTextEstimators(
                     featureDescription.FeatureEstimators.Get(),
                     learnTexts,
                     testTexts
                 );
 
-                const ui32 textFeatureId = tokenizedFeaturesDescription[tokenizedFeatureIdx].TextFeatureId;
+                const ui32 textFeatureId = tokenizedFeaturesDescription[tokenizedFeatureIdx - sourceTextsCount].TextFeatureId;
                 TEstimatorSourceId sourceFeatureIdx{textFeatureId, tokenizedFeatureIdx};
                 for (auto&& estimator : offlineEstimators) {
                     estimatorsBuilder.AddFeatureEstimator(std::move(estimator), sourceFeatureIdx);

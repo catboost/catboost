@@ -2001,7 +2001,7 @@ namespace NCB {
             const auto& featureDescription = textOptions.GetTokenizedFeatureDescription(tokenizedFeatureIdx);
             const ui32 textFeatureIdx = featureDescription.TextFeatureId;
 
-            if (textDigitizers->HasDigitizer(tokenizedFeatureIdx) ||
+            if (textDigitizers->HasDigitizer(tokenizedFeatureIdx + textFeatures.size()) ||
                 !featuresLayout.GetInternalFeatureMetaInfo(textFeatureIdx, EFeatureType::Text).IsAvailable) {
                 continue;
             }
@@ -2019,7 +2019,7 @@ namespace NCB {
                 textOptions.GetDictionaryOptions(featureDescription.DictionaryId.Get()),
                 tokenizer
             );
-            textDigitizers->AddDigitizer(textFeatureIdx, tokenizedFeatureIdx, {tokenizer, dictionary});
+            textDigitizers->AddDigitizer(textFeatureIdx, tokenizedFeatureIdx + textFeatures.size(), {tokenizer, dictionary});
         }
     }
 
@@ -2036,34 +2036,16 @@ namespace NCB {
             tokenizedFeatureNames.push_back(featureDescriptions[tokenizedFeatureIdx].FeatureId);
         }
 
-        TFeaturesLayout layoutWithTokenizedFeatures;
+        featuresLayout->IgnoreExternalFeatures(featuresLayout->GetTextFeatureInternalIdxToExternalIdx());
 
-        ui32 tokenizedFeatureIdx = 0;
-        for (ui32 featureIdx = 0; featureIdx < featuresLayout->GetExternalFeatureCount(); featureIdx++) {
-            auto& metaInfo = featuresLayout->GetExternalFeatureMetaInfo(featureIdx);
-            if (metaInfo.Type == EFeatureType::Text) {
-                layoutWithTokenizedFeatures.AddFeature(
-                    TFeatureMetaInfo{
-                        EFeatureType::Text,
-                        tokenizedFeatureNames[tokenizedFeatureIdx]
-                    }
-                );
-                tokenizedFeatureIdx++;
-            } else {
-                layoutWithTokenizedFeatures.AddFeature(TFeatureMetaInfo(metaInfo));
-            }
-        }
-
-        for (; tokenizedFeatureIdx < tokenizedFeatureCount; tokenizedFeatureIdx++) {
-            layoutWithTokenizedFeatures.AddFeature(
+        for (ui32 tokenizedFeatureIdx = 0; tokenizedFeatureIdx < tokenizedFeatureCount; tokenizedFeatureIdx++) {
+            featuresLayout->AddFeature(
                 TFeatureMetaInfo{
                     EFeatureType::Text,
                     tokenizedFeatureNames[tokenizedFeatureIdx]
                 }
             );
         }
-
-        *featuresLayout = std::move(layoutWithTokenizedFeatures);
     }
 
 
@@ -2259,7 +2241,8 @@ namespace NCB {
 
                 data->ObjectsData.FloatFeatures.resize(featuresLayout->GetFloatFeatureCount());
                 data->ObjectsData.CatFeatures.resize(featuresLayout->GetCatFeatureCount());
-                data->ObjectsData.TextFeatures.resize(quantizedFeaturesInfo->GetTokenizedFeatureCount());
+                data->ObjectsData.TextFeatures.resize(featuresLayout->GetTextFeatureCount() +
+                                                      quantizedFeaturesInfo->GetTokenizedFeatureCount());
                 data->ObjectsData.EmbeddingFeatures.resize(featuresLayout->GetEmbeddingFeatureCount());
 
                 if (storeFeaturesDataAsExternalValuesHolders) {

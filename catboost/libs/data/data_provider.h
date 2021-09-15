@@ -613,7 +613,7 @@ namespace NCB {
              AddWithSharedMulti(&binSaver, Learn, Test);
              binSaver.Add(0, &EstimatedObjectsData);
              return 0;
-         }
+        }
 
         ui32 GetTestSampleCount() const {
             return NCB::GetObjectCount<TTObjectsDataProvider>(Test);
