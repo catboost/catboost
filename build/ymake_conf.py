@@ -138,6 +138,9 @@ class Platform(object):
         if self.is_macos:
             yield 'DARWIN'
             yield 'OS_DARWIN'
+        if self.is_iossim:
+            yield 'IOS'
+            yield 'OS_IOS'
 
     @property
     def arch_variables(self):
