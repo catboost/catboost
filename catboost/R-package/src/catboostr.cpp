@@ -466,7 +466,7 @@ EXPORT_FUNCTION CatBoostPoolSlice_R(SEXP poolParam, SEXP sizeParam, SEXP offsetP
 
     for (auto targetIdx : xrange(targetCount)) {
         if (const ITypedSequencePtr<float>* typedSequence
-                = GetIf<ITypedSequencePtr<float>>(&((*target)[targetIdx])))
+                = std::get_if<ITypedSequencePtr<float>>(&((*target)[targetIdx])))
         {
             TIntrusivePtr<ITypedArraySubset<float>> subset = (*typedSequence)->GetSubset(
                 &objectsGroupingSubset.GetObjectsIndexing()

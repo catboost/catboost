@@ -96,7 +96,7 @@ namespace NCB {
         const TExpectedFeatureColumn<T>& lhs,
         const ITypedFeatureValuesHolder<T, ValuesType>& rhs
     ) {
-        if (const auto* lhsDenseData = GetIf<TVector<T>>(&lhs)) {
+        if (const auto* lhsDenseData = std::get_if<TVector<T>>(&lhs)) {
             return Equal<T>(*rhs.ExtractValues(&NPar::LocalExecutor()), *lhsDenseData);
         } else {
             const auto& lhsSparseArray = Get<TConstPolymorphicValuesSparseArray<T, ui32>>(lhs);
@@ -124,7 +124,7 @@ namespace NCB {
         const TExpectedFeatureColumn<T>& lhs,
         const IQuantizedFeatureValuesHolder<T, ValuesType>& rhs
     ) {
-        if (const auto* lhsDenseData = GetIf<TVector<T>>(&lhs)) {
+        if (const auto* lhsDenseData = std::get_if<TVector<T>>(&lhs)) {
             return Equal<T>(rhs.template ExtractValues<T>(&NPar::LocalExecutor()), *lhsDenseData);
         } else {
             using TColumn = IQuantizedFeatureValuesHolder<T, ValuesType>;
@@ -173,7 +173,7 @@ namespace NCB {
                 return expectedData.Objects.FloatFeatures[floatFeatureIdx];
             },
             /*areEqualFunc*/ [&](const TExpectedFeatureColumn<float>& lhs, const TFloatValuesHolder& rhs) {
-                if (const auto* lhsDenseData = GetIf<TVector<float>>(&lhs)) {
+                if (const auto* lhsDenseData = std::get_if<TVector<float>>(&lhs)) {
                     auto rhsValues = rhs.ExtractValues(&NPar::LocalExecutor());
                     return std::equal(
                         lhsDenseData->begin(),
@@ -210,7 +210,7 @@ namespace NCB {
             /*getFeatureFunc*/ [&] (ui32 catFeatureIdx) {return objectsData.GetCatFeature(catFeatureIdx);},
             /*getExpectedFeatureFunc*/ [&] (ui32 catFeatureIdx) -> TMaybe<TExpectedFeatureColumn<ui32>> {
                 if (expectedData.Objects.CatFeatures[catFeatureIdx]) {
-                    if (const auto* denseData = GetIf<TVector<TStringBuf>>(expectedData.Objects.CatFeatures[catFeatureIdx].Get())) {
+                    if (const auto* denseData = std::get_if<TVector<TStringBuf>>(expectedData.Objects.CatFeatures[catFeatureIdx].Get())) {
                         TVector<ui32> hashedCategoricalValues;
                         for (const auto& stringValue : *denseData) {
                             ui32 hashValue = (ui32)CalcCatFeatureHash(stringValue);
@@ -278,7 +278,7 @@ namespace NCB {
             /*getExpectedFeatureFunc*/ [&](ui32 textFeatureIdx)
                 {return *expectedData.Objects.TextFeatures[textFeatureIdx];},
             /*areEqualFunc*/ [&](const TExpectedFeatureColumn<TStringBuf>& lhs, const TStringTextValuesHolder& rhs) {
-                if (const auto* lhsDenseData = GetIf<TVector<TStringBuf>>(&lhs)) {
+                if (const auto* lhsDenseData = std::get_if<TVector<TStringBuf>>(&lhs)) {
                     TMaybeOwningArrayHolder<TString> rhsValues = rhs.ExtractValues(&NPar::LocalExecutor());
                     return std::equal(
                         lhsDenseData->begin(),
@@ -317,7 +317,7 @@ namespace NCB {
                 const TExpectedFeatureColumn<TVector<float>>& lhs,
                 const TEmbeddingValuesHolder& rhs
             ) {
-                if (const auto* lhsDenseData = GetIf<TVector<TVector<float>>>(&lhs)) {
+                if (const auto* lhsDenseData = std::get_if<TVector<TVector<float>>>(&lhs)) {
                     TMaybeOwningArrayHolder<TMaybeOwningConstArrayHolder<float>> rhsValues
                         = rhs.ExtractValues(&NPar::LocalExecutor());
                     return std::equal(

@@ -217,7 +217,7 @@ namespace NCB {
                             header << ":Dim=" << targetIdx;
                         }
                         if (const ITypedSequencePtr<float>* typedSequence
-                                = GetIf<ITypedSequencePtr<float>>(&(target[targetIdx])))
+                                = std::get_if<ITypedSequencePtr<float>>(&(target[targetIdx])))
                         {
                             columnPrinter.push_back(
                                 MakeHolder<TArrayPrinter<float>>(

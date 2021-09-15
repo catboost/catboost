@@ -276,7 +276,7 @@ namespace NCB {
             ui32 nonDefaultValuesInSampleCount = 0;
 
             if (const auto* invertedIndexedSubset
-                    = GetIf<TInvertedIndexedSubset<ui32>>(&*subsetIndexingForBuildBorders.InvertedSubset))
+                    = std::get_if<TInvertedIndexedSubset<ui32>>(&*subsetIndexingForBuildBorders.InvertedSubset))
             {
                 TConstArrayRef<ui32> invertedMapping = invertedIndexedSubset->GetMapping();
                 sparseData.ForEachNonDefault(
@@ -527,7 +527,7 @@ namespace NCB {
             const TFeaturesArraySubsetInvertedIndexing& incrementalInvertedIndexing
         ) const {
             if (const TInvertedIndexedSubset<ui32>* invertedIndexedSubset
-                    = GetIf<TInvertedIndexedSubset<ui32>>(&incrementalInvertedIndexing))
+                    = std::get_if<TInvertedIndexedSubset<ui32>>(&incrementalInvertedIndexing))
             {
                 TConstArrayRef<ui32> invertedIndexedSubsetArray = invertedIndexedSubset->GetMapping();
                 TVector<ui32> nonDefaultIndices;
@@ -579,7 +579,7 @@ namespace NCB {
             const TFeaturesArraySubsetInvertedIndexing& incrementalInvertedIndexing
         ) const {
             if (const TInvertedIndexedSubset<ui32>* invertedIndexedSubset
-                    = GetIf<TInvertedIndexedSubset<ui32>>(&incrementalInvertedIndexing))
+                    = std::get_if<TInvertedIndexedSubset<ui32>>(&incrementalInvertedIndexing))
             {
                 TConstArrayRef<ui32> invertedIndexedSubsetArray = invertedIndexedSubset->GetMapping();
                 TVector<ui32> nonDefaultIndices;
@@ -947,7 +947,7 @@ namespace NCB {
 
         if (const auto* denseSrcFeature = dynamic_cast<const TDenseSrcData*>(&srcFeature)){
             if (const auto* nontrivialIncrementalIndexing
-                = GetIf<TIndexedSubset<ui32>>(&incrementalDenseIndexing.SrcSubsetIndexing))
+                = std::get_if<TIndexedSubset<ui32>>(&incrementalDenseIndexing.SrcSubsetIndexing))
             {
                 TConstArrayRef<ui32> dstIndices
                     = Get<TIndexedSubset<ui32>>(incrementalDenseIndexing.DstIndexing);
