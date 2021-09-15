@@ -705,7 +705,7 @@ namespace NCB {
             TVector<TPair> generatedPairs;
 
             if (maybePairs) {
-                Visit([&](const auto& pairs) { pairsRef = MakeConstArrayRef(pairs); }, *maybePairs);
+                std::visit([&](const auto& pairs) { pairsRef = MakeConstArrayRef(pairs); }, *maybePairs);
             } else if (targetCreationOptions.CreatePairs) {
                 CB_ENSURE(rawData.GetTarget(), "Pool labels are not provided. Cannot generate pairs.");
                 generatedPairs = GeneratePairs(
