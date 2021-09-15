@@ -1202,7 +1202,7 @@ class GnuToolchain(Toolchain):
             if target_flags:
                 self.c_flags_platform.extend(target_flags)
 
-            if target.is_ios:
+            if target.is_ios or target.is_iossim:
                 self.c_flags_platform.append('-D__IOS__=1')
 
             if self.tc.is_from_arcadia:
