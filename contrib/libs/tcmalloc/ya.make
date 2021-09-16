@@ -23,3 +23,12 @@ CFLAGS(-DTCMALLOC_256K_PAGES)
 
 END()
 
+IF (NOT DLL_FOR_DIR)
+    RECURSE(
+    default
+    dynamic
+    malloc_extension
+    numa_256k
+    slow_but_small
+)
+ENDIF()
