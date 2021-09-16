@@ -19,7 +19,9 @@ class PODArray {
   PODArray()
       : ptr_() {}
   explicit PODArray(int len)
-      : ptr_(std::allocator<T>().allocate(len), Deleter(len)) {}
+      : ptr_(std::allocator<T>().allocate(len), Deleter(len)) {
+    memset(data(), 0, sizeof(T) * len);
+  }
 
   T* data() const {
     return ptr_.get();
