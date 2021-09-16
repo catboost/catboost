@@ -8,9 +8,9 @@ VERSION(1.2.11)
 
 LICENSE(Zlib)
 
-ADDINCL(
-    GLOBAL contrib/libs/zlib/include
-)
+LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
+
+ADDINCL(GLOBAL contrib/libs/zlib/include)
 
 NO_COMPILER_WARNINGS()
 
