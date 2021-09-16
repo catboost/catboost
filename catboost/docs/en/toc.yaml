@@ -934,7 +934,7 @@ items:
         name: Reference papers
       - href: concepts/educational-materials-videos.md
         name: Videos
-  - href: concepts/for-developers.md
+  - href: yandex_specific/for-developers.md
     when: audience == "internal"
     name: For developers
   - href: concepts/development-and-contributions.md
