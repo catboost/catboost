@@ -23,7 +23,7 @@ CFLAGS(-DTCMALLOC_256K_PAGES)
 
 END()
 
-IF (NOT DLL_FOR_DIR)
+IF (NOT DLL_FOR)
     RECURSE(
     default
     dynamic
