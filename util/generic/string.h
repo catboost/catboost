@@ -816,11 +816,12 @@ public:
         return *this;
     }
 
-    template <class TCharTraits, class Allocator>
-    /* implicit */ operator std::basic_string<TCharType, TCharTraits, Allocator>() const {
-        // NB(eeight) MSVC cannot compiler direct reference to TBase::operator std::basic_string<...>
-        // so we are using static_cast to force the needed operator call.
-        return static_cast<std::basic_string<TCharType, TCharTraits, Allocator>>(static_cast<const TBase&>(*this));
+    operator const TStringType&() const noexcept {
+        return this->ConstRef();
+    }
+
+    operator TStringType&() {
+        return this->MutRef();
     }
 
     /*

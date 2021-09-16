@@ -1252,12 +1252,12 @@ Y_UNIT_TEST_SUITE(Interop) {
         UNIT_ASSERT_VALUES_EQUAL(x, "xy");
     }
 
-    static std::string Transform(const std::string& s) {
+    static std::string TransformStd(const std::string& s) {
         return s + "y";
     }
 
     static TString Transform(const TString& s) {
-        return Transform(ConstRef(s));
+        return TransformStd(s);
     }
 
     Y_UNIT_TEST(TestTransform) {
