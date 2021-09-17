@@ -13,7 +13,7 @@ CheckOptions:
     value: CamelCase
   # do not tide public begin / end methods to workaround clang-tidy bug in range-based for loops
   - key: readability-identifier-naming.PublicMethodIgnoredRegexp
-    value: "(begin|end)"
+    value: "(begin|end|empty|size|ysize|front|back)"
   - key: readability-identifier-naming.PublicMethodCase
     value: CamelCase
   - key: readability-identifier-naming.ProtectedMethodCase
