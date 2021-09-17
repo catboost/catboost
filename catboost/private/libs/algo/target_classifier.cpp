@@ -100,7 +100,7 @@ TTargetClassifier BuildTargetClassifier(
         case ELossFunction::MultiClassOneVsAll:
             return TTargetClassifier(GetMultiClassBorders(targetBorderCount), targetId);
 
-        case ELossFunction::PythonUserDefinedMultiRegression:
+        case ELossFunction::PythonUserDefinedMultiTarget:
         case ELossFunction::PythonUserDefinedPerObject: {
             Y_ASSERT(objectiveDescriptor.Defined());
             return TTargetClassifier(

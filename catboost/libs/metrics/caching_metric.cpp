@@ -1108,7 +1108,7 @@ TVector<TMetricHolder> EvalErrorsWithCaching(
         return metric->Eval(To2DConstArrayRef<double>(approx), To2DConstArrayRef<double>(approxDelta), isExpApprox, metric->NeedTarget() ? target[0] : TConstArrayRef<float>(),
                             weight, queriesInfo, from, to, *localExecutor);
     };
-    const auto calcMultiRegression = [&](auto metric, auto from, auto to) {
+    const auto calcMultiTarget = [&](auto metric, auto from, auto to) {
         CB_ENSURE(!metric->NeedTarget() || target.size() > 0, "Metric [" + metric->GetDescription() + "] requires target");
         CB_ENSURE(!isExpApprox, "Metric [" << metric->GetDescription() << "] does not support exponentiated approxes");
         return metric->Eval(approx, approxDelta, target,
@@ -1139,7 +1139,7 @@ TVector<TMetricHolder> EvalErrorsWithCaching(
     for (auto i : xrange(metrics.size())) {
         auto metric = metrics[i];
         auto cachingMetric = dynamic_cast<const TCachingMetric*>(metrics[i]);
-        auto multiMetric = dynamic_cast<const TMultiRegressionMetric*>(metrics[i]);
+        auto multiMetric = dynamic_cast<const TMultiTargetMetric*>(metrics[i]);
         Y_ASSERT(cachingMetric == nullptr || multiMetric == nullptr);
 
         const bool isObjectwise = metric->GetErrorType() == EErrorType::PerObjectError;
@@ -1167,7 +1167,7 @@ TVector<TMetricHolder> EvalErrorsWithCaching(
             if (cachingMetric) {
                 errors.push_back(calcCaching(cachingMetric, 0, end, &nonAdditiveCache));
             } else if (multiMetric) {
-                errors.push_back(calcMultiRegression(multiMetric, 0, end));
+                errors.push_back(calcMultiTarget(multiMetric, 0, end));
             } else {
                 errors.push_back(calcNonCaching(metric, 0, end));
             }

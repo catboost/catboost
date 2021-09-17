@@ -958,10 +958,10 @@ private:
     TCustomObjectiveDescriptor Descriptor;
 };
 
-class TMultiRegressionCustomError final : public TMultiDerCalcer {
+class TMultiTargetCustomError final : public TMultiDerCalcer {
 public:
 
-    TMultiRegressionCustomError(
+    TMultiTargetCustomError(
         const NCatboostOptions::TCatBoostOptions& params,
         const TMaybe<TCustomObjectiveDescriptor>& descriptor
     )
@@ -978,7 +978,7 @@ public:
         TVector<double>* der,
         THessianInfo* der2
     ) const override {
-        Descriptor.CalcDersMultiRegression(approx, target, weight, der, der2, Descriptor.CustomData);
+        Descriptor.CalcDersMultiTarget(approx, target, weight, der, der2, Descriptor.CustomData);
     }
 
 private:

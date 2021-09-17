@@ -155,7 +155,7 @@ MakeRegister(LossInfos,
     ),
     Registree(LogCosh,
         EMetricAttribute::IsRegression),
-    Registree(Cox, 
+    Registree(Cox,
         EMetricAttribute::IsRegression
     ),
     Registree(Lq,
@@ -244,7 +244,7 @@ MakeRegister(LossInfos,
     Registree(PythonUserDefinedPerObject,
         EMetricAttribute::IsUserDefined
     ),
-    Registree(PythonUserDefinedMultiRegression,
+    Registree(PythonUserDefinedMultiTarget,
         EMetricAttribute::IsUserDefined
     ),
     Registree(UserPerObjMetric,
@@ -483,10 +483,17 @@ static const TVector<ELossFunction> RegressionObjectives = {
 static const TVector<ELossFunction> MultiRegressionObjectives = {
     ELossFunction::MultiRMSE,
     ELossFunction::MultiRMSEWithMissingValues,
-    ELossFunction::PythonUserDefinedMultiRegression
+    ELossFunction::PythonUserDefinedMultiTarget
 };
 
 static const TVector<ELossFunction> SurvivalRegressionObjectives = {
+    ELossFunction::SurvivalAft
+};
+
+static const TVector<ELossFunction> MultiTargetObjectives = {
+    ELossFunction::MultiRMSE,
+    ELossFunction::MultiRMSEWithMissingValues,
+    ELossFunction::PythonUserDefinedMultiTarget,
     ELossFunction::SurvivalAft
 };
 
@@ -609,8 +616,22 @@ bool IsSurvivalRegressionObjective(TStringBuf loss) {
     return IsSurvivalRegressionObjective(ParseLossType(loss));
 }
 
+bool IsMultiTargetObjective(ELossFunction loss) {
+    return IsIn(MultiTargetObjectives, loss);
+}
+
+bool IsMultiTargetObjective(TStringBuf loss) {
+    return IsMultiTargetObjective(ParseLossType(loss));
+}
+
 bool IsMultiRegressionMetric(ELossFunction loss) {
     return GetInfo(loss)->HasFlags(EMetricAttribute::IsMultiRegression);
+}
+
+bool IsMultiTargetMetric(ELossFunction loss) {
+    auto info = GetInfo(loss);
+    return info->HasFlags(EMetricAttribute::IsMultiRegression)
+        || info->HasFlags(EMetricAttribute::IsSurvivalRegression);
 }
 
 bool IsRegressionMetric(ELossFunction loss) {

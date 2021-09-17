@@ -112,7 +112,7 @@ struct TCustomMetricDescriptor {
         int end,
         void* customData);
 
-    using TEvalMultiregressionFuncPtr = TMetricHolder (*)(
+    using TEvalMultiTargetFuncPtr = TMetricHolder (*)(
         TConstArrayRef<TVector<double>> approx,
         TConstArrayRef<TConstArrayRef<float>> target,
         TConstArrayRef<float> weight,
@@ -126,15 +126,15 @@ struct TCustomMetricDescriptor {
 
     void* CustomData = nullptr;
     TMaybe<TEvalFuncPtr> EvalFunc;
-    TMaybe<TEvalMultiregressionFuncPtr> EvalMultiregressionFunc;
+    TMaybe<TEvalMultiTargetFuncPtr> EvalMultiTargetFunc;
     TGetDescriptionFuncPtr GetDescriptionFunc = nullptr;
     TIsMaxOptimalFuncPtr IsMaxOptimalFunc = nullptr;
     TGetFinalErrorFuncPtr GetFinalErrorFunc = nullptr;
 
-    bool IsMultiregressionMetric() const {
-        CB_ENSURE(EvalFunc.Defined() || EvalMultiregressionFunc.Defined(), "Any custom eval function must be defined");
-        CB_ENSURE(EvalFunc.Empty() || EvalMultiregressionFunc.Empty(), "Only one custom eval function must be defined");
-        return EvalMultiregressionFunc.Defined();
+    bool IsMultiTargetMetric() const {
+        CB_ENSURE(EvalFunc.Defined() || EvalMultiTargetFunc.Defined(), "Any custom eval function must be defined");
+        CB_ENSURE(EvalFunc.Empty() || EvalMultiTargetFunc.Empty(), "Only one custom eval function must be defined");
+        return EvalMultiTargetFunc.Defined();
     }
 };
 
@@ -203,8 +203,8 @@ private:
     const TLossParams DescriptionParams;
 };
 
-struct TMultiRegressionMetric: public TMetric {
-    explicit TMultiRegressionMetric(ELossFunction lossFunction, const TLossParams& descriptionParams)
+struct TMultiTargetMetric: public TMetric {
+    explicit TMultiTargetMetric(ELossFunction lossFunction, const TLossParams& descriptionParams)
         : TMetric(lossFunction, descriptionParams) {}
     virtual TMetricHolder Eval(
         TConstArrayRef<TVector<double>> approx,
@@ -224,7 +224,7 @@ struct TMultiRegressionMetric: public TMetric {
         int /*end*/,
         NPar::ILocalExecutor& /*executor*/
     ) const final {
-        CB_ENSURE(false, "Multiregression metrics should not be used like regular metric");
+        CB_ENSURE(false, "MultiTarget metrics should not be used like regular metric");
     }
     TMetricHolder Eval(
         const TConstArrayRef<TConstArrayRef<double>> /*approx*/,
@@ -237,7 +237,7 @@ struct TMultiRegressionMetric: public TMetric {
         int /*end*/,
         NPar::ILocalExecutor& /*executor*/
     ) const final {
-        CB_ENSURE(false, "Multiregression metrics should not be used like regular metric");
+        CB_ENSURE(false, "MultiTarget metrics should not be used like regular metric");
     }
     EErrorType GetErrorType() const final {
         return EErrorType::PerObjectError;

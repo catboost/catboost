@@ -1097,8 +1097,8 @@ void CalcLeafValues(
         tree,
         ctx->Params.ObliviousTreeOptions->MonotoneConstraints.Get());
 
-    const bool isMultiRegression = dynamic_cast<const TMultiDerCalcer*>(&error) != nullptr;
-    if (approxDimension == 1 && !isMultiRegression) {
+    const bool isMultiTarget = dynamic_cast<const TMultiDerCalcer*>(&error) != nullptr;
+    if (approxDimension == 1 && !isMultiTarget) {
         CalcLeafValuesSimple(leafCount, error, fold, *indices, treeMonotoneConstraints, ctx, leafDeltas);
     } else {
         CalcLeafValuesMultiForAllLeaves(leafCount, error, fold, *indices, ctx, leafDeltas);
@@ -1129,14 +1129,14 @@ void CalcApproxForLeafStruct(
 
     TVector<ui64> randomSeeds = GenRandUI64Vector(fold.BodyTailArr.ysize(), randomSeed);
     approxesDelta->resize(fold.BodyTailArr.ysize());
-    const bool isMultiRegression = dynamic_cast<const TMultiDerCalcer*>(&error) != nullptr;
+    const bool isMultiTarget = dynamic_cast<const TMultiDerCalcer*>(&error) != nullptr;
     ctx->LocalExecutor->ExecRangeWithThrow(
         [&](int bodyTailId) {
             const TFold::TBodyTail& bt = fold.BodyTailArr[bodyTailId];
             TVector<TVector<double>>& approxDeltas = (*approxesDelta)[bodyTailId];
             const double initValue = GetNeutralApprox(error.GetIsExpApprox());
             NCB::FillRank2(initValue, approxDimension, bt.TailFinish, &approxDeltas, ctx->LocalExecutor);
-            if (approxDimension == 1 && !isMultiRegression) {
+            if (approxDimension == 1 && !isMultiTarget) {
                 CalcApproxDeltaSimple(
                     fold,
                     bt,

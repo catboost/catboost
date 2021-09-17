@@ -209,7 +209,7 @@ static std::tuple<ui32, ui32, ELeavesEstimation, double> GetEstimationMethodDefa
         }
         case ELossFunction::UserPerObjMetric:
         case ELossFunction::UserQuerywiseMetric:
-        case ELossFunction::PythonUserDefinedMultiRegression:
+        case ELossFunction::PythonUserDefinedMultiTarget:
         case ELossFunction::PythonUserDefinedPerObject: {
             //skip
             defaultNewtonIterations = 1;
@@ -807,7 +807,7 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
             }
             break;
         }
-        case ELossFunction::PythonUserDefinedMultiRegression:
+        case ELossFunction::PythonUserDefinedMultiTarget:
         case ELossFunction::PythonUserDefinedPerObject: {
             ObliviousTreeOptions->LeavesEstimationBacktrackingType.SetDefault(ELeavesEstimationStepBacktracking::No);
             break;

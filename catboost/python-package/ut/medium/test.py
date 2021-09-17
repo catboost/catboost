@@ -29,8 +29,8 @@ from catboost import (
     to_regressor,
     to_classifier,
     to_ranker,
-    MultiRegressionCustomMetric,
-    MultiRegressionCustomObjective,)
+    MultiTargetCustomMetric,
+    MultiTargetCustomObjective,)
 from catboost.eval.catboost_evaluation import CatboostEvaluation, EvalType
 from catboost.utils import eval_metric, create_cd, read_cd, get_roc_curve, select_threshold, quantize
 from catboost.utils import DataMetaInfo, TargetStats, compute_training_options
@@ -277,7 +277,7 @@ def load_simple_dataset_as_lists(is_test):
 
 @pytest.mark.parametrize('niter', [100, 500])
 def test_multiregression_custom_eval(niter, n=10):
-    class MultiRMSE(MultiRegressionCustomMetric):
+    class MultiRMSE(MultiTargetCustomMetric):
         def get_final_error(self, error, weight):
             if (weight == 0):
                 return 0
@@ -2732,7 +2732,7 @@ def test_custom_objective(task_type, loss_objective):
 
 @fails_on_gpu(how='cuda/train_lib/train.cpp:283: Error: loss function is not supported for GPU learning Custom')
 def test_multilabel_custom_objective(task_type, n=10):
-    class MultiRMSEObjective(MultiRegressionCustomObjective):
+    class MultiRMSEObjective(MultiTargetCustomObjective):
         def calc_ders_multi(self, approxes, targets, weight):
             assert len(approxes) == len(targets)
 

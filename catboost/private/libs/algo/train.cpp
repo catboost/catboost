@@ -385,9 +385,9 @@ void TrainOneIteration(const NCB::TTrainingDataProviders& data, TLearnContext* c
             profile.AddOperation("CalcApprox tree struct and update tree structure approx");
             CheckInterrupted(); // check after long-lasting operation
         } else {
-            const bool isMultiRegression = dynamic_cast<const TMultiDerCalcer*>(error.Get()) != nullptr;
+            const bool isMultiTarget = dynamic_cast<const TMultiDerCalcer*>(error.Get()) != nullptr;
 
-            if (isMultiRegression) {
+            if (isMultiTarget) {
                 MapSetApproxesMulti(*error, bestTree, &treeValues, &sumLeafWeights, ctx);
             } else if (ctx->LearnProgress->ApproxDimension == 1) {
                 MapSetApproxesSimple(*error, bestTree, &treeValues, &sumLeafWeights, ctx);

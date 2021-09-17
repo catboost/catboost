@@ -57,6 +57,7 @@ is_classification_objective = _catboost.is_classification_objective
 is_cv_stratified_objective = _catboost.is_cv_stratified_objective
 is_regression_objective = _catboost.is_regression_objective
 is_multiregression_objective = _catboost.is_multiregression_objective
+is_multitarget_objective = _catboost.is_multitarget_objective
 is_survivalregression_objective = _catboost.is_survivalregression_objective
 is_groupwise_metric = _catboost.is_groupwise_metric
 is_ranking_metric = _catboost.is_ranking_metric
@@ -67,8 +68,10 @@ _NumpyAwareEncoder = _catboost._NumpyAwareEncoder
 FeaturesData = _catboost.FeaturesData
 _have_equal_features = _catboost._have_equal_features
 SPARSE_MATRIX_TYPES = _catboost.SPARSE_MATRIX_TYPES
-MultiRegressionCustomMetric = _catboost.MultiRegressionCustomMetric
-MultiRegressionCustomObjective = _catboost.MultiRegressionCustomObjective
+MultiTargetCustomMetric = _catboost.MultiTargetCustomMetric
+MultiTargetCustomObjective = _catboost.MultiTargetCustomObjective
+MultiRegressionCustomMetric = _catboost.MultiTargetCustomMetric  # for compatibility
+MultiRegressionCustomObjective = _catboost.MultiTargetCustomObjective  # for compatibility
 fspath = _catboost.fspath
 _eval_metric_util = _catboost._eval_metric_util
 
@@ -1583,6 +1586,10 @@ class _CatBoostBase(object):
     @staticmethod
     def _is_multiregression_objective(loss_function):
         return isinstance(loss_function, str) and is_multiregression_objective(loss_function)
+
+    @staticmethod
+    def _is_multitarget_objective(loss_function):
+        return isinstance(loss_function, str) and is_multitarget_objective(loss_function)
 
     @staticmethod
     def _is_survivalregression_objective(loss_function):
