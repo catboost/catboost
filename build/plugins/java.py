@@ -274,14 +274,19 @@ def on_check_java_srcdir(unit, *args):
     for arg in args:
         if not '$' in arg:
             abs_srcdir = unit.resolve(os.path.join("$S/", unit.get('MODDIR'), arg))
-            if not os.path.exists(abs_srcdir) or not os.path.isdir(abs_srcdir):
-                ymake.report_configure_error('SRCDIR {} does not exists or not a directory'.format(abs_srcdir))
+            # TODO: revert and use https://a.yandex-team.ru/review/2024241/details aftetr ymake release
+            unit.onsrcdir(os.path.join(unit.get('MODDIR'), arg))
+            # if not os.path.exists(abs_srcdir) or not os.path.isdir(abs_srcdir):
+            #     ymake.report_configure_error('SRCDIR {} does not exists or not a directory'.format(abs_srcdir))
+            return
         srcdir = unit.resolve_arc_path(arg)
         if srcdir and not srcdir.startswith('$S'):
             continue
-        abs_srcdir = unit.resolve(srcdir) if srcdir else unit.resolve(arg)
-        if not os.path.exists(abs_srcdir) or not os.path.isdir(abs_srcdir):
-            ymake.report_configure_error('SRCDIR {} does not exists or not a directory'.format(abs_srcdir))
+        # TODO: revert and use https://a.yandex-team.ru/review/2024241/details aftetr ymake release
+        # abs_srcdir = unit.resolve(srcdir) if srcdir else unit.resolve(arg)
+        unit.onsrcdir(arg)
+        # if not os.path.exists(abs_srcdir) or not os.path.isdir(abs_srcdir):
+        #     ymake.report_configure_error('SRCDIR {} does not exists or not a directory'.format(abs_srcdir))
 
 
 def on_fill_jar_copy_resources_cmd(unit, *args):
