@@ -2,7 +2,7 @@
 
 #include <util/generic/yexception.h>
 
-namespace NYT {
+namespace NYson {
     ////////////////////////////////////////////////////////////////////////////////
 
     //! The data format.
@@ -30,10 +30,42 @@ namespace NYT {
     };
 
     struct IYsonConsumer;
+    struct TYsonConsumerBase;
+
+    class TYsonWriter;
+    class TYsonParser;
+    class TStatelessYsonParser;
+    class TYsonListParser;
 
     class TYsonException
        : public yexception {};
 
     ////////////////////////////////////////////////////////////////////////////////
 
-}
+} // namespace NYson
+
+namespace NYT {
+
+// Temporary for backward compatibility
+using ::NYson::EYsonFormat;
+using ::NYson::EYsonFormat::YF_BINARY;
+using ::NYson::EYsonFormat::YF_TEXT;
+using ::NYson::EYsonFormat::YF_PRETTY;
+
+using ::NYson::EYsonType;
+using ::NYson::EYsonType::YT_NODE;
+using ::NYson::EYsonType::YT_LIST_FRAGMENT;
+using ::NYson::EYsonType::YT_MAP_FRAGMENT;
+
+using ::NYson::IYsonConsumer;
+using ::NYson::TYsonConsumerBase;
+
+using ::NYson::TYsonWriter;
+
+using ::NYson::TYsonParser;
+using ::NYson::TStatelessYsonParser;
+using ::NYson::TYsonListParser;
+
+using ::NYson::TYsonException;
+
+} // namespace NYT

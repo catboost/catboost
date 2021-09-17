@@ -21,7 +21,7 @@ namespace NYT {
         };
 
     public:
-        TYson2JsonCallbacksAdapter(NYT::TYsonConsumerBase* impl, bool throwException = false);
+        TYson2JsonCallbacksAdapter(::NYson::TYsonConsumerBase* impl, bool throwException = false);
 
         bool OnNull() override;
         bool OnBoolean(bool val) override;
@@ -47,7 +47,7 @@ namespace NYT {
         void WrapIfListItem();
 
     private:
-        NYT::TYsonConsumerBase* Impl_;
+        ::NYson::TYsonConsumerBase* Impl_;
         TState State_;
     };
 }
