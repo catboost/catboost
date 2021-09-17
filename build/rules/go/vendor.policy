@@ -948,6 +948,9 @@ ALLOW transfer_manager/go/pkg/source/eventhub -> vendor/github.com/Azure/azure-e
 ALLOW .* -> vendor/github.com/airbusgeo/godal
 ALLOW .* -> vendor/github.com/airbusgeo/osio
 
+# CONTRIB-2167
+ALLOW .* -> vendor/github.com/jarcoal/httpmock
+
 #
 # This section is for EXCEPTIONS. Add new rule above, not here.
 #
