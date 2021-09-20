@@ -62,8 +62,6 @@ using ::NYson::TYsonConsumerBase;
 
 using ::NYson::TYsonWriter;
 
-using ::NYson::TYsonParser;
-using ::NYson::TStatelessYsonParser;
 using ::NYson::TYsonListParser;
 
 } // namespace NYT
