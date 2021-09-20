@@ -108,7 +108,7 @@ bool THttp2Options::QuickAck = false;
 
 bool THttp2Options::Set(TStringBuf name, TStringBuf value) {
 #define HTTP2_TRY_SET(optType, optName)       \
-    if (name == AsStringBuf(#optName)) {      \
+    if (name == TStringBuf(#optName)) {      \
         optName = FromString<optType>(value); \
     }
 
@@ -1701,8 +1701,8 @@ namespace {
                         if (THttp2Options::ErrorDetailsAsResponseBody) {
                             Answer << TStringBuf("\r\nContent-Length:") << theDescr.size() << "\r\n\r\n" << theDescr;
                         } else {
-                            Answer << AsStringBuf("\r\n"
-                                                "Content-Length:0\r\n\r\n");
+                            Answer << "\r\n"
+                                      "Content-Length:0\r\n\r\n"sv;
                         }
 
                         Parts[0].buf = Answer.Data();

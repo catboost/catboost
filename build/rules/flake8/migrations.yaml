@@ -925,7 +925,6 @@ migrations:
     - yweb/robot/limbo
     - yweb/robot/limbo/imports
     - yweb/robot/metrics/pmusca/lib
-    - yweb/scripts/datascripts/nirvana_yt
     - yweb/sitelinks/astrolabe/build_bna/candidates/filter_by_region
     - yweb/sitelinks/scripts/sitelinks
     - yweb/structhtml/richsnippets/scripts/build_foto_recipes/prepare_to_deploy
@@ -1079,7 +1078,6 @@ migrations:
     - maps/infra/sedem/cli/tests/release
     - maps/infra/sedem/cli/tests/release/utils
     - maps/poi/statistics/protected_geo_product/impressions/bebr
-    - maps/pylibs/infrastructure_api/arc
     - maps/search/metrics/pipeline/geo/geocoder/lib
     - maps/tools/matcher_quality/routes_to_geoms
     - maps_adv/common/shared_mock/tests
@@ -1215,7 +1213,6 @@ migrations:
     - travel/hotels/suggest/builder
     - travel/hotels/suggest/metrics_builder
     - travel/rasp/content/rzdParser
-    - travel/rasp/infra/tools/devprocess_metrics/startrek
     - travel/rasp/train_api
     - travel/rasp/train_api/middleware
     - vcs/manage_contrib
@@ -1261,7 +1258,6 @@ migrations:
     - yweb/antispam/cid/analytics/pushes/push_sender/args
     - yweb/antispam/cid/analytics/pushes/push_sender/cli
     - yweb/antispam/cid/support/auto_answer/args
-    - yweb/antispam/clean_web/metrics/quality/make_sample/src
     - yweb/blender/scripts/blender_viewer/conveyor_experiments/utils
     - yweb/freshness/scripts/sport_pushes
     - yweb/news/dupsd/tests
@@ -1678,7 +1674,6 @@ migrations:
     - yweb/antispam/mascot/monitorings/check_table_age
     - yweb/robot/limbo
     - yweb/robot/metrics/pmusca/graph/bin/extract_urls_from_serp
-    - yweb/robot/metrics/pmusca/update_jupiter_urlinfo
     - yweb/sitelinks/scripts/sitelinks
     - yweb/webscripts/video/duplicates/nirvana_scripts/knn/filter_knn_source
     - yweb/yasap/answers/answers
@@ -2161,8 +2156,6 @@ migrations:
     - ipreg/python/ipreg-diff/executive
     - ipreg/python/util
     - juggler/sdk/juggler_sdk
-    - jupytercloud/backend/db/alembic
-    - jupytercloud/contrib/jupyterhub-traefik-proxy
     - keyboard/dict/learn_transfemes/pt_converter
     - keyboard/dict/learn_transfemes/word_aligner
     - keyboard/dict/lemmer_filter
@@ -2706,7 +2699,6 @@ migrations:
     - sandbox/projects/images/ImagesTestMrindexMetadoc
     - sandbox/projects/images/ImagesTestSaas
     - sandbox/projects/images/ImagesTestSaasBasics
-    - sandbox/projects/images/ImagesTestSaasQuick
     - sandbox/projects/images/ImagesUltraAcceptance
     - sandbox/projects/images/ImagesUploadSaas
     - sandbox/projects/images/bans/ImagesReleaseAntipirateIndexBan

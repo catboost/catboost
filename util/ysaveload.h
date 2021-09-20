@@ -9,6 +9,11 @@
 #include <util/stream/output.h>
 #include <util/stream/input.h>
 
+#ifndef __NVCC__
+// cuda is compiled in C++14 mode at the time
+#include <variant>
+#endif
+
 template <typename T>
 class TSerializeTypeTraits {
 public:
@@ -630,9 +635,7 @@ public:
     }
 };
 
-#if _LIBCPP_STD_VER >= 17
-
-    #include <variant>
+#ifndef __NVCC__
 
 namespace NPrivate {
     template <class Variant, class T, size_t I>

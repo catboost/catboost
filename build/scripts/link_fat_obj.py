@@ -55,9 +55,6 @@ def main():
     global_srcs = ProcessWholeArchiveOption(args.arch).construct_cmd(global_srcs)
     peers = groups['peers']
 
-    # Settings
-    arch = args.arch
-
     # Tools
     linker = groups['linker']
     archiver = groups['archiver']

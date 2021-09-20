@@ -24,9 +24,6 @@ namespace NVariant {
     struct TIndexOf: std::integral_constant<size_t, IndexOfImpl<X, Ts...>()> {};
 }
 
-template <class... Ts>
-using TVariant = std::variant<Ts...>;
-
 using TWrongVariantError = std::bad_variant_access;
 
 template <class T>
@@ -38,14 +35,11 @@ using TVariantAlternative = std::variant_alternative<I, V>;
 template <size_t I, class V>
 using TVariantAlternativeType = std::variant_alternative_t<I, V>;
 
-template <size_t I>
-using TVariantIndexTag = std::in_place_index_t<I>;
-
 template <class T, class V>
 struct TVariantIndex;
 
 template <class T, class... Ts>
-struct TVariantIndex<T, TVariant<Ts...>>: ::NVariant::TIndexOf<T, Ts...> {};
+struct TVariantIndex<T, std::variant<Ts...>>: ::NVariant::TIndexOf<T, Ts...> {};
 
 template <class T, class V>
 constexpr size_t TVariantIndexV = TVariantIndex<T, V>::value;
@@ -53,148 +47,95 @@ constexpr size_t TVariantIndexV = TVariantIndex<T, V>::value;
 template <class V>
 using TVariantSize = std::variant_size<V>;
 
-constexpr size_t TVARIANT_NPOS = std::variant_npos;
-
 template <class F, class... Ts>
-decltype(auto) Visit(F&& f, TVariant<Ts...>& v);
-
-template <class F, class... Ts>
-decltype(auto) Visit(F&& f, const TVariant<Ts...>& v);
-
-template <class F, class... Ts>
-decltype(auto) Visit(F&& f, TVariant<Ts...>&& v);
-
-template <class F, class... Ts>
-decltype(auto) Visit(F&& f, const TVariant<Ts...>&& v);
-
-template <class T, class... Ts>
-constexpr bool HoldsAlternative(const TVariant<Ts...>& v) noexcept;
-
-template <size_t I, class... Ts>
-decltype(auto) Get(TVariant<Ts...>& v);
-
-template <size_t I, class... Ts>
-decltype(auto) Get(const TVariant<Ts...>& v);
-
-template <size_t I, class... Ts>
-decltype(auto) Get(TVariant<Ts...>&& v);
-
-template <size_t I, class... Ts>
-decltype(auto) Get(const TVariant<Ts...>&& v);
-
-template <class T, class... Ts>
-decltype(auto) Get(TVariant<Ts...>& v);
-
-template <class T, class... Ts>
-decltype(auto) Get(const TVariant<Ts...>& v);
-
-template <class T, class... Ts>
-decltype(auto) Get(TVariant<Ts...>&& v);
-
-template <class T, class... Ts>
-decltype(auto) Get(const TVariant<Ts...>&& v);
-
-template <size_t I, class... Ts>
-auto* GetIf(TVariant<Ts...>* v) noexcept;
-
-template <size_t I, class... Ts>
-const auto* GetIf(const TVariant<Ts...>* v) noexcept;
-
-template <class T, class... Ts>
-T* GetIf(TVariant<Ts...>* v) noexcept;
-
-template <class T, class... Ts>
-const T* GetIf(const TVariant<Ts...>* v) noexcept;
-
-template <class F, class... Ts>
-decltype(auto) Visit(F&& f, TVariant<Ts...>& v) {
+decltype(auto) Visit(F&& f, std::variant<Ts...>& v) {
     return std::visit(std::forward<F>(f), v);
 }
 
 template <class F, class... Ts>
-decltype(auto) Visit(F&& f, const TVariant<Ts...>& v) {
+decltype(auto) Visit(F&& f, const std::variant<Ts...>& v) {
     return std::visit(std::forward<F>(f), v);
 }
 
 template <class F, class... Ts>
-decltype(auto) Visit(F&& f, TVariant<Ts...>&& v) {
+decltype(auto) Visit(F&& f, std::variant<Ts...>&& v) {
     return std::visit(std::forward<F>(f), std::move(v));
 }
 
 template <class F, class... Ts>
-decltype(auto) Visit(F&& f, const TVariant<Ts...>&& v) {
+decltype(auto) Visit(F&& f, const std::variant<Ts...>&& v) {
     return std::visit(std::forward<F>(f), std::move(v));
 }
 
 template <class T, class... Ts>
-constexpr bool HoldsAlternative(const TVariant<Ts...>& v) noexcept {
+constexpr bool HoldsAlternative(const std::variant<Ts...>& v) noexcept {
     return std::holds_alternative<T>(v);
 }
 
 template <size_t I, class... Ts>
-decltype(auto) Get(TVariant<Ts...>& v) {
+decltype(auto) Get(std::variant<Ts...>& v) {
     return std::get<I>(v);
 }
 
 template <size_t I, class... Ts>
-decltype(auto) Get(const TVariant<Ts...>& v) {
+decltype(auto) Get(const std::variant<Ts...>& v) {
     return std::get<I>(v);
 }
 
 template <size_t I, class... Ts>
-decltype(auto) Get(TVariant<Ts...>&& v) {
+decltype(auto) Get(std::variant<Ts...>&& v) {
     return std::get<I>(std::move(v));
 }
 
 template <size_t I, class... Ts>
-decltype(auto) Get(const TVariant<Ts...>&& v) {
+decltype(auto) Get(const std::variant<Ts...>&& v) {
     return std::get<I>(std::move(v));
 }
 
 template <class T, class... Ts>
-decltype(auto) Get(TVariant<Ts...>& v) {
+decltype(auto) Get(std::variant<Ts...>& v) {
     return std::get<T>(v);
 }
 
 template <class T, class... Ts>
-decltype(auto) Get(const TVariant<Ts...>& v) {
+decltype(auto) Get(const std::variant<Ts...>& v) {
     return std::get<T>(v);
 }
 
 template <class T, class... Ts>
-decltype(auto) Get(TVariant<Ts...>&& v) {
+decltype(auto) Get(std::variant<Ts...>&& v) {
     return std::get<T>(std::move(v));
 }
 
 template <class T, class... Ts>
-decltype(auto) Get(const TVariant<Ts...>&& v) {
+decltype(auto) Get(const std::variant<Ts...>&& v) {
     return std::get<T>(std::move(v));
 }
 
 template <size_t I, class... Ts>
-auto* GetIf(TVariant<Ts...>* v) noexcept {
+auto* GetIf(std::variant<Ts...>* v) noexcept {
     return std::get_if<I>(v);
 }
 
 template <size_t I, class... Ts>
-const auto* GetIf(const TVariant<Ts...>* v) noexcept {
+const auto* GetIf(const std::variant<Ts...>* v) noexcept {
     return std::get_if<I>(v);
 }
 
 template <class T, class... Ts>
-T* GetIf(TVariant<Ts...>* v) noexcept {
+T* GetIf(std::variant<Ts...>* v) noexcept {
     return std::get_if<T>(v);
 }
 
 template <class T, class... Ts>
-const T* GetIf(const TVariant<Ts...>* v) noexcept {
+const T* GetIf(const std::variant<Ts...>* v) noexcept {
     return std::get_if<T>(v);
 }
 
 template <class... Ts>
-struct THash<TVariant<Ts...>> {
+struct THash<std::variant<Ts...>> {
 public:
-    inline size_t operator()(const TVariant<Ts...>& v) const {
+    inline size_t operator()(const std::variant<Ts...>& v) const {
         const size_t tagHash = IntHash(v.index());
         const size_t valueHash = v.valueless_by_exception() ? 0 : Visit([](const auto& value) {
             using T = std::decay_t<decltype(value)>;
@@ -204,16 +145,10 @@ public:
     }
 };
 
-using TMonostate = std::monostate;
-/* Unit type intended for use as a well-behaved empty alternative in TVariant.
- * In particular, a variant of non-default-constructible types may list TMonostate
- * as its first alternative: this makes the variant itself default-constructible.
- */
-
 template <>
-struct THash<TMonostate> {
+struct THash<std::monostate> {
 public:
-    inline constexpr size_t operator()(TMonostate) const noexcept {
+    inline constexpr size_t operator()(std::monostate) const noexcept {
         return 1;
     }
 };

@@ -15,6 +15,7 @@
 #include "bitops.h"
 #include "explicit_type.h"
 #include "reserve.h"
+#include "singleton.h"
 #include "strbase.h"
 #include "strbuf.h"
 #include "string_hash.h"
@@ -78,9 +79,15 @@ struct TStdString: public TRefCountHolder, public B {
     }
 
     static TStdString* NullStr() noexcept {
+#ifdef _LIBCPP_VERSION
         return (TStdString*)NULL_STRING_REPR;
+#else
+        return Singleton<TStdString>();
+#endif
     }
 
+private:
+    friend TStringPtrOps<TStdString>;
     inline void Ref() noexcept {
         C.Inc();
     }
@@ -209,7 +216,7 @@ protected:
     }
 
     size_t RefCount() const noexcept {
-        return S_->RefCount();
+        return S_.RefCount();
     }
 #endif
 
@@ -314,7 +321,7 @@ public:
     using TBase::rbegin;  //!< const_reverse_iterator TStringBase::rbegin() const
     using TBase::rend;    //!< const_reverse_iterator TStringBase::rend() const
 
-    inline size_t reserve() const noexcept {
+    inline size_t capacity() const noexcept {
 #ifdef TSTRING_IS_STD_STRING
         return Storage_.capacity();
 #else
@@ -324,10 +331,6 @@ public:
 
         return S_->capacity();
 #endif
-    }
-
-    inline size_t capacity() const noexcept {
-        return reserve();
     }
 
     TCharType* Detach() {
@@ -684,6 +687,8 @@ public:
     TBasicString& operator=(const TCharType* s) {
         return assign(s);
     }
+    // TODO thegeorg@: uncomment and fix clients
+    // TBasicString& operator=(std::nullptr_t) = delete;
 
     TBasicString& operator=(TExplicitType<TCharType> ch) {
         return assign(ch);

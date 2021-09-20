@@ -1,6 +1,5 @@
 #include "yson.h"
 
-#include <util/generic/singleton.h>
 #include <util/string/builder.h>
 #include <util/system/env.h>
 #include <util/system/hostname.h>
@@ -103,7 +102,6 @@ void TYsonTraceConsumer::AddEvent(const TMetadataEvent& event, const TEventArgs*
 
 void TYsonTraceConsumer::BeginEvent(char type, const TEventOrigin& origin) {
     Yson.OnBeginMap();
-    char ph[2] = {type, 0};
 
     if (JobId) {
         Yson.OnKeyedItem(TStringBuf("host"));
@@ -113,7 +111,7 @@ void TYsonTraceConsumer::BeginEvent(char type, const TEventOrigin& origin) {
     }
 
     Yson.OnKeyedItem(TStringBuf("ph"));
-    Yson.OnStringScalar(AsStringBuf(ph));
+    Yson.OnStringScalar(TStringBuf(&type, 1));
     Yson.OnKeyedItem(TStringBuf("pid"));
     Yson.OnUint64Scalar(origin.ProcessId);
     Yson.OnKeyedItem(TStringBuf("tid"));

@@ -2059,16 +2059,43 @@ class LD(Linker):
             )
         else:
             emit('LINK_SCRIPT_EXE_FLAGS')
-            emit('REAL_LINK_EXE',
-                 '$YMAKE_PYTHON ${input:"build/scripts/link_exe.py"}', '--source-root $ARCADIA_ROOT', '${pre=--whole-archive-libs :_WHOLE_ARCHIVE_LIBS_VALUE_GLOBAL}',
-                 arch_flag, '$LINK_SCRIPT_EXE_FLAGS', '$CXX_COMPILER', srcs_globals, '$VCS_C_OBJ $AUTO_INPUT -o $TARGET', exe_flags, ld_env_style)
+            emit('REAL_LINK_EXE_CMDLINE',
+                 '$YMAKE_PYTHON ${input:"build/scripts/link_exe.py"}',
+                 '--source-root $ARCADIA_ROOT',
+                 '${pre=--whole-archive-peers :WHOLE_ARCHIVE_PEERS}',
+                 '${pre=--whole-archive-libs :_WHOLE_ARCHIVE_LIBS_VALUE_GLOBAL}',
+                 arch_flag,
+                 '$LINK_SCRIPT_EXE_FLAGS',
+                 '$CXX_COMPILER',
+                 srcs_globals,
+                 '$VCS_C_OBJ $AUTO_INPUT -o $TARGET',
+                 exe_flags,
+                 ld_env_style,
+                 )
+            emit_big('''
+            macro REAL_LINK_EXE_IMPL(WHOLE_ARCHIVE_PEERS...) {
+                .CMD=$REAL_LINK_EXE_CMDLINE
+            }
+            ''')
+            emit('REAL_LINK_EXE', '$REAL_LINK_EXE_IMPL($_WHOLE_ARCHIVE_PEERS_VALUE)')
 
         # Executable Shared Library
 
         emit('REAL_LINK_EXEC_DYN_LIB_CMDLINE',
-             '$YMAKE_PYTHON ${input:"build/scripts/link_dyn_lib.py"} --target $TARGET ${pre=--whole-archive-peers :WHOLE_ARCHIVE_PEERS}',
-             '${pre=--whole-archive-libs :_WHOLE_ARCHIVE_LIBS_VALUE_GLOBAL}', arch_flag, '$LINK_DYN_LIB_FLAGS', '$CXX_COMPILER', srcs_globals,
-             '$VCS_C_OBJ $AUTO_INPUT -o $TARGET', exec_shared_flag, soname_flag, exe_flags, ld_env_style)
+             '$YMAKE_PYTHON ${input:"build/scripts/link_dyn_lib.py"}',
+             '--target $TARGET',
+             '${pre=--whole-archive-peers :WHOLE_ARCHIVE_PEERS}',
+             '${pre=--whole-archive-libs :_WHOLE_ARCHIVE_LIBS_VALUE_GLOBAL}',
+             arch_flag,
+             '$LINK_DYN_LIB_FLAGS',
+             '$CXX_COMPILER',
+             srcs_globals,
+             '$VCS_C_OBJ $AUTO_INPUT -o $TARGET',
+             exec_shared_flag,
+             soname_flag,
+             exe_flags,
+             ld_env_style,
+             )
         emit_big('''
         macro REAL_LINK_EXEC_DYN_LIB_IMPL(WHOLE_ARCHIVE_PEERS...) {
             .CMD=$REAL_LINK_EXEC_DYN_LIB_CMDLINE
@@ -2080,9 +2107,19 @@ class LD(Linker):
 
         emit('LINK_DYN_LIB_FLAGS')
         emit('REAL_LINK_DYN_LIB_CMDLINE',
-             '$YMAKE_PYTHON ${input:"build/scripts/link_dyn_lib.py"} --target $TARGET ${pre=--whole-archive-peers :WHOLE_ARCHIVE_PEERS}',
-             '${pre=--whole-archive-libs :_WHOLE_ARCHIVE_LIBS_VALUE_GLOBAL}', arch_flag, '$LINK_DYN_LIB_FLAGS', '$CXX_COMPILER', srcs_globals,
-             '$VCS_C_OBJ $AUTO_INPUT -o $TARGET', shared_flag, soname_flag, exe_flags, ld_env_style)
+             '$YMAKE_PYTHON ${input:"build/scripts/link_dyn_lib.py"}',
+             '--target $TARGET',
+             '${pre=--whole-archive-peers :WHOLE_ARCHIVE_PEERS}',
+             '${pre=--whole-archive-libs :_WHOLE_ARCHIVE_LIBS_VALUE_GLOBAL}',
+             arch_flag,
+             '$LINK_DYN_LIB_FLAGS',
+             '$CXX_COMPILER',
+             srcs_globals,
+             '$VCS_C_OBJ $AUTO_INPUT -o $TARGET',
+             shared_flag,
+             soname_flag,
+             exe_flags,
+             ld_env_style)
         emit_big('''
         macro REAL_LINK_DYN_LIB_IMPL(WHOLE_ARCHIVE_PEERS...) {
             .CMD=$REAL_LINK_DYN_LIB_CMDLINE
@@ -2750,10 +2787,18 @@ class MSVCLinker(MSVC, Linker):
         # the tail of link commands will be added in the third command file
         srcs_globals = '--start-wa --ya-start-command-file ${qe;rootrel;ext=.lib:SRCS_GLOBAL} --ya-end-command-file --end-wa \
                         --ya-start-command-file ${qe;rootrel;ext=.obj:SRCS_GLOBAL} --ya-end-command-file'
-        emit('REAL_LINK_DYN_LIB', '${TOOLCHAIN_ENV} ${cwd:ARCADIA_BUILD_ROOT} ${LINK_WRAPPER} ${LINK_WRAPPER_DYNLIB} ${LINK_EXE_CMD} \
-             ${LINK_IMPLIB_VALUE} /DLL /OUT:${qe;rootrel:TARGET} ${LINK_EXTRA_OUTPUT} ${EXPORTS_VALUE} ${pre=--whole-archive-libs :_WHOLE_ARCHIVE_LIBS_VALUE_GLOBAL}',
+        emit('REAL_LINK_DYN_LIB_CMDLINE', '${TOOLCHAIN_ENV} ${cwd:ARCADIA_BUILD_ROOT} ${LINK_WRAPPER} ${LINK_WRAPPER_DYNLIB} ${LINK_EXE_CMD} \
+             ${LINK_IMPLIB_VALUE} /DLL /OUT:${qe;rootrel:TARGET} ${LINK_EXTRA_OUTPUT} ${EXPORTS_VALUE} \
+             ${pre=--whole-archive-peers :WHOLE_ARCHIVE_PEERS} \
+             ${pre=--whole-archive-libs :_WHOLE_ARCHIVE_LIBS_VALUE_GLOBAL}',
              srcs_globals, '--ya-start-command-file ${VCS_C_OBJ_RR} ${qe;rootrel:AUTO_INPUT} ${qe;rootrel:PEERS} \
              $LINK_EXE_FLAGS $LINK_STDLIBS $LDFLAGS $LDFLAGS_GLOBAL $OBJADDE --ya-end-command-file')
+        emit_big('''
+        macro REAL_LINK_DYN_LIB_IMPL(WHOLE_ARCHIVE_PEERS...) {
+            .CMD=$REAL_LINK_DYN_LIB_CMDLINE
+        }
+        ''')
+        emit('REAL_LINK_DYN_LIB', '$REAL_LINK_DYN_LIB_IMPL($_WHOLE_ARCHIVE_PEERS_VALUE)')
 
         emit('SWIG_DLL_JAR_CMD', '$GENERATE_MF && $GENERATE_VCS_C_INFO_NODEP && $REAL_SWIG_DLL_JAR_CMD')
 
@@ -2762,17 +2807,33 @@ class MSVCLinker(MSVC, Linker):
         emit('LINK_LIB', '${GENERATE_MF} &&', head_link_lib, '/OUT:${qe;rootrel:TARGET}', tail_link_lib)
         emit('GLOBAL_LINK_LIB', head_link_lib, '/OUT:${qe;rootrel:GLOBAL_TARGET}', tail_link_lib)
 
-        emit('LINK_EXE', '${GENERATE_MF} && $GENERATE_VCS_C_INFO_NODEP && ${TOOLCHAIN_ENV} ${cwd:ARCADIA_BUILD_ROOT} ${LINK_WRAPPER}',
-             '${LINK_EXE_CMD} /OUT:${qe;rootrel:TARGET} ${pre=--whole-archive-libs :_WHOLE_ARCHIVE_LIBS_VALUE_GLOBAL} ',
+        emit('LINK_EXE_CMDLINE', '${GENERATE_MF} && $GENERATE_VCS_C_INFO_NODEP && ${TOOLCHAIN_ENV} ${cwd:ARCADIA_BUILD_ROOT} ${LINK_WRAPPER}',
+             '${LINK_EXE_CMD} /OUT:${qe;rootrel:TARGET} \
+             ${pre=--whole-archive-peers :WHOLE_ARCHIVE_PEERS} \
+             ${pre=--whole-archive-libs :_WHOLE_ARCHIVE_LIBS_VALUE_GLOBAL} ',
              '${LINK_EXTRA_OUTPUT}', srcs_globals, '--ya-start-command-file ${VCS_C_OBJ_RR} ${qe;rootrel:AUTO_INPUT} $LINK_EXE_FLAGS $LINK_STDLIBS $LDFLAGS $LDFLAGS_GLOBAL $OBJADDE \
              ${qe;rootrel:PEERS} --ya-end-command-file ${hide;kv:"soe"} ${hide;kv:"p LD"} ${hide;kv:"pc blue"}')
+        emit_big('''
+        macro LINK_EXE_IMPL(WHOLE_ARCHIVE_PEERS...) {
+            .CMD=$LINK_EXE_CMDLINE
+        }
+        ''')
+        emit('LINK_EXE', '$LINK_EXE_IMPL($_WHOLE_ARCHIVE_PEERS_VALUE)')
 
         emit('LINK_DYN_LIB', '${GENERATE_MF} && $GENERATE_VCS_C_INFO_NODEP && $REAL_LINK_DYN_LIB ${hide;kv:"soe"} ${hide;kv:"p LD"} ${hide;kv:"pc blue"}')
 
-        emit('LINK_EXEC_DYN_LIB', '${GENERATE_MF} && $GENERATE_VCS_C_INFO_NODEP && ${TOOLCHAIN_ENV} ${cwd:ARCADIA_BUILD_ROOT} ${LINK_WRAPPER} ${LINK_WRAPPER_DYNLIB} ${LINK_EXE_CMD} \
-             /OUT:${qe;rootrel:TARGET} ${LINK_EXTRA_OUTPUT} ${EXPORTS_VALUE} ${pre=--whole-archive-libs :_WHOLE_ARCHIVE_LIBS_VALUE_GLOBAL}', srcs_globals,
+        emit('LINK_EXEC_DYN_LIB_CMDLINE', '${GENERATE_MF} && $GENERATE_VCS_C_INFO_NODEP && ${TOOLCHAIN_ENV} ${cwd:ARCADIA_BUILD_ROOT} ${LINK_WRAPPER} ${LINK_WRAPPER_DYNLIB} ${LINK_EXE_CMD} \
+             /OUT:${qe;rootrel:TARGET} ${LINK_EXTRA_OUTPUT} ${EXPORTS_VALUE} \
+             ${pre=--whole-archive-peers :WHOLE_ARCHIVE_PEERS} \
+             ${pre=--whole-archive-libs :_WHOLE_ARCHIVE_LIBS_VALUE_GLOBAL}', srcs_globals,
              '--ya-start-command-file ${VCS_C_OBJ_RR} ${qe;rootrel:AUTO_INPUT} ${qe;rootrel:PEERS} \
              $LINK_EXE_FLAGS $LINK_STDLIBS $LDFLAGS $LDFLAGS_GLOBAL $OBJADDE --ya-end-command-file ${hide;kv:"soe"} ${hide;kv:"p LD"} ${hide;kv:"pc blue"}')
+        emit_big('''
+        macro LINK_EXEC_DYN_LIB_IMPL(WHOLE_ARCHIVE_PEERS...) {
+            .CMD=$LINK_EXEC_DYN_LIB_CMDLINE
+        }
+        ''')
+        emit('LINK_EXEC_DYN_LIB', '$LINK_EXEC_DYN_LIB_IMPL($_WHOLE_ARCHIVE_PEERS_VALUE)')
 
         emit('LINK_GLOBAL_FAT_OBJECT', '${TOOLCHAIN_ENV} ${cwd:ARCADIA_BUILD_ROOT} ${LIB_WRAPPER} ${LINK_LIB_CMD} /OUT:${qe;rootrel:TARGET} \
             --ya-start-command-file ${qe;rootrel;ext=.lib:SRCS_GLOBAL} ${qe;rootrel;ext=.obj:SRCS_GLOBAL} ${qe;rootrel:AUTO_INPUT} $LINK_LIB_FLAGS --ya-end-command-file')

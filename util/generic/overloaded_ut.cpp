@@ -28,7 +28,7 @@ Y_UNIT_TEST_SUITE(TOverloadedTest) {
     }
 
     Y_UNIT_TEST(VariantTest) {
-        TVariant<int, double, TType1> v = 5;
+        std::variant<int, double, TType1> v = 5;
         int res = 0;
         Visit(TOverloaded{
                   [&](int val) { res = val; },
@@ -52,7 +52,7 @@ Y_UNIT_TEST_SUITE(TOverloadedTest) {
     }
 
     Y_UNIT_TEST(ImplicitConversionsTest) {
-        using TTestVariant = TVariant<int, double, char>;
+        using TTestVariant = std::variant<int, double, char>;
 
         // Purposefully exhibit inexact overload matched with implicit type
         // conversions

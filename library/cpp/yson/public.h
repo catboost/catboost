@@ -66,6 +66,4 @@ using ::NYson::TYsonParser;
 using ::NYson::TStatelessYsonParser;
 using ::NYson::TYsonListParser;
 
-using ::NYson::TYsonException;
-
 } // namespace NYT
