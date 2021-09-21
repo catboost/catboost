@@ -1000,7 +1000,7 @@ public:
         DoDestroy();
     }
 
-    inline TCopyPtr& operator=(TCopyPtr t) {
+    inline TCopyPtr& operator=(TCopyPtr t) noexcept {
         t.Swap(*this);
 
         return *this;
