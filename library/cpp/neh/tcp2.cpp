@@ -48,7 +48,7 @@ namespace NNeh {
 
     bool TTcp2Options::Set(TStringBuf name, TStringBuf value) {
 #define TCP2_TRY_SET(optType, optName)        \
-    if (name == AsStringBuf(#optName)) {      \
+    if (name == TStringBuf(#optName)) {      \
         optName = FromString<optType>(value); \
     }
 
