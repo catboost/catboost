@@ -38,6 +38,6 @@
 #define CHROMIUM_TRACE_SCOPE(name__) CHROMIUM_TRACE_SCOPE_STR(TStringBuf(name__))
 
 #define CHROMIUM_TRACE_THREAD_NAME_STR(name__) ::NChromiumTrace::GetGlobalTracer()->AddCurrentThreadName(name__)
-#define CHROMIUM_TRACE_THREAD_NAME(name__) CHROMIUM_TRACE_THREAD_NAME_STR(AsStringBuf(name__))
+#define CHROMIUM_TRACE_THREAD_NAME(name__) CHROMIUM_TRACE_THREAD_NAME_STR(TStringBuf(name__))
 
 #define CHROMIUM_TRACE_THREAD_INDEX(index__) ::NChromiumTrace::GetGlobalTracer()->AddCurrentThreadIndex(index__)
