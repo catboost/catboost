@@ -88,8 +88,8 @@ class TTypeTraitsBase {
 public:
     static constexpr bool IsPod = (TPodTraits<std::remove_cv_t<T>>::IsPod || std::is_scalar<std::remove_all_extents_t<T>>::value ||
                                    TPodTraits<std::remove_cv_t<std::remove_all_extents_t<T>>>::IsPod);
-    static constexpr bool IsBitwiseCopyable = std::is_pod<std::remove_cv_t<T>>::value;
-    static constexpr bool IsBitwiseSerializable = std::is_pod<std::remove_cv_t<T>>::value;
+    static constexpr bool IsBitwiseCopyable = std::is_standard_layout<std::remove_cv_t<T>>::value && std::is_trivial<std::remove_cv_t<T>>::value;
+    static constexpr bool IsBitwiseSerializable = std::is_standard_layout<std::remove_cv_t<T>>::value && std::is_trivial<std::remove_cv_t<T>>::value;
 };
 
 namespace NPrivate {
