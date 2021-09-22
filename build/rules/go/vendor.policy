@@ -133,12 +133,9 @@ ALLOW .* -> vendor/github.com/go-git/go-billy/v5
 # etcd client
 DENY .* -> vendor/go.etcd.io/etcd/clientv3/naming
 ALLOW .* -> vendor/go.etcd.io/etcd/mvcc
-ALLOW .* -> vendor/go.etcd.io/etcd/etcdserver/stats
 ALLOW .* -> vendor/go.etcd.io/etcd/etcdserver/api
 ALLOW .* -> vendor/go.etcd.io/etcd/wal
 ALLOW .* -> vendor/go.etcd.io/etcd/raft
-ALLOW .* -> vendor/go.etcd.io/etcd/rafthttp
-ALLOW .* -> vendor/go.etcd.io/etcd/snap
 ALLOW .* -> vendor/go.etcd.io/etcd/clientv3
 ALLOW .* -> vendor/go.etcd.io/etcd/pkg/fileutil
 ALLOW .* -> vendor/go.etcd.io/etcd/pkg/stringutil
@@ -377,9 +374,6 @@ ALLOW .* -> vendor/golang.org/x/time
 # golang.org/x/image/webp
 ALLOW .* -> vendor/golang.org/x/image/webp
 
-# experimental implementation of Go error inspection. Use x/xerrors instead.
-ALLOW .* -> vendor/golang.org/x/exp/errors
-
 # less experimental implementation of Go error inspection
 ALLOW .* -> vendor/golang.org/x/xerrors
 
@@ -480,7 +474,6 @@ ALLOW .* -> vendor/github.com/NVIDIA/gpu-monitoring-tools/bindings/go
 # Opentracing interface and implementation.
 ALLOW .* -> vendor/github.com/uber/jaeger-client-go
 ALLOW .* -> vendor/github.com/uber/jaeger-lib/metrics
-ALLOW .* -> vendor/github.com/jaegertracing/jaeger-client-go
 ALLOW .* -> vendor/github.com/opentracing/opentracing-go
 
 # Opentracing contribs
