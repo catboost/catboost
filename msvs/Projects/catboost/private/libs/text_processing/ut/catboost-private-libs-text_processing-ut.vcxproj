@@ -294,14 +294,14 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\ipdb\pycontrib-python-ipdb.global.vcxproj">
       <Project>{14B5C251-696E-FF67-4EA3-1EB09DA2DF8E}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\ipython-genutils\pycontrib-python-ipython-genutils.global.vcxproj">
+      <Project>{300B5E29-236A-243E-8F82-6ACE1C94E197}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\ipython\py2\pypython-ipython-py2.global.vcxproj">
       <Project>{020B6FB1-628C-DD3F-7C85-2EFD9B3E3826}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\ipython\py3\pypython-ipython-py3.global.vcxproj">
       <Project>{0B25D09D-9DBC-BB72-850E-90EA4D9AE0FD}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\ipython_genutils\pycontrib-python-ipython_genutils.global.vcxproj">
-      <Project>{99B586DC-101A-5D49-535F-40B2F4616066}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\jedi\py3jedi.global.vcxproj">
       <Project>{FFD04B57-AAF4-4AF2-EDB6-4395B3523C3C}</Project>
