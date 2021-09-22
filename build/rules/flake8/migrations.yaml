@@ -2718,7 +2718,6 @@ migrations:
     - sandbox/projects/images/resources/ImagesGenerateTestenvData
     - sandbox/projects/images/resources/ImagesLoadMiddlesearchResources
     - sandbox/projects/images/resources/ImagesLoadTestenvData
-    - sandbox/projects/images/rim
     - sandbox/projects/images/saas_acceptance/ImagesTestRobotSaas
     - sandbox/projects/images/tags/ImagesTagsBuildAndCommitAliceBans
     - sandbox/projects/images/tags/ImagesTagsReleaseAliceBans

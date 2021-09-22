@@ -26,7 +26,7 @@ PY_SRCS(
 )
 
 RESOURCE_FILES(
-    PREFIX contrib/python/ipython_genutils/
+    PREFIX contrib/python/ipython-genutils/
     .dist-info/METADATA
     .dist-info/top_level.txt
 )
