@@ -347,6 +347,9 @@ ALLOW .* -> vendor/github.com/OneOfOne/xxhash
 # default logging library. See also: library/go/core/log.
 ALLOW .* -> vendor/go.uber.org/zap
 
+# package for writing logs to rolling files.
+ALLOW .* -> vendor/gopkg.in/natefinch/lumberjack.v2
+
 # Find goroutine leaks in tests.
 ALLOW .* -> vendor/go.uber.org/goleak
 
