@@ -165,7 +165,7 @@ namespace NYson {
                     ? ListItemSeparatorToken
                     : KeyedItemSeparatorToken;
             Stream->Write(TokenTypeToChar(separatorToken));
-            if (Format == YF_TEXT || Format == YF_PRETTY) {
+            if (Format == EYsonFormat::Text || Format == EYsonFormat::Pretty) {
                 Stream->Write('\n');
             }
         }
@@ -183,7 +183,7 @@ namespace NYson {
                 Stream->Write(TokenTypeToChar(separatorToken));
             }
 
-            if (Format == YF_PRETTY) {
+            if (Format == EYsonFormat::Pretty) {
                 Stream->Write('\n');
                 WriteIndent();
             }
@@ -194,7 +194,7 @@ namespace NYson {
 
     void TYsonWriter::EndCollection(ETokenType endToken) {
         --Depth;
-        if (Format == YF_PRETTY && !BeforeFirstItem) {
+        if (Format == EYsonFormat::Pretty && !BeforeFirstItem) {
             Stream->Write('\n');
             WriteIndent();
         }
@@ -203,7 +203,7 @@ namespace NYson {
     }
 
     void TYsonWriter::WriteStringScalar(const TStringBuf& value) {
-        if (Format == YF_BINARY) {
+        if (Format == EYsonFormat::Binary) {
             Stream->Write(NDetail::StringMarker);
             WriteVarInt32(Stream, static_cast<i32>(value.length()));
             Stream->Write(value.begin(), value.length());
@@ -220,7 +220,7 @@ namespace NYson {
     }
 
     void TYsonWriter::OnInt64Scalar(i64 value) {
-        if (Format == YF_BINARY) {
+        if (Format == EYsonFormat::Binary) {
             Stream->Write(NDetail::Int64Marker);
             WriteVarInt64(Stream, value);
         } else {
@@ -230,7 +230,7 @@ namespace NYson {
     }
 
     void TYsonWriter::OnUint64Scalar(ui64 value) {
-        if (Format == YF_BINARY) {
+        if (Format == EYsonFormat::Binary) {
             Stream->Write(NDetail::Uint64Marker);
             WriteVarUInt64(Stream, value);
         } else {
@@ -241,7 +241,7 @@ namespace NYson {
     }
 
     void TYsonWriter::OnDoubleScalar(double value) {
-        if (Format == YF_BINARY) {
+        if (Format == EYsonFormat::Binary) {
             Stream->Write(NDetail::DoubleMarker);
             Stream->Write(&value, sizeof(double));
         } else {
@@ -255,7 +255,7 @@ namespace NYson {
     }
 
     void TYsonWriter::OnBooleanScalar(bool value) {
-        if (Format == YF_BINARY) {
+        if (Format == EYsonFormat::Binary) {
             Stream->Write(value ? NDetail::TrueMarker : NDetail::FalseMarker);
         } else {
             Stream->Write(value ? "%true" : "%false");
@@ -290,11 +290,11 @@ namespace NYson {
 
         WriteStringScalar(key);
 
-        if (Format == YF_PRETTY) {
+        if (Format == NYson::EYsonFormat::Pretty) {
             Stream->Write(' ');
         }
         Stream->Write(TokenTypeToChar(KeyValueSeparatorToken));
-        if (Format == YF_PRETTY) {
+        if (Format == NYson::EYsonFormat::Pretty) {
             Stream->Write(' ');
         }
 
@@ -312,7 +312,7 @@ namespace NYson {
 
     void TYsonWriter::OnEndAttributes() {
         EndCollection(EndAttributesToken);
-        if (Format == YF_PRETTY) {
+        if (Format == NYson::EYsonFormat::Pretty) {
             Stream->Write(' ');
         }
     }
