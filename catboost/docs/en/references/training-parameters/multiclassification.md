@@ -1,6 +1,6 @@
 # Multiclassification settings
 
-### classes_count {#classes_count}
+## classes_count {#classes_count}
 
 Command-line: `--classes-count`
 
@@ -40,12 +40,12 @@ maximum class label + 1
 
 {% endcut %}
 
-**Supported processing units** 
+**Supported processing units**
 
 {{ cpu-gpu }}
 
 
-### --class-names {#--class-names}
+## --class-names {#--class-names}
 
 This parameter is only for Command-line.
 
@@ -73,11 +73,11 @@ For example:
 smartphone,touchphone,tablet
 ```
 
-**Default value** 
+**Default value**
 
 {{ fit--class-names }}
 
-**Supported processing units** 
- 
+**Supported processing units**
+
 {{ cpu-gpu }}
 
