@@ -54,9 +54,8 @@ The {{ product }} model can be loaded from a file or initialized from the buffer
 
 
 #### Related information
+
 [Source code and a CMake usage example](https://github.com/catboost/catboost/tree/master/catboost/libs/model_interface)
-
-
 
 ## C API {#c-api}
 
