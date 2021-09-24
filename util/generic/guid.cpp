@@ -3,10 +3,43 @@
 #include "string.h"
 
 #include <util/string/ascii.h>
-#include <util/stream/mem.h>
+#include <util/string/builder.h>
 #include <util/stream/format.h>
 #include <util/system/unaligned_mem.h>
 #include <util/random/easy.h>
+
+namespace {
+    inline void LowerCaseHex(TString& s) {
+        for (auto&& c : s) {
+            c = AsciiToLower(c);
+        }
+    }
+}
+
+TString TGUID::AsGuidString() const {
+    TStringBuilder s;
+    s.reserve(50);
+    s << Hex(dw[0], 0) << '-' << Hex(dw[1], 0) << '-' << Hex(dw[2], 0) << '-' << Hex(dw[3], 0);
+    LowerCaseHex(s);
+    return std::move(s);
+}
+
+TString TGUID::AsUuidString() const {
+    TStringBuilder s;
+    s.reserve(50);
+    s << Hex(dw[0], HF_FULL) << '-';
+    s << Hex(static_cast<ui16>(dw[1] >> 16), HF_FULL) << '-' << Hex(static_cast<ui16>(dw[1]), HF_FULL) << '-';
+    s << Hex(static_cast<ui16>(dw[2] >> 16), HF_FULL) << '-' << Hex(static_cast<ui16>(dw[2]), HF_FULL);
+    s << Hex(dw[3], HF_FULL);
+    LowerCaseHex(s);
+    return std::move(s);
+}
+
+TGUID TGUID::Create() {
+    TGUID result;
+    CreateGuid(&result);
+    return result;
+}
 
 void CreateGuid(TGUID* res) {
     ui64* dw = reinterpret_cast<ui64*>(res->dw);
@@ -16,27 +49,11 @@ void CreateGuid(TGUID* res) {
 }
 
 TString GetGuidAsString(const TGUID& g) {
-    char buf[50];
-    TMemoryOutput mo(buf, sizeof(buf));
-
-    mo << Hex(g.dw[0], 0) << '-' << Hex(g.dw[1], 0) << '-' << Hex(g.dw[2], 0) << '-' << Hex(g.dw[3], 0);
-
-    char* e = mo.Buf();
-
-    // TODO - implement LowerCaseHex
-    for (char* b = buf; b != e; ++b) {
-        *b = AsciiToLower(*b);
-    }
-
-    return TString(buf, e);
+    return g.AsGuidString();
 }
 
 TString CreateGuidAsString() {
-    TGUID guid;
-
-    CreateGuid(&guid);
-
-    return GetGuidAsString(guid);
+    return TGUID::Create().AsGuidString();
 }
 
 static bool GetDigit(const char c, ui32& digit) {
