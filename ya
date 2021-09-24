@@ -4,8 +4,8 @@ import sys
 import platform
 import json
 
-URLS = ["https://storage.mds.yandex.net/get-devtools-opensource/479623/4da7fc2ecb5e98f0d080c99241753017"]
-MD5 = "4da7fc2ecb5e98f0d080c99241753017"
+URLS = ["https://storage.mds.yandex.net/get-devtools-opensource/471749/a779afc6893f5337a34b92b04860f433"]
+MD5 = "a779afc6893f5337a34b92b04860f433"
 
 RETRIES = 5
 HASH_PREFIX = 10
