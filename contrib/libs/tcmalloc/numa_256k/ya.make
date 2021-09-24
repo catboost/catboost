@@ -1,5 +1,7 @@
 LIBRARY()
 
+WITHOUT_LICENSE_TEXTS()
+
 LICENSE(Apache-2.0)
 
 

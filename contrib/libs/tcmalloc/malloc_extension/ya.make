@@ -1,10 +1,13 @@
 LIBRARY()
 
+WITHOUT_LICENSE_TEXTS()
+
 LICENSE(Apache-2.0)
 
 
 
 NO_UTIL()
+
 NO_COMPILER_WARNINGS()
 
 # https://github.com/google/tcmalloc
@@ -16,11 +19,11 @@ SRCS(
     tcmalloc/malloc_extension.cc
 )
 
-PEERDIR(contrib/restricted/abseil-cpp)
-
-ADDINCL(
-    GLOBAL contrib/libs/tcmalloc
+PEERDIR(
+    contrib/restricted/abseil-cpp
 )
+
+ADDINCL(GLOBAL contrib/libs/tcmalloc)
 
 CFLAGS(-DTCMALLOC_256K_PAGES)
 
