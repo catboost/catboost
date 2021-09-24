@@ -3,6 +3,7 @@ import logging
 import optparse
 import os
 import sys
+import io
 
 import process_command_files as pcf
 
@@ -112,8 +113,11 @@ def generate_mf():
                 if texts:
                     final_credits.append(generate_header(data) + '\n' + texts)
 
-        with open(options.credits_output, 'w') as f:
-            f.write('\n\n'.join(final_credits))
+        with io.open(options.credits_output, 'w', encoding='utf-8') as f:
+            data = '\n\n'.join(final_credits)
+            if isinstance(data, str):
+                data = data.decode('utf-8')
+            f.write(data)
 
     with open(file_name, 'w') as mf_file:
         json.dump(meta, mf_file, indent=4)
