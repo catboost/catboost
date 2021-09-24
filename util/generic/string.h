@@ -427,6 +427,8 @@ public:
         : TBasicString(pc, TBase::StrLen(pc))
     {
     }
+    // TODO thegeorg@: uncomment and fix clients
+    // TBasicString(std::nullptr_t) = delete;
 
     TBasicString(const TCharType* pc, size_t n)
 #ifdef TSTRING_IS_STD_STRING
@@ -436,6 +438,8 @@ public:
 #endif
     {
     }
+    // TODO thegeorg@: uncomment and fix clients
+    // TBasicString(std::nullptr_t, size_t) = delete;
 
     TBasicString(const TCharType* pc, size_t pos, size_t n)
         : TBasicString(pc + pos, n)
@@ -687,8 +691,7 @@ public:
     TBasicString& operator=(const TCharType* s) {
         return assign(s);
     }
-    // TODO thegeorg@: uncomment and fix clients
-    // TBasicString& operator=(std::nullptr_t) = delete;
+    TBasicString& operator=(std::nullptr_t) = delete;
 
     TBasicString& operator=(TExplicitType<TCharType> ch) {
         return assign(ch);
