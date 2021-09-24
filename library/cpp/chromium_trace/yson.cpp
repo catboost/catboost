@@ -6,7 +6,7 @@
 
 namespace {
     struct TWriteArg {
-        NYT::TYsonWriter* Output;
+        NYson::TYsonWriter* Output;
 
         void operator()(i64 value) {
             Output->OnInt64Scalar(value);

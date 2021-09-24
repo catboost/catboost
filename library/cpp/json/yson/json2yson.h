@@ -172,7 +172,7 @@ namespace NJson2Yson {
     bool DeserializeYsonAsJsonValue(IInputStream* inputStream, NJson::TJsonValue* outputValue, bool throwOnError = false);
     bool DeserializeYsonAsJsonValue(TStringBuf str, NJson::TJsonValue* outputValue, bool throwOnError = false);
 
-    void SerializeJsonValueAsYson(const NJson::TJsonValue& inputValue, NYT::TYsonWriter* ysonWriter);
+    void SerializeJsonValueAsYson(const NJson::TJsonValue& inputValue, NYson::TYsonWriter* ysonWriter);
     void SerializeJsonValueAsYson(const NJson::TJsonValue& inputValue, IOutputStream* outputStream);
     void SerializeJsonValueAsYson(const NJson::TJsonValue& inputValue, TString& result);
     TString SerializeJsonValueAsYson(const NJson::TJsonValue& inputValue);

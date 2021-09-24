@@ -114,14 +114,14 @@ TNode NodeFromYsonStream(IInputStream* input, EYsonType type)
 
 void NodeToYsonStream(const TNode& node, IOutputStream* output, EYsonFormat format)
 {
-    TYsonWriter writer(output, format);
+    NYson::TYsonWriter writer(output, format);
     TNodeVisitor visitor(&writer);
     visitor.Visit(node);
 }
 
 void NodeToCanonicalYsonStream(const TNode& node, IOutputStream* output, EYsonFormat format)
 {
-    TYsonWriter writer(output, format);
+    NYson::TYsonWriter writer(output, format);
     TNodeVisitor visitor(&writer, /*sortMapKeys*/ true);
     visitor.Visit(node);
 }
