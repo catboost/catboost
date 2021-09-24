@@ -477,7 +477,7 @@ EXPORT_FUNCTION CatBoostPoolSlice_R(SEXP poolParam, SEXP sizeParam, SEXP offsetP
                 }
             );
         } else {
-            TConstArrayRef<TString> stringTargetPart = Get<TVector<TString>>((*target)[targetIdx]);
+            TConstArrayRef<TString> stringTargetPart = std::get<TVector<TString>>((*target)[targetIdx]);
 
             for (size_t i = offset; i < sliceEnd; ++i) {
                 rows[i - offset][targetIdx] = FromString<double>(stringTargetPart[i]);

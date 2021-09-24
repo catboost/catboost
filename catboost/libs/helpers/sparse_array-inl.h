@@ -442,12 +442,12 @@ namespace NCB {
         switch (Impl.index()) {
             case TVariantIndexV<TSparseSubsetIndices<TSize>, TImpl>:
                 return MakeHolder<TStaticIteratorRangeAsDynamic<const TSize*>>(
-                    Get<TSparseSubsetIndices<TSize>>(Impl));
+                    std::get<TSparseSubsetIndices<TSize>>(Impl));
             case TVariantIndexV<TSparseSubsetBlocks<TSize>, TImpl>:
-                return MakeHolder<TSparseSubsetBlocksIterator<TSize>>(Get<TSparseSubsetBlocks<TSize>>(Impl));
+                return MakeHolder<TSparseSubsetBlocksIterator<TSize>>(std::get<TSparseSubsetBlocks<TSize>>(Impl));
             case TVariantIndexV<TSparseSubsetHybridIndex<TSize>, TImpl>:
                 return MakeHolder<TSparseSubsetHybridIndexIterator<TSize>>(
-                    Get<TSparseSubsetHybridIndex<TSize>>(Impl));
+                    std::get<TSparseSubsetHybridIndex<TSize>>(Impl));
             default:
                 Y_UNREACHABLE();
         }
@@ -1217,7 +1217,7 @@ namespace NCB {
         }
 
         const TInvertedIndexedSubset<TSize>& invertedIndexedSubset
-            = Get<TInvertedIndexedSubset<TSize>>(subsetInvertedIndexing);
+            = std::get<TInvertedIndexedSubset<TSize>>(subsetInvertedIndexing);
 
         TConstArrayRef<TSize> invertedIndicesArray = invertedIndexedSubset.GetMapping();
 

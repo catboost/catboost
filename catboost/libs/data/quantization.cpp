@@ -950,7 +950,7 @@ namespace NCB {
                 = std::get_if<TIndexedSubset<ui32>>(&incrementalDenseIndexing.SrcSubsetIndexing))
             {
                 TConstArrayRef<ui32> dstIndices
-                    = Get<TIndexedSubset<ui32>>(incrementalDenseIndexing.DstIndexing);
+                    = std::get<TIndexedSubset<ui32>>(incrementalDenseIndexing.DstIndexing);
 
                 denseSrcFeature->GetData()->CloneWithNewSubsetIndexing(
                     &incrementalDenseIndexing.SrcSubsetIndexing

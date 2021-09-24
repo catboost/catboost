@@ -304,7 +304,7 @@ namespace NCB {
 
         if (pairs) {
             if (hasUngroupedPairs) {
-                TConstArrayRef<TPair> ungroupedPairs = Get<TConstArrayRef<TPair>>(*pairs);
+                TConstArrayRef<TPair> ungroupedPairs = std::get<TConstArrayRef<TPair>>(*pairs);
                 for (const auto& pair : ungroupedPairs) {
                     ui32 groupIdx = objectToGroupIdxMap[pair.WinnerId];
                     /* it has been already checked on RawTargetData creation that WinnerId and LoserId
@@ -318,7 +318,7 @@ namespace NCB {
                         pair.Weight);
                 }
             } else {
-                TConstArrayRef<TPairInGroup> groupedPairs = Get<TConstArrayRef<TPairInGroup>>(*pairs);
+                TConstArrayRef<TPairInGroup> groupedPairs = std::get<TConstArrayRef<TPairInGroup>>(*pairs);
                 for (const auto& pair : groupedPairs) {
                     result[pair.GroupIdx].Competitors[pair.WinnerIdxInGroup].emplace_back(
                         pair.LoserIdxInGroup,
@@ -723,7 +723,7 @@ namespace NCB {
             if (rawData.GetObjectsGrouping()->IsTrivial() && outputPairsInfo->HasPairs) {
                 ui32 docCount = rawData.GetObjectCount();
                 TVector<ui32> fakeGroupsBounds;
-                ConstructConnectedComponents(docCount, Get<TConstArrayRef<TPair>>(*pairsRef), &fakeGroupsBounds, &outputPairsInfo->PermutationForGrouping, &outputPairsInfo->PairsInPermutedDataset);
+                ConstructConnectedComponents(docCount, std::get<TConstArrayRef<TPair>>(*pairsRef), &fakeGroupsBounds, &outputPairsInfo->PermutationForGrouping, &outputPairsInfo->PairsInPermutedDataset);
                 TVector<TGroupBounds> groups;
                 groups.reserve(fakeGroupsBounds.size());
                 ui32 leftBound = 0;

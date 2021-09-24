@@ -98,9 +98,9 @@ namespace NCB {
 
         size_t GetSize() const {
             if (Data.index() == 1) {
-                return Get<TMaybeData<TVector<TString>>>(Data)->size();
+                return std::get<TMaybeData<TVector<TString>>>(Data)->size();
             } else {
-                return Get<TMaybeData<TVector<TId>>>(Data)->size();
+                return std::get<TMaybeData<TVector<TId>>>(Data)->size();
             }
         }
 
@@ -114,22 +114,22 @@ namespace NCB {
 
         const TMaybeData<TVector<TId>>& GetMaybeNumData() const {
             CB_ENSURE(!StoreStringColumns);
-            return Get<TMaybeData<TVector<TId>>>(Data);
+            return std::get<TMaybeData<TVector<TId>>>(Data);
         }
 
         TMaybeData<TVector<TId>>& GetMaybeNumData() {
             CB_ENSURE(!StoreStringColumns);
-            return Get<TMaybeData<TVector<TId>>>(Data);
+            return std::get<TMaybeData<TVector<TId>>>(Data);
         }
 
         const TMaybeData<TVector<TString>>& GetMaybeStringData() const {
             CB_ENSURE(StoreStringColumns);
-            return Get<TMaybeData<TVector<TString>>>(Data);
+            return std::get<TMaybeData<TVector<TString>>>(Data);
         }
 
         TMaybeData<TVector<TString>>& GetMaybeStringData() {
             CB_ENSURE(StoreStringColumns);
-            return Get<TMaybeData<TVector<TString>>>(Data);
+            return std::get<TMaybeData<TVector<TString>>>(Data);
         }
 
         bool StoreString() const {

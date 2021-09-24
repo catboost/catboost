@@ -433,7 +433,7 @@ namespace NCatboostCuda {
 
             THashMap<TFeatureCombination, TProjection> featureCombinationToProjection;
             if (std::holds_alternative<THolder<TAdditiveModel<TObliviousTreeModel>>>(gpuFormatModel)) {
-                auto& modelHolderRef = Get<THolder<TAdditiveModel<TObliviousTreeModel>>>(gpuFormatModel);
+                auto& modelHolderRef = std::get<THolder<TAdditiveModel<TObliviousTreeModel>>>(gpuFormatModel);
                 *modelPtr = ConvertToCoreModel(featuresManager,
                                                quantizedFeaturesInfo,
                                                perfectHashedToHashedCatValuesMap,
@@ -443,7 +443,7 @@ namespace NCatboostCuda {
 
                 modelHolderRef.Destroy();
             } else {
-                auto& modelHolderRef = Get<THolder<TAdditiveModel<TNonSymmetricTree>>>(gpuFormatModel);
+                auto& modelHolderRef = std::get<THolder<TAdditiveModel<TNonSymmetricTree>>>(gpuFormatModel);
                 *modelPtr = ConvertToCoreModel(featuresManager,
                                                quantizedFeaturesInfo,
                                                perfectHashedToHashedCatValuesMap,

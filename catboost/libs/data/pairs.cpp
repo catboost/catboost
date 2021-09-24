@@ -22,9 +22,9 @@ namespace NCB {
             return false;
         }
         if (const TFlatPairsInfo* lhsFlatPairs = std::get_if<TFlatPairsInfo>(&lhs)) {
-            return EqualAsMultiSets<TPair>(*lhsFlatPairs, Get<TFlatPairsInfo>(rhs));
+            return EqualAsMultiSets<TPair>(*lhsFlatPairs, std::get<TFlatPairsInfo>(rhs));
         }
-        return EqualAsMultiSets<TPairInGroup>(Get<TGroupedPairsInfo>(lhs), Get<TGroupedPairsInfo>(rhs));
+        return EqualAsMultiSets<TPairInGroup>(std::get<TGroupedPairsInfo>(lhs), std::get<TGroupedPairsInfo>(rhs));
     }
 
 }

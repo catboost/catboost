@@ -585,9 +585,9 @@ static TVector<const TOnlineCtrBase*> GetOnlineCtrs(
     const std::variant<TSplitTree, TNonSymmetricTreeStructure>& tree) {
 
     if (std::holds_alternative<TSplitTree>(tree)) {
-        return GetOnlineCtrs(fold, Get<TSplitTree>(tree));
+        return GetOnlineCtrs(fold, std::get<TSplitTree>(tree));
     } else {
-        return GetOnlineCtrs(fold, Get<TNonSymmetricTreeStructure>(tree));
+        return GetOnlineCtrs(fold, std::get<TNonSymmetricTreeStructure>(tree));
     }
 }
 

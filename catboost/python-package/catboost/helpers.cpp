@@ -210,7 +210,7 @@ TConstArrayRef<TPair> GetUngroupedPairs(const NCB::TDataProvider& dataProvider) 
             std::holds_alternative<TFlatPairsInfo>(*maybePairsData),
             "Cannot get ungrouped pairs: pairs data is grouped"
         );
-        result = Get<TFlatPairsInfo>(*maybePairsData);
+        result = std::get<TFlatPairsInfo>(*maybePairsData);
     }
     return result;
 }
