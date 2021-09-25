@@ -70,15 +70,15 @@ links:
     imgSrc: https://catboost-opensource.s3.yandex.net/icon__exporting.png
     links:
       - title: CoreML
-        href: features/visualization_jupyter-notebook
+        href: concepts/export-coreml
       - title: Python or C++
-        href: features/visualization_tensorboard
+        href: features/export-model-to-python
       - title: JSON
-        href: features/visualization_jupyter-notebook
+        href: features/export-model-to-json
       - title: ONNX
-        href: features/visualization_tensorboard
+        href: concepts/apply-onnx-ml
       - title: PMML
-        href: features/visualization_tensorboard
+        href: concepts/apply-pmml
   - title: Educational materials
     imgSrc: https://catboost-opensource.s3.yandex.net/icon__learning.png
     links:
