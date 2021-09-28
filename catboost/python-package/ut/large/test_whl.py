@@ -98,7 +98,8 @@ def prepare_all(py_ver):
         whl_dir = yatest.common.source_path("catboost/python-package")
 
         mk_wheel_env = os.environ.copy()
-        for key in mk_wheel_env.keys():
+        mk_wheel_env_keys = list(mk_wheel_env.keys())
+        for key in mk_wheel_env_keys:
             if key.startswith("YA"):
                 del mk_wheel_env[key]
 
