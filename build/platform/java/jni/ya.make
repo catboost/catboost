@@ -1,7 +1,10 @@
 LIBRARY()
 
 
-PEERDIR(build/platform/java/jdk)
+PEERDIR(
+    build/platform/java/jdk
+    ${JDK_RESOURCE_PEERDIR}
+)
 
 IF(OS_DARWIN)
     SET(PLATFORM_NAME darwin)
