@@ -1485,8 +1485,8 @@ class GnuCompiler(Compiler):
             }''')
 
         append('CFLAGS', self.c_flags, '$DEBUG_INFO_FLAGS', self.c_foptions, '$C_WARNING_OPTS', '$GCC_PREPROCESSOR_OPTS', '$USER_CFLAGS', '$USER_CFLAGS_GLOBAL')
-        append('CXXFLAGS', '$CFLAGS', '-std=' + self.tc.cxx_std, '$CXX_WARNING_OPTS', '$USER_CXXFLAGS')
-        append('CONLYFLAGS', '$USER_CONLYFLAGS')
+        append('CXXFLAGS', '$CFLAGS', '-std=' + self.tc.cxx_std, '$CXX_WARNING_OPTS', '$USER_CXXFLAGS', '$USER_CXXFLAGS_GLOBAL')
+        append('CONLYFLAGS', '$USER_CONLYFLAGS', '$USER_CONLYFLAGS_GLOBAL')
         emit('CXX_COMPILER_UNQUOTED', self.tc.cxx_compiler)
         emit('CXX_COMPILER', '${quo:CXX_COMPILER_UNQUOTED}')
         emit('NOGCCSTACKCHECK', 'yes')
@@ -2579,8 +2579,8 @@ class MSVCCompiler(MSVC, Compiler):
             emit('CFLAGS_PER_TYPE', '@[debug|$CFLAGS_DEBUG]@[release|$CFLAGS_RELEASE]')
 
         append('CFLAGS', flags, flags_msvs_only, '$CFLAGS_PER_TYPE', '$DEBUG_INFO_FLAGS', '$C_WARNING_OPTS', '$C_DEFINES', '$USER_CFLAGS', '$USER_CFLAGS_GLOBAL')
-        append('CXXFLAGS', '$CFLAGS', '/std:' + self.tc.cxx_std, cxx_flags, cxx_defines, '$CXX_WARNING_OPTS', '$USER_CXXFLAGS')
-        append('CONLYFLAGS', flags_c_only, '$USER_CONLYFLAGS')
+        append('CXXFLAGS', '$CFLAGS', '/std:' + self.tc.cxx_std, cxx_flags, cxx_defines, '$CXX_WARNING_OPTS', '$USER_CXXFLAGS', '$USER_CXXFLAGS_GLOBAL')
+        append('CONLYFLAGS', flags_c_only, '$USER_CONLYFLAGS', '$USER_CONLYFLAGS_GLOBAL')
 
         append('BC_CFLAGS', '$CFLAGS')
         append('BC_CXXFLAGS', '$BC_CFLAGS', '$CXXFLAGS')
