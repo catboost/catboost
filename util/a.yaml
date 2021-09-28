@@ -1,6 +1,42 @@
 service: cppcommittee
-title: Yandex CXX util base library
+title: "Yandex CPlusPlus util base library"
+arcanum:
+  auto_merge:
+    requirements:
+    - system: arcanum
+      type: comment_issues_closed
 ci:
+  secret: sec-01fgmqmem182tz4zjsmgd6nxxw
+  runtime:
+    sandbox-owner: ARCADIA
   autocheck:
     fast-targets:
       - util
+  actions:
+    util-style-test:
+      flow: util-style-test
+      triggers:
+      - on: pr
+        filters:
+        - sub-paths:
+          - util/**
+          - devtools/ya/handlers/style/style_config
+      - on: commit
+        filters:
+        - sub-paths:
+          - util/**
+          - devtools/ya/handlers/style/style_config
+  flows:
+    util-style-test:
+      title: "util_codestyle"
+      jobs:
+        yamake-util-tests-style:
+          title: "Ya Make: util/tests/style"
+          task: common/arcadia/ya_make
+          input:
+            checkout_arcadia_from_url: arcadia-arc:/#r${context.target_revision.hash}
+            targets: util/tests/style
+            test: true
+            keep_on: true
+            check_return_code: true
+
