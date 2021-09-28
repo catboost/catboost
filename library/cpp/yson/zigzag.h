@@ -29,14 +29,3 @@ namespace NYson {
     ////////////////////////////////////////////////////////////////////////////////
 
 } // namespace NYson
-
-namespace NYT {
-
-// Temporary for backward compatibility
-using ::NYson::ZigZagEncode32;
-using ::NYson::ZigZagDecode32;
-
-using ::NYson::ZigZagEncode64;
-using ::NYson::ZigZagDecode64;
-
-} // namespace NYT
