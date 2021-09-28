@@ -1771,20 +1771,52 @@
             "uri": "file://test.test_dist_train_yetirank/test_1.eval"
         }
     ],
-    "test.test_embeddings_train[Ordered]": [
+    "test.test_embeddings_train[only_embeddings-Ordered]": [
         {
-            "uri": "file://test.test_embeddings_train_Ordered_/learn.tsv"
+            "uri": "file://test.test_embeddings_train_only_embeddings-Ordered_/learn.tsv"
         },
         {
-            "uri": "file://test.test_embeddings_train_Ordered_/test.tsv"
+            "uri": "file://test.test_embeddings_train_only_embeddings-Ordered_/test.tsv"
         }
     ],
-    "test.test_embeddings_train[Plain]": [
+    "test.test_embeddings_train[only_embeddings-Plain]": [
         {
-            "uri": "file://test.test_embeddings_train_Plain_/learn.tsv"
+            "uri": "file://test.test_embeddings_train_only_embeddings-Plain_/learn.tsv"
         },
         {
-            "uri": "file://test.test_embeddings_train_Plain_/test.tsv"
+            "uri": "file://test.test_embeddings_train_only_embeddings-Plain_/test.tsv"
+        }
+    ],
+    "test.test_embeddings_train[with_embeddings-Ordered]": [
+        {
+            "uri": "file://test.test_embeddings_train_with_embeddings-Ordered_/learn.tsv"
+        },
+        {
+            "uri": "file://test.test_embeddings_train_with_embeddings-Ordered_/test.tsv"
+        }
+    ],
+    "test.test_embeddings_train[with_embeddings-Plain]": [
+        {
+            "uri": "file://test.test_embeddings_train_with_embeddings-Plain_/learn.tsv"
+        },
+        {
+            "uri": "file://test.test_embeddings_train_with_embeddings-Plain_/test.tsv"
+        }
+    ],
+    "test.test_embeddings_train[with_embeddings_and_texts-Ordered]": [
+        {
+            "uri": "file://test.test_embeddings_train_with_embeddings_and_texts-Ordered_/learn.tsv"
+        },
+        {
+            "uri": "file://test.test_embeddings_train_with_embeddings_and_texts-Ordered_/test.tsv"
+        }
+    ],
+    "test.test_embeddings_train[with_embeddings_and_texts-Plain]": [
+        {
+            "uri": "file://test.test_embeddings_train_with_embeddings_and_texts-Plain_/learn.tsv"
+        },
+        {
+            "uri": "file://test.test_embeddings_train_with_embeddings_and_texts-Plain_/test.tsv"
         }
     ],
     "test.test_empty_eval[Ordered]": [

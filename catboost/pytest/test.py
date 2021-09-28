@@ -76,14 +76,20 @@ TEXT_FEATURE_ESTIMATORS = [
 ]
 
 ROTTEN_TOMATOES_WITH_EMBEDDINGS_TRAIN_FILE = data_file('rotten_tomatoes_small_with_embeddings', 'train')
-ROTTEN_TOMATOES_WITH_EMBEDDINGS_CD_BINCLASS_FILE = data_file(
-    'rotten_tomatoes_small_with_embeddings',
-    'cd_binclass'
-)
-ROTTEN_TOMATOES_ONLY_EMBEDDINGS_CD_BINCLASS_FILE = data_file(
-    'rotten_tomatoes_small_with_embeddings',
-    'cd_binclass_only_embeddings'
-)
+ROTTEN_TOMATOES_CD = {
+    'with_embeddings': data_file(
+        'rotten_tomatoes_small_with_embeddings',
+        'cd_binclass_without_texts'
+    ),
+    'only_embeddings': data_file(
+        'rotten_tomatoes_small_with_embeddings',
+        'cd_binclass_only_embeddings'
+    ),
+    'with_embeddings_and_texts': data_file(
+        'rotten_tomatoes_small_with_embeddings',
+        'cd_binclass'
+    )
+}
 
 
 def diff_tool(threshold=None):
@@ -9599,7 +9605,8 @@ def test_fit_with_per_feature_text_options(boosting_type):
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_embeddings_train(boosting_type):
+@pytest.mark.parametrize('columns', list(ROTTEN_TOMATOES_CD.keys()))
+def test_embeddings_train(boosting_type, columns):
     output_model_path = yatest.common.test_output_path('model.bin')
     learn_error_path = yatest.common.test_output_path('learn.tsv')
     test_error_path = yatest.common.test_output_path('test.tsv')
@@ -9612,7 +9619,7 @@ def test_embeddings_train(boosting_type):
         '--eval-metric', 'AUC',
         '-f', ROTTEN_TOMATOES_WITH_EMBEDDINGS_TRAIN_FILE,
         '-t', ROTTEN_TOMATOES_WITH_EMBEDDINGS_TRAIN_FILE,
-        '--column-description', ROTTEN_TOMATOES_ONLY_EMBEDDINGS_CD_BINCLASS_FILE,
+        '--column-description', ROTTEN_TOMATOES_CD[columns],
         '--boosting-type', boosting_type,
         '-i', '20',
         '-T', '4',
@@ -9628,7 +9635,7 @@ def test_embeddings_train(boosting_type):
     apply_catboost(
         output_model_path,
         ROTTEN_TOMATOES_WITH_EMBEDDINGS_TRAIN_FILE,
-        ROTTEN_TOMATOES_ONLY_EMBEDDINGS_CD_BINCLASS_FILE,
+        ROTTEN_TOMATOES_CD[columns],
         calc_eval_path,
         output_columns=['RawFormulaVal']
     )
