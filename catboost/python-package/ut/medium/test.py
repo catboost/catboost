@@ -9792,7 +9792,10 @@ def test_callbacks_metrics():
 
 
 def test_fit_cat_features_type():
-    X = DataFrame(data=np.random.randint(0, 100, size=(100, 5)), columns=[f'feature{i}' for i in range(5)])
+    X = DataFrame(
+        data=np.random.randint(0, 100, size=(100, 5)),
+        columns=['feature{}'.format(i) for i in range(5)]
+    )
     y = np.random.randint(0, 2, size=100)
 
     model = CatBoostClassifier(iterations=2,
