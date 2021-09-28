@@ -129,9 +129,6 @@ TContExecutor::TContExecutor(
     , Poller_(std::move(poller))
     , Time_(time)
 {
-    if (poolSettings) {
-        poolSettings->Executor = this;
-    }
     StackAllocator_ = NCoro::NStack::GetAllocator(poolSettings, defaultGuard);
 }
 
