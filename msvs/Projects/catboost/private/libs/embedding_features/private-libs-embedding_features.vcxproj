@@ -78,6 +78,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\private\libs\embedding_features\flatbuffers\embedding_feature_calcers.fbs.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\private\libs\embedding_features\flatbuffers\embedding_processing_collection.fbs.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\embedding_features\embedding_calcers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\embedding_features\embedding_feature_calcer.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\embedding_features\embedding_processing_collection.cpp"/>
@@ -124,7 +126,7 @@ exit /b %1
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/catboost/private/libs/embedding_features/flatbuffers/embedding_feature_calcers.fbs.h	$B/catboost/private/libs/embedding_features/flatbuffers/embedding_processing_collection.fbs.h	</Message>
       <AdditionalInputs>$(SolutionDir)..\build\scripts\cpp_flatc_wrapper.py;$(SolutionDir)..\catboost\private\libs\embedding_features\flatbuffers\embedding_feature_calcers.fbs;$(SolutionDir)$(Configuration)\contrib\tools\flatc\flatc.exe;$(SolutionDir)..\catboost\private\libs\embedding_features\flatbuffers\embedding_processing_collection.fbs;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\private\libs\embedding_features\flatbuffers\embedding_feature_calcers.fbs.h;$(SolutionDir)$(Configuration)\catboost\private\libs\embedding_features\flatbuffers\embedding_feature_calcers.iter.fbs.h;$(SolutionDir)$(Configuration)\catboost\private\libs\embedding_features\flatbuffers\embedding_feature_calcers.bfbs;$(SolutionDir)$(Configuration)\catboost\private\libs\embedding_features\flatbuffers\embedding_processing_collection.fbs.h;$(SolutionDir)$(Configuration)\catboost\private\libs\embedding_features\flatbuffers\embedding_processing_collection.iter.fbs.h;$(SolutionDir)$(Configuration)\catboost\private\libs\embedding_features\flatbuffers\embedding_processing_collection.bfbs;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\private\libs\embedding_features\flatbuffers\embedding_feature_calcers.fbs.h;$(SolutionDir)$(Configuration)\catboost\private\libs\embedding_features\flatbuffers\embedding_feature_calcers.fbs.cpp;$(SolutionDir)$(Configuration)\catboost\private\libs\embedding_features\flatbuffers\embedding_feature_calcers.iter.fbs.h;$(SolutionDir)$(Configuration)\catboost\private\libs\embedding_features\flatbuffers\embedding_feature_calcers.bfbs;$(SolutionDir)$(Configuration)\catboost\private\libs\embedding_features\flatbuffers\embedding_processing_collection.fbs.h;$(SolutionDir)$(Configuration)\catboost\private\libs\embedding_features\flatbuffers\embedding_processing_collection.fbs.cpp;$(SolutionDir)$(Configuration)\catboost\private\libs\embedding_features\flatbuffers\embedding_processing_collection.iter.fbs.h;$(SolutionDir)$(Configuration)\catboost\private\libs\embedding_features\flatbuffers\embedding_processing_collection.bfbs;</Outputs>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\embedding_features\embedding_calcers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\embedding_features\embedding_feature_calcer.h"/>

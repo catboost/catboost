@@ -78,6 +78,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\helpers\flatbuffers\guid.fbs.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\array_subset.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\borders_io.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\checksum.cpp"/>
@@ -152,7 +153,7 @@ exit /b %1
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/catboost/libs/helpers/flatbuffers/guid.fbs.h	</Message>
       <AdditionalInputs>$(SolutionDir)..\build\scripts\cpp_flatc_wrapper.py;$(SolutionDir)..\catboost\libs\helpers\flatbuffers\guid.fbs;$(SolutionDir)$(Configuration)\contrib\tools\flatc\flatc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\helpers\flatbuffers\guid.fbs.h;$(SolutionDir)$(Configuration)\catboost\libs\helpers\flatbuffers\guid.iter.fbs.h;$(SolutionDir)$(Configuration)\catboost\libs\helpers\flatbuffers\guid.bfbs;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\helpers\flatbuffers\guid.fbs.h;$(SolutionDir)$(Configuration)\catboost\libs\helpers\flatbuffers\guid.fbs.cpp;$(SolutionDir)$(Configuration)\catboost\libs\helpers\flatbuffers\guid.iter.fbs.h;$(SolutionDir)$(Configuration)\catboost\libs\helpers\flatbuffers\guid.bfbs;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\catboost\libs\helpers\distribution_helpers.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
