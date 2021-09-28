@@ -12,11 +12,16 @@ import numpy as np
 from catboost.utils import read_cd
 __all__ = [
     'DelayedTee',
+    'append_params_to_cmdline',
     'binary_path',
     'compare_evals',
     'compare_evals_with_precision',
     'compare_fit_evals_with_precision',
     'compare_metrics_with_diff',
+    'format_crossvalidation',
+    'get_limited_precision_dsv_diff_tool',
+    'get_limited_precision_json_diff_tool',
+    'get_limited_precision_numpy_diff_tool',
     'generate_random_labeled_dataset',
     'generate_concatenated_random_labeled_dataset',
     'generate_dataset_with_num_and_cat_features',
@@ -354,3 +359,51 @@ def load_pool_features_as_df(pool_file, cd_file):
     columns_metadata = read_cd(cd_file, data_file=pool_file, canonize_column_types=True)
     data = load_dataset_as_dataframe(pool_file, columns_metadata)
     return (data['features'], columns_metadata['cat_feature_indices'])
+
+
+def append_params_to_cmdline(cmd, params):
+    if isinstance(params, dict):
+        for param in params.items():
+            key = "{}".format(param[0])
+            value = "{}".format(param[1])
+            cmd.append(key)
+            cmd.append(value)
+    else:
+        for param in params:
+            cmd.append(param)
+
+
+def format_crossvalidation(is_inverted, n, k):
+    cv_type = 'Inverted' if is_inverted else 'Classical'
+    return '{}:{};{}'.format(cv_type, n, k)
+
+
+def get_limited_precision_dsv_diff_tool(diff_limit, have_header=False):
+    diff_tool = [
+        binary_path("catboost/tools/limited_precision_dsv_diff/limited_precision_dsv_diff"),
+    ]
+    if diff_limit is not None:
+        diff_tool += ['--diff-limit', str(diff_limit)]
+    if have_header:
+        diff_tool += ['--have-header']
+    return diff_tool
+
+
+def get_limited_precision_json_diff_tool(diff_limit):
+    diff_tool = [
+        binary_path("catboost/tools/limited_precision_json_diff/limited_precision_json_diff"),
+    ]
+    if diff_limit is not None:
+        diff_tool += ['--diff-limit', str(diff_limit)]
+    return diff_tool
+
+
+def get_limited_precision_numpy_diff_tool(rtol=None, atol=None):
+    diff_tool = [
+        binary_path("catboost/tools/limited_precision_numpy_diff/limited_precision_numpy_diff"),
+    ]
+    if rtol is not None:
+        diff_tool += ['--rtol', str(rtol)]
+    if atol is not None:
+        diff_tool += ['--atol', str(atol)]
+    return diff_tool
