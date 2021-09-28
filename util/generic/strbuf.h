@@ -534,7 +534,3 @@ private:
 
 std::ostream& operator<<(std::ostream& os, TStringBuf buf);
 
-template <typename TCharType, size_t size>
-constexpr inline TBasicStringBuf<TCharType> AsStringBuf(const TCharType (&str)[size]) noexcept {
-    return TBasicStringBuf<TCharType>(str, size - 1);
-}
