@@ -22,11 +22,13 @@
 #endif
 
 // Move outside #ifdef __cplusplus because this needs to work in both C and C++ headers.
-#if defined(__clang__)
+#if defined(__apple_build_version__)
+#  define _LIBCPP_COMPILER_CLANG_BASED
+#  define _LIBCPP_APPLE_CLANG_VER (__apple_build_version__ / 10000)
+#elif defined(__clang__)
 #define _LIBCPP_COMPILER_CLANG
-# ifndef __apple_build_version__
-#   define _LIBCPP_CLANG_VER (__clang_major__ * 100 + __clang_minor__)
-# endif
+#  define _LIBCPP_COMPILER_CLANG_BASED
+#  define _LIBCPP_CLANG_VER (__clang_major__ * 100 + __clang_minor__)
 #elif defined(__GNUC__)
 #define _LIBCPP_COMPILER_GCC
 #elif defined(_MSC_VER)
@@ -361,7 +363,7 @@
 #  define _LIBCPP_NO_CFI
 #endif
 
-#if __ISO_C_VISIBLE >= 2011 || __cplusplus >= 201103L
+#if (defined(__ISO_C_VISIBLE) && (__ISO_C_VISIBLE >= 2011)) || __cplusplus >= 201103L
 #  if defined(__FreeBSD__)
 #    define _LIBCPP_HAS_ALIGNED_ALLOC
 #    define _LIBCPP_HAS_QUICK_EXIT
@@ -415,7 +417,7 @@
 
 #ifndef _LIBCPP_CXX03_LANG
 # define _LIBCPP_ALIGNOF(_Tp) alignof(_Tp)
-#elif defined(_LIBCPP_COMPILER_CLANG)
+#elif defined(_LIBCPP_COMPILER_CLANG_BASED)
 # define _LIBCPP_ALIGNOF(_Tp) _Alignof(_Tp)
 #else
 # error "We don't know a correct way to implement alignof(T) in C++03 outside of Clang"
@@ -423,7 +425,7 @@
 
 #define _LIBCPP_PREFERRED_ALIGNOF(_Tp) __alignof(_Tp)
 
-#if defined(_LIBCPP_COMPILER_CLANG)
+#if defined(_LIBCPP_COMPILER_CLANG_BASED)
 
 #if defined(_LIBCPP_ALTERNATE_STRING_LAYOUT)
 #  error _LIBCPP_ALTERNATE_STRING_LAYOUT is deprecated, please use _LIBCPP_ABI_ALTERNATE_STRING_LAYOUT instead
@@ -522,7 +524,7 @@ typedef __char32_t char32_t;
 
 // Literal operators ""d and ""y are supported starting with LLVM Clang 8 and AppleClang 10.0.1
 #if (defined(_LIBCPP_CLANG_VER) && _LIBCPP_CLANG_VER < 800) || \
-    (defined(__apple_build_version__) && __apple_build_version__ < 10010000)
+    (defined(_LIBCPP_APPLE_CLANG_VER) && _LIBCPP_APPLE_CLANG_VER < 1001)
 #define _LIBCPP_HAS_NO_CXX20_CHRONO_LITERALS
 #endif
 
@@ -689,6 +691,7 @@ typedef __char32_t char32_t;
 #define _LIBCPP_HIDDEN
 #define _LIBCPP_METHOD_TEMPLATE_IMPLICIT_INSTANTIATION_VIS
 #define _LIBCPP_TEMPLATE_VIS
+#define _LIBCPP_TEMPLATE_DATA_VIS
 #define _LIBCPP_ENUM_VIS
 
 #endif // defined(_LIBCPP_OBJECT_FORMAT_COFF)
@@ -735,6 +738,14 @@ typedef __char32_t char32_t;
 #    endif
 #  else
 #    define _LIBCPP_TEMPLATE_VIS
+#  endif
+#endif
+
+#ifndef _LIBCPP_TEMPLATE_DATA_VIS
+#  if !defined(_LIBCPP_DISABLE_VISIBILITY_ANNOTATIONS)
+#    define _LIBCPP_TEMPLATE_DATA_VIS __attribute__ ((__visibility__("default")))
+#  else
+#    define _LIBCPP_TEMPLATE_DATA_VIS
 #  endif
 #endif
 
@@ -879,6 +890,10 @@ typedef unsigned int   char32_t;
 #  define _LIBCPP_CONSTEVAL _LIBCPP_CONSTEXPR
 #else
 #  define _LIBCPP_CONSTEVAL consteval
+#endif
+
+#if !defined(__cpp_concepts) || __cpp_concepts < 201907L
+#define _LIBCPP_HAS_NO_CONCEPTS
 #endif
 
 #ifdef _LIBCPP_CXX03_LANG
@@ -1063,7 +1078,7 @@ typedef unsigned int   char32_t;
 
 // Macros to enter and leave a state where deprecation warnings are suppressed.
 #if !defined(_LIBCPP_SUPPRESS_DEPRECATED_PUSH) && \
-    (defined(_LIBCPP_COMPILER_CLANG) || defined(_LIBCPP_COMPILER_GCC))
+    (defined(_LIBCPP_COMPILER_CLANG_BASED) || defined(_LIBCPP_COMPILER_GCC))
 #  define _LIBCPP_SUPPRESS_DEPRECATED_PUSH \
     _Pragma("GCC diagnostic push") \
     _Pragma("GCC diagnostic ignored \"-Wdeprecated\"")
@@ -1103,7 +1118,7 @@ typedef unsigned int   char32_t;
 // NODISCARD macros to the correct attribute.
 #if __has_cpp_attribute(nodiscard) || defined(_LIBCPP_COMPILER_MSVC)
 #  define _LIBCPP_NODISCARD_ATTRIBUTE [[nodiscard]]
-#elif defined(_LIBCPP_COMPILER_CLANG) && !defined(_LIBCPP_CXX03_LANG)
+#elif defined(_LIBCPP_COMPILER_CLANG_BASED) && !defined(_LIBCPP_CXX03_LANG)
 #  define _LIBCPP_NODISCARD_ATTRIBUTE [[clang::warn_unused_result]]
 #else
 // We can't use GCC's [[gnu::warn_unused_result]] and
@@ -1153,7 +1168,7 @@ extern "C" _LIBCPP_FUNC_VIS void __sanitizer_annotate_contiguous_container(
 #endif
 
 // Try to find out if RTTI is disabled.
-#if defined(_LIBCPP_COMPILER_CLANG) && !__has_feature(cxx_rtti)
+#if defined(_LIBCPP_COMPILER_CLANG_BASED) && !__has_feature(cxx_rtti)
 #  define _LIBCPP_NO_RTTI
 #elif defined(__GNUC__) && !defined(__GXX_RTTI)
 #  define _LIBCPP_NO_RTTI
@@ -1181,6 +1196,7 @@ extern "C" _LIBCPP_FUNC_VIS void __sanitizer_annotate_contiguous_container(
       defined(__CloudABI__) || \
       defined(__sun__) || \
       defined(__MVS__) || \
+      defined(_AIX) || \
       (defined(__MINGW32__) && __has_include(<pthread.h>)) || \
       defined(__CYGWIN__)
 #    define _LIBCPP_HAS_THREAD_API_PTHREAD
@@ -1499,6 +1515,13 @@ extern "C" _LIBCPP_FUNC_VIS void __sanitizer_annotate_contiguous_container(
 # define _LIBCPP_INIT_PRIORITY_MAX __attribute__((init_priority(101)))
 #else
 # define _LIBCPP_INIT_PRIORITY_MAX
+#endif
+
+#if defined(__GNUC__) || defined(__clang__)
+#define _LIBCPP_FORMAT_PRINTF(a, b)                                            \
+  __attribute__((__format__(__printf__, a, b)))
+#else
+#define _LIBCPP_FORMAT_PRINTF(a, b)
 #endif
 
 #endif // __cplusplus

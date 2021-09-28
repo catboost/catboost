@@ -448,7 +448,7 @@ print.catboost.Pool <- function(x, ...) {
 print.catboost.Model <- function(x, ...) {
     cat(sprintf("CatBoost model (%d trees)\n", x$tree_count))
     cat(sprintf("Loss function: %s\n", catboost.get_plain_params(x)$loss_function))
-    cat(sprintf("Fit to %d features\n", NROW(x$feature_importances)))
+    cat(sprintf("Fit to %d features\n", NROW(x$feature_count)))
     if (is.null.handle(x$cpp_obj$handle))
         cat("(Handle is incomplete)\n")
     return(invisible(x))
@@ -1534,12 +1534,17 @@ catboost.train <- function(learn_pool, test_pool = NULL, params = list()) {
     model <- create.model.base(handle, raw)
 
     if (catboost._is_oblivious(model)) {
-        model$feature_importances <- catboost.get_feature_importance(model)
-        rownames(model$feature_importances) <- colnames(learn_pool)
+        if (catboost._is_groupwise_metric(model)) {
+            # too expensive
+        } else {
+            model$feature_importances <- catboost.get_feature_importance(model)
+            rownames(model$feature_importances) <- colnames(learn_pool)
+        }
     }
 
     model$tree_count <- catboost.ntrees(model)
     model$learning_rate <- catboost.get_plain_params(model)[['learning_rate']]
+    model$feature_count <- ncol(learn_pool)
     return(model)
 }
 
@@ -2000,6 +2005,7 @@ catboost.virtual_ensembles_predict <- function(model, pool, verbose = FALSE, pre
 #' @param pool The input dataset.
 #'
 #' The feature importance for the training dataset is calculated if this argument is not specified.
+#' Models with ranking metrics require pool argument to calculate feature importance.
 #'
 #' Default value: NULL
 #' @param type The feature importance type.
@@ -2208,6 +2214,12 @@ catboost.ntrees <- function(model) {
     catboost.restore_handle(model)
     num_trees <- .Call("CatBoostGetNumTrees_R", model$cpp_obj$handle)
     return(num_trees)
+}
+
+catboost._is_groupwise_metric <- function(model) {
+    catboost.restore_handle(model)
+    is_groupwise_metric <- .Call("CatBoostIsGroupwiseMetric_R", model$cpp_obj$handle)
+    return(is_groupwise_metric)
 }
 
 

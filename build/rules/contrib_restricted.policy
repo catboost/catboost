@@ -12,6 +12,13 @@ ALLOW clickhouse -> contrib/restricted/cityhash-1.0.2
 # dragonbox is a specific library for float formatting
 ALLOW clickhouse -> contrib/restricted/dragonbox
 
+# same rules for restricted set of sources in YQL
+ALLOW yql/udfs/common/clickhouse/client -> contrib/restricted/cityhash-1.0.2
+ALLOW yql/udfs/common/clickhouse/client -> contrib/restricted/boost
+ALLOW yql/udfs/common/clickhouse/client -> contrib/restricted/dragonbox
+ALLOW yql/udfs/common/clickhouse/client -> contrib/restricted/fast_float
+ALLOW yql/udfs/common/clickhouse/client -> contrib/libs/cxxsupp/libcxx-filesystem
+
 # fast_float is a faster alternative to double-conversion for float parsing.
 # ClickHouse uses the best libraries for performance, that's why it changes them with insane speed.
 # Arcadia is not ready for this, that's why we added this library in restricted.

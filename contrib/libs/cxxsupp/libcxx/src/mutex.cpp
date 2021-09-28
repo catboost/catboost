@@ -38,13 +38,13 @@ mutex::lock()
 }
 
 bool
-mutex::try_lock() _NOEXCEPT
+mutex::try_lock() noexcept
 {
     return __libcpp_mutex_trylock(&__m_);
 }
 
 void
-mutex::unlock() _NOEXCEPT
+mutex::unlock() noexcept
 {
     int ec = __libcpp_mutex_unlock(&__m_);
     (void)ec;
@@ -76,7 +76,7 @@ recursive_mutex::lock()
 }
 
 void
-recursive_mutex::unlock() _NOEXCEPT
+recursive_mutex::unlock() noexcept
 {
     int e = __libcpp_recursive_mutex_unlock(&__m_);
     (void)e;
@@ -84,7 +84,7 @@ recursive_mutex::unlock() _NOEXCEPT
 }
 
 bool
-recursive_mutex::try_lock() _NOEXCEPT
+recursive_mutex::try_lock() noexcept
 {
     return __libcpp_recursive_mutex_trylock(&__m_);
 }
@@ -111,7 +111,7 @@ timed_mutex::lock()
 }
 
 bool
-timed_mutex::try_lock() _NOEXCEPT
+timed_mutex::try_lock() noexcept
 {
     unique_lock<mutex> lk(__m_, try_to_lock);
     if (lk.owns_lock() && !__locked_)
@@ -123,7 +123,7 @@ timed_mutex::try_lock() _NOEXCEPT
 }
 
 void
-timed_mutex::unlock() _NOEXCEPT
+timed_mutex::unlock() noexcept
 {
     lock_guard<mutex> _(__m_);
     __locked_ = false;
@@ -162,7 +162,7 @@ recursive_timed_mutex::lock()
 }
 
 bool
-recursive_timed_mutex::try_lock() _NOEXCEPT
+recursive_timed_mutex::try_lock() noexcept
 {
     __thread_id id = this_thread::get_id();
     unique_lock<mutex> lk(__m_, try_to_lock);
@@ -178,7 +178,7 @@ recursive_timed_mutex::try_lock() _NOEXCEPT
 }
 
 void
-recursive_timed_mutex::unlock() _NOEXCEPT
+recursive_timed_mutex::unlock() noexcept
 {
     unique_lock<mutex> lk(__m_);
     if (--__count_ == 0)

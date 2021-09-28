@@ -1684,11 +1684,11 @@ class GnuCompiler(Compiler):
         ]
         c_args_nodeps = [c if c != '$GCC_COMPILE_FLAGS' else '$EXTRA_C_FLAGS -c -o ${OUTFILE} ${SRC} ${pre=-I:INC}' for c in c_args if c not in ignore_c_args_no_deps]
 
-        print('macro _SRC_cpp(SRC, SRCFLAGS...) {\n .CMD=%s\n}' % ' '.join(cxx_args))
-        print('macro _SRC_c_nodeps(SRC, OUTFILE, INC...) {\n .CMD=%s\n}' % ' '.join(c_args_nodeps))
-        print('macro _SRC_c(SRC, SRCFLAGS...) {\n .CMD=%s\n}' % ' '.join(c_args))
-        print('macro _SRC_m(SRC, SRCFLAGS...) {\n .CMD=$SRC_c($SRC $SRCFLAGS)\n}')
-        print('macro _SRC_masm(SRC, SRCFLAGS...) {\n}')
+        emit('_SRC_C_NODEPS_CMD', ' '.join(c_args_nodeps))
+        emit('_SRC_CPP_CMD', ' '.join(cxx_args))
+        emit('_SRC_C_CMD', ' '.join(c_args))
+        emit('_SRC_M_CMD', '$SRC_c($SRC $SRCFLAGS)')
+        emit('_SRC_MASM_CMD', '$_EMPTY_CMD')
 
         # fuzzing configuration
         if self.tc.is_clang:
@@ -2615,6 +2615,26 @@ class MSVCCompiler(MSVC, Compiler):
             emit('CL_WRAPPER')
             emit('ML_WRAPPER')
 
+        emit('_SRC_C_NODEPS_CMD',
+             '${TOOLCHAIN_ENV} ${CL_WRAPPER} ${C_COMPILER} /c /Fo${OUTFILE} ${SRC} ${EXTRA_C_FLAGS} ${pre=/I :INC} '
+             '${CFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}'
+             )
+        emit('_SRC_CPP_CMD',
+             '${TOOLCHAIN_ENV} ${CL_WRAPPER} ${CXX_COMPILER} /c /Fo$_COMPILE_OUTPUTS ${input;msvs_source:SRC} '
+             '${EXTRA_C_FLAGS} ${pre=/I :_C__INCLUDE} ${CXXFLAGS} ${SRCFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} '
+             '${hide;kv:"pc yellow"}'
+             )
+        emit('_SRC_C_CMD',
+             '${TOOLCHAIN_ENV} ${CL_WRAPPER} ${C_COMPILER} /c /Fo$_COMPILE_OUTPUTS ${input;msvs_source:SRC} '
+             '${EXTRA_C_FLAGS} ${pre=/I :_C__INCLUDE} ${CFLAGS} ${CONLYFLAGS} ${SRCFLAGS} ${hide;kv:"soe"} '
+             '${hide;kv:"p CC"} ${hide;kv:"pc yellow"}'
+             )
+        emit('_SRC_M_CMD', '$_EMPTY_CMD')
+        emit('_SRC_MASM_CMD',
+             '${cwd:ARCADIA_BUILD_ROOT} ${TOOLCHAIN_ENV} ${ML_WRAPPER} ${MASM_COMPILER} ${MASMFLAGS} ${SRCFLAGS} ' +
+             masm_io + ' ${kv;hide:"p AS"} ${kv;hide:"pc yellow"}'
+             )
+
         emit_big('''
             ### @usage: MSVC_FLAGS([GLOBAL compiler_flag]* compiler_flags)
             ###
@@ -2622,25 +2642,6 @@ class MSVCCompiler(MSVC, Compiler):
             ### Flags apply only if the compiler used is MSVC (cl.exe)"
             macro MSVC_FLAGS(Flags...) {
                 CFLAGS($Flags)
-            }
-
-            macro _SRC_c_nodeps(SRC, OUTFILE, INC...) {
-                 .CMD=${TOOLCHAIN_ENV} ${CL_WRAPPER} ${C_COMPILER} /c /Fo${OUTFILE} ${SRC} ${EXTRA_C_FLAGS} ${pre=/I :INC} ${CFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
-            }
-
-            macro _SRC_cpp(SRC, SRCFLAGS...) {
-                .CMD=${TOOLCHAIN_ENV} ${CL_WRAPPER} ${CXX_COMPILER} /c /Fo$_COMPILE_OUTPUTS ${input;msvs_source:SRC} ${EXTRA_C_FLAGS} ${pre=/I :_C__INCLUDE} ${CXXFLAGS} ${SRCFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
-            }
-
-            macro _SRC_c(SRC, SRCFLAGS...) {
-                .CMD=${TOOLCHAIN_ENV} ${CL_WRAPPER} ${C_COMPILER} /c /Fo$_COMPILE_OUTPUTS ${input;msvs_source:SRC} ${EXTRA_C_FLAGS} ${pre=/I :_C__INCLUDE} ${CFLAGS} ${CONLYFLAGS} ${SRCFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
-            }
-
-            macro _SRC_m(SRC, SRCFLAGS...) {
-            }
-
-            macro _SRC_masm(SRC, SRCFLAGS...) {
-                .CMD=${cwd:ARCADIA_BUILD_ROOT} ${TOOLCHAIN_ENV} ${ML_WRAPPER} ${MASM_COMPILER} ${MASMFLAGS} ${SRCFLAGS} ''' + masm_io + ''' ${kv;hide:"p AS"} ${kv;hide:"pc yellow"}
             }''')  # noqa E501
 
 

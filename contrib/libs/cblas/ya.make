@@ -2,7 +2,11 @@ LIBRARY()
 
 LICENSE(BSD-3-Clause)
 
+VERSION(1.0)
+
 LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
+
+ORIGINAL_SOURCE(https://www.netlib.org/blas/)
 
 
 

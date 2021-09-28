@@ -30,7 +30,6 @@ SRCDIR(contrib/libs/protobuf/python)
 
 CFLAGS(
     -DPYTHON_PROTO2_CPP_IMPL_V2
-    -D_SHARED_PTR_H
 )
 
 PY_SRCS(

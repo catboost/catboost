@@ -10,7 +10,7 @@ namespace NChromiumTrace {
         TString JobId;
 
     public:
-        TYsonTraceConsumer(IOutputStream* stream, NYT::EYsonFormat format = NYson::EYsonFormat::Binary);
+        TYsonTraceConsumer(IOutputStream* stream, NYson::EYsonFormat format = NYson::EYsonFormat::Binary);
         ~TYsonTraceConsumer() override;
 
         void AddEvent(const TDurationBeginEvent& event, const TEventArgs* args) override;

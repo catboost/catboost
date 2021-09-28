@@ -596,3 +596,29 @@ test_that("model: catboost.virtual_ensembles_predict", {
                                                    virtual_ensembles_count = virtual_ensembles_count)
   expect_equal(dim(prediction), c(virtual_ensembles_count, 1, docs_count))
 })
+
+test_that("model: feature_count attribute", {
+  docs_count <- 30
+
+  params <- list(iterations = 20,
+                random_seed = 12345,
+                logging_level = "Silent",
+                allow_writing_files = FALSE,
+                loss_function = "RMSE")
+  target <- sample(c(1, -1), size = docs_count, replace = TRUE)
+  features <- data.frame(f1 = rnorm(docs_count, mean = 0, sd = 1),
+                         f2 = rnorm(docs_count, mean = 1, sd = 1),
+                         f3 = rnorm(docs_count, mean = 2, sd = 1),
+                         f4 = rnorm(docs_count, mean = 3, sd = 1))
+  feature_count <- ncol(features)
+  group_id <- as.integer(c(rep.int(0, docs_count / 2), rep.int(1, docs_count / 2)))
+
+  train_pool <- catboost.load_pool(features, target)
+  model <- catboost.train(train_pool, params = params)
+  expect_equal(model$feature_count, feature_count)
+
+  params[['loss_function']] <- "YetiRank"
+  train_pool <- catboost.load_pool(features, target, group_id = group_id)
+  model <- catboost.train(train_pool, params = params)
+  expect_equal(model$feature_count, feature_count)
+})

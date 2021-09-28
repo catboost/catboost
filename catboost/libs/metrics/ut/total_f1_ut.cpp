@@ -15,7 +15,7 @@ Y_UNIT_TEST_SUITE(TotalF1MetricTest) {
 
             NPar::TLocalExecutor executor;
             auto metric = MakeTotalF1Metric(TLossParams(), 3, EF1AverageType::Weighted);
-            TMetricHolder score = metric->Eval(To2DConstArrayRef<double>(approx), {}, false, target, weight, {}, 0, target.size(), executor);
+            TMetricHolder score = dynamic_cast<const ISingleTargetEval*>(metric.Get())->Eval(To2DConstArrayRef<double>(approx), {}, false, target, weight, {}, 0, target.size(), executor);
 
             UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0.4555555555555556, 1e-6);
         }
@@ -30,7 +30,7 @@ Y_UNIT_TEST_SUITE(TotalF1MetricTest) {
 
             NPar::TLocalExecutor executor;
             auto metric = MakeTotalF1Metric(TLossParams(), 3, EF1AverageType::Micro);
-            TMetricHolder score = metric->Eval(To2DConstArrayRef<double>(approx), {}, false, target, weight, {}, 0, target.size(), executor);
+            TMetricHolder score = dynamic_cast<const ISingleTargetEval*>(metric.Get())->Eval(To2DConstArrayRef<double>(approx), {}, false, target, weight, {}, 0, target.size(), executor);
 
             UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0.4444444444444444, 1e-6);
         }
@@ -45,7 +45,7 @@ Y_UNIT_TEST_SUITE(TotalF1MetricTest) {
 
             NPar::TLocalExecutor executor;
             auto metric = MakeTotalF1Metric(TLossParams(), 3, EF1AverageType::Macro);
-            TMetricHolder score = metric->Eval(To2DConstArrayRef<double>(approx), {}, false, target, weight, {}, 0, target.size(), executor);
+            TMetricHolder score = dynamic_cast<const ISingleTargetEval*>(metric.Get())->Eval(To2DConstArrayRef<double>(approx), {}, false, target, weight, {}, 0, target.size(), executor);
 
             UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0.43333333333333335, 1e-6);
         }
@@ -58,7 +58,7 @@ Y_UNIT_TEST_SUITE(TotalF1MetricTest) {
 
             NPar::TLocalExecutor executor;
             auto metric = MakeTotalF1Metric(TLossParams());
-            TMetricHolder score = metric->Eval(To2DConstArrayRef<double>(approx), {}, false, target, weight, {}, 0, target.size(), executor);
+            TMetricHolder score = dynamic_cast<const ISingleTargetEval*>(metric.Get())->Eval(To2DConstArrayRef<double>(approx), {}, false, target, weight, {}, 0, target.size(), executor);
 
             UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0.6580086580086579, 1e-6);
         }

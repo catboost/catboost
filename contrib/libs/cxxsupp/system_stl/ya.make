@@ -21,6 +21,10 @@ ELSEIF (OS_ANDROID)
 ELSE()
     CFLAGS(GLOBAL -DLIBCXX_BUILDING_LIBGCC)
     LDFLAGS(-lgcc_s)
+
+    # libatomic.a is needed in order to make atomic operations work
+    LDFLAGS(-l:libatomic.a)
+
     IF (STATIC_STL)
         LDFLAGS(-l:libstdc++.a)
     ELSE()

@@ -47,9 +47,6 @@ namespace NYson {
 
 namespace NYT {
 
-// Temporary for backward compatibility
-using ::NYson::EYsonFormat;
-
 using ::NYson::EYsonType;
 using ::NYson::EYsonType::YT_NODE;
 using ::NYson::EYsonType::YT_LIST_FRAGMENT;
@@ -57,7 +54,5 @@ using ::NYson::EYsonType::YT_MAP_FRAGMENT;
 
 using ::NYson::IYsonConsumer;
 using ::NYson::TYsonConsumerBase;
-
-using ::NYson::TYsonListParser;
 
 } // namespace NYT

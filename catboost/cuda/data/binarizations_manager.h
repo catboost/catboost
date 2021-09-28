@@ -36,6 +36,7 @@ namespace NCatboostCuda {
                                   const NCB::TFeaturesLayout& featuresLayout,
                                   const TVector<NCB::TExclusiveFeaturesBundle>& learnExclusiveFeatureBundles,
                                   NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
+                                  ui32 maxObjectsCount,
                                   bool enableShuffling = true);
 
         TBinarizedFeaturesManager(const TBinarizedFeaturesManager& featureManager, const TVector<ui32>& ignoredFeatureIds);
@@ -313,7 +314,7 @@ namespace NCatboostCuda {
                 CB_ENSURE_INTERNAL(IsCat(idx), "Unknown cat feature");
                 maxCtrUniqueValues *= GetUniqueValuesCounts(idx).OnAll;
             }
-            return maxCtrUniqueValues;
+            return Min(maxCtrUniqueValues, MaxObjectsCount);
         }
 
         ui32 GetMaxCtrUniqueValues(ui32 idx) const {
@@ -440,6 +441,7 @@ namespace NCatboostCuda {
         mutable TMap<ui32, NCB::TEstimatedFeatureId> FeatureManagerIdToEstimatedFeatureId;
 
         mutable ui32 Cursor = 0;
+        const ui32 MaxObjectsCount;
 
         mutable TVector<NCatboostOptions::TBinarizationOptions> CtrBinarizationOptions;
 
