@@ -941,6 +941,9 @@ ALLOW load/projects/pandora -> vendor/github.com/magiconair/properties/assert
 ALLOW transfer_manager/go/pkg/source/eventhub -> vendor/github.com/Azure/azure-event-hubs-go/v3
 ALLOW transfer_manager/go/pkg/source/eventhub -> vendor/github.com/Azure/azure-amqp-common-go/v3/sas
 
+# CONTRIB-2347
+ALLOW trust/psp/core/go -> vendor/github.com/gorilla/mux
+
 # CONTRIB-2307
 ALLOW .* -> vendor/github.com/airbusgeo/godal
 ALLOW .* -> vendor/github.com/airbusgeo/osio
