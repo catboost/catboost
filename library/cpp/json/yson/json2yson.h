@@ -5,7 +5,7 @@
 #include <library/cpp/yson/writer.h>
 
 namespace NJson2Yson {
-    class TJsonBuilderImpl: public NYT::TYsonConsumerBase {
+    class TJsonBuilderImpl: public NYson::TYsonConsumerBase {
     public:
         TJsonBuilderImpl(NJson::TJsonCallbacks* parserCallbacks)
             : ParserCallbacks_(parserCallbacks)

@@ -52,7 +52,4 @@ using ::NYson::EYsonType::YT_NODE;
 using ::NYson::EYsonType::YT_LIST_FRAGMENT;
 using ::NYson::EYsonType::YT_MAP_FRAGMENT;
 
-using ::NYson::IYsonConsumer;
-using ::NYson::TYsonConsumerBase;
-
 } // namespace NYT
