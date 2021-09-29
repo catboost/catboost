@@ -15,6 +15,13 @@ class GplNotAllowed(Exception):
     pass
 
 
+def process_quotes(s):
+    for quote_char in '\'"':
+        if s.startswith(quote_char) and s.endswith(quote_char):
+            return s[1:-1]
+    return s
+
+
 def parse_args():
     args = pcf.get_args(sys.argv[1:])
     lics, peers, free_args, credits = [], [], [], []
@@ -97,7 +104,7 @@ def generate_mf():
     if credits:
         union_texts = []
         for texts_file in credits:
-            with open(texts_file) as f:
+            with open(process_quotes(texts_file)) as f:
                 union_texts.append(f.read())
         meta['license_texts'] = '\n\n'.join(union_texts)
 
