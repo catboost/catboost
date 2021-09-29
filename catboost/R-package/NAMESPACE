@@ -3,6 +3,7 @@
 S3method(dim,catboost.Pool)
 S3method(dimnames,catboost.Pool)
 S3method(head,catboost.Pool)
+S3method(predict,catboost.Model)
 S3method(print,catboost.Model)
 S3method(print,catboost.Pool)
 S3method(summary,catboost.Model)
