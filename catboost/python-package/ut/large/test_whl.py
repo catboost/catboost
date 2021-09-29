@@ -93,6 +93,7 @@ def unpack_deps(py_ver):
     finally:
         os.chdir(curdir)
 
+
 def prepare_all(py_ver):
     if not os.path.exists(py_ver):
         whl_dir = yatest.common.source_path("catboost/python-package")
@@ -138,6 +139,7 @@ def prepare_all(py_ver):
 
     return python_binary, python_env
 
+
 @pytest.mark.parametrize("py_ver", ["3.5", "3.6"])
 def test_wheel(py_ver):
     python_binary, python_env = prepare_all(py_ver)
@@ -158,4 +160,3 @@ def test_wheel(py_ver):
         env=python_env,
         cwd=yatest.common.test_output_path()
     )
-
