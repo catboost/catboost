@@ -412,7 +412,7 @@ class PROTOBUF_EXPORT MessageLite {
   // required fields must be set.
   bool SerializeToOstream(std::ostream* output) const;
   // Like SerializeToOstream(), but allows missing required fields.
-  bool SerializePartialToOstream(std::ostream* output) const;
+  PROTOBUF_MUST_USE_RESULT bool SerializePartialToOstream(std::ostream* output) const;
 
   // Like SerializeToString(), but appends to the data to the string's
   // existing contents.  All required fields must be set.
