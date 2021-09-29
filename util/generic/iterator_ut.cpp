@@ -11,7 +11,7 @@ Y_UNIT_TEST_SUITE(TIterator) {
 }
 
 Y_UNIT_TEST_SUITE(TInputRangeAdaptor) {
-    class TSquaresGenerator : public TInputRangeAdaptor<TSquaresGenerator> {
+    class TSquaresGenerator: public TInputRangeAdaptor<TSquaresGenerator> {
     public:
         const i64* Next() {
             Current_ = State_ * State_;
@@ -36,9 +36,11 @@ Y_UNIT_TEST_SUITE(TInputRangeAdaptor) {
         }
     }
 
-    class TUrlPart : public TInputRangeAdaptor<TUrlPart> {
+    class TUrlPart: public TInputRangeAdaptor<TUrlPart> {
     public:
-        TUrlPart(const TStringBuf& url) : Url_(url) {
+        TUrlPart(const TStringBuf& url)
+            : Url_(url)
+        {
         }
 
         NStlIterator::TProxy<TStringBuf> Next() {
@@ -53,8 +55,8 @@ Y_UNIT_TEST_SUITE(TInputRangeAdaptor) {
         const TVector<TStringBuf> expected = {TStringBuf("yandex.ru"), TStringBuf("search?")};
         auto expected_part = expected.begin();
         for (const TStringBuf& part : TUrlPart(TStringBuf("yandex.ru/search?"))) {
-           UNIT_ASSERT_VALUES_EQUAL(part, *expected_part);
-           ++expected_part;
+            UNIT_ASSERT_VALUES_EQUAL(part, *expected_part);
+            ++expected_part;
         }
         UNIT_ASSERT(expected_part == expected.end());
     }

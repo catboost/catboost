@@ -4,11 +4,14 @@
 #include <array>
 
 bool IsSpace(const char* s, size_t len) noexcept {
-    if (len == 0)
+    if (len == 0) {
         return false;
-    for (const char* p = s; p < s + len; ++p)
-        if (!IsAsciiSpace(*p))
+    }
+    for (const char* p = s; p < s + len; ++p) {
+        if (!IsAsciiSpace(*p)) {
             return false;
+        }
+    }
     return true;
 }
 

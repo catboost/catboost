@@ -1,4 +1,4 @@
-PY_LIBRARY() # Need for Python 2 only
+PY2_LIBRARY() # Need for Python 2 only
 
 LICENSE(MIT)
 
@@ -26,5 +26,9 @@ PY_SRCS(
 )
 
 NO_LINT()
+
+NO_CHECK_IMPORTS(
+    win_unicode_console.runner
+)
 
 END()

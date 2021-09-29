@@ -90,64 +90,64 @@ bool operator>=(const TNode& lhs, const TNode& rhs)
 ////////////////////////////////////////////////////////////////////////////////
 
 TNode::TNode()
-    : Value_(TVariantTypeTag<TUndefined>())
+    : Value_(TUndefined{})
 { }
 
 TNode::TNode(const char* s)
-    : Value_(TVariantTypeTag<TString>(), TString(s))
+    : Value_(TString(s))
 { }
 
 TNode::TNode(TStringBuf s)
-    : Value_(TVariantTypeTag<TString>(), TString(s))
+    : Value_(TString(s))
 { }
 
 TNode::TNode(std::string_view s)
-    : Value_(TVariantTypeTag<TString>(), TString(s))
+    : Value_(TString(s))
 { }
 
 TNode::TNode(const std::string& s)
-    : Value_(TVariantTypeTag<TString>(), TString(s))
+    : Value_(TString(s))
 { }
 
 TNode::TNode(TString s)
-    : Value_(TVariantTypeTag<TString>(), std::move(s))
+    : Value_(std::move(s))
 { }
 
 TNode::TNode(int i)
-    : Value_(TVariantTypeTag<i64>(), i)
+    : Value_(static_cast<i64>(i))
 { }
 
 
 TNode::TNode(unsigned int ui)
-    : Value_(TVariantTypeTag<ui64>(), ui)
+    : Value_(static_cast<ui64>(ui))
 { }
 
 TNode::TNode(long i)
-    : Value_(TVariantTypeTag<i64>(), i)
+    : Value_(static_cast<i64>(i))
 { }
 
 TNode::TNode(unsigned long ui)
-    : Value_(TVariantTypeTag<ui64>(), ui)
+    : Value_(static_cast<ui64>(ui))
 { }
 
 TNode::TNode(long long i)
-    : Value_(TVariantTypeTag<i64>(), i)
+    : Value_(static_cast<i64>(i))
 { }
 
 TNode::TNode(unsigned long long ui)
-    : Value_(TVariantTypeTag<ui64>(), ui)
+    : Value_(static_cast<ui64>(ui))
 { }
 
 TNode::TNode(double d)
-    : Value_(TVariantTypeTag<double>(), d)
+    : Value_(d)
 { }
 
 TNode::TNode(bool b)
-    : Value_(TVariantTypeTag<bool>(), b)
+    : Value_(b)
 { }
 
 TNode::TNode(TMapType map)
-    : Value_(TVariantTypeTag<TMapType>(), std::move(map))
+    : Value_(std::move(map))
 { }
 
 TNode::TNode(const TNode& rhs)
@@ -194,37 +194,37 @@ void TNode::Clear()
 
 bool TNode::IsString() const
 {
-    return HoldsAlternative<TString>(Value_);
+    return std::holds_alternative<TString>(Value_);
 }
 
 bool TNode::IsInt64() const
 {
-    return HoldsAlternative<i64>(Value_);
+    return std::holds_alternative<i64>(Value_);
 }
 
 bool TNode::IsUint64() const
 {
-    return HoldsAlternative<ui64>(Value_);
+    return std::holds_alternative<ui64>(Value_);
 }
 
 bool TNode::IsDouble() const
 {
-    return HoldsAlternative<double>(Value_);
+    return std::holds_alternative<double>(Value_);
 }
 
 bool TNode::IsBool() const
 {
-    return HoldsAlternative<bool>(Value_);
+    return std::holds_alternative<bool>(Value_);
 }
 
 bool TNode::IsList() const
 {
-    return HoldsAlternative<TListType>(Value_);
+    return std::holds_alternative<TListType>(Value_);
 }
 
 bool TNode::IsMap() const
 {
-    return HoldsAlternative<TMapType>(Value_);
+    return std::holds_alternative<TMapType>(Value_);
 }
 
 bool TNode::IsEntity() const
@@ -234,12 +234,12 @@ bool TNode::IsEntity() const
 
 bool TNode::IsNull() const
 {
-    return HoldsAlternative<TNull>(Value_);
+    return std::holds_alternative<TNull>(Value_);
 }
 
 bool TNode::IsUndefined() const
 {
-    return HoldsAlternative<TUndefined>(Value_);
+    return std::holds_alternative<TUndefined>(Value_);
 }
 
 bool TNode::HasValue() const
@@ -251,11 +251,11 @@ bool TNode::Empty() const
 {
     switch (GetType()) {
         case String:
-            return Get<TString>(Value_).empty();
+            return std::get<TString>(Value_).empty();
         case List:
-            return Get<TListType>(Value_).empty();
+            return std::get<TListType>(Value_).empty();
         case Map:
-            return Get<TMapType>(Value_).empty();
+            return std::get<TMapType>(Value_).empty();
         default:
             ythrow TTypeError() << "Empty() called for type " << GetType();
     }
@@ -265,11 +265,11 @@ size_t TNode::Size() const
 {
     switch (GetType()) {
         case String:
-            return Get<TString>(Value_).size();
+            return std::get<TString>(Value_).size();
         case List:
-            return Get<TListType>(Value_).size();
+            return std::get<TListType>(Value_).size();
         case Map:
-            return Get<TMapType>(Value_).size();
+            return std::get<TMapType>(Value_).size();
         default:
             ythrow TTypeError() << "Size() called for type " << GetType();
     }
@@ -303,106 +303,106 @@ TNode::EType TNode::GetType() const
 const TString& TNode::AsString() const
 {
     CheckType(String);
-    return Get<TString>(Value_);
+    return std::get<TString>(Value_);
 }
 
 i64 TNode::AsInt64() const
 {
     CheckType(Int64);
-    return Get<i64>(Value_);
+    return std::get<i64>(Value_);
 }
 
 ui64 TNode::AsUint64() const
 {
     CheckType(Uint64);
-    return Get<ui64>(Value_);
+    return std::get<ui64>(Value_);
 }
 
 double TNode::AsDouble() const
 {
     CheckType(Double);
-    return Get<double>(Value_);
+    return std::get<double>(Value_);
 }
 
 bool TNode::AsBool() const
 {
     CheckType(Bool);
-    return Get<bool>(Value_);
+    return std::get<bool>(Value_);
 }
 
 const TNode::TListType& TNode::AsList() const
 {
     CheckType(List);
-    return Get<TListType>(Value_);
+    return std::get<TListType>(Value_);
 }
 
 const TNode::TMapType& TNode::AsMap() const
 {
     CheckType(Map);
-    return Get<TMapType>(Value_);
+    return std::get<TMapType>(Value_);
 }
 
 TNode::TListType& TNode::AsList()
 {
     CheckType(List);
-    return Get<TListType>(Value_);
+    return std::get<TListType>(Value_);
 }
 
 TNode::TMapType& TNode::AsMap()
 {
     CheckType(Map);
-    return Get<TMapType>(Value_);
+    return std::get<TMapType>(Value_);
 }
 
 const TString& TNode::UncheckedAsString() const noexcept
 {
-    return Get<TString>(Value_);
+    return std::get<TString>(Value_);
 }
 
 i64 TNode::UncheckedAsInt64() const noexcept
 {
-    return Get<i64>(Value_);
+    return std::get<i64>(Value_);
 }
 
 ui64 TNode::UncheckedAsUint64() const noexcept
 {
-    return Get<ui64>(Value_);
+    return std::get<ui64>(Value_);
 }
 
 double TNode::UncheckedAsDouble() const noexcept
 {
-    return Get<double>(Value_);
+    return std::get<double>(Value_);
 }
 
 bool TNode::UncheckedAsBool() const noexcept
 {
-    return Get<bool>(Value_);
+    return std::get<bool>(Value_);
 }
 
 const TNode::TListType& TNode::UncheckedAsList() const noexcept
 {
-    return Get<TListType>(Value_);
+    return std::get<TListType>(Value_);
 }
 
 const TNode::TMapType& TNode::UncheckedAsMap() const noexcept
 {
-    return Get<TMapType>(Value_);
+    return std::get<TMapType>(Value_);
 }
 
 TNode::TListType& TNode::UncheckedAsList() noexcept
 {
-    return Get<TListType>(Value_);
+    return std::get<TListType>(Value_);
 }
 
 TNode::TMapType& TNode::UncheckedAsMap() noexcept
 {
-    return Get<TMapType>(Value_);
+    return std::get<TMapType>(Value_);
 }
 
 TNode TNode::CreateList()
 {
     TNode node;
-    node.Value_ = TValue(TVariantTypeTag<TListType>());
+    node.Value_ = TListType{};
     return node;
 }
 
@@ -416,7 +416,7 @@ TNode TNode::CreateList(TListType list)
 TNode TNode::CreateMap()
 {
     TNode node;
-    node.Value_ = TValue(TVariantTypeTag<TMapType>());
+    node.Value_ = TMapType{};
     return node;
 }
 
@@ -430,25 +430,25 @@ TNode TNode::CreateMap(TMapType map)
 TNode TNode::CreateEntity()
 {
     TNode node;
-    node.Value_ = TValue(TVariantTypeTag<TNull>());
+    node.Value_ = TNull{};
     return node;
 }
 
 const TNode& TNode::operator[](size_t index) const
 {
     CheckType(List);
-    return Get<TListType>(Value_)[index];
+    return std::get<TListType>(Value_)[index];
 }
 
 TNode& TNode::operator[](size_t index)
 {
     CheckType(List);
-    return Get<TListType>(Value_)[index];
+    return std::get<TListType>(Value_)[index];
 }
 
 const TNode& TNode::At(size_t index) const {
     CheckType(List);
-    const auto& list = Get<TListType>(Value_);
+    const auto& list = std::get<TListType>(Value_);
     if (index >= list.size()) {
         ythrow TLookupError() << "List out-of-range: requested index=" << index << ", but size=" << list.size();
     }
@@ -457,7 +457,7 @@ const TNode& TNode::At(size_t index) const {
 
 TNode& TNode::At(size_t index) {
     CheckType(List);
-    auto& list = Get<TListType>(Value_);
+    auto& list = std::get<TListType>(Value_);
     if (index >= list.size()) {
         ythrow TLookupError() << "List out-of-range: requested index=" << index << ", but size=" << list.size();
     }
@@ -467,7 +467,7 @@ TNode& TNode::At(size_t index) {
 TNode& TNode::Add() &
 {
     AssureList();
-    return Get<TListType>(Value_).emplace_back();
+    return std::get<TListType>(Value_).emplace_back();
 }
 
 TNode TNode::Add() &&
@@ -478,7 +478,7 @@ TNode TNode::Add() &&
 TNode& TNode::Add(const TNode& node) &
 {
     AssureList();
-    Get<TListType>(Value_).emplace_back(node);
+    std::get<TListType>(Value_).emplace_back(node);
     return *this;
 }
 
@@ -490,7 +490,7 @@ TNode TNode::Add(const TNode& node) &&
 TNode& TNode::Add(TNode&& node) &
 {
     AssureList();
-    Get<TListType>(Value_).emplace_back(std::move(node));
+    std::get<TListType>(Value_).emplace_back(std::move(node));
     return *this;
 }
 
@@ -502,13 +502,13 @@ TNode TNode::Add(TNode&& node) &&
 bool TNode::HasKey(const TStringBuf key) const
 {
     CheckType(Map);
-    return Get<TMapType>(Value_).contains(key);
+    return std::get<TMapType>(Value_).contains(key);
 }
 
 TNode& TNode::operator()(const TString& key, const TNode& value) &
 {
     AssureMap();
-    Get<TMapType>(Value_)[key] = value;
+    std::get<TMapType>(Value_)[key] = value;
     return *this;
 }
 
@@ -520,7 +520,7 @@ TNode TNode::operator()(const TString& key, const TNode& value) &&
 TNode& TNode::operator()(const TString& key, TNode&& value) &
 {
     AssureMap();
-    Get<TMapType>(Value_)[key] = std::move(value);
+    std::get<TMapType>(Value_)[key] = std::move(value);
     return *this;
 }
 
@@ -533,7 +533,7 @@ const TNode& TNode::operator[](const TStringBuf key) const
 {
     CheckType(Map);
     static TNode notFound;
-    const auto& map = Get<TMapType>(Value_);
+    const auto& map = std::get<TMapType>(Value_);
     TMapType::const_iterator i = map.find(key);
     if (i == map.end()) {
         return notFound;
@@ -545,12 +545,12 @@ const TNode& TNode::operator[](const TStringBuf key) const
 TNode& TNode::operator[](const TStringBuf key)
 {
     AssureMap();
-    return Get<TMapType>(Value_)[key];
+    return std::get<TMapType>(Value_)[key];
 }
 
 const TNode& TNode::At(const TStringBuf key) const {
     CheckType(Map);
-    const auto& map = Get<TMapType>(Value_);
+    const auto& map = std::get<TMapType>(Value_);
     TMapType::const_iterator i = map.find(key);
     if (i == map.end()) {
         ythrow TLookupError() << "Cannot find key " << key;
@@ -561,7 +561,7 @@ const TNode& TNode::At(const TStringBuf key) const {
 
 TNode& TNode::At(const TStringBuf key) {
     CheckType(Map);
-    auto& map = Get<TMapType>(Value_);
+    auto& map = std::get<TMapType>(Value_);
     TMapType::iterator i = map.find(key);
     if (i == map.end()) {
         ythrow TLookupError() << "Cannot find key " << key;
@@ -836,7 +836,7 @@ void TNode::CheckType(EType type) const
 
 void TNode::AssureMap()
 {
-    if (HoldsAlternative<TUndefined>(Value_)) {
+    if (std::holds_alternative<TUndefined>(Value_)) {
         Value_ = TMapType();
     } else {
         CheckType(Map);
@@ -845,7 +845,7 @@ void TNode::AssureMap()
 
 void TNode::AssureList()
 {
-    if (HoldsAlternative<TUndefined>(Value_)) {
+    if (std::holds_alternative<TUndefined>(Value_)) {
         Value_ = TListType();
     } else {
         CheckType(List);
@@ -860,7 +860,7 @@ void TNode::CreateAttributes()
 
 void TNode::Save(IOutputStream* out) const
 {
-    NodeToYsonStream(*this, out, YF_BINARY);
+    NodeToYsonStream(*this, out, NYson::EYsonFormat::Binary);
 }
 
 void TNode::Load(IInputStream* in)
@@ -873,8 +873,8 @@ void TNode::Load(IInputStream* in)
 
 bool operator==(const TNode& lhs, const TNode& rhs)
 {
-    if (HoldsAlternative<TNode::TUndefined>(lhs.Value_) ||
-        HoldsAlternative<TNode::TUndefined>(rhs.Value_))
+    if (std::holds_alternative<TNode::TUndefined>(lhs.Value_) ||
+        std::holds_alternative<TNode::TUndefined>(rhs.Value_))
     {
         // TODO: should try to remove this behaviour if nobody uses it.
         return false;

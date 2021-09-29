@@ -163,8 +163,8 @@ namespace {
 class TConversionTest: public TTestBase {
 private:
     //! @note every of the text can have zeros in the middle
-    const TUtf16String UnicodeText;
-    const TString UTF8Text;
+    const TUtf16String UnicodeText_;
+    const TString Utf8Text_;
 
 private:
     UNIT_TEST_SUITE(TConversionTest);
@@ -182,8 +182,8 @@ private:
 
 public:
     TConversionTest()
-        : UnicodeText(CreateUnicodeText())
-        , UTF8Text(CreateUTF8Text())
+        : UnicodeText_(CreateUnicodeText())
+        , Utf8Text_(CreateUTF8Text())
     {
     }
 
@@ -466,13 +466,13 @@ static void TestSurrogates(const char* str, const wchar16* wide, size_t wideSize
 }
 
 void TConversionTest::TestUTF8ToWide() {
-    TUtf16String w = UTF8ToWide(UTF8Text);
+    TUtf16String w = UTF8ToWide(Utf8Text_);
 
     UNIT_ASSERT(w.size() == 256);
-    UNIT_ASSERT(w.size() == UnicodeText.size());
+    UNIT_ASSERT(w.size() == UnicodeText_.size());
 
     for (int i = 0; i < 256; ++i) {
-        UNIT_ASSERT_VALUES_EQUAL(w[i], UnicodeText[i]);
+        UNIT_ASSERT_VALUES_EQUAL(w[i], UnicodeText_[i]);
     }
 
     wchar16 buffer[4] = {0};
@@ -516,22 +516,23 @@ void TConversionTest::TestUTF8ToWide() {
 }
 
 void TConversionTest::TestWideToUTF8() {
-    TString s = WideToUTF8(UnicodeText);
+    TString s = WideToUTF8(UnicodeText_);
     size_t len = 0;
-    for (TUtf16String::const_iterator i = UnicodeText.begin(), ie = UnicodeText.end(); i != ie; ++i)
+    for (TUtf16String::const_iterator i = UnicodeText_.begin(), ie = UnicodeText_.end(); i != ie; ++i) {
         len += UTF8RuneLenByUCS(*i);
+    }
 
-    UNIT_ASSERT(s.size() == UTF8Text.size());
+    UNIT_ASSERT(s.size() == Utf8Text_.size());
     UNIT_ASSERT(s.size() == len);
 
     for (int i = 0; i < static_cast<int>(s.size()); ++i) {
-        UNIT_ASSERT_VALUES_EQUAL(s[i], UTF8Text[i]);
+        UNIT_ASSERT_VALUES_EQUAL(s[i], Utf8Text_[i]);
     }
 }
 
 void TConversionTest::TestGetNumOfUTF8Chars() {
     size_t n = 0;
-    bool result = GetNumberOfUTF8Chars(UTF8Text.c_str(), UTF8Text.size(), n);
+    bool result = GetNumberOfUTF8Chars(Utf8Text_.c_str(), Utf8Text_.size(), n);
     UNIT_ASSERT(result);
     UNIT_ASSERT(n == 256);
 
@@ -908,7 +909,7 @@ public:
 
         TVector<wchar32> buffer(WideStringTestData[0], WideStringTestData[0] + CaseTestDataSize);
         std::reverse(buffer.begin(), buffer.end());
-        const TUtf16String reversed = UTF32ToWide(buffer.begin(), buffer.size());
+        const TUtf16String reversed = UTF32ToWide(buffer.data(), buffer.size());
 
         temp = original;
         ReverseInPlace(temp);

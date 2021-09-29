@@ -38,6 +38,8 @@ struct TCVResult {
     TVector<double> AverageTest;
     TVector<double> StdDevTest;
 
+    TVector<TFullModel> CVFullModels;
+
     //for painting
     TVector<double> LastTrainEvalMetric;//[foldIdx]
     TVector<double> LastTestEvalMetric;//[foldIdx]
@@ -159,23 +161,24 @@ TVector<TDataProvidersTemplate> PrepareCvFolds(
 
 void CrossValidate(
     NJson::TJsonValue plainJsonParams,
-    const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
-    const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-    const TLabelConverter& labelConverter,
-    NCB::TTrainingDataProviderPtr trainingData,
-    const TCrossValidationParams& cvParams,
-    NPar::ILocalExecutor* localExecutor,
-    TVector<TCVResult>* results,
-    bool isAlreadyShuffled = false);
-
-void CrossValidate(
-    NJson::TJsonValue plainJsonParams,
     NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
     const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
     NCB::TDataProviderPtr data,
     const TCrossValidationParams& cvParams,
     TVector<TCVResult>* results);
+
+void CrossValidate(
+    NJson::TJsonValue plainJsonParams,
+    NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
+    const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
+    const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+    TLabelConverter& labelConverter,
+    NCB::TDataProviderPtr data,
+    const TCrossValidationParams& cvParams,
+    NPar::ILocalExecutor* localExecutor,
+    TVector<TCVResult>* results,
+    bool isAlreadyShuffled = false);
 
 struct TFoldContext {
     ui32 FoldIdx;

@@ -121,7 +121,6 @@
 #include <util/system/getpid.h>
 #include <util/system/file_lock.h>
 #include <util/system/nice.h>
-#include <util/system/tempfile.h>
 //#include <util/system/context_aarch64.h>
 #include <util/system/src_root.h>
 #include <util/system/daemon.h>
@@ -136,7 +135,7 @@
 #include <util/system/shmat.h>
 #include <util/system/rusage.h>
 #include <util/system/yassert.h>
-#include <util/system/mktemp.h>
+#include <util/system/tempfile.h>
 #include <util/system/atomic.h>
 #include <util/system/yield.h>
 #include <util/system/filemap.h>
@@ -164,7 +163,7 @@
 #include <util/system/datetime.h>
 #include <util/system/utime.h>
 #include <util/system/mlock.h>
-#include <util/system/demangle.h>
+#include <util/system/type_name.h>
 #include <util/system/file.h>
 #include <util/system/atexit.h>
 #include <util/system/context_x86.h>
@@ -224,8 +223,6 @@
 #include <util/generic/utility.h>
 #include <util/generic/bitops.h>
 #include <util/generic/typetraits.h>
-#include <util/generic/variant_traits.h>
-#include <util/generic/type_name.h>
 #include <util/generic/algorithm.h>
 #include <util/generic/hash_set.h>
 #include <util/generic/cast.h>

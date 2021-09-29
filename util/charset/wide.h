@@ -16,7 +16,7 @@
 #include <cstring>
 
 #ifdef _sse2_
-#include <emmintrin.h>
+    #include <emmintrin.h>
 #endif
 
 template <class T>

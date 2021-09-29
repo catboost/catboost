@@ -25,7 +25,7 @@ class NimrodLexer(RegexLexer):
     """
 
     name = 'Nimrod'
-    aliases = ['nim', 'nimrod']
+    aliases = ['nimrod', 'nim']
     filenames = ['*.nim', '*.nimrod']
     mimetypes = ['text/x-nim']
 

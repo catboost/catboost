@@ -30,7 +30,7 @@ namespace NNeh {
 
     bool TNetLibaOptions::Set(TStringBuf name, TStringBuf value) {
 #define NETLIBA_TRY_SET(optType, optName)     \
-    if (name == AsStringBuf(#optName)) {      \
+    if (name == TStringBuf(#optName)) {      \
         optName = FromString<optType>(value); \
     }
 

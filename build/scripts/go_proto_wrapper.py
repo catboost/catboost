@@ -8,7 +8,7 @@ import tempfile
 from six.moves import range
 
 
-OUT_DIR_FLAG_PATTERN = re.compile('^(--go\w+=)')
+OUT_DIR_FLAG_PATTERN = re.compile(r'^(--go(([-_]\w+))*_out=)')
 
 
 def move_tree(src_root, dst_root):
@@ -59,7 +59,7 @@ def main(arcadia_prefix, contrib_prefix, proto_namespace, args):
         protos = [x for x in args if x.endswith('.proto')]
         if not is_from_contrib or not all(x.startswith(contrib_prefix) for x in protos):
             proto_list = []
-            option_re = re.compile('^\s*option\s+go_package\s*=\s*')
+            option_re = re.compile(r'^\s*option\s+go_package\s*=\s*')
             for arg in protos:
                 with open(arg, 'r') as f:
                     if not any([re.match(option_re, line) for line in f]):

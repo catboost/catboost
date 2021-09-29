@@ -25,13 +25,12 @@
 
 namespace NCB {
 
-    inline bool IsSafeTarget(float value) {
-        return Abs(value) < 1e6f;
+    inline bool IsSafeTarget(float value, bool allowNan) {
+        return Abs(value) < 1e6f || (allowNan && IsNan(value));
     }
 
-
     // can be empty if target data is unavailable
-    static TVector<TSharedVector<float>> ConvertTarget(
+    TVector<TSharedVector<float>> ConvertTarget(
         TMaybeData<TConstArrayRef<TRawTarget>> maybeRawTarget,
         ERawTargetType targetType,
         bool isRealTarget,
@@ -86,6 +85,7 @@ namespace NCB {
         bool isNonEmptyAndNonConst,
         bool allowConstLabel,
         bool needCheckTarget,
+        bool allowNanTarget,
         TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions)
     {
         if (convertedTarget.empty() || convertedTarget[0].empty()) {
@@ -96,7 +96,7 @@ namespace NCB {
             for (auto targetIdx : xrange(convertedTarget.size())) {
                 for (auto objectIdx : xrange(convertedTarget[0].size())) {
                     const float value = convertedTarget[targetIdx][objectIdx];
-                    if (!IsSafeTarget(value)) {
+                    if (!IsSafeTarget(value, allowNanTarget)) {
                         CATBOOST_WARNING_LOG
                             << "Got unsafe target "
                             << LabeledOutput(value)
@@ -272,7 +272,7 @@ namespace NCB {
 
         TVector<TQueryInfo> result(groupsBounds.begin(), groupsBounds.end());
 
-        bool hasUngroupedPairs = !pairs.Empty() && HoldsAlternative<TConstArrayRef<TPair>>(*pairs);
+        bool hasUngroupedPairs = !pairs.Empty() && std::holds_alternative<TConstArrayRef<TPair>>(*pairs);
 
         TVector<ui32> objectToGroupIdxMap; // [objectIdx]->groupIdx  initialized only for ungrouped pairs
         if (hasUngroupedPairs) {
@@ -304,7 +304,7 @@ namespace NCB {
 
         if (pairs) {
             if (hasUngroupedPairs) {
-                TConstArrayRef<TPair> ungroupedPairs = Get<TConstArrayRef<TPair>>(*pairs);
+                TConstArrayRef<TPair> ungroupedPairs = std::get<TConstArrayRef<TPair>>(*pairs);
                 for (const auto& pair : ungroupedPairs) {
                     ui32 groupIdx = objectToGroupIdxMap[pair.WinnerId];
                     /* it has been already checked on RawTargetData creation that WinnerId and LoserId
@@ -318,7 +318,7 @@ namespace NCB {
                         pair.Weight);
                 }
             } else {
-                TConstArrayRef<TPairInGroup> groupedPairs = Get<TConstArrayRef<TPairInGroup>>(*pairs);
+                TConstArrayRef<TPairInGroup> groupedPairs = std::get<TConstArrayRef<TPairInGroup>>(*pairs);
                 for (const auto& pair : groupedPairs) {
                     result[pair.GroupIdx].Competitors[pair.WinnerIdxInGroup].emplace_back(
                         pair.LoserIdxInGroup,
@@ -349,7 +349,7 @@ namespace NCB {
         bool hasClassificationOnlyMetrics = isAnyOfMetrics(IsClassificationOnlyMetric);
         bool hasBinClassOnlyMetrics = isAnyOfMetrics(IsBinaryClassOnlyMetric);
         bool hasMultiClassOnlyMetrics = isAnyOfMetrics(IsMultiClassOnlyMetric);
-        bool hasMultiRegressionMetrics = isAnyOfMetrics(IsMultiRegressionMetric);
+        bool hasMultiTargetMetrics = isAnyOfMetrics(IsMultiTargetMetric);
         bool hasGroupwiseMetrics = isAnyOfMetrics(IsGroupwiseMetric);
         bool hasUserDefinedMetrics = isAnyOfMetrics(IsUserDefined);
 
@@ -385,12 +385,12 @@ namespace NCB {
                 for (const auto& metricDescription : metricDescriptions) {
                     auto metricLossFunction = metricDescription.GetLossFunction();
                     CB_ENSURE(
-                        IsMultiClassCompatibleMetric(metricLossFunction) || IsMultiRegressionMetric(metricLossFunction),
-                        "Non-Multiclassification and Non-Multiregression compatible metric (" << metricLossFunction
+                        IsMultiClassCompatibleMetric(metricLossFunction) || IsMultiTargetMetric(metricLossFunction),
+                        "Non-Multiclassification and Non-MultiTarget compatible metric (" << metricLossFunction
                         << ") specified for a multidimensional model"
                     );
                 }
-                multiClassTargetData = !hasMultiRegressionMetrics;
+                multiClassTargetData = !hasMultiTargetMetrics;
                 if (multiClassTargetData && !knownClassCount) {
                     // because there might be missing classes in train
                     knownClassCount = *knownModelApproxDimension;
@@ -426,11 +426,11 @@ namespace NCB {
             /*IsMultiClass*/ multiClassTargetData,
             /*CreateBinClassTarget*/ (
                 hasBinClassOnlyMetrics
-                || (!hasMultiRegressionMetrics && !hasMultiClassOnlyMetrics && !multiClassTargetData && classCount == 2)
+                || (!hasMultiTargetMetrics && !hasMultiClassOnlyMetrics && !multiClassTargetData && classCount == 2)
             ),
             /*CreateMultiClassTarget*/ (
                 hasMultiClassOnlyMetrics
-                || (!hasMultiRegressionMetrics && !hasBinClassOnlyMetrics && (multiClassTargetData || classCount > 2))
+                || (!hasMultiTargetMetrics && !hasBinClassOnlyMetrics && (multiClassTargetData || classCount > 2))
             ),
             /*CreateGroups*/ (
                 hasGroupwiseMetrics
@@ -496,6 +496,9 @@ namespace NCB {
         }
 
         const bool needCheckTarget = !mainLossFunction || !IsRegressionObjective(mainLossFunction->GetLossFunction());
+        //Accept nan in MultiRMSEWithMissingValues
+        const bool allowNanTarget = !mainLossFunction || (mainLossFunction->GetLossFunction() == ELossFunction::MultiRMSEWithMissingValues);
+
         // TODO(akhropov): Will be split by target type. MLTOOLS-2337.
         if (target) {
             CheckPreprocessedTarget(
@@ -504,6 +507,7 @@ namespace NCB {
                 isNonEmptyAndNonConst,
                 allowConstLabel,
                 needCheckTarget,
+                allowNanTarget,
                 metricDescriptions
             );
         }
@@ -526,8 +530,9 @@ namespace NCB {
 
         if (mainLossFunction) {
             CB_ENSURE(
-                IsMultiRegressionObjective(mainLossFunction->GetLossFunction()) || rawData.GetTargetDimension() <= 1,
-                "Currently only multi-regression objectives work with multidimensional target"
+                IsMultiTargetObjective(mainLossFunction->GetLossFunction()) ||
+                rawData.GetTargetDimension() <= 1,
+                "Currently only multi-regression and survival objectives work with multidimensional target"
             );
         }
 
@@ -607,9 +612,9 @@ namespace NCB {
                     classCount
                 );
             }
-            PrepareTargetCompressed(**outputClassificationInfo->LabelConverter, &*maybeConvertedTarget[0]);
 
             if (!maybeConvertedTarget.empty()) {
+                PrepareTargetCompressed(**outputClassificationInfo->LabelConverter, &*maybeConvertedTarget[0]);
                 processedTargetData.TargetsClassCount.emplace("", (**outputClassificationInfo->LabelConverter).GetApproxDimension());
             }
         }
@@ -699,7 +704,7 @@ namespace NCB {
             TVector<TPair> generatedPairs;
 
             if (maybePairs) {
-                Visit([&](const auto& pairs) { pairsRef = MakeConstArrayRef(pairs); }, *maybePairs);
+                std::visit([&](const auto& pairs) { pairsRef = MakeConstArrayRef(pairs); }, *maybePairs);
             } else if (targetCreationOptions.CreatePairs) {
                 CB_ENSURE(rawData.GetTarget(), "Pool labels are not provided. Cannot generate pairs.");
                 generatedPairs = GeneratePairs(
@@ -718,7 +723,7 @@ namespace NCB {
             if (rawData.GetObjectsGrouping()->IsTrivial() && outputPairsInfo->HasPairs) {
                 ui32 docCount = rawData.GetObjectCount();
                 TVector<ui32> fakeGroupsBounds;
-                ConstructConnectedComponents(docCount, Get<TConstArrayRef<TPair>>(*pairsRef), &fakeGroupsBounds, &outputPairsInfo->PermutationForGrouping, &outputPairsInfo->PairsInPermutedDataset);
+                ConstructConnectedComponents(docCount, std::get<TConstArrayRef<TPair>>(*pairsRef), &fakeGroupsBounds, &outputPairsInfo->PermutationForGrouping, &outputPairsInfo->PairsInPermutedDataset);
                 TVector<TGroupBounds> groups;
                 groups.reserve(fakeGroupsBounds.size());
                 ui32 leftBound = 0;

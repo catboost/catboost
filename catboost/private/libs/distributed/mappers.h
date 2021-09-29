@@ -13,8 +13,8 @@
 
 namespace NCatboostDistributed {
 
-    class TDatasetLoader: public NPar::TMapReduceCmd<TDatasetLoaderParams, TUnusedInitializedParam> {
-        OBJECT_NOCOPY_METHODS(TDatasetLoader);
+    class TDatasetsLoader: public NPar::TMapReduceCmd<TDatasetLoaderParams, TUnusedInitializedParam> {
+        OBJECT_NOCOPY_METHODS(TDatasetsLoader);
         void DoMap(NPar::IUserContext* ctx, int hostId, TInput* params, TOutput* /*unused*/) const final;
     };
     class TPlainFoldBuilder: public NPar::TMapReduceCmd<TPlainFoldBuilderParams, TUnusedInitializedParam> {
@@ -22,12 +22,10 @@ namespace NCatboostDistributed {
         void DoMap(NPar::IUserContext* ctx, int hostId, TInput* params, TOutput* /*unused*/) const final;
     };
     class TApproxReconstructor
-        : public NPar::TMapReduceCmd<
-          std::pair<TVector<TVariant<TSplitTree, TNonSymmetricTreeStructure>>, TVector<TVector<TVector<double>>>>,
-          TUnusedInitializedParam> {
+        : public NPar::TMapReduceCmd<TApproxReconstructorParams, TUnusedInitializedParam> {
 
         OBJECT_NOCOPY_METHODS(TApproxReconstructor);
-        void DoMap(NPar::IUserContext* ctx, int hostId, TInput* forest, TOutput* /*unused*/) const final;
+        void DoMap(NPar::IUserContext* ctx, int hostId, TInput* params, TOutput* /*unused*/) const final;
     };
     class TTensorSearchStarter: public NPar::TMapReduceCmd<TUnusedInitializedParam, TUnusedInitializedParam> {
         OBJECT_NOCOPY_METHODS(TTensorSearchStarter);
@@ -115,7 +113,7 @@ namespace NCatboostDistributed {
         OBJECT_NOCOPY_METHODS(TBucketSimpleUpdater);
         void DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const final;
     };
-    class TCalcApproxStarter: public NPar::TMapReduceCmd<TVariant<TSplitTree, TNonSymmetricTreeStructure>, TUnusedInitializedParam> {
+    class TCalcApproxStarter: public NPar::TMapReduceCmd<std::variant<TSplitTree, TNonSymmetricTreeStructure>, TUnusedInitializedParam> {
         OBJECT_NOCOPY_METHODS(TCalcApproxStarter);
         void DoMap(NPar::IUserContext* ctx, int hostId, TInput* splitTree, TOutput* /*unused*/) const final;
     };
@@ -139,6 +137,23 @@ namespace NCatboostDistributed {
             TInput* /*unused*/,
             TOutput* /*unused*/) const final;
     };
+    class TBestApproxSetter: public NPar::TMapReduceCmd<TUnusedInitializedParam, TUnusedInitializedParam> {
+        OBJECT_NOCOPY_METHODS(TBestApproxSetter);
+        void DoMap(
+            NPar::IUserContext* /*ctx*/,
+            int /*hostId*/,
+            TInput* /*unused*/,
+            TOutput* /*unused*/) const final;
+    };
+    class TApproxGetter: public NPar::TMapReduceCmd<TApproxGetterParams, TApproxesResult> {
+        OBJECT_NOCOPY_METHODS(TApproxGetter);
+        void DoMap(
+            NPar::IUserContext* /*ctx*/,
+            int /*hostId*/,
+            TInput* approxGetterParams,
+            TOutput* approxesResult) const final;
+    };
+
     class TBucketMultiUpdater:
         public NPar::TMapReduceCmd<
             TUnusedInitializedParam,
@@ -151,9 +166,9 @@ namespace NCatboostDistributed {
         OBJECT_NOCOPY_METHODS(TDeltaMultiUpdater);
         void DoMap(NPar::IUserContext* ctx, int hostId, TInput* leafValues, TOutput* /*unused*/) const final;
     };
-    class TErrorCalcer: public NPar::TMapReduceCmd<bool, THashMap<TString, TMetricHolder>> {
+    class TErrorCalcer: public NPar::TMapReduceCmd<TErrorCalcerParams, TVector<THashMap<TString, TMetricHolder>>> {
         OBJECT_NOCOPY_METHODS(TErrorCalcer);
-        void DoMap(NPar::IUserContext* ctx, int hostId, TInput* useAveragingFold, TOutput* additiveStats) const final;
+        void DoMap(NPar::IUserContext* ctx, int hostId, TInput* params, TOutput* additiveStats) const final;
     };
     class TArmijoStartPointBackupper: public NPar::TMapReduceCmd<bool, TUnusedInitializedParam> {
         OBJECT_NOCOPY_METHODS(TArmijoStartPointBackupper);

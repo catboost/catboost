@@ -285,11 +285,11 @@ ui32 TNonSymmetricTreeModelBuilder::AddTreeNode(const TNonSymmetricTreeNode& nod
 
 void TNonSymmetricTreeModelBuilder::InsertNodeValue(const TNonSymmetricTreeNode& node) {
     FlatNodeValueIndexes.emplace_back(FlatValueVector.size());
-    if (HoldsAlternative<double>(node.Value)) {
+    if (std::holds_alternative<double>(node.Value)) {
         CB_ENSURE(ApproxDimension == 1, "got single value for multidimensional model");
-        FlatValueVector.emplace_back(Get<double>(node.Value));
+        FlatValueVector.emplace_back(std::get<double>(node.Value));
     } else {
-        const auto& valueVector = Get<TVector<double>>(node.Value);
+        const auto& valueVector = std::get<TVector<double>>(node.Value);
         CB_ENSURE(ApproxDimension == static_cast<int>(valueVector.size())
             , "Different model approx dimension and value dimensions");
         for (const auto& value : valueVector) {

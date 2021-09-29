@@ -11,7 +11,7 @@ namespace {
         }
     };
 
-    constexpr static TDummySizeFitter SIZE_FITTER;
+    constexpr TDummySizeFitter SIZE_FITTER;
 
     auto atLeast13 = [](size_t idx) { return idx >= 13; };
 }

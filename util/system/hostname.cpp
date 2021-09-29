@@ -5,13 +5,13 @@
 #include <util/network/ip.h>
 
 #if defined(_unix_)
-#include <unistd.h>
-#include <ifaddrs.h>
-#include <netdb.h>
+    #include <unistd.h>
+    #include <ifaddrs.h>
+    #include <netdb.h>
 #endif
 
 #if defined(_win_)
-#include <WinSock2.h>
+    #include <WinSock2.h>
 #endif
 
 #include "defaults.h"
@@ -50,11 +50,15 @@ namespace {
             hints.ai_flags = AI_CANONNAME;
             res = getaddrinfo(buf, nullptr, &hints, &ais);
             if (res) {
-                ythrow TSystemError() << "can not get FQDN (return code is " << res << ", hostname is \"" << buf << "\")";
+                if (res != EAI_NONAME) {
+                    ythrow TSystemError() << "can not get FQDN (return code is " << res << ", hostname is \"" << buf << "\")";
+                }
+                FQDNHostName = buf;
+            } else {
+                FQDNHostName = ais->ai_canonname;
+                freeaddrinfo(ais);
             }
-            FQDNHostName = ais->ai_canonname;
             FQDNHostName.to_lower();
-            freeaddrinfo(ais);
         }
 
         TString FQDNHostName;

@@ -8,13 +8,13 @@
 
 Y_UNIT_TEST_SUITE(StochasticFilterMetricTests) {
     static void StochasticFilterCheck(const TVector<double>& approx, const TVector<float>& target, const TVector<TQueryInfo>& queries,
-                                      THolder<IMetric>& stochasticFilter, double expectedMetricValue, double epsilon, NPar::ILocalExecutor& executor) {
+                                      THolder<TSingleTargetMetric>& stochasticFilter, double expectedMetricValue, double epsilon, NPar::ILocalExecutor& executor) {
         TMetricHolder metricHolder = stochasticFilter->Eval({approx}, {}, false, target, {}, queries, 0, queries.ysize(), executor);
         UNIT_ASSERT_DOUBLES_EQUAL(stochasticFilter->GetFinalError(metricHolder), expectedMetricValue, epsilon);
     }
 
     Y_UNIT_TEST(StochasticFilterTest) {
-        THolder<IMetric> stochasticFilter = std::move(CreateMetric(ELossFunction::FilteredDCG, TLossParams(), /*approxDimension=*/1)[0]);
+        THolder<TSingleTargetMetric> stochasticFilter = std::move(CreateSingleTargetMetric(ELossFunction::FilteredDCG, TLossParams(), /*approxDimension=*/1)[0]);
         double epsilon = 1e-6;
         NPar::TLocalExecutor executor;
 

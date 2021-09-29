@@ -392,7 +392,7 @@ class CCompiler:
         return output_dir, macros, include_dirs
 
     def _prep_compile(self, sources, output_dir, depends=None):
-        """Decide which souce files must be recompiled.
+        """Decide which source files must be recompiled.
 
         Determine the list of object files corresponding to 'sources',
         and figure out which ones really need to be recompiled.
@@ -792,6 +792,8 @@ int main (int argc, char **argv) {
             objects = self.compile([fname], include_dirs=include_dirs)
         except CompileError:
             return False
+        finally:
+            os.remove(fname)
 
         try:
             self.link_executable(objects, "a.out",
@@ -799,6 +801,11 @@ int main (int argc, char **argv) {
                                  library_dirs=library_dirs)
         except (LinkError, TypeError):
             return False
+        else:
+            os.remove("a.out")
+        finally:
+            for fn in objects:
+                os.remove(fn)
         return True
 
     def find_library_file (self, dirs, lib, debug=0):

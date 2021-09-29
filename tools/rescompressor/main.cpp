@@ -110,7 +110,7 @@ int main(int argc, char** argv) {
     }
 
     while (TStringBuf(argv[ind]).StartsWith("--replace=")) {
-        replacements.push_back(TStringBuf(argv[ind]).SubStr(AsStringBuf("--replace=").Size()));
+        replacements.push_back(TStringBuf(argv[ind]).SubStr(TStringBuf("--replace=").Size()));
         ind++;
     }
 
@@ -119,7 +119,7 @@ int main(int argc, char** argv) {
     bool error = false;
     while (ind < argc) {
         TString compressed;
-        if (AsStringBuf("-") == argv[ind]) {
+        if ("-"sv == argv[ind]) {
             ind++;
             if (ind >= argc) {
                 error = true;

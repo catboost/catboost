@@ -57,16 +57,16 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 -D_SHARED_PTR_H /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DARCADIA_PYTHON_UNICODE_SIZE=2 /std:c++latest  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 -D_SHARED_PTR_H /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DARCADIA_PYTHON_UNICODE_SIZE=2 /std:c++latest  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DFAKEID=8668432 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF  -DCATBOOST_OPENSOURCE=yes  </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DFAKEID=8668432 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF  -DCATBOOST_OPENSOURCE=yes  </AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
-      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)../contrib/libs/libc_compat/include/windows;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/libs/openssl/include;$(SolutionDir)../contrib/restricted/libffi/include;$(SolutionDir)../contrib/restricted/libffi/configs/x86_64-microsoft-windows/include;$(SolutionDir)../contrib/libs/protobuf/src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;gdi32.lib;kernel32.lib;ole32.lib;oleaut32.lib;shell32.lib;user32.lib;uuid.lib;winspool.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;dnsapi.lib;gdi32.lib;iphlpapi.lib;kernel32.lib;mswsock.lib;ole32.lib;oleaut32.lib;psapi.lib;rpcrt4.lib;secur32.lib;shell32.lib;shlwapi.lib;user32.lib;userenv.lib;uuid.lib;version.lib;winmm.lib;winspool.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  crypt32.lib ws2_32.lib</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  crypt32.lib ws2_32.lib</AdditionalOptions>
       <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
@@ -78,8 +78,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\8cc92e5f45359ef71d9b149442.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\join_dqib5om4arijogqf2wqnltc7re.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\_8cc92e5f45359ef71d9b149442.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\idl\pool\proto
@@ -134,60 +132,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\metainfo__int___pb2.py;$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\metainfo__int___pb2.py.xvot.yapyc;$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\quantization_schema__int___pb2.py;$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\quantization_schema__int___pb2.py.gvv3.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\_8cc92e5f45359ef71d9b149442.yasm;$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\_6ec465be73c51e76cee8ad806e.rodata;$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\_279fd6513f38bb1d1b01ddbf68.rodata;$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\_c3b96528f4fc552ae65bd22d99.rodata;$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\_c6a4dfd7736b51cd178a9e3e73.rodata;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\idl\pool\proto
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/8cc92e5f45359ef71d9b149442.cpp" "_6ec465be73c51e76cee8ad806e=/py_modules/catboost.idl.pool.proto.metainfo_pb2" "_0ef349f307acf7f8d7178c0ed4=resfs/src//py_modules/catboost.idl.pool.proto.metainfo_pb2" "_279fd6513f38bb1d1b01ddbf68=/py_code/catboost.idl.pool.proto.metainfo_pb2" "_c3b96528f4fc552ae65bd22d99=/py_modules/catboost.idl.pool.proto.quantization_schema_pb2" "_75e0dce7f202c68c4d0d2aa4f5=resfs/src//py_modules/catboost.idl.pool.proto.quantization_schema_pb2" "_c6a4dfd7736b51cd178a9e3e73=/py_code/catboost.idl.pool.proto.quantization_schema_pb2"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\idl\pool\proto
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/8cc92e5f45359ef71d9b149442.cpp" "_6ec465be73c51e76cee8ad806e=/py_modules/catboost.idl.pool.proto.metainfo_pb2" "_0ef349f307acf7f8d7178c0ed4=resfs/src//py_modules/catboost.idl.pool.proto.metainfo_pb2" "_279fd6513f38bb1d1b01ddbf68=/py_code/catboost.idl.pool.proto.metainfo_pb2" "_c3b96528f4fc552ae65bd22d99=/py_modules/catboost.idl.pool.proto.quantization_schema_pb2" "_75e0dce7f202c68c4d0d2aa4f5=resfs/src//py_modules/catboost.idl.pool.proto.quantization_schema_pb2" "_c6a4dfd7736b51cd178a9e3e73=/py_code/catboost.idl.pool.proto.quantization_schema_pb2"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/idl/pool/proto/8cc92e5f45359ef71d9b149442.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\8cc92e5f45359ef71d9b149442.cpp;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_join_srcs.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\idl\pool\proto
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/join_dqib5om4arijogqf2wqnltc7re.cpp" "--ya-start-command-file" "catboost/idl/pool/proto/metainfo.pb.h" "catboost/idl/pool/proto/metainfo.pb.cc" "catboost/idl/pool/proto/quantization_schema.pb.h" "catboost/idl/pool/proto/quantization_schema.pb.cc" "--ya-end-command-file"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\idl\pool\proto
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/join_dqib5om4arijogqf2wqnltc7re.cpp" "--ya-start-command-file" "catboost/idl/pool/proto/metainfo.pb.h" "catboost/idl/pool/proto/metainfo.pb.cc" "catboost/idl/pool/proto/quantization_schema.pb.h" "catboost/idl/pool/proto/quantization_schema.pb.cc" "--ya-end-command-file"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/idl/pool/proto/join_dqib5om4arijogqf2wqnltc7re.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\metainfo.pb.h;$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\metainfo.pb.cc;$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\quantization_schema.pb.h;$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\quantization_schema.pb.cc;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\join_dqib5om4arijogqf2wqnltc7re.cpp;</Outputs>
-    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\idl\pool\proto
@@ -229,13 +173,7 @@ cd /d $(SolutionDir)$(Configuration)\catboost\idl\pool\proto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir).."
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir).." "-I=$(SolutionDir)../contrib/libs/protobuf/src" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf/src" "--cpp_out=$(SolutionDir)$(Configuration)/" "--cpp_styleguide_out=$(SolutionDir)$(Configuration)/" "--plugin=protoc-gen-cpp_styleguide=$(SolutionDir)$(Configuration)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.exe" "catboost/idl/pool/proto/metainfo.proto"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\catboost\idl\pool\proto
-if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir).."
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_protos.py" "--suffixes" "_pb2.py" "--" "$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir).." "-I=$(SolutionDir)../contrib/libs/protobuf/src" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf/src" "--python_out=$(SolutionDir)$(Configuration)/" "catboost/idl/pool/proto/metainfo.proto"
+"python" "$(SolutionDir)../build/scripts/gen_py_protos.py" "--suffixes" "_pb2.py" "_pb2.pyi" "--" "$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir).." "-I=$(SolutionDir)../contrib/libs/protobuf/src" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf/src" "--python_out=$(SolutionDir)$(Configuration)/" "catboost/idl/pool/proto/metainfo.proto" "--plugin=protoc-gen-mypy=$(SolutionDir)$(Configuration)/contrib/python/mypy-protobuf/bin/protoc-gen-mypy/protoc-gen-mypy.exe" "--mypy_out=$(SolutionDir)$(Configuration)/"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -248,13 +186,7 @@ cd /d $(SolutionDir)$(Configuration)\catboost\idl\pool\proto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir).."
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir).." "-I=$(SolutionDir)../contrib/libs/protobuf/src" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf/src" "--cpp_out=$(SolutionDir)$(Configuration)/" "--cpp_styleguide_out=$(SolutionDir)$(Configuration)/" "--plugin=protoc-gen-cpp_styleguide=$(SolutionDir)$(Configuration)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.exe" "catboost/idl/pool/proto/metainfo.proto"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\catboost\idl\pool\proto
-if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir).."
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_protos.py" "--suffixes" "_pb2.py" "--" "$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir).." "-I=$(SolutionDir)../contrib/libs/protobuf/src" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf/src" "--python_out=$(SolutionDir)$(Configuration)/" "catboost/idl/pool/proto/metainfo.proto"
+"python" "$(SolutionDir)../build/scripts/gen_py_protos.py" "--suffixes" "_pb2.py" "_pb2.pyi" "--" "$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir).." "-I=$(SolutionDir)../contrib/libs/protobuf/src" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf/src" "--python_out=$(SolutionDir)$(Configuration)/" "catboost/idl/pool/proto/metainfo.proto" "--plugin=protoc-gen-mypy=$(SolutionDir)$(Configuration)/contrib/python/mypy-protobuf/bin/protoc-gen-mypy/protoc-gen-mypy.exe" "--mypy_out=$(SolutionDir)$(Configuration)/"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -262,9 +194,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/idl/pool/proto/metainfo.pb.h	$B/catboost/idl/pool/proto/metainfo__int___pb2.py	</Message>
-      <AdditionalInputs>$(SolutionDir)..\catboost\idl\pool\proto\metainfo.proto;$(SolutionDir)$(Configuration)\contrib\tools\protoc\protoc.exe;$(SolutionDir)$(Configuration)\contrib\tools\protoc\plugins\cpp_styleguide\cpp_styleguide.exe;$(SolutionDir)..\build\scripts\gen_py_protos.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\metainfo.pb.h;$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\metainfo.pb.cc;$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\metainfo__int___pb2.py;</Outputs>
+      <Message>$B/catboost/idl/pool/proto/metainfo__int___pb2.pyi	</Message>
+      <AdditionalInputs>$(SolutionDir)..\catboost\idl\pool\proto\metainfo.proto;$(SolutionDir)..\build\scripts\gen_py_protos.py;$(SolutionDir)$(Configuration)\contrib\tools\protoc\protoc.exe;$(SolutionDir)$(Configuration)\contrib\python\mypy-protobuf\bin\protoc-gen-mypy\protoc-gen-mypy.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\metainfo__int___pb2.pyi;$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\metainfo__int___pb2.py;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\catboost\idl\pool\proto\quantization_schema.proto">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -272,13 +204,7 @@ cd /d $(SolutionDir)$(Configuration)\catboost\idl\pool\proto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir).."
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir).." "-I=$(SolutionDir)../contrib/libs/protobuf/src" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf/src" "--cpp_out=$(SolutionDir)$(Configuration)/" "--cpp_styleguide_out=$(SolutionDir)$(Configuration)/" "--plugin=protoc-gen-cpp_styleguide=$(SolutionDir)$(Configuration)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.exe" "catboost/idl/pool/proto/quantization_schema.proto"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\catboost\idl\pool\proto
-if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir).."
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_protos.py" "--suffixes" "_pb2.py" "--" "$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir).." "-I=$(SolutionDir)../contrib/libs/protobuf/src" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf/src" "--python_out=$(SolutionDir)$(Configuration)/" "catboost/idl/pool/proto/quantization_schema.proto"
+"python" "$(SolutionDir)../build/scripts/gen_py_protos.py" "--suffixes" "_pb2.py" "_pb2.pyi" "--" "$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir).." "-I=$(SolutionDir)../contrib/libs/protobuf/src" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf/src" "--python_out=$(SolutionDir)$(Configuration)/" "catboost/idl/pool/proto/quantization_schema.proto" "--plugin=protoc-gen-mypy=$(SolutionDir)$(Configuration)/contrib/python/mypy-protobuf/bin/protoc-gen-mypy/protoc-gen-mypy.exe" "--mypy_out=$(SolutionDir)$(Configuration)/"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -291,13 +217,7 @@ cd /d $(SolutionDir)$(Configuration)\catboost\idl\pool\proto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir).."
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir).." "-I=$(SolutionDir)../contrib/libs/protobuf/src" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf/src" "--cpp_out=$(SolutionDir)$(Configuration)/" "--cpp_styleguide_out=$(SolutionDir)$(Configuration)/" "--plugin=protoc-gen-cpp_styleguide=$(SolutionDir)$(Configuration)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.exe" "catboost/idl/pool/proto/quantization_schema.proto"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\catboost\idl\pool\proto
-if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir).."
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_protos.py" "--suffixes" "_pb2.py" "--" "$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir).." "-I=$(SolutionDir)../contrib/libs/protobuf/src" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf/src" "--python_out=$(SolutionDir)$(Configuration)/" "catboost/idl/pool/proto/quantization_schema.proto"
+"python" "$(SolutionDir)../build/scripts/gen_py_protos.py" "--suffixes" "_pb2.py" "_pb2.pyi" "--" "$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir).." "-I=$(SolutionDir)../contrib/libs/protobuf/src" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf/src" "--python_out=$(SolutionDir)$(Configuration)/" "catboost/idl/pool/proto/quantization_schema.proto" "--plugin=protoc-gen-mypy=$(SolutionDir)$(Configuration)/contrib/python/mypy-protobuf/bin/protoc-gen-mypy/protoc-gen-mypy.exe" "--mypy_out=$(SolutionDir)$(Configuration)/"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -305,14 +225,17 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/idl/pool/proto/quantization_schema.pb.h	$B/catboost/idl/pool/proto/quantization_schema__int___pb2.py	</Message>
-      <AdditionalInputs>$(SolutionDir)..\catboost\idl\pool\proto\quantization_schema.proto;$(SolutionDir)$(Configuration)\contrib\tools\protoc\protoc.exe;$(SolutionDir)$(Configuration)\contrib\tools\protoc\plugins\cpp_styleguide\cpp_styleguide.exe;$(SolutionDir)..\build\scripts\gen_py_protos.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\quantization_schema.pb.h;$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\quantization_schema.pb.cc;$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\quantization_schema__int___pb2.py;</Outputs>
+      <Message>$B/catboost/idl/pool/proto/quantization_schema__int___pb2.pyi	</Message>
+      <AdditionalInputs>$(SolutionDir)..\catboost\idl\pool\proto\quantization_schema.proto;$(SolutionDir)..\build\scripts\gen_py_protos.py;$(SolutionDir)$(Configuration)\contrib\tools\protoc\protoc.exe;$(SolutionDir)$(Configuration)\contrib\python\mypy-protobuf\bin\protoc-gen-mypy\protoc-gen-mypy.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\quantization_schema__int___pb2.pyi;$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\quantization_schema__int___pb2.py;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\idl\pool\proto\idl-pool-proto.vcxproj">
+      <Project>{DC2F8CD1-9883-449F-5F63-13AE540A462A}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\certs\certs.vcxproj">
       <Project>{C092F5EB-6E3B-CBC5-C723-B1E4327CB1A8}</Project>
     </ProjectReference>
@@ -349,9 +272,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\python\google_lib\protos_from_protoc\pypython-google_lib-protos_from_protoc.vcxproj">
       <Project>{2C4FBC77-A470-6FA9-FF50-0E8E3379D839}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\python\google_lib\protos_from_pyext\pypython-google_lib-protos_from_pyext.vcxproj">
-      <Project>{CF3E5EE8-A734-7D87-9491-0D302B89B839}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\python\google_lib\pyprotobuf-python-google_lib.vcxproj">
       <Project>{1529DFE3-5177-2C02-3975-17E5F54C498D}</Project>
     </ProjectReference>
@@ -370,14 +290,14 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd\contrib-libs-zstd.vcxproj">
       <Project>{0F7ECE1F-EE4E-A88C-12F5-7D1C49F1BC75}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\mypy-protobuf\bin\protoc-gen-mypy\protoc-gen-mypy.vcxproj">
+      <Project>{336B97B1-38C2-9545-9D85-D0A972FD767D}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\six\pycontrib-python-six.vcxproj">
       <Project>{045AAA08-9E22-8E9E-4CC3-999EEA7560DE}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\libffi\contrib-restricted-libffi.vcxproj">
       <Project>{C4244186-1688-FFD7-FAB5-CB9E056577E2}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\protoc\plugins\cpp_styleguide\cpp_styleguide.vcxproj">
-      <Project>{0D24EC99-8508-5906-E120-5A68AEB033F8}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\protoc\protoc.vcxproj">
       <Project>{855A73D1-3E50-6765-A6D8-DB4F6F2EA5F8}</Project>

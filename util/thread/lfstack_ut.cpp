@@ -11,27 +11,27 @@
 Y_UNIT_TEST_SUITE(TLockFreeStackTests) {
     class TCountDownLatch {
     private:
-        TAtomic Current;
-        TSystemEvent EventObject;
+        TAtomic Current_;
+        TSystemEvent EventObject_;
 
     public:
         TCountDownLatch(unsigned initial)
-            : Current(initial)
+            : Current_(initial)
         {
         }
 
         void CountDown() {
-            if (AtomicDecrement(Current) == 0) {
-                EventObject.Signal();
+            if (AtomicDecrement(Current_) == 0) {
+                EventObject_.Signal();
             }
         }
 
         void Await() {
-            EventObject.Wait();
+            EventObject_.Wait();
         }
 
         bool Await(TDuration timeout) {
-            return EventObject.WaitT(timeout);
+            return EventObject_.WaitT(timeout);
         }
     };
 
@@ -193,10 +193,14 @@ Y_UNIT_TEST_SUITE(TLockFreeStackTests) {
     Y_UNIT_TEST(NoCopyTest) {
         static unsigned copied = 0;
         struct TCopyCount {
-            TCopyCount(int) {}
-            TCopyCount(const TCopyCount&) { ++copied; }
+            TCopyCount(int) {
+            }
+            TCopyCount(const TCopyCount&) {
+                ++copied;
+            }
 
-            TCopyCount(TCopyCount&&) {}
+            TCopyCount(TCopyCount&&) {
+            }
 
             TCopyCount& operator=(const TCopyCount&) {
                 ++copied;
@@ -277,7 +281,6 @@ Y_UNIT_TEST_SUITE(TLockFreeStackTests) {
             futures.clear();
             TTest::DequeueAll(Stack);
         }
-
     };
 
     struct TFreeListTest {

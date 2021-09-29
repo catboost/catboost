@@ -1,0 +1,16 @@
+Metadata-Version: 2.1
+Name: matplotlib-inline
+Version: 0.1.3
+Summary: Inline Matplotlib backend for Jupyter
+Home-page: https://github.com/ipython/matplotlib-inline
+Author: IPython Development Team
+Author-email: ipython-dev@scipy.org
+License: BSD 3-Clause
+Keywords: python,ipython,matplotlib,jupyter
+Platform: UNKNOWN
+Requires-Python: >=3.5
+License-File: LICENSE
+Requires-Dist: traitlets
+
+UNKNOWN
+

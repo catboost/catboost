@@ -1,3 +1,75 @@
+# Release 0.26.1
+
+## R package
+* Supported text features in R package, thanks to
+* Supported virtual Ensembles in R
+
+## New features
+* Thank @gmrandazzo for adding multiregression with missing values on targets - `MultiRMSEWithMissingValues` loss function
+* Supported multiclass prediction in C++ wrapper for model inference C API
+
+## Bugfixes
+* Renamed keyword parameter in `predict_proba` function from `X` to `data`, fixes #1785
+* R feature importances: remove pool argument, fix #1438 and #1772
+* Fix CUDA training on Windows, multiple issues. main issue with details #1735
+* Issue #1728: don't dereference pointers when there is no features
+* Fixed empty tree processing in feature strength calculation
+* Fixed missing loss graph points in select_features, #1775
+* Sort csr matrix indices, fixes #1749
+* Fix error "active CatBoost worker is already present in the current process" after previous training interruption or failure. #1795.
+* Fixed erroneous warnings from models validation after training with custom loss or custom error function. Fixes #873 Fixes #1169
+
+# Release 0.26
+
+## New features
+* #972. Add model evaluation on GPU. Thanks to @rakalexandra.
+* Support Langevin on GPU
+* Save class labels to models in cross validation
+* #1524. Return models after CV. Thanks to @vklyukin
+* [Python] #766. Add CatBoostRanker & pool.get_group_id_hash() for ranking. Thanks to @AnnaAraslanova
+* #262. Make CatBoost widget work in jupyter lab. Thanks to @Dm17r1y
+* [GPU only] Allow to add exponent to score aggregation function
+* Allow to specify threshold parameter for binary classification model. Thanks to @Keksozavr.
+* [C Model API] #503. Allow to specify prediction type.
+* [C Model API] #1201. Get predictions for a specific class.
+
+## Breaking changes
+* Use CUDA 11 by default. CatBoost GPU now requires Linux x86_64 Driver Version >= 450.51.06 Windows x86_64 Driver Version >= 451.82.
+
+## Losses and metrics
+* Add MRR and ERR metrics on CPU.
+* Add [LambdaMart](https://www.microsoft.com/en-us/research/publication/from-ranknet-to-lambdarank-to-lambdamart-an-overview/) loss.
+* #1557. Add survivalAFT base logic. Thanks to @blatr.
+* #1286. Add Cox Proportional Hazards Loss. Thanks to @fibersel.
+* #1595. Provide object-oriented interface for setting up metric parameters. Thanks to @ks-korovina.
+* Change default YetiRank decay to 0.85 for better quality.
+
+## Python package
+* #1372. Custom logging stream in python package. Thanks to @DianaArapova.
+* #1304. Callback after iteration functionality. Thanks to @qoter.
+
+## R package
+* #251. Train parameter synonyms. Thanks to @ebalukova.
+* #252. Add `eval_metrics`. Thanks to @ebalukova.
+
+## Speedups
+* [Python] Speed up custom metrics and objectives with `numba` (if available)
+* [Python] #1710. Large speedup for cv dataset splitting by sklearn splitter
+
+## Other
+* Use Exact leaves estimation method as default on GPU
+* [Spark] #1632. Update version of Scala 2.11 for security reasons.
+* [Python] #1695. Explicitly specify WHEEL 'Root-Is-Purelib' value
+
+## Bugfixes
+* Fix default projection dimension for embeddings
+* Fix `use_weights` for some eval_metrics on GPU - `use_weights=False` is always respected now
+* [Spark] #1649. The earlyStoppingRounds parameter is not recognized
+* [Spark] #1650. Error when using the autoClassWeights parameter
+* [Spark] #1651. Error about "Auto-stop PValue" when using odType "Iter" and odWait
+* Fix usage of pairlogit weights for CPU fallback metrics when training on GPU
+
+
 # Release 0.25.1
 
 ## Speedup

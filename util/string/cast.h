@@ -160,6 +160,11 @@ inline T FromString(const TString& s) {
     return ::FromString<T>(s.data(), s.size());
 }
 
+template <class T>
+inline T FromString(const std::string& s) {
+    return ::FromString<T>(s.data(), s.size());
+}
+
 template <>
 inline TString FromString<TString>(const TString& s) {
     return s;
@@ -247,6 +252,11 @@ inline bool TryFromString(const TStringBuf& s, T& result) {
 
 template <class T>
 inline bool TryFromString(const TString& s, T& result) {
+    return TryFromString<T>(s.data(), s.size(), result);
+}
+
+template <class T>
+inline bool TryFromString(const std::string& s, T& result) {
     return TryFromString<T>(s.data(), s.size(), result);
 }
 

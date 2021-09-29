@@ -8,7 +8,6 @@
 #include <util/generic/map.h>
 #include <util/generic/ptr.h>
 #include <util/generic/set.h>
-#include <util/generic/type_name.h>
 #include <util/generic/typetraits.h>
 #include <util/generic/vector.h>
 #include <util/generic/yexception.h>
@@ -18,7 +17,7 @@
 #include <util/string/printf.h>
 
 #include <util/system/defaults.h>
-#include <util/system/demangle.h>
+#include <util/system/type_name.h>
 #include <util/system/spinlock.h>
 #include <util/system/src_location.h>
 
@@ -283,8 +282,8 @@ private:                                                   \
         this->AtStart();
 
 #ifndef UT_SKIP_EXCEPTIONS
-#define CATCH_REACTION(FN, e, context) this->AddError(("(" + TypeName(&e) + ") " + e.what()).data(), context)
-#define CATCH_REACTION_BT(FN, e, context) this->AddError(("(" + TypeName(&e) + ") " + e.what()).data(), (e.BackTrace() ? e.BackTrace()->PrintToString() : TString()), context)
+#define CATCH_REACTION(FN, e, context) this->AddError(("(" + TypeName(e) + ") " + e.what()).data(), context)
+#define CATCH_REACTION_BT(FN, e, context) this->AddError(("(" + TypeName(e) + ") " + e.what()).data(), (e.BackTrace() ? e.BackTrace()->PrintToString() : TString()), context)
 #else
 #define CATCH_REACTION(FN, e, context) throw
 #define CATCH_REACTION_BT(FN, e, context) throw
@@ -779,6 +778,11 @@ public:                       \
     };
 
     struct TBaseTestCase {
+        // NOTE: since EACH test case is instantiated for listing tests, its
+        // ctor/dtor are not the best place to do heavy preparations in test fixtures.
+        //
+        // Consider using SetUp()/TearDown() methods instead
+
         inline TBaseTestCase()
             : TBaseTestCase(nullptr, nullptr, false)
         {
@@ -792,6 +796,21 @@ public:                       \
         }
 
         virtual ~TBaseTestCase() = default;
+        
+        // Each test case is executed in 3 steps:
+        //
+        // 1. SetUp() (from fixture)
+        // 2. Execute_() (test body from Y_UNIT_TEST macro)
+        // 3. TearDown() (from fixture)
+        //
+        // Both SetUp() and TearDown() may use UNIT_* check macros and are only
+        // called when the test is executed.
+
+        virtual void SetUp(TTestContext& /* context */) {
+        }
+
+        virtual void TearDown(TTestContext& /* context */) {
+        }
 
         virtual void Execute_(TTestContext& context) {
             Body_(context);
@@ -920,7 +939,12 @@ public:                       \
                         this->BeforeTest(i->Name_);                                                                     \
                         {                                                                                               \
                             TCleanUp cleaner(this);                                                                     \
-                            this->T::Run([&i, &context]() { i->Execute_(context); }, StaticName(), i->Name_, i->ForceFork_);\
+                            auto testCase = [&i, &context] {                                                            \
+                                i->SetUp(context);                                                                      \
+                                i->Execute_(context);                                                                   \
+                                i->TearDown(context);                                                                   \
+                            };                                                                                          \
+                            this->T::Run(testCase, StaticName(), i->Name_, i->ForceFork_);                              \
                         }                                                                                               \
                     } catch (const ::NUnitTest::TAssertException&) {                                                    \
                     } catch (const yexception& e) {                                                                     \

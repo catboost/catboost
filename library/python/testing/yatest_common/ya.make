@@ -20,18 +20,19 @@ PY_SRCS(
     yatest/common/runtime.py
     yatest/common/runtime_java.py
     yatest/common/tags.py
-    yatest/yt/__init__.py
-    yatest/yt/process.py
 )
 
 PEERDIR(
     contrib/python/six
-    library/python/coredump_filter
     library/python/cores
     library/python/filelock
     library/python/fs
 )
 
-NO_LINT()
+IF (NOT CATBOOST_OPENSOURCE)
+    PEERDIR(
+        library/python/coredump_filter
+    )
+ENDIF()
 
 END()

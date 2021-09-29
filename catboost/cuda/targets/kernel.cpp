@@ -17,4 +17,5 @@ namespace NCudaLib {
     REGISTER_KERNEL(0xA112211, TSwapWrongOrderPairsKernel);
     REGISTER_KERNEL(0xA112212, TRemoveOffsetsBias);
     REGISTER_KERNEL(0xA112213, TMakePairWeightsKernel);
+    REGISTER_KERNEL(0xA112214, TPairLogitKernel);
 }

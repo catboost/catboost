@@ -31,327 +31,449 @@
 #include <google/protobuf/arena.h>
 
 #include <algorithm>
+#include <atomic>
+#include <cstddef>
+#include <cstdint>
 #include <limits>
+#include <typeinfo>
 
+#include <google/protobuf/arena_impl.h>
 
+#include <google/protobuf/stubs/mutex.h>
 #ifdef ADDRESS_SANITIZER
 #include <sanitizer/asan_interface.h>
 #endif  // ADDRESS_SANITIZER
 
-namespace google {
-static const size_t kMinCleanupListElements = 8;
-static const size_t kMaxCleanupListElements = 64;  // 1kB on 64-bit.
+#include <google/protobuf/port_def.inc>
 
+namespace google {
 namespace protobuf {
 namespace internal {
 
+static SerialArena::Memory AllocateMemory(const AllocationPolicy* policy_ptr,
+                                          size_t last_size, size_t min_bytes) {
+  AllocationPolicy policy;  // default policy
+  if (policy_ptr) policy = *policy_ptr;
+  size_t size;
+  if (last_size != 0) {
+    // Double the current block size, up to a limit.
+    auto max_size = policy.max_block_size;
+    size = std::min(2 * last_size, max_size);
+  } else {
+    size = policy.start_block_size;
+  }
+  // Verify that min_bytes + kBlockHeaderSize won't overflow.
+  GOOGLE_CHECK_LE(min_bytes,
+           std::numeric_limits<size_t>::max() - SerialArena::kBlockHeaderSize);
+  size = std::max(size, SerialArena::kBlockHeaderSize + min_bytes);
 
-google::protobuf::internal::SequenceNumber ArenaImpl::lifecycle_id_generator_;
+  void* mem;
+  if (policy.block_alloc == nullptr) {
+    mem = ::operator new(size);
+  } else {
+    mem = policy.block_alloc(size);
+  }
+  return {mem, size};
+}
+
+class GetDeallocator {
+ public:
+  GetDeallocator(const AllocationPolicy* policy, size_t* space_allocated)
+      : dealloc_(policy ? policy->block_dealloc : nullptr),
+        space_allocated_(space_allocated) {}
+
+  void operator()(SerialArena::Memory mem) const {
+#ifdef ADDRESS_SANITIZER
+    // This memory was provided by the underlying allocator as unpoisoned,
+    // so return it in an unpoisoned state.
+    ASAN_UNPOISON_MEMORY_REGION(mem.ptr, mem.size);
+#endif  // ADDRESS_SANITIZER
+    if (dealloc_) {
+      dealloc_(mem.ptr, mem.size);
+    } else {
+#if defined(__GXX_DELETE_WITH_SIZE__) || defined(__cpp_sized_deallocation)
+      ::operator delete(mem.ptr, mem.size);
+#else
+      ::operator delete(mem.ptr);
+#endif
+    }
+    *space_allocated_ += mem.size;
+  }
+
+ private:
+  void (*dealloc_)(void*, size_t);
+  size_t* space_allocated_;
+};
+
+SerialArena::SerialArena(Block* b, void* owner) : space_allocated_(b->size) {
+  owner_ = owner;
+  head_ = b;
+  ptr_ = b->Pointer(kBlockHeaderSize + ThreadSafeArena::kSerialArenaSize);
+  limit_ = b->Pointer(b->size & static_cast<size_t>(-8));
+}
+
+SerialArena* SerialArena::New(Memory mem, void* owner) {
+  GOOGLE_DCHECK_LE(kBlockHeaderSize + ThreadSafeArena::kSerialArenaSize, mem.size);
+
+  auto b = new (mem.ptr) Block{nullptr, mem.size};
+  return new (b->Pointer(kBlockHeaderSize)) SerialArena(b, owner);
+}
+
+template <typename Deallocator>
+SerialArena::Memory SerialArena::Free(Deallocator deallocator) {
+  Block* b = head_;
+  Memory mem = {b, b->size};
+  while (b->next) {
+    b = b->next;  // We must first advance before deleting this block
+    deallocator(mem);
+    mem = {b, b->size};
+  }
+  return mem;
+}
+
+PROTOBUF_NOINLINE
+std::pair<void*, SerialArena::CleanupNode*>
+SerialArena::AllocateAlignedWithCleanupFallback(
+    size_t n, const AllocationPolicy* policy) {
+  AllocateNewBlock(n + kCleanupSize, policy);
+  return AllocateAlignedWithCleanup(n, policy);
+}
+
+PROTOBUF_NOINLINE
+void* SerialArena::AllocateAlignedFallback(size_t n,
+                                           const AllocationPolicy* policy) {
+  AllocateNewBlock(n, policy);
+  return AllocateAligned(n, policy);
+}
+
+void SerialArena::AllocateNewBlock(size_t n, const AllocationPolicy* policy) {
+  // Sync limit to block
+  head_->start = reinterpret_cast<CleanupNode*>(limit_);
+
+  // Record how much used in this block.
+  space_used_ += ptr_ - head_->Pointer(kBlockHeaderSize);
+
+  auto mem = AllocateMemory(policy, head_->size, n);
+  // We don't want to emit an expensive RMW instruction that requires
+  // exclusive access to a cacheline. Hence we write it in terms of a
+  // regular add.
+  auto relaxed = std::memory_order_relaxed;
+  space_allocated_.store(space_allocated_.load(relaxed) + mem.size, relaxed);
+  head_ = new (mem.ptr) Block{head_, mem.size};
+  ptr_ = head_->Pointer(kBlockHeaderSize);
+  limit_ = head_->Pointer(head_->size);
+
+#ifdef ADDRESS_SANITIZER
+  ASAN_POISON_MEMORY_REGION(ptr_, limit_ - ptr_);
+#endif  // ADDRESS_SANITIZER
+}
+
+uint64 SerialArena::SpaceUsed() const {
+  uint64 space_used = ptr_ - head_->Pointer(kBlockHeaderSize);
+  space_used += space_used_;
+  // Remove the overhead of the SerialArena itself.
+  space_used -= ThreadSafeArena::kSerialArenaSize;
+  return space_used;
+}
+
+void SerialArena::CleanupList() {
+  Block* b = head_;
+  b->start = reinterpret_cast<CleanupNode*>(limit_);
+  do {
+    auto* limit = reinterpret_cast<CleanupNode*>(
+        b->Pointer(b->size & static_cast<size_t>(-8)));
+    auto it = b->start;
+    auto num = limit - it;
+    if (num > 0) {
+      for (; it < limit; it++) {
+        it->cleanup(it->elem);
+      }
+    }
+    b = b->next;
+  } while (b);
+}
+
+
+ThreadSafeArena::CacheAlignedLifecycleIdGenerator
+    ThreadSafeArena::lifecycle_id_generator_;
 #if defined(GOOGLE_PROTOBUF_NO_THREADLOCAL)
-ArenaImpl::ThreadCache& ArenaImpl::thread_cache() {
+ThreadSafeArena::ThreadCache& ThreadSafeArena::thread_cache() {
   static internal::ThreadLocalStorage<ThreadCache>* thread_cache_ =
       new internal::ThreadLocalStorage<ThreadCache>();
   return *thread_cache_->Get();
 }
 #elif defined(PROTOBUF_USE_DLLS)
-ArenaImpl::ThreadCache& ArenaImpl::thread_cache() {
-  static GOOGLE_THREAD_LOCAL ThreadCache thread_cache_ = { -1, NULL };
+ThreadSafeArena::ThreadCache& ThreadSafeArena::thread_cache() {
+  static PROTOBUF_THREAD_LOCAL ThreadCache thread_cache_ = {
+      0, static_cast<LifecycleIdAtomic>(-1), nullptr};
   return thread_cache_;
 }
 #else
-GOOGLE_THREAD_LOCAL ArenaImpl::ThreadCache ArenaImpl::thread_cache_ = {-1, NULL};
+PROTOBUF_THREAD_LOCAL ThreadSafeArena::ThreadCache
+    ThreadSafeArena::thread_cache_ = {0, static_cast<LifecycleIdAtomic>(-1),
+                                      nullptr};
 #endif
 
-void ArenaImpl::Init() {
-  lifecycle_id_ = lifecycle_id_generator_.GetNext();
-  blocks_ = 0;
-  hint_ = 0;
-  space_allocated_ = 0;
-  owns_first_block_ = true;
+void ThreadSafeArena::InitializeFrom(void* mem, size_t size) {
+  GOOGLE_DCHECK_EQ(reinterpret_cast<uintptr_t>(mem) & 7, 0u);
+  Init(false);
 
-  if (options_.initial_block != NULL && options_.initial_block_size > 0) {
-    GOOGLE_CHECK_GE(options_.initial_block_size, sizeof(Block))
-        << ": Initial block size too small for header.";
-
-    // Add first unowned block to list.
-    Block* first_block = reinterpret_cast<Block*>(options_.initial_block);
-    first_block->size = options_.initial_block_size;
-    first_block->pos = kHeaderSize;
-    first_block->next = NULL;
-    first_block->cleanup = NULL;
-    // Thread which calls Init() owns the first block. This allows the
-    // single-threaded case to allocate on the first block without taking any
-    // locks.
-    first_block->owner = &thread_cache();
-    AddBlockInternal(first_block);
-    CacheBlock(first_block);
-    owns_first_block_ = false;
+  // Ignore initial block if it is too small.
+  if (mem != nullptr && size >= kBlockHeaderSize + kSerialArenaSize) {
+    alloc_policy_ |= kUserOwnedInitialBlock;
+    SetInitialBlock(mem, size);
   }
 }
 
-ArenaImpl::~ArenaImpl() { ResetInternal(); }
+void ThreadSafeArena::InitializeWithPolicy(void* mem, size_t size,
+                                           bool record_allocs,
+                                           AllocationPolicy policy) {
+  GOOGLE_DCHECK_EQ(reinterpret_cast<uintptr_t>(mem) & 7, 0u);
 
-uint64 ArenaImpl::Reset() {
-  // Invalidate any ThreadCaches pointing to any blocks we just destroyed.
-  lifecycle_id_ = lifecycle_id_generator_.GetNext();
-  return ResetInternal();
-}
+  Init(record_allocs);
 
-uint64 ArenaImpl::ResetInternal() {
-  Block* head =
-      reinterpret_cast<Block*>(google::protobuf::internal::NoBarrier_Load(&blocks_));
-  CleanupList(head);
-  uint64 space_allocated = FreeBlocks(head);
-
-  return space_allocated;
-}
-
-ArenaImpl::Block* ArenaImpl::NewBlock(void* me, Block* my_last_block,
-                                      size_t min_bytes, size_t start_block_size,
-                                      size_t max_block_size) {
-  size_t size;
-  if (my_last_block != NULL) {
-    // Double the current block size, up to a limit.
-    size = std::min(2 * my_last_block->size, max_block_size);
+  // Ignore initial block if it is too small. We include an optional
+  // AllocationPolicy in this check, so that this can be allocated on the
+  // first block.
+  constexpr size_t kAPSize = internal::AlignUpTo8(sizeof(AllocationPolicy));
+  constexpr size_t kMinimumSize = kBlockHeaderSize + kSerialArenaSize + kAPSize;
+  if (mem != nullptr && size >= kMinimumSize) {
+    alloc_policy_ = kUserOwnedInitialBlock;
   } else {
-    size = start_block_size;
+    alloc_policy_ = 0;
+    auto tmp = AllocateMemory(&policy, 0, kMinimumSize);
+    mem = tmp.ptr;
+    size = tmp.size;
   }
-  // Verify that min_bytes + kHeaderSize won't overflow.
-  GOOGLE_CHECK_LE(min_bytes, std::numeric_limits<size_t>::max() - kHeaderSize);
-  size = std::max(size, kHeaderSize + min_bytes);
+  SetInitialBlock(mem, size);
 
-  Block* b = reinterpret_cast<Block*>(options_.block_alloc(size));
-  b->pos = kHeaderSize;
-  b->size = size;
-  b->owner = me;
-  b->cleanup = NULL;
-#ifdef ADDRESS_SANITIZER
-  // Poison the rest of the block for ASAN. It was unpoisoned by the underlying
-  // malloc but it's not yet usable until we return it as part of an allocation.
-  ASAN_POISON_MEMORY_REGION(
-      reinterpret_cast<char*>(b) + b->pos, b->size - b->pos);
-#endif  // ADDRESS_SANITIZER
-  AddBlock(b);
-  return b;
-}
-
-void ArenaImpl::AddBlock(Block* b) {
-  MutexLock l(&blocks_lock_);
-  AddBlockInternal(b);
-}
-
-void ArenaImpl::AddBlockInternal(Block* b) {
-  b->next = reinterpret_cast<Block*>(google::protobuf::internal::NoBarrier_Load(&blocks_));
-  google::protobuf::internal::Release_Store(&blocks_, reinterpret_cast<google::protobuf::internal::AtomicWord>(b));
-  space_allocated_ += b->size;
-}
-
-ArenaImpl::Block* ArenaImpl::ExpandCleanupList(Block* b) {
-  size_t size = b->cleanup ? b->cleanup->size * 2 : kMinCleanupListElements;
-  size = std::min(size, kMaxCleanupListElements);
-  size_t bytes = internal::AlignUpTo8(CleanupChunk::SizeOf(size));
-  if (b->avail() < bytes) {
-    b = GetBlock(bytes);
+  auto sa = threads_.load(std::memory_order_relaxed);
+  // We ensured enough space so this cannot fail.
+  void* p;
+  if (!sa || !sa->MaybeAllocateAligned(kAPSize, &p)) {
+    GOOGLE_LOG(FATAL) << "MaybeAllocateAligned cannot fail here.";
+    return;
   }
-  CleanupChunk* list =
-      reinterpret_cast<CleanupChunk*>(AllocFromBlock(b, bytes));
-  list->next = b->cleanup;
-  list->size = size;
-  list->len = 0;
-  b->cleanup = list;
-  return b;
+  new (p) AllocationPolicy{policy};
+  alloc_policy_ |= reinterpret_cast<intptr_t>(p);
 }
 
-inline GOOGLE_ATTRIBUTE_ALWAYS_INLINE void ArenaImpl::AddCleanupInBlock(
-    Block* b, void* elem, void (*cleanup)(void*)) {
-  if (b->cleanup == NULL || b->cleanup->len == b->cleanup->size) {
-    b = ExpandCleanupList(b);
+void ThreadSafeArena::Init(bool record_allocs) {
+  ThreadCache& tc = thread_cache();
+  auto id = tc.next_lifecycle_id;
+  // We increment lifecycle_id's by multiples of two so we can use bit 0 as
+  // a tag.
+  constexpr uint64 kDelta = 2;
+  constexpr uint64 kInc = ThreadCache::kPerThreadIds * kDelta;
+  if (PROTOBUF_PREDICT_FALSE((id & (kInc - 1)) == 0)) {
+    constexpr auto relaxed = std::memory_order_relaxed;
+    // On platforms that don't support uint64 atomics we can certainly not
+    // afford to increment by large intervals and expect uniqueness due to
+    // wrapping, hence we only add by 1.
+    id = lifecycle_id_generator_.id.fetch_add(1, relaxed) * kInc;
+  }
+  tc.next_lifecycle_id = id + kDelta;
+  tag_and_id_ = id | (record_allocs ? kRecordAllocs : 0);
+  hint_.store(nullptr, std::memory_order_relaxed);
+  threads_.store(nullptr, std::memory_order_relaxed);
+}
+
+void ThreadSafeArena::SetInitialBlock(void* mem, size_t size) {
+  SerialArena* serial = SerialArena::New({mem, size}, &thread_cache());
+  serial->set_next(NULL);
+  threads_.store(serial, std::memory_order_relaxed);
+  CacheSerialArena(serial);
+}
+
+ThreadSafeArena::~ThreadSafeArena() {
+  // Have to do this in a first pass, because some of the destructors might
+  // refer to memory in other blocks.
+  CleanupList();
+
+  size_t space_allocated = 0;
+  auto mem = Free(&space_allocated);
+
+  // Policy is about to get deleted.
+  auto p = AllocPolicy();
+  ArenaMetricsCollector* collector = p ? p->metrics_collector : nullptr;
+
+  if (alloc_policy_ & kUserOwnedInitialBlock) {
+    space_allocated += mem.size;
+  } else {
+    GetDeallocator(AllocPolicy(), &space_allocated)(mem);
   }
 
-  CleanupNode* node = &b->cleanup->nodes[b->cleanup->len++];
-
-  node->elem = elem;
-  node->cleanup = cleanup;
+  if (collector) collector->OnDestroy(space_allocated);
 }
 
-void ArenaImpl::AddCleanup(void* elem, void (*cleanup)(void*)) {
-  return AddCleanupInBlock(GetBlock(0), elem, cleanup);
-}
-
-void* ArenaImpl::AllocateAligned(size_t n) {
-  GOOGLE_DCHECK_EQ(internal::AlignUpTo8(n), n);  // Must be already aligned.
-
-  return AllocFromBlock(GetBlock(n), n);
-}
-
-void* ArenaImpl::AllocateAlignedAndAddCleanup(size_t n,
-                                              void (*cleanup)(void*)) {
-  GOOGLE_DCHECK_EQ(internal::AlignUpTo8(n), n);  // Must be already aligned.
-
-  Block* b = GetBlock(n);
-  void* mem = AllocFromBlock(b, n);
-  AddCleanupInBlock(b, mem, cleanup);
+SerialArena::Memory ThreadSafeArena::Free(size_t* space_allocated) {
+  SerialArena::Memory mem = {nullptr, 0};
+  auto deallocator = GetDeallocator(AllocPolicy(), space_allocated);
+  PerSerialArena([deallocator, &mem](SerialArena* a) {
+    if (mem.ptr) deallocator(mem);
+    mem = a->Free(deallocator);
+  });
   return mem;
 }
 
-inline GOOGLE_ATTRIBUTE_ALWAYS_INLINE ArenaImpl::Block* ArenaImpl::GetBlock(size_t n) {
-  Block* my_block = NULL;
+uint64 ThreadSafeArena::Reset() {
+  // Have to do this in a first pass, because some of the destructors might
+  // refer to memory in other blocks.
+  CleanupList();
 
-  // If this thread already owns a block in this arena then try to use that.
-  // This fast path optimizes the case where multiple threads allocate from the
-  // same arena.
-  ThreadCache* tc = &thread_cache();
-  if (tc->last_lifecycle_id_seen == lifecycle_id_) {
-    my_block = tc->last_block_used_;
-    if (my_block->avail() >= n) {
-      return my_block;
-    }
-  }
+  // Discard all blocks except the special block (if present).
+  size_t space_allocated = 0;
+  auto mem = Free(&space_allocated);
 
-  // Check whether we own the last accessed block on this arena.
-  // This fast path optimizes the case where a single thread uses multiple
-  // arenas.
-  Block* b = reinterpret_cast<Block*>(google::protobuf::internal::Acquire_Load(&hint_));
-  if (b != NULL && b->owner == tc) {
-    my_block = b;
-    if (my_block->avail() >= n) {
-      return my_block;
-    }
-  }
-  return GetBlockSlow(tc, my_block, n);
-}
-
-inline GOOGLE_ATTRIBUTE_ALWAYS_INLINE void* ArenaImpl::AllocFromBlock(Block* b,
-                                                               size_t n) {
-  GOOGLE_DCHECK_EQ(internal::AlignUpTo8(b->pos), b->pos);  // Must be already aligned.
-  GOOGLE_DCHECK_EQ(internal::AlignUpTo8(n), n);  // Must be already aligned.
-  GOOGLE_DCHECK_GE(b->avail(), n);
-  size_t p = b->pos;
-  b->pos = p + n;
-#ifdef ADDRESS_SANITIZER
-  ASAN_UNPOISON_MEMORY_REGION(reinterpret_cast<char*>(b) + p, n);
-#endif  // ADDRESS_SANITIZER
-  return reinterpret_cast<char*>(b) + p;
-}
-
-ArenaImpl::Block* ArenaImpl::GetBlockSlow(void* me, Block* my_full_block,
-                                          size_t n) {
-  Block* b = FindBlock(me);  // Find block owned by me.
-  if (b == NULL || b->avail() < n) {
-    b = NewBlock(me, b, n, options_.start_block_size, options_.max_block_size);
-
-    // Try to steal the cleanup list from my_full_block.  It's too full for this
-    // allocation, but it might have space left in its cleanup list and there's
-    // no reason to waste that memory.
-    if (my_full_block) {
-      GOOGLE_DCHECK_EQ(my_full_block->owner, me);
-      GOOGLE_DCHECK(b->cleanup == NULL);
-      b->cleanup = my_full_block->cleanup;
-      my_full_block->cleanup = NULL;
-    }
-  }
-  CacheBlock(b);
-  return b;
-}
-
-uint64 ArenaImpl::SpaceAllocated() const {
-  MutexLock l(&blocks_lock_);
-  return space_allocated_;
-}
-
-uint64 ArenaImpl::SpaceUsed() const {
-  uint64 space_used = 0;
-  Block* b = reinterpret_cast<Block*>(google::protobuf::internal::NoBarrier_Load(&blocks_));
-  while (b != NULL) {
-    space_used += (b->pos - kHeaderSize);
-    b = b->next;
-  }
-  return space_used;
-}
-
-uint64 ArenaImpl::FreeBlocks(Block* head) {
-  uint64 space_allocated = 0;
-  Block* first_block = NULL;
-  Block* b = head;
-
-  while (b != NULL) {
-    space_allocated += (b->size);
-    Block* next = b->next;
-    if (next != NULL) {
-#ifdef ADDRESS_SANITIZER
-      // This memory was provided by the underlying allocator as unpoisoned, so
-      // return it in an unpoisoned state.
-      ASAN_UNPOISON_MEMORY_REGION(reinterpret_cast<char*>(b), b->size);
-#endif  // ADDRESS_SANITIZER
-      options_.block_dealloc(b, b->size);
+  if (AllocPolicy()) {
+    auto saved_policy = *AllocPolicy();
+    if (alloc_policy_ & kUserOwnedInitialBlock) {
+      space_allocated += mem.size;
     } else {
-      if (owns_first_block_) {
-#ifdef ADDRESS_SANITIZER
-        // This memory was provided by the underlying allocator as unpoisoned,
-        // so return it in an unpoisoned state.
-        ASAN_UNPOISON_MEMORY_REGION(reinterpret_cast<char*>(b), b->size);
-#endif  // ADDRESS_SANITIZER
-        options_.block_dealloc(b, b->size);
-      } else {
-        // User passed in the first block, skip free'ing the memory.
-        first_block = b;
-      }
+      GetDeallocator(AllocPolicy(), &space_allocated)(mem);
+      mem.ptr = nullptr;
+      mem.size = 0;
     }
-    b = next;
+    ArenaMetricsCollector* collector = saved_policy.metrics_collector;
+    if (collector) collector->OnReset(space_allocated);
+    InitializeWithPolicy(mem.ptr, mem.size, ShouldRecordAlloc(), saved_policy);
+  } else {
+    // Nullptr policy
+    if (alloc_policy_ & kUserOwnedInitialBlock) {
+      space_allocated += mem.size;
+      InitializeFrom(mem.ptr, mem.size);
+    } else {
+      GetDeallocator(AllocPolicy(), &space_allocated)(mem);
+      Init(false);
+    }
   }
-  blocks_ = 0;
-  hint_ = 0;
-  space_allocated_ = 0;
-  if (!owns_first_block_) {
-    // Make the first block that was passed in through ArenaOptions
-    // available for reuse.
-    first_block->pos = kHeaderSize;
-    first_block->cleanup = NULL;
-    // Thread which calls Reset() owns the first block. This allows the
-    // single-threaded case to allocate on the first block without taking any
-    // locks.
-    first_block->owner = &thread_cache();
-    AddBlockInternal(first_block);
-    CacheBlock(first_block);
-  }
+
   return space_allocated;
 }
 
-void ArenaImpl::CleanupList(Block* head) {
-  // Have to do this in a first pass, because some of the destructors might
-  // refer to memory in other blocks.
-  for (Block* b = head; b; b = b->next) {
-    CleanupChunk* list = b->cleanup;
-    while (list) {
-      size_t n = list->len;
-      CleanupNode* node = &list->nodes[list->len - 1];
-      for (size_t i = 0; i < n; i++, node--) {
-        node->cleanup(node->elem);
-      }
-      list = list->next;
-    }
-    b->cleanup = NULL;
+std::pair<void*, SerialArena::CleanupNode*>
+ThreadSafeArena::AllocateAlignedWithCleanup(size_t n,
+                                            const std::type_info* type) {
+  SerialArena* arena;
+  if (PROTOBUF_PREDICT_TRUE(GetSerialArenaFast(tag_and_id_, &arena))) {
+    return arena->AllocateAlignedWithCleanup(n, AllocPolicy());
+  } else {
+    return AllocateAlignedWithCleanupFallback(n, type);
   }
 }
 
-ArenaImpl::Block* ArenaImpl::FindBlock(void* me) {
-  // TODO(sanjay): We might want to keep a separate list with one
-  // entry per thread.
-  Block* b = reinterpret_cast<Block*>(google::protobuf::internal::Acquire_Load(&blocks_));
-  while (b != NULL && b->owner != me) {
-    b = b->next;
+void ThreadSafeArena::AddCleanup(void* elem, void (*cleanup)(void*)) {
+  SerialArena* arena;
+  if (PROTOBUF_PREDICT_TRUE(GetSerialArenaFast(LifeCycleId(), &arena))) {
+    arena->AddCleanup(elem, cleanup, AllocPolicy());
+  } else {
+    return AddCleanupFallback(elem, cleanup);
   }
-  return b;
+}
+
+PROTOBUF_NOINLINE
+void* ThreadSafeArena::AllocateAlignedFallback(size_t n,
+                                               const std::type_info* type) {
+  if (ShouldRecordAlloc()) {
+    RecordAlloc(type, n);
+    SerialArena* arena;
+    if (PROTOBUF_PREDICT_TRUE(GetSerialArenaFast(LifeCycleId(), &arena))) {
+      return arena->AllocateAligned(n, AllocPolicy());
+    }
+  }
+  return GetSerialArenaFallback(&thread_cache())
+      ->AllocateAligned(n, AllocPolicy());
+}
+
+PROTOBUF_NOINLINE
+std::pair<void*, SerialArena::CleanupNode*>
+ThreadSafeArena::AllocateAlignedWithCleanupFallback(
+    size_t n, const std::type_info* type) {
+  if (ShouldRecordAlloc()) {
+    RecordAlloc(type, n);
+    SerialArena* arena;
+    if (GetSerialArenaFast(LifeCycleId(), &arena)) {
+      return arena->AllocateAlignedWithCleanup(n, AllocPolicy());
+    }
+  }
+  return GetSerialArenaFallback(&thread_cache())
+      ->AllocateAlignedWithCleanup(n, AllocPolicy());
+}
+
+PROTOBUF_NOINLINE
+void ThreadSafeArena::AddCleanupFallback(void* elem, void (*cleanup)(void*)) {
+  GetSerialArenaFallback(&thread_cache())
+      ->AddCleanup(elem, cleanup, AllocPolicy());
+}
+
+uint64 ThreadSafeArena::SpaceAllocated() const {
+  SerialArena* serial = threads_.load(std::memory_order_acquire);
+  uint64 res = 0;
+  for (; serial; serial = serial->next()) {
+    res += serial->SpaceAllocated();
+  }
+  return res;
+}
+
+uint64 ThreadSafeArena::SpaceUsed() const {
+  SerialArena* serial = threads_.load(std::memory_order_acquire);
+  uint64 space_used = 0;
+  for (; serial; serial = serial->next()) {
+    space_used += serial->SpaceUsed();
+  }
+  return space_used - (AllocPolicy() ? sizeof(AllocationPolicy) : 0);
+}
+
+void ThreadSafeArena::CleanupList() {
+  PerSerialArena([](SerialArena* a) { a->CleanupList(); });
+}
+
+PROTOBUF_NOINLINE
+SerialArena* ThreadSafeArena::GetSerialArenaFallback(void* me) {
+  // Look for this SerialArena in our linked list.
+  SerialArena* serial = threads_.load(std::memory_order_acquire);
+  for (; serial; serial = serial->next()) {
+    if (serial->owner() == me) {
+      break;
+    }
+  }
+
+  if (!serial) {
+    // This thread doesn't have any SerialArena, which also means it doesn't
+    // have any blocks yet.  So we'll allocate its first block now.
+    serial = SerialArena::New(
+        AllocateMemory(AllocPolicy(), 0, kSerialArenaSize), me);
+
+    SerialArena* head = threads_.load(std::memory_order_relaxed);
+    do {
+      serial->set_next(head);
+    } while (!threads_.compare_exchange_weak(
+        head, serial, std::memory_order_release, std::memory_order_relaxed));
+  }
+
+  CacheSerialArena(serial);
+  return serial;
 }
 
 }  // namespace internal
 
-void Arena::OnArenaAllocation(const std::type_info* allocated_type,
-                              size_t n) const {
-  if (on_arena_allocation_ != NULL) {
-    on_arena_allocation_(allocated_type, n, hooks_cookie_);
-  }
+PROTOBUF_FUNC_ALIGN(32)
+void* Arena::AllocateAlignedNoHook(size_t n) {
+  return impl_.AllocateAligned(n, nullptr);
+}
+
+PROTOBUF_FUNC_ALIGN(32)
+void* Arena::AllocateAlignedWithHook(size_t n, const std::type_info* type) {
+  return impl_.AllocateAligned(n, type);
+}
+
+PROTOBUF_FUNC_ALIGN(32)
+std::pair<void*, internal::SerialArena::CleanupNode*>
+Arena::AllocateAlignedWithCleanup(size_t n, const std::type_info* type) {
+  return impl_.AllocateAlignedWithCleanup(n, type);
 }
 
 }  // namespace protobuf
 }  // namespace google
+
+#include <google/protobuf/port_undef.inc>

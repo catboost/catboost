@@ -39,14 +39,13 @@ class TCoroTest: public TTestBase {
     UNIT_TEST(TestFastPathWakeSelect)
     UNIT_TEST(TestLegacyCancelYieldRaceBug)
     UNIT_TEST(TestJoinRescheduleBug);
-    UNIT_TEST(TestStackAlignmentLogic);
-    UNIT_TEST(TestStackCanaries);
-    UNIT_TEST(TestStackPages);
     UNIT_TEST(TestEventQueue)
     UNIT_TEST(TestNestedExecutor)
     UNIT_TEST(TestComputeCoroutineYield)
     UNIT_TEST(TestPollEngines);
     UNIT_TEST(TestUserEvent);
+    UNIT_TEST(TestPause);
+    UNIT_TEST(TestOverrideTime);
     UNIT_TEST_SUITE_END();
 
 public:
@@ -72,14 +71,13 @@ public:
     void TestFastPathWakeSelect();
     void TestLegacyCancelYieldRaceBug();
     void TestJoinRescheduleBug();
-    void TestStackAlignmentLogic();
-    void TestStackCanaries();
-    void TestStackPages();
     void TestEventQueue();
     void TestNestedExecutor();
     void TestComputeCoroutineYield();
     void TestPollEngines();
     void TestUserEvent();
+    void TestPause();
+    void TestOverrideTime();
 };
 
 void TCoroTest::TestException() {
@@ -845,65 +843,6 @@ void TCoroTest::TestJoinRescheduleBug() {
     UNIT_ASSERT_EQUAL(state.SubCState, EState::Finished);
 }
 
-void TCoroTest::TestStackAlignmentLogic() {
-    char mem[4096 * 8] = {};
-
-    for (ui32 guardAlign : {32, 4096}) {
-        for (ui32 sz = 0; sz < 2 * guardAlign; sz += guardAlign / 32) {
-            UNIT_ASSERT_GE(NCoro::NPrivate::RawStackSize(sz, guardAlign), sz + 4 * guardAlign);
-        }
-
-        for (ui32 off = 0; off < 2 * guardAlign; off += guardAlign / 32) {
-            for (ui32 sz = 0; sz < 2 * guardAlign; sz += guardAlign / 32) {
-                const auto beg = mem + off;
-                const auto rawSz = NCoro::NPrivate::RawStackSize(sz, guardAlign);
-                const auto range = NCoro::NPrivate::AlignedRange(beg, rawSz, guardAlign);
-
-                // The range beginning is properly aligned
-                UNIT_ASSERT_EQUAL(range.data(), AlignUp(beg, guardAlign));
-                // The range end is also propery aligned
-                UNIT_ASSERT_VALUES_EQUAL(range.end(), AlignDown(range.end(), guardAlign));
-                // The range capacity is enough to accomodate 2 guard entities at the ends
-                UNIT_ASSERT_GE(range.size(), sz + 2 * guardAlign);
-            }
-        }
-    }
-}
-
-void TCoroTest::TestStackCanaries() {
-    {
-        NCoro::TStack s(1, NCoro::TStack::EGuard::Canary);
-        UNIT_ASSERT_GE(s.Get().size(), 32);
-        UNIT_ASSERT_VALUES_EQUAL(((size_t)s.Get().data()) & 31, 0);
-        memset(s.Get().data(), 0, s.Get().size());
-        UNIT_ASSERT(s.LowerCanaryOk());
-        UNIT_ASSERT(s.UpperCanaryOk());
-    }
-    {
-        NCoro::TStack s(1, NCoro::TStack::EGuard::Canary);
-        UNIT_ASSERT_GE(s.Get().size(), 32);
-        UNIT_ASSERT_VALUES_EQUAL(((size_t)s.Get().data()) & 31, 0);
-        memset(s.Get().data() - 1, 0, s.Get().size() + 1);
-        UNIT_ASSERT(!s.LowerCanaryOk());
-        UNIT_ASSERT(s.UpperCanaryOk());
-    }
-    {
-        NCoro::TStack s(1, NCoro::TStack::EGuard::Canary);
-        UNIT_ASSERT_GE(s.Get().size(), 32);
-        UNIT_ASSERT_VALUES_EQUAL(((size_t)s.Get().data()) & 31, 0);
-        memset(s.Get().data(), 0, s.Get().size() + 1);
-        UNIT_ASSERT(s.LowerCanaryOk());
-        UNIT_ASSERT(!s.UpperCanaryOk());
-    }
-}
-
-void TCoroTest::TestStackPages() {
-    NCoro::TStack s(1, NCoro::TStack::EGuard::Page);
-    UNIT_ASSERT_GE(s.Get().size(), NSystemInfo::GetPageSize());
-    UNIT_ASSERT_VALUES_EQUAL(((ptrdiff_t)s.Get().data()) & (NSystemInfo::GetPageSize() - 1), 0);
-    memset(s.Get().data(), 0, s.Get().size());
-}
-
 void TCoroTest::TestEventQueue() {
     NCoro::TEventWaitQueue queue;
     UNIT_ASSERT(queue.Empty());
@@ -1003,6 +942,23 @@ void TCoroTest::TestPollEngines() {
     UNIT_ASSERT(defaultChecked);
 }
 
+void TCoroTest::TestPause() {
+    TContExecutor executor{1024*1024, IPollerFace::Default(), nullptr, NCoro::NStack::EGuard::Canary, Nothing()};
+
+    int i = 0;
+    executor.CreateOwned([&](TCont*) {
+        i++;
+        executor.Pause();
+        i++;
+    }, "coro");
+
+    UNIT_ASSERT_EQUAL(i, 0);
+    executor.Execute();
+    UNIT_ASSERT_EQUAL(i, 1);
+    executor.Execute();
+    UNIT_ASSERT_EQUAL(i, 2);
+}
+
 void TCoroTest::TestUserEvent() {
     TContExecutor exec(32000);
 
@@ -1024,5 +980,28 @@ void TCoroTest::TestUserEvent() {
     exec.Execute(f);
 
     UNIT_ASSERT(event.Called);
+}
+
+void TCoroTest::TestOverrideTime() {
+    class TTime: public NCoro::ITime {
+      public:
+        TInstant Now() override {
+            return Current;
+        }
+
+        TInstant Current = TInstant::Zero();
+    };
+
+    TTime time;
+    TContExecutor executor{1024*1024, IPollerFace::Default(), nullptr, NCoro::NStack::EGuard::Canary, Nothing(), &time};
+
+    executor.CreateOwned([&](TCont* cont) {
+        UNIT_ASSERT_EQUAL(cont->Executor()->Now(), TInstant::Zero());
+        time.Current = TInstant::Seconds(1);
+        cont->SleepD(TInstant::Seconds(1));
+        UNIT_ASSERT_EQUAL(cont->Executor()->Now(), TInstant::Seconds(1));
+    }, "coro");
+
+    executor.Execute();
 }
 UNIT_TEST_SUITE_REGISTRATION(TCoroTest);

@@ -194,7 +194,7 @@ static double RunOnCpu(
     for (ui32 iteration = 0; iteration < iterationCount; ++iteration) {
         CATBOOST_INFO_LOG << "cpu: " << LabeledOutput(description, threadCount, iteration) << "; started" << '\n';
         timer.Reset();
-        const auto ndcg = evaluator->Eval(
+        const auto ndcg = dynamic_cast<const ISingleTargetEval*>(evaluator.Get())->Eval(
             approxes,
             data.Targets,
             dummyWeights,

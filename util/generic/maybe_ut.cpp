@@ -7,16 +7,16 @@
 
 class TIncrementOnDestroy {
 private:
-    int* Ptr;
+    int* Ptr_;
 
 public:
     TIncrementOnDestroy(int* ptr) noexcept
-        : Ptr(ptr)
+        : Ptr_(ptr)
     {
     }
 
     ~TIncrementOnDestroy() {
-        ++*Ptr;
+        ++*Ptr_;
     }
 };
 
@@ -971,10 +971,14 @@ Y_UNIT_TEST_SUITE(TMaybeTest) {
             bool FromMaybeConstructorApplied;
 
             explicit TDst(TSrc)
-                : FromMaybeConstructorApplied(false) {}
+                : FromMaybeConstructorApplied(false)
+            {
+            }
 
             explicit TDst(TMaybe<TSrc>)
-                : FromMaybeConstructorApplied(true) {}
+                : FromMaybeConstructorApplied(true)
+            {
+            }
 
             TDst& operator=(TSrc) {
                 FromMaybeConstructorApplied = false;

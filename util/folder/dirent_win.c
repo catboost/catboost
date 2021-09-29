@@ -2,22 +2,22 @@
 
 #ifdef _win_
 
-#include <stdio.h>
-#include "dirent_win.h"
+    #include <stdio.h>
+    #include "dirent_win.h"
 
-#if defined(_MSC_VER) && (_MSC_VER < 1900)
+    #if defined(_MSC_VER) && (_MSC_VER < 1900)
 void __cdecl _dosmaperr(unsigned long);
 
 static void SetErrno() {
     _dosmaperr(GetLastError());
 }
-#else
+    #else
 void __cdecl __acrt_errno_map_os_error(unsigned long const oserrno);
 
 static void SetErrno() {
     __acrt_errno_map_os_error(GetLastError());
 }
-#endif
+    #endif
 
 struct DIR* opendir(const char* dirname) {
     struct DIR* dir = (struct DIR*)malloc(sizeof(struct DIR));

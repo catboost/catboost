@@ -56,4 +56,19 @@ Y_UNIT_TEST_SUITE(TFileTest) {
             UNIT_ASSERT(s.empty());
         }
     }
+
+#ifdef _unix_
+    Y_UNIT_TEST(PipeReadLineTest) {
+        int fds[2];
+        UNIT_ASSERT(pipe(fds) == 0);
+        TFile readEnd(fds[0]);
+        TFileInput fileInput(readEnd);
+        UNIT_ASSERT_VALUES_EQUAL(write(fds[1], "hello\n", 6), 6);
+
+        TString line;
+        UNIT_ASSERT(fileInput.ReadLine(line));
+        UNIT_ASSERT_STRINGS_EQUAL(line, "hello");
+        close(fds[1]);
+    }
+#endif
 }

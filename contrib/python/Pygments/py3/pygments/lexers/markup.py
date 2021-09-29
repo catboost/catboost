@@ -121,7 +121,7 @@ class RstLexer(RegexLexer):
         .. versionadded:: 0.8
     """
     name = 'reStructuredText'
-    aliases = ['rst', 'rest', 'restructuredtext']
+    aliases = ['restructuredtext', 'rst', 'rest']
     filenames = ['*.rst', '*.rest']
     mimetypes = ["text/x-rst", "text/prs.fallenstein.rst"]
     flags = re.MULTILINE
@@ -501,8 +501,8 @@ class MarkdownLexer(RegexLexer):
 
     .. versionadded:: 2.2
     """
-    name = 'markdown'
-    aliases = ['md', 'markdown']
+    name = 'Markdown'
+    aliases = ['markdown', 'md']
     filenames = ['*.md', '*.markdown']
     mimetypes = ["text/x-markdown"]
     flags = re.MULTILINE

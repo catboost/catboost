@@ -12,8 +12,8 @@ struct tm* GmTimeR(const time_t* timer, struct tm* tmbuf);
 TString CTimeR(const time_t* timer);
 
 #ifdef _win_
-#include <util/system/winint.h>
-#include <winsock2.h>
+    #include <util/system/winint.h>
+    #include <winsock2.h>
 
 void FileTimeToTimeval(const FILETIME* ft, struct timeval* tv);
 
@@ -31,17 +31,17 @@ inline time_t timegm(struct tm* t) {
 
 char* strptime(const char* buf, const char* fmt, struct tm* tm); // strptime.cpp
 #else
-#include <sys/time.h>
+    #include <sys/time.h>
 #endif
 
 #ifndef timersub
-#define timersub(tvp, uvp, vvp)                           \
-    do {                                                  \
-        (vvp)->tv_sec = (tvp)->tv_sec - (uvp)->tv_sec;    \
-        (vvp)->tv_usec = (tvp)->tv_usec - (uvp)->tv_usec; \
-        if ((vvp)->tv_usec < 0) {                         \
-            (vvp)->tv_sec--;                              \
-            (vvp)->tv_usec += 1000000;                    \
-        }                                                 \
-    } while (0)
+    #define timersub(tvp, uvp, vvp)                           \
+        do {                                                  \
+            (vvp)->tv_sec = (tvp)->tv_sec - (uvp)->tv_sec;    \
+            (vvp)->tv_usec = (tvp)->tv_usec - (uvp)->tv_usec; \
+            if ((vvp)->tv_usec < 0) {                         \
+                (vvp)->tv_sec--;                              \
+                (vvp)->tv_usec += 1000000;                    \
+            }                                                 \
+        } while (0)
 #endif

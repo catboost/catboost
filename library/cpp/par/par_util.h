@@ -4,7 +4,7 @@
 
 #include <library/cpp/binsaver/mem_io.h>
 
-#include <util/generic/type_name.h>
+#include <util/system/type_name.h>
 #include <util/generic/vector.h>
 #include <util/system/compiler.h>
 #include <util/system/event.h>
@@ -22,7 +22,7 @@ namespace NPar {
             const IObjectBase* obj = ctx->GetContextData(envId, hostId);
             if (obj) {
                 if (Y_UNLIKELY(typeid(*obj) != typeid(T))) {
-                    const auto objTypeName = TypeName(obj);
+                    const auto objTypeName = TypeName(*obj);
                     const auto expectedTypeName = TypeName<T>();
                     Y_FAIL("type mismatch: %s != %s", objTypeName.c_str(), expectedTypeName.c_str());
                 }

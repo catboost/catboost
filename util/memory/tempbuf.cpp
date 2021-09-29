@@ -11,7 +11,7 @@
 #include <util/thread/singleton.h>
 
 #ifndef TMP_BUF_LEN
-#define TMP_BUF_LEN (64 * 1024)
+    #define TMP_BUF_LEN (64 * 1024)
 #endif
 
 class TTempBuf::TImpl: public TRefCounted<TImpl, TSimpleCounter, TImpl> {
@@ -275,9 +275,9 @@ bool TTempBuf::IsNull() const noexcept {
 }
 
 #if 0
-#include <util/datetime/cputimer.h>
+    #include <util/datetime/cputimer.h>
 
-#define LEN (1024)
+    #define LEN (1024)
 
 void* allocaFunc() {
     return alloca(LEN);

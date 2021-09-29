@@ -57,7 +57,7 @@ namespace NCB {
     );
 
     // Integer target type is stored as ITypedSequencePtr<float>
-    using TRawTarget = TVariant<ITypedSequencePtr<float>, TVector<TString>>;
+    using TRawTarget = std::variant<ITypedSequencePtr<float>, TVector<TString>>;
 
 
     // for use while building

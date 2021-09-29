@@ -17,6 +17,9 @@
 
 namespace std
 {
+// [rand.req.urng], uniform random bit generator requirements
+template<class G>
+concept uniform_random_bit_generator = see below; // C++20
 
 // Engines
 
@@ -36,7 +39,9 @@ public:
     static constexpr result_type default_seed = 1u;
 
     // constructors and seeding functions
-    explicit linear_congruential_engine(result_type s = default_seed);
+    explicit linear_congruential_engine(result_type s = default_seed);         // before C++20
+    linear_congruential_engine() : linear_congruential_engine(default_seed) {} // C++20
+    explicit linear_congruential_engine(result_type s);                        // C++20
     template<class Sseq> explicit linear_congruential_engine(Sseq& q);
     void seed(result_type s = default_seed);
     template<class Sseq> void seed(Sseq& q);
@@ -96,7 +101,9 @@ public:
     static constexpr result_type default_seed = 5489u;
 
     // constructors and seeding functions
-    explicit mersenne_twister_engine(result_type value = default_seed);
+    explicit mersenne_twister_engine(result_type s = default_seed);      // before C++20
+    mersenne_twister_engine() : mersenne_twister_engine(default_seed) {} // C++20
+    explicit mersenne_twister_engine(result_type s);                     // C++20
     template<class Sseq> explicit mersenne_twister_engine(Sseq& q);
     void seed(result_type value = default_seed);
     template<class Sseq> void seed(Sseq& q);
@@ -154,7 +161,9 @@ public:
     static constexpr result_type default_seed = 19780503u;
 
     // constructors and seeding functions
-    explicit subtract_with_carry_engine(result_type value = default_seed);
+    explicit subtract_with_carry_engine(result_type value = default_seed);     // before C++20
+    subtract_with_carry_engine() : subtract_with_carry_engine(default_seed) {} // C++20
+    explicit subtract_with_carry_engine(result_type value);                    // C++20
     template<class Sseq> explicit subtract_with_carry_engine(Sseq& q);
     void seed(result_type value = default_seed);
     template<class Sseq> void seed(Sseq& q);
@@ -385,7 +394,9 @@ public:
     static constexpr result_type max() { return numeric_limits<result_type>::max(); }
 
     // constructors
-    explicit random_device(const string& token = "/dev/urandom");
+    explicit random_device(const string& token = implementation-defined); // before C++20
+    random_device() : random_device(implementation-defined) {}            // C++20
+    explicit random_device(const string& token);                          // C++20
 
     // generating functions
     result_type operator()();
@@ -456,7 +467,10 @@ public:
 
     // constructors and reset functions
     explicit uniform_int_distribution(IntType a = 0,
-                                    IntType b = numeric_limits<IntType>::max());
+                                      IntType b = numeric_limits<IntType>::max()); // before C++20
+    uniform_int_distribution() : uniform_int_distribution(0) {}                    // C++20
+    explicit uniform_int_distribution(IntType a,
+                                      IntType b = numeric_limits<IntType>::max()); // C++20
     explicit uniform_int_distribution(const param_type& parm);
     void reset();
 
@@ -515,7 +529,9 @@ public:
     };
 
     // constructors and reset functions
-    explicit uniform_real_distribution(RealType a = 0.0, RealType b = 1.0);
+    explicit uniform_real_distribution(RealType a = 0.0, RealType b = 1.0); // before C++20
+    uniform_real_distribution() : uniform_real_distribution(0.0) {}         // C++20
+    explicit uniform_real_distribution(RealType a, RealType b = 1.0);       // C++20
     explicit uniform_real_distribution(const param_type& parm);
     void reset();
 
@@ -571,7 +587,9 @@ public:
     };
 
     // constructors and reset functions
-    explicit bernoulli_distribution(double p = 0.5);
+    explicit bernoulli_distribution(double p = 0.5);          // before C++20
+    bernoulli_distribution() : bernoulli_distribution(0.5) {} // C++20
+    explicit bernoulli_distribution(double p);                // C++20
     explicit bernoulli_distribution(const param_type& parm);
     void reset();
 
@@ -628,7 +646,9 @@ public:
     };
 
     // constructors and reset functions
-    explicit binomial_distribution(IntType t = 1, double p = 0.5);
+    explicit binomial_distribution(IntType t = 1, double p = 0.5); // before C++20
+    binomial_distribution() : binomial_distribution(1) {}          // C++20
+    explicit binomial_distribution(IntType t, double p = 0.5);     // C++20
     explicit binomial_distribution(const param_type& parm);
     void reset();
 
@@ -685,7 +705,9 @@ public:
     };
 
     // constructors and reset functions
-    explicit geometric_distribution(double p = 0.5);
+    explicit geometric_distribution(double p = 0.5);          // before C++20
+    geometric_distribution() : geometric_distribution(0.5) {} // C++20
+    explicit geometric_distribution(double p);                // C++20
     explicit geometric_distribution(const param_type& parm);
     void reset();
 
@@ -742,7 +764,9 @@ public:
     };
 
     // constructor and reset functions
-    explicit negative_binomial_distribution(result_type k = 1, double p = 0.5);
+    explicit negative_binomial_distribution(IntType k = 1, double p = 0.5); // before C++20
+    negative_binomial_distribution() : negative_binomial_distribution(1) {} // C++20
+    explicit negative_binomial_distribution(IntType k, double p = 0.5);     // C++20
     explicit negative_binomial_distribution(const param_type& parm);
     void reset();
 
@@ -799,7 +823,9 @@ public:
     };
 
     // constructors and reset functions
-    explicit poisson_distribution(double mean = 1.0);
+    explicit poisson_distribution(double mean = 1.0);     // before C++20
+    poisson_distribution() : poisson_distribution(1.0) {} // C++20
+    explicit poisson_distribution(double mean);           // C++20
     explicit poisson_distribution(const param_type& parm);
     void reset();
 
@@ -855,7 +881,9 @@ public:
     };
 
     // constructors and reset functions
-    explicit exponential_distribution(result_type lambda = 1.0);
+    explicit exponential_distribution(RealType lambda = 1.0);     // before C++20
+    exponential_distribution() : exponential_distribution(1.0) {} // C++20
+    explicit exponential_distribution(RealType lambda);           // C++20
     explicit exponential_distribution(const param_type& parm);
     void reset();
 
@@ -912,7 +940,9 @@ public:
     };
 
     // constructors and reset functions
-    explicit gamma_distribution(result_type alpha = 1, result_type beta = 1);
+    explicit gamma_distribution(RealType alpha = 0.0, RealType beta = 1.0); // before C++20
+    gamma_distribution() : gamma_distribution(0.0) {}                       // C++20
+    explicit gamma_distribution(RealType alpha, RealType beta = 1.0);       // C++20
     explicit gamma_distribution(const param_type& parm);
     void reset();
 
@@ -970,7 +1000,9 @@ public:
     };
 
     // constructor and reset functions
-    explicit weibull_distribution(result_type a = 1, result_type b = 1);
+    explicit weibull_distribution(RealType a = 1.0, RealType b = 1.0); // before C++20
+    weibull_distribution() : weibull_distribution(1.0) {}              // C++20
+    explicit weibull_distribution(RealType a, RealType b = 1.0);       // C++20
     explicit weibull_distribution(const param_type& parm);
     void reset();
 
@@ -1028,7 +1060,9 @@ public:
     };
 
     // constructor and reset functions
-    explicit extreme_value_distribution(result_type a = 0, result_type b = 1);
+    explicit extreme_value_distribution(RealType a = 0.0, RealType b = 1.0); // before C++20
+    extreme_value_distribution() : extreme_value_distribution(0.0) {}        // C++20
+    explicit extreme_value_distribution(RealType a, RealType b = 1.0);       // C++20
     explicit extreme_value_distribution(const param_type& parm);
     void reset();
 
@@ -1086,7 +1120,9 @@ public:
     };
 
     // constructors and reset functions
-    explicit normal_distribution(result_type mean = 0, result_type stddev = 1);
+    explicit normal_distribution(RealType mean = 0.0, RealType stddev = 1.0); // before C++20
+    normal_distribution() : normal_distribution(0.0) {}                       // C++20
+    explicit normal_distribution(RealType mean, RealType stddev = 1.0);       // C++20
     explicit normal_distribution(const param_type& parm);
     void reset();
 
@@ -1144,7 +1180,9 @@ public:
     };
 
     // constructor and reset functions
-    explicit lognormal_distribution(result_type m = 0, result_type s = 1);
+    explicit lognormal_distribution(RealType mean = 0.0, RealType stddev = 1.0); // before C++20
+    lognormal_distribution() : lognormal_distribution(0.0) {}                    // C++20
+    explicit lognormal_distribution(RealType mean, RealType stddev = 1.0);       // C++20
     explicit lognormal_distribution(const param_type& parm);
     void reset();
 
@@ -1201,7 +1239,9 @@ public:
     };
 
     // constructor and reset functions
-    explicit chi_squared_distribution(result_type n = 1);
+    explicit chi_squared_distribution(RealType n = 1.0);          // before C++20
+    chi_squared_distribution() : chi_squared_distribution(1.0) {} // C++20
+    explicit chi_squared_distribution(RealType n);                // C++20
     explicit chi_squared_distribution(const param_type& parm);
     void reset();
 
@@ -1258,7 +1298,9 @@ public:
     };
 
     // constructor and reset functions
-    explicit cauchy_distribution(result_type a = 0, result_type b = 1);
+    explicit cauchy_distribution(RealType a = 0.0, RealType b = 1.0); // before C++20
+    cauchy_distribution() : cauchy_distribution(0.0) {}               // C++20
+    explicit cauchy_distribution(RealType a, RealType b = 1.0);       // C++20
     explicit cauchy_distribution(const param_type& parm);
     void reset();
 
@@ -1316,7 +1358,9 @@ public:
     };
 
     // constructor and reset functions
-    explicit fisher_f_distribution(result_type m = 1, result_type n = 1);
+    explicit fisher_f_distribution(RealType m = 1.0, RealType n = 1.0); // before C++20
+    fisher_f_distribution() : fisher_f_distribution(1.0) {}             // C++20
+    explicit fisher_f_distribution(RealType m, RealType n = 1.0);       // C++20
     explicit fisher_f_distribution(const param_type& parm);
     void reset();
 
@@ -1373,7 +1417,9 @@ public:
     };
 
     // constructor and reset functions
-    explicit student_t_distribution(result_type n = 1);
+    explicit student_t_distribution(RealType n = 1.0);        // before C++20
+    student_t_distribution() : student_t_distribution(1.0) {} // C++20
+    explicit student_t_distribution(RealType n);              // C++20
     explicit student_t_distribution(const param_type& parm);
     void reset();
 
@@ -1635,6 +1681,7 @@ class piecewise_linear_distribution
 #include <cstddef>
 #include <cstdint>
 #include <cmath>
+#include <concepts>
 #include <type_traits>
 #include <initializer_list>
 #include <limits>
@@ -1642,8 +1689,7 @@ class piecewise_linear_distribution
 #include <numeric>
 #include <vector>
 #include <string>
-#include <istream>
-#include <ostream>
+#include <iosfwd>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
 #pragma GCC system_header
@@ -1654,6 +1700,20 @@ _LIBCPP_PUSH_MACROS
 
 
 _LIBCPP_BEGIN_NAMESPACE_STD
+
+#if _LIBCPP_STD_VER > 17 && !defined(_LIBCPP_HAS_NO_CONCEPTS)
+
+// [rand.req.urng]
+template<class _Gen>
+concept uniform_random_bit_generator =
+  invocable<_Gen&> && unsigned_integral<invoke_result_t<_Gen&>> &&
+  requires {
+    { _Gen::min() } -> same_as<invoke_result_t<_Gen&>>;
+    { _Gen::max() } -> same_as<invoke_result_t<_Gen&>>;
+    requires bool_constant<(_Gen::min() < _Gen::max())>::value;
+  };
+
+#endif // _LIBCPP_STD_VER > 17 && !defined(_LIBCPP_HAS_NO_CONCEPTS)
 
 // __is_seed_sequence
 
@@ -1669,7 +1729,23 @@ struct __is_seed_sequence
 
 template <unsigned long long __a, unsigned long long __c,
           unsigned long long __m, unsigned long long _Mp,
-          bool _MightOverflow = (__a != 0 && __m != 0 && __m-1 > (_Mp-__c)/__a)>
+          bool _MightOverflow = (__a != 0 && __m != 0 && __m-1 > (_Mp-__c)/__a),
+          bool _OverflowOK = ((__m|__m-1) > __m), // m = 2^n
+          bool _SchrageOK = (__a != 0 && __m != 0 && __m % __a <= __m / __a)> // r <= q
+struct __lce_alg_picker
+{
+    static_assert(__a != 0 || __m != 0 || !_MightOverflow || _OverflowOK || _SchrageOK,
+                  "The current values of a, c, and m cannot generate a number "
+                  "within bounds of linear_congruential_engine.");
+
+    static _LIBCPP_CONSTEXPR const bool __use_schrage = _MightOverflow &&
+                                                        !_OverflowOK &&
+                                                        _SchrageOK;
+};
+
+template <unsigned long long __a, unsigned long long __c,
+          unsigned long long __m, unsigned long long _Mp,
+          bool _UseSchrage = __lce_alg_picker<__a, __c, __m, _Mp>::__use_schrage>
 struct __lce_ta;
 
 // 64
@@ -1843,6 +1919,7 @@ private:
 
     static_assert(__m == 0 || __a < __m, "linear_congruential_engine invalid parameters");
     static_assert(__m == 0 || __c < __m, "linear_congruential_engine invalid parameters");
+    static_assert(_VSTD::is_unsigned<_UIntType>::value, "_UIntType must be unsigned type");
 public:
     static _LIBCPP_CONSTEXPR const result_type _Min = __c == 0u ? 1u: 0u;
     static _LIBCPP_CONSTEXPR const result_type _Max = __m - 1u;
@@ -1859,9 +1936,17 @@ public:
     static _LIBCPP_CONSTEXPR const result_type default_seed = 1u;
 
     // constructors and seeding functions
+#ifndef _LIBCPP_CXX03_LANG
     _LIBCPP_INLINE_VISIBILITY
-    explicit linear_congruential_engine(result_type __s = default_seed)
-        {seed(__s);}
+    linear_congruential_engine() : linear_congruential_engine(default_seed) {}
+    _LIBCPP_INLINE_VISIBILITY
+    explicit linear_congruential_engine(result_type __s) { seed(__s); }
+#else
+    _LIBCPP_INLINE_VISIBILITY
+    explicit linear_congruential_engine(result_type __s = default_seed) {
+      seed(__s);
+    }
+#endif
     template<class _Sseq>
         _LIBCPP_INLINE_VISIBILITY
         explicit linear_congruential_engine(_Sseq& __q,
@@ -1982,7 +2067,8 @@ operator<<(basic_ostream<_CharT, _Traits>& __os,
            const linear_congruential_engine<_UIntType, __a, __c, __m>& __x)
 {
     __save_flags<_CharT, _Traits> __lx(__os);
-    __os.flags(ios_base::dec | ios_base::left);
+    typedef basic_ostream<_CharT, _Traits> _Ostream;
+    __os.flags(_Ostream::dec | _Ostream::left);
     __os.fill(__os.widen(' '));
     return __os << __x.__x_;
 }
@@ -1994,7 +2080,8 @@ operator>>(basic_istream<_CharT, _Traits>& __is,
            linear_congruential_engine<_UIntType, __a, __c, __m>& __x)
 {
     __save_flags<_CharT, _Traits> __lx(__is);
-    __is.flags(ios_base::dec | ios_base::skipws);
+    typedef basic_istream<_CharT, _Traits> _Istream;
+    __is.flags(_Istream::dec | _Istream::skipws);
     _UIntType __t;
     __is >> __t;
     if (!__is.fail())
@@ -2113,9 +2200,17 @@ public:
     static _LIBCPP_CONSTEXPR const result_type default_seed = 5489u;
 
     // constructors and seeding functions
+#ifndef _LIBCPP_CXX03_LANG
     _LIBCPP_INLINE_VISIBILITY
-    explicit mersenne_twister_engine(result_type __sd = default_seed)
-        {seed(__sd);}
+    mersenne_twister_engine() : mersenne_twister_engine(default_seed) {}
+    _LIBCPP_INLINE_VISIBILITY
+    explicit mersenne_twister_engine(result_type __sd) { seed(__sd); }
+#else
+    _LIBCPP_INLINE_VISIBILITY
+    explicit mersenne_twister_engine(result_type __sd = default_seed) {
+      seed(__sd);
+    }
+#endif
     template<class _Sseq>
         _LIBCPP_INLINE_VISIBILITY
         explicit mersenne_twister_engine(_Sseq& __q,
@@ -2460,7 +2555,8 @@ operator<<(basic_ostream<_CharT, _Traits>& __os,
                                          _Bp, _Tp, _Cp, _Lp, _Fp>& __x)
 {
     __save_flags<_CharT, _Traits> __lx(__os);
-    __os.flags(ios_base::dec | ios_base::left);
+    typedef basic_ostream<_CharT, _Traits> _Ostream;
+    __os.flags(_Ostream::dec | _Ostream::left);
     _CharT __sp = __os.widen(' ');
     __os.fill(__sp);
     __os << __x.__x_[__x.__i_];
@@ -2481,7 +2577,8 @@ operator>>(basic_istream<_CharT, _Traits>& __is,
                                    _Bp, _Tp, _Cp, _Lp, _Fp>& __x)
 {
     __save_flags<_CharT, _Traits> __lx(__is);
-    __is.flags(ios_base::dec | ios_base::skipws);
+    typedef basic_istream<_CharT, _Traits> _Istream;
+    __is.flags(_Istream::dec | _Istream::skipws);
     _UInt __t[_Np];
     for (size_t __i = 0; __i < _Np; ++__i)
         __is >> __t[__i];
@@ -2569,9 +2666,17 @@ public:
     static _LIBCPP_CONSTEXPR const result_type default_seed = 19780503u;
 
     // constructors and seeding functions
+#ifndef _LIBCPP_CXX03_LANG
     _LIBCPP_INLINE_VISIBILITY
-    explicit subtract_with_carry_engine(result_type __sd = default_seed)
-        {seed(__sd);}
+    subtract_with_carry_engine() : subtract_with_carry_engine(default_seed) {}
+    _LIBCPP_INLINE_VISIBILITY
+    explicit subtract_with_carry_engine(result_type __sd) { seed(__sd); }
+#else
+    _LIBCPP_INLINE_VISIBILITY
+    explicit subtract_with_carry_engine(result_type __sd = default_seed) {
+      seed(__sd);
+    }
+#endif
     template<class _Sseq>
         _LIBCPP_INLINE_VISIBILITY
         explicit subtract_with_carry_engine(_Sseq& __q,
@@ -2780,7 +2885,8 @@ operator<<(basic_ostream<_CharT, _Traits>& __os,
            const subtract_with_carry_engine<_UInt, _Wp, _Sp, _Rp>& __x)
 {
     __save_flags<_CharT, _Traits> __lx(__os);
-    __os.flags(ios_base::dec | ios_base::left);
+    typedef basic_ostream<_CharT, _Traits> _Ostream;
+    __os.flags(_Ostream::dec | _Ostream::left);
     _CharT __sp = __os.widen(' ');
     __os.fill(__sp);
     __os << __x.__x_[__x.__i_];
@@ -2799,7 +2905,8 @@ operator>>(basic_istream<_CharT, _Traits>& __is,
            subtract_with_carry_engine<_UInt, _Wp, _Sp, _Rp>& __x)
 {
     __save_flags<_CharT, _Traits> __lx(__is);
-    __is.flags(ios_base::dec | ios_base::skipws);
+    typedef basic_istream<_CharT, _Traits> _Istream;
+    __is.flags(_Istream::dec | _Istream::skipws);
     _UInt __t[_Rp+1];
     for (size_t __i = 0; __i < _Rp+1; ++__i)
         __is >> __t[__i];
@@ -2962,7 +3069,8 @@ operator<<(basic_ostream<_CharT, _Traits>& __os,
            const discard_block_engine<_Eng, _Pp, _Rp>& __x)
 {
     __save_flags<_CharT, _Traits> __lx(__os);
-    __os.flags(ios_base::dec | ios_base::left);
+    typedef basic_ostream<_CharT, _Traits> _Ostream;
+    __os.flags(_Ostream::dec | _Ostream::left);
     _CharT __sp = __os.widen(' ');
     __os.fill(__sp);
     return __os << __x.__e_ << __sp << __x.__n_;
@@ -2975,7 +3083,8 @@ operator>>(basic_istream<_CharT, _Traits>& __is,
            discard_block_engine<_Eng, _Pp, _Rp>& __x)
 {
     __save_flags<_CharT, _Traits> __lx(__is);
-    __is.flags(ios_base::dec | ios_base::skipws);
+    typedef basic_istream<_CharT, _Traits> _Istream;
+    __is.flags(_Istream::dec | _Istream::skipws);
     _Eng __e;
     int __n;
     __is >> __e >> __n;
@@ -3455,7 +3564,8 @@ operator<<(basic_ostream<_CharT, _Traits>& __os,
            const shuffle_order_engine<_Eng, _Kp>& __x)
 {
     __save_flags<_CharT, _Traits> __lx(__os);
-    __os.flags(ios_base::dec | ios_base::left);
+    typedef basic_ostream<_CharT, _Traits> _Ostream;
+    __os.flags(_Ostream::dec | _Ostream::left);
     _CharT __sp = __os.widen(' ');
     __os.fill(__sp);
     __os << __x.__e_ << __sp << __x._V_[0];
@@ -3472,7 +3582,8 @@ operator>>(basic_istream<_CharT, _Traits>& __is,
 {
     typedef typename shuffle_order_engine<_Eng, _Kp>::result_type result_type;
     __save_flags<_CharT, _Traits> __lx(__is);
-    __is.flags(ios_base::dec | ios_base::skipws);
+    typedef basic_istream<_CharT, _Traits> _Istream;
+    __is.flags(_Istream::dec | _Istream::skipws);
     _Eng __e;
     result_type _Vp[_Kp+1];
     __is >> __e;
@@ -3491,6 +3602,8 @@ operator>>(basic_istream<_CharT, _Traits>& __is,
 typedef shuffle_order_engine<minstd_rand0, 256>                         knuth_b;
 
 // random_device
+
+#if !defined(_LIBCPP_HAS_NO_RANDOM_DEVICE)
 
 class _LIBCPP_TYPE_VIS random_device
 {
@@ -3511,7 +3624,12 @@ public:
     static _LIBCPP_CONSTEXPR result_type max() { return _Max;}
 
     // constructors
+#ifndef _LIBCPP_CXX03_LANG
+    random_device() : random_device("/dev/urandom") {}
+    explicit random_device(const string& __token);
+#else
     explicit random_device(const string& __token = "/dev/urandom");
+#endif
     ~random_device();
 
     // generating functions
@@ -3525,6 +3643,8 @@ private:
     random_device(const random_device&); // = delete;
     random_device& operator=(const random_device&); // = delete;
 };
+
+#endif // !_LIBCPP_HAS_NO_RANDOM_DEVICE
 
 // seed_seq
 
@@ -3678,7 +3798,8 @@ operator<<(basic_ostream<_CharT, _Traits>& __os,
            const uniform_int_distribution<_IT>& __x)
 {
     __save_flags<_CharT, _Traits> __lx(__os);
-    __os.flags(ios_base::dec | ios_base::left);
+    typedef basic_ostream<_CharT, _Traits> _Ostream;
+    __os.flags(_Ostream::dec | _Ostream::left);
     _CharT __sp = __os.widen(' ');
     __os.fill(__sp);
     return __os << __x.a() << __sp << __x.b();
@@ -3693,7 +3814,8 @@ operator>>(basic_istream<_CharT, _Traits>& __is,
     typedef typename _Eng::result_type result_type;
     typedef typename _Eng::param_type param_type;
     __save_flags<_CharT, _Traits> __lx(__is);
-    __is.flags(ios_base::dec | ios_base::skipws);
+    typedef basic_istream<_CharT, _Traits> _Istream;
+    __is.flags(_Istream::dec | _Istream::skipws);
     result_type __a;
     result_type __b;
     __is >> __a >> __b;
@@ -3741,9 +3863,16 @@ private:
 
 public:
     // constructors and reset functions
+#ifndef _LIBCPP_CXX03_LANG
+    _LIBCPP_INLINE_VISIBILITY
+    uniform_real_distribution() : uniform_real_distribution(0) {}
+    explicit uniform_real_distribution(result_type __a, result_type __b = 1)
+        : __p_(param_type(__a, __b)) {}
+#else
     _LIBCPP_INLINE_VISIBILITY
     explicit uniform_real_distribution(result_type __a = 0, result_type __b = 1)
         : __p_(param_type(__a, __b)) {}
+#endif
     _LIBCPP_INLINE_VISIBILITY
     explicit uniform_real_distribution(const param_type& __p) : __p_(__p) {}
     _LIBCPP_INLINE_VISIBILITY
@@ -3799,8 +3928,9 @@ operator<<(basic_ostream<_CharT, _Traits>& __os,
            const uniform_real_distribution<_RT>& __x)
 {
     __save_flags<_CharT, _Traits> __lx(__os);
-    __os.flags(ios_base::dec | ios_base::left | ios_base::fixed |
-               ios_base::scientific);
+    typedef basic_ostream<_CharT, _Traits> _OStream;
+    __os.flags(_OStream::dec | _OStream::left | _OStream::fixed |
+               _OStream::scientific);
     _CharT __sp = __os.widen(' ');
     __os.fill(__sp);
     return __os << __x.a() << __sp << __x.b();
@@ -3815,7 +3945,8 @@ operator>>(basic_istream<_CharT, _Traits>& __is,
     typedef typename _Eng::result_type result_type;
     typedef typename _Eng::param_type param_type;
     __save_flags<_CharT, _Traits> __lx(__is);
-    __is.flags(ios_base::dec | ios_base::skipws);
+    typedef basic_istream<_CharT, _Traits> _Istream;
+    __is.flags(_Istream::dec | _Istream::skipws);
     result_type __a;
     result_type __b;
     __is >> __a >> __b;
@@ -3857,9 +3988,15 @@ private:
 
 public:
     // constructors and reset functions
+#ifndef _LIBCPP_CXX03_LANG
     _LIBCPP_INLINE_VISIBILITY
-    explicit bernoulli_distribution(double __p = 0.5)
-        : __p_(param_type(__p)) {}
+    bernoulli_distribution() : bernoulli_distribution(0.5) {}
+    _LIBCPP_INLINE_VISIBILITY
+    explicit bernoulli_distribution(double __p) : __p_(param_type(__p)) {}
+#else
+    _LIBCPP_INLINE_VISIBILITY
+    explicit bernoulli_distribution(double __p = 0.5) : __p_(param_type(__p)) {}
+#endif
     _LIBCPP_INLINE_VISIBILITY
     explicit bernoulli_distribution(const param_type& __p) : __p_(__p) {}
     _LIBCPP_INLINE_VISIBILITY
@@ -3910,8 +4047,9 @@ basic_ostream<_CharT, _Traits>&
 operator<<(basic_ostream<_CharT, _Traits>& __os, const bernoulli_distribution& __x)
 {
     __save_flags<_CharT, _Traits> __lx(__os);
-    __os.flags(ios_base::dec | ios_base::left | ios_base::fixed |
-               ios_base::scientific);
+    typedef basic_ostream<_CharT, _Traits> _OStream;
+    __os.flags(_OStream::dec | _OStream::left | _OStream::fixed |
+               _OStream::scientific);
     _CharT __sp = __os.widen(' ');
     __os.fill(__sp);
     return __os << __x.p();
@@ -3924,7 +4062,8 @@ operator>>(basic_istream<_CharT, _Traits>& __is, bernoulli_distribution& __x)
     typedef bernoulli_distribution _Eng;
     typedef typename _Eng::param_type param_type;
     __save_flags<_CharT, _Traits> __lx(__is);
-    __is.flags(ios_base::dec | ios_base::skipws);
+    typedef basic_istream<_CharT, _Traits> _Istream;
+    __is.flags(_Istream::dec | _Istream::skipws);
     double __p;
     __is >> __p;
     if (!__is.fail())
@@ -3973,9 +4112,17 @@ private:
 
 public:
     // constructors and reset functions
+#ifndef _LIBCPP_CXX03_LANG
+    _LIBCPP_INLINE_VISIBILITY
+    binomial_distribution() : binomial_distribution(1) {}
+    _LIBCPP_INLINE_VISIBILITY
+    explicit binomial_distribution(result_type __t, double __p = 0.5)
+        : __p_(param_type(__t, __p)) {}
+#else
     _LIBCPP_INLINE_VISIBILITY
     explicit binomial_distribution(result_type __t = 1, double __p = 0.5)
         : __p_(param_type(__t, __p)) {}
+#endif
     _LIBCPP_INLINE_VISIBILITY
     explicit binomial_distribution(const param_type& __p) : __p_(__p) {}
     _LIBCPP_INLINE_VISIBILITY
@@ -4014,12 +4161,12 @@ public:
         {return !(__x == __y);}
 };
 
-#ifndef _LIBCPP_MSVCRT
+#ifndef _LIBCPP_MSVCRT_LIKE
 extern "C" double lgamma_r(double, int *);
 #endif
 
 inline _LIBCPP_INLINE_VISIBILITY double __libcpp_lgamma(double __d) {
-#if defined(_LIBCPP_MSVCRT)
+#if defined(_LIBCPP_MSVCRT_LIKE)
   return lgamma(__d);
 #else
   int __sign;
@@ -4063,10 +4210,12 @@ binomial_distribution<_IntType>::operator()(_URNG& __g, const param_type& __pr)
     result_type __rd = __ru;
     while (true)
     {
+        bool __break = true;
         if (__rd >= 1)
         {
             __pd *= __rd / (__pr.__odds_ratio_ * (__pr.__t_ - __rd + 1));
             __u -= __pd;
+            __break = false;
             if (__u < 0)
                 return __rd - 1;
         }
@@ -4077,9 +4226,12 @@ binomial_distribution<_IntType>::operator()(_URNG& __g, const param_type& __pr)
         {
             __pu *= (__pr.__t_ - __ru + 1) * __pr.__odds_ratio_ / __ru;
             __u -= __pu;
+            __break = false;
             if (__u < 0)
                 return __ru;
         }
+        if (__break)
+            return 0;
     }
 }
 
@@ -4089,8 +4241,9 @@ operator<<(basic_ostream<_CharT, _Traits>& __os,
            const binomial_distribution<_IntType>& __x)
 {
     __save_flags<_CharT, _Traits> __lx(__os);
-    __os.flags(ios_base::dec | ios_base::left | ios_base::fixed |
-               ios_base::scientific);
+    typedef basic_ostream<_CharT, _Traits> _OStream;
+    __os.flags(_OStream::dec | _OStream::left | _OStream::fixed |
+               _OStream::scientific);
     _CharT __sp = __os.widen(' ');
     __os.fill(__sp);
     return __os << __x.t() << __sp << __x.p();
@@ -4105,7 +4258,8 @@ operator>>(basic_istream<_CharT, _Traits>& __is,
     typedef typename _Eng::result_type result_type;
     typedef typename _Eng::param_type param_type;
     __save_flags<_CharT, _Traits> __lx(__is);
-    __is.flags(ios_base::dec | ios_base::skipws);
+    typedef basic_istream<_CharT, _Traits> _Istream;
+    __is.flags(_Istream::dec | _Istream::skipws);
     result_type __t;
     double __p;
     __is >> __t >> __p;
@@ -4148,9 +4302,17 @@ private:
 
 public:
     // constructors and reset functions
+#ifndef _LIBCPP_CXX03_LANG
+    _LIBCPP_INLINE_VISIBILITY
+    exponential_distribution() : exponential_distribution(1) {}
+    _LIBCPP_INLINE_VISIBILITY
+    explicit exponential_distribution(result_type __lambda)
+        : __p_(param_type(__lambda)) {}
+#else
     _LIBCPP_INLINE_VISIBILITY
     explicit exponential_distribution(result_type __lambda = 1)
         : __p_(param_type(__lambda)) {}
+#endif
     _LIBCPP_INLINE_VISIBILITY
     explicit exponential_distribution(const param_type& __p) : __p_(__p) {}
     _LIBCPP_INLINE_VISIBILITY
@@ -4207,8 +4369,9 @@ operator<<(basic_ostream<_CharT, _Traits>& __os,
            const exponential_distribution<_RealType>& __x)
 {
     __save_flags<_CharT, _Traits> __lx(__os);
-    __os.flags(ios_base::dec | ios_base::left | ios_base::fixed |
-               ios_base::scientific);
+    typedef basic_ostream<_CharT, _Traits> _OStream;
+    __os.flags(_OStream::dec | _OStream::left | _OStream::fixed |
+               _OStream::scientific);
     return __os << __x.lambda();
 }
 
@@ -4221,7 +4384,8 @@ operator>>(basic_istream<_CharT, _Traits>& __is,
     typedef typename _Eng::result_type result_type;
     typedef typename _Eng::param_type param_type;
     __save_flags<_CharT, _Traits> __lx(__is);
-    __is.flags(ios_base::dec | ios_base::skipws);
+    typedef basic_istream<_CharT, _Traits> _Istream;
+    __is.flags(_Istream::dec | _Istream::skipws);
     result_type __lambda;
     __is >> __lambda;
     if (!__is.fail())
@@ -4269,9 +4433,18 @@ private:
 
 public:
     // constructors and reset functions
+#ifndef _LIBCPP_CXX03_LANG
     _LIBCPP_INLINE_VISIBILITY
-    explicit normal_distribution(result_type __mean = 0, result_type __stddev = 1)
+    normal_distribution() : normal_distribution(0) {}
+    _LIBCPP_INLINE_VISIBILITY
+    explicit normal_distribution(result_type __mean, result_type __stddev = 1)
         : __p_(param_type(__mean, __stddev)), _V_hot_(false) {}
+#else
+    _LIBCPP_INLINE_VISIBILITY
+    explicit normal_distribution(result_type __mean = 0,
+                                 result_type __stddev = 1)
+        : __p_(param_type(__mean, __stddev)), _V_hot_(false) {}
+#endif
     _LIBCPP_INLINE_VISIBILITY
     explicit normal_distribution(const param_type& __p)
         : __p_(__p), _V_hot_(false) {}
@@ -4361,8 +4534,9 @@ operator<<(basic_ostream<_CharT, _Traits>& __os,
            const normal_distribution<_RT>& __x)
 {
     __save_flags<_CharT, _Traits> __lx(__os);
-    __os.flags(ios_base::dec | ios_base::left | ios_base::fixed |
-               ios_base::scientific);
+    typedef basic_ostream<_CharT, _Traits> _OStream;
+    __os.flags(_OStream::dec | _OStream::left | _OStream::fixed |
+               _OStream::scientific);
     _CharT __sp = __os.widen(' ');
     __os.fill(__sp);
     __os << __x.mean() << __sp << __x.stddev() << __sp << __x._V_hot_;
@@ -4380,7 +4554,8 @@ operator>>(basic_istream<_CharT, _Traits>& __is,
     typedef typename _Eng::result_type result_type;
     typedef typename _Eng::param_type param_type;
     __save_flags<_CharT, _Traits> __lx(__is);
-    __is.flags(ios_base::dec | ios_base::skipws);
+    typedef basic_istream<_CharT, _Traits> _Istream;
+    __is.flags(_Istream::dec | _Istream::skipws);
     result_type __mean;
     result_type __stddev;
     result_type _Vp = 0;
@@ -4447,9 +4622,18 @@ private:
 
 public:
     // constructor and reset functions
+#ifndef _LIBCPP_CXX03_LANG
     _LIBCPP_INLINE_VISIBILITY
-    explicit lognormal_distribution(result_type __m = 0, result_type __s = 1)
+    lognormal_distribution() : lognormal_distribution(0) {}
+    _LIBCPP_INLINE_VISIBILITY
+    explicit lognormal_distribution(result_type __m, result_type __s = 1)
         : __p_(param_type(__m, __s)) {}
+#else
+    _LIBCPP_INLINE_VISIBILITY
+    explicit lognormal_distribution(result_type __m = 0,
+                                    result_type __s = 1)
+        : __p_(param_type(__m, __s)) {}
+#endif
     _LIBCPP_INLINE_VISIBILITY
     explicit lognormal_distribution(const param_type& __p)
         : __p_(__p) {}
@@ -4567,8 +4751,17 @@ private:
 
 public:
     // constructors and reset functions
+#ifndef _LIBCPP_CXX03_LANG
     _LIBCPP_INLINE_VISIBILITY
-    explicit poisson_distribution(double __mean = 1.0) : __p_(__mean) {}
+    poisson_distribution() : poisson_distribution(1.0) {}
+    _LIBCPP_INLINE_VISIBILITY
+    explicit poisson_distribution(double __mean)
+        : __p_(__mean) {}
+#else
+    _LIBCPP_INLINE_VISIBILITY
+    explicit poisson_distribution(double __mean = 1.0)
+        : __p_(__mean) {}
+#endif
     _LIBCPP_INLINE_VISIBILITY
     explicit poisson_distribution(const param_type& __p) : __p_(__p) {}
     _LIBCPP_INLINE_VISIBILITY
@@ -4628,7 +4821,7 @@ poisson_distribution<_IntType>::param_type::param_type(double __mean)
     {
         __s_ = _VSTD::sqrt(__mean_);
         __d_ = 6 * __mean_ * __mean_;
-        __l_ = std::trunc(__mean_ - 1.1484);
+        __l_ = _VSTD::trunc(__mean_ - 1.1484);
         __omega_ = .3989423 / __s_;
         double __b1_ = .4166667E-1 / __mean_;
         double __b2_ = .3 * __b1_ * __b1_;
@@ -4660,13 +4853,13 @@ poisson_distribution<_IntType>::operator()(_URNG& __urng, const param_type& __pr
         double __u;
         if (__g > 0)
         {
-            __tx = std::trunc(__g);
+            __tx = _VSTD::trunc(__g);
             if (__tx >= __pr.__l_)
-                return std::__clamp_to_integral<result_type>(__tx);
+                return _VSTD::__clamp_to_integral<result_type>(__tx);
             __difmuk = __pr.__mean_ - __tx;
             __u = __urd(__urng);
             if (__pr.__d_ * __u >= __difmuk * __difmuk * __difmuk)
-                return std::__clamp_to_integral<result_type>(__tx);
+                return _VSTD::__clamp_to_integral<result_type>(__tx);
         }
         exponential_distribution<double> __edist;
         for (bool __using_exp_dist = false; true; __using_exp_dist = true)
@@ -4682,7 +4875,7 @@ poisson_distribution<_IntType>::operator()(_URNG& __urng, const param_type& __pr
                     __u += __u - 1;
                     __t = 1.8 + (__u < 0 ? -__e : __e);
                 } while (__t <= -.6744);
-                __tx = std::trunc(__pr.__mean_ + __pr.__s_ * __t);
+                __tx = _VSTD::trunc(__pr.__mean_ + __pr.__s_ * __t);
                 __difmuk = __pr.__mean_ - __tx;
                 __using_exp_dist = true;
             }
@@ -4726,7 +4919,7 @@ poisson_distribution<_IntType>::operator()(_URNG& __urng, const param_type& __pr
             }
         }
     }
-    return std::__clamp_to_integral<result_type>(__tx);
+    return _VSTD::__clamp_to_integral<result_type>(__tx);
 }
 
 template <class _CharT, class _Traits, class _IntType>
@@ -4735,8 +4928,9 @@ operator<<(basic_ostream<_CharT, _Traits>& __os,
            const poisson_distribution<_IntType>& __x)
 {
     __save_flags<_CharT, _Traits> __lx(__os);
-    __os.flags(ios_base::dec | ios_base::left | ios_base::fixed |
-               ios_base::scientific);
+    typedef basic_ostream<_CharT, _Traits> _OStream;
+    __os.flags(_OStream::dec | _OStream::left | _OStream::fixed |
+               _OStream::scientific);
     return __os << __x.mean();
 }
 
@@ -4748,7 +4942,8 @@ operator>>(basic_istream<_CharT, _Traits>& __is,
     typedef poisson_distribution<_IntType> _Eng;
     typedef typename _Eng::param_type param_type;
     __save_flags<_CharT, _Traits> __lx(__is);
-    __is.flags(ios_base::dec | ios_base::skipws);
+    typedef basic_istream<_CharT, _Traits> _Istream;
+    __is.flags(_Istream::dec | _Istream::skipws);
     double __mean;
     __is >> __mean;
     if (!__is.fail())
@@ -4794,9 +4989,17 @@ private:
 
 public:
     // constructor and reset functions
+#ifndef _LIBCPP_CXX03_LANG
+    _LIBCPP_INLINE_VISIBILITY
+    weibull_distribution() : weibull_distribution(1) {}
+    _LIBCPP_INLINE_VISIBILITY
+    explicit weibull_distribution(result_type __a, result_type __b = 1)
+        : __p_(param_type(__a, __b)) {}
+#else
     _LIBCPP_INLINE_VISIBILITY
     explicit weibull_distribution(result_type __a = 1, result_type __b = 1)
         : __p_(param_type(__a, __b)) {}
+#endif
     _LIBCPP_INLINE_VISIBILITY
     explicit weibull_distribution(const param_type& __p)
         : __p_(__p) {}
@@ -4846,8 +5049,9 @@ operator<<(basic_ostream<_CharT, _Traits>& __os,
            const weibull_distribution<_RT>& __x)
 {
     __save_flags<_CharT, _Traits> __lx(__os);
-    __os.flags(ios_base::dec | ios_base::left | ios_base::fixed |
-               ios_base::scientific);
+    typedef basic_ostream<_CharT, _Traits> _OStream;
+    __os.flags(_OStream::dec | _OStream::left | _OStream::fixed |
+               _OStream::scientific);
     _CharT __sp = __os.widen(' ');
     __os.fill(__sp);
     __os << __x.a() << __sp << __x.b();
@@ -4863,7 +5067,8 @@ operator>>(basic_istream<_CharT, _Traits>& __is,
     typedef typename _Eng::result_type result_type;
     typedef typename _Eng::param_type param_type;
     __save_flags<_CharT, _Traits> __lx(__is);
-    __is.flags(ios_base::dec | ios_base::skipws);
+    typedef basic_istream<_CharT, _Traits> _Istream;
+    __is.flags(_Istream::dec | _Istream::skipws);
     result_type __a;
     result_type __b;
     __is >> __a >> __b;
@@ -4908,9 +5113,18 @@ private:
 
 public:
     // constructor and reset functions
+#ifndef _LIBCPP_CXX03_LANG
     _LIBCPP_INLINE_VISIBILITY
-    explicit extreme_value_distribution(result_type __a = 0, result_type __b = 1)
+    extreme_value_distribution() : extreme_value_distribution(0) {}
+    _LIBCPP_INLINE_VISIBILITY
+    explicit extreme_value_distribution(result_type __a, result_type __b = 1)
         : __p_(param_type(__a, __b)) {}
+#else
+    _LIBCPP_INLINE_VISIBILITY
+    explicit extreme_value_distribution(result_type __a = 0,
+                                        result_type __b = 1)
+        : __p_(param_type(__a, __b)) {}
+#endif
     _LIBCPP_INLINE_VISIBILITY
     explicit extreme_value_distribution(const param_type& __p)
         : __p_(__p) {}
@@ -4965,8 +5179,9 @@ operator<<(basic_ostream<_CharT, _Traits>& __os,
            const extreme_value_distribution<_RT>& __x)
 {
     __save_flags<_CharT, _Traits> __lx(__os);
-    __os.flags(ios_base::dec | ios_base::left | ios_base::fixed |
-               ios_base::scientific);
+    typedef basic_ostream<_CharT, _Traits> _OStream;
+    __os.flags(_OStream::dec | _OStream::left | _OStream::fixed |
+               _OStream::scientific);
     _CharT __sp = __os.widen(' ');
     __os.fill(__sp);
     __os << __x.a() << __sp << __x.b();
@@ -4982,7 +5197,8 @@ operator>>(basic_istream<_CharT, _Traits>& __is,
     typedef typename _Eng::result_type result_type;
     typedef typename _Eng::param_type param_type;
     __save_flags<_CharT, _Traits> __lx(__is);
-    __is.flags(ios_base::dec | ios_base::skipws);
+    typedef basic_istream<_CharT, _Traits> _Istream;
+    __is.flags(_Istream::dec | _Istream::skipws);
     result_type __a;
     result_type __b;
     __is >> __a >> __b;
@@ -5029,9 +5245,18 @@ private:
 
 public:
     // constructors and reset functions
+#ifndef _LIBCPP_CXX03_LANG
     _LIBCPP_INLINE_VISIBILITY
-    explicit gamma_distribution(result_type __alpha = 1, result_type __beta = 1)
+    gamma_distribution() : gamma_distribution(1) {}
+    _LIBCPP_INLINE_VISIBILITY
+    explicit gamma_distribution(result_type __alpha, result_type __beta = 1)
         : __p_(param_type(__alpha, __beta)) {}
+#else
+    _LIBCPP_INLINE_VISIBILITY
+    explicit gamma_distribution(result_type __alpha = 1,
+                                result_type __beta = 1)
+        : __p_(param_type(__alpha, __beta)) {}
+#endif
     _LIBCPP_INLINE_VISIBILITY
     explicit gamma_distribution(const param_type& __p)
         : __p_(__p) {}
@@ -5137,8 +5362,9 @@ operator<<(basic_ostream<_CharT, _Traits>& __os,
            const gamma_distribution<_RT>& __x)
 {
     __save_flags<_CharT, _Traits> __lx(__os);
-    __os.flags(ios_base::dec | ios_base::left | ios_base::fixed |
-               ios_base::scientific);
+    typedef basic_ostream<_CharT, _Traits> _OStream;
+    __os.flags(_OStream::dec | _OStream::left | _OStream::fixed |
+               _OStream::scientific);
     _CharT __sp = __os.widen(' ');
     __os.fill(__sp);
     __os << __x.alpha() << __sp << __x.beta();
@@ -5154,7 +5380,8 @@ operator>>(basic_istream<_CharT, _Traits>& __is,
     typedef typename _Eng::result_type result_type;
     typedef typename _Eng::param_type param_type;
     __save_flags<_CharT, _Traits> __lx(__is);
-    __is.flags(ios_base::dec | ios_base::skipws);
+    typedef basic_istream<_CharT, _Traits> _Istream;
+    __is.flags(_Istream::dec | _Istream::skipws);
     result_type __alpha;
     result_type __beta;
     __is >> __alpha >> __beta;
@@ -5201,9 +5428,18 @@ private:
 
 public:
     // constructor and reset functions
+#ifndef _LIBCPP_CXX03_LANG
     _LIBCPP_INLINE_VISIBILITY
-    explicit negative_binomial_distribution(result_type __k = 1, double __p = 0.5)
+    negative_binomial_distribution() : negative_binomial_distribution(1) {}
+    _LIBCPP_INLINE_VISIBILITY
+    explicit negative_binomial_distribution(result_type __k, double __p = 0.5)
         : __p_(__k, __p) {}
+#else
+    _LIBCPP_INLINE_VISIBILITY
+    explicit negative_binomial_distribution(result_type __k = 1,
+                                            double __p = 0.5)
+        : __p_(__k, __p) {}
+#endif
     _LIBCPP_INLINE_VISIBILITY
     explicit negative_binomial_distribution(const param_type& __p) : __p_(__p) {}
     _LIBCPP_INLINE_VISIBILITY
@@ -5273,8 +5509,9 @@ operator<<(basic_ostream<_CharT, _Traits>& __os,
            const negative_binomial_distribution<_IntType>& __x)
 {
     __save_flags<_CharT, _Traits> __lx(__os);
-    __os.flags(ios_base::dec | ios_base::left | ios_base::fixed |
-               ios_base::scientific);
+    typedef basic_ostream<_CharT, _Traits> _OStream;
+    __os.flags(_OStream::dec | _OStream::left | _OStream::fixed |
+               _OStream::scientific);
     _CharT __sp = __os.widen(' ');
     __os.fill(__sp);
     return __os << __x.k() << __sp << __x.p();
@@ -5289,7 +5526,8 @@ operator>>(basic_istream<_CharT, _Traits>& __is,
     typedef typename _Eng::result_type result_type;
     typedef typename _Eng::param_type param_type;
     __save_flags<_CharT, _Traits> __lx(__is);
-    __is.flags(ios_base::dec | ios_base::skipws);
+    typedef basic_istream<_CharT, _Traits> _Istream;
+    __is.flags(_Istream::dec | _Istream::skipws);
     result_type __k;
     double __p;
     __is >> __k >> __p;
@@ -5332,8 +5570,17 @@ private:
 
 public:
     // constructors and reset functions
+#ifndef _LIBCPP_CXX03_LANG
     _LIBCPP_INLINE_VISIBILITY
-    explicit geometric_distribution(double __p = 0.5) : __p_(__p) {}
+    geometric_distribution() : geometric_distribution(0.5) {}
+    _LIBCPP_INLINE_VISIBILITY
+    explicit geometric_distribution(double __p)
+        : __p_(__p) {}
+#else
+    _LIBCPP_INLINE_VISIBILITY
+    explicit geometric_distribution(double __p = 0.5)
+        : __p_(__p) {}
+#endif
     _LIBCPP_INLINE_VISIBILITY
     explicit geometric_distribution(const param_type& __p) : __p_(__p) {}
     _LIBCPP_INLINE_VISIBILITY
@@ -5379,8 +5626,9 @@ operator<<(basic_ostream<_CharT, _Traits>& __os,
            const geometric_distribution<_IntType>& __x)
 {
     __save_flags<_CharT, _Traits> __lx(__os);
-    __os.flags(ios_base::dec | ios_base::left | ios_base::fixed |
-               ios_base::scientific);
+    typedef basic_ostream<_CharT, _Traits> _OStream;
+    __os.flags(_OStream::dec | _OStream::left | _OStream::fixed |
+               _OStream::scientific);
     return __os << __x.p();
 }
 
@@ -5392,7 +5640,8 @@ operator>>(basic_istream<_CharT, _Traits>& __is,
     typedef geometric_distribution<_IntType> _Eng;
     typedef typename _Eng::param_type param_type;
     __save_flags<_CharT, _Traits> __lx(__is);
-    __is.flags(ios_base::dec | ios_base::skipws);
+    typedef basic_istream<_CharT, _Traits> _Istream;
+    __is.flags(_Istream::dec | _Istream::skipws);
     double __p;
     __is >> __p;
     if (!__is.fail())
@@ -5434,9 +5683,17 @@ private:
 
 public:
     // constructor and reset functions
+#ifndef _LIBCPP_CXX03_LANG
+    _LIBCPP_INLINE_VISIBILITY
+    chi_squared_distribution() : chi_squared_distribution(1) {}
+    _LIBCPP_INLINE_VISIBILITY
+    explicit chi_squared_distribution(result_type __n)
+        : __p_(param_type(__n)) {}
+#else
     _LIBCPP_INLINE_VISIBILITY
     explicit chi_squared_distribution(result_type __n = 1)
         : __p_(param_type(__n)) {}
+#endif
     _LIBCPP_INLINE_VISIBILITY
     explicit chi_squared_distribution(const param_type& __p)
         : __p_(__p) {}
@@ -5483,8 +5740,9 @@ operator<<(basic_ostream<_CharT, _Traits>& __os,
            const chi_squared_distribution<_RT>& __x)
 {
     __save_flags<_CharT, _Traits> __lx(__os);
-    __os.flags(ios_base::dec | ios_base::left | ios_base::fixed |
-               ios_base::scientific);
+    typedef basic_ostream<_CharT, _Traits> _OStream;
+    __os.flags(_OStream::dec | _OStream::left | _OStream::fixed |
+               _OStream::scientific);
     __os << __x.n();
     return __os;
 }
@@ -5498,7 +5756,8 @@ operator>>(basic_istream<_CharT, _Traits>& __is,
     typedef typename _Eng::result_type result_type;
     typedef typename _Eng::param_type param_type;
     __save_flags<_CharT, _Traits> __lx(__is);
-    __is.flags(ios_base::dec | ios_base::skipws);
+    typedef basic_istream<_CharT, _Traits> _Istream;
+    __is.flags(_Istream::dec | _Istream::skipws);
     result_type __n;
     __is >> __n;
     if (!__is.fail())
@@ -5544,9 +5803,17 @@ private:
 
 public:
     // constructor and reset functions
+#ifndef _LIBCPP_CXX03_LANG
+    _LIBCPP_INLINE_VISIBILITY
+    cauchy_distribution() : cauchy_distribution(0) {}
+    _LIBCPP_INLINE_VISIBILITY
+    explicit cauchy_distribution(result_type __a, result_type __b = 1)
+        : __p_(param_type(__a, __b)) {}
+#else
     _LIBCPP_INLINE_VISIBILITY
     explicit cauchy_distribution(result_type __a = 0, result_type __b = 1)
         : __p_(param_type(__a, __b)) {}
+#endif
     _LIBCPP_INLINE_VISIBILITY
     explicit cauchy_distribution(const param_type& __p)
         : __p_(__p) {}
@@ -5603,8 +5870,9 @@ operator<<(basic_ostream<_CharT, _Traits>& __os,
            const cauchy_distribution<_RT>& __x)
 {
     __save_flags<_CharT, _Traits> __lx(__os);
-    __os.flags(ios_base::dec | ios_base::left | ios_base::fixed |
-               ios_base::scientific);
+    typedef basic_ostream<_CharT, _Traits> _OStream;
+    __os.flags(_OStream::dec | _OStream::left | _OStream::fixed |
+               _OStream::scientific);
     _CharT __sp = __os.widen(' ');
     __os.fill(__sp);
     __os << __x.a() << __sp << __x.b();
@@ -5620,7 +5888,8 @@ operator>>(basic_istream<_CharT, _Traits>& __is,
     typedef typename _Eng::result_type result_type;
     typedef typename _Eng::param_type param_type;
     __save_flags<_CharT, _Traits> __lx(__is);
-    __is.flags(ios_base::dec | ios_base::skipws);
+    typedef basic_istream<_CharT, _Traits> _Istream;
+    __is.flags(_Istream::dec | _Istream::skipws);
     result_type __a;
     result_type __b;
     __is >> __a >> __b;
@@ -5667,9 +5936,17 @@ private:
 
 public:
     // constructor and reset functions
+#ifndef _LIBCPP_CXX03_LANG
+    _LIBCPP_INLINE_VISIBILITY
+    fisher_f_distribution() : fisher_f_distribution(1) {}
+    _LIBCPP_INLINE_VISIBILITY
+    explicit fisher_f_distribution(result_type __m, result_type __n = 1)
+        : __p_(param_type(__m, __n)) {}
+#else
     _LIBCPP_INLINE_VISIBILITY
     explicit fisher_f_distribution(result_type __m = 1, result_type __n = 1)
         : __p_(param_type(__m, __n)) {}
+#endif
     _LIBCPP_INLINE_VISIBILITY
     explicit fisher_f_distribution(const param_type& __p)
         : __p_(__p) {}
@@ -5725,8 +6002,9 @@ operator<<(basic_ostream<_CharT, _Traits>& __os,
            const fisher_f_distribution<_RT>& __x)
 {
     __save_flags<_CharT, _Traits> __lx(__os);
-    __os.flags(ios_base::dec | ios_base::left | ios_base::fixed |
-               ios_base::scientific);
+    typedef basic_ostream<_CharT, _Traits> _OStream;
+    __os.flags(_OStream::dec | _OStream::left | _OStream::fixed |
+               _OStream::scientific);
     _CharT __sp = __os.widen(' ');
     __os.fill(__sp);
     __os << __x.m() << __sp << __x.n();
@@ -5742,7 +6020,8 @@ operator>>(basic_istream<_CharT, _Traits>& __is,
     typedef typename _Eng::result_type result_type;
     typedef typename _Eng::param_type param_type;
     __save_flags<_CharT, _Traits> __lx(__is);
-    __is.flags(ios_base::dec | ios_base::skipws);
+    typedef basic_istream<_CharT, _Traits> _Istream;
+    __is.flags(_Istream::dec | _Istream::skipws);
     result_type __m;
     result_type __n;
     __is >> __m >> __n;
@@ -5786,9 +6065,17 @@ private:
 
 public:
     // constructor and reset functions
+#ifndef _LIBCPP_CXX03_LANG
+    _LIBCPP_INLINE_VISIBILITY
+    student_t_distribution() : student_t_distribution(1) {}
+    _LIBCPP_INLINE_VISIBILITY
+    explicit student_t_distribution(result_type __n)
+        : __p_(param_type(__n)) {}
+#else
     _LIBCPP_INLINE_VISIBILITY
     explicit student_t_distribution(result_type __n = 1)
         : __p_(param_type(__n)) {}
+#endif
     _LIBCPP_INLINE_VISIBILITY
     explicit student_t_distribution(const param_type& __p)
         : __p_(__p) {}
@@ -5841,8 +6128,9 @@ operator<<(basic_ostream<_CharT, _Traits>& __os,
            const student_t_distribution<_RT>& __x)
 {
     __save_flags<_CharT, _Traits> __lx(__os);
-    __os.flags(ios_base::dec | ios_base::left | ios_base::fixed |
-               ios_base::scientific);
+    typedef basic_ostream<_CharT, _Traits> _OStream;
+    __os.flags(_OStream::dec | _OStream::left | _OStream::fixed |
+               _OStream::scientific);
     __os << __x.n();
     return __os;
 }
@@ -5856,7 +6144,8 @@ operator>>(basic_istream<_CharT, _Traits>& __is,
     typedef typename _Eng::result_type result_type;
     typedef typename _Eng::param_type param_type;
     __save_flags<_CharT, _Traits> __lx(__is);
-    __is.flags(ios_base::dec | ios_base::skipws);
+    typedef basic_istream<_CharT, _Traits> _Istream;
+    __is.flags(_Istream::dec | _Istream::skipws);
     result_type __n;
     __is >> __n;
     if (!__is.fail())
@@ -6064,8 +6353,9 @@ operator<<(basic_ostream<_CharT, _Traits>& __os,
            const discrete_distribution<_IT>& __x)
 {
     __save_flags<_CharT, _Traits> __lx(__os);
-    __os.flags(ios_base::dec | ios_base::left | ios_base::fixed |
-               ios_base::scientific);
+    typedef basic_ostream<_CharT, _Traits> _OStream;
+    __os.flags(_OStream::dec | _OStream::left | _OStream::fixed |
+               _OStream::scientific);
     _CharT __sp = __os.widen(' ');
     __os.fill(__sp);
     size_t __n = __x.__p_.__p_.size();
@@ -6081,7 +6371,8 @@ operator>>(basic_istream<_CharT, _Traits>& __is,
            discrete_distribution<_IT>& __x)
 {
     __save_flags<_CharT, _Traits> __lx(__is);
-    __is.flags(ios_base::dec | ios_base::skipws);
+    typedef basic_istream<_CharT, _Traits> _Istream;
+    __is.flags(_Istream::dec | _Istream::skipws);
     size_t __n;
     __is >> __n;
     vector<double> __p(__n);
@@ -6366,8 +6657,9 @@ operator<<(basic_ostream<_CharT, _Traits>& __os,
            const piecewise_constant_distribution<_RT>& __x)
 {
     __save_flags<_CharT, _Traits> __lx(__os);
-    __os.flags(ios_base::dec | ios_base::left | ios_base::fixed |
-               ios_base::scientific);
+    typedef basic_ostream<_CharT, _Traits> _OStream;
+    __os.flags(_OStream::dec | _OStream::left | _OStream::fixed |
+               _OStream::scientific);
     _CharT __sp = __os.widen(' ');
     __os.fill(__sp);
     size_t __n = __x.__p_.__b_.size();
@@ -6393,7 +6685,8 @@ operator>>(basic_istream<_CharT, _Traits>& __is,
     typedef piecewise_constant_distribution<_RT> _Eng;
     typedef typename _Eng::result_type result_type;
     __save_flags<_CharT, _Traits> __lx(__is);
-    __is.flags(ios_base::dec | ios_base::skipws);
+    typedef basic_istream<_CharT, _Traits> _Istream;
+    __is.flags(_Istream::dec | _Istream::skipws);
     size_t __n;
     __is >> __n;
     vector<result_type> __b(__n);
@@ -6444,6 +6737,7 @@ public:
         template<class _UnaryOperation>
             param_type(size_t __nw, result_type __xmin, result_type __xmax,
                        _UnaryOperation __fw);
+        param_type(param_type const&) = default;
         param_type & operator=(const param_type& __rhs);
 
         _LIBCPP_INLINE_VISIBILITY
@@ -6705,8 +6999,9 @@ operator<<(basic_ostream<_CharT, _Traits>& __os,
            const piecewise_linear_distribution<_RT>& __x)
 {
     __save_flags<_CharT, _Traits> __lx(__os);
-    __os.flags(ios_base::dec | ios_base::left | ios_base::fixed |
-               ios_base::scientific);
+    typedef basic_ostream<_CharT, _Traits> _OStream;
+    __os.flags(_OStream::dec | _OStream::left | _OStream::fixed |
+               _OStream::scientific);
     _CharT __sp = __os.widen(' ');
     __os.fill(__sp);
     size_t __n = __x.__p_.__b_.size();
@@ -6732,7 +7027,8 @@ operator>>(basic_istream<_CharT, _Traits>& __is,
     typedef piecewise_linear_distribution<_RT> _Eng;
     typedef typename _Eng::result_type result_type;
     __save_flags<_CharT, _Traits> __lx(__is);
-    __is.flags(ios_base::dec | ios_base::skipws);
+    typedef basic_istream<_CharT, _Traits> _Istream;
+    __is.flags(_Istream::dec | _Istream::skipws);
     size_t __n;
     __is >> __n;
     vector<result_type> __b(__n);

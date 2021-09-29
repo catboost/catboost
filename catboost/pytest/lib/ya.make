@@ -1,6 +1,6 @@
 
 
-PY_LIBRARY()
+PY23_LIBRARY()
 
 PY_SRCS(
     NAMESPACE catboost_pytest_lib

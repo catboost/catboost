@@ -541,6 +541,7 @@ class manifest_maker(sdist):
         self.add_defaults()
         if os.path.exists(self.template):
             self.read_template()
+        self.add_license_files()
         self.prune_file_list()
         self.filelist.sort()
         self.filelist.remove_duplicates()
@@ -575,7 +576,6 @@ class manifest_maker(sdist):
 
     def add_defaults(self):
         sdist.add_defaults(self)
-        self.check_license()
         self.filelist.append(self.template)
         self.filelist.append(self.manifest)
         rcfiles = list(walk_revctrl())
@@ -591,6 +591,13 @@ class manifest_maker(sdist):
 
         ei_cmd = self.get_finalized_command('egg_info')
         self.filelist.graft(ei_cmd.egg_info)
+
+    def add_license_files(self):
+        license_files = self.distribution.metadata.license_files or []
+        for lf in license_files:
+            log.info("adding license file '%s'", lf)
+            pass
+        self.filelist.extend(license_files)
 
     def prune_file_list(self):
         build = self.get_finalized_command('build')

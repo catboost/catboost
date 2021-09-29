@@ -485,8 +485,10 @@ ${generateForwardedAccessors(forwardedAccessors)}
     def pairsData(self):
         return self._call_java("pairsData")
 
-    def quantize(self, quantizationParams = QuantizationParams()):
+    def quantize(self, quantizationParams = None):
         "\""Create Pool with quantized features from Pool with raw features"\""
+        if quantizationParams is None:
+            quantizationParams = QuantizationParams()
         return self._call_java("quantize", quantizationParams)
 
     def repartition(self, partitionCount, byGroupColumnsIfPresent):
@@ -498,7 +500,7 @@ ${generateForwardedAccessors(forwardedAccessors)}
         return self._call_java("repartition", partitionCount, byGroupColumnsIfPresent)
 
     @staticmethod
-    def load(sparkSession, dataPathWithScheme, columnDescription=None, poolLoadParams=PoolLoadParams(), pairsDataPathWithScheme=None):
+    def load(sparkSession, dataPathWithScheme, columnDescription=None, poolLoadParams=None, pairsDataPathWithScheme=None):
         "\""
         Load dataset in one of CatBoost's natively supported formats:
           dsv - https://catboost.ai/docs/concepts/input-data_values-file.html
@@ -525,6 +527,8 @@ ${generateForwardedAccessors(forwardedAccessors)}
            Pool
                Pool containing loaded data
         "\""
+        if poolLoadParams is None:
+            poolLoadParams = PoolLoadParams()
         sc = sparkSession.sparkContext
         java_obj = sc._jvm.ai.catboost.spark.Pool.load(
             _py2java(sc, sparkSession),

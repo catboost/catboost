@@ -114,7 +114,7 @@ public:
         return ptr;
     }
 
-    #ifndef __cpp_impl_three_way_comparison
+#ifndef __cpp_impl_three_way_comparison
     template <class C>
     inline bool operator==(const C& p) const noexcept {
         return (p == AsT());
@@ -124,7 +124,7 @@ public:
     inline bool operator!=(const C& p) const noexcept {
         return (p != AsT());
     }
-    #endif
+#endif
 
     inline explicit operator bool() const noexcept {
         return nullptr != AsT();
@@ -217,12 +217,12 @@ public:
         return T_;
     }
 
-    #ifdef __cpp_impl_three_way_comparison
+#ifdef __cpp_impl_three_way_comparison
     template <class Other>
     inline bool operator==(const Other& p) const noexcept {
         return (p == Get());
     }
-    #endif
+#endif
 private:
     inline void DoDestroy() noexcept {
         if (T_) {
@@ -332,12 +332,12 @@ public:
         return *this;
     }
 
-    #ifdef __cpp_impl_three_way_comparison
+#ifdef __cpp_impl_three_way_comparison
     template <class Other>
     inline bool operator==(const Other& p) const noexcept {
         return (p == Get());
     }
-    #endif
+#endif
 private:
     inline void DoDestroy() noexcept {
         if (T_) {
@@ -350,8 +350,25 @@ private:
 };
 
 template <typename T, typename... Args>
-THolder<T> MakeHolder(Args&&... args) {
-    return new T(std::forward<Args>(args)...);
+[[nodiscard]] THolder<T> MakeHolder(Args&&... args) {
+    return THolder<T>(new T(std::forward<Args>(args)...));
+}
+
+template <class T>
+struct THolderPlaceholder {
+    T* Ptr;
+
+    template <class TBase, class TDeleter>
+    operator THolder<TBase, TDeleter>() {
+        return THolder<TBase, TDeleter>(Ptr);
+    }
+};
+
+// This exists only to facilitate transition to explicit ctor of THolder from a pointer.
+// See IGNIETFERRO-1337
+template <typename T>
+[[nodiscard]] THolderPlaceholder<T> StealToHolder(T* ptr) {
+    return THolderPlaceholder<T>{ptr};
 }
 
 /*
@@ -481,12 +498,22 @@ public:
 template <class T, class Ops>
 class TIntrusivePtr: public TPointerBase<TIntrusivePtr<T, Ops>, T> {
     friend class TIntrusiveConstPtr<T, Ops>;
+
 public:
+    struct TNoIncrement {
+    };
+
     inline TIntrusivePtr(T* t = nullptr) noexcept
         : T_(t)
     {
         Ops();
         Ref();
+    }
+
+    inline TIntrusivePtr(T* t, TNoIncrement) noexcept
+        : T_(t)
+    {
+        Ops();
     }
 
     inline ~TIntrusivePtr() {
@@ -563,12 +590,12 @@ public:
         return T_ ? Ops::RefCount(T_) : 0;
     }
 
-    #ifdef __cpp_impl_three_way_comparison
+#ifdef __cpp_impl_three_way_comparison
     template <class Other>
     inline bool operator==(const Other& p) const noexcept {
         return (p == Get());
     }
-    #endif
+#endif
 private:
     inline void Ref() noexcept {
         if (T_) {
@@ -587,7 +614,7 @@ private:
 };
 
 template <class T, class Ops>
-struct THash<TIntrusivePtr<T, Ops>> : THash<const T*> {
+struct THash<TIntrusivePtr<T, Ops>>: THash<const T*> {
     using THash<const T*>::operator();
     inline size_t operator()(const TIntrusivePtr<T, Ops>& ptr) const {
         return THash<const T*>::operator()(ptr.Get());
@@ -667,12 +694,12 @@ public:
         return T_ ? Ops::RefCount(T_) : 0;
     }
 
-    #ifdef __cpp_impl_three_way_comparison
+#ifdef __cpp_impl_three_way_comparison
     template <class Other>
     inline bool operator==(const Other& p) const noexcept {
         return (p == Get());
     }
-    #endif
+#endif
 private:
     inline void Ref() noexcept {
         if (T_ != nullptr) {
@@ -694,7 +721,7 @@ private:
 };
 
 template <class T, class Ops>
-struct THash<TIntrusiveConstPtr<T, Ops>> : THash<const T*> {
+struct THash<TIntrusiveConstPtr<T, Ops>>: THash<const T*> {
     using THash<const T*>::operator();
     inline size_t operator()(const TIntrusiveConstPtr<T, Ops>& ptr) const {
         return THash<const T*>::operator()(ptr.Get());
@@ -756,12 +783,12 @@ template <class T, class Ops>
 typename TSimpleIntrusiveOps<T, Ops>::TFunc TSimpleIntrusiveOps<T, Ops>::UnRef_ = nullptr;
 
 template <typename T, class Ops = TDefaultIntrusivePtrOps<T>, typename... Args>
-TIntrusivePtr<T, Ops> MakeIntrusive(Args&&... args) {
+[[nodiscard]] TIntrusivePtr<T, Ops> MakeIntrusive(Args&&... args) {
     return new T{std::forward<Args>(args)...};
 }
 
 template <typename T, class Ops = TDefaultIntrusivePtrOps<T>, typename... Args>
-TIntrusiveConstPtr<T, Ops> MakeIntrusiveConst(Args&&... args) {
+[[nodiscard]] TIntrusiveConstPtr<T, Ops> MakeIntrusiveConst(Args&&... args) {
     return new T{std::forward<Args>(args)...};
 }
 
@@ -862,12 +889,12 @@ public:
         return C_ ? C_->Val() : 0;
     }
 
-    #ifdef __cpp_impl_three_way_comparison
+#ifdef __cpp_impl_three_way_comparison
     template <class Other>
     inline bool operator==(const Other& p) const noexcept {
         return (p == Get());
     }
-    #endif
+#endif
 private:
     template <class X>
     inline void Init(X& t) {
@@ -901,7 +928,7 @@ private:
 };
 
 template <class T, class C, class D>
-struct THash<TSharedPtr<T, C, D>> : THash<const T*> {
+struct THash<TSharedPtr<T, C, D>>: THash<const T*> {
     using THash<const T*>::operator();
     inline size_t operator()(const TSharedPtr<T, C, D>& ptr) const {
         return THash<const T*>::operator()(ptr.Get());
@@ -916,17 +943,17 @@ template <class T, class D = TDelete>
 using TSimpleSharedPtr = TSharedPtr<T, TSimpleCounter, D>;
 
 template <typename T, typename C, typename... Args>
-TSharedPtr<T, C> MakeShared(Args&&... args) {
+[[nodiscard]] TSharedPtr<T, C> MakeShared(Args&&... args) {
     return new T{std::forward<Args>(args)...};
 }
 
 template <typename T, typename... Args>
-inline TAtomicSharedPtr<T> MakeAtomicShared(Args&&... args) {
+[[nodiscard]] inline TAtomicSharedPtr<T> MakeAtomicShared(Args&&... args) {
     return MakeShared<T, TAtomicCounter>(std::forward<Args>(args)...);
 }
 
 template <typename T, typename... Args>
-inline TSimpleSharedPtr<T> MakeSimpleShared(Args&&... args) {
+[[nodiscard]] inline TSimpleSharedPtr<T> MakeSimpleShared(Args&&... args) {
     return MakeShared<T, TSimpleCounter>(std::forward<Args>(args)...);
 }
 
@@ -973,7 +1000,7 @@ public:
         DoDestroy();
     }
 
-    inline TCopyPtr& operator=(TCopyPtr t) {
+    inline TCopyPtr& operator=(TCopyPtr t) noexcept {
         t.Swap(*this);
 
         return *this;
@@ -1006,12 +1033,12 @@ public:
         return T_;
     }
 
-    #ifdef __cpp_impl_three_way_comparison
+#ifdef __cpp_impl_three_way_comparison
     template <class Other>
     inline bool operator==(const Other& p) const noexcept {
         return (p == Get());
     }
-    #endif
+#endif
 private:
     inline void DoDestroy() noexcept {
         if (T_)
@@ -1070,12 +1097,12 @@ public:
         T_.Reset();
     }
 
-    #ifdef __cpp_impl_three_way_comparison
+#ifdef __cpp_impl_three_way_comparison
     template <class Other>
     inline bool operator==(const Other& p) const noexcept {
         return (p == Get());
     }
-    #endif
+#endif
 private:
     inline void Unshare() {
         if (Shared()) {

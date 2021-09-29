@@ -4,6 +4,7 @@
 #include <util/generic/ptr.h>
 #include <util/generic/intrlist.h>
 #include <util/generic/hash_set.h>
+#include <util/generic/vector.h>
 #include <util/generic/yexception.h>
 #include <utility>
 

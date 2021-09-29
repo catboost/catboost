@@ -47,8 +47,7 @@ Context::Context(const FileDescriptor* file, const Options& options)
   InitializeFieldGeneratorInfo(file);
 }
 
-Context::~Context() {
-}
+Context::~Context() {}
 
 ClassNameResolver* Context::GetNameResolver() const {
   return name_resolver_.get();
@@ -58,9 +57,9 @@ namespace {
 // Whether two fields have conflicting accessors (assuming name1 and name2
 // are different). name1 and name2 are field1 and field2's camel-case name
 // respectively.
-bool IsConflicting(const FieldDescriptor* field1, const string& name1,
-                   const FieldDescriptor* field2, const string& name2,
-                   string* info) {
+bool IsConflicting(const FieldDescriptor* field1, const TProtoStringType& name1,
+                   const FieldDescriptor* field2, const TProtoStringType& name2,
+                   TProtoStringType* info) {
   if (field1->is_repeated()) {
     if (field2->is_repeated()) {
       // Both fields are repeated.
@@ -69,14 +68,14 @@ bool IsConflicting(const FieldDescriptor* field1, const string& name1,
       // field1 is repeated, and field2 is not.
       if (name1 + "Count" == name2) {
         *info = "both repeated field \"" + field1->name() + "\" and singular " +
-            "field \"" + field2->name() + "\" generates the method \"" +
-            "get" + name1 + "Count()\"";
+                "field \"" + field2->name() + "\" generate the method \"" +
+                "get" + name1 + "Count()\"";
         return true;
       }
       if (name1 + "List" == name2) {
         *info = "both repeated field \"" + field1->name() + "\" and singular " +
-            "field \"" + field2->name() + "\" generates the method \"" +
-            "get" + name1 + "List()\"";
+                "field \"" + field2->name() + "\" generate the method \"" +
+                "get" + name1 + "List()\"";
         return true;
       }
       // Well, there are obviously many more conflicting cases, but it probably
@@ -109,6 +108,7 @@ void Context::InitializeFieldGeneratorInfoForMessage(
     InitializeFieldGeneratorInfoForMessage(message->nested_type(i));
   }
   std::vector<const FieldDescriptor*> fields;
+  fields.reserve(message->field_count());
   for (int i = 0; i < message->field_count(); ++i) {
     fields.push_back(message->field(i));
   }
@@ -128,13 +128,13 @@ void Context::InitializeFieldGeneratorInfoForFields(
   // Find out all fields that conflict with some other field in the same
   // message.
   std::vector<bool> is_conflict(fields.size());
-  std::vector<string> conflict_reason(fields.size());
+  std::vector<TProtoStringType> conflict_reason(fields.size());
   for (int i = 0; i < fields.size(); ++i) {
     const FieldDescriptor* field = fields[i];
-    const string& name = UnderscoresToCapitalizedCamelCase(field);
+    const TProtoStringType& name = UnderscoresToCapitalizedCamelCase(field);
     for (int j = i + 1; j < fields.size(); ++j) {
       const FieldDescriptor* other = fields[j];
-      const string& other_name = UnderscoresToCapitalizedCamelCase(other);
+      const TProtoStringType& other_name = UnderscoresToCapitalizedCamelCase(other);
       if (name == other_name) {
         is_conflict[i] = is_conflict[j] = true;
         conflict_reason[i] = conflict_reason[j] =
@@ -159,8 +159,8 @@ void Context::InitializeFieldGeneratorInfoForFields(
     // For fields conflicting with some other fields, we append the field
     // number to their field names in generated code to avoid conflicts.
     if (is_conflict[i]) {
-      info.name += SimpleItoa(field->number());
-      info.capitalized_name += SimpleItoa(field->number());
+      info.name += StrCat(field->number());
+      info.capitalized_name += StrCat(field->number());
       info.disambiguated_reason = conflict_reason[i];
     }
     field_generator_info_map_[field] = info;

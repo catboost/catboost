@@ -49,7 +49,7 @@ namespace NCatboostCuda {
             for (const auto& ctr: Ctrs) {
                 featureWeights.push_back(pow(
                     1 + float(FeaturesManager.GetMaxCtrUniqueValues(ctr)) / maxUniqueValues,
-                    modelSizeReg
+                    -modelSizeReg
                 ));
             }
 

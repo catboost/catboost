@@ -21,8 +21,6 @@ PY_SRCS(
 
 PY_MAIN(library.python.pymain:run)
 
-NO_LINT()
-
 NO_CHECK_IMPORTS()
 
 END()

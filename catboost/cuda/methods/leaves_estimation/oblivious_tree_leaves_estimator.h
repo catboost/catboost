@@ -51,7 +51,7 @@ namespace NCatboostCuda {
             auto values = TStripeBuffer<float>::CopyMapping(Bins);
             auto weights = TStripeBuffer<float>::CopyMapping(Bins);
 
-            DerCalcer->ComputeExactValue(Baseline, &values, &weights, stream);
+            DerCalcer->ComputeExactValue(Baseline.AsConstBuf(), &values, &weights, stream);
             ComputeExactApprox(Bins, values, weights, BinCount, point, lossDescription);
         }
     };
@@ -165,7 +165,7 @@ namespace NCatboostCuda {
             task.Offsets = TCudaBuffer<ui32, NCudaLib::TStripeMapping>::Create(offsetsMapping);
             UpdatePartitionOffsets(task.Bins, task.Offsets);
 
-            task.DerCalcer = CreatePermutationDerCalcer(std::move(strippedTarget), std::move(indices));
+            task.DerCalcer = CreatePermutationDerCalcer(std::move(strippedTarget), indices.AsConstBuf());
             task.BinCount = binCount;
 
             return *this;
@@ -201,7 +201,7 @@ namespace NCatboostCuda {
                                    task.Offsets);
 
             task.DerCalcer = CreatePermutationDerCalcer(TTarget(target),
-                                                        std::move(indices));
+                                                        indices.AsConstBuf());
             task.BinCount = binCount;
 
             return *this;
@@ -210,6 +210,6 @@ namespace NCatboostCuda {
         void Estimate(NPar::ILocalExecutor* localExecutor);
 
         void AddLangevinNoiseToDerivatives(TVector<double>* derivatives,
-                                           NPar::ILocalExecutor* localExecutor);
+                                           NPar::ILocalExecutor* localExecutor) override;
     };
 }

@@ -41,7 +41,7 @@ namespace {
 
     private:
         void WriteBuf() {
-            Slave << '"' << Buf << AsStringBuf("\",\n");
+            Slave << '"' << Buf << "\",\n"sv;
             Buf.clear();
         }
 
@@ -414,7 +414,7 @@ namespace {
     };
 }
 
-static TString cutFirstSlash(const TString& fileName) {
+static TString CutFirstSlash(const TString& fileName) {
     if (fileName[0] == '/') {
         return fileName.substr(1);
     } else {
@@ -441,7 +441,7 @@ static void UnpackArchive(const TString& archive, const TFsPath& dir = TFsPath()
     const size_t count = reader.Count();
     for (size_t i = 0; i < count; ++i) {
         const TString key = reader.KeyByIndex(i);
-        const TString fileName = cutFirstSlash(key);
+        const TString fileName = CutFirstSlash(key);
         if (!Quiet) {
             Cerr << archive << " --> " << fileName << Endl;
         }
@@ -454,24 +454,30 @@ static void UnpackArchive(const TString& archive, const TFsPath& dir = TFsPath()
     }
 }
 
-static void ListArchive(const TString& archive) {
+static void ListArchive(const TString& archive, bool cutSlash) {
     TMappingReader mappingReader(archive);
     const TArchiveReader& reader = mappingReader.Reader;
     const size_t count = reader.Count();
     for (size_t i = 0; i < count; ++i) {
         const TString key = reader.KeyByIndex(i);
-        const TString fileName = cutFirstSlash(key);
+        TString fileName = key;
+        if (cutSlash) {
+            fileName = CutFirstSlash(key);
+        }
         Cout << fileName << Endl;
     }
 }
 
-static void ListArchiveMd5(const TString& archive) {
+static void ListArchiveMd5(const TString& archive, bool cutSlash) {
     TMappingReader mappingReader(archive);
     const TArchiveReader& reader = mappingReader.Reader;
     const size_t count = reader.Count();
     for (size_t i = 0; i < count; ++i) {
         const TString key = reader.KeyByIndex(i);
-        const TString fileName = cutFirstSlash(key);
+        TString fileName = key;
+        if (cutSlash) {
+            fileName = CutFirstSlash(key);
+        }
         char md5buf[33];
         Cout << fileName << '\t' << MD5::Stream(reader.ObjectByKey(key).Get(), md5buf) << Endl;
     }
@@ -527,6 +533,12 @@ int main(int argc, char** argv) {
         .NoArgument()
         .Optional()
         .StoreValue(&list, true);
+
+    bool cutSlash = true;
+    opts.AddLongOption("as-is", "somewhy slash is cutted by default in list; with this option key will be shown as-is")
+        .NoArgument()
+        .Optional()
+        .StoreValue(&cutSlash, false);
 
     bool listMd5 = false;
     opts.AddLongOption('m', "md5", "List files in archive with MD5 sums")
@@ -623,11 +635,11 @@ int main(int argc, char** argv) {
     try {
         if (listMd5) {
             for (const auto& rec: recs) {
-                ListArchiveMd5(rec.Path);
+                ListArchiveMd5(rec.Path, cutSlash);
             }
         } else if (list) {
             for (const auto& rec: recs) {
-                ListArchive(rec.Path);
+                ListArchive(rec.Path, cutSlash);
             }
         } else if (unpack) {
             const TFsPath dir(unpackDir);

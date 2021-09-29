@@ -5,15 +5,15 @@
 #include <cstdlib>
 
 #if defined(_linux_) || defined(_cygwin_)
-#include <fcntl.h>
-#include <sys/sysinfo.h>
+    #include <fcntl.h>
+    #include <sys/sysinfo.h>
 #endif
 
 #if defined(_win_)
-#include "winint.h"
-#include <stdio.h>
+    #include "winint.h"
+    #include <stdio.h>
 #else
-#include <unistd.h>
+    #include <unistd.h>
 #endif
 
 #if defined(_bionic_)
@@ -27,18 +27,48 @@ static int getloadavg(double* loadavg, int nelem) {
     return nelem;
 }
 #elif defined(_unix_) || defined(_darwin_)
-#include <sys/types.h>
+    #include <sys/types.h>
 #endif
 
 #if defined(_freebsd_) || defined(_darwin_)
-#include <sys/sysctl.h>
+    #include <sys/sysctl.h>
 #endif
 
-#include <util/generic/yexception.h>
 #include <util/string/ascii.h>
+#include <util/string/cast.h>
+#include <util/string/strip.h>
+#include <util/stream/file.h>
+#include <util/generic/yexception.h>
 
+#if defined(_linux_)
+static inline size_t CgroupCpus() {
+    try {
+        auto q = FromString<ssize_t>(StripString(TFileInput("/sys/fs/cgroup/cpu/cpu.cfs_quota_us").ReadAll()));
+
+        if (q <= 0) {
+            return 0;
+        }
+
+        auto p = FromString<ssize_t>(StripString(TFileInput("/sys/fs/cgroup/cpu/cpu.cfs_period_us").ReadAll()));
+
+        if (p <= 0) {
+            return 0;
+        }
+
+        return (q + p / 2) / p;
+    } catch (...) {
+        return 0;
+    }
+}
+#endif
 
 size_t NSystemInfo::NumberOfCpus() {
+#if defined(_linux_)
+    if (auto res = CgroupCpus(); res) {
+        return res;
+    }
+#endif
+
 #if defined(_win_)
     SYSTEM_INFO info;
 
@@ -110,7 +140,7 @@ size_t NSystemInfo::NumberOfCpus() {
 
     return ncpus;
 #else
-#error todo
+    #error todo
 #endif
 }
 
@@ -158,11 +188,22 @@ size_t NSystemInfo::GetPageSize() noexcept {
 }
 
 size_t NSystemInfo::TotalMemorySize() {
+#if defined(_linux_) && defined(_64_)
+    try {
+        auto q = FromString<size_t>(StripString(TFileInput("/sys/fs/cgroup/memory/memory.limit_in_bytes").ReadAll()));
+
+        if (q < (((size_t)1) << 60)) {
+            return q;
+        }
+    } catch (...) {
+    }
+#endif
+
 #if defined(_linux_) || defined(_cygwin_)
     struct sysinfo info;
     sysinfo(&info);
     return info.totalram;
-#elif defined (_darwin_)
+#elif defined(_darwin_)
     int mib[2];
     int64_t memSize;
     size_t length;
@@ -175,7 +216,7 @@ size_t NSystemInfo::TotalMemorySize() {
         ythrow yexception() << "sysctl failed: " << LastSystemErrorText();
     }
     return (size_t)memSize;
-#elif defined (_win_)
+#elif defined(_win_)
     MEMORYSTATUSEX memoryStatusEx;
     memoryStatusEx.dwLength = sizeof(memoryStatusEx);
     if (!GlobalMemoryStatusEx(&memoryStatusEx)) {

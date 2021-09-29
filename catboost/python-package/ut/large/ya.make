@@ -1,6 +1,6 @@
 
 
-PYTEST()
+PY3TEST()
 
 SIZE(LARGE)
 TAG(ya:dirty ya:fat ya:force_sandbox ya:nofuse)
@@ -13,6 +13,8 @@ TEST_SRCS(
 
 DEPENDS(
     catboost/python-package/ut/large/pkg
+    catboost/tools/limited_precision_dsv_diff
+    catboost/tools/limited_precision_numpy_diff
     catboost/tools/model_comparator
 )
 DATA(
@@ -22,7 +24,7 @@ DATA(
 
 FORK_SUBTESTS()
 
-NO_LINT()
+
 NO_CHECK_IMPORTS()
 
 END()

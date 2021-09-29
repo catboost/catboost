@@ -104,14 +104,20 @@ class build_ext(_build_ext):
                 self.write_stub(package_dir or os.curdir, ext, True)
 
     def get_ext_filename(self, fullname):
-        filename = _build_ext.get_ext_filename(self, fullname)
+        so_ext = os.getenv('SETUPTOOLS_EXT_SUFFIX')
+        if so_ext:
+            filename = os.path.join(*fullname.split('.')) + so_ext
+        else:
+            filename = _build_ext.get_ext_filename(self, fullname)
+            so_ext = get_config_var('EXT_SUFFIX')
+
         if fullname in self.ext_map:
             ext = self.ext_map[fullname]
             use_abi3 = getattr(ext, 'py_limited_api') and get_abi3_suffix()
             if use_abi3:
-                so_ext = get_config_var('EXT_SUFFIX')
                 filename = filename[:-len(so_ext)]
-                filename = filename + get_abi3_suffix()
+                so_ext = get_abi3_suffix()
+                filename = filename + so_ext
             if isinstance(ext, Library):
                 fn, ext = os.path.splitext(filename)
                 return self.shlib_compiler.library_filename(fn, libtype)

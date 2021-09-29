@@ -5,8 +5,10 @@
 
 #include <catboost/libs/data/borders_io.h>
 #include <catboost/libs/data/quantization.h>
+#include <catboost/libs/helpers/dispatch_generic_lambda.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/restorable_rng.h>
+#include <catboost/libs/logging/logging.h>
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/private/libs/data_util/exists_checker.h>
 #include <catboost/private/libs/labels/label_converter.h>
@@ -14,6 +16,7 @@
 #include <catboost/private/libs/options/load_options.h>
 #include <catboost/private/libs/options/system_options.h>
 #include <catboost/private/libs/target/data_providers.h>
+#include <catboost/private/libs/feature_estimator/classification_target.h>
 #include <catboost/private/libs/feature_estimator/text_feature_estimators.h>
 #include <catboost/private/libs/feature_estimator/embedding_feature_estimators.h>
 
@@ -91,14 +94,7 @@ namespace NCB {
                  * but there're cases (e.g. CV with many folds) when limiting used CPU RAM is more important
                  */
                 if (ensureConsecutiveIfDenseFeaturesDataForCpu) {
-                    if (!quantizedObjectsDataProvider->GetFeaturesArraySubsetIndexing().IsConsecutive()) {
-                        // TODO(akhropov): make it work in non-shared case
-                        CB_ENSURE_INTERNAL(
-                            (srcData->RefCount() <= 1) && (quantizedObjectsDataProvider->RefCount() <= 1),
-                            "Cannot modify QuantizedForCPUObjectsDataProvider because it's shared"
-                        );
-                        quantizedObjectsDataProvider->EnsureConsecutiveIfDenseFeaturesData(localExecutor);
-                    }
+                    EnsureObjectsDataIsConsecutiveIfQuantized(cpuRamLimit, localExecutor, &srcData);
                 }
             } else { // GPU
                 /*
@@ -295,27 +291,22 @@ namespace NCB {
         return MakeIntrusive<TEmbeddingDataSet>(std::move(constEmbeddingData));
     }
 
-    static TTextClassificationTargetPtr CreateTextClassificationTarget(const TTargetDataProvider& targetDataProvider) {
+    static TClassificationTargetPtr CreateClassificationTarget(const TTargetDataProvider& targetDataProvider) {
         const ui32 numClasses = *targetDataProvider.GetTargetClassCount();
-        TConstArrayRef<float> target = *targetDataProvider.GetOneDimensionalTarget();
-        TVector<ui32> classes;
-        classes.resize(target.size());
+        const auto extractClasses = [&](auto isBinClass) {
+            TConstArrayRef<float> target = *targetDataProvider.GetOneDimensionalTarget();
+            TVector<ui32> classes;
+            classes.yresize(target.size());
 
-        for (ui32 i = 0; i < target.size(); i++) {
-            classes[i] = static_cast<ui32>(target[i]);
-        }
-        return MakeIntrusive<TTextClassificationTarget>(std::move(classes), numClasses);
-    }
-
-    static TEmbeddingClassificationTargetPtr CreateEmbeddingClassificationTarget(const TTargetDataProvider& targetDataProvider) {
-        const ui32 numClasses = *targetDataProvider.GetTargetClassCount();
-        TConstArrayRef<float> target = *targetDataProvider.GetOneDimensionalTarget();
-        TVector<ui32> classes(target.size());
-
-        for (ui32 i = 0; i < target.size(); i++) {
-            classes[i] = static_cast<ui32>(target[i]);
-        }
-        return MakeIntrusive<TEmbeddingClassificationTarget>(std::move(classes), numClasses);
+            for (ui32 i = 0; i < target.size(); i++) {
+                classes[i] = static_cast<ui32>(isBinClass ? target[i] > 0.5f : target[i]);
+            }
+            return classes;
+        };
+        return MakeIntrusive<TClassificationTarget>(
+            DispatchGenericLambda(extractClasses, numClasses == 2),
+            numClasses
+        );
     }
 
     static TFeatureEstimatorsPtr CreateEstimators(
@@ -328,7 +319,8 @@ namespace NCB {
         TFeatureEstimatorsBuilder estimatorsBuilder;
 
         const TQuantizedObjectsDataProvider& learnDataProvider = *pools.Learn->ObjectsData;
-        auto learnTextTarget = CreateTextClassificationTarget(*pools.Learn->TargetData);
+        auto learnTextTarget = CreateClassificationTarget(*pools.Learn->TargetData);
+        ui32 sourceTextsCount = learnDataProvider.GetQuantizedFeaturesInfo()->GetTextDigitizers().GetSourceTextsCount();
 
         pools.Learn->MetaInfo.FeaturesLayout->IterateOverAvailableFeatures<EFeatureType::Text>(
             [&](TTextFeatureIdx tokenizedTextFeatureIdx) {
@@ -346,14 +338,14 @@ namespace NCB {
                         ));
                 }
 
-                const auto& featureDescription = tokenizedFeaturesDescription[tokenizedFeatureIdx];
+                const auto& featureDescription = tokenizedFeaturesDescription[tokenizedFeatureIdx - sourceTextsCount];
                 auto offlineEstimators = CreateTextEstimators(
                     featureDescription.FeatureEstimators.Get(),
                     learnTexts,
                     testTexts
                 );
 
-                const ui32 textFeatureId = tokenizedFeaturesDescription[tokenizedFeatureIdx].TextFeatureId;
+                const ui32 textFeatureId = tokenizedFeaturesDescription[tokenizedFeatureIdx - sourceTextsCount].TextFeatureId;
                 TEstimatorSourceId sourceFeatureIdx{textFeatureId, tokenizedFeatureIdx};
                 for (auto&& estimator : offlineEstimators) {
                     estimatorsBuilder.AddFeatureEstimator(std::move(estimator), sourceFeatureIdx);
@@ -372,7 +364,7 @@ namespace NCB {
         );
 
         auto embeddingFeaturesDescription = quantizedFeaturesInfo->GetEmbeddingProcessingOptions().GetFeatureDescriptions();
-        auto learnEmbeddingTarget = CreateEmbeddingClassificationTarget(*pools.Learn->TargetData);
+        auto learnEmbeddingTarget = CreateClassificationTarget(*pools.Learn->TargetData);
 
         pools.Learn->MetaInfo.FeaturesLayout->IterateOverAvailableFeatures<EFeatureType::Embedding>(
             [&](TEmbeddingFeatureIdx embeddingFeature) {
@@ -541,9 +533,9 @@ namespace NCB {
         return newTrainingData;
     }
 
-    bool HaveLearnFeaturesInMemory(
-        const NCatboostOptions::TPoolLoadParams* loadOptions,
-        const NCatboostOptions::TCatBoostOptions& catBoostOptions
+    bool HaveFeaturesInMemory(
+        const NCatboostOptions::TCatBoostOptions& catBoostOptions,
+        const TMaybe<TPathWithScheme>& maybePathWithScheme
     ) {
         #if defined(USE_MPI)
         const bool isGpuDistributed = catBoostOptions.GetTaskType() == ETaskType::GPU;
@@ -554,12 +546,38 @@ namespace NCB {
         if (!isCpuDistributed && !isGpuDistributed) {
             return true;
         }
-        if (loadOptions == nullptr) {
+        if (const auto* pathWithScheme = maybePathWithScheme.Get()) {
+            const bool isQuantized = pathWithScheme->Scheme.find("quantized") != std::string::npos;
+            return !IsSharedFs(*pathWithScheme) || !isQuantized;
+        } else {
             return true;
         }
-        const auto& learnSetPath = loadOptions->LearnSetPath;
-        const bool isQuantized = learnSetPath.Scheme.find("quantized") != std::string::npos;
-        return !IsSharedFs(learnSetPath) || !isQuantized;
     }
 
+    void EnsureObjectsDataIsConsecutiveIfQuantized(
+        ui64 cpuUsedRamLimit,
+        NPar::ILocalExecutor* localExecutor,
+        TDataProviderPtr* dataProvider
+    ) {
+        if (auto* quantizedObjectsDataProvider
+                = dynamic_cast<TQuantizedObjectsDataProvider*>((*dataProvider)->ObjectsData.Get()))
+        {
+            if (!quantizedObjectsDataProvider->GetFeaturesArraySubsetIndexing().IsConsecutive()) {
+                if (dataProvider->RefCount() > 1) {
+                    CATBOOST_DEBUG_LOG << "Copy dataProvider to enusure data is consecutive";
+                    *dataProvider = (*dataProvider)->Clone(cpuUsedRamLimit, localExecutor);
+                    quantizedObjectsDataProvider
+                        = dynamic_cast<TQuantizedObjectsDataProvider*>((*dataProvider)->ObjectsData.Get());
+                }
+                if (quantizedObjectsDataProvider->RefCount() > 1) {
+                    CATBOOST_DEBUG_LOG << "Copy dataProvider->ObjectsData to enusure data is consecutive";
+                    (*dataProvider)->ObjectsData = (*dataProvider)->ObjectsData->Clone(localExecutor);
+                    (*dataProvider)->ObjectsGrouping = (*dataProvider)->ObjectsData->GetObjectsGrouping();
+                    quantizedObjectsDataProvider
+                        = dynamic_cast<TQuantizedObjectsDataProvider*>((*dataProvider)->ObjectsData.Get());
+                }
+                quantizedObjectsDataProvider->EnsureConsecutiveIfDenseFeaturesData(localExecutor);
+            }
+        }
+    }
 }

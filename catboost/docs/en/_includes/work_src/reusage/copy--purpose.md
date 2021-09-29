@@ -1,0 +1,2 @@
+
+Copy the {{ product }} object.

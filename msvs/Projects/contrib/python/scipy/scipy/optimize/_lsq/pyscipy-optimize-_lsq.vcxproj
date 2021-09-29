@@ -57,8 +57,8 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DARCADIA_PYTHON_UNICODE_SIZE=2 /std:c++latest  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DARCADIA_PYTHON_UNICODE_SIZE=2 /std:c++latest  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DFAKEID=8668432 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DARCADIA_PYTHON_UNICODE_SIZE=2 /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF  -DCATBOOST_OPENSOURCE=yes  </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DFAKEID=8668432 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DARCADIA_PYTHON_UNICODE_SIZE=2 /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF  -DCATBOOST_OPENSOURCE=yes  </AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
@@ -66,7 +66,7 @@
       <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)../contrib/libs/libc_compat/include/windows;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/libs/openssl/include;$(SolutionDir)../contrib/restricted/libffi/include;$(SolutionDir)../contrib/restricted/libffi/configs/x86_64-microsoft-windows/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;gdi32.lib;kernel32.lib;ole32.lib;oleaut32.lib;shell32.lib;user32.lib;uuid.lib;winspool.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;dnsapi.lib;gdi32.lib;iphlpapi.lib;kernel32.lib;mswsock.lib;ole32.lib;oleaut32.lib;psapi.lib;rpcrt4.lib;secur32.lib;shell32.lib;shlwapi.lib;user32.lib;userenv.lib;uuid.lib;version.lib;winmm.lib;winspool.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  crypt32.lib ws2_32.lib</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  crypt32.lib ws2_32.lib</AdditionalOptions>
       <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
@@ -78,9 +78,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_lsq\2d48d2eaf5e16c44276d728492.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_lsq\givens_elimination.pyx.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_lsq\scipy.optimize._lsq.givens_elimination.reg.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_lsq\_2d48d2eaf5e16c44276d728492.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_lsq
@@ -107,60 +105,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/scipy/scipy/optimize/_lsq/_2d48d2eaf5e16c44276d728492.py2.obj	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_lsq\_2d48d2eaf5e16c44276d728492.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_lsq\_2d48d2eaf5e16c44276d728492.py2.obj;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_lsq
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_lsq/2d48d2eaf5e16c44276d728492.cpp" "_c8cd2d90f8ff725a01d664aa8f=/py_modules/scipy.optimize._lsq.bvls" "_fdf045d959a1ba0069529581a3=resfs/src//py_modules/scipy.optimize._lsq.bvls" "_795b4388e7af8cc432c9fd7e7d=/py_code/scipy.optimize._lsq.bvls" "_002e94450e7e3c6e43eabf320e=/py_modules/scipy.optimize._lsq.common" "_a475f7b6b1c3e9f53bdfbf16b5=resfs/src//py_modules/scipy.optimize._lsq.common" "_2223f38224149ea3f075dd9e07=/py_code/scipy.optimize._lsq.common" "_dc2887de9d27565db5621dd75a=/py_modules/scipy.optimize._lsq.dogbox" "_d7afb4c65b811c372293c8c8a2=resfs/src//py_modules/scipy.optimize._lsq.dogbox" "_452841a4e644348099bed0ff61=/py_code/scipy.optimize._lsq.dogbox" "_76b7caa1a4c578ad530bc503e5=/py_modules/scipy.optimize._lsq.__init__" "_30acc9e2024c7d927528541784=resfs/src//py_modules/scipy.optimize._lsq.__init__" "_3ddbdb5e3f332b4263b7584365=/py_code/scipy.optimize._lsq.__init__" "_860a2b7631a1e0158d625b92a9=/py_modules/scipy.optimize._lsq.least_squares" "_6006fa569e15fe30ce5c44c9b6=resfs/src//py_modules/scipy.optimize._lsq.least_squares" "_cb7496461d53790b2a325355cc=/py_code/scipy.optimize._lsq.least_squares" "_ae14bec8dcf278d8691ddcd7d2=/py_modules/scipy.optimize._lsq.lsq_linear" "_2beba54d55c9f1db56460bcacc=resfs/src//py_modules/scipy.optimize._lsq.lsq_linear" "_95656bab7c7f441652cb9124b3=/py_code/scipy.optimize._lsq.lsq_linear" "_e91d641cdb1b322ef44e72bec3=/py_modules/scipy.optimize._lsq.trf_linear" "_7a76ca56271b5b30b8dd239460=resfs/src//py_modules/scipy.optimize._lsq.trf_linear" "_cb917c77ab64f1297543eb9203=/py_code/scipy.optimize._lsq.trf_linear" "_ebf9783940451ee5ac9017f8ee=/py_modules/scipy.optimize._lsq.trf" "_7e8bbf131f9ae039246e045eb3=resfs/src//py_modules/scipy.optimize._lsq.trf" "_4787117a613d3a5d036e78ea61=/py_code/scipy.optimize._lsq.trf"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_lsq
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_lsq/2d48d2eaf5e16c44276d728492.cpp" "_c8cd2d90f8ff725a01d664aa8f=/py_modules/scipy.optimize._lsq.bvls" "_fdf045d959a1ba0069529581a3=resfs/src//py_modules/scipy.optimize._lsq.bvls" "_795b4388e7af8cc432c9fd7e7d=/py_code/scipy.optimize._lsq.bvls" "_002e94450e7e3c6e43eabf320e=/py_modules/scipy.optimize._lsq.common" "_a475f7b6b1c3e9f53bdfbf16b5=resfs/src//py_modules/scipy.optimize._lsq.common" "_2223f38224149ea3f075dd9e07=/py_code/scipy.optimize._lsq.common" "_dc2887de9d27565db5621dd75a=/py_modules/scipy.optimize._lsq.dogbox" "_d7afb4c65b811c372293c8c8a2=resfs/src//py_modules/scipy.optimize._lsq.dogbox" "_452841a4e644348099bed0ff61=/py_code/scipy.optimize._lsq.dogbox" "_76b7caa1a4c578ad530bc503e5=/py_modules/scipy.optimize._lsq.__init__" "_30acc9e2024c7d927528541784=resfs/src//py_modules/scipy.optimize._lsq.__init__" "_3ddbdb5e3f332b4263b7584365=/py_code/scipy.optimize._lsq.__init__" "_860a2b7631a1e0158d625b92a9=/py_modules/scipy.optimize._lsq.least_squares" "_6006fa569e15fe30ce5c44c9b6=resfs/src//py_modules/scipy.optimize._lsq.least_squares" "_cb7496461d53790b2a325355cc=/py_code/scipy.optimize._lsq.least_squares" "_ae14bec8dcf278d8691ddcd7d2=/py_modules/scipy.optimize._lsq.lsq_linear" "_2beba54d55c9f1db56460bcacc=resfs/src//py_modules/scipy.optimize._lsq.lsq_linear" "_95656bab7c7f441652cb9124b3=/py_code/scipy.optimize._lsq.lsq_linear" "_e91d641cdb1b322ef44e72bec3=/py_modules/scipy.optimize._lsq.trf_linear" "_7a76ca56271b5b30b8dd239460=resfs/src//py_modules/scipy.optimize._lsq.trf_linear" "_cb917c77ab64f1297543eb9203=/py_code/scipy.optimize._lsq.trf_linear" "_ebf9783940451ee5ac9017f8ee=/py_modules/scipy.optimize._lsq.trf" "_7e8bbf131f9ae039246e045eb3=resfs/src//py_modules/scipy.optimize._lsq.trf" "_4787117a613d3a5d036e78ea61=/py_code/scipy.optimize._lsq.trf"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/scipy/scipy/optimize/_lsq/2d48d2eaf5e16c44276d728492.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_lsq\2d48d2eaf5e16c44276d728492.cpp;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_py_reg.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_lsq
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.optimize._lsq.givens_elimination" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_lsq/scipy.optimize._lsq.givens_elimination.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_lsq
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.optimize._lsq.givens_elimination" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_lsq/scipy.optimize._lsq.givens_elimination.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/scipy/scipy/optimize/_lsq/scipy.optimize._lsq.givens_elimination.reg.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_py_reg.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_lsq\scipy.optimize._lsq.givens_elimination.reg.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

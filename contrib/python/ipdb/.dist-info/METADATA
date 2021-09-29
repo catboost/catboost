@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: ipdb
-Version: 0.13.7
+Version: 0.13.9
 Summary: IPython-enabled pdb
 Home-page: https://github.com/gotcha/ipdb
 Author: Godefroid Chapelle
@@ -24,14 +24,19 @@ Requires-Python: >=2.7
 Requires-Dist: setuptools
 Requires-Dist: ipython (<6.0.0,>=5.1.0) ; python_version == "2.7"
 Requires-Dist: toml (>=0.10.2) ; python_version == "2.7"
+Requires-Dist: decorator (<5.0.0) ; python_version == "2.7"
 Requires-Dist: ipython (<7.0.0,>=6.0.0) ; python_version == "3.4"
 Requires-Dist: toml (>=0.10.2) ; python_version == "3.4"
+Requires-Dist: decorator (<5.0.0) ; python_version == "3.4"
 Requires-Dist: ipython (<7.10.0,>=7.0.0) ; python_version == "3.5"
 Requires-Dist: toml (>=0.10.2) ; python_version == "3.5"
+Requires-Dist: decorator ; python_version == "3.5"
 Requires-Dist: ipython (<7.17.0,>=7.10.0) ; python_version == "3.6"
 Requires-Dist: toml (>=0.10.2) ; python_version == "3.6"
+Requires-Dist: decorator ; python_version == "3.6"
 Requires-Dist: ipython (>=7.17.0) ; python_version > "3.6"
 Requires-Dist: toml (>=0.10.2) ; python_version > "3.6"
+Requires-Dist: decorator ; python_version > "3.6"
 
 IPython `pdb`
 =============
@@ -141,6 +146,16 @@ You can also enclose code with the ``with`` statement to launch ipdb if an excep
    Adding a context manager implies dropping Python 2.4 support.
    Use ``ipdb==0.6`` with 2.4.
 
+Or you can use ``iex`` as a function decorator to launch ipdb if an exception is raised:
+
+.. code-block:: python
+
+        from ipdb import iex
+
+        @iex
+        def main():
+            [...]
+
 .. warning::
    Using ``from future import print_function`` for Python 3 compat implies dropping Python 2.5 support.
    Use ``ipdb<=0.8`` with 2.5.
@@ -220,6 +235,23 @@ instead of ``pdb``. (It does not depend on ``ipdb`` anymore).
 
 Changelog
 =========
+
+0.13.9 (2021-06-02)
+-------------------
+
+- Fix again when `pyproject.toml` does not contain `tool` section.
+  [markab108]
+
+
+0.13.8 (2021-05-26)
+-------------------
+
+- Fix when `pyproject.toml` does not contain `tool` section.
+  [anjos]
+
+- Add the convenience function ``iex()``.
+  [alanbernstein]
+
 
 0.13.7 (2021-03-16)
 -------------------

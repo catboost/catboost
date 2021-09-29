@@ -1,10 +1,16 @@
 #pragma once
 
 #include "index_builder.h"
+#include "index_data.h"
 #include "dense_vector_distance.h"
 #include "dense_vector_storage.h"
 
-#include <util/memory/blob.h>
+#include <util/generic/fwd.h>
+
+#include <stddef.h>
+
+class TBlob;
+
 
 /**
  * @brief Implementation of NHnsw::BuildIndex for dense vectors.
@@ -19,6 +25,8 @@
  * @tparam TVectorComponent - type of dense vector component, typically one of i8/i32/float/double
  */
 namespace NHnsw {
+    struct THnswBuildOptions;
+
     template <class TVectorComponent,
               class TDistance,
               class TDistanceResult = typename TDistance::TResult,

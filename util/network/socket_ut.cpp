@@ -10,8 +10,8 @@
 #include <ctime>
 
 #ifdef _linux_
-#include <linux/version.h>
-#include <sys/utsname.h>
+    #include <linux/version.h>
+    #include <sys/utsname.h>
 #endif
 
 class TSockTest: public TTestBase {
@@ -81,8 +81,9 @@ void TSockTest::TestNetworkResolutionError() {
         errMsg = e.what();
     }
 
-    if (errMsg.empty())
+    if (errMsg.empty()) {
         return; // on Windows getaddrinfo("", 0, ...) returns "OK"
+    }
 
     int expectedErr = EAI_NONAME;
     TString expectedErrMsg = gai_strerror(expectedErr);
@@ -103,16 +104,16 @@ void TSockTest::TestNetworkResolutionErrorMessage() {
 
     struct TErrnoGuard {
         TErrnoGuard()
-            : PrevValue(errno)
+            : PrevValue_(errno)
         {
         }
 
         ~TErrnoGuard() {
-            errno = PrevValue;
+            errno = PrevValue_;
         }
 
     private:
-        int PrevValue;
+        int PrevValue_;
     } g;
 
     UNIT_ASSERT_VALUES_EQUAL(expected(0) + "(0): ", str(0));
@@ -130,17 +131,17 @@ void TSockTest::TestNetworkResolutionErrorMessage() {
 class TTempEnableSigPipe {
 public:
     TTempEnableSigPipe() {
-        OriginalSigHandler = signal(SIGPIPE, SIG_DFL);
-        Y_VERIFY(OriginalSigHandler != SIG_ERR);
+        OriginalSigHandler_ = signal(SIGPIPE, SIG_DFL);
+        Y_VERIFY(OriginalSigHandler_ != SIG_ERR);
     }
 
     ~TTempEnableSigPipe() {
-        auto ret = signal(SIGPIPE, OriginalSigHandler);
+        auto ret = signal(SIGPIPE, OriginalSigHandler_);
         Y_VERIFY(ret != SIG_ERR);
     }
 
 private:
-    void (*OriginalSigHandler)(int);
+    void (*OriginalSigHandler_)(int);
 };
 
 void TSockTest::TestBrokenPipe() {
@@ -244,33 +245,38 @@ sockaddr_in TPollTest::GetAddress(ui32 ip, ui16 port) {
 
 SOCKET TPollTest::CreateSocket() {
     SOCKET s = socket(AF_INET, SOCK_STREAM, 0);
-    if (s == INVALID_SOCKET)
+    if (s == INVALID_SOCKET) {
         ythrow yexception() << "Can not create socket (" << LastSystemErrorText() << ")";
+    }
     return s;
 }
 
 SOCKET TPollTest::StartServerSocket(ui16 port, int backlog) {
     TSocketHolder s(CreateSocket());
     sockaddr_in addr = GetAddress(ntohl(INADDR_ANY), port);
-    if (bind(s, (sockaddr*)&addr, sizeof(addr)) == SOCKET_ERROR)
+    if (bind(s, (sockaddr*)&addr, sizeof(addr)) == SOCKET_ERROR) {
         ythrow yexception() << "Can not bind server socket (" << LastSystemErrorText() << ")";
-    if (listen(s, backlog) == SOCKET_ERROR)
+    }
+    if (listen(s, backlog) == SOCKET_ERROR) {
         ythrow yexception() << "Can not listen on server socket (" << LastSystemErrorText() << ")";
+    }
     return s.Release();
 }
 
 SOCKET TPollTest::StartClientSocket(ui32 ip, ui16 port) {
     TSocketHolder s(CreateSocket());
     sockaddr_in addr = GetAddress(ip, port);
-    if (connect(s, (sockaddr*)&addr, sizeof(addr)) == SOCKET_ERROR)
+    if (connect(s, (sockaddr*)&addr, sizeof(addr)) == SOCKET_ERROR) {
         ythrow yexception() << "Can not connect client socket (" << LastSystemErrorText() << ")";
+    }
     return s.Release();
 }
 
 SOCKET TPollTest::AcceptConnection(SOCKET serverSocket) {
     SOCKET connectedSocket = accept(serverSocket, nullptr, nullptr);
-    if (connectedSocket == INVALID_SOCKET)
+    if (connectedSocket == INVALID_SOCKET) {
         ythrow yexception() << "Can not accept connection on server socket (" << LastSystemErrorText() << ")";
+    }
     return connectedSocket;
 }
 

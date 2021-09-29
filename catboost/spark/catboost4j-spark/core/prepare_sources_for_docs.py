@@ -22,7 +22,7 @@ def _main():
 
     if os.path.exists(args.dst_dir):
         shutil.rmtree(args.dst_dir)
-    os.mkdir(args.dst_dir)
+    os.makedirs(args.dst_dir)
 
     if args.src_dirs is not None:
         for src_dir in args.src_dirs:

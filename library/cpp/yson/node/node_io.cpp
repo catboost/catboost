@@ -3,10 +3,10 @@
 #include "node_builder.h"
 #include "node_visitor.h"
 
-#include <library/cpp/yson/json_writer.h>
+#include <library/cpp/yson/json/json_writer.h>
 #include <library/cpp/yson/parser.h>
 #include <library/cpp/yson/writer.h>
-#include <library/cpp/yson/yson2json_adapter.h>
+#include <library/cpp/yson/json/yson2json_adapter.h>
 
 #include <library/cpp/json/json_reader.h>
 #include <library/cpp/json/json_value.h>
@@ -88,14 +88,14 @@ TNode NodeFromYsonString(const TStringBuf input, EYsonType type)
     return NodeFromYsonStream(&stream, type);
 }
 
-TString NodeToYsonString(const TNode& node, EYsonFormat format)
+TString NodeToYsonString(const TNode& node, NYson::EYsonFormat format)
 {
     TStringStream stream;
     NodeToYsonStream(node, &stream, format);
     return stream.Str();
 }
 
-TString NodeToCanonicalYsonString(const TNode& node, EYsonFormat format)
+TString NodeToCanonicalYsonString(const TNode& node, NYson::EYsonFormat format)
 {
     TStringStream stream;
     NodeToCanonicalYsonStream(node, &stream, format);
@@ -107,21 +107,21 @@ TNode NodeFromYsonStream(IInputStream* input, EYsonType type)
     TNode result = CreateEmptyNodeByType(type);
 
     TNodeBuilder builder(&result);
-    TYsonParser parser(&builder, input, type);
+    NYson::TYsonParser parser(&builder, input, type);
     parser.Parse();
     return result;
 }
 
-void NodeToYsonStream(const TNode& node, IOutputStream* output, EYsonFormat format)
+void NodeToYsonStream(const TNode& node, IOutputStream* output, NYson::EYsonFormat format)
 {
-    TYsonWriter writer(output, format);
+    NYson::TYsonWriter writer(output, format);
     TNodeVisitor visitor(&writer);
     visitor.Visit(node);
 }
 
-void NodeToCanonicalYsonStream(const TNode& node, IOutputStream* output, EYsonFormat format)
+void NodeToCanonicalYsonStream(const TNode& node, IOutputStream* output, NYson::EYsonFormat format)
 {
-    TYsonWriter writer(output, format);
+    NYson::TYsonWriter writer(output, format);
     TNodeVisitor visitor(&writer, /*sortMapKeys*/ true);
     visitor.Visit(node);
 }

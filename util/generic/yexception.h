@@ -13,6 +13,7 @@
 #include <util/system/defaults.h>
 #include <util/system/error.h>
 #include <util/system/src_location.h>
+#include <util/system/platform.h>
 
 #include <exception>
 
@@ -65,7 +66,8 @@ namespace NPrivateException {
     };
 
     template <class E, class T>
-    static inline E&& operator<<(E&& e, const T& t) {
+    static inline std::enable_if_t<std::is_base_of<yexception, std::decay_t<E>>::value, E&&>
+    operator<<(E&& e, const T& t) {
         e.Append(t);
 
         return std::forward<E>(e);
@@ -94,7 +96,8 @@ public:
 
     TSystemError()
         : TSystemError(LastSystemError())
-    {}
+    {
+    }
 
     int Status() const noexcept {
         return Status_;
@@ -152,7 +155,23 @@ namespace NPrivate {
 void fputs(const std::exception& e, FILE* f = stderr);
 
 TString CurrentExceptionMessage();
+
+/*
+ * A neat method that detects wrether stack unwinding is in progress.
+ * As its std counterpart (that is std::uncaught_exception())
+ * was removed from the standard, this method uses std::uncaught_exceptions() internally.
+ *
+ * If you are struggling to use this method, please, consider reading
+ *
+ * http://www.gotw.ca/gotw/047.htm
+ * and
+ * http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4152.pdf
+ *
+ * DO NOT USE THIS METHOD IN DESTRUCTORS.
+ */
 bool UncaughtException() noexcept;
+
+std::string CurrentExceptionTypeName();
 
 TString FormatExc(const std::exception& exception);
 

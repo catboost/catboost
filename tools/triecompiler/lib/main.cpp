@@ -380,7 +380,7 @@ static int VerifyFile(const TOptions& o, const TPacker& packer) {
 
 template <class TRecord, class TPacker>
 static int SelectInput(const TOptions& o, const TPacker& packer) {
-    if (AsStringBuf("-") == o.Infile) {
+    if ("-"sv == o.Infile) {
         TBufferedInput wrapper{&Cin};
         return ProcessFile<TRecord>(wrapper, o, packer);
     }

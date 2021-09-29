@@ -1,6 +1,6 @@
 #pragma once
 
-#include <stdlib.h>
+#include <cstdlib>
 
 double fast_exp(double x);
 

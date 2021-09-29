@@ -77,7 +77,7 @@ Y_UNIT_TEST_SUITE(TestVaArgs) {
     }
 
     Y_UNIT_TEST(AllButLast) {
-        const char array[] = { Y_ALL_BUT_LAST(1, 2, 3, 4, 5) };
+        const char array[] = {Y_ALL_BUT_LAST(1, 2, 3, 4, 5)};
         UNIT_ASSERT((sizeof(array) == 4));
         UNIT_ASSERT((array[0] == 1));
         UNIT_ASSERT((array[1] == 2));

@@ -7,14 +7,12 @@ import concurrent.ExecutionContext.Implicits.global
 
 import scala.util.control.Breaks._
 
-import java.io.{BufferedReader,InputStreamReader,PrintWriter}
+import java.io.{BufferedReader,InputStreamReader}
 import java.nio.charset.StandardCharsets
 import java.nio.file._
 
 import java.util.concurrent.Callable
 import java.util.regex.Pattern
-
-import sun.net.util.IPAddressUtil
 
 import org.apache.commons.io.FileUtils
 
@@ -83,23 +81,6 @@ private[spark] class CatBoostMasterWrapper (
   var nativeModelResult : native_impl.TFullModel = null
 ) extends Logging {
 
-  private def saveHostsListToFile(hostsFilePath: Path, workersInfo: Array[WorkerInfo]) = {
-    val pw = new PrintWriter(hostsFilePath.toFile)
-    try {
-      for (workerInfo <- workersInfo) {
-        if (workerInfo.partitionSize > 0) {
-          if (IPAddressUtil.isIPv6LiteralAddress(workerInfo.host)) {
-            pw.println(s"[${workerInfo.host}]:${workerInfo.port}")
-          } else {
-            pw.println(s"${workerInfo.host}:${workerInfo.port}")
-          }
-        }
-      }
-    } finally {
-      pw.close
-    }
-  }
-
   /**
    * If master failed because of lost connection to workers throws  CatBoostWorkersConnectionLostException
    */
@@ -113,7 +94,7 @@ private[spark] class CatBoostMasterWrapper (
     val tmpDirPath = Files.createTempDirectory("catboost_train")
 
     val hostsFilePath = tmpDirPath.resolve("worker_hosts.txt")
-    saveHostsListToFile(hostsFilePath, workersInfo)
+    TrainingDriver.saveHostsListToFile(hostsFilePath, workersInfo)
     val resultModelFilePath = tmpDirPath.resolve("result_model.cbm")
 
     val jsonParamsFile = tmpDirPath.resolve("json_params")

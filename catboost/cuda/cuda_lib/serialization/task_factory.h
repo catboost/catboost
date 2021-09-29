@@ -5,14 +5,8 @@
 #include <util/generic/buffer.h>
 #include <util/generic/hash.h>
 #include <util/stream/buffer.h>
+#include <util/system/type_name.h>
 #include <typeindex>
-
-template <>
-struct THash<std::type_index> {
-    inline size_t operator()(const std::type_index& index) const {
-        return index.hash_code();
-    }
-};
 
 namespace NCudaLib {
     using TTaskFactory = NObjectFactory::TParametrizedObjectFactory<ICommand, ui64>;
@@ -103,7 +97,7 @@ namespace NCudaLib {
             auto& uidsProvider = GetTaskUniqueIdsProvider();
             ui32 key = uidsProvider.GetUniqueId(command);
 #if defined(NDEBUG)
-            CB_ENSURE(TTaskFactory::Has(key), "Error: no ptr found for class " << typeid(TCommand).name());
+            CB_ENSURE(TTaskFactory::Has(key), "Error: no ptr found for class " << TypeName<TCommand>());
 #endif
             ::Save(out, key);
             ::Save(out, command);

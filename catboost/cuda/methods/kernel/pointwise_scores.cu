@@ -416,7 +416,7 @@ namespace NKernel {
                                const float* binFeaturesWeights, ui32 binaryFeatureWeightsCount,
                                const float* splits, const TPartitionStatistics* parts, ui32 pCount,
                                TBestSplitProperties* result, ui32 resultSize,
-                               EScoreFunction scoreFunction, double l2, bool normalize,
+                               EScoreFunction scoreFunction, double l2, double metaL2Exponent, double metaFrequency, bool normalize,
                                double scoreStdDev, ui64 seed,
                                TCudaStream stream) {
         const int blockSize = 128;
@@ -447,7 +447,8 @@ namespace NKernel {
             case EScoreFunction::L2:
             case EScoreFunction::NewtonL2: {
                 using TScoreCalcer = TL2ScoreCalcer;
-                TScoreCalcer scoreCalcer(static_cast<float>(l2));
+                const float metaExponent = (NextUniform(&seed) >= metaFrequency ? 1.0f : static_cast<float>(metaL2Exponent));
+                TScoreCalcer scoreCalcer(static_cast<float>(l2), metaExponent);
                 RUN()
                 break;
             }
@@ -473,7 +474,7 @@ namespace NKernel {
                           const float* binFeaturesWeights, ui32 binaryFeatureWeightsCount,
                           const float* splits, const TPartitionStatistics* parts, ui32 pCount, ui32 foldCount,
                           TBestSplitProperties* result, ui32 resultSize,
-                          EScoreFunction scoreFunction, double l2, bool normalize,
+                          EScoreFunction scoreFunction, double l2, double metaL2Exponent, double metaL2Frequency, bool normalize,
                           double scoreStdDev, ui64 seed, bool gatheredByLeaves,
                           TCudaStream stream)
     {
@@ -481,10 +482,10 @@ namespace NKernel {
         if (foldCount == 1) {
             if (gatheredByLeaves) {
                 using THistLoader = TGatheredByLeavesHistLoader;
-                FindOptimalSplitPlain<THistLoader>(binaryFeatures, binaryFeatureCount, binFeaturesWeights, binaryFeatureWeightsCount, splits, parts, pCount, result, resultSize, scoreFunction, l2, normalize, scoreStdDev, seed, stream);
+                FindOptimalSplitPlain<THistLoader>(binaryFeatures, binaryFeatureCount, binFeaturesWeights, binaryFeatureWeightsCount, splits, parts, pCount, result, resultSize, scoreFunction, l2, metaL2Exponent, metaL2Frequency, normalize, scoreStdDev, seed, stream);
             } else {
                 using THistLoader = TDirectHistLoader;
-                FindOptimalSplitPlain<THistLoader>(binaryFeatures, binaryFeatureCount, binFeaturesWeights, binaryFeatureWeightsCount, splits, parts, pCount, result, resultSize, scoreFunction, l2, normalize, scoreStdDev, seed, stream);
+                FindOptimalSplitPlain<THistLoader>(binaryFeatures, binaryFeatureCount, binFeaturesWeights, binaryFeatureWeightsCount, splits, parts, pCount, result, resultSize, scoreFunction, l2, metaL2Exponent, metaL2Frequency, normalize, scoreStdDev, seed, stream);
             }
         } else {
             FindOptimalSplitDynamic(binaryFeatures, binaryFeatureCount, binFeaturesWeights, binaryFeatureWeightsCount, splits, parts, pCount, foldCount, result, resultSize, scoreFunction, l2, normalize, scoreStdDev, seed, stream);

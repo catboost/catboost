@@ -388,6 +388,7 @@ typedef struct {
     PyObject *gi_qualname;
     PyObject *gi_modulename;
     PyObject *gi_code;
+    PyObject *gi_frame;
     int resume_label;
     // using T_BOOL for property below requires char value
     char is_running;
@@ -1138,6 +1139,7 @@ static int __Pyx_Coroutine_clear(PyObject *self) {
     }
 #endif
     Py_CLEAR(gen->gi_code);
+    Py_CLEAR(gen->gi_frame);
     Py_CLEAR(gen->gi_name);
     Py_CLEAR(gen->gi_qualname);
     Py_CLEAR(gen->gi_modulename);
@@ -1158,7 +1160,7 @@ static void __Pyx_Coroutine_dealloc(PyObject *self) {
         if (PyObject_CallFinalizerFromDealloc(self))
 #else
         Py_TYPE(gen)->tp_del(self);
-        if (self->ob_refcnt > 0)
+        if (Py_REFCNT(self) > 0)
 #endif
         {
             // resurrected.  :(
@@ -1273,7 +1275,7 @@ static void __Pyx_Coroutine_del(PyObject *self) {
 #if !CYTHON_USE_TP_FINALIZE
     // Undo the temporary resurrection; can't use DECREF here, it would
     // cause a recursive call.
-    assert(self->ob_refcnt > 0);
+    assert(Py_REFCNT(self) > 0);
     if (--self->ob_refcnt == 0) {
         // this is the normal path out
         return;
@@ -1282,12 +1284,12 @@ static void __Pyx_Coroutine_del(PyObject *self) {
     // close() resurrected it!  Make it look like the original Py_DECREF
     // never happened.
     {
-        Py_ssize_t refcnt = self->ob_refcnt;
+        Py_ssize_t refcnt = Py_REFCNT(self);
         _Py_NewReference(self);
         __Pyx_SET_REFCNT(self, refcnt);
     }
 #if CYTHON_COMPILING_IN_CPYTHON
-    assert(PyType_IS_GC(self->ob_type) &&
+    assert(PyType_IS_GC(Py_TYPE(self)) &&
            _Py_AS_GC(self)->gc.gc_refs != _PyGC_REFS_UNTRACKED);
 
     // If Py_REF_DEBUG, _Py_NewReference bumped _Py_RefTotal, so
@@ -1370,6 +1372,31 @@ __Pyx_Coroutine_set_qualname(__pyx_CoroutineObject *self, PyObject *value, CYTHO
     return 0;
 }
 
+
+static PyObject *
+__Pyx_Coroutine_get_frame(__pyx_CoroutineObject *self, CYTHON_UNUSED void *context)
+{
+    PyObject *frame = self->gi_frame;
+    if (!frame) {
+        if (unlikely(!self->gi_code)) {
+            // Avoid doing something stupid, e.g. during garbage collection.
+            Py_RETURN_NONE;
+        }
+        frame = (PyObject *) PyFrame_New(
+            PyThreadState_Get(),            /*PyThreadState *tstate,*/
+            (PyCodeObject*) self->gi_code,  /*PyCodeObject *code,*/
+            $moddict_cname,                 /*PyObject *globals,*/
+            0                               /*PyObject *locals*/
+        );
+        if (unlikely(!frame))
+            return NULL;
+        // keep the frame cached once it's created
+        self->gi_frame = frame;
+    }
+    Py_INCREF(frame);
+    return frame;
+}
+
 static __pyx_CoroutineObject *__Pyx__Coroutine_New(
             PyTypeObject* type, __pyx_coroutine_body_t body, PyObject *code, PyObject *closure,
             PyObject *name, PyObject *qualname, PyObject *module_name) {
@@ -1404,6 +1431,7 @@ static __pyx_CoroutineObject *__Pyx__Coroutine_NewInit(
     gen->gi_modulename = module_name;
     Py_XINCREF(code);
     gen->gi_code = code;
+    gen->gi_frame = NULL;
 
     PyObject_GC_Track(gen);
     return gen;
@@ -1558,13 +1586,6 @@ static PyObject *__Pyx_Coroutine_await(PyObject *coroutine) {
     return __Pyx__Coroutine_await(coroutine);
 }
 #endif
-
-static PyObject *
-__Pyx_Coroutine_get_frame(CYTHON_UNUSED __pyx_CoroutineObject *self, CYTHON_UNUSED void *context)
-{
-    // Fake implementation that always returns None, but at least does not raise an AttributeError.
-    Py_RETURN_NONE;
-}
 
 #if CYTHON_COMPILING_IN_CPYTHON && PY_MAJOR_VERSION >= 3 && PY_VERSION_HEX < 0x030500B1
 static PyObject *__Pyx_Coroutine_compare(PyObject *obj, PyObject *other, int op) {
@@ -1845,6 +1866,8 @@ static PyGetSetDef __pyx_Generator_getsets[] = {
      (char*) PyDoc_STR("name of the generator"), 0},
     {(char *) "__qualname__", (getter)__Pyx_Coroutine_get_qualname, (setter)__Pyx_Coroutine_set_qualname,
      (char*) PyDoc_STR("qualified name of the generator"), 0},
+    {(char *) "gi_frame", (getter)__Pyx_Coroutine_get_frame, NULL,
+     (char*) PyDoc_STR("Frame of the generator"), 0},
     {0, 0, 0, 0, 0}
 };
 

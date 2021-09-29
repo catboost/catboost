@@ -3,12 +3,11 @@ RESOURCES_LIBRARY()
 
 
 IF (OS_ANDROID)
-    # Android SDK for linux: Build-Tools 28.0.0, Build-Tools 28.0.2, Platform 28, Tools 26.1.1
-    # DECLARE_EXTERNAL_RESOURCE(ANDROID_SDK sbr:1080226315)
+    # Android SDK for linux and darwin: Build-Tools 30.0.3, Platform 30
     DECLARE_EXTERNAL_HOST_RESOURCES_BUNDLE(
         ANDROID_SDK
-        sbr:1385186850 FOR LINUX
-        sbr:1369991121 FOR DARWIN
+        sbr:2431170592 FOR LINUX
+        sbr:2431158921 FOR DARWIN
     )
     IF (NOT HOST_OS_LINUX AND NOT HOST_OS_DARWIN)
         MESSAGE(FATAL_ERROR Unsupported platform for ANDROID_SDK)

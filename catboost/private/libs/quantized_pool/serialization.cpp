@@ -267,13 +267,13 @@ static void WriteAsOneFile(const NCB::TQuantizedPool& pool, IOutputStream* slave
             pool.IgnoredColumnIndices);
         const ui32 poolMetainfoSize = poolMetainfo.ByteSizeLong();
         WriteLittleEndian(poolMetainfoSize, &output);
-        poolMetainfo.SerializeToStream(&output);
+        poolMetainfo.SerializeToArcadiaStream(&output);
     }
 
     const ui64 quantizationSchemaSizeOffset = output.Counter();
     const ui32 quantizationSchemaSize = pool.QuantizationSchema.ByteSizeLong();
     WriteLittleEndian(quantizationSchemaSize, &output);
-    pool.QuantizationSchema.SerializeToStream(&output);
+    pool.QuantizationSchema.SerializeToArcadiaStream(&output);
 
     const ui64 featureCountOffset = output.Counter();
     const ui32 featureCount = sortedTrueFeatureIndices.size();

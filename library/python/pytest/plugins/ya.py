@@ -812,7 +812,7 @@ class TraceReportGenerator(object):
             with open(self._wreckage_filename, 'a') as afile:
                 self._file = afile
 
-                self._dump_trace('suite_event', {"errors": [('fail', '[[bad]]' + msg)]})
+                self._dump_trace('chunk_event', {"errors": [('fail', '[[bad]]' + msg)]})
 
             raise Exception(msg)
         else:
@@ -882,7 +882,7 @@ class TraceReportGenerator(object):
         self.trace("suite-event", message)
 
     def on_error(self, test_item):
-        self.trace('suite_event', {"errors": [(test_item.status, self._get_comment(test_item))]})
+        self.trace('chunk_event', {"errors": [(test_item.status, self._get_comment(test_item))]})
 
     def on_log_report(self, test_item):
         if test_item.nodeid in self._test_duration:
@@ -955,7 +955,7 @@ class TraceReportGenerator(object):
                     # overwrite original status
                     self._dump_trace('subtest-finished', data)
                 else:
-                    self._dump_trace('suite_event', {"errors": [('fail', msg)]})
+                    self._dump_trace('chunk_event', {"errors": [('fail', msg)]})
         except Exception as e:
             yatest_logger.exception(e)
         finally:
@@ -985,11 +985,17 @@ class Ya(object):
     """
 
     def __init__(self, mode, source_root, build_root, dep_roots, output_dir, test_params, context, python_path, valgrind_path, gdb_path, data_root):
+        context_file_path = os.environ.get("YA_TEST_CONTEXT_FILE", None)
+        if context_file_path:
+            with open(context_file_path, 'r') as afile:
+                test_context = json.load(afile)
+            context_runtime = test_context["runtime"]
+        else:
+            context_runtime = {}
         self._mode = mode
-        self._build_root = build_root
-        self._source_root = source_root or self._detect_source_root()
-        self._output_dir = output_dir or self._detect_output_root()
-
+        self._build_root = to_str(context_runtime.get("build_root", "")) or build_root
+        self._source_root = to_str(context_runtime.get("source_root", "")) or source_root or self._detect_source_root()
+        self._output_dir = to_str(context_runtime.get("output_path", "")) or output_dir or  self._detect_output_root()
         if not self._output_dir:
             raise Exception("Run ya make -t before running test binary")
         if not self._source_root:
@@ -1007,21 +1013,20 @@ class Ya(object):
 
         self._dep_roots = dep_roots
 
-        self._python_path = python_path
+        self._python_path = to_str(context_runtime.get("python_bin", "")) or python_path
         self._valgrind_path = valgrind_path
-        self._gdb_path = gdb_path
+        self._gdb_path = to_str(context_runtime.get("gdb_bin", "")) or gdb_path
         self._test_params = {}
         self._context = {}
         self._test_item_node_id = None
 
-        ram_disk_path = os.environ.get("DISTBUILD_RAM_DISK_PATH")
-        if ram_disk_path:
-            self._test_params["ram_drive_path"] = ram_disk_path
-
+        ram_drive_path = to_str(context_runtime.get("ram_drive_path", ""))
+        if ram_drive_path:
+            self._test_params["ram_drive_path"] = ram_drive_path
         if test_params:
-            for p in test_params:
-                k, v = p.split("=", 1)
-                self._test_params[k] = v
+            self._test_params.update(dict(x.split('=', 1) for x in test_params))
+        self._test_params.update(context_runtime.get("test_params", {}))
+
         self._context.update(context)
 
     @property

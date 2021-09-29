@@ -98,7 +98,8 @@ def prepare_all(py_ver):
         whl_dir = yatest.common.source_path("catboost/python-package")
 
         mk_wheel_env = os.environ.copy()
-        for key in mk_wheel_env.keys():
+        mk_wheel_env_keys = list(mk_wheel_env.keys())
+        for key in mk_wheel_env_keys:
             if key.startswith("YA"):
                 del mk_wheel_env[key]
 
@@ -110,6 +111,7 @@ def prepare_all(py_ver):
                 "-DCATBOOST_OPENSOURCE=yes",
                 "-DCFLAGS=-DCATBOOST_OPENSOURCE=yes",
                 "--host-platform-flag", "CATBOOST_OPENSOURCE=yes",
+                "--build-widget=no"
             ],
             cwd=whl_dir,
             env=mk_wheel_env,
@@ -140,7 +142,13 @@ def prepare_all(py_ver):
 def test_wheel(py_ver):
     python_binary, python_env = prepare_all(py_ver)
 
-    test_script = yatest.common.source_path(os.path.join("catboost/python-package/ut/medium/run_catboost.py"))
+    PYTHON_PACKAGE_DIR = os.path.join("catboost", "python-package")
+
+    test_script = yatest.common.source_path(os.path.join(PYTHON_PACKAGE_DIR, "ut", "medium", "run_catboost.py"))
+
+    source_data_path = yatest.common.source_path(os.path.join("catboost", "pytest", "data", "adult"))
+    temp_data_path = os.path.join(yatest.common.test_output_path(), "data", "adult")
+    shutil.copytree(source_data_path, temp_data_path)
 
     yatest.common.execute(
         [
@@ -148,5 +156,6 @@ def test_wheel(py_ver):
             test_script,
         ],
         env=python_env,
+        cwd=yatest.common.test_output_path()
     )
 

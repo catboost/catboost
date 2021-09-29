@@ -7,7 +7,7 @@ from stat import ST_MODE
 from distutils import sysconfig
 from distutils.core import Command
 from distutils.dep_util import newer
-from distutils.util import convert_path, Mixin2to3
+from distutils.util import convert_path
 from distutils import log
 import tokenize
 
@@ -149,12 +149,4 @@ class build_scripts(Command):
                                  file, oldmode, newmode)
                         os.chmod(file, newmode)
         # XXX should we modify self.outfiles?
-        return outfiles, updated_files
-
-class build_scripts_2to3(build_scripts, Mixin2to3):
-
-    def copy_scripts(self):
-        outfiles, updated_files = build_scripts.copy_scripts(self)
-        if not self.dry_run:
-            self.run_2to3(updated_files)
         return outfiles, updated_files

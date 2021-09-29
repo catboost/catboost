@@ -135,6 +135,8 @@ def onjava_module(unit, *args):
             data['KOTLIN_JVM_TARGET'] = extract_macro_calls(unit, 'KOTLIN_JVM_TARGET', args_delim)
         if unit.get('KOTLINC_FLAGS_VALUE'):
             data['KOTLINC_FLAGS'] = extract_macro_calls(unit, 'KOTLINC_FLAGS_VALUE', args_delim)
+        if unit.get('KOTLINC_OPTS_VALUE'):
+            data['KOTLINC_OPTS'] = extract_macro_calls(unit, 'KOTLINC_OPTS_VALUE', args_delim)
 
     if unit.get('WITH_GROOVY_VALUE') == 'yes':
         if not common.strip_roots(unit.path()).startswith(('devtools/dummy_arcadia', 'junk')):
@@ -235,13 +237,22 @@ def onjava_module(unit, *args):
 
     unit.set_property(['JAVA_DART_DATA', dart])
     if unit.get('MODULE_TYPE') in ('JAVA_PROGRAM', 'JAVA_LIBRARY', 'JTEST', 'TESTNG', 'JUNIT5') and not unit.path().startswith('$S/contrib/java'):
-        jdeps_val = (unit.get('CHECK_JAVA_DEPS_VALUE') or '').lower()
-        if jdeps_val and jdeps_val not in ('yes', 'no', 'strict'):
-            ymake.report_configure_error('CHECK_JAVA_DEPS: "yes", "no" or "strict" required')
-        if jdeps_val and jdeps_val != 'no':
-            unit.onjava_test_deps(jdeps_val)
+        unit.on_add_classpath_clash_check()
         if unit.get('LINT_LEVEL_VALUE') != "none":
             unit.onadd_check(['JAVA_STYLE', unit.get('LINT_LEVEL_VALUE')])
+
+
+def on_add_java_style_checks(unit, *args):
+    if unit.get('LINT_LEVEL_VALUE') != "none":
+        unit.onadd_check(['JAVA_STYLE', unit.get('LINT_LEVEL_VALUE')] + list(args))
+
+
+def on_add_classpath_clash_check(unit, *args):
+    jdeps_val = (unit.get('CHECK_JAVA_DEPS_VALUE') or '').lower()
+    if jdeps_val and jdeps_val not in ('yes', 'no', 'strict'):
+        ymake.report_configure_error('CHECK_JAVA_DEPS: "yes", "no" or "strict" required')
+    if jdeps_val and jdeps_val != 'no':
+        unit.onjava_test_deps(jdeps_val)
 
 
 # Ymake java modules related macroses
@@ -261,9 +272,114 @@ def onexternal_jar(unit, *args):
 def on_check_java_srcdir(unit, *args):
     args = list(args)
     for arg in args:
+        if not '$' in arg:
+            arc_srcdir = os.path.join(unit.get('MODDIR'), arg)
+            abs_srcdir = unit.resolve(os.path.join("$S/", arc_srcdir))
+            if not os.path.exists(abs_srcdir) or not os.path.isdir(abs_srcdir):
+                ymake.report_configure_error(
+                    'Trying to set a [[alt1]]JAVA_SRCS[[rst]] for a missing directory: [[imp]]$S/{}[[rst]]',
+                    missing_dir=arc_srcdir
+                )
+            return
         srcdir = unit.resolve_arc_path(arg)
-        if not srcdir.startswith('$S'):
+        if srcdir and not srcdir.startswith('$S'):
             continue
-        abs_srcdir = unit.resolve(srcdir)
+        abs_srcdir = unit.resolve(srcdir) if srcdir else unit.resolve(arg)
         if not os.path.exists(abs_srcdir) or not os.path.isdir(abs_srcdir):
-            ymake.report_configure_error('SRCDIR {} does not exists or not a directory'.format(srcdir[3:]))
+            ymake.report_configure_error(
+                'Trying to set a [[alt1]]JAVA_SRCS[[rst]] for a missing directory: [[imp]]{}[[rst]]',
+                missing_dir=srcdir
+            )
+
+
+def on_fill_jar_copy_resources_cmd(unit, *args):
+    if len(args) == 4:
+        varname, srcdir, base_classes_dir, reslist = tuple(args)
+        package = ''
+    else:
+        varname, srcdir, base_classes_dir, package, reslist = tuple(args)
+    dest_dir = os.path.join(base_classes_dir, *package.split('.')) if package else base_classes_dir
+    var = unit.get(varname)
+    var += ' && $FS_TOOLS copy_files {} {} {}'.format(srcdir if srcdir.startswith('"$') else '${CURDIR}/' + srcdir, dest_dir, reslist)
+    unit.set([varname, var])
+
+def on_fill_jar_gen_srcs(unit, *args):
+    varname, jar_type, srcdir, base_classes_dir, java_list, kt_list, groovy_list, res_list = tuple(args[0:8])
+    resolved_srcdir = unit.resolve_arc_path(srcdir)
+    if not resolved_srcdir.startswith('$') or resolved_srcdir.startswith('$S'):
+        return
+
+    exclude_pos = args.index('EXCLUDE')
+    globs = args[7:exclude_pos]
+    excludes = args[exclude_pos + 1:]
+    var = unit.get(varname)
+    var += ' && ${{cwd:BINDIR}} $YMAKE_PYTHON ${{input:"build/scripts/resolve_java_srcs.py"}} --append -d {} -s {} -k {} -g {} -r {} --include-patterns {}'.format(srcdir, java_list, kt_list, groovy_list, res_list, ' '.join(globs))
+    if jar_type == 'SRC_JAR':
+        var += ' --all-resources'
+    if len(excludes) > 0:
+        var += ' --exclude-patterns {}'.format(' '.join(excludes))
+    if unit.get('WITH_KOTLIN_VALUE') == 'yes':
+        var += ' --resolve-kotlin'
+    if unit.get('WITH_GROOVY_VALUE') == 'yes':
+        var += ' --resolve-groovy'
+    unit.set([varname, var])
+
+
+def on_check_run_java_prog_classpath(unit, *args):
+    if len(args) != 1:
+        ymake.report_configure_error('multiple CLASSPATH elements in RUN_JAVA_PROGRAM invocation no more supported. Use JAVA_RUNTIME_PEERDIR on the JAVA_PROGRAM module instead')
+
+
+def extract_words(words, keys):
+    kv = {}
+    k = None
+
+    for w in words:
+        if w in keys:
+            k = w
+        else:
+            if not k in kv:
+                kv[k] = []
+            kv[k].append(w)
+
+    return kv
+
+
+def parse_words(words):
+    kv = extract_words(words, {'OUT', 'TEMPLATE'})
+    ws = []
+    for item in ('OUT', 'TEMPLATE'):
+        for i, word in list(enumerate(kv[item])):
+            if word == 'CUSTOM_PROPERTY':
+                ws += kv[item][i:]
+                kv[item] = kv[item][:i]
+    tepmlates = kv['TEMPLATE']
+    outputs = kv['OUT']
+    if len(outputs) < len(tepmlates):
+        ymake.report_configure_error('To many arguments for TEMPLATE parameter')
+        return
+    if ws and ws[0] != 'CUSTOM_PROPERTY':
+        ymake.report_configure_error('''Can't parse {}'''.format(ws))
+    custom_props = []
+    for item in ws:
+        if item == 'CUSTOM_PROPERTY':
+            custom_props.append([])
+        else:
+            custom_props[-1].append(item)
+    props = []
+    for p in custom_props:
+        if not p:
+            ymake.report_configure_error('Empty CUSTOM_PROPERTY')
+            continue
+        props.append('-B')
+        if len(p) > 1:
+            props.append(base64.b64encode("{}={}".format(p[0], ' '.join(p[1:]))))
+        else:
+            ymake.report_configure_error('CUSTOM_PROPERTY "{}" value is not specified'.format(p[0]))
+    for i, o in enumerate(outputs):
+        yield o, tepmlates[min(i, len(tepmlates) - 1)], props
+
+
+def on_ymake_generate_script(unit, *args):
+    for out, tmpl, props in parse_words(list(args)):
+        unit.on_add_gen_java_script([out, tmpl] + list(props))

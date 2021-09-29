@@ -1,10 +1,9 @@
 #include "file_lock.h"
 #include "flock.h"
 
-#include <util/generic/string.h>
 #include <util/generic/yexception.h>
 
-#include <errno.h>
+#include <cerrno>
 
 namespace {
     int GetMode(const EFileLockType type) {

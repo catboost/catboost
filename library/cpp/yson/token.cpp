@@ -3,7 +3,7 @@
 #include <util/string/vector.h>
 #include <util/string/printf.h>
 
-namespace NYT {
+namespace NYson {
     ////////////////////////////////////////////////////////////////////////////////
 
     ETokenType CharToTokenType(char ch) {
@@ -77,7 +77,7 @@ namespace NYT {
     }
 
     TString TokenTypeToString(ETokenType type) {
-        return TString(TokenTypeToChar(type));
+        return TString(1, TokenTypeToChar(type));
     }
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -233,4 +233,4 @@ namespace NYT {
 
     ////////////////////////////////////////////////////////////////////////////////
 
-}
+} // namespace NYson

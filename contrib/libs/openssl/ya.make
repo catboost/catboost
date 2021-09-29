@@ -1,6 +1,15 @@
 LIBRARY()
 
-LICENSE(OpenSSL SSLeay)
+LICENSE(
+    Apache-2.0
+    BSD-2-Clause
+    BSD-3-Clause
+    BSD-Source-Code
+    OpenSSL
+    Public-Domain
+)
+
+LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 
 
@@ -18,9 +27,9 @@ ADDINCL(
 IF (OS_LINUX)
     IF (ARCH_ARM64)
         SET(LINUX_ARM64 yes)
-    ELSEIF(ARCH_ARM7)
+    ELSEIF (ARCH_ARM7)
         SET(LINUX_ARMV7 yes)
-    ELSEIF(ARCH_X86_64)
+    ELSEIF (ARCH_X86_64)
         SET(LINUX_X86_64 yes)
     ENDIF()
 ENDIF()
@@ -28,11 +37,11 @@ ENDIF()
 IF (OS_IOS)
     IF (ARCH_ARM64)
         SET(IOS_ARM64 yes)
-    ELSEIF(ARCH_ARM7)
+    ELSEIF (ARCH_ARM7)
         SET(IOS_ARMV7 yes)
-    ELSEIF(ARCH_X86_64)
+    ELSEIF (ARCH_X86_64)
         SET(IOS_X86_64 yes)
-    ELSEIF(ARCH_I386)
+    ELSEIF (ARCH_I386)
         SET(IOS_I386 yes)
     ENDIF()
 ENDIF()
@@ -40,12 +49,20 @@ ENDIF()
 IF (OS_ANDROID)
     IF (ARCH_ARM64)
         SET(ANDROID_ARM64 yes)
-    ELSEIF(ARCH_ARM7)
+    ELSEIF (ARCH_ARM7)
         SET(ANDROID_ARMV7 yes)
-    ELSEIF(ARCH_X86_64)
+    ELSEIF (ARCH_X86_64)
         SET(ANDROID_X86_64 yes)
-    ELSEIF(ARCH_I686)
+    ELSEIF (ARCH_I686)
         SET(ANDROID_I686 yes)
+    ENDIF()
+ENDIF()
+
+IF (OS_WINDOWS)
+    IF (ARCH_X86_64)
+        SET(WINDOWS_X86_64 yes)
+    ELSEIF (ARCH_I686)
+        SET(WINDOWS_I686 yes)
     ENDIF()
 ENDIF()
 
@@ -55,19 +72,22 @@ NO_RUNTIME()
 
 CFLAGS(
     -DAESNI_ASM
-    -DECP_NISTZ256_ASM
     -DOPENSSL_BN_ASM_MONT
     -DOPENSSL_CPUID_OBJ
-    -DPOLY1305_ASM
     -DSHA1_ASM
     -DSHA256_ASM
     -DSHA512_ASM
 )
 
-IF (NOT ANDROID_I686)
+IF (NOT WINDOWS_I686)
     CFLAGS(
-        -DKECCAK1600_ASM
+        -DECP_NISTZ256_ASM
+        -DPOLY1305_ASM
     )
+ENDIF()
+
+IF (NOT ANDROID_I686 AND NOT WINDOWS_I686)
+    CFLAGS(-DKECCAK1600_ASM)
 ENDIF()
 
 IF (NOT OS_WINDOWS)
@@ -96,15 +116,30 @@ IF (OS_LINUX AND ARCH_AARCH64 OR OS_LINUX AND ARCH_X86_64 OR OS_ANDROID)
 ENDIF()
 
 IF (OS_DARWIN AND ARCH_X86_64)
+    CFLAGS(-D_REENTRANT)
+ENDIF()
+
+IF (OS_DARWIN AND ARCH_ARM64)
     CFLAGS(
+        -DL_ENDIAN
+        -DOPENSSL_PIC
         -D_REENTRANT
     )
 ENDIF()
 
-IF (OS_WINDOWS AND ARCH_X86_64)
+IF (OS_WINDOWS)
+    IF (ARCH_X86_64)
+        CFLAGS(
+            -DENGINESDIR="\"C:\\\\Program\ Files\\\\OpenSSL\\\\lib\\\\engines-1_1\""
+            -DOPENSSLDIR="\"C:\\\\Program\ Files\\\\Common\ Files\\\\SSL\""
+        )
+    ELSEIF (ARCH_I386)
+        CFLAGS(
+            -DENGINESDIR="\"C:\\\\Program\ Files\ \(x86\)\\\\OpenSSL\\\\lib\\\\engines-1_1\""
+            -DOPENSSLDIR="\"C:\\\\Program\ Files\ \(x86\)\\\\Common\ Files\\\\SSL\""
+        )
+    ENDIF()
     CFLAGS(
-        -DENGINESDIR="\"C:\\\\Program\ Files\\\\OpenSSL\\\\lib\\\\engines-1_1\""
-        -DOPENSSLDIR="\"C:\\\\Program\ Files\\\\Common\ Files\\\\SSL\""
         -DOPENSSL_SYS_WIN32
         -DUNICODE
         -DWIN32_LEAN_AND_MEAN
@@ -175,9 +210,7 @@ SRCS(
 )
 
 IF (NOT IOS_ARMV7 AND NOT LINUX_ARMV7)
-    CFLAGS(
-        -DVPAES_ASM
-    )
+    CFLAGS(-DVPAES_ASM)
 ENDIF()
 
 IF (NOT IOS_ARM64 AND NOT IOS_ARMV7)
@@ -207,7 +240,14 @@ ENDIF()
 
 IF (OS_WINDOWS AND ARCH_X86_64)
     SRCS(
-        asm/windows/engines/e_padlock-x86_64.asm
+        asm/windows/engines/e_padlock-x86_64.masm
+    )
+ENDIF()
+
+IF (OS_WINDOWS AND ARCH_I386)
+    CFLAGS(-DPADLOCK_ASM)
+    SRCS(
+        asm/windows/engines/e_padlock-x86.masm
     )
 ENDIF()
 
@@ -290,3 +330,10 @@ IF (OS_ANDROID AND ARCH_ARM64)
 ENDIF()
 
 END()
+
+IF (NOT DLL_FOR AND NOT OS_IOS)
+    RECURSE(
+    apps
+    dynamic
+)
+ENDIF()

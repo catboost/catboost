@@ -1,6 +1,7 @@
 #include "sort.cuh"
 #include "fill.cuh"
-#include <contrib/libs/cub/cub/device/device_radix_sort.cuh>
+#include <library/cpp/cuda/wrappers/cub_include.h>
+#include _CUB_INCLUDE(cub/device/device_radix_sort.cuh)
 #include <cassert>
 
 namespace NKernel {

@@ -14,18 +14,10 @@
 #include "vector"
 #include "future"
 #include "limits"
-#include <sys/types.h>
 
-#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
-# include <sys/param.h>
-# if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__DragonFly__) || defined(__APPLE__)
-#   include <sys/sysctl.h>
-# endif
-#endif // defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
-
-#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__)) || defined(__CloudABI__) || defined(__Fuchsia__) || defined(__wasi__)
-# include <unistd.h>
-#endif // defined(__unix__) || (defined(__APPLE__) && defined(__MACH__)) || defined(__CloudABI__) || defined(__Fuchsia__) || defined(__wasi__)
+#if __has_include(<unistd.h>)
+# include <unistd.h> // for sysconf
+#endif
 
 #if defined(__NetBSD__)
 #pragma weak pthread_create // Do not create libpthread dependency
@@ -78,15 +70,9 @@ thread::detach()
 }
 
 unsigned
-thread::hardware_concurrency() _NOEXCEPT
+thread::hardware_concurrency() noexcept
 {
-#if defined(CTL_HW) && defined(HW_NCPU)
-    unsigned n;
-    int mib[2] = {CTL_HW, HW_NCPU};
-    std::size_t s = sizeof(n);
-    sysctl(mib, 2, &n, &s, 0, 0);
-    return n;
-#elif defined(_SC_NPROCESSORS_ONLN)
+#if defined(_SC_NPROCESSORS_ONLN)
     long result = sysconf(_SC_NPROCESSORS_ONLN);
     // sysconf returns -1 if the name is invalid, the option does not exist or
     // does not have a definite limit.
@@ -139,7 +125,7 @@ class _LIBCPP_HIDDEN __hidden_allocator
 {
 public:
     typedef T  value_type;
-    
+
     T* allocate(size_t __n)
         {return static_cast<T*>(::operator new(__n * sizeof(T)));}
     void deallocate(T* __p, size_t) {::operator delete(static_cast<void*>(__p));}

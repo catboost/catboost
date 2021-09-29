@@ -108,7 +108,7 @@ bool THttp2Options::QuickAck = false;
 
 bool THttp2Options::Set(TStringBuf name, TStringBuf value) {
 #define HTTP2_TRY_SET(optType, optName)       \
-    if (name == AsStringBuf(#optName)) {      \
+    if (name == TStringBuf(#optName)) {      \
         optName = FromString<optType>(value); \
     }
 
@@ -175,7 +175,7 @@ namespace {
     std::atomic<size_t> TDebugStat::RequestFailed = 0;
 #endif
 
-    static inline void PrepareSocket(SOCKET s, const TRequestSettings& requestSettings = TRequestSettings()) {
+    inline void PrepareSocket(SOCKET s, const TRequestSettings& requestSettings = TRequestSettings()) {
         if (requestSettings.NoDelay) {
             SetNoDelay(s, true);
         }
@@ -382,12 +382,12 @@ namespace {
         }
 
     private:
-        THttpRequest(THandleRef& h, const TMessage& msg, TRequestBuilder f, const TRequestSettings& s)
+        THttpRequest(THandleRef& h, TMessage msg, TRequestBuilder f, const TRequestSettings& s)
             : Hndl_(h)
             , RequestBuilder_(f)
             , RequestSettings_(s)
-            , Msg_(msg)
-            , Loc_(msg.Addr)
+            , Msg_(std::move(msg))
+            , Loc_(Msg_.Addr)
             , Addr_(Resolve(Loc_.Host, Loc_.GetPort(), RequestSettings_.ResolverType))
             , AddrIter_(Addr_->Addr.Begin())
             , Canceled_(false)
@@ -1357,7 +1357,7 @@ namespace {
             ~TRequest() override {
                 if (!!C_) {
                     try {
-                        C_->SendError(Id(), 503, "service unavailable (request ignored)", P_->HttpVersion());
+                        C_->SendError(Id(), 503, "service unavailable (request ignored)", P_->HttpVersion(), {});
                     } catch (...) {
                         DBGOUT("~TRequest()::SendFail() exception");
                     }
@@ -1419,7 +1419,7 @@ namespace {
                 }
             }
 
-            void SendError(TResponseError err, const TString& details) override {
+            void SendError(TResponseError err, const THttpErrorDetails& details) override {
                 static const unsigned errorToHttpCode[IRequest::MaxResponseError] =
                     {
                         400,
@@ -1433,7 +1433,7 @@ namespace {
                         509};
 
                 if (!!C_) {
-                    C_->SendError(Id(), errorToHttpCode[err], details, P_->HttpVersion());
+                    C_->SendError(Id(), errorToHttpCode[err], details.Details, P_->HttpVersion(), details.Headers);
                     C_.Reset();
                 }
             }
@@ -1611,7 +1611,7 @@ namespace {
                     THttpResponseFormatter(TData& theData, const TString& contentEncoding, const THttpVersion& theVer, const TString& theHeaders, int theHttpCode, bool closeConnection) {
                         Header.Reserve(128 + contentEncoding.size() + theHeaders.size());
                         PrintHttpVersion(Header, theVer);
-                        Header << TStringBuf(" ") << HttpCodeStrEx(theHttpCode);
+                        Header << TStringBuf(" ") << theHttpCode << ' ' << HttpCodeStr(theHttpCode);
                         if (Compress(theData, contentEncoding)) {
                             Header << TStringBuf("\r\nContent-Encoding: ") << contentEncoding;
                         }
@@ -1660,14 +1660,14 @@ namespace {
             }
 
             //called non thread-safe (from outside thread)
-            void SendError(TAtomicBase requestId, unsigned httpCode, const TString& descr, const THttpVersion& ver) {
+            void SendError(TAtomicBase requestId, unsigned httpCode, const TString& descr, const THttpVersion& ver, const TString& headers) {
                 if (Canceled_) {
                     return;
                 }
 
                 class THttpErrorResponseFormatter {
                 public:
-                    THttpErrorResponseFormatter(unsigned theHttpCode, const TString& theDescr, const THttpVersion& theVer, bool closeConnection) {
+                    THttpErrorResponseFormatter(unsigned theHttpCode, const TString& theDescr, const THttpVersion& theVer, bool closeConnection, const TString& headers) {
                         PrintHttpVersion(Answer, theVer);
                         Answer << TStringBuf(" ") << theHttpCode << TStringBuf(" ");
                         if (theDescr.size() && !THttp2Options::ErrorDetailsAsResponseBody) {
@@ -1694,11 +1694,15 @@ namespace {
                             Answer << TStringBuf("\r\nConnection: close");
                         }
 
+                        if (headers) {
+                            Answer << "\r\n" << headers;
+                        }
+
                         if (THttp2Options::ErrorDetailsAsResponseBody) {
                             Answer << TStringBuf("\r\nContent-Length:") << theDescr.size() << "\r\n\r\n" << theDescr;
                         } else {
-                            Answer << AsStringBuf("\r\n"
-                                                "Content-Length:0\r\n\r\n");
+                            Answer << "\r\n"
+                                      "Content-Length:0\r\n\r\n"sv;
                         }
 
                         Parts[0].buf = Answer.Data();
@@ -1711,8 +1715,14 @@ namespace {
 
                 class TBuffers: public THttpErrorResponseFormatter, public TTcpSocket::IBuffers {
                 public:
-                    TBuffers(unsigned theHttpCode, const TString& theDescr, const THttpVersion& theVer, bool closeConnection)
-                        : THttpErrorResponseFormatter(theHttpCode, theDescr, theVer, closeConnection)
+                    TBuffers(
+                        unsigned theHttpCode,
+                        const TString& theDescr,
+                        const THttpVersion& theVer,
+                        bool closeConnection,
+                        const TString& headers
+                    )
+                        : THttpErrorResponseFormatter(theHttpCode, theDescr, theVer, closeConnection, headers)
                         , IOVec(Parts, 1)
                     {
                     }
@@ -1724,7 +1734,7 @@ namespace {
                     TContIOVector IOVec;
                 };
 
-                TTcpSocket::TSendedData sd(new TBuffers(httpCode, descr, ver, SeenMessageWithoutKeepalive_));
+                TTcpSocket::TSendedData sd(new TBuffers(httpCode, descr, ver, SeenMessageWithoutKeepalive_, headers));
                 SendData(requestId, sd);
             }
 

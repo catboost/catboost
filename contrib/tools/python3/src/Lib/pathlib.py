@@ -39,6 +39,7 @@ _IGNORED_ERROS = (ENOENT, ENOTDIR, EBADF, ELOOP)
 
 _IGNORED_WINERRORS = (
     21,  # ERROR_NOT_READY - drive exists but is not accessible
+    123, # ERROR_INVALID_NAME - fix for bpo-35306
     1921,  # ERROR_CANT_RESOLVE_FILENAME - fix for broken symlink pointing to itself
 )
 
@@ -131,16 +132,25 @@ class _WindowsFlavour(_Flavour):
     ext_namespace_prefix = '\\\\?\\'
 
     reserved_names = (
-        {'CON', 'PRN', 'AUX', 'NUL'} |
-        {'COM%d' % i for i in range(1, 10)} |
-        {'LPT%d' % i for i in range(1, 10)}
+        {'CON', 'PRN', 'AUX', 'NUL', 'CONIN$', 'CONOUT$'} |
+        {'COM%s' % c for c in '123456789\xb9\xb2\xb3'} |
+        {'LPT%s' % c for c in '123456789\xb9\xb2\xb3'}
         )
 
     # Interesting findings about extended paths:
-    # - '\\?\c:\a', '//?/c:\a' and '//?/c:/a' are all supported
-    #   but '\\?\c:/a' is not
-    # - extended paths are always absolute; "relative" extended paths will
-    #   fail.
+    # * '\\?\c:\a' is an extended path, which bypasses normal Windows API
+    #   path processing. Thus relative paths are not resolved and slash is not
+    #   translated to backslash. It has the native NT path limit of 32767
+    #   characters, but a bit less after resolving device symbolic links,
+    #   such as '\??\C:' => '\Device\HarddiskVolume2'.
+    # * '\\?\c:/a' looks for a device named 'C:/a' because slash is a
+    #   regular name character in the object namespace.
+    # * '\\?\c:\foo/bar' is invalid because '/' is illegal in NT filesystems.
+    #   The only path separator at the filesystem level is backslash.
+    # * '//?/c:\a' and '//?/c:/a' are effectively equivalent to '\\.\c:\a' and
+    #   thus limited to MAX_PATH.
+    # * Prior to Windows 8, ANSI API bytes paths are limited to MAX_PATH,
+    #   even with the '\\?\' prefix.
 
     def splitroot(self, part, sep=sep):
         first = part[0:1]
@@ -230,15 +240,16 @@ class _WindowsFlavour(_Flavour):
 
     def is_reserved(self, parts):
         # NOTE: the rules for reserved names seem somewhat complicated
-        # (e.g. r"..\NUL" is reserved but not r"foo\NUL").
-        # We err on the side of caution and return True for paths which are
-        # not considered reserved by Windows.
+        # (e.g. r"..\NUL" is reserved but not r"foo\NUL" if "foo" does not
+        # exist). We err on the side of caution and return True for paths
+        # which are not considered reserved by Windows.
         if not parts:
             return False
         if parts[0].startswith('\\\\'):
             # UNC paths are never reserved
             return False
-        return parts[-1].partition('.')[0].upper() in self.reserved_names
+        name = parts[-1].partition('.')[0].partition(':')[0].rstrip(' ')
+        return name.upper() in self.reserved_names
 
     def make_uri(self, path):
         # Under Windows, file URIs use the UTF-8 encoding.
@@ -1358,12 +1369,6 @@ class Path(PurePath):
         """
         return self._accessor.lstat(self)
 
-    def link_to(self, target):
-        """
-        Create a hard link pointing to a path named target.
-        """
-        self._accessor.link_to(self, target)
-
     def rename(self, target):
         """
         Rename this path to the target path.
@@ -1392,10 +1397,22 @@ class Path(PurePath):
 
     def symlink_to(self, target, target_is_directory=False):
         """
-        Make this path a symlink pointing to the given path.
-        Note the order of arguments (self, target) is the reverse of os.symlink's.
+        Make this path a symlink pointing to the target path.
+        Note the order of arguments (link, target) is the reverse of os.symlink.
         """
         self._accessor.symlink(target, self, target_is_directory)
+
+    def link_to(self, target):
+        """
+        Make the target path a hard link pointing to this path.
+
+        Note this function does not make this path a hard link to *target*,
+        despite the implication of the function and argument names. The order
+        of arguments (target, link) is the reverse of Path.symlink_to, but
+        matches that of os.link.
+
+        """
+        self._accessor.link_to(self, target)
 
     # Convenience functions for querying the stat results
 
@@ -1424,7 +1441,7 @@ class Path(PurePath):
             if not _ignore_error(e):
                 raise
             # Path doesn't exist or is a broken symlink
-            # (see https://bitbucket.org/pitrou/pathlib/issue/12/)
+            # (see http://web.archive.org/web/20200623061726/https://bitbucket.org/pitrou/pathlib/issues/12/ )
             return False
         except ValueError:
             # Non-encodable path
@@ -1441,7 +1458,7 @@ class Path(PurePath):
             if not _ignore_error(e):
                 raise
             # Path doesn't exist or is a broken symlink
-            # (see https://bitbucket.org/pitrou/pathlib/issue/12/)
+            # (see http://web.archive.org/web/20200623061726/https://bitbucket.org/pitrou/pathlib/issues/12/ )
             return False
         except ValueError:
             # Non-encodable path
@@ -1492,7 +1509,7 @@ class Path(PurePath):
             if not _ignore_error(e):
                 raise
             # Path doesn't exist or is a broken symlink
-            # (see https://bitbucket.org/pitrou/pathlib/issue/12/)
+            # (see http://web.archive.org/web/20200623061726/https://bitbucket.org/pitrou/pathlib/issues/12/ )
             return False
         except ValueError:
             # Non-encodable path
@@ -1508,7 +1525,7 @@ class Path(PurePath):
             if not _ignore_error(e):
                 raise
             # Path doesn't exist or is a broken symlink
-            # (see https://bitbucket.org/pitrou/pathlib/issue/12/)
+            # (see http://web.archive.org/web/20200623061726/https://bitbucket.org/pitrou/pathlib/issues/12/ )
             return False
         except ValueError:
             # Non-encodable path
@@ -1524,7 +1541,7 @@ class Path(PurePath):
             if not _ignore_error(e):
                 raise
             # Path doesn't exist or is a broken symlink
-            # (see https://bitbucket.org/pitrou/pathlib/issue/12/)
+            # (see http://web.archive.org/web/20200623061726/https://bitbucket.org/pitrou/pathlib/issues/12/ )
             return False
         except ValueError:
             # Non-encodable path
@@ -1540,7 +1557,7 @@ class Path(PurePath):
             if not _ignore_error(e):
                 raise
             # Path doesn't exist or is a broken symlink
-            # (see https://bitbucket.org/pitrou/pathlib/issue/12/)
+            # (see http://web.archive.org/web/20200623061726/https://bitbucket.org/pitrou/pathlib/issues/12/ )
             return False
         except ValueError:
             # Non-encodable path

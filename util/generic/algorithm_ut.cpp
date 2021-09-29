@@ -56,7 +56,7 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
         UNIT_ASSERT(3 == Count(array, '1'));
     }
 
-    struct TStrokaNoCopy : TString {
+    struct TStrokaNoCopy: TString {
     public:
         TStrokaNoCopy(const char* p)
             : TString(p)
@@ -149,7 +149,7 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
         }
     }
 
-    struct TVectorNoCopy : std::vector<int> {
+    struct TVectorNoCopy: std::vector<int> {
     public:
         TVectorNoCopy() = default;
 
@@ -616,14 +616,12 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
         const int array[] = {1, 2, 5, 3, 4, 5};
         UNIT_ASSERT_VALUES_EQUAL(*MaxElementBy(array, [](int x) {
             return x * x;
-        }),
-                                 5);
+        }), 5);
 
         const TVector<int> vec(array, array + Y_ARRAY_SIZE(array));
         UNIT_ASSERT_VALUES_EQUAL(*MaxElementBy(vec, [](int x) {
             return -1.0 * x;
-        }),
-                                 1);
+        }), 1);
 
         int arrayMutable[] = {1, 2, 5, 3, 4, 5};
         auto maxPtr = MaxElementBy(arrayMutable, [](int x) { return x; });
@@ -644,14 +642,12 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
         const int array[] = {2, 3, 4, 1, 5};
         UNIT_ASSERT_VALUES_EQUAL(*MinElementBy(array, [](int x) -> char {
             return 'a' + x;
-        }),
-                                 1);
+        }), 1);
 
         const TVector<int> vec(std::begin(array), std::end(array));
         UNIT_ASSERT_VALUES_EQUAL(*MinElementBy(vec, [](int x) {
             return -x;
-        }),
-                                 5);
+        }), 5);
 
         int arrayMutable[] = {1, 2, 5, 3, 4, 5};
         auto minPtr = MinElementBy(arrayMutable, [](int x) { return x; });
@@ -744,7 +740,7 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
             auto pred = [](auto s) { return s.size() == 3; };
             UNIT_ASSERT_VALUES_EQUAL(AllOf(ts, pred), AllOf(ts, pred));
         }
-   }
+    }
 
     Y_UNIT_TEST(TestTupleAnyOf) {
         UNIT_ASSERT(!AnyOf(std::tuple<>{}, [](auto) { return true; }));
@@ -849,6 +845,6 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
 
     Y_UNIT_TEST(AccumulateWithBinOp) {
         std::vector<int> v = {1, 2, 777};
-        UNIT_ASSERT_VALUES_EQUAL(TString("begin;1;2;777"), Accumulate(v, TString("begin"), [](auto& a, auto& b) { return a + ";" + ToString(b); }));
+        UNIT_ASSERT_VALUES_EQUAL(TString("begin;1;2;777"), Accumulate(v, TString("begin"), [](auto&& a, auto& b) { return a + ";" + ToString(b); }));
     }
 };

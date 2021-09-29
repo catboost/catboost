@@ -123,8 +123,7 @@ public:
         return rep.max_size();
     }
 
-    Y_PURE_FUNCTION
-    bool empty() const {
+    Y_PURE_FUNCTION bool empty() const {
         return rep.empty();
     }
     explicit operator bool() const noexcept {
@@ -373,8 +372,7 @@ public:
         return rep.max_size();
     }
 
-    Y_PURE_FUNCTION
-    bool empty() const {
+    Y_PURE_FUNCTION bool empty() const {
         return rep.empty();
     }
     explicit operator bool() const noexcept {
@@ -400,6 +398,10 @@ public:
 public:
     iterator insert(const value_type& obj) {
         return rep.insert_equal(obj);
+    }
+    template <typename... Args>
+    iterator emplace(Args&&... args) {
+        return rep.emplace_equal(std::forward<Args>(args)...);
     }
     template <class InputIterator>
     void insert(InputIterator f, InputIterator l) {

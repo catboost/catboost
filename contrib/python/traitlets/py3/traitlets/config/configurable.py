@@ -20,7 +20,10 @@ from traitlets.traitlets import (
     default,
     validate,
 )
-from ipython_genutils.text import indent, dedent, wrap_paragraphs
+from traitlets.utils.text import indent, wrap_paragraphs
+from textwrap import dedent
+
+
 
 
 #-----------------------------------------------------------------------------
@@ -272,14 +275,14 @@ class Configurable(HasTraits):
             helptext = trait.help
         if helptext != '':
             helptext = '\n'.join(wrap_paragraphs(helptext, 76))
-            lines.append(indent(helptext, 4))
+            lines.append(indent(helptext))
 
         if 'Enum' in trait.__class__.__name__:
             # include Enum choices
             lines.append(indent('Choices: %s' % trait.info()))
 
         if inst is not None:
-            lines.append(indent('Current: %r' % (getattr(inst, trait.name),), 4))
+            lines.append(indent("Current: %r" % (getattr(inst, trait.name),)))
         else:
             try:
                 dvr = trait.default_value_repr()
@@ -287,8 +290,8 @@ class Configurable(HasTraits):
                 dvr = None # ignore defaults we can't construct
             if dvr is not None:
                 if len(dvr) > 64:
-                    dvr = dvr[:61]+'...'
-                lines.append(indent('Default: %s' % dvr, 4))
+                    dvr = dvr[:61] + "..."
+                lines.append(indent("Default: %s" % dvr))
 
         return '\n'.join(lines)
 
@@ -415,12 +418,12 @@ class Configurable(HasTraits):
                 if len(dvr) > 64:
                     dvr = dvr[:61]+'...'
                 # Double up backslashes, so they get to the rendered docs
-                dvr = dvr.replace('\\n', '\\\\n')
-                lines.append(indent('Default: ``%s``' % dvr, 4))
-                lines.append('')
+                dvr = dvr.replace("\\n", "\\\\n")
+                lines.append(indent("Default: ``%s``" % dvr))
+                lines.append("")
 
             help = trait.help or 'No description'
-            lines.append(indent(dedent(help), 4))
+            lines.append(indent(dedent(help)))
 
             # Blank line
             lines.append('')

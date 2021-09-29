@@ -167,7 +167,7 @@ namespace NCB {
 
         const auto& featuresLayout = *DataMetaInfo.FeaturesLayout;
         for (auto catFeatureExternalIdx : featuresLayout.GetCatFeatureInternalIdxToExternalIdx()) {
-            visitor->AddCatFeatureDefaultValue(catFeatureExternalIdx, AsStringBuf("0"));
+            visitor->AddCatFeatureDefaultValue(catFeatureExternalIdx, TStringBuf("0"));
         }
     }
 
@@ -218,7 +218,7 @@ namespace NCB {
                         TStringBuf right;
                         token.Split(':', left, right);
 
-                        CB_ENSURE(left == AsStringBuf("qid"), "line does not contain 'qid' field");
+                        CB_ENSURE(left == "qid"sv, "line does not contain 'qid' field");
                         TGroupId groupId;
                         CB_ENSURE(TryFromString(right, groupId), "'qid' value must be integer");
                         visitor->AddGroupId(lineIdx, groupId);
@@ -369,7 +369,7 @@ namespace NCB {
             return false;
         }
 
-        if ((*lineIterator).Token().Before(':') == AsStringBuf("qid")) {
+        if ((*lineIterator).Token().Before(':') == "qid"sv) {
             return true;
         }
 

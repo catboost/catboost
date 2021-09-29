@@ -33,9 +33,6 @@
 
 #include <map>
 #include <memory>
-#ifndef _SHARED_PTR_H
-#error #include <google/protobuf/stubs/shared_ptr.h>
-#endif
 #include <vector>
 
 #include <google/protobuf/stubs/common.h>
@@ -43,18 +40,20 @@
 
 namespace google {
 namespace protobuf {
-  class FileDescriptor;
-  class FieldDescriptor;
-  class OneofDescriptor;
-  class Descriptor;
-  class EnumDescriptor;
-  namespace compiler {
-    namespace java {
-      class ClassNameResolver;  // name_resolver.h
-    }
-  }
+class FileDescriptor;
+class FieldDescriptor;
+class OneofDescriptor;
+class Descriptor;
+class EnumDescriptor;
+namespace compiler {
+namespace java {
+class ClassNameResolver;  // name_resolver.h
+}
+}  // namespace compiler
 }  // namespace protobuf
+}  // namespace google
 
+namespace google {
 namespace protobuf {
 namespace compiler {
 namespace java {
@@ -97,7 +96,7 @@ class Context {
   void InitializeFieldGeneratorInfoForFields(
       const std::vector<const FieldDescriptor*>& fields);
 
-  google::protobuf::scoped_ptr<ClassNameResolver> name_resolver_;
+  std::unique_ptr<ClassNameResolver> name_resolver_;
   std::map<const FieldDescriptor*, FieldGeneratorInfo>
       field_generator_info_map_;
   std::map<const OneofDescriptor*, OneofGeneratorInfo>
@@ -109,6 +108,6 @@ class Context {
 }  // namespace java
 }  // namespace compiler
 }  // namespace protobuf
-
 }  // namespace google
+
 #endif  // GOOGLE_PROTOBUF_COMPILER_JAVA_CONTEXT_H__

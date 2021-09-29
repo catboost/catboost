@@ -6,14 +6,14 @@
 //////////////////////////////
 // lock free lifo stack
 template <class T>
-class TLockFreeStack : TNonCopyable {
+class TLockFreeStack: TNonCopyable {
     struct TNode {
         T Value;
         TNode* Next;
 
         TNode() = default;
 
-        template<class U>
+        template <class U>
         explicit TNode(U&& val)
             : Value(std::forward<U>(val))
             , Next(nullptr)

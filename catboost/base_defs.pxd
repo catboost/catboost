@@ -47,12 +47,13 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
 
 
 cdef extern from "library/cpp/threading/local_executor/local_executor.h" namespace "NPar":
-    cdef cppclass TLocalExecutor:
-        TLocalExecutor() nogil
-        void RunAdditionalThreads(int threadCount) nogil except +ProcessException
-
     cdef cppclass ILocalExecutor:
         pass
+
+
+cdef extern from "library/cpp/threading/local_executor/tbb_local_executor.h" namespace "NPar":
+    cdef cppclass TTbbLocalExecutor[false]:
+        TTbbLocalExecutor(int nThreads) nogil
 
 
 cdef extern from "catboost/private/libs/options/json_helper.h":
@@ -81,6 +82,14 @@ cdef extern from "library/cpp/json/writer/json_value.h" namespace "NJson":
 cdef extern from "util/stream/input.h":
     cdef cppclass IInputStream:
         size_t Read(void* buf, size_t len) except +ProcessException
+
+
+cdef extern from "catboost/libs/model/enums.h":
+    cdef cppclass EFormulaEvaluatorType:
+        bool_t operator==(EFormulaEvaluatorType)
+
+    cdef EFormulaEvaluatorType EFormulaEvaluatorType_CPU "EFormulaEvaluatorType::CPU"
+    cdef EFormulaEvaluatorType EFormulaEvaluatorType_GPU "EFormulaEvaluatorType::GPU"
 
 
 cdef extern from "catboost/libs/model/scale_and_bias.h":

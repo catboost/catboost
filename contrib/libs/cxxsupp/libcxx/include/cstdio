@@ -131,11 +131,13 @@ using ::putc;
 using ::ungetc;
 using ::fread;
 using ::fwrite;
-#if !defined(__ANDROID_API__) || __ANDROID_API__ >= 24
+#ifndef _LIBCPP_HAS_NO_FGETPOS_FSETPOS
 using ::fgetpos;
-using ::fsetpos;
 #endif
 using ::fseek;
+#ifndef _LIBCPP_HAS_NO_FGETPOS_FSETPOS
+using ::fsetpos;
+#endif
 using ::ftell;
 using ::rewind;
 using ::clearerr;

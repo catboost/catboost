@@ -122,7 +122,7 @@ namespace {
             SampleInvertedSubset = GetInvertedIndexing(SampleSubset, ObjectCount, LocalExecutor);
             IsFullSubset = SampleSubset.IsFullSubset();
             if (!IsFullSubset) {
-                auto* indexedSubset = ::GetIf<TInvertedIndexedSubset<ui32>>(&SampleInvertedSubset);
+                auto* indexedSubset = ::std::get_if<TInvertedIndexedSubset<ui32>>(&SampleInvertedSubset);
                 CB_ENSURE_INTERNAL(
                     indexedSubset != nullptr,
                     "inverted subset should be either indexed or full");
@@ -177,6 +177,18 @@ namespace {
                 return;
             }
             DataVisitor->AddSubgroupId(sampleIdx, value);
+        }
+
+        void AddGroupId(ui32 /*localObjectIdx*/, const TString& /*value*/) override {
+            CB_ENSURE_INTERNAL(false, "unsupported function");
+        }
+
+        void AddSubgroupId(ui32 /*localObjectIdx*/, const TString& /*value*/) override {
+            CB_ENSURE_INTERNAL(false, "unsupported function");
+        }
+
+        void AddSampleId(ui32 /*localObjectIdx*/, const TString& /*value*/) override {
+            CB_ENSURE_INTERNAL(false, "unsupported function");
         }
 
         void AddTimestamp(ui32 localObjectIdx, ui64 value) override {
@@ -777,7 +789,7 @@ TDataProviderPtr NCB::ReadAndQuantizeDataset(
         // processor args
         TDatasetLoaderPullArgs{
             poolPath,
-            TDatasetLoaderCommonArgs{
+            TDatasetLoaderCommonArgs {
                 pairsFilePath,
                 groupWeightsFilePath,
                 baselineFilePath,
@@ -791,6 +803,7 @@ TDataProviderPtr NCB::ReadAndQuantizeDataset(
                 objectsOrder,
                 *blockSize,
                 loadSubset,
+                /*LoadColumnsAsString*/ false,
                 localExecutor}});
 
     CB_ENSURE(

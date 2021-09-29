@@ -54,9 +54,11 @@ namespace NCB {
         bool HasGroupId = false;
         bool HasGroupWeight = false;
         bool HasSubgroupIds = false;
+        bool HasSampleId = false;
         bool HasWeights = false;
         bool HasTimestamp = false;
         bool HasPairs = false;
+        bool StoreStringColumns = false;
 
         // can be set from baseline file header or from quantized pool
         TVector<NJson::TJsonValue> ClassLabels = {};

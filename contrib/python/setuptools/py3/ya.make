@@ -1,20 +1,20 @@
 PY3_LIBRARY()
 
+
+
+VERSION(58.0.4)
+
 LICENSE(MIT)
-
-
-
-VERSION(56.0.0)
 
 PEERDIR(
     library/python/resource
 )
 
+NO_LINT()
+
 NO_CHECK_IMPORTS(
     setuptools.*
 )
-
-NO_LINT()
 
 PY_SRCS(
     TOP_LEVEL
@@ -94,6 +94,9 @@ PY_SRCS(
     setuptools/_distutils/versionpredicate.py
     setuptools/_imp.py
     setuptools/_vendor/__init__.py
+    setuptools/_vendor/more_itertools/__init__.py
+    setuptools/_vendor/more_itertools/more.py
+    setuptools/_vendor/more_itertools/recipes.py
     setuptools/_vendor/ordered_set.py
     setuptools/_vendor/packaging/__about__.py
     setuptools/_vendor/packaging/__init__.py
@@ -143,14 +146,12 @@ PY_SRCS(
     setuptools/glob.py
     setuptools/installer.py
     setuptools/launch.py
-    setuptools/lib2to3_ex.py
     setuptools/monkey.py
     setuptools/msvc.py
     setuptools/namespaces.py
     setuptools/package_index.py
     setuptools/py34compat.py
     setuptools/sandbox.py
-    setuptools/ssl_support.py
     setuptools/unicode_utils.py
     setuptools/version.py
     setuptools/wheel.py

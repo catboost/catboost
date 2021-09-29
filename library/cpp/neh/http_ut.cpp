@@ -109,6 +109,23 @@ Y_UNIT_TEST_SUITE(NehHttp) {
         return response;
     }
 
+    Y_UNIT_TEST(TTestAnyHttpCodeIsAccepted) {
+        auto responseWith523 = [](const IRequestRef& req) {
+            auto* httpReq = dynamic_cast<IHttpRequest*>(req.Get());
+
+            TData data;
+            httpReq->SendReply(data, {}, 523);
+        };
+
+        TServ serv = CreateServices(responseWith523);
+        NNeh::THandleRef handle = NNeh::Request(TStringBuilder() << "http://localhost:" << serv.ServerPort << "/pipeline?", nullptr);
+        auto resp = handle->Wait();
+
+        UNIT_ASSERT(resp);
+        UNIT_ASSERT(resp->IsError());
+        UNIT_ASSERT_EQUAL(resp->GetErrorCode(), 523);
+    }
+
     Y_UNIT_TEST(TPipelineRequests) {
         TServ serv = CreateServices();
 

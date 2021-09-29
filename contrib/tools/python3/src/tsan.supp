@@ -1,0 +1,3 @@
+# Thread sanitizers reports a data race during main thread shutdown.
+# This race was consiered to be safe. See DEVTOOLSSUPPORT-8443 for details
+race:PyInterpreterState_Delete

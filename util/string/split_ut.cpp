@@ -303,7 +303,6 @@ Y_UNIT_TEST_SUITE(SplitStringTest) {
     }
 }
 
-
 template <typename I, typename C>
 void TestStringSplitterCount(I* str, C delim, size_t good) {
     size_t res = StringSplitter(str).Split(delim).Count();
@@ -404,8 +403,9 @@ Y_UNIT_TEST_SUITE(StringSplitter) {
         TVector<TString> tokens;
         auto f = [](char a) { return a == ' ' || a == '\t' || a == '\n'; };
         for (auto v : StringSplitter(s).SplitByFunc(f)) {
-            if (v)
+            if (v) {
                 tokens.emplace_back(v);
+            }
         }
 
         UNIT_ASSERT(tokens == pattern);
@@ -461,9 +461,9 @@ Y_UNIT_TEST_SUITE(StringSplitter) {
     }
 
     Y_UNIT_TEST(TestCompile) {
-        (void) StringSplitter(TString());
-        (void) StringSplitter(TStringBuf());
-        (void) StringSplitter("", 0);
+        (void)StringSplitter(TString());
+        (void)StringSplitter(TStringBuf());
+        (void)StringSplitter("", 0);
     }
 
     Y_UNIT_TEST(TestStringSplitterCountEmpty) {
@@ -497,11 +497,12 @@ Y_UNIT_TEST_SUITE(StringSplitter) {
     }
 
     Y_UNIT_TEST(TestStringSplitterConsumeConditional) {
-        TVector<TString> expected = { "1", "2" };
+        TVector<TString> expected = {"1", "2"};
         TVector<TString> actual;
         auto func = [&actual](const TBasicStringBuf<char>& token) {
-            if (token == "3")
+            if (token == "3") {
                 return false;
+            }
             actual.push_back(TString(token));
             return true;
         };
@@ -613,37 +614,37 @@ Y_UNIT_TEST_SUITE(StringSplitter) {
     }
 
     Y_UNIT_TEST(TestAssigment) {
-        TVector<TString> expected0 = { "1", "2", "3", "4" };
+        TVector<TString> expected0 = {"1", "2", "3", "4"};
         TVector<TString> actual0 = StringSplitter("1 2 3 4").Split(' ');
         UNIT_ASSERT_VALUES_EQUAL(expected0, actual0);
 
-        TSet<TString> expected1 = { "11", "22", "33", "44" };
+        TSet<TString> expected1 = {"11", "22", "33", "44"};
         TSet<TString> actual1 = StringSplitter("11 22 33 44").Split(' ');
         UNIT_ASSERT_VALUES_EQUAL(expected1, actual1);
 
-        TSet<TString> expected2 = { "11", "aa" };
+        TSet<TString> expected2 = {"11", "aa"};
         auto actual2 = static_cast<TSet<TString>>(StringSplitter("11 aa 11 11 aa").Split(' '));
         UNIT_ASSERT_VALUES_EQUAL(expected2, actual2);
 
-        TVector<TString> expected3 = { "dd", "bb" };
+        TVector<TString> expected3 = {"dd", "bb"};
         auto actual3 = TVector<TString>(StringSplitter("dd\tbb").Split('\t'));
         UNIT_ASSERT_VALUES_EQUAL(expected3, actual3);
     }
 
     Y_UNIT_TEST(TestRangeBasedFor) {
-        TVector<TString> actual0 = { "11", "22", "33", "44" };
+        TVector<TString> actual0 = {"11", "22", "33", "44"};
         size_t num = 0;
         for (TStringBuf elem : StringSplitter("11 22 33 44").Split(' ')) {
             UNIT_ASSERT_VALUES_EQUAL(elem, actual0[num++]);
         }
 
-        TVector<TString> actual1 = { "another", "one,", "and", "another", "one" };
+        TVector<TString> actual1 = {"another", "one,", "and", "another", "one"};
         num = 0;
         for (TStringBuf elem : StringSplitter(TStringBuf("another one, and \n\n     another    one")).SplitBySet(" \n").SkipEmpty()) {
             UNIT_ASSERT_VALUES_EQUAL(elem, actual1[num++]);
         }
 
-        TVector<TUtf16String> actual2 = { u"привет,", u"как", u"дела" };
+        TVector<TUtf16String> actual2 = {u"привет,", u"как", u"дела"};
         num = 0;
         for (TWtringBuf elem : StringSplitter(u"привет, как дела").Split(wchar16(' '))) {
             UNIT_ASSERT_VALUES_EQUAL(elem, actual2[num++]);
@@ -656,22 +657,21 @@ Y_UNIT_TEST_SUITE(StringSplitter) {
     }
 
     Y_UNIT_TEST(TestParseInto) {
-        TVector<int> actual0 = { 1, 2, 3, 4 };
+        TVector<int> actual0 = {1, 2, 3, 4};
         TVector<int> answer0;
 
         StringSplitter("1 2 3 4").Split(' ').ParseInto(&answer0);
         UNIT_ASSERT_VALUES_EQUAL(actual0, answer0);
 
-
-        TVector<int> actual1 = { 42, 1, 2, 3, 4 };
-        TVector<int> answer1 = { 42 };
+        TVector<int> actual1 = {42, 1, 2, 3, 4};
+        TVector<int> answer1 = {42};
         StringSplitter("1 2 3 4").Split(' ').ParseInto(&answer1);
         UNIT_ASSERT_VALUES_EQUAL(actual1, answer1);
 
         answer1.clear();
         UNIT_ASSERT_EXCEPTION(StringSplitter("1 2    3 4").Split(' ').ParseInto(&answer1), yexception);
 
-        answer1 = { 42 };
+        answer1 = {42};
         StringSplitter("   1    2     3 4").Split(' ').SkipEmpty().ParseInto(&answer1);
         UNIT_ASSERT_VALUES_EQUAL(actual1, answer1);
 
@@ -701,7 +701,7 @@ Y_UNIT_TEST_SUITE(StringSplitter) {
 
     Y_UNIT_TEST(TestStdSplitAfterSplit) {
         std::string_view input = "a*b+a*b";
-        for (std::string_view summand: StringSplitter(input).Split('+')) {
+        for (std::string_view summand : StringSplitter(input).Split('+')) {
             //FIXME: std::string is used to workaround MSVC ICE
             UNIT_ASSERT_VALUES_EQUAL(std::string(summand), "a*b");
             std::string_view multiplier1, multiplier2;
@@ -721,8 +721,8 @@ Y_UNIT_TEST_SUITE(StringSplitter) {
     }
 
     Y_UNIT_TEST(TestArcadiaStdInterop) {
-        TVector<TString> expected0 = { "a", "b" };
-        TVector<TStringBuf> expected1 = { "a", "b" };
+        TVector<TString> expected0 = {"a", "b"};
+        TVector<TStringBuf> expected1 = {"a", "b"};
         std::string src1("a  b");
         std::string_view src2("a  b");
         TVector<TString> actual0 = StringSplitter(src1).Split(' ').SkipEmpty();
@@ -742,7 +742,7 @@ Y_UNIT_TEST_SUITE(StringSplitter) {
         std::vector<TStringBuf> v;
         StringSplitter(b, e).Split(';').AddTo(&v);
 
-        std::vector<TStringBuf> expected = { "a", "b" };
+        std::vector<TStringBuf> expected = {"a", "b"};
         UNIT_ASSERT_VALUES_EQUAL(v, expected);
     }
 
@@ -751,16 +751,16 @@ Y_UNIT_TEST_SUITE(StringSplitter) {
         char* str = s.Detach();
 
         std::vector<TStringBuf> v = StringSplitter(str).Split('o');
-        std::vector<TStringBuf> expected = { "l", "l" };
+        std::vector<TStringBuf> expected = {"l", "l"};
         UNIT_ASSERT_VALUES_EQUAL(v, expected);
     }
 
     Y_UNIT_TEST(TestSplitVector) {
-        std::vector<char> buffer = { 'a', ';', 'b' };
+        std::vector<char> buffer = {'a', ';', 'b'};
 
         std::vector<TStringBuf> v = StringSplitter(buffer).Split(';');
 
-        std::vector<TStringBuf> expected = { "a", "b" };
+        std::vector<TStringBuf> expected = {"a", "b"};
         UNIT_ASSERT_VALUES_EQUAL(v, expected);
     }
 
@@ -775,7 +775,10 @@ Y_UNIT_TEST_SUITE(StringSplitter) {
 
         TDoubleIterator() = default;
 
-        TDoubleIterator(const char* ptr) : Ptr_(ptr) {}
+        TDoubleIterator(const char* ptr)
+            : Ptr_(ptr)
+        {
+        }
 
         TDoubleIterator operator++() {
             Ptr_ += 2;
@@ -808,7 +811,7 @@ Y_UNIT_TEST_SUITE(StringSplitter) {
         const char* beg = "1213002233000011";
         const char* end = beg + strlen(beg);
 
-        std::vector<std::vector<int>> expected = { {12, 13}, {22, 33}, {}, {11} };
+        std::vector<std::vector<int>> expected = {{12, 13}, {22, 33}, {}, {11}};
         int i = 0;
 
         for (TIteratorRange<TDoubleIterator> part : StringSplitter(TDoubleIterator(beg), TDoubleIterator(end)).SplitByFunc([](int value) { return value == 0; })) {
@@ -817,5 +820,4 @@ Y_UNIT_TEST_SUITE(StringSplitter) {
         }
         UNIT_ASSERT_VALUES_EQUAL(i, expected.size());
     }
-
 }

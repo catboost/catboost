@@ -45,7 +45,7 @@ void SetPermutedIndices(
     const NCB::TTrainingDataProviders& trainingData,
     int curDepth,
     const TFold& fold,
-    TVector<TIndexType>* indices,
+    TArrayRef<TIndexType> indices,
     NPar::ILocalExecutor* localExecutor);
 
 TVector<bool> GetIsLeafEmpty(int curDepth, TConstArrayRef<TIndexType> indices, NPar::ILocalExecutor* localExecutor);
@@ -62,7 +62,7 @@ enum class EBuildIndicesDataParts {
 
 TVector<TIndexType> BuildIndices(
     const TFold& fold, // can be empty
-    const TVariant<TSplitTree, TNonSymmetricTreeStructure>& tree,
+    const std::variant<TSplitTree, TNonSymmetricTreeStructure>& tree,
     const NCB::TTrainingDataProviders& trainingData,
     EBuildIndicesDataParts dataParts,
     NPar::ILocalExecutor* localExecutor);

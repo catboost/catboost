@@ -9,10 +9,11 @@ WARNING: DO NOT edit .pxi FILE directly, .pxi is generated from .pxi.in
 # ----------------------------------------------------------------------
 
 
+
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_1d_bool_bool(const uint8_t[:] values,
-                              const int64_t[:] indexer,
+                              const intp_t[:] indexer,
                               uint8_t[:] out,
                               fill_value=np.nan):
 
@@ -36,7 +37,7 @@ def take_1d_bool_bool(const uint8_t[:] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_2d_axis0_bool_bool(const uint8_t[:, :] values,
-                                    ndarray[int64_t] indexer,
+                                    ndarray[intp_t] indexer,
                                     uint8_t[:, :] out,
                                     fill_value=np.nan):
     cdef:
@@ -82,7 +83,7 @@ def take_2d_axis0_bool_bool(const uint8_t[:, :] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_2d_axis1_bool_bool(const uint8_t[:, :] values,
-                                    ndarray[int64_t] indexer,
+                                    ndarray[intp_t] indexer,
                                     uint8_t[:, :] out,
                                     fill_value=np.nan):
 
@@ -115,8 +116,8 @@ def take_2d_multi_bool_bool(ndarray[uint8_t, ndim=2] values,
                                     fill_value=np.nan):
     cdef:
         Py_ssize_t i, j, k, n, idx
-        ndarray[int64_t] idx0 = indexer[0]
-        ndarray[int64_t] idx1 = indexer[1]
+        ndarray[intp_t] idx0 = indexer[0]
+        ndarray[intp_t] idx1 = indexer[1]
         uint8_t fv
 
     n = len(idx0)
@@ -139,7 +140,7 @@ def take_2d_multi_bool_bool(ndarray[uint8_t, ndim=2] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_1d_bool_object(const uint8_t[:] values,
-                              const int64_t[:] indexer,
+                              const intp_t[:] indexer,
                               object[:] out,
                               fill_value=np.nan):
 
@@ -163,7 +164,7 @@ def take_1d_bool_object(const uint8_t[:] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_2d_axis0_bool_object(const uint8_t[:, :] values,
-                                    ndarray[int64_t] indexer,
+                                    ndarray[intp_t] indexer,
                                     object[:, :] out,
                                     fill_value=np.nan):
     cdef:
@@ -209,7 +210,7 @@ def take_2d_axis0_bool_object(const uint8_t[:, :] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_2d_axis1_bool_object(const uint8_t[:, :] values,
-                                    ndarray[int64_t] indexer,
+                                    ndarray[intp_t] indexer,
                                     object[:, :] out,
                                     fill_value=np.nan):
 
@@ -242,8 +243,8 @@ def take_2d_multi_bool_object(ndarray[uint8_t, ndim=2] values,
                                     fill_value=np.nan):
     cdef:
         Py_ssize_t i, j, k, n, idx
-        ndarray[int64_t] idx0 = indexer[0]
-        ndarray[int64_t] idx1 = indexer[1]
+        ndarray[intp_t] idx0 = indexer[0]
+        ndarray[intp_t] idx1 = indexer[1]
         object fv
 
     n = len(idx0)
@@ -266,7 +267,7 @@ def take_2d_multi_bool_object(ndarray[uint8_t, ndim=2] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_1d_int8_int8(const int8_t[:] values,
-                              const int64_t[:] indexer,
+                              const intp_t[:] indexer,
                               int8_t[:] out,
                               fill_value=np.nan):
 
@@ -290,7 +291,7 @@ def take_1d_int8_int8(const int8_t[:] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_2d_axis0_int8_int8(const int8_t[:, :] values,
-                                    ndarray[int64_t] indexer,
+                                    ndarray[intp_t] indexer,
                                     int8_t[:, :] out,
                                     fill_value=np.nan):
     cdef:
@@ -336,7 +337,7 @@ def take_2d_axis0_int8_int8(const int8_t[:, :] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_2d_axis1_int8_int8(const int8_t[:, :] values,
-                                    ndarray[int64_t] indexer,
+                                    ndarray[intp_t] indexer,
                                     int8_t[:, :] out,
                                     fill_value=np.nan):
 
@@ -369,8 +370,8 @@ def take_2d_multi_int8_int8(ndarray[int8_t, ndim=2] values,
                                     fill_value=np.nan):
     cdef:
         Py_ssize_t i, j, k, n, idx
-        ndarray[int64_t] idx0 = indexer[0]
-        ndarray[int64_t] idx1 = indexer[1]
+        ndarray[intp_t] idx0 = indexer[0]
+        ndarray[intp_t] idx1 = indexer[1]
         int8_t fv
 
     n = len(idx0)
@@ -393,7 +394,7 @@ def take_2d_multi_int8_int8(ndarray[int8_t, ndim=2] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_1d_int8_int32(const int8_t[:] values,
-                              const int64_t[:] indexer,
+                              const intp_t[:] indexer,
                               int32_t[:] out,
                               fill_value=np.nan):
 
@@ -417,7 +418,7 @@ def take_1d_int8_int32(const int8_t[:] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_2d_axis0_int8_int32(const int8_t[:, :] values,
-                                    ndarray[int64_t] indexer,
+                                    ndarray[intp_t] indexer,
                                     int32_t[:, :] out,
                                     fill_value=np.nan):
     cdef:
@@ -463,7 +464,7 @@ def take_2d_axis0_int8_int32(const int8_t[:, :] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_2d_axis1_int8_int32(const int8_t[:, :] values,
-                                    ndarray[int64_t] indexer,
+                                    ndarray[intp_t] indexer,
                                     int32_t[:, :] out,
                                     fill_value=np.nan):
 
@@ -496,8 +497,8 @@ def take_2d_multi_int8_int32(ndarray[int8_t, ndim=2] values,
                                     fill_value=np.nan):
     cdef:
         Py_ssize_t i, j, k, n, idx
-        ndarray[int64_t] idx0 = indexer[0]
-        ndarray[int64_t] idx1 = indexer[1]
+        ndarray[intp_t] idx0 = indexer[0]
+        ndarray[intp_t] idx1 = indexer[1]
         int32_t fv
 
     n = len(idx0)
@@ -520,7 +521,7 @@ def take_2d_multi_int8_int32(ndarray[int8_t, ndim=2] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_1d_int8_int64(const int8_t[:] values,
-                              const int64_t[:] indexer,
+                              const intp_t[:] indexer,
                               int64_t[:] out,
                               fill_value=np.nan):
 
@@ -544,7 +545,7 @@ def take_1d_int8_int64(const int8_t[:] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_2d_axis0_int8_int64(const int8_t[:, :] values,
-                                    ndarray[int64_t] indexer,
+                                    ndarray[intp_t] indexer,
                                     int64_t[:, :] out,
                                     fill_value=np.nan):
     cdef:
@@ -590,7 +591,7 @@ def take_2d_axis0_int8_int64(const int8_t[:, :] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_2d_axis1_int8_int64(const int8_t[:, :] values,
-                                    ndarray[int64_t] indexer,
+                                    ndarray[intp_t] indexer,
                                     int64_t[:, :] out,
                                     fill_value=np.nan):
 
@@ -623,8 +624,8 @@ def take_2d_multi_int8_int64(ndarray[int8_t, ndim=2] values,
                                     fill_value=np.nan):
     cdef:
         Py_ssize_t i, j, k, n, idx
-        ndarray[int64_t] idx0 = indexer[0]
-        ndarray[int64_t] idx1 = indexer[1]
+        ndarray[intp_t] idx0 = indexer[0]
+        ndarray[intp_t] idx1 = indexer[1]
         int64_t fv
 
     n = len(idx0)
@@ -647,7 +648,7 @@ def take_2d_multi_int8_int64(ndarray[int8_t, ndim=2] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_1d_int8_float64(const int8_t[:] values,
-                              const int64_t[:] indexer,
+                              const intp_t[:] indexer,
                               float64_t[:] out,
                               fill_value=np.nan):
 
@@ -671,7 +672,7 @@ def take_1d_int8_float64(const int8_t[:] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_2d_axis0_int8_float64(const int8_t[:, :] values,
-                                    ndarray[int64_t] indexer,
+                                    ndarray[intp_t] indexer,
                                     float64_t[:, :] out,
                                     fill_value=np.nan):
     cdef:
@@ -717,7 +718,7 @@ def take_2d_axis0_int8_float64(const int8_t[:, :] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_2d_axis1_int8_float64(const int8_t[:, :] values,
-                                    ndarray[int64_t] indexer,
+                                    ndarray[intp_t] indexer,
                                     float64_t[:, :] out,
                                     fill_value=np.nan):
 
@@ -750,8 +751,8 @@ def take_2d_multi_int8_float64(ndarray[int8_t, ndim=2] values,
                                     fill_value=np.nan):
     cdef:
         Py_ssize_t i, j, k, n, idx
-        ndarray[int64_t] idx0 = indexer[0]
-        ndarray[int64_t] idx1 = indexer[1]
+        ndarray[intp_t] idx0 = indexer[0]
+        ndarray[intp_t] idx1 = indexer[1]
         float64_t fv
 
     n = len(idx0)
@@ -774,7 +775,7 @@ def take_2d_multi_int8_float64(ndarray[int8_t, ndim=2] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_1d_int16_int16(const int16_t[:] values,
-                              const int64_t[:] indexer,
+                              const intp_t[:] indexer,
                               int16_t[:] out,
                               fill_value=np.nan):
 
@@ -798,7 +799,7 @@ def take_1d_int16_int16(const int16_t[:] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_2d_axis0_int16_int16(const int16_t[:, :] values,
-                                    ndarray[int64_t] indexer,
+                                    ndarray[intp_t] indexer,
                                     int16_t[:, :] out,
                                     fill_value=np.nan):
     cdef:
@@ -844,7 +845,7 @@ def take_2d_axis0_int16_int16(const int16_t[:, :] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_2d_axis1_int16_int16(const int16_t[:, :] values,
-                                    ndarray[int64_t] indexer,
+                                    ndarray[intp_t] indexer,
                                     int16_t[:, :] out,
                                     fill_value=np.nan):
 
@@ -877,8 +878,8 @@ def take_2d_multi_int16_int16(ndarray[int16_t, ndim=2] values,
                                     fill_value=np.nan):
     cdef:
         Py_ssize_t i, j, k, n, idx
-        ndarray[int64_t] idx0 = indexer[0]
-        ndarray[int64_t] idx1 = indexer[1]
+        ndarray[intp_t] idx0 = indexer[0]
+        ndarray[intp_t] idx1 = indexer[1]
         int16_t fv
 
     n = len(idx0)
@@ -901,7 +902,7 @@ def take_2d_multi_int16_int16(ndarray[int16_t, ndim=2] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_1d_int16_int32(const int16_t[:] values,
-                              const int64_t[:] indexer,
+                              const intp_t[:] indexer,
                               int32_t[:] out,
                               fill_value=np.nan):
 
@@ -925,7 +926,7 @@ def take_1d_int16_int32(const int16_t[:] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_2d_axis0_int16_int32(const int16_t[:, :] values,
-                                    ndarray[int64_t] indexer,
+                                    ndarray[intp_t] indexer,
                                     int32_t[:, :] out,
                                     fill_value=np.nan):
     cdef:
@@ -971,7 +972,7 @@ def take_2d_axis0_int16_int32(const int16_t[:, :] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_2d_axis1_int16_int32(const int16_t[:, :] values,
-                                    ndarray[int64_t] indexer,
+                                    ndarray[intp_t] indexer,
                                     int32_t[:, :] out,
                                     fill_value=np.nan):
 
@@ -1004,8 +1005,8 @@ def take_2d_multi_int16_int32(ndarray[int16_t, ndim=2] values,
                                     fill_value=np.nan):
     cdef:
         Py_ssize_t i, j, k, n, idx
-        ndarray[int64_t] idx0 = indexer[0]
-        ndarray[int64_t] idx1 = indexer[1]
+        ndarray[intp_t] idx0 = indexer[0]
+        ndarray[intp_t] idx1 = indexer[1]
         int32_t fv
 
     n = len(idx0)
@@ -1028,7 +1029,7 @@ def take_2d_multi_int16_int32(ndarray[int16_t, ndim=2] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_1d_int16_int64(const int16_t[:] values,
-                              const int64_t[:] indexer,
+                              const intp_t[:] indexer,
                               int64_t[:] out,
                               fill_value=np.nan):
 
@@ -1052,7 +1053,7 @@ def take_1d_int16_int64(const int16_t[:] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_2d_axis0_int16_int64(const int16_t[:, :] values,
-                                    ndarray[int64_t] indexer,
+                                    ndarray[intp_t] indexer,
                                     int64_t[:, :] out,
                                     fill_value=np.nan):
     cdef:
@@ -1098,7 +1099,7 @@ def take_2d_axis0_int16_int64(const int16_t[:, :] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_2d_axis1_int16_int64(const int16_t[:, :] values,
-                                    ndarray[int64_t] indexer,
+                                    ndarray[intp_t] indexer,
                                     int64_t[:, :] out,
                                     fill_value=np.nan):
 
@@ -1131,8 +1132,8 @@ def take_2d_multi_int16_int64(ndarray[int16_t, ndim=2] values,
                                     fill_value=np.nan):
     cdef:
         Py_ssize_t i, j, k, n, idx
-        ndarray[int64_t] idx0 = indexer[0]
-        ndarray[int64_t] idx1 = indexer[1]
+        ndarray[intp_t] idx0 = indexer[0]
+        ndarray[intp_t] idx1 = indexer[1]
         int64_t fv
 
     n = len(idx0)
@@ -1155,7 +1156,7 @@ def take_2d_multi_int16_int64(ndarray[int16_t, ndim=2] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_1d_int16_float64(const int16_t[:] values,
-                              const int64_t[:] indexer,
+                              const intp_t[:] indexer,
                               float64_t[:] out,
                               fill_value=np.nan):
 
@@ -1179,7 +1180,7 @@ def take_1d_int16_float64(const int16_t[:] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_2d_axis0_int16_float64(const int16_t[:, :] values,
-                                    ndarray[int64_t] indexer,
+                                    ndarray[intp_t] indexer,
                                     float64_t[:, :] out,
                                     fill_value=np.nan):
     cdef:
@@ -1225,7 +1226,7 @@ def take_2d_axis0_int16_float64(const int16_t[:, :] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_2d_axis1_int16_float64(const int16_t[:, :] values,
-                                    ndarray[int64_t] indexer,
+                                    ndarray[intp_t] indexer,
                                     float64_t[:, :] out,
                                     fill_value=np.nan):
 
@@ -1258,8 +1259,8 @@ def take_2d_multi_int16_float64(ndarray[int16_t, ndim=2] values,
                                     fill_value=np.nan):
     cdef:
         Py_ssize_t i, j, k, n, idx
-        ndarray[int64_t] idx0 = indexer[0]
-        ndarray[int64_t] idx1 = indexer[1]
+        ndarray[intp_t] idx0 = indexer[0]
+        ndarray[intp_t] idx1 = indexer[1]
         float64_t fv
 
     n = len(idx0)
@@ -1282,7 +1283,7 @@ def take_2d_multi_int16_float64(ndarray[int16_t, ndim=2] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_1d_int32_int32(const int32_t[:] values,
-                              const int64_t[:] indexer,
+                              const intp_t[:] indexer,
                               int32_t[:] out,
                               fill_value=np.nan):
 
@@ -1306,7 +1307,7 @@ def take_1d_int32_int32(const int32_t[:] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_2d_axis0_int32_int32(const int32_t[:, :] values,
-                                    ndarray[int64_t] indexer,
+                                    ndarray[intp_t] indexer,
                                     int32_t[:, :] out,
                                     fill_value=np.nan):
     cdef:
@@ -1352,7 +1353,7 @@ def take_2d_axis0_int32_int32(const int32_t[:, :] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_2d_axis1_int32_int32(const int32_t[:, :] values,
-                                    ndarray[int64_t] indexer,
+                                    ndarray[intp_t] indexer,
                                     int32_t[:, :] out,
                                     fill_value=np.nan):
 
@@ -1385,8 +1386,8 @@ def take_2d_multi_int32_int32(ndarray[int32_t, ndim=2] values,
                                     fill_value=np.nan):
     cdef:
         Py_ssize_t i, j, k, n, idx
-        ndarray[int64_t] idx0 = indexer[0]
-        ndarray[int64_t] idx1 = indexer[1]
+        ndarray[intp_t] idx0 = indexer[0]
+        ndarray[intp_t] idx1 = indexer[1]
         int32_t fv
 
     n = len(idx0)
@@ -1409,7 +1410,7 @@ def take_2d_multi_int32_int32(ndarray[int32_t, ndim=2] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_1d_int32_int64(const int32_t[:] values,
-                              const int64_t[:] indexer,
+                              const intp_t[:] indexer,
                               int64_t[:] out,
                               fill_value=np.nan):
 
@@ -1433,7 +1434,7 @@ def take_1d_int32_int64(const int32_t[:] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_2d_axis0_int32_int64(const int32_t[:, :] values,
-                                    ndarray[int64_t] indexer,
+                                    ndarray[intp_t] indexer,
                                     int64_t[:, :] out,
                                     fill_value=np.nan):
     cdef:
@@ -1479,7 +1480,7 @@ def take_2d_axis0_int32_int64(const int32_t[:, :] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_2d_axis1_int32_int64(const int32_t[:, :] values,
-                                    ndarray[int64_t] indexer,
+                                    ndarray[intp_t] indexer,
                                     int64_t[:, :] out,
                                     fill_value=np.nan):
 
@@ -1512,8 +1513,8 @@ def take_2d_multi_int32_int64(ndarray[int32_t, ndim=2] values,
                                     fill_value=np.nan):
     cdef:
         Py_ssize_t i, j, k, n, idx
-        ndarray[int64_t] idx0 = indexer[0]
-        ndarray[int64_t] idx1 = indexer[1]
+        ndarray[intp_t] idx0 = indexer[0]
+        ndarray[intp_t] idx1 = indexer[1]
         int64_t fv
 
     n = len(idx0)
@@ -1536,7 +1537,7 @@ def take_2d_multi_int32_int64(ndarray[int32_t, ndim=2] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_1d_int32_float64(const int32_t[:] values,
-                              const int64_t[:] indexer,
+                              const intp_t[:] indexer,
                               float64_t[:] out,
                               fill_value=np.nan):
 
@@ -1560,7 +1561,7 @@ def take_1d_int32_float64(const int32_t[:] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_2d_axis0_int32_float64(const int32_t[:, :] values,
-                                    ndarray[int64_t] indexer,
+                                    ndarray[intp_t] indexer,
                                     float64_t[:, :] out,
                                     fill_value=np.nan):
     cdef:
@@ -1606,7 +1607,7 @@ def take_2d_axis0_int32_float64(const int32_t[:, :] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_2d_axis1_int32_float64(const int32_t[:, :] values,
-                                    ndarray[int64_t] indexer,
+                                    ndarray[intp_t] indexer,
                                     float64_t[:, :] out,
                                     fill_value=np.nan):
 
@@ -1639,8 +1640,8 @@ def take_2d_multi_int32_float64(ndarray[int32_t, ndim=2] values,
                                     fill_value=np.nan):
     cdef:
         Py_ssize_t i, j, k, n, idx
-        ndarray[int64_t] idx0 = indexer[0]
-        ndarray[int64_t] idx1 = indexer[1]
+        ndarray[intp_t] idx0 = indexer[0]
+        ndarray[intp_t] idx1 = indexer[1]
         float64_t fv
 
     n = len(idx0)
@@ -1663,7 +1664,7 @@ def take_2d_multi_int32_float64(ndarray[int32_t, ndim=2] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_1d_int64_int64(const int64_t[:] values,
-                              const int64_t[:] indexer,
+                              const intp_t[:] indexer,
                               int64_t[:] out,
                               fill_value=np.nan):
 
@@ -1687,7 +1688,7 @@ def take_1d_int64_int64(const int64_t[:] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_2d_axis0_int64_int64(const int64_t[:, :] values,
-                                    ndarray[int64_t] indexer,
+                                    ndarray[intp_t] indexer,
                                     int64_t[:, :] out,
                                     fill_value=np.nan):
     cdef:
@@ -1733,7 +1734,7 @@ def take_2d_axis0_int64_int64(const int64_t[:, :] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_2d_axis1_int64_int64(const int64_t[:, :] values,
-                                    ndarray[int64_t] indexer,
+                                    ndarray[intp_t] indexer,
                                     int64_t[:, :] out,
                                     fill_value=np.nan):
 
@@ -1766,8 +1767,8 @@ def take_2d_multi_int64_int64(ndarray[int64_t, ndim=2] values,
                                     fill_value=np.nan):
     cdef:
         Py_ssize_t i, j, k, n, idx
-        ndarray[int64_t] idx0 = indexer[0]
-        ndarray[int64_t] idx1 = indexer[1]
+        ndarray[intp_t] idx0 = indexer[0]
+        ndarray[intp_t] idx1 = indexer[1]
         int64_t fv
 
     n = len(idx0)
@@ -1790,7 +1791,7 @@ def take_2d_multi_int64_int64(ndarray[int64_t, ndim=2] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_1d_int64_float64(const int64_t[:] values,
-                              const int64_t[:] indexer,
+                              const intp_t[:] indexer,
                               float64_t[:] out,
                               fill_value=np.nan):
 
@@ -1814,7 +1815,7 @@ def take_1d_int64_float64(const int64_t[:] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_2d_axis0_int64_float64(const int64_t[:, :] values,
-                                    ndarray[int64_t] indexer,
+                                    ndarray[intp_t] indexer,
                                     float64_t[:, :] out,
                                     fill_value=np.nan):
     cdef:
@@ -1860,7 +1861,7 @@ def take_2d_axis0_int64_float64(const int64_t[:, :] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_2d_axis1_int64_float64(const int64_t[:, :] values,
-                                    ndarray[int64_t] indexer,
+                                    ndarray[intp_t] indexer,
                                     float64_t[:, :] out,
                                     fill_value=np.nan):
 
@@ -1893,8 +1894,8 @@ def take_2d_multi_int64_float64(ndarray[int64_t, ndim=2] values,
                                     fill_value=np.nan):
     cdef:
         Py_ssize_t i, j, k, n, idx
-        ndarray[int64_t] idx0 = indexer[0]
-        ndarray[int64_t] idx1 = indexer[1]
+        ndarray[intp_t] idx0 = indexer[0]
+        ndarray[intp_t] idx1 = indexer[1]
         float64_t fv
 
     n = len(idx0)
@@ -1917,7 +1918,7 @@ def take_2d_multi_int64_float64(ndarray[int64_t, ndim=2] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_1d_float32_float32(const float32_t[:] values,
-                              const int64_t[:] indexer,
+                              const intp_t[:] indexer,
                               float32_t[:] out,
                               fill_value=np.nan):
 
@@ -1941,7 +1942,7 @@ def take_1d_float32_float32(const float32_t[:] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_2d_axis0_float32_float32(const float32_t[:, :] values,
-                                    ndarray[int64_t] indexer,
+                                    ndarray[intp_t] indexer,
                                     float32_t[:, :] out,
                                     fill_value=np.nan):
     cdef:
@@ -1987,7 +1988,7 @@ def take_2d_axis0_float32_float32(const float32_t[:, :] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_2d_axis1_float32_float32(const float32_t[:, :] values,
-                                    ndarray[int64_t] indexer,
+                                    ndarray[intp_t] indexer,
                                     float32_t[:, :] out,
                                     fill_value=np.nan):
 
@@ -2020,8 +2021,8 @@ def take_2d_multi_float32_float32(ndarray[float32_t, ndim=2] values,
                                     fill_value=np.nan):
     cdef:
         Py_ssize_t i, j, k, n, idx
-        ndarray[int64_t] idx0 = indexer[0]
-        ndarray[int64_t] idx1 = indexer[1]
+        ndarray[intp_t] idx0 = indexer[0]
+        ndarray[intp_t] idx1 = indexer[1]
         float32_t fv
 
     n = len(idx0)
@@ -2044,7 +2045,7 @@ def take_2d_multi_float32_float32(ndarray[float32_t, ndim=2] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_1d_float32_float64(const float32_t[:] values,
-                              const int64_t[:] indexer,
+                              const intp_t[:] indexer,
                               float64_t[:] out,
                               fill_value=np.nan):
 
@@ -2068,7 +2069,7 @@ def take_1d_float32_float64(const float32_t[:] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_2d_axis0_float32_float64(const float32_t[:, :] values,
-                                    ndarray[int64_t] indexer,
+                                    ndarray[intp_t] indexer,
                                     float64_t[:, :] out,
                                     fill_value=np.nan):
     cdef:
@@ -2114,7 +2115,7 @@ def take_2d_axis0_float32_float64(const float32_t[:, :] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_2d_axis1_float32_float64(const float32_t[:, :] values,
-                                    ndarray[int64_t] indexer,
+                                    ndarray[intp_t] indexer,
                                     float64_t[:, :] out,
                                     fill_value=np.nan):
 
@@ -2147,8 +2148,8 @@ def take_2d_multi_float32_float64(ndarray[float32_t, ndim=2] values,
                                     fill_value=np.nan):
     cdef:
         Py_ssize_t i, j, k, n, idx
-        ndarray[int64_t] idx0 = indexer[0]
-        ndarray[int64_t] idx1 = indexer[1]
+        ndarray[intp_t] idx0 = indexer[0]
+        ndarray[intp_t] idx1 = indexer[1]
         float64_t fv
 
     n = len(idx0)
@@ -2171,7 +2172,7 @@ def take_2d_multi_float32_float64(ndarray[float32_t, ndim=2] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_1d_float64_float64(const float64_t[:] values,
-                              const int64_t[:] indexer,
+                              const intp_t[:] indexer,
                               float64_t[:] out,
                               fill_value=np.nan):
 
@@ -2195,7 +2196,7 @@ def take_1d_float64_float64(const float64_t[:] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_2d_axis0_float64_float64(const float64_t[:, :] values,
-                                    ndarray[int64_t] indexer,
+                                    ndarray[intp_t] indexer,
                                     float64_t[:, :] out,
                                     fill_value=np.nan):
     cdef:
@@ -2241,7 +2242,7 @@ def take_2d_axis0_float64_float64(const float64_t[:, :] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_2d_axis1_float64_float64(const float64_t[:, :] values,
-                                    ndarray[int64_t] indexer,
+                                    ndarray[intp_t] indexer,
                                     float64_t[:, :] out,
                                     fill_value=np.nan):
 
@@ -2274,8 +2275,8 @@ def take_2d_multi_float64_float64(ndarray[float64_t, ndim=2] values,
                                     fill_value=np.nan):
     cdef:
         Py_ssize_t i, j, k, n, idx
-        ndarray[int64_t] idx0 = indexer[0]
-        ndarray[int64_t] idx1 = indexer[1]
+        ndarray[intp_t] idx0 = indexer[0]
+        ndarray[intp_t] idx1 = indexer[1]
         float64_t fv
 
     n = len(idx0)
@@ -2298,7 +2299,7 @@ def take_2d_multi_float64_float64(ndarray[float64_t, ndim=2] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_1d_object_object(ndarray[object, ndim=1] values,
-                              const int64_t[:] indexer,
+                              const intp_t[:] indexer,
                               object[:] out,
                               fill_value=np.nan):
 
@@ -2322,7 +2323,7 @@ def take_1d_object_object(ndarray[object, ndim=1] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_2d_axis0_object_object(ndarray[object, ndim=2] values,
-                                    ndarray[int64_t] indexer,
+                                    ndarray[intp_t] indexer,
                                     object[:, :] out,
                                     fill_value=np.nan):
     cdef:
@@ -2368,7 +2369,7 @@ def take_2d_axis0_object_object(ndarray[object, ndim=2] values,
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def take_2d_axis1_object_object(ndarray[object, ndim=2] values,
-                                    ndarray[int64_t] indexer,
+                                    ndarray[intp_t] indexer,
                                     object[:, :] out,
                                     fill_value=np.nan):
 
@@ -2401,8 +2402,8 @@ def take_2d_multi_object_object(ndarray[object, ndim=2] values,
                                     fill_value=np.nan):
     cdef:
         Py_ssize_t i, j, k, n, idx
-        ndarray[int64_t] idx0 = indexer[0]
-        ndarray[int64_t] idx1 = indexer[1]
+        ndarray[intp_t] idx0 = indexer[0]
+        ndarray[intp_t] idx1 = indexer[1]
         object fv
 
     n = len(idx0)
@@ -2432,10 +2433,10 @@ ctypedef fused take_t:
     object
 
 
-cdef _take_2d(ndarray[take_t, ndim=2] values, object idx):
+cdef _take_2d(ndarray[take_t, ndim=2] values, ndarray[intp_t, ndim=2] idx):
     cdef:
         Py_ssize_t i, j, N, K
-        ndarray[Py_ssize_t, ndim=2, cast=True] indexer = idx
+        ndarray[intp_t, ndim=2, cast=True] indexer = idx
         ndarray[take_t, ndim=2] result
 
     N, K = (<object>values).shape

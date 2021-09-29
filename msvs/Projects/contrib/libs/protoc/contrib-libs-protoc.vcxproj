@@ -57,8 +57,8 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -DHAVE_CONFIG_H -DHAVE_PTHREAD=1 -DHAVE_ZLIB=1 -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -D_SHARED_PTR_H /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -DHAVE_CONFIG_H -DHAVE_PTHREAD=1 -DHAVE_ZLIB=1 -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -D_SHARED_PTR_H /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DFAKEID=8668432 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -DHAVE_CONFIG_H -DHAVE_PTHREAD=1 -DHAVE_ZLIB=1 -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF  -DCATBOOST_OPENSOURCE=yes  </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DFAKEID=8668432 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -DHAVE_CONFIG_H -DHAVE_PTHREAD=1 -DHAVE_ZLIB=1 -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF  -DCATBOOST_OPENSOURCE=yes  </AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
@@ -66,7 +66,7 @@
       <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/protoc/src;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/protobuf/src;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)../contrib/libs/libc_compat/include/windows;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;gdi32.lib;kernel32.lib;ole32.lib;oleaut32.lib;shell32.lib;user32.lib;uuid.lib;winspool.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;dnsapi.lib;gdi32.lib;iphlpapi.lib;kernel32.lib;mswsock.lib;ole32.lib;oleaut32.lib;psapi.lib;rpcrt4.lib;secur32.lib;shell32.lib;shlwapi.lib;user32.lib;userenv.lib;uuid.lib;version.lib;winmm.lib;winspool.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  </AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  </AdditionalOptions>
       <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
@@ -90,6 +90,8 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\cpp\cpp_map_field.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\cpp\cpp_message.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\cpp\cpp_message_field.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\cpp\cpp_padding_optimizer.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\cpp\cpp_parse_function_generator.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\cpp\cpp_primitive_field.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\cpp\cpp_service.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\cpp\cpp_string_field.cc"/>
@@ -123,8 +125,7 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_generator.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_generator_factory.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_helpers.cc"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_lazy_message_field.cc"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_lazy_message_field_lite.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_kotlin_generator.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_map_field.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_map_field_lite.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_message.cc"/>
@@ -140,17 +141,6 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_shared_code_generator.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_string_field.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_string_field_lite.cc"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\javanano\javanano_enum.cc"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\javanano\javanano_enum_field.cc"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\javanano\javanano_extension.cc"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\javanano\javanano_field.cc"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\javanano\javanano_file.cc"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\javanano\javanano_generator.cc"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\javanano\javanano_helpers.cc"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\javanano\javanano_map_field.cc"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\javanano\javanano_message.cc"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\javanano\javanano_message_field.cc"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\javanano\javanano_primitive_field.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\js\js_generator.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\js\well_known_types_embed.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\objectivec\objectivec_enum.cc"/>
@@ -187,7 +177,11 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\cpp\cpp_map_field.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\cpp\cpp_message.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\cpp\cpp_message_field.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\cpp\cpp_message_layout_helper.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\cpp\cpp_names.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\cpp\cpp_options.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\cpp\cpp_padding_optimizer.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\cpp\cpp_parse_function_generator.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\cpp\cpp_primitive_field.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\cpp\cpp_service.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\cpp\cpp_string_field.h"/>
@@ -223,8 +217,7 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_generator.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_generator_factory.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_helpers.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_lazy_message_field.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_lazy_message_field_lite.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_kotlin_generator.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_map_field.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_map_field_lite.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_message.h"/>
@@ -234,6 +227,7 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_message_field_lite.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_message_lite.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_name_resolver.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_names.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_options.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_primitive_field.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_primitive_field_lite.h"/>
@@ -241,18 +235,6 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_shared_code_generator.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_string_field.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\java\java_string_field_lite.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\javanano\javanano_enum.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\javanano\javanano_enum_field.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\javanano\javanano_extension.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\javanano\javanano_field.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\javanano\javanano_file.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\javanano\javanano_generator.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\javanano\javanano_helpers.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\javanano\javanano_map_field.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\javanano\javanano_message.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\javanano\javanano_message_field.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\javanano\javanano_params.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\javanano\javanano_primitive_field.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\js\js_generator.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\js\well_known_types_embed.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\objectivec\objectivec_enum.h"/>
@@ -265,6 +247,7 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\objectivec\objectivec_map_field.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\objectivec\objectivec_message.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\objectivec\objectivec_message_field.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\objectivec\objectivec_nsobject_methods.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\objectivec\objectivec_oneof.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\objectivec\objectivec_primitive_field.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\parser.h"/>
@@ -275,6 +258,7 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\plugin.pb.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\python\python_generator.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\ruby\ruby_generator.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\scc.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\subprocess.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\zip_writer.h"/>
   </ItemGroup>

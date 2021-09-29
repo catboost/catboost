@@ -32,12 +32,12 @@ namespace NCatboostCuda {
 
         TOptimizationSubsets<NCudaLib::TSingleMapping, true> DeviceView(ui32 dev) const {
             TOptimizationSubsets<NCudaLib::TSingleMapping, true> result;
-            result.Bins = Bins.DeviceView(dev);
-            result.Indices = Indices.DeviceView(dev);
-            result.Partitions = Partitions.DeviceView(dev);
-            result.PartitionStats = PartitionStats.DeviceView(dev);
-            result.WeightedTarget = WeightedTarget.DeviceView(dev);
-            result.Weights = Weights.DeviceView(dev);
+            result.Bins = Bins.DeviceView(dev).AsConstBuf();
+            result.Indices = Indices.DeviceView(dev).AsConstBuf();
+            result.Partitions = Partitions.DeviceView(dev).AsConstBuf();
+            result.PartitionStats = PartitionStats.DeviceView(dev).AsConstBuf();
+            result.WeightedTarget = WeightedTarget.DeviceView(dev).AsConstBuf();
+            result.Weights = Weights.DeviceView(dev).AsConstBuf();
 
             result.FoldCount = FoldCount;
             result.CurrentDepth = CurrentDepth;
@@ -115,7 +115,7 @@ namespace NCatboostCuda {
         static TStripeBuffer<const TDataPartition> CurrentPartsView(const TOptimizationSubsets<NCudaLib::TStripeMapping>& subsets) {
             auto currentSlice = TSlice(0, static_cast<ui64>(1ULL << (subsets.CurrentDepth + subsets.FoldBits)));
             return NCudaLib::ParallelStripeView(subsets.Partitions,
-                                                currentSlice);
+                                                currentSlice).AsConstBuf();
         }
 
         static TStripeBuffer<TDataPartition> CurrentPartsView(TOptimizationSubsets<NCudaLib::TStripeMapping>& subsets) {

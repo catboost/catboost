@@ -79,6 +79,7 @@ def generate_dart(unit, as_lib=False):
         'DOCSLIB': as_lib,
         'PEERDIRS': '${PEERDIR}',
         'DOCSBUILDER': build_tool,
+        'USE_PLANTUML': unit.get('USE_PLANTUML'),
     }
 
     dart = 'DOCS_DART: ' + base64.b64encode(json.dumps(data)) + '\n' + DELIM + '\n'

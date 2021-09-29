@@ -579,11 +579,13 @@ struct _LIBCPP_TEMPLATE_VIS once_flag
     _LIBCPP_INLINE_VISIBILITY
     _LIBCPP_CONSTEXPR
         once_flag() _NOEXCEPT : __state_(0) {}
+
 #if defined(_LIBCPP_ABI_MICROSOFT)
-    typedef uintptr_t _State_type;
+   typedef uintptr_t _State_type;
 #else
-    typedef unsigned long _State_type;
+   typedef unsigned long _State_type;
 #endif
+
 
 private:
     once_flag(const once_flag&); // = delete;
@@ -632,7 +634,7 @@ private:
     _LIBCPP_INLINE_VISIBILITY
     void __execute(__tuple_indices<_Indices...>)
     {
-        __invoke(_VSTD::get<0>(_VSTD::move(__f_)), _VSTD::get<_Indices>(_VSTD::move(__f_))...);
+        _VSTD::__invoke(_VSTD::get<0>(_VSTD::move(__f_)), _VSTD::get<_Indices>(_VSTD::move(__f_))...);
     }
 };
 
@@ -665,10 +667,10 @@ __call_once_proxy(void* __vp)
 
 #ifdef _LIBCPP_ABI_MICROSOFT
 _LIBCPP_FUNC_VIS void __call_once(volatile atomic<once_flag::_State_type>&, void*,
-                                  void(*)(void*));
+                                  void (*)(void*));
 #else
 _LIBCPP_FUNC_VIS void __call_once(volatile once_flag::_State_type&, void*,
-                                  void(*)(void*));
+                                  void (*)(void*));
 #endif
 
 #ifndef _LIBCPP_CXX03_LANG

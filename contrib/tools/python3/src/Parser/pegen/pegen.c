@@ -269,6 +269,7 @@ static void
 raise_tokenizer_init_error(PyObject *filename)
 {
     if (!(PyErr_ExceptionMatches(PyExc_LookupError)
+          || PyErr_ExceptionMatches(PyExc_SyntaxError)
           || PyErr_ExceptionMatches(PyExc_ValueError)
           || PyErr_ExceptionMatches(PyExc_UnicodeDecodeError))) {
         return;
@@ -639,7 +640,10 @@ _PyPegen_fill_token(Parser *p)
     if (t->bytes == NULL) {
         return -1;
     }
-    PyArena_AddPyObject(p->arena, t->bytes);
+    if (PyArena_AddPyObject(p->arena, t->bytes) < 0) {
+        Py_DECREF(t->bytes);
+        return -1;
+    }
 
     int lineno = type == STRING ? p->tok->first_lineno : p->tok->lineno;
     const char *line_start = type == STRING ? p->tok->multi_line_start : p->tok->line_start;

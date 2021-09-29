@@ -78,6 +78,9 @@ scheme_chars = ('abcdefghijklmnopqrstuvwxyz'
                 '0123456789'
                 '+-.')
 
+# Unsafe bytes to be removed per WHATWG spec
+_UNSAFE_URL_BYTES_TO_REMOVE = ['\t', '\r', '\n']
+
 # XXX: Consider replacing with functools.lru_cache
 MAX_CACHE_SIZE = 20
 _parse_cache = {}
@@ -453,6 +456,11 @@ def urlsplit(url, scheme='', allow_fragments=True):
     """
 
     url, scheme, _coerce_result = _coerce_args(url, scheme)
+
+    for b in _UNSAFE_URL_BYTES_TO_REMOVE:
+        url = url.replace(b, "")
+        scheme = scheme.replace(b, "")
+
     allow_fragments = bool(allow_fragments)
     key = url, scheme, allow_fragments, type(url), type(scheme)
     cached = _parse_cache.get(key, None)
@@ -733,6 +741,7 @@ def parse_qsl(qs, keep_blank_values=False, strict_parsing=False,
         Returns a list, as G-d intended.
     """
     qs, _coerce_result = _coerce_args(qs)
+    separator, _ = _coerce_args(separator)
 
     if not separator or (not isinstance(separator, (str, bytes))):
         raise ValueError("Separator must be of type string or bytes.")

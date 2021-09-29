@@ -23,7 +23,7 @@ After de-serializing a model object through R base's functions (`readRDS`, `load
              fresh model object and increases memory usage inbetween calls to the garbage collector.
              This function allows restoring the internal object beforehand so as to avoid
              restoring the object multiple times.
-             
+
              Note that the model object needs to be re-assigned as the output of this function,
              as the modifications are not done in-place.
 }

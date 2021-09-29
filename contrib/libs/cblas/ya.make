@@ -2,24 +2,29 @@ LIBRARY()
 
 LICENSE(BSD-3-Clause)
 
+VERSION(1.0)
+
+LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
+
+ORIGINAL_SOURCE(https://www.netlib.org/blas/)
+
 
 
 NO_COMPILER_WARNINGS()
 
 IF (HAVE_MKL)
-    PEERDIR(contrib/libs/intel/mkl)
-ELSE ()
+    PEERDIR(
+        contrib/libs/intel/mkl
+    )
+ELSE()
     CFLAGS(
         -DADD_
         -DNO_BLAS_WRAP
     )
-
     PEERDIR(
         ADDINCL contrib/libs/libf2c
     )
-
     ADDINCLSELF()
-
     SRCS(
         caxpy.c
         ccopy.c
@@ -172,9 +177,6 @@ ELSE ()
         ztrmv.c
         ztrsm.c
         ztrsv.c
-        )
-
-        SRCS(
         cblas_interface/cblas_caxpy.c
         cblas_interface/cblas_ccopy.c
         cblas_interface/cblas_cdotc_sub.c
@@ -340,7 +342,6 @@ ELSE ()
         cblas_interface/zdotcsub.c
         cblas_interface/zdotusub.c
     )
-
 ENDIF()
 
 END()

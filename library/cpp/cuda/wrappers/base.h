@@ -2,7 +2,7 @@
 
 #include "kernel.cuh"
 
-#include "exception.h"
+#include <library/cpp/cuda/exception/exception.h>
 
 #include <util/datetime/base.h>
 #include <util/generic/array_ref.h>
@@ -45,6 +45,12 @@
 
 class TCudaEvent;
 
+enum class EStreamPriority {
+    Default,
+    Low,
+    High
+};
+
 class TCudaStream {
 private:
     struct TImpl: public TThrRefBase, public TNonCopyable {
@@ -53,13 +59,22 @@ private:
             CUDA_SAFE_CALL_FOR_DESTRUCTOR(cudaStreamDestroy(Stream_));
         }
 
-        explicit TImpl(bool nonBlocking)
+        explicit TImpl(bool nonBlocking, EStreamPriority streamPriority)
             : NonBlocking(nonBlocking)
         {
-            if (nonBlocking) {
-                CUDA_SAFE_CALL(cudaStreamCreateWithFlags(&Stream_, cudaStreamNonBlocking));
+            if (streamPriority == EStreamPriority::Default) {
+                if (nonBlocking) {
+                    CUDA_SAFE_CALL(cudaStreamCreateWithFlags(&Stream_, cudaStreamNonBlocking));
+                } else {
+                    CUDA_SAFE_CALL(cudaStreamCreate(&Stream_));
+                }
             } else {
-                CUDA_SAFE_CALL(cudaStreamCreate(&Stream_));
+                int leastPriority = 0;
+                int greatestPriority = 0;
+                CUDA_SAFE_CALL(cudaDeviceGetStreamPriorityRange(&leastPriority, &greatestPriority));
+                CUDA_ENSURE(nonBlocking, "non default priority for nonBlocking streams only");
+                int priority = leastPriority ? streamPriority == EStreamPriority::Low : greatestPriority;
+                CUDA_SAFE_CALL(cudaStreamCreateWithPriority(&Stream_, cudaStreamNonBlocking, priority));
             }
         }
 
@@ -97,8 +112,8 @@ public:
         return TCudaStream();
     }
 
-    static TCudaStream NewStream(bool nonBlocking = true) {
-        return TCudaStream(new TImpl(nonBlocking));
+    static TCudaStream NewStream(bool nonBlocking = true, EStreamPriority streamPriority = EStreamPriority::Default) {
+        return TCudaStream(new TImpl(nonBlocking, streamPriority));
     }
 
     bool operator==(const TCudaStream& other) const {

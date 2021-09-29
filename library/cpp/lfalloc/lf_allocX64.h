@@ -262,7 +262,7 @@ static volatile int freeChunkCount;
 static void AddFreeChunk(uintptr_t chunkId) {
     chunkSizeIdx[chunkId] = -1;
     if (Y_UNLIKELY(freeChunkCount == FREE_CHUNK_ARR_BUF))
-        NMalloc::AbortFromCorruptedAllocator("free chunks arrray overflowed");
+        NMalloc::AbortFromCorruptedAllocator("free chunks array overflowed");
     freeChunkArr[freeChunkCount++] = chunkId;
 }
 

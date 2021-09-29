@@ -104,16 +104,22 @@ void UpdateUndefinedClassLabels(
 }
 
 static void CheckTimestampsInEachGroup(
-    TConstArrayRef<TGroupId> groupIds,
+    TConstArrayRef<TGroupBounds> groupsBounds,
     TConstArrayRef<ui64> timestamps
 ) {
-    const auto objectCount = groupIds.size();
-    CB_ENSURE_INTERNAL(objectCount == timestamps.size(), "Need same number of group ids and timestamps");
-    for (auto idx : xrange(size_t(1), objectCount)) {
-        CB_ENSURE(
-            (groupIds[idx] == groupIds[idx - 1]) == (timestamps[idx] == timestamps[idx - 1]),
-            "In each group, objects must have the same timestamp"
-        );
+    for (auto groupBounds : groupsBounds) {
+        if (groupBounds.GetSize()) {
+            ui64 groupTimestamp = timestamps[groupBounds.Begin];
+            for (auto objectIdx : xrange(groupBounds.Begin + 1, groupBounds.End)) {
+                CB_ENSURE(
+                    groupTimestamp == timestamps[objectIdx],
+                    "timestamps[" << objectIdx << "] = " << timestamps[objectIdx]
+                    << " is not equal to the timestamp of group's first element "
+                    << " (timestamps[" << groupBounds.Begin << "] = " << groupTimestamp << ")."
+                    << " CatBoost supports training only with groups with the same timestamp for each element."
+                );
+            }
+        }
     }
 }
 
@@ -128,7 +134,12 @@ TDataProviderPtr ReorderByTimestampLearnDataIfNeeded(
     {
         auto objectsGrouping = learnData->ObjectsData->GetObjectsGrouping();
 
-        CheckTimestampsInEachGroup(*learnData->ObjectsData->GetGroupIds(), *learnData->ObjectsData->GetTimestamp());
+        if (!objectsGrouping->IsTrivial()) {
+            CheckTimestampsInEachGroup(
+                objectsGrouping->GetNonTrivialGroups(),
+                *learnData->ObjectsData->GetTimestamp()
+            );
+        }
 
         auto objectsPermutation = CreateOrderByKey<ui32>(*learnData->ObjectsData->GetTimestamp());
 

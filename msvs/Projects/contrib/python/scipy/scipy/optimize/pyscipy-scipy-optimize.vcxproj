@@ -57,8 +57,8 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -Dinit_minpack=init5scipy8optimize8_minpack -Dinit_zeros=init5scipy8optimize6_zeros -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DARCADIA_PYTHON_UNICODE_SIZE=2 /std:c++latest  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -Dinit_minpack=init5scipy8optimize8_minpack -Dinit_zeros=init5scipy8optimize6_zeros -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DARCADIA_PYTHON_UNICODE_SIZE=2 /std:c++latest  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DFAKEID=8668432 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -Dinit_minpack=init5scipy8optimize8_minpack -Dinit_zeros=init5scipy8optimize6_zeros -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DARCADIA_PYTHON_UNICODE_SIZE=2 /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF  -DCATBOOST_OPENSOURCE=yes  </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DFAKEID=8668432 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -Dinit_minpack=init5scipy8optimize8_minpack -Dinit_zeros=init5scipy8optimize6_zeros -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DARCADIA_PYTHON_UNICODE_SIZE=2 /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF  -DCATBOOST_OPENSOURCE=yes  </AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
@@ -66,7 +66,7 @@
       <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)../contrib/libs/libc_compat/include/windows;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/libs/openssl/include;$(SolutionDir)../contrib/restricted/libffi/include;$(SolutionDir)../contrib/restricted/libffi/configs/x86_64-microsoft-windows/include;$(SolutionDir)../contrib/python/numpy/include/numpy/core/include;$(SolutionDir)../contrib/python/numpy/include/numpy/core/include/numpy;$(SolutionDir)../contrib/python/numpy/include/numpy/f2py/src;$(SolutionDir)../contrib/libs/libf2c;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;gdi32.lib;kernel32.lib;ole32.lib;oleaut32.lib;shell32.lib;user32.lib;uuid.lib;winspool.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;dnsapi.lib;gdi32.lib;iphlpapi.lib;kernel32.lib;mswsock.lib;ole32.lib;oleaut32.lib;psapi.lib;rpcrt4.lib;secur32.lib;shell32.lib;shlwapi.lib;user32.lib;userenv.lib;uuid.lib;version.lib;winmm.lib;winspool.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  crypt32.lib ws2_32.lib</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  crypt32.lib ws2_32.lib</AdditionalOptions>
       <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
@@ -84,10 +84,6 @@
     <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\optimize\_minpackmodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\join_09f501d1ec3aac07d33796bc74.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\scipy.optimize._group_columns.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\scipy.optimize._minpack.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\scipy.optimize._zeros.reg.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\optimize\zeros.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
@@ -118,33 +114,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_trustregion_ncg.py.yapyc;$(SolutionDir)..\contrib\python\scipy\scipy\optimize\_trustregion.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_trustregion.py.yapyc;$(SolutionDir)..\contrib\python\scipy\scipy\optimize\_tstutils.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_tstutils.py.yapyc;$(SolutionDir)..\contrib\python\scipy\scipy\optimize\zeros.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\zeros.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_58844f2e252906add0a30381a5.yasm;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_8e952ce5db8d102b1ec5f8db84.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_ede05bfe0d1372d5bc94df289e.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_5b38b7e380d95aaebf05565a52.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_731f0d745e71e3a73562be7ce1.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_f8da1a52472779aecef3f631be.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_f2222892f86287775a019e2c5f.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_8b70afa18c48b7c9f1c006270f.rodata;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\join_8335f3935c60e906505d2e80ec.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/join_8335f3935c60e906505d2e80ec.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/join_8335f3935c60e906505d2e80ec.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/join_8335f3935c60e906505d2e80ec.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/join_8335f3935c60e906505d2e80ec.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/scipy/scipy/optimize/join_8335f3935c60e906505d2e80ec.py2.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\join_8335f3935c60e906505d2e80ec.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\join_8335f3935c60e906505d2e80ec.py2.obj;</Outputs>
-    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\minpack.py.yapyc">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
@@ -171,146 +140,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/scipy/scipy/optimize/_5629b38a5b3bb3b08c66c71106.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\minpack.py.yapyc;$(SolutionDir)..\contrib\python\scipy\scipy\optimize\nnls.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\nnls.py.yapyc;$(SolutionDir)..\contrib\python\scipy\scipy\optimize\nonlin.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\nonlin.py.yapyc;$(SolutionDir)..\contrib\python\scipy\scipy\optimize\_numdiff.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_numdiff.py.yapyc;$(SolutionDir)..\contrib\python\scipy\scipy\optimize\optimize.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\optimize.py.yapyc;$(SolutionDir)..\contrib\python\scipy\scipy\optimize\_root.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_root.py.yapyc;$(SolutionDir)..\contrib\python\scipy\scipy\optimize\slsqp.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\slsqp.py.yapyc;$(SolutionDir)..\contrib\python\scipy\scipy\optimize\_spectral.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_spectral.py.yapyc;$(SolutionDir)..\contrib\python\scipy\scipy\optimize\tnc.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\tnc.py.yapyc;$(SolutionDir)..\contrib\python\scipy\scipy\optimize\_trustregion_dogleg.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_trustregion_dogleg.py.yapyc;$(SolutionDir)..\contrib\python\scipy\scipy\optimize\_trustregion_ncg.py;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_5629b38a5b3bb3b08c66c71106.yasm;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_8c8e8bfb607271eef175928953.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_d98a0cbe4f9ea8ab54ced8d9a3.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_79c95b6747671cfee469ea3d97.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_818ae9d7e8ef124e6b80d933ef.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_746889796c7369bf65b568f22a.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_acedaafddaab8e0462ed7eda2f.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_76bcf77ded39d792f6b628eedb.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_91f71bf3d79974d840fb0b01a5.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_ec150ab98b55dd93bd253d4b16.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_9c6df08857c9af0767cc4aafee.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_f1bedcb2ce6b693c954f3a425a.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_10cbec8b35c1f14879be99406b.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_32b9cc564f6cc8850dd2a82ca5.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_b0e332e76180a803ca4983fa51.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_b8c4fc4ddca5e35e3282775a8b.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_975796f836d3fd4d5e851fb5d7.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_840c122b306a2b036e2d305753.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_8276b8aaef318efb787ad626af.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_9c8474d4bf1967d2d383140c27.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_1e31b0bafb3f2ce6e170d42d80.rodata;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/1e8a80cfbb5fd3a91837a444c2.cpp" "_2992664e66f01067d21dd6deb7=/py_modules/scipy.optimize.__init__" "_72a0a01b31f06eeb9de50f3588=resfs/src//py_modules/scipy.optimize.__init__" "_ae5a20706139654f2f61777577=/py_code/scipy.optimize.__init__" "_115a53c32cfd75bd859b61a64a=/py_modules/scipy.optimize._basinhopping" "_1bc5cdd15ce1cfe7dee23fa144=resfs/src//py_modules/scipy.optimize._basinhopping" "_4a0765975662401d6ba1cb4675=/py_code/scipy.optimize._basinhopping" "_6a72ed159fafcbc90fe76b9069=/py_modules/scipy.optimize.cobyla" "_be4dcaa1eca34d78f8bf8e27cd=resfs/src//py_modules/scipy.optimize.cobyla" "_02352207d61692d097c9e794b6=/py_code/scipy.optimize.cobyla" "_47da47537bcca284e92383b1fb=/py_modules/scipy.optimize._differentialevolution" "_327540f497970ac217af86ff0e=resfs/src//py_modules/scipy.optimize._differentialevolution" "_07b7371fed2bd3156bd88f901e=/py_code/scipy.optimize._differentialevolution" "_a915149d35e2eff8a4a70c6f07=/py_modules/scipy.optimize._hungarian" "_587fc747255c9dea84fcbedbed=resfs/src//py_modules/scipy.optimize._hungarian" "_a31d49c9ae8cb0759548c229d4=/py_code/scipy.optimize._hungarian" "_ea8c979af1a343a8f260456b2e=/py_modules/scipy.optimize.lbfgsb" "_13cedc772b300f70145b80e732=resfs/src//py_modules/scipy.optimize.lbfgsb" "_916f2af410933f970f67630b84=/py_code/scipy.optimize.lbfgsb" "_8ab9e80b0185f3dc345c661a62=/py_modules/scipy.optimize.linesearch" "_2e78da5448e5bce974433f8130=resfs/src//py_modules/scipy.optimize.linesearch" "_3e736e700f73b9c7b55e915e61=/py_code/scipy.optimize.linesearch" "_dfd720a4ab5876506b1d8c6a8f=/py_modules/scipy.optimize._linprog" "_acf0c64c27e5ed350f15cb5f12=resfs/src//py_modules/scipy.optimize._linprog" "_5f298c1f7b3f10ca84e6404a34=/py_code/scipy.optimize._linprog" "_6262814efcb63ea02d9e3d8e0e=/py_modules/scipy.optimize._minimize" "_54aada6b7f4063ba507cabeb88=resfs/src//py_modules/scipy.optimize._minimize" "_8bd8cadd5b299f78516a1d1211=/py_code/scipy.optimize._minimize" "_d962f66bb7bef6dc396d678d71=/py_modules/scipy.optimize.minpack" "_720f50346b3c6c10c162111c48=resfs/src//py_modules/scipy.optimize.minpack"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/5629b38a5b3bb3b08c66c71106.cpp" "_8c8e8bfb607271eef175928953=/py_code/scipy.optimize.minpack" "_d98a0cbe4f9ea8ab54ced8d9a3=/py_modules/scipy.optimize.nnls" "_50dc2f0eebf941db003145547d=resfs/src//py_modules/scipy.optimize.nnls" "_79c95b6747671cfee469ea3d97=/py_code/scipy.optimize.nnls" "_818ae9d7e8ef124e6b80d933ef=/py_modules/scipy.optimize.nonlin" "_f58839a321cab27607cc56da72=resfs/src//py_modules/scipy.optimize.nonlin" "_746889796c7369bf65b568f22a=/py_code/scipy.optimize.nonlin" "_acedaafddaab8e0462ed7eda2f=/py_modules/scipy.optimize._numdiff" "_ed24469779bad20ac3455ccdcb=resfs/src//py_modules/scipy.optimize._numdiff" "_76bcf77ded39d792f6b628eedb=/py_code/scipy.optimize._numdiff" "_91f71bf3d79974d840fb0b01a5=/py_modules/scipy.optimize.optimize" "_79043af93da1c14087106c6e57=resfs/src//py_modules/scipy.optimize.optimize" "_ec150ab98b55dd93bd253d4b16=/py_code/scipy.optimize.optimize" "_9c6df08857c9af0767cc4aafee=/py_modules/scipy.optimize._root" "_88b31217e4ca4bd3bcc3fa9759=resfs/src//py_modules/scipy.optimize._root" "_f1bedcb2ce6b693c954f3a425a=/py_code/scipy.optimize._root" "_10cbec8b35c1f14879be99406b=/py_modules/scipy.optimize.slsqp" "_829463d8170d3b0273ce1b99c7=resfs/src//py_modules/scipy.optimize.slsqp" "_32b9cc564f6cc8850dd2a82ca5=/py_code/scipy.optimize.slsqp" "_b0e332e76180a803ca4983fa51=/py_modules/scipy.optimize._spectral" "_03256aff1381699f9c99cda64f=resfs/src//py_modules/scipy.optimize._spectral" "_b8c4fc4ddca5e35e3282775a8b=/py_code/scipy.optimize._spectral" "_975796f836d3fd4d5e851fb5d7=/py_modules/scipy.optimize.tnc" "_9eca86183db71d17ee25f0261e=resfs/src//py_modules/scipy.optimize.tnc" "_840c122b306a2b036e2d305753=/py_code/scipy.optimize.tnc" "_8276b8aaef318efb787ad626af=/py_modules/scipy.optimize._trustregion_dogleg" "_5215ca1c26755325f051714077=resfs/src//py_modules/scipy.optimize._trustregion_dogleg" "_9c8474d4bf1967d2d383140c27=/py_code/scipy.optimize._trustregion_dogleg" "_1e31b0bafb3f2ce6e170d42d80=/py_modules/scipy.optimize._trustregion_ncg" "_3c13030e5437d739eaf67a72b6=resfs/src//py_modules/scipy.optimize._trustregion_ncg"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/58844f2e252906add0a30381a5.cpp" "_8e952ce5db8d102b1ec5f8db84=/py_code/scipy.optimize._trustregion_ncg" "_ede05bfe0d1372d5bc94df289e=/py_modules/scipy.optimize._trustregion" "_d69d3d3f9b4437107cdd64da7a=resfs/src//py_modules/scipy.optimize._trustregion" "_5b38b7e380d95aaebf05565a52=/py_code/scipy.optimize._trustregion" "_731f0d745e71e3a73562be7ce1=/py_modules/scipy.optimize._tstutils" "_6d7ba65fd832b1264028c68e9f=resfs/src//py_modules/scipy.optimize._tstutils" "_f8da1a52472779aecef3f631be=/py_code/scipy.optimize._tstutils" "_f2222892f86287775a019e2c5f=/py_modules/scipy.optimize.zeros" "_6d01e3fc355cb218424d28eb7e=resfs/src//py_modules/scipy.optimize.zeros" "_8b70afa18c48b7c9f1c006270f=/py_code/scipy.optimize.zeros"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/1e8a80cfbb5fd3a91837a444c2.cpp" "_2992664e66f01067d21dd6deb7=/py_modules/scipy.optimize.__init__" "_72a0a01b31f06eeb9de50f3588=resfs/src//py_modules/scipy.optimize.__init__" "_ae5a20706139654f2f61777577=/py_code/scipy.optimize.__init__" "_115a53c32cfd75bd859b61a64a=/py_modules/scipy.optimize._basinhopping" "_1bc5cdd15ce1cfe7dee23fa144=resfs/src//py_modules/scipy.optimize._basinhopping" "_4a0765975662401d6ba1cb4675=/py_code/scipy.optimize._basinhopping" "_6a72ed159fafcbc90fe76b9069=/py_modules/scipy.optimize.cobyla" "_be4dcaa1eca34d78f8bf8e27cd=resfs/src//py_modules/scipy.optimize.cobyla" "_02352207d61692d097c9e794b6=/py_code/scipy.optimize.cobyla" "_47da47537bcca284e92383b1fb=/py_modules/scipy.optimize._differentialevolution" "_327540f497970ac217af86ff0e=resfs/src//py_modules/scipy.optimize._differentialevolution" "_07b7371fed2bd3156bd88f901e=/py_code/scipy.optimize._differentialevolution" "_a915149d35e2eff8a4a70c6f07=/py_modules/scipy.optimize._hungarian" "_587fc747255c9dea84fcbedbed=resfs/src//py_modules/scipy.optimize._hungarian" "_a31d49c9ae8cb0759548c229d4=/py_code/scipy.optimize._hungarian" "_ea8c979af1a343a8f260456b2e=/py_modules/scipy.optimize.lbfgsb" "_13cedc772b300f70145b80e732=resfs/src//py_modules/scipy.optimize.lbfgsb" "_916f2af410933f970f67630b84=/py_code/scipy.optimize.lbfgsb" "_8ab9e80b0185f3dc345c661a62=/py_modules/scipy.optimize.linesearch" "_2e78da5448e5bce974433f8130=resfs/src//py_modules/scipy.optimize.linesearch" "_3e736e700f73b9c7b55e915e61=/py_code/scipy.optimize.linesearch" "_dfd720a4ab5876506b1d8c6a8f=/py_modules/scipy.optimize._linprog" "_acf0c64c27e5ed350f15cb5f12=resfs/src//py_modules/scipy.optimize._linprog" "_5f298c1f7b3f10ca84e6404a34=/py_code/scipy.optimize._linprog" "_6262814efcb63ea02d9e3d8e0e=/py_modules/scipy.optimize._minimize" "_54aada6b7f4063ba507cabeb88=resfs/src//py_modules/scipy.optimize._minimize" "_8bd8cadd5b299f78516a1d1211=/py_code/scipy.optimize._minimize" "_d962f66bb7bef6dc396d678d71=/py_modules/scipy.optimize.minpack" "_720f50346b3c6c10c162111c48=resfs/src//py_modules/scipy.optimize.minpack"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/5629b38a5b3bb3b08c66c71106.cpp" "_8c8e8bfb607271eef175928953=/py_code/scipy.optimize.minpack" "_d98a0cbe4f9ea8ab54ced8d9a3=/py_modules/scipy.optimize.nnls" "_50dc2f0eebf941db003145547d=resfs/src//py_modules/scipy.optimize.nnls" "_79c95b6747671cfee469ea3d97=/py_code/scipy.optimize.nnls" "_818ae9d7e8ef124e6b80d933ef=/py_modules/scipy.optimize.nonlin" "_f58839a321cab27607cc56da72=resfs/src//py_modules/scipy.optimize.nonlin" "_746889796c7369bf65b568f22a=/py_code/scipy.optimize.nonlin" "_acedaafddaab8e0462ed7eda2f=/py_modules/scipy.optimize._numdiff" "_ed24469779bad20ac3455ccdcb=resfs/src//py_modules/scipy.optimize._numdiff" "_76bcf77ded39d792f6b628eedb=/py_code/scipy.optimize._numdiff" "_91f71bf3d79974d840fb0b01a5=/py_modules/scipy.optimize.optimize" "_79043af93da1c14087106c6e57=resfs/src//py_modules/scipy.optimize.optimize" "_ec150ab98b55dd93bd253d4b16=/py_code/scipy.optimize.optimize" "_9c6df08857c9af0767cc4aafee=/py_modules/scipy.optimize._root" "_88b31217e4ca4bd3bcc3fa9759=resfs/src//py_modules/scipy.optimize._root" "_f1bedcb2ce6b693c954f3a425a=/py_code/scipy.optimize._root" "_10cbec8b35c1f14879be99406b=/py_modules/scipy.optimize.slsqp" "_829463d8170d3b0273ce1b99c7=resfs/src//py_modules/scipy.optimize.slsqp" "_32b9cc564f6cc8850dd2a82ca5=/py_code/scipy.optimize.slsqp" "_b0e332e76180a803ca4983fa51=/py_modules/scipy.optimize._spectral" "_03256aff1381699f9c99cda64f=resfs/src//py_modules/scipy.optimize._spectral" "_b8c4fc4ddca5e35e3282775a8b=/py_code/scipy.optimize._spectral" "_975796f836d3fd4d5e851fb5d7=/py_modules/scipy.optimize.tnc" "_9eca86183db71d17ee25f0261e=resfs/src//py_modules/scipy.optimize.tnc" "_840c122b306a2b036e2d305753=/py_code/scipy.optimize.tnc" "_8276b8aaef318efb787ad626af=/py_modules/scipy.optimize._trustregion_dogleg" "_5215ca1c26755325f051714077=resfs/src//py_modules/scipy.optimize._trustregion_dogleg" "_9c8474d4bf1967d2d383140c27=/py_code/scipy.optimize._trustregion_dogleg" "_1e31b0bafb3f2ce6e170d42d80=/py_modules/scipy.optimize._trustregion_ncg" "_3c13030e5437d739eaf67a72b6=resfs/src//py_modules/scipy.optimize._trustregion_ncg"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/58844f2e252906add0a30381a5.cpp" "_8e952ce5db8d102b1ec5f8db84=/py_code/scipy.optimize._trustregion_ncg" "_ede05bfe0d1372d5bc94df289e=/py_modules/scipy.optimize._trustregion" "_d69d3d3f9b4437107cdd64da7a=resfs/src//py_modules/scipy.optimize._trustregion" "_5b38b7e380d95aaebf05565a52=/py_code/scipy.optimize._trustregion" "_731f0d745e71e3a73562be7ce1=/py_modules/scipy.optimize._tstutils" "_6d7ba65fd832b1264028c68e9f=resfs/src//py_modules/scipy.optimize._tstutils" "_f8da1a52472779aecef3f631be=/py_code/scipy.optimize._tstutils" "_f2222892f86287775a019e2c5f=/py_modules/scipy.optimize.zeros" "_6d01e3fc355cb218424d28eb7e=resfs/src//py_modules/scipy.optimize.zeros" "_8b70afa18c48b7c9f1c006270f=/py_code/scipy.optimize.zeros"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/scipy/scipy/optimize/1e8a80cfbb5fd3a91837a444c2.cpp	$B/contrib/python/scipy/scipy/optimize/5629b38a5b3bb3b08c66c71106.cpp	$B/contrib/python/scipy/scipy/optimize/58844f2e252906add0a30381a5.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\1e8a80cfbb5fd3a91837a444c2.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\5629b38a5b3bb3b08c66c71106.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\58844f2e252906add0a30381a5.cpp;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\build\scripts\fs_tools.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/join_8335f3935c60e906505d2e80ec.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_1e8a80cfbb5fd3a91837a444c2.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_5629b38a5b3bb3b08c66c71106.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_58844f2e252906add0a30381a5.yasm" "--ya-end-command-file"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/join_8335f3935c60e906505d2e80ec.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_1e8a80cfbb5fd3a91837a444c2.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_5629b38a5b3bb3b08c66c71106.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_58844f2e252906add0a30381a5.yasm" "--ya-end-command-file"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/scipy/scipy/optimize/join_8335f3935c60e906505d2e80ec.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\fs_tools.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_1e8a80cfbb5fd3a91837a444c2.yasm;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_5629b38a5b3bb3b08c66c71106.yasm;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\_58844f2e252906add0a30381a5.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\join_8335f3935c60e906505d2e80ec.yasm;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_join_srcs.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/join_09f501d1ec3aac07d33796bc74.cpp" "--ya-start-command-file" "contrib/python/scipy/scipy/optimize/1e8a80cfbb5fd3a91837a444c2.cpp" "contrib/python/scipy/scipy/optimize/5629b38a5b3bb3b08c66c71106.cpp" "contrib/python/scipy/scipy/optimize/58844f2e252906add0a30381a5.cpp" "--ya-end-command-file"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/join_09f501d1ec3aac07d33796bc74.cpp" "--ya-start-command-file" "contrib/python/scipy/scipy/optimize/1e8a80cfbb5fd3a91837a444c2.cpp" "contrib/python/scipy/scipy/optimize/5629b38a5b3bb3b08c66c71106.cpp" "contrib/python/scipy/scipy/optimize/58844f2e252906add0a30381a5.cpp" "--ya-end-command-file"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/scipy/scipy/optimize/join_09f501d1ec3aac07d33796bc74.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\1e8a80cfbb5fd3a91837a444c2.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\5629b38a5b3bb3b08c66c71106.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\58844f2e252906add0a30381a5.cpp;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\join_09f501d1ec3aac07d33796bc74.cpp;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_py_reg.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.optimize._group_columns" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/scipy.optimize._group_columns.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.optimize._minpack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/scipy.optimize._minpack.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.optimize._zeros" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/scipy.optimize._zeros.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.optimize._group_columns" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/scipy.optimize._group_columns.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.optimize._minpack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/scipy.optimize._minpack.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.optimize._zeros" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/scipy.optimize._zeros.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/scipy/scipy/optimize/scipy.optimize._group_columns.reg.cpp	$B/contrib/python/scipy/scipy/optimize/scipy.optimize._minpack.reg.cpp	$B/contrib/python/scipy/scipy/optimize/scipy.optimize._zeros.reg.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_py_reg.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\scipy.optimize._group_columns.reg.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\scipy.optimize._minpack.reg.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\scipy.optimize._zeros.reg.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

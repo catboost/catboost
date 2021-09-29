@@ -18,22 +18,31 @@ namespace NMatrixnetLoggingImpl {
 
 class TCustomFuncLogger : public TLogBackend {
 public:
-    TCustomFuncLogger(TCustomLoggingFunction func)
-        : LoggerFunc(func)
+    TCustomFuncLogger(TCustomLoggingFunction func, TCustomLoggingObject obj)
+        : LoggerFunc(func), LoggingObject(obj)
     {
     }
+
     void WriteData(const TLogRecord& rec) override {
-        LoggerFunc(rec.Data, rec.Len);
+        LoggerFunc(rec.Data, rec.Len, LoggingObject);
     }
     void ReopenLog() override {
     }
 
 private:
     TCustomLoggingFunction LoggerFunc = nullptr;
+    TCustomLoggingObject LoggingObject = nullptr;
 };
 
-void SetCustomLoggingFunction(TCustomLoggingFunction lowPriorityFunc, TCustomLoggingFunction highPriorityFunc) {
-    TCatBoostLogSettings::GetRef().Log.ResetBackend(MakeHolder<TCustomFuncLogger>(lowPriorityFunc), MakeHolder<TCustomFuncLogger>(highPriorityFunc));
+void SetCustomLoggingFunction(
+    TCustomLoggingFunction normalPriorityFunc,
+    TCustomLoggingFunction errorPriorityFunc,
+    TCustomLoggingObject normalPriorityObj,
+    TCustomLoggingObject errorPriorityObj)
+{
+    TCatBoostLogSettings::GetRef().Log.ResetBackend(
+            MakeHolder<TCustomFuncLogger>(normalPriorityFunc, normalPriorityObj),
+            MakeHolder<TCustomFuncLogger>(errorPriorityFunc, errorPriorityObj));
 }
 
 void RestoreOriginalLogger() {
@@ -77,6 +86,7 @@ public:
         : LowPriorityLog(lowPriorityBackend)
         , HighPriorityLog(highPriorityBackend)
     {}
+
     void ResetBackend(THolder<TLogBackend>&& lowPriorityBackend, THolder<TLogBackend>&& highPriorityBackend) {
         LowPriorityLog.ResetBackend(std::move(lowPriorityBackend));
         HighPriorityLog.ResetBackend(std::move(highPriorityBackend));
@@ -103,6 +113,7 @@ private:
 
 TCatboostLog::TCatboostLog()
     : ImplHolder(new TCatboostLog::TImpl(CreateLogBackend("cout"), CreateLogBackend("cerr")))
+    , IsCustomBackendSpecified(false)
 {}
 
 TCatboostLog::~TCatboostLog() {
@@ -120,6 +131,9 @@ void TCatboostLog::Output(const TCatboostLogEntry& entry) {
 }
 
 void TCatboostLog::ResetBackend(THolder<TLogBackend>&& lowPriorityBackend, THolder<TLogBackend>&& highPriorityBackend) {
+    if (IsCustomBackendSpecified.exchange(true)) {
+        CATBOOST_WARNING_LOG << "Custom logger is already specified. Specify more than one logger at same time is not thread safe.";
+    }
     ImplHolder->ResetBackend(std::move(lowPriorityBackend), std::move(highPriorityBackend));
 }
 
@@ -130,6 +144,7 @@ void TCatboostLog::ResetTraceBackend(THolder<TLogBackend>&& traceBackend /*= THo
 
 void TCatboostLog::RestoreDefaultBackend() {
     ImplHolder->ResetBackend(CreateLogBackend("cout"), CreateLogBackend("cerr"));
+    IsCustomBackendSpecified.store(false);
 }
 
 void ResetTraceBackend(const TString& name) {

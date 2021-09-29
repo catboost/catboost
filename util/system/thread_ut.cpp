@@ -2,6 +2,8 @@
 
 #include <library/cpp/testing/unittest/registar.h>
 
+#include <atomic>
+
 Y_UNIT_TEST_SUITE(TSysThreadTest) {
     struct TIdTester {
         inline TIdTester()
@@ -200,7 +202,7 @@ Y_UNIT_TEST_SUITE(TSysThreadTest) {
     Y_UNIT_TEST(TestCallable) {
         std::atomic_bool flag = {false};
 
-        struct TCallable : TMoveOnly {
+        struct TCallable: TMoveOnly {
             std::atomic_bool* Flag_;
 
             TCallable(std::atomic_bool* flag)

@@ -90,7 +90,7 @@ void UpdateApproxDeltas(
     const double* leafDeltasData = leafDeltas->data();
 
     NPar::ILocalExecutor::TExecRangeParams blockParams(0, docCount);
-    blockParams.SetBlockSize(AdjustBlockSize(docCount, /*regularBlockSize*/1000));
+    blockParams.SetBlockCount(localExecutor->GetThreadCount() + 1);
 
     const auto getUpdateApproxBlockLambda = [&](auto boolConst) -> std::function<void(int)> {
         return [=](int blockIdx) {
@@ -264,6 +264,111 @@ static void CalcLeafDers(
     }
 }
 
+static void CalcLeafCoxDers(
+    TConstArrayRef<TIndexType> indices,
+    TConstArrayRef<float> targets,
+    TConstArrayRef<float> weights,
+    TConstArrayRef<double> approxes,
+    TConstArrayRef<double> approxesDelta,
+    const TCoxError& error,
+    int sampleCount,
+    bool recalcLeafWeights,
+    ELeavesEstimation estimationMethod,
+    NPar::ILocalExecutor* localExecutor,
+    TArrayRef<TSum> leafDers,
+    TArrayRef<TDers> weightedDers) {
+    NPar::ILocalExecutor::TExecRangeParams blockParams(0, sampleCount);
+    blockParams.SetBlockCount(AdjustBlockCountLimit(sampleCount, CB_THREAD_LIMIT));
+
+    const int leafCount = leafDers.size();
+    TVector<TVector<TDers>> blockBucketDers(
+        blockParams.GetBlockCount(),
+        TVector<TDers>(leafCount, TDers{/*Der1*/ 0.0, /*Der2*/ 0.0, /*Der3*/ 0.0}));
+    TVector<TDers>* blockBucketDersData = blockBucketDers.data();
+    // TODO(espetrov): Do not calculate sumWeights for Newton.
+    // TODO(espetrov): Calculate sumWeights only on first iteration for Gradient, because on next iteration it
+    //  is the same.
+    // Check speedup on flights dataset.
+    TVector<TVector<double>> blockBucketSumWeights(blockParams.GetBlockCount(), TVector<double>(leafCount, 0));
+    TVector<double>* blockBucketSumWeightsData = blockBucketSumWeights.data();
+    error.CalcDersRange(
+        0,
+        targets.size(),
+        /*calcThirdDer=*/false,
+        approxes.data(),
+        approxesDelta.empty() ? nullptr : approxesDelta.data(),
+        targets.data(),
+        weights.empty() ? nullptr : weights.data(),
+        weightedDers.data());
+    localExecutor->ExecRangeWithThrow(
+        [=, &error](int blockId) {
+            constexpr int innerBlockSize = APPROX_BLOCK_SIZE;
+            const auto approxDers = MakeArrayRef(
+                weightedDers.data() + innerBlockSize * blockId,
+                innerBlockSize);
+
+            const int blockStart = blockId * blockParams.GetBlockSize();
+            const int nextBlockStart = Min(sampleCount, blockStart + blockParams.GetBlockSize());
+
+            const auto bucketDers = MakeArrayRef(blockBucketDersData[blockId].data(), leafCount);
+            const auto bucketSumWeights = MakeArrayRef(blockBucketSumWeightsData[blockId].data(), leafCount);
+
+            for (int innerBlockStart = blockStart;
+                 innerBlockStart < nextBlockStart;
+                 innerBlockStart += innerBlockSize) {
+                const int innerCount = Min(nextBlockStart - innerBlockStart, innerBlockSize);
+                if (weights.empty()) {
+                    CalcLeafDersImpl<false>(
+                        innerBlockStart,
+                        innerCount,
+                        indices,
+                        weights,
+                        approxDers,
+                        bucketDers,
+                        bucketSumWeights);
+                } else {
+                    CalcLeafDersImpl<true>(
+                        innerBlockStart,
+                        innerCount,
+                        indices,
+                        weights,
+                        approxDers,
+                        bucketDers,
+                        bucketSumWeights);
+                }
+            }
+        },
+        0,
+        blockParams.GetBlockCount(),
+        NPar::TLocalExecutor::WAIT_COMPLETE);
+    if (estimationMethod == ELeavesEstimation::Newton) {
+        for (int leafId = 0; leafId < leafCount; ++leafId) {
+            for (int blockId = 0; blockId < blockParams.GetBlockCount(); ++blockId) {
+                if (blockBucketSumWeights[blockId][leafId] > FLT_EPSILON) {
+                    AddMethodDer<ELeavesEstimation::Newton>(
+                        blockBucketDers[blockId][leafId],
+                        blockBucketSumWeights[blockId][leafId],
+                        /* updateWeight */ false, // value doesn't matter
+                        &leafDers[leafId]);
+                }
+            }
+        }
+    } else {
+        Y_ASSERT(estimationMethod == ELeavesEstimation::Gradient);
+        for (int leafId = 0; leafId < leafCount; ++leafId) {
+            for (int blockId = 0; blockId < blockParams.GetBlockCount(); ++blockId) {
+                if (blockBucketSumWeights[blockId][leafId] > FLT_EPSILON) {
+                    AddMethodDer<ELeavesEstimation::Gradient>(
+                        blockBucketDers[blockId][leafId],
+                        blockBucketSumWeights[blockId][leafId],
+                        recalcLeafWeights,
+                        &leafDers[leafId]);
+                }
+            }
+        }
+    }
+}
+
 void CalcLeafDersSimple(
     const TVector<TIndexType>& indices,
     const TFold& fold,
@@ -285,19 +390,35 @@ void CalcLeafDersSimple(
         leafDer.SetZeroDers();
     }
     if (error.GetErrorType() == EErrorType::PerObjectError) {
-        CalcLeafDers(
-            indices,
-            fold.LearnTarget[0],
-            fold.GetLearnWeights(),
-            approxes,
-            approxDeltas,
-            error,
-            sampleCount,
-            recalcLeafWeights,
-            estimationMethod,
-            localExecutor,
-            *leafDers,
-            *scratchDers);
+        if (dynamic_cast<const TCoxError*>(&error) != nullptr) {
+            CalcLeafCoxDers(
+                indices,
+                fold.LearnTarget[0],
+                fold.GetLearnWeights(),
+                approxes,
+                approxDeltas,
+                dynamic_cast<const TCoxError&>(error),
+                sampleCount,
+                recalcLeafWeights,
+                estimationMethod,
+                localExecutor,
+                *leafDers,
+                *scratchDers);
+        } else {
+            CalcLeafDers(
+                indices,
+                fold.LearnTarget[0],
+                fold.GetLearnWeights(),
+                approxes,
+                approxDeltas,
+                error,
+                sampleCount,
+                recalcLeafWeights,
+                estimationMethod,
+                localExecutor,
+                *leafDers,
+                *scratchDers);
+        }
     } else {
         Y_ASSERT(
             error.GetErrorType() == EErrorType::QuerywiseError ||
@@ -962,7 +1083,7 @@ void CalcLeafValues(
     const NCB::TTrainingDataProviders& data,
     const IDerCalcer& error,
     const TFold& fold,
-    const TVariant<TSplitTree, TNonSymmetricTreeStructure>& tree,
+    const std::variant<TSplitTree, TNonSymmetricTreeStructure>& tree,
     TLearnContext* ctx,
     TVector<TVector<double>>* leafDeltas,
     TVector<TIndexType>* indices) {
@@ -976,8 +1097,8 @@ void CalcLeafValues(
         tree,
         ctx->Params.ObliviousTreeOptions->MonotoneConstraints.Get());
 
-    const bool isMultiRegression = dynamic_cast<const TMultiDerCalcer*>(&error) != nullptr;
-    if (approxDimension == 1 && !isMultiRegression) {
+    const bool isMultiTarget = dynamic_cast<const TMultiDerCalcer*>(&error) != nullptr;
+    if (approxDimension == 1 && !isMultiTarget) {
         CalcLeafValuesSimple(leafCount, error, fold, *indices, treeMonotoneConstraints, ctx, leafDeltas);
     } else {
         CalcLeafValuesMultiForAllLeaves(leafCount, error, fold, *indices, ctx, leafDeltas);
@@ -989,7 +1110,7 @@ void CalcApproxForLeafStruct(
     const NCB::TTrainingDataProviders& data,
     const IDerCalcer& error,
     const TFold& fold,
-    const TVariant<TSplitTree, TNonSymmetricTreeStructure>& tree,
+    const std::variant<TSplitTree, TNonSymmetricTreeStructure>& tree,
     ui64 randomSeed,
     TLearnContext* ctx,
     TVector<TVector<TVector<double>>>* approxesDelta // [bodyTailId][approxDim][docIdxInPermuted]
@@ -1008,14 +1129,14 @@ void CalcApproxForLeafStruct(
 
     TVector<ui64> randomSeeds = GenRandUI64Vector(fold.BodyTailArr.ysize(), randomSeed);
     approxesDelta->resize(fold.BodyTailArr.ysize());
-    const bool isMultiRegression = dynamic_cast<const TMultiDerCalcer*>(&error) != nullptr;
+    const bool isMultiTarget = dynamic_cast<const TMultiDerCalcer*>(&error) != nullptr;
     ctx->LocalExecutor->ExecRangeWithThrow(
         [&](int bodyTailId) {
             const TFold::TBodyTail& bt = fold.BodyTailArr[bodyTailId];
             TVector<TVector<double>>& approxDeltas = (*approxesDelta)[bodyTailId];
             const double initValue = GetNeutralApprox(error.GetIsExpApprox());
             NCB::FillRank2(initValue, approxDimension, bt.TailFinish, &approxDeltas, ctx->LocalExecutor);
-            if (approxDimension == 1 && !isMultiRegression) {
+            if (approxDimension == 1 && !isMultiTarget) {
                 CalcApproxDeltaSimple(
                     fold,
                     bt,

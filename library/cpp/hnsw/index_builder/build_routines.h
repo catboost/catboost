@@ -8,17 +8,29 @@
 #include <library/cpp/threading/local_executor/local_executor.h>
 #include <library/cpp/containers/dense_hash/dense_hash.h>
 
+#include <util/datetime/base.h>
+#include <util/generic/algorithm.h>
 #include <util/generic/array_ref.h>
 #include <util/generic/deque.h>
 #include <util/generic/guid.h>
 #include <util/generic/maybe.h>
 #include <util/generic/queue.h>
+#include <util/generic/utility.h>
 #include <util/generic/vector.h>
 #include <util/generic/xrange.h>
+#include <util/generic/yexception.h>
+#include <util/generic/ylimits.h>
 #include <util/stream/file.h>
 #include <util/stream/format.h>
 #include <util/system/fs.h>
 #include <util/system/hp_timer.h>
+#include <util/system/yassert.h>
+#include <util/ysaveload.h>
+
+#include <utility>
+
+#include <stddef.h>
+
 
 namespace NHnsw {
     namespace NPrivate {

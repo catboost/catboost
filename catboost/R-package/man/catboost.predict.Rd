@@ -50,9 +50,6 @@ Possible values:
   \item 'RawFormulaVal'
   \item 'Exponent'
   \item 'RMSEWithUncertainty'
-  \item 'InternalRawFormulaVal'
-  \item 'VirtEnsembles'
-  \item 'TotalUncertainty'
 }
 
 Default value: 'RawFormulaVal'}

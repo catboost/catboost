@@ -7,17 +7,17 @@
 #include <util/system/yassert.h>
 
 #ifdef _win_
-#include <io.h>
+    #include <io.h>
 #endif
 
 class TMockStdIn {
 public:
     TMockStdIn()
-        : StdInCopy(dup(0))
+        : StdInCopy_(dup(0))
     {
     }
     ~TMockStdIn() {
-        close(StdInCopy);
+        close(StdInCopy_);
     }
 
     template <typename FuncType>
@@ -33,12 +33,12 @@ public:
 
         func();
         Cin.ReadAll();
-        dup2(StdInCopy, 0);
+        dup2(StdInCopy_, 0);
         clearerr(stdin);
     }
 
 private:
-    int StdInCopy;
+    int StdInCopy_;
 };
 
 class TNoInput: public IInputStream {
@@ -79,8 +79,9 @@ protected:
     size_t DoRead(void* buf, size_t len) override {
         Y_ASSERT(len != 0);
 
-        if (String_.empty())
+        if (String_.empty()) {
             return 0;
+        }
 
         *static_cast<char*>(buf) = String_[0];
         String_.remove(0, 1);

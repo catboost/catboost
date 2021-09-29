@@ -1002,12 +1002,12 @@ class TestType(TestCase):
     def test_str_klass(self):
 
         class A(HasTraits):
-            klass = Type('ipython_genutils.ipstruct.Struct')
+            klass = Type("traitlets.config.Config")
 
-        from ipython_genutils.ipstruct import Struct
+        from traitlets.config import Config
         a = A()
-        a.klass = Struct
-        self.assertEqual(a.klass, Struct)
+        a.klass = Config
+        self.assertEqual(a.klass, Config)
 
         self.assertRaises(TraitError, setattr, a, 'klass', 10)
 
@@ -1016,9 +1016,10 @@ class TestType(TestCase):
         class A(HasTraits):
             klass = Type()
 
-        a = A(klass='ipython_genutils.ipstruct.Struct')
-        from ipython_genutils.ipstruct import Struct
-        self.assertEqual(a.klass, Struct)
+        a = A(klass="traitlets.config.Config")
+        from traitlets.config import Config
+
+        self.assertEqual(a.klass, Config)
 
 class TestInstance(TestCase):
 
@@ -1240,7 +1241,7 @@ class UnionTrait(HasTraits):
 
 class UnionTraitTest(TraitTestBase):
 
-    obj = UnionTrait(value='ipython_genutils.ipstruct.Struct')
+    obj = UnionTrait(value="traitlets.config.Config")
     _good_values = [int, float, True]
     _bad_values = [[], (0,), 1j]
 

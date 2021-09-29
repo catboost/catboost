@@ -20,8 +20,13 @@ _LIBCPP_BEGIN_NAMESPACE_STD
 
 template class _LIBCPP_CLASS_TEMPLATE_INSTANTIATION_VIS __basic_string_common<true>;
 
-_LIBCPP_STRING_EXTERN_TEMPLATE_LIST(_LIBCPP_EXTERN_TEMPLATE_DEFINE, char)
-_LIBCPP_STRING_EXTERN_TEMPLATE_LIST(_LIBCPP_EXTERN_TEMPLATE_DEFINE, wchar_t)
+#ifdef _LIBCPP_ABI_STRING_OPTIMIZED_EXTERNAL_INSTANTIATION
+_LIBCPP_STRING_UNSTABLE_EXTERN_TEMPLATE_LIST(_LIBCPP_EXTERN_TEMPLATE_DEFINE, char)
+_LIBCPP_STRING_UNSTABLE_EXTERN_TEMPLATE_LIST(_LIBCPP_EXTERN_TEMPLATE_DEFINE, wchar_t)
+#else
+_LIBCPP_STRING_V1_EXTERN_TEMPLATE_LIST(_LIBCPP_EXTERN_TEMPLATE_DEFINE, char)
+_LIBCPP_STRING_V1_EXTERN_TEMPLATE_LIST(_LIBCPP_EXTERN_TEMPLATE_DEFINE, wchar_t)
+#endif
 
 template
     string
@@ -173,7 +178,7 @@ as_integer( const string& func, const wstring& s, size_t* idx, int base )
 
 // as_float
 
-template<typename V, typename S, typename F> 
+template<typename V, typename S, typename F>
 inline
 V
 as_float_helper(const string& func, const S& str, size_t* idx, F f )

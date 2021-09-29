@@ -7,15 +7,24 @@ General info: [How to write ya.make files](https://wiki.yandex-team.ru/yatool/Ho
 ## Table of contents
 
    * [Multimodules](#multimodules)
+       - Multimodule [DLL_JAVA](#multimodule_DLL_JAVA)
        - Multimodule [DOCS](#multimodule_DOCS)
+       - Multimodule [FBS_LIBRARY](#multimodule_FBS_LIBRARY)
        - Multimodule [JAR_PROGRAM](#multimodule_JAR_PROGRAM)
+       - Multimodule [JAVA_CONTRIB_PROGRAM](#multimodule_JAVA_CONTRIB_PROGRAM)
+       - Multimodule [JAVA_PROGRAM](#multimodule_JAVA_PROGRAM)
+       - Multimodule [JTEST](#multimodule_JTEST)
+       - Multimodule [JTEST_FOR](#multimodule_JTEST_FOR)
        - Multimodule [JTEST_YMAKE](#multimodule_JTEST_YMAKE)
+       - Multimodule [JUNIT5](#multimodule_JUNIT5)
        - Multimodule [JUNIT5_YMAKE](#multimodule_JUNIT5_YMAKE)
        - Multimodule [MAPS_IDL_LIBRARY](#multimodule_MAPS_IDL_LIBRARY)
        - Multimodule [PROTO_LIBRARY](#multimodule_PROTO_LIBRARY)
        - Multimodule [PY23_LIBRARY](#multimodule_PY23_LIBRARY)
        - Multimodule [PY23_NATIVE_LIBRARY](#multimodule_PY23_NATIVE_LIBRARY)
        - Multimodule [PY23_TEST](#multimodule_PY23_TEST)
+       - Multimodule [PY3_PROGRAM](#multimodule_PY3_PROGRAM)
+       - Multimodule [SANDBOX_PY23_TASK](#multimodule_SANDBOX_PY23_TASK)
        - Multimodule [SANDBOX_PY3_TASK](#multimodule_SANDBOX_PY3_TASK)
        - Multimodule [SANDBOX_TASK](#multimodule_SANDBOX_TASK)
        - Multimodule [SSQLS_LIBRARY](#multimodule_SSQLS_LIBRARY)
@@ -23,9 +32,13 @@ General info: [How to write ya.make files](https://wiki.yandex-team.ru/yatool/Ho
    * [Modules](#modules)
        - Module [BOOSTTEST](#module_BOOSTTEST)
        - Module [BOOSTTEST_WITH_MAIN](#module_BOOSTTEST_WITH_MAIN)
+       - Module [CI_GROUP](#module_CI_GROUP)
+       - Module [CONTAINER](#module_CONTAINER)
+       - Module [CONTAINER_LAYER](#module_CONTAINER_LAYER)
+       - Module [CPP_STYLE_TEST](#module_CPP_STYLE_TEST)
+       - Module [CUSTOM_BUILD_LIBRARY](#module_CUSTOM_BUILD_LIBRARY)
        - Module [DEFAULT_IOS_INTERFACE](#module_DEFAULT_IOS_INTERFACE)
        - Module [DLL](#module_DLL)
-       - Module [DLL_JAVA](#module_DLL_JAVA)
        - Module [DLL_TOOL](#module_DLL_TOOL)
        - Module [EXECTEST](#module_EXECTEST)
        - Module [FAT_OBJECT](#module_FAT_OBJECT)
@@ -41,11 +54,8 @@ General info: [How to write ya.make files](https://wiki.yandex-team.ru/yatool/Ho
        - Module [JAVA_CONTRIB](#module_JAVA_CONTRIB)
        - Module [JAVA_CONTRIB_PROXY](#module_JAVA_CONTRIB_PROXY)
        - Module [JAVA_LIBRARY](#module_JAVA_LIBRARY)
-       - Module [JAVA_PROGRAM](#module_JAVA_PROGRAM)
-       - Module [JTEST](#module_JTEST)
-       - Module [JTEST_FOR](#module_JTEST_FOR)
-       - Module [JUNIT5](#module_JUNIT5)
        - Module [LIBRARY](#module_LIBRARY)
+       - Module [MCU_PROGRAM](#module_MCU_PROGRAM)
        - Module [METAQUERY](#module_METAQUERY)
        - Module [PACKAGE](#module_PACKAGE)
        - Module [PROGRAM](#module_PROGRAM)
@@ -57,18 +67,15 @@ General info: [How to write ya.make files](https://wiki.yandex-team.ru/yatool/Ho
        - Module [PY3TEST](#module_PY3TEST)
        - Module [PY3TEST_BIN](#module_PY3TEST_BIN)
        - Module [PY3_LIBRARY](#module_PY3_LIBRARY)
-       - Module [PY3_PROGRAM](#module_PY3_PROGRAM)
+       - Module [PY3_PROGRAM_BIN](#module_PY3_PROGRAM_BIN)
        - Module [PYCR_PROGRAM](#module_PYCR_PROGRAM)
-       - Module [PYMODULE](#module_PYMODULE)
-       - Module [PYTEST](#module_PYTEST)
        - Module [PYTEST_BIN](#module_PYTEST_BIN)
        - Module [PY_ANY_MODULE](#module_PY_ANY_MODULE)
-       - Module [PY_LIBRARY](#module_PY_LIBRARY)
-       - Module [PY_PROGRAM](#module_PY_PROGRAM)
        - Module [RECURSIVE_LIBRARY](#module_RECURSIVE_LIBRARY)
        - Module [RESOURCES_LIBRARY](#module_RESOURCES_LIBRARY)
        - Module [R_MODULE](#module_R_MODULE)
        - Module [SO_PROGRAM](#module_SO_PROGRAM)
+       - Module [TS_LIBRARY](#module_TS_LIBRARY)
        - Module [UDF](#module_UDF)
        - Module [UDF_LIB](#module_UDF_LIB)
        - Module [UNION](#module_UNION)
@@ -90,41 +97,50 @@ General info: [How to write ya.make files](https://wiki.yandex-team.ru/yatool/Ho
        - Macros [ADD_DLLS_TO_JAR](#macro_ADD_DLLS_TO_JAR) .. [ARCHIVE](#macro_ARCHIVE)
        - Macros [ARCHIVE_ASM](#macro_ARCHIVE_ASM) .. [BUILD_CATBOOST](#macro_BUILD_CATBOOST)
        - Macros [BUILD_MN](#macro_BUILD_MN) .. [CGO_SRCS](#macro_CGO_SRCS)
-       - Macros [CHECK_DEPENDENT_DIRS](#macro_CHECK_DEPENDENT_DIRS) .. [CONFTEST_LOAD_POLICY_LOCAL](#macro_CONFTEST_LOAD_POLICY_LOCAL)
-       - Macros [CONLYFLAGS](#macro_CONLYFLAGS) .. [CPP_PROTO_PLUGIN2](#macro_CPP_PROTO_PLUGIN2)
-       - Macros [CREATE_BUILDINFO_FOR](#macro_CREATE_BUILDINFO_FOR) .. [DEB_VERSION](#macro_DEB_VERSION)
-       - Macros [DECIMAL_MD5_LOWER_32_BITS](#macro_DECIMAL_MD5_LOWER_32_BITS) .. [DLL_FOR](#macro_DLL_FOR)
-       - Macros [DOCS_BUILDER](#macro_DOCS_BUILDER) .. [ENABLE](#macro_ENABLE)
-       - Macros [END](#macro_END) .. [EXTRADIR](#macro_EXTRADIR)
-       - Macros [EXTRALIBS](#macro_EXTRALIBS) .. [FROM_MDS](#macro_FROM_MDS)
-       - Macros [FROM_SANDBOX](#macro_FROM_SANDBOX) .. [GLOBAL_SRCS](#macro_GLOBAL_SRCS)
-       - Macros [GO_ASM_FLAGS](#macro_GO_ASM_FLAGS) .. [GO_LDFLAGS](#macro_GO_LDFLAGS)
-       - Macros [GO_LINK_FLAGS](#macro_GO_LINK_FLAGS) .. [GO_TEST_FOR](#macro_GO_TEST_FOR)
-       - Macros [GO_TEST_SRCS](#macro_GO_TEST_SRCS) .. [INCLUDE](#macro_INCLUDE)
+       - Macros [CHECK_CONTRIB_CREDITS](#macro_CHECK_CONTRIB_CREDITS) .. [COMPILE_NLG](#macro_COMPILE_NLG)
+       - Macros [COMPILE_SWIFT_MODULE](#macro_COMPILE_SWIFT_MODULE) .. [CPP_ENUMS_SERIALIZATION](#macro_CPP_ENUMS_SERIALIZATION)
+       - Macros [CPP_PROTO_PLUGIN](#macro_CPP_PROTO_PLUGIN) .. [CXXFLAGS](#macro_CXXFLAGS)
+       - Macros [DARWIN_SIGNED_RESOURCE](#macro_DARWIN_SIGNED_RESOURCE) .. [DEPENDENCY_MANAGEMENT](#macro_DEPENDENCY_MANAGEMENT)
+       - Macros [DEPENDS](#macro_DEPENDS) .. [DUMPERF_CODEGEN](#macro_DUMPERF_CODEGEN)
+       - Macros [ELSE](#macro_ELSE) .. [EXPORTS_SCRIPT](#macro_EXPORTS_SCRIPT)
+       - Macros [EXPORT_ALL_DYNAMIC_SYMBOLS](#macro_EXPORT_ALL_DYNAMIC_SYMBOLS) .. [FILES](#macro_FILES)
+       - Macros [FLATC_FLAGS](#macro_FLATC_FLAGS) .. [FUZZ_DICTS](#macro_FUZZ_DICTS)
+       - Macros [FUZZ_OPTS](#macro_FUZZ_OPTS) .. [GO_BENCH_TIMEOUT](#macro_GO_BENCH_TIMEOUT)
+       - Macros [GO_CGO1_FLAGS](#macro_GO_CGO1_FLAGS) .. [GO_GRPC_GATEWAY_SWAGGER_SRCS](#macro_GO_GRPC_GATEWAY_SWAGGER_SRCS)
+       - Macros [GO_LDFLAGS](#macro_GO_LDFLAGS) .. [GO_TEST_EMBED_PATTERN](#macro_GO_TEST_EMBED_PATTERN)
+       - Macros [GO_TEST_FOR](#macro_GO_TEST_FOR) .. [INCLUDE](#macro_INCLUDE)
        - Macros [INCLUDE_TAGS](#macro_INCLUDE_TAGS) .. [JAR_RESOURCE](#macro_JAR_RESOURCE)
        - Macros [JAR_SRCS](#macro_JAR_SRCS) .. [JAVA_TEST](#macro_JAVA_TEST)
-       - Macros [JAVA_TEST_DEPS](#macro_JAVA_TEST_DEPS) .. [LICENSE](#macro_LICENSE)
-       - Macros [LINT](#macro_LINT) .. [LOCAL_JAR](#macro_LOCAL_JAR)
-       - Macros [LUA](#macro_LUA) .. [MX_FORMULAS](#macro_MX_FORMULAS)
-       - Macros [NEED_CHECK](#macro_NEED_CHECK) .. [NO_DOCTESTS](#macro_NO_DOCTESTS)
-       - Macros [NO_GPL](#macro_NO_GPL) .. [NO_SANITIZE](#macro_NO_SANITIZE)
-       - Macros [NO_SANITIZE_COVERAGE](#macro_NO_SANITIZE_COVERAGE) .. [PACKAGE_STRICT](#macro_PACKAGE_STRICT)
-       - Macros [PARTITIONED_RECURSE](#macro_PARTITIONED_RECURSE) .. [PROGUARD_RULES](#macro_PROGUARD_RULES)
-       - Macros [PROTO2FBS](#macro_PROTO2FBS) .. [PYTHON_ADDINCL](#macro_PYTHON_ADDINCL)
-       - Macros [PYTHON_PATH](#macro_PYTHON_PATH) .. [PY_PROTO_PLUGIN2](#macro_PY_PROTO_PLUGIN2)
-       - Macros [PY_REGISTER](#macro_PY_REGISTER) .. [REQUIREMENTS](#macro_REQUIREMENTS)
-       - Macros [REQUIRES](#macro_REQUIRES) .. [RUN_ANTLR4_CPP](#macro_RUN_ANTLR4_CPP)
-       - Macros [RUN_JAR_PROGRAM](#macro_RUN_JAR_PROGRAM) .. [SETUP_PYTEST_BIN](#macro_SETUP_PYTEST_BIN)
-       - Macros [SETUP_RUN_PYTHON](#macro_SETUP_RUN_PYTHON) .. [SPLIT_FACTOR](#macro_SPLIT_FACTOR)
-       - Macros [SRC](#macro_SRC) .. [SRC_CPP_SSE41](#macro_SRC_CPP_SSE41)
-       - Macros [SRC_CPP_SSSE3](#macro_SRC_CPP_SSSE3) .. [STRIP](#macro_STRIP)
-       - Macros [STRUCT_CODEGEN](#macro_STRUCT_CODEGEN) .. [TEST_CWD](#macro_TEST_CWD)
-       - Macros [TEST_DATA](#macro_TEST_DATA) .. [UBERJAR_MANIFEST_TRANSFORMER_MAIN](#macro_UBERJAR_MANIFEST_TRANSFORMER_MAIN)
-       - Macros [UBERJAR_PATH_EXCLUDE_PREFIX](#macro_UBERJAR_PATH_EXCLUDE_PREFIX) .. [USE_LINKER_GOLD](#macro_USE_LINKER_GOLD)
-       - Macros [USE_LINKER_LLD](#macro_USE_LINKER_LLD) .. [USE_UTIL](#macro_USE_UTIL)
-       - Macros [VERSION](#macro_VERSION) .. [YABS_GENERATE_PHANTOM_CONF_PATCH](#macro_YABS_GENERATE_PHANTOM_CONF_PATCH)
-       - Macros [YABS_GENERATE_PHANTOM_CONF_TEST_CHECK](#macro_YABS_GENERATE_PHANTOM_CONF_TEST_CHECK) .. [YT_SPEC](#macro_YT_SPEC)
+       - Macros [JAVA_TEST_DEPS](#macro_JAVA_TEST_DEPS) .. [LICENSE_TEXTS](#macro_LICENSE_TEXTS)
+       - Macros [LINKER_SCRIPT](#macro_LINKER_SCRIPT) .. [LLVM_OPT](#macro_LLVM_OPT)
+       - Macros [LOCAL_JAR](#macro_LOCAL_JAR) .. [METAQUERYFILES](#macro_METAQUERYFILES)
+       - Macros [MX_FORMULAS](#macro_MX_FORMULAS) .. [NO_COMPILER_WARNINGS](#macro_NO_COMPILER_WARNINGS)
+       - Macros [NO_CPU_CHECK](#macro_NO_CPU_CHECK) .. [NO_MYPY](#macro_NO_MYPY)
+       - Macros [NO_NEED_CHECK](#macro_NO_NEED_CHECK) .. [NO_WERROR](#macro_NO_WERROR)
+       - Macros [NO_WSHADOW](#macro_NO_WSHADOW) .. [PARTITIONED_RECURSE_FOR_TESTS](#macro_PARTITIONED_RECURSE_FOR_TESTS)
+       - Macros [PARTITIONED_RECURSE_ROOT_RELATIVE](#macro_PARTITIONED_RECURSE_ROOT_RELATIVE) .. [PROTO_ADDINCL](#macro_PROTO_ADDINCL)
+       - Macros [PROTO_NAMESPACE](#macro_PROTO_NAMESPACE) .. [PY_DOCTESTS](#macro_PY_DOCTESTS)
+       - Macros [PY_ENUMS_SERIALIZATION](#macro_PY_ENUMS_SERIALIZATION) .. [PY_SSQLS_SRCS](#macro_PY_SSQLS_SRCS)
+       - Macros [RECURSE](#macro_RECURSE) .. [RESOURCE_FILES](#macro_RESOURCE_FILES)
+       - Macros [RESTRICT_LICENSES](#macro_RESTRICT_LICENSES) .. [RUN_PROGRAM](#macro_RUN_PROGRAM)
+       - Macros [RUN_PYTHON](#macro_RUN_PYTHON) .. [SET_COMPILE_OUTPUTS_MODIFIERS](#macro_SET_COMPILE_OUTPUTS_MODIFIERS)
+       - Macros [SIZE](#macro_SIZE) .. [SRC_CPP_AVX](#macro_SRC_CPP_AVX)
+       - Macros [SRC_CPP_AVX2](#macro_SRC_CPP_AVX2) .. [SRC_C_SSE2](#macro_SRC_C_SSE2)
+       - Macros [SRC_C_SSE3](#macro_SRC_C_SSE3) .. [SUPPRESSIONS](#macro_SUPPRESSIONS)
+       - Macros [SYMLINK](#macro_SYMLINK) .. [TEST_SRCS](#macro_TEST_SRCS)
+       - Macros [TIMEOUT](#macro_TIMEOUT) .. [UDF_NO_PROBE](#macro_UDF_NO_PROBE)
+       - Macros [UPDATE_VCS_JAVA_INFO_NODEP](#macro_UPDATE_VCS_JAVA_INFO_NODEP) .. [USE_PYTHON2](#macro_USE_PYTHON2)
+       - Macros [USE_PYTHON3](#macro_USE_PYTHON3) .. [WITH_GROOVY](#macro_WITH_GROOVY)
+       - Macros [WITH_JDK](#macro_WITH_JDK) .. [YP_PROTO_YSON](#macro_YP_PROTO_YSON)
+       - Macros [YQL_ABI_VERSION](#macro_YQL_ABI_VERSION) .. [YT_SPEC](#macro_YT_SPEC)
 ## Multimodules <a name="multimodules"></a>
+
+###### Multimodule [DLL\_JAVA][]() <a name="multimodule_DLL_JAVA"></a>
+DLL built using swig for Java. Produces dynamic library and a .jar.
+Dynamic library is treated the same as in the case of PEERDIR from Java to DLL.
+.jar goes on the classpath.
+
+Documentation: https://wiki.yandex-team.ru/yatool/java/#integracijascpp/pythonsborkojj
 
 ###### Multimodule [DOCS][]() <a name="multimodule_DOCS"></a>
 Documentation project multimodule.
@@ -136,10 +152,41 @@ Most usual macros are not accepted, only used with the macros DOCS\_DIR(), DOCS\
 
 @see: [DOCS\_DIR()](#macro\_DOCS\_DIR), [DOCS\_CONFIG()](#macro\_DOCS\_CONFIG), [DOCS\_VARS()](#macro\_DOCS\_VARS), [DOCS\_BUILDER()](#macro\_DOCS\_BUILDER).
 
+###### Multimodule [FBS\_LIBRARY][]() <a name="multimodule_FBS_LIBRARY"></a>
+Build some variant of Flatbuffers library.
+
+The particular variant is selected based on where PEERDIR to FBS\_LIBRARY
+comes from.
+
+Now supported 5 variants: C++, Java, Python 2.x, Python 3.x and Go.
+When PEERDIR comes from module for particular language appropriate variant
+is selected.
+
+Notes: FBS\_NAMESPACE must be specified in all dependent FBS\_LIBRARY modules
+       if build of Go code is requested.
+
 ###### Multimodule [JAR\_PROGRAM][] <a name="multimodule_JAR_PROGRAM"></a>
 Not documented yet.
 
+###### Multimodule [JAVA\_CONTRIB\_PROGRAM][] <a name="multimodule_JAVA_CONTRIB_PROGRAM"></a>
+Not documented yet.
+
+###### Multimodule [JAVA\_PROGRAM][]() <a name="multimodule_JAVA_PROGRAM"></a>
+The module describing java programs build.
+Output artifacts: .jar and directory with all the jar to the classpath of the formation.
+
+Documentation: https://wiki.yandex-team.ru/yatool/java/
+
+###### Multimodule [JTEST][] <a name="multimodule_JTEST"></a>
+Not documented yet.
+
+###### Multimodule [JTEST\_FOR][] <a name="multimodule_JTEST_FOR"></a>
+Not documented yet.
+
 ###### Multimodule [JTEST\_YMAKE][] <a name="multimodule_JTEST_YMAKE"></a>
+Not documented yet.
+
+###### Multimodule [JUNIT5][] <a name="multimodule_JUNIT5"></a>
 Not documented yet.
 
 ###### Multimodule [JUNIT5\_YMAKE][] <a name="multimodule_JUNIT5_YMAKE"></a>
@@ -161,7 +208,6 @@ When PEERDIR comes from module for particular language appropriate variant is se
 PROTO\_LIBRARY also supports emission of GRPC code if GRPC() macro is specified.
 Notes:
 - Python versions emit C++ code in addition to Python as optimization.
-- Go version is not enabled by default because .proto files are not compatible with Go by default. Add INCLUDE\_TAGS(GO\_PROTO) to enable Go version
 - In some PROTO\_LIBRARY-es Java or Python versions are excluded via EXCLUDE\_TAGS macros due to incompatibilities.
 - Use from DEPENDS or BUNDLE is not allowed
 
@@ -191,6 +237,16 @@ For more information read https://wiki.yandex-team.ru/arcadia/python/pysrcs/#pys
 @see [LIBRARY()](#module\_LIBRARY), [PY2MODULE()](#module\_PY2MODULE)
 
 ###### Multimodule [PY23\_TEST][] <a name="multimodule_PY23_TEST"></a>
+Not documented yet.
+
+###### Multimodule [PY3\_PROGRAM][]([progname]) <a name="multimodule_PY3_PROGRAM"></a>
+Python 3.x binary program. Links all Python 3.x libraries and Python 3.x interpreter into itself to form regular executable.
+If name is not specified it will be generated from the name of the containing project directory.
+This only compatible with PYTHON3-tagged modules and selects those from multimodules.
+
+Documentation: https://wiki.yandex-team.ru/devtools/commandsandvars/py\_srcs/
+
+###### Multimodule [SANDBOX\_PY23\_TASK][] <a name="multimodule_SANDBOX_PY23_TASK"></a>
 Not documented yet.
 
 ###### Multimodule [SANDBOX\_PY3\_TASK][]([Name]) <a name="multimodule_SANDBOX_PY3_TASK"></a>
@@ -238,6 +294,24 @@ No new module of this type should be introduced unless it is explicitly approved
 ###### Module [BOOSTTEST\_WITH\_MAIN][]([name]) _#deprecated_ <a name="module_BOOSTTEST_WITH_MAIN"></a>
 Same as BOOSTTEST (see above), but comes with builtin int main(argc, argv) implementation
 
+###### Module [CI\_GROUP][]() <a name="module_CI_GROUP"></a>
+Module collects what is described directly inside it transitively by PEERDIRs.
+No particular layout of built artifacts is implied. This module is needed primarilly for CI dependency analysis and may not trigger builds at all.
+
+Is only used together with the macro PEERDIR() and FILES(). Don't use SRCS inside CI\_GROUP().
+
+###### Module [CONTAINER][]: \_BASE\_UNIT <a name="module_CONTAINER"></a>
+Not documented yet.
+
+###### Module [CONTAINER\_LAYER][]: \_BASE\_UNIT <a name="module_CONTAINER_LAYER"></a>
+Not documented yet.
+
+###### Module [CPP\_STYLE\_TEST][]: PY3TEST <a name="module_CPP_STYLE_TEST"></a>
+Not documented yet.
+
+###### Module [CUSTOM\_BUILD\_LIBRARY][]: LIBRARY <a name="module_CUSTOM_BUILD_LIBRARY"></a>
+Not documented yet.
+
 ###### Module [DEFAULT\_IOS\_INTERFACE][]: IOS\_INTERFACE <a name="module_DEFAULT_IOS_INTERFACE"></a>
 Not documented yet.
 
@@ -248,13 +322,6 @@ Dynamic library module defintion.
 3. PREFIX allows you to change the prefix of the output file (default DLL has the prefix "lib").
 
 DLL cannot participate in linking to programs but can be used from Java or as final artifact (packaged and deployed).
-
-###### Module [DLL\_JAVA][]() <a name="module_DLL_JAVA"></a>
-DLL built using swig for Java. Produces dynamic library and a .jar.
-Dynamic library is treated the same as in the case of PEERDIR from Java to DLL.
-.jar goes on the classpath.
-
-Documentation: https://wiki.yandex-team.ru/yatool/java/#integracijascpp/pythonsborkojj
 
 ###### Module [DLL\_TOOL][] <a name="module_DLL_TOOL"></a>
 DLL\_TOOL is a DLL that can be used as a LD\_PRELOAD tool.
@@ -353,36 +420,6 @@ The module describing java library build.
 
 Documentation: https://wiki.yandex-team.ru/yatool/java/
 
-###### Module [JAVA\_PROGRAM][]() <a name="module_JAVA_PROGRAM"></a>
-The module describing java programs build.
-Output artifacts: .jar and directory with all the jar to the classpath of the formation.
-
-Documentation: https://wiki.yandex-team.ru/yatool/java/
-
-###### Module [JTEST][]() <a name="module_JTEST"></a>
-Java tests module based on JUnit 4 framework.
-
-If requested, build system will scan the source code of the module for the presence of junit tests and run them.
-Output artifacts: a jar, a directory of exhaust tests(if required run the tests) - test logs, system logs testiranja, temporary files, tests, etc.
-
-Documentation: https://wiki.yandex-team.ru/yatool/test/#testynajava
-
-###### Module [JTEST\_FOR][](ModuleDir) <a name="module_JTEST_FOR"></a>
-Convinience java tests module based on JUnit 4 framework for specified library or program.
-
-In contrast to the JTEST, the build system will scan for the presence of the test sources of the module in ModuleDir . As ModuleDir should contain JAVA\_PROGRAM or JAVA\_LIBRARY . JTEST\_FOR also can have its own source, in this case they will be compiled and added to the classpath of a test run.
-Output artifacts: a jar, a directory of exhaust tests(if requested tests are run).
-
-Documentation: https://wiki.yandex-team.ru/yatool/test/#testynajava
-
-###### Module [JUNIT5][]() <a name="module_JUNIT5"></a>
-Java tests module based on JUnit 5 framework.
-
-If requested, build system will scan the source code of the module for the presence of junit tests and run them.
-Output artifacts: a jar, a directory of exhaust tests(if required run the tests) - test logs, system logs testiranja, temporary files, tests, etc.
-
-Documentation: https://wiki.yandex-team.ru/yatool/test/#testynajava
-
 ###### Module [LIBRARY][]() <a name="module_LIBRARY"></a>
 The regular static library module.
 
@@ -394,6 +431,10 @@ This is C++ library, and it selects peers from multimodules accordingly.
 It makes little sense to mention LIBRARY in DEPENDS or BUNDLE, package and deploy it since it is not a standalone entity.
 In order to use library in tests PEERDIR it to link into tests.
 If you think you need to distribute static library please contact devtools@ for assistance.
+
+###### Module [MCU\_PROGRAM][]([progname]) <a name="module_MCU_PROGRAM"></a>
+Program module for microcontrollers. Converts binary to Intel HEX and Motorola S-record file formats.
+If name is not specified it will be generated from the name of the containing project directory.
 
 ###### Module [METAQUERY][]() _#deprecated_ <a name="module_METAQUERY"></a>
 Project Definition - KIWI Meta query. (Objected)
@@ -485,39 +526,13 @@ This module is only compatible with Arcadia Python build.
 
 Documentation: https://wiki.yandex-team.ru/devtools/commandsandvars/py\_srcs/
 
-###### Module [PY3\_PROGRAM][]([progname]) <a name="module_PY3_PROGRAM"></a>
-Python 3.x binary program. Links all Python 3.x libraries and Python 3.x interpreter into itself to form regular executable.
-If name is not specified it will be generated from the name of the containing project directory.
-This only compatible with PYTHON3-tagged modules and selects those from multimodules.
-
-Documentation: https://wiki.yandex-team.ru/devtools/commandsandvars/py\_srcs/
+###### Module [PY3\_PROGRAM\_BIN][]([progname]) <a name="module_PY3_PROGRAM_BIN"></a>
+Use instead of PY3\_PROGRAM only if ya.make with PY3\_PROGRAM() included in another ya.make
+In all other cases use PY3\_PROGRAM
 
 ###### Module [PYCR\_PROGRAM][]([progname]) <a name="module_PYCR_PROGRAM"></a>
 pycare-specific program module. Generates pycare configs in addition to producing the program.
 If name is not specified it will be generated from the name of the containing project directory.
-
-###### Module [PYMODULE][](name major\_ver [minor\_ver] [EXPORTS symlist\_file] [PREFIX prefix]) <a name="module_PYMODULE"></a>
-This module will be deleted soon: https://st.yandex-team.ru/DEVTOOLS-8159
-The Python external module for Python2 and any system Python
-1. major\_ver and minor\_ver must be integers.
-2. The resulting .so will have the prefix "lib".
-3. Processing EXPORTS and PREFIX is the same as for DLL module
-This is native DLL, so it will select C++ version from PROTO\_LIBRARY.
-
-Note: this module will always PEERDIR Python2 version of PY23\_NATIVE\_LIBRARY.
-Do not PEERDIR PY2\_LIBRARY or PY23\_LIBRARY: this will link Python in and render artifact unusable as Python module.
-
-Documentation: https://wiki.yandex-team.ru/devtools/commandsandvars/py\_srcs/
-
-###### Module [PYTEST][]([name]) <a name="module_PYTEST"></a>
-This module will be deleted soon: https://st.yandex-team.ru/DEVTOOLS-8159
-The test module for Python 2.x based on py.test
-
-This module is compatible only with PYTHON2-tagged modules and selects peers from multimodules accordingly.
-This module is compatible with non-Arcadia Python builds.
-
-Documentation: https://wiki.yandex-team.ru/yatool/test/#python
-Documentation about the Arcadia test system: https://wiki.yandex-team.ru/yatool/test/
 
 ###### Module [PYTEST\_BIN][]() _#deprecated_ <a name="module_PYTEST_BIN"></a>
 Same as PY2TEST. Don't use this, use PY2TEST instead.
@@ -531,18 +546,6 @@ This is native DLL, so it will select C++ version from PROTO\_LIBRARY.
 
 Note: Use PYTHON2\_MODULE()/PYTHON3\_MODULE() in order to PEERDIR proper version of PY23\_NATIVE\_LIBRARY.
 Do not PEERDIR any PY\*\_LIBRARY: this will link Python in and render artifact unusable as Python module.
-
-Documentation: https://wiki.yandex-team.ru/devtools/commandsandvars/py\_srcs/
-
-###### Module [PY\_LIBRARY][]: PY2\_LIBRARY <a name="module_PY_LIBRARY"></a>
-Not documented yet.
-
-###### Module [PY\_PROGRAM][]([progname]) _# deprecated_ <a name="module_PY_PROGRAM"></a>
-This module will be deleted soon: https://st.yandex-team.ru/DEVTOOLS-8159
-Deprecated. Use PY3\_PROGRAM instead.
-Python 2.x binary program. Links all Python 2.x libraries and Python 2.x interpreter into itself to form regular executable.
-If name is not specified it will be generated from the name of the containing project directory.
-This only compatible with PYTHON2-tagged modules and selects those from multimodules.
 
 Documentation: https://wiki.yandex-team.ru/devtools/commandsandvars/py\_srcs/
 
@@ -570,6 +573,18 @@ Executable dynamic library module defintion.
 1. major\_ver and minor\_ver must be integers.
 2. EXPORTS allows you to explicitly specify the list of exported functions. This accepts 2 kind of files: .exports with <lang symbol> pairs and JSON-line .symlist files
 3. PREFIX allows you to change the prefix of the output file.
+
+###### Module [TS\_LIBRARY][]([name]) <a name="module_TS_LIBRARY"></a>
+The TypeScript/JavaScript library module, compiles TypeScript sources to JavaScript.
+Build results are JavaScript files, typings and source mappings (depending on local tsconfig.json settings).
+
+@see [NODE\_MODULES()](#macro\_NODE\_MODULES)
+@example
+
+    TS_LIBRARY()
+        SRCS(src/index.ts)
+        NODE_MODULES()
+    END()
 
 ###### Module [UDF][](name [EXPORTS symlist\_file] [PREFIX prefix]) _# deprecated_ <a name="module_UDF"></a>
 The KiWi UDF module.
@@ -677,7 +692,7 @@ Not documented yet.
 ###### Macro [AAR\_LOCAL\_MAVEN\_REPO][](repo...) <a name="macro_AAR_LOCAL_MAVEN_REPO"></a>
 Not documented yet.
 
-###### Macro [ACCELEO][] <a name="macro_ACCELEO"></a>
+###### Macro [ACCELEO][](XSD{input}[], MTL{input}[], MTL\_ROOT="${MODDIR}", LANG{input}[], OUT{output}[], OUT\_NOAUTO{output}[], OUTPUT\_INCLUDES[], DEBUG?"stdout2stderr":"stderr2stdout") <a name="macro_ACCELEO"></a>
 Not documented yet.
 
 ###### Macro [ADDINCL][]([FOR <lang>][GLOBAL dir]\* dirlist)  _# builtin_ <a name="macro_ADDINCL"></a>
@@ -715,12 +730,6 @@ Not documented yet.
 ###### Macro [ADD\_PYTEST\_SCRIPT][] <a name="macro_ADD_PYTEST_SCRIPT"></a>
 Not documented yet.
 
-###### Macro [ADD\_WAR][]([INCLUDE Path Pattern...] [EXCLUDE Path Pattern...] [INCLUDE\_DEFAULT Pattern...] [EXCLUDE\_DEFAULT Pattern...]) <a name="macro_ADD_WAR"></a>
-Pack Java module (JAVA\_PROGRAM or JAVA\_LIBRARY) into war.
-Parameters control what should be added or shouldn't be added to war archive.
-
-Documentation: https://wiki.yandex-team.ru/yatool/java/war
-
 ###### Macro [ADD\_YTEST][] <a name="macro_ADD_YTEST"></a>
 Not documented yet.
 
@@ -728,7 +737,7 @@ Not documented yet.
 Set memory allocator implementation for the PROGRAM()/DLL() module.
 This may only be specified for programs and dlls, use in other modules leads to configuration errors.
 
-Available allocators are: "LF", "LF\_YT", "LF\_DBG", "YT", "J", "B", "BM", "C", "TCMALLOC", "GOOGLE", "LOCKLESS", "SYSTEM", "FAKE".
+Available allocators are: "LF", "LF\_YT", "LF\_DBG", "YT", "J", "B", "BM", "C", "TCMALLOC", "GOOGLE", "LOCKLESS", "SYSTEM", "FAKE", "MIM".
   - LF - lfalloc (https://a.yandex-team.ru/arc/trunk/arcadia/library/cpp/lfalloc)
   - LF\_YT -  Allocator selection for YT (https://a.yandex-team.ru/arc/trunk/arcadia/library/cpp/lfalloc/yt/ya.make)
   - LF\_DBG -  Debug allocator selection (https://a.yandex-team.ru/arc/trunk/arcadia/library/cpp/lfalloc/dbg/ya.make)
@@ -739,6 +748,7 @@ Available allocators are: "LF", "LF\_YT", "LF\_DBG", "YT", "J", "B", "BM", "C", 
       - Code: https://a.yandex-team.ru/arc/trunk/arcadia/library/cpp/balloc
   - BM - The balloc for market (agri@ commits from july 2018 till November 2018 saved)
   - C - Like B, but can be disabled for each thread to LF or SYSTEM one (B can be disabled only to SYSTEM)
+  - MIM -  Microsoft's mimalloc (actual version) (https://a.yandex-team.ru/arc/trunk/arcadia/library/malloc/mimalloc)
   - TCMALLOC -  Google TCMalloc (actual version) (https://a.yandex-team.ru/arc/trunk/arcadia/library/malloc/tcmalloc)
   - GOOGLE -  Google TCMalloc (https://a.yandex-team.ru/arc/trunk/arcadia/library/malloc/galloc)
   - LOCKLESS - Allocator based upon lockless queues (https://a.yandex-team.ru/arc/trunk/arcadia/library/malloc/lockless)
@@ -746,6 +756,18 @@ Available allocators are: "LF", "LF\_YT", "LF\_DBG", "YT", "J", "B", "BM", "C", 
   - FAKE - Don't link with any allocator
 
 More about allocators in Arcadia: https://wiki.yandex-team.ru/arcadia/allocators/
+
+###### Macro [ALL\_PY\_SRCS][]([RECURSIVE] { | TOP\_LEVEL | NAMESPACE ns} [Dirs...]) <a name="macro_ALL_PY_SRCS"></a>
+Puts all .py-files from given Dirs (relative to projects') into PY\_SRCS of the current module.
+If Dirs is ommitted project directory is used
+
+`RECURSIVE` makes lookup recursive with resprect to Dirs
+`TOP\_LEVEL` and `NAMESPACE` are forwarded to `PY\_SRCS`
+
+Note: Only one such macro per module is allowed
+Note: Macro is designed to reject any ya.make files in Dirs except current one
+
+@see [PY\_SRCS()](#macro\_PY\_SRCS)
 
 ###### Macro [ALL\_SRCS][]([GLOBAL] filenames...) <a name="macro_ALL_SRCS"></a>
 Make all source files listed as GLOBAL or not depending on the keyword GLOBAL
@@ -803,7 +825,7 @@ Generates .cpp file from .pyx.
 ###### Macro [BUILDWITH\_RAGEL6][](Src Options...) <a name="macro_BUILDWITH_RAGEL6"></a>
 Compile .rl file using Ragel6.
 
-###### Macro BUILD\_CB(cbmodel cbname) <a name="macro_BUILD_CATBOOST"></a>
+###### Macro [BUILD\_CATBOOST][](cbmodel cbname) <a name="macro_BUILD_CATBOOST"></a>
 Generate catboost model and access code.
 cbmodel - CatBoost model file name (\*.cmb).
 cbname - name for a variable (of NCatboostCalcer::TCatboostCalcer type) to be available in CPP code.
@@ -855,6 +877,9 @@ Linker flags specific to CGO linking
 ###### Macro [CGO\_SRCS][](Files...) <a name="macro_CGO_SRCS"></a>
 .go sources to be built with CGO
 
+###### Macro [CHECK\_CONTRIB\_CREDITS][] <a name="macro_CHECK_CONTRIB_CREDITS"></a>
+Not documented yet.
+
 ###### Macro [CHECK\_DEPENDENT\_DIRS][](DENY|ALLOW\_ONLY ([ALL|PEERDIRS|GLOB] dir)...) <a name="macro_CHECK_DEPENDENT_DIRS"></a>
 Specify project transitive dependencies constraints.
 
@@ -889,6 +914,14 @@ stores result in the variable with mane specified by first parameter.
 
 ###### Macro [COMPILE\_C\_AS\_CXX][]() <a name="macro_COMPILE_C_AS_CXX"></a>
 Compile .c files as .cpp ones within a module.
+
+###### Macro [COMPILE\_LUA][](Src, [NAME <import\_name>]) <a name="macro_COMPILE_LUA"></a>
+Compile LUA source file to object code using LUA 2.0
+Optionally override import name which is by default reflects Src name
+
+###### Macro [COMPILE\_LUA\_21][](Src, [NAME <import\_name>]) <a name="macro_COMPILE_LUA_21"></a>
+Compile LUA source file to object code using LUA 2.0
+Optionally override import name which is by default reflects Src name
 
 ###### Macro [COMPILE\_NLG][](Src...) <a name="macro_COMPILE_NLG"></a>
 Generate and compile .nlg templates (Jinja2-based) and interface for megamind runtime.
@@ -955,6 +988,9 @@ Creates header file to access some information about build specified via configu
 Unlike CREATE\_SVNVERSION\_FOR() it doesn't take revion information from VCS, it uses revision and SandboxTaskId passed via -D options to ya make
 
 ###### Macro [CREATE\_INIT\_PY\_STRUCTURE][] <a name="macro_CREATE_INIT_PY_STRUCTURE"></a>
+Not documented yet.
+
+###### Macro [CREDITS\_DISCLAIMER][] <a name="macro_CREDITS_DISCLAIMER"></a>
 Not documented yet.
 
 ###### Macro [CTEMPLATE\_VARNAMES][](File) <a name="macro_CTEMPLATE_VARNAMES"></a>
@@ -1111,19 +1147,20 @@ Specifies which libraries should be excluded from the classpath.
 Instantiate from multimodule all variants except ones with tags listed
 
 ###### Macro [EXPORTS\_SCRIPT][](exports\_file) <a name="macro_EXPORTS_SCRIPT"></a>
-Specify exports script within DLL and DLL-derived modules.
+Specify exports script within PROGRAM, DLL and DLL-derived modules.
 This accepts 2 kind of files: .exports with <lang symbol> pairs and JSON-line .symlist files.
-The other option use EXPORTS parameter of the module itself.
+The other option use EXPORTS parameter of the DLL module itself.
 
 @see: [DLL](#module\_DLL)
+
+###### Macro [EXPORT\_ALL\_DYNAMIC\_SYMBOLS][]() <a name="macro_EXPORT_ALL_DYNAMIC_SYMBOLS"></a>
+Export all non-hidden symbols as dynamic when linking a PROGRAM.
 
 ###### Macro [EXPORT\_YMAPS\_PROTO][]() _# maps-specific_ <a name="macro_EXPORT_YMAPS_PROTO"></a>
 Maps-specific .proto handling: IMPORT\_YMAPS\_PROTO() + maps protobuf namespace.
 
-###### Macro [EXTERNAL\_JAR][](library.jar) <a name="macro_EXTERNAL_JAR"></a>
-Provide an external name for built JAVA\_LIBRARY() or JAVA\_PROGRAM()
-
-Documentation: https://wiki.yandex-team.ru/yatool/java/#ispolzovanievneshnixmavenbibliotek
+###### Macro [EXTERNAL\_JAR][] <a name="macro_EXTERNAL_JAR"></a>
+Not documented yet.
 
 ###### Macro [EXTERNAL\_RESOURCE][](...)  _#builtin, deprecated_ <a name="macro_EXTERNAL_RESOURCE"></a>
 Don't use this. Use RESOURCE\_LIBRARY or FROM\_SANDBOX instead
@@ -1140,8 +1177,14 @@ Add the specified external static libraries to the program link
 ###### Macro [FAT\_RESOURCE][] <a name="macro_FAT_RESOURCE"></a>
 Not documented yet.
 
+###### Macro [FBS\_NAMESPACE][](NAMESPACE, PATH...) <a name="macro_FBS_NAMESPACE"></a>
+Not documented yet.
+
 ###### Macro [FILES][] <a name="macro_FILES"></a>
 Not documented yet.
+
+###### Macro [FLATC\_FLAGS][](flags...) <a name="macro_FLATC_FLAGS"></a>
+Add flags to flatc command line
 
 ###### Macro [FLAT\_JOIN\_SRCS\_GLOBAL][](Out Src...) <a name="macro_FLAT_JOIN_SRCS_GLOBAL"></a>
 Join set of sources into single file named Out and send it for further processing as if it were listed as SRCS(GLOBAL Out).
@@ -1175,6 +1218,9 @@ Process file archive as [FROM\_SANDBOX()](#macro\_FROM\_SANDBOX).
 
 ###### Macro [FROM\_MDS][]([FILE] key [RENAME <resource files>] OUT\_[NOAUTO] <output files> [EXECUTABLE]) <a name="macro_FROM_MDS"></a>
 Download resource from MDS with the specified key and process like [FROM\_SANDBOX()](#macro\_FROM\_SANDBOX).
+
+###### Macro [FROM\_NPM][](NAME VERSION SKY\_ID INTEGRITY INTEGRITY\_ALGO TARBALL\_PATH) <a name="macro_FROM_NPM"></a>
+Not documented yet.
 
 ###### Macro [FROM\_SANDBOX][]([FILE] resource\_id [AUTOUPDATED script] [RENAME <resource files>] OUT\_[NOAUTO] <output files> [EXECUTABLE] [OUTPUT\_INCLUDES <include files>]) <a name="macro_FROM_SANDBOX"></a>
 Download the resource from the Sandbox, unpack (if not explicitly specified word FILE) and add OUT files to the build. EXECUTABLE makes them executable.
@@ -1311,8 +1357,17 @@ Add the specified flags to the go cgo compile command line.
 ###### Macro [GO\_COMPILE\_FLAGS][](flags) <a name="macro_GO_COMPILE_FLAGS"></a>
 Add the specified flags to the go compile command line.
 
+###### Macro [GO\_EMBED\_DIR][](DIR) <a name="macro_GO_EMBED_DIR"></a>
+Define an embed directory DIR.
+
 ###### Macro [GO\_EMBED\_PATTERN][](PATTERN) <a name="macro_GO_EMBED_PATTERN"></a>
 Define an embed pattern.
+
+###### Macro GO\_TEST\_EMBED\_DIR(DIR) <a name="macro_GO_EMBED_TEST_DIR"></a>
+Define an embed directory DIR for internal go tests.
+
+###### Macro GO\_XTEST\_EMBED\_DIR(DIR) <a name="macro_GO_EMBED_XTEST_DIR"></a>
+Define an embed directory DIR for external go tests.
 
 ###### Macro [GO\_FAKE\_OUTPUT][](go-src-files...) <a name="macro_GO_FAKE_OUTPUT"></a>
 Not documented yet.
@@ -1386,9 +1441,6 @@ Have no effect on regular build.
 ###### Macro [IF][](condition) .. ELSEIF(other\_condition) .. ELSE() .. ENDIF()  _#builtin_ <a name="macro_IF"></a>
 Apply macros if condition holds
 
-###### Macro [IMPORT\_YMAPS\_PROTO][]() _# maps-specific, deprecated_ <a name="macro_IMPORT_YMAPS_PROTO"></a>
-Maps-specific .proto handling: does nothing and should be removed
-
 ###### Macro [INCLUDE][](filename)  _#builtin_ <a name="macro_INCLUDE"></a>
 Include file textually and process it as a part of the ya.make
 
@@ -1426,7 +1478,7 @@ Filter .jar file content: keep only matched files
 ###### Macro [JAR\_RESOURCE][](Id) <a name="macro_JAR_RESOURCE"></a>
 Not documented yet.
 
-###### Macro [JAR\_SRCS][](SRCDIR="", PACKAGE\_PREFIX="", EXCLUDE[], FILES[], Globs...) <a name="macro_JAR_SRCS"></a>
+###### Macro [JAR\_SRCS][](SRCDIR=".", PACKAGE\_PREFIX="", EXCLUDE[], FILES[], RESOURCES?"yes":"no", Globs...) <a name="macro_JAR_SRCS"></a>
 Not documented yet.
 
 ###### Macro [JAVAC\_FLAGS][](Args...) <a name="macro_JAVAC_FLAGS"></a>
@@ -1455,7 +1507,7 @@ Not documented yet.
 Define protoc plugin for Java with given Name that emits extra outputs
 using Tool. Extra dependencies are passed via DEPS
 
-###### Macro [JAVA\_RUNTIME\_PEERDIR][](Peers...) <a name="macro_JAVA_RUNTIME_PEERDIR"></a>
+###### Macro [JAVA\_RESOURCE][](JAR, SOURCES="") <a name="macro_JAVA_RESOURCE"></a>
 Not documented yet.
 
 ###### Macro [JAVA\_SRCS][](srcs) <a name="macro_JAVA_SRCS"></a>
@@ -1486,9 +1538,6 @@ Documentation: https://wiki.yandex-team.ru/yatool/java/#javasrcs
 Not documented yet.
 
 ###### Macro [JAVA\_TEST\_DEPS][] <a name="macro_JAVA_TEST_DEPS"></a>
-Not documented yet.
-
-###### Macro [JAVA\_TEST\_PEERDIR][](Peers...) <a name="macro_JAVA_TEST_PEERDIR"></a>
 Not documented yet.
 
 ###### Macro [JOINSRC][]() _# deprecated, does-nothing_ <a name="macro_JOINSRC"></a>
@@ -1528,6 +1577,12 @@ library satisfying all conditions of any of the listed licenses.
 
 A license must be prescribed for contribs
 
+###### Macro [LICENSE\_TEXTS][](File) <a name="macro_LICENSE_TEXTS"></a>
+This macro specifies the filename with all library licenses texts
+
+###### Macro [LINKER\_SCRIPT][](Files...) <a name="macro_LINKER_SCRIPT"></a>
+Specify files to be used as a linker script
+
 ###### Macro [LINT][](<none|base|strict>) <a name="macro_LINT"></a>
 Set linting levem for sources of the module
 
@@ -1561,6 +1616,9 @@ Call llvm-opt with set of Opts on Input to produce Output.
 Note: Output name is used as is, no extension added.
 
 ###### Macro [LOCAL\_JAR][](File) <a name="macro_LOCAL_JAR"></a>
+Not documented yet.
+
+###### Macro [LOCAL\_SOURCES\_JAR][](File) <a name="macro_LOCAL_SOURCES_JAR"></a>
 Not documented yet.
 
 ###### Macro [LUA][](script\_path args... [CWD dir] [ENV key=value...] [TOOL tools...] [IN inputs...] [OUT[\_NOAUTO] outputs...] [STDOUT[\_NOAUTO] output] [OUTPUT\_INCLUDES output\_includes...]) <a name="macro_LUA"></a>
@@ -1611,11 +1669,7 @@ Have no effect on regular build.
 Print message with given severity level (STATUS, FATAL\_ERROR)
 
 ###### Macro [METAQUERYFILES][](filenames...) _#deprecated_ <a name="macro_METAQUERYFILES"></a>
-Deprecated
-
-###### Macro [MSVC\_FLAGS][]([GLOBAL compiler\_flag]\* compiler\_flags) <a name="macro_MSVC_FLAGS"></a>
-Add the specified flags to the compilation line of C/C++files.
-Flags apply only if the compiler used is MSVC (cl.exe)
+This macro does nothing and will be removed
 
 ###### Macro [MX\_FORMULAS][](BinFiles...) _# deprecated, matrixnet_ <a name="macro_MX_FORMULAS"></a>
 Create MatrixNet formulas archive
@@ -1630,6 +1684,14 @@ Mark the project as needing review.
 Reviewers are listed in the macro OWNER. The use of this macro is disabled by default.
 Details can be found here: https://clubs.at.yandex-team.ru/arcadia/6104
 
+###### Macro [NGINX\_MODULES][](Modules...) <a name="macro_NGINX_MODULES"></a>
+Not documented yet.
+
+###### Macro [NODE\_MODULES][]() <a name="macro_NODE_MODULES"></a>
+Materializes `node\_modules.tar` bundle according to the module's lockfile.
+
+@see [NPM\_CONTRIBS()](#module\_NPM\_CONTRIBS)
+
 ###### Macro [NO\_BUILD\_IF][](variables)  _# builtin_ <a name="macro_NO_BUILD_IF"></a>
 Print warning if some variable is true
 
@@ -1639,6 +1701,9 @@ Optional parameter mask patterns describes the names of the modules that do not 
 
 ###### Macro [NO\_CLANG\_COVERAGE][]() <a name="macro_NO_CLANG_COVERAGE"></a>
 Disable heavyweight clang coverage for the module
+
+###### Macro [NO\_CLANG\_TIDY][]() <a name="macro_NO_CLANG_TIDY"></a>
+Not documented yet.
 
 ###### Macro [NO\_COMPILER\_WARNINGS][]() <a name="macro_NO_COMPILER_WARNINGS"></a>
 Disable all compiler warnings in the module.
@@ -1657,6 +1722,9 @@ Compile files without debug info collection.
 ###### Macro [NO\_DOCTESTS][]() <a name="macro_NO_DOCTESTS"></a>
 Disable doctests in PY[|3|23\_]TEST
 
+###### Macro [NO\_EXPORT\_DYNAMIC\_SYMBOLS][]() <a name="macro_NO_EXPORT_DYNAMIC_SYMBOLS"></a>
+Disable exporting all non-hidden symbols as dynamic when linking a PROGRAM.
+
 ###### Macro [NO\_GPL][]([ALLOW\_DYNAMIC]) <a name="macro_NO_GPL"></a>
 To check the license of the dependencies, indicated by macro LICENSE, and fail the build in case of detection of GPL-like licenses.
 ALLOW\_DYNAMIC avoids failing on LGPL-like licenses
@@ -1673,6 +1741,9 @@ so using libc headers/functions may not be detected at build time and may lead t
 
 ###### Macro [NO\_LINT][]() <a name="macro_NO_LINT"></a>
 Do not check for style files included in PY\_SRCS, TEST\_SRCS, JAVA\_SRCS.
+
+###### Macro [NO\_MYPY][]() <a name="macro_NO_MYPY"></a>
+Not documented yet.
 
 ###### Macro [NO\_NEED\_CHECK][]() <a name="macro_NO_NEED_CHECK"></a>
 Commits to the project marked with this macro will not be affected by higher-level NEED\_CHECK macro.
@@ -1724,6 +1795,11 @@ host linker to link relocatable device objects into the final executable.
 ###### Macro [ONLY\_TAGS][](tags...)  _# builtin_ <a name="macro_ONLY_TAGS"></a>
 Instantiate from multimodule only variants with tags listed
 
+###### Macro [ORIGINAL\_SOURCE][](Source) <a name="macro_ORIGINAL_SOURCE"></a>
+This macro specifies the source repository for contrib
+Does nothing now (just a placeholder for future functionality)
+See https://st.yandex-team.ru/DTCC-316
+
 ###### Macro [OWNER][](owners...)  _# builtin_ <a name="macro_OWNER"></a>
 Add reviewers/responsibles of the code.
 In the OWNER macro you can use:
@@ -1740,6 +1816,9 @@ Is not allowed other module types than PACKAGE().
 @see: [PACKAGE()](#module\_PACKAGE)
 
 ###### Macro [PACKAGE\_STRICT][]() <a name="macro_PACKAGE_STRICT"></a>
+Not documented yet.
+
+###### Macro [PACK\_GLOBALS\_IN\_LIBRARY][]() <a name="macro_PACK_GLOBALS_IN_LIBRARY"></a>
 Not documented yet.
 
 ###### Macro [PARTITIONED\_RECURSE][]([BALANCING\_CONFIG config] [LOCAL] dirs...)  _# builtin_ <a name="macro_PARTITIONED_RECURSE"></a>
@@ -1786,7 +1865,7 @@ This macro is strictly prohibited to use outside of mapsmobi project
 ###### Macro [PROTO2FBS][](InputProto) <a name="macro_PROTO2FBS"></a>
 Produce flatbuf schema out of protobuf description.
 
-###### Macro [PROTO\_ADDINCL][]([GLOBAL] Path) _# deprecated_ <a name="macro_PROTO_ADDINCL"></a>
+###### Macro [PROTO\_ADDINCL][]([GLOBAL] [WITH\_GEN] Path) _# deprecated_ <a name="macro_PROTO_ADDINCL"></a>
 This macro introduces proper ADDINCLs for .proto-files found in sources and
 .cpp/.h generated files, supplying them to appropriate commands and allowing
 proper dependency resolution at configure-time.
@@ -1794,7 +1873,7 @@ proper dependency resolution at configure-time.
 Note: you normally shouldn't use this macro. ADDINCLs should be sent to user
 from dependency via PROTO\_NAMESPACE macro
 
-###### Macro [PROTO\_NAMESPACE][]([GLOBAL] Namespace) <a name="macro_PROTO_NAMESPACE"></a>
+###### Macro [PROTO\_NAMESPACE][]([GLOBAL] [WITH\_GEN] Namespace) <a name="macro_PROTO_NAMESPACE"></a>
 Defines protobuf namespace (import/export path prefix) which should be used for imports and
 which defines output path for .proto generation.
 
@@ -1802,6 +1881,8 @@ For proper importing and configure-time depenedency management it sets ADDINCLs
 for both .cpp headers includes and .proto imports. If .proto expected to be used outsed of the
 processing module use GLOBAL to send proper ADDINCLs to all (transitive) users. PEERDIR to
 PROTO\_LIBRARY with PROTO\_NAMESPACE(GLOBAL ) is enough at user side to correctly use the library.
+If generated .proto files are going to be used for building a module than use of WITH\_GEN
+parameter will add appropriate dir from the build root for .proto files search.
 
 ###### Macro [PROVIDES][](Name...) <a name="macro_PROVIDES"></a>
 Specifies provided features. The names must be correct C identifiers.
@@ -1852,18 +1933,6 @@ Documentation: https://wiki.yandex-team.ru/devtools/commandsandvars/py\_srcs
 
 ###### Macro [PYTHON3\_MODULE][]() <a name="macro_PYTHON3_MODULE"></a>
 Use in PY\_ANY\_MODULE to set it up for Python 3.x.
-
-###### Macro [PYTHON\_ADDINCL][]() <a name="macro_PYTHON_ADDINCL"></a>
-This macro will be deleted soon: https://st.yandex-team.ru/DEVTOOLS-8159
-This macro adds include path for Python headers (Python 2.x variant) without PEERDIR.
-This should be used in 2 cases only:
-- In PY2MODULE since it compiles into .so and uses external Python runtime;
-- In system Python libraries themselves since proper PEERDIR there may create a loop;
-In all other cases use USE\_PYTHON2 macro instead.
-
-Never use this macro in PY2\_PROGRAM, PY2\_LIBRARY and PY23\_LIBRARY: they have everything needed by default.
-
-Documentation: https://wiki.yandex-team.ru/devtools/commandsandvars/py\_srcs
 
 ###### Macro [PYTHON\_PATH][](Path) <a name="macro_PYTHON_PATH"></a>
 Set path to Python that will be used to runs scripts in tests
@@ -1945,12 +2014,6 @@ Documentation: https://wiki.yandex-team.ru/arcadia/python/pysrcs/#modulipylibrar
 ###### Macro [PY\_SSQLS\_SRCS][](Srcs...) <a name="macro_PY_SSQLS_SRCS"></a>
 Not documented yet.
 
-###### Macro [REAL\_LINK\_DYN\_LIB\_IMPL][](WHOLE\_ARCHIVE\_PEERS...) <a name="macro_REAL_LINK_DYN_LIB_IMPL"></a>
-Not documented yet.
-
-###### Macro [REAL\_LINK\_EXEC\_DYN\_LIB\_IMPL][](WHOLE\_ARCHIVE\_PEERS...) <a name="macro_REAL_LINK_EXEC_DYN_LIB_IMPL"></a>
-Not documented yet.
-
 ###### Macro [RECURSE][]([LOCAL] dirs...)  _# builtin_ <a name="macro_RECURSE"></a>
 Add directories to the build
 All projects must be reachable from the root chain RECURSE() for monorepo continuous integration functionality
@@ -1961,6 +2024,9 @@ Use --force-build-depends flag if you want to build testing modules without test
 
 ###### Macro [RECURSE\_ROOT\_RELATIVE][](dirlist)  _# builtin_ <a name="macro_RECURSE_ROOT_RELATIVE"></a>
 In comparison with RECURSE(), in dirlist there must be a directory relative to the root (${ARCADIA\_ROOT})
+
+###### Macro [REGISTER\_SANDBOX\_IMPORT][] <a name="macro_REGISTER_SANDBOX_IMPORT"></a>
+Not documented yet.
 
 ###### Macro [REGISTER\_YQL\_PYTHON\_UDF][] <a name="macro_REGISTER_YQL_PYTHON_UDF"></a>
 Not documented yet.
@@ -2044,19 +2110,19 @@ Not documented yet.
 ###### Macro [RUN][] <a name="macro_RUN"></a>
 Not documented yet.
 
-###### Macro [RUN\_ANTLR][] <a name="macro_RUN_ANTLR"></a>
-Not documented yet.
+###### Macro [RUN\_ANTLR][](Args...) <a name="macro_RUN_ANTLR"></a>
+Macro to invoke ANTLR3 generator (general case)
 
-###### Macro [RUN\_ANTLR4][] <a name="macro_RUN_ANTLR4"></a>
-Not documented yet.
+###### Macro [RUN\_ANTLR4][](Args...) <a name="macro_RUN_ANTLR4"></a>
+Macro to invoke ANTLR4 generator (general case)
 
-###### Macro [RUN\_ANTLR4\_CPP][] <a name="macro_RUN_ANTLR4_CPP"></a>
-Not documented yet.
+###### Macro [RUN\_ANTLR4\_CPP][](GRAMMAR, OUTPUT\_INCLUDES, LISTENER, VISITOR, Args...) <a name="macro_RUN_ANTLR4_CPP"></a>
+Macro to invoke ANTLR4 generator (Cpp)
 
-###### Macro [RUN\_JAR\_PROGRAM][](IN[], IN\_DIR[], OUT\_NOAUTO[], OUT[], TOOL[], OUT\_DIR[], CWD="", CLASSPATH="", Args...) <a name="macro_RUN_JAR_PROGRAM"></a>
-Not documented yet.
+###### Macro [RUN\_ANTLR4\_GO][](GRAMMAR, OUTPUT\_INCLUDES, LISTENER, VISITOR, Args...) <a name="macro_RUN_ANTLR4_GO"></a>
+Macro to invoke ANTLR4 generator (Go)
 
-###### Macro [RUN\_JAVA][] <a name="macro_RUN_JAVA"></a>
+###### Macro [RUN\_JAR\_PROGRAM][](Args...) <a name="macro_RUN_JAR_PROGRAM"></a>
 Not documented yet.
 
 ###### Macro [RUN\_JAVA\_PROGRAM][] <a name="macro_RUN_JAVA_PROGRAM"></a>
@@ -2222,6 +2288,9 @@ This macro doesn't work in LIBRARY's, UNION's and PACKAGE's.
 ###### Macro [STRUCT\_CODEGEN][](Prefix) <a name="macro_STRUCT_CODEGEN"></a>
 A special case BASE\_CODEGEN, in which the kernel/struct\_codegen/codegen\_tool tool is used.
 
+###### Macro [STYLE][](Globs...) <a name="macro_STYLE"></a>
+Not documented yet.
+
 ###### Macro [SUBSCRIBER][](subscribers...)  _# builtin_ <a name="macro_SUBSCRIBER"></a>
 Add observers of the code.
 In the SUBSCRIBER macro you can use:
@@ -2353,6 +2422,9 @@ Add ServicesResourceTransformer for UBERJAR() java programs
 ###### Macro [UDF\_NO\_PROBE][]() <a name="macro_UDF_NO_PROBE"></a>
 Disable UDF import check at build stage
 
+###### Macro [UPDATE\_VCS\_JAVA\_INFO\_NODEP][](Jar) <a name="macro_UPDATE_VCS_JAVA_INFO_NODEP"></a>
+Not documented yet.
+
 ###### Macro [USE\_COMMON\_GOOGLE\_APIS][](APIS...) <a name="macro_USE_COMMON_GOOGLE_APIS"></a>
 Not documented yet.
 
@@ -2371,26 +2443,14 @@ EXTRA\_TAGS vararg parameter.
 ###### Macro [USE\_JAVALITE][]() <a name="macro_USE_JAVALITE"></a>
 Use protobuf-javalite for Java
 
-###### Macro [USE\_LINKER\_BFD][]() <a name="macro_USE_LINKER_BFD"></a>
-Use bfd linker for a program. This doesn't work in libraries
-
-###### Macro [USE\_LINKER\_GOLD][]() <a name="macro_USE_LINKER_GOLD"></a>
-Use gold linker for a program. This doesn't work in libraries
-
-###### Macro [USE\_LINKER\_LLD][]() <a name="macro_USE_LINKER_LLD"></a>
-Use lld linker for a program. This doesn't work in libraries
-
-###### Macro [USE\_LITE][]() _# deprecated but still used in Chromium_ <a name="macro_USE_LITE"></a>
-Use protobuf-lite for Java
-
 ###### Macro [USE\_PERL\_514\_LIB][]() <a name="macro_USE_PERL_514_LIB"></a>
 Add dependency on Perl 5.14 to your LIBRARY
 
 ###### Macro [USE\_PERL\_LIB][]() <a name="macro_USE_PERL_LIB"></a>
 Add dependency on Perl to your LIBRARY
 
-###### Macro [USE\_PYTHON][]() <a name="macro_USE_PYTHON"></a>
-Not documented yet.
+###### Macro [USE\_PLANTUML][]() <a name="macro_USE_PLANTUML"></a>
+Use PlantUML plug-in for yfm builder to render UML diagrams into documentation
 
 ###### Macro [USE\_PYTHON2][]() <a name="macro_USE_PYTHON2"></a>
 This adds Python 2.x runtime library to your LIBRARY and makes it Python2-compatible.
@@ -2439,6 +2499,9 @@ Priorities: NO\_COMPILER\_WARNINGS > NO\_WERROR > WERROR\_MODE > WERROR.
 ###### Macro [WINDOWS\_MANIFEST][](Manifest) <a name="macro_WINDOWS_MANIFEST"></a>
 Not documented yet.
 
+###### Macro [WITHOUT\_LICENSE\_TEXTS][]() <a name="macro_WITHOUT_LICENSE_TEXTS"></a>
+This macro indicates that the module has no license text
+
 ###### Macro [WITH\_GROOVY][]() <a name="macro_WITH_GROOVY"></a>
 Compile groovy source code in this java module
 
@@ -2447,6 +2510,9 @@ Add directory with JDK to JAVA\_PROGRAM output
 
 ###### Macro [WITH\_KOTLIN][]() <a name="macro_WITH_KOTLIN"></a>
 Compile kotlin source code in this java module
+
+###### Macro [WITH\_KOTLINC\_ALLOPEN][](-flags) <a name="macro_WITH_KOTLINC_ALLOPEN"></a>
+Enable allopen kotlin compiler plugin https://kotlinlang.org/docs/all-open-plugin.html
 
 ###### Macro [XS\_PROTO][](InputProto Dir Outputs...) _# deprecated_ <a name="macro_XS_PROTO"></a>
 Generate Perl code from protobuf.
@@ -2495,457 +2561,480 @@ Files must be relative to the root of Arcadia.
 
 Documentation: https://wiki.yandex-team.ru/yatool/test/
 
- [DOCS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L2849
- [JAR\_PROGRAM]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3187
- [JTEST\_YMAKE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3231
- [JUNIT5\_YMAKE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3215
- [MAPS\_IDL\_LIBRARY]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L6329
- [PROTO\_LIBRARY]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L6203
- [PY23\_LIBRARY]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L7677
- [PY23\_NATIVE\_LIBRARY]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L7706
- [PY23\_TEST]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L7987
- [SANDBOX\_PY3\_TASK]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3922
- [SANDBOX\_TASK]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3896
- [SSQLS\_LIBRARY]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L8071
- [YQL\_UDF]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L2596
- [BOOSTTEST]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L1660
- [BOOSTTEST\_WITH\_MAIN]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L1679
- [DEFAULT\_IOS\_INTERFACE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L7773
- [DLL]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L2367
- [DLL\_JAVA]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L2440
- [DLL\_TOOL]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L2384
- [EXECTEST]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L1974
- [FAT\_OBJECT]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L2143
- [FUZZ]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L1619
- [GO\_DLL]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L7552
- [GO\_LIBRARY]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L7460
- [GO\_PROGRAM]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L7476
- [GO\_TEST]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L7570
- [GTEST]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L1603
- [GTEST\_UGLY]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L1925
- [G\_BENCHMARK]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L1998
- [IOS\_INTERFACE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L7761
- [JAVA\_CONTRIB]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3072
- [JAVA\_CONTRIB\_PROXY]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3045
- [JAVA\_LIBRARY]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L8092
- [JAVA\_PROGRAM]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L8102
- [JTEST]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L8136
- [JTEST\_FOR]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L8163
- [JUNIT5]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L8114
- [LIBRARY]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L2089
- [METAQUERY]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3430
- [PACKAGE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L2770
- [PROGRAM]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L1459
- [PY2MODULE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L2276
- [PY2TEST]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L1871
- [PY2\_LIBRARY]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3257
- [PY2\_PROGRAM]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L1471
- [PY3MODULE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L2309
- [PY3TEST]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L1911
- [PY3TEST\_BIN]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L1893
- [PY3\_LIBRARY]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3297
- [PY3\_PROGRAM]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L1496
- [PYCR\_PROGRAM]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L1534
- [PYMODULE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L2294
- [PYTEST]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L1887
- [PYTEST\_BIN]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L1857
- [PY\_ANY\_MODULE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L2232
- [PY\_LIBRARY]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3286
- [PY\_PROGRAM]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L1486
- [RECURSIVE\_LIBRARY]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L2160
- [RESOURCES\_LIBRARY]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L2128
- [R\_MODULE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L2343
- [SO\_PROGRAM]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L2395
- [UDF]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L2469
- [UDF\_LIB]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L2476
- [UNION]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L2812
- [UNITTEST]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L1577
- [UNITTEST\_FOR]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L2022
- [UNITTEST\_WITH\_CUSTOM\_ENTRY\_POINT]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L1593
- [YCR\_PROGRAM]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L1516
- [YQL\_PYTHON3\_UDF]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L2686
- [YQL\_PYTHON3\_UDF\_TEST]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L2734
- [YQL\_PYTHON\_UDF]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L2634
- [YQL\_PYTHON\_UDF\_PROGRAM]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L2661
- [YQL\_PYTHON\_UDF\_TEST]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L2720
- [YQL\_UDF\_MODULE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L2531
- [YQL\_UDF\_TEST]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L1939
- [YT\_UNITTEST]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L1585
- [Y\_BENCHMARK]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L1989
- [AARS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5106
- [AAR\_GRADLE\_SCRIPT\_GENERATOR]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L6702
- [AAR\_LOCAL\_MAVEN\_REPO]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L6696
- [ACCELEO]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/scarab_cant_clash.py?rev=8085572#L4
- [ADDINCL]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8085572#L14
- [ADDINCLSELF]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4485
- [ADD\_CHECK]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/ytest.py?rev=8085572#L441
- [ADD\_CHECK\_PY\_IMPORTS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/ytest.py?rev=8085572#L514
- [ADD\_COMPILABLE\_TRANSLATE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4228
- [ADD\_COMPILABLE\_TRANSLIT]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4238
- [ADD\_DLLS\_TO\_JAR]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3703
- [ADD\_PERL\_MODULE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4126
- [ADD\_PYTEST\_BIN]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/ytest.py?rev=8085572#L580
- [ADD\_PYTEST\_SCRIPT]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/ytest.py?rev=8085572#L555
- [ADD\_WAR]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3596
- [ADD\_YTEST]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/ytest.py?rev=8085572#L361
- [ALLOCATOR]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4154
- [ALL\_SRCS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L2575
- [ANNOTATION\_PROCESSOR]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3660
- [ARCHIVE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4983
- [ARCHIVE\_ASM]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4962
- [ARCHIVE\_BY\_KEYS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4993
- [ASM\_PREINCLUDE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L6046
- [ASSERT]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/macros_with_error.py?rev=8085572#L25
- [BASE\_CODEGEN]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5061
- [BPF]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5956
- [BUILDWITH\_CYTHON\_C]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4864
- [BUILDWITH\_CYTHON\_CPP]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4847
- [BUILDWITH\_RAGEL6]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4914
- [BUILD\_CATBOOST]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5423
- [BUILD\_MN]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5385
- [BUILD\_MNS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5409
- [BUILD\_ONLY\_IF]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8085572#L14
- [BUILD\_PLNS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5431
- [BUILD\_YDL\_DESC]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4703
- [BUNDLE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/bundle.py?rev=8085572#L4
- [CFLAGS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5122
- [CGO\_CFLAGS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L7149
- [CGO\_LDFLAGS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L7157
- [CGO\_SRCS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L7134
- [CHECK\_DEPENDENT\_DIRS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L448
- [CHECK\_JAVA\_DEPS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3465
- [CLANG\_EMIT\_AST\_CXX]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5929
- [COLLECT\_FRONTEND\_FILES]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L7820
- [COLLECT\_JINJA\_TEMPLATES]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L6846
- [COMPILE\_C\_AS\_CXX]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5846
- [COMPILE\_NLG]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5441
- [COMPILE\_SWIFT\_MODULE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L7832
- [CONFIGURE\_FILE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5054
- [CONFTEST\_LOAD\_POLICY\_LOCAL]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L1783
- [CONLYFLAGS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5135
- [COPY]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/cp.py?rev=8085572#L6
- [COPY\_FILE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4288
- [COPY\_FILES\_TO\_BUILD\_PREFIX]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/copy_files_to_build_prefix.py?rev=8085572#L10
- [COPY\_FILE\_WITH\_CONTEXT]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4296
- [CPP\_ADDINCL]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L6065
- [CPP\_ENUMS\_SERIALIZATION]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/pybuild.py?rev=8085572#L584
- [CPP\_PROTO\_PLUGIN]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L629
- [CPP\_PROTO\_PLUGIN0]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L617
- [CPP\_PROTO\_PLUGIN2]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L639
- [CREATE\_BUILDINFO\_FOR]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5027
- [CREATE\_INIT\_PY\_STRUCTURE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/create_init_py.py?rev=8085572#L6
- [CTEMPLATE\_VARNAMES]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5891
- [CUDA\_NVCC\_FLAGS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5147
- [CUSTOM\_LINK\_STEP\_SCRIPT]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L1554
- [CXXFLAGS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5141
- [DARWIN\_SIGNED\_RESOURCE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L7753
- [DARWIN\_STRINGS\_RESOURCE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L7749
- [DATA]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L1747
- [DEB\_VERSION]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5375
- [DECIMAL\_MD5\_LOWER\_32\_BITS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5038
- [DECLARE\_EXTERNAL\_HOST\_RESOURCES\_BUNDLE]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8085572#L14
- [DECLARE\_EXTERNAL\_HOST\_RESOURCES\_PACK]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8085572#L14
- [DECLARE\_EXTERNAL\_RESOURCE]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8085572#L14
- [DEFAULT]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8085572#L14
- [DEPENDENCY\_MANAGEMENT]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3749
- [DEPENDS]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8085572#L14
- [DIRECT\_DEPS\_ONLY]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3794
- [DISABLE]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8085572#L14
- [DLL\_FOR]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8085572#L14
- [DOCS\_BUILDER]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L2884
- [DOCS\_CONFIG]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L2908
- [DOCS\_DIR]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L2895
- [DOCS\_INCLUDE\_SOURCES]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L2930
- [DOCS\_VARS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L2919
- [DUMPERF\_CODEGEN]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5090
- [ELSE]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8085572#L14
- [ELSEIF]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8085572#L14
- [EMBED\_JAVA\_VCS\_INFO]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L2966
- [ENABLE]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8085572#L14
- [END]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8085572#L14
- [ENDIF]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8085572#L14
- [ENV]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L1776
- [EXCLUDE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3669
- [EXCLUDE\_TAGS]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8085572#L14
- [EXPORTS\_SCRIPT]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L1545
- [EXPORT\_YMAPS\_PROTO]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5867
- [EXTERNAL\_JAR]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3713
- [EXTERNAL\_RESOURCE]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8085572#L14
- [EXTRADIR]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8085572#L14
- [EXTRALIBS]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8085572#L14
- [EXTRALIBS\_STATIC]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4221
- [FAT\_RESOURCE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/res.py?rev=8085572#L37
- [FILES]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/files.py?rev=8085572#L1
- [FLAT\_JOIN\_SRCS\_GLOBAL]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4400
- [FORK\_SUBTESTS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4337
- [FORK\_TESTS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4324
- [FORK\_TEST\_FILES]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4361
- [FROM\_ARCHIVE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5832
- [FROM\_MDS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5803
- [FROM\_SANDBOX]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5795
- [FUZZ\_DICTS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L1691
- [FUZZ\_OPTS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L1710
- [GENERATED\_SRCS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5920
- [GENERATE\_ENUM\_SERIALIZATION]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5356
- [GENERATE\_ENUM\_SERIALIZATION\_WITH\_HEADER]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5367
- [GENERATE\_PY\_PROTOS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4254
- [GENERATE\_SCRIPT]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/java.py?rev=8085572#L60
- [GEN\_SCHEEME2]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5695
- [GLOBAL\_SRCS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L2557
- [GO\_ASM\_FLAGS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L7001
- [GO\_BENCH\_TIMEOUT]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L7560
- [GO\_CGO1\_FLAGS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L7008
- [GO\_CGO2\_FLAGS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L7015
- [GO\_COMPILE\_FLAGS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L7022
- [GO\_EMBED\_PATTERN]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L7187
- [GO\_FAKE\_OUTPUT]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/plugins/plugin_go_fake_output_handler.cpp?rev=8085572#L110
- [GO\_GRPC\_GATEWAY\_SRCS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L7222
- [GO\_GRPC\_GATEWAY\_SWAGGER\_SRCS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L7229
- [GO\_LDFLAGS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L7142
- [GO\_LINK\_FLAGS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L7029
- [GO\_MOCKGEN\_FROM]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L7593
- [GO\_MOCKGEN\_MOCKS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L7614
- [GO\_MOCKGEN\_REFLECT]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L7601
- [GO\_MOCKGEN\_TYPES]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L7597
- [GO\_PACKAGE\_NAME]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L7098
- [GO\_PROTO\_PLUGIN]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L750
- [GO\_SKIP\_TESTS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L7167
- [GO\_TEST\_EMBED\_PATTERN]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L7194
- [GO\_TEST\_FOR]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8085572#L14
- [GO\_TEST\_SRCS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L7114
- [GO\_XTEST\_EMBED\_PATTERN]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L7201
- [GO\_XTEST\_SRCS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L7122
- [GRPC]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L943
- [IDEA\_EXCLUDE\_DIRS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3605
- [IDEA\_MODULE\_NAME]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3623
- [IDEA\_RESOURCE\_DIRS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3614
- [IF]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8085572#L14
- [IMPORT\_YMAPS\_PROTO]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5860
- [INCLUDE]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8085572#L14
- [INCLUDE\_TAGS]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8085572#L14
- [INDUCED\_DEPS]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8085572#L14
- [IOS\_APP\_ASSETS\_FLAGS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L7745
- [IOS\_APP\_COMMON\_FLAGS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L7740
- [IOS\_APP\_SETTINGS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/ios_app_settings.py?rev=8085572#L5
- [IOS\_ASSETS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/ios_assets.py?rev=8085572#L6
- [JAR\_ANNOTATION\_PROCESSOR]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3021
- [JAR\_EXCLUDE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3880
- [JAR\_INCLUDE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3873
- [JAR\_RESOURCE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3060
- [JAR\_SRCS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3005
- [JAVAC\_FLAGS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3631
- [JAVA\_DEPENDENCIES\_CONFIGURATION]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3860
- [JAVA\_EXTERNAL\_DEPENDENCIES]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3802
- [JAVA\_IGNORE\_CLASSPATH\_CLASH\_FOR]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L7625
- [JAVA\_MODULE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/java.py?rev=8085572#L77
- [JAVA\_PROTO\_PLUGIN]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L589
- [JAVA\_RUNTIME\_PEERDIR]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3183
- [JAVA\_SRCS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3698
- [JAVA\_TEST]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/ytest.py?rev=8085572#L642
- [JAVA\_TEST\_DEPS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/ytest.py?rev=8085572#L724
- [JAVA\_TEST\_PEERDIR]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3211
- [JOINSRC]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5280
- [JOIN\_SRCS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4381
- [JOIN\_SRCS\_GLOBAL]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4390
- [JVM\_ARGS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3455
- [KOTLINC\_FLAGS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3782
- [LARGE\_FILES]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5823
- [LDFLAGS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5099
- [LICENSE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5624
- [LINT]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L1825
- [LJ\_21\_ARCHIVE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/lj_archive.py?rev=8085572#L23
- [LJ\_ARCHIVE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/lj_archive.py?rev=8085572#L1
- [LLVM\_BC]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/llvm_bc.py?rev=8085572#L6
- [LLVM\_COMPILE\_C]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5947
- [LLVM\_COMPILE\_CXX]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5938
- [LLVM\_COMPILE\_LL]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5965
- [LLVM\_LINK]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5974
- [LLVM\_OPT]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5983
- [LOCAL\_JAR]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3068
- [LUA]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5746
- [MACROS\_WITH\_ERROR]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/macros_with_error.py?rev=8085572#L8
- [MAPKITIDL]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/plugins/plugin_mapkitidl_handler.cpp?rev=8085572#L399
- [MAPKIT\_ADDINCL]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L6060
- [MASMFLAGS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5128
- [MAVEN\_GROUP\_ID]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3650
- [MESSAGE]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8085572#L14
- [METAQUERYFILES]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/mq.py?rev=8085572#L12
- [MSVC\_FLAGS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L8284
- [MX\_FORMULAS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/mx_archive.py?rev=8085572#L1
- [NEED\_CHECK]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5451
- [NEED\_REVIEW]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5468
- [NO\_BUILD\_IF]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8085572#L14
- [NO\_CHECK\_IMPORTS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L6014
- [NO\_CLANG\_COVERAGE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5301
- [NO\_COMPILER\_WARNINGS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5175
- [NO\_CPU\_CHECK]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4478
- [NO\_CYTHON\_COVERAGE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5316
- [NO\_DEBUG\_INFO]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5853
- [NO\_DOCTESTS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L1832
- [NO\_GPL]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5651
- [NO\_JOIN\_SRC]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5274
- [NO\_LIBC]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5240
- [NO\_LINT]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L1818
- [NO\_NEED\_CHECK]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5459
- [NO\_OPTIMIZE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5168
- [NO\_PLATFORM]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5250
- [NO\_PYTHON\_COVERAGE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5308
- [NO\_RUNTIME]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5229
- [NO\_SANITIZE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5287
- [NO\_SANITIZE\_COVERAGE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5294
- [NO\_SSE4]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4471
- [NO\_UTIL]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5218
- [NO\_WERROR]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5190
- [NO\_WSHADOW]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5196
- [NVCC\_DEVICE\_LINK]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5155
- [ONLY\_TAGS]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8085572#L14
- [OWNER]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8085572#L14
- [PACK]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L2750
- [PACKAGE\_STRICT]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L2755
- [PARTITIONED\_RECURSE]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8085572#L14
- [PARTITIONED\_RECURSE\_FOR\_TESTS]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8085572#L14
- [PARTITIONED\_RECURSE\_ROOT\_RELATIVE]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8085572#L14
- [PEERDIR]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8085572#L14
- [PIRE\_INLINE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4972
- [PIRE\_INLINE\_CMD]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4967
- [PRINT\_MODULE\_TYPE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/print_module_type.py?rev=8085572#L1
- [PROCESS\_DOCS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/docs.py?rev=8085572#L35
- [PROCESS\_DOCSLIB]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/docs.py?rev=8085572#L31
- [PROGUARD\_RULES]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5113
- [PROTO2FBS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L888
- [PROTO\_ADDINCL]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L513
- [PROTO\_NAMESPACE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L527
- [PROVIDES]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8085572#L14
- [PYTHON]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5768
- [PYTHON2\_ADDINCL]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3957
- [PYTHON2\_MODULE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L2317
- [PYTHON3\_ADDINCL]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4017
- [PYTHON3\_MODULE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L2328
- [PYTHON\_ADDINCL]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3975
- [PYTHON\_PATH]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L1802
- [PY\_CONSTRUCTOR]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/pybuild.py?rev=8085572#L554
- [PY\_DOCTESTS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/pybuild.py?rev=8085572#L486
- [PY\_ENUMS\_SERIALIZATION]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/pybuild.py?rev=8085572#L568
- [PY\_EXTRA\_LINT\_FILES]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L7666
- [PY\_MAIN]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/pybuild.py?rev=8085572#L540
- [PY\_NAMESPACE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L2940
- [PY\_PROTOS\_FOR]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8085572#L14
- [PY\_PROTO\_PLUGIN]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L565
- [PY\_PROTO\_PLUGIN2]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L576
- [PY\_REGISTER]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/pybuild.py?rev=8085572#L504
- [PY\_SRCS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L7655
- [PY\_SSQLS\_SRCS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L8058
- [REAL\_LINK\_DYN\_LIB\_IMPL]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L8412
- [REAL\_LINK\_EXEC\_DYN\_LIB\_IMPL]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L8404
- [RECURSE]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8085572#L14
- [RECURSE\_FOR\_TESTS]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8085572#L14
- [RECURSE\_ROOT\_RELATIVE]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8085572#L14
- [REGISTER\_YQL\_PYTHON\_UDF]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/yql_python_udf.py?rev=8085572#L10
- [REQUIREMENTS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L1768
- [REQUIRES]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L426
- [RESOLVE\_PROTO]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L2798
- [RESOURCE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L501
- [RESOURCE\_FILES]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/res.py?rev=8085572#L53
- [RESTRICT\_LICENSES]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5639
- [RESTRICT\_PATH]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/macros_with_error.py?rev=8085572#L13
- [RUN]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/ytest.py?rev=8085572#L854
- [RUN\_ANTLR]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/antlr.py?rev=8085572#L4
- [RUN\_ANTLR4]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/antlr4.py?rev=8085572#L4
- [RUN\_ANTLR4\_CPP]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/antlr4.py?rev=8085572#L16
- [RUN\_JAR\_PROGRAM]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3013
- [RUN\_JAVA]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/run_java.py?rev=8085572#L5
- [RUN\_JAVA\_PROGRAM]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/java.py?rev=8085572#L34
- [RUN\_PROGRAM]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5724
- [RUN\_PYTHON]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L6054
- [SDBUS\_CPP\_ADAPTOR]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L8033
- [SDBUS\_CPP\_PROXY]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L8038
- [SET]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8085572#L14
- [SETUP\_EXECTEST]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/ytest.py?rev=8085572#L860
- [SETUP\_PYTEST\_BIN]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/ytest.py?rev=8085572#L844
- [SETUP\_RUN\_PYTHON]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/ytest.py?rev=8085572#L872
- [SET\_APPEND]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8085572#L14
- [SET\_APPEND\_WITH\_GLOBAL]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8085572#L14
- [SET\_COMPILE\_OUTPUTS\_MODIFIERS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4496
- [SIZE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4372
- [SKIP\_TEST]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L1810
- [SOURCE\_GROUP]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8085572#L14
- [SPLIT\_CODEGEN]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/split_codegen.py?rev=8085572#L9
- [SPLIT\_DWARF]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4205
- [SPLIT\_FACTOR]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4350
- [SRC]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4728
- [SRCDIR]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8085572#L14
- [SRCS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4747
- [SRC\_CPP\_AVX]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4833
- [SRC\_CPP\_AVX2]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4839
- [SRC\_CPP\_PIC]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4797
- [SRC\_CPP\_SSE2]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4803
- [SRC\_CPP\_SSE3]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4809
- [SRC\_CPP\_SSE4]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4827
- [SRC\_CPP\_SSE41]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4821
- [SRC\_CPP\_SSSE3]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4815
- [SRC\_C\_AVX]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4785
- [SRC\_C\_AVX2]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4791
- [SRC\_C\_SSE2]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4755
- [SRC\_C\_SSE3]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4761
- [SRC\_C\_SSE4]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4779
- [SRC\_C\_SSE41]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4773
- [SRC\_C\_SSSE3]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4767
- [SRC\_RESOURCE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3064
- [STRIP]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5162
- [STRUCT\_CODEGEN]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5083
- [SUBSCRIBER]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8085572#L14
- [SUPPRESSIONS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/suppressions.py?rev=8085572#L1
- [SYMLINK]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5701
- [SYSTEM\_PROPERTIES]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3445
- [TAG]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L1758
- [TASKLET]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L6150
- [TASKLET\_REG]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L6169
- [TASKLET\_REG\_EXT]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L6178
- [TEST\_CWD]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3484
- [TEST\_DATA]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/ytest.py?rev=8085572#L34
- [TEST\_JAVA\_CLASSPATH\_CMD\_TYPE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3844
- [TEST\_SRCS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L1733
- [TIMEOUT]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4309
- [UBERJAR]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3507
- [UBERJAR\_APPENDING\_TRANSFORMER]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3574
- [UBERJAR\_HIDE\_EXCLUDE\_PATTERN]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3530
- [UBERJAR\_HIDING\_PREFIX]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3518
- [UBERJAR\_MANIFEST\_TRANSFORMER\_ATTRIBUTE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3561
- [UBERJAR\_MANIFEST\_TRANSFORMER\_MAIN]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3551
- [UBERJAR\_PATH\_EXCLUDE\_PREFIX]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3541
- [UBERJAR\_SERVICES\_RESOURCE\_TRANSFORMER]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3584
- [UDF\_NO\_PROBE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L2485
- [USE\_COMMON\_GOOGLE\_APIS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L712
- [USE\_CXX]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5259
- [USE\_ERROR\_PRONE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3473
- [USE\_EXT\_PROTO]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L6284
- [USE\_JAVALITE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L834
- [USE\_LINKER\_BFD]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L8367
- [USE\_LINKER\_GOLD]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L8372
- [USE\_LINKER\_LLD]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L8377
- [USE\_LITE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L840
- [USE\_PERL\_514\_LIB]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4118
- [USE\_PERL\_LIB]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4112
- [USE\_PYTHON]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4080
- [USE\_PYTHON2]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4062
- [USE\_PYTHON3]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4094
- [USE\_RECIPE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L1793
- [USE\_SKIFF]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L648
- [USE\_UTIL]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5267
- [VERSION]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5658
- [VISIBILITY]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L8013
- [WERROR]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5183
- [WINDOWS\_MANIFEST]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L8000
- [WITH\_GROOVY]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3774
- [WITH\_JDK]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3758
- [WITH\_KOTLIN]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L3766
- [XS\_PROTO]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L879
- [YABS\_GENERATE\_CONF]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/yabs_generate_conf.py?rev=8085572#L10
- [YABS\_GENERATE\_PHANTOM\_CONF\_PATCH]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/yabs_generate_conf.py?rev=8085572#L35
- [YABS\_GENERATE\_PHANTOM\_CONF\_TEST\_CHECK]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/yabs_generate_conf.py?rev=8085572#L53
- [YDL\_DESC\_USE\_BINARY]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L4719
- [YMAPS\_SPROTO]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L5879
- [YP\_PROTO\_YSON]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L784
- [YQL\_ABI\_VERSION]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L2614
- [YQL\_LAST\_ABI\_VERSION]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L2623
- [YT\_SPEC]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8085572#L1723
+ [DLL\_JAVA]: https://a.yandex-team.ru/arc/trunk/arcadia/build/conf/java.ymake.conf?rev=8680777#L159
+ [DOCS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L2665
+ [FBS\_LIBRARY]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L6468
+ [JAR\_PROGRAM]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L3262
+ [JAVA\_CONTRIB\_PROGRAM]: https://a.yandex-team.ru/arc/trunk/arcadia/build/conf/java.ymake.conf?rev=8680777#L135
+ [JAVA\_PROGRAM]: https://a.yandex-team.ru/arc/trunk/arcadia/build/conf/java.ymake.conf?rev=8680777#L31
+ [JTEST]: https://a.yandex-team.ru/arc/trunk/arcadia/build/conf/java.ymake.conf?rev=8680777#L79
+ [JTEST\_FOR]: https://a.yandex-team.ru/arc/trunk/arcadia/build/conf/java.ymake.conf?rev=8680777#L107
+ [JTEST\_YMAKE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L3307
+ [JUNIT5]: https://a.yandex-team.ru/arc/trunk/arcadia/build/conf/java.ymake.conf?rev=8680777#L54
+ [JUNIT5\_YMAKE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L3289
+ [MAPS\_IDL\_LIBRARY]: https://a.yandex-team.ru/arc/trunk/arcadia/build/conf/project_specific/maps/mapkit.conf?rev=8680777#L86
+ [PROTO\_LIBRARY]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L6283
+ [PY23\_LIBRARY]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L7448
+ [PY23\_NATIVE\_LIBRARY]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L7477
+ [PY23\_TEST]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L7644
+ [PY3\_PROGRAM]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L1478
+ [SANDBOX\_PY23\_TASK]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L4170
+ [SANDBOX\_PY3\_TASK]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L4210
+ [SANDBOX\_TASK]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L4154
+ [SSQLS\_LIBRARY]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L7728
+ [YQL\_UDF]: https://a.yandex-team.ru/arc/trunk/arcadia/build/conf/project_specific/yql_udf.conf?rev=8680777#L118
+ [BOOSTTEST]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L1667
+ [BOOSTTEST\_WITH\_MAIN]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L1686
+ [CI\_GROUP]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L2565
+ [CONTAINER]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L7759
+ [CONTAINER\_LAYER]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L7751
+ [CPP\_STYLE\_TEST]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L1905
+ [CUSTOM\_BUILD\_LIBRARY]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L7771
+ [DEFAULT\_IOS\_INTERFACE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L7544
+ [DLL]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L2382
+ [DLL\_TOOL]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L2399
+ [EXECTEST]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L1956
+ [FAT\_OBJECT]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L2161
+ [FUZZ]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L1626
+ [GO\_DLL]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L7299
+ [GO\_LIBRARY]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L7207
+ [GO\_PROGRAM]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L7223
+ [GO\_TEST]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L7318
+ [GTEST]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L1610
+ [GTEST\_UGLY]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L1923
+ [G\_BENCHMARK]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L1981
+ [IOS\_INTERFACE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L7532
+ [JAVA\_CONTRIB]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L2951
+ [JAVA\_CONTRIB\_PROXY]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L2920
+ [JAVA\_LIBRARY]: https://a.yandex-team.ru/arc/trunk/arcadia/build/conf/java.ymake.conf?rev=8680777#L22
+ [LIBRARY]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L2078
+ [MCU\_PROGRAM]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L7820
+ [METAQUERY]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L3658
+ [PACKAGE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L2541
+ [PROGRAM]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L1452
+ [PY2MODULE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L2310
+ [PY2TEST]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L1878
+ [PY2\_LIBRARY]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L3337
+ [PY2\_PROGRAM]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L1465
+ [PY3MODULE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L2327
+ [PY3TEST]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L1902
+ [PY3TEST\_BIN]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L1884
+ [PY3\_LIBRARY]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L3369
+ [PY3\_PROGRAM\_BIN]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L3491
+ [PYCR\_PROGRAM]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L1526
+ [PYTEST\_BIN]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L1864
+ [PY\_ANY\_MODULE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L2266
+ [RECURSIVE\_LIBRARY]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L2190
+ [RESOURCES\_LIBRARY]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L2127
+ [R\_MODULE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L2361
+ [SO\_PROGRAM]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L2410
+ [TS\_LIBRARY]: https://a.yandex-team.ru/arc/trunk/arcadia/build/conf/ts.conf?rev=8680777#L97
+ [UDF]: https://a.yandex-team.ru/arc/trunk/arcadia/build/conf/project_specific/yql_udf.conf?rev=8680777#L30
+ [UDF\_LIB]: https://a.yandex-team.ru/arc/trunk/arcadia/build/conf/project_specific/yql_udf.conf?rev=8680777#L37
+ [UNION]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L2602
+ [UNITTEST]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L1584
+ [UNITTEST\_FOR]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L2005
+ [UNITTEST\_WITH\_CUSTOM\_ENTRY\_POINT]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L1600
+ [YCR\_PROGRAM]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L1508
+ [YQL\_PYTHON3\_UDF]: https://a.yandex-team.ru/arc/trunk/arcadia/build/conf/project_specific/yql_udf.conf?rev=8680777#L208
+ [YQL\_PYTHON3\_UDF\_TEST]: https://a.yandex-team.ru/arc/trunk/arcadia/build/conf/project_specific/yql_udf.conf?rev=8680777#L256
+ [YQL\_PYTHON\_UDF]: https://a.yandex-team.ru/arc/trunk/arcadia/build/conf/project_specific/yql_udf.conf?rev=8680777#L157
+ [YQL\_PYTHON\_UDF\_PROGRAM]: https://a.yandex-team.ru/arc/trunk/arcadia/build/conf/project_specific/yql_udf.conf?rev=8680777#L183
+ [YQL\_PYTHON\_UDF\_TEST]: https://a.yandex-team.ru/arc/trunk/arcadia/build/conf/project_specific/yql_udf.conf?rev=8680777#L242
+ [YQL\_UDF\_MODULE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/conf/project_specific/yql_udf.conf?rev=8680777#L99
+ [YQL\_UDF\_TEST]: https://a.yandex-team.ru/arc/trunk/arcadia/build/conf/project_specific/yql_udf.conf?rev=8680777#L55
+ [YT\_UNITTEST]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L1592
+ [Y\_BENCHMARK]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L1972
+ [AARS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/conf/project_specific/maps/aar.conf?rev=8680777#L20
+ [AAR\_GRADLE\_SCRIPT\_GENERATOR]: https://a.yandex-team.ru/arc/trunk/arcadia/build/conf/project_specific/maps/aar.conf?rev=8680777#L255
+ [AAR\_LOCAL\_MAVEN\_REPO]: https://a.yandex-team.ru/arc/trunk/arcadia/build/conf/project_specific/maps/aar.conf?rev=8680777#L249
+ [ACCELEO]: https://a.yandex-team.ru/arc/trunk/arcadia/build/conf/java.ymake.conf?rev=8680777#L12
+ [ADDINCL]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8680777#L14
+ [ADDINCLSELF]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L4749
+ [ADD\_CHECK]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/ytest.py?rev=8680777#L471
+ [ADD\_CHECK\_PY\_IMPORTS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/ytest.py?rev=8680777#L556
+ [ADD\_COMPILABLE\_TRANSLATE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L4491
+ [ADD\_COMPILABLE\_TRANSLIT]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L4501
+ [ADD\_DLLS\_TO\_JAR]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L3933
+ [ADD\_PERL\_MODULE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L4385
+ [ADD\_PYTEST\_BIN]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/ytest.py?rev=8680777#L629
+ [ADD\_PYTEST\_SCRIPT]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/ytest.py?rev=8680777#L600
+ [ADD\_YTEST]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/ytest.py?rev=8680777#L361
+ [ALLOCATOR]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L4414
+ [ALL\_PY\_SRCS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L7428
+ [ALL\_SRCS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L2495
+ [ANNOTATION\_PROCESSOR]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L3890
+ [ARCHIVE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5324
+ [ARCHIVE\_ASM]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5303
+ [ARCHIVE\_BY\_KEYS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5334
+ [ASM\_PREINCLUDE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L6150
+ [ASSERT]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/macros_with_error.py?rev=8680777#L25
+ [BASE\_CODEGEN]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5405
+ [BPF]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L6067
+ [BUILDWITH\_CYTHON\_C]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5205
+ [BUILDWITH\_CYTHON\_CPP]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5188
+ [BUILDWITH\_RAGEL6]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5255
+ [BUILD\_CATBOOST]: https://a.yandex-team.ru/arc/trunk/arcadia/build/conf/project_specific/other.conf?rev=8680777#L14
+ [BUILD\_MN]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5719
+ [BUILD\_MNS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5743
+ [BUILD\_ONLY\_IF]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8680777#L14
+ [BUILD\_PLNS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5753
+ [BUILD\_YDL\_DESC]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5044
+ [BUNDLE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/bundle.py?rev=8680777#L4
+ [CFLAGS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5452
+ [CGO\_CFLAGS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L6851
+ [CGO\_LDFLAGS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L6859
+ [CGO\_SRCS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L6836
+ [CHECK\_CONTRIB\_CREDITS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/credits.py?rev=8680777#L8
+ [CHECK\_DEPENDENT\_DIRS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L432
+ [CHECK\_JAVA\_DEPS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L3693
+ [CLANG\_EMIT\_AST\_CXX]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L6040
+ [COLLECT\_FRONTEND\_FILES]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L7594
+ [COLLECT\_JINJA\_TEMPLATES]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L6597
+ [COMPILE\_C\_AS\_CXX]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5986
+ [COMPILE\_LUA]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L4998
+ [COMPILE\_LUA\_21]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5007
+ [COMPILE\_NLG]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5763
+ [COMPILE\_SWIFT\_MODULE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L7606
+ [CONFIGURE\_FILE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5398
+ [CONFTEST\_LOAD\_POLICY\_LOCAL]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L1790
+ [CONLYFLAGS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5465
+ [COPY]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/cp.py?rev=8680777#L6
+ [COPY\_FILE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L4551
+ [COPY\_FILES\_TO\_BUILD\_PREFIX]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/copy_files_to_build_prefix.py?rev=8680777#L10
+ [COPY\_FILE\_WITH\_CONTEXT]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L4559
+ [CPP\_ADDINCL]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L6200
+ [CPP\_ENUMS\_SERIALIZATION]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/pybuild.py?rev=8680777#L625
+ [CPP\_PROTO\_PLUGIN]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L614
+ [CPP\_PROTO\_PLUGIN0]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L602
+ [CPP\_PROTO\_PLUGIN2]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L624
+ [CREATE\_BUILDINFO\_FOR]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5371
+ [CREATE\_INIT\_PY\_STRUCTURE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/create_init_py.py?rev=8680777#L6
+ [CREDITS\_DISCLAIMER]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/credits.py?rev=8680777#L4
+ [CTEMPLATE\_VARNAMES]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L6002
+ [CUDA\_NVCC\_FLAGS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5477
+ [CUSTOM\_LINK\_STEP\_SCRIPT]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L1561
+ [CXXFLAGS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5471
+ [DARWIN\_SIGNED\_RESOURCE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L7524
+ [DARWIN\_STRINGS\_RESOURCE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L7520
+ [DATA]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L1754
+ [DEB\_VERSION]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5709
+ [DECIMAL\_MD5\_LOWER\_32\_BITS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5382
+ [DECLARE\_EXTERNAL\_HOST\_RESOURCES\_BUNDLE]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8680777#L14
+ [DECLARE\_EXTERNAL\_HOST\_RESOURCES\_PACK]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8680777#L14
+ [DECLARE\_EXTERNAL\_RESOURCE]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8680777#L14
+ [DEFAULT]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8680777#L14
+ [DEPENDENCY\_MANAGEMENT]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L3969
+ [DEPENDS]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8680777#L14
+ [DIRECT\_DEPS\_ONLY]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L4023
+ [DISABLE]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8680777#L14
+ [DLL\_FOR]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8680777#L14
+ [DOCS\_BUILDER]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L2708
+ [DOCS\_CONFIG]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L2732
+ [DOCS\_DIR]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L2719
+ [DOCS\_INCLUDE\_SOURCES]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L2754
+ [DOCS\_VARS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L2743
+ [DUMPERF\_CODEGEN]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5434
+ [ELSE]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8680777#L14
+ [ELSEIF]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8680777#L14
+ [EMBED\_JAVA\_VCS\_INFO]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L2790
+ [ENABLE]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8680777#L14
+ [END]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8680777#L14
+ [ENDIF]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8680777#L14
+ [ENV]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L1783
+ [EXCLUDE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L3899
+ [EXCLUDE\_TAGS]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8680777#L14
+ [EXPORTS\_SCRIPT]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L1537
+ [EXPORT\_ALL\_DYNAMIC\_SYMBOLS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L1551
+ [EXPORT\_YMAPS\_PROTO]: https://a.yandex-team.ru/arc/trunk/arcadia/build/conf/project_specific/maps/sproto.conf?rev=8680777#L4
+ [EXTERNAL\_JAR]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/java.py?rev=8680777#L261
+ [EXTERNAL\_RESOURCE]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8680777#L14
+ [EXTRADIR]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8680777#L14
+ [EXTRALIBS]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8680777#L14
+ [EXTRALIBS\_STATIC]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L4484
+ [FAT\_RESOURCE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/res.py?rev=8680777#L37
+ [FBS\_NAMESPACE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L6451
+ [FILES]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/files.py?rev=8680777#L1
+ [FLATC\_FLAGS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L918
+ [FLAT\_JOIN\_SRCS\_GLOBAL]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L4664
+ [FORK\_SUBTESTS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L4600
+ [FORK\_TESTS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L4587
+ [FORK\_TEST\_FILES]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L4624
+ [FROM\_ARCHIVE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5972
+ [FROM\_MDS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5943
+ [FROM\_NPM]: https://a.yandex-team.ru/arc/trunk/arcadia/build/conf/ts.conf?rev=8680777#L45
+ [FROM\_SANDBOX]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5935
+ [FUZZ\_DICTS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L1698
+ [FUZZ\_OPTS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L1717
+ [GENERATED\_SRCS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L6031
+ [GENERATE\_ENUM\_SERIALIZATION]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5690
+ [GENERATE\_ENUM\_SERIALIZATION\_WITH\_HEADER]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5701
+ [GENERATE\_PY\_PROTOS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L4517
+ [GENERATE\_SCRIPT]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/java.py?rev=8680777#L60
+ [GEN\_SCHEEME2]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5835
+ [GLOBAL\_SRCS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L2477
+ [GO\_ASM\_FLAGS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L6701
+ [GO\_BENCH\_TIMEOUT]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L7307
+ [GO\_CGO1\_FLAGS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L6708
+ [GO\_CGO2\_FLAGS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L6715
+ [GO\_COMPILE\_FLAGS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L6722
+ [GO\_EMBED\_DIR]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L6925
+ [GO\_EMBED\_PATTERN]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L6893
+ [GO\_EMBED\_TEST\_DIR]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L6932
+ [GO\_EMBED\_XTEST\_DIR]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L6939
+ [GO\_FAKE\_OUTPUT]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/plugins/plugin_go_fake_output_handler.cpp?rev=8680777#L110
+ [GO\_GRPC\_GATEWAY\_SRCS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L6979
+ [GO\_GRPC\_GATEWAY\_SWAGGER\_SRCS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L6986
+ [GO\_LDFLAGS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L6844
+ [GO\_LINK\_FLAGS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L6729
+ [GO\_MOCKGEN\_FROM]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L7341
+ [GO\_MOCKGEN\_MOCKS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L7362
+ [GO\_MOCKGEN\_REFLECT]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L7349
+ [GO\_MOCKGEN\_TYPES]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L7345
+ [GO\_PACKAGE\_NAME]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L6800
+ [GO\_PROTO\_PLUGIN]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L716
+ [GO\_SKIP\_TESTS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L6869
+ [GO\_TEST\_EMBED\_PATTERN]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L6900
+ [GO\_TEST\_FOR]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8680777#L14
+ [GO\_TEST\_SRCS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L6816
+ [GO\_XTEST\_EMBED\_PATTERN]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L6907
+ [GO\_XTEST\_SRCS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L6824
+ [GRPC]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L903
+ [IDEA\_EXCLUDE\_DIRS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L3835
+ [IDEA\_MODULE\_NAME]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L3853
+ [IDEA\_RESOURCE\_DIRS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L3844
+ [IF]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8680777#L14
+ [INCLUDE]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8680777#L14
+ [INCLUDE\_TAGS]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8680777#L14
+ [INDUCED\_DEPS]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8680777#L14
+ [IOS\_APP\_ASSETS\_FLAGS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L7516
+ [IOS\_APP\_COMMON\_FLAGS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L7511
+ [IOS\_APP\_SETTINGS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/ios_app_settings.py?rev=8680777#L5
+ [IOS\_ASSETS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/ios_assets.py?rev=8680777#L6
+ [JAR\_ANNOTATION\_PROCESSOR]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L2883
+ [JAR\_EXCLUDE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L4138
+ [JAR\_INCLUDE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L4131
+ [JAR\_RESOURCE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L2936
+ [JAR\_SRCS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L2837
+ [JAVAC\_FLAGS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L3861
+ [JAVA\_DEPENDENCIES\_CONFIGURATION]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L4118
+ [JAVA\_EXTERNAL\_DEPENDENCIES]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L4031
+ [JAVA\_IGNORE\_CLASSPATH\_CLASH\_FOR]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L7373
+ [JAVA\_MODULE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/java.py?rev=8680777#L77
+ [JAVA\_PROTO\_PLUGIN]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L582
+ [JAVA\_RESOURCE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L3066
+ [JAVA\_SRCS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L3928
+ [JAVA\_TEST]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/ytest.py?rev=8680777#L697
+ [JAVA\_TEST\_DEPS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/ytest.py?rev=8680777#L786
+ [JOINSRC]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5610
+ [JOIN\_SRCS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L4644
+ [JOIN\_SRCS\_GLOBAL]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L4654
+ [JVM\_ARGS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L3683
+ [KOTLINC\_FLAGS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L4002
+ [LARGE\_FILES]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5963
+ [LDFLAGS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5443
+ [LICENSE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/conf/license.conf?rev=8680777#L305
+ [LICENSE\_TEXTS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L7795
+ [LINKER\_SCRIPT]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/linker_script.py?rev=8680777#L1
+ [LINT]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L1832
+ [LJ\_21\_ARCHIVE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/lj_archive.py?rev=8680777#L23
+ [LJ\_ARCHIVE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/lj_archive.py?rev=8680777#L1
+ [LLVM\_BC]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/llvm_bc.py?rev=8680777#L6
+ [LLVM\_COMPILE\_C]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L6058
+ [LLVM\_COMPILE\_CXX]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L6049
+ [LLVM\_COMPILE\_LL]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L6076
+ [LLVM\_LINK]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L6085
+ [LLVM\_OPT]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L6094
+ [LOCAL\_JAR]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L2944
+ [LOCAL\_SOURCES\_JAR]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L2947
+ [LUA]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5886
+ [MACROS\_WITH\_ERROR]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/macros_with_error.py?rev=8680777#L8
+ [MAPKITIDL]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/plugins/plugin_mapkitidl_handler.cpp?rev=8680777#L397
+ [MAPKIT\_ADDINCL]: https://a.yandex-team.ru/arc/trunk/arcadia/build/conf/project_specific/maps/mapkit.conf?rev=8680777#L2
+ [MASMFLAGS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5458
+ [MAVEN\_GROUP\_ID]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L3880
+ [MESSAGE]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8680777#L14
+ [METAQUERYFILES]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L7828
+ [MX\_FORMULAS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/mx_archive.py?rev=8680777#L1
+ [NEED\_CHECK]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5773
+ [NEED\_REVIEW]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5790
+ [NGINX\_MODULES]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L7741
+ [NODE\_MODULES]: https://a.yandex-team.ru/arc/trunk/arcadia/build/conf/ts.conf?rev=8680777#L54
+ [NO\_BUILD\_IF]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8680777#L14
+ [NO\_CHECK\_IMPORTS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L6126
+ [NO\_CLANG\_COVERAGE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5631
+ [NO\_CLANG\_TIDY]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5635
+ [NO\_COMPILER\_WARNINGS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5505
+ [NO\_CPU\_CHECK]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L4742
+ [NO\_CYTHON\_COVERAGE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5650
+ [NO\_DEBUG\_INFO]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5993
+ [NO\_DOCTESTS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L1839
+ [NO\_EXPORT\_DYNAMIC\_SYMBOLS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L1544
+ [NO\_GPL]: https://a.yandex-team.ru/arc/trunk/arcadia/build/conf/license.conf?rev=8680777#L333
+ [NO\_JOIN\_SRC]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5604
+ [NO\_LIBC]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5570
+ [NO\_LINT]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L1825
+ [NO\_MYPY]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L791
+ [NO\_NEED\_CHECK]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5781
+ [NO\_OPTIMIZE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5498
+ [NO\_PLATFORM]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5580
+ [NO\_PYTHON\_COVERAGE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5642
+ [NO\_RUNTIME]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5559
+ [NO\_SANITIZE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5617
+ [NO\_SANITIZE\_COVERAGE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5624
+ [NO\_SSE4]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L4735
+ [NO\_UTIL]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5548
+ [NO\_WERROR]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5520
+ [NO\_WSHADOW]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5526
+ [NVCC\_DEVICE\_LINK]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5485
+ [ONLY\_TAGS]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8680777#L14
+ [ORIGINAL\_SOURCE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L7784
+ [OWNER]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8680777#L14
+ [PACK]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L2521
+ [PACKAGE\_STRICT]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L2526
+ [PACK\_GLOBALS\_IN\_LIBRARY]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L2143
+ [PARTITIONED\_RECURSE]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8680777#L14
+ [PARTITIONED\_RECURSE\_FOR\_TESTS]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8680777#L14
+ [PARTITIONED\_RECURSE\_ROOT\_RELATIVE]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8680777#L14
+ [PEERDIR]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8680777#L14
+ [PIRE\_INLINE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5313
+ [PIRE\_INLINE\_CMD]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5308
+ [PRINT\_MODULE\_TYPE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/print_module_type.py?rev=8680777#L1
+ [PROCESS\_DOCS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/docs.py?rev=8680777#L35
+ [PROCESS\_DOCSLIB]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/docs.py?rev=8680777#L31
+ [PROGUARD\_RULES]: https://a.yandex-team.ru/arc/trunk/arcadia/build/conf/project_specific/maps/aar.conf?rev=8680777#L13
+ [PROTO2FBS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L848
+ [PROTO\_ADDINCL]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L504
+ [PROTO\_NAMESPACE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L520
+ [PROVIDES]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8680777#L14
+ [PYTHON]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5908
+ [PYTHON2\_ADDINCL]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L4247
+ [PYTHON2\_MODULE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L2335
+ [PYTHON3\_ADDINCL]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L4291
+ [PYTHON3\_MODULE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L2346
+ [PYTHON\_PATH]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L1809
+ [PY\_CONSTRUCTOR]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/pybuild.py?rev=8680777#L595
+ [PY\_DOCTESTS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/pybuild.py?rev=8680777#L522
+ [PY\_ENUMS\_SERIALIZATION]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/pybuild.py?rev=8680777#L609
+ [PY\_EXTRA\_LINT\_FILES]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L7437
+ [PY\_MAIN]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/pybuild.py?rev=8680777#L578
+ [PY\_NAMESPACE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L2764
+ [PY\_PROTOS\_FOR]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8680777#L14
+ [PY\_PROTO\_PLUGIN]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L558
+ [PY\_PROTO\_PLUGIN2]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L569
+ [PY\_REGISTER]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/pybuild.py?rev=8680777#L540
+ [PY\_SRCS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L7403
+ [PY\_SSQLS\_SRCS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L7715
+ [RECURSE]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8680777#L14
+ [RECURSE\_FOR\_TESTS]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8680777#L14
+ [RECURSE\_ROOT\_RELATIVE]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8680777#L14
+ [REGISTER\_SANDBOX\_IMPORT]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/sandbox_registry.py?rev=8680777#L6
+ [REGISTER\_YQL\_PYTHON\_UDF]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/yql_python_udf.py?rev=8680777#L10
+ [REQUIREMENTS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L1775
+ [REQUIRES]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L410
+ [RESOLVE\_PROTO]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L2588
+ [RESOURCE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L485
+ [RESOURCE\_FILES]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/res.py?rev=8680777#L53
+ [RESTRICT\_LICENSES]: https://a.yandex-team.ru/arc/trunk/arcadia/build/conf/license.conf?rev=8680777#L321
+ [RESTRICT\_PATH]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/macros_with_error.py?rev=8680777#L13
+ [RUN]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/ytest.py?rev=8680777#L925
+ [RUN\_ANTLR]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L6166
+ [RUN\_ANTLR4]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L6174
+ [RUN\_ANTLR4\_CPP]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L6187
+ [RUN\_ANTLR4\_GO]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L6195
+ [RUN\_JAR\_PROGRAM]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L2877
+ [RUN\_JAVA\_PROGRAM]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/java.py?rev=8680777#L34
+ [RUN\_PROGRAM]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5864
+ [RUN\_PYTHON]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L6158
+ [SDBUS\_CPP\_ADAPTOR]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L7690
+ [SDBUS\_CPP\_PROXY]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L7695
+ [SET]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8680777#L14
+ [SETUP\_EXECTEST]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/ytest.py?rev=8680777#L931
+ [SETUP\_PYTEST\_BIN]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/ytest.py?rev=8680777#L915
+ [SETUP\_RUN\_PYTHON]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/ytest.py?rev=8680777#L943
+ [SET\_APPEND]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8680777#L14
+ [SET\_APPEND\_WITH\_GLOBAL]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8680777#L14
+ [SET\_COMPILE\_OUTPUTS\_MODIFIERS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L4760
+ [SIZE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L4635
+ [SKIP\_TEST]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L1817
+ [SOURCE\_GROUP]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8680777#L14
+ [SPLIT\_CODEGEN]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/split_codegen.py?rev=8680777#L9
+ [SPLIT\_DWARF]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L4468
+ [SPLIT\_FACTOR]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L4613
+ [SRC]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5069
+ [SRCDIR]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8680777#L14
+ [SRCS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5088
+ [SRC\_CPP\_AVX]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5174
+ [SRC\_CPP\_AVX2]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5180
+ [SRC\_CPP\_PIC]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5138
+ [SRC\_CPP\_SSE2]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5144
+ [SRC\_CPP\_SSE3]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5150
+ [SRC\_CPP\_SSE4]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5168
+ [SRC\_CPP\_SSE41]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5162
+ [SRC\_CPP\_SSSE3]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5156
+ [SRC\_C\_AVX]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5126
+ [SRC\_C\_AVX2]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5132
+ [SRC\_C\_SSE2]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5096
+ [SRC\_C\_SSE3]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5102
+ [SRC\_C\_SSE4]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5120
+ [SRC\_C\_SSE41]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5114
+ [SRC\_C\_SSSE3]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5108
+ [SRC\_RESOURCE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L2940
+ [STRIP]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5492
+ [STRUCT\_CODEGEN]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5427
+ [STYLE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L1910
+ [SUBSCRIBER]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8680777#L14
+ [SUPPRESSIONS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/suppressions.py?rev=8680777#L1
+ [SYMLINK]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5841
+ [SYSTEM\_PROPERTIES]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L3673
+ [TAG]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L1765
+ [TASKLET]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L6213
+ [TASKLET\_REG]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L6233
+ [TASKLET\_REG\_EXT]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L6248
+ [TEST\_CWD]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L3712
+ [TEST\_DATA]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/ytest.py?rev=8680777#L34
+ [TEST\_JAVA\_CLASSPATH\_CMD\_TYPE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L4102
+ [TEST\_SRCS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L1740
+ [TIMEOUT]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L4572
+ [UBERJAR]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L3735
+ [UBERJAR\_APPENDING\_TRANSFORMER]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L3813
+ [UBERJAR\_HIDE\_EXCLUDE\_PATTERN]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L3761
+ [UBERJAR\_HIDING\_PREFIX]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L3747
+ [UBERJAR\_MANIFEST\_TRANSFORMER\_ATTRIBUTE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L3798
+ [UBERJAR\_MANIFEST\_TRANSFORMER\_MAIN]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L3786
+ [UBERJAR\_PATH\_EXCLUDE\_PREFIX]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L3774
+ [UBERJAR\_SERVICES\_RESOURCE\_TRANSFORMER]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L3825
+ [UDF\_NO\_PROBE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/conf/project_specific/yql_udf.conf?rev=8680777#L45
+ [UPDATE\_VCS\_JAVA\_INFO\_NODEP]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5363
+ [USE\_COMMON\_GOOGLE\_APIS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L679
+ [USE\_CXX]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5589
+ [USE\_ERROR\_PRONE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L3701
+ [USE\_EXT\_PROTO]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L6427
+ [USE\_JAVALITE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L811
+ [USE\_PERL\_514\_LIB]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L4377
+ [USE\_PERL\_LIB]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L4371
+ [USE\_PLANTUML]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L2641
+ [USE\_PYTHON2]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L4337
+ [USE\_PYTHON3]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L4353
+ [USE\_RECIPE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L1800
+ [USE\_SKIFF]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L633
+ [USE\_UTIL]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5597
+ [VERSION]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5798
+ [VISIBILITY]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L7670
+ [WERROR]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5513
+ [WINDOWS\_MANIFEST]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L7657
+ [WITHOUT\_LICENSE\_TEXTS]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L7802
+ [WITH\_GROOVY]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L3994
+ [WITH\_JDK]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L3978
+ [WITH\_KOTLIN]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L3986
+ [WITH\_KOTLINC\_ALLOPEN]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L4010
+ [XS\_PROTO]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L839
+ [YABS\_GENERATE\_CONF]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/yabs_generate_conf.py?rev=8680777#L10
+ [YABS\_GENERATE\_PHANTOM\_CONF\_PATCH]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/yabs_generate_conf.py?rev=8680777#L35
+ [YABS\_GENERATE\_PHANTOM\_CONF\_TEST\_CHECK]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/yabs_generate_conf.py?rev=8680777#L53
+ [YDL\_DESC\_USE\_BINARY]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L5060
+ [YMAPS\_SPROTO]: https://a.yandex-team.ru/arc/trunk/arcadia/build/conf/project_specific/maps/sproto.conf?rev=8680777#L16
+ [YP\_PROTO\_YSON]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L750
+ [YQL\_ABI\_VERSION]: https://a.yandex-team.ru/arc/trunk/arcadia/build/conf/project_specific/yql_udf.conf?rev=8680777#L137
+ [YQL\_LAST\_ABI\_VERSION]: https://a.yandex-team.ru/arc/trunk/arcadia/build/conf/project_specific/yql_udf.conf?rev=8680777#L146
+ [YT\_SPEC]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8680777#L1730

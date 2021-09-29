@@ -326,6 +326,7 @@
   - sys/mpctl.h
   - sys/mutex.h
   - sys/rwlock.h
+  - sys/semaphore.h
   - sys/smp.h
   - sys/stdint.h
   - sys/systm.h
@@ -789,7 +790,6 @@
   - tr1/functional
   - time64.h
   - extern.h
-  - reentrant.h
   #if defined(__FreeBSD__)
   - _ctype.h
   - alias.h

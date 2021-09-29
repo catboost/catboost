@@ -53,15 +53,17 @@ private:
 class TThreadPoolException: public yexception {
 };
 
-template<class T>
-class TThrFuncObj : public IObjectInQueue {
+template <class T>
+class TThrFuncObj: public IObjectInQueue {
 public:
     TThrFuncObj(const T& func)
-        : Func(func) {
+        : Func(func)
+    {
     }
 
     TThrFuncObj(T&& func)
-        : Func(std::move(func)) {
+        : Func(std::move(func))
+    {
     }
 
     void Process(void*) override {
@@ -73,7 +75,7 @@ private:
     T Func;
 };
 
-template<class T>
+template <class T>
 IObjectInQueue* MakeThrFuncObj(T&& func) {
     return new TThrFuncObj<std::remove_cv_t<std::remove_reference_t<T>>>(std::forward<T>(func));
 }
@@ -146,7 +148,7 @@ public:
      */
     void SafeAdd(IObjectInQueue* obj);
 
-    template<class T>
+    template <class T>
     void SafeAddFunc(T&& func) {
         Y_ENSURE_EX(AddFunc(std::forward<T>(func)), TThreadPoolException() << TStringBuf("can not add function to queue"));
     }
@@ -161,7 +163,7 @@ public:
      */
     virtual bool Add(IObjectInQueue* obj) Y_WARN_UNUSED_RESULT = 0;
 
-    template<class T>
+    template <class T>
     Y_WARN_UNUSED_RESULT bool AddFunc(T&& func) {
         THolder<IObjectInQueue> wrapper(MakeThrFuncObj(std::forward<T>(func)));
         bool added = Add(wrapper.Get());
@@ -343,8 +345,8 @@ public:
     {
     }
 
-    template <class ...Args>
-    inline TThreadPoolBinder(TSlave* slave, Args&& ...args)
+    template <class... Args>
+    inline TThreadPoolBinder(TSlave* slave, Args&&... args)
         : TQueueType(std::forward<Args>(args)...)
         , Slave_(slave)
     {

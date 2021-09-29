@@ -1,6 +1,7 @@
 UNITTEST_FOR(util)
 
 
+SUBSCRIBER(g:util-subscribers)
 
 FORK_TESTS()
 
@@ -34,7 +35,6 @@ SRCS(
     system/condvar_ut.cpp
     system/cpu_id_ut.cpp
     system/datetime_ut.cpp
-    system/demangle_ut.cpp
     system/daemon_ut.cpp
     system/direct_io_ut.cpp
     system/env_ut.cpp
@@ -71,6 +71,7 @@ SRCS(
     system/thread_ut.cpp
     system/tls_ut.cpp
     system/types_ut.cpp
+    system/type_name_ut.cpp
     system/user_ut.cpp
     system/unaligned_mem_ut.cpp
     system/yassert_ut.cpp

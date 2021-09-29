@@ -1,4 +1,4 @@
-PYTEST()
+PY2TEST()
 
 
 
@@ -6,11 +6,18 @@ PEERDIR(
     contrib/python/traitlets
 )
 
-SRCDIR(contrib/python/traitlets/py2)
+ENV(
+    YA_PYTEST_DISABLE_DOCTEST=yes
+)
+
+SRCDIR(contrib/python/traitlets/py2/traitlets)
 
 TEST_SRCS(
-    traitlets/tests/test_traitlets.py
-    traitlets/tests/test_traitlets_enum.py
+    tests/__init__.py
+    tests/_warnings.py
+    tests/test_traitlets.py
+    tests/test_traitlets_enum.py
+    tests/utils.py
 )
 
 NO_LINT()

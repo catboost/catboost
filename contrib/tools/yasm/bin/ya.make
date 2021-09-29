@@ -2,13 +2,19 @@
 
 PROGRAM(yasm)
 
+IF (MUSL)
+    PEERDIR(contrib/libs/musl_extra)
+    PEERDIR(contrib/libs/jemalloc)
+    DISABLE(USE_ASMLIB)
+    NO_RUNTIME()
+    ENABLE(MUSL_LITE)
+ELSE()
+    NO_PLATFORM()
+ENDIF()
+
 NO_CLANG_COVERAGE()
-
 NO_COMPILER_WARNINGS()
-
 NO_UTIL()
-
-NO_PLATFORM()
 
 ALLOCATOR(FAKE)
 

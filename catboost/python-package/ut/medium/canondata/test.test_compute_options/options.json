@@ -1,275 +1,275 @@
 {
     "boosting_options": {
-        "approx_on_full_history": false, 
-        "boost_from_average": true, 
-        "boosting_type": "Plain", 
-        "fold_len_multiplier": 2, 
-        "fold_permutation_block": 0, 
-        "iterations": 1000, 
-        "learning_rate": 0.11002399772405624, 
-        "model_shrink_mode": "Constant", 
-        "model_shrink_rate": 0, 
+        "approx_on_full_history": false,
+        "boost_from_average": true,
+        "boosting_type": "Plain",
+        "fold_len_multiplier": 2,
+        "fold_permutation_block": 0,
+        "iterations": 1000,
+        "learning_rate": 0.10492900013923645,
+        "model_shrink_mode": "Constant",
+        "model_shrink_rate": 0,
         "od_config": {
-            "stop_pvalue": 0, 
-            "type": "None", 
+            "stop_pvalue": 0,
+            "type": "None",
             "wait_iterations": 20
-        }, 
-        "permutation_count": 4, 
+        },
+        "permutation_count": 4,
         "posterior_sampling": false
-    }, 
+    },
     "cat_feature_params": {
         "combinations_ctrs": [
             {
                 "ctr_binarization": {
-                    "border_count": 15, 
+                    "border_count": 15,
                     "border_type": "Uniform"
-                }, 
-                "ctr_type": "Borders", 
-                "prior_estimation": "No", 
+                },
+                "ctr_type": "Borders",
+                "prior_estimation": "No",
                 "priors": [
                     [
-                        0, 
+                        0,
                         1
-                    ], 
+                    ],
                     [
-                        0.5, 
+                        0.5,
                         1
-                    ], 
+                    ],
                     [
-                        1, 
+                        1,
                         1
                     ]
-                ], 
+                ],
                 "target_binarization": {
-                    "border_count": 1, 
+                    "border_count": 1,
                     "border_type": "MinEntropy"
                 }
-            }, 
+            },
             {
                 "ctr_binarization": {
-                    "border_count": 15, 
+                    "border_count": 15,
                     "border_type": "Uniform"
-                }, 
-                "ctr_type": "Counter", 
-                "prior_estimation": "No", 
+                },
+                "ctr_type": "Counter",
+                "prior_estimation": "No",
                 "priors": [
                     [
-                        0, 
+                        0,
                         1
                     ]
                 ]
             }
-        ], 
-        "counter_calc_method": "SkipTest", 
-        "ctr_leaf_count_limit": 18446744073709551615, 
-        "max_ctr_complexity": 4, 
-        "one_hot_max_size": 2, 
-        "per_feature_ctrs": {}, 
+        ],
+        "counter_calc_method": "SkipTest",
+        "ctr_leaf_count_limit": 18446744073709551615,
+        "max_ctr_complexity": 4,
+        "one_hot_max_size": 2,
+        "per_feature_ctrs": {},
         "simple_ctrs": [
             {
                 "ctr_binarization": {
-                    "border_count": 15, 
+                    "border_count": 15,
                     "border_type": "Uniform"
-                }, 
-                "ctr_type": "Borders", 
-                "prior_estimation": "No", 
+                },
+                "ctr_type": "Borders",
+                "prior_estimation": "No",
                 "priors": [
                     [
-                        0, 
+                        0,
                         1
-                    ], 
+                    ],
                     [
-                        0.5, 
+                        0.5,
                         1
-                    ], 
+                    ],
                     [
-                        1, 
+                        1,
                         1
                     ]
-                ], 
+                ],
                 "target_binarization": {
-                    "border_count": 1, 
+                    "border_count": 1,
                     "border_type": "MinEntropy"
                 }
-            }, 
+            },
             {
                 "ctr_binarization": {
-                    "border_count": 15, 
+                    "border_count": 15,
                     "border_type": "Uniform"
-                }, 
-                "ctr_type": "Counter", 
-                "prior_estimation": "No", 
+                },
+                "ctr_type": "Counter",
+                "prior_estimation": "No",
                 "priors": [
                     [
-                        0, 
+                        0,
                         1
                     ]
                 ]
             }
-        ], 
-        "store_all_simple_ctr": false, 
+        ],
+        "store_all_simple_ctr": false,
         "target_binarization": {
-            "border_count": 1, 
+            "border_count": 1,
             "border_type": "MinEntropy"
         }
-    }, 
+    },
     "data_processing_options": {
-        "allow_const_label": false, 
-        "auto_class_weights": "None", 
-        "class_names": [], 
-        "class_weights": [], 
-        "classes_count": 0, 
-        "dev_default_value_fraction_for_sparse": 0.8299999833106995, 
-        "dev_group_features": false, 
-        "dev_leafwise_scoring": false, 
-        "dev_sparse_array_indexing": "Indices", 
+        "allow_const_label": false,
+        "auto_class_weights": "None",
+        "class_names": [],
+        "class_weights": [],
+        "classes_count": 0,
+        "dev_default_value_fraction_for_sparse": 0.8299999833106995,
+        "dev_group_features": false,
+        "dev_leafwise_scoring": false,
+        "dev_sparse_array_indexing": "Indices",
         "float_features_binarization": {
-            "border_count": 254, 
-            "border_type": "GreedyLogSum", 
-            "dev_max_subset_size_for_build_borders": 200000, 
+            "border_count": 254,
+            "border_type": "GreedyLogSum",
+            "dev_max_subset_size_for_build_borders": 200000,
             "nan_mode": "Min"
-        }, 
-        "has_time": false, 
-        "ignored_features": [], 
-        "per_float_feature_quantization": {}, 
-        "target_border": null, 
+        },
+        "has_time": false,
+        "ignored_features": [],
+        "per_float_feature_quantization": {},
+        "target_border": null,
         "text_processing_options": {
             "dictionaries": [
                 {
-                    "dictionary_id": "BiGram", 
-                    "end_of_sentence_token_policy": "Skip", 
-                    "end_of_word_token_policy": "Insert", 
-                    "gram_order": "2", 
-                    "max_dictionary_size": "50000", 
-                    "occurrence_lower_bound": "5", 
-                    "skip_step": "0", 
-                    "start_token_id": "0", 
+                    "dictionary_id": "BiGram",
+                    "end_of_sentence_token_policy": "Skip",
+                    "end_of_word_token_policy": "Insert",
+                    "gram_order": "2",
+                    "max_dictionary_size": "50000",
+                    "occurrence_lower_bound": "5",
+                    "skip_step": "0",
+                    "start_token_id": "0",
                     "token_level_type": "Word"
-                }, 
+                },
                 {
-                    "dictionary_id": "Word", 
-                    "end_of_sentence_token_policy": "Skip", 
-                    "end_of_word_token_policy": "Insert", 
-                    "gram_order": "1", 
-                    "max_dictionary_size": "50000", 
-                    "occurrence_lower_bound": "5", 
-                    "skip_step": "0", 
-                    "start_token_id": "0", 
+                    "dictionary_id": "Word",
+                    "end_of_sentence_token_policy": "Skip",
+                    "end_of_word_token_policy": "Insert",
+                    "gram_order": "1",
+                    "max_dictionary_size": "50000",
+                    "occurrence_lower_bound": "5",
+                    "skip_step": "0",
+                    "start_token_id": "0",
                     "token_level_type": "Word"
                 }
-            ], 
+            ],
             "feature_processing": {
                 "default": [
                     {
                         "dictionaries_names": [
-                            "BiGram", 
+                            "BiGram",
                             "Word"
-                        ], 
+                        ],
                         "feature_calcers": [
                             "BoW"
-                        ], 
+                        ],
                         "tokenizers_names": [
                             "Space"
                         ]
-                    }, 
+                    },
                     {
                         "dictionaries_names": [
                             "Word"
-                        ], 
+                        ],
                         "feature_calcers": [
                             "NaiveBayes"
-                        ], 
+                        ],
                         "tokenizers_names": [
                             "Space"
                         ]
                     }
                 ]
-            }, 
+            },
             "tokenizers": [
                 {
-                    "delimiter": " ", 
-                    "languages": [], 
-                    "lemmatizing": "0", 
-                    "lowercasing": "0", 
-                    "number_process_policy": "LeaveAsIs", 
-                    "number_token": "\ud83d\udd22", 
-                    "separator_type": "ByDelimiter", 
-                    "skip_empty": "1", 
-                    "split_by_set": "0", 
-                    "subtokens_policy": "SingleToken", 
+                    "delimiter": " ",
+                    "languages": [],
+                    "lemmatizing": "0",
+                    "lowercasing": "0",
+                    "number_process_policy": "LeaveAsIs",
+                    "number_token": "\ud83d\udd22",
+                    "separator_type": "ByDelimiter",
+                    "skip_empty": "1",
+                    "split_by_set": "0",
+                    "subtokens_policy": "SingleToken",
                     "token_types": [
-                        "Number", 
-                        "Unknown", 
+                        "Number",
+                        "Unknown",
                         "Word"
-                    ], 
+                    ],
                     "tokenizer_id": "Space"
                 }
             ]
         }
-    }, 
-    "detailed_profile": false, 
+    },
+    "detailed_profile": false,
     "flat_params": {
         "thread_count": 1
-    }, 
-    "logging_level": "Verbose", 
+    },
+    "logging_level": "Verbose",
     "loss_function": {
-        "params": {}, 
+        "params": {},
         "type": "RMSE"
-    }, 
-    "metadata": {}, 
+    },
+    "metadata": {},
     "metrics": {
-        "custom_metrics": [], 
+        "custom_metrics": [],
         "eval_metric": {
-            "params": {}, 
+            "params": {},
             "type": "RMSE"
-        }, 
+        },
         "objective_metric": {
-            "params": {}, 
+            "params": {},
             "type": "RMSE"
         }
-    }, 
+    },
     "pool_metainfo_options": {
         "tags": {}
-    }, 
-    "random_seed": 0, 
+    },
+    "random_seed": 0,
     "system_options": {
-        "file_with_hosts": "hosts.txt", 
-        "node_port": 0, 
-        "node_type": "SingleHost", 
-        "thread_count": 1, 
+        "file_with_hosts": "hosts.txt",
+        "node_port": 0,
+        "node_type": "SingleHost",
+        "thread_count": 1,
         "used_ram_limit": ""
-    }, 
-    "task_type": "CPU", 
+    },
+    "task_type": "CPU",
     "tree_learner_options": {
-        "bayesian_matrix_reg": 0.10000000149011612, 
+        "bayesian_matrix_reg": 0.10000000149011612,
         "bootstrap": {
-            "mvs_reg": null, 
-            "subsample": 0.800000011920929, 
+            "mvs_reg": null,
+            "subsample": 0.800000011920929,
             "type": "MVS"
-        }, 
-        "depth": 6, 
-        "dev_efb_max_buckets": 1024, 
-        "dev_leafwise_approxes": false, 
-        "dev_score_calc_obj_block_size": 5000000, 
-        "grow_policy": "SymmetricTree", 
-        "l2_leaf_reg": 3, 
-        "leaf_estimation_backtracking": "AnyImprovement", 
-        "leaf_estimation_iterations": 1, 
-        "leaf_estimation_method": "Newton", 
-        "max_leaves": 64, 
-        "min_data_in_leaf": 1, 
-        "model_size_reg": 0.5, 
-        "monotone_constraints": {}, 
+        },
+        "depth": 6,
+        "dev_efb_max_buckets": 1024,
+        "dev_leafwise_approxes": false,
+        "dev_score_calc_obj_block_size": 5000000,
+        "grow_policy": "SymmetricTree",
+        "l2_leaf_reg": 3,
+        "leaf_estimation_backtracking": "AnyImprovement",
+        "leaf_estimation_iterations": 1,
+        "leaf_estimation_method": "Newton",
+        "max_leaves": 64,
+        "min_data_in_leaf": 1,
+        "model_size_reg": 0.5,
+        "monotone_constraints": {},
         "penalties": {
-            "feature_weights": {}, 
-            "first_feature_use_penalties": {}, 
-            "penalties_coefficient": 1, 
+            "feature_weights": {},
+            "first_feature_use_penalties": {},
+            "penalties_coefficient": 1,
             "per_object_feature_penalties": {}
-        }, 
-        "random_strength": 1, 
-        "rsm": 1, 
-        "sampling_frequency": "PerTree", 
-        "score_function": "Cosine", 
+        },
+        "random_strength": 1,
+        "rsm": 1,
+        "sampling_frequency": "PerTree",
+        "score_function": "Cosine",
         "sparse_features_conflict_fraction": 0
     }
 }

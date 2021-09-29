@@ -57,8 +57,8 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_USE_MATH_DEFINES -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DARCADIA_PYTHON_UNICODE_SIZE=2 /std:c++latest  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_USE_MATH_DEFINES -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DARCADIA_PYTHON_UNICODE_SIZE=2 /std:c++latest  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DFAKEID=8668432 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_USE_MATH_DEFINES -Dinitspecfun=init5scipy7special7specfun -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DARCADIA_PYTHON_UNICODE_SIZE=2 /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF  -DCATBOOST_OPENSOURCE=yes  </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DFAKEID=8668432 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_USE_MATH_DEFINES -Dinitspecfun=init5scipy7special7specfun -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DARCADIA_PYTHON_UNICODE_SIZE=2 /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF  -DCATBOOST_OPENSOURCE=yes  </AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
@@ -66,7 +66,7 @@
       <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/python/scipy/scipy/special;$(SolutionDir)../contrib/python/scipy/scipy/special/c_misc;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)../contrib/libs/libc_compat/include/windows;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/libs/openssl/include;$(SolutionDir)../contrib/restricted/libffi/include;$(SolutionDir)../contrib/restricted/libffi/configs/x86_64-microsoft-windows/include;$(SolutionDir)../contrib/python/numpy/include/numpy/core/include;$(SolutionDir)../contrib/python/numpy/include/numpy/core/include/numpy;$(SolutionDir)../contrib/python/numpy/include/numpy/f2py/src;$(SolutionDir)../contrib/libs/libf2c;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;gdi32.lib;kernel32.lib;ole32.lib;oleaut32.lib;shell32.lib;user32.lib;uuid.lib;winspool.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;dnsapi.lib;gdi32.lib;iphlpapi.lib;kernel32.lib;mswsock.lib;ole32.lib;oleaut32.lib;psapi.lib;rpcrt4.lib;secur32.lib;shell32.lib;shlwapi.lib;user32.lib;userenv.lib;uuid.lib;version.lib;winmm.lib;winspool.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  crypt32.lib ws2_32.lib</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  crypt32.lib ws2_32.lib</AdditionalOptions>
       <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
@@ -78,7 +78,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\5562358320d629a8be3008ea4c.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\Faddeeva.cc"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\_comb.pyx.c">
       <CompileAs>CompileAsC</CompileAs>
@@ -100,11 +99,6 @@
     <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cdf_wrappers.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\scipy.special._comb.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\scipy.special._ellip_harm_2.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\scipy.special._ufuncs.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\scipy.special._ufuncs_cxx.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\scipy.special.specfun.reg.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\sf_error.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
@@ -140,92 +134,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/scipy/scipy/special/_5562358320d629a8be3008ea4c.py2.obj	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\_5562358320d629a8be3008ea4c.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\_5562358320d629a8be3008ea4c.py2.obj;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/5562358320d629a8be3008ea4c.cpp" "_531b2a934779031e0a773f7fa2=/py_modules/scipy.special.__init__" "_90c9b90966554e81a4ba4fe09a=resfs/src//py_modules/scipy.special.__init__" "_eaa6bbacc0723ff06959251039=/py_code/scipy.special.__init__" "_e0b7e94e4c7386d4d2663d1a02=/py_modules/scipy.special.lambertw" "_0d5d5b1097c2ebfcfd7f39be40=resfs/src//py_modules/scipy.special.lambertw" "_adc38b6e7d8fece33ac5e6bf59=/py_code/scipy.special.lambertw" "_ac5e9a1130423d642050fcac0b=/py_modules/scipy.special.orthogonal" "_7a6daed893f6f1eb14e3ce0f59=resfs/src//py_modules/scipy.special.orthogonal" "_d9c1788a5b11347e967ad283e3=/py_code/scipy.special.orthogonal" "_fbbdcf9e5953087a65b7d0c29c=/py_modules/scipy.special._ellip_harm" "_cd9b9beed834f1d97f107fda98=resfs/src//py_modules/scipy.special._ellip_harm" "_b2349140c42ea2b9273769d954=/py_code/scipy.special._ellip_harm" "_df31850021503244d23f7dbd94=/py_modules/scipy.special.basic" "_7a2aa70f4bcbfb7173109bb05f=resfs/src//py_modules/scipy.special.basic" "_8aeaecafcd507db680116ae610=/py_code/scipy.special.basic" "_00581108b3f61430c3a74c4eeb=/py_modules/scipy.special.spfun_stats" "_abb412fa6be9eb8ed5622e67dd=resfs/src//py_modules/scipy.special.spfun_stats" "_ca0729d83252645ca8581294dc=/py_code/scipy.special.spfun_stats" "_5318f7d043b2b8a454eb92fa01=/py_modules/scipy.special.add_newdocs" "_8089c36ddcf746bbd8d66d6e22=resfs/src//py_modules/scipy.special.add_newdocs" "_e00a13b40ccf51dc5c609398e8=/py_code/scipy.special.add_newdocs" "_91d04a227d272479cbc6e08e90=/py_modules/scipy.special._spherical_bessel" "_86b615f6674c660c2256e1d92e=resfs/src//py_modules/scipy.special._spherical_bessel" "_d34d9e2db4eeb38d9f2d0b5139=/py_code/scipy.special._spherical_bessel"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/5562358320d629a8be3008ea4c.cpp" "_531b2a934779031e0a773f7fa2=/py_modules/scipy.special.__init__" "_90c9b90966554e81a4ba4fe09a=resfs/src//py_modules/scipy.special.__init__" "_eaa6bbacc0723ff06959251039=/py_code/scipy.special.__init__" "_e0b7e94e4c7386d4d2663d1a02=/py_modules/scipy.special.lambertw" "_0d5d5b1097c2ebfcfd7f39be40=resfs/src//py_modules/scipy.special.lambertw" "_adc38b6e7d8fece33ac5e6bf59=/py_code/scipy.special.lambertw" "_ac5e9a1130423d642050fcac0b=/py_modules/scipy.special.orthogonal" "_7a6daed893f6f1eb14e3ce0f59=resfs/src//py_modules/scipy.special.orthogonal" "_d9c1788a5b11347e967ad283e3=/py_code/scipy.special.orthogonal" "_fbbdcf9e5953087a65b7d0c29c=/py_modules/scipy.special._ellip_harm" "_cd9b9beed834f1d97f107fda98=resfs/src//py_modules/scipy.special._ellip_harm" "_b2349140c42ea2b9273769d954=/py_code/scipy.special._ellip_harm" "_df31850021503244d23f7dbd94=/py_modules/scipy.special.basic" "_7a2aa70f4bcbfb7173109bb05f=resfs/src//py_modules/scipy.special.basic" "_8aeaecafcd507db680116ae610=/py_code/scipy.special.basic" "_00581108b3f61430c3a74c4eeb=/py_modules/scipy.special.spfun_stats" "_abb412fa6be9eb8ed5622e67dd=resfs/src//py_modules/scipy.special.spfun_stats" "_ca0729d83252645ca8581294dc=/py_code/scipy.special.spfun_stats" "_5318f7d043b2b8a454eb92fa01=/py_modules/scipy.special.add_newdocs" "_8089c36ddcf746bbd8d66d6e22=resfs/src//py_modules/scipy.special.add_newdocs" "_e00a13b40ccf51dc5c609398e8=/py_code/scipy.special.add_newdocs" "_91d04a227d272479cbc6e08e90=/py_modules/scipy.special._spherical_bessel" "_86b615f6674c660c2256e1d92e=resfs/src//py_modules/scipy.special._spherical_bessel" "_d34d9e2db4eeb38d9f2d0b5139=/py_code/scipy.special._spherical_bessel"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/scipy/scipy/special/5562358320d629a8be3008ea4c.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\5562358320d629a8be3008ea4c.cpp;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_py_reg.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.special._comb" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/scipy.special._comb.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.special._ellip_harm_2" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/scipy.special._ellip_harm_2.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.special._ufuncs" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/scipy.special._ufuncs.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.special._ufuncs_cxx" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/scipy.special._ufuncs_cxx.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.special.specfun" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/scipy.special.specfun.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.special._comb" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/scipy.special._comb.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.special._ellip_harm_2" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/scipy.special._ellip_harm_2.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.special._ufuncs" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/scipy.special._ufuncs.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.special._ufuncs_cxx" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/scipy.special._ufuncs_cxx.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.special.specfun" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/scipy.special.specfun.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/scipy/scipy/special/scipy.special._comb.reg.cpp	$B/contrib/python/scipy/scipy/special/scipy.special._ellip_harm_2.reg.cpp	$B/contrib/python/scipy/scipy/special/scipy.special._ufuncs.reg.cpp	$B/contrib/python/scipy/scipy/special/scipy.special._ufuncs_cxx.reg.cpp	$B/contrib/python/scipy/scipy/special/scipy.special.specfun.reg.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_py_reg.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\scipy.special._comb.reg.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\scipy.special._ellip_harm_2.reg.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\scipy.special._ufuncs.reg.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\scipy.special._ufuncs_cxx.reg.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\scipy.special.specfun.reg.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

@@ -1,10 +1,16 @@
 {
-  "name": "catboost-model",
-  "version": "0.0.1",
+  "name": "catboost",
+  "version": "1.25.1",
   "description": "Node bindings for CatBoost library to apply models. CatBoost is a machine learning method based on gradient boosting over decision trees.",
+  "keywords": [
+    "catboost",
+    "gradient boosting",
+    "machine learning",
+    "ML"
+  ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/ikholopov/catboost.git",
+    "url": "https://github.com/catboost/catboost.git",
     "directory": "catboost/node-package"
   },
   "main": "lib/index.js",
@@ -13,16 +19,21 @@
     "node-addon-api": "^1.1.0"
   },
   "scripts": {
-    "install": "./install.sh",
-    "build": "./build.sh",
-    "compile": "./compile.sh",
-    "test": "npm run compile && node ./lib/tests/model.js",
-    "clean": "rm -r ./build ./lib"
+    "install": "node ./build_scripts/bootstrap.js install",
+    "build": "node ./build_scripts/bootstrap.js build_ya",
+    "ci": "node ./build_scripts/bootstrap.js ci",
+    "compile": "node ./build_scripts/bootstrap.js compile",
+    "package_prepublish": "node ./build_scripts/bootstrap.js package_prepublish",
+    "tsc": "tsc",
+    "test": "node ./build_scripts/bootstrap.js run_tests",
+    "e2e": "node ./build_scripts/bootstrap.js e2e",
+    "clean": "rm -r ./build ./lib ./build_scripts/out ./inc",
+    "compile_build_scripts": "node ./build_scripts/bootstrap.js bootstrap"
   },
   "author": "catboost.ai",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@types/node": "^7.0.22",
-    "typescript": "^3.6.5"
+    "@types/node": "^7.10.14",
+    "typescript": "^3.9.9"
   }
 }

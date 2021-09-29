@@ -149,7 +149,7 @@ namespace NCatboostCuda {
         {
         }
 
-        virtual TMetricHolder Eval(const TStripeBuffer<const float>& target,
+        TMetricHolder Eval(const TStripeBuffer<const float>& target,
                                    const TStripeBuffer<const float>& weights,
                                    const TStripeBuffer<const float>& cursor,
                                    TScopedCacheHolder* cache) const final {
@@ -157,7 +157,7 @@ namespace NCatboostCuda {
             return EvalOnGpu<NCudaLib::TStripeMapping>(target, weights, cursor, cache);
         }
 
-        virtual TMetricHolder Eval(const TMirrorBuffer<const float>& target,
+        TMetricHolder Eval(const TMirrorBuffer<const float>& target,
                                    const TMirrorBuffer<const float>& weights,
                                    const TMirrorBuffer<const float>& cursor,
                                    TScopedCacheHolder* cache) const final {
@@ -344,17 +344,17 @@ namespace NCatboostCuda {
         {
         }
 
-        virtual TMetricHolder Eval(const TStripeBuffer<const float>& target,
+        TMetricHolder Eval(const TStripeBuffer<const float>& target,
                                    const TStripeBuffer<const float>& weights,
                                    const TGpuSamplesGrouping<NCudaLib::TStripeMapping>& samplesGrouping,
-                                   const TStripeBuffer<const float>& cursor) const {
+                                   const TStripeBuffer<const float>& cursor) const override {
             return EvalOnGpu<NCudaLib::TStripeMapping>(target, weights, samplesGrouping, cursor);
         }
 
-        virtual TMetricHolder Eval(const TMirrorBuffer<const float>& target,
+        TMetricHolder Eval(const TMirrorBuffer<const float>& target,
                                    const TMirrorBuffer<const float>& weights,
                                    const TGpuSamplesGrouping<NCudaLib::TMirrorMapping>& samplesGrouping,
-                                   const TMirrorBuffer<const float>& cursor) const {
+                                   const TMirrorBuffer<const float>& cursor) const override {
             return EvalOnGpu<NCudaLib::TMirrorMapping>(target,
                                                        weights,
                                                        samplesGrouping,
@@ -468,7 +468,7 @@ namespace NCatboostCuda {
                                            const TVector<float>& weight,
                                            const TVector<TQueryInfo>& queriesInfo,
                                            NPar::ILocalExecutor* localExecutor) const {
-        const IMetric& metric = GetCpuMetric();
+        const TSingleTargetMetric& metric = dynamic_cast<const TSingleTargetMetric&>(GetCpuMetric());
         const int start = 0;
         const int end = static_cast<const int>(metric.GetErrorType() == EErrorType::PerObjectError ? target.size() : queriesInfo.size());
         CB_ENSURE(approx.size() >= 1);

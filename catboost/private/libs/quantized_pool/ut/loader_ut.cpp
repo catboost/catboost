@@ -18,7 +18,7 @@
 #include <util/random/random.h>
 #include <util/stream/file.h>
 #include <util/string/printf.h>
-#include <util/system/mktemp.h>
+#include <util/system/tempfile.h>
 
 #include <library/cpp/testing/unittest/registar.h>
 
@@ -643,7 +643,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
         srcData.FloatFeatures.push_back(MakeFeaturesColumn<ui8>(EColumn::Num, {{2, 3}, {4, 3, 1}, {0}}));
         srcData.FloatFeatures.push_back(MakeFeaturesColumn<ui8>(EColumn::Num, {{0, 2, 3, 1}, {4}, {2}}));
 
-        srcData.PairsFileData = AsStringBuf(
+        srcData.PairsFileData = TStringBuf(
             "0\t1\t0.1\n"
             "4\t3\t1.0\n"
             "3\t5\t0.2"
@@ -763,7 +763,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
         srcData.Target = TSrcColumn<float>{
             EColumn::Label, {{0.12f, 0.0f}, {0.45f, 0.1f, 0.22f}, {0.42f}}
         };
-        srcData.GroupWeightsFileData = AsStringBuf(
+        srcData.GroupWeightsFileData = TStringBuf(
             "query0\t1.0\n"
             "query1\t0.0\n"
             "Query 2\t0.5"
@@ -1039,7 +1039,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
                     srcData.FloatFeatures.emplace_back(
                         new TSrcColumn<ui8>(
                             NCB::GenerateSrcColumn<ui8>(
-                                Get<TVector<ui8>>(*expectedData.Objects.FloatFeatures.back()),
+                                std::get<TVector<ui8>>(*expectedData.Objects.FloatFeatures.back()),
                                 EColumn::Num
                             )
                         )

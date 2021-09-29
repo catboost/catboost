@@ -97,7 +97,7 @@ namespace {
 
             TFullModel model = ReadModel(modeParams.ModelFileName, modeParams.ModelType);
             CB_ENSURE(model.GetTreeCount() > 0, "Cannot normalize empty model");
-            CB_ENSURE(model.GetDimensionsCount() == 1, "No sense in normalizing a multiclass/multiregression model");
+            CB_ENSURE(model.GetDimensionsCount() == 1, "No sense in normalizing a multiclass/multitarget model");
             TScaleAndBias inputScaleAndBias = model.GetScaleAndBias();
             if (modeParams.PrintScaleAndBias) {
                 Cout << "Input model"

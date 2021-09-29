@@ -104,6 +104,14 @@ PEERDIR(
     library/cpp/threading/local_executor
 )
 
+IF (NOT CATBOOST_OPENSOURCE)
+    CFLAGS(GLOBAL -DUSE_CUSOLVER)
+    SRC(kernel/linear_cusolver.cu)
+    PEERDIR(contrib/libs/nvidia/cusolver)
+ELSE()
+    SRC(kernel/linear_cusolver_stub.cu)
+ENDIF()
+
 INCLUDE(${ARCADIA_ROOT}/catboost/cuda/cuda_lib/default_nvcc_flags.make.inc)
 
 END()

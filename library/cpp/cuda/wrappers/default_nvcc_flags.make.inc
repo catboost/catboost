@@ -12,3 +12,9 @@ CUDA_NVCC_FLAGS(
     -lineinfo
     --use_fast_math
 )
+
+IF (CUDA_VERSION VERSION_GE 11)
+    CUDA_NVCC_FLAGS(
+        -gencode=arch=compute_80,code=sm_80
+    )
+ENDIF()

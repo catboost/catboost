@@ -78,7 +78,9 @@ namespace NHnsw {
                 for (bool entryChanged = true; entryChanged && !distanceCalcLimitReached;) {
                     entryChanged = false;
                     const ui32* neighbors = GetNeighbors(level, entryId);
-                    for (size_t i = 0; i < GetNumNeighbors(level) && !distanceCalcLimitReached; ++i) {
+                    size_t numNeighbors = GetNumNeighbors(level);
+                    PrefetchNeighbors(itemStorage, neighbors, numNeighbors, distanceCalcLimit, nullptr);
+                    for (size_t i = 0; i < numNeighbors && !distanceCalcLimitReached; ++i) {
                         ui32 id = neighbors[i];
                         auto distToQuery = distance(query, itemStorage.GetItem(id));
                         distanceCalcLimitReached = --distanceCalcLimit == 0;
@@ -117,7 +119,9 @@ namespace NHnsw {
                     break;
                 }
                 const ui32* neighbors = GetNeighbors(/*level*/ 0, cur.Id);
-                for (size_t i = 0; i < GetNumNeighbors(/*level*/ 0) && !distanceCalcLimitReached; ++i) {
+                size_t numNeighbors = GetNumNeighbors(/*level*/ 0);
+                PrefetchNeighbors(itemStorage, neighbors, numNeighbors, distanceCalcLimit, &visited);
+                for (size_t i = 0; i < numNeighbors && !distanceCalcLimitReached; ++i) {
                     ui32 id = neighbors[i];
                     if (visited.Has(id)) {
                         continue;
@@ -194,6 +198,28 @@ namespace NHnsw {
         }
         size_t GetNumNeighbors(ui32 level) const {
             return NumNeighborsInLevels[level];
+        }
+
+        template<typename TItemStorage>
+        void PrefetchNeighbors(const TItemStorage&, const ui32*, size_t, size_t, const TDenseHashSet<ui32>*) const {
+            // Do nothing for TItemStorage without PrefetchItem
+        }
+
+        template<typename TItemStorage>
+        requires requires(TItemStorage itemStorage) {
+            itemStorage.PrefetchItem(0);
+        }
+        void PrefetchNeighbors(const TItemStorage& itemStorage, const ui32* neighbors, size_t numNeighbors, size_t distanceCalcLimit, const TDenseHashSet<ui32>* visited) const {
+            for (size_t i = 0; i < numNeighbors; ++i) {
+                ui32 id = neighbors[i];
+                if (visited != nullptr && visited->Has(id)) {
+                    continue;
+                }
+                itemStorage.PrefetchItem(id);
+                if (--distanceCalcLimit == 0) {
+                    break;
+                }
+            }
         }
 
     private:

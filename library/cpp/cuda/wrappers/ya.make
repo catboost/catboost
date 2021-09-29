@@ -4,7 +4,6 @@ LIBRARY()
 
 SRCS(
     base.cpp
-    exception.cpp
     run_gpu_program.cpp
     cuda_event.cpp
     kernel.cu
@@ -22,7 +21,8 @@ IF (CUDA_VERSION VERSION_GE "10.1")
 ENDIF()
 
 PEERDIR(
-    contrib/libs/cub
+    contrib/libs/nvidia/cub
+    library/cpp/cuda/exception
     library/cpp/threading/future
 )
 

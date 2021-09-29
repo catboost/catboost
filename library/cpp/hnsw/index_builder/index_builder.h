@@ -1,9 +1,12 @@
 #pragma once
 
 #include "build_routines.h"
+#include "index_data.h"
 #include "internal_build_options.h"
 
 namespace NHnsw {
+    struct THnswBuildOptions;
+
     /**
  * @brief Method for building HNSW indexes.
  *

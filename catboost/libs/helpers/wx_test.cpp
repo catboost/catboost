@@ -1,34 +1,9 @@
+#include "distribution_helpers.h"
 #include "wx_test.h"
 
 
-static double ErrorFunction(const double x) {
-    double coeffs[] = {
-        -1.26551223,
-        1.00002368,
-        0.37409196,
-        0.09678418,
-        -0.18628806,
-        0.27886807,
-        -1.13520398,
-        1.48851587,
-        -0.82215223,
-        0.17087277
-    };
+using namespace NCB;
 
-    double t = 1.0 / (1.0 + 0.5 * Abs(x));
-    double sum = -x * x;
-    double powT = 1.0;
-    for (double coef : coeffs) {
-        sum += coef * powT;
-        powT *= t;
-    }
-    double tau = t * exp(sum);
-    if (x > 0) {
-        return 1.0 - tau;
-    } else {
-        return tau - 1.0;
-    }
-}
 
 static double NormalCDF(double x) {
     return 0.5 + 0.5 * ErrorFunction(x / sqrt(2.0));

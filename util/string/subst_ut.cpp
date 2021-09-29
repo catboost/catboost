@@ -61,7 +61,7 @@ Y_UNIT_TEST_SUITE(TStringSubst) {
         }
     }
 
-    static void DoTestSubstGlobal(TVector<TString> & parts, const size_t minBeg, const size_t sz,
+    static void DoTestSubstGlobal(TVector<TString>& parts, const size_t minBeg, const size_t sz,
                                   const TString& from, const size_t fromPos, const size_t numSubst) {
         const size_t numLeft = numSubst - parts.size();
         for (size_t fromBeg = minBeg; fromBeg <= sz - numLeft * from.size(); ++fromBeg) {

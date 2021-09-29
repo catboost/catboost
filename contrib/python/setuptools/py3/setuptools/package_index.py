@@ -23,11 +23,12 @@ from pkg_resources import (
     Environment, find_distributions, safe_name, safe_version,
     to_filename, Requirement, DEVELOP_DIST, EGG_DIST,
 )
-from setuptools import ssl_support
 from distutils import log
 from distutils.errors import DistutilsError
 from fnmatch import translate
 from setuptools.wheel import Wheel
+from setuptools.extern.more_itertools import unique_everseen
+
 
 EGG_FRAGMENT = re.compile(r'^egg=([-A-Za-z0-9_.+!]+)$')
 HREF = re.compile(r"""href\s*=\s*['"]?([^'"> ]+)""", re.I)
@@ -161,7 +162,7 @@ def interpret_distro_name(
     # Generate alternative interpretations of a source distro name
     # Because some packages are ambiguous as to name/versions split
     # e.g. "adns-python-1.1.0", "egenix-mx-commercial", etc.
-    # So, we generate each possible interepretation (e.g. "adns, python-1.1.0"
+    # So, we generate each possible interpretation (e.g. "adns, python-1.1.0"
     # "adns-python, 1.1.0", and "adns-python-1.1.0, no version").  In practice,
     # the spurious interpretations should be ignored, because in the event
     # there's also an "adns" package, the spurious "python-1.1.0" version will
@@ -181,25 +182,6 @@ def interpret_distro_name(
             py_version=py_version, precedence=precedence,
             platform=platform
         )
-
-
-# From Python 2.7 docs
-def unique_everseen(iterable, key=None):
-    "List unique elements, preserving order. Remember all elements ever seen."
-    # unique_everseen('AAAABBBCCDAABBB') --> A B C D
-    # unique_everseen('ABBCcAD', str.lower) --> A B C D
-    seen = set()
-    seen_add = seen.add
-    if key is None:
-        for element in itertools.filterfalse(seen.__contains__, iterable):
-            seen_add(element)
-            yield element
-    else:
-        for element in iterable:
-            k = key(element)
-            if k not in seen:
-                seen_add(k)
-                yield element
 
 
 def unique_values(func):
@@ -310,15 +292,7 @@ class PackageIndex(Environment):
         self.package_pages = {}
         self.allows = re.compile('|'.join(map(translate, hosts))).match
         self.to_scan = []
-        use_ssl = (
-            verify_ssl
-            and ssl_support.is_available
-            and (ca_bundle or ssl_support.find_ca_bundle())
-        )
-        if use_ssl:
-            self.opener = ssl_support.opener_for(ca_bundle)
-        else:
-            self.opener = urllib.request.urlopen
+        self.opener = urllib.request.urlopen
 
     # FIXME: 'PackageIndex.process_url' is too complex (14)
     def process_url(self, url, retrieve=False):  # noqa: C901

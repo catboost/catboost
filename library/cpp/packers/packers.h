@@ -105,7 +105,7 @@ namespace NPackers {
 
     template <>
     inline size_t TIntegralPacker<ui64>::MeasureLeaf(const ui64& val) const {
-        const size_t MAX_SIZE = sizeof(ui64) + sizeof(ui64) / 8;
+        constexpr size_t MAX_SIZE = sizeof(ui64) + sizeof(ui64) / 8;
 
         ui64 value = val;
         size_t len = 1;

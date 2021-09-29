@@ -15,7 +15,7 @@ from os.path import commonprefix
 from itertools import groupby
 from operator import itemgetter
 
-CS_ESCAPE = re.compile(r'[\^\\\-\]]')
+CS_ESCAPE = re.compile(r'[\[\^\\\-\]]')
 FIRST_ELEMENT = itemgetter(0)
 
 

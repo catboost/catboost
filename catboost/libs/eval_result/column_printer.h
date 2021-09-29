@@ -284,8 +284,8 @@ namespace NCB {
         const TExternalLabelsHelper& visibleLabelsHelper,
         TMaybe<std::pair<size_t, size_t>> evalParameters,
         TVector<THolder<IColumnPrinter>>* result,
-
-        NPar::ILocalExecutor* executor
+        NPar::ILocalExecutor* executor,
+        double binClassLogitThreshold
     );
 
 

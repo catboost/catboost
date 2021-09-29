@@ -33,6 +33,7 @@
 #include <util/generic/ptr.h>
 #include <util/generic/strbuf.h>
 #include <util/generic/string.h>
+#include <util/generic/variant.h>
 #include <util/generic/vector.h>
 #include <util/generic/xrange.h>
 #include <util/system/types.h>
@@ -48,11 +49,123 @@ namespace NCB {
     /* if groupIds is empty return trivial grouping
      *  checks that groupIds are consecutive
      */
+    template <class TGroupIdClass>
     TObjectsGrouping CreateObjectsGroupingFromGroupIds(
         ui32 objectCount,
-        TMaybeData<TConstArrayRef<TGroupId>> groupIds
-    );
+        TMaybeData<TConstArrayRef<TGroupIdClass>> groupIds
+    ) {
+        if (!groupIds) {
+            return TObjectsGrouping(objectCount);
+        }
+        auto groupIdsData = *groupIds;
 
+        CheckDataSize(groupIdsData.size(), (size_t)objectCount, "group Ids", false);
+
+        return TObjectsGrouping(GroupSamples<TGroupIdClass>(groupIdsData), true);
+    }
+
+    template <class TId>
+    class TMaybeStringOrNumIdColumn {
+    public:
+        TMaybeStringOrNumIdColumn() {}
+
+        TMaybeStringOrNumIdColumn(TVector<TId>&& data)
+            : Data(std::move(data))
+            , StoreStringColumns(false)
+        {}
+
+        TMaybeStringOrNumIdColumn(TVector<TString>&& data)
+            : Data(std::move(data))
+            , StoreStringColumns(true)
+        {}
+
+        bool operator==(const TMaybeStringOrNumIdColumn& rhs) const {
+            return (Data == rhs.Data) && (StoreStringColumns == rhs.StoreStringColumns);
+        }
+
+        void SetStoreStringColumns(bool storeStringColumns) {
+            StoreStringColumns = storeStringColumns;
+            if (storeStringColumns) {
+                Data = TMaybeData<TVector<TString>>();
+            } else {
+                Data = TMaybeData<TVector<TId>>();
+            }
+        }
+
+        void SetStoreStringColumnsVal(bool storeStringColumns) {
+            StoreStringColumns = storeStringColumns;
+        }
+
+        size_t GetSize() const {
+            if (Data.index() == 1) {
+                return std::get<TMaybeData<TVector<TString>>>(Data)->size();
+            } else {
+                return std::get<TMaybeData<TVector<TId>>>(Data)->size();
+            }
+        }
+
+        bool IsDefined() const {
+            if (StoreStringColumns) {
+                return GetMaybeStringData().Defined();
+            } else {
+                return GetMaybeNumData().Defined();
+            }
+        }
+
+        const TMaybeData<TVector<TId>>& GetMaybeNumData() const {
+            CB_ENSURE(!StoreStringColumns);
+            return std::get<TMaybeData<TVector<TId>>>(Data);
+        }
+
+        TMaybeData<TVector<TId>>& GetMaybeNumData() {
+            CB_ENSURE(!StoreStringColumns);
+            return std::get<TMaybeData<TVector<TId>>>(Data);
+        }
+
+        const TMaybeData<TVector<TString>>& GetMaybeStringData() const {
+            CB_ENSURE(StoreStringColumns);
+            return std::get<TMaybeData<TVector<TString>>>(Data);
+        }
+
+        TMaybeData<TVector<TString>>& GetMaybeStringData() {
+            CB_ENSURE(StoreStringColumns);
+            return std::get<TMaybeData<TVector<TString>>>(Data);
+        }
+
+        bool StoreString() const {
+            return StoreStringColumns;
+        }
+
+        SAVELOAD(Data, StoreStringColumns);
+
+    private:
+        std::variant<TMaybeData<TVector<TId>>, TMaybeData<TVector<TString>>> Data;
+        bool StoreStringColumns = false;
+    };
+
+    template <class TId>
+    TMaybeStringOrNumIdColumn<TId> GetSubsetFromMaybeStringOrNumIdColumn(
+        const TMaybeStringOrNumIdColumn<TId>& source,
+        const TArraySubsetIndexing<ui32>& subsetIndexing,
+        TMaybe<NPar::ILocalExecutor*> localExecutor
+    ) {
+        TMaybeStringOrNumIdColumn<TId> result;
+        result.SetStoreStringColumns(source.StoreString());
+        if (source.StoreString()) {
+            result.GetMaybeStringData() = GetSubsetOfMaybeEmpty<TString>(
+                (TMaybeData<TConstArrayRef<TString>>) source.GetMaybeStringData(),
+                subsetIndexing,
+                localExecutor
+            );
+        } else {
+            result.GetMaybeNumData() = GetSubsetOfMaybeEmpty<TId>(
+                (TMaybeData<TConstArrayRef<TId>>) source.GetMaybeNumData(),
+                subsetIndexing,
+                localExecutor
+            );
+        }
+        return result;
+    }
 
     // for use while building
     struct TCommonObjectsData {
@@ -68,8 +181,10 @@ namespace NCB {
 
         EObjectsOrder Order = EObjectsOrder::Undefined;
 
-        TMaybeData<TVector<TGroupId>> GroupIds; // [objectIdx]
-        TMaybeData<TVector<TSubgroupId>> SubgroupIds; // [objectIdx]
+        bool StoreStringColumns = false;
+        TMaybeData<TVector<TString>> SampleId;
+        TMaybeStringOrNumIdColumn<TSubgroupId> SubgroupIds; // [objectIdx]
+        TMaybeStringOrNumIdColumn<TGroupId> GroupIds; // [objectIdx]
         TMaybeData<TVector<ui64>> Timestamp; // [objectIdx]
 
         /* can be empty if there's no cat features
@@ -78,10 +193,20 @@ namespace NCB {
         TAtomicSharedPtr<TVector<THashMap<ui32, TString>>> CatFeaturesHashToString; // [catFeatureIdx]
 
     public:
+        void SetStoreStringColumns(bool storeStringColumns);
         bool EqualTo(const TCommonObjectsData& rhs, bool ignoreSparsity = false) const;
 
         // not a constructor to enable reuse of allocated data
         void PrepareForInitialization(const TDataMetaInfo& metaInfo, ui32 objectCount, ui32 prevTailCount);
+
+        // used in DataProviderBuilder
+        void SetBuildersArrayRef(
+            const TDataMetaInfo& metaInfo,
+            TArrayRef<TGroupId>* numGroupIdsRefPtr,
+            TArrayRef<TString>* stringGroupIdsRefPtr,
+            TArrayRef<TSubgroupId>* numSubgroupIdsRefPtr,
+            TArrayRef<TString>* stringSubgroupIdsRefPtr
+        );
 
         /* used in TObjectsDataProvider to avoid double checking
          * when ObjectsGrouping is created from GroupIds and GroupId's consistency is already checked
@@ -167,6 +292,9 @@ namespace NCB {
             NPar::ILocalExecutor* localExecutor
         ) const;
 
+        TIntrusivePtr<TObjectsDataProvider> Clone(NPar::ILocalExecutor* localExecutor) const;
+
+
         // The following Get* functions are common for all implementations, so they're in this base class
 
         TFeaturesLayoutPtr GetFeaturesLayout() const {
@@ -178,11 +306,23 @@ namespace NCB {
         }
 
         TMaybeData<TConstArrayRef<TGroupId>> GetGroupIds() const { // [objectIdx]
-            return CommonData.GroupIds;
+            return CommonData.GroupIds.GetMaybeNumData();
+        }
+
+        TMaybeData<TConstArrayRef<TString>> GetStringGroupIds() const { // [objectIdx]
+            return CommonData.GroupIds.GetMaybeStringData();
         }
 
         TMaybeData<TConstArrayRef<TSubgroupId>> GetSubgroupIds() const { // [objectIdx]
-            return CommonData.SubgroupIds;
+            return CommonData.SubgroupIds.GetMaybeNumData();
+        }
+
+        TMaybeData<TConstArrayRef<TString>> GetStringSubgroupIds() const { // [objectIdx]
+            return CommonData.SubgroupIds.GetMaybeStringData();
+        }
+
+        TMaybeData<TConstArrayRef<TString>> GetSampleIds() const { // [objectIdx]
+            return CommonData.SampleId;
         }
 
         TMaybeData<TConstArrayRef<ui64>> GetTimestamp() const { // [objectIdx]
@@ -573,7 +713,7 @@ namespace NCB {
             return MakeMaybeData<const TEmbeddingValuesHolder>(Data.EmbeddingFeatures[embeddingFeatureIdx]);
         }
 
-        TQuantizedFeaturesInfoPtr GetQuantizedFeaturesInfo() const {
+        TQuantizedFeaturesInfoPtr GetQuantizedFeaturesInfo() const override {
             return Data.QuantizedFeaturesInfo;
         }
 

@@ -15,40 +15,24 @@
 #include "__locale"
 #include "algorithm"
 #include "include/config_elast.h"
-#include "istream"
 #include "limits"
 #include "memory"
 #include "new"
-#include "streambuf"
 #include "string"
 #include "__undef_macros"
 
 _LIBCPP_BEGIN_NAMESPACE_STD
 
-template class _LIBCPP_CLASS_TEMPLATE_INSTANTIATION_VIS basic_ios<char>;
-template class _LIBCPP_CLASS_TEMPLATE_INSTANTIATION_VIS basic_ios<wchar_t>;
-
-template class _LIBCPP_CLASS_TEMPLATE_INSTANTIATION_VIS basic_streambuf<char>;
-template class _LIBCPP_CLASS_TEMPLATE_INSTANTIATION_VIS basic_streambuf<wchar_t>;
-
-template class _LIBCPP_CLASS_TEMPLATE_INSTANTIATION_VIS basic_istream<char>;
-template class _LIBCPP_CLASS_TEMPLATE_INSTANTIATION_VIS basic_istream<wchar_t>;
-
-template class _LIBCPP_CLASS_TEMPLATE_INSTANTIATION_VIS basic_ostream<char>;
-template class _LIBCPP_CLASS_TEMPLATE_INSTANTIATION_VIS basic_ostream<wchar_t>;
-
-template class _LIBCPP_CLASS_TEMPLATE_INSTANTIATION_VIS basic_iostream<char>;
-
 class _LIBCPP_HIDDEN __iostream_category
     : public __do_message
 {
 public:
-    virtual const char* name() const _NOEXCEPT;
+    virtual const char* name() const noexcept;
     virtual string message(int ev) const;
 };
 
 const char*
-__iostream_category::name() const _NOEXCEPT
+__iostream_category::name() const noexcept
 {
     return "iostream";
 }
@@ -66,7 +50,7 @@ __iostream_category::message(int ev) const
 }
 
 const error_category&
-iostream_category() _NOEXCEPT
+iostream_category() noexcept
 {
     static __iostream_category s;
     return s;
@@ -403,7 +387,7 @@ ios_base::move(ios_base& rhs)
 }
 
 void
-ios_base::swap(ios_base& rhs) _NOEXCEPT
+ios_base::swap(ios_base& rhs) noexcept
 {
     _VSTD::swap(__fmtflags_, rhs.__fmtflags_);
     _VSTD::swap(__precision_, rhs.__precision_);

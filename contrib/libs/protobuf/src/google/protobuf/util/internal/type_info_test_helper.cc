@@ -31,9 +31,6 @@
 #include <google/protobuf/util/internal/type_info_test_helper.h>
 
 #include <memory>
-#ifndef _SHARED_PTR_H
-#error #include <google/protobuf/stubs/shared_ptr.h>
-#endif
 #include <vector>
 
 #include <google/protobuf/stubs/logging.h>
@@ -89,21 +86,22 @@ void TypeInfoTestHelper::ResetTypeInfo(const Descriptor* descriptor1,
 TypeInfo* TypeInfoTestHelper::GetTypeInfo() { return typeinfo_.get(); }
 
 ProtoStreamObjectSource* TypeInfoTestHelper::NewProtoSource(
-    io::CodedInputStream* coded_input, const string& type_url) {
+    io::CodedInputStream* coded_input, const TProtoStringType& type_url,
+    ProtoStreamObjectSource::RenderOptions render_options) {
   const google::protobuf::Type* type = typeinfo_->GetTypeByTypeUrl(type_url);
   switch (type_) {
     case USE_TYPE_RESOLVER: {
       return new ProtoStreamObjectSource(coded_input, type_resolver_.get(),
-                                         *type);
+                                         *type, render_options);
     }
   }
   GOOGLE_LOG(FATAL) << "Can not reach here.";
-  return NULL;
+  return nullptr;
 }
 
 ProtoStreamObjectWriter* TypeInfoTestHelper::NewProtoWriter(
-    const string& type_url, strings::ByteSink* output, ErrorListener* listener,
-    const ProtoStreamObjectWriter::Options& options) {
+    const TProtoStringType& type_url, strings::ByteSink* output,
+    ErrorListener* listener, const ProtoStreamObjectWriter::Options& options) {
   const google::protobuf::Type* type = typeinfo_->GetTypeByTypeUrl(type_url);
   switch (type_) {
     case USE_TYPE_RESOLVER: {
@@ -112,11 +110,11 @@ ProtoStreamObjectWriter* TypeInfoTestHelper::NewProtoWriter(
     }
   }
   GOOGLE_LOG(FATAL) << "Can not reach here.";
-  return NULL;
+  return nullptr;
 }
 
 DefaultValueObjectWriter* TypeInfoTestHelper::NewDefaultValueWriter(
-    const string& type_url, ObjectWriter* writer) {
+    const TProtoStringType& type_url, ObjectWriter* writer) {
   const google::protobuf::Type* type = typeinfo_->GetTypeByTypeUrl(type_url);
   switch (type_) {
     case USE_TYPE_RESOLVER: {
@@ -124,7 +122,7 @@ DefaultValueObjectWriter* TypeInfoTestHelper::NewDefaultValueWriter(
     }
   }
   GOOGLE_LOG(FATAL) << "Can not reach here.";
-  return NULL;
+  return nullptr;
 }
 
 }  // namespace testing

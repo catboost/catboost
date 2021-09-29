@@ -102,14 +102,27 @@ public:
         return !this->empty();
     }
 
-    Y_PURE_FUNCTION
-    inline bool empty() const noexcept {
+    Y_PURE_FUNCTION inline bool empty() const noexcept {
         return TBase::empty();
     }
 
     inline yssize_t ysize() const noexcept {
         return (yssize_t)TBase::size();
     }
+
+#ifdef _YNDX_LIBCXX_ENABLE_VECTOR_POD_RESIZE_UNINITIALIZED
+    void yresize(size_type newSize) {
+        if (std::is_pod<T>::value) {
+            TBase::resize_uninitialized(newSize);
+        } else {
+            TBase::resize(newSize);
+        }
+    }
+#else
+    void yresize(size_type newSize) {
+        TBase::resize(newSize);
+    }
+#endif
 
     inline void crop(size_type size) {
         if (this->size() > size) {

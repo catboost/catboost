@@ -97,7 +97,10 @@ namespace NCB {
             NCB::NPrivate::CreateTrainDirWithTmpDirIfNotExist(outputFileOptions.GetTrainDir(), &tmpDir);
         }
 
-        const bool haveLearnFeaturesInMemory = HaveLearnFeaturesInMemory(poolLoadParams, *catBoostOptions);
+        const bool haveLearnFeaturesInMemory = HaveFeaturesInMemory(
+            *catBoostOptions,
+            poolLoadParams ? MakeMaybe(poolLoadParams->LearnSetPath) : Nothing()
+        );
 
         TTrainingDataProviders trainingData = GetTrainingData(
             pools,
@@ -147,16 +150,27 @@ namespace NCB {
             executor
         );
 
-        const bool haveLearnFeaturesInMemory = HaveLearnFeaturesInMemory(poolLoadParams, catBoostOptions);
+        const bool haveLearnFeaturesInMemory = HaveFeaturesInMemory(
+            catBoostOptions,
+            poolLoadParams ? MakeMaybe(poolLoadParams->LearnSetPath) : Nothing()
+        );
         // TODO(ilyzhin) support distributed training with quantized pool
         CB_ENSURE(haveLearnFeaturesInMemory, "Features selection doesn't support distributed training with quantized pool yet.");
+
+        THolder<TMasterContext> masterContext;
+
         if (catBoostOptions.SystemOptions->IsMaster()) {
-            InitializeMaster(catBoostOptions.SystemOptions);
+            masterContext.Reset(new TMasterContext(catBoostOptions.SystemOptions));
             if (!haveLearnFeaturesInMemory) {
-                SetTrainDataFromQuantizedPool(
+                TVector<TObjectsGrouping> testObjectsGroupings;
+                for (const auto& testDataset : trainingData.Test) {
+                    testObjectsGroupings.push_back(*(testDataset->ObjectsGrouping));
+                }
+                SetTrainDataFromQuantizedPools(
                     *poolLoadParams,
                     catBoostOptions,
-                    *trainingData.Learn->ObjectsGrouping,
+                    TObjectsGrouping(*trainingData.Learn->ObjectsGrouping),
+                    std::move(testObjectsGroupings),
                     *trainingData.Learn->MetaInfo.FeaturesLayout,
                     &rand
                 );
@@ -200,10 +214,6 @@ namespace NCB {
         }
         for (auto featureIdx : summary.EliminatedFeatures) {
             summary.EliminatedFeaturesNames.push_back(featuresNames[featureIdx]);
-        }
-
-        if (catBoostOptions.SystemOptions->IsMaster()) {
-            FinalizeMaster(catBoostOptions.SystemOptions);
         }
 
         return summary;

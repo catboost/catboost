@@ -25,17 +25,16 @@
 
 namespace NCB {
     static float ConvertToFloatTarget(const TString& stringLabel) {
-        CB_ENSURE(
-            !IsMissingValue(stringLabel),
-            "Missing values like \"" << EscapeC(stringLabel)
-                << "\" are not supported for target"
-        );
-        float floatLabel;
-        CB_ENSURE(
-            TryFromString(stringLabel, floatLabel),
-            "Target value \"" << EscapeC(stringLabel) << "\" cannot be parsed as float"
-        );
-        return floatLabel;
+        if (IsMissingValue(stringLabel)) {
+            return std::nan(""); 
+        } else {
+            float floatLabel;
+            CB_ENSURE(
+                TryFromString(stringLabel, floatLabel),
+                "Target value \"" << EscapeC(stringLabel) << "\" cannot be parsed as float"
+            );
+            return floatLabel;
+        }
     }
 
     static TVector<float> ConvertRawToFloatTarget(
@@ -44,18 +43,17 @@ namespace NCB {
     ) {
         TVector<float> result;
 
-        if (const ITypedSequencePtr<float>* floatSequence = GetIf<ITypedSequencePtr<float>>(&rawTarget)) {
+        if (const ITypedSequencePtr<float>* floatSequence = std::get_if<ITypedSequencePtr<float>>(&rawTarget)) {
             result.yresize((*floatSequence)->GetSize());
             TArrayRef<float> resultRef = result;
             size_t i = 0;
             (*floatSequence)->ForEach(
                 [resultRef, &i] (float value) {
-                    CB_ENSURE(!std::isnan(value), "NaN values are not supported for target");
                     resultRef[i++] = value;
                 }
             );
         } else {
-            TConstArrayRef<TString> stringLabels = Get<TVector<TString>>(rawTarget);
+            TConstArrayRef<TString> stringLabels = std::get<TVector<TString>>(rawTarget);
             result.yresize(stringLabels.size());
             TArrayRef<float> resultRef = result;
             localExecutor->ExecRangeBlockedWithThrow(
@@ -216,7 +214,7 @@ namespace NCB {
 
             TVector<float> result;
 
-            if (const ITypedSequencePtr<float>* typedSequence = GetIf<ITypedSequencePtr<float>>(&rawTarget)) {
+            if (const ITypedSequencePtr<float>* typedSequence = std::get_if<ITypedSequencePtr<float>>(&rawTarget)) {
                 UpdateFloatLabelToClass();
 
                 result.yresize((*typedSequence)->GetSize());
@@ -232,7 +230,7 @@ namespace NCB {
             } else {
                 UpdateStringLabelToClass();
 
-                TConstArrayRef<TString> stringLabels = Get<TVector<TString>>(rawTarget);
+                TConstArrayRef<TString> stringLabels = std::get<TVector<TString>>(rawTarget);
                 result.yresize(stringLabels.size());
                 TArrayRef<float> resultRef = result;
                 localExecutor->ExecRangeBlockedWithThrow(

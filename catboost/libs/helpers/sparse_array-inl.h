@@ -375,7 +375,7 @@ namespace NCB {
         , NonDefaultSize(0) // properly inited later
         , Size(0) // properly inited later
     {
-        Visit(
+        std::visit(
             [&](const auto& impl) {
                 NonDefaultSize = impl.GetSize();
                 InitSize(size, impl.GetUpperBound());
@@ -442,12 +442,12 @@ namespace NCB {
         switch (Impl.index()) {
             case TVariantIndexV<TSparseSubsetIndices<TSize>, TImpl>:
                 return MakeHolder<TStaticIteratorRangeAsDynamic<const TSize*>>(
-                    Get<TSparseSubsetIndices<TSize>>(Impl));
+                    std::get<TSparseSubsetIndices<TSize>>(Impl));
             case TVariantIndexV<TSparseSubsetBlocks<TSize>, TImpl>:
-                return MakeHolder<TSparseSubsetBlocksIterator<TSize>>(Get<TSparseSubsetBlocks<TSize>>(Impl));
+                return MakeHolder<TSparseSubsetBlocksIterator<TSize>>(std::get<TSparseSubsetBlocks<TSize>>(Impl));
             case TVariantIndexV<TSparseSubsetHybridIndex<TSize>, TImpl>:
                 return MakeHolder<TSparseSubsetHybridIndexIterator<TSize>>(
-                    Get<TSparseSubsetHybridIndex<TSize>>(Impl));
+                    std::get<TSparseSubsetHybridIndex<TSize>>(Impl));
             default:
                 Y_UNREACHABLE();
         }
@@ -655,7 +655,7 @@ namespace NCB {
         IDynamicIteratorPtr<TSize>* iterator,
         TSize* nonDefaultBegin) const {
 
-        Visit(
+        std::visit(
             [&](const auto& impl) {
                 GetIteratorAndNonDefaultBeginImpl(impl, begin, iterator, nonDefaultBegin);
             },
@@ -668,7 +668,7 @@ namespace NCB {
         ISparseArrayIndexingBlockIteratorPtr<TSize>* iterator,
         TSize* nonDefaultBegin) const {
 
-        Visit(
+        std::visit(
             [&](const auto& impl) {
                 GetBlockIteratorAndNonDefaultBeginImpl(impl, begin, iterator, nonDefaultBegin);
             },
@@ -1167,7 +1167,7 @@ namespace NCB {
         const TArraySubsetInvertedIndexing<TSize>& subsetInvertedIndexing,
         ESparseArrayIndexingType sparseArrayIndexingType) const {
 
-        if (HoldsAlternative<TFullSubset<TSize>>(subsetInvertedIndexing)) {
+        if (std::holds_alternative<TFullSubset<TSize>>(subsetInvertedIndexing)) {
             return 0;
         }
 
@@ -1212,12 +1212,12 @@ namespace NCB {
         const TArraySubsetInvertedIndexing<TSize>& subsetInvertedIndexing,
         ESparseArrayIndexingType sparseArrayIndexingType) const {
 
-        if (HoldsAlternative<TFullSubset<TSize>>(subsetInvertedIndexing)) {
+        if (std::holds_alternative<TFullSubset<TSize>>(subsetInvertedIndexing)) {
             return *this;
         }
 
         const TInvertedIndexedSubset<TSize>& invertedIndexedSubset
-            = Get<TInvertedIndexedSubset<TSize>>(subsetInvertedIndexing);
+            = std::get<TInvertedIndexedSubset<TSize>>(subsetInvertedIndexing);
 
         TConstArrayRef<TSize> invertedIndicesArray = invertedIndexedSubset.GetMapping();
 

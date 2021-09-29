@@ -103,10 +103,65 @@ def get_platform():
             'x86' : 'win32',
             'x64' : 'win-amd64',
             'arm' : 'win-arm32',
+            'arm64': 'win-arm64',
         }
         return TARGET_TO_PLAT.get(os.environ.get('VSCMD_ARG_TGT_ARCH')) or get_host_platform()
     else:
         return get_host_platform()
+
+
+if sys.platform == 'darwin':
+    _syscfg_macosx_ver = None # cache the version pulled from sysconfig
+MACOSX_VERSION_VAR = 'MACOSX_DEPLOYMENT_TARGET'
+
+def _clear_cached_macosx_ver():
+    """For testing only. Do not call."""
+    global _syscfg_macosx_ver
+    _syscfg_macosx_ver = None
+
+def get_macosx_target_ver_from_syscfg():
+    """Get the version of macOS latched in the Python interpreter configuration.
+    Returns the version as a string or None if can't obtain one. Cached."""
+    global _syscfg_macosx_ver
+    if _syscfg_macosx_ver is None:
+        from distutils import sysconfig
+        ver = sysconfig.get_config_var(MACOSX_VERSION_VAR) or ''
+        if ver:
+            _syscfg_macosx_ver = ver
+    return _syscfg_macosx_ver
+
+def get_macosx_target_ver():
+    """Return the version of macOS for which we are building.
+
+    The target version defaults to the version in sysconfig latched at time
+    the Python interpreter was built, unless overriden by an environment
+    variable. If neither source has a value, then None is returned"""
+
+    syscfg_ver = get_macosx_target_ver_from_syscfg()
+    env_ver = os.environ.get(MACOSX_VERSION_VAR)
+
+    if env_ver:
+        # Validate overriden version against sysconfig version, if have both.
+        # Ensure that the deployment target of the build process is not less
+        # than 10.3 if the interpreter was built for 10.3 or later.  This
+        # ensures extension modules are built with correct compatibility
+        # values, specifically LDSHARED which can use
+        # '-undefined dynamic_lookup' which only works on >= 10.3.
+        if syscfg_ver and split_version(syscfg_ver) >= [10, 3] and \
+            split_version(env_ver) < [10, 3]:
+            my_msg = ('$' + MACOSX_VERSION_VAR + ' mismatch: '
+                      'now "%s" but "%s" during configure; '
+                      'must use 10.3 or later'
+                      % (env_ver, syscfg_ver))
+            raise DistutilsPlatformError(my_msg)
+        return env_ver
+    return syscfg_ver
+
+
+def split_version(s):
+    """Convert a dot-separated string into a list of numbers for comparisons"""
+    return [int(n) for n in s.split('.')]
+
 
 def convert_path (pathname):
     """Return 'pathname' as a name that will work on the native filesystem,
@@ -478,84 +533,3 @@ def rfc822_escape (header):
     lines = header.split('\n')
     sep = '\n' + 8 * ' '
     return sep.join(lines)
-
-# 2to3 support
-
-def run_2to3(files, fixer_names=None, options=None, explicit=None):
-    """Invoke 2to3 on a list of Python files.
-    The files should all come from the build area, as the
-    modification is done in-place. To reduce the build time,
-    only files modified since the last invocation of this
-    function should be passed in the files argument."""
-
-    if not files:
-        return
-
-    # Make this class local, to delay import of 2to3
-    from lib2to3.refactor import RefactoringTool, get_fixers_from_package
-    class DistutilsRefactoringTool(RefactoringTool):
-        def log_error(self, msg, *args, **kw):
-            log.error(msg, *args)
-
-        def log_message(self, msg, *args):
-            log.info(msg, *args)
-
-        def log_debug(self, msg, *args):
-            log.debug(msg, *args)
-
-    if fixer_names is None:
-        fixer_names = get_fixers_from_package('lib2to3.fixes')
-    r = DistutilsRefactoringTool(fixer_names, options=options)
-    r.refactor(files, write=True)
-
-def copydir_run_2to3(src, dest, template=None, fixer_names=None,
-                     options=None, explicit=None):
-    """Recursively copy a directory, only copying new and changed files,
-    running run_2to3 over all newly copied Python modules afterward.
-
-    If you give a template string, it's parsed like a MANIFEST.in.
-    """
-    from distutils.dir_util import mkpath
-    from distutils.file_util import copy_file
-    from distutils.filelist import FileList
-    filelist = FileList()
-    curdir = os.getcwd()
-    os.chdir(src)
-    try:
-        filelist.findall()
-    finally:
-        os.chdir(curdir)
-    filelist.files[:] = filelist.allfiles
-    if template:
-        for line in template.splitlines():
-            line = line.strip()
-            if not line: continue
-            filelist.process_template_line(line)
-    copied = []
-    for filename in filelist.files:
-        outname = os.path.join(dest, filename)
-        mkpath(os.path.dirname(outname))
-        res = copy_file(os.path.join(src, filename), outname, update=1)
-        if res[1]: copied.append(outname)
-    run_2to3([fn for fn in copied if fn.lower().endswith('.py')],
-             fixer_names=fixer_names, options=options, explicit=explicit)
-    return copied
-
-class Mixin2to3:
-    '''Mixin class for commands that run 2to3.
-    To configure 2to3, setup scripts may either change
-    the class variables, or inherit from individual commands
-    to override how 2to3 is invoked.'''
-
-    # provide list of fixers to run;
-    # defaults to all from lib2to3.fixers
-    fixer_names = None
-
-    # options dictionary
-    options = None
-
-    # list of fixers to invoke even though they are marked as explicit
-    explicit = None
-
-    def run_2to3(self, files):
-        return run_2to3(files, self.fixer_names, self.options, self.explicit)

@@ -35,8 +35,8 @@ void CalcOneDimensionalIsotonicRegression(
 
 TVector<int> GetTreeMonotoneConstraints(const TSplitTree& tree, const TMap<ui32, int>& monotoneConstraints);
 
-inline TVector<int> GetTreeMonotoneConstraints(const TVariant<TSplitTree, TNonSymmetricTreeStructure>& tree, const TMap<ui32, int>& monotoneConstraints) {
-    if (HoldsAlternative<TSplitTree>(tree)) {
+inline TVector<int> GetTreeMonotoneConstraints(const std::variant<TSplitTree, TNonSymmetricTreeStructure>& tree, const TMap<ui32, int>& monotoneConstraints) {
+    if (std::holds_alternative<TSplitTree>(tree)) {
         return GetTreeMonotoneConstraints(Get<TSplitTree>(tree), monotoneConstraints);
     } else {
         CB_ENSURE_INTERNAL(monotoneConstraints.empty(), "Monotone constraints are unsupported for non-symmetric trees yet");

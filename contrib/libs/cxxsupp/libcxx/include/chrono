@@ -824,6 +824,7 @@ constexpr chrono::year                                  operator ""y(unsigned lo
 */
 
 #include <__config>
+#include <__availability>
 #include <ctime>
 #include <type_traits>
 #include <ratio>
@@ -1081,7 +1082,7 @@ public:
                is_convertible<_Rep2, rep>::value &&
                (treat_as_floating_point<rep>::value ||
                !treat_as_floating_point<_Rep2>::value)
-            >::type* = 0)
+            >::type* = nullptr)
                 : __rep_(__r) {}
 
     // conversions
@@ -1094,7 +1095,7 @@ public:
                 treat_as_floating_point<rep>::value ||
                 (__no_overflow<_Period2, period>::type::den == 1 &&
                  !treat_as_floating_point<_Rep2>::value))
-            >::type* = 0)
+            >::type* = nullptr)
                 : __rep_(_VSTD::chrono::duration_cast<duration>(__d).count()) {}
 
     // observer
@@ -1380,7 +1381,7 @@ public:
         typename enable_if
         <
             is_convertible<_Duration2, duration>::value
-        >::type* = 0)
+        >::type* = nullptr)
             : __d_(t.time_since_epoch()) {}
 
     // observer
@@ -1971,7 +1972,7 @@ bool operator!=(const weekday_last& __lhs, const weekday_last& __rhs) noexcept
 inline constexpr
 weekday_indexed weekday::operator[](unsigned __index) const noexcept { return weekday_indexed{*this, __index}; }
 
-inline constexpr 
+inline constexpr
 weekday_last    weekday::operator[](last_spec) const noexcept { return weekday_last{*this}; }
 
 
@@ -2282,7 +2283,7 @@ public:
      year_month_day() = default;
      inline constexpr year_month_day(
             const chrono::year& __yval, const chrono::month& __mval, const chrono::day& __dval) noexcept
-            : __y{__yval}, __m{__mval}, __d{__dval} {}  
+            : __y{__yval}, __m{__mval}, __d{__dval} {}
             constexpr year_month_day(const year_month_day_last& __ymdl) noexcept;
      inline constexpr year_month_day(const sys_days& __sysd) noexcept
             : year_month_day(__from_days(__sysd.time_since_epoch())) {}
@@ -2312,8 +2313,8 @@ inline constexpr
 year_month_day
 year_month_day::__from_days(days __d) noexcept
 {
-    static_assert(std::numeric_limits<unsigned>::digits >= 18, "");
-    static_assert(std::numeric_limits<int>::digits >= 20     , "");
+    static_assert(numeric_limits<unsigned>::digits >= 18, "");
+    static_assert(numeric_limits<int>::digits >= 20     , "");
     const int      __z = __d.count() + 719468;
     const int      __era = (__z >= 0 ? __z : __z - 146096) / 146097;
     const unsigned __doe = static_cast<unsigned>(__z - __era * 146097);              // [0, 146096]
@@ -2329,8 +2330,8 @@ year_month_day::__from_days(days __d) noexcept
 // https://howardhinnant.github.io/date_algorithms.html#days_from_civil
 inline constexpr days year_month_day::__to_days() const noexcept
 {
-    static_assert(std::numeric_limits<unsigned>::digits >= 18, "");
-    static_assert(std::numeric_limits<int>::digits >= 20     , "");
+    static_assert(numeric_limits<unsigned>::digits >= 18, "");
+    static_assert(numeric_limits<int>::digits >= 20     , "");
 
     const int      __yr  = static_cast<int>(__y) - (__m <= February);
     const unsigned __mth = static_cast<unsigned>(__m);
@@ -2459,7 +2460,7 @@ chrono::day year_month_day_last::day() const noexcept
         chrono::day(31), chrono::day(31), chrono::day(30),
         chrono::day(31), chrono::day(30), chrono::day(31)
     };
-    return month() != February || !__y.is_leap() ?
+    return (month() != February || !__y.is_leap()) && month().ok() ?
         __d[static_cast<unsigned>(month()) - 1] : chrono::day{29};
 }
 
@@ -2537,7 +2538,7 @@ inline constexpr year_month_day_last& year_month_day_last::operator+=(const year
 inline constexpr year_month_day_last& year_month_day_last::operator-=(const years& __dy)  noexcept { *this = *this - __dy; return *this; }
 
 inline constexpr year_month_day::year_month_day(const year_month_day_last& __ymdl) noexcept
-    : __y{__ymdl.year()}, __m{__ymdl.month()}, __d{__ymdl.day()} {}  
+    : __y{__ymdl.year()}, __m{__ymdl.month()}, __d{__ymdl.day()} {}
 
 inline constexpr bool year_month_day::ok() const noexcept
 {
@@ -2593,7 +2594,7 @@ year_month_weekday year_month_weekday::__from_days(days __d) noexcept
     const sys_days      __sysd{__d};
     const chrono::weekday __wd = chrono::weekday(__sysd);
     const year_month_day __ymd = year_month_day(__sysd);
-    return year_month_weekday{__ymd.year(), __ymd.month(), 
+    return year_month_weekday{__ymd.year(), __ymd.month(),
                               __wd[(static_cast<unsigned>(__ymd.day())-1)/7+1]};
 }
 
@@ -2685,9 +2686,9 @@ public:
     inline constexpr operator                 sys_days() const noexcept { return   sys_days{__to_days()}; }
     inline explicit constexpr operator      local_days() const noexcept { return local_days{__to_days()}; }
     inline constexpr bool ok() const noexcept { return __y.ok() && __m.ok() && __wdl.ok(); }
-    
+
     constexpr days __to_days() const noexcept;
-    
+
 };
 
 inline constexpr
@@ -2725,7 +2726,7 @@ year_month_weekday_last operator/(const month_weekday_last& __lhs, const year& _
 
 inline constexpr
 year_month_weekday_last operator/(const month_weekday_last& __lhs, int __rhs) noexcept
-{ return year(__rhs) / __lhs; }  
+{ return year(__rhs) / __lhs; }
 
 
 inline constexpr
@@ -2915,7 +2916,7 @@ inline namespace literals
     {
         return chrono::day(static_cast<unsigned>(__d));
     }
- 
+
     constexpr chrono::year operator ""y(unsigned long long __y) noexcept
     {
         return chrono::year(static_cast<int>(__y));

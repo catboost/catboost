@@ -1,14 +1,14 @@
-PY23_LIBRARY()
+PY2_LIBRARY()
 
 LICENSE(BSD-3-Clause)
 
 
 
 ADDINCL(
-    contrib/python/numpy/py2/numpy/core/include
-    contrib/python/numpy/py2/numpy/core/include/numpy
-    contrib/python/numpy/py2/numpy/core/src/common
-    contrib/python/numpy/py2/numpy/random/mtrand
+    contrib/python/numpy/include/numpy/core/include
+    contrib/python/numpy/include/numpy/core/include/numpy
+    contrib/python/numpy/include/numpy/core/src/common
+    contrib/python/numpy/include/numpy/random/mtrand
 )
 
 CFLAGS(

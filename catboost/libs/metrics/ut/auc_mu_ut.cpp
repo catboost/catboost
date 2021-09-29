@@ -245,7 +245,7 @@ Y_UNIT_TEST_SUITE(AUCMuMetricTests) {
 
         }
 
-        const auto metric = queryAUC->Eval(
+        const auto metric = dynamic_cast<const ISingleTargetEval*>(queryAUC.Get())->Eval(
             prediction,
             targets,
             weights,

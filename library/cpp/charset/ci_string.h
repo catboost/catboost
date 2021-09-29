@@ -36,11 +36,6 @@ public:
     {
     }
 
-    explicit TCiString(TExplicitType<char> c)
-        : TString(c)
-    {
-    }
-
     TCiString(size_t n, char c)
         : TString(n, c)
     {

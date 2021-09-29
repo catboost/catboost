@@ -8,7 +8,9 @@ namespace NStlIterator {
     class TProxy {
     public:
         TProxy() = default;
-        TProxy(T&& value) : Value_(std::move(value)) {
+        TProxy(T&& value)
+            : Value_(std::move(value))
+        {
         }
 
         const T* operator->() const noexcept {

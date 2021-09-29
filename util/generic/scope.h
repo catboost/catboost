@@ -32,7 +32,7 @@ namespace NPrivate {
 
     struct TMakeGuardHelper {
         template <class F>
-        TScopeGuard<F> operator | (F&& function) const {
+        TScopeGuard<F> operator|(F&& function) const {
             return std::forward<F>(function);
         }
     };

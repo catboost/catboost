@@ -1343,6 +1343,22 @@ TString TFullModel::GetLossFunctionName() const {
 }
 
 
+double TFullModel::GetBinClassProbabilityThreshold() const {
+    double threshold = DEFAULT_BINCLASS_PROBABILITY_THRESHOLD;
+    if (ModelInfo.contains("binclass_probability_threshold")) {
+        if (!TryFromString<double>(ModelInfo.at("binclass_probability_threshold"), threshold)) {
+            CATBOOST_WARNING_LOG << "Float number at metadata key binclass_probability_threshold cannot be parsed" << Endl;
+        }
+    }
+    return threshold;
+}
+
+
+double TFullModel::GetBinClassLogitThreshold() const {
+    return NCB::Logit(GetBinClassProbabilityThreshold());
+}
+
+
 static TVector<NJson::TJsonValue> GetSequentialIntegerClassLabels(size_t classCount) {
     TVector<NJson::TJsonValue> classLabels;
     classLabels.reserve(classCount);
@@ -1450,21 +1466,21 @@ namespace {
 
     struct TFlatFeature {
 
-        TVariant<TUnknownFeature, TFloatFeature, TCatFeature> FeatureVariant;
+        std::variant<TUnknownFeature, TFloatFeature, TCatFeature> FeatureVariant;
 
     public:
         TFlatFeature() = default;
 
         template <class TFeatureType>
         void SetOrCheck(const TFeatureType& other) {
-            if (HoldsAlternative<TUnknownFeature>(FeatureVariant)) {
+            if (std::holds_alternative<TUnknownFeature>(FeatureVariant)) {
                 FeatureVariant = other;
             }
-            CB_ENSURE(HoldsAlternative<TFeatureType>(FeatureVariant),
+            CB_ENSURE(std::holds_alternative<TFeatureType>(FeatureVariant),
                 "Feature type mismatch: Categorical != Float for flat feature index: " <<
                 other.Position.FlatIndex
             );
-            TFeatureType& feature = Get<TFeatureType>(FeatureVariant);
+            TFeatureType& feature = std::get<TFeatureType>(FeatureVariant);
             CB_ENSURE(feature.Position.FlatIndex == other.Position.FlatIndex);
             CB_ENSURE(
                 feature.Position.Index == other.Position.Index,
@@ -1726,7 +1742,7 @@ TFullModel SumModels(
     }
     TFlatFeatureMergerVisitor merger;
     for (auto& flatFeature: flatFeatureInfoVector) {
-        Visit(merger, flatFeature.FeatureVariant);
+        std::visit(merger, flatFeature.FeatureVariant);
     }
     TObliviousTreeBuilder builder(merger.MergedFloatFeatures, merger.MergedCatFeatures, {}, {}, approxDimension);
     TVector<double> totalBias(approxDimension);

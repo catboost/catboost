@@ -105,7 +105,7 @@ namespace {
             : TProductIteratorBase<TEnumeratedSet, TValue>(sets)
         {}
 
-        virtual bool Next(TConstArrayRef<TValue>* value) override {
+        bool Next(TConstArrayRef<TValue>* value) override {
             if (this->IsIteratorReachedEnd()) {
                  return false;
             }
@@ -161,7 +161,7 @@ namespace {
             this->TotalElementsCount = count;
         }
 
-        virtual bool Next(TConstArrayRef<TValue>* values) override {
+        bool Next(TConstArrayRef<TValue>* values) override {
             if (this->IsIteratorReachedEnd()) {
                  return false;
             }
@@ -430,7 +430,7 @@ namespace {
                 /*datasetName*/ TStringBuf(),
                 /*bordersFile*/ Nothing(),  // Already at quantizedFeaturesInfo
                 /*unloadCatFeaturePerfectHashFromRam*/ allowWriteFiles,
-                /*ensureConsecutiveLearnFeaturesDataForCpu*/ true,
+                /*ensureConsecutiveLearnFeaturesDataForCpu*/ false, // data will be split afterwards anyway
                 tmpDir,
                 quantizedFeaturesInfo,
                 catBoostOptions,
@@ -747,7 +747,6 @@ namespace {
         );
         double bestParamsSetMetricValue = 0;
         // Other parameters
-        NCB::TTrainingDataProviderPtr quantizedData;
         TQuantizationParamsInfo lastQuantizationParamsSet;
         TLabelConverter labelConverter;
         int iterationIdx = 0;
@@ -801,28 +800,14 @@ namespace {
             TVector<TCVResult> cvResult;
             {
                 TSetLogging inThisScope(catBoostOptions.LoggingLevel);
-                QuantizeDataIfNeeded(
-                    outputFileOptions.AllowWriteFiles(),
-                    tmpDir,
-                    featuresLayout,
-                    quantizedFeaturesInfo,
-                    data,
-                    lastQuantizationParamsSet,
-                    quantizationParamsSet,
-                    &labelConverter,
-                    localExecutor,
-                    &rand,
-                    &catBoostOptions,
-                    &quantizedData
-                );
-
                 lastQuantizationParamsSet = quantizationParamsSet;
                 CrossValidate(
                     *modelParamsToBeTried,
+                    quantizedFeaturesInfo,
                     objectiveDescriptor,
                     evalMetricDescriptor,
                     labelConverter,
-                    quantizedData,
+                    data,
                     cvParams,
                     localExecutor,
                     &cvResult);
@@ -832,7 +817,7 @@ namespace {
                 catBoostOptions.MetricOptions,
                 evalMetricDescriptor,
                 approxDimension,
-                quantizedData->MetaInfo.HasWeights
+                data->MetaInfo.HasWeights
             );
             double bestMetricValue = cvResult[0].AverageTest.back(); //[testId][lossDescription]
             if (iterationIdx == 0) {
@@ -1032,6 +1017,7 @@ namespace {
                 internalOptions.OffsetMetricPeriodByInitModelSize = true;
                 outputFileOptions.SetAllowWriteFiles(false);
                 const auto defaultTrainingCallbacks = MakeHolder<ITrainingCallbacks>();
+                const auto defaultCustomCallbacks = MakeHolder<TCustomCallbacks>(Nothing());
                 // Training model
                 modelTrainerHolder->TrainModel(
                     internalOptions,
@@ -1043,6 +1029,7 @@ namespace {
                     /*precomputedSingleOnlineCtrDataForSingleFold*/ Nothing(),
                     labelConverter,
                     defaultTrainingCallbacks.Get(), // TODO(ilikepugs): MLTOOLS-3540
+                    defaultCustomCallbacks.Get(),
                     /*initModel*/ Nothing(),
                     /*initLearnProgress*/ nullptr,
                     /*initModelApplyCompatiblePools*/ NCB::TDataProviders(),

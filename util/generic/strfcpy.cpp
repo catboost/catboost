@@ -28,22 +28,23 @@
  * Copy string src to buffer dst of size dsize.  At most dsize-1
  * chars will be copied.  Always NUL terminates (unless dsize == 0).
  */
-void
-strfcpy(char *dst, const char *src, size_t dsize)
+void strfcpy(char* dst, const char* src, size_t dsize)
 {
-	size_t nleft = dsize;
+    size_t nleft = dsize;
 
-	/* Copy as many bytes as will fit. */
-	if (nleft != 0) {
-		while (--nleft != 0) {
-			if ((*dst++ = *src++) == '\0')
-				break;
-		}
-	}
+    /* Copy as many bytes as will fit. */
+    if (nleft != 0) {
+        while (--nleft != 0) {
+            if ((*dst++ = *src++) == '\0') {
+                break;
+            }
+        }
+    }
 
-	/* Not enough room in dst, add NUL */
-	if (nleft == 0) {
-		if (dsize != 0)
-			*dst = '\0';		/* NUL-terminate dst */
-	}
+    /* Not enough room in dst, add NUL */
+    if (nleft == 0) {
+        if (dsize != 0) {
+            *dst = '\0'; /* NUL-terminate dst */
+        }
+    }
 }

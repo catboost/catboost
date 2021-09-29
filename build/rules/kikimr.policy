@@ -1,0 +1,21 @@
+# temporary allow to depend (FIXME: gvit)
+ALLOW yabs/sbyt/testing/scenarios/bigstart -> kikimr/ci
+# temporary allow to depend (FIXME: gvit)
+ALLOW mssngr/router/tests/lib -> kikimr/ci
+
+ALLOW kikimr -> kikimr/ci
+ALLOW kikimr -> kikimr/library/ci
+
+# filestore & blockstore & disk_manager are allowed to depend on our ci libraries.
+ALLOW cloud/filestore -> kikimr/ci
+ALLOW cloud/blockstore -> kikimr/ci
+ALLOW cloud/disk_manager -> kikimr/ci
+ALLOW cloud/storage -> kikimr/ci
+
+ALLOW cloud/filestore -> kikimr/library/ci
+ALLOW cloud/blockstore -> kikimr/library/ci
+ALLOW cloud/disk_manager -> kikimr/library/ci
+ALLOW cloud/storage -> kikimr/library/ci
+
+DENY .* -> kikimr/ci
+DENY .* -> kikimr/library/ci

@@ -16,7 +16,8 @@ test_that("train on adult pool", {
   pool <- load_adult_pool()
   fit_params <- list(
     iterations = 100,
-    loss_function = "Logloss"
+    loss_function = "Logloss",
+    allow_writing_files = FALSE
   )
 
   model <- catboost.train(pool, pool, fit_params)

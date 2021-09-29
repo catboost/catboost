@@ -361,7 +361,7 @@ static void AdjustBoostFromAverageDefaultValue(
         && EqualToOneOf(
             catBoostOptions->LossFunctionDescription->GetLossFunction(),
             ELossFunction::RMSE, ELossFunction::MAE, ELossFunction::Quantile, ELossFunction::MAPE,
-            ELossFunction::MultiRMSE)
+            ELossFunction::MultiRMSE, ELossFunction::MultiRMSEWithMissingValues)
     ) {
         catBoostOptions->BoostingOptions->BoostFromAverage.Set(true);
     }
@@ -411,6 +411,7 @@ void SetDataDependentDefaults(
     const bool hasTestPairs = testDataMetaInfo.Defined() && testDataMetaInfo->HasPairs;
     UpdateUseBestModel(testPoolSize, isConstTestTarget, hasTestPairs, outputFilesOptions);
     UpdateBoostingTypeOption(learnPoolSize, catBoostOptions);
+    AdjustBoostFromAverageDefaultValue(trainDataMetaInfo, testDataMetaInfo, continueFromModel, catBoostOptions);
     UpdateLearningRate(learnPoolSize, outputFilesOptions->UseBestModel.Get(), catBoostOptions);
     UpdateOneHotMaxSize(
         trainDataMetaInfo.MaxCatFeaturesUniqValuesOnLearn,
@@ -425,7 +426,6 @@ void SetDataDependentDefaults(
     UpdateLeavesEstimationIterations(trainDataMetaInfo, catBoostOptions);
     UpdateAndValidateMonotoneConstraints(*trainDataMetaInfo.FeaturesLayout.Get(), catBoostOptions);
     DropModelShrinkageIfBaselineUsed(trainDataMetaInfo, continueFromModel || continueFromProgress, catBoostOptions);
-    AdjustBoostFromAverageDefaultValue(trainDataMetaInfo, testDataMetaInfo, continueFromModel, catBoostOptions);
     UpdateDictionaryDefaults(learnPoolSize, catBoostOptions);
     UpdateSampleRateOption(learnPoolSize, catBoostOptions);
     AdjustPosteriorSamplingDeafultValues(trainDataMetaInfo, continueFromModel || continueFromProgress, catBoostOptions);

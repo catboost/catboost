@@ -183,6 +183,9 @@
     "test.test_cv_with_not_binarized_target[CPU]": {
         "uri": "file://test.test_cv_with_not_binarized_target_CPU_/catboost_training.json"
     },
+    "test.test_cv_with_text": {
+        "uri": "file://test.test_cv_with_text/result.csv"
+    },
     "test.test_dataframe_with_pandas_categorical_columns[cat_features_specified=True]": {
         "uri": "file://test.test_dataframe_with_pandas_categorical_columns_cat_features_specified=True_/predictions.txt"
     },
@@ -220,34 +223,34 @@
     ],
     "test.test_eval_features[CPU-problem=binclass-eval_type=All]": [
         {
-            "uri": "file://test.test_eval_features_CPU-problem=binclass-eval_type=All_/eval_results_Logloss.csv"
+            "uri": "file://test.test_eval_features_CPU-problem=binclass-eval_type=All_/eval_results_AUC.csv"
         },
         {
-            "uri": "file://test.test_eval_features_CPU-problem=binclass-eval_type=All_/eval_results_AUC.csv"
+            "uri": "file://test.test_eval_features_CPU-problem=binclass-eval_type=All_/eval_results_Logloss.csv"
         }
     ],
     "test.test_eval_features[CPU-problem=binclass-eval_type=SeqAddAndAll]": [
         {
-            "uri": "file://test.test_eval_features_CPU-problem=binclass-eval_type=SeqAddAndAll_/eval_results_Logloss.csv"
+            "uri": "file://test.test_eval_features_CPU-problem=binclass-eval_type=SeqAddAndAll_/eval_results_AUC.csv"
         },
         {
-            "uri": "file://test.test_eval_features_CPU-problem=binclass-eval_type=SeqAddAndAll_/eval_results_AUC.csv"
+            "uri": "file://test.test_eval_features_CPU-problem=binclass-eval_type=SeqAddAndAll_/eval_results_Logloss.csv"
         }
     ],
     "test.test_eval_features[CPU-problem=binclass-eval_type=SeqAdd]": [
         {
-            "uri": "file://test.test_eval_features_CPU-problem=binclass-eval_type=SeqAdd_/eval_results_Logloss.csv"
+            "uri": "file://test.test_eval_features_CPU-problem=binclass-eval_type=SeqAdd_/eval_results_AUC.csv"
         },
         {
-            "uri": "file://test.test_eval_features_CPU-problem=binclass-eval_type=SeqAdd_/eval_results_AUC.csv"
+            "uri": "file://test.test_eval_features_CPU-problem=binclass-eval_type=SeqAdd_/eval_results_Logloss.csv"
         }
     ],
     "test.test_eval_features[CPU-problem=binclass-eval_type=SeqRem]": [
         {
-            "uri": "file://test.test_eval_features_CPU-problem=binclass-eval_type=SeqRem_/eval_results_Logloss.csv"
+            "uri": "file://test.test_eval_features_CPU-problem=binclass-eval_type=SeqRem_/eval_results_AUC.csv"
         },
         {
-            "uri": "file://test.test_eval_features_CPU-problem=binclass-eval_type=SeqRem_/eval_results_AUC.csv"
+            "uri": "file://test.test_eval_features_CPU-problem=binclass-eval_type=SeqRem_/eval_results_Logloss.csv"
         }
     ],
     "test.test_eval_features[CPU-problem=multiclass-eval_type=All]": [
@@ -284,34 +287,34 @@
     ],
     "test.test_eval_features[CPU-problem=ranking-eval_type=All]": [
         {
-            "uri": "file://test.test_eval_features_CPU-problem=ranking-eval_type=All_/eval_results_QueryRMSE.csv"
+            "uri": "file://test.test_eval_features_CPU-problem=ranking-eval_type=All_/eval_results_NDCG_type=Base.csv"
         },
         {
-            "uri": "file://test.test_eval_features_CPU-problem=ranking-eval_type=All_/eval_results_NDCG_type=Base.csv"
+            "uri": "file://test.test_eval_features_CPU-problem=ranking-eval_type=All_/eval_results_QueryRMSE.csv"
         }
     ],
     "test.test_eval_features[CPU-problem=ranking-eval_type=SeqAddAndAll]": [
         {
-            "uri": "file://test.test_eval_features_CPU-problem=ranking-eval_type=SeqAddAndAll_/eval_results_QueryRMSE.csv"
+            "uri": "file://test.test_eval_features_CPU-problem=ranking-eval_type=SeqAddAndAll_/eval_results_NDCG_type=Base.csv"
         },
         {
-            "uri": "file://test.test_eval_features_CPU-problem=ranking-eval_type=SeqAddAndAll_/eval_results_NDCG_type=Base.csv"
+            "uri": "file://test.test_eval_features_CPU-problem=ranking-eval_type=SeqAddAndAll_/eval_results_QueryRMSE.csv"
         }
     ],
     "test.test_eval_features[CPU-problem=ranking-eval_type=SeqAdd]": [
         {
-            "uri": "file://test.test_eval_features_CPU-problem=ranking-eval_type=SeqAdd_/eval_results_QueryRMSE.csv"
+            "uri": "file://test.test_eval_features_CPU-problem=ranking-eval_type=SeqAdd_/eval_results_NDCG_type=Base.csv"
         },
         {
-            "uri": "file://test.test_eval_features_CPU-problem=ranking-eval_type=SeqAdd_/eval_results_NDCG_type=Base.csv"
+            "uri": "file://test.test_eval_features_CPU-problem=ranking-eval_type=SeqAdd_/eval_results_QueryRMSE.csv"
         }
     ],
     "test.test_eval_features[CPU-problem=ranking-eval_type=SeqRem]": [
         {
-            "uri": "file://test.test_eval_features_CPU-problem=ranking-eval_type=SeqRem_/eval_results_QueryRMSE.csv"
+            "uri": "file://test.test_eval_features_CPU-problem=ranking-eval_type=SeqRem_/eval_results_NDCG_type=Base.csv"
         },
         {
-            "uri": "file://test.test_eval_features_CPU-problem=ranking-eval_type=SeqRem_/eval_results_NDCG_type=Base.csv"
+            "uri": "file://test.test_eval_features_CPU-problem=ranking-eval_type=SeqRem_/eval_results_QueryRMSE.csv"
         }
     ],
     "test.test_eval_features[CPU-problem=regression-eval_type=All]": [
@@ -525,6 +528,9 @@
     "test.test_fit_on_scipy_sparse_spmatrix[features_density=0.8-features_dtype=uint8]": {
         "uri": "file://test.test_fit_on_scipy_sparse_spmatrix_features_density=0.8-features_dtype=uint8_/predictions.txt"
     },
+    "test.test_fit_predict_baseline[CPU]": {
+        "uri": "file://test.test_fit_predict_baseline_CPU_/predictions.npy"
+    },
     "test.test_full_history[CPU]": {
         "uri": "file://test.test_full_history_CPU_/model.bin"
     },
@@ -698,6 +704,15 @@
     },
     "test.test_priors[CPU]": {
         "uri": "file://test.test_priors_CPU_/model.bin"
+    },
+    "test.test_quantized_pool_cv[adult]": {
+        "uri": "file://test.test_quantized_pool_cv_adult_/result.csv"
+    },
+    "test.test_quantized_pool_cv[higgs]": {
+        "uri": "file://test.test_quantized_pool_cv_higgs_/result.csv"
+    },
+    "test.test_quantized_pool_cv[querywise]": {
+        "uri": "file://test.test_quantized_pool_cv_querywise_/result.csv"
     },
     "test.test_regress_with_per_float_feature_binarization_param[CPU]": {
         "uri": "file://test.test_regress_with_per_float_feature_binarization_param_CPU_/model.bin"

@@ -3,6 +3,7 @@ RECURSE(
     cython
     fuzzing
     ut
+    style
 )
 
 IF (OS_LINUX)

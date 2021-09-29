@@ -2,7 +2,12 @@
 Module that contains many useful utilities
 for validating data or function arguments
 """
-from typing import Iterable, Sequence, Union
+from __future__ import annotations
+
+from typing import (
+    Iterable,
+    Sequence,
+)
 import warnings
 
 import numpy as np
@@ -379,7 +384,7 @@ def validate_fillna_kwargs(value, method, validate_scalar_dict_value=True):
     return value, method
 
 
-def validate_percentile(q: Union[float, Iterable[float]]) -> np.ndarray:
+def validate_percentile(q: float | Iterable[float]) -> np.ndarray:
     """
     Validate percentiles (used by describe and quantile).
 
@@ -414,7 +419,7 @@ def validate_percentile(q: Union[float, Iterable[float]]) -> np.ndarray:
 
 
 def validate_ascending(
-    ascending: Union[Union[bool, int], Sequence[Union[bool, int]]] = True,
+    ascending: bool | int | Sequence[bool | int] = True,
 ):
     """Validate ``ascending`` kwargs for ``sort_index`` method."""
     kwargs = {"none_allowed": False, "int_allowed": True}

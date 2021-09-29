@@ -4,10 +4,13 @@
 #include "typetraits.h"
 
 namespace NPrivate {
-    template<class Range>
+    template <class Range>
     class TReverseRangeStorage {
     public:
-        TReverseRangeStorage(Range&& range) : Base_(std::forward<Range>(range)) {}
+        TReverseRangeStorage(Range&& range)
+            : Base_(std::forward<Range>(range))
+        {
+        }
 
         decltype(auto) Base() const {
             return *Base_.Ptr();
@@ -34,9 +37,10 @@ namespace NPrivate {
     template <class Range, bool hasReverseIterators = HasReverseIterators<Range>((i32)0, nullptr)>
     class TReverseRangeBase: public TReverseRangeStorage<Range> {
         using TBase = TReverseRangeStorage<Range>;
+
     public:
-        using TBase::TBase;
         using TBase::Base;
+        using TBase::TBase;
 
         auto begin() const {
             return Base().rbegin();
@@ -58,9 +62,10 @@ namespace NPrivate {
     template <class Range>
     class TReverseRangeBase<Range, false>: public TReverseRangeStorage<Range> {
         using TBase = TReverseRangeStorage<Range>;
+
     public:
-        using TBase::TBase;
         using TBase::Base;
+        using TBase::TBase;
 
         auto begin() const {
             using std::end;
@@ -84,11 +89,12 @@ namespace NPrivate {
     };
 
     template <class Range>
-    class TReverseRange : public TReverseRangeBase<Range> {
+    class TReverseRange: public TReverseRangeBase<Range> {
         using TBase = TReverseRangeBase<Range>;
+
     public:
-        using TBase::TBase;
         using TBase::Base;
+        using TBase::TBase;
 
         TReverseRange(TReverseRange&&) = default;
         TReverseRange(const TReverseRange&) = default;

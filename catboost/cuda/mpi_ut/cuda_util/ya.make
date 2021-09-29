@@ -32,7 +32,7 @@ INCLUDE(${ARCADIA_ROOT}/catboost/cuda/cuda_lib/default_nvcc_flags.make.inc)
 IF (ARCH_AARCH64)
     ALLOCATOR(J)
 ELSE()
-    ALLOCATOR(LF)
+    ALLOCATOR(TCMALLOC_256K)
 ENDIF()
 
 END()

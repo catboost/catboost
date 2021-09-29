@@ -50,5 +50,5 @@ namespace {
             RegisterAlias("fastlz", "fastlz-0");
         }
     };
-    static const TFastLZRegistrar Registrar{};
+    const TFastLZRegistrar Registrar{};
 }

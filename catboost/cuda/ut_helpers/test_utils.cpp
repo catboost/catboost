@@ -195,7 +195,8 @@ void LoadTrainingData(NCB::TPathWithScheme poolPath,
         MakeIntrusiveConst<NCB::TFeatureEstimators>(estimators),
         *((*trainingData)->MetaInfo.FeaturesLayout),
         TVector<NCB::TExclusiveFeaturesBundle>(),
-        (*trainingData)->ObjectsData->GetQuantizedFeaturesInfo());
+        (*trainingData)->ObjectsData->GetQuantizedFeaturesInfo(),
+        (*trainingData)->GetObjectCount());
 
     NCB::TOnCpuGridBuilderFactory gridBuilderFactory;
     (*featuresManager)->SetTargetBorders(

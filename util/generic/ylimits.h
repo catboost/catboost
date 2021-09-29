@@ -3,7 +3,7 @@
 #include <limits>
 
 #if defined(max) || defined(min)
-#error "stop defining 'min' and 'max' macros, evil people"
+    #error "stop defining 'min' and 'max' macros, evil people"
 #endif
 
 template <class T>

@@ -1,9 +1,12 @@
 #include "binarize.cuh"
 #include <catboost/cuda/gpu_data/gpu_structures.h>
+#include <library/cpp/cuda/wrappers/cub_include.h>
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
 #include <catboost/cuda/cuda_util/kernel/random_gen.cuh>
 #include <catboost/cuda/cuda_util/kernel/fill.cuh>
-#include <contrib/libs/cub/cub/block/block_radix_sort.cuh>
+
+#include _CUB_INCLUDE(cub/block/block_radix_sort.cuh)
+
 namespace NKernel {
 
     __global__ void WriteCompressedIndexImpl(TCFeature feature, const ui8* bins, ui32 docCount, ui32* cindex) {

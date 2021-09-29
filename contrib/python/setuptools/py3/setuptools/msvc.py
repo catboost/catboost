@@ -30,6 +30,7 @@ import itertools
 import subprocess
 import distutils.errors
 from setuptools.extern.packaging.version import LegacyVersion
+from setuptools.extern.more_itertools import unique_everseen
 
 from .monkey import get_unpatched
 
@@ -193,7 +194,9 @@ def _msvc14_find_vc2017():
             join(root, "Microsoft Visual Studio", "Installer", "vswhere.exe"),
             "-latest",
             "-prerelease",
+            "-requiresAny",
             "-requires", "Microsoft.VisualStudio.Component.VC.Tools.x86.x64",
+            "-requires", "Microsoft.VisualStudio.Workload.WDExpress",
             "-property", "installationPath",
             "-products", "*",
         ]).decode(encoding="mbcs", errors="strict").strip()
@@ -1798,29 +1801,5 @@ class EnvironmentInfo:
         if not extant_paths:
             msg = "%s environment variable is empty" % name.upper()
             raise distutils.errors.DistutilsPlatformError(msg)
-        unique_paths = self._unique_everseen(extant_paths)
+        unique_paths = unique_everseen(extant_paths)
         return pathsep.join(unique_paths)
-
-    # from Python docs
-    @staticmethod
-    def _unique_everseen(iterable, key=None):
-        """
-        List unique elements, preserving order.
-        Remember all elements ever seen.
-
-        _unique_everseen('AAAABBBCCDAABBB') --> A B C D
-
-        _unique_everseen('ABBCcAD', str.lower) --> A B C D
-        """
-        seen = set()
-        seen_add = seen.add
-        if key is None:
-            for element in itertools.filterfalse(seen.__contains__, iterable):
-                seen_add(element)
-                yield element
-        else:
-            for element in iterable:
-                k = key(element)
-                if k not in seen:
-                    seen_add(k)
-                    yield element

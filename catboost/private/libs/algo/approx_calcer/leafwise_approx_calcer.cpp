@@ -322,8 +322,8 @@ void CalcLeafValues(
         return;
     }
 
-    const bool isMultiRegression = dynamic_cast<const TMultiDerCalcer*>(&error) != nullptr;
-    if (statistics->GetApproxDimension() == 1 && !isMultiRegression) {
+    const bool isMultiTarget = dynamic_cast<const TMultiDerCalcer*>(&error) != nullptr;
+    if (statistics->GetApproxDimension() == 1 && !isMultiTarget) {
         CalcLeafValuesSimple(
             error,
             params,

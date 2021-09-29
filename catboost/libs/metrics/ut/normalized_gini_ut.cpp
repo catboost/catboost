@@ -13,7 +13,7 @@ Y_UNIT_TEST(BinClassTest) {
         TVector<TQueryInfo> queries;
 
         NPar::TLocalExecutor executor;
-        const auto metric = std::move(CreateMetric(ELossFunction::NormalizedGini, TLossParams(), 1)[0]);
+        const auto metric = std::move(CreateSingleTargetMetric(ELossFunction::NormalizedGini, TLossParams(), 1)[0]);
         TMetricHolder score = metric->Eval(approx, target, weight, queries, 0, target.size(), executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0.0, 1e-6);
@@ -25,7 +25,7 @@ Y_UNIT_TEST(BinClassTest) {
         TVector<TQueryInfo> queries;
 
         NPar::TLocalExecutor executor;
-        const auto metric = std::move(CreateMetric(ELossFunction::NormalizedGini, TLossParams(), 1)[0]);
+        const auto metric = std::move(CreateSingleTargetMetric(ELossFunction::NormalizedGini, TLossParams(), 1)[0]);
         TMetricHolder score = metric->Eval(approx, target, weight, queries, 0, target.size(), executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0.125, 1e-6);
@@ -37,7 +37,7 @@ Y_UNIT_TEST(BinClassTest) {
         TVector<TQueryInfo> queries;
 
         NPar::TLocalExecutor executor;
-        const auto metric = std::move(CreateMetric(ELossFunction::NormalizedGini, TLossParams(), 1)[0]);
+        const auto metric = std::move(CreateSingleTargetMetric(ELossFunction::NormalizedGini, TLossParams(), 1)[0]);
         metric->UseWeights = true;
         TMetricHolder score = metric->Eval(approx, target, weight, queries, 0, target.size(), executor);
 
@@ -50,7 +50,7 @@ Y_UNIT_TEST(BinClassTest) {
         TVector<TQueryInfo> queries;
 
         NPar::TLocalExecutor executor;
-        const auto metric = std::move(CreateMetric(ELossFunction::NormalizedGini, TLossParams(), 1)[0]);
+        const auto metric = std::move(CreateSingleTargetMetric(ELossFunction::NormalizedGini, TLossParams(), 1)[0]);
         metric->UseWeights = true;
         TMetricHolder score = metric->Eval(approx, target, weight, queries, 0, target.size(), executor);
 
@@ -63,7 +63,7 @@ Y_UNIT_TEST(BinClassTest) {
         TVector<TQueryInfo> queries;
 
         NPar::TLocalExecutor executor;
-        const auto metric = std::move(CreateMetric(ELossFunction::NormalizedGini, TLossParams(), 1)[0]);
+        const auto metric = std::move(CreateSingleTargetMetric(ELossFunction::NormalizedGini, TLossParams(), 1)[0]);
         TMetricHolder score = metric->Eval(approx, target, weight, queries, 0, target.size(), executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 1.0, 1e-6);
@@ -79,7 +79,7 @@ Y_UNIT_TEST(MultiClassTest) {
         NPar::TLocalExecutor executor;
 
         // Metric with target class = 1.
-        const auto metric = std::move(CreateMetric(ELossFunction::NormalizedGini, TLossParams(), 2)[1]);
+        const auto metric = std::move(CreateSingleTargetMetric(ELossFunction::NormalizedGini, TLossParams(), 2)[1]);
         TMetricHolder score = metric->Eval(approx, target, weight, queries, 0, target.size(), executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0.0, 1e-6);
@@ -93,7 +93,7 @@ Y_UNIT_TEST(MultiClassTest) {
         NPar::TLocalExecutor executor;
 
         // Metric with target class = 1.
-        const auto metric = std::move(CreateMetric(ELossFunction::NormalizedGini, TLossParams(), 2)[1]);
+        const auto metric = std::move(CreateSingleTargetMetric(ELossFunction::NormalizedGini, TLossParams(), 2)[1]);
         TMetricHolder score = metric->Eval(approx, target, weight, queries, 0, target.size(), executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0.125, 1e-6);
@@ -107,7 +107,7 @@ Y_UNIT_TEST(MultiClassTest) {
         NPar::TLocalExecutor executor;
 
         // Metric with target class = 1.
-        const auto metric = std::move(CreateMetric(ELossFunction::NormalizedGini, TLossParams(), 2)[1]);
+        const auto metric = std::move(CreateSingleTargetMetric(ELossFunction::NormalizedGini, TLossParams(), 2)[1]);
         TMetricHolder score = metric->Eval(approx, target, weight, queries, 0, target.size(), executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 1.0, 1e-6);
@@ -121,7 +121,7 @@ Y_UNIT_TEST(MultiClassTest) {
         NPar::TLocalExecutor executor;
 
         // Metric with target class = 1.
-        const auto metric = std::move(CreateMetric(ELossFunction::NormalizedGini, TLossParams(), 2)[1]);
+        const auto metric = std::move(CreateSingleTargetMetric(ELossFunction::NormalizedGini, TLossParams(), 2)[1]);
         TMetricHolder score = metric->Eval(approx, target, weight, queries, 0, target.size(), executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0.125, 1e-6);

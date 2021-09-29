@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: setuptools
-Version: 56.0.0
+Version: 58.0.4
 Summary: Easily download, build, install, upgrade, and uninstall Python packages
 Home-page: https://github.com/pypa/setuptools
 Author: Python Packaging Authority
@@ -19,16 +19,18 @@ Classifier: Topic :: System :: Archiving :: Packaging
 Classifier: Topic :: System :: Systems Administration
 Classifier: Topic :: Utilities
 Requires-Python: >=3.6
+License-File: LICENSE
 Provides-Extra: certs
-Requires-Dist: certifi (==2016.9.26) ; extra == 'certs'
 Provides-Extra: docs
 Requires-Dist: sphinx ; extra == 'docs'
 Requires-Dist: jaraco.packaging (>=8.2) ; extra == 'docs'
 Requires-Dist: rst.linker (>=1.9) ; extra == 'docs'
+Requires-Dist: jaraco.tidelift (>=1.4) ; extra == 'docs'
 Requires-Dist: pygments-github-lexers (==0.0.5) ; extra == 'docs'
 Requires-Dist: sphinx-inline-tabs ; extra == 'docs'
+Requires-Dist: sphinxcontrib-towncrier ; extra == 'docs'
+Requires-Dist: furo ; extra == 'docs'
 Provides-Extra: ssl
-Requires-Dist: wincertstore (==0.2) ; (sys_platform == "win32") and extra == 'ssl'
 Provides-Extra: testing
 Requires-Dist: pytest (>=4.6) ; extra == 'testing'
 Requires-Dist: pytest-checkdocs (>=2.4) ; extra == 'testing'
@@ -46,8 +48,8 @@ Requires-Dist: jaraco.envs ; extra == 'testing'
 Requires-Dist: pytest-xdist ; extra == 'testing'
 Requires-Dist: sphinx ; extra == 'testing'
 Requires-Dist: jaraco.path (>=3.2.0) ; extra == 'testing'
-Requires-Dist: pytest-black (>=0.3.7) ; (platform_python_implementation != "PyPy" and python_version < "3.10") and extra == 'testing'
-Requires-Dist: pytest-mypy ; (platform_python_implementation != "PyPy" and python_version < "3.10") and extra == 'testing'
+Requires-Dist: pytest-black (>=0.3.7) ; (platform_python_implementation != "PyPy") and extra == 'testing'
+Requires-Dist: pytest-mypy ; (platform_python_implementation != "PyPy") and extra == 'testing'
 
 .. image:: https://img.shields.io/pypi/v/setuptools.svg
    :target: `PyPI link`_
@@ -67,6 +69,9 @@ Requires-Dist: pytest-mypy ; (platform_python_implementation != "PyPy" and pytho
 
 .. image:: https://img.shields.io/readthedocs/setuptools/latest.svg
     :target: https://setuptools.readthedocs.io
+
+.. image:: https://img.shields.io/badge/skeleton-2021-informational
+   :target: https://blog.jaraco.com/skeleton
 
 .. image:: https://img.shields.io/codecov/c/github/pypa/setuptools/master.svg?logo=codecov&logoColor=white
    :target: https://codecov.io/gh/pypa/setuptools

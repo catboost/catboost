@@ -9,7 +9,7 @@
 class IOutputStream;
 class IZeroCopyInput;
 
-namespace NYT {
+namespace NYson {
     ////////////////////////////////////////////////////////////////////////////////
 
     class TYsonWriter
@@ -27,7 +27,7 @@ namespace NYT {
     public:
         TYsonWriter(
             IOutputStream* stream,
-            EYsonFormat format = YF_BINARY,
+            EYsonFormat format = EYsonFormat::Binary,
             EYsonType type = YT_NODE,
             bool enableRaw = false);
 
@@ -81,9 +81,9 @@ namespace NYT {
     void ReformatYsonStream(
         IInputStream* input,
         IOutputStream* output,
-        EYsonFormat format = YF_BINARY,
+        EYsonFormat format = EYsonFormat::Binary,
         EYsonType type = YT_NODE);
 
     ////////////////////////////////////////////////////////////////////////////////
 
-}
+} // namespace NYson
