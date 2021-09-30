@@ -410,7 +410,7 @@ class PROTOBUF_EXPORT MessageLite {
   PROTOBUF_MUST_USE_RESULT bool SerializePartialToFileDescriptor(int file_descriptor) const;
   // Serialize the message and write it to the given C++ ostream.  All
   // required fields must be set.
-  bool SerializeToOstream(std::ostream* output) const;
+  PROTOBUF_MUST_USE_RESULT bool SerializeToOstream(std::ostream* output) const;
   // Like SerializeToOstream(), but allows missing required fields.
   PROTOBUF_MUST_USE_RESULT bool SerializePartialToOstream(std::ostream* output) const;
 
