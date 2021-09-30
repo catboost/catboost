@@ -813,6 +813,12 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\faulthandler\pycontrib-python-faulthandler.vcxproj">
       <Project>B91FAD52-E23E-B3E4-D7A1-568C2BA36521</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\filelock\py3contrib-python-filelock.global.vcxproj">
+      <Project>E95AC769-E0DD-FE89-CE62-E13BCF18A2A4</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\filelock\py3contrib-python-filelock.vcxproj">
+      <Project>6C1951D6-3BF3-612E-8A1F-415A1F4ACE8C</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\funcsigs\pycontrib-python-funcsigs.global.vcxproj">
       <Project>E6280809-0D81-6EE8-F4D9-9A9D571C79C1</Project>
     </ProjectReference>
@@ -2366,6 +2372,21 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\func\pylibrary-python-func.vcxproj">
       <Project>A2964E72-06DC-2ADB-2F18-61795E9554C3</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\hnsw\hnsw\_hnsw.pyd.vcxproj">
+      <Project>9AA7FCCE-4981-15CE-5D95-2F79F4CAFE48</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\hnsw\lib\py3python-hnsw-lib.global.vcxproj">
+      <Project>A939A972-6B36-5F38-2E3C-799EC85D2A4D</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\hnsw\lib\py3python-hnsw-lib.vcxproj">
+      <Project>BB89E940-9511-7AC7-AF00-AF760C99AFC6</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\hnsw\lib\pypython-hnsw-lib.global.vcxproj">
+      <Project>592F8468-258B-E453-1BBD-D7A8859D5E08</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\hnsw\lib\pypython-hnsw-lib.vcxproj">
+      <Project>66D93DB4-4388-D5BE-24C5-38E2A3F6B5E4</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\pytest\plugins\py3python-pytest-plugins.global.vcxproj">
       <Project>31A4C39F-EB9D-307A-6EA2-6FD6DDAB3B79</Project>

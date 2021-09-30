@@ -13,6 +13,7 @@ RECURSE(
     decorator
     enum34
     faulthandler
+    filelock
     funcsigs
     graphviz
     importlib-metadata

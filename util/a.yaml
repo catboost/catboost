@@ -1,4 +1,4 @@
-service: cppcommittee
+service: cpputil
 title: "Yandex CPlusPlus util base library"
 arcanum:
   auto_merge:
@@ -8,7 +8,7 @@ arcanum:
 ci:
   secret: sec-01fgmqmem182tz4zjsmgd6nxxw
   runtime:
-    sandbox-owner: ARCADIA
+    sandbox-owner: CPPUTIL
   autocheck:
     fast-targets:
       - util
@@ -18,25 +18,21 @@ ci:
       triggers:
       - on: pr
         filters:
-        - sub-paths:
-          - util/**
-          - devtools/ya/handlers/style/style_config
+        - sub-paths: [ '**.h', '**.cpp', '**.c' ]
       - on: commit
         filters:
-        - sub-paths:
-          - util/**
-          - devtools/ya/handlers/style/style_config
+        - sub-paths: [ '**.h', '**.cpp', '**.c' ]
+        - discovery: graph
+          abs-paths: [ 'util/tests/style/ya.make' ]
   flows:
     util-style-test:
-      title: "util_codestyle"
+      title: "CPlusPlus style"
       jobs:
         yamake-util-tests-style:
           title: "Ya Make: util/tests/style"
           task: common/arcadia/ya_make
           input:
-            checkout_arcadia_from_url: arcadia-arc:/#r${context.target_revision.hash}
             targets: util/tests/style
             test: true
             keep_on: true
             check_return_code: true
-

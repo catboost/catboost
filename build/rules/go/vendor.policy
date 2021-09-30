@@ -145,6 +145,9 @@ ALLOW .* -> vendor/go.etcd.io/etcd/pkg/types
 # logging to systemd
 ALLOW .* -> vendor/github.com/coreos/go-systemd/journal
 
+# CONTRIB-2336 logging to systemd v22
+ALLOW .* -> vendor/github.com/coreos/go-systemd/v22/journal
+
 # systemd dbus
 ALLOW .* -> vendor/github.com/coreos/go-systemd/v22/dbus
 
@@ -953,6 +956,9 @@ ALLOW .* -> vendor/github.com/airbusgeo/osio
 
 # CONTRIB-2167
 ALLOW .* -> vendor/github.com/jarcoal/httpmock
+
+# CONTRIB-2337 Cloud GPU migration: validator for structs and fields
+ALLOW cloud/compute/go-common/pkg/validation -> vendor/github.com/go-playground/validator/v10
 
 #
 # This section is for EXCEPTIONS. Add new rule above, not here.
