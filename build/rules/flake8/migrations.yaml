@@ -545,7 +545,6 @@ migrations:
     - quality/nirvana_tools/conveyor_operations/eval_feature/eval_feature_viewer
     - quality/nirvana_tools/conveyor_operations/meta_formula_bfmf_bundle/append_formula_factors
     - quality/nirvana_tools/conveyor_operations/meta_formula_bfmf_bundle/get_cache_from_appended_features
-    - quality/nirvana_tools/conveyor_operations/stove/prepare_stove_dataset
     - quality/query_expansions/proc/covfefe/makefile_update
     - quality/query_expansions/tools/tests/test_dummy_process
     - quality/relev_tools/dsat/find_words_with_absent_forms
@@ -1406,7 +1405,6 @@ migrations:
     - logbroker/tools/deploy_consistency_test
     - mail/collectors/tests-system/src
     - mail/github/calendar-attach-processor
-    - maps/analyzer/pylibs/train_catboost
     - maps/automotive/carwashes/tests/fake-env
     - maps/automotive/carwashes/tests/src
     - maps/automotive/proxy/config_generator
@@ -3251,7 +3249,6 @@ migrations:
     - billing/agency_rewards/tests
     - bindings/java/abt/abt-native/android/tests
     - build/scripts
-    - catboost/python-package/ut/large
     - cloud/ai/speechkit/stt/tests/data/model
     - cloud/ai/speechkit/stt/tests/eval/metrics
     - cloud/gauthling/yc_auth_tornado/test
