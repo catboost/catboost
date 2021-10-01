@@ -102,6 +102,7 @@ ALLOW taxi/graph/libs/mapmatcher -> maps/libs/succinct_rtree/serialization
 ALLOW taxi/graph/libs/mapmatcher -> maps/routing/common
 ALLOW taxi/graph/libs/mapmatcher -> maps/routing/turn_penalties
 ALLOW taxi/graph/libs/mapmatcher -> maps/tools/easyview/lib/io
+ALLOW taxi/graph/libs/mapmatcher -> maps/analyzer/libs/guidance
 ALLOW taxi/graph/libs/nearest_edges -> maps/libs/common
 ALLOW taxi/graph/libs/nearest_edges -> maps/libs/jams/graph-spatial
 ALLOW taxi/graph/libs/nearest_edges -> maps/libs/jams/router
@@ -136,7 +137,6 @@ ALLOW taxi/graph/tools/find-one-way-gates -> maps/tools/easyview/lib/io
 ALLOW taxi/graph/tools/generate-graph-tracks -> maps/analyzer/libs/track_generator
 ALLOW taxi/graph/tools/generate-graph-tracks -> maps/libs/mms
 ALLOW taxi/graph/tools/lib -> maps/libs/road_graph
-ALLOW taxi/graph/tools/taxi-adjust-track-by-guidance -> maps/analyzer/libs/guidance
 ALLOW taxi/tools/dorblu/lib -> maps/libs/common
 ALLOW taxi/tools/dorblu/lib -> maps/libs/deprecated/bson
 ALLOW taxi/tools/dorblu/lib -> maps/libs/deprecated/mongo
