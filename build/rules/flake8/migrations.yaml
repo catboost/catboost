@@ -834,7 +834,6 @@ migrations:
     - yabs/server/test/ft/BSSERVER-5249
     - yabs/server/test/ft/BSSERVER-9233
     - yabs/server/test/ft/BSSERVER-9278
-    - yabs/server/test/ft/BSSERVER-9281
     - yabs/server/test/ft/NANPU-817
     - yabs/server/test/ft/checks
     - yabs/server/test/pylibs/qxl
@@ -1276,7 +1275,6 @@ migrations:
     - extsearch/geo/recommender/runtime/config/generation
     - mail/freezing_tests/active_users_aggregation
     - maps/analyzer/tools/online_jams/pylib
-    - maps/tools/naviguide/tools/extract_uuid_info
     - market/seo/offer_base
     - mediapers/feature_machine/nirvana/script_runner
     - mlp/mail/aspam/nirvana_operations/conveyor/build_prod_graph/inbound
@@ -1668,7 +1666,6 @@ migrations:
     - library/python/cyson/cyson
     - mail/freezing_tests/active_users_aggregation
     - maps/analyzer/tools/online_jams/pylib
-    - maps/tools/naviguide/tools/extract_uuid_info
     - market/seo/offer_base
     - mediapers/feature_machine/nirvana/script_runner
     - mlp/mail/aspam/nirvana_operations/conveyor/build_prod_graph/inbound
