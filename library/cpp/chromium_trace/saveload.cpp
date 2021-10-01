@@ -259,9 +259,9 @@ void TSerializer<TEventWithArgs>::Load(IInputStream* in, TEventWithArgs& v, TMem
     i8 tag = 0;
     ::Load(in, tag);
     switch (tag) {
-#define CASE(type)                            \
-    case TVariantIndexV<type, TAnyEvent>:     \
-        v.Event = type();                     \
+#define CASE(type)                                 \
+    case TVariantIndexV<type, TAnyEvent>:          \
+        v.Event = type();                          \
         ::Load(in, std::get<type>(v.Event), pool); \
         break;
 

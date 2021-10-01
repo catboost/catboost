@@ -112,7 +112,7 @@ struct THash<std::variant<Ts...>> {
 public:
     inline size_t operator()(const std::variant<Ts...>& v) const {
         const size_t tagHash = IntHash(v.index());
-        const size_t valueHash = v.valueless_by_exception() ? 0 : Visit([](const auto& value) {
+        const size_t valueHash = v.valueless_by_exception() ? 0 : std::visit([](const auto& value) {
             using T = std::decay_t<decltype(value)>;
             return ::THash<T>{}(value);
         }, v);
