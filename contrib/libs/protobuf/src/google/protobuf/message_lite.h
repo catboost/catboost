@@ -374,7 +374,7 @@ class PROTOBUF_EXPORT MessageLite {
   // Write a protocol buffer of this message to the given output.  Returns
   // false on a write error.  If the message is missing required fields,
   // this may GOOGLE_CHECK-fail.
-  bool SerializeToCodedStream(io::CodedOutputStream* output) const;
+  PROTOBUF_MUST_USE_RESULT bool SerializeToCodedStream(io::CodedOutputStream* output) const;
   // Like SerializeToCodedStream(), but allows missing required fields.
   PROTOBUF_MUST_USE_RESULT bool SerializePartialToCodedStream(io::CodedOutputStream* output) const;
   // Write the message to the given zero-copy output stream.  All required
