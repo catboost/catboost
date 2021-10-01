@@ -3393,6 +3393,11 @@ cdef _set_baseline_features_order(baseline, IRawFeaturesOrderDataVisitor* builde
             one_dim_baseline.push_back(float(baseline[i][baseline_idx]))
         builder_visitor[0].AddBaseline(baseline_idx, <TConstArrayRef[float]>one_dim_baseline)
 
+cdef _set_timestamp(timestamp, IBuilderVisitor* builder_visitor):
+    cdef int i
+    cdef int timestamps_len = len(timestamp)
+    for i in xrange(timestamps_len):
+        builder_visitor[0].AddTimestamp(i, <ui64>timestamp[i])
 
 
 @cython.boundscheck(False)
@@ -3593,6 +3598,7 @@ cdef class _PoolBase:
         subgroup_id,
         pairs_weight,
         baseline,
+        timestamp,
         thread_count):
 
         cdef TFeaturesLayout* features_layout = data_meta_info.FeaturesLayout.Get()
@@ -3676,6 +3682,8 @@ cdef class _PoolBase:
             _set_group_weight_features_order(group_weight, builder_visitor)
         if subgroup_id is not None:
             _set_subgroup_id(subgroup_id, builder_visitor)
+        if timestamp is not None:
+            _set_timestamp(timestamp, builder_visitor)
 
         builder_visitor[0].Finish()
 
@@ -3695,6 +3703,7 @@ cdef class _PoolBase:
         subgroup_id,
         pairs_weight,
         baseline,
+        timestamp,
         thread_count):
 
         cdef Py_ObjectsOrderBuilderVisitor py_builder_visitor = Py_ObjectsOrderBuilderVisitor(thread_count)
@@ -3730,6 +3739,8 @@ cdef class _PoolBase:
             _set_group_weight(group_weight, builder_visitor)
         if subgroup_id is not None:
             _set_subgroup_id(subgroup_id, builder_visitor)
+        if timestamp is not None:
+            _set_timestamp(timestamp, builder_visitor)
 
         builder_visitor[0].Finish()
 
@@ -3738,7 +3749,8 @@ cdef class _PoolBase:
 
 
     cpdef _init_pool(self, data, label, cat_features, text_features, embedding_features, pairs, weight,
-                     group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names, thread_count):
+                     group_id, group_weight, subgroup_id, pairs_weight, baseline, timestamp, feature_names,
+                     thread_count):
         if group_weight is not None and weight is not None:
             raise CatBoostError('Pool must have either weight or group_weight.')
 
@@ -3755,7 +3767,7 @@ cdef class _PoolBase:
         data_meta_info.HasGroupWeight = group_weight is not None
         data_meta_info.HasSubgroupIds = subgroup_id is not None
         data_meta_info.HasWeights = weight is not None
-        data_meta_info.HasTimestamp = False
+        data_meta_info.HasTimestamp = timestamp is not None
         data_meta_info.HasPairs = pairs is not None
 
         data_meta_info.FeaturesLayout = _init_features_layout(
@@ -3795,6 +3807,7 @@ cdef class _PoolBase:
                 subgroup_id,
                 pairs_weight,
                 baseline,
+                timestamp,
                 thread_count
             )
         else:
@@ -3809,6 +3822,7 @@ cdef class _PoolBase:
                 subgroup_id,
                 pairs_weight,
                 baseline,
+                timestamp,
                 thread_count
             )
 
@@ -3889,6 +3903,14 @@ cdef class _PoolBase:
 
         self.__pool.Get()[0].SetBaseline(
             TBaselineArrayRef(baseline_matrix_view.data(), baseline_matrix_view.size())
+        )
+
+    cpdef _set_timestamp(self, timestamp):
+        cdef TVector[ui64] timestamp_vector
+        for value in timestamp:
+            timestamp_vector.push_back(<ui64>value)
+        self.__pool.Get()[0].SetTimestamps(
+            TConstArrayRef[ui64](timestamp_vector.data(), timestamp_vector.size())
         )
 
     cpdef _set_feature_names(self, feature_names):
@@ -4325,6 +4347,10 @@ cdef _get_model_class_labels(const TFullModel& model):
     return labels
 
 
+cdef _get_loss_function_name(const TFullModel& model):
+    return to_native_str(model.GetLossFunctionName())
+
+
 cdef class _CatBoost:
     cdef TFullModel* __model
     cdef TVector[TEvalResult*] __test_evals
@@ -4581,7 +4607,7 @@ cdef class _CatBoost:
         return metrics, [to_native_str(name) for name in metric_names]
 
     cpdef _get_loss_function_name(self):
-        return to_native_str(self.__model.GetLossFunctionName())
+        return _get_loss_function_name(dereference(self.__model))
 
     cpdef _calc_partial_dependence(self, _PoolBase pool, features, int thread_count):
         thread_count = UpdateThreadCount(thread_count);
@@ -5298,9 +5324,15 @@ cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int part
 cdef _convert_to_visible_labels(EPredictionType predictionType, TVector[TVector[double]] raws, int thread_count, TFullModel* model):
     cdef size_t objectCount
     cdef size_t objectIdx
+    cdef size_t dim
+    cdef size_t dimIdx
     cdef TConstArrayRef[double] raws1d
 
     if predictionType == string_to_prediction_type('Class'):
+        loss_function = _get_loss_function_name(model[0])
+        if loss_function in ('MultiLogloss', 'MultiCrossEntropy'):
+            return _2d_vector_of_double_to_np_array(raws).astype(int)
+
         assert (raws.size() == 1)
         raws1d = TConstArrayRef[double](raws[0])
         objectCount = raws1d.size()

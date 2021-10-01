@@ -36,6 +36,7 @@ namespace NCB {
         bool isRealTarget,
         bool isClass,
         bool isMultiClass,
+        bool isMultiLabel,
         TMaybe<float> targetBorder,
         bool classCountUnknown,
         const TVector<NJson::TJsonValue> inputClassLabels,
@@ -48,16 +49,18 @@ namespace NCB {
         }
 
         auto rawTarget = *maybeRawTarget;
+        const auto targetDim = rawTarget.size();
 
         THolder<ITargetConverter> targetConverter = MakeTargetConverter(
             isRealTarget,
             isClass,
             isMultiClass,
+            isMultiLabel,
             targetBorder,
+            targetDim,
             classCountUnknown ? Nothing() : TMaybe<ui32>(*classCount),
             inputClassLabels);
 
-        const auto targetDim = rawTarget.size();
         TVector<TSharedVector<float>> trainingTarget(targetDim);
         for (auto targetIdx : xrange(targetDim)) {
             trainingTarget[targetIdx] = MakeAtomicShared<TVector<float>>(TVector<float>());
@@ -349,7 +352,8 @@ namespace NCB {
         bool hasClassificationOnlyMetrics = isAnyOfMetrics(IsClassificationOnlyMetric);
         bool hasBinClassOnlyMetrics = isAnyOfMetrics(IsBinaryClassOnlyMetric);
         bool hasMultiClassOnlyMetrics = isAnyOfMetrics(IsMultiClassOnlyMetric);
-        bool hasMultiTargetMetrics = isAnyOfMetrics(IsMultiTargetMetric);
+        bool hasMultiRegressionOrSurvivalMetrics = isAnyOfMetrics(IsMultiRegressionMetric)
+                                                || isAnyOfMetrics(IsSurvivalRegressionMetric);
         bool hasGroupwiseMetrics = isAnyOfMetrics(IsGroupwiseMetric);
         bool hasUserDefinedMetrics = isAnyOfMetrics(IsUserDefined);
 
@@ -371,6 +375,7 @@ namespace NCB {
             (inputClassificationInfo.ClassLabels.size() > 0) ||
             inputClassificationInfo.TargetBorder
         );
+        bool multiLabelTargetData = classTargetData && (rawData.GetTargetDimension() > 1);
 
         bool multiClassTargetData = false;
 
@@ -390,13 +395,14 @@ namespace NCB {
                         << ") specified for a multidimensional model"
                     );
                 }
-                multiClassTargetData = !hasMultiTargetMetrics;
+                multiClassTargetData = !hasMultiRegressionOrSurvivalMetrics;
                 if (multiClassTargetData && !knownClassCount) {
                     // because there might be missing classes in train
                     knownClassCount = *knownModelApproxDimension;
                 }
             }
         } else if (hasMultiClassOnlyMetrics ||
+            multiLabelTargetData ||
             (knownClassCount && *knownClassCount > 2) ||
             (inputClassificationInfo.ClassWeights.size() > 2) ||
             (inputClassificationInfo.ClassLabels.size() > 2))
@@ -424,14 +430,16 @@ namespace NCB {
         TTargetCreationOptions options = {
             /*IsClass*/ classTargetData,
             /*IsMultiClass*/ multiClassTargetData,
+            /*IsMultiLabel*/ multiLabelTargetData,
             /*CreateBinClassTarget*/ (
                 hasBinClassOnlyMetrics
-                || (!hasMultiTargetMetrics && !hasMultiClassOnlyMetrics && !multiClassTargetData && classCount == 2)
+                || (!hasMultiRegressionOrSurvivalMetrics && !hasMultiClassOnlyMetrics && !multiClassTargetData && classCount == 2)
             ),
             /*CreateMultiClassTarget*/ (
                 hasMultiClassOnlyMetrics
-                || (!hasMultiTargetMetrics && !hasBinClassOnlyMetrics && (multiClassTargetData || classCount > 2))
+                || (!hasMultiRegressionOrSurvivalMetrics && !hasBinClassOnlyMetrics && !multiLabelTargetData && (multiClassTargetData || classCount > 2))
             ),
+            /*CreateMultiLabelTarget*/ multiLabelTargetData,
             /*CreateGroups*/ (
                 hasGroupwiseMetrics
                 || (!rawData.GetObjectsGrouping()->IsTrivial() && hasUserDefinedMetrics)
@@ -532,7 +540,7 @@ namespace NCB {
             CB_ENSURE(
                 IsMultiTargetObjective(mainLossFunction->GetLossFunction()) ||
                 rawData.GetTargetDimension() <= 1,
-                "Currently only multi-regression and survival objectives work with multidimensional target"
+                "Currently only multi-regression, multilabel and survival objectives work with multidimensional target"
             );
         }
 
@@ -542,7 +550,8 @@ namespace NCB {
         if (targetCreationOptions.IsClass) {
             isRealTarget
                 = mainLossFunction
-                    && (mainLossFunction->GetLossFunction() == ELossFunction::CrossEntropy);
+                    && (mainLossFunction->GetLossFunction() == ELossFunction::CrossEntropy ||
+                        mainLossFunction->GetLossFunction() == ELossFunction::MultiCrossEntropy);
 
             if (!isRealTarget && !knownClassCount && knownModelApproxDimension > 1) {
                 knownClassCount = knownModelApproxDimension;
@@ -557,6 +566,7 @@ namespace NCB {
             isRealTarget,
             targetCreationOptions.IsClass,
             targetCreationOptions.IsMultiClass,
+            targetCreationOptions.IsMultiLabel,
             inputClassificationInfo.TargetBorder,
             !knownClassCount,
             inputClassificationInfo.ClassLabels,
@@ -571,7 +581,9 @@ namespace NCB {
         }
 
         classCount = (ui32)GetClassesCount((int)classCount, outputClassificationInfo->ClassLabels);
-        bool createClassTarget = targetCreationOptions.CreateBinClassTarget || targetCreationOptions.CreateMultiClassTarget;
+        bool createClassTarget = targetCreationOptions.CreateBinClassTarget
+                              || targetCreationOptions.CreateMultiClassTarget
+                              || targetCreationOptions.CreateMultiLabelTarget;
         TProcessedTargetData processedTargetData;
 
         /*
@@ -615,6 +627,19 @@ namespace NCB {
 
             if (!maybeConvertedTarget.empty()) {
                 PrepareTargetCompressed(**outputClassificationInfo->LabelConverter, &*maybeConvertedTarget[0]);
+                processedTargetData.TargetsClassCount.emplace("", (**outputClassificationInfo->LabelConverter).GetApproxDimension());
+            }
+        }
+
+        if (targetCreationOptions.CreateMultiLabelTarget) {
+            CB_ENSURE(
+                metricsThatRequireTargetCanBeSkipped || rawData.GetTarget(),
+                "Multi label classification loss/metrics require label data"
+            );
+            if (!(*outputClassificationInfo->LabelConverter)->IsInitialized()) {
+                (*outputClassificationInfo->LabelConverter)->InitializeMultiClass(classCount);
+            }
+            if (!maybeConvertedTarget.empty()) {
                 processedTargetData.TargetsClassCount.emplace("", (**outputClassificationInfo->LabelConverter).GetApproxDimension());
             }
         }

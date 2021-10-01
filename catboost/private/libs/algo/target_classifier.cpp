@@ -87,6 +87,8 @@ TTargetClassifier BuildTargetClassifier(
         case ELossFunction::StochasticRank:
         case ELossFunction::Logloss:
         case ELossFunction::CrossEntropy:
+        case ELossFunction::MultiLogloss:
+        case ELossFunction::MultiCrossEntropy:
         case ELossFunction::Huber:
         case ELossFunction::UserPerObjMetric:
         case ELossFunction::UserQuerywiseMetric:

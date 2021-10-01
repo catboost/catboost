@@ -389,7 +389,7 @@ class PROTOBUF_EXPORT MessageLite {
   PROTOBUF_MUST_USE_RESULT bool SerializePartialToString(TProtoStringType* output) const;
   // Serialize the message and store it in the given byte array.  All required
   // fields must be set.
-  bool SerializeToArray(void* data, int size) const;
+  PROTOBUF_MUST_USE_RESULT bool SerializeToArray(void* data, int size) const;
   // Like SerializeToArray(), but allows missing required fields.
   PROTOBUF_MUST_USE_RESULT bool SerializePartialToArray(void* data, int size) const;
 

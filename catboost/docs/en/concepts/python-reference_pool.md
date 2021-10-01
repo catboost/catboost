@@ -15,6 +15,7 @@ class Pool(data,
            subgroup_id=None,
            pairs_weight=None
            baseline=None,
+           timestamp=None,
            feature_names=None,
            thread_count=-1,
            log_cout=sys.stdout,
@@ -341,6 +342,23 @@ By default, it is set to 1 for all pairs.
 #### Description
 
 Array of formula values for all input objects. The training starts from these values for all input objects instead of starting from zero.
+
+**Possible types**
+
+- {{ python-type--list }}
+- {{ python-type--numpyarray }}
+
+**Default value**
+
+None
+
+### timestamp
+
+#### Description
+
+Timestamps for all input objects.
+Should contain non-negative integer values.
+Useful for sorting a learning dataset by this field during training.
 
 **Possible types**
 

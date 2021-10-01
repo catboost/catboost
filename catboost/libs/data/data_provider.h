@@ -196,6 +196,11 @@ namespace NCB {
             RawTargetData.SetWeights(weights);
             MetaInfo.HasWeights = true;
         }
+
+        void SetTimestamps(TConstArrayRef<ui64> timestamps) { // [objectIdx]
+            ObjectsData->SetTimestamps(timestamps);
+            MetaInfo.HasTimestamp = true;
+        }
     };
 
     using TDataProvider = TDataProviderTemplate<TObjectsDataProvider>;

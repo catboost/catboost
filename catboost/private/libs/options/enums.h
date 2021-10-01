@@ -217,6 +217,10 @@ enum class ELossFunction {
     MultiRMSE,
     MultiRMSEWithMissingValues,
 
+    /* multilabel classification */
+    MultiLogloss,
+    MultiCrossEntropy,
+
     Combination
 };
 
@@ -384,6 +388,11 @@ enum class EF1AverageType {
     Micro,
     Macro,
     Weighted
+};
+
+enum class EAccuracyType {
+    Classic,
+    PerClass
 };
 
 namespace NCB {

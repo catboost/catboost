@@ -608,7 +608,7 @@ TVector<TParamSet> TMultiRMSEWithMissingValues::ValidParamSets() {
 
 /* RMSEWithUncertainty */
 namespace {
-    class TRMSEWithUncertaintyMetric final: public TAdditiveMultiTargetMetric {
+    class TRMSEWithUncertaintyMetric final: public TAdditiveSingleTargetMetric {
     public:
         explicit TRMSEWithUncertaintyMetric(
             ELossFunction lossFunction,
@@ -620,8 +620,10 @@ namespace {
         TMetricHolder EvalSingleThread(
             TConstArrayRef<TConstArrayRef<double>> approx,
             TConstArrayRef<TConstArrayRef<double>> approxDelta,
-            TConstArrayRef<TConstArrayRef<float>> target,
+            bool isExpApprox,
+            TConstArrayRef<float> target,
             TConstArrayRef<float> weight,
+            TConstArrayRef<TQueryInfo> queriesInfo,
             int begin,
             int end
         ) const override;
@@ -634,7 +636,7 @@ namespace {
 TRMSEWithUncertaintyMetric::TRMSEWithUncertaintyMetric(
     ELossFunction lossFunction,
     const TLossParams& descriptionParams)
-    : TAdditiveMultiTargetMetric(lossFunction, descriptionParams)
+    : TAdditiveSingleTargetMetric(lossFunction, descriptionParams)
 {}
 
 TVector<THolder<IMetric>> TRMSEWithUncertaintyMetric::Create(const TMetricConfig& config) {
@@ -644,12 +646,14 @@ TVector<THolder<IMetric>> TRMSEWithUncertaintyMetric::Create(const TMetricConfig
 TMetricHolder TRMSEWithUncertaintyMetric::EvalSingleThread(
     TConstArrayRef<TConstArrayRef<double>> approx,
     TConstArrayRef<TConstArrayRef<double>> approxDelta,
-    TConstArrayRef<TConstArrayRef<float>> target,
+    bool isExpApprox,
+    TConstArrayRef<float> target,
     TConstArrayRef<float> weights,
+    TConstArrayRef<TQueryInfo> /* queriesInfo */,
     int begin,
     int end
 ) const {
-    CB_ENSURE(target.size() == 1, "Target dimension for RMSEWithUncertainty Metric should be 1, found " << target.size());
+    Y_ASSERT(!isExpApprox);
     CB_ENSURE(approx.size() == 2,
               "Approx dimension for RMSEWithUncertainty metric should be 2, found " << approx.size() <<
               ", probably your model was trained not with RMSEWithUncertainty loss function");
@@ -665,7 +669,7 @@ TMetricHolder TRMSEWithUncertaintyMetric::EvalSingleThread(
             double expSum = -2 * realApprox(1, i);
             FastExpInplace(&expSum, /*count*/ 1);
             // np.log(2 * np.pi) / 2.0
-            stats0 += weight * (0.9189385332046 + realApprox(1, i) + 0.5 * expSum * Sqr(realApprox(0, i) - target[0][i]));
+            stats0 += weight * (0.9189385332046 + realApprox(1, i) + 0.5 * expSum * Sqr(realApprox(0, i) - target[i]));
             stats1 += weight;
         }
         error.Stats[0] += stats0;
@@ -3803,99 +3807,6 @@ TVector<TParamSet> THingeLossMetric::ValidParamSets() {
     };
 };
 
-/* Hamming loss */
-
-namespace {
-    struct THammingLossMetric final: public TAdditiveSingleTargetMetric {
-        explicit THammingLossMetric(const TLossParams& params,
-                                    double predictionBorder);
-
-        static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
-        static TVector<TParamSet> ValidParamSets();
-
-        TMetricHolder EvalSingleThread(
-                TConstArrayRef<TConstArrayRef<double>> approx,
-                TConstArrayRef<TConstArrayRef<double>> approxDelta,
-                bool isExpApprox,
-                TConstArrayRef<float> target,
-                TConstArrayRef<float> weight,
-                TConstArrayRef<TQueryInfo> queriesInfo,
-                int begin,
-                int end
-        ) const override;
-        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
-        double GetFinalError(const TMetricHolder& error) const override;
-
-    private:
-        static constexpr double TargetBorder = GetDefaultTargetBorder();
-        const double PredictionBorder = GetDefaultPredictionBorder();
-    };
-}
-
-// static.
-TVector<THolder<IMetric>> THammingLossMetric::Create(const TMetricConfig& config) {
-    config.ValidParams->insert("border");
-    return AsVector(MakeHolder<THammingLossMetric>(
-        config.Params, config.GetPredictionBorderOrDefault()));
-}
-
-THammingLossMetric::THammingLossMetric(const TLossParams& params,
-                                       double predictionBorder)
-        : TAdditiveSingleTargetMetric(ELossFunction::HammingLoss, params)
-        , PredictionBorder(predictionBorder)
-{
-}
-
-TMetricHolder THammingLossMetric::EvalSingleThread(
-    TConstArrayRef<TConstArrayRef<double>> approx,
-    TConstArrayRef<TConstArrayRef<double>> approxDelta,
-    bool isExpApprox,
-    TConstArrayRef<float> target,
-    TConstArrayRef<float> weight,
-    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
-    int begin,
-    int end
-) const {
-    Y_ASSERT(approxDelta.empty());
-    Y_ASSERT(!isExpApprox);
-    Y_ASSERT(target.size() == approx[0].size());
-    TMetricHolder error(2);
-    const bool isMulticlass = approx.size() > 1;
-    const double predictionLogitBorder = NCB::Logit(PredictionBorder);
-
-    for (int i = begin; i < end; ++i) {
-        int approxClass = GetApproxClass(approx, i, predictionLogitBorder);
-        const float targetVal = isMulticlass ? target[i] : target[i] > TargetBorder;
-        int targetClass = static_cast<int>(targetVal);
-
-        float w = weight.empty() ? 1 : weight[i];
-        error.Stats[0] += approxClass != targetClass ? w : 0.0;
-        error.Stats[1] += w;
-    }
-
-    return error;
-}
-
-void THammingLossMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
-    *valueType = EMetricBestValue::Min;
-}
-
-double THammingLossMetric::GetFinalError(const TMetricHolder& error) const {
-    return error.Stats[1] != 0 ? error.Stats[0] / error.Stats[1] : 0;
-}
-
-TVector<TParamSet> THammingLossMetric::ValidParamSets() {
-    return {
-        TParamSet{
-            {
-                TParamInfo{"use_weights", false, true},
-                TParamInfo{"border", false, TargetBorder}
-            },
-            ""
-        }
-    };
-};
-
 /* PairAccuracy */
 
 namespace {
@@ -5751,6 +5662,82 @@ TVector<TParamSet> TERRMetric::ValidParamSets() {
     };
 };
 
+/* MultiCrossEntropy */
+namespace {
+    struct TMultiCrossEntropyMetric final: public TAdditiveMultiTargetMetric {
+        explicit TMultiCrossEntropyMetric(ELossFunction lossFunction, const TLossParams& params);
+
+        static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
+        static TVector<TParamSet> ValidParamSets();
+
+        TMetricHolder EvalSingleThread(
+            TConstArrayRef<TConstArrayRef<double>> approx,
+            TConstArrayRef<TConstArrayRef<double>> approxDelta,
+            TConstArrayRef<TConstArrayRef<float>> target,
+            TConstArrayRef<float> weight,
+            int begin,
+            int end
+        ) const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+        double GetFinalError(const TMetricHolder& error) const override;
+    };
+}
+
+TMultiCrossEntropyMetric::TMultiCrossEntropyMetric(ELossFunction lossFunction, const TLossParams& params)
+    : TAdditiveMultiTargetMetric(lossFunction, params)
+{
+    Y_ASSERT(lossFunction == ELossFunction::MultiLogloss || lossFunction == ELossFunction::MultiCrossEntropy);
+}
+
+TVector<THolder<IMetric>> TMultiCrossEntropyMetric::Create(const TMetricConfig& config) {
+    return AsVector(MakeHolder<TMultiCrossEntropyMetric>(config.Metric, config.Params));
+}
+
+TMetricHolder TMultiCrossEntropyMetric::EvalSingleThread(
+    TConstArrayRef<TConstArrayRef<double>> approx,
+    TConstArrayRef<TConstArrayRef<double>> approxDelta,
+    TConstArrayRef<TConstArrayRef<float>> target,
+    TConstArrayRef<float> weight,
+    int begin,
+    int end
+) const {
+    const int approxDimension = approx.ysize();
+
+    TMetricHolder error(2);
+    TVector<double> evaluatedApprox(approxDimension);
+    auto evaluatedApproxRef = MakeArrayRef(evaluatedApprox);
+
+    for (int docIdx = begin; docIdx < end; ++docIdx) {
+        GetMultiDimensionalApprox(docIdx, approx, approxDelta, evaluatedApproxRef);
+        double sumDimErrors = 0;
+        for (int dim = 0; dim < approxDimension; ++dim) {
+            const double expApprox = exp(evaluatedApproxRef[dim]);
+            sumDimErrors += IsFinite(expApprox) ? -log(1 + expApprox) : -evaluatedApproxRef[dim];
+        }
+
+        for (int targetClass = 0; targetClass < approxDimension; targetClass++) {
+            sumDimErrors += target[targetClass][docIdx] * evaluatedApproxRef[targetClass];
+        }
+
+        const float w = weight.empty() ? 1 : weight[docIdx];
+        error.Stats[0] -= sumDimErrors / approxDimension * w;
+        error.Stats[1] += w;
+    }
+    return error;
+}
+
+double TMultiCrossEntropyMetric::GetFinalError(const TMetricHolder& error) const {
+    return error.Stats[1] == 0 ? 0 : sqrt(error.Stats[0] / error.Stats[1]);
+}
+
+void TMultiCrossEntropyMetric::GetBestValue(EMetricBestValue* valueType, float* /*bestValue*/) const {
+    *valueType = EMetricBestValue::Min;
+}
+
+TVector<TParamSet> TMultiCrossEntropyMetric::ValidParamSets() {
+    return {TParamSet{{TParamInfo{"use_weights", false, true}}, ""}};
+};
+
 /* Create */
 
 static void CheckParameters(
@@ -5855,6 +5842,10 @@ TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TLossParams& 
         case ELossFunction::MultiClassOneVsAll:
             AppendTemporaryMetricsVector(TMultiClassOneVsAllMetric::Create(config), &result);
             break;
+        case ELossFunction::MultiLogloss:
+        case ELossFunction::MultiCrossEntropy:
+            AppendTemporaryMetricsVector(TMultiCrossEntropyMetric::Create(config), &result);
+            break;
         case ELossFunction::PairLogit:
             AppendTemporaryMetricsVector(TPairLogitMetric::Create(config), &result);
             break;
@@ -5891,9 +5882,6 @@ TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TLossParams& 
             break;
         case ELossFunction::BalancedErrorRate:
             AppendTemporaryMetricsVector(TBalancedErrorRate::Create(config), &result);
-            break;
-        case ELossFunction::HammingLoss:
-            AppendTemporaryMetricsVector(THammingLossMetric::Create(config), &result);
             break;
         case ELossFunction::HingeLoss:
             AppendTemporaryMetricsVector(THingeLossMetric::Create(config), &result);
@@ -6088,6 +6076,9 @@ TVector<TParamSet> ValidParamSets(ELossFunction metric) {
             return TMultiClassMetric::ValidParamSets();
         case ELossFunction::MultiClassOneVsAll:
             return TMultiClassOneVsAllMetric::ValidParamSets();
+        case ELossFunction::MultiLogloss:
+        case ELossFunction::MultiCrossEntropy:
+            return TMultiCrossEntropyMetric::ValidParamSets();
         case ELossFunction::PairLogit:
             return TPairLogitMetric::ValidParamSets();
         case ELossFunction::QueryRMSE:
@@ -6113,8 +6104,6 @@ TVector<TParamSet> ValidParamSets(ELossFunction metric) {
             return TBalancedAccuracyMetric::ValidParamSets();
         case ELossFunction::BalancedErrorRate:
             return TBalancedErrorRate::ValidParamSets();
-        case ELossFunction::HammingLoss:
-            return THammingLossMetric::ValidParamSets();
         case ELossFunction::HingeLoss:
             return THingeLossMetric::ValidParamSets();
         case ELossFunction::PairAccuracy:

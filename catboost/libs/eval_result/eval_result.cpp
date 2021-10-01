@@ -5,6 +5,7 @@
 
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/logging/logging.h>
+#include <catboost/private/libs/options/enum_helpers.h>
 
 #include <util/generic/hash_set.h>
 #include <util/stream/fwd.h>
@@ -190,6 +191,7 @@ namespace NCB {
 
         const auto targetDim = pool.RawTargetData.GetTargetDimension();
         const bool isMultiTarget = targetDim > 1;
+        const bool isMultiLabel = !lossFunctionName.empty() && IsMultiLabelObjective(lossFunctionName);
 
         for (const auto& outputColumn : outputColumns) {
             EPredictionType type;
@@ -214,7 +216,11 @@ namespace NCB {
                         TStringBuilder header;
                         header << outputColumn;
                         if (targetDim > 1) {
-                            header << ":Dim=" << targetIdx;
+                            if (isMultiLabel) {
+                                header << ":Class=" << visibleLabelsHelper.GetVisibleClassNameFromClass(targetIdx);
+                            } else {
+                                header << ":Dim=" << targetIdx;
+                            }
                         }
                         if (const ITypedSequencePtr<float>* typedSequence
                                 = std::get_if<ITypedSequencePtr<float>>(&(target[targetIdx])))

@@ -11,6 +11,7 @@
 #include <util/generic/maybe.h>
 #include <util/generic/map.h>
 #include <util/generic/ptr.h>
+#include <util/generic/variant.h>
 #include <util/string/cast.h>
 
 
@@ -20,17 +21,18 @@ namespace {
         /** classification **/
         IsBinaryClassCompatible        = 1 << 0,
         IsMultiClassCompatible         = 1 << 1,
+        IsMultiLabelCompatible         = 1 << 2,
         /** regression **/
-        IsRegression                   = 1 << 2,
-        IsMultiRegression              = 1 << 3,
-        IsSurvivalRegression           = 1 << 4,
+        IsRegression                   = 1 << 3,
+        IsMultiRegression              = 1 << 4,
+        IsSurvivalRegression           = 1 << 5,
         /** ranking **/
-        IsGroupwise                    = 1 << 5,
-        IsPairwise                     = 1 << 6,
+        IsGroupwise                    = 1 << 6,
+        IsPairwise                     = 1 << 7,
 
         /* various */
-        IsUserDefined                  = 1 << 7,
-        IsCombination                  = 1 << 8
+        IsUserDefined                  = 1 << 8,
+        IsCombination                  = 1 << 9
     };
 
     using EMetricAttributes = TFlags<EMetricAttribute>;
@@ -65,6 +67,7 @@ namespace {
             CB_ENSURE(HasFlags(EMetricAttribute::IsRegression)
                       || HasFlags(EMetricAttribute::IsBinaryClassCompatible)
                       || HasFlags(EMetricAttribute::IsMultiClassCompatible)
+                      || HasFlags(EMetricAttribute::IsMultiLabelCompatible)
                       || HasFlags(EMetricAttribute::IsGroupwise)
                       || HasFlags(EMetricAttribute::IsPairwise)
                       || HasFlags(EMetricAttribute::IsUserDefined)
@@ -197,6 +200,12 @@ MakeRegister(LossInfos,
     Registree(MultiClassOneVsAll,
         EMetricAttribute::IsMultiClassCompatible
     ),
+    Registree(MultiLogloss,
+        EMetricAttribute::IsMultiLabelCompatible
+    ),
+    Registree(MultiCrossEntropy,
+        EMetricAttribute::IsMultiLabelCompatible
+    ),
     RankingRegistree(PairLogit, ERankingType::CrossEntropy,
         EMetricAttribute::IsBinaryClassCompatible
         | EMetricAttribute::IsGroupwise
@@ -273,6 +282,7 @@ MakeRegister(LossInfos,
     Registree(Accuracy,
         EMetricAttribute::IsBinaryClassCompatible
         | EMetricAttribute::IsMultiClassCompatible
+        | EMetricAttribute::IsMultiLabelCompatible
     ),
     Registree(BalancedAccuracy,
         EMetricAttribute::IsBinaryClassCompatible
@@ -286,14 +296,17 @@ MakeRegister(LossInfos,
     Registree(Precision,
         EMetricAttribute::IsBinaryClassCompatible
         | EMetricAttribute::IsMultiClassCompatible
+        | EMetricAttribute::IsMultiLabelCompatible
     ),
     Registree(Recall,
         EMetricAttribute::IsBinaryClassCompatible
         | EMetricAttribute::IsMultiClassCompatible
+        | EMetricAttribute::IsMultiLabelCompatible
     ),
     Registree(F1,
         EMetricAttribute::IsBinaryClassCompatible
         | EMetricAttribute::IsMultiClassCompatible
+        | EMetricAttribute::IsMultiLabelCompatible
     ),
     Registree(TotalF1,
         EMetricAttribute::IsBinaryClassCompatible
@@ -310,6 +323,7 @@ MakeRegister(LossInfos,
     Registree(HammingLoss,
         EMetricAttribute::IsBinaryClassCompatible
         | EMetricAttribute::IsMultiClassCompatible
+        | EMetricAttribute::IsMultiLabelCompatible
     ),
     Registree(HingeLoss,
         EMetricAttribute::IsBinaryClassCompatible
@@ -494,14 +508,23 @@ static const TVector<ELossFunction> MultiTargetObjectives = {
     ELossFunction::MultiRMSE,
     ELossFunction::MultiRMSEWithMissingValues,
     ELossFunction::PythonUserDefinedMultiTarget,
-    ELossFunction::SurvivalAft
+    ELossFunction::SurvivalAft,
+    ELossFunction::MultiLogloss,
+    ELossFunction::MultiCrossEntropy
 };
 
 static const TVector<ELossFunction> ClassificationObjectives = {
     ELossFunction::Logloss,
     ELossFunction::CrossEntropy,
     ELossFunction::MultiClass,
-    ELossFunction::MultiClassOneVsAll
+    ELossFunction::MultiClassOneVsAll,
+    ELossFunction::MultiLogloss,
+    ELossFunction::MultiCrossEntropy
+};
+
+static const TVector<ELossFunction> MultiLabelObjectives = {
+    ELossFunction::MultiLogloss,
+    ELossFunction::MultiCrossEntropy
 };
 
 static const TVector<ELossFunction> RankingObjectives = {
@@ -575,7 +598,8 @@ bool IsMultiClassCompatibleMetric(TStringBuf lossFunction) {
 bool IsClassificationMetric(ELossFunction loss) {
     auto info = GetInfo(loss);
     return info->HasFlags(EMetricAttribute::IsBinaryClassCompatible)
-        || info->HasFlags(EMetricAttribute::IsMultiClassCompatible);
+        || info->HasFlags(EMetricAttribute::IsMultiClassCompatible)
+        || info->HasFlags(EMetricAttribute::IsMultiLabelCompatible);
 }
 
 bool IsBinaryClassOnlyMetric(ELossFunction loss) {
@@ -616,6 +640,14 @@ bool IsSurvivalRegressionObjective(TStringBuf loss) {
     return IsSurvivalRegressionObjective(ParseLossType(loss));
 }
 
+bool IsMultiLabelObjective(ELossFunction loss) {
+    return IsIn(MultiLabelObjectives, loss);
+}
+
+bool IsMultiLabelObjective(TStringBuf loss) {
+    return IsMultiLabelObjective(ParseLossType(loss));
+}
+
 bool IsMultiTargetObjective(ELossFunction loss) {
     return IsIn(MultiTargetObjectives, loss);
 }
@@ -628,10 +660,26 @@ bool IsMultiRegressionMetric(ELossFunction loss) {
     return GetInfo(loss)->HasFlags(EMetricAttribute::IsMultiRegression);
 }
 
+bool IsSurvivalRegressionMetric(ELossFunction loss) {
+    return GetInfo(loss)->HasFlags(EMetricAttribute::IsSurvivalRegression);
+}
+
+bool IsMultiLabelMetric(ELossFunction loss) {
+    return GetInfo(loss)->HasFlags(EMetricAttribute::IsMultiLabelCompatible);
+}
+
 bool IsMultiTargetMetric(ELossFunction loss) {
     auto info = GetInfo(loss);
     return info->HasFlags(EMetricAttribute::IsMultiRegression)
-        || info->HasFlags(EMetricAttribute::IsSurvivalRegression);
+        || info->HasFlags(EMetricAttribute::IsSurvivalRegression)
+        || info->HasFlags(EMetricAttribute::IsMultiLabelCompatible);
+}
+
+bool IsMultiTargetOnlyMetric(ELossFunction loss) {
+    auto info = GetInfo(loss);
+    return IsMultiTargetMetric(loss)
+        && info->MissesFlags(EMetricAttribute::IsBinaryClassCompatible)
+        && info->MissesFlags(EMetricAttribute::IsMultiClassCompatible);
 }
 
 bool IsRegressionMetric(ELossFunction loss) {
