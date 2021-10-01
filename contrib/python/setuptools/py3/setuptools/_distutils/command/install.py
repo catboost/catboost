@@ -470,6 +470,7 @@ class install(Command):
         """Sets the install directories by applying the install schemes."""
         # it's the caller's problem if they supply a bad name!
         if (hasattr(sys, 'pypy_version_info') and
+                sys.version_info < (3, 8) and
                 not name.endswith(('_user', '_home'))):
             if os.name == 'nt':
                 name = 'pypy_nt'
