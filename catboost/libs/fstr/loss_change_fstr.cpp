@@ -275,7 +275,7 @@ TVector<TMetricHolder> CalcFeatureEffectLossChangeMetricStats(
                 }
             }, blockParams, NPar::TLocalExecutor::WAIT_COMPLETE);
             scores[featureIdx].Add(
-                dynamic_cast<const TSingleTargetMetric*>(metric.Get())->Eval(
+                dynamic_cast<const ISingleTargetEval*>(metric.Get())->Eval(
                     approx,
                     targetData->GetOneDimensionalTarget().GetOrElse(TConstArrayRef<float>()),
                     GetWeights(*targetData),
