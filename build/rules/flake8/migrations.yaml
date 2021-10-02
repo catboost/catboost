@@ -436,9 +436,6 @@ migrations:
     - maps/wikimap/mapspro/libs/python/pymod/yandex/maps/wiki
     - maps/wikimap/stat/libs/common/tests/lib
     - maps/wikimap/stat/libs/common/tests/lib/dates_ut
-    - market/backctld/pyb
-    - market/backctld/pyb/plugin/data_handlers
-    - market/backctld/pyb/qpipe
     - market/contrib/python/yaconf_v0.1.2
     - market/contrib/python/yaconf_v0.1.2/yaconf
     - market/idx/streams/yatf
@@ -1344,7 +1341,6 @@ migrations:
     - alice/uniproxy/tools/perf_results_parser
     - antirobot/tools/prepare_requests_cbb
     - arc/backups/restore/tasklet
-    - balancer/test/functional/rate_limiter
     - browser/infra/services/ci/backend/flakiness/migrations
     - clickhouse/utils/github
     - cv/imageproc/ocr/tools/nirvana/captcha_renderer
@@ -1419,7 +1415,6 @@ migrations:
     - maps/wikimap/stat/kpi/valuable_edits/users_home_regions/lib
     - maps/wikimap/stat/tasks_payment/tasks_logging/feedback/lib
     - maps_adv/common/shared_mock
-    - market/backctld/pyb
     - market/dynamic_pricing/tools/kvi_evaluation
     - market/dynamic_pricing/tools/offline_modeling
     - market/mobile_validator/mt
@@ -1554,7 +1549,6 @@ migrations:
     - tools/releaser/src
     - travel/avia/avia_api
     - travel/avia/library/python/iata_correction
-    - travel/avia/shared_flights/admin/app/view
     - travel/avia/shared_flights/data_importer
     - travel/avia/shared_flights/tasks/sirena_parser
     - travel/library/python/sender
@@ -2249,8 +2243,6 @@ migrations:
     - mds/mastermind/jobs_integration_tests/src
     - mds/mastermind/minion
     - mds/mastermind/monolith
-    - mds/mastermind/resizer/analyze_utils
-    - mds/mastermind/resizer/lib
     - mds/mastermind/scheduler
     - mds/mastermind/stat_reporter/lib
     - mds/nscfg/lib
@@ -3393,7 +3385,6 @@ migrations:
     - mds/lrc-tools/tests/test_remove_records
     - mds/lrc-tools/tests/test_remover
     - mds/lrc-tools/tests/test_restore
-    - mds/mastermind/resizer/tests/analyze_utils
     - media/recommender/zen/factor_url_socnet/tests
     - mediapers/rtmr/tasks/kp/recommendations/tests
     - metrika/admin/brb/server/tests
