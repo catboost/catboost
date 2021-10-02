@@ -35,7 +35,7 @@ def _init_venv():
     libpath = _path_join(site_prefix, 'lib',
                            'python%d.%d' % sys.version_info[:2],
                            'site-packages')
-    sys.path.append(libpath)
+    sys.path.insert(0, libpath)
 
     # emulate site.venv()
     sys.prefix = site_prefix
@@ -515,10 +515,7 @@ def excepthook(*args, **kws):
     return traceback.print_exception(*args, **kws)
 
 
-sys.meta_path.insert(0, BuiltinSubmoduleImporter)
-
 importer = ResourceImporter()
-sys.meta_path.insert(0, importer)
 
 
 def executable_path_hook(path):
@@ -531,9 +528,19 @@ def executable_path_hook(path):
     raise ImportError(path)
 
 
-if executable not in sys.path:
-    sys.path.insert(0, executable)
-sys.path_hooks.insert(0, executable_path_hook)
+if YA_IDE_VENV:
+    sys.meta_path.append(importer)
+    sys.meta_path.append(BuiltinSubmoduleImporter)
+    if executable not in sys.path:
+        sys.path.append(executable)
+    sys.path_hooks.append(executable_path_hook)
+else:
+    sys.meta_path.insert(0, BuiltinSubmoduleImporter)
+    sys.meta_path.insert(0, importer)
+    if executable not in sys.path:
+        sys.path.insert(0, executable)
+    sys.path_hooks.insert(0, executable_path_hook)
+
 sys.path_importer_cache[executable] = importer
 
 # Indicator that modules and resources are built-in rather than on the file system.
