@@ -329,7 +329,7 @@ class PROTOBUF_EXPORT MessageLite {
   // format, matching the encoding output by MessageLite::SerializeToString().
   // If you'd like to convert a human-readable string into a protocol buffer
   // object, see google::protobuf::TextFormat::ParseFromString().
-  PROTOBUF_ATTRIBUTE_REINITIALIZES bool ParseFromString(ConstStringParam data);
+  PROTOBUF_ATTRIBUTE_REINITIALIZES PROTOBUF_MUST_USE_RESULT bool ParseFromString(ConstStringParam data);
   // Like ParseFromString(), but accepts messages that are missing
   // required fields.
   PROTOBUF_ATTRIBUTE_REINITIALIZES PROTOBUF_MUST_USE_RESULT bool ParsePartialFromString(
