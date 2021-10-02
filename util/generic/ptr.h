@@ -247,7 +247,7 @@ public:
     {
     }
 
-    inline THolder(T* t) noexcept
+    explicit THolder(T* t) noexcept
         : T_(t)
     {
     }
