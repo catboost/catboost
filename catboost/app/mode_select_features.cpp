@@ -153,6 +153,7 @@ int mode_select_features(int argc, const char* argv[]) {
         &executor
     );
 
+    TVector<TEvalResult> evalResults(pools.Test.size());
 
     const TFeaturesSelectionSummary summary = SelectFeatures(
         catBoostOptions,
@@ -161,6 +162,8 @@ int mode_select_features(int argc, const char* argv[]) {
         featuresSelectOptions,
         pools,
         /*dstModel*/ nullptr,
+        /*evalResults*/ GetMutablePointers(evalResults),
+        /*metricsAndTimeHistory*/ nullptr,
         &executor
     );
     SaveSummaryToFile(summary, featuresSelectOptions.ResultPath);

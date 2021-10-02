@@ -127,6 +127,8 @@ namespace NCB {
         const TFeaturesSelectOptions& featuresSelectOptions,
         const TDataProviders& pools,
         TFullModel* dstModel,
+        const TVector<TEvalResult*>& evalResultPtrs,
+        TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
         NPar::ILocalExecutor* executor
     ) {
         TSetLogging inThisScope(catBoostOptions.LoggingLevel);
@@ -205,6 +207,8 @@ namespace NCB {
             labelConverter,
             trainingData,
             dstModel,
+            evalResultPtrs,
+            metricsAndTimeHistory,
             executor
         );
 
@@ -223,7 +227,9 @@ namespace NCB {
     NJson::TJsonValue SelectFeatures(
         const NJson::TJsonValue& plainJsonParams,
         const TDataProviders& pools,
-        TFullModel* dstModel
+        TFullModel* dstModel,
+        const TVector<TEvalResult*>& testApproxes,
+        TMetricsAndTimeLeftHistory* metricsAndTimeHistory
     ) {
         NJson::TJsonValue catBoostJsonOptions;
         NJson::TJsonValue outputOptionsJson;
@@ -250,6 +256,8 @@ namespace NCB {
             featuresSelectOptions,
             pools,
             dstModel,
+            testApproxes,
+            metricsAndTimeHistory,
             &executor
         );
         return ToJson(summary);

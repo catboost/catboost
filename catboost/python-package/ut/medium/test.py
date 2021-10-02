@@ -9895,3 +9895,33 @@ def test_pool_set_timestamp(task_type):
     output_model_path = test_output_path(OUTPUT_MODEL_PATH)
     model.save_model(output_model_path)
     return compare_canonical_models(output_model_path)
+
+
+@pytest.mark.parametrize('train_final_model', [True, False])
+def test_select_features(task_type, train_final_model):
+    learn = Pool(TRAIN_FILE, column_description=CD_FILE)
+    test = Pool(TEST_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(
+        iterations=10,
+        learning_rate=0.03,
+        task_type=task_type,
+        devices='0'
+    )
+    summary = model.select_features(
+        learn,
+        eval_set=test,
+        steps=1,
+        train_final_model=train_final_model,
+        features_for_select='0-16',
+        num_features_to_select=10
+    )
+    assert len(summary['selected_features']) == 10
+    assert len(summary['eliminated_features']) == 7
+    if train_final_model:
+        assert model.is_fitted()
+        assert model.best_score_ != {}
+        assert model.evals_result_ != {}
+    else:
+        assert not model.is_fitted()
+        assert model.best_score_ == {}
+        assert model.evals_result_ == {}
