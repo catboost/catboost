@@ -1,6 +1,6 @@
-#include "file.h"
-#include "filter.h"
 #include "log.h"
+#include "uninitialized_creator.h"
+#include "filter.h"
 #include "null.h"
 #include "stream.h"
 #include "thread.h"
@@ -12,36 +12,10 @@
 #include <util/generic/scope.h>
 #include <util/generic/yexception.h>
 
-static inline THolder<TLogBackend> BackendFactory(const TString& logType, ELogPriority priority) {
-    if (priority != LOG_MAX_PRIORITY) {
-        return MakeHolder<TFilteredLogBackend>(BackendFactory(logType, LOG_MAX_PRIORITY), priority);
-    }
-    try {
-        if (logType == "console") {
-            return MakeHolder<TStreamLogBackend>(&Cerr);
-        }
-        if (logType == "cout") {
-            return MakeHolder<TStreamLogBackend>(&Cout);
-        }
-        if (logType == "cerr") {
-            return MakeHolder<TStreamLogBackend>(&Cerr);
-        } else if (logType == "null" || !logType || logType == "/dev/null") {
-            return MakeHolder<TNullLogBackend>();
-        } else {
-            return MakeHolder<TFileLogBackend>(logType);
-        }
-    } catch (...) {
-        Cdbg << "Warning: " << logType << ": " << CurrentExceptionMessage() << ". Use stderr instead." << Endl;
-    }
-
-    return MakeHolder<TStreamLogBackend>(&Cerr);
-}
-
 THolder<TLogBackend> CreateLogBackend(const TString& fname, ELogPriority priority, bool threaded) {
-    if (!threaded) {
-        return BackendFactory(fname, priority);
-    }
-    return CreateFilteredOwningThreadedLogBackend(fname, priority);
+    TLogBackendCreatorUninitialized creator;
+    creator.InitCustom(fname, priority, threaded);
+    return creator.CreateLogBackend();
 }
 
 THolder<TLogBackend> CreateFilteredOwningThreadedLogBackend(const TString& fname, ELogPriority priority, size_t queueLen) {
@@ -49,7 +23,7 @@ THolder<TLogBackend> CreateFilteredOwningThreadedLogBackend(const TString& fname
 }
 
 THolder<TOwningThreadedLogBackend> CreateOwningThreadedLogBackend(const TString& fname, size_t queueLen) {
-    return MakeHolder<TOwningThreadedLogBackend>(BackendFactory(fname, LOG_MAX_PRIORITY).Release(), queueLen);
+    return MakeHolder<TOwningThreadedLogBackend>(CreateLogBackend(fname, LOG_MAX_PRIORITY, false).Release(), queueLen);
 }
 
 class TLog::TImpl: public TAtomicRefCount<TImpl> {
@@ -157,7 +131,7 @@ TLog::TLog()
 }
 
 TLog::TLog(const TString& fname, ELogPriority priority)
-    : TLog(BackendFactory(fname, priority))
+    : TLog(CreateLogBackend(fname, priority, false))
 {
 }
 
@@ -232,7 +206,7 @@ ELogPriority TLog::DefaultPriority() const noexcept {
 
 bool TLog::OpenLog(const char* path, ELogPriority lp) {
     if (path) {
-        ResetBackend(BackendFactory(path, lp));
+        ResetBackend(CreateLogBackend(path, lp));
     } else {
         ResetBackend(MakeHolder<TStreamLogBackend>(&Cerr));
     }
