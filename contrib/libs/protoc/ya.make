@@ -8,10 +8,7 @@ PROVIDES(protoc)
 
 VERSION(3.17.3)
 
-LICENSE(
-    BSD-3-Clause
-    Protobuf-License
-)
+LICENSE(BSD-3-Clause)
 
 LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
@@ -19,7 +16,9 @@ PEERDIR(
     contrib/libs/protobuf
 )
 
-ADDINCL(GLOBAL contrib/libs/protoc/src)
+ADDINCL(
+    GLOBAL contrib/libs/protoc/src
+)
 
 NO_COMPILER_WARNINGS()
 
