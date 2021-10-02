@@ -384,7 +384,7 @@ class PROTOBUF_EXPORT MessageLite {
   PROTOBUF_MUST_USE_RESULT bool SerializePartialToZeroCopyStream(io::ZeroCopyOutputStream* output) const;
   // Serialize the message and store it in the given string.  All required
   // fields must be set.
-  bool SerializeToString(TProtoStringType* output) const;
+  PROTOBUF_MUST_USE_RESULT bool SerializeToString(TProtoStringType* output) const;
   // Like SerializeToString(), but allows missing required fields.
   PROTOBUF_MUST_USE_RESULT bool SerializePartialToString(TProtoStringType* output) const;
   // Serialize the message and store it in the given byte array.  All required
