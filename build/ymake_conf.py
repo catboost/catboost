@@ -606,10 +606,6 @@ class Build(object):
         perl.configure_local()
         perl.print_variables('LOCAL_')
 
-        yasm = Yasm(self.target)
-        yasm.configure()
-        yasm.print_variables()
-
         swiftc = SwiftCompiler(self)
         swiftc.configure()
         swiftc.print_compiler()
@@ -3204,42 +3200,6 @@ class CuDNN(object):
     def print_(self):
         if self.cuda.have_cuda.value and self.have_cudnn():
             self.cudnn_version.emit()
-
-
-class Yasm(object):
-    def __init__(self, target):
-        self.yasm_tool = '${tool:"contrib/tools/yasm"}'
-        self.fmt = None
-        self.platform = None
-        self.target = target
-        self.flags = []
-
-    def configure(self):
-        if self.target.is_ios or self.target.is_macos:
-            self.platform = ['DARWIN', 'UNIX']
-            self.fmt = 'macho'
-        elif (self.target.is_windows and self.target.is_64_bit) or self.target.is_cygwin:
-            self.platform = ['WIN64']
-            self.fmt = 'win'
-        elif self.target.is_windows and self.target.is_32_bit:
-            self.platform = ['WIN32']
-            self.fmt = 'win'
-        else:
-            self.platform = ['UNIX']
-            self.fmt = 'elf'
-
-        if self.fmt == 'elf':
-            self.flags += ['-g', 'dwarf2']
-
-    def print_variables(self):
-        d_platform = ' '.join([('-D ' + i) for i in self.platform])
-        output = '${{output;noext;suf={}:SRC}}'.format('${OBJ_SUF}.o' if self.fmt != 'win' else '${OBJ_SUF}.obj')
-        print('''\
-macro _SRC_yasm_impl(SRC, PREINCLUDES[], SRCFLAGS...) {{
-    .CMD={} -f {}$HARDWARE_ARCH {} $YASM_DEBUG_INFO $YASM_DEBUG_INFO_DISABLE_CACHE__NO_UID__ -D ${{pre=_;suf=_:HARDWARE_TYPE}} -D_YASM_ $ASM_PREFIX_VALUE {} ${{YASM_FLAGS}} ${{pre=-I :_ASM__INCLUDE}} ${{SRCFLAGS}} -o {} ${{pre=-P :PREINCLUDES}} ${{input;hide:PREINCLUDES}} ${{input:SRC}} ${{kv;hide:"p AS"}} ${{kv;hide:"pc light-green"}}
-
-}}
-'''.format(self.yasm_tool, self.fmt, d_platform, ' '.join(self.flags), output))  # noqa E501
 
 
 def print_swig_config():
