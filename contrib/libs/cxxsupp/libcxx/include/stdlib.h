@@ -120,7 +120,7 @@ extern "C++" {
 #endif
 
 // MSVCRT already has the correct prototype in <stdlib.h> if __cplusplus is defined
-#if !defined(_LIBCPP_MSVCRT) && !defined(__sun__) && !defined(_AIX)
+#if !defined(_LIBCPP_MSVCRT) && !defined(__sun__)
 inline _LIBCPP_INLINE_VISIBILITY long abs(long __x) _NOEXCEPT {
   return __builtin_labs(__x);
 }
@@ -129,9 +129,9 @@ inline _LIBCPP_INLINE_VISIBILITY long long abs(long long __x) _NOEXCEPT {
   return __builtin_llabs(__x);
 }
 #endif // _LIBCPP_HAS_NO_LONG_LONG
-#endif // !defined(_LIBCPP_MSVCRT) && !defined(__sun__) && !defined(_AIX)
+#endif // !defined(_LIBCPP_MSVCRT) && !defined(__sun__)
 
-#if !(defined(_AIX) || defined(__sun__))
+#if !defined(__sun__)
 inline _LIBCPP_INLINE_VISIBILITY float abs(float __lcpp_x) _NOEXCEPT {
 #ifdef _LIBCPP_COMPILER_MSVC
   return fabsf(__lcpp_x);
@@ -156,7 +156,7 @@ abs(long double __lcpp_x) _NOEXCEPT {
   return __builtin_fabsl(__lcpp_x);
 #endif
 }
-#endif // !(defined(_AIX) || defined(__sun__))
+#endif // !defined(__sun__)
 
 // div
 
@@ -167,7 +167,7 @@ abs(long double __lcpp_x) _NOEXCEPT {
 #endif
 
 // MSVCRT already has the correct prototype in <stdlib.h> if __cplusplus is defined
-#if !defined(_LIBCPP_MSVCRT) && !defined(__sun__) && !defined(_AIX)
+#if !defined(_LIBCPP_MSVCRT) && !defined(__sun__)
 inline _LIBCPP_INLINE_VISIBILITY ldiv_t div(long __x, long __y) _NOEXCEPT {
   return ::ldiv(__x, __y);
 }
@@ -177,7 +177,7 @@ inline _LIBCPP_INLINE_VISIBILITY lldiv_t div(long long __x,
   return ::lldiv(__x, __y);
 }
 #endif // _LIBCPP_HAS_NO_LONG_LONG
-#endif // _LIBCPP_MSVCRT / __sun__ / _AIX
+#endif // _LIBCPP_MSVCRT / __sun__
 } // extern "C++"
 #endif  // __cplusplus
 
