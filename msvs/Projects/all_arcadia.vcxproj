@@ -813,8 +813,11 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\faulthandler\pycontrib-python-faulthandler.vcxproj">
       <Project>B91FAD52-E23E-B3E4-D7A1-568C2BA36521</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\filelock\py3contrib-python-filelock.global.vcxproj">
-      <Project>E95AC769-E0DD-FE89-CE62-E13BCF18A2A4</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\filelock\py3\pypython-filelock-py3.global.vcxproj">
+      <Project>D43AB308-388B-D998-BF6B-A71D3354C1B4</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\filelock\py3\pypython-filelock-py3.vcxproj">
+      <Project>22E53C6D-6DB3-8F95-3153-307BAB1C513E</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\filelock\py3contrib-python-filelock.vcxproj">
       <Project>6C1951D6-3BF3-612E-8A1F-415A1F4ACE8C</Project>
