@@ -2020,11 +2020,6 @@ class LD(Linker):
                  exe_flags,
                  ld_env_style,
                  )
-            emit_big('''
-            macro REAL_LINK_EXE_IMPL(WHOLE_ARCHIVE_PEERS...) {
-                .CMD=$REAL_LINK_EXE_CMDLINE
-            }
-            ''')
             emit('REAL_LINK_EXE', '$REAL_LINK_EXE_IMPL($_WHOLE_ARCHIVE_PEERS_VALUE)')
 
         # Executable Shared Library
@@ -2044,11 +2039,6 @@ class LD(Linker):
              exe_flags,
              ld_env_style,
              )
-        emit_big('''
-        macro REAL_LINK_EXEC_DYN_LIB_IMPL(WHOLE_ARCHIVE_PEERS...) {
-            .CMD=$REAL_LINK_EXEC_DYN_LIB_CMDLINE
-        }
-        ''')
         emit('REAL_LINK_EXEC_DYN_LIB', '$REAL_LINK_EXEC_DYN_LIB_IMPL($_WHOLE_ARCHIVE_PEERS_VALUE)')
 
         # Shared Library
@@ -2068,11 +2058,6 @@ class LD(Linker):
              soname_flag,
              exe_flags,
              ld_env_style)
-        emit_big('''
-        macro REAL_LINK_DYN_LIB_IMPL(WHOLE_ARCHIVE_PEERS...) {
-            .CMD=$REAL_LINK_DYN_LIB_CMDLINE
-        }
-        ''')
         emit('REAL_LINK_DYN_LIB', '$REAL_LINK_DYN_LIB_IMPL($_WHOLE_ARCHIVE_PEERS_VALUE)')
 
         if self.dwarf_command is None or self.target.is_ios:
@@ -2733,11 +2718,6 @@ class MSVCLinker(MSVC, Linker):
              ${pre=--whole-archive-libs :_WHOLE_ARCHIVE_LIBS_VALUE_GLOBAL}',
              srcs_globals, '--ya-start-command-file ${VCS_C_OBJ_RR} ${qe;rootrel:AUTO_INPUT} ${qe;rootrel:PEERS} \
              $LINK_EXE_FLAGS $LINK_STDLIBS $LDFLAGS $LDFLAGS_GLOBAL $OBJADDE --ya-end-command-file')
-        emit_big('''
-        macro REAL_LINK_DYN_LIB_IMPL(WHOLE_ARCHIVE_PEERS...) {
-            .CMD=$REAL_LINK_DYN_LIB_CMDLINE
-        }
-        ''')
         emit('REAL_LINK_DYN_LIB', '$REAL_LINK_DYN_LIB_IMPL($_WHOLE_ARCHIVE_PEERS_VALUE)')
 
         emit('SWIG_DLL_JAR_CMD', '$GENERATE_MF && $GENERATE_VCS_C_INFO_NODEP && $REAL_SWIG_DLL_JAR_CMD')
@@ -2753,11 +2733,6 @@ class MSVCLinker(MSVC, Linker):
              ${pre=--whole-archive-libs :_WHOLE_ARCHIVE_LIBS_VALUE_GLOBAL} ',
              '${LINK_EXTRA_OUTPUT}', srcs_globals, '--ya-start-command-file ${VCS_C_OBJ_RR} ${qe;rootrel:AUTO_INPUT} $LINK_EXE_FLAGS $LINK_STDLIBS $LDFLAGS $LDFLAGS_GLOBAL $OBJADDE \
              ${qe;rootrel:PEERS} --ya-end-command-file ${hide;kv:"soe"} ${hide;kv:"p LD"} ${hide;kv:"pc blue"}')
-        emit_big('''
-        macro LINK_EXE_IMPL(WHOLE_ARCHIVE_PEERS...) {
-            .CMD=$LINK_EXE_CMDLINE
-        }
-        ''')
         emit('LINK_EXE', '$LINK_EXE_IMPL($_WHOLE_ARCHIVE_PEERS_VALUE)')
 
         emit('LINK_DYN_LIB', '${GENERATE_MF} && $GENERATE_VCS_C_INFO_NODEP && $REAL_LINK_DYN_LIB ${hide;kv:"soe"} ${hide;kv:"p LD"} ${hide;kv:"pc blue"}')
@@ -2768,11 +2743,6 @@ class MSVCLinker(MSVC, Linker):
              ${pre=--whole-archive-libs :_WHOLE_ARCHIVE_LIBS_VALUE_GLOBAL}', srcs_globals,
              '--ya-start-command-file ${VCS_C_OBJ_RR} ${qe;rootrel:AUTO_INPUT} ${qe;rootrel:PEERS} \
              $LINK_EXE_FLAGS $LINK_STDLIBS $LDFLAGS $LDFLAGS_GLOBAL $OBJADDE --ya-end-command-file ${hide;kv:"soe"} ${hide;kv:"p LD"} ${hide;kv:"pc blue"}')
-        emit_big('''
-        macro LINK_EXEC_DYN_LIB_IMPL(WHOLE_ARCHIVE_PEERS...) {
-            .CMD=$LINK_EXEC_DYN_LIB_CMDLINE
-        }
-        ''')
         emit('LINK_EXEC_DYN_LIB', '$LINK_EXEC_DYN_LIB_IMPL($_WHOLE_ARCHIVE_PEERS_VALUE)')
 
         emit('LINK_GLOBAL_FAT_OBJECT', '${TOOLCHAIN_ENV} ${cwd:ARCADIA_BUILD_ROOT} ${LIB_WRAPPER} ${LINK_LIB_CMD} /OUT:${qe;rootrel:TARGET} \
