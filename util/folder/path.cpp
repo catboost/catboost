@@ -387,14 +387,39 @@ void TFsPath::MkDirs(const int mode) const {
 }
 
 void TFsPath::ForceDelete() const {
-    if (IsDirectory() && !IsSymlink()) {
+    if (!IsDefined()) {
+        return;
+    }
+
+    TFileStat stat(GetPath().c_str(), true);
+    if (stat.IsNull()) {
+        const int err = LastSystemError();
+#ifdef _win_
+        if (err == ERROR_FILE_NOT_FOUND || err == ERROR_PATH_NOT_FOUND) {
+#else
+        if (err == ENOENT) {
+#endif
+            return;
+        } else {
+            ythrow TIoException() << "failed to stat " << Path_;
+        }
+    }
+
+    ClearLastSystemError();
+    if (stat.IsDir()) {
         TVector<TFsPath> children;
         List(children);
         for (auto& i : children) {
             i.ForceDelete();
         }
+        ::rmdir(this->c_str());
+    } else {
+        ::unlink(this->c_str());
     }
-    DeleteIfExists();
+
+    if (LastSystemError()) {
+        ythrow TIoException() << "failed to delete " << Path_;
+    }
 }
 
 void TFsPath::CopyTo(const TString& newPath, bool force) const {
