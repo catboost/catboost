@@ -95,6 +95,10 @@ public:
     bool HasUnknownNumberOfSparseFeatures = false;
     
     %extend {
+        TIntermediateDataMetaInfo Clone() const {
+            return *self;
+        }
+    
         TIntermediateDataMetaInfo SetAvailableFeatures(TConstArrayRef<i32> selectedFeatures) {
             TIntermediateDataMetaInfo selfWithSelectedFeatures = *self;
             selfWithSelectedFeatures.FeaturesLayout = CloneWithSelectedFeatures(

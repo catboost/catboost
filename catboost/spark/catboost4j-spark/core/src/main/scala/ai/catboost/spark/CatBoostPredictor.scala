@@ -193,6 +193,7 @@ trait CatBoostPredictorTrait[
       partitionCount,
       listeningPort,
       preprocessedTrainPool,
+      preprocessedEvalPools,
       catBoostJsonParams,
       precomputedOnlineCtrMetaDataAsJsonString,
       master.savedPoolsFuture

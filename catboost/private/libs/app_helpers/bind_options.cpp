@@ -99,19 +99,6 @@ void BindPoolLoadParams(NLastGetopt::TOpts* parser, NCatboostOptions::TPoolLoadP
             CB_ENSURE(!loadParamsPtr->TestSetPaths.empty(), "Empty test path");
         });
 
-    parser->AddLongOption("test-precomputed-set", "path to one or more precomputed test sets")
-        .RequiredArgument("[SCHEME://]PATH[,[SCHEME://]PATH...]")
-        .Handler1T<TStringBuf>([loadParamsPtr](const TStringBuf& str) {
-            for (const auto& path : StringSplitter(str).Split(',').SkipEmpty()) {
-                if (!path.Empty()) {
-                    loadParamsPtr->TestPrecomputedSetPaths.emplace_back(TString{path.Token()}, "");
-                    CB_ENSURE(!loadParamsPtr->TestPrecomputedSetPaths.back().Scheme.empty(),
-                              "Scheme is missing from precomputed test set path");
-                }
-            }
-            CB_ENSURE(!loadParamsPtr->TestPrecomputedSetPaths.empty(), "Empty precomputed test path");
-        });
-
     parser->AddLongOption("learn-pairs", "path to learn pairs")
         .RequiredArgument("[SCHEME://]PATH")
         .Handler1T<TStringBuf>([loadParamsPtr](const TStringBuf& str) {

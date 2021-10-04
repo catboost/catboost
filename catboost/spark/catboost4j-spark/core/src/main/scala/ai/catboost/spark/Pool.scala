@@ -1102,12 +1102,13 @@ class Pool (
       )
       val pairsSchema = preparedPool.pairsData.schema
       val resultRDD = cogroupedData.mapPartitions {
-        groups : Iterator[(Long, (Iterable[Iterable[Row]], Iterable[Iterable[Row]]))] => {
+        groups : Iterator[((Byte, Long), (Iterable[Iterable[Row]], Iterable[Iterable[Row]]))] => {
           if (groups.hasNext) {
             val localExecutor = new TLocalExecutor
             localExecutor.Init(threadCountForTask)
 
-            val (dataProvider, estimatedFeaturesDataProvider, dstRows) = DataHelpers.loadQuantizedDatasetsWithPairs(
+            val (dataProviders, estimatedFeaturesDataProviders, dstRows) = DataHelpers.loadQuantizedDatasetsWithPairs(
+              /*datasetCount*/ 1,
               quantizedFeaturesInfo,
               columnIndexMap,
               dataMetaInfo,
@@ -1119,7 +1120,12 @@ class Pool (
               dstColumnIndices,
               dstRowLength
             )
-            f(dataProvider, estimatedFeaturesDataProvider, dstRows, localExecutor)
+            f(
+              dataProviders(0),
+              if (estimatedFeatureCount.isDefined) { estimatedFeaturesDataProviders(0) } else { null },
+              dstRows(0),
+              localExecutor
+            )
           } else {
             Iterator[R]()
           }
@@ -1133,7 +1139,8 @@ class Pool (
             val localExecutor = new TLocalExecutor
             localExecutor.Init(threadCountForTask)
 
-            val (dataProvider, estimatedFeaturesDataProvider, dstRows) = DataHelpers.loadQuantizedDatasets(
+            val (dataProviders, estimatedFeaturesDataProviders, dstRows) = DataHelpers.loadQuantizedDatasets(
+              /*datasetCount*/ 1,
               quantizedFeaturesInfo,
               columnIndexMap,
               dataMetaInfo,
@@ -1144,7 +1151,12 @@ class Pool (
               dstColumnIndices,
               dstRowLength
             )
-            f(dataProvider, estimatedFeaturesDataProvider, dstRows, localExecutor)
+            f(
+              dataProviders(0),
+              if (estimatedFeatureCount.isDefined) { estimatedFeaturesDataProviders(0) } else { null },
+              dstRows(0),
+              localExecutor
+            )
           } else {
             Iterator[R]()
           }

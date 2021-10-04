@@ -24,13 +24,6 @@ void NCatboostOptions::TPoolLoadParams::Validate(TMaybe<ETaskType> taskType) con
         CB_ENSURE(CheckExists(testSetPath), "Error: test file '" << testSetPath << "' doesn't exist");
         ValidatePoolParams(testSetPath, ColumnarPoolFormatParams);
     }
-    for (const auto& testPrecomputedSetPath : TestPrecomputedSetPaths) {
-        CB_ENSURE(CheckExists(testPrecomputedSetPath),
-                  "Error: test precomputed file '" << testPrecomputedSetPath << "' doesn't exist");
-        ValidatePoolParams(testPrecomputedSetPath, ColumnarPoolFormatParams);
-    }
-    CB_ENSURE(TestPrecomputedSetPaths.empty() || (TestSetPaths.size() == TestPrecomputedSetPaths.size()),
-              "Error: Number of precomputed test set paths must be equal to the number of main test set paths");
 
     if (TestPairsFilePath.Inited()) {
         CB_ENSURE(CheckExists(TestPairsFilePath), "Error: test pairs file '" << TestPairsFilePath << "' doesn't exist");

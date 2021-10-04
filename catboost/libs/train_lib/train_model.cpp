@@ -1254,11 +1254,8 @@ void TrainModel(
 
     TMaybe<TPrecomputedOnlineCtrData> precomputedSingleOnlineCtrDataForSingleFold;
     if (loadOptions.PrecomputedMetadataFile) {
-        precomputedSingleOnlineCtrDataForSingleFold = ReadPrecomputedOnlineCtrData(
-            catBoostOptions.GetTaskType(),
-            loadOptions,
-            localExecutorHolder.Get(),
-            &profile
+        precomputedSingleOnlineCtrDataForSingleFold = ReadPrecomputedOnlineCtrMetaData(
+            loadOptions
         );
     }
 
