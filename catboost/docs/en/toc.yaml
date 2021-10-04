@@ -812,6 +812,8 @@ items:
         name: 'Classification'
       - href: concepts/loss-functions-multiclassification.md
         name: 'Multiclassification'
+      - href: concepts/loss-functions-multilabel-classification.md
+        name: 'Multilabel Classification'
       - href: concepts/loss-functions-ranking.md
         name: 'Ranking'
     name: Objectives and metrics

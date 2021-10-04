@@ -37,6 +37,8 @@ Classes:
 - {{ error-function__MultiRMSE }}
 - {{ error-function--MultiClass }}
 - {{ error-function--MultiClassOneVsAll }}
+- {{ error-function__MultiLogloss }}
+- {{ error-function__MultiCrossEntropy }}
 - {{ error-function--MAPE }}
 - {{ error-function--Poisson }}
 - {{ error-function__PairLogit }}
@@ -174,6 +176,8 @@ Method:  [catboost.train](../concepts/r-reference_catboost-train.md)
 - {{ error-function__MultiRMSE }}
 - {{ error-function--MultiClass }}
 - {{ error-function--MultiClassOneVsAll }}
+- {{ error-function__MultiLogloss }}
+- {{ error-function__MultiCrossEntropy }}
 - {{ error-function--MAPE }}
 - {{ error-function--Poisson }}
 - {{ error-function__PairLogit }}
@@ -280,6 +284,8 @@ Format:
 - {{ error-function__MultiRMSE }}
 - {{ error-function--MultiClass }}
 - {{ error-function--MultiClassOneVsAll }}
+- {{ error-function__MultiLogloss }}
+- {{ error-function__MultiCrossEntropy }}
 - {{ error-function--MAPE }}
 - {{ error-function--Poisson }}
 - {{ error-function__PairLogit }}

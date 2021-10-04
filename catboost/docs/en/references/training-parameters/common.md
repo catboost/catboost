@@ -26,6 +26,8 @@ _Alias:_ `objective`
 - {{ error-function__MultiRMSE }}
 - {{ error-function--MultiClass }}
 - {{ error-function--MultiClassOneVsAll }}
+- {{ error-function__MultiLogloss }}
+- {{ error-function__MultiCrossEntropy }}
 - {{ error-function--MAPE }}
 - {{ error-function--Poisson }}
 - {{ error-function__PairLogit }}
