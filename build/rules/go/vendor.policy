@@ -779,6 +779,9 @@ ALLOW .* -> vendor/github.com/HdrHistogram/hdrhistogram-go
 # CONTRIB-2348: SDP implementation
 ALLOW .* -> vendor/github.com/pion/sdp/v3
 
+# CONTRIB-2350
+ALLOW .* -> vendor/inet.af/netaddr
+
 #
 # Tools
 #
