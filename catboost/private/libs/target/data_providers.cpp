@@ -354,6 +354,7 @@ namespace NCB {
         bool hasMultiClassOnlyMetrics = isAnyOfMetrics(IsMultiClassOnlyMetric);
         bool hasMultiRegressionOrSurvivalMetrics = isAnyOfMetrics(IsMultiRegressionMetric)
                                                 || isAnyOfMetrics(IsSurvivalRegressionMetric);
+        bool hasMultiLabelOnlyMetrics = isAnyOfMetrics(IsMultiLabelOnlyMetric);
         bool hasGroupwiseMetrics = isAnyOfMetrics(IsGroupwiseMetric);
         bool hasUserDefinedMetrics = isAnyOfMetrics(IsUserDefined);
 
@@ -375,7 +376,7 @@ namespace NCB {
             (inputClassificationInfo.ClassLabels.size() > 0) ||
             inputClassificationInfo.TargetBorder
         );
-        bool multiLabelTargetData = classTargetData && (rawData.GetTargetDimension() > 1);
+        bool multiLabelTargetData = classTargetData && (hasMultiLabelOnlyMetrics || rawData.GetTargetDimension() > 1);
 
         bool multiClassTargetData = false;
 

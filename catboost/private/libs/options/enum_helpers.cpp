@@ -668,6 +668,13 @@ bool IsMultiLabelMetric(ELossFunction loss) {
     return GetInfo(loss)->HasFlags(EMetricAttribute::IsMultiLabelCompatible);
 }
 
+bool IsMultiLabelOnlyMetric(ELossFunction loss) {
+    auto info = GetInfo(loss);
+    return info->HasFlags(EMetricAttribute::IsMultiLabelCompatible)
+        && info->MissesFlags(EMetricAttribute::IsBinaryClassCompatible)
+        && info->MissesFlags(EMetricAttribute::IsMultiClassCompatible);
+}
+
 bool IsMultiTargetMetric(ELossFunction loss) {
     auto info = GetInfo(loss);
     return info->HasFlags(EMetricAttribute::IsMultiRegression)

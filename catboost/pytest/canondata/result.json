@@ -6186,6 +6186,50 @@
             "uri": "file://test.test_multiclass_model_backward_compatibility_RawFormulaVal_/out.txt"
         }
     ],
+    "test.test_multilabel[Accuracy,Precision-train.cd]": [
+        {
+            "uri": "file://test.test_multilabel_Accuracy_Precision-train.cd_/test.eval"
+        },
+        {
+            "uri": "file://test.test_multilabel_Accuracy_Precision-train.cd_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_multilabel_Accuracy_Precision-train.cd_/test_error.tsv"
+        }
+    ],
+    "test.test_multilabel[Accuracy,Precision-train_1.cd]": [
+        {
+            "uri": "file://test.test_multilabel_Accuracy_Precision-train_1.cd_/test.eval"
+        },
+        {
+            "uri": "file://test.test_multilabel_Accuracy_Precision-train_1.cd_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_multilabel_Accuracy_Precision-train_1.cd_/test_error.tsv"
+        }
+    ],
+    "test.test_multilabel[MultiLogloss-train.cd]": [
+        {
+            "uri": "file://test.test_multilabel_MultiLogloss-train.cd_/test.eval"
+        },
+        {
+            "uri": "file://test.test_multilabel_MultiLogloss-train.cd_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_multilabel_MultiLogloss-train.cd_/test_error.tsv"
+        }
+    ],
+    "test.test_multilabel[MultiLogloss-train_1.cd]": [
+        {
+            "uri": "file://test.test_multilabel_MultiLogloss-train_1.cd_/test.eval"
+        },
+        {
+            "uri": "file://test.test_multilabel_MultiLogloss-train_1.cd_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_multilabel_MultiLogloss-train_1.cd_/test_error.tsv"
+        }
+    ],
     "test.test_multiple_eval_sets[QueryRMSE]": [
         {
             "uri": "file://test.test_multiple_eval_sets_QueryRMSE_/test.eval"

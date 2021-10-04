@@ -5679,7 +5679,6 @@ namespace {
             int end
         ) const override;
         void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
-        double GetFinalError(const TMetricHolder& error) const override;
     };
 }
 
@@ -5724,10 +5723,6 @@ TMetricHolder TMultiCrossEntropyMetric::EvalSingleThread(
         error.Stats[1] += w;
     }
     return error;
-}
-
-double TMultiCrossEntropyMetric::GetFinalError(const TMetricHolder& error) const {
-    return error.Stats[1] == 0 ? 0 : sqrt(error.Stats[0] / error.Stats[1]);
 }
 
 void TMultiCrossEntropyMetric::GetBestValue(EMetricBestValue* valueType, float* /*bestValue*/) const {
@@ -6376,12 +6371,12 @@ TMetricHolder EvalErrors(
     const IMetric& error,
     NPar::ILocalExecutor* localExecutor
 ) {
-    if (target.size() > 1) {
+    if (target.size() == 1 && dynamic_cast<const ISingleTargetEval*>(&error) != nullptr) {
+        return EvalErrors(To2DConstArrayRef<double>(approx), To2DConstArrayRef<double>(approxDelta), isExpApprox, target[0], weight, queriesInfo, error, localExecutor);
+    } else {
+        CB_ENSURE_INTERNAL(dynamic_cast<const IMultiTargetEval*>(&error) != nullptr, "Cannot cast to multi-target error");
         CB_ENSURE_INTERNAL(!isExpApprox, "Exponentiated approxes are not supported for multi-target metrics");
         return dynamic_cast<const IMultiTargetEval&>(error).Eval(To2DConstArrayRef<double>(approx), To2DConstArrayRef<double>(approxDelta), target, weight, /*begin*/0, /*end*/target[0].size(), *localExecutor);
-    } else {
-        Y_ASSERT(target.size() == 1);
-        return EvalErrors(To2DConstArrayRef<double>(approx), To2DConstArrayRef<double>(approxDelta), isExpApprox, target[0], weight, queriesInfo, error, localExecutor);
     }
 }
 

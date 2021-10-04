@@ -102,9 +102,7 @@ static std::tuple<ui32, ui32, ELeavesEstimation, double> GetEstimationMethodDefa
             break;
         }
         case ELossFunction::MultiClass:
-        case ELossFunction::MultiClassOneVsAll:
-        case ELossFunction::MultiLogloss:
-        case ELossFunction::MultiCrossEntropy: {
+        case ELossFunction::MultiClassOneVsAll: {
             defaultEstimationMethod = ELeavesEstimation::Newton;
             defaultNewtonIterations = 1;
             defaultGradientIterations = 10;
@@ -157,7 +155,9 @@ static std::tuple<ui32, ui32, ELeavesEstimation, double> GetEstimationMethodDefa
             break;
         }
         case ELossFunction::Logloss:
-        case ELossFunction::CrossEntropy: {
+        case ELossFunction::CrossEntropy:
+        case ELossFunction::MultiLogloss:
+        case ELossFunction::MultiCrossEntropy: {
             defaultNewtonIterations = 10;
             defaultGradientIterations = 40;
             defaultEstimationMethod = ELeavesEstimation::Newton;
