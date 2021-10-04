@@ -15,7 +15,7 @@ namespace NYson {
         TYsonParser(
             IYsonConsumer* consumer,
             IInputStream* stream,
-            EYsonType type = YT_NODE,
+            EYsonType type = ::NYson::EYsonType::Node,
             bool enableLinePositionInfo = false,
             TMaybe<ui64> memoryLimit = Nothing());
 
@@ -39,7 +39,7 @@ namespace NYson {
 
         ~TStatelessYsonParser();
 
-        void Parse(const TStringBuf& data, EYsonType type = YT_NODE);
+        void Parse(const TStringBuf& data, EYsonType type = ::NYson::EYsonType::Node);
 
     private:
         class TImpl;
@@ -70,7 +70,7 @@ namespace NYson {
     void ParseYsonStringBuffer(
         const TStringBuf& buffer,
         IYsonConsumer* consumer,
-        EYsonType type = YT_NODE,
+        EYsonType type = ::NYson::EYsonType::Node,
         bool enableLinePositionInfo = false,
         TMaybe<ui64> memoryLimit = Nothing());
 

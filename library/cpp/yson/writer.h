@@ -28,7 +28,7 @@ namespace NYson {
         TYsonWriter(
             IOutputStream* stream,
             EYsonFormat format = EYsonFormat::Binary,
-            EYsonType type = YT_NODE,
+            EYsonType type = ::NYson::EYsonType::Node,
             bool enableRaw = false);
 
         void OnStringScalar(const TStringBuf& value) override;
@@ -49,7 +49,7 @@ namespace NYson {
         void OnBeginAttributes() override;
         void OnEndAttributes() override;
 
-        void OnRaw(const TStringBuf& yson, EYsonType type = YT_NODE) override;
+        void OnRaw(const TStringBuf& yson, EYsonType type = ::NYson::EYsonType::Node) override;
 
         TState State() const;
         void Reset(const TState& state);
@@ -82,7 +82,7 @@ namespace NYson {
         IInputStream* input,
         IOutputStream* output,
         EYsonFormat format = EYsonFormat::Binary,
-        EYsonType type = YT_NODE);
+        EYsonType type = ::NYson::EYsonType::Node);
 
     ////////////////////////////////////////////////////////////////////////////////
 

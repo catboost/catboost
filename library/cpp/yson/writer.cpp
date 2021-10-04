@@ -155,13 +155,13 @@ namespace NYson {
     }
 
     bool TYsonWriter::IsTopLevelFragmentContext() const {
-        return Depth == 0 && (Type == YT_LIST_FRAGMENT || Type == YT_MAP_FRAGMENT);
+        return Depth == 0 && (Type == ::NYson::EYsonType::ListFragment || Type == ::NYson::EYsonType::MapFragment);
     }
 
     void TYsonWriter::EndNode() {
         if (IsTopLevelFragmentContext()) {
             ETokenType separatorToken =
-                Type == YT_LIST_FRAGMENT
+                Type == ::NYson::EYsonType::ListFragment
                     ? ListItemSeparatorToken
                     : KeyedItemSeparatorToken;
             Stream->Write(TokenTypeToChar(separatorToken));

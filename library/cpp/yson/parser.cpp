@@ -80,7 +80,7 @@ namespace NYson {
                   {
         }
 
-        void Parse(const TStringBuf& data, EYsonType type = YT_NODE) {
+        void Parse(const TStringBuf& data, EYsonType type = ::NYson::EYsonType::Node) {
             Impl->Parse(data, type);
         }
     };

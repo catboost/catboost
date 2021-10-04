@@ -866,7 +866,7 @@ void TNode::Save(IOutputStream* out) const
 void TNode::Load(IInputStream* in)
 {
     Clear();
-    *this = NodeFromYsonStream(in, YT_NODE);
+    *this = NodeFromYsonStream(in, ::NYson::EYsonType::Node);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
