@@ -373,6 +373,74 @@
           </build>
       </profile>
       <profile>
+        <id>javadoc</id>
+        <build>
+          <plugins>
+            <plugin>
+              <groupId>net.alchim31.maven</groupId>
+              <artifactId>scala-maven-plugin</artifactId>
+              <version>4.4.0</version>
+              <executions>
+                <execution>
+                  <id>doc</id>
+                  <phase>generate-sources</phase>
+                  <goals>
+                    <goal>compile</goal>
+                  </goals>
+                </execution>
+              </executions>
+              <configuration>
+                <args>
+                  <arg>-P:genjavadoc:out=${project.build.directory}/genjavadoc</arg>
+                </args>
+                <compilerPlugins>
+                  <compilerPlugin>
+                    <groupId>com.typesafe.genjavadoc</groupId>
+                    <artifactId>genjavadoc-plugin_${scala_version_placeholder}</artifactId>
+                    <version>0.18</version>
+                  </compilerPlugin>
+                  <compilerPlugin>
+                    <groupId>org.scalamacros</groupId>
+                    <artifactId>paradise_${scala.version}</artifactId>
+                    <version>2.1.1</version>
+                  </compilerPlugin>
+                </compilerPlugins>
+                <sourceDir>${project.build.directory}/src_for_doc</sourceDir>
+              </configuration>
+            </plugin>
+            <plugin>
+              <groupId>org.codehaus.mojo</groupId>
+              <artifactId>build-helper-maven-plugin</artifactId>
+              <executions>
+                <execution>
+                  <phase>generate-sources</phase>
+                  <goals>
+                    <goal>add-source</goal>
+                  </goals>
+                  <configuration>
+                    <sources>
+                      <source>${project.build.directory}/genjavadoc</source>
+                      <source>${project.build.directory}/src_for_doc</source>
+                    </sources>
+                  </configuration>
+                </execution>
+              </executions>
+            </plugin>
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-javadoc-plugin</artifactId>
+              <version>2.9</version>
+              <configuration>
+                <minmemory>64m</minmemory>
+                <maxmemory>2g</maxmemory>
+                <outputDirectory>${project.build.directory}</outputDirectory>
+                <detectLinks>true</detectLinks>
+              </configuration>
+            </plugin>
+          </plugins>
+        </build>
+      </profile>
+      <profile>
          <id>spark-2.3</id>
          <activation>
            <property>
