@@ -641,9 +641,9 @@ static void BuildIndicesForDataset(
     };
 
     if (std::holds_alternative<TSplitTree>(treeVariant)) {
-        buildIndices(Get<TSplitTree>(treeVariant));
+        buildIndices(std::get<TSplitTree>(treeVariant));
     } else {
-        buildIndices(Get<TNonSymmetricTreeStructure>(treeVariant));
+        buildIndices(std::get<TNonSymmetricTreeStructure>(treeVariant));
     }
 }
 

@@ -1250,7 +1250,7 @@ namespace NCB {
             == TVariantIndexV<TFullSubset<TSize>, typename TArraySubsetIndexing<TSize>::TBase>)
         {
             return TArraySubsetInvertedIndexing<TSize>(
-                TFullSubset<TSize>(Get<TFullSubset<TSize>>(indexing))
+                TFullSubset<TSize>(std::get<TFullSubset<TSize>>(indexing))
             );
         }
 
