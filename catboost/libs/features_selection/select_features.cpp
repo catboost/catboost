@@ -104,6 +104,7 @@ namespace NCB {
 
         TTrainingDataProviders trainingData = GetTrainingData(
             pools,
+            /*trainDataCanBeEmpty*/ false,
             /* borders */ Nothing(), // borders are already loaded to quantizedFeaturesInfo
             /*ensureConsecutiveIfDenseLearnFeaturesDataForCpu*/ haveLearnFeaturesInMemory,
             outputFileOptions.AllowWriteFiles(),

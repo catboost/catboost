@@ -26,6 +26,7 @@ namespace NCB {
 
     TTrainingDataProviderPtr GetTrainingData(
         TDataProviderPtr srcData,
+        bool dataCanBeEmpty,
         bool isLearnData,
         TStringBuf datasetName,
         const TMaybe<TString>& bordersFile,
@@ -42,6 +43,7 @@ namespace NCB {
 
     TTrainingDataProviders GetTrainingData(
         TDataProviders srcData,
+        bool dataCanBeEmpty,
         const TMaybe<TString>& bordersFile, // load borders from it if specified
         bool ensureConsecutiveIfDenseLearnFeaturesDataForCpu,
         bool allowWriteFiles,

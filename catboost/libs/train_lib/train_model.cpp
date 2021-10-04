@@ -1067,6 +1067,7 @@ static void TrainModel(
         haveLearnFeaturesInMemory || poolLoadOptions, "Learn dataset is not loaded, and load options are not provided");
     TTrainingDataProviders trainingData = GetTrainingData(
         needInitModelApplyCompatiblePools ? pools : std::move(pools),
+        /*trainDataCanBeEmpty*/ false,
         /* borders */ Nothing(), // borders are already loaded to quantizedFeaturesInfo
         /*ensureConsecutiveIfDenseLearnFeaturesDataForCpu*/ haveLearnFeaturesInMemory,
         outputOptions.AllowWriteFiles(),
@@ -1477,6 +1478,7 @@ static void ModelBasedEval(
 
     TTrainingDataProviders trainingData = GetTrainingData(
         std::move(pools),
+        /*trainDataCanBeEmpty*/ false,
         /* borders */ Nothing(), // borders are already loaded to quantizedFeaturesInfo
         /*ensureConsecutiveIfDenseLearnFeaturesDataForCpu*/ true,
         outputOptions.AllowWriteFiles(),

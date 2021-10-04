@@ -313,6 +313,10 @@ static void UpdateIndices(
     NPar::ILocalExecutor* localExecutor,
     TArrayRef<TIndexType> indices) {
 
+    if (indices.empty()) {
+        return;
+    }
+
     TIndexType defaultIndexValue = 0;
 
     TVector<std::function<void(TIndexRange<ui32>)>> updateBlockCallbacks;

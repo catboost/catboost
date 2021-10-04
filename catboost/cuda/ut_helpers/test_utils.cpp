@@ -177,7 +177,8 @@ void LoadTrainingData(NCB::TPathWithScheme poolPath,
     TMaybe<float> targetBorder = catBoostOptions.DataProcessingOptions->TargetBorder;
 
     *trainingData = NCB::GetTrainingData(std::move(dataProvider),
-                                         true,
+                                         /*dataCanBeEmpty*/ false,
+                                         /*isLearn*/ true,
                                          "learn",
                                          Nothing(),
                                          /*unloadCatFeaturePerfectHashFromRam*/ true,

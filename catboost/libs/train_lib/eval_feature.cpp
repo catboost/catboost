@@ -866,6 +866,7 @@ static void EvaluateFeaturesImpl(
 
     TTrainingDataProviderPtr trainingData = GetTrainingData(
         std::move(data),
+        /*dataCanBeEmpty*/ false,
         /*isLearnData*/ true,
         TStringBuf(),
         Nothing(), // TODO(akhropov): allow loading borders and nanModes in CV?

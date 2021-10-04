@@ -93,7 +93,8 @@ Y_UNIT_TEST_SUITE(NonSymmetricIndexCalcerTest) {
         TMaybe<float> targetBorder = catBoostOptions.DataProcessingOptions->TargetBorder;
         return GetTrainingData(
             std::move(dataProviderPtr),
-            true,
+            /*dataCanBeEmpty*/ false,
+            /*isLearn*/ true,
             "learn",
             Nothing(),
             true,

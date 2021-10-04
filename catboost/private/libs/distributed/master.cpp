@@ -260,6 +260,12 @@ void MapGenericCalcScore(
         workerCount,
         TMasterEnvironment::GetRef().SharedTrainData,
         candidateList);
+
+    // some workers may return empty result because they don't have any learn subset
+    const TVector<size_t> validWorkers = GetNonEmptyElementsIndices(allStatsFromAllWorkers);
+    auto validWorkersSize = validWorkers.size();
+    CB_ENSURE_INTERNAL(validWorkersSize, "No workers returned score stats");
+
     const int candidateCount = candidateList.ysize();
     const ui64 randSeed = ctx->LearnProgress->Rand.GenRand();
     // set best split for each candidate
@@ -273,9 +279,9 @@ void MapGenericCalcScore(
             TVector<TVector<double>> allScores(subcandidateCount);
             for (int subcandidateIdx = 0; subcandidateIdx < subcandidateCount; ++subcandidateIdx) {
                 // reduce across workers
-                auto& reducedStats = allStatsFromAllWorkers[0][candidateIdx][subcandidateIdx];
-                for (int workerIdx = 1; workerIdx < workerCount; ++workerIdx) {
-                    const auto& stats = allStatsFromAllWorkers[workerIdx][candidateIdx][subcandidateIdx];
+                auto& reducedStats = allStatsFromAllWorkers[validWorkers[0]][candidateIdx][subcandidateIdx];
+                for (size_t validWorkerIdx = 1; validWorkerIdx < validWorkersSize; ++validWorkerIdx) {
+                    const auto& stats = allStatsFromAllWorkers[validWorkers[validWorkerIdx]][candidateIdx][subcandidateIdx];
                     reducedStats.Add(stats);
                 }
                 const auto& splitInfo = subCandidates[subcandidateIdx];
@@ -387,12 +393,19 @@ int MapGetRedundantSplitIdx(TLearnContext* ctx) {
     const int workerCount = TMasterEnvironment::GetRef().RootEnvironment->GetSlaveCount();
     TVector<TEmptyLeafFinder::TOutput> isLeafEmptyFromAllWorkers
         = ApplyMapper<TEmptyLeafFinder>(workerCount, TMasterEnvironment::GetRef().SharedTrainData); // poll workers
-    for (int workerIdx = 1; workerIdx < workerCount; ++workerIdx) {
+
+    // some workers may return empty result because they don't have any learn subset
+    const TVector<size_t> validWorkers = GetNonEmptyElementsIndices(isLeafEmptyFromAllWorkers);
+    const auto validWorkersSize = validWorkers.size();
+    CB_ENSURE_INTERNAL(validWorkersSize, "No workers returned empty leaf stats");
+
+    for (size_t workerIdx = 1; workerIdx < validWorkersSize; ++workerIdx) {
         for (int leafIdx = 0; leafIdx < isLeafEmptyFromAllWorkers[0].ysize(); ++leafIdx) {
-            isLeafEmptyFromAllWorkers[0][leafIdx] &= isLeafEmptyFromAllWorkers[workerIdx][leafIdx];
+            isLeafEmptyFromAllWorkers[validWorkers[0]][leafIdx]
+                &= isLeafEmptyFromAllWorkers[validWorkers[workerIdx]][leafIdx];
         }
     }
-    return GetRedundantSplitIdx(isLeafEmptyFromAllWorkers[0]);
+    return GetRedundantSplitIdx(isLeafEmptyFromAllWorkers[validWorkers[0]]);
 }
 
 // returns [datasetIdx][metricDescription] -> TMetricHolder
@@ -410,9 +423,15 @@ static TVector<THashMap<TString, TMetricHolder>> CalcAdditiveStats(const TErrorC
     for (size_t workerIdx : xrange<size_t>(1, workerCount)) {
         const auto& workerAdditiveStats = additiveStatsFromAllWorkers[workerIdx];
         for (auto datasetIdx : xrange(workerAdditiveStats.size())) {
-            for (auto& [description, stats] : additiveStats[datasetIdx]) {
-                Y_ASSERT(workerAdditiveStats[datasetIdx].contains(description));
-                stats.Add(workerAdditiveStats[datasetIdx].at(description));
+            auto& datasetStats = additiveStats[datasetIdx];
+            for (auto& [description, stats] : workerAdditiveStats[datasetIdx]) {
+                THashMap<TString, TMetricHolder>::insert_ctx insertCtx;
+                auto it = datasetStats.find(description, insertCtx);
+                if (it == datasetStats.end()) {
+                    datasetStats.insert_direct(std::make_pair(description, stats), insertCtx);
+                } else {
+                    it->second.Add(stats);
+                }
             }
         }
     }
@@ -665,6 +684,9 @@ void MapSetApproxes(
             // reduce across workers
             for (const auto& workerBuckets : bucketsFromAllWorkers) {
                 const auto& singleBuckets = workerBuckets.first;
+                if (singleBuckets.empty()) {
+                    continue;
+                }
                 for (int leafIdx = 0; leafIdx < leafCount; ++leafIdx) {
                     if (ctx->Params.ObliviousTreeOptions->LeavesEstimationMethod == ELeavesEstimation::Gradient) {
                         buckets[leafIdx].AddDerWeight(
@@ -733,7 +755,9 @@ void MapSetApproxes(
     const auto leafWeightsFromAllWorkers = ApplyMapper<TLeafWeightsGetter>(workerCount, TMasterEnvironment::GetRef().SharedTrainData);
     sumLeafWeights->resize(leafCount);
     for (const auto& workerLeafWeights : leafWeightsFromAllWorkers) {
-        AddElementwise(workerLeafWeights, sumLeafWeights);
+        if (!workerLeafWeights.empty()) {
+            AddElementwise(workerLeafWeights, sumLeafWeights);
+        }
     }
 
     NormalizeLeafValues(
