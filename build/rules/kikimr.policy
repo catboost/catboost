@@ -135,6 +135,12 @@ ALLOW solomon/ -> kikimr/library/login/protos
 ALLOW yql/providers/dq/actors -> kikimr/core/base
 ALLOW yql/providers/dq/worker_manager -> kikimr/core/kqp
 
+ALLOW yql/providers/clickhouse/provider -> kikimr/yq/libs/db_resolver
+ALLOW yql/providers/clickhouse/provider -> kikimr/yq/libs/common
+
+ALLOW yql/providers/pq/provider -> kikimr/yq/libs/db_resolver
+ALLOW yql/providers/pq/provider -> kikimr/yq/libs/common
+
 ALLOW yql/tools/yqlworker/dq/worker_manager -> kikimr/core/kqp
 
 ALLOW yql/dq/actors/compute -> kikimr/core/kqp/runtime
