@@ -17,6 +17,13 @@ def is_arc_src(src, unit):
         unit.resolve_arc_path(src).startswith('$S/')
     )
 
+def is_extended_source_search_enabled(path, unit):
+    if not is_arc_src(path, unit):
+        return False
+    if unit.get('NO_EXTENDED_SOURCE_SEARCH') == 'yes':
+        return False
+    return True
+
 def to_build_root(path, unit):
     if is_arc_src(path, unit):
         return '${ARCADIA_BUILD_ROOT}/' + rootrel_arc_src(path, unit)
@@ -297,7 +304,7 @@ def onpy_srcs(unit, *args):
                         ymake.report_configure_error('PY_SRCS item starts with "/": {!r}'.format(arg))
                         continue
                     mod_name = stripext(arg).replace('/', '.')
-                    if py3 and path.endswith('.py') and is_arc_src(path, unit):
+                    if py3 and path.endswith('.py') and is_extended_source_search_enabled(path, unit):
                         # Dig out real path from the file path. Unit.path is not enough because of SRCDIR and ADDINCL
                         root_rel_path = rootrel_arc_src(path, unit)
                         mod_root_path = root_rel_path[:-(len(path) + 1)]
@@ -436,7 +443,7 @@ def onpy_srcs(unit, *args):
             mod_list_md5 = md5()
             for path, mod in pys:
                 mod_list_md5.update(mod)
-                if not (venv and is_arc_src(path, unit)):
+                if not (venv and is_extended_source_search_enabled(path, unit)):
                     dest = 'py/' + mod.replace('.', '/') + '.py'
                     if with_py:
                         res += ['DEST', dest, path]
