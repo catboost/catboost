@@ -2,6 +2,10 @@ LIBRARY()
 
 
 
+PEERDIR(
+    library/cpp/ytalloc/core
+)
+
 SRCS(
     consumer.cpp
     lexer.cpp

@@ -10,6 +10,11 @@ THolder<TLogBackend> TCompositeBackendCreator::DoCreateLogBackend() const {
     return std::move(res);
 }
 
+
+TCompositeBackendCreator::TCompositeBackendCreator()
+    : TLogBackendCreatorBase("composite")
+{}
+
 bool TCompositeBackendCreator::Init(const IInitContext& ctx) {
     for (const auto& child : ctx.GetChildren("SubLogger")) {
         Children.emplace_back(MakeHolder<TLogBackendCreatorUninitialized>());
@@ -21,3 +26,9 @@ bool TCompositeBackendCreator::Init(const IInitContext& ctx) {
 }
 
 ILogBackendCreator::TFactory::TRegistrator<TCompositeBackendCreator> TCompositeBackendCreator::Registrar("composite");
+
+void TCompositeBackendCreator::DoToJson(NJson::TJsonValue& value) const {
+    for (const auto& child: Children) {
+        child->ToJson(value["SubLogger"].AppendValue(NJson::JSON_MAP));
+    }
+}

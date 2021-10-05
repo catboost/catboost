@@ -13,3 +13,8 @@ THolder<TLogBackend> TFilteredBackendCreator::DoCreateLogBackend() const {
 bool TFilteredBackendCreator::Init(const IInitContext& ctx) {
     return Slave->Init(ctx);
 }
+
+void TFilteredBackendCreator::ToJson(NJson::TJsonValue& value) const {
+    value["LogLevel"] = ToString(Priority);
+    Slave->ToJson(value);
+}

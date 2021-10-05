@@ -3,10 +3,14 @@
 #include "backend_creator.h"
 #include "system.h"
 
-class TSysLogBackendCreator : public ILogBackendCreator {
+class TSysLogBackendCreator : public TLogBackendCreatorBase {
 public:
+    TSysLogBackendCreator();
     virtual bool Init(const IInitContext& ctx) override;
     static TFactory::TRegistrator<TSysLogBackendCreator> Registrar;
+
+protected:
+    virtual void DoToJson(NJson::TJsonValue& value) const override;
 
 private:
     virtual THolder<TLogBackend> DoCreateLogBackend() const override;

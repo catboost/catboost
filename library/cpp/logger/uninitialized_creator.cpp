@@ -41,4 +41,10 @@ bool TLogBackendCreatorUninitialized::Init(const IInitContext& ctx) {
     return Slave->Init(ctx);
 }
 
+
+void TLogBackendCreatorUninitialized::ToJson(NJson::TJsonValue& value) const {
+    Y_VERIFY(Slave, "Serialization off uninitialized LogBackendCreator");
+    Slave->ToJson(value);
+}
+
 ILogBackendCreator::TFactory::TRegistrator<TLogBackendCreatorUninitialized> TLogBackendCreatorUninitialized::Registrar("");

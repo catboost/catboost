@@ -1,8 +1,9 @@
 #include "file_creator.h"
 #include "file.h"
 
-TFileLogBackendCreator::TFileLogBackendCreator(const TString& path /*= TString()*/)
-    : Path(path)
+TFileLogBackendCreator::TFileLogBackendCreator(const TString& path /*= TString()*/, const TString& type /*= "file"*/)
+    : TLogBackendCreatorBase(type)
+    , Path(path)
 {}
 
 THolder<TLogBackend> TFileLogBackendCreator::DoCreateLogBackend() const {
@@ -15,3 +16,7 @@ bool TFileLogBackendCreator::Init(const IInitContext& ctx) {
 }
 
 ILogBackendCreator::TFactory::TRegistrator<TFileLogBackendCreator> TFileLogBackendCreator::Registrar("file");
+
+void TFileLogBackendCreator::DoToJson(NJson::TJsonValue& value) const {
+    value["Path"] = Path;
+}

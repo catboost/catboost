@@ -4,8 +4,12 @@
 
 class TRotatingFileLogBackendCreator : public TFileLogBackendCreator {
 public:
+    TRotatingFileLogBackendCreator();
     virtual bool Init(const IInitContext& ctx) override;
     static TFactory::TRegistrator<TRotatingFileLogBackendCreator> Registrar;
+
+protected:
+    virtual void DoToJson(NJson::TJsonValue& value) const override;
 
 private:
     virtual THolder<TLogBackend> DoCreateLogBackend() const override;

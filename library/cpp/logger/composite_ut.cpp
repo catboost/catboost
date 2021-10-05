@@ -23,7 +23,7 @@ Y_UNIT_TEST_SUITE(TCompositeLogTest)
         NFs::Remove(filename + "2");
     }
 
-    void DoTestComposite(const ILogBackendCreator::IInitContext & ctx, const TString & filename) {
+    void DoTestComposite(const ILogBackendCreator::IInitContext& ctx, const TString & filename) {
         Clear(filename);
         {
             TLog log;
@@ -62,8 +62,12 @@ Y_UNIT_TEST_SUITE(TCompositeLogTest)
 })");
         TStringInput si(s);
         NConfig::TConfig cfg = NConfig::TConfig::FromJson(si);
+        //Прогоняем конфигурацию через серализацию и десериализацию
         TLogBackendCreatorInitContextConfig ctx(cfg);
-        DoTestComposite(ctx, "config_log_");
+        TString newCfg = ILogBackendCreator::Create(ctx)->AsJson().GetStringRobust();
+        TStringInput si2(newCfg);
+        DoTestComposite(TLogBackendCreatorInitContextConfig(NConfig::TConfig::FromJson(si2)), "config_log_");
+
     }
     Y_UNIT_TEST(TestCompositeYConf) {
         constexpr const char* CONFIG = R"(
@@ -86,6 +90,9 @@ Y_UNIT_TEST_SUITE(TCompositeLogTest)
             UNIT_ASSERT_C(false, errors);
         }
         TLogBackendCreatorInitContextYConf ctx(*cfg.GetFirstChild("Logger"));
-        DoTestComposite(ctx, "yconf_log_");
+        //Прогоняем конфигурацию через серализацию и десериализацию
+        TUnstrictConfig newCfg;
+        UNIT_ASSERT(newCfg.ParseJson(ILogBackendCreator::Create(ctx)->AsJson()));
+        DoTestComposite(TLogBackendCreatorInitContextYConf(*newCfg.GetRootSection()), "yconf_log_");
     }
 };
