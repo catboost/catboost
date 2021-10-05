@@ -1,7 +1,4 @@
 #include <algorithm>
-
-#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
-
 #include <cstring>
 
 #ifdef NLP_DEBUG
