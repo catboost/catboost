@@ -518,6 +518,14 @@ class PROTOBUF_EXPORT MessageLite {
     return false;
   }
 
+  #if PROTOBUF_USE_EXCEPTIONS && defined(__cpp_lib_string_view)
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void ParseFromStringOrThrow(std::string_view s) noexcept(false);
+  #endif
+
+  #if PROTOBUF_USE_EXCEPTIONS
+  TProtoStringType SerializeAsStringOrThrow() const noexcept(false);
+  #endif
+
  private:
   // TODO(gerbens) make this a pure abstract function
   virtual const void* InternalGetTable() const { return NULL; }

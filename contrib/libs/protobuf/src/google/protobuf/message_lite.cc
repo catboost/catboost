@@ -514,6 +514,26 @@ TProtoStringType MessageLite::SerializePartialAsString() const {
   return output;
 }
 
+#if PROTOBUF_USE_EXCEPTIONS && defined(__cpp_lib_string_view)
+void MessageLite::ParseFromStringOrThrow(std::string_view s) {
+  const bool isOk = ParseFromArray(s.data(), s.size());
+  if (!isOk) {
+    throw FatalException("message_lite.cc", __LINE__, "Failed to parse protobuf message " + GetTypeName());
+  }
+}
+#endif
+
+#if PROTOBUF_USE_EXCEPTIONS
+TProtoStringType NProtoBuf::MessageLite::SerializeAsStringOrThrow() const {
+  TProtoStringType s;
+  const bool isOk = SerializeToString(&s);
+  if (!isOk) {
+    throw FatalException("message_lite.cc", __LINE__, "Failed to serialize protobuf message " + GetTypeName());
+  }
+  return s;
+}
+#endif
+
 
 namespace internal {
 
