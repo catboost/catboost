@@ -1,5 +1,0 @@
-ALLOW maps -> contrib/libs/cxxsupp/libcxx-filesystem
-ALLOW contrib/libs/clickhouse -> contrib/libs/cxxsupp/libcxx-filesystem
-ALLOW contrib/libs/google-compute-engine-oslogin -> contrib/libs/cxxsupp/libcxx-filesystem
-ALLOW clickhouse -> contrib/libs/cxxsupp/libcxx-filesystem
-DENY .* -> contrib/libs/cxxsupp/libcxx-filesystem
