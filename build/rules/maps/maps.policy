@@ -56,6 +56,7 @@ ALLOW .* -> maps/libs/s3mds
 ALLOW .* -> maps/libs/sql_chemistry
 ALLOW .* -> maps/libs/st
 ALLOW .* -> maps/libs/tile
+ALLOW .* -> maps/libs/ttl_cache
 ALLOW .* -> maps/pylibs/local_postgres
 
 # Fix current PEERDIRs and prevent any further growth
