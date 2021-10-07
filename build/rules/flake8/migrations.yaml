@@ -1542,7 +1542,6 @@ migrations:
     - travel/avia/shared_flights/tasks/sirena_parser
     - travel/library/python/sender
     - vcs/svn/migrations
-    - vcs/svn/pr
     - voicetech/asr/core/lib/subword_ngram_lm/nirvana/build_freq_table
     - voicetech/asr/core/lib/subword_ngram_lm/nirvana/build_mixture_model
     - voicetech/asr/core/lib/subword_ngram_lm/nirvana/build_model
