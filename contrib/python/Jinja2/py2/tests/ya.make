@@ -1,4 +1,4 @@
-PY23_TEST()
+PY2TEST()
 
 
 
@@ -12,11 +12,11 @@ PY_SRCS(
 )
 
 DATA(
-    arcadia/contrib/python/Jinja2/tests/res
+    arcadia/contrib/python/Jinja2/py2/tests/res
 )
 
 RESOURCE_FILES(
-    PREFIX contrib/python/Jinja2/tests/
+    PREFIX contrib/python/Jinja2/py2/tests/
     res/templates/broken.html
     res/templates/foo/test.html
     res/templates/mojibake.txt
@@ -46,13 +46,6 @@ TEST_SRCS(
     test_tests.py
     test_utils.py
 )
-
-IF (PYTHON3)
-    TEST_SRCS(
-        test_asyncfilters.py
-        test_async.py
-    )
-ENDIF()
 
 NO_LINT()
 
