@@ -2303,8 +2303,7 @@ class CatBoost(_CatBoostBase):
             Can be:
             - 'VirtEnsembles': return V (virtual_ensembles_count) predictions.
                 k-th virtEnsemle consists of trees [0, T/2] + [T/2 + T/(2V) * k, T/2 + T/(2V) * (k + 1)]  * constant.
-            - 'TotalUncertainty': return mean predict, var (and knowledge uncertainty
-                if model was trained with RMSEWithUncertainty loss function) for virtEnsembles
+            - 'TotalUncertainty': see returned predictions format in 'Returns' part
 
         ntree_end: int, optional (default=0)
             Model is applied on the interval [ntree_start, ntree_end) (zero-based indexing).
