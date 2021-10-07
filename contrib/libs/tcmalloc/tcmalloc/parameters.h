@@ -83,6 +83,10 @@ class Parameters {
     return shuffle_per_cpu_caches_enabled_.load(std::memory_order_relaxed);
   }
 
+  static bool reclaim_idle_per_cpu_caches() {
+    return reclaim_idle_per_cpu_caches_enabled_.load(std::memory_order_relaxed);
+  }
+
   static bool lazy_per_cpu_caches() {
     return lazy_per_cpu_caches_enabled_.load(std::memory_order_relaxed);
   }
@@ -118,6 +122,7 @@ class Parameters {
   friend void ::TCMalloc_Internal_SetGuardedSamplingRate(int64_t v);
   friend void ::TCMalloc_Internal_SetHPAASubrelease(bool v);
   friend void ::TCMalloc_Internal_SetShufflePerCpuCachesEnabled(bool v);
+  friend void ::TCMalloc_Internal_SetReclaimIdlePerCpuCachesEnabled(bool v);
   friend void ::TCMalloc_Internal_SetLazyPerCpuCachesEnabled(bool v);
   friend void ::TCMalloc_Internal_SetMaxPerCpuCacheSize(int32_t v);
   friend void ::TCMalloc_Internal_SetMaxTotalThreadCacheBytes(int64_t v);
@@ -131,6 +136,7 @@ class Parameters {
   static std::atomic<MallocExtension::BytesPerSecond> background_release_rate_;
   static std::atomic<int64_t> guarded_sampling_rate_;
   static std::atomic<bool> shuffle_per_cpu_caches_enabled_;
+  static std::atomic<bool> reclaim_idle_per_cpu_caches_enabled_;
   static std::atomic<bool> lazy_per_cpu_caches_enabled_;
   static std::atomic<int32_t> max_per_cpu_cache_size_;
   static std::atomic<int64_t> max_total_thread_cache_bytes_;

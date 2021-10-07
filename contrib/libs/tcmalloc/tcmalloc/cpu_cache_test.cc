@@ -347,22 +347,19 @@ TEST(CpuCacheTest, StealCpuCache) {
 // Runs a single allocate and deallocate operation to warm up the cache. Once a
 // few objects are allocated in the cold cache, we can shuffle cpu caches to
 // steal that capacity from the cold cache to the hot cache.
-static void ColdCacheOperations(int cpu_id) {
+static void ColdCacheOperations(int cpu_id, size_t size_class) {
   // Temporarily fake being on the given CPU.
   ScopedFakeCpuId fake_cpu_id(cpu_id);
 
   CPUCache& cache = Static::cpu_cache();
+#if TCMALLOC_PERCPU_USE_RSEQ
   if (subtle::percpu::UsingFlatVirtualCpus()) {
     subtle::percpu::__rseq_abi.vcpu_id = cpu_id;
   }
+#endif
 
-  // We allocate and deallocate a single highest cl object.
-  // This makes sure that we have a single large object in the cache that faster
-  // cache can steal. Allocating a large object ensures that we steal the
-  // maximum steal-able capacity for this cache in a short amount of time.
-  const size_t cl = kNumClasses - 1;
-  void* ptr = cache.Allocate<OOMHandler>(cl);
-  cache.Deallocate(ptr, cl);
+  void* ptr = cache.Allocate<OOMHandler>(size_class);
+  cache.Deallocate(ptr, size_class);
 }
 
 // Runs multiple allocate and deallocate operation on the cpu cache to collect
@@ -373,9 +370,11 @@ static void HotCacheOperations(int cpu_id) {
   ScopedFakeCpuId fake_cpu_id(cpu_id);
 
   CPUCache& cache = Static::cpu_cache();
+#if TCMALLOC_PERCPU_USE_RSEQ
   if (subtle::percpu::UsingFlatVirtualCpus()) {
     subtle::percpu::__rseq_abi.vcpu_id = cpu_id;
   }
+#endif
 
   // Allocate and deallocate objects to make sure we have enough misses on the
   // cache. This will make sure we have sufficient disparity in misses between
@@ -413,12 +412,17 @@ TEST(CpuCacheTest, ColdHotCacheShuffleTest) {
   // if something goes bad.
   constexpr int kMaxStealTries = 1000;
 
+  // We allocate and deallocate a single highest cl object.
+  // This makes sure that we have a single large object in the cache that faster
+  // cache can steal.
+  const size_t size_class = kNumClasses - 1;
+
   for (int num_tries = 0;
        num_tries < kMaxStealTries &&
        cache.Capacity(cold_cpu_id) >
            CPUCache::kCacheCapacityThreshold * max_cpu_cache_size;
        ++num_tries) {
-    ColdCacheOperations(cold_cpu_id);
+    ColdCacheOperations(cold_cpu_id, size_class);
     HotCacheOperations(hot_cpu_id);
     cache.ShuffleCpuCaches();
 
@@ -446,7 +450,7 @@ TEST(CpuCacheTest, ColdHotCacheShuffleTest) {
   // has been reached for the cold cache. A few more shuffles should not
   // change the capacity of either of the caches.
   for (int i = 0; i < 100; ++i) {
-    ColdCacheOperations(cold_cpu_id);
+    ColdCacheOperations(cold_cpu_id, size_class);
     HotCacheOperations(hot_cpu_id);
     cache.ShuffleCpuCaches();
 
@@ -469,6 +473,124 @@ TEST(CpuCacheTest, ColdHotCacheShuffleTest) {
   const int num_cpus = absl::base_internal::NumCPUs();
   for (int cpu = 0; cpu < num_cpus; ++cpu) {
     cache.Reclaim(cpu);
+  }
+}
+
+TEST(CpuCacheTest, ReclaimCpuCache) {
+  if (!subtle::percpu::IsFast()) {
+    return;
+  }
+
+  CPUCache& cache = Static::cpu_cache();
+  // Since this test allocates memory, avoid activating the real fast path to
+  // minimize allocations against the per-CPU cache.
+  cache.Activate(CPUCache::ActivationMode::FastPathOffTestOnly);
+
+  //  The number of underflows and overflows must be zero for all the caches.
+  const int num_cpus = absl::base_internal::NumCPUs();
+  for (int cpu = 0; cpu < num_cpus; ++cpu) {
+    SCOPED_TRACE(absl::StrFormat("Failed CPU: %d", cpu));
+    // Check that reclaim miss metrics are reset.
+    CPUCache::CpuCacheMissStats reclaim_misses =
+        cache.GetReclaimCacheMissStats(cpu);
+    EXPECT_EQ(reclaim_misses.underflows, 0);
+    EXPECT_EQ(reclaim_misses.overflows, 0);
+
+    // None of the caches should have been reclaimed yet.
+    EXPECT_EQ(cache.GetNumReclaims(cpu), 0);
+
+    // Check that caches are empty.
+    uint64_t used_bytes = cache.UsedBytes(cpu);
+    EXPECT_EQ(used_bytes, 0);
+  }
+
+  const size_t kSizeClass = 3;
+
+  // We chose a different size class here so that we can populate different size
+  // class slots and change the number of bytes used by the busy cache later in
+  // our test.
+  const size_t kBusySizeClass = 4;
+
+  // Perform some operations to warm up caches and make sure they are populated.
+  for (int cpu = 0; cpu < num_cpus; ++cpu) {
+    SCOPED_TRACE(absl::StrFormat("Failed CPU: %d", cpu));
+    ColdCacheOperations(cpu, kSizeClass);
+    EXPECT_TRUE(cache.HasPopulated(cpu));
+  }
+
+  for (int cpu = 0; cpu < num_cpus; ++cpu) {
+    SCOPED_TRACE(absl::StrFormat("Failed CPU: %d", cpu));
+    CPUCache::CpuCacheMissStats misses_last_interval =
+        cache.GetReclaimCacheMissStats(cpu);
+    CPUCache::CpuCacheMissStats total_misses =
+        cache.GetTotalCacheMissStats(cpu);
+
+    // Misses since the last reclaim (i.e. since we initialized the caches)
+    // should match the total miss metrics.
+    EXPECT_EQ(misses_last_interval.underflows, total_misses.underflows);
+    EXPECT_EQ(misses_last_interval.overflows, total_misses.overflows);
+
+    // Caches should have non-zero used bytes.
+    EXPECT_GT(cache.UsedBytes(cpu), 0);
+  }
+
+  cache.TryReclaimingCaches();
+
+  // Miss metrics since the last interval were non-zero and the change in used
+  // bytes was non-zero, so none of the caches should get reclaimed.
+  for (int cpu = 0; cpu < num_cpus; ++cpu) {
+    SCOPED_TRACE(absl::StrFormat("Failed CPU: %d", cpu));
+    // As no cache operations were performed since the last reclaim
+    // operation, the reclaim misses captured during the last interval (i.e.
+    // since the last reclaim) should be zero.
+    CPUCache::CpuCacheMissStats reclaim_misses =
+        cache.GetReclaimCacheMissStats(cpu);
+    EXPECT_EQ(reclaim_misses.underflows, 0);
+    EXPECT_EQ(reclaim_misses.overflows, 0);
+
+    // None of the caches should have been reclaimed as the caches were
+    // accessed in the previous interval.
+    EXPECT_EQ(cache.GetNumReclaims(cpu), 0);
+
+    // Caches should not have been reclaimed; used bytes should be non-zero.
+    EXPECT_GT(cache.UsedBytes(cpu), 0);
+  }
+
+  absl::BitGen rnd;
+  const int busy_cpu =
+      absl::Uniform<int32_t>(rnd, 0, absl::base_internal::NumCPUs());
+  const size_t prev_used = cache.UsedBytes(busy_cpu);
+  ColdCacheOperations(busy_cpu, kBusySizeClass);
+  EXPECT_GT(cache.UsedBytes(busy_cpu), prev_used);
+
+  // Try reclaiming caches again.
+  cache.TryReclaimingCaches();
+
+  // All caches, except the busy cpu cache against which we performed some
+  // operations in the previous interval, should have been reclaimed exactly
+  // once.
+  for (int cpu = 0; cpu < num_cpus; ++cpu) {
+    SCOPED_TRACE(absl::StrFormat("Failed CPU: %d", cpu));
+    if (cpu == busy_cpu) {
+      EXPECT_GT(cache.UsedBytes(cpu), 0);
+      EXPECT_EQ(cache.GetNumReclaims(cpu), 0);
+    } else {
+      EXPECT_EQ(cache.UsedBytes(cpu), 0);
+      EXPECT_EQ(cache.GetNumReclaims(cpu), 1);
+    }
+  }
+
+  // Try reclaiming caches again.
+  cache.TryReclaimingCaches();
+
+  // All caches, including the busy cache, should have been reclaimed this
+  // time. Note that the caches that were reclaimed in the previous interval
+  // should not be reclaimed again and the number of reclaims reported for them
+  // should still be one.
+  for (int cpu = 0; cpu < num_cpus; ++cpu) {
+    SCOPED_TRACE(absl::StrFormat("Failed CPU: %d", cpu));
+    EXPECT_EQ(cache.UsedBytes(cpu), 0);
+    EXPECT_EQ(cache.GetNumReclaims(cpu), 1);
   }
 }
 

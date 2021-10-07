@@ -23,6 +23,7 @@
 
 #include "absl/strings/str_format.h"
 #include "tcmalloc/internal/logging.h"
+#include "tcmalloc/internal/util.h"
 
 GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
@@ -68,7 +69,7 @@ void ProcMapsIterator::Init(pid_t pid, Buffer* buffer) {
   // No error logging since this can be called from the crash dump
   // handler at awkward moments. Users should call Valid() before
   // using.
-  TEMP_FAILURE_RETRY(fd_ = open(ibuf_, O_RDONLY));
+  TCMALLOC_RETRY_ON_TEMP_FAILURE(fd_ = open(ibuf_, O_RDONLY));
 #else
   fd_ = -1;  // so Valid() is always false
 #endif
@@ -106,7 +107,8 @@ bool ProcMapsIterator::NextExt(uint64_t* start, uint64_t* end, char** flags,
 
       int nread = 0;  // fill up buffer with text
       while (etext_ < ebuf_) {
-        TEMP_FAILURE_RETRY(nread = read(fd_, etext_, ebuf_ - etext_));
+        TCMALLOC_RETRY_ON_TEMP_FAILURE(nread =
+                                           read(fd_, etext_, ebuf_ - etext_));
         if (nread > 0)
           etext_ += nread;
         else

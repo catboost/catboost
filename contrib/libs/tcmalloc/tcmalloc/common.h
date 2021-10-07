@@ -205,7 +205,7 @@ inline constexpr size_t kPageSize = 1 << kPageShift;
 // of increasing kMaxSize to be multiple of kPageSize is unclear. Object size
 // profile data indicates that the number of simultaneously live objects (of
 // size >= 256k) tends to be very small. Keeping those objects as 'large'
-// objects won't cause too much memory waste, while heap memory reuse is can be
+// objects won't cause too much memory waste, while heap memory reuse can be
 // improved. Increasing kMaxSize to be too large has another bad side effect --
 // the thread cache pressure is increased, which will in turn increase traffic
 // between central cache and thread cache, leading to performance degradation.

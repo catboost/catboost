@@ -313,9 +313,13 @@ class MallocExtension final {
 
   // Gets the guarded sampling rate.  Returns a value < 0 if unknown.
   static int64_t GetGuardedSamplingRate();
-  // Sets the guarded sampling rate for sampled allocations.  Guarded samples
-  // provide probablistic protections against buffer underflow, overflow, and
-  // use-after-free.
+  // Sets the guarded sampling rate for sampled allocations.  TCMalloc samples
+  // approximately every rate bytes allocated, subject to implementation
+  // limitations in GWP-ASan.
+  //
+  // Guarded samples provide probablistic protections against buffer underflow,
+  // overflow, and use-after-free when GWP-ASan is active (via calling
+  // ActivateGuardedSampling).
   static void SetGuardedSamplingRate(int64_t rate);
 
   // Switches TCMalloc to guard sampled allocations for underflow, overflow, and
@@ -531,7 +535,6 @@ tcmalloc::sized_ptr_t tcmalloc_size_returning_operator_new_nothrow(
 // Aligned size returning new is only supported for libc++ because of issues
 // with libstdcxx.so linkage. See http://b/110969867 for background.
 #if defined(__cpp_aligned_new)
-#define TCMALLOC_HAS_ALIGNED_SIZE_RETURNING_NEW
 
 // Identical to `tcmalloc_size_returning_operator_new` except that the returned
 // memory is aligned according to the `alignment` argument.

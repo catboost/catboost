@@ -16,23 +16,7 @@
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-
-// This pragma is needed to ensure that the loop does not get unrolled, in which
-// case the different Allocate* calls would map to different call sites instead
-// of the same ones as expected by this test. Supported pragmas differ between
-// GCC and Clang, which is why we need this conditional.
-#if (defined(__clang__) || defined(__INTEL_COMPILER))
-#define PRAGMA_NO_UNROLL _Pragma("nounroll")
-#elif (defined(__GNUC__) || defined(__GCUG__))
-// GCC does not always respect "#pragma unroll <N>". The most reliable approach
-// is therefore to completely disable optimizations for this source file.
-#pragma GCC optimize ("O0")
-#define PRAGMA_NO_UNROLL
-#else
-// If #pragma nounroll is unsupported, the test may still work by compiling with
-// equivalent compiler options.
-#define PRAGMA_NO_UNROLL
-#endif
+#include "tcmalloc/testing/testutil.h"
 
 namespace tcmalloc {
 namespace tcmalloc_internal {
