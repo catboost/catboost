@@ -37,6 +37,9 @@ def onprocess_docs(unit, *args):
 
 
 def generate_dart(unit, as_lib=False):
+    if unit.get('YMAKE_JAVA_MODULES') != 'Yes':
+        return
+
     module_dir = os.path.normpath(unit.path()[3:])
     docs_dir = (unit.get('DOCSDIR') or '').rstrip('/')
     if docs_dir:
