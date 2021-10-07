@@ -1606,11 +1606,9 @@ class GnuCompiler(Compiler):
 
         append('C_DEFINES', '-D__LONG_LONG_SUPPORTED')
 
+        emit('OBJ_CROSS_SUF', '$OBJ_SUF%s' % self.cross_suffix)
         emit('OBJECT_SUF', '$OBJ_SUF%s.o' % self.cross_suffix)
         emit('GCC_COMPILE_FLAGS', '$EXTRA_C_FLAGS -c -o $_COMPILE_OUTPUTS', '${pre=-I:_C__INCLUDE}')
-        emit('EXTRA_COVERAGE_OUTPUT', '${output;noauto;hide;suf=${OBJ_SUF}%s.gcno:SRC}' % self.cross_suffix)
-        emit('CLANG_TIDY_OUTPUT_FILE', '${output;noauto;suf=${OBJ_SUF}%s.tidyjson:SRC}' % self.cross_suffix)
-        emit('YNDEXER_OUTPUT_FILE', '${output;noauto;suf=${OBJ_SUF}%s.ydx.pb2:SRC}' % self.cross_suffix)  # should be the last output
 
         if is_positive('DUMP_COMPILER_DEPS'):
             emit('DUMP_DEPS', '-MD', '${output;hide;noauto;suf=${OBJ_SUF}.o.d:SRC}')
@@ -1662,11 +1660,9 @@ class GnuCompiler(Compiler):
             '${input:SRC}',
             '$SRCFLAGS',
             '$CLANG_TIDY_ARGS',
-            '$CLANG_TIDY_OUTPUT_FILE',
             '$YNDEXER_ARGS',
             '$YNDEXER_OUTPUT',
             '$EXTRA_OUTPUT',
-            '$EXTRA_COVERAGE_OUTPUT',
             '$CL_MACRO_INFO',
             '$CL_MACRO_INFO_DISABLE_CACHE__NO_UID__'
         ]
@@ -2450,6 +2446,7 @@ class MSVCCompiler(MSVC, Compiler):
         else:
             masm_io = '/nologo /c /Fo${output;suf=${OBJECT_SUF}:SRC} ${input;msvs_source:SRC}'
 
+        emit('OBJ_CROSS_SUF', '$OBJ_SUF')
         emit('OBJECT_SUF', '$OBJ_SUF.obj')
         emit('WIN32_WINNT', '{value}'.format(value=win32_winnt))
         defines.append('/D{name}=$WIN32_WINNT'.format(name=self.WIN32_WINNT.Macro))
