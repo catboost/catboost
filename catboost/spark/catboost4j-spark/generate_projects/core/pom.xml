@@ -441,6 +441,40 @@
         </build>
       </profile>
       <profile>
+        <id>pythondoc</id>
+        <build>
+          <plugins>
+            <plugin>
+              <groupId>org.codehaus.mojo</groupId>
+              <artifactId>exec-maven-plugin</artifactId>
+              <version>1.6.0</version>
+              <executions>
+                  <execution>
+                      <id>Generate Python documentation</id>
+                      <phase>process-classes</phase>
+                      <goals>
+                          <goal>exec</goal>
+                      </goals>
+                      <configuration>
+                          <environmentVariables>
+                            <CATBOOST_SPARK_MODULE_PATH>${project.build.directory}/classes</CATBOOST_SPARK_MODULE_PATH>
+                          </environmentVariables>
+                          <executable>python3</executable>
+                          <arguments>
+                              <argument>-m</argument>
+                              <argument>sphinx</argument>
+                              <argument>${core_project_root}/docs/python/source</argument>
+                              <argument>${project.build.directory}/site/pythondocs</argument>
+                          </arguments>
+                          <workingDirectory>${user.dir}</workingDirectory>
+                      </configuration>
+                  </execution>
+              </executions>
+            </plugin>
+          </plugins>
+        </build>
+      </profile>
+      <profile>
          <id>spark-2.3</id>
          <activation>
            <property>
