@@ -176,6 +176,26 @@ class TransferCacheManager : public StaticForwarder {
     }
   }
 
+  void AcquireInternalLocks() {
+    for (int i = 0; i < kNumClasses; ++i) {
+      if (implementation_ == TransferCacheImplementation::Ring) {
+        cache_[i].rbtc.AcquireInternalLocks();
+      } else {
+        cache_[i].tc.AcquireInternalLocks();
+      }
+    }
+  }
+
+  void ReleaseInternalLocks() {
+    for (int i = 0; i < kNumClasses; ++i) {
+      if (implementation_ == TransferCacheImplementation::Ring) {
+        cache_[i].rbtc.ReleaseInternalLocks();
+      } else {
+        cache_[i].tc.ReleaseInternalLocks();
+      }
+    }    
+  }
+
   void InsertRange(int size_class, absl::Span<void *> batch) {
     if (implementation_ == TransferCacheImplementation::Ring) {
       cache_[size_class].rbtc.InsertRange(size_class, batch);
@@ -294,6 +314,9 @@ class TransferCacheManager {
   TransferCacheImplementation implementation() const {
     return TransferCacheImplementation::None;
   }
+
+  void AcquireInternalLocks() {}
+  void ReleaseInternalLocks() {}
 
  private:
   CentralFreeList freelist_[kNumClasses];

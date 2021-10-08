@@ -366,6 +366,18 @@ class TransferCache {
     return freelist_do_not_access_directly_;
   }
 
+  void AcquireInternalLocks()
+  {
+    freelist().AcquireInternalLocks();
+    lock_.Lock();
+  }
+
+  void ReleaseInternalLocks()
+  {
+    lock_.Unlock();
+    freelist().ReleaseInternalLocks();
+  }
+
  private:
   // Returns first object of the i-th slot.
   void **GetSlot(size_t i) ABSL_EXCLUSIVE_LOCKS_REQUIRED(lock_) {
@@ -467,6 +479,18 @@ class RingBufferTransferCache {
   static constexpr bool IsFlexible() { return true; }
 
   // These methods all do internal locking.
+
+  void AcquireInternalLocks()
+  {
+    freelist().AcquireInternalLocks();
+    lock_.Lock();
+  }
+
+  void ReleaseInternalLocks()
+  {
+    lock_.Unlock();
+    freelist().ReleaseInternalLocks();
+  }
 
   // Insert the specified batch into the transfer cache.  N is the number of
   // elements in the range.  RemoveRange() is the opposite operation.
