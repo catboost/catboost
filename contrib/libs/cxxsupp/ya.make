@@ -24,4 +24,5 @@ END()
 RECURSE(
     libcxx
     libcxxabi
+    libcxxrt
 )

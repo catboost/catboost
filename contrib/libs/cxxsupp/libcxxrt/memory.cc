@@ -88,9 +88,7 @@ void* operator new(size_t size)
 		}
 		else
 		{
-#if !defined(__PATHCC__)
-            throw std::bad_alloc();
-#endif
+			throw std::bad_alloc();
 		}
 		mem = malloc(size);
 	}
@@ -114,7 +112,7 @@ void* operator new(size_t size, const std::nothrow_t &) noexcept
 __attribute__((weak))
 void operator delete(void * ptr)
 #if __cplusplus < 201000L
-throw()
+noexcept
 #endif
 {
 	free(ptr);
@@ -147,8 +145,10 @@ void * operator new[](size_t size, const std::nothrow_t &) noexcept
 __attribute__((weak))
 void operator delete[](void * ptr)
 #if __cplusplus < 201000L
-throw()
+noexcept
 #endif
 {
 	::operator delete(ptr);
 }
+
+
