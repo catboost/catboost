@@ -12,7 +12,6 @@ migrations:
     - adfox/amacs/tests/functional/utils
     - adfox/amacs/tests/functional/utils/db
     - adfox/amacs/tests/functional/utils/tools
-    - ads/bsyeti/samogon/buzzard/plugin
     - ads/bsyeti/servants/bot
     - ads/libs/py_autobudget
     - ads/libs/py_bid_correction
@@ -1388,7 +1387,6 @@ migrations:
     - lbs/research_tools/find_keys_causing_losses
     - library/python/async_clients
     - logbroker/tools/deploy_consistency_test
-    - mail/collectors/tests-system/src
     - mail/github/calendar-attach-processor
     - maps/automotive/carwashes/tests/fake-env
     - maps/automotive/carwashes/tests/src
@@ -1404,7 +1402,6 @@ migrations:
     - maps/pylibs/test_helpers
     - maps/qa/passed_by_assessors/markup_script
     - maps/wikimap/stat/kpi/valuable_edits/users_home_regions/lib
-    - maps/wikimap/stat/tasks_payment/tasks_logging/feedback/lib
     - maps_adv/common/shared_mock
     - market/dynamic_pricing/tools/kvi_evaluation
     - market/dynamic_pricing/tools/offline_modeling
@@ -1866,7 +1863,6 @@ migrations:
     - cloud/gauthling/yc_auth_tornado/lib
     - cloud/gauthling/yc_requests/lib
     - cloud/mdb/dbaas-internal-api-image/dbaas_internal_api/utils/dataproc_joblog
-    - comdep_analytics/exceller
     - comdep_analytics/telephony
     - contrib/python/ipython/py2
     - crowdsourcing/thirium-mitm-proxy
@@ -3280,7 +3276,6 @@ migrations:
     - entity/recommender/tools/features_diff_checker/ut
     - extsearch/audio/yamrec/upper
     - extsearch/fresh/meta/rearrange_data/tests
-    - extsearch/images/kernel/new_runtime/doc_factors/tests
     - extsearch/images/robot/parsers/html_parser/imagelib/ut2
     - extsearch/images/tools/cbircomparer/tests
     - extsearch/images/tools/query_filter/ut

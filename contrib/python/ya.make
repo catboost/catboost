@@ -4,7 +4,7 @@ RECURSE(
     atomicwrites
     attrs
     backcall
-    backports-shutil_get_terminal_size
+    backports.shutil-get-terminal-size
     certifi
     colorama
     configparser

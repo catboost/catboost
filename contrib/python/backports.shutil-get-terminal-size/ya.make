@@ -14,4 +14,10 @@ PY_SRCS(
 
 NO_LINT()
 
+RESOURCE_FILES(
+    PREFIX contrib/python/backports.shutil-get-terminal-size/
+    .dist-info/METADATA
+    .dist-info/top_level.txt
+)
+
 END()

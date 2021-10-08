@@ -7,7 +7,7 @@ VERSION(5.9.0)
 
 
 PEERDIR(
-    contrib/python/backports-shutil_get_terminal_size
+    contrib/python/backports.shutil-get-terminal-size
     contrib/python/decorator
     contrib/python/pickleshare
     contrib/python/simplegeneric
