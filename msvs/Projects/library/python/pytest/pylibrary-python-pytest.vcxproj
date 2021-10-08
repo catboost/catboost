@@ -303,8 +303,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\attrs\pycontrib-python-attrs.vcxproj">
       <Project>{B19D597D-A363-F744-6165-C68C1835DD61}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\backports-shutil_get_terminal_size\pycontrib-python-backports-shutil_get_terminal_size.vcxproj">
-      <Project>{1C1BE43D-FE75-D006-9839-1B851BF67411}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\backports.shutil-get-terminal-size\pycontrib-python-backports.shutil-get-terminal-size.vcxproj">
+      <Project>{1BA1D8D1-7C10-2111-CF29-66D0ABC3AFDB}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\backports\functools_lru_cache\pypython-backports-functools_lru_cache.vcxproj">
       <Project>{F2327B60-48D4-156E-8EF9-CC75082589DF}</Project>

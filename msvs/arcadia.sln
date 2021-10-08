@@ -645,11 +645,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pypython-backports-functool
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pypython-backports-functools_lru_cache.global", "Projects\contrib\python\backports\functools_lru_cache\pypython-backports-functools_lru_cache.global.vcxproj", "{95780841-AE94-3F49-88C4-81D3F07E3462}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "backports-shutil_get_terminal_size", "Projects\contrib\python\backports-shutil_get_terminal_size", "{DFC17F4D-1585-91FF-5ABD-E099310E635F}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "backports.shutil-get-terminal-size", "Projects\contrib\python\backports.shutil-get-terminal-size", "{C0CE41FD-C3FC-4DC2-6CF5-E2A3791DD1D9}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pycontrib-python-backports-shutil_get_terminal_size", "Projects\contrib\python\backports-shutil_get_terminal_size\pycontrib-python-backports-shutil_get_terminal_size.vcxproj", "{1C1BE43D-FE75-D006-9839-1B851BF67411}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pycontrib-python-backports.shutil-get-terminal-size", "Projects\contrib\python\backports.shutil-get-terminal-size\pycontrib-python-backports.shutil-get-terminal-size.vcxproj", "{1BA1D8D1-7C10-2111-CF29-66D0ABC3AFDB}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pycontrib-python-backports-shutil_get_terminal_size.global", "Projects\contrib\python\backports-shutil_get_terminal_size\pycontrib-python-backports-shutil_get_terminal_size.global.vcxproj", "{40B292FB-96D4-661A-6AA6-4D74ED8F5155}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pycontrib-python-backports.shutil-get-terminal-size.global", "Projects\contrib\python\backports.shutil-get-terminal-size\pycontrib-python-backports.shutil-get-terminal-size.global.vcxproj", "{14C608BF-AF76-6E68-DC11-B46C8BEB41DA}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "py3contrib-python-certifi", "Projects\contrib\python\certifi\py3contrib-python-certifi.vcxproj", "{1DCAE401-01AE-CE82-CDD5-8E7ED8B65DCD}"
 EndProject
@@ -3231,14 +3231,14 @@ Global
 		{95780841-AE94-3F49-88C4-81D3F07E3462}.Debug|x64.Build.0 = Debug|x64
 		{95780841-AE94-3F49-88C4-81D3F07E3462}.Release|x64.ActiveCfg = Release|x64
 		{95780841-AE94-3F49-88C4-81D3F07E3462}.Release|x64.Build.0 = Release|x64
-		{1C1BE43D-FE75-D006-9839-1B851BF67411}.Debug|x64.ActiveCfg = Debug|x64
-		{1C1BE43D-FE75-D006-9839-1B851BF67411}.Debug|x64.Build.0 = Debug|x64
-		{1C1BE43D-FE75-D006-9839-1B851BF67411}.Release|x64.ActiveCfg = Release|x64
-		{1C1BE43D-FE75-D006-9839-1B851BF67411}.Release|x64.Build.0 = Release|x64
-		{40B292FB-96D4-661A-6AA6-4D74ED8F5155}.Debug|x64.ActiveCfg = Debug|x64
-		{40B292FB-96D4-661A-6AA6-4D74ED8F5155}.Debug|x64.Build.0 = Debug|x64
-		{40B292FB-96D4-661A-6AA6-4D74ED8F5155}.Release|x64.ActiveCfg = Release|x64
-		{40B292FB-96D4-661A-6AA6-4D74ED8F5155}.Release|x64.Build.0 = Release|x64
+		{1BA1D8D1-7C10-2111-CF29-66D0ABC3AFDB}.Debug|x64.ActiveCfg = Debug|x64
+		{1BA1D8D1-7C10-2111-CF29-66D0ABC3AFDB}.Debug|x64.Build.0 = Debug|x64
+		{1BA1D8D1-7C10-2111-CF29-66D0ABC3AFDB}.Release|x64.ActiveCfg = Release|x64
+		{1BA1D8D1-7C10-2111-CF29-66D0ABC3AFDB}.Release|x64.Build.0 = Release|x64
+		{14C608BF-AF76-6E68-DC11-B46C8BEB41DA}.Debug|x64.ActiveCfg = Debug|x64
+		{14C608BF-AF76-6E68-DC11-B46C8BEB41DA}.Debug|x64.Build.0 = Debug|x64
+		{14C608BF-AF76-6E68-DC11-B46C8BEB41DA}.Release|x64.ActiveCfg = Release|x64
+		{14C608BF-AF76-6E68-DC11-B46C8BEB41DA}.Release|x64.Build.0 = Release|x64
 		{1DCAE401-01AE-CE82-CDD5-8E7ED8B65DCD}.Debug|x64.ActiveCfg = Debug|x64
 		{1DCAE401-01AE-CE82-CDD5-8E7ED8B65DCD}.Debug|x64.Build.0 = Debug|x64
 		{1DCAE401-01AE-CE82-CDD5-8E7ED8B65DCD}.Release|x64.ActiveCfg = Release|x64
@@ -6015,9 +6015,9 @@ Global
 		{131CC2E5-FED4-3EBD-D41C-3D709125C19E} = {E49BA228-0B9E-15E7-4487-CE6AF0F4FB93}
 		{F2327B60-48D4-156E-8EF9-CC75082589DF} = {131CC2E5-FED4-3EBD-D41C-3D709125C19E}
 		{95780841-AE94-3F49-88C4-81D3F07E3462} = {131CC2E5-FED4-3EBD-D41C-3D709125C19E}
-		{DFC17F4D-1585-91FF-5ABD-E099310E635F} = {E49BA228-0B9E-15E7-4487-CE6AF0F4FB93}
-		{1C1BE43D-FE75-D006-9839-1B851BF67411} = {DFC17F4D-1585-91FF-5ABD-E099310E635F}
-		{40B292FB-96D4-661A-6AA6-4D74ED8F5155} = {DFC17F4D-1585-91FF-5ABD-E099310E635F}
+		{C0CE41FD-C3FC-4DC2-6CF5-E2A3791DD1D9} = {E49BA228-0B9E-15E7-4487-CE6AF0F4FB93}
+		{1BA1D8D1-7C10-2111-CF29-66D0ABC3AFDB} = {C0CE41FD-C3FC-4DC2-6CF5-E2A3791DD1D9}
+		{14C608BF-AF76-6E68-DC11-B46C8BEB41DA} = {C0CE41FD-C3FC-4DC2-6CF5-E2A3791DD1D9}
 		{1DCAE401-01AE-CE82-CDD5-8E7ED8B65DCD} = {E49BA228-0B9E-15E7-4487-CE6AF0F4FB93}
 		{C8B7BCA8-3728-0C76-F68D-0702EDBCD2D4} = {E49BA228-0B9E-15E7-4487-CE6AF0F4FB93}
 		{C993C962-3FFE-726E-1312-B37C3A414F52} = {C8B7BCA8-3728-0C76-F68D-0702EDBCD2D4}
