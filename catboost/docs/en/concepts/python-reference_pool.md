@@ -13,7 +13,7 @@ class Pool(data,
            group_id=None,
            group_weight=None,
            subgroup_id=None,
-           pairs_weight=None
+           pairs_weight=None,
            baseline=None,
            timestamp=None,
            feature_names=None,
