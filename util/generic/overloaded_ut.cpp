@@ -30,11 +30,11 @@ Y_UNIT_TEST_SUITE(TOverloadedTest) {
     Y_UNIT_TEST(VariantTest) {
         std::variant<int, double, TType1> v = 5;
         int res = 0;
-        Visit(TOverloaded{
-                  [&](int val) { res = val; },
-                  [&](double) { res = -1; },
-                  [&](TType1) { res = -1; }},
-              v);
+        std::visit(TOverloaded{
+                       [&](int val) { res = val; },
+                       [&](double) { res = -1; },
+                       [&](TType1) { res = -1; }},
+                   v);
         UNIT_ASSERT_VALUES_EQUAL(res, 5);
     }
 
@@ -59,9 +59,9 @@ Y_UNIT_TEST_SUITE(TOverloadedTest) {
 
         // All cases implicitly cast to int
         auto matchAsInt = [](TTestVariant var) {
-            return Visit(TOverloaded{
-                             [](int val) { return val; },
-                         }, var);
+            return std::visit(TOverloaded{
+                                  [](int val) { return val; },
+                              }, var);
         };
 
         UNIT_ASSERT_VALUES_EQUAL(matchAsInt(TTestVariant{17.77}), 17);
@@ -70,9 +70,9 @@ Y_UNIT_TEST_SUITE(TOverloadedTest) {
 
         // All cases implicitly cast to double
         auto matchAsDouble = [](TTestVariant var) {
-            return Visit(TOverloaded{
-                             [](double val) { return val; },
-                         }, var);
+            return std::visit(TOverloaded{
+                                  [](double val) { return val; },
+                              }, var);
         };
 
         UNIT_ASSERT_VALUES_EQUAL(matchAsDouble(TTestVariant{17.77}), 17.77);

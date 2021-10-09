@@ -1,10 +1,7 @@
 #pragma once
 
-#include "typetraits.h"
-#include "yexception.h"
 #include "hash.h"
 
-#include <utility>
 #include <type_traits>
 #include <variant>
 
@@ -24,17 +21,6 @@ namespace NVariant {
     struct TIndexOf: std::integral_constant<size_t, IndexOfImpl<X, Ts...>()> {};
 }
 
-using TWrongVariantError = std::bad_variant_access;
-
-template <class T>
-using TVariantTypeTag = std::in_place_type_t<T>;
-
-template <size_t I, class V>
-using TVariantAlternative = std::variant_alternative<I, V>;
-
-template <size_t I, class V>
-using TVariantAlternativeType = std::variant_alternative_t<I, V>;
-
 template <class T, class V>
 struct TVariantIndex;
 
@@ -43,69 +29,6 @@ struct TVariantIndex<T, std::variant<Ts...>>: ::NVariant::TIndexOf<T, Ts...> {};
 
 template <class T, class V>
 constexpr size_t TVariantIndexV = TVariantIndex<T, V>::value;
-
-template <class V>
-using TVariantSize = std::variant_size<V>;
-
-template <class F, class... Ts>
-decltype(auto) Visit(F&& f, std::variant<Ts...>& v) {
-    return std::visit(std::forward<F>(f), v);
-}
-
-template <class F, class... Ts>
-decltype(auto) Visit(F&& f, const std::variant<Ts...>& v) {
-    return std::visit(std::forward<F>(f), v);
-}
-
-template <class F, class... Ts>
-decltype(auto) Visit(F&& f, std::variant<Ts...>&& v) {
-    return std::visit(std::forward<F>(f), std::move(v));
-}
-
-template <class F, class... Ts>
-decltype(auto) Visit(F&& f, const std::variant<Ts...>&& v) {
-    return std::visit(std::forward<F>(f), std::move(v));
-}
-
-template <size_t I, class... Ts>
-decltype(auto) Get(std::variant<Ts...>& v) {
-    return std::get<I>(v);
-}
-
-template <size_t I, class... Ts>
-decltype(auto) Get(const std::variant<Ts...>& v) {
-    return std::get<I>(v);
-}
-
-template <size_t I, class... Ts>
-decltype(auto) Get(std::variant<Ts...>&& v) {
-    return std::get<I>(std::move(v));
-}
-
-template <size_t I, class... Ts>
-decltype(auto) Get(const std::variant<Ts...>&& v) {
-    return std::get<I>(std::move(v));
-}
-
-template <class T, class... Ts>
-decltype(auto) Get(std::variant<Ts...>& v) {
-    return std::get<T>(v);
-}
-
-template <class T, class... Ts>
-decltype(auto) Get(const std::variant<Ts...>& v) {
-    return std::get<T>(v);
-}
-
-template <class T, class... Ts>
-decltype(auto) Get(std::variant<Ts...>&& v) {
-    return std::get<T>(std::move(v));
-}
-
-template <class T, class... Ts>
-decltype(auto) Get(const std::variant<Ts...>&& v) {
-    return std::get<T>(std::move(v));
-}
 
 template <class... Ts>
 struct THash<std::variant<Ts...>> {
