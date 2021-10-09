@@ -1049,7 +1049,6 @@ migrations:
     - maps/infra/ecstatic/common/worker/lib
     - maps/infra/sedem/cli/tests/release
     - maps/infra/sedem/cli/tests/release/utils
-    - maps/poi/statistics/protected_geo_product/impressions/bebr
     - maps/search/metrics/pipeline/geo/geocoder/lib
     - maps/tools/matcher_quality/routes_to_geoms
     - maps_adv/common/shared_mock/tests
@@ -3334,7 +3333,6 @@ migrations:
     - library/python/cyson/ut
     - library/python/vault_client/ut/tests
     - logbroker/push-client/ft
-    - logbroker/unified_agent/tests/integration/python_client_tests
     - logfeller/lib/table_allocator/functional_tests/dyn_allocator_tests
     - mail/xiva/mobile/tests-system
     - mapreduce/library/native2streaming/tests/tests
