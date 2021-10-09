@@ -13,6 +13,8 @@ LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 
 
+VERSION(2015-02-26-77da2d2110ce7ad0a41faa79201144b02cf1e3d1)
+
 ORIGINAL_SOURCE(https://github.com/libcxxrt/libcxxrt/archive/77da2d2110ce7ad0a41faa79201144b02cf1e3d1.tar.gz)
 
 ADDINCL(contrib/libs/cxxsupp/libcxxrt)
