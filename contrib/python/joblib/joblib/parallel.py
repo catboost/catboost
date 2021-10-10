@@ -513,9 +513,11 @@ class Parallel(Logger):
             in Bytes, or a human-readable string, e.g., '1M' for 1 megabyte.
             Use None to disable memmapping of large arrays.
             Only active when backend="loky" or "multiprocessing".
-        mmap_mode: {None, 'r+', 'r', 'w+', 'c'}
-            Memmapping mode for numpy arrays passed to workers.
-            See 'max_nbytes' parameter documentation for more details.
+        mmap_mode: {None, 'r+', 'r', 'w+', 'c'}, default: 'r'
+            Memmapping mode for numpy arrays passed to workers. None will 
+            disable memmapping, other modes defined in the numpy.memmap doc:
+            https://numpy.org/doc/stable/reference/generated/numpy.memmap.html
+            Also, see 'max_nbytes' parameter documentation for more details.
 
         Notes
         -----

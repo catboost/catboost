@@ -51,7 +51,7 @@ class _WeakKeyDictionary:
     such as large numpy arrays or pandas dataframes that are not hashable and
     therefore cannot be used as keys of traditional python dicts.
 
-    Futhermore using a dict with id(array) as key is not safe because the
+    Furthermore using a dict with id(array) as key is not safe because the
     Python is likely to reuse id of recently collected arrays.
     """
 
