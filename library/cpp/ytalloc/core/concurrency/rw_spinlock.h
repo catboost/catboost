@@ -112,6 +112,14 @@ struct TReaderSpinlockTraits
 };
 
 template <class T>
+struct TForkFriendlyReaderSpinlockTraits
+{
+    static void Acquire(T* spinlock);
+    static void Release(T* spinlock);
+};
+
+
+template <class T>
 struct TWriterSpinlockTraits
 {
     static void Acquire(T* spinlock);
@@ -127,6 +135,10 @@ template <class T>
 auto ReaderGuard(const T& lock);
 template <class T>
 auto ReaderGuard(const T* lock);
+template <class T>
+auto ForkFriendlyReaderGuard(const T& lock);
+template <class T>
+auto ForkFriendlyReaderGuard(const T* lock);
 template <class T>
 auto WriterGuard(const T& lock);
 template <class T>
