@@ -5,6 +5,7 @@ data-ui/arcanum
 data-ui/unity
 data-ui/sandbox
 direct/frontend
+direct/frontend-packages
 direct/yfa
 drive/pyback
 frontend
