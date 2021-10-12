@@ -180,6 +180,8 @@ ALLOW .* -> contrib/restricted/librseq/headeronly
 # we use nfs-ganesha for Network File Store gateway
 ALLOW cloud/filestore/gateway/nfs -> contrib/restricted/nfs_ganesha
 
+ALLOW yandex_io -> contrib/restricted/patched/hostap_client
+
 # Default policies:
 #
 # Do not restrict contrib
