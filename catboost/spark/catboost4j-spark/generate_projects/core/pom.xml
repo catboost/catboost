@@ -19,7 +19,6 @@
     <properties>
         <spark.compat.version>${spark_compat_version_placeholder}</spark.compat.version>
         <spark.version>${spark_version_placeholder}</spark.version>
-        <hadoop.version>2.7.3</hadoop.version>
         <global_project_root>${project.basedir}/../${relative_global_project_root_placeholder}</global_project_root>
         <catboost_root>${global_project_root}/../..</catboost_root>
         <core_project_root>${global_project_root}/core</core_project_root>
@@ -225,19 +224,6 @@
             <groupId>io.github.classgraph</groupId>
             <artifactId>classgraph</artifactId>
             <version>4.8.98</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-mapreduce-client-core</artifactId>
-            <version>${hadoop.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-common</artifactId>
-            <version>${hadoop.version}</version>
-            <scope>provided</scope>
         </dependency>
     
         <dependency>
@@ -482,11 +468,26 @@
              <value>2.3</value>
            </property>
           </activation>
+          <properties>
+            <hadoop.version>2.7.3</hadoop.version>
+          </properties>
           <dependencies>
               <dependency>
                <groupId>org.json4s</groupId>
                <artifactId>json4s-jackson_${scala.compat.version}</artifactId>
                <version>3.2.11</version>
+              </dependency>
+              <dependency>
+               <groupId>org.apache.hadoop</groupId>
+               <artifactId>hadoop-mapreduce-client-core</artifactId>
+               <version>${hadoop.version}</version>
+               <scope>provided</scope>
+              </dependency>
+              <dependency>
+               <groupId>org.apache.hadoop</groupId>
+               <artifactId>hadoop-common</artifactId>
+               <version>${hadoop.version}</version>
+               <scope>provided</scope>
               </dependency>
           </dependencies>
       </profile>
@@ -499,12 +500,25 @@
            </property>
           </activation>
           <properties>
+            <hadoop.version>2.7.3</hadoop.version>
           </properties>
           <dependencies>
               <dependency>
                <groupId>org.json4s</groupId>
                <artifactId>json4s-jackson_${scala.compat.version}</artifactId>
                <version>3.5.3</version>
+              </dependency>
+              <dependency>
+               <groupId>org.apache.hadoop</groupId>
+               <artifactId>hadoop-mapreduce-client-core</artifactId>
+               <version>${hadoop.version}</version>
+               <scope>provided</scope>
+              </dependency>
+              <dependency>
+               <groupId>org.apache.hadoop</groupId>
+               <artifactId>hadoop-common</artifactId>
+               <version>${hadoop.version}</version>
+               <scope>provided</scope>
               </dependency>
           </dependencies>
       </profile>
@@ -516,11 +530,57 @@
              <value>3.0</value>
            </property>
           </activation>
+          <properties>
+            <hadoop.version>2.7.3</hadoop.version>
+          </properties>
           <dependencies>
               <dependency>
                <groupId>org.json4s</groupId>
                <artifactId>json4s-jackson_${scala.compat.version}</artifactId>
                <version>3.6.6</version>
+              </dependency>
+              <dependency>
+               <groupId>org.apache.hadoop</groupId>
+               <artifactId>hadoop-mapreduce-client-core</artifactId>
+               <version>${hadoop.version}</version>
+               <scope>provided</scope>
+              </dependency>
+              <dependency>
+               <groupId>org.apache.hadoop</groupId>
+               <artifactId>hadoop-common</artifactId>
+               <version>${hadoop.version}</version>
+               <scope>provided</scope>
+              </dependency>
+          </dependencies>
+      </profile>
+      <profile>
+         <id>spark-3.1</id>
+         <activation>
+           <property>
+             <name>spark.compat.version</name>
+             <value>3.1</value>
+           </property>
+          </activation>
+          <properties>
+            <hadoop.version>3.2.0</hadoop.version>
+          </properties>
+          <dependencies>
+              <dependency>
+               <groupId>org.json4s</groupId>
+               <artifactId>json4s-jackson_${scala.compat.version}</artifactId>
+               <version>3.7.0-M5</version>
+              </dependency>
+              <dependency>
+               <groupId>org.apache.hadoop</groupId>
+               <artifactId>hadoop-mapreduce-client-core</artifactId>
+               <version>${hadoop.version}</version>
+               <scope>provided</scope>
+              </dependency>
+              <dependency>
+               <groupId>org.apache.hadoop</groupId>
+               <artifactId>hadoop-common</artifactId>
+               <version>${hadoop.version}</version>
+               <scope>provided</scope>
               </dependency>
           </dependencies>
       </profile>
