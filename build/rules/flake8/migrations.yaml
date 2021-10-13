@@ -2224,7 +2224,6 @@ migrations:
     - mds/mastermind/minion
     - mds/mastermind/monolith
     - mds/mastermind/scheduler
-    - mds/mastermind/stat_reporter/lib
     - mds/nscfg/lib
     - metrika/admin/python/cms/frontend/base
     - metrika/admin/python/duty/frontend/base
@@ -2591,7 +2590,6 @@ migrations:
     - sandbox/projects/collections
     - sandbox/projects/common
     - sandbox/projects/cornholio
-    - sandbox/projects/devtools/ArcadiaResourceAutoupdater
     - sandbox/projects/devtools/ChangesDetector
     - sandbox/projects/direct/DirectDeploy
     - sandbox/projects/direct/tanker_translations
@@ -3066,7 +3064,6 @@ migrations:
     - yt/python/contrib/python-urllib3
     - yt/python/yt
     - yt/yt/experiments/dyntables_stress_test
-    - yt/yt/orm/python/contrib/prettytable
     - yweb/antimalware/visual_html_parser/yandex-search-antivirus-discovery
     - yweb/antiporno/bert/development/python/lib/google_bert
     - yweb/antiporno/queries_active_learning/work_with_markup_cache
@@ -3505,7 +3502,6 @@ migrations:
     - saas/rtyserver_test/tests/unit_10m
     - saas/rtyserver_test/tests/with_data
     - saas/tools/printposfilter/tests
-    - sandbox/projects/devtools/ArcadiaResourceAutoupdater
     - sandbox/projects/devtools/ChangesDetector
     - scarab/api/tests/java-mobile-minimal/ut
     - scarab/api/tests/js/ut
