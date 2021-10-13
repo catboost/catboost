@@ -15,6 +15,7 @@ import org.apache.spark.ml.param._
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql._
 import org.apache.spark.sql.catalyst.encoders.RowEncoder
+import org.apache.spark.sql.functions.typedLit
 import org.apache.spark.sql.types._
 import org.apache.spark.storage.StorageLevel
 
@@ -699,6 +700,26 @@ private[spark] object DatasetLoadingContext {
 }
 
 
+private[spark] abstract class DatasetForTraining(
+  val srcPool : Pool,
+  val mainDataSchema : StructType,
+  val datasetIdx : Byte
+)
+
+private[spark] case class UsualDatasetForTraining(
+  override val srcPool : Pool,
+  val data : DataFrame,
+  override val datasetIdx : Byte
+) extends DatasetForTraining(srcPool, data.schema, datasetIdx)
+
+private[spark] case class DatasetForTrainingWithPairs(
+  override val srcPool : Pool,
+  val data : RDD[DataHelpers.PreparedGroupData],
+  override val mainDataSchema : StructType,
+  override val datasetIdx : Byte
+) extends DatasetForTraining(srcPool, mainDataSchema, datasetIdx)
+
+
 private[spark] object DataHelpers {
   def selectSchemaFields(srcSchema: StructType, fieldNames: Array[String] = null) : Seq[StructField] = {
     if (fieldNames == null) {
@@ -734,10 +755,12 @@ private[spark] object DataHelpers {
     
     data.sparkSession.createDataFrame(resultAsRDD, data.schema)
   }
-  
-  
-  // first Iterable if main dataset data, second Iterable is pairs data
-  type GroupsIterator = Iterator[((Byte, Long), (Iterable[Iterable[Row]], Iterable[Iterable[Row]]))]
+
+
+  // first element is (datasetIdx, groupId) pair
+  // second element is (Iterable of main dataset data, Iterable of pairs data)
+  type PreparedGroupData = ((Byte, Long), (Iterable[Iterable[Row]], Iterable[Iterable[Row]]))
+  type GroupsIterator = Iterator[PreparedGroupData]
   
   def makeFeaturesMetadata(initialFeatureNames: Array[String]) : Metadata = {
     val featureNames = new Array[String](initialFeatureNames.length)
@@ -898,8 +921,26 @@ private[spark] object DataHelpers {
     (dstRows, rawObjectsDataProviderPtr)
   }
 
-  
 
+  // Note: do not repartition the resulting data for master and workers separately
+  def prepareDatasetForTraining(pool: Pool, datasetIdx: Byte, workerCount: Int) : DatasetForTraining = {
+    if (pool.pairsData != null) {
+      val cogroupedData = getCogroupedMainAndPairsRDD(
+        pool.data,
+        pool.data.schema.fieldIndex(pool.getOrDefault(pool.groupIdCol)),
+        pool.pairsData,
+        datasetIdx,
+        numPartitions=Some(workerCount)
+      ).cache()
+      DatasetForTrainingWithPairs(pool, cogroupedData, pool.data.schema, datasetIdx)
+    } else {
+      val repartitionedPool = pool.repartition(workerCount, byGroupColumnsIfPresent=true)
+      val data = repartitionedPool.data.withColumn("_datasetIdx", typedLit(datasetIdx)).cache()
+      UsualDatasetForTraining(pool, data, datasetIdx)
+    }
+  }
+
+  
   def getDataProviderBuilderAndVisitor(
     hasFeatures: Boolean,
     localExecutor: TLocalExecutor
@@ -1002,6 +1043,7 @@ private[spark] object DataHelpers {
    *  dstRows - src rows with selected dstRowsColumnIndices, null if dstRowsColumnIndices is null
    */
   def loadQuantizedDatasetsWithPairs(
+    datasetOffset: Int,
     datasetCount: Int,
     quantizedFeaturesInfo: QuantizedFeaturesInfoPtr,
     columnIndexMap: HashMap[String, Int], // column type -> idx in schema
@@ -1036,8 +1078,8 @@ private[spark] object DataHelpers {
     val sampleIdIdx = columnIndexMap("sampleId")
 
     groupsIterator.foreach(
-      (group: ((Byte, Long), (Iterable[Iterable[Row]], Iterable[Iterable[Row]]))) => {
-        val datasetIdx = group._1._1
+      (group: PreparedGroupData) => {
+        val datasetIdx = group._1._1.toInt - datasetOffset
         val groupIdx = groupIdxPerDataset(datasetIdx)
         val sampleIdToIdxInGroup = new HashMap[Long,Int]
         var objectIdxInGroup = 0
@@ -1074,35 +1116,46 @@ private[spark] object DataHelpers {
 
 
   /**
-   * @returns (pool with columns, map of column type -> index in schema, dst column indices, estimatedFeatureCount)
+   * @returns (
+   *  map of column type -> index in dst main data columns,
+   *  selected column names,
+   *  dst column indices,
+   *  estimatedFeatureCount
+   * )
    */
   def selectColumnsAndReturnIndex(
     pool: Pool,
     columnTypeNames: Seq[String],
     includeEstimatedFeatures: Boolean,
+    includeDatasetIdx: Boolean = false,
     dstColumnNames: Seq[String] = Seq()
-  ) : (DataFrame, HashMap[String, Int], Array[Int], Option[Int]) = {
+  ) : (HashMap[String, Int], Array[String], Array[Int], Option[Int]) = {
     val columnTypesMap = new mutable.HashMap[String, Int]()
     var columnsList = new mutable.ArrayBuffer[String]()
     var i = 0
+
+    val updateColumnWithType = (columnName : String, columnTypeName : String) => {
+      columnsList += columnName
+      columnTypesMap.update(columnTypeName, i)
+      i = i + 1
+    }
+
     for (columnTypeName <- columnTypeNames) {
       val param = pool.getParam(columnTypeName + "Col").asInstanceOf[Param[String]]
       if (pool.isDefined(param)) {
-        val paramValue = pool.getOrDefault(param)
-        columnsList += paramValue
-        columnTypesMap.update(columnTypeName, i)
-        i = i + 1
+        updateColumnWithType(pool.getOrDefault(param), columnTypeName)
       }
     }
     val estimatedFeatureCount
       = if (includeEstimatedFeatures && pool.data.schema.fieldNames.contains("_estimatedFeatures")) {
-          columnsList += "_estimatedFeatures"
-          columnTypesMap.update("_estimatedFeatures", i)
-          i = i + 1
+          updateColumnWithType("_estimatedFeatures", "_estimatedFeatures")
           Some(pool.getEstimatedFeatureCount)
         } else {
           None
         }
+    if (includeDatasetIdx) {
+      updateColumnWithType("_datasetIdx", "_datasetIdx")
+    }
     
     val dstColumnIndices = new mutable.ArrayBuffer[Int]()
     for (dstColumnName <- dstColumnNames) {
@@ -1116,20 +1169,24 @@ private[spark] object DataHelpers {
       }
     }
 
-    val dfWithSelectedColumns = pool.data.select(columnsList.head, columnsList.tail: _*)
-    (dfWithSelectedColumns, columnTypesMap, dstColumnIndices.toArray, estimatedFeatureCount)
+    (columnTypesMap, columnsList.toArray, dstColumnIndices.toArray, estimatedFeatureCount)
   }
   
 
   /**
-   * @returns (pool with columns for training, map of column type -> index in schema, estimatedFeatureCount)
+   * @returns (
+   *  data with columns for training,
+   *  map of column type -> index in selected schema,
+   *  estimatedFeatureCount
+   * )
    */
   def selectColumnsForTrainingAndReturnIndex(
-    pool: Pool,
+    data: DatasetForTraining,
     includeFeatures: Boolean,
     includeSampleId: Boolean,
-    includeEstimatedFeatures: Boolean
-  ) : (DataFrame, HashMap[String, Int], Option[Int]) = {
+    includeEstimatedFeatures: Boolean,
+    includeDatasetIdx: Boolean
+  ) : (DatasetForTraining, HashMap[String, Int], Option[Int]) = {
     // Pool param name is columnTypeName + "Col"
     val columnTypeNames = mutable.ArrayBuffer[String](
       "label",
@@ -1146,25 +1203,67 @@ private[spark] object DataHelpers {
     if (includeSampleId) {
       columnTypeNames += "sampleId"
     }
-    val (selectedDF, columnIndexMap, _, estimatedFeatureCount) = selectColumnsAndReturnIndex(
-      pool,
+    val (columnIndexMap, selectedColumnNames, _, estimatedFeatureCount) = selectColumnsAndReturnIndex(
+      data.srcPool,
       columnTypeNames,
-      includeEstimatedFeatures
+      includeEstimatedFeatures,
+      includeDatasetIdx=includeDatasetIdx && data.isInstanceOf[UsualDatasetForTraining]
     )
-    (selectedDF, columnIndexMap, estimatedFeatureCount)
+    
+    val selectedData = data match {
+      case UsualDatasetForTraining(srcPool, dataFrame, datasetIdx) => {
+        UsualDatasetForTraining(
+          srcPool, 
+          dataFrame.select(selectedColumnNames.head, selectedColumnNames.tail: _*),
+          datasetIdx
+        )
+      }
+      case DatasetForTrainingWithPairs(srcPool, groupData, mainDataSchema, datasetIdx) => {
+        val selectedColumnIndices = selectedColumnNames.map{ mainDataSchema.fieldIndex(_) }
+        
+        val selectedGroupData = groupData.map {
+          case (key, (mainPart, pairsPart)) => {
+            (
+              key,
+              (
+                mainPart.map {
+                  case mainGroupData => mainGroupData.map {
+                    case row => Row.fromSeq(selectedColumnIndices.map{ row(_) }.toSeq)
+                  }
+                },
+                pairsPart
+              )
+            )
+          }
+        }
+
+        DatasetForTrainingWithPairs(
+          srcPool,
+          selectedGroupData,
+          StructType(selectedColumnIndices.map{ mainDataSchema(_) }), 
+          datasetIdx
+        )
+      }
+    }
+    (selectedData, columnIndexMap, estimatedFeatureCount)
   }
   
   def getCogroupedMainAndPairsRDD(
     mainData: DataFrame,
     mainDataGroupIdFieldIdx: Int,
-    pairsData: DataFrame
-  ) : RDD[((Byte, Long), (Iterable[Iterable[Row]], Iterable[Iterable[Row]]))] = {
-      val groupedMainData = mainData.rdd.groupBy(row => (0.toByte, row.getLong(mainDataGroupIdFieldIdx)))
+    pairsData: DataFrame,
+    datasetIdx : Byte = 0,
+    numPartitions : Option[Int] = None
+  ) : RDD[PreparedGroupData] = {
+      val groupedMainData = mainData.rdd.groupBy(row => (datasetIdx, row.getLong(mainDataGroupIdFieldIdx)))
 
       val pairsGroupIdx = pairsData.schema.fieldIndex("groupId")
-      val groupedPairsData = pairsData.rdd.groupBy(row => (0.toByte, row.getLong(pairsGroupIdx)))
-
-      groupedMainData.cogroup(groupedPairsData)
+      val groupedPairsData = pairsData.rdd.groupBy(row => (datasetIdx, row.getLong(pairsGroupIdx)))
+      
+      numPartitions match {
+        case Some(numPartitions) => groupedMainData.cogroup(groupedPairsData, numPartitions)
+        case None => groupedMainData.cogroup(groupedPairsData)
+      }
   }
 
   /**
@@ -1173,7 +1272,7 @@ private[spark] object DataHelpers {
    *  	includeEstimatedFeatures = false or no actual estimated features data is present is pool.
    */
   def downloadQuantizedPoolToTempFiles(
-    pool: Pool,
+    data: DatasetForTraining,
     includeFeatures: Boolean,
     includeEstimatedFeatures: Boolean,
     localExecutor: TLocalExecutor,
@@ -1184,51 +1283,49 @@ private[spark] object DataHelpers {
   ) : PoolFilesPaths = {
     log.info(s"downloadQuantizedPoolToTempFiles for ${dataPartName}: start")
 
-    var (selectedDF, columnIndexMap, estimatedFeatureCount) = selectColumnsForTrainingAndReturnIndex(
-      pool,
+    val (selectedData, columnIndexMap, estimatedFeatureCount) = selectColumnsForTrainingAndReturnIndex(
+      data,
       includeFeatures,
-      includeSampleId = (pool.pairsData != null),
-      includeEstimatedFeatures
+      includeSampleId = data.isInstanceOf[DatasetForTrainingWithPairs],
+      includeEstimatedFeatures,
+      includeDatasetIdx=false
     )
 
-    val (mainDataProviders, estimatedDataProviders, _) = if (pool.pairsData != null) {
-      log.info(s"loadQuantizedDatasetsWithPairs for ${dataPartName}: start")
-      val cogroupedMainAndPairsRDD = getCogroupedMainAndPairsRDD(
-        selectedDF, 
-        columnIndexMap("groupId"), 
-        pool.pairsData
-      ).sortByKey().persist(StorageLevel.MEMORY_ONLY) // sortByKey to be consistent
+    val (mainDataProviders, estimatedDataProviders, _) = selectedData match {
+      case UsualDatasetForTraining(srcPool, selectedDF, _) => {
+        log.info(s"loadQuantizedDatasets for ${dataPartName}: start")
 
-      val result = loadQuantizedDatasetsWithPairs(
-        /*datasetCount*/ 1,
-        pool.quantizedFeaturesInfo,
-        columnIndexMap,
-        pool.createDataMetaInfo(),
-        selectedDF.schema,
-        pool.pairsData.schema,
-        estimatedFeatureCount,
-        localExecutor,
-        cogroupedMainAndPairsRDD.toLocalIterator
-      )
-      cogroupedMainAndPairsRDD.unpersist()
-      log.info(s"loadQuantizedDatasetsWithPairs for ${dataPartName}: finish")
-      result
-    } else {
-      log.info(s"loadQuantizedDatasets for ${dataPartName}: start")
-      selectedDF = selectedDF.persist(StorageLevel.MEMORY_ONLY)
-      val result = loadQuantizedDatasets(
-        /*datasetCount*/ 1,
-        pool.quantizedFeaturesInfo,
-        columnIndexMap,
-        pool.createDataMetaInfo(),
-        selectedDF.schema,
-        estimatedFeatureCount,
-        localExecutor,
-        selectedDF.toLocalIterator.asScala
-      )
-      selectedDF.unpersist()
-      log.info(s"loadQuantizedDatasets for ${dataPartName}: finish")
-      result
+        val result = loadQuantizedDatasets(
+          /*datasetCount*/ 1,
+          srcPool.quantizedFeaturesInfo,
+          columnIndexMap,
+          srcPool.createDataMetaInfo(),
+          selectedDF.schema,
+          estimatedFeatureCount,
+          localExecutor,
+          selectedDF.toLocalIterator.asScala
+        )
+        log.info(s"loadQuantizedDatasets for ${dataPartName}: finish")
+        result
+      }
+      case DatasetForTrainingWithPairs(srcPool, selectedGroupData, selectedMainDataSchema, _) => {
+        log.info(s"loadQuantizedDatasetsWithPairs for ${dataPartName}: start")
+
+        val result = loadQuantizedDatasetsWithPairs(
+          /*datasetOffset*/ data.datasetIdx,
+          /*datasetCount*/ 1,
+          srcPool.quantizedFeaturesInfo,
+          columnIndexMap,
+          srcPool.createDataMetaInfo(),
+          selectedMainDataSchema,
+          srcPool.pairsData.schema,
+          estimatedFeatureCount,
+          localExecutor,
+          selectedGroupData.toLocalIterator
+        )
+        log.info(s"loadQuantizedDatasetsWithPairs for ${dataPartName}: finish")
+        result
+      }
     }
 
     log.info(s"${dataPartName}: save loaded data to files: start")
@@ -1239,7 +1336,7 @@ private[spark] object DataHelpers {
     native_impl.SaveQuantizedPoolWrapper(mainDataProvider, tmpMainFilePath.toString)
     
     var tmpPairsDataFilePath : Option[Path] = None
-    if (pool.pairsData != null) {
+    if (data.isInstanceOf[DatasetForTrainingWithPairs]) {
       tmpPairsDataFilePath = Some(Files.createTempFile(tmpFilePrefix, tmpFileSuffix))
       tmpPairsDataFilePath.get.toFile.deleteOnExit
       native_impl.SavePairsInGroupedDsvFormat(mainDataProvider, tmpPairsDataFilePath.get.toString)

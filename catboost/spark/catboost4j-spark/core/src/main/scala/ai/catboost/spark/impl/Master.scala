@@ -27,31 +27,33 @@ import ai.catboost.spark._
 private[spark] object CatBoostMasterWrapper {
   // use this method to create Master instances
   def apply(
-    preprocessedTrainPool: Pool,
-    preprocessedEvalPools: Array[Pool],
+    preparedTrainPool: DatasetForTraining,
+    preparedEvalPools: Seq[DatasetForTraining],
     catBoostJsonParamsForMasterString: String,
     precomputedOnlineCtrMetaDataAsJsonString: String
   ) : CatBoostMasterWrapper = {
+    val spark = preparedTrainPool.srcPool.data.sparkSession
+
     val result = new CatBoostMasterWrapper(
-      preprocessedTrainPool.data.sparkSession, 
+      spark,
       catBoostJsonParamsForMasterString,
       precomputedOnlineCtrMetaDataAsJsonString
     )
 
     result.savedPoolsFuture = Future {
-      val threadCount = SparkHelpers.getThreadCountForDriver(preprocessedTrainPool.data.sparkSession)
+      val threadCount = SparkHelpers.getThreadCountForDriver(spark)
       val localExecutor = new native_impl.TLocalExecutor
       localExecutor.Init(threadCount)
 
       val trainPoolFiles = DataHelpers.downloadQuantizedPoolToTempFiles(
-        preprocessedTrainPool,
+        preparedTrainPool,
         includeFeatures=false,
         includeEstimatedFeatures=false,
         localExecutor=localExecutor,
         dataPartName="Learn Dataset",
         log=result.log
       )
-      val testPoolsFiles = preprocessedEvalPools.zipWithIndex.map {
+      val testPoolsFiles = preparedEvalPools.zipWithIndex.map {
         case (testPool, idx) => DataHelpers.downloadQuantizedPoolToTempFiles(
           testPool,
           includeFeatures=false,
@@ -60,7 +62,7 @@ private[spark] object CatBoostMasterWrapper {
           dataPartName=s"Eval Dataset #${idx}",
           log=result.log
         )
-      }
+      }.toArray
 
       (trainPoolFiles, testPoolsFiles)
     }

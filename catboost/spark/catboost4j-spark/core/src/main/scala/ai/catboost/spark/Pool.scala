@@ -1076,15 +1076,17 @@ class Pool (
       this
     }
 
-    val (selectedDF, columnIndexMap, dstColumnIndices, estimatedFeatureCount) = DataHelpers.selectColumnsAndReturnIndex(
+    val (columnIndexMap, selectedColumnNames, dstColumnIndices, estimatedFeatureCount) = DataHelpers.selectColumnsAndReturnIndex(
       preparedPool,
       selectedColumns,
       includeEstimatedFeatures,
-      if (dstColumnNames != null) { dstColumnNames } else { preparedPool.data.schema.fieldNames }
+      dstColumnNames = if (dstColumnNames != null) { dstColumnNames } else { preparedPool.data.schema.fieldNames }
     )
     if (dstColumnIndices.size > dstRowLength) {
       throw new CatBoostError(s"dstRowLength ($dstRowLength) < dstColumnIndices.size (${dstColumnIndices.size})")
     }
+
+    val selectedDF = preparedPool.data.select(selectedColumnNames.head, selectedColumnNames.tail: _*)
 
     val spark = preparedPool.data.sparkSession
     val threadCountForTask = SparkHelpers.getThreadCountForTask(spark)
@@ -1102,12 +1104,13 @@ class Pool (
       )
       val pairsSchema = preparedPool.pairsData.schema
       val resultRDD = cogroupedData.mapPartitions {
-        groups : Iterator[((Byte, Long), (Iterable[Iterable[Row]], Iterable[Iterable[Row]]))] => {
+        groups : Iterator[DataHelpers.PreparedGroupData] => {
           if (groups.hasNext) {
             val localExecutor = new TLocalExecutor
             localExecutor.Init(threadCountForTask)
 
             val (dataProviders, estimatedFeaturesDataProviders, dstRows) = DataHelpers.loadQuantizedDatasetsWithPairs(
+              /*datasetOffset*/ 0,
               /*datasetCount*/ 1,
               quantizedFeaturesInfo,
               columnIndexMap,
