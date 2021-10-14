@@ -49,4 +49,4 @@ Functions:
 #include_next <locale.h>
 #endif
 
-#endif  // _LIBCPP_LOCALE_H
+#endif // _LIBCPP_LOCALE_H

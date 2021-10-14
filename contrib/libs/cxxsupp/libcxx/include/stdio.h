@@ -124,4 +124,4 @@ void perror(const char* s);
 
 #endif
 
-#endif  // _LIBCPP_STDIO_H
+#endif // _LIBCPP_STDIO_H

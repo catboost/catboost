@@ -62,4 +62,4 @@ using std::nullptr_t;
 
 #endif
 
-#endif  // _LIBCPP_STDDEF_H
+#endif // _LIBCPP_STDDEF_H

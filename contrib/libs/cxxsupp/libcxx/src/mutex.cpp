@@ -216,7 +216,7 @@ void __call_once(volatile once_flag::_State_type& flag, void* arg,
 #ifndef _LIBCPP_NO_EXCEPTIONS
         try
         {
-#endif  // _LIBCPP_NO_EXCEPTIONS
+#endif // _LIBCPP_NO_EXCEPTIONS
             flag = 1;
             func(arg);
             flag = ~once_flag::_State_type(0);
@@ -227,7 +227,7 @@ void __call_once(volatile once_flag::_State_type& flag, void* arg,
             flag = 0;
             throw;
         }
-#endif  // _LIBCPP_NO_EXCEPTIONS
+#endif // _LIBCPP_NO_EXCEPTIONS
     }
 #else // !_LIBCPP_HAS_NO_THREADS
     __libcpp_mutex_lock(&mut);
@@ -238,7 +238,7 @@ void __call_once(volatile once_flag::_State_type& flag, void* arg,
 #ifndef _LIBCPP_NO_EXCEPTIONS
         try
         {
-#endif  // _LIBCPP_NO_EXCEPTIONS
+#endif // _LIBCPP_NO_EXCEPTIONS
 #ifdef _LIBCPP_ABI_MICROSOFT
             flag.store(once_flag::_State_type(1));
 #else
@@ -269,7 +269,7 @@ void __call_once(volatile once_flag::_State_type& flag, void* arg,
             __libcpp_condvar_broadcast(&cv);
             throw;
         }
-#endif  // _LIBCPP_NO_EXCEPTIONS
+#endif // _LIBCPP_NO_EXCEPTIONS
     }
     else
         __libcpp_mutex_unlock(&mut);
