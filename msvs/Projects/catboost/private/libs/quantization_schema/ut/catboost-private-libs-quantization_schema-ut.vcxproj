@@ -242,11 +242,11 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\backcall\py3contrib-python-backcall.global.vcxproj">
       <Project>{473BBBA7-56F6-21FD-E4E7-833A72D068E1}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\backports.functools-lru-cache\pycontrib-python-backports.functools-lru-cache.global.vcxproj">
+      <Project>{1600D1CB-87D7-B743-B183-D410DB997543}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\backports.shutil-get-terminal-size\pycontrib-python-backports.shutil-get-terminal-size.global.vcxproj">
       <Project>{14C608BF-AF76-6E68-DC11-B46C8BEB41DA}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\backports\functools_lru_cache\pypython-backports-functools_lru_cache.global.vcxproj">
-      <Project>{95780841-AE94-3F49-88C4-81D3F07E3462}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\colorama\py3contrib-python-colorama.global.vcxproj">
       <Project>{0E0E70FC-148C-4937-1103-230DC41150C2}</Project>
