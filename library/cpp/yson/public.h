@@ -31,6 +31,8 @@ namespace NYson {
         ((MapFragment)   (2))
     );
 
+    class TYsonStringBuf;
+
     struct IYsonConsumer;
     struct TYsonConsumerBase;
 

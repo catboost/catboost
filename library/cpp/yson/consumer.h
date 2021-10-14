@@ -32,6 +32,9 @@ namespace NYson {
         virtual void OnEndAttributes() = 0;
 
         virtual void OnRaw(const TStringBuf& yson, EYsonType type) = 0;
+
+        // Extension methods.
+        void OnRaw(const TYsonStringBuf& yson);
     };
 
     ////////////////////////////////////////////////////////////////////////////////
