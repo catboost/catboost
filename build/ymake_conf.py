@@ -1205,8 +1205,10 @@ class GnuToolchain(Toolchain):
                 if target.is_apple:
                     if target.is_ios:
                         self.setup_sdk(project='build/platform/ios_sdk', var='${IOS_SDK_ROOT_RESOURCE_GLOBAL}')
+                        self.platform_projects.append('build/platform/macos_system_stl')
                     if target.is_macos:
                         self.setup_sdk(project='build/platform/macos_sdk', var='${MACOS_SDK_RESOURCE_GLOBAL}')
+                        self.platform_projects.append('build/platform/macos_system_stl')
 
                     if not self.tc.inplace_tools:
                         self.setup_tools(project='build/platform/cctools', var='${CCTOOLS_ROOT_RESOURCE_GLOBAL}', bin='bin', ldlibs=None)
