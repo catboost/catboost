@@ -33,7 +33,12 @@ private[spark] object CatBoostWorker {
   val usedInCurrentProcess : AtomicBoolean = new AtomicBoolean
 }
 
-private[spark] class CatBoostWorker extends Logging {
+private[spark] class CatBoostWorker(partitionId : Int) extends Logging {
+  // Method to get the logger name for this object
+  protected override def logName = {
+    s"CatBoostWorker[partitionId=${this.partitionId}]"
+  }
+  
   def processPartition(
     trainingDriverListeningAddress: InetSocketAddress,
     catBoostJsonParamsString: String,
@@ -53,9 +58,6 @@ private[spark] class CatBoostWorker extends Logging {
 
       val localExecutor = new TLocalExecutor
       localExecutor.Init(threadCount)
-
-      // TaskContext.getPartitionId will become invalid when iteration over rows is finished, so save it
-      val partitionId = TaskContext.getPartitionId
       
       log.info("processPartition: get data providers: start")
 
@@ -68,7 +70,7 @@ private[spark] class CatBoostWorker extends Logging {
       if (partitionSize != 0) {
         log.info("processPartition: CreateTrainingDataForWorker: start")
         native_impl.CreateTrainingDataForWorker(
-          partitionId,
+          this.partitionId,
           threadCount,
           catBoostJsonParamsString,
           quantizedDataProviders,
@@ -81,12 +83,15 @@ private[spark] class CatBoostWorker extends Logging {
           }
         )
         log.info("processPartition: CreateTrainingDataForWorker: finish")
+      } else {
+        log.info("processPartition: data is empty")
       }
 
       val workerPort = TrainingDriver.getWorkerPort()
 
       val ecs = new ExecutorCompletionService[Unit](Executors.newFixedThreadPool(2))
 
+      val partitionId = this.partitionId
       val sendWorkerInfoFuture = ecs.submit(
         new Runnable() {
           def run() = {
@@ -105,7 +110,9 @@ private[spark] class CatBoostWorker extends Logging {
         new Runnable() {
           def run() = {
             if (partitionSize != 0) {
+              log.info("processPartition: start RunWorkerWrapper")
               native_impl.RunWorkerWrapper(threadCount, workerPort)
+              log.info("processPartition: end RunWorkerWrapper")
             }
           }
         },
@@ -123,6 +130,8 @@ private[spark] class CatBoostWorker extends Logging {
           "TrainingDriver.waitForListeningPortAndSendWorkerInfo"
         )
       }
+
+      log.info("processPartition: end")
 
     } finally {
       CatBoostWorker.usedInCurrentProcess.set(false)
@@ -209,7 +218,7 @@ private[spark] class CatBoostWorkers(
 
       cogroupedTrainData.foreachPartition {
         groups : Iterator[DataHelpers.PreparedGroupData] => {
-          new CatBoostWorker().processPartition(
+          new CatBoostWorker(TaskContext.getPartitionId).processPartition(
             trainingDriverListeningAddress,
             catBoostJsonParamsForWorkersString,
             quantizedFeaturesInfo,
@@ -250,7 +259,7 @@ private[spark] class CatBoostWorkers(
       
       mergedTrainData.foreachPartition {
         rows : Iterator[Row] => {
-          new CatBoostWorker().processPartition(
+          new CatBoostWorker(TaskContext.getPartitionId).processPartition(
             trainingDriverListeningAddress,
             catBoostJsonParamsForWorkersString,
             quantizedFeaturesInfo,
