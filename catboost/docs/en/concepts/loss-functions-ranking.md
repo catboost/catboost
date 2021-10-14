@@ -151,8 +151,6 @@ This metric gives less accurate results on big datasets compared to {{ error-fun
     true
 
 
-
-
 ### {{ error-function__YetiRankPairwise }} {#YetiRankPairwise}
 
 
@@ -197,8 +195,6 @@ This technique is described in the [Winning The Transfer Learning Track of Yaho
 
 
 
-
-
 ### {{ error-function__StochasticFilter }} {#StochasticFilter}
 
 Directly optimize the {{ error-function__FilteredDCG }} metric calculated for a pre-defined order of objects for filtration of objects under a fixed ranking. As a result, the {{ error-function__FilteredDCG }} metric can be used for optimization.
@@ -226,7 +222,7 @@ $\mathbb{P}(\text{filter}|x) = \sigma(a) { , where}$
 - $\sigma(z) = \displaystyle\frac{1}{1 + \text{e}^{-z}}$
 - The gradient is estimated via REINFORCE.
 
-Refer to the [Learning to Select for a Predefined Ranking]({{ learning-to-select-for-predefined-ranking }) paper for calculation details.
+Refer to the [Learning to Select for a Predefined Ranking]({{ learning-to-select-for-predefined-ranking }}) paper for calculation details.
 
 
 {{ title__loss-functions__text__user-defined-params }}:
@@ -601,7 +597,6 @@ See the [{{ error-function__QueryAverage }}](../references/queryaverage.md) sec
 
 
 
-
 ### {{ error-function__PrecisionAtK }} {#PrecisionAtK}
 
 {{ title__loss-functions__calculation-principles }}
@@ -619,11 +614,9 @@ See the [{{ error-function__QueryAverage }}](../references/queryaverage.md) sec
 
 {{ title__loss-functions__text__user-defined-params }}:
 
-- {{ loss-functions__params__top }}" %}
+- {{ loss-functions__params__top }}
 
     The number of top samples in a group that are used to calculate the ranking metric. Top samples are either the samples with the largest approx values or the ones with the lowest target values if approx values are the same.
-
-
 
     {{ loss-functions__params__top__default }}
 
@@ -658,7 +651,7 @@ See the [{{ error-function__QueryAverage }}](../references/queryaverage.md) sec
 
     {{ loss-functions__params__top__default }}
 
-- { loss-functions__params__border }}
+- {{ loss-functions__params__border }}
 
     The label value border. If the value is strictly greater than this threshold, it is considered a positive class. Otherwise it is considered a negative class.
 
@@ -728,64 +721,6 @@ $t_{q,i} \in [0, 1]$
     {{ loss-functions__params__top__default }}
 
 
-
-
-### {{ error-function__mrr }} {#mrr}
-
-{{ title__loss-functions__calculation-principles }}
-
-$MRR = \frac{1}{|Q|} \sum_{q=1}^{|Q|} \frac{1}{rank_q}$, where $rank_q$ refers to the rank position of the first relevant document for the _q_-th query.
-
-
-{{ title__loss-functions__text__user-defined-params }}:
-
-- {{ loss-functions__params__top }}
-
-    The number of top samples in a group that are used to calculate the ranking metric. Top samples are either the samples with the largest approx values or the ones with the lowest target values if approx values are the same.
-
-
-    {{ loss-functions__params__top__default }}
-
-- {{ loss-functions__params__border }}
-
-    The label value border. If the value is strictly greater than this threshold, it is considered a positive class. Otherwise it is considered a negative class.
-
-
-{{ fit--border }}
-
-
-
-### {{ title__loss-functions__text__optimization }}
-
-
-| Name                                                        | Optimization            |
---------------------------------------------------------------|-------------------------|
-[{{ error-function__YetiRank }}](#YetiRank)                   |     +                   |
-[{{ error-function__YetiRankPairwise }}](#YetiRankPairwise)   |     +                   |
-[{{ error-function__StochasticFilter }}](#StochasticFilter)   |     +                   |
-[{{ error-function__StochasticRank }}](#StochasticRank)       |     +                   |
-[{{ error-function__dcg }}](#dcg)                             |     +                   |
-[{{ error-function__QueryCrossEntropy }}](#QueryCrossEntropy) |     +                   |
-[{{ error-function__QueryRMSE }}](#QueryRMSE)                 |     +                   |
-[{{ error-function__QuerySoftMax }}](#QuerySoftMax)           |     +                   |
-[{{ error-function__PFound }}](#PFound)                       |     -                   |
-[{{ error-function__ndcg }}](#ndcg)                           |     -                   |
-[{{ error-function__dcg }}](#dcg)                             |     -                   |
-[{{ error-function__FilteredDCG }}](#PFilteredDCG)            |     -                   |
-[{{ error-function__QueryAverage }}](#QueryAverage)           |     -                   |
-[{{ error-function__PrecisionAtK }}](#PrecisionAtK)           |     -                   |
-[{{ error-function__RecallAtK }}](#RecallAtK)                 |     -                   |
-[{{ error-function__mapk }}](#mapk)                           |     -                   |
-[{{ error-function__err }}](#err)                             |     -                   |
-[{{ error-function__mrr }}](#mrr)                             |     -                   |
-
-
-
-
-
-
-
-
 ## AUC {#auc}
 
 ### {{ error-function--AUC }} {#AUC}
@@ -823,11 +758,56 @@ The calculation of this metric is disabled by default for the training dataset t
     ```
 
 
+## {{ title__loss-functions__text__optimization }}
+
+### {{ error-function__mrr }} {#mrr}
+
+{{ title__loss-functions__calculation-principles }}
+
+$MRR = \frac{1}{|Q|} \sum_{q=1}^{|Q|} \frac{1}{rank_q}$, where $rank_q$ refers to the rank position of the first relevant document for the _q_-th query.
+
+
+{{ title__loss-functions__text__user-defined-params }}:
+
+- {{ loss-functions__params__top }}
+
+  The number of top samples in a group that are used to calculate the ranking metric. Top samples are either the samples with the largest approx values or the ones with the lowest target values if approx values are the same.
+
+
+    {{ loss-functions__params__top__default }}
+
+- {{ loss-functions__params__border }}
+
+  The label value border. If the value is strictly greater than this threshold, it is considered a positive class. Otherwise it is considered a negative class.
+
+
+{{ fit--border }}
+
+
+
 ### {{ title__loss-functions__text__optimization }}
 
 
-| Name                            | Optimization            |
-----------------------------------|-------------------------|
-[{{ error-function--AUC }}](#AUC) |     -                   |
+| Name                                                        | Optimization            |
+--------------------------------------------------------------|-------------------------|
+[{{ error-function__YetiRank }}](#YetiRank)                   |     +                   |
+[{{ error-function__YetiRankPairwise }}](#YetiRankPairwise)   |     +                   |
+[{{ error-function__StochasticFilter }}](#StochasticFilter)   |     +                   |
+[{{ error-function__StochasticRank }}](#StochasticRank)       |     +                   |
+[{{ error-function__dcg }}](#dcg)                             |     +                   |
+[{{ error-function__QueryCrossEntropy }}](#QueryCrossEntropy) |     +                   |
+[{{ error-function__QueryRMSE }}](#QueryRMSE)                 |     +                   |
+[{{ error-function__QuerySoftMax }}](#QuerySoftMax)           |     +                   |
+[{{ error-function__PFound }}](#PFound)                       |     -                   |
+[{{ error-function__ndcg }}](#ndcg)                           |     -                   |
+[{{ error-function__dcg }}](#dcg)                             |     -                   |
+[{{ error-function__FilteredDCG }}](#PFilteredDCG)            |     -                   |
+[{{ error-function__QueryAverage }}](#QueryAverage)           |     -                   |
+[{{ error-function__PrecisionAtK }}](#PrecisionAtK)           |     -                   |
+[{{ error-function__RecallAtK }}](#RecallAtK)                 |     -                   |
+[{{ error-function__mapk }}](#mapk)                           |     -                   |
+[{{ error-function__err }}](#err)                             |     -                   |
+[{{ error-function__mrr }}](#mrr)                             |     -                   |
+[{{ error-function--AUC }}](#AUC)                             |     -                   |
 
 

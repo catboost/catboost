@@ -1331,7 +1331,7 @@ Command-line: `--langevin`
 
 Enables the Stochastic Gradient Langevin Boosting mode.
 
-Refer to the [SGLB: Stochastic Gradient Langevin Boosting]({{ stochastic-gradient-langevin-boosting }) paper for details.
+Refer to the [SGLB: Stochastic Gradient Langevin Boosting]({{ stochastic-gradient-langevin-boosting }}) paper for details.
 
 **Type**
 

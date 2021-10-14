@@ -4,6 +4,7 @@ RECURSE(
     atomicwrites
     attrs
     backcall
+    backports.functools-lru-cache
     backports.shutil-get-terminal-size
     certifi
     colorama

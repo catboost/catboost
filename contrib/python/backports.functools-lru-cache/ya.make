@@ -14,7 +14,7 @@ PY_SRCS(
 NO_LINT()
 
 RESOURCE_FILES(
-    PREFIX contrib/python/backports/functools_lru_cache/
+    PREFIX contrib/python/backports.functools-lru-cache/
     .dist-info/METADATA
     .dist-info/top_level.txt
 )
