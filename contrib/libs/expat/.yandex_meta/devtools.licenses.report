@@ -109,7 +109,7 @@ BELONGS ya.make
         lib/xmltok_impl.h [12:12]
         lib/xmltok_ns.c [15:15]
 
-KEEP     Json                 dc190a385e90ab0e2d50fefbba4d687a
+KEEP     JSON                 dc190a385e90ab0e2d50fefbba4d687a
 BELONGS ya.make
 FILE_INCLUDE AUTHORS found in files: lib/nametab.h at line 27
     Note: matched license text is too long. Read it in the source files.
