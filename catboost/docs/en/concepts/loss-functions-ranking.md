@@ -783,7 +783,7 @@ $MRR = \frac{1}{|Q|} \sum_{q=1}^{|Q|} \frac{1}{rank_q}$, where $rank_q$ refers t
 
 {{ fit--border }}
 
-
+{% include [query-auc](../_includes/concepts/query-auc.md) %}
 
 ### {{ title__loss-functions__text__optimization }}
 
@@ -809,5 +809,5 @@ $MRR = \frac{1}{|Q|} \sum_{q=1}^{|Q|} \frac{1}{rank_q}$, where $rank_q$ refers t
 [{{ error-function__err }}](#err)                             |     -                   |
 [{{ error-function__mrr }}](#mrr)                             |     -                   |
 [{{ error-function--AUC }}](#AUC)                             |     -                   |
-
+[{{ error-function--QueryAUC }}](#QueryAUC)                        |     -                   |
 

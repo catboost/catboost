@@ -23,4 +23,4 @@ _Default:_  {{ loss-functions__use_weights__default }}
 
 | Name                                           | Optimization            |
 -------------------------------------------------|-------------------------|
-[{{ error-function--MultiRMSE  }}](#MultiRMSE )  |     +                   |
+[{{ error-function--MultiRMSE  }}](#MultiRMSE)   |     +                   |
