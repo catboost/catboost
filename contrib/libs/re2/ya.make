@@ -8,7 +8,6 @@ VERSION(2021-08-01)
 
 LICENSE(
     BSD-3-Clause
-    LPL-1.02
     X11-Lucent
 )
 
