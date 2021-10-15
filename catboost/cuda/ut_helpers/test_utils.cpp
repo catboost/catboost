@@ -160,6 +160,7 @@ void LoadTrainingData(NCB::TPathWithScheme poolPath,
                                         NCB::EObjectsOrder::Ordered,
                                         16,
                                         true,
+                                        false,
                                         /*classLabels*/ Nothing());
     }
 

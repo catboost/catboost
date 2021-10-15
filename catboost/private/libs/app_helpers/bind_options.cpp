@@ -1224,6 +1224,12 @@ void BindDataProcessingParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* 
         })
         .Help(autoClassWeightsHelp);
 
+    parser.AddLongOption("force-unit-auto-pair-weights", "Set weight to 1 for all auto-generated pairs rather than use group weight")
+        .NoArgument()
+        .Handler0([plainJsonPtr]() {
+            (*plainJsonPtr)["force_unit_auto_pair_weights"] = true;
+        });
+
     const auto gpuCatFeatureStorageHelp = TString::Join(
         "GPU only. Must be one of: ",
         GetEnumAllNames<EGpuCatFeaturesStorage>(),

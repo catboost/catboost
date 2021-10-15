@@ -129,6 +129,7 @@
             "dev_max_subset_size_for_build_borders": 200000,
             "nan_mode": "Min"
         },
+        "force_unit_auto_pair_weights": false,
         "has_time": false,
         "ignored_features": [],
         "per_float_feature_quantization": {},

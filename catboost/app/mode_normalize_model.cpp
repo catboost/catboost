@@ -166,6 +166,7 @@ namespace {
                     TPathWithScheme(),  // PairsFilePath
                     TPathWithScheme(),  // FeatureNamesPath
                     TPathWithScheme(),  // PoolMetaInfoPath
+                    false,  // ForceUnitAutoPairWeights
                     TVector<ui32>(),  // IgnoredFeatures
                 },
                 10000,  // blockSize

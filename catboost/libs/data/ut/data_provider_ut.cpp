@@ -41,6 +41,7 @@ static void CreateQuantizedObjectsDataProviderTestData(
         /*hasAdditionalGroupWeight*/ false,
         /*hasTimestamps*/ false,
         hasPairs,
+        /*forceUnitAutoPairWeights*/ false,
         /*additionalBaselineCount*/ Nothing(),
         &featureId
     );
@@ -244,7 +245,7 @@ Y_UNIT_TEST_SUITE(TDataProviderTemplate) {
                 std::move(metaInfo),
                 std::move(objectsData),
                 objectsGrouping,
-                TRawTargetDataProvider(objectsGrouping, std::move(rawTargetData), false, &localExecutor)
+                TRawTargetDataProvider(objectsGrouping, std::move(rawTargetData), false, false, &localExecutor)
             );
         }
 

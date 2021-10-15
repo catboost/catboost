@@ -41,6 +41,7 @@ TDataMetaInfo::TDataMetaInfo(
     bool hasAdditionalGroupWeight,
     bool hasTimestamp,
     bool hasPairs,
+    bool forceUnitAutoPairWeights,
     TMaybe<ui32> additionalBaselineCount,
     TMaybe<const TVector<TString>*> featureNames,
     TMaybe<const THashMap<TString, TTagDescription>*> featureTags,
@@ -64,6 +65,7 @@ TDataMetaInfo::TDataMetaInfo(
     HasSubgroupIds = ColumnsInfo->CountColumns(EColumn::SubgroupId) != 0;
     HasTimestamp = ColumnsInfo->CountColumns(EColumn::Timestamp) != 0 || hasTimestamp;
     HasPairs = hasPairs;
+    ForceUnitAutoPairWeights = forceUnitAutoPairWeights;
 
     FeaturesLayout = TFeaturesLayout::CreateFeaturesLayout(ColumnsInfo->Columns, featureNames, featureTags);
 

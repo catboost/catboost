@@ -480,6 +480,7 @@ namespace NCB {
             MakeIntrusive<TObjectsGrouping>(expectedObjectsGrouping),
             TRawTargetData(expectedData),
             true,
+            /*forceUnitAutoPairWeights*/ true,
             Nothing()
         );
 

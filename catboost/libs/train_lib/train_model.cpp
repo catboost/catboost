@@ -96,6 +96,7 @@ static TDataProviders LoadPools(
     EObjectsOrder objectsOrder,
     TDatasetSubset trainDatasetSubset,
     TConstArrayRef<TDatasetSubset> testDatasetSubsets,
+    bool forceUnitAutoPairWeights,
     TVector<NJson::TJsonValue>* classLabels,
     NPar::ILocalExecutor* const executor,
     TProfileInfo* profile
@@ -114,6 +115,7 @@ static TDataProviders LoadPools(
         !cvMode,
         trainDatasetSubset,
         testDatasetSubsets,
+        forceUnitAutoPairWeights,
         classLabels,
         executor,
         profile);
@@ -1243,6 +1245,7 @@ void TrainModel(
         objectsOrder,
         TDatasetSubset::MakeColumns(haveLearnFeaturesInMemory),
         testDatasetSubsets,
+        catBoostOptions.DataProcessingOptions->ForceUnitAutoPairWeights,
         &classLabels,
         localExecutorHolder.Get(),
         &profile);
@@ -1541,6 +1544,7 @@ void ModelBasedEval(
         /*testDatasetSubsets*/ TVector<TDatasetSubset>(
             loadOptions.TestSetPaths.size(),
             TDatasetSubset::MakeColumns()),
+        catBoostOptions.DataProcessingOptions->ForceUnitAutoPairWeights,
         &classLabels,
         &executor,
         &profile);

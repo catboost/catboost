@@ -235,6 +235,7 @@ namespace NCB {
 
     TVector<TPair> GeneratePairs(
         const TObjectsGrouping& objectsGrouping,
+        const TMaybe<TSharedWeights<float>>& weights,
         TConstArrayRef<float> targetData,
         int maxPairsCount,
         TRestorableFastRng64* rand)
@@ -254,6 +255,7 @@ namespace NCB {
 
         GeneratePairLogitPairs(
             objectsGrouping,
+            weights,
             targetData,
             maxPairsCount,
             rand,
@@ -737,8 +739,13 @@ namespace NCB {
                 std::visit([&](const auto& pairs) { pairsRef = MakeConstArrayRef(pairs); }, *maybePairs);
             } else if (targetCreationOptions.CreatePairs) {
                 CB_ENSURE(rawData.GetTarget(), "Pool labels are not provided. Cannot generate pairs.");
+                TMaybe<TSharedWeights<float>> autoPairWeight;
+                if (!rawData.IsForceUnitAutoPairWeights()) {
+                    autoPairWeight = processedTargetData.Weights.at("");
+                }
                 generatedPairs = GeneratePairs(
                     *rawData.GetObjectsGrouping(),
+                    autoPairWeight,
                     *maybeConvertedTarget[0],
                     *targetCreationOptions.MaxPairsCount,
                     rand);

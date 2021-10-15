@@ -682,6 +682,7 @@ TRawTargetDataProvider TRawTargetDataProvider::GetSubset(
         objectsGroupingSubset.GetSubsetGrouping(),
         std::move(subsetData),
         true,
+        ForceUnitAutoPairWeights,
         nullptr
     );
 }

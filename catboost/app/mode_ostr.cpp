@@ -82,6 +82,7 @@ int mode_ostr(int argc, const char* argv[]) {
                                                        /*ignoredFeatures*/ {},
                                                        EObjectsOrder::Undefined,
                                                        TDatasetSubset::MakeColumns(),
+                                                       /*forceUnitAutoPairWeight*/ false,
                                                        /*classLabels=*/Nothing(),
                                                        &localExecutor);
 
@@ -97,6 +98,7 @@ int mode_ostr(int argc, const char* argv[]) {
                                                       /*ignoredFeatures*/ {},
                                                       EObjectsOrder::Undefined,
                                                       TDatasetSubset::MakeColumns(),
+                                                      /*forceUnitAutoPairWeight*/ false,
                                                       /*classLabels=*/Nothing(),
                                                       &localExecutor);
 

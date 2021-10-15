@@ -80,6 +80,7 @@ NCB::TDataMetaInfo GetDataMetaInfo(
     bool hasAdditionalGroupWeight,
     bool hasTimestamps,
     bool hasPairs,
+    bool forceUnitAutoPairWeights,
     TMaybe<ui32> baselineCount,
     const NCB::TPathWithScheme& featureNamesPath,
     const NCB::TPathWithScheme& poolMetaInfoPath
@@ -128,6 +129,7 @@ NCB::TDataMetaInfo GetDataMetaInfo(
         hasAdditionalGroupWeight,
         hasTimestamps,
         hasPairs,
+        forceUnitAutoPairWeights,
         baselineCount,
         &featureNames,
         &poolMetaInfoOptions.Tags.Get()

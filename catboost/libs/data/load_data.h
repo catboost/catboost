@@ -39,6 +39,7 @@ namespace NCB {
         const TVector<ui32>& ignoredFeatures,
         EObjectsOrder objectsOrder,
         TDatasetSubset loadSubset,
+        bool forceUnitAutoPairWeights,
         TMaybe<TVector<NJson::TJsonValue>*> classLabels,
         NPar::ILocalExecutor* localExecutor
     );
@@ -58,6 +59,7 @@ namespace NCB {
         EObjectsOrder objectsOrder,
         int threadCount,
         bool verbose,
+        bool forceUnitAutoPairWeights,
         TMaybe<TVector<NJson::TJsonValue>*> classLabels = Nothing()
     );
 
@@ -74,6 +76,7 @@ namespace NCB {
         const TVector<TColumn>& columnsDescription, // TODO(smirnovpavel): TVector<EColumn>
         const TVector<ui32>& ignoredFeatures,
         EObjectsOrder objectsOrder,
+        bool forceUnitAutoPairWeights,
         TMaybe<TVector<NJson::TJsonValue>*> classLabels,
         NPar::ILocalExecutor* localExecutor
     );
@@ -85,6 +88,7 @@ namespace NCB {
         bool readTestData,
         TDatasetSubset learnDatasetSubset,
         TConstArrayRef<TDatasetSubset> testDatasetSubsets,
+        bool forceUnitAutoPairWeights,
         TMaybe<TVector<NJson::TJsonValue>*> classLabels,
         NPar::ILocalExecutor* executor,
         TProfileInfo* profile
