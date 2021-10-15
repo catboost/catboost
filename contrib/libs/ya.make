@@ -24,6 +24,7 @@ RECURSE(
     lz4
     lz4/generated
     lzmasdk
+    mimalloc
     nayuki_md5
     nvidia
     onnx
