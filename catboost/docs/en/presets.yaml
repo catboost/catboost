@@ -349,6 +349,7 @@ default:
   dl__return-value: Return value
   r-package: R package
   python-package: Python package
+  catboost-spark: CatBoost for Apache Spark
   dl--args: Arguments
   dl--example: Examples
   installation--git-clone: 'git clone https://github.com/catboost/catboost.git'

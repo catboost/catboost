@@ -32,6 +32,18 @@ items:
             name: "Test\_CatBoost"
         name: Python package installation
       - items:
+          - href: concepts/spark-installation.md
+            name: Overview
+          - href: installation/spark-installation-maven.md
+            name: For Maven projects
+          - href: installation/spark-installation-sbt.md
+            name: For sbt projects
+          - href: installation/spark-installation-pyspark.md
+            name: For PySpark
+          - href: installation/spark-installation-build-from-source-maven.md
+            name: Build from source using Maven
+        name: CatBoost for Apache Spark installation
+      - items:
           - href: concepts/r-installation.md
             name: Overview
           - href: installation/r-installation-binary-installation.md
@@ -650,6 +662,26 @@ items:
             name: select_threshold
         name: utils
       - href: concepts/python-usages-examples.md
+        name: Usage examples
+  - name: CatBoost for Apache Spark
+    items:
+      - items:
+          - href: concepts/spark-quickstart-scala.md
+            name: Scala
+          - href: concepts/spark-quickstart-python.md
+            name: Python
+        name: Quick start
+      - href: concepts/spark-cluster-configuration.md
+        name: Spark cluster configuration
+      - href: concepts/spark-api-documentation.md
+        name: API documentation
+      - href: concepts/spark-known-limitations.md
+        name: Known limitations
+      - items:
+          - href: concepts/spark-usages-examples-scala.md
+            name: Scala
+          - href: concepts/spark-usages-examples-python.md
+            name: Python
         name: Usage examples
   - name: R package
     items:
