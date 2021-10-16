@@ -249,6 +249,12 @@ FTS* yfts_open(char* const* argv, int options, int (*compar)(const FTSENT**, con
 
     errno = 0;
 
+    Y_ASSERT(argv);
+    if (!*argv) {
+        errno = ENOENT;
+        return nullptr;
+    }
+
     /* Options check. */
     if (options & ~FTS_OPTIONMASK) {
         errno = EINVAL;
@@ -985,6 +991,7 @@ fts_build(FTS* sp, int type)
         }
 #endif
 
+        // coverity[dead_error_line]: false positive
         if (cderrno) {
             if (nlinks) {
                 p->fts_info = FTS_NS;
@@ -1068,6 +1075,7 @@ fts_build(FTS* sp, int type)
         (cur->fts_level == FTS_ROOTLEVEL ? FCHDIR(sp, sp->fts_rfd) : fts_safe_changedir(sp, cur->fts_parent, -1, ".."))) {
         cur->fts_info = FTS_ERR;
         SET(FTS_STOP);
+        fts_lfree(head);
         return nullptr;
     }
 
@@ -1076,6 +1084,7 @@ fts_build(FTS* sp, int type)
         if (type == BREAD) {
             cur->fts_info = FTS_DP;
         }
+        fts_lfree(head);
         return nullptr;
     }
 
