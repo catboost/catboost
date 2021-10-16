@@ -779,19 +779,6 @@ when (($USEMPROF == "yes") || ($USE_MPROF == "yes")) {
         elif self.platform.is_windows:
             self.print_windows_target_const()
 
-        self.print_target_shortcuts()
-
-    # Misc target arch-related shortcuts
-    def print_target_shortcuts(self):
-        if preset('HAVE_MKL') is None:
-            print('HAVE_MKL=no')
-            if self.platform.is_linux:
-                print('''
-  when ($ARCH_X86_64 && !$SANITIZER_TYPE) {
-      HAVE_MKL=yes
-  }
-''')
-
     def print_host_settings(self):
         emit('HOST_PLATFORM', self.platform.os_compat)
         if not self.platform.is_windows:
