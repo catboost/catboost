@@ -16,6 +16,6 @@ A custom Python object can be set as a value for the training metric.
 
 **{{ features__table__title__python__description }}**
 
-A custom python object canbe set as the value of this parameter (see an [example](../concepts/python-usages-examples.md)).
+A custom python object can be set as the value of this parameter (see an [example](../concepts/python-usages-examples.md)).
 
 
