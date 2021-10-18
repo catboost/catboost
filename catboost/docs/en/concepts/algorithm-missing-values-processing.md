@@ -30,6 +30,8 @@ The missing values processing mode depends on the feature type and the selected 
 
   {% include [reusage-missing-values-python__mv-processing-mode__list-full](../_includes/work_src/reusage-missing-values/python__mv-processing-mode__list-full.md) %}
 
+  The following modes for processing missing values are supported:
+
   {% include [reusage-missing-values-mv-processing-methods](../_includes/work_src/reusage-missing-values/mv-processing-methods.md) %}
 
 {% endlist %}
