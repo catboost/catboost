@@ -229,7 +229,10 @@ def pytest_configure(config):
     config.test_cores_count = 0
     config.collect_cores = config.option.collect_cores
     config.sanitizer_extra_checks = config.option.sanitizer_extra_checks
-    config.test_tool_bin = config.option.test_tool_bin
+    try:
+        config.test_tool_bin = config.option.test_tool_bin
+    except AttributeError:
+        logging.info("test_tool_bin not specified")
 
     if config.sanitizer_extra_checks:
         for envvar in ['LSAN_OPTIONS', 'ASAN_OPTIONS']:
@@ -534,7 +537,7 @@ def pytest_runtest_makereport(item, call):
 
     def logreport(report, result, call):
         test_item = TestItem(report, result, pytest.config.option.test_suffix)
-        if not pytest.config.suite_metrics:
+        if not pytest.config.suite_metrics and context.Ctx.get("YA_PYTEST_START_TIMESTAMP"):
             pytest.config.suite_metrics["pytest_startup_duration"] = call.start - context.Ctx["YA_PYTEST_START_TIMESTAMP"]
             pytest.config.ya_trace_reporter.dump_suite_metrics()
 
