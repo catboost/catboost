@@ -92,14 +92,26 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\idl\pool\proto\pyidl-pool-proto.global.vcxproj">
       <Project>{BAC40F6F-75C0-60EE-58B5-897007D13A9D}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data\benchmarks_ut\pylibs-data-benchmarks_ut.global.vcxproj">
+      <Project>{D66E3595-6B8A-B9C0-B145-1C21C0B19AA9}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\model_export\ut\pymodel-model_export-ut.global.vcxproj">
+      <Project>{8BA2ED2A-2814-52ED-7A13-33437A9058B7}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\data_util\private-libs-data_util.vcxproj">
       <Project>{62440384-FCD2-5217-9DB5-BBEF00D51E9B}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\index_range\private-libs-index_range.vcxproj">
       <Project>{FD092503-CF90-DD15-46DE-A054A4863C5B}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\pytest\cuda_tests\pycatboost-pytest-cuda_tests.global.vcxproj">
+      <Project>{EDE4C80C-06AF-F741-2601-3BA7CF5BBE23}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\pytest\lib\py3catboost-pytest-lib.global.vcxproj">
       <Project>{775BF033-F658-849F-EECB-F18F50769072}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\pytest\pycatboost-pytest.global.vcxproj">
+      <Project>{50F9DE16-0F7D-0258-C04E-022551063402}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\python-package\lib\py3catboost-python-package-lib.global.vcxproj">
       <Project>{59BB056C-CFD0-4DCB-5BFB-D6D460A31787}</Project>
