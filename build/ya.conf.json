@@ -312,6 +312,10 @@
         "dlv": {
             "description": "Debugger for the Go programming language"
         },
+        "node-search": {
+            "description": "Autocheck data inspector tool",
+            "visible": false
+        },
         "releaser": {
             "description": "Release tool"
         },
@@ -5788,6 +5792,22 @@
                 }
             ]
         },
+        "node-search": {
+            "tools": {
+                "node-search": {
+                    "bottle": "node-search",
+                    "executable": "node-search"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "gpt": {
             "tools": {
                 "gpt_perf": {
@@ -9148,6 +9168,19 @@
             "executable": {
                 "optrace": [
                     "optrace"
+                ]
+            }
+        },
+        "node-search": {
+            "formula": {
+                "sandbox_id": [
+                    1104084318
+                ],
+                "match": "node_search"
+            },
+            "executable": {
+                "node-search": [
+                    "node_search"
                 ]
             }
         },
