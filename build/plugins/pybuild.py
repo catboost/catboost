@@ -482,9 +482,14 @@ def onpy_srcs(unit, *args):
             unit.onresource(res)
             add_python_lint_checks(unit, 2, [path for path, mod in pys] + unit.get(['_PY_EXTRA_LINT_FILES_VALUE']).split())
 
+    arcadia_protos_path = 'contrib/libs/protobuf/python/google_lib'
+    std_protos_path = 'contrib/libs/protobuf_std/python/google_lib'
+    use_vanilla_protoc = unit.get('USE_VANILLA_PROTOC') == 'yes' or upath.startswith(std_protos_path)
+    proto_path_pref = std_protos_path if use_vanilla_protoc else arcadia_protos_path
+
     if protos:
-        if not upath.startswith('contrib/libs/protobuf/python/google_lib'):
-            unit.onpeerdir(['contrib/libs/protobuf/python/google_lib'])
+        if not upath.startswith(proto_path_pref):
+            unit.onpeerdir([proto_path_pref])
 
         unit.onpeerdir(unit.get("PY_PROTO_DEPS").split())
 
@@ -500,8 +505,8 @@ def onpy_srcs(unit, *args):
             unit.onpeerdir(['kernel/gazetteer/proto'])
 
     if evs:
-        if not upath.startswith('contrib/libs/protobuf/python/google_lib'):
-            unit.onpeerdir(['contrib/libs/protobuf/python/google_lib'])
+        if not upath.startswith(proto_path_pref):
+            unit.onpeerdir([proto_path_pref])
 
         unit.on_generate_py_evs_internal([path for path, mod in evs])
         unit.onpy_srcs([ev_arg(path, mod, unit) for path, mod in evs])
