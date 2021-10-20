@@ -6,6 +6,8 @@ LIBRARY()
 
 VERSION(1.13.0)
 
+ORIGINAL_SOURCE(https://github.com/NVIDIA/thrust/archive/1.13.0.tar.gz)
+
 LICENSE(
     Apache-2.0
     BSD-2-Clause

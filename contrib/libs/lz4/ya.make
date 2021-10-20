@@ -6,6 +6,8 @@ LIBRARY()
 
 VERSION(1.9.3)
 
+ORIGINAL_SOURCE(https://github.com/lz4/lz4/archive/v1.9.3.tar.gz)
+
 LICENSE(
     BSD-2-Clause
     BSD-3-Clause

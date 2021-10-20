@@ -6,6 +6,8 @@ LIBRARY()
 
 VERSION(5.7)
 
+ORIGINAL_SOURCE(mirror://kernel/linux/kernel/v5.x/linux-5.7.tar.xz)
+
 LICENSE(
     BSD-2-Clause
     BSD-3-Clause

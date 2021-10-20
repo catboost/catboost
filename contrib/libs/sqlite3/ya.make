@@ -13,6 +13,8 @@ LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 VERSION(3.34.0)
 
+ORIGINAL_SOURCE(https://sqlite.org/2020/sqlite-src-3340000.zip)
+
 ADDINCL(contrib/libs/sqlite3)
 
 NO_COMPILER_WARNINGS()

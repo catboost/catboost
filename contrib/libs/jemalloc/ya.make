@@ -6,6 +6,8 @@ LIBRARY()
 
 VERSION(5.2.1)
 
+ORIGINAL_SOURCE(https://github.com/jemalloc/jemalloc/releases/download/5.2.1/jemalloc-5.2.1.tar.bz2)
+
 LICENSE(
     BSD-2-Clause
     Public-Domain
