@@ -193,6 +193,11 @@ private:
 _LIBCPP_INLINE_VAR constexpr weak_equality weak_equality::equivalent(_EqResult::__equiv);
 _LIBCPP_INLINE_VAR constexpr weak_equality weak_equality::nonequivalent(_EqResult::__nonequiv);
 
+// Disable double inline warning.
+#ifdef _LIBCPP_COMPILER_MSVC
+#pragma warning ( push )
+#pragma warning ( disable : 4141 )
+#endif
 _LIBCPP_INLINE_VISIBILITY
 inline constexpr bool operator==(weak_equality __v, _CmpUnspecifiedParam) noexcept {
   return __v.__value_ == _EqResult::__zero;
@@ -223,6 +228,9 @@ _LIBCPP_INLINE_VISIBILITY
 inline constexpr weak_equality operator<=>(_CmpUnspecifiedParam, weak_equality __v) noexcept {
   return __v;
 }
+#ifdef _LIBCPP_COMPILER_MSVC
+#pragma warning ( pop )
+#endif
 #endif
 
 class strong_equality {
