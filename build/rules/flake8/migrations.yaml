@@ -496,8 +496,6 @@ migrations:
     - passport/python/core/suggest
     - passport/python/core/types
     - passport/python/library/yt_hdb/loader
-    - passport/python/tasks/antifraud
-    - passport/python/tasks/antifraud/process_logs
     - portal/tools/morda-release/server
     - quality/ab_testing/abt_resources_lib/loaders/tests/long_metrics
     - quality/ab_testing/cofe/bin/cofe_ctl
@@ -1582,7 +1580,6 @@ migrations:
     - yabs/server/test/ft/BSSERVER-2495
     - yabs/server/test/pylibs/simulator
     - yabs/server/test/qabs_bsserver_pytest
-    - yabs/server/test/tools/lua_test_generator/lib
     - yabs/utils/log_stats/test
     - yabs/vh/cms-pgaas/cms_common
     - yabs/vh/cms-pgaas/sport_api_importer/sport_api_importer_lib/lib/sport_client
@@ -3534,11 +3531,6 @@ migrations:
     - weather/libs/secrets/tests
     - weather/workers/apply/yt/apply/tests
     - weather/workers/common/location_indices/tests
-    - web/src_setup/tests/server_test/test_suites/COMMON
-    - web/src_setup/tests/server_test/test_suites/IMGS
-    - web/src_setup/tests/server_test/test_suites/SHARED
-    - web/src_setup/tests/server_test/test_suites/VIDEO
-    - web/src_setup/tests/server_test/test_suites/WEB
     - yabs/bscount/ft
     - yabs/indoor/tests
     - yabs/nanpu/tests
