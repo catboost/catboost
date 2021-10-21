@@ -33,6 +33,8 @@ namespace NCoro::NStack {
             }
         };
 
+        virtual TAllocatorStats GetStackStats() const noexcept = 0;
+
         // Stack helpers
         virtual TArrayRef<char> GetStackWorkspace(void* stack, uint64_t size) noexcept = 0;
         virtual bool CheckStackOverflow(void* stack) const noexcept = 0;

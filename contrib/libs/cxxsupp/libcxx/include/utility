@@ -58,6 +58,14 @@ template <class T>                      void as_const(const T&&) = delete; // C+
 
 template <class T> typename add_rvalue_reference<T>::type declval() noexcept;
 
+template<class T, class U> constexpr bool cmp_equal(T t, U u) noexcept;         // C++20
+template<class T, class U> constexpr bool cmp_not_equal(T t, U u) noexcept;     // C++20
+template<class T, class U> constexpr bool cmp_less(T t, U u) noexcept;          // C++20
+template<class T, class U> constexpr bool cmp_greater(T t, U u) noexcept;       // C++20
+template<class T, class U> constexpr bool cmp_less_equal(T t, U u) noexcept;    // C++20
+template<class T, class U> constexpr bool cmp_greater_equal(T t, U u) noexcept; // C++20
+template<class R, class T> constexpr bool in_range(T t) noexcept;               // C++20
+
 template <class T1, class T2>
 struct pair
 {
@@ -76,15 +84,15 @@ struct pair
     template <class U, class V> explicit(see-below) pair(pair<U, V>&& p);        // constexpr in C++14
     template <class... Args1, class... Args2>
         pair(piecewise_construct_t, tuple<Args1...> first_args,
-             tuple<Args2...> second_args);
+             tuple<Args2...> second_args);                                       // constexpr in C++20
 
-    template <class U, class V> pair& operator=(const pair<U, V>& p);
+    template <class U, class V> pair& operator=(const pair<U, V>& p);            // constexpr in C++20
     pair& operator=(pair&& p) noexcept(is_nothrow_move_assignable<T1>::value &&
-                                       is_nothrow_move_assignable<T2>::value);
-    template <class U, class V> pair& operator=(pair<U, V>&& p);
+                                       is_nothrow_move_assignable<T2>::value);   // constexpr in C++20
+    template <class U, class V> pair& operator=(pair<U, V>&& p);                 // constexpr in C++20
 
     void swap(pair& p) noexcept(is_nothrow_swappable_v<T1> &&
-                                is_nothrow_swappable_v<T2>);
+                                is_nothrow_swappable_v<T2>);                     // constexpr in C++20
 };
 
 template <class T1, class T2> bool operator==(const pair<T1,T2>&, const pair<T1,T2>&); // constexpr in C++14
@@ -97,7 +105,7 @@ template <class T1, class T2> bool operator<=(const pair<T1,T2>&, const pair<T1,
 template <class T1, class T2> pair<V1, V2> make_pair(T1&&, T2&&);   // constexpr in C++14
 template <class T1, class T2>
 void
-swap(pair<T1, T2>& x, pair<T1, T2>& y) noexcept(noexcept(x.swap(y)));
+swap(pair<T1, T2>& x, pair<T1, T2>& y) noexcept(noexcept(x.swap(y)));            // constexpr in C++20
 
 struct piecewise_construct_t { explicit piecewise_construct_t() = default; };
 inline constexpr piecewise_construct_t piecewise_construct = piecewise_construct_t();
@@ -191,17 +199,23 @@ template <size_t I>
 template <size_t I>
   inline constexpr in_place_index_t<I> in_place_index{};
 
+// [utility.underlying], to_underlying
+template <class T>
+    constexpr underlying_type_t<T> to_underlying( T value ) noexcept; // C++2b
+
 }  // std
 
 */
 
 #include <__config>
 #include <__tuple>
+#include <compare>
 #include <type_traits>
 #include <initializer_list>
 #include <cstddef>
 #include <cstring>
 #include <cstdint>
+#include <limits>
 #include <version>
 #include <__debug>
 #include <limits.h>
@@ -209,6 +223,9 @@ template <size_t I>
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
 #pragma GCC system_header
 #endif
+
+_LIBCPP_PUSH_MACROS
+#include <__undef_macros>
 
 _LIBCPP_BEGIN_NAMESPACE_STD
 
@@ -256,7 +273,7 @@ operator>=(const _Tp& __x, const _Tp& __y)
 // move_if_noexcept
 
 template <class _Tp>
-inline _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX11
+_LIBCPP_NODISCARD_EXT inline _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX11
 #ifndef _LIBCPP_CXX03_LANG
 typename conditional
 <
@@ -273,8 +290,87 @@ move_if_noexcept(_Tp& __x) _NOEXCEPT
 }
 
 #if _LIBCPP_STD_VER > 14
-template <class _Tp> constexpr add_const_t<_Tp>& as_const(_Tp& __t) noexcept { return __t; }
-template <class _Tp>                        void as_const(const _Tp&&) = delete;
+template <class _Tp>
+_LIBCPP_NODISCARD_EXT constexpr add_const_t<_Tp>& as_const(_Tp& __t) noexcept { return __t; }
+
+template <class _Tp>
+void as_const(const _Tp&&) = delete;
+#endif
+
+#if _LIBCPP_STD_VER > 17 && !defined(_LIBCPP_HAS_NO_CONCEPTS)
+template<class _Tp, class... _Up>
+struct _IsSameAsAny : _Or<_IsSame<_Tp, _Up>...> {};
+
+template<class _Tp>
+concept __is_safe_integral_cmp = is_integral_v<_Tp> &&
+                      !_IsSameAsAny<_Tp, bool, char,
+#ifndef _LIBCPP_HAS_NO_CHAR8_T
+                                    char8_t,
+#endif
+#ifndef _LIBCPP_HAS_NO_UNICODE_CHARS
+                                    char16_t, char32_t,
+#endif
+                                    wchar_t>::value;
+
+template<__is_safe_integral_cmp _Tp, __is_safe_integral_cmp _Up>
+_LIBCPP_INLINE_VISIBILITY constexpr
+bool cmp_equal(_Tp __t, _Up __u) noexcept
+{
+  if constexpr (is_signed_v<_Tp> == is_signed_v<_Up>)
+    return __t == __u;
+  else if constexpr (is_signed_v<_Tp>)
+    return __t < 0 ? false : make_unsigned_t<_Tp>(__t) == __u;
+  else
+    return __u < 0 ? false : __t == make_unsigned_t<_Up>(__u);
+}
+
+template<__is_safe_integral_cmp _Tp, __is_safe_integral_cmp _Up>
+_LIBCPP_INLINE_VISIBILITY constexpr
+bool cmp_not_equal(_Tp __t, _Up __u) noexcept
+{
+  return !_VSTD::cmp_equal(__t, __u);
+}
+
+template<__is_safe_integral_cmp _Tp, __is_safe_integral_cmp _Up>
+_LIBCPP_INLINE_VISIBILITY constexpr
+bool cmp_less(_Tp __t, _Up __u) noexcept
+{
+  if constexpr (is_signed_v<_Tp> == is_signed_v<_Up>)
+    return __t < __u;
+  else if constexpr (is_signed_v<_Tp>)
+    return __t < 0 ? true : make_unsigned_t<_Tp>(__t) < __u;
+  else
+    return __u < 0 ? false : __t < make_unsigned_t<_Up>(__u);
+}
+
+template<__is_safe_integral_cmp _Tp, __is_safe_integral_cmp _Up>
+_LIBCPP_INLINE_VISIBILITY constexpr
+bool cmp_greater(_Tp __t, _Up __u) noexcept
+{
+  return _VSTD::cmp_less(__u, __t);
+}
+
+template<__is_safe_integral_cmp _Tp, __is_safe_integral_cmp _Up>
+_LIBCPP_INLINE_VISIBILITY constexpr
+bool cmp_less_equal(_Tp __t, _Up __u) noexcept
+{
+  return !_VSTD::cmp_greater(__t, __u);
+}
+
+template<__is_safe_integral_cmp _Tp, __is_safe_integral_cmp _Up>
+_LIBCPP_INLINE_VISIBILITY constexpr
+bool cmp_greater_equal(_Tp __t, _Up __u) noexcept
+{
+  return !_VSTD::cmp_less(__t, __u);
+}
+
+template<__is_safe_integral_cmp _Tp, __is_safe_integral_cmp _Up>
+_LIBCPP_INLINE_VISIBILITY constexpr
+bool in_range(_Up __u) noexcept
+{
+  return _VSTD::cmp_less_equal(__u, numeric_limits<_Tp>::max()) &&
+         _VSTD::cmp_greater_equal(__u, numeric_limits<_Tp>::min());
+}
 #endif
 
 struct _LIBCPP_TEMPLATE_VIS piecewise_construct_t { explicit piecewise_construct_t() = default; };
@@ -332,7 +428,7 @@ struct _LIBCPP_TEMPLATE_VIS pair
     }
 #else
     template <bool _Val>
-    using _EnableB _LIBCPP_NODEBUG_TYPE = typename enable_if<_Val, bool>::type;    
+    using _EnableB _LIBCPP_NODEBUG_TYPE = typename enable_if<_Val, bool>::type;
 
     template<bool _Dummy = true, int&... _Args>
     struct _EnableImplicitDefaultConstructor {
@@ -688,7 +784,7 @@ make_pair(_T1 __x, _T2 __y)
     return pair<_T1, _T2>(__x, __y);
 }
 
-#endif  // _LIBCPP_CXX03_LANG
+#endif // _LIBCPP_CXX03_LANG
 
 template <class _T1, class _T2>
   struct _LIBCPP_TEMPLATE_VIS tuple_size<pair<_T1, _T2> >
@@ -741,7 +837,7 @@ struct __get_pair<0>
     _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX11
     const _T1&&
     get(const pair<_T1, _T2>&& __p) _NOEXCEPT {return _VSTD::forward<const _T1>(__p.first);}
-#endif  // _LIBCPP_CXX03_LANG
+#endif // _LIBCPP_CXX03_LANG
 };
 
 template <>
@@ -771,7 +867,7 @@ struct __get_pair<1>
     _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX11
     const _T2&&
     get(const pair<_T1, _T2>&& __p) _NOEXCEPT {return _VSTD::forward<const _T2>(__p.second);}
-#endif  // _LIBCPP_CXX03_LANG
+#endif // _LIBCPP_CXX03_LANG
 };
 
 template <size_t _Ip, class _T1, class _T2>
@@ -806,7 +902,7 @@ get(const pair<_T1, _T2>&& __p) _NOEXCEPT
 {
     return __get_pair<_Ip>::get(_VSTD::move(__p));
 }
-#endif  // _LIBCPP_CXX03_LANG
+#endif // _LIBCPP_CXX03_LANG
 
 #if _LIBCPP_STD_VER > 11
 template <class _T1, class _T2>
@@ -936,7 +1032,7 @@ template<size_t _Np>
 template<class... _Tp>
     using index_sequence_for = make_index_sequence<sizeof...(_Tp)>;
 
-#endif  // _LIBCPP_STD_VER > 11
+#endif // _LIBCPP_STD_VER > 11
 
 #if _LIBCPP_STD_VER > 11
 template<class _T1, class _T2 = _T1>
@@ -947,7 +1043,7 @@ _T1 exchange(_T1& __obj, _T2 && __new_value)
     __obj = _VSTD::forward<_T2>(__new_value);
     return __old_value;
 }
-#endif  // _LIBCPP_STD_VER > 11
+#endif // _LIBCPP_STD_VER > 11
 
 #if _LIBCPP_STD_VER > 14
 
@@ -964,7 +1060,7 @@ template <class _Tp>
 _LIBCPP_INLINE_VAR constexpr in_place_type_t<_Tp> in_place_type{};
 
 template <size_t _Idx>
-struct _LIBCPP_TYPE_VIS in_place_index_t {
+struct _LIBCPP_TEMPLATE_VIS in_place_index_t {
     explicit in_place_index_t() = default;
 };
 template <size_t _Idx>
@@ -997,7 +1093,7 @@ _Size
 __loadword(const void* __p)
 {
     _Size __r;
-    std::memcpy(&__r, __p, sizeof(__r));
+    _VSTD::memcpy(&__r, __p, sizeof(__r));
     return __r;
 }
 
@@ -1216,7 +1312,7 @@ __murmur2_or_cityhash<_Size, 64>::operator()(const void* __key, _Size __len)
     __v = __weak_hash_len_32_with_seeds(__s, __v.second * __k1, __x + __w.first);
     __w = __weak_hash_len_32_with_seeds(__s + 32, __z + __w.second,
                                         __y + __loadword<_Size>(__s + 16));
-    std::swap(__z, __x);
+    _VSTD::swap(__z, __x);
     __s += 64;
     __len -= 64;
   } while (__len != 0);
@@ -1334,12 +1430,20 @@ struct _PairT {
   size_t second;
 };
 
-inline _LIBCPP_INLINE_VISIBILITY
-size_t __hash_combine(size_t __lhs, size_t __rhs) _NOEXCEPT {
+// Disable double inline warning.
+#ifdef _LIBCPP_COMPILER_MSVC
+#pragma warning ( push )
+#pragma warning ( disable : 4141 )
+#endif
+_LIBCPP_INLINE_VISIBILITY
+inline size_t __hash_combine(size_t __lhs, size_t __rhs) _NOEXCEPT {
     typedef __scalar_hash<_PairT> _HashT;
     const _PairT __p = {__lhs, __rhs};
     return _HashT()(__p);
 }
+#ifdef _LIBCPP_COMPILER_MSVC
+#pragma warning ( pop )
+#endif
 
 template<class _Tp>
 struct _LIBCPP_TEMPLATE_VIS hash<_Tp*>
@@ -1391,7 +1495,7 @@ struct _LIBCPP_TEMPLATE_VIS hash<unsigned char>
     size_t operator()(unsigned char __v) const _NOEXCEPT {return static_cast<size_t>(__v);}
 };
 
-#ifndef _LIBCPP_NO_HAS_CHAR8_T
+#ifndef _LIBCPP_HAS_NO_CHAR8_T
 template <>
 struct _LIBCPP_TEMPLATE_VIS hash<char8_t>
     : public unary_function<char8_t, size_t>
@@ -1399,7 +1503,7 @@ struct _LIBCPP_TEMPLATE_VIS hash<char8_t>
     _LIBCPP_INLINE_VISIBILITY
     size_t operator()(char8_t __v) const _NOEXCEPT {return static_cast<size_t>(__v);}
 };
-#endif // !_LIBCPP_NO_HAS_CHAR8_T
+#endif // !_LIBCPP_HAS_NO_CHAR8_T
 
 #ifndef _LIBCPP_HAS_NO_UNICODE_CHARS
 
@@ -1419,7 +1523,7 @@ struct _LIBCPP_TEMPLATE_VIS hash<char32_t>
     size_t operator()(char32_t __v) const _NOEXCEPT {return static_cast<size_t>(__v);}
 };
 
-#endif  // _LIBCPP_HAS_NO_UNICODE_CHARS
+#endif // _LIBCPP_HAS_NO_UNICODE_CHARS
 
 template <>
 struct _LIBCPP_TEMPLATE_VIS hash<wchar_t>
@@ -1543,7 +1647,7 @@ struct _LIBCPP_TEMPLATE_VIS hash<long double>
         // -0.0 and 0.0 should return same hash
         if (__v == 0.0L)
             return 0;
-#if defined(__i386__)
+#if defined(__i386__) || (defined(__x86_64__) && defined(__ILP32__))
         // Zero out padding bits
         union
         {
@@ -1630,7 +1734,7 @@ using __check_hash_requirements _LIBCPP_NODEBUG_TYPE  = integral_constant<bool,
     __invokable_r<size_t, _Hash, _Key const&>::value
 >;
 
-template <class _Key, class _Hash = std::hash<_Key> >
+template <class _Key, class _Hash = hash<_Key> >
 using __has_enabled_hash _LIBCPP_NODEBUG_TYPE = integral_constant<bool,
     __check_hash_requirements<_Key, _Hash>::value &&
     is_default_constructible<_Hash>::value
@@ -1649,8 +1753,23 @@ template <class _Type, class ...>
 using __enable_hash_helper _LIBCPP_NODEBUG_TYPE = _Type;
 #endif
 
+template <class _Tp>
+_LIBCPP_INLINE_VISIBILITY constexpr typename underlying_type<_Tp>::type
+__to_underlying(_Tp __val) noexcept {
+  return static_cast<typename underlying_type<_Tp>::type>(__val);
+}
 #endif // !_LIBCPP_CXX03_LANG
+
+#if _LIBCPP_STD_VER > 20
+template <class _Tp>
+_LIBCPP_NODISCARD_EXT _LIBCPP_INLINE_VISIBILITY constexpr underlying_type_t<_Tp>
+to_underlying(_Tp __val) noexcept {
+  return _VSTD::__to_underlying(__val);
+}
+#endif
 
 _LIBCPP_END_NAMESPACE_STD
 
-#endif  // _LIBCPP_UTILITY
+_LIBCPP_POP_MACROS
+
+#endif // _LIBCPP_UTILITY

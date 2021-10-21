@@ -514,8 +514,18 @@ static int MsgPeek(SOCKET s) {
 }
 
 bool IsNotSocketClosedByOtherSide(SOCKET s) {
+    return HasSocketDataToRead(s) != ESocketReadStatus::SocketClosed;
+}
+
+ESocketReadStatus HasSocketDataToRead(SOCKET s) {
     const int r = MsgPeek(s);
-    return r > 0 || (r == -1 && IsBlocked(LastSystemError()));
+    if (r == -1 && IsBlocked(LastSystemError())) {
+        return ESocketReadStatus::NoData;
+    }
+    if (r > 0) {
+        return ESocketReadStatus::HasData;
+    }
+    return ESocketReadStatus::SocketClosed;
 }
 
 #if defined(_win_)
@@ -962,15 +972,15 @@ private:
         void operator()(struct addrinfo* ai) noexcept {
             if (!UseFreeAddrInfo_ && ai != NULL) {
                 if (ai->ai_addr != NULL) {
-                    delete ai->ai_addr;
+                    free(ai->ai_addr);
                 }
 
                 struct addrinfo* p;
                 while (ai != NULL) {
                     p = ai;
                     ai = ai->ai_next;
-                    delete p->ai_canonname;
-                    delete p;
+                    free(p->ai_canonname);
+                    free(p);
                 }
             } else if (ai != NULL) {
                 freeaddrinfo(ai);
@@ -1016,13 +1026,14 @@ public:
     inline TImpl(const char* path, int flags)
         : Info_(nullptr, TAddrInfoDeleter{/* useFreeAddrInfo = */ false})
     {
-        THolder<struct sockaddr_un> sockAddr = MakeHolder<struct sockaddr_un>();
+        THolder<struct sockaddr_un, TFree> sockAddr(
+            reinterpret_cast<struct sockaddr_un*>(malloc(sizeof(struct sockaddr_un))));
 
         Y_ENSURE(strlen(path) < sizeof(sockAddr->sun_path), "Unix socket path more than " << sizeof(sockAddr->sun_path));
         sockAddr->sun_family = AF_UNIX;
         strcpy(sockAddr->sun_path, path);
 
-        TAddrInfoPtr hints(new struct addrinfo, TAddrInfoDeleter{/* useFreeAddrInfo = */ false});
+        TAddrInfoPtr hints(reinterpret_cast<struct addrinfo*>(malloc(sizeof(struct addrinfo))), TAddrInfoDeleter{/* useFreeAddrInfo = */ false});
         memset(hints.get(), 0, sizeof(*hints));
 
         hints->ai_flags = flags;

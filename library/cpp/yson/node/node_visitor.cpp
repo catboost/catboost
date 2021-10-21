@@ -30,7 +30,7 @@ void Iterate(const TNode::TMapType& nodeMap, bool sortByKey, Fun action)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-TNodeVisitor::TNodeVisitor(IYsonConsumer* consumer, bool sortMapKeys)
+TNodeVisitor::TNodeVisitor(NYson::IYsonConsumer* consumer, bool sortMapKeys)
     : Consumer_(consumer)
     , SortMapKeys_(sortMapKeys)
 { }

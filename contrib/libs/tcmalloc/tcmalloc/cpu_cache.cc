@@ -25,6 +25,7 @@
 #include "absl/base/internal/sysinfo.h"
 #include "absl/base/macros.h"
 #include "absl/base/thread_annotations.h"
+#include "absl/container/fixed_array.h"
 #include "tcmalloc/arena.h"
 #include "tcmalloc/common.h"
 #include "tcmalloc/internal/logging.h"
@@ -33,9 +34,9 @@
 #include "tcmalloc/static_vars.h"
 #include "tcmalloc/transfer_cache.h"
 
+GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
-
-using subtle::percpu::GetCurrentVirtualCpuUnsafe;
+namespace tcmalloc_internal {
 
 static cpu_set_t FillActiveCpuMask() {
   cpu_set_t allowed_cpus;
@@ -44,7 +45,7 @@ static cpu_set_t FillActiveCpuMask() {
   }
 
 #ifdef PERCPU_USE_RSEQ
-  const bool real_cpus = !tcmalloc::subtle::percpu::UsingFlatVirtualCpus();
+  const bool real_cpus = !subtle::percpu::UsingFlatVirtualCpus();
 #else
   const bool real_cpus = true;
 #endif
@@ -69,7 +70,7 @@ static size_t MaxCapacity(size_t cl) {
   static constexpr size_t kNumSmall = 10;
 
   // The memory used for each per-CPU slab is the sum of:
-  //   sizeof(std::atomic<size_t>) * kNumClasses
+  //   sizeof(std::atomic<int64_t>) * kNumClasses
   //   sizeof(void*) * (kSmallObjectDepth + 1) * kNumSmall
   //   sizeof(void*) * (kLargeObjectDepth + 1) * kNumLarge
   //
@@ -83,26 +84,34 @@ static size_t MaxCapacity(size_t cl) {
   // With SMALL_BUT_SLOW we have 4KiB of per-cpu slab and 46 class sizes we
   // allocate:
   //   == 8 * 46 + 8 * ((16 + 1) * 10 + (6 + 1) * 35) = 4038 bytes of 4096
-  static const size_t kSmallObjectDepth = 16;
-  static const size_t kLargeObjectDepth = 6;
+  static const uint16_t kSmallObjectDepth = 16;
+  static const uint16_t kLargeObjectDepth = 6;
 #else
   // We allocate 256KiB per-cpu for pointers to cached per-cpu memory.
   // Each 256KiB is a subtle::percpu::TcmallocSlab::Slabs
   // Max(kNumClasses) is 89, so the maximum footprint per CPU is:
   //   89 * 8 + 8 * ((2048 + 1) * 10 + (152 + 1) * 78 + 88) = 254 KiB
-  static const size_t kSmallObjectDepth = 2048;
-  static const size_t kLargeObjectDepth = 152;
+  static const uint16_t kSmallObjectDepth = 2048;
+  static const uint16_t kLargeObjectDepth = 152;
 #endif
   if (cl == 0 || cl >= kNumClasses) return 0;
+
+  if (Static::sharded_transfer_cache().should_use(cl)) {
+    return 0;
+  }
 
   if (Static::sizemap().class_to_size(cl) == 0) {
     return 0;
   }
 
-  if (cl <= kNumSmall) {
+  if (!IsExpandedSizeClass(cl) && (cl % kNumBaseClasses) <= kNumSmall) {
     // Small object sizes are very heavily used and need very deep caches for
     // good performance (well over 90% of malloc calls are for cl <= 10.)
     return kSmallObjectDepth;
+  }
+
+  if (IsExpandedSizeClass(cl)) {
+    return 0;
   }
 
   return kLargeObjectDepth;
@@ -117,18 +126,38 @@ void CPUCache::Activate(ActivationMode mode) {
   ASSERT(Static::IsInited());
   int num_cpus = absl::base_internal::NumCPUs();
 
-  const size_t kBytesAvailable = (1 << CPUCache::kPerCpuShift);
-  size_t kBytesRequired = sizeof(std::atomic<size_t>) * kNumClasses;
+  size_t per_cpu_shift = kPerCpuShift;
+  const auto &topology = Static::numa_topology();
+  if (topology.numa_aware()) {
+    per_cpu_shift += absl::bit_ceil(topology.active_partitions() - 1);
+  }
 
-  for (int cl = 0; cl < kNumClasses; ++cl) {
-    kBytesRequired += sizeof(void *) * MaxCapacity(cl);
+  const size_t kBytesAvailable = (1 << per_cpu_shift);
+  size_t bytes_required = sizeof(std::atomic<int64_t>) * kNumClasses;
+
+  // Deal with size classes that correspond only to NUMA partitions that are in
+  // use. If NUMA awareness is disabled then we may have a smaller shift than
+  // would suffice for all of the unused size classes.
+  for (int cl = 0;
+       cl < Static::numa_topology().active_partitions() * kNumBaseClasses;
+       ++cl) {
+    const uint16_t mc = MaxCapacity(cl);
+    max_capacity_[cl] = mc;
+    bytes_required += sizeof(void *) * mc;
+  }
+
+  // Deal with expanded size classes.
+  for (int cl = kExpandedClassesStart; cl < kNumClasses; ++cl) {
+    const uint16_t mc = MaxCapacity(cl);
+    max_capacity_[cl] = mc;
+    bytes_required += sizeof(void *) * mc;
   }
 
   // As we may make certain size classes no-ops by selecting "0" at runtime,
   // using a compile-time calculation overestimates the worst-case memory usage.
-  if (ABSL_PREDICT_FALSE(kBytesRequired > kBytesAvailable)) {
+  if (ABSL_PREDICT_FALSE(bytes_required > kBytesAvailable)) {
     Crash(kCrash, __FILE__, __LINE__, "per-CPU memory exceeded, have ",
-          kBytesAvailable, " need ", kBytesRequired);
+          kBytesAvailable, " need ", bytes_required);
   }
 
   absl::base_internal::SpinLockHolder h(&pageheap_lock);
@@ -144,10 +173,11 @@ void CPUCache::Activate(ActivationMode mode) {
       resize_[cpu].per_class[cl].Init();
     }
     resize_[cpu].available.store(max_cache_size, std::memory_order_relaxed);
+    resize_[cpu].capacity.store(max_cache_size, std::memory_order_relaxed);
     resize_[cpu].last_steal.store(1, std::memory_order_relaxed);
   }
 
-  freelist_.Init(SlabAlloc, MaxCapacity, lazy_slabs_);
+  freelist_.Init(SlabAlloc, MaxCapacityHelper, lazy_slabs_, per_cpu_shift);
   if (mode == ActivationMode::FastPathOn) {
     Static::ActivateCPUCache();
   }
@@ -198,15 +228,15 @@ void *CPUCache::Refill(int cpu, size_t cl) {
       if (i != 0) {
         static_assert(ABSL_ARRAYSIZE(batch) >= kMaxObjectsToMove,
                       "not enough space in batch");
-        Static::transfer_cache().InsertRange(cl, absl::Span<void *>(batch), i);
+        Static::transfer_cache().InsertRange(cl, absl::Span<void *>(batch, i));
       }
     }
   } while (got == batch_length && i == 0 && total < target &&
-           cpu == GetCurrentVirtualCpuUnsafe());
+           cpu == freelist_.GetCurrentVirtualCpuUnsafe());
 
   for (int i = to_return.count; i < kMaxToReturn; ++i) {
     Static::transfer_cache().InsertRange(
-        to_return.cl[i], absl::Span<void *>(&(to_return.obj[i]), 1), 1);
+        to_return.cl[i], absl::Span<void *>(&(to_return.obj[i]), 1));
   }
 
   return result;
@@ -233,7 +263,7 @@ size_t CPUCache::UpdateCapacity(int cpu, size_t cl, size_t batch_length,
   // it again. Also we will shrink it by 1, but grow by a batch. So we should
   // have lots of time until we need to grow it again.
 
-  const size_t max_capacity = MaxCapacity(cl);
+  const size_t max_capacity = max_capacity_[cl];
   size_t capacity = freelist_.Capacity(cpu, cl);
   // We assert that the return value, target, is non-zero, so starting from an
   // initial capacity of zero means we may be populating this core for the
@@ -243,7 +273,7 @@ size_t CPUCache::UpdateCapacity(int cpu, size_t cl, size_t batch_length,
       [](CPUCache *cache, int cpu) {
         if (cache->lazy_slabs_) {
           absl::base_internal::SpinLockHolder h(&cache->resize_[cpu].lock);
-          cache->freelist_.InitCPU(cpu, MaxCapacity);
+          cache->freelist_.InitCPU(cpu, MaxCapacityHelper);
         }
 
         // While we could unconditionally store, a lazy slab population
@@ -322,12 +352,291 @@ void CPUCache::Grow(int cpu, size_t cl, size_t desired_increase,
   size_t actual_increase = acquired_bytes / size;
   actual_increase = std::min(actual_increase, desired_increase);
   // Remember, Grow may not give us all we ask for.
-  size_t increase = freelist_.Grow(cpu, cl, actual_increase, MaxCapacity(cl));
+  size_t increase = freelist_.Grow(cpu, cl, actual_increase, max_capacity_[cl]);
   size_t increased_bytes = increase * size;
   if (increased_bytes < acquired_bytes) {
     // return whatever we didn't use to the slack.
     size_t unused = acquired_bytes - increased_bytes;
     resize_[cpu].available.fetch_add(unused, std::memory_order_relaxed);
+  }
+}
+
+void CPUCache::TryReclaimingCaches() {
+  const int num_cpus = absl::base_internal::NumCPUs();
+
+  for (int cpu = 0; cpu < num_cpus; ++cpu) {
+    // Nothing to reclaim if the cpu is not populated.
+    if (!HasPopulated(cpu)) {
+      continue;
+    }
+
+    uint64_t used_bytes = UsedBytes(cpu);
+    uint64_t prev_used_bytes =
+        resize_[cpu].reclaim_used_bytes.load(std::memory_order_relaxed);
+
+    // Get reclaim miss and used bytes stats that were captured at the end of
+    // the previous interval.
+    const CpuCacheMissStats miss_stats = GetReclaimCacheMissStats(cpu);
+    uint64_t misses =
+        uint64_t{miss_stats.underflows} + uint64_t{miss_stats.overflows};
+
+    // Reclaim the cache if the number of used bytes and total number of misses
+    // stayed constant since the last interval.
+    if (used_bytes != 0 && used_bytes == prev_used_bytes && misses == 0) {
+      Reclaim(cpu);
+    }
+
+    // Takes a snapshot of used bytes in the cache at the end of this interval
+    // so that we can calculate if cache usage changed in the next interval.
+    //
+    // Reclaim occurs on a single thread. So, the relaxed store to used_bytes
+    // is safe.
+    resize_[cpu].reclaim_used_bytes.store(used_bytes,
+                                          std::memory_order_relaxed);
+  }
+}
+
+void CPUCache::ShuffleCpuCaches() {
+  // Knobs that we can potentially tune depending on the workloads.
+  constexpr double kBytesToStealPercent = 5.0;
+  constexpr int kMaxNumStealCpus = 5;
+
+  const int num_cpus = absl::base_internal::NumCPUs();
+  absl::FixedArray<std::pair<int, uint64_t>> misses(num_cpus);
+
+  // Record the cumulative misses for the caches so that we can select the
+  // caches with the highest misses as the candidates to steal the cache for.
+  int max_populated_cpu = -1;
+  int num_populated_cpus = 0;
+  for (int cpu = 0; cpu < num_cpus; ++cpu) {
+    if (!HasPopulated(cpu)) {
+      continue;
+    }
+    const CpuCacheMissStats miss_stats = GetIntervalCacheMissStats(cpu);
+    misses[num_populated_cpus] = {
+        cpu, uint64_t{miss_stats.underflows} + uint64_t{miss_stats.overflows}};
+    max_populated_cpu = cpu;
+    ++num_populated_cpus;
+  }
+  if (max_populated_cpu == -1) {
+    return;
+  }
+
+  // Sorts misses to identify cpus with highest misses.
+  //
+  // TODO(vgogte): We can potentially sort the entire misses array and use that
+  // in StealFromOtherCache to determine cpus to steal from. That is, [0,
+  // num_dest_cpus) may be the destination cpus and [num_dest_cpus, num_cpus)
+  // may be cpus we may steal from. We can iterate through the array in a
+  // descending order to steal from them. The upside of this mechanism is that
+  // we would be able to do a more fair stealing, starting with cpus with lowest
+  // misses. The downside of this mechanism is that we would have to sort the
+  // entire misses array. This might be compute intensive on servers with high
+  // number of cpus (eg. Rome, Milan). We need to investigate the compute
+  // required to implement this.
+  const int num_dest_cpus = std::min(num_populated_cpus, kMaxNumStealCpus);
+  std::partial_sort(misses.begin(), misses.begin() + num_dest_cpus,
+                    misses.end(),
+                    [](std::pair<int, uint64_t> a, std::pair<int, uint64_t> b) {
+                      if (a.second == b.second) {
+                        return a.first < b.first;
+                      }
+                      return a.second > b.second;
+                    });
+
+  // Try to steal kBytesToStealPercent percentage of max_per_cpu_cache_size for
+  // each destination cpu cache.
+  size_t to_steal =
+      kBytesToStealPercent / 100.0 * Parameters::max_per_cpu_cache_size();
+  for (int i = 0; i < num_dest_cpus; ++i) {
+    StealFromOtherCache(misses[i].first, max_populated_cpu, to_steal);
+  }
+
+  // Takes a snapshot of underflows and overflows at the end of this interval
+  // so that we can calculate the misses that occurred in the next interval.
+  for (int cpu = 0; cpu < num_cpus; ++cpu) {
+    size_t underflows =
+        resize_[cpu].total_underflows.load(std::memory_order_relaxed);
+    size_t overflows =
+        resize_[cpu].total_overflows.load(std::memory_order_relaxed);
+
+    // Shuffle occurs on a single thread. So, the relaxed stores to
+    // prev_underflow and pre_overflow counters are safe.
+    resize_[cpu].shuffle_underflows.store(underflows,
+                                          std::memory_order_relaxed);
+    resize_[cpu].shuffle_overflows.store(overflows, std::memory_order_relaxed);
+  }
+}
+
+static void ShrinkHandler(void *arg, size_t cl, void **batch, size_t count) {
+  const size_t batch_length = Static::sizemap().num_objects_to_move(cl);
+  for (size_t i = 0; i < count; i += batch_length) {
+    size_t n = std::min(batch_length, count - i);
+    Static::transfer_cache().InsertRange(cl, absl::Span<void *>(batch + i, n));
+  }
+}
+
+void CPUCache::StealFromOtherCache(int cpu, int max_populated_cpu,
+                                   size_t bytes) {
+  constexpr double kCacheMissThreshold = 0.80;
+
+  const CpuCacheMissStats dest_misses = GetIntervalCacheMissStats(cpu);
+
+  // If both underflows and overflows are 0, we should not need to steal.
+  if (dest_misses.underflows == 0 && dest_misses.overflows == 0) return;
+
+  size_t acquired = 0;
+
+  // We use last_cpu_cache_steal_ as a hint to start our search for cpu ids to
+  // steal from so that we can iterate through the cpus in a nice round-robin
+  // fashion.
+  int src_cpu = std::min(last_cpu_cache_steal_.load(std::memory_order_relaxed),
+                         max_populated_cpu);
+
+  // We iterate through max_populate_cpus number of cpus to steal from.
+  // max_populate_cpus records the max cpu id that has been populated. Note
+  // that, any intermediate changes since the max_populated_cpus was measured
+  // may have populated higher cpu ids, but we do not include those in the
+  // search. The approximation prevents us from doing another pass through the
+  // cpus to just find the latest populated cpu id.
+  //
+  // We break from the loop once we iterate through all the cpus once, or if the
+  // total number of acquired bytes is higher than or equal to the desired bytes
+  // we want to steal.
+  for (int cpu_offset = 1; cpu_offset <= max_populated_cpu && acquired < bytes;
+       ++cpu_offset) {
+    if (--src_cpu < 0) {
+      src_cpu = max_populated_cpu;
+    }
+    ASSERT(0 <= src_cpu);
+    ASSERT(src_cpu <= max_populated_cpu);
+
+    // We do not steal from the same CPU. Maybe we can explore combining this
+    // with stealing from the same CPU later.
+    if (src_cpu == cpu) continue;
+
+    // We do not steal from the cache that hasn't been populated yet.
+    if (!HasPopulated(src_cpu)) continue;
+
+    // We do not steal from cache that has capacity less than our lower
+    // capacity threshold.
+    if (Capacity(src_cpu) <
+        kCacheCapacityThreshold * Parameters::max_per_cpu_cache_size())
+      continue;
+
+    const CpuCacheMissStats src_misses = GetIntervalCacheMissStats(src_cpu);
+
+    // If underflows and overflows from the source cpu are higher, we do not
+    // steal from that cache. We consider the cache as a candidate to steal from
+    // only when its misses are lower than 0.8x that of the dest cache.
+    if (src_misses.underflows > kCacheMissThreshold * dest_misses.underflows ||
+        src_misses.overflows > kCacheMissThreshold * dest_misses.overflows)
+      continue;
+
+    size_t start_cl =
+        resize_[src_cpu].last_steal.load(std::memory_order_relaxed);
+
+    ASSERT(start_cl < kNumClasses);
+    ASSERT(0 < start_cl);
+    size_t source_cl = start_cl;
+    for (size_t offset = 1; offset < kNumClasses; ++offset) {
+      source_cl = start_cl + offset;
+      if (source_cl >= kNumClasses) {
+        source_cl -= kNumClasses - 1;
+      }
+      ASSERT(0 < source_cl);
+      ASSERT(source_cl < kNumClasses);
+
+      const size_t capacity = freelist_.Capacity(src_cpu, source_cl);
+      if (capacity == 0) {
+        // Nothing to steal.
+        continue;
+      }
+      const size_t length = freelist_.Length(src_cpu, source_cl);
+
+      // TODO(vgogte): Currently, scoring is similar to stealing from the
+      // same cpu in CpuCache::Steal(). Revisit this later to tune the
+      // knobs.
+      const size_t batch_length =
+          Static::sizemap().num_objects_to_move(source_cl);
+      size_t size = Static::sizemap().class_to_size(source_cl);
+
+      // Clock-like algorithm to prioritize size classes for shrinking.
+      //
+      // Each size class has quiescent ticks counter which is incremented as we
+      // pass it, the counter is reset to 0 in UpdateCapacity on grow.
+      // If the counter value is 0, then we've just tried to grow the size
+      // class, so it makes little sense to shrink it back. The higher counter
+      // value the longer ago we grew the list and the more probable it is that
+      // the full capacity is unused.
+      //
+      // Then, we calculate "shrinking score", the higher the score the less we
+      // we want to shrink this size class. The score is considerably skewed
+      // towards larger size classes: smaller classes are usually used more
+      // actively and we also benefit less from shrinking smaller classes (steal
+      // less capacity). Then, we also avoid shrinking full freelists as we will
+      // need to evict an object and then go to the central freelist to return
+      // it. Then, we also avoid shrinking freelists that are just above batch
+      // size, because shrinking them will disable transfer cache.
+      //
+      // Finally, we shrink if the ticks counter is >= the score.
+      uint32_t qticks = resize_[src_cpu].per_class[source_cl].Tick();
+      uint32_t score = 0;
+      // Note: the following numbers are based solely on intuition, common sense
+      // and benchmarking results.
+      if (size <= 144) {
+        score = 2 + (length >= capacity) +
+                (length >= batch_length && length < 2 * batch_length);
+      } else if (size <= 1024) {
+        score = 1 + (length >= capacity) +
+                (length >= batch_length && length < 2 * batch_length);
+      } else if (size <= (64 << 10)) {
+        score = (length >= capacity);
+      }
+      if (score > qticks) {
+        continue;
+      }
+
+      // Finally, try to shrink (can fail if we were migrated).
+      // We always shrink by 1 object. The idea is that inactive lists will be
+      // shrunk to zero eventually anyway (or they just would not grow in the
+      // first place), but for active lists it does not make sense to
+      // aggressively shuffle capacity all the time.
+      //
+      // If the list is full, ShrinkOtherCache first tries to pop enough items
+      // to make space and then shrinks the capacity.
+      // TODO(vgogte): Maybe we can steal more from a single list to avoid
+      // frequent locking overhead.
+      {
+        absl::base_internal::SpinLockHolder h(&resize_[src_cpu].lock);
+        if (freelist_.ShrinkOtherCache(src_cpu, source_cl, 1, nullptr,
+                                       ShrinkHandler) == 1) {
+          acquired += size;
+          resize_[src_cpu].capacity.fetch_sub(size, std::memory_order_relaxed);
+        }
+      }
+
+      if (acquired >= bytes) {
+        break;
+      }
+    }
+    resize_[cpu].last_steal.store(source_cl, std::memory_order_relaxed);
+  }
+  // Record the last cpu id we stole from, which would provide a hint to the
+  // next time we iterate through the cpus for stealing.
+  last_cpu_cache_steal_.store(src_cpu, std::memory_order_relaxed);
+
+  // Increment the capacity of the destination cpu cache by the amount of bytes
+  // acquired from source caches.
+  if (acquired) {
+    size_t before = resize_[cpu].available.load(std::memory_order_relaxed);
+    size_t bytes_with_stolen;
+    do {
+      bytes_with_stolen = before + acquired;
+    } while (!resize_[cpu].available.compare_exchange_weak(
+        before, bytes_with_stolen, std::memory_order_relaxed,
+        std::memory_order_relaxed));
+    resize_[cpu].capacity.fetch_add(acquired, std::memory_order_relaxed);
   }
 }
 
@@ -425,7 +734,7 @@ size_t CPUCache::Steal(int cpu, size_t dest_cl, size_t bytes,
       acquired += size;
     }
 
-    if (cpu != GetCurrentVirtualCpuUnsafe() || acquired >= bytes) {
+    if (cpu != freelist_.GetCurrentVirtualCpuUnsafe() || acquired >= bytes) {
       // can't steal any more or don't need to
       break;
     }
@@ -453,12 +762,26 @@ int CPUCache::Overflow(void *ptr, size_t cl, int cpu) {
     total += count;
     static_assert(ABSL_ARRAYSIZE(batch) >= kMaxObjectsToMove,
                   "not enough space in batch");
-    Static::transfer_cache().InsertRange(cl, absl::Span<void *>(batch), count);
+    Static::transfer_cache().InsertRange(cl, absl::Span<void *>(batch, count));
     if (count != batch_length) break;
     count = 0;
-  } while (total < target && cpu == GetCurrentVirtualCpuUnsafe());
+  } while (total < target && cpu == freelist_.GetCurrentVirtualCpuUnsafe());
   tracking::Report(kFreeTruncations, cl, 1);
   return 1;
+}
+
+uint64_t CPUCache::Allocated(int target_cpu) const {
+  ASSERT(target_cpu >= 0);
+  if (!HasPopulated(target_cpu)) {
+    return 0;
+  }
+
+  uint64_t total = 0;
+  for (int cl = 1; cl < kNumClasses; cl++) {
+    int size = Static::sizemap().class_to_size(cl);
+    total += size * freelist_.Capacity(target_cpu, cl);
+  }
+  return total;
 }
 
 uint64_t CPUCache::UsedBytes(int target_cpu) const {
@@ -511,6 +834,10 @@ uint64_t CPUCache::Unallocated(int cpu) const {
   return resize_[cpu].available.load(std::memory_order_relaxed);
 }
 
+uint64_t CPUCache::Capacity(int cpu) const {
+  return resize_[cpu].capacity.load(std::memory_order_relaxed);
+}
+
 uint64_t CPUCache::CacheLimit() const {
   return Parameters::max_per_cpu_cache_size();
 }
@@ -531,8 +858,7 @@ static void DrainHandler(void *arg, size_t cl, void **batch, size_t count,
   ctx->available->fetch_add(cap * size, std::memory_order_relaxed);
   for (size_t i = 0; i < count; i += batch_length) {
     size_t n = std::min(batch_length, count - i);
-    Static::transfer_cache().InsertRange(cl, absl::Span<void *>(batch + i, n),
-                                         n);
+    Static::transfer_cache().InsertRange(cl, absl::Span<void *>(batch + i, n));
   }
 }
 
@@ -548,10 +874,101 @@ uint64_t CPUCache::Reclaim(int cpu) {
 
   DrainContext ctx{&resize_[cpu].available, 0};
   freelist_.Drain(cpu, &ctx, DrainHandler);
+
+  // Record that the reclaim occurred for this CPU.
+  resize_[cpu].num_reclaims.store(
+      resize_[cpu].num_reclaims.load(std::memory_order_relaxed) + 1,
+      std::memory_order_relaxed);
   return ctx.bytes;
 }
 
-void CPUCache::Print(TCMalloc_Printer *out) const {
+uint64_t CPUCache::GetNumReclaims(int cpu) const {
+  return resize_[cpu].num_reclaims.load(std::memory_order_relaxed);
+}
+
+void CPUCache::RecordCacheMissStat(const int cpu, const bool is_malloc) {
+  CPUCache &cpu_cache = Static::cpu_cache();
+  if (is_malloc) {
+    cpu_cache.resize_[cpu].total_underflows.fetch_add(
+        1, std::memory_order_relaxed);
+  } else {
+    cpu_cache.resize_[cpu].total_overflows.fetch_add(1,
+                                                     std::memory_order_relaxed);
+  }
+}
+
+CPUCache::CpuCacheMissStats CPUCache::GetReclaimCacheMissStats(int cpu) const {
+  CpuCacheMissStats stats;
+  size_t total_underflows =
+      resize_[cpu].total_underflows.load(std::memory_order_relaxed);
+  size_t prev_reclaim_underflows =
+      resize_[cpu].reclaim_underflows.load(std::memory_order_relaxed);
+  // Takes a snapshot of underflows at the end of this interval so that we can
+  // calculate the misses that occurred in the next interval.
+  //
+  // Reclaim occurs on a single thread. So, a relaxed store to the reclaim
+  // underflow stat is safe.
+  resize_[cpu].reclaim_underflows.store(total_underflows,
+                                        std::memory_order_relaxed);
+
+  // In case of a size_t overflow, we wrap around to 0.
+  stats.underflows = total_underflows > prev_reclaim_underflows
+                         ? total_underflows - prev_reclaim_underflows
+                         : 0;
+
+  size_t total_overflows =
+      resize_[cpu].total_overflows.load(std::memory_order_relaxed);
+  size_t prev_reclaim_overflows =
+      resize_[cpu].reclaim_overflows.load(std::memory_order_relaxed);
+  // Takes a snapshot of overflows at the end of this interval so that we can
+  // calculate the misses that occurred in the next interval.
+  //
+  // Reclaim occurs on a single thread. So, a relaxed store to the reclaim
+  // overflow stat is safe.
+  resize_[cpu].reclaim_overflows.store(total_overflows,
+                                       std::memory_order_relaxed);
+
+  // In case of a size_t overflow, we wrap around to 0.
+  stats.overflows = total_overflows > prev_reclaim_overflows
+                        ? total_overflows - prev_reclaim_overflows
+                        : 0;
+
+  return stats;
+}
+
+CPUCache::CpuCacheMissStats CPUCache::GetIntervalCacheMissStats(int cpu) const {
+  CpuCacheMissStats stats;
+  size_t total_underflows =
+      resize_[cpu].total_underflows.load(std::memory_order_relaxed);
+  size_t shuffle_underflows =
+      resize_[cpu].shuffle_underflows.load(std::memory_order_relaxed);
+  // In case of a size_t overflow, we wrap around to 0.
+  stats.underflows = total_underflows > shuffle_underflows
+                         ? total_underflows - shuffle_underflows
+                         : 0;
+
+  size_t total_overflows =
+      resize_[cpu].total_overflows.load(std::memory_order_relaxed);
+  size_t shuffle_overflows =
+      resize_[cpu].shuffle_overflows.load(std::memory_order_relaxed);
+  // In case of a size_t overflow, we wrap around to 0.
+  stats.overflows = total_overflows > shuffle_overflows
+                        ? total_overflows - shuffle_overflows
+                        : 0;
+
+  return stats;
+}
+
+CPUCache::CpuCacheMissStats CPUCache::GetTotalCacheMissStats(int cpu) const {
+  CpuCacheMissStats stats;
+  stats.underflows =
+      resize_[cpu].total_underflows.load(std::memory_order_relaxed);
+  stats.overflows =
+      resize_[cpu].total_overflows.load(std::memory_order_relaxed);
+  return stats;
+}
+
+void CPUCache::Print(Printer *out) const {
   out->printf("------------------------------------------------\n");
   out->printf("Bytes in per-CPU caches (per cpu limit: %" PRIu64 " bytes)\n",
               Static::cpu_cache().CacheLimit());
@@ -573,6 +990,23 @@ void CPUCache::Print(TCMalloc_Printer *out) const {
                 CPU_ISSET(cpu, &allowed_cpus) ? " active" : "",
                 populated ? " populated" : "");
   }
+
+  out->printf("------------------------------------------------\n");
+  out->printf("Number of per-CPU cache underflows, overflows and reclaims\n");
+  out->printf("------------------------------------------------\n");
+  for (int cpu = 0, num_cpus = absl::base_internal::NumCPUs(); cpu < num_cpus;
+       ++cpu) {
+    CpuCacheMissStats miss_stats = GetTotalCacheMissStats(cpu);
+    uint64_t reclaims = GetNumReclaims(cpu);
+    out->printf(
+        "cpu %3d:"
+        "%12" PRIu64
+        " underflows,"
+        "%12" PRIu64
+        " overflows,"
+        "%12" PRIu64 " reclaims\n",
+        cpu, miss_stats.underflows, miss_stats.overflows, reclaims);
+  }
 }
 
 void CPUCache::PrintInPbtxt(PbtxtRegion *region) const {
@@ -584,11 +1018,30 @@ void CPUCache::PrintInPbtxt(PbtxtRegion *region) const {
     uint64_t rbytes = UsedBytes(cpu);
     bool populated = HasPopulated(cpu);
     uint64_t unallocated = Unallocated(cpu);
+    CpuCacheMissStats miss_stats = GetTotalCacheMissStats(cpu);
+    uint64_t reclaims = GetNumReclaims(cpu);
     entry.PrintI64("cpu", uint64_t(cpu));
     entry.PrintI64("used", rbytes);
     entry.PrintI64("unused", unallocated);
     entry.PrintBool("active", CPU_ISSET(cpu, &allowed_cpus));
     entry.PrintBool("populated", populated);
+    entry.PrintI64("underflows", miss_stats.underflows);
+    entry.PrintI64("overflows", miss_stats.overflows);
+    entry.PrintI64("reclaims", reclaims);
+  }
+}
+
+void CPUCache::AcquireInternalLocks() {
+  for (int cpu = 0, num_cpus = absl::base_internal::NumCPUs(); cpu < num_cpus;
+       ++cpu) {
+    resize_[cpu].lock.Lock();
+  }
+}
+
+void CPUCache::ReleaseInternalLocks() {
+  for (int cpu = 0, num_cpus = absl::base_internal::NumCPUs(); cpu < num_cpus;
+       ++cpu) {
+    resize_[cpu].lock.Unlock();
   }
 }
 
@@ -624,7 +1077,17 @@ uint32_t CPUCache::PerClassResizeInfo::Tick() {
   return state.quiescent_ticks - 1;
 }
 
+#ifdef ABSL_HAVE_THREAD_SANITIZER
+extern "C" int RunningOnValgrind();
+#endif
+
 static void ActivatePerCPUCaches() {
+  if (tcmalloc::tcmalloc_internal::Static::CPUCacheActive()) {
+    // Already active.
+    return;
+  }
+
+#ifdef ABSL_HAVE_THREAD_SANITIZER
   // RunningOnValgrind is a proxy for "is something intercepting malloc."
   //
   // If Valgrind, et. al., are in use, TCMalloc isn't in use and we shouldn't
@@ -632,6 +1095,7 @@ static void ActivatePerCPUCaches() {
   if (RunningOnValgrind()) {
     return;
   }
+#endif
   if (Parameters::per_cpu_caches() && subtle::percpu::IsFast()) {
     Static::InitIfNecessary();
     Static::cpu_cache().Activate(CPUCache::ActivationMode::FastPathOn);
@@ -650,16 +1114,27 @@ class PerCPUInitializer {
 };
 static PerCPUInitializer module_enter_exit;
 
+}  // namespace tcmalloc_internal
 }  // namespace tcmalloc
+GOOGLE_MALLOC_SECTION_END
+
+extern "C" void TCMalloc_Internal_ForceCpuCacheActivation() {
+  tcmalloc::tcmalloc_internal::ActivatePerCPUCaches();
+}
 
 extern "C" bool MallocExtension_Internal_GetPerCpuCachesActive() {
-  return tcmalloc::Static::CPUCacheActive();
+  return tcmalloc::tcmalloc_internal::Static::CPUCacheActive();
+}
+
+extern "C" void MallocExtension_Internal_DeactivatePerCpuCaches() {
+  tcmalloc::tcmalloc_internal::Parameters::set_per_cpu_caches(false);
+  tcmalloc::tcmalloc_internal::Static::DeactivateCPUCache();
 }
 
 extern "C" int32_t MallocExtension_Internal_GetMaxPerCpuCacheSize() {
-  return tcmalloc::Parameters::max_per_cpu_cache_size();
+  return tcmalloc::tcmalloc_internal::Parameters::max_per_cpu_cache_size();
 }
 
 extern "C" void MallocExtension_Internal_SetMaxPerCpuCacheSize(int32_t value) {
-  tcmalloc::Parameters::set_max_per_cpu_cache_size(value);
+  tcmalloc::tcmalloc_internal::Parameters::set_max_per_cpu_cache_size(value);
 }

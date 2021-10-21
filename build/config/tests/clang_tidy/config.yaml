@@ -1,0 +1,36 @@
+Checks: >
+  -*,
+  arcadia-typeid-name-restriction,
+  readability-identifier-naming
+CheckOptions:
+  - key: readability-identifier-naming.ClassCase
+    value: CamelCase
+  - key: readability-identifier-naming.PublicMemberCase
+    value: CamelCase
+  - key: readability-identifier-naming.ProtectedMemberCase
+    value: CamelCase
+  - key: readability-identifier-naming.ProtectedMemberSuffix
+    value: _
+  - key: readability-identifier-naming.PrivateMemberCase
+    value: CamelCase
+  # FIXME cpp-com@ / thegeorg@:
+  # This validation is disabled until per-project config implementation
+  # See https://st.yandex-team.ru/DEVTOOLS-8747 for details.
+  #
+  # key: readability-identifier-naming.PrivateMemberSuffix
+  #  value: _
+  #
+  # NB: this is required to allow private members with _ suffix
+  - key: readability-identifier-naming.PrivateMemberIgnoredRegexp
+    value: "^[A-Z][a-zA-Z0-9]*_$"
+  - key: readability-identifier-naming.FunctionCase
+    value: CamelCase
+  # do not tide public begin / end methods to workaround clang-tidy bug in range-based for loops
+  - key: readability-identifier-naming.PublicMethodIgnoredRegexp
+    value: "(begin|end|empty|size|ysize|front|back)"
+  - key: readability-identifier-naming.PublicMethodCase
+    value: CamelCase
+  - key: readability-identifier-naming.ProtectedMethodCase
+    value: CamelCase
+  - key: readability-identifier-naming.PrivateMethodCase
+    value: CamelCase

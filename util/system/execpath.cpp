@@ -58,7 +58,12 @@ static inline TString FreeBSDGetExecPath() {
     if (r == 0) {
         return TString(buf.Data(), buf.Filled() - 1);
     } else if (r == ENOTSUP) { // older FreeBSD version
-        TString path("/proc/" + ToString(getpid()) + "/file");
+        /*
+         * BSD analogue for /proc/self is /proc/curproc.
+         * See:
+         * https://www.freebsd.org/cgi/man.cgi?query=procfs&sektion=5&format=html
+         */
+        TString path("/proc/curproc/file");
         return NFs::ReadLink(path);
     } else {
         return TString();
@@ -123,7 +128,7 @@ static TString GetExecPathImpl() {
         }
     }
 #elif defined(_linux_) || defined(_cygwin_)
-    TString path("/proc/" + ToString(getpid()) + "/exe");
+    TString path("/proc/self/exe");
     return NFs::ReadLink(path);
 // TODO(yoda): check if the filename ends with " (deleted)"
 #elif defined(_freebsd_)

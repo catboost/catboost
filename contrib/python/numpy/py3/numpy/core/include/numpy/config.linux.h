@@ -43,7 +43,7 @@
 #define HAVE_IMMINTRIN_H 1
 #endif
 #define HAVE_FEATURES_H 1
-#define HAVE_XLOCALE_H 1
+/* #undef HAVE_XLOCALE_H */
 #define HAVE___BUILTIN_ISNAN 1
 #define HAVE___BUILTIN_ISINF 1
 #define HAVE___BUILTIN_ISFINITE 1

@@ -2,7 +2,6 @@
 
 #include <util/stream/file.h>
 #include <util/system/filemap.h>
-#include <util/system/mktemp.h>
 #include <util/system/tempfile.h>
 
 #include "chunked_helpers.h"
@@ -232,7 +231,7 @@ public:
 
     void TestNamedChunkedData() {
         const TString filename = MakeTempName(nullptr, "named_chunked_data_test");
-        TTempFileHandle file(filename);
+        TTempFile file(filename);
 
         {
             TFixedBufferFileOutput fOut(filename);

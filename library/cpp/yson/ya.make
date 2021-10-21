@@ -2,22 +2,19 @@ LIBRARY()
 
 
 
+PEERDIR(
+    library/cpp/ytalloc/core
+)
+
 SRCS(
-    yson2json_adapter.cpp
     consumer.cpp
-    json_writer.cpp
     lexer.cpp
     parser.cpp
+    string.cpp
     token.cpp
     tokenizer.cpp
     varint.cpp
     writer.cpp
-    zigzag.h
-)
-
-PEERDIR(
-    util
-    library/cpp/json
 )
 
 END()

@@ -791,6 +791,11 @@
             "uri": "file://test.test_class_names_multiclass_last_class_missed_Plain-MultiClass_/test.eval"
         }
     ],
+    "test.test_class_names_multilabel": [
+        {
+            "uri": "file://test.test_class_names_multilabel/test.eval"
+        }
+    ],
     "test.test_class_weight_logloss[Ordered]": [
         {
             "uri": "file://test.test_class_weight_logloss_Ordered_/test.eval"
@@ -1350,6 +1355,14 @@
             "uri": "file://test.test_custom_loss_for_multiclassification_Plain_/test_error.tsv"
         }
     ],
+    "test.test_custom_metric_for_multilabel": [
+        {
+            "uri": "file://test.test_custom_metric_for_multilabel/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_custom_metric_for_multilabel/test_error.tsv"
+        }
+    ],
     "test.test_custom_overfitting_detector_metric[Ordered]": [
         {
             "uri": "file://test.test_custom_overfitting_detector_metric_Ordered_/learn_error.tsv"
@@ -1771,20 +1784,52 @@
             "uri": "file://test.test_dist_train_yetirank/test_1.eval"
         }
     ],
-    "test.test_embeddings_train[Ordered]": [
+    "test.test_embeddings_train[only_embeddings-Ordered]": [
         {
-            "uri": "file://test.test_embeddings_train_Ordered_/learn.tsv"
+            "uri": "file://test.test_embeddings_train_only_embeddings-Ordered_/learn.tsv"
         },
         {
-            "uri": "file://test.test_embeddings_train_Ordered_/test.tsv"
+            "uri": "file://test.test_embeddings_train_only_embeddings-Ordered_/test.tsv"
         }
     ],
-    "test.test_embeddings_train[Plain]": [
+    "test.test_embeddings_train[only_embeddings-Plain]": [
         {
-            "uri": "file://test.test_embeddings_train_Plain_/learn.tsv"
+            "uri": "file://test.test_embeddings_train_only_embeddings-Plain_/learn.tsv"
         },
         {
-            "uri": "file://test.test_embeddings_train_Plain_/test.tsv"
+            "uri": "file://test.test_embeddings_train_only_embeddings-Plain_/test.tsv"
+        }
+    ],
+    "test.test_embeddings_train[with_embeddings-Ordered]": [
+        {
+            "uri": "file://test.test_embeddings_train_with_embeddings-Ordered_/learn.tsv"
+        },
+        {
+            "uri": "file://test.test_embeddings_train_with_embeddings-Ordered_/test.tsv"
+        }
+    ],
+    "test.test_embeddings_train[with_embeddings-Plain]": [
+        {
+            "uri": "file://test.test_embeddings_train_with_embeddings-Plain_/learn.tsv"
+        },
+        {
+            "uri": "file://test.test_embeddings_train_with_embeddings-Plain_/test.tsv"
+        }
+    ],
+    "test.test_embeddings_train[with_embeddings_and_texts-Ordered]": [
+        {
+            "uri": "file://test.test_embeddings_train_with_embeddings_and_texts-Ordered_/learn.tsv"
+        },
+        {
+            "uri": "file://test.test_embeddings_train_with_embeddings_and_texts-Ordered_/test.tsv"
+        }
+    ],
+    "test.test_embeddings_train[with_embeddings_and_texts-Plain]": [
+        {
+            "uri": "file://test.test_embeddings_train_with_embeddings_and_texts-Plain_/learn.tsv"
+        },
+        {
+            "uri": "file://test.test_embeddings_train_with_embeddings_and_texts-Plain_/test.tsv"
         }
     ],
     "test.test_empty_eval[Ordered]": [
@@ -3149,6 +3194,126 @@
     "test.test_eval_metrics_multiclass_with_baseline[Accuracy-2]": [
         {
             "uri": "file://test.test_eval_metrics_multiclass_with_baseline_Accuracy-2_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[scene-Accuracy-1]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_scene-Accuracy-1_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[scene-Accuracy-2]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_scene-Accuracy-2_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[scene-Accuracy:type=PerClass-1]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_scene-Accuracy_type=PerClass-1_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[scene-Accuracy:type=PerClass-2]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_scene-Accuracy_type=PerClass-2_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[scene-F1-1]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_scene-F1-1_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[scene-F1-2]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_scene-F1-2_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[scene-MultiLogloss-1]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_scene-MultiLogloss-1_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[scene-MultiLogloss-2]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_scene-MultiLogloss-2_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[scene-Precision-1]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_scene-Precision-1_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[scene-Precision-2]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_scene-Precision-2_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[scene-Recall-1]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_scene-Recall-1_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[scene-Recall-2]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_scene-Recall-2_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[yeast-Accuracy-1]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_yeast-Accuracy-1_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[yeast-Accuracy-2]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_yeast-Accuracy-2_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[yeast-Accuracy:type=PerClass-1]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_yeast-Accuracy_type=PerClass-1_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[yeast-Accuracy:type=PerClass-2]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_yeast-Accuracy_type=PerClass-2_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[yeast-F1-1]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_yeast-F1-1_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[yeast-F1-2]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_yeast-F1-2_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[yeast-MultiLogloss-1]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_yeast-MultiLogloss-1_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[yeast-MultiLogloss-2]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_yeast-MultiLogloss-2_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[yeast-Precision-1]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_yeast-Precision-1_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[yeast-Precision-2]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_yeast-Precision-2_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[yeast-Recall-1]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_yeast-Recall-1_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[yeast-Recall-2]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_yeast-Recall-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_with_baseline[AUC:type=Ranking-1]": [
@@ -6021,6 +6186,50 @@
             "uri": "file://test.test_multiclass_model_backward_compatibility_RawFormulaVal_/out.txt"
         }
     ],
+    "test.test_multilabel[Accuracy,Precision-train.cd]": [
+        {
+            "uri": "file://test.test_multilabel_Accuracy_Precision-train.cd_/test.eval"
+        },
+        {
+            "uri": "file://test.test_multilabel_Accuracy_Precision-train.cd_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_multilabel_Accuracy_Precision-train.cd_/test_error.tsv"
+        }
+    ],
+    "test.test_multilabel[Accuracy,Precision-train_1.cd]": [
+        {
+            "uri": "file://test.test_multilabel_Accuracy_Precision-train_1.cd_/test.eval"
+        },
+        {
+            "uri": "file://test.test_multilabel_Accuracy_Precision-train_1.cd_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_multilabel_Accuracy_Precision-train_1.cd_/test_error.tsv"
+        }
+    ],
+    "test.test_multilabel[MultiLogloss-train.cd]": [
+        {
+            "uri": "file://test.test_multilabel_MultiLogloss-train.cd_/test.eval"
+        },
+        {
+            "uri": "file://test.test_multilabel_MultiLogloss-train.cd_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_multilabel_MultiLogloss-train.cd_/test_error.tsv"
+        }
+    ],
+    "test.test_multilabel[MultiLogloss-train_1.cd]": [
+        {
+            "uri": "file://test.test_multilabel_MultiLogloss-train_1.cd_/test.eval"
+        },
+        {
+            "uri": "file://test.test_multilabel_MultiLogloss-train_1.cd_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_multilabel_MultiLogloss-train_1.cd_/test_error.tsv"
+        }
+    ],
     "test.test_multiple_eval_sets[QueryRMSE]": [
         {
             "uri": "file://test.test_multiple_eval_sets_QueryRMSE_/test.eval"
@@ -7261,6 +7470,51 @@
     "test.test_prediction_type[Plain-RawFormulaVal-MultiClass]": [
         {
             "uri": "file://test.test_prediction_type_Plain-RawFormulaVal-MultiClass_/test.eval"
+        }
+    ],
+    "test.test_prediction_type_multilabel[Class-scene]": [
+        {
+            "uri": "file://test.test_prediction_type_multilabel_Class-scene_/test.eval"
+        }
+    ],
+    "test.test_prediction_type_multilabel[Class-scene_crossentropy]": [
+        {
+            "uri": "file://test.test_prediction_type_multilabel_Class-scene_crossentropy_/test.eval"
+        }
+    ],
+    "test.test_prediction_type_multilabel[Class-yeast]": [
+        {
+            "uri": "file://test.test_prediction_type_multilabel_Class-yeast_/test.eval"
+        }
+    ],
+    "test.test_prediction_type_multilabel[Probability-scene]": [
+        {
+            "uri": "file://test.test_prediction_type_multilabel_Probability-scene_/test.eval"
+        }
+    ],
+    "test.test_prediction_type_multilabel[Probability-scene_crossentropy]": [
+        {
+            "uri": "file://test.test_prediction_type_multilabel_Probability-scene_crossentropy_/test.eval"
+        }
+    ],
+    "test.test_prediction_type_multilabel[Probability-yeast]": [
+        {
+            "uri": "file://test.test_prediction_type_multilabel_Probability-yeast_/test.eval"
+        }
+    ],
+    "test.test_prediction_type_multilabel[RawFormulaVal-scene]": [
+        {
+            "uri": "file://test.test_prediction_type_multilabel_RawFormulaVal-scene_/test.eval"
+        }
+    ],
+    "test.test_prediction_type_multilabel[RawFormulaVal-scene_crossentropy]": [
+        {
+            "uri": "file://test.test_prediction_type_multilabel_RawFormulaVal-scene_crossentropy_/test.eval"
+        }
+    ],
+    "test.test_prediction_type_multilabel[RawFormulaVal-yeast]": [
+        {
+            "uri": "file://test.test_prediction_type_multilabel_RawFormulaVal-yeast_/test.eval"
         }
     ],
     "test.test_quantile_categorical[Ordered]": [
@@ -8640,6 +8894,16 @@
     "test.test_target_border": [
         {
             "uri": "file://test.test_target_border/test.eval"
+        }
+    ],
+    "test.test_text_ignored_features[Ordered]": [
+        {
+            "uri": "file://test.test_text_ignored_features_Ordered_/test.eval"
+        }
+    ],
+    "test.test_text_ignored_features[Plain]": [
+        {
+            "uri": "file://test.test_text_ignored_features_Plain_/test.eval"
         }
     ],
     "test.test_text_processing_options[MultiClass-dictionaries0]": [

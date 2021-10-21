@@ -2,15 +2,20 @@
 
 LIBRARY()
 
-LICENSE(PD)
+LICENSE(
+    Public-Domain
+    blessing
+)
+
+LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 
 
 VERSION(3.34.0)
 
-ADDINCL(
-    contrib/libs/sqlite3
-)
+ORIGINAL_SOURCE(https://sqlite.org/2020/sqlite-src-3340000.zip)
+
+ADDINCL(contrib/libs/sqlite3)
 
 NO_COMPILER_WARNINGS()
 
@@ -41,13 +46,9 @@ CFLAGS(
 )
 
 IF (OS_WINDOWS)
-    CFLAGS(
-        -DSQLITE_OS_WIN
-    )
+    CFLAGS(-DSQLITE_OS_WIN)
 ELSE()
-    CFLAGS(
-        -DSQLITE_OS_UNIX
-    )
+    CFLAGS(-DSQLITE_OS_UNIX)
 ENDIF()
 
 SRCS(

@@ -39,7 +39,7 @@ private:
 */
 class TXmlOutputContext : public TNonCopyable {
 public:
-    TXmlOutputContext(IOutputStream* out, TString rootName, TStringBuf version = AsStringBuf("1.0"));
+    TXmlOutputContext(IOutputStream* out, TString rootName, TStringBuf version = TStringBuf("1.0"));
 
     ~TXmlOutputContext() {
         if (!std::uncaught_exceptions()) {

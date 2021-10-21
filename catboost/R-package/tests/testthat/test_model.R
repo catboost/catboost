@@ -39,25 +39,24 @@ test_that("model: catboost.train with per_float_quantization and ignored_feature
   pool_train <- catboost.load_pool(features[split, ], target[split])
   pool_test <- catboost.load_pool(features[-split, ], target[-split])
 
-  iterations <- 10
-  params1 <- list(iterations = iterations,
-                 loss_function = "Logloss",
-                 random_seed = 12345,
-                 ignored_features = c(1, 3),
-                 per_float_feature_quantization = c('0:border_count=1024'),
-                 use_best_model = FALSE,
-                 allow_writing_files = FALSE)
+  params <- list(
+    iterations = 10,
+    loss_function = "Logloss",
+    random_seed = 12345,
+    use_best_model = FALSE,
+    ignored_features = c(1, 3),
+    allow_writing_files = FALSE
+  )
 
-  catboost.train(pool_train, NULL, params1)
-  
-  params2 <- list(iterations = iterations,
-                 loss_function = "Logloss",
-                 random_seed = 12345,
-                 ignored_features = c(1, 3),
-                 per_float_feature_quantization = c('0:border_count=1024', '1:border_count=1024'),
-                 use_best_model = FALSE,
-                 allow_writing_files = FALSE)
-  catboost.train(pool_train, NULL, params2)
+  params$per_float_feature_quantization <- c("0:border_count=1024")
+  catboost.train(pool_train, NULL, params)
+
+  params$per_float_feature_quantization <- c("0:border_count=1024", "1:border_count=1024")
+  catboost.train(pool_train, NULL, params)
+
+  # issue with single ignored feature
+  params$ignored_features <- c(1)
+  catboost.train(pool_train, NULL, params)
 
   expect_true(TRUE)
 })
@@ -595,4 +594,36 @@ test_that("model: catboost.virtual_ensembles_predict", {
   prediction <- catboost.virtual_ensembles_predict(model, test_pool, prediction_type = "VirtEnsembles",
                                                    virtual_ensembles_count = virtual_ensembles_count)
   expect_equal(dim(prediction), c(virtual_ensembles_count, 1, docs_count))
+})
+
+test_that("model: feature_count attribute", {
+  docs_count <- 30
+
+  params <- list(iterations = 20,
+                random_seed = 12345,
+                logging_level = "Silent",
+                allow_writing_files = FALSE,
+                loss_function = "RMSE")
+  target <- sample(c(1, -1), size = docs_count, replace = TRUE)
+  features <- data.frame(f1 = rnorm(docs_count, mean = 0, sd = 1),
+                         f2 = rnorm(docs_count, mean = 1, sd = 1),
+                         f3 = rnorm(docs_count, mean = 2, sd = 1),
+                         f4 = rnorm(docs_count, mean = 3, sd = 1))
+  feature_count <- ncol(features)
+  group_id <- as.integer(c(rep.int(0, docs_count / 2), rep.int(1, docs_count / 2)))
+
+  train_pool <- catboost.load_pool(features, target)
+  model <- catboost.train(train_pool, params = params)
+  expect_equal(model$feature_count, feature_count)
+
+  params[['loss_function']] <- "YetiRank"
+  train_pool <- catboost.load_pool(features, target, group_id = group_id)
+  model <- catboost.train(train_pool, params = params)
+  expect_equal(model$feature_count, feature_count)
+
+  # feature count with ignored features
+  params$ignored_features <- c(0)
+  train_pool <- catboost.load_pool(features, target, group_id = group_id)
+  model <- catboost.train(train_pool, params = params)
+  expect_equal(model$feature_count, feature_count - 1)
 })

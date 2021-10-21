@@ -1,6 +1,7 @@
 #pragma once
-#include <contrib/libs/cub/cub/device/device_scan.cuh>
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
+#include <library/cpp/cuda/wrappers/cub_include.h>
+#include _CUB_INCLUDE(cub/device/device_scan.cuh)
 
 namespace NKernel {
 

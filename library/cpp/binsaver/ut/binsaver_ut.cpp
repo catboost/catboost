@@ -111,13 +111,13 @@ Y_UNIT_TEST(TestBlob) {
 
 Y_UNIT_TEST(TestVariant) {
     {
-        using T = TVariant<TString, int>;
+        using T = std::variant<TString, int>;
 
         TestBinSaverSerialization(T(TString("")));
         TestBinSaverSerialization(T(0));
     }
     {
-        using T = TVariant<TString, int, float>;
+        using T = std::variant<TString, int, float>;
 
         TestBinSaverSerialization(T(TString("ask")));
         TestBinSaverSerialization(T(12));

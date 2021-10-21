@@ -6,20 +6,19 @@ LIBRARY()
 
 VERSION(2021.2.0)
 
+ORIGINAL_SOURCE(https://github.com/oneapi-src/oneTBB/archive/v2021.2.0.tar.gz)
+
 LICENSE(Apache-2.0)
 
-ADDINCL(
-    GLOBAL contrib/libs/tbb/include
-)
+LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
+
+ADDINCL(GLOBAL contrib/libs/tbb/include)
 
 NO_COMPILER_WARNINGS()
 
 NO_UTIL()
 
-CFLAGS(
-    -D__TBB_BUILD
-    -D__TBB_USE_ITT_NOTIFY
-)
+CFLAGS(-D__TBB_BUILD)
 
 SRCS(
     src/tbb/allocator.cpp
@@ -60,13 +59,9 @@ IF (CLANG OR CLANG_CL)
 ENDIF()
 
 IF (OS_WINDOWS)
-    CFLAGS(
-        -DUSE_WINTHREAD
-    )
+    CFLAGS(-DUSE_WINTHREAD)
 ELSE()
-    CFLAGS(
-        -DUSE_PTHREAD
-    )
+    CFLAGS(-DUSE_PTHREAD)
 ENDIF()
 
 IF (GCC)
@@ -78,9 +73,9 @@ ENDIF()
 
 IF (NOT ARCH_ARM64)
     CFLAGS(
+        -D__TBB_USE_ITT_NOTIFY
         -DDO_ITT_NOTIFY
     )
-
     SRCS(
         src/tbb/itt_notify.cpp
     )

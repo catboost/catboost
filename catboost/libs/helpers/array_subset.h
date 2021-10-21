@@ -193,10 +193,10 @@ namespace NCB {
 
     template <class TSize>
     class TArraySubsetIndexing
-        : public TVariant<TFullSubset<TSize>, TRangesSubset<TSize>, TIndexedSubset<TSize>>
+        : public std::variant<TFullSubset<TSize>, TRangesSubset<TSize>, TIndexedSubset<TSize>>
     {
     public:
-        using TBase = TVariant<TFullSubset<TSize>, TRangesSubset<TSize>, TIndexedSubset<TSize>>;
+        using TBase = std::variant<TFullSubset<TSize>, TRangesSubset<TSize>, TIndexedSubset<TSize>>;
 
     public:
         // default constructor is necessary for BinSaver serialization & Cython
@@ -229,7 +229,7 @@ namespace NCB {
         }
 
         bool IsFullSubset() const {
-            return HoldsAlternative<TFullSubset<TSize>>(*this);
+            return std::holds_alternative<TFullSubset<TSize>>(*this);
         }
 
         TSize Size() const {
@@ -257,15 +257,15 @@ namespace NCB {
             return 0; // just to silence compiler warnings
         }
 
-        // Had to redefine Get because automatic resolution does not work with current TVariant implementation
+        // Had to redefine Get because automatic resolution does not work with current std::variant implementation
         template <class T>
         decltype(auto) Get() {
-            return ::Get<T>((TBase&)*this);
+            return std::get<T>((TBase&)*this);
         }
 
         template <class T>
         decltype(auto) Get() const {
-            return ::Get<T>((const TBase&)*this);
+            return std::get<T>((const TBase&)*this);
         }
         TMaybe<TSize> GetConsecutiveSubsetBegin() const {
             return ConsecutiveSubsetBeginCache;
@@ -610,7 +610,7 @@ template <class TSize>
 struct TDumper<NCB::TArraySubsetIndexing<TSize>> {
     template <class S>
     static inline void Dump(S& s, const NCB::TArraySubsetIndexing<TSize>& subset) {
-        Visit(NCB::TDumperArraySubsetVisitor<S, TSize>(s), subset);
+        std::visit(NCB::TDumperArraySubsetVisitor<S, TSize>(s), subset);
     }
 };
 
@@ -852,7 +852,7 @@ namespace NCB {
         const TArraySubsetIndexing<TSize>& src,
         const TArraySubsetIndexing<TSize>& srcSubset
     ) {
-        return ::Visit([&](const auto& val) {
+        return ::std::visit([&](const auto& val) {
             return Compose(val, srcSubset);
         }, src);
     }
@@ -869,7 +869,7 @@ namespace NCB {
         const TArraySubsetIndexing<TSize>& indexing,
         NPar::ILocalExecutor* localExecutor
     ) {
-        if (HoldsAlternative<TFullSubset<TSize>>(indexing)) {
+        if (std::holds_alternative<TFullSubset<TSize>>(indexing)) {
             return indexing;
         } else {
             TVector<TSize> indices;
@@ -1199,10 +1199,10 @@ namespace NCB {
 
     template <class TSize>
     class TArraySubsetInvertedIndexing
-        : public TVariant<TFullSubset<TSize>, TInvertedIndexedSubset<TSize>>
+        : public std::variant<TFullSubset<TSize>, TInvertedIndexedSubset<TSize>>
     {
     public:
-        using TBase = TVariant<TFullSubset<TSize>, TInvertedIndexedSubset<TSize>>;
+        using TBase = std::variant<TFullSubset<TSize>, TInvertedIndexedSubset<TSize>>;
 
     public:
         explicit TArraySubsetInvertedIndexing(TFullSubset<TSize>&& subset)
@@ -1219,11 +1219,11 @@ namespace NCB {
 
         template <class T>
         decltype(auto) Get() const {
-            return ::Get<T>((const TBase&)*this);
+            return std::get<T>((const TBase&)*this);
         }
 
         TSize GetSize() const {
-            return Visit(
+            return std::visit(
                 [&] (const auto& variant) { return variant.GetSize(); },
                 *this
             );
@@ -1250,7 +1250,7 @@ namespace NCB {
             == TVariantIndexV<TFullSubset<TSize>, typename TArraySubsetIndexing<TSize>::TBase>)
         {
             return TArraySubsetInvertedIndexing<TSize>(
-                TFullSubset<TSize>(Get<TFullSubset<TSize>>(indexing))
+                TFullSubset<TSize>(std::get<TFullSubset<TSize>>(indexing))
             );
         }
 
@@ -1287,10 +1287,10 @@ namespace NCB {
             src.GetSize() >= srcSubset.GetSrcSize(),
             "srcSubset has source mapping size greater than src's size"
         );
-        if (HoldsAlternative<TFullSubset<TSize>>(src)) {
+        if (std::holds_alternative<TFullSubset<TSize>>(src)) {
             return std::move(srcSubset);
         }
-        if (HoldsAlternative<TFullSubset<TSize>>(srcSubset)) {
+        if (std::holds_alternative<TFullSubset<TSize>>(srcSubset)) {
             return src;
         }
 
@@ -1358,7 +1358,7 @@ template <class TSize>
 struct TDumper<NCB::TArraySubsetInvertedIndexing<TSize>> {
     template <class S>
     static inline void Dump(S& s, const NCB::TArraySubsetInvertedIndexing<TSize>& invertedSubset) {
-        Visit(NCB::TDumperArraySubsetInvertedIndexingVisitor<S, TSize>(s), invertedSubset);
+        std::visit(NCB::TDumperArraySubsetInvertedIndexingVisitor<S, TSize>(s), invertedSubset);
     }
 };
 

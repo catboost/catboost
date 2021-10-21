@@ -17,13 +17,17 @@
 #include "absl/base/internal/sysinfo.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
+#include "tcmalloc/cpu_cache.h"
 #include "tcmalloc/internal/logging.h"
 #include "tcmalloc/internal/percpu.h"
 #include "tcmalloc/internal_malloc_extension.h"
 #include "tcmalloc/malloc_extension.h"
 #include "tcmalloc/parameters.h"
+#include "tcmalloc/static_vars.h"
 
+GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
+namespace tcmalloc_internal {
 namespace {
 
 // Called by MallocExtension_Internal_ProcessBackgroundActions.
@@ -80,29 +84,98 @@ void ReleasePerCpuMemoryToOS() {
   memcpy(&prev_allowed_cpus, &allowed_cpus, sizeof(cpu_set_t));
 }
 
+void ShuffleCpuCaches() {
+  if (!MallocExtension::PerCpuCachesActive()) {
+    return;
+  }
+
+  // Shuffle per-cpu caches
+  Static::cpu_cache().ShuffleCpuCaches();
+}
+
+// Reclaims per-cpu caches. The CPU mask used in ReleasePerCpuMemoryToOS does
+// not provide useful information about virtual CPU state and hence, does not
+// reclaim memory when virtual CPUs are enabled.
+//
+// Here, we use heuristics that are based on cache usage and misses, to
+// determine if the caches have been recently inactive and if they may be
+// reclaimed.
+void ReclaimIdleCpuCaches() {
+  // Attempts reclaim only when per-CPU caches are in use.
+  if (!MallocExtension::PerCpuCachesActive()) {
+    return;
+  }
+
+  Static::cpu_cache().TryReclaimingCaches();
+}
+
 }  // namespace
+}  // namespace tcmalloc_internal
 }  // namespace tcmalloc
+GOOGLE_MALLOC_SECTION_END
 
 // Release memory to the system at a constant rate.
 void MallocExtension_Internal_ProcessBackgroundActions() {
   tcmalloc::MallocExtension::MarkThreadIdle();
 
   // Initialize storage for ReleasePerCpuMemoryToOS().
-  CPU_ZERO(&tcmalloc::prev_allowed_cpus);
+  CPU_ZERO(&tcmalloc::tcmalloc_internal::prev_allowed_cpus);
 
   absl::Time prev_time = absl::Now();
   constexpr absl::Duration kSleepTime = absl::Seconds(1);
+
+  // Reclaim inactive per-cpu caches once per kCpuCacheReclaimPeriod.
+  //
+  // We use a longer 30 sec reclaim period to make sure that caches are indeed
+  // idle. Reclaim drains entire cache, as opposed to cache shuffle for instance
+  // that only shrinks a cache by a few objects at a time. So, we might have
+  // larger performance degradation if we use a shorter reclaim interval and
+  // drain caches that weren't supposed to.
+  constexpr absl::Duration kCpuCacheReclaimPeriod = absl::Seconds(30);
+  absl::Time last_reclaim = absl::Now();
+
+  // Shuffle per-cpu caches once per kCpuCacheShufflePeriod secs.
+  constexpr absl::Duration kCpuCacheShufflePeriod = absl::Seconds(5);
+  absl::Time last_shuffle = absl::Now();
+
   while (true) {
     absl::Time now = absl::Now();
     const ssize_t bytes_to_release =
-        static_cast<size_t>(tcmalloc::Parameters::background_release_rate()) *
+        static_cast<size_t>(tcmalloc::tcmalloc_internal::Parameters::
+                                background_release_rate()) *
         absl::ToDoubleSeconds(now - prev_time);
     if (bytes_to_release > 0) {  // may be negative if time goes backwards
       tcmalloc::MallocExtension::ReleaseMemoryToSystem(bytes_to_release);
     }
 
-    tcmalloc::ReleasePerCpuMemoryToOS();
+    const bool reclaim_idle_per_cpu_caches =
+        tcmalloc::tcmalloc_internal::Parameters::reclaim_idle_per_cpu_caches();
 
+    // If enabled, we use heuristics to determine if the per-cpu caches are
+    // inactive. If disabled, we use a more conservative approach, that uses
+    // allowed cpu masks, to reclaim cpu caches.
+    if (reclaim_idle_per_cpu_caches) {
+      // Try to reclaim per-cpu caches once every kCpuCacheReclaimPeriod
+      // when enabled.
+      if (now - last_reclaim >= kCpuCacheReclaimPeriod) {
+        tcmalloc::tcmalloc_internal::ReclaimIdleCpuCaches();
+        last_reclaim = now;
+      }
+    } else {
+      tcmalloc::tcmalloc_internal::ReleasePerCpuMemoryToOS();
+    }
+
+    const bool shuffle_per_cpu_caches =
+        tcmalloc::tcmalloc_internal::Parameters::shuffle_per_cpu_caches();
+
+    if (shuffle_per_cpu_caches) {
+      if (now - last_shuffle >= kCpuCacheShufflePeriod) {
+        tcmalloc::tcmalloc_internal::ShuffleCpuCaches();
+        last_shuffle = now;
+      }
+    }
+
+    tcmalloc::tcmalloc_internal::Static().sharded_transfer_cache().Plunder();
     prev_time = now;
     absl::SleepFor(kSleepTime);
   }

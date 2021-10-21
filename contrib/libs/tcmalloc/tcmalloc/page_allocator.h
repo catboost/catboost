@@ -31,7 +31,9 @@
 #include "tcmalloc/span.h"
 #include "tcmalloc/stats.h"
 
+GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
+namespace tcmalloc_internal {
 
 class PageAllocator {
  public:
@@ -74,8 +76,7 @@ class PageAllocator {
       ABSL_EXCLUSIVE_LOCKS_REQUIRED(pageheap_lock);
 
   // Prints stats about the page heap to *out.
-  void Print(TCMalloc_Printer* out, MemoryTag tag)
-      ABSL_LOCKS_EXCLUDED(pageheap_lock);
+  void Print(Printer* out, MemoryTag tag) ABSL_LOCKS_EXCLUDED(pageheap_lock);
   void PrintInPbtxt(PbtxtRegion* region, MemoryTag tag)
       ABSL_LOCKS_EXCLUDED(pageheap_lock);
 
@@ -103,7 +104,9 @@ class PageAllocator {
   ABSL_ATTRIBUTE_RETURNS_NONNULL PageAllocatorInterface* impl(
       MemoryTag tag) const;
 
-  static constexpr size_t kNumHeaps = 2;
+  size_t active_numa_partitions() const;
+
+  static constexpr size_t kNumHeaps = kNumaPartitions + 1;
 
   union Choices {
     Choices() : dummy(0) {}
@@ -112,7 +115,7 @@ class PageAllocator {
     PageHeap ph;
     HugePageAwareAllocator hpaa;
   } choices_[kNumHeaps];
-  PageAllocatorInterface* normal_impl_;
+  std::array<PageAllocatorInterface*, kNumaPartitions> normal_impl_;
   PageAllocatorInterface* sampled_impl_;
   Algorithm alg_;
 
@@ -125,8 +128,10 @@ class PageAllocator {
 
 inline PageAllocatorInterface* PageAllocator::impl(MemoryTag tag) const {
   switch (tag) {
-    case MemoryTag::kNormal:
-      return normal_impl_;
+    case MemoryTag::kNormalP0:
+      return normal_impl_[0];
+    case MemoryTag::kNormalP1:
+      return normal_impl_[1];
     case MemoryTag::kSampled:
       return sampled_impl_;
     default:
@@ -148,34 +153,51 @@ inline void PageAllocator::Delete(Span* span, MemoryTag tag) {
 }
 
 inline BackingStats PageAllocator::stats() const {
-  return normal_impl_->stats() + sampled_impl_->stats();
+  BackingStats ret = normal_impl_[0]->stats();
+  for (int partition = 1; partition < active_numa_partitions(); partition++) {
+    ret += normal_impl_[partition]->stats();
+  }
+  ret += sampled_impl_->stats();
+  return ret;
 }
 
 inline void PageAllocator::GetSmallSpanStats(SmallSpanStats* result) {
   SmallSpanStats normal, sampled;
-  normal_impl_->GetSmallSpanStats(&normal);
+  for (int partition = 0; partition < active_numa_partitions(); partition++) {
+    SmallSpanStats part_stats;
+    normal_impl_[partition]->GetSmallSpanStats(&part_stats);
+    normal += part_stats;
+  }
   sampled_impl_->GetSmallSpanStats(&sampled);
   *result = normal + sampled;
 }
 
 inline void PageAllocator::GetLargeSpanStats(LargeSpanStats* result) {
   LargeSpanStats normal, sampled;
-  normal_impl_->GetLargeSpanStats(&normal);
+  for (int partition = 0; partition < active_numa_partitions(); partition++) {
+    LargeSpanStats part_stats;
+    normal_impl_[partition]->GetLargeSpanStats(&part_stats);
+    normal += part_stats;
+  }
   sampled_impl_->GetLargeSpanStats(&sampled);
   *result = normal + sampled;
 }
 
 inline Length PageAllocator::ReleaseAtLeastNPages(Length num_pages) {
-  Length released = normal_impl_->ReleaseAtLeastNPages(num_pages);
-  if (released >= num_pages) {
-    return released;
+  Length released;
+  for (int partition = 0; partition < active_numa_partitions(); partition++) {
+    released +=
+        normal_impl_[partition]->ReleaseAtLeastNPages(num_pages - released);
+    if (released >= num_pages) {
+      return released;
+    }
   }
 
   released += sampled_impl_->ReleaseAtLeastNPages(num_pages - released);
   return released;
 }
 
-inline void PageAllocator::Print(TCMalloc_Printer* out, MemoryTag tag) {
+inline void PageAllocator::Print(Printer* out, MemoryTag tag) {
   const absl::string_view label = MemoryTagToLabel(tag);
   if (tag != MemoryTag::kNormal) {
     out->printf("\n>>>>>>> Begin %s page allocator <<<<<<<\n", label);
@@ -212,6 +234,8 @@ inline const PageAllocInfo& PageAllocator::info(MemoryTag tag) const {
   return impl(tag)->info();
 }
 
+}  // namespace tcmalloc_internal
 }  // namespace tcmalloc
+GOOGLE_MALLOC_SECTION_END
 
 #endif  // TCMALLOC_PAGE_ALLOCATOR_H_

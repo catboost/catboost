@@ -362,6 +362,7 @@ template <class R, class Alloc> struct uses_allocator<packaged_task<R>, Alloc>;
 */
 
 #include <__config>
+#include <__availability>
 #include <system_error>
 #include <memory>
 #include <chrono>
@@ -466,7 +467,7 @@ operator^=(launch& __x, launch __y)
     __x = __x ^ __y; return __x;
 }
 
-#endif  // !_LIBCPP_HAS_NO_STRONG_ENUMS
+#endif // !_LIBCPP_HAS_NO_STRONG_ENUMS
 
 //enum class future_status
 _LIBCPP_DECLARE_STRONG_ENUM(future_status)
@@ -500,9 +501,7 @@ class _LIBCPP_EXCEPTION_ABI _LIBCPP_AVAILABILITY_FUTURE_ERROR future_error
     error_code __ec_;
 public:
     future_error(error_code __ec);
-#if _LIBCPP_STD_VERS > 14
-    explicit future_error(future_errc _Ev) : logic_error(), __ec_(make_error_code(_Ev)) {}
-#endif
+
     _LIBCPP_INLINE_VISIBILITY
     const error_code& code() const _NOEXCEPT {return __ec_;}
 
@@ -624,10 +623,10 @@ protected:
 public:
 
     template <class _Arg>
-        void set_value(_Arg&& __arg);
+    void set_value(_Arg&& __arg);
 
     template <class _Arg>
-        void set_value_at_thread_exit(_Arg&& __arg);
+    void set_value_at_thread_exit(_Arg&& __arg);
 
     _Rp move();
     typename add_lvalue_reference<_Rp>::type copy();
@@ -651,7 +650,7 @@ __assoc_state<_Rp>::set_value(_Arg&& __arg)
     unique_lock<mutex> __lk(this->__mut_);
     if (this->__has_value())
         __throw_future_error(future_errc::promise_already_satisfied);
-    ::new(&__value_) _Rp(_VSTD::forward<_Arg>(__arg));
+    ::new ((void*)&__value_) _Rp(_VSTD::forward<_Arg>(__arg));
     this->__state_ |= base::__constructed | base::ready;
     __cv_.notify_all();
 }
@@ -664,7 +663,7 @@ __assoc_state<_Rp>::set_value_at_thread_exit(_Arg&& __arg)
     unique_lock<mutex> __lk(this->__mut_);
     if (this->__has_value())
         __throw_future_error(future_errc::promise_already_satisfied);
-    ::new(&__value_) _Rp(_VSTD::forward<_Arg>(__arg));
+    ::new ((void*)&__value_) _Rp(_VSTD::forward<_Arg>(__arg));
     this->__state_ |= base::__constructed;
     __thread_local_data()->__make_ready_at_thread_exit(this);
 }
@@ -861,7 +860,7 @@ __deferred_assoc_state<_Rp, _Fp>::__execute()
 #ifndef _LIBCPP_NO_EXCEPTIONS
     try
     {
-#endif  // _LIBCPP_NO_EXCEPTIONS
+#endif // _LIBCPP_NO_EXCEPTIONS
         this->set_value(__func_());
 #ifndef _LIBCPP_NO_EXCEPTIONS
     }
@@ -869,7 +868,7 @@ __deferred_assoc_state<_Rp, _Fp>::__execute()
     {
         this->set_exception(current_exception());
     }
-#endif  // _LIBCPP_NO_EXCEPTIONS
+#endif // _LIBCPP_NO_EXCEPTIONS
 }
 
 template <class _Fp>
@@ -902,7 +901,7 @@ __deferred_assoc_state<void, _Fp>::__execute()
 #ifndef _LIBCPP_NO_EXCEPTIONS
     try
     {
-#endif  // _LIBCPP_NO_EXCEPTIONS
+#endif // _LIBCPP_NO_EXCEPTIONS
         __func_();
         this->set_value();
 #ifndef _LIBCPP_NO_EXCEPTIONS
@@ -911,7 +910,7 @@ __deferred_assoc_state<void, _Fp>::__execute()
     {
         this->set_exception(current_exception());
     }
-#endif  // _LIBCPP_NO_EXCEPTIONS
+#endif // _LIBCPP_NO_EXCEPTIONS
 }
 
 template <class _Rp, class _Fp>
@@ -944,7 +943,7 @@ __async_assoc_state<_Rp, _Fp>::__execute()
 #ifndef _LIBCPP_NO_EXCEPTIONS
     try
     {
-#endif  // _LIBCPP_NO_EXCEPTIONS
+#endif // _LIBCPP_NO_EXCEPTIONS
         this->set_value(__func_());
 #ifndef _LIBCPP_NO_EXCEPTIONS
     }
@@ -952,7 +951,7 @@ __async_assoc_state<_Rp, _Fp>::__execute()
     {
         this->set_exception(current_exception());
     }
-#endif  // _LIBCPP_NO_EXCEPTIONS
+#endif // _LIBCPP_NO_EXCEPTIONS
 }
 
 template <class _Rp, class _Fp>
@@ -993,7 +992,7 @@ __async_assoc_state<void, _Fp>::__execute()
 #ifndef _LIBCPP_NO_EXCEPTIONS
     try
     {
-#endif  // _LIBCPP_NO_EXCEPTIONS
+#endif // _LIBCPP_NO_EXCEPTIONS
         __func_();
         this->set_value();
 #ifndef _LIBCPP_NO_EXCEPTIONS
@@ -1002,7 +1001,7 @@ __async_assoc_state<void, _Fp>::__execute()
     {
         this->set_exception(current_exception());
     }
-#endif  // _LIBCPP_NO_EXCEPTIONS
+#endif // _LIBCPP_NO_EXCEPTIONS
 }
 
 template <class _Fp>
@@ -1054,7 +1053,7 @@ public:
     _LIBCPP_INLINE_VISIBILITY
     future& operator=(future&& __rhs) _NOEXCEPT
         {
-            future(std::move(__rhs)).swap(*this);
+            future(_VSTD::move(__rhs)).swap(*this);
             return *this;
         }
 
@@ -1141,7 +1140,7 @@ public:
     _LIBCPP_INLINE_VISIBILITY
     future& operator=(future&& __rhs) _NOEXCEPT
         {
-            future(std::move(__rhs)).swap(*this);
+            future(_VSTD::move(__rhs)).swap(*this);
             return *this;
         }
 
@@ -1223,7 +1222,7 @@ public:
     _LIBCPP_INLINE_VISIBILITY
     future& operator=(future&& __rhs) _NOEXCEPT
         {
-            future(std::move(__rhs)).swap(*this);
+            future(_VSTD::move(__rhs)).swap(*this);
             return *this;
         }
 
@@ -1290,7 +1289,7 @@ public:
     _LIBCPP_INLINE_VISIBILITY
     promise& operator=(promise&& __rhs) _NOEXCEPT
         {
-            promise(std::move(__rhs)).swap(*this);
+            promise(_VSTD::move(__rhs)).swap(*this);
             return *this;
         }
     promise& operator=(const promise& __rhs) = delete;
@@ -1327,7 +1326,7 @@ promise<_Rp>::promise(allocator_arg_t, const _Alloc& __a0)
     typedef __allocator_destructor<_A2> _D2;
     _A2 __a(__a0);
     unique_ptr<_State, _D2> __hold(__a.allocate(1), _D2(__a, 1));
-    ::new(static_cast<void*>(_VSTD::addressof(*__hold.get()))) _State(__a0);
+    ::new ((void*)_VSTD::addressof(*__hold.get())) _State(__a0);
     __state_ = _VSTD::addressof(*__hold.release());
 }
 
@@ -1435,7 +1434,7 @@ public:
     _LIBCPP_INLINE_VISIBILITY
     promise& operator=(promise&& __rhs) _NOEXCEPT
         {
-            promise(std::move(__rhs)).swap(*this);
+            promise(_VSTD::move(__rhs)).swap(*this);
             return *this;
         }
     promise& operator=(const promise& __rhs) = delete;
@@ -1470,7 +1469,7 @@ promise<_Rp&>::promise(allocator_arg_t, const _Alloc& __a0)
     typedef __allocator_destructor<_A2> _D2;
     _A2 __a(__a0);
     unique_ptr<_State, _D2> __hold(__a.allocate(1), _D2(__a, 1));
-    ::new(static_cast<void*>(_VSTD::addressof(*__hold.get()))) _State(__a0);
+    ::new ((void*)_VSTD::addressof(*__hold.get())) _State(__a0);
     __state_ = _VSTD::addressof(*__hold.release());
 }
 
@@ -1561,7 +1560,7 @@ public:
     _LIBCPP_INLINE_VISIBILITY
     promise& operator=(promise&& __rhs) _NOEXCEPT
         {
-            promise(std::move(__rhs)).swap(*this);
+            promise(_VSTD::move(__rhs)).swap(*this);
             return *this;
         }
     promise& operator=(const promise& __rhs) = delete;
@@ -1589,7 +1588,7 @@ promise<void>::promise(allocator_arg_t, const _Alloc& __a0)
     typedef __allocator_destructor<_A2> _D2;
     _A2 __a(__a0);
     unique_ptr<_State, _D2> __hold(__a.allocate(1), _D2(__a, 1));
-    ::new(static_cast<void*>(_VSTD::addressof(*__hold.get()))) _State(__a0);
+    ::new ((void*)_VSTD::addressof(*__hold.get())) _State(__a0);
     __state_ = _VSTD::addressof(*__hold.release());
 }
 
@@ -1654,7 +1653,7 @@ void
 __packaged_task_func<_Fp, _Alloc, _Rp(_ArgTypes...)>::__move_to(
                               __packaged_task_base<_Rp(_ArgTypes...)>* __p) _NOEXCEPT
 {
-    ::new (__p) __packaged_task_func(_VSTD::move(__f_.first()), _VSTD::move(__f_.second()));
+    ::new ((void*)__p) __packaged_task_func(_VSTD::move(__f_.first()), _VSTD::move(__f_.second()));
 }
 
 template<class _Fp, class _Alloc, class _Rp, class ..._ArgTypes>
@@ -1680,7 +1679,7 @@ template<class _Fp, class _Alloc, class _Rp, class ..._ArgTypes>
 _Rp
 __packaged_task_func<_Fp, _Alloc, _Rp(_ArgTypes...)>::operator()(_ArgTypes&& ... __arg)
 {
-    return __invoke(__f_.first(), _VSTD::forward<_ArgTypes>(__arg)...);
+    return _VSTD::__invoke(__f_.first(), _VSTD::forward<_ArgTypes>(__arg)...);
 }
 
 template <class _Callable> class __packaged_task_function;
@@ -1747,7 +1746,7 @@ __packaged_task_function<_Rp(_ArgTypes...)>::__packaged_task_function(_Fp&& __f)
     typedef __packaged_task_func<_FR, allocator<_FR>, _Rp(_ArgTypes...)> _FF;
     if (sizeof(_FF) <= sizeof(__buf_))
     {
-        ::new (&__buf_) _FF(_VSTD::forward<_Fp>(__f));
+        ::new ((void*)&__buf_) _FF(_VSTD::forward<_Fp>(__f));
         __f_ = (__base*)&__buf_;
     }
     else
@@ -1756,7 +1755,7 @@ __packaged_task_function<_Rp(_ArgTypes...)>::__packaged_task_function(_Fp&& __f)
         _Ap __a;
         typedef __allocator_destructor<_Ap> _Dp;
         unique_ptr<__base, _Dp> __hold(__a.allocate(1), _Dp(__a, 1));
-        ::new (__hold.get()) _FF(_VSTD::forward<_Fp>(__f), allocator<_FR>(__a));
+        ::new ((void*)__hold.get()) _FF(_VSTD::forward<_Fp>(__f), allocator<_FR>(__a));
         __f_ = __hold.release();
     }
 }
@@ -1772,7 +1771,7 @@ __packaged_task_function<_Rp(_ArgTypes...)>::__packaged_task_function(
     if (sizeof(_FF) <= sizeof(__buf_))
     {
         __f_ = (__base*)&__buf_;
-        ::new (__f_) _FF(_VSTD::forward<_Fp>(__f));
+        ::new ((void*)__f_) _FF(_VSTD::forward<_Fp>(__f));
     }
     else
     {
@@ -1780,7 +1779,7 @@ __packaged_task_function<_Rp(_ArgTypes...)>::__packaged_task_function(
         _Ap __a(__a0);
         typedef __allocator_destructor<_Ap> _Dp;
         unique_ptr<__base, _Dp> __hold(__a.allocate(1), _Dp(__a, 1));
-        ::new (static_cast<void*>(_VSTD::addressof(*__hold.get())))
+        ::new ((void*)_VSTD::addressof(*__hold.get()))
             _FF(_VSTD::forward<_Fp>(__f), _Alloc(__a));
         __f_ = _VSTD::addressof(*__hold.release());
     }
@@ -1883,7 +1882,7 @@ public:
               class = typename enable_if
               <
                   !is_same<
-                      typename __uncvref<_Fp>::type, 
+                      typename __uncvref<_Fp>::type,
                       packaged_task
                       >::value
                   >::type
@@ -1894,7 +1893,7 @@ public:
               class = typename enable_if
               <
                   !is_same<
-                      typename __uncvref<_Fp>::type, 
+                      typename __uncvref<_Fp>::type,
                       packaged_task
                       >::value
                   >::type
@@ -1952,7 +1951,7 @@ packaged_task<_Rp(_ArgTypes...)>::operator()(_ArgTypes... __args)
 #ifndef _LIBCPP_NO_EXCEPTIONS
     try
     {
-#endif  // _LIBCPP_NO_EXCEPTIONS
+#endif // _LIBCPP_NO_EXCEPTIONS
         __p_.set_value(__f_(_VSTD::forward<_ArgTypes>(__args)...));
 #ifndef _LIBCPP_NO_EXCEPTIONS
     }
@@ -1960,7 +1959,7 @@ packaged_task<_Rp(_ArgTypes...)>::operator()(_ArgTypes... __args)
     {
         __p_.set_exception(current_exception());
     }
-#endif  // _LIBCPP_NO_EXCEPTIONS
+#endif // _LIBCPP_NO_EXCEPTIONS
 }
 
 template<class _Rp, class ..._ArgTypes>
@@ -1974,7 +1973,7 @@ packaged_task<_Rp(_ArgTypes...)>::make_ready_at_thread_exit(_ArgTypes... __args)
 #ifndef _LIBCPP_NO_EXCEPTIONS
     try
     {
-#endif  // _LIBCPP_NO_EXCEPTIONS
+#endif // _LIBCPP_NO_EXCEPTIONS
         __p_.set_value_at_thread_exit(__f_(_VSTD::forward<_ArgTypes>(__args)...));
 #ifndef _LIBCPP_NO_EXCEPTIONS
     }
@@ -1982,7 +1981,7 @@ packaged_task<_Rp(_ArgTypes...)>::make_ready_at_thread_exit(_ArgTypes... __args)
     {
         __p_.set_exception_at_thread_exit(current_exception());
     }
-#endif  // _LIBCPP_NO_EXCEPTIONS
+#endif // _LIBCPP_NO_EXCEPTIONS
 }
 
 template<class _Rp, class ..._ArgTypes>
@@ -2012,7 +2011,7 @@ public:
               class = typename enable_if
               <
                   !is_same<
-                      typename __uncvref<_Fp>::type, 
+                      typename __uncvref<_Fp>::type,
                       packaged_task
                       >::value
                   >::type
@@ -2023,11 +2022,11 @@ public:
               class = typename enable_if
               <
                   !is_same<
-                      typename __uncvref<_Fp>::type, 
+                      typename __uncvref<_Fp>::type,
                       packaged_task
                       >::value
                   >::type
-              >    
+              >
         _LIBCPP_INLINE_VISIBILITY
         packaged_task(allocator_arg_t, const _Allocator& __a, _Fp&& __f)
              : __f_(allocator_arg, __a, _VSTD::forward<_Fp>(__f)),
@@ -2081,7 +2080,7 @@ packaged_task<void(_ArgTypes...)>::operator()(_ArgTypes... __args)
 #ifndef _LIBCPP_NO_EXCEPTIONS
     try
     {
-#endif  // _LIBCPP_NO_EXCEPTIONS
+#endif // _LIBCPP_NO_EXCEPTIONS
         __f_(_VSTD::forward<_ArgTypes>(__args)...);
         __p_.set_value();
 #ifndef _LIBCPP_NO_EXCEPTIONS
@@ -2090,7 +2089,7 @@ packaged_task<void(_ArgTypes...)>::operator()(_ArgTypes... __args)
     {
         __p_.set_exception(current_exception());
     }
-#endif  // _LIBCPP_NO_EXCEPTIONS
+#endif // _LIBCPP_NO_EXCEPTIONS
 }
 
 template<class ..._ArgTypes>
@@ -2104,7 +2103,7 @@ packaged_task<void(_ArgTypes...)>::make_ready_at_thread_exit(_ArgTypes... __args
 #ifndef _LIBCPP_NO_EXCEPTIONS
     try
     {
-#endif  // _LIBCPP_NO_EXCEPTIONS
+#endif // _LIBCPP_NO_EXCEPTIONS
         __f_(_VSTD::forward<_ArgTypes>(__args)...);
         __p_.set_value_at_thread_exit();
 #ifndef _LIBCPP_NO_EXCEPTIONS
@@ -2113,7 +2112,7 @@ packaged_task<void(_ArgTypes...)>::make_ready_at_thread_exit(_ArgTypes... __args
     {
         __p_.set_exception_at_thread_exit(current_exception());
     }
-#endif  // _LIBCPP_NO_EXCEPTIONS
+#endif // _LIBCPP_NO_EXCEPTIONS
 }
 
 template<class ..._ArgTypes>
@@ -2125,10 +2124,10 @@ packaged_task<void(_ArgTypes...)>::reset()
     __p_ = promise<result_type>();
 }
 
-template <class _Callable>
+template <class _Rp, class... _ArgTypes>
 inline _LIBCPP_INLINE_VISIBILITY
 void
-swap(packaged_task<_Callable>& __x, packaged_task<_Callable>& __y) _NOEXCEPT
+swap(packaged_task<_Rp(_ArgTypes...)>& __x, packaged_task<_Rp(_ArgTypes...)>& __y) _NOEXCEPT
 {
     __x.swap(__y);
 }
@@ -2183,7 +2182,7 @@ private:
     _Rp
     __execute(__tuple_indices<_Indices...>)
     {
-        return __invoke(_VSTD::move(_VSTD::get<0>(__f_)), _VSTD::move(_VSTD::get<_Indices>(__f_))...);
+        return _VSTD::__invoke(_VSTD::move(_VSTD::get<0>(__f_)), _VSTD::move(_VSTD::get<_Indices>(__f_))...);
     }
 };
 
@@ -2203,16 +2202,16 @@ async(launch __policy, _Fp&& __f, _Args&&... __args)
     {
 #endif
         if (__does_policy_contain(__policy, launch::async))
-        return _VSTD::__make_async_assoc_state<_Rp>(_BF(__decay_copy(_VSTD::forward<_Fp>(__f)),
-                                                     __decay_copy(_VSTD::forward<_Args>(__args))...));
+        return _VSTD::__make_async_assoc_state<_Rp>(_BF(_VSTD::__decay_copy(_VSTD::forward<_Fp>(__f)),
+                                                     _VSTD::__decay_copy(_VSTD::forward<_Args>(__args))...));
 #ifndef _LIBCPP_NO_EXCEPTIONS
     }
     catch ( ... ) { if (__policy == launch::async) throw ; }
 #endif
 
     if (__does_policy_contain(__policy, launch::deferred))
-        return _VSTD::__make_deferred_assoc_state<_Rp>(_BF(__decay_copy(_VSTD::forward<_Fp>(__f)),
-                                                        __decay_copy(_VSTD::forward<_Args>(__args))...));
+        return _VSTD::__make_deferred_assoc_state<_Rp>(_BF(_VSTD::__decay_copy(_VSTD::forward<_Fp>(__f)),
+                                                        _VSTD::__decay_copy(_VSTD::forward<_Args>(__args))...));
     return future<_Rp>{};
 }
 
@@ -2251,7 +2250,7 @@ public:
     _LIBCPP_INLINE_VISIBILITY
     shared_future& operator=(shared_future&& __rhs) _NOEXCEPT
         {
-            shared_future(std::move(__rhs)).swap(*this);
+            shared_future(_VSTD::move(__rhs)).swap(*this);
             return *this;
         }
 
@@ -2321,7 +2320,7 @@ public:
     _LIBCPP_INLINE_VISIBILITY
     shared_future& operator=(shared_future&& __rhs) _NOEXCEPT
         {
-            shared_future(std::move(__rhs)).swap(*this);
+            shared_future(_VSTD::move(__rhs)).swap(*this);
             return *this;
         }
 
@@ -2391,7 +2390,7 @@ public:
     _LIBCPP_INLINE_VISIBILITY
     shared_future& operator=(shared_future&& __rhs) _NOEXCEPT
         {
-            shared_future(std::move(__rhs)).swap(*this);
+            shared_future(_VSTD::move(__rhs)).swap(*this);
             return *this;
         }
 
@@ -2455,4 +2454,4 @@ _LIBCPP_END_NAMESPACE_STD
 
 #endif // !_LIBCPP_HAS_NO_THREADS
 
-#endif  // _LIBCPP_FUTURE
+#endif // _LIBCPP_FUTURE

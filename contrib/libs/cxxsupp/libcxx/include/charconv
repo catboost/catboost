@@ -74,12 +74,14 @@ namespace std {
 */
 
 #include <__config>
+#include <__availability>
 #include <__errc>
-#include <type_traits>
+#include <cmath> // for log2f
+#include <cstdint>
+#include <cstring>
 #include <limits>
-#include <stdint.h>
-#include <string.h>
-#include <math.h>
+#include <type_traits>
+#include <utility>
 
 #include <__debug>
 
@@ -106,6 +108,47 @@ enum class _LIBCPP_ENUM_VIS chars_format
     hex = 0x4,
     general = fixed | scientific
 };
+
+inline _LIBCPP_INLINE_VISIBILITY constexpr chars_format
+operator~(chars_format __x) {
+  return chars_format(~_VSTD::__to_underlying(__x));
+}
+
+inline _LIBCPP_INLINE_VISIBILITY constexpr chars_format
+operator&(chars_format __x, chars_format __y) {
+  return chars_format(_VSTD::__to_underlying(__x) &
+                      _VSTD::__to_underlying(__y));
+}
+
+inline _LIBCPP_INLINE_VISIBILITY constexpr chars_format
+operator|(chars_format __x, chars_format __y) {
+  return chars_format(_VSTD::__to_underlying(__x) |
+                      _VSTD::__to_underlying(__y));
+}
+
+inline _LIBCPP_INLINE_VISIBILITY constexpr chars_format
+operator^(chars_format __x, chars_format __y) {
+  return chars_format(_VSTD::__to_underlying(__x) ^
+                      _VSTD::__to_underlying(__y));
+}
+
+inline _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX11 chars_format&
+operator&=(chars_format& __x, chars_format __y) {
+  __x = __x & __y;
+  return __x;
+}
+
+inline _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX11 chars_format&
+operator|=(chars_format& __x, chars_format __y) {
+  __x = __x | __y;
+  return __x;
+}
+
+inline _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX11 chars_format&
+operator^=(chars_format& __x, chars_format __y) {
+  __x = __x ^ __y;
+  return __x;
+}
 
 struct _LIBCPP_TYPE_VIS to_chars_result
 {
@@ -206,7 +249,7 @@ __mul_overflowed(unsigned char __a, _Tp __b, unsigned char& __r)
 {
     auto __c = __a * __b;
     __r = __c;
-    return __c > (numeric_limits<unsigned char>::max)();
+    return __c > numeric_limits<unsigned char>::max();
 }
 
 template <typename _Tp>
@@ -215,7 +258,7 @@ __mul_overflowed(unsigned short __a, _Tp __b, unsigned short& __r)
 {
     auto __c = __a * __b;
     __r = __c;
-    return __c > (numeric_limits<unsigned short>::max)();
+    return __c > numeric_limits<unsigned short>::max();
 }
 
 template <typename _Tp>
@@ -226,7 +269,7 @@ __mul_overflowed(_Tp __a, _Tp __b, _Tp& __r)
 #if !defined(_LIBCPP_COMPILER_MSVC)
     return __builtin_mul_overflow(__a, __b, &__r);
 #else
-    bool __did = __b && ((numeric_limits<_Tp>::max)() / __b) < __a;
+    bool __did = __b && (numeric_limits<_Tp>::max() / __b) < __a;
     __r = __a * __b;
     return __did;
 #endif
@@ -332,7 +375,7 @@ __to_chars_itoa(char* __first, char* __last, _Tp __value, false_type)
         auto __len = __p - __buf;
         if (__len <= __diff)
         {
-            memcpy(__first, __buf, __len);
+            _VSTD::memcpy(__first, __buf, __len);
             return {__first + __len, {}};
         }
         else
@@ -381,7 +424,7 @@ __to_chars_integral(char* __first, char* __last, _Tp __value, int __base,
         return {__last, errc::value_too_large};
     else
     {
-        memmove(__first, __p, __len);
+        _VSTD::memmove(__first, __p, __len);
         return {__first + __len, {}};
     }
 }
@@ -428,13 +471,13 @@ __sign_combinator(_It __first, _It __last, _Tp& __value, _Fn __f, _Ts... __args)
         if (__x <= __complement(__to_unsigned(__tl::min())))
         {
             __x = __complement(__x);
-            memcpy(&__value, &__x, sizeof(__x));
+            _VSTD::memcpy(&__value, &__x, sizeof(__x));
             return __r;
         }
     }
     else
     {
-        if (__x <= (__tl::max)())
+        if (__x <= __tl::max())
         {
             __value = __x;
             return __r;
@@ -525,7 +568,7 @@ __from_chars_atoi(const char* __first, const char* __last, _Tp& __value)
             auto __p = __tx::__read(__first, __last, __a, __b);
             if (__p == __last || !__in_pattern(*__p))
             {
-                __output_type __m = (numeric_limits<_Tp>::max)();
+                __output_type __m = numeric_limits<_Tp>::max();
                 if (__m >= __a && __m - __a >= __b)
                 {
                     __value = __a + __b;
@@ -580,7 +623,7 @@ __from_chars_integral(const char* __first, const char* __last, _Tp& __value,
 
             if (__p == __last || !__in_pattern(*__p, __base))
             {
-                if ((__tl::max)() - __a >= __b)
+                if (__tl::max() - __a >= __b)
                 {
                     __value = __a + __b;
                     return {__p, {}};
@@ -616,10 +659,10 @@ from_chars(const char* __first, const char* __last, _Tp& __value, int __base)
     return __from_chars_integral(__first, __last, __value, __base);
 }
 
-#endif  // _LIBCPP_CXX03_LANG
+#endif // _LIBCPP_CXX03_LANG
 
 _LIBCPP_END_NAMESPACE_STD
 
 _LIBCPP_POP_MACROS
 
-#endif  // _LIBCPP_CHARCONV
+#endif // _LIBCPP_CHARCONV

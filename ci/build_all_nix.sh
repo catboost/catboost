@@ -58,7 +58,8 @@ cp -r tests catboost
 python ../../ya make -r $lnx_common_flags $(os_sdk) -T src
 
 mkdir -p catboost/inst/libs
-cp $(readlink src/libcatboostr.so) catboost/inst/libs
+[ -s "src/libcatboostr.so" ] && cp $(readlink src/libcatboostr.so) catboost/inst/libs
+[ -s "src/libcatboostr.dylib" ] && cp $(readlink src/libcatboostr.dylib) catboost/inst/libs
 
 tar -cvzf catboost-R-$(uname).tgz catboost
 

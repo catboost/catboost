@@ -10,7 +10,7 @@ IMPORT_DECL=re.compile(r'''
     (
         \s+((\.|\w+)\s+)?"[^"]+" ( \s+//[^\n]* )?
         | \s* \( \s* ( ( \s+ ((\.|\w+)\s+)? "[^"]+" )? ( \s* //[^\n]* )? )* \s* \)
-    )''', re.MULTILINE|re.DOTALL|re.VERBOSE)
+    )''', re.MULTILINE | re.DOTALL | re.VERBOSE)
 
 
 def parse_args():
@@ -63,7 +63,6 @@ def main():
             if v != import_map[k]:
                 raise Exception('import map [{}] contains different values for key [{}]: [{}] and [{}].'.format(args.map, k, v, import_map[k]))
 
-    go_files = []
     for root, _, files in os.walk(args.input_dir):
         for src in (f for f in files if f.endswith('.go')):
             process_go_file(os.path.join(root, src), import_map)

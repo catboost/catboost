@@ -1,0 +1,4 @@
+[console_scripts]
+protoc-gen-mypy = mypy_protobuf.main:main
+protoc-gen-mypy_grpc = mypy_protobuf.main:grpc
+

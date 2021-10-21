@@ -158,9 +158,9 @@ private:
 
         {
             TMemoryPool pool(123, TMemoryPool::TExpGrow::Instance(), &alloc);
-            THolder<TConstructorTest, TDestructor> data1 = pool.New<TConstructorTest>();
-            THolder<TConstructorTest, TDestructor> data2 = pool.New<TConstructorTest>(42);
-            THolder<TConstructorTest, TDestructor> data3 = pool.New<TConstructorTest>("hello", "world");
+            THolder<TConstructorTest, TDestructor> data1{pool.New<TConstructorTest>()};
+            THolder<TConstructorTest, TDestructor> data2{pool.New<TConstructorTest>(42)};
+            THolder<TConstructorTest, TDestructor> data3{pool.New<TConstructorTest>("hello", "world")};
             UNIT_ASSERT_VALUES_EQUAL(data1->ConstructorType, 1);
             UNIT_ASSERT_VALUES_EQUAL(data2->ConstructorType, 2);
             UNIT_ASSERT_VALUES_EQUAL(data3->ConstructorType, 4);

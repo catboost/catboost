@@ -2,9 +2,13 @@
 
 LIBRARY()
 
+WITHOUT_LICENSE_TEXTS()
+
 
 
 VERSION(1.5.0)
+
+ORIGINAL_SOURCE(https://github.com/facebook/zstd/archive/v1.5.0.tar.gz)
 
 LICENSE(BSD-3-Clause)
 

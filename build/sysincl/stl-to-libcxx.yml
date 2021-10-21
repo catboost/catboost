@@ -50,6 +50,7 @@
   - any:                       contrib/libs/cxxsupp/libcxx/include/any
   - array:                     contrib/libs/cxxsupp/libcxx/include/array
   - atomic:                    contrib/libs/cxxsupp/libcxx/include/atomic
+  - bit:                       contrib/libs/cxxsupp/libcxx/include/bit
   - bitset:                    contrib/libs/cxxsupp/libcxx/include/bitset
   - cassert:                   contrib/libs/cxxsupp/libcxx/include/cassert
   - ccomplex:                  contrib/libs/cxxsupp/libcxx/include/ccomplex
@@ -67,6 +68,7 @@
   - codecvt:                   contrib/libs/cxxsupp/libcxx/include/codecvt
   - compare:                   contrib/libs/cxxsupp/libcxx/include/compare
   - complex:                   contrib/libs/cxxsupp/libcxx/include/complex
+  - concepts:                  contrib/libs/cxxsupp/libcxx/include/concepts
   - condition_variable:        contrib/libs/cxxsupp/libcxx/include/condition_variable
   - csetjmp:                   contrib/libs/cxxsupp/libcxx/include/csetjmp
   - csignal:                   contrib/libs/cxxsupp/libcxx/include/csignal
@@ -138,9 +140,17 @@
 # Though these are headers provided by libcxx, we do not want to allow them to be included.
 # We are using non-existent filename to generate error instead, as there is no specific syntax for this case.
 - includes:
-  - ext/hash_map:              DO_NOT_INCLUDE_NON_STANDARD_EXT_HASH_MAP
-  - ext/hash_set:              DO_NOT_INCLUDE_NON_STANDARD_EXT_HASH_SET
+  - ext/hash_map:                       DO_NOT_INCLUDE_NON_STANDARD_EXT_HASH_MAP
+  - ext/hash_set:                       DO_NOT_INCLUDE_NON_STANDARD_EXT_HASH_SET
+  - experimental/any:                   DO_NOT_INCLUDE_NON_STANDARD_EXPERIMENTAL_ANY
+  - experimental/chrono:                DO_NOT_INCLUDE_NON_STANDARD_EXPERIMENTAL_CHRONO
+  - experimental/numeric:               DO_NOT_INCLUDE_NON_STANDARD_EXPERIMENTAL_NUMERIC
+  - experimental/optional:              DO_NOT_INCLUDE_NON_STANDARD_EXPERIMENTAL_OPTIONAL
+  - experimental/ratio:                 DO_NOT_INCLUDE_NON_STANDARD_EXPERIMENTAL_RATIO
+  - experimental/source_location:       DO_NOT_INCLUDE_NON_STANDARD_EXPERIMENTAL_SOURCE_LOCATION
+  - experimental/string_view:           DO_NOT_INCLUDE_NON_STANDARD_EXPERIMENTAL_STRING_VIEW
+  - experimental/system_error:          DO_NOT_INCLUDE_NON_STANDARD_EXPERIMENTAL_SYSTEM_ERROR
+  - experimental/tuple:                 DO_NOT_INCLUDE_NON_STANDARD_EXPERIMENTAL_TUPLE
 
-  # TODO: remove these includes after solving issues with the code which includes them
-  - experimental/optional:     contrib/libs/cxxsupp/libcxx/include/experimental/optional
-  - experimental/string_view:  contrib/libs/cxxsupp/libcxx/include/experimental/string_view
+  # TODO: there is no <corouine> in libc++. Disable this include upon its appearance
+  - experimental/coroutine:    contrib/libs/cxxsupp/libcxx/include/experimental/coroutine

@@ -13,6 +13,7 @@
 
 #include <library/cpp/threading/local_executor/local_executor.h>
 
+#include <util/generic/array_ref.h>
 #include <util/generic/maybe.h>
 #include <util/generic/vector.h>
 #include <util/system/types.h>
@@ -38,6 +39,7 @@ namespace NCB {
         const TVector<ui32>& ignoredFeatures,
         EObjectsOrder objectsOrder,
         TDatasetSubset loadSubset,
+        bool forceUnitAutoPairWeights,
         TMaybe<TVector<NJson::TJsonValue>*> classLabels,
         NPar::ILocalExecutor* localExecutor
     );
@@ -57,6 +59,7 @@ namespace NCB {
         EObjectsOrder objectsOrder,
         int threadCount,
         bool verbose,
+        bool forceUnitAutoPairWeights,
         TMaybe<TVector<NJson::TJsonValue>*> classLabels = Nothing()
     );
 
@@ -73,6 +76,7 @@ namespace NCB {
         const TVector<TColumn>& columnsDescription, // TODO(smirnovpavel): TVector<EColumn>
         const TVector<ui32>& ignoredFeatures,
         EObjectsOrder objectsOrder,
+        bool forceUnitAutoPairWeights,
         TMaybe<TVector<NJson::TJsonValue>*> classLabels,
         NPar::ILocalExecutor* localExecutor
     );
@@ -82,17 +86,16 @@ namespace NCB {
         const NCatboostOptions::TPoolLoadParams& loadOptions,
         EObjectsOrder objectsOrder,
         bool readTestData,
-        TDatasetSubset trainDatasetSubset,
+        TDatasetSubset learnDatasetSubset,
+        TConstArrayRef<TDatasetSubset> testDatasetSubsets,
+        bool forceUnitAutoPairWeights,
         TMaybe<TVector<NJson::TJsonValue>*> classLabels,
         NPar::ILocalExecutor* executor,
         TProfileInfo* profile
     );
 
-    TPrecomputedOnlineCtrData ReadPrecomputedOnlineCtrData(
-        TMaybe<ETaskType> taskType,
-        const NCatboostOptions::TPoolLoadParams& loadOptions,
-        NPar::ILocalExecutor* executor,
-        TProfileInfo* profile
+    TPrecomputedOnlineCtrData ReadPrecomputedOnlineCtrMetaData(
+        const NCatboostOptions::TPoolLoadParams& loadOptions
     );
 
 }

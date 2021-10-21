@@ -36,6 +36,17 @@ TEST_FS = {
                     },
                 },
             },
+            'contrib': {
+                'python': {
+                    'pylib': {
+                        'libmod.py': '',
+                        'tests': {
+                            'conftest.py': '',
+                            'ya.make': '',
+                        },
+                    },
+                },
+            },
         },
     },
 }
@@ -45,6 +56,9 @@ TEST_RESOURCE = {
     b'py/namespace/unique_prefix1/project/normal_lib_extension': b'project.normal_lib.',
     b'py/namespace/unique_prefix2/project/lib_with_namespace': b'virtual.namespace.',
     b'py/namespace/unique_prefix3/project/top_level_lib': b'.',
+    # Contrib: the library is in the top level namespace but 'tests' project is not
+    b'py/namespace/unique_prefix4/contrib/python/pylib': b'.',
+    b'py/namespace/unique_prefix4/contrib/python/pylib/tests': b'contrib.python.pylib.tests.',
 }
 MODULES = {
     'project.normal_lib.mod1': b'project/normal_lib/mod1.py',
@@ -55,6 +69,8 @@ MODULES = {
     'virtual.namespace.ns_package1.ns_mod2': b'project/lib_with_namespace/ns_package1/ns_mod2.py',
     'tl_mod1': b'project/top_level_lib/tl_mod1.py',
     'tl_package1.tl_mod2': b'project/top_level_lib/tl_package1/tl_mod2.py',
+    'libmod': b'contrib/python/pylib/libmod.py',
+    'contrib.python.pylib.tests.conftest': b'contrib/python/pylib/tests/conftest.py',
 }
 PACKAGES = [
     'project',
@@ -64,11 +80,19 @@ PACKAGES = [
     'virtual.namespace',
     'virtual.namespace.ns_package1',
     'tl_package1',
+    'contrib',
+    'contrib.python',
+    'contrib.python.pylib',
+    'contrib.python.pylib.tests',
 ]
 UNKNOWN_MODULES = [
     'project.normal_lib.unknown_module',
     'virtual.namespace.unknown_module',
     'unknown_module',
+    # contribr/python/pylib directory is not a regular package and cannot be used for a usual module lookup
+    'contrib.python.pylib.libmod',
+    # Parent project contrib/python/pylib with top level namespace should not affect nested 'tests' project
+    'tests.conftest',
 ]
 
 
@@ -181,14 +205,27 @@ class TestArcadiaSourceFinder(unittest.TestCase):
             ('PFX.virtual', True),
             ('PFX.tl_mod1', False),
             ('PFX.tl_package1', True),
+            ('PFX.contrib', True),
+            ('PFX.libmod', False),
         }),
         ('tl_package1.', {
             ('PFX.tl_mod2', False),
+        }),
+        ('contrib.python.pylib.', {
+            ('PFX.tests', True),
+        }),
+        ('contrib.python.pylib.tests.', {
+            ('PFX.conftest', False),
         }),
     ])
     def test_iter_modules(self, package_prefix, expected):
         got = self.arcadia_source_finder.iter_modules(package_prefix, 'PFX.')
         assert expected == set(got)
+
+    # Check iter_modules() don't crash and return correct result after not existing module was requested
+    def test_iter_modules_after_unknown_module_import(self):
+        self.arcadia_source_finder.get_module_path('project.unknown_module')
+        assert {('normal_lib', True)} == set(self.arcadia_source_finder.iter_modules('project.', ''))
 
 
 class TestArcadiaSourceFinderForEmptyResources(unittest.TestCase):

@@ -3433,6 +3433,9 @@ class DataFrame(NDFrame, OpsMixin):
                 indexer = lib.maybe_indices_to_slice(
                     indexer.astype(np.intp, copy=False), len(self)
                 )
+                if isinstance(indexer, np.ndarray):
+                    # GH#43223 If we can not convert, use take
+                    return self.take(indexer, axis=0)
             # either we have a slice or we have a string that can be converted
             #  to a slice for partial-string date indexing
             return self._slice(indexer, axis=0)
@@ -3597,9 +3600,11 @@ class DataFrame(NDFrame, OpsMixin):
             self._setitem_array(key, value)
         elif isinstance(value, DataFrame):
             self._set_item_frame_value(key, value)
-        elif is_list_like(value) and 1 < len(
-            self.columns.get_indexer_for([key])
-        ) == len(value):
+        elif (
+            is_list_like(value)
+            and not self.columns.is_unique
+            and 1 < len(self.columns.get_indexer_for([key])) == len(value)
+        ):
             # Column to set is duplicated
             self._setitem_array([key], value)
         else:
@@ -8132,7 +8137,7 @@ NaN 12.3   33.0
 
     def explode(
         self,
-        column: str | tuple | list[str | tuple],
+        column: IndexLabel,
         ignore_index: bool = False,
     ) -> DataFrame:
         """
@@ -8142,7 +8147,7 @@ NaN 12.3   33.0
 
         Parameters
         ----------
-        column : str or tuple or list thereof
+        column : IndexLabel
             Column(s) to explode.
             For multiple columns, specify a non-empty list with each element
             be str or tuple, and all specified columns their list-like data
@@ -8224,9 +8229,8 @@ NaN 12.3   33.0
         if not self.columns.is_unique:
             raise ValueError("columns must be unique")
 
-        columns: list[str | tuple]
+        columns: list[Hashable]
         if is_scalar(column) or isinstance(column, tuple):
-            assert isinstance(column, (str, tuple))
             columns = [column]
         elif isinstance(column, list) and all(
             map(lambda c: is_scalar(c) or isinstance(c, tuple), column)
@@ -9340,7 +9344,8 @@ NaN 12.3   33.0
                 regardless of the callable's behavior.
         min_periods : int, optional
             Minimum number of observations required per pair of columns
-            to have a valid result.
+            to have a valid result. Currently only available for Pearson
+            and Spearman correlation.
 
         Returns
         -------
@@ -9374,9 +9379,7 @@ NaN 12.3   33.0
             correl = libalgos.nancorr(mat, minp=min_periods)
         elif method == "spearman":
             correl = libalgos.nancorr_spearman(mat, minp=min_periods)
-        elif method == "kendall":
-            correl = libalgos.nancorr_kendall(mat, minp=min_periods)
-        elif callable(method):
+        elif method == "kendall" or callable(method):
             if min_periods is None:
                 min_periods = 1
             mat = mat.T

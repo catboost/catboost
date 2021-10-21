@@ -369,7 +369,7 @@ try_lock(_L0& __l0, _L1& __l1, _L2& __l2, _L3&... __l3)
     return __r;
 }
 
-#endif  // _LIBCPP_CXX03_LANG
+#endif // _LIBCPP_CXX03_LANG
 
 template <class _L0, class _L1>
 void
@@ -473,7 +473,7 @@ void __unlock(_L0& __l0, _L1& __l1, _L2& __l2, _L3&... __l3) {
     _VSTD::__unlock(__l2, __l3...);
 }
 
-#endif  // _LIBCPP_CXX03_LANG
+#endif // _LIBCPP_CXX03_LANG
 
 #if _LIBCPP_STD_VER > 14
 template <class ..._Mutexes>
@@ -572,18 +572,20 @@ template<class _Callable>
 _LIBCPP_INLINE_VISIBILITY
 void call_once(once_flag&, const _Callable&);
 
-#endif  // _LIBCPP_CXX03_LANG
+#endif // _LIBCPP_CXX03_LANG
 
 struct _LIBCPP_TEMPLATE_VIS once_flag
 {
     _LIBCPP_INLINE_VISIBILITY
     _LIBCPP_CONSTEXPR
         once_flag() _NOEXCEPT : __state_(0) {}
+
 #if defined(_LIBCPP_ABI_MICROSOFT)
-    typedef uintptr_t _State_type;
+   typedef uintptr_t _State_type;
 #else
-    typedef unsigned long _State_type;
+   typedef unsigned long _State_type;
 #endif
+
 
 private:
     once_flag(const once_flag&); // = delete;
@@ -607,7 +609,7 @@ private:
     template<class _Callable>
     friend
     void call_once(once_flag&, const _Callable&);
-#endif  // _LIBCPP_CXX03_LANG
+#endif // _LIBCPP_CXX03_LANG
 };
 
 #ifndef _LIBCPP_CXX03_LANG
@@ -632,7 +634,7 @@ private:
     _LIBCPP_INLINE_VISIBILITY
     void __execute(__tuple_indices<_Indices...>)
     {
-        __invoke(_VSTD::get<0>(_VSTD::move(__f_)), _VSTD::get<_Indices>(_VSTD::move(__f_))...);
+        _VSTD::__invoke(_VSTD::get<0>(_VSTD::move(__f_)), _VSTD::get<_Indices>(_VSTD::move(__f_))...);
     }
 };
 
@@ -665,10 +667,10 @@ __call_once_proxy(void* __vp)
 
 #ifdef _LIBCPP_ABI_MICROSOFT
 _LIBCPP_FUNC_VIS void __call_once(volatile atomic<once_flag::_State_type>&, void*,
-                                  void(*)(void*));
+                                  void (*)(void*));
 #else
 _LIBCPP_FUNC_VIS void __call_once(volatile once_flag::_State_type&, void*,
-                                  void(*)(void*));
+                                  void (*)(void*));
 #endif
 
 #ifndef _LIBCPP_CXX03_LANG
@@ -725,10 +727,10 @@ call_once(once_flag& __flag, const _Callable& __func)
     }
 }
 
-#endif  // _LIBCPP_CXX03_LANG
+#endif // _LIBCPP_CXX03_LANG
 
 _LIBCPP_END_NAMESPACE_STD
 
 _LIBCPP_POP_MACROS
 
-#endif  // _LIBCPP_MUTEX
+#endif // _LIBCPP_MUTEX

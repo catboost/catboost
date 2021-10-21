@@ -1,8 +1,8 @@
 #include "json2yson.h"
 
-#include <library/cpp/yson/json_writer.h>
 #include <library/cpp/yson/parser.h>
-#include <library/cpp/yson/yson2json_adapter.h>
+#include <library/cpp/yson/json/json_writer.h>
+#include <library/cpp/yson/json/yson2json_adapter.h>
 
 namespace NJson2Yson {
     static void WriteJsonValue(const NJson::TJsonValue& jsonValue, NYT::TYson2JsonCallbacksAdapter* adapter) {
@@ -47,13 +47,13 @@ namespace NJson2Yson {
         }
     }
 
-    void SerializeJsonValueAsYson(const NJson::TJsonValue& inputValue, NYT::TYsonWriter* ysonWriter) {
+    void SerializeJsonValueAsYson(const NJson::TJsonValue& inputValue, NYson::TYsonWriter* ysonWriter) {
         NYT::TYson2JsonCallbacksAdapter adapter(ysonWriter);
         WriteJsonValue(inputValue, &adapter);
     }
 
     void SerializeJsonValueAsYson(const NJson::TJsonValue& inputValue, IOutputStream* outputStream) {
-        NYT::TYsonWriter ysonWriter(outputStream, NYT::YF_BINARY, NYT::YT_NODE, false);
+        NYson::TYsonWriter ysonWriter(outputStream, NYson::EYsonFormat::Binary, ::NYson::EYsonType::Node, false);
         SerializeJsonValueAsYson(inputValue, &ysonWriter);
     }
 
@@ -71,7 +71,7 @@ namespace NJson2Yson {
     bool DeserializeYsonAsJsonValue(IInputStream* inputStream, NJson::TJsonValue* outputValue, bool throwOnError) {
         NJson::TParserCallbacks parser(*outputValue);
         NJson2Yson::TJsonBuilder consumer(&parser);
-        NYT::TYsonParser ysonParser(&consumer, inputStream, NYT::YT_NODE);
+        NYson::TYsonParser ysonParser(&consumer, inputStream, ::NYson::EYsonType::Node);
         try {
             ysonParser.Parse();
         } catch (...) {
@@ -89,8 +89,8 @@ namespace NJson2Yson {
     }
 
     void ConvertYson2Json(IInputStream* inputStream, IOutputStream* outputStream) {
-        NYT::TJsonWriter writer(outputStream, NYT::YT_NODE, NYT::JF_TEXT, NYT::JAM_ON_DEMAND, NYT::SBF_BOOLEAN);
-        NYT::TYsonParser ysonParser(&writer, inputStream, NYT::YT_NODE);
+        NYT::TJsonWriter writer(outputStream, ::NYson::EYsonType::Node, NYT::JF_TEXT, NYT::JAM_ON_DEMAND, NYT::SBF_BOOLEAN);
+        NYson::TYsonParser ysonParser(&writer, inputStream, ::NYson::EYsonType::Node);
         ysonParser.Parse();
     }
 

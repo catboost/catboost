@@ -58,6 +58,8 @@
 #endif
 #endif
 
+#define Y_PROTOBUF_SUPPRESS_NODISCARD [[maybe_unused]] bool Y_GENERATE_UNIQUE_ID(pb_checker)=
+
 #if PROTOBUF_USE_EXCEPTIONS
 #include <exception>
 #endif

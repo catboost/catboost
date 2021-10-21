@@ -223,13 +223,13 @@ label##_trampoline:                                               \
 #endif
 
 ////////////////////////////////////////////////////////////////////////
-// TcmallocSlab_PerCpuCmpxchg64
+// TcmallocSlab_Internal_PerCpuCmpxchg64
 ////////////////////////////////////////////////////////////////////////
 
-.globl TcmallocSlab_PerCpuCmpxchg64
-.type  TcmallocSlab_PerCpuCmpxchg64, @function
-TcmallocSlab_PerCpuCmpxchg64:
-.LTcmallocSlab_PerCpuCmpxchg64_entry:
+.globl TcmallocSlab_Internal_PerCpuCmpxchg64
+.type  TcmallocSlab_Internal_PerCpuCmpxchg64, @function
+TcmallocSlab_Internal_PerCpuCmpxchg64:
+.LTcmallocSlab_Internal_PerCpuCmpxchg64_entry:
   .cfi_startproc
   // Register use:
   //
@@ -241,7 +241,7 @@ TcmallocSlab_PerCpuCmpxchg64:
   //  *  r8: The current value of *p.
   //
 
-  START_RSEQ(TcmallocSlab_PerCpuCmpxchg64)
+  START_RSEQ(TcmallocSlab_Internal_PerCpuCmpxchg64)
 
   // Are we running on the target CPU?
   GET_CPU(%r7)
@@ -257,7 +257,7 @@ TcmallocSlab_PerCpuCmpxchg64:
 
   // Store the new value, committing the operation.
   std %r6, 0(%r4)
-.LTcmallocSlab_PerCpuCmpxchg64_critical_limit:
+.LTcmallocSlab_Internal_PerCpuCmpxchg64_critical_limit:
 
   // Return the target CPU, which is already in r3.
   blr
@@ -272,20 +272,20 @@ TcmallocSlab_PerCpuCmpxchg64:
   li %r3, -1
   blr
 
-.LTcmallocSlab_PerCpuCmpxchg64_function_limit:
+.LTcmallocSlab_Internal_PerCpuCmpxchg64_function_limit:
   .cfi_endproc
-ENCODE_SIZE(TcmallocSlab_PerCpuCmpxchg64);
-DEFINE_UPSTREAM_CS(TcmallocSlab_PerCpuCmpxchg64);
+ENCODE_SIZE(TcmallocSlab_Internal_PerCpuCmpxchg64);
+DEFINE_UPSTREAM_CS(TcmallocSlab_Internal_PerCpuCmpxchg64);
 
 
 ////////////////////////////////////////////////////////////////////////
-// TcmallocSlab_Push
+// TcmallocSlab_Internal_Push
 ////////////////////////////////////////////////////////////////////////
 
-.globl TcmallocSlab_Push
-.type  TcmallocSlab_Push, @function
-TcmallocSlab_Push:
-.LTcmallocSlab_Push_entry:
+.globl TcmallocSlab_Internal_Push
+.type  TcmallocSlab_Internal_Push, @function
+TcmallocSlab_Internal_Push:
+.LTcmallocSlab_Internal_Push_entry:
   .cfi_startproc
   // Arguments use:
   //  *  r3: (Argument: Slabs*) cpu_0_slab_ptr
@@ -298,7 +298,7 @@ TcmallocSlab_Push:
   // Note that r12 may be overwritten in rseq_restart_address_internal so
   // cannot be relied upon across restartable sequence boundaries.
 
-  START_RSEQ(TcmallocSlab_Push)
+  START_RSEQ(TcmallocSlab_Internal_Push)
 
   GET_CPU(%r8)              // r8  = current CPU, includes MASK operation
   sld %r9, %r8, %r6         // r9  = r8 << shift (r6)
@@ -308,34 +308,34 @@ TcmallocSlab_Push:
   lhz %r12, 0(%r10)         // r12 = current index
   lhz %r11, 6(%r10)         // r11 = length
   cmpld %cr7, %r11, %r12    // compare current index with length
-  ble %cr7, .LTcmallocSlab_Push_no_capacity
+  ble %cr7, .LTcmallocSlab_Internal_Push_no_capacity
   rldicr %r11, %r12, 3, 60  // r11 = offset of current index
   addi %r12, %r12, 1        // current index += 1
   stdx %r5, %r9, %r11       // store pointer p (r5) into current offset
   sth %r12, 0(%r10)         // update current index
 
-.LTcmallocSlab_Push_critical_limit:
+.LTcmallocSlab_Internal_Push_critical_limit:
   mr %r3, %r8               // Return current CPU in r3
   blr
 
-.LTcmallocSlab_Push_no_capacity:
+.LTcmallocSlab_Internal_Push_no_capacity:
   mr %r3, %r8               // Place current CPU in r3
   // r7 already contains target function
   b .LPushOverflowTrampoline
 
-.LTcmallocSlab_Push_function_limit:
+.LTcmallocSlab_Internal_Push_function_limit:
   .cfi_endproc
-ENCODE_SIZE(TcmallocSlab_Push);
-DEFINE_UPSTREAM_CS(TcmallocSlab_Push);
+ENCODE_SIZE(TcmallocSlab_Internal_Push);
+DEFINE_UPSTREAM_CS(TcmallocSlab_Internal_Push);
 
 ////////////////////////////////////////////////////////////////////////
-// TcmallocSlab_Push_FixedShift
+// TcmallocSlab_Internal_Push_FixedShift
 ////////////////////////////////////////////////////////////////////////
 
-.globl TcmallocSlab_Push_FixedShift
-.type  TcmallocSlab_Push_FixedShift, @function
-TcmallocSlab_Push_FixedShift:
-.LTcmallocSlab_Push_FixedShift_entry:
+.globl TcmallocSlab_Internal_Push_FixedShift
+.type  TcmallocSlab_Internal_Push_FixedShift, @function
+TcmallocSlab_Internal_Push_FixedShift:
+.LTcmallocSlab_Internal_Push_FixedShift_entry:
   .cfi_startproc
   // Arguments use:
   //  *  r3: (Argument: Slabs*) cpu_0_slab_ptr
@@ -343,7 +343,7 @@ TcmallocSlab_Push_FixedShift:
   //  *  r5: (Argument: uintptr_t) p
   //  *  r6: (Argument: uintptr_t) f
 
-  START_RSEQ(TcmallocSlab_Push_FixedShift)
+  START_RSEQ(TcmallocSlab_Internal_Push_FixedShift)
 
   GET_CPU_UNMASKED(%r7)   // r7 = unmasked CPU
                           // Mask upper 52 bits of %r7 and shift left in single
@@ -356,35 +356,35 @@ TcmallocSlab_Push_FixedShift:
   lhz %r10, 0(%r9)        // r10 = current index
   lhz %r11, 6(%r9)        // r11 = end index
   cmpld %cr7, %r11, %r10  // Check for space
-  ble %cr7, .LTcmallocSlab_Push_FixedShift_no_capacity
+  ble %cr7, .LTcmallocSlab_Internal_Push_FixedShift_no_capacity
   rldicr %r11, %r10, 3, 60  // r11 = offset of current index
   addi %r10, %r10, 1        // current index ++
   stdx %r5, %r8, %r11       // store the item (from r5)
   sth %r10, 0(%r9)          // store current index
 
-.LTcmallocSlab_Push_FixedShift_critical_limit:
+.LTcmallocSlab_Internal_Push_FixedShift_critical_limit:
   MASK_CPU(%r3, %r7)     // Return and mask CPU into %r3
   blr
 
-.LTcmallocSlab_Push_FixedShift_no_capacity:
+.LTcmallocSlab_Internal_Push_FixedShift_no_capacity:
   MASK_CPU(%r3, %r7)     // Move and mask CPU into %r3
   mr %r7, %r6            // Move target function into r7
   b .LPushOverflowTrampoline
 
-.LTcmallocSlab_Push_FixedShift_function_limit:
+.LTcmallocSlab_Internal_Push_FixedShift_function_limit:
   .cfi_endproc
-ENCODE_SIZE(TcmallocSlab_Push_FixedShift);
-DEFINE_UPSTREAM_CS(TcmallocSlab_Push_FixedShift);
+ENCODE_SIZE(TcmallocSlab_Internal_Push_FixedShift);
+DEFINE_UPSTREAM_CS(TcmallocSlab_Internal_Push_FixedShift);
 
 
 ////////////////////////////////////////////////////////////////////////
-// TcmallocSlab_Pop
+// TcmallocSlab_Internal_Pop
 ////////////////////////////////////////////////////////////////////////
 
-.globl TcmallocSlab_Pop
-.type  TcmallocSlab_Pop, @function
-TcmallocSlab_Pop:
-.LTcmallocSlab_Pop_entry:
+.globl TcmallocSlab_Internal_Pop
+.type  TcmallocSlab_Internal_Pop, @function
+TcmallocSlab_Internal_Pop:
+.LTcmallocSlab_Internal_Pop_entry:
   .cfi_startproc
   // Arguments use:
   //  *  r3: (Argument: Slabs*) cpu_0_slab_ptr
@@ -394,7 +394,7 @@ TcmallocSlab_Pop:
   // Available r7 r8 r9 r10 r11
   // r12 can be used as a temporary within rseq
 
-  START_RSEQ(TcmallocSlab_Pop)
+  START_RSEQ(TcmallocSlab_Internal_Pop)
 
   GET_CPU(%r7)             // r7 = CPU, includes mask operation
   sld %r12, %r7, %r6       // r12 = CPU shifted by shift (r6)
@@ -404,41 +404,41 @@ TcmallocSlab_Pop:
   lhz %r9, 0(%r8)          // r9 = current index
   lhz %r10, 4(%r8)         // r10 = begin
   cmpld %cr7, %r10, %r9    // Check that we have items to pop
-  bge %cr7, .LTcmallocSlab_Pop_no_item
+  bge %cr7, .LTcmallocSlab_Internal_Pop_no_item
   subi %r9, %r9, 1         // r9 = current index --
   rldicr %r10, %r9, 3, 60  // r10 = offset to current item
   ldx %r11, %r12, %r10     // load the item from base + index
   sth %r9, 0(%r8)          // store current index
 
-.LTcmallocSlab_Pop_critical_limit:
+.LTcmallocSlab_Internal_Pop_critical_limit:
   // Move the item into r3, now that it's safe to do so.
   mr %r3, %r11
   blr
 
-.LTcmallocSlab_Pop_no_item:
+.LTcmallocSlab_Internal_Pop_no_item:
   mr %r3, %r7  // Place CPU into r3
   b .LPopUnderflowTrampoline
 
-.LTcmallocSlab_Pop_function_limit:
+.LTcmallocSlab_Internal_Pop_function_limit:
   .cfi_endproc
-ENCODE_SIZE(TcmallocSlab_Pop);
-DEFINE_UPSTREAM_CS(TcmallocSlab_Pop);
+ENCODE_SIZE(TcmallocSlab_Internal_Pop);
+DEFINE_UPSTREAM_CS(TcmallocSlab_Internal_Pop);
 
 ////////////////////////////////////////////////////////////////////////
-// TcmallocSlab_Pop_FixedShift
+// TcmallocSlab_Internal_Pop_FixedShift
 ////////////////////////////////////////////////////////////////////////
 
-.globl TcmallocSlab_Pop_FixedShift
-.type  TcmallocSlab_Pop_FixedShift, @function
-TcmallocSlab_Pop_FixedShift:
-.LTcmallocSlab_Pop_FixedShift_entry:
+.globl TcmallocSlab_Internal_Pop_FixedShift
+.type  TcmallocSlab_Internal_Pop_FixedShift, @function
+TcmallocSlab_Internal_Pop_FixedShift:
+.LTcmallocSlab_Internal_Pop_FixedShift_entry:
   .cfi_startproc
   // Arguments use:
   //  *  r3: (Argument: Slabs*) cpu_0_slab_ptr
   //  *  r4: (Argument: uintptr_t) cl
   //  *  r5: (Argument: uintptr_t) f
 
-  START_RSEQ(TcmallocSlab_Pop_FixedShift)
+  START_RSEQ(TcmallocSlab_Internal_Pop_FixedShift)
 
   GET_CPU_UNMASKED(%r6)  // r6 = current CPU
                          // Following instruction combines mask and shift
@@ -450,34 +450,34 @@ TcmallocSlab_Pop_FixedShift:
   lhz %r9, 0(%r8)         // r9 = current index
   lhz %r10, 4(%r8)        // r10 = begin index
   cmpld %cr7, %r10, %r9   // Check that there are elements available
-  bge %cr7, .LTcmallocSlab_Pop_FixedShift_no_item
+  bge %cr7, .LTcmallocSlab_Internal_Pop_FixedShift_no_item
   subi %r9, %r9, 1         // current index --
   rldicr %r10, %r9, 3, 60  // r10 = offset of current index
   ldx %r11, %r7, %r10      // r11 = load the item
   sth %r9, 0(%r8)          // update current index
 
-.LTcmallocSlab_Pop_FixedShift_critical_limit:
+.LTcmallocSlab_Internal_Pop_FixedShift_critical_limit:
   // Move the item into r3, now that it's safe to do so.
   mr %r3, %r11
   blr
 
-.LTcmallocSlab_Pop_FixedShift_no_item:
+.LTcmallocSlab_Internal_Pop_FixedShift_no_item:
   MASK_CPU(%r3, %r6)          // Extract CPU from unmasked value in %r6
   b .LPopUnderflowTrampoline
 
-.LTcmallocSlab_Pop_FixedShift_function_limit:
+.LTcmallocSlab_Internal_Pop_FixedShift_function_limit:
   .cfi_endproc
-ENCODE_SIZE(TcmallocSlab_Pop_FixedShift);
-DEFINE_UPSTREAM_CS(TcmallocSlab_Pop_FixedShift);
+ENCODE_SIZE(TcmallocSlab_Internal_Pop_FixedShift);
+DEFINE_UPSTREAM_CS(TcmallocSlab_Internal_Pop_FixedShift);
 
 ////////////////////////////////////////////////////////////////////////
-// TcmallocSlab_PushBatch_FixedShift
+// TcmallocSlab_Internal_PushBatch_FixedShift
 ////////////////////////////////////////////////////////////////////////
 
-.globl TcmallocSlab_PushBatch_FixedShift
-.type  TcmallocSlab_PushBatch_FixedShift, @function
-TcmallocSlab_PushBatch_FixedShift:
-.LTcmallocSlab_PushBatch_FixedShift_entry:
+.globl TcmallocSlab_Internal_PushBatch_FixedShift
+.type  TcmallocSlab_Internal_PushBatch_FixedShift, @function
+TcmallocSlab_Internal_PushBatch_FixedShift:
+.LTcmallocSlab_Internal_PushBatch_FixedShift_entry:
   .cfi_startproc
   // Arguments use:
   //  *  r3: (Argument: Slabs*) cpu_0_slab_ptr
@@ -485,7 +485,7 @@ TcmallocSlab_PushBatch_FixedShift:
   //  *  r5: (Argument: uintptr_t) batch
   //  *  r6: (Argument: uintptr_t) len
 
-  START_RSEQ(TcmallocSlab_PushBatch_FixedShift)
+  START_RSEQ(TcmallocSlab_Internal_PushBatch_FixedShift)
 
   GET_CPU_UNMASKED(%r7)
   clrlsldi %r8, %r7, 52, TCMALLOC_PERCPU_TCMALLOC_FIXED_SLAB_SHIFT
@@ -496,13 +496,13 @@ TcmallocSlab_PushBatch_FixedShift:
   lhz %r11, 6(%r9)     // r11 - end
   sldi %r7, %r6, 3   // r7 - len * 8
   cmpld %cr7, %r11, %r10  // current < end?
-  ble %cr7, .LTcmallocSlab_PushBatch_FixedShift_critical_limit
+  ble %cr7, .LTcmallocSlab_Internal_PushBatch_FixedShift_critical_limit
   sub %r11, %r11, %r10  // r11 - available capacity
   // r11 = min(r11, r6)
   cmpld %cr7, %r6, %r11
-  bge %cr7, .LTcmallocSlab_PushBatch_FixedShift_min
+  bge %cr7, .LTcmallocSlab_Internal_PushBatch_FixedShift_min
   mr %r11, %r6
-.LTcmallocSlab_PushBatch_FixedShift_min:
+.LTcmallocSlab_Internal_PushBatch_FixedShift_min:
   add %r11, %r10, %r11
   sldi %r11, %r11, 3
   sldi %r10, %r10, 3
@@ -510,35 +510,35 @@ TcmallocSlab_PushBatch_FixedShift:
   // At this point:
   // r5 - batch, r7 - offset in the batch
   // r8 - cpu region, r10 - offset into the cpu region, r11 - limit of offset
-.LTcmallocSlab_PushBatch_FixedShift_loop:
+.LTcmallocSlab_Internal_PushBatch_FixedShift_loop:
   subi %r7, %r7, 8
   ldx %r12, %r5, %r7  // load the item
   stdx %r12, %r8, %r10  // store the item
   addi %r10, %r10, 8
   cmpld %cr7, %r10, %r11
-  bne %cr7, .LTcmallocSlab_PushBatch_FixedShift_loop
+  bne %cr7, .LTcmallocSlab_Internal_PushBatch_FixedShift_loop
   rotrdi %r10, %r10, 3
   sth %r10, 0(%r9)  // update current
 
-.LTcmallocSlab_PushBatch_FixedShift_critical_limit:
+.LTcmallocSlab_Internal_PushBatch_FixedShift_critical_limit:
   // return r6 - r7 / 8
   rotrdi %r7, %r7, 3
   sub %r3, %r6, %r7
   blr
 
-.LTcmallocSlab_PushBatch_FixedShift_function_limit:
+.LTcmallocSlab_Internal_PushBatch_FixedShift_function_limit:
   .cfi_endproc
-ENCODE_SIZE(TcmallocSlab_PushBatch_FixedShift);
-DEFINE_UPSTREAM_CS(TcmallocSlab_PushBatch_FixedShift);
+ENCODE_SIZE(TcmallocSlab_Internal_PushBatch_FixedShift);
+DEFINE_UPSTREAM_CS(TcmallocSlab_Internal_PushBatch_FixedShift);
 
 ////////////////////////////////////////////////////////////////////////
-// TcmallocSlab_PopBatch_FixedShift
+// TcmallocSlab_Internal_PopBatch_FixedShift
 ////////////////////////////////////////////////////////////////////////
 
-.globl TcmallocSlab_PopBatch_FixedShift
-.type  TcmallocSlab_PopBatch_FixedShift, @function
-TcmallocSlab_PopBatch_FixedShift:
-.LTcmallocSlab_PopBatch_FixedShift_entry:
+.globl TcmallocSlab_Internal_PopBatch_FixedShift
+.type  TcmallocSlab_Internal_PopBatch_FixedShift, @function
+TcmallocSlab_Internal_PopBatch_FixedShift:
+.LTcmallocSlab_Internal_PopBatch_FixedShift_entry:
   .cfi_startproc
   // Arguments use:
   //  *  r3: (Argument: Slabs*) cpu_0_slab_ptr
@@ -546,7 +546,7 @@ TcmallocSlab_PopBatch_FixedShift:
   //  *  r5: (Argument: uintptr_t) batch
   //  *  r6: (Argument: uintptr_t) len
 
-  START_RSEQ(TcmallocSlab_PopBatch_FixedShift)
+  START_RSEQ(TcmallocSlab_Internal_PopBatch_FixedShift)
 
   GET_CPU_UNMASKED(%r7)
   clrlsldi %r7, %r7, 52, TCMALLOC_PERCPU_TCMALLOC_FIXED_SLAB_SHIFT
@@ -557,13 +557,13 @@ TcmallocSlab_PopBatch_FixedShift:
   lhz %r10, 4(%r8)     // r10 - begin
   li %r11, 0           // current position in batch
   cmpld %cr7, %r10, %r9
-  bge %cr7, .LTcmallocSlab_PopBatch_FixedShift_critical_limit
+  bge %cr7, .LTcmallocSlab_Internal_PopBatch_FixedShift_critical_limit
   sub %r10, %r9, %r10  // r10 - available items
   // r10 = min(r10, r6)
   cmpld %cr7, %r6, %r10
-  bge %cr7, .LTcmallocSlab_PopBatch_FixedShift_min
+  bge %cr7, .LTcmallocSlab_Internal_PopBatch_FixedShift_min
   mr %r10, %r6
-.LTcmallocSlab_PopBatch_FixedShift_min:
+.LTcmallocSlab_Internal_PopBatch_FixedShift_min:
   sub %r10, %r9, %r10
   sldi %r10, %r10, 3
   sldi %r9, %r9, 3
@@ -571,24 +571,24 @@ TcmallocSlab_PopBatch_FixedShift:
   // At this point:
   // r5 - batch, r11 - offset in the batch
   // r7 - cpu region, r9 - offset into the cpu region, r10 - limit of offset
-.LTcmallocSlab_PopBatch_FixedShift_loop:
+.LTcmallocSlab_Internal_PopBatch_FixedShift_loop:
   subi %r9, %r9, 8
   ldx %r12, %r7, %r9  // load the item
   stdx %r12, %r5, %r11  // store the item
   addi %r11, %r11, 8
   cmpld %cr7, %r9, %r10
-  bne %cr7, .LTcmallocSlab_PopBatch_FixedShift_loop
+  bne %cr7, .LTcmallocSlab_Internal_PopBatch_FixedShift_loop
   rotrdi %r9, %r9, 3
   sth %r9, 0(%r8)  // update current
 
-.LTcmallocSlab_PopBatch_FixedShift_critical_limit:
+.LTcmallocSlab_Internal_PopBatch_FixedShift_critical_limit:
   rotrdi %r3, %r11, 3
   blr
 
-.LTcmallocSlab_PopBatch_FixedShift_function_limit:
+.LTcmallocSlab_Internal_PopBatch_FixedShift_function_limit:
   .cfi_endproc
-ENCODE_SIZE(TcmallocSlab_PopBatch_FixedShift);
-DEFINE_UPSTREAM_CS(TcmallocSlab_PopBatch_FixedShift);
+ENCODE_SIZE(TcmallocSlab_Internal_PopBatch_FixedShift);
+DEFINE_UPSTREAM_CS(TcmallocSlab_Internal_PopBatch_FixedShift);
 
   // Input: r7 points to the function to tail call. r3...r6 are args for it.
 .LPushOverflowTrampoline:

@@ -153,11 +153,13 @@ namespace NCB {
         , PerFloatFeatureQuantization(std::move(perFloatFeatureQuantization))
         , FloatFeaturesAllowNansInTestOnly(floatFeaturesAllowNansInTestOnly)
         , CatFeaturesPerfectHash(featuresLayout.GetCatFeatureCount())
-        , RuntimeTextProcessingOptions(GetAvailableTextFeatureIndices(featuresLayout), textFeaturesProcessing)
         , TextDigitizers()
-        , EmbeddingEstimatorsOptions(GetAvailableEmbeddingFeatureIndices(featuresLayout), embeddingProcessingOptions)
     {
         FeaturesLayout->IgnoreExternalFeatures(ignoredFeatures);
+        RuntimeTextProcessingOptions = NCatboostOptions::TRuntimeTextOptions(GetAvailableTextFeatureIndices(*FeaturesLayout),
+                                                                             textFeaturesProcessing);
+        EmbeddingEstimatorsOptions = NCatboostOptions::TRuntimeEmbeddingOptions(GetAvailableEmbeddingFeatureIndices(*FeaturesLayout),
+                                                                                embeddingProcessingOptions);
     }
 
     void TQuantizedFeaturesInfo::Init(TFeaturesLayout* featuresLayout) {

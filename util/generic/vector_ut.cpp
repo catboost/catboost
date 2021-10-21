@@ -473,12 +473,20 @@ private:
 
     struct TPod {
         int x;
+
+        operator int() {
+            return x;
+        }
     };
 
     struct TNonPod {
         int x;
         TNonPod() {
             x = 0;
+        }
+
+        operator int() {
+            return x;
         }
     };
 
@@ -487,8 +495,8 @@ private:
     public:
         using TBase = std::allocator<T>;
 
-        typename TBase::pointer allocate(typename TBase::size_type n, std::allocator<void>::const_pointer hint = nullptr) {
-            typename TBase::pointer p = TBase::allocate(n, hint);
+        T* allocate(typename TBase::size_type n) {
+            auto p = TBase::allocate(n);
             for (size_t i = 0; i < n; ++i) {
                 memset(p + i, 0xab, sizeof(T));
             }
@@ -502,22 +510,28 @@ private:
     };
 
     template <typename T>
-    void TestYResize(bool mustInit) {
+    void TestYResize() {
+#ifdef _YNDX_LIBCXX_ENABLE_VECTOR_POD_RESIZE_UNINITIALIZED
+        constexpr bool ALLOW_UNINITIALIZED = std::is_pod_v<T>;
+#else
+        constexpr bool ALLOW_UNINITIALIZED = false;
+#endif
+
         TVector<T, TDebugAlloc<T>> v;
 
         v.reserve(5);
-        T* firstBegin = v.begin();
+        auto firstBegin = v.begin();
 
-        v.yresize(5); // No realloc
+        v.yresize(5); // No realloc, no initialization if allowed
         UNIT_ASSERT(firstBegin == v.begin());
         for (int i = 0; i < 5; ++i) {
-            UNIT_ASSERT(bool(*(int*)(v.begin() + i)) != mustInit);
+            UNIT_ASSERT_VALUES_EQUAL(bool(v[i]), ALLOW_UNINITIALIZED);
         }
 
-        v.yresize(20); // Realloc
+        v.yresize(20); // Realloc, still no initialization
         UNIT_ASSERT(firstBegin != v.begin());
         for (int i = 0; i < 20; ++i) {
-            UNIT_ASSERT(bool(*(int*)(v.begin() + i)) != mustInit);
+            UNIT_ASSERT_VALUES_EQUAL(bool(v[i]), ALLOW_UNINITIALIZED);
         }
     }
 
@@ -545,9 +559,9 @@ private:
     }
 
     void TestYResize() {
-        TestYResize<int>(false);
-        TestYResize<TPod>(false);
-        TestYResize<TNonPod>(true);
+        TestYResize<int>();
+        TestYResize<TPod>();
+        TestYResize<TNonPod>();
     }
 
     void CheckInitializeList(const TVector<int>& v) {

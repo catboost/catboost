@@ -6,11 +6,11 @@
 
 namespace NChromiumTrace {
     class TYsonTraceConsumer final: public ITraceConsumer {
-        NYT::TYsonWriter Yson;
+        NYson::TYsonWriter Yson;
         TString JobId;
 
     public:
-        TYsonTraceConsumer(IOutputStream* stream, NYT::EYsonFormat format = NYT::YF_BINARY);
+        TYsonTraceConsumer(IOutputStream* stream, NYson::EYsonFormat format = NYson::EYsonFormat::Binary);
         ~TYsonTraceConsumer() override;
 
         void AddEvent(const TDurationBeginEvent& event, const TEventArgs* args) override;

@@ -292,6 +292,10 @@ module std [system] {
     header "filesystem"
     export *
   }
+  module format {
+    header "format"
+    export *
+  }
   module forward_list {
     header "forward_list"
     export initializer_list
@@ -403,6 +407,10 @@ module std [system] {
   module random {
     header "random"
     export initializer_list
+    export *
+  }
+  module ranges {
+    header "ranges"
     export *
   }
   module ratio {
@@ -522,6 +530,7 @@ module std [system] {
   }
 
   // FIXME: These should be private.
+  module __bits { header "__bits" export * }
   module __bit_reference { header "__bit_reference" export * }
   module __debug { header "__debug" export * }
   module __errc { header "__errc" export * }

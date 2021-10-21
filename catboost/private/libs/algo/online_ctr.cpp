@@ -62,7 +62,7 @@ TConstArrayRef<ui8> TPrecomputedOnlineCtr::GetData(const TCtr& ctr, ui32 dataset
 
     Y_ASSERT(columnImpl.GetBitsPerKey() == 8);
     TConstPtrArraySubset<ui8> arraySubset = columnImpl.GetArrayData<ui8>();
-    Y_ASSERT(HoldsAlternative<TFullSubset<ui32>>(*arraySubset.GetSubsetIndexing()));
+    Y_ASSERT(std::holds_alternative<TFullSubset<ui32>>(*arraySubset.GetSubsetIndexing()));
     return TConstArrayRef<ui8>(*arraySubset.GetSrc(), dataProvider.GetObjectCount());
 }
 

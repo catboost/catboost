@@ -64,6 +64,7 @@ ALLOW smarttv/droideka -> contrib/python/django/django-1.11
 ALLOW travel/avia/.* -> contrib/python/django/django-1.11
 ALLOW travel/rasp/admin -> contrib/python/django/django-1.11
 ALLOW travel/rasp/library/python/common -> contrib/python/django/django-1.11
+ALLOW travel/rasp/library/python/sitemap -> contrib/python/django/django-1.11
 ALLOW travel/library/python/entrypoint -> contrib/python/django/django-1.11
 ALLOW yaphone/advisor/advisor -> contrib/python/django/django-1.11
 ALLOW yaphone/advisor/common/tests -> contrib/python/django/django-1.11
@@ -112,14 +113,6 @@ ALLOW contrib/python/jaeger-client -> contrib/python/thrift
 ALLOW search/mon/wabbajack/libs/generated/iss3 -> contrib/python/thrift
 ALLOW search/mon/wabbajack/libs/modlib/api_wrappers/casher -> contrib/python/thrift
 DENY .* -> contrib/python/thrift
-
-ALLOW sandbox/projects/mail/Load/FuritaShooting -> contrib/python/jsonlib
-ALLOW sandbox/projects/mail/Load/LizaShooting -> contrib/python/jsonlib
-ALLOW sandbox/projects/mail/Load/QuinnShooting -> contrib/python/jsonlib
-ALLOW sandbox/projects/mail/Load/ShootingComparison -> contrib/python/jsonlib
-ALLOW sandbox/projects/mail/Load/WebApiAmmoGen -> contrib/python/jsonlib
-ALLOW sandbox/projects/mail/Load/WebApiShooting -> contrib/python/jsonlib
-DENY .* -> contrib/python/jsonlib
 
 ALLOW antiadblock/libs/tornado_redis -> contrib/python/toredis
 ALLOW yabs/amazon/cache_proxy -> contrib/python/toredis
@@ -264,6 +257,7 @@ ALLOW yweb/antispam/cid -> contrib/python/pycrypto
 ALLOW mail/payments/payments -> contrib/python/pycrypto
 DENY .* -> contrib/python/pycrypto
 
+ALLOW contrib/python/Geohash/tests -> contrib/python/Geohash
 ALLOW yql/udfs/common/python/python_arc -> contrib/python/Geohash
 DENY .* -> contrib/python/Geohash
 
@@ -291,6 +285,7 @@ ALLOW jupytercloud/arcadia_kernel/default -> contrib/python/facebook-business
 ALLOW jupytercloud/arcadia_kernel/default_yql -> contrib/python/facebook-business
 ALLOW geoproduct/amocrm/fb_leads -> contrib/python/facebook-business
 ALLOW statbox/statkey -> contrib/python/facebook-business
+ALLOW quality/ab_testing/cofe/bin/lib/files/py3/cofe_kernel_yql -> contrib/python/facebook-business
 DENY .* -> contrib/python/facebook-business
 
 # https://st.yandex-team.ru/CONTRIB-1954
@@ -365,7 +360,7 @@ ALLOW cloud/support/mdb-support-bot -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/databases -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/fastapi-utils -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/gino -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW contrib/python/graphene_sqlalchemy/graphene_sqlalchemy/tests -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW contrib/python/graphene-sqlalchemy/graphene_sqlalchemy/tests -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/luigi -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/sentry-sdk/sentry_sdk/integrations/sqlalchemy -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/sqlalchemy/sqlalchemy-1.2/sqlalchemy/testing -> contrib/python/sqlalchemy/sqlalchemy-1.2
@@ -702,7 +697,8 @@ ALLOW zootopia/analytics/drive/source/drive/models -> contrib/python/sqlalchemy/
 ALLOW zootopia/hub/geosupply/geosupply -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW jupytercloud/arcadia_kernel/default -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW jupytercloud/arcadia_kernel/default_yql -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW quality/ab_testing/cofe/bin/lib/files/cofe_kernel_yql -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW quality/ab_testing/cofe/bin/lib/files/py2/cofe_kernel_yql -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW quality/ab_testing/cofe/bin/lib/files/py3/cofe_kernel_yql -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW yql/udfs/common/python/python3 -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW yql/udfs/common/python/python_arc -> contrib/python/sqlalchemy/sqlalchemy-1.2
 DENY .* -> contrib/python/sqlalchemy/sqlalchemy-1.2
@@ -711,10 +707,6 @@ DENY .* -> contrib/python/sqlalchemy/sqlalchemy-1.2
 # (use contrib/python/marshmallow_dataclass instead)
 ALLOW education/ -> contrib/python/dataclasses-json
 DENY .* -> contrib/python/dataclasses-json
-
-# stringcase is a transitive dependency of dataclasses-json. Do not use it
-ALLOW contrib/python/dataclasses-json -> contrib/python/stringcase
-DENY .* -> contrib/python/stringcase
 
 # https://st.yandex-team.ru/CONTRIB-2222
 ALLOW browser/infra/.* -> contrib/python/hurry.filesize

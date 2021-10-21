@@ -162,6 +162,12 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data\benchmarks_ut\catboost-libs-data-benchmarks_ut.vcxproj">
       <Project>54E939EF-A373-6AFA-E9E2-99DAE5271F5C</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data\benchmarks_ut\pylibs-data-benchmarks_ut.global.vcxproj">
+      <Project>D66E3595-6B8A-B9C0-B145-1C21C0B19AA9</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data\benchmarks_ut\pylibs-data-benchmarks_ut.vcxproj">
+      <Project>A66120C4-0791-8C91-0B8E-9A6F1786F902</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data\catboost-libs-data.vcxproj">
       <Project>262F6CF9-EB50-BD91-AC9B-1967CC6B84F7</Project>
     </ProjectReference>
@@ -233,6 +239,12 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\model_export\ut\catboost-libs-model-model_export-ut.vcxproj">
       <Project>4D1B4DDE-18B4-C539-E4F4-F7ACD976972E</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\model_export\ut\pymodel-model_export-ut.global.vcxproj">
+      <Project>8BA2ED2A-2814-52ED-7A13-33437A9058B7</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\model_export\ut\pymodel-model_export-ut.vcxproj">
+      <Project>6BC8E71E-CE3D-B3CE-BD7D-8C0F7B5A963E</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\ut\lib\model-ut-lib.vcxproj">
       <Project>F4AB4275-04FB-8D97-76D1-A694CC86F722</Project>
@@ -387,11 +399,23 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\pytest\cuda_tests\catboost-pytest-cuda_tests.vcxproj">
       <Project>73A61063-9CBB-C06C-3D0B-330986BF4A3E</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\pytest\cuda_tests\pycatboost-pytest-cuda_tests.global.vcxproj">
+      <Project>EDE4C80C-06AF-F741-2601-3BA7CF5BBE23</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\pytest\cuda_tests\pycatboost-pytest-cuda_tests.vcxproj">
+      <Project>016B697F-D258-3B67-18E4-D8584D7EE0D5</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\pytest\lib\py3catboost-pytest-lib.global.vcxproj">
       <Project>775BF033-F658-849F-EECB-F18F50769072</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\pytest\lib\py3catboost-pytest-lib.vcxproj">
       <Project>74FA7725-9C3B-5A57-C15F-68FF0BB50A76</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\pytest\pycatboost-pytest.global.vcxproj">
+      <Project>50F9DE16-0F7D-0258-C04E-022551063402</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\pytest\pycatboost-pytest.vcxproj">
+      <Project>831519F8-3913-8244-09E1-834FCCB9D10F</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\python-package\catboost\_catboost.pyd.vcxproj">
       <Project>35A1E8E1-5A55-A227-1CE0-986A245482DA</Project>
@@ -414,11 +438,29 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\python-package\ut\large\catboost-python-package-ut-large.vcxproj">
       <Project>4B7EBEBB-867A-BF48-CA7B-FAFAF7D17A1D</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\python-package\ut\large\pypython-package-ut-large.global.vcxproj">
+      <Project>2420A02B-D473-78DB-5EB2-BC77E6C133B1</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\python-package\ut\large\pypython-package-ut-large.vcxproj">
+      <Project>A9609185-CAC6-77BE-6647-58B8EC6881EE</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\python-package\ut\medium\catboost-python-package-ut-medium.vcxproj">
       <Project>0C034D70-14B6-8458-3798-29013EA2BBD8</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\python-package\ut\medium\gpu\catboost-python-package-ut-medium-gpu.vcxproj">
       <Project>770FB2B4-21EC-72C1-F55D-867AF0ECD62B</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\python-package\ut\medium\gpu\pyut-medium-gpu.global.vcxproj">
+      <Project>114ECBA4-C028-CB84-0B01-F97709815D2F</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\python-package\ut\medium\gpu\pyut-medium-gpu.vcxproj">
+      <Project>EC664224-6F49-26DE-7FDA-D4301DE83610</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\python-package\ut\medium\pypython-package-ut-medium.global.vcxproj">
+      <Project>678743F8-E83D-2830-7BFE-30CEF2C84B19</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\python-package\ut\medium\pypython-package-ut-medium.vcxproj">
+      <Project>9CEC3FA1-7945-C92E-12C4-AB7A1EF8B498</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\tools\limited_precision_dsv_diff\limited_precision_dsv_diff.vcxproj">
       <Project>5FF2816F-34FA-81D6-B543-4B882E775E06</Project>
@@ -431,6 +473,15 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\tools\limited_precision_json_diff\pytest\catboost-tools-limited_precision_json_diff-pytest.vcxproj">
       <Project>E2A18523-2E86-AE22-92F3-B4AB2474F789</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\tools\limited_precision_numpy_diff\limited_precision_numpy_diff.vcxproj">
+      <Project>A4ECB26B-C2EC-AF0B-D186-6A9ACFACD517</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\tools\limited_precision_numpy_diff\pycatboost-tools-limited_precision_numpy_diff.global.vcxproj">
+      <Project>6B2E7839-18CF-55A7-E31E-32B96B99C284</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\tools\limited_precision_numpy_diff\pycatboost-tools-limited_precision_numpy_diff.vcxproj">
+      <Project>1EB5F002-38A7-F1BA-1792-1A25043DC96D</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\tools\model_comparator\model_comparator.vcxproj">
       <Project>F2890E3D-C0D6-F694-F586-9591CDA361D1</Project>
@@ -489,9 +540,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\crcutil\contrib-libs-crcutil.vcxproj">
       <Project>1EE751F2-33FA-3640-4C59-F20313BE143E</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cub\contrib-libs-cub.vcxproj">
-      <Project>E6D0934F-A141-5DB0-60FA-6BD719540061</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\contrib-libs-cxxsupp.vcxproj">
       <Project>8D7C41B0-2344-C558-29D8-570B39498A2F</Project>
     </ProjectReference>
@@ -539,6 +587,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\nayuki_md5\contrib-libs-nayuki_md5.vcxproj">
       <Project>C0251DC8-E401-B1AF-785F-72D686693CB9</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\nvidia\cub\libs-nvidia-cub.vcxproj">
+      <Project>B1B146A3-CFD6-0035-F05E-D7DACD90FFAF</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\onnx\contrib-libs-onnx.vcxproj">
       <Project>BA51C351-CD64-A60B-C4C2-2794FC71EE24</Project>
@@ -627,6 +678,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\tcmalloc\contrib-libs-tcmalloc.vcxproj">
       <Project>F45B041A-78F1-C9F5-824A-68E3CD3574A3</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\tcmalloc\malloc_extension\libs-tcmalloc-malloc_extension.vcxproj">
+      <Project>18CEFA97-91EE-19AF-E577-1BD32E799645</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\tensorboard\contrib-libs-tensorboard.vcxproj">
       <Project>85643E70-B3E5-4747-7C6D-59B9CF26EE48</Project>
     </ProjectReference>
@@ -648,17 +702,23 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd06\contrib-libs-zstd06.vcxproj">
       <Project>149CAE2F-67B1-E007-9F05-67247453CE03</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\Jinja2\py3Jinja2.global.vcxproj">
-      <Project>B31EC26D-8F94-2E35-265A-96C33BED2239</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\Jinja2\py2\pypython-Jinja2-py2.global.vcxproj">
+      <Project>5A3D943D-1CD4-DA3F-F14D-5F563FD83D84</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\Jinja2\py3Jinja2.vcxproj">
-      <Project>ABE69C03-D8AA-46E8-A10F-942CBD86C860</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\Jinja2\py2\pypython-Jinja2-py2.vcxproj">
+      <Project>DFC9FCAD-D136-C9EC-825E-D95528E439FA</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\Jinja2\pyJinja2.global.vcxproj">
-      <Project>E256A8D2-AF93-29CE-D2E6-E82CE585A3C2</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\Jinja2\py3\pypython-Jinja2-py3.global.vcxproj">
+      <Project>CAEFC93A-91F2-E134-6A1C-1B7A8A66BE95</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\Jinja2\pyJinja2.vcxproj">
-      <Project>6637C870-CFE3-A8F1-C204-F8078DE53775</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\Jinja2\py3\pypython-Jinja2-py3.vcxproj">
+      <Project>3D4B481E-2985-E2CB-DB77-D5D8985A9A73</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\Jinja2\py3contrib-python-Jinja2.vcxproj">
+      <Project>7B02C64E-9C71-F289-7191-EBB8E5746133</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\Jinja2\pycontrib-python-Jinja2.vcxproj">
+      <Project>76D57E74-99BC-2964-0D4C-D98C0A770B5F</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\MarkupSafe\py2\pypython-MarkupSafe-py2.global.vcxproj">
       <Project>DBE410BD-B7CE-63DF-8D8A-BDB14151A7BB</Project>
@@ -726,17 +786,20 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\backcall\py3contrib-python-backcall.vcxproj">
       <Project>92F5AA60-9CDF-33B0-F665-B6E0CDDFE5D5</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\backports-shutil_get_terminal_size\pycontrib-python-backports-shutil_get_terminal_size.global.vcxproj">
-      <Project>40B292FB-96D4-661A-6AA6-4D74ED8F5155</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\backports.functools-lru-cache\pycontrib-python-backports.functools-lru-cache.global.vcxproj">
+      <Project>1600D1CB-87D7-B743-B183-D410DB997543</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\backports-shutil_get_terminal_size\pycontrib-python-backports-shutil_get_terminal_size.vcxproj">
-      <Project>1C1BE43D-FE75-D006-9839-1B851BF67411</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\backports.functools-lru-cache\pycontrib-python-backports.functools-lru-cache.vcxproj">
+      <Project>72CAF43F-970B-5E9F-7DD3-7C13627D483E</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\backports\functools_lru_cache\pypython-backports-functools_lru_cache.global.vcxproj">
-      <Project>95780841-AE94-3F49-88C4-81D3F07E3462</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\backports.shutil-get-terminal-size\pycontrib-python-backports.shutil-get-terminal-size.global.vcxproj">
+      <Project>14C608BF-AF76-6E68-DC11-B46C8BEB41DA</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\backports\functools_lru_cache\pypython-backports-functools_lru_cache.vcxproj">
-      <Project>F2327B60-48D4-156E-8EF9-CC75082589DF</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\backports.shutil-get-terminal-size\pycontrib-python-backports.shutil-get-terminal-size.vcxproj">
+      <Project>1BA1D8D1-7C10-2111-CF29-66D0ABC3AFDB</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\certifi\py3contrib-python-certifi.vcxproj">
+      <Project>1DCAE401-01AE-CE82-CDD5-8E7ED8B65DCD</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\colorama\py3contrib-python-colorama.global.vcxproj">
       <Project>0E0E70FC-148C-4937-1103-230DC41150C2</Project>
@@ -798,6 +861,15 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\faulthandler\pycontrib-python-faulthandler.vcxproj">
       <Project>B91FAD52-E23E-B3E4-D7A1-568C2BA36521</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\filelock\py3\pypython-filelock-py3.global.vcxproj">
+      <Project>D43AB308-388B-D998-BF6B-A71D3354C1B4</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\filelock\py3\pypython-filelock-py3.vcxproj">
+      <Project>22E53C6D-6DB3-8F95-3153-307BAB1C513E</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\filelock\py3contrib-python-filelock.vcxproj">
+      <Project>6C1951D6-3BF3-612E-8A1F-415A1F4ACE8C</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\funcsigs\pycontrib-python-funcsigs.global.vcxproj">
       <Project>E6280809-0D81-6EE8-F4D9-9A9D571C79C1</Project>
     </ProjectReference>
@@ -822,8 +894,11 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\graphviz\pycontrib-python-graphviz.vcxproj">
       <Project>F7A1107D-8D70-ACE8-DC3B-C262EC7A87FA</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\importlib-metadata\pycontrib-python-importlib-metadata.global.vcxproj">
-      <Project>4F8714BF-E4F1-08CA-ACDA-A2CFAB9C6033</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\importlib-metadata\py2\pypython-importlib-metadata-py2.global.vcxproj">
+      <Project>77241000-E28E-793C-88B4-56C641DEE900</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\importlib-metadata\py2\pypython-importlib-metadata-py2.vcxproj">
+      <Project>7CA8D33B-5425-5BF9-E98C-202C0225D987</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\importlib-metadata\pycontrib-python-importlib-metadata.vcxproj">
       <Project>7F463C70-BAD7-7EF0-2E4C-848242C99C7E</Project>
@@ -839,6 +914,12 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\ipdb\pycontrib-python-ipdb.vcxproj">
       <Project>8A8B9475-F218-7D6B-2EEC-6969E7478235</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\ipython-genutils\pycontrib-python-ipython-genutils.global.vcxproj">
+      <Project>300B5E29-236A-243E-8F82-6ACE1C94E197</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\ipython-genutils\pycontrib-python-ipython-genutils.vcxproj">
+      <Project>8AC6D0DA-E9CE-8CC5-04B0-B0313A92FE5E</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\ipython\py2\pypython-ipython-py2.global.vcxproj">
       <Project>020B6FB1-628C-DD3F-7C85-2EFD9B3E3826</Project>
@@ -858,18 +939,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\ipython\pycontrib-python-ipython.vcxproj">
       <Project>9FAEC26D-0991-B9F6-A63C-ABE29C2D36E8</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\ipython_genutils\py3ipython_genutils.global.vcxproj">
-      <Project>1C93C910-3759-1D4E-F386-E52C33C86B71</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\ipython_genutils\py3ipython_genutils.vcxproj">
-      <Project>EF519C27-3D77-67EB-3821-7EF82C4DDB03</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\ipython_genutils\pyipython_genutils.global.vcxproj">
-      <Project>F11B5187-A6DB-E11E-F281-42290914BF34</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\ipython_genutils\pyipython_genutils.vcxproj">
-      <Project>F3D8796F-FB25-69B7-B508-C57691C7426F</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\jedi\py3jedi.global.vcxproj">
       <Project>FFD04B57-AAF4-4AF2-EDB6-4395B3523C3C</Project>
     </ProjectReference>
@@ -888,20 +957,32 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\matplotlib-inline\pycontrib-python-matplotlib-inline.vcxproj">
       <Project>C0B1676E-76CB-BDA2-96F5-D8D4080FBEA3</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\more-itertools\py3contrib-python-more-itertools.global.vcxproj">
-      <Project>6B22A075-8F67-A352-9F87-1F7DDF94B317</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\more-itertools\py2\pypython-more-itertools-py2.global.vcxproj">
+      <Project>B1C56F5A-6678-4A55-9671-1EF50FA75CE8</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\more-itertools\py2\pypython-more-itertools-py2.vcxproj">
+      <Project>8541E5F0-6A9F-6C7B-40DD-F084C7E89F89</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\more-itertools\py3\pypython-more-itertools-py3.global.vcxproj">
+      <Project>D269A104-C97F-7D88-203B-FBD0A9E4F25A</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\more-itertools\py3\pypython-more-itertools-py3.vcxproj">
+      <Project>1A021939-9FF0-3D9F-E258-4E8D3909862C</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\more-itertools\py3contrib-python-more-itertools.vcxproj">
       <Project>94265A2F-8C00-014C-3814-76F9E1A8BCD3</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\more-itertools\pycontrib-python-more-itertools.global.vcxproj">
-      <Project>8E1F0917-C9D4-7ECC-1F33-AE465ADA7B94</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\more-itertools\pycontrib-python-more-itertools.vcxproj">
       <Project>BC62290A-1F8B-7962-8C00-63BFE8DAE2A0</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\mypy-protobuf\protoc-gen-mypy.vcxproj">
-      <Project>51542B63-AFFD-5EA3-79AB-9ACCECAC57CA</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\mypy-protobuf\bin\protoc-gen-mypy\protoc-gen-mypy.vcxproj">
+      <Project>336B97B1-38C2-9545-9D85-D0A972FD767D</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\mypy-protobuf\pycontrib-python-mypy-protobuf.global.vcxproj">
+      <Project>15127EAF-6A59-636D-6354-64791D7806E0</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\mypy-protobuf\pycontrib-python-mypy-protobuf.vcxproj">
+      <Project>931D0C57-C897-901F-DA1F-647C1AF8FFD1</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\include\python-numpy-include.vcxproj">
       <Project>09FC0446-04FA-A4E9-2AB6-23078034F2BC</Project>
@@ -987,12 +1068,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\parso\py3contrib-python-parso.vcxproj">
       <Project>35EB94C8-A09B-BA46-BD4E-21DE91B8B269</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\path.py\py3contrib-python-path.py.global.vcxproj">
-      <Project>BC4D91C9-C19B-2A0E-DFF1-208C7DAF8DF8</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\path.py\py3contrib-python-path.py.vcxproj">
-      <Project>758A6619-BD09-841D-84C9-9F13BA30F974</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\path.py\pycontrib-python-path.py.global.vcxproj">
       <Project>763AC7BA-FF25-543A-3141-77514CB9814F</Project>
     </ProjectReference>
@@ -1005,17 +1080,17 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pathlib2\pycontrib-python-pathlib2.vcxproj">
       <Project>09B94D29-C8D9-195E-BE7A-2CF5517C1312</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pickleshare\py3pickleshare.global.vcxproj">
-      <Project>3A05A3BB-703A-8846-5647-B0EC24AAA983</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pickleshare\py3contrib-python-pickleshare.global.vcxproj">
+      <Project>C9DF8E9E-176D-7B05-AB85-AD3474E5F630</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pickleshare\py3pickleshare.vcxproj">
-      <Project>FD224386-D740-162D-8821-22805C59DAD6</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pickleshare\py3contrib-python-pickleshare.vcxproj">
+      <Project>5135ADBD-B3FA-8F19-B851-2EE2D4BDDCFB</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pickleshare\pypickleshare.global.vcxproj">
-      <Project>57701E8A-7881-EF01-C9D4-41B3A42C0CB8</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pickleshare\pycontrib-python-pickleshare.global.vcxproj">
+      <Project>3C138A13-4913-5DF0-C00A-BE13876396F6</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pickleshare\pypickleshare.vcxproj">
-      <Project>81A5063F-36BD-685C-C2AD-836B04477F09</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pickleshare\pycontrib-python-pickleshare.vcxproj">
+      <Project>19043F21-DFA6-9A42-5EE5-EEAD938C9242</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pluggy\py3contrib-python-pluggy.global.vcxproj">
       <Project>504C7B39-CDDA-41EC-BC3A-ED8C7D998F6D</Project>
@@ -1599,6 +1674,12 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\testpath\py3contrib-python-testpath.vcxproj">
       <Project>377791EF-584E-427C-D498-239AFD58432A</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\tornado\tornado-6\pypython-tornado-tornado-6.global.vcxproj">
+      <Project>CD91984B-90CD-8C91-0031-A3FD437A20AD</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\tornado\tornado-6\pypython-tornado-tornado-6.vcxproj">
+      <Project>21433405-7B21-7C69-1CA1-70BE5EA3F6CB</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\traitlets\py2\pypython-traitlets-py2.global.vcxproj">
       <Project>CC326F0E-AD85-9087-4F85-A0C250A1716C</Project>
     </ProjectReference>
@@ -1737,6 +1818,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\hash\abseil-cpp-absl-hash.vcxproj">
       <Project>B0CBA6EC-6361-E4BF-DB08-3A7C6493FAA4</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\hash\internal\absl-hash-internal.vcxproj">
+      <Project>C449468E-D5C0-28D5-542A-BF1C13422B69</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\memory\abseil-cpp-absl-memory.vcxproj">
       <Project>80038EC6-442D-194F-5B32-5457D5F8425C</Project>
     </ProjectReference>
@@ -1788,8 +1872,8 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\strings\abseil-cpp-absl-strings.vcxproj">
       <Project>C94DBD31-AE85-DCD5-7C63-712955C59002</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\strings\cord\absl-strings-cord.vcxproj">
-      <Project>C90ADDFF-B541-65DF-B484-A2BB21EFD418</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\strings\absl_cord\absl-strings-absl_cord.vcxproj">
+      <Project>2C77AAA8-7230-F3E6-19CC-48053B79DE55</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\strings\internal\absl-strings-internal.vcxproj">
       <Project>EC596CF4-D927-3A82-31A7-3C88B519515A</Project>
@@ -2274,6 +2358,15 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\yson\library-cpp-yson.vcxproj">
       <Project>D05A14C5-BA93-7AA3-1AB8-E62B001110D1</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\ytalloc\core\cpp-ytalloc-core.vcxproj">
+      <Project>48CA1C7E-9FF3-8299-9D74-DB9A77F55630</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\certifi\py3library-python-certifi.global.vcxproj">
+      <Project>B562A0F5-9ACD-90A7-7E65-3F8A082FF982</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\certifi\py3library-python-certifi.vcxproj">
+      <Project>38AD8D56-B76A-C528-E8E3-8F054BC0240C</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\cores\py3library-python-cores.global.vcxproj">
       <Project>51093023-B70B-7F20-53A9-6AA58A8CECDB</Project>
     </ProjectReference>
@@ -2333,6 +2426,21 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\func\pylibrary-python-func.vcxproj">
       <Project>A2964E72-06DC-2ADB-2F18-61795E9554C3</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\hnsw\hnsw\_hnsw.pyd.vcxproj">
+      <Project>9AA7FCCE-4981-15CE-5D95-2F79F4CAFE48</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\hnsw\lib\py3python-hnsw-lib.global.vcxproj">
+      <Project>A939A972-6B36-5F38-2E3C-799EC85D2A4D</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\hnsw\lib\py3python-hnsw-lib.vcxproj">
+      <Project>BB89E940-9511-7AC7-AF00-AF760C99AFC6</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\hnsw\lib\pypython-hnsw-lib.global.vcxproj">
+      <Project>592F8468-258B-E453-1BBD-D7A8859D5E08</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\hnsw\lib\pypython-hnsw-lib.vcxproj">
+      <Project>66D93DB4-4388-D5BE-24C5-38E2A3F6B5E4</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\pytest\plugins\py3python-pytest-plugins.global.vcxproj">
       <Project>31A4C39F-EB9D-307A-6EA2-6FD6DDAB3B79</Project>

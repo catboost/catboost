@@ -4,7 +4,7 @@
 #include <util/stream/output.h>
 #include <util/system/defaults.h>
 
-namespace NYT {
+namespace NYson {
     ////////////////////////////////////////////////////////////////////////////////
 
     // Various functions that read/write varints from/to a stream.
@@ -21,4 +21,4 @@ namespace NYT {
 
     ////////////////////////////////////////////////////////////////////////////////
 
-}
+} // namespace NYson

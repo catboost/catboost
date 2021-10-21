@@ -19,11 +19,12 @@
 #include "tcmalloc/guarded_page_allocator.h"
 #include "tcmalloc/internal/logging.h"
 
+GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
+namespace tcmalloc_internal {
 namespace {
 
-static constexpr size_t kMaxGpaPages =
-    tcmalloc::GuardedPageAllocator::kGpaMaxPages;
+static constexpr size_t kMaxGpaPages = GuardedPageAllocator::kGpaMaxPages;
 
 // Size of pages used by GuardedPageAllocator.
 static size_t PageSize() {
@@ -33,9 +34,9 @@ static size_t PageSize() {
 }
 
 void BM_AllocDealloc(benchmark::State& state) {
-  static tcmalloc::GuardedPageAllocator* gpa = []() {
-    auto gpa = new tcmalloc::GuardedPageAllocator;
-    absl::base_internal::SpinLockHolder h(&tcmalloc::pageheap_lock);
+  static GuardedPageAllocator* gpa = []() {
+    auto gpa = new GuardedPageAllocator;
+    absl::base_internal::SpinLockHolder h(&pageheap_lock);
     gpa->Init(kMaxGpaPages, kMaxGpaPages);
     gpa->AllowAllocations();
     return gpa;
@@ -54,4 +55,6 @@ BENCHMARK(BM_AllocDealloc)->Range(1, PageSize());
 BENCHMARK(BM_AllocDealloc)->Arg(1)->ThreadRange(1, kMaxGpaPages);
 
 }  // namespace
+}  // namespace tcmalloc_internal
 }  // namespace tcmalloc
+GOOGLE_MALLOC_SECTION_END

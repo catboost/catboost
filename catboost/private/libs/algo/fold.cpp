@@ -239,58 +239,61 @@ TFold TFold::BuildPlainFold(
     const ui32 learnSampleCount = learnData.GetObjectCount();
 
     TFold ff;
-    ff.SampleWeights.resize(learnSampleCount, 1);
 
     InitPermutationData(learnData, shuffle, permuteBlockSize, rand, &ff);
 
-    ff.AssignTarget(learnData.TargetData->GetTarget(), targetClassifiers, localExecutor);
-    ff.SetWeights(GetWeights(*learnData.TargetData), learnSampleCount);
+    if (learnSampleCount) {
+        ff.SampleWeights.resize(learnSampleCount, 1);
 
-    auto maybeGroupInfos = learnData.TargetData->GetGroupInfo();
-    int groupCountAsInt = 0;
-    if (maybeGroupInfos) {
-        if (shuffle) {
-            GetGroupInfosSubset(*maybeGroupInfos, *ff.LearnPermutation, localExecutor, &ff.LearnQueriesInfo);
-        } else {
-            ff.LearnQueriesInfo.insert(
-                ff.LearnQueriesInfo.end(),
-                maybeGroupInfos->begin(),
-                maybeGroupInfos->end()
+        ff.AssignTarget(learnData.TargetData->GetTarget(), targetClassifiers, localExecutor);
+        ff.SetWeights(GetWeights(*learnData.TargetData), learnSampleCount);
+
+        auto maybeGroupInfos = learnData.TargetData->GetGroupInfo();
+        int groupCountAsInt = 0;
+        if (maybeGroupInfos) {
+            if (shuffle) {
+                GetGroupInfosSubset(*maybeGroupInfos, *ff.LearnPermutation, localExecutor, &ff.LearnQueriesInfo);
+            } else {
+                ff.LearnQueriesInfo.insert(
+                    ff.LearnQueriesInfo.end(),
+                    maybeGroupInfos->begin(),
+                    maybeGroupInfos->end()
+                );
+            }
+            groupCountAsInt = SafeIntegerCast<int>(maybeGroupInfos->size());
+        }
+
+        const int learnSampleCountAsInt = SafeIntegerCast<int>(learnSampleCount);
+
+        TFold::TBodyTail bt(
+            groupCountAsInt,
+            groupCountAsInt,
+            learnSampleCountAsInt,
+            learnSampleCountAsInt,
+            ff.GetSumWeight()
+        );
+
+        InitApproxes(learnSampleCount, startingApprox, approxDimension, storeExpApproxes, &(bt.Approx));
+        AllocateRank2(approxDimension, learnSampleCount, bt.WeightedDerivatives);
+        AllocateRank2(approxDimension, learnSampleCount, bt.SampleWeightedDerivatives);
+        if (hasPairwiseWeights) {
+            bt.PairwiseWeights.resize(learnSampleCount);
+            CalcPairwiseWeights(ff.LearnQueriesInfo, bt.TailQueryFinish, &bt.PairwiseWeights);
+            bt.SamplePairwiseWeights.resize(learnSampleCount);
+        }
+
+        TMaybeData<TConstArrayRef<TConstArrayRef<float>>> baseline = learnData.TargetData->GetBaseline();
+        if (baseline) {
+            InitApproxFromBaseline(
+                learnSampleCount,
+                *baseline,
+                ff.GetLearnPermutationArray(),
+                storeExpApproxes,
+                &bt.Approx
             );
         }
-        groupCountAsInt = SafeIntegerCast<int>(maybeGroupInfos->size());
+        ff.BodyTailArr.emplace_back(std::move(bt));
     }
-
-    const int learnSampleCountAsInt = SafeIntegerCast<int>(learnSampleCount);
-
-    TFold::TBodyTail bt(
-        groupCountAsInt,
-        groupCountAsInt,
-        learnSampleCountAsInt,
-        learnSampleCountAsInt,
-        ff.GetSumWeight()
-    );
-
-    InitApproxes(learnSampleCount, startingApprox, approxDimension, storeExpApproxes, &(bt.Approx));
-    AllocateRank2(approxDimension, learnSampleCount, bt.WeightedDerivatives);
-    AllocateRank2(approxDimension, learnSampleCount, bt.SampleWeightedDerivatives);
-    if (hasPairwiseWeights) {
-        bt.PairwiseWeights.resize(learnSampleCount);
-        CalcPairwiseWeights(ff.LearnQueriesInfo, bt.TailQueryFinish, &bt.PairwiseWeights);
-        bt.SamplePairwiseWeights.resize(learnSampleCount);
-    }
-
-    TMaybeData<TConstArrayRef<TConstArrayRef<float>>> baseline = learnData.TargetData->GetBaseline();
-    if (baseline) {
-        InitApproxFromBaseline(
-            learnSampleCount,
-            *baseline,
-            ff.GetLearnPermutationArray(),
-            storeExpApproxes,
-            &bt.Approx
-        );
-    }
-    ff.BodyTailArr.emplace_back(std::move(bt));
 
     ff.InitOnlineEstimatedFeatures(
         onlineEstimatedFeaturesQuantizationOptions,

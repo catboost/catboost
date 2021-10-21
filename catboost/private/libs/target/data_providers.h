@@ -19,8 +19,10 @@ namespace NCB {
     struct TTargetCreationOptions {
         bool IsClass;
         bool IsMultiClass;
+        bool IsMultiLabel;
         bool CreateBinClassTarget;
         bool CreateMultiClassTarget;
+        bool CreateMultiLabelTarget;
         bool CreateGroups;
         bool CreatePairs;
         TMaybe<ui32> MaxPairsCount;
@@ -119,6 +121,7 @@ namespace NCB {
         bool isRealTarget,
         bool isClass,
         bool isMultiClass,
+        bool isMultiLabel,
         TMaybe<float> targetBorder,
         bool classCountUnknown,
         const TVector<NJson::TJsonValue> inputClassLabels,

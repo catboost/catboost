@@ -19,7 +19,7 @@
     <properties>
         <spark.compat.version>${spark_compat_version_placeholder}</spark.compat.version>
         <spark.version>${spark_version_placeholder}</spark.version>
-        <hadoop.version>2.7.3</hadoop.version>
+        <hadoop.version>${hadoop_version_placeholder}</hadoop.version>
         <global_project_root>${project.basedir}/../${relative_global_project_root_placeholder}</global_project_root>
         <catboost_root>${global_project_root}/../..</catboost_root>
         <core_project_root>${global_project_root}/core</core_project_root>
@@ -70,7 +70,7 @@
                         </goals>
                         <configuration>
                             <executable>java</executable>
-                            <classpathScope>compile</classpathScope>>
+                            <classpathScope>compile</classpathScope>
                             <arguments>
                                 <argument>-classpath</argument>
                                 <!-- automatically creates the classpath using all project dependencies,
@@ -211,6 +211,12 @@
         </dependency>
 
         <dependency>
+            <groupId>org.json4s</groupId>
+            <artifactId>json4s-jackson_${scala.compat.version}</artifactId>
+            <version>${json4s_version_placeholder}</version>
+        </dependency>
+
+        <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
         <version>2.6.7.3</version>
@@ -239,7 +245,7 @@
             <version>${hadoop.version}</version>
             <scope>provided</scope>
         </dependency>
-    
+
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-core_${scala.compat.version}</artifactId>
@@ -373,54 +379,106 @@
           </build>
       </profile>
       <profile>
-         <id>spark-2.3</id>
-         <activation>
-           <property>
-             <name>spark.compat.version</name>
-             <value>2.3</value>
-           </property>
-          </activation>
-          <dependencies>
-              <dependency>
-               <groupId>org.json4s</groupId>
-               <artifactId>json4s-jackson_${scala.compat.version}</artifactId>
-               <version>3.2.11</version>
-              </dependency>
-          </dependencies>
+        <id>javadoc</id>
+        <build>
+          <plugins>
+            <plugin>
+              <groupId>net.alchim31.maven</groupId>
+              <artifactId>scala-maven-plugin</artifactId>
+              <version>4.4.0</version>
+              <executions>
+                <execution>
+                  <id>doc</id>
+                  <phase>generate-sources</phase>
+                  <goals>
+                    <goal>compile</goal>
+                  </goals>
+                </execution>
+              </executions>
+              <configuration>
+                <args>
+                  <arg>-P:genjavadoc:out=${project.build.directory}/genjavadoc</arg>
+                </args>
+                <compilerPlugins>
+                  <compilerPlugin>
+                    <groupId>com.typesafe.genjavadoc</groupId>
+                    <artifactId>genjavadoc-plugin_${scala_version_placeholder}</artifactId>
+                    <version>0.18</version>
+                  </compilerPlugin>
+                  <compilerPlugin>
+                    <groupId>org.scalamacros</groupId>
+                    <artifactId>paradise_${scala.version}</artifactId>
+                    <version>2.1.1</version>
+                  </compilerPlugin>
+                </compilerPlugins>
+                <sourceDir>${project.build.directory}/src_for_doc</sourceDir>
+              </configuration>
+            </plugin>
+            <plugin>
+              <groupId>org.codehaus.mojo</groupId>
+              <artifactId>build-helper-maven-plugin</artifactId>
+              <executions>
+                <execution>
+                  <phase>generate-sources</phase>
+                  <goals>
+                    <goal>add-source</goal>
+                  </goals>
+                  <configuration>
+                    <sources>
+                      <source>${project.build.directory}/genjavadoc</source>
+                      <source>${project.build.directory}/src_for_doc</source>
+                    </sources>
+                  </configuration>
+                </execution>
+              </executions>
+            </plugin>
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-javadoc-plugin</artifactId>
+              <version>2.9</version>
+              <configuration>
+                <minmemory>64m</minmemory>
+                <maxmemory>2g</maxmemory>
+                <outputDirectory>${project.build.directory}</outputDirectory>
+                <detectLinks>true</detectLinks>
+              </configuration>
+            </plugin>
+          </plugins>
+        </build>
       </profile>
       <profile>
-         <id>spark-2.4</id>
-         <activation>
-           <property>
-             <name>spark.compat.version</name>
-             <value>2.4</value>
-           </property>
-          </activation>
-          <properties>
-          </properties>
-          <dependencies>
-              <dependency>
-               <groupId>org.json4s</groupId>
-               <artifactId>json4s-jackson_${scala.compat.version}</artifactId>
-               <version>3.5.3</version>
-              </dependency>
-          </dependencies>
-      </profile>
-      <profile>
-         <id>spark-3.0</id>
-         <activation>
-           <property>
-             <name>spark.compat.version</name>
-             <value>3.0</value>
-           </property>
-          </activation>
-          <dependencies>
-              <dependency>
-               <groupId>org.json4s</groupId>
-               <artifactId>json4s-jackson_${scala.compat.version}</artifactId>
-               <version>3.6.6</version>
-              </dependency>
-          </dependencies>
+        <id>pythondoc</id>
+        <build>
+          <plugins>
+            <plugin>
+              <groupId>org.codehaus.mojo</groupId>
+              <artifactId>exec-maven-plugin</artifactId>
+              <version>1.6.0</version>
+              <executions>
+                  <execution>
+                      <id>Generate Python documentation</id>
+                      <phase>process-classes</phase>
+                      <goals>
+                          <goal>exec</goal>
+                      </goals>
+                      <configuration>
+                          <environmentVariables>
+                            <CATBOOST_SPARK_MODULE_PATH>${project.build.directory}/classes</CATBOOST_SPARK_MODULE_PATH>
+                          </environmentVariables>
+                          <executable>python3</executable>
+                          <arguments>
+                              <argument>-m</argument>
+                              <argument>sphinx</argument>
+                              <argument>${core_project_root}/docs/python/source</argument>
+                              <argument>${project.build.directory}/site/pythondocs</argument>
+                          </arguments>
+                          <workingDirectory>${user.dir}</workingDirectory>
+                      </configuration>
+                  </execution>
+              </executions>
+            </plugin>
+          </plugins>
+        </build>
       </profile>
     </profiles>
 </project>

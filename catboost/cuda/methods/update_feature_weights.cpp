@@ -39,7 +39,7 @@ void UpdateFeatureWeightsForBestSplits(
 
     for (ui32 idx: xrange(weights.size())) {
         if (featuresManager.IsCtr(idx + ctrBegin) && !featuresManager.IsUsedCtr(idx + ctrBegin)) {
-            weights[idx] = pow(1 + weights[idx] / maxUniqueValues, modelSizeReg);
+            weights[idx] = pow(1 + weights[idx] / maxUniqueValues, -modelSizeReg);
         }
     }
 

@@ -76,14 +76,20 @@ TEXT_FEATURE_ESTIMATORS = [
 ]
 
 ROTTEN_TOMATOES_WITH_EMBEDDINGS_TRAIN_FILE = data_file('rotten_tomatoes_small_with_embeddings', 'train')
-ROTTEN_TOMATOES_WITH_EMBEDDINGS_CD_BINCLASS_FILE = data_file(
-    'rotten_tomatoes_small_with_embeddings',
-    'cd_binclass'
-)
-ROTTEN_TOMATOES_ONLY_EMBEDDINGS_CD_BINCLASS_FILE = data_file(
-    'rotten_tomatoes_small_with_embeddings',
-    'cd_binclass_only_embeddings'
-)
+ROTTEN_TOMATOES_CD = {
+    'with_embeddings': data_file(
+        'rotten_tomatoes_small_with_embeddings',
+        'cd_binclass_without_texts'
+    ),
+    'only_embeddings': data_file(
+        'rotten_tomatoes_small_with_embeddings',
+        'cd_binclass_only_embeddings'
+    ),
+    'with_embeddings_and_texts': data_file(
+        'rotten_tomatoes_small_with_embeddings',
+        'cd_binclass'
+    )
+}
 
 
 def diff_tool(threshold=None):
@@ -1256,6 +1262,39 @@ def test_pairlogit_no_target(boosting_type):
     return [local_canonical_file(output_eval_path)]
 
 
+def test_pairlogit_force_unit_pair_weights():
+    def train(params, output_eval_path):
+        cmd = (
+            '--loss-function', 'PairLogit',
+            '-f', data_file('querywise', 'train'),
+            '-t', data_file('querywise', 'test'),
+            '--column-description', data_file('querywise', 'train.cd.group_weight'),
+            '-i', '20',
+            '-T', '4',
+            '--use-best-model', 'false',
+            '--eval-file', output_eval_path,
+        ) + params
+        execute_catboost_fit('CPU', cmd)
+
+    group_weights_eval = yatest.common.test_output_path('test_group_weights.eval')
+    train((), group_weights_eval)
+    unit_weights_eval = yatest.common.test_output_path('test_unit_weights.eval')
+    train(('--force-unit-auto-pair-weights',), unit_weights_eval)
+    assert not filecmp.cmp(group_weights_eval, unit_weights_eval), \
+        "Forcing unit weights for auto-generated pairs should change eval result"
+
+    pairs_paths = (
+        '--learn-pairs', data_file('querywise', 'train.pairs'),
+        '--test-pairs', data_file('querywise', 'test.pairs'),
+    )
+    pairs_and_group_weights_eval = yatest.common.test_output_path('test_pairs_and_group_weights.eval')
+    train(pairs_paths, pairs_and_group_weights_eval)
+    pairs_and_unit_weights_eval = yatest.common.test_output_path('test_pairs_and_unit_weights.eval')
+    train(pairs_paths + ('--force-unit-auto-pair-weights',), pairs_and_unit_weights_eval)
+    assert filecmp.cmp(pairs_and_group_weights_eval, pairs_and_unit_weights_eval), \
+        "Forcing unit weights for explicit pairs should not change eval result"
+
+
 def test_pairlogit_approx_on_full_history():
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
@@ -2063,6 +2102,29 @@ def test_ignored_features_not_read_names():
     execute_catboost_fit('CPU', cmd)
 
 
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+def test_text_ignored_features(boosting_type):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+
+    cmd = (
+        '--loss-function', 'Logloss',
+        '-f', data_file('rotten_tomatoes', 'train'),
+        '-t', data_file('rotten_tomatoes', 'test'),
+        '--column-description', data_file('rotten_tomatoes', 'cd_binclass'),
+        '--boosting-type', boosting_type,
+        '-i', '10',
+        '-w', '0.03',
+        '-T', '4',
+        '-m', output_model_path,
+        '-I', '2-4:6',
+        '--eval-file', output_eval_path,
+        '--use-best-model', 'false',
+    )
+    execute_catboost_fit('CPU', cmd)
+    return [local_canonical_file(output_eval_path)]
+
+
 @pytest.mark.parametrize('boosting_type, grow_policy', BOOSTING_TYPE_WITH_GROW_POLICIES)
 def test_baseline(boosting_type, grow_policy):
     output_model_path = yatest.common.test_output_path('model.bin')
@@ -2489,6 +2551,47 @@ def test_bad_fold_cv_spec(is_inverted, error_type):
 
     with pytest.raises(yatest.common.ExecutionError):
         execute_catboost_fit('CPU', cmd)
+
+
+@pytest.mark.parametrize('is_inverted', [False, True], ids=['', 'inverted'])
+@pytest.mark.parametrize('boosting_type, grow_policy', BOOSTING_TYPE_WITH_GROW_POLICIES)
+def test_cv_on_quantized(is_inverted, boosting_type, grow_policy):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    borders_path = yatest.common.test_output_path('borders')
+
+    def run_cmd(learn_set_path, eval_path, additional_params):
+        cmd = (
+            '--dev-efb-max-buckets', '0',
+            '--use-best-model', 'false',
+            '--loss-function', 'Logloss',
+            '--learn-set', learn_set_path,
+            '--column-description', data_file('higgs', 'train.cd'),
+            '--boosting-type', boosting_type,
+            '--grow-policy', grow_policy,
+            '-i', '10',
+            '-w', '0.03',
+            '-T', '4',
+            '-m', output_model_path,
+            '--cv', format_crossvalidation(is_inverted, 2, 10),
+            '--eval-file', eval_path,
+        ) + additional_params
+        execute_catboost_fit('CPU', cmd)
+
+    quantized_eval_path = yatest.common.test_output_path('quantized.eval')
+    run_cmd(
+        'quantized://' + data_file('higgs', 'train_small_x128_greedylogsum.bin'),
+        quantized_eval_path,
+        ('--output-borders-file', borders_path)
+    )
+
+    tsv_eval_path = yatest.common.test_output_path('tsv.eval')
+    run_cmd(
+        data_file('higgs', 'train_small'),
+        tsv_eval_path,
+        ('--input-borders-file', borders_path)
+    )
+
+    assert filecmp.cmp(quantized_eval_path, tsv_eval_path)
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
@@ -3856,6 +3959,31 @@ def test_prediction_type(prediction_type, loss_function, boosting_type):
     return [local_canonical_file(output_eval_path)]
 
 
+@pytest.mark.parametrize('dataset', ['scene', 'scene_crossentropy', 'yeast'])
+@pytest.mark.parametrize('prediction_type', PREDICTION_TYPES)
+def test_prediction_type_multilabel(prediction_type, dataset):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    loss_function = 'MultiCrossEntropy' if dataset == 'scene_crossentropy' else 'MultiLogloss'
+    cmd = (
+        '--use-best-model', 'false',
+        '--loss-function', loss_function,
+        '-f', data_file(dataset, 'train'),
+        '-t', data_file(dataset, 'test'),
+        '--column-description', data_file(dataset, 'train.cd'),
+        '--boosting-type', 'Plain',
+        '-i', '10',
+        '-w', '0.03',
+        '-T', '4',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+        '--prediction-type', prediction_type
+    )
+    execute_catboost_fit('CPU', cmd)
+
+    return [local_canonical_file(output_eval_path)]
+
+
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 @pytest.mark.parametrize(
     'dev_score_calc_obj_block_size',
@@ -4222,6 +4350,87 @@ def test_class_names_multiclass_last_class_missed(loss_function, boosting_type):
     execute_catboost_fit('CPU', cmd)
 
     return [local_canonical_file(output_eval_path)]
+
+
+def test_class_names_multilabel():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+
+    cmd = (
+        '--use-best-model', 'false',
+        '--loss-function', 'MultiLogloss',
+        '-f', data_file('scene', 'train'),
+        '-t', data_file('scene', 'test'),
+        '--column-description', data_file('scene', 'train.cd'),
+        '--boosting-type', 'Plain',
+        '-i', '10',
+        '-w', '0.03',
+        '-T', '4',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+        '--class-names', 'a,b,c,d,e,f'
+    )
+    execute_catboost_fit('CPU', cmd)
+
+    return [local_canonical_file(output_eval_path)]
+
+
+def test_custom_metric_for_multilabel():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+
+    cmd = (
+        '--use-best-model', 'false',
+        '--loss-function', 'MultiLogloss',
+        '-f', data_file('scene', 'train'),
+        '-t', data_file('scene', 'test'),
+        '--column-description', data_file('scene', 'train.cd'),
+        '--boosting-type', 'Plain',
+        '-i', '10',
+        '-T', '4',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+        '--custom-metric',
+        'Accuracy,Accuracy:type=PerClass,Precision,Recall,F1,HammingLoss',
+        '--learn-err-log', learn_error_path,
+        '--test-err-log', test_error_path,
+    )
+    execute_catboost_fit('CPU', cmd)
+    return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
+
+
+@pytest.mark.parametrize('cd', ['train.cd', 'train_1.cd'])
+@pytest.mark.parametrize('metrics', ['MultiLogloss', 'Accuracy,Precision'])
+def test_multilabel(cd, metrics):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+
+    cmd = (
+        '--use-best-model', 'false',
+        '--loss-function', 'MultiLogloss',
+        '-f', data_file('scene', 'train'),
+        '-t', data_file('scene', 'test'),
+        '--column-description', data_file('scene', cd),
+        '--boosting-type', 'Plain',
+        '-i', '10',
+        '-T', '4',
+        '-m', output_model_path,
+        '--output-columns', 'RawFormulaVal,Probability,Class',
+        '--eval-file', output_eval_path,
+        '--custom-metric', metrics,
+        '--learn-err-log', learn_error_path,
+        '--test-err-log', test_error_path,
+    )
+    execute_catboost_fit('CPU', cmd)
+    return [
+        local_canonical_file(output_eval_path),
+        local_canonical_file(learn_error_path),
+        local_canonical_file(test_error_path)
+    ]
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
@@ -5792,7 +6001,7 @@ def test_eval_metrics_with_boost_from_average_and_model_shrinkage(config):
     learn_first_metrics = np.round(np.loadtxt(learn_error_path, skiprows=1)[:, 1:], 8)
     learn_second_metrics = np.round(np.loadtxt(learn_eval_path, skiprows=1)[:, 1:], 8)
     assert test_first_metrics[-1] == test_second_metrics[-1]
-    assert learn_first_metrics[-1] == learn_second_metrics[-1]
+    assert np.allclose(learn_first_metrics[-1], learn_second_metrics[-1], atol=1e-4)
 
 
 @pytest.mark.parametrize('metrics', ['AUC', 'AUC,Precision'])
@@ -5864,6 +6073,52 @@ def test_eval_metrics_multiclass(metric, loss_function, dataset, metric_period):
         '--test-err-log', test_error_path,
         '--use-best-model', 'false',
         '--classes-count', '3',
+        '--metric-period', metric_period
+    )
+    execute_catboost_fit('CPU', cmd)
+
+    cmd = (
+        CATBOOST_PATH,
+        'eval-metrics',
+        '--metrics', metric,
+        '--input-path', test,
+        '--column-description', cd,
+        '-m', output_model_path,
+        '-o', eval_path,
+        '--block-size', '100',
+        '--eval-period', metric_period,
+        '--save-stats'
+    )
+    yatest.common.execute(cmd)
+
+    start_index = 1 if metric == loss_function else 2
+    first_metrics = np.round(np.loadtxt(test_error_path, skiprows=1)[:, start_index:], 8)
+    second_metrics = np.round(np.loadtxt(eval_path, skiprows=1)[:, 1:], 8)
+    assert np.all(first_metrics == second_metrics)
+    return [local_canonical_file(eval_path)]
+
+
+@pytest.mark.parametrize('metric_period', ['1', '2'])
+@pytest.mark.parametrize('metric', ['MultiLogloss', 'F1', 'Accuracy', 'Accuracy:type=PerClass', 'Precision', 'Recall'])
+@pytest.mark.parametrize('dataset', ['scene', 'yeast'])
+def test_eval_metrics_multilabel(metric, dataset, metric_period):
+    train, test, cd = data_file(dataset, 'train'), data_file(dataset, 'test'), data_file(dataset, 'train.cd')
+
+    output_model_path = yatest.common.test_output_path('model.bin')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+    eval_path = yatest.common.test_output_path('output.tsv')
+    loss_function = 'MultiLogloss'
+    cmd = (
+        '--loss-function', loss_function,
+        '--custom-metric', metric,
+        '-f', train,
+        '-t', test,
+        '--column-description', cd,
+        '-i', '10',
+        '-T', '4',
+        '-m', output_model_path,
+        '--test-err-log', test_error_path,
+        '--use-best-model', 'false',
         '--metric-period', metric_period
     )
     execute_catboost_fit('CPU', cmd)
@@ -9535,7 +9790,8 @@ def test_fit_with_per_feature_text_options(boosting_type):
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_embeddings_train(boosting_type):
+@pytest.mark.parametrize('columns', list(ROTTEN_TOMATOES_CD.keys()))
+def test_embeddings_train(boosting_type, columns):
     output_model_path = yatest.common.test_output_path('model.bin')
     learn_error_path = yatest.common.test_output_path('learn.tsv')
     test_error_path = yatest.common.test_output_path('test.tsv')
@@ -9548,7 +9804,7 @@ def test_embeddings_train(boosting_type):
         '--eval-metric', 'AUC',
         '-f', ROTTEN_TOMATOES_WITH_EMBEDDINGS_TRAIN_FILE,
         '-t', ROTTEN_TOMATOES_WITH_EMBEDDINGS_TRAIN_FILE,
-        '--column-description', ROTTEN_TOMATOES_ONLY_EMBEDDINGS_CD_BINCLASS_FILE,
+        '--column-description', ROTTEN_TOMATOES_CD[columns],
         '--boosting-type', boosting_type,
         '-i', '20',
         '-T', '4',
@@ -9564,7 +9820,7 @@ def test_embeddings_train(boosting_type):
     apply_catboost(
         output_model_path,
         ROTTEN_TOMATOES_WITH_EMBEDDINGS_TRAIN_FILE,
-        ROTTEN_TOMATOES_ONLY_EMBEDDINGS_CD_BINCLASS_FILE,
+        ROTTEN_TOMATOES_CD[columns],
         calc_eval_path,
         output_columns=['RawFormulaVal']
     )

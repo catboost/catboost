@@ -15,18 +15,6 @@ def get_catboost_binary_path():
     return yatest.common.binary_path("catboost/app/catboost")
 
 
-def append_params_to_cmdline(cmd, params):
-    if isinstance(params, dict):
-        for param in params.items():
-            key = "{}".format(param[0])
-            value = "{}".format(param[1])
-            cmd.append(key)
-            cmd.append(value)
-    else:
-        for param in params:
-            cmd.append(param)
-
-
 def data_file(*path):
     return yatest.common.source_path(os.path.join("catboost", "pytest", "data", *path))
 
@@ -125,33 +113,8 @@ def apply_catboost(model_file, pool_path, cd_path, eval_file, output_columns=Non
     yatest.common.execute(calc_cmd)
 
 
-def get_limited_precision_dsv_diff_tool(diff_limit, have_header=False):
-    diff_tool = [
-        yatest.common.binary_path("catboost/tools/limited_precision_dsv_diff/limited_precision_dsv_diff"),
-    ]
-    if diff_limit is not None:
-        diff_tool += ['--diff-limit', str(diff_limit)]
-    if have_header:
-        diff_tool += ['--have-header']
-    return diff_tool
-
-
-def get_limited_precision_json_diff_tool(diff_limit):
-    diff_tool = [
-        yatest.common.binary_path("catboost/tools/limited_precision_json_diff/limited_precision_json_diff"),
-    ]
-    if diff_limit is not None:
-        diff_tool += ['--diff-limit', str(diff_limit)]
-    return diff_tool
-
-
 def local_canonical_file(*args, **kwargs):
     return yatest.common.canonical_file(*args, local=True, **kwargs)
-
-
-def format_crossvalidation(is_inverted, n, k):
-    cv_type = 'Inverted' if is_inverted else 'Classical'
-    return '{}:{};{}'.format(cv_type, n, k)
 
 
 def execute_dist_train(cmd):

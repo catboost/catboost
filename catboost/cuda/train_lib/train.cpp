@@ -322,11 +322,11 @@ namespace NCatboostCuda {
             CB_ENSURE(trainingData.Test.size() <= 1, "Multiple eval sets not supported for GPU");
             CB_ENSURE(!precomputedSingleOnlineCtrDataForSingleFold,
                       "Precomputed online CTR data for GPU is not yet supported");
-            Y_VERIFY(evalResultPtrs.size() == trainingData.Test.size());
+            Y_VERIFY(evalResultPtrs.empty() || (evalResultPtrs.size() == trainingData.Test.size()));
             CB_ENSURE(!initModel && !initLearnProgress, "Training continuation for GPU is not yet supported");
             Y_UNUSED(initModelApplyCompatiblePools);
             CB_ENSURE_INTERNAL(!dstLearnProgress, "Returning learn progress for GPU is not yet supported");
-            CB_ENSURE(!IsMultiRegressionObjective(catboostOptions.LossFunctionDescription->LossFunction),
+            CB_ENSURE(!IsMultiTargetObjective(catboostOptions.LossFunctionDescription->LossFunction),
                       "Catboost does not support multitarget on GPU yet");
 
             NCatboostOptions::TCatBoostOptions updatedCatboostOptions(catboostOptions);
@@ -347,11 +347,16 @@ namespace NCatboostCuda {
                     trainingData.Learn->ObjectsData->GetExclusiveFeatureBundlesMetaData().end()
                 );
             }
+            ui32 objectsCount = trainingData.Learn->GetObjectCount();
+            if (!trainingData.Test.empty()) {
+                objectsCount += trainingData.Test[0]->GetObjectCount();
+            }
             TBinarizedFeaturesManager featuresManager(updatedCatboostOptions.CatFeatureParams,
                                                       trainingData.FeatureEstimators,
                                                       *trainingData.Learn->MetaInfo.FeaturesLayout,
                                                       exclusiveBundlesCopy,
                                                       quantizedFeaturesInfo,
+                                                      objectsCount,
                                                       /*enableShuffling*/internalOptions.HaveLearnFeatureInMemory);
 
 
@@ -432,8 +437,8 @@ namespace NCatboostCuda {
             }
 
             THashMap<TFeatureCombination, TProjection> featureCombinationToProjection;
-            if (HoldsAlternative<THolder<TAdditiveModel<TObliviousTreeModel>>>(gpuFormatModel)) {
-                auto& modelHolderRef = Get<THolder<TAdditiveModel<TObliviousTreeModel>>>(gpuFormatModel);
+            if (std::holds_alternative<THolder<TAdditiveModel<TObliviousTreeModel>>>(gpuFormatModel)) {
+                auto& modelHolderRef = std::get<THolder<TAdditiveModel<TObliviousTreeModel>>>(gpuFormatModel);
                 *modelPtr = ConvertToCoreModel(featuresManager,
                                                quantizedFeaturesInfo,
                                                perfectHashedToHashedCatValuesMap,
@@ -443,7 +448,7 @@ namespace NCatboostCuda {
 
                 modelHolderRef.Destroy();
             } else {
-                auto& modelHolderRef = Get<THolder<TAdditiveModel<TNonSymmetricTree>>>(gpuFormatModel);
+                auto& modelHolderRef = std::get<THolder<TAdditiveModel<TNonSymmetricTree>>>(gpuFormatModel);
                 *modelPtr = ConvertToCoreModel(featuresManager,
                                                quantizedFeaturesInfo,
                                                perfectHashedToHashedCatValuesMap,
@@ -503,7 +508,7 @@ namespace NCatboostCuda {
             NPar::ILocalExecutor* localExecutor) const override {
 
             CB_ENSURE(trainingData.Test.size() == 1, "Model based evaluation requires exactly one eval set on GPU");
-            CB_ENSURE(!IsMultiRegressionObjective(catboostOptions.LossFunctionDescription->LossFunction),
+            CB_ENSURE(!IsMultiTargetObjective(catboostOptions.LossFunctionDescription->LossFunction),
                       "Catboost does not support multitarget on GPU yet");
 
             NCatboostOptions::TCatBoostOptions updatedCatboostOptions(catboostOptions);
@@ -517,11 +522,13 @@ namespace NCatboostCuda {
                 trainingData.Learn->ObjectsData->GetExclusiveFeatureBundlesMetaData().begin(),
                 trainingData.Learn->ObjectsData->GetExclusiveFeatureBundlesMetaData().end()
             );*/
+            ui32 objectsCount = trainingData.Learn->GetObjectCount() + trainingData.Test[0]->GetObjectCount();
             TBinarizedFeaturesManager featuresManager(updatedCatboostOptions.CatFeatureParams,
                                                       estimators,
                                                       *trainingData.Learn->MetaInfo.FeaturesLayout,
                                                       exclusiveBundlesCopy,
-                                                      quantizedFeaturesInfo);
+                                                      quantizedFeaturesInfo,
+                                                      objectsCount);
 
             SetDataDependentDefaultsForGpu(
                 *trainingData.Learn,

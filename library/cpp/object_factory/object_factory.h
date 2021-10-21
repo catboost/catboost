@@ -126,6 +126,11 @@ namespace NObjectFactory {
             return result;
         }
 
+        template<class... Args>
+        static THolder<TProduct> MakeHolder(Args&&... args) {
+            return THolder<TProduct>(Construct(std::forward<Args>(args)...));
+        }
+
         static bool Has(const TKey& key) {
             return Singleton<TObjectFactory<TProduct, TKey>>()->HasImpl(key);
         }
@@ -172,6 +177,11 @@ namespace NObjectFactory {
 
         static TProduct* Construct(const TKey& key, TArgs... args) {
             return Singleton<TParametrizedObjectFactory<TProduct, TKey, TArgs...>>()->Create(key, std::forward<TArgs>(args)...);
+        }
+
+        template<class... Args>
+        static THolder<TProduct> MakeHolder(Args&&... args) {
+            return THolder<TProduct>(Construct(std::forward<Args>(args)...));
         }
 
         static void GetRegisteredKeys(TSet<TKey>& keys) {

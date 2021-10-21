@@ -20,7 +20,9 @@
 #include "tcmalloc/span.h"
 #include "tcmalloc/static_vars.h"
 
+GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
+namespace tcmalloc_internal {
 
 void PageMap::RegisterSizeClass(Span* span, size_t sc) {
   ASSERT(span->location() == Span::IN_USE);
@@ -66,4 +68,6 @@ void* MetaDataAlloc(size_t bytes) ABSL_EXCLUSIVE_LOCKS_REQUIRED(pageheap_lock) {
   return Static::arena().Alloc(bytes);
 }
 
+}  // namespace tcmalloc_internal
 }  // namespace tcmalloc
+GOOGLE_MALLOC_SECTION_END

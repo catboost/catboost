@@ -46,10 +46,10 @@ DEPENDS(
     catboost/python-package/ut/medium/python_binary
 )
 
-IF (ARCH_AARCH64 OR OS_WINDOWS)
-    ALLOCATOR(J)
+IF (OS_LINUX AND NOT ARCH_AARCH64)
+    ALLOCATOR(TCMALLOC_256K)
 ELSE()
-    ALLOCATOR(LF)
+    ALLOCATOR(J)
 ENDIF()
 
 END()

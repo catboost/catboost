@@ -18,7 +18,7 @@ namespace NCBTest {
 
     void CreateTextDataForTest(
         TVector<TTextFeature>* features,
-        TVector<TTokenizedTextFeature>* tokenizedFeatures,
+        TMap<ui32, TTokenizedTextFeature>* tokenizedFeatures,
         TVector<ui32>* target,
         NCB::TTextDigitizers* textDigitizers,
         NCatboostOptions::TTextProcessingOptions* textProcessingOptions

@@ -6,9 +6,39 @@ LIBRARY()
 
 VERSION(5.7)
 
-LICENSE(GPL-2.0-only WITH Linux-syscall-note)
+ORIGINAL_SOURCE(mirror://kernel/linux/kernel/v5.x/linux-5.7.tar.xz)
+
+LICENSE(
+    BSD-2-Clause
+    BSD-3-Clause
+    CDDL-1.0
+    GFDL-1.1-or-later
+    GPL-1.0-or-later
+    GPL-1.0-or-later WITH Linux-syscall-note
+    GPL-2.0-only
+    GPL-2.0-only WITH Linux-syscall-note
+    GPL-2.0-or-later
+    GPL-2.0-or-later WITH Linux-syscall-note
+    ISC
+    Khronos
+    LGPL-2.0-only
+    LGPL-2.0-or-later
+    LGPL-2.0-or-later WITH Linux-syscall-note
+    LGPL-2.1-only
+    LGPL-2.1-only WITH Linux-syscall-note
+    LGPL-2.1-or-later
+    LGPL-2.1-or-later WITH Linux-syscall-note
+    Linux-OpenIB
+    MIT
+    NTP
+    Public-Domain
+    Unknown
+)
+
+LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 DISABLE(NEED_PLATFORM_PEERDIRS)
+
 DISABLE(WITH_VALGRIND)
 
 ADDINCL(

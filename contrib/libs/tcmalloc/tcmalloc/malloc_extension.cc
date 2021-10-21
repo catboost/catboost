@@ -26,6 +26,7 @@
 #include "absl/base/attributes.h"
 #include "absl/base/internal/low_level_alloc.h"
 #include "absl/memory/memory.h"
+#include "absl/time/time.h"
 #include "tcmalloc/internal/parameter_accessors.h"
 #include "tcmalloc/internal_malloc_extension.h"
 
@@ -286,6 +287,16 @@ bool MallocExtension::PerCpuCachesActive() {
 #endif
 }
 
+void MallocExtension::DeactivatePerCpuCaches() {
+#if ABSL_INTERNAL_HAVE_WEAK_MALLOCEXTENSION_STUBS
+  if (MallocExtension_Internal_DeactivatePerCpuCaches == nullptr) {
+    return;
+  }
+
+  MallocExtension_Internal_DeactivatePerCpuCaches();
+#endif
+}
+
 int32_t MallocExtension::GetMaxPerCpuCacheSize() {
 #if ABSL_INTERNAL_HAVE_WEAK_MALLOCEXTENSION_STUBS
   if (MallocExtension_Internal_GetMaxPerCpuCacheSize == nullptr) {
@@ -329,6 +340,32 @@ void MallocExtension::SetMaxTotalThreadCacheBytes(int64_t value) {
   }
 
   MallocExtension_Internal_SetMaxTotalThreadCacheBytes(value);
+#else
+  (void)value;
+#endif
+}
+
+absl::Duration MallocExtension::GetSkipSubreleaseInterval() {
+#if ABSL_INTERNAL_HAVE_WEAK_MALLOCEXTENSION_STUBS
+  if (MallocExtension_Internal_GetSkipSubreleaseInterval == nullptr) {
+    return absl::ZeroDuration();
+  }
+
+  absl::Duration value;
+  MallocExtension_Internal_GetSkipSubreleaseInterval(&value);
+  return value;
+#else
+  return absl::ZeroDuration();
+#endif
+}
+
+void MallocExtension::SetSkipSubreleaseInterval(absl::Duration value) {
+#if ABSL_INTERNAL_HAVE_WEAK_MALLOCEXTENSION_STUBS
+  if (MallocExtension_Internal_SetSkipSubreleaseInterval == nullptr) {
+    return;
+  }
+
+  MallocExtension_Internal_SetSkipSubreleaseInterval(value);
 #else
   (void)value;
 #endif
@@ -392,9 +429,17 @@ size_t MallocExtension::ReleaseCpuMemory(int cpu) {
 
 void MallocExtension::ProcessBackgroundActions() {
 #if ABSL_INTERNAL_HAVE_WEAK_MALLOCEXTENSION_STUBS
-  if (&MallocExtension_Internal_ProcessBackgroundActions != nullptr) {
+  if (NeedsProcessBackgroundActions()) {
     MallocExtension_Internal_ProcessBackgroundActions();
   }
+#endif
+}
+
+bool MallocExtension::NeedsProcessBackgroundActions() {
+#if ABSL_INTERNAL_HAVE_WEAK_MALLOCEXTENSION_STUBS
+  return &MallocExtension_Internal_ProcessBackgroundActions != nullptr;
+#else
+  return false;
 #endif
 }
 
@@ -411,6 +456,14 @@ void MallocExtension::SetBackgroundReleaseRate(BytesPerSecond rate) {
 #if ABSL_INTERNAL_HAVE_WEAK_MALLOCEXTENSION_STUBS
   if (&MallocExtension_Internal_SetBackgroundReleaseRate != nullptr) {
     MallocExtension_Internal_SetBackgroundReleaseRate(rate);
+  }
+#endif
+}
+
+void MallocExtension::EnableForkSupport() {
+#if ABSL_INTERNAL_HAVE_WEAK_MALLOCEXTENSION_STUBS
+  if (&MallocExtension_EnableForkSupport != nullptr) {
+    MallocExtension_EnableForkSupport();
   }
 #endif
 }

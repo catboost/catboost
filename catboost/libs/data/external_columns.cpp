@@ -116,7 +116,7 @@ namespace NCB {
         ESparseArrayIndexingType sparseArrayIndexingType,
         ui32 dstBitsPerKey
     ) {
-        if (HoldsAlternative<TFullSubset<ui32>>(subsetInvertedIndexing)) {
+        if (std::holds_alternative<TFullSubset<ui32>>(subsetInvertedIndexing)) {
             return 0; // just clone
         }
 
@@ -225,7 +225,7 @@ namespace NCB {
             *this
         );
 
-        if (HoldsAlternative<TFullSubset<ui32>>(*subsetInvertedIndexing)) {
+        if (std::holds_alternative<TFullSubset<ui32>>(*subsetInvertedIndexing)) {
             // just clone
             return MakeHolder<TExternalFloatSparseValuesHolder>(
                 this->GetId(),
@@ -248,7 +248,7 @@ namespace NCB {
             return CreateQuantizedSparseSubset<IQuantizedFloatValuesHolder, ui8>(
                 this->GetId(),
                 this->SrcData,
-                Get<TInvertedIndexedSubset<ui32>>(*subsetInvertedIndexing),
+                std::get<TInvertedIndexedSubset<ui32>>(*subsetInvertedIndexing),
                 [=] (float srcValue) -> ui8 {
                     return Quantize<ui8>(flatFeatureIdx, allowNans, nanMode, borders, srcValue);
                 },
@@ -294,7 +294,7 @@ namespace NCB {
         const auto catFeatureIdx = QuantizedFeaturesInfo->GetPerTypeFeatureIdx<EFeatureType::Categorical>(
             *this
         );
-        if (HoldsAlternative<TFullSubset<ui32>>(*subsetInvertedIndexing)) {
+        if (std::holds_alternative<TFullSubset<ui32>>(*subsetInvertedIndexing)) {
             // just clone
             return MakeHolder<TExternalCatSparseValuesHolder>(
                 this->GetId(),
@@ -312,7 +312,7 @@ namespace NCB {
             return CreateQuantizedSparseSubset<IQuantizedCatValuesHolder, ui32>(
                 this->GetId(),
                 this->SrcData,
-                Get<TInvertedIndexedSubset<ui32>>(*subsetInvertedIndexing),
+                std::get<TInvertedIndexedSubset<ui32>>(*subsetInvertedIndexing),
                 getPerfectHashValue,
                 sizeof(ui32) * CHAR_BIT
             );

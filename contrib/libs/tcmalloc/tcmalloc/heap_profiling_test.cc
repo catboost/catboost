@@ -19,6 +19,7 @@
 #include <new>
 
 #include "gtest/gtest.h"
+#include "benchmark/benchmark.h"
 #include "tcmalloc/internal/logging.h"
 #include "tcmalloc/internal/parameter_accessors.h"
 #include "tcmalloc/malloc_extension.h"
@@ -61,18 +62,23 @@ TEST(HeapProfilingTest, PeakHeapTracking) {
   // make a large allocation to force a new peak heap sample
   // (total live: 50MiB)
   void *first = ::operator new(50 << 20);
+  // TODO(b/183453911): Remove workaround for GCC 10.x deleting operator new,
+  // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=94295.
+  benchmark::DoNotOptimize(first);
   int64_t peak_after_first = ProfileSize(ProfileType::kPeakHeap);
   EXPECT_NEAR(peak_after_first, start_peak_sz + (50 << 20), 10 << 20);
 
   // a small allocation shouldn't increase the peak
   // (total live: 54MiB)
   void *second = ::operator new(4 << 20);
+  benchmark::DoNotOptimize(second);
   int64_t peak_after_second = ProfileSize(ProfileType::kPeakHeap);
   EXPECT_EQ(peak_after_second, peak_after_first);
 
   // but a large one should
   // (total live: 254MiB)
   void *third = ::operator new(200 << 20);
+  benchmark::DoNotOptimize(third);
   int64_t peak_after_third = ProfileSize(ProfileType::kPeakHeap);
   EXPECT_NEAR(peak_after_third, peak_after_second + (200 << 20), 10 << 20);
 
@@ -90,7 +96,9 @@ TEST(HeapProfilingTest, PeakHeapTracking) {
   // going back up less than previous peak shouldn't affect the peak
   // (total live: 200MiB)
   void *fourth = ::operator new(100 << 20);
+  benchmark::DoNotOptimize(fourth);
   void *fifth = ::operator new(100 << 20);
+  benchmark::DoNotOptimize(fifth);
   EXPECT_EQ(ProfileSize(ProfileType::kPeakHeap), peak_after_third);
 
   // passing the old peak significantly, even with many small allocations,
@@ -99,6 +107,7 @@ TEST(HeapProfilingTest, PeakHeapTracking) {
   void *bitsy[1 << 10];
   for (int i = 0; i < 1 << 10; i++) {
     bitsy[i] = ::operator new(1 << 18);
+    benchmark::DoNotOptimize(bitsy[i]);
   }
   EXPECT_GT(ProfileSize(ProfileType::kPeakHeap), peak_after_third);
 

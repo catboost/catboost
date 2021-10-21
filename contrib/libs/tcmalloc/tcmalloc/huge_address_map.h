@@ -20,7 +20,9 @@
 #include "tcmalloc/huge_pages.h"
 #include "tcmalloc/internal/logging.h"
 
+GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
+namespace tcmalloc_internal {
 
 // Maintains a set of disjoint HugeRanges, merging adjacent ranges into one.
 // Exposes a balanced (somehow) binary tree of free ranges on address,
@@ -45,9 +47,7 @@ class HugeAddressMap {
     HugeRange range() const;
     // Tree structure
     Node *left();
-    const Node *left() const;
     Node *right();
-    const Node *right() const;
     // Iterate to the next node in address order
     const Node *next() const;
     Node *next();
@@ -93,7 +93,7 @@ class HugeAddressMap {
   // Statistics
   size_t nranges() const;
   HugeLength total_mapped() const;
-  void Print(TCMalloc_Printer *out) const;
+  void Print(Printer *out) const;
   void PrintInPbtxt(PbtxtRegion *hpaa) const;
 
   // Add <r> to the map, merging with adjacent ranges as needed.
@@ -131,13 +131,7 @@ inline constexpr HugeAddressMap::HugeAddressMap(MetadataAllocFunction meta)
 
 inline HugeRange HugeAddressMap::Node::range() const { return range_; }
 inline HugeAddressMap::Node *HugeAddressMap::Node::left() { return left_; }
-inline const HugeAddressMap::Node *HugeAddressMap::Node::left() const {
-  return left_;
-}
 inline HugeAddressMap::Node *HugeAddressMap::Node::right() { return right_; }
-inline const HugeAddressMap::Node *HugeAddressMap::Node::right() const {
-  return right_;
-}
 
 inline int64_t HugeAddressMap::Node::when() const { return when_; }
 inline HugeLength HugeAddressMap::Node::longest() const { return longest_; }
@@ -147,6 +141,8 @@ inline const HugeAddressMap::Node *HugeAddressMap::root() const {
   return root_;
 }
 
+}  // namespace tcmalloc_internal
 }  // namespace tcmalloc
+GOOGLE_MALLOC_SECTION_END
 
 #endif  // TCMALLOC_HUGE_ADDRESS_MAP_H_

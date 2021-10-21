@@ -53,7 +53,9 @@ wctrans_t wctrans(const char* property);
 #ifdef _LIBCPP_COMPILER_MSVC
 #include _LIBCPP_UCRT_INCLUDE(wctype.h)
 #else
-#include_next <wctype.h>
+#if __has_include_next(<wctype.h>)
+#   include_next <wctype.h>
+#endif
 #endif
 
 #ifdef __cplusplus
@@ -77,6 +79,6 @@ wctrans_t wctrans(const char* property);
 #undef towctrans
 #undef wctrans
 
-#endif  // __cplusplus
+#endif // __cplusplus
 
-#endif  // _LIBCPP_WCTYPE_H
+#endif // _LIBCPP_WCTYPE_H

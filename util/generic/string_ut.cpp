@@ -91,6 +91,7 @@ protected:
     }
 
     void reserve() {
+#if 0
         TStringType s;
         // @todo use UNIT_TEST_EXCEPTION
         try {
@@ -106,7 +107,7 @@ protected:
         // Non-shared behaviour - never shrink
 
         s.reserve(256);
-#ifndef TSTRING_IS_STD_STRING
+    #ifndef TSTRING_IS_STD_STRING
         const auto* data = s.data();
 
         UNIT_ASSERT(s.capacity() >= 256);
@@ -114,18 +115,18 @@ protected:
         s.reserve(128);
 
         UNIT_ASSERT(s.capacity() >= 256 && s.data() == data);
-#endif
+    #endif
 
         s.resize(64, 'x');
         s.reserve(10);
 
-#ifdef TSTRING_IS_STD_STRING
+    #ifdef TSTRING_IS_STD_STRING
         UNIT_ASSERT(s.capacity() >= 64);
-#else
+    #else
         UNIT_ASSERT(s.capacity() >= 256 && s.data() == data);
-#endif
+    #endif
 
-#ifndef TSTRING_IS_STD_STRING
+    #ifndef TSTRING_IS_STD_STRING
         // Shared behaviour - always reallocate, just as much as requisted
 
         TStringType holder = s;
@@ -145,6 +146,7 @@ protected:
 
         UNIT_ASSERT(s.capacity() >= 64 && s.capacity() < 128 && s.data() != data);
         UNIT_ASSERT(s.IsDetached());
+    #endif
 #endif
     }
 
@@ -203,11 +205,10 @@ protected:
             str_vect.push_back(short_str2);
             str_vect.push_back(long_str2);
 
-            UNIT_ASSERT(
-                (str_vect[0] == ref_short_str1) &&
-                (str_vect[1] == ref_long_str1) &&
-                (str_vect[2] == ref_short_str2) &&
-                (str_vect[3] == ref_long_str2));
+            UNIT_ASSERT(str_vect[0] == ref_short_str1);
+            UNIT_ASSERT(str_vect[1] == ref_long_str1);
+            UNIT_ASSERT(str_vect[2] == ref_short_str2);
+            UNIT_ASSERT(str_vect[3] == ref_long_str2);
         }
     }
 
@@ -774,7 +775,7 @@ public:
         ss << '\n'
            << data << std::endl;
 
-        TString read;
+        TString read = "xxx";
         ss >> read;
         UNIT_ASSERT_VALUES_EQUAL(read, data);
     }
@@ -1200,5 +1201,70 @@ Y_UNIT_TEST_SUITE(HashFunctorTests) {
         UNIT_ASSERT_VALUES_EQUAL(h(ptr), h(strbuf));
         UNIT_ASSERT_VALUES_EQUAL(h(ptr), h(str));
         UNIT_ASSERT_VALUES_EQUAL(h(ptr), h(stdStr));
+    }
+}
+
+#if !defined(TSTRING_IS_STD_STRING)
+Y_UNIT_TEST_SUITE(StdNonConformant) {
+    Y_UNIT_TEST(TestEraseNoThrow) {
+        TString x;
+
+        LegacyErase(x, 10);
+    }
+
+    Y_UNIT_TEST(TestReplaceNoThrow) {
+        TString x;
+
+        LegacyReplace(x, 0, 0, "1");
+
+        UNIT_ASSERT_VALUES_EQUAL(x, "1");
+
+        LegacyReplace(x, 10, 0, "1");
+
+        UNIT_ASSERT_VALUES_EQUAL(x, "1");
+    }
+
+    Y_UNIT_TEST(TestNoAlias) {
+        TString s = "x";
+
+        s.AppendNoAlias("abc", 3);
+
+        UNIT_ASSERT_VALUES_EQUAL(s, "xabc");
+        UNIT_ASSERT_VALUES_EQUAL(TString(s.c_str()), "xabc");
+    }
+}
+#endif
+
+Y_UNIT_TEST_SUITE(Interop) {
+    static void Mutate(std::string& s) {
+        s += "y";
+    }
+
+    static void Mutate(TString& s) {
+        Mutate(MutRef(s));
+    }
+
+    Y_UNIT_TEST(TestMutate) {
+        TString x = "x";
+
+        Mutate(x);
+
+        UNIT_ASSERT_VALUES_EQUAL(x, "xy");
+    }
+
+    static std::string TransformStd(const std::string& s) {
+        return s + "y";
+    }
+
+    static TString Transform(const TString& s) {
+        return TransformStd(s);
+    }
+
+    Y_UNIT_TEST(TestTransform) {
+        UNIT_ASSERT_VALUES_EQUAL(Transform(TString("x")), "xy");
+    }
+
+    Y_UNIT_TEST(TestTemp) {
+        UNIT_ASSERT_VALUES_EQUAL("x" + ConstRef(TString("y")), "xy");
     }
 }

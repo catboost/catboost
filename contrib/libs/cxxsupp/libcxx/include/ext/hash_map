@@ -46,10 +46,10 @@ public:
     template <class InputIterator>
     hash_map(InputIterator f, InputIterator l);
     template <class InputIterator>
-        hash_map(InputIterator f, InputIterator l,
+    hash_map(InputIterator f, InputIterator l,
                 size_type n, const hasher& hf = hasher(),
-                      const key_equal& eql = key_equal(),
-                      const allocator_type& a = allocator_type());
+                const key_equal& eql = key_equal(),
+                const allocator_type& a = allocator_type());
     hash_map(const hash_map&);
     ~hash_map();
     hash_map& operator=(const hash_map&);
@@ -208,7 +208,7 @@ template <class Key, class T, class Hash, class Pred, class Alloc>
 #include <type_traits>
 #include <ext/__hash>
 
-#if __DEPRECATED
+#if defined(__DEPRECATED) && __DEPRECATED
 #if defined(_LIBCPP_WARNING)
     _LIBCPP_WARNING("Use of the header <ext/hash_map> is deprecated.  Migrate to <unordered_map>")
 #else
@@ -350,7 +350,7 @@ public:
         {
             const_cast<bool&>(__x.__value_constructed) = false;
         }
-#endif  // _LIBCPP_CXX03_LANG
+#endif // _LIBCPP_CXX03_LANG
 
     _LIBCPP_INLINE_VISIBILITY
     void operator()(pointer __p)
@@ -395,10 +395,10 @@ public:
         return __t;
     }
 
-    friend _LIBCPP_INLINE_VISIBILITY 
+    friend _LIBCPP_INLINE_VISIBILITY
     bool operator==(const __hash_map_iterator& __x, const __hash_map_iterator& __y)
         {return __x.__i_ == __y.__i_;}
-    friend _LIBCPP_INLINE_VISIBILITY 
+    friend _LIBCPP_INLINE_VISIBILITY
     bool operator!=(const __hash_map_iterator& __x, const __hash_map_iterator& __y)
         {return __x.__i_ != __y.__i_;}
 
@@ -981,4 +981,4 @@ operator!=(const hash_multimap<_Key, _Tp, _Hash, _Pred, _Alloc>& __x,
 
 } // __gnu_cxx
 
-#endif  // _LIBCPP_HASH_MAP
+#endif // _LIBCPP_HASH_MAP

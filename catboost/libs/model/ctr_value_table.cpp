@@ -16,8 +16,8 @@ void TCtrValueTable::Save(IOutputStream* s) const {
     using namespace flatbuffers;
     using namespace NCatBoostFbs;
     TModelPartsCachingSerializer serializer;
-    if (HoldsAlternative<TSolidTable>(Impl)) {
-        auto& solid = Get<TSolidTable>(Impl);
+    if (std::holds_alternative<TSolidTable>(Impl)) {
+        auto& solid = std::get<TSolidTable>(Impl);
         auto indexHashOffset = serializer.FlatbufBuilder.CreateVector((const ui8*) solid.IndexBuckets.data(),
                                                 sizeof(NCatboost::TBucket) * solid.IndexBuckets.size());
         auto ctrBlob = serializer.FlatbufBuilder.CreateVector(solid.CTRBlob);
@@ -30,7 +30,7 @@ void TCtrValueTable::Save(IOutputStream* s) const {
             TargetClassesCount);
         serializer.FlatbufBuilder.Finish(ctrValueTable);
     } else {
-        auto& thin = Get<TThinTable>(Impl);
+        auto& thin = std::get<TThinTable>(Impl);
         auto indexHashOffset = serializer.FlatbufBuilder.CreateVector((const ui8*) thin.IndexBuckets.data(),
                                                 sizeof(NCatboost::TBucket) * thin.IndexBuckets.size());
         auto ctrBlob = serializer.FlatbufBuilder.CreateVector(thin.CTRBlob.data(), thin.CTRBlob.size());
@@ -58,7 +58,7 @@ void TCtrValueTable::LoadSolid(void* buf, size_t length) {
     Y_UNUSED(length); // TODO(kirillovs): add length validation
     using namespace flatbuffers;
     Impl = TSolidTable();
-    auto& solid = Get<TSolidTable>(Impl);
+    auto& solid = std::get<TSolidTable>(Impl);
     auto ctrValueTable = flatbuffers::GetRoot<NCatBoostFbs::TCtrValueTable>(buf);
     ModelCtrBase.FBDeserialize(ctrValueTable->ModelCtrBase());
     CounterDenominator = ctrValueTable->CounterDenominator();
@@ -77,7 +77,7 @@ void TCtrValueTable::LoadThin(TMemoryInput* in) {
 
     using namespace  flatbuffers;
     Impl = TThinTable();
-    auto& thin = Get<TThinTable>(Impl);
+    auto& thin = std::get<TThinTable>(Impl);
     auto ctrValueTable = flatbuffers::GetRoot<NCatBoostFbs::TCtrValueTable>(ptr);
     ModelCtrBase.FBDeserialize(ctrValueTable->ModelCtrBase());
     CounterDenominator = ctrValueTable->CounterDenominator();

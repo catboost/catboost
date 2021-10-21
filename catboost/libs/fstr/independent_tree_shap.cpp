@@ -288,7 +288,7 @@ static inline double TransformDocument(
 ) {
     TVector<TVector<double>> approxVector(1, TVector<double>(1, approx));
     TVector<float> targetVector(1, target);
-    auto score = metric.Eval(approxVector, targetVector, {}, {}, 0, 1, NPar::LocalExecutor());
+    auto score = dynamic_cast<const ISingleTargetEval&>(metric).Eval(approxVector, targetVector, {}, {}, 0, 1, NPar::LocalExecutor());
     return metric.GetFinalError(score);
 }
 
@@ -539,7 +539,8 @@ void TIndependentTreeShapParams::InitTransformedData(
     switch (ModelOutputType)
     {
         case EExplainableModelOutput::Probability: {
-            TransformedTargetOfDataset = ApplyModelMulti(model, *dataset.ObjectsData, EPredictionType::Probability, 0, 0, localExecutor);
+            TransformedTargetOfDataset =
+                ApplyModelMulti(model, *dataset.ObjectsData, EPredictionType::Probability, 0, 0, localExecutor, dataset.RawTargetData.GetBaseline());
             break;
         }
         case EExplainableModelOutput::LossFunction : {

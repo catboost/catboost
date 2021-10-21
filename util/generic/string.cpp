@@ -8,85 +8,14 @@
 #include <iostream>
 #include <cctype>
 
-#ifndef TSTRING_IS_STD_STRING
-namespace NDetail {
-    struct TStaticData {
-        TStringData Data;
-        size_t Buf[4];
-    };
-
-    #ifdef __cpp_constinit
-    constinit
-    #endif
-        static TStaticData STATIC_DATA = {{0, 0, 0}, {0, 0, 0, 0}};
-    void const* STRING_DATA_NULL = STATIC_DATA.Buf;
-
-    namespace {
-        static struct TStaticDataBufService {
-            TStaticDataBufService() {
-                NSan::AnnotateBenignRaceSized(__FILE__, __LINE__, &STATIC_DATA.Buf, sizeof(STATIC_DATA.Buf),
-                                              "STATIC_DATA.Buf: only writing zeroes is allowed, so it is essentially constant");
-            }
-            ~TStaticDataBufService() {
-                for (auto value : STATIC_DATA.Buf) {
-                    Y_ASSERT(!value);
-                }
-            }
-        } StaticDataBufService;
-    }
-
-    template <typename TCharType>
-    TCharType* Allocate(size_t oldLen, size_t newLen, TStringData* oldData) {
-        static_assert(offsetof(TStaticData, Buf) == sizeof(TStringData), "expect offsetof(TStaticData, Buf) == sizeof(TStringData)");
-        static_assert(sizeof(STATIC_DATA.Buf) >= sizeof(TCharType), "expect sizeof(STATIC_DATA.Buf) >= sizeof(TCharType)");
-
-        using TData = TStringData;
-        using TDataTraits = TStringDataTraits<TCharType>;
-
-        if (0 == newLen) {
-            return TDataTraits::GetNull();
-        }
-
-        if (Y_UNLIKELY(newLen >= TDataTraits::MaxSize)) {
-            throw std::length_error("Allocate() will fail");
-        }
-
-        size_t bufLen = newLen;
-        const size_t dataSize = TDataTraits::CalcAllocationSizeAndCapacity(bufLen);
-        Y_ASSERT(bufLen >= newLen);
-
-        auto ret = reinterpret_cast<TData*>(oldData == nullptr ? y_allocate(dataSize) : y_reallocate(oldData, dataSize));
-
-        ret->Refs = 1;
-        ret->BufLen = bufLen;
-        ret->Length = oldLen;
-
-        TCharType* chars = TDataTraits::GetChars(ret);
-
-        chars[oldLen] = TCharType();
-
-        return chars;
-    }
-
-    template char* Allocate<char>(size_t oldLen, size_t newLen, TStringData* oldData);
-    template wchar16* Allocate<wchar16>(size_t oldLen, size_t newLen, TStringData* oldData);
-    template wchar32* Allocate<wchar32>(size_t oldLen, size_t newLen, TStringData* oldData);
-
-    void Deallocate(void* data) {
-        y_deallocate(data);
-    }
-}
-#endif
+alignas(32) const char NULL_STRING_REPR[128] = {0};
 
 std::ostream& operator<<(std::ostream& os, const TString& s) {
     return os.write(s.data(), s.size());
 }
 
 std::istream& operator>>(std::istream& is, TString& s) {
-    std::string stdString;
-    is >> stdString;
-    s.assign(stdString.data(), stdString.size());
-    return is;
+    return is >> s.MutRef();
 }
 
 template <>

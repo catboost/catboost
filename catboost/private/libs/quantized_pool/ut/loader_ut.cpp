@@ -18,7 +18,7 @@
 #include <util/random/random.h>
 #include <util/stream/file.h>
 #include <util/string/printf.h>
-#include <util/system/mktemp.h>
+#include <util/system/tempfile.h>
 
 #include <library/cpp/testing/unittest/registar.h>
 
@@ -105,6 +105,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
             testCase.SrcData.IgnoredFeatures,
             testCase.SrcData.ObjectsOrder,
             TDatasetSubset::MakeColumns(),
+            /*forceUnitAutoPairWeights*/ true,
             &readDatasetMainParams.ClassLabels,
             &localExecutor
         );
@@ -139,7 +140,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
             {EColumn::Label, ""}
         };
 
-        expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::Float, false, false, false, /* additionalBaselineCount */ Nothing(), Nothing());
+        expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::Float, false, false, false, false, /* additionalBaselineCount */ Nothing(), Nothing());
         expectedData.Objects.FloatFeatures = {
             TVector<ui8>{1, 3, 0, 1, 2},
             TVector<ui8>{2, 3, 0, 3, 1}
@@ -239,7 +240,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
             {EColumn::Label, ""}
         };
 
-        expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::Float, false, false, false, /* additionalBaselineCount */ Nothing(), Nothing());
+        expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::Float, false, false, false, false, /* additionalBaselineCount */ Nothing(), Nothing());
         expectedData.Objects.CatFeatures = {
             TVector<ui32>{1, 3, 0, 1, 2},
             TVector<ui32>{2, 4, 0, 3, 1},
@@ -388,7 +389,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
             {EColumn::Label, ""}
         };
 
-        expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::Float, false, false, false, /* additionalBaselineCount */ Nothing(), Nothing());
+        expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::Float, false, false, false, false, /* additionalBaselineCount */ Nothing(), Nothing());
         expectedData.Objects.FloatFeatures = {
             TVector<ui8>{1, 3, 0, 1, 2},
             TVector<ui8>{2, 3, 0, 3, 1}
@@ -546,7 +547,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
 
         TVector<TString> featureId = {"f0", "f1", "f2"};
 
-        expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::Float, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
+        expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::Float, false, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
         expectedData.Objects.Order = EObjectsOrder::Ordered;
         expectedData.Objects.GroupIds = {2, 2, 0, 11, 11, 11};
         expectedData.Objects.SubgroupIds = {1, 22, 9, 12, 22, 45};
@@ -643,7 +644,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
         srcData.FloatFeatures.push_back(MakeFeaturesColumn<ui8>(EColumn::Num, {{2, 3}, {4, 3, 1}, {0}}));
         srcData.FloatFeatures.push_back(MakeFeaturesColumn<ui8>(EColumn::Num, {{0, 2, 3, 1}, {4}, {2}}));
 
-        srcData.PairsFileData = AsStringBuf(
+        srcData.PairsFileData = TStringBuf(
             "0\t1\t0.1\n"
             "4\t3\t1.0\n"
             "3\t5\t0.2"
@@ -665,7 +666,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
 
         TVector<TString> featureId = {"f0", "f1", "f2"};
 
-        expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::None, false, false, true, /* additionalBaselineCount */ Nothing(), &featureId);
+        expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::None, false, false, true, false, /* additionalBaselineCount */ Nothing(), &featureId);
         expectedData.Objects.GroupIds = {2, 2, 0, 11, 11, 11};
         expectedData.Objects.SubgroupIds = {1, 22, 9, 12, 22, 45};
 
@@ -763,7 +764,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
         srcData.Target = TSrcColumn<float>{
             EColumn::Label, {{0.12f, 0.0f}, {0.45f, 0.1f, 0.22f}, {0.42f}}
         };
-        srcData.GroupWeightsFileData = AsStringBuf(
+        srcData.GroupWeightsFileData = TStringBuf(
             "query0\t1.0\n"
             "query1\t0.0\n"
             "Query 2\t0.5"
@@ -785,7 +786,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
 
         TVector<TString> featureId = {"f0", "f1", "f2"};
 
-        expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::Float, true, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
+        expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::Float, true, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
         expectedData.Objects.GroupIds = {
             CalcGroupIdFor("query0"),
             CalcGroupIdFor("query0"),
@@ -908,7 +909,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
 
         TVector<TString> featureId = {"f0", "f1", "f2", "f3"};
 
-        expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::Float, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
+        expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::Float, false, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
         auto& featuresLayout = *expectedData.MetaInfo.FeaturesLayout;
         featuresLayout.IgnoreExternalFeature(1);
         featuresLayout.IgnoreExternalFeature(3);
@@ -1039,7 +1040,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
                     srcData.FloatFeatures.emplace_back(
                         new TSrcColumn<ui8>(
                             NCB::GenerateSrcColumn<ui8>(
-                                Get<TVector<ui8>>(*expectedData.Objects.FloatFeatures.back()),
+                                std::get<TVector<ui8>>(*expectedData.Objects.FloatFeatures.back()),
                                 EColumn::Num
                             )
                         )
@@ -1111,7 +1112,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
                     dataColumnsMetaInfo.Columns.push_back({EColumn::Categ, featureId.back()});
                 }
 
-                expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::Float, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
+                expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::Float, false, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
                 expectedData.Objects.QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
                     *expectedData.MetaInfo.FeaturesLayout,
                     TConstArrayRef<ui32>(),

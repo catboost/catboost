@@ -25,7 +25,9 @@
 #include "absl/base/optimization.h"
 #include "tcmalloc/internal/logging.h"
 
+GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
+namespace tcmalloc_internal {
 
 inline ABSL_ATTRIBUTE_ALWAYS_INLINE void* SLL_Next(void* t) {
   return *(reinterpret_cast<void**>(t));
@@ -187,14 +189,16 @@ class TList {
   }
 
   // Returns first element in the list. The list must not be empty.
-  T* first() const {
+  ABSL_ATTRIBUTE_RETURNS_NONNULL T* first() const {
     ASSERT(!empty());
+    ASSERT(head_.next_ != nullptr);
     return static_cast<T*>(head_.next_);
   }
 
   // Returns last element in the list. The list must not be empty.
-  T* last() const {
+  ABSL_ATTRIBUTE_RETURNS_NONNULL T* last() const {
     ASSERT(!empty());
+    ASSERT(head_.prev_ != nullptr);
     return static_cast<T*>(head_.prev_);
   }
 
@@ -243,6 +247,8 @@ class TList {
   Elem head_;
 };
 
+}  // namespace tcmalloc_internal
 }  // namespace tcmalloc
+GOOGLE_MALLOC_SECTION_END
 
 #endif  // TCMALLOC_INTERNAL_LINKED_LIST_H_

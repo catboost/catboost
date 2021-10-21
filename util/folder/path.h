@@ -28,6 +28,11 @@ public:
     TFsPath(const TStringBuf path);
     TFsPath(const char* path);
 
+    TFsPath(const std::string& path)
+        : TFsPath(TStringBuf(path))
+    {
+    }
+
     void CheckDefined() const;
 
     inline bool IsDefined() const {

@@ -11,14 +11,14 @@ namespace NYT {
 class TNodeVisitor
 {
 public:
-    TNodeVisitor(IYsonConsumer* consumer, bool sortMapKeys = false);
+    TNodeVisitor(::NYson::IYsonConsumer* consumer, bool sortMapKeys = false);
 
     void Visit(const TNode& node);
     void VisitMap(const TNode::TMapType& nodeMap);
     void VisitList(const TNode::TListType& nodeMap);
 
 private:
-    IYsonConsumer* Consumer_;
+    ::NYson::IYsonConsumer* Consumer_;
     bool SortMapKeys_;
 
 private:

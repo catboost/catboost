@@ -21,7 +21,7 @@ def generate_project(src_dir, substitution_dict, dst_dir):
 
 
 global_substitition_dict = {
-    'catboost_version_placeholder': '0.26.1',
+    'catboost_version_placeholder': '1.0.0',
     'relative_global_project_root_placeholder': '../..'
 }
 
@@ -32,7 +32,9 @@ configs = [
             'scala_compat_version_placeholder': '2.11',
             'scala_version_placeholder': '2.11.12',
             'spark_compat_version_placeholder': '2.3',
-            'spark_version_placeholder': '2.3.0'
+            'spark_version_placeholder': '2.3.0',
+            'hadoop_version_placeholder': '2.7.3',
+            'json4s_version_placeholder': '3.2.11'
         }
     },
     {
@@ -41,7 +43,9 @@ configs = [
             'scala_compat_version_placeholder': '2.11',
             'scala_version_placeholder': '2.11.12',
             'spark_compat_version_placeholder': '2.4',
-            'spark_version_placeholder': '2.4.0'
+            'spark_version_placeholder': '2.4.0',
+            'hadoop_version_placeholder': '2.7.3',
+            'json4s_version_placeholder': '3.5.3'
         }
     },
     {
@@ -50,7 +54,9 @@ configs = [
             'scala_compat_version_placeholder': '2.12',
             'scala_version_placeholder': '2.12.12',
             'spark_compat_version_placeholder': '2.4',
-            'spark_version_placeholder': '2.4.1'
+            'spark_version_placeholder': '2.4.1',
+            'hadoop_version_placeholder': '2.7.3',
+            'json4s_version_placeholder': '3.5.3'
         }
     },
     {
@@ -59,7 +65,20 @@ configs = [
             'scala_compat_version_placeholder': '2.12',
             'scala_version_placeholder': '2.12.12',
             'spark_compat_version_placeholder': '3.0',
-            'spark_version_placeholder': '3.0.1'
+            'spark_version_placeholder': '3.0.1',
+            'hadoop_version_placeholder': '2.7.3',
+            'json4s_version_placeholder': '3.6.6'
+        }
+    },
+    {
+        'dst_dir' : '../projects/spark_3.1_2.12',
+        'substitution_dict' : {
+            'scala_compat_version_placeholder': '2.12',
+            'scala_version_placeholder': '2.12.12',
+            'spark_compat_version_placeholder': '3.1',
+            'spark_version_placeholder': '3.1.0',
+            'hadoop_version_placeholder': '3.2.0',
+            'json4s_version_placeholder': '3.7.0-M5'
         }
     }
 ]

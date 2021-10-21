@@ -21,7 +21,7 @@ IF (CUDA_VERSION VERSION_GE "10.1")
 ENDIF()
 
 PEERDIR(
-    contrib/libs/cub
+    contrib/libs/nvidia/cub
     library/cpp/cuda/exception
     library/cpp/threading/future
 )

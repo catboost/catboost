@@ -30,9 +30,10 @@ PEERDIR(
     contrib/restricted/abseil-cpp/absl/flags/reflection
     contrib/restricted/abseil-cpp/absl/flags/usage_config
     contrib/restricted/abseil-cpp/absl/hash
+    contrib/restricted/abseil-cpp/absl/hash/internal
     contrib/restricted/abseil-cpp/absl/numeric
     contrib/restricted/abseil-cpp/absl/strings
-    contrib/restricted/abseil-cpp/absl/strings/cord
+    contrib/restricted/abseil-cpp/absl/strings/absl_cord
     contrib/restricted/abseil-cpp/absl/strings/internal
     contrib/restricted/abseil-cpp/absl/strings/internal/str_format
     contrib/restricted/abseil-cpp/absl/synchronization

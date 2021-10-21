@@ -1,5 +1,6 @@
 #include <catboost/private/libs/algo/full_model_saver.h>
 
+#include <catboost/private/libs/feature_estimator/classification_target.h>
 #include <catboost/private/libs/feature_estimator/text_feature_estimators.h>
 #include <catboost/private/libs/options/text_processing_options.h>
 #include <catboost/private/libs/text_features/ut/lib/text_features_data.h>
@@ -13,23 +14,23 @@ using namespace NCatboostOptions;
 
 static void CreateTextEstimators(
     const TTextDigitizers& textDigitizers,
-    TVector<NCBTest::TTokenizedTextFeature>&& tokenizedFeatures,
+    TMap<ui32, NCBTest::TTokenizedTextFeature>&& tokenizedFeatures,
     TVector<ui32>&& target,
     TConstArrayRef<TTokenizedFeatureDescription> tokenizedFeatureDescriptions,
     TFeatureEstimatorsPtr* featureEstimators
 ) {
     const ui32 numClasses = 2;
-    auto textTarget = MakeIntrusive<TTextClassificationTarget>(std::move(target), numClasses);
-    const ui32 numTokenizedFeatures = static_cast<ui32>(tokenizedFeatures.size());
+    auto textTarget = MakeIntrusive<TClassificationTarget>(std::move(target), numClasses);
+    const ui32 numSourceTexts = textDigitizers.GetSourceTextsCount();
 
     TFeatureEstimatorsBuilder estimatorsBuilder;
 
-    for (ui32 tokenizedFeatureId = 0; tokenizedFeatureId < numTokenizedFeatures; tokenizedFeatureId++) {
-        const auto& tokenizedFeatureDescription = tokenizedFeatureDescriptions[tokenizedFeatureId];
+    for (auto& [tokenizedFeatureId, feature] : tokenizedFeatures) {
+        const auto& tokenizedFeatureDescription = tokenizedFeatureDescriptions[tokenizedFeatureId - numSourceTexts];
 
         TTextDataSetPtr learnTexts = MakeIntrusive<TTextDataSet>(
             NCB::TTextColumn::CreateOwning(
-                std::move(tokenizedFeatures[tokenizedFeatureId])
+                std::move(feature)
             ),
             textDigitizers.GetDigitizer(tokenizedFeatureId).Dictionary
         );
@@ -74,7 +75,7 @@ static void CreateDataForTest(
     TVector<TEstimatedFeature>* estimatedFeatures,
     TFeatureEstimatorsPtr* estimators
 ) {
-    TVector<NCBTest::TTokenizedTextFeature> tokenizedFeatures;
+    TMap<ui32, NCBTest::TTokenizedTextFeature> tokenizedFeatures;
     TVector<TDictionaryPtr> dictionaries;
     TTokenizerPtr tokenizer;
     TVector<ui32> target;

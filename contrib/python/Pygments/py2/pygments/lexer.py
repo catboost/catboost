@@ -15,8 +15,6 @@ import re
 import sys
 import time
 
-import six
-
 from pygments.filter import apply_filters, Filter
 from pygments.filters import get_filter_by_name
 from pygments.token import Error, Text, Other, _TokenType
@@ -471,7 +469,7 @@ class RegexLexerMeta(LexerMeta):
 
     def _process_state(cls, unprocessed, processed, state):
         """Preprocess a single state definition."""
-        assert isinstance(state, six.string_types), "wrong state name %r" % state
+        assert type(state) is str, "wrong state name %r" % state
         assert state[0] != '#', "invalid state name %r" % state
         if state in processed:
             return processed[state]

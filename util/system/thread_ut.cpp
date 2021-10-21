@@ -2,6 +2,8 @@
 
 #include <library/cpp/testing/unittest/registar.h>
 
+#include <atomic>
+
 Y_UNIT_TEST_SUITE(TSysThreadTest) {
     struct TIdTester {
         inline TIdTester()

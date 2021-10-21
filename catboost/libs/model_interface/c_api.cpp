@@ -183,7 +183,7 @@ CATBOOST_API ModelCalcerHandle* ModelCalcerCreate() {
     try {
         auto* fullModel = new TFullModel;
         auto evaluator = fullModel->GetCurrentEvaluator();
-        return new TModelHandleContent{.FullModel = fullModel, .Evaluator = std::move(evaluator)};
+        return new TModelHandleContent{.FullModel = THolder(fullModel), .Evaluator = std::move(evaluator)};
     } catch (...) {
         Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
     }

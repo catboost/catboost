@@ -65,8 +65,8 @@ namespace NCB {
                     *id -= Args.DatasetSubset.Range.Begin;
                     ++tokenIdx;
                 };
-                parseIdFunc(AsStringBuf("Winner"), &pair.WinnerId);
-                parseIdFunc(AsStringBuf("Loser"), &pair.LoserId);
+                parseIdFunc(TStringBuf("Winner"), &pair.WinnerId);
+                parseIdFunc(TStringBuf("Loser"), &pair.LoserId);
 
                 if (tokens.ysize() == 3) {
                     CB_ENSURE(
@@ -173,8 +173,8 @@ namespace NCB {
                         );
                         ++tokenIdx;
                     };
-                    parseIdFunc(AsStringBuf("WinnerIdxInGroup"), &pair.WinnerIdxInGroup);
-                    parseIdFunc(AsStringBuf("LoserIdxInGroup"), &pair.LoserIdxInGroup);
+                    parseIdFunc(TStringBuf("WinnerIdxInGroup"), &pair.WinnerIdxInGroup);
+                    parseIdFunc(TStringBuf("LoserIdxInGroup"), &pair.LoserIdxInGroup);
 
                     if (tokens.ysize() == 4) {
                         CB_ENSURE(

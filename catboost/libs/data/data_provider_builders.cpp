@@ -428,14 +428,14 @@ namespace NCB {
                 if (Data.MetaInfo.HasWeights) {
                     Data.TargetData.Weights = TWeights<float>(
                         TVector<float>(WeightsBuffer),
-                        AsStringBuf("Weights"),
+                        TStringBuf("Weights"),
                         /*allWeightsCanBeZero*/ true
                     );
                 }
                 if (Data.MetaInfo.HasGroupWeight) {
                     Data.TargetData.GroupWeights = TWeights<float>(
                         TVector<float>(GroupWeightsBuffer),
-                        AsStringBuf("GroupWeights"),
+                        TStringBuf("GroupWeights"),
                         /*allWeightsCanBeZero*/ true
                     );
                 }
@@ -455,14 +455,14 @@ namespace NCB {
                 if (Data.MetaInfo.HasWeights) {
                     Data.TargetData.Weights = TWeights<float>(
                         std::move(WeightsBuffer),
-                        AsStringBuf("Weights"),
+                        TStringBuf("Weights"),
                         /*allWeightsCanBeZero*/ InBlock
                     );
                 }
                 if (Data.MetaInfo.HasGroupWeight) {
                     Data.TargetData.GroupWeights = TWeights<float>(
                         std::move(GroupWeightsBuffer),
-                        AsStringBuf("GroupWeights"),
+                        TStringBuf("GroupWeights"),
                         /*allWeightsCanBeZero*/ InBlock
                     );
                 }
@@ -510,6 +510,7 @@ namespace NCB {
                     /*objectsGrouping*/ Nothing(), // will init from data
                     std::move(Data),
                     Options.SkipCheck,
+                    Data.MetaInfo.ForceUnitAutoPairWeights,
                     LocalExecutor
                 );
 
@@ -542,6 +543,7 @@ namespace NCB {
                     /*objectsGrouping*/ Nothing(), // will init from data
                     std::move(Data),
                     Options.SkipCheck,
+                    Data.MetaInfo.ForceUnitAutoPairWeights,
                     LocalExecutor
                 )->CastMoveTo<TObjectsDataProvider>();
             }
@@ -559,6 +561,7 @@ namespace NCB {
                 /*objectsGrouping*/ Nothing(), // will init from data
                 std::move(Data),
                 Options.SkipCheck,
+                Data.MetaInfo.ForceUnitAutoPairWeights,
                 LocalExecutor
             );
 
@@ -1334,6 +1337,7 @@ namespace NCB {
                 /*objectsGrouping*/ Nothing(), // will init from data
                 std::move(Data),
                 Options.SkipCheck,
+                Data.MetaInfo.ForceUnitAutoPairWeights,
                 LocalExecutor
             )->CastMoveTo<TObjectsDataProvider>();
         }
@@ -1619,7 +1623,7 @@ namespace NCB {
         template <class T>
         static void CopyPart(ui32 objectOffset, TUnalignedArrayBuf<T> srcPart, TVector<T>* dstData) {
             CB_ENSURE_INTERNAL(
-                objectOffset < dstData->size(),
+                objectOffset <= dstData->size(),
                 LabeledOutput(objectOffset, srcPart.GetSize(), dstData->size()));
             CB_ENSURE_INTERNAL(
                 objectOffset + srcPart.GetSize() <= dstData->size(),
@@ -1805,6 +1809,7 @@ namespace NCB {
                 // without HasFeatures dataprovider self-test fails on distributed train
                 // on quantized pool
                 Options.SkipCheck || !DatasetSubset.HasFeatures,
+                Data.MetaInfo.ForceUnitAutoPairWeights,
                 LocalExecutor
             )->CastMoveTo<TObjectsDataProvider>();
         }
@@ -2382,6 +2387,7 @@ namespace NCB {
                 /*objectsGrouping*/ Nothing(), // will init from data
                 std::move(dataRef),
                 Options.SkipCheck,
+                dataRef.MetaInfo.ForceUnitAutoPairWeights,
                 LocalExecutor
             )->CastMoveTo<TObjectsDataProvider>();
         }

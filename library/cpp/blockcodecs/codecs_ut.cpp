@@ -324,4 +324,17 @@ Y_UNIT_TEST_SUITE(TBlockCodecsTest) {
 
         UNIT_ASSERT_VALUES_EQUAL(ALL_CODECS, JoinSeq(",", ListAllCodecs()));
     }
+
+    Y_UNIT_TEST(TestEncodeDecodeIntoString) {
+        TStringBuf data = "na gorshke sidel korol";
+
+        TCodecList codecs = ListAllCodecs();
+        for (const auto& codec : codecs) {
+            const ICodec* c = Codec(codec);
+            TString encoded = c->Encode(data);
+            TString decoded = c->Decode(encoded);
+
+            UNIT_ASSERT_VALUES_EQUAL(decoded, data);
+        }
+    }
 }

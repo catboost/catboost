@@ -32,10 +32,14 @@
 #include "tcmalloc/thread_cache.h"
 #include "tcmalloc/tracking.h"
 
+GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
+namespace tcmalloc_internal {
 
 class CPUCache {
  public:
+  constexpr CPUCache() = default;
+
   enum class ActivationMode {
     FastPathOn,
     FastPathOffTestOnly,
@@ -47,11 +51,11 @@ class CPUCache {
   void Activate(ActivationMode mode);
 
   // Allocate an object of the given size class. When allocation fails
-  // (from this cache and after running Refill), OOOHandler(size) is
+  // (from this cache and after running Refill), OOMHandler(size) is
   // called and its return value is returned from
-  // Allocate. OOOHandler is used to parameterize out-of-memory
+  // Allocate. OOMHandler is used to parameterize out-of-memory
   // handling (raising exception, returning nullptr, calling
-  // new_handler or anything else). "Passing" OOOHandler in this way
+  // new_handler or anything else). "Passing" OOMHandler in this way
   // allows Allocate to be used in tail-call position in fast-path,
   // making Allocate use jump (tail-call) to slow path code.
   template <void* OOMHandler(size_t)>
@@ -62,6 +66,9 @@ class CPUCache {
 
   // Give the number of bytes in <cpu>'s cache
   uint64_t UsedBytes(int cpu) const;
+
+  // Give the allocated number of bytes in <cpu>'s cache
+  uint64_t Allocated(int cpu) const;
 
   // Whether <cpu>'s cache has ever been populated with objects
   bool HasPopulated(int cpu) const;
@@ -77,8 +84,47 @@ class CPUCache {
   // Give the number of bytes unallocated to any sizeclass in <cpu>'s cache.
   uint64_t Unallocated(int cpu) const;
 
+  // Gives the total capacity of <cpu>'s cache in bytes.
+  //
+  // The total capacity of <cpu>'s cache should be equal to the sum of allocated
+  // and unallocated bytes for that cache.
+  uint64_t Capacity(int cpu) const;
+
   // Give the per-cpu limit of cache size.
   uint64_t CacheLimit() const;
+
+  // Shuffles per-cpu caches using the number of underflows and overflows that
+  // occurred in the prior interval. It selects the top per-cpu caches
+  // with highest misses as candidates, iterates through the other per-cpu
+  // caches to steal capacity from them and adds the stolen bytes to the
+  // available capacity of the per-cpu caches. May be called from any processor.
+  //
+  // TODO(vgogte): There are quite a few knobs that we can play around with in
+  // ShuffleCpuCaches.
+  void ShuffleCpuCaches();
+
+  // Sets the lower limit on the capacity that can be stolen from the cpu cache.
+  static constexpr double kCacheCapacityThreshold = 0.20;
+
+  // Tries to steal <bytes> for the destination <cpu>. It iterates through the
+  // the set of populated cpu caches and steals the bytes from them. A cpu is
+  // considered a good candidate to steal from if:
+  // (1) the cache is populated
+  // (2) the numbers of underflows and overflows are both less than 0.8x those
+  // of the destination per-cpu cache
+  // (3) source cpu is not the same as the destination cpu
+  // (4) capacity of the source cpu/cl is non-zero
+  //
+  // For a given source cpu, we iterate through the size classes to steal from
+  // them. Currently, we use a similar clock-like algorithm from Steal() to
+  // identify the cl to steal from.
+  void StealFromOtherCache(int cpu, int max_populated_cpu, size_t bytes);
+
+  // Tries to reclaim inactive per-CPU caches. It iterates through the set of
+  // populated cpu caches and reclaims the caches that:
+  // (1) had same number of used bytes since the last interval,
+  // (2) had no change in the number of misses since the last interval.
+  void TryReclaimingCaches();
 
   // Empty out the cache on <cpu>; move all objects to the central
   // cache.  (If other threads run concurrently on that cpu, we can't
@@ -86,6 +132,9 @@ class CPUCache {
   // unused, this will eliminate stranded memory.)  Returns the number
   // of bytes we sent back.  This function is thread safe.
   uint64_t Reclaim(int cpu);
+
+  // Reports number of times the <cpu> has been reclaimed.
+  uint64_t GetNumReclaims(int cpu) const;
 
   // Determine number of bits we should use for allocating per-cpu cache
   // The amount of per-cpu cache is 2 ^ kPerCpuShift
@@ -95,9 +144,28 @@ class CPUCache {
   static constexpr size_t kPerCpuShift = 18;
 #endif
 
+  struct CpuCacheMissStats {
+    size_t underflows;
+    size_t overflows;
+  };
+
+  // Reports total cache underflows and overflows for <cpu>.
+  CpuCacheMissStats GetTotalCacheMissStats(int cpu) const;
+
+  // Reports the cache underflows and overflows for <cpu> that were recorded at
+  // the end of the previous interval. It also records current underflows and
+  // overflows in the reclaim underflow and overflow stats.
+  CpuCacheMissStats GetReclaimCacheMissStats(int cpu) const;
+
+  // Reports cache underflows and overflows for <cpu> this interval.
+  CpuCacheMissStats GetIntervalCacheMissStats(int cpu) const;
+
   // Report statistics
-  void Print(TCMalloc_Printer* out) const;
+  void Print(Printer* out) const;
   void PrintInPbtxt(PbtxtRegion* region) const;
+
+  void AcquireInternalLocks();
+  void ReleaseInternalLocks();
 
  private:
   // Per-size-class freelist resizing info.
@@ -127,7 +195,7 @@ class CPUCache {
                   "size mismatch");
   };
 
-  subtle::percpu::TcmallocSlab<kPerCpuShift, kNumClasses> freelist_;
+  subtle::percpu::TcmallocSlab<kNumClasses> freelist_;
 
   struct ResizeInfoUnpadded {
     // cache space on this CPU we're not using.  Modify atomically;
@@ -142,16 +210,44 @@ class CPUCache {
     // For cross-cpu operations.
     absl::base_internal::SpinLock lock;
     PerClassResizeInfo per_class[kNumClasses];
+    // tracks number of underflows on allocate.
+    std::atomic<size_t> total_underflows;
+    // tracks number of overflows on deallocate.
+    std::atomic<size_t> total_overflows;
+    // tracks number of underflows recorded as of the end of the last shuffle
+    // interval.
+    std::atomic<size_t> shuffle_underflows;
+    // tracks number of overflows recorded as of the end of the last shuffle
+    // interval.
+    std::atomic<size_t> shuffle_overflows;
+    // total cache space available on this CPU. This tracks the total
+    // allocated and unallocated bytes on this CPU cache.
+    std::atomic<size_t> capacity;
+    // Number of underflows as of the end of the last resize interval.
+    std::atomic<size_t> reclaim_underflows;
+    // Number of overflows as of the end of the last resize interval.
+    std::atomic<size_t> reclaim_overflows;
+    // Used bytes in the cache as of the end of the last resize interval.
+    std::atomic<uint64_t> reclaim_used_bytes;
+    // Tracks number of times this CPU has been reclaimed.
+    std::atomic<size_t> num_reclaims;
   };
   struct ResizeInfo : ResizeInfoUnpadded {
     char pad[ABSL_CACHELINE_SIZE -
              sizeof(ResizeInfoUnpadded) % ABSL_CACHELINE_SIZE];
   };
   // Tracking data for each CPU's cache resizing efforts.
-  ResizeInfo* resize_;
+  ResizeInfo* resize_ = nullptr;
+
   // Track whether we are lazily initializing slabs.  We cannot use the latest
   // value in Parameters, as it can change after initialization.
-  bool lazy_slabs_;
+  bool lazy_slabs_ = false;
+  // The maximum capacity of each size class within the slab.
+  uint16_t max_capacity_[kNumClasses] = {0};
+
+  // Provides a hint to StealFromOtherCache() so that we can steal from the
+  // caches in a round-robin fashion.
+  std::atomic<int> last_cpu_cache_steal_ = 0;
 
   // Return a set of objects to be returned to the Transfer Cache.
   static constexpr int kMaxToReturn = 16;
@@ -160,10 +256,16 @@ class CPUCache {
     int count = kMaxToReturn;
     // The size class of the returned object. kNumClasses is the
     // largest value that needs to be stored in cl.
-    static_assert(kNumClasses <= std::numeric_limits<unsigned char>::max());
-    unsigned char cl[kMaxToReturn];
+    CompactSizeClass cl[kMaxToReturn];
     void* obj[kMaxToReturn];
   };
+
+  static size_t MaxCapacityHelper(size_t cl) {
+    CPUCache& cpu_cache = Static::cpu_cache();
+    // Heuristic that the CPUCache has been activated.
+    ASSERT(cpu_cache.resize_ != nullptr);
+    return cpu_cache.max_capacity_[cl];
+  }
 
   void* Refill(int cpu, size_t cl);
 
@@ -190,6 +292,12 @@ class CPUCache {
   // be freed.
   size_t Steal(int cpu, size_t cl, size_t bytes, ObjectsToReturn* to_return);
 
+  // Records a cache underflow or overflow on <cpu>, increments underflow or
+  // overflow by 1.
+  // <is_malloc> determines whether the associated count corresponds to an
+  // underflow or overflow.
+  void RecordCacheMissStat(const int cpu, const bool is_malloc);
+
   static void* NoopUnderflow(int cpu, size_t cl) { return nullptr; }
   static int NoopOverflow(int cpu, size_t cl, void* item) { return -1; }
 };
@@ -204,8 +312,15 @@ inline void* ABSL_ATTRIBUTE_ALWAYS_INLINE CPUCache::Allocate(size_t cl) {
       // we've optimistically reported hit in Allocate, lets undo it and
       // report miss instead.
       tracking::Report(kMallocHit, cl, -1);
-      tracking::Report(kMallocMiss, cl, 1);
-      void* ret = Static::cpu_cache().Refill(cpu, cl);
+      void* ret = nullptr;
+      if (Static::sharded_transfer_cache().should_use(cl)) {
+        ret = Static::sharded_transfer_cache().Pop(cl);
+      } else {
+        tracking::Report(kMallocMiss, cl, 1);
+        CPUCache& cache = Static::cpu_cache();
+        cache.RecordCacheMissStat(cpu, true);
+        ret = cache.Refill(cpu, cl);
+      }
       if (ABSL_PREDICT_FALSE(ret == nullptr)) {
         size_t size = Static::sizemap().class_to_size(cl);
         return OOMHandler(size);
@@ -226,8 +341,14 @@ inline void ABSL_ATTRIBUTE_ALWAYS_INLINE CPUCache::Deallocate(void* ptr,
       // When we reach here we've already optimistically bumped FreeHits.
       // Fix that.
       tracking::Report(kFreeHit, cl, -1);
+      if (Static::sharded_transfer_cache().should_use(cl)) {
+        Static::sharded_transfer_cache().Push(cl, ptr);
+        return 1;
+      }
       tracking::Report(kFreeMiss, cl, 1);
-      return Static::cpu_cache().Overflow(ptr, cl, cpu);
+      CPUCache& cache = Static::cpu_cache();
+      cache.RecordCacheMissStat(cpu, false);
+      return cache.Overflow(ptr, cl, cpu);
     }
   };
   freelist_.Push(cl, ptr, Helper::Overflow);
@@ -240,7 +361,7 @@ inline bool UsePerCpuCache() {
     return false;
   }
 
-  if (ABSL_PREDICT_TRUE(tcmalloc::subtle::percpu::IsFastNoInit())) {
+  if (ABSL_PREDICT_TRUE(subtle::percpu::IsFastNoInit())) {
     return true;
   }
 
@@ -255,7 +376,7 @@ inline bool UsePerCpuCache() {
   // If the per-CPU cache for a thread is not initialized, we push ourselves
   // onto the slow path (if !defined(TCMALLOC_DEPRECATED_PERTHREAD)) until this
   // occurs.  See fast_alloc's use of TryRecordAllocationFast.
-  if (ABSL_PREDICT_TRUE(tcmalloc::subtle::percpu::IsFast())) {
+  if (ABSL_PREDICT_TRUE(subtle::percpu::IsFast())) {
     ThreadCache::BecomeIdle();
     return true;
   }
@@ -263,5 +384,7 @@ inline bool UsePerCpuCache() {
   return false;
 }
 
+}  // namespace tcmalloc_internal
 }  // namespace tcmalloc
+GOOGLE_MALLOC_SECTION_END
 #endif  // TCMALLOC_CPU_CACHE_H_

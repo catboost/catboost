@@ -514,6 +514,33 @@ TProtoStringType MessageLite::SerializePartialAsString() const {
   return output;
 }
 
+#if PROTOBUF_USE_EXCEPTIONS && defined(__cpp_lib_string_view)
+void MessageLite::ParseFromStringOrThrow(std::string_view s) {
+  const bool isOk = ParseFromArray(s.data(), s.size());
+  if (!isOk) {
+    throw FatalException("message_lite.cc", __LINE__, "Failed to parse protobuf message " + GetTypeName());
+  }
+}
+#endif
+
+#if PROTOBUF_USE_EXCEPTIONS
+TProtoStringType NProtoBuf::MessageLite::SerializeAsStringOrThrow() const {
+  TProtoStringType s;
+  if (!IsInitialized()) {
+    //NOTE: SerializeToString (called inside SerializeAsString too) does not perform this check in release build
+    //    so SerializeToString in release build return false only if result size is greater than 2gb
+    //    but in debug build not properly inited message (without required filds) will lead to an exception
+    //    different control flow in debug and build release look like a bug
+    throw FatalException("message_lite.cc", __LINE__, "Some required fileds are not set in message " + GetTypeName());
+  }
+  const bool isOk = SerializeToString(&s);
+  if (!isOk) {
+    throw FatalException("message_lite.cc", __LINE__, "Failed to serialize protobuf message " + GetTypeName());
+  }
+  return s;
+}
+#endif
+
 
 namespace internal {
 

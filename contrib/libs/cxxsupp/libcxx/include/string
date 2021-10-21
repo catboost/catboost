@@ -69,6 +69,9 @@ struct char_traits
 
 template <> struct char_traits<char>;
 template <> struct char_traits<wchar_t>;
+template <> struct char_traits<char8_t>;  // C++20
+template <> struct char_traits<char16_t>;
+template <> struct char_traits<char32_t>;
 
 template<class charT, class traits = char_traits<charT>, class Allocator = allocator<charT> >
 class basic_string
@@ -153,7 +156,8 @@ public:
     void resize(size_type n, value_type c);
     void resize(size_type n);
 
-    void reserve(size_type res_arg = 0);
+    void reserve(size_type res_arg);
+    void reserve(); // deprecated in C++20
     void shrink_to_fit();
     void clear() noexcept;
     bool empty() const noexcept;
@@ -261,49 +265,49 @@ public:
 
     size_type find(const basic_string& str, size_type pos = 0) const noexcept;
     template <class T>
-        size_type find(const T& t, size_type pos = 0) const;  // C++17
+        size_type find(const T& t, size_type pos = 0) const noexcept; // C++17, noexcept as an extension
     size_type find(const value_type* s, size_type pos, size_type n) const noexcept;
     size_type find(const value_type* s, size_type pos = 0) const noexcept;
     size_type find(value_type c, size_type pos = 0) const noexcept;
 
     size_type rfind(const basic_string& str, size_type pos = npos) const noexcept;
     template <class T>
-        size_type rfind(const T& t, size_type pos = npos) const;  // C++17
+        size_type rfind(const T& t, size_type pos = npos) const noexcept; // C++17, noexcept as an extension
     size_type rfind(const value_type* s, size_type pos, size_type n) const noexcept;
     size_type rfind(const value_type* s, size_type pos = npos) const noexcept;
     size_type rfind(value_type c, size_type pos = npos) const noexcept;
 
     size_type find_first_of(const basic_string& str, size_type pos = 0) const noexcept;
     template <class T>
-        size_type find_first_of(const T& t, size_type pos = 0) const; // C++17
+        size_type find_first_of(const T& t, size_type pos = 0) const noexcept; // C++17, noexcept as an extension
     size_type find_first_of(const value_type* s, size_type pos, size_type n) const noexcept;
     size_type find_first_of(const value_type* s, size_type pos = 0) const noexcept;
     size_type find_first_of(value_type c, size_type pos = 0) const noexcept;
 
     size_type find_last_of(const basic_string& str, size_type pos = npos) const noexcept;
     template <class T>
-        size_type find_last_of(const T& t, size_type pos = npos) const noexcept;  // C++17
+        size_type find_last_of(const T& t, size_type pos = npos) const noexcept noexcept; // C++17, noexcept as an extension
     size_type find_last_of(const value_type* s, size_type pos, size_type n) const noexcept;
     size_type find_last_of(const value_type* s, size_type pos = npos) const noexcept;
     size_type find_last_of(value_type c, size_type pos = npos) const noexcept;
 
     size_type find_first_not_of(const basic_string& str, size_type pos = 0) const noexcept;
     template <class T>
-        size_type find_first_not_of(const T& t, size_type pos = 0) const; // C++17
+        size_type find_first_not_of(const T& t, size_type pos = 0) const noexcept; // C++17, noexcept as an extension
     size_type find_first_not_of(const value_type* s, size_type pos, size_type n) const noexcept;
     size_type find_first_not_of(const value_type* s, size_type pos = 0) const noexcept;
     size_type find_first_not_of(value_type c, size_type pos = 0) const noexcept;
 
     size_type find_last_not_of(const basic_string& str, size_type pos = npos) const noexcept;
     template <class T>
-        size_type find_last_not_of(const T& t, size_type pos = npos) const; // C++17
+        size_type find_last_not_of(const T& t, size_type pos = npos) const noexcept; // C++17, noexcept as an extension
     size_type find_last_not_of(const value_type* s, size_type pos, size_type n) const noexcept;
     size_type find_last_not_of(const value_type* s, size_type pos = npos) const noexcept;
     size_type find_last_not_of(value_type c, size_type pos = npos) const noexcept;
 
     int compare(const basic_string& str) const noexcept;
     template <class T>
-        int compare(const T& t) const noexcept;  // C++17
+        int compare(const T& t) const noexcept;  // C++17, noexcept as an extension
     int compare(size_type pos1, size_type n1, const basic_string& str) const;
     template <class T>
         int compare(size_type pos1, size_type n1, const T& t) const;  // C++17
@@ -316,12 +320,16 @@ public:
     int compare(size_type pos1, size_type n1, const value_type* s) const;
     int compare(size_type pos1, size_type n1, const value_type* s, size_type n2) const;
 
-    bool starts_with(basic_string_view<charT, traits> sv) const noexcept; // C++2a
-    bool starts_with(charT c) const noexcept;                             // C++2a
-    bool starts_with(const charT* s) const;                               // C++2a
-    bool ends_with(basic_string_view<charT, traits> sv) const noexcept;   // C++2a
-    bool ends_with(charT c) const noexcept;                               // C++2a
-    bool ends_with(const charT* s) const;                                 // C++2a
+    bool starts_with(basic_string_view<charT, traits> sv) const noexcept; // C++20
+    bool starts_with(charT c) const noexcept;                             // C++20
+    bool starts_with(const charT* s) const;                               // C++20
+    bool ends_with(basic_string_view<charT, traits> sv) const noexcept;   // C++20
+    bool ends_with(charT c) const noexcept;                               // C++20
+    bool ends_with(const charT* s) const;                                 // C++20
+
+    constexpr bool contains(basic_string_view<charT, traits> sv) const noexcept; // C++2b
+    constexpr bool contains(charT c) const noexcept;                             // C++2b
+    constexpr bool contains(const charT* s) const;                               // C++2b
 
     bool __invariants() const;
 };
@@ -445,18 +453,19 @@ erase_if(basic_string<charT, traits, Allocator>& c, Predicate pred); // C++20
 
 typedef basic_string<char>    string;
 typedef basic_string<wchar_t> wstring;
+typedef basic_string<char8_t> u8string; // C++20
 typedef basic_string<char16_t> u16string;
 typedef basic_string<char32_t> u32string;
 
-int                stoi  (const string& str, size_t* idx = 0, int base = 10);
-long               stol  (const string& str, size_t* idx = 0, int base = 10);
-unsigned long      stoul (const string& str, size_t* idx = 0, int base = 10);
-long long          stoll (const string& str, size_t* idx = 0, int base = 10);
-unsigned long long stoull(const string& str, size_t* idx = 0, int base = 10);
+int                stoi  (const string& str, size_t* idx = nullptr, int base = 10);
+long               stol  (const string& str, size_t* idx = nullptr, int base = 10);
+unsigned long      stoul (const string& str, size_t* idx = nullptr, int base = 10);
+long long          stoll (const string& str, size_t* idx = nullptr, int base = 10);
+unsigned long long stoull(const string& str, size_t* idx = nullptr, int base = 10);
 
-float       stof (const string& str, size_t* idx = 0);
-double      stod (const string& str, size_t* idx = 0);
-long double stold(const string& str, size_t* idx = 0);
+float       stof (const string& str, size_t* idx = nullptr);
+double      stod (const string& str, size_t* idx = nullptr);
+long double stold(const string& str, size_t* idx = nullptr);
 
 string to_string(int val);
 string to_string(unsigned val);
@@ -468,15 +477,15 @@ string to_string(float val);
 string to_string(double val);
 string to_string(long double val);
 
-int                stoi  (const wstring& str, size_t* idx = 0, int base = 10);
-long               stol  (const wstring& str, size_t* idx = 0, int base = 10);
-unsigned long      stoul (const wstring& str, size_t* idx = 0, int base = 10);
-long long          stoll (const wstring& str, size_t* idx = 0, int base = 10);
-unsigned long long stoull(const wstring& str, size_t* idx = 0, int base = 10);
+int                stoi  (const wstring& str, size_t* idx = nullptr, int base = 10);
+long               stol  (const wstring& str, size_t* idx = nullptr, int base = 10);
+unsigned long      stoul (const wstring& str, size_t* idx = nullptr, int base = 10);
+long long          stoll (const wstring& str, size_t* idx = nullptr, int base = 10);
+unsigned long long stoull(const wstring& str, size_t* idx = nullptr, int base = 10);
 
-float       stof (const wstring& str, size_t* idx = 0);
-double      stod (const wstring& str, size_t* idx = 0);
-long double stold(const wstring& str, size_t* idx = 0);
+float       stof (const wstring& str, size_t* idx = nullptr);
+double      stod (const wstring& str, size_t* idx = nullptr);
+long double stold(const wstring& str, size_t* idx = nullptr);
 
 wstring to_wstring(int val);
 wstring to_wstring(unsigned val);
@@ -489,12 +498,14 @@ wstring to_wstring(double val);
 wstring to_wstring(long double val);
 
 template <> struct hash<string>;
+template <> struct hash<u8string>; // C++20
 template <> struct hash<u16string>;
 template <> struct hash<u32string>;
 template <> struct hash<wstring>;
 
 basic_string<char>     operator "" s( const char *str,     size_t len ); // C++14
 basic_string<wchar_t>  operator "" s( const wchar_t *str,  size_t len ); // C++14
+basic_string<char8_t>  operator "" s( const char8_t *str,  size_t len ); // C++20
 basic_string<char16_t> operator "" s( const char16_t *str, size_t len ); // C++14
 basic_string<char32_t> operator "" s( const char32_t *str, size_t len ); // C++14
 
@@ -503,6 +514,7 @@ basic_string<char32_t> operator "" s( const char32_t *str, size_t len ); // C++1
 */
 
 #include <__config>
+#include <compare>
 #include <string_view>
 #include <iosfwd>
 #include <cstring>
@@ -667,12 +679,31 @@ struct __padding<_CharT, 1>
 {
 };
 
-#endif  // _LIBCPP_ABI_ALTERNATE_STRING_LAYOUT
+#endif // _LIBCPP_ABI_ALTERNATE_STRING_LAYOUT
+
+#ifndef _LIBCPP_HAS_NO_CHAR8_T
+typedef basic_string<char8_t> u8string;
+#endif
+
+#ifndef _LIBCPP_HAS_NO_UNICODE_CHARS
+typedef basic_string<char16_t> u16string;
+typedef basic_string<char32_t> u32string;
+#endif // _LIBCPP_HAS_NO_UNICODE_CHARS
 
 template<class _CharT, class _Traits, class _Allocator>
-class _LIBCPP_TEMPLATE_VIS basic_string
+class
+    _LIBCPP_TEMPLATE_VIS
+#ifndef _LIBCPP_HAS_NO_CHAR8_T
+    _LIBCPP_PREFERRED_NAME(u8string)
+#endif
+#ifndef _LIBCPP_HAS_NO_UNICODE_CHARS
+    _LIBCPP_PREFERRED_NAME(u16string)
+    _LIBCPP_PREFERRED_NAME(u32string)
+#endif
+    basic_string
     : private __basic_string_common<true>
 {
+	static_assert(sizeof(_CharT) <= 4, "libc++ implementation of std::basic_string does not support extra-wide character types");
 public:
     typedef basic_string                                 __self;
     typedef basic_string_view<_CharT, _Traits>           __self_view;
@@ -722,7 +753,7 @@ private:
 #else  // _LIBCPP_BIG_ENDIAN
     static const size_type __short_mask = 0x80;
     static const size_type __long_mask  = ~(size_type(~0) >> 1);
-#endif  // _LIBCPP_BIG_ENDIAN
+#endif // _LIBCPP_BIG_ENDIAN
 
     enum {__min_cap = (sizeof(__long) - 1)/sizeof(value_type) > 2 ?
                       (sizeof(__long) - 1)/sizeof(value_type) : 2};
@@ -752,7 +783,7 @@ private:
 #else  // _LIBCPP_BIG_ENDIAN
     static const size_type __short_mask = 0x01;
     static const size_type __long_mask  = 0x1ul;
-#endif  // _LIBCPP_BIG_ENDIAN
+#endif // _LIBCPP_BIG_ENDIAN
 
     enum {__min_cap = (sizeof(__long) - 1)/sizeof(value_type) > 2 ?
                       (sizeof(__long) - 1)/sizeof(value_type) : 2};
@@ -767,7 +798,7 @@ private:
         value_type __data_[__min_cap];
     };
 
-#endif  // _LIBCPP_ABI_ALTERNATE_STRING_LAYOUT
+#endif // _LIBCPP_ABI_ALTERNATE_STRING_LAYOUT
 
     union __ulx{__long __lx; __short __lxx;};
 
@@ -791,7 +822,7 @@ private:
     __compressed_pair<__rep, allocator_type> __r_;
 
 public:
-    _LIBCPP_FUNC_VIS
+    _LIBCPP_TEMPLATE_DATA_VIS
     static const size_type npos = -1;
 
     _LIBCPP_INLINE_VISIBILITY basic_string()
@@ -818,12 +849,12 @@ public:
 
     _LIBCPP_INLINE_VISIBILITY
     basic_string(basic_string&& __str, const allocator_type& __a);
-#endif  // _LIBCPP_CXX03_LANG
+#endif // _LIBCPP_CXX03_LANG
 
     _LIBCPP_CONSTEXPR _LIBCPP_INLINE_VISIBILITY
     basic_string(nullptr_t) = delete;
 
-    template <class = _EnableIf<__is_allocator<_Allocator>::value, nullptr_t>>
+    template <class = _EnableIf<__is_allocator<_Allocator>::value, nullptr_t> >
     _LIBCPP_INLINE_VISIBILITY
     basic_string(const _CharT* __s) : __r_(__default_init_tag(), __default_init_tag()) {
       _LIBCPP_ASSERT(__s != nullptr, "basic_string(const char*) detected nullptr");
@@ -833,7 +864,7 @@ public:
 #   endif
     }
 
-    template <class = _EnableIf<__is_allocator<_Allocator>::value, nullptr_t>>
+    template <class = _EnableIf<__is_allocator<_Allocator>::value, nullptr_t> >
         _LIBCPP_INLINE_VISIBILITY
         basic_string(const _CharT* __s, const _Allocator& __a);
 
@@ -852,7 +883,7 @@ public:
     _LIBCPP_INLINE_VISIBILITY
     basic_string(size_type __n, _CharT __c);
 
-    template <class = _EnableIf<__is_allocator<_Allocator>::value, nullptr_t>>
+    template <class = _EnableIf<__is_allocator<_Allocator>::value, nullptr_t> >
         _LIBCPP_INLINE_VISIBILITY
         basic_string(size_type __n, _CharT __c, const _Allocator& __a);
 
@@ -865,7 +896,7 @@ public:
     template<class _Tp, class = _EnableIf<__can_be_converted_to_string_view<_CharT, _Traits, _Tp>::value && !__is_same_uncvref<_Tp, basic_string>::value> >
         _LIBCPP_METHOD_TEMPLATE_IMPLICIT_INSTANTIATION_VIS
         basic_string(const _Tp& __t, size_type __pos, size_type __n,
-                              const allocator_type& __a = allocator_type());
+                     const allocator_type& __a = allocator_type());
 
     template<class _Tp, class = _EnableIf<__can_be_converted_to_string_view<_CharT, _Traits, _Tp>::value &&
                                           !__is_same_uncvref<_Tp, basic_string>::value> >
@@ -876,10 +907,10 @@ public:
         _LIBCPP_METHOD_TEMPLATE_IMPLICIT_INSTANTIATION_VIS
         explicit basic_string(const _Tp& __t, const allocator_type& __a);
 
-    template<class _InputIterator, class = _EnableIf<__is_cpp17_input_iterator<_InputIterator>::value>>
+    template<class _InputIterator, class = _EnableIf<__is_cpp17_input_iterator<_InputIterator>::value> >
         _LIBCPP_INLINE_VISIBILITY
         basic_string(_InputIterator __first, _InputIterator __last);
-    template<class _InputIterator, class = _EnableIf<__is_cpp17_input_iterator<_InputIterator>::value>>
+    template<class _InputIterator, class = _EnableIf<__is_cpp17_input_iterator<_InputIterator>::value> >
         _LIBCPP_INLINE_VISIBILITY
         basic_string(_InputIterator __first, _InputIterator __last, const allocator_type& __a);
 #ifndef _LIBCPP_CXX03_LANG
@@ -887,7 +918,7 @@ public:
     basic_string(initializer_list<_CharT> __il);
     _LIBCPP_INLINE_VISIBILITY
     basic_string(initializer_list<_CharT> __il, const _Allocator& __a);
-#endif  // _LIBCPP_CXX03_LANG
+#endif // _LIBCPP_CXX03_LANG
 
     inline ~basic_string();
 
@@ -938,7 +969,7 @@ public:
     _LIBCPP_INLINE_VISIBILITY
     const_iterator end() const _NOEXCEPT
         {return const_iterator(__get_pointer() + size());}
-#endif  // _LIBCPP_DEBUG_LEVEL == 2
+#endif // _LIBCPP_DEBUG_LEVEL == 2
     _LIBCPP_INLINE_VISIBILITY
     reverse_iterator rbegin() _NOEXCEPT
         {return reverse_iterator(end());}
@@ -984,13 +1015,13 @@ public:
     void resize(size_type __n, value_type __c);
     _LIBCPP_INLINE_VISIBILITY void resize(size_type __n) {resize(__n, value_type());}
 
-    void reserve(size_type __res_arg);
+    void reserve(size_type __requested_capacity);
     _LIBCPP_INLINE_VISIBILITY void __resize_default_init(size_type __n);
 
+    _LIBCPP_DEPRECATED_IN_CXX20 _LIBCPP_INLINE_VISIBILITY
+    void reserve() _NOEXCEPT {shrink_to_fit();}
     _LIBCPP_INLINE_VISIBILITY
-    void reserve() _NOEXCEPT {reserve(0);}
-    _LIBCPP_INLINE_VISIBILITY
-    void shrink_to_fit() _NOEXCEPT {reserve();}
+    void shrink_to_fit() _NOEXCEPT;
     _LIBCPP_INLINE_VISIBILITY
     void clear() _NOEXCEPT;
     _LIBCPP_NODISCARD_AFTER_CXX17 _LIBCPP_INLINE_VISIBILITY
@@ -1017,7 +1048,7 @@ public:
     _LIBCPP_INLINE_VISIBILITY basic_string& operator+=(value_type __c)            {push_back(__c); return *this;}
 #ifndef _LIBCPP_CXX03_LANG
     _LIBCPP_INLINE_VISIBILITY basic_string& operator+=(initializer_list<value_type> __il) {return append(__il);}
-#endif  // _LIBCPP_CXX03_LANG
+#endif // _LIBCPP_CXX03_LANG
 
     _LIBCPP_INLINE_VISIBILITY
     basic_string& append(const basic_string& __str);
@@ -1081,7 +1112,7 @@ public:
 #ifndef _LIBCPP_CXX03_LANG
     _LIBCPP_INLINE_VISIBILITY
     basic_string& append(initializer_list<value_type> __il) {return append(__il.begin(), __il.size());}
-#endif  // _LIBCPP_CXX03_LANG
+#endif // _LIBCPP_CXX03_LANG
 
     void push_back(value_type __c);
     _LIBCPP_INLINE_VISIBILITY
@@ -1141,7 +1172,7 @@ public:
 #ifndef _LIBCPP_CXX03_LANG
     _LIBCPP_INLINE_VISIBILITY
     basic_string& assign(initializer_list<value_type> __il) {return assign(__il.begin(), __il.size());}
-#endif  // _LIBCPP_CXX03_LANG
+#endif // _LIBCPP_CXX03_LANG
 
     _LIBCPP_INLINE_VISIBILITY
     basic_string& insert(size_type __pos1, const basic_string& __str);
@@ -1193,7 +1224,7 @@ public:
     _LIBCPP_INLINE_VISIBILITY
     iterator insert(const_iterator __pos, initializer_list<value_type> __il)
                     {return insert(__pos, __il.begin(), __il.end());}
-#endif  // _LIBCPP_CXX03_LANG
+#endif // _LIBCPP_CXX03_LANG
 
     basic_string& erase(size_type __pos = 0, size_type __n = npos);
     _LIBCPP_INLINE_VISIBILITY
@@ -1254,7 +1285,7 @@ public:
     _LIBCPP_INLINE_VISIBILITY
     basic_string& replace(const_iterator __i1, const_iterator __i2, initializer_list<value_type> __il)
         {return replace(__i1, __i2, __il.begin(), __il.end());}
-#endif  // _LIBCPP_CXX03_LANG
+#endif // _LIBCPP_CXX03_LANG
 
     size_type copy(value_type* __s, size_type __n, size_type __pos = 0) const;
     _LIBCPP_INLINE_VISIBILITY
@@ -1291,7 +1322,7 @@ public:
             __can_be_converted_to_string_view<_CharT, _Traits, _Tp>::value,
             size_type
         >
-              find(const _Tp& __t, size_type __pos = 0) const;
+              find(const _Tp& __t, size_type __pos = 0) const _NOEXCEPT;
     size_type find(const value_type* __s, size_type __pos, size_type __n) const _NOEXCEPT;
     _LIBCPP_INLINE_VISIBILITY
     size_type find(const value_type* __s, size_type __pos = 0) const _NOEXCEPT;
@@ -1307,7 +1338,7 @@ public:
             __can_be_converted_to_string_view<_CharT, _Traits, _Tp>::value,
             size_type
         >
-              rfind(const _Tp& __t, size_type __pos = npos) const;
+              rfind(const _Tp& __t, size_type __pos = npos) const _NOEXCEPT;
     size_type rfind(const value_type* __s, size_type __pos, size_type __n) const _NOEXCEPT;
     _LIBCPP_INLINE_VISIBILITY
     size_type rfind(const value_type* __s, size_type __pos = npos) const _NOEXCEPT;
@@ -1323,7 +1354,7 @@ public:
             __can_be_converted_to_string_view<_CharT, _Traits, _Tp>::value,
             size_type
         >
-              find_first_of(const _Tp& __t, size_type __pos = 0) const;
+              find_first_of(const _Tp& __t, size_type __pos = 0) const _NOEXCEPT;
     size_type find_first_of(const value_type* __s, size_type __pos, size_type __n) const _NOEXCEPT;
     _LIBCPP_INLINE_VISIBILITY
     size_type find_first_of(const value_type* __s, size_type __pos = 0) const _NOEXCEPT;
@@ -1340,7 +1371,7 @@ public:
             __can_be_converted_to_string_view<_CharT, _Traits, _Tp>::value,
             size_type
         >
-              find_last_of(const _Tp& __t, size_type __pos = npos) const;
+              find_last_of(const _Tp& __t, size_type __pos = npos) const _NOEXCEPT;
     size_type find_last_of(const value_type* __s, size_type __pos, size_type __n) const _NOEXCEPT;
     _LIBCPP_INLINE_VISIBILITY
     size_type find_last_of(const value_type* __s, size_type __pos = npos) const _NOEXCEPT;
@@ -1357,7 +1388,7 @@ public:
             __can_be_converted_to_string_view<_CharT, _Traits, _Tp>::value,
             size_type
         >
-              find_first_not_of(const _Tp &__t, size_type __pos = 0) const;
+              find_first_not_of(const _Tp &__t, size_type __pos = 0) const _NOEXCEPT;
     size_type find_first_not_of(const value_type* __s, size_type __pos, size_type __n) const _NOEXCEPT;
     _LIBCPP_INLINE_VISIBILITY
     size_type find_first_not_of(const value_type* __s, size_type __pos = 0) const _NOEXCEPT;
@@ -1374,7 +1405,7 @@ public:
             __can_be_converted_to_string_view<_CharT, _Traits, _Tp>::value,
             size_type
         >
-              find_last_not_of(const _Tp& __t, size_type __pos = npos) const;
+              find_last_not_of(const _Tp& __t, size_type __pos = npos) const _NOEXCEPT;
     size_type find_last_not_of(const value_type* __s, size_type __pos, size_type __n) const _NOEXCEPT;
     _LIBCPP_INLINE_VISIBILITY
     size_type find_last_not_of(const value_type* __s, size_type __pos = npos) const _NOEXCEPT;
@@ -1391,7 +1422,7 @@ public:
             __can_be_converted_to_string_view<_CharT, _Traits, _Tp>::value,
             int
         >
-        compare(const _Tp &__t) const;
+        compare(const _Tp &__t) const _NOEXCEPT;
 
     template <class _Tp>
     _LIBCPP_METHOD_TEMPLATE_IMPLICIT_INSTANTIATION_VIS
@@ -1445,9 +1476,25 @@ public:
     { return ends_with(__self_view(__s)); }
 //#endif
 
+#if _LIBCPP_STD_VER > 20
+    constexpr _LIBCPP_INLINE_VISIBILITY
+    bool contains(__self_view __sv) const noexcept
+    { return __self_view(data(), size()).contains(__sv); }
+
+    constexpr _LIBCPP_INLINE_VISIBILITY
+    bool contains(value_type __c) const noexcept
+    { return __self_view(data(), size()).contains(__c); }
+
+    constexpr _LIBCPP_INLINE_VISIBILITY
+    bool contains(const value_type* __s) const
+    { return __self_view(data(), size()).contains(__s); }
+#endif
+
     _LIBCPP_INLINE_VISIBILITY bool __invariants() const;
 
     _LIBCPP_INLINE_VISIBILITY void __clear_and_shrink() _NOEXCEPT;
+
+    _LIBCPP_INLINE_VISIBILITY void __shrink_or_extend(size_type __target_capacity);
 
     _LIBCPP_INLINE_VISIBILITY
     bool __is_long() const _NOEXCEPT
@@ -1460,7 +1507,7 @@ public:
     bool __addable(const const_iterator* __i, ptrdiff_t __n) const;
     bool __subscriptable(const const_iterator* __i, ptrdiff_t __n) const;
 
-#endif  // _LIBCPP_DEBUG_LEVEL == 2
+#endif // _LIBCPP_DEBUG_LEVEL == 2
 
 private:
     _LIBCPP_INLINE_VISIBILITY
@@ -1506,7 +1553,7 @@ private:
         {return __r_.first().__s.__size_ >> 1;}
 #   endif
 
-#endif  // _LIBCPP_ABI_ALTERNATE_STRING_LAYOUT
+#endif // _LIBCPP_ABI_ALTERNATE_STRING_LAYOUT
 
     _LIBCPP_INLINE_VISIBILITY
     void __set_long_size(size_type __s) _NOEXCEPT
@@ -1726,7 +1773,7 @@ _LIBCPP_STRING_V1_EXTERN_TEMPLATE_LIST(_LIBCPP_EXTERN_TEMPLATE, wchar_t)
 
 #ifndef _LIBCPP_HAS_NO_DEDUCTION_GUIDES
 template<class _InputIterator,
-         class _CharT = typename iterator_traits<_InputIterator>::value_type,
+         class _CharT = __iter_value_type<_InputIterator>,
          class _Allocator = allocator<_CharT>,
          class = _EnableIf<__is_cpp17_input_iterator<_InputIterator>::value>,
          class = _EnableIf<__is_allocator<_Allocator>::value>
@@ -1784,12 +1831,12 @@ basic_string<_CharT, _Traits, _Allocator>::__invalidate_iterators_past(size_type
             {
                 (*__p)->__c_ = nullptr;
                 if (--__c->end_ != __p)
-                    memmove(__p, __p+1, (__c->end_ - __p)*sizeof(__i_node*));
+                    _VSTD::memmove(__p, __p+1, (__c->end_ - __p)*sizeof(__i_node*));
             }
         }
         __get_db()->unlock();
     }
-#endif  // _LIBCPP_DEBUG_LEVEL == 2
+#endif // _LIBCPP_DEBUG_LEVEL == 2
 }
 
 template <class _CharT, class _Traits, class _Allocator>
@@ -1993,7 +2040,7 @@ basic_string<_CharT, _Traits, _Allocator>::basic_string(basic_string&& __str, co
 #endif
 }
 
-#endif  // _LIBCPP_CXX03_LANG
+#endif // _LIBCPP_CXX03_LANG
 
 template <class _CharT, class _Traits, class _Allocator>
 void
@@ -2121,7 +2168,7 @@ basic_string<_CharT, _Traits, _Allocator>::__init(_InputIterator __first, _Input
 #ifndef _LIBCPP_NO_EXCEPTIONS
     try
     {
-#endif  // _LIBCPP_NO_EXCEPTIONS
+#endif // _LIBCPP_NO_EXCEPTIONS
     for (; __first != __last; ++__first)
         push_back(*__first);
 #ifndef _LIBCPP_NO_EXCEPTIONS
@@ -2132,7 +2179,7 @@ basic_string<_CharT, _Traits, _Allocator>::__init(_InputIterator __first, _Input
             __alloc_traits::deallocate(__alloc(), __get_long_pointer(), __get_long_cap());
         throw;
     }
-#endif  // _LIBCPP_NO_EXCEPTIONS
+#endif // _LIBCPP_NO_EXCEPTIONS
 }
 
 template <class _CharT, class _Traits, class _Allocator>
@@ -2217,7 +2264,7 @@ basic_string<_CharT, _Traits, _Allocator>::basic_string(
 #endif
 }
 
-#endif  // _LIBCPP_CXX03_LANG
+#endif // _LIBCPP_CXX03_LANG
 
 template <class _CharT, class _Traits, class _Allocator>
 basic_string<_CharT, _Traits, _Allocator>::~basic_string()
@@ -2315,18 +2362,18 @@ template <class _CharT, class _Traits, class _Allocator>
 basic_string<_CharT, _Traits, _Allocator>&
 basic_string<_CharT, _Traits, _Allocator>::__assign_external(
     const value_type* __s, size_type __n) {
-    size_type __cap = capacity();
+  size_type __cap = capacity();
   if (__cap >= __n) {
-        value_type* __p = _VSTD::__to_address(__get_pointer());
-        traits_type::move(__p, __s, __n);
-        traits_type::assign(__p[__n], value_type());
-        __set_size(__n);
-        __invalidate_iterators_past(__n);
+    value_type* __p = _VSTD::__to_address(__get_pointer());
+    traits_type::move(__p, __s, __n);
+    traits_type::assign(__p[__n], value_type());
+    __set_size(__n);
+    __invalidate_iterators_past(__n);
   } else {
-        size_type __sz = size();
-        __grow_by_and_replace(__cap, __n - __cap, __sz, 0, __sz, __n, __s);
-    }
-    return *this;
+    size_type __sz = size();
+    __grow_by_and_replace(__cap, __n - __cap, __sz, 0, __sz, __n, __s);
+  }
+  return *this;
 }
 
 template <class _CharT, class _Traits, class _Allocator>
@@ -2432,7 +2479,7 @@ basic_string<_CharT, _Traits, _Allocator>::__move_assign(basic_string& __str, tr
     }
 #endif
   }
-    __move_assign_alloc(__str);
+  __move_assign_alloc(__str);
   __r_.first() = __str.__r_.first();
   __str.__set_short_size(0);
   traits_type::assign(__str.__get_short_pointer()[0], value_type());
@@ -3160,7 +3207,7 @@ basic_string<_CharT, _Traits, _Allocator>::erase(size_type __pos,
   } else {
     __erase_external_with_move(__pos, __n);
   }
-    return *this;
+  return *this;
 }
 
 template <class _CharT, class _Traits, class _Allocator>
@@ -3293,65 +3340,88 @@ basic_string<_CharT, _Traits, _Allocator>::max_size() const _NOEXCEPT
 
 template <class _CharT, class _Traits, class _Allocator>
 void
-basic_string<_CharT, _Traits, _Allocator>::reserve(size_type __res_arg)
+basic_string<_CharT, _Traits, _Allocator>::reserve(size_type __requested_capacity)
 {
-    if (__res_arg > max_size())
+    if (__requested_capacity > max_size())
         this->__throw_length_error();
+
+#if _LIBCPP_STD_VER > 17
+    // Reserve never shrinks as of C++20.
+    if (__requested_capacity <= capacity()) return;
+#endif
+
+    size_type __target_capacity = _VSTD::max(__requested_capacity, size());
+    __target_capacity = __recommend(__target_capacity);
+    if (__target_capacity == capacity()) return;
+
+    __shrink_or_extend(__target_capacity);
+}
+
+template <class _CharT, class _Traits, class _Allocator>
+void
+basic_string<_CharT, _Traits, _Allocator>::shrink_to_fit() _NOEXCEPT
+{
+    size_type __target_capacity = __recommend(size());
+    if (__target_capacity == capacity()) return;
+
+    __shrink_or_extend(__target_capacity);
+}
+
+template <class _CharT, class _Traits, class _Allocator>
+void
+basic_string<_CharT, _Traits, _Allocator>::__shrink_or_extend(size_type __target_capacity)
+{
     size_type __cap = capacity();
     size_type __sz = size();
-    __res_arg = _VSTD::max(__res_arg, __sz);
-    __res_arg = __recommend(__res_arg);
-    if (__res_arg != __cap)
+
+    pointer __new_data, __p;
+    bool __was_long, __now_long;
+    if (__target_capacity == __min_cap - 1)
     {
-        pointer __new_data, __p;
-        bool __was_long, __now_long;
-        if (__res_arg == __min_cap - 1)
-        {
-            __was_long = true;
-            __now_long = false;
-            __new_data = __get_short_pointer();
-            __p = __get_long_pointer();
-        }
-        else
-        {
-            if (__res_arg > __cap)
-                __new_data = __alloc_traits::allocate(__alloc(), __res_arg+1);
-            else
-            {
-            #ifndef _LIBCPP_NO_EXCEPTIONS
-                try
-                {
-            #endif  // _LIBCPP_NO_EXCEPTIONS
-                    __new_data = __alloc_traits::allocate(__alloc(), __res_arg+1);
-            #ifndef _LIBCPP_NO_EXCEPTIONS
-                }
-                catch (...)
-                {
-                    return;
-                }
-            #else  // _LIBCPP_NO_EXCEPTIONS
-                if (__new_data == nullptr)
-                    return;
-            #endif  // _LIBCPP_NO_EXCEPTIONS
-            }
-            __now_long = true;
-            __was_long = __is_long();
-            __p = __get_pointer();
-        }
-        traits_type::copy(_VSTD::__to_address(__new_data),
-                          _VSTD::__to_address(__p), size()+1);
-        if (__was_long)
-            __alloc_traits::deallocate(__alloc(), __p, __cap+1);
-        if (__now_long)
-        {
-            __set_long_cap(__res_arg+1);
-            __set_long_size(__sz);
-            __set_long_pointer(__new_data);
-        }
-        else
-            __set_short_size(__sz);
-        __invalidate_all_iterators();
+        __was_long = true;
+        __now_long = false;
+        __new_data = __get_short_pointer();
+        __p = __get_long_pointer();
     }
+    else
+    {
+        if (__target_capacity > __cap)
+            __new_data = __alloc_traits::allocate(__alloc(), __target_capacity+1);
+        else
+        {
+        #ifndef _LIBCPP_NO_EXCEPTIONS
+            try
+            {
+        #endif // _LIBCPP_NO_EXCEPTIONS
+                __new_data = __alloc_traits::allocate(__alloc(), __target_capacity+1);
+        #ifndef _LIBCPP_NO_EXCEPTIONS
+            }
+            catch (...)
+            {
+                return;
+            }
+        #else  // _LIBCPP_NO_EXCEPTIONS
+            if (__new_data == nullptr)
+                return;
+        #endif // _LIBCPP_NO_EXCEPTIONS
+        }
+        __now_long = true;
+        __was_long = __is_long();
+        __p = __get_pointer();
+    }
+    traits_type::copy(_VSTD::__to_address(__new_data),
+                        _VSTD::__to_address(__p), size()+1);
+    if (__was_long)
+        __alloc_traits::deallocate(__alloc(), __p, __cap+1);
+    if (__now_long)
+    {
+        __set_long_cap(__target_capacity+1);
+        __set_long_size(__sz);
+        __set_long_pointer(__new_data);
+    }
+    else
+        __set_short_size(__sz);
+    __invalidate_all_iterators();
 }
 
 template <class _CharT, class _Traits, class _Allocator>
@@ -3469,7 +3539,7 @@ basic_string<_CharT, _Traits, _Allocator>::swap(basic_string& __str)
         __alloc_traits::is_always_equal::value ||
         __alloc() == __str.__alloc(), "swapping non-equal allocators");
     _VSTD::swap(__r_.first(), __str.__r_.first());
-    __swap_allocator(__alloc(), __str.__alloc());
+    _VSTD::__swap_allocator(__alloc(), __str.__alloc());
 }
 
 // find
@@ -3512,7 +3582,7 @@ _EnableIf
     typename basic_string<_CharT, _Traits, _Allocator>::size_type
 >
 basic_string<_CharT, _Traits, _Allocator>::find(const _Tp &__t,
-                                                size_type __pos) const
+                                                size_type __pos) const _NOEXCEPT
 {
     __self_view __sv = __t;
     return __str_find<value_type, size_type, traits_type, npos>
@@ -3570,7 +3640,7 @@ _EnableIf
     typename basic_string<_CharT, _Traits, _Allocator>::size_type
 >
 basic_string<_CharT, _Traits, _Allocator>::rfind(const _Tp& __t,
-                                                size_type __pos) const
+                                                size_type __pos) const _NOEXCEPT
 {
     __self_view __sv = __t;
     return __str_rfind<value_type, size_type, traits_type, npos>
@@ -3628,7 +3698,7 @@ _EnableIf
     typename basic_string<_CharT, _Traits, _Allocator>::size_type
 >
 basic_string<_CharT, _Traits, _Allocator>::find_first_of(const _Tp& __t,
-                                                size_type __pos) const
+                                                size_type __pos) const _NOEXCEPT
 {
     __self_view __sv = __t;
     return __str_find_first_of<value_type, size_type, traits_type, npos>
@@ -3686,7 +3756,7 @@ _EnableIf
     typename basic_string<_CharT, _Traits, _Allocator>::size_type
 >
 basic_string<_CharT, _Traits, _Allocator>::find_last_of(const _Tp& __t,
-                                                size_type __pos) const
+                                                size_type __pos) const _NOEXCEPT
 {
     __self_view __sv = __t;
     return __str_find_last_of<value_type, size_type, traits_type, npos>
@@ -3744,7 +3814,7 @@ _EnableIf
     typename basic_string<_CharT, _Traits, _Allocator>::size_type
 >
 basic_string<_CharT, _Traits, _Allocator>::find_first_not_of(const _Tp& __t,
-                                                size_type __pos) const
+                                                size_type __pos) const _NOEXCEPT
 {
     __self_view __sv = __t;
     return __str_find_first_not_of<value_type, size_type, traits_type, npos>
@@ -3803,7 +3873,7 @@ _EnableIf
     typename basic_string<_CharT, _Traits, _Allocator>::size_type
 >
 basic_string<_CharT, _Traits, _Allocator>::find_last_not_of(const _Tp& __t,
-                                                size_type __pos) const
+                                                size_type __pos) const _NOEXCEPT
 {
     __self_view __sv = __t;
     return __str_find_last_not_of<value_type, size_type, traits_type, npos>
@@ -3840,7 +3910,7 @@ _EnableIf
     __can_be_converted_to_string_view<_CharT, _Traits, _Tp>::value,
     int
 >
-basic_string<_CharT, _Traits, _Allocator>::compare(const _Tp& __t) const
+basic_string<_CharT, _Traits, _Allocator>::compare(const _Tp& __t) const _NOEXCEPT
 {
     __self_view __sv = __t;
     size_t __lhs_sz = size();
@@ -3970,7 +4040,7 @@ basic_string<_CharT, _Traits, _Allocator>::__invariants() const
         return false;
     if (capacity() < __min_cap - 1)
         return false;
-    if (data() == 0)
+    if (data() == nullptr)
         return false;
     if (data()[size()] != value_type())
         return false;
@@ -4318,7 +4388,7 @@ operator+(basic_string<_CharT, _Traits, _Allocator>&& __lhs, _CharT __rhs)
     return _VSTD::move(__lhs);
 }
 
-#endif  // _LIBCPP_CXX03_LANG
+#endif // _LIBCPP_CXX03_LANG
 
 // swap
 
@@ -4332,24 +4402,15 @@ swap(basic_string<_CharT, _Traits, _Allocator>& __lhs,
     __lhs.swap(__rhs);
 }
 
-#ifndef _LIBCPP_NO_HAS_CHAR8_T
-typedef basic_string<char8_t> u8string;
-#endif
+_LIBCPP_FUNC_VIS int                stoi  (const string& __str, size_t* __idx = nullptr, int __base = 10);
+_LIBCPP_FUNC_VIS long               stol  (const string& __str, size_t* __idx = nullptr, int __base = 10);
+_LIBCPP_FUNC_VIS unsigned long      stoul (const string& __str, size_t* __idx = nullptr, int __base = 10);
+_LIBCPP_FUNC_VIS long long          stoll (const string& __str, size_t* __idx = nullptr, int __base = 10);
+_LIBCPP_FUNC_VIS unsigned long long stoull(const string& __str, size_t* __idx = nullptr, int __base = 10);
 
-#ifndef _LIBCPP_HAS_NO_UNICODE_CHARS
-typedef basic_string<char16_t> u16string;
-typedef basic_string<char32_t> u32string;
-#endif  // _LIBCPP_HAS_NO_UNICODE_CHARS
-
-_LIBCPP_FUNC_VIS int                stoi  (const string& __str, size_t* __idx = 0, int __base = 10);
-_LIBCPP_FUNC_VIS long               stol  (const string& __str, size_t* __idx = 0, int __base = 10);
-_LIBCPP_FUNC_VIS unsigned long      stoul (const string& __str, size_t* __idx = 0, int __base = 10);
-_LIBCPP_FUNC_VIS long long          stoll (const string& __str, size_t* __idx = 0, int __base = 10);
-_LIBCPP_FUNC_VIS unsigned long long stoull(const string& __str, size_t* __idx = 0, int __base = 10);
-
-_LIBCPP_FUNC_VIS float       stof (const string& __str, size_t* __idx = 0);
-_LIBCPP_FUNC_VIS double      stod (const string& __str, size_t* __idx = 0);
-_LIBCPP_FUNC_VIS long double stold(const string& __str, size_t* __idx = 0);
+_LIBCPP_FUNC_VIS float       stof (const string& __str, size_t* __idx = nullptr);
+_LIBCPP_FUNC_VIS double      stod (const string& __str, size_t* __idx = nullptr);
+_LIBCPP_FUNC_VIS long double stold(const string& __str, size_t* __idx = nullptr);
 
 _LIBCPP_FUNC_VIS string to_string(int __val);
 _LIBCPP_FUNC_VIS string to_string(unsigned __val);
@@ -4361,15 +4422,15 @@ _LIBCPP_FUNC_VIS string to_string(float __val);
 _LIBCPP_FUNC_VIS string to_string(double __val);
 _LIBCPP_FUNC_VIS string to_string(long double __val);
 
-_LIBCPP_FUNC_VIS int                stoi  (const wstring& __str, size_t* __idx = 0, int __base = 10);
-_LIBCPP_FUNC_VIS long               stol  (const wstring& __str, size_t* __idx = 0, int __base = 10);
-_LIBCPP_FUNC_VIS unsigned long      stoul (const wstring& __str, size_t* __idx = 0, int __base = 10);
-_LIBCPP_FUNC_VIS long long          stoll (const wstring& __str, size_t* __idx = 0, int __base = 10);
-_LIBCPP_FUNC_VIS unsigned long long stoull(const wstring& __str, size_t* __idx = 0, int __base = 10);
+_LIBCPP_FUNC_VIS int                stoi  (const wstring& __str, size_t* __idx = nullptr, int __base = 10);
+_LIBCPP_FUNC_VIS long               stol  (const wstring& __str, size_t* __idx = nullptr, int __base = 10);
+_LIBCPP_FUNC_VIS unsigned long      stoul (const wstring& __str, size_t* __idx = nullptr, int __base = 10);
+_LIBCPP_FUNC_VIS long long          stoll (const wstring& __str, size_t* __idx = nullptr, int __base = 10);
+_LIBCPP_FUNC_VIS unsigned long long stoull(const wstring& __str, size_t* __idx = nullptr, int __base = 10);
 
-_LIBCPP_FUNC_VIS float       stof (const wstring& __str, size_t* __idx = 0);
-_LIBCPP_FUNC_VIS double      stod (const wstring& __str, size_t* __idx = 0);
-_LIBCPP_FUNC_VIS long double stold(const wstring& __str, size_t* __idx = 0);
+_LIBCPP_FUNC_VIS float       stof (const wstring& __str, size_t* __idx = nullptr);
+_LIBCPP_FUNC_VIS double      stod (const wstring& __str, size_t* __idx = nullptr);
+_LIBCPP_FUNC_VIS long double stold(const wstring& __str, size_t* __idx = nullptr);
 
 _LIBCPP_FUNC_VIS wstring to_wstring(int __val);
 _LIBCPP_FUNC_VIS wstring to_wstring(unsigned __val);
@@ -4382,9 +4443,9 @@ _LIBCPP_FUNC_VIS wstring to_wstring(double __val);
 _LIBCPP_FUNC_VIS wstring to_wstring(long double __val);
 
 template<class _CharT, class _Traits, class _Allocator>
-_LIBCPP_FUNC_VIS
-    const typename basic_string<_CharT, _Traits, _Allocator>::size_type
-                   basic_string<_CharT, _Traits, _Allocator>::npos;
+_LIBCPP_TEMPLATE_DATA_VIS
+const typename basic_string<_CharT, _Traits, _Allocator>::size_type
+               basic_string<_CharT, _Traits, _Allocator>::npos;
 
 template <class _CharT, class _Allocator>
 struct _LIBCPP_TEMPLATE_VIS
@@ -4433,10 +4494,10 @@ basic_istream<_CharT, _Traits>&
 getline(basic_istream<_CharT, _Traits>&& __is,
         basic_string<_CharT, _Traits, _Allocator>& __str);
 
-#endif  // _LIBCPP_CXX03_LANG
+#endif // _LIBCPP_CXX03_LANG
 
 #if _LIBCPP_STD_VER > 17
-template<class _CharT, class _Traits, class _Allocator, class _Up>
+template <class _CharT, class _Traits, class _Allocator, class _Up>
 inline _LIBCPP_INLINE_VISIBILITY
     typename basic_string<_CharT, _Traits, _Allocator>::size_type
     erase(basic_string<_CharT, _Traits, _Allocator>& __str, const _Up& __v) {
@@ -4445,7 +4506,7 @@ inline _LIBCPP_INLINE_VISIBILITY
   return __old_size - __str.size();
 }
 
-template<class _CharT, class _Traits, class _Allocator, class _Predicate>
+template <class _CharT, class _Traits, class _Allocator, class _Predicate>
 inline _LIBCPP_INLINE_VISIBILITY
     typename basic_string<_CharT, _Traits, _Allocator>::size_type
     erase_if(basic_string<_CharT, _Traits, _Allocator>& __str,
@@ -4491,7 +4552,7 @@ basic_string<_CharT, _Traits, _Allocator>::__subscriptable(const const_iterator*
     return this->data() <= __p && __p < this->data() + this->size();
 }
 
-#endif  // _LIBCPP_DEBUG_LEVEL == 2
+#endif // _LIBCPP_DEBUG_LEVEL == 2
 
 #if _LIBCPP_STD_VER > 11
 // Literal suffixes for basic_string [basic.string.literals]
@@ -4511,7 +4572,7 @@ inline namespace literals
         return basic_string<wchar_t> (__str, __len);
     }
 
-#ifndef _LIBCPP_NO_HAS_CHAR8_T
+#ifndef _LIBCPP_HAS_NO_CHAR8_T
     inline _LIBCPP_INLINE_VISIBILITY
     basic_string<char8_t> operator "" s(const char8_t *__str, size_t __len) _NOEXCEPT
     {
@@ -4542,4 +4603,4 @@ _LIBCPP_END_NAMESPACE_STD
 
 _LIBCPP_POP_MACROS
 
-#endif  // _LIBCPP_STRING
+#endif // _LIBCPP_STRING

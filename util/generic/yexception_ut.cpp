@@ -330,7 +330,7 @@ private:
         try {
             throw int(1);
         } catch (...) {
-#if defined(_linux_) || defined(_darwin_)
+#if defined(LIBCXX_BUILDING_LIBCXXRT) || defined(LIBCXX_BUILDING_LIBGCC)
             UNIT_ASSERT_VALUES_EQUAL(CurrentExceptionTypeName(), "int");
 #else
             UNIT_ASSERT_VALUES_EQUAL(CurrentExceptionTypeName(), "unknown type");
@@ -357,7 +357,7 @@ private:
                 UNIT_ASSERT_STRING_CONTAINS(CurrentExceptionTypeName(), "std::bad_alloc");
             }
         }
-        // For exceptions thrown by std::rethrow_exception() a nullptr will be returned by __cxa_current_exception_type().
+        // For exceptions thrown by std::rethrow_exception() a nullptr will be returned by libcxxrt's __cxa_current_exception_type().
         // Adding an explicit test for the case.
         try {
             throw int(1);
@@ -365,7 +365,7 @@ private:
             try {
                 std::rethrow_exception(std::current_exception());
             } catch (...) {
-#if (defined(_linux_) || defined(_darwin_)) && !defined(__clang__)
+#if defined(LIBCXX_BUILDING_LIBGCC)
                 UNIT_ASSERT_VALUES_EQUAL(CurrentExceptionTypeName(), "int");
 #else
                 UNIT_ASSERT_VALUES_EQUAL(CurrentExceptionTypeName(), "unknown type");
@@ -379,7 +379,7 @@ private:
             try {
                 throw;
             } catch (...) {
-#if defined(_linux_) || defined(_darwin_)
+#if defined(LIBCXX_BUILDING_LIBCXXRT) || defined(LIBCXX_BUILDING_LIBGCC)
                 UNIT_ASSERT_VALUES_EQUAL(CurrentExceptionTypeName(), "int");
 #else
                 UNIT_ASSERT_VALUES_EQUAL(CurrentExceptionTypeName(), "unknown type");

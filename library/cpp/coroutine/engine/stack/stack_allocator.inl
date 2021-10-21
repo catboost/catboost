@@ -26,6 +26,16 @@ namespace NCoro::NStack {
             return Guard_.CheckOverride(stack, size);
         }
 
+        TAllocatorStats GetStackStats() const noexcept override {
+            TAllocatorStats stats;
+            for (const auto& i : Pools_) {
+                stats.ReleasedSize += i.second.GetReleasedSize();
+                stats.NotReleasedSize += i.second.GetFullSize();
+                stats.NumOfAllocated += i.second.GetNumOfAllocated();
+            }
+            return stats;
+        }
+
     private: // methods
         NDetails::TStack DoAllocStack(uint64_t size, const char* name) override;
         void DoFreeStack(NDetails::TStack& stack) noexcept override;
@@ -83,6 +93,8 @@ namespace NCoro::NStack {
         bool CheckStackOverride(void* stack, uint64_t size) const noexcept override {
             return Guard_.CheckOverride(stack, size);
         }
+
+        TAllocatorStats GetStackStats() const noexcept override { return {}; } // not used for simple allocator
 
     private: // methods
         NDetails::TStack DoAllocStack(uint64_t size, const char* name) override;

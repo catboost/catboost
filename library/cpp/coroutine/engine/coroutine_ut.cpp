@@ -44,6 +44,8 @@ class TCoroTest: public TTestBase {
     UNIT_TEST(TestComputeCoroutineYield)
     UNIT_TEST(TestPollEngines);
     UNIT_TEST(TestUserEvent);
+    UNIT_TEST(TestPause);
+    UNIT_TEST(TestOverrideTime);
     UNIT_TEST_SUITE_END();
 
 public:
@@ -74,6 +76,8 @@ public:
     void TestComputeCoroutineYield();
     void TestPollEngines();
     void TestUserEvent();
+    void TestPause();
+    void TestOverrideTime();
 };
 
 void TCoroTest::TestException() {
@@ -938,6 +942,23 @@ void TCoroTest::TestPollEngines() {
     UNIT_ASSERT(defaultChecked);
 }
 
+void TCoroTest::TestPause() {
+    TContExecutor executor{1024*1024, IPollerFace::Default(), nullptr, NCoro::NStack::EGuard::Canary, Nothing()};
+
+    int i = 0;
+    executor.CreateOwned([&](TCont*) {
+        i++;
+        executor.Pause();
+        i++;
+    }, "coro");
+
+    UNIT_ASSERT_EQUAL(i, 0);
+    executor.Execute();
+    UNIT_ASSERT_EQUAL(i, 1);
+    executor.Execute();
+    UNIT_ASSERT_EQUAL(i, 2);
+}
+
 void TCoroTest::TestUserEvent() {
     TContExecutor exec(32000);
 
@@ -959,5 +980,28 @@ void TCoroTest::TestUserEvent() {
     exec.Execute(f);
 
     UNIT_ASSERT(event.Called);
+}
+
+void TCoroTest::TestOverrideTime() {
+    class TTime: public NCoro::ITime {
+      public:
+        TInstant Now() override {
+            return Current;
+        }
+
+        TInstant Current = TInstant::Zero();
+    };
+
+    TTime time;
+    TContExecutor executor{1024*1024, IPollerFace::Default(), nullptr, NCoro::NStack::EGuard::Canary, Nothing(), &time};
+
+    executor.CreateOwned([&](TCont* cont) {
+        UNIT_ASSERT_EQUAL(cont->Executor()->Now(), TInstant::Zero());
+        time.Current = TInstant::Seconds(1);
+        cont->SleepD(TInstant::Seconds(1));
+        UNIT_ASSERT_EQUAL(cont->Executor()->Now(), TInstant::Seconds(1));
+    }, "coro");
+
+    executor.Execute();
 }
 UNIT_TEST_SUITE_REGISTRATION(TCoroTest);

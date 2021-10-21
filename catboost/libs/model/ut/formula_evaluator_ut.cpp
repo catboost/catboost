@@ -194,7 +194,7 @@ Y_UNIT_TEST_SUITE(TObliviousTreeModel) {
 
     Y_UNIT_TEST(TestTextOnlyModel) {
         TVector<NCBTest::TTextFeature> features;
-        TVector<NCBTest::TTokenizedTextFeature> tokenizedFeatures;
+        TMap<ui32, NCBTest::TTokenizedTextFeature> tokenizedFeatures;
         TVector<TDigitizer> digitizers;
         TVector<TTextFeatureCalcerPtr> calcers;
         TVector<TVector<ui32>> perFeatureDigitizers;

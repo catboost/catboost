@@ -97,10 +97,14 @@ namespace NCB {
             NCB::NPrivate::CreateTrainDirWithTmpDirIfNotExist(outputFileOptions.GetTrainDir(), &tmpDir);
         }
 
-        const bool haveLearnFeaturesInMemory = HaveLearnFeaturesInMemory(poolLoadParams, *catBoostOptions);
+        const bool haveLearnFeaturesInMemory = HaveFeaturesInMemory(
+            *catBoostOptions,
+            poolLoadParams ? MakeMaybe(poolLoadParams->LearnSetPath) : Nothing()
+        );
 
         TTrainingDataProviders trainingData = GetTrainingData(
             pools,
+            /*trainDataCanBeEmpty*/ false,
             /* borders */ Nothing(), // borders are already loaded to quantizedFeaturesInfo
             /*ensureConsecutiveIfDenseLearnFeaturesDataForCpu*/ haveLearnFeaturesInMemory,
             outputFileOptions.AllowWriteFiles(),
@@ -124,6 +128,8 @@ namespace NCB {
         const TFeaturesSelectOptions& featuresSelectOptions,
         const TDataProviders& pools,
         TFullModel* dstModel,
+        const TVector<TEvalResult*>& evalResultPtrs,
+        TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
         NPar::ILocalExecutor* executor
     ) {
         TSetLogging inThisScope(catBoostOptions.LoggingLevel);
@@ -147,7 +153,10 @@ namespace NCB {
             executor
         );
 
-        const bool haveLearnFeaturesInMemory = HaveLearnFeaturesInMemory(poolLoadParams, catBoostOptions);
+        const bool haveLearnFeaturesInMemory = HaveFeaturesInMemory(
+            catBoostOptions,
+            poolLoadParams ? MakeMaybe(poolLoadParams->LearnSetPath) : Nothing()
+        );
         // TODO(ilyzhin) support distributed training with quantized pool
         CB_ENSURE(haveLearnFeaturesInMemory, "Features selection doesn't support distributed training with quantized pool yet.");
 
@@ -156,10 +165,15 @@ namespace NCB {
         if (catBoostOptions.SystemOptions->IsMaster()) {
             masterContext.Reset(new TMasterContext(catBoostOptions.SystemOptions));
             if (!haveLearnFeaturesInMemory) {
-                SetTrainDataFromQuantizedPool(
+                TVector<TObjectsGrouping> testObjectsGroupings;
+                for (const auto& testDataset : trainingData.Test) {
+                    testObjectsGroupings.push_back(*(testDataset->ObjectsGrouping));
+                }
+                SetTrainDataFromQuantizedPools(
                     *poolLoadParams,
                     catBoostOptions,
-                    *trainingData.Learn->ObjectsGrouping,
+                    TObjectsGrouping(*trainingData.Learn->ObjectsGrouping),
+                    std::move(testObjectsGroupings),
                     *trainingData.Learn->MetaInfo.FeaturesLayout,
                     &rand
                 );
@@ -194,6 +208,8 @@ namespace NCB {
             labelConverter,
             trainingData,
             dstModel,
+            evalResultPtrs,
+            metricsAndTimeHistory,
             executor
         );
 
@@ -212,7 +228,9 @@ namespace NCB {
     NJson::TJsonValue SelectFeatures(
         const NJson::TJsonValue& plainJsonParams,
         const TDataProviders& pools,
-        TFullModel* dstModel
+        TFullModel* dstModel,
+        const TVector<TEvalResult*>& testApproxes,
+        TMetricsAndTimeLeftHistory* metricsAndTimeHistory
     ) {
         NJson::TJsonValue catBoostJsonOptions;
         NJson::TJsonValue outputOptionsJson;
@@ -239,6 +257,8 @@ namespace NCB {
             featuresSelectOptions,
             pools,
             dstModel,
+            testApproxes,
+            metricsAndTimeHistory,
             &executor
         );
         return ToJson(summary);

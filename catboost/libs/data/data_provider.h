@@ -144,6 +144,20 @@ namespace NCB {
             return GetSubset(objectsGroupingSubset, cpuUsedRamLimit, &localExecutor);
         }
 
+        TIntrusivePtr<TDataProviderTemplate> Clone(
+            ui64 cpuUsedRamLimit,
+            NPar::ILocalExecutor* localExecutor
+        ) const {
+            return GetSubset(
+                GetGroupingSubsetFromObjectsSubset(
+                    ObjectsGrouping,
+                    TArraySubsetIndexing(TFullSubset<ui32>(GetObjectCount())),
+                    EObjectsOrder::Ordered),
+                cpuUsedRamLimit,
+                localExecutor
+            );
+        }
+
         // ObjectsGrouping->GetObjectCount() used a lot, so make it a member here
         ui32 GetObjectCount() const {
             return ObjectsGrouping->GetObjectCount();
@@ -182,6 +196,11 @@ namespace NCB {
             RawTargetData.SetWeights(weights);
             MetaInfo.HasWeights = true;
         }
+
+        void SetTimestamps(TConstArrayRef<ui64> timestamps) { // [objectIdx]
+            ObjectsData->SetTimestamps(timestamps);
+            MetaInfo.HasTimestamp = true;
+        }
     };
 
     using TDataProvider = TDataProviderTemplate<TObjectsDataProvider>;
@@ -206,6 +225,7 @@ namespace NCB {
         TMaybe<TObjectsGroupingPtr> objectsGrouping, // if undefined ObjectsGrouping created from data
         TBuilderData<typename TTObjectsDataProvider::TData>&& builderData,
         bool skipCheck,
+        bool forceUnitAutoPairWeights,
         NPar::ILocalExecutor* localExecutor
     ) {
         if (!skipCheck) {
@@ -248,6 +268,7 @@ namespace NCB {
                     *objectsGrouping,
                     std::move(builderData.TargetData),
                     skipCheck,
+                    forceUnitAutoPairWeights,
                     localExecutor
                 );
             }
@@ -599,7 +620,7 @@ namespace NCB {
              AddWithSharedMulti(&binSaver, Learn, Test);
              binSaver.Add(0, &EstimatedObjectsData);
              return 0;
-         }
+        }
 
         ui32 GetTestSampleCount() const {
             return NCB::GetObjectCount<TTObjectsDataProvider>(Test);

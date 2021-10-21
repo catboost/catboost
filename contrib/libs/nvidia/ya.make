@@ -1,0 +1,6 @@
+
+
+RECURSE(
+    cub
+    thrust
+)

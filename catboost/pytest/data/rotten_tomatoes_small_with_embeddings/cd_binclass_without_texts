@@ -1,0 +1,17 @@
+0	Auxiliary	text_synopsis
+1	NumVector	embedding_synopsis
+2	Categ	mpaa_film_rating
+3	Auxiliary	text_genre
+4	NumVector	embedding_genre
+5	Categ	director
+6	Categ	writer
+7	Num	theater_date
+8	Num	dvd_date
+9	Auxiliary	text_review
+10	NumVector	embedding_review
+11	Categ	rating
+12	Categ
+13	Categ	critic
+14	Label	top_critic
+15	Categ	publisher
+16	Num	date

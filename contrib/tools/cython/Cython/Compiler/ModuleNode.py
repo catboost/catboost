@@ -932,6 +932,8 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
             constructor = None
             destructor = None
             for attr in scope.var_entries:
+                if attr.type.is_cfunction:
+                    code.put("inline ")
                 if attr.type.is_cfunction and attr.type.is_static_method:
                     code.put("static ")
                 elif attr.name == "<init>":

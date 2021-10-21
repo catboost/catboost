@@ -12,7 +12,7 @@ PEERDIR(
 
 IF (PYTHON2)
     PEERDIR(
-        contrib/python/backports/functools_lru_cache
+        contrib/python/backports.functools-lru-cache
     )
 ENDIF()
 

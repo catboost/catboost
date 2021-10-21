@@ -1,5 +1,7 @@
 LIBRARY()
 
+WITHOUT_LICENSE_TEXTS()
+
 # Proxy library
 LICENSE(Not-Applicable)
 
@@ -20,5 +22,7 @@ ENDIF()
 END()
 
 RECURSE(
+    libcxx
     libcxxabi
+    libcxxrt
 )

@@ -6,7 +6,14 @@ LIBRARY()
 
 VERSION(2021-08-01)
 
-LICENSE(BSD-3-Clause)
+ORIGINAL_SOURCE(https://github.com/google/re2/archive/2021-08-01.tar.gz)
+
+LICENSE(
+    BSD-3-Clause
+    X11-Lucent
+)
+
+LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 ADDINCL(
     GLOBAL contrib/libs/re2/include
@@ -16,9 +23,7 @@ ADDINCL(
 NO_COMPILER_WARNINGS()
 
 IF (WITH_VALGRIND)
-    CFLAGS(
-        GLOBAL -DRE2_ON_VALGRIND
-    )
+    CFLAGS(GLOBAL -DRE2_ON_VALGRIND)
 ENDIF()
 
 SRCS(

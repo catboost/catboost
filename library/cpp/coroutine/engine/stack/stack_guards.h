@@ -69,7 +69,7 @@ namespace NCoro::NStack {
         }
 
     private:
-        static constexpr TStringBuf Canary = AsStringBuf("[ThisIsACanaryCoroutineStackGuardIfYouReadThisTheStackIsStillOK]");
+        static constexpr TStringBuf Canary = "[ThisIsACanaryCoroutineStackGuardIfYouReadThisTheStackIsStillOK]";
         static_assert(Canary.size() == 64);
         static constexpr uint64_t AlignedSize_ = (Canary.size() + PageSize - 1) & ~PageSizeMask;
     };

@@ -13,7 +13,7 @@ Y_UNIT_TEST_SUITE(MRRTests) {
             queries.push_back(TQueryInfo(0, 4));
 
             NPar::TLocalExecutor executor;
-            const auto metric = std::move(CreateMetric(ELossFunction::MRR, TLossParams(), 1)[0]);
+            const auto metric = std::move(CreateSingleTargetMetric(ELossFunction::MRR, TLossParams(), 1)[0]);
             TMetricHolder score = metric->Eval(approx, target, {}, queries, 0, queries.size(), executor);
 
             UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 1.0, 1e-5);
@@ -25,7 +25,7 @@ Y_UNIT_TEST_SUITE(MRRTests) {
             queries.push_back(TQueryInfo(0, 4));
 
             NPar::TLocalExecutor executor;
-            const auto metric = std::move(CreateMetric(ELossFunction::MRR, TLossParams(), 1)[0]);
+            const auto metric = std::move(CreateSingleTargetMetric(ELossFunction::MRR, TLossParams(), 1)[0]);
             TMetricHolder score = metric->Eval(approx, target, {}, queries, 0, queries.size(), executor);
 
             UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0.0, 1e-5);
@@ -37,7 +37,7 @@ Y_UNIT_TEST_SUITE(MRRTests) {
             queries.push_back(TQueryInfo(0, 4));
 
             NPar::TLocalExecutor executor;
-            const auto metric = std::move(CreateMetric(ELossFunction::MRR, TLossParams(), 1)[0]);
+            const auto metric = std::move(CreateSingleTargetMetric(ELossFunction::MRR, TLossParams(), 1)[0]);
             TMetricHolder score = metric->Eval(approx, target, {}, queries, 0, queries.size(), executor);
 
             UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 1./3., 1e-5);
@@ -66,7 +66,7 @@ Y_UNIT_TEST_SUITE(MRRTests) {
             queries.back().Weight = 4;
 
             NPar::TLocalExecutor executor;
-            const auto metric = std::move(CreateMetric(ELossFunction::MRR, TLossParams(), 1)[0]);
+            const auto metric = std::move(CreateSingleTargetMetric(ELossFunction::MRR, TLossParams(), 1)[0]);
             TMetricHolder score = metric->Eval(approx, target, {}, queries, 0, queries.size(), executor);
 
             UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 17./30., 1e-5);
@@ -81,7 +81,7 @@ Y_UNIT_TEST_SUITE(MRRTests) {
             queries.push_back(TQueryInfo(0, 4));
 
             NPar::TLocalExecutor executor;
-            const auto metric = std::move(CreateMetric(ELossFunction::MRR, TLossParams::FromVector({{"top", "1"}}), 1)[0]);
+            const auto metric = std::move(CreateSingleTargetMetric(ELossFunction::MRR, TLossParams::FromVector({{"top", "1"}}), 1)[0]);
             TMetricHolder score = metric->Eval(approx, target, {}, queries, 0, queries.size(), executor);
 
             UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 1.0, 1e-5);
@@ -93,7 +93,7 @@ Y_UNIT_TEST_SUITE(MRRTests) {
             queries.push_back(TQueryInfo(0, 4));
 
             NPar::TLocalExecutor executor;
-            const auto metric = std::move(CreateMetric(ELossFunction::MRR, TLossParams::FromVector({{"top", "1"}}), 1)[0]);
+            const auto metric = std::move(CreateSingleTargetMetric(ELossFunction::MRR, TLossParams::FromVector({{"top", "1"}}), 1)[0]);
             TMetricHolder score = metric->Eval(approx, target, {}, queries, 0, queries.size(), executor);
 
             UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0.0, 1e-5);
@@ -105,7 +105,7 @@ Y_UNIT_TEST_SUITE(MRRTests) {
             queries.push_back(TQueryInfo(0, 4));
 
             NPar::TLocalExecutor executor;
-            const auto metric = std::move(CreateMetric(ELossFunction::MRR, TLossParams::FromVector({{"top", "10"}}), 1)[0]);
+            const auto metric = std::move(CreateSingleTargetMetric(ELossFunction::MRR, TLossParams::FromVector({{"top", "10"}}), 1)[0]);
             TMetricHolder score = metric->Eval(approx, target, {}, queries, 0, queries.size(), executor);
 
             UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0.25, 1e-5);
@@ -120,7 +120,7 @@ Y_UNIT_TEST_SUITE(MRRTests) {
             queries.push_back(TQueryInfo(0, 4));
 
             NPar::TLocalExecutor executor;
-            const auto metric = std::move(CreateMetric(ELossFunction::MRR, TLossParams::FromVector({{"border", "0.8"}}), 1)[0]);
+            const auto metric = std::move(CreateSingleTargetMetric(ELossFunction::MRR, TLossParams::FromVector({{"border", "0.8"}}), 1)[0]);
             TMetricHolder score = metric->Eval(approx, target, {}, queries, 0, queries.size(), executor);
 
             UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0.0, 1e-5);
@@ -132,7 +132,7 @@ Y_UNIT_TEST_SUITE(MRRTests) {
             queries.push_back(TQueryInfo(0, 4));
 
             NPar::TLocalExecutor executor;
-            const auto metric = std::move(CreateMetric(ELossFunction::MRR, TLossParams::FromVector({{"border", "0.3"}}), 1)[0]);
+            const auto metric = std::move(CreateSingleTargetMetric(ELossFunction::MRR, TLossParams::FromVector({{"border", "0.3"}}), 1)[0]);
             TMetricHolder score = metric->Eval(approx, target, {}, queries, 0, queries.size(), executor);
 
             UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 1./3., 1e-5);

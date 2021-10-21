@@ -46,7 +46,7 @@ void SavePairsInGroupedDsvFormat(
 
     const TMaybeData<TRawPairsData>& rawPairsData = dataProvider->RawTargetData.GetPairs();
     CB_ENSURE_INTERNAL(rawPairsData, "No pairs data in dataset");
-    if (const TGroupedPairsInfo* groupedPairsInfo = GetIf<TGroupedPairsInfo>(&*rawPairsData)) {
+    if (const TGroupedPairsInfo* groupedPairsInfo = std::get_if<TGroupedPairsInfo>(&*rawPairsData)) {
         TOFStream out(outputFile);
         for (const auto& pairInfo : *groupedPairsInfo) {
             out << pairInfo.GroupIdx

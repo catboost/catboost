@@ -341,7 +341,6 @@ class Block(PandasObject):
     def shape(self) -> Shape:
         return self.values.shape
 
-    @final
     @cache_readonly
     def dtype(self) -> DtypeObj:
         return self.values.dtype
@@ -1557,6 +1556,16 @@ class ExtensionBlock(libinternals.Block, EABackedBlock):
 
         return self.values[slicer]
 
+    @final
+    def getitem_block_index(self, slicer: slice) -> ExtensionBlock:
+        """
+        Perform __getitem__-like specialized to slicing along index.
+        """
+        # GH#42787 in principle this is equivalent to values[..., slicer], but we don't
+        # require subclasses of ExtensionArray to support that form (for now).
+        new_values = self.values[slicer]
+        return type(self)(new_values, self._mgr_locs, ndim=self.ndim)
+
     def fillna(
         self, value, limit=None, inplace: bool = False, downcast=None
     ) -> list[Block]:
@@ -1834,6 +1843,12 @@ class ObjectBlock(NumpyBlock):
 class CategoricalBlock(ExtensionBlock):
     # this Block type is kept for backwards-compatibility
     __slots__ = ()
+
+    # GH#43232, GH#43334 self.values.dtype can be changed inplace until 2.0,
+    #  so this cannot be cached
+    @property
+    def dtype(self) -> DtypeObj:
+        return self.values.dtype
 
 
 # -----------------------------------------------------------------

@@ -1,6 +1,6 @@
 """
-    pygments.formatters.pango
-    ~~~~~~~~~~~~~~~~~~~~~~~~~
+    pygments.formatters.pangomarkup
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     Formatter for Pango markup output.
 

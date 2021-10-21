@@ -17,19 +17,29 @@
 #ifndef TCMALLOC_COMMON_H_
 #define TCMALLOC_COMMON_H_
 
-#include <bits/wordsize.h>
 #include <stddef.h>
 #include <stdint.h>
+
+#include <limits>
+#include <type_traits>
 
 #include "absl/base/attributes.h"
 #include "absl/base/dynamic_annotations.h"
 #include "absl/base/internal/spinlock.h"
+#include "absl/base/macros.h"
 #include "absl/base/optimization.h"
+#include "absl/numeric/bits.h"
 #include "absl/strings/string_view.h"
-#include "tcmalloc/internal/bits.h"
+#include "absl/types/span.h"
+#include "tcmalloc/experiment.h"
 #include "tcmalloc/internal/config.h"
 #include "tcmalloc/internal/logging.h"
+#include "tcmalloc/internal/optimization.h"
 #include "tcmalloc/size_class_info.h"
+
+GOOGLE_MALLOC_SECTION_BEGIN
+namespace tcmalloc {
+namespace tcmalloc_internal {
 
 //-------------------------------------------------------------------
 // Configuration
@@ -69,7 +79,7 @@
 // The constants that vary between models are:
 //
 //   kPageShift - Shift amount used to compute the page size.
-//   kNumClasses - Number of size classes serviced by bucket allocators
+//   kNumBaseClasses - Number of size classes serviced by bucket allocators
 //   kMaxSize - Maximum size serviced by bucket allocators (thread/cpu/central)
 //   kMinThreadCacheSize - The minimum size in bytes of each ThreadCache.
 //   kMaxThreadCacheSize - The maximum size in bytes of each ThreadCache.
@@ -99,7 +109,7 @@
 
 #if TCMALLOC_PAGE_SHIFT == 12
 inline constexpr size_t kPageShift = 12;
-inline constexpr size_t kNumClasses = 46;
+inline constexpr size_t kNumBaseClasses = 46;
 inline constexpr bool kHasExpandedClasses = false;
 inline constexpr size_t kMaxSize = 8 << 10;
 inline constexpr size_t kMinThreadCacheSize = 4 * 1024;
@@ -111,7 +121,7 @@ inline constexpr size_t kDefaultProfileSamplingRate = 1 << 19;
 inline constexpr size_t kMinPages = 2;
 #elif TCMALLOC_PAGE_SHIFT == 15
 inline constexpr size_t kPageShift = 15;
-inline constexpr size_t kNumClasses = 2 * 78;
+inline constexpr size_t kNumBaseClasses = 78;
 inline constexpr bool kHasExpandedClasses = true;
 inline constexpr size_t kMaxSize = 256 * 1024;
 inline constexpr size_t kMinThreadCacheSize = kMaxSize * 2;
@@ -124,7 +134,7 @@ inline constexpr size_t kDefaultProfileSamplingRate = 1 << 21;
 inline constexpr size_t kMinPages = 8;
 #elif TCMALLOC_PAGE_SHIFT == 18
 inline constexpr size_t kPageShift = 18;
-inline constexpr size_t kNumClasses = 2 * 89;
+inline constexpr size_t kNumBaseClasses = 89;
 inline constexpr bool kHasExpandedClasses = true;
 inline constexpr size_t kMaxSize = 256 * 1024;
 inline constexpr size_t kMinThreadCacheSize = kMaxSize * 2;
@@ -137,7 +147,7 @@ inline constexpr size_t kDefaultProfileSamplingRate = 1 << 21;
 inline constexpr size_t kMinPages = 8;
 #elif TCMALLOC_PAGE_SHIFT == 13
 inline constexpr size_t kPageShift = 13;
-inline constexpr size_t kNumClasses = 2 * 86;
+inline constexpr size_t kNumBaseClasses = 86;
 inline constexpr bool kHasExpandedClasses = true;
 inline constexpr size_t kMaxSize = 256 * 1024;
 inline constexpr size_t kMinThreadCacheSize = kMaxSize * 2;
@@ -152,6 +162,36 @@ inline constexpr size_t kMinPages = 8;
 #error "Unsupported TCMALLOC_PAGE_SHIFT value!"
 #endif
 
+// Sanitizers constrain the memory layout which causes problems with the
+// enlarged tags required to represent NUMA partitions. Disable NUMA awareness
+// to avoid failing to mmap memory.
+#if defined(TCMALLOC_NUMA_AWARE) && !defined(MEMORY_SANITIZER) && \
+    !defined(THREAD_SANITIZER)
+inline constexpr size_t kNumaPartitions = 2;
+#else
+inline constexpr size_t kNumaPartitions = 1;
+#endif
+
+// We have copies of kNumBaseClasses size classes for each NUMA node, followed
+// by any expanded classes.
+inline constexpr size_t kExpandedClassesStart =
+    kNumBaseClasses * kNumaPartitions;
+inline constexpr size_t kNumClasses =
+    kExpandedClassesStart + (kHasExpandedClasses ? kNumBaseClasses : 0);
+
+// Size classes are often stored as uint32_t values, but there are some
+// situations where we need to store a size class with as compact a
+// representation as possible (e.g. in PageMap). Here we determine the integer
+// type to use in these situations - i.e. the smallest integer type large
+// enough to store values in the range [0,kNumClasses).
+constexpr size_t kMaxClass = kNumClasses - 1;
+using CompactSizeClass =
+    std::conditional_t<kMaxClass <= std::numeric_limits<uint8_t>::max(),
+                       uint8_t, uint16_t>;
+
+// ~64K classes ought to be enough for anybody, but let's be sure.
+static_assert(kMaxClass <= std::numeric_limits<CompactSizeClass>::max());
+
 // Minimum/maximum number of batches in TransferCache per size class.
 // Actual numbers depends on a number of factors, see TransferCache::Init
 // for details.
@@ -165,7 +205,7 @@ inline constexpr size_t kPageSize = 1 << kPageShift;
 // of increasing kMaxSize to be multiple of kPageSize is unclear. Object size
 // profile data indicates that the number of simultaneously live objects (of
 // size >= 256k) tends to be very small. Keeping those objects as 'large'
-// objects won't cause too much memory waste, while heap memory reuse is can be
+// objects won't cause too much memory waste, while heap memory reuse can be
 // improved. Increasing kMaxSize to be too large has another bad side effect --
 // the thread cache pressure is increased, which will in turn increase traffic
 // between central cache and thread cache, leading to performance degradation.
@@ -174,8 +214,7 @@ static_assert((kMaxSize / kPageSize) >= kMinPages || kPageShift >= 18,
 
 inline constexpr size_t kAlignment = 8;
 // log2 (kAlignment)
-inline constexpr size_t kAlignmentShift =
-    tcmalloc::tcmalloc_internal::Bits::Log2Ceiling(kAlignment);
+inline constexpr size_t kAlignmentShift = absl::bit_width(kAlignment - 1u);
 
 // The number of times that a deallocation can cause a freelist to
 // go over its max_length() before shrinking max_length().
@@ -188,15 +227,19 @@ inline constexpr int kMaxOverages = 3;
 // scavenging code will shrink it down when its contents are not in use.
 inline constexpr int kMaxDynamicFreeListLength = 8192;
 
-namespace tcmalloc {
-
 enum class MemoryTag : uint8_t {
-  kSampled = 0x0,  // Sampled, infrequently allocated
-  kNormal = 0x1,   // Not sampled
+  // Sampled, infrequently allocated
+  kSampled = 0x0,
+  // Not sampled, NUMA partition 0
+  kNormalP0 = 0x1,
+  // Not sampled, NUMA partition 1
+  kNormalP1 = (kNumaPartitions > 1) ? 0x2 : 0xff,
+  // Not sampled
+  kNormal = kNormalP0,
 };
 
 inline constexpr uintptr_t kTagShift = std::min(kAddressBits - 4, 42);
-inline constexpr uintptr_t kTagMask = uintptr_t{0x1} << kTagShift;
+inline constexpr uintptr_t kTagMask = uintptr_t{0x3} << kTagShift;
 
 // Returns true if ptr is tagged.
 ABSL_DEPRECATED("Replace with specific tests")
@@ -205,14 +248,20 @@ inline bool IsTaggedMemory(const void* ptr) {
 }
 
 inline bool IsSampledMemory(const void* ptr) {
-  return (reinterpret_cast<uintptr_t>(ptr) & kTagMask) ==
-         (static_cast<uintptr_t>(MemoryTag::kSampled) << kTagShift);
+  constexpr uintptr_t kSampledNormalMask = kNumaPartitions > 1 ? 0x3 : 0x1;
+
+  static_assert(static_cast<uintptr_t>(MemoryTag::kNormalP0) &
+                kSampledNormalMask);
+  static_assert(static_cast<uintptr_t>(MemoryTag::kNormalP1) &
+                kSampledNormalMask);
+
+  const uintptr_t tag =
+      (reinterpret_cast<uintptr_t>(ptr) & kTagMask) >> kTagShift;
+  return (tag & kSampledNormalMask) ==
+         static_cast<uintptr_t>(MemoryTag::kSampled);
 }
 
-inline bool IsNormalMemory(const void* ptr) {
-  return (reinterpret_cast<uintptr_t>(ptr) & kTagMask) ==
-         (static_cast<uintptr_t>(MemoryTag::kNormal) << kTagShift);
-}
+inline bool IsNormalMemory(const void* ptr) { return !IsSampledMemory(ptr); }
 
 inline MemoryTag GetMemoryTag(const void* ptr) {
   return static_cast<MemoryTag>((reinterpret_cast<uintptr_t>(ptr) & kTagMask) >>
@@ -222,10 +271,10 @@ inline MemoryTag GetMemoryTag(const void* ptr) {
 absl::string_view MemoryTagToLabel(MemoryTag tag);
 
 inline constexpr bool IsExpandedSizeClass(unsigned cl) {
-  return kHasExpandedClasses && (cl >= kNumClasses / 2);
+  return kHasExpandedClasses && (cl >= kExpandedClassesStart);
 }
 
-#if !defined(TCMALLOC_SMALL_BUT_SLOW) && __WORDSIZE != 32
+#if !defined(TCMALLOC_SMALL_BUT_SLOW) && __SIZEOF_POINTER__ != 4
 // Always allocate at least a huge page
 inline constexpr size_t kMinSystemAlloc = kHugePageSize;
 inline constexpr size_t kMinMmapAlloc = 1 << 30;  // mmap() in 1GiB ranges.
@@ -242,6 +291,31 @@ static_assert(kMinMmapAlloc % kMinSystemAlloc == 0,
               "Minimum mmap allocation size is not a multiple of"
               " minimum system allocation size");
 
+inline MemoryTag NumaNormalTag(size_t numa_partition) {
+  switch (numa_partition) {
+    case 0:
+      return MemoryTag::kNormalP0;
+    case 1:
+      return MemoryTag::kNormalP1;
+    default:
+      ASSUME(false);
+      __builtin_unreachable();
+  }
+}
+
+inline size_t NumaPartitionFromPointer(void* ptr) {
+  if constexpr (kNumaPartitions == 1) {
+    return 0;
+  }
+
+  switch (GetMemoryTag(ptr)) {
+    case MemoryTag::kNormalP1:
+      return 1;
+    default:
+      return 0;
+  }
+}
+
 // Size-class information + mapping
 class SizeMap {
  public:
@@ -251,7 +325,7 @@ class SizeMap {
   static constexpr size_t kMultiPageAlignment = 64;
   // log2 (kMultiPageAlignment)
   static constexpr size_t kMultiPageAlignmentShift =
-      tcmalloc::tcmalloc_internal::Bits::Log2Ceiling(kMultiPageAlignment);
+      absl::bit_width(kMultiPageAlignment - 1u);
 
  private:
   //-------------------------------------------------------------------
@@ -287,8 +361,8 @@ class SizeMap {
   // first member so that it inherits the overall alignment of a SizeMap
   // instance.  In particular, if we create a SizeMap instance that's cache-line
   // aligned, this member is also aligned to the width of a cache line.
-  unsigned char class_array_[kClassArraySize * (kHasExpandedClasses ? 2 : 1)] =
-      {0};
+  CompactSizeClass
+      class_array_[kClassArraySize * (kHasExpandedClasses ? 2 : 1)] = {0};
 
   // Number of objects to move between a per-thread list and a central
   // list in one shot.  We want this to be not too small so we can
@@ -339,9 +413,11 @@ class SizeMap {
   static const SizeClassInfo kSizeClasses[];
   static const int kSizeClassesCount;
 
-  // Definition of size class that is set in size_classes.cc
-  static const SizeClassInfo kExperimentalSizeClasses[];
-  static const int kExperimentalSizeClassesCount;
+  static const SizeClassInfo kExperimentalPow2Below64SizeClasses[];
+  static const int kExperimentalPow2Below64SizeClassesCount;
+  // kExperimentalPowBelow64SizeClassesCount
+  static const SizeClassInfo kExperimentalPow2SizeClasses[];
+  static const int kExperimentalPow2SizeClassesCount;
 
   // Definition of size class that is set in size_classes.cc
   static const SizeClassInfo kLegacySizeClasses[];
@@ -355,50 +431,41 @@ class SizeMap {
   // Initialize the mapping arrays
   void Init();
 
-  // Returns the non-zero matching size class for the provided `size`.
-  // Returns true on success, returns false if `size` exceeds the maximum size
-  // class value `kMaxSize'.
-  // Important: this function may return true with *cl == 0 if this
-  // SizeMap instance has not (yet) been initialized.
+  // Returns the size class for size `size` respecting the alignment
+  // requirements of `policy`.
   //
-  // TODO(b/171978365): Replace the output parameter with returning
-  // absl::optional<uint32_t>.
-  inline bool ABSL_ATTRIBUTE_ALWAYS_INLINE GetSizeClass(size_t size,
-                                                        uint32_t* cl) {
-    uint32_t idx;
-    if (ABSL_PREDICT_TRUE(ClassIndexMaybe(size, &idx))) {
-      *cl = class_array_[idx];
-      return true;
-    }
-    return false;
-  }
-
-  // Returns the size class for size `size` aligned at `align`
   // Returns true on success. Returns false if either:
   // - the size exceeds the maximum size class size.
   // - the align size is greater or equal to the default page size
   // - no matching properly aligned size class is available
   //
-  // Requires that align is a non-zero power of 2.
+  // Requires that policy.align() returns a non-zero power of 2.
   //
-  // Specifying align = 1 will result in this method using the default
-  // alignment of the size table. Calling this method with a constexpr
-  // value of align = 1 will be optimized by the compiler, and result in
-  // the inlined code to be identical to calling `GetSizeClass(size, cl)`
-  inline bool ABSL_ATTRIBUTE_ALWAYS_INLINE GetSizeClass(size_t size,
-                                                        size_t align,
+  // When policy.align() = 1 the default alignment of the size table will be
+  // used. If policy.align() is constexpr 1 (e.g. when using
+  // DefaultAlignPolicy) then alignment-related code will optimize away.
+  //
+  // TODO(b/171978365): Replace the output parameter with returning
+  // absl::optional<uint32_t>.
+  template <typename Policy>
+  inline bool ABSL_ATTRIBUTE_ALWAYS_INLINE GetSizeClass(Policy policy,
+                                                        size_t size,
                                                         uint32_t* cl) {
-    ASSERT(tcmalloc_internal::Bits::IsPow2(align));
+    const size_t align = policy.align();
+    ASSERT(absl::has_single_bit(align));
 
     if (ABSL_PREDICT_FALSE(align >= kPageSize)) {
       // TODO(b/172060547): Consider changing this to align > kPageSize.
       ABSL_ANNOTATE_MEMORY_IS_UNINITIALIZED(cl, sizeof(*cl));
       return false;
     }
-    if (ABSL_PREDICT_FALSE(!GetSizeClass(size, cl))) {
+
+    uint32_t idx;
+    if (ABSL_PREDICT_FALSE(!ClassIndexMaybe(size, &idx))) {
       ABSL_ANNOTATE_MEMORY_IS_UNINITIALIZED(cl, sizeof(*cl));
       return false;
     }
+    *cl = class_array_[idx] + policy.scaled_numa_partition();
 
     // Predict that size aligned allocs most often directly map to a proper
     // size class, i.e., multiples of 32, 64, etc, matching our class sizes.
@@ -407,7 +474,7 @@ class SizeMap {
       if (ABSL_PREDICT_TRUE((class_to_size(*cl) & mask) == 0)) {
         return true;
       }
-    } while (++*cl < kNumClasses);
+    } while ((++*cl % kNumBaseClasses) != 0);
 
     ABSL_ANNOTATE_MEMORY_IS_UNINITIALIZED(cl, sizeof(*cl));
     return false;
@@ -415,10 +482,12 @@ class SizeMap {
 
   // Returns size class for given size, or 0 if this instance has not been
   // initialized yet. REQUIRES: size <= kMaxSize.
-  inline size_t ABSL_ATTRIBUTE_ALWAYS_INLINE SizeClass(size_t size) {
+  template <typename Policy>
+  inline size_t ABSL_ATTRIBUTE_ALWAYS_INLINE SizeClass(Policy policy,
+                                                       size_t size) {
     ASSERT(size <= kMaxSize);
     uint32_t ret = 0;
-    GetSizeClass(size, &ret);
+    GetSizeClass(policy, size, &ret);
     return ret;
   }
 
@@ -448,6 +517,8 @@ class SizeMap {
 // Linker initialized, so this lock can be accessed at any time.
 extern absl::base_internal::SpinLock pageheap_lock;
 
+}  // namespace tcmalloc_internal
 }  // namespace tcmalloc
+GOOGLE_MALLOC_SECTION_END
 
 #endif  // TCMALLOC_COMMON_H_

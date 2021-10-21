@@ -27,7 +27,6 @@ ALLOW maps/wikimap/mapspro/services/mrc -> maps/libs/deprecated/localeutils
 ALLOW netsys/tiles-vcdiff/gen-tiles -> maps/libs/deprecated/localeutils
 
 # Use maps/libs/geolib instead
-ALLOW maps/hotspots/spotsvis/core -> maps/libs/deprecated/coordtrans
 ALLOW maps/streetview/backoffice/lib -> maps/libs/deprecated/coordtrans_pymod
 
 # Use std::chrono or util/datetime instead
@@ -56,6 +55,7 @@ ALLOW .* -> maps/libs/s3mds
 ALLOW .* -> maps/libs/sql_chemistry
 ALLOW .* -> maps/libs/st
 ALLOW .* -> maps/libs/tile
+ALLOW .* -> maps/libs/ttl_cache
 ALLOW .* -> maps/pylibs/local_postgres
 
 # Fix current PEERDIRs and prevent any further growth
@@ -102,6 +102,7 @@ ALLOW taxi/graph/libs/mapmatcher -> maps/libs/succinct_rtree/serialization
 ALLOW taxi/graph/libs/mapmatcher -> maps/routing/common
 ALLOW taxi/graph/libs/mapmatcher -> maps/routing/turn_penalties
 ALLOW taxi/graph/libs/mapmatcher -> maps/tools/easyview/lib/io
+ALLOW taxi/graph/libs/mapmatcher -> maps/analyzer/libs/guidance
 ALLOW taxi/graph/libs/nearest_edges -> maps/libs/common
 ALLOW taxi/graph/libs/nearest_edges -> maps/libs/jams/graph-spatial
 ALLOW taxi/graph/libs/nearest_edges -> maps/libs/jams/router

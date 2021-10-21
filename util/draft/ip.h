@@ -91,7 +91,7 @@ inline void Out<TIp6>(IOutputStream& os, const TIp6& a) {
     os << Ip6ToString(a);
 }
 
-using TIp4Or6 = TVariant<TIp4, TIp6>;
+using TIp4Or6 = std::variant<TIp4, TIp6>;
 
 static inline TIp4Or6 Ip4Or6FromString(const char* ipStr) {
     const char* c = ipStr;
@@ -107,10 +107,10 @@ static inline TIp4Or6 Ip4Or6FromString(const char* ipStr) {
 }
 
 static inline TString Ip4Or6ToString(const TIp4Or6& ip) {
-    if (HoldsAlternative<TIp6>(ip)) {
-        return Ip6ToString(Get<TIp6>(ip));
+    if (std::holds_alternative<TIp6>(ip)) {
+        return Ip6ToString(std::get<TIp6>(ip));
     } else {
-        return IpToString(Get<TIp4>(ip));
+        return IpToString(std::get<TIp4>(ip));
     }
 }
 

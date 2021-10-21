@@ -142,6 +142,13 @@ def get_func_name(func, resolv_alias=True, win_characters=True):
                 # notebooks
                 splitted = parts[-1].split('-')
                 parts[-1] = '-'.join(splitted[:2] + splitted[3:])
+            elif len(parts) > 2 and parts[-2].startswith('ipykernel_'):
+                # In a notebook session (ipykernel). Filename seems to be 'xyz'
+                # of above. parts[-2] has the structure ipykernel_XXXXXX where
+                # XXXXXX is a six-digit number identifying the current run (?).
+                # If we split it off, the function again has the same
+                # identifier across runs.
+                parts[-2] = 'ipykernel'
             filename = '-'.join(parts)
             if filename.endswith('.py'):
                 filename = filename[:-3]
@@ -171,10 +178,9 @@ def get_func_name(func, resolv_alias=True, win_characters=True):
     return module, name
 
 
-def _signature_str(function_name, arg_spec):
+def _signature_str(function_name, arg_sig):
     """Helper function to output a function signature"""
-    arg_spec_str = inspect.formatargspec(*arg_spec)
-    return '{}{}'.format(function_name, arg_spec_str)
+    return '{}{}'.format(function_name, arg_sig)
 
 
 def _function_called_str(function_name, args, kwargs):
@@ -221,20 +227,34 @@ def filter_args(func, ignore_lst, args=(), kwargs=dict()):
             warnings.warn('Cannot inspect object %s, ignore list will '
                           'not work.' % func, stacklevel=2)
         return {'*': args, '**': kwargs}
-    arg_spec = inspect.getfullargspec(func)
-    arg_names = arg_spec.args + arg_spec.kwonlyargs
-    arg_defaults = arg_spec.defaults or ()
-    if arg_spec.kwonlydefaults:
-        arg_defaults = arg_defaults + tuple(arg_spec.kwonlydefaults[k]
-                                            for k in arg_spec.kwonlyargs
-                                            if k in arg_spec.kwonlydefaults)
-    arg_varargs = arg_spec.varargs
-    arg_varkw = arg_spec.varkw
-
+    arg_sig = inspect.signature(func)
+    arg_names = []
+    arg_defaults = []
+    arg_kwonlyargs = []
+    arg_varargs = None
+    arg_varkw = None
+    for param in arg_sig.parameters.values():
+        if param.kind is param.POSITIONAL_OR_KEYWORD:
+            arg_names.append(param.name)
+        elif param.kind is param.KEYWORD_ONLY:
+            arg_names.append(param.name)
+            arg_kwonlyargs.append(param.name)
+        elif param.kind is param.VAR_POSITIONAL:
+            arg_varargs = param.name
+        elif param.kind is param.VAR_KEYWORD:
+            arg_varkw = param.name
+        if param.default is not param.empty:
+            arg_defaults.append(param.default)
     if inspect.ismethod(func):
         # First argument is 'self', it has been removed by Python
         # we need to add it back:
         args = [func.__self__, ] + args
+        # func is an instance method, inspect.signature(func) does not
+        # include self, we need to fetch it from the class method, i.e
+        # func.__func__
+        class_method_sig = inspect.signature(func.__func__)
+        self_name = next(iter(class_method_sig.parameters))
+        arg_names = [self_name] + arg_names
     # XXX: Maybe I need an inspect.isbuiltin to detect C-level methods, such
     # as on ndarrays.
 
@@ -244,7 +264,7 @@ def filter_args(func, ignore_lst, args=(), kwargs=dict()):
     for arg_position, arg_name in enumerate(arg_names):
         if arg_position < len(args):
             # Positional argument or keyword argument given as positional
-            if arg_name not in arg_spec.kwonlyargs:
+            if arg_name not in arg_kwonlyargs:
                 arg_dict[arg_name] = args[arg_position]
             else:
                 raise ValueError(
@@ -252,7 +272,7 @@ def filter_args(func, ignore_lst, args=(), kwargs=dict()):
                     'positional parameter for %s:\n'
                     '     %s was called.'
                     % (arg_name,
-                       _signature_str(name, arg_spec),
+                       _signature_str(name, arg_sig),
                        _function_called_str(name, args, kwargs))
                 )
 
@@ -268,7 +288,7 @@ def filter_args(func, ignore_lst, args=(), kwargs=dict()):
                     raise ValueError(
                         'Wrong number of arguments for %s:\n'
                         '     %s was called.'
-                        % (_signature_str(name, arg_spec),
+                        % (_signature_str(name, arg_sig),
                            _function_called_str(name, args, kwargs))
                     ) from e
 
@@ -296,7 +316,7 @@ def filter_args(func, ignore_lst, args=(), kwargs=dict()):
             raise ValueError("Ignore list: argument '%s' is not defined for "
                              "function %s"
                              % (item,
-                                _signature_str(name, arg_spec))
+                                _signature_str(name, arg_sig))
                              )
     # XXX: Return a sorted list of pairs?
     return arg_dict

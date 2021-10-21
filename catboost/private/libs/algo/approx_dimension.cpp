@@ -15,7 +15,9 @@ namespace NCB {
         const ELossFunction lossFunction = catBoostOptions.LossFunctionDescription.Get().GetLossFunction();
         if (lossFunction == ELossFunction::RMSEWithUncertainty) {
             return ui32(2);
-        } else if (IsMultiRegressionObjective(lossFunction)) {
+        } else if (lossFunction == ELossFunction::SurvivalAft) {
+            return ui32(1);
+        } else if (IsMultiTargetObjective(lossFunction)) {
             return targetDimension;
         } else {
             if (labelConverter.IsInitialized()) {

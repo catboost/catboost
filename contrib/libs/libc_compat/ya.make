@@ -2,10 +2,19 @@
 
 LIBRARY()
 
-LICENSE(BSD-3-Clause)
+LICENSE(
+    BSD-1-Clause
+    BSD-2-Clause
+    BSD-3-Clause
+    ISC
+)
+
+LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 NO_COMPILER_WARNINGS()
+
 NO_UTIL()
+
 NO_RUNTIME()
 
 IF (NOT OS_WINDOWS)
@@ -33,9 +42,7 @@ IF (OS_ANDROID)
         SRCS(
             ifaddrs.c
         )
-        ADDINCL(
-            GLOBAL contrib/libs/libc_compat/include/ifaddrs
-        )
+        ADDINCL(GLOBAL contrib/libs/libc_compat/include/ifaddrs)
     ENDIF()
     IF (ANDROID_API < 21)
         SRCS(
@@ -46,7 +53,7 @@ ENDIF()
 
 IF (OS_WINDOWS OR OS_DARWIN OR OS_IOS)
     SRCS(
-       memrchr.c
+        memrchr.c
     )
 ENDIF()
 
@@ -58,7 +65,6 @@ ENDIF()
 
 IF (OS_WINDOWS)
     ADDINCL(GLOBAL contrib/libs/libc_compat/include/windows)
-
     SRCS(
         reallocarray.c
         stpcpy.c
@@ -77,7 +83,6 @@ IF (OS_LINUX AND NOT MUSL)
             GLOBAL contrib/libs/libc_compat/include/uchar
         )
     ENDIF()
-
     IF (OS_SDK == "ubuntu-12" OR OS_SDK == "ubuntu-14")
         ADDINCL(GLOBAL contrib/libs/libc_compat/include/random)
         SRCS(
@@ -85,20 +90,17 @@ IF (OS_LINUX AND NOT MUSL)
             getrandom.c
         )
     ENDIF()
-
     IF (OS_SDK != "ubuntu-20")
         SRCS(
             # reallocarray was added in glibc=2.29
             reallocarray.c
         )
     ENDIF()
-
     SRCS(
         # glibc does not offer strlcat / strlcpy yet
         strlcat.c
         strlcpy.c
     )
-
 ENDIF()
 
 END()

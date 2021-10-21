@@ -1,21 +1,22 @@
 PY3_LIBRARY()
 
+
+
+VERSION(3.0.20)
+
 LICENSE(BSD-3-Clause)
-
-VERSION(3.0.19)
-
-
 
 PEERDIR(
     contrib/python/wcwidth
 )
 
+NO_LINT()
+
 NO_CHECK_IMPORTS(
     prompt_toolkit.clipboard.pyperclip
     prompt_toolkit.contrib.ssh.*
+    prompt_toolkit.contrib.telnet.*
     prompt_toolkit.eventloop.win32
-    prompt_toolkit.terminal.conemu_output
-    prompt_toolkit.win32_types
     prompt_toolkit.input.posix_pipe
     prompt_toolkit.input.vt100
     prompt_toolkit.input.win32
@@ -23,10 +24,9 @@ NO_CHECK_IMPORTS(
     prompt_toolkit.output.conemu
     prompt_toolkit.output.win32
     prompt_toolkit.output.windows10
-    prompt_toolkit.contrib.telnet.*
+    prompt_toolkit.terminal.conemu_output
+    prompt_toolkit.win32_types
 )
-
-NO_LINT()
 
 PY_SRCS(
     TOP_LEVEL

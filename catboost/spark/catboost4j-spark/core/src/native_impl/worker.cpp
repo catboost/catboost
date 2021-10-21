@@ -14,35 +14,50 @@
 
 #include <util/generic/cast.h>
 #include <util/generic/ptr.h>
+#include <util/generic/xrange.h>
 
 using namespace NCB;
+
+
+i64 GetPartitionTotalObjectCount(const TVector<TDataProviderPtr>& trainDataProviders) throw (yexception) {
+    i64 result = 0;
+    for (const auto& trainDataProvider : trainDataProviders) {
+        result += SafeIntegerCast<i64>(trainDataProvider->GetObjectCount());
+    }
+    return result;
+}
 
 
 void CreateTrainingDataForWorker(
     i32 hostId,
     i32 numThreads,
     const TString& plainJsonParamsAsString,
-    NCB::TDataProviderPtr trainDataProvider,
+    const TVector<TDataProviderPtr>& trainDataProviders,
     NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
-    NCB::TDataProviderPtr trainEstimatedDataProvider,
+    const TVector<TDataProviderPtr>& trainEstimatedDataProviders, // can be empty
     const TString& precomputedOnlineCtrMetaDataAsJsonString
 ) throw (yexception) {
     CB_ENSURE(numThreads >= 1, "Non-positive number of threads specified");
+    CB_ENSURE_INTERNAL(
+        trainDataProviders.size() >= 1,
+        "trainDataProviders must have at least learn data provider"
+    );
 
     auto& localData = NCatboostDistributed::TLocalTensorSearchData::GetRef();
     localData = NCatboostDistributed::TLocalTensorSearchData();
 
     TDataProviders pools;
-    pools.Learn = trainDataProvider;
+    pools.Learn = trainDataProviders[0];
+    pools.Test.assign(trainDataProviders.begin() + 1, trainDataProviders.end());
 
     NJson::TJsonValue plainJsonParams;
     NJson::ReadJsonTree(plainJsonParamsAsString, &plainJsonParams, /*throwOnError*/ true);
-    ConvertIgnoredFeaturesFromStringToIndices(trainDataProvider->MetaInfo, &plainJsonParams);
+    ConvertIgnoredFeaturesFromStringToIndices(trainDataProviders[0]->MetaInfo, &plainJsonParams);
 
     NJson::TJsonValue catBoostJsonOptions;
     NJson::TJsonValue outputJsonOptions;
     NCatboostOptions::PlainJsonToOptions(plainJsonParams, &catBoostJsonOptions, &outputJsonOptions);
-    ConvertParamsToCanonicalFormat(trainDataProvider->MetaInfo, &catBoostJsonOptions);
+    ConvertParamsToCanonicalFormat(trainDataProviders[0]->MetaInfo, &catBoostJsonOptions);
 
     NCatboostOptions::TCatBoostOptions catBoostOptions(ETaskType::CPU);
     catBoostOptions.Load(catBoostJsonOptions);
@@ -62,6 +77,7 @@ void CreateTrainingDataForWorker(
     CATBOOST_DEBUG_LOG << "Create train data for worker " << hostId << "..." << Endl;
     localData.TrainData = GetTrainingData(
         std::move(pools),
+        /*trainingDataCanBeEmpty*/ true,
         /*borders*/ Nothing(), // borders are already loaded to quantizedFeaturesInfo
         /*ensureConsecutiveIfDenseLearnFeaturesDataForCpu*/ true,
         /*allowWriteFiles*/ false,
@@ -73,8 +89,8 @@ void CreateTrainingDataForWorker(
         localData.Rand.Get()
     );
 
-    if (trainEstimatedDataProvider) {
-        CATBOOST_DEBUG_LOG << "Create precomputed train data for worker " << hostId << "..." << Endl;
+    if (!trainEstimatedDataProviders.empty()) {
+        CATBOOST_DEBUG_LOG << "Create precomputed data for worker " << hostId << "..." << Endl;
 
         localData.PrecomputedSingleOnlineCtrDataForSingleFold.ConstructInPlace();
         localData.PrecomputedSingleOnlineCtrDataForSingleFold->Meta
@@ -83,12 +99,23 @@ void CreateTrainingDataForWorker(
               );
         localData.PrecomputedSingleOnlineCtrDataForSingleFold->DataProviders.Learn
             = dynamic_cast<TQuantizedObjectsDataProvider*>(
-                trainEstimatedDataProvider->ObjectsData.Get()
+                trainEstimatedDataProviders[0]->ObjectsData.Get()
               );
         CB_ENSURE_INTERNAL(
             localData.PrecomputedSingleOnlineCtrDataForSingleFold->DataProviders.Learn,
-            "Precomputed data: Non-quantized objects data specified"
+            "Precomputed learn data: Non-quantized objects data specified"
         );
+        for (auto testIdx : xrange(trainEstimatedDataProviders.size() - 1)) {
+            localData.PrecomputedSingleOnlineCtrDataForSingleFold->DataProviders.Test.push_back(
+                dynamic_cast<TQuantizedObjectsDataProvider*>(
+                    trainEstimatedDataProviders[testIdx + 1]->ObjectsData.Get()
+                )
+            );
+            CB_ENSURE_INTERNAL(
+                localData.PrecomputedSingleOnlineCtrDataForSingleFold->DataProviders.Test.back(),
+                "Precomputed test data # " << testIdx << ": Non-quantized objects data specified"
+            );
+        }
     }
 }
 

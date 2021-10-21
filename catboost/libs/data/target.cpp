@@ -52,7 +52,7 @@ static void CheckRawTarget(ERawTargetType targetType, const TVector<TRawTarget>&
     );
 
     for (auto i : xrange(target.size())) {
-        if (const ITypedSequencePtr<float>* typedSequence = GetIf<ITypedSequencePtr<float>>(&target[i])) {
+        if (const ITypedSequencePtr<float>* typedSequence = std::get_if<ITypedSequencePtr<float>>(&target[i])) {
             CB_ENSURE_INTERNAL(
                 (targetType == ERawTargetType::Float) || (targetType == ERawTargetType::Integer),
                 "target data contains float values but targetType is " << targetType
@@ -71,7 +71,7 @@ static void CheckRawTarget(ERawTargetType targetType, const TVector<TRawTarget>&
                 targetType == ERawTargetType::String,
                 "target data contains float values but targetType is " << targetType
             );
-            const TVector<TString>& stringVector = Get<TVector<TString>>(target[i]);
+            const TVector<TString>& stringVector = std::get<TVector<TString>>(target[i]);
             CheckDataSize(stringVector.size(), (size_t)objectCount, "Target[" + ToString(i) + "]", false);
             for (auto j : xrange(stringVector.size())) {
                 CB_ENSURE(!stringVector[j].empty(), "Target[" << i << ", " << j << "] is empty");
@@ -188,8 +188,8 @@ static void CheckPairs(TConstArrayRef<TPairInGroup> pairs, const TObjectsGroupin
                     fieldName << " (" << idx << ") > group size (" << groupSize << ')'
                 );
             };
-            checkIdx(pairInGroup.WinnerIdxInGroup, AsStringBuf("WinnerIdxInGroup"));
-            checkIdx(pairInGroup.LoserIdxInGroup, AsStringBuf("LoserIdxInGroup"));
+            checkIdx(pairInGroup.WinnerIdxInGroup, TStringBuf("WinnerIdxInGroup"));
+            checkIdx(pairInGroup.LoserIdxInGroup, TStringBuf("LoserIdxInGroup"));
 
             CB_ENSURE(pairInGroup.Weight >= 0.0f, "Weight is negative");
         } catch (const TCatBoostException& e) {
@@ -304,18 +304,18 @@ bool EqualAsFloatTarget(const ITypedSequencePtr<float>& lhs, const TVector<TStri
 }
 
 bool Equal(const TRawTarget& lhs, const TRawTarget& rhs) {
-    if (const ITypedSequencePtr<float>* lhsTypedSequence = GetIf<ITypedSequencePtr<float>>(&lhs)) {
-        if (const ITypedSequencePtr<float>* rhsTypedSequence = GetIf<ITypedSequencePtr<float>>(&rhs)) {
+    if (const ITypedSequencePtr<float>* lhsTypedSequence = std::get_if<ITypedSequencePtr<float>>(&lhs)) {
+        if (const ITypedSequencePtr<float>* rhsTypedSequence = std::get_if<ITypedSequencePtr<float>>(&rhs)) {
             return (*lhsTypedSequence)->EqualTo(**rhsTypedSequence, /*strict*/ false);
         } else {
-            return EqualAsFloatTarget(*lhsTypedSequence, Get<TVector<TString>>(rhs));
+            return EqualAsFloatTarget(*lhsTypedSequence, std::get<TVector<TString>>(rhs));
         }
     } else {
-        const TVector<TString>& lhsStringVector = Get<TVector<TString>>(lhs);
-        if (const TVector<TString>* rhsStringVector = GetIf<TVector<TString>>(&rhs)) {
+        const TVector<TString>& lhsStringVector = std::get<TVector<TString>>(lhs);
+        if (const TVector<TString>* rhsStringVector = std::get_if<TVector<TString>>(&rhs)) {
             return lhsStringVector == *rhsStringVector;
         } else {
-            return EqualAsFloatTarget(Get<ITypedSequencePtr<float>>(rhs), lhsStringVector);
+            return EqualAsFloatTarget(std::get<ITypedSequencePtr<float>>(rhs), lhsStringVector);
         }
     }
 }
@@ -376,7 +376,7 @@ void TRawTargetData::Check(
     if (Pairs) {
         tasks.emplace_back(
             [&, this]() {
-                Visit(
+            std::visit(
                     [&] (const auto& pairsData) {
                         CheckPairs(pairsData, objectsGrouping);
                     },
@@ -420,14 +420,14 @@ ERawTargetType TRawTargetDataProvider::GetTargetType() const {
 void TRawTargetDataProvider::GetNumericTarget(TArrayRef<TArrayRef<float>> dst) const {
     CB_ENSURE(dst.size() == Data.Target.size());
     for (auto targetIdx : xrange(Data.Target.size())) {
-        ToArray(*Get<ITypedSequencePtr<float>>(Data.Target[targetIdx]), dst[targetIdx]);
+        ToArray(*std::get<ITypedSequencePtr<float>>(Data.Target[targetIdx]), dst[targetIdx]);
     }
 }
 
 void TRawTargetDataProvider::GetStringTargetRef(TVector<TConstArrayRef<TString>>* dst) const {
     dst->resize(Data.Target.size());
     for (auto targetIdx : xrange(Data.Target.size())) {
-        (*dst)[targetIdx] = Get<TVector<TString>>(Data.Target[targetIdx]);
+        (*dst)[targetIdx] = std::get<TVector<TString>>(Data.Target[targetIdx]);
     }
 }
 
@@ -465,7 +465,7 @@ static void GetRawTargetSubset(
     NPar::ILocalExecutor* localExecutor,
     TRawTarget* dst
 ) {
-    if (const ITypedSequencePtr<float>* srcTypedSequence = GetIf<ITypedSequencePtr<float>>(&src)) {
+    if (const ITypedSequencePtr<float>* srcTypedSequence = std::get_if<ITypedSequencePtr<float>>(&src)) {
         ITypedArraySubsetPtr<float> typedArraySubset = (*srcTypedSequence)->GetSubset(&subset);
         TVector<float> dstData;
         dstData.yresize(subset.Size());
@@ -478,7 +478,7 @@ static void GetRawTargetSubset(
             std::move(dstData)
         );
     } else {
-        (*dst) = GetSubset<TString>(Get<TVector<TString>>(src), subset, localExecutor);
+        (*dst) = GetSubset<TString>(std::get<TVector<TString>>(src), subset, localExecutor);
     }
 }
 
@@ -602,11 +602,11 @@ static void GetPairsSubset(
     const TObjectsGroupingSubset& objectsGroupingSubset,
     TRawPairsData* result
 ) {
-    if (HoldsAlternative<TFullSubset<ui32>>(objectsGroupingSubset.GetObjectsIndexing())) {
+    if (std::holds_alternative<TFullSubset<ui32>>(objectsGroupingSubset.GetObjectsIndexing())) {
         *result = pairs;
         return;
     }
-    Visit(
+    std::visit(
         [&] (const auto& pairs) {
             *result = GetPairsSubset(pairs, objectsGrouping, objectsGroupingSubset);
         },
@@ -682,6 +682,7 @@ TRawTargetDataProvider TRawTargetDataProvider::GetSubset(
         objectsGroupingSubset.GetSubsetGrouping(),
         std::move(subsetData),
         true,
+        ForceUnitAutoPairWeights,
         nullptr
     );
 }
@@ -1072,7 +1073,7 @@ void NCB::GetGroupInfosSubset(
 
         TConstArrayRef<ui32> indexedSubset;
         TVector<ui32> indexedSubsetStorage;
-        if (HoldsAlternative<TIndexedSubset<ui32>>(subsetObjectsIndexing)) {
+        if (std::holds_alternative<TIndexedSubset<ui32>>(subsetObjectsIndexing)) {
             indexedSubset = subsetObjectsIndexing.Get<TIndexedSubset<ui32>>();
         } else {
             indexedSubsetStorage.yresize(subsetObjectsIndexing.Size());

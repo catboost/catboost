@@ -1,3 +1,51 @@
+# Release 1.0.0
+
+In this release we decided to increment major version as we think that CatBoost is ready for production usage. We know, that CatBoost is used a lot in many different companies and individual projects, and not it's not only a "psychological" maturity - we think, that all the features we added in the last year and in current release is worth to update major version. And of course, as many programmers we love magic of binary numbers and we want to celebrate 100₂ anniversary since CatBoost first release on github :)
+## New losses
+* We've implemented multi label multiclass loss function, that allows to predict multiple lables for each object #1420
+* Added LogCosh loss implementation #844
+
+## Fully distributed CatBoost for Apache Spark
+* In this release we our Apache Spark package became truly distributed - in previouse version CatBoost stored test datasets in controller process memory. And now test datasets are splitted evenly by workers.
+
+## Major speedup on CPU
+* Speedup training on numeric datasets (480K rows, 60 features, 100 trees, binclass, 20% speedup on 16 cores Intel CPU 3.7s -> 2.9s)
+
+## R package
+* Update C++ handles by reference to avoid redundant copies by @david-cortes
+* Avoid calculating groupwise feature importance: do not calculate feature importance for groupwise metrics by default
+* R tests clear environment after runs so they won't find temporary data from previous runs
+* Fixed ignored features in R fail whet single feature were ignored
+* Fix feature_count attribute with ignored_features
+
+## CV improvements
+* Added support for text features and embeddings in crossvalidation mode
+* We've changed the way crossvalidation works - previously, CatBoost was training a small batch of trees on each fold and then switched to next fold or next batch of trees. In 1.0.0 we changed this behaviour and now CatBoost trains full model on each fold. That allows us to reduce memory and time overhead of starting new batch - only one CPU to GPU memory copy is needed per fold, not per each batch of trees. Mean metric interactive plot became unavailable until the end of training on all folds.
+* **Important change** From now on `use_best_model` and early stopping works independently on each fold, as we are trying to make single fold trainig as close to regular training as possible. If one model stops at iteration `i` we use it's last value in mean score plot for points with `[i+1; last iteration)`.
+
+## GPU improvements
+* Fixed distributed training performance on Ethernet networks ~2x training time speedup. For 2 hosts, 8 v100/host, 10gigabit eth, 300 factors, 150m samples, 200 trees, 3300s -> 1700s
+* We've found a bug in model-size-reg implementation in gpu that leaded to worse quality of resulting model, especially in comparison to model trained on CPU with equal parameters
+
+## Rust
+* Enabled load model from buffer for rust by @manavsah
+
+## Bugfixes
+* Fix for model predictions with text and embedding features
+* Switch to TBB local executor to limit TLS size and avoid memory leakage #1835
+* Switch to tcmalloc under linux x86_64 to avoid memory fragmentation bug in LFAlloc
+* Fix for case of ignored text feature
+* Fixed application of baseline in C++ code. Moved addition of that before application of activation functions and determining labels of objects.
+* Fixes for scikit-learn compatibility validation #1783 and #1785
+* Fix for thread_count = -1 in set_params(). Issue #1800
+* Fix potential sigsegv in evaluator. Fixes #1809
+* Fix slow (u)int8 & (u)int16 parsing as catfeatures. Fixes #718
+* Adjust boost from overage option before auto learning rate
+* Fix embeddings with CrossEntropy mode #1654
+* Fix object importance #1820
+* Fix data provider without target #1827
+
+
 # Release 0.26.1
 
 ## R package

@@ -108,7 +108,7 @@ bool THttp2Options::QuickAck = false;
 
 bool THttp2Options::Set(TStringBuf name, TStringBuf value) {
 #define HTTP2_TRY_SET(optType, optName)       \
-    if (name == AsStringBuf(#optName)) {      \
+    if (name == TStringBuf(#optName)) {      \
         optName = FromString<optType>(value); \
     }
 
@@ -382,12 +382,12 @@ namespace {
         }
 
     private:
-        THttpRequest(THandleRef& h, const TMessage& msg, TRequestBuilder f, const TRequestSettings& s)
+        THttpRequest(THandleRef& h, TMessage msg, TRequestBuilder f, const TRequestSettings& s)
             : Hndl_(h)
             , RequestBuilder_(f)
             , RequestSettings_(s)
-            , Msg_(msg)
-            , Loc_(msg.Addr)
+            , Msg_(std::move(msg))
+            , Loc_(Msg_.Addr)
             , Addr_(Resolve(Loc_.Host, Loc_.GetPort(), RequestSettings_.ResolverType))
             , AddrIter_(Addr_->Addr.Begin())
             , Canceled_(false)
@@ -1611,7 +1611,7 @@ namespace {
                     THttpResponseFormatter(TData& theData, const TString& contentEncoding, const THttpVersion& theVer, const TString& theHeaders, int theHttpCode, bool closeConnection) {
                         Header.Reserve(128 + contentEncoding.size() + theHeaders.size());
                         PrintHttpVersion(Header, theVer);
-                        Header << TStringBuf(" ") << HttpCodeStrEx(theHttpCode);
+                        Header << TStringBuf(" ") << theHttpCode << ' ' << HttpCodeStr(theHttpCode);
                         if (Compress(theData, contentEncoding)) {
                             Header << TStringBuf("\r\nContent-Encoding: ") << contentEncoding;
                         }
@@ -1701,8 +1701,8 @@ namespace {
                         if (THttp2Options::ErrorDetailsAsResponseBody) {
                             Answer << TStringBuf("\r\nContent-Length:") << theDescr.size() << "\r\n\r\n" << theDescr;
                         } else {
-                            Answer << AsStringBuf("\r\n"
-                                                "Content-Length:0\r\n\r\n");
+                            Answer << "\r\n"
+                                      "Content-Length:0\r\n\r\n"sv;
                         }
 
                         Parts[0].buf = Answer.Data();

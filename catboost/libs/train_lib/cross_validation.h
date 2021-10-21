@@ -161,23 +161,24 @@ TVector<TDataProvidersTemplate> PrepareCvFolds(
 
 void CrossValidate(
     NJson::TJsonValue plainJsonParams,
-    const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
-    const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-    const TLabelConverter& labelConverter,
-    NCB::TTrainingDataProviderPtr trainingData,
-    const TCrossValidationParams& cvParams,
-    NPar::ILocalExecutor* localExecutor,
-    TVector<TCVResult>* results,
-    bool isAlreadyShuffled = false);
-
-void CrossValidate(
-    NJson::TJsonValue plainJsonParams,
     NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
     const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
     NCB::TDataProviderPtr data,
     const TCrossValidationParams& cvParams,
     TVector<TCVResult>* results);
+
+void CrossValidate(
+    NJson::TJsonValue plainJsonParams,
+    NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
+    const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
+    const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+    TLabelConverter& labelConverter,
+    NCB::TDataProviderPtr data,
+    const TCrossValidationParams& cvParams,
+    NPar::ILocalExecutor* localExecutor,
+    TVector<TCVResult>* results,
+    bool isAlreadyShuffled = false);
 
 struct TFoldContext {
     ui32 FoldIdx;
@@ -208,23 +209,6 @@ public:
         bool hasFullModel = false);
 
 };
-
-void TrainBatch(
-    const NCatboostOptions::TCatBoostOptions& catboostOption,
-    const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
-    const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-    const TLabelConverter& labelConverter,
-    TConstArrayRef<THolder<IMetric>> metrics,
-    TConstArrayRef<bool> skipMetricOnTrain,
-    double maxTimeSpentOnFixedCostRatio,
-    ui32 maxIterationsBatchSize,
-    size_t globalMaxIteration,
-    bool isErrorTrackerActive,
-    ELoggingLevel loggingLevel,
-    TFoldContext* foldContext,
-    IModelTrainer* modelTrainer,
-    NPar::ILocalExecutor* localExecutor,
-    TMaybe<ui32>* upToIteration);
 
 void Train(
     const NCatboostOptions::TCatBoostOptions& catboostOption,

@@ -6,7 +6,7 @@
 #include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/stream/file.h>
-#include <util/system/mktemp.h>
+#include <util/system/tempfile.h>
 
 
 namespace NCB {
@@ -85,6 +85,7 @@ namespace NCB {
                 testCase.SrcData.IgnoredFeatures,
                 testCase.SrcData.ObjectsOrder,
                 TDatasetSubset::MakeColumns(),
+                /*forceUnitAutoPairWeights*/ true,
                 /*classLabels*/Nothing(),
                 &localExecutor
             );

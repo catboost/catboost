@@ -42,8 +42,8 @@ public:
     typedef see below result_type; // Not always defined
 
     // construct/copy/destroy
-    reference_wrapper(T&) noexcept;
-    reference_wrapper(T&&) = delete; // do not bind to temps
+    template<class U>
+      reference_wrapper(U&&);
     reference_wrapper(const reference_wrapper<T>& x) noexcept;
 
     // assignment
@@ -58,6 +58,9 @@ public:
       typename result_of<T&(ArgTypes&&...)>::type
           operator() (ArgTypes&&...) const;
 };
+
+template <class T>
+  reference_wrapper(T&) -> reference_wrapper<T>;
 
 template <class T> reference_wrapper<T> ref(T& t) noexcept;
 template <class T> void ref(const T&& t) = delete;
@@ -163,28 +166,30 @@ struct logical_not : unary_function<T, bool>
 };
 
 template <class T> // <class T=void> in C++14
-struct bit_and : unary_function<T, bool>
+struct bit_and : binary_function<T, T, T>
 {
-    bool operator()(const T& x, const T& y) const;
+    T operator()(const T& x, const T& y) const;
 };
 
 template <class T> // <class T=void> in C++14
-struct bit_or : unary_function<T, bool>
+struct bit_or : binary_function<T, T, T>
 {
-    bool operator()(const T& x, const T& y) const;
+    T operator()(const T& x, const T& y) const;
 };
 
 template <class T> // <class T=void> in C++14
-struct bit_xor : unary_function<T, bool>
+struct bit_xor : binary_function<T, T, T>
 {
-    bool operator()(const T& x, const T& y) const;
+    T operator()(const T& x, const T& y) const;
 };
 
 template <class T=void> // C++14
-struct bit_xor : unary_function<T, bool>
+struct bit_not : unary_function<T, T>
 {
-    bool operator()(const T& x) const;
+    T operator()(const T& x) const;
 };
+
+struct identity; // C++20
 
 template <class Predicate>
 class unary_negate // deprecated in C++17
@@ -213,7 +218,8 @@ public:
 template <class Predicate> // deprecated in C++17
 binary_negate<Predicate> not2(const Predicate& pred);
 
-template <class F> unspecified not_fn(F&& f); // C++17
+template <class F>
+constexpr unspecified not_fn(F&& f); // C++17, constexpr in C++20
 
 template<class T> struct is_bind_expression;
 template<class T> struct is_placeholder;
@@ -226,11 +232,12 @@ template <class T> inline constexpr int is_placeholder_v
 
 
 template<class Fn, class... BoundArgs>
-  unspecified bind(Fn&&, BoundArgs&&...);
+  constexpr unspecified bind(Fn&&, BoundArgs&&...);  // constexpr in C++20
 template<class R, class Fn, class... BoundArgs>
-  unspecified bind(Fn&&, BoundArgs&&...);
+  constexpr unspecified bind(Fn&&, BoundArgs&&...);  // constexpr in C++20
 
 template<class F, class... Args>
+ constexpr // constexpr in C++20
  invoke_result_t<F, Args...> invoke(F&& f, Args&&... args) // C++17
     noexcept(is_nothrow_invocable_v<F, Args...>);
 
@@ -376,7 +383,8 @@ public:
 template <class S, class T>          const_mem_fun_ref_t<S,T>    mem_fun_ref(S (T::*f)() const);   // deprecated in C++11, removed in C++17
 template <class S, class T, class A> const_mem_fun1_ref_t<S,T,A> mem_fun_ref(S (T::*f)(A) const);  // deprecated in C++11, removed in C++17
 
-template<class R, class T> unspecified mem_fn(R T::*);
+template<class R, class T>
+constexpr unspecified mem_fn(R T::*); // constexpr in C++20
 
 class bad_function_call
     : public exception
@@ -499,6 +507,7 @@ POLICY:  For non-variadic implementations, the number of arguments is limited
 */
 
 #include <__config>
+#include <concepts>
 #include <type_traits>
 #include <typeinfo>
 #include <exception>
@@ -1288,15 +1297,16 @@ private:
     type __f_;
 
 public:
-    _LIBCPP_INLINE_VISIBILITY __mem_fn(type __f) _NOEXCEPT : __f_(__f) {}
+    _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX17
+    __mem_fn(type __f) _NOEXCEPT : __f_(__f) {}
 
 #ifndef _LIBCPP_CXX03_LANG
     // invoke
     template <class... _ArgTypes>
-    _LIBCPP_INLINE_VISIBILITY
+    _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX17
     typename __invoke_return<type, _ArgTypes...>::type
     operator() (_ArgTypes&&... __args) const {
-        return __invoke(__f_, _VSTD::forward<_ArgTypes>(__args)...);
+        return _VSTD::__invoke(__f_, _VSTD::forward<_ArgTypes>(__args)...);
     }
 #else
 
@@ -1304,104 +1314,104 @@ public:
     _LIBCPP_INLINE_VISIBILITY
     typename __invoke_return0<type, _A0>::type
     operator() (_A0& __a0) const {
-        return __invoke(__f_, __a0);
+        return _VSTD::__invoke(__f_, __a0);
     }
 
     template <class _A0>
     _LIBCPP_INLINE_VISIBILITY
     typename __invoke_return0<type, _A0 const>::type
     operator() (_A0 const& __a0) const {
-        return __invoke(__f_, __a0);
+        return _VSTD::__invoke(__f_, __a0);
     }
 
     template <class _A0, class _A1>
     _LIBCPP_INLINE_VISIBILITY
     typename __invoke_return1<type, _A0, _A1>::type
     operator() (_A0& __a0, _A1& __a1) const {
-        return __invoke(__f_, __a0, __a1);
+        return _VSTD::__invoke(__f_, __a0, __a1);
     }
 
     template <class _A0, class _A1>
     _LIBCPP_INLINE_VISIBILITY
     typename __invoke_return1<type, _A0 const, _A1>::type
     operator() (_A0 const& __a0, _A1& __a1) const {
-        return __invoke(__f_, __a0, __a1);
+        return _VSTD::__invoke(__f_, __a0, __a1);
     }
 
     template <class _A0, class _A1>
     _LIBCPP_INLINE_VISIBILITY
     typename __invoke_return1<type, _A0, _A1 const>::type
     operator() (_A0& __a0, _A1 const& __a1) const {
-        return __invoke(__f_, __a0, __a1);
+        return _VSTD::__invoke(__f_, __a0, __a1);
     }
 
     template <class _A0, class _A1>
     _LIBCPP_INLINE_VISIBILITY
     typename __invoke_return1<type, _A0 const, _A1 const>::type
     operator() (_A0 const& __a0, _A1 const& __a1) const {
-        return __invoke(__f_, __a0, __a1);
+        return _VSTD::__invoke(__f_, __a0, __a1);
     }
 
     template <class _A0, class _A1, class _A2>
     _LIBCPP_INLINE_VISIBILITY
     typename __invoke_return2<type, _A0, _A1, _A2>::type
     operator() (_A0& __a0, _A1& __a1, _A2& __a2) const {
-        return __invoke(__f_, __a0, __a1, __a2);
+        return _VSTD::__invoke(__f_, __a0, __a1, __a2);
     }
 
     template <class _A0, class _A1, class _A2>
     _LIBCPP_INLINE_VISIBILITY
     typename __invoke_return2<type, _A0 const, _A1, _A2>::type
     operator() (_A0 const& __a0, _A1& __a1, _A2& __a2) const {
-        return __invoke(__f_, __a0, __a1, __a2);
+        return _VSTD::__invoke(__f_, __a0, __a1, __a2);
     }
 
     template <class _A0, class _A1, class _A2>
     _LIBCPP_INLINE_VISIBILITY
     typename __invoke_return2<type, _A0, _A1 const, _A2>::type
     operator() (_A0& __a0, _A1 const& __a1, _A2& __a2) const {
-        return __invoke(__f_, __a0, __a1, __a2);
+        return _VSTD::__invoke(__f_, __a0, __a1, __a2);
     }
 
     template <class _A0, class _A1, class _A2>
     _LIBCPP_INLINE_VISIBILITY
     typename __invoke_return2<type, _A0, _A1, _A2 const>::type
     operator() (_A0& __a0, _A1& __a1, _A2 const& __a2) const {
-        return __invoke(__f_, __a0, __a1, __a2);
+        return _VSTD::__invoke(__f_, __a0, __a1, __a2);
     }
 
     template <class _A0, class _A1, class _A2>
     _LIBCPP_INLINE_VISIBILITY
     typename __invoke_return2<type, _A0 const, _A1 const, _A2>::type
     operator() (_A0 const& __a0, _A1 const& __a1, _A2& __a2) const {
-        return __invoke(__f_, __a0, __a1, __a2);
+        return _VSTD::__invoke(__f_, __a0, __a1, __a2);
     }
 
     template <class _A0, class _A1, class _A2>
     _LIBCPP_INLINE_VISIBILITY
     typename __invoke_return2<type, _A0 const, _A1, _A2 const>::type
     operator() (_A0 const& __a0, _A1& __a1, _A2 const& __a2) const {
-        return __invoke(__f_, __a0, __a1, __a2);
+        return _VSTD::__invoke(__f_, __a0, __a1, __a2);
     }
 
     template <class _A0, class _A1, class _A2>
     _LIBCPP_INLINE_VISIBILITY
     typename __invoke_return2<type, _A0, _A1 const, _A2 const>::type
     operator() (_A0& __a0, _A1 const& __a1, _A2 const& __a2) const {
-        return __invoke(__f_, __a0, __a1, __a2);
+        return _VSTD::__invoke(__f_, __a0, __a1, __a2);
     }
 
     template <class _A0, class _A1, class _A2>
     _LIBCPP_INLINE_VISIBILITY
     typename __invoke_return2<type, _A0 const, _A1 const, _A2 const>::type
     operator() (_A0 const& __a0, _A1 const& __a1, _A2 const& __a2) const {
-        return __invoke(__f_, __a0, __a1, __a2);
+        return _VSTD::__invoke(__f_, __a0, __a1, __a2);
     }
 #endif
 };
 
 template<class _Rp, class _Tp>
-inline _LIBCPP_INLINE_VISIBILITY
+inline _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX17
 __mem_fn<_Rp _Tp::*>
 mem_fn(_Rp _Tp::* __pm) _NOEXCEPT
 {
@@ -1593,7 +1603,7 @@ public:
   const _Target& __target() const { return __f_; }
 
   _LIBCPP_INLINE_VISIBILITY
-  explicit __default_alloc_func(_Target&& __f) : __f_(std::move(__f)) {}
+  explicit __default_alloc_func(_Target&& __f) : __f_(_VSTD::move(__f)) {}
 
   _LIBCPP_INLINE_VISIBILITY
   explicit __default_alloc_func(const _Target& __f) : __f_(__f) {}
@@ -1609,7 +1619,7 @@ public:
       __builtin_new_allocator::__holder_t __hold =
         __builtin_new_allocator::__allocate_type<__default_alloc_func>(1);
     __default_alloc_func* __res =
-        ::new (__hold.get()) __default_alloc_func(__f_);
+        ::new ((void*)__hold.get()) __default_alloc_func(__f_);
     (void)__hold.release();
     return __res;
   }
@@ -1643,7 +1653,7 @@ public:
 #ifndef _LIBCPP_NO_RTTI
     virtual const void* target(const type_info&) const _NOEXCEPT = 0;
     virtual const std::type_info& target_type() const _NOEXCEPT = 0;
-#endif  // _LIBCPP_NO_RTTI
+#endif // _LIBCPP_NO_RTTI
 };
 
 // __func implements __base for a given functor type.
@@ -1680,7 +1690,7 @@ public:
 #ifndef _LIBCPP_NO_RTTI
     virtual const void* target(const type_info&) const _NOEXCEPT;
     virtual const std::type_info& target_type() const _NOEXCEPT;
-#endif  // _LIBCPP_NO_RTTI
+#endif // _LIBCPP_NO_RTTI
 };
 
 template<class _Fp, class _Alloc, class _Rp, class ..._ArgTypes>
@@ -1700,7 +1710,7 @@ template<class _Fp, class _Alloc, class _Rp, class ..._ArgTypes>
 void
 __func<_Fp, _Alloc, _Rp(_ArgTypes...)>::__clone(__base<_Rp(_ArgTypes...)>* __p) const
 {
-    ::new (__p) __func(__f_.__target(), __f_.__get_allocator());
+    ::new ((void*)__p) __func(__f_.__target(), __f_.__get_allocator());
 }
 
 template<class _Fp, class _Alloc, class _Rp, class ..._ArgTypes>
@@ -1736,7 +1746,7 @@ __func<_Fp, _Alloc, _Rp(_ArgTypes...)>::target(const type_info& __ti) const _NOE
 {
     if (__ti == typeid(_Fp))
         return &__f_.__target();
-    return (const void*)0;
+    return nullptr;
 }
 
 template<class _Fp, class _Alloc, class _Rp, class ..._ArgTypes>
@@ -1746,7 +1756,7 @@ __func<_Fp, _Alloc, _Rp(_ArgTypes...)>::target_type() const _NOEXCEPT
     return typeid(_Fp);
 }
 
-#endif  // _LIBCPP_NO_RTTI
+#endif // _LIBCPP_NO_RTTI
 
 // __value_func creates a value-type from a __func.
 
@@ -1766,11 +1776,11 @@ template <class _Rp, class... _ArgTypes> class __value_func<_Rp(_ArgTypes...)>
 
   public:
     _LIBCPP_INLINE_VISIBILITY
-    __value_func() _NOEXCEPT : __f_(0) {}
+    __value_func() _NOEXCEPT : __f_(nullptr) {}
 
     template <class _Fp, class _Alloc>
     _LIBCPP_INLINE_VISIBILITY __value_func(_Fp&& __f, const _Alloc& __a)
-        : __f_(0)
+        : __f_(nullptr)
     {
         typedef allocator_traits<_Alloc> __alloc_traits;
         typedef __function::__func<_Fp, _Alloc, _Rp(_ArgTypes...)> _Fun;
@@ -1800,13 +1810,13 @@ template <class _Rp, class... _ArgTypes> class __value_func<_Rp(_ArgTypes...)>
     template <class _Fp,
         class = typename enable_if<!is_same<typename decay<_Fp>::type, __value_func>::value>::type>
     _LIBCPP_INLINE_VISIBILITY explicit __value_func(_Fp&& __f)
-        : __value_func(std::forward<_Fp>(__f), allocator<_Fp>()) {}
+        : __value_func(_VSTD::forward<_Fp>(__f), allocator<_Fp>()) {}
 
     _LIBCPP_INLINE_VISIBILITY
     __value_func(const __value_func& __f)
     {
-        if (__f.__f_ == 0)
-            __f_ = 0;
+        if (__f.__f_ == nullptr)
+            __f_ = nullptr;
         else if ((void*)__f.__f_ == &__f.__buf_)
         {
             __f_ = __as_base(&__buf_);
@@ -1819,8 +1829,8 @@ template <class _Rp, class... _ArgTypes> class __value_func<_Rp(_ArgTypes...)>
     _LIBCPP_INLINE_VISIBILITY
     __value_func(__value_func&& __f) _NOEXCEPT
     {
-        if (__f.__f_ == 0)
-            __f_ = 0;
+        if (__f.__f_ == nullptr)
+            __f_ = nullptr;
         else if ((void*)__f.__f_ == &__f.__buf_)
         {
             __f_ = __as_base(&__buf_);
@@ -1829,7 +1839,7 @@ template <class _Rp, class... _ArgTypes> class __value_func<_Rp(_ArgTypes...)>
         else
         {
             __f_ = __f.__f_;
-            __f.__f_ = 0;
+            __f.__f_ = nullptr;
         }
     }
 
@@ -1846,8 +1856,8 @@ template <class _Rp, class... _ArgTypes> class __value_func<_Rp(_ArgTypes...)>
     __value_func& operator=(__value_func&& __f)
     {
         *this = nullptr;
-        if (__f.__f_ == 0)
-            __f_ = 0;
+        if (__f.__f_ == nullptr)
+            __f_ = nullptr;
         else if ((void*)__f.__f_ == &__f.__buf_)
         {
             __f_ = __as_base(&__buf_);
@@ -1856,7 +1866,7 @@ template <class _Rp, class... _ArgTypes> class __value_func<_Rp(_ArgTypes...)>
         else
         {
             __f_ = __f.__f_;
-            __f.__f_ = 0;
+            __f.__f_ = nullptr;
         }
         return *this;
     }
@@ -1865,7 +1875,7 @@ template <class _Rp, class... _ArgTypes> class __value_func<_Rp(_ArgTypes...)>
     __value_func& operator=(nullptr_t)
     {
         __func* __f = __f_;
-        __f_ = 0;
+        __f_ = nullptr;
         if ((void*)__f == &__buf_)
             __f->destroy();
         else if (__f)
@@ -1876,7 +1886,7 @@ template <class _Rp, class... _ArgTypes> class __value_func<_Rp(_ArgTypes...)>
     _LIBCPP_INLINE_VISIBILITY
     _Rp operator()(_ArgTypes&&... __args) const
     {
-        if (__f_ == 0)
+        if (__f_ == nullptr)
             __throw_bad_function_call();
         return (*__f_)(_VSTD::forward<_ArgTypes>(__args)...);
     }
@@ -1892,10 +1902,10 @@ template <class _Rp, class... _ArgTypes> class __value_func<_Rp(_ArgTypes...)>
             __func* __t = __as_base(&__tempbuf);
             __f_->__clone(__t);
             __f_->destroy();
-            __f_ = 0;
+            __f_ = nullptr;
             __f.__f_->__clone(__as_base(&__buf_));
             __f.__f_->destroy();
-            __f.__f_ = 0;
+            __f.__f_ = nullptr;
             __f_ = __as_base(&__buf_);
             __t->__clone(__as_base(&__f.__buf_));
             __t->destroy();
@@ -1920,13 +1930,13 @@ template <class _Rp, class... _ArgTypes> class __value_func<_Rp(_ArgTypes...)>
     }
 
     _LIBCPP_INLINE_VISIBILITY
-    _LIBCPP_EXPLICIT operator bool() const _NOEXCEPT { return __f_ != 0; }
+    _LIBCPP_EXPLICIT operator bool() const _NOEXCEPT { return __f_ != nullptr; }
 
 #ifndef _LIBCPP_NO_RTTI
     _LIBCPP_INLINE_VISIBILITY
     const std::type_info& target_type() const _NOEXCEPT
     {
-        if (__f_ == 0)
+        if (__f_ == nullptr)
             return typeid(void);
         return __f_->target_type();
     }
@@ -1934,8 +1944,8 @@ template <class _Rp, class... _ArgTypes> class __value_func<_Rp(_ArgTypes...)>
     template <typename _Tp>
     _LIBCPP_INLINE_VISIBILITY const _Tp* target() const _NOEXCEPT
     {
-        if (__f_ == 0)
-            return 0;
+        if (__f_ == nullptr)
+            return nullptr;
         return (const _Tp*)__f_->target(typeid(_Tp));
     }
 #endif // _LIBCPP_NO_RTTI
@@ -2009,14 +2019,14 @@ struct __policy
     template <typename _Fun>
     _LIBCPP_INLINE_VISIBILITY static const __policy*
     __choose_policy(/* is_small = */ false_type) {
-        static const _LIBCPP_CONSTEXPR __policy __policy_ = {
-            &__large_clone<_Fun>, &__large_destroy<_Fun>, false,
+      static const _LIBCPP_CONSTEXPR __policy __policy_ = {
+          &__large_clone<_Fun>, &__large_destroy<_Fun>, false,
 #ifndef _LIBCPP_NO_RTTI
-            &typeid(typename _Fun::_Target)
+          &typeid(typename _Fun::_Target)
 #else
-            nullptr
+          nullptr
 #endif
-        };
+      };
         return &__policy_;
     }
 
@@ -2154,7 +2164,7 @@ template <class _Rp, class... _ArgTypes> class __policy_func<_Rp(_ArgTypes...)>
         } else {
           __builtin_new_allocator::__holder_t __hold =
               __builtin_new_allocator::__allocate_type<_Fun>(1);
-          __buf_.__large = ::new (__hold.get()) _Fun(_VSTD::move(__f));
+          __buf_.__large = ::new ((void*)__hold.get()) _Fun(_VSTD::move(__f));
           (void)__hold.release();
         }
       }
@@ -2286,7 +2296,7 @@ public:
     }
 
     virtual void __clone(__base<_Rp(_ArgTypes...)>* __p) const {
-        ::new (__p) __func(__f_);
+        ::new ((void*)__p) __func(__f_);
     }
 
     virtual void destroy() _NOEXCEPT {
@@ -2303,7 +2313,7 @@ public:
     }
 
     virtual _Rp operator()(_ArgTypes&& ... __arg) {
-        return __invoke(__f_, _VSTD::forward<_ArgTypes>(__arg)...);
+        return _VSTD::__invoke(__f_, _VSTD::forward<_ArgTypes>(__arg)...);
     }
 
 #ifndef _LIBCPP_NO_RTTI
@@ -2316,10 +2326,10 @@ public:
     virtual const std::type_info& target_type() const _NOEXCEPT {
         return typeid(__func::__block_type);
     }
-#endif  // _LIBCPP_NO_RTTI
+#endif // _LIBCPP_NO_RTTI
 };
 
-#endif  // _LIBCPP_HAS_EXTENSION_BLOCKS && !_LIBCPP_HAS_OBJC_ARC
+#endif // _LIBCPP_HAS_EXTENSION_BLOCKS && !_LIBCPP_HAS_OBJC_ARC
 
 }  // __function
 
@@ -2351,8 +2361,8 @@ class _LIBCPP_TEMPLATE_VIS function<_Rp(_ArgTypes...)>
     template <class _Fp>
         struct __callable<_Fp, true>
         {
-            static const bool value = is_same<void, _Rp>::value ||
-                is_convertible<typename __invoke_of<_Fp, _ArgTypes...>::type,
+            static const bool value = is_void<_Rp>::value ||
+                __is_core_convertible<typename __invoke_of<_Fp, _ArgTypes...>::type,
                                _Rp>::value;
         };
     template <class _Fp>
@@ -2361,7 +2371,7 @@ class _LIBCPP_TEMPLATE_VIS function<_Rp(_ArgTypes...)>
             static const bool value = false;
         };
 
-  template<class _Fp>
+  template <class _Fp>
   using _EnableIfLValueCallable = typename enable_if<__callable<_Fp&>::value>::type;
 public:
     typedef _Rp result_type;
@@ -2429,7 +2439,7 @@ public:
     const std::type_info& target_type() const _NOEXCEPT;
     template <typename _Tp> _Tp* target() _NOEXCEPT;
     template <typename _Tp> const _Tp* target() const _NOEXCEPT;
-#endif  // _LIBCPP_NO_RTTI
+#endif // _LIBCPP_NO_RTTI
 };
 
 #ifndef _LIBCPP_HAS_NO_DEDUCTION_GUIDES
@@ -2525,7 +2535,7 @@ template<class _Rp, class ..._ArgTypes>
 function<_Rp(_ArgTypes...)>&
 function<_Rp(_ArgTypes...)>::operator=(function&& __f) _NOEXCEPT
 {
-    __f_ = std::move(__f.__f_);
+    __f_ = _VSTD::move(__f.__f_);
     return *this;
 }
 
@@ -2588,7 +2598,7 @@ function<_Rp(_ArgTypes...)>::target() const _NOEXCEPT
     return __f_.template target<_Tp>();
 }
 
-#endif  // _LIBCPP_NO_RTTI
+#endif // _LIBCPP_NO_RTTI
 
 template <class _Rp, class... _ArgTypes>
 inline _LIBCPP_INLINE_VISIBILITY
@@ -2708,7 +2718,7 @@ typename _EnableIf
 __mu(_Ti& __ti, tuple<_Uj...>& __uj)
 {
     typedef typename __make_tuple_indices<sizeof...(_Uj)>::type __indices;
-    return  __mu_expand(__ti, __uj, __indices());
+    return _VSTD::__mu_expand(__ti, __uj, __indices());
 }
 
 template <bool IsPh, class _Ti, class _Uj>
@@ -2894,13 +2904,13 @@ public:
                                   !is_same<typename remove_reference<_Gp>::type,
                                            __bind>::value
                                >::type>
-      _LIBCPP_INLINE_VISIBILITY
+      _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX17
       explicit __bind(_Gp&& __f, _BA&& ...__bound_args)
         : __f_(_VSTD::forward<_Gp>(__f)),
           __bound_args_(_VSTD::forward<_BA>(__bound_args)...) {}
 
     template <class ..._Args>
-        _LIBCPP_INLINE_VISIBILITY
+        _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX17
         typename __bind_return<_Fd, _Td, tuple<_Args&&...> >::type
         operator()(_Args&& ...__args)
         {
@@ -2909,7 +2919,7 @@ public:
         }
 
     template <class ..._Args>
-        _LIBCPP_INLINE_VISIBILITY
+        _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX17
         typename __bind_return<const _Fd, const _Td, tuple<_Args&&...> >::type
         operator()(_Args&& ...__args) const
         {
@@ -2951,13 +2961,13 @@ public:
                                   !is_same<typename remove_reference<_Gp>::type,
                                            __bind_r>::value
                                >::type>
-      _LIBCPP_INLINE_VISIBILITY
+      _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX17
       explicit __bind_r(_Gp&& __f, _BA&& ...__bound_args)
         : base(_VSTD::forward<_Gp>(__f),
                _VSTD::forward<_BA>(__bound_args)...) {}
 
     template <class ..._Args>
-        _LIBCPP_INLINE_VISIBILITY
+        _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX17
         typename enable_if
         <
             is_convertible<typename __bind_return<_Fd, _Td, tuple<_Args&&...> >::type,
@@ -2971,7 +2981,7 @@ public:
         }
 
     template <class ..._Args>
-        _LIBCPP_INLINE_VISIBILITY
+        _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX17
         typename enable_if
         <
             is_convertible<typename __bind_return<const _Fd, const _Td, tuple<_Args&&...> >::type,
@@ -2989,7 +2999,7 @@ template<class _Rp, class _Fp, class ..._BoundArgs>
 struct __is_bind_expression<__bind_r<_Rp, _Fp, _BoundArgs...> > : public true_type {};
 
 template<class _Fp, class ..._BoundArgs>
-inline _LIBCPP_INLINE_VISIBILITY
+inline _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX17
 __bind<_Fp, _BoundArgs...>
 bind(_Fp&& __f, _BoundArgs&&... __bound_args)
 {
@@ -2998,7 +3008,7 @@ bind(_Fp&& __f, _BoundArgs&&... __bound_args)
 }
 
 template<class _Rp, class _Fp, class ..._BoundArgs>
-inline _LIBCPP_INLINE_VISIBILITY
+inline _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX17
 __bind_r<_Rp, _Fp, _BoundArgs...>
 bind(_Fp&& __f, _BoundArgs&&... __bound_args)
 {
@@ -3006,73 +3016,112 @@ bind(_Fp&& __f, _BoundArgs&&... __bound_args)
     return type(_VSTD::forward<_Fp>(__f), _VSTD::forward<_BoundArgs>(__bound_args)...);
 }
 
-#endif  // _LIBCPP_CXX03_LANG
+#endif // _LIBCPP_CXX03_LANG
 
 #if _LIBCPP_STD_VER > 14
 
-template <class _Fn, class ..._Args>
-invoke_result_t<_Fn, _Args...>
-invoke(_Fn&& __f, _Args&&... __args)
-    noexcept(is_nothrow_invocable_v<_Fn, _Args...>)
+template<class _Op, class _Tuple,
+         class _Idxs = typename __make_tuple_indices<tuple_size<_Tuple>::value>::type>
+struct __perfect_forward_impl;
+
+template<class _Op, class... _Bound, size_t... _Idxs>
+struct __perfect_forward_impl<_Op, __tuple_types<_Bound...>, __tuple_indices<_Idxs...>>
 {
-    return _VSTD::__invoke(_VSTD::forward<_Fn>(__f), _VSTD::forward<_Args>(__args)...);
-}
-
-template <class _DecayFunc>
-class _LIBCPP_TEMPLATE_VIS __not_fn_imp {
-  _DecayFunc __fd;
-
-public:
-    __not_fn_imp() = delete;
+    tuple<_Bound...> __bound_;
 
     template <class ..._Args>
-    _LIBCPP_INLINE_VISIBILITY
-    auto operator()(_Args&& ...__args) &
-            noexcept(noexcept(!_VSTD::invoke(__fd, _VSTD::forward<_Args>(__args)...)))
-        -> decltype(          !_VSTD::invoke(__fd, _VSTD::forward<_Args>(__args)...))
-        { return              !_VSTD::invoke(__fd, _VSTD::forward<_Args>(__args)...); }
+    _LIBCPP_INLINE_VISIBILITY constexpr auto operator()(_Args&&... __args) &
+    noexcept(noexcept(_Op::__call(_VSTD::get<_Idxs>(__bound_)..., _VSTD::forward<_Args>(__args)...)))
+    -> decltype(      _Op::__call(_VSTD::get<_Idxs>(__bound_)..., _VSTD::forward<_Args>(__args)...))
+    {return           _Op::__call(_VSTD::get<_Idxs>(__bound_)..., _VSTD::forward<_Args>(__args)...);}
 
     template <class ..._Args>
-    _LIBCPP_INLINE_VISIBILITY
-    auto operator()(_Args&& ...__args) &&
-            noexcept(noexcept(!_VSTD::invoke(_VSTD::move(__fd), _VSTD::forward<_Args>(__args)...)))
-        -> decltype(          !_VSTD::invoke(_VSTD::move(__fd), _VSTD::forward<_Args>(__args)...))
-        { return              !_VSTD::invoke(_VSTD::move(__fd), _VSTD::forward<_Args>(__args)...); }
+    _LIBCPP_INLINE_VISIBILITY constexpr auto operator()(_Args&&... __args) const&
+    noexcept(noexcept(_Op::__call(_VSTD::get<_Idxs>(__bound_)..., _VSTD::forward<_Args>(__args)...)))
+    -> decltype(      _Op::__call(_VSTD::get<_Idxs>(__bound_)..., _VSTD::forward<_Args>(__args)...))
+    {return           _Op::__call(_VSTD::get<_Idxs>(__bound_)..., _VSTD::forward<_Args>(__args)...);}
 
     template <class ..._Args>
-    _LIBCPP_INLINE_VISIBILITY
-    auto operator()(_Args&& ...__args) const&
-            noexcept(noexcept(!_VSTD::invoke(__fd, _VSTD::forward<_Args>(__args)...)))
-        -> decltype(          !_VSTD::invoke(__fd, _VSTD::forward<_Args>(__args)...))
-        { return              !_VSTD::invoke(__fd, _VSTD::forward<_Args>(__args)...); }
+    _LIBCPP_INLINE_VISIBILITY constexpr auto operator()(_Args&&... __args) &&
+    noexcept(noexcept(_Op::__call(_VSTD::get<_Idxs>(_VSTD::move(__bound_))...,
+                                  _VSTD::forward<_Args>(__args)...)))
+    -> decltype(      _Op::__call(_VSTD::get<_Idxs>(_VSTD::move(__bound_))...,
+                                  _VSTD::forward<_Args>(__args)...))
+    {return           _Op::__call(_VSTD::get<_Idxs>(_VSTD::move(__bound_))...,
+                                  _VSTD::forward<_Args>(__args)...);}
 
+    template<class... _Args>
+    _LIBCPP_INLINE_VISIBILITY constexpr auto operator()(_Args&&... __args) const&&
+    noexcept(noexcept(_Op::__call(_VSTD::get<_Idxs>(_VSTD::move(__bound_))...,
+                                  _VSTD::forward<_Args>(__args)...)))
+    -> decltype(      _Op::__call(_VSTD::get<_Idxs>(_VSTD::move(__bound_))...,
+                                  _VSTD::forward<_Args>(__args)...))
+    {return           _Op::__call(_VSTD::get<_Idxs>(_VSTD::move(__bound_))...,
+                                  _VSTD::forward<_Args>(__args)...);}
 
-    template <class ..._Args>
-    _LIBCPP_INLINE_VISIBILITY
-    auto operator()(_Args&& ...__args) const&&
-            noexcept(noexcept(!_VSTD::invoke(_VSTD::move(__fd), _VSTD::forward<_Args>(__args)...)))
-        -> decltype(          !_VSTD::invoke(_VSTD::move(__fd), _VSTD::forward<_Args>(__args)...))
-        { return              !_VSTD::invoke(_VSTD::move(__fd), _VSTD::forward<_Args>(__args)...); }
+    template<class _Fn = typename tuple_element<0, tuple<_Bound...>>::type,
+             class = _EnableIf<is_copy_constructible_v<_Fn>>>
+    constexpr __perfect_forward_impl(__perfect_forward_impl const& __other)
+        : __bound_(__other.__bound_) {}
 
-private:
-    template <class _RawFunc,
-              class = enable_if_t<!is_same<decay_t<_RawFunc>, __not_fn_imp>::value>>
-    _LIBCPP_INLINE_VISIBILITY
-    explicit __not_fn_imp(_RawFunc&& __rf)
-        : __fd(_VSTD::forward<_RawFunc>(__rf)) {}
+    template<class _Fn = typename tuple_element<0, tuple<_Bound...>>::type,
+             class = _EnableIf<is_move_constructible_v<_Fn>>>
+    constexpr __perfect_forward_impl(__perfect_forward_impl && __other)
+        : __bound_(_VSTD::move(__other.__bound_)) {}
 
-    template <class _RawFunc>
-    friend inline _LIBCPP_INLINE_VISIBILITY
-    __not_fn_imp<decay_t<_RawFunc>> not_fn(_RawFunc&&);
+    template<class... _BoundArgs,
+             class = _EnableIf<is_constructible_v<tuple<_Bound...>, _BoundArgs&&...>>>
+    explicit constexpr __perfect_forward_impl(_BoundArgs&&... __bound) :
+        __bound_(_VSTD::forward<_BoundArgs>(__bound)...) { }
 };
 
-template <class _RawFunc>
-inline _LIBCPP_INLINE_VISIBILITY
-__not_fn_imp<decay_t<_RawFunc>> not_fn(_RawFunc&& __fn) {
-    return __not_fn_imp<decay_t<_RawFunc>>(_VSTD::forward<_RawFunc>(__fn));
+template<class _Op, class... _Args>
+using __perfect_forward =
+    __perfect_forward_impl<_Op, __tuple_types<decay_t<_Args>...>>;
+
+struct __not_fn_op
+{
+    template <class ..._Args>
+    static _LIBCPP_CONSTEXPR_AFTER_CXX17 auto __call(_Args&&... __args)
+    noexcept(noexcept(!_VSTD::invoke(_VSTD::forward<_Args>(__args)...)))
+    -> decltype(      !_VSTD::invoke(_VSTD::forward<_Args>(__args)...))
+    { return          !_VSTD::invoke(_VSTD::forward<_Args>(__args)...); }
+};
+
+template<class _Fn,
+         class = _EnableIf<is_constructible_v<decay_t<_Fn>, _Fn> &&
+                           is_move_constructible_v<_Fn>>>
+_LIBCPP_CONSTEXPR_AFTER_CXX17 auto not_fn(_Fn&& __f)
+{
+    return __perfect_forward<__not_fn_op, _Fn>(_VSTD::forward<_Fn>(__f));
 }
 
-#endif
+#endif // _LIBCPP_STD_VER > 14
+
+#if _LIBCPP_STD_VER > 17
+
+struct __bind_front_op
+{
+    template<class... _Args>
+    constexpr static auto __call(_Args&&... __args)
+    noexcept(noexcept(_VSTD::invoke(_VSTD::forward<_Args>(__args)...)))
+    -> decltype(      _VSTD::invoke(_VSTD::forward<_Args>(__args)...))
+    { return          _VSTD::invoke(_VSTD::forward<_Args>(__args)...); }
+};
+
+template<class _Fn, class... _Args,
+         class = _EnableIf<conjunction<is_constructible<decay_t<_Fn>, _Fn>,
+                                       is_move_constructible<decay_t<_Fn>>,
+                                       is_constructible<decay_t<_Args>, _Args>...,
+                                       is_move_constructible<decay_t<_Args>>...
+                                       >::value>>
+constexpr auto bind_front(_Fn&& __f, _Args&&... __args)
+{
+    return __perfect_forward<__bind_front_op, _Fn, _Args...>(_VSTD::forward<_Fn>(__f),
+                                                             _VSTD::forward<_Args>(__args)...);
+}
+
+#endif // _LIBCPP_STD_VER > 17
 
 // struct hash<T*> in <memory>
 
@@ -3162,15 +3211,15 @@ __search(_RandomAccessIterator1 __first1, _RandomAccessIterator1 __last1,
 
 // default searcher
 template<class _ForwardIterator, class _BinaryPredicate = equal_to<>>
-class _LIBCPP_TYPE_VIS default_searcher {
+class _LIBCPP_TEMPLATE_VIS default_searcher {
 public:
-    _LIBCPP_INLINE_VISIBILITY
+    _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX17
     default_searcher(_ForwardIterator __f, _ForwardIterator __l,
                        _BinaryPredicate __p = _BinaryPredicate())
         : __first_(__f), __last_(__l), __pred_(__p) {}
 
     template <typename _ForwardIterator2>
-    _LIBCPP_INLINE_VISIBILITY
+    _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX17
     pair<_ForwardIterator2, _ForwardIterator2>
     operator () (_ForwardIterator2 __f, _ForwardIterator2 __l) const
     {
@@ -3195,22 +3244,93 @@ template <class _Tp>
 using unwrap_ref_decay_t = typename unwrap_ref_decay<_Tp>::type;
 #endif // > C++17
 
-template <class _Container, class _Predicate>
-inline typename _Container::size_type
-__libcpp_erase_if_container(_Container& __c, _Predicate __pred) {
-  typename _Container::size_type __old_size = __c.size();
+#if _LIBCPP_STD_VER > 17
+// [func.identity]
+struct identity {
+    template<class _Tp>
+    _LIBCPP_NODISCARD_EXT constexpr _Tp&& operator()(_Tp&& __t) const noexcept
+    {
+        return _VSTD::forward<_Tp>(__t);
+  }
 
-  const typename _Container::iterator __last = __c.end();
-  for (typename _Container::iterator __iter = __c.begin(); __iter != __last;) {
-		if (__pred(*__iter))
-			__iter = __c.erase(__iter);
-		else
-			++__iter;
-	}
+    using is_transparent = void;
+};
+#endif // _LIBCPP_STD_VER > 17
 
-  return __old_size - __c.size();
-}
+#if !defined(_LIBCPP_HAS_NO_RANGES)
+
+namespace ranges {
+
+struct equal_to {
+  template <class _Tp, class _Up>
+  requires equality_comparable_with<_Tp, _Up>
+  [[nodiscard]] constexpr bool operator()(_Tp &&__t, _Up &&__u) const
+      noexcept(noexcept(bool(_VSTD::forward<_Tp>(__t) == _VSTD::forward<_Up>(__u)))) {
+    return _VSTD::forward<_Tp>(__t) == _VSTD::forward<_Up>(__u);
+  }
+
+  using is_transparent = void;
+};
+
+struct not_equal_to {
+  template <class _Tp, class _Up>
+  requires equality_comparable_with<_Tp, _Up>
+  [[nodiscard]] constexpr bool operator()(_Tp &&__t, _Up &&__u) const
+      noexcept(noexcept(bool(!(_VSTD::forward<_Tp>(__t) == _VSTD::forward<_Up>(__u))))) {
+    return !(_VSTD::forward<_Tp>(__t) == _VSTD::forward<_Up>(__u));
+  }
+
+  using is_transparent = void;
+};
+
+struct greater {
+  template <class _Tp, class _Up>
+  requires totally_ordered_with<_Tp, _Up>
+  [[nodiscard]] constexpr bool operator()(_Tp &&__t, _Up &&__u) const
+      noexcept(noexcept(bool(_VSTD::forward<_Up>(__u) < _VSTD::forward<_Tp>(__t)))) {
+    return _VSTD::forward<_Up>(__u) < _VSTD::forward<_Tp>(__t);
+  }
+
+  using is_transparent = void;
+};
+
+struct less {
+  template <class _Tp, class _Up>
+  requires totally_ordered_with<_Tp, _Up>
+  [[nodiscard]] constexpr bool operator()(_Tp &&__t, _Up &&__u) const
+      noexcept(noexcept(bool(_VSTD::forward<_Tp>(__t) < _VSTD::forward<_Up>(__u)))) {
+    return _VSTD::forward<_Tp>(__t) < _VSTD::forward<_Up>(__u);
+  }
+
+  using is_transparent = void;
+};
+
+struct greater_equal {
+  template <class _Tp, class _Up>
+  requires totally_ordered_with<_Tp, _Up>
+  [[nodiscard]] constexpr bool operator()(_Tp &&__t, _Up &&__u) const
+      noexcept(noexcept(bool(!(_VSTD::forward<_Tp>(__t) < _VSTD::forward<_Up>(__u))))) {
+    return !(_VSTD::forward<_Tp>(__t) < _VSTD::forward<_Up>(__u));
+  }
+
+  using is_transparent = void;
+};
+
+struct less_equal {
+  template <class _Tp, class _Up>
+  requires totally_ordered_with<_Tp, _Up>
+  [[nodiscard]] constexpr bool operator()(_Tp &&__t, _Up &&__u) const
+      noexcept(noexcept(bool(!(_VSTD::forward<_Up>(__u) < _VSTD::forward<_Tp>(__t))))) {
+    return !(_VSTD::forward<_Up>(__u) < _VSTD::forward<_Tp>(__t));
+  }
+
+  using is_transparent = void;
+};
+
+} // namespace ranges
+
+#endif // !defined(_LIBCPP_HAS_NO_RANGES)
 
 _LIBCPP_END_NAMESPACE_STD
 
-#endif  // _LIBCPP_FUNCTIONAL
+#endif // _LIBCPP_FUNCTIONAL

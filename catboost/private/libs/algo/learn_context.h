@@ -71,6 +71,11 @@ struct TLearnProgress {
      */
     bool IsFoldsAndApproxDataValid = true;
 
+    /* used to update AveragingFold faster
+     * if AveragingFold is not permuted, we do not use its LearnPermutation
+     */
+    bool IsAveragingFoldPermuted = false;
+
     /* used for training continuation
      * if FoldCreationParamsCheckSum is the same it means Folds and AveragingFold can be reused for
      * training continuation (although Target-related data is updated)
@@ -89,7 +94,7 @@ struct TLearnProgress {
 
     TString SerializedTrainParams; // TODO(kirillovs): do something with this field
 
-    TVector<TVariant<TSplitTree, TNonSymmetricTreeStructure>> TreeStruct;
+    TVector<std::variant<TSplitTree, TNonSymmetricTreeStructure>> TreeStruct;
     TVector<TTreeStats> TreeStats;
     TVector<TVector<TVector<double>>> LeafValues; // [numTree][dim][bucketId]
     /* Vector of multipliers that were applied to approxes at each iteration.
@@ -237,3 +242,5 @@ bool NeedToUseTreeLevelCaching(
     const NCatboostOptions::TCatBoostOptions& params,
     ui32 maxBodyTailCount,
     ui32 approxDimension);
+
+bool UseAveragingFoldAsFoldZero(const TLearnContext& ctx);

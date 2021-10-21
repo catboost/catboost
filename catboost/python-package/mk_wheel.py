@@ -35,9 +35,9 @@ class PythonTrait(object):
         self.platform = mine_platform(self.tail_args)
         self.py_config, self.lang = self.get_python_info()
 
-    def gen_cmd(self):
+    def gen_cmd(self, arc_path):
         cmd = [
-            sys.executable, arc_root + '/ya', 'make', os.path.join(arc_root, 'catboost', 'python-package', 'catboost'),
+            sys.executable, arc_root + '/ya', 'make', os.path.join(arc_root, arc_path),
             '--no-src-links', '-r', '--output', out_root, '-DPYTHON_CONFIG=' + self.py_config, '-DNO_DEBUGINFO', '-DOS_SDK=local',
         ]
 
@@ -57,11 +57,11 @@ class PythonTrait(object):
             lang = 'cp3' + str(self.python_version.minor)
         return py_config, lang
 
-    def so_name(self):
+    def so_name(self, module_name):
         if self._on_win():
-            return '_catboost.pyd'
+            return module_name + '.pyd'
 
-        return '_catboost.so'
+        return module_name + '.so'
 
     def dll_ext(self):
         if self._on_win():
@@ -185,15 +185,16 @@ def make_record(dir_path, dist_info_dir):
                 record.write(item[tmp_dir_length:] + ',,\n')
 
 
-def make_wheel(wheel_name, pkg_name, ver, arc_root, so_path, should_build_widget):
+def make_wheel(wheel_name, pkg_name, ver, arc_root, dst_so_modules, should_build_widget):
     dir_path = tempfile.mkdtemp()
 
     # Create py files
-    python_package_dir = os.path.join(arc_root, 'catboost/python-package')
     os.makedirs(os.path.join(dir_path, pkg_name))
+
+    catboost_package_dir = os.path.join(arc_root, 'catboost/python-package')
     for file_name in ['__init__.py', 'version.py', 'core.py', 'datasets.py', 'utils.py', 'eval', 'widget/__init__.py',
                       'widget/ipythonwidget.py', 'metrics.py', 'monoforest.py', 'plot_helpers.py', 'text_processing.py']:
-        src = os.path.join(python_package_dir, 'catboost', file_name)
+        src = os.path.join(catboost_package_dir, 'catboost', file_name)
         dst = os.path.join(dir_path, pkg_name, file_name)
         if not os.path.exists(os.path.dirname(dst)):
             os.makedirs(os.path.dirname(dst))
@@ -203,13 +204,23 @@ def make_wheel(wheel_name, pkg_name, ver, arc_root, so_path, should_build_widget
         else:
             shutil.copy(src, dst)
 
+    hnsw_package_dir = os.path.join(arc_root, 'library/python/hnsw/hnsw')
+    hnsw_dst_dir = os.path.join(dir_path, pkg_name, 'hnsw')
+    os.makedirs(hnsw_dst_dir)
+    for file_name in ['__init__.py', 'hnsw.py']:
+        src = os.path.join(hnsw_package_dir, file_name)
+        dst = os.path.join(hnsw_dst_dir, file_name)
+        shutil.copy(src, dst)
+
     # Create so files
-    so_name = PythonTrait('', '', []).so_name()
-    shutil.copy(so_path, os.path.join(dir_path, pkg_name, so_name))
+    py_trait = PythonTrait('', '', [])
+    for module_name, (so_path, dst_subdir) in dst_so_modules.items():
+        so_name = py_trait.so_name(module_name)
+        shutil.copy(so_path, os.path.join(dir_path, pkg_name, dst_subdir, so_name))
 
     # Create metadata
     dist_info_dir = os.path.join(dir_path, '{}-{}.dist-info'.format(pkg_name, ver))
-    shutil.copytree(os.path.join(python_package_dir, 'catboost.dist-info'), dist_info_dir)
+    shutil.copytree(os.path.join(catboost_package_dir, 'catboost.dist-info'), dist_info_dir)
 
     def substitute_vars(file_path):
         allow_to_write(file_path)
@@ -227,7 +238,7 @@ def make_wheel(wheel_name, pkg_name, ver, arc_root, so_path, should_build_widget
 
     if should_build_widget:
         data_dir = os.path.join(dir_path, '{}-{}.data'.format(pkg_name, ver), 'data')
-        widget_dir = os.path.join(python_package_dir, 'catboost', 'widget')
+        widget_dir = os.path.join(catboost_package_dir, 'catboost', 'widget')
         for file in ['extension.js', 'index.js']:
             src = os.path.join(widget_dir, 'nbextension', file)
             dst = os.path.join(data_dir, 'share', 'jupyter', 'nbextensions', 'catboost-widget', file)
@@ -235,7 +246,7 @@ def make_wheel(wheel_name, pkg_name, ver, arc_root, so_path, should_build_widget
                 os.makedirs(os.path.dirname(dst))
             shutil.copy(src, dst)
 
-        labextension_dir = os.path.join(python_package_dir, 'catboost', 'widget', 'labextension')
+        labextension_dir = os.path.join(catboost_package_dir, 'catboost', 'widget', 'labextension')
         for file in os.listdir(labextension_dir):
             src = os.path.join(labextension_dir, file)
             dst = os.path.join(data_dir, 'share', 'jupyter', 'labextensions', 'catboost-widget', file)
@@ -283,18 +294,29 @@ def build(arc_root, out_root, tail_args, should_build_widget):
     for task_type in (['GPU', 'CPU'] if try_to_build_gpu_version else ['CPU']):
         try:
             print('Trying to build {} version'.format(task_type), file=sys.stderr)
-            cmd = py_trait.gen_cmd() + (['-DHAVE_CUDA=yes'] if task_type == 'GPU' else ['-DHAVE_CUDA=no'])
-            print(' '.join(cmd), file=sys.stderr)
-            subprocess.check_call(cmd)
+
+            dst_so_modules = {}
+            for module_name, arc_path, dst_subdir in (
+                ('_catboost', os.path.join('catboost', 'python-package', 'catboost'), ''),
+                ('_hnsw', os.path.join('library', 'python', 'hnsw', 'hnsw'), 'hnsw')
+            ):
+                print('Trying to build {} native library'.format(module_name), file=sys.stderr)
+
+                cmd = py_trait.gen_cmd(arc_path) + (['-DHAVE_CUDA=yes'] if task_type == 'GPU' else ['-DHAVE_CUDA=no'])
+                print(' '.join(cmd), file=sys.stderr)
+                subprocess.check_call(cmd)
+                print('Build {} native library: OK'.format(module_name), file=sys.stderr)
+                src = os.path.join(py_trait.out_root, arc_path, py_trait.so_name(module_name))
+                dst = '.'.join([src, task_type])
+                shutil.move(src, dst)
+                dst_so_modules[module_name] = (dst, dst_subdir)
+
             print('Build {} version: OK'.format(task_type), file=sys.stderr)
-            src = os.path.join(py_trait.out_root, 'catboost', 'python-package', 'catboost', py_trait.so_name())
-            dst = '.'.join([src, task_type])
-            shutil.move(src, dst)
             if should_build_widget:
                 build_widget(arc_root)
             wheel_name = os.path.join(py_trait.arc_root, 'catboost', 'python-package',
                                       '{}-{}-{}-none-{}.whl'.format(pkg_name, ver, py_trait.lang, py_trait.platform))
-            make_wheel(wheel_name, pkg_name, ver, arc_root, dst, should_build_widget)
+            make_wheel(wheel_name, pkg_name, ver, arc_root, dst_so_modules, should_build_widget)
             os.remove(dst)
             return wheel_name
         except Exception as e:

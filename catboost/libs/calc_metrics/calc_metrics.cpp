@@ -28,6 +28,7 @@ namespace NCB {
         TMaybeData<TConstArrayRef<TRawTarget>> maybeRawTarget,
         bool isClass,
         bool isMultiClass,
+        bool isMultiLabel,
         NPar::ILocalExecutor* localExecutor)
     {
         TVector<NJson::TJsonValue> outputClassLabels;
@@ -37,6 +38,7 @@ namespace NCB {
             /* isRealTarget */ true,
             isClass,
             isMultiClass,
+            isMultiLabel,
             /* targetBorder */ Nothing(),
             /* classCountUnknown */ true,
             /* inputClassLabels */ {},
@@ -88,6 +90,7 @@ namespace NCB {
             targetData.GetTarget(),
             /* isClass */ false,
             /* isMultiClass */ false,
+            /* isMultiLabel */ false,
             localExecutor
         );
     }

@@ -17,6 +17,7 @@ PEERDIR(
     contrib/restricted/abseil-cpp/absl/debugging/stacktrace
     contrib/restricted/abseil-cpp/absl/debugging/symbolize
     contrib/restricted/abseil-cpp/absl/demangle
+    contrib/restricted/abseil-cpp/absl/flags/commandlineflag
     contrib/restricted/abseil-cpp/absl/flags/internal/commandlineflag
     contrib/restricted/abseil-cpp/absl/flags/internal/program_name
     contrib/restricted/abseil-cpp/absl/flags/marshalling
@@ -30,6 +31,7 @@ PEERDIR(
     contrib/restricted/abseil-cpp/absl/time
     contrib/restricted/abseil-cpp/absl/time/civil_time
     contrib/restricted/abseil-cpp/absl/time/time_zone
+    contrib/restricted/abseil-cpp/absl/types/bad_optional_access
 )
 
 ADDINCL(

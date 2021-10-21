@@ -247,7 +247,7 @@ public:
     {
     }
 
-    inline THolder(T* t) noexcept
+    explicit THolder(T* t) noexcept
         : T_(t)
     {
     }
@@ -351,7 +351,7 @@ private:
 
 template <typename T, typename... Args>
 [[nodiscard]] THolder<T> MakeHolder(Args&&... args) {
-    return new T(std::forward<Args>(args)...);
+    return THolder<T>(new T(std::forward<Args>(args)...));
 }
 
 /*
@@ -483,11 +483,20 @@ class TIntrusivePtr: public TPointerBase<TIntrusivePtr<T, Ops>, T> {
     friend class TIntrusiveConstPtr<T, Ops>;
 
 public:
+    struct TNoIncrement {
+    };
+
     inline TIntrusivePtr(T* t = nullptr) noexcept
         : T_(t)
     {
         Ops();
         Ref();
+    }
+
+    inline TIntrusivePtr(T* t, TNoIncrement) noexcept
+        : T_(t)
+    {
+        Ops();
     }
 
     inline ~TIntrusivePtr() {
@@ -974,7 +983,7 @@ public:
         DoDestroy();
     }
 
-    inline TCopyPtr& operator=(TCopyPtr t) {
+    inline TCopyPtr& operator=(TCopyPtr t) noexcept {
         t.Swap(*this);
 
         return *this;

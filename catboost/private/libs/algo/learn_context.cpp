@@ -448,6 +448,7 @@ TLearnProgress::TLearnProgress(
     NCB::TDataProviders initModelApplyCompatiblePools,
     NPar::ILocalExecutor* localExecutor)
     : StartingApprox(foldsCreationParams.StartingApprox)
+    , IsAveragingFoldPermuted(foldsCreationParams.IsAverageFoldPermuted)
     , FoldCreationParamsCheckSum(foldCreationParamsCheckSum)
     , CatFeatures(CreateCatFeatures(*data.Learn->ObjectsData->GetFeaturesLayout()))
     , FloatFeatures(
@@ -486,60 +487,87 @@ TLearnProgress::TLearnProgress(
         precomputedSingleOnlineCtrs->Data = *precomputedSingleOnlineCtrDataForSingleFold;
     }
 
-    Folds.reserve(foldsCreationParams.LearningFoldCount);
+    InitApproxes(learnSampleCount, StartingApprox, ApproxDimension, false, &AvrgApprox);
 
-    if (foldsCreationParams.IsOrderedBoosting) {
-        for (int foldIdx = 0; foldIdx < foldsCreationParams.LearningFoldCount; ++foldIdx) {
-            Folds.emplace_back(
-                TFold::BuildDynamicFold(
-                    data,
-                    targetClassifiers,
-                    foldIdx != 0,
-                    foldsCreationParams.FoldPermutationBlockSize,
-                    ApproxDimension,
-                    foldsCreationParams.FoldLenMultiplier,
-                    foldsCreationParams.StoreExpApproxes,
-                    foldsCreationParams.HasPairwiseWeights,
-                    StartingApprox,
-                    estimatedFeaturesQuantizationOptions,
-                    onlineEstimatedQuantizedFeaturesInfo,
-                    &Rand,
-                    localExecutor
-                )
-            );
-            if (foldIdx == 0) {
-                onlineEstimatedQuantizedFeaturesInfo
-                    = Folds.back().GetOnlineEstimatedFeatures().GetQuantizedFeaturesInfo();
-            } else {
-                Folds.back().GetOnlineEstimatedFeatures().Test
-                    = Folds[0].GetOnlineEstimatedFeatures().Test;
+    if (learnSampleCount) {
+
+        Folds.reserve(foldsCreationParams.LearningFoldCount);
+
+        if (foldsCreationParams.IsOrderedBoosting) {
+            for (int foldIdx = 0; foldIdx < foldsCreationParams.LearningFoldCount; ++foldIdx) {
+                Folds.emplace_back(
+                    TFold::BuildDynamicFold(
+                        data,
+                        targetClassifiers,
+                        foldIdx != 0,
+                        foldsCreationParams.FoldPermutationBlockSize,
+                        ApproxDimension,
+                        foldsCreationParams.FoldLenMultiplier,
+                        foldsCreationParams.StoreExpApproxes,
+                        foldsCreationParams.HasPairwiseWeights,
+                        StartingApprox,
+                        estimatedFeaturesQuantizationOptions,
+                        onlineEstimatedQuantizedFeaturesInfo,
+                        &Rand,
+                        localExecutor
+                    )
+                );
+                if (foldIdx == 0) {
+                    onlineEstimatedQuantizedFeaturesInfo
+                        = Folds.back().GetOnlineEstimatedFeatures().GetQuantizedFeaturesInfo();
+                } else {
+                    Folds.back().GetOnlineEstimatedFeatures().Test
+                        = Folds[0].GetOnlineEstimatedFeatures().Test;
+                }
+            }
+        } else {
+            for (int foldIdx = 0; foldIdx < foldsCreationParams.LearningFoldCount; ++foldIdx) {
+                Folds.emplace_back(
+                    TFold::BuildPlainFold(
+                        data,
+                        targetClassifiers,
+                        foldIdx != 0,
+                        isSingleHost ? foldsCreationParams.FoldPermutationBlockSize : learnSampleCount,
+                        ApproxDimension,
+                        foldsCreationParams.StoreExpApproxes,
+                        foldsCreationParams.HasPairwiseWeights,
+                        StartingApprox,
+                        estimatedFeaturesQuantizationOptions,
+                        onlineEstimatedQuantizedFeaturesInfo,
+                        (!isSingleHost || (foldIdx == 0)) ? precomputedSingleOnlineCtrs : nullptr,
+                        &Rand,
+                        localExecutor
+                    )
+                );
+                if (foldIdx == 0) {
+                    onlineEstimatedQuantizedFeaturesInfo
+                        = Folds.back().GetOnlineEstimatedFeatures().GetQuantizedFeaturesInfo();
+                } else {
+                    Folds.back().GetOnlineEstimatedFeatures().Test
+                        = Folds[0].GetOnlineEstimatedFeatures().Test;
+                }
             }
         }
-    } else {
-        for (int foldIdx = 0; foldIdx < foldsCreationParams.LearningFoldCount; ++foldIdx) {
-            Folds.emplace_back(
-                TFold::BuildPlainFold(
-                    data,
-                    targetClassifiers,
-                    foldIdx != 0,
-                    isSingleHost ? foldsCreationParams.FoldPermutationBlockSize : learnSampleCount,
-                    ApproxDimension,
-                    foldsCreationParams.StoreExpApproxes,
-                    foldsCreationParams.HasPairwiseWeights,
-                    StartingApprox,
-                    estimatedFeaturesQuantizationOptions,
-                    onlineEstimatedQuantizedFeaturesInfo,
-                    (!isSingleHost || (foldIdx == 0)) ? precomputedSingleOnlineCtrs : nullptr,
-                    &Rand,
-                    localExecutor
-                )
+
+        TMaybeData<TConstArrayRef<TConstArrayRef<float>>> learnBaseline = data.Learn->TargetData->GetBaseline();
+        if (learnBaseline) {
+            CB_ENSURE(
+                datasetsCanContainBaseline,
+                "Specifying baseline for training continuation is not supported"
             );
-            if (foldIdx == 0) {
-                onlineEstimatedQuantizedFeaturesInfo
-                    = Folds.back().GetOnlineEstimatedFeatures().GetQuantizedFeaturesInfo();
-            } else {
-                Folds.back().GetOnlineEstimatedFeatures().Test
-                    = Folds[0].GetOnlineEstimatedFeatures().Test;
+            if (!initModel) {
+                AssignRank2<float>(*learnBaseline, &AvrgApprox);
+            }
+        }
+
+        const auto externalFeaturesCount = data.Learn->ObjectsData->GetFeaturesLayout()->GetExternalFeatureCount();
+        const auto objectsCount = data.Learn->ObjectsData->GetObjectCount();
+        UsedFeatures.resize(externalFeaturesCount, false);
+        // for symmetric tree features usage is equal for all objects, so we don't need to store it for each object individually
+        if (trainOptions.GrowPolicy.Get() != EGrowPolicy::SymmetricTree) {
+            const auto& featurePenaltiesOptions = trainOptions.FeaturePenalties.Get();
+            for (const auto[featureIdx, penalty] : featurePenaltiesOptions.PerObjectFeaturePenalty.Get()) {
+                UsedFeaturesPerObject[featureIdx].resize(objectsCount, false);
             }
         }
     }
@@ -563,18 +591,6 @@ TLearnProgress::TLearnProgress(
         AveragingFold.GetOnlineEstimatedFeatures().Test = Folds[0].GetOnlineEstimatedFeatures().Test;
     }
 
-    InitApproxes(learnSampleCount, StartingApprox, ApproxDimension, false, &AvrgApprox);
-
-    TMaybeData<TConstArrayRef<TConstArrayRef<float>>> learnBaseline = data.Learn->TargetData->GetBaseline();
-    if (learnBaseline) {
-        CB_ENSURE(
-            datasetsCanContainBaseline,
-            "Specifying baseline for training continuation is not supported"
-        );
-        if (!initModel) {
-            AssignRank2<float>(*learnBaseline, &AvrgApprox);
-        }
-    }
     ResizeRank2(data.Test.size(), ApproxDimension, TestApprox);
     for (size_t testIdx = 0; testIdx < data.Test.size(); ++testIdx) {
         const auto* testData = data.Test[testIdx].Get();
@@ -610,17 +626,6 @@ TLearnProgress::TLearnProgress(
         );
     }
 
-    const auto externalFeaturesCount = data.Learn->ObjectsData->GetFeaturesLayout()->GetExternalFeatureCount();
-    const auto objectsCount = data.Learn->ObjectsData->GetObjectCount();
-    UsedFeatures.resize(externalFeaturesCount, false);
-    // for symmetric tree features usage is equal for all objects, so we don't need to store it for each object individually
-    if (trainOptions.GrowPolicy.Get() != EGrowPolicy::SymmetricTree) {
-        const auto& featurePenaltiesOptions = trainOptions.FeaturePenalties.Get();
-        for (const auto[featureIdx, penalty] : featurePenaltiesOptions.PerObjectFeaturePenalty.Get()) {
-            UsedFeaturesPerObject[featureIdx].resize(objectsCount, false);
-        }
-    }
-
     EstimatedFeaturesContext.FeatureEstimators = data.FeatureEstimators;
     EstimatedFeaturesContext.OfflineEstimatedFeaturesLayout
         = data.EstimatedObjectsData.QuantizedEstimatedFeaturesInfo.Layout;
@@ -643,14 +648,15 @@ void TLearnProgress::SetSeparateInitModel(
 
     // Calc approxes
 
-    auto calcApproxFunction = [&] (const TObjectsDataProvider& objectsData) -> TVector<TVector<double>> {
+    auto calcApproxFunction = [&] (const TDataProvider& data) -> TVector<TVector<double>> {
         return ApplyModelMulti(
             initModel,
-            objectsData,
+            *data.ObjectsData,
             EPredictionType::RawFormulaVal,
             0,
             SafeIntegerCast<int>(initModel.GetTreeCount()),
-            localExecutor
+            localExecutor,
+            data.RawTargetData.GetBaseline()
         );
     };
 
@@ -659,8 +665,11 @@ void TLearnProgress::SetSeparateInitModel(
     tasks.push_back(
         [&] () {
             const ui32 learnObjectCount = initModelApplyCompatiblePools.Learn->GetObjectCount();
+            if (!learnObjectCount) {
+                return;
+            }
 
-            AvrgApprox = calcApproxFunction(*initModelApplyCompatiblePools.Learn->ObjectsData);
+            AvrgApprox = calcApproxFunction(*initModelApplyCompatiblePools.Learn);
 
             TVector<TConstArrayRef<double>> approxRef(AvrgApprox.begin(), AvrgApprox.end());
 
@@ -698,7 +707,7 @@ void TLearnProgress::SetSeparateInitModel(
         tasks.push_back(
             [&, testIdx] () {
                 TestApprox[testIdx] = calcApproxFunction(
-                    *initModelApplyCompatiblePools.Test[testIdx]->ObjectsData);
+                    *initModelApplyCompatiblePools.Test[testIdx]);
             }
         );
     }
@@ -822,4 +831,11 @@ bool NeedToUseTreeLevelCaching(
         IsSamplingPerTree(params.ObliviousTreeOptions) &&
         !IsPairwiseScoring(params.LossFunctionDescription->GetLossFunction()) &&
         maxLeafCount * approxDimension * maxBodyTailCount < 64 * 1 * 10);
+}
+
+bool UseAveragingFoldAsFoldZero(const TLearnContext& ctx) {
+    const auto lossFunction = ctx.Params.LossFunctionDescription->GetLossFunction();
+    const bool usePairs = UsesPairsForCalculation(lossFunction);
+    const bool isPlainBoosting = ctx.Params.BoostingOptions->BoostingType == EBoostingType::Plain;
+    return isPlainBoosting && !ctx.LearnProgress->IsAveragingFoldPermuted && !usePairs;
 }

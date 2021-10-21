@@ -343,7 +343,7 @@ void PrepareEval(const EPredictionType predictionType,
         case EPredictionType::LogProbability:
         case EPredictionType::Probability:
             if (IsMulticlass(approx)) {
-                if (lossFunctionName == "MultiClassOneVsAll") {
+                if (EqualToOneOf(lossFunctionName, "MultiClassOneVsAll", "MultiLogloss", "MultiCrossEntropy")) {
                     result->resize(approx.size());
                     if (predictionType == EPredictionType::Probability) {
                         for (auto dim : xrange(approx.size())) {
@@ -374,14 +374,24 @@ void PrepareEval(const EPredictionType predictionType,
             }
             break;
         case EPredictionType::Class:
-            result->resize(1);
-            (*result)[0].reserve(approx.size());
-            if (IsMulticlass(approx)) {
-                TVector<int> predictions = {SelectBestClass(approx, executor)};
-                (*result)[0].assign(predictions.begin(), predictions.end());
+            if (EqualToOneOf(lossFunctionName, "MultiLogloss", "MultiCrossEntropy")) {
+                result->resize(approx.ysize());
+                for (auto dim = 0; dim < approx.ysize(); ++dim) {
+                    (*result)[dim].reserve(approx[dim].ysize());
+                    for (const double prediction: approx[dim]) {
+                        (*result)[dim].push_back(prediction > binClassLogitThreshold);
+                    }
+                }
             } else {
-                for (const double prediction : approx[0]) {
-                    (*result)[0].push_back(prediction > binClassLogitThreshold);
+                result->resize(1);
+                (*result)[0].reserve(approx.size());
+                if (IsMulticlass(approx)) {
+                    TVector<int> predictions = {SelectBestClass(approx, executor)};
+                    (*result)[0].assign(predictions.begin(), predictions.end());
+                } else {
+                    for (const double prediction : approx[0]) {
+                        (*result)[0].push_back(prediction > binClassLogitThreshold);
+                    }
                 }
             }
             break;

@@ -10,7 +10,6 @@ RECURSE(
     binsaver/ut_util
     blockcodecs
     blockcodecs/fuzz
-    blockcodecs/ut
     build_info
     cache
     cgiparam
@@ -124,13 +123,14 @@ RECURSE(
     tokenizer
     tokenizer/ut
     yson
+    yson/json
     yson/node
     yson/node/pybind
 )
 
 IF (OS_LINUX)
     RECURSE(
-    
+    ytalloc
 )
 ENDIF()
 

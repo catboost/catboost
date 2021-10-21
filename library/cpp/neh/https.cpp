@@ -68,7 +68,7 @@ namespace NNeh {
 
     bool THttpsOptions::Set(TStringBuf name, TStringBuf value) {
 #define YNDX_NEH_HTTPS_TRY_SET(optName)                 \
-    if (name == AsStringBuf(#optName)) {                \
+    if (name == TStringBuf(#optName)) {                 \
         optName = FromString<decltype(optName)>(value); \
         return true;                                    \
     }
@@ -1280,10 +1280,10 @@ namespace NNeh {
         template <class TRequestType>
         class THttpsRequest: public IJob {
         public:
-            inline THttpsRequest(TSimpleHandleRef hndl, const TMessage& msg)
+            inline THttpsRequest(TSimpleHandleRef hndl, TMessage msg)
                 : Hndl_(hndl)
-                , Msg_(msg)
-                , Loc_(msg.Addr)
+                , Msg_(std::move(msg))
+                , Loc_(Msg_.Addr)
                 , Addr_(CachedThrResolve(TResolveInfo(Loc_.Host, Loc_.GetPort())))
             {
             }
@@ -1686,8 +1686,8 @@ namespace NNeh {
 
                 void DoRun(TCont* c) override {
                     THolder<TFail> This(this);
-                    const TStringBuf answer = AsStringBuf("HTTP/1.1 503 Service unavailable\r\n"
-                                                          "Content-Length: 0\r\n\r\n");
+                    constexpr TStringBuf answer = "HTTP/1.1 503 Service unavailable\r\n"
+                                                          "Content-Length: 0\r\n\r\n"sv;
 
                     try {
                         TContBIOWatcher w(*IO_, c);

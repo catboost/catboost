@@ -169,13 +169,13 @@ TNode& TNode::operator=(const TNode& rhs)
     return *this;
 }
 
-TNode::TNode(TNode&& rhs)
+TNode::TNode(TNode&& rhs) noexcept
     : TNode()
 {
     Move(std::move(rhs));
 }
 
-TNode& TNode::operator=(TNode&& rhs)
+TNode& TNode::operator=(TNode&& rhs) noexcept
 {
     if (this != &rhs) {
         TNode tmp = std::move(rhs);
@@ -860,13 +860,13 @@ void TNode::CreateAttributes()
 
 void TNode::Save(IOutputStream* out) const
 {
-    NodeToYsonStream(*this, out, YF_BINARY);
+    NodeToYsonStream(*this, out, NYson::EYsonFormat::Binary);
 }
 
 void TNode::Load(IInputStream* in)
 {
     Clear();
-    *this = NodeFromYsonStream(in, YT_NODE);
+    *this = NodeFromYsonStream(in, ::NYson::EYsonType::Node);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

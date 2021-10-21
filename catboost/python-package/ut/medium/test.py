@@ -29,8 +29,8 @@ from catboost import (
     to_regressor,
     to_classifier,
     to_ranker,
-    MultiRegressionCustomMetric,
-    MultiRegressionCustomObjective,)
+    MultiTargetCustomMetric,
+    MultiTargetCustomObjective,)
 from catboost.eval.catboost_evaluation import CatboostEvaluation, EvalType
 from catboost.utils import eval_metric, create_cd, read_cd, get_roc_curve, select_threshold, quantize
 from catboost.utils import DataMetaInfo, TargetStats, compute_training_options
@@ -47,6 +47,7 @@ from catboost_pytest_lib import (
     binary_path,
     data_file,
     get_limited_precision_dsv_diff_tool,
+    get_limited_precision_numpy_diff_tool,
     local_canonical_file,
     permute_dataset_columns,
     remove_time_from_json,
@@ -90,6 +91,10 @@ CLOUDNESS_ONLY_NUM_CD_FILE = data_file('cloudness_small', 'train_float.cd')
 MULTIREGRESSION_TRAIN_FILE = data_file('multiregression', 'train')
 MULTIREGRESSION_TEST_FILE = data_file('multiregression', 'test')
 MULTIREGRESSION_CD_FILE = data_file('multiregression', 'train.cd')
+
+SCENE_TRAIN_FILE = data_file('scene', 'train')
+SCENE_TEST_FILE = data_file('scene', 'test')
+SCENE_CD_FILE = data_file('scene', 'train.cd')
 
 QUERYWISE_TRAIN_FILE = data_file('querywise', 'train')
 QUERYWISE_TEST_FILE = data_file('querywise', 'test')
@@ -152,10 +157,12 @@ OUTPUT_ONNX_MODEL_PATH = 'model.onnx'
 OUTPUT_PMML_MODEL_PATH = 'model.pmml'
 PREDS_PATH = 'predictions.npy'
 PREDS_TXT_PATH = 'predictions.txt'
+CV_CSV_PATH = 'result.csv'
 FIMP_NPY_PATH = 'feature_importance.npy'
 FIMP_TXT_PATH = 'feature_importance.txt'
 OIMP_PATH = 'object_importances.txt'
 JSON_LOG_PATH = 'catboost_info/catboost_training.json'
+JSON_LOG_CV_PATH = lambda foldIdx: 'catboost_info/fold-' + str(foldIdx) + '/catboost_training.json'
 OUTPUT_QUANTIZED_POOL_PATH = 'quantized_pool.bin'
 TARGET_IDX = 1
 CAT_FEATURES = [0, 1, 2, 4, 6, 8, 9, 10, 11, 12, 16]
@@ -275,7 +282,7 @@ def load_simple_dataset_as_lists(is_test):
 
 @pytest.mark.parametrize('niter', [100, 500])
 def test_multiregression_custom_eval(niter, n=10):
-    class MultiRMSE(MultiRegressionCustomMetric):
+    class MultiRMSE(MultiTargetCustomMetric):
         def get_final_error(self, error, weight):
             if (weight == 0):
                 return 0
@@ -443,7 +450,7 @@ def test_load_ndarray_vs_load_from_file(dataset, order):
     )
     feature_names = get_only_features_names(columns_metadata)
 
-    pool_from_file = Pool(train_file, column_description=cd_file)
+    pool_from_file = Pool(train_file, column_description=cd_file, ignore_csv_quoting=True)
     pool_from_file.set_feature_names(feature_names)
 
     for dtype in dtypes:
@@ -580,7 +587,7 @@ def test_load_df_vs_load_from_file(dataset):
         'rotten_tomatoes_small_with_embeddings': (
             ROTTEN_TOMATOES_WITH_EMBEDDINGS_TRAIN_FILE,
             ROTTEN_TOMATOES_WITH_EMBEDDINGS_CD_BINCLASS_FILE,
-            11,
+            14,
             None,
             []
         )
@@ -1831,6 +1838,76 @@ def test_multiclass_custom_class_labels_from_files(task_type):
     return local_canonical_file(preds_path)
 
 
+@pytest.mark.parametrize('prediction_type', ['RawFormulaVal', 'Probability', 'Class'])
+def test_multilabel(prediction_type):
+    pool = Pool(SCENE_TRAIN_FILE, column_description=SCENE_CD_FILE)
+    classifier = CatBoostClassifier(iterations=2, loss_function='MultiLogloss', thread_count=8)
+    classifier.fit(pool)
+    output_model_path = test_output_path(OUTPUT_MODEL_PATH)
+    classifier.save_model(output_model_path)
+    new_classifier = CatBoostClassifier()
+    new_classifier.load_model(output_model_path)
+    pred = new_classifier.predict(pool, prediction_type=prediction_type)
+    preds_path = test_output_path(PREDS_PATH)
+    if prediction_type == 'Class':
+        np.savetxt(preds_path, np.array(pred), fmt='%.0f')
+    else:
+        np.savetxt(preds_path, np.array(pred), fmt='%.8f')
+    return local_canonical_file(preds_path)
+
+
+@pytest.mark.parametrize('target_count', [1, 2, 3])
+def test_compare_multilogloss_with_logloss(target_count):
+    object_count = 100
+    feature_count = 10
+    iterations = 100
+    np.random.seed(42)
+    X = np.random.random((object_count, feature_count))
+    y = np.random.randint(low=0, high=2, size=object_count)
+    Y = np.vstack([y for _ in range(target_count)]).T
+    logloss_clf = CatBoostClassifier(iterations=iterations, loss_function='Logloss')
+    logloss_clf.fit(X, y)
+    multilogloss_clf = CatBoostClassifier(iterations=iterations, loss_function='MultiLogloss')
+    multilogloss_clf.fit(X, Y)
+    diff = logloss_clf.best_score_['learn']['Logloss'] / multilogloss_clf.best_score_['learn']['MultiLogloss']
+    assert 0.9 < diff < 1.1
+
+
+def test_multilabel_class_names():
+    pool = Pool(SCENE_TRAIN_FILE, column_description=SCENE_CD_FILE)
+    classifier = CatBoostClassifier(
+        iterations=100,
+        loss_function='MultiLogloss',
+        class_names=['a', 'b', 'c', 'd', 'e', 'f']
+    )
+    classifier.fit(pool)
+    pred = classifier.predict(pool, prediction_type='Class')
+    assert np.array_equal(classifier.classes_, ['a', 'b', 'c', 'd', 'e', 'f'])
+    assert set(pred.flatten()) == {0, 1}
+
+
+def test_multilabel_eval_metric():
+    train_pool = Pool(SCENE_TRAIN_FILE, column_description=SCENE_CD_FILE)
+    test_pool = Pool(SCENE_TEST_FILE, column_description=SCENE_CD_FILE)
+    classifier = CatBoostClassifier(iterations=100, loss_function='MultiLogloss')
+    classifier.fit(train_pool, eval_set=test_pool)
+    target = test_pool.get_label().astype(int)
+    num_classes = target.shape[1]
+    approx = classifier.predict(test_pool, prediction_type='RawFormulaVal')
+    prediction = classifier.predict(test_pool, prediction_type='Class')
+    accuracy = eval_metric(target, approx, 'Accuracy')[0]
+    assert accuracy == np.mean([np.array_equal(t, p) for t, p in zip(target, prediction)])
+    accuracy_per_class = eval_metric(target, approx, 'Accuracy:type=PerClass')
+    assert len(accuracy_per_class) == num_classes
+    for j in range(num_classes):
+        assert accuracy_per_class[j] == eval_metric(target[:, j], approx[:, j], 'Accuracy')[0]
+    for metric in ('Precision', 'Recall', 'F1'):
+        metric_per_class = eval_metric(target, approx, metric)
+        assert len(metric_per_class) == num_classes
+        for j in range(num_classes):
+            assert metric_per_class[j] == eval_metric(target[:, j], approx[:, j], metric)[0]
+
+
 def test_class_names(task_type):
     class_names = ['Small', 'Medium', 'Large']
 
@@ -2056,7 +2133,7 @@ def test_fit_data(task_type):
     pred = model.predict_proba(eval_pool)
     preds_path = test_output_path(PREDS_PATH)
     np.save(preds_path, np.array(pred))
-    return local_canonical_file(preds_path)
+    return local_canonical_file(preds_path, diff_tool=get_limited_precision_numpy_diff_tool())
 
 
 def test_fit_predict_baseline(task_type):
@@ -2071,7 +2148,7 @@ def test_fit_predict_baseline(task_type):
     pred = model.predict(test_pool)
     pred_no_baseline = model.predict(test_pool_without_baseline)
     preds_path = test_output_path(PREDS_PATH)
-    assert np.all(np.isclose(pred, pred_no_baseline + test_baseline))
+    assert np.allclose(pred, pred_no_baseline + test_baseline)
     np.save(preds_path, np.array(pred))
     return local_canonical_file(preds_path)
 
@@ -2730,7 +2807,7 @@ def test_custom_objective(task_type, loss_objective):
 
 @fails_on_gpu(how='cuda/train_lib/train.cpp:283: Error: loss function is not supported for GPU learning Custom')
 def test_multilabel_custom_objective(task_type, n=10):
-    class MultiRMSEObjective(MultiRegressionCustomObjective):
+    class MultiRMSEObjective(MultiTargetCustomObjective):
         def calc_ders_multi(self, approxes, targets, weight):
             assert len(approxes) == len(targets)
 
@@ -3102,7 +3179,7 @@ def test_cv(task_type):
     for value in results["train-Logloss-mean"][1:]:
         assert value < prev_value
         prev_value = value
-    return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
+    return local_canonical_file(remove_time_from_json(JSON_LOG_CV_PATH(0)))
 
 
 def test_cv_query(task_type):
@@ -3117,7 +3194,7 @@ def test_cv_query(task_type):
     for value in results["train-QueryRMSE-mean"][1:]:
         assert value < prev_value
         prev_value = value
-    return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
+    return local_canonical_file(remove_time_from_json(JSON_LOG_CV_PATH(0)))
 
 
 def test_cv_pairs(task_type):
@@ -3138,7 +3215,7 @@ def test_cv_pairs(task_type):
     for value in results["train-PairLogit-mean"][1:]:
         assert value < prev_value
         prev_value = value
-    return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
+    return local_canonical_file(remove_time_from_json(JSON_LOG_CV_PATH(0)))
 
 
 def test_cv_pairs_generated(task_type):
@@ -3159,7 +3236,7 @@ def test_cv_pairs_generated(task_type):
     for value in results["train-PairLogit-mean"][1:]:
         assert value < prev_value
         prev_value = value
-    return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
+    return local_canonical_file(remove_time_from_json(JSON_LOG_CV_PATH(0)))
 
 
 def test_cv_custom_loss(task_type):
@@ -3175,7 +3252,7 @@ def test_cv_custom_loss(task_type):
         }
     )
     assert "test-AUC-mean" in results
-    return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
+    return local_canonical_file(remove_time_from_json(JSON_LOG_CV_PATH(0)))
 
 
 def test_cv_skip_train(task_type):
@@ -3195,7 +3272,7 @@ def test_cv_skip_train(task_type):
     assert "train-AUC-mean" not in results
     assert "train-AUC-std" not in results
 
-    return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
+    return local_canonical_file(remove_time_from_json(JSON_LOG_CV_PATH(0)))
 
 
 def test_cv_skip_train_default(task_type):
@@ -3213,7 +3290,7 @@ def test_cv_skip_train_default(task_type):
     assert "train-AUC-mean" not in results
     assert "train-AUC-std" not in results
 
-    return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
+    return local_canonical_file(remove_time_from_json(JSON_LOG_CV_PATH(0)))
 
 
 def test_cv_metric_period(task_type):
@@ -3235,7 +3312,7 @@ def test_cv_metric_period(task_type):
     for value in results["train-Logloss-mean"][1:]:
         assert value < prev_value
         prev_value = value
-    return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
+    return local_canonical_file(remove_time_from_json(JSON_LOG_CV_PATH(0)))
 
 
 @pytest.mark.parametrize(
@@ -3260,10 +3337,10 @@ def test_cv_overfitting_detector(with_metric_period, task_type):
     assert "train-Logloss-mean" in results
 
     prev_value = results["train-Logloss-mean"][0]
-    for value in results["train-Logloss-mean"][1:]:
+    for value in results["train-Logloss-mean"][1:-1]:
         assert value < prev_value
         prev_value = value
-    return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
+    return local_canonical_file(remove_time_from_json(JSON_LOG_CV_PATH(0)))
 
 
 @pytest.mark.parametrize('param_type', ['indices', 'strings'])
@@ -3295,6 +3372,27 @@ def test_cv_with_cat_features_param(param_type):
     params_with_wrong_cat_features['cat_features'] = [0, 2] if param_type == 'indices' else ['feat0', 'feat2']
     with pytest.raises(CatBoostError):
         cv(pool, params_with_wrong_cat_features)
+
+
+def test_cv_with_text():
+    cats_words = ['Meow', 'Kitten', 'Paw', 'Tail', 'Purring', 'Crouch', 'Whisker']
+    dogs_words = ['Puppy', 'Whelp', 'Woof', 'Tail', 'Paw', 'Snarl', 'Barking']
+    words = [cats_words, dogs_words]
+    np.random.seed(1)
+    labels = np.random.choice(2, 1000)
+    texts = [[' '.join(np.random.choice(words[label], 3, replace=False))] for label in labels]
+    data_pool = Pool(data=texts, label=labels, text_features=[0])
+    params = {
+        'loss_function': 'Logloss',
+        'iterations': 10,
+        'random_seed': 42,
+        'learning_rate': 0.5
+    }
+    result = cv(iterations=10, pool=data_pool, params=params, fold_count=3).round(decimals=3)
+
+    preds_path = test_output_path(CV_CSV_PATH)
+    result.to_csv(preds_path)
+    return local_canonical_file(preds_path)
 
 
 def test_cv_with_save_snapshot(task_type):
@@ -4320,7 +4418,7 @@ def test_cv_logging(task_type):
             "task_type": task_type
         },
     )
-    return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
+    return local_canonical_file(remove_time_from_json(JSON_LOG_CV_PATH(0)))
 
 
 def test_cv_with_not_binarized_target(task_type):
@@ -4337,7 +4435,7 @@ def test_cv_with_not_binarized_target(task_type):
             "target_border": 0.5
         },
     )
-    return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
+    return local_canonical_file(remove_time_from_json(JSON_LOG_CV_PATH(0)))
 
 
 @pytest.mark.parametrize('loss_function', ['Logloss', 'RMSE', 'QueryRMSE'])
@@ -4399,6 +4497,7 @@ def test_eval_metrics_batch_calcer(loss_function, task_type):
 @pytest.mark.parametrize('verbose', [5, False, True])
 def test_verbose_int(verbose, task_type):
     expected_line_count = {5: 3, False: 0, True: 10}
+    expected_cv_line_count = {5: 24, False: 15, True: 45}
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     tmpfile = 'test_data_dumps'
 
@@ -4409,7 +4508,7 @@ def test_verbose_int(verbose, task_type):
             verbose=verbose,
             log_cout=cout,
         )
-    assert(_count_lines(tmpfile) == expected_line_count[verbose])
+    assert(_count_lines(tmpfile) == expected_cv_line_count[verbose])
 
     with open(tmpfile, 'w') as cout:
         train(pool, {"iterations": 10, "learning_rate": 0.03, "loss_function": "Logloss", "task_type": task_type, "devices": '0'},
@@ -4450,6 +4549,15 @@ def test_object_importances(task_type):
     np.savetxt(oimp_path, scores)
 
     return local_canonical_file(oimp_path)
+
+
+def test_positive_object_importance_per_object():
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    pool = Pool(TEST_FILE, column_description=CD_FILE)
+
+    model = CatBoost({'loss_function': 'RMSE', 'iterations': 10})
+    model.fit(train_pool)
+    indices, scores = model.get_object_importance(pool, train_pool, type='PerObject', importance_values_sign='Positive')
 
 
 def test_shap(task_type):
@@ -5300,7 +5408,7 @@ def test_learning_rate_auto_set_in_cv(task_type):
     for value in results["train-Logloss-mean"][1:]:
         assert value < prev_value
         prev_value = value
-    return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
+    return local_canonical_file(remove_time_from_json(JSON_LOG_CV_PATH(0)))
 
 
 def test_shap_multiclass(task_type):
@@ -5927,7 +6035,7 @@ def test_cv_with_ignored_features(task_type, data_type, has_missing):
 
     # Unfortunately, for GPU results differ too much between different GPU models.
     if task_type != 'GPU':
-        return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
+        return local_canonical_file(remove_time_from_json(JSON_LOG_CV_PATH(0)))
 
 
 def test_use_last_testset_for_best_iteration():
@@ -7223,7 +7331,12 @@ def test_binclass_with_nontrivial_classes():
     X = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
     y = [1, 2, 1]
     model.fit(X, y)
-    return local_canonical_file(remove_time_from_json(catboost_training_path))
+    json_log = json.load(open(remove_time_from_json(catboost_training_path)))
+    json_log['iterations'] = [
+        dict({'iteration': row['iteration'], 'learn': [np.round(row['learn'][0], decimals=4)]})
+        for row in json_log['iterations']]
+    json.dump(json_log, open(catboost_training_path, 'w'))
+    return local_canonical_file(catboost_training_path)
 
 
 def test_loss_function_auto_set():
@@ -7848,13 +7961,12 @@ def models_trained_on_raw_and_quantized_data_fixture(train_on_raw_and_quantized_
 
 
 def test_quantized_pool_cv(train_on_raw_and_quantized_data_params_fixture):
-    train_pool = train_on_raw_and_quantized_data_params_fixture['train_pool']
     train_quantized_pool = train_on_raw_and_quantized_data_params_fixture['train_quantized_pool']
     params = train_on_raw_and_quantized_data_params_fixture['params']
-
-    results = cv(train_pool, params)
-    results_with_quantized_pool = cv(train_quantized_pool, params)
-    assert results.equals(results_with_quantized_pool)
+    results_with_quantized_pool = cv(train_quantized_pool, params).round(decimals=4)
+    preds_path = test_output_path(CV_CSV_PATH)
+    results_with_quantized_pool.to_csv(preds_path)
+    return local_canonical_file(preds_path)
 
 
 def test_quantized_pool_train_predict(train_on_raw_and_quantized_data_params_fixture):
@@ -9690,8 +9802,8 @@ def test_eval_metric_with_weights(task_type, task, metric, use_weights):
         eval_metric=full_metric_name,
         task_type=task_type
     )
-    model.fit(pool)
-    fit_metric = model.evals_result_['learn'][full_metric_name]
+    model.fit(pool, eval_set=pool)
+    fit_metric = model.evals_result_['validation'][full_metric_name]
     eval_metric = model.eval_metrics(pool, full_metric_name)[full_metric_name]
     eval_metric_inverse = model.eval_metrics(pool, full_metric_name_inverse)[full_metric_name_inverse]
     assert not np.array_equal(eval_metric, eval_metric_inverse)
@@ -9756,7 +9868,10 @@ def test_callbacks_metrics():
 
 
 def test_fit_cat_features_type():
-    X = DataFrame(data=np.random.randint(0, 100, size=(100, 5)), columns=[f'feature{i}' for i in range(5)])
+    X = DataFrame(
+        data=np.random.randint(0, 100, size=(100, 5)),
+        columns=['feature{}'.format(i) for i in range(5)]
+    )
     y = np.random.randint(0, 2, size=100)
 
     model = CatBoostClassifier(iterations=2,
@@ -9780,3 +9895,72 @@ def test_sklearn_meta_algo():
 
     cc_model = CalibratedClassifierCV(model, cv='prefit', method='isotonic')
     model = cc_model.fit(X_train, y_train)
+
+
+def test_pool_with_timestamp(task_type):
+    features, labels = generate_random_labeled_dataset(n_samples=20, n_features=5, labels=[0, 1])
+    np.random.seed(42)
+    timestamp = np.arange(20)
+    np.random.shuffle(timestamp)
+
+    pool = Pool(features, label=labels, timestamp=timestamp)
+    model = CatBoostClassifier(
+        has_time=True,
+        iterations=2,
+        learning_rate=0.03,
+        task_type=task_type,
+        devices='0'
+    )
+    model.fit(pool)
+    output_model_path = test_output_path(OUTPUT_MODEL_PATH)
+    model.save_model(output_model_path)
+    return compare_canonical_models(output_model_path)
+
+
+def test_pool_set_timestamp(task_type):
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    np.random.seed(42)
+    timestamp = np.arange(pool.num_row())
+    np.random.shuffle(timestamp)
+    pool.set_timestamp(timestamp)
+    model = CatBoostClassifier(
+        has_time=True,
+        iterations=2,
+        learning_rate=0.03,
+        task_type=task_type,
+        devices='0'
+    )
+    model.fit(pool)
+    output_model_path = test_output_path(OUTPUT_MODEL_PATH)
+    model.save_model(output_model_path)
+    return compare_canonical_models(output_model_path)
+
+
+@pytest.mark.parametrize('train_final_model', [True, False])
+def test_select_features(task_type, train_final_model):
+    learn = Pool(TRAIN_FILE, column_description=CD_FILE)
+    test = Pool(TEST_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(
+        iterations=10,
+        learning_rate=0.03,
+        task_type=task_type,
+        devices='0'
+    )
+    summary = model.select_features(
+        learn,
+        eval_set=test,
+        steps=1,
+        train_final_model=train_final_model,
+        features_for_select='0-16',
+        num_features_to_select=10
+    )
+    assert len(summary['selected_features']) == 10
+    assert len(summary['eliminated_features']) == 7
+    if train_final_model:
+        assert model.is_fitted()
+        assert model.best_score_ != {}
+        assert model.evals_result_ != {}
+    else:
+        assert not model.is_fitted()
+        assert model.best_score_ == {}
+        assert model.evals_result_ == {}

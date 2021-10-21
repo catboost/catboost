@@ -19,7 +19,6 @@ import functools
 import traceback
 import warnings
 import inspect
-import sys
 import weakref
 
 from tokenize import open as open_py_source
@@ -31,7 +30,6 @@ from .func_inspect import format_call
 from .func_inspect import format_signature
 from .logger import Logger, format_time, pformat
 from ._store_backends import StoreBackendBase, FileSystemStoreBackend
-
 
 
 FIRST_LINE_TEXT = "# first line:"
@@ -135,7 +133,6 @@ def _store_backend_factory(backend, location, verbose=0, backend_options=None):
             "Instanciating a backend using a {} as a location is not "
             "supported by joblib. Returning None instead.".format(
                 location.__class__.__name__), UserWarning)
-
 
     return None
 
@@ -360,6 +357,12 @@ class NotMemorizedFunc(object):
     def clear(self, warn=True):
         # Argument "warn" is for compatibility with MemorizedFunc.clear
         pass
+
+    def call(self, *args, **kwargs):
+        return self.func(*args, **kwargs)
+
+    def check_call_in_cache(self, *args, **kwargs):
+        return False
 
 
 ###############################################################################
@@ -606,6 +609,21 @@ class MemorizedFunc(Logger):
 
         return state
 
+    def check_call_in_cache(self, *args, **kwargs):
+        """Check if function call is in the memory cache.
+
+        Does not call the function or do any work besides func inspection
+        and arg hashing.
+
+        Returns
+        -------
+        is_call_in_cache: bool
+            Whether or not the result of the function has been cached
+            for the input arguments that have been passed.
+        """
+        func_id, args_id = self._get_output_identifiers(*args, **kwargs)
+        return self.store_backend.contains_item((func_id, args_id))
+
     # ------------------------------------------------------------------------
     # Private interface
     # ------------------------------------------------------------------------
@@ -683,8 +701,8 @@ class MemorizedFunc(Logger):
                 extract_first_line(
                     self.store_backend.get_cached_func_code([func_id]))
         except (IOError, OSError):  # some backend can also raise OSError
-                self._write_func_code(func_code, first_line)
-                return False
+            self._write_func_code(func_code, first_line)
+            return False
         if old_func_code == func_code:
             return True
 
@@ -821,8 +839,6 @@ class MemorizedFunc(Logger):
                           % this_duration, stacklevel=5)
         return metadata
 
-    # XXX: Need a method to check if results are available.
-
     # ------------------------------------------------------------------------
     # Private `object` interface
     # ------------------------------------------------------------------------
@@ -848,7 +864,7 @@ class Memory(Logger):
 
         Parameters
         ----------
-        location: str or None
+        location: str, pathlib.Path or None
             The path of the base directory to use as a data store
             or None. If None is given, no caching is done and
             the Memory object is completely transparent. This option
@@ -882,7 +898,12 @@ class Memory(Logger):
             as functions are evaluated.
 
         bytes_limit: int, optional
-            Limit in bytes of the size of the cache.
+            Limit in bytes of the size of the cache. By default, the size of
+            the cache is unlimited. When reducing the size of the cache,
+            ``joblib`` keeps the most recently accessed items first.
+
+            **Note:** You need to call :meth:`joblib.Memory.reduce_size` to
+            actually reduce the cache size to be less than ``bytes_limit``.
 
         backend_options: dict, optional
             Contains a dictionnary of named parameters used to configure

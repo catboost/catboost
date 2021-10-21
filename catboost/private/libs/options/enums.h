@@ -161,7 +161,7 @@ enum class ELossFunction {
     /* user defined errors */
 
     PythonUserDefinedPerObject,
-    PythonUserDefinedMultiRegression,
+    PythonUserDefinedMultiTarget,
     UserPerObjMetric,
     UserQuerywiseMetric,
 
@@ -216,6 +216,10 @@ enum class ELossFunction {
     /* multi-regression */
     MultiRMSE,
     MultiRMSEWithMissingValues,
+
+    /* multilabel classification */
+    MultiLogloss,
+    MultiCrossEntropy,
 
     Combination
 };
@@ -384,6 +388,11 @@ enum class EF1AverageType {
     Micro,
     Macro,
     Weighted
+};
+
+enum class EAccuracyType {
+    Classic,
+    PerClass
 };
 
 namespace NCB {

@@ -27,10 +27,12 @@
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "absl/base/casts.h"
 #include "absl/base/internal/spinlock.h"
 #include "absl/base/internal/sysinfo.h"
 #include "absl/container/flat_hash_set.h"
 #include "absl/memory/memory.h"
+#include "absl/numeric/bits.h"
 #include "absl/strings/str_cat.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
@@ -39,10 +41,10 @@
 #include "tcmalloc/static_vars.h"
 
 namespace tcmalloc {
+namespace tcmalloc_internal {
 namespace {
 
-static constexpr size_t kMaxGpaPages =
-    tcmalloc::GuardedPageAllocator::kGpaMaxPages;
+static constexpr size_t kMaxGpaPages = GuardedPageAllocator::kGpaMaxPages;
 
 // Size of pages used by GuardedPageAllocator.
 static size_t PageSize() {
@@ -54,20 +56,20 @@ static size_t PageSize() {
 class GuardedPageAllocatorTest : public testing::Test {
  protected:
   GuardedPageAllocatorTest() {
-    absl::base_internal::SpinLockHolder h(&tcmalloc::pageheap_lock);
+    absl::base_internal::SpinLockHolder h(&pageheap_lock);
     gpa_.Init(kMaxGpaPages, kMaxGpaPages);
     gpa_.AllowAllocations();
   }
 
   explicit GuardedPageAllocatorTest(size_t num_pages) {
-    absl::base_internal::SpinLockHolder h(&tcmalloc::pageheap_lock);
+    absl::base_internal::SpinLockHolder h(&pageheap_lock);
     gpa_.Init(num_pages, kMaxGpaPages);
     gpa_.AllowAllocations();
   }
 
   ~GuardedPageAllocatorTest() override { gpa_.Destroy(); }
 
-  tcmalloc::GuardedPageAllocator gpa_;
+  GuardedPageAllocator gpa_;
 };
 
 class GuardedPageAllocatorParamTest
@@ -88,6 +90,36 @@ TEST_F(GuardedPageAllocatorTest, SingleAllocDealloc) {
   EXPECT_DEATH(buf[0] = 'B', "");
   EXPECT_DEATH(buf[PageSize() / 2] = 'B', "");
   EXPECT_DEATH(buf[PageSize() - 1] = 'B', "");
+}
+
+TEST_F(GuardedPageAllocatorTest, NoAlignmentProvided) {
+  constexpr size_t kLargeObjectAlignment = std::max(
+      kAlignment, static_cast<size_t>(__STDCPP_DEFAULT_NEW_ALIGNMENT__));
+
+  for (size_t base_size = 1; base_size <= 64; base_size <<= 1) {
+    for (size_t size : {base_size, base_size + 1}) {
+      SCOPED_TRACE(size);
+
+      constexpr int kElements = 10;
+      std::array<void *, kElements> ptrs;
+
+      // Make several allocation attempts to encounter left/right-alignment in
+      // the guarded region.
+      for (int i = 0; i < kElements; i++) {
+        ptrs[i] = gpa_.Allocate(size, 0);
+        EXPECT_NE(ptrs[i], nullptr);
+        EXPECT_TRUE(gpa_.PointerIsMine(ptrs[i]));
+
+        size_t observed_alignment =
+            1 << absl::countr_zero(absl::bit_cast<uintptr_t>(ptrs[i]));
+        EXPECT_GE(observed_alignment, std::min(size, kLargeObjectAlignment));
+      }
+
+      for (void *ptr : ptrs) {
+        gpa_.Deallocate(ptr);
+      }
+    }
+  }
 }
 
 TEST_F(GuardedPageAllocatorTest, AllocDeallocAligned) {
@@ -132,7 +164,7 @@ TEST_F(GuardedPageAllocatorTest, PointerIsMine) {
 
 TEST_F(GuardedPageAllocatorTest, Print) {
   char buf[1024] = {};
-  TCMalloc_Printer out(buf, sizeof(buf));
+  Printer out(buf, sizeof(buf));
   gpa_.Print(&out);
   EXPECT_THAT(buf, testing::ContainsRegex("GWP-ASan Status"));
 }
@@ -207,4 +239,5 @@ TEST_F(GuardedPageAllocatorTest, ThreadedHighContention) {
 }
 
 }  // namespace
+}  // namespace tcmalloc_internal
 }  // namespace tcmalloc

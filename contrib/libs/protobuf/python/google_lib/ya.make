@@ -1,5 +1,7 @@
 PY23_LIBRARY()
 
+WITHOUT_LICENSE_TEXTS()
+
 LICENSE(BSD-3-Clause)
 
 
@@ -13,31 +15,20 @@ NO_COMPILER_WARNINGS()
 
 NO_LINT()
 
-PEERDIR(contrib/libs/protobuf)
-
-PEERDIR(
-    contrib/python/six
-)
-
 # Workaround ymake inability to combine multiple PROTO_NAMESPACE in a single PY23_LIBRARY
 # by splitting necessary .proto files across multiple PY23_LIBRARY units.
 PEERDIR(
+    contrib/libs/protobuf
+    contrib/python/six
     contrib/libs/protobuf/python/google_lib/protos_from_protobuf
     contrib/libs/protobuf/python/google_lib/protos_from_protoc
 )
 
-ADDINCL(
-    contrib/libs/protobuf/python
-)
+ADDINCL(contrib/libs/protobuf/python)
 
-SRCDIR(
-    contrib/libs/protobuf/python
-)
+SRCDIR(contrib/libs/protobuf/python)
 
-CFLAGS(
-    -DPYTHON_PROTO2_CPP_IMPL_V2
-    -D_SHARED_PTR_H
-)
+CFLAGS(-DPYTHON_PROTO2_CPP_IMPL_V2)
 
 PY_SRCS(
     TOP_LEVEL
@@ -92,6 +83,7 @@ SRCS(
 )
 
 PY_REGISTER(google.protobuf.pyext._message)
+
 PY_REGISTER(google.protobuf.internal._api_implementation)
 
 END()

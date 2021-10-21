@@ -1,11 +1,10 @@
 #include "file.h"
 #include "fs.h"
+#include "tempfile.h"
 
 #include <library/cpp/testing/unittest/registar.h>
 
 #include <util/stream/file.h>
-#include "tempfile.h"
-#include "mktemp.h"
 #include <util/generic/yexception.h>
 
 class TFileTest: public TTestBase {

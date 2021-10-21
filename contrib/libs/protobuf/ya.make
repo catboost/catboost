@@ -8,7 +8,14 @@ PROVIDES(protobuf)
 
 VERSION(3.17.3)
 
-LICENSE(BSD-3-Clause)
+ORIGINAL_SOURCE(https://github.com/protocolbuffers/protobuf/archive/v3.17.3.tar.gz)
+
+LICENSE(
+    BSD-3-Clause
+    Protobuf-License
+)
+
+LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 PEERDIR(
     contrib/libs/zlib
@@ -16,7 +23,9 @@ PEERDIR(
 
 ADDINCL(
     GLOBAL contrib/libs/protobuf/src
-    GLOBAL FOR proto contrib/libs/protobuf/src
+    GLOBAL FOR
+    proto
+    contrib/libs/protobuf/src
 )
 
 NO_COMPILER_WARNINGS()

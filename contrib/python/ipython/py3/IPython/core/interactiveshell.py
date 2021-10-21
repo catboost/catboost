@@ -28,6 +28,7 @@ import subprocess
 import warnings
 from io import open as io_open
 
+from pathlib import Path
 from pickleshare import PickleShareDB
 
 from traitlets.config.configurable import SingletonConfigurable
@@ -892,7 +893,7 @@ class InteractiveShell(SingletonConfigurable):
         self.display_trap = DisplayTrap(hook=self.displayhook)
 
     def init_virtualenv(self):
-        """Add a virtualenv to sys.path so the user can import modules from it.
+        """Add the current virtualenv to sys.path so the user can import modules from it.
         This isn't perfect: it doesn't use the Python interpreter with which the
         virtualenv was built, and it ignores the --no-site-packages option. A
         warning will appear suggesting the user installs IPython in the
@@ -905,42 +906,41 @@ class InteractiveShell(SingletonConfigurable):
         if 'VIRTUAL_ENV' not in os.environ:
             # Not in a virtualenv
             return
-        
-        p = os.path.normcase(sys.executable)
-        p_venv = os.path.normcase(os.environ['VIRTUAL_ENV'])
-
-        # executable path should end like /bin/python or \\scripts\\python.exe
-        p_exe_up2 = os.path.dirname(os.path.dirname(p))
-        if p_exe_up2 and os.path.exists(p_venv) and os.path.samefile(p_exe_up2, p_venv):
-            # Our exe is inside the virtualenv, don't need to do anything.
+        elif os.environ["VIRTUAL_ENV"] == "":
+            warn("Virtual env path set to '', please check if this is intended.")
             return
+
+        p = Path(sys.executable)
+        p_venv = Path(os.environ["VIRTUAL_ENV"])
 
         # fallback venv detection:
         # stdlib venv may symlink sys.executable, so we can't use realpath.
         # but others can symlink *to* the venv Python, so we can't just use sys.executable.
         # So we just check every item in the symlink tree (generally <= 3)
         paths = [p]
-        while os.path.islink(p):
-            p = os.path.normcase(os.path.join(os.path.dirname(p), os.readlink(p)))
-            paths.append(p)
+        while p.is_symlink():
+            p = Path(os.readlink(p))
+            paths.append(p.resolve())
         
         # In Cygwin paths like "c:\..." and '\cygdrive\c\...' are possible
-        if p_venv.startswith('\\cygdrive'):
-            p_venv = p_venv[11:]
-        elif len(p_venv) >= 2 and p_venv[1] == ':':
-            p_venv = p_venv[2:]
+        if p_venv.parts[1] == "cygdrive":
+            drive_name = p_venv.parts[2]
+            p_venv = (drive_name + ":/") / Path(*p_venv.parts[3:])
 
-        if any(p_venv in p for p in paths):
-            # Running properly in the virtualenv, don't need to do anything
+        if any(p_venv == p.parents[1] for p in paths):
+            # Our exe is inside or has access to the virtualenv, don't need to do anything.
             return
-        
+
         warn("Attempting to work in a virtualenv. If you encounter problems, please "
              "install IPython inside the virtualenv.")
         if sys.platform == "win32":
-            virtual_env = os.path.join(os.environ['VIRTUAL_ENV'], 'Lib', 'site-packages') 
+            virtual_env = Path(os.environ["VIRTUAL_ENV"]).joinpath(
+                "Lib", "site-packages"
+            )
         else:
-            virtual_env = os.path.join(os.environ['VIRTUAL_ENV'], 'lib',
-                       'python%d.%d' % sys.version_info[:2], 'site-packages')
+            virtual_env = Path(os.environ["VIRTUAL_ENV"]).joinpath(
+                "lib", "python{}.{}".format(*sys.version_info[:2]), "site-packages"
+            )
         
         import site
         sys.path.insert(0, virtual_env)
@@ -1885,6 +1885,9 @@ class InteractiveShell(SingletonConfigurable):
             To protect IPython from crashes, if your handler ever raises an
             exception or returns an invalid result, it will be immediately
             disabled.
+
+        Notes
+        -----
 
         WARNING: by putting in your own exception handler into IPython's main
         execution loop, you run a very good chance of nasty crashes.  This

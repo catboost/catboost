@@ -3,11 +3,22 @@
 # NOTE: rules should be ordered from specific to generic (first matching rule is used)
 # See rule syntax docs: https://wiki.yandex-team.ru/devrules/overall/peerdirprohibition/
 
+# scale_ipp filter for ffmpeg use Intel IPP hence it is nonfree
+ALLOW strm/cv/ffmpeg_adcv/toshik_filters -> contrib/restricted/ffmpeg-3-scale-ipp
+
 # CityHash-1.0.2 is a specific version hardwired into ClickHouse public interface
 ALLOW clickhouse -> contrib/restricted/cityhash-1.0.2
+ALLOW library/cpp/clickhouse -> contrib/restricted/cityhash-1.0.2
+ALLOW saas/library/hash_to_block_mode -> contrib/restricted/cityhash-1.0.2
 
 # dragonbox is a specific library for float formatting
 ALLOW clickhouse -> contrib/restricted/dragonbox
+
+# same rules for restricted set of sources in YQL
+ALLOW yql/udfs/common/clickhouse/client -> contrib/restricted/cityhash-1.0.2
+ALLOW yql/udfs/common/clickhouse/client -> contrib/restricted/boost
+ALLOW yql/udfs/common/clickhouse/client -> contrib/restricted/dragonbox
+ALLOW yql/udfs/common/clickhouse/client -> contrib/restricted/fast_float
 
 # fast_float is a faster alternative to double-conversion for float parsing.
 # ClickHouse uses the best libraries for performance, that's why it changes them with insane speed.
@@ -17,6 +28,9 @@ ALLOW clickhouse -> contrib/restricted/fast_float
 # ClickHouse uses hash-table from abseil-cpp for better performance in CacheDictionaries and SSDCacheDictionaries,
 # because it the best best open source hash table framework (swiss hash tables, hash functions)
 ALLOW clickhouse -> contrib/restricted/abseil-cpp
+
+# TurboBase64 is a fast vectorized library for encoding/decoding base64.
+ALLOW clickhouse -> contrib/restricted/turbo_base64
 
 # For HBase client: CONTRIB-1790
 ALLOW passport/cpp -> contrib/restricted/thrift
@@ -140,6 +154,8 @@ ALLOW yandex_io -> contrib/restricted/boost
 ALLOW yweb/robot/js -> contrib/restricted/boost
 ALLOW market/access/server/env -> contrib/restricted/boost
 ALLOW sdg/ros_msg_parser -> contrib/restricted/boost
+ALLOW search/meta/scatter/ant -> contrib/restricted/boost
+ALLOW search/meta/scatter/ut -> contrib/restricted/boost
 
 # use GTEST target in ya.make instead of PEERDIRing contrib/restricted/googletest
 # and include <library/cpp/testing/gtest.h> instead of <gtest/gtest.h> (<gmock/gmock.h>)
@@ -165,6 +181,8 @@ ALLOW .* -> contrib/restricted/librseq/headeronly
 
 # we use nfs-ganesha for Network File Store gateway
 ALLOW cloud/filestore/gateway/nfs -> contrib/restricted/nfs_ganesha
+
+ALLOW yandex_io -> contrib/restricted/patched/hostap_client
 
 # Default policies:
 #

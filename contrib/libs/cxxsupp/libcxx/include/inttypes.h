@@ -248,7 +248,7 @@ uintmax_t wcstoumax(const wchar_t* restrict nptr, wchar_t** restrict endptr, int
 #   define __STDC_FORMAT_MACROS
 #endif
 
-#if defined(_LIBCPP_COMPILER_MSVC)
+#ifdef _LIBCPP_COMPILER_MSVC
 #include _LIBCPP_UCRT_INCLUDE(inttypes.h)
 #else
 #include_next <inttypes.h>
@@ -263,4 +263,4 @@ uintmax_t wcstoumax(const wchar_t* restrict nptr, wchar_t** restrict endptr, int
 
 #endif // __cplusplus
 
-#endif  // _LIBCPP_INTTYPES_H
+#endif // _LIBCPP_INTTYPES_H

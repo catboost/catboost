@@ -471,13 +471,13 @@ public:
     };
 
     template <class... TVariantTypes>
-    int Add(const chunk_id, TVariant<TVariantTypes...>* pData) {
-        static_assert(::TVariantSize<TVariant<TVariantTypes...>>::value < Max<ui32>());
+    int Add(const chunk_id, std::variant<TVariantTypes...>* pData) {
+        static_assert(std::variant_size_v<std::variant<TVariantTypes...>> < Max<ui32>());
 
         ui32 index;
         if (IsReading()) {
             Add(1, &index);
-            TLoadFromTypeFromListHelper<TVariant<TVariantTypes...>>::template Do<TVariantTypes...>(
+            TLoadFromTypeFromListHelper<std::variant<TVariantTypes...>>::template Do<TVariantTypes...>(
                 *this,
                 index,
                 pData
@@ -485,7 +485,7 @@ public:
         } else {
             index = pData->index(); // type cast is safe because of static_assert check above
             Add(1, &index);
-            ::Visit([&](auto& dst) -> void { Add(2, &dst); }, *pData);
+            std::visit([&](auto& dst) -> void { Add(2, &dst); }, *pData);
         }
         return 0;
     }
@@ -625,11 +625,17 @@ struct TRegisterSaveLoadType {
         return 0;                 \
     }
 
-#define SAVELOAD_OVERRIDE(base, ...)      \
-    int operator&(IBinSaver& f)override { \
-        base::operator&(f);               \
-        f.AddMulti(__VA_ARGS__);          \
-        return 0;                         \
+#define SAVELOAD_OVERRIDE_WITHOUT_BASE(...) \
+    int operator&(IBinSaver& f) override {  \
+        f.AddMulti(__VA_ARGS__);            \
+        return 0;                           \
+    }
+
+#define SAVELOAD_OVERRIDE(base, ...)       \
+    int operator&(IBinSaver& f) override { \
+        base::operator&(f);                \
+        f.AddMulti(__VA_ARGS__);           \
+        return 0;                          \
     }
 
 #define SAVELOAD_BASE(...)        \

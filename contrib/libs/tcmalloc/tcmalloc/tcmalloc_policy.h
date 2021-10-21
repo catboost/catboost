@@ -14,7 +14,7 @@
 //
 // This file defines policies used when allocation memory.
 //
-// An allocation policy encapsulates three policies:
+// An allocation policy encapsulates four policies:
 //
 // - Out of memory policy.
 //   Dictates how to handle OOM conditions.
@@ -43,6 +43,20 @@
 //     // Returns true if allocation hooks must be invoked.
 //     static bool invoke_hooks();
 //   };
+//
+// - NUMA partition policy
+//   When NUMA awareness is enabled this dictates which NUMA partition we will
+//   allocate memory from. Must be trivially copyable.
+//
+//   struct NumaPartitionPolicyTemplate {
+//     // Returns the NUMA partition to allocate from.
+//     size_t partition() const;
+//
+//     // Returns the NUMA partition to allocate from multiplied by
+//     // kNumBaseClasses - i.e. the first size class that corresponds to the
+//     // NUMA partition to allocate from.
+//     size_t scaled_partition() const;
+//   };
 
 #ifndef TCMALLOC_TCMALLOC_POLICY_H_
 #define TCMALLOC_TCMALLOC_POLICY_H_
@@ -54,8 +68,13 @@
 #include <cstddef>
 
 #include "tcmalloc/internal/logging.h"
+#include "tcmalloc/internal/numa.h"
+#include "tcmalloc/internal/percpu.h"
+#include "tcmalloc/static_vars.h"
 
+GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
+namespace tcmalloc_internal {
 
 // NullOomPolicy: returns nullptr
 struct NullOomPolicy {
@@ -124,16 +143,47 @@ struct NoHooksPolicy {
   static constexpr bool invoke_hooks() { return false; }
 };
 
+// Use a fixed NUMA partition.
+class FixedNumaPartitionPolicy {
+ public:
+  explicit constexpr FixedNumaPartitionPolicy(size_t partition)
+      : partition_(partition) {}
+
+  size_t constexpr partition() const { return partition_; }
+
+  size_t constexpr scaled_partition() const {
+    return partition_ * kNumBaseClasses;
+  }
+
+ private:
+  size_t partition_;
+};
+
+// Use the NUMA partition which the executing CPU is local to.
+struct LocalNumaPartitionPolicy {
+  // Note that the partition returned may change between calls if the executing
+  // thread migrates between NUMA nodes & partitions. Users of this function
+  // should not rely upon multiple invocations returning the same partition.
+  size_t partition() const {
+    return Static::numa_topology().GetCurrentPartition();
+  }
+  size_t scaled_partition() const {
+    return Static::numa_topology().GetCurrentScaledPartition();
+  }
+};
+
 // TCMallocPolicy defines the compound policy object containing
 // the OOM, alignment and hooks policies.
 // Is trivially constructible, copyable and destructible.
 template <typename OomPolicy = CppOomPolicy,
           typename AlignPolicy = DefaultAlignPolicy,
-          typename HooksPolicy = InvokeHooksPolicy>
+          typename HooksPolicy = InvokeHooksPolicy,
+          typename NumaPolicy = LocalNumaPartitionPolicy>
 class TCMallocPolicy {
  public:
   constexpr TCMallocPolicy() = default;
-  explicit constexpr TCMallocPolicy(AlignPolicy align) : align_(align) {}
+  explicit constexpr TCMallocPolicy(AlignPolicy align, NumaPolicy numa)
+      : align_(align), numa_(numa) {}
 
   // OOM policy
   static void* handle_oom(size_t size) { return OomPolicy::handle_oom(size); }
@@ -141,28 +191,54 @@ class TCMallocPolicy {
   // Alignment policy
   constexpr size_t align() const { return align_.align(); }
 
+  // NUMA partition
+  constexpr size_t numa_partition() const { return numa_.partition(); }
+
+  // NUMA partition multiplied by kNumBaseClasses
+  constexpr size_t scaled_numa_partition() const {
+    return numa_.scaled_partition();
+  }
+
   // Hooks policy
   static constexpr bool invoke_hooks() { return HooksPolicy::invoke_hooks(); }
 
   // Returns this policy aligned as 'align'
   template <typename align_t>
-  constexpr TCMallocPolicy<OomPolicy, AlignAsPolicy, HooksPolicy> AlignAs(
+  constexpr TCMallocPolicy<OomPolicy, AlignAsPolicy, HooksPolicy, NumaPolicy>
+  AlignAs(
       align_t align) const {
-    return TCMallocPolicy<OomPolicy, AlignAsPolicy, HooksPolicy>(
-        AlignAsPolicy{align});
+    return TCMallocPolicy<OomPolicy, AlignAsPolicy, HooksPolicy, NumaPolicy>(
+        AlignAsPolicy{align}, numa_);
   }
 
   // Returns this policy with a nullptr OOM policy.
-  constexpr TCMallocPolicy<NullOomPolicy, AlignPolicy, HooksPolicy> Nothrow()
+  constexpr TCMallocPolicy<NullOomPolicy, AlignPolicy, HooksPolicy,
+  NumaPolicy> Nothrow()
       const {
-    return TCMallocPolicy<NullOomPolicy, AlignPolicy, HooksPolicy>(align_);
+    return TCMallocPolicy<NullOomPolicy, AlignPolicy, HooksPolicy,
+    NumaPolicy>(align_, numa_);
   }
 
   // Returns this policy with NewAllocHook invocations disabled.
-  constexpr TCMallocPolicy<OomPolicy, AlignPolicy, NoHooksPolicy>
+  constexpr TCMallocPolicy<OomPolicy, AlignPolicy, NoHooksPolicy, NumaPolicy>
   WithoutHooks()
       const {
-    return TCMallocPolicy<OomPolicy, AlignPolicy, NoHooksPolicy>(align_);
+    return TCMallocPolicy<OomPolicy, AlignPolicy, NoHooksPolicy,
+    NumaPolicy>(align_, numa_);
+  }
+
+  // Returns this policy with a fixed NUMA partition.
+  constexpr TCMallocPolicy<OomPolicy, AlignPolicy, NoHooksPolicy,
+  FixedNumaPartitionPolicy> InNumaPartition(size_t partition) const {
+    return TCMallocPolicy<OomPolicy, AlignPolicy, NoHooksPolicy,
+    FixedNumaPartitionPolicy>(
+        align_, FixedNumaPartitionPolicy{partition});
+  }
+
+  // Returns this policy with a fixed NUMA partition matching that of the
+  // previously allocated `ptr`.
+  constexpr auto InSameNumaPartitionAs(void* ptr) const {
+    return InNumaPartition(NumaPartitionFromPointer(ptr));
   }
 
   static constexpr bool can_return_nullptr() {
@@ -171,11 +247,14 @@ class TCMallocPolicy {
 
  private:
   AlignPolicy align_;
+  NumaPolicy numa_;
 };
 
 using CppPolicy = TCMallocPolicy<CppOomPolicy, DefaultAlignPolicy>;
 using MallocPolicy = TCMallocPolicy<MallocOomPolicy, MallocAlignPolicy>;
 
+}  // namespace tcmalloc_internal
 }  // namespace tcmalloc
+GOOGLE_MALLOC_SECTION_END
 
 #endif  // TCMALLOC_TCMALLOC_POLICY_H_

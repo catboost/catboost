@@ -14,7 +14,7 @@ Y_UNIT_TEST_SUITE(KappaMetricTest) {
             TVector<float> weight{1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
 
             NPar::TLocalExecutor executor;
-            auto metric = std::move(CreateMetric(ELossFunction::Kappa, TLossParams(), 3)[0]);
+            auto metric = std::move(CreateSingleTargetMetric(ELossFunction::Kappa, TLossParams(), 3)[0]);
             TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);
 
             UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 1, 1e-1);
@@ -25,7 +25,7 @@ Y_UNIT_TEST_SUITE(KappaMetricTest) {
             TVector<float> weight{1, 1, 1, 1};
 
             NPar::TLocalExecutor executor;
-            const auto metric = std::move(CreateMetric(ELossFunction::Kappa, TLossParams(), 1)[0]);
+            const auto metric = std::move(CreateSingleTargetMetric(ELossFunction::Kappa, TLossParams(), 1)[0]);
             TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);
 
             UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0, 1e-1);
@@ -38,7 +38,7 @@ Y_UNIT_TEST_SUITE(KappaMetricTest) {
             TVector<float> weight{1, 1, 1, 1};
 
             NPar::TLocalExecutor executor;
-            auto metric = std::move(CreateMetric(ELossFunction::Kappa, TLossParams(), 3)[0]);
+            auto metric = std::move(CreateSingleTargetMetric(ELossFunction::Kappa, TLossParams(), 3)[0]);
             TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);
 
             UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0.2727, 1e-4);
@@ -52,7 +52,7 @@ Y_UNIT_TEST_SUITE(KappaMetricTest) {
             TVector<float> weight{1, 1, 1, 1};
 
             NPar::TLocalExecutor executor;
-            auto metric = std::move(CreateMetric(ELossFunction::WKappa, TLossParams(), 1)[0]);
+            auto metric = std::move(CreateSingleTargetMetric(ELossFunction::WKappa, TLossParams(), 1)[0]);
             TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);
 
             UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0, 1e-1);
@@ -63,7 +63,7 @@ Y_UNIT_TEST_SUITE(KappaMetricTest) {
             TVector<float> weight{1, 1, 1, 1};
 
             NPar::TLocalExecutor executor;
-            auto metric = std::move(CreateMetric(ELossFunction::WKappa, TLossParams(), 1)[0]);
+            auto metric = std::move(CreateSingleTargetMetric(ELossFunction::WKappa, TLossParams(), 1)[0]);
             TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);
 
             UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 1, 1e-1);
@@ -76,7 +76,7 @@ Y_UNIT_TEST_SUITE(KappaMetricTest) {
             TVector<float> weight{1, 1, 1, 1};
 
             NPar::TLocalExecutor executor;
-            auto metric = std::move(CreateMetric(ELossFunction::WKappa, TLossParams(), 3)[0]);
+            auto metric = std::move(CreateSingleTargetMetric(ELossFunction::WKappa, TLossParams(), 3)[0]);
             TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);
 
             UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0.6363, 1e-4);

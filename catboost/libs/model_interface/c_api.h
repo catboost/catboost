@@ -3,6 +3,11 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+
+#define CATBOOST_APPLIER_MAJOR 1
+#define CATBOOST_APPLIER_MINOR 0
+#define CATBOOST_APPLIER_FIX 0
+
 #if defined(__cplusplus)
 extern "C" {
 #endif

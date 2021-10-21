@@ -106,8 +106,8 @@ public:
     TNode(const TNode& rhs);
     TNode& operator=(const TNode& rhs);
 
-    TNode(TNode&& rhs);
-    TNode& operator=(TNode&& rhs);
+    TNode(TNode&& rhs) noexcept;
+    TNode& operator=(TNode&& rhs) noexcept;
 
     ~TNode();
 

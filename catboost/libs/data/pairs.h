@@ -39,8 +39,8 @@ struct THash<NCB::TPairInGroup> {
 
 namespace NCB {
     using TGroupedPairsInfo = TVector<TPairInGroup>;
-    using TRawPairsData = TVariant<TFlatPairsInfo, TGroupedPairsInfo>;
-    using TRawPairsDataRef = TVariant<TConstArrayRef<TPair>, TConstArrayRef<TPairInGroup>>;
+    using TRawPairsData = std::variant<TFlatPairsInfo, TGroupedPairsInfo>;
+    using TRawPairsDataRef = std::variant<TConstArrayRef<TPair>, TConstArrayRef<TPairInGroup>>;
 
     bool EqualWithoutOrder(const TRawPairsData& lhs, const TRawPairsData& rhs);
 }

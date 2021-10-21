@@ -62,7 +62,7 @@ void CalcLeafValues(
     const NCB::TTrainingDataProviders& data,
     const IDerCalcer& error,
     const TFold& fold,
-    const TVariant<TSplitTree, TNonSymmetricTreeStructure>& tree,
+    const std::variant<TSplitTree, TNonSymmetricTreeStructure>& tree,
     TLearnContext* ctx,
     TVector<TVector<double>>* leafDeltas,
     TVector<TIndexType>* indices
@@ -73,7 +73,7 @@ void CalcApproxForLeafStruct(
     const NCB::TTrainingDataProviders& data,
     const IDerCalcer& error,
     const TFold& fold,
-    const TVariant<TSplitTree, TNonSymmetricTreeStructure>& tree,
+    const std::variant<TSplitTree, TNonSymmetricTreeStructure>& tree,
     ui64 randomSeed,
     TLearnContext* ctx,
     TVector<TVector<TVector<double>>>* approxesDelta // [bodyTailId][approxDim][docIdxInPermuted]

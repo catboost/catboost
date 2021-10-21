@@ -118,7 +118,11 @@ def onjava_module(unit, *args):
         'FAKEID': extract_macro_calls(unit, 'FAKEID', args_delim),
         'TEST_DATA': extract_macro_calls(unit, 'TEST_DATA_VALUE', args_delim),
         'JAVA_FORBIDDEN_LIBRARIES': extract_macro_calls(unit, 'JAVA_FORBIDDEN_LIBRARIES_VALUE', args_delim),
+        'JDK_RESOURCE': 'JDK' + (unit.get('JDK_VERSION') or '_DEFAULT')
     }
+    if unit.get('ENABLE_PREVIEW_VALUE') == 'yes' and unit.get('JDK_VERSION') in ('15', '16', '17'):
+        data['ENABLE_PREVIEW'] = extract_macro_calls(unit, 'ENABLE_PREVIEW_VALUE', args_delim)
+
     if unit.get('SAVE_JAVAC_GENERATED_SRCS_DIR') and unit.get('SAVE_JAVAC_GENERATED_SRCS_TAR'):
         data['SAVE_JAVAC_GENERATED_SRCS_DIR'] = extract_macro_calls(unit, 'SAVE_JAVAC_GENERATED_SRCS_DIR', args_delim)
         data['SAVE_JAVAC_GENERATED_SRCS_TAR'] = extract_macro_calls(unit, 'SAVE_JAVAC_GENERATED_SRCS_TAR', args_delim)
@@ -273,15 +277,23 @@ def on_check_java_srcdir(unit, *args):
     args = list(args)
     for arg in args:
         if not '$' in arg:
-            abs_srcdir = unit.resolve(os.path.join("$S/", unit.get('MODDIR'), arg))
+            arc_srcdir = os.path.join(unit.get('MODDIR'), arg)
+            abs_srcdir = unit.resolve(os.path.join("$S/", arc_srcdir))
             if not os.path.exists(abs_srcdir) or not os.path.isdir(abs_srcdir):
-                ymake.report_configure_error('SRCDIR {} does not exists or not a directory'.format(abs_srcdir))
+                ymake.report_configure_error(
+                    'Trying to set a [[alt1]]JAVA_SRCS[[rst]] for a missing directory: [[imp]]$S/{}[[rst]]',
+                    missing_dir=arc_srcdir
+                )
+            return
         srcdir = unit.resolve_arc_path(arg)
         if srcdir and not srcdir.startswith('$S'):
             continue
         abs_srcdir = unit.resolve(srcdir) if srcdir else unit.resolve(arg)
         if not os.path.exists(abs_srcdir) or not os.path.isdir(abs_srcdir):
-            ymake.report_configure_error('SRCDIR {} does not exists or not a directory'.format(abs_srcdir))
+            ymake.report_configure_error(
+                'Trying to set a [[alt1]]JAVA_SRCS[[rst]] for a missing directory: [[imp]]{}[[rst]]',
+                missing_dir=srcdir
+            )
 
 
 def on_fill_jar_copy_resources_cmd(unit, *args):
@@ -298,7 +310,7 @@ def on_fill_jar_copy_resources_cmd(unit, *args):
 def on_fill_jar_gen_srcs(unit, *args):
     varname, jar_type, srcdir, base_classes_dir, java_list, kt_list, groovy_list, res_list = tuple(args[0:8])
     resolved_srcdir = unit.resolve_arc_path(srcdir)
-    if resolved_srcdir.startswith('$S'):
+    if not resolved_srcdir.startswith('$') or resolved_srcdir.startswith('$S'):
         return
 
     exclude_pos = args.index('EXCLUDE')
@@ -367,7 +379,7 @@ def parse_words(words):
         if len(p) > 1:
             props.append(base64.b64encode("{}={}".format(p[0], ' '.join(p[1:]))))
         else:
-            props.append(base64.b64encode("{}".format(p[0])))
+            ymake.report_configure_error('CUSTOM_PROPERTY "{}" value is not specified'.format(p[0]))
     for i, o in enumerate(outputs):
         yield o, tepmlates[min(i, len(tepmlates) - 1)], props
 
@@ -375,3 +387,11 @@ def parse_words(words):
 def on_ymake_generate_script(unit, *args):
     for out, tmpl, props in parse_words(list(args)):
         unit.on_add_gen_java_script([out, tmpl] + list(props))
+
+def on_jdk_version_macro_check(unit, *args):
+    if len(args) != 1:
+        unit.message(["error", "Invalid syntax. Single argument required."])
+    jdk_version = args[0]
+    availible_versions = ('10', '11', '12', '13', '14', '15', '16', '17',)
+    if jdk_version not in availible_versions:
+        unit.message(["error", "Invalid jdk version: {}. {} are availible".format(jdk_version, availible_versions)])

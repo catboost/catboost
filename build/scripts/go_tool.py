@@ -354,10 +354,12 @@ def _do_compile_go(args):
         'go{}'.format(args.goversion)
     ]
     cmd.extend(get_trimpath_args(args))
+    compiling_runtime = False
     if is_std_module:
         cmd.append('-std')
-        if import_path == 'runtime' or import_path.startswith('runtime/internal/'):
+        if import_path in ('runtime', 'internal/abi', 'internal/bytealg', 'internal/cpu') or import_path.startswith('runtime/internal/'):
             cmd.append('-+')
+            compiling_runtime = True
     import_config_name = create_import_config(args.peers, True, args.import_map, args.module_map)
     if import_config_name:
         cmd += ['-importcfg', import_config_name]
@@ -366,7 +368,8 @@ def _do_compile_go(args):
             pass
         else:
             cmd.append('-complete')
-    if args.embed and compare_versions('1.16', args.goversion) >= 0:
+    # if compare_versions('1.16', args.goversion) >= 0:
+    if args.embed:
         embed_config_name = create_embed_config(args)
         cmd.extend(['-embedcfg', embed_config_name])
     if args.asmhdr:
@@ -381,7 +384,7 @@ def _do_compile_go(args):
     #     cmd.append('-allabis')
     compile_workers = '4'
     if args.compile_flags:
-        if import_path == 'runtime' or import_path.startswith('runtime/'):
+        if compiling_runtime:
             cmd.extend(x for x in args.compile_flags if x not in COMPILE_OPTIMIZATION_FLAGS)
         else:
             cmd.extend(args.compile_flags)
@@ -425,18 +428,21 @@ def do_compile_go(args):
 
 def do_compile_asm(args):
     def need_compiling_runtime(import_path):
-        return import_path in ('runtime', 'reflect', 'syscall') or import_path.startswith('runtime/internal/')
+        return import_path in ('runtime', 'reflect', 'syscall') or \
+            import_path.startswith('runtime/internal/') or \
+            compare_versions('1.17', args.goversion) >= 0 and import_path == 'internal/bytealg'
 
     assert(len(args.srcs) == 1 and len(args.asm_srcs) == 1)
     cmd = [args.go_asm]
     cmd += get_trimpath_args(args)
     cmd += ['-I', args.output_root, '-I', os.path.join(args.pkg_root, 'include')]
     cmd += ['-D', 'GOOS_' + args.targ_os, '-D', 'GOARCH_' + args.targ_arch, '-o', args.output]
-    # TODO: This is just a quick fix to start work on 1.16 support
-    if compare_versions('1.16', args.goversion) >= 0:
-        cmd += ['-p', args.import_path]
-        if need_compiling_runtime(args.import_path):
-            cmd += ['-compiling-runtime']
+
+    # if compare_versions('1.16', args.goversion) >= 0:
+    cmd += ['-p', args.import_path]
+    if need_compiling_runtime(args.import_path):
+        cmd += ['-compiling-runtime']
+
     if args.asm_flags:
         cmd += args.asm_flags
     cmd += args.asm_srcs
@@ -456,7 +462,7 @@ def do_link_lib(args):
             args.objects.append(asmargs.output)
     else:
         do_compile_go(args)
-    if args.objects:
+    if args.objects or args.sysos:
         cmd = [args.go_pack, 'r', args.output] + args.objects + args.sysos
         call(cmd, args.build_root)
 

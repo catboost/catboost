@@ -29,7 +29,7 @@ static TStringBuf GetNodeTypeAsStringBuf(pugi::xml_node_type nodeType) {
     switch (nodeType) {
 #define XML_NODE_TYPE_CASE(name) \
         case pugi::name: \
-            return AsStringBuf(#name);
+            return TStringBuf(#name);
 
         XML_NODE_TYPE_CASE(node_null)
         XML_NODE_TYPE_CASE(node_document)

@@ -229,7 +229,10 @@ def pytest_configure(config):
     config.test_cores_count = 0
     config.collect_cores = config.option.collect_cores
     config.sanitizer_extra_checks = config.option.sanitizer_extra_checks
-    config.test_tool_bin = config.option.test_tool_bin
+    try:
+        config.test_tool_bin = config.option.test_tool_bin
+    except AttributeError:
+        logging.info("test_tool_bin not specified")
 
     if config.sanitizer_extra_checks:
         for envvar in ['LSAN_OPTIONS', 'ASAN_OPTIONS']:
@@ -534,7 +537,7 @@ def pytest_runtest_makereport(item, call):
 
     def logreport(report, result, call):
         test_item = TestItem(report, result, pytest.config.option.test_suffix)
-        if not pytest.config.suite_metrics:
+        if not pytest.config.suite_metrics and context.Ctx.get("YA_PYTEST_START_TIMESTAMP"):
             pytest.config.suite_metrics["pytest_startup_duration"] = call.start - context.Ctx["YA_PYTEST_START_TIMESTAMP"]
             pytest.config.ya_trace_reporter.dump_suite_metrics()
 
@@ -812,7 +815,7 @@ class TraceReportGenerator(object):
             with open(self._wreckage_filename, 'a') as afile:
                 self._file = afile
 
-                self._dump_trace('suite_event', {"errors": [('fail', '[[bad]]' + msg)]})
+                self._dump_trace('chunk_event', {"errors": [('fail', '[[bad]]' + msg)]})
 
             raise Exception(msg)
         else:
@@ -882,7 +885,7 @@ class TraceReportGenerator(object):
         self.trace("suite-event", message)
 
     def on_error(self, test_item):
-        self.trace('suite_event', {"errors": [(test_item.status, self._get_comment(test_item))]})
+        self.trace('chunk_event', {"errors": [(test_item.status, self._get_comment(test_item))]})
 
     def on_log_report(self, test_item):
         if test_item.nodeid in self._test_duration:
@@ -955,7 +958,7 @@ class TraceReportGenerator(object):
                     # overwrite original status
                     self._dump_trace('subtest-finished', data)
                 else:
-                    self._dump_trace('suite_event', {"errors": [('fail', msg)]})
+                    self._dump_trace('chunk_event', {"errors": [('fail', msg)]})
         except Exception as e:
             yatest_logger.exception(e)
         finally:

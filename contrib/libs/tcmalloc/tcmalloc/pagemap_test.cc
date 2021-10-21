@@ -32,10 +32,11 @@
 // create too many maps.
 
 namespace tcmalloc {
+namespace tcmalloc_internal {
 namespace {
 
 // Pick span pointer to use for page numbered i
-void* span(intptr_t i) { return reinterpret_cast<void*>(i + 1); }
+Span* span(intptr_t i) { return reinterpret_cast<Span*>(i + 1); }
 
 // Pick sizeclass to use for page numbered i
 uint8_t sc(intptr_t i) { return i % 16; }
@@ -68,7 +69,7 @@ class PageMapTest : public ::testing::TestWithParam<int> {
   }
 
  public:
-  using Map = tcmalloc::PageMap2<20, alloc>;
+  using Map = PageMap2<20, alloc>;
   Map* map;
 
  private:
@@ -138,22 +139,22 @@ INSTANTIATE_TEST_SUITE_P(Limits, PageMapTest, ::testing::Values(100, 1 << 20));
 // that this is true even if this structure is mapped with huge pages.
 static struct PaddedPageMap {
   constexpr PaddedPageMap() : padding_before{}, pagemap{}, padding_after{} {}
-  uint64_t padding_before[tcmalloc::kHugePageSize / sizeof(uint64_t)];
-  tcmalloc::PageMap pagemap;
-  uint64_t padding_after[tcmalloc::kHugePageSize / sizeof(uint64_t)];
+  uint64_t padding_before[kHugePageSize / sizeof(uint64_t)];
+  PageMap pagemap;
+  uint64_t padding_after[kHugePageSize / sizeof(uint64_t)];
 } padded_pagemap_;
 
 TEST(TestMemoryFootprint, Test) {
   uint64_t pagesize = sysconf(_SC_PAGESIZE);
   ASSERT_NE(pagesize, 0);
-  size_t pages = sizeof(tcmalloc::PageMap) / pagesize + 1;
+  size_t pages = sizeof(PageMap) / pagesize + 1;
   std::vector<unsigned char> present(pages);
 
   // mincore needs the address rounded to the start page
   uint64_t basepage =
       reinterpret_cast<uintptr_t>(&padded_pagemap_.pagemap) & ~(pagesize - 1);
-  ASSERT_EQ(mincore(reinterpret_cast<void*>(basepage),
-                    sizeof(tcmalloc::PageMap), present.data()),
+  ASSERT_EQ(mincore(reinterpret_cast<void*>(basepage), sizeof(PageMap),
+                    present.data()),
             0);
   for (int i = 0; i < pages; i++) {
     EXPECT_EQ(present[i], 0);
@@ -161,4 +162,5 @@ TEST(TestMemoryFootprint, Test) {
 }
 
 }  // namespace
+}  // namespace tcmalloc_internal
 }  // namespace tcmalloc

@@ -5,7 +5,7 @@
 #include <util/generic/strbuf.h>
 #include <util/system/defaults.h>
 
-namespace NYT {
+namespace NYson {
     ////////////////////////////////////////////////////////////////////////////////
 
     struct IYsonConsumer {
@@ -32,6 +32,9 @@ namespace NYT {
         virtual void OnEndAttributes() = 0;
 
         virtual void OnRaw(const TStringBuf& yson, EYsonType type) = 0;
+
+        // Extension methods.
+        void OnRaw(const TYsonStringBuf& yson);
     };
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -43,4 +46,4 @@ namespace NYT {
 
     ////////////////////////////////////////////////////////////////////////////////
 
-}
+} // namespace NYson

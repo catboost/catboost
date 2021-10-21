@@ -37,6 +37,9 @@ def onprocess_docs(unit, *args):
 
 
 def generate_dart(unit, as_lib=False):
+    if unit.get('YMAKE_JAVA_MODULES') != 'yes':
+        return
+
     module_dir = os.path.normpath(unit.path()[3:])
     docs_dir = (unit.get('DOCSDIR') or '').rstrip('/')
     if docs_dir:
@@ -79,6 +82,7 @@ def generate_dart(unit, as_lib=False):
         'DOCSLIB': as_lib,
         'PEERDIRS': '${PEERDIR}',
         'DOCSBUILDER': build_tool,
+        'USE_PLANTUML': unit.get('USE_PLANTUML'),
     }
 
     dart = 'DOCS_DART: ' + base64.b64encode(json.dumps(data)) + '\n' + DELIM + '\n'

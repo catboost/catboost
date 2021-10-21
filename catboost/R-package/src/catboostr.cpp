@@ -20,6 +20,7 @@
 #include <catboost/private/libs/documents_importance/docs_importance.h>
 #include <catboost/private/libs/documents_importance/enums.h>
 #include <catboost/private/libs/options/cross_validation_params.h>
+#include <catboost/private/libs/options/enum_helpers.h>
 #include <catboost/private/libs/target/data_providers.h>
 
 #include <util/generic/cast.h>
@@ -166,6 +167,7 @@ EXPORT_FUNCTION CatBoostCreateFromFile_R(SEXP poolFileParam,
                                            EObjectsOrder::Undefined,
                                            UpdateThreadCount(asInteger(threadCountParam)),
                                            asLogical(verboseParam),
+                                           /*forceUnitAutoPairWeights*/ false,
                                            /*classLabels=*/Nothing());
     result = PROTECT(R_MakeExternalPtr(poolPtr.Get(), R_NilValue, R_NilValue));
     R_RegisterCFinalizerEx(result, _Finalizer<TPoolHandle>, TRUE);
@@ -410,6 +412,15 @@ EXPORT_FUNCTION CatBoostIsOblivious_R(SEXP modelParam) {
     return result;
 }
 
+EXPORT_FUNCTION CatBoostIsGroupwiseMetric_R(SEXP modelParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TFullModelHandle model = reinterpret_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
+    result = ScalarLogical(static_cast<int>(IsGroupwiseMetric(model->GetLossFunctionName())));
+    R_API_END();
+    return result;
+}
+
 EXPORT_FUNCTION CatBoostPoolSlice_R(SEXP poolParam, SEXP sizeParam, SEXP offsetParam) {
     SEXP result = NULL;
     size_t size, offset;
@@ -466,7 +477,7 @@ EXPORT_FUNCTION CatBoostPoolSlice_R(SEXP poolParam, SEXP sizeParam, SEXP offsetP
 
     for (auto targetIdx : xrange(targetCount)) {
         if (const ITypedSequencePtr<float>* typedSequence
-                = GetIf<ITypedSequencePtr<float>>(&((*target)[targetIdx])))
+                = std::get_if<ITypedSequencePtr<float>>(&((*target)[targetIdx])))
         {
             TIntrusivePtr<ITypedArraySubset<float>> subset = (*typedSequence)->GetSubset(
                 &objectsGroupingSubset.GetObjectsIndexing()
@@ -477,7 +488,7 @@ EXPORT_FUNCTION CatBoostPoolSlice_R(SEXP poolParam, SEXP sizeParam, SEXP offsetP
                 }
             );
         } else {
-            TConstArrayRef<TString> stringTargetPart = Get<TVector<TString>>((*target)[targetIdx]);
+            TConstArrayRef<TString> stringTargetPart = std::get<TVector<TString>>((*target)[targetIdx]);
 
             for (size_t i = offset; i < sliceEnd; ++i) {
                 rows[i - offset][targetIdx] = FromString<double>(stringTargetPart[i]);

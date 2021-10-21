@@ -32,7 +32,7 @@ TObjectsGroupingSubset NCB::GetSubset(
 
     if (objectsGrouping->IsTrivial()) {
         return TObjectsGroupingSubset(
-            ::HoldsAlternative<TFullSubset<ui32>>(groupsSubset) ?
+            ::std::holds_alternative<TFullSubset<ui32>>(groupsSubset) ?
                 objectsGrouping : MakeIntrusive<TObjectsGrouping>(groupsSubset.Size()),
             std::move(groupsSubset),
             groupSubsetOrder
@@ -150,10 +150,10 @@ TObjectsGroupingSubset NCB::GetGroupingSubsetFromObjectsSubset(
         }
         ui32 subsetCurrentGroupOffset = 0;
 
-        constexpr TStringBuf INVARIANT_MESSAGE = AsStringBuf(
+        constexpr TStringBuf INVARIANT_MESSAGE =
             " subset groups invariant (if group is present in the subset all it's member objects"
             " must present and be in the same order within a group). This constraint might be"
-            " relaxed in the future.");
+            " relaxed in the future.";
         // TODO(kirillovs): get rid of N * log(N)
         objectsSubset.ForEach(
             [&](ui32 idx, ui32 srcIdx) {

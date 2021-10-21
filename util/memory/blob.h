@@ -10,6 +10,15 @@ class IInputStream;
 class TFile;
 class TBuffer;
 
+enum class EMappingMode {
+    /// Just mmap a file allowing lazy page loading at access
+    Standard,
+    /// Same as previous but warmup the buffer with sequential access to it's data
+    Precharged,
+    /// Try to lock file in memory so that it doesn't wash away. See mlock(2)
+    Locked
+};
+
 /// @addtogroup BLOBs
 /// @{
 class TBlob {
@@ -107,6 +116,11 @@ public:
         return !Length();
     }
 
+    /// Checks if the blob owns data
+    Y_PURE_FUNCTION inline bool OwnsData() const noexcept {
+        return S_.Base != nullptr;
+    }
+
     /// Checks if the object has a data array.
     inline bool IsNull() const noexcept {
         return !Data();
@@ -185,6 +199,18 @@ public:
 
     /// Creates a blob which doesn't own data. No refcounter, no memory allocation, no data copy.
     static TBlob NoCopy(const void* data, size_t length);
+
+    /// Creates a blob with a single-threaded (non atomic) refcounter. It maps the file on the path as data.
+    static TBlob FromFileSingleThreaded(const TString& path, EMappingMode);
+
+    /// Creates a blob with a multi-threaded (atomic) refcounter. It maps the file on the path as data.
+    static TBlob FromFile(const TString& path, EMappingMode);
+
+    /// Creates a blob with a single-threaded (non atomic) refcounter. It maps the file on the path as data.
+    static TBlob FromFileSingleThreaded(const TFile& file, EMappingMode);
+
+    /// Creates a blob with a multi-threaded (atomic) refcounter. It maps the file on the path as data.
+    static TBlob FromFile(const TFile& file, EMappingMode);
 
     /// Creates a blob with a single-threaded (non atomic) refcounter. It maps the file on the path as data.
     static TBlob FromFileSingleThreaded(const TString& path);

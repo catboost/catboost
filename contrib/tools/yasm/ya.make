@@ -5,6 +5,8 @@
 
 
 
+VERSION(1.3.0)
+
 IF (USE_PREBUILT_TOOLS)
     INCLUDE(${ARCADIA_ROOT}/build/prebuilt/contrib/tools/yasm/ya.make.prebuilt)
 ENDIF()

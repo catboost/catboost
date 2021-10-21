@@ -6,7 +6,7 @@
 #include <util/stream/input.h>
 #include <util/generic/buffer.h>
 
-namespace NYT {
+namespace NYson {
     ////////////////////////////////////////////////////////////////////////////////
 
     class TYsonParser::TImpl {
@@ -80,7 +80,7 @@ namespace NYT {
                   {
         }
 
-        void Parse(const TStringBuf& data, EYsonType type = YT_NODE) {
+        void Parse(const TStringBuf& data, EYsonType type = ::NYson::EYsonType::Node) {
             Impl->Parse(data, type);
         }
     };
@@ -176,4 +176,4 @@ namespace NYT {
 
     ////////////////////////////////////////////////////////////////////////////////
 
-}
+} // namespace NYson

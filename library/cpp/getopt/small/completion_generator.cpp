@@ -48,7 +48,7 @@ namespace NLastGetopt {
             L << "local prefix_orig=\"$PREFIX\"";
             L << "local suffix_orig=\"$SUFFIX\"";
             L;
-            Visit(TOverloaded{
+            std::visit(TOverloaded{
                 [&out, &manager](const TModChooser* modChooser) {
                     GenerateModesCompletion(out, *modChooser, manager);
                 },
@@ -390,7 +390,7 @@ namespace NLastGetopt {
             L << "local need_space=\"1\"";
             L << "local IFS=$' \\t\\n'";
             L;
-            Visit(TOverloaded{
+            std::visit(TOverloaded{
                 [&out, &manager](const TModChooser* modChooser) {
                     GenerateModesCompletion(out, *modChooser, manager, 1);
                 },

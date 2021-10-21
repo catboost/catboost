@@ -16,4 +16,18 @@ ALLOW contrib/go/patched/m3u8/example -> contrib/go/patched/m3u8
 # Moved to contrib/go, because library is not go-gettable.
 ALLOW yabs/telephony/platform/internal/rtp -> contrib/go/GoRTP
 
+# STRM-4414. responsible: nkhitrov@, g:strm-admin
+ALLOW strm/gorshok -> contrib/go/patched/gobgp
+ALLOW contrib/go/patched/gobgp -> contrib/go/patched/gobgp
+ALLOW contrib/go/patched/gobgp -> vendor/github.com/sirupsen/logrus
+ALLOW contrib/go/patched/gobgp -> vendor/github.com/eapache/channels
+ALLOW contrib/go/patched/gobgp -> vendor/github.com/dgryski/go-farm
+ALLOW contrib/go/patched/gobgp -> vendor/github.com/google/uuid
+ALLOW contrib/go/patched/gobgp -> vendor/github.com/spf13/viper
+ALLOW contrib/go/patched/gobgp -> vendor/github.com/k-sone/critbitgo
+ALLOW contrib/go/patched/gobgp -> vendor/github.com/coreos/go-systemd/daemon
+ALLOW contrib/go/patched/gobgp -> vendor/github.com/jessevdk/go-flags
+ALLOW contrib/go/patched/gobgp -> vendor/github.com/kr/pretty
+ALLOW contrib/go/patched/gobgp -> vendor/github.com/go-test/deep
+
 DENY .* -> contrib/go/patched/

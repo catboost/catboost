@@ -480,6 +480,7 @@ def onadd_check(unit, *args):
     test_timeout = ''
     fork_mode = ''
     extra_test_data = ''
+    extra_test_dart_data = {}
     ymake_java_test = unit.get('YMAKE_JAVA_TEST') == 'yes'
 
     if check_type in ["flake8.py2", "flake8.py3"]:
@@ -507,6 +508,7 @@ def onadd_check(unit, *args):
         fork_mode = unit.get('TEST_FORK_MODE') or ''
         if ymake_java_test:
             extra_test_data = java_srcdirs_to_data(unit, 'ALL_SRCDIRS')
+        extra_test_dart_data['JDK_RESOURCE'] = 'JDK' + (unit.get('JDK_VERSION') or '_DEFAULT')
     elif check_type == "gofmt":
         script_rel_path = check_type
         go_files = flat_args[1:]
@@ -540,6 +542,7 @@ def onadd_check(unit, *args):
         'TEST-FILES': test_files,
         'NO_JBUILD': 'yes' if ymake_java_test else 'no',
     }
+    test_record.update(extra_test_dart_data)
 
     data = dump_test(unit, test_record)
     if data:
@@ -695,6 +698,10 @@ def extract_java_system_properties(unit, args):
 
 
 def onjava_test(unit, *args):
+    if unit.get("TIDY") == "yes":
+        # graph changed for clang_tidy tests
+        return
+
     assert unit.get('MODULE_TYPE') is not None
 
     if unit.get('MODULE_TYPE') == 'JTEST_FOR':
@@ -760,7 +767,9 @@ def onjava_test(unit, *args):
         'TEST-CWD': test_cwd,
         'SKIP_TEST': unit.get('SKIP_TEST_VALUE') or '',
         'JAVA_CLASSPATH_CMD_TYPE': java_cp_arg_type,
-        'NO_JBUILD': 'yes' if ymake_java_test else 'no'
+        'NO_JBUILD': 'yes' if ymake_java_test else 'no',
+        'JDK_RESOURCE': 'JDK' + (unit.get('JDK_VERSION') or '_DEFAULT'),
+        'JDK_FOR_TESTS': 'JDK' + (unit.get('JDK_VERSION') or '_DEFAULT') + '_FOR_TESTS',
     }
     test_classpath_origins = unit.get('TEST_CLASSPATH_VALUE')
     if test_classpath_origins:
@@ -780,6 +789,10 @@ def onjava_test(unit, *args):
 
 
 def onjava_test_deps(unit, *args):
+    if unit.get("TIDY") == "yes":
+        # graph changed for clang_tidy tests
+        return
+
     assert unit.get('MODULE_TYPE') is not None
     assert len(args) == 1
     mode = args[0]

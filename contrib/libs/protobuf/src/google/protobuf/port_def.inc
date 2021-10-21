@@ -394,7 +394,11 @@
 #ifdef PROTOBUF_MUST_USE_RESULT
 #error PROTOBUF_MUST_USE_RESULT was previously defined
 #endif
+#if !defined(MSVC_COMPILER) && __has_cpp_attribute(warn_unused_result)
+# define PROTOBUF_MUST_USE_RESULT __attribute__((warn_unused_result))
+# else
 # define PROTOBUF_MUST_USE_RESULT
+# endif
 
 #ifdef PROTOBUF_MUST_USE_EXTRACT_RESULT
 #error PROTOBUF_MUST_USE_EXTRACT_RESULT was previously defined

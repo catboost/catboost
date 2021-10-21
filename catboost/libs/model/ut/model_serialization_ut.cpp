@@ -94,8 +94,8 @@ Y_UNIT_TEST_SUITE(TModelSerialization) {
 
         TFullModel obliviousModel = ReadModel("oblivious_model.json", EModelType::Json);
         TFullModel nonSymmetricModel = ReadModel("nonsymmetric_model.json", EModelType::Json);
-        auto result1 = ApplyModelMulti(obliviousModel, *pool->ObjectsData);
-        auto result2 = ApplyModelMulti(nonSymmetricModel, *pool->ObjectsData);
+        auto result1 = ApplyModelMulti(obliviousModel, *pool);
+        auto result2 = ApplyModelMulti(nonSymmetricModel, *pool);
         UNIT_ASSERT_EQUAL(result1, result2);
     }
 

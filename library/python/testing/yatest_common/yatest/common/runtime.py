@@ -259,6 +259,8 @@ def _register_core(name, binary_path, core_path, bt_path, pbt_path):
     config = _get_ya_config()
 
     with _lock:
+        if not hasattr(config, 'test_cores_count'):
+            config.test_cores_count = 0
         config.test_cores_count += 1
         count_str = '' if config.test_cores_count == 1 else str(config.test_cores_count)
 

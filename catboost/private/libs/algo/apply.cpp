@@ -140,8 +140,18 @@ TVector<TVector<double>> ApplyModelMulti(
     const EPredictionType predictionType,
     int begin, /*= 0*/
     int end,   /*= 0*/
-    ILocalExecutor* executor)
+    ILocalExecutor* executor,
+    const NCB::TMaybeData<TConstArrayRef<TConstArrayRef<float>>>& baseline)
 {
+    if (baseline) {
+        // TODO: only one dimension of baseline is checked, what about others?
+        CB_ENSURE(
+            baseline->size() == model.GetDimensionsCount(),
+            "Baseline should have the same dimension count as model: expected " << model.GetDimensionsCount()
+                                                                                << " got " << baseline->size()
+        );
+    }
+
     const int docCount = SafeIntegerCast<int>(objectsData.GetObjectCount());
     const int approxesDimension = model.GetDimensionsCount();
     TVector<double> approxesFlat(docCount * approxesDimension);
@@ -180,7 +190,13 @@ TVector<TVector<double>> ApplyModelMulti(
             };
         }
     }
-
+    if (baseline) {
+        for (int i = 0; i < approxesDimension; ++i) {
+            for (int j = 0; j < docCount; ++j) {
+                approxes[i][j] += (*baseline)[i][j];
+            }
+        }
+    }
     if (predictionType == EPredictionType::InternalRawFormulaVal) {
         //shortcut
         return approxes;
@@ -196,7 +212,8 @@ TVector<TVector<double>> ApplyModelMulti(
     const EPredictionType predictionType,
     int begin,
     int end,
-    int threadCount)
+    int threadCount,
+    const NCB::TMaybeData<TConstArrayRef<TConstArrayRef<float>>>& baseline)
 {
     TSetLoggingVerboseOrSilent inThisScope(verbose);
 
@@ -206,7 +223,7 @@ TVector<TVector<double>> ApplyModelMulti(
 
     NPar::TLocalExecutor executor;
     executor.RunAdditionalThreads(Min<int>(threadCount, blockParams.GetBlockCount()) - 1);
-    const auto& result = ApplyModelMulti(model, objectsData, predictionType, begin, end, &executor);
+    const auto& result = ApplyModelMulti(model, objectsData, predictionType, begin, end, &executor, baseline);
     return result;
 }
 
@@ -219,22 +236,7 @@ TVector<TVector<double>> ApplyModelMulti(
     int end,
     int threadCount)
 {
-    const auto baseline = data.RawTargetData.GetBaseline();
-    if (baseline) {
-        CB_ENSURE(
-            baseline->size() == model.GetDimensionsCount(),
-            "Baseline should have the same dimension count as model: expected " << model.GetDimensionsCount()
-                                                                                << " got " << baseline->size()
-        );
-    }
-    auto approxes = ApplyModelMulti(model, *data.ObjectsData, verbose, predictionType, begin, end, threadCount);
-    if (baseline) {
-        for (size_t i = 0; i < approxes.size(); ++i) {
-            for (size_t j = 0; j < approxes[0].size(); ++j) {
-                approxes[i][j] += (*baseline)[i][j];
-            }
-        }
-    }
+    auto approxes = ApplyModelMulti(model, *data.ObjectsData, verbose, predictionType, begin, end, threadCount, data.RawTargetData.GetBaseline());
     return approxes;
 }
 
@@ -246,7 +248,7 @@ TMinMax<double> ApplyModelForMinMax(
     NPar::ILocalExecutor* executor)
 {
     CB_ENSURE(model.GetTreeCount(), "Bad usage: empty model");
-    CB_ENSURE(model.GetDimensionsCount() == 1, "Bad usage: multiclass/multiregression model, dim=" << model.GetDimensionsCount());
+    CB_ENSURE(model.GetDimensionsCount() == 1, "Bad usage: multiclass/multitarget model, dim=" << model.GetDimensionsCount());
     FixupTreeEnd(model.GetTreeCount(), treeBegin, &treeEnd);
     CB_ENSURE(objectsData.GetObjectCount(), "Bad usage: empty dataset");
 

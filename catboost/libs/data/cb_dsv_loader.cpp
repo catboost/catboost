@@ -80,6 +80,7 @@ namespace NCB {
             Args.GroupWeightsFilePath.Inited(),
             Args.TimestampsFilePath.Inited(),
             Args.PairsFilePath.Inited(),
+            Args.ForceUnitAutoPairWeights,
             BaselineReader.GetBaselineCount(),
             &featureNames,
             &poolMetaInfoOptions.Tags.Get(),

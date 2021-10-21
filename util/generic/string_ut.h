@@ -518,17 +518,7 @@ protected:
 
 public:
     void TestMaxSize() {
-#ifdef TSTRING_IS_STD_STRING
         const size_t badMaxVal = TStringType{}.max_size() + 1;
-#else
-        size_t l = TStringType::TDataTraits::MaxSize;
-        UNIT_ASSERT(TStringType::TDataTraits::CalcAllocationSizeAndCapacity(l) >= TStringType::TDataTraits::MaxSize * sizeof(char_type));
-        UNIT_ASSERT(l >= TStringType::TDataTraits::MaxSize);
-
-        const size_t badMaxVal = TStringType::TDataTraits::MaxSize + 1;
-        l = badMaxVal;
-        UNIT_ASSERT(TStringType::TDataTraits::CalcAllocationSizeAndCapacity(l) < badMaxVal * sizeof(char_type));
-#endif
 
         TStringType s;
         UNIT_CHECK_GENERATED_EXCEPTION(s.reserve(badMaxVal), std::length_error);
@@ -578,11 +568,7 @@ public:
 
         TStringType s10(Reserve(100));
         UNIT_ASSERT(s10.empty());
-#ifdef TSTRING_IS_STD_STRING
         UNIT_ASSERT(s10.capacity() >= 100);
-#else
-        UNIT_ASSERT(s10.capacity() > 100);
-#endif
     }
 
     void TestReplace() {
@@ -666,16 +652,12 @@ public:
 
 #ifndef TSTRING_IS_STD_STRING
     void TestRefCount() {
-        // access protected member
-        class TestStroka: public TStringType {
-        public:
-            TestStroka(const char_type* s)
-                : TStringType(s)
-            {
-            }
-            intptr_t RefCount() const {
-                return TStringType::GetData()->Refs;
-            }
+        using TStr = TStringType;
+
+        struct TestStroka: public TStr {
+            using TStr::TStr;
+            // un-protect
+            using TStr::RefCount;
         };
 
         TestStroka s1(Data.orig());
@@ -927,7 +909,7 @@ public:
         //s2.reserve();
 
         TStringType s5(Data.abcde());
-        s5 = nullptr;
+        s5.clear();
         UNIT_ASSERT(s5 == Data.Empty());
     }
 

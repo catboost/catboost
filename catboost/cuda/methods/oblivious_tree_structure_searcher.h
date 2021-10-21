@@ -97,7 +97,7 @@ namespace NCatboostCuda {
         TFeatureParallelObliviousTreeSearcher& SetTarget(TTarget&& target) {
             CB_ENSURE(SingleTaskTarget == nullptr, "Target already was set");
             CB_ENSURE(FoldBasedTasks.size() == 0, "Can't mix foldBased and singleTask targets");
-            SingleTaskTarget = new TMirrorTargetWrapper<TTarget>((std::move(target)));
+            SingleTaskTarget = MakeHolder<TMirrorTargetWrapper<TTarget>>((std::move(target)));
             return *this;
         }
 

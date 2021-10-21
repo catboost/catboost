@@ -22,8 +22,9 @@
 #include "absl/base/internal/cycleclock.h"
 #include "tcmalloc/internal/logging.h"
 
-// Implementations of functions.
+GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
+namespace tcmalloc_internal {
 
 const HugeAddressMap::Node *HugeAddressMap::Node::next() const {
   const Node *n = right_;
@@ -115,7 +116,7 @@ size_t HugeAddressMap::nranges() const { return used_nodes_; }
 
 HugeLength HugeAddressMap::total_mapped() const { return total_size_; }
 
-void HugeAddressMap::Print(TCMalloc_Printer *out) const {
+void HugeAddressMap::Print(Printer *out) const {
   out->printf("HugeAddressMap: treap %zu / %zu nodes used / created\n",
               used_nodes_, total_nodes_);
   const size_t longest = root_ ? root_->longest_.raw_num() : 0;
@@ -368,4 +369,6 @@ HugeAddressMap::Node *HugeAddressMap::Get(HugeRange r) {
 HugeAddressMap::Node::Node(HugeRange r, int prio)
     : range_(r), prio_(prio), when_(absl::base_internal::CycleClock::Now()) {}
 
+}  // namespace tcmalloc_internal
 }  // namespace tcmalloc
+GOOGLE_MALLOC_SECTION_END

@@ -678,6 +678,11 @@ static void CalcMetricsForTest(
         foldContext->FullModel.GetRef(),
         testData->ObjectsData,
         &NPar::LocalExecutor());
+
+    const auto baseline = *testData->TargetData->GetBaseline();
+    if (baseline){
+        AssignRank2(baseline, &approx);
+    }
     for (auto treeIdx : xrange(treeCount)) {
         // TODO(kirillovs):
         //     apply (1) all models to the entire dataset on CPU or (2) GPU,
@@ -861,6 +866,7 @@ static void EvaluateFeaturesImpl(
 
     TTrainingDataProviderPtr trainingData = GetTrainingData(
         std::move(data),
+        /*dataCanBeEmpty*/ false,
         /*isLearnData*/ true,
         TStringBuf(),
         Nothing(), // TODO(akhropov): allow loading borders and nanModes in CV?

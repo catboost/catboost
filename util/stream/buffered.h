@@ -196,6 +196,11 @@ public:
     inline TSlave& Slave() noexcept {
         return *this->Ptr();
     }
+
+    TBuffered(const TBuffered&) = delete;
+    TBuffered& operator=(const TBuffered&) = delete;
+    TBuffered(TBuffered&&) = delete;
+    TBuffered& operator=(TBuffered&&) = delete;
 };
 
 /**
@@ -220,6 +225,11 @@ public:
         , TAdaptiveBufferedOutput(TSlaveBase::Ptr())
     {
     }
+
+    TAdaptivelyBuffered(const TAdaptivelyBuffered&) = delete;
+    TAdaptivelyBuffered& operator=(const TAdaptivelyBuffered&) = delete;
+    TAdaptivelyBuffered(TAdaptivelyBuffered&& other) = delete;
+    TAdaptivelyBuffered& operator=(TAdaptivelyBuffered&& other) = delete;
 };
 
 /** @} */

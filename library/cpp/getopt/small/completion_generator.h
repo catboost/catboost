@@ -19,7 +19,7 @@ namespace NLastGetopt {
         virtual void Generate(TStringBuf command, IOutputStream& stream) = 0;
 
     protected:
-        TVariant<const TModChooser*, const TOpts*> Options_;
+        std::variant<const TModChooser*, const TOpts*> Options_;
     };
 
     class TZshCompletionGenerator: public TCompletionGenerator {

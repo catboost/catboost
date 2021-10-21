@@ -23,6 +23,7 @@ NCB::TDataMetaInfo GetDataMetaInfo(
     bool hasAdditionalGroupWeight,
     bool hasTimestamps,
     bool hasPairs,
+    bool forceUnitAutoPairWeights,
     TMaybe<ui32> baselineCount,
     const NCB::TPathWithScheme& featureNamesPath, // featureNamesPath can be uninitialized
     const NCB::TPathWithScheme& poolMetaInfoPath); // poolMetaInfoPath can be uninitialized

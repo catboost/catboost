@@ -1,10 +1,20 @@
 LIBRARY()
 
-LICENSE(MIT)
+LICENSE(
+    MIT
+    NCSA
+)
+
+VERSION(1.3.0)
+
+LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 
 
-CFLAGS(-DONNX_ML=1 -DONNX_NAMESPACE=onnx)
+CFLAGS(
+    -DONNX_ML=1
+    -DONNX_NAMESPACE=onnx
+)
 
 PEERDIR(
     contrib/libs/onnx/proto

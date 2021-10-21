@@ -30,16 +30,14 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
         {
             TReadDatasetTestCase simpleTestCase;
             TSrcData srcData;
-            srcData.CdFileData = AsStringBuf(
+            srcData.CdFileData =
                 "0\tTarget\n"
-                "1\tTarget\n"
-            );
-            srcData.DatasetFileData = AsStringBuf(
+                "1\tTarget\n"sv;
+            srcData.DatasetFileData =
                 "Target0\tTarget1\tFeat\n"
                 "0\t0.1\t0.2\n"
                 "1\t0.97\t0.82\n"
-                "0\t0.13\t0.22\n"
-            );
+                "0\t0.13\t0.22\n"sv;
             srcData.DsvFileHasHeader = true;
             simpleTestCase.SrcData = std::move(srcData);
 
@@ -55,7 +53,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
 
             TVector<TString> featureId = {"Feat"};
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
             expectedData.Objects.FloatFeatures = {
                 TVector<float>{0.2f, 0.82f, 0.22f},
             };
@@ -75,13 +73,12 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
         {
             TReadDatasetTestCase simpleTestCase;
             TSrcData srcData;
-            srcData.CdFileData = AsStringBuf("0\tTarget");
-            srcData.DatasetFileData = AsStringBuf(
+            srcData.CdFileData = TStringBuf("0\tTarget");
+            srcData.DatasetFileData =
                 "Target\tFeat0\tFeat1\n"
                 "0\t0.1\t0.2\n"
                 "1\t0.97\t0.82\n"
-                "0\t0.13\t0.22\n"
-            );
+                "0\t0.13\t0.22\n"sv;
             srcData.DsvFileHasHeader = true;
             simpleTestCase.SrcData = std::move(srcData);
 
@@ -97,7 +94,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
 
             TVector<TString> featureId = {"Feat0", "Feat1"};
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
             expectedData.Objects.FloatFeatures = {
                 TVector<float>{0.1f, 0.97f, 0.13f},
                 TVector<float>{0.2f, 0.82f, 0.22f},
@@ -118,7 +115,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
         {
             TReadDatasetTestCase groupDataTestCase;
             TSrcData srcData;
-            srcData.CdFileData = AsStringBuf(
+            srcData.CdFileData =
                 "0\tTarget\n"
                 "1\tGroupId\n"
                 "2\tSubgroupId\n"
@@ -126,16 +123,14 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
                 "4\tGroupWeight\n"
                 "5\tNum\tf0\n"
                 "6\tNum\tf1\n"
-                "7\tNum\tf2\n"
-            );
-            srcData.DatasetFileData = AsStringBuf(
+                "7\tNum\tf2\n"sv;
+            srcData.DatasetFileData =
                 "0.12\tquery0\tsite1\t0.12\t1.0\t0.1\t0.2\t0.11\n"
                 "0.22\tquery0\tsite22\t0.18\t1.0\t0.97\t0.82\t0.33\n"
                 "0.34\tquery1\tSite9\t1.0\t0.0\t0.13\t0.22\t0.23\n"
                 "0.42\tQuery 2\tsite12\t0.45\t0.5\t0.14\t0.18\t0.1\n"
                 "0.01\tQuery 2\tsite22\t1.0\t0.5\t0.9\t0.67\t0.17\n"
-                "0.0\tQuery 2\tSite45\t2.0\t0.5\t0.66\t0.1\t0.31\n"
-            );
+                "0.0\tQuery 2\tSite45\t2.0\t0.5\t0.66\t0.1\t0.31\n"sv;
             srcData.DsvFileHasHeader = false;
             srcData.ObjectsOrder = EObjectsOrder::Ordered;
             groupDataTestCase.SrcData = std::move(srcData);
@@ -157,7 +152,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
 
             TVector<TString> featureId = {"f0", "f1", "f2"};
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
             expectedData.Objects.Order = EObjectsOrder::Ordered;
             expectedData.Objects.GroupIds = TVector<TStringBuf>{
                 "query0",
@@ -202,27 +197,24 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
         {
             TReadDatasetTestCase pairsOnlyTestCase;
             TSrcData srcData;
-            srcData.CdFileData = AsStringBuf(
+            srcData.CdFileData =
                 "0\tGroupId\n"
                 "1\tSubgroupId\n"
                 "2\tNum\tf0\n"
                 "3\tNum\tf1\n"
-                "4\tNum\tf2\n"
-            );
-            srcData.DatasetFileData = AsStringBuf(
+                "4\tNum\tf2\n"sv;
+            srcData.DatasetFileData =
                 "query0\tsite1\t0.1\t0.2\t0.11\n"
                 "query0\tsite22\t0.97\t0.82\t0.33\n"
                 "query1\tSite9\t0.13\t0.22\t0.23\n"
                 "Query 2\tsite12\t0.14\t0.18\t0.1\n"
                 "Query 2\tsite22\t0.9\t0.67\t0.17\n"
-                "Query 2\tSite45\t0.66\t0.1\t0.31\n"
-            );
+                "Query 2\tSite45\t0.66\t0.1\t0.31\n"sv;
             srcData.DsvFileHasHeader = false;
-            srcData.PairsFileData = AsStringBuf(
+            srcData.PairsFileData =
                 "0\t1\t0.1\n"
                 "4\t3\t1.0\n"
-                "3\t5\t0.2"
-            );
+                "3\t5\t0.2"sv;
             pairsOnlyTestCase.SrcData = std::move(srcData);
 
 
@@ -239,7 +231,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
 
             TVector<TString> featureId = {"f0", "f1", "f2"};
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::None, false, false, true, /* additionalBaselineCount */ Nothing(), &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::None, false, false, true, false, /* additionalBaselineCount */ Nothing(), &featureId);
             expectedData.Objects.GroupIds = TVector<TStringBuf>{
                 "query0",
                 "query0",
@@ -281,23 +273,21 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
         {
             TReadDatasetTestCase floatAndCatFeaturesTestCase;
             TSrcData srcData;
-            srcData.CdFileData = AsStringBuf(
+            srcData.CdFileData =
                 "0\tTarget\n"
                 "1\tGroupId\n"
                 "2\tNum\tfloat0\n"
                 "3\tCateg\tGender1\n"
                 "4\tNum\tfloat2\n"
                 "5\tCateg\tCountry3\n"
-                "6\tNum\tfloat4\n"
-            );
-            srcData.DatasetFileData = AsStringBuf(
+                "6\tNum\tfloat4\n"sv;
+            srcData.DatasetFileData =
                 "0.12\tquery0\t0.1\tMale\t0.2\tGermany\t0.11\n"
                 "0.22\tquery0\t0.97\tFemale\t0.82\tRussia\t0.33\n"
                 "0.34\tquery1\t0.13\tMale\t0.22\tUSA\t0.23\n"
                 "0.42\tQuery 2\t0.14\tMale\t0.18\tFinland\t0.1\n"
                 "0.01\tQuery 2\t0.9\tFemale\t0.67\tUSA\t0.17\n"
-                "0.0\tQuery 2\t0.66\tFemale\t0.1\tUK\t0.31\n"
-            );
+                "0.0\tQuery 2\t0.66\tFemale\t0.1\tUK\t0.31\n"sv;
             srcData.DsvFileHasHeader = false;
             srcData.ObjectsOrder = EObjectsOrder::RandomShuffled;
             floatAndCatFeaturesTestCase.SrcData = std::move(srcData);
@@ -318,7 +308,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
 
             TVector<TString> featureId = {"float0", "Gender1", "float2", "Country3", "float4"};
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
             expectedData.Objects.Order = EObjectsOrder::RandomShuffled;
             expectedData.Objects.GroupIds = TVector<TStringBuf>{
                 "query0",
@@ -355,29 +345,26 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
         {
             TReadDatasetTestCase separateGroupWeightsTestCase;
             TSrcData srcData;
-            srcData.CdFileData = AsStringBuf(
+            srcData.CdFileData =
                 "0\tTarget\n"
                 "1\tGroupId\n"
                 "2\tNum\tfloat0\n"
                 "3\tCateg\tGender1\n"
                 "4\tNum\tfloat2\n"
                 "5\tCateg\tCountry3\n"
-                "6\tNum\tfloat4\n"
-            );
-            srcData.DatasetFileData = AsStringBuf(
+                "6\tNum\tfloat4\n"sv;
+            srcData.DatasetFileData =
                 "0.12\tquery0\t0.1\tMale\t0.2\tGermany\t0.11\n"
                 "0.22\tquery0\t0.97\tFemale\t0.82\tRussia\t0.33\n"
                 "0.34\tquery1\t0.13\tMale\t0.22\tUSA\t0.23\n"
                 "0.42\tQuery 2\t0.14\tMale\t0.18\tFinland\t0.1\n"
                 "0.01\tQuery 2\t0.9\tFemale\t0.67\tUSA\t0.17\n"
-                "0.0\tQuery 2\t0.66\tFemale\t0.1\tUK\t0.31\n"
-            );
+                "0.0\tQuery 2\t0.66\tFemale\t0.1\tUK\t0.31\n"sv;
             srcData.DsvFileHasHeader = false;
-            srcData.GroupWeightsFileData = AsStringBuf(
+            srcData.GroupWeightsFileData =
                 "query0\t1.0\n"
                 "query1\t0.0\n"
-                "Query 2\t0.5"
-            );
+                "Query 2\t0.5"sv;
             separateGroupWeightsTestCase.SrcData = std::move(srcData);
 
 
@@ -396,7 +383,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
 
             TVector<TString> featureId = {"float0", "Gender1", "float2", "Country3", "float4"};
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, true, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, true, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
             expectedData.Objects.GroupIds = TVector<TStringBuf>{
                 "query0",
                 "query0",
@@ -432,23 +419,21 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
         {
             TReadDatasetTestCase ignoredFeaturesTestCase;
             TSrcData srcData;
-            srcData.CdFileData = AsStringBuf(
+            srcData.CdFileData =
                 "0\tTarget\n"
                 "1\tGroupId\n"
                 "2\tNum\tfloat0\n"
                 "3\tCateg\tGender1\n"
                 "4\tNum\tfloat2\n"
                 "5\tCateg\tCountry3\n"
-                "6\tNum\tfloat4\n"
-            );
-            srcData.DatasetFileData = AsStringBuf(
+                "6\tNum\tfloat4\n"sv;
+            srcData.DatasetFileData =
                 "0.12\tquery0\t0.1\tMale\t0.2\tGermany\t0.11\n"
                 "0.22\tquery0\t0.97\tFemale\t0.82\tRussia\t0.33\n"
                 "0.34\tquery1\t0.13\tMale\t0.22\tUSA\t0.23\n"
                 "0.42\tQuery 2\t0.14\tMale\t0.18\tFinland\t0.1\n"
                 "0.01\tQuery 2\t0.9\tFemale\t0.67\tUSA\t0.17\n"
-                "0.0\tQuery 2\t0.66\tFemale\t0.1\tUK\t0.31\n"
-            );
+                "0.0\tQuery 2\t0.66\tFemale\t0.1\tUK\t0.31\n"sv;
             srcData.DsvFileHasHeader = false;
             srcData.IgnoredFeatures = {1, 4};
             ignoredFeaturesTestCase.SrcData = std::move(srcData);
@@ -469,7 +454,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
 
             TVector<TString> featureId = {"float0", "Gender1", "float2", "Country3", "float4"};
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
             auto& featuresLayout = *expectedData.MetaInfo.FeaturesLayout;
             featuresLayout.IgnoreExternalFeature(1);
             featuresLayout.IgnoreExternalFeature(4);
@@ -517,16 +502,14 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
         {
             TReadDatasetTestCase orderedByTimestampTestCase;
             TSrcData srcData;
-            srcData.CdFileData = AsStringBuf(
+            srcData.CdFileData =
                 "0\tTarget\n"
-                "1\tTimestamp"
-            );
-            srcData.DatasetFileData = AsStringBuf(
+                "1\tTimestamp"sv;
+            srcData.DatasetFileData =
                 "Target\tTimestamp\tFeat0\tFeat1\n"
                 "0\t10\t0.1\t0.2\n"
                 "1\t10\t0.97\t0.82\n"
-                "0\t20\t0.13\t0.22\n"
-            );
+                "0\t20\t0.13\t0.22\n"sv;
             srcData.DsvFileHasHeader = true;
             orderedByTimestampTestCase.SrcData = std::move(srcData);
 
@@ -543,7 +526,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
 
             TVector<TString> featureId = {"Feat0", "Feat1"};
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
             expectedData.Objects.Order = EObjectsOrder::Ordered;
             expectedData.Objects.Timestamp = {10, 10, 20};
             expectedData.Objects.FloatFeatures = {
@@ -566,16 +549,14 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
         {
             TReadDatasetTestCase notOrderedByTimestampTestCase1;
             TSrcData srcData;
-            srcData.CdFileData = AsStringBuf(
+            srcData.CdFileData =
                 "0\tTarget\n"
-                "1\tTimestamp"
-            );
-            srcData.DatasetFileData = AsStringBuf(
+                "1\tTimestamp"sv;
+            srcData.DatasetFileData =
                 "Target\tTimestamp\tFeat0\tFeat1\n"
                 "0\t20\t0.1\t0.2\n"
                 "1\t10\t0.97\t0.82\n"
-                "0\t20\t0.13\t0.22\n"
-            );
+                "0\t20\t0.13\t0.22\n"sv;
             srcData.DsvFileHasHeader = true;
             notOrderedByTimestampTestCase1.SrcData = std::move(srcData);
 
@@ -592,7 +573,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
 
             TVector<TString> featureId = {"Feat0", "Feat1"};
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
             expectedData.Objects.Order = EObjectsOrder::Undefined;
             expectedData.Objects.Timestamp = {20, 10, 20};
             expectedData.Objects.FloatFeatures = {
@@ -615,16 +596,14 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
         {
             TReadDatasetTestCase notOrderedByTimestampTestCase2;
             TSrcData srcData;
-            srcData.CdFileData = AsStringBuf(
+            srcData.CdFileData =
                 "0\tTarget\n"
-                "1\tTimestamp"
-            );
-            srcData.DatasetFileData = AsStringBuf(
+                "1\tTimestamp"sv;
+            srcData.DatasetFileData =
                 "Target\tTimestamp\tFeat0\tFeat1\n"
                 "0\t20\t0.1\t0.2\n"
                 "1\t20\t0.97\t0.82\n"
-                "0\t20\t0.13\t0.22\n"
-            );
+                "0\t20\t0.13\t0.22\n"sv;
             srcData.DsvFileHasHeader = true;
             notOrderedByTimestampTestCase2.SrcData = std::move(srcData);
 
@@ -641,7 +620,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
 
             TVector<TString> featureId = {"Feat0", "Feat1"};
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
             expectedData.Objects.Order = EObjectsOrder::Undefined;
             expectedData.Objects.Timestamp = {20, 20, 20};
             expectedData.Objects.FloatFeatures = {
@@ -672,14 +651,13 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
         {
             TReadDatasetTestCase floatAndCatFeaturesTestCase;
             TSrcData srcData;
-            srcData.CdFileData = AsStringBuf(
+            srcData.CdFileData =
                 "0\tTarget\n"
                 "1\tNum\tfloat0\n"
                 "2\tCateg\tGender1\n"
                 "3\tNum\tfloat2\n"
-                "4\tCateg\tCountry3\n"
-            );
-            srcData.DatasetFileData = AsStringBuf(
+                "4\tCateg\tCountry3\n"sv;
+            srcData.DatasetFileData =
                 "0.12\t0.1\tNan\t0.2\tGermany\n"
                 "0.22\t\t\tNA\tRussia\n"
                 "0.341\tnan\tMale\t0.22\tN/A\n"
@@ -688,8 +666,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
                 "0.0\t0.66\t#NA\t0.1\tNone\n"
                 "N/A\tNone\tFemale\t0.12\tNULL\n"
                 "0.11\t-1.#QNAN\tN/a\t1.#IND\t1.#IND\n"
-                "-\t#N/A N/A\t#N/A N/A\t-\t-\n"
-            );
+                "-\t#N/A N/A\t#N/A N/A\t-\t-\n"sv;
             srcData.DsvFileHasHeader = false;
             srcData.ObjectsOrder = EObjectsOrder::Undefined;
             floatAndCatFeaturesTestCase.SrcData = std::move(srcData);
@@ -708,7 +685,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
 
             TVector<TString> featureId = {"float0", "Gender1", "float2", "Country3"};
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
             expectedData.Objects.Order = EObjectsOrder::Undefined;
 
             auto nanValue = std::numeric_limits<float>::quiet_NaN();
@@ -745,16 +722,14 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
         {
             TReadDatasetTestCase floatAndCatFeaturesTestCase;
             TSrcData srcData;
-            srcData.CdFileData = AsStringBuf(
+            srcData.CdFileData =
                 "0\tTarget\n"
                 "1\tNum\tfloat0\n"
                 "2\tCateg\tPlace1\n"
-                "3\tNum\tfloat2\n"
-            );
-            srcData.DatasetFileData = AsStringBuf(
+                "3\tNum\tfloat2\n"sv;
+            srcData.DatasetFileData =
                 "0\t0\t\"Berlin, Germany\"\t0\n"
-                "0\t0\t\"\"\"Skolkovo\"\", Russia\"\t0\n"
-            );
+                "0\t0\t\"\"\"Skolkovo\"\", Russia\"\t0\n"sv;
             srcData.DsvFileHasHeader = false;
             srcData.ObjectsOrder = EObjectsOrder::Undefined;
             floatAndCatFeaturesTestCase.SrcData = std::move(srcData);
@@ -771,7 +746,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
 
             TVector<TString> featureId = {"float0", "Place1", "float2"};
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
             expectedData.Objects.Order = EObjectsOrder::Undefined;
 
             expectedData.Objects.FloatFeatures = {
@@ -805,17 +780,15 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
         {
             TReadDatasetTestCase floatAndCatFeaturesTestCase;
             TSrcData srcData;
-            srcData.CdFileData = AsStringBuf(
+            srcData.CdFileData =
                 "0\tTarget\n"
                 "1\tNum\tfloat0\n"
                 "2\tCateg\tPlace1\n"
-                "3\tNum\tfloat2\n"
-            );
-            srcData.DatasetFileData = AsStringBuf(
+                "3\tNum\tfloat2\n"sv;
+            srcData.DatasetFileData =
                 "Target\t\"just \"\"float\"\"\"\t\"Place, Country\"\t\"second\tfloat\"\n"
                 "0\t0\t\"Berlin, Germany\"\t0\n"
-                "0\t0\t\"\"\"Skolkovo\"\", Russia\"\t0\n"
-            );
+                "0\t0\t\"\"\"Skolkovo\"\", Russia\"\t0\n"sv;
             srcData.DsvFileHasHeader = true;
             srcData.ObjectsOrder = EObjectsOrder::Undefined;
             floatAndCatFeaturesTestCase.SrcData = std::move(srcData);
@@ -832,7 +805,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
 
             TVector<TString> featureId = {"float0", "Place1", "float2"};
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
             expectedData.Objects.Order = EObjectsOrder::Undefined;
 
             expectedData.Objects.FloatFeatures = {
@@ -866,19 +839,17 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
         {
             TReadDatasetTestCase oneTextFeatureTestCase;
             TSrcData srcData;
-            srcData.CdFileData = AsStringBuf(
+            srcData.CdFileData =
                 "0\tTarget\n"
-                "1\tText\ttext0\n"
-            );
-            srcData.DatasetFileData = AsStringBuf(
+                "1\tText\ttext0\n"sv;
+            srcData.DatasetFileData =
                 "0.12\tWhat\n"
                 "0.22\tnoise\n"
                 "0.34\tannoys\n"
                 "0.23\tan oyster\n"
                 "0.99\t\n"
                 "0.01\tmost\n"
-                "0.02\t?\n"
-            );
+                "0.02\t?\n"sv;
             srcData.DsvFileHasHeader = false;
             srcData.ObjectsOrder = EObjectsOrder::Undefined;
             oneTextFeatureTestCase.SrcData = std::move(srcData);
@@ -893,7 +864,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
 
             TVector<TString> featureId = {"text0"};
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, /* baselineColumn */ Nothing(), &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, false, /* baselineColumn */ Nothing(), &featureId);
             expectedData.Objects.Order = EObjectsOrder::Undefined;
 
             expectedData.Objects.TextFeatures = {
@@ -914,23 +885,21 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
         {
             TReadDatasetTestCase textFloatAndCatFeaturesTestCase;
             TSrcData srcData;
-            srcData.CdFileData = AsStringBuf(
+            srcData.CdFileData =
                 "0\tTarget\n"
                 "1\tText\tName\n"
                 "2\tCateg\tCountry\n"
                 "3\tNum\tAge\n"
                 "4\tText\tFavouriteMusic\n"
-                "5\tCateg\tGender\n"
-            );
-            srcData.DatasetFileData = AsStringBuf(
+                "5\tCateg\tGender\n"sv;
+            srcData.DatasetFileData =
                 "0.12\tSpiderman\tUSA\t18\tjazz\tMale\n"
                 "0.22\tWonderwoman\tEngland\t20\tsoul\tFemale\n"
                 "0.34\tBatman\tUSA\t35\tclassical\tMale\n"
                 "0.23\tCow\tRussia\t5\tNaN\t-\n"
                 "0.99\tFaramir\tGondor\t500\tfolk\tMale\n"
                 "0.01\tPotter\t,.?!#$\t5\tblues\tMale\n"
-                "0.02\tCollins\tEngland\t50\t-\tMale\n"
-            );
+                "0.02\tCollins\tEngland\t50\t-\tMale\n"sv;
             srcData.DsvFileHasHeader = false;
             srcData.ObjectsOrder = EObjectsOrder::Undefined;
             textFloatAndCatFeaturesTestCase.SrcData = std::move(srcData);
@@ -955,7 +924,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
                 "Gender"
             };
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, /* baselineColumn */ Nothing(), &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, false, /* baselineColumn */ Nothing(), &featureId);
             expectedData.Objects.Order = EObjectsOrder::Undefined;
 
             expectedData.Objects.FloatFeatures = {
@@ -993,37 +962,32 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
         auto differentDelimiterTestCases = TVector<std::pair<char, TStringBuf>>{
             {
                 ';',
-                AsStringBuf(
                     "0.12\t0;1;1;0.1\n"
                     "0.22\t0.1;0;0;0.2\n"
                     "0.34\t0;2;0;1.1\n"
                     "0.23\t2.1;1.3;1;0\n"
                     "0.99\t1;0;2.1;0\n"
                     "0.01\t0.3;0;1;0.1\n"
-                    "0.02\t0.6;0.8;0.9;1.4\n"
-                )
+                    "0.02\t0.6;0.8;0.9;1.4\n"sv
             },
             {
                 ',',
-                AsStringBuf(
                     "0.12\t0,1,1,0.1\n"
                     "0.22\t0.1,0,0,0.2\n"
                     "0.34\t0,2,0,1.1\n"
                     "0.23\t2.1,1.3,1,0\n"
                     "0.99\t1,0,2.1,0\n"
                     "0.01\t0.3,0,1,0.1\n"
-                    "0.02\t0.6,0.8,0.9,1.4\n"
-                )
+                    "0.02\t0.6,0.8,0.9,1.4\n"sv
             }
         };
 
         for (const auto& [numVectorDelimiter, datasetFileData]: differentDelimiterTestCases) {
             TReadDatasetTestCase oneEmbeddingFeatureTestCase;
             TSrcData srcData;
-            srcData.CdFileData = AsStringBuf(
+            srcData.CdFileData =
                 "0\tTarget\n"
-                "1\tNumVector\tembedding0\n"
-            );
+                "1\tNumVector\tembedding0\n"sv;
             srcData.DatasetFileData = datasetFileData;
             srcData.DsvFileHasHeader = false;
             srcData.NumVectorDelimiter = numVectorDelimiter;
@@ -1040,7 +1004,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
 
             TVector<TString> featureId = {"embedding0"};
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, /* baselineColumn */ Nothing(), &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, false, /* baselineColumn */ Nothing(), &featureId);
             expectedData.Objects.Order = EObjectsOrder::Undefined;
 
             expectedData.Objects.EmbeddingFeatures = {
@@ -1069,23 +1033,21 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
         {
             TReadDatasetTestCase textFloatAndEmbeddingFeaturesTestCase;
             TSrcData srcData;
-            srcData.CdFileData = AsStringBuf(
+            srcData.CdFileData =
                 "0\tTarget\n"
                 "1\tNum\tFeat0\n"
                 "2\tNumVector\tEmbedding0\n"
                 "3\tNum\tFeat1\n"
                 "4\tNumVector\tEmbedding1\n"
-                "5\tNum\tFeat2\n"
-            );
-            srcData.DatasetFileData = AsStringBuf(
+                "5\tNum\tFeat2\n"sv;
+            srcData.DatasetFileData =
                 "0.12\t0\t0.1;0;1\t1\t0.18;0\t10\n"
                 "0.22\t1\t0.2;1;0\t1.1\t0.3;0.1\t20\n"
                 "0.34\t0\t0.3;0;1\t2.1\t0.2;0\t10\n"
                 "0.23\t0\t0.4;0.2;0\t0.9\t0.1;0\t30\n"
                 "0.99\t1\t0.5;0.1;1\t2.2\t0.5;1\t42\n"
                 "0.01\t1\t0.1;0;0\t1.2\t0.7;0\t22\n"
-                "0.02\t0\t0.2;0.3;1\t3.2\t0.8;0.3\t30\n"
-            );
+                "0.02\t0\t0.2;0.3;1\t3.2\t0.8;0.3\t30\n"sv;
             srcData.DsvFileHasHeader = false;
             srcData.ObjectsOrder = EObjectsOrder::Undefined;
             textFloatAndEmbeddingFeaturesTestCase.SrcData = std::move(srcData);
@@ -1110,7 +1072,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
                 "Feat2"
             };
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, /* baselineColumn */ Nothing(), &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, false, /* baselineColumn */ Nothing(), &featureId);
             expectedData.Objects.Order = EObjectsOrder::Undefined;
 
             expectedData.Objects.FloatFeatures = {
@@ -1162,19 +1124,17 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
         {
             TReadDatasetTestCase textFloatAndEmbeddingFeaturesTestCase;
             TSrcData srcData;
-            srcData.CdFileData = AsStringBuf(
+            srcData.CdFileData =
                 "0\tTarget\n"
                 "1\tNum\tFeat0\n"
                 "2\tNumVector\tEmbedding0\n"
                 "3\tNum\tFeat1\n"
                 "4\tNumVector\tEmbedding1\n"
-                "5\tNum\tFeat2\n"
-            );
-            srcData.DatasetFileData = AsStringBuf(
+                "5\tNum\tFeat2\n"sv;
+            srcData.DatasetFileData =
                 "0.12\t0\t0.1;0;1\t1\t0.18;0\t10\n"
                 "0.22\t1\t-;-;-\t1.1\t0.3;\t20\n"
-                "0.34\t0\t0.3;0;nan\t2.1\t0.2;0\t10\n"
-            );
+                "0.34\t0\t0.3;0;nan\t2.1\t0.2;0\t10\n"sv;
             srcData.DsvFileHasHeader = false;
             srcData.ObjectsOrder = EObjectsOrder::Undefined;
             textFloatAndEmbeddingFeaturesTestCase.SrcData = std::move(srcData);
@@ -1199,7 +1159,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
                 "Feat2"
             };
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, /* baselineColumn */ Nothing(), &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, false, /* baselineColumn */ Nothing(), &featureId);
             expectedData.Objects.Order = EObjectsOrder::Undefined;
 
             expectedData.Objects.FloatFeatures = {
@@ -1248,15 +1208,13 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
             inconsistentNumVectorLengthTestCase.ExpectedReadError = true;
 
             TSrcData srcData;
-            srcData.CdFileData = AsStringBuf(
+            srcData.CdFileData =
                 "0\tTarget\n"
-                "1\tNumVector\tembedding0\n"
-            );
-            srcData.DatasetFileData = AsStringBuf(
+                "1\tNumVector\tembedding0\n"sv;
+            srcData.DatasetFileData =
                 "0.12\t0;1;1;0.1\n"
                 "0.22\t0.1;0;0;0.6;0.2\n"
-                "0.34\t0;2;0;1.1\n"
-            );
+                "0.34\t0;2;0;1.1\n"sv;
             srcData.DsvFileHasHeader = false;
             srcData.ObjectsOrder = EObjectsOrder::Undefined;
             inconsistentNumVectorLengthTestCase.SrcData = std::move(srcData);
@@ -1269,15 +1227,13 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
             nonFloadSubFieldTestCase1.ExpectedReadError = true;
 
             TSrcData srcData;
-            srcData.CdFileData = AsStringBuf(
+            srcData.CdFileData =
                 "0\tTarget\n"
-                "1\tNumVector\tembedding0\n"
-            );
-            srcData.DatasetFileData = AsStringBuf(
+                "1\tNumVector\tembedding0\n"sv;
+            srcData.DatasetFileData =
                 "0.12\t0;1;xx;0.1\n"
                 "0.22\t0.1;0;0.3;0.6\n"
-                "0.34\t0;2;0;1.1\n"
-            );
+                "0.34\t0;2;0;1.1\n"sv;
             srcData.DsvFileHasHeader = false;
             srcData.ObjectsOrder = EObjectsOrder::Undefined;
             nonFloadSubFieldTestCase1.SrcData = std::move(srcData);
@@ -1290,15 +1246,13 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
             nonFloadSubFieldTestCase2.ExpectedReadError = true;
 
             TSrcData srcData;
-            srcData.CdFileData = AsStringBuf(
+            srcData.CdFileData =
                 "0\tTarget\n"
-                "1\tNumVector\tembedding0\n"
-            );
-            srcData.DatasetFileData = AsStringBuf(
+                "1\tNumVector\tembedding0\n"sv;
+            srcData.DatasetFileData =
                 "0.12\t0;1;1;--\n"
                 "0.22\t0.1;0;0.3;0.6\n"
-                "0.34\t0;2;0;1.1\n"
-            );
+                "0.34\t0;2;0;1.1\n"sv;
             srcData.DsvFileHasHeader = false;
             srcData.ObjectsOrder = EObjectsOrder::Undefined;
             nonFloadSubFieldTestCase2.SrcData = std::move(srcData);
@@ -1317,30 +1271,27 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
         {
             TReadDatasetTestCase externalFeatureNamesTestCase;
             TSrcData srcData;
-            srcData.CdFileData = AsStringBuf(
+            srcData.CdFileData =
                 "0\tTarget\n"
                 "1\tText\n"
                 "2\tCateg\n"
                 "3\tNum\n"
                 "4\tText\n"
-                "5\tCateg\n"
-            );
-            srcData.DatasetFileData = AsStringBuf(
+                "5\tCateg\n"sv;
+            srcData.DatasetFileData =
                 "0.12\tSpiderman\tUSA\t18\tjazz\tMale\n"
                 "0.22\tWonderwoman\tEngland\t20\tsoul\tFemale\n"
                 "0.34\tBatman\tUSA\t35\tclassical\tMale\n"
                 "0.23\tCow\tRussia\t5\tNaN\t-\n"
                 "0.99\tFaramir\tGondor\t500\tfolk\tMale\n"
                 "0.01\tPotter\t,.?!#$\t5\tblues\tMale\n"
-                "0.02\tCollins\tEngland\t50\t-\tMale\n"
-            );
-            srcData.FeatureNamesFileData = AsStringBuf(
+                "0.02\tCollins\tEngland\t50\t-\tMale\n"sv;
+            srcData.FeatureNamesFileData =
                 "0\tName\n"
                 "1\tCountry\n"
                 "2\tAge\n"
                 "3\tFavouriteMusic\n"
-                "4\tGender\n"
-            );
+                "4\tGender\n"sv;
             srcData.DsvFileHasHeader = false;
             srcData.ObjectsOrder = EObjectsOrder::Undefined;
             externalFeatureNamesTestCase.SrcData = std::move(srcData);
@@ -1365,7 +1316,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
                 "Gender"
             };
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, /* baselineColumn */ Nothing(), &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, false, /* baselineColumn */ Nothing(), &featureId);
             expectedData.Objects.Order = EObjectsOrder::Undefined;
 
             expectedData.Objects.FloatFeatures = {
@@ -1394,24 +1345,24 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
         {
             TReadDatasetTestCase cdAndExternalFeatureNamesTestCase;
             TSrcData srcData;
-            srcData.CdFileData = AsStringBuf("0\tTarget\n"
+            srcData.CdFileData = "0\tTarget\n"
                 "1\tText\tName\n"
                 "2\tCateg\tCountry\n"
                 "3\tNum\tAge\n"
                 "4\tText\tFavouriteMusic\n"
-                "5\tCateg\tGender\n");
-            srcData.DatasetFileData = AsStringBuf("0.12\tSpiderman\tUSA\t18\tjazz\tMale\n"
+                "5\tCateg\tGender\n"sv;
+            srcData.DatasetFileData = "0.12\tSpiderman\tUSA\t18\tjazz\tMale\n"
                 "0.22\tWonderwoman\tEngland\t20\tsoul\tFemale\n"
                 "0.34\tBatman\tUSA\t35\tclassical\tMale\n"
                 "0.23\tCow\tRussia\t5\tNaN\t-\n"
                 "0.99\tFaramir\tGondor\t500\tfolk\tMale\n"
                 "0.01\tPotter\t,.?!#$\t5\tblues\tMale\n"
-                "0.02\tCollins\tEngland\t50\t-\tMale\n");
-            srcData.FeatureNamesFileData = AsStringBuf("0\tName\n"
+                "0.02\tCollins\tEngland\t50\t-\tMale\n"sv;
+            srcData.FeatureNamesFileData = "0\tName\n"
                 "1\tCountry\n"
                 "2\tAge\n"
                 "3\tFavouriteMusic\n"
-                "4\tGender\n");
+                "4\tGender\n"sv;
             srcData.DsvFileHasHeader = false;
             srcData.ObjectsOrder = EObjectsOrder::Undefined;
             cdAndExternalFeatureNamesTestCase.SrcData = std::move(srcData);
@@ -1436,7 +1387,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
                 "Gender"
             };
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, /* baselineColumn */ Nothing(), &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, false, /* baselineColumn */ Nothing(), &featureId);
             expectedData.Objects.Order = EObjectsOrder::Undefined;
 
             expectedData.Objects.FloatFeatures = {
@@ -1472,27 +1423,24 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
         TReadDatasetTestCase testCase;
         TSrcData srcData;
 
-        srcData.CdFileData = AsStringBuf(
+        srcData.CdFileData =
             "0\tGroupId\n"
             "1\tSubgroupId\n"
             "2\tNum\tf0\n"
             "3\tNum\tf1\n"
-            "4\tNum\tf2\n"
-        );
-        srcData.DatasetFileData = AsStringBuf(
+            "4\tNum\tf2\n"sv;
+        srcData.DatasetFileData =
             "query0\tsite1\t0.1\t0.2\t0.11\n"
             "query0\tsite22\t0.97\t0.82\t0.33\n"
             "query1\tSite9\t0.13\t0.22\t0.23\n"
             "Query 2\tsite12\t0.14\t0.18\t0.1\n"
             "Query 2\tsite22\t0.9\t0.67\t0.17\n"
-            "Query 2\tSite45\t0.66\t0.1\t0.31\n"
-        );
+            "Query 2\tSite45\t0.66\t0.1\t0.31\n"sv;
         srcData.DsvFileHasHeader = false;
-        srcData.PairsFileData = AsStringBuf(
+        srcData.PairsFileData =
             "query0\t0\t1\t0.1\n"
             "Query 2\t1\t0\t1.0\n"
-            "Query 2\t0\t2\t0.2\n"
-        );
+            "Query 2\t0\t2\t0.2\n"sv;
         srcData.PairsScheme = "dsv-grouped";
         testCase.SrcData = std::move(srcData);
 
@@ -1510,7 +1458,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
 
         TVector<TString> featureId = {"f0", "f1", "f2"};
 
-        expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::None, false, false, true, /* additionalBaselineCount */ Nothing(), &featureId);
+        expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::None, false, false, true, false, /* additionalBaselineCount */ Nothing(), &featureId);
         expectedData.Objects.GroupIds = TVector<TStringBuf>{
             "query0",
             "query0",
@@ -1553,27 +1501,24 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
         TReadDatasetTestCase testCase;
         TSrcData srcData;
 
-        srcData.CdFileData = AsStringBuf(
+        srcData.CdFileData =
             "0\tGroupId\n"
             "1\tSubgroupId\n"
             "2\tNum\tf0\n"
             "3\tNum\tf1\n"
-            "4\tNum\tf2\n"
-        );
-        srcData.DatasetFileData = AsStringBuf(
+            "4\tNum\tf2\n"sv;
+        srcData.DatasetFileData =
             "query0\tsite1\t0.1\t0.2\t0.11\n"
             "query0\tsite22\t0.97\t0.82\t0.33\n"
             "query1\tSite9\t0.13\t0.22\t0.23\n"
             "Query 2\tsite12\t0.14\t0.18\t0.1\n"
             "Query 2\tsite22\t0.9\t0.67\t0.17\n"
-            "Query 2\tSite45\t0.66\t0.1\t0.31\n"
-        );
+            "Query 2\tSite45\t0.66\t0.1\t0.31\n"sv;
         srcData.DsvFileHasHeader = false;
-        srcData.PairsFileData = AsStringBuf(
+        srcData.PairsFileData =
             "0\t0\t1\t0.1\n"
             "2\t1\t0\t1.0\n"
-            "2\t0\t2\t0.2\n"
-        );
+            "2\t0\t2\t0.2\n"sv;
         srcData.PairsScheme = "dsv-grouped-with-idx";
         testCase.SrcData = std::move(srcData);
 
@@ -1591,7 +1536,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
 
         TVector<TString> featureId = {"f0", "f1", "f2"};
 
-        expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::None, false, false, true, /* additionalBaselineCount */ Nothing(), &featureId);
+        expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::None, false, false, true, false, /* additionalBaselineCount */ Nothing(), &featureId);
         expectedData.Objects.GroupIds = TVector<TStringBuf>{
             "query0",
             "query0",

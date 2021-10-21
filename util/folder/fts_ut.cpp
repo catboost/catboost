@@ -3,18 +3,21 @@
 #include "tempdir.h"
 
 #include <library/cpp/testing/unittest/registar.h>
+#include <library/cpp/threading/future/async.h>
 
 #include <util/system/file.h>
-#include <util/system/mktemp.h>
+#include <util/system/tempfile.h>
 #include <util/generic/string.h>
 
 class TFtsTest: public TTestBase {
     UNIT_TEST_SUITE(TFtsTest);
     UNIT_TEST(TestSimple);
+    UNIT_TEST(TestNoLeakChangingAccessToFolder);
     UNIT_TEST_SUITE_END();
 
 public:
     void TestSimple();
+    void TestNoLeakChangingAccessToFolder();
 };
 
 void MakeFile(const char* path) {
@@ -77,6 +80,44 @@ void TFtsTest::TestSimple() {
     CheckEnt(yfts_read(fileTree()), (tempDir() + LOCSLASH_S "dir2").data(), FTS_DP);
     CheckEnt(yfts_read(fileTree()), (tempDir()).data(), FTS_DP);
     UNIT_ASSERT_EQUAL(yfts_read(fileTree()), nullptr);
+}
+
+class TTempDirWithLostAccess: public TTempDir {
+public:
+    ~TTempDirWithLostAccess() {
+        chmod(Name().data(), 0777);
+    }
+};
+
+// https://st.yandex-team.ru/YQ-318
+// Test that detects memory leak in case of error in chdir in fts_build function.
+void TFtsTest::TestNoLeakChangingAccessToFolder() {
+    TTempDirWithLostAccess tempDir;
+    TString tmpPath = tempDir();
+    if (tmpPath.EndsWith(LOCSLASH_S)) {
+        tmpPath.resize(tmpPath.size() - 1);
+    }
+    MakeDirIfNotExist((tmpPath + LOCSLASH_S + "subdir").data());
+
+    const char* path[2] = {tmpPath.data(), nullptr};
+    TFileTree fileTree((char* const*)path, FTS_SEEDOT, FtsCmp);
+    UNIT_ASSERT(fileTree());
+
+    CheckEnt(yfts_read(fileTree()), tmpPath.data(), FTS_D);
+#ifndef _win32_
+    CheckEnt(yfts_read(fileTree()), (tmpPath + LOCSLASH_S ".").data(), FTS_DOT);
+#endif // _win32_
+    CheckEnt(yfts_read(fileTree()), (tmpPath + LOCSLASH_S "..").data(), FTS_DOT);
+    CheckEnt(yfts_read(fileTree()), (tmpPath + LOCSLASH_S "subdir").data(), FTS_D);
+    auto pool = CreateThreadPool(2);
+    auto chmodFuture = NThreading::Async([name = tmpPath] {
+        UNIT_ASSERT_C(!chmod(name.data(), 0), "Errno: " << errno);
+    }, *pool);
+    auto childrenFuture = NThreading::Async([&] {
+        yfts_children(fileTree(), 0);
+    }, *pool);
+    childrenFuture.Wait();
+    chmodFuture.Wait();
 }
 
 UNIT_TEST_SUITE_REGISTRATION(TFtsTest);

@@ -1466,21 +1466,21 @@ namespace {
 
     struct TFlatFeature {
 
-        TVariant<TUnknownFeature, TFloatFeature, TCatFeature> FeatureVariant;
+        std::variant<TUnknownFeature, TFloatFeature, TCatFeature> FeatureVariant;
 
     public:
         TFlatFeature() = default;
 
         template <class TFeatureType>
         void SetOrCheck(const TFeatureType& other) {
-            if (HoldsAlternative<TUnknownFeature>(FeatureVariant)) {
+            if (std::holds_alternative<TUnknownFeature>(FeatureVariant)) {
                 FeatureVariant = other;
             }
-            CB_ENSURE(HoldsAlternative<TFeatureType>(FeatureVariant),
+            CB_ENSURE(std::holds_alternative<TFeatureType>(FeatureVariant),
                 "Feature type mismatch: Categorical != Float for flat feature index: " <<
                 other.Position.FlatIndex
             );
-            TFeatureType& feature = Get<TFeatureType>(FeatureVariant);
+            TFeatureType& feature = std::get<TFeatureType>(FeatureVariant);
             CB_ENSURE(feature.Position.FlatIndex == other.Position.FlatIndex);
             CB_ENSURE(
                 feature.Position.Index == other.Position.Index,
@@ -1742,7 +1742,7 @@ TFullModel SumModels(
     }
     TFlatFeatureMergerVisitor merger;
     for (auto& flatFeature: flatFeatureInfoVector) {
-        Visit(merger, flatFeature.FeatureVariant);
+        std::visit(merger, flatFeature.FeatureVariant);
     }
     TObliviousTreeBuilder builder(merger.MergedFloatFeatures, merger.MergedCatFeatures, {}, {}, approxDimension);
     TVector<double> totalBias(approxDimension);

@@ -712,6 +712,51 @@ public:
     }
 };
 
+class TMultiCrossEntropyError final : public TMultiDerCalcer {
+public:
+    explicit TMultiCrossEntropyError()
+        : TMultiDerCalcer(EHessianType::Diagonal){}
+
+    void CalcDers(
+        TConstArrayRef<double> approx,
+        TConstArrayRef<float> target,
+        float weight,
+        TVector<double>* der,
+        THessianInfo* der2
+    ) const override {
+        const int approxDimension = approx.ysize();
+        TArrayRef<double> derRef(*der);
+        CopyN(approx.data(), approx.ysize(), derRef.data());
+
+        FastExpInplace(derRef.data(), derRef.ysize());
+        for (int dim = 0; dim < approxDimension; ++dim) {
+            derRef[dim] = -derRef[dim] / (1 + derRef[dim]);
+        }
+
+        if (der2 != nullptr) {
+            Y_ASSERT(der2->HessianType == EHessianType::Diagonal && der2->ApproxDimension == approxDimension);
+            for (int dim = 0; dim < approxDimension; ++ dim) {
+                der2->Data[dim] = derRef[dim] * (1 + derRef[dim]);
+            }
+        }
+
+        for (int dim = 0; dim < approxDimension; ++dim) {
+            derRef[dim] += target[dim];
+        }
+
+        if (weight != 1) {
+            for (int dim = 0; dim < approxDimension; ++dim) {
+                derRef[dim] *= weight;
+            }
+            if (der2 != nullptr) {
+                for (int dim = 0; dim < approxDimension; ++dim) {
+                    der2->Data[dim] *= weight;
+                }
+            }
+        }
+    }
+};
+
 class TPairLogitError final : public IDerCalcer {
 public:
     explicit TPairLogitError(bool isExpApprox)
@@ -958,10 +1003,10 @@ private:
     TCustomObjectiveDescriptor Descriptor;
 };
 
-class TMultiRegressionCustomError final : public TMultiDerCalcer {
+class TMultiTargetCustomError final : public TMultiDerCalcer {
 public:
 
-    TMultiRegressionCustomError(
+    TMultiTargetCustomError(
         const NCatboostOptions::TCatBoostOptions& params,
         const TMaybe<TCustomObjectiveDescriptor>& descriptor
     )
@@ -978,7 +1023,7 @@ public:
         TVector<double>* der,
         THessianInfo* der2
     ) const override {
-        Descriptor.CalcDersMultiRegression(approx, target, weight, der, der2, Descriptor.CustomData);
+        Descriptor.CalcDersMultiTarget(approx, target, weight, der, der2, Descriptor.CustomData);
     }
 
 private:

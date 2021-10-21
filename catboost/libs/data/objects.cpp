@@ -405,6 +405,11 @@ void NCB::TObjectsDataProvider::SetSubgroupIds(TConstArrayRef<TSubgroupId> subgr
     }
 }
 
+void NCB::TObjectsDataProvider::SetTimestamps(TConstArrayRef<ui64> timestamps) {
+    CheckDataSize(timestamps.size(), (size_t)GetObjectCount(), "timestamps");
+    CommonData.Timestamp.ConstructInPlace(TVector<ui64>(timestamps.begin(), timestamps.end()));
+}
+
 TIntrusivePtr<TObjectsDataProvider> NCB::TObjectsDataProvider::GetFeaturesSubset(
     const TVector<ui32>& ignoredFeatures,
     NPar::ILocalExecutor* localExecutor
@@ -419,6 +424,21 @@ TIntrusivePtr<TObjectsDataProvider> NCB::TObjectsDataProvider::GetFeaturesSubset
         localExecutor
     );
 }
+
+TIntrusivePtr<TObjectsDataProvider> NCB::TObjectsDataProvider::Clone(
+    NPar::ILocalExecutor* localExecutor
+) const {
+    return GetSubsetImpl(
+        ::GetGroupingSubsetFromObjectsSubset(
+            ObjectsGrouping,
+            TArraySubsetIndexing(TFullSubset<ui32>(GetObjectCount())),
+            EObjectsOrder::Ordered),
+        /*ignoredFeatures*/ Nothing(),
+        GetMonopolisticFreeCpuRam(),
+        localExecutor
+    );
+}
+
 
 template <class TColumn>
 static bool AreFeaturesValuesEqual(

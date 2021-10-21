@@ -17,13 +17,16 @@
 
 #include <stddef.h>
 
+#include "absl/base/attributes.h"
 #include "absl/base/optimization.h"
 #include "absl/base/thread_annotations.h"
 #include "tcmalloc/arena.h"
 #include "tcmalloc/common.h"
 #include "tcmalloc/internal/logging.h"
 
+GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
+namespace tcmalloc_internal {
 
 struct AllocatorStats {
   // Number of allocated but unfreed objects
@@ -49,7 +52,8 @@ class PageHeapAllocator {
     Delete(New());
   }
 
-  T* New() ABSL_EXCLUSIVE_LOCKS_REQUIRED(pageheap_lock) {
+  ABSL_ATTRIBUTE_RETURNS_NONNULL T* New()
+      ABSL_EXCLUSIVE_LOCKS_REQUIRED(pageheap_lock) {
     // Consult free list
     T* result = free_list_;
     stats_.in_use++;
@@ -61,7 +65,8 @@ class PageHeapAllocator {
     return result;
   }
 
-  void Delete(T* p) ABSL_EXCLUSIVE_LOCKS_REQUIRED(pageheap_lock) {
+  void Delete(T* p) ABSL_ATTRIBUTE_NONNULL()
+      ABSL_EXCLUSIVE_LOCKS_REQUIRED(pageheap_lock) {
     *(reinterpret_cast<void**>(p)) = free_list_;
     free_list_ = p;
     stats_.in_use--;
@@ -81,6 +86,8 @@ class PageHeapAllocator {
   AllocatorStats stats_ ABSL_GUARDED_BY(pageheap_lock);
 };
 
+}  // namespace tcmalloc_internal
 }  // namespace tcmalloc
+GOOGLE_MALLOC_SECTION_END
 
 #endif  // TCMALLOC_PAGE_HEAP_ALLOCATOR_H_

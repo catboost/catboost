@@ -18,7 +18,9 @@
 #include <atomic>
 
 #include "absl/base/macros.h"
+#include "tcmalloc/internal/config.h"
 
+GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
 namespace tcmalloc_internal {
 
@@ -46,10 +48,6 @@ class StatsCounter {
     this->value_.fetch_add(increment, std::memory_order_relaxed);
   }
 
-  // Clear the counter to zero.  Equivalent to atomically executing
-  // this->Add(-this->value()).
-  void Clear() { this->value_.store(0, std::memory_order_relaxed); }
-
   // Return the current value of the counter.
   Value value() const { return this->value_.load(std::memory_order_relaxed); }
 
@@ -71,5 +69,6 @@ class StatsCounter {
 
 }  // namespace tcmalloc_internal
 }  // namespace tcmalloc
+GOOGLE_MALLOC_SECTION_END
 
 #endif  // TCMALLOC_INTERNAL_ATOMIC_STATS_COUNTER_H_

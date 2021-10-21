@@ -93,34 +93,34 @@
     ],
     "test.test_eval_features[GPU-problem=binclass-eval_type=All]": [
         {
-            "uri": "file://test.test_eval_features_GPU-problem=binclass-eval_type=All_/eval_results_Logloss.csv"
+            "uri": "file://test.test_eval_features_GPU-problem=binclass-eval_type=All_/eval_results_AUC.csv"
         },
         {
-            "uri": "file://test.test_eval_features_GPU-problem=binclass-eval_type=All_/eval_results_AUC.csv"
+            "uri": "file://test.test_eval_features_GPU-problem=binclass-eval_type=All_/eval_results_Logloss.csv"
         }
     ],
     "test.test_eval_features[GPU-problem=binclass-eval_type=SeqAddAndAll]": [
         {
-            "uri": "file://test.test_eval_features_GPU-problem=binclass-eval_type=SeqAddAndAll_/eval_results_Logloss.csv"
+            "uri": "file://test.test_eval_features_GPU-problem=binclass-eval_type=SeqAddAndAll_/eval_results_AUC.csv"
         },
         {
-            "uri": "file://test.test_eval_features_GPU-problem=binclass-eval_type=SeqAddAndAll_/eval_results_AUC.csv"
+            "uri": "file://test.test_eval_features_GPU-problem=binclass-eval_type=SeqAddAndAll_/eval_results_Logloss.csv"
         }
     ],
     "test.test_eval_features[GPU-problem=binclass-eval_type=SeqAdd]": [
         {
-            "uri": "file://test.test_eval_features_GPU-problem=binclass-eval_type=SeqAdd_/eval_results_Logloss.csv"
+            "uri": "file://test.test_eval_features_GPU-problem=binclass-eval_type=SeqAdd_/eval_results_AUC.csv"
         },
         {
-            "uri": "file://test.test_eval_features_GPU-problem=binclass-eval_type=SeqAdd_/eval_results_AUC.csv"
+            "uri": "file://test.test_eval_features_GPU-problem=binclass-eval_type=SeqAdd_/eval_results_Logloss.csv"
         }
     ],
     "test.test_eval_features[GPU-problem=binclass-eval_type=SeqRem]": [
         {
-            "uri": "file://test.test_eval_features_GPU-problem=binclass-eval_type=SeqRem_/eval_results_Logloss.csv"
+            "uri": "file://test.test_eval_features_GPU-problem=binclass-eval_type=SeqRem_/eval_results_AUC.csv"
         },
         {
-            "uri": "file://test.test_eval_features_GPU-problem=binclass-eval_type=SeqRem_/eval_results_AUC.csv"
+            "uri": "file://test.test_eval_features_GPU-problem=binclass-eval_type=SeqRem_/eval_results_Logloss.csv"
         }
     ],
     "test.test_eval_features[GPU-problem=multiclass-eval_type=All]": [
@@ -157,34 +157,34 @@
     ],
     "test.test_eval_features[GPU-problem=ranking-eval_type=All]": [
         {
-            "uri": "file://test.test_eval_features_GPU-problem=ranking-eval_type=All_/eval_results_QueryRMSE.csv"
+            "uri": "file://test.test_eval_features_GPU-problem=ranking-eval_type=All_/eval_results_NDCG_type=Base.csv"
         },
         {
-            "uri": "file://test.test_eval_features_GPU-problem=ranking-eval_type=All_/eval_results_NDCG_type=Base.csv"
+            "uri": "file://test.test_eval_features_GPU-problem=ranking-eval_type=All_/eval_results_QueryRMSE.csv"
         }
     ],
     "test.test_eval_features[GPU-problem=ranking-eval_type=SeqAddAndAll]": [
         {
-            "uri": "file://test.test_eval_features_GPU-problem=ranking-eval_type=SeqAddAndAll_/eval_results_QueryRMSE.csv"
+            "uri": "file://test.test_eval_features_GPU-problem=ranking-eval_type=SeqAddAndAll_/eval_results_NDCG_type=Base.csv"
         },
         {
-            "uri": "file://test.test_eval_features_GPU-problem=ranking-eval_type=SeqAddAndAll_/eval_results_NDCG_type=Base.csv"
+            "uri": "file://test.test_eval_features_GPU-problem=ranking-eval_type=SeqAddAndAll_/eval_results_QueryRMSE.csv"
         }
     ],
     "test.test_eval_features[GPU-problem=ranking-eval_type=SeqAdd]": [
         {
-            "uri": "file://test.test_eval_features_GPU-problem=ranking-eval_type=SeqAdd_/eval_results_QueryRMSE.csv"
+            "uri": "file://test.test_eval_features_GPU-problem=ranking-eval_type=SeqAdd_/eval_results_NDCG_type=Base.csv"
         },
         {
-            "uri": "file://test.test_eval_features_GPU-problem=ranking-eval_type=SeqAdd_/eval_results_NDCG_type=Base.csv"
+            "uri": "file://test.test_eval_features_GPU-problem=ranking-eval_type=SeqAdd_/eval_results_QueryRMSE.csv"
         }
     ],
     "test.test_eval_features[GPU-problem=ranking-eval_type=SeqRem]": [
         {
-            "uri": "file://test.test_eval_features_GPU-problem=ranking-eval_type=SeqRem_/eval_results_QueryRMSE.csv"
+            "uri": "file://test.test_eval_features_GPU-problem=ranking-eval_type=SeqRem_/eval_results_NDCG_type=Base.csv"
         },
         {
-            "uri": "file://test.test_eval_features_GPU-problem=ranking-eval_type=SeqRem_/eval_results_NDCG_type=Base.csv"
+            "uri": "file://test.test_eval_features_GPU-problem=ranking-eval_type=SeqRem_/eval_results_QueryRMSE.csv"
         }
     ],
     "test.test_eval_features[GPU-problem=regression-eval_type=All]": [
@@ -254,6 +254,9 @@
     },
     "test.test_fit_data[GPU]": {
         "uri": "file://test.test_fit_data_GPU_/predictions.npy"
+    },
+    "test.test_fit_predict_baseline[GPU]": {
+        "uri": "file://test.test_fit_predict_baseline_GPU_/predictions.npy"
     },
     "test.test_get_metric_evals[GPU]": {
         "uri": "file://test.test_get_metric_evals_GPU_/evals.txt"
@@ -339,6 +342,12 @@
     },
     "test.test_pairs_generation_with_max_pairs[GPU]": {
         "uri": "file://test.test_pairs_generation_with_max_pairs_GPU_/catboost_training.json"
+    },
+    "test.test_pool_set_timestamp[GPU]": {
+        "uri": "file://test.test_pool_set_timestamp_GPU_/model.bin"
+    },
+    "test.test_pool_with_timestamp[GPU]": {
+        "uri": "file://test.test_pool_with_timestamp_GPU_/model.bin"
     },
     "test.test_predict_class[GPU]": {
         "uri": "file://test.test_predict_class_GPU_/predictions.npy"

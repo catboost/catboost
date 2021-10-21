@@ -178,7 +178,7 @@ as_integer( const string& func, const wstring& s, size_t* idx, int base )
 
 // as_float
 
-template<typename V, typename S, typename F> 
+template<typename V, typename S, typename F>
 inline
 V
 as_float_helper(const string& func, const S& str, size_t* idx, F f )

@@ -691,8 +691,10 @@ def test_deprecated_notifier():
 
 def test_help_output():
     check_help_output(__name__)
-    check_help_all_output(__name__)
 
+
+def test_help_all_output():
+    check_help_all_output(__name__)
 
 
 def test_show_config_cli():

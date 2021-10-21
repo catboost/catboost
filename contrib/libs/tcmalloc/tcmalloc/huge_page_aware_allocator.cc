@@ -36,9 +36,12 @@
 #include "tcmalloc/static_vars.h"
 #include "tcmalloc/stats.h"
 
+GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
+namespace tcmalloc_internal {
 
 bool decide_want_hpaa();
+ABSL_ATTRIBUTE_WEAK int default_want_hpaa();
 ABSL_ATTRIBUTE_WEAK int default_subrelease();
 
 bool decide_subrelease() {
@@ -47,14 +50,34 @@ bool decide_subrelease() {
     return false;
   }
 
-  const char *e =
-      tcmalloc::tcmalloc_internal::thread_safe_getenv("TCMALLOC_HPAA_CONTROL");
+  const char *e = thread_safe_getenv("TCMALLOC_HPAA_CONTROL");
   if (e) {
-    if (e[0] == '0') return false;
-    if (e[0] == '1') return false;
-    if (e[0] == '2') return true;
-    Crash(kCrash, __FILE__, __LINE__, "bad env var", e);
-    return false;
+    switch (e[0]) {
+      case '0':
+        if (kPageShift <= 12) {
+          return false;
+        }
+
+        if (default_want_hpaa != nullptr) {
+          int default_hpaa = default_want_hpaa();
+          if (default_hpaa < 0) {
+            return false;
+          }
+        }
+
+        Log(kLog, __FILE__, __LINE__,
+            "Runtime opt-out from HPAA requires building with "
+            "//tcmalloc:want_no_hpaa."
+        );
+        break;
+      case '1':
+        return false;
+      case '2':
+        return true;
+      default:
+        Crash(kCrash, __FILE__, __LINE__, "bad env var", e);
+        return false;
+    }
   }
 
   if (default_subrelease != nullptr) {
@@ -72,8 +95,7 @@ bool decide_subrelease() {
 }
 
 FillerPartialRerelease decide_partial_rerelease() {
-  const char *e = tcmalloc::tcmalloc_internal::thread_safe_getenv(
-      "TCMALLOC_PARTIAL_RELEASE_CONTROL");
+  const char *e = thread_safe_getenv("TCMALLOC_PARTIAL_RELEASE_CONTROL");
   if (e) {
     if (e[0] == '0') {
       return FillerPartialRerelease::Return;
@@ -86,10 +108,6 @@ FillerPartialRerelease decide_partial_rerelease() {
 
   return FillerPartialRerelease::Retain;
 }
-
-}  // namespace tcmalloc
-
-namespace tcmalloc {
 
 // Some notes: locking discipline here is a bit funny, because
 // we want to *not* hold the pageheap lock while backing memory.
@@ -108,6 +126,8 @@ HugePageAwareAllocator::HugePageAwareAllocator(MemoryTag tag)
             switch (tag) {
               case MemoryTag::kNormal:
                 return AllocAndReport<MemoryTag::kNormal>;
+              case MemoryTag::kNormalP1:
+                return AllocAndReport<MemoryTag::kNormalP1>;
               case MemoryTag::kSampled:
                 return AllocAndReport<MemoryTag::kSampled>;
               default:
@@ -164,7 +184,7 @@ PageId HugePageAwareAllocator::RefillFiller(Length n, bool *from_released) {
 
 Span *HugePageAwareAllocator::Finalize(Length n, PageId page)
     ABSL_EXCLUSIVE_LOCKS_REQUIRED(pageheap_lock) {
-  if (page == PageId{0}) return nullptr;
+  ASSERT(page != PageId{0});
   Span *ret = Span::New(page, n);
   Static::pagemap().Set(page, ret);
   ASSERT(!ret->sampled());
@@ -176,14 +196,16 @@ Span *HugePageAwareAllocator::Finalize(Length n, PageId page)
 // For anything <= half a huge page, we will unconditionally use the filler
 // to pack it into a single page.  If we need another page, that's fine.
 Span *HugePageAwareAllocator::AllocSmall(Length n, bool *from_released) {
-  PageId page;
-  FillerType::Tracker *pt;
-  if (filler_.TryGet(n, &pt, &page)) {
+  auto [pt, page] = filler_.TryGet(n);
+  if (ABSL_PREDICT_TRUE(pt != nullptr)) {
     *from_released = false;
     return Finalize(n, page);
   }
 
   page = RefillFiller(n, from_released);
+  if (ABSL_PREDICT_FALSE(page == PageId{0})) {
+    return nullptr;
+  }
   return Finalize(n, page);
 }
 
@@ -197,8 +219,8 @@ Span *HugePageAwareAllocator::AllocLarge(Length n, bool *from_released) {
   PageId page;
   // If we fit in a single hugepage, try the Filler first.
   if (n < kPagesPerHugePage) {
-    FillerType::Tracker *pt;
-    if (filler_.TryGet(n, &pt, &page)) {
+    auto [pt, page] = filler_.TryGet(n);
+    if (ABSL_PREDICT_TRUE(pt != nullptr)) {
       *from_released = false;
       return Finalize(n, page);
     }
@@ -285,7 +307,11 @@ Span *HugePageAwareAllocator::New(Length n) {
   CHECK_CONDITION(n > Length(0));
   bool from_released;
   Span *s = LockAndAlloc(n, &from_released);
-  if (s && from_released) BackSpan(s);
+  if (s) {
+    // Prefetch for writing, as we anticipate using the memory soon.
+    __builtin_prefetch(s->start_address(), 1, 3);
+    if (from_released) BackSpan(s);
+  }
   ASSERT(!s || GetMemoryTag(s->start_address()) == tag_);
   return s;
 }
@@ -300,7 +326,7 @@ Span *HugePageAwareAllocator::LockAndAlloc(Length n, bool *from_released) {
 
   // For anything too big for the filler, we use either a direct hugepage
   // allocation, or possibly the regions if we are worried about slack.
-  if (n <= Region::size().in_pages()) {
+  if (n <= HugeRegion::size().in_pages()) {
     return AllocLarge(n, from_released);
   }
 
@@ -331,7 +357,7 @@ Span *HugePageAwareAllocator::NewAligned(Length n, Length align) {
 
 void HugePageAwareAllocator::DeleteFromHugepage(FillerType::Tracker *pt,
                                                 PageId p, Length n) {
-  if (filler_.Put(pt, p, n) == nullptr) return;
+  if (ABSL_PREDICT_TRUE(filler_.Put(pt, p, n) == nullptr)) return;
   if (pt->donated()) {
     --donated_huge_pages_;
   }
@@ -339,10 +365,10 @@ void HugePageAwareAllocator::DeleteFromHugepage(FillerType::Tracker *pt,
 }
 
 bool HugePageAwareAllocator::AddRegion() {
-  HugeRange r = alloc_.Get(Region::size());
+  HugeRange r = alloc_.Get(HugeRegion::size());
   if (!r.valid()) return false;
-  Region *region = region_allocator_.New();
-  new (region) Region(r);
+  HugeRegion *region = region_allocator_.New();
+  new (region) HugeRegion(r, SystemRelease);
   regions_.Contribute(region);
   return true;
 }
@@ -361,7 +387,7 @@ void HugePageAwareAllocator::Delete(Span *span) {
   FillerType::Tracker *pt = GetTracker(hp);
   // a) We got packed by the filler onto a single hugepage - return our
   //    allocation to that hugepage in the filler.
-  if (pt != nullptr) {
+  if (ABSL_PREDICT_TRUE(pt != nullptr)) {
     ASSERT(hp == HugePageContaining(p + n - Length(1)));
     DeleteFromHugepage(pt, p, n);
     return;
@@ -496,7 +522,7 @@ static double BytesToMiB(size_t bytes) {
   return bytes / MiB;
 }
 
-static void BreakdownStats(TCMalloc_Printer *out, const BackingStats &s,
+static void BreakdownStats(Printer *out, const BackingStats &s,
                            const char *label) {
   out->printf("%s %6.1f MiB used, %6.1f MiB free, %6.1f MiB unmapped\n", label,
               BytesToMiB(s.system_bytes - s.free_bytes - s.unmapped_bytes),
@@ -512,9 +538,9 @@ static void BreakdownStatsInPbtxt(PbtxtRegion *hpaa, const BackingStats &s,
 }
 
 // public
-void HugePageAwareAllocator::Print(TCMalloc_Printer *out) { Print(out, true); }
+void HugePageAwareAllocator::Print(Printer *out) { Print(out, true); }
 
-void HugePageAwareAllocator::Print(TCMalloc_Printer *out, bool everything) {
+void HugePageAwareAllocator::Print(Printer *out, bool everything) {
   SmallSpanStats small;
   LargeSpanStats large;
   BackingStats bstats;
@@ -645,4 +671,6 @@ void HugePageAwareAllocator::UnbackWithoutLock(void *start, size_t length) {
   pageheap_lock.Lock();
 }
 
+}  // namespace tcmalloc_internal
 }  // namespace tcmalloc
+GOOGLE_MALLOC_SECTION_END
