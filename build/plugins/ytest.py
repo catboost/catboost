@@ -518,7 +518,24 @@ def onadd_check(unit, *args):
         script_rel_path = check_type
 
     use_arcadia_python = unit.get('USE_ARCADIA_PYTHON')
-    test_files = serialize_list(flat_args[1:])
+
+    if check_type == "check.data":
+        if unit.get("VALIDATE_DATA") == "no":
+            return
+        data_re = re.compile(r"sbr:/?/?(\d+)=?.*")
+        data = flat_args[1:]
+        resources = []
+        for f in data:
+            matched = re.match(data_re, f)
+            if matched:
+                resources.append(matched.group(1))
+        if resources:
+            test_files = serialize_list(resources)
+        else:
+            return
+    else:
+        test_files = serialize_list(flat_args[1:])
+
     test_record = {
         'TEST-NAME': check_type.lower(),
         'TEST-TIMEOUT': test_timeout,
