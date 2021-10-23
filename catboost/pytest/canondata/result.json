@@ -1784,6 +1784,30 @@
             "uri": "file://test.test_dist_train_yetirank/test_1.eval"
         }
     ],
+    "test.test_embeddings_processing_options[KNNparam+LDAparam]": [
+        {
+            "uri": "file://test.test_embeddings_processing_options_KNNparam+LDAparam_/learn.tsv"
+        },
+        {
+            "uri": "file://test.test_embeddings_processing_options_KNNparam+LDAparam_/test.tsv"
+        }
+    ],
+    "test.test_embeddings_processing_options[KNNparam]": [
+        {
+            "uri": "file://test.test_embeddings_processing_options_KNNparam_/learn.tsv"
+        },
+        {
+            "uri": "file://test.test_embeddings_processing_options_KNNparam_/test.tsv"
+        }
+    ],
+    "test.test_embeddings_processing_options[LDAparam]": [
+        {
+            "uri": "file://test.test_embeddings_processing_options_LDAparam_/learn.tsv"
+        },
+        {
+            "uri": "file://test.test_embeddings_processing_options_LDAparam_/test.tsv"
+        }
+    ],
     "test.test_embeddings_train[only_embeddings-Ordered]": [
         {
             "uri": "file://test.test_embeddings_train_only_embeddings-Ordered_/learn.tsv"

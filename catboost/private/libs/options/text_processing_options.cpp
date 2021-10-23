@@ -120,29 +120,19 @@ namespace NCatboostOptions {
         if (!options.IsDefined()) {
             return;
         }
-
-        const TString& calcerDescription = options.GetString();
-        TStringBuf calcerDescriptionStrBuf = calcerDescription;
-
-        TStringBuf calcerTypeString;
-        TStringBuf calcerOptionsString;
-        calcerDescriptionStrBuf.Split(':', calcerTypeString, calcerOptionsString);
-
-        if (EFeatureCalcerType calcerType; TryFromString<EFeatureCalcerType>(calcerTypeString, calcerType)) {
-            CalcerType.Set(calcerType);
+        TString calcerName;
+        if (options.Has("calcer_type")) {
+            calcerName = options["calcer_type"].GetString();
+            CalcerOptions.Set(options);
         } else {
-            CB_ENSURE(false, "Unknown feature estimator type " << calcerTypeString);
+            calcerName = options.GetString();
         }
+        EFeatureCalcerType calcerType;
 
-        CalcerOptions->SetType(NJson::EJsonValueType::JSON_MAP);
-        if (!calcerOptionsString.empty()) {
-            for (TStringBuf optionString: StringSplitter(calcerOptionsString).Split(',')) {
-                TStringBuf name;
-                TStringBuf value;
-                optionString.Split('=', name, value);
-                CalcerOptions->InsertValue(name, value);
-            }
-        }
+        CB_ENSURE(TryFromString<EFeatureCalcerType>(calcerName, calcerType),
+                  "Unknown feature estimator type " << calcerName);
+
+        CalcerType.Set(calcerType);
     }
 
     bool TFeatureCalcerDescription::operator==(const TFeatureCalcerDescription& rhs) const {

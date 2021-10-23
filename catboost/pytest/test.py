@@ -9829,6 +9829,57 @@ def test_embeddings_train(boosting_type, columns):
     return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
 
 
+EMBEDDING_CALCER_OPTIONS = {
+    "LDAparam": "LDA:reg=0.05:likelihood=true",
+    "KNNparam": "KNN:k=20",
+    "KNNparam+LDAparam": "KNN:k=10,LDA:reg=0.05",
+}
+
+
+@pytest.mark.parametrize('calcers_options', list(EMBEDDING_CALCER_OPTIONS.keys()))
+def test_embeddings_processing_options(calcers_options):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    learn_error_path = yatest.common.test_output_path('learn.tsv')
+    test_error_path = yatest.common.test_output_path('test.tsv')
+
+    test_eval_path = yatest.common.test_output_path('test.eval')
+    calc_eval_path = yatest.common.test_output_path('calc.eval')
+
+    cmd = (
+        '--loss-function', 'Logloss',
+        '--eval-metric', 'AUC',
+        '-f', ROTTEN_TOMATOES_WITH_EMBEDDINGS_TRAIN_FILE,
+        '-t', ROTTEN_TOMATOES_WITH_EMBEDDINGS_TRAIN_FILE,
+        '--column-description', ROTTEN_TOMATOES_CD['with_embeddings_and_texts'],
+        '--boosting-type', 'Plain',
+        '--embedding-calcers', EMBEDDING_CALCER_OPTIONS[calcers_options],
+        '-i', '20',
+        '-T', '4',
+        '-m', output_model_path,
+        '--learn-err-log', learn_error_path,
+        '--test-err-log', test_error_path,
+        '--eval-file', test_eval_path,
+        '--output-columns', 'RawFormulaVal',
+        '--use-best-model', 'false',
+    )
+    execute_catboost_fit('CPU', cmd)
+
+    apply_catboost(
+        output_model_path,
+        ROTTEN_TOMATOES_WITH_EMBEDDINGS_TRAIN_FILE,
+        ROTTEN_TOMATOES_CD['with_embeddings_and_texts'],
+        calc_eval_path,
+        output_columns=['RawFormulaVal']
+    )
+    assert filecmp.cmp(test_eval_path, calc_eval_path)
+
+    if 'LDA' in calcers_options:
+        pd.read_csv(learn_error_path, sep='\t').round(2).to_csv(learn_error_path, index=False, sep='\t')
+        pd.read_csv(test_error_path, sep='\t').round(2).to_csv(test_error_path, index=False, sep='\t')
+
+    return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
+
+
 def test_dump_options():
     snapshot_path = yatest.common.test_output_path('snapshot.bin')
     key = 'summary'
