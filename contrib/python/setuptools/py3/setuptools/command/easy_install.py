@@ -153,6 +153,12 @@ class easy_install(Command):
     create_index = PackageIndex
 
     def initialize_options(self):
+        warnings.warn(
+            "easy_install command is deprecated. "
+            "Use build and pip and other standards-based tools.",
+            EasyInstallDeprecationWarning,
+        )
+
         # the --user option seems to be an opt-in one,
         # so the default should be False.
         self.user = 0
