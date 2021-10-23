@@ -15,6 +15,7 @@ import ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl
 
 import ai.catboost.CatBoostError
 
+import ai.catboost.spark.impl.{RunClassInNewProcess,ShutdownWorkersApp}
 
 // use in startMasterCallback
 private[spark] class CatBoostWorkersConnectionLostException(message: String) extends IOException(message) {
@@ -144,8 +145,9 @@ private[spark] class UpdatableWorkersInfo (
     }
   }
   
-  def shutdownRemainingWorkers() = {
-    log.info("Shutdown remaining workers:")
+  def shutdownRemainingWorkers(workerShutdownTimeout: java.time.Duration) = {
+    log.info("Shutdown remaining workers: start")
+
     val remainingWorkersInfo = workersInfo.filter(
       workerInfo => {
         val isListening = TrainingDriver.isWorkerListening(workerInfo.host, workerInfo.port)
@@ -155,12 +157,27 @@ private[spark] class UpdatableWorkersInfo (
         isListening
       }
     )
-    
-    val tmpDirPath = Files.createTempDirectory("catboost_train")
 
-    val hostsFilePath = tmpDirPath.resolve("worker_hosts.txt")
-    TrainingDriver.saveHostsListToFile(hostsFilePath, remainingWorkersInfo)
-    native_impl.native_impl.ShutdownWorkers(hostsFilePath.toString);
+    if (remainingWorkersInfo.isEmpty) {
+      log.info("Shutdown remaining workers: no remaining workers")
+    } else {
+      val tmpDirPath = Files.createTempDirectory("catboost_train")
+  
+      val hostsFilePath = tmpDirPath.resolve("worker_hosts.txt")
+      TrainingDriver.saveHostsListToFile(hostsFilePath, remainingWorkersInfo)
+  
+      val shutdownWorkersAppProcess = RunClassInNewProcess(
+        ShutdownWorkersApp.getClass,
+        args = Some(Array(hostsFilePath.toString, workerShutdownTimeout.getSeconds.toString))
+      )
+  
+      val returnValue = shutdownWorkersAppProcess.waitFor
+      if (returnValue != 0) {
+        throw new CatBoostError(s"Shutdown workers process failed: exited with code $returnValue")
+      }
+    }
+
+    log.info("Shutdown remaining workers: finish")
   }
 }
 
@@ -180,6 +197,8 @@ private[spark] class UpdatableWorkersInfo (
 private[spark] class TrainingDriver (
   val updatableWorkersInfo: UpdatableWorkersInfo,
   val workerInitializationTimeout: java.time.Duration,
+  val workerShutdownOptimisticTimeout: java.time.Duration,
+  val workerShutdownPessimisticTimeout: java.time.Duration,
   val startMasterCallback: Array[WorkerInfo] => Unit
 ) extends Runnable with Logging {
 
@@ -189,15 +208,23 @@ private[spark] class TrainingDriver (
    *  @param startMasterCallback pass a routine to start CatBoost master process given WorkerInfos.
    * 		Throw CatBoostWorkersConnectionLostException if master failed due to loss of workers
    *  @param workerInitializationTimeout Timeout to wait until CatBoost workers on Spark executors are initalized and sent their WorkerInfo
+   *  @param workerShutdownOptimisticTimeout Timeout to wait for CatBoost workers to shut down after CatBoost master failed
+   *   (assuming CatBoost master has been able to issue 'stop' command to workers)
+   *  @param workerShutdownPessimisticTimeout Timeout to wait for CatBoost workers to shut down in
+   *   explicit shutdownRemainingWorkers procedure.
    */
   def this(
     listeningPort: Int,
     workerCount: Int,
     startMasterCallback: Array[WorkerInfo] => Unit,
-    workerInitializationTimeout: java.time.Duration = java.time.Duration.ofMinutes(10)
+    workerInitializationTimeout: java.time.Duration = java.time.Duration.ofMinutes(10),
+    workerShutdownOptimisticTimeout : java.time.Duration = java.time.Duration.ofSeconds(40),
+    workerShutdownPessimisticTimeout : java.time.Duration = java.time.Duration.ofMinutes(5)
   ) = this(
     updatableWorkersInfo = new UpdatableWorkersInfo(listeningPort, workerCount),
     workerInitializationTimeout = workerInitializationTimeout,
+    workerShutdownOptimisticTimeout = workerShutdownOptimisticTimeout,
+    workerShutdownPessimisticTimeout = workerShutdownPessimisticTimeout,
     startMasterCallback = startMasterCallback
   )
 
@@ -246,7 +273,11 @@ private[spark] class TrainingDriver (
     } finally {
       updatableWorkersInfo.close
       if (!success) {
-        updatableWorkersInfo.shutdownRemainingWorkers()
+        /* wait for CatBoost workers to shut down after CatBoost master failed
+           (assuming CatBoost master has been able to issue 'stop' command to workers)
+        */
+        Thread.sleep(workerShutdownOptimisticTimeout.toMillis)
+        updatableWorkersInfo.shutdownRemainingWorkers(workerShutdownPessimisticTimeout)
       }
       log.info("finished")
     }

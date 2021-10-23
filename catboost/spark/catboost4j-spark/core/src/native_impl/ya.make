@@ -34,6 +34,8 @@ PEERDIR(
     library/cpp/dbg_output
     library/cpp/grid_creator
     library/cpp/json
+    library/cpp/par
+    library/cpp/threading/atomic
     library/cpp/threading/local_executor
     catboost/libs/cat_feature
     catboost/libs/column_description
