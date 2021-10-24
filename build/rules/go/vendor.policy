@@ -792,6 +792,13 @@ ALLOW .* -> vendor/inet.af/netaddr
 # CONTRIB-2368: embedding resources in a Windows executable
 ALLOW .* -> vendor/github.com/tc-hib/winres
 
+# CONTRIB-2346: repatriate ydb-go-sdk
+ALLOW .* -> vendor/github.com/yandex-cloud/go-genproto
+ALLOW .* -> vendor/github.com/ydb-platform/ydb-go-genproto
+ALLOW .* -> vendor/github.com/ydb-platform/ydb-go-sdk
+ALLOW .* -> vendor/github.com/ydb-platform/ydb-go-sdk-metrics
+ALLOW .* -> vendor/github.com/ydb-platform/ydb-go-yc
+
 #
 # Tools
 #
