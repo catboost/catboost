@@ -188,11 +188,14 @@ trait CatBoostPredictorTrait[
       precomputedOnlineCtrMetaDataAsJsonString
     )
 
+    val connectTimeoutValue = getOrDefault(connectTimeout)
+    val workerInitializationTimeoutValue = getOrDefault(workerInitializationTimeout)
+
     val trainingDriver : TrainingDriver = new TrainingDriver(
       listeningPort = 0,
       workerCount = partitionCount,
       startMasterCallback = master.trainCallback,
-      workerInitializationTimeout = getOrDefault(workerInitializationTimeout)
+      workerInitializationTimeout = workerInitializationTimeoutValue
     )
 
     val listeningPort = trainingDriver.getListeningPort
@@ -208,6 +211,8 @@ trait CatBoostPredictorTrait[
       spark,
       partitionCount,
       listeningPort,
+      connectTimeoutValue,
+      workerInitializationTimeoutValue,
       preparedTrainDataset,
       preparedEvalDatasets,
       catBoostJsonParams,
