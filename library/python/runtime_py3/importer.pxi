@@ -419,6 +419,8 @@ class ArcadiaSourceFinder:
                     if package_name in self.module_path_cache:
                         break
                     self.module_path_cache.setdefault(package_name, set())
+        for package_name in self.module_path_cache.keys():
+            self._add_parent_dirs(package_name, visited=set())
 
     def get_module_path(self, fullname):
         """
@@ -504,6 +506,20 @@ class ArcadiaSourceFinder:
             parent_paths = self._cache_module_path(parent, find_package_only=True)
             self.module_path_cache[fullname] = self._find_module_in_paths(find_package_only, parent_paths, tail)
         return self.module_path_cache[fullname]
+
+    def _add_parent_dirs(self, package_name, visited):
+        if not package_name or package_name in visited:
+            return
+        visited.add(package_name)
+
+        parent, _, tail = package_name.rpartition('.')
+        self._add_parent_dirs(parent, visited)
+
+        paths = self.module_path_cache[package_name]
+        for parent_path in self.module_path_cache[parent]:
+            rel_path = _path_join(parent_path, tail)
+            if self._path_is_simple_dir(_path_join(self.source_root, rel_path)):
+                paths.add(rel_path)
 
 
 def excepthook(*args, **kws):
