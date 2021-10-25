@@ -797,6 +797,8 @@ ALLOW .* -> vendor/github.com/yandex-cloud/go-genproto
 ALLOW .* -> vendor/github.com/ydb-platform/ydb-go-genproto
 ALLOW .* -> vendor/github.com/ydb-platform/ydb-go-sdk
 ALLOW .* -> vendor/github.com/ydb-platform/ydb-go-sdk-metrics
+ALLOW .* -> vendor/github.com/ydb-platform/ydb-go-sdk-zap
+ALLOW .* -> vendor/github.com/ydb-platform/ydb-go-sdk-zerolog
 ALLOW .* -> vendor/github.com/ydb-platform/ydb-go-yc
 
 #
