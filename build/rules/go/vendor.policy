@@ -1011,6 +1011,9 @@ ALLOW .* -> vendor/github.com/flosch/pongo2/v4
 DENY .* -> vendor/github.com/tdewolff/minify/v2/cmd
 ALLOW .* -> vendor/github.com/tdewolff/minify/v2
 
+# CONTRIB-2354 Simple image processing package
+ALLOW .* -> vendor/github.com/disintegration/imaging
+
 #
 # This section is for EXCEPTIONS. Add new rule above, not here.
 #
