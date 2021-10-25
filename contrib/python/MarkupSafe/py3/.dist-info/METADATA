@@ -26,6 +26,7 @@ Classifier: Topic :: Internet :: WWW/HTTP :: Dynamic Content
 Classifier: Topic :: Text Processing :: Markup :: HTML
 Requires-Python: >=3.6
 Description-Content-Type: text/x-rst
+License-File: LICENSE.rst
 
 MarkupSafe
 ==========
