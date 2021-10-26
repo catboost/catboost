@@ -1596,7 +1596,6 @@ migrations:
     - yp/eviction_alerter/bin
     - yp/scheduler_simulator/analysis/library
     - yql/library/test_framework
-    - yweb/animals/admin_service/lib
     - yweb/antimalware/mitb/mitb_monitor/lib
     - yweb/antiporno/cp_conv/text_classif/bin
     - yweb/antispam/clean_web/router
