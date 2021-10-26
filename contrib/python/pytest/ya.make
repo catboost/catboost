@@ -1,10 +1,10 @@
 PY23_LIBRARY()
 
-LICENSE(MIT)
+
 
 VERSION(4.0.1)
 
-
+LICENSE(MIT)
 
 PEERDIR(
     contrib/python/atomicwrites
@@ -23,6 +23,8 @@ IF (PYTHON2)
     )
 ENDIF()
 
+NO_LINT()
+
 NO_CHECK_IMPORTS(
     __tests__.*  # all test modules get imported when tests are run
     _pytest.*
@@ -30,22 +32,24 @@ NO_CHECK_IMPORTS(
 
 PY_SRCS(
     TOP_LEVEL
+    _pytest/__init__.py
     _pytest/_argcomplete.py
+    _pytest/_code/__init__.py
+    _pytest/_code/_py2traceback.py
+    _pytest/_code/code.py
+    _pytest/_code/source.py
+    _pytest/_version.py
     _pytest/assertion/__init__.py
     _pytest/assertion/rewrite.py
     _pytest/assertion/truncate.py
     _pytest/assertion/util.py
     _pytest/cacheprovider.py
     _pytest/capture.py
-    _pytest/_code/code.py
-    _pytest/_code/__init__.py
-    _pytest/_code/_py2traceback.py
-    _pytest/_code/source.py
     _pytest/compat.py
+    _pytest/config/__init__.py
     _pytest/config/argparsing.py
     _pytest/config/exceptions.py
     _pytest/config/findpaths.py
-    _pytest/config/__init__.py
     _pytest/debugging.py
     _pytest/deprecated.py
     _pytest/doctest.py
@@ -53,12 +57,11 @@ PY_SRCS(
     _pytest/freeze_support.py
     _pytest/helpconfig.py
     _pytest/hookspec.py
-    _pytest/__init__.py
     _pytest/junitxml.py
     _pytest/logging.py
     _pytest/main.py
-    _pytest/mark/evaluate.py
     _pytest/mark/__init__.py
+    _pytest/mark/evaluate.py
     _pytest/mark/legacy.py
     _pytest/mark/structures.py
     _pytest/monkeypatch.py
@@ -68,8 +71,8 @@ PY_SRCS(
     _pytest/pastebin.py
     _pytest/pathlib.py
     _pytest/pytester.py
-    _pytest/python_api.py
     _pytest/python.py
+    _pytest/python_api.py
     _pytest/recwarn.py
     _pytest/reports.py
     _pytest/resultlog.py
@@ -81,9 +84,8 @@ PY_SRCS(
     _pytest/terminal.py
     _pytest/tmpdir.py
     _pytest/unittest.py
-    _pytest/_version.py
-    _pytest/warnings.py
     _pytest/warning_types.py
+    _pytest/warnings.py
     pytest.py
 )
 
@@ -93,7 +95,5 @@ RESOURCE_FILES(
     .dist-info/entry_points.txt
     .dist-info/top_level.txt
 )
-
-NO_LINT()
 
 END()
