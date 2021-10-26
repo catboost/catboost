@@ -4,7 +4,7 @@ algorithm with parameters.
 """
 
 import os
-from catboost import CatBoostError, CatBoost
+from .. import CatBoostError, CatBoost
 
 
 class FoldModel:
