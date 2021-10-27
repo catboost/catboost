@@ -354,7 +354,7 @@ Metric-specific parameters (available if the corresponding metric is set in the 
 
 {{ title__loss-functions__calculation-principles }}
 
-$QueryCrossEntropy(\alpha) = (1 – \alpha) \cdot LogLoss + \alpha \cdot LogLoss_{group}$
+$QueryCrossEntropy(\alpha) = (1 - \alpha) \cdot LogLoss + \alpha \cdot LogLoss_{group}$
 
 See the [{{ error-function__QueryCrossEntropy }}](../references/querycrossentropy.md) section for more details.
 
