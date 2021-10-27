@@ -72,7 +72,7 @@ from sklearn.model_selection import KFold
 #Our goal is to solve the *regression* task, i.e. to predict the price of an old car.
 
 
-os.system("wget https://gist.githubusercontent.com/garkavem/2613ca62c9ace338b217eccc99fe1f6f/raw/981dae5111bb2a30e20dca888a99020d5c4f5899/gistfile1.txt -O 'cars.csv'")
+os.system("wget https://gist.githubusercontent.com/garkavem/2613ca62c9ace338b217eccc99fe1f6f/raw/981dae5111bb2a30e20dca888a99020d5c4f5899/gistfile1.txt -O cars.csv")
 
 
 df = pd.read_csv('cars.csv')
