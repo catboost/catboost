@@ -228,9 +228,10 @@ _LIBCPP_INLINE_VISIBILITY
 inline constexpr weak_equality operator<=>(_CmpUnspecifiedParam, weak_equality __v) noexcept {
   return __v;
 }
+#endif
+
 #ifdef _LIBCPP_COMPILER_MSVC
 #pragma warning ( pop )
-#endif
 #endif
 
 class strong_equality {
