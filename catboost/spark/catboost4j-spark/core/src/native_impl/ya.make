@@ -54,10 +54,10 @@ PEERDIR(
     catboost/private/libs/quantized_pool
 )
 
-IF (OS_LINUX AND NOT ARCH_AARCH64)
-    ALLOCATOR(TCMALLOC_256K)
-ELSE()
+IF (OS_WINDOWS)
     ALLOCATOR(J)
+ELSE()
+    ALLOCATOR(MIM)
 ENDIF()
 
 STRIP()
