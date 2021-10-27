@@ -35,6 +35,22 @@ private[spark] class CatBoostWorkersConnectionLostException(message: String) ext
   }
 }
 
+// use in waitForListeningPortAndSendWorkerInfo
+private[spark] class CatBoostTrainingDriverConnectException(message: String) extends IOException(message) {
+  def this(message: String, cause: Throwable) {
+    this(message)
+    initCause(cause)
+  }
+
+  def this(cause: Throwable) {
+    this(Option(cause).map(_.toString).orNull, cause)
+  }
+
+  def this() {
+    this(null: String)
+  }
+}
+
 
 private[spark] class WorkerInfo (
   val partitionId : Int,
@@ -62,7 +78,6 @@ private[spark] class WorkerInfo (
 
 private[spark] class UpdatableWorkersInfo (
   private val workersInfo: Array[WorkerInfo],
-  var workerRegistrationUpdatedSinceLastMasterStart : AtomicBoolean,
   val serverSocket: ServerSocket
 ) extends Runnable with Closeable with Logging {
   def this(
@@ -70,7 +85,6 @@ private[spark] class UpdatableWorkersInfo (
     workerCount: Int
   ) = this(
     workersInfo = new Array[WorkerInfo](workerCount),
-    workerRegistrationUpdatedSinceLastMasterStart = new AtomicBoolean(false),
     serverSocket = new ServerSocket(listeningPort)
   )
 
@@ -125,7 +139,6 @@ private[spark] class UpdatableWorkersInfo (
             this.synchronized {
               log.info(s"received workerInfo=${workerInfo}")
               workersInfo(workerInfo.partitionId) = workerInfo
-              workerRegistrationUpdatedSinceLastMasterStart.set(true)
             }
           }
         )
@@ -142,7 +155,6 @@ private[spark] class UpdatableWorkersInfo (
 
   def getWorkersInfo : Array[WorkerInfo] = {
     this.synchronized {
-      workerRegistrationUpdatedSinceLastMasterStart.set(false)
       Arrays.copyOf(workersInfo, workersInfo.length)
     }
   }
@@ -156,7 +168,9 @@ private[spark] class UpdatableWorkersInfo (
 
     val remainingWorkersInfo = workersInfo.filter(
       workerInfo => {
-        val isListening = TrainingDriver.isWorkerListening(workerInfo.host, workerInfo.port, connectTimeout)
+        val isListening 
+          = (workerInfo != null) &&
+            TrainingDriver.isWorkerListening(workerInfo.host, workerInfo.port, connectTimeout)
         if (isListening) {
           log.info(s"remaining listening workerInfo=${workerInfo}")
         }
@@ -196,12 +210,8 @@ private[spark] class UpdatableWorkersInfo (
  * Should be run in a separate thread using Future (to capture possible exceptions).
  *  1) waits until all workers announced their readiness by
  *     sending their host:port coordinates
- *  2) start a separate thread to track workers' coordinates updates
- *  3) start CatBoost master via callback with workers' coordinates
- *  4) if CatBoost master fails see if we can attempt to restart it with updated workers
- *     (wait for workerInitializationTimeout before attempting that).
- *     Go to step 3 if there are updated workers.
- *  5) returns if master callback finished without exceptions
+ *  2) start CatBoost master via callback with workers' coordinates
+ *  3) if master finished unsuccessfully shutdown remaining workers to avoid their infinite waiting
  */
 private[spark] class TrainingDriver (
   val updatableWorkersInfo: UpdatableWorkersInfo,
@@ -247,34 +257,18 @@ private[spark] class TrainingDriver (
     var success = false
     try {
       log.info("started")
+      log.info("wait for workers info")
       log.debug(s"workerInitializationTimeout=${workerInitializationTimeout}")
       updatableWorkersInfo.initWorkers(workerInitializationTimeout)
 
       val workersUpdateFuture = Executors.newSingleThreadExecutor.submit(updatableWorkersInfo)
 
       try {
-        do {
-          log.info("wait for workers info")
-          val workersInfo = updatableWorkersInfo.getWorkersInfo
-          try {
-            log.info("CatBoost master: starting")
-            startMasterCallback(workersInfo)
-            log.info("CatBoost master: finished successfully")
-            success = true
-          } catch {
-            // try to relaunch if
-            case e: CatBoostWorkersConnectionLostException => {
-              log.info(s"wait for missing workers to relaunch for ${workerInitializationTimeout}")
-              Thread.sleep(workerInitializationTimeout.toMillis)
-              if (!updatableWorkersInfo.workerRegistrationUpdatedSinceLastMasterStart.get()) {
-                throw new CatBoostError(
-                  "CatBoost master won't be restarted - no relaunched workers after timeout " +
-                  s"${impl.TimeHelpers.format(workerInitializationTimeout)} expired"
-                )
-              }
-            }
-          }
-        } while (!success)
+        val workersInfo = updatableWorkersInfo.getWorkersInfo
+        log.info("CatBoost master: starting")
+        startMasterCallback(workersInfo)
+        log.info("CatBoost master: finished successfully")
+        success = true
       } finally {
         workersUpdateFuture.cancel(true)
         try {
@@ -386,7 +380,13 @@ private[spark] object TrainingDriver extends Logging {
 
     log.info(s"send WorkerInfo to CatBoost training driver at ${trainingDriverListeningAddress}")
     val socket = new Socket
-    socket.connect(trainingDriverListeningAddress, connectTimeout.toMillis.toInt)
+    try {
+      socket.connect(trainingDriverListeningAddress, connectTimeout.toMillis.toInt)
+    } catch {
+      case e : Throwable => {
+        throw new CatBoostTrainingDriverConnectException(e)
+      }
+    }
 
     val workerInfo = new WorkerInfo(
       partitionId,

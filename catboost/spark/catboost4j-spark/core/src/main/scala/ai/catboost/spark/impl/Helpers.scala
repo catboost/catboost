@@ -2,7 +2,7 @@ package ai.catboost.spark.impl
 
 import java.nio.file.{Files,Path}
 import java.nio.charset.StandardCharsets
-import java.util.concurrent.Future
+import java.util.concurrent.{ExecutorCompletionService,Future}
 
 
 private[spark] object Helpers {
@@ -19,17 +19,46 @@ private[spark] object Helpers {
 
   def checkOneFutureAndWaitForOther(
     future1: Future[Unit],
+    future1Description: String,
     future2: Future[Unit],
-    future1Description: String
+    future2Description: String
   ) = {
     try {
       future1.get
     } catch {
-      case t: Throwable => {
+      case e : java.util.concurrent.ExecutionException => {
         future2.cancel(true)
-        throw new RuntimeException("Error while executing " + future1Description, t)
+        throw new java.util.concurrent.ExecutionException(
+          "Error while executing " + future1Description,
+          e.getCause
+        )
       }
     }
-    future2.get
+    try {
+      future2.get
+    } catch {
+      case e : java.util.concurrent.ExecutionException => {
+        throw new java.util.concurrent.ExecutionException(
+          "Error while executing " + future2Description,
+          e.getCause
+        )
+      }
+    }
+  }
+
+  def waitForTwoFutures(
+    ecs: ExecutorCompletionService[Unit],
+    future1: Future[Unit],
+    future1Description: String,
+    future2: Future[Unit],
+    future2Description: String
+  ) = {
+    val firstCompletedFuture = ecs.take()
+
+    if (firstCompletedFuture == future1) {
+      checkOneFutureAndWaitForOther(future1, future1Description, future2, future2Description)
+    } else {
+      checkOneFutureAndWaitForOther(future2, future2Description, future1, future1Description)
+    }
   }
 }
