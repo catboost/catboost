@@ -1,3 +1,27 @@
+# Release 1.0.1
+
+## CatBoost for Apache Spark
+* More robust handling of CatBoost Master and Workers failures, avoid freezes.
+* Fix for empty partitions. #1687
+* Fix use-after-free. #1759 and other random errors.
+* Support Spark 3.1.
+
+## Python package
+* Support python 3.10. #1575
+
+## Breaking changes
+* Use group weight for generated pairs in pairwise losses
+
+## Bugfixes
+* Switch to mimalloc allocator on Linux and macOS to avoid problems with static TLS.
+* Fix SEGFAULTs on macOS. #1877
+* Fix: Distributed training: do not fail if worker contains only learn or test data
+* Fix SEGFAULT on CPU with Depthwise training and `rsm` < 1.
+* Fix `calc_feature_statistics` for cat features. #1882
+* Fix result of cv for metric_period case
+* fix `eval_metric` for Multitarget training
+
+
 # Release 1.0.0
 
 In this release we decided to increment major version as we think that CatBoost is ready for production usage. We know, that CatBoost is used a lot in many different companies and individual projects, and not it's not only a "psychological" maturity - we think, that all the features we added in the last year and in current release is worth to update major version. And of course, as many programmers we love magic of binary numbers and we want to celebrate 100₂ anniversary since CatBoost first release on github :)
