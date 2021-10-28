@@ -98,6 +98,13 @@ private:
     THashMap<i32, TVector<TModelCtrBase>> CatFeatureFlatIndexToModelCtrsBases;
     TDatasetDataForFinalCtrs DatasetDataForFinalCtrs;
     NCB::TFeaturesArraySubsetIndexing LearnFeaturesSubsetIndexing;
+
+    // universal because it is the same for all cat features in Spark now
+    TVector<ui32> UniversalPerfectHashedToHashedCatValuesMap;
+
+    /* used as a buffer to temporary borrow from UniversalPerfectHashedToHashedCatValuesMap
+       for the needed feature
+     */
     NCB::TPerfectHashedToHashedCatValuesMap PerfectHashedToHashedCatValuesMap;
 
     const NCatboostOptions::TCatBoostOptions* CatBoostOptions;

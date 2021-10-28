@@ -7,6 +7,7 @@
 #include <catboost/private/libs/options/defaults_helper.h>
 #include <catboost/private/libs/options/system_options.h>
 
+#include <catboost/libs/cat_feature/cat_feature.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 
 #include <library/cpp/threading/local_executor/local_executor.h>
@@ -312,23 +313,39 @@ TFinalCtrsCalcer::TFinalCtrsCalcer(
     , LocalExecutor(localExecutor)
     , CtrDataFile(MakeTempName(nullptr, "ctr_data_file"))
     , CtrDataFileStream(new TOFStream(CtrDataFile.Name()))
+    , PerfectHashedToHashedCatValuesMap(FeaturesLayout->GetCatFeatureCount())
     , CatBoostOptions(catBoostOptions)
     , CpuRamLimit(ParseMemorySizeDescription(catBoostOptions->SystemOptions->CpuUsedRamLimit.Get()))
 {
     TVector<TModelCtrBase> modelCtrBases = Model.ModelTrees->GetApplyData()->GetUsedModelCtrBases();
     StreamWriter.Reset(new TCtrDataStreamWriter(CtrDataFileStream.Get(), modelCtrBases.size()));
+
+    ui32 maxUniqCatValuesPerFeature = 0;
     for (const auto& modelCtrBase : modelCtrBases) {
+        TCatFeatureIdx catFeatureIdx(SafeIntegerCast<ui32>(modelCtrBase.Projection.CatFeatures[0]));
         auto flatCatFeatureIdx = FeaturesLayout->GetExternalFeatureIdx(
-            SafeIntegerCast<ui32>(modelCtrBase.Projection.CatFeatures[0]),
+            *catFeatureIdx,
             EFeatureType::Categorical
         );
         CatFeatureFlatIndexToModelCtrsBases[SafeIntegerCast<i32>(flatCatFeatureIdx)].push_back(modelCtrBase);
+        auto uniqCatValuesCountsPerFeature = quantizedFeaturesInfo.GetUniqueValuesCounts(catFeatureIdx);
+        maxUniqCatValuesPerFeature = Max(maxUniqCatValuesPerFeature, uniqCatValuesCountsPerFeature.OnAll);
     }
 
     DatasetDataForFinalCtrs.Targets = TVector<TConstArrayRef<float>>(1, learnTarget);
     DatasetDataForFinalCtrs.LearnTargetClass = &TargetStatsForCtrs.LearnTargetClass;
     DatasetDataForFinalCtrs.TargetClassesCount = &TargetStatsForCtrs.TargetClassesCount;
     DatasetDataForFinalCtrs.TargetClassifiers = &ctrHelper.GetTargetClassifiers();
+
+    UniversalPerfectHashedToHashedCatValuesMap.yresize(maxUniqCatValuesPerFeature);
+    NPar::ParallelFor(
+        *LocalExecutor,
+        0,
+        SafeIntegerCast<int>(maxUniqCatValuesPerFeature),
+        [&] (int i) {
+            UniversalPerfectHashedToHashedCatValuesMap[i] = CalcCatFeatureHash(ToString(i));
+        }
+    );
 }
 
 TVector<i32> TFinalCtrsCalcer::GetCatFeatureFlatIndicesUsedForCtrs() const throw(yexception) {
@@ -359,6 +376,9 @@ void TFinalCtrsCalcer::ProcessForFeature(
     THashMap<TFeatureCombination, TProjection> featureCombinationToProjectionMap;
     featureCombinationToProjectionMap.emplace(featureCombination, projection);
 
+    // avoid expensive copying, let perfectHashedToHashedCatValuesMap 'borrow' it
+    PerfectHashedToHashedCatValuesMap[catFeatureIdx] = std::move(UniversalPerfectHashedToHashedCatValuesMap);
+
     CalcFinalCtrsAndSaveToModel(
         CpuRamLimit,
         featureCombinationToProjectionMap,
@@ -374,6 +394,8 @@ void TFinalCtrsCalcer::ProcessForFeature(
         },
         LocalExecutor
     );
+
+    UniversalPerfectHashedToHashedCatValuesMap = std::move(PerfectHashedToHashedCatValuesMap[catFeatureIdx]);
 
     DatasetDataForFinalCtrs.Data.Learn = nullptr;
     DatasetDataForFinalCtrs.Data.Test.clear();
