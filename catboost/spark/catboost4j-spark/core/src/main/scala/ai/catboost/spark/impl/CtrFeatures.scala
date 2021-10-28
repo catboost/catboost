@@ -98,9 +98,10 @@ object CtrFeatures {
     estimatedData: TQuantizedObjectsDataProviderPtr
   ) : DataFrame = {
     val rowAssembler = new TQuantizedRowAssembler(estimatedData)
-    val buffer = new Array[Byte](rowAssembler.GetObjectBlobSize())
+    val objectBlobSize = rowAssembler.GetObjectBlobSize()
     val dataToUpload = (0 until ids.length).map(
       i => {
+        val buffer = new Array[Byte](objectBlobSize)
         rowAssembler.AssembleObjectBlob(i, buffer)
         Row(ids(i), buffer)
       }
