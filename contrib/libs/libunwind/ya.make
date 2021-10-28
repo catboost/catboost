@@ -11,7 +11,6 @@ ORIGINAL_SOURCE(https://github.com/llvm/llvm-project/archive/de1843e51a76c5628dc
 LICENSE(
     Apache-2.0
     Apache-2.0 WITH LLVM-exception
-    LLVM-exception
     MIT
     NCSA
 )
