@@ -990,7 +990,6 @@ IF (OS_LINUX AND ARCH_PPC64LE)
         ../asm/ppc64le/crypto/aes/vpaes-ppc.s
         ../asm/ppc64le/crypto/bn/bn-ppc.s
         ../asm/ppc64le/crypto/bn/ppc-mont.s
-        ../asm/ppc64le/crypto/bn/ppc64-mont.s
         ../asm/ppc64le/crypto/chacha/chacha-ppc.s
         ../asm/ppc64le/crypto/ec/ecp_nistz256-ppc64.s
         ../asm/ppc64le/crypto/ec/x25519-ppc64.s
