@@ -2703,6 +2703,13 @@ def test_generated_metrics():
         assert non_existing_field not in results
 
 
+def test_metrics_is_min_max_optimal():
+    logloss = metrics.Logloss()
+    assert logloss.is_min_optimal() and not logloss.is_max_optimal()
+    auc = metrics.AUC()
+    assert auc.is_max_optimal() and not auc.is_min_optimal()
+
+
 def test_custom_eval():
     class LoglossMetric(object):
         def get_final_error(self, error, weight):
