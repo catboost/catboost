@@ -2758,7 +2758,6 @@ migrations:
     - search/begemot/tools/apphost/graph_modifier
     - search/begemot/tools/spellchecker/framework_adapter
     - search/begemot/tools/spellchecker/framework_api
-    - search/geo/tools/addrsnippet
     - search/geo/tools/base_pool_from_meta
     - search/geo/tools/comparer
     - search/geo/tools/personal_pois/tools/future_click_pool
@@ -3576,7 +3575,6 @@ migrations:
     - yql/library/embedded/python/test
     - yql/scripts/local
     - yql/tests/cli
-    - yql/tests/dq/misc
     - yql/tests/jdbc
     - yql/tests/multi_process
     - yt/admin/drive_monitor/tests/unit
