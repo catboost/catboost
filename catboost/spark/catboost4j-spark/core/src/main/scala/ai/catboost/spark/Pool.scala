@@ -1056,6 +1056,15 @@ class Pool (
   }
   
   /**
+   * used to add additional columns to data (for example estimated features)
+   * It is impossible to just write an external function for this because copyValues is protected
+   */
+  def copyWithModifiedData(modifiedData: DataFrame, partitionedByGroups: Boolean=false) : Pool = {
+    val result = new Pool(modifiedData, this.pairsData, this.quantizedFeaturesInfo, partitionedByGroups)
+    copyValues(result)
+  }
+  
+  /**
    * Map over partitions for quantized Pool
    */
   def mapQuantizedPartitions[R : Encoder : ClassTag](

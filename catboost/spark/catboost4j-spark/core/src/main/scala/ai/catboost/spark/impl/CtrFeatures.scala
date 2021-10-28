@@ -216,19 +216,13 @@ object CtrFeatures {
         )
       }
     }
-    val trainPoolWithEstimatedFeatures = new Pool(
-      trainWithIds.join(aggregateEstimatedTrainData, "_id"),
-      quantizedTrainPool.pairsData,
-      quantizedFeaturesInfo,
-      false
+    val trainPoolWithEstimatedFeatures = quantizedTrainPool.copyWithModifiedData(
+      trainWithIds.join(aggregateEstimatedTrainData, "_id")
     )
     val evalPoolsWithEstimatedFeatures = (0 until quantizedEvalPools.length).map{
       i => {
-        new Pool(
-          evalsWithIds(i).join(aggregateEstimatedEvalsData(i), "_id"),
-          quantizedEvalPools(i).pairsData,
-          quantizedEvalPools(i).quantizedFeaturesInfo,
-          false
+        quantizedEvalPools(i).copyWithModifiedData(
+          evalsWithIds(i).join(aggregateEstimatedEvalsData(i), "_id")
         )
       }
     }.toArray
