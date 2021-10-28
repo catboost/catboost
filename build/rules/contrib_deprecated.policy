@@ -38,6 +38,9 @@ ALLOW metrika/core/programs/mobile-redirect -> contrib/deprecated/libctpp
 # Remove this exception after KIKIMR-13008
 ALLOW kikimr/library/login -> contrib/deprecated/argon2
 
+# Though galloc is unmaintained version of tcmalloc,
+# it can not be universally replaced with the latter.
+ALLOW library/cpp/malloc/galloc -> contrib/deprecated/galloc
 
 # Default policies:
 #
