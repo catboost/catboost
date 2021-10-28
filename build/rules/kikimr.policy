@@ -68,15 +68,18 @@ ALLOW .* -> kikimr/public/lib/json_value
 ALLOW .* -> kikimr/public/lib/yson_value
 ALLOW .* -> kikimr/public/tools/ydb
 
+ALLOW cloud/blockstore -> kikimr/blockstore
+ALLOW cloud/blockstore -> kikimr/core
 ALLOW cloud/blockstore -> kikimr/driver_lib/run
 ALLOW cloud/blockstore -> kikimr/public/lib/deprecated/kicli
-ALLOW cloud/blockstore -> kikimr/blockstore
-ALLOW cloud/storage -> kikimr/core
-ALLOW cloud/blockstore -> kikimr/core
+ALLOW cloud/blockstore -> kikimr/yndx
 
 ALLOW cloud/filestore -> kikimr/core
 ALLOW cloud/filestore -> kikimr/driver_lib/run
 ALLOW cloud/filestore -> kikimr/public/lib/deprecated/kicli
+ALLOW cloud/filestore -> kikimr/yndx
+
+ALLOW cloud/storage -> kikimr/core
 
 ALLOW cloud/kms/benchcrypto/cpp -> kikimr/core/blobstorage/crypto
 
