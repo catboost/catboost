@@ -10,6 +10,7 @@ RECURSE(
     bmdump
     bstr
     c++filt
+    calendar_extractor
     check_formula_md5
     check_json
     check_yaml
