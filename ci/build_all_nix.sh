@@ -2,6 +2,7 @@
 
 #TODO(kizill): split this into subscripts to make it prettier
 
+eval "$(pyenv init --path)"
 eval "$(pyenv init -)"
 eval "$(pyenv virtualenv-init -)"
 
