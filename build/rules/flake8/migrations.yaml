@@ -3144,8 +3144,6 @@ migrations:
     - ads/autobudget/ml_pipeline/scripts/convert_yt_pool_catboost/lib/ft
     - ads/autobudget/ml_pipeline/scripts/create_cd_file/lib/ft
     - ads/bsyeti/libs/py_tnode/ut
-    - ads/clemmer/tests/test
-    - ads/clemmer/tests/test2
     - ads/factor_check/mutial_information/yql/tests
     - ads/libs/py_autobudget/ut
     - ads/libs/py_mapreduce/yabs-mapreduce-modules/t/mapreducelib
