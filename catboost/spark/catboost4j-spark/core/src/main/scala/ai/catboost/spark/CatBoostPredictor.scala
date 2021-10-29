@@ -267,8 +267,8 @@ trait CatBoostPredictorTrait[
         CtrFeatures.addCtrProviderToModel(
           master.nativeModelResult,
           ctrsContext,
-          preprocessedTrainPool,
-          preprocessedEvalPools
+          quantizedTrainPool,
+          quantizedEvalPools
         ) 
       } else {
         master.nativeModelResult 
