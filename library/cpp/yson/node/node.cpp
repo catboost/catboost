@@ -4,6 +4,8 @@
 
 #include <library/cpp/yson/writer.h>
 
+#include <util/generic/overloaded.h>
+
 namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -277,27 +279,17 @@ size_t TNode::Size() const
 
 TNode::EType TNode::GetType() const
 {
-    switch (Value_.index()) {
-        case TVariantIndexV<TUndefined, TValue>:
-            return Undefined;
-        case TVariantIndexV<TString, TValue>:
-            return String;
-        case TVariantIndexV<i64, TValue>:
-            return Int64;
-        case TVariantIndexV<ui64, TValue>:
-            return Uint64;
-        case TVariantIndexV<double, TValue>:
-            return Double;
-        case TVariantIndexV<bool, TValue>:
-            return Bool;
-        case TVariantIndexV<TListType, TValue>:
-            return List;
-        case TVariantIndexV<TMapType, TValue>:
-            return Map;
-        case TVariantIndexV<TNull, TValue>:
-            return Null;
-    }
-    Y_UNREACHABLE();
+    return std::visit(TOverloaded{
+        [](const TUndefined&) { return Undefined; },
+        [](const TString&) { return String; },
+        [](i64) { return Int64; },
+        [](ui64) { return Uint64; },
+        [](double) { return Double; },
+        [](bool) { return Bool; },
+        [](const TListType&) { return List; },
+        [](const TMapType&) { return Map; },
+        [](const TNull&) { return Null; }
+    }, Value_);
 }
 
 const TString& TNode::AsString() const
