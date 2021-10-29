@@ -25,7 +25,7 @@ Main advantages of CatBoost:
 
 Get Started and Documentation
 --------------
-All CatBoost documentation is available [here](https://catboost.ai/docs/concepts/about.html).
+All CatBoost documentation is available [here](https://catboost.ai/en/docs/).
 
 Install CatBoost by following the guide for the
  * [Python package](https://catboost.ai/docs/concepts/python-installation.html)
