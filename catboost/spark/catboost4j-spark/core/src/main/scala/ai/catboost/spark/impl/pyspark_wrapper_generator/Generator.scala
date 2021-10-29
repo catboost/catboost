@@ -127,7 +127,7 @@ def _py2java(sc, obj):
             'swigToEnum'
         )(obj.value)
     if isinstance(obj, datetime.timedelta):
-        return sc._jvm.java.time.Duration.ofMillis(obj.microseconds // 1000)
+        return sc._jvm.java.time.Duration.ofMillis(obj // datetime.timedelta(milliseconds=1))
     if isinstance(obj, JavaParams):
         return obj._to_java()
     if isinstance(obj, collections.OrderedDict):
