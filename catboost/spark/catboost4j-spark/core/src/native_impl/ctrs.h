@@ -90,6 +90,7 @@ public:
 private:
     TFullModel Model;
     NCB::TFeaturesLayoutPtr FeaturesLayout;
+    TVector<float> LearnTarget;
     TTargetStatsForCtrs TargetStatsForCtrs;
     NPar::TLocalExecutor* LocalExecutor;
     TTempFile CtrDataFile;
