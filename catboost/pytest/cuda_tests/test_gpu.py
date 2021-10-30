@@ -1513,12 +1513,11 @@ def test_group_weights_file_quantized():
     return [local_canonical_file(first_eval_path)]
 
 
-NO_RANDOM_PARAMS = {
-    '--random-strength': '0',
-    '--bootstrap-type': 'No',
-    '--has-time': '',
-    '--set-metadata-from-freeargs': ''
-}
+NO_RANDOM_PARAMS = (
+    '--random-strength', '0',
+    '--bootstrap-type', 'No',
+    '--has-time'
+)
 
 METRIC_CHECKING_MULTICLASS_NO_WEIGHTS = 'Accuracy'
 METRIC_CHECKING_MULTICLASS_WITH_WEIGHTS = 'Accuracy:use_weights=false'
@@ -1639,27 +1638,29 @@ def test_multiclass_baseline(loss_function):
     test_error_path = yatest.common.test_output_path('test_error.tsv')
     eval_error_path = yatest.common.test_output_path('eval_error.tsv')
 
-    fit_params = {
-        '--loss-function': loss_function,
-        '--learning-rate': '0.03',
-        '-f': train_path,
-        '-t': test_path,
-        '--column-description': cd_path,
-        '--boosting-type': 'Plain',
-        '-i': '10',
-        '-T': '4',
-        '--use-best-model': 'false',
-        '--classes-count': '4',
-        '--custom-metric': METRIC_CHECKING_MULTICLASS_NO_WEIGHTS,
-        '--test-err-log': eval_error_path
-    }
+    fit_params = (
+        '--loss-function', loss_function,
+        '--learning-rate', '0.03',
+        '-f', train_path,
+        '-t', test_path,
+        '--column-description', cd_path,
+        '--boosting-type', 'Plain',
+        '-i', '10',
+        '-T', '4',
+        '--use-best-model', 'false',
+        '--classes-count', '4',
+        '--custom-metric', METRIC_CHECKING_MULTICLASS_NO_WEIGHTS,
+        '--test-err-log', eval_error_path
+    )
 
-    fit_params.update(NO_RANDOM_PARAMS)
+    fit_params += NO_RANDOM_PARAMS
 
     execute_catboost_fit('CPU', fit_params)
 
-    fit_params['--learn-err-log'] = learn_error_path
-    fit_params['--test-err-log'] = test_error_path
+    fit_params += (
+        '--learn-err-log', learn_error_path,
+        '--test-err-log', test_error_path
+    )
     fit_catboost_gpu(fit_params)
 
     compare_metrics_with_diff(METRIC_CHECKING_MULTICLASS_NO_WEIGHTS, test_error_path, eval_error_path)
@@ -1685,21 +1686,21 @@ def test_multiclass_baseline_lost_class(loss_function):
 
     custom_metric = 'Accuracy:use_weights=false'
 
-    fit_params = {
-        '--loss-function': loss_function,
-        '-f': train_path,
-        '-t': test_path,
-        '--column-description': cd_path,
-        '--boosting-type': 'Plain',
-        '-i': '10',
-        '-T': '4',
-        '--custom-metric': custom_metric,
-        '--test-err-log': eval_error_path,
-        '--use-best-model': 'false',
-        '--classes-count': '4'
-    }
+    fit_params = (
+        '--loss-function', loss_function,
+        '-f', train_path,
+        '-t', test_path,
+        '--column-description', cd_path,
+        '--boosting-type', 'Plain',
+        '-i', '10',
+        '-T', '4',
+        '--custom-metric', custom_metric,
+        '--test-err-log', eval_error_path,
+        '--use-best-model', 'false',
+        '--classes-count', '4'
+    )
 
-    fit_params.update(NO_RANDOM_PARAMS)
+    fit_params += NO_RANDOM_PARAMS
 
     with pytest.raises(yatest.common.ExecutionError):
         execute_catboost_fit('CPU', fit_params)

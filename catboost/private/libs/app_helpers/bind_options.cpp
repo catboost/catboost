@@ -1431,7 +1431,11 @@ static void ParseMetadata(int argc, const char* argv[], NLastGetopt::TOpts* pars
     }
     NLastGetopt::TOptsParseResult parserResult{&parser, argc, argv};
     if (!setModelMetadata) {
-        CB_ENSURE(parserResult.GetFreeArgCount() == 0, "use \"--set-metadata-from-freeargs\" to enable freeargs");
+        CB_ENSURE(
+            parserResult.GetFreeArgCount() == 0,
+            "freearg '" << parserResult.GetFreeArgs()[0] << "' is misplaced, "
+            "or a long option name is preceeded with single -; "
+            "to use freeargs, put --set-metadata-from-freeargs before the 1st freearg.");
     } else {
         auto freeArgs = parserResult.GetFreeArgs();
         auto freeArgCount = freeArgs.size();
@@ -1448,6 +1452,7 @@ void ParseCommandLine(int argc, const char* argv[],
                       TString* paramsPath,
                       NCatboostOptions::TPoolLoadParams* params) {
     auto parser = NLastGetopt::TOpts();
+    parser.ArgPermutation_ = NLastGetopt::EArgPermutation::REQUIRE_ORDER;
     parser.AddHelpOption();
     BindPoolLoadParams(&parser, params);
 
@@ -1498,6 +1503,7 @@ void ParseModelBasedEvalCommandLine(
     NCatboostOptions::TPoolLoadParams* params
 ) {
     auto parser = NLastGetopt::TOpts();
+    parser.ArgPermutation_ = NLastGetopt::EArgPermutation::REQUIRE_ORDER;
     parser.AddHelpOption();
     BindPoolLoadParams(&parser, params);
 
@@ -1542,6 +1548,7 @@ void ParseFeatureEvalCommandLine(
     NCatboostOptions::TPoolLoadParams* params
 ) {
     auto parser = NLastGetopt::TOpts();
+    parser.ArgPermutation_ = NLastGetopt::EArgPermutation::REQUIRE_ORDER;
     parser.AddHelpOption();
     BindPoolLoadParams(&parser, params);
 
@@ -1586,6 +1593,7 @@ void ParseFeaturesSelectCommandLine(
     NCatboostOptions::TPoolLoadParams* params
 ) {
     auto parser = NLastGetopt::TOpts();
+    parser.ArgPermutation_ = NLastGetopt::EArgPermutation::REQUIRE_ORDER;
     parser.AddHelpOption();
     BindPoolLoadParams(&parser, params);
 
