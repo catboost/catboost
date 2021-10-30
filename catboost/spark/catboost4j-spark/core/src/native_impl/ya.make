@@ -50,6 +50,7 @@ PEERDIR(
     catboost/private/libs/data_util
     catboost/private/libs/data_types
     catboost/private/libs/distributed
+    catboost/private/libs/labels
     catboost/private/libs/options
     catboost/private/libs/quantized_pool
 )

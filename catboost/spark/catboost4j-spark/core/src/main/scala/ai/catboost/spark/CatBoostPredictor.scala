@@ -45,7 +45,7 @@ trait CatBoostPredictorTrait[
   protected def addEstimatedCtrFeatures(
     quantizedTrainPool: Pool,
     quantizedEvalPools: Array[Pool],
-    catBoostJsonParams: JObject
+    updatedCatBoostJsonParams: JObject  // with set loss_function and class labels can be inferred
   ) : (Pool, Array[Pool], CtrsContext) = {
     val catFeaturesMaxUniqValueCount = native_impl.CalcMaxCategoricalFeaturesUniqueValuesCountOnLearn(
       quantizedTrainPool.quantizedFeaturesInfo.__deref__()
@@ -54,13 +54,13 @@ trait CatBoostPredictorTrait[
     val oneHotMaxSize = native_impl.GetOneHotMaxSize(
       catFeaturesMaxUniqValueCount, 
       quantizedTrainPool.isDefined(quantizedTrainPool.labelCol),
-      compact(catBoostJsonParams)
+      compact(updatedCatBoostJsonParams)
     )
     if (catFeaturesMaxUniqValueCount > oneHotMaxSize) {
       CtrFeatures.addCtrsAsEstimated(
         quantizedTrainPool,
         quantizedEvalPools,
-        this,
+        updatedCatBoostJsonParams,
         oneHotMaxSize
       )
     } else {

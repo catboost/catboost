@@ -966,6 +966,231 @@ class CatBoostClassifierTest {
       }
     }
   }
+  
+  @Test 
+  @throws(classOf[Exception])
+  def testMultiClassificationWithNumAndOneHotAndCtrCatFeaturesWithEvalSets() {
+    val spark = TestHelpers.getOrCreateSparkSession(TestHelpers.getCurrentMethodName)
+    
+    val featureNames = Array[String]("f1", "f2", "f3", "f4", "c1", "c2", "c3")
+    val catFeaturesNumValues = Map("c1" -> 2, "c2" -> 4, "c3" -> 6)
+
+    val srcSchemaData = Seq(
+      ("features", SQLDataTypes.VectorType),
+      ("label", IntegerType),
+      ("groupId", LongType),
+      ("subgroupId", IntegerType),
+      ("weight", FloatType)
+    )
+    val srcTrainData = Seq(
+      Row(Vectors.dense(0.13, 0.22, 0.23, 0.72, 0, 0, 0), 0, 0x86F1B93B695F9E6L, 0x23D794E, 1.0f),
+      Row(Vectors.dense(0.1, 0.2, 0.11, -0.7, 1, 1, 0), 1, 0xB337C6FEFE2E2F7L, 0x034BFBD, 0.12f),
+      Row(Vectors.dense(0.97, 0.82, 0.33, 0.18, 0, 2, 1), 2, 0xB337C6FEFE2E2F7L, 0x19CE5B0, 0.18f),
+      Row(Vectors.dense(0.9, 0.67, 0.17, 0.0, 1, 2, 2), 2, 0xD9DBDD3199D6518L, 0x19CE5B0, 1.0f),
+      Row(Vectors.dense(0.66, 0.1, 0.31, -0.12, 0, 0, 3), 1, 0xD9DBDD3199D6518L, 0x1FA606F, 2.0f),
+      Row(Vectors.dense(0.14, 0.18, 0.1, 0.0, 0, 0, 4), 0, 0xD9DBDD3199D6518L, 0x62772D1, 0.45f),
+      Row(Vectors.dense(1.0, 0.88, 0.21, 0.0, 1, 3, 5), 2, 0xEFFAAEA87558887L, 0x034BFBD, 1.0f),
+      Row(Vectors.dense(1.0, 0.88, 0.21, 0.0, 1, 4, 5), 2, 0xEFFAAEA87558887L, 0x045ABD2, 1.1f),
+      Row(Vectors.dense(1.0, 0.88, 0.21, 0.0, 1, 1, 5), 0, 0xEFFC218AE7129BAL, 0x12ACD6A, 3.0f),
+      Row(Vectors.dense(1.0, 0.88, 0.21, 0.0, 1, 2, 5), 3, 0xEFFC218AE7129BAL, 0x4722B55, 1.2f),
+      Row(Vectors.dense(1.0, 0.88, 0.21, 0.0, 1, 0, 5), 3, 0xEFFC218AE7129BAL, 0x4722B55, 1.2f),
+      Row(Vectors.dense(1.0, 0.88, 0.21, 0.0, 1, 3, 5), 0, 0xEFFC218AE7129BAL, 0xBADAB87, 1.8f)
+    )
+    val srcTestDataSeq = Seq(
+      Seq(
+        Row(Vectors.dense(0.0, 0.33, 1.1, 0.01, 0, 1, 2), 0,  0x2376FAA71ED4A98L, 0x034BFBD, 0.1f),
+        Row(Vectors.dense(0.02, 0.0, 0.38, -0.3, 1, 2, 3), 1, 0x5628779FFABBAA6L, 0x23D794E, 1.0f),
+        Row(Vectors.dense(0.86, 0.54, 0.9, 0.0, 0, 2, 5), 3, 0x686726738873ABCDL, 0x19CE5B0, 0.17f)
+      ),
+      Seq(
+        Row(Vectors.dense(0.12, 0.28, 2.2, -0.12, 1, 3, 3), 2, 0x2376FAA71ED4A98L, 0x034BFBD, 0.11f),
+        Row(Vectors.dense(0.0, 0.0, 0.92, 0.0, 0, 3, 4), 1, 0x5628779FFABBAA6L, 0x23D794E, 1.1f),
+        Row(Vectors.dense(0.13, 2.1, 0.45, 1.0, 1, 2, 5), 3, 0x5628779FFABBAA6L, 0x56A96DF, 1.2f),
+        Row(Vectors.dense(0.17, 0.11, 0.0, 2.11, 1, 0, 2), 1, 0x90ABBD784AA812BL, 0x19CE5B0, 1.0f)
+      )
+    )
+
+    val trainPool = PoolTestHelpers.createRawPool(
+      TestHelpers.getCurrentMethodName,
+      PoolTestHelpers.createSchema(
+        srcSchemaData,
+        featureNames,
+        /*addFeatureNamesMetadata*/ true,
+        catFeaturesNumValues = catFeaturesNumValues
+      ),
+      srcTrainData,
+      Map("groupId" -> "groupId", "subgroupId" -> "subgroupId", "weight" -> "weight")
+    )
+    val testPools = srcTestDataSeq.map(
+      srcTestData => {
+        PoolTestHelpers.createRawPool(
+          TestHelpers.getCurrentMethodName,
+          PoolTestHelpers.createSchema(
+            srcSchemaData,
+            featureNames,
+            /*addFeatureNamesMetadata*/ true,
+            catFeaturesNumValues = catFeaturesNumValues
+          ),
+          srcTestData,
+          Map("groupId" -> "groupId", "subgroupId" -> "subgroupId", "weight" -> "weight")
+        )
+      }
+    )
+    
+    val expectedPredictionSeq = Seq(
+      Map(
+        "raw_prediction" -> Seq(
+           Vectors.dense(
+        0.08419355006917574,
+        -0.028064516689725257,
+        -0.028064516689725264,
+        -0.028064516689725257
+          ),
+           Vectors.dense(
+        -0.039332097530686526,
+        0.11799629259205963,
+        -0.03933209753068653,
+        -0.03933209753068653
+          ),
+           Vectors.dense(
+        -0.023243598924021513,
+        -0.023243598924021506,
+        0.06973079677206453,
+        -0.023243598924021513
+          )
+        ),
+        "probability" -> Seq(
+           Vectors.dense(
+        0.2716327882284401,
+        0.24278907059052,
+        0.24278907059052,
+        0.24278907059052
+          ),
+           Vectors.dense(
+        0.239786308657142,
+        0.280641074028574,
+        0.239786308657142,
+        0.239786308657142
+          ),
+           Vectors.dense(
+        0.2440552035406553,
+        0.24405520354065535,
+        0.26783438937803405,
+        0.2440552035406553
+          )
+        ),
+        "prediction" -> Seq(
+          0.0,
+          1.0,
+          2.0
+        )
+      ),
+      Map(
+        "raw_prediction" -> Seq(
+           Vectors.dense(
+        -0.039332097530686526,
+        0.11799629259205963,
+        -0.03933209753068653,
+        -0.03933209753068653
+          ),
+           Vectors.dense(
+        0.08419355006917574,
+        -0.028064516689725257,
+        -0.028064516689725264,
+        -0.028064516689725257
+          ),
+           Vectors.dense(
+        0.08419355006917574,
+        -0.028064516689725257,
+        -0.028064516689725264,
+        -0.028064516689725257
+          ),
+           Vectors.dense(
+        0.08419355006917574,
+        -0.028064516689725257,
+        -0.028064516689725264,
+        -0.028064516689725257
+          )
+        ),
+        "probability" -> Seq(
+          Vectors.dense(
+        0.239786308657142,
+        0.280641074028574,
+        0.239786308657142,
+        0.239786308657142
+          ),
+          Vectors.dense(
+        0.2716327882284401,
+        0.24278907059052,
+        0.24278907059052,
+        0.24278907059052
+          ),
+          Vectors.dense(
+        0.2716327882284401,
+        0.24278907059052,
+        0.24278907059052,
+        0.24278907059052
+          ),
+          Vectors.dense(
+        0.2716327882284401,
+        0.24278907059052,
+        0.24278907059052,
+        0.24278907059052
+          )
+        ),
+        "prediction" -> Seq(
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        )
+      )
+    )
+    val expectedPredictionsSchema = PoolTestHelpers.createSchema(
+      srcSchemaData ++ Seq(
+        ("rawPrediction", SQLDataTypes.VectorType),
+        ("probability", SQLDataTypes.VectorType),
+        ("prediction", DoubleType)
+      ),
+      featureNames,
+      /*addFeatureNamesMetadata*/ true,
+      /*nullableFields*/ Seq("rawPrediction", "probability", "prediction"),
+      catFeaturesNumValues = catFeaturesNumValues
+    )
+    val expectedPredictionDfs = (srcTestDataSeq zip expectedPredictionSeq).map{
+      case (srcTestData, expectedPrediction) => {
+        val expectedPredictionsData = mutable.Seq.concat(srcTestData)
+        for (i <- 0 until srcTestData.length) {
+          expectedPredictionsData(i) = Row.fromSeq(
+            expectedPredictionsData(i).toSeq
+            :+ expectedPrediction("raw_prediction")(i)
+            :+ expectedPrediction("probability")(i)
+            :+ expectedPrediction("prediction")(i)
+          )
+        }
+        spark.createDataFrame(
+          spark.sparkContext.parallelize(expectedPredictionsData),
+          StructType(expectedPredictionsSchema)
+        )
+      }
+    }
+
+    val classifier = new CatBoostClassifier()
+      .setIterations(20)
+      .setTrainDir(temporaryFolder.newFolder(TestHelpers.getCurrentMethodName).getPath)
+      .setHasTime(true)
+      .setRandomStrength(0)
+      .setBootstrapType(EBootstrapType.No)
+      .setLearningRate(0.3f)
+    val model = classifier.fit(trainPool, Array[Pool](testPools(0), testPools(1)))
+    val predictionsSeq = testPools.map(testPool => model.transform(testPool.data))
+  
+    (predictionsSeq zip expectedPredictionDfs).map{
+      case (predictions, expectedPredictionsDf) => {
+        TestHelpers.assertEqualsWithPrecision(expectedPredictionsDf, predictions)
+      }
+    }
+  }
 
   @Test 
   @throws(classOf[Exception])
