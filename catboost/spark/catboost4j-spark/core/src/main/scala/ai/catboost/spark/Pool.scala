@@ -811,9 +811,16 @@ class Pool (
     log.info("calcNanModesAndBorders: finish")
   }
 
-  protected def updateCatFeaturesInfo(quantizedFeaturesInfo: QuantizedFeaturesInfoPtr) = {
+  protected def updateCatFeaturesInfo(
+    isInitialization: Boolean, 
+    quantizedFeaturesInfo: QuantizedFeaturesInfoPtr
+  ) = {
     val catFeaturesUniqValueCounts = Pool.getCatFeaturesUniqValueCounts(data, $(featuresCol))
-    native_impl.UpdateCatFeaturesInfo(catFeaturesUniqValueCounts, quantizedFeaturesInfo.Get)
+    native_impl.UpdateCatFeaturesInfo(
+      catFeaturesUniqValueCounts, 
+      isInitialization, 
+      quantizedFeaturesInfo.Get
+    )
   }
 
   protected def createQuantizationSchema(quantizationParams: QuantizationParamsTrait)
@@ -831,7 +838,7 @@ class Pool (
       calcNanModesAndBorders(nanModeAndBordersBuilder, quantizationParams)
     }
 
-    updateCatFeaturesInfo(quantizedFeaturesInfo)
+    updateCatFeaturesInfo(isInitialization=true, quantizedFeaturesInfo=quantizedFeaturesInfo)
 
     quantizedFeaturesInfo
   }
@@ -940,7 +947,10 @@ class Pool (
     if (isQuantized) {
       throw new CatBoostError("Pool is already quantized")
     }
-    updateCatFeaturesInfo(quantizedFeaturesInfo) // because there can be new values
+
+    // because there can be new values
+    updateCatFeaturesInfo(isInitialization=false, quantizedFeaturesInfo=quantizedFeaturesInfo)
+
     createQuantized(quantizedFeaturesInfo)
   }
   

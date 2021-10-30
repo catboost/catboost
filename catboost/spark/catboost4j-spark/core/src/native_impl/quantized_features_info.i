@@ -166,6 +166,7 @@ namespace NCB {
                     TVector_i32 catFeaturesUniqueValuesCounts = (TVector_i32)in.readUnshared();
                     native_impl.UpdateCatFeaturesInfo(
                         catFeaturesUniqueValuesCounts.toPrimitiveArray(),
+                        /*isInitialization*/ false,
                         this
                     );
                 } catch (Exception e) {
