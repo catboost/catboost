@@ -217,45 +217,49 @@ trait CatBoostPredictorTrait[
           workerInitializationTimeout = workerInitializationTimeoutValue
         )
 
-        val listeningPort = trainingDriver.getListeningPort
-        this.logInfo(s"fit. TrainingDriver listening port = ${listeningPort}")
-
-        this.logInfo(s"fit. Training started")
-
-        val ecs = new ExecutorCompletionService[Unit](Executors.newFixedThreadPool(2))
-
-        val trainingDriverFuture = ecs.submit(trainingDriver, ())
-
-        val workersFuture = ecs.submit(
-          new Runnable {
-            def run = {
-              workers.run(listeningPort)
-            }
-          },
-          ()
-        )
-
-        var catboostWorkersConnectionLost = false
         try {
-          impl.Helpers.waitForTwoFutures(ecs, trainingDriverFuture, "master", workersFuture, "workers")
-          break
-        } catch {
-          case e : java.util.concurrent.ExecutionException => {
-            e.getCause match {
-              case connectionLostException : CatBoostWorkersConnectionLostException => {
-                catboostWorkersConnectionLost = true
+          val listeningPort = trainingDriver.getListeningPort
+          this.logInfo(s"fit. TrainingDriver listening port = ${listeningPort}")
+
+          this.logInfo(s"fit. Training started")
+
+          val ecs = new ExecutorCompletionService[Unit](Executors.newFixedThreadPool(2))
+
+          val trainingDriverFuture = ecs.submit(trainingDriver, ())
+
+          val workersFuture = ecs.submit(
+            new Runnable {
+              def run = {
+                workers.run(listeningPort)
               }
-              case _ => throw e
+            },
+            ()
+          )
+
+          var catboostWorkersConnectionLost = false
+          try {
+            impl.Helpers.waitForTwoFutures(ecs, trainingDriverFuture, "master", workersFuture, "workers")
+            break
+          } catch {
+            case e : java.util.concurrent.ExecutionException => {
+              e.getCause match {
+                case connectionLostException : CatBoostWorkersConnectionLostException => {
+                  catboostWorkersConnectionLost = true
+                }
+                case _ => throw e
+              }
             }
           }
-        }
-        if (workers.workerFailureCount >= workerMaxFailuresValue) {
-          throw new CatBoostError(s"CatBoost workers failed at least $workerMaxFailuresValue times")
-        }
-        if (catboostWorkersConnectionLost) {
-          log.info(s"CatBoost master: communication with some of the workers has been lost. Retry training")
-        } else {
-          break
+          if (workers.workerFailureCount >= workerMaxFailuresValue) {
+            throw new CatBoostError(s"CatBoost workers failed at least $workerMaxFailuresValue times")
+          }
+          if (catboostWorkersConnectionLost) {
+            log.info(s"CatBoost master: communication with some of the workers has been lost. Retry training")
+          } else {
+            break
+          }
+        } finally {
+          trainingDriver.close(tryToShutdownWorkers=true, waitToShutdownWorkers=false)
         }
       }
     }
