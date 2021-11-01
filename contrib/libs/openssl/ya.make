@@ -14,7 +14,7 @@ LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 
 
-VERSION(1.1.1g)
+VERSION(1.1.1l)
 
 PEERDIR(
     contrib/libs/openssl/crypto
