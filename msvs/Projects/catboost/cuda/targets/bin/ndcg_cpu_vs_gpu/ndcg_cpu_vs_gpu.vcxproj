@@ -125,9 +125,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\column_description\catboost-libs-column_description.vcxproj">
       <Project>{C4CE937E-C847-074C-4882-D3312E33D29A}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data\benchmarks_ut\pylibs-data-benchmarks_ut.global.vcxproj">
-      <Project>{D66E3595-6B8A-B9C0-B145-1C21C0B19AA9}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data\catboost-libs-data.vcxproj">
       <Project>{262F6CF9-EB50-BD91-AC9B-1967CC6B84F7}</Project>
     </ProjectReference>
@@ -154,9 +151,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\flatbuffers\libs-model-flatbuffers.vcxproj">
       <Project>{2A1F054B-AB2A-66AA-1838-2784A8B46C5D}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\model_export\ut\pymodel-model_export-ut.global.vcxproj">
-      <Project>{8BA2ED2A-2814-52ED-7A13-33437A9058B7}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\ctr_description\private-libs-ctr_description.vcxproj">
       <Project>{D9CF9349-0F07-0E90-92DA-B8BD92D9A01E}</Project>
@@ -203,29 +197,14 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\validate_fb\private-libs-validate_fb.vcxproj">
       <Project>{53950737-2B1C-B981-49E0-906A97994F3A}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\pytest\cuda_tests\pycatboost-pytest-cuda_tests.global.vcxproj">
-      <Project>{EDE4C80C-06AF-F741-2601-3BA7CF5BBE23}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\pytest\lib\py3catboost-pytest-lib.global.vcxproj">
       <Project>{775BF033-F658-849F-EECB-F18F50769072}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\pytest\pycatboost-pytest.global.vcxproj">
-      <Project>{50F9DE16-0F7D-0258-C04E-022551063402}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\python-package\lib\py3catboost-python-package-lib.global.vcxproj">
       <Project>{59BB056C-CFD0-4DCB-5BFB-D6D460A31787}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\python-package\lib\pycatboost-python-package-lib.global.vcxproj">
       <Project>{D30B0BD7-8F25-3A3D-8BE9-EB81B2C8BEFD}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\python-package\ut\large\pypython-package-ut-large.global.vcxproj">
-      <Project>{2420A02B-D473-78DB-5EB2-BC77E6C133B1}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\python-package\ut\medium\gpu\pyut-medium-gpu.global.vcxproj">
-      <Project>{114ECBA4-C028-CB84-0B01-F97709815D2F}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\python-package\ut\medium\pypython-package-ut-medium.global.vcxproj">
-      <Project>{678743F8-E83D-2830-7BFE-30CEF2C84B19}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\tools\limited_precision_numpy_diff\pycatboost-tools-limited_precision_numpy_diff.global.vcxproj">
       <Project>{6B2E7839-18CF-55A7-E31E-32B96B99C284}</Project>

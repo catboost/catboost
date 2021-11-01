@@ -92,35 +92,14 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\idl\pool\proto\pyidl-pool-proto.global.vcxproj">
       <Project>{BAC40F6F-75C0-60EE-58B5-897007D13A9D}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data\benchmarks_ut\pylibs-data-benchmarks_ut.global.vcxproj">
-      <Project>{D66E3595-6B8A-B9C0-B145-1C21C0B19AA9}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\model_export\ut\pymodel-model_export-ut.global.vcxproj">
-      <Project>{8BA2ED2A-2814-52ED-7A13-33437A9058B7}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\pytest\cuda_tests\pycatboost-pytest-cuda_tests.global.vcxproj">
-      <Project>{EDE4C80C-06AF-F741-2601-3BA7CF5BBE23}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\pytest\lib\py3catboost-pytest-lib.global.vcxproj">
       <Project>{775BF033-F658-849F-EECB-F18F50769072}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\pytest\pycatboost-pytest.global.vcxproj">
-      <Project>{50F9DE16-0F7D-0258-C04E-022551063402}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\python-package\lib\py3catboost-python-package-lib.global.vcxproj">
       <Project>{59BB056C-CFD0-4DCB-5BFB-D6D460A31787}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\python-package\lib\pycatboost-python-package-lib.global.vcxproj">
       <Project>{D30B0BD7-8F25-3A3D-8BE9-EB81B2C8BEFD}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\python-package\ut\large\pypython-package-ut-large.global.vcxproj">
-      <Project>{2420A02B-D473-78DB-5EB2-BC77E6C133B1}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\python-package\ut\medium\gpu\pyut-medium-gpu.global.vcxproj">
-      <Project>{114ECBA4-C028-CB84-0B01-F97709815D2F}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\python-package\ut\medium\pypython-package-ut-medium.global.vcxproj">
-      <Project>{678743F8-E83D-2830-7BFE-30CEF2C84B19}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\tools\limited_precision_numpy_diff\pycatboost-tools-limited_precision_numpy_diff.global.vcxproj">
       <Project>{6B2E7839-18CF-55A7-E31E-32B96B99C284}</Project>
