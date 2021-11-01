@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: setuptools
-Version: 58.3.0
+Version: 58.4.0
 Summary: Easily download, build, install, upgrade, and uninstall Python packages
 Home-page: https://github.com/pypa/setuptools
 Author: Python Packaging Authority
@@ -32,7 +32,7 @@ Requires-Dist: sphinxcontrib-towncrier ; extra == 'docs'
 Requires-Dist: furo ; extra == 'docs'
 Provides-Extra: ssl
 Provides-Extra: testing
-Requires-Dist: pytest (>=4.6) ; extra == 'testing'
+Requires-Dist: pytest (>=6) ; extra == 'testing'
 Requires-Dist: pytest-checkdocs (>=2.4) ; extra == 'testing'
 Requires-Dist: pytest-flake8 ; extra == 'testing'
 Requires-Dist: pytest-cov ; extra == 'testing'
