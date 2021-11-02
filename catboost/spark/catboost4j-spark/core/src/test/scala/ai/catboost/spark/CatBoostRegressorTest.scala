@@ -1091,13 +1091,13 @@ class CatBoostRegressorTest {
       ("weight", FloatType)
     )
     val srcData = Seq(
-      Row(Vectors.dense(0, 0, 0), "0.34", 0x86F1B93B695F9E61L, 0x23D794E9, 1.0f),
-      Row(Vectors.dense(1, 1, 0), "0.12", 0xB337C6FEFE2E2F73L, 0xD34BFBD7, 0.12f),
-      Row(Vectors.dense(0, 2, 1), "0.22", 0xB337C6FEFE2E2F73L, 0x19CE5B0A, 0.18f),
-      Row(Vectors.dense(1, 2, 2), "0.01", 0xD9DBDD3199D6518AL, 0x19CE5B0A, 1.0f),
-      Row(Vectors.dense(0, 0, 3), "0.0", 0xD9DBDD3199D6518AL, 0x1FA606FD, 2.0f),
-      Row(Vectors.dense(0, 0, 4), "0.42", 0xD9DBDD3199D6518AL, 0x62772D1C, 0.45f),
-      Row(Vectors.dense(1, 3, 5), "0.1", 0xEFFAAEA875588873L, 0xD34BFBD7, 1.0f)
+      Row(Vectors.dense(0, 0, 0), "0.34", 0x86F1B93B695F9E6L, 0x23D794E, 1.0f),
+      Row(Vectors.dense(1, 1, 0), "0.12", 0xB337C6FEFE2E2F7L, 0x034BFBD, 0.12f),
+      Row(Vectors.dense(0, 2, 1), "0.22", 0xB337C6FEFE2E2F7L, 0x19CE5B0, 0.18f),
+      Row(Vectors.dense(1, 2, 2), "0.01", 0xD9DBDD3199D6518L, 0x19CE5B0, 1.0f),
+      Row(Vectors.dense(0, 0, 3), "0.0", 0xD9DBDD3199D6518L, 0x1FA606F, 2.0f),
+      Row(Vectors.dense(0, 0, 4), "0.42", 0xD9DBDD3199D6518L, 0x22772D1, 0.45f),
+      Row(Vectors.dense(1, 3, 5), "0.1", 0xEFFAAEA87558887L, 0x034BFBD, 1.0f)
     )
 
     val pool = PoolTestHelpers.createRawPool(
@@ -1113,13 +1113,13 @@ class CatBoostRegressorTest {
     )
     
     val expectedPrediction = Seq(
-      0.3094933770071123,
-      0.06869861198568002,
-      0.16072009692696285,
-      0.014205016537063388,
-      0.006119254974129929,
-      0.3221460373277655,
-      0.08326180420157153
+      0.0,
+      0.008366046215306795,
+      0.3118641436762172,
+      0.06002440645289813,
+      0.0,
+      0.0,
+      0.0844211462846704
     )
     val expectedPredictionsData = mutable.Seq.concat(srcData)
     for (i <- 0 until srcData.length) {
@@ -1144,6 +1144,10 @@ class CatBoostRegressorTest {
       .setIterations(20)
       .setTrainDir(temporaryFolder.newFolder(TestHelpers.getCurrentMethodName).getPath)
       .setHasTime(true)
+      .setLoggingLevel(ELoggingLevel.Debug)
+      .setRandomStrength(0)
+      .setBootstrapType(EBootstrapType.No)
+      .setLearningRate(0.3f)
     val model = regressor.fit(pool)
     val predictions = model.transform(pool.data)
 
@@ -1166,25 +1170,30 @@ class CatBoostRegressorTest {
       ("weight", FloatType)
     )
     val srcTrainData = Seq(
-      Row(Vectors.dense(0.13, 0.22, 0.23, 0.72, 0, 0, 0), "0.34", 0x86F1B93B695F9E61L, 0x23D794E9, 1.0f),
-      Row(Vectors.dense(0.1, 0.2, 0.11, -0.7, 1, 1, 0), "0.12", 0xB337C6FEFE2E2F73L, 0xD34BFBD7, 0.12f),
-      Row(Vectors.dense(0.97, 0.82, 0.33, 0.18, 0, 2, 1), "0.22", 0xB337C6FEFE2E2F73L, 0x19CE5B0A, 0.18f),
-      Row(Vectors.dense(0.9, 0.67, 0.17, 0.0, 1, 2, 2), "0.01", 0xD9DBDD3199D6518AL, 0x19CE5B0A, 1.0f),
-      Row(Vectors.dense(0.66, 0.1, 0.31, -0.12, 0, 0, 3), "0.0", 0xD9DBDD3199D6518AL, 0x1FA606FD, 2.0f),
-      Row(Vectors.dense(0.14, 0.18, 0.1, 0.0, 0, 0, 4), "0.42", 0xD9DBDD3199D6518AL, 0x62772D1C, 0.45f),
-      Row(Vectors.dense(1.0, 0.88, 0.21, 0.0, 1, 3, 5), "0.1", 0xEFFAAEA875588873L, 0xD34BFBD7, 1.0f)
+      Row(Vectors.dense(0.13, 0.22, 0.23, 0.72, 0, 0, 0), "0.34", 0x86F1B93B695F9E6L, 0x23D794E, 1.0f),
+      Row(Vectors.dense(0.1, 0.2, 0.11, -0.7, 1, 1, 0), "0.12", 0xB337C6FEFE2E2F7L, 0x034BFBD, 0.12f),
+      Row(Vectors.dense(0.97, 0.82, 0.33, 0.18, 0, 2, 1), "0.22", 0xB337C6FEFE2E2F7L, 0x19CE5B0, 0.18f),
+      Row(Vectors.dense(0.9, 0.67, 0.17, 0.0, 1, 2, 2), "0.01", 0xD9DBDD3199D6518L, 0x19CE5B0, 1.0f),
+      Row(Vectors.dense(0.66, 0.1, 0.31, -0.12, 0, 0, 3), "0.0", 0xD9DBDD3199D6518L, 0x1FA606F, 2.0f),
+      Row(Vectors.dense(0.14, 0.18, 0.1, 0.0, 0, 0, 4), "0.42", 0xD9DBDD3199D6518L, 0x62772D1, 0.45f),
+      Row(Vectors.dense(1.0, 0.88, 0.21, 0.0, 1, 3, 5), "0.1", 0xEFFAAEA87558887L, 0x034BFBD, 1.0f),
+      Row(Vectors.dense(1.0, 0.88, 0.21, 0.0, 1, 4, 5), "0.2", 0xEFFAAEA87558887L, 0x045ABD2, 1.1f),
+      Row(Vectors.dense(1.0, 0.88, 0.21, 0.0, 1, 1, 5), "0.0", 0xEFFC218AE7129BAL, 0x12ACD6A, 3.0f),
+      Row(Vectors.dense(1.0, 0.88, 0.21, 0.0, 1, 2, 5), "0.9", 0xEFFC218AE7129BAL, 0x4722B55, 1.2f),
+      Row(Vectors.dense(1.0, 0.88, 0.21, 0.0, 1, 0, 5), "0.8", 0xEFFC218AE7129BAL, 0x4722B55, 1.2f),
+      Row(Vectors.dense(1.0, 0.88, 0.21, 0.0, 1, 3, 5), "0.62", 0xEFFC218AE7129BAL, 0xBADAB87, 1.8f)
     )
     val srcTestDataSeq = Seq(
       Seq(
-        Row(Vectors.dense(0.0, 0.33, 1.1, 0.01, 0, 1, 2), "0.22",  0x4AAFFF4567657575L, 0xD34BFBD7, 0.1f),
-        Row(Vectors.dense(0.02, 0.0, 0.38, -0.3, 1, 2, 3), "0.11", 0x686726738873ABCDL, 0x23D794E9, 1.0f),
-        Row(Vectors.dense(0.86, 0.54, 0.9, 0.0, 0, 2, 5), "0.48", 0x686726738873ABCDL, 0x19CE5B0A, 0.17f)
+        Row(Vectors.dense(0.0, 0.33, 1.1, 0.01, 0, 1, 2), "0.22",  0x2376FAA71ED4A98L, 0x034BFBD, 0.1f),
+        Row(Vectors.dense(0.02, 0.0, 0.38, -0.3, 1, 2, 3), "0.11", 0x5628779FFABBAA6L, 0x23D794E, 1.0f),
+        Row(Vectors.dense(0.86, 0.54, 0.9, 0.0, 0, 2, 5), "0.48", 0x686726738873ABCDL, 0x19CE5B0, 0.17f)
       ),
       Seq(
-        Row(Vectors.dense(0.12, 0.28, 2.2, -0.12, 1, 3, 3), "0.1", 0x5628779FFABBAA67L, 0xD34BFBD7, 0.11f),
-        Row(Vectors.dense(0.0, 0.0, 0.92, 0.0, 0, 3, 4), "0.9", 0x5628779FFABBAA67L, 0x23D794E9, 1.1f),
-        Row(Vectors.dense(0.13, 2.1, 0.45, 1.0, 1, 2, 5), "0.88", 0x5628779FFABBAA67L, 0x56A96DFA, 1.2f),
-        Row(Vectors.dense(0.17, 0.11, 0.0, 2.11, 1, 0, 2), "0.0", 0x90ABBD784AA812BAL, 0x19CE5B0A, 1.0f)
+        Row(Vectors.dense(0.12, 0.28, 2.2, -0.12, 1, 3, 3), "0.1", 0x2376FAA71ED4A98L, 0x034BFBD, 0.11f),
+        Row(Vectors.dense(0.0, 0.0, 0.92, 0.0, 0, 3, 4), "0.9", 0x5628779FFABBAA6L, 0x23D794E, 1.1f),
+        Row(Vectors.dense(0.13, 2.1, 0.45, 1.0, 1, 2, 5), "0.88", 0x5628779FFABBAA6L, 0x56A96DF, 1.2f),
+        Row(Vectors.dense(0.17, 0.11, 0.0, 2.11, 1, 0, 2), "0.0", 0x90ABBD784AA812BL, 0x19CE5B0, 1.0f)
       )
     )
 
@@ -1216,15 +1225,15 @@ class CatBoostRegressorTest {
     )
     val expectedPredictionSeq = Seq(
       Seq(
-        0.15662421960551953,
-        0.07005287608735944,
-        0.04151475093846452
+        0.010073302077751041,
+        0.086770063577866,
+        0.11594689801340516
       ),
       Seq(
-        0.07077519846934306,
-        0.15230223583519026,
-        0.08603755562520628,
-        0.11427156183786472
+        0.1816849418935268,
+        0.022686776497321794,
+        0.19199081608220647,
+        0.029722319091907524
       )
     )
     val expectedPredictionsSchema = PoolTestHelpers.createSchema(
@@ -1254,6 +1263,9 @@ class CatBoostRegressorTest {
       .setIterations(20)
       .setTrainDir(temporaryFolder.newFolder(TestHelpers.getCurrentMethodName).getPath)
       .setHasTime(true)
+      .setRandomStrength(0)
+      .setBootstrapType(EBootstrapType.No)
+      .setLearningRate(0.3f)
     val model = regressor.fit(trainPool, Array[Pool](testPools(0), testPools(1)))
     val predictionsSeq = testPools.map(testPool => model.transform(testPool.data))
   
