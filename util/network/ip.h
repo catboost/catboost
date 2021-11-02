@@ -61,6 +61,7 @@ struct TIpAddress: public sockaddr_in {
 
     inline TIpAddress(const sockaddr_in& addr) noexcept
         : sockaddr_in(addr)
+        , tmp(0)
     {
     }
 
@@ -112,5 +113,7 @@ struct TIpAddress: public sockaddr_in {
         return InetToHost(sin_port);
     }
 
+private:
+    // required for "operator socklen_t*()"
     mutable socklen_t tmp;
 };
