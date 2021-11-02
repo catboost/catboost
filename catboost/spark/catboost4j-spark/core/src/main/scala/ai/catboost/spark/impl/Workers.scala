@@ -42,6 +42,7 @@ private[spark] class CatBoostWorker(partitionId : Int) extends Logging {
   def processPartition(
     trainingDriverListeningAddress: InetSocketAddress,
     catBoostJsonParamsString: String,
+    serializedLabelConverter: TVector_i8,
     quantizedFeaturesInfo: QuantizedFeaturesInfoPtr,
     precomputedOnlineCtrMetaDataAsJsonString: String,
     threadCount: Int,
@@ -75,6 +76,7 @@ private[spark] class CatBoostWorker(partitionId : Int) extends Logging {
           this.partitionId,
           threadCount,
           catBoostJsonParamsString,
+          serializedLabelConverter,
           quantizedDataProviders,
           quantizedFeaturesInfo,
           estimatedQuantizedDataProviders,
@@ -195,6 +197,7 @@ private[spark] object CatBoostWorkers {
     preparedTrainPool: DatasetForTraining,
     preparedEvalPools: Seq[DatasetForTraining],
     catBoostJsonParams: JObject,
+    serializedLabelConverter: TVector_i8,
     precomputedOnlineCtrMetaDataAsJsonString: String,
 
     // needed here because CatBoost master should get all its data before workers 
@@ -271,6 +274,7 @@ private[spark] object CatBoostWorkers {
             new CatBoostWorker(TaskContext.getPartitionId).processPartition(
               trainingDriverListeningAddress,
               catBoostJsonParamsForWorkersString,
+              serializedLabelConverter,
               quantizedFeaturesInfo,
               precomputedOnlineCtrMetaDataAsJsonStringCopy,
               threadCount,
@@ -320,6 +324,7 @@ private[spark] object CatBoostWorkers {
             new CatBoostWorker(TaskContext.getPartitionId).processPartition(
               trainingDriverListeningAddress,
               catBoostJsonParamsForWorkersString,
+              serializedLabelConverter,
               quantizedFeaturesInfo,
               precomputedOnlineCtrMetaDataAsJsonStringCopy,
               threadCount,

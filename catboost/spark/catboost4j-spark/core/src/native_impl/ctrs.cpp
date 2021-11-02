@@ -14,6 +14,7 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 
+#include <library/cpp/binsaver/util_stream_io.h>
 #include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/cast.h>
@@ -25,65 +26,28 @@
 using namespace NCB;
 
 
-/* this function assumes that class count can be inferred from parameters
- * (either they have been specified by a user or calculated by CatBoostClassifier preprocessing)
-*/
-static size_t GetClassCount(const NCatboostOptions::TDataProcessingOptions& options) {
-    if (options.ClassesCount.IsSet()) {
-        return options.ClassesCount.Get();
-    }
-    if (options.ClassWeights.IsSet()) {
-        return options.ClassWeights->size();
-    }
-    if (options.ClassLabels.IsSet()) {
-        return options.ClassLabels->size();
-    }
-    CB_ENSURE_INTERNAL(false, "Cannot get class count from parameters after preprocessing");
-    Y_UNREACHABLE();
-}
-
-/* this function assumes that if it is a classification problem
- *  lossFunction is set and class count can be inferred from parameters
- * (either they have been specified by a user or calculated by CatBoostClassifier preprocessing)
-*/
-static TLabelConverter CreateLabelConverter(const NCatboostOptions::TCatBoostOptions& catBoostOptions) {
-    TLabelConverter labelConverter;
-
-    ELossFunction lossFunction = catBoostOptions.LossFunctionDescription->LossFunction.Get();
-    if (IsBinaryClassOnlyMetric(lossFunction)) {
-        labelConverter.InitializeBinClass();
-    } else if (IsClassificationObjective(lossFunction)) {
-        auto classCount = GetClassCount(catBoostOptions.DataProcessingOptions);
-
-        if (IsMultiClassOnlyMetric(lossFunction) || (classCount > 2)) {
-            labelConverter.InitializeMultiClass(SafeIntegerCast<int>(classCount));
-        } else {
-            labelConverter.InitializeBinClass();
-        }
-    }
-
-    return labelConverter;
-}
-
-
 TCtrHelper GetCtrHelper(
     const NCatboostOptions::TCatBoostOptions& catBoostOptions,
     const NCB::TFeaturesLayout& layout,
-    TConstArrayRef<float> learnTarget
+    const TVector<float>& preprocessedLearnTarget,
+    const TVector<i8>& serializedLabelConverter
 ) throw (yexception) {
     auto lossFunction = catBoostOptions.LossFunctionDescription->GetLossFunction();
     NCatboostOptions::TCatFeatureParams updatedCatFeatureParams = catBoostOptions.CatFeatureParams.Get();
 
-    ui32 approxDimension = GetApproxDimension(
-        catBoostOptions,
-       CreateLabelConverter(catBoostOptions),
-        /*targetDimension*/ 1
-    );
+    TLabelConverter labelConverter;
+    if (!serializedLabelConverter.empty()) {
+        TMemoryInput in(serializedLabelConverter.data(), serializedLabelConverter.size());
+        SerializeFromStream(in, labelConverter);
+    }
 
+    ui32 approxDimension = GetApproxDimension(catBoostOptions, labelConverter, /*targetDimension*/ 1);
+
+    TConstArrayRef<float> singleTarget = preprocessedLearnTarget;
     TMaybeData<TConstArrayRef<TConstArrayRef<float>>> targetsParam;
-    if (!learnTarget.empty()) {
+    if (!preprocessedLearnTarget.empty()) {
         UpdateCtrsTargetBordersOption(lossFunction, approxDimension, &updatedCatFeatureParams);
-        targetsParam = TConstArrayRef<TConstArrayRef<float>>(&learnTarget, 1);
+        targetsParam = TConstArrayRef<TConstArrayRef<float>>(&singleTarget, 1);
     }
 
     TCtrHelper ctrHelper;
@@ -101,14 +65,14 @@ TCtrHelper GetCtrHelper(
 
 TTargetStatsForCtrs ComputeTargetStatsForCtrs(
     const TCtrHelper& ctrHelper,
-    TConstArrayRef<float> learnTarget,
+    const TVector<float>& preprocessedLearnTarget,
     NPar::TLocalExecutor* localExecutor
 ) throw (yexception) {
     TTargetStatsForCtrs targetStatsForCtrs;
 
     const auto& targetClassifiers = ctrHelper.GetTargetClassifiers();
     int ctrCount = targetClassifiers.ysize();
-    AllocateRank2(ctrCount, learnTarget.size(), targetStatsForCtrs.LearnTargetClass);
+    AllocateRank2(ctrCount, preprocessedLearnTarget.size(), targetStatsForCtrs.LearnTargetClass);
     targetStatsForCtrs.TargetClassesCount.resize(ctrCount);
     for (int ctrIdx = 0; ctrIdx < ctrCount; ++ctrIdx) {
         // Spark supports only 1-dimensional targets for now
@@ -116,10 +80,10 @@ TTargetStatsForCtrs ComputeTargetStatsForCtrs(
         NPar::ParallelFor(
             *localExecutor,
             0,
-            SafeIntegerCast<ui32>(learnTarget.size()),
+            SafeIntegerCast<ui32>(preprocessedLearnTarget.size()),
             [&] (ui32 z) {
                 targetStatsForCtrs.LearnTargetClass[ctrIdx][z]
-                    = targetClassifiers[ctrIdx].GetTargetClass(learnTarget[z]);
+                    = targetClassifiers[ctrIdx].GetTargetClass(preprocessedLearnTarget[z]);
             }
         );
         targetStatsForCtrs.TargetClassesCount[ctrIdx] = targetClassifiers[ctrIdx].GetClassesCount();
@@ -351,14 +315,14 @@ TFinalCtrsCalcer::TFinalCtrsCalcer(
     TFullModel* modelWithoutCtrData, // moved into
     const NCatboostOptions::TCatBoostOptions* catBoostOptions,
     const NCB::TQuantizedFeaturesInfo& quantizedFeaturesInfo,
-    TConstArrayRef<float> learnTarget,
+    TVector<float>* preprocessedLearnTarget,
     TTargetStatsForCtrs* targetStatsForCtrs, // moved into
     const TCtrHelper& ctrHelper,
     NPar::TLocalExecutor* localExecutor
 ) throw(yexception)
     : Model(std::move(*modelWithoutCtrData))
     , FeaturesLayout(quantizedFeaturesInfo.GetFeaturesLayout())
-    , LearnTarget(learnTarget.begin(), learnTarget.end())
+    , PreprocessedLearnTarget(std::move(*preprocessedLearnTarget))
     , TargetStatsForCtrs(std::move(*targetStatsForCtrs))
     , LocalExecutor(localExecutor)
     , CtrDataFile(MakeTempName(nullptr, "ctr_data_file"))
@@ -382,7 +346,7 @@ TFinalCtrsCalcer::TFinalCtrsCalcer(
         maxUniqCatValuesPerFeature = Max(maxUniqCatValuesPerFeature, uniqCatValuesCountsPerFeature.OnAll);
     }
 
-    DatasetDataForFinalCtrs.Targets = TVector<TConstArrayRef<float>>(1, LearnTarget);
+    DatasetDataForFinalCtrs.Targets = TVector<TConstArrayRef<float>>(1, PreprocessedLearnTarget);
     DatasetDataForFinalCtrs.LearnTargetClass = &TargetStatsForCtrs.LearnTargetClass;
     DatasetDataForFinalCtrs.TargetClassesCount = &TargetStatsForCtrs.TargetClassesCount;
     DatasetDataForFinalCtrs.TargetClassifiers = &ctrHelper.GetTargetClassifiers();

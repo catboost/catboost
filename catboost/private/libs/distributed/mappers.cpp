@@ -143,7 +143,6 @@ namespace NCatboostDistributed {
             &profile
         );
 
-        TLabelConverter labelConverter;
         auto quantizedFeaturesInfo = MakeIntrusive<NCB::TQuantizedFeaturesInfo>(
             params->FeaturesLayout,
             catBoostOptions.DataProcessingOptions.Get().IgnoredFeatures.Get(),
@@ -161,7 +160,7 @@ namespace NCatboostDistributed {
             /*tmpDir*/ TString(), // does not matter, because allowWritingFiles == false
             quantizedFeaturesInfo,
             &catBoostOptions,
-            &labelConverter,
+            &params->LabelConverter,
             &NPar::LocalExecutor(),
             localData.Rand.Get()
         );

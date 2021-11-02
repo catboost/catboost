@@ -25,7 +25,7 @@ class CtrsContext(
     val catBoostOptions: TCatBoostOptions,
     val ctrHelper: SWIGTYPE_p_TCtrHelper,
     val targetStats: TTargetStatsForCtrs,
-    val learnTarget: Array[Float],
+    val preprocessedLearnTarget: TVector_float,
     val precomputedOnlineCtrMetaDataAsJsonString: String,
     val localExecutor: TLocalExecutor
 )
@@ -46,19 +46,61 @@ object CtrFeatures {
     }
   }
   
-  protected def getLearnTarget(pool: Pool) : Array[Float] = {
+  protected def getPreprocessedLearnTarget(
+    pool: Pool, 
+    classTargetPreprocessor: Option[TClassTargetPreprocessor]
+  ) : TVector_float = {
     val spark = pool.data.sparkSession
     import spark.implicits._
     
     val labelDf = pool.data.select(pool.getLabelCol)
-    (labelDf.schema(0).dataType match {
-      case IntegerType => { labelDf.map(row => row.getAs[Int](0).toFloat) }
-      case LongType => { labelDf.map(row => row.getAs[Long](0).toFloat) }
-      case FloatType => { labelDf.map(row => row.getAs[Float](0)) }
-      case DoubleType => { labelDf.map(row => row.getAs[Double](0).toFloat) }
-      case StringType => { labelDf.map(row => row.getAs[String](0).toFloat) }
-      case _ => throw new CatBoostError("Unsupported data type for Label")
-    }).toLocalIterator.asScala.toArray
+    
+    classTargetPreprocessor match {
+      case Some(classTargetPreprocessor) => {
+        labelDf.schema(0).dataType match {
+          case IntegerType => {
+            classTargetPreprocessor.PreprocessIntTarget(
+              labelDf.map(row => row.getAs[Int](0)).toLocalIterator.asScala.toArray
+            )
+          }
+          case LongType => { 
+            classTargetPreprocessor.PreprocessIntTarget(
+              labelDf.map(row => row.getAs[Long](0).toInt).toLocalIterator.asScala.toArray
+            )
+          }
+          case FloatType => { 
+            classTargetPreprocessor.PreprocessFloatTarget(
+              labelDf.map(row => row.getAs[Float](0)).toLocalIterator.asScala.toArray
+            )
+          }
+          case DoubleType => {
+            classTargetPreprocessor.PreprocessFloatTarget(
+              labelDf.map(row => row.getAs[Double](0).toFloat).toLocalIterator.asScala.toArray
+            )
+          }
+          case StringType => { 
+            classTargetPreprocessor.PreprocessStringTarget(
+              new TVector_TString(
+                labelDf.map(row => row.getAs[String](0)).toLocalIterator.asScala.toArray
+              )
+            )
+          }
+          case _ => throw new CatBoostError("Unsupported data type for Label")
+        }
+      }
+      case None => {
+        new TVector_float(
+          (labelDf.schema(0).dataType match {
+            case IntegerType => { labelDf.map(row => row.getAs[Int](0).toFloat) }
+            case LongType => { labelDf.map(row => row.getAs[Long](0).toFloat) }
+            case FloatType => { labelDf.map(row => row.getAs[Float](0)) }
+            case DoubleType => { labelDf.map(row => row.getAs[Double](0).toFloat) }
+            case StringType => { labelDf.map(row => row.getAs[String](0).toFloat) }
+            case _ => throw new CatBoostError("Unsupported data type for Label")
+          }).toLocalIterator.asScala.toArray
+        )
+      }
+    }
   }
   
   def downloadSubsetOfQuantizedFeatures(
@@ -123,8 +165,10 @@ object CtrFeatures {
   def addCtrsAsEstimated(
     quantizedTrainPool: Pool,
     quantizedEvalPools: Array[Pool],
-    updatedCatBoostJsonParams: JObject,  // with set loss_function and class labels can be inferred
-    oneHotMaxSize: Int
+    updatedCatBoostJsonParams: JObject,  // with set loss_function and class labels can be inferred loss_function and class labels can be inferred
+    oneHotMaxSize: Int,
+    classTargetPreprocessor: Option[TClassTargetPreprocessor],
+    serializedLabelConverter: TVector_i8
   ) : (Pool, Array[Pool], CtrsContext) = {
     val spark = quantizedTrainPool.data.sparkSession
     
@@ -132,20 +176,25 @@ object CtrFeatures {
     quantizedTrainPool.data.cache()
     quantizedEvalPools.map(evalPool => evalPool.data.cache())
    
-    var learnTarget = getLearnTarget(quantizedTrainPool)
+    val preprocessedLearnTarget = getPreprocessedLearnTarget(quantizedTrainPool, classTargetPreprocessor)
     
     val catBoostOptions = new TCatBoostOptions(ETaskType.CPU)
     native_impl.InitCatBoostOptions(compact(updatedCatBoostJsonParams), catBoostOptions)
     val ctrHelper = native_impl.GetCtrHelper(
       catBoostOptions,
       quantizedTrainPool.getFeaturesLayout.__deref__(),
-      learnTarget
+      preprocessedLearnTarget,
+      serializedLabelConverter
     )
     
     val localExecutor = new TLocalExecutor
     localExecutor.Init(SparkHelpers.getThreadCountForDriver(spark))
     
-    val targetStatsForCtrs = native_impl.ComputeTargetStatsForCtrs(ctrHelper, learnTarget, localExecutor)
+    val targetStatsForCtrs = native_impl.ComputeTargetStatsForCtrs(
+      ctrHelper,
+      preprocessedLearnTarget, 
+      localExecutor
+    )
     
     val (trainWithIds, trainIds) = getDatasetWithIdsAndIds(quantizedTrainPool.data)
     
@@ -236,7 +285,7 @@ object CtrFeatures {
         catBoostOptions,
         ctrHelper, 
         targetStatsForCtrs,
-        learnTarget,
+        preprocessedLearnTarget,
         aggregatedMetaData.SerializeToJson(), 
         localExecutor
       )
@@ -260,7 +309,7 @@ object CtrFeatures {
       model,
       ctrsContext.catBoostOptions,
       quantizedFeaturesInfo.__deref__,
-      ctrsContext.learnTarget,
+      ctrsContext.preprocessedLearnTarget,
       ctrsContext.targetStats,
       ctrsContext.ctrHelper,
       ctrsContext.localExecutor

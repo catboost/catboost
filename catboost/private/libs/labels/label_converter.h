@@ -1,5 +1,7 @@
 #pragma once
 
+#include <library/cpp/binsaver/bin_saver.h>
+
 #include <util/generic/array_ref.h>
 #include <util/generic/hash_set.h>
 #include <util/generic/hash.h>
@@ -17,6 +19,8 @@ public:
     TLabelConverter() : Initialized(false) {};
 
     bool operator==(const TLabelConverter& rhs) const;
+
+    SAVELOAD(MultiClass, LabelToClass, ClassToLabel, ClassesCount, Initialized);
 
     void Initialize(bool isMultiClass, const TString& classLabelParams);
     void InitializeBinClass();

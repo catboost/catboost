@@ -10,6 +10,7 @@
 #include <catboost/libs/helpers/restorable_rng.h>
 #include <catboost/libs/logging/logging.h>
 
+#include <library/cpp/binsaver/util_stream_io.h>
 #include <library/cpp/json/json_reader.h>
 
 #include <util/generic/cast.h>
@@ -32,6 +33,7 @@ void CreateTrainingDataForWorker(
     i32 hostId,
     i32 numThreads,
     const TString& plainJsonParamsAsString,
+    const TVector<i8>& serializedLabelConverter,
     const TVector<TDataProviderPtr>& trainDataProviders,
     NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
     const TVector<TDataProviderPtr>& trainEstimatedDataProviders, // can be empty
@@ -63,7 +65,12 @@ void CreateTrainingDataForWorker(
     catBoostOptions.Load(catBoostJsonOptions);
     catBoostOptions.SystemOptions->FileWithHosts->clear();
     catBoostOptions.DataProcessingOptions->AllowConstLabel = true;
+
     TLabelConverter labelConverter;
+    if (!serializedLabelConverter.empty()) {
+        TMemoryInput in(serializedLabelConverter.data(), serializedLabelConverter.size());
+        SerializeFromStream(in, labelConverter);
+    }
 
     NPar::TLocalExecutor* localExecutor = &NPar::LocalExecutor();
     if ((localExecutor->GetThreadCount() + 1) < numThreads) {

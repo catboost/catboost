@@ -792,15 +792,31 @@ private[spark] object DataHelpers {
     attrGroup.toMetadata
   }
 
-  def getClassNamesFromLabelData(data: DataFrame, labelColumn: String) : Array[String] = {
+  def getDistinctIntLabelValues(data: DataFrame, labelColumn: String) : Array[Int] = {
     val iterator = data.select(labelColumn).distinct.toLocalIterator.asScala
     data.schema(labelColumn).dataType match {
-      case DataTypes.IntegerType => iterator.map{ _.getAs[Int](0) }.toSeq.sorted.map{ _.toString }.toArray
-      case DataTypes.LongType => iterator.map{ _.getAs[Long](0) }.toSeq.sorted.map{ _.toString }.toArray
-      case DataTypes.FloatType => iterator.map{ _.getAs[Float](0) }.toSeq.sorted.map{ _.toString }.toArray
-      case DataTypes.DoubleType => iterator.map{ _.getAs[Double](0) }.toSeq.sorted.map{ _.toString }.toArray
-      case DataTypes.StringType => iterator.map{ _.getString(0) }.toArray
-      case _ => throw new CatBoostError("Unsupported data type for Label")
+      case DataTypes.IntegerType => iterator.map{ _.getAs[Int](0) }.toSeq.sorted.toArray
+      case DataTypes.LongType => iterator.map{ _.getAs[Long](0) }.toSeq.sorted.map{ _.toInt }.toArray
+      case _ => throw new CatBoostError("Unsupported data type for Integer Label")
+    }
+  }
+  
+  def getDistinctFloatLabelValues(data: DataFrame, labelColumn: String) : Array[Float] = {
+    val iterator = data.select(labelColumn).distinct.toLocalIterator.asScala
+    data.schema(labelColumn).dataType match {
+      case DataTypes.FloatType => iterator.map{ _.getAs[Float](0) }.toSeq.sorted.toArray
+      case DataTypes.DoubleType => iterator.map{ _.getAs[Double](0) }.toSeq.sorted.map{ _.toFloat }.toArray
+      case _ => throw new CatBoostError("Unsupported data type for Float Label")
+    }
+  }
+  
+  def getDistinctStringLabelValues(data: DataFrame, labelColumn: String) : TVector_TString = {
+    val iterator = data.select(labelColumn).distinct.toLocalIterator.asScala
+    data.schema(labelColumn).dataType match {
+      case DataTypes.StringType => new TVector_TString(
+        iterator.map{ _.getString(0) }.toSeq.sorted.toIterable.asJava
+      )
+      case _ => throw new CatBoostError("Unsupported data type for String Label")
     }
   }
   

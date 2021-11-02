@@ -66,6 +66,7 @@ void SetTrainDataFromQuantizedPools(
     NCB::TObjectsGrouping&& learnObjectsGrouping,
     TVector<NCB::TObjectsGrouping>&& testObjectsGroupings,
     const NCB::TFeaturesLayout& featuresLayout,
+    const TLabelConverter& labelConverter,
     TRestorableFastRng64* rand
 ) {
     const int workerCount = TMasterEnvironment::GetRef().RootEnvironment->GetSlaveCount();
@@ -87,6 +88,7 @@ void SetTrainDataFromQuantizedPools(
                 std::move(learnObjectsGrouping),
                 std::move(testObjectsGroupings),
                 featuresLayout,
+                labelConverter,
                 rand->GenRand()
             }
         );

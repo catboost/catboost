@@ -1,10 +1,13 @@
 #pragma once
 
+#include <catboost/private/libs/options/loss_description.h>
+
 #include <catboost/libs/data/data_provider.h>
 
 #include <util/generic/maybe.h>
 #include <util/generic/strbuf.h>
 #include <util/generic/string.h>
+#include <util/generic/vector.h>
 #include <util/system/types.h>
 
 
@@ -23,6 +26,10 @@ namespace NPar {
 
 namespace NCB {
     struct TPathWithScheme;
+
+    TVector<NCatboostOptions::TLossDescription> GetMetricDescriptions(
+        const NCatboostOptions::TCatBoostOptions& params);
+
 
     TTrainingDataProviderPtr GetTrainingData(
         TDataProviderPtr srcData,

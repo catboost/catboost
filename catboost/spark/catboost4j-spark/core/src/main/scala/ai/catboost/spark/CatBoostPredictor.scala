@@ -27,6 +27,13 @@ import ai.catboost.spark.impl.{CtrsContext,CtrFeatures}
 import ai.catboost.CatBoostError
 
 
+class CatBoostTrainingContext (
+  val ctrsContext: CtrsContext,
+  val catBoostJsonParams: JObject,
+  val serializedLabelConverter: TVector_i8
+)
+
+
 /**
  * Base trait with common functionality for both [[CatBoostClassifier]] and [[CatBoostRegressor]]
  */
@@ -45,7 +52,9 @@ trait CatBoostPredictorTrait[
   protected def addEstimatedCtrFeatures(
     quantizedTrainPool: Pool,
     quantizedEvalPools: Array[Pool],
-    updatedCatBoostJsonParams: JObject  // with set loss_function and class labels can be inferred
+    updatedCatBoostJsonParams: JObject,  // with set loss_function and class labels can be inferred
+    classTargetPreprocessor: Option[TClassTargetPreprocessor] = None,
+    serializedLabelConverter: TVector_i8 = new TVector_i8
   ) : (Pool, Array[Pool], CtrsContext) = {
     val catFeaturesMaxUniqValueCount = native_impl.CalcMaxCategoricalFeaturesUniqueValuesCountOnLearn(
       quantizedTrainPool.quantizedFeaturesInfo.__deref__()
@@ -61,7 +70,9 @@ trait CatBoostPredictorTrait[
         quantizedTrainPool,
         quantizedEvalPools,
         updatedCatBoostJsonParams,
-        oneHotMaxSize
+        oneHotMaxSize,
+        classTargetPreprocessor,
+        serializedLabelConverter
       )
     } else {
       (quantizedTrainPool, quantizedEvalPools, null)
@@ -72,20 +83,23 @@ trait CatBoostPredictorTrait[
   /**
    *  override in descendants if necessary
    *
-   *  @return (preprocessedTrainPool, preprocessedEvalPools, catBoostJsonParams, ctrsContext)
+   *  @return (preprocessedTrainPool, preprocessedEvalPools, catBoostTrainingContext)
    */
   protected def preprocessBeforeTraining(
     quantizedTrainPool: Pool,
     quantizedEvalPools: Array[Pool]
-  ) : (Pool, Array[Pool], JObject, CtrsContext) = {
+  ) : (Pool, Array[Pool], CatBoostTrainingContext) = {
     val catBoostJsonParams = ai.catboost.spark.params.Helpers.sparkMlParamsToCatBoostJsonParams(this)
     val (preprocessedTrainPool, preprocessedEvalPools, ctrsContext) 
         = addEstimatedCtrFeatures(quantizedTrainPool, quantizedEvalPools, catBoostJsonParams)
     (
       preprocessedTrainPool, 
       preprocessedEvalPools, 
-      catBoostJsonParams, 
-      ctrsContext
+      new CatBoostTrainingContext(
+        ctrsContext,
+        catBoostJsonParams,
+        new TVector_i8
+      )
     )
   }
 
@@ -147,7 +161,7 @@ trait CatBoostPredictorTrait[
         }
       }
     }
-    val (preprocessedTrainPool, preprocessedEvalPools, catBoostJsonParams, ctrsContext) 
+    val (preprocessedTrainPool, preprocessedEvalPools, catBoostTrainingContext)
       = preprocessBeforeTraining(
         quantizedTrainPool,
         quantizedEvalPools
@@ -177,8 +191,8 @@ trait CatBoostPredictorTrait[
       }
     }
 
-    val precomputedOnlineCtrMetaDataAsJsonString = if (ctrsContext != null) {
-      ctrsContext.precomputedOnlineCtrMetaDataAsJsonString
+    val precomputedOnlineCtrMetaDataAsJsonString = if (catBoostTrainingContext.ctrsContext != null) {
+      catBoostTrainingContext.ctrsContext.precomputedOnlineCtrMetaDataAsJsonString
     } else {
       null
     }
@@ -186,7 +200,7 @@ trait CatBoostPredictorTrait[
     val master = impl.CatBoostMasterWrapper(
       preparedTrainDataset,
       preparedEvalDatasets,
-      compact(catBoostJsonParams),
+      compact(catBoostTrainingContext.catBoostJsonParams),
       precomputedOnlineCtrMetaDataAsJsonString
     )
 
@@ -201,7 +215,8 @@ trait CatBoostPredictorTrait[
       workerInitializationTimeoutValue,
       preparedTrainDataset,
       preparedEvalDatasets,
-      catBoostJsonParams,
+      catBoostTrainingContext.catBoostJsonParams,
+      catBoostTrainingContext.serializedLabelConverter,
       precomputedOnlineCtrMetaDataAsJsonString,
       master.savedPoolsFuture
     )
@@ -266,11 +281,11 @@ trait CatBoostPredictorTrait[
     this.logInfo(s"fit. Training finished")
 
     val resultModel = createModel(
-      if (ctrsContext != null) {
+      if (catBoostTrainingContext.ctrsContext != null) {
         this.logInfo(s"fit. Add CtrProvider to model")
         CtrFeatures.addCtrProviderToModel(
           master.nativeModelResult,
-          ctrsContext,
+          catBoostTrainingContext.ctrsContext,
           quantizedTrainPool,
           quantizedEvalPools
         ) 
