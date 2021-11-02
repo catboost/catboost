@@ -97,7 +97,7 @@ namespace NYT {
         return true;
     }
 
-    void TJsonWriter::OnStringScalar(const TStringBuf& value) {
+    void TJsonWriter::OnStringScalar(TStringBuf value) {
         if (IsWriteAllowed()) {
             EnterNode();
             WriteStringScalar(value);
@@ -173,7 +173,7 @@ namespace NYT {
         }
     }
 
-    void TJsonWriter::OnKeyedItem(const TStringBuf& name) {
+    void TJsonWriter::OnKeyedItem(TStringBuf name) {
         if (IsWriteAllowed()) {
             if (IsSpecialJsonKey(name)) {
                 WriteStringScalar(TString("$") + name);
