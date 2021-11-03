@@ -1411,7 +1411,6 @@ migrations:
     - ml/tensorflow/ytensorflow
     - modadvert/libs/antispam/threat_mapping/ut
     - modadvert/libs/jsonrpc2/client
-    - modadvert/libs/laas/workers/misprints
     - modadvert/libs/nirvana/program
     - modadvert/libs/utils/py3/auth
     - modadvert/nirvana/m1_update_media_objects/it
@@ -1477,7 +1476,6 @@ migrations:
     - sandbox/projects/cmnt/PumpkinSettings
     - sandbox/projects/dj/AutoDeploy
     - sandbox/projects/gencfg/GencfgChartsUploadGroupsInfoToYt
-    - sandbox/projects/impulse
     - sandbox/projects/mail/Load/FuritaAmmoGen
     - sandbox/projects/mail/Load/FuritaShooting
     - sandbox/projects/mail/Load/LizaShooting
@@ -1638,7 +1636,6 @@ migrations:
     - mlp/mail/aspam/nirvana_operations/conveyor/build_prod_graph/inbound
     - mlp/mail/aspam/nirvana_operations/conveyor/build_prod_graph/outbound
     - mlp/mail/aspam/nirvana_operations/conveyor/calc_dsats
-    - modadvert/libs/laas/workers/misprints/it
     - modadvert/programs/cv_app/tools/create_yt_env/it
     - modadvert/programs/grep_img_rejects/it
     - modadvert/programs/multik/it
@@ -1788,7 +1785,6 @@ migrations:
     - aurora/aurora/core/pb
     - aurora/library/Pyro4
     - aurora/library/serpent
-    - balancer/production/runtime/src/runtime
     - balancer/production/x/yasm_errors_collector
     - billing/agency_rewards/tests_platform/common
     - billing/agency_rewards/tests_platform/generators
@@ -2591,7 +2587,6 @@ migrations:
     - sandbox/projects/home
     - sandbox/projects/horizon
     - sandbox/projects/images/CvdupAcceptanceTasks
-    - sandbox/projects/images/ImagesBuildCmPackage
     - sandbox/projects/images/ImagesBuildHeaterPlan
     - sandbox/projects/images/ImagesBuildMainIndexNightlyBinaries
     - sandbox/projects/images/ImagesBuildMmetaHeaterPlan
@@ -2650,7 +2645,6 @@ migrations:
     - sandbox/projects/images/tags/ImagesTagsReleaseAliceBans
     - sandbox/projects/images/upbase/ImagesBuildUpbaseResources
     - sandbox/projects/images/upbase/ImagesBuildUpbaseViewerResources
-    - sandbox/projects/impulse/SastWorkflow
     - sandbox/projects/inventori
     - sandbox/projects/juggler
     - sandbox/projects/jupiter/ReleaseGeminiData
