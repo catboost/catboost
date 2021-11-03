@@ -251,7 +251,6 @@ class FeatureImportanceTest {
         val resultName = s"problem_type=$problemType,shap_mode=$shapMode,shap_calc_type=$calcType"
         val expectedShapValues = expectedFeatureImportances(resultName)
           .asInstanceOf[scala.collection.immutable.$colon$colon[_]]
-        //System.err.println(s"expectedShapValues.getClass=${expectedShapValues.getClass}")
         
         val shapValuesDf = model.getFeatureImportanceShapValues(
           data=data,

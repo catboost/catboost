@@ -213,7 +213,6 @@ class CatBoostMLReader(JavaMLReader):
     val enumParamReg = """.*EnumParam\[([\w\.]+)\]""".r
     
     for (member <- universe.typeOf[Params].members) {
-      //println(s"member.name=${member.name.toString.trim}, member.typeSignature.typeSymbol.name.toString='${member.typeSignature.typeSymbol.name.toString}'");
       val pyType = member.typeSignature.typeSymbol.name.toString match {
         case "BooleanParam" => Some("bool")
         case "IntParam" => Some("int")
@@ -240,7 +239,6 @@ class CatBoostMLReader(JavaMLReader):
       } 
       pyType match {
         case Some(pyType) => { 
-          //println(s"Add: '${member.typeSignature.toString}': ${member.name.toString.trim} ${pyType}");
           result += (member.name.toString.trim -> pyType) 
         }
         case None => ()

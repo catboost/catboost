@@ -322,7 +322,6 @@ private[spark] object Helpers {
 
   def processSnapshotIntervalParam(params: mutable.HashMap[String, Any]) : JObject = {
     if (params.contains("snapshotInterval")) {
-      println("params.contains('snapshotInterval')")
       JObject() ~ (
         "snapshot_interval" -> JLong(params("snapshotInterval").asInstanceOf[java.time.Duration].getSeconds)
       )

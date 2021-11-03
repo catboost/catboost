@@ -38,11 +38,6 @@ TClassTargetPreprocessor::TClassTargetPreprocessor(
         "CatBoostClassifier requires a label column in the training dataset"
     );
 
-    {
-        TOFStream out("/home/akhropov/catboost/spark/debug/TClassTargetPreprocessor_params_json");
-        NJson::WriteJson(&out, &CatBoostOptionsPlainJson, true);
-    }
-
     TMaybe<ELossFunction> specifiedLossFunction;
     if (CatBoostOptionsPlainJson.Has("loss_function")) {
         NCatboostOptions::TLossDescription lossDescription;
@@ -113,16 +108,7 @@ TString TClassTargetPreprocessor::GetLossFunction() const {
 
 // including possibly updated loss_function and class labels
 TString TClassTargetPreprocessor::GetUpdatedCatBoostOptionsJsonAsString() const throw (yexception) {
-    //return NJson::WriteJson(CatBoostOptionsPlainJson, false);
-    {
-        TString res = NJson::WriteJson(CatBoostOptionsPlainJson, false);
-        {
-            TOFStream out("/home/akhropov/catboost/debug/multiclass_approx/json");
-            out << res;
-        }
-        return res;
-    }
-
+    return NJson::WriteJson(CatBoostOptionsPlainJson, false);
 }
 
 TVector<i8> TClassTargetPreprocessor::GetSerializedLabelConverter() throw (yexception) {
@@ -246,10 +232,8 @@ void TClassTargetPreprocessor::ProcessDistinctTargetValuesImpl(
         &ClassCount)[0];
 
     if (TargetCreationOptions.IsMultiClass) {
-        Cerr << "MultiClass\n";
         LabelConverter.InitializeMultiClass(*convertedTargetValues, ClassCount);
     } else {
-        Cerr << "BinClass\n";
         ClassCount = 2;
         LabelConverter.InitializeBinClass();
     }
