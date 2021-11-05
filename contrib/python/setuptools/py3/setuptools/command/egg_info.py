@@ -608,6 +608,18 @@ class manifest_maker(sdist):
         self.filelist.exclude_pattern(r'(^|' + sep + r')(RCS|CVS|\.svn)' + sep,
                                       is_regex=1)
 
+    def _safe_data_files(self, build_py):
+        """
+        The parent class implementation of this method
+        (``sdist``) will try to include data files, which
+        might cause recursion problems when
+        ``include_package_data=True``.
+
+        Therefore, avoid triggering any attempt of
+        analyzing/building the manifest again.
+        """
+        return build_py.get_data_files_without_manifest()
+
 
 def write_file(filename, contents):
     """Create a file with the specified name and write 'contents' (a
