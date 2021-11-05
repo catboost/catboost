@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -238,30 +239,21 @@ public class CatBoostModel implements AutoCloseable {
      * Load CatBoost model from stream.
      * You should consider this method for large files.
      * @param in Input stream containing model.
+     * @param sizeInBytes the size of input stream (If it is a ZipInputStream, the size of the uncompressed data)
      * @return   CatBoost model.
      * @throws CatBoostError When failed to load model.
      * @throws IOException When failed to read model from file.
      */
     @NotNull
-    public static CatBoostModel loadModelUsingOffHeap(final InputStream in) throws CatBoostError, IOException {
-        int inputStreamSize = countAllBytes(in);
-        ByteBuffer memoryForModel = ByteBuffer.allocateDirect(inputStreamSize);
-        int bufferInBytes = 65536;
-        final long[] handles = new long[1];
-        ByteBuffer copyBuffer = ByteBuffer.allocateDirect(bufferInBytes);
-        byte[] copyBufferArray = copyBuffer.array();
-
+    public static CatBoostModel loadModelUsingOffHeap(final InputStream in, int sizeInBytes) throws CatBoostError, IOException {
+        ByteBuffer allocatedMemory = ByteBuffer.allocateDirect(sizeInBytes);
+        byte[] copyBufferArray = ByteBuffer.allocateDirect(65536).array();
         while (in.read(copyBufferArray) != -1) {
-            memoryForModel.put(copyBufferArray);
+            allocatedMemory.put(copyBufferArray);
         }
-
-        implLibrary.catBoostLoadModelFromArray(memoryForModel.array(), handles);
+        final long[] handles = new long[1];
+        implLibrary.catBoostLoadModelFromArray(allocatedMemory.array(), handles);
         return new CatBoostModel(handles[0]);
-    }
-
-    private static int countAllBytes(final InputStream in) throws IOException {
-        BytesCountingInputStreamMaxToIntegerSize counter = new BytesCountingInputStreamMaxToIntegerSize(in);
-        return counter.countAllBytes();
     }
 
     /**
