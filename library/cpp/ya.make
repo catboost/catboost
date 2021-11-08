@@ -126,11 +126,12 @@ RECURSE(
     yson/json
     yson/node
     yson/node/pybind
+    yt
 )
 
 IF (OS_LINUX)
     RECURSE(
-    ytalloc
+    
 )
 ENDIF()
 

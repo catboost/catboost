@@ -3,7 +3,7 @@ LIBRARY()
 
 
 PEERDIR(
-    library/cpp/ytalloc/core
+    library/cpp/yt/misc
 )
 
 SRCS(

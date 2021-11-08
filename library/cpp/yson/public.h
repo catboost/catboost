@@ -1,6 +1,6 @@
 #pragma once
 
-#include <library/cpp/ytalloc/core/misc/enum.h>
+#include <library/cpp/yt/misc/enum.h>
 #include <util/generic/yexception.h>
 
 namespace NYson {
