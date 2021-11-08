@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{48CA1C7E-9FF3-8299-9D74-DB9A77F55630}</ProjectGUID>
+    <ProjectGUID>{C6F036AA-9EA5-68E2-EAF2-CDEFE55C0DD5}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>cpp-ytalloc-core</ProjectName>
+    <ProjectName>cpp-yt-misc</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>cpp-ytalloc-core</TargetName>
+    <TargetName>cpp-yt-misc</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\cpp\ytalloc\core\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\48CA1C7E-9FF3-8299-9D74-DB9A77F55630\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\cpp\yt\misc\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\C6F036AA-9EA5-68E2-EAF2-CDEFE55C0DD5\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,14 +78,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\cpp\ytalloc\core\concurrency\fork_aware_spinlock.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\library\cpp\ytalloc\core\concurrency\fork_aware_spinlock.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\cpp\ytalloc\core\concurrency\rw_spinlock-inl.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\cpp\ytalloc\core\concurrency\rw_spinlock.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\cpp\ytalloc\core\misc\enum-inl.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\cpp\ytalloc\core\misc\enum.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\cpp\ytalloc\core\misc\preprocessor-gen.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\cpp\ytalloc\core\misc\preprocessor.h"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\yt\misc\source_location.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\yt\misc\enum-inl.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\yt\misc\enum.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\yt\misc\preprocessor-gen.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\yt\misc\preprocessor.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\yt\misc\source_location.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
