@@ -674,7 +674,7 @@ class YMake(object):
     def print_presets(self):
         presets = opts().presets
         if presets and 'YMAKE_JAVA_MODULES' not in presets:
-            if 'MAVEN_EXPORT' in presets:
+            if 'YA_IDE_IDEA' in presets or 'MAVEN_EXPORT' in presets:
                 presets['YMAKE_JAVA_MODULES'] = 'no'
             else:
                 presets['YMAKE_JAVA_MODULES'] = 'yes'
