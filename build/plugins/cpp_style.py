@@ -14,6 +14,6 @@ def on_style(unit, *args):
                 continue
 
             yield f
-            yield '/cpp_style/' + f
+            yield '/cpp_style/files/' + f
 
     unit.onresource(list(it()))
