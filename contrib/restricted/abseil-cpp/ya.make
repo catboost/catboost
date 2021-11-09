@@ -9,6 +9,7 @@ VERSION(20210324.2)
 LICENSE(Not-Applicable)
 
 PEERDIR(
+    contrib/restricted/abseil-cpp/absl/algorithm
     contrib/restricted/abseil-cpp/absl/base
     contrib/restricted/abseil-cpp/absl/base/internal/exponential_biased
     contrib/restricted/abseil-cpp/absl/base/internal/low_level_alloc
@@ -20,6 +21,7 @@ PEERDIR(
     contrib/restricted/abseil-cpp/absl/base/internal/throw_delegate
     contrib/restricted/abseil-cpp/absl/base/log_severity
     contrib/restricted/abseil-cpp/absl/city
+    contrib/restricted/abseil-cpp/absl/container
     contrib/restricted/abseil-cpp/absl/container/internal/absl_hashtablez_sampler
     contrib/restricted/abseil-cpp/absl/container/internal/raw_hash_set
     contrib/restricted/abseil-cpp/absl/debugging
@@ -42,6 +44,7 @@ PEERDIR(
     contrib/restricted/abseil-cpp/absl/flags/reflection
     contrib/restricted/abseil-cpp/absl/flags/usage
     contrib/restricted/abseil-cpp/absl/flags/usage_config
+    contrib/restricted/abseil-cpp/absl/functional
     contrib/restricted/abseil-cpp/absl/hash
     contrib/restricted/abseil-cpp/absl/hash/internal
     contrib/restricted/abseil-cpp/absl/memory
@@ -69,9 +72,11 @@ PEERDIR(
     contrib/restricted/abseil-cpp/absl/time
     contrib/restricted/abseil-cpp/absl/time/civil_time
     contrib/restricted/abseil-cpp/absl/time/time_zone
+    contrib/restricted/abseil-cpp/absl/types
     contrib/restricted/abseil-cpp/absl/types/bad_any_cast
     contrib/restricted/abseil-cpp/absl/types/bad_optional_access
     contrib/restricted/abseil-cpp/absl/types/bad_variant_access
+    contrib/restricted/abseil-cpp/absl/utility
 )
 
 NO_RUNTIME()
