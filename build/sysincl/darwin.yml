@@ -117,7 +117,6 @@
   - pthread_spis.h
   - readline/history.h
   - readline/readline.h
-  - readpassphrase.h
   - runetype.h
   - simd/simd.h
   - strhash.h
