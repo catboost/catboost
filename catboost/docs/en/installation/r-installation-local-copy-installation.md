@@ -22,10 +22,10 @@ To install the {{ r-package }} from a local copy of the {{ product }} repositor
 1. Open the `catboost/catboost/R-package` directory from the local copy of the {{ product }} repository.
 1. {% include [reusage-installation-using-the-following-code](../_includes/work_src/reusage-installation/using-the-following-code.md) %}
 
-    ```no-highlight
+    ```
     install.packages('devtools')
     devtools::install()
     ```
 
-1. Run the resulting script file.
+{% include [r__troubleshooting](../_includes/work_src/reusage-installation/r__troubleshooting.md) %}
 
