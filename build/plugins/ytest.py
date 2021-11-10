@@ -519,10 +519,11 @@ def onadd_check(unit, *args):
         script_rel_path = check_type
 
     use_arcadia_python = unit.get('USE_ARCADIA_PYTHON')
-
+    uid_ext = ''
     if check_type == "check.data":
         if unit.get("VALIDATE_DATA") == "no":
             return
+        uid_ext = unit.get("SBR_UID_EXT").split(" ", 1)[-1]  # strip variable name
         data_re = re.compile(r"sbr:/?/?(\d+)=?.*")
         data = flat_args[1:]
         resources = []
@@ -545,6 +546,7 @@ def onadd_check(unit, *args):
         'SOURCE-FOLDER-PATH': test_dir,
         'CUSTOM-DEPENDENCIES': " ".join(spec_args.get('DEPENDS', [])),
         'TEST-DATA': extra_test_data,
+        "SBR-UID-EXT": uid_ext,
         'SPLIT-FACTOR': '',
         'TEST_PARTITION': 'SEQUENTIAL',
         'FORK-MODE': fork_mode,
