@@ -38,10 +38,10 @@
              template_root = os.path.join(pkgdir, package_path)
 +        elif hasattr(loader, "arcadia_source_finder"):
 +            template_root = os.path.dirname(package.__file__)
-         elif spec.submodule_search_locations:
-             # This will be one element for regular packages and multiple
-             # for namespace packages.
-@@ -321,7 +327,16 @@ class PackageLoader(BaseLoader):
+         else:
+             roots: t.List[str] = []
+ 
+@@ -329,7 +335,16 @@ class PackageLoader(BaseLoader):
          p = os.path.join(self._template_root, *split_template_path(template))
          up_to_date: t.Optional[t.Callable[[], bool]]
  
@@ -59,7 +59,7 @@
              # Package is a directory.
              if not os.path.isfile(p):
                  raise TemplateNotFound(template)
-@@ -351,7 +366,12 @@ class PackageLoader(BaseLoader):
+@@ -359,7 +374,12 @@ class PackageLoader(BaseLoader):
      def list_templates(self) -> t.List[str]:
          results: t.List[str] = []
  
