@@ -50,7 +50,9 @@ PEERDIR(
 GENERATE_ENUM_SERIALIZATION(model_metainfo_helpers.h)
 
 IF(CATBOOST_OPENSOURCE)
-    NO_GPL()
+    RESTRICT_LICENSES(
+        DENY REQUIRE_DISCLOSURE FORBIDDEN
+    )
 ELSE()
     PEERDIR(
         catboost//private/libs/for_app
