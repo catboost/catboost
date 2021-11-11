@@ -81,6 +81,60 @@
     <ClCompile Include="$(SolutionDir)..\contrib\python\tornado\tornado-6\tornado\speedups.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_0947edeb53a764b5d7ffdaaa91.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_0947edeb53a764b5d7ffdaaa91.obj" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_0947edeb53a764b5d7ffdaaa91.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_0947edeb53a764b5d7ffdaaa91.obj" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_0947edeb53a764b5d7ffdaaa91.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/tornado/tornado-6/_0947edeb53a764b5d7ffdaaa91.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_0947edeb53a764b5d7ffdaaa91.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_0947edeb53a764b5d7ffdaaa91.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_243791fa69b3adb3168861efe9.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_243791fa69b3adb3168861efe9.obj" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_243791fa69b3adb3168861efe9.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_243791fa69b3adb3168861efe9.obj" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_243791fa69b3adb3168861efe9.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/tornado/tornado-6/_243791fa69b3adb3168861efe9.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_243791fa69b3adb3168861efe9.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_243791fa69b3adb3168861efe9.obj;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_3910dbaaaad7aae2b67d861862.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6
@@ -108,123 +162,15 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_3910dbaaaad7aae2b67d861862.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_3910dbaaaad7aae2b67d861862.obj;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_4bf358c0492aed07a1f15d7150.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_4bf358c0492aed07a1f15d7150.obj" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_4bf358c0492aed07a1f15d7150.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_4bf358c0492aed07a1f15d7150.obj" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_4bf358c0492aed07a1f15d7150.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/tornado/tornado-6/_4bf358c0492aed07a1f15d7150.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_4bf358c0492aed07a1f15d7150.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_4bf358c0492aed07a1f15d7150.obj;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_a1a183472d71a243f362ac76b4.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_a1a183472d71a243f362ac76b4.obj" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_a1a183472d71a243f362ac76b4.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_a1a183472d71a243f362ac76b4.obj" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_a1a183472d71a243f362ac76b4.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/tornado/tornado-6/_a1a183472d71a243f362ac76b4.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_a1a183472d71a243f362ac76b4.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_a1a183472d71a243f362ac76b4.obj;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\tornado\process.py.sow3.yapyc3">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_945acb7f5657635b1ecc91cca3.yasm" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/process.py.sow3.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_23af484f5b77c0651afa4d1984.rodata" "-" "contrib/python/tornado/tornado-6/tornado/queues.py" "_7013e74093a8a49fec25389dbf.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/queues.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_f77f8d07b5ed15113cba7971ed.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/queues.py.qgtx.yapyc3" "_1024e293788f922c1ebdc360ac.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/queues.py.qgtx.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_2ab295998d0daf08574482648a.rodata" "-" "contrib/python/tornado/tornado-6/tornado/routing.py" "_9e7c7b9b0817528d8c6f6c6ee1.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/routing.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_6cbe6d92b1abfd7b2729d9d23c.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/routing.py.iz6m.yapyc3" "_147833ecda972cff18160dc141.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/routing.py.iz6m.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_822c51490a306d457bb4e6cba1.rodata" "-" "contrib/python/tornado/tornado-6/tornado/simple_httpclient.py" "_beed798c7d9dc930e124bf7434.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/simple_httpclient.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_e7baa8a09cbe1f59dfc6973098.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/simple_httpclient.py.gsga.yapyc3" "_9271354b1b0c2278eb9ab4d9a1.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/simple_httpclient.py.gsga.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_82293acdcf209fa579b7825158.rodata" "-" "contrib/python/tornado/tornado-6/tornado/tcpclient.py" "_b6f6e0eec446468dd98b089187.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/tcpclient.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_3d1b70413e327942674fb55c5d.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/tcpclient.py.5a2l.yapyc3" "_fd6f60d06bf810067f8a6f8ee2.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/tcpclient.py.5a2l.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_9a3167f4b1e503499a34b2d1b5.rodata" "-" "contrib/python/tornado/tornado-6/tornado/tcpserver.py" "_03b3258f646d768cf43aae9490.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/tcpserver.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_19b0d7362bd329406e14760251.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/tcpserver.py.2aa5.yapyc3" "_ed5fd051a01f603792370ca628.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/tcpserver.py.2aa5.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_8960659aa5e6b4310be37250a9.rodata" "-" "contrib/python/tornado/tornado-6/tornado/template.py" "_9b99d92e7899bf37928f0d9b7c.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/template.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_2fd8c28a83be987bb6d14e2f09.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/template.py.g4t2.yapyc3" "_09609f420e805331037c6a60af.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/template.py.g4t2.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_446bb45937fdf4a9a6ae42dae2.rodata" "-" "contrib/python/tornado/tornado-6/tornado/testing.py" "_bde4e03886c944c929d2eeca2b.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/testing.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_805bf7f810e1221f053777a8b6.rodata" "-" "tornado/testing.py.vrkr.yapyc3" "_8a68519afca6edbf59097ca1b8.rodata"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_945acb7f5657635b1ecc91cca3.yasm" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/process.py.sow3.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_23af484f5b77c0651afa4d1984.rodata" "-" "contrib/python/tornado/tornado-6/tornado/queues.py" "_7013e74093a8a49fec25389dbf.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/queues.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_f77f8d07b5ed15113cba7971ed.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/queues.py.qgtx.yapyc3" "_1024e293788f922c1ebdc360ac.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/queues.py.qgtx.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_2ab295998d0daf08574482648a.rodata" "-" "contrib/python/tornado/tornado-6/tornado/routing.py" "_9e7c7b9b0817528d8c6f6c6ee1.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/routing.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_6cbe6d92b1abfd7b2729d9d23c.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/routing.py.iz6m.yapyc3" "_147833ecda972cff18160dc141.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/routing.py.iz6m.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_822c51490a306d457bb4e6cba1.rodata" "-" "contrib/python/tornado/tornado-6/tornado/simple_httpclient.py" "_beed798c7d9dc930e124bf7434.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/simple_httpclient.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_e7baa8a09cbe1f59dfc6973098.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/simple_httpclient.py.gsga.yapyc3" "_9271354b1b0c2278eb9ab4d9a1.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/simple_httpclient.py.gsga.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_82293acdcf209fa579b7825158.rodata" "-" "contrib/python/tornado/tornado-6/tornado/tcpclient.py" "_b6f6e0eec446468dd98b089187.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/tcpclient.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_3d1b70413e327942674fb55c5d.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/tcpclient.py.5a2l.yapyc3" "_fd6f60d06bf810067f8a6f8ee2.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/tcpclient.py.5a2l.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_9a3167f4b1e503499a34b2d1b5.rodata" "-" "contrib/python/tornado/tornado-6/tornado/tcpserver.py" "_03b3258f646d768cf43aae9490.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/tcpserver.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_19b0d7362bd329406e14760251.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/tcpserver.py.2aa5.yapyc3" "_ed5fd051a01f603792370ca628.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/tcpserver.py.2aa5.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_8960659aa5e6b4310be37250a9.rodata" "-" "contrib/python/tornado/tornado-6/tornado/template.py" "_9b99d92e7899bf37928f0d9b7c.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/template.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_2fd8c28a83be987bb6d14e2f09.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/template.py.g4t2.yapyc3" "_09609f420e805331037c6a60af.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/template.py.g4t2.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_446bb45937fdf4a9a6ae42dae2.rodata" "-" "contrib/python/tornado/tornado-6/tornado/testing.py" "_bde4e03886c944c929d2eeca2b.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/testing.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_805bf7f810e1221f053777a8b6.rodata" "-" "tornado/testing.py.vrkr.yapyc3" "_8a68519afca6edbf59097ca1b8.rodata"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/tornado/tornado-6/_945acb7f5657635b1ecc91cca3.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\tornado\process.py.sow3.yapyc3;$(SolutionDir)..\contrib\python\tornado\tornado-6\tornado\queues.py;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\tornado\queues.py.qgtx.yapyc3;$(SolutionDir)..\contrib\python\tornado\tornado-6\tornado\routing.py;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\tornado\routing.py.iz6m.yapyc3;$(SolutionDir)..\contrib\python\tornado\tornado-6\tornado\simple_httpclient.py;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\tornado\simple_httpclient.py.gsga.yapyc3;$(SolutionDir)..\contrib\python\tornado\tornado-6\tornado\tcpclient.py;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\tornado\tcpclient.py.5a2l.yapyc3;$(SolutionDir)..\contrib\python\tornado\tornado-6\tornado\tcpserver.py;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\tornado\tcpserver.py.2aa5.yapyc3;$(SolutionDir)..\contrib\python\tornado\tornado-6\tornado\template.py;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\tornado\template.py.g4t2.yapyc3;$(SolutionDir)..\contrib\python\tornado\tornado-6\tornado\testing.py;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_945acb7f5657635b1ecc91cca3.yasm;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_23af484f5b77c0651afa4d1984.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_f77f8d07b5ed15113cba7971ed.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_2ab295998d0daf08574482648a.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_6cbe6d92b1abfd7b2729d9d23c.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_822c51490a306d457bb4e6cba1.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_e7baa8a09cbe1f59dfc6973098.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_82293acdcf209fa579b7825158.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_3d1b70413e327942674fb55c5d.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_9a3167f4b1e503499a34b2d1b5.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_19b0d7362bd329406e14760251.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_8960659aa5e6b4310be37250a9.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_2fd8c28a83be987bb6d14e2f09.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_446bb45937fdf4a9a6ae42dae2.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_805bf7f810e1221f053777a8b6.rodata;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\tornado\testing.py.vrkr.yapyc3">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_30009766da41ae4620a8571afd.yasm" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/testing.py.vrkr.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_fc4f5f80b9943a8449060008c7.rodata" "-" "contrib/python/tornado/tornado-6/tornado/util.py" "_70b58801b7dc89900118723cc2.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/util.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_6ad8d52fb4facf65ccfd30fa09.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/util.py.qhhw.yapyc3" "_5c67ce7e29b818f57118c5f3b4.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/util.py.qhhw.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_a598fec1a6ddf21bdbc5f2625d.rodata" "-" "contrib/python/tornado/tornado-6/tornado/web.py" "_730fefb262b3bedc9b7da7cab6.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/web.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_933fef1da8469b4955cbc47ef8.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/web.py.anpm.yapyc3" "_1d5c5d83f25b87739f779e61e2.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/web.py.anpm.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_4b6ab2f9d6e54b9a840d7b69a0.rodata" "-" "contrib/python/tornado/tornado-6/tornado/websocket.py" "_e42f59dbe3aeefc27d88cdb1aa.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/websocket.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_b2797989a7eec54fbb5299fce4.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/websocket.py.wrwk.yapyc3" "_806cd3c3cff176778fa5ec89db.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/websocket.py.wrwk.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_6ec5b5354773b541c0956d1429.rodata" "-" "contrib/python/tornado/tornado-6/tornado/wsgi.py" "_19ac9d28c68ad418ac3ea1e78d.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/wsgi.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_f1b0b736bb11e83c249a8d58de.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/wsgi.py.t2ba.yapyc3" "_30891a3cbc01e8a57c9a4740aa.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/wsgi.py.t2ba.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_9718079bc71b55a942a5f99ac7.rodata"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_30009766da41ae4620a8571afd.yasm" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/testing.py.vrkr.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_fc4f5f80b9943a8449060008c7.rodata" "-" "contrib/python/tornado/tornado-6/tornado/util.py" "_70b58801b7dc89900118723cc2.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/util.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_6ad8d52fb4facf65ccfd30fa09.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/util.py.qhhw.yapyc3" "_5c67ce7e29b818f57118c5f3b4.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/util.py.qhhw.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_a598fec1a6ddf21bdbc5f2625d.rodata" "-" "contrib/python/tornado/tornado-6/tornado/web.py" "_730fefb262b3bedc9b7da7cab6.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/web.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_933fef1da8469b4955cbc47ef8.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/web.py.anpm.yapyc3" "_1d5c5d83f25b87739f779e61e2.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/web.py.anpm.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_4b6ab2f9d6e54b9a840d7b69a0.rodata" "-" "contrib/python/tornado/tornado-6/tornado/websocket.py" "_e42f59dbe3aeefc27d88cdb1aa.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/websocket.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_b2797989a7eec54fbb5299fce4.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/websocket.py.wrwk.yapyc3" "_806cd3c3cff176778fa5ec89db.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/websocket.py.wrwk.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_6ec5b5354773b541c0956d1429.rodata" "-" "contrib/python/tornado/tornado-6/tornado/wsgi.py" "_19ac9d28c68ad418ac3ea1e78d.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/wsgi.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_f1b0b736bb11e83c249a8d58de.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/wsgi.py.t2ba.yapyc3" "_30891a3cbc01e8a57c9a4740aa.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/wsgi.py.t2ba.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_9718079bc71b55a942a5f99ac7.rodata"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/tornado/tornado-6/_30009766da41ae4620a8571afd.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\tornado\testing.py.vrkr.yapyc3;$(SolutionDir)..\contrib\python\tornado\tornado-6\tornado\util.py;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\tornado\util.py.qhhw.yapyc3;$(SolutionDir)..\contrib\python\tornado\tornado-6\tornado\web.py;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\tornado\web.py.anpm.yapyc3;$(SolutionDir)..\contrib\python\tornado\tornado-6\tornado\websocket.py;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\tornado\websocket.py.wrwk.yapyc3;$(SolutionDir)..\contrib\python\tornado\tornado-6\tornado\wsgi.py;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\tornado\wsgi.py.t2ba.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_30009766da41ae4620a8571afd.yasm;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_fc4f5f80b9943a8449060008c7.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_6ad8d52fb4facf65ccfd30fa09.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_a598fec1a6ddf21bdbc5f2625d.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_933fef1da8469b4955cbc47ef8.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_4b6ab2f9d6e54b9a840d7b69a0.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_b2797989a7eec54fbb5299fce4.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_6ec5b5354773b541c0956d1429.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_f1b0b736bb11e83c249a8d58de.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_9718079bc71b55a942a5f99ac7.rodata;</Outputs>
-    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_4bf358c0492aed07a1f15d7150.yasm" "-" "." "_e0a4e3851e2a8089aac8ff337f.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_0947edeb53a764b5d7ffdaaa91.yasm" "-" "tornado.curl_httpclient tornado.platform.*" "_a528513c69c30ebb8208e00ff8.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_a1a183472d71a243f362ac76b4.yasm" "-" "tornado.platform.* tornado.curl_httpclient" "_1b7732b768b22e5d0e08b6230f.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_243791fa69b3adb3168861efe9.yasm" "-" "." "_d25601f6031e6c1ddcb32a1759.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -235,11 +181,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_4bf358c0492aed07a1f15d7150.yasm" "-" "." "_e0a4e3851e2a8089aac8ff337f.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_0947edeb53a764b5d7ffdaaa91.yasm" "-" "tornado.curl_httpclient tornado.platform.*" "_a528513c69c30ebb8208e00ff8.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_a1a183472d71a243f362ac76b4.yasm" "-" "tornado.platform.* tornado.curl_httpclient" "_1b7732b768b22e5d0e08b6230f.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_243791fa69b3adb3168861efe9.yasm" "-" "." "_d25601f6031e6c1ddcb32a1759.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -247,9 +193,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/tornado/tornado-6/_4bf358c0492aed07a1f15d7150.yasm	$B/contrib/python/tornado/tornado-6/_a1a183472d71a243f362ac76b4.yasm	</Message>
+      <Message>$B/contrib/python/tornado/tornado-6/_0947edeb53a764b5d7ffdaaa91.yasm	$B/contrib/python/tornado/tornado-6/_243791fa69b3adb3168861efe9.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_4bf358c0492aed07a1f15d7150.yasm;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_a1a183472d71a243f362ac76b4.yasm;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_0947edeb53a764b5d7ffdaaa91.yasm;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_243791fa69b3adb3168861efe9.yasm;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\tornado\tornado-6\.dist-info\METADATA">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -953,60 +899,12 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)..\contrib\python\tornado\tornado-6\tornado\platform\asyncio.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\tornado\platform\asyncio.py.eq4l.yapyc3;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\tornado\tornado-6\tornado\platform\auto.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_7c5e9c081a539a13868b63b5ac.yasm" "-" "contrib/python/tornado/tornado-6/tornado/platform/auto.py" "_4e1a6fc52f2d0a10c4debbce19.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/platform/auto.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_aad456c801dc26c11ad5f060e9.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/platform/auto.py.dhhp.yapyc3" "_7c5175ee73b9b1274bbff35ecf.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/platform/auto.py.dhhp.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_46f8cef430cb98d059a07fc740.rodata" "-" "contrib/python/tornado/tornado-6/tornado/platform/caresresolver.py" "_48a738e8ca6d7e00a1badddefa.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/platform/caresresolver.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_5a4d36312a84813393b4a46678.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/platform/caresresolver.py.gyyo.yapyc3" "_70035f95d3bc2416ccc70ebfbf.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/platform/caresresolver.py.gyyo.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_3cb24d7477347e9433c2412d44.rodata" "-" "contrib/python/tornado/tornado-6/tornado/platform/interface.py" "_d382573807f5f0ab3852b53f92.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/platform/interface.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_926a978c4e4a3d3c488c3d08b7.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/platform/interface.py.pnyu.yapyc3" "_2f231d0905bc084d35fc03d778.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/platform/interface.py.pnyu.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_d6139dd7ea67411fbebee8d5f1.rodata" "-" "contrib/python/tornado/tornado-6/tornado/platform/posix.py" "_a82c28a98bb2a2206eb56f6432.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/platform/posix.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_3a35eb2f8a4c80defd25e4b19a.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/platform/posix.py.dlhd.yapyc3" "_4e6d8133ccb229cc76e55e33ba.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/platform/posix.py.dlhd.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_e9ebb6fd7b7e8063cee94286aa.rodata" "-" "contrib/python/tornado/tornado-6/tornado/platform/twisted.py" "_a637f2d49d663820412993fa66.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/platform/twisted.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_8bf942058cfdc4e80118e01dfc.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/platform/twisted.py.o622.yapyc3" "_2be90363f665288926b8e1fe31.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/platform/twisted.py.o622.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_c072a039876298661a1c3eaab2.rodata" "-" "contrib/python/tornado/tornado-6/tornado/platform/windows.py" "_12f217f7efd62e7f14ddbe5f6f.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/platform/windows.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_cebc85864dc73c4958c8ae70cf.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/platform/windows.py.3nln.yapyc3" "_a0f9a9e8fcd1283eed25ab1eb5.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/platform/windows.py.3nln.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_32c4931c94a384c9cf289e989e.rodata" "-" "contrib/python/tornado/tornado-6/tornado/process.py" "_489be61e6ef8c8eae7de4f1afe.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/process.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_1818f83c75c0373361469af6e4.rodata" "-" "tornado/process.py.sow3.yapyc3" "_411c79c132ff7051fed1f28b0d.rodata"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/tornado/tornado-6/tornado/platform/auto.py-" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/platform/auto.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/platform/auto.py.dhhp.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_7c5e9c081a539a13868b63b5ac.yasm" "-" "contrib/python/tornado/tornado-6/tornado/platform/auto.py" "_4e1a6fc52f2d0a10c4debbce19.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/platform/auto.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_aad456c801dc26c11ad5f060e9.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/platform/auto.py.dhhp.yapyc3" "_7c5175ee73b9b1274bbff35ecf.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/platform/auto.py.dhhp.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_46f8cef430cb98d059a07fc740.rodata" "-" "contrib/python/tornado/tornado-6/tornado/platform/caresresolver.py" "_48a738e8ca6d7e00a1badddefa.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/platform/caresresolver.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_5a4d36312a84813393b4a46678.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/platform/caresresolver.py.gyyo.yapyc3" "_70035f95d3bc2416ccc70ebfbf.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/platform/caresresolver.py.gyyo.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_3cb24d7477347e9433c2412d44.rodata" "-" "contrib/python/tornado/tornado-6/tornado/platform/interface.py" "_d382573807f5f0ab3852b53f92.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/platform/interface.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_926a978c4e4a3d3c488c3d08b7.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/platform/interface.py.pnyu.yapyc3" "_2f231d0905bc084d35fc03d778.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/platform/interface.py.pnyu.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_d6139dd7ea67411fbebee8d5f1.rodata" "-" "contrib/python/tornado/tornado-6/tornado/platform/posix.py" "_a82c28a98bb2a2206eb56f6432.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/platform/posix.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_3a35eb2f8a4c80defd25e4b19a.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/platform/posix.py.dlhd.yapyc3" "_4e6d8133ccb229cc76e55e33ba.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/platform/posix.py.dlhd.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_e9ebb6fd7b7e8063cee94286aa.rodata" "-" "contrib/python/tornado/tornado-6/tornado/platform/twisted.py" "_a637f2d49d663820412993fa66.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/platform/twisted.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_8bf942058cfdc4e80118e01dfc.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/platform/twisted.py.o622.yapyc3" "_2be90363f665288926b8e1fe31.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/platform/twisted.py.o622.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_c072a039876298661a1c3eaab2.rodata" "-" "contrib/python/tornado/tornado-6/tornado/platform/windows.py" "_12f217f7efd62e7f14ddbe5f6f.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/platform/windows.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_cebc85864dc73c4958c8ae70cf.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/platform/windows.py.3nln.yapyc3" "_a0f9a9e8fcd1283eed25ab1eb5.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/platform/windows.py.3nln.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_32c4931c94a384c9cf289e989e.rodata" "-" "contrib/python/tornado/tornado-6/tornado/process.py" "_489be61e6ef8c8eae7de4f1afe.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/process.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_1818f83c75c0373361469af6e4.rodata" "-" "tornado/process.py.sow3.yapyc3" "_411c79c132ff7051fed1f28b0d.rodata"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/tornado/tornado-6/tornado/platform/auto.py-" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/platform/auto.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/platform/auto.py.dhhp.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/tornado/tornado-6/_7c5e9c081a539a13868b63b5ac.yasm	$B/contrib/python/tornado/tornado-6/tornado/platform/auto.py.dhhp.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\tornado\tornado-6\tornado\platform\auto.py;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\tornado\platform\auto.py.dhhp.yapyc3;$(SolutionDir)..\contrib\python\tornado\tornado-6\tornado\platform\caresresolver.py;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\tornado\platform\caresresolver.py.gyyo.yapyc3;$(SolutionDir)..\contrib\python\tornado\tornado-6\tornado\platform\interface.py;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\tornado\platform\interface.py.pnyu.yapyc3;$(SolutionDir)..\contrib\python\tornado\tornado-6\tornado\platform\posix.py;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\tornado\platform\posix.py.dlhd.yapyc3;$(SolutionDir)..\contrib\python\tornado\tornado-6\tornado\platform\twisted.py;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\tornado\platform\twisted.py.o622.yapyc3;$(SolutionDir)..\contrib\python\tornado\tornado-6\tornado\platform\windows.py;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\tornado\platform\windows.py.3nln.yapyc3;$(SolutionDir)..\contrib\python\tornado\tornado-6\tornado\process.py;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_7c5e9c081a539a13868b63b5ac.yasm;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_aad456c801dc26c11ad5f060e9.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_46f8cef430cb98d059a07fc740.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_5a4d36312a84813393b4a46678.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_3cb24d7477347e9433c2412d44.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_926a978c4e4a3d3c488c3d08b7.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_d6139dd7ea67411fbebee8d5f1.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_3a35eb2f8a4c80defd25e4b19a.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_e9ebb6fd7b7e8063cee94286aa.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_8bf942058cfdc4e80118e01dfc.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_c072a039876298661a1c3eaab2.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_cebc85864dc73c4958c8ae70cf.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_32c4931c94a384c9cf289e989e.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_1818f83c75c0373361469af6e4.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\tornado\platform\auto.py.dhhp.yapyc3;</Outputs>
-    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\tornado\tornado-6\tornado\platform\caresresolver.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6
 if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_65e7de6da86ad20a3fd29b51d9.yasm" "-" "contrib/python/tornado/tornado-6/tornado/platform/caresresolver.py" "_48a738e8ca6d7e00a1badddefa.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/platform/caresresolver.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_5a4d36312a84813393b4a46678.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/platform/caresresolver.py.gyyo.yapyc3" "_70035f95d3bc2416ccc70ebfbf.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/platform/caresresolver.py.gyyo.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_3cb24d7477347e9433c2412d44.rodata" "-" "contrib/python/tornado/tornado-6/tornado/platform/twisted.py" "_a637f2d49d663820412993fa66.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/platform/twisted.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_8bf942058cfdc4e80118e01dfc.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/platform/twisted.py.o622.yapyc3" "_2be90363f665288926b8e1fe31.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/platform/twisted.py.o622.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_c072a039876298661a1c3eaab2.rodata" "-" "contrib/python/tornado/tornado-6/tornado/process.py" "_489be61e6ef8c8eae7de4f1afe.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/process.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_1818f83c75c0373361469af6e4.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/process.py.sow3.yapyc3" "_411c79c132ff7051fed1f28b0d.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/process.py.sow3.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_23af484f5b77c0651afa4d1984.rodata" "-" "contrib/python/tornado/tornado-6/tornado/queues.py" "_7013e74093a8a49fec25389dbf.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/queues.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_f77f8d07b5ed15113cba7971ed.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/queues.py.qgtx.yapyc3" "_1024e293788f922c1ebdc360ac.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/queues.py.qgtx.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_2ab295998d0daf08574482648a.rodata" "-" "contrib/python/tornado/tornado-6/tornado/routing.py" "_9e7c7b9b0817528d8c6f6c6ee1.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/routing.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_6cbe6d92b1abfd7b2729d9d23c.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/routing.py.iz6m.yapyc3" "_147833ecda972cff18160dc141.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/routing.py.iz6m.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_822c51490a306d457bb4e6cba1.rodata" "-" "contrib/python/tornado/tornado-6/tornado/simple_httpclient.py" "_beed798c7d9dc930e124bf7434.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/simple_httpclient.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_e7baa8a09cbe1f59dfc6973098.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/simple_httpclient.py.gsga.yapyc3" "_9271354b1b0c2278eb9ab4d9a1.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/simple_httpclient.py.gsga.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_82293acdcf209fa579b7825158.rodata" "-" "contrib/python/tornado/tornado-6/tornado/tcpclient.py" "_b6f6e0eec446468dd98b089187.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/tcpclient.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_3d1b70413e327942674fb55c5d.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/tcpclient.py.5a2l.yapyc3" "_fd6f60d06bf810067f8a6f8ee2.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/tcpclient.py.5a2l.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_9a3167f4b1e503499a34b2d1b5.rodata"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/tornado/tornado-6/tornado/platform/caresresolver.py-" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/platform/caresresolver.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/platform/caresresolver.py.gyyo.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
@@ -1019,48 +917,16 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/tornado/tornado-6/tornado/platform/caresresolver.py.gyyo.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\tornado\tornado-6\tornado\platform\caresresolver.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\tornado\platform\caresresolver.py.gyyo.yapyc3;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\tornado\tornado-6\tornado\platform\interface.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/tornado/tornado-6/tornado/platform/interface.py-" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/platform/interface.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/platform/interface.py.pnyu.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6
 if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_65e7de6da86ad20a3fd29b51d9.yasm" "-" "contrib/python/tornado/tornado-6/tornado/platform/caresresolver.py" "_48a738e8ca6d7e00a1badddefa.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/platform/caresresolver.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_5a4d36312a84813393b4a46678.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/platform/caresresolver.py.gyyo.yapyc3" "_70035f95d3bc2416ccc70ebfbf.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/platform/caresresolver.py.gyyo.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_3cb24d7477347e9433c2412d44.rodata" "-" "contrib/python/tornado/tornado-6/tornado/platform/twisted.py" "_a637f2d49d663820412993fa66.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/platform/twisted.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_8bf942058cfdc4e80118e01dfc.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/platform/twisted.py.o622.yapyc3" "_2be90363f665288926b8e1fe31.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/platform/twisted.py.o622.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_c072a039876298661a1c3eaab2.rodata" "-" "contrib/python/tornado/tornado-6/tornado/process.py" "_489be61e6ef8c8eae7de4f1afe.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/process.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_1818f83c75c0373361469af6e4.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/process.py.sow3.yapyc3" "_411c79c132ff7051fed1f28b0d.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/process.py.sow3.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_23af484f5b77c0651afa4d1984.rodata" "-" "contrib/python/tornado/tornado-6/tornado/queues.py" "_7013e74093a8a49fec25389dbf.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/queues.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_f77f8d07b5ed15113cba7971ed.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/queues.py.qgtx.yapyc3" "_1024e293788f922c1ebdc360ac.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/queues.py.qgtx.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_2ab295998d0daf08574482648a.rodata" "-" "contrib/python/tornado/tornado-6/tornado/routing.py" "_9e7c7b9b0817528d8c6f6c6ee1.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/routing.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_6cbe6d92b1abfd7b2729d9d23c.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/routing.py.iz6m.yapyc3" "_147833ecda972cff18160dc141.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/routing.py.iz6m.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_822c51490a306d457bb4e6cba1.rodata" "-" "contrib/python/tornado/tornado-6/tornado/simple_httpclient.py" "_beed798c7d9dc930e124bf7434.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/simple_httpclient.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_e7baa8a09cbe1f59dfc6973098.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/simple_httpclient.py.gsga.yapyc3" "_9271354b1b0c2278eb9ab4d9a1.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/simple_httpclient.py.gsga.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_82293acdcf209fa579b7825158.rodata" "-" "contrib/python/tornado/tornado-6/tornado/tcpclient.py" "_b6f6e0eec446468dd98b089187.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/tcpclient.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_3d1b70413e327942674fb55c5d.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/tcpclient.py.5a2l.yapyc3" "_fd6f60d06bf810067f8a6f8ee2.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/tcpclient.py.5a2l.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_9a3167f4b1e503499a34b2d1b5.rodata"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/tornado/tornado-6/tornado/platform/interface.py-" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/platform/interface.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/platform/interface.py.pnyu.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/tornado/tornado-6/tornado/platform/interface.py.pnyu.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\tornado\tornado-6\tornado\platform\interface.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\tornado\platform\interface.py.pnyu.yapyc3;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\tornado\tornado-6\tornado\platform\posix.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/tornado/tornado-6/tornado/platform/posix.py-" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/platform/posix.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/platform/posix.py.dlhd.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/tornado/tornado-6/tornado/platform/caresresolver.py-" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/platform/caresresolver.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/platform/caresresolver.py.gyyo.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1068,22 +934,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/tornado/tornado-6/tornado/platform/posix.py-" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/platform/posix.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/platform/posix.py.dlhd.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/tornado/tornado-6/tornado/platform/posix.py.dlhd.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\tornado\tornado-6\tornado\platform\posix.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\tornado\platform\posix.py.dlhd.yapyc3;</Outputs>
+      <Message>$B/contrib/python/tornado/tornado-6/_65e7de6da86ad20a3fd29b51d9.yasm	$B/contrib/python/tornado/tornado-6/tornado/platform/caresresolver.py.gyyo.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\tornado\tornado-6\tornado\platform\caresresolver.py;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\tornado\platform\caresresolver.py.gyyo.yapyc3;$(SolutionDir)..\contrib\python\tornado\tornado-6\tornado\platform\twisted.py;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\tornado\platform\twisted.py.o622.yapyc3;$(SolutionDir)..\contrib\python\tornado\tornado-6\tornado\process.py;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\tornado\process.py.sow3.yapyc3;$(SolutionDir)..\contrib\python\tornado\tornado-6\tornado\queues.py;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\tornado\queues.py.qgtx.yapyc3;$(SolutionDir)..\contrib\python\tornado\tornado-6\tornado\routing.py;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\tornado\routing.py.iz6m.yapyc3;$(SolutionDir)..\contrib\python\tornado\tornado-6\tornado\simple_httpclient.py;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\tornado\simple_httpclient.py.gsga.yapyc3;$(SolutionDir)..\contrib\python\tornado\tornado-6\tornado\tcpclient.py;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\tornado\tcpclient.py.5a2l.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_65e7de6da86ad20a3fd29b51d9.yasm;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_5a4d36312a84813393b4a46678.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_3cb24d7477347e9433c2412d44.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_8bf942058cfdc4e80118e01dfc.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_c072a039876298661a1c3eaab2.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_1818f83c75c0373361469af6e4.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_23af484f5b77c0651afa4d1984.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_f77f8d07b5ed15113cba7971ed.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_2ab295998d0daf08574482648a.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_6cbe6d92b1abfd7b2729d9d23c.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_822c51490a306d457bb4e6cba1.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_e7baa8a09cbe1f59dfc6973098.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_82293acdcf209fa579b7825158.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_3d1b70413e327942674fb55c5d.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_9a3167f4b1e503499a34b2d1b5.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\tornado\platform\caresresolver.py.gyyo.yapyc3;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\tornado\tornado-6\tornado\platform\twisted.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -1115,37 +968,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/tornado/tornado-6/tornado/platform/twisted.py.o622.yapyc3	</Message>
       <AdditionalInputs>$(SolutionDir)..\contrib\python\tornado\tornado-6\tornado\platform\twisted.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\tornado\platform\twisted.py.o622.yapyc3;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\tornado\tornado-6\tornado\platform\windows.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/tornado/tornado-6/tornado/platform/windows.py-" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/platform/windows.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/platform/windows.py.3nln.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/tornado/tornado-6/tornado/platform/windows.py-" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/platform/windows.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/platform/windows.py.3nln.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/tornado/tornado-6/tornado/platform/windows.py.3nln.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\tornado\tornado-6\tornado\platform\windows.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\tornado\platform\windows.py.3nln.yapyc3;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\tornado\tornado-6\tornado\process.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -1306,6 +1128,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_d2efd1bb95c6c09fbd2fa18cd3.yasm" "-" "contrib/python/tornado/tornado-6/tornado/tcpserver.py" "_03b3258f646d768cf43aae9490.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/tcpserver.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_19b0d7362bd329406e14760251.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/tcpserver.py.2aa5.yapyc3" "_ed5fd051a01f603792370ca628.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/tcpserver.py.2aa5.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_8960659aa5e6b4310be37250a9.rodata" "-" "contrib/python/tornado/tornado-6/tornado/template.py" "_9b99d92e7899bf37928f0d9b7c.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/template.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_2fd8c28a83be987bb6d14e2f09.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/template.py.g4t2.yapyc3" "_09609f420e805331037c6a60af.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/template.py.g4t2.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_446bb45937fdf4a9a6ae42dae2.rodata" "-" "contrib/python/tornado/tornado-6/tornado/testing.py" "_bde4e03886c944c929d2eeca2b.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/testing.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_805bf7f810e1221f053777a8b6.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/testing.py.vrkr.yapyc3" "_8a68519afca6edbf59097ca1b8.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/testing.py.vrkr.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_fc4f5f80b9943a8449060008c7.rodata" "-" "contrib/python/tornado/tornado-6/tornado/util.py" "_70b58801b7dc89900118723cc2.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/util.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_6ad8d52fb4facf65ccfd30fa09.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/util.py.qhhw.yapyc3" "_5c67ce7e29b818f57118c5f3b4.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/util.py.qhhw.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_a598fec1a6ddf21bdbc5f2625d.rodata" "-" "contrib/python/tornado/tornado-6/tornado/web.py" "_730fefb262b3bedc9b7da7cab6.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/web.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_933fef1da8469b4955cbc47ef8.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/web.py.anpm.yapyc3" "_1d5c5d83f25b87739f779e61e2.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/web.py.anpm.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_4b6ab2f9d6e54b9a840d7b69a0.rodata" "-" "contrib/python/tornado/tornado-6/tornado/websocket.py" "_e42f59dbe3aeefc27d88cdb1aa.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/websocket.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_b2797989a7eec54fbb5299fce4.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/websocket.py.wrwk.yapyc3" "_806cd3c3cff176778fa5ec89db.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/websocket.py.wrwk.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_6ec5b5354773b541c0956d1429.rodata" "-" "contrib/python/tornado/tornado-6/tornado/wsgi.py" "_19ac9d28c68ad418ac3ea1e78d.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/wsgi.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_f1b0b736bb11e83c249a8d58de.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/wsgi.py.t2ba.yapyc3" "_30891a3cbc01e8a57c9a4740aa.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/wsgi.py.t2ba.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_9718079bc71b55a942a5f99ac7.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6
+if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/tornado/tornado-6/tornado/tcpserver.py-" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/tcpserver.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/tcpserver.py.2aa5.yapyc3"
@@ -1319,6 +1145,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_d2efd1bb95c6c09fbd2fa18cd3.yasm" "-" "contrib/python/tornado/tornado-6/tornado/tcpserver.py" "_03b3258f646d768cf43aae9490.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/tcpserver.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_19b0d7362bd329406e14760251.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/tcpserver.py.2aa5.yapyc3" "_ed5fd051a01f603792370ca628.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/tcpserver.py.2aa5.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_8960659aa5e6b4310be37250a9.rodata" "-" "contrib/python/tornado/tornado-6/tornado/template.py" "_9b99d92e7899bf37928f0d9b7c.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/template.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_2fd8c28a83be987bb6d14e2f09.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/template.py.g4t2.yapyc3" "_09609f420e805331037c6a60af.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/template.py.g4t2.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_446bb45937fdf4a9a6ae42dae2.rodata" "-" "contrib/python/tornado/tornado-6/tornado/testing.py" "_bde4e03886c944c929d2eeca2b.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/testing.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_805bf7f810e1221f053777a8b6.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/testing.py.vrkr.yapyc3" "_8a68519afca6edbf59097ca1b8.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/testing.py.vrkr.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_fc4f5f80b9943a8449060008c7.rodata" "-" "contrib/python/tornado/tornado-6/tornado/util.py" "_70b58801b7dc89900118723cc2.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/util.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_6ad8d52fb4facf65ccfd30fa09.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/util.py.qhhw.yapyc3" "_5c67ce7e29b818f57118c5f3b4.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/util.py.qhhw.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_a598fec1a6ddf21bdbc5f2625d.rodata" "-" "contrib/python/tornado/tornado-6/tornado/web.py" "_730fefb262b3bedc9b7da7cab6.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/web.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_933fef1da8469b4955cbc47ef8.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/web.py.anpm.yapyc3" "_1d5c5d83f25b87739f779e61e2.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/web.py.anpm.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_4b6ab2f9d6e54b9a840d7b69a0.rodata" "-" "contrib/python/tornado/tornado-6/tornado/websocket.py" "_e42f59dbe3aeefc27d88cdb1aa.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/websocket.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_b2797989a7eec54fbb5299fce4.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/websocket.py.wrwk.yapyc3" "_806cd3c3cff176778fa5ec89db.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/websocket.py.wrwk.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_6ec5b5354773b541c0956d1429.rodata" "-" "contrib/python/tornado/tornado-6/tornado/wsgi.py" "_19ac9d28c68ad418ac3ea1e78d.rodata" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/wsgi.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_f1b0b736bb11e83c249a8d58de.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/wsgi.py.t2ba.yapyc3" "_30891a3cbc01e8a57c9a4740aa.rodata" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/wsgi.py.t2ba.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_9718079bc71b55a942a5f99ac7.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6
+if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/tornado/tornado-6/tornado/tcpserver.py-" "$(SolutionDir)../contrib/python/tornado/tornado-6/tornado/tcpserver.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado/tcpserver.py.2aa5.yapyc3"
@@ -1329,9 +1159,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/tornado/tornado-6/tornado/tcpserver.py.2aa5.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\tornado\tornado-6\tornado\tcpserver.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\tornado\tcpserver.py.2aa5.yapyc3;</Outputs>
+      <Message>$B/contrib/python/tornado/tornado-6/_d2efd1bb95c6c09fbd2fa18cd3.yasm	$B/contrib/python/tornado/tornado-6/tornado/tcpserver.py.2aa5.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\tornado\tornado-6\tornado\tcpserver.py;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\tornado\tcpserver.py.2aa5.yapyc3;$(SolutionDir)..\contrib\python\tornado\tornado-6\tornado\template.py;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\tornado\template.py.g4t2.yapyc3;$(SolutionDir)..\contrib\python\tornado\tornado-6\tornado\testing.py;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\tornado\testing.py.vrkr.yapyc3;$(SolutionDir)..\contrib\python\tornado\tornado-6\tornado\util.py;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\tornado\util.py.qhhw.yapyc3;$(SolutionDir)..\contrib\python\tornado\tornado-6\tornado\web.py;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\tornado\web.py.anpm.yapyc3;$(SolutionDir)..\contrib\python\tornado\tornado-6\tornado\websocket.py;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\tornado\websocket.py.wrwk.yapyc3;$(SolutionDir)..\contrib\python\tornado\tornado-6\tornado\wsgi.py;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\tornado\wsgi.py.t2ba.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_d2efd1bb95c6c09fbd2fa18cd3.yasm;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_19b0d7362bd329406e14760251.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_8960659aa5e6b4310be37250a9.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_2fd8c28a83be987bb6d14e2f09.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_446bb45937fdf4a9a6ae42dae2.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_805bf7f810e1221f053777a8b6.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_fc4f5f80b9943a8449060008c7.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_6ad8d52fb4facf65ccfd30fa09.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_a598fec1a6ddf21bdbc5f2625d.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_933fef1da8469b4955cbc47ef8.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_4b6ab2f9d6e54b9a840d7b69a0.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_b2797989a7eec54fbb5299fce4.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_6ec5b5354773b541c0956d1429.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_f1b0b736bb11e83c249a8d58de.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_9718079bc71b55a942a5f99ac7.rodata;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\tornado\tcpserver.py.2aa5.yapyc3;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\tornado\tornado-6\tornado\template.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -1571,9 +1401,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd\contrib-libs-zstd.vcxproj">
       <Project>{0F7ECE1F-EE4E-A88C-12F5-7D1C49F1BC75}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\certifi\py3contrib-python-certifi.vcxproj">
-      <Project>{1DCAE401-01AE-CE82-CDD5-8E7ED8B65DCD}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\libffi\contrib-restricted-libffi.vcxproj">
       <Project>{C4244186-1688-FFD7-FAB5-CB9E056577E2}</Project>
     </ProjectReference>
@@ -1606,9 +1433,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\resource\library-cpp-resource.vcxproj">
       <Project>{1E91F91B-DC98-C7C6-CD7E-C89F350D131A}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\python\certifi\py3library-python-certifi.vcxproj">
-      <Project>{38AD8D56-B76A-C528-E8E3-8F054BC0240C}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\runtime_py3\pylibrary-python-runtime_py3.vcxproj">
       <Project>{1CDAABEA-CAFE-2098-5B65-A951B25498E4}</Project>
