@@ -161,13 +161,14 @@ template <class T, class Allocator, class Predicate>
 */
 
 #include <__config>
+#include <__debug>
 #include <__split_buffer>
+#include <algorithm>
 #include <compare>
-#include <type_traits>
 #include <initializer_list>
 #include <iterator>
-#include <algorithm>
 #include <stdexcept>
+#include <type_traits>
 #include <version>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
@@ -2723,7 +2724,7 @@ template <class _Tp, class _Allocator>
 void
 deque<_Tp, _Allocator>::pop_back()
 {
-    _LIBCPP_ASSERT(!empty(), "deque::pop_back called for empty deque");
+    _LIBCPP_ASSERT(!empty(), "deque::pop_back called on an empty deque");
     allocator_type& __a = __base::__alloc();
     size_type __p = __base::size() + __base::__start_ - 1;
     __alloc_traits::destroy(__a, _VSTD::__to_address(*(__base::__map_.begin() +

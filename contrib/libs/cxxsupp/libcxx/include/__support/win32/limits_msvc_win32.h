@@ -17,8 +17,8 @@
 #error "This header should only be included when using Microsofts C1XX frontend"
 #endif
 
-#include <limits.h> // CHAR_BIT
 #include <float.h> // limit constants
+#include <limits.h> // CHAR_BIT
 #include <math.h> // HUGE_VAL
 
 #define __CHAR_BIT__       CHAR_BIT

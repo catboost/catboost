@@ -15,6 +15,7 @@
 #include <__memory/allocator_traits.h> // __pointer
 #include <__memory/compressed_pair.h>
 #include <cstddef>
+#include <stlfwd>
 #include <type_traits>
 #include <utility>
 
