@@ -6,7 +6,6 @@ RECURSE(
     backcall
     backports.functools-lru-cache
     backports.shutil-get-terminal-size
-    certifi
     colorama
     configparser
     contextlib2
