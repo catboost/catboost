@@ -2,7 +2,7 @@ PROGRAM()
 
 
 
-VERSION(3.9.7)
+VERSION(3.9.8)
 
 ORIGINAL_SOURCE(https://github.com/python/cpython)
 

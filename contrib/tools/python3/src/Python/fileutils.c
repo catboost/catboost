@@ -69,9 +69,11 @@ _Py_device_encoding(int fd)
     UINT cp;
 #endif
     int valid;
+    Py_BEGIN_ALLOW_THREADS
     _Py_BEGIN_SUPPRESS_IPH
     valid = isatty(fd);
     _Py_END_SUPPRESS_IPH
+    Py_END_ALLOW_THREADS
     if (!valid)
         Py_RETURN_NONE;
 
@@ -221,7 +223,7 @@ check_force_ascii(void)
         ch = (unsigned char)0xA7;
         res = _Py_mbstowcs(&wch, (char*)&ch, 1);
         if (res != DECODE_ERROR && wch == L'\xA7') {
-            /* On HP-UX withe C locale or the POSIX locale,
+            /* On HP-UX with C locale or the POSIX locale,
                nl_langinfo(CODESET) announces "roman8", whereas mbstowcs() uses
                Latin1 encoding in practice. Force ASCII in this case.
 
@@ -1737,12 +1739,22 @@ _Py_write_impl(int fd, const void *buf, size_t count, int gil_held)
 
     _Py_BEGIN_SUPPRESS_IPH
 #ifdef MS_WINDOWS
-    if (count > 32767 && isatty(fd)) {
+    if (count > 32767) {
         /* Issue #11395: the Windows console returns an error (12: not
            enough space error) on writing into stdout if stdout mode is
            binary and the length is greater than 66,000 bytes (or less,
            depending on heap usage). */
-        count = 32767;
+        if (gil_held) {
+            Py_BEGIN_ALLOW_THREADS
+            if (isatty(fd)) {
+                count = 32767;
+            }
+            Py_END_ALLOW_THREADS
+        } else {
+            if (isatty(fd)) {
+                count = 32767;
+            }
+        }
     }
 #endif
     if (count > _PY_WRITE_MAX) {
