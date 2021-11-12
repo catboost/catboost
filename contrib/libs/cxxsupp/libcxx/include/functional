@@ -3090,7 +3090,7 @@ struct __perfect_forward_impl<_Op, __tuple_types<_Bound...>, __tuple_indices<_Id
 
     template<class... _BoundArgs,
              class = _EnableIf<is_constructible_v<tuple<_Bound...>, _BoundArgs&&...>>>
-    explicit constexpr __perfect_forward_impl(_BoundArgs&&... __bound) :
+    explicit constexpr __perfect_forward_impl(tuple<>, _BoundArgs&&... __bound) :
         __bound_(_VSTD::forward<_BoundArgs>(__bound)...) { }
 };
 
@@ -3112,7 +3112,7 @@ template<class _Fn,
                            is_move_constructible_v<_Fn>>>
 _LIBCPP_CONSTEXPR_AFTER_CXX17 auto not_fn(_Fn&& __f)
 {
-    return __perfect_forward<__not_fn_op, _Fn>(_VSTD::forward<_Fn>(__f));
+    return __perfect_forward<__not_fn_op, _Fn>(tuple<>(), _VSTD::forward<_Fn>(__f));
 }
 
 #endif // _LIBCPP_STD_VER > 14
