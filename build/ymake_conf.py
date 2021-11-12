@@ -1778,6 +1778,10 @@ class LD(Linker):
 
         self.ld_flags = []
 
+        # Save linker's stdout to an additional .txt output file
+        # e.g. LLD writes `--print-gc-sections` or `--print-icf-sections` to stdout
+        self.save_linker_output = False
+
         # Enable section-level DCE (dead code elimination):
         # remove whole unused code and data sections
         # (needs `-ffunction-sections` and `-fdata-sections` to be useful)
@@ -1787,14 +1791,21 @@ class LD(Linker):
             self.ld_dce_flag = '-Wl,-dead_strip'
         elif target.is_linux or target.is_android:
             self.ld_dce_flag = '-Wl,--gc-sections'
+            if preset('LINKER_DCE_PRINT_SECTIONS'):
+                self.save_linker_output = True
+                self.ld_dce_flag += ' -Wl,--print-gc-sections'
         else:
             self.ld_dce_flag = ''
 
-        if self.build.is_size_optimized:
+        if self.type == Linker.LLD:
             # Enable ICF (identical code folding pass) in safe mode
             # https://research.google/pubs/pub36912/
-            if self.type == Linker.LLD:
-                self.ld_flags.append('-Wl,-icf=safe')
+            self.ld_icf_flag = '-Wl,-icf=safe'
+            if preset('LINKER_ICF_PRINT_SECTIONS'):
+                self.save_linker_output = True
+                self.ld_icf_flag += ' -Wl,--print-icf-sections'
+        else:
+            self.ld_icf_flag = ''
 
         if self.musl.value:
             self.ld_flags.extend(['-Wl,--no-as-needed'])
@@ -1916,6 +1927,9 @@ class LD(Linker):
         emit('LD_DCE_FLAG', self.ld_dce_flag)
         emit('DCE_FLAG')
 
+        emit('LD_ICF_FLAG', self.ld_icf_flag)
+        emit('ICF_FLAG')
+
         emit('C_LIBRARY_PATH')
         emit('C_SYSTEM_LIBRARIES_INTERCEPT')
         if self.musl.value:
@@ -1956,7 +1970,7 @@ class LD(Linker):
         exe_flags = [
             '$C_FLAGS_PLATFORM', '$BEFORE_PEERS', self.start_group, '${rootrel:PEERS}', self.end_group, '$AFTER_PEERS',
             '$EXPORTS_VALUE $LINKER_SCRIPT_VALUE $LDFLAGS $LDFLAGS_GLOBAL $OBJADDE $OBJADDE_LIB',
-            '$C_LIBRARY_PATH $C_SYSTEM_LIBRARIES_INTERCEPT $C_SYSTEM_LIBRARIES $STRIP_FLAG $DCE_FLAG']
+            '$C_LIBRARY_PATH $C_SYSTEM_LIBRARIES_INTERCEPT $C_SYSTEM_LIBRARIES $STRIP_FLAG $DCE_FLAG $ICF_FLAG']
 
         arch_flag = '--arch={arch}'.format(arch=self.target.os_compat)
         soname_flag = '-Wl,{option},$SONAME'.format(option=self.soname_option)
@@ -1993,6 +2007,7 @@ class LD(Linker):
             emit('REAL_LINK_EXE_CMDLINE',
                  '$YMAKE_PYTHON ${input:"build/scripts/link_exe.py"}',
                  '--source-root $ARCADIA_ROOT',
+                 '--linker-output ${output;pre=$MODULE_PREFIX;suf=$MODULE_SUFFIX.linker.txt:REALPRJNAME}' if self.save_linker_output else '',
                  '${pre=--whole-archive-peers :WHOLE_ARCHIVE_PEERS}',
                  '${pre=--whole-archive-libs :_WHOLE_ARCHIVE_LIBS_VALUE_GLOBAL}',
                  arch_flag,
@@ -2010,6 +2025,7 @@ class LD(Linker):
         emit('REAL_LINK_EXEC_DYN_LIB_CMDLINE',
              '$YMAKE_PYTHON ${input:"build/scripts/link_dyn_lib.py"}',
              '--target $TARGET',
+             '--linker-output ${output;pre=$MODULE_PREFIX;suf=$MODULE_SUFFIX.linker.txt:REALPRJNAME}' if self.save_linker_output else '',
              '${pre=--whole-archive-peers :WHOLE_ARCHIVE_PEERS}',
              '${pre=--whole-archive-libs :_WHOLE_ARCHIVE_LIBS_VALUE_GLOBAL}',
              arch_flag,
@@ -2030,6 +2046,7 @@ class LD(Linker):
         emit('REAL_LINK_DYN_LIB_CMDLINE',
              '$YMAKE_PYTHON ${input:"build/scripts/link_dyn_lib.py"}',
              '--target $TARGET',
+             '--linker-output ${output;pre=$MODULE_PREFIX;suf=$MODULE_SUFFIX.linker.txt:REALPRJNAME}' if self.save_linker_output else '',
              '${pre=--whole-archive-peers :WHOLE_ARCHIVE_PEERS}',
              '${pre=--whole-archive-libs :_WHOLE_ARCHIVE_LIBS_VALUE_GLOBAL}',
              arch_flag,

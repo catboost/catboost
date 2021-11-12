@@ -162,6 +162,7 @@ def parse_args():
     parser.add_option('--target')
     parser.add_option('--soname')
     parser.add_option('--fix-elf')
+    parser.add_option('--linker-output')
     parser.add_option('--musl', action='store_true')
     parser.add_option('--whole-archive-peers', action='append')
     parser.add_option('--whole-archive-libs', action='append')
@@ -176,7 +177,13 @@ if __name__ == '__main__':
 
     cmd = fix_cmd(opts.arch, opts.musl, args)
     cmd = ProcessWholeArchiveOption(opts.arch, opts.whole_archive_peers, opts.whole_archive_libs).construct_cmd(cmd)
-    proc = subprocess.Popen(cmd, shell=False, stderr=sys.stderr, stdout=sys.stdout)
+
+    if opts.linker_output:
+        stdout = open(opts.linker_output, 'w')
+    else:
+        stdout = sys.stdout
+
+    proc = subprocess.Popen(cmd, shell=False, stderr=sys.stderr, stdout=stdout)
     proc.communicate()
 
     if proc.returncode:
