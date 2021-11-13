@@ -142,7 +142,7 @@ ALLOW market/sre/tools/cs_mysql_monitoring/mysql_monitoring -> contrib/python/My
 ALLOW metrika/core/monitoring/mobile-logs-api-export-generator-check -> contrib/python/MySQL-python
 ALLOW passport/python/grants_configurator -> contrib/python/MySQL-python
 ALLOW passport/python/social -> contrib/python/MySQL-python
-ALLOW passport/python/yasms/db -> contrib/python/MySQL-python
+ALLOW passport/infra/daemons/yasmsapi/db -> contrib/python/MySQL-python
 ALLOW testenv/core -> contrib/python/MySQL-python
 ALLOW testenv/recipes/ut -> contrib/python/MySQL-python
 # avia task to migrate from MySQL-python https://st.yandex-team.ru/RASPTICKETS-18201
@@ -541,7 +541,7 @@ ALLOW passport/python/vault/api/tests/models -> contrib/python/sqlalchemy/sqlalc
 ALLOW passport/python/vault/api/tests/views/secrets -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW passport/python/vault/api/tests/views -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW passport/python/vault/api -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW passport/python/yasms/db -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW passport/infra/daemons/yasmsapi/db -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW quality/ab_testing/scripts/ems -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW quality/ab_testing/tools/postgres_local/tests_recipe -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW quality/ab_testing/tools/postgres_local -> contrib/python/sqlalchemy/sqlalchemy-1.2
