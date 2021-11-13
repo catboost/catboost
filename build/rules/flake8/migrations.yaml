@@ -7,7 +7,6 @@ migrations:
     - addappter/backend/testing/fixtures/configuration/ios
     - adfox/amacs/tests/functional/tests_amacs/bugs/medium
     - adfox/amacs/tests/functional/tests_amacs/dynamic_monetization/v2
-    - adfox/amacs/tests/functional/tests_amacs/targeting/referrer
     - adfox/amacs/tests/functional/tests_amacs/targeting/targeting_logic_tree_puids
     - adfox/amacs/tests/functional/utils
     - adfox/amacs/tests/functional/utils/db
@@ -863,7 +862,6 @@ migrations:
     - yweb/antiporno/query_analyzer/porn_query_config_parser
     - yweb/antiporno/site_reachability/lib/reachability_common
     - yweb/antiporno/top_queries_cleanup/yql/test
-    - yweb/antispam/adblock/viewer
     - yweb/antispam/clean_web/tools/run_cm_targets
     - yweb/antispam/mascot/scripts/tcinet
     - yweb/antispam/seo_masks/py/static_impl/ut
@@ -1328,7 +1326,6 @@ migrations:
     - cv/short2long/nirvana/lib
     - cv/short2long/training/yt_load_highlights
     - dict/mt/analytics/make/tools/toloka/simple_toloka
-    - dict/mt/make/modules/corpus_generation/post_filtering/tests
     - dict/mt/make/modules/prepare_corpus
     - dict/mt/make/pipeline/nmt
     - dict/mt/make/pipeline/phrase_lm/tests
@@ -3037,11 +3034,9 @@ migrations:
     - yweb/antiporno/queries_active_learning/work_with_markup_cache
     - yweb/antiporno/site_reachability/lib/retraversal_sites
     - yweb/antiporno/site_reachability/lib/spy_handling
-    - yweb/antispam/adblock/tools/ab2cd
     - yweb/antispam/phishing/lib/python
     - yweb/antispam/phishing/models/limixis_log_regression
     - yweb/antispam/phishing/screenshots_cbir/dnsdb_filter
-    - yweb/antispam/scout
     - yweb/antispam/util/scraper
     - yweb/antispam/whois/scripts
     - yweb/blender/newsletter/top_negative_intents
@@ -3795,7 +3790,6 @@ migrations:
     - balancer/test/functional/antirobot
     - balancer/test/functional/h100
     - balancer/test/functional/errordocument
-    - balancer/test/functional/log_headers
     - balancer/test/functional/active_check_reply
     - balancer/test/functional/rendezvous_hashing
     - balancer/test/functional/consistent_hashing
