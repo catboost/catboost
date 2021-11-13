@@ -2,13 +2,11 @@
 #include "rq.h"
 #include "multi.h"
 #include "location.h"
-#include "utils.h"
 
 #include <library/cpp/threading/thread_local/thread_local.h>
 
 #include <util/generic/hash.h>
 #include <util/thread/factory.h>
-#include <util/system/yield.h>
 #include <util/system/spinlock.h>
 
 using namespace NNeh;
