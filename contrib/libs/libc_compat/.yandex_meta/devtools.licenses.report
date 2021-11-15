@@ -89,7 +89,9 @@ BELONGS ya.make
         Match type      : TEXT
         Links           : http://fedoraproject.org/wiki/Licensing:MIT#Old_Style_with_legal_disclaimer_2, https://spdx.org/licenses/ISC, https://www.isc.org/software/license
     Files with this license:
+        include/readpassphrase/readpassphrase.h [6:16]
         memrchr.c [6:16]
+        readpassphrase.c [7:17]
         reallocarray.c [5:15]
         strlcat.c [6:16]
         strlcpy.c [6:16]
