@@ -772,8 +772,8 @@ ALLOW .* -> vendor/github.com/miekg/pkcs11
 # CONTRIB-2278
 ALLOW .* -> vendor/github.com/ThalesIgnite/crypto11
 
-# CONTRIB-2232: graphql client library
-ALLOW .* -> vendor/github.com/shurcooL/graphql
+# CONTRIB-2396: graphql client library
+ALLOW .* -> vendor/github.com/hasura/go-graphql-client
 
 # CONTRIB-2301: RTSP 1.0 client and server library
 ALLOW .* -> vendor/github.com/aler9/gortsplib
