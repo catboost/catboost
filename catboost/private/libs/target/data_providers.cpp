@@ -238,6 +238,7 @@ namespace NCB {
         const TMaybe<TSharedWeights<float>>& weights,
         TConstArrayRef<float> targetData,
         int maxPairsCount,
+        bool skipMinMaxPairsCheck,
         TRestorableFastRng64* rand)
     {
         CB_ENSURE(
@@ -247,7 +248,7 @@ namespace NCB {
 
         auto minMaxTarget = MinMaxElement(targetData.begin(), targetData.end());
         CB_ENSURE(
-            *minMaxTarget.first != *minMaxTarget.second,
+            skipMinMaxPairsCheck || *minMaxTarget.first != *minMaxTarget.second,
             "Target data is constant. Cannot generate pairs."
         );
 
@@ -343,7 +344,8 @@ namespace NCB {
         TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions,
         TMaybe<ui32> knownModelApproxDimension,
         bool knownIsClassification,
-        const TInputClassificationInfo& inputClassificationInfo
+        const TInputClassificationInfo& inputClassificationInfo,
+        bool skipMinMaxPairsCheck
     ) {
         auto isAnyOfMetrics = [&](bool predicate(ELossFunction)) {
             return AnyOf(
@@ -454,6 +456,7 @@ namespace NCB {
                 || (dataHasGroups && hasUserDefinedMetrics)
             ),
             /*CreatePairs*/ isAnyOfMetrics(IsPairwiseMetric),
+            /*SkipMinMaxPairsCheck*/ skipMinMaxPairsCheck,
             /*MaxPairsCount*/ maxPairsCount
         };
         return options;
@@ -463,7 +466,8 @@ namespace NCB {
         const TRawTargetDataProvider& rawData,
         TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions,
         TMaybe<ui32> knownModelApproxDimension,
-        const TInputClassificationInfo& inputClassificationInfo
+        const TInputClassificationInfo& inputClassificationInfo,
+        bool skipMinMaxPairsCheck
     ) {
         return MakeTargetCreationOptions(
             !rawData.GetWeights().IsTrivial(),
@@ -472,7 +476,8 @@ namespace NCB {
             metricDescriptions,
             knownModelApproxDimension,
             /*knownIsClassification*/ false,
-            inputClassificationInfo
+            inputClassificationInfo,
+            skipMinMaxPairsCheck
         );
     }
 
@@ -795,6 +800,7 @@ namespace NCB {
                     autoPairWeight,
                     *maybeConvertedTarget[0],
                     *targetCreationOptions.MaxPairsCount,
+                    targetCreationOptions.SkipMinMaxPairsCheck,
                     rand);
 
                 pairsRef = MakeConstArrayRef(generatedPairs);
@@ -900,7 +906,8 @@ namespace NCB {
         ui64 cpuRamLimit,
         TRestorableFastRng64* rand, // for possible pairs generation
         NPar::ILocalExecutor* localExecutor,
-        bool metricsThatRequireTargetCanBeSkipped) {
+        bool metricsThatRequireTargetCanBeSkipped,
+        bool skipMinMaxPairsCheck) {
 
         TVector<NCatboostOptions::TLossDescription> updatedMetricsDescriptions(
             metricDescriptions.begin(),
@@ -1027,7 +1034,8 @@ namespace NCB {
             srcData.RawTargetData,
             updatedMetricsDescriptions,
             model.GetDimensionsCount(),
-            inputClassificationInfo
+            inputClassificationInfo,
+            skipMinMaxPairsCheck
         );
         result.TargetData = CreateTargetDataProvider(
             srcData.RawTargetData,
