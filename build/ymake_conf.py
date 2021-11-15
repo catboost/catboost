@@ -1607,6 +1607,16 @@ class GnuCompiler(Compiler):
         else:
             emit('EXTRA_OUTPUT', '${output;noauto;hide;suf=${OBJ_SUF}%s.gcno:SRC}' % self.cross_suffix)
 
+        compiler_time_trace_requested = is_positive('TIME_TRACE') or is_positive('COMPILER_TIME_TRACE')
+        compiler_supports_time_trace = self.tc.is_clang and self.tc.version_at_least(9)
+        if compiler_time_trace_requested and compiler_supports_time_trace:
+            compiler_time_trace_granularity = preset('TIME_TRACE_GRANULARITY', '500')
+            emit('COMPILER_TIME_TRACE_FLAGS', '-ftime-trace -ftime-trace-granularity=' + compiler_time_trace_granularity)
+            emit('COMPILER_TIME_TRACE_POSTPROCESS', '${YMAKE_PYTHON}', '${input:"build/scripts/find_time_trace.py"}', '$_COMPILE_OUTPUTS', '$_COMPILE_TIME_TRACE_OUTPUTS')
+        else:
+            emit('COMPILER_TIME_TRACE_FLAGS')
+            emit('COMPILER_TIME_TRACE_POSTPROCESS')
+
         append('EXTRA_OUTPUT')
 
         style = ['${hide;kv:"p CC"} ${hide;kv:"pc green"}']
@@ -1619,11 +1629,13 @@ class GnuCompiler(Compiler):
             '$CXXFLAGS',
             '$CL_MACRO_INFO',
             '$CL_MACRO_INFO_DISABLE_CACHE__NO_UID__',
+            '$COMPILER_TIME_TRACE_FLAGS',
             '$EXTRA_OUTPUT',
             '$SRCFLAGS',
             '${input:SRC}',
             '$TOOLCHAIN_ENV',
             '$YNDEXER_OUTPUT',
+            '&& $COMPILER_TIME_TRACE_POSTPROCESS',
         ] + style
 
         c_args = [
@@ -1636,11 +1648,13 @@ class GnuCompiler(Compiler):
             '$CL_MACRO_INFO',
             '$CL_MACRO_INFO_DISABLE_CACHE__NO_UID__',
             '$CONLYFLAGS',
+            '$COMPILER_TIME_TRACE_FLAGS',
             '$EXTRA_OUTPUT',
             '$SRCFLAGS',
             '${input:SRC}',
             '$TOOLCHAIN_ENV',
             '$YNDEXER_OUTPUT',
+            '&& $COMPILER_TIME_TRACE_POSTPROCESS',
         ] + style
 
         ignore_c_args_no_deps = [
@@ -1649,9 +1663,11 @@ class GnuCompiler(Compiler):
             '$CLANG_TIDY_ARGS',
             '$YNDEXER_ARGS',
             '$YNDEXER_OUTPUT',
+            '$COMPILER_TIME_TRACE_FLAGS',
             '$EXTRA_OUTPUT',
             '$CL_MACRO_INFO',
-            '$CL_MACRO_INFO_DISABLE_CACHE__NO_UID__'
+            '$CL_MACRO_INFO_DISABLE_CACHE__NO_UID__',
+            '&& $COMPILER_TIME_TRACE_POSTPROCESS',
         ]
         c_args_nodeps = [c if c != '$GCC_COMPILE_FLAGS' else '$EXTRA_C_FLAGS -c -o ${OUTFILE} ${SRC} ${pre=-I:INC}' for c in c_args if c not in ignore_c_args_no_deps]
 
@@ -1967,10 +1983,22 @@ class LD(Linker):
 
         emit('LINKER_SCRIPT_VALUE', '${ext=.ld;pre=-T:SRCS_GLOBAL}')
 
+        linker_time_trace_requested = is_positive('TIME_TRACE') or is_positive('LINKER_TIME_TRACE')
+        linker_supports_time_trace = self.type == Linker.LLD  # XXX: Should really check the linker version if we had one
+        if linker_time_trace_requested and linker_supports_time_trace:
+            linker_time_trace_granularity = preset('TIME_TRACE_GRANULARITY', '500')
+            emit('LINKER_TIME_TRACE_FLAG', ' '.join([
+                '-Wl,--time-trace',
+                '-Wl,--time-trace-granularity=' + linker_time_trace_granularity,
+                '-Wl,--time-trace-file=${output;rootrel;pre=$MODULE_PREFIX;suf=$MODULE_SUFFIX.time_trace.json:REALPRJNAME}',
+            ]))
+        else:
+            emit('LINKER_TIME_TRACE_FLAG')
+
         exe_flags = [
             '$C_FLAGS_PLATFORM', '$BEFORE_PEERS', self.start_group, '${rootrel:PEERS}', self.end_group, '$AFTER_PEERS',
             '$EXPORTS_VALUE $LINKER_SCRIPT_VALUE $LDFLAGS $LDFLAGS_GLOBAL $OBJADDE $OBJADDE_LIB',
-            '$C_LIBRARY_PATH $C_SYSTEM_LIBRARIES_INTERCEPT $C_SYSTEM_LIBRARIES $STRIP_FLAG $DCE_FLAG $ICF_FLAG']
+            '$C_LIBRARY_PATH $C_SYSTEM_LIBRARIES_INTERCEPT $C_SYSTEM_LIBRARIES $STRIP_FLAG $DCE_FLAG $ICF_FLAG $LINKER_TIME_TRACE_FLAG']
 
         arch_flag = '--arch={arch}'.format(arch=self.target.os_compat)
         soname_flag = '-Wl,{option},$SONAME'.format(option=self.soname_option)
