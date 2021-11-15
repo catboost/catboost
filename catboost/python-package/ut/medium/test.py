@@ -31,6 +31,7 @@ from catboost import (
     to_ranker,
     MultiTargetCustomMetric,
     MultiTargetCustomObjective,)
+from catboost.core import is_maximizable_metric, is_minimizable_metric
 from catboost.eval.catboost_evaluation import CatboostEvaluation, EvalType
 from catboost.utils import eval_metric, create_cd, read_cd, get_roc_curve, select_threshold, quantize
 from catboost.utils import DataMetaInfo, TargetStats, compute_training_options
@@ -2706,8 +2707,10 @@ def test_generated_metrics():
 def test_metrics_is_min_max_optimal():
     logloss = metrics.Logloss()
     assert logloss.is_min_optimal() and not logloss.is_max_optimal()
+    assert is_minimizable_metric('Logloss') and not is_maximizable_metric('Logloss')
     auc = metrics.AUC()
     assert auc.is_max_optimal() and not auc.is_min_optimal()
+    assert is_maximizable_metric('AUC') and not is_minimizable_metric('AUC')
 
 
 def test_custom_eval():
