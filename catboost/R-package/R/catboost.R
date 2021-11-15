@@ -3,7 +3,7 @@
 #' @importFrom utils tail
 #' @importFrom utils write.table
 #' @importFrom utils download.file
-#' @useDynLib libcatboostr
+#' @useDynLib libcatboostr, .registration = TRUE
 NULL
 
 
