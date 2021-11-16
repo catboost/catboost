@@ -1,6 +1,6 @@
 # Staged prediction
 
-{{ product }} allows to apply a trained model and calculate the results for each i-th tree of the model taking into consideration only the trees in the range `[1;i]`.
+{{ product }} allows to apply a trained model and calculate the results for each i-th tree of the model taking into consideration only the trees in the range `[0; i)`.
 
 {% include [feature-importance-choose-the-required-implementation-for-more-details](../_includes/work_src/reusage-common-phrases/choose-the-required-implementation-for-more-details.md) %}
 
