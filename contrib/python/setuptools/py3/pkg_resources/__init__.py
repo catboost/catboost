@@ -2015,7 +2015,7 @@ def _by_version_descending(names):
 
     >>> names = 'bar', 'foo', 'Python-2.7.10.egg', 'Python-2.7.2.egg'
     >>> _by_version_descending(names)
-    ['Python-2.7.10.egg', 'Python-2.7.2.egg', 'foo', 'bar']
+    ['Python-2.7.10.egg', 'Python-2.7.2.egg', 'bar', 'foo']
     >>> names = 'Setuptools-1.2.3b1.egg', 'Setuptools-1.2.3.egg'
     >>> _by_version_descending(names)
     ['Setuptools-1.2.3.egg', 'Setuptools-1.2.3b1.egg']
@@ -2023,13 +2023,22 @@ def _by_version_descending(names):
     >>> _by_version_descending(names)
     ['Setuptools-1.2.3.post1.egg', 'Setuptools-1.2.3b1.egg']
     """
+    def try_parse(name):
+        """
+        Attempt to parse as a version or return a null version.
+        """
+        try:
+            return packaging.version.Version(name)
+        except Exception:
+            return packaging.version.Version('0')
+
     def _by_version(name):
         """
         Parse each component of the filename
         """
         name, ext = os.path.splitext(name)
         parts = itertools.chain(name.split('-'), [ext])
-        return [packaging.version.parse(part) for part in parts]
+        return [try_parse(part) for part in parts]
 
     return sorted(names, key=_by_version, reverse=True)
 
