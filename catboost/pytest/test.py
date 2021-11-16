@@ -10065,3 +10065,44 @@ def test_feature_tags_in_options_file():
     with open(training_options_path) as f:
         options = json.load(f)
         assert options['pool_metainfo_options'] == pool_metainfo
+
+
+def test_apply_without_loss():
+    rmse_model_path = yatest.common.test_output_path('model_rmse.bin')
+    logloss_model_path = yatest.common.test_output_path('model_logloss.bin')
+    sum_model_path = yatest.common.test_output_path('model_sum.bin')
+    train_path = data_file('adult', 'train_small')
+    test_path = data_file('adult', 'test_small')
+    cd_path = data_file('adult', 'train.cd')
+    test_eval_path = yatest.common.test_output_path('test.eval')
+
+    for loss, model_path in [('RMSE', rmse_model_path), ('Logloss', logloss_model_path)]:
+        cmd = [
+            '-f', train_path,
+            '--column-description', cd_path,
+            '--loss-function', loss,
+            '--use-best-model', 'false',
+            '-i', '10',
+            '-T', '4',
+            '-m', model_path
+        ]
+        execute_catboost_fit('CPU', cmd)
+
+    # resulting model doesn't contain loss_function
+    yatest.common.execute([
+        CATBOOST_PATH,
+        'model-sum',
+        '-o', sum_model_path,
+        '-m', rmse_model_path,
+        '-m', logloss_model_path
+    ])
+
+    calc_cmd = (
+        CATBOOST_PATH,
+        'calc',
+        '--input-path', test_path,
+        '--column-description', cd_path,
+        '-m', sum_model_path,
+        '--output-path', test_eval_path,
+    )
+    yatest.common.execute(calc_cmd)

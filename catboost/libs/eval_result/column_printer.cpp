@@ -40,7 +40,7 @@ namespace NCB {
                 begin,
                 evalParameters.Get()
             );
-            if (IsMultiLabelObjective(lossFunctionName)) {
+            if (!lossFunctionName.empty() && IsMultiLabelObjective(lossFunctionName)) {
                 for (int i = 0; i < approxes.ysize(); ++i) {
                     result->push_back(MakeHolder<TArrayPrinter<double>>(
                         std::move(approxes[i]),
