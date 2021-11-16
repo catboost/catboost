@@ -9974,3 +9974,33 @@ def test_select_features(task_type, train_final_model):
         assert not model.is_fitted()
         assert model.best_score_ == {}
         assert model.evals_result_ == {}
+
+
+def test_select_features_with_custom_eval_metric():
+    class CustomMetric(object):
+        def get_final_error(self, error, weight):
+            return 0.35
+
+        def is_max_optimal(self):
+            return True
+
+        def evaluate(self, approxes, target, weight):
+            return (0.0, 0.0)
+
+    learn = Pool(TRAIN_FILE, column_description=CD_FILE)
+    test = Pool(TEST_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(
+        iterations=10,
+        learning_rate=0.03,
+        use_best_model=False,
+        eval_metric=CustomMetric()
+    )
+    model.select_features(
+        learn,
+        eval_set=test,
+        steps=1,
+        train_final_model=True,
+        features_for_select='0-16',
+        num_features_to_select=10
+    )
+    assert model.best_score_['validation']['CustomMetric'] == 0.35

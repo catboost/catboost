@@ -161,6 +161,7 @@ int mode_select_features(int argc, const char* argv[]) {
         outputOptions,
         &poolLoadParams,
         featuresSelectOptions,
+        /*evalMetricDescriptor*/ Nothing(),
         pools,
         /*dstModel*/ nullptr,
         /*evalResults*/ GetMutablePointers(evalResults),

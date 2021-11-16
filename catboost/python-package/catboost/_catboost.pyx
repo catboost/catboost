@@ -1099,6 +1099,7 @@ cdef extern from "catboost/private/libs/hyperparameter_tuning/hyperparameter_tun
 cdef extern from "catboost/libs/features_selection/select_features.h" namespace "NCB":
     cdef TJsonValue SelectFeatures(
         const TJsonValue& params,
+        const TMaybe[TCustomMetricDescriptor]& evalMetricDescriptor,
         const TDataProviders& pools,
         TFullModel* dstModel,
         const TVector[TEvalResult*]& testApproxes,
@@ -5014,6 +5015,7 @@ cdef class _CatBoost:
             try:
                 summary_json = SelectFeatures(
                     prep_params.tree,
+                    prep_params.customMetricDescriptor,
                     dataProviders,
                     self.__model,
                     self.__test_evals,

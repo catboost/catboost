@@ -126,6 +126,7 @@ namespace NCB {
         TOutputFilesOptions outputFileOptions,
         const TPoolLoadParams* poolLoadParams,
         const TFeaturesSelectOptions& featuresSelectOptions,
+        const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
         const TDataProviders& pools,
         TFullModel* dstModel,
         const TVector<TEvalResult*>& evalResultPtrs,
@@ -205,6 +206,7 @@ namespace NCB {
             catBoostOptions,
             outputFileOptions,
             featuresSelectOptions,
+            evalMetricDescriptor,
             pools,
             labelConverter,
             trainingData,
@@ -228,6 +230,7 @@ namespace NCB {
 
     NJson::TJsonValue SelectFeatures(
         const NJson::TJsonValue& plainJsonParams,
+        const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
         const TDataProviders& pools,
         TFullModel* dstModel,
         const TVector<TEvalResult*>& testApproxes,
@@ -256,6 +259,7 @@ namespace NCB {
             outputFileOptions,
             /*poolLoadParams*/ nullptr,
             featuresSelectOptions,
+            evalMetricDescriptor,
             pools,
             dstModel,
             testApproxes,
