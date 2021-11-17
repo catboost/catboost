@@ -341,7 +341,6 @@ migrations:
     - extsearch/video/robot/hostsdb/tool/config/add_rules
     - extsearch/video/robot/rt_transcoder/metarobot/tests
     - extsearch/video/robot/rt_transcoder/transcoder/tests
-    - extsearch/ymusic/scripts/reindex
     - haas/cmis/hwr_allocation
     - haas/cmis/hwr_allocation/allocation_methods
     - health/articles/articles_pipeline
@@ -472,7 +471,6 @@ migrations:
     - modadvert/programs/saas_indexer/libs
     - modadvert/programs/transfer_manager/libs
     - modadvert/programs/update_flags_offline/tables_manager/libs
-    - mssngr/router/tests/lib
     - mssngr/router/tools/state_cache_updater_v2
     - opensource/sync/bin/arc2git
     - opensource/sync/bin/git2git
@@ -1571,7 +1569,6 @@ migrations:
     - yabs/server/test/ft/BSSERVER-14309
     - yabs/server/test/ft/BSSERVER-14556
     - yabs/server/test/ft/BSSERVER-2495
-    - yabs/server/test/pylibs/simulator
     - yabs/server/test/qabs_bsserver_pytest
     - yabs/utils/log_stats/test
     - yabs/vh/cms-pgaas/cms_common
@@ -1687,7 +1684,6 @@ migrations:
     - addappter/web/libs/tests
     - adfox/contrib/clickhouse
     - adfox/contrib/flask_jsonrpc
-    - adfox/contrib/rediscluster
     - adfox/infra/amacs_config/migrations
     - adfox/rtd/backend
     - adfox/rtd/bin
@@ -2190,7 +2186,6 @@ migrations:
     - mds/elliptics/bindings/python
     - mds/elliptics/recovery/elliptics_recovery
     - mds/elliptics/tests/pytests
-    - mds/langoliers
     - mds/libs/eblob/tests/python
     - mds/libs/jerasure/python
     - mds/lrc-tools
@@ -3691,7 +3686,6 @@ migrations:
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cards/resources/wish
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/celery
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/clicks
-    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cmnt
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/comments
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/common
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/competitions
