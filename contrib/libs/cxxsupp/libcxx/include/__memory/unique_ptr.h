@@ -14,6 +14,7 @@
 #include <__functional_base> // std::less
 #include <__memory/allocator_traits.h> // __pointer
 #include <__memory/compressed_pair.h>
+#include <__utility/forward.h>
 #include <cstddef>
 #include <stlfwd>
 #include <type_traits>
@@ -297,7 +298,7 @@ public:
     return __ptr_.second();
   }
   _LIBCPP_INLINE_VISIBILITY
-  _LIBCPP_EXPLICIT operator bool() const _NOEXCEPT {
+  explicit operator bool() const _NOEXCEPT {
     return __ptr_.first() != nullptr;
   }
 
@@ -518,7 +519,7 @@ public:
     return __ptr_.second();
   }
   _LIBCPP_INLINE_VISIBILITY
-  _LIBCPP_EXPLICIT operator bool() const _NOEXCEPT {
+  explicit operator bool() const _NOEXCEPT {
     return __ptr_.first() != nullptr;
   }
 
@@ -751,12 +752,15 @@ struct _LIBCPP_TEMPLATE_VIS hash<__enable_hash_helper<
     unique_ptr<_Tp, _Dp>, typename unique_ptr<_Tp, _Dp>::pointer> >
 #endif
 {
-    typedef unique_ptr<_Tp, _Dp> argument_type;
-    typedef size_t               result_type;
+#if _LIBCPP_STD_VER <= 17 || defined(_LIBCPP_ENABLE_CXX20_REMOVED_BINDER_TYPEDEFS)
+    _LIBCPP_DEPRECATED_IN_CXX17 typedef unique_ptr<_Tp, _Dp> argument_type;
+    _LIBCPP_DEPRECATED_IN_CXX17 typedef size_t               result_type;
+#endif
+
     _LIBCPP_INLINE_VISIBILITY
-    result_type operator()(const argument_type& __ptr) const
+    size_t operator()(const unique_ptr<_Tp, _Dp>& __ptr) const
     {
-        typedef typename argument_type::pointer pointer;
+        typedef typename unique_ptr<_Tp, _Dp>::pointer pointer;
         return hash<pointer>()(__ptr.get());
     }
 };

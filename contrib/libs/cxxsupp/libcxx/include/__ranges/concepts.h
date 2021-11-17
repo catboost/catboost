@@ -11,9 +11,16 @@
 
 #include <__config>
 #include <__iterator/concepts.h>
+#include <__iterator/incrementable_traits.h>
+#include <__iterator/iter_move.h>
+#include <__iterator/iterator_traits.h>
+#include <__iterator/readable_traits.h>
 #include <__ranges/access.h>
+#include <__ranges/enable_borrowed_range.h>
+#include <__ranges/data.h>
 #include <__ranges/enable_view.h>
 #include <__ranges/size.h>
+#include <concepts>
 #include <type_traits>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
@@ -94,6 +101,14 @@ namespace ranges {
   template <class _Tp>
   concept random_access_range =
       bidirectional_range<_Tp> && random_access_iterator<iterator_t<_Tp> >;
+
+  template<class _Tp>
+  concept contiguous_range =
+    random_access_range<_Tp> &&
+    contiguous_iterator<iterator_t<_Tp>> &&
+    requires(_Tp& __t) {
+      { ranges::data(__t) } -> same_as<add_pointer_t<range_reference_t<_Tp>>>;
+    };
 
   template <class _Tp>
   concept common_range = range<_Tp> && same_as<iterator_t<_Tp>, sentinel_t<_Tp> >;

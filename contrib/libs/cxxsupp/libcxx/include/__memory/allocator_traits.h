@@ -13,6 +13,7 @@
 #include <__config>
 #include <__memory/construct_at.h>
 #include <__memory/pointer_traits.h>
+#include <__utility/forward.h>
 #include <limits>
 #include <type_traits>
 
@@ -360,6 +361,8 @@ struct __rebind_alloc_helper {
 // __is_default_allocator
 template <class _Tp>
 struct __is_default_allocator : false_type { };
+
+template <class> class allocator;
 
 template <class _Tp>
 struct __is_default_allocator<allocator<_Tp> > : true_type { };
