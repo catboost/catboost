@@ -47,6 +47,7 @@ curl "https://git.musl-libc.org/cgit/musl/plain/include/uchar.h" --output "inclu
 mkdir -p include/random/sys
 curl "https://git.musl-libc.org/cgit/musl/plain/include/sys/random.h" --output "include/random/sys/random.h"
 curl "https://git.musl-libc.org/cgit/musl/plain/src/linux/getrandom.c" --output "getrandom.c"
+curl "https://git.musl-libc.org/cgit/musl/plain/src/linux/memfd_create.c" --output "memfd_create.c"
 
 # WARN: do not use github.com/morristech/android-ifaddrs, it is a long-ago abandoned fork
 curl "https://raw.githubusercontent.com/oliviertilmans/android-ifaddrs/master/ifaddrs.c" --output "ifaddrs.c"

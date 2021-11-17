@@ -103,6 +103,8 @@ IF (OS_LINUX AND NOT MUSL)
         SRCS(
             # getrandom was added in glibc=2.25
             getrandom.c
+            # memfd_create was added in glibc=2.27
+            memfd_create.c
         )
     ENDIF()
     IF (OS_SDK != "ubuntu-20")
