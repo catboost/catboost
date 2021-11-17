@@ -8777,7 +8777,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 1128749095,
+                "sandbox_id": 1129730639,
                 "match": "app_host_launcher"
             },
             "executable": {
