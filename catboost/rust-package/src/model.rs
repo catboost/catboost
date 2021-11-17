@@ -182,7 +182,7 @@ mod tests {
     #[test]
     fn calc_prediction_on_gpu() {
         let model = Model::load("tmp/model.bin").unwrap();
-        aseert!(model.enable_gpu_evaluation());
+        assert!(model.enable_gpu_evaluation());
         let prediction = model
             .calc_model_prediction(
                 vec![
