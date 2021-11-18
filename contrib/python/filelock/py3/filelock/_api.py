@@ -1,6 +1,7 @@
 import logging
 import os
 import time
+import warnings
 from abc import ABC, abstractmethod
 from threading import Lock
 from types import TracebackType
@@ -106,13 +107,19 @@ class BaseFileLock(ABC):
         """
         return self._lock_file_fd is not None
 
-    def acquire(self, timeout: Optional[float] = None, poll_intervall: float = 0.05) -> AcquireReturnProxy:
+    def acquire(
+        self,
+        timeout: Optional[float] = None,
+        poll_interval: float = 0.05,
+        poll_intervall: Optional[float] = None,
+    ) -> AcquireReturnProxy:
         """
         Try to acquire the file lock.
 
         :param timeout: maximum wait time for acquiring the lock, ``None`` means use the default :attr:`~timeout` is and
          if ``timeout < 0``, there is no timeout and this method will block until the lock could be acquired
-        :param poll_intervall: interval of trying to acquire the lock file
+        :param poll_interval: interval of trying to acquire the lock file
+        :param poll_intervall: deprecated, kept for backwards compatibility, use ``poll_interval`` instead
         :raises Timeout: if fails to acquire lock within the timeout period
         :return: a context object that will unlock the file when the context is exited
 
@@ -131,14 +138,18 @@ class BaseFileLock(ABC):
 
         .. versionchanged:: 2.0.0
 
-            This method returns now a *proxy* object instead of *self*,
-            so that it can be used in a with statement without side effects.
-
+            This method returns now a *proxy* object instead of *self*, so that it can be used in a with statement \
+            without side effects.
 
         """
         # Use the default timeout, if no timeout is provided.
         if timeout is None:
             timeout = self.timeout
+
+        if poll_intervall is not None:
+            msg = "use poll_interval instead of poll_intervall"
+            warnings.warn(msg, DeprecationWarning)
+            poll_interval = poll_intervall
 
         # Increment the number right at the beginning. We can still undo it, if something fails.
         with self._thread_lock:
@@ -162,8 +173,8 @@ class BaseFileLock(ABC):
                     raise Timeout(self._lock_file)
                 else:
                     msg = "Lock %s not acquired on %s, waiting %s seconds ..."
-                    _LOGGER.debug(msg, lock_id, lock_filename, poll_intervall)
-                    time.sleep(poll_intervall)
+                    _LOGGER.debug(msg, lock_id, lock_filename, poll_interval)
+                    time.sleep(poll_interval)
         except BaseException:  # Something did go wrong, so decrement the counter.
             with self._thread_lock:
                 self._lock_counter = max(0, self._lock_counter - 1)

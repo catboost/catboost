@@ -3,6 +3,7 @@ LIBRARY()
 
 
 SRCS(
+    guid.cpp
     source_location.cpp
 )
 

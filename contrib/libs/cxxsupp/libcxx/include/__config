@@ -120,6 +120,9 @@
 #  define _LIBCPP_ABI_BAD_FUNCTION_CALL_KEY_FUNCTION
 // Enable optimized version of __do_get_(un)signed which avoids redundant copies.
 #  define _LIBCPP_ABI_OPTIMIZED_LOCALE_NUM_GET
+// In C++20 and later, don't derive std::plus from std::binary_function,
+// nor std::negate from std::unary_function.
+#  define _LIBCPP_ABI_NO_BINDER_BASES
 // Give reverse_iterator<T> one data member of type T, not two.
 // Also, in C++17 and later, don't derive iterator types from std::iterator.
 #  define _LIBCPP_ABI_NO_ITERATOR_BASES
@@ -919,13 +922,6 @@ typedef unsigned int   char32_t;
 #  define _LIBCPP_NOALIAS
 #endif
 
-#if __has_feature(cxx_explicit_conversions) || defined(__IBMCPP__) || \
-    (!defined(_LIBCPP_CXX03_LANG) && defined(__GNUC__)) // All supported GCC versions
-#  define _LIBCPP_EXPLICIT explicit
-#else
-#  define _LIBCPP_EXPLICIT
-#endif
-
 #if __has_attribute(using_if_exists)
 # define _LIBCPP_USING_IF_EXISTS __attribute__((using_if_exists))
 #else
@@ -1410,6 +1406,7 @@ extern "C" _LIBCPP_FUNC_VIS void __sanitizer_annotate_contiguous_container(
 
 #if defined(_LIBCPP_ENABLE_CXX20_REMOVED_FEATURES)
 #define _LIBCPP_ENABLE_CXX20_REMOVED_ALLOCATOR_MEMBERS
+#define _LIBCPP_ENABLE_CXX20_REMOVED_BINDER_TYPEDEFS
 #define _LIBCPP_ENABLE_CXX20_REMOVED_NEGATORS
 #define _LIBCPP_ENABLE_CXX20_REMOVED_RAW_STORAGE_ITERATOR
 #endif // _LIBCPP_ENABLE_CXX20_REMOVED_FEATURES

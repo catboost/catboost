@@ -76,6 +76,12 @@ namespace std::ranges {
   template<class T>
   concept bidirectional_range = see below;
 
+  template<class T>
+  concept random_access_range = see below;
+
+  template<class T>
+  concept contiguous_range = see below;
+
   template <class _Tp>
     concept common_range = see below;
 
@@ -97,6 +103,7 @@ namespace std::ranges {
 #include <__ranges/all.h>
 #include <__ranges/concepts.h>
 #include <__ranges/data.h>
+#include <__ranges/drop_view.h>
 #include <__ranges/empty.h>
 #include <__ranges/empty_view.h>
 #include <__ranges/enable_borrowed_range.h>
