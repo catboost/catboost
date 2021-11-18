@@ -6911,8 +6911,8 @@
         },
         "perf": {
             "formula": {
-                "sandbox_id": 940463281,
-                "match": "perf"
+                "sandbox_id": 1130176134,
+                "match": "infra/kernel/tools/perf/build/perf-static.tar.gz"
             },
             "executable": {
                 "perf": [
