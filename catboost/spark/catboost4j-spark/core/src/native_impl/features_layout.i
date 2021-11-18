@@ -77,7 +77,7 @@ namespace NCB {
         ui32 GetExternalFeatureCount() const;
 
         %extend {
-            TVector<NCB::TFeatureMetaInfo> GetExternalFeaturesMetaInfoAsVector() const throw (yexception) {
+            TVector<NCB::TFeatureMetaInfo> GetExternalFeaturesMetaInfoAsVector() const {
                 TConstArrayRef<NCB::TFeatureMetaInfo> externalFeaturesMetaInfo
                     = self->GetExternalFeaturesMetaInfo();
                 return TVector<NCB::TFeatureMetaInfo>(

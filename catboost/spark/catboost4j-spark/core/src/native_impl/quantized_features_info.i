@@ -55,11 +55,11 @@ namespace NCB {
         bool EqualWithoutOptionsTo(const TQuantizedFeaturesInfo& rhs, bool ignoreSparsity = false) const;
 
         %extend {
-            ENanMode GetNanMode(int floatFeatureIdx) const throw(yexception) {
+            ENanMode GetNanMode(int floatFeatureIdx) const {
                 return self->GetNanMode(NCB::TFloatFeatureIdx(SafeIntegerCast<int>(floatFeatureIdx)));
             }
 
-            void SetNanMode(int floatFeatureIdx, ENanMode nanMode) throw(yexception) {
+            void SetNanMode(int floatFeatureIdx, ENanMode nanMode) {
                 self->SetNanMode(NCB::TFloatFeatureIdx(SafeIntegerCast<int>(floatFeatureIdx)), nanMode);
             }
 
@@ -68,7 +68,7 @@ namespace NCB {
                 TVector<float>* borders,
                 bool* hasDefaultQuantizedBin,
                 NSplitSelection::TDefaultQuantizedBin* defaultQuantizedBin
-            ) const throw(yexception) {
+            ) const {
                 const auto& quantization = self->GetQuantization(
                     NCB::TFloatFeatureIdx(SafeIntegerCast<ui32>(floatFeatureIdx))
                 );
@@ -87,7 +87,7 @@ namespace NCB {
                 TVector<float>* borders,
                 // optional, poor man's TMaybe substitute
                 const NSplitSelection::TDefaultQuantizedBin* defaultQuantizedBin = nullptr
-            ) throw(yexception) {
+            ) {
                 NSplitSelection::TQuantization quantization(
                     std::move(*borders),
                     defaultQuantizedBin ?

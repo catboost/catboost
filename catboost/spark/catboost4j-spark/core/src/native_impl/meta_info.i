@@ -89,7 +89,7 @@ public:
         , HasUnknownNumberOfSparseFeatures(hasUnknownNumberOfSparseFeatures)
     {}
 
-    bool HasSparseFeatures() const throw (yexception);
+    bool HasSparseFeatures() const;
 
 public:
     bool HasUnknownNumberOfSparseFeatures = false;

@@ -38,4 +38,4 @@ void CalcOnSparkFeatureVector(
 TFullModel ReadModelWrapper(
     const TString& modelFile,
     EModelType format = EModelType::CatboostBinary
-) throw(yexception);
+);

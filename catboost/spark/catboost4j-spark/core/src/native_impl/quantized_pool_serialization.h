@@ -6,4 +6,4 @@
 #include <util/generic/yexception.h>
 
 // needed for forwarding exceptions from C++ to JVM
-void SaveQuantizedPoolWrapper(const NCB::TDataProviderPtr& dataProvider, TString fileName) throw(yexception);
+void SaveQuantizedPoolWrapper(const NCB::TDataProviderPtr& dataProvider, TString fileName);

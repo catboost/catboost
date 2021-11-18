@@ -23,28 +23,28 @@ namespace NCB {
 NCB::TQuantizedFeaturesInfoPtr PrepareQuantizationParameters(
     const NCB::TFeaturesLayout& featuresLayout,
     const TString& plainJsonParamsAsString
-) throw (yexception);
+);
 
 
 class TNanModeAndBordersBuilder {
 public:
-    TNanModeAndBordersBuilder(NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo) throw (yexception);
+    TNanModeAndBordersBuilder(NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo);
 
     bool HasFeaturesToCalc() const {
         return !FeatureIndicesToCalc.empty();
     }
 
     // call before Finish and preferably before adding samples
-    void SetSampleSize(i32 sampleSize) throw (yexception);
+    void SetSampleSize(i32 sampleSize);
 
-    void AddSample(TConstArrayRef<double> objectData) throw (yexception);
+    void AddSample(TConstArrayRef<double> objectData);
 
-    void CalcBordersWithoutNans(i32 threadCount) throw (yexception);
+    void CalcBordersWithoutNans(i32 threadCount);
 
     /* updates parameters in quantizedFeaturesInfo passed to constructor
      * @param hasNans is an array with flatFeatureIdx index, can be empty
      */
-    void Finish(TConstArrayRef<i8> hasNans) throw (yexception);
+    void Finish(TConstArrayRef<i8> hasNans);
 
 private:
     size_t SampleSize = 0;
@@ -62,7 +62,7 @@ NCB::TQuantizedObjectsDataProviderPtr Quantize(
     NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
     NCB::TRawObjectsDataProviderPtr* rawObjectsDataProvider, // moved into
     NPar::TLocalExecutor* localExecutor
-) throw (yexception);
+);
 
 
 void GetActiveFeaturesIndices(
@@ -71,4 +71,4 @@ void GetActiveFeaturesIndices(
     TVector<i32>* ui8FlatIndices,
     TVector<i32>* ui16FlatIndices,
     TVector<i32>* ui32FlatIndices
-) throw (yexception);
+);

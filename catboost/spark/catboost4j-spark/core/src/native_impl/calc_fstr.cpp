@@ -16,7 +16,7 @@
 using namespace NCB;
 
 
-EFstrType GetDefaultFstrType(const TFullModel& model) throw(yexception) {
+EFstrType GetDefaultFstrType(const TFullModel& model) {
     return IsGroupwiseMetric(model.GetLossFunctionName())
        ? EFstrType::LossFunctionChange
        : EFstrType::PredictionValuesChange;
@@ -26,11 +26,11 @@ EFstrType GetDefaultFstrType(const TFullModel& model) throw(yexception) {
 TVector<TString> GetMaybeGeneratedModelFeatureIdsWrapper(
     const TFullModel& model,
     const TFeaturesLayoutPtr datasetFeaturesLayout // can be null
-) throw(yexception) {
+) {
     return GetMaybeGeneratedModelFeatureIds(model, std::move(datasetFeaturesLayout));
 }
 
-bool PreparedTreesNeedLeavesWeightsFromDataset(const TFullModel& model) throw(yexception) {
+bool PreparedTreesNeedLeavesWeightsFromDataset(const TFullModel& model) {
     const auto leafWeightsOfModels = model.ModelTrees->GetModelTreeData()->GetLeafWeights();
     if (!leafWeightsOfModels) {
         return true;
@@ -43,7 +43,7 @@ TVector<double> CollectLeavesStatisticsWrapper(
     const TDataProviderPtr dataset,
     const TFullModel& model,
     NPar::TLocalExecutor* localExecutor
-) throw(yexception) {
+) {
     return CollectLeavesStatistics(*dataset, model, localExecutor);
 }
 
@@ -57,7 +57,7 @@ TShapPreparedTrees PrepareTreesWithoutIndependent(
     ECalcTypeShapValues calcType,
     bool calcShapValuesByLeaf,
     NPar::TLocalExecutor* localExecutor
-)  throw(yexception) {
+)  {
     TShapPreparedTrees preparedTrees = PrepareTreesWithoutIndependent(
         model,
         datasetObjectCount,
@@ -88,7 +88,7 @@ TVector<double> CalcFeatureEffectLossChangeMetricStatsWrapper(
     const TDataProviderPtr dataset,
     ECalcTypeShapValues calcType,
     NPar::TLocalExecutor* localExecutor
-) throw(yexception) {
+) {
     auto resultWithMetricHolders = CalcFeatureEffectLossChangeMetricStats(
         model,
         featuresCount,
@@ -113,7 +113,7 @@ TVector<double> CalcFeatureEffectLossChangeFromScores(
     const TFullModel& model,
     const TCombinationClassFeatures& combinationClassFeatures,
     TConstArrayRef<double> scoresMatrix // row-major matrix representation of Stats[featureIdx][metricIdx]
-) throw(yexception) {
+) {
     NCatboostOptions::TLossDescription metricDescription;
     NCatboostOptions::TLossDescription lossDescription;
     bool needYetiRankPairs = false;
@@ -151,7 +151,7 @@ TVector<double> CalcFeatureEffectLossChangeFromScores(
 TVector<double> CalcFeatureEffectAverageChangeWrapper(
     const TFullModel& model,
     TConstArrayRef<double> leafWeightsFromDataset // can be empty
-) throw(yexception) {
+) {
     TConstArrayRef<double> leafWeights;
     if (leafWeightsFromDataset.empty()) {
         leafWeights = model.ModelTrees->GetModelTreeData()->GetLeafWeights();
@@ -174,12 +174,12 @@ TVector<double> GetPredictionDiffWrapper(
     const TFullModel& model,
     const TRawObjectsDataProviderPtr objectsDataProvider,
     NPar::TLocalExecutor* localExecutor
-) throw(yexception) {
+) {
     return GetPredictionDiff(model, TObjectsDataProviderPtr(objectsDataProvider), localExecutor);
 }
 
 
-TVector<double> TShapValuesResult::Get(i32 objectIdx) const throw(yexception) {
+TVector<double> TShapValuesResult::Get(i32 objectIdx) const {
     const TVector<TVector<double>>& perObjectData = Data[objectIdx];
     Y_ASSERT(perObjectData.size() > 0);
     const size_t perDimensionSize = perObjectData[0].size();
@@ -200,7 +200,7 @@ TShapValuesResult CalcShapValuesWithPreparedTreesWrapper(
     const TShapPreparedTrees& preparedTrees,
     ECalcTypeShapValues calcType,
     NPar::TLocalExecutor* localExecutor
-) throw (yexception) {
+) {
     return TShapValuesResult(
         CalcShapValuesWithPreparedTrees(
             model,
@@ -220,7 +220,7 @@ void GetSelectedFeaturesIndices(
     const TString& feature1Name,
     const TString& feature2Name,
     TArrayRef<i32> featureIndices
-) throw (yexception) {
+) {
     CB_ENSURE_INTERNAL(featureIndices.size() == 2, "featureIndices must have 2 elements");
 
     featureIndices[0] = -1;
@@ -241,7 +241,7 @@ void GetSelectedFeaturesIndices(
 }
 
 
-TVector<double> TShapInteractionValuesResult::Get(i32 objectIdx, i32 dimensionIdx) const throw(yexception) {
+TVector<double> TShapInteractionValuesResult::Get(i32 objectIdx, i32 dimensionIdx) const {
     const size_t shapInteractionValuesCount = Data.size();
     Y_ASSERT(shapInteractionValuesCount > 0);
 
@@ -263,7 +263,7 @@ TShapInteractionValuesResult CalcShapInteractionValuesWithPreparedTreesWrapper(
     ECalcTypeShapValues calcType,
     NPar::TLocalExecutor* localExecutor,
     TShapPreparedTrees* preparedTrees
-) throw (yexception) {
+) {
     CB_ENSURE_INTERNAL(selectedFeatureIndices.size() == 2, "featureIndices must have 2 elements");
 
     TMaybe<std::pair<int, int>> pairOfFeatures;
@@ -293,7 +293,7 @@ void CalcInteraction(
     TVector<i32>* firstIndices,
     TVector<i32>* secondIndices,
     TVector<double>* scores
-) throw(yexception) {
+) {
     const TFeaturesLayout layout = MakeFeaturesLayout(model);
 
     TVector<TInternalFeatureInteraction> internalInteraction = CalcInternalFeatureInteraction(model);
