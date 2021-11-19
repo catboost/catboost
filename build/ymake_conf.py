@@ -1687,8 +1687,6 @@ class GnuCompiler(Compiler):
         if self.tc.is_clang:
             if self.tc.version_at_least(12):
                 emit('LIBFUZZER_PATH', 'contrib/libs/libfuzzer12')
-            elif self.tc.version_at_least(11):
-                emit('LIBFUZZER_PATH', 'contrib/libs/libfuzzer11')
 
 
 class SwiftCompiler(object):
