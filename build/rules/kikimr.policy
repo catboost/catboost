@@ -117,6 +117,7 @@ ALLOW logbroker/config-manager -> kikimr/core/util
 ALLOW logbroker/config-manager -> kikimr/library/persqueue/topic_parser
 ALLOW logbroker/config-manager -> kikimr/public/lib/deprecated/kicli
 ALLOW logbroker/config-manager -> kikimr/library/security
+ALLOW logbroker/config-manager -> kikimr/yndx/security
 ALLOW logbroker/config-manager -> kikimr/core/testlib
 
 ALLOW logbroker/push-agent/ut -> kikimr/core/testlib
