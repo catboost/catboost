@@ -20,7 +20,7 @@
 using namespace NCB;
 
 
-i64 GetPartitionTotalObjectCount(const TVector<TDataProviderPtr>& trainDataProviders) throw (yexception) {
+i64 GetPartitionTotalObjectCount(const TVector<TDataProviderPtr>& trainDataProviders) {
     i64 result = 0;
     for (const auto& trainDataProvider : trainDataProviders) {
         result += SafeIntegerCast<i64>(trainDataProvider->GetObjectCount());
@@ -38,7 +38,7 @@ void CreateTrainingDataForWorker(
     NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
     const TVector<TDataProviderPtr>& trainEstimatedDataProviders, // can be empty
     const TString& precomputedOnlineCtrMetaDataAsJsonString
-) throw (yexception) {
+) {
     CB_ENSURE(numThreads >= 1, "Non-positive number of threads specified");
     CB_ENSURE_INTERNAL(
         trainDataProviders.size() >= 1,
@@ -127,7 +127,7 @@ void CreateTrainingDataForWorker(
 }
 
 
-void RunWorkerWrapper(i32 numThreads, i32 nodePort) throw (yexception) {
+void RunWorkerWrapper(i32 numThreads, i32 nodePort) {
     RunWorker(SafeIntegerCast<ui32>(numThreads), SafeIntegerCast<ui32>(nodePort));
 }
 

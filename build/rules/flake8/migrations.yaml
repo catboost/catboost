@@ -402,10 +402,7 @@ migrations:
     - maps/analyzer/pylibs/watchman_api/lib
     - maps/automotive/proxy/config_generator
     - maps/automotive/remote_access/autotests/tests/data_types
-    - maps/b2bgeo/apikeys_billing/preprocess_geosaas_logs
     - maps/b2bgeo/mvrp_solver/backend/tests_lib
-    - maps/b2bgeo/test_lib/tests
-    - maps/b2bgeo/tools/release_notes
     - maps/carparks/regression/renderer/generate_ammo
     - maps/carparks/tools/route_lost_viewer/bin
     - maps/infra/ecstatic/common/worker/lib
@@ -1377,7 +1374,6 @@ migrations:
     - maps/automotive/proxy/config_generator
     - maps/automotive/remote_tasks/autotests/tests
     - maps/automotive/remote_tasks/manager/regression/ammo_generator
-    - maps/b2bgeo/apikeys_billing/preprocess_mapkit_logs
     - maps/b2bgeo/tools/load_testing/lib
     - maps/doc/proto/yandex/maps/proto/factory/tests
     - maps/infopoint/statistics/lib

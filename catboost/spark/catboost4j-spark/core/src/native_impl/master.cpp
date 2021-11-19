@@ -23,7 +23,7 @@
 #include <util/system/spin_wait.h>
 
 
-int ModeFitImpl(const TVector<TString>& args) throw (yexception) {
+int ModeFitImpl(const TVector<TString>& args) {
     const char* argv0 = "spark.native_impl.MasterApp";
 
     TVector<const char*> argv;
@@ -153,7 +153,7 @@ public:
 
 
 
-void ShutdownWorkers(const TString& hostsFile, i32 timeoutInSeconds) throw (yexception) {
+void ShutdownWorkers(const TString& hostsFile, i32 timeoutInSeconds) {
     InitNetworkSubSystem();
     NPar::LocalExecutor().RunAdditionalThreads(NSystemInfo::CachedNumberOfCpus());
 

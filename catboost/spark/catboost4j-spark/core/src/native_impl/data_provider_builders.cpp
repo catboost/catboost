@@ -24,7 +24,7 @@ TRawObjectsDataProviderPtr CreateRawObjectsDataProvider(
     TVector<TMaybeOwningConstArrayHolder<i32>>* columnwiseCatFeaturesData,
     i32 maxUniqCatFeatureValues,
     NPar::TLocalExecutor* localExecutor
-) throw (yexception) {
+) {
     auto loaderFunc = [&] (IRawFeaturesOrderDataVisitor* visitor) {
         TDataMetaInfo metaInfo;
         metaInfo.ObjectCount = SafeIntegerCast<ui32>(objectCount);
@@ -150,7 +150,7 @@ void AddColumn(
 
 TQuantizedRowAssembler::TQuantizedRowAssembler(
     TQuantizedObjectsDataProviderPtr objectsData
-) throw (yexception) : ObjectsData(objectsData) {
+) : ObjectsData(objectsData) {
     const auto& quantizedFeaturesInfo = *(objectsData->GetQuantizedFeaturesInfo());
     const auto& featuresLayout = *(quantizedFeaturesInfo.GetFeaturesLayout());
 
@@ -229,7 +229,7 @@ i32 TQuantizedRowAssembler::GetObjectBlobSize() const {
     );
 }
 
-void TQuantizedRowAssembler::AssembleObjectBlob(i32 objectIdx, TArrayRef<i8> buffer) throw (yexception) {
+void TQuantizedRowAssembler::AssembleObjectBlob(i32 objectIdx, TArrayRef<i8> buffer) {
     ui32 unsignedObjectIdx = SafeIntegerCast<ui32>(objectIdx);
 
     CB_ENSURE(
@@ -284,7 +284,7 @@ TDataProviderClosureForJVM::TDataProviderClosureForJVM(
     const TDataProviderBuilderOptions& options,
     bool hasFeatures,
     NPar::TLocalExecutor* localExecutor
-) throw (yexception) {
+) {
     DataProviderBuilder = CreateDataProviderBuilder(
         visitorType,
         options,

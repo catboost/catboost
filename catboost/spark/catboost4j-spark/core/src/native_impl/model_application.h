@@ -30,7 +30,7 @@ public:
         NCB::TObjectsDataProviderPtr objectsDataProvider,
         EPredictionType predictionType,
         NPar::TLocalExecutor* localExecutor
-    ) throw(yexception);
+    );
 
     double GetSingleDimensionalResult(i32 objectIdx) const {
         return ApplyResult[0][objectIdx];
@@ -59,10 +59,10 @@ private:
 void CheckModelAndDatasetCompatibility(
     const TFullModel& model,
     const NCB::TQuantizedFeaturesInfo& datasetQuantizedFeaturesInfo
-) throw (yexception);
+);
 
 
 NCB::TQuantizedFeaturesInfoPtr CreateQuantizedFeaturesInfoForModelApplication(
     const TFullModel& model,
     const NCB::TFeaturesLayout& datasetFeaturesLayout
-) throw (yexception);
+);

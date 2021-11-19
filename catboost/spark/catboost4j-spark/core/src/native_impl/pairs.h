@@ -14,11 +14,11 @@ namespace NCB {
 
 class TPairsDataBuilder {
 public:
-    void Add(i64 groupIdx, i32 winnerIdxInGroup, i32 loserIdxInGroup) throw(yexception);
+    void Add(i64 groupIdx, i32 winnerIdxInGroup, i32 loserIdxInGroup);
 
-    void Add(i64 groupIdx, i32 winnerIdxInGroup, i32 loserIdxInGroup, float weight) throw(yexception);
+    void Add(i64 groupIdx, i32 winnerIdxInGroup, i32 loserIdxInGroup, float weight);
 
-    void AddToResult(NCB::IQuantizedFeaturesDataVisitor* visitor) throw(yexception);
+    void AddToResult(NCB::IQuantizedFeaturesDataVisitor* visitor);
 public:
     NCB::TGroupedPairsInfo Pairs;
 };
@@ -26,4 +26,4 @@ public:
 void SavePairsInGroupedDsvFormat(
     const NCB::TDataProviderPtr& dataProvider,
     const TString& outputFile
-) throw(yexception);
+);
