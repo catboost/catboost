@@ -57,8 +57,8 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DFAKEID=8836861 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF  -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_BUILDING_LIBRARY  </AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DFAKEID=8836861 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF  -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_BUILDING_LIBRARY  </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DFAKEID=8841622 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF  -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_BUILDING_LIBRARY  </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DFAKEID=8841622 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF  -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_BUILDING_LIBRARY  </AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
@@ -220,24 +220,57 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__format\format_error.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__format\format_parse_context.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__function_like.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__functional\binary_function.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__functional\binary_negate.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__functional\bind.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__functional\bind_front.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__functional\binder1st.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__functional\binder2nd.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__functional\default_searcher.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__functional\function.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__functional\hash.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__functional\search.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__functional\identity.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__functional\invoke.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__functional\is_transparent.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__functional\mem_fn.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__functional\mem_fun_ref.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__functional\not_fn.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__functional\operations.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__functional\perfect_forward.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__functional\pointer_to_binary_function.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__functional\pointer_to_unary_function.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__functional\ranges_operations.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__functional\reference_wrapper.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__functional\unary_function.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__functional\unary_negate.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__functional\unwrap_ref.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__functional\weak_result_type.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__iterator\advance.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__iterator\back_insert_iterator.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__iterator\concepts.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__iterator\default_sentinel.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__iterator\front_insert_iterator.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__iterator\incrementable_traits.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__iterator\insert_iterator.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__iterator\istream_iterator.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__iterator\istreambuf_iterator.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__iterator\iter_move.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__iterator\iter_swap.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__iterator\iterator.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__iterator\iterator_traits.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__iterator\move_iterator.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__iterator\next.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__iterator\ostream_iterator.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__iterator\ostreambuf_iterator.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__iterator\prev.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__iterator\projected.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__iterator\readable_traits.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__iterator\reverse_iterator.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__iterator\wrap_iter.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__memory\addressof.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__memory\allocation_guard.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__memory\allocator.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__memory\allocator_arg_t.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__memory\allocator_traits.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__memory\auto_ptr.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__memory\compressed_pair.h"/>
@@ -249,6 +282,7 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__memory\temporary_buffer.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__memory\uninitialized_algorithms.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__memory\unique_ptr.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__memory\uses_allocator.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__random\uniform_int_distribution.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__ranges\access.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__ranges\enable_borrowed_range.h"/>
