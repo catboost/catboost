@@ -1282,7 +1282,6 @@ class GnuCompiler(Compiler):
         ]
         if not (self.tc.is_gcc and not self.tc.version_at_least(7)):
             self.cxx_warnings.extend([
-                '-Wno-dynamic-exception-spec',  # IGNIETFERRO-282 some problems with lucid
                 '-Wno-register',  # IGNIETFERRO-722 needed for contrib
             ])
 
@@ -2440,7 +2439,6 @@ class MSVCCompiler(MSVC, Compiler):
 
             cxx_warnings += [
                 '-Woverloaded-virtual', '-Wno-invalid-offsetof', '-Wno-attributes',
-                '-Wno-dynamic-exception-spec',  # IGNIETFERRO-282 some problems with lucid
                 '-Wno-register',  # IGNIETFERRO-722 needed for contrib
                 '-Wimport-preprocessor-directive-pedantic',
                 '-Wno-c++17-extensions',
