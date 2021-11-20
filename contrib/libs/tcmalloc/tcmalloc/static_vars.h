@@ -130,6 +130,34 @@ class Static {
   static bool ForkSupportEnabled() { return fork_support_enabled_; }
   static void EnableForkSupport() { fork_support_enabled_ = true; }
 
+  using CreateSampleUserDataCallback = void*();
+  using CopySampleUserDataCallback = void*(void*);
+  using DestroySampleUserDataCallback = void(void*);
+
+  static void SetSampleUserDataCallbacks(
+      CreateSampleUserDataCallback create,
+      CopySampleUserDataCallback copy,
+      DestroySampleUserDataCallback destroy) {
+    create_sample_user_data_callback_ = create;
+    copy_sample_user_data_callback_ = copy;
+    destroy_sample_user_data_callback_ = destroy;
+  }
+
+  static void* CreateSampleUserData() {
+    if (create_sample_user_data_callback_)
+      return create_sample_user_data_callback_();
+    return nullptr;
+  }
+  static void* CopySampleUserData(void* user_data) {
+    if (copy_sample_user_data_callback_)
+      return copy_sample_user_data_callback_(user_data);
+    return nullptr;
+  }
+  static void DestroySampleUserData(void* user_data) {
+    if (destroy_sample_user_data_callback_)
+      destroy_sample_user_data_callback_(user_data);
+  }
+
   static bool ABSL_ATTRIBUTE_ALWAYS_INLINE IsOnFastPath() {
     return
 #ifndef TCMALLOC_DEPRECATED_PERTHREAD
@@ -176,6 +204,9 @@ class Static {
   ABSL_CONST_INIT static std::atomic<bool> inited_;
   static bool cpu_cache_active_;
   static bool fork_support_enabled_;
+  static CreateSampleUserDataCallback* create_sample_user_data_callback_;
+  static CopySampleUserDataCallback* copy_sample_user_data_callback_;
+  static DestroySampleUserDataCallback* destroy_sample_user_data_callback_;
   ABSL_CONST_INIT static PeakHeapTracker peak_heap_tracker_;
   ABSL_CONST_INIT static NumaTopology<kNumaPartitions, kNumBaseClasses>
       numa_topology_;
