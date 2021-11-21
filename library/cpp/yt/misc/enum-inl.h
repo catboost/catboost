@@ -8,6 +8,7 @@
 #include <util/string/printf.h>
 #include <util/string/cast.h>
 
+#include <algorithm>
 #include <stdexcept>
 
 namespace NYT {
@@ -35,6 +36,25 @@ namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
 
+namespace NDetail {
+
+template <typename TValues>
+static constexpr bool AreValuesDistinct(const TValues& values)
+{
+    for (int i = 0; i < static_cast<int>(values.size()); ++i) {
+        for (int j = i + 1; j < static_cast<int>(values.size()); ++j) {
+            if (values[i] == values[j]) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+} // namespace NDetail
+
+////////////////////////////////////////////////////////////////////////////////
+
 #define ENUM__BEGIN_TRAITS(name, underlyingType, isBit, isStringSerializable, seq) \
     struct TEnumTraitsImpl_##name \
     { \
@@ -44,6 +64,13 @@ namespace NYT {
         [[maybe_unused]] static constexpr bool IsStringSerializableEnum = isStringSerializable; \
         [[maybe_unused]] static constexpr int DomainSize = PP_COUNT(seq); \
         \
+        static constexpr std::array<TStringBuf, DomainSize> Names{{ \
+            PP_FOR_EACH(ENUM__GET_DOMAIN_NAMES_ITEM, seq) \
+        }}; \
+        static constexpr std::array<TType, DomainSize> Values{{ \
+            PP_FOR_EACH(ENUM__GET_DOMAIN_VALUES_ITEM, seq) \
+        }}; \
+        \
         static TStringBuf GetTypeName() \
         { \
             static constexpr TStringBuf typeName = PP_STRINGIZE(name); \
@@ -52,30 +79,33 @@ namespace NYT {
         \
         static const TStringBuf* FindLiteralByValue(TType value) \
         { \
-            PP_FOR_EACH(ENUM__LITERAL_BY_VALUE_ITEM, seq) \
+            for (int i = 0; i < DomainSize; ++i) { \
+                if (Values[i] == value) { \
+                    return &Names[i]; \
+                } \
+            } \
             return nullptr; \
         } \
         \
         static bool FindValueByLiteral(TStringBuf literal, TType* result) \
         { \
-            PP_FOR_EACH(ENUM__VALUE_BY_LITERAL_ITEM, seq); \
+            for (int i = 0; i < DomainSize; ++i) { \
+                if (Names[i] == literal) { \
+                    *result = Values[i]; \
+                    return true; \
+                } \
+            } \
             return false; \
         } \
         \
         static const std::array<TStringBuf, DomainSize>& GetDomainNames() \
         { \
-            static const std::array<TStringBuf, PP_COUNT(seq)> Result{{ \
-                PP_FOR_EACH(ENUM__GET_DOMAIN_NAMES_ITEM, seq) \
-            }}; \
-            return Result; \
+            return Names; \
         } \
         \
         static const std::array<TType, DomainSize>& GetDomainValues() \
         { \
-            static const std::array<TType, PP_COUNT(seq)> Result{{ \
-                PP_FOR_EACH(ENUM__GET_DOMAIN_VALUES_ITEM, seq) \
-            }}; \
-            return Result; \
+            return Values; \
         } \
         \
         static TType FromString(TStringBuf str) \
@@ -88,38 +118,6 @@ namespace NYT {
             } \
             return value; \
         }
-
-#define ENUM__LITERAL_BY_VALUE_ITEM(item) \
-    PP_IF( \
-        PP_IS_SEQUENCE(item), \
-        ENUM__LITERAL_BY_VALUE_ITEM_SEQ, \
-        ENUM__LITERAL_BY_VALUE_ITEM_ATOMIC \
-    )(item)
-
-#define ENUM__LITERAL_BY_VALUE_ITEM_SEQ(seq) \
-    ENUM__LITERAL_BY_VALUE_ITEM_ATOMIC(PP_ELEMENT(seq, 0))
-
-#define ENUM__LITERAL_BY_VALUE_ITEM_ATOMIC(item) \
-    if (static_cast<TUnderlying>(value) == static_cast<TUnderlying>(TType::item)) { \
-        static constexpr TStringBuf literal = PP_STRINGIZE(item); \
-        return &literal; \
-    }
-
-#define ENUM__VALUE_BY_LITERAL_ITEM(item) \
-    PP_IF( \
-        PP_IS_SEQUENCE(item), \
-        ENUM__VALUE_BY_LITERAL_ITEM_SEQ, \
-        ENUM__VALUE_BY_LITERAL_ITEM_ATOMIC \
-    )(item)
-
-#define ENUM__VALUE_BY_LITERAL_ITEM_SEQ(seq) \
-    ENUM__VALUE_BY_LITERAL_ITEM_ATOMIC(PP_ELEMENT(seq, 0))
-
-#define ENUM__VALUE_BY_LITERAL_ITEM_ATOMIC(item) \
-    if (literal == PP_STRINGIZE(item)) { \
-        *result = TType::item; \
-        return true; \
-    }
 
 #define ENUM__GET_DOMAIN_VALUES_ITEM(item) \
     PP_IF( \
@@ -147,95 +145,34 @@ namespace NYT {
 #define ENUM__GET_DOMAIN_NAMES_ITEM_ATOMIC(item) \
     TStringBuf(PP_STRINGIZE(item)),
 
-#define ENUM__DECOMPOSE(name, seq) \
+#define ENUM__DECOMPOSE \
     static std::vector<TType> Decompose(TType value) \
     { \
         std::vector<TType> result; \
-        PP_FOR_EACH(ENUM__DECOMPOSE_ITEM, seq) \
+        for (int i = 0; i < DomainSize; ++i) { \
+            if (static_cast<TUnderlying>(value) & static_cast<TUnderlying>(Values[i])) { \
+                result.push_back(Values[i]); \
+            } \
+        } \
         return result; \
     }
 
-#define ENUM__DECOMPOSE_ITEM(item) \
-    ENUM__DECOMPOSE_ITEM_SEQ(PP_ELEMENT(item, 0))
-
-#define ENUM__DECOMPOSE_ITEM_SEQ(item) \
-    if (static_cast<TUnderlying>(value) & static_cast<TUnderlying>(TType::item)) { \
-        result.push_back(TType::item); \
+#define ENUM__MINMAX \
+    static constexpr TType GetMinValue() \
+    { \
+        static_assert(!Values.empty()); \
+        return *std::min_element(std::begin(Values), std::end(Values)); \
+    } \
+    \
+    static constexpr TType GetMaxValue() \
+    { \
+        static_assert(!Values.empty()); \
+        return *std::max_element(std::begin(Values), std::end(Values)); \
     }
 
-#define ENUM__MINMAX(name, seq) \
-    ENUM__MINMAX_IMPL(name, seq, Min, min) \
-    ENUM__MINMAX_IMPL(name, seq, Max, max)
-
-#define ENUM__MINMAX_IMPL(name, seq, Extr, extr) \
-    static constexpr TType Get##Extr##Value() \
-    { \
-        return static_cast<TType>(std::extr({ \
-            PP_FOR_EACH(ENUM__MINMAX_ITEM, seq) \
-            ENUM__MINMAX_ITEM_CORE(PP_HEAD(seq)) \
-        })); \
-    }
-
-#define ENUM__MINMAX_ITEM(item) \
-    ENUM__MINMAX_ITEM_CORE(item),
-
-#define ENUM__MINMAX_ITEM_CORE(item) \
-    PP_IF( \
-        PP_IS_SEQUENCE(item), \
-        ENUM__MINMAX_ITEM_CORE_SEQ, \
-        ENUM__MINMAX_ITEM_CORE_ATOMIC \
-    )(item)
-
-#define ENUM__MINMAX_ITEM_CORE_SEQ(seq) \
-    ENUM__MINMAX_ITEM_CORE_ATOMIC(PP_ELEMENT(seq, 0))
-
-#define ENUM__MINMAX_ITEM_CORE_ATOMIC(item) \
-    static_cast<TUnderlying>(TType::item)
-
-#define ENUM__VALIDATE_UNIQUE(seq) \
-    static constexpr bool CheckDistinctFromOthers() \
-    { \
-        return true; \
-    } \
-    \
-    static constexpr bool CheckDistinctFromOthers(TType) \
-    { \
-        return true; \
-    } \
-    \
-    template<class ... TOthers> \
-    static constexpr bool CheckDistinctFromOthers(TType first, TType second, TOthers... others) \
-    { \
-        return static_cast<TUnderlying>(first) != static_cast<TUnderlying>(second) && \
-            CheckDistinctFromOthers(first, others...); \
-    } \
-    \
-    static constexpr bool CheckAllDistinct(std::nullptr_t /*trailing comma helper*/) { \
-        return true; \
-    } \
-    \
-    template<class ... TOthers> \
-    static constexpr bool CheckAllDistinct(std::nullptr_t, TType first, TOthers... others) \
-    { \
-        return CheckDistinctFromOthers(first, others...) && CheckAllDistinct(nullptr, others...); \
-    } \
-    \
-    static constexpr bool DoCheckAllDistinct() { \
-        return CheckAllDistinct(0 PP_FOR_EACH(ENUM__VALIDATE_UNIQUE_ITEM, seq)); \
-    }
-
-#define ENUM__VALIDATE_UNIQUE_ITEM(item) \
-    PP_IF( \
-        PP_IS_SEQUENCE(item), \
-        ENUM__VALIDATE_UNIQUE_ITEM_SEQ, \
-        ENUM__VALIDATE_UNIQUE_ITEM_ATOMIC \
-    )(item)
-
-#define ENUM__VALIDATE_UNIQUE_ITEM_SEQ(seq) \
-    ENUM__VALIDATE_UNIQUE_ITEM_ATOMIC(PP_ELEMENT(seq, 0))
-
-#define ENUM__VALIDATE_UNIQUE_ITEM_ATOMIC(item) \
-    , TType::item
+#define ENUM__VALIDATE_UNIQUE(name) \
+    static_assert(::NYT::NDetail::AreValuesDistinct(Values), \
+        "Enumeration " #name " contains duplicate values");
 
 #define ENUM__END_TRAITS(name) \
     }; \
@@ -244,15 +181,12 @@ namespace NYT {
     { \
         return TEnumTraitsImpl_##name(); \
     } \
+    \
     using ::ToString; \
     [[maybe_unused]] inline TString ToString(name value) \
     { \
         return ::NYT::TEnumTraits<name>::ToString(value); \
     }
-
-#define ENUM__VALIDATE_UNIQUE_EPILOGUE(name) \
-    static_assert(TEnumTraitsImpl_##name::DoCheckAllDistinct(), \
-        "Enumeration " #name " contains duplicate values");
 
 ////////////////////////////////////////////////////////////////////////////////
 
