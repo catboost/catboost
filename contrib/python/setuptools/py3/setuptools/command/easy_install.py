@@ -6,7 +6,7 @@ A tool for doing automatic download/extract/build of distutils-based Python
 packages.  For detailed documentation, see the accompanying EasyInstall.txt
 file, or visit the `EasyInstall home page`__.
 
-__ https://setuptools.readthedocs.io/en/latest/deprecated/easy_install.html
+__ https://setuptools.pypa.io/en/latest/deprecated/easy_install.html
 
 """
 
@@ -519,7 +519,7 @@ class easy_install(Command):
         For information on other options, you may wish to consult the
         documentation at:
 
-          https://setuptools.readthedocs.io/en/latest/deprecated/easy_install.html
+          https://setuptools.pypa.io/en/latest/deprecated/easy_install.html
 
         Please make the appropriate changes for your system and try again.
         """).lstrip()  # noqa
@@ -1312,7 +1312,7 @@ class easy_install(Command):
         * You can set up the installation directory to support ".pth" files by
           using one of the approaches described here:
 
-          https://setuptools.readthedocs.io/en/latest/deprecated/easy_install.html#custom-installation-locations
+          https://setuptools.pypa.io/en/latest/deprecated/easy_install.html#custom-installation-locations
 
 
         Please make the appropriate changes for your system and try again.
