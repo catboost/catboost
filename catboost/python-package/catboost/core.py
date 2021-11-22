@@ -3414,10 +3414,10 @@ class CatBoost(_CatBoostBase):
             cat_feature_values = {}
         else:
             if not isinstance(cat_feature_values, dict):
-                if isinstance(features, list):
+                if isinstance(feature, list):
                     raise CatBoostError('cat_feature_values should be dict when features is a list')
                 else:
-                    cat_feature_values = {features: cat_feature_values}
+                    cat_feature_values = {feature: cat_feature_values}
 
         if isinstance(feature, str) or isinstance(feature, int):
             features = [feature]
