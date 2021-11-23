@@ -289,7 +289,9 @@ namespace NCatboostOptions {
         TVector<TTextColumnDictionaryOptions>&& dictionaries,
         TMap<TString, TVector<TTextFeatureProcessing>>&& textFeatureProcessing
     )
-        : TTextProcessingOptions()
+        : Tokenizers("tokenizers", {})
+        , Dictionaries("dictionaries", {})
+        , TextFeatureProcessing("feature_processing", {})
     {
         Tokenizers.Set(tokenizers);
         Dictionaries.Set(dictionaries);
