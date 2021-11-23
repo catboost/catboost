@@ -52,6 +52,8 @@ GENERATE_ENUM_SERIALIZATION(model_metainfo_helpers.h)
 IF(CATBOOST_OPENSOURCE)
     RESTRICT_LICENSES(
         DENY REQUIRE_DISCLOSURE FORBIDDEN
+        EXCEPT
+            contrib/libs/linux-headers # ARCADIAWGSUP-12
     )
 ELSE()
     PEERDIR(
