@@ -968,7 +968,6 @@ migrations:
     - dict/bert/make/lib/tasks
     - dict/mt/analytics/sentence_breaking/translate_human_eval_comparison
     - dict/mt/g2p/asr/graph
-    - dict/mt/make/tools/train_iterative_backtranslation
     - dict/ontodb/onto_lib/sources/wikidata
     - dict/ontodb/proto/direct/ut
     - dict/ontodb/utils/export_src_codes
