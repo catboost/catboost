@@ -7,9 +7,7 @@ SIZE(SMALL)
 PEERDIR(
     contrib/python/pandas
     contrib/python/numpy
-    contrib/python/scipy/scipy/integrate
-    contrib/python/scipy/scipy/sparse
-    contrib/python/scipy/scipy/special
+    contrib/python/scipy
     contrib/python/six
     library/python/pytest
     catboost/python-package/lib
