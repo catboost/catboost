@@ -1,0 +1,864 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build" ToolsVersion="4.0">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGUID>{59C287F7-F0CC-B68C-8061-76AA1BB6EE1B}</ProjectGUID>
+    <Keyword>Win32Proj</Keyword>
+    <Platform>x64</Platform>
+    <ProjectName>pycontrib-python-scipy.global</ProjectName>
+    <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.default.props"/>
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>Multibyte</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props"/>
+  <ImportGroup Label="ArcadiaProps"/>
+  <ImportGroup Label="ExtensionSettings"/>
+  <ImportGroup Label="PropertySheets"/>
+  <PropertyGroup Label="UserMacros"/>
+  <PropertyGroup>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
+    <TargetName>pycontrib-python-scipy.global</TargetName>
+    <TargetExtention>.lib</TargetExtention>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\scipy\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\59C287F7-F0CC-B68C-8061-76AA1BB6EE1B\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">EnableFastChecks</BasicRuntimeChecks>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4267;4244</DisableSpecificWarnings>
+      <ErrorReporting>Prompt</ErrorReporting>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</InlineFunctionExpansion>
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AnySuitable</InlineFunctionExpansion>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</Optimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MultiThreaded</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <UseFullPaths>true</UseFullPaths>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DFAKEID=8841622 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_USE_MATH_DEFINES -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DARCADIA_PYTHON_UNICODE_SIZE=2 /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF  -DCATBOOST_OPENSOURCE=yes  </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DFAKEID=8841622 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_USE_MATH_DEFINES -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DARCADIA_PYTHON_UNICODE_SIZE=2 /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF  -DCATBOOST_OPENSOURCE=yes  </AdditionalOptions>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
+      <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
+      <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/python/scipy/scipy/special;$(SolutionDir)../contrib/python/scipy/scipy/special/c_misc;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/libs/libf2c;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)../contrib/libs/libc_compat/include/windows;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/libs/openssl/include;$(SolutionDir)../contrib/restricted/libffi/include;$(SolutionDir)../contrib/restricted/libffi/configs/x86_64-microsoft-windows/include;$(SolutionDir)../contrib/python/numpy/include/numpy/core/include;$(SolutionDir)../contrib/python/numpy/include/numpy/core/include/numpy;$(SolutionDir)../contrib/python/numpy/include/numpy/f2py/src;$(SolutionDir)../contrib/libs/libf2c;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;dnsapi.lib;gdi32.lib;iphlpapi.lib;kernel32.lib;mswsock.lib;ole32.lib;oleaut32.lib;psapi.lib;rpcrt4.lib;secur32.lib;shell32.lib;shlwapi.lib;user32.lib;userenv.lib;uuid.lib;version.lib;winmm.lib;winspool.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  crypt32.lib ws2_32.lib</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  crypt32.lib ws2_32.lib</AdditionalOptions>
+      <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
+      <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">DebugFastLink</GenerateDebugInformation>
+      <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</RandomizedBaseAddress>
+      <SubSystem Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Console</SubSystem>
+      <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Debug</GenerateDebugInformation>
+      <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</RandomizedBaseAddress>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\join_8473e9d0a15ef67a83d7ce057a.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy.integrate._dop.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy.integrate._odepack.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy.integrate._quadpack.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy.integrate.lsoda.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy.integrate.vode.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy.special._comb.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy.special._ellip_harm_2.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy.special._ufuncs.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy.special._ufuncs_cxx.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy.special.specfun.reg.cpp"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\join_eb70babd24057fee326c75b744.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/join_eb70babd24057fee326c75b744.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/scipy/join_eb70babd24057fee326c75b744.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/join_eb70babd24057fee326c75b744.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/scipy/join_eb70babd24057fee326c75b744.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/scipy/join_eb70babd24057fee326c75b744.py2.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\join_eb70babd24057fee326c75b744.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\join_eb70babd24057fee326c75b744.py2.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\__init__.py.iikv.yapyc">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_a5128282c5a8ba634babe0a61f.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/__init__.py.iikv.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_f64a56efa79b79131369895249.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/special/lambertw.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_f996e6b1ae1c758db346fe80f5.rodata" "-" "contrib/python/scipy/scipy/special/lambertw.py" "_18bbfdf7632239c810f1dc9618.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/lambertw.py.4zcx.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_e6b894e1cb130598dfe41d2896.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/special/orthogonal.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_0706ddaa3561841473d6d52ee4.rodata" "-" "contrib/python/scipy/scipy/special/orthogonal.py" "_848693478ca221e7aaeb711038.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/orthogonal.py.kgul.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_679be51a66779ccdd95c7dca72.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/special/_ellip_harm.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_57af780317519867cc54a75727.rodata" "-" "contrib/python/scipy/scipy/special/_ellip_harm.py" "_1d838d5b735c19937605a34045.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/_ellip_harm.py.ue3r.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_4270ba68c20118d4ec141957cb.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/special/basic.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_1580dcd56d0e5dfd528bf7d64b.rodata" "-" "contrib/python/scipy/scipy/special/basic.py" "_d928594203def26c09bfda8e4f.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/basic.py.7j3j.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_bcbc06306739bc8a8d011af3d9.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/special/spfun_stats.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_e1a6406e056c58f55992668146.rodata" "-" "contrib/python/scipy/scipy/special/spfun_stats.py" "_065bf4fd034df609abbf537211.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/spfun_stats.py.vt3q.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_068d76d7a5784aa6d771dfa91a.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/special/add_newdocs.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_2187b3680b193e42e8d816670b.rodata" "-" "contrib/python/scipy/scipy/special/add_newdocs.py" "_da8d3a83ffc09cbc3581b6409f.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/add_newdocs.py.rscx.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_406e9009580003ecf7e5516a38.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/special/_spherical_bessel.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_9ed52ee622ba1f32268f937ab2.rodata" "-" "contrib/python/scipy/scipy/special/_spherical_bessel.py" "_adb9b71d8925698eb69919f644.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/_spherical_bessel.py.eqzd.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_59860f55e6ced836720c838d64.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/special/_precompute/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_c353b83f99bd79df5d382a73f5.rodata" "-" "contrib/python/scipy/scipy/special/_precompute/__init__.py" "_3c090dca61c9fe04234a32ca6a.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/_precompute/__init__.py.umsx.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_f8bd2345659e31d26b7771748a.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/special/_precompute/expn_asy.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_de6ff0c3736c46f7b3ef252ad0.rodata" "-" "contrib/python/scipy/scipy/special/_precompute/expn_asy.py" "_9dab6332af4c7bf480a3292a2a.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/_precompute/expn_asy.py.mx7l.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_a2dfcba8d0972984486d0127f3.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_a5128282c5a8ba634babe0a61f.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/__init__.py.iikv.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_f64a56efa79b79131369895249.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/special/lambertw.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_f996e6b1ae1c758db346fe80f5.rodata" "-" "contrib/python/scipy/scipy/special/lambertw.py" "_18bbfdf7632239c810f1dc9618.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/lambertw.py.4zcx.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_e6b894e1cb130598dfe41d2896.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/special/orthogonal.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_0706ddaa3561841473d6d52ee4.rodata" "-" "contrib/python/scipy/scipy/special/orthogonal.py" "_848693478ca221e7aaeb711038.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/orthogonal.py.kgul.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_679be51a66779ccdd95c7dca72.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/special/_ellip_harm.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_57af780317519867cc54a75727.rodata" "-" "contrib/python/scipy/scipy/special/_ellip_harm.py" "_1d838d5b735c19937605a34045.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/_ellip_harm.py.ue3r.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_4270ba68c20118d4ec141957cb.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/special/basic.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_1580dcd56d0e5dfd528bf7d64b.rodata" "-" "contrib/python/scipy/scipy/special/basic.py" "_d928594203def26c09bfda8e4f.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/basic.py.7j3j.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_bcbc06306739bc8a8d011af3d9.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/special/spfun_stats.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_e1a6406e056c58f55992668146.rodata" "-" "contrib/python/scipy/scipy/special/spfun_stats.py" "_065bf4fd034df609abbf537211.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/spfun_stats.py.vt3q.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_068d76d7a5784aa6d771dfa91a.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/special/add_newdocs.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_2187b3680b193e42e8d816670b.rodata" "-" "contrib/python/scipy/scipy/special/add_newdocs.py" "_da8d3a83ffc09cbc3581b6409f.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/add_newdocs.py.rscx.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_406e9009580003ecf7e5516a38.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/special/_spherical_bessel.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_9ed52ee622ba1f32268f937ab2.rodata" "-" "contrib/python/scipy/scipy/special/_spherical_bessel.py" "_adb9b71d8925698eb69919f644.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/_spherical_bessel.py.eqzd.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_59860f55e6ced836720c838d64.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/special/_precompute/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_c353b83f99bd79df5d382a73f5.rodata" "-" "contrib/python/scipy/scipy/special/_precompute/__init__.py" "_3c090dca61c9fe04234a32ca6a.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/_precompute/__init__.py.umsx.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_f8bd2345659e31d26b7771748a.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/special/_precompute/expn_asy.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_de6ff0c3736c46f7b3ef252ad0.rodata" "-" "contrib/python/scipy/scipy/special/_precompute/expn_asy.py" "_9dab6332af4c7bf480a3292a2a.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/_precompute/expn_asy.py.mx7l.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_a2dfcba8d0972984486d0127f3.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/scipy/_a5128282c5a8ba634babe0a61f.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\__init__.py.iikv.yapyc;$(SolutionDir)..\contrib\python\scipy\scipy\special\lambertw.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\lambertw.py.4zcx.yapyc;$(SolutionDir)..\contrib\python\scipy\scipy\special\orthogonal.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\orthogonal.py.kgul.yapyc;$(SolutionDir)..\contrib\python\scipy\scipy\special\_ellip_harm.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\_ellip_harm.py.ue3r.yapyc;$(SolutionDir)..\contrib\python\scipy\scipy\special\basic.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\basic.py.7j3j.yapyc;$(SolutionDir)..\contrib\python\scipy\scipy\special\spfun_stats.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\spfun_stats.py.vt3q.yapyc;$(SolutionDir)..\contrib\python\scipy\scipy\special\add_newdocs.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\add_newdocs.py.rscx.yapyc;$(SolutionDir)..\contrib\python\scipy\scipy\special\_spherical_bessel.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\_spherical_bessel.py.eqzd.yapyc;$(SolutionDir)..\contrib\python\scipy\scipy\special\_precompute\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\_precompute\__init__.py.umsx.yapyc;$(SolutionDir)..\contrib\python\scipy\scipy\special\_precompute\expn_asy.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\_precompute\expn_asy.py.mx7l.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\_a5128282c5a8ba634babe0a61f.yasm;$(SolutionDir)$(Configuration)\contrib\python\scipy\_f64a56efa79b79131369895249.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\_f996e6b1ae1c758db346fe80f5.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\_e6b894e1cb130598dfe41d2896.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\_0706ddaa3561841473d6d52ee4.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\_679be51a66779ccdd95c7dca72.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\_57af780317519867cc54a75727.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\_4270ba68c20118d4ec141957cb.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\_1580dcd56d0e5dfd528bf7d64b.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\_bcbc06306739bc8a8d011af3d9.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\_e1a6406e056c58f55992668146.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\_068d76d7a5784aa6d771dfa91a.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\_2187b3680b193e42e8d816670b.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\_406e9009580003ecf7e5516a38.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\_9ed52ee622ba1f32268f937ab2.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\_59860f55e6ced836720c838d64.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\_c353b83f99bd79df5d382a73f5.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\_f8bd2345659e31d26b7771748a.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\_de6ff0c3736c46f7b3ef252ad0.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\_a2dfcba8d0972984486d0127f3.rodata;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/007c7cfc5f7d4f9572a5ae2fc1.cpp" "_1107bb62d01806a405fa957030=/py_modules/scipy.__init__" "_979bffb71d9ed52642e179e890=resfs/src//py_modules/scipy.__init__" "_42d8a09132f0ee453ded073199=/py_code/scipy.__init__" "_5ecc15338129e5f65878a015b3=/py_modules/scipy.__config__" "_9d58069e0517bd3525a250071f=resfs/src//py_modules/scipy.__config__" "_887ed6425e2e26a91a390a6456=/py_code/scipy.__config__" "_3c3d02179ddf6b60267e6725f4=/py_modules/scipy.version" "_2068a4ae23f933526bb4b25b0e=resfs/src//py_modules/scipy.version" "_ab943694613653e110a2f38356=/py_code/scipy.version" "_49ce67be2100795df272d62cfb=/py_modules/scipy.integrate.__init__" "_bf6d54e9b499956ca1b5dc692b=resfs/src//py_modules/scipy.integrate.__init__" "_498b14959b2806b6b5a5b7bdd1=/py_code/scipy.integrate.__init__" "_54b667b1048012ea6685d6e0b9=/py_modules/scipy.integrate.quadpack" "_ab21dc84da4e4507b7bbbb3af5=resfs/src//py_modules/scipy.integrate.quadpack" "_f59dac3a857004b2d60c0321c1=/py_code/scipy.integrate.quadpack" "_269fc6fc14533a3e68fc87963b=/py_modules/scipy.integrate.quadrature" "_4fb1afcd15c884de41075a0948=resfs/src//py_modules/scipy.integrate.quadrature" "_a2a43b6a529e87cde6e3fcb082=/py_code/scipy.integrate.quadrature" "_636cd3ba66a8a1061c669288c7=/py_modules/scipy.integrate._ode" "_f8746049f38820db012bffbed7=resfs/src//py_modules/scipy.integrate._ode" "_418500aa072fd5e16ded294842=/py_code/scipy.integrate._ode" "_f4aed46841de252e09eb618769=/py_modules/scipy.integrate.odepack" "_1f55f4cc9447babc875f70c03b=resfs/src//py_modules/scipy.integrate.odepack" "_d648d22c0f01b409dd24cdc836=/py_code/scipy.integrate.odepack" "_7a14c9750cdc18e6a2661e8d52=/py_modules/scipy.integrate._bvp" "_f82ed21122528ca0be022c2058=resfs/src//py_modules/scipy.integrate._bvp" "_bc9bb9dd0311208e35ecfe5e13=/py_code/scipy.integrate._bvp" "_7f7b9b0c21844f807cb5c37fda=/py_modules/scipy.special.__init__" "_2ddf49184fe2ba124ac653260e=resfs/src//py_modules/scipy.special.__init__"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/a5128282c5a8ba634babe0a61f.cpp" "_f64a56efa79b79131369895249=/py_code/scipy.special.__init__" "_f996e6b1ae1c758db346fe80f5=/py_modules/scipy.special.lambertw" "_18bbfdf7632239c810f1dc9618=resfs/src//py_modules/scipy.special.lambertw" "_e6b894e1cb130598dfe41d2896=/py_code/scipy.special.lambertw" "_0706ddaa3561841473d6d52ee4=/py_modules/scipy.special.orthogonal" "_848693478ca221e7aaeb711038=resfs/src//py_modules/scipy.special.orthogonal" "_679be51a66779ccdd95c7dca72=/py_code/scipy.special.orthogonal" "_57af780317519867cc54a75727=/py_modules/scipy.special._ellip_harm" "_1d838d5b735c19937605a34045=resfs/src//py_modules/scipy.special._ellip_harm" "_4270ba68c20118d4ec141957cb=/py_code/scipy.special._ellip_harm" "_1580dcd56d0e5dfd528bf7d64b=/py_modules/scipy.special.basic" "_d928594203def26c09bfda8e4f=resfs/src//py_modules/scipy.special.basic" "_bcbc06306739bc8a8d011af3d9=/py_code/scipy.special.basic" "_e1a6406e056c58f55992668146=/py_modules/scipy.special.spfun_stats" "_065bf4fd034df609abbf537211=resfs/src//py_modules/scipy.special.spfun_stats" "_068d76d7a5784aa6d771dfa91a=/py_code/scipy.special.spfun_stats" "_2187b3680b193e42e8d816670b=/py_modules/scipy.special.add_newdocs" "_da8d3a83ffc09cbc3581b6409f=resfs/src//py_modules/scipy.special.add_newdocs" "_406e9009580003ecf7e5516a38=/py_code/scipy.special.add_newdocs" "_9ed52ee622ba1f32268f937ab2=/py_modules/scipy.special._spherical_bessel" "_adb9b71d8925698eb69919f644=resfs/src//py_modules/scipy.special._spherical_bessel" "_59860f55e6ced836720c838d64=/py_code/scipy.special._spherical_bessel" "_c353b83f99bd79df5d382a73f5=/py_modules/scipy.special._precompute.__init__" "_3c090dca61c9fe04234a32ca6a=resfs/src//py_modules/scipy.special._precompute.__init__" "_f8bd2345659e31d26b7771748a=/py_code/scipy.special._precompute.__init__" "_de6ff0c3736c46f7b3ef252ad0=/py_modules/scipy.special._precompute.expn_asy" "_9dab6332af4c7bf480a3292a2a=resfs/src//py_modules/scipy.special._precompute.expn_asy" "_a2dfcba8d0972984486d0127f3=/py_code/scipy.special._precompute.expn_asy"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/ac3314f8c965598c308724d278.cpp" "_40040167d8023fe88b28073f8e=/py_modules/scipy.special._precompute.gammainc_asy" "_22edb7b9e22a59cca63ce8e567=resfs/src//py_modules/scipy.special._precompute.gammainc_asy" "_1e12b7454f772b6ed22fe7926f=/py_code/scipy.special._precompute.gammainc_asy" "_34f11d1f8cea700bdefd6f69d0=/py_modules/scipy.special._precompute.utils" "_a00c850ee5313a5410cc6f3bcb=resfs/src//py_modules/scipy.special._precompute.utils" "_5d4ce2dbd6e09e60f2275a9f5d=/py_code/scipy.special._precompute.utils"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/007c7cfc5f7d4f9572a5ae2fc1.cpp" "_1107bb62d01806a405fa957030=/py_modules/scipy.__init__" "_979bffb71d9ed52642e179e890=resfs/src//py_modules/scipy.__init__" "_42d8a09132f0ee453ded073199=/py_code/scipy.__init__" "_5ecc15338129e5f65878a015b3=/py_modules/scipy.__config__" "_9d58069e0517bd3525a250071f=resfs/src//py_modules/scipy.__config__" "_887ed6425e2e26a91a390a6456=/py_code/scipy.__config__" "_3c3d02179ddf6b60267e6725f4=/py_modules/scipy.version" "_2068a4ae23f933526bb4b25b0e=resfs/src//py_modules/scipy.version" "_ab943694613653e110a2f38356=/py_code/scipy.version" "_49ce67be2100795df272d62cfb=/py_modules/scipy.integrate.__init__" "_bf6d54e9b499956ca1b5dc692b=resfs/src//py_modules/scipy.integrate.__init__" "_498b14959b2806b6b5a5b7bdd1=/py_code/scipy.integrate.__init__" "_54b667b1048012ea6685d6e0b9=/py_modules/scipy.integrate.quadpack" "_ab21dc84da4e4507b7bbbb3af5=resfs/src//py_modules/scipy.integrate.quadpack" "_f59dac3a857004b2d60c0321c1=/py_code/scipy.integrate.quadpack" "_269fc6fc14533a3e68fc87963b=/py_modules/scipy.integrate.quadrature" "_4fb1afcd15c884de41075a0948=resfs/src//py_modules/scipy.integrate.quadrature" "_a2a43b6a529e87cde6e3fcb082=/py_code/scipy.integrate.quadrature" "_636cd3ba66a8a1061c669288c7=/py_modules/scipy.integrate._ode" "_f8746049f38820db012bffbed7=resfs/src//py_modules/scipy.integrate._ode" "_418500aa072fd5e16ded294842=/py_code/scipy.integrate._ode" "_f4aed46841de252e09eb618769=/py_modules/scipy.integrate.odepack" "_1f55f4cc9447babc875f70c03b=resfs/src//py_modules/scipy.integrate.odepack" "_d648d22c0f01b409dd24cdc836=/py_code/scipy.integrate.odepack" "_7a14c9750cdc18e6a2661e8d52=/py_modules/scipy.integrate._bvp" "_f82ed21122528ca0be022c2058=resfs/src//py_modules/scipy.integrate._bvp" "_bc9bb9dd0311208e35ecfe5e13=/py_code/scipy.integrate._bvp" "_7f7b9b0c21844f807cb5c37fda=/py_modules/scipy.special.__init__" "_2ddf49184fe2ba124ac653260e=resfs/src//py_modules/scipy.special.__init__"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/a5128282c5a8ba634babe0a61f.cpp" "_f64a56efa79b79131369895249=/py_code/scipy.special.__init__" "_f996e6b1ae1c758db346fe80f5=/py_modules/scipy.special.lambertw" "_18bbfdf7632239c810f1dc9618=resfs/src//py_modules/scipy.special.lambertw" "_e6b894e1cb130598dfe41d2896=/py_code/scipy.special.lambertw" "_0706ddaa3561841473d6d52ee4=/py_modules/scipy.special.orthogonal" "_848693478ca221e7aaeb711038=resfs/src//py_modules/scipy.special.orthogonal" "_679be51a66779ccdd95c7dca72=/py_code/scipy.special.orthogonal" "_57af780317519867cc54a75727=/py_modules/scipy.special._ellip_harm" "_1d838d5b735c19937605a34045=resfs/src//py_modules/scipy.special._ellip_harm" "_4270ba68c20118d4ec141957cb=/py_code/scipy.special._ellip_harm" "_1580dcd56d0e5dfd528bf7d64b=/py_modules/scipy.special.basic" "_d928594203def26c09bfda8e4f=resfs/src//py_modules/scipy.special.basic" "_bcbc06306739bc8a8d011af3d9=/py_code/scipy.special.basic" "_e1a6406e056c58f55992668146=/py_modules/scipy.special.spfun_stats" "_065bf4fd034df609abbf537211=resfs/src//py_modules/scipy.special.spfun_stats" "_068d76d7a5784aa6d771dfa91a=/py_code/scipy.special.spfun_stats" "_2187b3680b193e42e8d816670b=/py_modules/scipy.special.add_newdocs" "_da8d3a83ffc09cbc3581b6409f=resfs/src//py_modules/scipy.special.add_newdocs" "_406e9009580003ecf7e5516a38=/py_code/scipy.special.add_newdocs" "_9ed52ee622ba1f32268f937ab2=/py_modules/scipy.special._spherical_bessel" "_adb9b71d8925698eb69919f644=resfs/src//py_modules/scipy.special._spherical_bessel" "_59860f55e6ced836720c838d64=/py_code/scipy.special._spherical_bessel" "_c353b83f99bd79df5d382a73f5=/py_modules/scipy.special._precompute.__init__" "_3c090dca61c9fe04234a32ca6a=resfs/src//py_modules/scipy.special._precompute.__init__" "_f8bd2345659e31d26b7771748a=/py_code/scipy.special._precompute.__init__" "_de6ff0c3736c46f7b3ef252ad0=/py_modules/scipy.special._precompute.expn_asy" "_9dab6332af4c7bf480a3292a2a=resfs/src//py_modules/scipy.special._precompute.expn_asy" "_a2dfcba8d0972984486d0127f3=/py_code/scipy.special._precompute.expn_asy"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/ac3314f8c965598c308724d278.cpp" "_40040167d8023fe88b28073f8e=/py_modules/scipy.special._precompute.gammainc_asy" "_22edb7b9e22a59cca63ce8e567=resfs/src//py_modules/scipy.special._precompute.gammainc_asy" "_1e12b7454f772b6ed22fe7926f=/py_code/scipy.special._precompute.gammainc_asy" "_34f11d1f8cea700bdefd6f69d0=/py_modules/scipy.special._precompute.utils" "_a00c850ee5313a5410cc6f3bcb=resfs/src//py_modules/scipy.special._precompute.utils" "_5d4ce2dbd6e09e60f2275a9f5d=/py_code/scipy.special._precompute.utils"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/scipy/007c7cfc5f7d4f9572a5ae2fc1.cpp	$B/contrib/python/scipy/a5128282c5a8ba634babe0a61f.cpp	$B/contrib/python/scipy/ac3314f8c965598c308724d278.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\007c7cfc5f7d4f9572a5ae2fc1.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\a5128282c5a8ba634babe0a61f.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\ac3314f8c965598c308724d278.cpp;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\fs_tools.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/scipy/join_eb70babd24057fee326c75b744.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_007c7cfc5f7d4f9572a5ae2fc1.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_a5128282c5a8ba634babe0a61f.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_ac3314f8c965598c308724d278.yasm" "--ya-end-command-file"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/scipy/join_eb70babd24057fee326c75b744.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_007c7cfc5f7d4f9572a5ae2fc1.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_a5128282c5a8ba634babe0a61f.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_ac3314f8c965598c308724d278.yasm" "--ya-end-command-file"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/scipy/join_eb70babd24057fee326c75b744.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\fs_tools.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\_007c7cfc5f7d4f9572a5ae2fc1.yasm;$(SolutionDir)$(Configuration)\contrib\python\scipy\_a5128282c5a8ba634babe0a61f.yasm;$(SolutionDir)$(Configuration)\contrib\python\scipy\_ac3314f8c965598c308724d278.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\join_eb70babd24057fee326c75b744.yasm;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_join_srcs.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/join_8473e9d0a15ef67a83d7ce057a.cpp" "--ya-start-command-file" "contrib/python/scipy/007c7cfc5f7d4f9572a5ae2fc1.cpp" "contrib/python/scipy/a5128282c5a8ba634babe0a61f.cpp" "contrib/python/scipy/ac3314f8c965598c308724d278.cpp" "--ya-end-command-file"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/join_8473e9d0a15ef67a83d7ce057a.cpp" "--ya-start-command-file" "contrib/python/scipy/007c7cfc5f7d4f9572a5ae2fc1.cpp" "contrib/python/scipy/a5128282c5a8ba634babe0a61f.cpp" "contrib/python/scipy/ac3314f8c965598c308724d278.cpp" "--ya-end-command-file"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/scipy/join_8473e9d0a15ef67a83d7ce057a.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\007c7cfc5f7d4f9572a5ae2fc1.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\a5128282c5a8ba634babe0a61f.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\ac3314f8c965598c308724d278.cpp;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\join_8473e9d0a15ef67a83d7ce057a.cpp;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_py_reg.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.integrate._dop" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy.integrate._dop.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.integrate._odepack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy.integrate._odepack.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.integrate._quadpack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy.integrate._quadpack.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.integrate.lsoda" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy.integrate.lsoda.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.integrate.vode" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy.integrate.vode.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.special._comb" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy.special._comb.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.special._ellip_harm_2" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy.special._ellip_harm_2.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.special._ufuncs" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy.special._ufuncs.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.special._ufuncs_cxx" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy.special._ufuncs_cxx.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.special.specfun" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy.special.specfun.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.integrate._dop" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy.integrate._dop.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.integrate._odepack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy.integrate._odepack.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.integrate._quadpack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy.integrate._quadpack.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.integrate.lsoda" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy.integrate.lsoda.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.integrate.vode" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy.integrate.vode.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.special._comb" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy.special._comb.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.special._ellip_harm_2" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy.special._ellip_harm_2.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.special._ufuncs" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy.special._ufuncs.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.special._ufuncs_cxx" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy.special._ufuncs_cxx.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.special.specfun" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy.special.specfun.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/scipy/scipy.integrate._dop.reg.cpp	$B/contrib/python/scipy/scipy.integrate._odepack.reg.cpp	$B/contrib/python/scipy/scipy.integrate._quadpack.reg.cpp	$B/contrib/python/scipy/scipy.integrate.lsoda.reg.cpp	$B/contrib/python/scipy/scipy.integrate.vode.reg.cpp	$B/contrib/python/scipy/scipy.special._comb.reg.cpp	$B/contrib/python/scipy/scipy.special._ellip_harm_2.reg.cpp	$B/contrib/python/scipy/scipy.special._ufuncs.reg.cpp	$B/contrib/python/scipy/scipy.special._ufuncs_cxx.reg.cpp	$B/contrib/python/scipy/scipy.special.specfun.reg.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_py_reg.py;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy.integrate._dop.reg.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy.integrate._odepack.reg.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy.integrate._quadpack.reg.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy.integrate.lsoda.reg.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy.integrate.vode.reg.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy.special._comb.reg.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy.special._ellip_harm_2.reg.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy.special._ufuncs.reg.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy.special._ufuncs_cxx.reg.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy.special.specfun.reg.cpp;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/__config__.py-" "$(SolutionDir)../contrib/python/scipy/scipy/__config__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/__config__.py.uqfr.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/__init__.py-" "$(SolutionDir)../contrib/python/scipy/scipy/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/__init__.py.uzys.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/integrate/__init__.py-" "$(SolutionDir)../contrib/python/scipy/scipy/integrate/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/__init__.py.iq4j.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/integrate/_bvp.py-" "$(SolutionDir)../contrib/python/scipy/scipy/integrate/_bvp.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/_bvp.py.kupj.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/integrate/_ode.py-" "$(SolutionDir)../contrib/python/scipy/scipy/integrate/_ode.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/_ode.py.aivv.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/integrate/odepack.py-" "$(SolutionDir)../contrib/python/scipy/scipy/integrate/odepack.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/odepack.py.a555.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/integrate/quadpack.py-" "$(SolutionDir)../contrib/python/scipy/scipy/integrate/quadpack.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/quadpack.py.xnse.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/integrate/quadrature.py-" "$(SolutionDir)../contrib/python/scipy/scipy/integrate/quadrature.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/quadrature.py.d34r.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/special/__init__.py-" "$(SolutionDir)../contrib/python/scipy/scipy/special/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/__init__.py.iikv.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/special/_ellip_harm.py-" "$(SolutionDir)../contrib/python/scipy/scipy/special/_ellip_harm.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/_ellip_harm.py.ue3r.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/special/_precompute/__init__.py-" "$(SolutionDir)../contrib/python/scipy/scipy/special/_precompute/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/_precompute/__init__.py.umsx.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/special/_precompute/expn_asy.py-" "$(SolutionDir)../contrib/python/scipy/scipy/special/_precompute/expn_asy.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/_precompute/expn_asy.py.mx7l.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/special/_precompute/gammainc_asy.py-" "$(SolutionDir)../contrib/python/scipy/scipy/special/_precompute/gammainc_asy.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/_precompute/gammainc_asy.py.mxft.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/special/_precompute/utils.py-" "$(SolutionDir)../contrib/python/scipy/scipy/special/_precompute/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/_precompute/utils.py.2ho5.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/special/_spherical_bessel.py-" "$(SolutionDir)../contrib/python/scipy/scipy/special/_spherical_bessel.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/_spherical_bessel.py.eqzd.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/special/add_newdocs.py-" "$(SolutionDir)../contrib/python/scipy/scipy/special/add_newdocs.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/add_newdocs.py.rscx.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/special/basic.py-" "$(SolutionDir)../contrib/python/scipy/scipy/special/basic.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/basic.py.7j3j.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/special/lambertw.py-" "$(SolutionDir)../contrib/python/scipy/scipy/special/lambertw.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/lambertw.py.4zcx.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/special/orthogonal.py-" "$(SolutionDir)../contrib/python/scipy/scipy/special/orthogonal.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/orthogonal.py.kgul.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/special/spfun_stats.py-" "$(SolutionDir)../contrib/python/scipy/scipy/special/spfun_stats.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/spfun_stats.py.vt3q.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/version.py-" "$(SolutionDir)../contrib/python/scipy/scipy/version.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/version.py.vbz5.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/__config__.py-" "$(SolutionDir)../contrib/python/scipy/scipy/__config__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/__config__.py.uqfr.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/__init__.py-" "$(SolutionDir)../contrib/python/scipy/scipy/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/__init__.py.uzys.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/integrate/__init__.py-" "$(SolutionDir)../contrib/python/scipy/scipy/integrate/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/__init__.py.iq4j.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/integrate/_bvp.py-" "$(SolutionDir)../contrib/python/scipy/scipy/integrate/_bvp.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/_bvp.py.kupj.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/integrate/_ode.py-" "$(SolutionDir)../contrib/python/scipy/scipy/integrate/_ode.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/_ode.py.aivv.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/integrate/odepack.py-" "$(SolutionDir)../contrib/python/scipy/scipy/integrate/odepack.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/odepack.py.a555.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/integrate/quadpack.py-" "$(SolutionDir)../contrib/python/scipy/scipy/integrate/quadpack.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/quadpack.py.xnse.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/integrate/quadrature.py-" "$(SolutionDir)../contrib/python/scipy/scipy/integrate/quadrature.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/quadrature.py.d34r.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/special/__init__.py-" "$(SolutionDir)../contrib/python/scipy/scipy/special/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/__init__.py.iikv.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/special/_ellip_harm.py-" "$(SolutionDir)../contrib/python/scipy/scipy/special/_ellip_harm.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/_ellip_harm.py.ue3r.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/special/_precompute/__init__.py-" "$(SolutionDir)../contrib/python/scipy/scipy/special/_precompute/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/_precompute/__init__.py.umsx.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/special/_precompute/expn_asy.py-" "$(SolutionDir)../contrib/python/scipy/scipy/special/_precompute/expn_asy.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/_precompute/expn_asy.py.mx7l.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/special/_precompute/gammainc_asy.py-" "$(SolutionDir)../contrib/python/scipy/scipy/special/_precompute/gammainc_asy.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/_precompute/gammainc_asy.py.mxft.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/special/_precompute/utils.py-" "$(SolutionDir)../contrib/python/scipy/scipy/special/_precompute/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/_precompute/utils.py.2ho5.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/special/_spherical_bessel.py-" "$(SolutionDir)../contrib/python/scipy/scipy/special/_spherical_bessel.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/_spherical_bessel.py.eqzd.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/special/add_newdocs.py-" "$(SolutionDir)../contrib/python/scipy/scipy/special/add_newdocs.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/add_newdocs.py.rscx.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/special/basic.py-" "$(SolutionDir)../contrib/python/scipy/scipy/special/basic.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/basic.py.7j3j.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/special/lambertw.py-" "$(SolutionDir)../contrib/python/scipy/scipy/special/lambertw.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/lambertw.py.4zcx.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/special/orthogonal.py-" "$(SolutionDir)../contrib/python/scipy/scipy/special/orthogonal.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/orthogonal.py.kgul.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/special/spfun_stats.py-" "$(SolutionDir)../contrib/python/scipy/scipy/special/spfun_stats.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/spfun_stats.py.vt3q.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/version.py-" "$(SolutionDir)../contrib/python/scipy/scipy/version.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/version.py.vbz5.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/scipy/scipy/__config__.py.uqfr.yapyc	$B/contrib/python/scipy/scipy/__init__.py.uzys.yapyc	$B/contrib/python/scipy/scipy/integrate/__init__.py.iq4j.yapyc	$B/contrib/python/scipy/scipy/integrate/_bvp.py.kupj.yapyc	$B/contrib/python/scipy/scipy/integrate/_ode.py.aivv.yapyc	$B/contrib/python/scipy/scipy/integrate/odepack.py.a555.yapyc	$B/contrib/python/scipy/scipy/integrate/quadpack.py.xnse.yapyc	$B/contrib/python/scipy/scipy/integrate/quadrature.py.d34r.yapyc	$B/contrib/python/scipy/scipy/special/__init__.py.iikv.yapyc	$B/contrib/python/scipy/scipy/special/_ellip_harm.py.ue3r.yapyc	$B/contrib/python/scipy/scipy/special/_precompute/__init__.py.umsx.yapyc	$B/contrib/python/scipy/scipy/special/_precompute/expn_asy.py.mx7l.yapyc	$B/contrib/python/scipy/scipy/special/_precompute/gammainc_asy.py.mxft.yapyc	$B/contrib/python/scipy/scipy/special/_precompute/utils.py.2ho5.yapyc	$B/contrib/python/scipy/scipy/special/_spherical_bessel.py.eqzd.yapyc	$B/contrib/python/scipy/scipy/special/add_newdocs.py.rscx.yapyc	$B/contrib/python/scipy/scipy/special/basic.py.7j3j.yapyc	$B/contrib/python/scipy/scipy/special/lambertw.py.4zcx.yapyc	$B/contrib/python/scipy/scipy/special/orthogonal.py.kgul.yapyc	$B/contrib/python/scipy/scipy/special/spfun_stats.py.vt3q.yapyc	$B/contrib/python/scipy/scipy/version.py.vbz5.yapyc	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\contrib\python\scipy\scipy\__config__.py;$(SolutionDir)..\contrib\python\scipy\scipy\__init__.py;$(SolutionDir)..\contrib\python\scipy\scipy\integrate\__init__.py;$(SolutionDir)..\contrib\python\scipy\scipy\integrate\_bvp.py;$(SolutionDir)..\contrib\python\scipy\scipy\integrate\_ode.py;$(SolutionDir)..\contrib\python\scipy\scipy\integrate\odepack.py;$(SolutionDir)..\contrib\python\scipy\scipy\integrate\quadpack.py;$(SolutionDir)..\contrib\python\scipy\scipy\integrate\quadrature.py;$(SolutionDir)..\contrib\python\scipy\scipy\special\__init__.py;$(SolutionDir)..\contrib\python\scipy\scipy\special\_ellip_harm.py;$(SolutionDir)..\contrib\python\scipy\scipy\special\_precompute\__init__.py;$(SolutionDir)..\contrib\python\scipy\scipy\special\_precompute\expn_asy.py;$(SolutionDir)..\contrib\python\scipy\scipy\special\_precompute\gammainc_asy.py;$(SolutionDir)..\contrib\python\scipy\scipy\special\_precompute\utils.py;$(SolutionDir)..\contrib\python\scipy\scipy\special\_spherical_bessel.py;$(SolutionDir)..\contrib\python\scipy\scipy\special\add_newdocs.py;$(SolutionDir)..\contrib\python\scipy\scipy\special\basic.py;$(SolutionDir)..\contrib\python\scipy\scipy\special\lambertw.py;$(SolutionDir)..\contrib\python\scipy\scipy\special\orthogonal.py;$(SolutionDir)..\contrib\python\scipy\scipy\special\spfun_stats.py;$(SolutionDir)..\contrib\python\scipy\scipy\version.py;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\__config__.py.uqfr.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\__init__.py.uzys.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\__init__.py.iq4j.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\_bvp.py.kupj.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\_ode.py.aivv.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\odepack.py.a555.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\quadpack.py.xnse.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\quadrature.py.d34r.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\__init__.py.iikv.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\_ellip_harm.py.ue3r.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\_precompute\__init__.py.umsx.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\_precompute\expn_asy.py.mx7l.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\_precompute\gammainc_asy.py.mxft.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\_precompute\utils.py.2ho5.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\_spherical_bessel.py.eqzd.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\add_newdocs.py.rscx.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\basic.py.7j3j.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\lambertw.py.4zcx.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\orthogonal.py.kgul.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\spfun_stats.py.vt3q.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\version.py.vbz5.yapyc;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\scipy\scipy\__init__.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_007c7cfc5f7d4f9572a5ae2fc1.yasm" "$(SolutionDir)../contrib/python/scipy/scipy/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_1107bb62d01806a405fa957030.rodata" "-" "contrib/python/scipy/scipy/__init__.py" "_979bffb71d9ed52642e179e890.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/__init__.py.uzys.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_42d8a09132f0ee453ded073199.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/__config__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_5ecc15338129e5f65878a015b3.rodata" "-" "contrib/python/scipy/scipy/__config__.py" "_9d58069e0517bd3525a250071f.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/__config__.py.uqfr.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_887ed6425e2e26a91a390a6456.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/version.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_3c3d02179ddf6b60267e6725f4.rodata" "-" "contrib/python/scipy/scipy/version.py" "_2068a4ae23f933526bb4b25b0e.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/version.py.vbz5.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_ab943694613653e110a2f38356.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/integrate/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_49ce67be2100795df272d62cfb.rodata" "-" "contrib/python/scipy/scipy/integrate/__init__.py" "_bf6d54e9b499956ca1b5dc692b.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/__init__.py.iq4j.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_498b14959b2806b6b5a5b7bdd1.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/integrate/quadpack.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_54b667b1048012ea6685d6e0b9.rodata" "-" "contrib/python/scipy/scipy/integrate/quadpack.py" "_ab21dc84da4e4507b7bbbb3af5.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/quadpack.py.xnse.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_f59dac3a857004b2d60c0321c1.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/integrate/quadrature.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_269fc6fc14533a3e68fc87963b.rodata" "-" "contrib/python/scipy/scipy/integrate/quadrature.py" "_4fb1afcd15c884de41075a0948.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/quadrature.py.d34r.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_a2a43b6a529e87cde6e3fcb082.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/integrate/_ode.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_636cd3ba66a8a1061c669288c7.rodata" "-" "contrib/python/scipy/scipy/integrate/_ode.py" "_f8746049f38820db012bffbed7.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/_ode.py.aivv.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_418500aa072fd5e16ded294842.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/integrate/odepack.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_f4aed46841de252e09eb618769.rodata" "-" "contrib/python/scipy/scipy/integrate/odepack.py" "_1f55f4cc9447babc875f70c03b.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/odepack.py.a555.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_d648d22c0f01b409dd24cdc836.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/integrate/_bvp.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_7a14c9750cdc18e6a2661e8d52.rodata" "-" "contrib/python/scipy/scipy/integrate/_bvp.py" "_f82ed21122528ca0be022c2058.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/_bvp.py.kupj.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_bc9bb9dd0311208e35ecfe5e13.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/special/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_7f7b9b0c21844f807cb5c37fda.rodata" "-" "contrib/python/scipy/scipy/special/__init__.py" "_2ddf49184fe2ba124ac653260e.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_007c7cfc5f7d4f9572a5ae2fc1.yasm" "$(SolutionDir)../contrib/python/scipy/scipy/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_1107bb62d01806a405fa957030.rodata" "-" "contrib/python/scipy/scipy/__init__.py" "_979bffb71d9ed52642e179e890.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/__init__.py.uzys.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_42d8a09132f0ee453ded073199.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/__config__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_5ecc15338129e5f65878a015b3.rodata" "-" "contrib/python/scipy/scipy/__config__.py" "_9d58069e0517bd3525a250071f.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/__config__.py.uqfr.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_887ed6425e2e26a91a390a6456.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/version.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_3c3d02179ddf6b60267e6725f4.rodata" "-" "contrib/python/scipy/scipy/version.py" "_2068a4ae23f933526bb4b25b0e.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/version.py.vbz5.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_ab943694613653e110a2f38356.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/integrate/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_49ce67be2100795df272d62cfb.rodata" "-" "contrib/python/scipy/scipy/integrate/__init__.py" "_bf6d54e9b499956ca1b5dc692b.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/__init__.py.iq4j.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_498b14959b2806b6b5a5b7bdd1.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/integrate/quadpack.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_54b667b1048012ea6685d6e0b9.rodata" "-" "contrib/python/scipy/scipy/integrate/quadpack.py" "_ab21dc84da4e4507b7bbbb3af5.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/quadpack.py.xnse.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_f59dac3a857004b2d60c0321c1.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/integrate/quadrature.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_269fc6fc14533a3e68fc87963b.rodata" "-" "contrib/python/scipy/scipy/integrate/quadrature.py" "_4fb1afcd15c884de41075a0948.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/quadrature.py.d34r.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_a2a43b6a529e87cde6e3fcb082.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/integrate/_ode.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_636cd3ba66a8a1061c669288c7.rodata" "-" "contrib/python/scipy/scipy/integrate/_ode.py" "_f8746049f38820db012bffbed7.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/_ode.py.aivv.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_418500aa072fd5e16ded294842.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/integrate/odepack.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_f4aed46841de252e09eb618769.rodata" "-" "contrib/python/scipy/scipy/integrate/odepack.py" "_1f55f4cc9447babc875f70c03b.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/odepack.py.a555.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_d648d22c0f01b409dd24cdc836.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/integrate/_bvp.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_7a14c9750cdc18e6a2661e8d52.rodata" "-" "contrib/python/scipy/scipy/integrate/_bvp.py" "_f82ed21122528ca0be022c2058.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/_bvp.py.kupj.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_bc9bb9dd0311208e35ecfe5e13.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/special/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_7f7b9b0c21844f807cb5c37fda.rodata" "-" "contrib/python/scipy/scipy/special/__init__.py" "_2ddf49184fe2ba124ac653260e.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/scipy/_007c7cfc5f7d4f9572a5ae2fc1.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\scipy\scipy\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\__init__.py.uzys.yapyc;$(SolutionDir)..\contrib\python\scipy\scipy\__config__.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\__config__.py.uqfr.yapyc;$(SolutionDir)..\contrib\python\scipy\scipy\version.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\version.py.vbz5.yapyc;$(SolutionDir)..\contrib\python\scipy\scipy\integrate\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\__init__.py.iq4j.yapyc;$(SolutionDir)..\contrib\python\scipy\scipy\integrate\quadpack.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\quadpack.py.xnse.yapyc;$(SolutionDir)..\contrib\python\scipy\scipy\integrate\quadrature.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\quadrature.py.d34r.yapyc;$(SolutionDir)..\contrib\python\scipy\scipy\integrate\_ode.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\_ode.py.aivv.yapyc;$(SolutionDir)..\contrib\python\scipy\scipy\integrate\odepack.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\odepack.py.a555.yapyc;$(SolutionDir)..\contrib\python\scipy\scipy\integrate\_bvp.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\_bvp.py.kupj.yapyc;$(SolutionDir)..\contrib\python\scipy\scipy\special\__init__.py;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\_007c7cfc5f7d4f9572a5ae2fc1.yasm;$(SolutionDir)$(Configuration)\contrib\python\scipy\_1107bb62d01806a405fa957030.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\_42d8a09132f0ee453ded073199.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\_5ecc15338129e5f65878a015b3.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\_887ed6425e2e26a91a390a6456.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\_3c3d02179ddf6b60267e6725f4.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\_ab943694613653e110a2f38356.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\_49ce67be2100795df272d62cfb.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\_498b14959b2806b6b5a5b7bdd1.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\_54b667b1048012ea6685d6e0b9.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\_f59dac3a857004b2d60c0321c1.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\_269fc6fc14533a3e68fc87963b.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\_a2a43b6a529e87cde6e3fcb082.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\_636cd3ba66a8a1061c669288c7.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\_418500aa072fd5e16ded294842.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\_f4aed46841de252e09eb618769.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\_d648d22c0f01b409dd24cdc836.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\_7a14c9750cdc18e6a2661e8d52.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\_bc9bb9dd0311208e35ecfe5e13.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\_7f7b9b0c21844f807cb5c37fda.rodata;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\_precompute\gammainc_asy.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_ac3314f8c965598c308724d278.yasm" "$(SolutionDir)../contrib/python/scipy/scipy/special/_precompute/gammainc_asy.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_40040167d8023fe88b28073f8e.rodata" "-" "contrib/python/scipy/scipy/special/_precompute/gammainc_asy.py" "_22edb7b9e22a59cca63ce8e567.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/_precompute/gammainc_asy.py.mxft.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_1e12b7454f772b6ed22fe7926f.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/special/_precompute/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_34f11d1f8cea700bdefd6f69d0.rodata" "-" "contrib/python/scipy/scipy/special/_precompute/utils.py" "_a00c850ee5313a5410cc6f3bcb.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/_precompute/utils.py.2ho5.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_5d4ce2dbd6e09e60f2275a9f5d.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_ac3314f8c965598c308724d278.yasm" "$(SolutionDir)../contrib/python/scipy/scipy/special/_precompute/gammainc_asy.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_40040167d8023fe88b28073f8e.rodata" "-" "contrib/python/scipy/scipy/special/_precompute/gammainc_asy.py" "_22edb7b9e22a59cca63ce8e567.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/_precompute/gammainc_asy.py.mxft.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_1e12b7454f772b6ed22fe7926f.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/special/_precompute/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_34f11d1f8cea700bdefd6f69d0.rodata" "-" "contrib/python/scipy/scipy/special/_precompute/utils.py" "_a00c850ee5313a5410cc6f3bcb.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/_precompute/utils.py.2ho5.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/_5d4ce2dbd6e09e60f2275a9f5d.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/scipy/_ac3314f8c965598c308724d278.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\scipy\scipy\special\_precompute\gammainc_asy.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\_precompute\gammainc_asy.py.mxft.yapyc;$(SolutionDir)..\contrib\python\scipy\scipy\special\_precompute\utils.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\_precompute\utils.py.2ho5.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\_ac3314f8c965598c308724d278.yasm;$(SolutionDir)$(Configuration)\contrib\python\scipy\_40040167d8023fe88b28073f8e.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\_1e12b7454f772b6ed22fe7926f.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\_34f11d1f8cea700bdefd6f69d0.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\_5d4ce2dbd6e09e60f2275a9f5d.rodata;</Outputs>
+    </CustomBuild>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
+  <ImportGroup Label="ExtensionTargets"/>
+  <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)Projects\certs\certs.vcxproj">
+      <Project>{C092F5EB-6E3B-CBC5-C723-B1E4327CB1A8}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cblas\contrib-libs-cblas.vcxproj">
+      <Project>{F42B3303-A85B-C579-9BF8-27924B30359B}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\clapack\contrib-libs-clapack.vcxproj">
+      <Project>{04A8455B-4404-6B67-F3CD-6366DEF170FE}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\clapack\part1\libs-clapack-part1.vcxproj">
+      <Project>{6C58A7BD-61C5-1C8D-6C74-836658D88AE1}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\clapack\part2\libs-clapack-part2.vcxproj">
+      <Project>{917DA2BF-AE17-9DD9-93C2-EE8EAF72E9BD}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\contrib-libs-cxxsupp.vcxproj">
+      <Project>{8D7C41B0-2344-C558-29D8-570B39498A2F}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\libcxx\libs-cxxsupp-libcxx.vcxproj">
+      <Project>{671FE333-6D0D-E7E3-0E1D-D4CB43CF879D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\double-conversion\contrib-libs-double-conversion.vcxproj">
+      <Project>{1BA2A109-73A9-0A33-0C89-68ACB8229C74}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\expat\contrib-libs-expat.vcxproj">
+      <Project>{BF794ED3-B687-CE38-5FC3-A9AC59EC392B}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libbz2\contrib-libs-libbz2.vcxproj">
+      <Project>{22D13723-C5D2-BCB5-73F8-368EA5B1CBE5}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libc_compat\contrib-libs-libc_compat.vcxproj">
+      <Project>{116AA49B-0C0D-7CF7-45DB-A708FB126C84}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libf2c\contrib-libs-libf2c.vcxproj">
+      <Project>{ACC03840-E215-DC54-B209-59FA03988A57}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\contrib-libs-openssl.vcxproj">
+      <Project>{C09AB4D0-26FB-8670-4A3A-438A55553615}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\crypto\libs-openssl-crypto.vcxproj">
+      <Project>{0EED471E-D91D-9917-D1A8-550D2EBE46DB}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\python\Include\pylibs-python-Include.vcxproj">
+      <Project>{8E24FF07-6DF8-0FC3-F441-862B08F7F40E}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\python\pycontrib-libs-python.vcxproj">
+      <Project>{FAF7DF94-9999-63CD-ABB9-ED295B68DFD7}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\qhull\contrib-libs-qhull.vcxproj">
+      <Project>{D17CDA35-BBFB-9CB1-7DE2-862989C7B224}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\xxhash\contrib-libs-xxhash.vcxproj">
+      <Project>{93F9D338-B2A4-2DC4-8B30-A39701C2F9EE}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
+      <Project>{E8A35EC0-40EE-2D96-1FB2-D065B804958D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd\contrib-libs-zstd.vcxproj">
+      <Project>{0F7ECE1F-EE4E-A88C-12F5-7D1C49F1BC75}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\py2\numpy\core\src\multiarray\pycore-src-multiarray.vcxproj">
+      <Project>{6515DD6B-BC89-50EC-5FCA-6FEF911562B9}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\py2\numpy\core\src\umath\pycore-src-umath.vcxproj">
+      <Project>{F8D33EBE-BB23-75AD-E114-60F75D8AC8A2}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\py2\numpy\fft\pypy2-numpy-fft.vcxproj">
+      <Project>{79555D72-58A3-8DCF-B7C1-526929BA16B4}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\py2\numpy\linalg\pypy2-numpy-linalg.vcxproj">
+      <Project>{BB89FDA4-798A-F454-B1AD-D4603CF461F6}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\py2\numpy\random\mtrand\pynumpy-random-mtrand.vcxproj">
+      <Project>{D31E0F48-5EC7-F485-2DE5-8D4C8A5E28DD}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\py2\pypython-numpy-py2.vcxproj">
+      <Project>{760187CD-FC5B-2BEB-FFEB-2113975BE8B4}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\pycontrib-python-numpy.vcxproj">
+      <Project>{A9555690-440C-5A55-6598-B6D1DB12B3ED}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\_build_utils\src\scipy-_build_utils-src.vcxproj">
+      <Project>{9AFA0B40-428F-C48C-E67A-74044B678B53}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\_lib\pyscipy-scipy-_lib.vcxproj">
+      <Project>{52FF49F8-6118-21BB-8A64-3E37DF4AAE7D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\cluster\pyscipy-scipy-cluster.vcxproj">
+      <Project>{3EE75B85-B3F1-3017-A144-A6DCF5124F83}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\constants\pyscipy-scipy-constants.vcxproj">
+      <Project>{655C1A3A-6971-5CE1-2F39-53CB91F65A3C}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\fftpack\pyscipy-scipy-fftpack.vcxproj">
+      <Project>{B83B00E5-81E5-8271-12E2-B1E04ED9FC59}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\fftpack\src\scipy-fftpack-src.vcxproj">
+      <Project>{98A8BEA7-8353-8B9E-066B-ABEDD2F75121}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\interpolate\fitpack\scipy-interpolate-fitpack.vcxproj">
+      <Project>{6BF6FB72-C62F-818F-17A7-7C0F6C74BF8A}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\interpolate\pyscipy-scipy-interpolate.vcxproj">
+      <Project>{1F189A0C-2983-F9EF-8FB9-D57E41DA0CF2}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\io\arff\pyscipy-io-arff.vcxproj">
+      <Project>{146E8210-1426-B73E-53C9-E4E81EF3F119}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\io\harwell_boeing\pyscipy-io-harwell_boeing.vcxproj">
+      <Project>{DC41C5C0-770A-77B8-3370-CC8DF9DA6756}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\io\matlab\pyscipy-io-matlab.vcxproj">
+      <Project>{08CD931D-5142-B450-CBEA-E99B8BB24A31}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\io\pyscipy-scipy-io.vcxproj">
+      <Project>{ACA0224A-9F22-4803-C394-E1AA01ECA5BD}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\linalg\pyscipy-scipy-linalg.vcxproj">
+      <Project>{ABE47276-0A15-06CD-200C-33DAC2C9BEB2}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\linalg\src\id_dist\src\src-id_dist-src.vcxproj">
+      <Project>{645CCEEE-2FA3-B06C-ADDE-E545B0813653}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\linalg\src\scipy-linalg-src.vcxproj">
+      <Project>{B9F50016-E750-8620-FE7F-92FA9FAE22D7}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\misc\pyscipy-scipy-misc.vcxproj">
+      <Project>{52E987BB-887C-A701-B73B-3B188764BCE4}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\ndimage\pyscipy-scipy-ndimage.vcxproj">
+      <Project>{0FBAFA4F-00E7-B9E8-D80E-E11933F27E21}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\ndimage\src\pyscipy-ndimage-src.vcxproj">
+      <Project>{92A4E782-3DAE-F24A-A63D-300633A3343B}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\odr\odrpack\scipy-odr-odrpack.vcxproj">
+      <Project>{56965D80-A7DF-EFA0-9FD9-E792EA0AF9EE}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\odr\pyscipy-scipy-odr.vcxproj">
+      <Project>{EAC01E19-67B2-9675-2968-2AE9C0A0E252}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\optimize\Zeros\scipy-optimize-Zeros.vcxproj">
+      <Project>{E0AEF318-5435-E964-59F1-D7FFDC12237A}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\optimize\_lsq\pyscipy-optimize-_lsq.vcxproj">
+      <Project>{7243AA7E-AED7-9687-F027-BAB813D1166D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\optimize\cobyla\pyscipy-optimize-cobyla.vcxproj">
+      <Project>{687B43B2-150A-F349-51DC-046994C09087}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\optimize\lbfgsb\pyscipy-optimize-lbfgsb.vcxproj">
+      <Project>{EDCC83BA-1335-77C1-9D74-1F09A48441D2}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\optimize\minpack\scipy-optimize-minpack.vcxproj">
+      <Project>{EFB08115-9C69-F46D-BD6E-58F219B45F53}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\optimize\minpack2\pyscipy-optimize-minpack2.vcxproj">
+      <Project>{1432277A-16D5-1B92-AD09-6A594CF8AE46}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\optimize\nnls\pyscipy-optimize-nnls.vcxproj">
+      <Project>{F58ECC47-F34D-11A7-3C25-D350C045654F}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\optimize\pyscipy-scipy-optimize.vcxproj">
+      <Project>{C8CE9D11-6096-7F95-5D3A-CA5AD1D89C95}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\optimize\slsqp\pyscipy-optimize-slsqp.vcxproj">
+      <Project>{06413926-72B8-C022-B827-2835863EEA58}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\optimize\tnc\pyscipy-optimize-tnc.vcxproj">
+      <Project>{E0A1A177-1A8F-A125-759C-EEC5C23880CC}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\signal\pyscipy-scipy-signal.vcxproj">
+      <Project>{5C6624E3-6EFA-52F3-473F-54918BA5BAC1}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\sparse\csgraph\pyscipy-sparse-csgraph.vcxproj">
+      <Project>{7AE6CDEB-7346-1CAD-9359-2FAF7D105A3B}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\dsolve-SuperLU-SRC.vcxproj">
+      <Project>{AC92B73C-DFD9-89C5-C716-4F75D190323D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\sparse\linalg\dsolve\pysparse-linalg-dsolve.vcxproj">
+      <Project>{4838AFD7-86DA-1D54-C4B9-63BD8240758F}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\eigen-arpack-ARPACK.vcxproj">
+      <Project>{664C508C-B3CE-09A9-FDFA-7158F797008B}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\pylinalg-eigen-arpack.vcxproj">
+      <Project>{57386648-0A36-D848-8A32-715D7C5D54F4}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\sparse\linalg\eigen\lobpcg\pylinalg-eigen-lobpcg.vcxproj">
+      <Project>{CB545E18-C3D5-987F-CC4F-5C69E3E5C9B5}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\sparse\linalg\eigen\pysparse-linalg-eigen.vcxproj">
+      <Project>{5790F83A-D141-630A-B5E3-B342A0342D6B}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\sparse\linalg\isolve\iterative\pylinalg-isolve-iterative.vcxproj">
+      <Project>{1CBF3342-0D61-7028-D0E1-242E2EBDDF43}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\sparse\linalg\isolve\pysparse-linalg-isolve.vcxproj">
+      <Project>{9BF90929-3C26-7571-9C92-0E250346BCC4}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\sparse\linalg\pyscipy-sparse-linalg.vcxproj">
+      <Project>{1E0D724B-5559-D294-8A9A-10B7033EE1A7}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\sparse\pyscipy-scipy-sparse.vcxproj">
+      <Project>{8D1BBACE-F648-8EFB-499E-83205FD8BBF5}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\sparse\sparsetools\pyscipy-sparse-sparsetools.vcxproj">
+      <Project>{48AEDC4E-2845-5899-3E69-93C62F6AEF63}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\spatial\ckdtree\src\pyspatial-ckdtree-src.vcxproj">
+      <Project>{DEDF135A-ED65-E790-6E86-920B6749228B}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\spatial\pyscipy-scipy-spatial.vcxproj">
+      <Project>{4ED7CAC9-9378-F827-BD76-906AF53589F6}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\stats\pyscipy-scipy-stats.vcxproj">
+      <Project>{4D66CD57-A42B-2212-7F41-1F12AACFB237}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\stats\statlib\scipy-stats-statlib.vcxproj">
+      <Project>{9BB94D2A-C35F-78A2-2397-326EE6A5A0FD}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\libffi\contrib-restricted-libffi.vcxproj">
+      <Project>{C4244186-1688-FFD7-FAB5-CB9E056577E2}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\f2c\f2c.vcxproj">
+      <Project>{65ED7A96-9AF7-8308-F3E6-7C54576A4963}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\base\tools-python-base.vcxproj">
+      <Project>{EFB6D29C-74E4-D7B6-6D91-5CD9197E0E62}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\include\tools-python-include.vcxproj">
+      <Project>{1230701B-DB69-9B51-E24F-A059CB0400B3}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\lib\tools-python-lib.vcxproj">
+      <Project>{F56D05C3-DCE3-DF03-B792-75B4F5F59907}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\yasm\yasm.vcxproj">
+      <Project>{1959E211-4FF5-553B-2DD1-9BDC1CFDC107}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\blockcodecs\codecs\zstd\blockcodecs-codecs-zstd.vcxproj">
+      <Project>{99480F9B-8814-368A-8A11-C9595B291CEC}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\blockcodecs\core\cpp-blockcodecs-core.vcxproj">
+      <Project>{61E795C2-BF87-52A4-C82D-38B38AA63595}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\resource\library-cpp-resource.vcxproj">
+      <Project>{1E91F91B-DC98-C7C6-CD7E-C89F350D131A}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\runtime\pylibrary-python-runtime.vcxproj">
+      <Project>{FDE5A173-CB03-B2D7-3278-852097280EF4}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\libc\python-symbols-libc.vcxproj">
+      <Project>{8E374D9B-CDBD-993F-45A3-F459C9A9C508}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\module\pypython-symbols-module.vcxproj">
+      <Project>{4AA4F15B-35C8-E419-38D7-A3EFCE482215}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\python\python-symbols-python.vcxproj">
+      <Project>{652F51EE-85DE-3688-41FA-4C2CDAC4C75A}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\registry\python-symbols-registry.vcxproj">
+      <Project>{BD115620-103F-AECF-8093-05A7D89F72D6}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\tools\rescompressor\rescompressor.vcxproj">
+      <Project>{659583CA-86AE-A5F2-5BA3-BE5FC38B1B30}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\tools\rorescompiler\rorescompiler.vcxproj">
+      <Project>{138FDCC6-8D99-5FD2-952A-2DA00D63BE45}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
+      <Project>{44174C28-7454-8F7D-C06B-E2E8E0B4BF9E}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\util\yutil.vcxproj">
+      <Project>{1C91E826-1D2A-B4DB-C1D2-F89E49E9BDCD}</Project>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

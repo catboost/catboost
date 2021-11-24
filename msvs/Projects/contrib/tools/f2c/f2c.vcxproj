@@ -343,8 +343,8 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scandir\pycontrib-python-scandir.global.vcxproj">
       <Project>{2BD2B299-BF0C-C320-AB69-9A4C2D9D05F3}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\_lib\py3scipy-scipy-_lib.global.vcxproj">
-      <Project>{EAE82B31-E48D-CFED-1388-35D0D632DBF0}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\optimize\tnc\py3scipy-optimize-tnc.global.vcxproj">
+      <Project>{D16870DB-62C8-9ADA-A940-5288056EF403}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\setuptools\py2\pypython-setuptools-py2.global.vcxproj">
       <Project>{3883A5C2-D594-2667-C63C-A665727800A7}</Project>
