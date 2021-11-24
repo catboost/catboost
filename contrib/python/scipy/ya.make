@@ -7,14 +7,12 @@ LICENSE(BSD-3-Clause)
 VERSION(0.18.1)
 
 PEERDIR(
-    contrib/python/scipy/scipy/optimize
-    contrib/python/scipy/scipy/interpolate
+    contrib/python/numpy
     contrib/python/scipy/scipy/spatial
     contrib/python/scipy/scipy/fftpack
     contrib/python/scipy/scipy/signal
     contrib/python/scipy/scipy/ndimage
     contrib/python/scipy/scipy/stats
-    contrib/python/scipy/scipy/io
     contrib/python/scipy/scipy/constants
     contrib/python/scipy/scipy/cluster
     contrib/python/scipy/scipy/odr
@@ -29,6 +27,8 @@ ENDIF()
 
 ADDINCL(
     FOR cython contrib/python/scipy
+    contrib/python/scipy/scipy/interpolate
+    contrib/python/scipy/scipy/io/matlab
     contrib/python/scipy/scipy/special
     contrib/python/scipy/scipy/special/c_misc
 )
@@ -101,6 +101,151 @@ SRCS(
     scipy/integrate/quadpack/dqwgtc.f
     scipy/integrate/quadpack/dqwgtf.f
     scipy/integrate/quadpack/dqwgts.f
+
+    scipy/interpolate/fitpack/bispeu.f
+    scipy/interpolate/fitpack/bispev.f
+    scipy/interpolate/fitpack/clocur.f
+    scipy/interpolate/fitpack/cocosp.f
+    scipy/interpolate/fitpack/concon.f
+    scipy/interpolate/fitpack/concur.f
+    scipy/interpolate/fitpack/cualde.f
+    scipy/interpolate/fitpack/curev.f
+    scipy/interpolate/fitpack/curfit.f
+    scipy/interpolate/fitpack/dblint.f
+    scipy/interpolate/fitpack/evapol.f
+    scipy/interpolate/fitpack/fourco.f
+    scipy/interpolate/fitpack/fpader.f
+    scipy/interpolate/fitpack/fpadno.f
+    scipy/interpolate/fitpack/fpadpo.f
+    scipy/interpolate/fitpack/fpback.f
+    scipy/interpolate/fitpack/fpbacp.f
+    scipy/interpolate/fitpack/fpbfout.f
+    scipy/interpolate/fitpack/fpbisp.f
+    scipy/interpolate/fitpack/fpbspl.f
+    scipy/interpolate/fitpack/fpchec.f
+    scipy/interpolate/fitpack/fpched.f
+    scipy/interpolate/fitpack/fpchep.f
+    scipy/interpolate/fitpack/fpclos.f
+    scipy/interpolate/fitpack/fpcoco.f
+    scipy/interpolate/fitpack/fpcons.f
+    scipy/interpolate/fitpack/fpcosp.f
+    scipy/interpolate/fitpack/fpcsin.f
+    scipy/interpolate/fitpack/fpcurf.f
+    scipy/interpolate/fitpack/fpcuro.f
+    scipy/interpolate/fitpack/fpcyt1.f
+    scipy/interpolate/fitpack/fpcyt2.f
+    scipy/interpolate/fitpack/fpdeno.f
+    scipy/interpolate/fitpack/fpdisc.f
+    scipy/interpolate/fitpack/fpfrno.f
+    scipy/interpolate/fitpack/fpgivs.f
+    scipy/interpolate/fitpack/fpgrdi.f
+    scipy/interpolate/fitpack/fpgrpa.f
+    scipy/interpolate/fitpack/fpgrre.f
+    scipy/interpolate/fitpack/fpgrsp.f
+    scipy/interpolate/fitpack/fpinst.f
+    scipy/interpolate/fitpack/fpintb.f
+    scipy/interpolate/fitpack/fpknot.f
+    scipy/interpolate/fitpack/fpopdi.f
+    scipy/interpolate/fitpack/fpopsp.f
+    scipy/interpolate/fitpack/fporde.f
+    scipy/interpolate/fitpack/fppara.f
+    scipy/interpolate/fitpack/fppasu.f
+    scipy/interpolate/fitpack/fpperi.f
+    scipy/interpolate/fitpack/fppocu.f
+    scipy/interpolate/fitpack/fppogr.f
+    scipy/interpolate/fitpack/fppola.f
+    scipy/interpolate/fitpack/fprank.f
+    scipy/interpolate/fitpack/fprati.f
+    scipy/interpolate/fitpack/fpregr.f
+    scipy/interpolate/fitpack/fprota.f
+    scipy/interpolate/fitpack/fprppo.f
+    scipy/interpolate/fitpack/fprpsp.f
+    scipy/interpolate/fitpack/fpseno.f
+    scipy/interpolate/fitpack/fpspgr.f
+    scipy/interpolate/fitpack/fpsphe.f
+    scipy/interpolate/fitpack/fpsuev.f
+    scipy/interpolate/fitpack/fpsurf.f
+    scipy/interpolate/fitpack/fpsysy.f
+    scipy/interpolate/fitpack/fptrnp.f
+    scipy/interpolate/fitpack/fptrpe.f
+    scipy/interpolate/fitpack/insert.f
+    scipy/interpolate/fitpack/parcur.f
+    scipy/interpolate/fitpack/parder.f
+    scipy/interpolate/fitpack/pardeu.f
+    scipy/interpolate/fitpack/parsur.f
+    scipy/interpolate/fitpack/percur.f
+    scipy/interpolate/fitpack/pogrid.f
+    scipy/interpolate/fitpack/polar.f
+    scipy/interpolate/fitpack/profil.f
+    scipy/interpolate/fitpack/regrid.f
+    scipy/interpolate/fitpack/spalde.f
+    scipy/interpolate/fitpack/spgrid.f
+    scipy/interpolate/fitpack/sphere.f
+    scipy/interpolate/fitpack/splder.f
+    scipy/interpolate/fitpack/splev.f
+    scipy/interpolate/fitpack/splint.f
+    scipy/interpolate/fitpack/sproot.f
+    scipy/interpolate/fitpack/surev.f
+    scipy/interpolate/fitpack/surfit.f
+
+    scipy/interpolate/src/_fitpackmodule.c
+    scipy/interpolate/src/_interpolate.cpp
+    scipy/interpolate/src/dfitpackmodule.c
+    scipy/interpolate/src/dfitpack-f2pywrappers.f
+
+    scipy/optimize/_minpackmodule.c
+    scipy/optimize/zeros.c
+
+    scipy/optimize/cobyla/cobyla2.f
+    scipy/optimize/cobyla/_cobylamodule.c
+    scipy/optimize/cobyla/trstlp.f
+
+    scipy/optimize/lbfgsb/lbfgsb.f
+    scipy/optimize/lbfgsb/linpack.f
+    scipy/optimize/lbfgsb/timer.f
+    scipy/optimize/lbfgsb/_lbfgsbmodule.c
+
+    scipy/optimize/minpack/chkder.f
+    scipy/optimize/minpack/dogleg.f
+    scipy/optimize/minpack/dpmpar.f
+    scipy/optimize/minpack/enorm.f
+    scipy/optimize/minpack/fdjac1.f
+    scipy/optimize/minpack/fdjac2.f
+    scipy/optimize/minpack/hybrd1.f
+    scipy/optimize/minpack/hybrd.f
+    scipy/optimize/minpack/hybrj1.f
+    scipy/optimize/minpack/hybrj.f
+    scipy/optimize/minpack/lmder1.f
+    scipy/optimize/minpack/lmder.f
+    scipy/optimize/minpack/lmdif1.f
+    scipy/optimize/minpack/lmdif.f
+    scipy/optimize/minpack/lmpar.f
+    scipy/optimize/minpack/lmstr1.f
+    scipy/optimize/minpack/lmstr.f
+    scipy/optimize/minpack/qform.f
+    scipy/optimize/minpack/qrfac.f
+    scipy/optimize/minpack/qrsolv.f
+    scipy/optimize/minpack/r1mpyq.f
+    scipy/optimize/minpack/r1updt.f
+    scipy/optimize/minpack/rwupdt.f
+
+    scipy/optimize/minpack2/minpack2module.c
+    scipy/optimize/minpack2/dcsrch.f
+    scipy/optimize/minpack2/dcstep.f
+
+    scipy/optimize/nnls/nnls.f
+    scipy/optimize/nnls/_nnlsmodule.c
+
+    scipy/optimize/slsqp/_slsqpmodule.c
+    scipy/optimize/slsqp/slsqp_optmz.f
+
+    scipy/optimize/tnc/moduleTNC.c
+    scipy/optimize/tnc/tnc.c
+
+    scipy/optimize/Zeros/bisect.c
+    scipy/optimize/Zeros/brenth.c
+    scipy/optimize/Zeros/brentq.c
+    scipy/optimize/Zeros/ridder.c
 
     scipy/special/Faddeeva.cc
     scipy/special/_faddeeva.cxx
@@ -308,6 +453,84 @@ PY_SRCS(
     scipy/integrate/odepack.py
     scipy/integrate/_bvp.py
 
+    scipy/interpolate/__init__.py
+    scipy/interpolate/_cubic.py
+    scipy/interpolate/fitpack2.py
+    scipy/interpolate/fitpack.py
+    scipy/interpolate/interpolate.py
+    scipy/interpolate/interpolate_wrapper.py
+    scipy/interpolate/ndgriddata.py
+    scipy/interpolate/polyint.py
+    scipy/interpolate/rbf.py
+
+    CYTHON_C
+    scipy/interpolate/_ppoly.pyx
+    scipy/interpolate/interpnd.pyx
+
+    scipy/io/__init__.py
+    scipy/io/_fortran.py
+    scipy/io/idl.py
+    scipy/io/mmio.py
+    scipy/io/netcdf.py
+    scipy/io/wavfile.py
+
+    scipy/io/arff/__init__.py
+    scipy/io/arff/arffread.py
+
+    scipy/io/harwell_boeing/__init__.py
+    scipy/io/harwell_boeing/_fortran_format_parser.py
+    scipy/io/harwell_boeing/hb.py
+
+    scipy/io/matlab/__init__.py
+    scipy/io/matlab/byteordercodes.py
+    scipy/io/matlab/mio4.py
+    scipy/io/matlab/mio5_params.py
+    scipy/io/matlab/mio5.py
+    scipy/io/matlab/miobase.py
+    scipy/io/matlab/mio.py
+
+    CYTHON_C
+    scipy/io/matlab/mio5_utils.pyx
+    scipy/io/matlab/mio_utils.pyx
+    scipy/io/matlab/streams.pyx
+
+    scipy/optimize/__init__.py
+    scipy/optimize/_basinhopping.py
+    scipy/optimize/cobyla.py
+    scipy/optimize/_differentialevolution.py
+    scipy/optimize/_hungarian.py
+    scipy/optimize/lbfgsb.py
+    scipy/optimize/linesearch.py
+    scipy/optimize/_linprog.py
+    scipy/optimize/_lsq/bvls.py
+    scipy/optimize/_lsq/common.py
+    scipy/optimize/_lsq/dogbox.py
+    scipy/optimize/_lsq/__init__.py
+    scipy/optimize/_lsq/least_squares.py
+    scipy/optimize/_lsq/lsq_linear.py
+    scipy/optimize/_lsq/trf_linear.py
+    scipy/optimize/_lsq/trf.py
+    scipy/optimize/_minimize.py
+    scipy/optimize/minpack.py
+    scipy/optimize/nnls.py
+    scipy/optimize/nonlin.py
+    scipy/optimize/_numdiff.py
+    scipy/optimize/optimize.py
+    scipy/optimize/_root.py
+    scipy/optimize/slsqp.py
+    scipy/optimize/_spectral.py
+    scipy/optimize/tnc.py
+    scipy/optimize/_trustregion_dogleg.py
+    scipy/optimize/_trustregion_ncg.py
+    scipy/optimize/_trustregion.py
+    scipy/optimize/_tstutils.py
+    scipy/optimize/zeros.py
+
+    CYTHON_CPP
+    scipy/optimize/_lsq/givens_elimination.pyx
+
+    CYTHON_C
+    scipy/optimize/_group_columns.pyx
 
     scipy/special/__init__.py
     scipy/special/lambertw.py
@@ -341,7 +564,20 @@ PY_REGISTER(
     scipy.integrate._dop
     scipy.integrate.lsoda
 
-	scipy.special.specfun
+    scipy.interpolate._fitpack
+    scipy.interpolate.dfitpack
+    scipy.interpolate._interpolate
+
+    scipy.optimize._cobyla
+    scipy.optimize._lbfgsb
+    scipy.optimize._minpack
+    scipy.optimize._nnls
+    scipy.optimize._slsqp
+    scipy.optimize._zeros
+    scipy.optimize.minpack2
+    scipy.optimize.moduleTNC
+
+    scipy.special.specfun
 )
 
 END()
