@@ -142,8 +142,9 @@ BELONGS ya.make
         src/libunwind.cpp [3:4]
         src/libunwind_ext.h [3:4]
 
-KEEP     LLVM-exception       8494a9caed330d9a4f40e19cce7dc770
+KEEP     Apache-2.0 WITH LLVM-exception       8494a9caed330d9a4f40e19cce7dc770
 BELONGS ya.make
+    # startswith --- LLVM Exceptions to the Apache 2.0 License ----
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
         Original SPDX id: LLVM-exception
