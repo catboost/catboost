@@ -3552,18 +3552,6 @@ struct hdsp_9632_aeb {
 /* SPDX-License-Identifier: GPL-1.0+ WITH Linux-syscall-note */
 
 
-====================GPL-2.0-only====================
-    SPDX-License-Identifier: GPL-2.0
-
-
-====================GPL-2.0-only====================
-SPDX-URL: https://spdx.org/licenses/GPL-2.0.html
-
-
-====================GPL-2.0-only====================
-Valid-License-Identifier: GPL-2.0
-
-
 ====================GPL-2.0-only WITH Linux-syscall-note====================
 		    GNU GENERAL PUBLIC LICENSE
 		       Version 2, June 1991
@@ -3905,6 +3893,10 @@ proprietary programs.  If your program is a subroutine library, you may
 consider it more useful to permit linking proprietary applications with the
 library.  If this is what you want to do, use the GNU Library General
 Public License instead of this License.
+
+====================GPL-2.0-only WITH Linux-syscall-note====================
+    SPDX-License-Identifier: GPL-2.0
+
 
 ====================GPL-2.0-only WITH Linux-syscall-note====================
     SPDX-License-Identifier: GPL-2.0-only
@@ -4482,6 +4474,10 @@ SPDX-Licenses: GPL-2.0, GPL-2.0+, GPL-1.0+, LGPL-2.0, LGPL-2.0+, LGPL-2.1, LGPL-
 
 
 ====================GPL-2.0-only WITH Linux-syscall-note====================
+SPDX-URL: https://spdx.org/licenses/GPL-2.0.html
+
+
+====================GPL-2.0-only WITH Linux-syscall-note====================
 The Linux Kernel is provided under:
 
 	SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note
@@ -4502,6 +4498,10 @@ In addition, other licenses may also apply. Please see:
 for more details.
 
 All contributions to the Linux Kernel are subject to this COPYING file.
+
+====================GPL-2.0-only WITH Linux-syscall-note====================
+Valid-License-Identifier: GPL-2.0
+
 
 ====================GPL-2.0-only WITH Linux-syscall-note====================
 Valid-License-Identifier: GPL-2.0-only
