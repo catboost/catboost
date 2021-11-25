@@ -47,6 +47,7 @@ namespace __iter_swap {
   struct __fn {
     template <class _T1, class _T2>
       requires __unqualified_iter_swap<_T1, _T2>
+    _LIBCPP_HIDE_FROM_ABI
     constexpr void operator()(_T1&& __x, _T2&& __y) const
       noexcept(noexcept(iter_swap(_VSTD::forward<_T1>(__x), _VSTD::forward<_T2>(__y))))
     {
@@ -56,6 +57,7 @@ namespace __iter_swap {
     template <class _T1, class _T2>
       requires (!__unqualified_iter_swap<_T1, _T2>) &&
                __readable_swappable<_T1, _T2>
+    _LIBCPP_HIDE_FROM_ABI
     constexpr void operator()(_T1&& __x, _T2&& __y) const
       noexcept(noexcept(ranges::swap(*_VSTD::forward<_T1>(__x), *_VSTD::forward<_T2>(__y))))
     {
@@ -67,6 +69,7 @@ namespace __iter_swap {
                 !__readable_swappable<_T1, _T2>) &&
                indirectly_movable_storable<_T1, _T2> &&
                indirectly_movable_storable<_T2, _T1>
+    _LIBCPP_HIDE_FROM_ABI
     constexpr void operator()(_T1&& __x, _T2&& __y) const
       noexcept(noexcept(iter_value_t<_T2>(ranges::iter_move(__y))) &&
                noexcept(*__y = ranges::iter_move(__x)) &&
@@ -84,6 +87,16 @@ inline namespace __cpo {
 } // namespace __cpo
 
 } // namespace ranges
+
+template<class _I1, class _I2 = _I1>
+concept indirectly_swappable =
+  indirectly_readable<_I1> && indirectly_readable<_I2> &&
+  requires(const _I1 __i1, const _I2 __i2) {
+    ranges::iter_swap(__i1, __i1);
+    ranges::iter_swap(__i2, __i2);
+    ranges::iter_swap(__i1, __i2);
+    ranges::iter_swap(__i2, __i1);
+  };
 
 #endif // !defined(_LIBCPP_HAS_NO_RANGES)
 
