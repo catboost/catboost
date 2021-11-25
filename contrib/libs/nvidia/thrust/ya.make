@@ -2,12 +2,6 @@
 
 LIBRARY()
 
-
-
-VERSION(1.13.0)
-
-ORIGINAL_SOURCE(https://github.com/NVIDIA/thrust/archive/1.13.0.tar.gz)
-
 LICENSE(
     Apache-2.0
     BSD-2-Clause
@@ -23,7 +17,15 @@ LICENSE(
 
 LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
-ADDINCL(GLOBAL contrib/libs/nvidia/thrust)
+
+
+VERSION(1.13.0)
+
+ORIGINAL_SOURCE(https://github.com/NVIDIA/thrust/archive/1.13.0.tar.gz)
+
+ADDINCL(
+    GLOBAL contrib/libs/nvidia/thrust
+)
 
 NO_COMPILER_WARNINGS()
 
