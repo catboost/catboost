@@ -34,9 +34,7 @@
 #include <thrust/system/tbb/detail/merge.h>
 #endif
 
-#define __THRUST_HOST_SYSTEM_MERGE_HEADER <__THRUST_HOST_SYSTEM_ROOT/detail/merge.h>
-#include __THRUST_HOST_SYSTEM_MERGE_HEADER
-#undef __THRUST_HOST_SYSTEM_MERGE_HEADER
+#include <thrust/system/cpp/detail/merge.h>
 
 #define __THRUST_DEVICE_SYSTEM_MERGE_HEADER <__THRUST_DEVICE_SYSTEM_ROOT/detail/merge.h>
 #include __THRUST_DEVICE_SYSTEM_MERGE_HEADER

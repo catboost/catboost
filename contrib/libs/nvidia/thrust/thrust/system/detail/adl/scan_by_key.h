@@ -34,9 +34,7 @@
 #include <thrust/system/tbb/detail/scan_by_key.h>
 #endif
 
-#define __THRUST_HOST_SYSTEM_SCAN_BY_KEY_HEADER <__THRUST_HOST_SYSTEM_ROOT/detail/scan_by_key.h>
-#include __THRUST_HOST_SYSTEM_SCAN_BY_KEY_HEADER
-#undef __THRUST_HOST_SYSTEM_SCAN_BY_KEY_HEADER
+#include <thrust/system/cpp/detail/scan_by_key.h>
 
 #define __THRUST_DEVICE_SYSTEM_SCAN_BY_KEY_HEADER <__THRUST_DEVICE_SYSTEM_ROOT/detail/scan_by_key.h>
 #include __THRUST_DEVICE_SYSTEM_SCAN_BY_KEY_HEADER

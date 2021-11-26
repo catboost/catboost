@@ -54,5 +54,5 @@
 #define __THRUST_HOST_SYSTEM_NAMESPACE tbb
 #endif
 
-#define __THRUST_HOST_SYSTEM_ROOT thrust/system/__THRUST_HOST_SYSTEM_NAMESPACE
+#define __THRUST_HOST_SYSTEM_ROOT thrust/system/cpp
 

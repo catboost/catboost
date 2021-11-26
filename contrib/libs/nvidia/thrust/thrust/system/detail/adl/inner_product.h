@@ -34,9 +34,7 @@
 #include <thrust/system/tbb/detail/inner_product.h>
 #endif
 
-#define __THRUST_HOST_SYSTEM_INNER_PRODUCT_HEADER <__THRUST_HOST_SYSTEM_ROOT/detail/inner_product.h>
-#include __THRUST_HOST_SYSTEM_INNER_PRODUCT_HEADER
-#undef __THRUST_HOST_SYSTEM_INNER_PRODUCT_HEADER
+#include <thrust/system/cpp/detail/inner_product.h>
 
 #define __THRUST_DEVICE_SYSTEM_INNER_PRODUCT_HEADER <__THRUST_DEVICE_SYSTEM_ROOT/detail/inner_product.h>
 #include __THRUST_DEVICE_SYSTEM_INNER_PRODUCT_HEADER

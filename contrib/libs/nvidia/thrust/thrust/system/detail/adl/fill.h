@@ -34,9 +34,7 @@
 #include <thrust/system/tbb/detail/fill.h>
 #endif
 
-#define __THRUST_HOST_SYSTEM_FILL_HEADER <__THRUST_HOST_SYSTEM_ROOT/detail/fill.h>
-#include __THRUST_HOST_SYSTEM_FILL_HEADER
-#undef __THRUST_HOST_SYSTEM_FILL_HEADER
+#include <thrust/system/cpp/detail/fill.h>
 
 #define __THRUST_DEVICE_SYSTEM_FILL_HEADER <__THRUST_DEVICE_SYSTEM_ROOT/detail/fill.h>
 #include __THRUST_DEVICE_SYSTEM_FILL_HEADER

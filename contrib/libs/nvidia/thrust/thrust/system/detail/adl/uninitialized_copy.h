@@ -34,9 +34,7 @@
 #include <thrust/system/tbb/detail/uninitialized_copy.h>
 #endif
 
-#define __THRUST_HOST_SYSTEM_UNINITIALIZED_COPY_HEADER <__THRUST_HOST_SYSTEM_ROOT/detail/uninitialized_copy.h>
-#include __THRUST_HOST_SYSTEM_UNINITIALIZED_COPY_HEADER
-#undef __THRUST_HOST_SYSTEM_UNINITIALIZED_COPY_HEADER
+#include <thrust/system/cpp/detail/uninitialized_copy.h>
 
 #define __THRUST_DEVICE_SYSTEM_UNINITIALIZED_COPY_HEADER <__THRUST_DEVICE_SYSTEM_ROOT/detail/uninitialized_copy.h>
 #include __THRUST_DEVICE_SYSTEM_UNINITIALIZED_COPY_HEADER
