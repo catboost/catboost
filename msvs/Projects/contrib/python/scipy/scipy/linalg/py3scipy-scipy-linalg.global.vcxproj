@@ -1247,9 +1247,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\_lib\py3scipy-scipy-_lib.vcxproj">
       <Project>{DD24B9E5-4DEC-B9CD-5E35-2E89E1A59626}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\fftpack\src\scipy-fftpack-src.vcxproj">
-      <Project>{98A8BEA7-8353-8B9E-066B-ABEDD2F75121}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\linalg\src\id_dist\src\src-id_dist-src.vcxproj">
       <Project>{645CCEEE-2FA3-B06C-ADDE-E545B0813653}</Project>
     </ProjectReference>
