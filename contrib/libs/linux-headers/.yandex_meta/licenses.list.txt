@@ -1,3 +1,557 @@
+===================="(GPL-2.0-only WITH Linux-syscall-note OR BSD-2-Clause)"====================
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of EITHER the GNU General Public License
+ * version 2 as published by the Free Software Foundation or the BSD
+ * 2-Clause License. This program is distributed in the hope that it
+ * will be useful, but WITHOUT ANY WARRANTY; WITHOUT EVEN THE IMPLIED
+ * WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License version 2 for more details at
+ * http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program available in the file COPYING in the main
+ * directory of this source tree.
+ *
+ * The BSD 2-Clause License
+ *
+ *     Redistribution and use in source and binary forms, with or
+ *     without modification, are permitted provided that the following
+ *     conditions are met:
+ *
+ *      - Redistributions of source code must retain the above
+ *        copyright notice, this list of conditions and the following
+ *        disclaimer.
+ *
+ *      - Redistributions in binary form must reproduce the above
+ *        copyright notice, this list of conditions and the following
+ *        disclaimer in the documentation and/or other materials
+ *        provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+ * OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+===================="(GPL-2.0-only WITH Linux-syscall-note OR BSD-2-Clause)"====================
+ * This software is available to you under a choice of one of two
+ * licenses.  You may choose to be licensed under the terms of the GNU
+ * General Public License (GPL) Version 2, available at
+ * <http://www.fsf.org/copyleft/gpl.html>, or the OpenIB.org BSD
+ * license, available in the LICENSE.TXT file accompanying this
+ * software.  These details are also available at
+ * <http://www.openfabrics.org/software_license.htm>.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+
+
+===================="(GPL-2.0-only WITH Linux-syscall-note OR BSD-2-Clause)"====================
+ * This software is available to you under a choice of one of two
+ * licenses.  You may choose to be licensed under the terms of the GNU
+ * General Public License (GPL) Version 2, available from the file
+ * COPYING in the main directory of this source tree, or the
+ * BSD license below:
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in
+ *    the documentation and/or other materials provided with the
+ *    distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS''
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+ * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS
+ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+ * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+ * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
+ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+===================="(GPL-2.0-only WITH Linux-syscall-note OR BSD-2-Clause)"====================
+ * This software is available to you under a choice of one of two licenses.
+ * You may choose to be licensed under the terms of the GNU General Public
+ * License (GPL) Version 2, available from the file COPYING in the main
+ * directory of this source tree, or the BSD license below:
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ * - Redistributions of source code must retain the above copyright notice,
+ *   this list of conditions and the following disclaimer.
+ *
+ * - Redistributions in binary form must reproduce the above copyright
+ *   notice, this list of conditions and the following disclaimer in
+ *   the documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+ * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+===================="(GPL-2.0-only WITH Linux-syscall-note OR BSD-2-Clause)"====================
+/* SPDX-License-Identifier: ((GPL-2.0 WITH Linux-syscall-note) OR BSD-2-Clause) */
+
+
+===================="(GPL-2.0-only WITH Linux-syscall-note OR BSD-3-Clause)"====================
+ * GPL LICENSE SUMMARY
+
+
+===================="(GPL-2.0-only WITH Linux-syscall-note OR BSD-3-Clause)"====================
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. Neither the name of Volkswagen nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * Alternatively, provided that this notice is retained in full, this
+ * software may be distributed under the terms of the GNU General
+ * Public License ("GPL") version 2, in which case the provisions of the
+ * GPL apply INSTEAD OF those given above.
+ *
+ * The provided data structures and external interfaces from this code
+ * are not restricted to be used by modules with a GPL compatible license.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+ * DAMAGE.
+
+
+===================="(GPL-2.0-only WITH Linux-syscall-note OR BSD-3-Clause)"====================
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. Neither the names of the copyright holders nor the names of its
+ *    contributors may be used to endorse or promote products derived from
+ *    this software without specific prior written permission.
+ *
+ * Alternatively, this software may be distributed under the terms of the
+ * GNU General Public License ("GPL") version 2 as published by the Free
+ * Software Foundation.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+
+
+===================="(GPL-2.0-only WITH Linux-syscall-note OR BSD-3-Clause)"====================
+ * This file is provided under a dual BSD/GPLv2 license.  When using or
+ * redistributing this file, you may do so under either license.
+
+
+===================="(GPL-2.0-only WITH Linux-syscall-note OR BSD-3-Clause)"====================
+ * This file is provided under a dual BSD/GPLv2 license.  When using or
+ * redistributing this file, you may do so under either license.
+ *
+ * GPL LICENSE SUMMARY
+ *
+ * Copyright(c) 2015 - 2018 Intel Corporation.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of version 2 of the GNU General Public License as
+ * published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * General Public License for more details.
+ *
+ * BSD LICENSE
+
+
+===================="(GPL-2.0-only WITH Linux-syscall-note OR BSD-3-Clause)"====================
+ * This file is provided under a dual BSD/GPLv2 license.  When using or
+ * redistributing this file, you may do so under either license.
+ *
+ * GPL LICENSE SUMMARY
+ *
+ * Copyright(c) 2015 Intel Corporation.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of version 2 of the GNU General Public License as
+ * published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * General Public License for more details.
+ *
+ * BSD LICENSE
+
+
+===================="(GPL-2.0-only WITH Linux-syscall-note OR BSD-3-Clause)"====================
+ * This software is available to you under a choice of one of two licenses.
+ * You may choose to be licensed under the terms of the GNU General Public
+ * License(GPL) Version 2, or the BSD-3 Clause license below:
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice,
+ * this list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors
+ * may be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+ * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+ * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+===================="(GPL-2.0-only WITH Linux-syscall-note OR BSD-3-Clause)"====================
+/* SPDX-License-Identifier: ((GPL-2.0 WITH Linux-syscall-note) OR BSD-3-Clause) */
+
+
+===================="(GPL-2.0-only WITH Linux-syscall-note OR BSD-3-Clause)"====================
+/* SPDX-License-Identifier: ((GPL-2.0-only WITH Linux-syscall-note) OR BSD-3-Clause) */
+
+
+===================="(GPL-2.0-only WITH Linux-syscall-note OR BSD-3-Clause)"====================
+/* SPDX-License-Identifier: (GPL-2.0 WITH Linux-syscall-note) OR BSD-3-Clause */
+
+
+===================="(GPL-2.0-only WITH Linux-syscall-note OR BSD-3-Clause)"====================
+/* SPDX-License-Identifier: (GPL-2.0 WITH Linux-syscall-note) or BSD-3-Clause */
+
+
+===================="(GPL-2.0-only WITH Linux-syscall-note OR CDDL-1.0)"====================
+/* SPDX-License-Identifier: ((GPL-2.0 WITH Linux-syscall-note) OR CDDL-1.0) */
+
+
+===================="(GPL-2.0-only WITH Linux-syscall-note OR Linux-OpenIB)"====================
+ * This software is available to you under a choice of one of two
+ * licenses.  You may choose to be licensed under the terms of the GNU
+ * General Public License (GPL) Version 2, available from the file
+ * COPYING in the main directory of this source tree, or the
+ * OpenIB.org BSD license below:
+ *
+ *     Redistribution and use in source and binary forms, with or
+ *     without modification, are permitted provided that the following
+ *     conditions are met:
+ *
+ *	- Redistributions of source code must retain the above
+ *	  copyright notice, this list of conditions and the following
+ *	  disclaimer.
+ *
+ *	- Redistributions in binary form must reproduce the above
+ *	  copyright notice, this list of conditions and the following
+ *	  disclaimer in the documentation and/or other materials
+ *	  provided with the distribution.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+
+
+===================="(GPL-2.0-only WITH Linux-syscall-note OR Linux-OpenIB)"====================
+ * This software is available to you under a choice of one of two
+ * licenses.  You may choose to be licensed under the terms of the GNU
+ * General Public License (GPL) Version 2, available from the file
+ * COPYING in the main directory of this source tree, or the
+ * OpenIB.org BSD license below:
+ *
+ *     Redistribution and use in source and binary forms, with or
+ *     without modification, are permitted provided that the following
+ *     conditions are met:
+ *
+ *      - Redistributions of source code must retain the above
+ *        copyright notice, this list of conditions and the following
+ *        disclaimer.
+ *
+ *      - Redistributions in binary form must reproduce the above
+ *        copyright notice, this list of conditions and the following
+ *        disclaimer in the documentation and /or other materials
+ *        provided with the distribution.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+
+
+===================="(GPL-2.0-only WITH Linux-syscall-note OR Linux-OpenIB)"====================
+ * This software is available to you under a choice of one of two
+ * licenses.  You may choose to be licensed under the terms of the GNU
+ * General Public License (GPL) Version 2, available from the file
+ * COPYING in the main directory of this source tree, or the
+ * OpenIB.org BSD license below:
+ *
+ *     Redistribution and use in source and binary forms, with or
+ *     without modification, are permitted provided that the following
+ *     conditions are met:
+ *
+ *      - Redistributions of source code must retain the above
+ *        copyright notice, this list of conditions and the following
+ *        disclaimer.
+ *
+ *      - Redistributions in binary form must reproduce the above
+ *        copyright notice, this list of conditions and the following
+ *        disclaimer in the documentation and/or other materials
+ *        provided with the distribution.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+
+
+===================="(GPL-2.0-only WITH Linux-syscall-note OR Linux-OpenIB)"====================
+/* SPDX-License-Identifier: ((GPL-2.0 WITH Linux-syscall-note) OR Linux-OpenIB) */
+
+
+===================="(GPL-2.0-only WITH Linux-syscall-note OR MIT)"====================
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation; or, when distributed
+ * separately from the Linux kernel or incorporated into other
+ * software packages, subject to the following license:
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this source file (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy, modify,
+ * merge, publish, distribute, sublicense, and/or sell copies of the Software,
+ * and to permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+
+
+===================="(GPL-2.0-only WITH Linux-syscall-note OR MIT)"====================
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * as published by the Free Software Foundation; or, when distributed
+ * separately from the Linux kernel or incorporated into other
+ * software packages, subject to the following license:
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this source file (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy, modify,
+ * merge, publish, distribute, sublicense, and/or sell copies of the Software,
+ * and to permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+
+
+===================="(GPL-2.0-only WITH Linux-syscall-note OR MIT)"====================
+/* SPDX-License-Identifier: ((GPL-2.0 WITH Linux-syscall-note) OR MIT) */
+
+
+===================="(GPL-2.0-only WITH Linux-syscall-note OR MIT)"====================
+/* SPDX-License-Identifier: (GPL-2.0 WITH Linux-syscall-note) OR MIT */
+
+
+===================="(GPL-2.0-or-later WITH Linux-syscall-note OR BSD-3-Clause)"====================
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  Alternatively you can redistribute this file under the terms of the
+ *  BSD license as stated below:
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *  1. Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *  2. Redistributions in binary form must reproduce the above copyright
+ *     notice, this list of conditions and the following disclaimer in
+ *     the documentation and/or other materials provided with the
+ *     distribution.
+ *  3. The names of its contributors may not be used to endorse or promote
+ *     products derived from this software without specific prior written
+ *     permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ *  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ *  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ *  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
+ *  TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ *  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+ *  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+===================="(GPL-2.0-or-later WITH Linux-syscall-note OR BSD-3-Clause)"====================
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of Freescale Semiconductor nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ *
+ * ALTERNATIVELY, this software may be distributed under the terms of the
+ * GNU General Public License ("GPL") as published by the Free Software
+ * Foundation, either version 2 of that License or (at your option) any
+ * later version.
+ *
+ * This software is provided by Freescale Semiconductor "as is" and any
+ * express or implied warranties, including, but not limited to, the implied
+ * warranties of merchantability and fitness for a particular purpose are
+ * disclaimed. In no event shall Freescale Semiconductor be liable for any
+ * direct, indirect, incidental, special, exemplary, or consequential damages
+ * (including, but not limited to, procurement of substitute goods or services;
+ * loss of use, data, or profits; or business interruption) however caused and
+ * on any theory of liability, whether in contract, strict liability, or tort
+ * (including negligence or otherwise) arising in any way out of the use of this
+ * software, even if advised of the possibility of such damage.
+
+
+===================="(GPL-2.0-or-later WITH Linux-syscall-note OR BSD-3-Clause)"====================
+ * This file is provided under a dual BSD/GPL license.  When using or
+ * redistributing this file, you may do so under either license.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of Freescale Semiconductor nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ *
+ * ALTERNATIVELY, this software may be distributed under the terms of the
+ * GNU General Public License ("GPL") as published by the Free Software
+ * Foundation, either version 2 of that License or (at your option) any
+ * later version.
+ *
+ * THIS SOFTWARE IS PROVIDED BY Freescale Semiconductor ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL Freescale Semiconductor BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+===================="(GPL-2.0-or-later WITH Linux-syscall-note OR BSD-3-Clause)"====================
+/* SPDX-License-Identifier: ((GPL-2.0+ WITH Linux-syscall-note) OR BSD-3-Clause) */
+
+
 ====================BSD-2-Clause====================
     Redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions
@@ -511,134 +1065,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE. */
-
-
-====================BSD-3-Clause AND GPL-2.0-only====================
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of Volkswagen nor the names of its contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
- *
- * Alternatively, provided that this notice is retained in full, this
- * software may be distributed under the terms of the GNU General
- * Public License ("GPL") version 2, in which case the provisions of the
- * GPL apply INSTEAD OF those given above.
- *
- * The provided data structures and external interfaces from this code
- * are not restricted to be used by modules with a GPL compatible license.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
-
-
-====================BSD-3-Clause AND GPL-2.0-only====================
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the names of the copyright holders nor the names of its
- *    contributors may be used to endorse or promote products derived from
- *    this software without specific prior written permission.
- *
- * Alternatively, this software may be distributed under the terms of the
- * GNU General Public License ("GPL") version 2 as published by the Free
- * Software Foundation.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
-
-
-====================BSD-3-Clause AND GPL-2.0-or-later====================
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of Freescale Semiconductor nor the
- *       names of its contributors may be used to endorse or promote products
- *       derived from this software without specific prior written permission.
- *
- *
- * ALTERNATIVELY, this software may be distributed under the terms of the
- * GNU General Public License ("GPL") as published by the Free Software
- * Foundation, either version 2 of that License or (at your option) any
- * later version.
- *
- * This software is provided by Freescale Semiconductor "as is" and any
- * express or implied warranties, including, but not limited to, the implied
- * warranties of merchantability and fitness for a particular purpose are
- * disclaimed. In no event shall Freescale Semiconductor be liable for any
- * direct, indirect, incidental, special, exemplary, or consequential damages
- * (including, but not limited to, procurement of substitute goods or services;
- * loss of use, data, or profits; or business interruption) however caused and
- * on any theory of liability, whether in contract, strict liability, or tort
- * (including negligence or otherwise) arising in any way out of the use of this
- * software, even if advised of the possibility of such damage.
-
-
-====================BSD-3-Clause AND GPL-2.0-or-later====================
- * This file is provided under a dual BSD/GPL license.  When using or
- * redistributing this file, you may do so under either license.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of Freescale Semiconductor nor the
- *       names of its contributors may be used to endorse or promote products
- *       derived from this software without specific prior written permission.
- *
- *
- * ALTERNATIVELY, this software may be distributed under the terms of the
- * GNU General Public License ("GPL") as published by the Free Software
- * Foundation, either version 2 of that License or (at your option) any
- * later version.
- *
- * THIS SOFTWARE IS PROVIDED BY Freescale Semiconductor ``AS IS'' AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL Freescale Semiconductor BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 ====================COPYRIGHT====================
@@ -3045,79 +3471,56 @@ struct hdsp_9632_aeb {
  * published by the Free Software Foundation.
 
 
-====================GPL-1.0-or-later====================
+====================GPL-1.0-or-later WITH Linux-syscall-note====================
  		       Under the terms of the GNU General Public License
 
 
-====================GPL-1.0-or-later====================
+====================GPL-1.0-or-later WITH Linux-syscall-note====================
     This program can be distributed under the terms of the GNU GPL.
     See the file COPYING.
 
 
-====================GPL-1.0-or-later====================
+====================GPL-1.0-or-later WITH Linux-syscall-note====================
   into non GPL compliant user space application code.
 
 
-====================GPL-1.0-or-later====================
- *	This software may be used and distributed according to the terms
- *	of the GNU General Public License, incorporated herein by reference.
- * 
- * The author may be reached as simon@ncm.com, or C/O
-
-
-====================GPL-1.0-or-later====================
+====================GPL-1.0-or-later WITH Linux-syscall-note====================
  *	This software may be used and distributed according to the terms
  *	of the GNU Public License, incorporated herein by reference.
 
 
-====================GPL-1.0-or-later====================
- *  This file is subject to the terms and conditions of the GNU General Public
- *  License.  See the file COPYING in the main directory of this archive
- *  for more details.
-
-
-====================GPL-1.0-or-later====================
+====================GPL-1.0-or-later WITH Linux-syscall-note====================
  * (C)1998 Rusty Russell -- This code is GPL.
 
 
-====================GPL-1.0-or-later====================
+====================GPL-1.0-or-later WITH Linux-syscall-note====================
  * (C)2002 Rusty Russell IBM -- This code is GPL.
 
 
-====================GPL-1.0-or-later====================
+====================GPL-1.0-or-later WITH Linux-syscall-note====================
  * 1999 Copyright (C) Pavel Machek, pavel@ucw.cz. This code is GPL.
 
 
-====================GPL-1.0-or-later====================
+====================GPL-1.0-or-later WITH Linux-syscall-note====================
  * Copyright 1993 by Theodore Ts'o.  Redistribution of this file is
  * permitted under the GNU General Public License.
 
 
-====================GPL-1.0-or-later====================
+====================GPL-1.0-or-later WITH Linux-syscall-note====================
  * GPL (C) 2001  Marc Boucher (marc@mbsi.ca).
 
 
-====================GPL-1.0-or-later====================
- * GPL LICENSE SUMMARY
-
-
-====================GPL-1.0-or-later====================
+====================GPL-1.0-or-later WITH Linux-syscall-note====================
  * Redistribution of this file is permitted under
  * the terms of the GNU Public License (GPL)
 
 
-====================GPL-1.0-or-later====================
+====================GPL-1.0-or-later WITH Linux-syscall-note====================
  * Redistribution of this file is permitted under the terms of the GNU 
  * Public License (GPL)
 
 
-====================GPL-1.0-or-later====================
- * This file is subject to the terms and conditions of the GNU General Public
- * License.  See the file "COPYING" in the main directory of this archive
- * for more details.
-
-
-====================GPL-1.0-or-later====================
+====================GPL-1.0-or-later WITH Linux-syscall-note====================
  * This program can be redistributed or modified under the terms of the
  * GNU General Public License as published by the Free Software Foundation.
  * This program is distributed without any warranty or implied warranty
@@ -3126,34 +3529,30 @@ struct hdsp_9632_aeb {
  * See the GNU General Public License for more details.
 
 
-====================GPL-1.0-or-later====================
+====================GPL-1.0-or-later WITH Linux-syscall-note====================
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
 
 
-====================GPL-1.0-or-later====================
+====================GPL-1.0-or-later WITH Linux-syscall-note====================
  * This software may be used and distributed according to the terms
  * of the GNU General Public License, incorporated herein by reference.
 
 
-====================GPL-1.0-or-later====================
+====================GPL-1.0-or-later WITH Linux-syscall-note====================
  * This software may be used and distributed according to the terms of
  * the GNU General Public License, incorporated herein by reference.
  *
  * Author:
 
 
-====================GPL-1.0-or-later AND GPL-2.0-only AND GPL-2.0-or-later AND GPL-1.0-or-later AND LGPL-2.0-only AND LGPL-2.0-or-later AND LGPL-2.1-only AND LGPL-2.1-or-later====================
-SPDX-Licenses: GPL-2.0, GPL-2.0+, GPL-1.0+, LGPL-2.0, LGPL-2.0+, LGPL-2.1, LGPL-2.1+, GPL-2.0-only, GPL-2.0-or-later
-
-
 ====================GPL-1.0-or-later WITH Linux-syscall-note====================
 /* SPDX-License-Identifier: GPL-1.0+ WITH Linux-syscall-note */
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
 		    GNU GENERAL PUBLIC LICENSE
 		       Version 2, June 1991
 
@@ -3495,25 +3894,38 @@ consider it more useful to permit linking proprietary applications with the
 library.  If this is what you want to do, use the GNU Library General
 Public License instead of this License.
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
     SPDX-License-Identifier: GPL-2.0
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
     SPDX-License-Identifier: GPL-2.0-only
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
   For 'GNU General Public License (GPL) version 2 only' use:
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
+ *	This software may be used and distributed according to the terms
+ *	of the GNU General Public License, incorporated herein by reference.
+ * 
+ * The author may be reached as simon@ncm.com, or C/O
+
+
+====================GPL-2.0-only WITH Linux-syscall-note====================
+ *  This file is subject to the terms and conditions of the GNU General Public
+ *  License.  See the file COPYING in the main directory of this archive
+ *  for more details.
+
+
+====================GPL-2.0-only WITH Linux-syscall-note====================
  *  This program is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
  *  version 2 as published by the Free Software Foundation.
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; version 2 of the License.
@@ -3528,7 +3940,7 @@ Public License instead of this License.
  *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
  * COPYRIGHT
  *	This file is distributed under the terms of the GNU General Public
  *	License (GPL). Copies of the GPL can be obtained from:
@@ -3536,7 +3948,7 @@ Public License instead of this License.
  *	Each contributing author retains all rights to their own work.
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
  * Distribute under the terms of the GPLv2 (see ../../COPYING) or under 
  * the following terms.
  *
@@ -3558,38 +3970,44 @@ Public License instead of this License.
  * ENHANCEMENTS, OR MODIFICATIONS.
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
  * For licencing details see kernel-base/COPYING
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
  * License terms: GNU General Public License (GPL) version 2
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
  * May be copied or modified under the terms of the GNU General Public
  * License.  See linux/COPYING for more information.
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
  * OSS/Free for Linux is distributed under the GNU GENERAL PUBLIC LICENSE (GPL)
  * Version 2 (June 1991). See the "COPYING" file distributed with this software
  * for more info.
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
  * This copyrighted material is made available to anyone wishing to use,
  * modify, copy, or redistribute it subject to the terms and conditions
  * of the GNU General Public License v.2.
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
  * This file is licensed under  the terms of the GNU General Public
  * License version 2. This program is licensed "as is" without any
  * warranty of any kind, whether express or implied.
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
+ * This file is subject to the terms and conditions of the GNU General Public
+ * License.  See the file "COPYING" in the main directory of this archive
+ * for more details.
+
+
+====================GPL-2.0-only WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
  * License v2 as published by the Free Software Foundation.
@@ -3605,20 +4023,20 @@ Public License instead of this License.
  * Boston, MA 021110-1307, USA.
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2 of the
  * License.
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * version 2 as published by the Free Software Foundation.
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * version 2 as published by the Free Software Foundation.
@@ -3629,7 +4047,7 @@ Public License instead of this License.
  * General Public License for more details.
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * version 2 as published by the Free Software Foundation.
@@ -3645,7 +4063,7 @@ Public License instead of this License.
  * 02110-1301 USA
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * version 2 as published by the Free Software Foundation.
@@ -3661,7 +4079,7 @@ Public License instead of this License.
  * 02110-1301 USA
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version
  * 2 as published by the Free Software Foundation.
@@ -3677,7 +4095,7 @@ Public License instead of this License.
  * USA.
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version
  * 2 as published by the Free Software Foundation;
@@ -3688,13 +4106,13 @@ Public License instead of this License.
  * GNU General Public License for more details.
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of version 2 of the GNU General Public
  * License as published by the Free Software Foundation.
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of version 2 of the GNU General Public
  * License as published by the Free Software Foundation.
@@ -3710,7 +4128,7 @@ Public License instead of this License.
  * 02110-1301, USA
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License (version 2 only)
  * as published by the Free Software Foundation.
@@ -3721,7 +4139,7 @@ Public License instead of this License.
  * GNU General Public License for more details.
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as version 2, as
  * published by the Free Software Foundation.
@@ -3732,7 +4150,7 @@ Public License instead of this License.
  * General Public License for more details.
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License v2.0 as published by
  * the Free Software Foundation
@@ -3743,13 +4161,13 @@ Public License instead of this License.
  * GNU General Public License for more details.
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2
  * as published by the Free Software Foundation.
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2
  * as published by the Free Software Foundation.
@@ -3760,13 +4178,13 @@ Public License instead of this License.
  * GNU General Public License for more details.
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
@@ -3777,7 +4195,7 @@ Public License instead of this License.
  * GNU General Public License for more details.
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
@@ -3791,7 +4209,7 @@ Public License instead of this License.
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
@@ -3806,7 +4224,7 @@ Public License instead of this License.
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
@@ -3822,13 +4240,13 @@ Public License instead of this License.
  * 02110-1301 USA
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2,
  * as published by the Free Software Foundation.
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as
  * published by the Free Software Foundation.
@@ -3843,7 +4261,7 @@ Public License instead of this License.
  * Foundation, 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as
  * published by the Free Software Foundation.
@@ -3857,7 +4275,7 @@ Public License instead of this License.
  * the file called "COPYING".
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the version 2 of the GNU General Public License
  * as published by the Free Software Foundation
@@ -3868,7 +4286,7 @@ Public License instead of this License.
  * GNU General Public License for more details.
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of version 2 of the GNU General Public License as
  * published by the Free Software Foundation.
@@ -3879,13 +4297,13 @@ Public License instead of this License.
  * General Public License for more details.
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
  * version 2, as published by the Free Software Foundation.
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
  * version 2, as published by the Free Software Foundation.
@@ -3896,7 +4314,7 @@ Public License instead of this License.
  * more details.
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
  * version 2, as published by the Free Software Foundation.
@@ -3911,7 +4329,7 @@ Public License instead of this License.
  * 51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
  * version 2, as published by the Free Software Foundation.
@@ -3926,7 +4344,7 @@ Public License instead of this License.
  * Place - Suite 330, Boston, MA 02111-1307 USA.
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
  * version 2, as published by the Free Software Foundation.
@@ -3936,7 +4354,7 @@ Public License instead of this License.
  * 51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published
  * by the Free Software Foundation; version 2 of the License.
@@ -3951,7 +4369,7 @@ Public License instead of this License.
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
  * Software Foundation version 2 and no later version.
@@ -3962,19 +4380,19 @@ Public License instead of this License.
  * more details.
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 as published
  * by the Free Software Foundation, incorporated herein by reference.
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 as published by
  * the Free Software Foundation.
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 as published by
  * the Free Software Foundation.
@@ -3988,13 +4406,13 @@ Public License instead of this License.
  * this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of version 2 of the GNU General Public License
  * as published by the Free Software Foundation.
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
  * This program is free software; you may redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; version 2 of the License.
@@ -4009,16 +4427,16 @@ Public License instead of this License.
  * SOFTWARE.
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
  * This software is distributed under GNU GPL v2, 1991
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
  * This software is distributed under the terms of the GNU General Public
  * License ("GPL") version 2, as published by the Free Software Foundation.
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
  * may be copied, distributed, and modified under those terms.
@@ -4029,17 +4447,37 @@ Public License instead of this License.
  * GNU General Public License for more details.
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
 **  This copyrighted material is made available to anyone wishing to use,
 **  modify, copy, or redistribute it subject to the terms and conditions
 **  of the GNU General Public License v.2.
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
+/* SPDX-License-Identifier: (GPL-2.0 WITH Linux-syscall-note) */
+
+
+====================GPL-2.0-only WITH Linux-syscall-note====================
+/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note
+
+
+====================GPL-2.0-only WITH Linux-syscall-note====================
+/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
+
+
+====================GPL-2.0-only WITH Linux-syscall-note====================
+/* SPDX-License-Identifier: GPL-2.0-only WITH Linux-syscall-note */
+
+
+====================GPL-2.0-only WITH Linux-syscall-note====================
+SPDX-Licenses: GPL-2.0, GPL-2.0+, GPL-1.0+, LGPL-2.0, LGPL-2.0+, LGPL-2.1, LGPL-2.1+, GPL-2.0-only, GPL-2.0-or-later
+
+
+====================GPL-2.0-only WITH Linux-syscall-note====================
 SPDX-URL: https://spdx.org/licenses/GPL-2.0.html
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
 The Linux Kernel is provided under:
 
 	SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note
@@ -4061,421 +4499,27 @@ for more details.
 
 All contributions to the Linux Kernel are subject to this COPYING file.
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
 Valid-License-Identifier: GPL-2.0
 
 
-====================GPL-2.0-only====================
+====================GPL-2.0-only WITH Linux-syscall-note====================
 Valid-License-Identifier: GPL-2.0-only
-
-
-====================GPL-2.0-only AND BSD-2-Clause====================
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of EITHER the GNU General Public License
- * version 2 as published by the Free Software Foundation or the BSD
- * 2-Clause License. This program is distributed in the hope that it
- * will be useful, but WITHOUT ANY WARRANTY; WITHOUT EVEN THE IMPLIED
- * WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU General Public License version 2 for more details at
- * http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program available in the file COPYING in the main
- * directory of this source tree.
- *
- * The BSD 2-Clause License
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *      - Redistributions of source code must retain the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer.
- *
- *      - Redistributions in binary form must reproduce the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer in the documentation and/or other materials
- *        provided with the distribution.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
- * OF THE POSSIBILITY OF SUCH DAMAGE.
-
-
-====================GPL-2.0-only AND BSD-2-Clause====================
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available at
- * <http://www.fsf.org/copyleft/gpl.html>, or the OpenIB.org BSD
- * license, available in the LICENSE.TXT file accompanying this
- * software.  These details are also available at
- * <http://www.openfabrics.org/software_license.htm>.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
-
-
-====================GPL-2.0-only AND BSD-2-Clause====================
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * BSD license below:
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
- * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS
- * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
- * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
- * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
- * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-
-====================GPL-2.0-only AND BSD-2-Clause====================
- * This software is available to you under a choice of one of two licenses.
- * You may choose to be licensed under the terms of the GNU General Public
- * License (GPL) Version 2, available from the file COPYING in the main
- * directory of this source tree, or the BSD license below:
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * - Redistributions of source code must retain the above copyright notice,
- *   this list of conditions and the following disclaimer.
- *
- * - Redistributions in binary form must reproduce the above copyright
- *   notice, this list of conditions and the following disclaimer in
- *   the documentation and/or other materials provided with the distribution.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
- * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
- * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
- * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-
-====================GPL-2.0-only AND BSD-3-Clause====================
- * This file is provided under a dual BSD/GPLv2 license.  When using or
- * redistributing this file, you may do so under either license.
-
-
-====================GPL-2.0-only AND BSD-3-Clause====================
- * This file is provided under a dual BSD/GPLv2 license.  When using or
- * redistributing this file, you may do so under either license.
- *
- * GPL LICENSE SUMMARY
- *
- * Copyright(c) 2015 - 2018 Intel Corporation.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of version 2 of the GNU General Public License as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * BSD LICENSE
-
-
-====================GPL-2.0-only AND BSD-3-Clause====================
- * This file is provided under a dual BSD/GPLv2 license.  When using or
- * redistributing this file, you may do so under either license.
- *
- * GPL LICENSE SUMMARY
- *
- * Copyright(c) 2015 Intel Corporation.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of version 2 of the GNU General Public License as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * BSD LICENSE
-
-
-====================GPL-2.0-only AND BSD-3-Clause====================
- * This software is available to you under a choice of one of two licenses.
- * You may choose to be licensed under the terms of the GNU General Public
- * License(GPL) Version 2, or the BSD-3 Clause license below:
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice,
- * this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation
- * and/or other materials provided with the distribution.
- *
- * 3. Neither the name of the copyright holder nor the names of its contributors
- * may be used to endorse or promote products derived from this software without
- * specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
- * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
- * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
- * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
- * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
- * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-
-====================GPL-2.0-only AND Linux-OpenIB====================
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *	- Redistributions of source code must retain the above
- *	  copyright notice, this list of conditions and the following
- *	  disclaimer.
- *
- *	- Redistributions in binary form must reproduce the above
- *	  copyright notice, this list of conditions and the following
- *	  disclaimer in the documentation and/or other materials
- *	  provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
-
-
-====================GPL-2.0-only AND Linux-OpenIB====================
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *      - Redistributions of source code must retain the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer.
- *
- *      - Redistributions in binary form must reproduce the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer in the documentation and /or other materials
- *        provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
-
-
-====================GPL-2.0-only AND Linux-OpenIB====================
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *      - Redistributions of source code must retain the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer.
- *
- *      - Redistributions in binary form must reproduce the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer in the documentation and/or other materials
- *        provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
-
-
-====================GPL-2.0-only AND MIT====================
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License version 2
- * as published by the Free Software Foundation; or, when distributed
- * separately from the Linux kernel or incorporated into other
- * software packages, subject to the following license:
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this source file (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use, copy, modify,
- * merge, publish, distribute, sublicense, and/or sell copies of the Software,
- * and to permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
- * IN THE SOFTWARE.
-
-
-====================GPL-2.0-only AND MIT====================
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License version 2
- * as published by the Free Software Foundation; or, when distributed
- * separately from the Linux kernel or incorporated into other
- * software packages, subject to the following license:
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this source file (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use, copy, modify,
- * merge, publish, distribute, sublicense, and/or sell copies of the Software,
- * and to permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
- * IN THE SOFTWARE.
-
-
-====================GPL-2.0-only WITH Linux-syscall-note====================
-/* SPDX-License-Identifier: (GPL-2.0 WITH Linux-syscall-note) */
-
-
-====================GPL-2.0-only WITH Linux-syscall-note====================
-/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note
-
-
-====================GPL-2.0-only WITH Linux-syscall-note====================
-/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
-
-
-====================GPL-2.0-only WITH Linux-syscall-note====================
-/* SPDX-License-Identifier: GPL-2.0-only WITH Linux-syscall-note */
-
-
-====================GPL-2.0-only WITH Linux-syscall-note AND BSD-2-Clause====================
-/* SPDX-License-Identifier: ((GPL-2.0 WITH Linux-syscall-note) OR BSD-2-Clause) */
-
-
-====================GPL-2.0-only WITH Linux-syscall-note AND BSD-3-Clause====================
-/* SPDX-License-Identifier: ((GPL-2.0 WITH Linux-syscall-note) OR BSD-3-Clause) */
-
-
-====================GPL-2.0-only WITH Linux-syscall-note AND BSD-3-Clause====================
-/* SPDX-License-Identifier: ((GPL-2.0-only WITH Linux-syscall-note) OR BSD-3-Clause) */
-
-
-====================GPL-2.0-only WITH Linux-syscall-note AND BSD-3-Clause====================
-/* SPDX-License-Identifier: (GPL-2.0 WITH Linux-syscall-note) OR BSD-3-Clause */
-
-
-====================GPL-2.0-only WITH Linux-syscall-note AND BSD-3-Clause====================
-/* SPDX-License-Identifier: (GPL-2.0 WITH Linux-syscall-note) or BSD-3-Clause */
-
-
-====================GPL-2.0-only WITH Linux-syscall-note AND CDDL-1.0====================
-/* SPDX-License-Identifier: ((GPL-2.0 WITH Linux-syscall-note) OR CDDL-1.0) */
-
-
-====================GPL-2.0-only WITH Linux-syscall-note AND Linux-OpenIB====================
-/* SPDX-License-Identifier: ((GPL-2.0 WITH Linux-syscall-note) OR Linux-OpenIB) */
 
 
 ====================GPL-2.0-only WITH Linux-syscall-note AND MIT====================
 /* SPDX-License-Identifier: ((GPL-2.0 WITH Linux-syscall-note) AND MIT) */
 
 
-====================GPL-2.0-only WITH Linux-syscall-note AND MIT====================
-/* SPDX-License-Identifier: ((GPL-2.0 WITH Linux-syscall-note) OR MIT) */
-
-
-====================GPL-2.0-only WITH Linux-syscall-note AND MIT====================
-/* SPDX-License-Identifier: (GPL-2.0 WITH Linux-syscall-note) OR MIT */
-
-
-====================GPL-2.0-or-later====================
+====================GPL-2.0-or-later WITH Linux-syscall-note====================
     SPDX-License-Identifier: GPL-2.0+
 
 
-====================GPL-2.0-or-later====================
+====================GPL-2.0-or-later WITH Linux-syscall-note====================
     SPDX-License-Identifier: GPL-2.0-or-later
 
 
-====================GPL-2.0-or-later====================
+====================GPL-2.0-or-later WITH Linux-syscall-note====================
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -4492,7 +4536,7 @@ Valid-License-Identifier: GPL-2.0-only
     MA 02110-1301 USA.							     */
 
 
-====================GPL-2.0-or-later====================
+====================GPL-2.0-or-later WITH Linux-syscall-note====================
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -4509,7 +4553,7 @@ Valid-License-Identifier: GPL-2.0-only
     MA 02110-1301 USA.
 
 
-====================GPL-2.0-or-later====================
+====================GPL-2.0-or-later WITH Linux-syscall-note====================
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -4525,12 +4569,12 @@ Valid-License-Identifier: GPL-2.0-only
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 
-====================GPL-2.0-or-later====================
+====================GPL-2.0-or-later WITH Linux-syscall-note====================
    The GAS product is under the GNU General Public License, version 2 or later.
    As such, this file is also under that license.
 
 
-====================GPL-2.0-or-later====================
+====================GPL-2.0-or-later WITH Linux-syscall-note====================
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
@@ -4541,11 +4585,11 @@ Valid-License-Identifier: GPL-2.0-only
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  
 
 
-====================GPL-2.0-or-later====================
+====================GPL-2.0-or-later WITH Linux-syscall-note====================
   For 'GNU General Public License (GPL) version 2 or any later version' use:
 
 
-====================GPL-2.0-or-later====================
+====================GPL-2.0-or-later WITH Linux-syscall-note====================
  *		This program is free software; you can redistribute it
  *		and/or  modify it under  the terms of  the GNU General
  *		Public  License as  published  by  the  Free  Software
@@ -4553,28 +4597,28 @@ Valid-License-Identifier: GPL-2.0-only
  *		your option) any later version.
 
 
-====================GPL-2.0-or-later====================
+====================GPL-2.0-or-later WITH Linux-syscall-note====================
  *		This program is free software; you can redistribute it and/or
  *		modify it under the terms of the GNU General Public License
  *		as published by the Free Software Foundation; either version
  *		2 of the License, or (at your option) any later version.
 
 
-====================GPL-2.0-or-later====================
+====================GPL-2.0-or-later WITH Linux-syscall-note====================
  *	This program is free software; you can redistribute it and/or
  *	modify it under the terms of the GNU General Public License
  *	as published by the Free Software Foundation; either version
  *	2 of the License, or (at your option) any later version.
 
 
-====================GPL-2.0-or-later====================
+====================GPL-2.0-or-later WITH Linux-syscall-note====================
  *	This program is free software; you can redistribute it and/or
  *      modify it under the terms of the GNU General Public License
  *      as published by the Free Software Foundation; either version
  *      2 of the License, or (at your option) any later version.
 
 
-====================GPL-2.0-or-later====================
+====================GPL-2.0-or-later WITH Linux-syscall-note====================
  *	This program is free software; you can redistribute it and/or modify
  *	it under the terms of the GNU General Public License as published by
  *	the Free Software Foundation; either version 2 of the License, or
@@ -4590,14 +4634,14 @@ Valid-License-Identifier: GPL-2.0-only
  *	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-====================GPL-2.0-or-later====================
+====================GPL-2.0-or-later WITH Linux-syscall-note====================
  *              This program is free software; you can redistribute it and/or
  *              modify it under the terms of the GNU General Public License
  *              as published by the Free Software Foundation; either version
  *              2 of the License, or (at your option) any later version.
 
 
-====================GPL-2.0-or-later====================
+====================GPL-2.0-or-later WITH Linux-syscall-note====================
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation; either version 2 of the License, or
@@ -4609,7 +4653,7 @@ Valid-License-Identifier: GPL-2.0-only
  *   GNU General Public License for more details.
 
 
-====================GPL-2.0-or-later====================
+====================GPL-2.0-or-later WITH Linux-syscall-note====================
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation; either version 2 of the License, or
@@ -4625,7 +4669,7 @@ Valid-License-Identifier: GPL-2.0-only
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 
 
-====================GPL-2.0-or-later====================
+====================GPL-2.0-or-later WITH Linux-syscall-note====================
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation; either version 2 of the License, or
@@ -4641,7 +4685,7 @@ Valid-License-Identifier: GPL-2.0-only
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-====================GPL-2.0-or-later====================
+====================GPL-2.0-or-later WITH Linux-syscall-note====================
  *   This program is free software; you can redistribute it and/or modify 
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation; either version 2 of the License, or
@@ -4657,21 +4701,21 @@ Valid-License-Identifier: GPL-2.0-only
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 
 
-====================GPL-2.0-or-later====================
+====================GPL-2.0-or-later WITH Linux-syscall-note====================
  *  This program is free software; you can redistribute it and/or
  *      modify it under the terms of the GNU General Public License
  *      as published by the Free Software Foundation; either version
  *      2 of the License, or (at your option) any later version.
 
 
-====================GPL-2.0-or-later====================
+====================GPL-2.0-or-later WITH Linux-syscall-note====================
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2 of the License, or
  *  (at your option) any later version.
 
 
-====================GPL-2.0-or-later====================
+====================GPL-2.0-or-later WITH Linux-syscall-note====================
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2 of the License, or
@@ -4687,7 +4731,7 @@ Valid-License-Identifier: GPL-2.0-only
  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-====================GPL-2.0-or-later====================
+====================GPL-2.0-or-later WITH Linux-syscall-note====================
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2 of the License, or
@@ -4699,7 +4743,7 @@ Valid-License-Identifier: GPL-2.0-only
  *  GNU General Public License for more details.
 
 
-====================GPL-2.0-or-later====================
+====================GPL-2.0-or-later WITH Linux-syscall-note====================
  * Authors:	Original taken from the GNU Project <netinet/in.h> file.
  *		Fred N. van Kempen, <waltje@uWalt.NL.Mugnet.ORG>
  *
@@ -4709,7 +4753,7 @@ Valid-License-Identifier: GPL-2.0-only
  *		2 of the License, or (at your option) any later version.
 
 
-====================GPL-2.0-or-later====================
+====================GPL-2.0-or-later WITH Linux-syscall-note====================
  * License:
  *		This program is free software; you can redistribute it and/or
  *		modify it under the terms of the GNU General Public License
@@ -4717,7 +4761,7 @@ Valid-License-Identifier: GPL-2.0-only
  *		2 of the License, or (at your option) any later version.
 
 
-====================GPL-2.0-or-later====================
+====================GPL-2.0-or-later WITH Linux-syscall-note====================
  * This SCTP implementation is free software;
  * you can redistribute it and/or modify it under the terms of
  * the GNU General Public License as published by
@@ -4735,34 +4779,34 @@ Valid-License-Identifier: GPL-2.0-only
  * <http://www.gnu.org/licenses/>.
 
 
-====================GPL-2.0-or-later====================
+====================GPL-2.0-or-later WITH Linux-syscall-note====================
  * This file is part of the Linux kernel and is made available under
  * the terms of the GNU General Public License, version 2, or at your
  * option, any later version, incorporated herein by reference.
 
 
-====================GPL-2.0-or-later====================
+====================GPL-2.0-or-later WITH Linux-syscall-note====================
  * This program is free software; you can redistribute  it and/or modify it
  * under  the terms of  the GNU General  Public License as published by the
  * Free Software Foundation;  either version 2 of the  License, or (at your
  * option) any later version.
 
 
-====================GPL-2.0-or-later====================
+====================GPL-2.0-or-later WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public Licence
  * as published by the Free Software Foundation; either version
  * 2 of the Licence, or (at your option) any later version.
 
 
-====================GPL-2.0-or-later====================
+====================GPL-2.0-or-later WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version
  * 2 of the License, or (at your option) any later version.
 
 
-====================GPL-2.0-or-later====================
+====================GPL-2.0-or-later WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2 of
@@ -4778,14 +4822,14 @@ Valid-License-Identifier: GPL-2.0-only
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 
-====================GPL-2.0-or-later====================
+====================GPL-2.0-or-later WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
 
 
-====================GPL-2.0-or-later====================
+====================GPL-2.0-or-later WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -4797,7 +4841,7 @@ Valid-License-Identifier: GPL-2.0-only
  * GNU General Public License for more details.
 
 
-====================GPL-2.0-or-later====================
+====================GPL-2.0-or-later WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -4812,7 +4856,7 @@ Valid-License-Identifier: GPL-2.0-only
  * along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 
-====================GPL-2.0-or-later====================
+====================GPL-2.0-or-later WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -4828,7 +4872,7 @@ Valid-License-Identifier: GPL-2.0-only
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 
-====================GPL-2.0-or-later====================
+====================GPL-2.0-or-later WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -4844,7 +4888,7 @@ Valid-License-Identifier: GPL-2.0-only
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 
-====================GPL-2.0-or-later====================
+====================GPL-2.0-or-later WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -4860,7 +4904,7 @@ Valid-License-Identifier: GPL-2.0-only
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 
-====================GPL-2.0-or-later====================
+====================GPL-2.0-or-later WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -4876,7 +4920,7 @@ Valid-License-Identifier: GPL-2.0-only
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-====================GPL-2.0-or-later====================
+====================GPL-2.0-or-later WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -4892,7 +4936,7 @@ Valid-License-Identifier: GPL-2.0-only
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 
-====================GPL-2.0-or-later====================
+====================GPL-2.0-or-later WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or 
@@ -4908,7 +4952,7 @@ Valid-License-Identifier: GPL-2.0-only
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 
-====================GPL-2.0-or-later====================
+====================GPL-2.0-or-later WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the named License,
@@ -4924,7 +4968,7 @@ Valid-License-Identifier: GPL-2.0-only
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA
 
 
-====================GPL-2.0-or-later====================
+====================GPL-2.0-or-later WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
@@ -4936,7 +4980,7 @@ Valid-License-Identifier: GPL-2.0-only
  * GNU General Public License for more details.
 
 
-====================GPL-2.0-or-later====================
+====================GPL-2.0-or-later WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
  * Free Software Foundation; either version 2 of the License, or (at your
@@ -4952,7 +4996,7 @@ Valid-License-Identifier: GPL-2.0-only
  * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 
-====================GPL-2.0-or-later====================
+====================GPL-2.0-or-later WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
  * Free Software Foundation; either version 2 of the License, or (at your
@@ -4968,7 +5012,7 @@ Valid-License-Identifier: GPL-2.0-only
  * Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-====================GPL-2.0-or-later====================
+====================GPL-2.0-or-later WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
  * Free Software Foundation; either version 2, or (at your option) any
@@ -4980,66 +5024,18 @@ Valid-License-Identifier: GPL-2.0-only
  * General Public License for more details.
 
 
-====================GPL-2.0-or-later====================
+====================GPL-2.0-or-later WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
  * Software Foundation; either version 2 of the License, or (at your option)
  * any later version.
 
 
-====================GPL-2.0-or-later====================
+====================GPL-2.0-or-later WITH Linux-syscall-note====================
 *		This program is free software; you can redistribute it and/or
 *		modify it under the terms of the GNU General Public License
 *		as published by the Free Software Foundation; either version
 *		2 of the License, or (at your option) any later version.
-
-
-====================GPL-2.0-or-later====================
-Valid-License-Identifier: GPL-2.0+
-
-
-====================GPL-2.0-or-later====================
-Valid-License-Identifier: GPL-2.0-or-later
-
-
-====================GPL-2.0-or-later AND BSD-3-Clause====================
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  Alternatively you can redistribute this file under the terms of the
- *  BSD license as stated below:
- *
- *  Redistribution and use in source and binary forms, with or without
- *  modification, are permitted provided that the following conditions
- *  are met:
- *  1. Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *  2. Redistributions in binary form must reproduce the above copyright
- *     notice, this list of conditions and the following disclaimer in
- *     the documentation and/or other materials provided with the
- *     distribution.
- *  3. The names of its contributors may not be used to endorse or promote
- *     products derived from this software without specific prior written
- *     permission.
- *
- *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
- *  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
- *  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- *  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
- *  TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
- *  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
- *  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
- *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 ====================GPL-2.0-or-later WITH Linux-syscall-note====================
@@ -5050,8 +5046,12 @@ Valid-License-Identifier: GPL-2.0-or-later
 /* SPDX-License-Identifier: GPL-2.0-or-later WITH Linux-syscall-note */
 
 
-====================GPL-2.0-or-later WITH Linux-syscall-note AND BSD-3-Clause====================
-/* SPDX-License-Identifier: ((GPL-2.0+ WITH Linux-syscall-note) OR BSD-3-Clause) */
+====================GPL-2.0-or-later WITH Linux-syscall-note====================
+Valid-License-Identifier: GPL-2.0+
+
+
+====================GPL-2.0-or-later WITH Linux-syscall-note====================
+Valid-License-Identifier: GPL-2.0-or-later
 
 
 ====================ISC====================
@@ -5140,7 +5140,7 @@ improvements or extensions that  they  make,  and  to  grant  Carnegie
 Mellon the rights to redistribute these changes without encumbrance.
 
 
-====================LGPL-2.0-or-later====================
+====================LGPL-2.0-or-later WITH Linux-syscall-note====================
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Library General Public
     License as published by the Free Software Foundation; either
@@ -5156,11 +5156,11 @@ Mellon the rights to redistribute these changes without encumbrance.
     Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-====================LGPL-2.0-or-later====================
+====================LGPL-2.0-or-later WITH Linux-syscall-note====================
  * This file is released under the LGPL.
 
 
-====================LGPL-2.0-or-later====================
+====================LGPL-2.0-or-later WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by the
  * Free Software Foundation; either version 2 of the License, or (at your
@@ -5187,7 +5187,7 @@ Mellon the rights to redistribute these changes without encumbrance.
  * more details.
 
 
-====================LGPL-2.1-only====================
+====================LGPL-2.1-only WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of version 2.1 of the GNU Lesser General Public License
  * as published by the Free Software Foundation.
@@ -5201,7 +5201,7 @@ Mellon the rights to redistribute these changes without encumbrance.
 /* SPDX-License-Identifier: LGPL-2.1 WITH Linux-syscall-note */
 
 
-====================LGPL-2.1-or-later====================
+====================LGPL-2.1-or-later WITH Linux-syscall-note====================
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
@@ -5218,7 +5218,7 @@ Mellon the rights to redistribute these changes without encumbrance.
    02111-1307 USA.  */
 
 
-====================LGPL-2.1-or-later====================
+====================LGPL-2.1-or-later WITH Linux-syscall-note====================
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Lesser General Public License as published
  *   by the Free Software Foundation; either version 2.1 of the License, or
@@ -5230,7 +5230,7 @@ Mellon the rights to redistribute these changes without encumbrance.
  *   the GNU Lesser General Public License for more details.
 
 
-====================LGPL-2.1-or-later====================
+====================LGPL-2.1-or-later WITH Linux-syscall-note====================
  * This file is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -5242,7 +5242,7 @@ Mellon the rights to redistribute these changes without encumbrance.
  * Lesser General Public License for more details.
 
 
-====================LGPL-2.1-or-later====================
+====================LGPL-2.1-or-later WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Lesser Public License
  * as published by the Free Software Foundation; either version 2.1
@@ -5258,7 +5258,7 @@ Mellon the rights to redistribute these changes without encumbrance.
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 
-====================LGPL-2.1-or-later====================
+====================LGPL-2.1-or-later WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
  * as published by the Free Software Foundation.
@@ -5273,7 +5273,7 @@ Mellon the rights to redistribute these changes without encumbrance.
  * Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 
-====================LGPL-2.1-or-later====================
+====================LGPL-2.1-or-later WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
  * as published by the Free Software Foundation; either version 2.1
@@ -5289,7 +5289,7 @@ Mellon the rights to redistribute these changes without encumbrance.
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 
-====================LGPL-2.1-or-later====================
+====================LGPL-2.1-or-later WITH Linux-syscall-note====================
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published
  * by the Free Software Foundation; either version 2.1 of the License, or

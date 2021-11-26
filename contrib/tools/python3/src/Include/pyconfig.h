@@ -1,6 +1,7 @@
 #pragma once
 
 #ifdef Py_BUILD_CORE
+#define ABIFLAGS ""
 #define PREFIX "/var/empty"
 #define EXEC_PREFIX "/var/empty"
 #define VERSION "3.9"

@@ -1280,10 +1280,6 @@ class GnuCompiler(Compiler):
         self.cxx_warnings = [
             '-Woverloaded-virtual', '-Wno-invalid-offsetof', '-Wno-attributes',
         ]
-        if not (self.tc.is_gcc and not self.tc.version_at_least(7)):
-            self.cxx_warnings.extend([
-                '-Wno-register',  # IGNIETFERRO-722 needed for contrib
-            ])
 
         self.c_defines = ['-DFAKEID=$CPP_FAKEID']
         if self.target.is_android:
@@ -1375,7 +1371,6 @@ class GnuCompiler(Compiler):
                 self.cxx_warnings.extend((
                     '-Wno-c99-designator',
                     '-Wno-deprecated-copy',
-                    '-Wno-final-dtor-non-final-class',
                     '-Wno-pessimizing-move',
                     '-Wno-range-loop-construct',
                     '-Wno-reorder-init-list',
@@ -2018,7 +2013,7 @@ class LD(Linker):
 
         # Program
         emit(
-            "GENERATE_MF",
+            "GENERATE_MF_CMD",
             '$YMAKE_PYTHON', '${input:"build/scripts/generate_mf.py"}',
             '--build-root $ARCADIA_BUILD_ROOT --module-name $REALPRJNAME -o ${output;rootrel;pre=$MODULE_PREFIX;suf=$MODULE_SUFFIX.mf:REALPRJNAME}',
             '-t $MODULE_TYPE --ya-start-command-file -Ya,lics $LICENSE_NAMES -Ya,peers ${rootrel:PEERS} -Ya,credits ${input:CREDITS_TEXTS_FILE} $CREDITS_FLAGS --ya-end-command-file',
@@ -2649,12 +2644,13 @@ class MSVCLinker(MSVC, Linker):
         if self.tc.use_clang:
             flags_debug_only.append('/STACK:4194304')
 
-        if self.tc.ide_msvs:
-            flags_debug_only.append('/DEBUG:FASTLINK' if not self.tc.use_clang else '/DEBUG')
-            flags_release_only.append('/DEBUG')
-        else:
-            # No FASTLINK for ya make, because resulting PDB would require .obj files (build_root's) to persist
-            flags_common.append('/DEBUG')
+        if is_negative_str(preset('NO_DEBUGINFO', 'no')):
+            if self.tc.ide_msvs:
+                flags_debug_only.append('/DEBUG:FASTLINK' if not self.tc.use_clang else '/DEBUG')
+                flags_release_only.append('/DEBUG')
+            else:
+                # No FASTLINK for ya make, because resulting PDB would require .obj files (build_root's) to persist
+                flags_common.append('/DEBUG')
 
         if not self.tc.ide_msvs:
             flags_common += ['/LIBPATH:"{}"'.format(path) for path in libpaths]
@@ -2709,7 +2705,10 @@ class MSVCLinker(MSVC, Linker):
 
         emit('LINK_IMPLIB_VALUE')
         emit('LINK_IMPLIB', '/IMPLIB:${output;noext;rootrel;pre=$MODULE_PREFIX:REALPRJNAME.lib}')
-        emit('LINK_EXTRA_OUTPUT', '/PDB:${output;noext;rootrel;pre=$MODULE_PREFIX:REALPRJNAME.pdb}')
+        if is_negative_str(preset('NO_DEBUGINFO', 'no')):
+            emit('LINK_EXTRA_OUTPUT', '/PDB:${output;noext;rootrel;pre=$MODULE_PREFIX:REALPRJNAME.pdb}')
+        else:
+            emit('LINK_EXTRA_OUTPUT')
 
         if not self.tc.under_wine:
             emit('LIB_WRAPPER', '${YMAKE_PYTHON}', '${input:"build/scripts/fix_msvc_output.py"}', 'lib')
@@ -2726,7 +2725,7 @@ class MSVCLinker(MSVC, Linker):
                 EXPORTS_VALUE=/DEF:${input:EXPORTS_FILE}
             }''')
 
-        emit("GENERATE_MF", '$YMAKE_PYTHON ${input:"build/scripts/generate_mf.py"}',
+        emit("GENERATE_MF_CMD", '$YMAKE_PYTHON ${input:"build/scripts/generate_mf.py"}',
              '--build-root $ARCADIA_BUILD_ROOT --module-name $REALPRJNAME -o ${output;rootrel;pre=$MODULE_PREFIX;suf=$MODULE_SUFFIX.mf:REALPRJNAME}',
              '-t $MODULE_TYPE --ya-start-command-file -Ya,lics $LICENSE_NAMES -Ya,peers ${rootrel:PEERS} -Ya,credits ${input:CREDITS_TEXTS_FILE} $CREDITS_FLAGS --ya-end-command-file',
              )

@@ -1,9 +1,9 @@
 --- contrib/python/importlib-metadata/py3/.dist-info/METADATA	(index)
 +++ contrib/python/importlib-metadata/py3/.dist-info/METADATA	(working tree)
-@@ -13,7 +13,6 @@ Classifier: License :: OSI Approved :: Apache Software License
- Classifier: Programming Language :: Python :: 3
+@@ -14,7 +14,6 @@ Classifier: License :: OSI Approved :: Apache Software License
  Classifier: Programming Language :: Python :: 3 :: Only
  Requires-Python: >=3.6
+ License-File: LICENSE
 -Requires-Dist: zipp (>=0.5)
  Requires-Dist: typing-extensions (>=3.6.4) ; python_version < "3.8"
  Provides-Extra: docs
@@ -18,7 +18,7 @@
  import email
  import pathlib
  import operator
-@@ -767,7 +767,7 @@ class Prepared:
+@@ -873,7 +872,7 @@ class Prepared:
          return bool(self.name)
 
 
@@ -27,8 +27,8 @@
  class MetadataPathFinder(NullFinder, DistributionFinder):
      """A degenerate finder for distribution packages on the file system.
 
-@@ -824,6 +823,63 @@ class PathDistribution(Distribution):
-         return self._path.parent / path
+@@ -945,6 +944,63 @@ class PathDistribution(Distribution):
+         return name
  
  
 +class ArcadiaDistribution(Distribution):

@@ -1484,7 +1484,7 @@ class NullProvider:
     def _validate_resource_path(path):
         """
         Validate the resource paths according to the docs.
-        https://setuptools.readthedocs.io/en/latest/pkg_resources.html#basic-resource-access
+        https://setuptools.pypa.io/en/latest/pkg_resources.html#basic-resource-access
 
         >>> warned = getfixture('recwarn')
         >>> warnings.simplefilter('always')

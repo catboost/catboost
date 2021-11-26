@@ -81,6 +81,7 @@ ALLOW vendor -> vendor/github.com/aromanovich/thrift
 ALLOW .* -> vendor/go.temporal.io/server
 ALLOW infra/temporal/swat/server -> vendor/github.com/urfave/cli
 ALLOW infra/temporal/swat/tctl -> vendor/github.com/urfave/cli
+ALLOW infra/temporal -> vendor/github.com/uber-go/tally
 
 # CONTRIB-2116
 ALLOW .* -> vendor/github.com/google/licensecheck
@@ -102,6 +103,9 @@ ALLOW .* -> vendor/github.com/digitalocean/go-libvirt
 
 # CONTRIB-1872 pure ipp proto implementation
 ALLOW .* -> vendor/github.com/phin1x/go-ipp
+
+# CONTRIB-2113 gobreaker
+ALLOW .* -> vendor/github.com/sony/gobreaker
 
 # Validate and define text-based and dynamic configuration
 ALLOW .* -> vendor/cuelang.org/go

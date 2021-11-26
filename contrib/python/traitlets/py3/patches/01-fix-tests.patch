@@ -90,15 +90,3 @@
      out, err = p.communicate()
      out = out.decode('utf8', 'replace')
      err = err.decode('utf8', 'replace')
---- contrib/python/traitlets/py3/ya.make	(index)
-+++ contrib/python/traitlets/py3/ya.make	(working tree)
-@@ -23,6 +23,9 @@ PY_SRCS(
-     traitlets/config/manager.py
-     traitlets/config/sphinxdoc.py
-     traitlets/log.py
-+    traitlets/tests/__init__.py
-+    traitlets/tests/_warnings.py
-+    traitlets/tests/utils.py
-     traitlets/traitlets.py
-     traitlets/utils/__init__.py
-     traitlets/utils/bunch.py

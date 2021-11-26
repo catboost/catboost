@@ -968,7 +968,6 @@ migrations:
     - dict/bert/make/lib/tasks
     - dict/mt/analytics/sentence_breaking/translate_human_eval_comparison
     - dict/mt/g2p/asr/graph
-    - dict/mt/make/tools/train_iterative_backtranslation
     - dict/ontodb/onto_lib/sources/wikidata
     - dict/ontodb/proto/direct/ut
     - dict/ontodb/utils/export_src_codes
@@ -1234,7 +1233,6 @@ migrations:
     - ads/watchman/contrib/flask-restplus-patched
     - ads/watchman/contrib/flask-restplus-patched/flask_restplus_patched
     - alice/analytics/utils/marty/run_nirvana_instance
-    - arc/tables_creation/tests
     - cloud/ai/speechkit/stt/tests/data_pipeline/join
     - cv/short2long/nirvana/lib
     - devtools/signer/signer
@@ -1314,7 +1312,6 @@ migrations:
     - alice/uniproxy/bin/send-digest
     - alice/uniproxy/tools/perf_results_parser
     - antirobot/tools/prepare_requests_cbb
-    - arc/backups/restore/tasklet
     - browser/infra/services/ci/backend/flakiness/migrations
     - clickhouse/utils/github
     - cv/imageproc/ocr/tools/nirvana/captcha_renderer
@@ -1604,7 +1601,6 @@ migrations:
     - ads/nirvana/xfactor-yt
     - ads/tools/mx_feature_remapper
     - alice/analytics/utils/marty/run_nirvana_instance
-    - arc/tables_creation/tests
     - cloud/ai/speechkit/stt/tests/data_pipeline/join
     - devtools/signer/signer
     - dict/lm/sources/lib/launcher
@@ -3653,7 +3649,6 @@ migrations:
     - yweb/yasap/pdb/pdb-backend/tests/lib/detected_objects
     - yweb/yasap/pdb/pdb-backend/tests/lib/its
     - yweb/yasap/pdb/pdb-backend/tests/lib/mds
-    - yweb/yasap/pdb/pdb-backend/tests/lib/messenger
     - yweb/yasap/pdb/pdb-backend/tests/lib/monit
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/avatars
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/boards/resources

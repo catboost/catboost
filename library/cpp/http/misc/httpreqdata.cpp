@@ -64,7 +64,7 @@ const char* TBaseServerRequestData::RemoteAddr() const {
     return Addr;
 }
 
-const char* TBaseServerRequestData::HeaderIn(const char* key) const {
+const char* TBaseServerRequestData::HeaderIn(TStringBuf key) const {
     auto it = HeadersIn_.find(key);
 
     if (it == HeadersIn_.end()) {

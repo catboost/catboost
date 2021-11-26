@@ -58,7 +58,7 @@ public:
     void AppendQueryString(const char* str, size_t length);
     const char* RemoteAddr() const;
     void SetRemoteAddr(TStringBuf addr);
-    const char* HeaderIn(const char* key) const;
+    const char* HeaderIn(TStringBuf key) const;
 
     const THttpHeadersContainer& HeadersIn() const {
         return HeadersIn_;

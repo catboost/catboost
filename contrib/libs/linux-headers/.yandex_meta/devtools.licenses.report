@@ -29,7 +29,7 @@
 # FILE_INCLUDE - include all file data into licenses text file
 # =======================
 
-KEEP     GPL-2.0-or-later     013dab33737a2ba6a19bf7e24f57ef78
+KEEP     GPL-2.0-or-later WITH Linux-syscall-note 013dab33737a2ba6a19bf7e24f57ef78
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -52,7 +52,7 @@ BELONGS ya.make
     Files with this license:
         drm/drm_mode.h [8:24]
 
-KEEP     GPL-2.0-or-later     0298b30c666cacf45777ffc2cac8a815
+KEEP     GPL-2.0-or-later WITH Linux-syscall-note 0298b30c666cacf45777ffc2cac8a815
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -63,7 +63,7 @@ BELONGS ya.make
     Files with this license:
         sound/usb_stream.h [5:17]
 
-KEEP     GPL-2.0-only         031de1ae24af07c5488b9666c88baec7
+KEEP     GPL-2.0-only WITH Linux-syscall-note 031de1ae24af07c5488b9666c88baec7
 BELONGS ya.make
     License text:
          * This file is licensed under  the terms of the GNU General Public
@@ -88,7 +88,7 @@ BELONGS ya.make
     Files with this license:
         linux/nfs_idmap.h [11:34]
 
-KEEP     GPL-2.0-only         04a9b1d11f45a90cf857e5e4e14a7bba
+KEEP     GPL-2.0-only WITH Linux-syscall-note 04a9b1d11f45a90cf857e5e4e14a7bba
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -99,7 +99,7 @@ BELONGS ya.make
     Files with this license:
         linux/cryptouser.h [8:19]
 
-KEEP     GPL-2.0-only         05c949016d2fa4c71e577138bd2250d3
+KEEP     GPL-2.0-only WITH Linux-syscall-note 05c949016d2fa4c71e577138bd2250d3
 BELONGS ya.make
     License text:
          * This program is free software; you can redistribute it and/or modify
@@ -113,7 +113,7 @@ BELONGS ya.make
     Files with this license:
         linux/selinux_netlink.h [9:11]
 
-KEEP     GPL-2.0-only         0625114cbd1029dc0e85fd532346f18f
+KEEP     GPL-2.0-only WITH Linux-syscall-note 0625114cbd1029dc0e85fd532346f18f
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -124,7 +124,7 @@ BELONGS ya.make
     Files with this license:
         linux/can/netlink.h [9:16]
 
-KEEP     GPL-2.0-only         063c3f8fc3229ab53c18a9e67cbbd0a9
+KEEP     GPL-2.0-only WITH Linux-syscall-note 063c3f8fc3229ab53c18a9e67cbbd0a9
 BELONGS ya.make
 FILE_INCLUDE COPYING found in files: COPYING at line 20
 FILE_INCLUDE LICENSES/exceptions/Linux-syscall-note found in files: COPYING at line 3
@@ -138,7 +138,7 @@ FILE_INCLUDE LICENSES/preferred/GPL-2.0 found in files: COPYING at line 3
     Files with this license:
         COPYING [1:20]
 
-KEEP     GPL-2.0-or-later     083347f501aaf4beebfe2d5232bd2a5f
+KEEP     GPL-2.0-or-later WITH Linux-syscall-note 083347f501aaf4beebfe2d5232bd2a5f
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -150,7 +150,7 @@ BELONGS ya.make
         linux/raid/md_p.h [6:13]
         linux/raid/md_u.h [6:13]
 
-KEEP     GPL-2.0-only         08ebfda8cc18a460a255162c738a722c
+KEEP     GPL-2.0-only WITH Linux-syscall-note 08ebfda8cc18a460a255162c738a722c
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -161,7 +161,7 @@ BELONGS ya.make
     Files with this license:
         linux/mdio.h [6:8]
 
-KEEP     GPL-2.0-only         0a67798f443057f11584e80836c10739
+KEEP     GPL-2.0-only WITH Linux-syscall-note 0a67798f443057f11584e80836c10739
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -1805,7 +1805,7 @@ FILE_INCLUDE LICENSES/exceptions/Linux-syscall-note found in files: asm/byteorde
         sound/usb_stream.h [1:1]
         video/sisfb.h [1:1]
 
-KEEP     GPL-1.0-or-later     0c9f39e95c784658046200a8cff1a57d
+KEEP     GPL-2.0-only WITH Linux-syscall-note 0c9f39e95c784658046200a8cff1a57d
 BELONGS ya.make
     License text:
          *	This software may be used and distributed according to the terms
@@ -1834,7 +1834,7 @@ BELONGS ya.make
     Files with this license:
         linux/parport.h [2:4]
 
-KEEP     GPL-1.0-or-later     0f4a8cb5cf4c2970305abfdd9e594711
+KEEP     GPL-1.0-or-later WITH Linux-syscall-note 0f4a8cb5cf4c2970305abfdd9e594711
 BELONGS ya.make
     License text:
          *	This software may be used and distributed according to the terms
@@ -1847,7 +1847,7 @@ BELONGS ya.make
     Files with this license:
         linux/if_bonding.h [12:13]
 
-KEEP     GPL-2.0-only         10fde6efb10db7d3958a00985c184b94
+KEEP     GPL-2.0-only WITH Linux-syscall-note 10fde6efb10db7d3958a00985c184b94
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -1858,7 +1858,7 @@ BELONGS ya.make
     Files with this license:
         linux/net_namespace.h [5:7]
 
-KEEP     GPL-2.0-only         1157199604988fa4960c3902115a5bea
+KEEP     GPL-2.0-only WITH Linux-syscall-note 1157199604988fa4960c3902115a5bea
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -1883,7 +1883,7 @@ BELONGS ya.make
         drm/qxl_drm.h [5:22]
         drm/virtgpu_drm.h [5:22]
 
-KEEP     LGPL-2.1-or-later    11f29116928a6d65084938ef4679791e
+KEEP     LGPL-2.1-or-later WITH Linux-syscall-note 11f29116928a6d65084938ef4679791e
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -1895,7 +1895,7 @@ BELONGS ya.make
         linux/posix_acl.h [6:14]
         linux/posix_acl_xattr.h [6:14]
 
-KEEP     GPL-2.0-or-later     12218f2cf1a12cc8c25b953d1068b5eb
+KEEP     GPL-2.0-or-later WITH Linux-syscall-note 12218f2cf1a12cc8c25b953d1068b5eb
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -1906,7 +1906,7 @@ BELONGS ya.make
     Files with this license:
         linux/i2c-dev.h [8:21]
 
-KEEP     GPL-2.0-or-later     13b52c382ec5c4777839847052268fb6
+KEEP     GPL-2.0-or-later WITH Linux-syscall-note 13b52c382ec5c4777839847052268fb6
 BELONGS ya.make
     License text:
             SPDX-License-Identifier: GPL-2.0-or-later
@@ -1918,7 +1918,7 @@ BELONGS ya.make
     Files with this license:
         LICENSES/preferred/GPL-2.0 [17:17]
 
-KEEP     GPL-2.0-only         16de935ebcebe2420535844d4f6faefc
+KEEP     GPL-2.0-only WITH Linux-syscall-note 16de935ebcebe2420535844d4f6faefc
 BELONGS ya.make
 FILE_INCLUDE COPYING found in files: LICENSES/preferred/GPL-2.0 at line 79
     Note: matched license text is too long. Read it in the source files.
@@ -1930,7 +1930,7 @@ FILE_INCLUDE COPYING found in files: LICENSES/preferred/GPL-2.0 at line 79
     Files with this license:
         LICENSES/preferred/GPL-2.0 [20:359]
 
-KEEP     GPL-2.0-only         1838d2b04954b1a7bc6405875c2d62ac
+KEEP     GPL-2.0-only WITH Linux-syscall-note 1838d2b04954b1a7bc6405875c2d62ac
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -1966,7 +1966,7 @@ BELONGS ya.make
     Files with this license:
         linux/virtio_rng.h [3:4]
 
-KEEP     GPL-2.0-or-later     1b6d71d27a2d227f908aa4cb74c795db
+KEEP     GPL-2.0-or-later WITH Linux-syscall-note 1b6d71d27a2d227f908aa4cb74c795db
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -1978,7 +1978,7 @@ BELONGS ya.make
         linux/if_tun.h [6:14]
         linux/if_x25.h [5:13]
 
-KEEP     GPL-2.0-only         1c985f71ff3684256d8bde04e74e2c00
+KEEP     GPL-2.0-only WITH Linux-syscall-note 1c985f71ff3684256d8bde04e74e2c00
 BELONGS ya.make
     License text:
         **  This copyrighted material is made available to anyone wishing to use,
@@ -2008,7 +2008,7 @@ BELONGS ya.make
         linux/batman_adv.h [1:1]
         linux/vbox_err.h [1:1]
 
-KEEP     GPL-2.0-or-later     1ef71bdc67f07b32c768aec92ea56183
+KEEP     GPL-2.0-or-later WITH Linux-syscall-note 1ef71bdc67f07b32c768aec92ea56183
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -2019,7 +2019,7 @@ BELONGS ya.make
     Files with this license:
         mtd/ubi-user.h [5:17]
 
-KEEP     GPL-2.0-or-later     1f961414528b5c7e348b2e60495561ee
+KEEP     GPL-2.0-or-later WITH Linux-syscall-note 1f961414528b5c7e348b2e60495561ee
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -2041,7 +2041,7 @@ BELONGS ya.make
     Files with this license:
         linux/membarrier.h [11:27]
 
-KEEP     GPL-2.0-only         20d14247ecff7235ca37c4de40683b9e
+KEEP     GPL-2.0-only WITH Linux-syscall-note 20d14247ecff7235ca37c4de40683b9e
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -2065,7 +2065,7 @@ BELONGS ya.make
         drm/v3d_drm.h [4:21]
         drm/vc4_drm.h [4:21]
 
-KEEP     GPL-2.0-only         2525bae1c7ecd26b364ad1468c5751f3
+KEEP     GPL-2.0-only WITH Linux-syscall-note 2525bae1c7ecd26b364ad1468c5751f3
 BELONGS ya.make
     License text:
          * This copyrighted material is made available to anyone wishing to use,
@@ -2081,7 +2081,7 @@ BELONGS ya.make
         linux/dlm_plock.h [5:7]
         linux/gfs2_ondisk.h [6:8]
 
-KEEP     LGPL-2.1-or-later    2c199c4e582a198aade92717ac9b5b6b
+KEEP     LGPL-2.1-or-later WITH Linux-syscall-note 2c199c4e582a198aade92717ac9b5b6b
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -2107,7 +2107,7 @@ BELONGS ya.make
     Files with this license:
         drm/drm_sarea.h [12:29]
 
-KEEP     GPL-2.0-or-later     2d7a9700ba7dbda0c22883d60ef02bb6
+KEEP     GPL-2.0-or-later WITH Linux-syscall-note 2d7a9700ba7dbda0c22883d60ef02bb6
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -2118,7 +2118,7 @@ BELONGS ya.make
     Files with this license:
         linux/if_cablemodem.h [8:12]
 
-KEEP     GPL-1.0-or-later     2e7ea89eba1259594c306cffdc0e58b4
+KEEP     GPL-1.0-or-later WITH Linux-syscall-note 2e7ea89eba1259594c306cffdc0e58b4
 BELONGS ya.make
     License text:
          * GPL (C) 2001  Marc Boucher (marc@mbsi.ca).
@@ -2130,7 +2130,7 @@ BELONGS ya.make
     Files with this license:
         linux/netfilter/xt_conntrack.h [3:3]
 
-KEEP     GPL-2.0-only AND BSD-2-Clause 2e82b2e6076263f1be5ddbbdcd4f2061
+KEEP     "(GPL-2.0-only WITH Linux-syscall-note OR BSD-2-Clause)" 2e82b2e6076263f1be5ddbbdcd4f2061
 BELONGS ya.make
 FILE_INCLUDE COPYING found in files: rdma/vmw_pvrdma-abi.h at line 15
     Note: matched license text is too long. Read it in the source files.
@@ -2149,7 +2149,7 @@ FILE_INCLUDE COPYING found in files: rdma/vmw_pvrdma-abi.h at line 15
     Files with this license:
         rdma/vmw_pvrdma-abi.h [5:44]
 
-KEEP     GPL-2.0-only         2fbbd9325b5a73483cc7333c2a605835
+KEEP     GPL-2.0-only WITH Linux-syscall-note 2fbbd9325b5a73483cc7333c2a605835
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -2202,7 +2202,7 @@ BELONGS ya.make
     Files with this license:
         linux/virtio_ids.h [6:30]
 
-KEEP     GPL-1.0-or-later     30648d129f9d4781f61e6f25f8e23c82
+KEEP     GPL-1.0-or-later WITH Linux-syscall-note 30648d129f9d4781f61e6f25f8e23c82
 BELONGS ya.make
     License text:
          * This software may be used and distributed according to the terms of
@@ -2230,7 +2230,7 @@ BELONGS ya.make
     Files with this license:
         linux/fuse.h [9:10]
 
-KEEP     GPL-2.0-only         31ec01fe7a9ef06c15733b2b1012bdf0
+KEEP     GPL-2.0-only WITH Linux-syscall-note 31ec01fe7a9ef06c15733b2b1012bdf0
 BELONGS ya.make
     License text:
          * For licencing details see kernel-base/COPYING
@@ -2242,7 +2242,7 @@ BELONGS ya.make
     Files with this license:
         linux/perf_event.h [13:13]
 
-KEEP     GPL-2.0-only WITH Linux-syscall-note AND BSD-3-Clause 32b69adb9137b7c2f91ade8414023a9a
+KEEP     "(GPL-2.0-only WITH Linux-syscall-note OR BSD-3-Clause)" 32b69adb9137b7c2f91ade8414023a9a
 BELONGS ya.make
 FILE_INCLUDE LICENSES/exceptions/Linux-syscall-note found in files: linux/virtio_pmem.h at line 1
 FILE_INCLUDE LICENSES/preferred/GPL-2.0 found in files: linux/virtio_pmem.h at line 1
@@ -2270,7 +2270,7 @@ FILE_INCLUDE LICENSES/preferred/GPL-2.0 found in files: linux/virtio_pmem.h at l
     Files with this license:
         linux/virtio_pmem.h [1:1]
 
-KEEP     GPL-2.0-or-later     3343b3510b27b2bf4268e9c65beba9a6
+KEEP     GPL-2.0-or-later WITH Linux-syscall-note 3343b3510b27b2bf4268e9c65beba9a6
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -2309,7 +2309,7 @@ FILE_INCLUDE LICENSES/exceptions/Linux-syscall-note found in files: asm/mtrr_x86
         linux/dm-log-userspace.h [1:1]
         linux/userio.h [1:1]
 
-KEEP     GPL-2.0-or-later     350ed9f417639304ce3c2d0e9abcc6c9
+KEEP     GPL-2.0-or-later WITH Linux-syscall-note 350ed9f417639304ce3c2d0e9abcc6c9
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -2334,7 +2334,7 @@ BELONGS ya.make
         drm/r128_drm.h [9:26]
         drm/radeon_drm.h [8:25]
 
-KEEP     GPL-2.0-or-later     36082e957ba846d90e0ba47bbbb7164d
+KEEP     GPL-2.0-or-later WITH Linux-syscall-note 36082e957ba846d90e0ba47bbbb7164d
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -2345,7 +2345,7 @@ BELONGS ya.make
     Files with this license:
         linux/usbdevice_fs.h [10:22]
 
-KEEP     GPL-2.0-only AND BSD-3-Clause 37102b58e4b6441c5d5fc03639dbe314
+KEEP     "(GPL-2.0-only WITH Linux-syscall-note OR BSD-3-Clause)" 37102b58e4b6441c5d5fc03639dbe314
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -2365,7 +2365,7 @@ BELONGS ya.make
         linux/rio_cm_cdev.h [8:36]
         linux/rio_mport_cdev.h [9:37]
 
-KEEP     GPL-2.0-only         3b519b45800910bbdbc5803fb85fe11c
+KEEP     GPL-2.0-only WITH Linux-syscall-note 3b519b45800910bbdbc5803fb85fe11c
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -2376,7 +2376,7 @@ BELONGS ya.make
     Files with this license:
         linux/hidraw.h [6:12]
 
-KEEP     GPL-2.0-or-later WITH Linux-syscall-note AND BSD-3-Clause 3bf22fa58a1d6eb55418ee2202eb65b7
+KEEP     "(GPL-2.0-or-later WITH Linux-syscall-note OR BSD-3-Clause)" 3bf22fa58a1d6eb55418ee2202eb65b7
 BELONGS ya.make
 FILE_INCLUDE LICENSES/exceptions/Linux-syscall-note found in files: asm/epapr_hcalls_powerpc.h at line 1, linux/fsl_hypervisor.h at line 1, linux/v4l2-common.h at line 1, linux/v4l2-controls.h at line 1, linux/videodev2.h at line 1
     License text:
@@ -2415,7 +2415,7 @@ FILE_INCLUDE LICENSES/exceptions/Linux-syscall-note found in files: asm/epapr_hc
         linux/v4l2-controls.h [1:1]
         linux/videodev2.h [1:1]
 
-KEEP     GPL-2.0-or-later     40893c88c24072e02a822e0e1f41b3c0
+KEEP     GPL-2.0-or-later WITH Linux-syscall-note 40893c88c24072e02a822e0e1f41b3c0
 BELONGS ya.make
     License text:
             SPDX-License-Identifier: GPL-2.0+
@@ -2427,7 +2427,7 @@ BELONGS ya.make
     Files with this license:
         LICENSES/preferred/GPL-2.0 [15:15]
 
-KEEP     GPL-2.0-only         40e0ab2265b84615312f79c083d23b0c
+KEEP     GPL-2.0-only WITH Linux-syscall-note 40e0ab2265b84615312f79c083d23b0c
 BELONGS ya.make
     License text:
         Valid-License-Identifier: GPL-2.0-only
@@ -2439,7 +2439,7 @@ BELONGS ya.make
     Files with this license:
         LICENSES/preferred/GPL-2.0 [2:2]
 
-KEEP     BSD-3-Clause AND GPL-2.0-or-later 44001c3638094a75111a990493971a22
+KEEP     "(GPL-2.0-or-later WITH Linux-syscall-note OR BSD-3-Clause)" 44001c3638094a75111a990493971a22
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -2468,7 +2468,7 @@ BELONGS ya.make
     Files with this license:
         linux/ndctl.h [4:11]
 
-KEEP     GPL-2.0-only         4579e5fb651405170091895afca496ce
+KEEP     GPL-2.0-only WITH Linux-syscall-note 4579e5fb651405170091895afca496ce
 BELONGS ya.make
 FILE_INCLUDE COPYING found in files: linux/lightnvm.h at line 15
     Note: matched license text is too long. Read it in the source files.
@@ -2480,7 +2480,7 @@ FILE_INCLUDE COPYING found in files: linux/lightnvm.h at line 15
     Files with this license:
         linux/lightnvm.h [5:17]
 
-KEEP     GPL-1.0-or-later     48945aa01e1c4a40f64a4c747e468b30
+KEEP     "(GPL-2.0-only WITH Linux-syscall-note OR BSD-3-Clause)" 48945aa01e1c4a40f64a4c747e468b30
 BELONGS ya.make
     License text:
          * GPL LICENSE SUMMARY
@@ -2492,7 +2492,7 @@ BELONGS ya.make
     Files with this license:
         linux/scif_ioctl.h [8:8]
 
-KEEP     GPL-2.0-or-later AND BSD-3-Clause 4a43157c485b78c7c7f6c0f8c143d4e8
+KEEP     "(GPL-2.0-or-later WITH Linux-syscall-note OR BSD-3-Clause)" 4a43157c485b78c7c7f6c0f8c143d4e8
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -2514,7 +2514,7 @@ BELONGS ya.make
         linux/v4l2-controls.h [7:43]
         linux/videodev2.h [7:43]
 
-KEEP     LGPL-2.0-or-later    4aa8a91ced9a29f8682ba9e92312a81e
+KEEP     LGPL-2.0-or-later WITH Linux-syscall-note 4aa8a91ced9a29f8682ba9e92312a81e
 BELONGS ya.make
     License text:
          * This file is released under the LGPL.
@@ -2527,7 +2527,7 @@ BELONGS ya.make
         linux/dm-ioctl.h [6:6]
         linux/dm-log-userspace.h [5:5]
 
-KEEP     GPL-2.0-only         4bc165afb5e35ec214200987f3a09e33
+KEEP     GPL-2.0-only WITH Linux-syscall-note 4bc165afb5e35ec214200987f3a09e33
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -2538,7 +2538,7 @@ BELONGS ya.make
     Files with this license:
         asm/perf_event_powerpc.h [5:8]
 
-KEEP     BSD-3-Clause AND GPL-2.0-or-later 4bcbc08530dc3f70abe5a761abbd421e
+KEEP     "(GPL-2.0-or-later WITH Linux-syscall-note OR BSD-3-Clause)" 4bcbc08530dc3f70abe5a761abbd421e
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -2556,7 +2556,7 @@ BELONGS ya.make
     Files with this license:
         linux/fsl_hypervisor.h [8:34]
 
-KEEP     GPL-1.0-or-later     4cb51f7e4b434288e468aee69c3d5f90
+KEEP     GPL-1.0-or-later WITH Linux-syscall-note 4cb51f7e4b434288e468aee69c3d5f90
 BELONGS ya.make
     License text:
          * Copyright 1993 by Theodore Ts'o.  Redistribution of this file is
@@ -2569,7 +2569,7 @@ BELONGS ya.make
     Files with this license:
         linux/loop.h [7:8]
 
-KEEP     GPL-1.0-or-later     4ef9fd94891475258e2a621bded59b34
+KEEP     GPL-2.0-only WITH Linux-syscall-note 4ef9fd94891475258e2a621bded59b34
 BELONGS ya.make
 FILE_INCLUDE COPYING found in files: linux/zorro.h at line 8
     License text:
@@ -2584,7 +2584,7 @@ FILE_INCLUDE COPYING found in files: linux/zorro.h at line 8
     Files with this license:
         linux/zorro.h [7:9]
 
-KEEP     GPL-2.0-or-later     4fce37992a03b2eb085a229a8b9d143e
+KEEP     GPL-2.0-or-later WITH Linux-syscall-note 4fce37992a03b2eb085a229a8b9d143e
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -2609,7 +2609,7 @@ BELONGS ya.make
     Files with this license:
         linux/bpf.h [3554:3554]
 
-KEEP     GPL-2.0-or-later     534ccb3153742b07bce86782a49733fc
+KEEP     GPL-2.0-or-later WITH Linux-syscall-note 534ccb3153742b07bce86782a49733fc
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -2623,9 +2623,12 @@ BELONGS ya.make
         linux/if_alg.h [7:10]
         linux/uhid.h [11:14]
 
-KEEP     GPL-2.0-only         53a83ff18597a4fbdcfbdf9258581341
+KEEP     GPL-2.0-only WITH Linux-syscall-note 53a83ff18597a4fbdcfbdf9258581341
 BELONGS ya.make
 FILE_INCLUDE LICENSES/preferred/GPL-2.0 found in files: LICENSES/preferred/GPL-2.0 at line 11
+    # As discussed in https://st.yandex-team.ru/ARCADIAWGSUP-12,
+    # we consider that LICENSES texts should be interpreted according to COPYING file.
+    # The latter explicitly specifies that Linux-syscall-note exception applies.
     License text:
             SPDX-License-Identifier: GPL-2.0
     Scancode info:
@@ -2647,8 +2650,11 @@ BELONGS ya.make
     Files with this license:
         linux/virtio_vsock.h [2:27]
 
-KEEP     GPL-2.0-only         558270d0fa2d0c1b0f41ed2294dec221
+KEEP     GPL-2.0-only WITH Linux-syscall-note 558270d0fa2d0c1b0f41ed2294dec221
 BELONGS ya.make
+    # As discussed in https://st.yandex-team.ru/ARCADIAWGSUP-12,
+    # we consider that LICENSES texts should be interpreted according to COPYING file.
+    # The latter explicitly specifies that Linux-syscall-note exception applies.
     License text:
         SPDX-URL: https://spdx.org/licenses/GPL-2.0.html
     Scancode info:
@@ -2659,7 +2665,7 @@ BELONGS ya.make
     Files with this license:
         LICENSES/preferred/GPL-2.0 [5:5]
 
-KEEP     GPL-2.0-only         5624cdd2e9174529859a5e61a632df2e
+KEEP     GPL-2.0-only WITH Linux-syscall-note 5624cdd2e9174529859a5e61a632df2e
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -2697,7 +2703,7 @@ BELONGS ya.make
         linux/wimax.h [8:32]
         linux/wimax/i2400m.h [8:32]
 
-KEEP     GPL-2.0-or-later     5825cf829d71fe773517984a9b9f21f1
+KEEP     GPL-2.0-or-later WITH Linux-syscall-note 5825cf829d71fe773517984a9b9f21f1
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -2732,7 +2738,7 @@ BELONGS ya.make
         misc/cxl.h [5:8]
         scsi/cxlflash_ioctl.h [10:13]
 
-KEEP     GPL-2.0-only WITH Linux-syscall-note AND MIT 59b2167fbd54495820591724b17ffb6e
+KEEP     "(GPL-2.0-only WITH Linux-syscall-note OR MIT)" 59b2167fbd54495820591724b17ffb6e
 BELONGS ya.make
 FILE_INCLUDE LICENSES/exceptions/Linux-syscall-note found in files: drm/lima_drm.h at line 1, linux/io_uring.h at line 1, linux/wireguard.h at line 1
 FILE_INCLUDE LICENSES/preferred/GPL-2.0 found in files: drm/lima_drm.h at line 1, linux/io_uring.h at line 1, linux/wireguard.h at line 1
@@ -2778,7 +2784,7 @@ BELONGS ya.make
         drm/msm_drm.h [5:22]
         drm/sis_drm.h [6:23]
 
-KEEP     GPL-2.0-or-later     5abc30d40a79d17f13c95043d0cab98d
+KEEP     GPL-2.0-or-later WITH Linux-syscall-note 5abc30d40a79d17f13c95043d0cab98d
 BELONGS ya.make
     License text:
         Valid-License-Identifier: GPL-2.0-or-later
@@ -2790,7 +2796,7 @@ BELONGS ya.make
     Files with this license:
         LICENSES/preferred/GPL-2.0 [4:4]
 
-KEEP     GPL-2.0-or-later     5d36d5418c046948282d75bce0395a2a
+KEEP     GPL-2.0-or-later WITH Linux-syscall-note 5d36d5418c046948282d75bce0395a2a
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -2802,7 +2808,7 @@ BELONGS ya.make
         linux/ivtv.h [7:19]
         linux/ivtvfb.h [7:19]
 
-KEEP     GPL-1.0-or-later AND GPL-2.0-only AND GPL-2.0-or-later AND GPL-1.0-or-later AND LGPL-2.0-only AND LGPL-2.0-or-later AND LGPL-2.1-only AND LGPL-2.1-or-later 5db03bab5996a9eca29b557e68c2d59a
+KEEP     GPL-2.0-only WITH Linux-syscall-note 5db03bab5996a9eca29b557e68c2d59a
 BELONGS ya.make
 FILE_INCLUDE LICENSES/preferred/GPL-2.0 found in files: LICENSES/exceptions/Linux-syscall-note at line 3
     License text:
@@ -2864,7 +2870,7 @@ FILE_INCLUDE LICENSES/preferred/GPL-2.0 found in files: LICENSES/exceptions/Linu
     Files with this license:
         LICENSES/exceptions/Linux-syscall-note [3:3]
 
-KEEP     GPL-1.0-or-later     5fbebc3a3e9f2c9d1a9025a5f423b45c
+KEEP     GPL-2.0-only WITH Linux-syscall-note 5fbebc3a3e9f2c9d1a9025a5f423b45c
 BELONGS ya.make
 FILE_INCLUDE COPYING found in files: linux/mmtimer.h at line 6
     License text:
@@ -2879,7 +2885,7 @@ FILE_INCLUDE COPYING found in files: linux/mmtimer.h at line 6
     Files with this license:
         linux/mmtimer.h [5:7]
 
-KEEP     GPL-2.0-only         5fe9d03725d07c238498ee401a146146
+KEEP     GPL-2.0-only WITH Linux-syscall-note 5fe9d03725d07c238498ee401a146146
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -2890,7 +2896,7 @@ BELONGS ya.make
     Files with this license:
         linux/max2175.h [10:17]
 
-KEEP     GPL-1.0-or-later     67554a5538d9ed1b357a2cf2931d6dbf
+KEEP     GPL-1.0-or-later WITH Linux-syscall-note 67554a5538d9ed1b357a2cf2931d6dbf
 BELONGS ya.make
     License text:
          * Redistribution of this file is permitted under the terms of the GNU 
@@ -2904,7 +2910,7 @@ BELONGS ya.make
         linux/serial.h [7:8]
         linux/serial_reg.h [7:8]
 
-KEEP     GPL-2.0-only AND BSD-2-Clause 6924ced392a68cd68a4e6190e48c505e
+KEEP     "(GPL-2.0-only WITH Linux-syscall-note OR BSD-2-Clause)" 6924ced392a68cd68a4e6190e48c505e
 BELONGS ya.make
 FILE_INCLUDE COPYING found in files: rdma/ocrdma-abi.h at line 10
     Note: matched license text is too long. Read it in the source files.
@@ -2923,7 +2929,7 @@ FILE_INCLUDE COPYING found in files: rdma/ocrdma-abi.h at line 10
     Files with this license:
         rdma/ocrdma-abi.h [8:34]
 
-KEEP     GPL-1.0-or-later     6a8fba60c83cfff426de6dfb9500a3f3
+KEEP     GPL-1.0-or-later WITH Linux-syscall-note 6a8fba60c83cfff426de6dfb9500a3f3
 BELONGS ya.make
     License text:
          * Redistribution of this file is permitted under
@@ -2936,7 +2942,7 @@ BELONGS ya.make
     Files with this license:
         linux/synclink.h [9:10]
 
-KEEP     GPL-2.0-only         6ae849881012b48eccd8866978a328b4
+KEEP     GPL-2.0-only WITH Linux-syscall-note 6ae849881012b48eccd8866978a328b4
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -2969,7 +2975,7 @@ BELONGS ya.make
     Files with this license:
         linux/quota.h [8:30]
 
-KEEP     GPL-2.0-only WITH Linux-syscall-note AND BSD-3-Clause 6f929c51e7b0959cd2dcf6a57bb1aed1
+KEEP     "(GPL-2.0-only WITH Linux-syscall-note OR BSD-3-Clause)" 6f929c51e7b0959cd2dcf6a57bb1aed1
 BELONGS ya.make
 FILE_INCLUDE LICENSES/exceptions/Linux-syscall-note found in files: rdma/siw-abi.h at line 1
 FILE_INCLUDE LICENSES/preferred/GPL-2.0 found in files: rdma/siw-abi.h at line 1
@@ -2997,7 +3003,7 @@ FILE_INCLUDE LICENSES/preferred/GPL-2.0 found in files: rdma/siw-abi.h at line 1
     Files with this license:
         rdma/siw-abi.h [1:1]
 
-KEEP     GPL-2.0-only AND BSD-3-Clause 7002d4a51fcfda9611808de214aa830c
+KEEP     "(GPL-2.0-only WITH Linux-syscall-note OR BSD-3-Clause)" 7002d4a51fcfda9611808de214aa830c
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -3026,7 +3032,7 @@ BELONGS ya.make
     Files with this license:
         linux/virtio_input.h [3:28]
 
-KEEP     LGPL-2.1-or-later    71f47baba34541b414171e56b7d94552
+KEEP     LGPL-2.1-or-later WITH Linux-syscall-note 71f47baba34541b414171e56b7d94552
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -3037,7 +3043,7 @@ BELONGS ya.make
     Files with this license:
         linux/cifs/cifs_mount.h [7:15]
 
-KEEP     GPL-2.0-or-later     7248308446499717b9266e6f64295a7f
+KEEP     GPL-2.0-or-later WITH Linux-syscall-note 7248308446499717b9266e6f64295a7f
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -3050,9 +3056,12 @@ BELONGS ya.make
         linux/sonypi.h [21:33]
         linux/spi/spidev.h [8:20]
 
-KEEP     GPL-2.0-only         729d7f051210ab5aa55445e7eeb1efd1
+KEEP     GPL-2.0-only WITH Linux-syscall-note 729d7f051210ab5aa55445e7eeb1efd1
 BELONGS ya.make
 FILE_INCLUDE LICENSES/preferred/GPL-2.0 found in files: LICENSES/preferred/GPL-2.0 at line 1
+    # As discussed in https://st.yandex-team.ru/ARCADIAWGSUP-12,
+    # we consider that LICENSES texts should be interpreted according to COPYING file.
+    # The latter explicitly specifies that Linux-syscall-note exception applies.
     License text:
         Valid-License-Identifier: GPL-2.0
     Scancode info:
@@ -3063,7 +3072,7 @@ FILE_INCLUDE LICENSES/preferred/GPL-2.0 found in files: LICENSES/preferred/GPL-2
     Files with this license:
         LICENSES/preferred/GPL-2.0 [1:1]
 
-KEEP     GPL-2.0-or-later     72bddc423360b538db9326ce461640be
+KEEP     GPL-2.0-or-later WITH Linux-syscall-note 72bddc423360b538db9326ce461640be
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -3089,7 +3098,7 @@ BELONGS ya.make
         linux/virtio_ring.h [7:31]
         linux/virtio_types.h [5:29]
 
-KEEP     GPL-2.0-or-later     7362f015816cf7ea39fe85d18f78cf4d
+KEEP     GPL-2.0-or-later WITH Linux-syscall-note 7362f015816cf7ea39fe85d18f78cf4d
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -3126,7 +3135,7 @@ BELONGS ya.make
     Files with this license:
         xen/gntalloc.h [8:8]
 
-KEEP     LGPL-2.1-or-later    765b6b190fd62a2c2455d5dd1800dca8
+KEEP     LGPL-2.1-or-later WITH Linux-syscall-note 765b6b190fd62a2c2455d5dd1800dca8
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -3138,7 +3147,7 @@ BELONGS ya.make
         linux/nilfs2_api.h [7:10]
         linux/nilfs2_ondisk.h [7:10]
 
-KEEP     GPL-2.0-or-later     7893a62866b207257798379757aa8d9e
+KEEP     GPL-2.0-or-later WITH Linux-syscall-note 7893a62866b207257798379757aa8d9e
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -3149,7 +3158,7 @@ BELONGS ya.make
     Files with this license:
         sound/tlv.h [3:11]
 
-KEEP     GPL-2.0-only         7c4ac9a1388a150a5f931aa28544e907
+KEEP     GPL-2.0-only WITH Linux-syscall-note 7c4ac9a1388a150a5f931aa28544e907
 BELONGS ya.make
     License text:
          * This program is free software; you can redistribute it and/or modify
@@ -3164,7 +3173,7 @@ BELONGS ya.make
         linux/erspan.h [7:9]
         linux/kcm.h [7:9]
 
-KEEP     GPL-2.0-only AND Linux-OpenIB 7c93ef961293087322532eb03c154c0f
+KEEP     "(GPL-2.0-only WITH Linux-syscall-note OR Linux-OpenIB)" 7c93ef961293087322532eb03c154c0f
 BELONGS ya.make
 FILE_INCLUDE COPYING found in files: rdma/qedr-abi.h at line 8
     Note: matched license text is too long. Read it in the source files.
@@ -3253,7 +3262,7 @@ BELONGS ya.make
     Files with this license:
         drm/vmwgfx_drm.h [6:24]
 
-KEEP     GPL-2.0-only         831d33d185507b4c10011e27897d3950
+KEEP     GPL-2.0-only WITH Linux-syscall-note 831d33d185507b4c10011e27897d3950
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -3264,7 +3273,7 @@ BELONGS ya.make
     Files with this license:
         linux/omap3isp.h [13:25]
 
-KEEP     GPL-2.0-only AND BSD-2-Clause 839cd1bb475dd7e814421a622196acd8
+KEEP     "(GPL-2.0-only WITH Linux-syscall-note OR BSD-2-Clause)" 839cd1bb475dd7e814421a622196acd8
 BELONGS ya.make
 FILE_INCLUDE COPYING found in files: rdma/bnxt_re-abi.h at line 11
     Note: matched license text is too long. Read it in the source files.
@@ -3283,7 +3292,7 @@ FILE_INCLUDE COPYING found in files: rdma/bnxt_re-abi.h at line 11
     Files with this license:
         rdma/bnxt_re-abi.h [8:35]
 
-KEEP     GPL-2.0-or-later     84a9df7a729e21059513424977db51ac
+KEEP     GPL-2.0-or-later WITH Linux-syscall-note 84a9df7a729e21059513424977db51ac
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -3305,7 +3314,7 @@ BELONGS ya.make
     Files with this license:
         linux/agpgart.h [7:23]
 
-KEEP     GPL-2.0-or-later     87e679a22ce567e1d2b0349a55dfb717
+KEEP     GPL-2.0-or-later WITH Linux-syscall-note 87e679a22ce567e1d2b0349a55dfb717
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -3318,7 +3327,7 @@ BELONGS ya.make
         mtd/mtd-user.h [5:17]
         mtd/nftl-user.h [5:17]
 
-KEEP     GPL-2.0-only         892766c04c51b145e5b44a0c9709664d
+KEEP     GPL-2.0-only WITH Linux-syscall-note 892766c04c51b145e5b44a0c9709664d
 BELONGS ya.make
     License text:
          * May be copied or modified under the terms of the GNU General Public
@@ -3331,7 +3340,7 @@ BELONGS ya.make
     Files with this license:
         linux/pktcdvd.h [6:7]
 
-KEEP     GPL-2.0-only AND BSD-3-Clause 894228fbb1261aa226bb97bcdce7d753
+KEEP     "(GPL-2.0-only WITH Linux-syscall-note OR BSD-3-Clause)" 894228fbb1261aa226bb97bcdce7d753
 BELONGS ya.make
     License text:
          * This file is provided under a dual BSD/GPLv2 license.  When using or
@@ -3359,7 +3368,7 @@ BELONGS ya.make
         sound/sof/header.h [3:4]
         sound/sof/tokens.h [3:4]
 
-KEEP     GPL-2.0-or-later     8a9e3da7829eaaa286e499fffe8a7972
+KEEP     GPL-2.0-or-later WITH Linux-syscall-note 8a9e3da7829eaaa286e499fffe8a7972
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -3381,7 +3390,7 @@ BELONGS ya.make
     Files with this license:
         linux/scif_ioctl.h [25:49]
 
-KEEP     GPL-2.0-only         8b707145233f9251c73fc7acb3df26a2
+KEEP     GPL-2.0-only WITH Linux-syscall-note 8b707145233f9251c73fc7acb3df26a2
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -3394,7 +3403,7 @@ BELONGS ya.make
         drm/omap_drm.h [8:18]
         linux/dma-buf.h [7:17]
 
-KEEP     GPL-2.0-or-later     8bf56c67ebecadbb74716a5923ba4900
+KEEP     GPL-2.0-or-later WITH Linux-syscall-note 8bf56c67ebecadbb74716a5923ba4900
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -3406,7 +3415,7 @@ BELONGS ya.make
         linux/hid.h [8:20]
         linux/uinput.h [7:19]
 
-KEEP     GPL-2.0-only WITH Linux-syscall-note AND Linux-OpenIB 8d03ddad687ea840ff26243486272c6a
+KEEP     "(GPL-2.0-only WITH Linux-syscall-note OR Linux-OpenIB)" 8d03ddad687ea840ff26243486272c6a
 BELONGS ya.make
 FILE_INCLUDE LICENSES/exceptions/Linux-syscall-note found in files: linux/rds.h at line 1, linux/tls.h at line 1, rdma/cxgb4-abi.h at line 1, rdma/hns-abi.h at line 1, rdma/ib_user_ioctl_verbs.h at line 1, rdma/ib_user_mad.h at line 1, rdma/ib_user_sa.h at line 1, rdma/ib_user_verbs.h at line 1, rdma/mlx4-abi.h at line 1, rdma/mlx5-abi.h at line 1, rdma/mthca-abi.h at line 1, rdma/qedr-abi.h at line 1, rdma/rdma_user_cm.h at line 1, rdma/rdma_user_ioctl.h at line 1, rdma/rdma_user_rxe.h at line 1
 FILE_INCLUDE LICENSES/preferred/GPL-2.0 found in files: linux/rds.h at line 1, linux/tls.h at line 1, rdma/cxgb4-abi.h at line 1, rdma/hns-abi.h at line 1, rdma/ib_user_ioctl_verbs.h at line 1, rdma/ib_user_mad.h at line 1, rdma/ib_user_sa.h at line 1, rdma/ib_user_verbs.h at line 1, rdma/mlx4-abi.h at line 1, rdma/mlx5-abi.h at line 1, rdma/mthca-abi.h at line 1, rdma/qedr-abi.h at line 1, rdma/rdma_user_cm.h at line 1, rdma/rdma_user_ioctl.h at line 1, rdma/rdma_user_rxe.h at line 1
@@ -3528,7 +3537,7 @@ FILE_INCLUDE LICENSES/exceptions/Linux-syscall-note found in files: linux/can/j1
         linux/psp-sev.h [1:1]
         linux/wmi.h [1:1]
 
-KEEP     GPL-2.0-only         91097f87f89116fd0a8003d032c149b2
+KEEP     GPL-2.0-only WITH Linux-syscall-note 91097f87f89116fd0a8003d032c149b2
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -3539,7 +3548,7 @@ BELONGS ya.make
     Files with this license:
         linux/v4l2-subdev.h [10:21]
 
-KEEP     GPL-2.0-only         91c02910256e8500c55fe79a0713d342
+KEEP     GPL-2.0-only WITH Linux-syscall-note 91c02910256e8500c55fe79a0713d342
 BELONGS ya.make
     License text:
          * This program is free software; you can redistribute it and/or
@@ -3554,7 +3563,7 @@ BELONGS ya.make
         linux/bpf.h [4:6]
         linux/bpf_perf_event.h [4:6]
 
-KEEP     LGPL-2.1-only        926a7f42f2afcea4cd3df9399c1b42c5
+KEEP     LGPL-2.1-only WITH Linux-syscall-note 926a7f42f2afcea4cd3df9399c1b42c5
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -3567,7 +3576,7 @@ BELONGS ya.make
         linux/cn_proc.h [10:16]
         linux/taskstats.h [8:14]
 
-KEEP     GPL-2.0-or-later     93d65dd1661a000cc88e1b82a4ddb3ba
+KEEP     GPL-2.0-or-later WITH Linux-syscall-note 93d65dd1661a000cc88e1b82a4ddb3ba
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -3595,7 +3604,7 @@ BELONGS ya.make
         linux/udp.h [13:16]
         linux/uio.h [5:8]
 
-KEEP     GPL-2.0-only         93df3e3b420ac7f0d74e30bd5101abf9
+KEEP     GPL-2.0-only WITH Linux-syscall-note 93df3e3b420ac7f0d74e30bd5101abf9
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -3632,7 +3641,7 @@ BELONGS ya.make
         drm/mga_drm.h [8:25]
         drm/nouveau_drm.h [5:22]
 
-KEEP     GPL-2.0-only         96c43a06d114a75b61b229f8232547e6
+KEEP     GPL-2.0-only WITH Linux-syscall-note 96c43a06d114a75b61b229f8232547e6
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -3650,7 +3659,7 @@ BELONGS ya.make
     Files with this license:
         linux/aio_abi.h [7:25]
 
-KEEP     GPL-2.0-or-later     96ec305836e2bd09e3adca221076865c
+KEEP     GPL-2.0-or-later WITH Linux-syscall-note 96ec305836e2bd09e3adca221076865c
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -3682,7 +3691,7 @@ FILE_INCLUDE LICENSES/preferred/GPL-2.0 found in files: linux/batadv_packet.h at
     Files with this license:
         linux/batadv_packet.h [1:1]
 
-KEEP     GPL-2.0-or-later     98830f20e3a93e81e27d662caa35ef13
+KEEP     GPL-2.0-or-later WITH Linux-syscall-note 98830f20e3a93e81e27d662caa35ef13
 BELONGS ya.make
     License text:
            The GAS product is under the GNU General Public License, version 2 or later.
@@ -3695,7 +3704,7 @@ BELONGS ya.make
     Files with this license:
         linux/coff.h [3:4]
 
-KEEP     GPL-2.0-only         98ff2f7e77a4aad137064c2661d1bd44
+KEEP     GPL-2.0-only WITH Linux-syscall-note 98ff2f7e77a4aad137064c2661d1bd44
 BELONGS ya.make
     License text:
          * This program is free software; you can redistribute it and/or modify
@@ -3720,7 +3729,7 @@ BELONGS ya.make
         linux/vfio.h [8:10]
         sound/asoc.h [8:10]
 
-KEEP     GPL-2.0-or-later     9b4ccb0798df6bc58be0e3af3bbeb49c
+KEEP     GPL-2.0-or-later WITH Linux-syscall-note 9b4ccb0798df6bc58be0e3af3bbeb49c
 BELONGS ya.make
     License text:
           For 'GNU General Public License (GPL) version 2 or any later version' use:
@@ -3732,7 +3741,7 @@ BELONGS ya.make
     Files with this license:
         LICENSES/preferred/GPL-2.0 [14:14]
 
-KEEP     GPL-2.0-only         9e3fb690e3a5d343ef5172903f6d9d78
+KEEP     GPL-2.0-only WITH Linux-syscall-note 9e3fb690e3a5d343ef5172903f6d9d78
 BELONGS ya.make
     License text:
          * This program is free software; you can redistribute it and/or
@@ -3746,7 +3755,7 @@ BELONGS ya.make
     Files with this license:
         linux/usb/cdc-wdm.h [5:7]
 
-KEEP     GPL-2.0-only         9e473789c45030922abc06669026a9ae
+KEEP     GPL-2.0-only WITH Linux-syscall-note 9e473789c45030922abc06669026a9ae
 BELONGS ya.make
     License text:
           For 'GNU General Public License (GPL) version 2 only' use:
@@ -3758,7 +3767,7 @@ BELONGS ya.make
     Files with this license:
         LICENSES/preferred/GPL-2.0 [10:10]
 
-KEEP     GPL-2.0-or-later     9ee8d51ccb0e59f36a63d92422a992ed
+KEEP     GPL-2.0-or-later WITH Linux-syscall-note 9ee8d51ccb0e59f36a63d92422a992ed
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -3772,7 +3781,7 @@ BELONGS ya.make
         linux/serial_core.h [7:19]
         linux/usb/g_printer.h [7:19]
 
-KEEP     GPL-2.0-only         9f80f6567e3e519ca96a26b64f8ae802
+KEEP     GPL-2.0-only WITH Linux-syscall-note 9f80f6567e3e519ca96a26b64f8ae802
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -3783,7 +3792,7 @@ BELONGS ya.make
     Files with this license:
         sound/snd_sst_tokens.h [9:16]
 
-KEEP     GPL-2.0-only         a13f8c63bbcbff4d044abf5b0de5469f
+KEEP     GPL-2.0-only WITH Linux-syscall-note a13f8c63bbcbff4d044abf5b0de5469f
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -3794,7 +3803,7 @@ BELONGS ya.make
     Files with this license:
         linux/hsi/hsi_char.h [9:21]
 
-KEEP     LGPL-2.1-or-later    a1fe791907e48b7fbe6add4076b6739e
+KEEP     LGPL-2.1-or-later WITH Linux-syscall-note a1fe791907e48b7fbe6add4076b6739e
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -3805,7 +3814,7 @@ BELONGS ya.make
     Files with this license:
         linux/mqueue.h [4:17]
 
-KEEP     GPL-1.0-or-later     a2e4872365a29600abe5f0d17bdb38d0
+KEEP     GPL-1.0-or-later WITH Linux-syscall-note a2e4872365a29600abe5f0d17bdb38d0
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -3838,7 +3847,7 @@ BELONGS ya.make
     Files with this license:
         linux/soundcard.h [4:22]
 
-KEEP     GPL-1.0-or-later     a428e60a848098c12bc4c9aa300208ab
+KEEP     GPL-1.0-or-later WITH Linux-syscall-note a428e60a848098c12bc4c9aa300208ab
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -3849,7 +3858,7 @@ BELONGS ya.make
     Files with this license:
         linux/llc.h [7:12]
 
-KEEP     GPL-1.0-or-later     a67e4f3506325e48dcb480b6b139d875
+KEEP     GPL-1.0-or-later WITH Linux-syscall-note a67e4f3506325e48dcb480b6b139d875
 BELONGS ya.make
     License text:
          * This software may be used and distributed according to the terms
@@ -3863,7 +3872,7 @@ BELONGS ya.make
         linux/capi.h [8:9]
         linux/isdn/capicmd.h [8:9]
 
-KEEP     GPL-2.0-or-later     a6980899304af1b1418760ade0b013a6
+KEEP     GPL-2.0-or-later WITH Linux-syscall-note a6980899304af1b1418760ade0b013a6
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -3874,7 +3883,7 @@ BELONGS ya.make
     Files with this license:
         linux/if_arcnet.h [11:14]
 
-KEEP     BSD-3-Clause AND GPL-2.0-only a8932e1e4988edf27140a11fb4956f58
+KEEP     "(GPL-2.0-only WITH Linux-syscall-note OR BSD-3-Clause)" a8932e1e4988edf27140a11fb4956f58
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -3900,7 +3909,7 @@ BELONGS ya.make
         linux/can/gw.h [11:42]
         linux/can/raw.h [12:43]
 
-KEEP     GPL-2.0-only         a98950249508ead531e28bccabfb5306
+KEEP     GPL-2.0-only WITH Linux-syscall-note a98950249508ead531e28bccabfb5306
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -3911,7 +3920,7 @@ BELONGS ya.make
     Files with this license:
         linux/udf_fs_i.h [7:11]
 
-KEEP     GPL-2.0-or-later     a9ac6a3f5d68b6ee3693c591024d796c
+KEEP     GPL-2.0-or-later WITH Linux-syscall-note a9ac6a3f5d68b6ee3693c591024d796c
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -3923,7 +3932,7 @@ BELONGS ya.make
         linux/in6.h [16:19]
         linux/ipv6_route.h [8:11]
 
-KEEP     GPL-2.0-or-later     aa6549d5e99da1dd24993d8c17ce0182
+KEEP     GPL-2.0-or-later WITH Linux-syscall-note aa6549d5e99da1dd24993d8c17ce0182
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -3954,7 +3963,7 @@ BELONGS ya.make
     Files with this license:
         linux/jffs2.h [9:10]
 
-KEEP     GPL-2.0-only         aba68d4d98557076a68b777ac9f1c189
+KEEP     GPL-2.0-only WITH Linux-syscall-note aba68d4d98557076a68b777ac9f1c189
 BELONGS ya.make
     License text:
          * This program is free software; you can redistribute it and/or modify it
@@ -3968,7 +3977,7 @@ BELONGS ya.make
     Files with this license:
         linux/hdlc.h [7:9]
 
-KEEP     GPL-2.0-only         ae3cac38c56e828c3d4b3f7d2924d931
+KEEP     GPL-2.0-only WITH Linux-syscall-note ae3cac38c56e828c3d4b3f7d2924d931
 BELONGS ya.make
     License text:
          * This software is distributed under GNU GPL v2, 1991
@@ -3997,7 +4006,7 @@ BELONGS ya.make
         drm/i915_drm.h [5:23]
         drm/vgem_drm.h [5:23]
 
-KEEP     GPL-1.0-or-later     af5703c0b8f7e356df6ba43f1b1128a6
+KEEP     GPL-1.0-or-later WITH Linux-syscall-note af5703c0b8f7e356df6ba43f1b1128a6
 BELONGS ya.make
     License text:
           into non GPL compliant user space application code.
@@ -4009,7 +4018,7 @@ BELONGS ya.make
     Files with this license:
         LICENSES/exceptions/Linux-syscall-note [7:7]
 
-KEEP     GPL-2.0-only         b17866eb176cd5dc138dd52b21b6de96
+KEEP     GPL-2.0-only WITH Linux-syscall-note b17866eb176cd5dc138dd52b21b6de96
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -4022,7 +4031,7 @@ BELONGS ya.make
         asm/kvm_para_powerpc.h [3:14]
         asm/kvm_powerpc.h [3:14]
 
-KEEP     GPL-2.0-only AND BSD-3-Clause b374e755bfeb86481064a3e27e3e8bba
+KEEP     "(GPL-2.0-only WITH Linux-syscall-note OR BSD-3-Clause)" b374e755bfeb86481064a3e27e3e8bba
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -4074,7 +4083,7 @@ BELONGS ya.make
     Files with this license:
         linux/fuse.h [14:33]
 
-KEEP     GPL-2.0-or-later     b6bf176321b4556582208a2225a37312
+KEEP     GPL-2.0-or-later WITH Linux-syscall-note b6bf176321b4556582208a2225a37312
 BELONGS ya.make
 FILE_INCLUDE COPYING found in files: linux/sctp.h at line 26
     Note: matched license text is too long. Read it in the source files.
@@ -4086,7 +4095,7 @@ FILE_INCLUDE COPYING found in files: linux/sctp.h at line 26
     Files with this license:
         linux/sctp.h [13:27]
 
-KEEP     GPL-2.0-or-later     b88a4ffb10c122aadbd485ce6a4b72f2
+KEEP     GPL-2.0-or-later WITH Linux-syscall-note b88a4ffb10c122aadbd485ce6a4b72f2
 BELONGS ya.make
     License text:
         Valid-License-Identifier: GPL-2.0+
@@ -4116,7 +4125,7 @@ BELONGS ya.make
     Files with this license:
         linux/coda.h [2:49]
 
-KEEP     GPL-2.0-only         b9679a20642be5470391a0db6700fe8e
+KEEP     GPL-2.0-only WITH Linux-syscall-note b9679a20642be5470391a0db6700fe8e
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -4193,7 +4202,7 @@ FILE_INCLUDE LICENSES/exceptions/Linux-syscall-note found in files: linux/if_bon
         linux/sync_file.h [1:1]
         linux/synclink.h [1:1]
 
-KEEP     GPL-2.0-only         bb3fb039923f023181791465f663648b
+KEEP     GPL-2.0-only WITH Linux-syscall-note bb3fb039923f023181791465f663648b
 BELONGS ya.make
 FILE_INCLUDE COPYING found in files: linux/ultrasound.h at line 13
     License text:
@@ -4208,7 +4217,7 @@ FILE_INCLUDE COPYING found in files: linux/ultrasound.h at line 13
     Files with this license:
         linux/ultrasound.h [12:14]
 
-KEEP     GPL-2.0-or-later     bd3bb50170d71d704c6b99c200da83cf
+KEEP     GPL-2.0-or-later WITH Linux-syscall-note bd3bb50170d71d704c6b99c200da83cf
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -4222,7 +4231,7 @@ BELONGS ya.make
         linux/igmp.h [11:14]
         linux/mpls_iptunnel.h [8:11]
 
-KEEP     GPL-2.0-only WITH Linux-syscall-note AND BSD-3-Clause bf672a4f4bafd10e2ad271479f02da8e
+KEEP     "(GPL-2.0-only WITH Linux-syscall-note OR BSD-3-Clause)" bf672a4f4bafd10e2ad271479f02da8e
 BELONGS ya.make
 FILE_INCLUDE LICENSES/exceptions/Linux-syscall-note found in files: linux/can.h at line 1, linux/can/bcm.h at line 1, linux/can/error.h at line 1, linux/can/gw.h at line 1, linux/can/raw.h at line 1
     License text:
@@ -4273,7 +4282,7 @@ BELONGS ya.make
     Files with this license:
         linux/fuse.h [296:296]
 
-KEEP     GPL-2.0-or-later     c196f33d1f74889d4f98f65f6f70ea8f
+KEEP     GPL-2.0-or-later WITH Linux-syscall-note c196f33d1f74889d4f98f65f6f70ea8f
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -4284,7 +4293,7 @@ BELONGS ya.make
     Files with this license:
         linux/cycx_cfm.h [12:15]
 
-KEEP     GPL-2.0-only AND Linux-OpenIB c1dbbc9df99660c49dd2f4a8c7b34d6f
+KEEP     "(GPL-2.0-only WITH Linux-syscall-note OR Linux-OpenIB)" c1dbbc9df99660c49dd2f4a8c7b34d6f
 BELONGS ya.make
 FILE_INCLUDE COPYING found in files: rdma/rdma_user_rxe.h at line 8
     Note: matched license text is too long. Read it in the source files.
@@ -4303,7 +4312,7 @@ FILE_INCLUDE COPYING found in files: rdma/rdma_user_rxe.h at line 8
     Files with this license:
         rdma/rdma_user_rxe.h [5:31]
 
-KEEP     GPL-2.0-or-later     c273ab4e97163977dfb6ca5edabdab29
+KEEP     GPL-2.0-or-later WITH Linux-syscall-note c273ab4e97163977dfb6ca5edabdab29
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -4314,7 +4323,7 @@ BELONGS ya.make
     Files with this license:
         video/sisfb.h [7:19]
 
-KEEP     BSD-3-Clause AND GPL-2.0-only c3922340ce4419172acf3ed30c4063ca
+KEEP     "(GPL-2.0-only WITH Linux-syscall-note OR BSD-3-Clause)" c3922340ce4419172acf3ed30c4063ca
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -4347,7 +4356,7 @@ BELONGS ya.make
     Files with this license:
         linux/tee.h [5:25]
 
-KEEP     GPL-2.0-only         c4312701c3d13ed7bbac78463e1e5465
+KEEP     GPL-2.0-only WITH Linux-syscall-note c4312701c3d13ed7bbac78463e1e5465
 BELONGS ya.make
     License text:
          * This software is distributed under the terms of the GNU General Public
@@ -4399,7 +4408,7 @@ FILE_INCLUDE LICENSES/exceptions/Linux-syscall-note found in files: linux/cgroup
         linux/cn_proc.h [1:1]
         linux/taskstats.h [1:1]
 
-KEEP     GPL-2.0-or-later     c7dcd04a5383e1f8063aa22943143d5f
+KEEP     GPL-2.0-or-later WITH Linux-syscall-note c7dcd04a5383e1f8063aa22943143d5f
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -4424,7 +4433,7 @@ BELONGS ya.make
     Files with this license:
         drm/via_drm.h [5:22]
 
-KEEP     GPL-2.0-or-later     cc071ff6f2444d3ca66a827ef20b80df
+KEEP     GPL-2.0-or-later WITH Linux-syscall-note cc071ff6f2444d3ca66a827ef20b80df
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -4439,7 +4448,7 @@ BELONGS ya.make
         sound/emu10k1.h [8:20]
         sound/sfnt_info.h [10:22]
 
-KEEP     GPL-2.0-only         cce060c6b9c8720037aa3c18f72d8515
+KEEP     GPL-2.0-only WITH Linux-syscall-note cce060c6b9c8720037aa3c18f72d8515
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -4450,7 +4459,7 @@ BELONGS ya.make
     Files with this license:
         asm/ps3fb_powerpc.h [6:17]
 
-KEEP     GPL-1.0-or-later     cce38b57b0560ccb27c2bd1a850af5b4
+KEEP     GPL-1.0-or-later WITH Linux-syscall-note cce38b57b0560ccb27c2bd1a850af5b4
 BELONGS ya.make
     License text:
          * (C)1998 Rusty Russell -- This code is GPL.
@@ -4464,7 +4473,7 @@ BELONGS ya.make
         linux/netfilter_ipv4.h [3:3]
         linux/netfilter_ipv6.h [3:3]
 
-KEEP     GPL-2.0-only         ceb9ed73412d4c39ec8b473eb2aa0f28
+KEEP     GPL-2.0-only WITH Linux-syscall-note ceb9ed73412d4c39ec8b473eb2aa0f28
 BELONGS ya.make
     License text:
          * This program is free software; you can redistribute it and/or modify it
@@ -4484,7 +4493,7 @@ BELONGS ya.make
         linux/input.h [5:7]
         linux/serio.h [5:7]
 
-KEEP     GPL-2.0-only AND MIT cf0c057c7911eb514ddf619a84b9b8ba
+KEEP     "(GPL-2.0-only WITH Linux-syscall-note OR MIT)" cf0c057c7911eb514ddf619a84b9b8ba
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -4525,7 +4534,7 @@ FILE_INCLUDE LICENSES/preferred/GPL-2.0 found in files: misc/habanalabs.h at lin
     Files with this license:
         misc/habanalabs.h [1:1]
 
-KEEP     GPL-2.0-only         d12d5f2d2644efb66bd5173baf7591b5
+KEEP     GPL-2.0-only WITH Linux-syscall-note d12d5f2d2644efb66bd5173baf7591b5
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -4537,7 +4546,7 @@ BELONGS ya.make
         linux/android/binder.h [10:17]
         linux/xilinx-v4l2-controls.h [11:18]
 
-KEEP     GPL-2.0-or-later     d477c0189003dfb533c8ff7428ee6cf3
+KEEP     GPL-2.0-or-later WITH Linux-syscall-note d477c0189003dfb533c8ff7428ee6cf3
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -4548,7 +4557,7 @@ BELONGS ya.make
     Files with this license:
         sound/sb16_csp.h [8:20]
 
-KEEP     GPL-2.0-only WITH Linux-syscall-note AND BSD-2-Clause d48b313e0aef8b3710de6c719f0840ff
+KEEP     "(GPL-2.0-only WITH Linux-syscall-note OR BSD-2-Clause)" d48b313e0aef8b3710de6c719f0840ff
 BELONGS ya.make
 FILE_INCLUDE LICENSES/exceptions/Linux-syscall-note found in files: linux/fuse.h at line 1, linux/if_infiniband.h at line 1, rdma/bnxt_re-abi.h at line 1, rdma/efa-abi.h at line 1, rdma/ocrdma-abi.h at line 1, rdma/vmw_pvrdma-abi.h at line 1
 FILE_INCLUDE LICENSES/preferred/GPL-2.0 found in files: linux/fuse.h at line 1, linux/if_infiniband.h at line 1, rdma/bnxt_re-abi.h at line 1, rdma/efa-abi.h at line 1, rdma/ocrdma-abi.h at line 1, rdma/vmw_pvrdma-abi.h at line 1
@@ -4605,7 +4614,7 @@ BELONGS ya.make
         linux/virtio_blk.h [3:27]
         linux/virtio_net.h [3:27]
 
-KEEP     GPL-1.0-or-later     d5780989bea2feacc16a910ec6d60525
+KEEP     GPL-1.0-or-later WITH Linux-syscall-note d5780989bea2feacc16a910ec6d60525
 BELONGS ya.make
 FILE_INCLUDE COPYING found in files: linux/fuse.h at line 7
     License text:
@@ -4619,7 +4628,7 @@ FILE_INCLUDE COPYING found in files: linux/fuse.h at line 7
     Files with this license:
         linux/fuse.h [6:7]
 
-KEEP     GPL-2.0-only         d98573eb306c26e056666eedc82fbb1f
+KEEP     GPL-2.0-only WITH Linux-syscall-note d98573eb306c26e056666eedc82fbb1f
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -4631,7 +4640,7 @@ BELONGS ya.make
         linux/btrfs.h [5:17]
         linux/nbd-netlink.h [5:17]
 
-KEEP     GPL-1.0-or-later     d9a17e1878e57f90e022b93ec4f1a7a1
+KEEP     GPL-1.0-or-later WITH Linux-syscall-note d9a17e1878e57f90e022b93ec4f1a7a1
 BELONGS ya.make
     License text:
          * 1999 Copyright (C) Pavel Machek, pavel@ucw.cz. This code is GPL.
@@ -4643,7 +4652,7 @@ BELONGS ya.make
     Files with this license:
         linux/nbd.h [3:3]
 
-KEEP     GPL-2.0-only AND Linux-OpenIB d9a213bfda5adf8a9e62b5eb7e9db985
+KEEP     "(GPL-2.0-only WITH Linux-syscall-note OR Linux-OpenIB)" d9a213bfda5adf8a9e62b5eb7e9db985
 BELONGS ya.make
 FILE_INCLUDE COPYING found in files: linux/rds.h at line 8, linux/tls.h at line 8, rdma/cxgb4-abi.h at line 8, rdma/hns-abi.h at line 8, rdma/i40iw-abi.h at line 10, rdma/ib_user_ioctl_cmds.h at line 7, rdma/ib_user_ioctl_verbs.h at line 8, rdma/ib_user_mad.h at line 9, rdma/ib_user_sa.h at line 8, rdma/ib_user_verbs.h at line 11, rdma/mlx4-abi.h at line 9, rdma/mlx5-abi.h at line 8, rdma/mlx5_user_ioctl_cmds.h at line 7, rdma/mlx5_user_ioctl_verbs.h at line 7, rdma/mthca-abi.h at line 9, rdma/rdma_user_cm.h at line 8, rdma/rdma_user_ioctl.h at line 8, rdma/rdma_user_ioctl_cmds.h at line 7
     Note: matched license text is too long. Read it in the source files.
@@ -4696,7 +4705,7 @@ FILE_INCLUDE COPYING found in files: linux/rds.h at line 8, linux/tls.h at line 
         rdma/rdma_user_ioctl.h [5:31]
         rdma/rdma_user_ioctl_cmds.h [4:30]
 
-KEEP     GPL-1.0-or-later     da1092d162d61cf1cf4255de09b21a7f
+KEEP     GPL-1.0-or-later WITH Linux-syscall-note da1092d162d61cf1cf4255de09b21a7f
 BELONGS ya.make
     License text:
          * (C)2002 Rusty Russell IBM -- This code is GPL.
@@ -4708,7 +4717,7 @@ BELONGS ya.make
     Files with this license:
         linux/netfilter_arp.h [6:6]
 
-KEEP     GPL-2.0-only         dcad52d8e899d5e01005ae659cb146be
+KEEP     GPL-2.0-only WITH Linux-syscall-note dcad52d8e899d5e01005ae659cb146be
 BELONGS ya.make
     License text:
             SPDX-License-Identifier: GPL-2.0-only
@@ -4720,7 +4729,7 @@ BELONGS ya.make
     Files with this license:
         LICENSES/preferred/GPL-2.0 [13:13]
 
-KEEP     GPL-2.0-only AND MIT de542ca92ca934d10dc51df295fcabb2
+KEEP     "(GPL-2.0-only WITH Linux-syscall-note OR MIT)" de542ca92ca934d10dc51df295fcabb2
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -4738,7 +4747,7 @@ BELONGS ya.make
     Files with this license:
         xen/gntdev.h [10:32]
 
-KEEP     GPL-2.0-only WITH Linux-syscall-note AND MIT e14639bedabd468803da8246364df663
+KEEP     "(GPL-2.0-only WITH Linux-syscall-note OR MIT)" e14639bedabd468803da8246364df663
 BELONGS ya.make
 FILE_INCLUDE LICENSES/exceptions/Linux-syscall-note found in files: xen/evtchn.h at line 1, xen/gntdev.h at line 1, xen/privcmd.h at line 1
 FILE_INCLUDE LICENSES/preferred/GPL-2.0 found in files: xen/evtchn.h at line 1, xen/gntdev.h at line 1, xen/privcmd.h at line 1
@@ -4783,7 +4792,7 @@ BELONGS ya.make
     Files with this license:
         linux/timex.h [5:13]
 
-KEEP     GPL-2.0-only         e4cd22bf436b665212481aca760feeee
+KEEP     GPL-2.0-only WITH Linux-syscall-note e4cd22bf436b665212481aca760feeee
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -4795,7 +4804,7 @@ BELONGS ya.make
         sound/compress_offload.h [10:21]
         sound/compress_params.h [12:23]
 
-KEEP     GPL-2.0-only         e65f3df20fe6c1acc1132103beb1e6be
+KEEP     GPL-2.0-only WITH Linux-syscall-note e65f3df20fe6c1acc1132103beb1e6be
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -4806,7 +4815,7 @@ BELONGS ya.make
     Files with this license:
         linux/edd.h [21:28]
 
-KEEP     GPL-2.0-only         e6a3658de93ad3886aa68039dbbe7813
+KEEP     GPL-2.0-only WITH Linux-syscall-note e6a3658de93ad3886aa68039dbbe7813
 BELONGS ya.make
     License text:
          *  This program is free software; you can redistribute it and/or
@@ -4822,7 +4831,7 @@ BELONGS ya.make
         linux/ppp-ioctl.h [7:9]
         linux/ppp_defs.h [7:9]
 
-KEEP     GPL-2.0-only         e82f75b4bee3fcd11787f7181e1347b5
+KEEP     GPL-2.0-only WITH Linux-syscall-note e82f75b4bee3fcd11787f7181e1347b5
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -4833,7 +4842,7 @@ BELONGS ya.make
     Files with this license:
         linux/openvswitch.h [6:18]
 
-KEEP     GPL-2.0-or-later     ea175e8ae2b416181960aa21d2d9a0c1
+KEEP     GPL-2.0-or-later WITH Linux-syscall-note ea175e8ae2b416181960aa21d2d9a0c1
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -4857,7 +4866,7 @@ BELONGS ya.make
         linux/qemu_fw_cfg.h [1:1]
         linux/virtio_iommu.h [1:1]
 
-KEEP     GPL-2.0-only AND BSD-2-Clause ea88b02690f5bde876c547d5ff937bd8
+KEEP     "(GPL-2.0-only WITH Linux-syscall-note OR BSD-2-Clause)" ea88b02690f5bde876c547d5ff937bd8
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -4875,7 +4884,7 @@ BELONGS ya.make
     Files with this license:
         linux/if_infiniband.h [3:18]
 
-KEEP     LGPL-2.1-or-later    eaa66bb56a6015b9bdae2a6105e93c1c
+KEEP     LGPL-2.1-or-later WITH Linux-syscall-note eaa66bb56a6015b9bdae2a6105e93c1c
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -4888,7 +4897,7 @@ BELONGS ya.make
         linux/dvb/ca.h [9:21]
         linux/dvb/osd.h [11:23]
 
-KEEP     GPL-2.0-or-later     eb707a08cccc5d305e1e1c37a0e8f753
+KEEP     GPL-2.0-or-later WITH Linux-syscall-note eb707a08cccc5d305e1e1c37a0e8f753
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -4907,7 +4916,7 @@ BELONGS ya.make
         linux/tc_act/tc_tunnel_key.h [6:9]
         linux/tc_act/tc_vlan.h [5:8]
 
-KEEP     GPL-2.0-or-later     ecba56244447b55aa64a4d515762567e
+KEEP     GPL-2.0-or-later WITH Linux-syscall-note ecba56244447b55aa64a4d515762567e
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -4919,7 +4928,7 @@ BELONGS ya.make
         linux/nfsd/cld.h [8:20]
         linux/ptp_clock.h [7:19]
 
-KEEP     LGPL-2.1-or-later    efba7319c6f70ddec59624141640cac1
+KEEP     LGPL-2.1-or-later WITH Linux-syscall-note efba7319c6f70ddec59624141640cac1
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -4942,7 +4951,7 @@ BELONGS ya.make
         rdma/hfi/hfi1_ioctl.h [24:48]
         rdma/hfi/hfi1_user.h [24:48]
 
-KEEP     GPL-2.0-only         f3cbe572900c2070f5b90138353b4f35
+KEEP     GPL-2.0-only WITH Linux-syscall-note f3cbe572900c2070f5b90138353b4f35
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -4953,7 +4962,7 @@ BELONGS ya.make
     Files with this license:
         linux/vm_sockets.h [7:14]
 
-KEEP     GPL-2.0-only WITH Linux-syscall-note AND CDDL-1.0 f3eb84d29c6dee1d459a3a0aa8921898
+KEEP     "(GPL-2.0-only WITH Linux-syscall-note OR CDDL-1.0)" f3eb84d29c6dee1d459a3a0aa8921898
 BELONGS ya.make
 FILE_INCLUDE LICENSES/exceptions/Linux-syscall-note found in files: linux/vbox_vmmdev_types.h at line 1, linux/vboxguest.h at line 1
 FILE_INCLUDE LICENSES/preferred/GPL-2.0 found in files: linux/vbox_vmmdev_types.h at line 1, linux/vboxguest.h at line 1
@@ -4984,7 +4993,7 @@ FILE_INCLUDE LICENSES/preferred/GPL-2.0 found in files: linux/vbox_vmmdev_types.
         linux/vbox_vmmdev_types.h [1:1]
         linux/vboxguest.h [1:1]
 
-KEEP     GPL-2.0-only         f439f9c32e5213c1381f6b2146d0cbfe
+KEEP     GPL-2.0-only WITH Linux-syscall-note f439f9c32e5213c1381f6b2146d0cbfe
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -4995,7 +5004,7 @@ BELONGS ya.make
     Files with this license:
         linux/uuid.h [8:15]
 
-KEEP     LGPL-2.0-or-later    f4ca8ab08f96c46d3060207ae8df3638
+KEEP     LGPL-2.0-or-later WITH Linux-syscall-note f4ca8ab08f96c46d3060207ae8df3638
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -5006,7 +5015,7 @@ BELONGS ya.make
     Files with this license:
         asm/mtrr_x86.h [6:18]
 
-KEEP     GPL-2.0-only         f5f0b0629b63ba163d145a610dc74faa
+KEEP     GPL-2.0-only WITH Linux-syscall-note f5f0b0629b63ba163d145a610dc74faa
 BELONGS ya.make
     License text:
          * License terms: GNU General Public License (GPL) version 2
@@ -5019,7 +5028,7 @@ BELONGS ya.make
         linux/caif/caif_socket.h [6:6]
         linux/caif/if_caif.h [5:5]
 
-KEEP     GPL-2.0-only WITH Linux-syscall-note AND BSD-3-Clause f6cd1a29925900ad8fb5272168f3beda
+KEEP     "(GPL-2.0-only WITH Linux-syscall-note OR BSD-3-Clause)" f6cd1a29925900ad8fb5272168f3beda
 BELONGS ya.make
 FILE_INCLUDE LICENSES/exceptions/Linux-syscall-note found in files: linux/cec-funcs.h at line 1, linux/cec.h at line 1, linux/mei.h at line 1, linux/rio_cm_cdev.h at line 1, linux/rio_mport_cdev.h at line 1, linux/scif_ioctl.h at line 1, linux/tipc.h at line 1, linux/tipc_config.h at line 1, linux/tipc_netlink.h at line 1, linux/virtio_fs.h at line 1, rdma/hfi/hfi1_ioctl.h at line 1, rdma/hfi/hfi1_user.h at line 1, rdma/rvt-abi.h at line 1, sound/sof/abi.h at line 1, sound/sof/fw.h at line 1, sound/sof/header.h at line 1, sound/sof/tokens.h at line 1
 FILE_INCLUDE LICENSES/preferred/GPL-2.0 found in files: linux/cec-funcs.h at line 1, linux/cec.h at line 1, linux/mei.h at line 1, linux/rio_cm_cdev.h at line 1, linux/rio_mport_cdev.h at line 1, linux/scif_ioctl.h at line 1, linux/tipc.h at line 1, linux/tipc_config.h at line 1, linux/tipc_netlink.h at line 1, linux/virtio_fs.h at line 1, rdma/hfi/hfi1_ioctl.h at line 1, rdma/hfi/hfi1_user.h at line 1, rdma/rvt-abi.h at line 1, sound/sof/abi.h at line 1, sound/sof/fw.h at line 1, sound/sof/header.h at line 1, sound/sof/tokens.h at line 1
@@ -5095,7 +5104,7 @@ FILE_INCLUDE LICENSES/preferred/GPL-2.0 found in files: linux/cec-funcs.h at lin
         sound/sof/header.h [1:1]
         sound/sof/tokens.h [1:1]
 
-KEEP     GPL-2.0-or-later     f7345d0594b5991a3efe787c76c9e1f8
+KEEP     GPL-2.0-or-later WITH Linux-syscall-note f7345d0594b5991a3efe787c76c9e1f8
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -5106,7 +5115,7 @@ BELONGS ya.make
     Files with this license:
         linux/uleds.h [5:13]
 
-KEEP     GPL-1.0-or-later     fa374a90714925f73d68fd16890fdca0
+KEEP     GPL-1.0-or-later WITH Linux-syscall-note fa374a90714925f73d68fd16890fdca0
 BELONGS ya.make
     License text:
          		       Under the terms of the GNU General Public License
@@ -5129,7 +5138,7 @@ BELONGS ya.make
     Files with this license:
         linux/virtio_gpu.h [10:35]
 
-KEEP     GPL-2.0-or-later     fbc261927830b357135343de861f55d8
+KEEP     GPL-2.0-or-later WITH Linux-syscall-note fbc261927830b357135343de861f55d8
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -5141,7 +5150,7 @@ BELONGS ya.make
         linux/eventpoll.h [6:9]
         linux/phantom.h [5:8]
 
-KEEP     GPL-2.0-or-later     fc8adbed4366ef045b97574b12f80977
+KEEP     GPL-2.0-or-later WITH Linux-syscall-note fc8adbed4366ef045b97574b12f80977
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -5176,7 +5185,7 @@ BELONGS ya.make
         drm/tegra_drm.h [4:20]
         linux/kfd_ioctl.h [4:20]
 
-KEEP     GPL-2.0-only         fe1c68ca0ccb8671b25e33e938cd29b8
+KEEP     GPL-2.0-only WITH Linux-syscall-note fe1c68ca0ccb8671b25e33e938cd29b8
 BELONGS ya.make
 FILE_INCLUDE COPYING found in files: linux/mic_common.h at line 17, linux/mic_ioctl.h at line 17
     Note: matched license text is too long. Read it in the source files.
@@ -5202,7 +5211,7 @@ BELONGS ya.make
     Files with this license:
         LICENSES/exceptions/Linux-syscall-note [2:2]
 
-KEEP     LGPL-2.0-or-later    fe58bd2f155d47232d0b3d9d91b76103
+KEEP     LGPL-2.0-or-later WITH Linux-syscall-note fe58bd2f155d47232d0b3d9d91b76103
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:

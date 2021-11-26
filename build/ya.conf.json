@@ -5819,7 +5819,7 @@
         "ymake": {
             "formula": {
                 "sandbox_id": [
-                    1126751995
+                    1133705841
                 ],
                 "match": "ymake"
             },
@@ -6834,7 +6834,7 @@
         },
         "sre": {
             "formula": {
-                "sandbox_id": "1130136536",
+                "sandbox_id": "1132278938",
                 "match": "infra/rtc/sretools/sretools.tar.gz"
             },
             "executable": {
@@ -7039,7 +7039,7 @@
         "yp-util": {
             "formula": {
                 "sandbox_id": [
-                    1115962085
+                    1136404148
                 ],
                 "match": "yp_util"
             },
@@ -7052,7 +7052,7 @@
         "yp": {
             "formula": {
                 "sandbox_id": [
-                    1115967753
+                    1136403803
                 ],
                 "match": "YP"
             },
@@ -7397,7 +7397,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 1130720894,
+                "sandbox_id": 1137123037,
                 "match": "horadric"
             },
             "executable": {
@@ -7540,7 +7540,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 1130722209,
+                "sandbox_id": 1137122793,
                 "match": "app_host_launcher"
             },
             "executable": {
@@ -7675,7 +7675,7 @@
         "fio": {
             "formula": {
                 "sandbox_id": [
-                    916684450
+                    1136887344
                 ],
                 "match": "infra/kernel/tools/fio/build/fio-static.tar.gz"
             },
@@ -7737,7 +7737,7 @@
         "bpftool": {
             "formula": {
                 "sandbox_id": [
-                    2561894832
+                    1130914217
                 ],
                 "match": "infra/kernel/tools/bpftool/build/bpftool-static.tar.gz"
             },
@@ -7923,7 +7923,7 @@
         },
         "yfm-docs": {
             "formula": {
-                "sandbox_id": 991858002,
+                "sandbox_id": 1137627305,
                 "match": "yfm-docs"
             },
             "executable": {
@@ -7945,7 +7945,7 @@
         },
         "sedem": {
             "formula": {
-                "sandbox_id": 1130421614,
+                "sandbox_id": 1136651495,
                 "match": "SEDEM archive"
             },
             "executable": {
@@ -8061,7 +8061,7 @@
         },
         "iceflame": {
             "formula": {
-                "sandbox_id": 1081066756,
+                "sandbox_id": 1137630333,
                 "match": "iceflame"
             },
             "executable": {
@@ -8143,7 +8143,7 @@
         },
         "eductl": {
             "formula": {
-                "sandbox_id": 1128418208,
+                "sandbox_id": 1135880158,
                 "match": "eductl"
             },
             "executable": {
@@ -8154,7 +8154,7 @@
         },
         "bigb_request": {
             "formula": {
-                "sandbox_id": 1130722269,
+                "sandbox_id": 1137122163,
                 "match": "bb_requester"
             },
             "executable": {
@@ -8165,7 +8165,7 @@
         },
         "bigb_hitlog_analyser": {
             "formula": {
-                "sandbox_id": 1130720667,
+                "sandbox_id": 1137122913,
                 "match": "hitlog_analyser"
             },
             "executable": {
@@ -8187,7 +8187,7 @@
         },
         "bigb_bb_cluster_analyzer": {
             "formula": {
-                "sandbox_id": 1130722231,
+                "sandbox_id": 1137122490,
                 "match": "bb_cluster_analyzer"
             },
             "executable": {
@@ -8198,7 +8198,7 @@
         },
         "bigb_yt_profiles_dumper": {
             "formula": {
-                "sandbox_id": 1130722045,
+                "sandbox_id": 1137123991,
                 "match": "yt_profiles_dumper"
             },
             "executable": {
@@ -8209,7 +8209,7 @@
         },
         "bigb_ab": {
             "formula": {
-                "sandbox_id": 1130722046,
+                "sandbox_id": 1137122202,
                 "match": "ab"
             },
             "executable": {
@@ -8233,7 +8233,7 @@
         },
         "caesar_yt_sync": {
             "formula": {
-                "sandbox_id": 1130721972,
+                "sandbox_id": 1137121964,
                 "match": "yt_sync"
             },
             "executable": {
@@ -8244,7 +8244,7 @@
         },
         "caesar_lookup_profile": {
             "formula": {
-                "sandbox_id": 1130722136,
+                "sandbox_id": 1137123295,
                 "match": "lookup_profile"
             },
             "executable": {
@@ -8255,7 +8255,7 @@
         },
         "exp_stats": {
             "formula": {
-                "sandbox_id": 1130720862,
+                "sandbox_id": 1137121940,
                 "match": "exp_stats"
             },
             "executable": {
@@ -8266,7 +8266,7 @@
         },
         "caesar_profile_size_analyzer": {
             "formula": {
-                "sandbox_id": 1130722149,
+                "sandbox_id": 1137121946,
                 "match": "profile_size_analyzer"
             },
             "executable": {

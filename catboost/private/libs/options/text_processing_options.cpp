@@ -121,12 +121,25 @@ namespace NCatboostOptions {
             return;
         }
         TString calcerName;
-        if (options.Has("calcer_type")) {
+
+        if (options.IsString()) {
+            TStringBuf name, calcersOptions;
+            TStringBuf(options.GetString()).Split(':', name, calcersOptions);
+            calcerName = name;
+            CalcerOptions->InsertValue("calcer_type", calcerName);
+            for (TStringBuf stringParam : StringSplitter(calcersOptions).Split(':')) {
+                TStringBuf key, value;
+                stringParam.Split('=', key, value);
+                CalcerOptions->InsertValue(key, value);
+            }
+        } else {
+            CB_ENSURE(options.IsMap(),
+                      "We only support string and dictionaries as featurization options for value "
+                      << options.GetStringRobust() << " with type " << options.GetType());
             calcerName = options["calcer_type"].GetString();
             CalcerOptions.Set(options);
-        } else {
-            calcerName = options.GetString();
         }
+
         EFeatureCalcerType calcerType;
 
         CB_ENSURE(TryFromString<EFeatureCalcerType>(calcerName, calcerType),
@@ -276,7 +289,9 @@ namespace NCatboostOptions {
         TVector<TTextColumnDictionaryOptions>&& dictionaries,
         TMap<TString, TVector<TTextFeatureProcessing>>&& textFeatureProcessing
     )
-        : TTextProcessingOptions()
+        : Tokenizers("tokenizers", {})
+        , Dictionaries("dictionaries", {})
+        , TextFeatureProcessing("feature_processing", {})
     {
         Tokenizers.Set(tokenizers);
         Dictionaries.Set(dictionaries);

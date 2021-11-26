@@ -1220,7 +1220,7 @@ def test_save_load_equality(task_type):
             {'dictionary_id': 'BiGram', 'token_level_type': 'Letter', 'occurrence_lower_bound': '1', 'gram_order': '2'},
             {'dictionary_id': 'Word', 'occurrence_lower_bound': '1'},
         ],
-        'feature_calcers': ['NaiveBayes', 'BoW'],
+        'feature_calcers': ['NaiveBayes', 'BoW:top_tokens_count=10'],
         'iterations': 10,
         'loss_function': 'MultiClass',
         'task_type': task_type,
@@ -1308,7 +1308,7 @@ def test_fit_with_texts(task_type):
             {'dictionary_id': 'BiGram', 'token_level_type': 'Letter', 'occurrence_lower_bound': '1', 'gram_order': '2'},
             {'dictionary_id': 'Word', 'occurrence_lower_bound': '1'},
         ],
-        'feature_calcers': ['NaiveBayes', 'BoW'],
+        'feature_calcers': ['NaiveBayes', 'BoW:top_tokens_count=10'],
         'iterations': 100,
         'loss_function': 'MultiClass',
         'task_type': task_type,
@@ -9381,6 +9381,39 @@ def test_different_formats_of_feature_weights():
             )
         with pytest.raises(CatBoostError):
             cv(train_pool, params=dict(common_options, **{'feature_weights': feature_weights}))
+
+
+def test_feature_tags_interface():
+    data = np.arange(80).reshape((10, 8))
+    label = np.arange(10) % 2
+    pool = Pool(
+        data,
+        label=label,
+        feature_names=["c_0", "c_1", "c_2", "num_3", "c_4", "c_5", "c_6", "num_7"],
+        feature_tags={
+            "tag1" : {
+                "features": np.arange(4),
+                "cost": 5
+            },
+            "tag2": {"features": ["num_3", "num_7"]},
+            "tag3" : {"features": [4, 5]}
+        }
+    )
+    cat = CatBoostClassifier(ignored_features=["#tag1", "#tag2"])
+    cat.fit(pool)
+    assert np.array_equal(np.where(cat.feature_importances_ == 0)[0], [0, 1, 2, 3, 7])
+    cat = CatBoostClassifier()
+    result = cat.select_features(
+        pool,
+        features_for_select=["#tag1", "#tag2"],
+        num_features_to_select=3
+    )
+    assert all(x in [0, 1, 2, 3, 7] for x in result["selected_features"])
+    assert all(x in [0, 1, 2, 3, 7] for x in result["eliminated_features"])
+    with pytest.raises(CatBoostError):
+        Pool(data, feature_tags={"features": [4, 5]})
+    with pytest.raises(CatBoostError):
+        Pool(data, feature_tags={"tag2": {"features": ["num_3", "num_4"]}})
 
 
 def test_first_feature_use_penalties_work():

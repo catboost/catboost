@@ -150,11 +150,13 @@ template <class... Types>
 */
 
 #include <__config>
-#include <__functional_base>
 #include <__functional/unwrap_ref.h>
+#include <__functional_base>
+#include <__memory/allocator_arg_t.h>
+#include <__memory/uses_allocator.h>
+#include <__tuple>
 #include <__utility/forward.h>
 #include <__utility/move.h>
-#include <__tuple>
 #include <compare>
 #include <cstddef>
 #include <type_traits>
@@ -1180,7 +1182,7 @@ get(const tuple<_Tp...>&& __t) _NOEXCEPT
 
 namespace __find_detail {
 
-static constexpr size_t __not_found = -1;
+static constexpr size_t __not_found = static_cast<size_t>(-1);
 static constexpr size_t __ambiguous = __not_found - 1;
 
 inline _LIBCPP_INLINE_VISIBILITY
