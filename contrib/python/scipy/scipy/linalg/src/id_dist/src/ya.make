@@ -4,10 +4,6 @@ LICENSE(BSD-3-Clause)
 
 
 
-PEERDIR(
-    contrib/python/scipy/scipy/fftpack/src
-)
-
 SRCS(
     # dfft_subr_*.f in fftpack
     idd_frm_subr_0.f

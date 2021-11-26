@@ -573,24 +573,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\_lib\pyscipy-scipy-_lib.global.vcxproj">
       <Project>{88D5F6B8-8977-45EF-82D0-6D6659945E88}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\cluster\py3scipy-scipy-cluster.global.vcxproj">
-      <Project>{9B469F6F-4FAF-2F4A-B101-D14C7DF1BE7F}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\cluster\pyscipy-scipy-cluster.global.vcxproj">
-      <Project>{5E86CA63-D59E-60AB-2C93-B3C747D85DA5}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\constants\py3scipy-scipy-constants.global.vcxproj">
-      <Project>{7D9310AE-55E6-B9E4-23E0-0B5C9F557C5D}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\constants\pyscipy-scipy-constants.global.vcxproj">
-      <Project>{D1853C93-3F9C-49CB-6FB7-A68DC170B472}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\fftpack\py3scipy-scipy-fftpack.global.vcxproj">
-      <Project>{84C7C585-B169-66D8-40B3-EB6A4FE266C4}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\fftpack\pyscipy-scipy-fftpack.global.vcxproj">
-      <Project>{B8397ED3-47F6-B2C9-02A4-98C6DCB63410}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\linalg\py3scipy-scipy-linalg.global.vcxproj">
       <Project>{C950F925-4D55-A1AB-198B-A18CEB0A23F0}</Project>
     </ProjectReference>
@@ -692,12 +674,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\spatial\pyscipy-scipy-spatial.global.vcxproj">
       <Project>{E7318689-9C67-E276-AF21-1FEEE80AADF6}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\stats\py3scipy-scipy-stats.global.vcxproj">
-      <Project>{EF2B0F01-64E6-FE35-5B3F-2FCB94443927}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\stats\pyscipy-scipy-stats.global.vcxproj">
-      <Project>{8F64AE69-AC9F-0A66-4B0B-5B2936DB9022}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\setuptools\py2\pypython-setuptools-py2.global.vcxproj">
       <Project>{3883A5C2-D594-2667-C63C-A665727800A7}</Project>

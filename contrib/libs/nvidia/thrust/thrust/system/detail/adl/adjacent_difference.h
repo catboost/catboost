@@ -34,9 +34,7 @@
 #include <thrust/system/tbb/detail/adjacent_difference.h>
 #endif
 
-#define __THRUST_HOST_SYSTEM_ADJACENT_DIFFERENCE_HEADER <__THRUST_HOST_SYSTEM_ROOT/detail/adjacent_difference.h>
-#include __THRUST_HOST_SYSTEM_ADJACENT_DIFFERENCE_HEADER
-#undef __THRUST_HOST_SYSTEM_ADJACENT_DIFFERENCE_HEADER
+#include <thrust/system/cpp/detail/adjacent_difference.h>
 
 #define __THRUST_DEVICE_SYSTEM_ADJACENT_DIFFERENCE_HEADER <__THRUST_DEVICE_SYSTEM_ROOT/detail/adjacent_difference.h>
 #include __THRUST_DEVICE_SYSTEM_ADJACENT_DIFFERENCE_HEADER

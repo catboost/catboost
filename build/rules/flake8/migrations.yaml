@@ -405,7 +405,6 @@ migrations:
     - maps/b2bgeo/mvrp_solver/backend/tests_lib
     - maps/carparks/regression/renderer/generate_ammo
     - maps/carparks/tools/route_lost_viewer/bin
-    - maps/infra/ecstatic/common/worker/lib
     - maps/infra/monitoring/sla_calculator/core/services
     - maps/jams/renderer2/common/ecstatic/lib
     - maps/mobile/server/tools/cache_deprecator
@@ -1031,7 +1030,6 @@ migrations:
     - maps/automotive/qa/metrics/common/ut
     - maps/automotive/tools/statistics_auto/pylib/track_match_finder
     - maps/infra/apiteka/config_uploader/tests
-    - maps/infra/ecstatic/common/worker/lib
     - maps/infra/sedem/cli/tests/release
     - maps/infra/sedem/cli/tests/release/utils
     - maps/search/metrics/pipeline/geo/geocoder/lib
@@ -1197,7 +1195,6 @@ migrations:
     - yabs/server/cs/pylibs/dash_board
     - yabs/server/cs/pylibs/full_graph_plot
     - yabs/server/cs/pylibs/gantt_chart/lib
-    - yabs/server/cs/pylibs/import_actions
     - yabs/server/cs/pylibs/settings
     - yabs/server/test/ft/BSSERVER-13708
     - yabs/server/test/ft/BSSERVER-14014
@@ -2155,7 +2152,6 @@ migrations:
     - market/dynamic_pricing/price_collector/bin
     - market/dynamic_pricing/price_collector/lib
     - market/dynamic_pricing/tools/delivery_checker/bin
-    - market/dynamic_pricing/tools/delivery_checker/lib
     - market/dynamic_pricing/tools/hide_rules_exceptions/bin
     - market/dynamic_pricing/tools/kvi_evaluation/bin
     - market/forecaster/lite/core
@@ -3180,7 +3176,6 @@ migrations:
     - dict/ext/pairfreq/findpairs3/tests/lemmatize
     - dict/gen_phrases/tests
     - dict/geninflnames/tests
-    - dict/mt/make/modules/corpus_generation/kwyt_html_parse/tests
     - dict/mt/make/tools/build_unigram_blacklist/tests
     - dict/mt/make/tools/lm_diff/tests
     - dict/mt/make/tools/make_cap_model/ut
@@ -3262,7 +3257,6 @@ migrations:
     - intranet/yandex_directory/tests
     - juggler/juggler_client/lib/tests
     - juggler/libjuggler/tests
-    - juggler/netmon/agent/tests/privileged
     - kernel/extended_mx_calcer/tools/calcers_test/tests
     - kernel/geo/tests/geo_utils/tests
     - kernel/title_ranges/test_title_ranges/tests
@@ -3687,7 +3681,6 @@ migrations:
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/export
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/favorites
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/langdetect
-    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/likes
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/metrics
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/object_answers
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/object_tags

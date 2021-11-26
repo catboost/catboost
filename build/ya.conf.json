@@ -7397,7 +7397,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 1137123037,
+                "sandbox_id": 1138127936,
                 "match": "horadric"
             },
             "executable": {
@@ -7540,7 +7540,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 1137122793,
+                "sandbox_id": 1138128081,
                 "match": "app_host_launcher"
             },
             "executable": {
@@ -8143,7 +8143,7 @@
         },
         "eductl": {
             "formula": {
-                "sandbox_id": 1135880158,
+                "sandbox_id": 1138284690,
                 "match": "eductl"
             },
             "executable": {
@@ -8154,7 +8154,7 @@
         },
         "bigb_request": {
             "formula": {
-                "sandbox_id": 1137122163,
+                "sandbox_id": 1138128333,
                 "match": "bb_requester"
             },
             "executable": {
@@ -8165,7 +8165,7 @@
         },
         "bigb_hitlog_analyser": {
             "formula": {
-                "sandbox_id": 1137122913,
+                "sandbox_id": 1138128383,
                 "match": "hitlog_analyser"
             },
             "executable": {
@@ -8187,7 +8187,7 @@
         },
         "bigb_bb_cluster_analyzer": {
             "formula": {
-                "sandbox_id": 1137122490,
+                "sandbox_id": 1138128424,
                 "match": "bb_cluster_analyzer"
             },
             "executable": {
@@ -8198,7 +8198,7 @@
         },
         "bigb_yt_profiles_dumper": {
             "formula": {
-                "sandbox_id": 1137123991,
+                "sandbox_id": 1138128047,
                 "match": "yt_profiles_dumper"
             },
             "executable": {
@@ -8209,7 +8209,7 @@
         },
         "bigb_ab": {
             "formula": {
-                "sandbox_id": 1137122202,
+                "sandbox_id": 1138128593,
                 "match": "ab"
             },
             "executable": {
@@ -8233,7 +8233,7 @@
         },
         "caesar_yt_sync": {
             "formula": {
-                "sandbox_id": 1137121964,
+                "sandbox_id": 1138128176,
                 "match": "yt_sync"
             },
             "executable": {
@@ -8244,7 +8244,7 @@
         },
         "caesar_lookup_profile": {
             "formula": {
-                "sandbox_id": 1137123295,
+                "sandbox_id": 1138127425,
                 "match": "lookup_profile"
             },
             "executable": {
@@ -8255,7 +8255,7 @@
         },
         "exp_stats": {
             "formula": {
-                "sandbox_id": 1137121940,
+                "sandbox_id": 1138127068,
                 "match": "exp_stats"
             },
             "executable": {
@@ -8266,7 +8266,7 @@
         },
         "caesar_profile_size_analyzer": {
             "formula": {
-                "sandbox_id": 1137121946,
+                "sandbox_id": 1138127322,
                 "match": "profile_size_analyzer"
             },
             "executable": {

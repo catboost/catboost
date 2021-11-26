@@ -1089,6 +1089,21 @@ class GnuToolchain(Toolchain):
 
         self.env = self.tc.get_env()
 
+        self.env_go = {}
+        if self.tc.is_clang:
+            self.env_go = {'PATH': ['{}/bin'.format(self.tc.name_marker)]}
+        if self.tc.is_gcc:
+            self.env_go = {'PATH': ['{}/gcc/bin'.format(self.tc.name_marker)]}
+        if 'PATH' in self.env_go:
+            if target.is_linux:
+                self.env_go['PATH'].append('$OS_SDK_ROOT_RESOURCE_GLOBAL/usr/bin')
+            elif target.is_macos:
+                self.env_go['PATH'].extend([
+                    '$MACOS_SDK_RESOURCE_GLOBAL/usr/bin',
+                    '$CCTOOLS_ROOT_RESOURCE_GLOBAL/bin',
+                    '$GO_FAKE_XCRUN_RESOURCE_GLOBAL',
+                ])
+
         self.swift_flags_platform = []
         self.swift_lib_path = None
 
@@ -1240,6 +1255,7 @@ class GnuToolchain(Toolchain):
         super(GnuToolchain, self).print_toolchain()
 
         emit('TOOLCHAIN_ENV', format_env(self.env, list_separator=':'))
+        emit('_GO_TOOLCHAIN_ENV_PATH', format_env(self.env_go, list_separator=':'))
         emit('C_FLAGS_PLATFORM', self.c_flags_platform)
         emit('SWIFT_FLAGS_PLATFORM', self.swift_flags_platform)
         emit('SWIFT_LD_FLAGS', '-L{}'.format(self.swift_lib_path) if self.swift_lib_path else '')

@@ -9,12 +9,8 @@ VERSION(0.18.1)
 PEERDIR(
     contrib/python/numpy
     contrib/python/scipy/scipy/spatial
-    contrib/python/scipy/scipy/fftpack
     contrib/python/scipy/scipy/signal
     contrib/python/scipy/scipy/ndimage
-    contrib/python/scipy/scipy/stats
-    contrib/python/scipy/scipy/constants
-    contrib/python/scipy/scipy/cluster
     contrib/python/scipy/scipy/odr
     contrib/python/scipy/scipy/_lib
     contrib/python/scipy/scipy/linalg
@@ -27,6 +23,7 @@ ENDIF()
 
 ADDINCL(
     FOR cython contrib/python/scipy
+    contrib/python/scipy/scipy/cluster
     contrib/python/scipy/scipy/interpolate
     contrib/python/scipy/scipy/io/matlab
     contrib/python/scipy/scipy/special
@@ -37,6 +34,62 @@ NO_LINT()
 NO_COMPILER_WARNINGS()
 
 SRCS(
+    scipy/fftpack/convolvemodule.c
+    scipy/fftpack/_fftpackmodule.c
+    scipy/fftpack/src/dst.c
+    scipy/fftpack/src/dct.c
+    scipy/fftpack/src/convolve.c
+    scipy/fftpack/src/zrfft.c
+    scipy/fftpack/src/zfftnd.c
+    scipy/fftpack/src/drfft.c
+    scipy/fftpack/src/zfft.c
+    scipy/fftpack/src/dfftpack/dcosti.f
+    scipy/fftpack/src/dfftpack/dsint1.f
+    scipy/fftpack/src/dfftpack/zffti.f
+    scipy/fftpack/src/dfftpack/dffti1.f
+    scipy/fftpack/src/dfftpack/zfftf1.f
+    scipy/fftpack/src/dfftpack/dsinqf.f
+    scipy/fftpack/src/dfftpack/dfftf1.f
+    scipy/fftpack/src/dfftpack/zfftb1.f
+    scipy/fftpack/src/dfftpack/zffti1.f
+    scipy/fftpack/src/dfftpack/dcosqf.f
+    scipy/fftpack/src/dfftpack/dfftf.f
+    scipy/fftpack/src/dfftpack/dsinqb.f
+    scipy/fftpack/src/dfftpack/dfftb1.f
+    scipy/fftpack/src/dfftpack/dsinqi.f
+    scipy/fftpack/src/dfftpack/dfftb.f
+    scipy/fftpack/src/dfftpack/zfftf.f
+    scipy/fftpack/src/dfftpack/dsint.f
+    scipy/fftpack/src/dfftpack/dcosqb.f
+    scipy/fftpack/src/dfftpack/dcost.f
+    scipy/fftpack/src/dfftpack/zfftb.f
+    scipy/fftpack/src/dfftpack/dffti.f
+    scipy/fftpack/src/dfftpack/dsinti.f
+    scipy/fftpack/src/dfftpack/dcosqi.f
+    scipy/fftpack/src/fftpack/cosqb.f
+    scipy/fftpack/src/fftpack/rfftb1.f
+    scipy/fftpack/src/fftpack/sinti.f
+    scipy/fftpack/src/fftpack/cfftb1.f
+    scipy/fftpack/src/fftpack/rfftf1.f
+    scipy/fftpack/src/fftpack/rffti1.f
+    scipy/fftpack/src/fftpack/sinqf.f
+    scipy/fftpack/src/fftpack/cosqi.f
+    scipy/fftpack/src/fftpack/cost.f
+    scipy/fftpack/src/fftpack/sint1.f
+    scipy/fftpack/src/fftpack/cfftb.f
+    scipy/fftpack/src/fftpack/rfftf.f
+    scipy/fftpack/src/fftpack/sinqi.f
+    scipy/fftpack/src/fftpack/cfftf.f
+    scipy/fftpack/src/fftpack/cffti1.f
+    scipy/fftpack/src/fftpack/costi.f
+    scipy/fftpack/src/fftpack/rfftb.f
+    scipy/fftpack/src/fftpack/cosqf.f
+    scipy/fftpack/src/fftpack/cfftf1.f
+    scipy/fftpack/src/fftpack/sint.f
+    scipy/fftpack/src/fftpack/cffti.f
+    scipy/fftpack/src/fftpack/sinqb.f
+    scipy/fftpack/src/fftpack/rffti.f
+
     scipy/integrate/_dopmodule.c
     scipy/integrate/_odepackmodule.c
     scipy/integrate/_quadpackmodule.c
@@ -435,9 +488,17 @@ SRCS(
     scipy/special/specfun/specfun.f
     scipy/special/specfun_wrappers.c
     scipy/special/specfunmodule.c
+
+    # mvn is disabled due to f2c compilation problems
+    # see: https://mail.scipy.org/pipermail/scipy-dev/2010-January/013713.html
+    # scipy/stats/mvndst.f
+    # scipy/stats/mvn-f2pywrappers.f
+    # scipy/stats/mvnmodule.c
+    scipy/stats/statlibmodule.c
+    scipy/stats/statlib/ansari.f
+    scipy/stats/statlib/spearman.f
+    scipy/stats/statlib/swilk.f
 )
-
-
 
 PY_SRCS(
     TOP_LEVEL
@@ -445,6 +506,25 @@ PY_SRCS(
     scipy/__init__.py
     scipy/__config__.py
     scipy/version.py
+
+    scipy/cluster/__init__.py
+    scipy/cluster/hierarchy.py
+    scipy/cluster/vq.py
+
+    CYTHON_C
+    scipy/cluster/_hierarchy.pyx
+    scipy/cluster/_vq.pyx
+
+    scipy/constants/__init__.py
+    scipy/constants/codata.py
+    scipy/constants/constants.py
+
+    scipy/fftpack/__init__.py
+    scipy/fftpack/basic.py
+    scipy/fftpack/fftpack_version.py
+    scipy/fftpack/helper.py
+    scipy/fftpack/pseudo_diffs.py
+    scipy/fftpack/realtransforms.py
 
     scipy/integrate/__init__.py
     scipy/integrate/quadpack.py
@@ -538,8 +618,8 @@ PY_SRCS(
     scipy/special/_ellip_harm.py
     scipy/special/basic.py
     scipy/special/spfun_stats.py
-#   scipy/special/_testutils.py
-#   scipy/special/_mptestutils.py
+    # scipy/special/_testutils.py
+    # scipy/special/_mptestutils.py
     scipy/special/add_newdocs.py
     scipy/special/_spherical_bessel.py
 
@@ -555,9 +635,35 @@ PY_SRCS(
 
     CYTHON_CPP
     scipy/special/_ufuncs_cxx.pyx
+
+    scipy/stats/__init__.py
+    scipy/stats/_distr_params.py
+    scipy/stats/kde.py
+    scipy/stats/mstats.py
+    scipy/stats/distributions.py
+    scipy/stats/vonmises.py
+    scipy/stats/_continuous_distns.py
+    scipy/stats/contingency.py
+    scipy/stats/_stats_mstats_common.py
+    scipy/stats/_multivariate.py
+    scipy/stats/mstats_extras.py
+    scipy/stats/morestats.py
+    scipy/stats/_tukeylambda_stats.py
+    scipy/stats/_distn_infrastructure.py
+    scipy/stats/mstats_basic.py
+    scipy/stats/_constants.py
+    scipy/stats/stats.py
+    scipy/stats/_binned_statistic.py
+    scipy/stats/_discrete_distns.py
+
+    CYTHON_CPP
+    scipy/stats/_stats.pyx
 )
 
 PY_REGISTER(
+    scipy.fftpack._fftpack
+    scipy.fftpack.convolve
+
     scipy.integrate._odepack
     scipy.integrate._quadpack
     scipy.integrate.vode
@@ -578,6 +684,11 @@ PY_REGISTER(
     scipy.optimize.moduleTNC
 
     scipy.special.specfun
+
+    scipy.stats.statlib
+    # mvn is disabled due to f2c compilation problems
+    # see: https://mail.scipy.org/pipermail/scipy-dev/2010-January/013713.html
+    # scipy.stats.mvn
 )
 
 END()

@@ -34,9 +34,7 @@
 #include <thrust/system/tbb/detail/uninitialized_fill.h>
 #endif
 
-#define __THRUST_HOST_SYSTEM_UNINITIALIZED_FILL_HEADER <__THRUST_HOST_SYSTEM_ROOT/detail/uninitialized_fill.h>
-#include __THRUST_HOST_SYSTEM_UNINITIALIZED_FILL_HEADER
-#undef __THRUST_HOST_SYSTEM_UNINITIALIZED_FILL_HEADER
+#include <thrust/system/cpp/detail/uninitialized_fill.h>
 
 #define __THRUST_DEVICE_SYSTEM_UNINITIALIZED_FILL_HEADER <__THRUST_DEVICE_SYSTEM_ROOT/detail/uninitialized_fill.h>
 #include __THRUST_DEVICE_SYSTEM_UNINITIALIZED_FILL_HEADER
